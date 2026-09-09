@@ -79,6 +79,8 @@ async function boot() {
     },
     getTime: () => simTime,
     ready,
+    failures: world.failures,
+    headless,
     audits,
     terrain,
     setQuality: () => {

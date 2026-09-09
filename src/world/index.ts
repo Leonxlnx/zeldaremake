@@ -37,9 +37,16 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'props', create: props.create },
 ];
 
+export interface SystemFailure {
+  name: string;
+  error: string;
+}
+
 export interface World {
   ctx: WorldContext;
   systems: WorldSystem[];
+  /** systems whose create() threw. Interactive mode tolerates this; capture mode fails closed. */
+  failures: SystemFailure[];
   update(dt: number, t: number): void;
   dispose(): void;
 }
@@ -84,6 +91,7 @@ export async function createWorld(opts: {
   };
 
   const systems: WorldSystem[] = [];
+  const failures: SystemFailure[] = [];
   for (const s of SYSTEMS) {
     const t0 = performance.now();
     try {
@@ -96,6 +104,8 @@ export async function createWorld(opts: {
       ctx.progress(s.name, 1);
       console.info(`[world] ${s.name} ready in ${(performance.now() - t0).toFixed(0)} ms`);
     } catch (e) {
+      const error = e instanceof Error ? `${e.message}\n${e.stack ?? ''}` : String(e);
+      failures.push({ name: s.name, error });
       console.error(`[world] system "${s.name}" failed to build`, e);
       ctx.progress(s.name, 1);
     }
@@ -104,6 +114,7 @@ export async function createWorld(opts: {
   return {
     ctx,
     systems,
+    failures,
     update(dt, t) {
       ctx.wind.update(dt, t);
       for (const s of systems) s.update?.(dt, t, ctx);

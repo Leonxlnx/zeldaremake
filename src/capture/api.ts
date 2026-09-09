@@ -40,6 +40,9 @@ export interface CaptureHooks {
   getTime(): number;
   /** promise resolved when all systems reported ready */
   ready: Promise<void>;
+  /** systems whose create() threw — under capture this makes ready() reject (fail closed) */
+  failures: { name: string; error: string }[];
+  headless: boolean;
   audits: Map<string, () => Record<string, unknown>>;
   setQuality(tier: string): void;
   terrain: Terrain;
@@ -47,7 +50,13 @@ export interface CaptureHooks {
 
 export interface ZRApi {
   version: 1;
+  /**
+   * Resolves true when every system built. Under capture (`?capture=1`) it REJECTS if any system
+   * failed, so a partial world can never be scored as if it were complete (fail closed).
+   */
   ready(): Promise<boolean>;
+  /** systems that failed to build (empty when healthy) */
+  failures(): { name: string; error: string }[];
   viewpoints(): { id: string; label: string; refSeconds: number; diagnostic: boolean }[];
   setViewpoint(id: string): boolean;
   setPose(position: [number, number, number], target: [number, number, number], fov?: number): void;
@@ -153,8 +162,15 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
     version: 1,
     ready: async () => {
       await hooks.ready;
+      if (hooks.failures.length) {
+        const list = hooks.failures.map((f) => `${f.name}: ${f.error.split('\n')[0]}`).join('; ');
+        if (hooks.headless) throw new Error(`world incomplete — ${hooks.failures.length} system(s) failed to build: ${list}`);
+        console.warn(`[capture] world incomplete: ${list}`);
+        return false;
+      }
       return true;
     },
+    failures: () => hooks.failures.map((f) => ({ ...f })),
     viewpoints: () => LAYOUT.viewpoints.map((v) => ({ id: v.id, label: v.label, refSeconds: v.refSeconds, diagnostic: !!v.diagnostic })),
     setViewpoint: (id) => hooks.setViewpoint(id),
     setPose: (p, t, fov) => hooks.setPose(p, t, fov),
@@ -188,7 +204,12 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
           systems[name] = { error: String(e) };
         }
       }
-      return { scene: sceneAudit(hooks.scene), systems, layout: { viewpoints: LAYOUT.viewpoints.map((v) => v.id), stairs: LAYOUT.stairs.map((s) => ({ id: s.id, steps: s.steps })) } };
+      return {
+        scene: sceneAudit(hooks.scene),
+        systems,
+        systemFailures: hooks.failures.map((f) => ({ ...f })),
+        layout: { viewpoints: LAYOUT.viewpoints.map((v) => v.id), stairs: LAYOUT.stairs.map((s) => ({ id: s.id, steps: s.steps })) },
+      };
     },
     setQuality: (tier) => hooks.setQuality(tier),
     probe: (x, z) => ({ height: hooks.terrain.height(x, z), slope: hooks.terrain.slope(x, z), mask: { ...hooks.terrain.mask(x, z) } }),
