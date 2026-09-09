@@ -74,6 +74,10 @@ async function boot() {
     setViewpoint: (id) => cam.setViewpoint(id),
     setPose: (p, t, fov) => cam.setPose(p, t, fov),
     step,
+    setTime: (t) => {
+      simTime = t;
+    },
+    getTime: () => simTime,
     ready,
     audits,
     terrain,
