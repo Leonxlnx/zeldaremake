@@ -111,17 +111,31 @@ export function create(ctx: WorldContext): WorldSystem {
       counts.pots++;
     } else if (def.kind === 'crate') {
       const w=s, h=s*.82, plank=s/5;
+      const plankRng = createRng(`${ctx.config.seed}/props/${def.id}/planks`);
+      function cratePlank(width: number, height: number, depth: number, position: Vector3, grainAxis: 'x' | 'y', tint?: number) {
+        add(new BoxGeometry(width, height, depth), 'wood', position, undefined, tint);
+        const geometry = batches.wood[batches.wood.length - 1];
+        const colors = geometry.attributes.color, normals = geometry.attributes.normal;
+        // One stable value per board; exposed cuts absorb more stain than long grain.
+        // Face normals identify the true ends before any prop rotation or ground fitting.
+        const value = plankRng.range(.92, 1.08);
+        for (let i = 0; i < colors.count; i++) {
+          const alongGrain = Math.abs(grainAxis === 'x' ? normals.getX(i) : normals.getY(i));
+          const shade = value * (alongGrain > .9 ? .76 : 1);
+          colors.setXYZ(i, colors.getX(i) * shade, colors.getY(i) * shade, colors.getZ(i) * shade);
+        }
+      }
       for (let i=0;i<5;i++) {
         const p=-w/2+plank*(i+.5);
         for (const side of [-1,1]) {
-          add(new BoxGeometry(plank*.94,h,.055), 'wood',new Vector3(p,h/2,side*w/2));
-          add(new BoxGeometry(.055,h,plank*.94), 'wood',new Vector3(side*w/2,h/2,p));
+          cratePlank(plank*.94,h,.055,new Vector3(p,h/2,side*w/2),'y');
+          cratePlank(.055,h,plank*.94,new Vector3(side*w/2,h/2,p),'y');
         }
-        add(new BoxGeometry(w, .055, plank*.94),'wood',new Vector3(0,h,p));
-        add(new BoxGeometry(w, .055, plank*.94),'wood',new Vector3(0,.0275,p));
+        cratePlank(w,.055,plank*.94,new Vector3(0,h,p),'x');
+        cratePlank(w,.055,plank*.94,new Vector3(0,.0275,p),'x');
       }
       for (const side of [-1,1]) {
-        for (const y of [.11*h,.86*h]) add(new BoxGeometry(w+.07,.075,.047),'wood',new Vector3(0,y,side*(w/2+.046)),undefined,0x514530);
+        for (const y of [.11*h,.86*h]) cratePlank(w+.07,.075,.047,new Vector3(0,y,side*(w/2+.046)),'x',0x514530);
         beam(new Vector3(-w*.4,h*.18,side*(w/2+.077)),new Vector3(w*.4,h*.8,side*(w/2+.077)),.065,.035);
         for (const px of [-w*.39,w*.39]) for (const y of [.11*h,.86*h]) add(new CylinderGeometry(.012,.012,.014,6),'iron',new Vector3(px,y,side*(w/2+.075)),new Quaternion().setFromAxisAngle(new Vector3(1,0,0),Math.PI/2));
       }
