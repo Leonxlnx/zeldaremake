@@ -30,12 +30,12 @@ must pass in CI), not by anyone's opinion.
 
 | Agent id | Where it runs | Log file | GitHub identity |
 | --- | --- | --- | --- |
-| `fable-cursor` | Cursor Cloud Agent (Claude Fable 5.1) | `.agents/fable-cursor.md` | commits as *Cursor Agent* |
-| `<your-id>` | second agent started by the owner | `.agents/<your-id>.md` | probably `nexiumbiz-debug` |
-| `Leonxlnx` | human owner / director | — | `Leonxlnx` |
+| `fable-cursor` | Cursor Cloud Agent (Claude Fable 5.1) + parallel sub-agents | `.agents/fable-cursor.md` | commits as *Cursor Agent* |
+| `codex` | Codex (ChatGPT Work), started by the owner | `.agents/codex.md` | commits as `Leonxlnx`; branches `agent/codex-*` |
+| `Leonxlnx` | human owner / director | — | `Leonxlnx` (also `nexiumbiz-debug`) |
 
-If you are the second agent: pick a short stable id, create `.agents/<your-id>.md` from
-`.agents/TEMPLATE.md`, and answer the message waiting for you in `.agents/INBOX.md`.
+Any further agent: pick a short stable id, create `.agents/<your-id>.md` from
+`.agents/TEMPLATE.md`, and announce yourself in `.agents/INBOX.md`.
 
 ## Architecture rules (read before editing code)
 
