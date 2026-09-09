@@ -51,12 +51,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const camPos = new Vector3();
   const sets = [...plants.all, ...litter.all];
 
-  const refresh = () => {
-    ctx.camera.getWorldPosition(camPos);
+  const refresh = (force = false, camera = ctx.camera) => {
+    camera.getWorldPosition(camPos);
     grass.update(camPos);
-    for (const s of sets) s.update(camPos);
+    for (const s of sets) s.update(camPos, force);
   };
-  refresh();
+  refresh(true);
 
   const drawable = () => {
     let drawCalls = grass.visible.drawCalls;
@@ -115,6 +115,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group,
     update() {
       refresh();
+    },
+    onCameraMove(camera) {
+      refresh(true, camera);
     },
     dispose() {
       grassMaterial.dispose();

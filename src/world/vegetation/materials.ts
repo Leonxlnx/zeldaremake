@@ -7,9 +7,9 @@
  * Litter and moss are static. All foliage is double sided and gets a cheap translucency
  * term (backlight through the lamina) so blades glow when the sun is behind them.
  */
-import { Color, DoubleSide, FrontSide, MeshStandardMaterial, type WebGLProgramParametersWithUniforms } from 'three';
+import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, MeshStandardMaterial, RGBADepthPacking, type WebGLProgramParametersWithUniforms } from 'three';
 import type { WorldContext } from '../system';
-import { WIND_GLSL } from '../wind/wind';
+import { WIND_GLSL, type Wind } from '../wind/wind';
 
 export type VegKind = 'grass' | 'plant' | 'bush' | 'litter' | 'moss';
 
@@ -143,6 +143,42 @@ export interface VegMaterialOptions {
   name?: string;
 }
 
+// Retain the same uniform objects across color and shadow passes; copying their values would
+// freeze shadow wind at creation time. Weak keys do not extend the source material's lifetime.
+const plantWind = new WeakMap<MeshStandardMaterial, {
+  kind: 'plant' | 'bush';
+  wind: Wind;
+  uniforms: Record<string, { value: unknown }>;
+}>();
+
+function injectPlantVertex(vertexShader: string): string {
+  if (!vertexShader.includes('#include <project_vertex>')) {
+    throw new Error('Vegetation wind shader requires the Three.js project_vertex chunk');
+  }
+  return `${WIND_GLSL}\n${PLANT_VERTEX_PARS}\n${vertexShader}`
+    .replace('#include <project_vertex>', PLANT_PROJECT_VERTEX)
+    // The distance shader consumes worldPosition; the depth shader only needs gl_Position.
+    .replace('#include <worldpos_vertex>', WORLDPOS_VERTEX);
+}
+
+/** Matching wind deformation for directional/spot and point-light shadows. Caller owns disposal. */
+export function createVegShadowMaterials(source: MeshStandardMaterial): { depth: MeshDepthMaterial; distance: MeshDistanceMaterial } {
+  const state = plantWind.get(source);
+  if (!state) throw new Error('Vegetation shadows require a plant or bush material from createVegMaterial');
+  const depth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: source.side });
+  const distance = new MeshDistanceMaterial({ side: source.side });
+  for (const [pass, mat] of [['depth', depth], ['distance', distance]] as const) {
+    mat.name = `${source.name}-${pass}`;
+    mat.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, state.uniforms);
+      shader.vertexShader = injectPlantVertex(shader.vertexShader);
+    };
+    mat.customProgramCacheKey = () => `veg-${state.kind}-${pass}-v1`;
+    state.wind.bind(mat);
+  }
+  return { depth, distance };
+}
+
 export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMaterialOptions = {}): MeshStandardMaterial {
   const P = ctx.config.palette;
   const mat = new MeshStandardMaterial({
@@ -166,6 +202,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     uniforms.uSwayAmount = { value: opts.sway ?? (kind === 'bush' ? 2.2 : 3.2) };
     uniforms.uFlutterAmount = { value: opts.flutter ?? (kind === 'bush' ? 0.028 : 0.014) };
     uniforms.uStiffness = { value: opts.stiffness ?? (kind === 'bush' ? 0.55 : 0.3) };
+    plantWind.set(mat, { kind, wind: ctx.wind, uniforms });
   }
 
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
@@ -180,13 +217,13 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
         .replace('#include <project_vertex>', GRASS_PROJECT_VERTEX)
         .replace('#include <worldpos_vertex>', WORLDPOS_VERTEX);
     } else if (kind === 'plant' || kind === 'bush') {
-      vs = `${WIND_GLSL}\n${PLANT_VERTEX_PARS}\n${vs}`.replace('#include <project_vertex>', PLANT_PROJECT_VERTEX).replace('#include <worldpos_vertex>', WORLDPOS_VERTEX);
+      vs = injectPlantVertex(vs);
     }
     fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${fs}`.replace('#include <lights_fragment_end>', FOLIAGE_FRAGMENT_LIGHTS);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v3`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v4`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

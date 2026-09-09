@@ -108,28 +108,28 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
   const m = new MeshBuilder();
   const high = detail === 'high';
   const low = detail === 'low';
-  const stems = 4 + rng.int(0, 3);
-  const height = 0.7 + rng() * 0.5;
+  const stems = 5 + rng.int(0, 3);
+  const height = 0.95 + rng() * 0.55;
   const phase = rng() * TAU;
   for (let s = 0; s < stems; s++) {
     const angle = phase + (s * TAU) / stems + (rng() - 0.5) * 0.8;
     const radial = V(Math.cos(angle), 0, Math.sin(angle));
     const lateral = V(-Math.sin(angle), 0, Math.cos(angle));
-    const bend = 0.25 + rng() * 0.35;
+    const bend = 0.32 + rng() * 0.4;
     const h = height * (0.65 + rng() * 0.35);
     const curve = (t: number) => radial.clone().multiplyScalar(0.05 + bend * t * t).addScaledVector(lateral, Math.sin(t * Math.PI) * 0.06).add(V(0, t * h, 0));
     tube(m, sampleCurve(curve, high ? 5 : 3), 0.012 + rng() * 0.005, 0.0025, pal.bark, high ? 4 : 3);
-    const branches = high ? 4 : low ? 2 : 3;
+    const branches = high ? 5 : low ? 2 : 3;
     for (let b = 0; b < branches; b++) {
       const t = 0.2 + (b / Math.max(1, branches - 1)) * 0.72;
       const start = curve(t);
       const sign = b % 2 ? -1 : 1;
-      const reach = (0.26 + rng() * 0.18) * (1.1 - t * 0.3);
+      const reach = (0.32 + rng() * 0.22) * (1.1 - t * 0.3);
       const branchDir = lateral.clone().multiplyScalar(sign * (0.7 + rng() * 0.35)).addScaledVector(radial, 0.45 + rng() * 0.4).normalize();
       const rise = 0.1 + rng() * 0.18;
       const twig = (u: number) => start.clone().addScaledVector(branchDir, reach * u).add(V(0, rise * u + Math.sin(u * Math.PI) * 0.04, 0));
       if (!low) tube(m, sampleCurve(twig, high ? 3 : 2), 0.005 * (1 - t * 0.4), 0.001, tone(pal.bark, 1.15), 3);
-      const leafCount = high ? 7 : low ? 4 : 5;
+      const leafCount = high ? 9 : low ? 4 : 6;
       for (let l = 0; l < leafCount; l++) {
         const u = 0.1 + (l / (leafCount - 1)) * 0.9;
         const attach = twig(u);
@@ -140,7 +140,7 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
           .addScaledVector(branchDir, 0.4 + rng() * 0.35)
           .add(V(0, (rng() - 0.4) * 0.7, 0))
           .normalize();
-        const len = (0.11 + rng() * 0.07) * (1.05 - u * 0.15) * (low ? 1.5 : 1);
+        const len = (0.16 + rng() * 0.09) * (1.05 - u * 0.15) * (low ? 1.4 : 1);
         const sun = Math.min(1, (attach.y / height) * 0.7 + Math.hypot(attach.x, attach.z) * 0.5);
         const color = tone(blend(pal.leaf, pal.leafSun, sun * 0.7), 0.85 + rng() * 0.3);
         const opts = { curl: 0.1 + rng() * 0.12, twist: (rng() - 0.5) * 0.6, ridge: 0.12 };
