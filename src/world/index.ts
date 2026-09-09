@@ -23,6 +23,7 @@ import * as rocks from './rocks';
 import * as structures from './structures';
 import * as trees from './trees';
 import * as vegetation from './vegetation';
+import * as props from './props';
 
 const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'lighting', create: lighting.create },
@@ -33,6 +34,7 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'structures', create: structures.create },
   { name: 'trees', create: trees.create },
   { name: 'vegetation', create: vegetation.create },
+  { name: 'props', create: props.create },
 ];
 
 export interface World {
