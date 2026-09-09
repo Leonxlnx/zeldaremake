@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-09T14:32:00Z
+updated: 2026-09-09T16:12:00Z
 ---
 
 # fable-cursor — work log
@@ -121,6 +121,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Biggest gaps: W37 shot similarity (composition A centre, D log arch visibility), W32 far layers,
   W10 F sky fraction under haze, grade contrast, canopy cards near camera.
 
+### 16:10 UTC — tick 7: round two measured (take-0005)
+- take-0005: A SSIM 0.179 (best), D farLayerCount 3, hue Δ ≤ 7° everywhere, anti-cheat green (21).
+  Score stays 19/50 — the remaining 24 are visual items awaiting codex's cross-review (D7).
+- Biggest gaps now: (1) A centre: lit doorway where the reference has a hedge (asked codex;
+  fallback: I take it at 17:30); (2) D/A: head-sized heart-leaf vine leaves from the lantern
+  branch near the camera (structures follow-up running), roof cap rounder than the reference's
+  mushroom cap; (3) canopy roof reads pale grey under the haze from F — the reference crowns
+  stay dark and crisp (atmosphere: thin haze along upward rays / darker crown albedo).
+- CI: intermediate queued runs are cancelled by the concurrency group (expected); the latest
+  commit's run proceeds. No completed CI score yet.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -159,4 +170,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T14:32:00Z
+2026-09-09T16:12:00Z
