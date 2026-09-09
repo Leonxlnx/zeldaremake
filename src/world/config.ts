@@ -18,7 +18,7 @@ export const WORLD = {
   // strong shafts entering high from the upper-left of the frame, soft long shadows.
   sun: {
     azimuthDeg: -128, // measured from +Z toward +X; negative = light coming from the west-north-west
-    elevationDeg: 34,
+    elevationDeg: 38,
     color: 0xfff1d6,
     intensity: 4.6,
     shadowMapSize: 4096,
@@ -26,10 +26,10 @@ export const WORLD = {
   },
 
   sky: {
-    zenith: 0xa9c4d6,
-    horizon: 0xe6ecdc,
-    hemiSky: 0xb9cfd9,
-    hemiGround: 0x5a6a3f,
+    zenith: 0xbccccf,
+    horizon: 0xe4e6d6,
+    hemiSky: 0xc1ccc7,
+    hemiGround: 0x525a37,
     hemiIntensity: 0.9,
   },
 
@@ -47,26 +47,30 @@ export const WORLD = {
     maxPixelRatio: 1.5,
   },
 
-  /** Color palette sampled from the reference (linear-ish hex values for materials). */
+  /**
+   * Material palette. Reference hero frames measure olive/khaki and low-key (hue 47–51°, sat
+   * 0.16–0.19, lum 0.35–0.39 — see reference/palette.json); these albedos sit halfway between the
+   * first-pass greens and those measured (post-haze) values so the final graded frame lands on them.
+   */
   palette: {
-    grassLight: 0x9fb864,
-    grassMid: 0x6f9a42,
-    grassDeep: 0x3f6a2c,
-    mossBright: 0x86a94c,
-    mossDeep: 0x4e7332,
+    grassLight: 0x94a25c,
+    grassMid: 0x657e3a,
+    grassDeep: 0x3c5726,
+    mossBright: 0x88994a,
+    mossDeep: 0x546236,
     soil: 0x6b5a3e,
     soilDark: 0x453827,
-    flagstone: 0xa89f88,
-    flagstoneDark: 0x7f7766,
-    barkWhite: 0xd8d4c6,
-    barkGrey: 0x8f8b80,
-    barkDark: 0x4d443a,
-    leafCanopy: 0x5c8a3a,
-    leafSun: 0xa6c95a,
+    flagstone: 0xa79b7e,
+    flagstoneDark: 0x797261,
+    barkWhite: 0xc8c3b5,
+    barkGrey: 0x847f74,
+    barkDark: 0x4a4136,
+    leafCanopy: 0x546f38,
+    leafSun: 0x96aa50,
     lanternGlow: 0xffb13b,
     fairyGlow: 0xdfffff,
-    fernGreen: 0x4f7f3a,
-    flowerPurple: 0x8a5bb5,
+    fernGreen: 0x5c7434,
+    flowerPurple: 0x8255a0,
   },
 } as const;
 

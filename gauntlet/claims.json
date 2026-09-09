@@ -53,6 +53,48 @@
       "at": "2026-09-09T11:55:00Z",
       "scope": "vegetation maintenance: depth-material wind parity, forced LOD refresh on onCameraMove, bigger leafy ledge bushes; src/world/vegetation/**",
       "expiresHours": 12
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09",
+        "W10",
+        "W11",
+        "W12",
+        "W13",
+        "W14",
+        "W20",
+        "W21",
+        "W23",
+        "W24",
+        "W25",
+        "W26",
+        "W27",
+        "W28",
+        "W29",
+        "W30",
+        "W31",
+        "W32",
+        "W33",
+        "W34",
+        "W35",
+        "W36",
+        "W37",
+        "W38",
+        "W39",
+        "W40",
+        "W41",
+        "W42"
+      ],
+      "at": "2026-09-09T13:48:58.092Z",
+      "expiresHours": 3
     }
   ]
 }
