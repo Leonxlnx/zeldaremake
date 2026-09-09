@@ -68,13 +68,15 @@ export interface GiantOptions {
    */
   boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number; foliage?: number }[];
   /**
-   * Shaft corridors (local space): infinite lines along the sun direction. Foliage inside a
-   * corridor is not built (cluster cards never; laminae only with probability `porosity`), so the
-   * canopy shadow map carries a few bold holes (god-ray slabs, sunlit ground) instead of only
-   * fine-grained gaps. Wood is untouched — the branches inside keep casting thin shadows, and the
-   * porous laminae add leaf-sized dapple to the sunlit patch.
+   * Clear corridors (local space): infinite lines, along the sun direction (shafts, sunlit ground)
+   * or along a hero camera's line of sight (canopy gaps). Foliage inside a corridor is not built
+   * (laminae only with probability `porosity`, cluster cards only with probability `cardPorosity`,
+   * default none), so the canopy shadow map carries a few bold holes instead of only fine-grained
+   * gaps, or the view opens onto the haze. Wood is untouched — the branches inside keep casting
+   * thin shadows; surviving laminae add a leaf fringe, surviving cards (0.5–1.2 m) are what casts
+   * visible dapple from 25 m up, where laminae blur away in the soft shadow filter.
    */
-  corridors?: { point: Vector3; dir: Vector3; radius: number; porosity?: number }[];
+  corridors?: { point: Vector3; dir: Vector3; radius: number; porosity?: number; cardPorosity?: number }[];
   /**
    * Foliage scale of the authored lantern limb's lobes (1 = full). The reference limb in shot A
    * is a bare bough with a few leaf clusters and haze between them, not a hedge on a pole.
@@ -221,6 +223,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   });
   const corridors = o.corridors ?? [];
   const corrTmp = new Vector3();
+  // corridor survival draws come from their own stream, so editing a corridor never re-rolls the
+  // rest of the tree (limbs, crown) that is generated after the foliage it touches
+  const rc = r.fork('corridors');
   /** the tightest corridor containing p (smallest porosity wins), or null */
   const inCorridor = (p: Vector3) => {
     let hit: (typeof corridors)[number] | null = null;
@@ -232,13 +237,21 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     return hit;
   };
-  /** false when a lamina at p must be dropped for a corridor (draws one rng value inside porous ones) */
+  /** false when a lamina at p must be dropped for a corridor */
   const leafAllowed = (p: Vector3) => {
     if (!corridors.length) return true;
     const c = inCorridor(p);
     if (!c) return true;
     const porosity = c.porosity ?? 0;
-    return porosity > 0 && r() < porosity;
+    return porosity > 0 && rc() < porosity;
+  };
+  /** false when a cluster card at p must be dropped for a corridor */
+  const cardAllowed = (p: Vector3) => {
+    if (!corridors.length) return true;
+    const c = inCorridor(p);
+    if (!c) return true;
+    const porosity = c.cardPorosity ?? 0;
+    return porosity > 0 && rc() < porosity;
   };
   let lobe: { center: Vector3; hR: number } | null = null;
   function leafSpray(path: Vector3[], pathRadius: number, count: number, vigor = 1, startT = 0.15) {
@@ -297,7 +310,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const ph = Math.acos(2 * r() - 1);
       const local = new Vector3(Math.sin(ph) * Math.cos(th) * hR * rr, Math.cos(ph) * vR * rr, Math.sin(ph) * Math.sin(th) * hR * rr);
       const p = center.clone().add(local);
-      if (corridors.length && inCorridor(p)) continue;
+      if (!cardAllowed(p)) continue;
       cardN.set(local.x / hR, local.y / vR + 0.7, local.z / hR).normalize();
       cardN.x += bt(-0.35, 0.35);
       cardN.z += bt(-0.35, 0.35);
@@ -443,11 +456,13 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
     }
-    // continuation beyond `to`: thinner, curling up into a final lobe
+    // short continuation beyond `to`: thinner, barely lifting, so the tip and its cluster stay at
+    // the bough's own height (the reference bough ends in a small leaf cluster just past the last
+    // pod, not in a crown that climbs into the upper-left of shot A)
     const tail = 3;
     for (let k = 1; k <= tail; k++) {
       const s = k / tail;
-      const p = to.clone().addScaledVector(dir, 2.6 * s).addScaledVector(UP, 0.9 * s * s).addScaledVector(side, 0.5 * s);
+      const p = to.clone().addScaledVector(dir, 1.8 * s).addScaledVector(UP, 0.25 * s * s).addScaledVector(side, 0.4 * s);
       path.push(p);
       radii.push(r1 * (1 - 0.72 * s));
     }
@@ -455,14 +470,18 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     limbPath = path;
     limbs++;
     // foliage rides on top of the limb (lanterns hang below it) as separate small clusters —
-    // the bough itself stays readable between them, with haze showing through
+    // the bough itself stays readable between them, with haze showing through. The outer cluster
+    // sits at 0.6 (world x ≈ −1.4): from camera A that is the top-left corner, where the
+    // reference has near foliage, not the upper-left band, where it has only veiled far trees. It
+    // is a wide, loose lobe: from F it is the near roof at the centre-right of the frame and keeps
+    // the canopy there closed now that the old tip clusters are gone.
     const lf = o.limbFoliage ?? 1;
-    limbLobes(path, r0, [0.32, 0.78], 1.2 + 0.8 * lf, 0.6 + 0.4 * lf, 1.0 + 0.4 * lf, 0.4 * lf, lf);
-    // end lobe
-    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 0.5 + 0.4 * lf).addScaledVector(dir, 0.8);
+    limbLobes(path, r0, [0.32, 0.6], 1.4 + 0.9 * lf, 0.7 + 0.45 * lf, 1.0 + 0.4 * lf, 0.4 * lf, lf);
+    // small end cluster riding just above the tip
+    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 0.2 + 0.3 * lf).addScaledVector(dir, 0.6);
     const endBough = growthPath(path[path.length - 2], endCenter, dir, r, 5, 0.5);
     tube(wood, endBough, taper(endBough, 0.09, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
-    foliateLobe(endBough, endCenter, 1.3 + 1.1 * lf, 0.7 + 0.5 * lf, 0.09, lf < 0.7 ? 2 : 3, 3, lf < 0.7 ? 3 : 4, 0.45 * lf, lf);
+    foliateLobe(endBough, endCenter, 0.8 + 0.7 * lf, 0.45 + 0.35 * lf, 0.09, lf < 0.7 ? 2 : 3, 3, lf < 0.7 ? 3 : 4, 0.35 * lf, lf);
   }
 
   // ---------- authored boughs (e.g. the pair reaching over Saria's roof) ----------

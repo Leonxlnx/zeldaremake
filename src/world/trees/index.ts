@@ -42,7 +42,9 @@ const HOUSE_BOUGHS = [
   { giant: 'plateau-oak', to: [12.5, 9.0, -11.5] as [number, number, number], fromHeight: 6.6, radius: 0.62, foliage: 1 },
   { giant: 'plateau-oak', to: [15.4, 10.4, -8.4] as [number, number, number], fromHeight: 8.1, radius: 0.48, foliage: 1 },
   // sparse: this bough crosses the upper-left of shot A, where the reference shows a bare limb
-  // with a few leaf clusters and open haze between them
+  // with a few leaf clusters and open haze between them. Its height is load-bearing for shot B:
+  // the lobes' shadows are the shaded band across B's mid path (z −5…−8); raised to 10.6 m they
+  // slid off the path and B's foreground measured 0.58 against the reference's 0.48.
   { giant: 'lantern-tree', to: [3.0, 8.6, -14.0] as [number, number, number], fromHeight: 6.8, radius: 0.6, foliage: 0.5 },
 ];
 /**
@@ -73,6 +75,44 @@ const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number }[] = 
 ];
 const PLAZA_SUN_POROSITY = 0.2;
 /**
+ * Sunlit path in shot D: camera D (z ≈ −3, level, fov 48) sees the path from z ≈ −8 to −16 in its
+ * foreground; the reference path there is sunlit with Link's shadow on it. Sun-probes from those
+ * ground points show the sun cone 50–80 % open with the occluders 17–30 m along the ray: the
+ * lantern tree's north limb lobes and the north-west giant's south lobes. Porous corridors through
+ * those (same treatment as the plaza) leave leaf dapple; the porosity is higher than the plaza's
+ * because the reference path here is half dappled (p50 ≈ 0.50 against 0.63 for its lit stone), and
+ * at 0.25 the slabs measured fully lit. The points start at z −10 so the corridors stay off the
+ * shaded band of shot B's foreground (z −5…−8, which the reference keeps in shade), and they stay
+ * on the path: a point over the east verge lit D's right bank, which the reference keeps dark
+ * (0.24). White-bark crowns are not moved for these lines: the nearest (white #27) sits 6.5 m off
+ * the axis, and re-seating it would reshuffle every later placement.
+ */
+const D_PATH_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
+  { point: [0.5, 0, -10.0], radius: 2.2 },
+  { point: [1.5, 0, -14.0], radius: 2.2 },
+];
+const D_PATH_SUN_POROSITY = 0.45;
+/**
+ * share of cluster cards kept inside the D corridors: the occluders sit 17–30 m above the path,
+ * where laminae shadows blur away in the soft shadow filter, so the cards (0.5–1.2 m) are the only
+ * casters that still read as dapple on the slabs (the reference path is half dappled). The narrow
+ * radius does the rest: the slabs between the two sun patches keep their natural part-shade.
+ */
+const D_PATH_CARD_POROSITY = 0.35;
+/**
+ * Canopy gaps over the north hollow as seen from camera D: air points 26–29 m north of the plaza at
+ * 11–13 m (the height of the north-west / north-east giants' low limb lobes, which fill the upper
+ * band of shot D as dark 25–30 m masses). The line from D's eye through each point is a porous
+ * corridor, so the hazed far layer (and the sky at the very top) shows through a few leaf-fringed
+ * openings instead of a closed roof — the reference's top band is crown silhouettes against glare.
+ */
+const HOLLOW_GAP_POINTS: { point: [number, number, number]; radius: number }[] = [
+  { point: [-1.9, 12.1, -28.9], radius: 1.8 },
+  { point: [3.8, 13.0, -28.6], radius: 1.8 },
+  { point: [8.0, 11.4, -28.4], radius: 1.6 },
+];
+const HOLLOW_GAP_POROSITY = 0.15;
+/**
  * Giants whose LOW foliage the hero cameras see from a few metres: the lantern tree's limb lobes
  * hang 3–8 m from cameras A/B, the plateau oak's house boughs are ~20 m from B. Their low lobes
  * get leaf-sized laminae instead of cluster cards (see GiantOptions.eyeDetail).
@@ -84,11 +124,15 @@ const LANTERN_LIMB_FOLIAGE = 0.45;
  * Dense silhouette rows north of the log arch (shot D looks north from z ≈ −1): each fills a
  * narrow depth range so the depth histogram registers a distinct far layer behind the log
  * (crown faces ≈ 47–57 m and ≈ 80–95 m from the camera, with a clear gap after the log/giant
- * run that ends ≈ 37 m), read as dark masses under the haze.
+ * run that ends ≈ 37 m), read as dark masses under the haze. Both rows keep to the two shorter
+ * broad variants at a modest scale (tops ≈ 23–32 m): from D the near row's crown tops then fall
+ * between y ≈ 0.1 and the frame's top edge and the far row stays below them, so the haze/sky
+ * glows between the silhouettes at the top of the shot instead of a 43 m wall closing it (the
+ * reference's top band is crown silhouettes against glare).
  */
 const DEPTH_BANDS: DepthBand[] = [
-  { xMin: -34, xMax: 48, zMin: -61, zMax: -55, spacing: 5.0, scale: [1.25, 1.6], shade: 0.72 },
-  { xMin: -58, xMax: 68, zMin: -98, zMax: -84, spacing: 7, scale: [1.2, 1.55], shade: 0.78 },
+  { xMin: -34, xMax: 48, zMin: -61, zMax: -55, spacing: 5.0, scale: [1.1, 1.3], shade: 0.72, maxVariantHeight: 23 },
+  { xMin: -58, xMax: 68, zMin: -98, zMax: -84, spacing: 7, scale: [1.1, 1.4], shade: 0.78, maxVariantHeight: 23 },
 ];
 const _v = new Vector3();
 const _q = new Quaternion();
@@ -128,11 +172,30 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
-  // world-space sun corridors (see SHAFT_AIR_POINTS / PLAZA_SUN_POINTS)
+  // world-space sun corridors (see SHAFT_AIR_POINTS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS)
+  const groundLine = (q: [number, number, number], radius: number, porosity: number, cardPorosity = 0) => ({
+    point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]),
+    dir: sunDir,
+    radius,
+    porosity,
+    cardPorosity,
+  });
+  const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, PLAZA_SUN_POROSITY));
   const sunCorridors = [
-    ...SHAFT_AIR_POINTS.map((q) => ({ point: new Vector3(q[0], q[1], q[2]), dir: sunDir, radius: SHAFT_RADIUS, porosity: 0 })),
-    ...PLAZA_SUN_POINTS.map(({ point: q, radius }) => ({ point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]), dir: sunDir, radius, porosity: PLAZA_SUN_POROSITY })),
+    ...SHAFT_AIR_POINTS.map((q) => ({ point: new Vector3(q[0], q[1], q[2]), dir: sunDir, radius: SHAFT_RADIUS, porosity: 0, cardPorosity: 0 })),
+    ...plazaCorridors,
+    ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
   ];
+  // view corridors from camera D's eye through the hollow gap points (see HOLLOW_GAP_POINTS)
+  const dView = ctx.layout.viewpoints.find((v) => v.id === 'D_log');
+  const gapCorridors = dView
+    ? HOLLOW_GAP_POINTS.map(({ point: q, radius }) => {
+        const point = new Vector3(q[0], q[1], q[2]);
+        const dir = point.clone().sub(new Vector3(dView.position[0], dView.position[1], dView.position[2])).normalize();
+        return { point, dir, radius, porosity: HOLLOW_GAP_POROSITY, cardPorosity: 0 };
+      })
+    : [];
+  const giantCorridors = [...sunCorridors, ...gapCorridors];
 
   // ------------------------------------------------------------------ white-bark variants
   const whiteRng = rng.fork('whitebark');
@@ -154,7 +217,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     12,
     60,
     // crowns stay out of the plaza sun corridors (trunks may cross them: thin shadows = dapple)
-    sunCorridors.filter((c) => c.porosity > 0).map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
+    plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
   );
   for (const p of whitePlacements) {
     const w = whites[p.variant];
@@ -235,7 +298,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       cardDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * (1 + (1 - farFade)),
       towardPlaza: new Vector3(-px, 0, -pz).normalize(),
       boughs,
-      corridors: sunCorridors.map((c) => ({ point: c.point.clone().sub(origin), dir: c.dir, radius: c.radius, porosity: c.porosity })),
+      corridors: giantCorridors.map((c) => ({ point: c.point.clone().sub(origin), dir: c.dir, radius: c.radius, porosity: c.porosity, cardPorosity: c.cardPorosity })),
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
     });

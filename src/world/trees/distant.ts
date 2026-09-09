@@ -223,6 +223,8 @@ export interface DepthBand {
   scale: [number, number];
   /** brightness multiplier (< 1 = darker silhouette under the haze) */
   shade: number;
+  /** only broad variants up to this unscaled height are used (keeps a row's skyline low) */
+  maxVariantHeight?: number;
 }
 
 export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantVariant[], target: number, inner = 60, outer = 215, bands: DepthBand[] = []): DistantPlacement[] {
@@ -240,6 +242,8 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
   };
   const broadOnly = variants.map((v, i) => (v.kind === 'broad' ? i : -1)).filter((i) => i >= 0);
   for (const band of bands) {
+    const pool = band.maxVariantHeight === undefined ? broadOnly : broadOnly.filter((i) => variants[i].height <= band.maxVariantHeight!);
+    const bandPool = pool.length ? pool : broadOnly;
     const nx = Math.max(1, Math.round((band.xMax - band.xMin) / band.spacing));
     const nz = Math.max(1, Math.round((band.zMax - band.zMin) / band.spacing));
     for (let i = 0; i < nx; i++) {
@@ -251,7 +255,7 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
         if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
         const tintShift = r.range(-0.05, 0.05);
         const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * r.range(0.9, 1.05));
-        push({ variant: broadOnly[r.int(0, broadOnly.length)], x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(band.scale[0], band.scale[1]), tint });
+        push({ variant: bandPool[r.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(band.scale[0], band.scale[1]), tint });
       }
     }
   }
