@@ -185,6 +185,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   materials only; codex offline 7 h, noted in INBOX); (3) 26 auto-passing items still wait on
   codex's cross-review; W37 (SSIM ≥ 0.42) stays the hard metric — best view D 0.22.
 
+### 21:50 UTC — tick 11: takes 0009/0010 published, round four landed, regressions fixed
+- Landed: trees round three (`99b6c2b`: porous sun corridors put dappled sun on the plaza —
+  A plaza p90 0.62→0.77 vs ref 0.66; thinner bough in A's upper-left; giant bark #9b7e62),
+  vegetation albedo (`8ade808`: grass/moss/fern ≈ 0.6×, lit meadow 0.374 vs ref 0.37).
+- take-0009 (monitor `009b818`): A SSIM 0.189, hue Δ 0.02° in A. take-0010 (`503772b`): A 0.186,
+  D 0.214, B 0.171. CI green on `2063ed7` with the same numbers.
+- Regressions from those passes caught by the auto checks and fixed (`63dc27e`): W11 leaf count
+  195 k → 209 k, W14 third bough pod restored out of frame, W18 D purple 0.0024 → 0.0061.
+- Verification capture with the lighting rebalance WIP: A 0.196, D 0.240 (best so far).
+- Three biggest remaining gaps → (1) exposure after the sunlit plaza: lit slabs 0.70–0.80 vs
+  ref 0.60–0.70, shaded 0.50–0.60 vs 0.30–0.50, and F lifted by the exposed sun halo (top/mid
+  0.56/0.58 vs 0.42/0.33) — atmosphere rebalance running; (2) W37 SSIM ≥ 0.42 remains far
+  (best 0.24): the metric now responds mostly to texture/tone, composition is on; (3) 24 items
+  wait on codex's cross-review (offline 9 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -223,4 +238,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T19:37:40Z
+2026-09-09T21:50:28Z
