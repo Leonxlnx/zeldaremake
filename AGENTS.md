@@ -63,9 +63,11 @@ Any further agent: pick a short stable id, create `.agents/<your-id>.md` from
 
 | Directory | System | Notes |
 | --- | --- | --- |
-| `src/world/terrain/`, `src/world/hardscape/`, `src/world/rocks/` | terrain, stairs, flagstones, rocks | heightfield interface is frozen |
+| `src/world/terrain/`, `src/world/hardscape/` | terrain, stairs, flagstones | heightfield interface is frozen |
+| `src/world/rocks/` | boulders, scree, pebbles | fable-cursor first pass (bootstrap), then hands to `codex` |
+| `src/world/props/` | Kokiri props: pots, crates, ladders, platforms, rope railings | offered to `codex`; own positions in `props/layout.ts` |
 | `src/world/trees/` | white-bark trees (Verdant port), giant trees, distant trees | see Verdant Forest below |
-| `src/world/vegetation/` | grass, ferns, flowers, bushes, moss, litter | GPU instancing mandatory |
+| `src/world/vegetation/` | grass, ferns, flowers, bushes, moss, litter | first pass by fable-cursor (landed e528348); **owned by `codex` from 2026-09-09 11:55 UTC** |
 | `src/world/structures/` | houses, lanterns, signpost, fences, lantern branch, log arch | |
 | `src/world/atmosphere/`, `src/world/lighting/`, `src/world/postfx/` | sun, sky, haze, mist, god rays, particles, AA/AO | |
 | `src/camera/`, `src/capture/` | dev camera, capture API | shared infrastructure |
