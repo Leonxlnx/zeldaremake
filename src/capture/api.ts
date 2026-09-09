@@ -34,6 +34,9 @@ export interface CaptureHooks {
   setPose(position: [number, number, number], target: [number, number, number], fov?: number): void;
   /** advance simulation by dt seconds and render one frame */
   step(dt: number): void;
+  /** set / read the world's simulation clock (the one passed to every system's update) */
+  setTime(t: number): void;
+  getTime(): number;
   /** promise resolved when all systems reported ready */
   ready: Promise<void>;
   audits: Map<string, () => Record<string, unknown>>;
@@ -145,7 +148,6 @@ function sceneAudit(scene: Scene): Record<string, unknown> {
 }
 
 export function installCaptureApi(hooks: CaptureHooks): ZRApi {
-  let simTime = 0;
   const api: ZRApi = {
     version: 1,
     ready: async () => {
@@ -157,18 +159,15 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
     setPose: (p, t, fov) => hooks.setPose(p, t, fov),
     render: async (frames = 1, dt = 1 / 60) => {
       for (let i = 0; i < frames; i++) {
-        simTime += dt;
         hooks.step(dt);
         await new Promise((r) => requestAnimationFrame(r));
       }
     },
-    setTime: (t) => {
-      simTime = t;
-    },
+    setTime: (t) => hooks.setTime(t),
     stats: () => {
       const info = hooks.renderer.info;
       return {
-        simTime,
+        simTime: hooks.getTime(),
         drawCalls: info.render.calls,
         triangles: info.render.triangles,
         geometries: info.memory.geometries,
@@ -213,8 +212,10 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       // temporarily render with a far plane at maxDepth so the packed depth maps to [0, maxDepth]
       const prevFar = cam.far;
       const prevNear = cam.near;
-      cam.near = 0.1;
-      cam.far = maxDepth;
+      const near = 0.1;
+      const far = maxDepth;
+      cam.near = near;
+      cam.far = far;
       cam.updateProjectionMatrix();
       scene.overrideMaterial = depthMat;
       scene.background = null;
@@ -238,15 +239,16 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       let sky = 0;
       let n = 0;
       for (let i = 0; i < W * H; i++) {
-        // unpack RGBA depth (three.js packing: r + g/256 + b/65536 + a/16777216)
-        const d = px[i * 4] / 255 + px[i * 4 + 1] / 65280 + px[i * 4 + 2] / 16711680 + px[i * 4 + 3] / 4278190080;
+        // unpack RGBA depth exactly as three r186 packing.glsl.js (unpackRGBAToDepth):
+        // dot(v, vec4(255/256 / (1, 256, 65536), 1/16777216)) with v = px/255, red = coarse channel
+        const d = px[i * 4] / 256 + px[i * 4 + 1] / 65536 + px[i * 4 + 2] / 16777216 + px[i * 4 + 3] / 4278190080;
         if (d >= 0.999) {
           sky++;
           continue;
         }
-        // perspective depth → linear view distance
+        // perspective depth → linear view distance, using the near/far the depth pass was rendered with
         const zNdc = d * 2 - 1;
-        const lin = (2 * cam.near * cam.far) / (cam.far + cam.near - zNdc * (cam.far - cam.near));
+        const lin = (2 * near * far) / (far + near - zNdc * (far - near));
         const b = Math.min(99, Math.floor((lin / maxDepth) * 100));
         buckets[b]++;
         n++;
