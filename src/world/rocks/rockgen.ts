@@ -84,7 +84,9 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const cuts = o.cuts ?? 3;
   const squashY = o.squashY ?? 0.8;
   const freq = (o.freq ?? 1) / Math.max(0.2, r);
-  const base = new IcosahedronGeometry(r, o.detail).toNonIndexed();
+  // PolyhedronGeometry subdivides linearly: 20·(detail+1)² triangles, already non-indexed
+  const ico = new IcosahedronGeometry(r, o.detail);
+  const base = ico.index ? ico.toNonIndexed() : ico;
   const pos = base.attributes.position as Float32BufferAttribute;
   const count = pos.count;
 
@@ -116,8 +118,10 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   // 2. cleave cuts: project everything beyond a plane onto it → flat fracture faces
   for (let c = 0; c < cuts; c++) {
     // bias normals toward the upper hemisphere and sideways so facets are visible
-    _n.set(rng.range(-1, 1), rng.range(-0.2, 1.0), rng.range(-1, 1)).normalize();
-    const dist = r * rng.range(0.5, 0.82) * (0.6 + 0.4 * squashY);
+    _n.set(rng.range(-1, 1), rng.range(-0.15, 1.0), rng.range(-1, 1)).normalize();
+    // deeper cuts on the first planes (big fracture faces), shallower chips afterwards
+    const depth = c < 2 ? rng.range(0.42, 0.62) : rng.range(0.6, 0.82);
+    const dist = r * depth * (0.6 + 0.4 * squashY);
     for (let i = 0; i < count; i++) {
       _p.fromBufferAttribute(pos, i);
       const d = _p.dot(_n);
@@ -169,9 +173,11 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
     // moss: upward faces, noise patches, more in crevices (low ridged value), none right at the base
-    const up = smoothstep(0.15, 0.75, _n.y + 0.25 * N.fbm(x * 2.2, y * 2.2, z * 2.2, 2));
-    const patch = smoothstep(0.35, 0.7, N.fbm(x * 1.4 + 3, y * 1.4 - 5, z * 1.4, 3) * 0.5 + 0.5);
-    moss[i] = clamp(mossAmt * up * (0.35 + 0.85 * patch) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.6), 0, 1);
+    const up = smoothstep(0.0, 0.6, _n.y + 0.3 * N.fbm(x * 2.2, y * 2.2, z * 2.2, 2));
+    const patch = smoothstep(0.22, 0.62, N.fbm(x * 1.4 + 3, y * 1.4 - 5, z * 1.4, 3) * 0.5 + 0.5);
+    // a thin moss/lichen skin also creeps down the shaded sides (sideways normals, low patches)
+    const side = 0.35 * smoothstep(0.55, 0.85, patch) * smoothstep(-0.4, 0.2, _n.y);
+    moss[i] = clamp(mossAmt * (up * (0.45 + 0.75 * patch) + side) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.6), 0, 1);
   }
   base.setAttribute('color', new Float32BufferAttribute(col, 3));
   base.setAttribute('aMoss', new Float32BufferAttribute(moss, 1));

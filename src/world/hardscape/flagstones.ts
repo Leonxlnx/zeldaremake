@@ -1,77 +1,33 @@
 /**
  * Flagstone paving (W03). Seeds are dart-thrown over the paved mask (paths + plaza) with a
- * noise-driven radius so slab sizes vary 0.4–1.6 m. Each seed's Voronoi cell (clipped to the
- * paved boundary and shrunk by the joint width) is filled with the best-fitting of N distinct
- * hand-cut outlines (rotation + scale search on radial profiles), so neighbouring slabs never
- * overlap and the joints stay 4–10 cm. Slabs are seated on the terrain (several samples per
- * stone), tilted to the local normal, with ≤ 4 cm height jitter. Rendered as one InstancedMesh
- * per outline variant (instance colour = per-stone tint, aMossScale = per-stone moss).
+ * noise-driven radius so slab sizes vary 0.4–1.6 m. Each seed's weighted Voronoi cell — clipped
+ * to the paved boundary, shrunk by the joint width, corners chamfered and edges hand-jittered —
+ * IS the slab outline, so every stone is unique, neighbours never overlap and the joints stay a
+ * tight 3–8 cm like the plaza in the reference. Slabs are seated on the terrain (≈ 20 samples per
+ * stone), tilted gently to the local normal, with ≤ 4 cm height jitter, and merged into ONE
+ * geometry (vertex colour = per-stone tint, aMoss = joint moss) → a single draw call.
  */
-import { BufferGeometry, Color, InstancedBufferAttribute, InstancedMesh, Matrix4, Quaternion, Vector3, type Material } from 'three';
+import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, centroid, irregularPolygon, pointInPolygon, polygonArea, radialProfile, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, ccw, centroid, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
-
-const PROFILE_SAMPLES = 32;
-
-export interface StoneVariant {
-  outline: P2[];
-  profile: Float32Array;
-  area: number;
-  geometry: BufferGeometry;
-  thickness: number;
-}
 
 export interface PlacedStone {
   x: number;
   z: number;
   /** world-space outline (top face) */
   polygon: P2[];
-  variant: number;
-  scale: number;
-  rot: number;
+  /** outline hash (for the distinct-shape audit) */
+  shape: string;
+  /** max radius from the seed (m) */
+  radius: number;
+  thickness: number;
   bottomY: number;
   topY: number;
-  matrix: Matrix4;
-  tint: Color;
   moss: number;
-}
-
-export function createStoneVariants(rng: Rng, count: number): StoneVariant[] {
-  const out: StoneVariant[] = [];
-  for (let i = 0; i < count; i++) {
-    const n = rng.int(5, 9);
-    const outline = irregularPolygon(rng, n, {
-      radiusJitter: rng.range(0.12, 0.3),
-      angleJitter: 0.32,
-      subdivide: rng.chance(0.5) ? 2 : 3,
-      edgeJitter: rng.range(0.015, 0.035),
-      aspect: rng.range(0.78, 1.0),
-    });
-    const thickness = rng.range(0.06, 0.088);
-    const mb = new MeshBuilder();
-    const wearN = new Noise2D(`flag-wear-${i}`);
-    buildSlab(mb, outline, {
-      thickness,
-      bevel: rng.range(0.03, 0.05),
-      dip: rng.range(0.008, 0.02),
-      color: [1, 1, 1],
-      sideColor: [0.74, 0.74, 0.76],
-      mossEdge: 0.75,
-      mossInner: 0.05,
-      mossFn: (x, z) => 0.35 + 0.65 * (wearN.fbm(x * 2.2 + i, z * 2.2, 2) * 0.5 + 0.5),
-      uvScale: 0.42,
-      uvOffset: [rng() * 4, rng() * 4],
-      topNoise: (x, z) => 0.003 * wearN.noise(x * 7 + 3, z * 7),
-      rings: 2,
-    });
-    const geometry = mb.build();
-    out.push({ outline, profile: radialProfile(outline, PROFILE_SAMPLES), area: Math.abs(polygonArea(outline)), geometry, thickness });
-  }
-  return out;
 }
 
 // --- geometry helpers ----------------------------------------------------------------------
@@ -92,6 +48,90 @@ function clipHalfPlane(poly: P2[], sx: number, sz: number, nx: number, nz: numbe
     }
   }
   return out;
+}
+
+/** drop vertices closer than `eps` to their predecessor */
+function dedupe(p: P2[], eps: number): P2[] {
+  const out: P2[] = [];
+  for (const q of p) {
+    const last = out[out.length - 1];
+    if (!last || Math.hypot(q.x - last.x, q.z - last.z) > eps) out.push(q);
+  }
+  if (out.length > 1) {
+    const a = out[0];
+    const b = out[out.length - 1];
+    if (Math.hypot(a.x - b.x, a.z - b.z) <= eps) out.pop();
+  }
+  return out;
+}
+
+/**
+ * Turn a Voronoi cell (seed-local coords) into a hand-cut slab outline: shrink by half the joint,
+ * chamfer the corners (worn), split long edges with a small perpendicular jitter. Returns null if
+ * the result is too small to read as a stone.
+ */
+function cellToOutline(cell: P2[], joint: number, rng: Rng, maxRadius: number): P2[] | null {
+  let pts = dedupe(cell, 0.025);
+  if (pts.length < 3) return null;
+  const c = centroid(pts);
+  // radial shrink by joint/2 (robust for the near-convex cells we get from clipping)
+  pts = pts.map((p) => {
+    const dx = p.x - c.x;
+    const dz = p.z - c.z;
+    const l = Math.hypot(dx, dz) || 1e-6;
+    const k = Math.max(0, l - joint / 2) / l;
+    return { x: c.x + dx * k, z: c.z + dz * k };
+  });
+  // cap the slab size (very sparse seed → shrink toward the centroid, the joint widens there)
+  let maxR = 0;
+  for (const p of pts) maxR = Math.max(maxR, Math.hypot(p.x - c.x, p.z - c.z));
+  if (maxR > maxRadius) {
+    const k = maxRadius / maxR;
+    pts = pts.map((p) => ({ x: c.x + (p.x - c.x) * k, z: c.z + (p.z - c.z) * k }));
+  }
+  // chamfer corners: each corner becomes two points along its edges (amount varies per corner)
+  const n = pts.length;
+  const cham: P2[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % n];
+    const len = Math.hypot(b.x - a.x, b.z - a.z);
+    const t = clamp(rng.range(0.16, 0.3), 0, 0.45);
+    if (len < 0.09) {
+      cham.push({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 });
+      continue;
+    }
+    cham.push({ x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t });
+    cham.push({ x: a.x + (b.x - a.x) * (1 - t), z: a.z + (b.z - a.z) * (1 - t) });
+  }
+  // hand-cut edges: split edges > 0.22 m with a ±8 mm perpendicular jitter
+  const out: P2[] = [];
+  const m = cham.length;
+  for (let i = 0; i < m; i++) {
+    const a = cham[i];
+    const b = cham[(i + 1) % m];
+    out.push(a);
+    const ex = b.x - a.x;
+    const ez = b.z - a.z;
+    const len = Math.hypot(ex, ez);
+    if (len > 0.22) {
+      const j = rng.range(-0.008, 0.008);
+      out.push({ x: a.x + ex * 0.5 - (ez / len) * j, z: a.z + ez * 0.5 + (ex / len) * j });
+    }
+  }
+  const final = dedupe(out, 0.012);
+  if (final.length < 4) return null;
+  // size gate: min radius from the centroid ≥ 8 cm and area ≥ 0.05 m² (small fillers are kept —
+  // dropping them leaves bare holes in the paving)
+  const cc = centroid(final);
+  let minR = Infinity;
+  for (const p of final) minR = Math.min(minR, Math.hypot(p.x - cc.x, p.z - cc.z));
+  if (minR < 0.08 || Math.abs(polygonArea(final)) < 0.05) return null;
+  return ccw(final);
+}
+
+function outlineHash(p: P2[]): string {
+  return p.map((q) => `${Math.round(q.x * 100)}:${Math.round(q.z * 100)}`).join('|');
 }
 
 class Grid {
@@ -138,17 +178,19 @@ export function isPaved(pc: PavingContext, x: number, z: number, threshold = 0.5
 
 export interface PavingResult {
   stones: PlacedStone[];
-  meshes: InstancedMesh[];
+  mesh: Mesh;
+  triangles: number;
   grid: Grid;
   /** true if the world point is on a stone's top face */
   onStone(x: number, z: number): boolean;
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedFit: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number };
 }
 
-export function placeFlagstones(pc: PavingContext, variants: StoneVariant[], material: Material): PavingResult {
+export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
   const { terrain, rng, bbox } = pc;
   const sizeNoise = new Noise2D(`${pc.seed}/flag-size`);
   const tintNoise = new Noise2D(`${pc.seed}/flag-tint`);
+  const wearN = new Noise2D(`${pc.seed}/flag-wear`);
 
   // 1. dart-throw seeds with a spatially varying radius
   const seeds: { x: number; z: number; r: number }[] = [];
@@ -156,7 +198,7 @@ export function placeFlagstones(pc: PavingContext, variants: StoneVariant[], mat
   const radiusAt = (x: number, z: number) => {
     const n = sizeNoise.fbm(x * 0.14 + 3, z * 0.14 - 1, 2) * 0.5 + 0.5;
     const plaza = 1 - smoothstep(4.5, 7.5, Math.hypot(x, z));
-    return 0.27 + 0.24 * n + 0.1 * plaza;
+    return 0.22 + 0.3 * n + 0.1 * plaza;
   };
   const attempts = Math.round(90000 * clamp(pc.density, 0.5, 1.5));
   for (let a = 0; a < attempts; a++) {
@@ -176,16 +218,16 @@ export function placeFlagstones(pc: PavingContext, variants: StoneVariant[], mat
     seeds.push({ x, z, r });
   }
 
-  // 2. Voronoi cell per seed, clipped to the paved boundary, shrunk by the joint
+  // 2. Voronoi cell per seed, clipped to the paved boundary → slab outline
   const stones: PlacedStone[] = [];
   const up = new Vector3(0, 1, 0);
   const nrm = new Vector3();
   const q = new Quaternion();
-  const scl = new Vector3();
   const pos = new Vector3();
   const stoneGrid = new Grid(1.0);
-  const perVariant: PlacedStone[][] = variants.map(() => []);
-  const stats = { seeds: seeds.length, skippedNarrow: 0, skippedSmall: 0, skippedFit: 0 };
+  const stats = { seeds: seeds.length, skippedNarrow: 0, skippedSmall: 0 };
+  const all = new MeshBuilder();
+  const one = new Matrix4();
 
   for (let si = 0; si < seeds.length; si++) {
     const s = seeds[si];
@@ -206,8 +248,11 @@ export function placeFlagstones(pc: PavingContext, variants: StoneVariant[], mat
       const t = 0.5 + 0.5 * ((s.r - o.r) / (s.r + o.r));
       cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, l * t);
     });
-    if (cell.length < 3) continue;
-    // pull vertices outside the paved region toward the seed
+    if (cell.length < 3) {
+      stats.skippedNarrow++;
+      continue;
+    }
+    // pull vertices outside the paved region toward the seed (bisection on the mask)
     cell = cell.map((p) => {
       if (isPaved(pc, p.x, p.z, 0.36)) return p;
       let lo = 0;
@@ -221,144 +266,103 @@ export function placeFlagstones(pc: PavingContext, variants: StoneVariant[], mat
       }
       return { x: s.x + (p.x - s.x) * lo, z: s.z + (p.z - s.z) * lo };
     });
-    const joint = rng.range(0.04, 0.1);
-    // radial profile of the cell around the seed minus half the joint
-    const profileAround = (cx: number, cz: number) => {
-      const local = cell.map((p) => ({ x: p.x - cx, z: p.z - cz }));
-      const pr = radialProfile(local, PROFILE_SAMPLES);
-      let mn = Infinity;
-      for (let k = 0; k < PROFILE_SAMPLES; k++) {
-        pr[k] = Math.max(0, pr[k] - joint / 2);
-        mn = Math.min(mn, pr[k]);
-      }
-      return { pr, mn };
-    };
-    let { pr: prof, mn: minR } = profileAround(s.x, s.z);
-    if (minR < 0.085) {
-      // boundary cell squeezed against the paved edge: re-centre the stone on the cell centroid
-      const c = centroid(cell);
-      if (pointInPolygon(cell, c.x, c.z)) {
-        const again = profileAround(c.x, c.z);
-        if (again.mn >= 0.085) {
-          s.x = c.x;
-          s.z = c.z;
-          prof = again.pr;
-          minR = again.mn;
-        }
-      }
-    }
-    if (minR < 0.085) {
-      stats.skippedNarrow++;
-      continue;
-    }
-
-    // 3. fit the best variant / rotation (maximise filled area), pick among the top few
-    const cands: { v: number; k: number; scale: number; fill: number }[] = [];
-    for (let v = 0; v < variants.length; v++) {
-      const vp = variants[v].profile;
-      for (let k = 0; k < PROFILE_SAMPLES; k += 2) {
-        let sc = Infinity;
-        for (let i = 0; i < PROFILE_SAMPLES; i++) {
-          const vr = vp[(i - k + PROFILE_SAMPLES) % PROFILE_SAMPLES];
-          if (vr > 1e-4) sc = Math.min(sc, prof[i] / vr);
-        }
-        if (sc === Infinity || sc <= 0) continue;
-        cands.push({ v, k, scale: sc, fill: sc * sc * variants[v].area });
-      }
-    }
-    if (!cands.length) {
-      stats.skippedFit++;
-      continue;
-    }
-    cands.sort((a, b) => b.fill - a.fill);
-    const pick = cands[Math.min(cands.length - 1, rng.int(0, 4))];
-    const scale = Math.min(pick.scale, 0.82); // cap: max radius 0.82 m → ≤ ~1.6 m slabs
-    if (scale < 0.2) {
+    const joint = rng.range(0.03, 0.08);
+    // work in seed-local coordinates (the slab is built around the seed, then placed)
+    const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
+    const outline = cellToOutline(local, joint, rng, 0.82);
+    if (!outline) {
       stats.skippedSmall++;
-      continue; // too small to read as a slab
+      continue;
     }
-    const rot = (pick.k / PROFILE_SAMPLES) * Math.PI * 2;
+    const c = centroid(outline);
+    let radius = 0;
+    for (const p of outline) radius = Math.max(radius, Math.hypot(p.x, p.z));
 
-    // 4. seat on the terrain: sample height under several points of the slab
-    const cr = Math.cos(rot);
-    const sr = Math.sin(rot);
-    const poly: P2[] = variants[pick.v].outline.map((p) => {
-      const rx = p.x * cr - p.z * sr;
-      const rz = p.x * sr + p.z * cr;
-      return { x: s.x + rx * scale, z: s.z + rz * scale };
-    });
-    let hSum = terrain.height(s.x, s.z);
+    // 3. seat on the terrain: sample height under ≈ 20 points of the slab
+    const hCentre = terrain.height(s.x, s.z);
+    let hSum = hCentre;
     let hMin = hSum;
     let n = 1;
     terrain.normal(s.x, s.z, nrm);
     const nAcc = nrm.clone();
-    for (let i = 0; i < poly.length; i += Math.max(1, Math.floor(poly.length / 6))) {
-      const px = s.x + (poly[i].x - s.x) * 0.8;
-      const pz = s.z + (poly[i].z - s.z) * 0.8;
-      const h = terrain.height(px, pz);
-      hSum += h;
-      hMin = Math.min(hMin, h);
-      n++;
-      nAcc.add(terrain.normal(px, pz, nrm));
+    const stride = Math.max(1, Math.floor(outline.length / 10));
+    for (let i = 0; i < outline.length; i += stride) {
+      for (const f of [0.5, 0.85]) {
+        const px = s.x + c.x + (outline[i].x - c.x) * f;
+        const pz = s.z + c.z + (outline[i].z - c.z) * f;
+        const h = terrain.height(px, pz);
+        hSum += h;
+        hMin = Math.min(hMin, h);
+        n++;
+        if (f > 0.6) nAcc.add(terrain.normal(px, pz, nrm));
+      }
     }
     const hMean = hSum / n;
     nAcc.normalize();
     // gentle tilt only: blend the terrain normal toward up so slabs never look like ramps
     nAcc.lerp(up, 0.35).normalize();
-    const thickness = variants[pick.v].thickness;
-    const bottomY = hMean - 0.02 + rng.range(-0.01, 0.012);
+    const thickness = rng.range(0.055, 0.085);
+    // the top sits 2.4–4 cm proud of the mean ground (joint fill is at +1.5 cm). If an edge would
+    // float > 3 cm over the lowest sampled ground point, sink the slab, but never below a 1.2 cm lip
+    // at the centre (the joint fill and sprouts hide the rest)
+    const exposed = rng.range(0.024, 0.04);
+    let bottomY = hMean + exposed - thickness;
+    bottomY = Math.min(bottomY, hMin + 0.03, hCentre + 0.05 - thickness);
+    bottomY = Math.max(bottomY, hCentre + 0.012 - thickness);
     const topY = bottomY + thickness;
 
-    q.setFromUnitVectors(up, nAcc);
-    const yawQ = new Quaternion().setFromAxisAngle(up, -rot);
-    q.multiply(yawQ);
-    pos.set(s.x, bottomY, s.z);
-    scl.set(scale, 1, scale);
-    const m = new Matrix4().compose(pos, q, scl);
-
+    // 4. per-stone look: pale ↔ mid tone from the macro noise, warm/cool swing, moss amount
     const tn = tintNoise.fbm(s.x * 0.35, s.z * 0.35, 2) * 0.5 + 0.5;
-    const tint = new Color(0.86 + 0.26 * tn + rng.range(-0.05, 0.05), 0.86 + 0.24 * tn + rng.range(-0.04, 0.04), 0.86 + 0.2 * tn + rng.range(-0.04, 0.04));
+    const warm = rng.range(-0.06, 0.06);
+    const lum = 0.8 + 0.32 * tn + rng.range(-0.07, 0.07);
+    const tint: [number, number, number] = [lum * (1 + warm), lum * (1 + warm * 0.25), lum * (1 - warm * 0.8)];
     const moss = clamp(0.35 + 0.9 * (tintNoise.fbm(s.x * 0.5 + 7, s.z * 0.5, 2) * 0.5 + 0.5) - 0.35 * smoothstep(3, 0, Math.hypot(s.x, s.z)), 0.1, 1.1);
+    const uvO: [number, number] = [rng() * 4, rng() * 4];
+    const dipK = rng.range(0.005, 0.014);
 
-    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, variant: pick.v, scale, rot, bottomY, topY, matrix: m, tint, moss };
+    // 5. build the slab into the shared geometry and place it
+    const from = all.vertexCount;
+    buildSlab(all, outline, {
+      thickness,
+      bevel: rng.range(0.018, 0.032),
+      dip: dipK,
+      color: tint,
+      sideColor: [tint[0] * 0.84, tint[1] * 0.84, tint[2] * 0.85],
+      mossEdge: 0.8 * moss,
+      mossInner: 0.04 * moss,
+      mossFn: (x, z) => 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5),
+      uvScale: 0.55,
+      uvOffset: uvO,
+      topNoise: (x, z) => 0.002 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7),
+      rings: radius > 0.55 ? 3 : 2,
+    });
+    q.setFromUnitVectors(up, nAcc);
+    pos.set(s.x, bottomY, s.z);
+    one.compose(pos, q, new Vector3(1, 1, 1));
+    all.transform(one, from);
+
+    const poly = outline.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
+    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline), radius, thickness, bottomY, topY, moss };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
-    perVariant[pick.v].push(stone);
   }
 
-  // 5. instanced meshes, one per variant
-  const meshes: InstancedMesh[] = [];
-  perVariant.forEach((list, v) => {
-    if (!list.length) return;
-    const im = new InstancedMesh(variants[v].geometry, material, list.length);
-    const mossAttr = new Float32Array(list.length);
-    list.forEach((st, i) => {
-      im.setMatrixAt(i, st.matrix);
-      im.setColorAt(i, st.tint);
-      mossAttr[i] = st.moss;
-    });
-    im.geometry = variants[v].geometry.clone();
-    im.geometry.setAttribute('aMossScale', new InstancedBufferAttribute(mossAttr, 1));
-    im.instanceMatrix.needsUpdate = true;
-    if (im.instanceColor) im.instanceColor.needsUpdate = true;
-    im.castShadow = true;
-    im.receiveShadow = true;
-    im.name = `flagstones-v${v}`;
-    im.frustumCulled = true;
-    im.computeBoundingSphere();
-    meshes.push(im);
-  });
+  const geometry = all.build();
+  const mesh = new Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.name = 'flagstones';
 
   const onStone = (x: number, z: number) => {
     let hit = false;
     stoneGrid.near(x, z, 1.2, (id) => {
       if (hit) return;
       const st = stones[id];
-      if (Math.hypot(st.x - x, st.z - z) > st.scale * 1.05) return;
+      if (Math.hypot(st.x - x, st.z - z) > st.radius * 1.05) return;
       if (pointInPolygon(st.polygon, x, z)) hit = true;
     });
     return hit;
   };
 
-  return { stones, meshes, grid: stoneGrid, onStone, stats };
+  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, stats };
 }

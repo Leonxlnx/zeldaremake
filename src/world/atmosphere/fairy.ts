@@ -99,9 +99,9 @@ function glowTexture(): CanvasTexture {
   const g = canvas.getContext('2d')!;
   const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
   grad.addColorStop(0, 'rgba(255,255,255,1)');
-  grad.addColorStop(0.18, 'rgba(225,245,255,0.75)');
-  grad.addColorStop(0.45, 'rgba(180,220,255,0.22)');
-  grad.addColorStop(1, 'rgba(160,210,255,0)');
+  grad.addColorStop(0.14, 'rgba(215,240,255,0.7)');
+  grad.addColorStop(0.4, 'rgba(160,210,255,0.2)');
+  grad.addColorStop(1, 'rgba(140,200,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
   const tex = new CanvasTexture(canvas);
@@ -121,8 +121,8 @@ export function createFairy(ctx: WorldContext): Fairy {
   group.name = 'fairy';
 
   const core = new Mesh(
-    new SphereGeometry(0.06, 20, 14),
-    new MeshBasicMaterial({ color: new Color(0.88, 0.97, 1.0).multiplyScalar(3.6), fog: false, toneMapped: false }),
+    new SphereGeometry(0.045, 20, 14),
+    new MeshBasicMaterial({ color: new Color(0.88, 0.97, 1.0).multiplyScalar(2.8), fog: false, toneMapped: false }),
   );
   core.name = 'fairy-core';
   group.add(core);
@@ -131,7 +131,7 @@ export function createFairy(ctx: WorldContext): Fairy {
     new SpriteMaterial({ map: glowTexture(), color: glow.clone().multiplyScalar(1.3), blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }),
   );
   halo.name = 'fairy-halo';
-  halo.scale.setScalar(0.34);
+  halo.scale.setScalar(0.28);
   group.add(halo);
 
   const wingMat = new ShaderMaterial({

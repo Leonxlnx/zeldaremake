@@ -7,7 +7,7 @@ import { Group, Mesh } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
-import { createStoneVariants, isPaved, placeFlagstones, type PavingContext } from './flagstones';
+import { isPaved, placeFlagstones, type PavingContext } from './flagstones';
 import { buildJointMesh } from './joints';
 import { buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
 
@@ -57,9 +57,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   bbox.z0 = Math.min(bbox.z0, -7.5);
   bbox.z1 = Math.max(bbox.z1, 7.5);
   const pc: PavingContext = { terrain: T, frames, rng: rng.fork('paving'), seed: ctx.config.seed, bbox, density: ctx.quality.density };
-  const variants = createStoneVariants(rng.fork('variants'), 32);
-  const paving = placeFlagstones(pc, variants, stoneMat);
-  for (const m of paving.meshes) group.add(m);
+  const paving = placeFlagstones(pc, stoneMat);
+  group.add(paving.mesh);
   ctx.progress('hardscape', 0.7);
 
   // --- joint fill --------------------------------------------------------------------------
@@ -70,7 +69,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // --- sprouts in the joints ---------------------------------------------------------------
   const spots: SproutSpot[] = [];
   const srng = rng.fork('sprouts');
-  const target = Math.round(1100 * Math.max(0.6, ctx.quality.density));
+  const target = Math.round(1500 * Math.max(0.6, ctx.quality.density));
   let tries = 0;
   while (spots.length < target && tries < target * 40) {
     tries++;
@@ -81,10 +80,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let nearStone = false;
     paving.grid.near(x, z, 1.3, (id) => {
       const st = paving.stones[id];
-      if (Math.hypot(st.x - x, st.z - z) < st.scale + 0.22) nearStone = true;
+      if (Math.hypot(st.x - x, st.z - z) < st.radius + 0.22) nearStone = true;
     });
     if (!nearStone) continue;
-    spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng() });
+    spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng() });
   }
   const flagstoneSprouts = spots.length;
   // stair joints: foot of each riser + along the cheeks
@@ -110,7 +109,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.progress('hardscape', 1);
 
   // --- audit -------------------------------------------------------------------------------
-  const usedVariants = new Set(paving.stones.map((s) => s.variant));
+  const stoneShapes = new Set(paving.stones.map((s) => s.shape));
   const sampleStones = paving.stones.filter((_, i) => i % Math.max(1, Math.ceil(paving.stones.length / 200)) === 0).slice(0, 200);
   ctx.audit('hardscape', () => ({
     stairways: stairInfo.map((s) => ({ id: s.id, steps: s.steps, width: s.width, treadSlabs: s.treadSlabs })),
@@ -121,16 +120,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mossJoints: true,
     stairTriangles,
     flagstones: paving.stones.length,
-    flagstoneShapes: usedVariants.size,
-    flagstoneVariantsBuilt: variants.length,
-    flagstoneMeshes: paving.meshes.length,
+    flagstoneShapes: stoneShapes.size,
+    flagstoneGeometry: 'voronoi-cells-v2',
+    flagstoneTriangles: paving.triangles,
+    flagstoneDrawCalls: 1,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts,
     jointSproutsOnStairs: sprouts.count - flagstoneSprouts,
     plazaRadius: 6,
     samplePositions: {
-      flagstones: sampleStones.map((s) => [round(s.x), round(s.bottomY), round(s.z)]),
+      // top-centre of each slab: 1.2–4 cm above the ground by design (the slab is seated in it)
+      flagstones: sampleStones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
       treadNose: treadNose.slice(0, 40).map((p) => p.map(round)),
     },
     // stone tops relative to the ground under their centre (m)

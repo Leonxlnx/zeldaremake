@@ -79,9 +79,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
 
   // moss field in stair-local coords: stronger toward both flanks and slightly up the run
   const mossAt = (ax: number, al: number) => {
-    const edge = smoothstep(hw - 0.55, hw + 0.1, Math.abs(ax));
+    const edge = smoothstep(hw - 0.7, hw + 0.05, Math.abs(ax));
     const n = noise.fbm(ax * 1.9 + 3.1, al * 1.9 - 7.7, 3) * 0.5 + 0.5;
-    return clamp((0.25 + 0.75 * edge) * (0.35 + 0.9 * n), 0, 1);
+    return clamp((0.2 + 0.8 * edge) * (0.45 + 0.9 * n), 0, 1);
   };
 
   const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2]) => {
@@ -107,7 +107,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     const uBack = (i + 1) * def.tread + 0.03;
     const depth = uBack - uFront;
     const yaw = rng.range(-0.02, 0.02);
-    const tint = 0.88 + rng.range(0, 0.22);
+    const tint = 0.96 + rng.range(0, 0.2);
     const hue = rng.range(-0.04, 0.04);
     const color: [number, number, number] = [tint * (1 + hue), tint, tint * (1 - hue * 0.6)];
 
@@ -133,9 +133,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         bevel: rng.range(0.018, 0.03),
         dip,
         color,
-        sideColor: [color[0] * 0.72, color[1] * 0.72, color[2] * 0.74],
-        mossEdge: 0.55,
-        mossInner: 0.06,
+        sideColor: [color[0] * 0.66, color[1] * 0.66, color[2] * 0.68],
+        mossEdge: 0.8,
+        mossInner: 0.05,
         mossFn: (x, z) => mossAt(x + cxl, z + czl),
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
@@ -156,16 +156,16 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
-      const rc = 0.6 + rng.range(0, 0.12);
+      const rc = 0.42 + rng.range(0, 0.14);
       const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 3, chip: 0.05, chipChance: 0.3 });
       placeSlab(riserOutline, a + len / 2, rBottom, i * def.tread + 0.01 + (def.tread * 0.9) / 2, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
         color: [rc, rc, rc * 1.02],
         sideColor: [rc * 0.9, rc * 0.9, rc * 0.92],
-        mossEdge: 0.75,
-        mossInner: 0.3,
-        mossFn: (x, z) => 0.6 + 0.4 * mossAt(x + a + len / 2, z + i * def.tread),
+        mossEdge: 0.95,
+        mossInner: 0.45,
+        mossFn: (x, z) => 0.7 + 0.3 * mossAt(x + a + len / 2, z + i * def.tread),
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         rings: 1,
@@ -174,35 +174,36 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     }
   }
 
-  // cheeks: stacked retaining stones on both flanks, following the ramp
+  // cheeks: the grass bank beside the run is flush with the treads (heightfield), so the flanks
+  // are only punctuated by sparse, half-buried edging stones — irregular, mossy, sunk into the
+  // bank — like the loose kerb stones in the reference rather than a continuous wall
   for (const side of [-1, 1]) {
-    let u = -0.2 + rng.range(-0.05, 0.05);
-    while (u < f.run + 0.35) {
-      const len = rng.range(0.38, 0.8);
-      const cw = rng.range(0.26, 0.42);
-      const u0 = u;
-      const u1 = Math.min(u + len, f.run + 0.6);
-      const uc = (u0 + u1) / 2;
-      const rampTop = baseY + clamp(uc / f.run, 0, 1) * def.rise * def.steps;
-      const top = rampTop + rng.range(0.09, 0.2);
-      const th = rng.range(0.3, 0.45);
-      const ac = side * (hw + 0.005 + cw / 2 - 0.02);
-      const outline = jitteredRect(rng, cw, u1 - u0 - 0.025, { jitter: 0.025, segs: 3, chip: 0.07, chipChance: 0.55 });
-      const tint = 0.8 + rng.range(0, 0.25);
-      placeSlab(outline, ac, top - th, uc, rng.range(-0.06, 0.06), rng.range(-0.05, 0.05), side * rng.range(-0.02, 0.06), {
+    let u = rng.range(-0.15, 0.45);
+    while (u < f.run + 0.2) {
+      const len = rng.range(0.42, 0.78);
+      const cw = rng.range(0.3, 0.5);
+      const uc = u + len / 2;
+      const ramp = baseY + clamp(uc / f.run, 0, 1) * def.rise * def.steps;
+      // top just proud of the bank (+0.07 over the ramp) so the stones read as embedded
+      const top = ramp + 0.07 + rng.range(0.04, 0.13);
+      const th = rng.range(0.28, 0.4);
+      const ac = side * (hw + 0.1 + cw / 2 + rng.range(-0.03, 0.06));
+      const outline = jitteredRect(rng, cw, len, { jitter: 0.04, segs: 3, chip: 0.12, chipChance: 0.8 });
+      const tint = 0.78 + rng.range(0, 0.22);
+      placeSlab(outline, ac, top - th, uc, rng.range(-0.25, 0.25), rng.range(-0.08, 0.08), side * rng.range(-0.04, 0.12), {
         thickness: th,
-        bevel: rng.range(0.02, 0.035),
-        dip: 0.006,
-        color: [tint, tint, tint * 0.98],
+        bevel: rng.range(0.035, 0.06),
+        dip: -0.01,
+        color: [tint, tint, tint * 0.97],
         sideColor: [tint * 0.7, tint * 0.7, tint * 0.72],
-        mossEdge: 0.9,
-        mossInner: 0.45,
-        mossFn: (x, z) => 0.5 + 0.5 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
+        mossEdge: 1.0,
+        mossInner: 0.6,
+        mossFn: (x, z) => 0.55 + 0.45 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         rings: 1,
       });
-      u = u1 + rng.range(0.02, 0.05);
+      u += len + rng.range(0.55, 1.5);
     }
   }
 

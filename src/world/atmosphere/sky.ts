@@ -18,6 +18,13 @@ export interface SkyDome {
   createEnvMaterial(): ShaderMaterial;
 }
 
+/**
+ * Scene radiance of the sky relative to config's display colours. In the reference the sky is only
+ * ever seen as bright haze between the canopy (sRGB ≈ 0.5–0.6, never white), so the gradient is
+ * scaled down to land there after ACES; the sun halo/core stay hot for the bloom pass.
+ */
+export const SKY_RADIANCE = 0.30;
+
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
 void main() {
@@ -35,6 +42,7 @@ uniform vec3 uSunDir;
 uniform vec3 uSunColor;
 uniform float uTime;
 uniform float uEnvMode;
+uniform float uRadiance;
 varying vec3 vDir;
 
 float hash21( vec2 p ) {
@@ -69,19 +77,19 @@ void main() {
   // gradient: fog colour at/below the horizon, horizon tint, then zenith
   float up = clamp( h, 0.0, 1.0 );
   vec3 sky = mix( uHorizon, uZenith, pow( up, 0.6 ) );
-  // bright near-white band at the horizon, kept a hair cool (the sky seen through canopy gaps)
-  float horizonBand = 1.0 - smoothstep( 0.0, 0.16, up );
-  vec3 horizonCol = uHorizon * vec3( 0.99, 0.995, 1.07 );
+  // haze band at the horizon: the reference's far haze is a warm grey lit by the low sun
+  float horizonBand = 1.0 - smoothstep( 0.0, 0.2, up );
+  vec3 horizonCol = uHorizon * vec3( 1.03, 1.0, 0.93 );
   sky = mix( sky, horizonCol, horizonBand * 0.9 );
   // below the horizon: horizon colour darkening toward ground bounce (only matters for the env map)
   float down = clamp( -h, 0.0, 1.0 );
   vec3 below = mix( horizonCol * 0.7, uGround, smoothstep( 0.0, 0.35, down ) );
-  vec3 col = h >= 0.0 ? sky : below;
+  vec3 col = ( h >= 0.0 ? sky : below ) * uRadiance;
 
   // sun: wide halo + soft core (core suppressed for the environment map)
   float sd = max( dot( d, uSunDir ), 0.0 );
-  float halo = pow( sd, 16.0 ) * 0.22 + pow( sd, 60.0 ) * 0.5;
-  float core = pow( sd, 1400.0 ) * 3.2;
+  float halo = pow( sd, 12.0 ) * 0.06 + pow( sd, 70.0 ) * 0.22;
+  float core = pow( sd, 1400.0 ) * 2.4;
   col += uSunColor * ( halo + core * ( 1.0 - uEnvMode ) );
 
   // cirrus wisps on a plane at altitude; only in the upper hemisphere
@@ -92,7 +100,7 @@ void main() {
     float n2 = fbm( uv * 1.7 - drift * 1.4 + 3.7 );
     float wisp = smoothstep( 0.52, 0.78, n1 * 0.7 + n2 * 0.3 );
     wisp *= smoothstep( 0.02, 0.22, h ) * ( 0.55 + 0.45 * sd );
-    vec3 cloud = mix( vec3( 0.86, 0.9, 0.95 ), uSunColor * 0.95, pow( sd, 3.0 ) * 0.6 );
+    vec3 cloud = mix( vec3( 0.86, 0.9, 0.95 ), uSunColor * 0.95, pow( sd, 3.0 ) * 0.6 ) * uRadiance * 1.25;
     col = mix( col, cloud, wisp * 0.42 );
   }
 
@@ -109,6 +117,7 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uSunColor: { value: new Color(cfg.sun.color) },
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
+    uRadiance: { value: SKY_RADIANCE },
   };
   const material = new ShaderMaterial({
     name: 'kokiri-sky',

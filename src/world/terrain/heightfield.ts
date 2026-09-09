@@ -238,10 +238,17 @@ function macroHeight(x: number, z: number) {
   for (const f of stairFrames) {
     const { u, v } = stairLocal(f, x, z);
     if (u > -1.2 && u < f.run + 2.4 && Math.abs(v) < f.halfWidth + 1.3) {
-      const rampY = f.baseY + clamp(u / f.run, 0, 1) * f.rise - 0.18;
+      const ramp = f.baseY + clamp(u / f.run, 0, 1) * f.rise;
       const wu = smoothstep(-0.8, -0.1, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
-      const wv = 1 - smoothstep(f.halfWidth + 0.15, f.halfWidth + 0.9, Math.abs(v));
-      h = lerp(h, rampY, wu * wv);
+      const av = Math.abs(v);
+      // under the treads: keep the ground well below the slabs so nothing pokes through
+      const wUnder = 1 - smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av);
+      h = lerp(h, ramp - 0.18, wu * wUnder);
+      // beside the treads: a grass bank that meets the tread ends flush (reference: grass creeps
+      // onto the step ends, no kerb), falling back to the natural slope further out
+      const wBank = smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av) * (1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.25, av));
+      h = lerp(h, ramp + 0.07, wu * wBank);
+      const wv = 1 - smoothstep(f.halfWidth + 0.15, f.halfWidth + 0.9, av);
       // landing: the ground just past the top step meets the last tread flush (as in the reference)
       const lw = smoothstep(f.run - 0.2, f.run + 0.1, u) * smoothstep(f.run + 2.3, f.run + 1.0, u) * wv;
       h = lerp(h, f.baseY + f.rise - 0.06, lw);

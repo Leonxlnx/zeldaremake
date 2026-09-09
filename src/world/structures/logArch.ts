@@ -100,7 +100,9 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
     return a;
   };
-  const sEndW = (psi: number) => -L / 2 - 1.15 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW) + 0.25 * noise.noise(psi * 3, 1.5);
+  // west end: strongly oblique (the south lip is ~3.4 m shorter than the north) so the hollow
+  // opens toward the path and shot D
+  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW) + 0.25 * noise.noise(psi * 3, 1.5);
   const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + spikeAmount(psi, spikesE) + 0.25 * noise.noise(psi * 3, 8.5);
 
   // ---- radius model: bulges along the length, bark ridges along the axis, moss cushions on top ----
@@ -124,11 +126,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const up = upness(psi);
     const arc = psi * R;
     const patches = noise.fbm(arc * 0.5 + 9, s * 0.5, 2);
-    const m = clamp(smoothstep(0.1, 0.8, up) * (0.6 + 0.6 * patches) + 0.2 * smoothstep(0.4, 0.8, noise.noise(arc * 1.1, s * 1.1 + 2)), 0, 1);
+    const m = clamp(smoothstep(0.05, 0.75, up) * (0.7 + 0.6 * patches) + 0.2 * smoothstep(0.4, 0.8, noise.noise(arc * 1.1, s * 1.1 + 2)), 0, 1);
     // ridges catch light, furrows stay dark and damp
     const shade = 0.85 + 0.2 * noise.noise(arc * 0.9, s * 0.9 + 7) + 0.7 * clamp(disp / 0.3, -0.5, 0.5);
     const barkC = [0.95 * shade, 0.9 * shade, 0.84 * shade];
-    const mossC = [0.42 + 0.35 * shade, 0.7 + 0.4 * shade, 0.2 + 0.1 * shade];
+    const mossC = [0.5 + 0.4 * shade, 0.85 + 0.45 * shade, 0.22 + 0.12 * shade];
     return [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
   };
 

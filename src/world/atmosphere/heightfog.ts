@@ -60,8 +60,8 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   northFullZ: -24,
   baseWeight: 0.35,
   maxFog: 0.90,
-  hazeScale: 0.44,
-  hazeTint: [1.0, 0.885, 0.70],
+  hazeScale: 0.42,
+  hazeTint: [1.0, 0.87, 0.66],
 };
 
 export function installHeightFog(config: WorldConfig, params: HeightFogParams = HEIGHT_FOG_DEFAULTS): void {
@@ -130,7 +130,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		#endif
 		// 1) distance haze: soft exponential ramp, plateauing so the far world stays a silhouette
 		float d = max( dist - fNear * 0.3, 0.0 ) / max( fFar, 1.0 );
-		float distFog = 0.86 * ( 1.0 - exp( -pow( d * 1.65, 1.5 ) ) );
+		float distFog = 0.86 * ( 1.0 - exp( -pow( d * 1.9, 1.45 ) ) );
 		// 2) height fog, denser toward the north hollow (−Z) of the fragment
 		float north = smoothstep( KF_NORTH_START, KF_NORTH_FULL, worldPos.z );
 		float weight = mix( KF_BASE_W, 1.0, north );

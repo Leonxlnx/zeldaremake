@@ -19,11 +19,11 @@ export interface LanternBranchBuild {
 
 /**
  * parametric positions along from→to and cord lengths: with the hook ~0.3 m under the limb and
- * the pod centre 0.2 m below the cord end, 0.92/0.45 lands the nearest pod at screen ≈ (0.21,
- * 0.40) in shot A and 0.78/1.25 the second at ≈ (0.07, 0.47), matching the reference
+ * the pod centre 0.2 m below the cord end, 0.92/0.32 lands the nearest pod at screen ≈ (0.23,
+ * 0.39) in shot A and 0.8/1.15 the second at ≈ (0.09, 0.48), matching the reference
  */
-const LANTERN_T = [0.58, 0.78, 0.92];
-const CORDS = [0.8, 1.25, 0.45];
+const LANTERN_T = [0.58, 0.8, 0.92];
+const CORDS = [0.8, 1.15, 0.32];
 /** hooks sit under the limb: its radius tapers roughly 0.55 → 0.3 m along the span */
 const limbRadius = (t: number) => 0.55 - 0.25 * t;
 

@@ -153,11 +153,13 @@ void main() {
     float north = smoothstep( uFogParams.z, uFogParams.w, pw.z );
     float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );
     float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y;
-    // nearer segments dominate a little less than far ones (light already scattered out)
     acc += lit * dens * stepLen;
   }
-  float rays = acc * ( 0.35 + phase ) * 0.6;
-  gl_FragColor = vec4( vec3( clamp( rays, 0.0, 1.5 ) ), 1.0 );
+  // the phase term is normalised to 1 at 90° from the sun so uRayIntensity means "strength of a
+  // fully lit column"; in-scatter saturates (1 - e^-x) so sun-facing sky columns cannot blow out
+  float phaseN = phase * pow( 1.0 + g * g, 1.5 ) / ( 1.0 - g * g );
+  float rays = 1.0 - exp( -acc * ( 0.35 + 0.65 * phaseN ) );
+  gl_FragColor = vec4( vec3( clamp( rays, 0.0, 1.0 ) ), 1.0 );
 }
 `;
 
@@ -195,6 +197,17 @@ void main() {
   vec2 perp = vec2( -dir.y, dir.x ) * uTexel;
   float side = texture2D( tSrc, vUv + perp ).x + texture2D( tSrc, vUv - perp ).x;
   gl_FragColor = vec4( vec3( ( sum / max( wsum, 1e-4 ) ) * 0.7 + side * 0.15 ), 1.0 );
+}
+`;
+
+/** Debug blit of an intermediate buffer (grey → sRGB) — only used when a debug view is requested. */
+export const COPY_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+uniform float uScale;
+varying vec2 vUv;
+void main() {
+  vec3 c = clamp( texture2D( tSrc, vUv ).rgb * uScale, 0.0, 1.0 );
+  gl_FragColor = vec4( pow( c, vec3( 1.0 / 2.2 ) ), 1.0 );
 }
 `;
 
@@ -247,6 +260,8 @@ uniform float uBloomIntensity;
 uniform float uExposure;
 uniform float uSaturation;
 uniform float uContrast;
+uniform float uGreenWarm;
+uniform float uGreenDesat;
 uniform vec3 uShadowTint;
 uniform vec3 uHighlightTint;
 varying vec2 vUv;
@@ -276,13 +291,25 @@ void main() {
     vec4 mist = texture2D( tMist, vUv );
     hdr = hdr * ( 1.0 - mist.a ) + mist.rgb;
   }
-  // volumetric in-scatter accumulated along the ray up to the surface (see RAY_MARCH_FRAG)
+  // volumetric in-scatter accumulated along the ray up to the surface (see RAY_MARCH_FRAG); the
+  // sky already carries its own haze so open-sky columns get a smaller share of the beams
   float rays = texture2D( tRays, vUv ).x;
-  hdr += rays * uRayColor * uRayIntensity;
+  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.5, sky );
   hdr += texture2D( tBloom, vUv ).rgb * uBloomIntensity;
 
+  // gentle channel mix: bleeds a little green into red (lime → olive/gold like the reference's
+  // sunlit foliage) without touching neutrals (rows sum to 1) — not an orange/teal split
+  const mat3 warmMix = mat3( 0.92, 0.02, 0.00,
+                             0.10, 0.98, 0.04,
+                            -0.02, 0.00, 0.96 );
+  hdr = warmMix * hdr;
   vec3 c = aces( hdr * uExposure / 0.6 );
   float lum = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) );
+  // selective: the reference's foliage is olive/khaki, never lime — pull green-dominant pixels a
+  // little toward gold and soften their saturation; neutrals, golds and purples are untouched
+  float gd = clamp( ( c.g - max( c.r, c.b ) ) / max( c.g, 1e-3 ) * 2.0, 0.0, 1.0 );
+  c.r += gd * uGreenWarm * ( c.g - c.r );
+  c = mix( c, vec3( lum ), gd * uGreenDesat );
   c = mix( vec3( lum ), c, uSaturation );
   c = ( c - 0.5 ) * uContrast + 0.5;
   c *= mix( uShadowTint, uHighlightTint, smoothstep( 0.05, 0.85, lum ) );

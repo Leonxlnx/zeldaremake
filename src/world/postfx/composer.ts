@@ -45,7 +45,13 @@ import {
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
-import { AO_BLUR_FRAG, AO_FRAG, BLUR_FRAG, BRIGHT_FRAG, COMPOSITE_FRAG, FULLSCREEN_VERT, RAY_BLUR_FRAG, RAY_MARCH_FRAG } from './shaders';
+import { AO_BLUR_FRAG, AO_FRAG, BLUR_FRAG, BRIGHT_FRAG, COMPOSITE_FRAG, COPY_FRAG, FULLSCREEN_VERT, RAY_BLUR_FRAG, RAY_MARCH_FRAG } from './shaders';
+
+/**
+ * Tuning aid: `globalThis.__ATMO_DEBUG__ = 'rays' | 'ao' | 'mist' | 'bloom'` blits that buffer instead
+ * of the final image; 'bypass' skips the whole chain (for cost comparisons). Unset in production.
+ */
+const debugView = (): string => (globalThis as { __ATMO_DEBUG__?: string }).__ATMO_DEBUG__ ?? '';
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -86,6 +92,9 @@ export interface ComposerSettings {
   bloomIntensity: number;
   saturation: number;
   contrast: number;
+  /** selective grade of green-dominant pixels: hue pull toward gold, saturation softening */
+  greenWarm: number;
+  greenDesat: number;
   shadowTint: Color;
   highlightTint: Color;
 }
@@ -152,16 +161,18 @@ export function createComposer(opts: ComposerOptions): Composer {
     new ShaderMaterial({ name, vertexShader: FULLSCREEN_VERT, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false });
 
   const settings: ComposerSettings = {
-    aoStrength: 0.75,
-    aoRadius: 0.55,
-    rayIntensity: 0.38,
+    aoStrength: 0.6,
+    aoRadius: 0.5,
+    rayIntensity: 0.34,
     rayColor: new Color(1.0, 0.9, 0.72),
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
-    saturation: 0.97,
+    saturation: 0.94,
     contrast: 1.0,
-    shadowTint: new Color(0.975, 0.985, 1.02),
-    highlightTint: new Color(1.04, 1.0, 0.94),
+    greenWarm: 0.3,
+    greenDesat: 0.3,
+    shadowTint: new Color(0.98, 0.985, 1.015),
+    highlightTint: new Color(1.04, 1.0, 0.93),
   };
 
   const near = { value: camera.near };
@@ -202,11 +213,12 @@ export function createComposer(opts: ComposerOptions): Composer {
       uShadowMatrix: { value: new Matrix4() },
       tShadow: { value: null as Texture | null },
       uSunDirView: { value: sunDirView },
-      uMaxDist: { value: 70 },
+      uMaxDist: { value: 50 },
       uFogParams: { value: new Vector4(fog.baseHeight + 1.5, fog.falloff * 0.6, fog.northStartZ, fog.northFullZ) },
-      // height-fog weight, base air density (1/m): tuned so a fully lit 70 m column ≈ 1.0 pre-phase
-      uDensity: { value: new Vector2(0.026, 0.0085) },
-      uAnisotropy: { value: 0.5 },
+      // height-fog weight, base air density (1/m): a fully lit 50 m column at ground level → ~0.57,
+      // a 20 m column (typical distance to the mid-ground in shots A/B) → ~0.3
+      uDensity: { value: new Vector2(0.012, 0.005) },
+      uAnisotropy: { value: 0.3 },
     },
     'postfx-ray-march',
   );
@@ -215,6 +227,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     { tSrc: { value: null as Texture | null }, uSunUv: { value: sunUv }, uDirSign: dirSign, uLength: { value: 0.06 }, uTexel: quarterTexel },
     'postfx-ray-blur',
   );
+  const copyMat = mat(COPY_FRAG, { tSrc: { value: null as Texture | null }, uScale: { value: 1 } }, 'postfx-copy');
   const brightMat = mat(BRIGHT_FRAG, { tSrc: { value: hdr.texture }, uThreshold: { value: settings.bloomThreshold }, uKnee: { value: 0.35 } }, 'postfx-bright');
   const blurMat = mat(BLUR_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() } }, 'postfx-blur');
   const rayIntensity = { value: 0 };
@@ -237,6 +250,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       uExposure: { value: opts.exposure },
       uSaturation: { value: settings.saturation },
       uContrast: { value: settings.contrast },
+      uGreenWarm: { value: settings.greenWarm },
+      uGreenDesat: { value: settings.greenDesat },
       uShadowTint: { value: settings.shadowTint },
       uHighlightTint: { value: settings.highlightTint },
     },
@@ -295,6 +310,12 @@ export function createComposer(opts: ComposerOptions): Composer {
 
   const render = () => {
     renderer.info.reset();
+    if (debugView() === 'bypass') {
+      // cost reference: plain forward render straight to the canvas, no post chain
+      renderer.setRenderTarget(null);
+      renderer.render(scene, camera);
+      return;
+    }
     near.value = camera.near;
     far.value = camera.far;
     proj.value.copy(camera.projectionMatrix);
@@ -333,10 +354,10 @@ export function createComposer(opts: ComposerOptions): Composer {
     if (rayIntensity.value > 0.001 && bindShadow()) {
       pass(rayMarchMat, rayA);
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
-      rayBlurMat.uniforms.uLength.value = 0.035;
+      rayBlurMat.uniforms.uLength.value = 0.06;
       pass(rayBlurMat, rayB);
       rayBlurMat.uniforms.tSrc.value = rayB.texture;
-      rayBlurMat.uniforms.uLength.value = 0.09;
+      rayBlurMat.uniforms.uLength.value = 0.16;
       pass(rayBlurMat, rayA);
     } else {
       renderer.setRenderTarget(rayA);
@@ -360,10 +381,19 @@ export function createComposer(opts: ComposerOptions): Composer {
     compositeMat.uniforms.uBloomIntensity.value = settings.bloomIntensity;
     compositeMat.uniforms.uSaturation.value = settings.saturation;
     compositeMat.uniforms.uContrast.value = settings.contrast;
+    compositeMat.uniforms.uGreenWarm.value = settings.greenWarm;
+    compositeMat.uniforms.uGreenDesat.value = settings.greenDesat;
     pass(compositeMat, ldr);
 
     // 7. FXAA → screen
-    pass(fxaaMat, null);
+    const dbg = debugView();
+    const dbgSrc = dbg === 'rays' ? rayA : dbg === 'ao' ? aoB : dbg === 'mist' ? mist : dbg === 'bloom' ? bloomA : null;
+    if (dbgSrc) {
+      copyMat.uniforms.tSrc.value = dbgSrc.texture;
+      pass(copyMat, null);
+    } else {
+      pass(fxaaMat, null);
+    }
 
     renderer.autoClear = prevAutoClear;
   };
@@ -411,12 +441,14 @@ export function createComposer(opts: ComposerOptions): Composer {
       bloomThreshold: settings.bloomThreshold,
       toneMapping: 'aces-fitted',
       antialiasing: 'fxaa',
+      // every pass is a pure function of the frame (no temporal jitter/accumulation), headless or not
       deterministic: true,
+      headless: opts.headless,
     }),
     dispose: () => {
       for (const t of [hdr, ldr, mist, aoA, aoB, rayA, rayB, bloomA, bloomB]) t.dispose();
       depthTexture.dispose();
-      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, brightMat, blurMat, compositeMat, fxaaMat]) m.dispose();
+      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat]) m.dispose();
       quad.geometry.dispose();
       renderer.info.autoReset = true;
     },

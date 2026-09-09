@@ -121,8 +121,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     if (y <= straight) return Math.max(Math.abs(w) - doorHalfW, -y - 0.5);
     return Math.hypot(w, y - straight) - doorHalfW;
   };
-  const winA = 0.82;
-  const winY = 2.35;
+  // small round window right of the door, low enough to clear the drooping roof fringe
+  const winA = 0.62;
+  const winY = 2.05;
   const winR = 0.3;
 
   // ---- trunk radius model ----
@@ -289,8 +290,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   {
     // hearth on the back wall, seen straight through the door
     const back = rSmooth(Math.PI, 0.9) - T - 0.08;
-    const hearth = new PlaneGeometry(1.3 * k, 1.0 * k);
-    hearth.applyMatrix4(basisMatrix(frame.at(Math.PI, back, 0.35 + 0.5 * k), F));
+    const hearth = new PlaneGeometry(0.8 * k, 0.6 * k);
+    hearth.applyMatrix4(basisMatrix(frame.at(Math.PI, back, 0.3 + 0.3 * k), F));
     glows.push(hearth);
     // warm pool of light on the floor just inside the threshold
     const pool = new CircleGeometry(0.9 * k, 20);
@@ -310,7 +311,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   group.add(glowMesh);
 
   const lights: PointLight[] = [];
-  const doorLight = new PointLight(0xffa64d, 34 * k, 10 * k, 2);
+  const doorLight = new PointLight(0xffa64d, 42 * k, 10 * k, 2);
   doorLight.position.copy(frame.door(0, 1.25, dOut(0, 1) - T - 1.0));
   doorLight.name = 'door-light';
   group.add(doorLight);
@@ -430,12 +431,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const m = clamp(0.4 + 0.6 * smoothstep(1.0, 0.7, v) * (0.9 + 0.5 * patches) + 0.35 * smoothstep(0.3, 0.7, noise.noise(p.x * 1.5 + 3, p.z * 1.5)) * smoothstep(1, 0.85, v), 0, 1);
       const upness = smoothstep(0.1, 0.9, _n.y);
       const bright = clamp(upness * (0.5 + 0.5 * noise.noise(p.x * 1.1, p.z * 1.1 + 9)) + 0.35 * (disp / (0.3 * k)), 0, 1);
+      // broad mottling so the moss reads as clumps rather than a uniform lime skin
+      const mottle = 0.72 + 0.32 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.1 * noise.noise(p.x * 3.1, p.z * 3.1 + 1);
       // vertex colours multiply the light straw map (~0.48 linear): fresh lime moss on lit
       // cushions, deeper green in the hollows, golden straw at the fringe
       const straw: [number, number, number] = [1.05, 0.86, 0.5];
-      const deep: [number, number, number] = [0.24, 0.4, 0.08];
+      const deep: [number, number, number] = [0.2, 0.36, 0.07];
       const sun: [number, number, number] = [0.74, 1.0, 0.18];
-      const mossC = [lerp(deep[0], sun[0], bright), lerp(deep[1], sun[1], bright), lerp(deep[2], sun[2], bright)];
+      const mossC = [lerp(deep[0], sun[0], bright) * mottle, lerp(deep[1], sun[1], bright) * mottle, lerp(deep[2], sun[2], bright) * mottle];
       out.color = [lerp(straw[0], mossC[0], m), lerp(straw[1], mossC[1], m), lerp(straw[2], mossC[2], m)];
     },
     { cols: roofRes, rows: Math.round(roofRes * 0.38), closedU: true },
@@ -469,12 +472,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   type BranchDef = { path: [number, number][]; r0: number; r1: number; leavesAt: number[] };
   // (angle around the house, polar angle on the dome) waypoints; branches climb from behind the
   // dome, wrap over the crown and curl up into leafy tips above the front
+  // one thick limb drapes diagonally from the back-left over the crown and ends mid-right; a
+  // second comes over the right shoulder and stops on the crown; two shorter side branches
+  // curl up into leafy tips over the left front. The front above the door stays mostly moss.
   const branchDefs: BranchDef[] = [
-    { path: [[-2.35, 1.78], [-1.95, 1.1], [-1.35, 0.66], [-0.78, 0.56], [-0.36, 0.78], [-0.14, 1.12], [0.04, 1.5], [0.16, 1.9]], r0: 0.5, r1: 0.13, leavesAt: [1, 0.55] },
-    { path: [[2.65, 1.7], [2.2, 0.95], [1.45, 0.38], [0.55, 0.42], [0.18, 0.9], [0.32, 1.32], [0.42, 1.62]], r0: 0.4, r1: 0.11, leavesAt: [1] },
-    { path: [[-1.3, 1.62], [-1.05, 1.2], [-0.72, 1.02], [-0.5, 1.28], [-0.42, 1.62]], r0: 0.27, r1: 0.09, leavesAt: [1] },
-    { path: [[1.35, 1.42], [1.05, 1.02], [0.9, 1.35], [0.98, 1.72], [1.1, 1.98]], r0: 0.26, r1: 0.09, leavesAt: [1] },
-    { path: [[3.6, 1.75], [3.3, 1.2], [2.75, 0.75], [2.1, 0.6], [1.85, 0.95], [1.7, 1.3]], r0: 0.34, r1: 0.1, leavesAt: [1] },
+    { path: [[-2.5, 1.82], [-2.1, 1.25], [-1.6, 0.8], [-1.0, 0.5], [-0.3, 0.55], [0.25, 0.85], [0.55, 1.15], [0.7, 1.3]], r0: 0.58, r1: 0.14, leavesAt: [1] },
+    { path: [[2.7, 1.78], [2.35, 1.25], [1.95, 0.9], [1.5, 0.72], [1.15, 0.62], [0.95, 0.5]], r0: 0.42, r1: 0.12, leavesAt: [1] },
+    { path: [[-1.75, 0.95], [-1.4, 1.1], [-1.05, 1.32], [-0.85, 1.55], [-0.8, 1.7]], r0: 0.24, r1: 0.08, leavesAt: [1] },
+    { path: [[3.1, 1.5], [2.85, 1.05], [2.55, 0.7], [2.2, 0.5], [2.0, 0.55]], r0: 0.3, r1: 0.1, leavesAt: [1] },
   ];
   const foliage = new FoliageBuilder(rng.fork('foliage'), `${ctx.config.seed}/house/${def.id}`);
   const branchParts = [];
@@ -483,8 +488,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const pts = b.path.map(([a, phi], idx) => {
       const r = lerp(b.r0, b.r1, idx / (b.path.length - 1)) * k;
       // gnarl: wander sideways and lift a little off the moss between waypoints
-      const lift = r * 0.5 + (branchRng() - 0.5) * 0.08 + (idx % 2 ? 0.06 : 0) * k;
-      return surfacePoint(a + (branchRng() - 0.5) * 0.14, phi + (branchRng() - 0.5) * 0.06, lift);
+      // half-sunk into the moss, wandering sideways a little between waypoints
+      const lift = r * 0.3 + (branchRng() - 0.5) * 0.08 + (idx % 2 ? 0.05 : 0) * k;
+      return surfacePoint(a + (branchRng() - 0.5) * 0.16, phi + (branchRng() - 0.5) * 0.07, lift);
     });
     const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
     const twist = branchRng() * 10;
@@ -493,10 +499,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       tubularSegments: 48,
       radialSegments: 12,
       uvMetres: 1.2,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.4 + t * 4 + bi, pos.y * 1.5, 2) - 0.5) * 0.07 * k,
-      color: (t) => {
-        const d = lerp(0.72, 0.9, t);
-        return [d, d * 0.94, d * 0.86];
+      displace: (t, ang, pos) => (noise.ridged(ang * 1.4 + t * 4 + bi, pos.y * 1.5, 2) - 0.5) * 0.08 * k,
+      color: (t, ang) => {
+        // grey-brown bark, lighter on the upper side, warmer toward the tips
+        const d = lerp(0.88, 1.0, t) * (0.9 + 0.15 * Math.max(0, Math.sin(ang)));
+        return [d, d * 0.93, d * 0.84];
       },
       capEnd: true,
     });
@@ -538,14 +545,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   // ---- heart-leaf vines hanging from the fringe + draped over the dome, tufts and ferns on top ----
   const vineRng = rng.fork('vines');
-  const hanging = def.id === 'saria' ? 14 : 10;
+  const hanging = def.id === 'saria' ? 20 : 14;
   for (let i = 0; i < hanging; i++) {
-    // spread over the front 250°, thinner directly above the door
-    let a = -2.2 + (i / (hanging - 1)) * 4.4 + (vineRng() - 0.5) * 0.2;
-    if (Math.abs(a) < 0.3) a += a < 0 ? -0.3 : 0.3;
+    // spread over the front 260°; strands right above the door stay short so it is not veiled
+    const a = -2.3 + (i / (hanging - 1)) * 4.6 + (vineRng() - 0.5) * 0.2;
     const hook = surfacePoint(a, phiMax - 0.03, -0.12);
     hook.y -= 0.25 * k;
-    const len = (0.6 + vineRng() * 1.1) * (0.8 + 0.4 * Math.abs(Math.sin(a)));
+    const overDoor = smoothstep(0.55, 0.15, Math.abs(a));
+    const len = (0.6 + vineRng() * 1.1) * (0.8 + 0.4 * Math.abs(Math.sin(a))) * (1 - 0.55 * overDoor);
     foliage.addHangingVine(hook, len * k, { leafSize: 0.16, amount: 0.1 });
   }
   const draped = def.id === 'saria' ? 6 : 4;

@@ -75,7 +75,7 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   const plank = new BoxGeometry(plankW, plankH, plankT, 3, 2, 1);
   plankUV(plank, 0.42, 0.24, true, 0.1, 0.2);
   roughen(plank, rng, 0.03);
-  setColorAttribute(plank, [1.45, 1.28, 0.95]);
+  setColorAttribute(plank, [1.7, 1.45, 1.05]);
   const plankY = 1.08;
   const plankCentre = axisAt(plankY + plankH / 2).addScaledVector(F, 0.085);
   const tiltM = new Matrix4().makeRotationZ((rng() - 0.5) * 0.06);

@@ -420,8 +420,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     roughness: 1,
     color: new Color(0x9a7650),
   });
-  const hearth = new MeshBasicMaterial({ color: new Color(0xffa040).multiplyScalar(2.2), toneMapped: true });
-  const windowGlow = new MeshBasicMaterial({ color: new Color(0xffc266).multiplyScalar(1.8), toneMapped: true });
+  // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream
+  const hearth = new MeshBasicMaterial({ color: new Color(0xff8c2a).multiplyScalar(1.15), toneMapped: true });
+  const windowGlow = new MeshBasicMaterial({ color: new Color(0xffb04a).multiplyScalar(1.3), toneMapped: true });
 
   const lantern = new MeshStandardMaterial({
     color: new Color(0xffffff),
@@ -460,7 +461,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   );
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
   const runes = new MeshStandardMaterial({ map: runeTexture(rng), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const endGrain = new MeshStandardMaterial({ color: new Color(0x4a3a2a), roughness: 1, map: willowC, vertexColors: true });
+  const endGrain = new MeshStandardMaterial({ color: new Color(0x8a6848), roughness: 1, map: willowC, vertexColors: true });
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
   return { bark, barkPale, logBark, interior, roof, wood, woodDark, hearth, windowGlow, lantern, leaf, vine, tuft, moss, runes, endGrain, texturedSets };

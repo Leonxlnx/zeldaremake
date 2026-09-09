@@ -69,8 +69,11 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           // the source rock is orange; keep its detail but pull to a neutral warm grey
           c = mix(c, vec3(l) * vec3(1.0, 0.99, 0.96), 0.7);
           diffuseColor.rgb *= c * 1.15;
-          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.3, 0.8, l)) * (0.8 + 0.5 * l);
-          diffuseColor.rgb = mix(diffuseColor.rgb, moss, clamp(vMossR, 0.0, 1.0) * 0.92);
+          // moss: the texture luminance (mean ≈ 0.3) picks between deep and bright green so the
+          // moss keeps the rock's pitting; blend is near-opaque where the coverage is full
+          float ln = clamp(l / 0.3, 0.0, 1.8);
+          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.85 + 0.4 * ln);
+          diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.03, 0.85, clamp(vMossR, 0.0, 1.0)));
         }`,
       )
       .replace(
@@ -100,6 +103,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'rock-triplanar-v1';
+  mat.customProgramCacheKey = () => 'rock-triplanar-v2';
   return mat;
 }
