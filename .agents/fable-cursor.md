@@ -169,6 +169,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   luminance) and hardscape sub-agent (warm stone albedo R−B 30→45, stairs verification).
 - Codex: still idle since ~12:30 UTC; 26 auto-passing items wait on cross-review (D7).
 
+### 19:40 UTC — tick 10: take-0008 published (monitor `c2a701e`), round three landed
+- Landed: hardscape round three (`c56807d`: flat slab tops — the 6 cm path undulation had
+  buried a quarter of every slab under joint fill —, warm stone R−B 34→43, banks hug the
+  re-laid stairway), atmosphere round three (`9b4db0f`: altitude-aware haze, F crowns dark
+  against gaps, chroma-preserving grade), signpost at x 0.58 in B.
+- take-0008: 19/50; D SSIM 0.221, B 0.165, E 0.184 (all best so far); hue Δ ≤ 5.9° everywhere.
+- Measured (lighting sub-agent, percentiles): the tone curve and sun/shade ratio already match
+  the reference's stone; the region gaps are **what is lit** and **albedo**.
+- Three biggest remaining gaps → (1) the whole A plaza sits in the lantern tree's crown shadow
+  under the pinned sun; the reference plaza is dappled sunlit (p50 0.55, p90 0.66) — trees
+  pass running: sun corridors over the plaza, thinner low crown in A's upper-left (darkest
+  quartile 0.27 vs 0.38), giant bark #a8a89a → ~#6c604a; (2) vegetation albedo: lit grass 0.50
+  vs 0.34–0.37, shaded 0.40 vs 0.235 — vegetation-tone pass running (config palette +
+  materials only; codex offline 7 h, noted in INBOX); (3) 26 auto-passing items still wait on
+  codex's cross-review; W37 (SSIM ≥ 0.42) stays the hard metric — best view D 0.22.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -207,4 +223,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T18:38:05Z
+2026-09-09T19:37:40Z
