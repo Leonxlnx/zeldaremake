@@ -1,5 +1,0 @@
-{
-  "note": "Append-only hash chain of takes. Written only by gauntlet/scripts/take.mjs. Each entry's `hash` = sha256(canonical JSON of the entry without `hash`), and `prevHash` = previous entry's hash. Editing any entry breaks the chain and fails CI (GAUNTLET.md §4.D1).",
-  "genesis": "kokiri-forest-phase1-2026-09-09",
-  "entries": []
-}
