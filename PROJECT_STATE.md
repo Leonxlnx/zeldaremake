@@ -8,26 +8,38 @@ Per-agent progress lives in `.agents/<agent>.md`; the live picture is the Direct
 `gauntlet/reports/verify-exit.json` — see GAUNTLET.md §6.)
 
 ## Latest integrated milestone
-`main` = empty repository (initial commit). The Phase 1 foundation is on branch
-`cursor/kokiri-world-phase1-f65e` (PR pending): scaffold, contracts, rubric, gauntlet tooling,
-monitor site, first content passes.
+`main` = empty repository (initial commit). Everything below is on branch
+`cursor/kokiri-world-phase1-f65e` (PR #2, draft): foundation + first full content pass on every
+world system + gauntlet tooling + Director's Monitor. Second agent (`codex`) contributes via
+PRs #3 (props) and #4 (vegetation) targeting that branch.
 
-## What already works (on the foundation branch)
-- Vite + Three.js r186 world boots, free dev camera, 6 saved reference viewpoints (keys 1–6).
-- Authored heightfield with plateaus/terraces/stair ramps/path flattening; 18-step hero stair.
-- Headless capture of every viewpoint with SwiftShader (`npm run capture`), audit rollup.
-- 50-item hash-locked rubric; anti-cheat rules documented.
+## What already works (on the foundation branch, take-0002 @ 73a9fdf)
+- Whole world renders in real time: authored terrain (318k verts, 6-layer splat), 18-slab hero
+  stairway + 474 Voronoi flagstones, 3 hero boulders + 2.8k pebbles, 10 white-bark variants ×
+  80 instances + 9 giants + 680 distant trees, 500k grass + ferns/flowers/bushes/litter, 2 Kokiri
+  houses + 10 pod lanterns + signpost + fences + hollow log arch, village props, height fog,
+  ground mist, volumetric god rays, 96 falling leaves, 180 motes, fairy, HDR post chain.
+- Gauntlet: `take.mjs` end-to-end with hash-chained ledger, anti-cheat (20 checks green on
+  take-0002), CI workflows; Director's Monitor live at
+  https://rawcdn.githack.com/Leonxlnx/zeldaremake/monitor/index.html
+- Score: **19/50 (Phase 1: 19/42)**, 24 items pending cross-review, 7 failing
+  (W01/W02/W10/W32/W37 + Phase 2/3 items).
 
 ## Biggest visual weaknesses
-Everything — all systems are placeholder massing until the content passes land. In order of
-impact: stairs/flagstones geometry, trees (white-bark port + giants), grass density, house +
-lanterns, god rays + haze layering, ground materials.
+1. Shot similarity (W37, SSIM 0.12–0.18 vs 0.42): composition still differs — house visible in
+   the centre of shot A, log arch mostly hidden in D, B camera slightly high.
+2. Far hills untextured grey; only 2 far depth layers in D (W32).
+3. Grade cooler/flatter than the reference's olive/khaki + deep cool shadows; shafts soft.
+4. Canopy cards read as large flat leaves near the camera; stone tones too uniform.
 
 ## Performance
-Scaffold: ~130 draw calls, 0.07 M triangles at 1280×720 (meaningless until content lands).
-Budget per hero viewpoint at quality=high: ≤ 700 draws, ≤ 9 M triangles (rubric W38).
+Hero viewpoints at quality=high: 350–390 draw calls, 5.9–6.3 M triangles (budget ≤ 700 /
+≤ 9 M). Capture on 4-core SwiftShader ≈ 8 s/frame; a full take (6 views + det/motion, settle 8)
+≈ 8 min locally.
 
 ## Next major priorities
-1. Land the foundation PR so CI (gauntlet + hourly monitor) starts running on `main`.
-2. Content passes per system (see ownership map in AGENTS.md).
-3. Reference comparison loop — one take per hour, both agents.
+1. Owner: merge PR #2 to `main` so the hourly cron + Pages deploy run; enable Pages once.
+2. Terrain sampler = rendered mesh (codex findings), atmosphere GLSL fixes, canopy/limb
+   composition, house placement for shot A — in flight.
+3. Cross-reviews (codex ↔ fable) to convert the 24 pending items.
+4. One take per hour, both agents, until `gauntlet:verify-exit` passes.

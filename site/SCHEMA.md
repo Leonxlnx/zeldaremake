@@ -27,6 +27,7 @@ copied under `data/`.
   "project": "zeldaremake",
   "updatedAt": "2026-09-09T12:00:04Z",
   "monitorCadenceMinutes": 60,           // site turns the banner red when updatedAt is older than 2×
+  "heartbeat": { "at": "…", "reason": "…" },   // optional: last no-new-take refresh of updatedAt (CI same-sha run)
   "takes": [                             // chronological, oldest first
     {
       "id": "take-0007",                 // zero-padded, monotonic
@@ -63,6 +64,8 @@ copied under `data/`.
                        "lumDiff": 0.08, "sharpnessRatio": 0.71, "skyFraction": 0.12,
                        "overexposedFraction": 0.002, "purpleFraction": 0.001 },
           "deltas": { "ssim": +0.04, "phashDistance": -2 },   // vs previous take, same viewpoint
+          "depth": { "skyFraction": 0.12, "farLayerCount": 3, "maxBucketBeyond20m": 0.06 },  // hero viewpoints only
+          "captureMs": 38000,
           "callouts": [                                       // annotation pins on OUR image (0..1 coords)
             { "x": 0.62, "y": 0.47, "label": "18 individually cut slabs", "item": "W02", "kind": "new" },
             { "x": 0.18, "y": 0.35, "label": "lantern branch still missing", "item": "W14", "kind": "todo" },
@@ -93,5 +96,5 @@ copied under `data/`.
 ## agents.json
 
 ```json
-{ "agents": [ { "agent": "fable-cursor", "runtime": "…", "github": "…", "status": "active", "branch": "…", "updated": "…", "currentTask": "first paragraph of ## Current task" } ] }
+{ "agents": [ { "agent": "fable-cursor", "runtime": "…", "github": "…", "status": "active", "branch": "…", "updated": "…", "currentTask": "first paragraph of ## Current task", "file": ".agents/fable-cursor.md" } ] }
 ```
