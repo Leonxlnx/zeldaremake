@@ -200,6 +200,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (best 0.24): the metric now responds mostly to texture/tone, composition is on; (3) 24 items
   wait on codex's cross-review (offline 9 h).
 
+### 23:55 UTC — tick 12: takes 0011/0012 published, round four complete
+- Landed: atmosphere rebalance (`eb390b7`: rays-off decomposition showed the god rays alone
+  lifted F's mid-band darkest quartile 0.22→0.43; ray march follows the haze altitude profile,
+  smear weighted by marched length; sun 3.0, hemi 0.95; A plaza p10/p50/p90 0.37/0.48/0.68 vs ref
+  0.33/0.55/0.66, B path 0.488 vs 0.483, D arch 0.430 vs 0.427), trees round four (`bbc5413`:
+  porous corridors over the D path, gap glare over the hollow, calmer lantern lobes → A upper-left
+  darkest quartile 0.378 vs ref 0.385), camera D on the spine axis (`D SSIM 0.240→0.253`).
+  Vegetation re-measured under the new key: within ±0.02 of the reference, no change.
+- take-0011 (`6cc8279`) and take-0012 (`81d5d09`): A 0.207, B 0.182, C 0.180, D 0.240, E 0.207,
+  F 0.157 — every view but F at its best; hue Δ ≤ 6.6°. Session start was A 0.179 / D 0.189.
+- CI green on `eb390b7` and `3a27da2` (5 fail = W37 + the four Phase-2 character items).
+- Three biggest remaining gaps → (1) W37 SSIM ≥ 0.42: composition and tone are now on the
+  reference in A/B/D; what remains is texture statistics (our slabs/leaves are sharper and more
+  contrasty than the reference's soft video frames — sharpness ratio 0.87–1.9) and the reference's
+  characters/HUD occupying 10–15 % of every frame (Phase 2/3); (2) B path over-lit under the new
+  key (p50 0.636 vs 0.492) while A's plaza is slightly under (0.483 vs 0.553) — dapple pattern,
+  lever `PLAZA_SUN_POROSITY`; (3) 26 auto-passing items still wait on codex's cross-review
+  (offline 11 h) — the score cannot move past 19 without it.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -238,4 +257,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T21:50:28Z
+2026-09-09T23:50:39Z
