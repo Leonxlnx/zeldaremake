@@ -26,8 +26,10 @@ PRs #3 (props) and #4 (vegetation) targeting that branch.
   (W01/W02/W10/W32/W37 + Phase 2/3 items).
 
 ## Biggest visual weaknesses
-1. Shot similarity (W37, SSIM 0.12–0.18 vs 0.42): composition still differs — house visible in
-   the centre of shot A, log arch mostly hidden in D, B camera slightly high.
+1. Shot similarity (W37, SSIM 0.12–0.18 vs 0.42): composition still differs — stairs sit
+   further left/wider than the reference in A, log arch mostly hidden in D, upper third darker
+   than the reference's bright haze. (Shot A's centre is now the hedge the reference shows,
+   not Saria's doorway — fixed at `0755390`.)
 2. Far hills untextured grey; only 2 far depth layers in D (W32).
 3. Grade cooler/flatter than the reference's olive/khaki + deep cool shadows; shafts soft.
 4. Canopy cards read as large flat leaves near the camera; stone tones too uniform.
@@ -39,7 +41,8 @@ Hero viewpoints at quality=high: 350–390 draw calls, 5.9–6.3 M triangles (bu
 
 ## Next major priorities
 1. Owner: merge PR #2 to `main` so the hourly cron + Pages deploy run; enable Pages once.
-2. Terrain sampler = rendered mesh (codex findings), atmosphere GLSL fixes, canopy/limb
-   composition, house placement for shot A — in flight.
+2. Landed: terrain sampler = rendered mesh, atmosphere GLSL fixes, canopy/limb composition,
+   shot-A hedge. Next: stair placement/width for A, brighter upper haze, log arch visibility
+   in D, canopy crowns darker under haze from F.
 3. Cross-reviews (codex ↔ fable) to convert the 24 pending items.
 4. One take per hour, both agents, until `gauntlet:verify-exit` passes.

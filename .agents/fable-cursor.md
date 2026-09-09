@@ -132,6 +132,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - CI: intermediate queued runs are cancelled by the concurrency group (expected); the latest
   commit's run proceeds. No completed CI score yet.
 
+### 17:25 UTC — tick 8: shot-A composition, first completed CI score, take-0006 running
+- First CI run that completed end to end (`2f0df25`): 19/50, metrics identical to the local
+  take (A 0.179 / D 0.189) — the capture pipeline is deterministic across machines.
+- W01 flipped: the lantern limb's `from` waypoint now marks where the visible, pod-bearing span
+  begins (`giant.ts` grows the trunk→from reach with the same wiggle); projection 2/3 inside.
+- Took the shot-A hedge myself at 17:00 (codex idle since ~12:30 UTC, deadline was 17:30):
+  `src/world/vegetation/plants.ts` gains a `hedge` LodInstancedSet on the bank at
+  x ≈ 8–9.5, z ≈ −6…−4 — east of camera B's sight line to the door, on camera A's. A's centre
+  luminance 0.373 vs reference 0.357; the door stays clear in B with a shrub at its right, as in
+  the reference. Audit adds `vegetation.hedge` (8); `bushes` contract untouched.
+- Integrated the structures round-three pass (`d14faec`): 7.5 cm vine leaves, pods on short
+  cords, mushroom-cap roof, carved sign.
+- Remaining A gaps against the reference: our stairs sit further left and wider (x 0.5–0.72 vs
+  0.62–0.8), the upper third is darker than the reference's bright haze (0.39 vs 0.46), the left
+  bank is brighter (0.52 vs 0.44). D: log arch still veiled.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -170,4 +186,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T16:12:00Z
+2026-09-09T17:23:36Z
