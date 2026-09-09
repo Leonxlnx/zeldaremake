@@ -172,6 +172,40 @@ function sceneAudit(scene: Scene): Record<string, unknown> {
   };
 }
 
+/** Layout geometry the rubric's projection/composition checks need, so tooling never parses layout.ts. */
+function layoutAudit() {
+  const stairs = LAYOUT.stairs.map((s) => {
+    const l = Math.hypot(s.dir[0], s.dir[1]);
+    const dx = s.dir[0] / l;
+    const dz = s.dir[1] / l;
+    const run = s.steps * s.tread;
+    const rise = s.steps * s.rise;
+    const hw = s.width / 2;
+    const corner = (u: number, v: number, y: number): [number, number, number] => [s.base[0] + dx * u - dz * v, s.base[1] + y, s.base[2] + dz * u + dx * v];
+    return {
+      id: s.id,
+      steps: s.steps,
+      width: s.width,
+      rise: s.rise,
+      tread: s.tread,
+      base: s.base,
+      top: corner(run, 0, rise),
+      footprint: [corner(0, -hw, 0), corner(0, hw, 0), corner(run, hw, rise), corner(run, -hw, rise)],
+    };
+  });
+  const lb = LAYOUT.lanternBranch;
+  const mid: [number, number, number] = [(lb.from[0] + lb.to[0]) / 2, (lb.from[1] + lb.to[1]) / 2, (lb.from[2] + lb.to[2]) / 2];
+  return {
+    viewpoints: LAYOUT.viewpoints.map((v) => ({ id: v.id, refSeconds: v.refSeconds, diagnostic: !!v.diagnostic, position: v.position, target: v.target, fov: v.fov })),
+    stairs,
+    lanternBranch: { from: lb.from, mid, to: lb.to, lanterns: lb.lanterns },
+    houses: LAYOUT.houses.map((h) => ({ id: h.id, position: h.position, trunkRadius: h.trunkRadius, roofHeight: h.roofHeight })),
+    logArch: LAYOUT.logArch,
+    heroBoulders: LAYOUT.heroBoulders,
+    giantTrees: LAYOUT.giantTrees.map((g) => ({ id: g.id, position: g.position, trunkRadius: g.trunkRadius })),
+  };
+}
+
 export function installCaptureApi(hooks: CaptureHooks): ZRApi {
   const api: ZRApi = {
     version: 1,
@@ -223,7 +257,7 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
         scene: sceneAudit(hooks.scene),
         systems,
         systemFailures: hooks.failures.map((f) => ({ ...f })),
-        layout: { viewpoints: LAYOUT.viewpoints.map((v) => v.id), stairs: LAYOUT.stairs.map((s) => ({ id: s.id, steps: s.steps })) },
+        layout: layoutAudit(),
       };
     },
     setQuality: (tier) => hooks.setQuality(tier),
@@ -254,6 +288,15 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       const near = 0.1;
       const far = maxDepth;
       const px = new Uint8Array(W * H * 4);
+      // objects flagged userData.depthAudit === false (mist sheets, particle billboards) are not
+      // scenery and must not fill depth buckets in the anti-matte check
+      const hidden: Object3D[] = [];
+      scene.traverse((o) => {
+        if (o.userData?.depthAudit === false && o.visible) {
+          o.visible = false;
+          hidden.push(o);
+        }
+      });
       try {
         cam.near = near;
         cam.far = far;
@@ -267,6 +310,7 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
         hooks.renderer.render(scene, cam);
         hooks.renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
       } finally {
+        for (const o of hidden) o.visible = true;
         hooks.renderer.setRenderTarget(prevTarget);
         hooks.renderer.setClearColor(prevClear, prevClearAlpha);
         scene.overrideMaterial = prevOverride;
