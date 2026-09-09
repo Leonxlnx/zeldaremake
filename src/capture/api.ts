@@ -7,7 +7,22 @@
  * Under `?capture=1` the world runs with a fixed timestep and no input so two captures of the
  * same commit are pixel-identical (modulo GPU), which is what makes before/after diffs honest.
  */
-import { Vector3, type Camera, type Scene, type WebGLRenderer, type Object3D, type Mesh, type InstancedMesh, type Material, type Texture, type PerspectiveCamera } from 'three';
+import {
+  Vector3,
+  MeshDepthMaterial,
+  RGBADepthPacking,
+  WebGLRenderTarget,
+  NearestFilter,
+  type Camera,
+  type Scene,
+  type WebGLRenderer,
+  type Object3D,
+  type Mesh,
+  type InstancedMesh,
+  type Material,
+  type Texture,
+  type PerspectiveCamera,
+} from 'three';
 import { LAYOUT } from '../world/layout';
 import type { Terrain } from '../world/terrain/heightfield';
 
@@ -42,6 +57,14 @@ export interface ZRApi {
   /** terrain height + mask at a world xz (used by seating/contact checks) */
   probe(x: number, z: number): { height: number; slope: number; mask: Record<string, number> };
   cameraPose(): { position: number[]; direction: number[]; fov: number };
+  /**
+   * Render linear depth for the current camera at low resolution and return a histogram
+   * (anti-cheat C3: a flat backdrop pretending to be scenery shows up as one huge bucket).
+   * `buckets` are fractions of non-sky pixels per 1 % slice of [0, maxDepth]; sky = depth ≥ maxDepth.
+   */
+  depthHistogram(maxDepth?: number): { buckets: number[]; skyFraction: number; farLayerCount: number; maxBucketBeyond20m: number };
+  /** project world points to normalised screen coords for the current camera ([x,y] in 0..1, y down; null if behind) */
+  project(points: [number, number, number][]): ([number, number] | null)[];
 }
 
 declare global {
@@ -175,6 +198,82 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       hooks.camera.getWorldPosition(p);
       hooks.camera.getWorldDirection(d);
       return { position: [p.x, p.y, p.z], direction: [d.x, d.y, d.z], fov: (hooks.camera as PerspectiveCamera).fov ?? 0 };
+    },
+    depthHistogram: (maxDepth = 250) => {
+      const W = 160;
+      const H = 90;
+      const cam = hooks.camera as PerspectiveCamera;
+      const rt = new WebGLRenderTarget(W, H, { minFilter: NearestFilter, magFilter: NearestFilter });
+      const depthMat = new MeshDepthMaterial({ depthPacking: RGBADepthPacking });
+      const scene = hooks.scene;
+      const prevOverride = scene.overrideMaterial;
+      const prevBg = scene.background;
+      const prevFog = scene.fog;
+      const prevTarget = hooks.renderer.getRenderTarget();
+      // temporarily render with a far plane at maxDepth so the packed depth maps to [0, maxDepth]
+      const prevFar = cam.far;
+      const prevNear = cam.near;
+      cam.near = 0.1;
+      cam.far = maxDepth;
+      cam.updateProjectionMatrix();
+      scene.overrideMaterial = depthMat;
+      scene.background = null;
+      scene.fog = null;
+      hooks.renderer.setRenderTarget(rt);
+      hooks.renderer.setClearColor(0xffffff, 1);
+      hooks.renderer.clear();
+      hooks.renderer.render(scene, cam);
+      const px = new Uint8Array(W * H * 4);
+      hooks.renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+      hooks.renderer.setRenderTarget(prevTarget);
+      scene.overrideMaterial = prevOverride;
+      scene.background = prevBg;
+      scene.fog = prevFog;
+      cam.near = prevNear;
+      cam.far = prevFar;
+      cam.updateProjectionMatrix();
+      rt.dispose();
+      depthMat.dispose();
+      const buckets = new Array(100).fill(0);
+      let sky = 0;
+      let n = 0;
+      for (let i = 0; i < W * H; i++) {
+        // unpack RGBA depth (three.js packing: r + g/256 + b/65536 + a/16777216)
+        const d = px[i * 4] / 255 + px[i * 4 + 1] / 65280 + px[i * 4 + 2] / 16711680 + px[i * 4 + 3] / 4278190080;
+        if (d >= 0.999) {
+          sky++;
+          continue;
+        }
+        // perspective depth → linear view distance
+        const zNdc = d * 2 - 1;
+        const lin = (2 * cam.near * cam.far) / (cam.far + cam.near - zNdc * (cam.far - cam.near));
+        const b = Math.min(99, Math.floor((lin / maxDepth) * 100));
+        buckets[b]++;
+        n++;
+      }
+      const frac = buckets.map((c) => (n ? c / n : 0));
+      const beyond20 = Math.floor((20 / maxDepth) * 100);
+      let maxBucketBeyond20m = 0;
+      for (let b = beyond20; b < 100; b++) maxBucketBeyond20m = Math.max(maxBucketBeyond20m, frac[b]);
+      // count distinct occupied depth layers (runs of buckets with ≥ 1.5 % of pixels) beyond 8 m
+      let farLayerCount = 0;
+      let inRun = false;
+      for (let b = Math.floor((8 / maxDepth) * 100); b < 100; b++) {
+        const occupied = frac[b] >= 0.015;
+        if (occupied && !inRun) farLayerCount++;
+        inRun = occupied;
+      }
+      return { buckets: frac, skyFraction: sky / (W * H), farLayerCount, maxBucketBeyond20m };
+    },
+    project: (points) => {
+      const cam = hooks.camera as PerspectiveCamera;
+      cam.updateMatrixWorld();
+      const v = new Vector3();
+      return points.map(([x, y, z]) => {
+        v.set(x, y, z).project(cam);
+        if (v.z > 1 || v.z < -1) return null;
+        return [(v.x + 1) / 2, (1 - v.y) / 2] as [number, number];
+      });
     },
   };
   window.__ZR__ = api;

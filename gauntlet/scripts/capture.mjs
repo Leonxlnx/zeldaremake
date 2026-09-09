@@ -2,7 +2,7 @@
 /**
  * Capture every saved viewpoint of the built world headlessly.
  *
- *   npm run build && npm run capture -- --out gauntlet/out/capture [--viewpoints A_stairs,B_house] [--quality high] [--settle 90]
+ *   npm run build && npm run capture -- --out gauntlet/out/capture [--viewpoints A_stairs,B_house] [--quality high] [--settle 90] [--dist path/to/dist]
  *
  * Writes <out>/<viewpoint>.png, <out>/audit.json, <out>/stats.json, <out>/console.log.
  * The screenshots come from the renderer's own canvas via the __ZR__ API — no hand-made images.
@@ -48,7 +48,8 @@ export function gitInfo() {
   };
 }
 
-export async function captureAll({ out, viewpoints, quality = 'high', settleFrames = 90, width = 1280, height = 720, distDir = path.join(ROOT, 'dist'), log = console.error }) {
+export async function captureAll({ out, viewpoints, quality = 'high', settleFrames = 90, width = 1280, height = 720, distDir, log = console.error }) {
+  distDir = distDir || path.join(ROOT, 'dist');
   if (!fs.existsSync(path.join(distDir, 'index.html'))) throw new Error(`No build at ${distDir}. Run \`npm run build\` first.`);
   fs.mkdirSync(out, { recursive: true });
   const server = await serveStatic(distDir);
@@ -104,7 +105,7 @@ if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   const out = path.resolve(ROOT, args.out || 'gauntlet/out/capture');
   const viewpoints = typeof args.viewpoints === 'string' ? args.viewpoints.split(',') : undefined;
-  captureAll({ out, viewpoints, quality: args.quality || 'high', settleFrames: Number(args.settle || 90) })
+  captureAll({ out, viewpoints, quality: args.quality || 'high', settleFrames: Number(args.settle || 90), distDir: args.dist ? path.resolve(ROOT, args.dist) : undefined })
     .then(({ meta }) => {
       console.log(JSON.stringify({ out, viewpoints: meta.viewpoints.map((v) => v.id), durationMs: meta.durationMs, sha: meta.git.shortSha }, null, 2));
     })
