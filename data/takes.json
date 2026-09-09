@@ -1,0 +1,413 @@
+{
+  "project": "zeldaremake",
+  "updatedAt": "2026-09-09T09:55:34.270Z",
+  "monitorCadenceMinutes": 60,
+  "takes": [
+    {
+      "id": "take-0000",
+      "number": 0,
+      "at": "2026-09-09T08:57:00Z",
+      "agent": "fable-cursor",
+      "sha": "f8af36b8c1f6f4f2e3f7a6a0b0e6d7c5d1a2b3c4",
+      "shortSha": "f8af36b",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Bootstrap Phase 1 foundation: Three.js scaffold, layout, heightfield, capture API",
+      "phase": 1,
+      "items": [
+        "W01",
+        "W04",
+        "W42"
+      ],
+      "note": "Baseline before any content pass. Reference frame 1 s shows 18 individually cut, moss-edged stone slabs climbing to a fenced ledge with a lantern-hung bough entering from the left; ours has extruded box steps, a vertex-coloured heightfield, cylinder trunks with sphere crowns and massing blocks for the houses and log. Composition and camera framing already match the four hero shots; every material, silhouette and density item is still open.",
+      "slate": {
+        "scene": "A",
+        "sceneTitle": "The Stairs",
+        "take": 0,
+        "director": "fable-cursor",
+        "camera": "SwiftShader · 1280×720",
+        "roll": "phase-1"
+      },
+      "shots": [
+        {
+          "viewpoint": "A_stairs",
+          "label": "The Stairs",
+          "refSeconds": 1,
+          "image": "takes/take-0000/A_stairs.jpg",
+          "compare": "takes/take-0000/A_stairs.compare.jpg",
+          "reference": "reference/frames/A_stairs.jpg",
+          "previous": null,
+          "sha256": "c9b955acff36291159fa45933e284e438a61942816776a64697c3e065cf06987",
+          "metrics": {
+            "ssim": 0.162,
+            "phashDistance": 28,
+            "hueDiffDeg": 37.3,
+            "satDiff": 0.232,
+            "lumDiff": -0.118,
+            "sharpnessRatio": 0.89,
+            "skyFraction": 0.095,
+            "overexposedFraction": 0,
+            "purpleFraction": 0
+          },
+          "deltas": {},
+          "callouts": [
+            {
+              "x": 0.6,
+              "y": 0.55,
+              "label": "stairs are placeholder boxes — 18 slabs to carve",
+              "item": "W02",
+              "kind": "todo"
+            },
+            {
+              "x": 0.2,
+              "y": 0.4,
+              "label": "lantern branch not built yet",
+              "item": "W14",
+              "kind": "todo"
+            },
+            {
+              "x": 0.5,
+              "y": 0.85,
+              "label": "flat vertex-colour ground — flagstones pending",
+              "item": "W03",
+              "kind": "todo"
+            }
+          ],
+          "refCallouts": [
+            {
+              "x": 0.7,
+              "y": 0.4,
+              "label": "18 worn slabs, moss edges, fenced ledge above"
+            },
+            {
+              "x": 0.25,
+              "y": 0.38,
+              "label": "pod lanterns on the bough"
+            }
+          ]
+        },
+        {
+          "viewpoint": "B_house",
+          "label": "Saria's House",
+          "refSeconds": 14,
+          "image": "takes/take-0000/B_house.jpg",
+          "compare": "takes/take-0000/B_house.compare.jpg",
+          "reference": "reference/frames/B_house.jpg",
+          "previous": null,
+          "sha256": "2c34ae93a76bf3952fb69a23460f968dbdbd98c9aa6ddfa6310094298c6ab514",
+          "metrics": {
+            "ssim": 0.187,
+            "phashDistance": 26,
+            "hueDiffDeg": 32.8,
+            "satDiff": 0.13,
+            "lumDiff": -0.044,
+            "sharpnessRatio": 1.06,
+            "skyFraction": 0.049,
+            "overexposedFraction": 0,
+            "purpleFraction": 0
+          },
+          "deltas": {},
+          "callouts": [
+            {
+              "x": 0.72,
+              "y": 0.45,
+              "label": "house massing only — trunk, dome roof, lanterns pending",
+              "item": "W25",
+              "kind": "todo"
+            },
+            {
+              "x": 0.2,
+              "y": 0.55,
+              "label": "boulder placeholder",
+              "item": "W23",
+              "kind": "todo"
+            }
+          ],
+          "refCallouts": []
+        },
+        {
+          "viewpoint": "C_lookback",
+          "label": "Look Back",
+          "refSeconds": 46,
+          "image": "takes/take-0000/C_lookback.jpg",
+          "compare": "takes/take-0000/C_lookback.compare.jpg",
+          "reference": "reference/frames/C_lookback.jpg",
+          "previous": null,
+          "sha256": "e3156c933a86c044e6cb13eaf1b6008182f3193e5d8e6d9eaea3655adaaec92c",
+          "metrics": {
+            "ssim": 0.227,
+            "phashDistance": 30,
+            "hueDiffDeg": 50.6,
+            "satDiff": 0.131,
+            "lumDiff": 0.088,
+            "sharpnessRatio": 1.19,
+            "skyFraction": 0.079,
+            "overexposedFraction": 0,
+            "purpleFraction": 0
+          },
+          "deltas": {},
+          "callouts": [],
+          "refCallouts": []
+        },
+        {
+          "viewpoint": "D_log",
+          "label": "The Log Arch",
+          "refSeconds": 56,
+          "image": "takes/take-0000/D_log.jpg",
+          "compare": "takes/take-0000/D_log.compare.jpg",
+          "reference": "reference/frames/D_log.jpg",
+          "previous": null,
+          "sha256": "31ff3f26ff81f2bc81d257d3355a902d8f5082c523816bd29bbe3e0ea5198846",
+          "metrics": {
+            "ssim": 0.193,
+            "phashDistance": 26,
+            "hueDiffDeg": 24.1,
+            "satDiff": 0.193,
+            "lumDiff": -0.101,
+            "sharpnessRatio": 1.31,
+            "skyFraction": 0.078,
+            "overexposedFraction": 0,
+            "purpleFraction": 0
+          },
+          "deltas": {},
+          "callouts": [
+            {
+              "x": 0.5,
+              "y": 0.45,
+              "label": "log arch massing — hollow log pending",
+              "item": "W29",
+              "kind": "todo"
+            },
+            {
+              "x": 0.1,
+              "y": 0.7,
+              "label": "purple flowers + moss boulder pending",
+              "item": "W18",
+              "kind": "todo"
+            }
+          ],
+          "refCallouts": []
+        },
+        {
+          "viewpoint": "E_ground",
+          "label": "Ground Close-up",
+          "refSeconds": 24,
+          "image": "takes/take-0000/E_ground.jpg",
+          "compare": "takes/take-0000/E_ground.compare.jpg",
+          "reference": "reference/frames/E_ground.jpg",
+          "previous": null,
+          "sha256": "039f5ae6b9aef2409bb094de4013591145baa6795e6965e01e62fbaced0665ff",
+          "metrics": {
+            "ssim": 0.181,
+            "phashDistance": 26,
+            "hueDiffDeg": 15.7,
+            "satDiff": 0.071,
+            "lumDiff": -0.061,
+            "sharpnessRatio": 0.66,
+            "skyFraction": 0.026,
+            "overexposedFraction": 0,
+            "purpleFraction": 0
+          },
+          "deltas": {},
+          "callouts": [],
+          "refCallouts": []
+        },
+        {
+          "viewpoint": "F_canopy",
+          "label": "Canopy & Shafts",
+          "refSeconds": 8,
+          "image": "takes/take-0000/F_canopy.jpg",
+          "compare": "takes/take-0000/F_canopy.compare.jpg",
+          "reference": "reference/frames/F_canopy.jpg",
+          "previous": null,
+          "sha256": "9aa2e5f06447ea32f80d304343ebe73903b64b434da826cedeb4637d3403c573",
+          "metrics": {
+            "ssim": 0.18,
+            "phashDistance": 26,
+            "hueDiffDeg": 71.2,
+            "satDiff": 0.288,
+            "lumDiff": -0.077,
+            "sharpnessRatio": 0.96,
+            "skyFraction": 0.148,
+            "overexposedFraction": 0,
+            "purpleFraction": 0
+          },
+          "deltas": {},
+          "callouts": [],
+          "refCallouts": []
+        }
+      ],
+      "score": {
+        "passed": 2,
+        "total": 50,
+        "phaseRequired": 42,
+        "phasePassed": 2,
+        "items": {
+          "W01": {
+            "status": "fail"
+          },
+          "W02": {
+            "status": "fail"
+          },
+          "W03": {
+            "status": "fail"
+          },
+          "W04": {
+            "status": "pass"
+          },
+          "W05": {
+            "status": "fail"
+          },
+          "W06": {
+            "status": "fail"
+          },
+          "W07": {
+            "status": "fail"
+          },
+          "W08": {
+            "status": "fail"
+          },
+          "W09": {
+            "status": "fail"
+          },
+          "W10": {
+            "status": "fail"
+          },
+          "W11": {
+            "status": "fail"
+          },
+          "W12": {
+            "status": "fail"
+          },
+          "W13": {
+            "status": "fail"
+          },
+          "W14": {
+            "status": "fail"
+          },
+          "W15": {
+            "status": "fail"
+          },
+          "W16": {
+            "status": "fail"
+          },
+          "W17": {
+            "status": "fail"
+          },
+          "W18": {
+            "status": "fail"
+          },
+          "W19": {
+            "status": "fail"
+          },
+          "W20": {
+            "status": "fail"
+          },
+          "W21": {
+            "status": "fail"
+          },
+          "W22": {
+            "status": "fail"
+          },
+          "W23": {
+            "status": "fail"
+          },
+          "W24": {
+            "status": "fail"
+          },
+          "W25": {
+            "status": "fail"
+          },
+          "W26": {
+            "status": "fail"
+          },
+          "W27": {
+            "status": "fail"
+          },
+          "W28": {
+            "status": "fail"
+          },
+          "W29": {
+            "status": "fail"
+          },
+          "W30": {
+            "status": "fail"
+          },
+          "W31": {
+            "status": "fail"
+          },
+          "W32": {
+            "status": "fail"
+          },
+          "W33": {
+            "status": "fail"
+          },
+          "W34": {
+            "status": "fail"
+          },
+          "W35": {
+            "status": "fail"
+          },
+          "W36": {
+            "status": "fail"
+          },
+          "W37": {
+            "status": "fail"
+          },
+          "W38": {
+            "status": "fail"
+          },
+          "W39": {
+            "status": "fail"
+          },
+          "W40": {
+            "status": "fail"
+          },
+          "W41": {
+            "status": "fail"
+          },
+          "W42": {
+            "status": "pass"
+          },
+          "C01": {
+            "status": "fail"
+          },
+          "C02": {
+            "status": "pending"
+          },
+          "C03": {
+            "status": "fail"
+          },
+          "C04": {
+            "status": "fail"
+          },
+          "C05": {
+            "status": "fail"
+          },
+          "U01": {
+            "status": "pending"
+          },
+          "U02": {
+            "status": "pending"
+          },
+          "U03": {
+            "status": "pending"
+          }
+        }
+      },
+      "stats": {
+        "drawCalls": 136,
+        "triangles": 67440,
+        "captureMs": 33611,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local",
+        "runId": null,
+        "workflow": null,
+        "url": null
+      },
+      "valid": true,
+      "invalid": null
+    }
+  ]
+}

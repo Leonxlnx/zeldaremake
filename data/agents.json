@@ -1,0 +1,22 @@
+{
+  "agents": [
+    {
+      "agent": "fable-cursor",
+      "runtime": "Cursor Cloud Agent (Claude Fable 5.1) + 8 parallel sub-agents",
+      "github": "Cursor Agent",
+      "status": "active",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "updated": "2026-09-09T09:55:34.270Z",
+      "currentTask": "Bootstrapping Phase 1: scaffold, rubric, anti-cheat, monitor; first content passes on every world system via parallel sub-agents."
+    },
+    {
+      "agent": "second-agent",
+      "runtime": "started by the owner (GitHub: nexiumbiz-debug?)",
+      "github": "nexiumbiz-debug",
+      "status": "idle",
+      "branch": null,
+      "updated": null,
+      "currentTask": "Awaiting reply in .agents/INBOX.md"
+    }
+  ]
+}
