@@ -12,7 +12,7 @@
  * camera distance; other plants live in variant × LOD instanced sets that re-bucket by
  * distance. Three wind layers: windGrass (blades), windBranch + windLeaf (plants / bushes).
  */
-import { Group, Vector3 } from 'three';
+import { Group, InstancedMesh, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { VegField } from './field';
 import { buildGrass, GRASS_TYPE_NAMES, type GrassResult } from './grass';
@@ -50,8 +50,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const buildMs = performance.now() - t0;
   const camPos = new Vector3();
   const sets = [...plants.all, ...litter.all];
+  let disposed = false;
 
   const refresh = (force = false, camera = ctx.camera) => {
+    if (disposed) return;
     camera.getWorldPosition(camPos);
     grass.update(camPos);
     for (const s of sets) s.update(camPos, force);
@@ -120,9 +122,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       refresh(true, camera);
     },
     dispose() {
+      if (disposed) return;
+      disposed = true;
+      // Grass swaps geometries on one mesh, so traversal alone misses dormant LODs.
+      const geometries = new Set<BufferGeometry>();
+      for (const tile of grass.tiles) for (const geometry of tile.lods) geometries.add(geometry);
+      for (const set of sets) for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
+      group.traverse((object) => {
+        if (object instanceof InstancedMesh) object.dispose();
+      });
+      for (const geometry of geometries) geometry.dispose();
       grassMaterial.dispose();
       litterMaterial.dispose();
       for (const m of plants.materials) m.dispose();
+      group.removeFromParent();
     },
   };
 }

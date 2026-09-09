@@ -169,7 +169,7 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   const fwd = new Vector3().crossVectors(n, side).normalize();
   const high = detail === 'high';
   const low = detail === 'low';
-  const rings = low ? 2 : 3;
+  const rings = high ? 3 : 2;
   const segments = low ? 5 : high ? 8 : 6;
   const floret = () => blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
   const at = (u: number, v: number, h: number) => center.clone().addScaledVector(side, u).addScaledVector(fwd, v).addScaledVector(n, h);
@@ -209,7 +209,6 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
 export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
   const low = detail === 'low';
   const stems = low ? 5 : 6 + rng.int(0, 4);
   const phase = rng() * TAU;
@@ -221,7 +220,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     const height = 0.22 + rng() * 0.2;
     const lean = V(Math.cos(angle) * height * 0.3, height, Math.sin(angle) * height * 0.3);
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
-    tube(m, sampleCurve(curve, high ? 3 : 2), 0.0026, 0.0014, pal.stem, 3);
+    // High/mid share the skeleton, including the root tangent used to ground the mesh.
+    // Most mid-LOD savings come from the head, not these six extra stem triangles.
+    tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
     if (!low) {
       for (let j = 0; j < 2; j++) {
         for (const sign of [-1, 1]) {
@@ -232,7 +233,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     }
     // head: dense cluster bloom (~7–10 cm across)
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
-    clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, rng, pal, detail);
+    // Petal tessellation must not advance the layout stream and move the next stem.
+    // Retain the existing cheap low LOD; only high/mid need matching silhouettes.
+    clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, low ? rng : rng.fork(`head-${i}`), pal, detail);
   }
   if (!low) {
     const rosette = 4 + rng.int(0, 3);
@@ -279,7 +282,8 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
         const a = a0 + (p * TAU) / petals;
         const dir = V(Math.cos(a), -0.35 + rng() * 0.3, Math.sin(a)).normalize();
         const color = blend(blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5), pal.purpleDeep, rng() * 0.3);
-        if (low) foldedLeaf(m, c, dir, bellR * 1.6 * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
+        // Mid-distance bells keep every floret but use a folded lamina instead of four triangles.
+        if (low || detail === 'mid') foldedLeaf(m, c, dir, bellR * (low ? 1.6 : 1.7) * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
         else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.6 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: pal.purpleLight });
       }
     }
