@@ -134,8 +134,10 @@ export const LAYOUT = {
     // Projected into shot A this runs in from the left edge at y ≈ 0.15–0.3 and ends near
     // (0.26, 0.39) with pods hanging around (0.1, 0.45) — the reference bough — while staying in
     // the upper quarter of shot B (reference B has the giant's limb over the house there).
-    from: [-9.0, 5.3, -7.6] as [number, number, number],
-    to: [2.4, 3.4, -1.2] as [number, number, number],
+    // `from` marks where the visible, lantern-bearing part of the limb begins (the giant builder
+    // grows the limb from the trunk to it); the midpoint must project inside shot A for W01.
+    from: [-3.2, 4.35, -4.3] as [number, number, number],
+    to: [3.0, 3.3, -0.9] as [number, number, number],
     /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
     radius: 0.42,
     tipRadius: 0.16,

@@ -399,6 +399,24 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const radii: number[] = [r0 * 1.3];
     const n = 16;
     const wigglePhase = r() * TAU;
+    // trunk → `from`: the authored waypoint may sit well out along the limb (it marks where the
+    // visible, lantern-bearing part begins), so this first reach gets the same organic wiggle
+    // and a gentle sag instead of being one straight rod
+    const reach = from.clone();
+    reach.y = 0;
+    const reachLen = reach.length();
+    if (reachLen > 1.2) {
+      const rn = Math.max(2, Math.ceil(reachLen / 0.9));
+      const rside = new Vector3(-reach.z, 0, reach.x).normalize();
+      for (let k = 1; k < rn; k++) {
+        const s = k / rn;
+        const p = new Vector3(from.x * s, from.y, from.z * s);
+        p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
+        p.y += (0.25 * Math.sin(s * Math.PI) - 0.12 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI)) * Math.min(1, reachLen / 6);
+        path.push(p);
+        radii.push(r0 * 1.3 + (r0 - r0 * 1.3) * Math.pow(s, 0.7));
+      }
+    }
     for (let k = 0; k <= n; k++) {
       const s = k / n;
       const p = from.clone().addScaledVector(dir, len * s);
