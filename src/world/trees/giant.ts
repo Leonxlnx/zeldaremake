@@ -29,10 +29,14 @@ import {
   tube,
 } from './writer';
 import type { Palette } from './whitebark';
+import { CARD_UV0 } from './leaf-cluster-texture';
 
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
   geometry: BufferGeometry;
+  /** leaf-cluster alpha cards filling the lobe interiors (separate material) */
+  cards: BufferGeometry;
+  cardCount: number;
   leafCount: number;
   woodTriangles: number;
   leafTriangles: number;
@@ -53,6 +57,8 @@ export interface GiantOptions {
   palette: Palette;
   /** leaf population multiplier (quality) */
   leafDensity?: number;
+  /** local horizontal unit vector toward the clearing: crowns grow into the light (phototropism) */
+  towardPlaza?: Vector3;
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -61,9 +67,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const gnarl = new Noise2D(`giant-bark/${def.id}`);
   const wood = new GeometryWriter('high');
   const leaves = new GeometryWriter('high');
+  const cards = new GeometryWriter('high');
   const R = def.trunkRadius;
   const H = def.height;
   const density = o.leafDensity ?? 1;
+  const toPlaza = o.towardPlaza ?? new Vector3(1, 0, 0);
+  const plazaBias = o.towardPlaza ? 1 : 0;
   const contacts: Vector3[] = [new Vector3(0, 0, 0)];
   const canopy = new Color(o.palette.leafCanopy);
   const sunny = new Color(o.palette.leafSun);
@@ -91,7 +100,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- trunk ----------
   const lean = Math.tan((bt(1, 3) * Math.PI) / 180);
-  const leanAz = r() * TAU;
+  const leanAz = plazaBias ? Math.atan2(toPlaza.z, toPlaza.x) + bt(-0.7, 0.7) : r() * TAU;
   const fork = H * bt(0.5, 0.56);
   const top = new Vector3(Math.cos(leanAz) * lean * fork, fork, Math.sin(leanAz) * lean * fork);
   const skirt = 1.3;
@@ -171,9 +180,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- leaves ----------
   const leafOpts = (radius: number) => ({
-    widthRatio: 0.74,
-    wideFirst: 0.9,
-    wideSecond: 0.62,
+    widthRatio: 0.58,
+    wideFirst: 0.85,
+    wideSecond: 0.6,
     stiffness: stiffnessFor(radius),
     flutter: 0.03,
     detailOverride: 'medium' as const,
@@ -203,12 +212,76 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .lerp(sunny, sun * (1 - interior * 0.7))
         .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.3))
         .multiplyScalar(vigor * (1 - interior * 0.32));
-      addLeaf(leaves, base, direction, bt(0.24, 0.4), color, r, opts);
+      // leaves near eye level (low limbs) stay believable; the high roof uses big stylised laminae
+      const size = bt(0.7, 1.0) * (0.17 + 0.22 * smoothstep(4, 15, base.y));
+      addLeaf(leaves, base, direction, size, color, r, opts);
+    }
+  }
+
+  /**
+   * Leaf-cluster cards filling a lobe: quads biased to the lobe shell, each carrying the cluster
+   * alpha texture, with normals pointing out of the lobe (so the canopy shades as one volume
+   * instead of a patchwork of flat quads). Cards ride the branch wind layer of their bough.
+   */
+  const cardN = new Vector3();
+  const cardU = new Vector3();
+  const cardW = new Vector3();
+  function clusterCards(center: Vector3, hR: number, vR: number, boughRadius: number, count: number) {
+    count = Math.max(2, Math.round(count * Math.min(1.1, density)));
+    const stiffness = stiffnessFor(boughRadius * 0.5);
+    const phase = r();
+    for (let i = 0; i < count; i++) {
+      const rr = Math.pow(r(), 0.4);
+      const th = r() * TAU;
+      const ph = Math.acos(2 * r() - 1);
+      const local = new Vector3(Math.sin(ph) * Math.cos(th) * hR * rr, Math.cos(ph) * vR * rr, Math.sin(ph) * Math.sin(th) * hR * rr);
+      const p = center.clone().add(local);
+      cardN.set(local.x / hR, local.y / vR + 0.7, local.z / hR).normalize();
+      cardN.x += bt(-0.35, 0.35);
+      cardN.z += bt(-0.35, 0.35);
+      cardN.normalize();
+      const ref = Math.abs(cardN.y) < 0.9 ? UP : new Vector3(1, 0, 0);
+      cardU.crossVectors(cardN, ref).normalize();
+      cardW.crossVectors(cardN, cardU).normalize();
+      // spin the card in its plane
+      const spin = r() * TAU;
+      const su = cardU.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardW, Math.sin(spin));
+      const sw = cardW.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardU, -Math.sin(spin));
+      const s = Math.min(1.6, Math.max(0.45, bt(0.28, 0.42) * hR));
+      const heightF = p.y / H;
+      const outF = Math.hypot(p.x, p.z) / crownRadius;
+      const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * bt(0.35, 1);
+      const interior = 1 - rr;
+      const color = canopy
+        .clone()
+        .multiplyScalar(0.9)
+        .lerp(sunny, sun * (1 - interior * 0.7))
+        .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.25))
+        .multiplyScalar(bt(0.85, 1.05) * (1 - interior * 0.4));
+      const V = (du: number, dw: number, u: number, v: number) =>
+        cards.vertexN(
+          p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s),
+          cardN,
+          color,
+          CARD_UV0 + (1 - CARD_UV0) * u,
+          CARD_UV0 + (1 - CARD_UV0) * v,
+          stiffness,
+          phase,
+          0.012 * (0.5 + v),
+          1,
+        );
+      const a = V(-1, -1, 0, 0);
+      const b = V(1, -1, 1, 0);
+      const c = V(1, 1, 1, 1);
+      const d = V(-1, 1, 0, 1);
+      cards.triangle(a, b, c);
+      cards.triangle(a, c, d);
     }
   }
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55) {
     lobe = { center, hR };
+    clusterCards(center, hR, vR, boughRadius, 7 + subCount * 3);
     leafSpray(bough, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
     const phase = r() * TAU;
     for (let j = 0; j < subCount; j++) {
@@ -348,6 +421,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const angle = leanAz + (i / leaders) * TAU + bt(-0.35, 0.35);
     const radial = crownRadius * bt(0.35, 0.58);
     const target = new Vector3(Math.cos(angle) * radial, H * bt(0.76, 0.92), Math.sin(angle) * radial);
+    // phototropism: the whole crown shifts toward the clearing
+    target.addScaledVector(toPlaza, plazaBias * crownRadius * bt(0.12, 0.28));
     const path = divergingLeaderPath(origin, target, r, 14);
     const radius = topRadius * Math.sqrt(weights[i] / total) * 1.15;
     tube(wood, path, taper(path, radius, 0.06, 0.88), 10, r, { color: barkColor, roughness: 0.05, bump: gnarlBump(2, 0.08), creviceShade: 1.5, barkTile: 1.2, structural: true });
@@ -361,6 +436,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // lobes span 0.58–0.92 H (≈ 14–24 m) so the crown roofs the clearing rather than floating above it
       const lobeY = H * (j === 0 ? bt(0.58, 0.68) : j === 1 ? bt(0.66, 0.76) : inward ? bt(0.82, 0.92) : bt(0.72, 0.84));
       const center = new Vector3(Math.cos(ba) * bRadial, lobeY, Math.sin(ba) * bRadial);
+      center.addScaledVector(toPlaza, plazaBias * crownRadius * bt(0.15, 0.35));
       const end = center.clone().add(new Vector3(bt(-0.5, 0.5), bt(-0.6, 0.1), bt(-0.5, 0.5)));
       const bough = growthPath(bOrigin, end, tangent(path, t), r, 10, 0.7);
       const bRadius = Math.max(0.09, radius * Math.pow(1 - t, 0.7) * bt(0.5, 0.7));
@@ -373,6 +449,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   return {
     geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), leaves.finish('leaves')]),
+    cards: cards.finish(`giant-cards-${def.id}`),
+    cardCount: cards.triangles / 2,
     leafCount: leaves.leafCount,
     woodTriangles: wood.triangles,
     leafTriangles: leaves.triangles,

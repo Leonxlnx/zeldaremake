@@ -27,6 +27,9 @@ export class GeometryWriter {
   uvs: number[] = [];
   winds: number[] = [];
   roots: number[] = [];
+  /** authored normals (NaN = compute from faces); authored entries override the computed ones */
+  normals: number[] = [];
+  authoredNormals = 0;
   indices: number[] = [];
   seams: [number, number][] = [];
   leafOrdinal = 0;
@@ -44,6 +47,17 @@ export class GeometryWriter {
     this.uvs.push(u, v);
     this.winds.push(stiffness, phase, flutter);
     this.roots.push(0, 0, 0, leaf);
+    this.normals.push(NaN, NaN, NaN);
+    return i;
+  }
+
+  /** vertex with an authored normal (e.g. lobe-shaped shading for leaf-cluster cards) */
+  vertexN(p: Vector3, normal: Vector3, color: Color, u: number, v: number, stiffness: number, phase: number, flutter: number, leaf: number): number {
+    const i = this.vertex(p, color, u, v, stiffness, phase, flutter, leaf);
+    this.normals[i * 3] = normal.x;
+    this.normals[i * 3 + 1] = normal.y;
+    this.normals[i * 3 + 2] = normal.z;
+    this.authoredNormals++;
     return i;
   }
 
@@ -66,6 +80,12 @@ export class GeometryWriter {
     g.setIndex(this.indices);
     g.computeVertexNormals();
     const normals = g.getAttribute('normal');
+    if (this.authoredNormals) {
+      for (let i = 0; i < normals.count; i++) {
+        const nx = this.normals[i * 3];
+        if (nx === nx) normals.setXYZ(i, nx, this.normals[i * 3 + 1], this.normals[i * 3 + 2]);
+      }
+    }
     const n = new Vector3();
     for (const [a, b] of this.seams) {
       n.set(normals.getX(a) + normals.getX(b), normals.getY(a) + normals.getY(b), normals.getZ(a) + normals.getZ(b)).normalize();

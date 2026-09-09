@@ -56,7 +56,6 @@ interface DistantSet {
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'trees';
-  (globalThis as unknown as { __TREES_DEBUG__?: Group }).__TREES_DEBUG__ = group; // TEMP-DEBUG remove
   const rng = ctx.rng.fork('trees');
   const palette = ctx.config.palette;
   const terrain = ctx.terrain;
@@ -143,11 +142,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       limbSpec,
       palette,
       leafDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)),
+      towardPlaza: new Vector3(-px, 0, -pz).normalize(),
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
-    asset.geometry.translate(px, gy, pz);
-    const root = asset.geometry.getAttribute('aRoot') as BufferAttribute;
-    for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
+    for (const g of [asset.geometry, asset.cards]) {
+      g.translate(px, gy, pz);
+      const root = g.getAttribute('aRoot') as BufferAttribute;
+      for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
+    }
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
     for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / ctx.layout.giantTrees.length);
@@ -160,19 +162,30 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (let s = 0; s < GIANT_SECTORS; s++) {
     const members = byAngle.slice(s * perSector, (s + 1) * perSector);
     if (!members.length) continue;
+    const label = members.map((m) => m.def.id).join('+');
     const geometry = mergeParts(
       `giants-sector-${s}`,
       members.map((m) => m.asset.geometry),
     );
-    sectorGeometries.push(geometry);
+    const cardGeometry = mergeParts(
+      `giants-canopy-${s}`,
+      members.map((m) => m.asset.cards),
+    );
+    sectorGeometries.push(geometry, cardGeometry);
     const mesh = new Mesh(geometry, mats.giantTree);
-    mesh.name = `giants-sector-${s}-${members.map((m) => m.def.id).join('+')}`;
+    mesh.name = `giants-sector-${s}-${label}`;
     mesh.customDepthMaterial = mats.giantTreeDepth;
     mesh.castShadow = ctx.quality.shadows;
     mesh.receiveShadow = true;
     mesh.userData.kind = 'giant';
     mesh.userData.giants = members.map((m) => m.def.id);
-    giantGroup.add(mesh);
+    const canopy = new Mesh(cardGeometry, mats.giantCanopy);
+    canopy.name = `giants-canopy-${s}-${label}`;
+    canopy.customDepthMaterial = mats.giantCanopyDepth;
+    canopy.castShadow = ctx.quality.shadows;
+    canopy.receiveShadow = true;
+    canopy.userData.kind = 'giant-canopy-cards';
+    giantGroup.add(mesh, canopy);
   }
   group.add(giantGroup);
 
@@ -299,10 +312,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
     let giantLeaves = 0;
+    let giantCards = 0;
     let giantLimbsMin = Infinity;
     let giantRootsMin = Infinity;
     for (const g of giants) {
       giantLeaves += g.asset.leafCount;
+      giantCards += g.asset.cardCount;
       woodTriangles += g.asset.woodTriangles;
       leafTriangles += g.asset.leafTriangles;
       giantLimbsMin = Math.min(giantLimbsMin, g.asset.limbs);
@@ -323,6 +338,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantRootsMin,
       giantLimbsMin,
       giantLeaves,
+      /** leaf-cluster alpha cards inside the lobes (in addition to the laminae) */
+      giantCanopyCards: giantCards,
       giantMeshes: sectorGeometries.length,
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       whiteBarkVariants: whites.length,
@@ -339,7 +356,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       barkTextures: mats.barkTextureSets,
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
-      triangles: { wood: woodTriangles, leaves: leafTriangles, distant: distantTriangles },
+      triangles: { wood: woodTriangles, leaves: leafTriangles, canopyCards: giantCards * 2, distant: distantTriangles },
       samplePositions: { bases: sampleBases },
     };
   });

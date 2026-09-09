@@ -12,6 +12,7 @@ import { Noise2D, smoothstep } from '../util/noise';
 import type { Terrain } from '../terrain/heightfield';
 import { GeometryWriter, TAU, UP, growthPath, taper, tube, type RandomFn } from './writer';
 import type { Palette } from './whitebark';
+import { CARD_UV0, SOLID_UV } from './leaf-cluster-texture';
 
 export type DistantKind = 'broad' | 'slender';
 
@@ -54,39 +55,56 @@ function lumpyBlob(writer: GeometryWriter, center: Vector3, radius: number, squa
 }
 
 /**
- * Leaf-card cluster: randomly oriented quads (each a tuft of foliage) filling a lobe volume,
- * lit by height and by facing. Reads as a broken, leafy crown from 60 m+ where individual
- * laminae would be sub-pixel; a dark blob core underneath hides the interior.
+ * Leaf-card cluster: randomly oriented quads carrying the procedural leaf-cluster alpha texture,
+ * filling a lobe volume with normals pointing out of the lobe (so it shades as one volume).
+ * Reads as a broken, leafy crown from 60 m+ where laminae would be sub-pixel; a dark blob core
+ * underneath hides the interior. The vertex colour is a tint — the texture carries the green.
  */
-function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, squash: number, count: number, cardSize: number, color: Color, top: Color, r: RandomFn) {
+function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, squash: number, count: number, cardSize: number, tint: Color, topTint: Color, r: RandomFn) {
   const n = new Vector3();
   const u = new Vector3();
   const w = new Vector3();
   for (let i = 0; i < count; i++) {
     // biased to the shell of the lobe so the silhouette is ragged and the core stays dark
-    const rr = radius * Math.pow(r(), 0.35);
+    const rr = radius * Math.pow(r(), 0.4);
     const th = r() * TAU;
     const ph = Math.acos(2 * r() - 1);
     const p = new Vector3(center.x + Math.sin(ph) * Math.cos(th) * rr, center.y + Math.cos(ph) * rr * squash, center.z + Math.sin(ph) * Math.sin(th) * rr);
-    // card normal: mostly outward + up, jittered
-    n.set(p.x - center.x, (p.y - center.y) / squash + radius * 0.6, p.z - center.z).normalize();
-    n.x += (r() - 0.5) * 0.9;
-    n.y += (r() - 0.5) * 0.6;
-    n.z += (r() - 0.5) * 0.9;
+    n.set((p.x - center.x) / radius, (p.y - center.y) / (radius * squash) + 0.7, (p.z - center.z) / radius).normalize();
+    n.x += (r() - 0.5) * 0.7;
+    n.z += (r() - 0.5) * 0.7;
     n.normalize();
     const ref = Math.abs(n.y) < 0.9 ? UP : new Vector3(1, 0, 0);
     u.crossVectors(n, ref).normalize();
     w.crossVectors(n, u).normalize();
-    const s = cardSize * (0.7 + r() * 0.7);
+    const spin = r() * TAU;
+    const su = u.clone().multiplyScalar(Math.cos(spin)).addScaledVector(w, Math.sin(spin));
+    const sw = w.clone().multiplyScalar(Math.cos(spin)).addScaledVector(u, -Math.sin(spin));
+    const s = cardSize * (0.75 + r() * 0.6);
     const heightF = smoothstep(-1, 1, (p.y - center.y) / (radius * squash));
-    const facing = 0.55 + 0.45 * Math.max(0, n.y);
-    const c = color.clone().lerp(top, heightF * 0.8 + r() * 0.2).multiplyScalar(facing * (0.85 + r() * 0.3));
-    const a = writer.vertex(p.clone().addScaledVector(u, -s).addScaledVector(w, -s * 0.7), c, 0, 0, 1, 0, 0);
-    const b = writer.vertex(p.clone().addScaledVector(u, s).addScaledVector(w, -s * 0.7), c, 1, 0, 1, 0, 0);
-    const cc = writer.vertex(p.clone().addScaledVector(u, s).addScaledVector(w, s * 0.7), c.clone().multiplyScalar(1.08), 1, 1, 1, 0, 0);
-    const d = writer.vertex(p.clone().addScaledVector(u, -s).addScaledVector(w, s * 0.7), c.clone().multiplyScalar(1.08), 0, 1, 1, 0, 0);
+    const interior = 1 - rr / radius;
+    const c = tint
+      .clone()
+      .lerp(topTint, heightF * 0.8 + r() * 0.2)
+      .multiplyScalar((0.85 + r() * 0.3) * (1 - interior * 0.35));
+    const V = (du: number, dw: number, tu: number, tv: number) =>
+      writer.vertexN(p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s), n, c, CARD_UV0 + (1 - CARD_UV0) * tu, CARD_UV0 + (1 - CARD_UV0) * tv, 1, 0, 0, 1);
+    const a = V(-1, -1, 0, 0);
+    const b = V(1, -1, 1, 0);
+    const cc = V(1, 1, 1, 1);
+    const d = V(-1, 1, 0, 1);
     writer.triangle(a, b, cc);
     writer.triangle(a, cc, d);
+  }
+}
+
+/** solid (non-card) vertices of a geometry sharing the cluster-card material sample the opaque patch */
+function solidUv(writer: GeometryWriter) {
+  for (let i = 0; i < writer.roots.length / 4; i++) {
+    if (writer.roots[i * 4 + 3] === 0) {
+      writer.uvs[i * 2] = SOLID_UV;
+      writer.uvs[i * 2 + 1] = SOLID_UV;
+    }
   }
 }
 
@@ -99,15 +117,19 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     { kind: 'slender', height: 11 },
     { kind: 'slender', height: 14 },
   ];
-  const canopy = new Color(palette.leafCanopy).multiplyScalar(0.62);
-  const sunny = new Color(palette.leafSun).multiplyScalar(0.72);
+  // darker than the near trees: the far layer is silhouette against haze, the fog lightens it
+  const canopy = new Color(palette.leafCanopy).multiplyScalar(0.48);
+  const sunny = new Color(palette.leafSun).multiplyScalar(0.55);
+  // card vertex colours are tints over the cluster texture's own greens
+  const cardTint = new Color(0.62, 0.66, 0.6);
+  const cardTopTint = new Color(0.9, 0.95, 0.72);
   specs.forEach((spec, index) => {
     const r = rng.fork(`distant-${index}`);
     const noise = new Noise2D(`distant-noise-${index}`);
     const H = spec.height;
     const slender = spec.kind === 'slender';
     const R = slender ? H * 0.014 : H * 0.05;
-    const bark = slender ? new Color(palette.barkWhite).multiplyScalar(0.85) : new Color(palette.barkDark).multiplyScalar(0.9);
+    const bark = slender ? new Color(palette.barkWhite).multiplyScalar(0.7) : new Color(palette.barkDark).multiplyScalar(0.85);
     const crownY = slender ? H * 0.68 : H * 0.66;
     const crownR = slender ? H * 0.2 : H * 0.42;
 
@@ -128,7 +150,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       tube(near, path, taper(path, R * 0.45, 0.05, 0.9), 4, r, { color: bark, roughness: 0.05, structural: true, stiffness: () => 1 });
     }
     const lobes = slender ? 3 : 5;
-    const cardsPerLobe = slender ? 22 : 30;
+    const cardsPerLobe = slender ? 18 : 24;
     for (let i = 0; i < lobes; i++) {
       const a = r.range(0, TAU);
       const rad = crownR * r.range(0, 0.6);
@@ -137,9 +159,10 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       const shade = r.range(0.75, 1.05);
       const squash = r.range(0.6, 0.85);
       // dark core + ragged leaf-card shell
-      lumpyBlob(near, c, br * 0.62, squash, canopy.clone().multiplyScalar(shade * 0.55), canopy.clone().multiplyScalar(shade * 0.8), noise, i * 3.7);
-      leafCardLobe(near, c, br, squash, cardsPerLobe, br * 0.36, canopy.clone().multiplyScalar(shade), sunny.clone().multiplyScalar(shade), r);
+      lumpyBlob(near, c, br * 0.66, squash, canopy.clone().multiplyScalar(shade * 0.6), canopy.clone().multiplyScalar(shade * 0.85), noise, i * 3.7);
+      leafCardLobe(near, c, br, squash, cardsPerLobe, br * 0.42, cardTint.clone().multiplyScalar(shade), cardTopTint.clone().multiplyScalar(shade), r);
     }
+    solidUv(near);
 
     // ---- far LOD: three fixed vertical silhouette fans + crossed trunk quads ----
     const far = new GeometryWriter('high');
@@ -173,6 +196,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       far.triangle(a0, a1, b1);
       far.triangle(a0, b1, b0);
     }
+    solidUv(far);
 
     variants.push({
       kind: spec.kind,
@@ -220,7 +244,7 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     if (r() > density) continue;
     const m = terrain.mask(x, z);
     if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72) continue;
-    const slender = r() < 0.3;
+    const slender = r() < 0.22;
     const minD = slender ? 4.5 : 7.5;
     if (tooClose(x, z, minD)) continue;
     const variant = slender ? slenderIdx[r.int(0, slenderIdx.length)] : broadIdx[r.int(0, broadIdx.length)];

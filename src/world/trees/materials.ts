@@ -23,12 +23,16 @@ import {
 import { WIND_GLSL, type Wind } from '../wind/wind';
 import type { WorldContext } from '../system';
 import { createWhiteBarkTextures } from './bark-texture';
+import { createLeafClusterTexture } from './leaf-cluster-texture';
 
 export interface TreeMaterials {
   whiteTree: MeshStandardMaterial;
   whiteTreeDepth: MeshDepthMaterial;
   giantTree: MeshStandardMaterial;
   giantTreeDepth: MeshDepthMaterial;
+  /** leaf-cluster alpha cards inside the giant lobes */
+  giantCanopy: MeshStandardMaterial;
+  giantCanopyDepth: MeshDepthMaterial;
   distant: MeshStandardMaterial;
   /** number of distinct wind responses implemented (trunk sway, branch flex, leaf flutter) */
   windLayers: number;
@@ -247,16 +251,55 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
 
-  // --- distant trees: vertex-coloured, fog does the atmospheric tinting ---
-  const distant = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
+  // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
+  const cluster = createLeafClusterTexture(ctx.rng.fork('trees/leaf-cluster'), palette);
+  const giantCanopy = new MeshStandardMaterial({
+    map: cluster,
+    alphaTest: 0.5,
+    transparent: false,
+    roughness: 0.8,
+    metalness: 0,
+    vertexColors: true,
+    side: DoubleSide,
+  });
+  injectWind(
+    giantCanopy,
+    wind,
+    giantWind,
+    (s) => {
+      s.uniforms.uLeafSun = { value: leafSun };
+      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\n` + s.fragmentShader;
+      s.fragmentShader = s.fragmentShader.replace(
+        '#include <lights_fragment_end>',
+        /* glsl */ `#include <lights_fragment_end>
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.1;
+        #if NUM_DIR_LIGHTS > 0
+        {
+          float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
+          float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.4 + backlight * 0.6;
+          reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * 0.2;
+        }
+        #endif
+        `,
+      );
+    },
+    'giant-canopy',
+  );
+  const giantCanopyDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide, map: cluster, alphaTest: 0.5 });
+  injectWind(giantCanopyDepth, wind, giantWind, undefined, 'giant-canopy-depth');
+
+  // --- distant trees: leaf-cluster cards + solid trunks/cores (uv on the opaque patch); fog tints ---
+  const distant = new MeshStandardMaterial({ map: cluster, alphaTest: 0.5, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
 
   return {
     whiteTree,
     whiteTreeDepth,
     giantTree,
     giantTreeDepth,
+    giantCanopy,
+    giantCanopyDepth,
     distant,
     windLayers: 3,
-    barkTextureSets: [barkSet, 'procedural:whitebark'],
+    barkTextureSets: [barkSet, 'procedural:whitebark', 'procedural:leaf-cluster'],
   };
 }

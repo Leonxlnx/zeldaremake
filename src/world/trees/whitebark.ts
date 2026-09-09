@@ -79,10 +79,10 @@ export function whiteBarkParams(rng: Rng, index: number, total: number): WhiteBa
   const age: Age = f < 0.2 ? 'sapling' : f < 0.5 ? 'young' : 'mature';
   const base =
     age === 'sapling'
-      ? { height: [3.6, 5.4], radius: [0.06, 0.1], boughs: [3, 3], leaders: [0, 0], leaf: [0.08, 0.13], density: 0.5, roots: [3, 4] }
+      ? { height: [3.6, 5.4], radius: [0.06, 0.1], boughs: [3, 3], leaders: [0, 0], leaf: [0.1, 0.16], density: 0.5, roots: [3, 4] }
       : age === 'young'
-        ? { height: [7, 10], radius: [0.13, 0.2], boughs: [3, 4], leaders: [1, 1], leaf: [0.09, 0.15], density: 0.55, roots: [4, 5] }
-        : { height: [11, 15], radius: [0.22, 0.34], boughs: [4, 5], leaders: [1, 2], leaf: [0.1, 0.17], density: 0.62, roots: [4, 6] };
+        ? { height: [7, 10], radius: [0.13, 0.2], boughs: [3, 4], leaders: [1, 1], leaf: [0.12, 0.19], density: 0.55, roots: [4, 5] }
+        : { height: [11, 15], radius: [0.22, 0.34], boughs: [4, 5], leaders: [1, 2], leaf: [0.13, 0.21], density: 0.62, roots: [4, 6] };
   return {
     seed: `wb-${index}-${r.int(0, 1e9)}`,
     age,
@@ -295,8 +295,9 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
       const bough = growthPath(origin, end, tangent(scaffold.path, t), rng, 12, 0.66);
       const radius = Math.max(0.03, scaffold.radius * Math.pow(1 - t, 0.73) * bt(0.5, 0.72));
       tube(wood, bough, taper(bough, radius, 0.007, 1.03), 6, rng, { color: branchColor(radius), roughness: p.ridge * 0.5 });
-      const hR = crownRadius * bt(inward ? 0.29 : 0.31, inward ? 0.38 : 0.4);
-      const vR = H * bt(0.1, 0.135);
+      // lobes overlap into a continuous, broken crown rather than isolated tufts
+      const hR = crownRadius * bt(inward ? 0.34 : 0.38, inward ? 0.44 : 0.5);
+      const vR = H * bt(0.11, 0.15);
       if (isSapling) foliateLobe(bough, center, hR, vR, radius, 2, 4, 4);
       else foliateLobe(bough, center, hR, vR, radius);
     }
