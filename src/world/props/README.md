@@ -4,8 +4,7 @@ Owned leaf module: `src/world/props/**`. No shared layout, assembler, terrain, v
 structures, assets or renderer changes. All meshes and pigments are original procedural work;
 there are no downloaded, Nintendo or generated-image assets.
 
-Fable should add `import * as props from './props';` in `src/world/index.ts` and register
-`{ name: 'props', create: props.create }` in the existing `SYSTEMS` list.
+Fable registered the props factory in the world assembler in commit5bf083e.
 The synchronous `create(ctx)` returns a standard `WorldSystem`; no animation update is required.
 Its `dispose()` releases owned geometries/materials and detaches meshes.
 
@@ -32,7 +31,9 @@ and `npm run build`. Tests exercise real terrain, all categories, forbidden mask
 geometry, finite vertices/normals, geometry budget, footprint support and disposal.
 
 Visual verification: Fable captured the integrated first pass and confirmed contact and scale.
-Iteration 2 addresses muted pigment and hero-view placement; its recapture is pending.
+Iteration2 was integrated334cb29 and reviewed in real B/D captures. Partial small-pot root
+occlusion is intentional dressing, confirmed by Fable. Iteration3 board variation was integrated
+1bc0ac9; its recapture is pending.
 This is not a reference-match or visual-pass claim. Pigments are vertex colors, not fine wood-grain textures;
 joinery and clay silhouettes carry the detail. Placement must be reviewed in integrated shots
 B/D, especially vegetation overlap and platform visibility. No rubric items are claimed passed.
@@ -41,3 +42,5 @@ Iteration2 legal cluster: small pot(6.75,-11.6), crate(7.7,-11.7), bucket(7.6,-7
 Current B_house projected centers are approximately(.559,.551),(.589,.540),(.665,.570).
 Projection tests do not establish occlusion or final visual quality. Recheck after Fable camera/terrain changes.
 Clay uses dusty brown#8d6a55 with soil/moss at contact; wood darkens near ground.
+Crate boards have independently seeded ±8% value variation and darker exposed end grain.
+The change adds no meshes, textures or triangles; fresh terrain/seed pigment tests pass.
