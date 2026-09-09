@@ -61,11 +61,16 @@ export const WORLD = {
    * first-pass greens and those measured (post-haze) values so the final graded frame lands on them.
    */
   palette: {
-    grassLight: 0x94a25c,
-    grassMid: 0x657e3a,
-    grassDeep: 0x3c5726,
-    mossBright: 0x88994a,
-    mossDeep: 0x546236,
+    // Grass/moss/fern are olive-khaki, not lime: measured on quality-high captures, the old tints
+    // rendered lit grass at ≈ 0.50 luminance (reference 0.34–0.37) and shaded banks at ≈ 0.40
+    // (reference ≈ 0.24) with the stone already matching, so the fix is albedo — ≈ 0.6× in linear
+    // light at the same 70–90° hue band (the grade warms it to the reference's ≈ 60°), with
+    // saturation raised so the haze does not grey it out.
+    grassLight: 0x73832e,
+    grassMid: 0x4f6321,
+    grassDeep: 0x304616,
+    mossBright: 0x83834a,
+    mossDeep: 0x53572f,
     soil: 0x6b5a3e,
     soilDark: 0x453827,
     flagstone: 0xa79b7e,
@@ -77,7 +82,7 @@ export const WORLD = {
     leafSun: 0x96aa50,
     lanternGlow: 0xffb13b,
     fairyGlow: 0xdfffff,
-    fernGreen: 0x5c7434,
+    fernGreen: 0x586125,
     flowerPurple: 0x8255a0,
   },
 } as const;

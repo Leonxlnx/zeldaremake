@@ -30,8 +30,10 @@ export interface PlantPalette {
 export function makePalette(p: { fernGreen: number; leafCanopy: number; leafSun: number; barkDark: number; flowerPurple: number; mossDeep: number; mossBright: number; grassLight: number; grassMid: number }): PlantPalette {
   return {
     fern: rgb(p.fernGreen),
-    leaf: rgb(p.leafCanopy),
-    leafSun: rgb(p.leafSun),
+    // Understory foliage sits in the reference's olive band (shrubs #4c5537, sunlit leaves #8b8948):
+    // pull the canopy tones (shared with the trees) toward it rather than rendering lime bushes.
+    leaf: blend(rgb(p.leafCanopy), rgb(0x4c5537), 0.5),
+    leafSun: blend(rgb(p.leafSun), rgb(0x8b8948), 0.6),
     stem: blend(rgb(p.grassMid), rgb(p.barkDark), 0.35),
     bark: rgb(p.barkDark),
     // The haze adds a grey pedestal to anything beyond a few metres, which kills saturation of dark
@@ -41,8 +43,10 @@ export function makePalette(p: { fernGreen: number; leafCanopy: number; leafSun:
     purpleLight: blend(rgb(p.flowerPurple), rgb(0x9d6ff0), 0.7),
     purpleDeep: blend(rgb(p.flowerPurple), rgb(0x5a2aa8), 0.7),
     yellow: rgb(0xf0d060),
-    weed: blend(rgb(p.grassLight), rgb(0xb9c25a), 0.5),
-    straw: rgb(0xc7b26a),
+    // broad-leaf weeds: a touch yellower than the grass, no brighter (the old lime blend read ≈ 0.6
+    // luminance in the verges, well above the reference's brightest foliage)
+    weed: blend(rgb(p.grassLight), rgb(0x7f8a3c), 0.5),
+    straw: rgb(0xa89555),
     mossDeep: rgb(p.mossDeep),
     mossBright: rgb(p.mossBright),
     grassLight: rgb(p.grassLight),

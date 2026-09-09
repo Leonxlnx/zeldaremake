@@ -28,8 +28,9 @@ float vegType = floor(aData.w + 0.001);
 float vegDry = fract(aData.w);
 int tintIndex = int(clamp(aData.z * 3.999, 0.0, 3.0));
 vec3 tint = uTints[tintIndex];
-// root → tip gradient: shaded root, lit tip
-vec3 bladeColor = mix(tint * 0.42, tint * 1.08, pow(bladeT, 0.75));
+// root → tip gradient: deep, slightly cool root buried in the tuft, warm lit tip (the reference's
+// shaded grass is a dark green-brown ≈ 0.24 luminance, its lit blades an olive ≈ 0.35)
+vec3 bladeColor = mix(tint * vec3(0.36, 0.38, 0.40), tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
 // sedge blades are a touch cooler/deeper, meadow blades a touch warmer
 bladeColor *= vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
 // straw-coloured dry tips
@@ -189,13 +190,16 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
   });
   mat.name = opts.name ?? `veg-${kind}`;
 
+  // The hemisphere fill already carries the reference's generous shade (see config.sky); the extra
+  // ambient term is kept small so shaded grass reads ≈ 0.24 luminance, not 0.40.
   const uniforms: Record<string, { value: unknown }> = {
-    uAmbientBoost: { value: opts.ambientBoost ?? (kind === 'grass' ? 0.06 : kind === 'litter' || kind === 'moss' ? 0.02 : 0.05) },
-    uTransmission: { value: opts.transmission ?? (kind === 'grass' ? 0.16 : kind === 'litter' ? 0.05 : kind === 'moss' ? 0 : 0.14) },
+    uAmbientBoost: { value: opts.ambientBoost ?? (kind === 'grass' ? 0.02 : kind === 'litter' || kind === 'moss' ? 0.015 : 0.02) },
+    uTransmission: { value: opts.transmission ?? (kind === 'grass' ? 0.14 : kind === 'litter' ? 0.05 : kind === 'moss' ? 0 : 0.12) },
   };
   if (kind === 'grass') {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
-    uniforms.uDryTip = { value: new Color(0xc9b56c) };
+    // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
+    uniforms.uDryTip = { value: new Color(0x9c8a52) };
     uniforms.uSeedTip = { value: 0 };
   } else if (kind === 'plant' || kind === 'bush') {
     uniforms.uPlantHeight = { value: opts.plantHeight ?? 1 };
@@ -223,7 +227,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v4`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v5`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }
