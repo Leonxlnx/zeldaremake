@@ -3,7 +3,10 @@
 
 import { toDate, agentColor } from './util.js';
 
-export const DATA_BASE = './data/';
+// Data base: relative on GitHub Pages / local; on raw CDN mirrors (githack) read straight from the
+// monitor branch on raw.githubusercontent.com so hourly takes appear within ~5 minutes.
+const ON_RAW_CDN = /githack\.com$|jsdelivr\.net$|statically\.io$/.test(location.hostname);
+export const DATA_BASE = window.MONITOR_DATA_BASE || (ON_RAW_CDN ? 'https://raw.githubusercontent.com/Leonxlnx/zeldaremake/monitor/data/' : './data/');
 export const dataUrl = (rel) => (rel ? DATA_BASE + String(rel).replace(/^\/+/, '') : '');
 
 export const EMPTY_TAKES = { project: 'zeldaremake', updatedAt: null, monitorCadenceMinutes: 60, takes: [] };
