@@ -24,16 +24,22 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
   const mat = new MeshStandardMaterial({
     map: color,
     normalMap: normal,
-    normalScale: new Vector2(0.9, 0.9),
+    // dusty, low-relief surfaces: the reference slabs read almost flat, pitting is a 1–3 cm hint
+    normalScale: new Vector2(0.55, 0.55),
     roughnessMap: rough,
     aoMap: aoT,
-    aoMapIntensity: 0.5,
-    roughness: 0.88,
+    aoMapIntensity: 0.35,
+    roughness: 0.92,
     metalness: 0,
     vertexColors: true,
     // worn_rock_natural_01 averages ~0.30 linear luminance and leans orange; the shader
-    // desaturates it, this lift takes the sunlit slabs to the pale warm grey-beige of the reference
-    color: new Color(1.27, 1.22, 1.13),
+    // desaturates it, this lift takes the sunlit slabs to the pale warm beige of the reference.
+    // Measured against the frames the stone must sit ≈ 1.2–1.5× brighter than the grass beside
+    // it (A plaza 1.21, B path 1.26, D path 1.49) with R−B ≈ 47–52 at lum ≈ 130 — i.e. warmer and
+    // ~20 % lighter than the first pass, which landed at 1.05–1.18 and R−B 34–45. Warmth is set
+    // by the blue channel only: the reference slab tops are sRGB B/R ≈ 0.66–0.69 (G/R ≈ 0.91),
+    // which after the warm sun + neutral fill needs a linear albedo B/R of ≈ 0.63.
+    color: new Color(1.62, 1.46, 1.02),
   });
   mat.name = opts.instanced ? 'stone-instanced' : 'stone';
   const mossDeep = new Color(P.mossDeep);
@@ -60,15 +66,15 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           // second, finer sample (rotated 90°, 3.1× tighter) so the 0.55 m close-up shows real grain
           vec3 fine = texture2D(map, vec2(-vMapUv.y, vMapUv.x) * 3.1 + vec2(0.37, 0.61)).rgb;
           float lf = dot(fine, vec3(0.299, 0.587, 0.114));
-          diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.4, 1.8), 0.35);
-          // desaturate the orange-leaning rock texture toward the warm grey of the reference
+          diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.55, 1.5), 0.2);
+          // desaturate the orange-leaning rock texture toward the warm dusty beige of the reference
           float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.04, 1.0, 0.93), 0.62);
-          // lift the darkest pits a little so the slabs stay pale in the sun
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.16), 0.12);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.07, 1.0, 0.74), 0.7);
+          // lift the darkest pits so the slab tops stay pale and low-contrast (dusty, not pitted)
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.05, 1.0, 0.76), 0.24);
           // fine grain breakup so distant slabs don't read as a single flat tone
           float grain = fract(sin(dot(floor(vWPosS.xz * 40.0), vec2(12.9898, 78.233))) * 43758.5453);
-          diffuseColor.rgb *= 0.96 + 0.08 * grain;
+          diffuseColor.rgb *= 0.975 + 0.05 * grain;
           // moss: bright to deep green with the stone's luminance as detail
           float ln = clamp(l / 0.4, 0.0, 1.6);
           vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.4, 1.3, ln)) * (0.75 + 0.45 * ln);
@@ -83,6 +89,6 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v2-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v4-${opts.instanced ? 'i' : 's'}`;
   return mat;
 }

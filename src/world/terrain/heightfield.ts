@@ -133,6 +133,12 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
   };
 });
 
+/**
+ * The main run's north-west embankment (toward Saria's terrace): a flush grass lip `lip` m
+ * beyond the tread ends, then a bank falling `slope` m per metre (0.8 ≈ 39°, grass-safe).
+ */
+const NW_BANK = { lip: 0.35, slope: 0.8 };
+
 /** Project point into a stair's local frame: u along ascent, v across. */
 function stairLocal(f: StairFrame, x: number, z: number) {
   const rx = x - f.ox;
@@ -146,15 +152,30 @@ function stairLocal(f: StairFrame, x: number, z: number) {
 function landform(x: number, z: number) {
   const T = LAYOUT.terraces;
 
-  // gentle base undulation
-  const base = macro.fbm(x * 0.021, z * 0.021, 3) * 0.75 + medium.fbm(x * 0.07, z * 0.07, 3) * 0.22;
-
   // East plateau: the hero stairs climb its west face. Ramp direction follows the main stair.
   const ms = stairFrames[0];
-  const { u: su } = stairLocal(ms, x, z);
+  const { u: su, v: sv } = stairLocal(ms, x, z);
+  // 1 alongside the run (fades in before the bottom step, out past the top landing)
+  const alongRun = smoothstep(-2.5, -0.5, su) * (1 - smoothstep(ms.run - 0.5, ms.run + 2.5, su));
+
+  // gentle base undulation — damped beside the main run: its embankments are built banks that
+  // hug the ruler-straight ramp, so the ±0.5 m landform waviness must not surface as bumps and
+  // catch-up cliffs at the bank edges (it returns ~3 m out from the treads)
+  const corridor = alongRun * (1 - smoothstep(ms.halfWidth + 0.3, ms.halfWidth + 3.2, Math.abs(sv)));
+  const base = (macro.fbm(x * 0.021, z * 0.021, 3) * 0.75 + medium.fbm(x * 0.07, z * 0.07, 3) * 0.22) * (1 - 0.85 * corridor);
+
   const eastRamp = smoothstep(-1.5, ms.run + 1.5, su);
   const eastZone = smoothstep(14, -32, z) * smoothstep(-36, -26, z) + smoothstep(-32, 14, z) * smoothstep(16, 8, z);
-  const east = T.eastPlateau.height * eastRamp * clamp(eastZone, 0, 1) * smoothstep(3.5, 9, x);
+  let east = T.eastPlateau.height * eastRamp * clamp(eastZone, 0, 1) * smoothstep(3.5, 9, x);
+  // North-west flank of the run (v < 0, the house side): the ramp does not carry on as a shelf
+  // toward Saria's terrace (1.2 m) — from the flush lip at the tread ends (+0.07) it falls at
+  // ~39° (0.8 m per metre; see NW_BANK) so the flank reads as one continuous grassy embankment
+  // down to the door path instead of a hump cut by the house pad. Past the top step the plateau
+  // is full width again (the fence runs sit on it).
+  const nwBeyond = -sv - (ms.halfWidth + NW_BANK.lip);
+  if (nwBeyond > 0 && east > 0) {
+    east = Math.max(0, east - alongRun * (nwBeyond * NW_BANK.slope - 0.07));
+  }
 
   // West ledge with a soft embankment toward the path.
   const west = T.westLedge.height * smoothstep(-5.5, -10, x) * smoothstep(13, 6, z) * smoothstep(-30, -20, z);
@@ -266,9 +287,28 @@ function macroHeight(x: number, z: number) {
   // Path flattening — blend toward the authored path height profile.
   const p = pathInfluence(x, z);
   if (p.weight > 0) {
-    // authored y is the design height; add a little of the local undulation so it's not a ruler.
-    const pathY = p.y + 0.06 * fine.noise(x * 0.5, z * 0.5);
+    // authored y is the design height; add a little long-wavelength undulation so it's not a
+    // ruler. Kept to ±2.5 cm over ~4 m: the slabs are seated on the mean height under them and
+    // the joint fill hugs the terrain, so anything shorter than a slab (±6 cm at 2 m did it)
+    // buries slab edges under the fill and reads as 10–30 cm joints from camera A.
+    const pathY = p.y + 0.025 * fine.noise(x * 0.27, z * 0.27);
     h = lerp(h, pathY, p.weight);
+  }
+
+  // Structure pads: level the ground under houses. Applied BEFORE the stair ramps so a pad ring
+  // can never pull the ground out from under a tread or its bank (Saria's pad reaches the
+  // top-left of the main run). The pad raises low ground to the floor but only shaves ≤ 0.35 m
+  // off ground that is already above it, so on the plateau side of a trunk the slope simply
+  // buries the trunk instead of being cut into a 4 m ring cliff.
+  let padW = 0;
+  for (const hs of LAYOUT.houses) {
+    const d = Math.hypot(x - hs.position[0], z - hs.position[2]);
+    const w = 1 - smoothstep(hs.trunkRadius + 0.6, hs.trunkRadius + 2.6, d);
+    if (w > 0) {
+      const floor = hs.position[1] - 0.05;
+      h = lerp(h, Math.max(floor, h - 0.35), w);
+      padW = Math.max(padW, w);
+    }
   }
 
   // Stair ramps: keep terrain just under the steps so nothing pokes through.
@@ -277,15 +317,20 @@ function macroHeight(x: number, z: number) {
     const { u, v } = stairLocal(f, x, z);
     if (u > -1.2 && u < f.run + 2.4 && Math.abs(v) < f.halfWidth + 1.3) {
       const ramp = f.baseY + clamp(u / f.run, 0, 1) * f.rise;
-      const wu = smoothstep(-0.8, -0.1, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
+      // the under-tread trench starts under the first riser (buried to −0.3), not in front of
+      // it, so the flagstone spur meets the bottom step on level ground
+      const wu = smoothstep(-0.4, -0.02, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
       const av = Math.abs(v);
       // under the treads: keep the ground well below the slabs so nothing pokes through
       const wUnder = 1 - smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av);
       h = lerp(h, ramp - 0.18, wu * wUnder);
       // beside the treads: a grass bank that meets the tread ends flush (reference: grass creeps
-      // onto the step ends, no kerb), falling back to the natural slope further out
+      // onto the step ends, no kerb), falling back to the natural slope further out. On the
+      // main run's north-west side the bank target itself falls away like the landform's
+      // embankment (NW_BANK), so the blend never has to catch up across a step.
       const wBank = smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av) * (1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.25, av));
-      h = lerp(h, ramp + 0.07, wu * wBank);
+      const nwFall = f === stairFrames[0] && v < 0 ? NW_BANK.slope * Math.max(0, av - f.halfWidth - NW_BANK.lip) : 0;
+      h = lerp(h, ramp + 0.07 - nwFall, wu * wBank);
       const wv = 1 - smoothstep(f.halfWidth + 0.15, f.halfWidth + 0.9, av);
       // landing: the ground just past the top step meets the last tread flush (as in the reference)
       const lw = smoothstep(f.run - 0.2, f.run + 0.1, u) * smoothstep(f.run + 2.3, f.run + 1.0, u) * wv;
@@ -294,17 +339,6 @@ function macroHeight(x: number, z: number) {
       const su = smoothstep(-1.2, -0.3, u) * smoothstep(f.run + 2.4, f.run + 1.2, u);
       const sv = 1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.3, Math.abs(v));
       stairW = Math.max(stairW, su * sv);
-    }
-  }
-
-  // Structure pads: flatten under houses so they sit level.
-  let padW = 0;
-  for (const hs of LAYOUT.houses) {
-    const d = Math.hypot(x - hs.position[0], z - hs.position[2]);
-    const w = 1 - smoothstep(hs.trunkRadius + 0.6, hs.trunkRadius + 2.6, d);
-    if (w > 0) {
-      h = lerp(h, hs.position[1] - 0.05, w);
-      padW = Math.max(padW, w);
     }
   }
 
@@ -440,7 +474,8 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
   let stairs = 0;
   for (const f of stairFrames) {
     const { u, v } = stairLocal(f, x, z);
-    if (u > -0.3 && u < f.run + 0.3 && Math.abs(v) < f.halfWidth + 0.25) stairs = 1;
+    // treads plus the two rows of landing slabs past the top step (see hardscape/stairs.ts)
+    if (u > -0.3 && u < f.run + 1.7 && Math.abs(v) < f.halfWidth + 0.25) stairs = 1;
   }
   let structure = 0;
   for (const hs of LAYOUT.houses) {

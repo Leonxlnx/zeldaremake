@@ -107,8 +107,10 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     const uBack = (i + 1) * def.tread + 0.03;
     const depth = uBack - uFront;
     const yaw = rng.range(-0.02, 0.02);
-    const tint = 0.96 + rng.range(0, 0.2);
-    const hue = rng.range(-0.04, 0.04);
+    // worn limestone treads: pale, only a mild tread-to-tread swing (the reference flight reads
+    // as one stone with lit nosings, not a patchwork)
+    const tint = 1.0 + rng.range(0, 0.14);
+    const hue = rng.range(-0.025, 0.025);
     const color: [number, number, number] = [tint * (1 + hue), tint, tint * (1 - hue * 0.6)];
 
     // split the tread into two stones sometimes
@@ -161,24 +163,28 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
 
     // riser: 1–3 darker stacked stones under the tread nose
     const rTop = topY - ts + 0.006;
-    const rBottom = i === 0 ? baseY - 0.12 : baseY + i * def.rise - 0.05;
+    // the first riser is buried well below the under-tread trench (ramp − 0.18) so no gap can
+    // open between it and the joint fill at the stair foot
+    const rBottom = i === 0 ? baseY - 0.32 : baseY + i * def.rise - 0.05;
     const rh = rTop - rBottom;
     const nR = rng.chance(0.55) ? 1 : rng.chance(0.6) ? 2 : 3;
     let a = -hw + 0.02;
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
-      const rc = 0.34 + rng.range(0, 0.13);
+      // risers read as shadowed warm stone (reference #453e32 under #746d5d treads ≈ 0.35× the
+      // tread in linear light), with moss only where the run meets the grass flanks
+      const rc = 0.3 + rng.range(0, 0.1);
       const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 3, chip: 0.05, chipChance: 0.3 });
       const ac = a + len / 2;
       placeSlab(riserOutline, ac, rBottom, i * def.tread + 0.01 + (def.tread * 0.9) / 2, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
-        color: [rc, rc, rc * 1.02],
-        sideColor: [rc * 0.9, rc * 0.9, rc * 0.92],
-        mossEdge: 0.95,
-        mossInner: 0.45,
-        mossFn: (x, z) => 0.7 + 0.3 * mossAt(x + ac, z + i * def.tread),
+        color: [rc * 1.04, rc, rc * 0.9],
+        sideColor: [rc * 0.94, rc * 0.9, rc * 0.82],
+        mossEdge: 0.85,
+        mossInner: 0.12,
+        mossFn: (x, z) => 0.2 + 0.8 * mossAt(x + ac, z + i * def.tread),
         // riser shadow: darker still toward the flanks and at the foot (splash grime)
         colorFn: (x) => 1 - 0.22 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac)),
         uvScale,

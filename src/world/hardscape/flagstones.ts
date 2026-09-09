@@ -3,7 +3,7 @@
  * noise-driven radius so slab sizes vary 0.4–1.6 m. Each seed's weighted Voronoi cell — clipped
  * to the paved boundary, shrunk by the joint width, corners chamfered and edges hand-jittered —
  * IS the slab outline, so every stone is unique, neighbours never overlap and the joints stay a
- * tight 3–8 cm like the plaza in the reference. Slabs are seated on the terrain (≈ 20 samples per
+ * tight 2–5 cm like the plaza in the reference. Slabs are seated on the terrain (≈ 20 samples per
  * stone), tilted gently to the local normal, with ≤ 4 cm height jitter, and merged into ONE
  * geometry (vertex colour = per-stone tint, aMoss = joint moss) → a single draw call.
  */
@@ -140,14 +140,16 @@ function cellToOutline(cell: P2[], joint: number, rng: Rng, maxRadius: number): 
     const k = maxRadius / maxR;
     pts = pts.map((p) => ({ x: c.x + (p.x - c.x) * k, z: c.z + (p.z - c.z) * k }));
   }
-  // chamfer corners: each corner becomes two points along its edges (amount varies per corner)
+  // chamfer corners: each corner becomes two points along its edges (amount varies per corner).
+  // Kept small so the slabs stay polygonal with tight joints — big chamfers open dark
+  // triangular gaps where three stones meet, which the reference plaza does not have.
   const n = pts.length;
   const cham: P2[] = [];
   for (let i = 0; i < n; i++) {
     const a = pts[i];
     const b = pts[(i + 1) % n];
     const len = Math.hypot(b.x - a.x, b.z - a.z);
-    const t = clamp(rng.range(0.16, 0.3), 0, 0.45);
+    const t = clamp(rng.range(0.04, 0.1), 0, 0.45);
     if (len < 0.09) {
       cham.push({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 });
       continue;
@@ -328,7 +330,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // the stone is built around its own centroid (== the seed for unsplit cells, near enough)
     const sc = centroid(cell);
     const s = { x: sc.x, z: sc.z };
-    const joint = rng.range(0.03, 0.08);
+    const joint = rng.range(0.02, 0.05);
     // work in seed-local coordinates (the slab is built around the seed, then placed)
     const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
     const outline = cellToOutline(local, joint, rng, 0.82);
@@ -364,34 +366,40 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // gentle tilt only: blend the terrain normal toward up so slabs never look like ramps
     nAcc.lerp(up, 0.35).normalize();
     const thickness = rng.range(0.055, 0.085);
-    // the top sits 2.4–4 cm proud of the mean ground (joint fill is at +1.5 cm). If an edge would
-    // float > 3 cm over the lowest sampled ground point, sink the slab, but never below a 1.2 cm lip
-    // at the centre (the joint fill and sprouts hide the rest)
-    const exposed = rng.range(0.024, 0.04);
+    // the top sits 2–3 cm proud of the mean ground (joint fill is at +1.5 cm) so the pavement
+    // reads as one flush surface with cracks, not as separate pillows. If an edge would float
+    // > 3 cm over the lowest sampled ground point, sink the slab, but never below a 2 cm lip
+    // at the centre (measured at the bottom of the dish) so the top always clears the joint
+    // fill (+1.5 cm) — otherwise the fill shows through the dish as a soil blob on the slab
+    const exposed = rng.range(0.022, 0.032);
+    const dipK = rng.range(0.004, 0.01);
     let bottomY = hMean + exposed - thickness;
     bottomY = Math.min(bottomY, hMin + 0.03, hCentre + 0.05 - thickness);
-    bottomY = Math.max(bottomY, hCentre + 0.012 - thickness);
+    bottomY = Math.max(bottomY, hCentre + 0.02 + dipK - thickness);
     const topY = bottomY + thickness;
 
-    // 4. per-stone look: pale ↔ mid tone from the macro noise, warm/cool swing, moss amount
+    // 4. per-stone look: pale ↔ mid tone from the macro noise, warm/cool swing, moss amount.
+    // The reference slabs vary only mildly stone to stone (≈ ±12 %), so the swing is kept
+    // tight; the joints, not the slab tints, carry the contrast.
     const tn = tintNoise.fbm(s.x * 0.35, s.z * 0.35, 2) * 0.5 + 0.5;
-    const warm = rng.range(-0.06, 0.06);
-    const lum = 0.8 + 0.32 * tn + rng.range(-0.07, 0.07);
+    const warm = rng.range(-0.035, 0.035);
+    const lum = 0.9 + 0.16 * tn + rng.range(-0.04, 0.04);
     const tint: [number, number, number] = [lum * (1 + warm), lum * (1 + warm * 0.25), lum * (1 - warm * 0.8)];
-    const moss = clamp(0.35 + 0.9 * (tintNoise.fbm(s.x * 0.5 + 7, s.z * 0.5, 2) * 0.5 + 0.5) - 0.35 * smoothstep(3, 0, Math.hypot(s.x, s.z)), 0.1, 1.1);
+    // moss lives in the joints and creeps only a little onto the bevels (E frame: dark soil
+    // seams with grass sprouts, the slab tops themselves stay clean)
+    const moss = clamp(0.2 + 0.6 * (tintNoise.fbm(s.x * 0.5 + 7, s.z * 0.5, 2) * 0.5 + 0.5) - 0.25 * smoothstep(3, 0, Math.hypot(s.x, s.z)), 0.05, 0.8);
     const uvO: [number, number] = [rng() * 4, rng() * 4];
-    const dipK = rng.range(0.005, 0.014);
 
     // 5. build the slab into the shared geometry and place it
     const from = all.vertexCount;
     buildSlab(all, outline, {
       thickness,
-      bevel: rng.range(0.018, 0.032),
+      bevel: rng.range(0.01, 0.02),
       dip: dipK,
       color: tint,
-      sideColor: [tint[0] * 0.84, tint[1] * 0.84, tint[2] * 0.85],
-      mossEdge: 0.8 * moss,
-      mossInner: 0.04 * moss,
+      sideColor: [tint[0] * 0.8, tint[1] * 0.8, tint[2] * 0.82],
+      mossEdge: 0.7 * moss,
+      mossInner: 0.03 * moss,
       mossFn: (x, z) => 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5),
       uvScale: 0.55,
       uvOffset: uvO,

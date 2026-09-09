@@ -132,7 +132,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointSproutsOnStairs: sprouts.count - flagstoneSprouts,
     plazaRadius: 6,
     samplePositions: {
-      // top-centre of each slab: 1.2–4 cm above the ground by design (the slab is seated in it)
+      // top-centre of each slab: 2–5 cm above the ground by design (the slab is seated in it)
       flagstones: sampleStones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
       treadNose: treadNose.slice(0, 40).map((p) => p.map(round)),
     },

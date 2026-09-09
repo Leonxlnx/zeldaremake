@@ -27,7 +27,7 @@ export async function buildJointMesh(
   const P = config.palette;
   // vertex colours are the *absolute* albedo here (the shader turns the texture into a
   // luminance modulator), so start from the mid soil and let moss take over in patches
-  const soil = new Color(P.soil).lerp(new Color(P.soilDark), 0.35);
+  const soil = new Color(P.soil).lerp(new Color(P.soilDark), 0.2);
   const soilMid = new Color(P.soil).multiplyScalar(1.35);
   const mossD = new Color(P.mossDeep);
   const mossB = new Color(P.mossBright);
@@ -53,10 +53,12 @@ export async function buildJointMesh(
     const m = noise.fbm(x * 0.9 + 4, z * 0.9 - 2, 3) * 0.5 + 0.5;
     const dampN = noise.fbm(x * 0.25, z * 0.25 + 9, 2) * 0.5 + 0.5;
     tmp.copy(soil).lerp(soilMid, 0.5 * dampN);
-    // moss fills most joints (reference: green seams between the slabs), thinner in the plaza centre
-    const mossAmt = smoothstep(0.34, 0.72, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z)));
-    tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.9);
-    tmp.lerp(mossB, clamp(smoothstep(0.62, 0.94, m), 0, 1) * 0.45);
+    // reference joints are warm dark soil (≈ rgb 99,86,60 in shot A) with moss in patches, not
+    // green seams everywhere: keep the soil dominant and let moss take over only where the
+    // noise peaks, thinner still in the plaza centre
+    const mossAmt = smoothstep(0.4, 0.78, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z)));
+    tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.6);
+    tmp.lerp(mossB, clamp(smoothstep(0.7, 0.96, m), 0, 1) * 0.35);
     col.push(tmp.r, tmp.g, tmp.b);
     index[k] = pos.length / 3 - 1;
     return index[k];
