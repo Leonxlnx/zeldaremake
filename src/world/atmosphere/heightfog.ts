@@ -5,7 +5,7 @@
  * compile time, so replacing the four fog chunks once at module load upgrades every built-in
  * material (and any custom ShaderMaterial that includes the standard fog chunks) to:
  *
- *   1. distance haze — exponential extinction (≈ 0.028 m⁻¹ after a crisp 5 m foreground, matching
+ *   1. distance haze — exponential extinction (≈ 0.026 m⁻¹ after a crisp 2.5 m foreground, matching
  *      the depth-vs-blend measurements in reference/ANALYSIS.md §8) that is capped below 1.0: the
  *      far world is veiled, never erased. `scene.fog` stays a plain `THREE.Fog` (its near/far are
  *      the audited visibility distances) so the rest of the codebase is unaffected. The airlight
@@ -50,7 +50,7 @@ export interface HeightFogParams {
   maxFog: number;
   /** distance-haze extinction (1/m); reference/ANALYSIS.md §8 measures 0.028–0.035 */
   hazeDensity: number;
-  /** distance (m) before the distance haze starts (the reference foreground < 12 m stays crisp) */
+  /** distance (m) before the distance haze starts (the reference foreground stays crisp, but its dark undersides at 8–12 m are already lifted) */
   hazeStart: number;
   /** height (m) up to which the aerosol density is uniform (the air under the canopy) */
   hazeUniformHeight: number;
@@ -63,7 +63,9 @@ export interface HeightFogParams {
    * Measured against the reference: the log arch at 30 m (#646055 through a ~55 % veil) needs a
    * mid-distance airlight ≈ #707068, while the far trunks (#8d8e85 at ~85 % veil) and canopy gaps
    * (#aca896) need ≈ #949489 — far light arrives through more canopy gaps, so the airlight grades
-   * brighter with distance. Ground mist ≈ #7a796d.
+   * brighter with distance. The far colour sits a step above that estimate (≈ #a0a099) because the
+   * 50 m canopy behind the log arch is only ≈ 70 % veiled and still measured 0.05 under the
+   * reference's top band at #949489. Ground mist ≈ #7a796d.
    */
   hazeNear: [number, number, number];
   hazeFar: [number, number, number];
@@ -83,15 +85,18 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   northFullZ: -24,
   baseWeight: 0.16,
   maxFog: 0.86,
-  hazeDensity: 0.028,
-  hazeStart: 5.0,
+  // the near range decides the dark undersides: the reference's lantern limb at ≈ 10 m is lifted
+  // to ≈ 0.39 luminance while its 30 m log arch keeps ≈ 55 % veil — so the haze starts close
+  // (≈ 18 % at 10 m) with a slightly lower slope, leaving 30 m unchanged (≈ 51 %)
+  hazeDensity: 0.026,
+  hazeStart: 2.5,
   hazeUniformHeight: 8.0,
-  hazeScaleHeight: 14.0,
-  // rays steeper than ≈ 20° up (shot F's canopy) lose up to 75 % of the haze; eye-level shots
-  // (A/D top rows reach only ≈ 23°) are untouched, so their far canopy stays hazed pale
-  hazeUpwardCut: 0.75,
+  hazeScaleHeight: 7.0,
+  // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
+  // the haze; eye-level shots (A/D top rows reach ≈ 23–25°) lose ≤ 10 % on their very top row
+  hazeUpwardCut: 0.9,
   hazeNear: [0.15, 0.149, 0.134],
-  hazeFar: [0.24, 0.241, 0.218],
+  hazeFar: [0.28, 0.281, 0.255],
   mistColor: [0.175, 0.173, 0.154],
   hazeGradeNear: 20,
   hazeGradeFar: 55,
@@ -199,7 +204,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		//    The aerosol thins with altitude and steep upward rays are cut further, so the crowns
 		//    overhead stay dark silhouettes against the luminous gaps instead of washing pale.
 		float altitude = kfAltitudeMean( cameraPosition.y, worldPos.y );
-		float upward = 1.0 - KF_HAZE_UP_CUT * smoothstep( 0.35, 0.75, rayDir.y );
+		float upward = 1.0 - KF_HAZE_UP_CUT * smoothstep( 0.38, 0.62, rayDir.y );
 		float distFog = 1.0 - exp( -KF_HAZE_K * altitude * upward * max( dist - KF_HAZE_START, 0.0 ) );
 		// 2) height fog (ground mist), denser toward the north hollow (−Z) of the fragment. The hollow
 		//    is at lower z, so the ramp is written with ascending edges (smoothstep(a > b) is undefined)

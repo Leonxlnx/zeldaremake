@@ -61,9 +61,9 @@ export function create(ctx: WorldContext): WorldSystem {
 
   // The reference is soft: shaded flagstone still reads ≈ 0.33–0.40 luminance next to sunlit stone
   // at 0.62–0.66, so the fill is generous but near-neutral — warm grey-olive canopy light, never
-  // cyan and clearly less golden than the key, so shade reads cooler than sun. (Isolated A/B at
-  // quality high: dropping the fill by 20 % darkened the crown-shaded plaza of shot A by 0.05
-  // luminance while the reference plaza is sunlit — see config.sky.hemiIntensity.)
+  // cyan and clearly less golden than the key, so shade reads cooler than sun. Hemisphere + IBL
+  // together give a horizontal surface ≈ 1.2 of irradiance against the sun's ≈ 2.3, the reference's
+  // lit/shade ratio (see config.sky.hemiIntensity for the plaza measurements behind the level).
   const hemiIntensity = ctx.config.sky.hemiIntensity;
   const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(1.0, 0.97, 0.9), 0.35);
   const hemi = new HemisphereLight(hemiSky, ctx.config.sky.hemiGround, hemiIntensity);
@@ -73,7 +73,7 @@ export function create(ctx: WorldContext): WorldSystem {
   // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
   // the reference's hazy key, radiance ≈ 0.24–0.32, see sky.ts).
   let environment = false;
-  const environmentIntensity = 0.65;
+  const environmentIntensity = 0.58;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

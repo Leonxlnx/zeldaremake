@@ -112,8 +112,14 @@ void main() {
  * scene surface) and accumulate sun light that reaches the haze, testing the sun's shadow map at
  * every step. Canopy, trunks and the lantern branch therefore carve real beams; the haze density
  * follows the same height-fog model as heightfog.ts (denser low and in the north hollow) plus a
- * thin base so shafts also read in the upper air. A Henyey–Greenstein phase term makes the shafts
- * strongest when looking toward the sun (shots A, B, F) and faint when it is behind the camera.
+ * thin base so shafts also read in the upper air. That base follows heightfog's aerosol profile —
+ * uniform under the canopy, clearing exponentially above it — so a column that climbs into the
+ * open air above the crowns (shot F) accumulates far less than an eye-level column of the same
+ * length. A Henyey–Greenstein phase term makes the shafts strongest when looking toward the sun
+ * (shots A, B, F) and faint when it is behind the camera.
+ *
+ * Output: x = in-scatter (0..1), y = marched length / uMaxDist (the smear pass weights its taps by
+ * this so beams in front of a near trunk are not overwritten by the long sky columns beside it).
  */
 export const RAY_MARCH_FRAG = /* glsl */ `
 ${DEPTH_UTILS}
@@ -125,6 +131,7 @@ uniform vec3 uSunDirView;
 uniform float uMaxDist;
 uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
+uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
 uniform float uAnisotropy;
 varying vec2 vUv;
 #define STEPS 16
@@ -152,22 +159,26 @@ void main() {
     }
     float north = 1.0 - smoothstep( uFogParams.w, uFogParams.z, pw.z ); // hollow is at lower z
     float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );
-    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y;
+    float clear = exp( -max( pw.y - uAltitude.x, 0.0 ) / uAltitude.y );
+    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y * clear;
     acc += lit * dens * stepLen;
   }
   // the phase term is normalised to 1 at 90° from the sun so uRayIntensity means "strength of a
   // fully lit column"; in-scatter saturates (1 - e^-x) so sun-facing sky columns cannot blow out
   float phaseN = phase * pow( 1.0 + g * g, 1.5 ) / ( 1.0 - g * g );
   float rays = 1.0 - exp( -acc * ( 0.35 + 0.65 * phaseN ) );
-  gl_FragColor = vec4( vec3( clamp( rays, 0.0, 1.0 ) ), 1.0 );
+  gl_FragColor = vec4( clamp( rays, 0.0, 1.0 ), maxDist / uMaxDist, 0.0, 1.0 );
 }
 `;
 
 /**
  * Smoothing of the ray-march result along the screen-space direction to the sun (beams converge on
  * the sun, so smearing along that axis removes the march's jitter without blurring across beams).
- * When the sun is behind the camera `uSunUv` holds the anti-solar point and the smear runs away
- * from it (uDirSign = -1).
+ * Taps are weighted by how close their marched length (y channel) is to this pixel's: a beam in
+ * front of a trunk 13 m away is only the air in front of that trunk, so the long, fully lit sky
+ * columns beside it must not smear across it (the reference's near bark stays dark against bright
+ * gaps). When the sun is behind the camera `uSunUv` holds the anti-solar point and the smear runs
+ * away from it (uDirSign = -1).
  */
 export const RAY_BLUR_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
@@ -175,10 +186,12 @@ uniform vec2 uSunUv;
 uniform float uDirSign;
 uniform float uLength;   // smear length in uv
 uniform float uGamma;    // > 1 on the last pass: contrast curve so beams read as slabs, not glow
+uniform float uDepthK;   // tap weight = exp( -|Δ marched length| * uDepthK ), lengths in units of uMaxDist
 uniform vec2 uTexel;
 varying vec2 vUv;
 #define NS 12
 void main() {
+  vec2 c = texture2D( tSrc, vUv ).xy;
   vec2 toSun = ( uSunUv - vUv ) * uDirSign;
   float len = length( toSun );
   vec2 dir = len > 1e-4 ? toSun / len : vec2( 0.0, 1.0 );
@@ -187,20 +200,28 @@ void main() {
   float wsum = 0.0;
   for ( int i = 0; i < NS; i ++ ) {
     float f = ( float( i ) + 0.5 ) / float( NS );
-    float w = 1.0 - f * 0.6;
     vec2 uv = vUv + dir * ( f * step * float( NS ) );
     vec2 outside = max( max( -uv, uv - 1.0 ), 0.0 );
     float fade = 1.0 - smoothstep( 0.0, 0.02, max( outside.x, outside.y ) );
-    sum += texture2D( tSrc, clamp( uv, 0.0, 1.0 ) ).x * w * fade;
+    vec2 s = texture2D( tSrc, clamp( uv, 0.0, 1.0 ) ).xy;
+    float w = ( 1.0 - f * 0.6 ) * exp( -abs( s.y - c.y ) * uDepthK );
+    sum += s.x * w * fade;
     wsum += w;
   }
   // cross-axis taps: merge the canopy's fine lit/unlit streaks into broader slabs (the reference
   // shows 3–5 beams 5–12 % of the frame wide) and soften the march jitter
   vec2 perp = vec2( -dir.y, dir.x ) * uTexel * uLength * 16.0;
-  float side = texture2D( tSrc, vUv + perp ).x + texture2D( tSrc, vUv - perp ).x
-             + 0.5 * ( texture2D( tSrc, vUv + perp * 2.0 ).x + texture2D( tSrc, vUv - perp * 2.0 ).x );
-  float v = ( sum / max( wsum, 1e-4 ) ) * 0.55 + side * ( 0.45 / 3.0 );
-  gl_FragColor = vec4( vec3( pow( clamp( v, 0.0, 1.0 ), uGamma ) ), 1.0 );
+  float side = 0.0;
+  float sideW = 0.0;
+  for ( int j = 0; j < 4; j ++ ) {
+    vec2 o = perp * ( j < 2 ? 1.0 : 2.0 ) * ( ( j == 0 || j == 2 ) ? 1.0 : -1.0 );
+    vec2 s = texture2D( tSrc, vUv + o ).xy;
+    float w = ( j < 2 ? 1.0 : 0.5 ) * exp( -abs( s.y - c.y ) * uDepthK );
+    side += s.x * w;
+    sideW += w;
+  }
+  float v = ( sum / max( wsum, 1e-4 ) ) * 0.55 + ( side / max( sideW, 1e-4 ) ) * 0.45;
+  gl_FragColor = vec4( pow( clamp( v, 0.0, 1.0 ), uGamma ), c.y, 0.0, 1.0 );
 }
 `;
 
@@ -297,10 +318,10 @@ void main() {
     hdr = hdr * ( 1.0 - mist.a ) + mist.rgb;
   }
   // volumetric in-scatter accumulated along the ray up to the surface (see RAY_MARCH_FRAG); the
-  // sky already carries its own haze so open-sky columns get a smaller share of the beams (the
+  // sky already carries its own haze so open-sky columns get a small share of the beams (the
   // reference's canopy gaps peak at ≈ 0.66 luminance — never a blown-out white)
   float rays = texture2D( tRays, vUv ).x;
-  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.2, sky );
+  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.1, sky );
   hdr += texture2D( tBloom, vUv ).rgb * uBloomIntensity;
 
   // gentle channel mix: bleeds a little green into red (lime → olive/gold like the reference's

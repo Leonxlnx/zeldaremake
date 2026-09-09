@@ -24,9 +24,11 @@ export interface SkyDome {
  * Sky colours in scene-linear radiance (what the composer's ACES maps to the reference's display
  * values). The reference never shows blue sky: canopy gaps are a warm off-white glare (#aca896) and
  * the horizon is the far haze (#8d8e85), so the dome is a luminous warm haze that meets the
- * distance fog seamlessly. Exported for the audit; the horizon shares heightfog's `hazeFar`.
+ * distance fog seamlessly. The gap glare sits a little under the reference's display value because
+ * the god rays and the sun-facing brightening land on top of it (measured gaps ≈ 0.66–0.72
+ * luminance in shot F). Exported for the audit; the horizon shares heightfog's `hazeFar`.
  */
-export const SKY_GAP_GLARE: [number, number, number] = [0.33, 0.316, 0.258];
+export const SKY_GAP_GLARE: [number, number, number] = [0.285, 0.273, 0.223];
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -82,15 +84,17 @@ void main() {
   // the haze is front-lit. Nothing here is blue (the reference has 0 % sky-blue pixels).
   float up = clamp( h, 0.0, 1.0 );
   vec3 sky = mix( uHorizon, uZenith, smoothstep( 0.0, 0.45, up ) );
-  sky *= 1.0 + 0.22 * pow( sd, 3.0 );
+  sky *= 1.0 + 0.12 * pow( sd, 3.0 );
   // below the horizon: haze darkening toward ground bounce (only matters for the env map)
   float down = clamp( -h, 0.0, 1.0 );
   vec3 below = mix( uHorizon * 0.8, uGround, smoothstep( 0.0, 0.35, down ) );
   vec3 col = h >= 0.0 ? sky : below;
 
   // sun: wide halo + a soft glare instead of a hard disc — the reference never shows the sun
-  // itself, only a bright gap glare where it sits (core suppressed for the environment map)
-  float halo = pow( sd, 14.0 ) * 0.07 + pow( sd, 80.0 ) * 0.2;
+  // itself, only a bright gap glare where it sits (core suppressed for the environment map). The
+  // halo is kept modest: shot F looks within 10–30° of the sun and its gaps must peak near the
+  // reference's ≈ 0.66 luminance, not wash the crowns around them
+  float halo = pow( sd, 14.0 ) * 0.04 + pow( sd, 80.0 ) * 0.2;
   float core = pow( sd, 400.0 ) * 0.7;
   col += uSunColor * ( halo + core * ( 1.0 - uEnvMode ) );
 

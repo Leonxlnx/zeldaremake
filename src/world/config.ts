@@ -19,11 +19,13 @@ export const WORLD = {
   // Measured on the reference plaza (percentiles of the foreground flagstones): sunlit stone
   // ≈ 0.62–0.66 luminance, shaded stone ≈ 0.33–0.40 (a display ratio of only ≈ 1.8) — a warm
   // key over a generous, near-neutral fill; the deep darks (0.16–0.23) are shaded vegetation.
+  // With the lantern crown's sun corridors open (trees 99b6c2b) the plaza's sunlit slabs measured
+  // 0.70–0.80 at intensity 5.0, so the key is a notch lower to land them on the reference's band.
   sun: {
     azimuthDeg: -128, // measured from +Z toward +X; negative = light coming from the west-north-west
     elevationDeg: 38,
     color: 0xffe9c4,
-    intensity: 5.0,
+    intensity: 3.0,
     shadowMapSize: 4096,
     shadowRadius: 60,
   },
@@ -32,13 +34,18 @@ export const WORLD = {
     zenith: 0xcfd3c8,
     horizon: 0xe2dfd0,
     hemiSky: 0xc9c8b4,
-    hemiGround: 0x4a4a30,
     /**
-     * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous: the plaza in shot A
-     * lies in the lantern tree's crown shadow under the pinned sun azimuth, so its shaded stone
-     * has to carry the reference's ≈ 0.5 plaza luminance until that crown thins.
+     * ground bounce: a warm khaki rather than dark olive — the clearing floor is sunlit beige
+     * flagstone and khaki grass, so limb and leaf undersides (the lantern limb at 10 m in shot A)
+     * receive a visible fill from below instead of reading near-black.
      */
-    hemiIntensity: 1.2,
+    hemiGround: 0x7d7860,
+    /**
+     * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
+     * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs
+     * measured 0.50–0.60 luminance at 1.2 against the reference's 0.30–0.50 band.
+     */
+    hemiIntensity: 0.95,
   },
 
   fog: {

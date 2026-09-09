@@ -48,10 +48,15 @@ import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { AO_BLUR_FRAG, AO_FRAG, BLUR_FRAG, BRIGHT_FRAG, COMPOSITE_FRAG, COPY_FRAG, FULLSCREEN_VERT, RAY_BLUR_FRAG, RAY_MARCH_FRAG } from './shaders';
 
 /**
- * Tuning aid: `globalThis.__ATMO_DEBUG__ = 'rays' | 'ao' | 'mist' | 'bloom'` blits that buffer instead
- * of the final image; 'bypass' skips the whole chain (for cost comparisons). Unset in production.
+ * Tuning aids (unset in production):
+ * - `globalThis.__ATMO_DEBUG__ = 'rays' | 'ao' | 'mist' | 'bloom'` blits that buffer instead of the
+ *   final image; 'bypass' skips the whole chain (for cost comparisons).
+ * - `globalThis.__ATMO_SETTINGS__ = { rayIntensity: 0, ... }` overrides numeric `ComposerSettings`
+ *   fields for the frame, so a probe can isolate one pass's contribution without a rebuild.
  */
 const debugView = (): string => (globalThis as { __ATMO_DEBUG__?: string }).__ATMO_DEBUG__ ?? '';
+const settingsOverride = (): Partial<Record<keyof ComposerSettings, number>> | null =>
+  (globalThis as { __ATMO_SETTINGS__?: Partial<Record<keyof ComposerSettings, number>> | null }).__ATMO_SETTINGS__ ?? null;
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -167,12 +172,14 @@ export function createComposer(opts: ComposerOptions): Composer {
   const settings: ComposerSettings = {
     aoStrength: 0.6,
     aoRadius: 0.5,
-    rayIntensity: 0.7,
+    rayIntensity: 0.8,
     rayContrast: 1.3,
-    rayColor: new Color(1.0, 0.9, 0.72),
+    // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
+    // the earlier (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange
+    rayColor: new Color(1.0, 0.96, 0.82),
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
-    saturation: 0.98,
+    saturation: 1.03,
     // slightly < 1: the reference's blacks are lifted (shaded plaza stone ≥ 0.32 luminance, nothing
     // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look
     contrast: 0.97,
@@ -225,16 +232,34 @@ export function createComposer(opts: ComposerOptions): Composer {
       // the beams' own air profile: a taller, softer layer than the ground mist so shafts keep
       // reading in the upper air of shots A/F even when the mist pool is thin
       uFogParams: { value: new Vector4(2.3, 0.48, fog.northStartZ, fog.northFullZ) },
-      // height-fog weight, base air density (1/m): a fully lit 50 m column at ground level → ~0.57,
-      // a 20 m column (typical distance to the mid-ground in shots A/B) → ~0.3
-      uDensity: { value: new Vector2(0.012, 0.005) },
-      uAnisotropy: { value: 0.3 },
+      // height-fog weight, base air density (1/m). The base is the sunlit under-canopy air the
+      // reference's shafts live in: a fully lit 10 m column (the lantern limb in shot A) → ~0.1,
+      // a 20 m column (the mid-ground of A/B) → ~0.2, a lit 50 m column at ground level → ~0.6
+      uDensity: { value: new Vector2(0.01, 0.0065) },
+      // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
+      // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
+      // eye-level column, so the sun-facing upper frame is shafts, not a wash over the crowns
+      uAltitude: { value: new Vector2(fog.hazeUniformHeight, fog.hazeScaleHeight) },
+      // mild forward scattering: the sun-facing shot F gets ≈ 1.4× the side-lit strength of A/B
+      // (0.3 gave 2.1×, a wash over the crowns rather than shafts through them)
+      uAnisotropy: { value: 0.15 },
     },
     'postfx-ray-march',
   );
   const rayBlurMat = mat(
     RAY_BLUR_FRAG,
-    { tSrc: { value: null as Texture | null }, uSunUv: { value: sunUv }, uDirSign: dirSign, uLength: { value: 0.06 }, uGamma: { value: 1 }, uTexel: quarterTexel },
+    {
+      tSrc: { value: null as Texture | null },
+      uSunUv: { value: sunUv },
+      uDirSign: dirSign,
+      uLength: { value: 0.06 },
+      uGamma: { value: 1 },
+      // taps whose marched length differs by ≈ 17 m (1/3 of uMaxDist) weigh e⁻¹: a near trunk keeps
+      // mostly its own short column instead of inheriting the sky columns beside it (13 m vs 50 m
+      // → 0.11), while the limb and mid canopy of shot A (10–25 m) still merge into broad slabs
+      uDepthK: { value: 3 },
+      uTexel: quarterTexel,
+    },
     'postfx-ray-blur',
   );
   const copyMat = mat(COPY_FRAG, { tSrc: { value: null as Texture | null }, uScale: { value: 1 } }, 'postfx-copy');
@@ -291,7 +316,7 @@ export function createComposer(opts: ComposerOptions): Composer {
    * front of the camera and diverge from the anti-solar point when it is behind; projecting the
    * far point on the correct side of the camera keeps the perspective projection well-defined.
    */
-  const updateSun = () => {
+  const updateSun = (s: ComposerSettings) => {
     camera.getWorldPosition(camPos);
     camera.getWorldDirection(camDir);
     sunDirView.copy(opts.sunDirection).transformDirection(camera.matrixWorldInverse);
@@ -305,7 +330,19 @@ export function createComposer(opts: ComposerOptions): Composer {
     const len = Math.hypot(dx, dy);
     const maxR = 4.0;
     if (len > maxR) sunUv.set(0.5 + (dx / len) * maxR, 0.5 + (dy / len) * maxR);
-    rayIntensity.value = settings.rayIntensity;
+    rayIntensity.value = s.rayIntensity;
+  };
+
+  /** the frame's settings: the live object, or a copy with the numeric tuning overrides applied */
+  const frameSettings = (): ComposerSettings => {
+    const o = settingsOverride();
+    if (!o) return settings;
+    const s = { ...settings };
+    for (const k of Object.keys(o) as (keyof ComposerSettings)[]) {
+      const v = o[k];
+      if (typeof v === 'number' && typeof settings[k] === 'number') (s as unknown as Record<string, number>)[k] = v;
+    }
+    return s;
   };
 
   /** the sun's PCF depth map is only bindable as sampler2DShadow once it exists with a compare fn */
@@ -327,6 +364,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       renderer.render(scene, camera);
       return;
     }
+    const s = frameSettings();
     near.value = camera.near;
     far.value = camera.far;
     proj.value.copy(camera.projectionMatrix);
@@ -341,7 +379,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     renderer.autoClear = true;
     renderer.render(scene, camera);
 
-    updateSun();
+    updateSun(s);
 
     // 2. half-res transparent overlay (mist), premultiplied
     if (opts.overlay) {
@@ -357,7 +395,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     renderer.autoClear = false;
 
     // 3. AO
-    aoMat.uniforms.uRadius.value = settings.aoRadius;
+    aoMat.uniforms.uRadius.value = s.aoRadius;
     pass(aoMat, aoA);
     pass(aoBlurMat, aoB);
 
@@ -370,7 +408,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       pass(rayBlurMat, rayB);
       rayBlurMat.uniforms.tSrc.value = rayB.texture;
       rayBlurMat.uniforms.uLength.value = 0.22;
-      rayBlurMat.uniforms.uGamma.value = settings.rayContrast;
+      rayBlurMat.uniforms.uGamma.value = s.rayContrast;
       pass(rayBlurMat, rayA);
     } else {
       renderer.setRenderTarget(rayA);
@@ -380,7 +418,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     }
 
     // 5. bloom
-    brightMat.uniforms.uThreshold.value = settings.bloomThreshold;
+    brightMat.uniforms.uThreshold.value = s.bloomThreshold;
     pass(brightMat, bloomA);
     blurMat.uniforms.tSrc.value = bloomA.texture;
     blurMat.uniforms.uDir.value.set(quarterTexel.value.x * 1.4, 0);
@@ -390,13 +428,13 @@ export function createComposer(opts: ComposerOptions): Composer {
     pass(blurMat, bloomA);
 
     // 6. composite + tone map + grade → LDR
-    compositeMat.uniforms.uAoStrength.value = settings.aoStrength;
-    compositeMat.uniforms.uBloomIntensity.value = settings.bloomIntensity;
-    compositeMat.uniforms.uSaturation.value = settings.saturation;
-    compositeMat.uniforms.uContrast.value = settings.contrast;
-    compositeMat.uniforms.uContrastPivot.value = settings.contrastPivot;
-    compositeMat.uniforms.uGreenWarm.value = settings.greenWarm;
-    compositeMat.uniforms.uGreenDesat.value = settings.greenDesat;
+    compositeMat.uniforms.uAoStrength.value = s.aoStrength;
+    compositeMat.uniforms.uBloomIntensity.value = s.bloomIntensity;
+    compositeMat.uniforms.uSaturation.value = s.saturation;
+    compositeMat.uniforms.uContrast.value = s.contrast;
+    compositeMat.uniforms.uContrastPivot.value = s.contrastPivot;
+    compositeMat.uniforms.uGreenWarm.value = s.greenWarm;
+    compositeMat.uniforms.uGreenDesat.value = s.greenDesat;
     pass(compositeMat, ldr);
 
     // 7. FXAA → screen
