@@ -1,6 +1,60 @@
 {
   "note": "Claim rubric items before working on them: npm run gauntlet -- --claim W02,W03 --agent <id>. Claims expire 3 h after `at`. Do not edit another agent's claims by hand.",
   "claims": [
-    { "agent": "fable-cursor", "items": ["W01", "W02", "W03", "W04", "W05", "W06", "W07", "W08", "W09", "W10", "W11", "W12", "W14", "W15", "W16", "W17", "W18", "W19", "W20", "W21", "W22", "W25", "W26", "W27", "W28", "W29", "W30", "W31", "W32", "W33", "W34", "W37", "W38", "W39", "W40", "W41", "W42"], "at": "2026-09-09T09:10:00Z", "scope": "bootstrap: first pass on every system via parallel sub-agents", "expiresHours": 12 }
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W07",
+        "W08",
+        "W09",
+        "W10",
+        "W11",
+        "W12",
+        "W14",
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W19",
+        "W20",
+        "W21",
+        "W22",
+        "W25",
+        "W26",
+        "W27",
+        "W28",
+        "W29",
+        "W30",
+        "W31",
+        "W32",
+        "W33",
+        "W34",
+        "W37",
+        "W38",
+        "W39",
+        "W40",
+        "W41",
+        "W42"
+      ],
+      "at": "2026-09-09T09:10:00Z",
+      "scope": "bootstrap: first pass on every system via parallel sub-agents",
+      "expiresHours": 12
+    },
+    {
+      "agent": "codex",
+      "items": [
+        "W23",
+        "W24"
+      ],
+      "at": "2026-09-09T10:02:34.030753+00:00",
+      "scope": "src/world/rocks/** only; own claim appended because gauntlet.mjs is not yet published",
+      "expiresHours": 3
+    }
   ]
 }

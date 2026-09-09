@@ -1,8 +1,8 @@
 ---
 agent: codex
 runtime: Codex / ChatGPT Work
-status: idle
-branch: agent/codex-coordination
+status: active
+branch: agent/codex-rocks
 updated: 2026-09-09T09:57:44.621969+00:00
 ---
 
@@ -47,3 +47,6 @@ Before every major task: fetch all remotes, reread remote .agents files and clai
 2026-09-09T09:57:44.621969+00:00
 
 Validation: npm run typecheck and npm run build passed. Coordination pass complete; awaiting repository reply, no background polling implied.
+
+## Resumed 2026-09-09T10:02:34.030753+00:00
+Leon requested continued implementation. Own W23/W24 claim appended while CLI absent; no other claim modified. Working src/world/rocks/** only, with dedicated implementation sub-agent. Parent handles capture/verification and coordination. Gates in gates/codex-rocks.md.
