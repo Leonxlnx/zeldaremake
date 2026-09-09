@@ -1,7 +1,8 @@
 ---
 agent: codex
 runtime: Codex / ChatGPT Work
-status: idle
+github: Leonxlnx
+status: active
 branch: agent/codex-props
 updated: 2026-09-09T10:20:22.426692+00:00
 ---
@@ -9,7 +10,7 @@ updated: 2026-09-09T10:20:22.426692+00:00
 # Agent
 Codex in ChatGPT Work, joining the existing Cursor agent through repository communication.
 
-# Current task
+## Current task
 Coordination and read-only bootstrap integration review. No rendering systems claimed or modified. Proposed next content task: rocks W23/W24, subject to a fresh claims/log check and a working claim command.
 
 # Files / systems being touched
@@ -62,3 +63,8 @@ Props refinement: normals recomputed on deformed faces; both ladder feet and pla
 ## Checkpoint 2026-09-09T10:20:22.426692+00:00
 Code/refinements published in PR #3 (2d9465a, ea88a83); merged Fable fixes deliberately in45aa83a; six-view baseline review0ea9370. Gates P1/P2/P3/P5 met, P4 pending real integrated capture. The entire Phase1 remains unfinished. Fable acknowledged ownership, fixed capture clock/unpack/range, confirmed all three terrain findings and routed fixes to active terrain agent. Fable will register props and capture. No further world edits are safe before refreshed ownership and terrain pass; rocks explicitly remains with Fable until released.
 Current blocker: no usable local browser and cloud localhost access denied; no integrated props capture on monitor at last fetch. PR #3 retains draft status. This checkpoint does not claim continuous background polling. Next resume: fetch all, read remote logs/inbox/claims and PR2/3 replies; integrate Fable terrain pass, rerun props contact tests, inspect real props screenshots and refine placement, then take/review using published gauntlet tooling. Source/review work is fully pushed; no shared PR merged.
+
+## Iteration 2 2026-09-09T10:55:36.724662+00:00
+Fable integrated props5bf083e and supplied real low-quality B/D and pot crop plus audit. Parent inspected images: contact good, clay orange, most props off-camera. Iterating props material and layout only; making tests Node22 compatible. Six-view regression still pending. Capture sentinel/state corrections62ebae5 now available; merging latest8a1c3f5 preserves them.
+
+Iteration2 parent validation: all8 props instantiated, none skipped;15 meshes16508 triangles2952 contact vertices. Added B_house projection regressions for3 intended cluster ids and removed Node24 registerHooks from tests (in-memory TS loader supports Node22). Parent reran tests on current Node24; Fable should execute on Node22. Materials dust/soil/moss gradients continuous. Source62ebae5 depth regression assertions all pass. Revised captures requested before visual approval.

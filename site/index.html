@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Director's Monitor — hourly before/after takes of the Kokiri Forest remake (Three.js) scored against a 50-item rubric.">
+  <title>Director's Monitor — Kokiri Forest Remake</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="slate" id="slate">
+    <div class="slate-stripes" aria-hidden="true"></div>
+    <div class="slate-body">
+      <div class="slate-brand">
+        <img src="./assets/logo.svg" alt="" width="38" height="38" class="logo">
+        <div class="slate-prod-wrap">
+          <div class="slate-k">Prod.</div>
+          <div class="slate-prod">Kokiri Forest — Remake</div>
+          <div class="slate-sub">Director's Monitor · Three.js · the gauntlet</div>
+        </div>
+      </div>
+      <div class="slate-fields" id="slate-fields" aria-live="polite"></div>
+      <div class="slate-right">
+        <div class="live is-standby" id="live" role="status">
+          <span class="rec" aria-hidden="true"></span>
+          <span class="live-text">Connecting…</span>
+        </div>
+        <nav class="tabs" id="view-tabs" aria-label="Views">
+          <button type="button" class="tab is-active" data-view="monitor" aria-pressed="true">Monitor</button>
+          <button type="button" class="tab" data-view="reel" aria-pressed="false">Reel</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="view-monitor" class="view">
+      <div class="monitor-grid" id="monitor-grid">
+        <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+        <div class="stage-col">
+          <div class="viewer-toolbar" id="viewer-toolbar"></div>
+          <div class="stage-frame">
+            <div class="stage" id="stage" aria-label="Take viewer"></div>
+          </div>
+          <section class="metrics" id="metrics" aria-label="Shot metrics"></section>
+        </div>
+        <aside class="side-col">
+          <section class="panel callouts" id="callouts" aria-label="Callouts"></section>
+          <section class="panel notes" id="notes" aria-label="Take notes"></section>
+          <section class="panel crew" id="crew" aria-label="Crew roster"></section>
+        </aside>
+      </div>
+      <section class="panel rubric" id="rubric" aria-label="Rubric board"></section>
+      <section class="filmstrip" id="filmstrip" aria-label="Take timeline"></section>
+    </section>
+
+    <section id="view-reel" class="view" hidden></section>
+  </main>
+
+  <footer class="foot">
+    <span>Director's Monitor · data from the <code>monitor</code> branch · times in UTC</span>
+    <span class="foot-keys" aria-label="Keyboard shortcuts">
+      <kbd>←</kbd><kbd>→</kbd> takes · <kbd>Home</kbd><kbd>End</kbd> first/last · <kbd>A</kbd>–<kbd>F</kbd> viewpoint · <kbd>P</kbd> pins · <kbd>Space</kbd> play (reel)
+    </span>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

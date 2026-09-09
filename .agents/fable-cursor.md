@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-09T09:10:00Z
+updated: 2026-09-09T10:32:00Z
 ---
 
 # fable-cursor — work log
@@ -52,11 +52,49 @@ one `src/world/<system>/` directory and do not touch the others.
 - **Takes** live on the orphan `monitor` branch (append-only), never in feature branches, so two
   agents cannot conflict on take data.
 
+## Hourly gauntlet log
+### 10:30 UTC — tick 1 (pre-tooling)
+Integrated WIP capture (quality=low, B/D, commit 5bf083e) — sub-agent passes are landing but
+not yet committed. Biggest gaps vs reference right now:
+1. **Trees**: giants are still untextured pale cylinders/blobs in B/D backgrounds; canopy roof
+   absent → sky too bright/open behind the house (ref B has dense dark canopy, dappled light).
+2. **Lantern bough in B**: the lantern-tree limb crosses the top of frame B as a thick plain
+   green cylinder ~4 m over the camera — needs bark, taper and foliage, or the B camera nudged
+   so it frames like the reference (branches high, not a beam across the top).
+3. **Colour/atmosphere**: whole frame reads cool-grey and washed; reference is warm gold-green
+   light on a cool blue haze with much deeper shadows. Mist volume currently flattens the mid
+   ground; terrain material still grey vertex colour in places.
+Also: codex's terrain review findings (cache order-dependence, sampler ≠ mesh) go to the terrain
+sub-agent before its pass lands; props integrated (`src/world/props`, codex).
+
+## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
+- `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
+  lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
+  flagstone 0xa79774/0x746d5d, bark 0x7a7468/0x473e33, white bark 0xb9b3a4, canopy 0x4c5537,
+  fern 0x69692e, flowers 0x7a4f8c; sky/hemi warm greys 0xcfd3c8/0xe2dfd0/0xc9c8b4/0x4a4a30.
+- Fog: reference is ~60 % hazed at 30 m → exponential/height haze density ≈ 0.03, colour
+  0x95968b → 0xa3a399 far, warm ground mist 0x7a796d; keep `far ≥ 150` for the audit.
+- Sun elevation 34 → 38 (azimuth stays −128; shafts are screen-anchored upper-left in every
+  heading in the footage, so god rays should be a screen-space effect anchored upper-left).
+- Layout: stairs rise 0.30 → 0.24 (heightfield ramps the last 1.1 m); lantern branch lower
+  (from ≈ (−5.5, 4.0, −6.3) to (3.5, 2.6, −3.0), 2 orange pods on 1 m cords) with the
+  lantern-tree at ≈ (−7.5, 2.0, −7.5); signpost → (5.5, 1.0, −9.8); house trunkRadius 3.5;
+  log arch radius 4.0 + 3 lanterns; boulders stair-foot → (5.9, 0.1, −3.0), shot-d → (−0.8, 0,
+  −2.5); viewpoint retargets A/B/C/D/F per ANALYSIS §14 (F becomes eye-level along the stair
+  axis, fov 42, not a look-up).
+- Rubric traps: W18 purple ≥ 0.3 % is stricter than the reference itself (0.02 %) — meet it
+  with saturated blooms in D's foreground; W30's azimuth range is consistent with shots A/B
+  only (the footage's light is camera-relative) — note in the visual verdict.
+
 ## Known issues
-- All world systems are placeholder massing until the sub-agent passes land (this session).
+- Terrain sampler contract defects reported by codex (`.agents/reviews/codex-terrain-review.md`):
+  5 cm memo cache makes `height()` order-dependent; sampler vs rendered mesh up to 18 cm on the
+  stair ramp; LOD seams. Fix pending in the terrain pass (lattice-consistent sampler).
 - Far hills are one low-res mesh; distant layering is the atmosphere agent's job.
 - The first capture of a fresh page sometimes returns a black frame before shaders finish
-  compiling — `capture.mjs` needs the variance-retry guard (tooling task).
+  compiling — `capture.mjs` needs the variance-retry guard (tooling task, in flight).
+- Box is CPU-saturated by parallel SwiftShader captures (load ≈ 20 on 4 cores); full six-view
+  high-quality takes wait until the sub-agent passes finish.
 
 ## Recommended next work (for the second agent)
 Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candidates:
@@ -67,4 +105,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T09:10:00Z
+2026-09-09T10:32:00Z

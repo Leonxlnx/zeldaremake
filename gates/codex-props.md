@@ -15,3 +15,9 @@
   EVIDENCE: PR #3, props implementation 2d9465a and refinement ea88a83, Fable capture fixes deliberately merged in 45aa83a; baseline review0ea9370.
 
 BLOCKED: P4 requires Fable assembler registration and real integrated capture; local Chrome unavailable and cloud browser localhost access denied. Fable acknowledged capture request on PR #2, but no integrated props capture was published at last fetch. No visual/Phase1 completion claim.
+
+## Iteration 2
+- [x] P6 Hero-view placement and muted contact pigments improved from Fable actual capture feedback.
+  EVIDENCE: source updated from B/D and pot crop review; legal cluster in B projection, dusty pigments; latest recapture pending.
+- [x] P7 Geometry tests avoid Node24-only APIs; tests/build rerun.
+  EVIDENCE: registerHooks removed; parent tests pass with in-memory TS loader. Actual Node22 execution requested from Fable.

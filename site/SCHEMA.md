@@ -13,6 +13,7 @@ copied under `data/`.
   data/rubric.json                           (copy of gauntlet/rubric.json)
   data/agents.json                           (front-matter of .agents/*.md, generated)
   data/reference/frames/<viewpoint>.jpg      (copy of reference/frames/)
+  data/reference/frames/timeline/t_*.jpg     (+ index.json: { "frames": [{ "file": "t_001.jpg", "seconds": 0.5 }, …] })
   data/takes/<take-id>/<viewpoint>.jpg       (1280×720 JPEG q82, from the renderer)
   data/takes/<take-id>/<viewpoint>.compare.jpg  (reference | ours | previous strip)
   data/takes/<take-id>/score.json
@@ -50,6 +51,9 @@ copied under `data/`.
           "viewpoint": "A_stairs",
           "label": "The Stairs",
           "refSeconds": 1,
+          "diagnostic": false,             // true for E_ground / F_canopy: reference frame is a material/lighting
+                                           // reference only — no image-similarity metrics; site labels it DIAGNOSTIC
+          "thumb": "takes/take-0007/A_stairs.thumb.jpg",   // optional 320×180 for filmstrip/reel
           "image": "takes/take-0007/A_stairs.jpg",
           "compare": "takes/take-0007/A_stairs.compare.jpg",
           "reference": "reference/frames/A_stairs.jpg",
@@ -65,7 +69,7 @@ copied under `data/`.
             { "x": 0.50, "y": 0.80, "label": "grass creeping into joints", "item": "W21", "kind": "improved" }
           ],
           "refCallouts": [                                    // optional pins on the REFERENCE image
-            { "x": 0.70, "y": 0.40, "label": "stairs read as separate worn slabs" }
+            { "x": 0.70, "y": 0.40, "label": "stairs read as separate worn slabs", "kind": "reference" }
           ]
         }
       ],
