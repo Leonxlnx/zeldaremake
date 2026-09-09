@@ -16,11 +16,14 @@ export const WORLD = {
 
   // Sun: the reference shows late-morning light from behind-left of the stairs shot,
   // strong shafts entering high from the upper-left of the frame, soft long shadows.
+  // Measured on the reference plaza (percentiles of the foreground flagstones): sunlit stone
+  // ≈ 0.62–0.66 luminance, shaded stone ≈ 0.33–0.40 (a display ratio of only ≈ 1.8) — a warm
+  // key over a generous, near-neutral fill; the deep darks (0.16–0.23) are shaded vegetation.
   sun: {
     azimuthDeg: -128, // measured from +Z toward +X; negative = light coming from the west-north-west
     elevationDeg: 38,
-    color: 0xfff1d6,
-    intensity: 4.6,
+    color: 0xffe9c4,
+    intensity: 5.0,
     shadowMapSize: 4096,
     shadowRadius: 60,
   },
@@ -30,7 +33,12 @@ export const WORLD = {
     horizon: 0xe2dfd0,
     hemiSky: 0xc9c8b4,
     hemiGround: 0x4a4a30,
-    hemiIntensity: 0.9,
+    /**
+     * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous: the plaza in shot A
+     * lies in the lantern tree's crown shadow under the pinned sun azimuth, so its shaded stone
+     * has to carry the reference's ≈ 0.5 plaza luminance until that crown thins.
+     */
+    hemiIntensity: 1.2,
   },
 
   fog: {
@@ -38,8 +46,8 @@ export const WORLD = {
     color: 0x95968b,
     near: 28,
     far: 190,
-    /** Ground mist cap height above terrain. */
-    mistHeight: 3.5,
+    /** Ground mist cap height above terrain (the reference pools are 0.5–2 m thick, never a wall). */
+    mistHeight: 2.2,
   },
 
   renderer: {

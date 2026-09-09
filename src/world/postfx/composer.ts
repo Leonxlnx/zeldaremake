@@ -93,7 +93,9 @@ export interface ComposerSettings {
   bloomThreshold: number;
   bloomIntensity: number;
   saturation: number;
+  /** luminance power curve about `contrastPivot` (linear); > 1 deepens the toe more than it lifts highlights */
   contrast: number;
+  contrastPivot: number;
   /** selective grade of green-dominant pixels: hue pull toward gold, saturation softening */
   greenWarm: number;
   greenDesat: number;
@@ -165,17 +167,20 @@ export function createComposer(opts: ComposerOptions): Composer {
   const settings: ComposerSettings = {
     aoStrength: 0.6,
     aoRadius: 0.5,
-    rayIntensity: 0.6,
+    rayIntensity: 0.7,
     rayContrast: 1.3,
     rayColor: new Color(1.0, 0.9, 0.72),
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
     saturation: 0.98,
-    contrast: 1.0,
+    // slightly < 1: the reference's blacks are lifted (shaded plaza stone ≥ 0.32 luminance, nothing
+    // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look
+    contrast: 0.97,
+    contrastPivot: 0.18,
     greenWarm: 0.3,
     greenDesat: 0.15,
-    shadowTint: new Color(0.98, 0.985, 1.015),
-    highlightTint: new Color(1.04, 1.0, 0.93),
+    shadowTint: new Color(0.975, 0.985, 1.02),
+    highlightTint: new Color(1.05, 1.0, 0.92),
   };
 
   const near = { value: camera.near };
@@ -217,7 +222,9 @@ export function createComposer(opts: ComposerOptions): Composer {
       tShadow: { value: null as Texture | null },
       uSunDirView: { value: sunDirView },
       uMaxDist: { value: 50 },
-      uFogParams: { value: new Vector4(fog.baseHeight + 1.5, fog.falloff * 0.6, fog.northStartZ, fog.northFullZ) },
+      // the beams' own air profile: a taller, softer layer than the ground mist so shafts keep
+      // reading in the upper air of shots A/F even when the mist pool is thin
+      uFogParams: { value: new Vector4(2.3, 0.48, fog.northStartZ, fog.northFullZ) },
       // height-fog weight, base air density (1/m): a fully lit 50 m column at ground level → ~0.57,
       // a 20 m column (typical distance to the mid-ground in shots A/B) → ~0.3
       uDensity: { value: new Vector2(0.012, 0.005) },
@@ -253,6 +260,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       uExposure: { value: opts.exposure },
       uSaturation: { value: settings.saturation },
       uContrast: { value: settings.contrast },
+      uContrastPivot: { value: settings.contrastPivot },
       uGreenWarm: { value: settings.greenWarm },
       uGreenDesat: { value: settings.greenDesat },
       uShadowTint: { value: settings.shadowTint },
@@ -386,6 +394,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     compositeMat.uniforms.uBloomIntensity.value = settings.bloomIntensity;
     compositeMat.uniforms.uSaturation.value = settings.saturation;
     compositeMat.uniforms.uContrast.value = settings.contrast;
+    compositeMat.uniforms.uContrastPivot.value = settings.contrastPivot;
     compositeMat.uniforms.uGreenWarm.value = settings.greenWarm;
     compositeMat.uniforms.uGreenDesat.value = settings.greenDesat;
     pass(compositeMat, ldr);
@@ -445,6 +454,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       bloom: true,
       bloomThreshold: settings.bloomThreshold,
       toneMapping: 'aces-fitted',
+      contrast: settings.contrast,
+      contrastPivot: settings.contrastPivot,
       antialiasing: 'fxaa',
       // every pass is a pure function of the frame (no temporal jitter/accumulation), headless or not
       deterministic: true,

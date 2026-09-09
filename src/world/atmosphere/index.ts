@@ -81,6 +81,10 @@ export function create(ctx: WorldContext): WorldSystem {
     hazeDensityPerM: HEIGHT_FOG_DEFAULTS.hazeDensity,
     hazeStartM: HEIGHT_FOG_DEFAULTS.hazeStart,
     hazeAt30m: Math.round((1 - Math.exp(-HEIGHT_FOG_DEFAULTS.hazeDensity * (30 - HEIGHT_FOG_DEFAULTS.hazeStart))) * 100) / 100,
+    // aerosol thins with altitude so upward rays (shot F) do not wash the near canopy pale
+    hazeUniformHeightM: HEIGHT_FOG_DEFAULTS.hazeUniformHeight,
+    hazeScaleHeightM: HEIGHT_FOG_DEFAULTS.hazeScaleHeight,
+    hazeUpwardCut: HEIGHT_FOG_DEFAULTS.hazeUpwardCut,
     hazeNearDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeNear),
     hazeFarDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFar),
     groundMistDisplay: displayHex(HEIGHT_FOG_DEFAULTS.mistColor),

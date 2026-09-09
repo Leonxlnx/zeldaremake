@@ -264,6 +264,7 @@ uniform float uBloomIntensity;
 uniform float uExposure;
 uniform float uSaturation;
 uniform float uContrast;
+uniform float uContrastPivot;
 uniform float uGreenWarm;
 uniform float uGreenDesat;
 uniform vec3 uShadowTint;
@@ -296,9 +297,10 @@ void main() {
     hdr = hdr * ( 1.0 - mist.a ) + mist.rgb;
   }
   // volumetric in-scatter accumulated along the ray up to the surface (see RAY_MARCH_FRAG); the
-  // sky already carries its own haze so open-sky columns get a smaller share of the beams
+  // sky already carries its own haze so open-sky columns get a smaller share of the beams (the
+  // reference's canopy gaps peak at ≈ 0.66 luminance — never a blown-out white)
   float rays = texture2D( tRays, vUv ).x;
-  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.6, sky );
+  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.2, sky );
   hdr += texture2D( tBloom, vUv ).rgb * uBloomIntensity;
 
   // gentle channel mix: bleeds a little green into red (lime → olive/gold like the reference's
@@ -315,8 +317,13 @@ void main() {
   c.r += gd * uGreenWarm * ( c.g - c.r );
   c = mix( c, vec3( lum ), gd * uGreenDesat );
   c = mix( vec3( lum ), c, uSaturation );
-  c = ( c - 0.5 ) * uContrast + 0.5;
-  c *= mix( uShadowTint, uHighlightTint, smoothstep( 0.05, 0.85, lum ) );
+  // filmic contrast: a power curve about linear mid grey applied to luminance only (chroma ratios
+  // are kept, so hue and saturation do not drift). > 1 deepens the toe more than it lifts the
+  // highlights; < 1 lifts the blacks and softens the top end.
+  float lum2 = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) );
+  float curved = uContrastPivot * pow( max( lum2, 1e-5 ) / uContrastPivot, uContrast );
+  c *= curved / max( lum2, 1e-5 );
+  c *= mix( uShadowTint, uHighlightTint, smoothstep( 0.05, 0.85, curved ) );
   c = clamp( c, 0.0, 1.0 );
   gl_FragColor = vec4( linearToSRGB( c ), 1.0 );
 }

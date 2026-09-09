@@ -259,7 +259,8 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
     return { mesh, mat, geo };
   };
 
-  const up = build(uprights, true, 0.34);
+  // low pools, not a grey wall: the reference's log arch stays a dark silhouette through the haze
+  const up = build(uprights, true, 0.22);
   const sh = build(sheets, false, 0.3);
   // sheets first (they lie under the billboards), then billboards
   sh.mesh.renderOrder = 0;

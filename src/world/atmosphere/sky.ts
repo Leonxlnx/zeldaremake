@@ -26,7 +26,7 @@ export interface SkyDome {
  * the horizon is the far haze (#8d8e85), so the dome is a luminous warm haze that meets the
  * distance fog seamlessly. Exported for the audit; the horizon shares heightfog's `hazeFar`.
  */
-export const SKY_GAP_GLARE: [number, number, number] = [0.345, 0.33, 0.27];
+export const SKY_GAP_GLARE: [number, number, number] = [0.33, 0.316, 0.258];
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -88,9 +88,10 @@ void main() {
   vec3 below = mix( uHorizon * 0.8, uGround, smoothstep( 0.0, 0.35, down ) );
   vec3 col = h >= 0.0 ? sky : below;
 
-  // sun: wide halo + soft core (core suppressed for the environment map)
+  // sun: wide halo + a soft glare instead of a hard disc — the reference never shows the sun
+  // itself, only a bright gap glare where it sits (core suppressed for the environment map)
   float halo = pow( sd, 14.0 ) * 0.07 + pow( sd, 80.0 ) * 0.2;
-  float core = pow( sd, 1400.0 ) * 2.2;
+  float core = pow( sd, 400.0 ) * 0.7;
   col += uSunColor * ( halo + core * ( 1.0 - uEnvMode ) );
 
   // cirrus wisps on a plane at altitude; only in the upper hemisphere

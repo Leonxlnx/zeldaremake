@@ -5,11 +5,16 @@
  * compile time, so replacing the four fog chunks once at module load upgrades every built-in
  * material (and any custom ShaderMaterial that includes the standard fog chunks) to:
  *
- *   1. distance haze — exponential extinction (≈ 0.028 m⁻¹ after a crisp 3 m foreground, matching
+ *   1. distance haze — exponential extinction (≈ 0.028 m⁻¹ after a crisp 5 m foreground, matching
  *      the depth-vs-blend measurements in reference/ANALYSIS.md §8) that is capped below 1.0: the
  *      far world is veiled, never erased. `scene.fog` stays a plain `THREE.Fog` (its near/far are
- *      the audited visibility distances) so the rest of the codebase is unaffected. The haze
- *      colour is depth-graded: dark warm grey near → lighter warm grey far, like the reference.
+ *      the audited visibility distances) so the rest of the codebase is unaffected. The airlight
+ *      is depth-graded warm grey — mid grey at 20 m, brighter at 55 m+ where far light arrives
+ *      through more canopy gaps (see `hazeNear`/`hazeFar`). The aerosol is densest under the
+ *      canopy: its density is uniform up to `hazeUniformHeight` and decays exponentially above,
+ *      and steeply climbing rays are attenuated further, so rays toward the crowns (shot F)
+ *      accumulate far less haze than rays along the ground and the near canopy stays dark
+ *      against the bright gaps.
  *   2. exponential height fog — an analytic integral along the view ray of a density that decays
  *      with height above a mist base, weighted toward the north hollow (−Z) where the reference
  *      pools mist under the log arch; its share of the fog takes the warm ground-mist colour.
@@ -47,10 +52,18 @@ export interface HeightFogParams {
   hazeDensity: number;
   /** distance (m) before the distance haze starts (the reference foreground < 12 m stays crisp) */
   hazeStart: number;
+  /** height (m) up to which the aerosol density is uniform (the air under the canopy) */
+  hazeUniformHeight: number;
+  /** scale height (m) of the exponential density decay above `hazeUniformHeight` */
+  hazeScaleHeight: number;
+  /** extra attenuation (0..1) of the distance haze for rays that climb steeply toward the crowns */
+  hazeUpwardCut: number;
   /**
-   * Haze colours in scene-linear radiance (what ACES maps to the reference's display values):
-   * near haze ≈ #696960 (10–30 m), far haze ≈ #8d8e85 (40–60 m) — the reference haze *brightens*
-   * with distance because far light arrives through more canopy gaps — and the ground mist ≈ #7a796d.
+   * Airlight colours in scene-linear radiance (what ACES maps to the reference's display values).
+   * Measured against the reference: the log arch at 30 m (#646055 through a ~55 % veil) needs a
+   * mid-distance airlight ≈ #707068, while the far trunks (#8d8e85 at ~85 % veil) and canopy gaps
+   * (#aca896) need ≈ #949489 — far light arrives through more canopy gaps, so the airlight grades
+   * brighter with distance. Ground mist ≈ #7a796d.
    */
   hazeNear: [number, number, number];
   hazeFar: [number, number, number];
@@ -61,20 +74,27 @@ export interface HeightFogParams {
 }
 
 export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
-  baseHeight: 0.8,
-  falloff: 0.8,
-  density: 0.022,
+  // a thin pool: a shallow eye-level ray into the hollow picks up ≈ 20 % mist at the log arch
+  // (30 m) on top of the ≈ 50 % distance haze — the arch stays a dark silhouette, not grey mush
+  baseHeight: 0.4,
+  falloff: 1.0,
+  density: 0.012,
   northStartZ: -4,
   northFullZ: -24,
-  baseWeight: 0.3,
+  baseWeight: 0.16,
   maxFog: 0.86,
-  hazeDensity: 0.03,
-  hazeStart: 3.0,
-  hazeNear: [0.138, 0.137, 0.124],
-  hazeFar: [0.228, 0.229, 0.21],
-  mistColor: [0.168, 0.166, 0.148],
-  hazeGradeNear: 22,
-  hazeGradeFar: 50,
+  hazeDensity: 0.028,
+  hazeStart: 5.0,
+  hazeUniformHeight: 8.0,
+  hazeScaleHeight: 14.0,
+  // rays steeper than ≈ 20° up (shot F's canopy) lose up to 75 % of the haze; eye-level shots
+  // (A/D top rows reach only ≈ 23°) are untouched, so their far canopy stays hazed pale
+  hazeUpwardCut: 0.75,
+  hazeNear: [0.15, 0.149, 0.134],
+  hazeFar: [0.24, 0.241, 0.218],
+  mistColor: [0.175, 0.173, 0.154],
+  hazeGradeNear: 20,
+  hazeGradeFar: 55,
 };
 
 /** #rrggbb of a scene-linear colour after the composer's ACES (exposure 1) — for audits. */
@@ -129,6 +149,9 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_MAX_FOG = ${f(params.maxFog)};
 	const float KF_HAZE_K = ${f(params.hazeDensity)};
 	const float KF_HAZE_START = ${f(params.hazeStart)};
+	const float KF_HAZE_H0 = ${f(params.hazeUniformHeight)};
+	const float KF_HAZE_HS = ${f(params.hazeScaleHeight)};
+	const float KF_HAZE_UP_CUT = ${f(params.hazeUpwardCut)};
 	const vec3 KF_HAZE_NEAR = vec3( ${params.hazeNear.map(f).join(', ')} );
 	const vec3 KF_HAZE_FAR = vec3( ${params.hazeFar.map(f).join(', ')} );
 	const vec3 KF_MIST = vec3( ${params.mistColor.map(f).join(', ')} );
@@ -150,6 +173,21 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		return D * ( e0 - e1 ) / ( k * ry );
 	}
 
+	// mean of the aerosol profile f(y) = exp( -max( y - H0, 0 ) / Hs ) over the heights a ray spans:
+	// 1 for rays that stay under the canopy, falling toward 0 for rays that climb far above it.
+	// Closed form (uniform run below H0 + the exponential tail above), symmetric in ray direction.
+	float kfAltitudeMean( float ya, float yb ) {
+		float lo = min( ya, yb );
+		float hi = max( ya, yb );
+		float span = hi - lo;
+		if ( span < 1e-3 ) return exp( -max( lo - KF_HAZE_H0, 0.0 ) / KF_HAZE_HS );
+		float below = clamp( KF_HAZE_H0 - lo, 0.0, span );
+		float a = max( lo - KF_HAZE_H0, 0.0 );
+		float b = hi - KF_HAZE_H0;
+		float above = b > 0.0 ? ( exp( -a / KF_HAZE_HS ) - exp( -b / KF_HAZE_HS ) ) * KF_HAZE_HS : 0.0;
+		return ( below + above ) / span;
+	}
+
 	// returns (total fog, distance-haze share, mist share, sun in-scatter) for this fragment
 	vec4 kfFog( vec3 worldPos, out vec3 rayDir ) {
 		vec3 v = worldPos - cameraPosition;
@@ -158,7 +196,11 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		// 1) distance haze: exponential extinction after a crisp foreground (the reference measures
 		//    ~25 % at 12 m, ~60 % at 30 m, 80–90 % at 40–60 m). fogFar is the audited visibility
 		//    distance; the visible ramp is this density, capped so the far world stays a silhouette.
-		float distFog = 1.0 - exp( -KF_HAZE_K * max( dist - KF_HAZE_START, 0.0 ) );
+		//    The aerosol thins with altitude and steep upward rays are cut further, so the crowns
+		//    overhead stay dark silhouettes against the luminous gaps instead of washing pale.
+		float altitude = kfAltitudeMean( cameraPosition.y, worldPos.y );
+		float upward = 1.0 - KF_HAZE_UP_CUT * smoothstep( 0.35, 0.75, rayDir.y );
+		float distFog = 1.0 - exp( -KF_HAZE_K * altitude * upward * max( dist - KF_HAZE_START, 0.0 ) );
 		// 2) height fog (ground mist), denser toward the north hollow (−Z) of the fragment. The hollow
 		//    is at lower z, so the ramp is written with ascending edges (smoothstep(a > b) is undefined)
 		float north = 1.0 - smoothstep( KF_NORTH_FULL, KF_NORTH_START, worldPos.z );

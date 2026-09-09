@@ -1,7 +1,7 @@
 /**
  * Lighting system — owner: atmosphere/lighting agent.
  *
- * - Sun: DirectionalLight from `config.sun` (azimuth −128°, elevation 34° → shadows on the plaza
+ * - Sun: DirectionalLight from `config.sun` (azimuth −128°, elevation 38° → shadows on the plaza
  *   fall toward camera-right/front in shot A, light enters from the upper-left). One 4096²
  *   PCF shadow map whose orthographic window is fitted ahead of the camera (radius 46 m, centre
  *   18 m along the view direction, snapped to 1 m) so texels serve visible content: ~2.2 cm/texel
@@ -34,9 +34,9 @@ export function create(ctx: WorldContext): WorldSystem {
   // PCF (Vogel disk + hardware compare) gives the softest well-behaved penumbra in r18x.
   ctx.renderer.shadowMap.type = PCFShadowMap;
 
-  // The reference's lit surfaces measure golden (hue ≈ 40–50°); config's pale 0xfff1d6 is pulled a
-  // little warmer here (see the report: proposed config.sun.color ≈ 0xffe7bc).
-  const sunColor = new Color(s.color).multiply(new Color(1.0, 0.935, 0.82));
+  // The reference's lit surfaces measure golden (hue ≈ 40–50°, lit flagstone R/B ≈ 1.5); the config
+  // colour is nudged a touch warmer so the lit ground lands there without re-tinting the albedos.
+  const sunColor = new Color(s.color).multiply(new Color(1.0, 0.985, 0.94));
   const sun = new DirectionalLight(sunColor, s.intensity);
   sun.name = 'sun';
   sun.position.copy(dir).multiplyScalar(SUN_DISTANCE_M);
@@ -59,18 +59,21 @@ export function create(ctx: WorldContext): WorldSystem {
   group.add(sun);
   ctx.sun = sun;
 
-  // The reference is soft and low-contrast (shadowed plaza ≈ 0.4 luminance): generous, warm-neutral
-  // ambient. The cool config sky colour is balanced toward neutral so shade does not turn cyan.
-  const hemiIntensity = 1.15;
-  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(1.0, 0.95, 0.85), 0.55);
+  // The reference is soft: shaded flagstone still reads ≈ 0.33–0.40 luminance next to sunlit stone
+  // at 0.62–0.66, so the fill is generous but near-neutral — warm grey-olive canopy light, never
+  // cyan and clearly less golden than the key, so shade reads cooler than sun. (Isolated A/B at
+  // quality high: dropping the fill by 20 % darkened the crown-shaded plaza of shot A by 0.05
+  // luminance while the reference plaza is sunlit — see config.sky.hemiIntensity.)
+  const hemiIntensity = ctx.config.sky.hemiIntensity;
+  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(1.0, 0.97, 0.9), 0.35);
   const hemi = new HemisphereLight(hemiSky, ctx.config.sky.hemiGround, hemiIntensity);
   hemi.name = 'sky-hemisphere';
   group.add(hemi);
 
   // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
-  // the reference's hazy key, radiance ≈ 0.23–0.35, see sky.ts).
+  // the reference's hazy key, radiance ≈ 0.24–0.32, see sky.ts).
   let environment = false;
-  const environmentIntensity = 0.7;
+  const environmentIntensity = 0.65;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
