@@ -78,6 +78,11 @@ export interface ZRApi {
   depthHistogram(maxDepth?: number): { buckets: number[]; skyFraction: number; farLayerCount: number; maxBucketBeyond20m: number };
   /** project world points to normalised screen coords for the current camera ([x,y] in 0..1, y down; null if behind) */
   project(points: [number, number, number][]): ([number, number] | null)[];
+  /**
+   * Render one frame with only the named top-level system group visible and return its draw
+   * calls / triangles, then restore visibility. Lets each system measure its own budget share.
+   */
+  isolate(systemName: string): { system: string; drawCalls: number; triangles: number; found: boolean };
 }
 
 declare global {
@@ -300,6 +305,24 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
         inRun = occupied;
       }
       return { buckets: frac, skyFraction: sky / (W * H), farLayerCount, maxBucketBeyond20m };
+    },
+    isolate: (systemName) => {
+      const scene = hooks.scene;
+      const saved = scene.children.map((c) => [c, c.visible] as const);
+      let found = false;
+      try {
+        for (const c of scene.children) {
+          const keep = c.name === systemName;
+          if (keep) found = true;
+          c.visible = keep || c.name === 'lighting';
+        }
+        hooks.renderer.info.reset();
+        hooks.renderer.render(scene, hooks.camera);
+        const info = hooks.renderer.info.render;
+        return { system: systemName, drawCalls: info.calls, triangles: info.triangles, found };
+      } finally {
+        for (const [c, v] of saved) c.visible = v;
+      }
     },
     project: (points) => {
       const cam = hooks.camera as PerspectiveCamera;
