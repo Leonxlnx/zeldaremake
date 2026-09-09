@@ -10,6 +10,11 @@ import { Noise2D } from '../util/noise';
 import { merge, quad, setColorAttribute, setFloatAttribute, sweepTube } from './geometry';
 import type { StructureMaterials } from './materials';
 
+/** heart-leaf size (metres, before ±25 % jitter) — real vine leaves, not scaled with distance */
+export const LEAF_SIZE = 0.075;
+/** spacing of leaves along a strand (metres) */
+export const LEAF_EVERY = 0.05;
+
 const DOWN = new Vector3(0, -1, 0);
 const UP = new Vector3(0, 1, 0);
 const _q = new Quaternion();
@@ -89,7 +94,9 @@ export class FoliageBuilder {
     this.stems.push(stem);
     this.vineCount++;
 
-    const every = opts.leafEvery ?? 0.095;
+    // real-world leaf spacing/size (≈ 6–9 cm leaves every ~5 cm, alternating sides) so strands
+    // read as strands of small leaves at any distance
+    const every = opts.leafEvery ?? LEAF_EVERY;
     const count = Math.max(2, Math.floor(length / every));
     const tangent = new Vector3();
     for (let k = 0; k < count; k++) {
@@ -103,7 +110,7 @@ export class FoliageBuilder {
       _dir.copy(_side).multiplyScalar(0.75 + this.rng() * 0.4).addScaledVector(DOWN, 0.55 + this.rng() * 0.5);
       _dir.x += (this.rng() - 0.5) * 0.4;
       _dir.z += (this.rng() - 0.5) * 0.4;
-      const size = (opts.leafSize ?? 0.2) * (0.8 + this.rng() * 0.45) * (0.75 + 0.25 * (1 - t));
+      const size = (opts.leafSize ?? LEAF_SIZE) * (0.8 + this.rng() * 0.45) * (0.8 + 0.2 * (1 - t));
       this.addLeaf(p, _dir.clone(), size, phase, amount * (0.4 + 0.6 * t));
     }
   }
@@ -122,7 +129,7 @@ export class FoliageBuilder {
     this.stems.push(stem);
     this.vineCount++;
     const length = curve.getLength();
-    const every = opts.leafEvery ?? 0.16;
+    const every = opts.leafEvery ?? LEAF_EVERY * 1.4;
     const count = Math.max(2, Math.floor(length / every));
     const tangent = new Vector3();
     const nrm = new Vector3();
@@ -135,7 +142,7 @@ export class FoliageBuilder {
       nrm.copy(normals[ni]);
       _side.crossVectors(tangent, nrm).normalize().multiplyScalar(k % 2 === 0 ? 1 : -1);
       _dir.copy(_side).multiplyScalar(0.8).addScaledVector(nrm, 0.5 + this.rng() * 0.4).addScaledVector(tangent, (this.rng() - 0.5) * 0.4);
-      const size = (opts.leafSize ?? 0.2) * (0.8 + this.rng() * 0.45);
+      const size = (opts.leafSize ?? LEAF_SIZE) * (0.8 + this.rng() * 0.45);
       this.addLeaf(p.clone().addScaledVector(nrm, 0.02), _dir.clone(), size, phase, (opts.amount ?? 0.015) * 2.5);
     }
   }
@@ -151,7 +158,7 @@ export class FoliageBuilder {
       const p = center.clone().add(off);
       _dir.copy(off).normalize().addScaledVector(DOWN, opts.droop ?? 0.7);
       if (_dir.lengthSq() < 1e-4) _dir.set(0, -1, 0);
-      this.addLeaf(p, _dir.clone(), (opts.size ?? 0.2) * (0.8 + this.rng() * 0.45), phase + this.rng() * 0.6, opts.amount ?? 0.05);
+      this.addLeaf(p, _dir.clone(), (opts.size ?? 0.13) * (0.8 + this.rng() * 0.45), phase + this.rng() * 0.6, opts.amount ?? 0.05);
     }
   }
 

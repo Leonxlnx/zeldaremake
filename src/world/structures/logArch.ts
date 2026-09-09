@@ -221,7 +221,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       capEnd: true,
     });
     stubParts.push(stub);
-    if (i !== 3) foliage.addLeafCluster(tip, 0.8, 40, { size: 0.2, amount: 0.06, droop: 0.5 });
+    if (i !== 3) foliage.addLeafCluster(tip, 0.8, 56, { size: 0.14, amount: 0.06, droop: 0.5 });
   }
   const outerMesh = new Mesh(merge([outer, ...stubParts]), mats.logBark);
   outerMesh.name = 'log-bark';
@@ -244,13 +244,13 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const s = pathS + (vegRng() - 0.5) * 7;
     const psi = -Math.PI / 2 + (vegRng() - 0.5) * 1.4;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.1);
-    foliage.addHangingVine(hook, 0.7 + vegRng() * 1.3, { leafSize: 0.2, amount: 0.1, thickness: 0.018 });
+    foliage.addHangingVine(hook, 0.7 + vegRng() * 1.3, { amount: 0.1, thickness: 0.018 });
   }
   for (let i = 0; i < 5; i++) {
     const psi = Math.PI / 2 + (vegRng() - 0.5) * 2.2;
     const s = sEndW(psi) + 0.3;
     const hook = surfacePoint(psi, s, rBase(psi, s) + 0.05);
-    foliage.addHangingVine(hook, 0.8 + vegRng() * 1.4, { leafSize: 0.2, amount: 0.1, thickness: 0.018 });
+    foliage.addHangingVine(hook, 0.8 + vegRng() * 1.4, { amount: 0.1, thickness: 0.018 });
   }
   // draped vines over the top near the west end
   for (let i = 0; i < 3; i++) {
@@ -264,7 +264,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       pts.push(surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + 0.03));
       nrms.push(radialDir(psi, s));
     }
-    foliage.addSurfaceVine(pts, nrms, { leafSize: 0.2, amount: 0.02, thickness: 0.025 });
+    foliage.addSurfaceVine(pts, nrms, { amount: 0.02, thickness: 0.025 });
   }
   for (const m of foliage.build(mats, 'log')) group.add(m);
 

@@ -133,20 +133,24 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const oval = 1 + 0.045 * noise.fbm(Math.cos(a) * 1.3 + 10, Math.sin(a) * 1.3, 2) + 0.025 * noise.noise(a * 0.5, y * 0.15);
     return R * (1 + flare + bulge) * oval;
   };
+  // rope-like vertical bark cords: dense ridged noise that twists slowly with height, deep
+  // furrows between cord bundles, broad lumps and fine grain
+  const cords = (a: number, y: number) => {
+    const arc = a * R;
+    return noise.ridged(arc * 1.9 + noise.noise(y * 0.15, arc * 0.1) * 1.6 + y * 0.12, y * 0.14, 3) - 0.5;
+  };
   const detail = (a: number, y: number) => {
     const arc = a * R;
-    // deep vertical bark ridges that wander slightly with height, broad lumps, fine grain
-    const ridge = noise.ridged(arc * 1.25 + noise.noise(y * 0.15, arc * 0.1) * 1.8, y * 0.16, 3);
     const furrow = Math.pow(Math.max(0, noise.noise(arc * 0.7 + 21, y * 0.12)), 2);
     const lumps = noise.fbm(arc * 0.35, y * 0.4, 3);
     const fine = noise.noise(arc * 3.5, y * 3.5);
-    return (ridge - 0.5) * 0.2 * k - furrow * 0.14 * k + lumps * 0.12 * k + fine * 0.015;
+    return cords(a, y) * 0.36 * k - furrow * 0.16 * k + lumps * 0.12 * k + fine * 0.015;
   };
   const doorW = (a: number, y: number, r: number) => angleDiff(a, 0) * r;
   const winW = (a: number, r: number) => angleDiff(a, winA) * r;
 
   // ---- outer shell ----
-  const cols = Math.round(200 * Math.sqrt(k));
+  const cols = Math.round(240 * Math.sqrt(k));
   const rows = Math.round(72 * Math.sqrt(k));
   const outer = gridSurface(
     (u, v, out) => {
@@ -159,13 +163,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const r = rs + detail(a, y) * fade;
       frame.at(a, r, y, out.position);
       out.uv = [(a * R) / 2.2, y / 2.2];
-      // bark tint: darker + mossy toward the base, subtle warm variation
+      // bark tint: darker + mossy toward the base, subtle warm variation; cord crests carry a
+      // warm highlight and furrows a dark occlusion tint so the cords still read in shade
       const base = smoothstep(1.4, -0.3, y);
       const mossy = smoothstep(0.3, 0.8, noise.fbm(a * R * 0.5, y * 0.5, 2)) * smoothstep(2.6, 0.2, y);
       const vari = 0.9 + 0.2 * noise.noise(a * R * 0.8 + 5, y * 0.8);
-      const rr = lerp(1.05 * vari, 0.62, base * 0.7);
-      const gg = lerp(0.98 * vari, 0.62, base * 0.6);
-      const bb = lerp(0.9 * vari, 0.6, base * 0.6);
+      const crest = clamp(cords(a, y) * 2.2, -1, 1) * fade;
+      const ao = 1 + 0.55 * crest;
+      const rr = lerp(1.05 * vari, 0.62, base * 0.7) * ao * (1 + 0.08 * Math.max(0, crest));
+      const gg = lerp(0.98 * vari, 0.62, base * 0.6) * ao;
+      const bb = lerp(0.9 * vari, 0.6, base * 0.6) * ao * (1 - 0.1 * Math.max(0, crest));
       out.color = [lerp(rr, 0.55, mossy * 0.6), lerp(gg, 0.72, mossy * 0.6), lerp(bb, 0.4, mossy * 0.6)];
     },
     {
@@ -384,27 +391,54 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   group.add(rootsMesh);
 
   // ---- roof dome ----
+  // Mushroom cap: flat-ish crown, steep shoulders, widest at the rim, then a lip that curls
+  // under and sags unevenly (heavier toward the back-left). φ ∈ [0, π/2] is the cap,
+  // (π/2, phiMax] the under-curling lip.
   const domeR = R * 1.52;
   const rimY = H - 0.3;
   const domeH = domeTop - rimY;
-  const phiMax = 1.82;
+  const lipH = 0.6 * k;
+  const phiMax = Math.PI / 2 + 0.85;
   const domeBase = (a: number, phi: number, out = new Vector3()) => {
-    const s = Math.sin(phi);
-    const c = Math.cos(phi);
-    frame.dir(a, out).multiplyScalar(domeR * s).add(frame.C);
-    out.y += rimY + domeH * c;
+    let r: number;
+    let y: number;
+    if (phi <= Math.PI / 2) {
+      const s = Math.sin(phi);
+      const c = Math.cos(phi);
+      r = domeR * Math.pow(s, 0.78);
+      y = rimY + domeH * Math.pow(c, 0.85);
+    } else {
+      const q = (phi - Math.PI / 2) / (phiMax - Math.PI / 2);
+      r = domeR * (1 - 0.1 * q - 0.12 * q * q);
+      y = rimY - lipH * Math.sin(q * Math.PI * 0.5);
+    }
+    frame.dir(a, out).multiplyScalar(r).add(frame.C);
+    out.y += y;
+    // asymmetric sag (back-left heavier) and the crown shifted a little toward the back
+    const t = phi / phiMax;
+    out.y -= (0.22 + 0.22 * Math.sin(a + 2.2)) * smoothstep(0.2, 1, t) * k;
+    out.addScaledVector(F, -0.28 * k * Math.pow(Math.max(0, Math.cos(phi)), 2));
     return out;
   };
+  const _da = new Vector3();
+  const _db = new Vector3();
   const domeNormal = (a: number, phi: number, out = new Vector3()) => {
-    // ellipsoid normal: (x/a², y/b²)
-    const s = Math.sin(phi);
-    const c = Math.cos(phi);
-    frame.dir(a, out).multiplyScalar(s / domeR);
-    out.y = c / domeH;
-    return out.normalize();
+    // outward normal of the undisplaced cap from finite differences
+    const e = 0.01;
+    domeBase(a + e, phi, _da).sub(domeBase(a - e, phi, _db));
+    const phi0 = Math.max(0.001, phi - e);
+    const phi1 = Math.min(phiMax, phi + e);
+    domeBase(a, phi1, out).sub(domeBase(a, phi0, _db));
+    out.cross(_da);
+    if (out.lengthSq() < 1e-10) return out.set(0, 1, 0); // crown pole
+    out.normalize();
+    // orient outward: compare with the coarse ellipsoid direction
+    if (out.dot(frame.dir(a, _db).multiplyScalar(Math.sin(phi)).setY(Math.cos(phi))) < 0) out.negate();
+    return out;
   };
   const domeDisp = (p: Vector3, phi: number) => {
-    const lumps = noise.fbm(p.x * 0.5, p.z * 0.5 + p.y * 0.3, 3) * 0.34 * k;
+    const onCap = smoothstep(phiMax, Math.PI / 2 - 0.1, phi);
+    const lumps = noise.fbm(p.x * 0.5, p.z * 0.5 + p.y * 0.3, 3) * 0.34 * k * (0.35 + 0.65 * onCap);
     const cushions = (noise.ridged(p.x * 0.9 + 3, p.z * 0.9, 2) - 0.5) * 0.16 * k * smoothstep(1.4, 0.3, phi);
     const fine = noise.noise(p.x * 2.4, p.z * 2.4 + p.y) * 0.05;
     return lumps + cushions + fine;
@@ -419,40 +453,39 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       domeNormal(a, phi, _n);
       const disp = domeDisp(out.position, phi);
       out.position.addScaledVector(_n, disp);
-      // drooping thatch fringe: uneven sag toward the rim
-      const fringe = smoothstep(0.78, 1, v);
-      out.position.y -= fringe * (0.28 + 0.22 * noise.noise(a * R * 1.1, 3.3) + 0.1 * noise.noise(a * R * 4, 7)) * k;
+      // uneven droop of the lip
+      const lip = smoothstep(Math.PI / 2, phiMax, phi);
+      out.position.y -= lip * (0.12 + 0.16 * noise.noise(a * R * 1.1, 3.3) + 0.08 * noise.noise(a * R * 4, 7)) * k;
       out.uv = [(a * domeR) / 1.6, (phi * domeH) / 1.6];
-      // moss gradient: heavy on top, straw at the fringe; sunlit tops brighter
       const p = out.position;
       const patches = noise.fbm(p.x * 0.8 + 11, p.z * 0.8, 2);
-      // moss reaches right down to the rim (the reference roof is green to its edge); straw
-      // shows through in patches and at the drooping fringe
-      const m = clamp(0.4 + 0.6 * smoothstep(1.0, 0.7, v) * (0.9 + 0.5 * patches) + 0.35 * smoothstep(0.3, 0.7, noise.noise(p.x * 1.5 + 3, p.z * 1.5)) * smoothstep(1, 0.85, v), 0, 1);
+      // moss covers the whole cap down to the rim edge (the reference roof is green to its
+      // edge); the under-curling lip fades to dark straw seen from below
+      const m = clamp(0.72 + 0.28 * (0.5 + 0.5 * patches) + 0.2 * smoothstep(0.3, 0.7, noise.noise(p.x * 1.5 + 3, p.z * 1.5)), 0, 1) * (1 - 0.85 * smoothstep(0.25, 1, lip));
       const upness = smoothstep(0.1, 0.9, _n.y);
       const bright = clamp(upness * (0.5 + 0.5 * noise.noise(p.x * 1.1, p.z * 1.1 + 9)) + 0.35 * (disp / (0.3 * k)), 0, 1);
       // broad mottling so the moss reads as clumps rather than a uniform lime skin
       const mottle = 0.72 + 0.32 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.1 * noise.noise(p.x * 3.1, p.z * 3.1 + 1);
       // vertex colours multiply the light straw map (~0.48 linear): fresh lime moss on lit
-      // cushions, deeper green in the hollows, golden straw at the fringe
-      const straw: [number, number, number] = [1.05, 0.86, 0.5];
+      // cushions, deeper green in the hollows; the straw under the lip is dark and shaded
+      const straw: [number, number, number] = [lerp(0.95, 0.42, lip), lerp(0.76, 0.33, lip), lerp(0.42, 0.18, lip)];
       const deep: [number, number, number] = [0.2, 0.36, 0.07];
       const sun: [number, number, number] = [0.74, 1.0, 0.18];
       const mossC = [lerp(deep[0], sun[0], bright) * mottle, lerp(deep[1], sun[1], bright) * mottle, lerp(deep[2], sun[2], bright) * mottle];
       out.color = [lerp(straw[0], mossC[0], m), lerp(straw[1], mossC[1], m), lerp(straw[2], mossC[2], m)];
     },
-    { cols: roofRes, rows: Math.round(roofRes * 0.38), closedU: true },
+    { cols: roofRes, rows: Math.round(roofRes * 0.42), closedU: true },
   );
-  // soffit: underside ring from the fringe back to the trunk top
+  // soffit: underside ring from the lip edge back to the trunk top
   const soffit = gridSurface(
     (u, v, out) => {
       const a = u * TAU;
       const rimP = domeBase(a, phiMax);
       const inP = frame.at(a, rSmooth(a, H) - 0.05, H - 0.15);
       out.position.lerpVectors(rimP, inP, v);
-      out.position.y -= (1 - v) * 0.3 * k;
+      out.position.y -= (1 - v) * 0.12 * k;
       out.uv = [(a * domeR) / 1.6, v * 2];
-      out.color = [0.4, 0.32, 0.18];
+      out.color = [0.36, 0.28, 0.15];
     },
     { cols: 64, rows: 2, closedU: true },
   );
@@ -510,12 +543,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     branchParts.push(geo);
     for (const at of b.leavesAt) {
       const p = curve.getPointAt(at);
-      foliage.addLeafCluster(p, 0.6 * k, 34, { size: 0.19, amount: 0.06, droop: 0.55 });
+      foliage.addLeafCluster(p, 0.6 * k, 48, { size: 0.13, amount: 0.06, droop: 0.55 });
       // a couple of short vines trail from each leafy tip
       const strands = 2;
       for (let s = 0; s < strands; s++) {
         const hook = p.clone().add(new Vector3((branchRng() - 0.5) * 0.4, -0.1, (branchRng() - 0.5) * 0.4));
-        foliage.addHangingVine(hook, 0.45 + branchRng() * 0.55, { leafSize: 0.15, amount: 0.1 });
+        foliage.addHangingVine(hook, 0.45 + branchRng() * 0.55, { amount: 0.1 });
       }
     }
   }
@@ -553,7 +586,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     hook.y -= 0.25 * k;
     const overDoor = smoothstep(0.55, 0.15, Math.abs(a));
     const len = (0.6 + vineRng() * 1.1) * (0.8 + 0.4 * Math.abs(Math.sin(a))) * (1 - 0.55 * overDoor);
-    foliage.addHangingVine(hook, len * k, { leafSize: 0.16, amount: 0.1 });
+    foliage.addHangingVine(hook, len * k, { amount: 0.1 });
   }
   const draped = def.id === 'saria' ? 6 : 4;
   for (let i = 0; i < draped; i++) {
@@ -568,7 +601,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       pts.push(surfacePoint(a, phi, 0.03));
       nrms.push(domeNormal(a, phi));
     }
-    foliage.addSurfaceVine(pts, nrms, { leafSize: 0.17, amount: 0.02, leafEvery: 0.13 });
+    foliage.addSurfaceVine(pts, nrms, { amount: 0.02 });
   }
   const tuftCount = def.id === 'saria' ? 34 : 22;
   for (let i = 0; i < tuftCount; i++) {
@@ -578,6 +611,22 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const n = domeNormal(a, phi);
     const fern = vineRng() < 0.3;
     foliage.addTuft(p, n, (fern ? 0.42 : 0.3) * (0.8 + vineRng() * 0.5) * Math.sqrt(k), fern ? 1 : 0, 0.05);
+  }
+  // a few big ferns / grass clumps on the shoulders and crown that break the dome silhouette
+  const heroTufts: { a: number; phi: number; size: number; kind: 0 | 1 }[] = [
+    { a: -1.45, phi: 1.0, size: 0.85, kind: 1 },
+    { a: -1.85, phi: 1.25, size: 0.7, kind: 0 },
+    { a: -0.95, phi: 0.62, size: 0.75, kind: 1 },
+    { a: 0.7, phi: 0.42, size: 0.8, kind: 1 },
+    { a: 2.1, phi: 0.95, size: 0.7, kind: 0 },
+  ];
+  for (const ht of heroTufts) {
+    const p = surfacePoint(ht.a, ht.phi, -0.05);
+    const n = domeNormal(ht.a, ht.phi);
+    // lean the clump a little toward vertical so it stands proud of the moss
+    n.y += 0.6;
+    n.normalize();
+    foliage.addTuft(p, n, ht.size * Math.sqrt(k), ht.kind, 0.06);
   }
 
   // ---- pod lanterns on cords ----
@@ -609,7 +658,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       hook = end.clone().addScaledVector(frame.dir(spec.a), -0.06);
       hook.y -= 0.04;
       // a hanging vine trails off the peg too
-      foliage.addHangingVine(end.clone().add(new Vector3(0, 0.02, 0)), 0.5, { leafSize: 0.16, amount: 0.08 });
+      foliage.addHangingVine(end.clone().add(new Vector3(0, 0.02, 0)), 0.5, { amount: 0.08 });
     }
     const rig = buildLantern(hook, spec.cord * k, mats, lanternRng, 1.0);
     group.add(rig.pivot);

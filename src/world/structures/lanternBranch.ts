@@ -18,14 +18,14 @@ export interface LanternBranchBuild {
 }
 
 /**
- * parametric positions along from→to and cord lengths: with the hook ~0.3 m under the limb and
- * the pod centre 0.2 m below the cord end, 0.92/0.32 lands the nearest pod at screen ≈ (0.23,
- * 0.39) in shot A and 0.8/1.15 the second at ≈ (0.09, 0.48), matching the reference
+ * Parametric positions along from→to and cord lengths. The bough itself already sits at the
+ * reference pod height in shot A, so the pods hang on short cords right under it: 0.97/0.12
+ * lands the nearest pod at screen ≈ (0.24, 0.44), 0.82/0.5 the second at ≈ (0.09, 0.45);
+ * both stay in the upper quarter of shot B and above the top edge of shot D (whose camera
+ * stands almost under the bough's tip).
  */
-const LANTERN_T = [0.58, 0.8, 0.92];
-const CORDS = [0.8, 1.15, 0.32];
-/** hooks sit under the limb: its radius tapers roughly 0.55 → 0.3 m along the span */
-const limbRadius = (t: number) => 0.55 - 0.25 * t;
+const LANTERN_T = [0.6, 0.82, 0.97];
+const CORDS = [0.35, 0.5, 0.12];
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
   const def = ctx.layout.lanternBranch;
@@ -34,6 +34,10 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const from = new Vector3(...def.from);
   const to = new Vector3(...def.to);
   const at = (t: number) => from.clone().lerp(to, t);
+  /** limb radius along the span (the trees system builds the limb to the same numbers) */
+  const r0 = def.radius ?? 0.42;
+  const r1 = def.tipRadius ?? 0.16;
+  const limbRadius = (t: number) => r0 + (r1 - r0) * t;
 
   const lanterns: LanternRig[] = [];
   const lanternRng = rng.fork('branch-lanterns');
@@ -43,22 +47,25 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     const hook = at(t);
     hook.y -= limbRadius(t) * 0.9;
     // slight offset to the side of the limb so cords don't all hang from the centreline
-    hook.x += (lanternRng() - 0.5) * 0.25;
-    hook.z += (lanternRng() - 0.5) * 0.25;
-    const rig = buildLantern(hook, CORDS[i % CORDS.length], mats, lanternRng, 1.05);
+    hook.x += (lanternRng() - 0.5) * 0.15;
+    hook.z += (lanternRng() - 0.5) * 0.15;
+    const rig = buildLantern(hook, CORDS[i % CORDS.length], mats, lanternRng, 1.0);
     group.add(rig.pivot);
     lanterns.push(rig);
   }
 
+  // strands of small heart leaves along the middle of the span only: the tip end hangs almost
+  // over camera D (and the near end is over camera B), where long strands would fill the frame
+  // top with foreground leaves
   const foliage = new FoliageBuilder(rng.fork('branch-foliage'), `${ctx.config.seed}/lantern-branch`);
   const vineRng = rng.fork('branch-vines');
-  for (let i = 0; i < 9; i++) {
-    const t = 0.35 + vineRng() * 0.62;
+  for (let i = 0; i < 8; i++) {
+    const t = 0.3 + (i / 7) * 0.36 + (vineRng() - 0.5) * 0.04;
     const hook = at(t);
     hook.y -= limbRadius(t) * 0.8;
-    hook.x += (vineRng() - 0.5) * 0.5;
-    hook.z += (vineRng() - 0.5) * 0.5;
-    foliage.addHangingVine(hook, 0.5 + vineRng() * 1.3, { leafSize: 0.18, amount: 0.11, thickness: 0.016 });
+    hook.x += (vineRng() - 0.5) * 0.3;
+    hook.z += (vineRng() - 0.5) * 0.3;
+    foliage.addHangingVine(hook, 0.35 + vineRng() * 0.55, { amount: 0.11, thickness: 0.012 });
   }
   for (const m of foliage.build(mats, 'lantern-branch')) group.add(m);
 

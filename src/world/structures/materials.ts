@@ -298,8 +298,9 @@ export function runeTexture(seedRng: () => number): Texture {
       const strokes = 2 + Math.floor(seedRng() * 3);
       for (let s = 0; s < strokes; s++) {
         const kind = seedRng();
-        g.strokeStyle = `rgba(${45 + Math.floor(seedRng() * 20)}, ${30 + Math.floor(seedRng() * 12)}, 18, ${0.78 + seedRng() * 0.2})`;
-        g.lineWidth = 5 + seedRng() * 3;
+        // deep carved marks: near-black brown, thick, fully opaque so they read from 10 m
+        g.strokeStyle = `rgba(${28 + Math.floor(seedRng() * 14)}, ${18 + Math.floor(seedRng() * 8)}, 10, ${0.92 + seedRng() * 0.08})`;
+        g.lineWidth = 8 + seedRng() * 4;
         g.beginPath();
         const hw = cellW * 0.32;
         const hh = cellH * 0.36;
@@ -368,7 +369,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     normalScale: new Vector2(1.5, 1.5),
     roughnessMap: barkR,
     roughness: 1,
-    color: new Color(0xd4a678),
+    color: new Color(0xdcb086),
     vertexColors: true,
   });
   const barkPale = new MeshStandardMaterial({
