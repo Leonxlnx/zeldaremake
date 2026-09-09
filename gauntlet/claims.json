@@ -126,6 +126,15 @@
       ],
       "at": "2026-09-09T20:06:06.039Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W30",
+        "W37"
+      ],
+      "at": "2026-09-09T21:05:48.369Z",
+      "expiresHours": 3
     }
   ]
 }
