@@ -150,7 +150,7 @@ export const LAYOUT = {
     /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
     radius: 0.42,
     tipRadius: 0.16,
-    lanterns: 3,
+    lanterns: 2,
   },
 
   logArch: {
@@ -197,7 +197,9 @@ export const LAYOUT = {
     // Projected: house 0.68–0.88 with the door at (0.78, 0.48) ≈ reference (0.80, 0.50); sign 0.66; small steps 0.19.
     { id: 'B_house', refSeconds: 14, label: "Saria's House", position: [0, 1.6, 2.0], target: [5, 1.8, -12], fov: 46 },
     { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.8, -9.5], target: [3.9, 2.5, 3.5], fov: 46 },
-    { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [1.2, 1.9, -1.0], target: [5.5, 3.2, -40], fov: 48 },
+    // Stands 2 m past the bough's tip so the pods stay behind the camera; the house stair then
+    // sits at the right edge (x ≈ 0.9) as in the reference.
+    { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [1.0, 1.9, -3.0], target: [5.3, 3.2, -42], fov: 48 },
     { id: 'E_ground', refSeconds: 24, label: 'Ground Close-up', position: [-1.2, 0.55, 2.5], target: [2, 0.1, -3], fov: 50, diagnostic: true },
     { id: 'F_canopy', refSeconds: 8, label: 'Canopy & Shafts', position: [0, 1.7, 4], target: [-6, 14, -14], fov: 55, diagnostic: true },
   ] as Viewpoint[],

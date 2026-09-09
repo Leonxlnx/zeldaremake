@@ -241,9 +241,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       box: [7.2, -6.6, 10.2, -3.8],
       minSpacing: 0.62,
       accept(x, z, s) {
-        // crowns reach ~0.8 m from the centre, so centres stay ≥ 1.7 m east of B's corridor
-        if (x < bRayX(z) + 2.0) return 0;
-        if (x > aRayX(z) + 1.4) return 0;
+        // A's sight line runs ~1.5 m east of B's; crowns reach ~0.6 m from the centre, so a row
+        // centred 1.1–1.45 m east of B's ray covers A's ray while leaving B's door (whose
+        // right-edge ray is ~0.4 m east of B's centre ray here) clear
+        if (x < bRayX(z) + 1.1) return 0;
+        if (x > bRayX(z) + 1.45) return 0;
         if (s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5) return 0;
         if (field.houseInfo(x, z).dist < 0.4) return 0;
         return 0.9;
@@ -253,7 +255,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       // scale 1 bushes stand 0.95–1.5 m; the hedge needs a 2.4–3 m crown so its top reaches the
       // door lintel's projection in A, and it is kept narrower than tall so it stays out of B
       const sc = 2.1 + rng() * 0.6;
-      placeInstance(hedge, x, z, s, rng, sc, 0.12, 0.05, tint.setRGB(0.7 + rng() * 0.1, 0.78 + rng() * 0.08, 0.66 + rng() * 0.1), sc * (0.52 + rng() * 0.1));
+      placeInstance(hedge, x, z, s, rng, sc, 0.12, 0.05, tint.setRGB(0.7 + rng() * 0.1, 0.78 + rng() * 0.08, 0.66 + rng() * 0.1), sc * (0.46 + rng() * 0.08));
     },
   );
 
