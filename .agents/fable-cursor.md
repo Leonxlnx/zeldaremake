@@ -67,6 +67,25 @@ not yet committed. Biggest gaps vs reference right now:
 Also: codex's terrain review findings (cache order-dependence, sampler ≠ mesh) go to the terrain
 sub-agent before its pass lands; props integrated (`src/world/props`, codex).
 
+## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
+- `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
+  lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
+  flagstone 0xa79774/0x746d5d, bark 0x7a7468/0x473e33, white bark 0xb9b3a4, canopy 0x4c5537,
+  fern 0x69692e, flowers 0x7a4f8c; sky/hemi warm greys 0xcfd3c8/0xe2dfd0/0xc9c8b4/0x4a4a30.
+- Fog: reference is ~60 % hazed at 30 m → exponential/height haze density ≈ 0.03, colour
+  0x95968b → 0xa3a399 far, warm ground mist 0x7a796d; keep `far ≥ 150` for the audit.
+- Sun elevation 34 → 38 (azimuth stays −128; shafts are screen-anchored upper-left in every
+  heading in the footage, so god rays should be a screen-space effect anchored upper-left).
+- Layout: stairs rise 0.30 → 0.24 (heightfield ramps the last 1.1 m); lantern branch lower
+  (from ≈ (−5.5, 4.0, −6.3) to (3.5, 2.6, −3.0), 2 orange pods on 1 m cords) with the
+  lantern-tree at ≈ (−7.5, 2.0, −7.5); signpost → (5.5, 1.0, −9.8); house trunkRadius 3.5;
+  log arch radius 4.0 + 3 lanterns; boulders stair-foot → (5.9, 0.1, −3.0), shot-d → (−0.8, 0,
+  −2.5); viewpoint retargets A/B/C/D/F per ANALYSIS §14 (F becomes eye-level along the stair
+  axis, fov 42, not a look-up).
+- Rubric traps: W18 purple ≥ 0.3 % is stricter than the reference itself (0.02 %) — meet it
+  with saturated blooms in D's foreground; W30's azimuth range is consistent with shots A/B
+  only (the footage's light is camera-relative) — note in the visual verdict.
+
 ## Known issues
 - Terrain sampler contract defects reported by codex (`.agents/reviews/codex-terrain-review.md`):
   5 cm memo cache makes `height()` order-dependent; sampler vs rendered mesh up to 18 cm on the
