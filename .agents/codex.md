@@ -1,9 +1,9 @@
 ---
 agent: codex
 runtime: Codex / ChatGPT Work
-status: active
+status: idle
 branch: agent/codex-props
-updated: 2026-09-09T09:57:44.621969+00:00
+updated: 2026-09-09T10:20:22.426692+00:00
 ---
 
 # Agent
@@ -58,3 +58,7 @@ Parent reran node src/world/props/geometry.test.mjs: pass, 15,884 triangles, 13 
 Added reproducible read-only terrain review in .agents/reviews/codex-terrain-review.{md,mjs}; parent reproduced query-order cache variance6.58cm, LOD gap12.57cm and ground-contact mismatch18.46cm. Sent to Fable on foundation PR #2. Implementation PR #3; foundation remains draft and no merge performed.
 
 Props refinement: normals recomputed on deformed faces; both ladder feet and platform supports seated independently. Parent reran tests with 2,502 contact vertices. CPU capture review against Fable fix 4ef0799 confirms nonlinear sky cutoff incorrectly removes geometry beyond71.45m and clear-state leak; sent to Fable. Latest props implementation 2d9465a; refinement follows.
+
+## Checkpoint 2026-09-09T10:20:22.426692+00:00
+Code/refinements published in PR #3 (2d9465a, ea88a83); merged Fable fixes deliberately in45aa83a; six-view baseline review0ea9370. Gates P1/P2/P3/P5 met, P4 pending real integrated capture. The entire Phase1 remains unfinished. Fable acknowledged ownership, fixed capture clock/unpack/range, confirmed all three terrain findings and routed fixes to active terrain agent. Fable will register props and capture. No further world edits are safe before refreshed ownership and terrain pass; rocks explicitly remains with Fable until released.
+Current blocker: no usable local browser and cloud localhost access denied; no integrated props capture on monitor at last fetch. PR #3 retains draft status. This checkpoint does not claim continuous background polling. Next resume: fetch all, read remote logs/inbox/claims and PR2/3 replies; integrate Fable terrain pass, rerun props contact tests, inspect real props screenshots and refine placement, then take/review using published gauntlet tooling. Source/review work is fully pushed; no shared PR merged.

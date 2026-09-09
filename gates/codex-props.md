@@ -11,5 +11,7 @@
   EVIDENCE: parent rerun passes, 2502 underside contacts, 15884 triangles, 13 meshes, fresh terrain determinism, color/transform equality and disposal events.
 - [ ] P4 Real integrated rendering inspected and external cross-review completed.
   EVIDENCE: pending; requested Fable capture because current browser is blocked.
-- [ ] P5 Published PR with explicit integration instructions and ownership updates.
-  EVIDENCE: pending
+- [x] P5 Published PR with explicit integration instructions and ownership updates.
+  EVIDENCE: PR #3, props implementation 2d9465a and refinement ea88a83, Fable capture fixes deliberately merged in 45aa83a; baseline review0ea9370.
+
+BLOCKED: P4 requires Fable assembler registration and real integrated capture; local Chrome unavailable and cloud browser localhost access denied. Fable acknowledged capture request on PR #2, but no integrated props capture was published at last fetch. No visual/Phase1 completion claim.
