@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-09T11:12:00Z
+updated: 2026-09-09T13:58:00Z
 ---
 
 # fable-cursor — work log
@@ -80,6 +80,33 @@ with vines and pod lanterns, sign, doorway prop cluster all present. Biggest gap
    warmer, darker in the joints, with moss and wear gradients (W02/W03/W20).
 Also: lantern bough still a thick plain beam across the top of B (trees pass pending).
 
+## Queued for the atmosphere pass (from codex review of checkpoint 4820e52, verified)
+- GLSL `smoothstep(edge0 > edge1)` is undefined: `heightfog.ts` north weight
+  `smoothstep(KF_NORTH_START=-4, KF_NORTH_FULL=-24, z)` (also `postfx/shaders.ts:153`), and
+  `smoothstep(0.5, 0.05, r)` in `motes.ts:69`, `fairy.ts:88` → use `1.0 - smoothstep(lo, hi, x)`.
+- `kfHeightFogAmount`: `startDensity * t` multiplies exp(−(camY−base)·k) (→ 0 for a high camera)
+  by (1 − exp(−dist·ry·k))/(ry·k) (→ ∞ looking down) → 0·∞ = NaN at e.g. camY = 220 (correct
+  optical depth ≈ 0.0945). Rewrite as a difference of endpoint densities with the horizontal-ray
+  limit handled separately.
+
+### 13:55 UTC — ticks 3–4: first real takes published
+- `take.mjs` pipeline works end to end (build → capture 6 views + det/motion + depth → compare →
+  score → anti-cheat → hash-chained ledger → publish). take-0001 = placeholder baseline backfill
+  (struck by B4, correctly); **take-0002 = first integrated world: 19/50, phase 1 19/42, anti-cheat
+  green (20 checks)**. Live: https://rawcdn.githack.com/Leonxlnx/zeldaremake/monitor/index.html
+- Monitor branch layout changed: it IS the deployable site (site static at root, data under
+  `data/`); `take.mjs --publish` syncs `site/` static files each publish (`lib/monitor.mjs`).
+- Config: palette moved halfway to measured olive/khaki; sun elevation 38° → W34 (palette) passes
+  (max hue Δ 7.35°, was 30–70°).
+- Take cost: settle 8 → 490 s locally; settle 30 was 1774 s. Use `--settle 8` for hourly takes.
+- Biggest gaps now (A/B/D vs reference): lantern bough is a thick plain beam across the top of
+  A/B (needs the lower/thinner ANALYSIS placement + bark + foliage); SSIM 0.12–0.18 vs 0.42 —
+  composition still differs (house in A centre, log arch hidden in D, B camera too high); far
+  hills untextured grey; stone too uniformly light.
+- Anti-cheat caught two real things today: fireflies as `Points` were not counted by the scene
+  audit (fixed in api.ts), and MONITOR_REMOTE left in the shared shell env pointed a publish at a
+  local test remote (unset; publish re-run).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -89,7 +116,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0x95968b → 0xa3a399 far, warm ground mist 0x7a796d; keep `far ≥ 150` for the audit.
 - Sun elevation 34 → 38 (azimuth stays −128; shafts are screen-anchored upper-left in every
   heading in the footage, so god rays should be a screen-space effect anchored upper-left).
-- Layout: stairs rise 0.30 → 0.24 (heightfield ramps the last 1.1 m); lantern branch lower
+- (palette + sun elevation applied 13:49 in 73a9fdf) Layout: stairs rise 0.30 → 0.24 (heightfield ramps the last 1.1 m); lantern branch lower
   (from ≈ (−5.5, 4.0, −6.3) to (3.5, 2.6, −3.0), 2 orange pods on 1 m cords) with the
   lantern-tree at ≈ (−7.5, 2.0, −7.5); signpost → (5.5, 1.0, −9.8); house trunkRadius 3.5;
   log arch radius 4.0 + 3 lanterns; boulders stair-foot → (5.9, 0.1, −3.0), shot-d → (−0.8, 0,
@@ -118,4 +145,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T11:12:00Z
+2026-09-09T13:58:00Z
