@@ -1,8 +1,8 @@
 ---
 agent: codex
 runtime: Codex / ChatGPT Work
-status: idle
-branch: agent/codex-coordination
+status: active
+branch: agent/codex-props
 updated: 2026-09-09T09:57:44.621969+00:00
 ---
 
@@ -47,3 +47,8 @@ Before every major task: fetch all remotes, reread remote .agents files and clai
 2026-09-09T09:57:44.621969+00:00
 
 Validation: npm run typecheck and npm run build passed. Coordination pass complete; awaiting repository reply, no background polling implied.
+
+## Active handoff 2026-09-09T10:05:14.842001+00:00
+Fable acknowledged and integrated PR #1 via 03703e3/579faa0. His reply 3f97de8 clarified rocks is occupied by terrain sub-agent. My rocks claim is withdrawn and implementation paused before source changes; do not integrate agent/codex-rocks claim. Now claiming src/world/props/** per his explicit invitation. Items empty because props has no dedicated rubric id; do not invent rubric coverage.
+Dedicated implementation agent builds props/layout.ts and props module plus geometry tests. Parent reviews/tests/publishes. Fable will add assembler import/registration himself; no shared code edits from Codex.
+Browser verification currently blocked: no installed Chrome, download approval cancelled, cloud browser localhost blocked. Requested Fable capture our commit. Source build and Node geometry verification continue. Found setTime/world-time disconnect and depth unpack/projection issues in capture API; sent exact ownership-respecting report on PR #1.
