@@ -85,7 +85,7 @@ void main() {
   float r = length( c );
   // 4-point sparkle
   float star = pow( max( 0.0, 1.0 - abs( c.x ) * 6.0 ), 3.0 ) + pow( max( 0.0, 1.0 - abs( c.y ) * 6.0 ), 3.0 );
-  float a = smoothstep( 0.5, 0.05, r ) * 0.6 + star * 0.5 * smoothstep( 0.5, 0.2, r );
+  float a = ( 1.0 - smoothstep( 0.05, 0.5, r ) ) * 0.6 + star * 0.5 * ( 1.0 - smoothstep( 0.2, 0.5, r ) );
   a *= vFade * vFade * vTwinkle;
   gl_FragColor = vec4( uColor * a * 2.2, a );
 }
@@ -183,6 +183,8 @@ export function createFairy(ctx: WorldContext): Fairy {
   const trail = new Points(trailGeo, trailMat);
   trail.name = 'fairy-trail';
   trail.frustumCulled = false;
+  // glow, wings and sparkles are additive/transparent: not geometry for the depth-layer audit
+  for (const o of [halo, wingL, wingR, trail]) o.userData.depthAudit = false;
   // trail positions are world-space; keep it outside the moving group
   const root = new Group();
   root.name = 'fairy';

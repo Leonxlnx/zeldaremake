@@ -150,7 +150,7 @@ void main() {
     if ( sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0 ) {
       lit = texture( tShadow, vec3( sc.xy, sc.z - 0.0006 ) );
     }
-    float north = smoothstep( uFogParams.z, uFogParams.w, pw.z );
+    float north = 1.0 - smoothstep( uFogParams.w, uFogParams.z, pw.z ); // hollow is at lower z
     float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );
     float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y;
     acc += lit * dens * stepLen;
@@ -174,6 +174,7 @@ uniform sampler2D tSrc;
 uniform vec2 uSunUv;
 uniform float uDirSign;
 uniform float uLength;   // smear length in uv
+uniform float uGamma;    // > 1 on the last pass: contrast curve so beams read as slabs, not glow
 uniform vec2 uTexel;
 varying vec2 vUv;
 #define NS 12
@@ -193,10 +194,13 @@ void main() {
     sum += texture2D( tSrc, clamp( uv, 0.0, 1.0 ) ).x * w * fade;
     wsum += w;
   }
-  // small cross-axis tap to soften the jitter pattern as well
-  vec2 perp = vec2( -dir.y, dir.x ) * uTexel;
-  float side = texture2D( tSrc, vUv + perp ).x + texture2D( tSrc, vUv - perp ).x;
-  gl_FragColor = vec4( vec3( ( sum / max( wsum, 1e-4 ) ) * 0.7 + side * 0.15 ), 1.0 );
+  // cross-axis taps: merge the canopy's fine lit/unlit streaks into broader slabs (the reference
+  // shows 3–5 beams 5–12 % of the frame wide) and soften the march jitter
+  vec2 perp = vec2( -dir.y, dir.x ) * uTexel * uLength * 16.0;
+  float side = texture2D( tSrc, vUv + perp ).x + texture2D( tSrc, vUv - perp ).x
+             + 0.5 * ( texture2D( tSrc, vUv + perp * 2.0 ).x + texture2D( tSrc, vUv - perp * 2.0 ).x );
+  float v = ( sum / max( wsum, 1e-4 ) ) * 0.55 + side * ( 0.45 / 3.0 );
+  gl_FragColor = vec4( vec3( pow( clamp( v, 0.0, 1.0 ), uGamma ) ), 1.0 );
 }
 `;
 
@@ -294,7 +298,7 @@ void main() {
   // volumetric in-scatter accumulated along the ray up to the surface (see RAY_MARCH_FRAG); the
   // sky already carries its own haze so open-sky columns get a smaller share of the beams
   float rays = texture2D( tRays, vUv ).x;
-  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.5, sky );
+  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.6, sky );
   hdr += texture2D( tBloom, vUv ).rgb * uBloomIntensity;
 
   // gentle channel mix: bleeds a little green into red (lime → olive/gold like the reference's

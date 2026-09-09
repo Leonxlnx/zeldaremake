@@ -12,9 +12,9 @@
 import { Color, Fog, Group, Vector3, type PerspectiveCamera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { WORLD } from '../config';
-import { installHeightFog, HEIGHT_FOG_DEFAULTS } from './heightfog';
+import { installHeightFog, HEIGHT_FOG_DEFAULTS, displayHex } from './heightfog';
 import { sunDirection } from '../lighting/sun';
-import { createSkyDome } from './sky';
+import { createSkyDome, SKY_GAP_GLARE } from './sky';
 import { createMistVolume } from './mist';
 import { createFallingLeaves } from './leaves';
 import { createMotes } from './motes';
@@ -76,7 +76,16 @@ export function create(ctx: WorldContext): WorldSystem {
     heightFogBaseM: HEIGHT_FOG_DEFAULTS.baseHeight,
     heightFogFalloff: HEIGHT_FOG_DEFAULTS.falloff,
     distanceFogMax: HEIGHT_FOG_DEFAULTS.maxFog,
-    sky: 'procedural-gradient+sun+cirrus',
+    // visible haze model (reference/ANALYSIS.md §8): exponential extinction after a crisp foreground,
+    // depth-graded warm-grey colour (display values after ACES)
+    hazeDensityPerM: HEIGHT_FOG_DEFAULTS.hazeDensity,
+    hazeStartM: HEIGHT_FOG_DEFAULTS.hazeStart,
+    hazeAt30m: Math.round((1 - Math.exp(-HEIGHT_FOG_DEFAULTS.hazeDensity * (30 - HEIGHT_FOG_DEFAULTS.hazeStart))) * 100) / 100,
+    hazeNearDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeNear),
+    hazeFarDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFar),
+    groundMistDisplay: displayHex(HEIGHT_FOG_DEFAULTS.mistColor),
+    skyGapDisplay: displayHex(SKY_GAP_GLARE),
+    sky: 'procedural-warm-haze+sun+cirrus',
     groundMist: true,
     groundMistBillboards: mist.billboards,
     groundMistSheets: mist.sheets,

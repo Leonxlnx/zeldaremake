@@ -147,8 +147,8 @@ void main() {
 
   vec3 rayDir = normalize( vWorld - cameraPosition );
   float sunAmt = pow( max( dot( rayDir, uSunDir ), 0.0 ), 5.0 );
-  // a touch darker/cooler than the distance haze so it reads as a ground layer, brighter toward the sun
-  vec3 col = uColor * ( 0.5 + 0.05 * vTint ) * ( 1.0 + 0.4 * sunAmt ) * mix( vec3( 0.98, 1.0, 1.03 ), vec3( 1.06, 1.0, 0.92 ), sunAmt );
+  // the reference's warm ground-mist grey (heightfog.ts mistColor), brighter toward the sun
+  vec3 col = uColor * ( 0.95 + 0.1 * vTint ) * ( 1.0 + 0.4 * sunAmt ) * mix( vec3( 0.99, 1.0, 1.01 ), vec3( 1.06, 1.0, 0.92 ), sunAmt );
   gl_FragColor = vec4( col * alpha, alpha );
 }
 `;
@@ -164,7 +164,6 @@ interface Placement {
 export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume {
   const rng = ctx.rng.fork('mist');
   const T = ctx.terrain;
-  const fogColor = new Color(ctx.config.fog.color);
   const cfg = ctx.config;
 
   // Hollow footprint: along the north path spine from the terrace (z ≈ −14) to beyond the log (z ≈ −52),
@@ -211,8 +210,8 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
     uFar: { value: 900 },
     uTime: { value: 0 },
     uWind: { value: ctx.wind.direction.clone() },
-    // same warm-khaki balance as the haze on geometry (see heightfog.ts)
-    uColor: { value: fogColor.clone().multiply(new Color(HEIGHT_FOG_DEFAULTS.hazeTint[0], HEIGHT_FOG_DEFAULTS.hazeTint[1], HEIGHT_FOG_DEFAULTS.hazeTint[2])) },
+    // reference ground mist ≈ #7a796d (scene-linear value that ACES maps there, see heightfog.ts)
+    uColor: { value: new Color(...HEIGHT_FOG_DEFAULTS.mistColor) },
     uSunDir: { value: sunDir.clone() },
   };
 
@@ -254,6 +253,9 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
     const mesh = new Mesh(geo, mat);
     mesh.name = upright ? 'mist-billboards' : 'mist-sheets';
     mesh.frustumCulled = false;
+    // transparent volume: must never write depth in the capture API's depth-histogram pass. The
+    // mist lives in its own overlay scene (not ctx.scene), and the flag makes the intent explicit.
+    mesh.userData.depthAudit = false;
     return { mesh, mat, geo };
   };
 

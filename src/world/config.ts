@@ -26,16 +26,16 @@ export const WORLD = {
   },
 
   sky: {
-    zenith: 0xbccccf,
-    horizon: 0xe4e6d6,
-    hemiSky: 0xc1ccc7,
-    hemiGround: 0x525a37,
+    zenith: 0xcfd3c8,
+    horizon: 0xe2dfd0,
+    hemiSky: 0xc9c8b4,
+    hemiGround: 0x4a4a30,
     hemiIntensity: 0.9,
   },
 
   fog: {
-    /** Cool blue-grey mist that layers distance; NOT for hiding unfinished terrain (see GAUNTLET.md). */
-    color: 0xc5d1cf,
+    /** Measured reference haze (reference/palette.json): warm grey, ~56 % at 30 m. NOT for hiding unfinished terrain (GAUNTLET.md). */
+    color: 0x95968b,
     near: 28,
     far: 190,
     /** Ground mist cap height above terrain. */

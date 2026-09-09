@@ -66,7 +66,7 @@ varying float vPulse;
 void main() {
   vec2 c = gl_PointCoord - 0.5;
   float r = length( c );
-  float a = smoothstep( 0.5, 0.05, r );
+  float a = 1.0 - smoothstep( 0.05, 0.5, r );
   a *= a;
   vec3 col = mix( uColorShade, uColor, vLit );
   float bright = mix( 0.25, 1.0, vLit ) * ( 0.6 + 0.4 * vPulse ) * uIntensity;
@@ -133,6 +133,7 @@ export function createMotes(ctx: WorldContext, count = 180): Motes {
   points.name = 'motes';
   points.frustumCulled = false;
   points.renderOrder = 10;
+  points.userData.depthAudit = false; // additive sprites: not geometry for the depth-layer audit
 
   return {
     points,

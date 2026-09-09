@@ -79,9 +79,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
 
   // moss field in stair-local coords: stronger toward both flanks and slightly up the run
   const mossAt = (ax: number, al: number) => {
-    const edge = smoothstep(hw - 0.7, hw + 0.05, Math.abs(ax));
+    const edge = smoothstep(hw - 0.85, hw + 0.05, Math.abs(ax));
     const n = noise.fbm(ax * 1.9 + 3.1, al * 1.9 - 7.7, 3) * 0.5 + 0.5;
-    return clamp((0.2 + 0.8 * edge) * (0.45 + 0.9 * n), 0, 1);
+    return clamp((0.16 + 0.9 * edge) * (0.45 + 0.95 * n), 0, 1);
   };
 
   const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2]) => {
@@ -128,15 +128,27 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const outline = jitteredRect(rng, pw, depth, { jitter: 0.014, segs: 5, chip: 0.09, chipChance: 0.5 });
       shapeHashes.push(outlineHash(outline));
       const dip = rng.range(0.01, 0.026);
+      const noseBright = rng.range(1.16, 1.3);
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
-        bevel: rng.range(0.018, 0.03),
+        bevel: rng.range(0.022, 0.034),
         dip,
         color,
-        sideColor: [color[0] * 0.66, color[1] * 0.66, color[2] * 0.68],
-        mossEdge: 0.8,
+        sideColor: [color[0] * 0.62, color[1] * 0.62, color[2] * 0.64],
+        mossEdge: 0.85,
         mossInner: 0.05,
         mossFn: (x, z) => mossAt(x + cxl, z + czl),
+        // worn nose: the front bevel and the first ~12 cm of the tread catch the light, the back
+        // of the tread (under the next riser) and the flanks pick up grime
+        colorFn: (x, z, part) => {
+          const front = smoothstep(-depth / 2 + 0.16, -depth / 2 + 0.02, z); // 1 at the nose
+          const back = smoothstep(depth / 2 - 0.2, depth / 2 - 0.02, z); // 1 at the back edge
+          const flank = smoothstep(hw - 0.75, hw + 0.05, Math.abs(x + cxl));
+          const grime = 1 - 0.16 * flank * (0.6 + 0.4 * (wear.noise((x + cxl) * 2.1 + 7, (z + czl) * 2.1) * 0.5 + 0.5));
+          if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime;
+          if (part === 'side') return (z < 0 ? 1.28 : 0.92) * grime; // the nose face is sky-lit, the buried sides stay dark
+          return (1 + 0.12 * front - 0.11 * back) * grime;
+        },
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         topNoise: (x, z) => 0.004 * wear.noise((x + cxl) * 9, (z + czl) * 9),
@@ -156,16 +168,19 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
-      const rc = 0.42 + rng.range(0, 0.14);
+      const rc = 0.34 + rng.range(0, 0.13);
       const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 3, chip: 0.05, chipChance: 0.3 });
-      placeSlab(riserOutline, a + len / 2, rBottom, i * def.tread + 0.01 + (def.tread * 0.9) / 2, yaw * 0.5, 0, 0, {
+      const ac = a + len / 2;
+      placeSlab(riserOutline, ac, rBottom, i * def.tread + 0.01 + (def.tread * 0.9) / 2, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
         color: [rc, rc, rc * 1.02],
         sideColor: [rc * 0.9, rc * 0.9, rc * 0.92],
         mossEdge: 0.95,
         mossInner: 0.45,
-        mossFn: (x, z) => 0.7 + 0.3 * mossAt(x + a + len / 2, z + i * def.tread),
+        mossFn: (x, z) => 0.7 + 0.3 * mossAt(x + ac, z + i * def.tread),
+        // riser shadow: darker still toward the flanks and at the foot (splash grime)
+        colorFn: (x) => 1 - 0.22 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac)),
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         rings: 1,

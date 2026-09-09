@@ -28,6 +28,8 @@ export interface PlacedStone {
   bottomY: number;
   topY: number;
   moss: number;
+  /** elongation of the final outline (major / minor extent) */
+  aspect: number;
 }
 
 // --- geometry helpers ----------------------------------------------------------------------
@@ -48,6 +50,55 @@ function clipHalfPlane(poly: P2[], sx: number, sz: number, nx: number, nz: numbe
     }
   }
   return out;
+}
+
+/**
+ * Elongation of a convex cell: extent along its principal axis over the extent across it.
+ * Boundary cells at the path fringe get squeezed into long slivers; those are split (W03 asks for
+ * hand-laid stones, and nobody lays a 2.5:1 sliver).
+ */
+function cellAspect(poly: P2[]) {
+  const c = centroid(poly);
+  let sxx = 0;
+  let szz = 0;
+  let sxz = 0;
+  for (const p of poly) {
+    const dx = p.x - c.x;
+    const dz = p.z - c.z;
+    sxx += dx * dx;
+    szz += dz * dz;
+    sxz += dx * dz;
+  }
+  const th = 0.5 * Math.atan2(2 * sxz, sxx - szz);
+  const ax = Math.cos(th);
+  const az = Math.sin(th);
+  let lo = Infinity;
+  let hi = -Infinity;
+  let lo2 = Infinity;
+  let hi2 = -Infinity;
+  for (const p of poly) {
+    const u = (p.x - c.x) * ax + (p.z - c.z) * az;
+    const v = -(p.x - c.x) * az + (p.z - c.z) * ax;
+    lo = Math.min(lo, u);
+    hi = Math.max(hi, u);
+    lo2 = Math.min(lo2, v);
+    hi2 = Math.max(hi2, v);
+  }
+  const major = hi - lo;
+  const minor = hi2 - lo2;
+  return { aspect: major / Math.max(minor, 1e-3), ax, az, c, major, minor };
+}
+
+/** Split cells with aspect > `maxAspect` across their major axis (leaving a joint), recursively. */
+function splitElongated(poly: P2[], maxAspect: number, gap: number, depth = 0): P2[][] {
+  if (poly.length < 3) return [];
+  const a = cellAspect(poly);
+  // judge the stone as it will be cut: the joint + chamfer (~7 cm) shrink both extents
+  const shrunk = (a.major - 0.14) / Math.max(a.minor - 0.14, 1e-3);
+  if (shrunk <= maxAspect || a.major < 0.5 || depth >= 3) return [poly];
+  const left = clipHalfPlane(poly, a.c.x, a.c.z, a.ax, a.az, -gap / 2);
+  const right = clipHalfPlane(poly, a.c.x, a.c.z, -a.ax, -a.az, -gap / 2);
+  return [...splitElongated(left, maxAspect, gap, depth + 1), ...splitElongated(right, maxAspect, gap, depth + 1)];
 }
 
 /** drop vertices closer than `eps` to their predecessor */
@@ -183,7 +234,7 @@ export interface PavingResult {
   grid: Grid;
   /** true if the world point is on a stone's top face */
   onStone(x: number, z: number): boolean;
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; split: number };
 }
 
 export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
@@ -225,7 +276,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const q = new Quaternion();
   const pos = new Vector3();
   const stoneGrid = new Grid(1.0);
-  const stats = { seeds: seeds.length, skippedNarrow: 0, skippedSmall: 0 };
+  const stats = { seeds: seeds.length, skippedNarrow: 0, skippedSmall: 0, split: 0 };
   const all = new MeshBuilder();
   const one = new Matrix4();
 
@@ -266,13 +317,24 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       }
       return { x: s.x + (p.x - s.x) * lo, z: s.z + (p.z - s.z) * lo };
     });
+    // elongated fringe cells (aspect > 2.5) become two or more stones with a joint between them
+    const pieces = splitElongated(cell, 2.5, rng.range(0.035, 0.06));
+    if (pieces.length > 1) stats.split += pieces.length - 1;
+    for (const piece of pieces) emitStone(piece);
+  }
+
+  function emitStone(cell: P2[]) {
+    if (cell.length < 3) return;
+    // the stone is built around its own centroid (== the seed for unsplit cells, near enough)
+    const sc = centroid(cell);
+    const s = { x: sc.x, z: sc.z };
     const joint = rng.range(0.03, 0.08);
     // work in seed-local coordinates (the slab is built around the seed, then placed)
     const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
     const outline = cellToOutline(local, joint, rng, 0.82);
     if (!outline) {
       stats.skippedSmall++;
-      continue;
+      return;
     }
     const c = centroid(outline);
     let radius = 0;
@@ -342,7 +404,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     all.transform(one, from);
 
     const poly = outline.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
-    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline), radius, thickness, bottomY, topY, moss };
+    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline), radius, thickness, bottomY, topY, moss, aspect: cellAspect(outline).aspect };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
   }

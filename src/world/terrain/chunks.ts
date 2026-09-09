@@ -1,12 +1,13 @@
 /**
- * Terrain chunk layout + geometry. Three concentric rings share one global grid per ring so
- * chunk edges line up; where a fine ring meets a coarser one, the fine edge vertices are snapped
- * onto the coarse neighbour's linear edge, which removes T-junction cracks without skirts.
- * Normals are analytic (central differences of the heightfield), so shading is seamless.
+ * Terrain chunk layout + geometry. Three concentric rings, each on the global lattice of the
+ * matching heightfield zone (0.2 m / 1 m / 4 m), so chunk edges line up and every vertex height is
+ * the sampler's own lattice sample: the rendered surface IS `terrain.height()`. Where a fine ring
+ * meets a coarser one, the lattice already snaps the fine edge samples onto the coarse edge
+ * (no T-junction cracks, no skirts). Normals come from the sampler, so shading is seamless.
  */
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import type { Terrain, TerrainMask } from './heightfield';
-import { terrainDetail, type TerrainDetail } from './heightfield';
+import { LATTICE, isLatticeTerrain, terrainDetail, type TerrainDetail } from './heightfield';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import type { Layout } from '../layout';
 
@@ -22,19 +23,23 @@ export interface ChunkSpec {
 }
 
 export const RING = {
-  innerHalf: 48,
+  innerHalf: LATTICE.detail.half * LATTICE.detail.spacing,
   innerChunk: 24,
-  midHalf: 144,
+  innerSpacing: LATTICE.detail.spacing,
+  midHalf: LATTICE.mid.half * LATTICE.mid.spacing,
   midChunk: 48,
-  midSpacing: 1,
-  outerSpacing: 4,
+  midSpacing: LATTICE.mid.spacing,
+  outerSpacing: LATTICE.outer.spacing,
 };
 
-/** Build the chunk list. `innerSegsPerChunk` must be a multiple of 24 (→ spacing 1/k m). */
-export function layoutChunks(half: number, innerSegsPerChunk: number): ChunkSpec[] {
+/**
+ * Build the chunk list. The inner ring is always on the 0.2 m detail lattice (the sampler
+ * contract), the mid ring on 1 m and the outer ring on 4 m — `RING` mirrors `LATTICE`.
+ */
+export function layoutChunks(half: number): ChunkSpec[] {
   const R = RING;
   const out: ChunkSpec[] = [];
-  const innerSpacing = R.innerChunk / innerSegsPerChunk;
+  const innerSpacing = R.innerSpacing;
   const n0 = (R.innerHalf * 2) / R.innerChunk;
   for (let cz = 0; cz < n0; cz++) {
     for (let cx = 0; cx < n0; cx++) {
@@ -216,48 +221,28 @@ export function buildChunkGeometry(spec: ChunkSpec, wc: WeightContext): { geomet
   const uv = new Float32Array(count * 2);
   const w0 = new Float32Array(count * 4);
   const w1 = new Float32Array(count * 4);
-  const e = spec.ring === 0 ? spacing * 2 : spacing; // normal probe step (grid-aligned → cached)
   const detailed = spec.ring < 2;
-
-  const snapped = (i: number, j: number): number | null => {
-    // returns the neighbour-coarse spacing if this edge vertex must be snapped, else null
-    if (i === 0 && spec.coarse.left) return spec.coarse.left;
-    if (i === nx && spec.coarse.right) return spec.coarse.right;
-    if (j === 0 && spec.coarse.near) return spec.coarse.near;
-    if (j === nz && spec.coarse.far) return spec.coarse.far;
-    return null;
-  };
+  // global lattice indices of this chunk's origin: the ring spacing IS the lattice spacing of the
+  // matching heightfield zone, so every vertex is a lattice point and takes its height straight
+  // from the sampler's lattice (float32, seam-snapped) — the rendered surface equals `height()`.
+  const gi0 = Math.round(x0 / spacing);
+  const gj0 = Math.round(z0 / spacing);
+  const lattice = isLatticeTerrain(T) ? T : null;
+  const zone = spec.ring;
 
   let v = 0;
   for (let j = 0; j <= nz; j++) {
     for (let i = 0; i <= nx; i++, v++) {
-      const x = x0 + i * spacing;
-      const z = z0 + j * spacing;
-      let h = T.height(x, z);
-      const S = snapped(i, j);
-      if (S !== null) {
-        const r = Math.round(S / spacing);
-        if (r > 1) {
-          if ((i === 0 || i === nx) && j % r !== 0) {
-            const j0 = Math.floor(j / r) * r;
-            const t = (j - j0) / r;
-            h = T.height(x, z0 + j0 * spacing) * (1 - t) + T.height(x, z0 + (j0 + r) * spacing) * t;
-          } else if ((j === 0 || j === nz) && i % r !== 0) {
-            const i0 = Math.floor(i / r) * r;
-            const t = (i - i0) / r;
-            h = T.height(x0 + i0 * spacing, z) * (1 - t) + T.height(x0 + (i0 + r) * spacing, z) * t;
-          }
-        }
-      }
+      const gi = gi0 + i;
+      const gj = gj0 + j;
+      const x = gi * spacing;
+      const z = gj * spacing;
+      const h = lattice ? lattice.latticeHeight(zone, gi, gj) : T.height(x, z);
       pos[v * 3] = x;
       pos[v * 3 + 1] = h;
       pos[v * 3 + 2] = z;
-      // analytic normal from the heightfield (continuous across chunk seams)
-      const hl = T.height(x - e, z);
-      const hr = T.height(x + e, z);
-      const hd = T.height(x, z - e);
-      const hu = T.height(x, z + e);
-      _n.set(hl - hr, 2 * e, hd - hu).normalize();
+      // the sampler's normal (central difference of the rendered surface): seamless across chunks
+      T.normal(x, z, _n);
       nrm[v * 3] = _n.x;
       nrm[v * 3 + 1] = _n.y;
       nrm[v * 3 + 2] = _n.z;
@@ -280,8 +265,9 @@ export function buildChunkGeometry(spec: ChunkSpec, wc: WeightContext): { geomet
       const b = a + 1;
       const c = a + nx + 1;
       const d = c + 1;
-      // alternate the diagonal so the grid does not read as stripes on slopes
-      if ((i + j) & 1) {
+      // alternate the diagonal so the grid does not read as stripes on slopes; parity is taken
+      // from the GLOBAL lattice indices so the sampler can reproduce the same triangulation
+      if ((gi0 + i + gj0 + j) & 1) {
         idx[k++] = a; idx[k++] = c; idx[k++] = b;
         idx[k++] = b; idx[k++] = c; idx[k++] = d;
       } else {

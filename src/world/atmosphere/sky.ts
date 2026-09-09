@@ -1,7 +1,8 @@
 /**
- * Procedural sky dome: zenith→horizon gradient that lands on the fog colour, a soft sun glow
- * (small hot core + wide Mie-like halo), and a few thin cirrus wisps from value-noise fbm on a
- * high altitude plane. No photos. Time-driven drift is a pure function of `t`.
+ * Procedural sky dome: a luminous warm-haze gradient (canopy-gap glare overhead → the far-haze grey
+ * at the horizon, so it meets the distance fog seamlessly), a soft sun glow (small hot core + wide
+ * Mie-like halo), and a few thin cirrus wisps from value-noise fbm on a high altitude plane. No
+ * photos. Time-driven drift is a pure function of `t`.
  *
  * The same material (with `uEnvMode = 1`, which drops the hot core and adds a ground colour) is
  * rendered by the lighting system into a PMREM so standard materials receive matching sky/ground
@@ -9,6 +10,7 @@
  */
 import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
 import type { WorldConfig } from '../config';
+import { HEIGHT_FOG_DEFAULTS } from './heightfog';
 
 export interface SkyDome {
   mesh: Mesh;
@@ -19,11 +21,12 @@ export interface SkyDome {
 }
 
 /**
- * Scene radiance of the sky relative to config's display colours. In the reference the sky is only
- * ever seen as bright haze between the canopy (sRGB ≈ 0.5–0.6, never white), so the gradient is
- * scaled down to land there after ACES; the sun halo/core stay hot for the bloom pass.
+ * Sky colours in scene-linear radiance (what the composer's ACES maps to the reference's display
+ * values). The reference never shows blue sky: canopy gaps are a warm off-white glare (#aca896) and
+ * the horizon is the far haze (#8d8e85), so the dome is a luminous warm haze that meets the
+ * distance fog seamlessly. Exported for the audit; the horizon shares heightfog's `hazeFar`.
  */
-export const SKY_RADIANCE = 0.30;
+export const SKY_GAP_GLARE: [number, number, number] = [0.345, 0.33, 0.27];
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -42,7 +45,6 @@ uniform vec3 uSunDir;
 uniform vec3 uSunColor;
 uniform float uTime;
 uniform float uEnvMode;
-uniform float uRadiance;
 varying vec3 vDir;
 
 float hash21( vec2 p ) {
@@ -74,22 +76,21 @@ float fbm( vec2 p ) {
 void main() {
   vec3 d = normalize( vDir );
   float h = d.y;
-  // gradient: fog colour at/below the horizon, horizon tint, then zenith
+  float sd = max( dot( d, uSunDir ), 0.0 );
+  // luminous warm haze: the far-haze grey at the horizon (seamless with the distance fog on
+  // geometry) brightening to the canopy-gap glare overhead; brighter again toward the sun, where
+  // the haze is front-lit. Nothing here is blue (the reference has 0 % sky-blue pixels).
   float up = clamp( h, 0.0, 1.0 );
-  vec3 sky = mix( uHorizon, uZenith, pow( up, 0.6 ) );
-  // haze band at the horizon: the reference's far haze is a warm grey lit by the low sun
-  float horizonBand = 1.0 - smoothstep( 0.0, 0.2, up );
-  vec3 horizonCol = uHorizon * vec3( 1.03, 1.0, 0.93 );
-  sky = mix( sky, horizonCol, horizonBand * 0.9 );
-  // below the horizon: horizon colour darkening toward ground bounce (only matters for the env map)
+  vec3 sky = mix( uHorizon, uZenith, smoothstep( 0.0, 0.45, up ) );
+  sky *= 1.0 + 0.22 * pow( sd, 3.0 );
+  // below the horizon: haze darkening toward ground bounce (only matters for the env map)
   float down = clamp( -h, 0.0, 1.0 );
-  vec3 below = mix( horizonCol * 0.7, uGround, smoothstep( 0.0, 0.35, down ) );
-  vec3 col = ( h >= 0.0 ? sky : below ) * uRadiance;
+  vec3 below = mix( uHorizon * 0.8, uGround, smoothstep( 0.0, 0.35, down ) );
+  vec3 col = h >= 0.0 ? sky : below;
 
   // sun: wide halo + soft core (core suppressed for the environment map)
-  float sd = max( dot( d, uSunDir ), 0.0 );
-  float halo = pow( sd, 12.0 ) * 0.06 + pow( sd, 70.0 ) * 0.22;
-  float core = pow( sd, 1400.0 ) * 2.4;
+  float halo = pow( sd, 14.0 ) * 0.07 + pow( sd, 80.0 ) * 0.2;
+  float core = pow( sd, 1400.0 ) * 2.2;
   col += uSunColor * ( halo + core * ( 1.0 - uEnvMode ) );
 
   // cirrus wisps on a plane at altitude; only in the upper hemisphere
@@ -100,8 +101,8 @@ void main() {
     float n2 = fbm( uv * 1.7 - drift * 1.4 + 3.7 );
     float wisp = smoothstep( 0.52, 0.78, n1 * 0.7 + n2 * 0.3 );
     wisp *= smoothstep( 0.02, 0.22, h ) * ( 0.55 + 0.45 * sd );
-    vec3 cloud = mix( vec3( 0.86, 0.9, 0.95 ), uSunColor * 0.95, pow( sd, 3.0 ) * 0.6 ) * uRadiance * 1.25;
-    col = mix( col, cloud, wisp * 0.42 );
+    vec3 cloud = uZenith * mix( vec3( 1.12, 1.13, 1.16 ), vec3( 1.2, 1.14, 1.0 ), pow( sd, 3.0 ) * 0.6 );
+    col = mix( col, cloud, wisp * 0.4 );
   }
 
   gl_FragColor = vec4( col, 1.0 );
@@ -110,14 +111,15 @@ void main() {
 
 export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
   const uniforms = {
-    uZenith: { value: new Color(cfg.sky.zenith) },
-    uHorizon: { value: new Color(cfg.sky.horizon) },
-    uGround: { value: new Color(cfg.sky.hemiGround) },
+    // measured reference values (see reference/ANALYSIS.md §8) rather than config's display
+    // colours, which are still cool-grey; the horizon is exactly the far-haze colour
+    uZenith: { value: new Color(...SKY_GAP_GLARE) },
+    uHorizon: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFar) },
+    uGround: { value: new Color(cfg.sky.hemiGround).multiplyScalar(0.5) },
     uSunDir: { value: sunDir.clone() },
     uSunColor: { value: new Color(cfg.sun.color) },
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
-    uRadiance: { value: SKY_RADIANCE },
   };
   const material = new ShaderMaterial({
     name: 'kokiri-sky',

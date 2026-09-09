@@ -61,16 +61,16 @@ export function create(ctx: WorldContext): WorldSystem {
 
   // The reference is soft and low-contrast (shadowed plaza ≈ 0.4 luminance): generous, warm-neutral
   // ambient. The cool config sky colour is balanced toward neutral so shade does not turn cyan.
-  const hemiIntensity = 1.45;
+  const hemiIntensity = 1.15;
   const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(1.0, 0.95, 0.85), 0.55);
   const hemi = new HemisphereLight(hemiSky, ctx.config.sky.hemiGround, hemiIntensity);
   hemi.name = 'sky-hemisphere';
   group.add(hemi);
 
-  // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (whose radiance
-  // is scaled to the reference's hazy key, see sky.ts SKY_RADIANCE, hence the > 1 intensity here).
+  // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
+  // the reference's hazy key, radiance ≈ 0.23–0.35, see sky.ts).
   let environment = false;
-  const environmentIntensity = 1.1;
+  const environmentIntensity = 0.7;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

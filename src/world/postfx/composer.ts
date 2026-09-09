@@ -87,6 +87,8 @@ export interface ComposerSettings {
   aoStrength: number;
   aoRadius: number;
   rayIntensity: number;
+  /** contrast curve (pow) applied to the smeared ray buffer so beams read as slabs */
+  rayContrast: number;
   rayColor: Color;
   bloomThreshold: number;
   bloomIntensity: number;
@@ -163,14 +165,15 @@ export function createComposer(opts: ComposerOptions): Composer {
   const settings: ComposerSettings = {
     aoStrength: 0.6,
     aoRadius: 0.5,
-    rayIntensity: 0.34,
+    rayIntensity: 0.6,
+    rayContrast: 1.3,
     rayColor: new Color(1.0, 0.9, 0.72),
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
-    saturation: 0.94,
+    saturation: 0.98,
     contrast: 1.0,
     greenWarm: 0.3,
-    greenDesat: 0.3,
+    greenDesat: 0.15,
     shadowTint: new Color(0.98, 0.985, 1.015),
     highlightTint: new Color(1.04, 1.0, 0.93),
   };
@@ -224,7 +227,7 @@ export function createComposer(opts: ComposerOptions): Composer {
   );
   const rayBlurMat = mat(
     RAY_BLUR_FRAG,
-    { tSrc: { value: null as Texture | null }, uSunUv: { value: sunUv }, uDirSign: dirSign, uLength: { value: 0.06 }, uTexel: quarterTexel },
+    { tSrc: { value: null as Texture | null }, uSunUv: { value: sunUv }, uDirSign: dirSign, uLength: { value: 0.06 }, uGamma: { value: 1 }, uTexel: quarterTexel },
     'postfx-ray-blur',
   );
   const copyMat = mat(COPY_FRAG, { tSrc: { value: null as Texture | null }, uScale: { value: 1 } }, 'postfx-copy');
@@ -354,10 +357,12 @@ export function createComposer(opts: ComposerOptions): Composer {
     if (rayIntensity.value > 0.001 && bindShadow()) {
       pass(rayMarchMat, rayA);
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
-      rayBlurMat.uniforms.uLength.value = 0.06;
+      rayBlurMat.uniforms.uLength.value = 0.08;
+      rayBlurMat.uniforms.uGamma.value = 1;
       pass(rayBlurMat, rayB);
       rayBlurMat.uniforms.tSrc.value = rayB.texture;
-      rayBlurMat.uniforms.uLength.value = 0.16;
+      rayBlurMat.uniforms.uLength.value = 0.22;
+      rayBlurMat.uniforms.uGamma.value = settings.rayContrast;
       pass(rayBlurMat, rayA);
     } else {
       renderer.setRenderTarget(rayA);

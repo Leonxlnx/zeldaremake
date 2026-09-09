@@ -25,7 +25,13 @@ export interface TerrainMask {
 }
 
 export interface Terrain {
+  /**
+   * Ground height of the RENDERED surface: barycentric interpolation of the fixed lattice the
+   * terrain mesh is built from (see `LATTICE`), so a point placed at `height(x, z)` sits on the
+   * triangles exactly. Pure function of position (lattice samples are cached by integer index).
+   */
   height(x: number, z: number): number;
+  /** Normal of the same interpolated surface (central difference over one detail-lattice step). */
   normal(x: number, z: number, out?: Vector3): Vector3;
   /** 0 = flat, 1 = vertical */
   slope(x: number, z: number): number;
@@ -189,6 +195,38 @@ function landform(x: number, z: number) {
 /** Paved plaza around the origin (reference frame 14): the flagstone disc where Link stands. */
 export const PLAZA = { x: 0, z: 0, radius: 6.0 };
 
+/**
+ * Log-arch frame. Mirrors `structures/logArch.ts`: the axis runs east (slightly north) through
+ * `layout.logArch.position`; its west third bends south by up to 1.8 m (quadratic for
+ * s < −0.15·L) so the broken hollow end faces the path. `lu` is the along-axis coordinate,
+ * `lvc` the across coordinate measured from the BENT axis (positive = south side).
+ */
+const LOG = (() => {
+  const la = LAYOUT.logArch;
+  const yaw = (la.yawDeg * Math.PI) / 180;
+  return { cx: la.position[0], cz: la.position[2], ax: Math.cos(yaw), az: -Math.sin(yaw), L: la.length, R: la.radius };
+})();
+
+function logBend(lu: number) {
+  const k = clamp((-LOG.L * 0.15 - lu) / (LOG.L * 0.35), 0, 1);
+  return { bend: 1.8 * k * k, k };
+}
+
+function logLocal(x: number, z: number) {
+  const dx = x - LOG.cx;
+  const dz = z - LOG.cz;
+  const lu = dx * LOG.ax + dz * LOG.az;
+  const lv = -dx * LOG.az + dz * LOG.ax; // along S = (−az, ax), south-ish
+  const { bend, k } = logBend(lu);
+  return { lu, lvc: lv - bend, k };
+}
+
+/** Bent-axis point at along-coordinate `lu` (for the pad height reference). */
+function logAxisPoint(lu: number) {
+  const { bend } = logBend(lu);
+  return { x: LOG.cx + LOG.ax * lu - LOG.az * bend, z: LOG.cz + LOG.az * lu + LOG.ax * bend };
+}
+
 function pathInfluence(x: number, z: number) {
   const hw = LAYOUT.pathHalfWidth;
   const a = closestOnPolyline(LAYOUT.pathSpine, x, z);
@@ -270,9 +308,28 @@ function macroHeight(x: number, z: number) {
     }
   }
 
+  // Log-arch pad: under the bent west third (the hollow mouth seen from the plaza) the ground
+  // follows a smooth reference along the bent axis, slightly dished, so the sunk lip is not
+  // half-buried in a hump; ~2 m wider on the south side where the axis bends toward the path.
+  let logW = 0;
+  {
+    const lg = logLocal(x, z);
+    if (lg.lu < -LOG.L * 0.08 && lg.lu > -LOG.L / 2 - 2.5 && Math.abs(lg.lvc) < LOG.R + 2.2) {
+      const wu = smoothstep(-LOG.L / 2 - 2.2, -LOG.L / 2 + 0.6, lg.lu) * smoothstep(-LOG.L * 0.1, -LOG.L * 0.22, lg.lu);
+      const south = lg.lvc > 0 ? 0.6 * lg.k : 0;
+      const wv = 1 - smoothstep(LOG.R * 0.9 + south, LOG.R + 1.6 + south, Math.abs(lg.lvc));
+      logW = wu * wv;
+      if (logW > 0) {
+        const ap = logAxisPoint(clamp(lg.lu, -LOG.L / 2, 0));
+        const ref = landform(ap.x, ap.z).h - 0.12;
+        h = lerp(h, ref, logW * 0.85);
+      }
+    }
+  }
+
   // how much authored flat surface is here (detail passes fade out on it)
-  const suppress = clamp(Math.max(p.surface, stairW, padW), 0, 1);
-  return { h, land, p, suppress, embank: land.embank * (1 - suppress) };
+  const suppress = clamp(Math.max(p.surface, stairW, padW, logW), 0, 1);
+  return { h, land, p, suppress, logW, embank: land.embank * (1 - suppress) };
 }
 
 /** Direction of steepest descent of the macro landform (finite differences). */
@@ -362,8 +419,8 @@ function hashAngle(id: string) {
 function rawHeight(x: number, z: number): number {
   const m = macroHeight(x, z);
   let h = m.h;
-  // Medium + small breakup, suppressed on paths and stairs.
-  const breakup = (1 - m.p.surface) * (medium.fbm(x * 0.35, z * 0.35, 3) * 0.14 + fine.noise(x * 1.7, z * 1.7) * 0.035);
+  // Medium + small breakup, suppressed on paths and under the log-arch mouth.
+  const breakup = (1 - Math.max(m.p.surface, m.logW)) * (medium.fbm(x * 0.35, z * 0.35, 3) * 0.14 + fine.noise(x * 1.7, z * 1.7) * 0.035);
   h += breakup;
   h += detailPasses(x, z, m).dh;
   return h;
@@ -390,35 +447,122 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
     const d = Math.hypot(x - hs.position[0], z - hs.position[2]);
     structure = Math.max(structure, 1 - smoothstep(hs.trunkRadius + 0.2, hs.trunkRadius + 1.2, d));
   }
-  const la = LAYOUT.logArch;
-  const ldx = x - la.position[0];
-  const ldz = z - la.position[2];
-  const yaw = (la.yawDeg * Math.PI) / 180;
-  const lu = ldx * Math.cos(yaw) - ldz * Math.sin(yaw);
-  const lv = ldx * Math.sin(yaw) + ldz * Math.cos(yaw);
-  if (Math.abs(lu) < la.length / 2 && Math.abs(lv) < la.radius * 0.9) structure = 1;
+  // log arch: follows the bent axis; at the broken west end the mask also reaches ~0.6 m further
+  // south (the oblique cut's lip) so no grass grows up the mouth
+  const lg = logLocal(x, z);
+  if (Math.abs(lg.lu) < LOG.L / 2 + 0.3 * lg.k && lg.lvc > -LOG.R * 0.9 && lg.lvc < LOG.R * 0.9 + 0.6 * lg.k) structure = 1;
   return { path: p.surface, stairs, structure };
 }
 
 const _n = new Vector3();
 
+/**
+ * Rendered-surface lattice. `height()` is NOT the raw analytic field: it is the piecewise-linear
+ * surface the terrain mesh renders, so a point that "sits on the terrain" per this sampler sits
+ * on the rendered triangles exactly. Three nested zones mirror the three chunk rings:
+ *   detail zone |x|,|z| ≤ 48 m: 0.2 m lattice;  mid zone ≤ 144 m: 1 m;  outer: 4 m.
+ * Lattice samples are `rawHeight` at the lattice point, rounded to float32 (the mesh stores
+ * float32) and cached by integer lattice coordinates, so no memo can alias between query points
+ * and the result is a pure function of position. Each cell is split into two triangles along the
+ * diagonal chosen by the parity of the global lattice indices — identical to the chunk builder.
+ * Where a finer ring meets a coarser one, the fine edge samples are the linear interpolation of
+ * the coarse edge (the same T-junction stitch the mesh uses).
+ */
+export const LATTICE = {
+  /** detail-zone spacing (m) and half extent in lattice units (48 m) */
+  detail: { spacing: 0.2, half: 240 },
+  /** mid ring: 1 m spacing out to 144 m */
+  mid: { spacing: 1, half: 144 },
+  /** outer ring: 4 m spacing out to the world half size */
+  outer: { spacing: 4, half: Math.round(WORLD.terrainHalfSize / 4) },
+  /** ratio of neighbouring spacings (fine edge vertices per coarse edge segment) */
+  ratioDetailMid: 5,
+  ratioMidOuter: 4,
+} as const;
+
+type Zone = 0 | 1 | 2;
+const ZONES = [LATTICE.detail, LATTICE.mid, LATTICE.outer];
+
+export function latticeZone(x: number, z: number): Zone {
+  const ax = Math.abs(x);
+  const az = Math.abs(z);
+  if (ax <= LATTICE.detail.half * LATTICE.detail.spacing && az <= LATTICE.detail.half * LATTICE.detail.spacing) return 0;
+  if (ax <= LATTICE.mid.half * LATTICE.mid.spacing && az <= LATTICE.mid.half * LATTICE.mid.spacing) return 1;
+  return 2;
+}
+
 export function createTerrain(): Terrain {
-  const cache = new Map<number, number>();
-  const CELL = 0.05;
-  const height = (x: number, z: number) => {
-    // memoise on a fine grid: placement systems sample the same spots repeatedly
-    const kx = Math.round(x / CELL);
-    const kz = Math.round(z / CELL);
-    const key = kx * 1048576 + kz;
+  const caches: Map<number, number>[] = [new Map(), new Map(), new Map()];
+  const KEY = 1 << 20;
+  const OFF = 1 << 19;
+
+  /** float32 rawHeight at a lattice point of `zone` (cached by integer lattice coords) */
+  const rawSample = (zone: Zone, gi: number, gj: number): number => {
+    const key = (gi + OFF) * KEY + (gj + OFF);
+    const cache = caches[zone];
     const c = cache.get(key);
     if (c !== undefined) return c;
-    const h = rawHeight(x, z);
-    if (cache.size < 4_000_000) cache.set(key, h);
+    const s = ZONES[zone].spacing;
+    const h = Math.fround(rawHeight(gi * s, gj * s));
+    cache.set(key, h);
     return h;
   };
 
+  /**
+   * Lattice sample as the mesh stores it: on the outer boundary line of a zone the fine vertices
+   * between two coarse-lattice points are snapped onto the coarse edge (linear interpolation),
+   * so the surface is watertight and identical on both sides of the ring seam.
+   */
+  const sample = (zone: Zone, gi: number, gj: number): number => {
+    if (zone === 2) return rawSample(2, gi, gj);
+    const Z = ZONES[zone];
+    const r = zone === 0 ? LATTICE.ratioDetailMid : LATTICE.ratioMidOuter;
+    const onX = Math.abs(gi) === Z.half;
+    const onZ = Math.abs(gj) === Z.half;
+    if (onX && gj % r !== 0) {
+      const j0 = Math.floor(gj / r) * r;
+      const t = (gj - j0) / r;
+      return Math.fround(rawSample(zone, gi, j0) * (1 - t) + rawSample(zone, gi, j0 + r) * t);
+    }
+    if (onZ && gi % r !== 0) {
+      const i0 = Math.floor(gi / r) * r;
+      const t = (gi - i0) / r;
+      return Math.fround(rawSample(zone, i0, gj) * (1 - t) + rawSample(zone, i0 + r, gj) * t);
+    }
+    return rawSample(zone, gi, gj);
+  };
+
+  const height = (x: number, z: number) => {
+    const zone = latticeZone(x, z);
+    const Z = ZONES[zone];
+    const s = Z.spacing;
+    const fx0 = x / s;
+    const fz0 = z / s;
+    // cell indices clamped so boundary queries use the last cell inside the zone
+    const gi = Math.min(Math.max(Math.floor(fx0), -Z.half), Z.half - 1);
+    const gj = Math.min(Math.max(Math.floor(fz0), -Z.half), Z.half - 1);
+    const u = fx0 - gi; // 0..1 across the cell (may be exactly 1 on the boundary)
+    const v = fz0 - gj;
+    const a = sample(zone, gi, gj); // (0,0)
+    const b = sample(zone, gi + 1, gj); // (1,0)
+    const c = sample(zone, gi, gj + 1); // (0,1)
+    const d = sample(zone, gi + 1, gj + 1); // (1,1)
+    if ((gi + gj) & 1) {
+      // diagonal b–c: triangles (a,c,b) and (b,c,d)
+      if (u + v <= 1) return a + (b - a) * u + (c - a) * v;
+      return d + (c - d) * (1 - u) + (b - d) * (1 - v);
+    }
+    // diagonal a–d: triangles (a,c,d) and (a,d,b)
+    if (v >= u) return a + (d - c) * u + (c - a) * v;
+    return a + (b - a) * u + (d - b) * v;
+  };
+
+  /** exact mesh vertex height at lattice point (gi, gj) of `zone` — used by the chunk builder */
+  const latticeHeight = (zone: Zone, gi: number, gj: number) => sample(zone, gi, gj);
+
   const normal = (x: number, z: number, out = _n) => {
-    const e = 0.25;
+    // central difference of the rendered surface over one detail-lattice step
+    const e = LATTICE.detail.spacing;
     const hl = height(x - e, z);
     const hr = height(x + e, z);
     const hd = height(x, z - e);
@@ -449,7 +593,20 @@ export function createTerrain(): Terrain {
     return m.path < 0.5 && m.stairs < 0.5 && m.structure < 0.5 && m.cliff < 0.8;
   };
 
-  return { height, normal, slope, mask, vegetationAllowed };
+  const t: LatticeTerrain = { height, normal, slope, mask, vegetationAllowed, latticeHeight };
+  return t;
+}
+
+/**
+ * `Terrain` plus direct access to the lattice samples (exact mesh vertex heights). The chunk
+ * builder uses this so the rendered vertices are bit-identical to what `height()` interpolates.
+ */
+export interface LatticeTerrain extends Terrain {
+  latticeHeight(zone: 0 | 1 | 2, gi: number, gj: number): number;
+}
+
+export function isLatticeTerrain(t: Terrain): t is LatticeTerrain {
+  return typeof (t as LatticeTerrain).latticeHeight === 'function';
 }
 
 /** Convenience singleton — most systems just need one shared terrain. */

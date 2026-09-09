@@ -335,6 +335,11 @@ export interface SlabOptions {
   topNoise?: (x: number, z: number) => number;
   /** number of interior rings on the top face (≥1); more = smoother dish */
   rings?: number;
+  /**
+   * per-face luminance multiplier (local x,z of the face centre) — e.g. a worn nose highlight on
+   * the front bevel of a tread, grime toward the flanks; 1 = unchanged
+   */
+  colorFn?: (x: number, z: number, part: 'top' | 'bevel' | 'side') => number;
 }
 
 const _a = new Vector3();
@@ -363,6 +368,11 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const mossInner = o.mossInner ?? 0;
   const mossFn = o.mossFn ?? (() => 1);
   const topNoise = o.topNoise ?? (() => 0);
+  const colorFn = o.colorFn;
+  const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1): [number, number, number] => {
+    const m = (colorFn ? colorFn(ax, az, part) : 1) * k;
+    return [base[0] * m, base[1] * m, base[2] * m];
+  };
 
   const outer = ccw(outline);
   const n = outer.length;
@@ -387,8 +397,10 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _ud.set(u0 + uvO[0], (t - bevel) * uvS + uvO[1]);
     // grime: darker toward the bottom → encode via colour; moss on the lower side
     const mSide = mossEdge * 0.8 * mossFn(p.x, p.z);
-    mb.tri(_a, _b, _c, _ua, _ub, _uc, [scol[0] * 0.75, scol[1] * 0.75, scol[2] * 0.75], [mSide, mSide, mSide * 0.5]);
-    mb.tri(_a, _c, _d, _ua, _uc, _ud, scol, [mSide, mSide * 0.5, mSide * 0.5]);
+    const mx = (p.x + q.x) / 2;
+    const mz = (p.z + q.z) / 2;
+    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, 0.75), [mSide, mSide, mSide * 0.5]);
+    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide, mSide * 0.5, mSide * 0.5]);
   }
 
   // --- bevel ring (smooth) ---
@@ -404,8 +416,9 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _d.set(pi.x, topY(pi, 1), pi.z);
     const mE = mossEdge * mossFn(p.x, p.z);
     const mE2 = mossEdge * mossFn(q.x, q.z);
-    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), scol, [mE, mE2, mE2 * 0.7]);
-    mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), scol, [mE, mE2 * 0.7, mE * 0.7]);
+    const bc = shade(scol, 'bevel', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4);
+    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mE, mE2, mE2 * 0.7]);
+    mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mE, mE2 * 0.7, mE * 0.7]);
   }
   mb.smoothGroup();
 
@@ -437,8 +450,9 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       const m2 = mA * mossFn(q.x, q.z);
       const m3 = mB * mossFn(qi.x, qi.z);
       const m4 = mB * mossFn(pi.x, pi.z);
-      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), col, [m1, m2, m3]);
-      mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), col, [m1, m3, m4]);
+      const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4) : col;
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3]);
+      mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4]);
     }
   }
   const last = ringPts[rings];
@@ -451,7 +465,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _a.set(p.x, topY(p, sL), p.z);
     _b.set(q.x, topY(q, sL), q.z);
     const mL = mossInner * mossFn(p.x, p.z);
-    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), col, [mL, mL, mC]);
+    const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3) : col;
+    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mL, mC]);
   }
   mb.smoothGroup();
 
