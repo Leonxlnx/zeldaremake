@@ -126,7 +126,8 @@ export const LAYOUT = {
   ] as HouseDef[],
 
   signposts: [
-    { id: 'saria-sign', position: [7.6, 1.2, -9.6] as [number, number, number], facing: [-0.6, 0.8] as [number, number] },
+    // projects to x ≈ 0.58 in shot B, where the reference frame 14 has the sign left of the door
+    { id: 'saria-sign', position: [7.0, 1.2, -9.3] as [number, number, number], facing: [-0.6, 0.8] as [number, number] },
   ],
 
   /** Wooden fence lines (post-and-rail) along the east plateau edge, as seen at the top of the stairs. */
