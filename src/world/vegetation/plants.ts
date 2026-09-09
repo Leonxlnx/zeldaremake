@@ -100,7 +100,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
-  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry, ['high', 'low']), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry, ['high', 'low'])], 'plant', [16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4 });
+  // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
+  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry, ['high', 'low']), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry, ['high', 'low'])], 'plant', [16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55 });
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
   const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 });
@@ -143,6 +144,25 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.6 + rng() * 0.55, 0.7, 0.02, greenVar(rng, 0.2)),
   );
+  // large ferns arching over the west verge in the left foreground of shot D (with the flowers)
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'ferns-shotD',
+      candidates: 1400,
+      box: [-6.2, -12, -3.2, -5.6],
+      minSpacing: 0.55,
+      accept(x, z) {
+        const edge = field.edgeDistance(x, z);
+        if (edge < 0.3) return 0;
+        const clr = field.clearing(x, z);
+        if (clr.insideBoulder || clr.npc > 0.2) return 0;
+        return 0.45 * (1 - smoothstep(0.3, 2.4, edge) * 0.7);
+      },
+    },
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.95 + rng() * 0.5, 0.7, 0.02, greenVar(rng, 0.2)),
+  );
 
   // ---- bushes: embankments, ledge edges, house bases, the log arch
   scatter(
@@ -181,9 +201,14 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     if (clr.insideBoulder || clr.npc > 0) return 0;
     return 1 - smoothstep(0.25, 4, edge) * 0.6;
   };
-  // dense drift on the hillside west of the north path (left foreground of shot D)
-  scatter(ctx, field, { label: 'flowers-shotD-drift', candidates: 9000, box: [-7.8, -16.5, -3.2, -7.5], minSpacing: 0.3, accept: (x, z) => 0.95 * flowerVerge(x, z) }, flowerPlace(1.5, 2.1));
+  // shot D (camera 1.2,1.9,-1 looking north): the frame's left edge runs from ≈(-2,-6) to (-7,-14),
+  // so the visible left-foreground verge is the strip just west of the path edge (x ≈ -4.5…-3.2)
+  // at z ∈ [-10,-5.5], opening into the hillside drift further north.
+  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 7000, box: [-5.6, -11, -3.1, -5.2], minSpacing: 0.23, accept: (x, z) => 1.0 * flowerVerge(x, z) }, flowerPlace(1.6, 2.2));
+  scatter(ctx, field, { label: 'flowers-shotD-drift', candidates: 9000, box: [-7.8, -16.5, -3.2, -7.5], minSpacing: 0.24, accept: (x, z) => 0.95 * flowerVerge(x, z) }, flowerPlace(1.5, 2.1));
   scatter(ctx, field, { label: 'flowers-shotD', candidates: 5000, box: [-7, -7.5, -2.6, 3], minSpacing: 0.4, accept: (x, z) => 0.6 * flowerVerge(x, z) }, flowerPlace(1.25, 1.8));
+  // a few blooms on the near right verge below the house stair (3–6 m from the shot-D camera)
+  scatter(ctx, field, { label: 'flowers-shotD-right', candidates: 1500, box: [2.4, -7.6, 4.8, -3.4], minSpacing: 0.45, accept: (x, z) => 0.5 * flowerVerge(x, z) }, flowerPlace(1.3, 1.8));
   scatter(ctx, field, { label: 'flowers-shotA', candidates: 1800, box: [-7.5, 2, -2.8, 9.5], minSpacing: 0.5, accept: (x, z) => 0.45 * flowerVerge(x, z) }, flowerPlace(1.0, 1.5));
   scatter(
     ctx,

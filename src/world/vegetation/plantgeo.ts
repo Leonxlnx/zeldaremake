@@ -5,7 +5,7 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, curvedLeaf, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
 
 export type Detail = 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
@@ -34,11 +34,12 @@ export function makePalette(p: { fernGreen: number; leafCanopy: number; leafSun:
     leafSun: rgb(p.leafSun),
     stem: blend(rgb(p.grassMid), rgb(p.barkDark), 0.35),
     bark: rgb(p.barkDark),
-    // the reference blooms read as deep saturated violet (sRGB ≈ 80/50/95 in shadow); the palette
-    // hue is kept but pulled darker/more saturated so lit petals still land in the purple band
-    purple: blend(rgb(p.flowerPurple), rgb(0x5a2496), 0.6),
-    purpleLight: blend(rgb(p.flowerPurple), rgb(0x8f55d6), 0.6),
-    purpleDeep: blend(tone(rgb(p.flowerPurple), 0.5), rgb(0x3a1466), 0.5),
+    // The haze adds a grey pedestal to anything beyond a few metres, which kills saturation of dark
+    // petals; a brighter, strongly saturated violet (same hue family as palette.flowerPurple) keeps
+    // the blooms reading purple through the mist.
+    purple: blend(rgb(p.flowerPurple), rgb(0x7a3fd8), 0.7),
+    purpleLight: blend(rgb(p.flowerPurple), rgb(0x9d6ff0), 0.7),
+    purpleDeep: blend(rgb(p.flowerPurple), rgb(0x5a2aa8), 0.7),
     yellow: rgb(0xf0d060),
     weed: blend(rgb(p.grassLight), rgb(0xb9c25a), 0.5),
     straw: rgb(0xc7b26a),
@@ -158,22 +159,69 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
 }
 
 // ---------------------------------------------------------------- purple flowers
+/**
+ * Hydrangea / allium-like cluster bloom: a bumpy violet dome of florets with a few petals
+ * flaring from its rim. Dense enough to read as a solid purple blob at distance.
+ */
+function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, rng: Rng, pal: PlantPalette, detail: Detail) {
+  const n = normal.clone().normalize();
+  const side = new Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize();
+  const fwd = new Vector3().crossVectors(n, side).normalize();
+  const high = detail === 'high';
+  const low = detail === 'low';
+  const rings = low ? 2 : 3;
+  const segments = low ? 5 : high ? 8 : 6;
+  const floret = () => blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
+  const at = (u: number, v: number, h: number) => center.clone().addScaledVector(side, u).addScaledVector(fwd, v).addScaledVector(n, h);
+  const top = m.vertex(at(0, 0, radius * 0.8), 0.5, 1, blend(pal.purple, pal.purpleLight, 0.3));
+  const levels: number[][] = [];
+  for (let r = 1; r <= rings; r++) {
+    const t = r / rings;
+    const phi = t * Math.PI * 0.55;
+    const level: number[] = [];
+    for (let k = 0; k < segments; k++) {
+      const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
+      const rr = radius * Math.sin(phi) * (0.85 + rng() * 0.3);
+      const h = radius * 0.8 * Math.cos(phi) * (0.85 + rng() * 0.3);
+      level.push(m.vertex(at(Math.cos(ang) * rr, Math.sin(ang) * rr, h), k / segments, 1 - t, floret()));
+    }
+    levels.push(level);
+  }
+  for (let k = 0; k < segments; k++) m.tri(top, levels[0][(k + 1) % segments], levels[0][k]);
+  for (let r = 0; r < rings - 1; r++) {
+    for (let k = 0; k < segments; k++) {
+      const nx = (k + 1) % segments;
+      m.tri(levels[r][k], levels[r][nx], levels[r + 1][k]);
+      m.tri(levels[r][nx], levels[r + 1][nx], levels[r + 1][k]);
+    }
+  }
+  // rim petals for a fluffy silhouette
+  const petals = low ? 3 : high ? 6 : 4;
+  const p0 = rng() * TAU;
+  for (let p = 0; p < petals; p++) {
+    const a = p0 + (p * TAU) / petals;
+    const dir = side.clone().multiplyScalar(Math.cos(a)).addScaledVector(fwd, Math.sin(a)).addScaledVector(n, 0.25 + rng() * 0.3).normalize();
+    const base = at(Math.cos(a) * radius * 0.75, Math.sin(a) * radius * 0.75, radius * 0.25);
+    foldedLeaf(m, base, dir, radius * (0.55 + rng() * 0.3), radius * 0.5, floret(), { curl: 0.25, tipColor: pal.purpleLight });
+  }
+}
+
 export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const high = detail === 'high';
   const low = detail === 'low';
-  const stems = low ? 4 : 5 + rng.int(0, 4);
+  const stems = low ? 5 : 6 + rng.int(0, 4);
   const phase = rng() * TAU;
   const leafColor = blend(pal.leaf, pal.grassLight, 0.3);
   for (let i = 0; i < stems; i++) {
     const angle = phase + (i * TAU) / stems + (rng() - 0.5) * 0.5;
-    const radius = 0.03 + rng() * 0.14;
+    const radius = 0.03 + rng() * 0.11;
     const root = V(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-    const height = 0.2 + rng() * 0.2;
+    const height = 0.22 + rng() * 0.2;
     const lean = V(Math.cos(angle) * height * 0.3, height, Math.sin(angle) * height * 0.3);
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
-    tube(m, sampleCurve(curve, high ? 3 : 2), 0.0022, 0.0012, pal.stem, 3);
+    tube(m, sampleCurve(curve, high ? 3 : 2), 0.0026, 0.0014, pal.stem, 3);
     if (!low) {
       for (let j = 0; j < 2; j++) {
         for (const sign of [-1, 1]) {
@@ -182,21 +230,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
         }
       }
     }
-    // head: ring of petals + a yellow centre
-    const top = curve(1);
-    const petals = high ? 6 : low ? 5 : 6;
-    const petalLen = 0.036 + rng() * 0.014;
-    const petalPhase = rng() * TAU;
-    const up = lean.clone().normalize();
-    for (let p = 0; p < petals; p++) {
-      const a = petalPhase + (p * TAU) / petals;
-      const dir = V(Math.cos(a), 0.35 + rng() * 0.2, Math.sin(a)).normalize();
-      const base = top.clone().addScaledVector(dir, petalLen * 0.12);
-      const color = blend(pal.purple, pal.purpleLight, rng() * 0.5);
-      if (low) foldedLeaf(m, base, dir, petalLen, petalLen * 0.7, color, { curl: 0.1, tipColor: pal.purpleLight });
-      else curvedLeaf(m, base, dir, petalLen, petalLen * 0.72, color, { curl: 0.18, ridge: -0.05, tipColor: pal.purpleLight, planeNormal: up });
-    }
-    disc(m, top.clone().add(V(0, 0.004, 0)), up, petalLen * 0.28, low ? 4 : 6, pal.yellow, tone(pal.yellow, 0.8), 0.004);
+    // head: dense cluster bloom (~7–10 cm across)
+    const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
+    clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, rng, pal, detail);
   }
   if (!low) {
     const rosette = 4 + rng.int(0, 3);
@@ -232,9 +268,9 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
       }
     }
     const bells = low ? 5 : 7 + rng.int(0, 4);
-    const bellR = 0.016 + rng() * 0.006;
+    const bellR = 0.022 + rng() * 0.008;
     for (let b = 0; b < bells; b++) {
-      const t = 0.5 + (b / (bells - 1)) * 0.5;
+      const t = 0.45 + (b / (bells - 1)) * 0.55;
       const c = curve(t);
       const a0 = rng() * TAU;
       const petals = low ? 3 : 4;
@@ -242,13 +278,13 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
       for (let p = 0; p < petals; p++) {
         const a = a0 + (p * TAU) / petals;
         const dir = V(Math.cos(a), -0.35 + rng() * 0.3, Math.sin(a)).normalize();
-        const color = blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5);
-        if (low) foldedLeaf(m, c, dir, bellR * 1.6 * scale, bellR * 1.5 * scale, color, { curl: 0.2 });
-        else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.5 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: pal.purpleLight });
+        const color = blend(blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5), pal.purpleDeep, rng() * 0.3);
+        if (low) foldedLeaf(m, c, dir, bellR * 1.6 * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
+        else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.6 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: pal.purpleLight });
       }
     }
     // terminal bud
-    foldedLeaf(m, curve(1), lean.clone().normalize(), bellR * 1.4, bellR, blend(pal.purple, pal.purpleDeep, 0.3));
+    clusterHead(m, curve(1), lean.clone().normalize(), bellR * 1.1, rng, pal, 'low');
   }
   return m.finish({ groundToZero: true });
 }

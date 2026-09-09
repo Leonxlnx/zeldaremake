@@ -69,9 +69,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return { drawCalls, triangles, grassLodTiles: grass.visible.lodCounts };
   };
 
-  // TEMP-DEBUG: exposes the group so the private probe can measure the vegetation share
-  (window as unknown as { __VEG__?: unknown }).__VEG__ = { group, refresh, drawable };
-
   const weeds = plants.weeds.count;
   ctx.audit('vegetation', () => ({
     grassInstances: grass.count + weeds,
