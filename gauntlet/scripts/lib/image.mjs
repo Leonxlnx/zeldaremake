@@ -185,3 +185,56 @@ export function pixelDiffFraction(rgbA, rgbB, tol = 8) {
   }
   return diff / n;
 }
+
+/** Native-resolution decode → { width, height, gray (Float32Array 0..1), rgb (Uint8Array) }. */
+export async function decodeNative(input) {
+  const { data, info } = await sharp(input).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width, height, channels } = info;
+  const gray = new Float32Array(width * height);
+  const rgb = channels === 3 ? data : new Uint8Array(width * height * 3);
+  for (let i = 0; i < width * height; i++) {
+    const r = data[i * channels];
+    const g = data[i * channels + 1];
+    const b = data[i * channels + 2];
+    if (channels !== 3) {
+      rgb[i * 3] = r;
+      rgb[i * 3 + 1] = g;
+      rgb[i * 3 + 2] = b;
+    }
+    gray[i] = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+  return { width, height, gray, rgb };
+}
+
+/**
+ * Split two equal-size grey frames into grid×grid regions; a region "moves" when its mean
+ * absolute difference exceeds `threshold` (0..1). Returns { moving, means, variance }.
+ */
+export function regionMotion(grayA, grayB, w, h, grid = 4, threshold = 1.5 / 255) {
+  const means = [];
+  const cw = Math.floor(w / grid);
+  const ch = Math.floor(h / grid);
+  for (let gy = 0; gy < grid; gy++) {
+    for (let gx = 0; gx < grid; gx++) {
+      let s = 0;
+      let n = 0;
+      for (let y = gy * ch; y < (gy + 1) * ch; y++) {
+        const row = y * w;
+        for (let x = gx * cw; x < (gx + 1) * cw; x++) {
+          s += Math.abs(grayA[row + x] - grayB[row + x]);
+          n++;
+        }
+      }
+      means.push(n ? s / n : 0);
+    }
+  }
+  const moving = means.filter((m) => m > threshold).length;
+  const mean = means.reduce((a, b) => a + b, 0) / means.length;
+  const variance = means.reduce((a, b) => a + (b - mean) ** 2, 0) / means.length;
+  return { moving, means, variance, threshold };
+}
+
+/** Escape text for an SVG text node. */
+export function svgEscape(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}

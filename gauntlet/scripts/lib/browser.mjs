@@ -104,8 +104,14 @@ export async function launchBrowser({ width = 1280, height = 720, deviceScaleFac
   return browser;
 }
 
-/** Open the world under capture mode and wait for `window.__ZR__.ready()`. */
-export async function openWorld(browser, baseUrl, { width = 1280, height = 720, quality = 'high', timeoutMs = 420_000, log = console.error } = {}) {
+/** Ready timeout: CAPTURE_READY_TIMEOUT_MS env (default 15 min — SwiftShader shader compiles on a loaded box are slow). */
+export const READY_TIMEOUT_MS = Number(process.env.CAPTURE_READY_TIMEOUT_MS) > 0 ? Number(process.env.CAPTURE_READY_TIMEOUT_MS) : 900_000;
+
+/**
+ * Open the world under capture mode and wait for `window.__ZR__.ready()`. The ready wait is polled
+ * (short CDP calls) so it is bounded by `timeoutMs`, not by puppeteer's per-call protocolTimeout.
+ */
+export async function openWorld(browser, baseUrl, { width = 1280, height = 720, quality = 'high', timeoutMs = READY_TIMEOUT_MS, log = console.error } = {}) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
   const consoleLines = [];
@@ -119,8 +125,25 @@ export async function openWorld(browser, baseUrl, { width = 1280, height = 720, 
     log(`[pageerror] ${e.message}`);
   });
   const url = `${baseUrl}/?capture=1&dev=0&quality=${encodeURIComponent(quality)}`;
+  const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: timeoutMs });
-  await page.waitForFunction(() => !!window.__ZR__, { timeout: timeoutMs });
-  await page.evaluate(() => window.__ZR__.ready());
+  await page.waitForFunction(() => !!window.__ZR__, { timeout: timeoutMs, polling: 250 });
+  log(`world: page loaded in ${((Date.now() - t0) / 1000).toFixed(1)} s — waiting for __ZR__.ready() (timeout ${(timeoutMs / 60_000).toFixed(0)} min)`);
+  await page.evaluate(() => {
+    const w = window;
+    w.__zrReadyState = 'pending';
+    Promise.resolve(w.__ZR__.ready()).then(
+      () => (w.__zrReadyState = 'ready'),
+      (e) => (w.__zrReadyState = `error: ${e?.message ?? e}`),
+    );
+  });
+  try {
+    await page.waitForFunction(() => window.__zrReadyState !== 'pending', { timeout: timeoutMs, polling: 1000 });
+  } catch (e) {
+    throw new Error(`world did not become ready within ${(timeoutMs / 1000).toFixed(0)} s (${e.message}). Set CAPTURE_READY_TIMEOUT_MS to wait longer or reduce machine load.`);
+  }
+  const state = await page.evaluate(() => window.__zrReadyState);
+  if (state !== 'ready') throw new Error(`__ZR__.ready() rejected: ${state}`);
+  log(`world: ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return { page, consoleLines, url };
 }
