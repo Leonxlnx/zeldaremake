@@ -1,0 +1,292 @@
+/**
+ * GLSL for the post-processing chain (see composer.ts). All passes are pure functions of the
+ * current frame (interleaved-gradient noise keyed on gl_FragCoord — no temporal jitter), which
+ * keeps headless captures pixel-deterministic.
+ */
+
+export const FULLSCREEN_VERT = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4( position.xy, 0.0, 1.0 );
+}
+`;
+
+const DEPTH_UTILS = /* glsl */ `
+uniform sampler2D tDepth;
+uniform float uNear;
+uniform float uFar;
+float viewZFromDepth( float d ) {
+  // perspective: negative view-space z
+  return ( uNear * uFar ) / ( ( uFar - uNear ) * d - uFar );
+}
+bool isSky( float d ) { return d >= 0.999999; }
+float ign( vec2 p ) { return fract( 52.9829189 * fract( dot( p, vec2( 0.06711056, 0.00583715 ) ) ) ); }
+`;
+
+/** Half-resolution screen-space ambient occlusion from the depth buffer (normals reconstructed). */
+export const AO_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+uniform mat4 uProj;
+uniform mat4 uProjInv;
+uniform vec2 uTexel;
+uniform float uRadius;
+uniform float uBias;
+uniform float uPower;
+varying vec2 vUv;
+#define NS 10
+vec3 viewPos( vec2 uv ) {
+  float d = texture2D( tDepth, uv ).x;
+  vec4 p = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+  return p.xyz / p.w;
+}
+void main() {
+  float d0 = texture2D( tDepth, vUv ).x;
+  if ( isSky( d0 ) ) { gl_FragColor = vec4( 1.0 ); return; }
+  vec3 P = viewPos( vUv );
+  vec3 Pr = viewPos( vUv + vec2( uTexel.x, 0.0 ) );
+  vec3 Pl = viewPos( vUv - vec2( uTexel.x, 0.0 ) );
+  vec3 Pu = viewPos( vUv + vec2( 0.0, uTexel.y ) );
+  vec3 Pd = viewPos( vUv - vec2( 0.0, uTexel.y ) );
+  vec3 dx = abs( Pr.z - P.z ) < abs( P.z - Pl.z ) ? Pr - P : P - Pl;
+  vec3 dy = abs( Pu.z - P.z ) < abs( P.z - Pd.z ) ? Pu - P : P - Pd;
+  vec3 N = normalize( cross( dx, dy ) );
+  if ( dot( N, -P ) < 0.0 ) N = -N;
+
+  float ang = ign( gl_FragCoord.xy ) * 6.2831853;
+  vec3 rnd = vec3( cos( ang ), sin( ang ), 0.37 );
+  vec3 T = normalize( rnd - N * dot( rnd, N ) );
+  vec3 B = cross( N, T );
+  // radius shrinks a little with distance so far geometry does not turn into a dark halo
+  float dist = -P.z;
+  float radius = uRadius * clamp( 1.0 - dist / 120.0, 0.35, 1.0 );
+  float occ = 0.0;
+  for ( int i = 0; i < NS; i ++ ) {
+    float fi = float( i );
+    float r = sqrt( ( fi + 0.5 ) / float( NS ) );           // uniform disc → hemisphere
+    float th = fi * 2.399963 + ang;
+    float z = 0.25 + 0.75 * fract( fi * 0.618034 + 0.2 );  // bias upward
+    vec3 k = normalize( vec3( cos( th ) * r, sin( th ) * r, z ) ) * ( 0.25 + 0.75 * fract( fi * 0.7548776 ) );
+    vec3 s = P + ( T * k.x + B * k.y + N * k.z ) * radius;
+    vec4 o = uProj * vec4( s, 1.0 );
+    vec2 suv = o.xy / o.w * 0.5 + 0.5;
+    if ( any( lessThan( suv, vec2( 0.0 ) ) ) || any( greaterThan( suv, vec2( 1.0 ) ) ) ) continue;
+    float sd = texture2D( tDepth, suv ).x;
+    float sz = viewZFromDepth( sd );
+    float rangeCheck = smoothstep( 0.0, 1.0, radius / max( abs( P.z - sz ), 1e-4 ) );
+    occ += ( sz >= s.z + uBias ? 1.0 : 0.0 ) * rangeCheck;
+  }
+  float ao = 1.0 - occ / float( NS );
+  ao = pow( clamp( ao, 0.0, 1.0 ), uPower );
+  gl_FragColor = vec4( vec3( ao ), 1.0 );
+}
+`;
+
+/** 3×3 depth-aware blur of the AO term (half resolution). */
+export const AO_BLUR_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+uniform sampler2D tAO;
+uniform vec2 uTexel;
+varying vec2 vUv;
+void main() {
+  float d0 = texture2D( tDepth, vUv ).x;
+  if ( isSky( d0 ) ) { gl_FragColor = vec4( 1.0 ); return; }
+  float z0 = viewZFromDepth( d0 );
+  float sum = 0.0;
+  float wsum = 0.0;
+  for ( int y = -1; y <= 1; y ++ ) {
+    for ( int x = -1; x <= 1; x ++ ) {
+      vec2 uv = vUv + vec2( float( x ), float( y ) ) * uTexel;
+      float z = viewZFromDepth( texture2D( tDepth, uv ).x );
+      float w = exp( -abs( z - z0 ) * 4.0 / max( -z0 * 0.05, 0.05 ) );
+      sum += texture2D( tAO, uv ).x * w;
+      wsum += w;
+    }
+  }
+  gl_FragColor = vec4( vec3( sum / max( wsum, 1e-4 ) ), 1.0 );
+}
+`;
+
+/**
+ * Volumetric god rays: march each view ray (quarter res, 16 jittered steps, up to uMaxDist or the
+ * scene surface) and accumulate sun light that reaches the haze, testing the sun's shadow map at
+ * every step. Canopy, trunks and the lantern branch therefore carve real beams; the haze density
+ * follows the same height-fog model as heightfog.ts (denser low and in the north hollow) plus a
+ * thin base so shafts also read in the upper air. A Henyey–Greenstein phase term makes the shafts
+ * strongest when looking toward the sun (shots A, B, F) and faint when it is behind the camera.
+ */
+export const RAY_MARCH_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+uniform mat4 uProjInv;
+uniform mat4 uViewInv;
+uniform mat4 uShadowMatrix;
+uniform sampler2DShadow tShadow;
+uniform vec3 uSunDirView;
+uniform float uMaxDist;
+uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
+uniform vec2 uDensity;     // height-fog density weight, base air density
+uniform float uAnisotropy;
+varying vec2 vUv;
+#define STEPS 16
+void main() {
+  float d = texture2D( tDepth, vUv ).x;
+  vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+  vec3 P = p.xyz / p.w;
+  float surf = isSky( d ) ? uMaxDist : length( P );
+  float maxDist = min( surf, uMaxDist );
+  vec3 dir = normalize( P );
+  float cosSun = dot( dir, uSunDirView );
+  float g = uAnisotropy;
+  float phase = ( 1.0 - g * g ) / pow( 1.0 + g * g - 2.0 * g * cosSun, 1.5 );
+  float jitter = ign( gl_FragCoord.xy );
+  float stepLen = maxDist / float( STEPS );
+  float acc = 0.0;
+  for ( int i = 0; i < STEPS; i ++ ) {
+    float t = ( float( i ) + jitter ) * stepLen;
+    vec4 pw = uViewInv * vec4( dir * t, 1.0 );
+    vec4 sc = uShadowMatrix * pw;
+    sc.xyz /= sc.w;
+    float lit = 1.0;
+    if ( sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0 ) {
+      lit = texture( tShadow, vec3( sc.xy, sc.z - 0.0006 ) );
+    }
+    float north = smoothstep( uFogParams.z, uFogParams.w, pw.z );
+    float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );
+    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y;
+    // nearer segments dominate a little less than far ones (light already scattered out)
+    acc += lit * dens * stepLen;
+  }
+  float rays = acc * ( 0.35 + phase ) * 0.6;
+  gl_FragColor = vec4( vec3( clamp( rays, 0.0, 1.5 ) ), 1.0 );
+}
+`;
+
+/**
+ * Smoothing of the ray-march result along the screen-space direction to the sun (beams converge on
+ * the sun, so smearing along that axis removes the march's jitter without blurring across beams).
+ * When the sun is behind the camera `uSunUv` holds the anti-solar point and the smear runs away
+ * from it (uDirSign = -1).
+ */
+export const RAY_BLUR_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+uniform vec2 uSunUv;
+uniform float uDirSign;
+uniform float uLength;   // smear length in uv
+uniform vec2 uTexel;
+varying vec2 vUv;
+#define NS 12
+void main() {
+  vec2 toSun = ( uSunUv - vUv ) * uDirSign;
+  float len = length( toSun );
+  vec2 dir = len > 1e-4 ? toSun / len : vec2( 0.0, 1.0 );
+  float step = uLength / float( NS );
+  float sum = 0.0;
+  float wsum = 0.0;
+  for ( int i = 0; i < NS; i ++ ) {
+    float f = ( float( i ) + 0.5 ) / float( NS );
+    float w = 1.0 - f * 0.6;
+    vec2 uv = vUv + dir * ( f * step * float( NS ) );
+    vec2 outside = max( max( -uv, uv - 1.0 ), 0.0 );
+    float fade = 1.0 - smoothstep( 0.0, 0.02, max( outside.x, outside.y ) );
+    sum += texture2D( tSrc, clamp( uv, 0.0, 1.0 ) ).x * w * fade;
+    wsum += w;
+  }
+  // small cross-axis tap to soften the jitter pattern as well
+  vec2 perp = vec2( -dir.y, dir.x ) * uTexel;
+  float side = texture2D( tSrc, vUv + perp ).x + texture2D( tSrc, vUv - perp ).x;
+  gl_FragColor = vec4( vec3( ( sum / max( wsum, 1e-4 ) ) * 0.7 + side * 0.15 ), 1.0 );
+}
+`;
+
+/** Bloom bright pass with a soft knee (quarter resolution). */
+export const BRIGHT_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+uniform float uThreshold;
+uniform float uKnee;
+varying vec2 vUv;
+void main() {
+  vec3 c = texture2D( tSrc, vUv ).rgb;
+  float l = max( max( c.r, c.g ), c.b );
+  float soft = clamp( l - uThreshold + uKnee, 0.0, 2.0 * uKnee );
+  soft = soft * soft / ( 4.0 * uKnee + 1e-4 );
+  float contrib = max( soft, l - uThreshold ) / max( l, 1e-4 );
+  gl_FragColor = vec4( c * contrib, 1.0 );
+}
+`;
+
+/** Separable 9-tap Gaussian. */
+export const BLUR_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+uniform vec2 uDir; // texel-sized step
+varying vec2 vUv;
+void main() {
+  const float w[5] = float[5]( 0.2270270, 0.1945946, 0.1216216, 0.0540541, 0.0162162 );
+  vec3 c = texture2D( tSrc, vUv ).rgb * w[0];
+  for ( int i = 1; i < 5; i ++ ) {
+    vec2 o = uDir * float( i );
+    c += texture2D( tSrc, vUv + o ).rgb * w[i];
+    c += texture2D( tSrc, vUv - o ).rgb * w[i];
+  }
+  gl_FragColor = vec4( c, 1.0 );
+}
+`;
+
+/** Composite: AO · HDR + mist + rays + bloom → ACES → subtle grade → sRGB. */
+export const COMPOSITE_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+uniform sampler2D tHDR;
+uniform sampler2D tAO;
+uniform sampler2D tMist;
+uniform sampler2D tRays;
+uniform sampler2D tBloom;
+uniform float uAoStrength;
+uniform float uHasMist;
+uniform vec3 uRayColor;
+uniform float uRayIntensity;
+uniform float uBloomIntensity;
+uniform float uExposure;
+uniform float uSaturation;
+uniform float uContrast;
+uniform vec3 uShadowTint;
+uniform vec3 uHighlightTint;
+varying vec2 vUv;
+
+vec3 aces( vec3 c ) {
+  const mat3 inM = mat3( 0.59719, 0.07600, 0.02840, 0.35458, 0.90834, 0.13383, 0.04823, 0.01566, 0.83777 );
+  const mat3 outM = mat3( 1.60475, -0.10208, -0.00327, -0.53108, 1.10813, -0.07276, -0.07367, -0.00605, 1.07602 );
+  c = inM * c;
+  vec3 a = c * ( c + 0.0245786 ) - 0.000090537;
+  vec3 b = c * ( 0.983729 * c + 0.4329510 ) + 0.238081;
+  c = outM * ( a / b );
+  return clamp( c, 0.0, 1.0 );
+}
+vec3 linearToSRGB( vec3 c ) {
+  vec3 lo = c * 12.92;
+  vec3 hi = pow( c, vec3( 1.0 / 2.4 ) ) * 1.055 - 0.055;
+  return mix( hi, lo, step( c, vec3( 0.0031308 ) ) );
+}
+
+void main() {
+  vec3 hdr = texture2D( tHDR, vUv ).rgb;
+  float d = texture2D( tDepth, vUv ).x;
+  float sky = isSky( d ) ? 1.0 : 0.0;
+  float ao = texture2D( tAO, vUv ).x;
+  hdr *= mix( 1.0, ao, uAoStrength * ( 1.0 - sky ) );
+  if ( uHasMist > 0.5 ) {
+    vec4 mist = texture2D( tMist, vUv );
+    hdr = hdr * ( 1.0 - mist.a ) + mist.rgb;
+  }
+  // volumetric in-scatter accumulated along the ray up to the surface (see RAY_MARCH_FRAG)
+  float rays = texture2D( tRays, vUv ).x;
+  hdr += rays * uRayColor * uRayIntensity;
+  hdr += texture2D( tBloom, vUv ).rgb * uBloomIntensity;
+
+  vec3 c = aces( hdr * uExposure / 0.6 );
+  float lum = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) );
+  c = mix( vec3( lum ), c, uSaturation );
+  c = ( c - 0.5 ) * uContrast + 0.5;
+  c *= mix( uShadowTint, uHighlightTint, smoothstep( 0.05, 0.85, lum ) );
+  c = clamp( c, 0.0, 1.0 );
+  gl_FragColor = vec4( linearToSRGB( c ), 1.0 );
+}
+`;
