@@ -17,7 +17,7 @@ export function renderToolbar(root, data) {
   const take = data.byId[state.takeId] || null;
   const scene = take?.slate?.scene?.toUpperCase();
   const modes = MODES.map((m) => `<button type="button" data-mode="${m}" aria-pressed="${state.mode === m}" ${take ? '' : 'disabled'} title="${MODE_LABELS[m]}">${MODE_LABELS[m]}</button>`).join('');
-  const vps = data.viewpoints.map((v) => `<button type="button" class="vp-tab" data-vp="${esc(v.id)}" aria-pressed="${state.viewpoint === v.id}" title="${esc(v.id)} · TC ${timecode(v.refSeconds)}"><b>${esc(v.letter)}</b>${esc(v.label)}${scene === v.letter ? '<i class="scene-dot" title="hero scene of this take"></i>' : ''}</button>`).join('');
+  const vps = data.viewpoints.map((v) => `<button type="button" class="vp-tab" data-vp="${esc(v.id)}" aria-pressed="${state.viewpoint === v.id}" title="${esc(v.label)} · ${esc(v.id)} · TC ${timecode(v.refSeconds)}" aria-label="${esc(v.letter)} ${esc(v.label)}"><b>${esc(v.letter)}</b><span class="vp-lbl">${esc(v.label)}</span>${scene === v.letter ? '<i class="scene-dot" title="hero scene of this take"></i>' : ''}</button>`).join('');
   root.innerHTML = `
     <div class="seg" role="group" aria-label="Compare mode">${modes}</div>
     <div class="vp-tabs" role="group" aria-label="Viewpoint">${vps}</div>
@@ -320,12 +320,7 @@ export function bindCallouts(root) {
     if (lg && hoverId === lg.dataset.pin) { hoverId = null; applyHighlight(); }
   });
   root.addEventListener('click', (e) => {
-    const go = e.target.closest('[data-goto-item]');
-    if (go) {
-      e.preventDefault();
-      document.dispatchEvent(new CustomEvent('monitor:goto-item', { detail: { id: go.dataset.gotoItem } }));
-      return;
-    }
+    if (e.target.closest('[data-goto-item]')) return; // handled globally (panels.js)
     const gm = e.target.closest('[data-goto-mode]');
     if (gm) { e.preventDefault(); set({ mode: gm.dataset.gotoMode }); return; }
     const lg = e.target.closest('.lg');

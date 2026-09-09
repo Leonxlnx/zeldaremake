@@ -3,8 +3,9 @@
 
 import { toDate, agentColor } from './util.js';
 
-// Data base: relative on GitHub Pages / local; on raw CDN mirrors (githack) read straight from the
-// monitor branch on raw.githubusercontent.com so hourly takes appear within ~5 minutes.
+// Data base: relative on GitHub Pages / local. On raw CDN mirrors (githack/jsdelivr/statically) read
+// straight from the monitor branch on raw.githubusercontent.com so hourly takes appear within ~5 min.
+// Override with window.MONITOR_DATA_BASE before app.js loads.
 const ON_RAW_CDN = /githack\.com$|jsdelivr\.net$|statically\.io$/.test(location.hostname);
 export const DATA_BASE = window.MONITOR_DATA_BASE || (ON_RAW_CDN ? 'https://raw.githubusercontent.com/Leonxlnx/zeldaremake/monitor/data/' : './data/');
 export const dataUrl = (rel) => (rel ? DATA_BASE + String(rel).replace(/^\/+/, '') : '');

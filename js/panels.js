@@ -1,6 +1,6 @@
 // Take notes, metrics strip, rubric board, crew roster.
 
-import { $, $$, esc, fmtRel, fmtDateTime, fmtNum, initial, toast } from './util.js';
+import { $, $$, esc, fmtRel, fmtDateTime, fmtNum, initial, toast, prefersReducedMotion } from './util.js';
 import { state, set } from './state.js';
 import { GROUPS, describeThreshold, fmtScoreValue, metricTargets } from './data.js';
 
@@ -160,10 +160,9 @@ function card(it, status, entry, flip, targeted) {
   const thr = describeThreshold(it, entry);
   const up = flip && flip.endsWith('pass');
   return `<article class="card ${status}${targeted ? ' is-target' : ''}" id="item-${esc(it.id)}" data-item="${esc(it.id)}" title="${esc(it.description || '')}">
-    <div class="card-top"><span class="id">${esc(it.id)}</span><span class="verify">${esc(it.verify || 'auto')}</span><span class="status ${status}">${status}</span></div>
+    <div class="card-top"><span class="id">${esc(it.id)}</span><span class="verify">${esc(it.verify || 'auto')}</span>${targeted ? '<span class="target-mark" title="targeted by this take">target</span>' : ''}<span class="status ${status}">${status}</span></div>
     <div class="card-title">${esc(it.title || '')}</div>
     <div class="card-vals"><span class="val">${esc(fmtScoreValue(val))}</span><span class="thr">${esc(thr)}</span>${flip ? `<span class="delta ${up ? 'up' : 'down'}">Δ ${esc(flip)}</span>` : ''}</div>
-    ${targeted ? '<span class="target-mark">target</span>' : ''}
   </article>`;
 }
 
@@ -172,16 +171,34 @@ export function bindRubric(root) {
     const f = e.target.closest('[data-filter]');
     if (f) set({ rubricFilter: f.dataset.filter });
   });
+  // rubric-item chips live in several panels (notes, callouts legend) — one delegated handler
+  document.addEventListener('click', (e) => {
+    const go = e.target.closest('[data-goto-item]');
+    if (!go) return;
+    e.preventDefault();
+    document.dispatchEvent(new CustomEvent('monitor:goto-item', { detail: { id: go.dataset.gotoItem } }));
+  });
   document.addEventListener('monitor:goto-item', (e) => {
     const id = e.detail?.id;
     if (!id) return;
     if (state.rubricFilter !== 'all') set({ rubricFilter: 'all' });
     const card = document.getElementById(`item-${id}`);
     if (!card) { toast(`${id} is not in the rubric`); return; }
-    card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    revealCard(card);
     card.classList.add('flash');
     setTimeout(() => card.classList.remove('flash'), 1600);
   });
+}
+
+// Centre the card in the band of viewport that the sticky filmstrip does not cover
+// (scrollIntoView({block:'center'}) is unaware of sticky overlays).
+function revealCard(card) {
+  const strip = $('.filmstrip');
+  const stripH = strip && getComputedStyle(strip).display !== 'none' ? strip.getBoundingClientRect().height : 0;
+  const band = Math.max(200, window.innerHeight - stripH);
+  const r = card.getBoundingClientRect();
+  const top = Math.max(0, window.scrollY + r.top - (band - r.height) / 2);
+  window.scrollTo({ top, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
 }
 
 /* ------------------------------------------------------------------ crew */

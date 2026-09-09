@@ -24,7 +24,7 @@ export function renderSlate(data) {
     <div class="sf"><span class="k">Dir.</span><span class="v">${esc(director)}</span></div>
     <div class="sf"><span class="k">Cam.</span><span class="v" title="${esc(camera)}">${esc(shortCam(camera))}</span></div>
     <div class="sf"><span class="k">Roll</span><span class="v">${esc(roll)}</span></div>
-    <div class="sf"><span class="k">Date</span><span class="v">${take ? esc(fmtDateTime(take.at)) : '<span class="dash">— waiting —</span>'}</span></div>
+    <div class="sf"><span class="k">Date</span><span class="v" title="${take ? esc(fmtDateTime(take.at)) : ''}">${take ? esc(fmtDateTime(take.at).replace(/:\d\d UTC$/, ' UTC')) : '<span class="dash">— waiting —</span>'}</span></div>
     <div class="sf"><span class="k">Commit</span><span class="v">${
       sha ? `<a href="${REPO}/commit/${esc(take.sha || sha)}" target="_blank" rel="noopener" title="${esc(take.subject || '')}">${esc(sha)} ↗</a>` : '<span class="dash">—</span>'
     }</span></div>`;

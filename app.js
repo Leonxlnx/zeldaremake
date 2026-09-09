@@ -67,10 +67,32 @@ function applyView() {
   document.title = `${reel ? 'Reel' : 'Monitor'} · ${state.takeId ? state.takeId.toUpperCase() : 'standby'} · Kokiri Forest Remake`;
 }
 
-let leaderRaf = 0;
+// Coalesce redraws into one zero-timeout (not rAF: headless/throttled tabs fire rAF very late,
+// and getBoundingClientRect() forces layout synchronously anyway).
+let leaderTimer = 0;
 function scheduleLeaders() {
-  cancelAnimationFrame(leaderRaf);
-  leaderRaf = requestAnimationFrame(() => { drawLeaders(); });
+  clearTimeout(leaderTimer);
+  leaderTimer = setTimeout(() => { fitStage(); drawLeaders(); }, 0);
+}
+
+/**
+ * Keep picture + metrics visible above the sticky filmstrip: measure everything that is not the
+ * stage and publish it as --stage-reserve (the stage width is derived from 100vh minus this).
+ */
+let lastReserve = 0;
+function fitStage() {
+  if (window.innerWidth < 1000) return;
+  const h = (sel) => $(sel)?.offsetHeight || 0;
+  const slate = $('#slate');
+  const slateBox = slate ? slate.offsetHeight + parseFloat(getComputedStyle(slate).marginTop || '0') : 0;
+  const mainPad = parseFloat(getComputedStyle($('main')).paddingTop || '0');
+  const frame = $('.stage-frame');
+  const framePad = frame ? parseFloat(getComputedStyle(frame).paddingTop || '0') * 2 : 14;
+  const reserve = Math.round(slateBox + mainPad + h('#viewer-toolbar') + 10 + framePad + 10 + h('#metrics') + h('#filmstrip') + 8);
+  if (Math.abs(reserve - lastReserve) > 1) {
+    lastReserve = reserve;
+    document.documentElement.style.setProperty('--stage-reserve', `${reserve}px`);
+  }
 }
 
 /** Resolve a hash patch against the data (unknown ids fall back to sensible defaults). */
@@ -85,8 +107,8 @@ function resolve(patch, initial) {
     p.viewpoint = hero?.id || 'A_stairs';
   }
   if (patch.mode && MODES.includes(patch.mode)) p.mode = patch.mode;
-  if (patch.view && VIEWS.includes(patch.view)) p.view = patch.view;
-  else if (initial) p.view = 'monitor';
+  // the hash is the full navigation state: no "/reel" segment means the monitor view
+  p.view = patch.view && VIEWS.includes(patch.view) ? patch.view : 'monitor';
   return p;
 }
 
@@ -100,7 +122,9 @@ function bindKeyboard() {
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
     const t = e.target;
-    if (t.closest?.('input, textarea, select, [contenteditable], [role="slider"]')) return;
+    if (t.closest?.('input, textarea, select, [contenteditable]')) return;
+    // a focused wipe handle owns the arrow/Home/End keys (see viewer.js); letters still work
+    if (t.closest?.('[role="slider"]') && /^(Arrow|Home|End)/.test(e.key)) return;
     const reel = state.view === 'reel';
     switch (e.key) {
       case 'ArrowLeft':

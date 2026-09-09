@@ -28,7 +28,7 @@ export function renderReel(root, data) {
   const first = takes[0];
   const last = takes[takes.length - 1];
 
-  const vps = data.viewpoints.map((v) => `<button type="button" class="vp-tab" data-vp="${esc(v.id)}" aria-pressed="${state.viewpoint === v.id}"><b>${esc(v.letter)}</b>${esc(v.label)}</button>`).join('');
+  const vps = data.viewpoints.map((v) => `<button type="button" class="vp-tab" data-vp="${esc(v.id)}" aria-pressed="${state.viewpoint === v.id}" aria-label="${esc(v.letter)} ${esc(v.label)}"><b>${esc(v.letter)}</b><span class="vp-lbl">${esc(v.label)}</span></button>`).join('');
 
   root.innerHTML = `
     <div class="reel-grid">
@@ -199,18 +199,13 @@ export function loadTimeline() {
         if (Array.isArray(arr) && arr.length) return arr.map((f) => (typeof f === 'string' ? { file: f } : f)).filter((f) => f?.file);
       }
     } catch { /* fall through to probing */ }
+    // No index: probe t_001.jpg, t_002.jpg … sequentially and stop at the first miss, so the
+    // console only ever sees one 404 (two counting index.json).
     const found = [];
-    for (let start = 1; start <= 120; start += 12) {
-      const batch = await Promise.all(Array.from({ length: 12 }, (_, k) => {
-        const file = `t_${pad(start + k, 3)}.jpg`;
-        return probe(dataUrl(`reference/frames/timeline/${file}`)).then((ok) => (ok ? { file } : null));
-      }));
-      let stop = false;
-      for (const b of batch) {
-        if (b) found.push(b);
-        else { stop = true; break; }
-      }
-      if (stop) break;
+    for (let i = 1; i <= 200; i++) {
+      const file = `t_${pad(i, 3)}.jpg`;
+      if (!(await probe(dataUrl(`reference/frames/timeline/${file}`)))) break;
+      found.push({ file });
     }
     return found;
   })();

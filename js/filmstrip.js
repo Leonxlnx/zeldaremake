@@ -5,9 +5,9 @@ import { $, $$, esc, fmtTime, fmtDur, pad, clamp, HOUR, MIN } from './util.js';
 import { state, set } from './state.js';
 import { dataUrl } from './data.js';
 
-const THUMB_W = 132;
+const THUMB_W = 120;
 const GAP = 8;
-const SPARK_H = 34;
+const SPARK_H = 26;
 
 export function renderFilmstrip(root, data) {
   const vp = data.vpById[state.viewpoint];
@@ -41,7 +41,7 @@ export function renderFilmstrip(root, data) {
   // sparkline
   const pts = items.filter((it) => it.type === 'take').map((it) => {
     const pp = it.take.score?.phasePassed ?? 0;
-    return { x: it.x + THUMB_W / 2, y: SPARK_H - 4 - (SPARK_H - 10) * clamp(pp / phaseReq, 0, 1), pp, take: it.take };
+    return { x: it.x + THUMB_W / 2, y: SPARK_H - 3 - (SPARK_H - 14) * clamp(pp / phaseReq, 0, 1), pp, take: it.take };
   });
   const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const area = pts.length ? `${line} L${pts[pts.length - 1].x.toFixed(1)},${SPARK_H} L${pts[0].x.toFixed(1)},${SPARK_H} Z` : '';
@@ -49,7 +49,7 @@ export function renderFilmstrip(root, data) {
     <defs><linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2b866" stop-opacity=".35"/><stop offset="1" stop-color="#f2b866" stop-opacity="0"/></linearGradient></defs>
     ${area ? `<path class="area" d="${area}"/>` : ''}${line ? `<path class="line" d="${line}"/>` : ''}
     ${pts.map((p) => `<circle class="pt${p.take.id === state.takeId ? ' cur' : ''}${p.take.valid ? '' : ' invalid'}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.take.id === state.takeId ? 4 : 2.5}"/>
-      <text x="${p.x.toFixed(1)}" y="${(p.y - 6).toFixed(1)}" text-anchor="middle">${p.pp}</text>`).join('')}
+      <text x="${(p.x + 7).toFixed(1)}" y="${(p.y < 12 ? p.y + 10 : p.y - 5).toFixed(1)}" text-anchor="start">${p.pp}</text>`).join('')}
   </svg>`;
 
   // ruler ticks (hour boundaries emphasised)
