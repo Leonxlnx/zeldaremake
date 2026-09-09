@@ -11,6 +11,8 @@ export interface LodSetOptions {
   /** variants[v][lod] */
   variants: BufferGeometry[][];
   material: Material;
+  /** Matching deformation for directional/spot and point-light shadow passes. */
+  shadowMaterials?: { depth: Material; distance: Material };
   /** distance thresholds: lod i is used while distance < lodDistances[i]; the last lod has no limit */
   lodDistances: number[];
   /** lods with index < castShadowLods cast shadows */
@@ -89,6 +91,10 @@ export class LodInstancedSet {
         colors.setUsage(DynamicDrawUsage);
         mesh.instanceColor = colors;
         mesh.castShadow = l < (this.opts.castShadowLods ?? 0);
+        if (mesh.castShadow && this.opts.shadowMaterials) {
+          mesh.customDepthMaterial = this.opts.shadowMaterials.depth;
+          mesh.customDistanceMaterial = this.opts.shadowMaterials.distance;
+        }
         mesh.receiveShadow = this.opts.receiveShadow ?? true;
         mesh.matrixAutoUpdate = false;
         mesh.boundingSphere = new Sphere(centre.clone(), radius);
@@ -112,10 +118,10 @@ export class LodInstancedSet {
   }
 
   /** Re-bucket instances by LOD for the current camera position. */
-  update(camPos: Vector3) {
+  update(camPos: Vector3, force = false) {
     if (!this.built) this.build();
     const hyst = this.opts.hysteresis ?? 0.6;
-    if (camPos.distanceToSquared(this.lastCam) < hyst * hyst) return;
+    if (!force && camPos.distanceToSquared(this.lastCam) < hyst * hyst) return;
     this.lastCam.copy(camPos);
     const { lodDistances } = this.opts;
     const lodCount = this.opts.variants[0].length;
@@ -145,7 +151,7 @@ export class LodInstancedSet {
     }
   }
 
-  /** Draw calls / triangles currently drawable (upper bound: no frustum culling). */
+  /** Draw calls / triangles before frustum culling, including one sun-shadow pass. */
   stats(): { drawCalls: number; triangles: number } {
     let drawCalls = 0;
     let triangles = 0;
@@ -155,7 +161,7 @@ export class LodInstancedSet {
         const g = mesh.geometry;
         const tris = (g.index ? g.index.count : g.attributes.position.count) / 3;
         drawCalls += mesh.castShadow ? 2 : 1;
-        triangles += tris * mesh.count;
+        triangles += tris * mesh.count * (mesh.castShadow ? 2 : 1);
       }
     }
     return { drawCalls, triangles };

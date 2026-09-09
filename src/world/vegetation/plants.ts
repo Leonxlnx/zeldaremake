@@ -10,7 +10,7 @@ import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { LodInstancedSet } from './lodset';
-import { createVegMaterial, type VegMaterialOptions } from './materials';
+import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
 import { bushGeometry, cloverGeometry, fernGeometry, flowerGeometry, flowerSpikeGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry } from './plantgeo';
 
 export interface PlantSets {
@@ -95,7 +95,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const mk = (label: string, geos: ReturnType<typeof variants>, kind: 'plant' | 'bush' | 'moss', lodDistances: number[], castShadowLods: number, matOpts: VegMaterialOptions = {}) => {
     const material = createVegMaterial(ctx, kind, { plantHeight: maxHeight(geos), name: `veg-${label}`, ...matOpts });
     materials.push(material);
-    return new LodInstancedSet({ name: label, variants: geos, material, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods });
+    const shadowMaterials = castShadowLods > 0 ? createVegShadowMaterials(material) : undefined;
+    if (shadowMaterials) materials.push(shadowMaterials.depth, shadowMaterials.distance);
+    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods });
   };
 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
@@ -189,8 +191,33 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         return p;
       },
     },
-    (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.7 + rng() * 0.6, 0.5, 0.03, greenVar(rng, 0.18)),
+    (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.65 + rng() * 0.45, 0.4, 0.03, greenVar(rng, 0.18)),
   );
+
+  // Broad, leafy crowns break up the house banks and ledge tops seen in A/B/D. Reuse the
+  // same variant/LOD meshes, so these clusters add instances rather than new draw batches.
+  // Probe the crown surroundings as well as its root to avoid crowding path/stair pads.
+  const crownSample = newSample();
+  scatter(ctx, field, {
+    label: 'bushes-ledge-crowns', candidates: Math.round(5200 * q.density),
+    box: [-14, -22, 25, 0], minSpacing: 2.3,
+    accept(x, z, s) {
+      if (field.edgeDistance(x, z) < 1.65) return 0;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 1.2) return 0;
+      if (bushes.items.some(p => Math.hypot(p.x - x, p.z - z) < 2.3)) return 0;
+      const house = field.houseInfo(x, z);
+      const byHouse = house.dist > 1.3 ? 1 - smoothstep(1.3, 5.5, house.dist) : 0;
+      const onLedge = smoothstep(0.18, 0.42, s.plateau) * (1 - smoothstep(0.9, 1, s.plateau));
+      if (Math.max(byHouse, onLedge) < 0.2) return 0;
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4, px = x + Math.cos(a) * 1.35, pz = z + Math.sin(a) * 1.35;
+        field.sample(px, pz, crownSample);
+        if (!field.allowed(px, pz, crownSample) || field.insideGiantTrunk(px, pz)) return 0;
+      }
+      return .65 * Math.max(byHouse, onLedge);
+    },
+  }, (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 1.05 + rng() * .3, .28, .035, greenVar(rng, .15)));
 
   // ---- purple flowers: shot D left foreground, west verge of the spine, shot A left, scattered
   const flowerPlace = (scaleMin: number, scaleMax: number) => (x: number, z: number, s: FieldSample, rng: Rng) => placeInstance(flowers, x, z, s, rng, scaleMin + rng() * (scaleMax - scaleMin), 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1));

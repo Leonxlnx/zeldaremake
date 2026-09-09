@@ -227,7 +227,9 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const variance = total ? hSq / total - mean * mean : 0;
   const cv = mean > 0 ? Math.sqrt(Math.max(0, variance)) / mean : 0;
 
-  const lodDistances = [12 * q.distance, 26 * q.distance, 78 * q.distance];
+  // Distances are measured from each tile's near edge, so the four-segment blades still
+  // extend beyond 10 m. Preserve foreground detail/counts while budgeting for leafy shrubs.
+  const lodDistances = [10 * q.distance, 24 * q.distance, 78 * q.distance];
   const trisPerLod = bases.map((b) => b.index.count / 3);
   const halfDiag = TILE * 0.71;
   const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };
