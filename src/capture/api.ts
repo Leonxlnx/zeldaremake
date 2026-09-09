@@ -9,6 +9,7 @@
  */
 import {
   Vector3,
+  Color,
   MeshDepthMaterial,
   RGBADepthPacking,
   WebGLRenderTarget,
@@ -47,7 +48,7 @@ export interface CaptureHooks {
 export interface ZRApi {
   version: 1;
   ready(): Promise<boolean>;
-  viewpoints(): { id: string; label: string; refSeconds: number }[];
+  viewpoints(): { id: string; label: string; refSeconds: number; diagnostic: boolean }[];
   setViewpoint(id: string): boolean;
   setPose(position: [number, number, number], target: [number, number, number], fov?: number): void;
   /** render `frames` frames at `dt` each (default 1/60) and resolve after the last one */
@@ -154,7 +155,7 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       await hooks.ready;
       return true;
     },
-    viewpoints: () => LAYOUT.viewpoints.map((v) => ({ id: v.id, label: v.label, refSeconds: v.refSeconds })),
+    viewpoints: () => LAYOUT.viewpoints.map((v) => ({ id: v.id, label: v.label, refSeconds: v.refSeconds, diagnostic: !!v.diagnostic })),
     setViewpoint: (id) => hooks.setViewpoint(id),
     setPose: (p, t, fov) => hooks.setPose(p, t, fov),
     render: async (frames = 1, dt = 1 / 60) => {
@@ -209,48 +210,60 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       const prevBg = scene.background;
       const prevFog = scene.fog;
       const prevTarget = hooks.renderer.getRenderTarget();
+      const prevClear = hooks.renderer.getClearColor(new Color());
+      const prevClearAlpha = hooks.renderer.getClearAlpha();
       // temporarily render with a far plane at maxDepth so the packed depth maps to [0, maxDepth]
       const prevFar = cam.far;
       const prevNear = cam.near;
       const near = 0.1;
       const far = maxDepth;
-      cam.near = near;
-      cam.far = far;
-      cam.updateProjectionMatrix();
-      scene.overrideMaterial = depthMat;
-      scene.background = null;
-      scene.fog = null;
-      hooks.renderer.setRenderTarget(rt);
-      hooks.renderer.setClearColor(0xffffff, 1);
-      hooks.renderer.clear();
-      hooks.renderer.render(scene, cam);
       const px = new Uint8Array(W * H * 4);
-      hooks.renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
-      hooks.renderer.setRenderTarget(prevTarget);
-      scene.overrideMaterial = prevOverride;
-      scene.background = prevBg;
-      scene.fog = prevFog;
-      cam.near = prevNear;
-      cam.far = prevFar;
-      cam.updateProjectionMatrix();
-      rt.dispose();
-      depthMat.dispose();
+      try {
+        cam.near = near;
+        cam.far = far;
+        cam.updateProjectionMatrix();
+        scene.overrideMaterial = depthMat;
+        scene.background = null;
+        scene.fog = null;
+        hooks.renderer.setRenderTarget(rt);
+        hooks.renderer.setClearColor(0xffffff, 1);
+        hooks.renderer.clear();
+        hooks.renderer.render(scene, cam);
+        hooks.renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+      } finally {
+        hooks.renderer.setRenderTarget(prevTarget);
+        hooks.renderer.setClearColor(prevClear, prevClearAlpha);
+        scene.overrideMaterial = prevOverride;
+        scene.background = prevBg;
+        scene.fog = prevFog;
+        cam.near = prevNear;
+        cam.far = prevFar;
+        cam.updateProjectionMatrix();
+        rt.dispose();
+        depthMat.dispose();
+      }
       const buckets = new Array(100).fill(0);
       let sky = 0;
       let n = 0;
       for (let i = 0; i < W * H; i++) {
-        // unpack RGBA depth exactly as three r186 packing.glsl.js (unpackRGBAToDepth):
-        // dot(v, vec4(255/256 / (1, 256, 65536), 1/16777216)) with v = px/255, red = coarse channel
-        const d = px[i * 4] / 256 + px[i * 4 + 1] / 65536 + px[i * 4 + 2] / 16777216 + px[i * 4 + 3] / 4278190080;
-        if (d >= 0.999) {
+        const r = px[i * 4];
+        const g = px[i * 4 + 1];
+        const b = px[i * 4 + 2];
+        const a = px[i * 4 + 3];
+        // sky = the untouched white clear sentinel (packDepthToRGBA only yields (1,1,1,1) for v >= 1,
+        // i.e. at/beyond the far plane); a depth threshold would misclassify far geometry as sky
+        if (r === 255 && g === 255 && b === 255 && a === 255) {
           sky++;
           continue;
         }
+        // unpack RGBA depth exactly as three r186 packing.glsl.js (unpackRGBAToDepth):
+        // dot(v, vec4(255/256 / (1, 256, 65536), 1/16777216)) with v = px/255, red = coarse channel
+        const d = r / 256 + g / 65536 + b / 16777216 + a / 4278190080;
         // perspective depth → linear view distance, using the near/far the depth pass was rendered with
         const zNdc = d * 2 - 1;
         const lin = (2 * near * far) / (far + near - zNdc * (far - near));
-        const b = Math.min(99, Math.floor((lin / maxDepth) * 100));
-        buckets[b]++;
+        const bucket = Math.min(99, Math.floor((lin / maxDepth) * 100));
+        buckets[bucket]++;
         n++;
       }
       const frac = buckets.map((c) => (n ? c / n : 0));
