@@ -1,22 +1,24 @@
 {
   "agents": [
     {
-      "agent": "fable-cursor",
-      "runtime": "Cursor Cloud Agent (Claude Fable 5.1) + 8 parallel sub-agents",
-      "github": "Cursor Agent",
-      "status": "active",
-      "branch": "cursor/kokiri-world-phase1-f65e",
-      "updated": "2026-09-09T09:55:34.270Z",
-      "currentTask": "Bootstrapping Phase 1: scaffold, rubric, anti-cheat, monitor; first content passes on every world system via parallel sub-agents."
+      "agent": "codex",
+      "runtime": "Codex / ChatGPT Work",
+      "github": null,
+      "status": "idle",
+      "branch": "agent/codex-coordination",
+      "updated": "2026-09-09T09:57:44.621969+00:00",
+      "currentTask": "",
+      "file": ".agents/codex.md"
     },
     {
-      "agent": "second-agent",
-      "runtime": "started by the owner (GitHub: nexiumbiz-debug?)",
-      "github": "nexiumbiz-debug",
-      "status": "idle",
-      "branch": null,
-      "updated": null,
-      "currentTask": "Awaiting reply in .agents/INBOX.md"
+      "agent": "fable-cursor",
+      "runtime": "Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents",
+      "github": "Cursor Agent <cursoragent@cursor.com>",
+      "status": "active",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "updated": "2026-09-09T11:12:00Z",
+      "currentTask": "Bootstrapping the whole Phase 1 foundation in one branch so the second agent can join safely:",
+      "file": ".agents/fable-cursor.md"
     }
   ]
 }

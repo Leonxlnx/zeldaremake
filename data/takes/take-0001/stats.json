@@ -1,0 +1,128 @@
+{
+  "capturedAt": "2026-09-09T09:21:47.294Z",
+  "durationMs": 33611,
+  "width": 1280,
+  "height": 720,
+  "quality": "high",
+  "settleFrames": 30,
+  "git": {
+    "sha": "f8af36b9f6c1cb0b5721703e53e58bafa52978ef",
+    "shortSha": "f8af36b",
+    "branch": "cursor/kokiri-world-phase1-f65e",
+    "subject": "Bootstrap Phase 1 foundation: Three.js scaffold, layout, heightfield, capture API",
+    "author": "Cursor Agent",
+    "committedAt": "2026-09-09T09:07:21+00:00",
+    "dirty": true
+  },
+  "viewpoints": [
+    {
+      "id": "A_stairs",
+      "label": "The Stairs",
+      "refSeconds": 1,
+      "file": "A_stairs.png",
+      "stats": {
+        "simTime": 13.000000000000025,
+        "drawCalls": 135,
+        "triangles": 65528,
+        "geometries": 94,
+        "textures": 3,
+        "programs": 4,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "ms": 6178
+    },
+    {
+      "id": "B_house",
+      "label": "Saria's House",
+      "refSeconds": 14,
+      "file": "B_house.png",
+      "stats": {
+        "simTime": 13.000000000000025,
+        "drawCalls": 136,
+        "triangles": 67440,
+        "geometries": 98,
+        "textures": 3,
+        "programs": 4,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "ms": 6217
+    },
+    {
+      "id": "C_lookback",
+      "label": "Look Back",
+      "refSeconds": 46,
+      "file": "C_lookback.png",
+      "stats": {
+        "simTime": 13.000000000000025,
+        "drawCalls": 105,
+        "triangles": 64128,
+        "geometries": 131,
+        "textures": 3,
+        "programs": 4,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "ms": 5439
+    },
+    {
+      "id": "D_log",
+      "label": "The Log Arch",
+      "refSeconds": 56,
+      "file": "D_log.png",
+      "stats": {
+        "simTime": 13.000000000000025,
+        "drawCalls": 110,
+        "triangles": 65416,
+        "geometries": 135,
+        "textures": 3,
+        "programs": 4,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "ms": 6005
+    },
+    {
+      "id": "E_ground",
+      "label": "Ground Close-up",
+      "refSeconds": 24,
+      "file": "E_ground.png",
+      "stats": {
+        "simTime": 13.000000000000025,
+        "drawCalls": 134,
+        "triangles": 67088,
+        "geometries": 135,
+        "textures": 3,
+        "programs": 4,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "ms": 6010
+    },
+    {
+      "id": "F_canopy",
+      "label": "Canopy & Shafts",
+      "refSeconds": 8,
+      "file": "F_canopy.png",
+      "stats": {
+        "simTime": 13.000000000000025,
+        "drawCalls": 103,
+        "triangles": 65936,
+        "geometries": 147,
+        "textures": 3,
+        "programs": 4,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "ms": 2748
+    }
+  ],
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+}
