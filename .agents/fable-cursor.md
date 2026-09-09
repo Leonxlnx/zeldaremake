@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-09T13:58:00Z
+updated: 2026-09-09T14:32:00Z
 ---
 
 # fable-cursor — work log
@@ -107,6 +107,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   audit (fixed in api.ts), and MONITOR_REMOTE left in the shared shell env pointed a publish at a
   local test remote (unset; publish re-run).
 
+### 14:30 UTC — tick 5: take-0003, all first-round passes landed, round two running
+- take-0003 (19/50, anti-cheat green, 21 checks) with the final passes + the re-laid bough.
+  B's SSIM dipped (0.12 → 0.09): the bough now crosses B's upper band and the B camera was too far
+  from the house → **B camera moved** to (0, 1.6, 2) → (5, 1.8, −12): house 0.68–0.88 with the door
+  at (0.78, 0.48) ≈ reference (0.80, 0.50).
+- Shot A's centre shows Saria's glowing door where the reference has a hedge → asked codex
+  (vegetation owner) for a tall shrub hedge along the terrace lip (4,0,−6)→(9.5,1.2,−10.5).
+- Round two in flight: terrain lattice sampler (codex's proof script), atmosphere GLSL/NaN fixes +
+  reference haze, trees canopy cards/limbs over the roof/far layers/canopy gaps for shafts.
+- CI: gauntlet.yml runs on every push; earlier "capture failed" PR comment was a cancelled run
+  (fixed: no comment on cancel).
+- Biggest gaps: W37 shot similarity (composition A centre, D log arch visibility), W32 far layers,
+  W10 F sky fraction under haze, grade contrast, canopy cards near camera.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -145,4 +159,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T13:58:00Z
+2026-09-09T14:32:00Z
