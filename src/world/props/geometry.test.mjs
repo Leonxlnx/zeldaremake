@@ -53,15 +53,26 @@ assert.equal(audit.buckets,one.group.children.filter(g=>g.name.includes('bucket'
 assert.equal(audit.platforms,one.group.children.filter(g=>g.name.includes('platform')).length);
 one.group.updateMatrixWorld(true);
 let contacts=0;
+const ladderFeet=new Set();
 for(const g of one.group.children) for(const mesh of g.children) {
   for(const index of mesh.geometry.userData.contactIndices??[]) {
     const v=new Vector3().fromBufferAttribute(mesh.geometry.attributes.position,index).applyMatrix4(mesh.matrixWorld);
     const gap=v.y-ctx.terrain.height(v.x,v.z);
     assert.ok(Math.abs(gap+.008)<.006,`Actual underside contact gap ${gap} on ${g.name}`);
     contacts++;
+    if(g.name.includes('platform') && v.z-g.position.z>1.1) ladderFeet.add(v.x<g.position.x?'left':'right');
+  }
+  const p=mesh.geometry.attributes.position,n=mesh.geometry.attributes.normal;
+  for(const i of mesh.geometry.userData.recomputedFaces??[]) {
+    const a=new Vector3().fromBufferAttribute(p,i),b=new Vector3().fromBufferAttribute(p,i+1),c=new Vector3().fromBufferAttribute(p,i+2);
+    const expected=b.sub(a).cross(c.sub(a));
+    if(expected.lengthSq()<1e-16) continue;
+    expected.normalize();
+    for(let j=0;j<3;j++) assert.ok(expected.dot(new Vector3().fromBufferAttribute(n,i+j))>.9999,'Edited triangle normals match final surface');
   }
 }
 assert.ok(contacts>100,'Check real underside geometry, not just origins');
+assert.equal(ladderFeet.size,2,'Both ladder feet have sampled geometric ground contacts');
 for(const [x,y,z] of audit.samplePositions.bases) assert.ok(Math.abs(ctx.terrain.height(x,z)-y)<1e-8,'Audited bases touch actual terrain');
 assert.equal(placementAllowed(ctx,0,0,.3),false,'Keep plaza path clear');
 assert.equal(placementAllowed(ctx,12.5,-11.5,.3),false,'Keep house interior clear');

@@ -79,6 +79,21 @@ export function create(ctx: WorldContext): WorldSystem {
       const d = b.clone().sub(a);
       add(new BoxGeometry(width, d.length(), depth), key, a.clone().add(b).multiplyScalar(0.5), new Quaternion().setFromUnitVectors(UP, d.normalize()));
     }
+    function groundedBeam(a: Vector3, b: Vector3, width: number) {
+      beam(a,b,width);
+      const geometry=batches.wood[batches.wood.length-1], p=geometry.attributes.position;
+      const contacts:number[]=[];
+      for(let i=0;i<p.count;i++) {
+        const v=new Vector3().fromBufferAttribute(p,i);
+        if(v.distanceTo(a)<width*1.5) {
+          v.applyQuaternion(group.quaternion).add(group.position);
+          v.y=ctx.terrain.height(v.x,v.z)-.008;
+          v.sub(group.position).applyQuaternion(group.quaternion.clone().invert());
+          p.setXYZ(i,v.x,v.y,v.z);contacts.push(i);
+        }
+      }
+      geometry.computeVertexNormals();geometry.userData.contactIndices=contacts;
+    }
     function ring(radius: number, tube: number, y: number, key: MaterialKey) {
       add(new TorusGeometry(radius, tube, 6, 36), key, new Vector3(0, y, 0), new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2));
     }
@@ -129,7 +144,7 @@ export function create(ctx: WorldContext): WorldSystem {
       // Individual supports terminate at the sampled ground, even on the west embankment.
       for (const px of [-.76,.76]) for (const pz of [-.55,.55]) {
         const footY=ctx.terrain.height(x+px,z+pz)-groundY;
-        beam(new Vector3(px,footY-.025,pz),new Vector3(px,deckY,pz),.115);
+        groundedBeam(new Vector3(px,footY-.025,pz),new Vector3(px,deckY,pz),.115);
       }
       for (let i=0;i<8;i++) add(new BoxGeometry(.203,.095,1.34),'wood',new Vector3(-.75+i*.214,deckY,0));
       for (const pz of [-.5,.5]) beam(new Vector3(-.88,deckY-.15,pz),new Vector3(.88,deckY-.15,pz),.13,.13);
@@ -145,15 +160,20 @@ export function create(ctx: WorldContext): WorldSystem {
       }
       cord([new Vector3(-.77,deckY+.66,-.55),new Vector3(0,deckY+.55,-.55),new Vector3(.77,deckY+.66,-.55)]);
       const bottomZ=1.28, topZ=.57;
-      const footY=ctx.terrain.height(x,z+bottomZ)-groundY;
-      for(const px of [-.29,.29]) beam(new Vector3(px,footY-.02,bottomZ),new Vector3(px,deckY+.15,topZ),.073);
+      const rails=[-.29,.29].map(px=>({bottom:new Vector3(px,ctx.terrain.height(x+px,z+bottomZ)-groundY,bottomZ),top:new Vector3(px,deckY+.15,topZ)}));
+      for(const rail of rails) groundedBeam(rail.bottom,rail.top,.073);
       for(let i=1;i<=5;i++) {
         const t=i/6;
-        beam(new Vector3(-.32,footY+(deckY+.15-footY)*t,bottomZ+(topZ-bottomZ)*t),new Vector3(.32,footY+(deckY+.15-footY)*t,bottomZ+(topZ-bottomZ)*t),.065);
+        beam(rails[0].bottom.clone().lerp(rails[0].top,t),rails[1].bottom.clone().lerp(rails[1].top,t),.065);
       }
       counts.platforms++; counts.ladders++; counts.ropeRailings+=3;
     }
     for (const key of Object.keys(batches) as MaterialKey[]) if (batches[key].length) {
+      let vertexOffset=0;const platformContacts:number[]=[];
+      for(const g of batches[key]) {
+        platformContacts.push(...(g.userData.contactIndices??[]).map((i:number)=>i+vertexOffset));
+        vertexOffset+=g.attributes.position.count;
+      }
       const merged=mergeGeometries(batches[key],false);
       batches[key].forEach(g=>g.dispose());
       if(!merged) throw new Error(`Cannot merge props material ${key}`);
@@ -162,7 +182,9 @@ export function create(ctx: WorldContext): WorldSystem {
         // alone leaves gaps on curved ground; preserve the rigid silhouette above 8 cm.
         const p=merged.attributes.position, v=new Vector3(), inverse=group.quaternion.clone().invert();
         const contactIndices: number[]=[];
+        const editedFaces=new Set<number>();
         for(let i=0;i<p.count;i++) if(p.getY(i)<.08) {
+          editedFaces.add(Math.floor(i/3)*3);
           const weight=Math.min(1,Math.max(0,(.08-p.getY(i))/.06));
           if(weight>=.99999) contactIndices.push(i);
           v.fromBufferAttribute(p,i).applyQuaternion(group.quaternion).add(group.position);
@@ -172,6 +194,16 @@ export function create(ctx: WorldContext): WorldSystem {
           p.setXYZ(i,v.x,v.y,v.z);
         }
         merged.userData.contactIndices=contactIndices;
+        // Only edited faces need new normals; preserve the pottery's smooth upper shading.
+        const normals=merged.attributes.normal, a=new Vector3(),b=new Vector3(),c=new Vector3();
+        for(const i of editedFaces) {
+          a.fromBufferAttribute(p,i);b.fromBufferAttribute(p,i+1);c.fromBufferAttribute(p,i+2);
+          b.sub(a);c.sub(a);b.cross(c).normalize();
+          for(let j=0;j<3;j++) normals.setXYZ(i+j,b.x,b.y,b.z);
+        }
+        merged.userData.recomputedFaces=[...editedFaces];
+      } else {
+        merged.userData.contactIndices=platformContacts;
       }
       merged.computeBoundingBox(); merged.computeBoundingSphere(); ownedGeometry.push(merged);
       const mesh=new Mesh(merged,materials[key]); mesh.name=`${def.id}-${key}`;

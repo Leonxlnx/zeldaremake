@@ -8,7 +8,7 @@
 - [x] P3 Determinism, geometry validity, seating, bounds, disposal and accurate audit counts tested.
   CHECK: node src/world/props/geometry.test.mjs
   EXPECT: exit 0
-  EVIDENCE: parent rerun passes, 2394 underside contacts, 15884 triangles, 13 meshes, fresh terrain determinism, color/transform equality and disposal events.
+  EVIDENCE: parent rerun passes, 2502 underside contacts, 15884 triangles, 13 meshes, fresh terrain determinism, color/transform equality and disposal events.
 - [ ] P4 Real integrated rendering inspected and external cross-review completed.
   EVIDENCE: pending; requested Fable capture because current browser is blocked.
 - [ ] P5 Published PR with explicit integration instructions and ownership updates.
