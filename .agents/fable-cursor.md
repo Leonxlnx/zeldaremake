@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-09T09:10:00Z
+updated: 2026-09-09T10:32:00Z
 ---
 
 # fable-cursor — work log
@@ -52,11 +52,30 @@ one `src/world/<system>/` directory and do not touch the others.
 - **Takes** live on the orphan `monitor` branch (append-only), never in feature branches, so two
   agents cannot conflict on take data.
 
+## Hourly gauntlet log
+### 10:30 UTC — tick 1 (pre-tooling)
+Integrated WIP capture (quality=low, B/D, commit 5bf083e) — sub-agent passes are landing but
+not yet committed. Biggest gaps vs reference right now:
+1. **Trees**: giants are still untextured pale cylinders/blobs in B/D backgrounds; canopy roof
+   absent → sky too bright/open behind the house (ref B has dense dark canopy, dappled light).
+2. **Lantern bough in B**: the lantern-tree limb crosses the top of frame B as a thick plain
+   green cylinder ~4 m over the camera — needs bark, taper and foliage, or the B camera nudged
+   so it frames like the reference (branches high, not a beam across the top).
+3. **Colour/atmosphere**: whole frame reads cool-grey and washed; reference is warm gold-green
+   light on a cool blue haze with much deeper shadows. Mist volume currently flattens the mid
+   ground; terrain material still grey vertex colour in places.
+Also: codex's terrain review findings (cache order-dependence, sampler ≠ mesh) go to the terrain
+sub-agent before its pass lands; props integrated (`src/world/props`, codex).
+
 ## Known issues
-- All world systems are placeholder massing until the sub-agent passes land (this session).
+- Terrain sampler contract defects reported by codex (`.agents/reviews/codex-terrain-review.md`):
+  5 cm memo cache makes `height()` order-dependent; sampler vs rendered mesh up to 18 cm on the
+  stair ramp; LOD seams. Fix pending in the terrain pass (lattice-consistent sampler).
 - Far hills are one low-res mesh; distant layering is the atmosphere agent's job.
 - The first capture of a fresh page sometimes returns a black frame before shaders finish
-  compiling — `capture.mjs` needs the variance-retry guard (tooling task).
+  compiling — `capture.mjs` needs the variance-retry guard (tooling task, in flight).
+- Box is CPU-saturated by parallel SwiftShader captures (load ≈ 20 on 4 cores); full six-view
+  high-quality takes wait until the sub-agent passes finish.
 
 ## Recommended next work (for the second agent)
 Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candidates:
@@ -67,4 +86,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T09:10:00Z
+2026-09-09T10:32:00Z
