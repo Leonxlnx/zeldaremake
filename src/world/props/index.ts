@@ -26,7 +26,7 @@ export function create(ctx: WorldContext): WorldSystem {
   const root = new Group(); root.name = 'props';
   const materials: Record<MaterialKey, MeshStandardMaterial> = {
     wood: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.93 }),
-    clay: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.87 }),
+    clay: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.94 }),
     iron: new MeshStandardMaterial({ color: 0x403d32, roughness: 0.72, metalness: 0.55 }),
     rope: new MeshStandardMaterial({ color: 0x948462, roughness: 1 }),
   };
@@ -61,7 +61,7 @@ export function create(ctx: WorldContext): WorldSystem {
       const g = geometry.index ? geometry.toNonIndexed() : geometry;
       if (g !== geometry) geometry.dispose();
       if (key === 'wood' || key === 'clay') {
-        const color = new Color(tint ?? (key === 'wood' ? 0x766044 : 0x987249));
+        const color = new Color(tint ?? (key === 'wood' ? 0x766044 : 0x8d6a55));
         const data: number[] = [];
         for (let i = 0; i < g.attributes.position.count; i++) {
           const p = g.attributes.position;
@@ -204,6 +204,27 @@ export function create(ctx: WorldContext): WorldSystem {
         merged.userData.recomputedFaces=[...editedFaces];
       } else {
         merged.userData.contactIndices=platformContacts;
+      }
+      if (key === 'clay' || key === 'wood') {
+        // Weather the assembled prop, so lip, handles, staves and braces share one height
+        // gradient. Continuous spatial pigments keep duplicate triangle vertices seamless.
+        const p = merged.attributes.position, colors = merged.attributes.color;
+        const soil = new Color(0x514638), moss = new Color(0x55543b), shaded = new Color();
+        const smoothFalloff = (height: number, extent: number) => {
+          const t = Math.min(1, Math.max(0, height / extent));
+          return 1 - t * t * (3 - 2 * t);
+        };
+        for (let i = 0; i < p.count; i++) {
+          const px = p.getX(i), py = p.getY(i), pz = p.getZ(i);
+          const patch = .5 + .5 * Math.sin(px * 9 + pz * 13) * Math.cos(pz * 7 - px * 5);
+          const damp = smoothFalloff(py, def.size * .30);
+          const contact = smoothFalloff(py, def.size * (.085 + patch * .055));
+          shaded.fromBufferAttribute(colors, i);
+          if (key === 'clay') shaded.lerp(soil, damp * .42);
+          else shaded.multiplyScalar(1 - damp * .34);
+          shaded.lerp(moss, contact * (.12 + patch * .15));
+          colors.setXYZ(i, shaded.r, shaded.g, shaded.b);
+        }
       }
       merged.computeBoundingBox(); merged.computeBoundingSphere(); ownedGeometry.push(merged);
       const mesh=new Mesh(merged,materials[key]); mesh.name=`${def.id}-${key}`;

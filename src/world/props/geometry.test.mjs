@@ -1,27 +1,42 @@
-/** Run: node src/world/props/geometry.test.mjs (Node 24, no browser needed). */
+/** Run: node src/world/props/geometry.test.mjs (Node 20+, no browser needed). */
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import ts from 'typescript';
-registerHooks({
-  resolve(specifier,context,next) {
-    if(specifier.startsWith('.') && context.parentURL?.endsWith('.ts') && !/\.[a-z]+$/i.test(specifier)) {
-      const url=new URL(specifier+'.ts',context.parentURL);
-      if(existsSync(url)) return {url:url.href,shortCircuit:true};
+import * as THREE from 'three';
+import * as geometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+// Compile only this test's TS dependency graph in memory. No global loader hooks or
+// Node24 APIs, so Fable's Node22 runner executes the same geometry assertions.
+const modules = new Map();
+function loadTs(file) {
+  file = path.resolve(file);
+  if (modules.has(file)) return modules.get(file).exports;
+  const module = { exports: {} };
+  modules.set(file, module);
+  const source = ts.transpileModule(readFileSync(file, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  new Function('require', 'module', 'exports', source)((name) => {
+    if (name === 'three') return THREE;
+    if (name === 'three/addons/utils/BufferGeometryUtils.js') return geometryUtils;
+    if (name.startsWith('.')) {
+      const target = path.resolve(path.dirname(file), name);
+      for (const candidate of [target, target + '.ts', path.join(target, 'index.ts')]) {
+        if (candidate.endsWith('.ts') && existsSync(candidate)) return loadTs(candidate);
+      }
     }
-    return next(specifier,context);
-  },
-  load(url,context,next) {
-    if(url.endsWith('.ts')) return {format:'module',source:ts.transpileModule(readFileSync(fileURLToPath(url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText,shortCircuit:true};
-    return next(url,context);
-  },
-});
-const {create,placementAllowed}=await import('./index.ts');
-const {LAYOUT}=await import('../layout.ts');
-const {WORLD}=await import('../config.ts');
-const {createTerrain}=await import('../terrain/heightfield.ts');
-const {Vector3}=await import('three');
+    throw new Error(`Unexpected test dependency: ${name}`);
+  }, module, module.exports);
+  return module.exports;
+}
+const here = path.dirname(fileURLToPath(import.meta.url));
+const {create,placementAllowed}=loadTs(path.join(here,'index.ts'));
+const {LAYOUT}=loadTs(path.join(here,'../layout.ts'));
+const {WORLD}=loadTs(path.join(here,'../config.ts'));
+const {createTerrain}=loadTs(path.join(here,'../terrain/heightfield.ts'));
+const {Vector3}=THREE;
 const audits=[];
 const ctx={terrain:createTerrain(),layout:LAYOUT,config:WORLD,quality:{shadows:true},audit:(_,fn)=>audits.push(fn)};
 const one=create(ctx), two=create({...ctx,terrain:createTerrain()});
@@ -30,6 +45,23 @@ assert.ok(audit.pots>=1 && audit.crates>=1 && audit.buckets>=1,'Each domestic pr
 assert.equal(audit.platforms,1,'Platform must fit the authored placement');
 assert.equal(audit.ladders,1);
 assert.ok(audit.meshes<32,'Bounded draw calls');
+// Regression: moving a prop toward the doorway must not silently skip it or
+// leave it outside the hero frame. This tests projection, not occlusion/visual quality.
+const vp = LAYOUT.viewpoints.find(v => v.id === 'B_house');
+const camera = new THREE.PerspectiveCamera(vp.fov, 1280 / 720, .1, 1000);
+camera.position.fromArray(vp.position);
+camera.lookAt(new Vector3().fromArray(vp.target));
+camera.updateMatrixWorld(true);
+one.group.updateMatrixWorld(true);
+const heroProjection = {};
+for (const id of ['saria-small-pot', 'saria-crate', 'saria-water-bucket']) {
+  const prop = one.group.getObjectByName(id);
+  assert.ok(prop, `${id} must have a legal placement rather than silently skipping`);
+  const center = new THREE.Box3().setFromObject(prop).getCenter(new Vector3()).project(camera);
+  assert.ok(Math.abs(center.x) < .95 && Math.abs(center.y) < .95 && center.z > -1 && center.z < 1,
+    `${id} must project inside B_house; actual ${center.toArray()}`);
+  heroProjection[id] = [(center.x + 1) / 2, (1 - center.y) / 2];
+}
 const geometry=(system)=>system.group.children.flatMap(g=>g.children.map(m=>m.geometry));
 const first=geometry(one),second=geometry(two);
 let triangles=0;
@@ -89,7 +121,7 @@ let disposedGeometry=0,disposedMaterial=0;
 first.forEach(g=>g.addEventListener('dispose',()=>disposedGeometry++));
 const mats=new Set(one.group.children.flatMap(g=>g.children.map(m=>m.material)));
 mats.forEach(m=>m.addEventListener('dispose',()=>disposedMaterial++));
-console.log(JSON.stringify({passed:true,triangles,contacts,...audit},null,2));
+console.log(JSON.stringify({passed:true,triangles,contacts,heroProjection,...audit},null,2));
 one.dispose();two.dispose();empty.dispose();
 assert.equal(disposedGeometry,first.length,'Every owned geometry is disposed');
 assert.equal(disposedMaterial,mats.size,'Every used material is disposed');
