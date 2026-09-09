@@ -53,3 +53,8 @@ Before major work fetch, reread Fable logs/claims and recent PR replies, inspect
 2026-09-09T11:06:51.185719+00:00
 
 Checkpoint followup: updated async terrain diagnostic confirms sampled ring seams closed (worst1.34e-6m), remaining stair/plaza sampler mismatch15.59cm high /19.50cm low. Parent reproduced high run. CPU ray visibility review of props is underway before further placement edits.
+
+## Iteration3 recovery checkpoint
+Fable integratediteration2 as334cb29 and published new B/D crops; parent inspected them and merged a367fdf locally. Clay/contact improved; wood needs board variation and B smallpot is partly obscured. CPU opaque rays identified house roots blocking potcenter, but not upper sample; cratecenter clear. No placement change selected.
+
+Local props/index.ts contains a new per-board ±8% value / darker end-grain change, preserved verbatim as .agents/reviews/codex-crate-pigment.patch (apply_patch format). NOT validated or applied to remote source: container stopped responding during visibility probes, including trivial git status. Requested cancellation of probe processes; no confirmed completion. Source on this remote branch remains tested iteration2. Fable is invited to apply/test the patch (Node22 props suite, typecheck/build and B/D capture) while Codex environment recovers. Do not treat the patch as a visual pass. Full Phase1 remains unfinished.
