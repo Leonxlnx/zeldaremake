@@ -1,0 +1,213 @@
+{
+  "buildMs": 7535,
+  "counts": {
+    "grassInstances": 500798,
+    "grassBlades": 497663,
+    "grassTypes": 4,
+    "grassHeightMean": 0.295,
+    "grassHeightCV": 0.571,
+    "grassTints": 4,
+    "grassTiles": 120,
+    "grassTileSize": 8,
+    "lodLevels": 3,
+    "ferns": 923,
+    "flowers": 706,
+    "weeds": 3135,
+    "seedheads": 1031,
+    "bushes": 134,
+    "clover": 3011,
+    "mossPatches": 396,
+    "saplings": 28,
+    "litter": 9008,
+    "windLayers": 3,
+    "buildMs": 6709
+  },
+  "views": {
+    "A_stairs": {
+      "drawCalls": 201,
+      "triangles": 2759100,
+      "colorDrawsInCameraFrustum": 113,
+      "colorTrianglesInCameraFrustum": 1782405,
+      "byGroup": {
+        "grass": {
+          "draws": 43,
+          "triangles": 544416
+        },
+        "ferns": {
+          "draws": 12,
+          "triangles": 516022
+        },
+        "bushes": {
+          "draws": 9,
+          "triangles": 99312
+        },
+        "flowers": {
+          "draws": 12,
+          "triangles": 252551
+        },
+        "weeds": {
+          "draws": 6,
+          "triangles": 38872
+        },
+        "seedheads": {
+          "draws": 6,
+          "triangles": 96798
+        },
+        "clover": {
+          "draws": 6,
+          "triangles": 60120
+        },
+        "moss": {
+          "draws": 2,
+          "triangles": 17820
+        },
+        "saplings": {
+          "draws": 8,
+          "triangles": 5344
+        },
+        "litter-leaves": {
+          "draws": 4,
+          "triangles": 109522
+        },
+        "litter-twigs": {
+          "draws": 3,
+          "triangles": 32358
+        },
+        "litter-roots": {
+          "draws": 2,
+          "triangles": 9270
+        }
+      },
+      "grassLodTiles": [
+        12,
+        32,
+        76
+      ]
+    },
+    "B_house": {
+      "drawCalls": 201,
+      "triangles": 2804733,
+      "colorDrawsInCameraFrustum": 113,
+      "colorTrianglesInCameraFrustum": 1806428,
+      "byGroup": {
+        "grass": {
+          "draws": 43,
+          "triangles": 511112
+        },
+        "ferns": {
+          "draws": 12,
+          "triangles": 501318
+        },
+        "bushes": {
+          "draws": 9,
+          "triangles": 101808
+        },
+        "flowers": {
+          "draws": 12,
+          "triangles": 323818
+        },
+        "weeds": {
+          "draws": 6,
+          "triangles": 37320
+        },
+        "seedheads": {
+          "draws": 6,
+          "triangles": 96626
+        },
+        "clover": {
+          "draws": 6,
+          "triangles": 59994
+        },
+        "moss": {
+          "draws": 2,
+          "triangles": 17820
+        },
+        "saplings": {
+          "draws": 8,
+          "triangles": 5462
+        },
+        "litter-leaves": {
+          "draws": 4,
+          "triangles": 109522
+        },
+        "litter-twigs": {
+          "draws": 3,
+          "triangles": 32358
+        },
+        "litter-roots": {
+          "draws": 2,
+          "triangles": 9270
+        }
+      },
+      "grassLodTiles": [
+        13,
+        28,
+        79
+      ]
+    },
+    "D_log": {
+      "drawCalls": 203,
+      "triangles": 3069083,
+      "colorDrawsInCameraFrustum": 107,
+      "colorTrianglesInCameraFrustum": 1966666,
+      "byGroup": {
+        "grass": {
+          "draws": 36,
+          "triangles": 481460
+        },
+        "ferns": {
+          "draws": 12,
+          "triangles": 537282
+        },
+        "bushes": {
+          "draws": 9,
+          "triangles": 114424
+        },
+        "flowers": {
+          "draws": 12,
+          "triangles": 466460
+        },
+        "weeds": {
+          "draws": 6,
+          "triangles": 36872
+        },
+        "seedheads": {
+          "draws": 6,
+          "triangles": 96372
+        },
+        "clover": {
+          "draws": 6,
+          "triangles": 59364
+        },
+        "moss": {
+          "draws": 2,
+          "triangles": 17820
+        },
+        "saplings": {
+          "draws": 9,
+          "triangles": 5462
+        },
+        "litter-leaves": {
+          "draws": 4,
+          "triangles": 109522
+        },
+        "litter-twigs": {
+          "draws": 3,
+          "triangles": 32358
+        },
+        "litter-roots": {
+          "draws": 2,
+          "triangles": 9270
+        }
+      },
+      "grassLodTiles": [
+        13,
+        32,
+        75
+      ]
+    }
+  },
+  "bushBounds": [],
+  "note": "Full vegetation, excludes postfx. CPU distance/mesh-frustum estimate, not actual GPU measurement. Shadow estimate uses each revision stats semantics.",
+  "basis": "Fable4d7da1f plus Codex vegetation revision2; CPU geometry only"
+}

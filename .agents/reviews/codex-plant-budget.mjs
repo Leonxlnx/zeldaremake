@@ -36,13 +36,15 @@ else result.counts=Object.fromEntries(Object.entries(audit()).filter(([k,v])=>ty
 for(const vp of LAYOUT.viewpoints.filter(v=>['A_stairs','B_house','D_log'].includes(v.id))){
   const camera=new THREE.PerspectiveCamera(vp.fov,1280/720,.1,1000);camera.position.fromArray(vp.position);camera.lookAt(new THREE.Vector3().fromArray(vp.target));camera.updateMatrixWorld(true);
   const frustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
-  const totals={drawCalls:0,triangles:0,colorDrawsInCameraFrustum:0,colorTrianglesInCameraFrustum:0};
+  const totals={drawCalls:0,triangles:0,colorDrawsInCameraFrustum:0,colorTrianglesInCameraFrustum:0,byGroup:{}};
   if(world){world.onCameraMove?.(camera,ctx);if(!world.onCameraMove){ctx.camera=camera;world.update(0,0,ctx);}Object.assign(totals,audit().drawableEstimate);}
   const sets=plants?plants.all:[{group:{children:[]}}];
   if(world)parent.traverse(o=>{if(o.isMesh)sets[0].group.children.push(o);});
   for(const set of sets){if(plants){set.update(camera.position,true);const st=set.stats();totals.drawCalls+=st.drawCalls;totals.triangles+=st.triangles;}
     for(const m of set.group.children)if(m.visible&&m.count>0&&frustum.intersectsObject(m)){
-      totals.colorDrawsInCameraFrustum++;totals.colorTrianglesInCameraFrustum+=(m.geometry.index?.count??m.geometry.attributes.position.count)/3*m.count;
+      const triangles=(m.geometry.index?.count??m.geometry.attributes.position.count)/3*m.count;
+      totals.colorDrawsInCameraFrustum++;totals.colorTrianglesInCameraFrustum+=triangles;
+      const name=m.parent.name;totals.byGroup[name]??={draws:0,triangles:0};totals.byGroup[name].draws++;totals.byGroup[name].triangles+=triangles;
     }
   }
   result.views[vp.id]=totals;

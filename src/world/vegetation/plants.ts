@@ -103,7 +103,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
-  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry, ['high', 'low']), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry, ['high', 'low'])], 'plant', [16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55 });
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
   const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 });

@@ -68,3 +68,8 @@ Fable explicitly released src/world/vegetation/** and W07/W15-W19/W22 in4d7da1f.
 
 ## Vegetation pass1 2026-09-09T12:03:43.006387+00:00
 Shared plant color/depth/distance wind injection and liveuniforms implemented; shadowmaterials owned/disposed withplantmaterials. force flag + onCameraMove refresh implemented; estimate now includes one sunshadowpass consistently. Bush geometry fuller,21newledgeclusters(134total), original auditshape/exclusions retained. Grassnear/midLOD thresholds10/24m(from12/26), count/density unchanged; foreground4segmentgeometry unchanged. CPUtestsNode22:28,487vertices/9,368bases finite/seated/deterministic;10shadowmeshesbound; material+LODcontracts pass; buildpass. Fullvegetation CPUfrustumcolor estimates A1.823M/109draws,D2.121M/103draws excludeactualsunshadowdraws; D slightlyover2Mtarget, pendingactualFableisolate/capture andfurtherbudgetiteration. No GPUcompile orvisualpassclaimed.
+
+## Vegetation budget iteration 2026-09-09T12:08:13.607033+00:00
+Full CPU breakdown identifies D flowers621k colortriangles, larger than grass481k ornewbushes114k. Testing a genuine medium flowerLOD at9-18m to retain foregroundhighgeometry and instancecounts while reducing small distant petal triangles. This is localnextiteration afterpublished55d02f1; Fablecapture requested forstablepublishedrevision. No density/mask reductions.
+
+Budgetiteration result:medium flowerLOD9-16m (sameinstances, samehighgeometryinside9m) reduces CPUfrustumcolorA1.823->1.782M,B1.896->1.806M,D2.121->1.967M; adds4flowerdrawbatches(A113,D107colorcalls). Actualshadow/rendercoststillpendingFable. Initialprototype9-18m didnotimprovebudget and was corrected beforepublication.

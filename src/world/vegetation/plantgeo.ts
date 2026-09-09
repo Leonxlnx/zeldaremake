@@ -169,7 +169,7 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   const fwd = new Vector3().crossVectors(n, side).normalize();
   const high = detail === 'high';
   const low = detail === 'low';
-  const rings = low ? 2 : 3;
+  const rings = high ? 3 : 2;
   const segments = low ? 5 : high ? 8 : 6;
   const floret = () => blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
   const at = (u: number, v: number, h: number) => center.clone().addScaledVector(side, u).addScaledVector(fwd, v).addScaledVector(n, h);
@@ -279,7 +279,8 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
         const a = a0 + (p * TAU) / petals;
         const dir = V(Math.cos(a), -0.35 + rng() * 0.3, Math.sin(a)).normalize();
         const color = blend(blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5), pal.purpleDeep, rng() * 0.3);
-        if (low) foldedLeaf(m, c, dir, bellR * 1.6 * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
+        // Mid-distance bells keep every floret but use a folded lamina instead of four triangles.
+        if (low || detail === 'mid') foldedLeaf(m, c, dir, bellR * (low ? 1.6 : 1.7) * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
         else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.6 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: pal.purpleLight });
       }
     }
