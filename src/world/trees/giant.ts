@@ -53,7 +53,7 @@ export interface GiantOptions {
   /** local ground height under local (x, z); 0 at the origin */
   groundAt: (x: number, z: number) => number;
   /** authored limb (world from → to) for the lantern tree */
-  limbSpec?: { from: Vector3; to: Vector3 };
+  limbSpec?: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number };
   palette: Palette;
   /** leaf population multiplier (quality) */
   leafDensity?: number;
@@ -349,8 +349,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const len = dir.length();
     dir.normalize();
     const side = new Vector3(-dir.z, 0, dir.x).normalize();
+    const r0 = o.limbSpec.radius ?? 0.7;
+    const r1 = o.limbSpec.tipRadius ?? 0.25;
     const path: Vector3[] = [new Vector3(0, from.y, 0)];
-    const radii: number[] = [0.9];
+    const radii: number[] = [r0 * 1.3];
     const n = 16;
     const wigglePhase = r() * TAU;
     for (let k = 0; k <= n; k++) {
@@ -359,7 +361,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       p.addScaledVector(side, Math.sin(s * 9 + wigglePhase) * 0.12 * Math.sin(s * Math.PI));
       p.y -= 0.16 * Math.sin(s * Math.PI) + 0.05 * Math.sin(s * 13 + wigglePhase) * Math.sin(s * Math.PI);
       path.push(p);
-      radii.push(0.7 + (0.25 - 0.7) * Math.pow(s, 0.85));
+      radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
     }
     // continuation beyond `to`: thinner, curling up into a final lobe
     const tail = 3;
@@ -367,13 +369,13 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const s = k / tail;
       const p = to.clone().addScaledVector(dir, 2.6 * s).addScaledVector(UP, 0.9 * s * s).addScaledVector(side, 0.5 * s);
       path.push(p);
-      radii.push(0.25 - 0.18 * s);
+      radii.push(r1 * (1 - 0.72 * s));
     }
     tube(wood, path, radii, 14, r, { color: barkColor, roughness: 0.05, bump: gnarlBump(1.8, 0.1), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
     limbPath = path;
     limbs++;
     // foliage rides on top of the limb (lanterns hang below it)
-    limbLobes(path, 0.7, [0.3, 0.55, 0.8], 2.0, 1.0, 1.4);
+    limbLobes(path, r0, [0.3, 0.55, 0.8], 2.0, 1.0, 1.4);
     // end lobe
     const endCenter = path[path.length - 1].clone().addScaledVector(UP, 0.9).addScaledVector(dir, 0.8);
     const endBough = growthPath(path[path.length - 2], endCenter, dir, r, 5, 0.5);

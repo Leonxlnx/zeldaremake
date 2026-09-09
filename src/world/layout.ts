@@ -131,8 +131,14 @@ export const LAYOUT = {
 
   /** Big branch hanging over the path with 3 glowing pod lanterns (left side of shot A). */
   lanternBranch: {
-    from: [-10.5, 5.8, -6.8] as [number, number, number],
-    to: [3.0, 3.9, 0.2] as [number, number, number],
+    // Projected into shot A this runs in from the left edge at y ≈ 0.15–0.3 and ends near
+    // (0.26, 0.39) with pods hanging around (0.1, 0.45) — the reference bough — while staying in
+    // the upper quarter of shot B (reference B has the giant's limb over the house there).
+    from: [-9.0, 5.3, -7.6] as [number, number, number],
+    to: [2.4, 3.4, -1.2] as [number, number, number],
+    /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
+    radius: 0.42,
+    tipRadius: 0.16,
     lanterns: 3,
   },
 
@@ -154,7 +160,7 @@ export const LAYOUT = {
 
   /** Giant old trees. Canopies of these form the overhead cover (14–24 m). */
   giantTrees: [
-    { id: 'lantern-tree', position: [-11.5, 2.6, -7.2], trunkRadius: 1.7, height: 26, limb: { dir: [0.89, 0.455], length: 16.3, height: 5.8 } },
+    { id: 'lantern-tree', position: [-11.5, 2.6, -7.2], trunkRadius: 1.7, height: 26, limb: { dir: [0.87, 0.49], length: 14.5, height: 5.3 } },
     { id: 'plateau-oak', position: [19, 5.4, -21], trunkRadius: 1.5, height: 24 },
     { id: 'southwest-giant', position: [-23, 2.6, 9], trunkRadius: 1.9, height: 28 },
     { id: 'east-giant', position: [27, 5.4, 5], trunkRadius: 1.4, height: 24 },

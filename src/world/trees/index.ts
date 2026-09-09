@@ -121,12 +121,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const [px, , pz] = def.position;
     const gy = terrain.height(px, pz);
     const origin = new Vector3(px, gy, pz);
-    let limbSpec: { from: Vector3; to: Vector3 } | undefined;
+    let limbSpec: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number } | undefined;
     if (def.limb && def.id === 'lantern-tree') {
-      const lb = ctx.layout.lanternBranch;
+      const lb = ctx.layout.lanternBranch as typeof ctx.layout.lanternBranch & { radius?: number; tipRadius?: number };
       limbSpec = {
         from: new Vector3(lb.from[0], lb.from[1], lb.from[2]).sub(origin),
         to: new Vector3(lb.to[0], lb.to[1], lb.to[2]).sub(origin),
+        radius: lb.radius,
+        tipRadius: lb.tipRadius,
       };
     } else if (def.limb) {
       const l = Math.hypot(def.limb.dir[0], def.limb.dir[1]);
