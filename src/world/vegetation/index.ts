@@ -93,6 +93,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     weeds,
     seedheads: plants.seedheads.count,
     bushes: plants.bushes.count,
+    hedge: plants.hedge.count,
     clover: plants.clover.count,
     mossPatches: plants.moss.count,
     saplings: plants.saplings.count,

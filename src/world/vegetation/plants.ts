@@ -16,6 +16,8 @@ import { bushGeometry, cloverGeometry, fernGeometry, flowerGeometry, flowerSpike
 export interface PlantSets {
   ferns: LodInstancedSet;
   bushes: LodInstancedSet;
+  /** the tall shot-A hedge on the bank between the plaza and Saria's terrace */
+  hedge: LodInstancedSet;
   flowers: LodInstancedSet;
   weeds: LodInstancedSet;
   seedheads: LodInstancedSet;
@@ -102,6 +104,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
+  // hero hedge: same bush variants at shrub scale, but it is read from 15 m in shot A so it keeps
+  // the high LOD much further out than the scattered bushes
+  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, bushGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
   const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55 });
@@ -218,6 +223,39 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       return .65 * Math.max(byHouse, onLedge);
     },
   }, (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 1.05 + rng() * .3, .28, .035, greenVar(rng, .15)));
+
+  // ---- shot-A hedge. In reference frame 1 the centre of the frame beyond the plaza is a dark
+  // hedge/embankment; in ours Saria's doorway sat there. Camera A's sight line to the door runs
+  // over the grass bank at x ≈ 7.7–8.3 for z ∈ [-5.5, -4.5] while camera B's runs ≈ 1.5 m further
+  // west (x ≈ 6.0–6.9), so a dense mass of tall shrubs east of B's corridor hides the trunk and
+  // doorway from A yet only brushes the right of the door from B — where the reference B frame
+  // has a shrub as well. Positions stay on terrain that the mask allows (never path/stairs).
+  const bRayX = (z: number) => (2 - z) * 0.92;
+  const aRayX = (z: number) => 0.4 + (8.6 - z) * 0.556;
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'hedge-shotA',
+      candidates: 2600,
+      box: [7.2, -6.6, 10.2, -3.8],
+      minSpacing: 0.62,
+      accept(x, z, s) {
+        // crowns reach ~0.8 m from the centre, so centres stay ≥ 1.7 m east of B's corridor
+        if (x < bRayX(z) + 1.7) return 0;
+        if (x > aRayX(z) + 1.4) return 0;
+        if (s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5) return 0;
+        if (field.houseInfo(x, z).dist < 0.4) return 0;
+        return 0.9;
+      },
+    },
+    (x, z, s, rng) => {
+      // scale 1 bushes stand 0.95–1.5 m; the hedge needs a 2.4–3 m crown so its top reaches the
+      // door lintel's projection in A, and it is kept narrower than tall so it stays out of B
+      const sc = 1.9 + rng() * 0.55;
+      placeInstance(hedge, x, z, s, rng, sc, 0.12, 0.05, tint.setRGB(0.7 + rng() * 0.1, 0.78 + rng() * 0.08, 0.66 + rng() * 0.1), sc * (0.6 + rng() * 0.12));
+    },
+  );
 
   // ---- purple flowers: shot D left foreground, west verge of the spine, shot A left, scattered
   const flowerPlace = (scaleMin: number, scaleMax: number) => (x: number, z: number, s: FieldSample, rng: Rng) => placeInstance(flowers, x, z, s, rng, scaleMin + rng() * (scaleMax - scaleMin), 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1));
@@ -382,9 +420,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     (x, z, s, rng) => placeInstance(saplings, x, z, s, rng, 0.7 + rng() * 0.6, 0.3, 0.03, greenVar(rng, 0.16)),
   );
 
-  const all = [ferns, bushes, flowers, weeds, seedheads, clover, moss, saplings];
+  const all = [ferns, bushes, hedge, flowers, weeds, seedheads, clover, moss, saplings];
   for (const set of all) parent.add(set.build());
-  return { ferns, bushes, flowers, weeds, seedheads, clover, moss, saplings, all, materials };
+  return { ferns, bushes, hedge, flowers, weeds, seedheads, clover, moss, saplings, all, materials };
 }
 
 export { clamp };
