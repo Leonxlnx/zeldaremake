@@ -3,11 +3,19 @@
  * north/west and on the plateaus, never on paths, stairs, structures, hero boulders, NPC spots,
  * fences, the lantern branch or inside a giant's footprint; minimum spacing between trees.
  */
+import type { Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { TAU } from './writer';
 import type { Age } from './whitebark';
+
+/** a world-space line along the sun direction that tree crowns must stay clear of */
+export interface SunCorridor {
+  point: Vector3;
+  dir: Vector3;
+  radius: number;
+}
 
 export interface WhiteBarkPlacement {
   variant: number;
@@ -33,12 +41,32 @@ function segmentDistance(px: number, pz: number, ax: number, az: number, bx: num
   return Math.hypot(px - (ax + dx * t), pz - (az + dz * t));
 }
 
-export function placeWhiteBark(ctx: WorldContext, rng: Rng, variants: VariantInfo[], target: number, inner = 12, outer = 60): WhiteBarkPlacement[] {
+export function placeWhiteBark(ctx: WorldContext, rng: Rng, variants: VariantInfo[], target: number, inner = 12, outer = 60, avoid: SunCorridor[] = []): WhiteBarkPlacement[] {
   const r = rng.fork('whitebark-placement');
   const clump = new Noise2D('whitebark-clumps');
   const L = ctx.layout;
   const terrain = ctx.terrain;
   const out: WhiteBarkPlacement[] = [];
+
+  /**
+   * True when the crown (the upper 60 % of the tree) would intersect a sun corridor: the ray is
+   * sampled at crown heights and its horizontal offset from the trunk compared with crown + corridor
+   * radius. Trunks below the crown may cross (a thin trunk shadow is welcome dapple).
+   */
+  const shadesCorridor = (x: number, z: number, y: number, height: number, crownRadius: number): boolean => {
+    for (const c of avoid) {
+      if (c.dir.y <= 0.05) continue;
+      for (let k = 0; k <= 6; k++) {
+        const hy = y + height * (0.4 + 0.6 * (k / 6));
+        const t = (hy - c.point.y) / c.dir.y;
+        if (t < 0) continue;
+        const px = c.point.x + c.dir.x * t;
+        const pz = c.point.z + c.dir.z * t;
+        if (Math.hypot(px - x, pz - z) < crownRadius + c.radius) return true;
+      }
+    }
+    return false;
+  };
 
   const blocked = (x: number, z: number, treeRadius: number): boolean => {
     // ground use: sample the centre and a ring so the root flare never touches paved surfaces
@@ -115,6 +143,7 @@ export function placeWhiteBark(ctx: WorldContext, rng: Rng, variants: VariantInf
     const info = variants[variant];
     const scale = r.range(0.9, 1.12);
     if (blocked(x, z, info.radius * scale)) continue;
+    if (avoid.length && shadesCorridor(x, z, terrain.height(x, z), info.height * scale, info.radius * scale)) continue;
     let clash = false;
     for (const p of out) {
       const other = variants[p.variant];

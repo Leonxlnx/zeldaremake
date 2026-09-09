@@ -39,9 +39,11 @@ const GIANT_SECTORS = 3;
  * shadow map to carve shafts from.
  */
 const HOUSE_BOUGHS = [
-  { giant: 'plateau-oak', to: [12.5, 9.0, -11.5] as [number, number, number], fromHeight: 6.6, radius: 0.62 },
-  { giant: 'plateau-oak', to: [15.4, 10.4, -8.4] as [number, number, number], fromHeight: 8.1, radius: 0.48 },
-  { giant: 'lantern-tree', to: [3.0, 8.6, -14.0] as [number, number, number], fromHeight: 6.8, radius: 0.6 },
+  { giant: 'plateau-oak', to: [12.5, 9.0, -11.5] as [number, number, number], fromHeight: 6.6, radius: 0.62, foliage: 1 },
+  { giant: 'plateau-oak', to: [15.4, 10.4, -8.4] as [number, number, number], fromHeight: 8.1, radius: 0.48, foliage: 1 },
+  // sparse: this bough crosses the upper-left of shot A, where the reference shows a bare limb
+  // with a few leaf clusters and open haze between them
+  { giant: 'lantern-tree', to: [3.0, 8.6, -14.0] as [number, number, number], fromHeight: 6.8, radius: 0.6, foliage: 0.5 },
 ];
 /**
  * God-ray corridors: world air points over the north of the plaza (the upper-left of shots A/B)
@@ -55,11 +57,29 @@ const SHAFT_AIR_POINTS: [number, number, number][] = [
 ];
 const SHAFT_RADIUS = 2.6;
 /**
+ * Sunlit ground: the reference plaza (foreground of shot A, which continues as the near path of
+ * shot B) is dappled sun, not crown shade — yet under the pinned sun azimuth the rays from it pass
+ * through the lantern tree's crown and a row of white-bark crowns 15–35 m to the WNW. The line
+ * from each of these ground points along the sun direction is a porous corridor: giant cluster
+ * cards are not built inside it, only a fraction (`porosity`) of the laminae survive (so the patch
+ * stays dappled by leaf shadows and branch shadows rather than uniformly lit), and the white-bark
+ * placement keeps its crowns off the line. The path north of z ≈ −4 (shot B's far foreground) is
+ * already open to the sun and keeps its natural dapple; a corridor there would also gut the
+ * lantern tree's north limb lobes that roof the centre of shot F.
+ */
+const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
+  { point: [0.0, 0, 6.0], radius: 3.0 },
+  { point: [2.5, 0, 2.0], radius: 3.0 },
+];
+const PLAZA_SUN_POROSITY = 0.2;
+/**
  * Giants whose LOW foliage the hero cameras see from a few metres: the lantern tree's limb lobes
  * hang 3–8 m from cameras A/B, the plateau oak's house boughs are ~20 m from B. Their low lobes
  * get leaf-sized laminae instead of cluster cards (see GiantOptions.eyeDetail).
  */
 const EYE_DETAIL: Record<string, number> = { 'lantern-tree': 1, 'plateau-oak': 0.6 };
+/** foliage scale of the authored lantern limb (reference: a bare bough with a few clusters) */
+const LANTERN_LIMB_FOLIAGE = 0.45;
 /**
  * Dense silhouette rows north of the log arch (shot D looks north from z ≈ −1): each fills a
  * narrow depth range so the depth histogram registers a distinct far layer behind the log
@@ -108,6 +128,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
+  // world-space sun corridors (see SHAFT_AIR_POINTS / PLAZA_SUN_POINTS)
+  const sunCorridors = [
+    ...SHAFT_AIR_POINTS.map((q) => ({ point: new Vector3(q[0], q[1], q[2]), dir: sunDir, radius: SHAFT_RADIUS, porosity: 0 })),
+    ...PLAZA_SUN_POINTS.map(({ point: q, radius }) => ({ point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]), dir: sunDir, radius, porosity: PLAZA_SUN_POROSITY })),
+  ];
 
   // ------------------------------------------------------------------ white-bark variants
   const whiteRng = rng.fork('whitebark');
@@ -126,6 +151,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     rng,
     whites.map((w) => ({ height: w.lods[0].height, radius: w.lods[0].radius, age: w.params.age })),
     whiteTarget,
+    12,
+    60,
+    // crowns stay out of the plaza sun corridors (trunks may cross them: thin shadows = dapple)
+    sunCorridors.filter((c) => c.porosity > 0).map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
   );
   for (const p of whitePlacements) {
     const w = whites[p.variant];
@@ -191,6 +220,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
       fromHeight: b.fromHeight,
       radius: b.radius,
+      foliage: b.foliage,
     }));
     // giants 35–45 m out are seen through the haze at 30+ m: fewer laminae, the cluster cards
     // carry their crowns
@@ -204,8 +234,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       cardDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * (1 + (1 - farFade)),
       towardPlaza: new Vector3(-px, 0, -pz).normalize(),
       boughs,
-      corridors: SHAFT_AIR_POINTS.map((q) => ({ point: new Vector3(q[0], q[1], q[2]).sub(origin), dir: sunDir, radius: SHAFT_RADIUS })),
+      corridors: sunCorridors.map((c) => ({ point: c.point.clone().sub(origin), dir: c.dir, radius: c.radius, porosity: c.porosity })),
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
+      limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     for (const g of [asset.geometry, asset.cards]) {

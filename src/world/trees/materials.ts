@@ -257,6 +257,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     ctx.textures.load(barkSet, 'normal'),
     ctx.textures.load(barkSet, 'roughness'),
   ]);
+  // Reference giant bark measures #6c604a lit / #473e33 in shade (warm dark brown-grey); the
+  // shaded side is mostly haze at 15 m, so the tint mainly sets the sunlit rim — kept dark and
+  // warm so it never reads as pale grey next to the (genuinely pale) white-bark species.
   const giantTree = new MeshStandardMaterial({
     map: gColor as Texture,
     normalMap: gNormal as Texture,
@@ -265,7 +268,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     roughness: 1,
     metalness: 0,
     vertexColors: true,
-    color: new Color(0xcfc6b8),
+    color: new Color(0x9b7e62),
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };

@@ -64,14 +64,22 @@ export interface GiantOptions {
   /**
    * Extra authored boughs (local space): each leaves the trunk at `fromHeight`, droops out to `to`
    * and carries leaf lobes along its length and at its tip (e.g. the boughs framing Saria's roof).
+   * `foliage` scales the lobe size and leaf count (1 = the default roof-lobe treatment).
    */
-  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number }[];
+  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number; foliage?: number }[];
   /**
    * Shaft corridors (local space): infinite lines along the sun direction. Foliage inside a
-   * corridor is not built, so the canopy shadow map carries a few bold holes (god-ray slabs)
-   * instead of only fine-grained gaps.
+   * corridor is not built (cluster cards never; laminae only with probability `porosity`), so the
+   * canopy shadow map carries a few bold holes (god-ray slabs, sunlit ground) instead of only
+   * fine-grained gaps. Wood is untouched — the branches inside keep casting thin shadows, and the
+   * porous laminae add leaf-sized dapple to the sunlit patch.
    */
-  corridors?: { point: Vector3; dir: Vector3; radius: number }[];
+  corridors?: { point: Vector3; dir: Vector3; radius: number; porosity?: number }[];
+  /**
+   * Foliage scale of the authored lantern limb's lobes (1 = full). The reference limb in shot A
+   * is a bare bough with a few leaf clusters and haze between them, not a hedge on a pole.
+   */
+  limbFoliage?: number;
   /**
    * 0–1: how closely the hero cameras see this tree's LOW foliage (4–9 m). At 1 the low lobes get
    * leaf-sized 8-triangle laminae and no cluster cards; at 0 they use the cheap roof treatment.
@@ -213,14 +221,24 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   });
   const corridors = o.corridors ?? [];
   const corrTmp = new Vector3();
+  /** the tightest corridor containing p (smallest porosity wins), or null */
   const inCorridor = (p: Vector3) => {
+    let hit: (typeof corridors)[number] | null = null;
     for (const c of corridors) {
       corrTmp.subVectors(p, c.point);
       const along = corrTmp.dot(c.dir);
       corrTmp.addScaledVector(c.dir, -along);
-      if (corrTmp.lengthSq() < c.radius * c.radius) return true;
+      if (corrTmp.lengthSq() < c.radius * c.radius && (!hit || (c.porosity ?? 0) < (hit.porosity ?? 0))) hit = c;
     }
-    return false;
+    return hit;
+  };
+  /** false when a lamina at p must be dropped for a corridor (draws one rng value inside porous ones) */
+  const leafAllowed = (p: Vector3) => {
+    if (!corridors.length) return true;
+    const c = inCorridor(p);
+    if (!c) return true;
+    const porosity = c.porosity ?? 0;
+    return porosity > 0 && r() < porosity;
   };
   let lobe: { center: Vector3; hR: number } | null = null;
   function leafSpray(path: Vector3[], pathRadius: number, count: number, vigor = 1, startT = 0.15) {
@@ -232,7 +250,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     for (let j = 0; j < count; j++) {
       const t = startT + ((1 - startT) * (j + bt(0.15, 0.85))) / count;
       const base = sample(path, t);
-      if (corridors.length && inCorridor(base)) continue;
+      if (!leafAllowed(base)) continue;
       const axis = tangent(path, t);
       const [u, v] = frame(axis);
       const angle = phase + j * 2.399963229728653 + bt(-0.3, 0.3);
@@ -323,9 +341,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
   }
 
-  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55) {
+  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1) {
     lobe = { center, hR };
-    clusterCards(center, hR, vR, boughRadius, 7 + subCount * 3);
+    clusterCards(center, hR, vR, boughRadius, (7 + subCount * 3) * cardMult);
     leafSpray(bough, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
     const phase = r() * TAU;
     for (let j = 0; j < subCount; j++) {
@@ -372,7 +390,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // ---------- big near-horizontal limbs ----------
   let limbs = 0;
   let limbPath: Vector3[] | undefined;
-  const limbLobes = (path: Vector3[], baseRadius: number, positions: number[], hR: number, vR: number, upOffset: number, mult = 0.4) => {
+  const limbLobes = (path: Vector3[], baseRadius: number, positions: number[], hR: number, vR: number, upOffset: number, mult = 0.4, cardMult = 1) => {
     for (const s of positions) {
       const origin = sample(path, s);
       const ax = tangent(path, s);
@@ -381,7 +399,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const bough = growthPath(origin, center, ax.clone().lerp(UP, 0.5), r, 7, 0.7);
       const radius = Math.max(0.06, baseRadius * (1 - s) * 0.42);
       tube(wood, bough, taper(bough, radius, 0.02), 6, r, { color: barkColor, roughness: 0.04 });
-      foliateLobe(bough, center, hR, vR, radius, 2, 3, 4, mult);
+      foliateLobe(bough, center, hR, vR, radius, 2, 3, 4, mult, cardMult);
     }
   };
 
@@ -436,13 +454,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     tube(wood, path, radii, 14, r, { color: barkColor, roughness: 0.05, bump: gnarlBump(1.8, 0.1), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
     limbPath = path;
     limbs++;
-    // foliage rides on top of the limb (lanterns hang below it)
-    limbLobes(path, r0, [0.3, 0.55, 0.8], 2.0, 1.0, 1.4);
+    // foliage rides on top of the limb (lanterns hang below it) as separate small clusters —
+    // the bough itself stays readable between them, with haze showing through
+    const lf = o.limbFoliage ?? 1;
+    limbLobes(path, r0, [0.32, 0.78], 1.2 + 0.8 * lf, 0.6 + 0.4 * lf, 1.0 + 0.4 * lf, 0.4 * lf, lf);
     // end lobe
-    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 0.9).addScaledVector(dir, 0.8);
+    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 0.5 + 0.4 * lf).addScaledVector(dir, 0.8);
     const endBough = growthPath(path[path.length - 2], endCenter, dir, r, 5, 0.5);
     tube(wood, endBough, taper(endBough, 0.09, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
-    foliateLobe(endBough, endCenter, 2.4, 1.2, 0.09, 3, 3, 4, 0.45);
+    foliateLobe(endBough, endCenter, 1.3 + 1.1 * lf, 0.7 + 0.5 * lf, 0.09, lf < 0.7 ? 2 : 3, 3, lf < 0.7 ? 3 : 4, 0.45 * lf, lf);
   }
 
   // ---------- authored boughs (e.g. the pair reaching over Saria's roof) ----------
@@ -479,11 +499,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     tube(wood, path, radii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
     limbs++;
-    limbLobes(path, r0, [0.42, 0.64, 0.84], 2.7, 1.3, 1.7, 0.62);
-    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 1.1).addScaledVector(horiz, 0.9);
+    // `foliage` thins only the outer third + tip (the part that reaches into the hero frames); the
+    // lobes near the trunk keep their full roof density
+    const bf = spec.foliage ?? 1;
+    limbLobes(path, r0, [0.42, 0.64], 2.7, 1.3, 1.7, 0.62);
+    limbLobes(path, r0, [0.84], 2.7 * bf, 1.3 * bf, 1.1 + 0.6 * bf, 0.62 * bf, bf);
+    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 1.1 * bf).addScaledVector(horiz, 0.9);
     const endBough = growthPath(path[path.length - 2], endCenter, horiz, r, 5, 0.5);
     tube(wood, endBough, taper(endBough, r1 * 0.6, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
-    foliateLobe(endBough, endCenter, 2.9, 1.4, r1 * 0.6, 3, 3, 4, 0.62);
+    foliateLobe(endBough, endCenter, 2.9 * bf, 1.4 * bf, r1 * 0.6, bf < 0.7 ? 2 : 3, 3, bf < 0.7 ? 3 : 4, 0.62 * bf, bf);
   }
 
   const extraLimbs = o.limbSpec ? 2 : r.int(2, 4);
