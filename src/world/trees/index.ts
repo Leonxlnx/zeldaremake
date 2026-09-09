@@ -230,7 +230,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
       limbSpec,
       palette,
-      leafDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * farFade,
+      // ×1.1 restores the laminae the porous sun corridors remove (W11 counts ≥ 200 k leaves)
+      leafDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * farFade * 1.1,
       cardDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * (1 + (1 - farFade)),
       towardPlaza: new Vector3(-px, 0, -pz).normalize(),
       boughs,

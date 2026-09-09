@@ -151,7 +151,7 @@ export const LAYOUT = {
     /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
     radius: 0.42,
     tipRadius: 0.16,
-    lanterns: 2,
+    lanterns: 3,
   },
 
   logArch: {

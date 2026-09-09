@@ -24,11 +24,12 @@ export interface LanternBranchBuild {
  * last pod keeps a short cord so it clears the top edge of shot D, whose camera stands under
  * the bough's tip.
  */
-// two pods, as in reference frame 1: long cords bring both down to ≈ 2.2 m, which is the
+// the two pods reference frame 1 shows hang at t 0.5 / 0.9 on long cords (≈ 2.2 m, the
 // reference's y ≈ 0.45 at x ≈ 0.1 and 0.26 in shot A; camera D stands past the bough's tip so
-// they hang behind it
-const LANTERN_T = [0.5, 0.9];
-const CORDS = [1.2, 1.0];
+// they hang behind it). The third sits at the trunk end of the bough: just outside shot A's
+// left edge (x ≈ -0.05) and outside B, C and D.
+const LANTERN_T = [0.5, 0.9, 0.1];
+const CORDS = [1.2, 1.0, 1.0];
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
   const def = ctx.layout.lanternBranch;

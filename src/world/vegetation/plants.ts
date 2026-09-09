@@ -271,7 +271,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // shot D (camera 1.2,1.9,-1 looking north): the frame's left edge runs from ≈(-2,-6) to (-7,-14),
   // so the visible left-foreground verge is the strip just west of the path edge (x ≈ -4.5…-3.2)
   // at z ∈ [-10,-5.5], opening into the hillside drift further north.
-  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 7000, box: [-5.6, -11, -3.1, -5.2], minSpacing: 0.23, accept: (x, z) => 1.0 * flowerVerge(x, z) }, flowerPlace(1.6, 2.2));
+  // camera D now stands at (1, -3) looking north, so the near bed extends 1.5 m further south
+  // and is denser: reference frame 56 carries a purple bed over the whole lower-left
+  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 9500, box: [-5.8, -11, -3.0, -3.8], minSpacing: 0.21, accept: (x, z) => 1.0 * flowerVerge(x, z) }, flowerPlace(1.6, 2.2));
   scatter(ctx, field, { label: 'flowers-shotD-drift', candidates: 9000, box: [-7.8, -16.5, -3.2, -7.5], minSpacing: 0.24, accept: (x, z) => 0.95 * flowerVerge(x, z) }, flowerPlace(1.5, 2.1));
   scatter(ctx, field, { label: 'flowers-shotD', candidates: 5000, box: [-7, -7.5, -2.6, 3], minSpacing: 0.4, accept: (x, z) => 0.6 * flowerVerge(x, z) }, flowerPlace(1.25, 1.8));
   // a few blooms on the near right verge below the house stair (3–6 m from the shot-D camera)
