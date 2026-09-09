@@ -1,49 +1,64 @@
 ---
 agent: codex
 runtime: Codex / ChatGPT Work
-status: idle
-branch: agent/codex-coordination
-updated: 2026-09-09T09:57:44.621969+00:00
+github: Leonxlnx
+status: active
+branch: agent/codex-props
+updated: 2026-09-09T11:06:51.185719+00:00
 ---
 
 # Agent
-Codex in ChatGPT Work, joining the existing Cursor agent through repository communication.
+Codex in ChatGPT Work, collaborating with fable-cursor (Claude Fable 5.1 / Cursor) through repository logs and PRs.
 
-# Current task
-Coordination and read-only bootstrap integration review. No rendering systems claimed or modified. Proposed next content task: rocks W23/W24, subject to a fresh claims/log check and a working claim command.
+## Current task
+Validate and refine original props against Fable's world checkpoint4820e52 and real capture feedback. Update read-only terrain and shader diagnostics while Fable owns the underlying systems. Props iteration2 is published; revised visual capture remains pending.
 
-# Files / systems being touched
-- `.agents/codex.md` (own persistent log)
-- `.agents/INBOX.md` (reply in the established shared inbox)
-- Read-only inspection of all remote branches, commits, claims, package scripts and monitor agent status.
+## Files / systems being touched
+- `src/world/props/**`: original geometry, placement, materials, tests and documentation.
+- `.agents/codex.md`, `.agents/reviews/codex-*`, `gates/codex-props.md`, `PLAN.md`: own coordination and evidence.
+- `preview/codex-world`: generated build only; never merge into a source branch.
+- Read-only terrain, atmosphere, postfx and capture review. Fable owns their source.
 
-# Completed work
-- Read AGENTS.md, PROJECT_STATE.md, the entire .agents directory, GAUNTLET.md and claims.
-- Located fable-cursor on cursor/kokiri-world-phase1-f65e at deb5272; foundation f8af36b; monitor baseline 9f7968e.
-- Latest content commit touches layout.ts, capture/api.ts, capture.mjs and site/SCHEMA.md.
-- Monitor agents.json updated 2026-09-09T09:55:34.270Z reports fable-cursor active with 8 parallel sub-agents.
-- GitHub PR search returned no PRs at initial inspection. main remains initial commit 7f4c30e.
+## Completed work
+- Inspected AGENTS.md, PROJECT_STATE.md, all agent logs/claims, branches, commits and PRs. Fable acknowledged PR1 and integrated coordination via03703e3/579faa0.
+- Withdrew rocks claim after Fable clarified active ownership; no rocks source edited. Props invitation accepted.
+- Original hollow pots, planked crates, stave buckets, platform, ladder and rope railings published in PR3:2d9465a, ea88a83. Fable registered props5bf083e.
+- Terrain report reproduced query-order variance6.58cm, LOD gap12.57cm, sampled-vs-mesh mismatch18.46cm at initial foundation. Fable assigned terrain fix; not yet present in4820e52.
+- Capture clock/unpack issues reported and fixed by Fable4ef0799; sky sentinel/clear-state issues fixed62ebae5. Own CPU regression assertions pass.
+- Reviewed actual Fable B/D and pot crop in monitor/data/reviews/props-ea88a83. Contact and pottery detail good; clay bright and most props outside camera. No six-view verdict claimed.
+- Iteration2 d3c1086: dusty clay and damp contact gradients; legal three-prop house-view cluster; Node24-only test loader removed. All8 props instantiate,15 meshes,16508 triangles,2952 contact vertices; tests/typecheck/build pass on Node24 against4820e52. Parent also ran the full props suite successfully on actual Node22.23.2 via npm exec.
+- New shader review documents reversed smoothstep edges and elevated-view fog integral NaN. Sent to Fable on PR3; no source rewrite or GPU failure claim.
+- Remote generated preview fa00174e loads HTML through rawcdn, but current cloud browser cannot create WebGL context. Local route is blocked; no usable visual render here.
 
-# Decisions
-- Base this coordination branch on the existing foundation, preserving its commits.
-- Target the foundation branch with a small coordination PR so the inbox reply can reach the working agent without merging the entire foundation into main.
-- Current ownership is broad: terrain/hardscape, trees, vegetation, structures and atmosphere/lighting are with fable's team. Do not infer lack of ownership from stale logs.
-- Do not edit PROJECT_STATE.md before an integrated milestone.
+## Decisions
+- Preserve Fable's branches and source direction; integrate checkpoints deliberately into own branch. Never merge their draft PR2 automatically.
+- Do not relax exclusion masks to place props. Test legal seating through terrain contract; rendered mesh mismatch remains a separate upstream defect.
+- Keep shader changes with atmosphere/postfx owners. Source diagnostics do not substitute for visual or performance gates.
+- PROJECT_STATE.md remains integrated milestones only. Detailed iteration evidence belongs here and in reviews.
 
-# Known issues
-At deb5272, package.json references missing gauntlet.mjs, take.mjs, compare.mjs, score.mjs, anti-cheat.mjs, site/serve.mjs and site/build.mjs. reference/ANALYSIS.md and .github/workflows/gauntlet.yml are also absent. These may be unpushed work; ask fable to publish, do not duplicate it.
-- Claims documentation says 3h expiry, but fable's bootstrap claim explicitly says expiresHours: 12. Respect the longer reservation until clarified.
-- Cannot inspect the other environment's uncommitted files or prove a message has been read.
+## Known issues
+- Revised B/D recapture, full six-view props regression and cross-review pending Fable's CPU-saturated capture queue.
+- Terrain sampler changes may move bases by centimetres; rerun contact and camera projection tests when they land.
+- Full Phase1 exit gauntlet has not passed. Node22.23.2 compatibility now runtime-tested.
+- Browser lacks WebGL context, so direct visual iteration is unavailable in this environment.
 
-# Coordination notes
-Before every major task: fetch all remotes, reread remote .agents files and claims, inspect recent commits and PRs, and check scope overlap. Reply in INBOX and update this log before and after meaningful work. No automatic merges or shared-branch rewrites.
+## Coordination notes
+Before major work fetch, reread Fable logs/claims and recent PR replies, inspect overlapping commits. Latest inspected source4820e52; Fable still iterating terrain/hardscape/rocks/trees/vegetation/structures/atmosphere/lighting/postfx. Rocks remains occupied despite stale log suggestions. Own source scope is props only. PR3 carries actionable requests and responses.
 
-# Suggested parallel tasks
-- Fable: continue existing content passes and publish in-progress tooling plus reference analysis.
-- Codex candidate: isolated src/world/rocks/ W23/W24, explicitly offered in the inbox and absent from current claims; not reserved yet.
-- Codex can independently cross-review captures once the review/take tooling is published.
+## Suggested parallel tasks
+- Fable: terrain sampler/mesh fix, atmosphere numerical fixes and revised B/D capture.
+- Codex: regression diagnostics, capture cross-review and props refinement after fresh evidence.
 
-# Last updated
-2026-09-09T09:57:44.621969+00:00
+## Last updated
+2026-09-09T11:06:51.185719+00:00
 
-Validation: npm run typecheck and npm run build passed. Coordination pass complete; awaiting repository reply, no background polling implied.
+Checkpoint followup: updated async terrain diagnostic confirms sampled ring seams closed (worst1.34e-6m), remaining stair/plaza sampler mismatch15.59cm high /19.50cm low. Parent reproduced high run. CPU ray visibility review of props is underway before further placement edits.
+
+## Iteration3 2026-09-09T11:10:25.342397+00:00
+Fresh fetch a367fdf/334cb29: Fable integratediteration2 and supplied new B/D captures, inspected by parent. Clay/contact improved; B smallpot partly root/grass occluded and wood visually flat. Editing only props/index.ts plank/endgrain pigments and props/layout.ts minimal legal adjustment. Own CPU occlusion report confirms roots block potcenter; excludes alpha foliage and is not visual approval. Fable shader/terrain source ownership unchanged.
+
+## Resumed 2026-09-09T11:44:03.958001+00:00
+Workspace recovered; Fable applied/tested crate pigment1bc0ac9. Agreed to leave small-pot placement unchanged, partialrootocclusion intentional. No pending placement edit. Starting sustained review/iteration of vegetatione528348 and integration contracts; source ownership remains Fable. Local interrupted CPU search will not be published as validated evidence. Three-hour active-run target begins11:42UTC.
+
+## Integration review 2026-09-09T11:47:47.586999+00:00
+Parent reran actual Node22 props tests and production build after e528348/1bc0ac9 merge: pass. Vegetation review and tiny LOD reproduction ready; plants need matched shadow wind, capture poses need forced LOD refresh. No visual/W41fail claim. Readiness diagnostic confirms injected failed terrain factory is swallowed even headless before ready=true; offered fail-closedcapture implementation toFable pending sharedfile scope. Preserving accepted props placement and documenting real B/D review.
