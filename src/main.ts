@@ -67,12 +67,27 @@ async function boot() {
   let readyResolve!: () => void;
   const ready = new Promise<void>((r) => (readyResolve = r));
 
+  // An explicit pose jump (capture harness, viewpoint keys) bypasses the systems' movement-gated
+  // LOD refresh, so tell every system the camera moved — otherwise a capture could render the
+  // LOD buckets of the previous pose (codex, PR #3 vegetation review).
+  const notifyCameraMove = () => {
+    cam.camera.updateMatrixWorld();
+    for (const s of world.systems) s.onCameraMove?.(cam.camera, world.ctx);
+  };
+
   installCaptureApi({
     scene,
     renderer,
     camera: cam.camera,
-    setViewpoint: (id) => cam.setViewpoint(id),
-    setPose: (p, t, fov) => cam.setPose(p, t, fov),
+    setViewpoint: (id) => {
+      const ok = cam.setViewpoint(id);
+      if (ok) notifyCameraMove();
+      return ok;
+    },
+    setPose: (p, t, fov) => {
+      cam.setPose(p, t, fov);
+      notifyCameraMove();
+    },
     step,
     setTime: (t) => {
       simTime = t;
