@@ -116,10 +116,20 @@ function sceneAudit(scene: Scene): Record<string, unknown> {
 
   scene.traverse((o: Object3D) => {
     const m = o as Mesh;
-    if (!(m as Mesh).isMesh) return;
+    const asPoints = o as unknown as { isPoints?: boolean; isSprite?: boolean; geometry?: { attributes: { position?: { count: number } } } };
+    const isParticles = !!(asPoints.isPoints || asPoints.isSprite);
+    if (!(m as Mesh).isMesh && !isParticles) return;
     meshes++;
-    const t = triCount(m);
-    const inst = (m as InstancedMesh).isInstancedMesh ? (m as InstancedMesh).count : 1;
+    // Points/Sprite particle systems count each vertex as one instance (a mote/leaf), zero triangles —
+    // otherwise legitimate particle audits (fireflies, leaves) fail the B3 scene-graph cross-check.
+    const t = isParticles ? 0 : triCount(m);
+    const inst = isParticles
+      ? asPoints.isSprite
+        ? 1
+        : asPoints.geometry?.attributes.position?.count ?? 1
+      : (m as InstancedMesh).isInstancedMesh
+        ? (m as InstancedMesh).count
+        : 1;
     if ((m as InstancedMesh).isInstancedMesh) instanced++;
     instances += inst;
     triangles += t * inst;
