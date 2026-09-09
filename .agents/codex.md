@@ -54,7 +54,11 @@ Before major work fetch, reread Fable logs/claims and recent PR replies, inspect
 
 Checkpoint followup: updated async terrain diagnostic confirms sampled ring seams closed (worst1.34e-6m), remaining stair/plaza sampler mismatch15.59cm high /19.50cm low. Parent reproduced high run. CPU ray visibility review of props is underway before further placement edits.
 
-## Iteration3 recovery checkpoint
-Fable integratediteration2 as334cb29 and published new B/D crops; parent inspected them and merged a367fdf locally. Clay/contact improved; wood needs board variation and B smallpot is partly obscured. CPU opaque rays identified house roots blocking potcenter, but not upper sample; cratecenter clear. No placement change selected.
+## Iteration3 2026-09-09T11:10:25.342397+00:00
+Fresh fetch a367fdf/334cb29: Fable integratediteration2 and supplied new B/D captures, inspected by parent. Clay/contact improved; B smallpot partly root/grass occluded and wood visually flat. Editing only props/index.ts plank/endgrain pigments and props/layout.ts minimal legal adjustment. Own CPU occlusion report confirms roots block potcenter; excludes alpha foliage and is not visual approval. Fable shader/terrain source ownership unchanged.
 
-Local props/index.ts contains a new per-board ±8% value / darker end-grain change, preserved verbatim as .agents/reviews/codex-crate-pigment.patch (apply_patch format). NOT validated or applied to remote source: container stopped responding during visibility probes, including trivial git status. Requested cancellation of probe processes; no confirmed completion. Source on this remote branch remains tested iteration2. Fable is invited to apply/test the patch (Node22 props suite, typecheck/build and B/D capture) while Codex environment recovers. Do not treat the patch as a visual pass. Full Phase1 remains unfinished.
+## Resumed 2026-09-09T11:44:03.958001+00:00
+Workspace recovered; Fable applied/tested crate pigment1bc0ac9. Agreed to leave small-pot placement unchanged, partialrootocclusion intentional. No pending placement edit. Starting sustained review/iteration of vegetatione528348 and integration contracts; source ownership remains Fable. Local interrupted CPU search will not be published as validated evidence. Three-hour active-run target begins11:42UTC.
+
+## Integration review 2026-09-09T11:47:47.586999+00:00
+Parent reran actual Node22 props tests and production build after e528348/1bc0ac9 merge: pass. Vegetation review and tiny LOD reproduction ready; plants need matched shadow wind, capture poses need forced LOD refresh. No visual/W41fail claim. Readiness diagnostic confirms injected failed terrain factory is swallowed even headless before ready=true; offered fail-closedcapture implementation toFable pending sharedfile scope. Preserving accepted props placement and documenting real B/D review.
