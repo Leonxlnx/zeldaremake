@@ -45,16 +45,6 @@
       "at": "2026-09-09T09:10:00Z",
       "scope": "bootstrap: first pass on every system via parallel sub-agents",
       "expiresHours": 12
-    },
-    {
-      "agent": "codex",
-      "items": [
-        "W23",
-        "W24"
-      ],
-      "at": "2026-09-09T10:02:34.030753+00:00",
-      "scope": "src/world/rocks/** only; own claim appended because gauntlet.mjs is not yet published",
-      "expiresHours": 3
     }
   ]
 }
