@@ -1,59 +1,110 @@
 /**
  * Atmosphere system — owner: atmosphere/lighting agent.
- * Sky dome, layered distance haze, ground mist, god rays, falling leaves, fireflies, fairy orb.
- * This starter only provides fog + a gradient sky so the scaffold renders.
+ *
+ * Sky dome (gradient + sun glow + cirrus wisps), height-aware distance haze for every material
+ * (see heightfog.ts — installed at module load so all shaders compile with it), ground mist volume
+ * in the north hollow, falling leaves, drifting motes/fireflies, the fairy, and the post-processing
+ * composer (src/world/postfx) which draws SSAO, god rays, restrained bloom, ACES + grade and FXAA.
+ *
+ * `scene.fog` stays a plain THREE.Fog (fogNear/fogFar from config) so other systems can rely on it;
+ * the fog *shading* is upgraded globally by the ShaderChunk override.
  */
-import { BackSide, Color, Fog, Group, Mesh, ShaderMaterial, SphereGeometry } from 'three';
+import { Color, Fog, Group, Vector3, type PerspectiveCamera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
+import { WORLD } from '../config';
+import { installHeightFog, HEIGHT_FOG_DEFAULTS } from './heightfog';
+import { sunDirection } from '../lighting/sun';
+import { createSkyDome } from './sky';
+import { createMistVolume } from './mist';
+import { createFallingLeaves } from './leaves';
+import { createMotes } from './motes';
+import { createFairy } from './fairy';
+import { createComposer, type Composer } from '../postfx/composer';
+
+// Must run before any material compiles: patches THREE.ShaderChunk fog includes.
+installHeightFog(WORLD);
 
 export function create(ctx: WorldContext): WorldSystem {
   const group = new Group();
   group.name = 'atmosphere';
   const cfg = ctx.config;
+  const sunDir = sunDirection(cfg.sun.azimuthDeg, cfg.sun.elevationDeg);
 
   ctx.scene.fog = new Fog(cfg.fog.color, cfg.fog.near, cfg.fog.far);
-  ctx.scene.background = new Color(cfg.sky.horizon);
+  ctx.scene.background = new Color(cfg.fog.color);
 
-  const skyMat = new ShaderMaterial({
-    side: BackSide,
-    depthWrite: false,
-    fog: false,
-    uniforms: {
-      uZenith: { value: new Color(cfg.sky.zenith) },
-      uHorizon: { value: new Color(cfg.sky.horizon) },
-    },
-    vertexShader: /* glsl */ `
-      varying vec3 vDir;
-      void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: /* glsl */ `
-      uniform vec3 uZenith; uniform vec3 uHorizon; varying vec3 vDir;
-      void main(){
-        float h = clamp(vDir.y, 0.0, 1.0);
-        vec3 c = mix(uHorizon, uZenith, pow(h, 0.55));
-        gl_FragColor = vec4(c, 1.0);
-      }
-    `,
-  });
-  const sky = new Mesh(new SphereGeometry(800, 32, 16), skyMat);
-  sky.name = 'sky';
-  group.add(sky);
+  const sky = createSkyDome(cfg, sunDir);
+  group.add(sky.mesh);
+
+  const mist = createMistVolume(ctx, sunDir);
+  const leaves = createFallingLeaves(ctx, 96);
+  group.add(leaves.mesh);
+  const motes = createMotes(ctx, 180);
+  group.add(motes.points);
+  const fairy = createFairy(ctx);
+  group.add(fairy.group);
+
+  // Post-processing: consumed by main.ts through scene.userData.composer.
+  let composer: Composer | null = null;
+  try {
+    composer = createComposer({
+      renderer: ctx.renderer,
+      scene: ctx.scene,
+      camera: ctx.camera as PerspectiveCamera,
+      sunDirection: sunDir,
+      sun: () => ctx.sun,
+      exposure: cfg.renderer.exposure,
+      headless: ctx.headless,
+      overlay: {
+        scene: mist.scene,
+        prepare: (depth, viewport) => mist.update(lastT, ctx.camera as PerspectiveCamera, depth, viewport),
+      },
+    });
+    ctx.scene.userData.composer = { render: (dt: number) => composer!.render(dt), setSize: (w: number, h: number) => composer!.setSize(w, h) };
+  } catch (e) {
+    console.warn('[atmosphere] post-fx composer unavailable, falling back to direct rendering', e);
+  }
+
+  let lastT = 0;
+  const camPos = new Vector3();
 
   ctx.audit('atmosphere', () => ({
     fogNear: (ctx.scene.fog as Fog).near,
     fogFar: (ctx.scene.fog as Fog).far,
-    godRays: false,
-    groundMist: false,
-    fallingLeaves: 0,
-    fireflies: 0,
-    fairy: false,
+    fogColor: `#${new Color(cfg.fog.color).getHexString()}`,
+    heightFog: true,
+    heightFogBaseM: HEIGHT_FOG_DEFAULTS.baseHeight,
+    heightFogFalloff: HEIGHT_FOG_DEFAULTS.falloff,
+    distanceFogMax: HEIGHT_FOG_DEFAULTS.maxFog,
+    sky: 'procedural-gradient+sun+cirrus',
+    groundMist: true,
+    groundMistBillboards: mist.billboards,
+    groundMistSheets: mist.sheets,
+    godRays: composer !== null,
+    fallingLeaves: leaves.count,
+    fireflies: motes.count,
+    fairy: true,
+    fairyLight: fairy.light.intensity > 0,
+    ambientOcclusion: composer !== null,
+    bloom: composer !== null,
+    antialiasing: composer ? 'fxaa' : 'msaa',
+    postfx: composer ? composer.audit() : null,
   }));
 
   return {
     name: 'atmosphere',
     group,
-    update(_dt, _t, c) {
-      sky.position.copy(c.camera.position);
+    update(_dt, t, c) {
+      lastT = t;
+      c.camera.getWorldPosition(camPos);
+      sky.update(t, camPos);
+      leaves.update(t);
+      motes.update(t, c.sun, c.renderer.getPixelRatio());
+      fairy.update(t);
+    },
+    dispose() {
+      composer?.dispose();
+      mist.dispose();
     },
   };
 }

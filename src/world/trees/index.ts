@@ -1,39 +1,363 @@
 /**
  * Trees — owner: trees agent.
  * Port + upgrade of the Verdant Forest white-bark trees (github.com/Leonxlnx/verdant-forest,
- * app/forest/trees.js) plus the giant old Kokiri trees whose canopies roof the clearing.
- * Starter: giant-tree massing (tapered trunk + crown blob) at LAYOUT.giantTrees. Replace entirely.
+ * app/forest/trees.js — "Derived from Verdant Forest by Leonxlnx") plus the giant old Kokiri trees
+ * whose canopies roof the clearing and a distant tree layer for the haze.
+ *
+ * Structure
+ *   whitebark.ts  — seeded white-bark variants (3 LODs each: high / medium / low leaf subsets)
+ *   giant.ts      — unique giants at LAYOUT.giantTrees, roots conformed to the terrain
+ *   distant.ts    — 2-LOD distant trees for the 60–220 m band
+ *   placement.ts  — seeded, layout-aware white-bark placement
+ *   materials.ts  — one bark+leaf material per tree family with 3 wind layers + shadow-depth twins
+ *   writer.ts     — geometry writer + botanical primitives
+ *
+ * Rendering: bark and leaves of a tree share one geometry (leaf vertices flagged in aRoot.w), so a
+ * white-bark variant costs ONE InstancedMesh per LOD; `update()` re-buckets instances by camera
+ * distance whenever the camera moves > 1.5 m. Giants are merged into three angular sector meshes
+ * (aRoot.xyz = each tree's origin keeps per-tree wind/height context). Everything is seated via
+ * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { Color, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry } from 'three';
+import { BufferGeometry, Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type BufferAttribute, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
+import { createTreeMaterials } from './materials';
+import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
+import { placeWhiteBark, type WhiteBarkPlacement } from './placement';
+import { createGiantTree, type GiantAsset } from './giant';
+import { createDistantVariants, placeDistantTrees, type DistantPlacement, type DistantVariant } from './distant';
+import { mergeParts, type Detail } from './writer';
 
-export function create(ctx: WorldContext): WorldSystem {
+const DETAILS: Detail[] = ['high', 'medium', 'low'];
+const WHITE_VARIANTS = 10;
+const GIANT_SECTORS = 3;
+const _v = new Vector3();
+const _q = new Quaternion();
+const _s = new Vector3();
+const _p = new Vector3();
+
+interface WhiteVariant {
+  params: WhiteBarkParams;
+  lods: TreeAsset[];
+  meshes: InstancedMesh[];
+  placements: WhiteBarkPlacement[];
+  matrices: Matrix4[];
+  counts: number[];
+}
+
+interface DistantSet {
+  variant: DistantVariant;
+  near: InstancedMesh;
+  far: InstancedMesh;
+  placements: DistantPlacement[];
+  matrices: Matrix4[];
+  counts: [number, number];
+}
+
+export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'trees';
-  const bark = new MeshStandardMaterial({ color: new Color(ctx.config.palette.barkGrey), roughness: 0.9 });
-  const leaf = new MeshStandardMaterial({ color: new Color(ctx.config.palette.leafCanopy), roughness: 0.8 });
+  (globalThis as unknown as { __TREES_DEBUG__?: Group }).__TREES_DEBUG__ = group; // TEMP-DEBUG remove
+  const rng = ctx.rng.fork('trees');
+  const palette = ctx.config.palette;
+  const terrain = ctx.terrain;
+  const yieldFrame = () => new Promise<void>((r) => setTimeout(r, 0));
+  const mats = await createTreeMaterials(ctx);
+  ctx.progress('trees', 0.05);
 
-  for (const t of ctx.layout.giantTrees) {
-    const tree = new Group();
-    tree.name = `giant-${t.id}`;
-    const gy = ctx.terrain.height(t.position[0], t.position[2]);
-    const trunk = new Mesh(new CylinderGeometry(t.trunkRadius * 0.55, t.trunkRadius, t.height * 0.7, 16), bark);
-    trunk.position.set(t.position[0], gy + t.height * 0.35, t.position[2]);
-    const crown = new Mesh(new SphereGeometry(t.height * 0.34, 16, 10), leaf);
-    crown.position.set(t.position[0], gy + t.height * 0.78, t.position[2]);
-    crown.scale.set(1.25, 0.6, 1.25);
-    trunk.castShadow = trunk.receiveShadow = crown.castShadow = true;
-    tree.add(trunk, crown);
-    group.add(tree);
+  // ------------------------------------------------------------------ white-bark variants
+  const whiteRng = rng.fork('whitebark');
+  const whites: WhiteVariant[] = [];
+  for (let i = 0; i < WHITE_VARIANTS; i++) {
+    const params = whiteBarkParams(whiteRng, i, WHITE_VARIANTS);
+    const lods = DETAILS.map((d) => createWhiteBarkTree(params, palette, d));
+    whites.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
+    ctx.progress('trees', 0.05 + (0.45 * (i + 1)) / WHITE_VARIANTS);
+    await yieldFrame();
   }
 
-  ctx.audit('trees', () => ({
-    giants: ctx.layout.giantTrees.length,
-    whiteBarkVariants: 0,
-    whiteBarkInstances: 0,
-    distantTrees: 0,
-    geometry: 'placeholder-massing',
-  }));
+  const whiteTarget = Math.round(80 * Math.max(0.75, ctx.quality.density));
+  const whitePlacements = placeWhiteBark(
+    ctx,
+    rng,
+    whites.map((w) => ({ height: w.lods[0].height, radius: w.lods[0].radius, age: w.params.age })),
+    whiteTarget,
+  );
+  for (const p of whitePlacements) {
+    const w = whites[p.variant];
+    w.placements.push(p);
+    _q.setFromAxisAngle(_v.set(0, 1, 0), p.yaw);
+    _s.setScalar(p.scale);
+    _p.set(p.x, p.y, p.z);
+    w.matrices.push(new Matrix4().compose(_p, _q, _s));
+  }
+  const whiteGroup = new Group();
+  whiteGroup.name = 'white-bark';
+  for (const w of whites) {
+    const n = Math.max(1, w.placements.length);
+    for (let l = 0; l < DETAILS.length; l++) {
+      const mesh = new InstancedMesh(w.lods[l].geometry, mats.whiteTree, n);
+      mesh.name = `whitebark-${w.params.seed}-${DETAILS[l]}`;
+      mesh.customDepthMaterial = mats.whiteTreeDepth;
+      // near and mid LODs cast shadows (dappled light on the paths); the far LOD only receives
+      mesh.castShadow = l < 2 && ctx.quality.shadows;
+      mesh.receiveShadow = true;
+      mesh.count = 0;
+      mesh.visible = false;
+      mesh.userData.kind = 'whitebark';
+      mesh.userData.lodLevel = l;
+      w.meshes.push(mesh);
+      whiteGroup.add(mesh);
+    }
+  }
+  group.add(whiteGroup);
+  ctx.progress('trees', 0.55);
+  await yieldFrame();
 
-  return { name: 'trees', group };
+  // ------------------------------------------------------------------ giants
+  const giantGroup = new Group();
+  giantGroup.name = 'giants';
+  const giants: { def: (typeof ctx.layout.giantTrees)[number]; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
+  const contacts: [number, number, number][] = [];
+  for (const def of ctx.layout.giantTrees) {
+    const [px, , pz] = def.position;
+    const gy = terrain.height(px, pz);
+    const origin = new Vector3(px, gy, pz);
+    let limbSpec: { from: Vector3; to: Vector3 } | undefined;
+    if (def.limb && def.id === 'lantern-tree') {
+      const lb = ctx.layout.lanternBranch;
+      limbSpec = {
+        from: new Vector3(lb.from[0], lb.from[1], lb.from[2]).sub(origin),
+        to: new Vector3(lb.to[0], lb.to[1], lb.to[2]).sub(origin),
+      };
+    } else if (def.limb) {
+      const l = Math.hypot(def.limb.dir[0], def.limb.dir[1]);
+      const dx = def.limb.dir[0] / l;
+      const dz = def.limb.dir[1] / l;
+      limbSpec = {
+        from: new Vector3(dx * def.trunkRadius * 0.6, def.limb.height, dz * def.trunkRadius * 0.6),
+        to: new Vector3(dx * def.limb.length, def.limb.height - def.limb.length * 0.12, dz * def.limb.length),
+      };
+    }
+    const asset = createGiantTree(def, rng, {
+      groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
+      limbSpec,
+      palette,
+      leafDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)),
+    });
+    // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
+    asset.geometry.translate(px, gy, pz);
+    const root = asset.geometry.getAttribute('aRoot') as BufferAttribute;
+    for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
+    giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
+    for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
+    ctx.progress('trees', 0.55 + (0.3 * giants.length) / ctx.layout.giantTrees.length);
+    await yieldFrame();
+  }
+  // three angular sectors around the plaza → three meshes, each frustum-culled as a unit
+  const byAngle = [...giants].sort((a, b) => a.angle - b.angle);
+  const sectorGeometries: BufferGeometry[] = [];
+  const perSector = Math.ceil(byAngle.length / GIANT_SECTORS);
+  for (let s = 0; s < GIANT_SECTORS; s++) {
+    const members = byAngle.slice(s * perSector, (s + 1) * perSector);
+    if (!members.length) continue;
+    const geometry = mergeParts(
+      `giants-sector-${s}`,
+      members.map((m) => m.asset.geometry),
+    );
+    sectorGeometries.push(geometry);
+    const mesh = new Mesh(geometry, mats.giantTree);
+    mesh.name = `giants-sector-${s}-${members.map((m) => m.def.id).join('+')}`;
+    mesh.customDepthMaterial = mats.giantTreeDepth;
+    mesh.castShadow = ctx.quality.shadows;
+    mesh.receiveShadow = true;
+    mesh.userData.kind = 'giant';
+    mesh.userData.giants = members.map((m) => m.def.id);
+    giantGroup.add(mesh);
+  }
+  group.add(giantGroup);
+
+  // ------------------------------------------------------------------ distant trees
+  const distantGroup = new Group();
+  distantGroup.name = 'distant';
+  const distantVariants = createDistantVariants(rng, palette);
+  const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
+  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget);
+  const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
+    const placements = distantPlacements.filter((p) => p.variant === i);
+    const n = Math.max(1, placements.length);
+    const make = (geometry: DistantVariant['near'], label: string, lodLevel: number) => {
+      const mesh = new InstancedMesh(geometry, mats.distant, n);
+      mesh.name = `distant-${i}-${label}`;
+      mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      mesh.count = 0;
+      mesh.visible = false;
+      mesh.userData.kind = 'distant-tree';
+      mesh.userData.lodLevel = lodLevel;
+      return mesh;
+    };
+    const near = make(variant.near, 'near', 0);
+    const far = make(variant.far, 'far', 1);
+    distantGroup.add(near, far);
+    const matrices = placements.map((p) => {
+      _q.setFromAxisAngle(_v.set(0, 1, 0), p.yaw);
+      _s.setScalar(p.scale);
+      _p.set(p.x, p.y, p.z);
+      return new Matrix4().compose(_p, _q, _s);
+    });
+    return { variant, near, far, placements, matrices, counts: [0, 0] };
+  });
+  group.add(distantGroup);
+  ctx.progress('trees', 0.95);
+
+  // ------------------------------------------------------------------ LOD bucketing
+  const lodDist = [20 * ctx.quality.distance, 44 * ctx.quality.distance];
+  const distantNear = 120 * ctx.quality.distance;
+  const camPos = new Vector3(Infinity, Infinity, Infinity);
+  const white = new Color(1, 1, 1);
+
+  const bucketWhite = (cam: Vector3) => {
+    for (const w of whites) {
+      const buckets: number[][] = [[], [], []];
+      for (let i = 0; i < w.placements.length; i++) {
+        const p = w.placements[i];
+        const d = Math.hypot(p.x - cam.x, p.z - cam.z) - w.lods[0].radius * p.scale * 0.5;
+        const l = d < lodDist[0] ? 0 : d < lodDist[1] ? 1 : 2;
+        buckets[l].push(i);
+      }
+      for (let l = 0; l < 3; l++) {
+        const mesh = w.meshes[l];
+        const list = buckets[l];
+        for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
+        mesh.count = list.length;
+        mesh.visible = list.length > 0;
+        mesh.instanceMatrix.needsUpdate = true;
+        if (list.length) mesh.computeBoundingSphere();
+        w.counts[l] = list.length;
+      }
+    }
+  };
+
+  const bucketDistant = (cam: Vector3) => {
+    for (const set of distantSets) {
+      const nearList: number[] = [];
+      const farList: number[] = [];
+      for (let i = 0; i < set.placements.length; i++) {
+        const p = set.placements[i];
+        (Math.hypot(p.x - cam.x, p.z - cam.z) < distantNear ? nearList : farList).push(i);
+      }
+      const fill = (mesh: InstancedMesh, list: number[]) => {
+        for (let k = 0; k < list.length; k++) {
+          mesh.setMatrixAt(k, set.matrices[list[k]]);
+          mesh.setColorAt(k, set.placements[list[k]].tint ?? white);
+        }
+        mesh.count = list.length;
+        mesh.visible = list.length > 0;
+        mesh.instanceMatrix.needsUpdate = true;
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+        if (list.length) mesh.computeBoundingSphere();
+      };
+      fill(set.near, nearList);
+      fill(set.far, farList);
+      set.counts = [nearList.length, farList.length];
+    }
+  };
+
+  const rebucket = (camera: Camera) => {
+    camera.getWorldPosition(_v);
+    if (_v.distanceTo(camPos) < 1.5) return;
+    camPos.copy(_v);
+    bucketWhite(camPos);
+    bucketDistant(camPos);
+  };
+  rebucket(ctx.camera);
+
+  // ------------------------------------------------------------------ audit
+  const whiteBases: [number, number, number][] = whitePlacements.map((p) => [p.x, p.y, p.z]);
+  const distantBases: [number, number, number][] = distantPlacements.map((p) => [p.x, p.y, p.z]);
+  const allBases = [...whiteBases, ...contacts, ...distantBases];
+  let maxBaseGap = 0;
+  for (const [x, y, z] of allBases) maxBaseGap = Math.max(maxBaseGap, Math.abs(y - terrain.height(x, z)));
+  const sampleBases = (() => {
+    const pool = [...whiteBases, ...contacts];
+    const stride = Math.max(1, Math.ceil(pool.length / 300));
+    return pool.filter((_, i) => i % stride === 0).slice(0, 300);
+  })();
+
+  ctx.audit('trees', () => {
+    let leafCount = 0;
+    let woodTriangles = 0;
+    let leafTriangles = 0;
+    const lodInstances = [0, 0, 0];
+    for (const w of whites) {
+      for (let l = 0; l < 3; l++) {
+        leafCount += w.counts[l] * w.lods[l].leafCount;
+        woodTriangles += w.counts[l] * w.lods[l].woodTriangles;
+        leafTriangles += w.counts[l] * w.lods[l].leafTriangles;
+        lodInstances[l] += w.counts[l];
+      }
+    }
+    let giantLeaves = 0;
+    let giantLimbsMin = Infinity;
+    let giantRootsMin = Infinity;
+    for (const g of giants) {
+      giantLeaves += g.asset.leafCount;
+      woodTriangles += g.asset.woodTriangles;
+      leafTriangles += g.asset.leafTriangles;
+      giantLimbsMin = Math.min(giantLimbsMin, g.asset.limbs);
+      giantRootsMin = Math.min(giantRootsMin, g.asset.roots);
+    }
+    let distantNearCount = 0;
+    let distantFarCount = 0;
+    let distantTriangles = 0;
+    for (const s of distantSets) {
+      distantNearCount += s.counts[0];
+      distantFarCount += s.counts[1];
+      distantTriangles += s.counts[0] * s.variant.nearTriangles + s.counts[1] * s.variant.farTriangles;
+    }
+    return {
+      geometry: 'procedural-v1',
+      giants: giants.length,
+      giantRoots: giantRootsMin >= 5,
+      giantRootsMin,
+      giantLimbsMin,
+      giantLeaves,
+      giantMeshes: sectorGeometries.length,
+      giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
+      whiteBarkVariants: whites.length,
+      whiteBarkInstances: whitePlacements.length,
+      whiteBarkAges: whites.map((w) => w.params.age),
+      whiteBarkLodInstances: lodInstances,
+      leafGeometry: 'laminae',
+      leafCount: leafCount + giantLeaves,
+      whiteBarkLeafCount: leafCount,
+      distantTrees: distantPlacements.length,
+      distantLod: [distantNearCount, distantFarCount],
+      lodLevels: 3,
+      windLayers: mats.windLayers,
+      barkTextures: mats.barkTextureSets,
+      maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
+      basesChecked: allBases.length,
+      triangles: { wood: woodTriangles, leaves: leafTriangles, distant: distantTriangles },
+      samplePositions: { bases: sampleBases },
+    };
+  });
+  ctx.progress('trees', 1);
+
+  return {
+    name: 'trees',
+    group,
+    update(_dt, _t, c) {
+      rebucket(c.camera);
+    },
+    onCameraMove(camera) {
+      rebucket(camera);
+    },
+    dispose() {
+      for (const w of whites) for (const l of w.lods) l.geometry.dispose();
+      for (const g of sectorGeometries) g.dispose();
+      for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
+    },
+  };
 }
