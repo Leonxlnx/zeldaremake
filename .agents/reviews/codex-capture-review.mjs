@@ -19,7 +19,9 @@ let clearColor = 0x123456;
 let clearAlpha = 0.5;
 const renderer = {
   getRenderTarget: () => null, setRenderTarget() {}, clear() {}, render() {},
-  setClearColor(c, a) { clearColor = c; clearAlpha = a; },
+  getClearColor(target) { return target.setHex(clearColor); },
+  getClearAlpha() { return clearAlpha; },
+  setClearColor(c, a) { clearColor = c?.isColor ? c.getHex() : c; clearAlpha = a; },
   readRenderTargetPixels(_rt, _x, _y, _w, _h, pixels) {
     // Exact coarse RGB channels plus quantized residual alpha for r186 RGBA packing.
     let remainder = 250 / 249.9 - 25 / (249.9 * distance);
