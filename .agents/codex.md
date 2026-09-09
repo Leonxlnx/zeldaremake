@@ -4,20 +4,20 @@ runtime: Codex / ChatGPT Work
 github: Leonxlnx
 status: active
 branch: agent/codex-vegetation
-updated: 2026-09-09T11:06:51.185719+00:00
+updated: 2026-09-09T12:17:18.146086+00:00
 ---
 
 # Agent
 Codex in ChatGPT Work, collaborating with fable-cursor (Claude Fable 5.1 / Cursor) through repository logs and PRs.
 
 ## Current task
-Validate and refine original props against Fable's world checkpoint4820e52 and real capture feedback. Update read-only terrain and shader diagnostics while Fable owns the underlying systems. Props iteration2 is published; revised visual capture remains pending.
+Own vegetation after Fable's explicit 4d7da1f handoff: wind-matched shadows, deterministic camera LOD refresh, fuller ledge shrubs and budget refinement. PR4 contains tested source; waiting for Fable's real A/D renders. Fixing flower stem consistency across high/mid LOD before the next source revision.
 
 ## Files / systems being touched
-- `src/world/props/**`: original geometry, placement, materials, tests and documentation.
-- `.agents/codex.md`, `.agents/reviews/codex-*`, `gates/codex-props.md`, `PLAN.md`: own coordination and evidence.
-- `preview/codex-world`: generated build only; never merge into a source branch.
-- Read-only terrain, atmosphere, postfx and capture review. Fable owns their source.
+- `src/world/vegetation/**`: source and focused geometry/shader/LOD tests.
+- `src/world/props/**`: maintenance only; current placement accepted.
+- `.agents/codex.md`, `.agents/reviews/codex-*`, `gates/codex-*.md`: own evidence and coordination.
+- Terrain, rocks, atmosphere, capture and main remain Fable-owned; review only.
 
 ## Completed work
 - Inspected AGENTS.md, PROJECT_STATE.md, all agent logs/claims, branches, commits and PRs. Fable acknowledged PR1 and integrated coordination via03703e3/579faa0.
@@ -43,11 +43,11 @@ Validate and refine original props against Fable's world checkpoint4820e52 and r
 - Browser lacks WebGL context, so direct visual iteration is unavailable in this environment.
 
 ## Coordination notes
-Before major work fetch, reread Fable logs/claims and recent PR replies, inspect overlapping commits. Latest inspected source4820e52; Fable still iterating terrain/hardscape/rocks/trees/vegetation/structures/atmosphere/lighting/postfx. Rocks remains occupied despite stale log suggestions. Own source scope is props only. PR3 carries actionable requests and responses.
+Before major work fetch, reread Fable logs/claims and PR replies, inspect overlapping commits. Latest foundation inspected 4d7da1f. Vegetation is released to Codex; rocks still reserved until terrain handoff. Shared readiness experiment stopped and never published, superseded by Fable 1b3b54d. PR4 tracks vegetation; PR3 retains props and cross-system discussion. Remote vegetation revisions 55d02f1 and ec633f9 are ready for Fable's capture review.
 
 ## Suggested parallel tasks
-- Fable: terrain sampler/mesh fix, atmosphere numerical fixes and revised B/D capture.
-- Codex: regression diagnostics, capture cross-review and props refinement after fresh evidence.
+- Fable: terrain sampler/mesh fix, atmosphere numerical fixes and A/D high-quality vegetation capture with isolate stats.
+- Codex: vegetation transition stability, measured budget refinement and regression checks after terrain changes.
 
 ## Last updated
 2026-09-09T11:06:51.185719+00:00
@@ -73,3 +73,8 @@ Shared plant color/depth/distance wind injection and liveuniforms implemented; s
 Full CPU breakdown identifies D flowers621k colortriangles, larger than grass481k ornewbushes114k. Testing a genuine medium flowerLOD at9-18m to retain foregroundhighgeometry and instancecounts while reducing small distant petal triangles. This is localnextiteration afterpublished55d02f1; Fablecapture requested forstablepublishedrevision. No density/mask reductions.
 
 Budgetiteration result:medium flowerLOD9-16m (sameinstances, samehighgeometryinside9m) reduces CPUfrustumcolorA1.823->1.782M,B1.896->1.806M,D2.121->1.967M; adds4flowerdrawbatches(A113,D107colorcalls). Actualshadow/rendercoststillpendingFable. Initialprototype9-18m didnotimprovebudget and was corrected beforepublication.
+
+## Flower transition review 2026-09-09T12:17:18.146086+00:00
+High/mid flower heads consumed different amounts of the shared PRNG stream, moving later stems at LOD changes. Isolating decoration from shared stem layout and verifying actual geometry landmarks. Shrub review confirms 18/21 new clusters project into A/B/D and approach clearances remain above 2m; this is not opaque-occlusion or visual approval. Source scope remains vegetation only.
+
+Flower transition result 2026-09-09T12:18:35.454930+00:00: isolated head decoration stream and identical high/mid stem tessellation. Actual stem/bell vertex checks pass for 24 seeds per species; mid geometry saves 29% cluster /37% spike triangles. Existing spike and low cluster geometry unchanged; high cluster layout reseeded (sampled maximum head shift19.7cm). Node22 full plant test32,078vertices/9,368bases passes, typecheck/build pass. CPU color A1.784M/113draws,D1.975M/107draws; actual shadow budget still open. Shrub review and reproducible diagnostic included.

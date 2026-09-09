@@ -209,7 +209,6 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
 export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
   const low = detail === 'low';
   const stems = low ? 5 : 6 + rng.int(0, 4);
   const phase = rng() * TAU;
@@ -221,7 +220,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     const height = 0.22 + rng() * 0.2;
     const lean = V(Math.cos(angle) * height * 0.3, height, Math.sin(angle) * height * 0.3);
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
-    tube(m, sampleCurve(curve, high ? 3 : 2), 0.0026, 0.0014, pal.stem, 3);
+    // High/mid share the skeleton, including the root tangent used to ground the mesh.
+    // Most mid-LOD savings come from the head, not these six extra stem triangles.
+    tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
     if (!low) {
       for (let j = 0; j < 2; j++) {
         for (const sign of [-1, 1]) {
@@ -232,7 +233,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     }
     // head: dense cluster bloom (~7–10 cm across)
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
-    clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, rng, pal, detail);
+    // Petal tessellation must not advance the layout stream and move the next stem.
+    // Retain the existing cheap low LOD; only high/mid need matching silhouettes.
+    clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, low ? rng : rng.fork(`head-${i}`), pal, detail);
   }
   if (!low) {
     const rosette = 4 + rng.int(0, 3);

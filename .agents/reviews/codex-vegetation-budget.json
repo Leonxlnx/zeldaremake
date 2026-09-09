@@ -1,5 +1,5 @@
 {
-  "buildMs": 7535,
+  "buildMs": 10036,
   "counts": {
     "grassInstances": 500798,
     "grassBlades": 497663,
@@ -20,14 +20,14 @@
     "saplings": 28,
     "litter": 9008,
     "windLayers": 3,
-    "buildMs": 6709
+    "buildMs": 8905
   },
   "views": {
     "A_stairs": {
       "drawCalls": 201,
-      "triangles": 2759100,
+      "triangles": 2760920,
       "colorDrawsInCameraFrustum": 113,
-      "colorTrianglesInCameraFrustum": 1782405,
+      "colorTrianglesInCameraFrustum": 1784225,
       "byGroup": {
         "grass": {
           "draws": 43,
@@ -43,7 +43,7 @@
         },
         "flowers": {
           "draws": 12,
-          "triangles": 252551
+          "triangles": 254371
         },
         "weeds": {
           "draws": 6,
@@ -86,9 +86,9 @@
     },
     "B_house": {
       "drawCalls": 201,
-      "triangles": 2804733,
+      "triangles": 2809255,
       "colorDrawsInCameraFrustum": 113,
-      "colorTrianglesInCameraFrustum": 1806428,
+      "colorTrianglesInCameraFrustum": 1810950,
       "byGroup": {
         "grass": {
           "draws": 43,
@@ -104,7 +104,7 @@
         },
         "flowers": {
           "draws": 12,
-          "triangles": 323818
+          "triangles": 328340
         },
         "weeds": {
           "draws": 6,
@@ -147,9 +147,9 @@
     },
     "D_log": {
       "drawCalls": 203,
-      "triangles": 3069083,
+      "triangles": 3077057,
       "colorDrawsInCameraFrustum": 107,
-      "colorTrianglesInCameraFrustum": 1966666,
+      "colorTrianglesInCameraFrustum": 1974640,
       "byGroup": {
         "grass": {
           "draws": 36,
@@ -165,7 +165,7 @@
         },
         "flowers": {
           "draws": 12,
-          "triangles": 466460
+          "triangles": 474434
         },
         "weeds": {
           "draws": 6,
@@ -208,6 +208,5 @@
     }
   },
   "bushBounds": [],
-  "note": "Full vegetation, excludes postfx. CPU distance/mesh-frustum estimate, not actual GPU measurement. Shadow estimate uses each revision stats semantics.",
-  "basis": "Fable4d7da1f plus Codex vegetation revision2; CPU geometry only"
+  "note": "Full vegetation, excludes postfx. CPU distance/mesh-frustum estimate, not actual GPU measurement. Shadow estimate uses each revision stats semantics."
 }

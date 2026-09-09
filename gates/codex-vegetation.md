@@ -4,4 +4,4 @@
 - [x] Larger leafy shrubs placed deterministically with unchanged exclusions and audit keys.
 - [x] CPU regression/geometry tests and production build pass.
 - [ ] Fable captures A/D and reference comparison; target ~120 vegetation draws /2M tris.
-- [ ] Published own branch/PR and coordinated integration.
+- [x] Published own branch/PR4 and requested coordinated integration; Fable acceptance pending.
