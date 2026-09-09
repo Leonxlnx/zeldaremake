@@ -200,7 +200,8 @@ export const LAYOUT = {
     { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.8, -9.5], target: [3.9, 2.5, 3.5], fov: 46 },
     // Stands 2 m past the bough's tip so the pods stay behind the camera; the house stair then
     // sits at the right edge (x ≈ 0.9) as in the reference.
-    { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [1.0, 1.9, -3.0], target: [5.3, 3.2, -42], fov: 48 },
+    // On the spine's axis so the flagstones fill the whole foreground as in the reference.
+    { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [0.2, 1.9, -3.0], target: [4.5, 3.2, -42], fov: 48 },
     { id: 'E_ground', refSeconds: 24, label: 'Ground Close-up', position: [-1.2, 0.55, 2.5], target: [2, 0.1, -3], fov: 50, diagnostic: true },
     { id: 'F_canopy', refSeconds: 8, label: 'Canopy & Shafts', position: [0, 1.7, 4], target: [-6, 14, -14], fov: 55, diagnostic: true },
   ] as Viewpoint[],
