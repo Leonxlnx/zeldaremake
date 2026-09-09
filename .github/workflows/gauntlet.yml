@@ -18,7 +18,7 @@ on:
 
 concurrency:
   group: gauntlet-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -34,7 +34,7 @@ jobs:
       # Settle frames per viewpoint. SwiftShader on a 2-vCPU runner renders a multi-million-triangle
       # frame in seconds; 30 keeps the whole capture (6 viewpoints + determinism + motion) well
       # inside the job timeout. Local `npm run capture` defaults to 90.
-      SETTLE: 30
+      SETTLE: 8
     steps:
       - uses: actions/checkout@v4
         with:

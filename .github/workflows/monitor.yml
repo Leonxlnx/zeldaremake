@@ -84,11 +84,11 @@ jobs:
       # metric deltas vs the previous take (rule D6). When main's sha is unchanged since the last
       # monitor take, take.mjs only refreshes takes.json.updatedAt (heartbeat) so E3 stays green
       # without inflating the ledger with duplicate SHAs.
-      # --settle 30 matches gauntlet.yml (local captures default to 90).
+      # --settle 8 matches gauntlet.yml (local captures default to 90).
       - name: Take (ci-monitor → monitor branch)
         env:
           GITHUB_TOKEN: ${{ github.token }} # take.mjs pushes .monitor/ with this token
-        run: node gauntlet/scripts/take.mjs --agent ci-monitor --items W37 --publish --auto-note --no-build --settle 30
+        run: node gauntlet/scripts/take.mjs --agent ci-monitor --items W37 --publish --auto-note --no-build --settle 8
 
       - name: Upload the take
         if: always()
