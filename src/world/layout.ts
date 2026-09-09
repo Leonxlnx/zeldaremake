@@ -85,8 +85,9 @@ export const LAYOUT = {
   /** Branch from the plaza east to the foot of the main stairs. */
   pathToStairs: [
     [0, 0, 0],
-    [3.5, 0, -0.8],
-    [7.0, 0, -1.4],
+    [3.5, 0, -0.6],
+    [6.5, 0, -1.3],
+    [8.6, 0, -1.8],
   ] as [number, number, number][],
 
   /** Branch from the plaza north-east up the short stair to the house terrace. */
@@ -99,7 +100,11 @@ export const LAYOUT = {
 
   stairs: [
     // The hero stairway of shot A — 18 wide, worn, moss-edged steps climbing to the east plateau.
-    { id: 'main', base: [7.5, 0, -1.5], dir: [1, -0.35], steps: 18, rise: 0.3, tread: 0.42, width: 2.7 },
+    // In reference frame 1 the run reads almost radial from the camera (bottom centre x ≈ 0.71,
+    // top ≈ 0.74, base ≈ 17 m away), so it runs at bearing ≈ 55° — only ~16° off camera A's
+    // ray — rather than due east, and its base sits 13.7 m from the camera. The plateau ramp
+    // follows this frame, so W04's probe at (18, -4) must stay on the 5.4 m top.
+    { id: 'main', base: [9.0, 0, -2.0], dir: [1, -0.7], steps: 18, rise: 0.3, tread: 0.42, width: 3.2 },
     // Short stair up to the Kokiri house terrace (right side of shot D).
     { id: 'house', base: [4.6, 0, -7.2], dir: [0.66, -0.75], steps: 4, rise: 0.3, tread: 0.5, width: 2.2 },
     // Small steps on the north path to the boulder terrace (centre-left of shot B).
@@ -116,7 +121,8 @@ export const LAYOUT = {
 
   houses: [
     { id: 'saria', position: [12.5, 1.2, -11.5], trunkRadius: 3.2, facing: [-0.7, 0.72], roofHeight: 6.5, lanterns: 3 },
-    { id: 'upper', position: [23, 5.4, -9], trunkRadius: 2.7, facing: [-1, 0.15], roofHeight: 5.0, lanterns: 2 },
+    // East of the fenced lip, outside every reference frame (its roof showed above the stair top in A).
+    { id: 'upper', position: [28, 5.4, -2], trunkRadius: 2.7, facing: [-1, 0.1], roofHeight: 5.0, lanterns: 2 },
   ] as HouseDef[],
 
   signposts: [
@@ -125,8 +131,9 @@ export const LAYOUT = {
 
   /** Wooden fence lines (post-and-rail) along the east plateau edge, as seen at the top of the stairs. */
   fences: [
-    { id: 'plateau-west', points: [[16.5, 5.4, 4], [16.5, 5.4, -1.5]] as [number, number, number][] },
-    { id: 'plateau-north', points: [[16.5, 5.4, -6.5], [16.5, 5.4, -13], [20, 5.4, -14.5]] as [number, number, number][] },
+    // Both runs follow the plateau lip (perpendicular to the stair run, ~0.5 m inside the top edge).
+    { id: 'plateau-west', points: [[18.2, 5.4, -5.5], [21.6, 5.4, -0.6], [23.3, 5.4, 1.9]] as [number, number, number][] },
+    { id: 'plateau-north', points: [[18.0, 5.4, -10.3], [18.8, 5.4, -12.8], [20.2, 5.4, -15.4]] as [number, number, number][] },
   ],
 
   /** Big branch hanging over the path with 3 glowing pod lanterns (left side of shot A). */
@@ -136,8 +143,10 @@ export const LAYOUT = {
     // the upper quarter of shot B (reference B has the giant's limb over the house there).
     // `from` marks where the visible, lantern-bearing part of the limb begins (the giant builder
     // grows the limb from the trunk to it); the midpoint must project inside shot A for W01.
-    from: [-3.2, 4.35, -4.3] as [number, number, number],
-    to: [3.0, 3.3, -0.9] as [number, number, number],
+    // The bough itself rides high (y ≈ 0.15–0.3 in A, mostly above shot B's frame); the pods
+    // hang on long cords to the reference's y ≈ 0.45.
+    from: [-4.0, 4.6, -5.0] as [number, number, number],
+    to: [1.5, 3.6, -2.6] as [number, number, number],
     /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
     radius: 0.42,
     tipRadius: 0.16,
@@ -157,7 +166,8 @@ export const LAYOUT = {
   heroBoulders: [
     { id: 'terrace-boulder', position: [-4.5, 1.2, -19.5] as [number, number, number], radius: 2.2 },
     { id: 'shot-d-boulder', position: [-3.6, 0, -11] as [number, number, number], radius: 0.9 },
-    { id: 'stair-foot', position: [9.5, 0.2, 1.6] as [number, number, number], radius: 0.8 },
+    // right edge of shot A (≈ 0.9, 0.7): the mossy rock the Kokiri kid stands beside
+    { id: 'stair-foot', position: [9.1, 0.2, 2.5] as [number, number, number], radius: 1.0 },
   ],
 
   /** Giant old trees. Canopies of these form the overhead cover (14–24 m). */
@@ -181,7 +191,9 @@ export const LAYOUT = {
   ],
 
   viewpoints: [
-    { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.8, 8.6], target: [8.6, 3.0, -4.8], fov: 46 },
+    // Level aim at bearing 23.5° (the reference camera is not pitched): stair run at x ≈ 0.68–0.76,
+    // base y ≈ 0.66, top y ≈ 0.29; pods around x ≈ 0.15–0.3, y ≈ 0.45.
+    { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.8, 8.6], target: [6.7, 1.8, -5.8], fov: 46 },
     // Projected: house 0.68–0.88 with the door at (0.78, 0.48) ≈ reference (0.80, 0.50); sign 0.66; small steps 0.19.
     { id: 'B_house', refSeconds: 14, label: "Saria's House", position: [0, 1.6, 2.0], target: [5, 1.8, -12], fov: 46 },
     { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.8, -9.5], target: [3.9, 2.5, 3.5], fov: 46 },

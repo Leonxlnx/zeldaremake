@@ -242,7 +242,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       minSpacing: 0.62,
       accept(x, z, s) {
         // crowns reach ~0.8 m from the centre, so centres stay ≥ 1.7 m east of B's corridor
-        if (x < bRayX(z) + 1.7) return 0;
+        if (x < bRayX(z) + 2.0) return 0;
         if (x > aRayX(z) + 1.4) return 0;
         if (s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5) return 0;
         if (field.houseInfo(x, z).dist < 0.4) return 0;
@@ -252,8 +252,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     (x, z, s, rng) => {
       // scale 1 bushes stand 0.95–1.5 m; the hedge needs a 2.4–3 m crown so its top reaches the
       // door lintel's projection in A, and it is kept narrower than tall so it stays out of B
-      const sc = 1.9 + rng() * 0.55;
-      placeInstance(hedge, x, z, s, rng, sc, 0.12, 0.05, tint.setRGB(0.7 + rng() * 0.1, 0.78 + rng() * 0.08, 0.66 + rng() * 0.1), sc * (0.6 + rng() * 0.12));
+      const sc = 2.1 + rng() * 0.6;
+      placeInstance(hedge, x, z, s, rng, sc, 0.12, 0.05, tint.setRGB(0.7 + rng() * 0.1, 0.78 + rng() * 0.08, 0.66 + rng() * 0.1), sc * (0.52 + rng() * 0.1));
     },
   );
 

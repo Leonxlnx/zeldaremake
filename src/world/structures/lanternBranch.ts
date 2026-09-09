@@ -18,14 +18,16 @@ export interface LanternBranchBuild {
 }
 
 /**
- * Parametric positions along from→to and cord lengths. The bough itself already sits at the
- * reference pod height in shot A, so the pods hang on short cords right under it: 0.97/0.12
- * lands the nearest pod at screen ≈ (0.24, 0.44), 0.82/0.5 the second at ≈ (0.09, 0.45);
- * both stay in the upper quarter of shot B and above the top edge of shot D (whose camera
- * stands almost under the bough's tip).
+ * Parametric positions along from→to and cord lengths. The bough rides ≈ 0.7 m above the
+ * reference pod height in shot A (so it stays mostly above shot B's frame), and the first two
+ * pods come down on long cords to ≈ 2.2 m — the reference's y ≈ 0.45 at x ≈ 0.1 / 0.26. The
+ * last pod keeps a short cord so it clears the top edge of shot D, whose camera stands under
+ * the bough's tip.
  */
-const LANTERN_T = [0.6, 0.82, 0.97];
-const CORDS = [0.35, 0.5, 0.12];
+// bough at y ≈ 4.0–4.4 over the pods: long cords bring the first two pods down to ≈ 2.2 m (the
+// reference's y ≈ 0.45 in shot A); the last one stays high so it clears shot D's top edge
+const LANTERN_T = [0.55, 0.75, 0.9];
+const CORDS = [1.5, 1.35, 0.5];
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
   const def = ctx.layout.lanternBranch;
