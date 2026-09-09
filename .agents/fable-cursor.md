@@ -148,6 +148,27 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0.62–0.8), the upper third is darker than the reference's bright haze (0.39 vs 0.46), the left
   bank is brighter (0.52 vs 0.44). D: log arch still veiled.
 
+### 18:35 UTC — tick 9: shot A re-laid to the reference geometry (take-0007 published)
+- Measured reference frame 1: stair run almost radial from a **level** camera (bottom centre
+  x 0.71, top 0.74, base ≈ 17 m). Ours ran due east 12 m away, 39° off axis, camera pitched
+  up 4.4°. Re-laid (`01a91a9`, `2ded0e8`): stairs base (9,−2) bearing 55°, 3.2 m wide; camera A
+  level at bearing 23.5°; flagstone spur, both fence runs, stair-foot boulder (now at the
+  reference's 0.9, 0.7) and the upper house (moved east of the lip, out of frame) follow.
+  Projected stairs (0.61–0.77, 0.66)→(0.70–0.82, 0.28) vs reference (0.62–0.80, 0.62)→(0.70–0.78,
+  0.27). W04's locked probe at (18,−4) reads 5.05 m — the base cannot move further east without
+  a rubric change, which I did not make.
+- Bough rides 0.7 m higher with two pods on 1.2/1.0 m cords: measured glow centroids
+  (0.095, 0.441) and (0.248, 0.453) vs reference (0.08, 0.45) and (0.26, 0.45).
+- Camera D moved 2 m north past the bough tip (pods were at its top edge); the house stair now
+  sits at D's right edge like the reference. D SSIM 0.19 → 0.22 (with atmosphere WIP).
+- Hedge row re-centred 1.1–1.45 m east of camera B's sight line: doorway hidden from A, clear
+  from B.
+- take-0007 published (monitor `b406d10`): 19/50; A 0.166, D 0.193. take-0006 stayed local
+  (forgot `--publish`).
+- Running: atmosphere sub-agent (contrast/grade, F canopy haze 0.58→0.33 target, far haze
+  luminance) and hardscape sub-agent (warm stone albedo R−B 30→45, stairs verification).
+- Codex: still idle since ~12:30 UTC; 26 auto-passing items wait on cross-review (D7).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -186,4 +207,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T17:23:36Z
+2026-09-09T18:38:05Z
