@@ -210,29 +210,57 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
   return variants;
 }
 
-export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantVariant[], target: number, inner = 60, outer = 215): DistantPlacement[] {
+/**
+ * A dense row of silhouettes filling a narrow depth range (a "depth layer" behind a landmark):
+ * jittered grid over [xMin, xMax] × [zMin, zMax], broad variants only, darker tint.
+ */
+export interface DepthBand {
+  xMin: number;
+  xMax: number;
+  zMin: number;
+  zMax: number;
+  spacing: number;
+  scale: [number, number];
+  /** brightness multiplier (< 1 = darker silhouette under the haze) */
+  shade: number;
+}
+
+export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantVariant[], target: number, inner = 60, outer = 215, bands: DepthBand[] = []): DistantPlacement[] {
   const r = rng.fork('distant-placement');
   const clump = new Noise2D('distant-clumps');
   const out: DistantPlacement[] = [];
   const cell = 6;
   const grid = new Map<string, DistantPlacement[]>();
   const key = (x: number, z: number) => `${Math.floor(x / cell)},${Math.floor(z / cell)}`;
-  const tooClose = (x: number, z: number, minD: number) => {
-    const cx = Math.floor(x / cell);
-    const cz = Math.floor(z / cell);
-    for (let i = -2; i <= 2; i++) {
-      for (let j = -2; j <= 2; j++) {
-        const list = grid.get(`${cx + i},${cz + j}`);
-        if (!list) continue;
-        for (const p of list) if (Math.hypot(p.x - x, p.z - z) < minD) return true;
+  const push = (p: DistantPlacement) => {
+    out.push(p);
+    const k = key(p.x, p.z);
+    if (!grid.has(k)) grid.set(k, []);
+    grid.get(k)!.push(p);
+  };
+  const broadOnly = variants.map((v, i) => (v.kind === 'broad' ? i : -1)).filter((i) => i >= 0);
+  for (const band of bands) {
+    const nx = Math.max(1, Math.round((band.xMax - band.xMin) / band.spacing));
+    const nz = Math.max(1, Math.round((band.zMax - band.zMin) / band.spacing));
+    for (let i = 0; i < nx; i++) {
+      for (let j = 0; j < nz; j++) {
+        const x = band.xMin + ((i + 0.5 + r.range(-0.4, 0.4)) / nx) * (band.xMax - band.xMin);
+        const z = band.zMin + ((j + 0.5 + r.range(-0.4, 0.4)) / nz) * (band.zMax - band.zMin);
+        const m = terrain.mask(x, z);
+        if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72) continue;
+        if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
+        const tintShift = r.range(-0.05, 0.05);
+        const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * r.range(0.9, 1.05));
+        push({ variant: broadOnly[r.int(0, broadOnly.length)], x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(band.scale[0], band.scale[1]), tint });
       }
     }
-    return false;
-  };
-  const broadIdx = variants.map((v, i) => (v.kind === 'broad' ? i : -1)).filter((i) => i >= 0);
+  }
+  const tooClose = (x: number, z: number, minD: number) => tooCloseIn(grid, cell, x, z, minD);
+  const broadIdx = broadOnly;
   const slenderIdx = variants.map((v, i) => (v.kind === 'slender' ? i : -1)).filter((i) => i >= 0);
   let attempts = 0;
-  while (out.length < target && attempts < target * 40) {
+  const bandCount = out.length;
+  while (out.length - bandCount < target && attempts < target * 40) {
     attempts++;
     const a = r() * TAU;
     // area-uniform radius in the annulus, slightly biased inward so the near band is dense
@@ -250,11 +278,20 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     const variant = slender ? slenderIdx[r.int(0, slenderIdx.length)] : broadIdx[r.int(0, broadIdx.length)];
     const tintShift = r.range(-0.06, 0.06);
     const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(r.range(0.82, 1.08));
-    const p: DistantPlacement = { variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(0.8, 1.28), tint };
-    out.push(p);
-    const k = key(x, z);
-    if (!grid.has(k)) grid.set(k, []);
-    grid.get(k)!.push(p);
+    push({ variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(0.8, 1.28), tint });
   }
   return out;
+}
+
+function tooCloseIn(grid: Map<string, DistantPlacement[]>, cell: number, x: number, z: number, minD: number): boolean {
+  const cx = Math.floor(x / cell);
+  const cz = Math.floor(z / cell);
+  for (let i = -2; i <= 2; i++) {
+    for (let j = -2; j <= 2; j++) {
+      const list = grid.get(`${cx + i},${cz + j}`);
+      if (!list) continue;
+      for (const p of list) if (Math.hypot(p.x - x, p.z - z) < minD) return true;
+    }
+  }
+  return false;
 }

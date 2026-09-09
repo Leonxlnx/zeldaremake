@@ -34,13 +34,15 @@ export function createLeafClusterTexture(rng: Rng, palette: LeafClusterPalette, 
   const css = (c: Color) => `rgb(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)})`;
 
   const gauss = () => r.gauss();
-  // few, large leaves: small ones mip down to alpha-tested dots at canopy distances
-  const leaves = 48;
+  // a fine-grained tuft: many small leaves so a 1–2 m card reads as a cluster of 10–20 cm leaves,
+  // not as one big lamina. Coverage loss in the mip chain is compensated by a dark outline around
+  // each leaf and a lower alpha test / negative mip bias in the material.
+  const leaves = 84;
   for (let i = 0; i < leaves; i++) {
     const depth = i / leaves; // back leaves first (darker), front leaves last (brighter)
-    const cx = size * (0.56 + gauss() * 0.15);
-    const cy = size * (0.44 + gauss() * 0.15);
-    const length = size * r.range(0.16, 0.26);
+    const cx = size * (0.56 + gauss() * 0.16);
+    const cy = size * (0.44 + gauss() * 0.16);
+    const length = size * r.range(0.11, 0.19);
     const width = length * r.range(0.5, 0.72);
     const angle = r.range(0, Math.PI * 2);
     const shade = 0.55 + 0.55 * depth + r.range(-0.08, 0.08);
@@ -58,6 +60,10 @@ export function createLeafClusterTexture(rng: Rng, palette: LeafClusterPalette, 
     ctx.quadraticCurveTo(width * 0.62, length * 0.28, width * 0.1, length);
     ctx.quadraticCurveTo(-width * 0.62, length * 0.28, 0, 0);
     ctx.closePath();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(1.5, length * 0.05);
+    ctx.strokeStyle = css(base.clone().multiplyScalar(0.6));
+    ctx.stroke();
     ctx.fillStyle = css(base);
     ctx.fill();
     // lit half + midrib

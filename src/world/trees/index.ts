@@ -24,12 +24,52 @@ import { createTreeMaterials } from './materials';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, type WhiteBarkPlacement } from './placement';
 import { createGiantTree, type GiantAsset } from './giant';
-import { createDistantVariants, placeDistantTrees, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { mergeParts, type Detail } from './writer';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
 const GIANT_SECTORS = 3;
+/**
+ * Authored boughs (world end points; fromHeight is local to the tree base).
+ * plateau-oak: two boughs reaching over Saria's dome (house at (12.5, 1.2, −11.5), roof top
+ * ≈ 7.7 m) so the reference's "house framed by the giant's limbs" reads in shot B.
+ * lantern-tree: a second low bough over the north plaza at ≈ 9 m — dark leaf clusters in the
+ * upper-left of shots A/B (the reference's canopy there is near and dark) and canopy for the
+ * shadow map to carve shafts from.
+ */
+const HOUSE_BOUGHS = [
+  { giant: 'plateau-oak', to: [12.5, 9.0, -11.5] as [number, number, number], fromHeight: 6.6, radius: 0.62 },
+  { giant: 'plateau-oak', to: [15.4, 10.4, -8.4] as [number, number, number], fromHeight: 8.1, radius: 0.48 },
+  { giant: 'lantern-tree', to: [3.0, 8.6, -14.0] as [number, number, number], fromHeight: 6.8, radius: 0.6 },
+];
+/**
+ * God-ray corridors: world air points over the north of the plaza (the upper-left of shots A/B)
+ * that should sit inside bold shafts. The line through each along the sun direction is kept clear
+ * of giant foliage, so the canopy shadow map carries 2–3 large holes among the fine dapple.
+ */
+const SHAFT_AIR_POINTS: [number, number, number][] = [
+  [1.3, 6.6, -9.4],
+  [-3.0, 8.0, -14.5],
+  [5.0, 7.0, -17.0],
+];
+const SHAFT_RADIUS = 2.6;
+/**
+ * Giants whose LOW foliage the hero cameras see from a few metres: the lantern tree's limb lobes
+ * hang 3–8 m from cameras A/B, the plateau oak's house boughs are ~20 m from B. Their low lobes
+ * get leaf-sized laminae instead of cluster cards (see GiantOptions.eyeDetail).
+ */
+const EYE_DETAIL: Record<string, number> = { 'lantern-tree': 1, 'plateau-oak': 0.6 };
+/**
+ * Dense silhouette rows north of the log arch (shot D looks north from z ≈ −1): each fills a
+ * narrow depth range so the depth histogram registers a distinct far layer behind the log
+ * (crown faces ≈ 47–57 m and ≈ 80–95 m from the camera, with a clear gap after the log/giant
+ * run that ends ≈ 37 m), read as dark masses under the haze.
+ */
+const DEPTH_BANDS: DepthBand[] = [
+  { xMin: -34, xMax: 48, zMin: -61, zMax: -55, spacing: 5.0, scale: [1.25, 1.6], shade: 0.72 },
+  { xMin: -58, xMax: 68, zMin: -98, zMax: -84, spacing: 7, scale: [1.2, 1.55], shade: 0.78 },
+];
 const _v = new Vector3();
 const _q = new Quaternion();
 const _s = new Vector3();
@@ -60,6 +100,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const palette = ctx.config.palette;
   const terrain = ctx.terrain;
   const yieldFrame = () => new Promise<void>((r) => setTimeout(r, 0));
+  // unit vector toward the sun (same convention as lighting/sun.ts: azimuth from +Z toward +X)
+  const sunDir = (() => {
+    const az = (ctx.config.sun.azimuthDeg * Math.PI) / 180;
+    const el = (ctx.config.sun.elevationDeg * Math.PI) / 180;
+    return new Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
+  })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
 
@@ -139,12 +185,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         to: new Vector3(dx * def.limb.length, def.limb.height - def.limb.length * 0.12, dz * def.limb.length),
       };
     }
+    // the giant nearest Saria's house sends two boughs over the dome (the reference frames the
+    // house between the giant's limbs); targets are world points above the roof
+    const boughs = HOUSE_BOUGHS.filter((b) => b.giant === def.id).map((b) => ({
+      to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
+      fromHeight: b.fromHeight,
+      radius: b.radius,
+    }));
+    // giants 35–45 m out are seen through the haze at 30+ m: fewer laminae, the cluster cards
+    // carry their crowns
+    const plazaDist = Math.hypot(px, pz);
+    const farFade = 1 - 0.45 * Math.min(1, Math.max(0, (plazaDist - 26) / 16));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
       limbSpec,
       palette,
-      leafDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)),
+      leafDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * farFade,
+      cardDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * (1 + (1 - farFade)),
       towardPlaza: new Vector3(-px, 0, -pz).normalize(),
+      boughs,
+      corridors: SHAFT_AIR_POINTS.map((q) => ({ point: new Vector3(q[0], q[1], q[2]).sub(origin), dir: sunDir, radius: SHAFT_RADIUS })),
+      eyeDetail: EYE_DETAIL[def.id] ?? 0,
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     for (const g of [asset.geometry, asset.cards]) {
@@ -196,7 +257,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   distantGroup.name = 'distant';
   const distantVariants = createDistantVariants(rng, palette);
   const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
-  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget);
+  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS);
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);

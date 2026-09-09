@@ -57,8 +57,26 @@ export interface GiantOptions {
   palette: Palette;
   /** leaf population multiplier (quality) */
   leafDensity?: number;
+  /** cluster-card population multiplier (defaults to leafDensity) */
+  cardDensity?: number;
   /** local horizontal unit vector toward the clearing: crowns grow into the light (phototropism) */
   towardPlaza?: Vector3;
+  /**
+   * Extra authored boughs (local space): each leaves the trunk at `fromHeight`, droops out to `to`
+   * and carries leaf lobes along its length and at its tip (e.g. the boughs framing Saria's roof).
+   */
+  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number }[];
+  /**
+   * Shaft corridors (local space): infinite lines along the sun direction. Foliage inside a
+   * corridor is not built, so the canopy shadow map carries a few bold holes (god-ray slabs)
+   * instead of only fine-grained gaps.
+   */
+  corridors?: { point: Vector3; dir: Vector3; radius: number }[];
+  /**
+   * 0–1: how closely the hero cameras see this tree's LOW foliage (4–9 m). At 1 the low lobes get
+   * leaf-sized 8-triangle laminae and no cluster cards; at 0 they use the cheap roof treatment.
+   */
+  eyeDetail?: number;
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -179,23 +197,42 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   }
 
   // ---------- leaves ----------
-  const leafOpts = (radius: number) => ({
-    widthRatio: 0.58,
-    wideFirst: 0.85,
-    wideSecond: 0.6,
+  // Foliage near eye level (the lantern limb, low boughs at 4–9 m) is seen from 3–8 m: it needs
+  // real leaf-sized laminae (~10 cm, beech/oak obovate outline, 8 triangles). The roof at 14–24 m
+  // is 15+ m away and uses bigger stylised laminae plus cluster cards.
+  const eyeDetail = o.eyeDetail ?? 0;
+  const nearEye = (y: number) => (1 - smoothstep(7, 12, y)) * eyeDetail;
+  const leafOpts = (radius: number, y: number) => ({
+    widthRatio: 0.6,
+    wideFirst: 0.7,
+    wideSecond: 0.82,
     stiffness: stiffnessFor(radius),
     flutter: 0.03,
-    detailOverride: 'medium' as const,
+    detailOverride: (nearEye(y) > 0.75 ? 'high' : 'medium') as 'high' | 'medium',
     tipColor: new Color('#8a9a4c'),
   });
+  const corridors = o.corridors ?? [];
+  const corrTmp = new Vector3();
+  const inCorridor = (p: Vector3) => {
+    for (const c of corridors) {
+      corrTmp.subVectors(p, c.point);
+      const along = corrTmp.dot(c.dir);
+      corrTmp.addScaledVector(c.dir, -along);
+      if (corrTmp.lengthSq() < c.radius * c.radius) return true;
+    }
+    return false;
+  };
   let lobe: { center: Vector3; hR: number } | null = null;
   function leafSpray(path: Vector3[], pathRadius: number, count: number, vigor = 1, startT = 0.15) {
-    count = Math.max(1, Math.round(count * density));
+    const midY = sample(path, 0.6).y;
+    // low foliage seen up close is carried by many small laminae (cards only fill the core there)
+    count = Math.max(1, Math.round(count * density * (1 + 4.0 * nearEye(midY))));
     const phase = r() * TAU;
-    const opts = leafOpts(pathRadius);
+    const opts = leafOpts(pathRadius, midY);
     for (let j = 0; j < count; j++) {
       const t = startT + ((1 - startT) * (j + bt(0.15, 0.85))) / count;
       const base = sample(path, t);
+      if (corridors.length && inCorridor(base)) continue;
       const axis = tangent(path, t);
       const [u, v] = frame(axis);
       const angle = phase + j * 2.399963229728653 + bt(-0.3, 0.3);
@@ -213,7 +250,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.3))
         .multiplyScalar(vigor * (1 - interior * 0.32));
       // leaves near eye level (low limbs) stay believable; the high roof uses big stylised laminae
-      const size = bt(0.7, 1.0) * (0.17 + 0.22 * smoothstep(4, 15, base.y));
+      const roofSize = 0.17 + 0.22 * smoothstep(4, 15, base.y);
+      const eyeSize = 0.13 + 0.24 * smoothstep(6, 16, base.y);
+      const size = bt(0.72, 1.0) * (roofSize + (eyeSize - roofSize) * eyeDetail);
       addLeaf(leaves, base, direction, size, color, r, opts);
     }
   }
@@ -227,15 +266,20 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const cardU = new Vector3();
   const cardW = new Vector3();
   function clusterCards(center: Vector3, hR: number, vR: number, boughRadius: number, count: number) {
-    count = Math.max(2, Math.round(count * Math.min(1.1, density)));
+    // near eye level a card seen obliquely reads as one flat cut-out, so low lobes seen up close
+    // keep only half-size cards deep in the lobe core (dark filler behind the laminae)
+    const eye = nearEye(center.y);
+    const sizeF = 1 - 0.5 * eye;
+    count = Math.max(2, Math.round(count * 1.5 * Math.min(1.4, o.cardDensity ?? density)));
     const stiffness = stiffnessFor(boughRadius * 0.5);
     const phase = r();
     for (let i = 0; i < count; i++) {
-      const rr = Math.pow(r(), 0.4);
+      const rr = Math.pow(r(), 0.4) * (1 - 0.45 * eye);
       const th = r() * TAU;
       const ph = Math.acos(2 * r() - 1);
       const local = new Vector3(Math.sin(ph) * Math.cos(th) * hR * rr, Math.cos(ph) * vR * rr, Math.sin(ph) * Math.sin(th) * hR * rr);
       const p = center.clone().add(local);
+      if (corridors.length && inCorridor(p)) continue;
       cardN.set(local.x / hR, local.y / vR + 0.7, local.z / hR).normalize();
       cardN.x += bt(-0.35, 0.35);
       cardN.z += bt(-0.35, 0.35);
@@ -247,7 +291,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const spin = r() * TAU;
       const su = cardU.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardW, Math.sin(spin));
       const sw = cardW.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardU, -Math.sin(spin));
-      const s = Math.min(1.6, Math.max(0.45, bt(0.28, 0.42) * hR));
+      const s = Math.min(1.25, Math.max(0.36, bt(0.22, 0.34) * hR)) * sizeF;
       const heightF = p.y / H;
       const outF = Math.hypot(p.x, p.z) / crownRadius;
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * bt(0.35, 1);
@@ -328,7 +372,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // ---------- big near-horizontal limbs ----------
   let limbs = 0;
   let limbPath: Vector3[] | undefined;
-  const limbLobes = (path: Vector3[], baseRadius: number, positions: number[], hR: number, vR: number, upOffset: number) => {
+  const limbLobes = (path: Vector3[], baseRadius: number, positions: number[], hR: number, vR: number, upOffset: number, mult = 0.4) => {
     for (const s of positions) {
       const origin = sample(path, s);
       const ax = tangent(path, s);
@@ -337,7 +381,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const bough = growthPath(origin, center, ax.clone().lerp(UP, 0.5), r, 7, 0.7);
       const radius = Math.max(0.06, baseRadius * (1 - s) * 0.42);
       tube(wood, bough, taper(bough, radius, 0.02), 6, r, { color: barkColor, roughness: 0.04 });
-      foliateLobe(bough, center, hR, vR, radius, 2, 3, 4, 0.4);
+      foliateLobe(bough, center, hR, vR, radius, 2, 3, 4, mult);
     }
   };
 
@@ -381,6 +425,47 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const endBough = growthPath(path[path.length - 2], endCenter, dir, r, 5, 0.5);
     tube(wood, endBough, taper(endBough, 0.09, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
     foliateLobe(endBough, endCenter, 2.4, 1.2, 0.09, 3, 3, 4, 0.45);
+  }
+
+  // ---------- authored boughs (e.g. the pair reaching over Saria's roof) ----------
+  for (const spec of o.boughs ?? []) {
+    const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
+    const origin = sample(trunk, tTrunk);
+    origin.y = spec.fromHeight;
+    const to = spec.to;
+    const dir = to.clone().sub(origin);
+    const len = dir.length();
+    const horiz = new Vector3(dir.x, 0, dir.z).normalize();
+    const side = new Vector3(-horiz.z, 0, horiz.x);
+    const r0 = spec.radius;
+    const r1 = spec.tipRadius ?? r0 * 0.35;
+    const path: Vector3[] = [origin.clone()];
+    const radii: number[] = [r0 * 1.35];
+    const n = 14;
+    const wigglePhase = r() * TAU;
+    for (let k = 1; k <= n; k++) {
+      const s = k / n;
+      // leaves the trunk almost level, arches a little, then droops onto the target
+      const p = origin.clone().addScaledVector(horiz, Math.hypot(dir.x, dir.z) * s);
+      p.y = origin.y + (to.y - origin.y) * s * s + 0.35 * len * 0.06 * Math.sin(s * Math.PI);
+      p.addScaledVector(side, Math.sin(s * 7 + wigglePhase) * 0.09 * len * 0.12 * Math.sin(s * Math.PI));
+      path.push(p);
+      radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
+    }
+    const tail = 3;
+    for (let k = 1; k <= tail; k++) {
+      const s = k / tail;
+      const p = to.clone().addScaledVector(horiz, 2.4 * s).addScaledVector(UP, 1.1 * s * s).addScaledVector(side, 0.4 * s);
+      path.push(p);
+      radii.push(r1 * (1 - 0.7 * s));
+    }
+    tube(wood, path, radii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    limbs++;
+    limbLobes(path, r0, [0.42, 0.64, 0.84], 2.7, 1.3, 1.7, 0.62);
+    const endCenter = path[path.length - 1].clone().addScaledVector(UP, 1.1).addScaledVector(horiz, 0.9);
+    const endBough = growthPath(path[path.length - 2], endCenter, horiz, r, 5, 0.5);
+    tube(wood, endBough, taper(endBough, r1 * 0.6, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
+    foliateLobe(endBough, endCenter, 2.9, 1.4, r1 * 0.6, 3, 3, 4, 0.62);
   }
 
   const extraLimbs = o.limbSpec ? 2 : r.int(2, 4);

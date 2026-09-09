@@ -46,6 +46,28 @@ interface WindOpts {
   flex: number;
 }
 
+/**
+ * Leaf-cluster cards: the alpha test is below 0.5 and the map is sampled with a negative mip bias
+ * so the fine leaves of the cluster texture keep their coverage at canopy distances instead of
+ * mipping down to a sprinkle of dots (the cards then read as tufts, not as one lamina).
+ */
+const CARD_ALPHA_TEST = 0.42;
+const CARD_MIP_BIAS = -0.75;
+function biasedMap(shader: WebGLProgramParametersWithUniforms) {
+  shader.fragmentShader = shader.fragmentShader.replace(
+    '#include <map_fragment>',
+    /* glsl */ `
+    #ifdef USE_MAP
+      vec4 sampledDiffuseColor = texture2D(map, vMapUv, ${CARD_MIP_BIAS.toFixed(2)});
+      #ifdef DECODE_VIDEO_TEXTURE
+        sampledDiffuseColor = sRGBTransferEOTF(sampledDiffuseColor);
+      #endif
+      diffuseColor *= sampledDiffuseColor;
+    #endif
+    `,
+  );
+}
+
 const WIND_VERTEX_PARS = /* glsl */ `
 attribute vec3 aWind;
 attribute vec4 aRoot;
@@ -255,7 +277,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   const cluster = createLeafClusterTexture(ctx.rng.fork('trees/leaf-cluster'), palette);
   const giantCanopy = new MeshStandardMaterial({
     map: cluster,
-    alphaTest: 0.5,
+    alphaTest: CARD_ALPHA_TEST,
     transparent: false,
     roughness: 0.8,
     metalness: 0,
@@ -267,6 +289,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     wind,
     giantWind,
     (s) => {
+      biasedMap(s);
       s.uniforms.uLeafSun = { value: leafSun };
       s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\n` + s.fragmentShader;
       s.fragmentShader = s.fragmentShader.replace(
@@ -285,11 +308,13 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     },
     'giant-canopy',
   );
-  const giantCanopyDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide, map: cluster, alphaTest: 0.5 });
-  injectWind(giantCanopyDepth, wind, giantWind, undefined, 'giant-canopy-depth');
+  const giantCanopyDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide, map: cluster, alphaTest: CARD_ALPHA_TEST });
+  injectWind(giantCanopyDepth, wind, giantWind, biasedMap, 'giant-canopy-depth');
 
   // --- distant trees: leaf-cluster cards + solid trunks/cores (uv on the opaque patch); fog tints ---
-  const distant = new MeshStandardMaterial({ map: cluster, alphaTest: 0.5, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
+  const distant = new MeshStandardMaterial({ map: cluster, alphaTest: CARD_ALPHA_TEST, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
+  distant.onBeforeCompile = (s) => biasedMap(s);
+  distant.customProgramCacheKey = () => 'trees-distant-biased';
 
   return {
     whiteTree,
