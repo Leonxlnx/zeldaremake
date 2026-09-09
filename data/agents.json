@@ -16,7 +16,7 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
       "branch": "cursor/kokiri-world-phase1-f65e",
-      "updated": "2026-09-09T13:58:00Z",
+      "updated": "2026-09-09T14:32:00Z",
       "currentTask": "Bootstrapping the whole Phase 1 foundation in one branch so the second agent can join safely:",
       "file": ".agents/fable-cursor.md"
     }
