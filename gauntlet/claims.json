@@ -175,6 +175,25 @@
       ],
       "at": "2026-09-10T07:34:08.642Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W33",
+        "W37",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "U01",
+        "U02",
+        "U03"
+      ],
+      "at": "2026-09-10T16:06:28.358Z",
+      "expiresHours": 6,
+      "note": "Phase 2/3 integration: Link/Navi/kids and the HUD land in every frame; cameras at the reference eye height"
     }
   ]
 }
