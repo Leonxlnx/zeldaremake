@@ -1,0 +1,2106 @@
+{
+  "generatedAt": "2026-09-10T19:15:41.549Z",
+  "in": "gauntlet/out/take-0027",
+  "sha": "ad0b91b47f3322d53840b3031d0b12a00584842f",
+  "shortSha": "ad0b91b",
+  "agent": "fable-cursor",
+  "passed": 22,
+  "total": 50,
+  "failed": 1,
+  "pending": 27,
+  "phase": 1,
+  "phasePassed": 19,
+  "phaseRequired": 42,
+  "weightPassed": 27,
+  "weightTotal": 90,
+  "consoleErrors": 0,
+  "previous": {
+    "takeId": "take-0026",
+    "sha": "3a8af223bed557709c8b6f739ff6efbb3a44ecf6",
+    "passed": 22,
+    "source": ".monitor/data/takes/take-0026"
+  },
+  "regressions": [],
+  "improvements": [],
+  "flags": [],
+  "crossChecks": [
+    {
+      "rule": "B3",
+      "path": "systems.vegetation.grassInstances",
+      "claimed": 497085,
+      "actual": 512937,
+      "group": "vegetation",
+      "ok": true,
+      "message": "systems.vegetation.grassInstances=497085 ≤ vegetation instances 512937"
+    },
+    {
+      "rule": "B3",
+      "path": "systems.hardscape.flagstones",
+      "claimed": 669,
+      "actual": 857,
+      "group": "hardscape",
+      "ok": true,
+      "message": "systems.hardscape.flagstones=669 ≤ hardscape instances 857"
+    },
+    {
+      "rule": "B3",
+      "path": "systems.trees.whiteBarkInstances",
+      "claimed": 80,
+      "actual": 812,
+      "group": "trees",
+      "ok": true,
+      "message": "systems.trees.whiteBarkInstances=80 ≤ trees instances 812"
+    },
+    {
+      "rule": "B3",
+      "path": "systems.atmosphere.fallingLeaves",
+      "claimed": 96,
+      "actual": 309,
+      "group": "atmosphere",
+      "ok": true,
+      "message": "systems.atmosphere.fallingLeaves=96 ≤ atmosphere instances 309"
+    },
+    {
+      "rule": "B3",
+      "path": "systems.atmosphere.fireflies",
+      "claimed": 180,
+      "actual": 309,
+      "group": "atmosphere",
+      "ok": true,
+      "message": "systems.atmosphere.fireflies=180 ≤ atmosphere instances 309"
+    },
+    {
+      "rule": "B3",
+      "path": "systems.rocks.pebbles",
+      "claimed": 2793,
+      "actual": 2929,
+      "group": "rocks",
+      "ok": true,
+      "message": "systems.rocks.pebbles=2793 ≤ rocks instances 2929"
+    },
+    {
+      "rule": "B4",
+      "path": "systems.vegetation.samplePositions.litter",
+      "ok": true,
+      "message": "systems.vegetation.samplePositions.litter: 400 samples spot-checked (100.0 % seated)"
+    },
+    {
+      "rule": "B4",
+      "path": "systems.trees.samplePositions.bases",
+      "ok": true,
+      "message": "systems.trees.samplePositions.bases: 157 samples spot-checked (100.0 % seated)"
+    },
+    {
+      "rule": "B4",
+      "path": "systems.vegetation.samplePositions.grass",
+      "ok": true,
+      "message": "systems.vegetation.samplePositions.grass: 400 samples spot-checked (100.0 % seated)"
+    },
+    {
+      "rule": "B4",
+      "path": "systems.rocks.samplePositions.boulders",
+      "ok": true,
+      "message": "systems.rocks.samplePositions.boulders: 30 samples spot-checked (100.0 % seated)"
+    },
+    {
+      "rule": "B4",
+      "path": "systems.structures.samplePositions.bases",
+      "ok": true,
+      "message": "systems.structures.samplePositions.bases: 26 samples spot-checked (100.0 % seated)"
+    }
+  ],
+  "items": {
+    "W01": {
+      "id": "W01",
+      "title": "Shot A composition matches the reference",
+      "group": "composition",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 1,
+      "threshold": "≥ 80 % inside",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "projection",
+          "viewpoint": "A_stairs",
+          "layout": "stairs.main",
+          "region": {
+            "xMin": 0.45,
+            "xMax": 1,
+            "yMin": 0.1,
+            "yMax": 0.95
+          },
+          "minInside": 0.8,
+          "threshold": "≥ 80 % inside",
+          "value": 1,
+          "ok": true
+        },
+        {
+          "type": "projection",
+          "viewpoint": "A_stairs",
+          "layout": "lanternBranch",
+          "region": {
+            "xMin": 0,
+            "xMax": 0.45,
+            "yMin": 0.1,
+            "yMax": 0.75
+          },
+          "minInside": 0.6,
+          "threshold": "≥ 60 % inside",
+          "value": 0.667,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W02": {
+      "id": "W02",
+      "title": "Hero stairway: 18 worn stone steps",
+      "group": "composition",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 18,
+      "threshold": "16..20",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.hardscape.stairways[id=main].steps",
+          "op": "between",
+          "value": 18,
+          "threshold": "16..20",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.hardscape.stairGeometry",
+          "op": "!=",
+          "value": "procedural-v2",
+          "threshold": "≠ \"placeholder-boxes\"",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.hardscape.uniqueStepShapes",
+          "op": ">=",
+          "value": 40,
+          "threshold": "≥ 12",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.hardscape.mossJoints",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W03": {
+      "id": "W03",
+      "title": "Flagstone paths are real stones",
+      "group": "composition",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 669,
+      "threshold": "≥ 300",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.hardscape.flagstones",
+          "op": ">=",
+          "value": 669,
+          "threshold": "≥ 300",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.hardscape.flagstoneShapes",
+          "op": ">=",
+          "value": 669,
+          "threshold": "≥ 24",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W04": {
+      "id": "W04",
+      "title": "Terraces and plateaus at authored heights",
+      "group": "composition",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 5.091,
+      "threshold": "5.4 ± 0.45",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "probe",
+          "x": 18,
+          "z": -4,
+          "height": 5.4,
+          "tolerance": 0.45,
+          "threshold": "5.4 ± 0.45",
+          "value": 5.091,
+          "gap": 0.309,
+          "ok": true
+        },
+        {
+          "type": "probe",
+          "x": -11,
+          "z": 0,
+          "height": 2.6,
+          "tolerance": 0.45,
+          "threshold": "2.6 ± 0.45",
+          "value": 2.968,
+          "gap": 0.368,
+          "ok": true
+        },
+        {
+          "type": "probe",
+          "x": 9,
+          "z": -12.5,
+          "height": 1.2,
+          "tolerance": 0.35,
+          "threshold": "1.2 ± 0.35",
+          "value": 1.077,
+          "gap": 0.123,
+          "ok": true
+        },
+        {
+          "type": "probe",
+          "x": 0,
+          "z": 0,
+          "height": 0,
+          "tolerance": 0.25,
+          "threshold": "0 ± 0.25",
+          "value": 0,
+          "gap": 0,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W05": {
+      "id": "W05",
+      "title": "Terrain is authored at four scales",
+      "group": "composition",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 318528,
+      "threshold": "≥ 250000",
+      "viewpoint": "C_lookback",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.terrain.vertices",
+          "op": ">=",
+          "value": 318528,
+          "threshold": "≥ 250000",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.terrain.detailPasses",
+          "op": ">=",
+          "value": 6,
+          "threshold": "≥ 3",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W06": {
+      "id": "W06",
+      "title": "Layered ground materials",
+      "group": "composition",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "E_ground",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.terrain.textured",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.terrain.layers.length",
+          "op": ">=",
+          "value": 6,
+          "threshold": "≥ 4",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.terrain.detailNormal",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W07": {
+      "id": "W07",
+      "title": "Ground litter is geometry",
+      "group": "composition",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 2,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 9817,
+      "threshold": "≥ 5000",
+      "viewpoint": "E_ground",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.litter",
+          "op": ">=",
+          "value": 9817,
+          "threshold": "≥ 5000",
+          "ok": true
+        },
+        {
+          "type": "placement",
+          "path": "systems.vegetation.samplePositions.litter",
+          "maxGap": 0.05,
+          "minPass": 0.97,
+          "threshold": "≥ 97 % gap ≤ 0.05 m",
+          "value": 1,
+          "samples": 400,
+          "maxGapSeen": 0.05,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": 356,
+      "trend": "▲",
+      "delta": "+356"
+    },
+    "W08": {
+      "id": "W08",
+      "title": "White-bark trees: ≥ 8 real variants",
+      "group": "trees",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 10,
+      "threshold": "≥ 8",
+      "viewpoint": "C_lookback",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.trees.whiteBarkVariants",
+          "op": ">=",
+          "value": 10,
+          "threshold": "≥ 8",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.whiteBarkInstances",
+          "op": ">=",
+          "value": 80,
+          "threshold": "≥ 60",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.geometry",
+          "op": "!=",
+          "value": "procedural-v1",
+          "threshold": "≠ \"placeholder-massing\"",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W09": {
+      "id": "W09",
+      "title": "Giant Kokiri trees with roots and limbs",
+      "group": "trees",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 12,
+      "threshold": "≥ 6",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.trees.giants",
+          "op": ">=",
+          "value": 12,
+          "threshold": "≥ 6",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.giantRoots",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.giantLimbsMin",
+          "op": ">=",
+          "value": 2,
+          "threshold": "≥ 2",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": 1,
+      "trend": "▲",
+      "delta": "+1"
+    },
+    "W10": {
+      "id": "W10",
+      "title": "Canopy roofs the clearing",
+      "group": "trees",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 0.0004,
+      "threshold": "≤ 0.45",
+      "viewpoint": "F_canopy",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "pixels",
+          "viewpoint": "F_canopy",
+          "metric": "skyFraction",
+          "op": "<=",
+          "value": 0.0004,
+          "threshold": "≤ 0.45",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W11": {
+      "id": "W11",
+      "title": "Foliage is 3D leaf clusters",
+      "group": "trees",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": "laminae",
+      "threshold": "includes \"laminae\"",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.trees.leafGeometry",
+          "op": "includes",
+          "value": "laminae",
+          "threshold": "includes \"laminae\"",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.leafCount",
+          "op": ">=",
+          "value": 236728,
+          "threshold": "≥ 200000",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W12": {
+      "id": "W12",
+      "title": "Tree bases contact the ground",
+      "group": "trees",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 0,
+      "threshold": "≤ 0.03",
+      "viewpoint": "C_lookback",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.trees.maxBaseGap",
+          "op": "<=",
+          "value": 0,
+          "threshold": "≤ 0.03",
+          "ok": true
+        },
+        {
+          "type": "placement",
+          "path": "systems.trees.samplePositions.bases",
+          "maxGap": 0.03,
+          "minPass": 0.99,
+          "threshold": "≥ 99 % gap ≤ 0.03 m",
+          "value": 1,
+          "samples": 157,
+          "maxGapSeen": 0.03,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W13": {
+      "id": "W13",
+      "title": "Distant tree layers",
+      "group": "trees",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 726,
+      "threshold": "≥ 400",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.trees.distantTrees",
+          "op": ">=",
+          "value": 726,
+          "threshold": "≥ 400",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.lodLevels",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 2",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W14": {
+      "id": "W14",
+      "title": "Lantern branch over the path",
+      "group": "trees",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.structures.lanternBranch",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.structures.branchLanterns",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 3",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W15": {
+      "id": "W15",
+      "title": "Grass density",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 497085,
+      "threshold": "≥ 400000",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.grassInstances",
+          "op": ">=",
+          "value": 497085,
+          "threshold": "≥ 400000",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.vegetation.grassTypes",
+          "op": ">=",
+          "value": 4,
+          "threshold": "≥ 3",
+          "ok": true
+        },
+        {
+          "type": "placement",
+          "path": "systems.vegetation.samplePositions.grass",
+          "maskMax": {
+            "path": 0.5,
+            "stairs": 0.5
+          },
+          "minPass": 0.99,
+          "threshold": "≥ 99 % mask path<0.5,stairs<0.5",
+          "value": 1,
+          "samples": 400,
+          "maxGapSeen": null,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": -2213,
+      "trend": "▼",
+      "delta": "-2,213"
+    },
+    "W16": {
+      "id": "W16",
+      "title": "Grass variation",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 0.492,
+      "threshold": "≥ 0.2",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.grassHeightCV",
+          "op": ">=",
+          "value": 0.492,
+          "threshold": "≥ 0.2",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.vegetation.grassTints",
+          "op": ">=",
+          "value": 4,
+          "threshold": "≥ 3",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.vegetation.grassClustered",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W17": {
+      "id": "W17",
+      "title": "Ferns",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 976,
+      "threshold": "≥ 300",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.ferns",
+          "op": ">=",
+          "value": 976,
+          "threshold": "≥ 300",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": 3,
+      "trend": "▲",
+      "delta": "+3"
+    },
+    "W18": {
+      "id": "W18",
+      "title": "Purple flowers and weeds",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "both",
+      "weight": 1,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 259,
+      "threshold": "≥ 150",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.flowers",
+          "op": ">=",
+          "value": 259,
+          "threshold": "≥ 150",
+          "ok": true
+        },
+        {
+          "type": "pixels",
+          "viewpoint": "D_log",
+          "metric": "purpleFraction",
+          "op": ">=",
+          "value": 0.00401,
+          "threshold": "≥ 0.003",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W19": {
+      "id": "W19",
+      "title": "Bushes and shrubs",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 105,
+      "threshold": "≥ 80",
+      "viewpoint": "C_lookback",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.bushes",
+          "op": ">=",
+          "value": 105,
+          "threshold": "≥ 80",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W20": {
+      "id": "W20",
+      "title": "Moss everywhere it should be",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.rocks.mossCoverage",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.hardscape.mossJoints",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.structures.mossRoof",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W21": {
+      "id": "W21",
+      "title": "Sprouts in stone joints",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 852,
+      "threshold": "≥ 500",
+      "viewpoint": "E_ground",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.hardscape.jointSprouts",
+          "op": ">=",
+          "value": 852,
+          "threshold": "≥ 500",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W22": {
+      "id": "W22",
+      "title": "Layered wind",
+      "group": "vegetation",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 3,
+      "threshold": "≥ 3",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.vegetation.windLayers",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 3",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.trees.windLayers",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 2",
+          "ok": true
+        },
+        {
+          "type": "compare",
+          "viewpoint": "A_stairs",
+          "metric": "motionRegionsMoving",
+          "op": ">=",
+          "value": 8,
+          "threshold": "≥ 6",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W23": {
+      "id": "W23",
+      "title": "Hero mossy boulders",
+      "group": "rocks",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 3,
+      "threshold": "≥ 3",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.rocks.heroBoulders",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 3",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.rocks.geometry",
+          "op": "!=",
+          "value": "procedural-v2-strata",
+          "threshold": "≠ \"placeholder\"",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.rocks.mossCoverage",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W24": {
+      "id": "W24",
+      "title": "Scree and pebbles",
+      "group": "rocks",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 2793,
+      "threshold": "≥ 2000",
+      "viewpoint": "E_ground",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.rocks.pebbles",
+          "op": ">=",
+          "value": 2793,
+          "threshold": "≥ 2000",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W25": {
+      "id": "W25",
+      "title": "Kokiri tree-trunk houses",
+      "group": "structures",
+      "phase": 1,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 2,
+      "threshold": "≥ 2",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.structures.houses",
+          "op": ">=",
+          "value": 2,
+          "threshold": "≥ 2",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.structures.geometry",
+          "op": "!=",
+          "value": "procedural-v1",
+          "threshold": "≠ \"placeholder-massing\"",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.structures.mossRoof",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.structures.doorLight",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W26": {
+      "id": "W26",
+      "title": "Glowing pod lanterns",
+      "group": "structures",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 10,
+      "threshold": "≥ 6",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.structures.lanterns",
+          "op": ">=",
+          "value": 10,
+          "threshold": "≥ 6",
+          "ok": true
+        },
+        {
+          "type": "pixels",
+          "viewpoint": "B_house",
+          "metric": "overexposedFraction",
+          "op": "<=",
+          "value": 0,
+          "threshold": "≤ 0.01",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W27": {
+      "id": "W27",
+      "title": "Wooden signpost",
+      "group": "structures",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 1,
+      "threshold": "≥ 1",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.structures.signposts",
+          "op": ">=",
+          "value": 1,
+          "threshold": "≥ 1",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W28": {
+      "id": "W28",
+      "title": "Fences on the upper ledge",
+      "group": "structures",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 2,
+      "threshold": "≥ 2",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.structures.fences",
+          "op": ">=",
+          "value": 2,
+          "threshold": "≥ 2",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W29": {
+      "id": "W29",
+      "title": "Giant hollow log arch",
+      "group": "structures",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.structures.logArch",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.structures.geometry",
+          "op": "!=",
+          "value": "procedural-v1",
+          "threshold": "≠ \"placeholder-massing\"",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W30": {
+      "id": "W30",
+      "title": "Sun matches the reference",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": -128,
+      "threshold": "-155..-105",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.lighting.sunAzimuthDeg",
+          "op": "between",
+          "value": -128,
+          "threshold": "-155..-105",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.lighting.sunElevationDeg",
+          "op": "between",
+          "value": 38,
+          "threshold": "24..44",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.lighting.shadows",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W31": {
+      "id": "W31",
+      "title": "God rays through the canopy",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.godRays",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W32": {
+      "id": "W32",
+      "title": "Layered atmospheric perspective",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": 190,
+      "threshold": "≥ 150",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.fogFar",
+          "op": ">=",
+          "value": 190,
+          "threshold": "≥ 150",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.groundMist",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "depth",
+          "viewpoint": "D_log",
+          "metric": "farLayerCount",
+          "op": ">=",
+          "value": 4,
+          "threshold": "≥ 3",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W33": {
+      "id": "W33",
+      "title": "Falling leaves, motes and the fairy",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 96,
+      "threshold": "≥ 60",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.fallingLeaves",
+          "op": ">=",
+          "value": 96,
+          "threshold": "≥ 60",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.fireflies",
+          "op": ">=",
+          "value": 180,
+          "threshold": "≥ 100",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.fairy",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W34": {
+      "id": "W34",
+      "title": "Palette matches the reference",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 2,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 3.87,
+      "threshold": "≤ 14",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "compare",
+          "viewpoint": "D_log",
+          "metric": "hueDiffDeg",
+          "op": "<=",
+          "value": 3.87,
+          "threshold": "≤ 14",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 2.1,
+            "B_house": 3.07,
+            "C_lookback": 2.08,
+            "D_log": 3.87
+          }
+        },
+        {
+          "type": "compare",
+          "viewpoint": "C_lookback",
+          "metric": "satDiff",
+          "op": "<=",
+          "value": 0.0408,
+          "threshold": "≤ 0.1",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 0.0175,
+            "B_house": 0.0063,
+            "C_lookback": 0.0408,
+            "D_log": 0.0255
+          }
+        },
+        {
+          "type": "compare",
+          "viewpoint": "D_log",
+          "metric": "lumDiff",
+          "op": "<=",
+          "value": 0.0401,
+          "threshold": "≤ 0.12",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 0.0109,
+            "B_house": 0.0234,
+            "C_lookback": 0.0175,
+            "D_log": 0.0401
+          }
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": 0.02,
+      "trend": "▼",
+      "delta": "+0.02"
+    },
+    "W35": {
+      "id": "W35",
+      "title": "Rendering clarity",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 2,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 1.08,
+      "threshold": "≥ 0.8",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "compare",
+          "viewpoint": "A_stairs",
+          "metric": "sharpnessRatio",
+          "op": ">=",
+          "value": 1.08,
+          "threshold": "≥ 0.8",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 1.08,
+            "B_house": 1.256,
+            "C_lookback": 1.367,
+            "D_log": 1.251
+          }
+        },
+        {
+          "type": "pixels",
+          "viewpoint": "A_stairs",
+          "metric": "overexposedFraction",
+          "op": "<=",
+          "value": 0,
+          "threshold": "≤ 0.01",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 0,
+            "B_house": 0,
+            "C_lookback": 0,
+            "D_log": 0
+          }
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": 0.007,
+      "trend": "▲",
+      "delta": "+0.007"
+    },
+    "W36": {
+      "id": "W36",
+      "title": "Contact: nothing floats",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "both",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "E_ground",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.atmosphere.ambientOcclusion",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        },
+        {
+          "type": "placement",
+          "path": "systems.rocks.samplePositions.boulders",
+          "maxGap": 0.03,
+          "minPass": 1,
+          "threshold": "≥ 100 % gap ≤ 0.03 m",
+          "value": 1,
+          "samples": 30,
+          "maxGapSeen": 0.03,
+          "ok": true
+        },
+        {
+          "type": "placement",
+          "path": "systems.structures.samplePositions.bases",
+          "maxGap": 0.03,
+          "minPass": 1,
+          "threshold": "≥ 100 % gap ≤ 0.03 m",
+          "value": 1,
+          "samples": 26,
+          "maxGapSeen": 0.03,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W37": {
+      "id": "W37",
+      "title": "Shot similarity to the reference",
+      "group": "lighting",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 3,
+      "status": "fail",
+      "autoStatus": "fail",
+      "value": 0.2042,
+      "threshold": "≥ 0.42",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "compare",
+          "viewpoint": "B_house",
+          "metric": "ssim",
+          "op": ">=",
+          "value": 0.2042,
+          "threshold": "≥ 0.42",
+          "ok": false,
+          "perViewpoint": {
+            "A_stairs": 0.2299,
+            "B_house": 0.2042,
+            "C_lookback": 0.2601,
+            "D_log": 0.2474
+          }
+        },
+        {
+          "type": "compare",
+          "viewpoint": "A_stairs",
+          "metric": "phashDistance",
+          "op": "<=",
+          "value": 30,
+          "threshold": "≤ 26",
+          "ok": false,
+          "perViewpoint": {
+            "A_stairs": 30,
+            "B_house": 26,
+            "C_lookback": 26,
+            "D_log": 28
+          }
+        }
+      ],
+      "review": null,
+      "previousStatus": "fail",
+      "statusDelta": null,
+      "valueDelta": -0.0008,
+      "trend": "▼",
+      "delta": "-0.0008"
+    },
+    "W38": {
+      "id": "W38",
+      "title": "Real-time budget",
+      "group": "engineering",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 2,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 636,
+      "threshold": "≤ 700",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "stats",
+          "viewpoint": "A_stairs",
+          "metric": "drawCalls",
+          "op": "<=",
+          "value": 636,
+          "threshold": "≤ 700",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 636,
+            "B_house": 622,
+            "C_lookback": 530,
+            "D_log": 519
+          }
+        },
+        {
+          "type": "stats",
+          "viewpoint": "A_stairs",
+          "metric": "triangles",
+          "op": "<=",
+          "value": 6506063,
+          "threshold": "≤ 9000000",
+          "ok": true,
+          "perViewpoint": {
+            "A_stairs": 6506063,
+            "B_house": 6370051,
+            "C_lookback": 6045146,
+            "D_log": 6177038
+          }
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W39": {
+      "id": "W39",
+      "title": "GPU instancing",
+      "group": "engineering",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 271,
+      "threshold": "≥ 20",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "scene.instancedMeshes",
+          "op": ">=",
+          "value": 271,
+          "threshold": "≥ 20",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W40": {
+      "id": "W40",
+      "title": "LOD and culling",
+      "group": "engineering",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 3,
+      "threshold": "≥ 2",
+      "viewpoint": "D_log",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.trees.lodLevels",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 2",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.vegetation.lodLevels",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 2",
+          "ok": true
+        },
+        {
+          "type": "audit",
+          "path": "systems.vegetation.chunked",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W41": {
+      "id": "W41",
+      "title": "Deterministic captures",
+      "group": "engineering",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 0,
+      "threshold": "≤ 0.005",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "compare",
+          "viewpoint": "A_stairs",
+          "metric": "determinismDiff",
+          "op": "<=",
+          "value": 0,
+          "threshold": "≤ 0.005",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "W42": {
+      "id": "W42",
+      "title": "Dev camera, viewpoints, clean console",
+      "group": "engineering",
+      "phase": 1,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 6,
+      "threshold": "≥ 6",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "layout.viewpoints.length",
+          "op": ">=",
+          "value": 6,
+          "threshold": "≥ 6",
+          "ok": true
+        },
+        {
+          "type": "console",
+          "maxErrors": 0,
+          "threshold": "≤ 0 errors",
+          "value": 0,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "C01": {
+      "id": "C01",
+      "title": "Young Link",
+      "group": "character",
+      "phase": 2,
+      "verify": "both",
+      "weight": 3,
+      "status": "pending",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "B_house",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.character.link",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "C02": {
+      "id": "C02",
+      "title": "Deku Shield and Kokiri Sword",
+      "group": "character",
+      "phase": 2,
+      "verify": "visual",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": null,
+      "value": null,
+      "threshold": "reviewer verdict",
+      "viewpoint": "A_stairs",
+      "primaryCheck": null,
+      "checks": [],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "C03": {
+      "id": "C03",
+      "title": "Locomotion",
+      "group": "character",
+      "phase": 2,
+      "verify": "auto",
+      "weight": 2,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 4,
+      "threshold": "≥ 3",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.character.animations",
+          "op": ">=",
+          "value": 4,
+          "threshold": "≥ 3",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "C04": {
+      "id": "C04",
+      "title": "Navi companion",
+      "group": "character",
+      "phase": 2,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": true,
+      "threshold": "truthy",
+      "viewpoint": "A_stairs",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.character.fairy",
+          "op": "truthy",
+          "threshold": "truthy",
+          "value": true,
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "C05": {
+      "id": "C05",
+      "title": "Kokiri kids",
+      "group": "character",
+      "phase": 2,
+      "verify": "auto",
+      "weight": 1,
+      "status": "pass",
+      "autoStatus": "pass",
+      "value": 3,
+      "threshold": "≥ 2",
+      "viewpoint": "C_lookback",
+      "primaryCheck": 0,
+      "checks": [
+        {
+          "type": "audit",
+          "path": "systems.character.npcs",
+          "op": ">=",
+          "value": 3,
+          "threshold": "≥ 2",
+          "ok": true
+        }
+      ],
+      "review": null,
+      "previousStatus": "pass",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "U01": {
+      "id": "U01",
+      "title": "HUD",
+      "group": "ui",
+      "phase": 3,
+      "verify": "visual",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": null,
+      "value": null,
+      "threshold": "reviewer verdict",
+      "viewpoint": "A_stairs",
+      "primaryCheck": null,
+      "checks": [],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "U02": {
+      "id": "U02",
+      "title": "Pause / equipment screen",
+      "group": "ui",
+      "phase": 3,
+      "verify": "visual",
+      "weight": 2,
+      "status": "pending",
+      "autoStatus": null,
+      "value": null,
+      "threshold": "reviewer verdict",
+      "viewpoint": "A_stairs",
+      "primaryCheck": null,
+      "checks": [],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    },
+    "U03": {
+      "id": "U03",
+      "title": "UI art style",
+      "group": "ui",
+      "phase": 3,
+      "verify": "visual",
+      "weight": 1,
+      "status": "pending",
+      "autoStatus": null,
+      "value": null,
+      "threshold": "reviewer verdict",
+      "viewpoint": "A_stairs",
+      "primaryCheck": null,
+      "checks": [],
+      "review": null,
+      "previousStatus": "pending",
+      "statusDelta": null,
+      "valueDelta": null,
+      "trend": "",
+      "delta": null
+    }
+  }
+}
