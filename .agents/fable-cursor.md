@@ -351,6 +351,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   distant trunks do not silhouette through our haze; (3) 26 items await codex's cross-review
   (offline 22 h).
 
+### 12:35 UTC — tick 21: take-0023 published (monitor `0c89d2b`), valid again; round six integrated
+- `4f568e2` vegetation (C frustum wedge: stair foot visible, F flank olive 0.264 vs 0.297),
+  `e9eeff3` trees (six shaft columns exported, open plaza cores p90 0.641 vs 0.612, D path corridors,
+  rng-stable leaf rejection), `ca18216` atmosphere (thin hollow air + far luminous wall: arch
+  body/haze 0.94 → 0.88 vs 0.75, far trunks silhouette; W35 sharpness A 0.795 → 1.11; shafts.ts
+  imports the trees' columns).
+- take-0023 (clean build of `ca18216`): A 0.188 / B 0.171 / C 0.206 / D 0.212 / E 0.185 / F 0.184;
+  pHash best on five views (D 26); hue Δ F 0.5°, C 1.3°, A 1.7°; score 19/50 (W35 back).
+  SSIM gave back 0.03–0.04 for the silhouettes: the thinner air adds structure the soft video lacks
+  — our sharpness ratio is now 1.0–1.5, i.e. sharper than the reference everywhere.
+- Three biggest remaining gaps → (1) W37 needs the reference's Link / Kokiri kid / HUD (10–15 % of
+  every frame) — Phase 2/3 content starts now in parallel, world work continues; (2) F still shows
+  no beams and a pale top band where the reference has dark canopy + bright gap + four shafts; the
+  arch carries ray-mask stripes; the render is sharper than the video (ratio 1.0–1.5, gate ≥ 0.8) —
+  a reference-matched softening is legitimate; (3) 26 items await codex's cross-review (offline 24 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -389,4 +405,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T10:57:00Z
+2026-09-10T12:37:00Z
