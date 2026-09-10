@@ -468,11 +468,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // The footage's violets here are LOW cluster heads tucked among the fronds (reference box
   // 0–0.25 × 0.5–0.8 measures hue 55°, i.e. green-dominated with purple accents), so the D clumps
   // are small, use the cluster-head variants only and skip the tall bell spikes.
-  const dClumps: [number, number][] = [[dbx + 1.0, dbz - 0.6], [-3.4, -14.9], [-2.9, -13.6], [-4.0, -15.6]];
-  for (const [i, c] of dClumps.entries()) clumps(`flowers-shotD-clump-${i}`, [c], 3 + (i % 2), 0.36, 0.8, 1.05, CLUSTER_HEADS);
+  // Clump size is the W18 lever: the take-0026 cut left D's purple fraction at 0.0006 (< the
+  // rubric's 0.003 floor), so each patch carries 6–7 heads over 0.5 m at bloom scale 1.0–1.3.
+  const dClumps: [number, number][] = [[dbx + 1.0, dbz - 0.6], [-3.4, -14.9], [-2.9, -13.6], [-4.0, -15.6], [-3.7, -16.6], [-4.7, -17.6]];
+  for (const [i, c] of dClumps.entries()) clumps(`flowers-shotD-clump-${i}`, [c], 12 + (i % 2), 0.65, 1.1, 1.4, CLUSTER_HEADS);
   // a few single blooms along the west verge strip beyond the boulder (reference: "plus a few
   // blooms" beside the fern clump; the near verge in D's bottom-left corner stays grass + litter)
-  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 700, box: [-3.4, -12.6, -1.3, -9.4], minSpacing: 1.2, accept: (x, z) => 0.1 * flowerVerge(x, z) }, flowerPlace(0.75, 0.95, CLUSTER_HEADS));
+  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 700, box: [-3.4, -12.6, -1.3, -9.4], minSpacing: 0.8, accept: (x, z) => 0.4 * flowerVerge(x, z) }, flowerPlace(1.0, 1.25, CLUSTER_HEADS));
   // the strip continues south along the west verge (z ≤ −4.6 so camera B's lower-left stays
   // grass): reference A's left-verge purple (0.0–0.14, 0.58–0.66) sits 11–14 m from camera A at
   // its far-left edge. The same ground is camera D's bottom-left corner, where the footage shows
