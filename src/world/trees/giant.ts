@@ -157,9 +157,11 @@ export interface GiantOptions {
    * default none), so the canopy shadow map carries a few bold holes instead of only fine-grained
    * gaps, or the view opens onto the haze. Wood is untouched — the branches inside keep casting
    * thin shadows; surviving laminae add a leaf fringe, surviving cards (0.5–1.2 m) are what casts
-   * visible dapple from 25 m up, where laminae blur away in the soft shadow filter.
+   * visible dapple from 25 m up, where laminae blur away in the soft shadow filter. `yMin` (local)
+   * restricts a corridor to the part of the line at or above that height, so a sun line can thin a
+   * crown 15–25 m up without touching the low hero boughs it also crosses.
    */
-  corridors?: { point: Vector3; dir: Vector3; radius: number; porosity?: number; cardPorosity?: number }[];
+  corridors?: { point: Vector3; dir: Vector3; radius: number; porosity?: number; cardPorosity?: number; yMin?: number }[];
   /**
    * Foliage scale of the authored lantern limb's lobes (1 = full). The reference limb in shot A
    * is a bare bough with a few leaf clusters and haze between them, not a hedge on a pole.
@@ -327,10 +329,16 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   });
   const corridors = o.corridors ?? [];
   const corrTmp = new Vector3();
-  // corridor survival draws come from their own stream, and culled laminae/cards still make their
-  // own draws from the main one, so editing a corridor never re-rolls the rest of the tree (limbs,
-  // crown) that is generated after the foliage it touches
-  const rc = r.fork('corridors');
+  // corridor survival is a hash of the caster's position rather than a stream: adding or moving one
+  // corridor then never re-rolls the survivors of another (a shared stream shifted every later
+  // draw, re-dappling the plaza whenever a corridor elsewhere changed), and culled laminae/cards
+  // still make their own draws from the main stream, so the rest of the tree (limbs, crown built
+  // after the foliage a corridor touches) is the same whatever the corridors
+  const survives = (p: Vector3, porosity: number) => {
+    if (porosity <= 0) return false;
+    const h = Math.sin(p.x * 12.9898 + p.y * 78.233 + p.z * 37.719) * 43758.5453;
+    return h - Math.floor(h) < porosity;
+  };
   /**
    * the tightest corridor within `extent` of p (smallest porosity wins), or null — `extent` is the
    * half-size of the caster, so a cluster card centred just outside a corridor cannot lean into it
@@ -338,6 +346,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const inCorridor = (p: Vector3, extent = 0) => {
     let hit: (typeof corridors)[number] | null = null;
     for (const c of corridors) {
+      if (c.yMin !== undefined && p.y < c.yMin) continue;
       corrTmp.subVectors(p, c.point);
       const along = corrTmp.dot(c.dir);
       corrTmp.addScaledVector(c.dir, -along);
@@ -350,17 +359,13 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const leafAllowed = (p: Vector3) => {
     if (!corridors.length) return true;
     const c = inCorridor(p);
-    if (!c) return true;
-    const porosity = c.porosity ?? 0;
-    return porosity > 0 && rc() < porosity;
+    return !c || survives(p, c.porosity ?? 0);
   };
   /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
   const cardAllowed = (p: Vector3, s: number) => {
     if (!corridors.length) return true;
     const c = inCorridor(p, s * 0.7);
-    if (!c) return true;
-    const porosity = c.cardPorosity ?? 0;
-    return porosity > 0 && rc() < porosity;
+    return !c || survives(p, c.cardPorosity ?? 0);
   };
   let lobe: { center: Vector3; hR: number } | null = null;
   function leafSpray(path: Vector3[], pathRadius: number, count: number, vigor = 1, startT = 0.15) {

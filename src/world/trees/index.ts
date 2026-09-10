@@ -227,6 +227,54 @@ const D_PATH_SUN_POROSITY = 0.25;
  */
 const D_PATH_CARD_POROSITY = 0.15;
 /**
+ * Sunlit west verge of shot D: the fern crowns and violets west of the north path (x −5…−3,
+ * z −9…−18, the lower left of shot D) sit on ground the reference lights (verge ground 0.46 at
+ * 56 s) while ours keeps it in canopy shade (0.23). Sun probes from the verge show the cone 40–65 %
+ * open where the ferns do not fill it, with the occluders 6–18 m along the ray (5–12 m up): the
+ * north-west-near giant's low limb lobes and the south-east fringe of the lantern tree's crown.
+ * Ground-line corridors from the verge open those the same way as the path's: cards off (the bold
+ * casters), a quarter of the laminae kept so the fronds still carry leaf dapple. The lines leave
+ * shot D's frame at its left edge as they rise (x < −6 at 3 m, x < −13 at 9 m), so the arch
+ * silhouette and the giant's trunk (wood is never carved) stay. A corridor lights an ellipse on the
+ * ground that reaches 1.6 × its radius along the sun's azimuth (the casters at the top of its
+ * section shade the far end), so the discs sit far enough west that those ellipses end ≥ 0.9 m
+ * west of the path's edge and south of nothing nearer than z −9: shot B's shaded foreground band
+ * (the path at z −5…−8) is not touched. What still shades the verge is not foliage: the giant's own
+ * bole and low limb (the sun probes from the boulder and the verge see wood in the cone), the
+ * west-tree-platform prop (deck ≈ 3.9 m at (−8.7, −10)) and the ferns themselves.
+ */
+const D_VERGE_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
+  { point: [-4.8, 0, -11.0], radius: 2.0 },
+  { point: [-4.6, 0, -13.4], radius: 2.2 },
+  { point: [-4.6, 0, -15.8], radius: 2.2 },
+  { point: [-5.0, 0, -18.0], radius: 2.0 },
+];
+const D_VERGE_SUN_POROSITY = 0.25;
+const D_VERGE_CARD_POROSITY = 0;
+/**
+ * Dappled bank right of the stairs in shot F: the bank (x 6–12, z 0–6, F's right third) lies under
+ * the lantern tree's crown shadow — sun probes from it are 45–60 % open with the occluders 21–33 m
+ * along the ray, i.e. the crown's south-east flank 14–20 m up, 4–7 m off the bole. The reference
+ * bank is dappled with lit patches (box p90 0.42); ours read an even 0.25. Porous ground-line
+ * corridors from the bank thin that flank's cards (the casters that read as bold dapple from 25 m)
+ * and half its laminae. `yMin` keeps them off everything the same lines cross lower down — the
+ * lantern limb's lobes 3–8 m over the plaza (the hero foliage of shots A and F) and the plaza's own
+ * casters — so shot A's plaza and shot B's foreground keep their light. The flank itself is outside
+ * every hero frame (off A's and B's left edge, above F's top). The lit ellipses reach x ≈ 5.3 at
+ * their west tips — 2 m east of shot A's plaza box — and the stair-bank giant's bole stays ≥ 2.7 m
+ * off every line, so its shaded face in shot C is unchanged.
+ */
+const F_BANK_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
+  { point: [8.1, 0, 1.6], radius: 2.2 },
+  { point: [10.9, 0, 1.4], radius: 2.2 },
+  { point: [8.3, 0, 4.4], radius: 2.2 },
+  { point: [11.1, 0, 4.4], radius: 2.2 },
+];
+const F_BANK_SUN_POROSITY = 0.5;
+const F_BANK_CARD_POROSITY = 0.35;
+/** world height below which the bank corridors are inactive (the crown flank starts ≈ 13 m) */
+const F_BANK_MIN_Y = 12;
+/**
  * Canopy gaps over the north hollow as seen from camera D: air points 26–29 m north of the plaza at
  * 11–13 m (the height of the north-west / north-east giants' low limb lobes, which fill the upper
  * band of shot D as dark 25–30 m masses). The line from D's eye through each point is a porous
@@ -299,33 +347,45 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
-  // world-space sun corridors (see SHAFT_COLUMNS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS)
-  const groundLine = (q: [number, number, number], radius: number, porosity: number, cardPorosity = 0) => ({
+  // world-space sun corridors (see SHAFT_COLUMNS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS / F_BANK_SUN_POINTS)
+  interface WorldCorridor {
+    point: Vector3;
+    dir: Vector3;
+    radius: number;
+    porosity: number;
+    cardPorosity: number;
+    /** world height below which the corridor is inactive */
+    yMin?: number;
+  }
+  const groundLine = (q: [number, number, number], radius: number, porosity: number, cardPorosity = 0, yMin?: number): WorldCorridor => ({
     point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]),
     dir: sunDir,
     radius,
     porosity,
     cardPorosity,
+    yMin,
   });
   const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, PLAZA_SUN_POROSITY, PLAZA_RING_CARD_POROSITY));
   // fully open cores inside the porous plaza rings (a tighter corridor wins where they overlap)
   const plazaCores = PLAZA_SUN_POINTS.map(({ core }) => groundLine([core.point[0], 0, core.point[1]], core.radius, 0, 0));
-  const sunCorridors = [
+  const sunCorridors: WorldCorridor[] = [
     ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: 0, cardPorosity: 0 })),
     ...plazaCorridors,
     ...plazaCores,
     ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
+    ...D_VERGE_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_VERGE_SUN_POROSITY, D_VERGE_CARD_POROSITY)),
+    ...F_BANK_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, F_BANK_SUN_POROSITY, F_BANK_CARD_POROSITY, F_BANK_MIN_Y)),
   ];
   // view corridors from camera D's eye through the hollow gap points (see HOLLOW_GAP_POINTS)
   const dView = ctx.layout.viewpoints.find((v) => v.id === 'D_log');
-  const gapCorridors = dView
+  const gapCorridors: WorldCorridor[] = dView
     ? HOLLOW_GAP_POINTS.map(({ point: q, radius }) => {
         const point = new Vector3(q[0], q[1], q[2]);
         const dir = point.clone().sub(new Vector3(dView.position[0], dView.position[1], dView.position[2])).normalize();
         return { point, dir, radius, porosity: HOLLOW_GAP_POROSITY, cardPorosity: 0 };
       })
     : [];
-  const giantCorridors = [...sunCorridors, ...gapCorridors];
+  const giantCorridors: WorldCorridor[] = [...sunCorridors, ...gapCorridors];
 
   // ------------------------------------------------------------------ white-bark variants
   const whiteRng = rng.fork('whitebark');
@@ -455,7 +515,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       cardDensity: Math.max(0.7, Math.min(1.15, ctx.quality.density)) * (1 + (1 - farFade)),
       towardPlaza: new Vector3(-px, 0, -pz).normalize(),
       boughs,
-      corridors: giantCorridors.map((c) => ({ point: c.point.clone().sub(origin), dir: c.dir, radius: c.radius, porosity: c.porosity, cardPorosity: c.cardPorosity })),
+      corridors: giantCorridors.map((c) => ({
+        point: c.point.clone().sub(origin),
+        dir: c.dir,
+        radius: c.radius,
+        porosity: c.porosity,
+        cardPorosity: c.cardPorosity,
+        yMin: c.yMin === undefined ? undefined : c.yMin - gy,
+      })),
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
       profile: GIANT_PROFILES[def.id],
