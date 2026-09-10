@@ -216,10 +216,11 @@ export const LAYOUT = {
   /** Where the Kokiri kids / Link will stand later (Phase 2). Used now only to keep clear ground. */
   npcSpots: [
     { id: 'link-spawn', position: [0, 0, 0.5] as [number, number, number] },
-    // by the stair-foot rock (right edge of A; the character system marches F's own spot)
-    { id: 'kokiri-a', position: [10.8, 0, 2.2] as [number, number, number] },
-    // left edge of B/E, 5.2 m from camera B on the path (marched from the reference (0.035, 0.885))
-    { id: 'kokiri-b', position: [-1.6, 0, -4.1] as [number, number, number] },
+    // grass verge in front of the stair-foot rock: right edge of A at 8 m (the layout spot behind the
+    // rock was hidden by it); the character system marches F's own spot
+    { id: 'kokiri-a', position: [9.0, 0, 3.6] as [number, number, number] },
+    // west lawn, out of A/C/D/F; the character system marches B/E's left-edge spot itself
+    { id: 'kokiri-b', position: [-6.5, 0, -2] as [number, number, number] },
   ],
 
   viewpoints: [
