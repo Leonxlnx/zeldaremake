@@ -13,13 +13,14 @@
  */
 import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { applyPose, GAIT_SPEED, GAITS, plantFeet, type Gait } from './animation';
+import { applyPose, GAIT_SPEED, GAITS, HERO_PHASE, plantFeet, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
 import { createLink, type Character } from './link';
 import { createNavi, TRAIL_COUNT } from './navi';
 import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
+import { createContactShadow } from './shadow';
 
 type Mode = 'view' | 'free' | 'play';
 
@@ -33,6 +34,9 @@ interface Actor {
   look: number;
   /** planted sole contact point (world), refreshed every frame */
   contact: Vector3;
+  /** soft contact-shadow decal laid on the ground under the feet */
+  shadow: Mesh;
+  shadowRadius: number;
 }
 
 const KID_COUNT = 3;
@@ -41,14 +45,16 @@ export function create(ctx: WorldContext): WorldSystem {
   const group = new Group();
   group.name = 'character';
   const ground = createGround(ctx.terrain, ctx.layout);
+  // the hardscape is built before this system, so the rendered slab tops are available now
+  ground.attachSurface(ctx.scene);
   const spot = (id: string): V3 => {
     const s = ctx.layout.npcSpots.find((n) => n.id === id)?.position ?? [0, 0, 0.5];
     return [s[0], s[1], s[2]];
   };
   const spawn = spot('link-spawn');
 
-  const link: Actor = { char: createLink(), pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, gait: 'idle', phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3() };
-  group.add(link.char.group);
+  const link: Actor = { char: createLink(), pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, gait: 'idle', phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
+  group.add(link.char.group, link.shadow);
 
   // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door
   const house = ctx.layout.houses[0];
@@ -60,8 +66,9 @@ export function create(ctx: WorldContext): WorldSystem {
   const kids: Actor[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
     const char = createKokiri(i);
-    group.add(char.group);
-    kids.push({ char, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3() });
+    const shadow = createContactShadow(0.3, 0.6);
+    group.add(char.group, shadow);
+    kids.push({ char, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
 
   const navi = createNavi();
@@ -93,6 +100,7 @@ export function create(ctx: WorldContext): WorldSystem {
     link.pos.set(spawn[0], 0, spawn[2]);
     link.yaw = Math.PI;
     link.gait = 'idle';
+    link.phase = 0;
     link.look = 0.5;
     for (let i = 0; i < kids.length; i++) {
       kids[i].pos.set(kidSpots[i][0], 0, kidSpots[i][2]);
@@ -109,6 +117,7 @@ export function create(ctx: WorldContext): WorldSystem {
     link.pos.set(feet[0], 0, feet[2]);
     link.yaw = (vp.facing === 'away' ? heading : heading + Math.PI) + MathUtils.degToRad(vp.yawDeg);
     link.gait = vp.gait;
+    link.phase = HERO_PHASE[vp.gait];
     link.look = vp.look;
     // Navi at Link's head depth on the ray through her reference screen spot
     const f = cam.forward;
@@ -207,6 +216,8 @@ export function create(ctx: WorldContext): WorldSystem {
     r.root.rotation.y = a.yaw;
     applyPose(r, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn });
     plantFeet(r, ground.height, a.contact);
+    // contact shadow just above the ground under the body centre
+    a.shadow.position.set(a.pos.x, ground.decalHeight(a.pos.x, a.pos.z, a.shadowRadius), a.pos.z);
   };
 
   const feetOf = (a: Actor): V3 => [a.contact.x, a.contact.y, a.contact.z];
@@ -247,7 +258,8 @@ export function create(ctx: WorldContext): WorldSystem {
       view,
       linkGait: link.gait,
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
-      world: { link: feetOf(link), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },
+      contactShadows: 1 + kids.length,
+      pavingSurface: ground.surfaceInfo(),      world: { link: feetOf(link), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },
       screen: {
         linkFeet: proj(feetOf(link)),
         linkHead: proj(headOf(link)),

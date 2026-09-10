@@ -11,9 +11,23 @@ import { hash2 } from '../util/prng';
  * Sweep a circle of varying radius along a (smoothed) polyline. `radii` is interpolated over the
  * curve parameter; the frame is parallel-transported so the tube never twists.
  */
-export function sweep(points: Vector3[], radii: number[], opts: { segments?: number; radial?: number; closeTip?: boolean; closeStart?: boolean; smooth?: boolean } = {}): BufferGeometry {
+export interface SweepOptions {
+  segments?: number;
+  radial?: number;
+  closeTip?: boolean;
+  closeStart?: boolean;
+  smooth?: boolean;
+  /** cross-section scale along the binormal (< 1 flattens the tube, e.g. a cap tail lying on the back) */
+  flatten?: number;
+  /** depth (fraction of the radius) of a groove along the +binormal side (cloth crease) */
+  crease?: number;
+}
+
+export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {}): BufferGeometry {
   const segments = opts.segments ?? 24;
   const radial = opts.radial ?? 10;
+  const flatten = opts.flatten ?? 1;
+  const crease = opts.crease ?? 0;
   const curve = new CatmullRomCurve3(points, false, 'centripetal', 0.5);
   const centres: Vector3[] = [];
   const tangents: Vector3[] = [];
@@ -55,11 +69,19 @@ export function sweep(points: Vector3[], radii: number[], opts: { segments?: num
     binormal.crossVectors(tan, normal).normalize();
     const r = radiusAt(i / segments);
     const c = centres[i];
+    // the flattening/crease fade in over the first 40 % of the tube so a tail that starts inside
+    // a dome emerges with a plain round section (no groove edge poking through the shell)
+    const ramp = flatten === 1 && crease === 0 ? 1 : Math.min(1, i / segments / 0.4);
+    const rampS = ramp * ramp * (3 - 2 * ramp);
+    const creaseI = crease * rampS;
+    const flattenI = 1 + (flatten - 1) * rampS;
     for (let j = 0; j <= radial; j++) {
       const a = (j / radial) * Math.PI * 2;
       const ca = Math.cos(a);
       const sa = Math.sin(a);
-      positions.push(c.x + (normal.x * ca + binormal.x * sa) * r, c.y + (normal.y * ca + binormal.y * sa) * r, c.z + (normal.z * ca + binormal.z * sa) * r);
+      const rr = r * (1 - creaseI * Math.pow(Math.max(0, sa), 6));
+      const rb = rr * flattenI;
+      positions.push(c.x + normal.x * ca * rr + binormal.x * sa * rb, c.y + normal.y * ca * rr + binormal.y * sa * rb, c.z + normal.z * ca * rr + binormal.z * sa * rb);
       uvs.push(i / segments, j / radial);
     }
   }
@@ -98,7 +120,21 @@ export function sweep(points: Vector3[], radii: number[], opts: { segments?: num
  * Lathe a (radius, y) profile around Y, optionally scaling X/Z differently (oval torso) and
  * tearing the bottom ring into a ragged hem (deterministic notches).
  */
-export function ovalLathe(profile: [number, number][], opts: { segments?: number; scaleX?: number; scaleZ?: number; raggedHem?: number; seed?: number } = {}): BufferGeometry {
+export interface LatheOptions {
+  segments?: number;
+  scaleX?: number;
+  scaleZ?: number;
+  raggedHem?: number;
+  seed?: number;
+  /** number of soft scallops around the hem (bottom ring lifted between the points) */
+  scallops?: number;
+  scallopDepth?: number;
+  /** number of vertical fold ridges (radius modulation, strongest at the hem, fading upward) */
+  folds?: number;
+  foldDepth?: number;
+}
+
+export function ovalLathe(profile: [number, number][], opts: LatheOptions = {}): BufferGeometry {
   const segments = opts.segments ?? 20;
   const geo = new LatheGeometry(
     profile.map(([r, y]) => new Vector2(r, y)),
@@ -108,13 +144,30 @@ export function ovalLathe(profile: [number, number][], opts: { segments?: number
   const sx = opts.scaleX ?? 1;
   const sz = opts.scaleZ ?? 1;
   const hemY = profile[0][1];
+  const topY = profile[profile.length - 1][1];
   const rag = opts.raggedHem ?? 0;
   const seed = opts.seed ?? 7;
+  const folds = opts.folds ?? 0;
+  const foldDepth = opts.foldDepth ?? 0.04;
+  const scallops = opts.scallops ?? 0;
+  const scallopDepth = opts.scallopDepth ?? 0.03;
   for (let i = 0; i < pos.count; i++) {
     let x = pos.getX(i) * sx;
     let y = pos.getY(i);
     let z = pos.getZ(i) * sz;
-    if (rag > 0 && Math.abs(y - hemY) < 1e-5) {
+    const atHem = Math.abs(y - hemY) < 1e-5;
+    if (folds > 0) {
+      const a = Math.atan2(z, x);
+      const w = Math.pow(Math.min(1, Math.max(0, (topY - y) / Math.max(1e-6, topY - hemY))), 1.5);
+      const f = 1 + foldDepth * w * Math.cos(folds * a + 0.7);
+      x *= f;
+      z *= f;
+    }
+    if (scallops > 0 && atHem) {
+      const a = Math.atan2(z, x);
+      y += scallopDepth * (0.5 - 0.5 * Math.cos(scallops * a));
+    }
+    if (rag > 0 && atHem) {
       const a = Math.atan2(z, x);
       const k = Math.round(((a + Math.PI) / (Math.PI * 2)) * segments);
       const n = hash2(k, seed, 3);

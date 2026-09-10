@@ -7,55 +7,63 @@ import { CanvasTexture, Color, MeshStandardMaterial, SRGBColorSpace } from 'thre
 
 export const CHAR_COLORS = {
   /** reference `#50542f` */
-  tunic: 0x5c6a33,
-  tunicCollar: 0x6b7a3c,
-  undershirt: 0xd9cfb4,
+  tunic: 0x596832,
+  tunicCollar: 0x68763a,
+  /** the pale undershirt showing at the collar, slightly warm so it does not blow out */
+  undershirt: 0xe6dfcc,
   /** reference `#433825` */
   leather: 0x54462d,
   leatherDark: 0x3e3221,
-  buckle: 0xb0925a,
-  /** reference `#624d33` */
-  boot: 0x745b3c,
-  bootCuff: 0xa88f66,
+  buckle: 0xc4a25c,
+  /** reference `#624d33` lit / `#533a21` shade: saturated leather brown, tan fold-over cuff `#876849` */
+  boot: 0x6b4a2c,
+  bootCuff: 0x957852,
+  sole: 0x2c2118,
   /** reference `#828450` (lighter than the tunic) */
-  cap: 0x8e9457,
-  capBrim: 0x7c8149,
-  /** reference `#865f2e` */
-  hair: 0xa3742f,
+  cap: 0x6f7c40,
+  capBrim: 0x626e3a,
+  /** reference `#865f2e` — the fringe reads golden-blond in the frames; kept a clear hue step from the skin */
+  hair: 0xcf9c38,
   hairShade: 0x8c6630,
-  /** reference `#87613e` */
-  skin: 0xa67d58,
+  /** reference `#87613e` hazed / `#be8556` in the 14 s sunlight: warm tan, a clear hue step from the hair */
+  skin: 0xbe8a5e,
   eyeWhite: 0xf2f0ea,
-  iris: 0x3d78c8,
+  iris: 0x3268b8,
   irisKid: 0x5a3a22,
   pupil: 0x101214,
   brow: 0x7a5a2a,
   mouth: 0x6b3f30,
   shieldWood: 0x8a6538,
-  shieldRim: 0x5e4426,
+  shieldRim: 0x4f3a20,
   swordGrip: 0x2f3a4a,
   swordGuard: 0xc0a05a,
   steel: 0xb9bcc0,
   scabbard: 0x4a3521,
+  stick: 0x7a5a38,
   /** Kokiri kids: reference `#1e2012` tunic, `#60402c` hair */
   kidTunic: 0x2a2e18,
   kidRope: 0xb59b6a,
   kidBoot: 0x2b2118,
   kidHair: 0x7a5236,
   kidHeadband: 0x5f7a3a,
-  kidSkin: 0xa47a55,
+  kidSkin: 0xb28058,
 } as const;
 
 export type CharColorKey = keyof typeof CHAR_COLORS;
 
 const cache = new Map<string, MeshStandardMaterial>();
 
-/** Shared matte MeshStandardMaterial per colour key (fog-compatible: the atmosphere patches the fog chunks globally). */
-export function matte(key: CharColorKey, opts: { roughness?: number; metalness?: number } = {}): MeshStandardMaterial {
-  const id = `${key}|${opts.roughness ?? 0.85}|${opts.metalness ?? 0}`;
+/**
+ * Shared matte MeshStandardMaterial per colour key (fog-compatible: the atmosphere patches the fog
+ * chunks globally). The reference characters are soft and matte, so roughness defaults to 0.9 and
+ * metalness stays 0 (metal-looking trim is done with colour alone).
+ */
+export function matte(key: CharColorKey, opts: { roughness?: number } = {}): MeshStandardMaterial {
+  const roughness = Math.max(0.6, opts.roughness ?? 0.9);
+  const id = `${key}|${roughness}`;
   let m = cache.get(id);
   if (!m) {
-    m = new MeshStandardMaterial({ color: new Color(CHAR_COLORS[key]), roughness: opts.roughness ?? 0.85, metalness: opts.metalness ?? 0 });
+    m = new MeshStandardMaterial({ color: new Color(CHAR_COLORS[key]), roughness, metalness: 0 });
     m.name = `char-${key}`;
     cache.set(id, m);
   }
@@ -72,7 +80,7 @@ export function shieldTexture(): CanvasTexture {
   canvas.width = size;
   canvas.height = size;
   const g = canvas.getContext('2d')!;
-  g.fillStyle = '#8a6538';
+  g.fillStyle = '#6e4d2a';
   g.fillRect(0, 0, size, size);
   // grain: vertical-ish wavy dark lines
   for (let i = 0; i < 26; i++) {
@@ -87,38 +95,83 @@ export function shieldTexture(): CanvasTexture {
     }
     g.stroke();
   }
-  // orange-red swirl (spiral), thick stroke with a darker outline
+  // dark-red painted swirl filling most of the face: a fat spiral (≈ 2 turns) whose stroke widens
+  // outward, with a darker edge and a faint worn highlight along the middle
   const cx = size / 2;
   const cy = size / 2;
-  const spiral = (r0: number, r1: number, turns: number, w: number, color: string) => {
+  const spiral = (r0: number, r1: number, turns: number, w0: number, w1: number, color: string) => {
     g.strokeStyle = color;
-    g.lineWidth = w;
     g.lineCap = 'round';
-    g.beginPath();
-    const steps = 180;
+    const steps = 200;
+    let px = 0;
+    let py = 0;
     for (let i = 0; i <= steps; i++) {
       const u = i / steps;
-      const a = u * turns * Math.PI * 2;
-      const r = r0 + (r1 - r0) * u;
+      const a = u * turns * Math.PI * 2 - Math.PI * 0.5;
+      const r = r0 + (r1 - r0) * Math.pow(u, 1.15);
       const x = cx + Math.cos(a) * r;
-      const y = cy + Math.sin(a) * r * 1.05;
-      if (i === 0) g.moveTo(x, y);
-      else g.lineTo(x, y);
+      const y = cy + Math.sin(a) * r * 1.04;
+      if (i > 0) {
+        g.lineWidth = w0 + (w1 - w0) * u;
+        g.beginPath();
+        g.moveTo(px, py);
+        g.lineTo(x, y);
+        g.stroke();
+      }
+      px = x;
+      py = y;
     }
-    g.stroke();
   };
-  spiral(4, 78, 2.15, 22, 'rgba(90,30,14,0.9)');
-  spiral(4, 78, 2.15, 15, '#c8502a');
-  spiral(4, 78, 2.15, 5, 'rgba(240,140,70,0.55)');
-  // rim darkening
-  const grad = g.createRadialGradient(cx, cy, size * 0.3, cx, cy, size * 0.5);
-  grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(1, 'rgba(30,18,8,0.55)');
-  g.fillStyle = grad;
+  spiral(3, 96, 2.05, 16, 34, 'rgba(60,14,8,0.95)');
+  spiral(3, 96, 2.05, 10, 26, '#7a2418');
+  spiral(3, 96, 2.05, 3, 7, 'rgba(170,70,45,0.3)');
+  // worn wooden rim: darker outer band with lighter scuffs
+  const rimGrad = g.createRadialGradient(cx, cy, size * 0.36, cx, cy, size * 0.5);
+  rimGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  rimGrad.addColorStop(0.55, 'rgba(40,24,10,0.35)');
+  rimGrad.addColorStop(1, 'rgba(30,18,8,0.7)');
+  g.fillStyle = rimGrad;
   g.fillRect(0, 0, size, size);
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2 + Math.sin(i * 3.1) * 0.05;
+    const r = size * (0.42 + 0.06 * Math.abs(Math.sin(i * 1.7)));
+    g.fillStyle = i % 3 === 0 ? 'rgba(200,160,110,0.35)' : 'rgba(150,110,70,0.25)';
+    g.beginPath();
+    g.ellipse(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.5 + (i % 3), 4 + (i % 4) * 2, a, 0, Math.PI * 2);
+    g.fill();
+  }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
   tex.name = 'character-deku-shield';
+  return tex;
+}
+
+/** Thin horizontal sparkle streak (bright centre fading to both tips) for Navi's 4-point star. */
+export function streakTexture(): CanvasTexture {
+  const w = 128;
+  const h = 16;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const g = canvas.getContext('2d')!;
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const u = Math.abs(x / (w - 1) - 0.5) * 2;
+      const v = Math.abs(y / (h - 1) - 0.5) * 2;
+      const along = Math.pow(1 - u, 2.2);
+      const across = Math.max(0, 1 - v / Math.max(0.15, 1 - u * 0.9));
+      const a = along * across * across;
+      const i = (y * w + x) * 4;
+      img.data[i] = 255;
+      img.data[i + 1] = 250;
+      img.data[i + 2] = 240;
+      img.data[i + 3] = Math.round(255 * Math.min(1, a));
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const tex = new CanvasTexture(canvas);
+  tex.name = 'character-navi-streak';
   return tex;
 }
 
@@ -169,5 +222,40 @@ export function wingTexture(): CanvasTexture {
   g.putImageData(img, 0, 0);
   const tex = new CanvasTexture(canvas);
   tex.name = 'character-navi-wing';
+  return tex;
+}
+
+/**
+ * Fairy "ear" wing for a billboard sprite: an upright leaf/petal, root at the bottom-centre,
+ * widest at 40 % height, pointed tip, blown-out white core with a soft pale-blue edge.
+ */
+export function fairyWingTexture(): CanvasTexture {
+  const w = 64;
+  const h = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const g = canvas.getContext('2d')!;
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const v = 1 - y / (h - 1); // 0 at the root (bottom), 1 at the tip
+      const u = (x / (w - 1) - 0.5) * 2;
+      // leaf half-width: opens fast from the root, peaks at v ≈ 0.4, closes to a point at the tip
+      const halfWidth = 0.92 * Math.pow(Math.sin(Math.PI * Math.pow(Math.min(1, v), 0.75)), 0.8);
+      const edge = (halfWidth - Math.abs(u)) / 0.16;
+      const inside = Math.min(1, Math.max(0, edge));
+      const core = Math.min(1, Math.max(0, (halfWidth * 0.55 - Math.abs(u)) / 0.3));
+      const a = inside * (0.55 + 0.45 * core);
+      const i = (y * w + x) * 4;
+      img.data[i] = Math.round(225 + 30 * core);
+      img.data[i + 1] = Math.round(240 + 15 * core);
+      img.data[i + 2] = 255;
+      img.data[i + 3] = Math.round(255 * a);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const tex = new CanvasTexture(canvas);
+  tex.name = 'character-navi-fairy-wing';
   return tex;
 }

@@ -160,8 +160,11 @@ export interface ViewPlacement {
  * x = box centre. Navi from the same tables (F estimated from the frame: just above the cap).
  */
 export const VIEW_TABLE: Record<string, ViewPlacement> = {
-  // 1 s: back view centre, slightly turned right, walking toward the stairs; kid at the right edge
-  A_stairs: { feet: [0.5, 0.88], facing: 'away', yawDeg: -12, gait: 'walk', navi: [0.455, 0.57], look: 0.4, kids: [{ slot: 0 }] },
+  // 1 s: back view centre, slightly turned right, walking toward the stairs; kid at (0.86–0.91,
+  // 0.42–0.70) right of the stair-foot rock. The layout `kokiri-a` spot projects to x 0.98 here
+  // (cut by the frame edge), so this view marches the reference box instead: (7.8, 0, 3.0), 1.4 m
+  // from the rock centre (radius 1.0) on the plaza's east edge.
+  A_stairs: { feet: [0.5, 0.88], facing: 'away', yawDeg: -12, gait: 'walk', navi: [0.455, 0.57], look: 0.4, kids: [{ slot: 0, screen: [0.875, 0.71] }] },
   // 14 s: facing camera, idle; Navi right of his head; kid cut by the left edge ~4–5 m away; kid by the door
   B_house: { feet: [0.5, 0.91], facing: 'toward', yawDeg: 0, gait: 'idle', navi: [0.565, 0.585], look: 0.25, kids: [{ slot: 1, screen: [0.035, 0.885], yawDeg: -40 }, { slot: 2 }] },
   E_ground: { feet: [0.5, 0.91], facing: 'toward', yawDeg: 0, gait: 'idle', navi: [0.565, 0.585], look: 0.25, kids: [{ slot: 1, screen: [0.035, 0.885], yawDeg: -40 }, { slot: 2 }] },
@@ -170,7 +173,7 @@ export const VIEW_TABLE: Record<string, ViewPlacement> = {
   // 56 s: running away toward the log arch; Navi ahead-left
   D_log: { feet: [0.5, 0.9], facing: 'away', yawDeg: 0, gait: 'run', navi: [0.435, 0.55], look: 0.25, kids: [{ slot: 0 }] },
   // 8 s: back view, walking up the stair axis; kid + pods on the grass right of the stairs. The
-  // layout `kokiri-a` spot is hidden behind the stair-foot rock from this camera, so the kid stands
-  // on the grass just right of the rock (reference box x 0.63–0.67 → 0.72 clears the rock).
-  F_canopy: { feet: [0.5, 0.93], facing: 'away', yawDeg: 0, gait: 'walk', navi: [0.5, 0.53], look: 0.5, kids: [{ slot: 0, screen: [0.72, 0.6], yawDeg: 30 }] },
+  // layout `kokiri-a` spot (grass verge in front of the stair-foot rock) projects to (0.72, 0.67)
+  // here — right of the rock and nearer than it, so no per-view override is needed.
+  F_canopy: { feet: [0.5, 0.93], facing: 'away', yawDeg: 0, gait: 'walk', navi: [0.472, 0.545], look: 0.5, kids: [{ slot: 0, yawDeg: 160 }] },
 };

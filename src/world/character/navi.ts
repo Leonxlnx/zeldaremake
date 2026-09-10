@@ -1,7 +1,7 @@
 /**
- * Navi: a 15 cm white-blue orb (`#d7dcd5` core, cyan additive halo) with four translucent
- * dragonfly wings, bobbing ±0.1 m at ≈ 1 Hz beside Link's head, trailing 16 golden sparkles
- * (~1 s life). Her position is a closed-form function of `t` around an anchor the character
+ * Navi: a blown-out white ball in a soft blue-white bloom with a twinkling 4-point sparkle and two
+ * pairs of small pale-blue wings standing up behind it, bobbing ±0.1 m at ≈ 1 Hz beside Link's
+ * head, trailing 16 faint golden sparkles (~1 s life). Her position is a closed-form function of `t` around an anchor the character
  * system moves (per-view reference spot under capture, orbiting the player's head in play mode),
  * so the trail is simply the same path sampled at earlier times.
  */
@@ -9,13 +9,11 @@ import {
   AdditiveBlending,
   BufferGeometry,
   Color,
-  DoubleSide,
   DynamicDrawUsage,
   Float32BufferAttribute,
   Group,
   Mesh,
   MeshBasicMaterial,
-  PlaneGeometry,
   PointLight,
   Points,
   ShaderMaterial,
@@ -24,7 +22,7 @@ import {
   SpriteMaterial,
   Vector3,
 } from 'three';
-import { glowTexture, wingTexture } from './palette';
+import { fairyWingTexture, glowTexture, streakTexture } from './palette';
 
 export const TRAIL_COUNT = 16;
 const TRAIL_DT = 0.06;
@@ -41,7 +39,7 @@ void main() {
   vec4 mv = modelViewMatrix * vec4( position, 1.0 );
   gl_Position = projectionMatrix * mv;
   float dist = max( -mv.z, 0.3 );
-  gl_PointSize = clamp( ( 0.02 + 0.045 * aFade ) * uPixelRatio * 900.0 / dist, 1.0, 22.0 );
+  gl_PointSize = clamp( ( 0.015 + 0.03 * aFade ) * uPixelRatio * 900.0 / dist, 1.0, 16.0 );
 }
 `;
 const TRAIL_FRAG = /* glsl */ `
@@ -54,7 +52,7 @@ void main() {
   float star = pow( max( 0.0, 1.0 - abs( c.x ) * 5.0 ), 3.0 ) + pow( max( 0.0, 1.0 - abs( c.y ) * 5.0 ), 3.0 );
   float a = ( 1.0 - smoothstep( 0.04, 0.42, r ) ) * 0.7 + star * 0.5 * ( 1.0 - smoothstep( 0.15, 0.5, r ) );
   a *= vFade * vFade * vTwinkle;
-  gl_FragColor = vec4( uColor * a * 2.0, a );
+  gl_FragColor = vec4( uColor * a * 1.1, a * 0.6 );
 }
 `;
 
@@ -79,38 +77,54 @@ export function createNavi(): Navi {
   body.name = 'navi-body';
   root.add(body);
 
-  const core = new Mesh(new SphereGeometry(0.048, 18, 12), new MeshBasicMaterial({ color: new Color(0.86, 0.9, 0.9).multiplyScalar(2.6), fog: false, toneMapped: false }));
+  // bright white ball (blown out like the reference), soft blue-white bloom around it
+  const core = new Mesh(new SphereGeometry(0.042, 18, 12), new MeshBasicMaterial({ color: new Color(1, 1, 1).multiplyScalar(2.4), fog: false, toneMapped: false }));
   core.name = 'navi-core';
   body.add(core);
 
-  const halo = new Sprite(new SpriteMaterial({ map: glowTexture(), color: new Color(0.62, 0.9, 1.0).multiplyScalar(1.4), blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
+  // very soft bloom, ≈ 0.12 m visible at 4 m (the sprite is wider than the visible glow)
+  const halo = new Sprite(new SpriteMaterial({ map: glowTexture(), color: new Color(0.82, 0.92, 1.0).multiplyScalar(0.7), blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
   halo.name = 'navi-halo';
-  halo.scale.setScalar(0.34);
+  halo.scale.setScalar(0.3);
   halo.userData.depthAudit = false;
   body.add(halo);
 
-  const wingMat = new MeshBasicMaterial({ map: wingTexture(), color: new Color(0.85, 0.96, 1.0).multiplyScalar(0.55), transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, fog: false, toneMapped: false });
-  const wingGeo = new PlaneGeometry(0.13, 0.06, 1, 1);
-  wingGeo.translate(0.065, 0, 0);
-  const wings: Mesh[] = [];
-  const wingDefs: { x: number; y: number; z: number; mirror: boolean; tilt: number }[] = [
-    { x: -0.02, y: 0.03, z: -0.01, mirror: true, tilt: 0.35 },
-    { x: 0.02, y: 0.03, z: -0.01, mirror: false, tilt: 0.35 },
-    { x: -0.02, y: -0.005, z: -0.02, mirror: true, tilt: -0.3 },
-    { x: 0.02, y: -0.005, z: -0.02, mirror: false, tilt: -0.3 },
-  ];
-  for (const d of wingDefs) {
-    const w = new Mesh(wingGeo, wingMat);
-    w.name = 'navi-wing';
-    w.position.set(d.x, d.y, d.z);
-    if (d.mirror) w.scale.x = -1;
-    w.userData.tilt = d.tilt;
-    w.userData.depthAudit = false;
-    body.add(w);
-    wings.push(w);
+  // 4-point sparkle: two crossed streaks that twinkle in length
+  const streakTex = streakTexture();
+  const streaks: Sprite[] = [];
+  for (const rot of [0, Math.PI / 2]) {
+    const s = new Sprite(new SpriteMaterial({ map: streakTex, color: new Color(0.9, 0.96, 1.0).multiplyScalar(1.1), rotation: rot, blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
+    s.name = 'navi-sparkle';
+    s.scale.set(0.3, 0.04, 1);
+    s.userData.depthAudit = false;
+    body.add(s);
+    streaks.push(s);
   }
 
-  const light = new PointLight(0xbfe4ff, 1.6, 3.5, 2);
+  // Wings: the reference fairy reads as two upright white "ears" over the ball plus a small lower
+  // pair, from every camera. Billboard sprites pivoting at the ball's centre (sprite centre at
+  // the leaf root) give exactly that silhouette from all six views; the root half is hidden
+  // inside the ball by the depth test.
+  const wingTex = fairyWingTexture();
+  const wings: { sprite: Sprite; base: number; w: number; h: number }[] = [];
+  const wingDefs: { rot: number; w: number; h: number; y: number }[] = [
+    { rot: 0.3, w: 0.062, h: 0.15, y: 0.012 },
+    { rot: -0.3, w: 0.062, h: 0.15, y: 0.012 },
+    { rot: Math.PI - 0.62, w: 0.04, h: 0.085, y: -0.004 },
+    { rot: -(Math.PI - 0.62), w: 0.04, h: 0.085, y: -0.004 },
+  ];
+  for (const d of wingDefs) {
+    const s = new Sprite(new SpriteMaterial({ map: wingTex, color: new Color(1.0, 1.0, 1.0).multiplyScalar(1.35), rotation: d.rot, depthWrite: false, fog: false, transparent: true, toneMapped: false }));
+    s.name = 'navi-wing';
+    s.center.set(0.5, 0.06);
+    s.position.set(0, d.y, 0);
+    s.scale.set(d.w, d.h, 1);
+    s.userData.depthAudit = false;
+    body.add(s);
+    wings.push({ sprite: s, base: d.rot, w: d.w, h: d.h });
+  }
+
+  const light = new PointLight(0xdff0ff, 1.6, 3.5, 2);
   light.name = 'navi-light';
   light.castShadow = false;
   body.add(light);
@@ -164,15 +178,20 @@ export function createNavi(): Navi {
       position(t - 0.08, prev);
       tmp.subVectors(p, prev).addScaledVector(velocity, 0.08);
       if (tmp.lengthSq() > 1e-6) body.rotation.y = Math.atan2(tmp.x, tmp.z);
-      // wing flutter ≈ 12 Hz, upper and lower pairs out of phase
+      // wing flutter ≈ 12 Hz: the ears fan in/out about their root and foreshorten as they beat
+      // (upper and lower pairs out of phase)
       const flap = Math.sin(t * Math.PI * 2 * 12);
       for (let i = 0; i < wings.length; i++) {
         const w = wings[i];
         const pair = i < 2 ? 1 : -1;
-        const ang = 0.3 + 0.5 * (0.5 + 0.5 * flap * pair);
-        w.rotation.y = (w.scale.x < 0 ? 1 : -1) * ang;
-        w.rotation.z = (w.userData.tilt as number) * (w.scale.x < 0 ? -1 : 1);
+        const side = i % 2 === 0 ? 1 : -1;
+        w.sprite.material.rotation = w.base + side * 0.12 * flap * pair;
+        w.sprite.scale.set(w.w * (0.8 + 0.2 * Math.abs(flap)), w.h, 1);
       }
+      // sparkle twinkle: the two streaks breathe out of phase
+      const tw = 0.5 + 0.5 * Math.sin(t * 7.3);
+      streaks[0].scale.set(0.2 + 0.12 * tw, 0.04, 1);
+      streaks[1].scale.set(0.32 - 0.12 * tw, 0.04, 1);
       light.intensity = 1.5 + 0.3 * Math.sin(t * 4.7);
       for (let i = 0; i < TRAIL_COUNT; i++) {
         const age = (i + 1) * TRAIL_DT;

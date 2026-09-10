@@ -46,6 +46,13 @@ const GAIT: Record<Exclude<Gait, 'idle'>, GaitParams> = {
 /** Ground speed (m/s) at which the feet of each gait roughly plant without sliding. */
 export const GAIT_SPEED: Record<Gait, number> = { idle: 0, walk: 1.6, run: 3.9, stairs: 1.1 };
 
+/**
+ * Phase offsets for the hero under capture. The harness samples t = 12.5 + settle/60 s (settle 6
+ * → 12.6 s, settle 90 → 14.0 s); these offsets put the walk (0.9 Hz) at sin φ ≈ −0.68 and the run
+ * (1.35 Hz) at sin φ ≈ −0.87…−0.99 at BOTH times: right foot forward, mid-stride.
+ */
+export const HERO_PHASE: Record<Gait, number> = { idle: 0, walk: 1.756, run: -1.11, stairs: 0 };
+
 const _target = new Vector3();
 const _soleL = new Vector3();
 const _soleR = new Vector3();

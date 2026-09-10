@@ -18,7 +18,7 @@ function tinted(key: 'kidHair' | 'kidSkin' | 'kidHeadband' | 'kidTunic', variant
     const hsl = { h: 0, s: 0, l: 0 };
     c.getHSL(hsl);
     c.setHSL((hsl.h + hueShift + 1) % 1, hsl.s, Math.min(1, hsl.l * lightScale));
-    m = new MeshStandardMaterial({ color: c, roughness: key === 'kidSkin' ? 0.7 : 0.9, metalness: 0 });
+    m = new MeshStandardMaterial({ color: c, roughness: 0.9, metalness: 0 });
     m.name = `char-${key}-${variant}`;
     variantMats.set(id, m);
   }
@@ -84,6 +84,16 @@ export function createKokiri(variant: number): Character {
   part(rig.head, place(new TorusGeometry(p.headRadius * 1.1, 0.011, 6, 26), 0, 0.032, 0.004, [Math.PI / 2 - 0.12, 0, 0], [1, 1, 0.98]), band, 'kid-headband', false);
   // a small pouch on the belt for variety
   if (variant % 2 === 1) part(rig.hips, place(new BoxGeometry(0.05, 0.05, 0.03), -0.09, hl(0.53), 0.04, [0, 0.4, 0]), matte('leatherDark'), 'kid-pouch', false);
+  // the first kid holds a Deku Stick in the right hand like a staff (butt near the ground)
+  if (variant === 0) {
+    const handY = -p.forearm - 0.02;
+    const stick = merge([
+      place(new CylinderGeometry(0.011, 0.014, 0.95, 7), 0, handY - 0.02, 0.03),
+      // a knobbly tip
+      place(new CylinderGeometry(0.017, 0.011, 0.05, 7), 0, handY + 0.44, 0.03),
+    ]);
+    part(rig.elbowR, place(stick, 0, 0, 0, [0.1, 0, 0.05]), matte('stick'), 'deku-stick');
+  }
   rig.root.userData.character = 'kokiri';
   return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: 1.15 };
 }
