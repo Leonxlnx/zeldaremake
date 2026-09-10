@@ -429,6 +429,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   a layout/atmosphere decision, not trees; D verge and F bank in shade (trees follow-up);
   (3) 27 items await codex's cross-review (offline 33 h).
 
+### 20:00 UTC — tick 26: take-0028 published (monitor `b9579df`), valid; round seven hardscape + character
+- `3ed67e6` irregular rounded flagstones in dark soil joints (three jittered lattices → Voronoi,
+  fillets, crowns, per-stone tint, NW moss film; B plaza 0.532 → 0.478 vs 0.458, A stairs 0.370 →
+  0.352 vs 0.339, stone tops on the reference), rounder mossier boulders. `baf68b8` Link fidelity
+  (bare arms/legs under puffed sleeves, low cap + golden fringe, centred shield, contact shadows,
+  feet on slab tops; character-box SSIM A 0.226 → 0.240, D 0.179 → 0.217).
+- take-0028 (clean build of `baf68b8`): A 0.239 / B 0.202 / C 0.262 / D 0.249 / E 0.221 / F 0.215;
+  sharpness ratio −0.1…−0.2 everywhere from the rounded slab edges (A 0.984, gate 0.8); score
+  22/50; 28 entries.
+- Finding (probe, sun off vs on): the sun contributes ~0.06 of the D path's 0.45 luminance where
+  the reference's Link shadow shows ~40–45 % — our world is fill-dominated with near-complete
+  canopy shade; Link's cast shadow is invisible for that reason (castShadow on, inside the
+  frustum). Atmosphere round four spawned on the sun/fill split (targets in its brief).
+- Running: trees-7b (D verge sun corridor, F bank dapple), hardscape-7b (1.0–1.5 m foreground
+  slabs with the count floor at 300, joint tufts ~1500, terrace boulder tone), atmosphere-4.
+- Three biggest remaining gaps → (1) sun/fill contrast and cast shadows (W37); (2) foreground slab
+  scale in B/E/D and the shaded D verge / F bank; (3) 27 items await codex's cross-review
+  (offline 34 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
