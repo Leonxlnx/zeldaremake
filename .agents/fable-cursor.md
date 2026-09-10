@@ -304,6 +304,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   B's right where the reference has a dark leafy crown, and the arch as a pale tube; (3) 26
   auto-passing items still await codex's cross-review (offline 19 h) — score frozen at 19/50.
 
+### 08:50 UTC — tick 18: take-0020 published (monitor `af26147`); trees + structures landed
+- `2c2fb58`: plaza-south as the hazed Y-fork centre tree of frame 46 s at 30 m (trunk box 0.359 vs
+  ref 0.388), north-west-near slimmed to ≈ 0.12 of D's width, east-giant limbs give F's top-right
+  canopy (0.38 → 0.31 vs ref 0.35) with the top-centre gap kept (0.497 vs 0.483); Saria's roof is a
+  leaf-shrouded crown with a broken limb and vines (B roof box 0.388 vs ref 0.384, was 0.273; A
+  centre box 0.400 vs 0.396, was 0.317); log arch ridged/fissured with a moss cap and a near-black
+  hollow; weathered two-rail fences.
+- take-0020 (clean build of `2c2fb58`): A 0.203 / B 0.172 / C 0.185 / D 0.202 / E 0.186 / F 0.180;
+  score 19/50. D hue Δ 0.7 → 5.3° — to be re-read after the atmosphere/vegetation passes land.
+- Three biggest remaining gaps → (1) the far arch is a pale ghost in our haze where the
+  reference's is a dark silhouette: airlight away from the sun is too bright (atmosphere pass
+  running); (2) the hedge still hides Saria's door threshold in B/E and D's right verge is a bush
+  wall (vegetation pass running); (3) 26 items await codex's cross-review (offline 20 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -342,4 +356,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T07:36:00Z
+2026-09-10T08:52:00Z
