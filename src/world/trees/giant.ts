@@ -88,6 +88,45 @@ export interface GiantProfile {
   wildLimbs?: number;
   /** authored spreading limbs, built last from their own random stream */
   spread?: SpreadLimb[];
+  /**
+   * per-channel multiplier on the bark vertex colour (default 1,1,1). A trunk standing in
+   * another giant's crown shadow only ever shows its ambient-lit bark (stock albedo ≈ 0.055
+   * linear, a black cut-out); > 1 lifts it towards the hazy grey-brown column the reference shows.
+   * `barkTintFade` [from, to] (local metres) blends the tint back to 1 with height, so wood that
+   * does reach the sun keeps the stock bark.
+   */
+  barkTint?: [number, number, number];
+  barkTintFade?: [number, number];
+}
+
+/**
+ * An authored lobe hung on a canopy bough (local space): `t` is where its stem leaves the bough,
+ * `center` the lobe centre, hR / vR its radii. `density` scales the leaf + card population,
+ * `tone` multiplies the leaf colours (< 1 = a shaded mass), `eye` overrides the eye-detail
+ * treatment (0 = roof: full-size cards spread through the lobe; 1 = leaf-sized laminae).
+ */
+export interface CanopyLobe {
+  t: number;
+  center: Vector3;
+  hR: number;
+  vR: number;
+  density?: number;
+  tone?: number;
+  eye?: number;
+}
+
+/**
+ * A heavy authored bough built LAST from its own random stream (so adding one never re-rolls the
+ * trunk, limbs or crown): leaves the trunk at `fromHeight`, droops to `to`, and carries `lobes`
+ * whose centres are authored absolutely — shade lobes riding above the wood, pendulous leaf
+ * curtains hanging beneath it (the reference's low, dark foliage a few metres from the cameras).
+ */
+export interface CanopyBough {
+  to: Vector3;
+  fromHeight: number;
+  radius: number;
+  tipRadius?: number;
+  lobes: CanopyLobe[];
 }
 
 export interface GiantOptions {
@@ -131,6 +170,8 @@ export interface GiantOptions {
    * leaf-sized 8-triangle laminae and no cluster cards; at 0 they use the cheap roof treatment.
    */
   eyeDetail?: number;
+  /** authored canopy boughs (see CanopyBough), built after everything else */
+  canopyBoughs?: CanopyBough[];
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -152,12 +193,20 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const warm = new Color(0x8fa83c);
   const barkBase = new Color(0.7, 0.64, 0.56);
   const barkDeep = new Color(0.3, 0.25, 0.2);
+  const barkTint = new Color(...(o.profile?.barkTint ?? [1, 1, 1]));
+  const tintFade = o.profile?.barkTintFade;
+  const white = new Color(1, 1, 1);
   const crownRadius = H * bt(0.44, 0.5);
 
   const barkColor = (pt: Vector3) => {
     // soil-stained near the ground, lighter with height; ridges shaded by the tube grain
     const soil = 1 - smoothstep(-0.5, 2.5, pt.y);
-    return barkBase.clone().lerp(barkDeep, 0.4 * soil).multiplyScalar(0.9 + 0.12 * smoothstep(2, 12, pt.y));
+    const tint = tintFade ? barkTint.clone().lerp(white, smoothstep(tintFade[0], tintFade[1], pt.y)) : barkTint;
+    return barkBase
+      .clone()
+      .lerp(barkDeep, 0.4 * soil)
+      .multiplyScalar(0.9 + 0.12 * smoothstep(2, 12, pt.y))
+      .multiply(tint);
   };
   // large gnarl (metre-scale bulges + fluting) plus a mid-frequency term so the silhouette is never a pipe
   const gnarlBump = (scale: number, amount: number) => (angle: number, distance: number) => {
@@ -263,7 +312,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // real leaf-sized laminae (~10 cm, beech/oak obovate outline, 8 triangles). The roof at 14–24 m
   // is 15+ m away and uses bigger stylised laminae plus cluster cards.
   const eyeDetail = o.eyeDetail ?? 0;
-  const nearEye = (y: number) => (1 - smoothstep(7, 12, y)) * eyeDetail;
+  // per-lobe overrides for the authored canopy boughs (null / 1 = the tree's own treatment)
+  let eyeOverride: number | null = null;
+  let lobeTone = 1;
+  const nearEye = (y: number) => (eyeOverride ?? (1 - smoothstep(7, 12, y)) * eyeDetail);
   const leafOpts = (radius: number, y: number) => ({
     widthRatio: 0.6,
     wideFirst: 0.7,
@@ -338,11 +390,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .multiplyScalar(0.92)
         .lerp(sunny, sun * (1 - interior * 0.7))
         .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.3))
-        .multiplyScalar(vigor * (1 - interior * 0.32));
+        .multiplyScalar(vigor * (1 - interior * 0.32) * lobeTone);
       // leaves near eye level (low limbs) stay believable; the high roof uses big stylised laminae
       const roofSize = 0.17 + 0.22 * smoothstep(4, 15, base.y);
       const eyeSize = 0.13 + 0.24 * smoothstep(6, 16, base.y);
-      const size = bt(0.72, 1.0) * (roofSize + (eyeSize - roofSize) * eyeDetail);
+      const size = bt(0.72, 1.0) * (roofSize + (eyeSize - roofSize) * (eyeOverride ?? eyeDetail));
       addLeaf(leaves, base, direction, size, color, r, opts, allowed);
     }
   }
@@ -390,7 +442,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .multiplyScalar(0.9)
         .lerp(sunny, sun * (1 - interior * 0.7))
         .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.25))
-        .multiplyScalar(bt(0.85, 1.05) * (1 - interior * 0.4));
+        .multiplyScalar(bt(0.85, 1.05) * (1 - interior * 0.4) * lobeTone);
       // culled after its draws (see leafSpray): the corridors never shift the main stream
       if (!cardAllowed(p, s)) continue;
       const V = (du: number, dw: number, u: number, v: number) =>
@@ -693,6 +745,59 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     if (lf > 0) {
       const hR = (1.9 + 0.6 * lf) * Math.min(1.15, length / 8);
       limbLobes(path, r0, [0.48, 0.74, 0.98], hR, hR * 0.52, (1.2 + 0.6 * lf) * lift, 0.4 * lf * ld, lf * ld);
+    }
+  }
+
+  // ---------- authored canopy boughs ----------
+  // Built after everything else from their own stream (the lobe foliage draws from the main stream,
+  // but nothing is generated after it), so the tree above is identical with or without them.
+  const rcb = r.fork('canopy-bough');
+  for (const spec of o.canopyBoughs ?? []) {
+    const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
+    const origin = sample(trunk, tTrunk);
+    origin.y = spec.fromHeight;
+    const to = spec.to;
+    const run = Math.hypot(to.x - origin.x, to.z - origin.z);
+    const horiz = new Vector3(to.x - origin.x, 0, to.z - origin.z).normalize();
+    const side = new Vector3(-horiz.z, 0, horiz.x);
+    const r0 = spec.radius;
+    const r1 = spec.tipRadius ?? r0 * 0.35;
+    const path: Vector3[] = [origin.clone()];
+    const radii: number[] = [r0 * 1.35];
+    const n = 16;
+    const wigglePhase = rcb() * TAU;
+    for (let k = 1; k <= n; k++) {
+      const s = k / n;
+      // a weight-bearing limb: level off the trunk, then an ever-steeper droop onto the target
+      const p = origin.clone().addScaledVector(horiz, run * s);
+      p.y = origin.y + (to.y - origin.y) * Math.pow(s, 1.7) + 0.02 * run * Math.sin(s * Math.PI);
+      p.addScaledVector(side, Math.sin(s * 6 + wigglePhase) * 0.012 * run * Math.sin(s * Math.PI));
+      path.push(p);
+      radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
+    }
+    tube(wood, path, radii, 12, rcb, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    limbs++;
+    for (const lobeSpec of spec.lobes) {
+      const at = sample(path, lobeSpec.t);
+      const ax = tangent(path, lobeSpec.t);
+      const toCenter = lobeSpec.center.clone().sub(at);
+      const hanging = toCenter.y < -0.5;
+      // shade lobes leave the bough upward like the wild-limb lobes; curtains leave it along the
+      // wood and then swing down under their own weight
+      const parentDir = hanging ? ax.clone().lerp(UP.clone().negate(), 0.35).normalize() : ax.clone().lerp(UP, 0.5);
+      const stem = growthPath(at, lobeSpec.center, parentDir, rcb, 7, 0.6);
+      const stemRadius = Math.max(0.07, r0 * (1 - lobeSpec.t * 0.6) * 0.34);
+      tube(wood, stem, taper(stem, stemRadius, 0.02), 6, rcb, { color: barkColor, roughness: 0.04 });
+      const d = lobeSpec.density ?? 1;
+      eyeOverride = lobeSpec.eye ?? null;
+      lobeTone = lobeSpec.tone ?? 1;
+      // a curtain's arms leave the last ~30 % of its long drop (foliateLobe attaches them at
+      // 0.4–0.88 of the path it is given: here 0.83–0.97 of the stem, within 0.7 m of the centre),
+      // so the leaves gather around the authored centre instead of trailing up towards the bough
+      const lobePath = hanging ? stem.slice(stem.length - 3) : stem;
+      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d);
+      eyeOverride = null;
+      lobeTone = 1;
     }
   }
 

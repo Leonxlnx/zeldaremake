@@ -87,6 +87,8 @@ export function placeWhiteBark(
   outer = 60,
   avoid: SunCorridor[] = [],
   gaps: ViewGap[] = [],
+  /** giants authored by the trees system beyond LAYOUT.giantTrees (same footprint rule) */
+  extraGiants: { position: readonly [number, number, number]; trunkRadius: number }[] = [],
 ): WhiteBarkResult {
   const r = rng.fork('whitebark-placement');
   const clump = new Noise2D('whitebark-clumps');
@@ -150,6 +152,7 @@ export function placeWhiteBark(
     if (terrain.slope(x, z) > 0.55) return true;
     for (const h of L.houses) if (Math.hypot(x - h.position[0], z - h.position[2]) < h.trunkRadius + 5) return true;
     for (const g of L.giantTrees) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + 5.5) return true;
+    for (const g of extraGiants) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + 5.5) return true;
     for (const b of L.heroBoulders) if (Math.hypot(x - b.position[0], z - b.position[2]) < b.radius + 2.2) return true;
     for (const n of L.npcSpots) if (Math.hypot(x - n.position[0], z - n.position[2]) < 4.5) return true;
     for (const s of L.signposts) if (Math.hypot(x - s.position[0], z - s.position[2]) < 3) return true;
