@@ -211,6 +211,11 @@ export const LAYOUT = {
     // Reference B/D/A: a big dark trunk cuts the LEFT edge (B 0.0–0.10, D 0.0–0.12, A behind the
     // pods). Between the north path and the boulder bank, 6 m west of the spine.
     { id: 'north-west-near', position: [-5.0, 0, -12.8], trunkRadius: 1.1, height: 24 },
+    // Reference F: a big dark trunk cuts the RIGHT edge (0.9–1.0, top down to the bank at y ≈ 0.7)
+    // 8–9 m from the camera at the south foot of the stair-side bank; 6.9 m off the paved east
+    // lobe, behind B/D/E, beyond A's right edge, a hazed column at x ≈ 0.32 in C's background
+    // (the reference C shows a trunk behind the kid there). Profile: trees GIANT_PROFILES.
+    { id: 'stair-bank-giant', position: [10.1, 0, 7.0], trunkRadius: 1.1, height: 21 },
   ] as GiantTreeDef[],
 
   /** Where the Kokiri kids / Link will stand later (Phase 2). Used now only to keep clear ground. */

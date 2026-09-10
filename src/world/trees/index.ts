@@ -23,7 +23,8 @@ import type { WorldContext, WorldSystem } from '../system';
 import { createTreeMaterials } from './materials';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, type WhiteBarkPlacement } from './placement';
-import { createGiantTree, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import type { GiantTreeDef } from '../layout';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
@@ -88,7 +89,61 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
       { azimuthDeg: -172.6, height: 2.6, length: 11.6, rise: -0.06, radius: 0.5, foliage: 1.1, density: 1.0, lift: 0.2 },
     ],
   },
+  // reference F's right edge: a straight column, no ballooning foot (its base is 9 m from the
+  // camera), roots short of the paved east lobe 6.9 m away. Only the trunk is meant to be seen: the
+  // two spread limbs leave at 11–12.5 m towards the south-east / south-south-west, above C's frame
+  // top at that distance (≈ 8–10.5 m) and behind F's right edge. Drafts with a limb at 4.2 m
+  // measured what limb foliage costs in the hero frames — north-west it fringed the tops of A and F
+  // (−0.006 SSIM in A), east it hung across C's top-left (0–0.25, 0–0.5) for −0.013 in C — because
+  // the reference has smooth haze or a smooth dark mass there, never textured leaves 15–20 m out.
+  // The visible trunk (0.5–6 m) stands in the lantern tree's crown shadow (its casters sit 13–23 m
+  // up-sun), so the bark below 7 m is tinted up ×3.5 and cooled towards the hazy grey-brown column
+  // the reference shows (lum 0.37, hue 55°): stock bark under ambient alone measured 0.14, ×2 gave
+  // 0.16, ×3.5 gives 0.19 (the rest of the gap is haze the atmosphere would have to supply). The
+  // tint fades out by 12 m so the sunlit crown wood stays stock.
+  'stair-bank-giant': {
+    flare: 0.6,
+    girth: 1.05,
+    rootReach: 0.3,
+    rootGirth: 0.8,
+    wildLimbs: 0,
+    barkTint: [3.2, 3.6, 4.2],
+    barkTintFade: [7, 12],
+    spread: [{ azimuthDeg: 60, height: 11, length: 7, rise: 0.25, radius: 0.42, foliage: 0.9, density: 1.1 }, { azimuthDeg: 120, height: 12.5, length: 6.5, rise: 0.2, radius: 0.4, foliage: 1.0, density: 1.0 }],
+  },
 };
+/**
+ * Giants authored by the trees system on top of LAYOUT.giantTrees (same builder, same audit).
+ * stair-bank-giant: reference F (frame 8 s) has a big dark trunk cutting its right edge (x 0.9–1.0,
+ * from the frame top down to the bank at y ≈ 0.7), 8–9 m from the camera at the south foot of the
+ * stair-side bank. Our F showed the far east-giant there through the haze. Its base sits 6.9 m from
+ * the paved east lobe (5, 2.4) r 4 so the roots stay off the flagstones; it is behind cameras B/D/E,
+ * beyond A's right edge (A screen x ≈ 1.3 at 5 m) and a hazed column at x ≈ 0.32 in C's background,
+ * where the reference C also shows a trunk behind the Kokiri kid. Layout owners: please adopt it
+ * into LAYOUT.giantTrees so vegetation / rocks / props avoid its footprint too.
+ */
+const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT.giantTrees (round 7)
+/**
+ * Authored canopy boughs (world space; see CanopyBough in giant.ts). Built from their own stream
+ * after the rest of the tree, so the host giant's trunk, limbs and crown — and their shadows in the
+ * hero frames — are untouched whether or not a bough is listed here.
+ *
+ * Round 7 tried a lantern-tree "plaza bough" (from 8.1 m, drooping east to (5.5, 6, 1.5), radius
+ * 0.55) carrying four sparse shade lobes at 7–9 m over the stair-side bank and four pendulous leaf
+ * curtains (eye 0.6, tone 5) hanging to 2.7–3.9 m at (2.6, 3.5, 0.6) hR 1.5, (3.7, 3.9, −0.9) hR 1.4,
+ * (3.4, 2.8, 0.1) hR 0.9 and (2.52, 2.7, −0.18) hR 0.9, so that F's top-left quadrant showed canopy
+ * instead of Saria's house. A same-tree A/B (gauntlet/tmp/trees7/control vs final) measured the
+ * cost: the curtains are textured dark foliage 6–10 m from the cameras where the reference has
+ * smooth bright haze — F (0.125–0.375, 0–0.25) went 0.444 → 0.228 lum against the reference's 0.593,
+ * A (0.25–0.625, 0–0.25) 0.495 → 0.377 against 0.471 — for −0.012 SSIM in F and −0.013 in A; the
+ * shade lobes only darkened a bank that already sat in the lantern tree's crown shadow (0.274 vs
+ * the reference's 0.287). Nothing hung between camera F and the house can do better: the F→house
+ * ray passes within 1.5 m of camera B, so foliage below ~3.4 m lands in B's frame over the dome
+ * and door, foliage 3–7 m out sits in A's centre, and the leaves' own light is tiny (sky-lit
+ * undersides, ≈ 0.02 linear) next to the haze the reference shows there. The list is therefore
+ * empty; the mechanism stays for authored boughs that can be measured to help.
+ */
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [];
 /**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
  * haze gap at the top-centre (x 0.35–0.55, y 0–0.10) where the stair shafts come from; white-bark
@@ -310,6 +365,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // crowns stay out of the plaza sun corridors (trunks may cross them: thin shadows = dapple)
     plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
     viewGaps,
+    EXTRA_GIANTS,
   );
   const whitePlacements = whitePlaced.placements;
   for (const p of whitePlacements) {
@@ -346,9 +402,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ------------------------------------------------------------------ giants
   const giantGroup = new Group();
   giantGroup.name = 'giants';
-  const giants: { def: (typeof ctx.layout.giantTrees)[number]; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
+  const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
-  for (const def of ctx.layout.giantTrees) {
+  const giantDefs: GiantTreeDef[] = [...ctx.layout.giantTrees, ...EXTRA_GIANTS];
+  for (const def of giantDefs) {
     const [px, , pz] = def.position;
     const gy = terrain.height(px, pz);
     const origin = new Vector3(px, gy, pz);
@@ -383,6 +440,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // carry their crowns
     const plazaDist = Math.hypot(px, pz);
     const farFade = 1 - 0.45 * Math.min(1, Math.max(0, (plazaDist - 26) / 16));
+    const canopyBoughs: CanopyBough[] = CANOPY_BOUGHS.filter((b) => b.giant === def.id).map((b) => ({
+      to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
+      fromHeight: b.fromY - gy,
+      radius: b.radius,
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye })),
+    }));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
       limbSpec,
@@ -396,6 +459,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
       profile: GIANT_PROFILES[def.id],
+      canopyBoughs,
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     for (const g of [asset.geometry, asset.cards]) {
@@ -405,7 +469,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
     for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
-    ctx.progress('trees', 0.55 + (0.3 * giants.length) / ctx.layout.giantTrees.length);
+    ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
     await yieldFrame();
   }
   // three angular sectors around the plaza → three meshes, each frustum-culled as a unit
