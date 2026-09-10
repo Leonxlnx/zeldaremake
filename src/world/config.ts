@@ -43,9 +43,11 @@ export const WORLD = {
     /**
      * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
      * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs
-     * measured 0.50–0.60 luminance at 1.2 against the reference's 0.30–0.50 band.
+     * measured 0.50–0.60 luminance at 1.2 against the reference's 0.30–0.50 band. Measured on the
+     * open path of shots B/E (lit slabs 0.60, shaded 0.38–0.42 against the reference's 0.60–0.66
+     * and 0.33–0.40): 1.15 over-lit the shaded slabs by 0.05, 0.95–1.0 lands them.
      */
-    hemiIntensity: 0.95,
+    hemiIntensity: 1.0,
   },
 
   fog: {
@@ -58,8 +60,9 @@ export const WORLD = {
   },
 
   renderer: {
-    // frame means read 0.01–0.09 above the reference in every view (most in C/E/F)
-    exposure: 0.94,
+    // 0.94 was set when the frame means read 0.01–0.09 above the reference; with the sparse god-ray
+    // mask (no broad airlight wash) every view measured 0.02–0.035 under it, so back to unity
+    exposure: 1.0,
     maxPixelRatio: 1.5,
   },
 

@@ -7,9 +7,11 @@
  *   1. scene → HDR (RGBA half-float, full res) with a 24-bit depth texture       [1 fullscreen]
  *   2. mist overlay scene → premultiplied RGBA (half res), depth-faded             [½ res]
  *   3. SSAO from depth (10 taps, half res) → depth-aware 3×3 blur                  [2 × ½ res]
- *   4. god rays: volumetric march (¼ res, 16 jittered steps per pixel, each tested against the
- *      sun's PCF shadow map, haze density = height-fog model) → 2 × 12-tap smear along the
- *      screen-space sun direction to hide the jitter                               [3 × ¼ res]
+ *   4. god rays: volumetric march (¼ res, 24 jittered steps per pixel over 40 m, each tested
+ *      against the sun's PCF shadow map and a world-space canopy-gap mask with fixed open columns
+ *      (atmosphere/shafts.ts), transmittance-weighted, upper-air only, haze density = height-fog
+ *      model) → 2 × 12-tap smear along the screen-space sun direction to hide the jitter
+ *                                                                                  [3 × ¼ res]
  *   5. bloom: bright pass (threshold ≥ 1.0) → separable 9-tap Gaussian             [3 × ¼ res]
  *   6. composite: AO·HDR + mist + rays + bloom → ACES → subtle grade → sRGB (LDR)   [1 fullscreen]
  *   7. FXAA → default framebuffer (the canvas holds the final image for headless captures)
@@ -45,6 +47,7 @@ import {
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
+import { SHAFT_COLUMNS } from '../atmosphere/shafts';
 import { AO_BLUR_FRAG, AO_FRAG, BLUR_FRAG, BRIGHT_FRAG, COMPOSITE_FRAG, COPY_FRAG, FULLSCREEN_VERT, RAY_BLUR_FRAG, RAY_MARCH_FRAG } from './shaders';
 
 /**
@@ -95,12 +98,31 @@ export interface ComposerSettings {
   /** contrast curve (pow) applied to the smeared ray buffer so beams read as slabs */
   rayContrast: number;
   rayColor: Color;
+  /** share of the beams laid over open-sky pixels (the dome already carries its own haze glow) */
+  raySkyShare: number;
+  /** base air density (1/m) of the sunlit under-canopy air the shafts live in */
+  rayBaseDensity: number;
+  /** extra density (1/m) of the ground-mist layer (height-fog profile, weighted to the north hollow) */
+  rayMistDensity: number;
+  /** haze extinction (1/m) attenuating each step's in-scatter on its way to the camera */
+  rayExtinction: number;
+  /** march length (m) */
+  rayMaxDist: number;
+  /** canopy-gap mask: frequency (1/m), smoothstep thresholds, floor outside the gaps */
+  beamFrequency: number;
+  beamLo: number;
+  beamHi: number;
+  beamFloor: number;
+  /** radius multiplier of the fixed shaft columns (atmosphere/shafts.ts); 0 disables them */
+  beamColumnScale: number;
   bloomThreshold: number;
   bloomIntensity: number;
   saturation: number;
   /** luminance power curve about `contrastPivot` (linear); > 1 deepens the toe more than it lifts highlights */
   contrast: number;
   contrastPivot: number;
+  /** black pedestal (display-linear) added after the curve: the reference's video blacks sit at ≈ 0.12–0.16 */
+  lift: number;
   /** selective grade of green-dominant pixels: hue pull toward gold, saturation softening */
   greenWarm: number;
   greenDesat: number;
@@ -151,8 +173,9 @@ export function createComposer(opts: ComposerOptions): Composer {
   const mist = rt(hw, hh, true);
   const aoA = rt(hw, hh, false);
   const aoB = rt(hw, hh, false);
-  const rayA = rt(qw, qh, false);
-  const rayB = rt(qw, qh, false);
+  // half float: the in-scatter of a shadowed column is a few hundredths — 8 bits would band it
+  const rayA = rt(qw, qh, true);
+  const rayB = rt(qw, qh, true);
   const bloomA = rt(qw, qh, true);
   const bloomB = rt(qw, qh, true);
   const ldr = rt(W, H, false);
@@ -170,13 +193,45 @@ export function createComposer(opts: ComposerOptions): Composer {
     new ShaderMaterial({ name, vertexShader: FULLSCREEN_VERT, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false });
 
   const settings: ComposerSettings = {
-    aoStrength: 0.6,
+    // 0.6 stacked with the grass blades' self-occlusion and pushed the vegetation-heavy dark
+    // quartile 0.05–0.08 under the reference's in every view
+    aoStrength: 0.5,
     aoRadius: 0.5,
-    rayIntensity: 0.8,
-    rayContrast: 1.3,
+    // "radiance of a fully lit column": with the sparse gap mask only ≈ 15 % of the under-canopy
+    // air is lit, so the beams need this to read as +0.10–0.15 display luminance over the haze
+    // between them (the reference's shaft core #8f8b7c over #696960). The pow curve on the smeared
+    // buffer keeps the faint multi-gap wash down so the beams read as slabs against the veil
+    rayIntensity: 1.8,
+    rayContrast: 1.5,
     // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
-    // the earlier (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange
-    rayColor: new Color(1.0, 0.96, 0.82),
+    // (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange, (1.0, 0.975,
+    // 0.88) (hue 47°) still left shots B/D 4–5° warm of the reference's far haze (56–60°)
+    rayColor: new Color(1.0, 0.995, 0.88),
+    // the reference's shafts stay readable where they cross the bright canopy gaps, but the fully
+    // lit air above the canopy (every sky-depth column marches to uMaxDist through it) must not
+    // become a flat glow over the gaps — at 0.6 shot D's far band mid-tones sat 0.08 over the
+    // reference's
+    raySkyShare: 0.45,
+    // scattering = extinction (a non-absorbing aerosol): the same 1/m as the distance haze
+    rayBaseDensity: HEIGHT_FOG_DEFAULTS.hazeDensity,
+    // the mist pool adds little: at 0.01 the long hollow columns of shot D marched 3× the
+    // in-scatter of shot A's and the far band whited out (0.57 against the reference's 0.44); it is
+    // also the only in-scatter left in front of the plaza, where every hundredth costs edge contrast
+    rayMistDensity: 0.002,
+    // steeper than the veil's own extinction (0.032): the shafts are a near-field effect — at the
+    // haze's rate the 30–50 m columns of shots B/D (into the hollow) integrated to a flat wash
+    // (D's far band 0.47–0.50 against the reference's 0.44) while A's 10–25 m beams stayed faint
+    rayExtinction: 0.045,
+    // and the march stops where the veil has taken over (75 % fog at 40 m)
+    rayMaxDist: 40,
+    // gaps 1.5–3 m wide, sparse enough that a 30 m view ray crosses about one of them (at 0.5/0.6
+    // ≈ 35 % of the field was open and every ray averaged several gaps into a wash), leaf masses
+    // between them letting ≈ 5 % through
+    beamFrequency: 0.22,
+    beamLo: 0.58,
+    beamHi: 0.66,
+    beamFloor: 0.05,
+    beamColumnScale: 1.0,
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
     // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
@@ -185,6 +240,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look
     contrast: 0.97,
     contrastPivot: 0.18,
+    // display-linear pedestal ≈ sRGB 0.06 at black: lifts p2–p10 by ≈ 0.015 and p50 by ≈ 0.01,
+    // the shape of the deficit against the reference's compressed video shadows (0.006 put the
+    // darkest percentile 0.02–0.04 over the reference's; at exposure 1.0 the shaded plaza already
+    // reads 0.03 over the reference's p10, so a hair less than the 0.004 used at 0.94)
+    lift: 0.003,
     greenWarm: 0.3,
     greenDesat: 0.08,
     shadowTint: new Color(0.975, 0.985, 1.02),
@@ -218,6 +278,15 @@ export function createComposer(opts: ComposerOptions): Composer {
   const sunUv = new Vector2(0.5, 0.5);
   const dirSign = { value: 1 };
   const fog = HEIGHT_FOG_DEFAULTS;
+  // world basis of the plane perpendicular to the sun: the canopy-gap mask lives in it, so a gap is
+  // a column of lit air along the sun direction wherever the camera stands
+  const sunRight = new Vector3(0, 1, 0).cross(opts.sunDirection).normalize();
+  const sunUp = new Vector3().crossVectors(opts.sunDirection, sunRight).normalize();
+  // the fixed shaft columns as (x, y, radius) in that plane
+  const gaps = SHAFT_COLUMNS.map(({ point, radius }) => {
+    const p = new Vector3(point[0], point[1], point[2]);
+    return new Vector3(p.dot(sunRight), p.dot(sunUp), radius);
+  });
   const rayMarchMat = mat(
     RAY_MARCH_FRAG,
     {
@@ -229,14 +298,17 @@ export function createComposer(opts: ComposerOptions): Composer {
       uShadowMatrix: { value: new Matrix4() },
       tShadow: { value: null as Texture | null },
       uSunDirView: { value: sunDirView },
-      uMaxDist: { value: 50 },
+      uSunRight: { value: sunRight },
+      uSunUp: { value: sunUp },
+      uExtinction: { value: settings.rayExtinction },
+      uBeam: { value: new Vector4(settings.beamFrequency, settings.beamLo, settings.beamHi, settings.beamFloor) },
+      uGaps: { value: gaps },
+      uMaxDist: { value: settings.rayMaxDist },
       // the beams' own air profile: a taller, softer layer than the ground mist so shafts keep
       // reading in the upper air of shots A/F even when the mist pool is thin
       uFogParams: { value: new Vector4(2.3, 0.48, fog.northStartZ, fog.northFullZ) },
-      // height-fog weight, base air density (1/m). The base is the sunlit under-canopy air the
-      // reference's shafts live in: a fully lit 10 m column (the lantern limb in shot A) → ~0.1,
-      // a 20 m column (the mid-ground of A/B) → ~0.2, a lit 50 m column at ground level → ~0.6
-      uDensity: { value: new Vector2(0.01, 0.0065) },
+      // (mist-layer density, base air density) in 1/m — see ComposerSettings
+      uDensity: { value: new Vector2(settings.rayMistDensity, settings.rayBaseDensity) },
       // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
       // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
       // eye-level column, so the sun-facing upper frame is shafts, not a wash over the crowns
@@ -250,6 +322,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     },
     'postfx-ray-march',
   );
+  rayMarchMat.defines = { GAPS: String(Math.max(1, gaps.length)) };
   const rayBlurMat = mat(
     RAY_BLUR_FRAG,
     {
@@ -285,11 +358,13 @@ export function createComposer(opts: ComposerOptions): Composer {
       uHasMist: { value: opts.overlay ? 1 : 0 },
       uRayColor: { value: settings.rayColor },
       uRayIntensity: rayIntensity,
+      uRaySkyShare: { value: settings.raySkyShare },
       uBloomIntensity: { value: settings.bloomIntensity },
       uExposure: { value: opts.exposure },
       uSaturation: { value: settings.saturation },
       uContrast: { value: settings.contrast },
       uContrastPivot: { value: settings.contrastPivot },
+      uLift: { value: settings.lift },
       uGreenWarm: { value: settings.greenWarm },
       uGreenDesat: { value: settings.greenDesat },
       uShadowTint: { value: settings.shadowTint },
@@ -405,13 +480,20 @@ export function createComposer(opts: ComposerOptions): Composer {
 
     // 4. god rays (volumetric march through the sun's shadow map, then smear along the sun axis)
     if (rayIntensity.value > 0.001 && bindShadow()) {
+      (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
+      rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
+      rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
+      (rayMarchMat.uniforms.uBeam.value as Vector4).set(s.beamFrequency, s.beamLo, s.beamHi, s.beamFloor);
+      gaps.forEach((g, i) => (g.z = SHAFT_COLUMNS[i].radius * s.beamColumnScale));
       pass(rayMarchMat, rayA);
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
       rayBlurMat.uniforms.uLength.value = 0.08;
       rayBlurMat.uniforms.uGamma.value = 1;
       pass(rayBlurMat, rayB);
+      // second smear shorter than the earlier 0.22: with 24 steps and the gap mask the march is
+      // already smooth, and a longer smear blurred the beams into one broad gradient
       rayBlurMat.uniforms.tSrc.value = rayB.texture;
-      rayBlurMat.uniforms.uLength.value = 0.22;
+      rayBlurMat.uniforms.uLength.value = 0.14;
       rayBlurMat.uniforms.uGamma.value = s.rayContrast;
       pass(rayBlurMat, rayA);
     } else {
@@ -433,10 +515,12 @@ export function createComposer(opts: ComposerOptions): Composer {
 
     // 6. composite + tone map + grade → LDR
     compositeMat.uniforms.uAoStrength.value = s.aoStrength;
+    compositeMat.uniforms.uRaySkyShare.value = s.raySkyShare;
     compositeMat.uniforms.uBloomIntensity.value = s.bloomIntensity;
     compositeMat.uniforms.uSaturation.value = s.saturation;
     compositeMat.uniforms.uContrast.value = s.contrast;
     compositeMat.uniforms.uContrastPivot.value = s.contrastPivot;
+    compositeMat.uniforms.uLift.value = s.lift;
     compositeMat.uniforms.uGreenWarm.value = s.greenWarm;
     compositeMat.uniforms.uGreenDesat.value = s.greenDesat;
     pass(compositeMat, ldr);
@@ -487,11 +571,16 @@ export function createComposer(opts: ComposerOptions): Composer {
       ambientOcclusion: true,
       aoResolution: [hw, hh],
       godRays: true,
-      godRayMethod: 'volumetric-shadow-march',
-      godRaySteps: 16,
+      godRayMethod: 'volumetric-shadow-march+gap-mask',
+      godRaySteps: 24,
       godRayResolution: [qw, qh],
       godRayStrength: rayIntensity.value,
       godRayBackScatterMin: fog.rayBackScatterMin,
+      godRayExtinctionPerM: settings.rayExtinction,
+      godRayMaxDistM: settings.rayMaxDist,
+      godRayGapFrequencyPerM: settings.beamFrequency,
+      godRayGapFloor: settings.beamFloor,
+      godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * settings.beamColumnScale]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
       bloom: true,
@@ -499,6 +588,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       toneMapping: 'aces-fitted',
       contrast: settings.contrast,
       contrastPivot: settings.contrastPivot,
+      lift: settings.lift,
+      aoStrength: settings.aoStrength,
       antialiasing: 'fxaa',
       // every pass is a pure function of the frame (no temporal jitter/accumulation), headless or not
       deterministic: true,

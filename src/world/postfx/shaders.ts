@@ -108,16 +108,29 @@ void main() {
 `;
 
 /**
- * Volumetric god rays: march each view ray (quarter res, 16 jittered steps, up to uMaxDist or the
+ * Volumetric god rays: march each view ray (quarter res, 24 jittered steps, up to uMaxDist or the
  * scene surface) and accumulate sun light that reaches the haze, testing the sun's shadow map at
  * every step. Canopy, trunks and the lantern branch therefore carve real beams; the haze density
  * follows the same height-fog model as heightfog.ts (denser low and in the north hollow) plus a
- * thin base so shafts also read in the upper air. That base follows heightfog's aerosol profile —
+ * base so shafts also read in the upper air. That base follows heightfog's aerosol profile —
  * uniform under the canopy, clearing exponentially above it — so a column that climbs into the
- * open air above the crowns (shot F) accumulates far less than an eye-level column of the same
- * length. A Henyey–Greenstein phase term makes the shafts strongest when looking toward the sun
- * (shots A, B, F); past 90° the haze's back-scatter lobe (heightfog.ts `rayBackScatterMin`) dims
- * the in-scatter so shot C, looking away from the sun, is not washed by the lit air in front of it.
+ * open air above the crowns accumulates far less than an eye-level column of the same length.
+ *
+ * Two things make the beams read as distinct shafts rather than a depth-proportional wash:
+ *  - single-scattering transmittance: each step's in-scatter is attenuated by the haze between it
+ *    and the camera (uExtinction), so the nearest 10–20 m of lit air dominate a column and the
+ *    beams they hold project large and separate on screen instead of averaging out over 50 m;
+ *  - a canopy-gap mask (`beamMask`): the crowns overhead are built from thousands of small leaf
+ *    cards, so the shadow map alone gives every column the same ≈ 50 % lit fraction. The mask is a
+ *    fixed world-space field of broad gaps evaluated in the plane perpendicular to the sun (so a
+ *    gap is a column of lit air along the sun direction — 1.5–3 m wide, a few metres apart, as in
+ *    the reference's 3–5 shafts), multiplied into the shadow test: the real geometry still carves
+ *    and blocks the beams, the mask decides where the canopy is dense and where it opens. Air
+ *    outside a gap keeps a small floor (light leaking through leaves). The columns the trees
+ *    system carved real corridors for (atmosphere/shafts.ts) are forced open in the mask.
+ * A Henyey–Greenstein phase term makes the shafts strongest when looking toward the sun (shots A,
+ * B, D); past `uBackScatter.y` the haze's back-scatter lobe dims the in-scatter so shot C, looking
+ * away from the sun, is not washed by the lit air in front of it.
  *
  * Output: x = in-scatter (0..1), y = marched length / uMaxDist (the smear pass weights its taps by
  * this so beams in front of a near trunk are not overwritten by the long sky columns beside it).
@@ -129,14 +142,46 @@ uniform mat4 uViewInv;
 uniform mat4 uShadowMatrix;
 uniform sampler2DShadow tShadow;
 uniform vec3 uSunDirView;
+uniform vec3 uSunRight;    // world basis of the plane perpendicular to the sun
+uniform vec3 uSunUp;
 uniform float uMaxDist;
 uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
 uniform float uAnisotropy;
 uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the angle where it saturates
+uniform float uExtinction; // haze extinction (1/m) attenuating in-scatter on its way to the camera
+uniform vec4 uBeam;        // gap-mask frequency (1/m), threshold lo, threshold hi, floor outside gaps
+uniform vec3 uGaps[ GAPS ]; // fixed open columns: (sun-plane x, sun-plane y, radius) in metres; radius 0 = unused
 varying vec2 vUv;
-#define STEPS 16
+#define STEPS 24
+float hash21( vec2 p ) {
+  p = fract( p * vec2( 123.34, 456.21 ) );
+  p += dot( p, p + 45.32 );
+  return fract( p.x * p.y );
+}
+float vnoise( vec2 p ) {
+  vec2 i = floor( p );
+  vec2 f = fract( p );
+  vec2 u = f * f * ( 3.0 - 2.0 * f );
+  return mix( mix( hash21( i ), hash21( i + vec2( 1.0, 0.0 ) ), u.x ), mix( hash21( i + vec2( 0.0, 1.0 ) ), hash21( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
+}
+// canopy gaps as seen along the sun: broad blobs (the leaf masses between them are 2–4× wider)
+// with a ragged second octave so the shaft edges are not perfectly smooth, plus the fixed columns
+// (uGaps) the trees system carved corridors for — those are always open so the bold shafts sit
+// exactly where the canopy actually has a hole
+float beamMask( vec3 pw ) {
+  vec2 q = vec2( dot( pw, uSunRight ), dot( pw, uSunUp ) );
+  vec2 qn = q * uBeam.x;
+  float n = vnoise( qn ) * 0.62 + vnoise( qn * 2.13 + vec2( 7.7, 3.1 ) ) * 0.26 + vnoise( qn * 4.7 + vec2( 1.3, 9.2 ) ) * 0.12;
+  float m = smoothstep( uBeam.y, uBeam.z, n );
+  for ( int i = 0; i < GAPS; i ++ ) {
+    float r = uGaps[ i ].z;
+    if ( r <= 0.0 ) continue;
+    m = max( m, 1.0 - smoothstep( r * 0.55, r, length( q - uGaps[ i ].xy ) ) );
+  }
+  return m;
+}
 void main() {
   float d = texture2D( tDepth, vUv ).x;
   vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
@@ -159,11 +204,17 @@ void main() {
     if ( sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0 ) {
       lit = texture( tShadow, vec3( sc.xy, sc.z - 0.0006 ) );
     }
+    lit *= mix( uBeam.w, 1.0, beamMask( pw.xyz ) );
     float north = 1.0 - smoothstep( uFogParams.w, uFogParams.z, pw.z ); // hollow is at lower z
     float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );
     float clear = exp( -max( pw.y - uAltitude.x, 0.0 ) / uAltitude.y );
-    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y * clear;
-    acc += lit * dens * stepLen;
+    // the shafts are an upper-air effect: the reference's beams read against the canopy and the
+    // hazed trunks while the sunlit plaza and path below them stay crisp, so the base-air in-scatter
+    // fades out in the lowest ≈ 4 m (eye-level rays to the ground cross only that air) — the ground
+    // mist keeps its own profile
+    float upperAir = smoothstep( 1.5, 4.5, pw.y );
+    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y * clear * upperAir;
+    acc += lit * dens * stepLen * exp( -uExtinction * t );
   }
   // the phase term is normalised to 1 at 90° from the sun so uRayIntensity means "strength of a
   // fully lit column"; in-scatter saturates (1 - e^-x) so sun-facing sky columns cannot blow out.
@@ -286,11 +337,13 @@ uniform float uAoStrength;
 uniform float uHasMist;
 uniform vec3 uRayColor;
 uniform float uRayIntensity;
+uniform float uRaySkyShare;
 uniform float uBloomIntensity;
 uniform float uExposure;
 uniform float uSaturation;
 uniform float uContrast;
 uniform float uContrastPivot;
+uniform float uLift;
 uniform float uGreenWarm;
 uniform float uGreenDesat;
 uniform vec3 uShadowTint;
@@ -326,7 +379,7 @@ void main() {
   // sky already carries its own haze so open-sky columns get a small share of the beams (the
   // reference's canopy gaps peak at ≈ 0.66 luminance — never a blown-out white)
   float rays = texture2D( tRays, vUv ).x;
-  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, 0.1, sky );
+  hdr += rays * uRayColor * uRayIntensity * mix( 1.0, uRaySkyShare, sky );
   hdr += texture2D( tBloom, vUv ).rgb * uBloomIntensity;
 
   // gentle channel mix: bleeds a little green into red (lime → olive/gold like the reference's
@@ -350,6 +403,9 @@ void main() {
   float curved = uContrastPivot * pow( max( lum2, 1e-5 ) / uContrastPivot, uContrast );
   c *= curved / max( lum2, 1e-5 );
   c *= mix( uShadowTint, uHighlightTint, smoothstep( 0.05, 0.85, curved ) );
+  // lifted blacks: the reference's darkest 2 % sits at 0.12–0.19 display luminance (video toe);
+  // a pedestal that fades out by mid grey keeps the highlights where the sun puts them
+  c += uLift * ( 1.0 - smoothstep( 0.0, 0.3, curved ) );
   c = clamp( c, 0.0, 1.0 );
   gl_FragColor = vec4( linearToSRGB( c ), 1.0 );
 }

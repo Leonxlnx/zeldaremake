@@ -106,9 +106,12 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   baseWeight: 0.16,
   maxFog: 0.86,
   // the near range decides the dark undersides: the reference's lantern limb at ≈ 10 m is lifted
-  // to ≈ 0.39 luminance while its 30 m log arch keeps ≈ 55 % veil — so the haze starts close
-  // (≈ 18 % at 10 m) with a slightly lower slope, leaving 30 m unchanged (≈ 51 %)
-  hazeDensity: 0.026,
+  // to ≈ 0.39 luminance while its 30 m log arch keeps ≈ 55–60 % veil — so the haze starts close
+  // (≈ 21 % at 10 m). The slope follows ANALYSIS §8 (25–30 m 55–65 %, 40–60 m 80–90 %): at
+  // 0.026 the forest interiors of shots B/C/D still showed every 25–40 m trunk as a distinct dark
+  // silhouette (darkest decile 0.17–0.23 against the reference's 0.26–0.28) where the reference
+  // is a flat grey veil with pale trunks; 0.032 gives 58 % at 30 m, 70 % at 40 m, 84 % at 60 m
+  hazeDensity: 0.032,
   hazeStart: 2.5,
   hazeUniformHeight: 8.0,
   hazeScaleHeight: 7.0,
@@ -118,8 +121,16 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // a notch warmer than the earlier grey (B/R 0.89 → 0.84 linear): the reference's hazed regions
   // read B/R ≈ 0.87 display ((119,118,105) in A's upper band, (141,138,122) in D's) while our
   // mid-distance band carried ~9 more blue than the reference's
-  hazeNear: [0.15, 0.148, 0.126],
-  hazeFar: [0.28, 0.279, 0.24],
+  // near veil ≈ 12 % brighter than the first calibration (#727166 → #7a7a6e display, the
+  // reference's mid haze #7a796d): the shaded trunks and limbs it veils at 10–25 m measured
+  // 0.05–0.10 under the reference's darkest decile in every hazed band
+  hazeNear: [0.168, 0.166, 0.141],
+  // far veil well under the old #a09f95 (→ #87867f display): the reference's far bands are a
+  // mid grey (median 0.435 in B's left half, D's far band and C's mid band) with the god rays
+  // carrying the bright part of the air, so the veil between the shafts has to sit under them —
+  // at 0.28 shot D's far band read 0.54–0.57 and B's forest interior 0.52 against the
+  // reference's 0.44 / 0.41
+  hazeFar: [0.19, 0.189, 0.163],
   mistColor: [0.175, 0.173, 0.154],
   hazeGradeNear: 20,
   hazeGradeFar: 55,
@@ -129,12 +140,19 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // medium dims as one. Shots A/B/D/E look 64–86° from the sun at their centres (only A's and B's
   // right quarter passes 90°), so they keep the calibrated colour; F (28°) sits entirely in the
   // forward lobe.
-  backScatterMin: 0.62,
+  // deeper than the first calibration (0.62): with the brighter near veil, shot C's mid band
+  // measured 0.49 against the reference's 0.36 — its anti-sun haze is a dark grey, the darkest
+  // haze of the six frames. 0.45 then undershot (0.32) once the god-ray mask went sparse and the
+  // rays stopped adding a faint back-scatter veil of their own
+  backScatterMin: 0.52,
   backScatterFullDeg: 135,
-  // the dimmed far haze displays ≈ #827d6e — the reference's anti-sun veil is #625e51-class (hue
-  // ≈ 46°, HSL saturation ≈ 0.09) where our neutral side-scatter grey would read yellow-green
+  // the dimmed far haze is #625e51-class like the reference's anti-sun veil (hue ≈ 46°, HSL
+  // saturation ≈ 0.09) where our neutral side-scatter grey would read yellow-green
   backScatterTint: [1.08, 1.0, 0.9],
-  rayBackScatterMin: 0.45,
+  // direct-sun in-scatter is far more forward-peaked than the sky-lit veil: looking away from the
+  // sun the lit air in front of the camera adds little (0.7 washed shot C's whole foreground by
+  // +0.09). Shot F (109° from the sun) keeps ≈ 70 % of the side-lit beam strength, C (127°) ≈ 40 %.
+  rayBackScatterMin: 0.35,
 };
 
 /** #rrggbb of a scene-linear colour after the composer's ACES (exposure 1) — for audits. */

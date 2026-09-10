@@ -51,7 +51,10 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.shadow.camera.updateProjectionMatrix();
   sun.shadow.bias = -0.00012;
   sun.shadow.normalBias = 0.028;
-  sun.shadow.radius = 4;
+  // 6 texels ≈ 13 cm penumbra: the reference's canopy dapple on the plaza is broad soft blotches
+  // (its shadows soften to ≈ 20 cm at 15 m), and the leaf-card canopy otherwise throws a fine
+  // shadow noise; 5 Vogel taps × hardware 4-tap stay smooth at this radius
+  sun.shadow.radius = 6;
   const target = new Object3D();
   target.name = 'sun-target';
   group.add(target);
@@ -62,8 +65,8 @@ export function create(ctx: WorldContext): WorldSystem {
   // The reference is soft: shaded flagstone still reads ≈ 0.33–0.40 luminance next to sunlit stone
   // at 0.62–0.66, so the fill is generous but near-neutral — warm grey-olive canopy light, never
   // cyan and clearly less golden than the key, so shade reads cooler than sun. Hemisphere + IBL
-  // together give a horizontal surface ≈ 1.2 of irradiance against the sun's ≈ 2.3, the reference's
-  // lit/shade ratio (see config.sky.hemiIntensity for the plaza measurements behind the level).
+  // together give a horizontal surface ≈ 1.25 of irradiance against the sun's ≈ 1.85 (3 · sin 38°),
+  // the reference's lit/shade ratio (see config.sky.hemiIntensity for the measurements behind it).
   const hemiIntensity = ctx.config.sky.hemiIntensity;
   const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(1.0, 0.97, 0.9), 0.35);
   const hemi = new HemisphereLight(hemiSky, ctx.config.sky.hemiGround, hemiIntensity);
@@ -73,7 +76,7 @@ export function create(ctx: WorldContext): WorldSystem {
   // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
   // the reference's hazy key, radiance ≈ 0.24–0.32, see sky.ts).
   let environment = false;
-  const environmentIntensity = 0.58;
+  const environmentIntensity = 0.6;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
