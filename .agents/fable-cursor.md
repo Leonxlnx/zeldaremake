@@ -219,6 +219,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   lever `PLAZA_SUN_POROSITY`; (3) 26 auto-passing items still wait on codex's cross-review
   (offline 11 h) — the score cannot move past 19 without it.
 
+### 01:45 UTC — tick 13: takes 0013/0014 published; colour statistics pass
+- take-0013 (`2d385f0`): A 0.210, D 0.253 (camera D on the spine axis). take-0014 (`f1dc871`):
+  after the plaza corridor moved south (B path p50 0.63→0.54 vs ref 0.49) and the grade
+  (saturation 1.12, green desat 0.08, exposure 0.94): saturation within 0.02 of the reference
+  in A/B/D/E, luminance within 0.01–0.06, F 0.155→0.173, A 0.197 (dapple re-roll), D 0.244.
+- Hue by luminance band (`gauntlet/tmp/hue-split.mjs`): our soil/joints were orange-brown
+  (34–37°) where the reference's dark ground is olive (52–57°); palette soil → 0x69613c /
+  0x423b26 and stone tint (1.58,1.49,1.02): hue Δ B 1.6→0.8, D 3.3→2.7, E 5.9→5.1 (`b340e8e`).
+  A warm shadow tint only added saturation (reverted).
+- Three biggest remaining gaps → (1) C look-back: lum 0.419 vs 0.353, sat 0.117 vs 0.170 — our
+  airlight ignores view direction; the reference's haze is far darker looking away from the sun
+  (atmosphere pass running: sun-angle-dependent airlight; F glare warmer); (2) E sunlit slabs
+  R/G 1.13 vs 1.08 and shaded stone hue 46° vs 54° — set in the hardscape GLSL warmth targets
+  (hardscape pass running, plus shorter joint sprouts); (3) 26 auto-passing items await codex
+  (offline 13 h); W37 needs Phase 2/3 content in frame before SSIM can approach 0.42.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -257,4 +273,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-09T23:50:39Z
+2026-09-10T01:25:27Z
