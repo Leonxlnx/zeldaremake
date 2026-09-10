@@ -461,6 +461,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0.42); (2) foreground slab scale in B/E/D; D verge blockers and F's top-left house (layout);
   (3) 27 items await codex's cross-review (offline 35 h).
 
+### 22:20 UTC — tick 28: take-0030 published (monitor `7e88e4f`), valid; hardscape follow-up
+- `2ef6f3f` 1.0–1.6 m foreground slabs (three open lattices, 548 stones, floor 300), domed D path
+  stones with sunk joints, 1500 joint tufts + clover, stair-foot rock on its own darker material,
+  per-stone PRNG keyed on position (box means no longer drift ±0.03 with lattice edits).
+- take-0030 (clean build of `2ef6f3f`): A 0.235 / B 0.200 / C 0.264 / D 0.245 / E 0.226 / F 0.217;
+  score 22/50; 30 entries.
+- Atmosphere-4 (sun/fill split) still running — its WIP exposure 0.94 → 1.0 lifts every plaza box
+  ~0.05, so the hardscape's tone targets move with it; its final six-view capture includes the new
+  slabs. Codex offline 36 h.
+- Three biggest remaining gaps → (1) sun/fill contrast and Link's cast shadow (W37 SSIM
+  0.20–0.26 vs 0.42); (2) layout: B's right region is continuous paving to the terrace where the
+  reference has lawn with stepping stones; F's top-left house; the D verge blockers (bole, platform
+  prop, SE wall); (3) 27 items await codex's cross-review.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
