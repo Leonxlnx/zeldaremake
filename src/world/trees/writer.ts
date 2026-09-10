@@ -356,7 +356,7 @@ export interface LeafOptions {
  * One curved leaf lamina with a raised midrib, cup and twist. Distant LODs select stable subsets
  * of the seeded population and widen the retained laminae so crown coverage stays constant.
  */
-export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector3, sizeIn: number, color: Color, rng: RandomFn, o: LeafOptions): boolean {
+export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector3, sizeIn: number, color: Color, rng: RandomFn, o: LeafOptions, build = true): boolean {
   const ordinal = writer.leafOrdinal++;
   const mediumEvery = o.mediumEvery ?? 4;
   const lowEvery = o.lowEvery ?? 8;
@@ -384,7 +384,8 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
       .addScaledVector(normal, curve * t * t + cup * (1 - Math.abs(s)) * Math.sin(t * Math.PI) + s * twist * size * t);
   const leafColor = color.clone().multiplyScalar(0.8 + rng() * 0.38);
   const tipColor = leafColor.clone().lerp(o.tipColor ?? new Color('#7d8f4a'), 0.08 + rng() * 0.14);
-  if (!retained) return false;
+  // `build` false: the lamina was culled (sun corridor) after its draws, so the stream stays aligned
+  if (!retained || !build) return false;
   writer.leafCount++;
   writer.logicalMaxY = Math.max(writer.logicalMaxY, base.y + size * 1.2);
   const st = o.stiffness;

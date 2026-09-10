@@ -27,6 +27,7 @@ import { createGiantTree, type GiantAsset, type GiantProfile } from './giant';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
+import { SHAFT_COLUMNS } from './corridors';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
@@ -98,59 +99,78 @@ const VIEW_GAPS: { viewpoint: string; xMin: number; xMax: number; yMin: number; 
   { viewpoint: 'F_canopy', xMin: 0.33, xMax: 0.57, yMin: -0.2, yMax: 0.12, minDistance: 12 },
 ];
 /**
- * God-ray corridors: world air points over the north of the plaza (the upper-left of shots A/B)
- * that should sit inside bold shafts. The line through each along the sun direction is kept clear
- * of giant foliage, so the canopy shadow map carries 2–3 large holes among the fine dapple.
- */
-const SHAFT_AIR_POINTS: [number, number, number][] = [
-  [1.3, 6.6, -9.4],
-  [-3.0, 8.0, -14.5],
-  [5.0, 7.0, -17.0],
-];
-const SHAFT_RADIUS = 2.6;
-/**
  * Sunlit ground: the reference plaza (foreground of shot A, which continues as the near path of
  * shot B) is dappled sun, not crown shade — yet under the pinned sun azimuth the rays from it pass
  * through the lantern tree's crown and a row of white-bark crowns 15–35 m to the WNW. The line
- * from each of these ground points along the sun direction is a porous corridor: giant cluster
- * cards are not built inside it, only a fraction (`porosity`) of the laminae survive (so the patch
+ * from each of these ground points along the sun direction is a porous corridor: only a fraction
+ * (`porosity`) of the giant laminae and `cardPorosity` of the cluster cards survive (so the patch
  * stays dappled by leaf shadows and branch shadows rather than uniformly lit), and the white-bark
- * placement keeps its crowns off the line. The path north of z ≈ −4 (shot B's far foreground) is
- * already open to the sun and keeps its natural dapple; a corridor there would also gut the
- * lantern tree's north limb lobes that roof the centre of shot F.
+ * placement keeps its crowns off the line. Inside each, a `core` is fully open (no foliage at all):
+ * the reference plaza is bright sunlit patches (p90 0.61) between bold shadows, not an even lift,
+ * so the core is the lit patch and the porous ring around it carries the dapple. The path north of
+ * z ≈ −4 (shot B's far foreground) is already open to the sun and keeps its natural dapple; a
+ * corridor there would also gut the lantern tree's north limb lobes that roof the centre of shot F.
+ *
+ * Wood is never carved, and the lantern tree's bole and pod limb throw a shadow band across the
+ * plaza — bole axis (−8.9, −5.2) → (5.2, 5.9), limb axis (−3.5, −1) → (9.1, 6.1) — so the sun
+ * probes around (2.5, 3.5) stay 37–45 % open whatever the corridor (blockers at 19–22 m = the bole
+ * 10 m above its base). Shot A's ground starts at z ≈ 4.7 (frame bottom), so the first corridor's
+ * disc is below its frame; the second core is therefore placed east of both shadow axes at
+ * (4.0, 1.8) — A screen ≈ (0.55, 0.78), where the reference's brightest flagstones are (around
+ * Link) — and behind camera B.
  */
-const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
-  { point: [0.0, 0, 6.0], radius: 3.0 },
+const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number; core: { point: [number, number]; radius: number } }[] = [
+  { point: [0.0, 0, 6.0], radius: 3.0, core: { point: [-0.3, 6.3], radius: 1.8 } },
   // 1.5 m south of the plaza centre so its lit disc stays out of shot B's foreground band
   // (z -1…-6), which the reference keeps in dappled shade (path p50 0.49)
-  { point: [2.5, 0, 3.5], radius: 2.8 },
+  { point: [2.5, 0, 3.5], radius: 2.8, core: { point: [4.0, 1.8], radius: 1.6 } },
 ];
-const PLAZA_SUN_POROSITY = 0.2;
+/** laminae survival in the porous ring around each plaza core */
+const PLAZA_SUN_POROSITY = 0.3;
+/**
+ * cluster cards kept in the ring: cards (0.5–1.2 m) are the casters that still read as bold dapple
+ * from 20–30 m up (laminae blur away in the soft shadow filter), so a few of them between the lit
+ * cores give the reference's broad light/shadow contrast instead of a uniform half-light
+ */
+const PLAZA_RING_CARD_POROSITY = 0.3;
 /**
  * Sunlit path in shot D: camera D (z ≈ −3, level, fov 48) sees the path from z ≈ −8 to −16 in its
  * foreground; the reference path there is sunlit with Link's shadow on it. Sun-probes from those
  * ground points show the sun cone 50–80 % open with the occluders 17–30 m along the ray: the
  * lantern tree's north limb lobes and the north-west giant's south lobes. Porous corridors through
  * those (same treatment as the plaza) leave leaf dapple; the porosity is higher than the plaza's
- * because the reference path here is half dappled (p50 ≈ 0.50 against 0.63 for its lit stone), and
- * at 0.25 the slabs measured fully lit. The points start at z −10 so the corridors stay off the
- * shaded band of shot B's foreground (z −5…−8, which the reference keeps in shade), and they stay
- * on the path: a point over the east verge lit D's right bank, which the reference keeps dark
- * (0.24). White-bark crowns are not moved for these lines: the nearest (white #27) sits 6.5 m off
- * the axis, and re-seating it would reshuffle every later placement.
+ * because the reference path here is half dappled (p50 ≈ 0.50 against 0.63 for its lit stone). The
+ * points start at z −10 so the corridors stay off the shaded band of shot B's foreground (z −5…−8,
+ * which the reference keeps in shade), and they stay on the path spine: a point over the east verge
+ * lit D's right bank, which the reference keeps dark (0.24). White-bark crowns are not moved for
+ * these lines: the nearest (white #27) sits 6.5 m off the axis, and re-seating it would reshuffle
+ * every later placement.
+ *
+ * Frame 56 s has the flagstones sunlit all the way from Link to the mist pool, and D's lower half
+ * measured 0.06 dark with the first two corridors alone (sun probes: 44–48 % open at z −16…−18,
+ * 16–26 % at z −20…−24 — the north-west giant's crown 23–31 m up-sun and the low wild-limb lobes
+ * of the north-west giants at 10–16 m). Two more points carry the lit run to the hollow, and the
+ * corridors are wider and less porous than the first cut (0.45 laminae / 0.35 cards). Sun probes
+ * after the change: 91 % open at z −10, 90 % at −12, 57–75 % at −14…−24 (the rest is wood: the
+ * north-west giants' wild limbs 7–10 m up, which no corridor removes).
  */
 const D_PATH_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
+  // 2.2 m: this disc's south edge already touches B's shaded band
   { point: [0.5, 0, -10.0], radius: 2.2 },
-  { point: [1.5, 0, -14.0], radius: 2.2 },
+  { point: [1.5, 0, -14.0], radius: 2.6 },
+  { point: [2.0, 0, -18.0], radius: 2.6 },
+  { point: [1.9, 0, -22.0], radius: 2.4 },
+  // edge of the mist pool, where the reference's lit run ends
+  { point: [2.0, 0, -25.5], radius: 2.2 },
 ];
-const D_PATH_SUN_POROSITY = 0.45;
+const D_PATH_SUN_POROSITY = 0.25;
 /**
  * share of cluster cards kept inside the D corridors: the occluders sit 17–30 m above the path,
  * where laminae shadows blur away in the soft shadow filter, so the cards (0.5–1.2 m) are the only
- * casters that still read as dapple on the slabs (the reference path is half dappled). The narrow
- * radius does the rest: the slabs between the two sun patches keep their natural part-shade.
+ * casters that still read as dapple on the slabs (the reference path is lit with leaf dapple, not
+ * bare). The slabs outside the corridors keep their natural part-shade.
  */
-const D_PATH_CARD_POROSITY = 0.35;
+const D_PATH_CARD_POROSITY = 0.15;
 /**
  * Canopy gaps over the north hollow as seen from camera D: air points 26–29 m north of the plaza at
  * 11–13 m (the height of the north-west / north-east giants' low limb lobes, which fill the upper
@@ -224,7 +244,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
-  // world-space sun corridors (see SHAFT_AIR_POINTS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS)
+  // world-space sun corridors (see SHAFT_COLUMNS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS)
   const groundLine = (q: [number, number, number], radius: number, porosity: number, cardPorosity = 0) => ({
     point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]),
     dir: sunDir,
@@ -232,10 +252,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     porosity,
     cardPorosity,
   });
-  const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, PLAZA_SUN_POROSITY));
+  const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, PLAZA_SUN_POROSITY, PLAZA_RING_CARD_POROSITY));
+  // fully open cores inside the porous plaza rings (a tighter corridor wins where they overlap)
+  const plazaCores = PLAZA_SUN_POINTS.map(({ core }) => groundLine([core.point[0], 0, core.point[1]], core.radius, 0, 0));
   const sunCorridors = [
-    ...SHAFT_AIR_POINTS.map((q) => ({ point: new Vector3(q[0], q[1], q[2]), dir: sunDir, radius: SHAFT_RADIUS, porosity: 0, cardPorosity: 0 })),
+    ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: 0, cardPorosity: 0 })),
     ...plazaCorridors,
+    ...plazaCores,
     ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
   ];
   // view corridors from camera D's eye through the hollow gap points (see HOLLOW_GAP_POINTS)

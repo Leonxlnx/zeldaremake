@@ -275,17 +275,22 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   });
   const corridors = o.corridors ?? [];
   const corrTmp = new Vector3();
-  // corridor survival draws come from their own stream, so editing a corridor never re-rolls the
-  // rest of the tree (limbs, crown) that is generated after the foliage it touches
+  // corridor survival draws come from their own stream, and culled laminae/cards still make their
+  // own draws from the main one, so editing a corridor never re-rolls the rest of the tree (limbs,
+  // crown) that is generated after the foliage it touches
   const rc = r.fork('corridors');
-  /** the tightest corridor containing p (smallest porosity wins), or null */
-  const inCorridor = (p: Vector3) => {
+  /**
+   * the tightest corridor within `extent` of p (smallest porosity wins), or null — `extent` is the
+   * half-size of the caster, so a cluster card centred just outside a corridor cannot lean into it
+   */
+  const inCorridor = (p: Vector3, extent = 0) => {
     let hit: (typeof corridors)[number] | null = null;
     for (const c of corridors) {
       corrTmp.subVectors(p, c.point);
       const along = corrTmp.dot(c.dir);
       corrTmp.addScaledVector(c.dir, -along);
-      if (corrTmp.lengthSq() < c.radius * c.radius && (!hit || (c.porosity ?? 0) < (hit.porosity ?? 0))) hit = c;
+      const reach = c.radius + extent;
+      if (corrTmp.lengthSq() < reach * reach && (!hit || (c.porosity ?? 0) < (hit.porosity ?? 0))) hit = c;
     }
     return hit;
   };
@@ -297,10 +302,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const porosity = c.porosity ?? 0;
     return porosity > 0 && rc() < porosity;
   };
-  /** false when a cluster card at p must be dropped for a corridor */
-  const cardAllowed = (p: Vector3) => {
+  /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
+  const cardAllowed = (p: Vector3, s: number) => {
     if (!corridors.length) return true;
-    const c = inCorridor(p);
+    const c = inCorridor(p, s * 0.7);
     if (!c) return true;
     const porosity = c.cardPorosity ?? 0;
     return porosity > 0 && rc() < porosity;
@@ -315,7 +320,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     for (let j = 0; j < count; j++) {
       const t = startT + ((1 - startT) * (j + bt(0.15, 0.85))) / count;
       const base = sample(path, t);
-      if (!leafAllowed(base)) continue;
+      // a culled lamina still makes every draw below (addLeaf included), so the main stream — and
+      // with it every branch, lobe and leaf built after this one — is the same whatever the corridors
+      const allowed = leafAllowed(base);
       const axis = tangent(path, t);
       const [u, v] = frame(axis);
       const angle = phase + j * 2.399963229728653 + bt(-0.3, 0.3);
@@ -336,7 +343,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const roofSize = 0.17 + 0.22 * smoothstep(4, 15, base.y);
       const eyeSize = 0.13 + 0.24 * smoothstep(6, 16, base.y);
       const size = bt(0.72, 1.0) * (roofSize + (eyeSize - roofSize) * eyeDetail);
-      addLeaf(leaves, base, direction, size, color, r, opts);
+      addLeaf(leaves, base, direction, size, color, r, opts, allowed);
     }
   }
 
@@ -362,7 +369,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const ph = Math.acos(2 * r() - 1);
       const local = new Vector3(Math.sin(ph) * Math.cos(th) * hR * rr, Math.cos(ph) * vR * rr, Math.sin(ph) * Math.sin(th) * hR * rr);
       const p = center.clone().add(local);
-      if (!cardAllowed(p)) continue;
       cardN.set(local.x / hR, local.y / vR + 0.7, local.z / hR).normalize();
       cardN.x += bt(-0.35, 0.35);
       cardN.z += bt(-0.35, 0.35);
@@ -385,6 +391,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .lerp(sunny, sun * (1 - interior * 0.7))
         .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.25))
         .multiplyScalar(bt(0.85, 1.05) * (1 - interior * 0.4));
+      // culled after its draws (see leafSpray): the corridors never shift the main stream
+      if (!cardAllowed(p, s)) continue;
       const V = (du: number, dw: number, u: number, v: number) =>
         cards.vertexN(
           p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s),
