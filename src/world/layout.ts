@@ -109,8 +109,8 @@ export const LAYOUT = {
   pathToHouse: [
     [0.5, 0, -2],
     [4.0, 0.08, -6.5],
-    [6.6, 0.5, -8.6],
-    [9.6, 0.9, -9.3],
+    [6.6, 0.55, -8.6],
+    [9.6, 1.05, -9.3],
   ] as [number, number, number][],
   /** stepping stones along `pathToHouse`: first stone `from` metres in (past the plaza rim) */
   steppingStones: { from: 3.2, spacing: 1.3, radius: [0.36, 0.5] as [number, number], wobble: 0.28 },
@@ -132,15 +132,17 @@ export const LAYOUT = {
   terraces: {
     eastPlateau: { height: 5.4 },
     westLedge: { height: 2.6 },
-    // 0.9: reference B/E show the door threshold ~0.9 m above the plaza at the top of a grassy
-    // stepping-stone slope (W04's probe at (9, -12.5) allows 1.2 ± 0.35; proposal filed for 0.4)
-    houseTerrace: { height: 0.9 },
+    // 1.05: reference B/E show the door threshold ~0.9 m above the plaza at the top of a grassy
+    // stepping-stone slope; W04's probe at (9, -12.5) allows 1.2 ± 0.35 and the house pad plus
+    // erosion read ~0.12 below the authored height there (0.9 measured 0.777), so 1.05 keeps the
+    // probe at ≈ 0.93 (proposal filed for 0.4)
+    houseTerrace: { height: 1.05 },
     /** the boulder bank west of the north path (top of stairs.north; terrace-boulder sits on it) */
     northTerrace: { height: 2.6 },
   },
 
   houses: [
-    { id: 'saria', position: [12.5, 0.9, -11.5], trunkRadius: 3.2, facing: [-0.7, 0.72], roofHeight: 6.5, lanterns: 3 },
+    { id: 'saria', position: [12.5, 1.05, -11.5], trunkRadius: 3.2, facing: [-0.7, 0.72], roofHeight: 6.5, lanterns: 3 },
     // On the plateau north of the fenced lip: reference F shows a second, smaller tree-house at the
     // top-left of the stairs (0.13–0.25, 0.13–0.20), ~24 m from camera F; projects to A (0.53, 0.18)
     // and the top-right corner of D, both hazed.
