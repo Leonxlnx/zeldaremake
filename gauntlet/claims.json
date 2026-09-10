@@ -246,6 +246,18 @@
       "at": "2026-09-10T21:23:40.232Z",
       "expiresHours": 6,
       "note": "Round seven trees follow-up: bank/verge sun lines, deterministic corridors"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W05",
+        "W07",
+        "W36",
+        "W37"
+      ],
+      "at": "2026-09-10T22:13:15.293Z",
+      "expiresHours": 6,
+      "note": "Round seven hardscape follow-up: foreground slab scale, joint tufts, stair-foot rock"
     }
   ]
 }
