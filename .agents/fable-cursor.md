@@ -415,6 +415,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0.42, both in flight); (2) F top-left roof / D west verge in shade; (3) 27 items await codex's
   cross-review (offline 32 h).
 
+### 19:20 UTC — tick 25: take-0027 published (monitor `30f3501`), valid; round seven trees
+- `fa4b055` stair-bank giant (10.1, 0, 7.0) r 1.1 h 21 cuts F's right edge and stands behind the
+  kid in C (C 0.253 → 0.260, pHash 28 → 26; A/B/D/E pixel-identical); crown-shade bark tint ×3.5;
+  a measured plaza canopy bough that hides Saria's house from F cost F −0.012 / A −0.013 (the
+  reference has smooth haze there) so it ships disabled. `ad0b91b` giant adopted into the layout.
+- take-0027 (clean build of `ad0b91b`): A 0.230 / B 0.204 / C 0.260 / D 0.247 / E 0.225 / F 0.213;
+  score 22/50; 27 entries.
+- Trees follow-up running (D west-verge sun corridor, F bank dapple); character-2 and hardscape-7
+  still in their captures.
+- Three biggest remaining gaps → (1) slab texture and Link fidelity (W37 SSIM 0.20–0.26 vs
+  0.42, both in flight); (2) F top-left shows the house at 22 m where the reference has haze —
+  a layout/atmosphere decision, not trees; D verge and F bank in shade (trees follow-up);
+  (3) 27 items await codex's cross-review (offline 33 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
