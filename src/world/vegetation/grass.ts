@@ -129,19 +129,22 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const low = field.lowZone(x, z);
       const trim = field.trimZone(x, z);
       const shade = field.shadeZone(x, z);
+      // camera C's left third (frame 46): the stair foot shows over short turf, no tall blades
+      const sight = field.sightlineC(x, z, 0.5);
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
       // the low verges so the embankments still read dense
       const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
       const cliffCut = 1 - s.cliff * 0.4;
       const giant = field.giantProximity(x, z);
       const cluster = field.cluster(x, z);
-      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low);
+      // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
+      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade);
       if (rng() * DNORM > density) continue;
 
       // type: tall meadow blades are rare in the low verges and the tidy foreground
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.7 * trim);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
@@ -163,14 +166,18 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (edge < 0.3) h *= 0.72;
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
-      h *= (1 - 0.4 * low) * (1 - 0.35 * trim) * (1 - 0.15 * shade);
+      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim);
       maxH = Math.max(maxH, h);
 
-      // colour
-      let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) - 0.6 * shade - 0.25 * trim;
-      if (s.slope > 0.35) tn -= 0.15;
+      // colour. The shade zone (frame 8's right embankment) measures ≈ 0.30 luminance in the
+      // reference with a 0.24–0.375 p10–p90 spread; under our fill light the deep tint rendered it
+      // ≈ 0.21 and flat. The bank is biased toward the light olives instead (the canopy shadow
+      // already supplies the "shaded"), its blades get the flatter fill-lit gradient (shade lift,
+      // see materials.ts) and keep a few straw tips for the blade-to-blade texture.
+      let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim;
+      if (s.slope > 0.35) tn -= 0.15 * (1 - shade);
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
-      const dryP = field.dry(x, z) * (0.35 + 0.65 * s.plateau) * (type === 2 ? 0.4 : 1) * (1 - shade);
+      const dryP = field.dry(x, z) * (0.35 + 0.65 * s.plateau) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
 
       // wind
@@ -185,7 +192,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const o = count * 4;
       data[o] = phase;
       data[o + 1] = stiffness;
-      data[o + 2] = (tintIndex + 0.5) / 4;
+      // tint slot: integer part = palette index, fraction 0.25..0.75 = shade lift (materials.ts)
+      data[o + 2] = (tintIndex + 0.25 + 0.5 * shade) / 4;
       data[o + 3] = type + dry;
       count++;
       typeCounts[type]++;

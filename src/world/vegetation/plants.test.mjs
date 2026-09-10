@@ -54,13 +54,32 @@ for(const it of a.plants.hedge.items){
   assert.ok(it.z<=-5.1,'Hedge stays out of camera C\'s left edge');
 }
 const inBox=(it,b)=>it.x>=b[0]&&it.z>=b[1]&&it.x<=b[2]&&it.z<=b[3];
-const cSight=[3.5,-9.5,8,-4],dRight=[1.5,-16,7,-4];
-for(const set of[a.plants.ferns,a.plants.bushes,a.plants.seedheads,a.plants.saplings])for(const it of set.items){
-  assert.ok(!inBox(it,cSight),`${set.opts.name} at (${it.x},${it.z}) blocks camera C's sight line to the stair foot`);
-  if(inBox(it,dRight))assert.ok(top(set,it)-it.y<=0.55,`${set.opts.name} taller than 0.55 m on shot D's right verge`);
+// pinhole projection of the layout cameras (vertical fov, 16:9, +Y up) — the gauntlet's maths
+const camera=id=>{const v=LAYOUT.viewpoints.find(v=>v.id===id),p=v.position,f=[v.target[0]-p[0],v.target[1]-p[1],v.target[2]-p[2]],fl=Math.hypot(...f),fw=f.map(c=>c/fl);
+  let r=[-fw[2],0,fw[0]];const rl=Math.hypot(...r);r=r.map(c=>c/rl);const u=[r[1]*fw[2]-r[2]*fw[1],r[2]*fw[0]-r[0]*fw[2],r[0]*fw[1]-r[1]*fw[0]];const th=Math.tan(v.fov*Math.PI/360),aspect=16/9;
+  return w=>{const d=[w[0]-p[0],w[1]-p[1],w[2]-p[2]],z=d[0]*fw[0]+d[1]*fw[1]+d[2]*fw[2];if(z<=0.05)return null;
+    return{sx:0.5+0.5*((d[0]*r[0]+d[1]*r[1]+d[2]*r[2])/z)/(th*aspect),sy:0.5-0.5*((d[0]*u[0]+d[1]*u[1]+d[2]*u[2])/z)/th,depth:z,perM:0.5/(z*th*aspect)};};};
+const reach=(set,it)=>{const b=set.opts.variants[it.variant][0].boundingBox;return Math.max(-b.min.x,b.max.x,-b.min.z,b.max.z)*Math.hypot(it.matrix[0],it.matrix[1],it.matrix[2]);};
+const camC=camera('C_lookback'),camB=camera('B_house');
+// Frame 46: camera C's left third (0–0.3 × 0.5–0.9) shows the stair foot (≈ 8 m) and its mossy
+// rock (near face ≈ 12 m) over short grass. Up to the rock nothing taller than 0.35 m may project
+// into that box, fronds included — the camera stands in the grass, so this covers plants 1 m
+// away as well.
+const dRight=[1.5,-16,7,-4];
+for(const set of a.plants.all)for(const it of set.items){
+  const h=top(set,it)-it.y,root=camC([it.x,it.y,it.z]);
+  if(root&&root.depth<12&&h>0.35){
+    const tip=camC([it.x,top(set,it),it.z])??root,halfW=reach(set,it)*root.perM;
+    const inX=root.sx+halfW>=-0.02&&root.sx-halfW<=0.32,inY=Math.max(root.sy,tip.sy)>=0.48&&Math.min(root.sy,tip.sy)<=0.92;
+    assert.ok(!(inX&&inY),`${set.opts.name} ${h.toFixed(2)} m tall at (${it.x.toFixed(2)},${it.z.toFixed(2)}) projects into camera C's stair-foot box at (${root.sx.toFixed(2)},${root.sy.toFixed(2)}) ${root.depth.toFixed(1)} m`);
+  }
+  if(inBox(it,dRight))assert.ok(h<=0.55,`${set.opts.name} taller than 0.55 m on shot D's right verge`);
 }
-assert.ok(a.plants.ferns.items.filter(it=>inBox(it,[8.0,-4.9,9.5,-3.6])).length>=5,'Large fern clumps at shot B\'s right edge');
-assert.ok(a.plants.flowers.items.filter(it=>inBox(it,[8.5,-4.85,9.25,-4.15])).length>=4,'Purple clump at shot B\'s right edge');
+// Frame 14: fern clumps and a purple clump at camera B's right edge (reference 0.90–1.0 × 0.55–0.75
+// and (0.95, 0.60)), on the stair-flank bank just off camera C's left edge.
+const atBEdge=(set,x0,y0,y1)=>set.items.filter(it=>{const p=camB([it.x,top(set,it),it.z]);return p&&p.depth<13&&p.sx>=x0&&p.sx<=1&&p.sy>=y0&&p.sy<=y1;});
+assert.ok(atBEdge(a.plants.ferns,0.84,0.35,0.8).length>=5,'Fern clumps at shot B\'s right edge');
+assert.ok(atBEdge(a.plants.flowers,0.88,0.35,0.7).length>=4,'Purple clump at shot B\'s right edge');
 assert.ok(a.plants.ferns.items.filter(it=>Math.hypot(it.x+3.2,it.z+10.2)<2.3).length>=3,'Fern cluster beside the shot-D boulder');
 assert.ok(a.plants.flowers.count>=150,'W18: at least 150 flower clusters');
 for(const id of['A_stairs','B_house','D_log']){

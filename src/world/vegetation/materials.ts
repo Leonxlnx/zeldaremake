@@ -14,11 +14,12 @@ import { WIND_GLSL, type Wind } from '../wind/wind';
 export type VegKind = 'grass' | 'plant' | 'bush' | 'litter' | 'moss';
 
 const GRASS_VERTEX_PARS = /* glsl */ `
-attribute vec4 aData; // phase, stiffness, tint (0..1), type + dryness
+attribute vec4 aData; // phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, type + dryness
 uniform vec3 uTints[4];
 uniform vec3 uDryTip;
 uniform float uSeedTip;
 varying float vBladeT;
+varying float vShadeLift;
 `;
 
 const GRASS_COLOR_VERTEX = /* glsl */ `
@@ -26,11 +27,17 @@ float bladeT = uv.y;
 vBladeT = bladeT;
 float vegType = floor(aData.w + 0.001);
 float vegDry = fract(aData.w);
-int tintIndex = int(clamp(aData.z * 3.999, 0.0, 3.0));
+float tintSlot = aData.z * 4.0;
+int tintIndex = int(clamp(floor(tintSlot), 0.0, 3.0));
+// the slot's fraction (0.25..0.75) carries the shade lift: banks lit by fill alone (frame 8's
+// right embankment) have no sunlit tuft self-shadowing, so their root→tip gradient is flatter
+float shadeLift = clamp((fract(tintSlot) - 0.25) * 2.0, 0.0, 1.0);
+vShadeLift = shadeLift;
 vec3 tint = uTints[tintIndex];
 // root → tip gradient: deep, slightly cool root buried in the tuft, warm lit tip (the reference's
 // shaded grass is a dark green-brown ≈ 0.24 luminance, its lit blades an olive ≈ 0.35)
-vec3 bladeColor = mix(tint * vec3(0.36, 0.38, 0.40), tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
+vec3 rootTone = mix(vec3(0.36, 0.38, 0.40), vec3(0.66, 0.72, 0.64), shadeLift);
+vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
 // sedge blades are a touch cooler/deeper, meadow blades a touch warmer
 bladeColor *= vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
 // straw-coloured dry tips
@@ -118,11 +125,25 @@ const WORLDPOS_VERTEX = /* glsl */ `
 vec4 worldPosition = vegWorld;
 `;
 
+/**
+ * Grass only: shade-lifted blades (frame 8's right embankment, see grass.ts) sit under the canopy
+ * shadow but face the open sky over the plaza, so they receive more skylight than the hemisphere
+ * term alone delivers — the reference's shaded bank reads ≈ 0.30 luminance, ours ≈ 0.23 without it.
+ */
+const GRASS_FRAGMENT_PARS = /* glsl */ `
+varying float vShadeLift;
+uniform float uShadeFill;
+`;
+const GRASS_FRAGMENT_FILL = /* glsl */ `
+reflectedLight.indirectDiffuse += diffuseColor.rgb * uShadeFill * vShadeLift;
+`;
+
 const FOLIAGE_FRAGMENT_LIGHTS = /* glsl */ `
 #include <lights_fragment_end>
 {
   // translucency: sun through the lamina when it sits between the camera and the light
   reflectedLight.indirectDiffuse += diffuseColor.rgb * uAmbientBoost;
+  //VEG_EXTRA_FILL//
   #if NUM_DIR_LIGHTS > 0
     float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
     float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.55;
@@ -201,6 +222,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
     uniforms.uDryTip = { value: new Color(0x9c8a52) };
     uniforms.uSeedTip = { value: 0 };
+    uniforms.uShadeFill = { value: 0.45 };
   } else if (kind === 'plant' || kind === 'bush') {
     uniforms.uPlantHeight = { value: opts.plantHeight ?? 1 };
     uniforms.uSwayAmount = { value: opts.sway ?? (kind === 'bush' ? 2.2 : 3.2) };
@@ -223,11 +245,12 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     } else if (kind === 'plant' || kind === 'bush') {
       vs = injectPlantVertex(vs);
     }
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${fs}`.replace('#include <lights_fragment_end>', FOLIAGE_FRAGMENT_LIGHTS);
+    const lights = kind === 'grass' ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '');
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v5`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v6`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

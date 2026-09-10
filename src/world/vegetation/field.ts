@@ -67,12 +67,50 @@ function softBox(x: number, z: number, box: readonly [number, number, number, nu
  *    few ferns right of the path, nothing above ~0.5 m).
  */
 const LOW_ZONES: readonly [number, number, number, number][] = [[1.5, -16, 8, -4]];
-/** Camera C's sight line to the stair foot: grass only, ≤ 0.4 m. */
-const C_SIGHTLINE: readonly [number, number, number, number] = [3.5, -9.5, 8, -4];
+/**
+ * Camera C stands IN the grass at (3.2, −9.5): anything 1–3 m to its left/front is in frame at
+ * frond scale, so the ground around the camera is grass only (≤ 0.4 m). The sight line itself
+ * (frame 46's left third, where the stair foot shows at (0.12, 0.67) and the stair-foot rock at
+ * (0.28, 0.5)) is a wedge computed from the viewpoint, see `VegField.sightlineC`.
+ */
+const C_GRASS_BOX: readonly [number, number, number, number] = [1.5, -12, 7.5, -4];
+/** screen-x span of frame 46 that must stay clear (the box is x 0–0.3; ±margin for frond reach) */
+const C_FRAME_SX: readonly [number, number] = [-0.02, 0.34];
+/** view depth of the wedge: up to the stair-foot rock's near face (centre 12.7 m); beyond it the rock, the stairs and the plaza fill the view */
+const C_FRAME_DEPTH = 12;
 /** Verge south-east of the plaza, the right foreground of frames 1 and 8: tidy short tufts. */
 const TRIM_ZONES: readonly [number, number, number, number][] = [[4, 0, 12, 8]];
-/** The plateau flank right of the stairs in frame 8: dark shaded moss/grass, no bright tips. */
-const SHADE_ZONES: readonly [number, number, number, number][] = [[11, -3, 22, 10]];
+/**
+ * The plateau flank right of the stairs in frame 8 (0.55–1 × 0.3–0.6, world x ≳ 11): shaded
+ * olive moss/grass. The reference box measures ≈ 0.30 luminance with visible blade texture, so it
+ * is a tint bias, not a blackout; its 2 m feather starts past the shot-A right foreground (x ≤ 10.5).
+ */
+const SHADE_ZONES: readonly [number, number, number, number][] = [[12.5, -3, 22, 10]];
+
+interface Frame {
+  px: number;
+  pz: number;
+  fwx: number;
+  fwz: number;
+  rx: number;
+  rz: number;
+  /** tan(fov/2) × aspect: screen-x half extent as a view-space slope */
+  halfSlope: number;
+}
+
+/** Horizontal pinhole frame of a layout viewpoint (16:9), the same maths as the gauntlet cameras. */
+function makeFrame(vp: { position: readonly number[]; target: readonly number[]; fov: number }, aspect = 16 / 9): Frame {
+  let fwx = vp.target[0] - vp.position[0];
+  let fwz = vp.target[2] - vp.position[2];
+  const l = Math.hypot(fwx, fwz) || 1;
+  fwx /= l;
+  fwz /= l;
+  // screen-right = forward × up
+  return { px: vp.position[0], pz: vp.position[2], fwx, fwz, rx: -fwz, rz: fwx, halfSlope: Math.tan((vp.fov * Math.PI) / 360) * aspect };
+}
+
+/** view angle (radians, screen-right positive) of a screen-x fraction */
+const frameAngle = (f: Frame, sx: number) => Math.atan((sx - 0.5) * 2 * f.halfSlope);
 
 export class VegField {
   readonly cell: number;
@@ -87,6 +125,7 @@ export class VegField {
   private readonly tintNoise: Noise2D;
   private readonly dryNoise: Noise2D;
   private readonly flowerNoise: Noise2D;
+  private readonly frames = new Map<string, Frame | null>();
   private readonly tmpN = new Vector3();
 
   constructor(
@@ -348,9 +387,56 @@ export class VegField {
     return v;
   }
 
-  /** 0..1 on camera C's sight line to the stair foot (grass only, ≤ 0.4 m). */
-  sightlineC(x: number, z: number): number {
-    return softBox(x, z, C_SIGHTLINE, 0.5);
+  private frame(viewpointId: string): Frame | null {
+    let f = this.frames.get(viewpointId);
+    if (f === undefined) {
+      const vp = this.ctx.layout.viewpoints.find((v) => v.id === viewpointId);
+      f = vp ? makeFrame(vp) : null;
+      this.frames.set(viewpointId, f);
+    }
+    return f;
+  }
+
+  /**
+   * Horizontal screen-x of (x, z) in a layout viewpoint's frame (0 = left edge, 1 = right edge)
+   * and its depth along the view axis; null behind the camera or for unknown viewpoints. A
+   * ground-level approximation (the hero cameras are pitched ≤ 4°), used to keep frame 46's stair
+   * foot clear and to seat shot-B's edge plants just off camera C's left edge.
+   */
+  screenX(viewpointId: string, x: number, z: number): { sx: number; depth: number } | null {
+    const f = this.frame(viewpointId);
+    if (!f) return null;
+    const dx = x - f.px;
+    const dz = z - f.pz;
+    const depth = dx * f.fwx + dz * f.fwz;
+    if (depth <= 0.05) return null;
+    return { sx: 0.5 + (0.5 * ((dx * f.rx + dz * f.rz) / depth)) / f.halfSlope, depth };
+  }
+
+  /**
+   * 0..1 where a plant of horizontal reach `margin` (metres) would show in camera C's left third
+   * (frame 46: the stair foot and its mossy rock over short grass). 1 inside the grass box around
+   * the camera and inside the frame wedge out to the stair-foot rock; fades to 0 over `margin`
+   * outside them, so callers reject while > 0 with their own frond/crown reach.
+   */
+  sightlineC(x: number, z: number, margin = 0.6): number {
+    // the box is a hard "grass around the camera" rule; only the wedge needs the plant's reach,
+    // since everything east of the box that could lean into frame is inside the wedge already
+    const v = softBox(x, z, C_GRASS_BOX, 0.5);
+    const f = this.frame('C_lookback');
+    if (!f || v >= 1) return v;
+    const dx = x - f.px;
+    const dz = z - f.pz;
+    const depth = dx * f.fwx + dz * f.fwz;
+    if (depth <= 0) return v;
+    const d = Math.hypot(dx, dz);
+    const ang = Math.atan2(dx * f.rx + dz * f.rz, depth);
+    const angMin = frameAngle(f, C_FRAME_SX[0]);
+    const angMax = frameAngle(f, C_FRAME_SX[1]);
+    // metres outside the wedge: angular miss × distance, or view depth past the far limit
+    const angular = ang < angMin ? Math.sin(angMin - ang) * d : ang > angMax ? Math.sin(ang - angMax) * d : 0;
+    const outside = Math.max(angular, depth - C_FRAME_DEPTH);
+    return Math.max(v, 1 - smoothstep(0, Math.max(margin, 0.05), outside));
   }
 
   /** 0..1 where the foreground tufts of frames 1 / 8 must stay short. */

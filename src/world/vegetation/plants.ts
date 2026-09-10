@@ -142,8 +142,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (edge < 0.35) return 0;
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0.2) return 0;
-        // camera C's sight line to the stair foot is grass only (reference frame 46)
-        if (field.sightlineC(x, z) > 0.3) return 0;
+        // camera C's left third is grass only (reference frame 46); fronds reach ≈ 1.1 m
+        if (field.sightlineC(x, z, 1.1) > 0) return 0;
         const gd = field.giantDistance(x, z);
         const bd = field.boulderDistance(x, z);
         const house = field.houseInfo(x, z);
@@ -198,28 +198,34 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       box: [2.8, -15.5, 6.2, -10],
       minSpacing: 1.6,
       accept(x, z, s) {
-        if (field.edgeDistance(x, z) < 0.5 || s.cliff > 0.3 || field.sightlineC(x, z) > 0) return 0;
+        if (field.edgeDistance(x, z) < 0.5 || s.cliff > 0.3 || field.sightlineC(x, z, 0.7) > 0) return 0;
         return 0.5;
       },
     },
     (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.55 + rng() * 0.15, 0.7, 0.02, greenVar(rng, 0.2)),
   );
-  // Shot B right edge (reference 0.90–1.0 × 0.55–0.75): big fern clumps on the stair-flank
-  // embankment east of the hedge; from camera B they land at x ≥ 0.88, clear of the door.
+  // Shot B right edge (reference 0.90–1.0 × 0.55–0.75): fern clumps on the stair-flank embankment
+  // east of the hedge. Camera C looks along the same bank from the north: the old clump at
+  // x 8–9.5, z −4.9…−3.6 sat 5.5–6.4 m in front of C, right over the stair foot (frame 46 shows
+  // steps at (0.10–0.20, 0.60–0.66), not fronds). The bank rises steeply past x ≈ 9, so clumps
+  // seated there still project to B's x ≈ 0.88–0.97 while their fronds stay off C's left edge.
   scatter(
     ctx,
     field,
     {
       label: 'ferns-shotB',
-      candidates: 1400,
-      box: [8.0, -4.9, 9.5, -3.6],
-      minSpacing: 0.6,
+      candidates: 1800,
+      box: [8.6, -6.6, 10.4, -4.6],
+      minSpacing: 0.55,
       accept(x, z, s) {
         if (field.edgeDistance(x, z) < 0.3 || s.cliff > 0.3) return 0;
-        return 0.75;
+        if (field.sightlineC(x, z, 1.25) > 0) return 0;
+        const b = field.screenX('B_house', x, z);
+        if (b && b.sx > 0.975) return 0;
+        return 0.8;
       },
     },
-    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 1.3 + rng() * 0.4, 0.7, 0.02, greenVar(rng, 0.2)),
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 1.05 + rng() * 0.3, 0.7, 0.02, greenVar(rng, 0.2)),
   );
 
   // ---- bushes: embankments, ledge edges, house bases, the log arch
@@ -236,7 +242,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0) return 0;
         if (field.giantDistance(x, z) < 0.6) return 0;
-        if (field.lowZone(x, z) > 0.2) return 0;
+        if (field.lowZone(x, z) > 0.2 || field.sightlineC(x, z, 1.4) > 0) return 0;
         const house = field.houseInfo(x, z);
         const log = field.logDistance(x, z);
         let p = 0.02 * field.falloff(x, z);
@@ -262,7 +268,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       if (field.edgeDistance(x, z) < 1.65) return 0;
       const clr = field.clearing(x, z);
       if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 1.2) return 0;
-      if (field.lowZone(x, z) > 0.2) return 0;
+      if (field.lowZone(x, z) > 0.2 || field.sightlineC(x, z, 1.8) > 0) return 0;
       if (bushes.items.some(p => Math.hypot(p.x - x, p.z - z) < 2.3)) return 0;
       const house = field.houseInfo(x, z);
       const byHouse = house.dist > 1.3 ? 1 - smoothstep(1.3, 5.5, house.dist) : 0;
@@ -284,8 +290,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // at ≈ 1.1 m ABOVE PLAZA LEVEL (≈ 1.2 m tall at the plaza end, shorter as the bank rises) so
   // they project BELOW Saria's door threshold in B (y ≈ 0.55 — the reference B shows the terrace
   // ramp and grass there, not a hedge); ground above 0.6 m is skipped for the same reason.
-  // Nothing south of z −5.1 so camera C (frame 46) sees the stair foot, not a bush, at its left
-  // edge.
+  // Nothing south of z −5.1, and no crown whose reach enters camera C's left third, so frame 46
+  // sees the stair foot, not a bush, at its left edge.
   const bRayX = (z: number) => (2 - z) * 0.92;
   const hedgeHeight = (v: number) => hedge.opts.variants[v][0].boundingBox?.max.y ?? 1.4;
   const HEDGE_TOP = 0.92;
@@ -303,6 +309,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5) return 0;
         if (s.h > 0.6) return 0;
         if (field.houseInfo(x, z).dist < 0.4) return 0;
+        // crowns here scale to ≈ 0.5–1.1 m reach; the strip's west end sits at C's left edge
+        if (field.sightlineC(x, z, 1.0) > 0) return 0;
         return 0.9;
       },
     },
@@ -347,6 +355,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     if (edge < 0.25) return 0;
     const clr = field.clearing(x, z);
     if (clr.insideBoulder || clr.npc > 0) return 0;
+    // 0.45–0.6 m stalks would rise over camera C's stair foot (frame 46): grass only there
+    if (field.sightlineC(x, z, 0.4) > 0) return 0;
     return 1 - smoothstep(0.25, 4, edge) * 0.6;
   };
   // Authored clumps: the reference grows its violets in low, compact clumps 0.3–0.6 m across
@@ -383,8 +393,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // grass): reference A's left-verge purple (0.0–0.14, 0.58–0.66)
   scatter(ctx, field, { label: 'flowers-shotD', candidates: 800, box: [-3.8, -7.5, -1.4, -4.6], minSpacing: 0.5, accept: (x, z) => 0.4 * flowerVerge(x, z) }, flowerPlace(0.95, 1.3));
   // Shot B right edge: the purple clump at (0.95, 0.60) sits on the stair-flank embankment
-  // 1 m above the plaza, among the big ferns; from A it is on the left stair flank.
-  clumps('flowers-shotB', [[8.85, -4.5]], 8, 0.38, 1.05, 1.35);
+  // 1 m above the plaza, among the big ferns; from A it is on the left stair flank. Seated with
+  // the ferns past x ≈ 9.3 so it stays off camera C's left edge (flowerVerge rejects the wedge).
+  clumps('flowers-shotB', [[9.55, -5.2]], 8, 0.38, 1.05, 1.35);
   scatter(ctx, field, { label: 'flowers-shotA', candidates: 1800, box: [-7.5, 2, -2.8, 9.5], minSpacing: 0.5, accept: (x, z) => 0.45 * flowerVerge(x, z) }, flowerPlace(1.0, 1.5));
   scatter(
     ctx,
@@ -458,8 +469,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (edge < 0.4) return 0;
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0) return 0;
-        // 0.6–0.9 m stalks stay out of the low verges and thin out in the tidy foreground
-        return 0.28 * field.falloff(x, z) * field.meadow(x, z) * (0.5 + field.cluster(x, z)) * (1 - field.giantProximity(x, z)) * (1 - field.lowZone(x, z)) * (1 - 0.6 * field.trimZone(x, z));
+        // 0.6–0.9 m stalks stay out of the low verges, camera C's left third and thin out in the
+        // tidy foreground
+        return 0.28 * field.falloff(x, z) * field.meadow(x, z) * (0.5 + field.cluster(x, z)) * (1 - field.giantProximity(x, z)) * (1 - field.lowZone(x, z)) * (1 - field.sightlineC(x, z, 0.5)) * (1 - 0.6 * field.trimZone(x, z));
       },
     },
     (x, z, s, rng) => placeInstance(seedheads, x, z, s, rng, 0.75 + rng() * 0.5, 0.5, 0.01, tint.setRGB(0.95 + rng() * 0.12, 0.95 + rng() * 0.08, 0.9 + rng() * 0.1)),
@@ -543,7 +555,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (field.giantDistance(x, z) < 2.5) return 0;
         if (field.boulderDistance(x, z) < 1.2) return 0;
         if (field.houseInfo(x, z).dist < 2.5 || field.logDistance(x, z) < 2) return 0;
-        if (field.lowZone(x, z) > 0.2) return 0;
+        if (field.lowZone(x, z) > 0.2 || field.sightlineC(x, z, 1.5) > 0) return 0;
         const clr = field.clearing(x, z);
         if (clr.npc > 0 || clr.boulder > 0) return 0;
         if (s.slope > 0.35) return 0;
