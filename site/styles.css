@@ -754,3 +754,13 @@ main { padding: var(--gap) 16px 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* link to the walkable build published under play/ */
+.play-link {
+  display: inline-flex; align-items: center; gap: .4em;
+  margin-right: 1rem; padding: .35em .8em;
+  border: 1px solid rgba(255, 210, 120, .55); border-radius: 999px;
+  color: #ffd678; text-decoration: none; font-size: .82rem; letter-spacing: .04em; text-transform: uppercase;
+  background: rgba(255, 190, 80, .08);
+}
+.play-link:hover { background: rgba(255, 190, 80, .18); border-color: #ffd678; }

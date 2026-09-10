@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
-import { ROOT, MONITOR_DIR, AGENTS_DIR, RUBRIC_PATH, REFERENCE_FRAMES, readJson, writeJson, rel } from './paths.mjs';
+import { ROOT, MONITOR_DIR, DIST_DIR, AGENTS_DIR, RUBRIC_PATH, REFERENCE_FRAMES, readJson, writeJson, rel } from './paths.mjs';
 import { loadLedger, saveLedger, mergeLedgers, entryIdentity } from './ledger.mjs';
 
 /**
@@ -43,6 +43,19 @@ export function syncSiteFiles(monitorDir = MONITOR_DIR) {
     copyRecursive(src, dst);
   }
   fs.writeFileSync(path.join(monitorDir, '.nojekyll'), '');
+  return true;
+}
+
+/**
+ * Publish the current world build (`dist/`, as produced by the take's `vite build`) under
+ * `play/` on the monitor branch so the live site links to a walkable build of the same commit it
+ * scores. Vite's `base: './'` and `import.meta.env.BASE_URL` texture paths keep it relocatable.
+ */
+export function syncPlayBuild(monitorDir = MONITOR_DIR, distDir = DIST_DIR) {
+  if (!fs.existsSync(path.join(distDir, 'index.html'))) return false;
+  const dst = path.join(monitorDir, 'play');
+  fs.rmSync(dst, { recursive: true, force: true });
+  copyRecursive(distDir, dst);
   return true;
 }
 
@@ -349,6 +362,7 @@ export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath
   }
   fs.writeFileSync(path.join(monitorDir, 'README.txt'), `Director's Monitor — deployed site (root) + data (data/). Written only by gauntlet/scripts/take.mjs --publish and CI. See site/SCHEMA.md on the code branch. Do not edit by hand.\n`);
   syncSiteFiles(monitorDir);
+  syncPlayBuild(monitorDir);
   return { takeId, record, takes };
 }
 
