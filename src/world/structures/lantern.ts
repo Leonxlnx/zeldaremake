@@ -49,16 +49,18 @@ function setV(geo: BufferGeometry, v: number) {
   for (let i = 0; i < uv.count; i++) uv.setY(i, v);
 }
 
+export type LanternKind = 'orange' | 'lime';
+
 /** Build one lantern hanging `cordLength` metres below a hook point (world space). */
-export function buildLantern(hook: Vector3, cordLength: number, mats: StructureMaterials, rng: Rng, scale = 1): LanternRig {
+export function buildLantern(hook: Vector3, cordLength: number, mats: StructureMaterials, rng: Rng, scale = 1, kind: LanternKind = 'orange'): LanternRig {
   const body = new LatheGeometry(
     BODY_PROFILE.map(([x, y]) => new Vector2(x * scale, y * scale)),
     28,
   );
   // LatheGeometry v runs 0→1 from the first profile point (bottom) to the last (top)
   remapV(body, 0.0, LANTERN_DARK_V - 0.06);
-  // dark amber diffuse so sunlight does not wash the emissive gradient to cream
-  setColorAttribute(body, [0.5, 0.34, 0.12]);
+  // dark diffuse so sunlight does not wash the emissive gradient to cream
+  setColorAttribute(body, kind === 'lime' ? [0.4, 0.52, 0.12] : [0.5, 0.34, 0.12]);
 
   const cap = new LatheGeometry(
     CAP_PROFILE.map(([x, y]) => new Vector2(x * scale, y * scale)),
@@ -89,7 +91,7 @@ export function buildLantern(hook: Vector3, cordLength: number, mats: StructureM
   const geo = merge([body, cap, stem, cord, knot]);
   // shift so the hook (top of cord) is at the origin of the pivot
   geo.translate(0, -(podTop + cordLength), 0);
-  const mesh = new Mesh(geo, mats.lantern);
+  const mesh = new Mesh(geo, kind === 'lime' ? mats.lanternLime : mats.lantern);
   mesh.castShadow = true;
   mesh.receiveShadow = false;
   mesh.name = 'pod-lantern';

@@ -6,6 +6,7 @@
 import {
   BackSide,
   CanvasTexture,
+  ClampToEdgeWrapping,
   Color,
   DoubleSide,
   LinearFilter,
@@ -29,7 +30,7 @@ export interface StructureMaterials {
   barkPale: MeshStandardMaterial;
   /** log arch outer bark (bark_brown_02, dark weathered grey-brown; vertex tint carries ridge/furrow shading + moss) */
   logBark: MeshStandardMaterial;
-  /** hollow interiors seen from inside */
+  /** house interiors seen through the door: near-black warm wood so the opening reads dark */
   interior: MeshStandardMaterial;
   /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
   logInterior: MeshStandardMaterial;
@@ -41,8 +42,10 @@ export interface StructureMaterials {
   fenceWood: MeshStandardMaterial;
   /** darker wood for door frames / lantern hooks */
   woodDark: MeshStandardMaterial;
-  /** warm emissive interior planes (hearth, shelves) */
+  /** the small warm lamp glint just inside the doorway */
   hearth: MeshBasicMaterial;
+  /** dim embers on the back wall, a faint far glow that gives the interior depth */
+  ember: MeshBasicMaterial;
   /** warm window glow disc */
   windowGlow: MeshBasicMaterial;
   /**
@@ -50,6 +53,8 @@ export interface StructureMaterials {
    * the bottom; UV v ≥ LANTERN_DARK_V is black so caps and cords do not glow. Vertex colours tint.
    */
   lantern: MeshStandardMaterial;
+  /** the same pod with a lime-yellow glow (reference B: two of Saria's three pods are lime) */
+  lanternLime: MeshStandardMaterial;
   /** heart-shaped leaf cards, wind-animated (aPhase/aAmount attributes) */
   leaf: MeshStandardMaterial;
   /** vine stems, wind-animated */
@@ -240,16 +245,19 @@ export function strawTexture(seedRng: () => number): Texture {
 /** UV v above this row of the lantern gradient is black (caps, stems, cords). */
 export const LANTERN_DARK_V = 0.86;
 
-/** Emissive gradient for pod lanterns: bright at the bottom (v = 0), deeper orange near the cap, faint ribs. */
-export function lanternGradientTexture(glow: number): Texture {
+/**
+ * Emissive gradient for pod lanterns: bright at the bottom (v = 0), deeper toward the cap, faint
+ * ribs. `topMul` scales the base colour near the cap (default: deeper orange).
+ */
+export function lanternGradientTexture(glow: number, topMul: [number, number, number] = [0.86, 0.5, 0.35]): Texture {
   const W = 64;
   const H = 128;
   const { c, g } = canvas(W, H);
   // the palette value is treated as the sRGB hue of the pod: bottom = brighter, yellower;
-  // toward the cap = deeper orange
+  // toward the cap = deeper
   const base = new Color(glow);
   const bottom = [Math.min(1, base.r * 1.02), Math.min(1, base.g * 1.12), Math.min(1, base.b * 1.3)];
-  const top = [base.r * 0.86, base.g * 0.5, base.b * 0.35];
+  const top = [base.r * topMul[0], base.g * topMul[1], base.b * topMul[2]];
   const img = g.createImageData(W, H);
   for (let y = 0; y < H; y++) {
     const v = 1 - y / (H - 1); // canvas y grows downward; texture v = 0 is the bottom row
@@ -277,6 +285,22 @@ export function lanternGradientTexture(glow: number): Texture {
   g.putImageData(img, 0, 0);
   const tex = finishTexture(new CanvasTexture(c), true, 'structures:lantern-gradient');
   tex.wrapS = RepeatWrapping;
+  return tex;
+}
+
+/** Soft radial glow (opaque centre → transparent edge) for small emissive patches. */
+function glowTexture(): Texture {
+  const S = 64;
+  const { c, g } = canvas(S, S);
+  g.clearRect(0, 0, S, S);
+  const grad = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.4, 'rgba(255,255,255,0.6)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, S, S);
+  const tex = finishTexture(new CanvasTexture(c), true, 'structures:glow');
+  tex.wrapS = tex.wrapT = ClampToEdgeWrapping;
   return tex;
 }
 
@@ -396,11 +420,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     color: new Color(0x7e7268),
     vertexColors: true,
   });
+  // near-black so neither sun through the doorway nor the sky fill can turn the opening into a
+  // lit pocket; the door lamp alone shapes what little is seen inside
   const interior = new MeshStandardMaterial({
     map: barkC,
     normalMap: barkN,
+    normalScale: new Vector2(0.8, 0.8),
     roughness: 1,
-    color: new Color(0x9a7452),
+    color: new Color(0x54402e),
     side: BackSide,
   });
   const logInterior = new MeshStandardMaterial({
@@ -445,18 +472,21 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     vertexColors: true,
   });
   // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream
-  const hearth = new MeshBasicMaterial({ color: new Color(0xff8c2a).multiplyScalar(1.15), toneMapped: true });
+  const hearth = new MeshBasicMaterial({ color: new Color(0xffa040).multiplyScalar(1.4), toneMapped: true });
+  const ember = new MeshBasicMaterial({ color: new Color(0x8a4014), map: glowTexture(), transparent: true, depthWrite: false, toneMapped: true });
   const windowGlow = new MeshBasicMaterial({ color: new Color(0xffb04a).multiplyScalar(1.3), toneMapped: true });
 
-  const lantern = new MeshStandardMaterial({
+  const lanternBase = {
     color: new Color(0xffffff),
     vertexColors: true,
     emissive: new Color(0xffffff),
-    emissiveMap: lanternGradientTexture(P.lanternGlow),
     emissiveIntensity: 2.0,
     roughness: 0.6,
     metalness: 0,
-  });
+  };
+  const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: lanternGradientTexture(P.lanternGlow) });
+  // lime pod: yellow-green bottom, deeper green toward the cap
+  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: lanternGradientTexture(0xd2ee48, [0.5, 0.78, 0.3]) });
 
   const leaf = windLeafMaterial(
     new MeshStandardMaterial({
@@ -488,5 +518,5 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, windowGlow, lantern, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
 }

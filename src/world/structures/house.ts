@@ -9,11 +9,15 @@ import {
   BoxGeometry,
   CatmullRomCurve3,
   CircleGeometry,
+  Color,
   CylinderGeometry,
+  DoubleSide,
   Group,
   Mesh,
-  PlaneGeometry,
+  type MeshBasicMaterial,
+  type MeshStandardMaterial,
   PointLight,
+  SphereGeometry,
   TorusGeometry,
   Vector3,
 } from 'three';
@@ -23,7 +27,7 @@ import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, angleDiff, basisMatrix, ensureColor, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
-import { buildLantern, type LanternRig } from './lantern';
+import { buildLantern, type LanternKind, type LanternRig } from './lantern';
 import type { StructureMaterials } from './materials';
 
 export interface HouseBuild {
@@ -74,21 +78,58 @@ interface LanternSpec {
   hook: 'shoulder' | 'rim' | 'peg';
   y?: number;
   phi?: number;
+  /** glow colour (default orange) */
+  tint?: LanternKind;
 }
 
 // Reference B: three pods in a loose row just left of the door, hanging on vines from the roof's
-// left shoulder at about 1 m above the door top (y ≈ 0.29–0.32 in frame, x 0.74–0.79 vs door 0.78–0.84).
+// left shoulder at about 1 m above the door top (y ≈ 0.29–0.32 in frame, x 0.74–0.79 vs door 0.78–0.84);
+// lime / orange / lime from left to right.
 const LANTERNS: Record<string, LanternSpec[]> = {
   saria: [
-    { a: -0.14, cord: 0.5, hook: 'shoulder', phi: 1.4 },
-    { a: -0.3, cord: 0.72, hook: 'shoulder', phi: 1.38 },
-    { a: -0.47, cord: 0.55, hook: 'shoulder', phi: 1.42 },
+    { a: -0.14, cord: 0.5, hook: 'shoulder', phi: 1.4, tint: 'lime' },
+    { a: -0.3, cord: 0.72, hook: 'shoulder', phi: 1.38, tint: 'orange' },
+    { a: -0.47, cord: 0.55, hook: 'shoulder', phi: 1.42, tint: 'lime' },
   ],
   upper: [
     { a: -0.2, cord: 0.5, hook: 'shoulder', phi: 1.4 },
     { a: 0.35, cord: 0.65, hook: 'shoulder', phi: 1.42 },
   ],
 };
+
+// Clamps the fog sample position to the doorway plane along the view ray, so the haze that fills
+// the world does not also fill the room: seen from outside, an interior 5 m behind the door
+// picks up only the airlight between the camera and the door, exactly like the wall around it.
+// Inside the house (camera behind the plane) nothing changes.
+const INDOOR_FOG_GLSL = /* glsl */ `
+#ifdef USE_FOG
+{
+	vec3 kfD = vFogWorldPos - cameraPosition;
+	float kfL = max( length( kfD ), 1e-4 );
+	vec3 kfDir = kfD / kfL;
+	float kfDen = dot( kfDir, uDoorNormal );
+	float kfNum = dot( uDoorPoint - cameraPosition, uDoorNormal );
+	if ( kfDen < -1e-4 && kfNum < 0.0 ) {
+		vFogWorldPos = cameraPosition + kfDir * min( kfL, kfNum / kfDen );
+	}
+}
+#endif
+`;
+
+function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, doorPoint: Vector3, outward: Vector3): M {
+  const m = base.clone() as M;
+  const uDoorPoint = { value: doorPoint.clone() };
+  const uDoorNormal = { value: outward.clone().normalize() };
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uDoorPoint = uDoorPoint;
+    shader.uniforms.uDoorNormal = uDoorNormal;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <fog_pars_vertex>', '#include <fog_pars_vertex>\nuniform vec3 uDoorPoint;\nuniform vec3 uDoorNormal;')
+      .replace('#include <fog_vertex>', `#include <fog_vertex>\n${INDOOR_FOG_GLSL}`);
+  };
+  m.customProgramCacheKey = () => 'structures:indoor-fog';
+  return m;
+}
 
 export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng): HouseBuild {
   const group = new Group();
@@ -200,33 +241,70 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   trunk.castShadow = trunk.receiveShadow = true;
   group.add(trunk);
 
-  // ---- inner shell + floor + ceiling (seen through the door, BackSide material) ----
-  const inner = gridSurface(
-    (u, v, out) => {
-      const a = u * TAU;
-      const y = lerp(-0.05, H + 0.25, v);
-      frame.at(a, rSmooth(a, y) - T, y, out.position);
-      out.uv = [(a * R) / 2.2, y / 2.2];
-    },
-    {
-      cols: 96,
-      rows: 20,
-      closedU: true,
-      flip: true,
-      hole: (u, v) => {
-        const a = u * TAU;
-        const y = lerp(-0.05, H + 0.25, v);
-        return doorSD(doorW(a, y, rSmooth(a, y) - T), y) < 0;
+  // ---- interior room (seen through the door) ----
+  // The plateau slope runs through the back of Saria's trunk (terrain +0.3 m at 2 m inside the
+  // door, +2.5 m at the centre), so a full-depth hollow shows lit hillside through the doorway.
+  // The room is therefore a vestibule: the trunk's inner shell down to 1.75·k m from the centre,
+  // closed by a dark back wall, with a raised floor that hides the first rise of the ground.
+  const floorY = 0.32;
+  const roomCeilY = doorH + 0.6 * k;
+  const dBack = R - 1.75 * k;
+  const rIn = (a: number, y: number) => rSmooth(a, y) - T;
+  // the trunk flares toward the ground, so size the back wall for the widest (lowest) section
+  const rBase = rIn(0, floorY);
+  const aChord = Math.acos(clamp(dBack / rBase, 0, 1));
+  const wChord = Math.sqrt(Math.max(0, rBase * rBase - dBack * dBack)) + 0.06;
+  const roomParts = [];
+  roomParts.push(
+    gridSurface(
+      (u, v, out) => {
+        const a = lerp(-aChord - 0.04, aChord + 0.04, u);
+        const y = lerp(floorY - 0.06, roomCeilY + 0.06, v);
+        frame.at(a, rIn(a, y), y, out.position);
+        out.uv = [(a * R) / 2.2, y / 2.2];
       },
-    },
+      {
+        cols: 40,
+        rows: 10,
+        hole: (u, v) => {
+          const a = lerp(-aChord - 0.04, aChord + 0.04, u);
+          const y = lerp(floorY - 0.06, roomCeilY + 0.06, v);
+          return doorSD(doorW(a, y, rIn(a, y)), y) < 0;
+        },
+      },
+    ),
   );
-  const ceiling = new CircleGeometry(R * 1.2, 32);
-  ceiling.rotateX(-Math.PI / 2); // normal up → BackSide shows it from below
-  ceiling.translate(cx, yFloor + H + 0.25, cz);
-  const floor = new CircleGeometry(R * 1.2, 32);
-  floor.rotateX(Math.PI / 2); // normal down → BackSide shows it from above
-  floor.translate(cx, yFloor - 0.04, cz);
-  const interior = new Mesh(merge([inner, ceiling, floor]), mats.interior);
+  // floor + ceiling: the circular segment between the back wall and the inner shell
+  for (const y of [floorY, roomCeilY]) {
+    roomParts.push(
+      gridSurface(
+        (u, v, out) => {
+          const a = lerp(-aChord - 0.04, aChord + 0.04, u);
+          const r = lerp(dBack / Math.max(0.2, Math.cos(a)) - 0.02, rIn(a, y) + 0.04, v);
+          frame.at(a, r, y, out.position);
+          out.uv = [(Math.sin(a) * r) / 2.2, (Math.cos(a) * r) / 2.2];
+        },
+        { cols: 24, rows: 2 },
+      ),
+    );
+  }
+  // back wall, and the riser between the threshold and the raised floor
+  const dIn = rSmooth(0, 0.3) - T;
+  const doorPlane = (w0: number, w1: number, y0: number, y1: number, d: number) =>
+    gridSurface(
+      (u, v, out) => {
+        frame.door(lerp(w0, w1, u), lerp(y0, y1, v), d, out.position);
+        out.uv = [lerp(w0, w1, u) / 2.2, lerp(y0, y1, v) / 2.2];
+      },
+      { cols: 2, rows: 2 },
+    );
+  roomParts.push(doorPlane(-wChord, wChord, floorY - 0.06, roomCeilY + 0.06, dBack));
+  roomParts.push(doorPlane(-doorHalfW - 0.2, doorHalfW + 0.2, -0.05, floorY, dIn - 0.05));
+  // the haze only fills the air outside: fog for the interior stops at the doorway plane
+  const doorPlanePoint = frame.door(0, doorH * 0.5, rSmooth(0, doorH * 0.5));
+  const interiorMat = indoorFog(mats.interior, doorPlanePoint, F);
+  interiorMat.side = DoubleSide;
+  const interior = new Mesh(merge(roomParts), interiorMat);
   interior.name = 'interior';
   interior.receiveShadow = true;
   group.add(interior);
@@ -251,7 +329,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const d = lerp(dOut(w, y) + 0.06, dOut(w, y) - T - 0.02, q);
       frame.door(w, y, d, out.position);
       out.uv = [s * outline, q * T];
-      const dark = lerp(0.55, 0.3, q);
+      // the cut through the wall darkens quickly toward the inside so the opening reads as a hole
+      const dark = lerp(0.5, 0.1, Math.pow(q, 0.6));
       out.color = [dark, dark * 0.92, dark * 0.82];
     },
     { cols: 40, rows: 3 },
@@ -298,34 +377,40 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   woodMesh.castShadow = woodMesh.receiveShadow = true;
   group.add(woodMesh);
 
-  // ---- interior warmth: hearth + shelf glows and one point light behind the doorway ----
-  const glows = [];
+  // ---- interior: a dark hollow with one small lamp just inside the doorway ----
+  // Reference B: the opening is dark with a single warm glint at its upper left (frame ≈ 0.782,
+  // 0.405) and only a faint warm suggestion of the far wall. The lamp hangs from the doorway
+  // ceiling on the viewer's left, inside the wall thickness, and its point light is weak enough
+  // that the near-black walls stay dark.
+  const lampW = -0.4;
+  const lampY = 1.4;
+  const lampPos = frame.door(lampW, lampY, dOut(lampW, lampY) - T + 0.1);
   {
-    // hearth on the back wall, seen straight through the door
-    const back = rSmooth(Math.PI, 0.9) - T - 0.08;
-    const hearth = new PlaneGeometry(0.8 * k, 0.6 * k);
-    hearth.applyMatrix4(basisMatrix(frame.at(Math.PI, back, 0.3 + 0.3 * k), F));
-    glows.push(hearth);
-    // warm pool of light on the floor just inside the threshold
-    const pool = new CircleGeometry(0.9 * k, 20);
-    pool.rotateX(-Math.PI / 2);
-    const pp = frame.door(0, 0.005, dOut(0, 0.2) - T - 1.1 * k);
-    pool.translate(pp.x, pp.y, pp.z);
-    glows.push(pool);
-    for (const a of [-2.25, 2.35]) {
-      const shelf = new PlaneGeometry(0.5 * k, 0.32 * k);
-      const p = frame.at(a, rSmooth(a, 1.35) - T - 0.08, 1.35);
-      shelf.applyMatrix4(basisMatrix(p, frame.dir(a).negate()));
-      glows.push(shelf);
-    }
+    const lamp = new SphereGeometry(0.06 * Math.sqrt(k), 12, 8);
+    lamp.scale(1, 1.35, 1);
+    lamp.translate(lampPos.x, lampPos.y, lampPos.z);
+    const lampMesh = new Mesh(lamp, mats.hearth);
+    lampMesh.name = 'door-lamp';
+    group.add(lampMesh);
+    // a thin dark cord up to the doorway ceiling and a dim ember patch on the back wall
+    const ceilY = straight + Math.sqrt(Math.max(0, doorHalfW * doorHalfW - lampW * lampW)) + 0.03;
+    const cord = new CylinderGeometry(0.012, 0.012, ceilY - lampY, 6);
+    cord.translate(lampPos.x, lampPos.y + (ceilY - lampY) / 2, lampPos.z);
+    setColorAttribute(cord, [0.2, 0.15, 0.1]);
+    const cordMesh = new Mesh(cord, mats.woodDark);
+    cordMesh.name = 'door-lamp-cord';
+    group.add(cordMesh);
+    const ember = new CircleGeometry(0.3 * k, 16);
+    ember.scale(1, 0.7, 1);
+    ember.applyMatrix4(basisMatrix(frame.door(0.2 * k, floorY + 0.32 * k, dBack + 0.02), F));
+    const emberMesh = new Mesh(ember, indoorFog(mats.ember, doorPlanePoint, F));
+    emberMesh.name = 'interior-glow';
+    group.add(emberMesh);
   }
-  const glowMesh = new Mesh(merge(glows), mats.hearth);
-  glowMesh.name = 'interior-glow';
-  group.add(glowMesh);
 
   const lights: PointLight[] = [];
-  const doorLight = new PointLight(0xffa64d, 42 * k, 10 * k, 2);
-  doorLight.position.copy(frame.door(0, 1.25, dOut(0, 1) - T - 1.0));
+  const doorLight = new PointLight(0xffa858, 3.5 * k, 3.5 * k, 2);
+  doorLight.position.copy(lampPos).addScaledVector(F, -0.12);
   doorLight.name = 'door-light';
   group.add(doorLight);
   lights.push(doorLight);
@@ -714,6 +799,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lanternRng = rng.fork('lanterns');
   const specs = LANTERNS[def.id] ?? LANTERNS.upper;
   const podPositions: Vector3[] = [];
+  let limeCount = 0;
   for (const spec of specs.slice(0, Math.max(def.lanterns, specs.length))) {
     let hook: Vector3;
     if (spec.hook === 'shoulder') {
@@ -745,7 +831,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // a hanging vine trails off the peg too
       foliage.addHangingVine(end.clone().add(new Vector3(0, 0.02, 0)), 0.5, { amount: 0.08 });
     }
-    const rig = buildLantern(hook, spec.cord * k, mats, lanternRng, 1.0);
+    const rig = buildLantern(hook, spec.cord * k, mats, lanternRng, 1.0, spec.tint ?? 'orange');
+    if (spec.tint === 'lime') limeCount++;
     group.add(rig.pivot);
     lanterns.push(rig);
     podPositions.push(rig.pod);
@@ -755,7 +842,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     for (const p of podPositions.slice(0, 2)) c.add(p);
     c.divideScalar(Math.min(2, podPositions.length));
     c.addScaledVector(F, 0.35);
-    const lanternLight = new PointLight(ctx.config.palette.lanternGlow, 6.5, 6, 2);
+    // the shared glow takes on the mix of pod colours
+    const glow = new Color(ctx.config.palette.lanternGlow).lerp(new Color(0xd2ee48), limeCount / podPositions.length);
+    const lanternLight = new PointLight(glow, 6.5, 6, 2);
     lanternLight.position.copy(c);
     lanternLight.name = 'lantern-light';
     group.add(lanternLight);
