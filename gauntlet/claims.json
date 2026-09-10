@@ -207,6 +207,18 @@
       "at": "2026-09-10T18:44:57.934Z",
       "expiresHours": 6,
       "note": "Round seven vegetation: hero ferns on D, east-bank cover for F, W18 floor"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W10",
+        "W12",
+        "W37"
+      ],
+      "at": "2026-09-10T19:14:39.898Z",
+      "expiresHours": 6,
+      "note": "Round seven trees: stair-bank giant for F right edge / C background"
     }
   ]
 }
