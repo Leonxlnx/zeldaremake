@@ -26,10 +26,12 @@ export async function buildJointMesh(
   const noise = new Noise2D(`${seed}/joints`);
   const P = config.palette;
   // vertex colours are the *absolute* albedo here (the shader turns the texture into a
-  // luminance modulator), so start from the mid soil and let moss take over in patches
-  const soil = new Color(P.soil).lerp(new Color(P.soilDark), 0.2);
-  const soilMid = new Color(P.soil).multiplyScalar(1.35);
-  const mossD = new Color(P.mossDeep);
+  // luminance modulator). The joint soil is the dark warm brown of the reference seams
+  // (E/A/D dark band ≈ sRGB 60,50,30, hue 35–42°, R/G 1.2 — the palette's olive `soil` rendered
+  // them hue 48° and a fifth too bright); moss takes over only in patches.
+  const soil = new Color(0x58462c);
+  const soilMid = new Color(0x7a6240);
+  const mossD = new Color(P.mossDeep).lerp(soil, 0.25);
   const mossB = new Color(P.mossBright);
   const tmp = new Color();
 
@@ -47,18 +49,19 @@ export async function buildJointMesh(
     if (index[k] >= 0) return index[k];
     const x = x0 + i * step;
     const z = z0 + j * step;
-    const y = terrain.height(x, z) + 0.015;
+    // 0.8 cm above the ground: the slabs stand 1.2–2 cm proud, so the seams read as sunken soil
+    const y = terrain.height(x, z) + 0.008;
     pos.push(x, y, z);
     uv.push(x / 1.1, z / 1.1);
     const m = noise.fbm(x * 0.9 + 4, z * 0.9 - 2, 3) * 0.5 + 0.5;
     const dampN = noise.fbm(x * 0.25, z * 0.25 + 9, 2) * 0.5 + 0.5;
     tmp.copy(soil).lerp(soilMid, 0.5 * dampN);
-    // reference joints are warm dark soil (≈ rgb 99,86,60 in shot A) with moss in patches, not
-    // green seams everywhere: keep the soil dominant and let moss take over only where the
-    // noise peaks, thinner still in the plaza centre
-    const mossAmt = smoothstep(0.4, 0.78, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z)));
-    tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.6);
-    tmp.lerp(mossB, clamp(smoothstep(0.7, 0.96, m), 0, 1) * 0.35);
+    // reference joints are warm dark soil with moss in patches, not green seams everywhere:
+    // keep the soil dominant and let moss take over only where the noise peaks, thinner still
+    // in the plaza centre
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z)));
+    tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
+    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3);
     col.push(tmp.r, tmp.g, tmp.b);
     index[k] = pos.length / 3 - 1;
     return index[k];

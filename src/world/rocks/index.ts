@@ -83,15 +83,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 8.8k for the small ones
       detail: r > 1.5 ? 28 : 20,
-      ridge: 0.24,
-      lump: 0.22,
-      cuts: r > 1.5 ? 6 : 5,
-      squashY: 0.8,
+      ridge: 0.2,
+      lump: 0.2,
+      cuts: r > 1.5 ? 5 : 3,
+      squashY: 0.78,
       creaseDeg: 30,
-      cracks: 0.75,
+      cracks: 0.85,
       moss: 1.0,
-      dirt: 0.55,
-      tint: new Color(0.62, 0.62, 0.59),
+      // reference boulders (C, D): bedded rock — stacked layers with dark partings — under a
+      // thick moss cap, sitting in a dark collar of soil
+      strata: 0.14,
+      mossThickness: 0.05,
+      dirt: 0.7,
+      tint: new Color(0.6, 0.6, 0.575),
       freq: 1.1,
     });
     // seat: base sinks ~15 % of the rock height into the ground under the footprint
@@ -103,9 +107,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       gn++;
     }
     const ground = gSum / gn;
-    const height = 2 * r * 0.8;
+    const squash = 0.78;
+    const height = 2 * r * squash;
     const sink = 0.15 * height;
-    const cy = ground + r * 0.8 * 0.62 - sink; // flat-ish bottom is at -0.62·r·squash
+    const cy = ground + r * squash * 0.62 - sink; // flat-ish bottom is at -0.62·r·squash
     const mesh = new Mesh(geo, material);
     mesh.position.set(b.position[0], cy, b.position[2]);
     mesh.rotation.y = bRng.range(0, Math.PI * 2);
@@ -175,7 +180,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     buildRock(vRng.fork(`rubble-${i}`), `${seed}/rubble-${i}`, { radius: 1, detail: 3, ridge: 0.2, lump: 0.22, cuts: 3, squashY: 0.75, creaseDeg: 40, cracks: 0.4, moss: 0.5, dirt: 0.4, tint: new Color(0.68, 0.67, 0.64), freq: 1 }),
   );
   const strataGeos = [0, 1, 2, 3].map((i) =>
-    buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0.5, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1 }),
+    buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0.5, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1, strata: 0.1 }),
   );
   const pebbleGeos = [0, 1, 2, 3].map((i) =>
     buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.12, lump: 0.25, cuts: 1, squashY: 0.7, creaseDeg: 50, cracks: 0.2, moss: 0.25, dirt: 0.3, tint: new Color(0.7, 0.69, 0.66), freq: 1 }),
@@ -253,8 +258,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.audit('rocks', () => ({
     heroBoulders: boulderInfo.length,
     boulders: boulderInfo,
-    geometry: 'procedural-v1',
-    features: ['ridged-displacement', 'cleave-cuts', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'triplanar-texture'],
+    geometry: 'procedural-v2-strata',
+    features: ['ridged-displacement', 'bedding-strata', 'cleave-cuts', 'moss-cushion', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'triplanar-texture'],
     mossCoverage: true,
     rubble: rubble.length,
     strata: strata.length,

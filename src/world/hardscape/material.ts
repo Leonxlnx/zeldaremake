@@ -38,21 +38,27 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     // it (A plaza 1.21, B path 1.26, D path 1.49) with R−B ≈ 47–52 at lum ≈ 130 — i.e. warmer and
     // ~20 % lighter than the first pass, which landed at 1.05–1.18 and R−B 34–45. Warmth (R−B)
     // is set by the blue channel: the reference slab tops are sRGB B/R ≈ 0.66–0.69.
-    // Hue: worn_rock_natural_01 is orange (linear R/G 1.44) and the 30 % of it that survives the
-    // desaturation below kept the slabs red of the reference (E sunlit band hue 42° vs 48°, R/G
-    // 1.13 vs 1.08). The base colour barely moves that (the desat/lift targets set most of the
-    // hue), so the targets are neutral in R/G and the base leans green: the simulated mean albedo
-    // (texture × base → desat → lift, see gauntlet/tmp/hard/albedo-sim.mjs) is linear R/G 1.08 /
-    // B/R 0.55 (was 1.17 / 0.57) at the same luminance, which under the warm key lands the sunlit
-    // slabs at R/G ≈ 1.08 (hue ≈ 47°) and keeps R−B where the plaza already matched.
-    color: new Color(1.52, 1.58, 0.95),
+    // Hue: worn_rock_natural_01 is orange (linear R/G 1.44); the desat/lift targets below set most
+    // of the final hue. Measured on the pure-stone boxes of A/E/F/D (gauntlet/tmp/hard/bands.mjs)
+    // the reference's sunlit slabs are sRGB R/G 1.11 / B/R 0.68 (hue ≈ 41°, a grey-beige) where
+    // ours rendered 1.08 / 0.65 (hue ≈ 47°, yellower). The near-neutral hemisphere fill means
+    // the shaded slabs only get their warmth from the albedo, so the simulated mean albedo
+    // (texture × base → desat → lift, gauntlet/tmp/hard/albedo-sim2.mjs) is now linear R/G 1.21
+    // / B/R 0.51 at the same luminance (was 1.08 / 0.55). The post chain (warm channel mix,
+    // ACES, saturation) compresses the rendered R/G to roughly a fifth of the albedo change, so
+    // the albedo has to lean further red than the target itself.
+    color: new Color(1.586, 1.497, 0.911),
   });
   mat.name = opts.instanced ? 'stone-instanced' : 'stone';
   const mossDeep = new Color(P.mossDeep);
   const mossBright = new Color(P.mossBright);
+  // the growth on slab rims is as much damp soil and dead moss as living green (reference joints
+  // are dark warm brown with green only in patches), so the moss blend is pulled toward soil
+  const mossSoil = new Color(P.soilDark).lerp(new Color(0x3a2c1c), 0.5);
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uMossDeep = { value: mossDeep };
     shader.uniforms.uMossBright = { value: mossBright };
+    shader.uniforms.uMossSoil = { value: mossSoil };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -63,7 +69,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         '#include <worldpos_vertex>\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uMossDeep; uniform vec3 uMossBright; varying float vMoss; varying vec3 vWPosS;')
+      .replace('#include <common>', '#include <common>\nuniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; varying float vMoss; varying vec3 vWPosS;')
       .replace(
         '#include <map_fragment>',
         /* glsl */ `
@@ -73,18 +79,20 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           vec3 fine = texture2D(map, vec2(-vMapUv.y, vMapUv.x) * 3.1 + vec2(0.37, 0.61)).rgb;
           float lf = dot(fine, vec3(0.299, 0.587, 0.114));
           diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.55, 1.5), 0.2);
-          // desaturate the orange-leaning rock texture toward the warm dusty beige of the reference
+          // desaturate the orange-leaning rock texture toward the warm grey-beige of the reference
           float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.0, 1.0, 0.67), 0.7);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.13, 1.0, 0.70), 0.7);
           // lift the darkest pits so the slab tops stay pale and low-contrast (dusty, not pitted)
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(0.98, 1.0, 0.69), 0.24);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.10, 1.0, 0.72), 0.24);
           // fine grain breakup so distant slabs don't read as a single flat tone
           float grain = fract(sin(dot(floor(vWPosS.xz * 40.0), vec2(12.9898, 78.233))) * 43758.5453);
           diffuseColor.rgb *= 0.975 + 0.05 * grain;
-          // moss: bright to deep green with the stone's luminance as detail
+          // moss: bright to deep green with the stone's luminance as detail, pulled toward damp
+          // soil where the coverage is thin (rim grime) and green only where it is full
           float ln = clamp(l / 0.4, 0.0, 1.6);
           vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.4, 1.3, ln)) * (0.75 + 0.45 * ln);
           float m = clamp(vMoss, 0.0, 1.0);
+          moss = mix(uMossSoil * (0.8 + 0.4 * ln), moss, smoothstep(0.3, 0.9, m));
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.08, 0.8, m));
         }`,
       )
@@ -95,6 +103,6 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v5-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v8-${opts.instanced ? 'i' : 's'}`;
   return mat;
 }

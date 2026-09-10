@@ -119,7 +119,7 @@ export const LAYOUT = {
     // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
     // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
     // The base sits just off the paved edge so the first riser meets flattened ground.
-    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 5, rise: 0.3, tread: 0.5, width: 2.6 },
+    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 6, rise: 0.3, tread: 0.5, width: 2.6 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
@@ -184,9 +184,11 @@ export const LAYOUT = {
 
   /** Mossy boulders that are compositionally important (many smaller rocks are procedural). */
   heroBoulders: [
-    { id: 'terrace-boulder', position: [-4.5, 2.6, -19.5] as [number, number, number], radius: 2.2 },
-    // left-centre of shot D (≈ 0.11, 0.77 at 6.7 m; reference 0.10–0.22, 0.66–0.75)
-    { id: 'shot-d-boulder', position: [-3.2, 0, -10.2] as [number, number, number], radius: 0.9 },
+    // on the boulder bank, clear of the north steps' landing (top of the 6 steps ≈ (−2.7, 1.8, −18.4))
+    { id: 'terrace-boulder', position: [-5.2, 2.6, -20.2] as [number, number, number], radius: 2.2 },
+    // left-centre of shot D (reference 0.10–0.22, 0.66–0.75), just off the paved edge and clear of
+    // the north-west-near giant's roots
+    { id: 'shot-d-boulder', position: [-2.6, 0, -9.6] as [number, number, number], radius: 0.9 },
     // right edge of shot A (≈ 0.9, 0.7): the mossy rock the Kokiri kid stands beside
     { id: 'stair-foot', position: [9.1, 0.2, 2.5] as [number, number, number], radius: 1.0 },
   ],

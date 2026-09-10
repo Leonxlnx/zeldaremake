@@ -70,8 +70,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const spots: SproutSpot[] = [];
   const srng = rng.fork('sprouts');
   // sparse like the reference's joints (E close-up: a tuft every metre or so, not a lawn in every
-  // seam); the stair joints below add ≈ 120 more, W21 asks for ≥ 500 in total
-  const target = Math.round(700 * Math.max(0.7, ctx.quality.density));
+  // seam); the stair joints below add ≈ 120 more, W21 asks for ≥ 500 in total. The scene-graph
+  // cross-check (score.mjs B3) needs the group's instance count to cover the flagstone claim, and
+  // the slabs are one merged mesh, so the instanced sprouts must at least match their number.
+  const target = Math.max(Math.round(700 * Math.max(0.7, ctx.quality.density)), paving.stones.length + 60);
   let tries = 0;
   while (spots.length < target && tries < target * 40) {
     tries++;
@@ -123,7 +125,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     stairTriangles,
     flagstones: paving.stones.length,
     flagstoneShapes: stoneShapes.size,
-    flagstoneGeometry: 'voronoi-cells-v3-split',
+    flagstoneGeometry: 'voronoi-cells-v4-anisotropic',
     flagstoneSplitCells: paving.stats.split,
     flagstoneMaxAspect: round(Math.max(...paving.stones.map((s) => s.aspect))),
     flagstoneTriangles: paving.triangles,

@@ -1,8 +1,10 @@
 /**
- * Procedural rock geometry: icosphere → ridged multi-noise displacement → planar "cleave" cuts
- * (flat facets with sharp edges) → crease-angle normals (smooth on the weathered parts, hard on
- * the fractures). Vertex colours carry cracks, contact dirt and per-rock tint; `aMoss` carries
- * the moss coverage for upward-facing surfaces.
+ * Procedural rock geometry: icosphere → ridged multi-noise displacement → bedding strata (tilted
+ * layers: each bed is a ledge stepping in or out with a dark groove at the parting) → planar
+ * "cleave" cuts (flat facets with sharp edges) → moss cushion (upward faces swell by the moss
+ * thickness) → crease-angle normals (smooth on the weathered parts, hard on the fractures).
+ * Vertex colours carry cracks, bedding partings, contact dirt and per-rock tint; `aMoss`
+ * carries the moss coverage for upward-facing surfaces.
  */
 import { BufferGeometry, Color, Float32BufferAttribute, IcosahedronGeometry, Vector3 } from 'three';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
@@ -71,10 +73,19 @@ export interface RockOptions {
   dirt?: number;
   /** noise frequency multiplier (per metre) */
   freq?: number;
+  /**
+   * bedding strata: ledge depth as a fraction of the radius (0 = none). Beds are ~0.3–0.45 r
+   * thick on a slightly tilted axis; each parting is a dark groove and the bed above it steps in
+   * or out a little, so the silhouette reads as stacked layers.
+   */
+  strata?: number;
+  /** moss cushion thickness on the upward faces (fraction of the radius) */
+  mossThickness?: number;
 }
 
 const _p = new Vector3();
 const _n = new Vector3();
+const _bed = new Vector3();
 
 export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometry {
   const N = new Noise3(seed);
@@ -83,6 +94,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const lump = o.lump ?? 0.18;
   const cuts = o.cuts ?? 3;
   const squashY = o.squashY ?? 0.8;
+  const strata = o.strata ?? 0;
   const freq = (o.freq ?? 1) / Math.max(0.2, r);
   // PolyhedronGeometry subdivides linearly: 20·(detail+1)² triangles, already non-indexed
   const ico = new IcosahedronGeometry(r, o.detail);
@@ -94,6 +106,24 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const ox = rng.range(-50, 50);
   const oy = rng.range(-50, 50);
   const oz = rng.range(-50, 50);
+
+  // bedding: near-vertical axis tilted 8–22°, bed thickness and per-bed in/out offsets
+  const tilt = rng.range(0.14, 0.38);
+  const tiltDir = rng.range(0, Math.PI * 2);
+  _bed.set(Math.sin(tilt) * Math.cos(tiltDir), Math.cos(tilt), Math.sin(tilt) * Math.sin(tiltDir));
+  const bedThick = r * squashY * rng.range(0.26, 0.4);
+  const bedPhase = rng();
+  const bedOffsets = [0, 1, 2, 3, 4, 5, 6, 7].map(() => rng.range(-1, 1));
+  /** returns { groove: 0..1 at the parting, step: -1..1 per-bed radial offset } for a point */
+  const bedding = (x: number, y: number, z: number, nx: number, ny: number, nz: number) => {
+    const h = (x * _bed.x + y * _bed.y + z * _bed.z) / bedThick + bedPhase + 0.18 * N.fbm(nx * 0.9, ny * 0.9, nz * 0.9, 2);
+    const k = Math.floor(h);
+    const f = h - k;
+    // parting groove: narrow band around f = 0 (both sides), softened by noise so it breaks up
+    const g = 1 - smoothstep(0.0, 0.16, Math.min(f, 1 - f));
+    const step = bedOffsets[((k % 8) + 8) % 8];
+    return { groove: g, step, f };
+  };
 
   // 1. displacement (do it per unique direction so shared vertices stay welded)
   const disp = new Map<string, number>();
@@ -108,6 +138,14 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       const rd = N.ridged(x * 1.6, y * 1.6, z * 1.6, 3); // 0..1
       const lp = N.fbm(x * 0.55, y * 0.55, z * 0.55, 2); // -1..1
       d = 1 + lump * lp + ridge * (rd - 0.5) * 2 * 0.5 + ridge * 0.35 * N.fbm(x * 3.1, y * 3.1, z * 3.1, 2);
+      if (strata > 0) {
+        // beds step in/out (mostly on the sides — the flat cap stays whole) and sink at the
+        // parting. Evaluated on the noise-displaced position so the colour pass (which sees the
+        // final vertex) finds the groove where the geometry has it.
+        const b = bedding(_p.x * d, _p.y * d * squashY, _p.z * d, x, y, z);
+        const side = 1 - Math.abs(_p.y / r) * 0.6;
+        d *= 1 + strata * side * (0.55 * b.step - 1.1 * b.groove);
+      }
       disp.set(key, d);
     }
     _p.multiplyScalar(d);
@@ -139,45 +177,95 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   }
   pos.needsUpdate = true;
 
-  // 3. crease-angle normals
+  const crackAmt = o.cracks ?? 0.6;
+  const mossAmt = o.moss ?? 0.6;
+  const mossThick = o.mossThickness ?? 0;
+
+  /** moss coverage 0..1 for a vertex at p with normal n (upward faces, patches, not the base) */
+  const mossAt = (p: Vector3, n: Vector3, crack: number) => {
+    const x = p.x * freq + ox;
+    const y = p.y * freq + oy;
+    const z = p.z * freq + oz;
+    const h01 = clamp((p.y + r * squashY) / (2 * r * squashY), 0, 1);
+    // a heavy cap: everything facing up within ~35° carries moss, thinning out over the
+    // shoulders (gone by ~65°) so the sides stay bare grey rock (the reference boulders are
+    // stone with a moss hat, not green mounds — C reads the stair-foot boulder from its shaded
+    // north side and it must still look like rock there)
+    const up = smoothstep(0.38, 0.82, n.y + 0.12 * N.fbm(x * 2.2, y * 2.2, z * 2.2, 2));
+    const patch = smoothstep(0.15, 0.6, N.fbm(x * 1.4 + 3, y * 1.4 - 5, z * 1.4, 3) * 0.5 + 0.5);
+    // a thin moss/lichen skin also creeps down the shaded sides in a few places
+    const side = 0.12 * smoothstep(0.6, 0.9, patch) * smoothstep(-0.3, 0.2, n.y);
+    return clamp(mossAmt * (up * (0.7 + 0.5 * patch) + side) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.5), 0, 1);
+  };
+  const crackAt = (p: Vector3) => {
+    const x = p.x * freq + ox;
+    const y = p.y * freq + oy;
+    const z = p.z * freq + oz;
+    // thin dark lines where ridged noise peaks, plus the bedding partings
+    const cr = N.ridged(x * 4.2, y * 4.2, z * 4.2, 2);
+    let crack = smoothstep(0.84 - 0.12 * crackAmt, 0.97, cr) * crackAmt;
+    if (strata > 0) crack = Math.max(crack, 0.85 * bedding(p.x, p.y, p.z, x, y, z).groove * (1 - Math.abs(p.y / (r * squashY)) * 0.5));
+    return clamp(crack, 0, 1);
+  };
+
+  // 3. moss cushion: upward faces swell by the moss thickness (welded per position), so the cap
+  // reads as a thick pad sitting on the rock rather than a green tint
+  computeCreaseNormals(base, o.creaseDeg ?? 38);
+  if (mossThick > 0) {
+    const nrm0 = base.attributes.normal as Float32BufferAttribute;
+    const swell = new Map<string, [number, number, number]>();
+    for (let i = 0; i < count; i++) {
+      _p.fromBufferAttribute(pos, i);
+      const key = `${_p.x.toFixed(4)},${_p.y.toFixed(4)},${_p.z.toFixed(4)}`;
+      let s = swell.get(key);
+      if (!s) {
+        _n.fromBufferAttribute(nrm0, i);
+        // vertex-averaged direction (independent of which face we came from) → welded offset
+        const m = mossAt(_p, _n, crackAt(_p));
+        const k = mossThick * r * smoothstep(0.15, 0.7, m);
+        _n.set(_p.x, _p.y * 1.4, _p.z).normalize().lerp(_n, 0.5).normalize();
+        s = [_n.x * k, _n.y * k, _n.z * k];
+        swell.set(key, s);
+      }
+      pos.setXYZ(i, _p.x + s[0], _p.y + s[1], _p.z + s[2]);
+    }
+    pos.needsUpdate = true;
+  }
+
+  // 4. crease-angle normals on the final shape
   computeCreaseNormals(base, o.creaseDeg ?? 38);
 
-  // 4. colours + moss
+  // 5. colours + moss
   const nrm = base.attributes.normal as Float32BufferAttribute;
   const col = new Float32Array(count * 3);
   const moss = new Float32Array(count);
   const tint = o.tint ?? new Color(0.72, 0.72, 0.7);
-  const crackAmt = o.cracks ?? 0.6;
-  const mossAmt = o.moss ?? 0.6;
   const dirt = o.dirt ?? 0.5;
   const tmp = new Color();
-  const dark = new Color(0.3, 0.29, 0.27);
-  const soil = new Color(0.32, 0.26, 0.18);
+  const dark = new Color(0.22, 0.2, 0.17);
+  const soil = new Color(0.27, 0.21, 0.14);
   for (let i = 0; i < count; i++) {
     _p.fromBufferAttribute(pos, i);
     _n.fromBufferAttribute(nrm, i);
     const x = _p.x * freq + ox;
     const y = _p.y * freq + oy;
     const z = _p.z * freq + oz;
-    // tonal variation
+    // tonal variation, with the beds alternating slightly lighter / darker
     const v = N.fbm(x * 1.1 + 7, y * 1.1, z * 1.1, 2) * 0.5 + 0.5;
-    tmp.copy(tint).multiplyScalar(0.82 + 0.36 * v);
-    // cracks: thin dark lines where ridged noise peaks
-    const cr = N.ridged(x * 4.2, y * 4.2, z * 4.2, 2);
-    const crack = smoothstep(0.86 - 0.12 * crackAmt, 0.97, cr) * crackAmt;
-    tmp.lerp(dark, crack * 0.8);
-    // contact dirt at the base
+    let tone = 0.82 + 0.36 * v;
+    if (strata > 0) tone *= 1 + 0.08 * bedding(_p.x, _p.y, _p.z, x, y, z).step;
+    tmp.copy(tint).multiplyScalar(tone);
+    // cracks + bedding partings: dark
+    const crack = crackAt(_p);
+    tmp.lerp(dark, crack * 0.85);
+    // contact dirt at the base (darker, higher than before: the reference boulders sit in a
+    // shadowed collar of soil and moss)
     const h01 = clamp((_p.y + r * squashY) / (2 * r * squashY), 0, 1);
-    tmp.lerp(soil, dirt * (1 - smoothstep(0.05, 0.4, h01)));
+    tmp.lerp(soil, dirt * (1 - smoothstep(0.05, 0.45, h01)));
     col[i * 3] = tmp.r;
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
-    // moss: upward faces, noise patches, more in crevices (low ridged value), none right at the base
-    const up = smoothstep(0.0, 0.6, _n.y + 0.3 * N.fbm(x * 2.2, y * 2.2, z * 2.2, 2));
-    const patch = smoothstep(0.22, 0.62, N.fbm(x * 1.4 + 3, y * 1.4 - 5, z * 1.4, 3) * 0.5 + 0.5);
-    // a thin moss/lichen skin also creeps down the shaded sides (sideways normals, low patches)
-    const side = 0.35 * smoothstep(0.55, 0.85, patch) * smoothstep(-0.4, 0.2, _n.y);
-    moss[i] = clamp(mossAmt * (up * (0.45 + 0.75 * patch) + side) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.6), 0, 1);
+    moss[i] = mossAt(_p, _n, crack);
   }
   base.setAttribute('color', new Float32BufferAttribute(col, 3));
   base.setAttribute('aMoss', new Float32BufferAttribute(moss, 1));

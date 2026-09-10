@@ -27,8 +27,11 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     color: new Color(1, 1, 1),
   });
   mat.name = 'rock-triplanar';
-  const mossDeep = new Color(P.mossDeep);
-  const mossBright = new Color(P.mossBright);
+  // the boulder caps in the reference are an olive-brown moss (#70683b, R > G), not the yellow-green
+  // of the ground moss: pull both palette greens toward it
+  const cap = new Color(0x70683b);
+  const mossDeep = new Color(P.mossDeep).lerp(cap, 0.45);
+  const mossBright = new Color(P.mossBright).lerp(cap, 0.55);
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uMossDeep = { value: mossDeep };
     shader.uniforms.uMossBright = { value: mossBright };
@@ -103,6 +106,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'rock-triplanar-v2';
+  mat.customProgramCacheKey = () => 'rock-triplanar-v3';
   return mat;
 }

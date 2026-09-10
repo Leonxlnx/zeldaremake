@@ -337,9 +337,15 @@ export interface SlabOptions {
   rings?: number;
   /**
    * per-face luminance multiplier (local x,z of the face centre) — e.g. a worn nose highlight on
-   * the front bevel of a tread, grime toward the flanks; 1 = unchanged
+   * the front bevel of a tread, grime toward the flanks; 1 = unchanged. `edge` is 1 on the bevel
+   * and sides and falls toward 0 at the centre of the top face (for rim dirt / wear gradients).
    */
-  colorFn?: (x: number, z: number, part: 'top' | 'bevel' | 'side') => number;
+  colorFn?: (x: number, z: number, part: 'top' | 'bevel' | 'side', edge: number) => number;
+  /**
+   * smooth the bevel ring and the top face as one group so the rim rolls over softly (worn
+   * flagstone) instead of showing a hard crease between bevel and top (cut stair nosing)
+   */
+  softBevel?: boolean;
 }
 
 const _a = new Vector3();
@@ -369,8 +375,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const mossFn = o.mossFn ?? (() => 1);
   const topNoise = o.topNoise ?? (() => 0);
   const colorFn = o.colorFn;
-  const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1): [number, number, number] => {
-    const m = (colorFn ? colorFn(ax, az, part) : 1) * k;
+  const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1, edge = 1): [number, number, number] => {
+    const m = (colorFn ? colorFn(ax, az, part, edge) : 1) * k;
     return [base[0] * m, base[1] * m, base[2] * m];
   };
 
@@ -420,10 +426,10 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mE, mE2, mE2 * 0.7]);
     mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mE, mE2 * 0.7, mE * 0.7]);
   }
-  mb.smoothGroup();
+  if (!o.softBevel) mb.smoothGroup();
 
   // --- top: concentric rings toward the centroid, then a fan ---
-  mb.beginGroup();
+  if (!o.softBevel) mb.beginGroup();
   const ringPts: P2[][] = [];
   for (let r = 0; r <= rings; r++) {
     const s = 1 - r / (rings + 1);
@@ -450,7 +456,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       const m2 = mA * mossFn(q.x, q.z);
       const m3 = mB * mossFn(qi.x, qi.z);
       const m4 = mB * mossFn(pi.x, pi.z);
-      const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4) : col;
+      const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4, 1, (sA + sB) / 2) : col;
       mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3]);
       mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4]);
     }
@@ -465,7 +471,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _a.set(p.x, topY(p, sL), p.z);
     _b.set(q.x, topY(q, sL), q.z);
     const mL = mossInner * mossFn(p.x, p.z);
-    const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3) : col;
+    const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2) : col;
     mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mL, mC]);
   }
   mb.smoothGroup();
