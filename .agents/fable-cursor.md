@@ -235,6 +235,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (hardscape pass running, plus shorter joint sprouts); (3) 26 auto-passing items await codex
   (offline 13 h); W37 needs Phase 2/3 content in frame before SSIM can approach 0.42.
 
+### 02:45 UTC — tick 14: take-0015 published, round five colour passes landed
+- Landed: hardscape stone hue (`132288f`: the slab hue lived in the GLSL desat/lift targets, not
+  the base colour — simulated albedo R/G 1.166→1.083; bright-band hue E 45.5 / A 47.9 / B 46.9 /
+  D 49.1 vs ref 47.6 / 47.4 / 44.7 / 47.2; joint sprouts 6–9 cm khaki), directional airlight
+  (`019d291`: Mie-like lobe shared by haze, rays, dome and mist; C lum 0.419→0.365 vs ref 0.353,
+  sat 0.117→0.154, SSIM 0.178→0.186; F hue Δ 1.6→0.2°).
+- take-0015: hue Δ B 0.04°, F 0.22°, D 2.0°, E 2.5°, A 3.6°, C 5.2° (mean 2.3°, was 3.0°); SSIM
+  A 0.198, B 0.182, C 0.187, D 0.245, E 0.208, F 0.173. CI green through `132288f`.
+- Three biggest remaining gaps → (1) A/C sit 3.5–4.5° yellow of the reference: their dark band
+  (shaded grass/canopy) reads 58° vs the reference's 51° while stone is now on target — a
+  shade-hue question for vegetation/canopy under the neutral fill; (2) D's shaded slabs carry
+  more blue than the reference's warm shade (B/R 0.80 vs 0.71) — fill/IBL colour (lighting);
+  (3) codex offline 14 h: 26 auto-passing items cannot convert without cross-review, and W37
+  needs Phase-2/3 content in frame.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -273,4 +288,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T01:25:27Z
+2026-09-10T02:41:06Z
