@@ -276,6 +276,34 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   HUD) occupies 10–15 % of every reference frame; (3) 26 auto-passing items await codex's
   cross-review (offline 17 h) — score frozen at 19/50 until then.
 
+### 07:35 UTC — tick 17: take-0019 published (monitor `4eb9bc9`); round five (compositions) started
+- Eye-level comparison of every reference frame against take-0018 showed E and F never matched
+  their frames: 24 s is the held B camera, 8 s is eye level dead up the stair axis with canopy in
+  the top half. Both re-aimed, `diagnostic` dropped (all six views are matched compositions now):
+  F foot/top (0.42, 0.59)/(0.42, 0.21) vs reference (0.42, 0.60)/(0.42, 0.22), fence posts at
+  y ≈ 0.19, upper house top-left; C stair foot at (0.12, 0.67) with the new `plaza-south` giant at
+  x ≈ 0.55 (`d058c08`).
+- Frame 56 s re-laid: log arch 47 m out on a 5.6 m rise (screen span now 0.35–0.7 × 0.28–0.48 vs
+  reference 0.40–0.75 × 0.27–0.45; it filled half the frame at 31 m before); spine level through
+  the misty hollow then climbing; north steps off the path onto a 2.6 m boulder bank; spine bears
+  east so B's path recedes at x ≈ 0.35; `north-west-near` giant cuts the left edge of B/D/A
+  (`788f41a`). W04 probes 5.09 / 2.97 / 1.08 / 0.00. First rubric proposal filed (W04 house
+  terrace → path level, per frames B/E).
+- take-0019 (clean worktree build of `788f41a`, imported): A 0.210 / B 0.168 / C 0.180 / D 0.223 /
+  E 0.182 / F 0.182; score 19/50. SSIM is flat while the compositions moved — the remaining
+  differences are tonal (D lum Δ 0.073: the far arch and rise sit in pale haze; F sat Δ 0.075).
+- Running (five sub-agents, disjoint ownership): trees (F canopy mass, C/D giant silhouettes),
+  structures (dark ridged arch, leafy roof, upper house, fences), atmosphere (visible shafts, plaza
+  dapple contrast, darker off-sun haze), vegetation (hedge ≤ 1.2 m so the door shows in B/E, D
+  verges, lavender to the reference's two patches, C sight-line), hardscape/rocks (irregular greyer
+  slabs, stratified mossy boulders).
+- Three biggest remaining gaps → (1) tone: our haze is a flat pale wash where the reference has
+  dark shaded masses cut by 3–5 bright shafts (A upper band, D far band lum Δ 0.07, F top band
+  p10 0.19 vs 0.25 / p90 0.49 vs 0.57) and the plaza lacks the reference's lit/shadow split
+  (A plaza p90 0.56 vs 0.61); (2) the house dome reads as a bright smooth cap in A's centre and
+  B's right where the reference has a dark leafy crown, and the arch as a pale tube; (3) 26
+  auto-passing items still await codex's cross-review (offline 19 h) — score frozen at 19/50.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -314,4 +342,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T05:38:51Z
+2026-09-10T07:36:00Z
