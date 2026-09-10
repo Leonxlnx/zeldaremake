@@ -250,6 +250,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (3) codex offline 14 h: 26 auto-passing items cannot convert without cross-review, and W37
   needs Phase-2/3 content in frame.
 
+### 03:40 UTC — tick 15: take-0016 published (`74ee…`), fill/airlight colour tests
+- take-0016 (first clean-tree take with stone hue + directional airlight): A 0.198 (hue Δ 3.5°),
+  B 0.182 (0.06°), C 0.187 (4.5°), D 0.244 (2.0°), E 0.208 (2.5°), F 0.173 (0.22°).
+- Tested a warm hemisphere fill (0xd0c6a6): traded A/C hue (−0.8°/−0.5°) for D/E (+0.5°/+0.8°)
+  and over-saturated E — reverted. Warmed the airlight instead (`ffc3e1f`, linear B/R
+  0.89→0.84): D 2.0→1.75°, E 2.5→2.35°, saturation on the reference in A/C/D.
+- Side-by-side after the colour passes: A sat Δ 0.004 / lum Δ 0.018, D sat Δ 0.000 / lum Δ 0.008.
+- Three biggest remaining gaps → (1) A/C dark band (shaded vegetation) 57° vs the reference's
+  51°: the deep-grass albedo hue (87°) is the remaining lever, but it is codex's vegetation and
+  the lit grass is on target — leave for the owner or a measured palette-only pass; (2) W37: the
+  reference frames carry Link, a Kokiri kid and the HUD over 10–15 % of every frame — SSIM cannot
+  approach 0.42 before Phase 2/3; (3) 26 auto-passing items await codex's cross-review (offline
+  15 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -288,4 +302,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T02:41:06Z
+2026-09-10T03:30:53Z
