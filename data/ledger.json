@@ -2044,6 +2044,116 @@
       },
       "prevHash": "sha256:3534fab503ca1f433a0cc546d6d77a4927beca9c96a8da317ca2d45b14108587",
       "hash": "sha256:ecbf9694a004ab933ee5502d33a0688b49f203f199459a0d91d5f2357fe127a7"
+    },
+    {
+      "id": "take-0020",
+      "number": 20,
+      "at": "2026-09-10T08:44:44.241Z",
+      "sha": "2c2fb58b1726a976a92781242e9ef5b8ba723e85",
+      "shortSha": "2c2fb58",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "trees + structures: round-five passes",
+      "agent": "fable-cursor",
+      "items": [
+        "W10",
+        "W12",
+        "W20",
+        "W25",
+        "W29"
+      ],
+      "note": "Trees and structures passes against the frames. Frame 46 s: the centre tree is a hazed bole at x 0.50–0.62 with a Y-fork of spreading limbs — plaza-south moved to 30 m with authored spread limbs (fork y≈0.26, tips ≈(0.37,0.12)/(0.75,0.13)); its trunk box lum 0.359 vs reference 0.388 (was 0.432 as a sharp dark bole at 20 m). Frame 56 s: the left-edge trunk read 0.19 wide with a flared root; slimmed to ≈0.12 (reference 0.11–0.12). Frame 8 s: the reference's top-right is dense canopy (lum 0.35) where we had pale haze (0.38→0.31 after east-giant drooping limbs) and the top-centre gap now reads 0.497 vs 0.483; white-bark crowns reseated out of the gap. Frame 14 s: Saria's roof is a leaf-shrouded crown with hanging vines and a broken dark limb, three pods on short vines just left of the door — B roof box lum 0.388 vs reference 0.384 (was 0.273 as a smooth moss cap), A centre box 0.400 vs 0.396 (was 0.317). Log arch rebuilt with deep ridged bark, fissures, moss cap, splintered rims and a near-black hollow; fence posts weathered two-rail. Still open: the far arch is a pale ghost in our haze where the reference's is a dark silhouette (atmosphere pass running), the hedge still hides the door threshold in B/E (vegetation pass running).",
+      "score": {
+        "passed": 19,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "pending",
+          "W26": "pending",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "fail",
+          "C02": "pending",
+          "C03": "fail",
+          "C04": "fail",
+          "C05": "fail",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:4a45a87e5f59eb057f3f028046821f28864b0bd8e25433bc5813983d3e913c21",
+        "B_house": "sha256:3cb01ed32982a406571c48f68021ee6cfd60d5301e243775bc568f11da3420b3",
+        "C_lookback": "sha256:7ecd90070f71c4bff729efa7e66fb46623ba8ced8a158f2ef26f2aa24eecbdb2",
+        "D_log": "sha256:18902584d9fa062c7d9f9cdbb40941e9e1f52001b33915b354cf79e0204961a3",
+        "E_ground": "sha256:3cb01ed32982a406571c48f68021ee6cfd60d5301e243775bc568f11da3420b3",
+        "F_canopy": "sha256:dd4eccf1f79d35714539e8860f18f6db8ff1c3b1cdb8a1a84681670fd2ad7c04"
+      },
+      "distHash": "sha256:ea435116ab090e7538d90b243d8976aca4646edd65178077f5136ed2393142a3",
+      "stats": {
+        "drawCalls": 393,
+        "triangles": 6725391,
+        "captureMs": 834828,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W10",
+        "W12"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take20-cap",
+        "importedAt": "2026-09-10T08:46:03.520Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:ecbf9694a004ab933ee5502d33a0688b49f203f199459a0d91d5f2357fe127a7",
+      "hash": "sha256:836a013cad9217404d191bee5f6ff3bcf9af88d5b82de0c0a58b99b13b25eb04"
     }
   ]
 }
