@@ -9,7 +9,11 @@ import type { WorldConfig } from '../config';
 
 export const ROCK_SET = 'rock_boulder_cracked';
 
-export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4) {
+/**
+ * @param shade overall albedo multiplier (rock and moss alike) — the big terrace boulder in
+ *   shot A reads darker than the small stair-foot ones in the reference
+ */
+export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1) {
   const [color, normal, rough] = await Promise.all([
     textures.load(ROCK_SET, 'color', { anisotropy }),
     textures.load(ROCK_SET, 'normal', { anisotropy }),
@@ -25,9 +29,9 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     roughness: 0.92,
     metalness: 0,
     vertexColors: true,
-    color: new Color(1, 1, 1),
+    color: new Color(shade, shade, shade),
   });
-  mat.name = 'rock-triplanar';
+  mat.name = shade === 1 ? 'rock-triplanar' : `rock-triplanar-shade${shade}`;
   // the boulder caps in the reference are an olive-brown moss (#70683b, R > G), not the yellow-green
   // of the ground moss: pull both palette greens toward it
   const cap = new Color(0x70683b);
@@ -79,7 +83,8 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           // moss keeps the rock's pitting; blend is near-opaque where the coverage is full. The
           // reference caps are a muted olive (#70683b), so the lift stays modest.
           float ln = clamp(l / 0.3, 0.0, 1.8);
-          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.74 + 0.34 * ln);
+          // the material colour is the per-rock shade and applies to the moss cap as well
+          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.74 + 0.34 * ln) * diffuse;
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.03, 0.85, clamp(vMossR, 0.0, 1.0)));
         }`,
       )
@@ -110,6 +115,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'rock-triplanar-v5';
+  mat.customProgramCacheKey = () => 'rock-triplanar-v6';
   return mat;
 }

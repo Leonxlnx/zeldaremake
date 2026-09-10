@@ -62,6 +62,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const P = ctx.config.palette;
   const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy();
   const material = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4);
+  // the stair-foot boulder at the right edge of shot A (the mossy rock the Kokiri kid stands
+  // beside): the reference reads it at lum ≈ 0.26 (box (0.82,0.60)-(0.98,0.70)) where the shared
+  // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
+  // moving it
+  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.78);
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
@@ -117,7 +122,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const height = 2 * r * squash;
     const sink = 0.15 * height;
     const cy = ground + r * squash * 0.62 - sink; // flat-ish bottom is at -0.62·r·squash
-    const mesh = new Mesh(geo, material);
+    const mesh = new Mesh(geo, b.id === 'stair-foot' ? stairFootMaterial : material);
     mesh.position.set(b.position[0], cy, b.position[2]);
     mesh.rotation.y = bRng.range(0, Math.PI * 2);
     mesh.castShadow = true;

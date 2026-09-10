@@ -94,37 +94,129 @@ function buildTuft(rng: Rng, blades: number, height: number, spread: number, dee
   return g;
 }
 
+/** clover: three short stalks, each carrying three round leaflets (reference joints show clover among the grass tufts) */
+function buildClover(rng: Rng, height: number, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const tmp = new Color();
+  const push = (p: number[], n: number[], c: Color, wf: number, phase: number) => {
+    pos.push(p[0], p[1], p[2]);
+    nrm.push(n[0], n[1], n[2]);
+    col.push(c.r, c.g, c.b);
+    wind.push(wf, phase);
+    uv.push(0, wf);
+  };
+  const stalks = 3;
+  for (let s = 0; s < stalks; s++) {
+    const ang = (s / stalks) * Math.PI * 2 + rng.range(-0.5, 0.5);
+    const h = height * rng.range(0.7, 1.15);
+    const lean = rng.range(0.008, 0.02);
+    const phase = rng();
+    const bx = rng.range(-0.015, 0.015);
+    const bz = rng.range(-0.015, 0.015);
+    const tx = bx + Math.cos(ang) * lean;
+    const tz = bz + Math.sin(ang) * lean;
+    // stem: one thin quad
+    const sw = 0.0025;
+    const px = -Math.sin(ang) * sw;
+    const pz = Math.cos(ang) * sw;
+    tmp.copy(deep);
+    const stem = [
+      [bx - px, 0, bz - pz],
+      [bx + px, 0, bz + pz],
+      [tx + px, h, tz + pz],
+      [tx - px, h, tz - pz],
+    ];
+    const sn = [0, 0.7, 0];
+    push(stem[0], sn, tmp, 0, phase);
+    push(stem[1], sn, tmp, 0, phase);
+    push(stem[2], sn, tmp, 1, phase);
+    push(stem[0], sn, tmp, 0, phase);
+    push(stem[2], sn, tmp, 1, phase);
+    push(stem[3], sn, tmp, 1, phase);
+    // three leaflets, slightly cupped, around the stalk top
+    const r = height * rng.range(0.28, 0.4);
+    for (let l = 0; l < 3; l++) {
+      const la = ang + (l / 3) * Math.PI * 2 + rng.range(-0.3, 0.3);
+      const cx = tx + Math.cos(la) * r * 0.9;
+      const cz = tz + Math.sin(la) * r * 0.9;
+      const cy = h + 0.004 + rng.range(-0.002, 0.002);
+      const ux = Math.cos(la) * r * 0.55;
+      const uz = Math.sin(la) * r * 0.55;
+      const vx = -Math.sin(la) * r * 0.5;
+      const vz = Math.cos(la) * r * 0.5;
+      const droop = 0.004;
+      const n = [Math.cos(la) * 0.25, 0.95, Math.sin(la) * 0.25];
+      // diamond leaflet: centre + four rim points, rim drooping a little
+      const c0 = [cx, cy, cz];
+      const rim = [
+        [cx - ux, cy - droop, cz - uz],
+        [cx + vx, cy - droop, cz + vz],
+        [cx + ux, cy - droop, cz + uz],
+        [cx - vx, cy - droop, cz - vz],
+      ];
+      for (let k = 0; k < 4; k++) {
+        tmp.copy(light).lerp(deep, 0.15);
+        push(c0, n, tmp, 1, phase);
+        tmp.copy(deep).lerp(light, 0.35);
+        push(rim[k], n, tmp, 1, phase);
+        push(rim[(k + 1) % 4], n, tmp, 1, phase);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** sprouts collapse to their base beyond this camera distance (a LOD cull without extra draw calls) */
+export const SPROUT_LOD_FAR = 25;
+
 export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStandardMaterial {
   const mat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, side: DoubleSide });
   mat.name = 'joint-sprouts';
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uSproutLodFar = { value: SPROUT_LOD_FAR };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind;`)
+      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; uniform float uSproutLodFar;`)
       .replace(
         '#include <project_vertex>',
         /* glsl */ `
-        vec4 wp = modelMatrix * instanceMatrix * vec4(transformed, 1.0);
-        wp.xyz += windGrass(wp.xyz, aWind.x, aWind.y, 0.3);
+        // LOD: tufts further than uSproutLodFar from the camera shrink onto their base point over
+        // the last 4 m, so distant joints cost no fill and the near ones keep their blades
+        vec3 sproutBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+        float sproutLod = 1.0 - smoothstep(uSproutLodFar - 4.0, uSproutLodFar, distance(sproutBase, cameraPosition));
+        vec4 wp = modelMatrix * instanceMatrix * vec4(transformed * sproutLod, 1.0);
+        wp.xyz += windGrass(wp.xyz, aWind.x, aWind.y, 0.3) * sproutLod;
         vec4 mvPosition = viewMatrix * wp;
         gl_Position = projectionMatrix * mvPosition;`,
       );
   };
-  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v1';
+  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v2-lod';
   return wind.bind(mat);
 }
 
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig): { meshes: InstancedMesh[]; count: number } {
-  // Reference (E close-up): short, sparse tufts in the joints, ≈ 5–8 cm, young shoots a shade
-  // lighter than the khaki grass — not lime blades standing 15–25 cm proud of the slabs.
-  const deep = new Color(config.palette.mossBright).lerp(new Color(config.palette.grassMid), 0.35);
-  const light = new Color(config.palette.grassLight).lerp(new Color(0xb9c26a), 0.6);
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig): { meshes: InstancedMesh[]; count: number; variants: number } {
+  // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
+  // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
+  const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
+  const light = new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.45);
   const variants = [
-    buildTuft(rng.fork('tuft-a'), 6, 0.06, 0.03, deep, light),
-    buildTuft(rng.fork('tuft-b'), 8, 0.09, 0.045, deep, light),
-    buildTuft(rng.fork('tuft-c'), 5, 0.045, 0.025, deep, light),
+    buildTuft(rng.fork('tuft-a'), 7, 0.08, 0.035, deep, light),
+    buildTuft(rng.fork('tuft-b'), 9, 0.11, 0.05, deep, light),
+    buildTuft(rng.fork('tuft-c'), 5, 0.065, 0.03, deep, light),
+    buildClover(rng.fork('clover'), 0.05, deep, light),
   ];
   const lists: SproutSpot[][] = variants.map(() => []);
-  for (const s of spots) lists[s.size > 0.66 ? 1 : s.size > 0.33 ? 0 : 2].push(s);
+  for (const s of spots) lists[s.size > 0.7 ? 1 : s.size > 0.42 ? 0 : s.size > 0.2 ? 2 : 3].push(s);
   const meshes: InstancedMesh[] = [];
   const m = new Matrix4();
   const p = new Vector3();
@@ -137,12 +229,12 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     if (!list.length) return;
     const im = new InstancedMesh(variants[v], material, list.length);
     list.forEach((s, i) => {
-      const k = 0.8 + rng.range(0, 0.4);
+      const k = 0.9 + rng.range(0, 0.2);
       p.set(s.x, s.y - 0.01, s.z);
       q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
-      sc.set(k, k * rng.range(0.85, 1.15), k);
+      sc.set(k, k * rng.range(0.9, 1.1), k);
       im.setMatrixAt(i, m.compose(p, q, sc));
-      c.setRGB(0.85 + rng.range(0, 0.3), 0.85 + rng.range(0, 0.3), 0.8 + rng.range(0, 0.25));
+      c.setRGB(0.78 + rng.range(0, 0.25), 0.8 + rng.range(0, 0.25), 0.75 + rng.range(0, 0.2));
       im.setColorAt(i, c);
     });
     im.instanceMatrix.needsUpdate = true;
@@ -154,5 +246,5 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     meshes.push(im);
     count += list.length;
   });
-  return { meshes, count };
+  return { meshes, count, variants: variants.length };
 }

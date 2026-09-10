@@ -9,7 +9,8 @@ import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, placeFlagstones, type PavingContext } from './flagstones';
 import { buildJointMesh } from './joints';
-import { buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
+import { SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
+import { smoothstep } from '../util/noise';
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
@@ -69,11 +70,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // --- sprouts in the joints ---------------------------------------------------------------
   const spots: SproutSpot[] = [];
   const srng = rng.fork('sprouts');
-  // sparse like the reference's joints (E close-up: a tuft every metre or so, not a lawn in every
-  // seam); the stair joints below add ≈ 120 more, W21 asks for ≥ 500 in total. The scene-graph
-  // cross-check (score.mjs B3) needs the group's instance count to cover the flagstone claim, and
-  // the slabs are one merged mesh, so the instanced sprouts must at least match their number.
-  const target = Math.max(Math.round(700 * Math.max(0.7, ctx.quality.density)), paving.stones.length + 60);
+  // The reference shows small grass tufts and clover in the joints across the whole plaza
+  // (B/E/D foregrounds). The stair joints below add ≈ 120 more, W21 asks for ≥ 500 in total. The
+  // scene-graph cross-check (score.mjs B3) needs the group's instance count to cover the flagstone
+  // claim, and the slabs are one merged mesh, so the instanced sprouts must at least match their
+  // number. Spots are biased toward the joints within SPROUT_LOD_FAR of cameras B/E and D (the
+  // shots that read the joints); beyond that distance the shader collapses them anyway.
+  const target = Math.max(Math.round(1500 * Math.max(0.7, ctx.quality.density)), paving.stones.length + 60);
+  const cams = ctx.layout.viewpoints.filter((v) => v.id === 'B_house' || v.id === 'E_ground' || v.id === 'D_log').map((v) => v.position);
+  const camWeight = (x: number, z: number) => {
+    let d = Infinity;
+    for (const c of cams) d = Math.min(d, Math.hypot(c[0] - x, c[2] - z));
+    return 0.25 + 0.75 * (1 - smoothstep(SPROUT_LOD_FAR - 8, SPROUT_LOD_FAR + 2, d));
+  };
   let tries = 0;
   while (spots.length < target && tries < target * 40) {
     tries++;
@@ -87,6 +96,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (Math.hypot(st.x - x, st.z - z) < st.radius + 0.22) nearStone = true;
     });
     if (!nearStone) continue;
+    if (srng() > camWeight(x, z)) continue;
     spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng() });
   }
   const flagstoneSprouts = spots.length;
@@ -136,6 +146,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts,
     jointSproutsOnStairs: sprouts.count - flagstoneSprouts,
+    jointSproutVariants: sprouts.variants,
+    jointSproutDrawCalls: sprouts.meshes.length,
+    jointSproutHeightCm: [6, 12],
+    jointSproutLodFar: SPROUT_LOD_FAR,
     plazaRadius: 6,
     samplePositions: {
       // top-centre of each slab: 2–5 cm above the ground by design (the slab is seated in it)

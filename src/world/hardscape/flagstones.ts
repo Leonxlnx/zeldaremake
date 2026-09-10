@@ -428,25 +428,40 @@ interface Seed {
   big: boolean;
 }
 
-/** lattice spacing (m) in the damp band: stones come out 0.6–1.0 m across after jitter and joints */
-const SPACING = 0.88;
-/** coarse lattice for the open paving: 0.7–1.3 m slabs (reference A/D/F foregrounds) */
-const OPEN_SPACING = 0.95;
-/** rim lattice spacing (m): 0.3–0.55 m stones along the paved edge */
+/** lattice spacing (m) in the damp band: stones come out 1.0–1.4 m across after jitter and joints */
+const SPACING = 1.3;
+/** coarse lattice for the north path (camera D's foreground): 1.0–1.5 m slabs */
+const OPEN_SPACING = 1.2;
+/** lattice for the open plaza south of the spawn (reference A/F foregrounds): 0.8–1.2 m slabs */
+const SOUTH_SPACING = 0.95;
+/** rim lattice spacing (m): 0.35–0.5 m stones along the paved edge */
 const RIM_SPACING = 0.46;
 
 /**
  * The damp band: where the path leaves the plaza northward under the canopy (reference B/E
- * foreground, camera B's lower quarter is z ≈ −1.5 → −5.5) the stones are smaller (0.5–0.9 m),
- * darker, greyer and mossier, set in wide soil joints. Everywhere else — the open plaza south
- * of the spawn (A/F) and the north path beyond the band (camera D's foreground, z ≈ −6.6 → −11)
- * — the paving is big pale 0.8–1.5 m slabs with thin joints. Returns 1 inside the band, 0 outside.
+ * foreground, camera B's lower quarter is z ≈ −1.5 → −5.5) the stones are darker, greyer and
+ * mossier, set in wider soil joints. Everywhere else — the open plaza south of the spawn (A/F)
+ * and the north path beyond the band (camera D's foreground, z ≈ −6.6 → −11) — the paving is
+ * pale with thin joints. The reference's B/D foreground slabs measure 1–1.5 m, so both lattices
+ * are coarse; only the rim fringe stays small. Returns 1 inside the band, 0 outside.
  */
 function dampBand(z: number) {
   return smoothstep(0.8, -1.8, z) * smoothstep(-6.3, -4.8, z);
 }
 
-/** camera D's foreground path (reference D: three or four 1.5 m slabs fill the bottom quarter) */
+/**
+ * the open plaza south of the spawn (cameras A/F look across it): 1 there, 0 on the north path.
+ * Camera B's frame bottom is z ≈ −1.5 → −0.5, so the ramp sits north of z = 1 and B's foreground
+ * keeps the big damp-band and north-path stones.
+ */
+function southPlaza(z: number) {
+  return smoothstep(-1.0, 1.0, z);
+}
+
+/**
+ * camera D's foreground path (reference D: three or four 1–1.5 m slabs fill the bottom quarter,
+ * clearly domed, set in wide dark soil joints)
+ */
 function dForeground(z: number) {
   return smoothstep(-5.5, -7.0, z) * smoothstep(-13, -10.5, z);
 }
@@ -487,34 +502,38 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     seeds.push({ x, z, rim, big: false });
     return seeds.length - 1;
   };
-  // coarse open-paving lattice first (its seeds win the min-distance test), then the base
-  // lattice, thinned to ~15 % where the coarse lattice rules so a few small stones sit among the
-  // big slabs
-  const sRowH = (OPEN_SPACING * Math.sqrt(3)) / 2;
-  const slat = rng.fork('south-lattice');
-  for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += sRowH, row++) {
-    for (let x = bbox.x0 - pad + (row & 1 ? OPEN_SPACING / 2 : 0); x <= bbox.x1 + pad; x += OPEN_SPACING) {
-      const jr = 0.5 * OPEN_SPACING * Math.sqrt(slat());
-      const ja = slat.range(0, Math.PI * 2);
-      const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
-      const u = slat();
-      const big = slat.chance(0.07);
-      const open = 1 - dampBand(wz);
-      // thin the lattice on D's foreground path so the remaining cells grow to 1.2–1.6 m
-      const dz = dForeground(wz);
-      const id = tryAdd(wx, wz, 0.3, (rim) => rim >= 0.45 && u <= open * (1 - 0.55 * dz * smoothstep(0.8, 1.4, rim)));
-      // a few 1.2–1.4 m slabs down the path centre (reference D foreground)
-      if (id >= 0 && big && seeds[id].rim >= 1.4) bigCandidates.push(id);
+  // open-paving lattices first (their seeds win the min-distance test): a 0.95 m one for the
+  // south plaza (A/F foreground) and a coarser 1.2 m one for the north path (D foreground); then
+  // the base lattice, thinned to ~15 % where they rule so a few small stones sit among the slabs
+  const openLattice = (spacing: number, forkName: string, regionW: (z: number) => number) => {
+    const rowH = (spacing * Math.sqrt(3)) / 2;
+    const slat = rng.fork(forkName);
+    let r = 0;
+    for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rowH, r++) {
+      for (let x = bbox.x0 - pad + (r & 1 ? spacing / 2 : 0); x <= bbox.x1 + pad; x += spacing) {
+        const jr = 0.5 * spacing * Math.sqrt(slat());
+        const ja = slat.range(0, Math.PI * 2);
+        const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
+        const u = slat();
+        const big = slat.chance(0.04);
+        const open = (1 - dampBand(wz)) * regionW(wz);
+        // thin the lattice on D's foreground path so the remaining cells grow to 1.2–1.6 m
+        const dz = dForeground(wz);
+        const id = tryAdd(wx, wz, 0.3, (rim) => rim >= 0.45 && u <= open * (1 - 0.3 * dz * smoothstep(0.8, 1.4, rim)));
+        // a few 1.5–1.8 m slabs down the path centre (reference D foreground)
+        if (id >= 0 && big && seeds[id].rim >= 1.4) bigCandidates.push(id);
+      }
     }
-  }
-  row = 0;
+  };
+  openLattice(SOUTH_SPACING, 'south-lattice', southPlaza);
+  openLattice(OPEN_SPACING, 'north-lattice', (z) => 1 - southPlaza(z));
   for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rowH, row++) {
     for (let x = bbox.x0 - pad + (row & 1 ? SPACING / 2 : 0); x <= bbox.x1 + pad; x += SPACING) {
       const jr = 0.5 * SPACING * Math.sqrt(lat());
       const ja = lat.range(0, Math.PI * 2);
       const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
       const thin = lat();
-      const big = lat.chance(0.065);
+      const big = lat.chance(0.04);
       const open = 1 - dampBand(wz);
       // thin the base lattice where the rim lattice takes over, and where the coarse lattice
       // rules (none at all on D's foreground path so its slabs stay big)
@@ -535,7 +554,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       const u = rlat();
       // the open paving's edge keeps its big slabs: only a thin fringe of small stones there
       const keep = 1 - 0.4 * (1 - dampBand(wz));
-      if (tryAdd(wx, wz, 0.32, (rim) => rim >= 0.12 && u <= smoothstep(1.1, 0.4, rim) * keep) >= 0) stats.rim++;
+      if (tryAdd(wx, wz, 0.32, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep) >= 0) stats.rim++;
     }
   }
   // big stones: the candidate eats up to two neighbours within ~0.75 spacing
@@ -544,7 +563,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (!active[id]) continue;
     const s = seeds[id];
     const near: { id: number; d: number }[] = [];
-    const eat = (dampBand(s.z) > 0.5 ? SPACING : OPEN_SPACING) * 0.78;
+    const eat = (dampBand(s.z) > 0.5 ? SPACING : southPlaza(s.z) > 0.5 ? SOUTH_SPACING : OPEN_SPACING) * 0.78;
     grid.near(s.x, s.z, eat, (o) => {
       if (o === id || !active[o]) return;
       const d = Math.hypot(seeds[o].x - s.x, seeds[o].z - s.z);
@@ -658,26 +677,34 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (cell.length < 3) return;
     const sc = centroid(cell);
     const s = { x: sc.x, z: sc.z };
+    // every per-stone draw comes from a stream keyed on the stone's position (2 cm cells), so a
+    // stone's shape and tint stay put when the lattice changes elsewhere on the plaza — box
+    // means then move with the region factors below instead of re-rolling every tint
+    const srng = rng.fork(`stone/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
     // reference joints are 5–10 cm of soil, wider where the paving is old (macro noise)
     const jointN = wearN.fbm(s.x * 0.3 + 11, s.z * 0.3 - 4, 2) * 0.5 + 0.5;
-    const ea = rng.range(0.01, 0.026);
-    // 1 on the open paving (big flat slabs, thin joints), 0 in the damp band
-    const open = 1 - dampBand(s.z);
+    const ea = srng.range(0.01, 0.026);
+    // 1 on the flat open plaza (big flush slabs, thin joints), 0 in the damp band and on camera
+    // D's foreground path, whose reference slabs are clearly domed in wide dark soil joints
+    const open = 1 - Math.max(dampBand(s.z), 0.85 * dForeground(s.z));
     // shoulder and fillet scale with the stone (a 40 cm stone has a 3 cm roll, an 80 cm one 5 cm)
     const size = Math.sqrt(Math.abs(polygonArea(cell)));
     // the geometric gap is 4–8 cm (3–6 cm between the big open-paving slabs); the rolled
     // shoulders and the sunk side walls add ~2 cm of visual joint on each side, so the rendered
     // seam reads 5–10 cm like the reference
     const style: OutlineStyle = {
-      joint: (0.035 + 0.03 * jointN + rng.range(0, 0.01)) * (1 - 0.35 * open),
-      shoulder: clamp(0.055 * size, 0.022, 0.042) * rng.range(0.85, 1.15),
-      fillet: clamp(0.15 * size, 0.055, 0.12) * rng.range(0.8, 1.2),
+      // the damp band's seams are the widest (reference B/E foreground: 8–12 cm of soil and moss
+      // between the stones — its plaza box has the same dark and bright tones as ours but more
+      // of its area is joint)
+      joint: (0.035 + 0.03 * jointN + srng.range(0, 0.01)) * (1 - 0.35 * open) + 0.015 * dampBand(s.z),
+      shoulder: clamp(0.055 * size, 0.022, 0.042) * srng.range(0.85, 1.15),
+      fillet: clamp(0.15 * size, 0.055, 0.12) * srng.range(0.8, 1.2),
       erosion: ea,
       erodeFn: (x, z) => wearN.fbm((x + s.x) * 5.5 + 21, (z + s.z) * 5.5 - 9, 2) * 0.5 + 0.5,
     };
     // work in seed-local coordinates (the stone is built around its centroid, then placed)
     const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
-    const outline = cellToOutline(local, style, rng);
+    const outline = cellToOutline(local, style, srng);
     if (!outline) {
       stats.skippedSmall++;
       return;
@@ -713,15 +740,15 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     nAcc.lerp(up, 0.5).normalize();
     // the shoulder rolls down 1.2–2 cm to the outer edge; the top domes another 0.5–2.6 cm above
     // the shoulder — some stones nearly flat, some clearly cushioned (2–4.5 cm crown in all)
-    const bevel = rng.range(0.012, 0.02);
-    const crown = (rng.chance(0.35) ? rng.range(0.005, 0.012) : rng.range(0.012, 0.026)) * (1 - 0.45 * open);
-    let thickness = rng.range(0.09, 0.12);
+    const bevel = srng.range(0.012, 0.02);
+    const crown = (srng.chance(0.35) ? srng.range(0.005, 0.012) : srng.range(0.012, 0.026)) * (1 - 0.45 * open);
+    let thickness = srng.range(0.09, 0.12);
     // the outer edge stands 2–3.2 cm proud of the mean ground (joint fill is at +0.8 cm) so the
     // joints read as sunk soil channels 1.5–2.5 cm deep between the stones; from the low cameras
     // every centimetre of shaded side wall reads as ~3 cm of dark joint, so the big open-paving
     // slabs sit flusher (reference A/D: soft seams, no dark lines). The edge must clear the fill
     // on the uphill side and never float > 3 cm on the downhill side.
-    const exposed = rng.range(0.016, 0.026) * (1 - 0.35 * open);
+    const exposed = srng.range(0.016, 0.026) * (1 - 0.35 * open);
     if (hMax - hMin > 0.28) {
       // a slab cannot sit across a step this high (terrace lips, bank feet): leave soil here
       stats.skippedSteep++;
@@ -748,30 +775,36 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // stones are darker, greyer and mossier (reference B foreground, lum ≈ 0.46). Path edges
     // (small rim stones) are damper than the path centre too.
     const damp = clamp(0.7 * dampBand(s.z) + 0.3 * smoothstep(1.6, 0.4, seed.rim), 0, 1);
-    const grey = rng.chance(0.2 + 0.15 * damp);
-    const darkWarm = !grey && rng.chance(0.13);
-    let lum = 0.9 + 0.14 * tn + rng.range(-0.12, 0.12) + (seed.big ? 0.05 : 0);
+    const grey = srng.chance(0.2 + 0.15 * damp);
+    const darkWarm = !grey && srng.chance(0.13);
+    let lum = 0.9 + 0.14 * tn + srng.range(-0.12, 0.12) + (seed.big ? 0.05 : 0);
     if (grey) lum *= 0.93;
     if (darkWarm) lum *= 0.78;
-    lum *= 1 - 0.23 * damp;
-    const hueK = rng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0);
+    // (measured at renderer exposure 1.0: the B plaza box rendered 0.52 against the reference's
+    // 0.46 with a 0.25 damp factor, the A plaza box 0.54 against 0.52)
+    lum *= 1 - 0.34 * damp;
+    lum *= 1 - 0.06 * southPlaza(s.z);
+    // camera D's foreground is the most trodden stretch of the path: its slab tops are the palest
+    // (reference D box bright pixels 0.60 against our 0.59 once the joints there were sunk)
+    lum *= 1 + 0.06 * dForeground(s.z);
+    const hueK = srng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0);
     // the shaded band renders yellower than the sunlit plaza under the warm fill light (B/R 0.63
     // vs 0.71 in A; the reference is 0.69 in both) and the post chain passes only ~1/5 of an
     // albedo hue change, so its stones carry a lot of extra blue
-    const satK = rng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.28 * damp;
+    const satK = srng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.28 * damp;
     const tint: [number, number, number] = [lum * (1 + hueK), lum * (1 - hueK * 0.3), lum * (1 - hueK * 0.5 + satK)];
     // moss lives in the joints and creeps onto the shoulders; a green film covers the shaded
     // north/west side of ~30 % of the stones (damp side, reference B/E), more on the damp path
     const moss = clamp(0.25 + 0.6 * (tintNoise.fbm(s.x * 0.5 + 7, s.z * 0.5, 2) * 0.5 + 0.5) - 0.2 * smoothstep(3, 0, Math.hypot(s.x, s.z)) + 0.2 * damp, 0.05, 0.9);
-    const film = rng.chance(0.3 + 0.25 * damp) ? rng.range(0.35, 0.7) : 0;
-    const filmDir = [-0.55 + rng.range(-0.25, 0.25), -0.83 + rng.range(-0.2, 0.2)]; // toward north-west
+    const film = srng.chance(0.3 + 0.25 * damp) ? srng.range(0.35, 0.7) : 0;
+    const filmDir = [-0.55 + srng.range(-0.25, 0.25), -0.83 + srng.range(-0.2, 0.2)]; // toward north-west
     const filmL = Math.hypot(filmDir[0], filmDir[1]);
     filmDir[0] /= filmL;
     filmDir[1] /= filmL;
     const invR = 1 / Math.max(radius, 0.12);
     // shoulder dirt: soil and dust collect on the rolled edge, so every stone darkens toward it
-    const rim = rng.range(0.06, 0.13);
-    const uvO: [number, number] = [rng() * 4, rng() * 4];
+    const rim = srng.range(0.06, 0.13);
+    const uvO: [number, number] = [srng() * 4, srng() * 4];
 
     // 5. build the stone into the shared geometry and place it
     const from = all.vertexCount;
