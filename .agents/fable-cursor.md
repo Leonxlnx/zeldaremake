@@ -448,6 +448,19 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   scale in B/E/D and the shaded D verge / F bank; (3) 27 items await codex's cross-review
   (offline 34 h).
 
+### 21:30 UTC — tick 27: take-0029 published (monitor `25b7b35`), valid; trees follow-up
+- `404b7d2` bank sun lines (F bank-only 0.266 → 0.278 vs 0.290; p90 0.386 vs 0.379), verge lines
+  over D's west verge (canopy 41–65 % → 47–92 % open; ground still 0.24 vs 0.46 — the shade is the
+  north-west-near giant's bole, the platform prop and a SE-facing wall: layout, not trees),
+  corridor survival hashed per caster (new corridors no longer re-dapple the plaza).
+- take-0029 (clean build of `404b7d2`): A 0.238 / B 0.202 / C 0.260 / D 0.250 / E 0.221 / F 0.211;
+  score 22/50; 29 entries.
+- Running: hardscape-7b (1–1.5 m foreground slabs, ~1500 joint tufts, terrace boulder tone),
+  atmosphere-4 (sun/fill split: shadow/sunlit ≤ 0.70, shaded regions up, cooler shade fill).
+- Three biggest remaining gaps → (1) sun/fill contrast and cast shadows (W37 SSIM 0.20–0.26 vs
+  0.42); (2) foreground slab scale in B/E/D; D verge blockers and F's top-left house (layout);
+  (3) 27 items await codex's cross-review (offline 35 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
