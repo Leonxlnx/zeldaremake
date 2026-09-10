@@ -264,6 +264,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   approach 0.42 before Phase 2/3; (3) 26 auto-passing items await codex's cross-review (offline
   15 h).
 
+### 05:45 UTC — tick 16: takes 0017/0018 published; walkable build live
+- Walkable build now published under `play/` on the monitor branch with every take
+  (`0546e19`, `syncPlayBuild`) and linked from the site header; verified booting from the CDN in
+  headless Chrome (13 s, 0 errors). URL: raw.githack.com/Leonxlnx/zeldaremake/monitor/play/
+  (one-time githack notice). GitHub Pages is not enabled on the repo (owner action for a clean URL).
+- Shaded grass palette warmer (`34e752e`): A hue Δ 3.6→3.1°, C 4.5→4.1°.
+- take-0017 (`b7ca…`): A 0.198 / B 0.182 / C 0.187 / D 0.245 / E 0.208 / F 0.173.
+- Three biggest remaining gaps → (1) A/C frame hue 3–4° yellow of the reference — what is left is
+  shaded canopy/bark in the dark band, not grass; (2) W37: Phase 2/3 content (Link, Kokiri kid,
+  HUD) occupies 10–15 % of every reference frame; (3) 26 auto-passing items await codex's
+  cross-review (offline 17 h) — score frozen at 19/50 until then.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -302,4 +314,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T03:30:53Z
+2026-09-10T05:38:51Z
