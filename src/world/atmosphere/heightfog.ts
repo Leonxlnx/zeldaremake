@@ -365,10 +365,12 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y );
 	// deep-forest shade on the surface itself (not the veil): distant trunks, the log arch and the
 	// far ground darken before the haze is laid over them, so they read as silhouettes in it; bright
-	// emissives (lantern glow ≥ 1.5 linear) keep their radiance
+	// emissives (lantern glow, 2.0 linear) keep their radiance. The exemption starts above sunlit
+	// bark (sun 3.0 × albedo ≈ 0.4 ≈ 1.2): at 0.6–1.5 the lit ridges of the 45 m arch were two
+	// thirds exempt and printed through the veil as ±0.025 stripes the reference's flat body lacks
 	float kfShade = mix( 1.0, KF_SHADE_MIN, smoothstep( KF_SHADE_START, KF_SHADE_FULL, kfDist ) );
 	float kfPeak = max( gl_FragColor.r, max( gl_FragColor.g, gl_FragColor.b ) );
-	kfShade = mix( kfShade, 1.0, smoothstep( 0.6, 1.5, kfPeak ) );
+	kfShade = mix( kfShade, 1.0, smoothstep( 1.3, 2.0, kfPeak ) );
 	gl_FragColor.rgb *= kfShade;
 	gl_FragColor.rgb = mix( gl_FragColor.rgb, kfColor, kfF.x );
 #endif

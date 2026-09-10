@@ -153,7 +153,9 @@ uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the ang
 uniform float uExtinction; // haze extinction (1/m) attenuating in-scatter on its way to the camera
 uniform vec4 uBeam;        // gap-mask frequency (1/m), threshold lo, threshold hi, floor outside gaps
 uniform float uBeamNoiseMax; // openness of the noise gaps (the fixed columns are always fully open)
-uniform vec3 uGaps[ GAPS ]; // fixed open columns: (sun-plane x, sun-plane y, radius) in metres; radius 0 = unused
+uniform vec3 uFarAir;      // (start m, end m, mean openness): past the end the gap pattern is replaced by its mean
+uniform vec2 uGapHollow;   // world z where the canopy closes over the north hollow: gaps start fading / are gone
+uniform vec4 uGaps[ GAPS ]; // fixed open columns: (sun-plane x, sun-plane y, radius m, in-scatter gain); radius 0 = unused
 varying vec2 vUv;
 #define STEPS 24
 float hash21( vec2 p ) {
@@ -167,21 +169,23 @@ float vnoise( vec2 p ) {
   vec2 u = f * f * ( 3.0 - 2.0 * f );
   return mix( mix( hash21( i ), hash21( i + vec2( 1.0, 0.0 ) ), u.x ), mix( hash21( i + vec2( 0.0, 1.0 ) ), hash21( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
 }
-// canopy gaps as seen along the sun: broad blobs (the leaf masses between them are 2–4× wider)
-// with a ragged second octave so the shaft edges are not perfectly smooth, plus the fixed columns
-// (uGaps) the trees system carved corridors for — those are always fully open (the noise gaps only
-// to uBeamNoiseMax) so the bold shafts sit exactly where the canopy actually has a hole
-float beamMask( vec3 pw ) {
+// canopy gaps as seen along the sun: x = the noise field of broad blobs (the leaf masses between
+// them are 2–4× wider) with a ragged second octave so the shaft edges are not perfectly smooth,
+// open to uBeamNoiseMax at most; y = the fixed columns (uGaps) the trees system carved corridors
+// for — fully open (1) times the column's gain, so the bold shafts sit exactly where the canopy
+// actually has a hole and the narrow, side-lit columns of shot F still read
+vec2 beamMask( vec3 pw ) {
   vec2 q = vec2( dot( pw, uSunRight ), dot( pw, uSunUp ) );
   vec2 qn = q * uBeam.x;
   float n = vnoise( qn ) * 0.62 + vnoise( qn * 2.13 + vec2( 7.7, 3.1 ) ) * 0.26 + vnoise( qn * 4.7 + vec2( 1.3, 9.2 ) ) * 0.12;
   float m = smoothstep( uBeam.y, uBeam.z, n ) * uBeamNoiseMax;
+  float col = 0.0;
   for ( int i = 0; i < GAPS; i ++ ) {
     float r = uGaps[ i ].z;
     if ( r <= 0.0 ) continue;
-    m = max( m, 1.0 - smoothstep( r * 0.7, r, length( q - uGaps[ i ].xy ) ) );
+    col = max( col, uGaps[ i ].w * ( 1.0 - smoothstep( r * 0.7, r, length( q - uGaps[ i ].xy ) ) ) );
   }
-  return m;
+  return vec2( m, col );
 }
 void main() {
   float d = texture2D( tDepth, vUv ).x;
@@ -205,15 +209,28 @@ void main() {
     if ( sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0 ) {
       lit = texture( tShadow, vec3( sc.xy, sc.z - 0.0006 ) );
     }
-    lit *= mix( uBeam.w, 1.0, beamMask( pw.xyz ) );
+    // the noise gap pattern only carries beams in the near air and under the open plaza canopy:
+    // past uFarAir.x along the ray, and north of uGapHollow.x in the world (the crowns close over
+    // the hollow), it fades to its mean openness, so the sunlit air in front of shot D's arch is a
+    // smooth veil — measured on the arch body, the 5–25 m gaps printed ±0.017 luminance stripes on
+    // a +0.08 ray term where the reference's arch is flat and its hollow a diffuse glow. The fixed
+    // columns are real holes and keep their full length (shot F's far column sits 29–31 m out)
+    vec2 bm = beamMask( pw.xyz );
+    float column = bm.y;
+    float toMean = max( smoothstep( uFarAir.x, uFarAir.y, t ), 1.0 - smoothstep( uGapHollow.y, uGapHollow.x, pw.z ) );
+    float mask = max( mix( bm.x, uFarAir.z, toMean ), column );
+    lit *= mix( uBeam.w, 1.0, mask );
     float north = 1.0 - smoothstep( uFogParams.w, uFogParams.z, pw.z ); // hollow is at lower z
     float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );
     float clear = exp( -max( pw.y - uAltitude.x, 0.0 ) / uAltitude.y );
     // the shafts are an upper-air effect: the reference's beams read against the canopy and the
     // hazed trunks while the sunlit plaza and path below them stay crisp, so the base-air in-scatter
     // fades out in the lowest ≈ 4 m (eye-level rays to the ground cross only that air) — the ground
-    // mist keeps its own profile
-    float upperAir = smoothstep( 1.5, 4.5, pw.y );
+    // mist keeps its own profile. Inside a gained canopy-hole column (gain > 1, shafts.ts) the air
+    // stays lit down to the ground — the reference's F shafts land on the stairs. The plain plaza
+    // columns keep the fade: shot D's rays to the arch cross their 2.5–4 m air, and lighting it
+    // striped the arch body
+    float upperAir = max( smoothstep( 1.5, 4.5, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
     float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y * clear * upperAir;
     acc += lit * dens * stepLen * exp( -uExtinction * t );
   }
@@ -294,6 +311,22 @@ void main() {
 }
 `;
 
+/** Debug: view distance / 64 m as grey (sky = 1) — for offline tuning of the depth-keyed softening. */
+export const DEPTH_DEBUG_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+uniform mat4 uProjInv;
+varying vec2 vUv;
+void main() {
+  float d = texture2D( tDepth, vUv ).x;
+  float dist = 64.0;
+  if ( ! isSky( d ) ) {
+    vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+    dist = length( p.xyz / p.w );
+  }
+  gl_FragColor = vec4( vec3( clamp( dist / 64.0, 0.0, 1.0 ) ), 1.0 );
+}
+`;
+
 /** Bloom bright pass with a soft knee (quarter resolution). */
 export const BRIGHT_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
@@ -327,6 +360,100 @@ void main() {
 }
 `;
 
+/**
+ * Video softness (final LDR stage). The reference frames are soft 1280×716 video of a hazy scene,
+ * and measured against them (3×3 Laplacian variance at 256×144) our frames were 1.0–1.5× as sharp:
+ * the excess is not the near flagstones but (a) hazed mid-distance foliage — leaf cards 10–40 m out
+ * still have crisp silhouettes where the reference's veiled forest is a flat wash — and (b) busy
+ * near texture (grass, ivy) the codec turns to mush. Three terms on a fixed 640/320-wide grid (so
+ * every radius is a share of the frame, not of the device pixel):
+ *   b1 = G(c) on the 640 grid, h = c − b1 (everything finer than ≈ 1/200 of the frame);
+ *   activity gate: a = G_wide(|luma(h)|), g = detail + (1 − detail) / (1 + (a / k)^p),
+ *     fine = b1 + h · g — a quiet region keeps its detail, a busy one only `detail` of it;
+ *   uniform band-limit: near = mix(fine, b1, u) — the video's own optics/codec softness;
+ *   haze blur: far = G_wide(smoothstep(d0, d1, viewDistance)), out = mix(near, b2, far) with b2 the
+ *     320-grid Gaussian — the aerosol's small-angle forward scattering, which is what flattens the
+ *     reference's distant detail while its near edges keep most of theirs. The weight is smoothed on
+ *     the 320 grid so a near leaf against far haze softens gradually instead of ringing.
+ */
+export const BLIT_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+varying vec2 vUv;
+void main() {
+  gl_FragColor = vec4( texture2D( tSrc, vUv ).rgb, 1.0 );
+}
+`;
+
+/** Separable Gaussian with a runtime sigma (texels), 9 taps: sigma ≤ 2 stays inside the kernel. */
+export const GAUSS_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+uniform vec2 uDir;    // texel-sized step
+uniform float uSigma; // in texels
+varying vec2 vUv;
+void main() {
+  float k = -0.5 / max( uSigma * uSigma, 1e-4 );
+  vec3 c = texture2D( tSrc, vUv ).rgb;
+  float wsum = 1.0;
+  for ( int i = 1; i <= 4; i ++ ) {
+    float w = exp( k * float( i * i ) );
+    vec2 o = uDir * float( i );
+    c += ( texture2D( tSrc, vUv + o ).rgb + texture2D( tSrc, vUv - o ).rgb ) * w;
+    wsum += 2.0 * w;
+  }
+  gl_FragColor = vec4( c / wsum, 1.0 );
+}
+`;
+
+/**
+ * 320-grid weights: r = |luma(down − blur)| averaged over the 2×2 640-texels under this texel (the
+ * fine-detail amplitude the activity blur then widens), g = haze-blur weight from the scene depth
+ * (view distance ramped over uFarRange, sky = 1). Both are Gaussian-smoothed afterwards.
+ */
+export const SOFT_ACTIVITY_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+uniform sampler2D tDown;
+uniform sampler2D tBlur;
+uniform mat4 uProjInv;
+uniform vec2 uTexel;    // 640-grid texel
+uniform vec2 uFarRange; // view distance (m) where the haze blur starts / is full
+varying vec2 vUv;
+const vec3 LUMA = vec3( 0.2126, 0.7152, 0.0722 );
+float fine( vec2 uv ) { return abs( dot( texture2D( tDown, uv ).rgb - texture2D( tBlur, uv ).rgb, LUMA ) ); }
+void main() {
+  vec2 o = uTexel * 0.5;
+  float a = 0.25 * ( fine( vUv + o ) + fine( vUv - o ) + fine( vUv + vec2( o.x, -o.y ) ) + fine( vUv - vec2( o.x, -o.y ) ) );
+  float d = texture2D( tDepth, vUv ).x;
+  float far = 1.0;
+  if ( ! isSky( d ) ) {
+    vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+    far = smoothstep( uFarRange.x, uFarRange.y, length( p.xyz / p.w ) );
+  }
+  gl_FragColor = vec4( a, far, 0.0, 1.0 );
+}
+`;
+
+export const SOFT_FINAL_FRAG = /* glsl */ `
+uniform sampler2D tSrc;      // anti-aliased LDR frame (full resolution)
+uniform sampler2D tBlur;     // its 640-grid Gaussian (bilinear upsample)
+uniform sampler2D tFar;      // its 320-grid Gaussian (the haze blur)
+uniform sampler2D tWeights;  // wide-blurred (detail amplitude, haze-blur weight)
+uniform vec3 uGate;          // detail floor, activity knee, power
+uniform float uUniform;      // share of the 640-grid blur every pixel takes (video band-limit)
+uniform float uDebug;        // 1 = show the weights (r = detail gate, g = haze weight)
+varying vec2 vUv;
+void main() {
+  vec3 c = texture2D( tSrc, vUv ).rgb;
+  vec3 b1 = texture2D( tBlur, vUv ).rgb;
+  vec3 b2 = texture2D( tFar, vUv ).rgb;
+  vec2 w = texture2D( tWeights, vUv ).rg;
+  float g = uGate.x + ( 1.0 - uGate.x ) / ( 1.0 + pow( w.x / uGate.y, uGate.z ) );
+  vec3 fine = b1 + ( c - b1 ) * g;
+  vec3 near = mix( fine, b1, uUniform );
+  vec3 o = mix( near, b2, w.y );
+  gl_FragColor = vec4( mix( o, vec3( g, w.y, 0.0 ), uDebug ), 1.0 );
+}
+`;
+
 /** Composite: AO · HDR + mist + rays + bloom → ACES → subtle grade → sRGB. */
 export const COMPOSITE_FRAG = /* glsl */ `
 ${DEPTH_UTILS}
@@ -336,6 +463,7 @@ uniform sampler2D tMist;
 uniform sampler2D tRays;
 uniform sampler2D tBloom;
 uniform float uAoStrength;
+uniform vec2 uAoFade;  // view distance (m) where the AO term starts fading / is gone
 uniform float uHasMist;
 uniform vec3 uRayColor;
 uniform float uRayIntensity;
@@ -372,7 +500,12 @@ void main() {
   float d = texture2D( tDepth, vUv ).x;
   float sky = isSky( d ) ? 1.0 : 0.0;
   float ao = texture2D( tAO, vUv ).x;
-  hdr *= mix( 1.0, ao, uAoStrength * ( 1.0 - sky ) );
+  // AO is a surface term multiplied into an already-veiled colour: at 45 m it printed the log
+  // arch's ridge/furrow crevices as ±0.025 stripes on top of a 59 % haze the reference shows flat.
+  // Sub-metre crevice shading is not resolvable through 30+ m of haze, so the term fades out
+  float aoDist = -viewZFromDepth( d );
+  float aoFade = 1.0 - smoothstep( uAoFade.x, uAoFade.y, aoDist );
+  hdr *= mix( 1.0, ao, uAoStrength * ( 1.0 - sky ) * aoFade );
   if ( uHasMist > 0.5 ) {
     vec4 mist = texture2D( tMist, vUv );
     hdr = hdr * ( 1.0 - mist.a ) + mist.rgb;

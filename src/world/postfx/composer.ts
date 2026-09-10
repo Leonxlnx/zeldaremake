@@ -14,8 +14,11 @@
  *                                                                                  [3 × ¼ res]
  *   5. bloom: bright pass (threshold ≥ 1.0) → separable 9-tap Gaussian             [3 × ¼ res]
  *   6. composite: AO·HDR + mist + rays + bloom → ACES → subtle grade → sRGB (LDR)   [1 fullscreen]
- *   7. FXAA → default framebuffer (the canvas holds the final image for headless captures)
- *                                                                                  [1 fullscreen]
+ *   7. FXAA → LDR                                                                 [1 fullscreen]
+ *   8. video softness: 640-grid Gaussian (detail compression gated by a wide activity blur, plus a
+ *      uniform share) and a 320-grid Gaussian blended in by a depth-keyed haze weight → default
+ *      framebuffer (the canvas holds the final image for headless captures)
+ *                                                                        [3 × 640-grid, 6 × 320-grid, 1 fullscreen]
  *
  * All passes are deterministic (no temporal jitter). `renderer.info` is reset once per frame and
  * accumulates every pass, so `stats().drawCalls` stays honest.
@@ -48,18 +51,35 @@ import {
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { SHAFT_COLUMNS } from '../atmosphere/shafts';
-import { AO_BLUR_FRAG, AO_FRAG, BLUR_FRAG, BRIGHT_FRAG, COMPOSITE_FRAG, COPY_FRAG, FULLSCREEN_VERT, RAY_BLUR_FRAG, RAY_MARCH_FRAG } from './shaders';
+import {
+  AO_BLUR_FRAG,
+  AO_FRAG,
+  BLIT_FRAG,
+  BLUR_FRAG,
+  BRIGHT_FRAG,
+  COMPOSITE_FRAG,
+  COPY_FRAG,
+  DEPTH_DEBUG_FRAG,
+  FULLSCREEN_VERT,
+  GAUSS_FRAG,
+  RAY_BLUR_FRAG,
+  RAY_MARCH_FRAG,
+  SOFT_ACTIVITY_FRAG,
+  SOFT_FINAL_FRAG,
+} from './shaders';
 
 /**
  * Tuning aids (unset in production):
  * - `globalThis.__ATMO_DEBUG__ = 'rays' | 'ao' | 'mist' | 'bloom'` blits that buffer instead of the
- *   final image; 'bypass' skips the whole chain (for cost comparisons).
- * - `globalThis.__ATMO_SETTINGS__ = { rayIntensity: 0, ... }` overrides numeric `ComposerSettings`
- *   fields for the frame, so a probe can isolate one pass's contribution without a rebuild.
+ *   final image; 'soft' shows the softening weights, 'depth' the view distance (/64 m); 'bypass'
+ *   skips the whole chain (for cost comparisons).
+ * - `globalThis.__ATMO_SETTINGS__ = { rayIntensity: 0, softening: false, ... }` overrides numeric /
+ *   boolean `ComposerSettings` fields for the frame, so a probe can isolate one pass's contribution
+ *   without a rebuild.
  */
 const debugView = (): string => (globalThis as { __ATMO_DEBUG__?: string }).__ATMO_DEBUG__ ?? '';
-const settingsOverride = (): Partial<Record<keyof ComposerSettings, number>> | null =>
-  (globalThis as { __ATMO_SETTINGS__?: Partial<Record<keyof ComposerSettings, number>> | null }).__ATMO_SETTINGS__ ?? null;
+type SettingsOverride = Partial<Record<keyof ComposerSettings, number | boolean>>;
+const settingsOverride = (): SettingsOverride | null => (globalThis as { __ATMO_SETTINGS__?: SettingsOverride | null }).__ATMO_SETTINGS__ ?? null;
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -94,6 +114,9 @@ export interface Composer {
 export interface ComposerSettings {
   aoStrength: number;
   aoRadius: number;
+  /** view distance (m) where the AO term starts fading / is gone (a surface term the haze veils) */
+  aoFadeStart: number;
+  aoFadeEnd: number;
   rayIntensity: number;
   /** contrast curve (pow) applied to the smeared ray buffer so beams read as slabs */
   rayContrast: number;
@@ -117,6 +140,34 @@ export interface ComposerSettings {
   beamNoiseMax: number;
   /** radius multiplier of the fixed shaft columns (atmosphere/shafts.ts); 0 disables them */
   beamColumnScale: number;
+  /** multiplier on the columns' own in-scatter gains (tuning aid; 1 = as defined in shafts.ts) */
+  beamColumnGain: number;
+  /** marched distance (m) over which the gap pattern fades to its mean openness (smooth far air) */
+  beamFarStart: number;
+  beamFarEnd: number;
+  /** mean openness of the gap field (what the far air uses) */
+  beamFarFill: number;
+  /** world z where the crowns close over the north hollow: the gap pattern fades to its mean from the first to the second */
+  beamHollowStartZ: number;
+  beamHollowFullZ: number;
+  /** video softness (final pass, see SOFT_FINAL_FRAG); false = FXAA straight to the screen */
+  softening: boolean;
+  /**
+   * activity gate: share of fine detail a busy region keeps; activity knee (luma amplitude of the
+   * fine detail, wide-averaged) above which a region is "busy" and drops to that share; steepness
+   */
+  softDetail: number;
+  softActivityK: number;
+  softActivityPower: number;
+  /** share of the 640-grid blur every pixel takes (uniform video band-limit) */
+  softUniform: number;
+  /** haze blur: view distance (m) where it starts / is full; sky counts as far */
+  softFarStart: number;
+  softFarFull: number;
+  /** Gaussian sigmas in texels: image blur (640 grid), haze blur (320 grid), weight smoothing (320 grid) */
+  softBlurSigma: number;
+  softFarSigma: number;
+  softActivitySigma: number;
   bloomThreshold: number;
   bloomIntensity: number;
   saturation: number;
@@ -181,6 +232,24 @@ export function createComposer(opts: ComposerOptions): Composer {
   const bloomA = rt(qw, qh, true);
   const bloomB = rt(qw, qh, true);
   const ldr = rt(W, H, false);
+  const aa = rt(W, H, false);
+  // video softness works on a fixed 640×360 grid (aspect-corrected), so its radii are a share of the
+  // frame whatever the device resolution
+  const softGrid = () => {
+    const sh = Math.max(1, Math.min(H, 360));
+    const sw = Math.max(1, Math.min(W, Math.round((sh * W) / H)));
+    return [sw, sh, Math.max(1, sw >> 1), Math.max(1, sh >> 1)] as const;
+  };
+  let [sw, sh, aw, ah] = softGrid();
+  const softDown = rt(sw, sh, false);
+  const softA = rt(sw, sh, false);
+  const softB = rt(sw, sh, false);
+  const actA = rt(aw, ah, true);
+  const actB = rt(aw, ah, true);
+  const farA = rt(aw, ah, false);
+  const farB = rt(aw, ah, false);
+  const softTexel = { value: new Vector2(1 / sw, 1 / sh) };
+  const actTexel = { value: new Vector2(1 / aw, 1 / ah) };
 
   // --- fullscreen quad -------------------------------------------------------------------------
   const quadCam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -199,6 +268,10 @@ export function createComposer(opts: ComposerOptions): Composer {
     // quartile 0.05–0.08 under the reference's in every view
     aoStrength: 0.5,
     aoRadius: 0.5,
+    // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
+    // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
+    aoFadeStart: 22,
+    aoFadeEnd: 34,
     // "radiance of a fully lit column": with the sparse gap mask only ≈ 15 % of the under-canopy
     // air is lit, so the beams need this to read as +0.10–0.15 display luminance over the haze
     // between them (the reference's shaft core #8f8b7c over #696960). The pow curve on the smeared
@@ -242,6 +315,39 @@ export function createComposer(opts: ComposerOptions): Composer {
     // read as bold as a column and shot D's mid band was a field of equal stripes)
     beamNoiseMax: 0.65,
     beamColumnScale: 1.0,
+    beamColumnGain: 1.0,
+    // the blobs of the gap field seen through 25–40 m of lit hollow air striped the far arch of
+    // shot D; past 25 m the pattern fades to its mean, so the far air is a smooth veil (the fill
+    // is the field's mean openness — 65 % gaps covering ≈ 23 % of the sun plane, sampled
+    // numerically — so the far band's luminance is unchanged)
+    beamFarStart: 25,
+    beamFarEnd: 38,
+    beamFarFill: 0.15,
+    // the same fade for the air over the north hollow (mist ramp −4 → −24): the reference's shot D
+    // has a diffuse glow there, not slabs, and the 5–25 m gaps in front of the arch were striping
+    // its body (±0.017 on a +0.08 ray term). Shot A's beams are the plaza columns (exempt) plus the
+    // gap wash south of −8, so they keep their shape
+    beamHollowStartZ: -8,
+    beamHollowFullZ: -24,
+    // the reference is soft video of a hazy scene (ours measured 1.0–1.5× its sharpness). Per-cell
+    // Laplacian maps put the excess in hazed mid-distance foliage and busy near texture, not the
+    // flagstones, and an activity gate alone scaled every view by the same factor (it cannot tell
+    // shot F's crisp near house from shot C's veiled leaf cards) — the haze blur, keyed on view
+    // distance, is what separates them. Tuned offline on the six HQ frames (replica of this chain)
+    // (LQ frames + depth, chain replica): shot A is the binding view — its excess is 20–40 m foliage,
+    // so the haze blur takes it ≈ 25 % down while shot F, whose excess is the near house, Link and
+    // the sharp HUD overlay, moves ≈ 15 %; a stronger setting (haze from 10 m, 25 % uniform) gained
+    // +0.035–0.05 SSIM in every view but put A at 0.55× the reference's sharpness
+    softening: true,
+    softDetail: 0.45,
+    softActivityK: 0.08,
+    softActivityPower: 4,
+    softUniform: 0.1,
+    softFarStart: 30,
+    softFarFull: 60,
+    softBlurSigma: 1.2,
+    softFarSigma: 1.0,
+    softActivitySigma: 2.5,
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
     // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
@@ -292,10 +398,10 @@ export function createComposer(opts: ComposerOptions): Composer {
   // a column of lit air along the sun direction wherever the camera stands
   const sunRight = new Vector3(0, 1, 0).cross(opts.sunDirection).normalize();
   const sunUp = new Vector3().crossVectors(opts.sunDirection, sunRight).normalize();
-  // the fixed shaft columns as (x, y, radius) in that plane
-  const gaps = SHAFT_COLUMNS.map(({ point, radius }) => {
+  // the fixed shaft columns as (x, y, radius, gain) in that plane
+  const gaps = SHAFT_COLUMNS.map(({ point, radius, gain }) => {
     const p = new Vector3(point[0], point[1], point[2]);
-    return new Vector3(p.dot(sunRight), p.dot(sunUp), radius);
+    return new Vector4(p.dot(sunRight), p.dot(sunUp), radius, gain);
   });
   const rayMarchMat = mat(
     RAY_MARCH_FRAG,
@@ -313,6 +419,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       uExtinction: { value: settings.rayExtinction },
       uBeam: { value: new Vector4(settings.beamFrequency, settings.beamLo, settings.beamHi, settings.beamFloor) },
       uBeamNoiseMax: { value: settings.beamNoiseMax },
+      uFarAir: { value: new Vector3(settings.beamFarStart, settings.beamFarEnd, settings.beamFarFill) },
+      uGapHollow: { value: new Vector2(settings.beamHollowStartZ, settings.beamHollowFullZ) },
       uGaps: { value: gaps },
       uMaxDist: { value: settings.rayMaxDist },
       // the beams' own air profile: a taller, softer layer than the ground mist so shafts keep
@@ -366,6 +474,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       tRays: { value: rayA.texture },
       tBloom: { value: bloomA.texture },
       uAoStrength: { value: settings.aoStrength },
+      uAoFade: { value: new Vector2(settings.aoFadeStart, settings.aoFadeEnd) },
       uHasMist: { value: opts.overlay ? 1 : 0 },
       uRayColor: { value: settings.rayColor },
       uRayIntensity: rayIntensity,
@@ -392,6 +501,36 @@ export function createComposer(opts: ComposerOptions): Composer {
     depthWrite: false,
   });
   // FXAAShader's vertex shader uses the model-view/projection path; the quad + ortho camera cover NDC.
+  const blitMat = mat(BLIT_FRAG, { tSrc: { value: null as Texture | null } }, 'postfx-blit');
+  const depthDebugMat = mat(DEPTH_DEBUG_FRAG, { tDepth: { value: depthTexture }, uNear: near, uFar: far, uProjInv: projInv }, 'postfx-depth-debug');
+  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 } }, 'postfx-gauss');
+  const softActMat = mat(
+    SOFT_ACTIVITY_FRAG,
+    {
+      tDepth: { value: depthTexture },
+      uNear: near,
+      uFar: far,
+      uProjInv: projInv,
+      tDown: { value: softDown.texture },
+      tBlur: { value: softB.texture },
+      uTexel: softTexel,
+      uFarRange: { value: new Vector2(settings.softFarStart, settings.softFarFull) },
+    },
+    'postfx-soft-weights',
+  );
+  const softFinalMat = mat(
+    SOFT_FINAL_FRAG,
+    {
+      tSrc: { value: aa.texture },
+      tBlur: { value: softB.texture },
+      tFar: { value: farB.texture },
+      tWeights: { value: actA.texture },
+      uGate: { value: new Vector3(settings.softDetail, settings.softActivityK, settings.softActivityPower) },
+      uUniform: { value: settings.softUniform },
+      uDebug: { value: 0 },
+    },
+    'postfx-soft-final',
+  );
 
   const overlayViewport = new Vector2(hw, hh);
   const camPos = new Vector3();
@@ -431,6 +570,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     for (const k of Object.keys(o) as (keyof ComposerSettings)[]) {
       const v = o[k];
       if (typeof v === 'number' && typeof settings[k] === 'number') (s as unknown as Record<string, number>)[k] = v;
+      else if (typeof v === 'boolean' && typeof settings[k] === 'boolean') (s as unknown as Record<string, boolean>)[k] = v;
     }
     return s;
   };
@@ -496,7 +636,12 @@ export function createComposer(opts: ComposerOptions): Composer {
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
       (rayMarchMat.uniforms.uBeam.value as Vector4).set(s.beamFrequency, s.beamLo, s.beamHi, s.beamFloor);
       rayMarchMat.uniforms.uBeamNoiseMax.value = s.beamNoiseMax;
-      gaps.forEach((g, i) => (g.z = SHAFT_COLUMNS[i].radius * s.beamColumnScale));
+      (rayMarchMat.uniforms.uFarAir.value as Vector3).set(s.beamFarStart, s.beamFarEnd, s.beamFarFill);
+      (rayMarchMat.uniforms.uGapHollow.value as Vector2).set(s.beamHollowStartZ, s.beamHollowFullZ);
+      gaps.forEach((g, i) => {
+        g.z = SHAFT_COLUMNS[i].radius * s.beamColumnScale;
+        g.w = SHAFT_COLUMNS[i].gain * s.beamColumnGain;
+      });
       pass(rayMarchMat, rayA);
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
       rayBlurMat.uniforms.uLength.value = 0.08;
@@ -527,6 +672,7 @@ export function createComposer(opts: ComposerOptions): Composer {
 
     // 6. composite + tone map + grade → LDR
     compositeMat.uniforms.uAoStrength.value = s.aoStrength;
+    (compositeMat.uniforms.uAoFade.value as Vector2).set(s.aoFadeStart, s.aoFadeEnd);
     compositeMat.uniforms.uRaySkyShare.value = s.raySkyShare;
     compositeMat.uniforms.uBloomIntensity.value = s.bloomIntensity;
     compositeMat.uniforms.uSaturation.value = s.saturation;
@@ -537,14 +683,44 @@ export function createComposer(opts: ComposerOptions): Composer {
     compositeMat.uniforms.uGreenDesat.value = s.greenDesat;
     pass(compositeMat, ldr);
 
-    // 7. FXAA → screen
+    // 7. FXAA → LDR, 8. video softness → screen
     const dbg = debugView();
     const dbgSrc = dbg === 'rays' ? rayA : dbg === 'ao' ? aoB : dbg === 'mist' ? mist : dbg === 'bloom' ? bloomA : null;
     if (dbgSrc) {
       copyMat.uniforms.tSrc.value = dbgSrc.texture;
       pass(copyMat, null);
-    } else {
+    } else if (dbg === 'depth') {
+      pass(depthDebugMat, null);
+    } else if (!s.softening && dbg !== 'soft') {
       pass(fxaaMat, null);
+    } else {
+      pass(fxaaMat, aa);
+      const dir = gaussMat.uniforms.uDir.value as Vector2;
+      const gauss = (src: WebGLRenderTarget, tmp: WebGLRenderTarget, dst: WebGLRenderTarget, texel: Vector2, sigma: number) => {
+        gaussMat.uniforms.uSigma.value = sigma;
+        gaussMat.uniforms.tSrc.value = src.texture;
+        dir.set(texel.x, 0);
+        pass(gaussMat, tmp);
+        gaussMat.uniforms.tSrc.value = tmp.texture;
+        dir.set(0, texel.y);
+        pass(gaussMat, dst);
+      };
+      // b1: 640-grid Gaussian of the frame
+      blitMat.uniforms.tSrc.value = aa.texture;
+      pass(blitMat, softDown);
+      gauss(softDown, softA, softB, softTexel.value, s.softBlurSigma);
+      // b2: 320-grid Gaussian of b1 (the haze blur)
+      blitMat.uniforms.tSrc.value = softB.texture;
+      pass(blitMat, farB);
+      gauss(farB, farA, farB, actTexel.value, s.softFarSigma);
+      // weights (detail amplitude, haze weight from depth), smoothed on the 320 grid
+      (softActMat.uniforms.uFarRange.value as Vector2).set(s.softFarStart, s.softFarFull);
+      pass(softActMat, actA);
+      gauss(actA, actB, actA, actTexel.value, s.softActivitySigma);
+      (softFinalMat.uniforms.uGate.value as Vector3).set(s.softDetail, s.softActivityK, s.softActivityPower);
+      softFinalMat.uniforms.uUniform.value = s.softUniform;
+      softFinalMat.uniforms.uDebug.value = dbg === 'soft' ? 1 : 0;
+      pass(softFinalMat, null);
     }
 
     renderer.autoClear = prevAutoClear;
@@ -569,6 +745,17 @@ export function createComposer(opts: ComposerOptions): Composer {
     quarterTexel.value.set(1 / qw, 1 / qh);
     overlayViewport.set(hw, hh);
     (fxaaMat.uniforms.resolution.value as Vector2).set(1 / W, 1 / H);
+    aa.setSize(W, H);
+    [sw, sh, aw, ah] = softGrid();
+    softDown.setSize(sw, sh);
+    softA.setSize(sw, sh);
+    softB.setSize(sw, sh);
+    actA.setSize(aw, ah);
+    actB.setSize(aw, ah);
+    farA.setSize(aw, ah);
+    farB.setSize(aw, ah);
+    softTexel.value.set(1 / sw, 1 / sh);
+    actTexel.value.set(1 / aw, 1 / ah);
   };
 
   return {
@@ -577,7 +764,23 @@ export function createComposer(opts: ComposerOptions): Composer {
     depthTexture,
     settings,
     audit: () => ({
-      passes: ['scene-hdr', 'mist-half', 'ssao-half', 'ssao-blur-half', 'godray-march-quarter', 'godray-smear-x2-quarter', 'bloom-bright-quarter', 'bloom-blur-x2-quarter', 'composite-aces-grade', 'fxaa'],
+      passes: [
+        'scene-hdr',
+        'mist-half',
+        'ssao-half',
+        'ssao-blur-half',
+        'godray-march-quarter',
+        'godray-smear-x2-quarter',
+        'bloom-bright-quarter',
+        'bloom-blur-x2-quarter',
+        'composite-aces-grade',
+        'fxaa',
+        'soften-down-640',
+        'soften-blur-x2-640',
+        'soften-haze-blur-x3-320',
+        'soften-weights-x3-320',
+        'soften-final',
+      ],
       hdr: true,
       resolution: [W, H],
       ambientOcclusion: true,
@@ -593,7 +796,10 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayGapFrequencyPerM: settings.beamFrequency,
       godRayGapFloor: settings.beamFloor,
       godRayGapNoiseMax: settings.beamNoiseMax,
-      godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * settings.beamColumnScale]),
+      godRayFarAirM: [settings.beamFarStart, settings.beamFarEnd],
+      godRayFarAirFill: settings.beamFarFill,
+      godRayGapHollowZ: [settings.beamHollowStartZ, settings.beamHollowFullZ],
+      godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * settings.beamColumnScale, c.gain]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
       bloom: true,
@@ -603,15 +809,24 @@ export function createComposer(opts: ComposerOptions): Composer {
       contrastPivot: settings.contrastPivot,
       lift: settings.lift,
       aoStrength: settings.aoStrength,
+      aoFadeM: [settings.aoFadeStart, settings.aoFadeEnd],
       antialiasing: 'fxaa',
+      // final video-softness stage on a fixed 640/320-wide grid (see SOFT_FINAL_FRAG)
+      softening: settings.softening,
+      softeningGrid: [sw, sh],
+      softeningDetailFloor: settings.softDetail,
+      softeningActivityKnee: settings.softActivityK,
+      softeningUniform: settings.softUniform,
+      softeningHazeRangeM: [settings.softFarStart, settings.softFarFull],
+      softeningBlurSigmaGrid: [settings.softBlurSigma, settings.softFarSigma],
       // every pass is a pure function of the frame (no temporal jitter/accumulation), headless or not
       deterministic: true,
       headless: opts.headless,
     }),
     dispose: () => {
-      for (const t of [hdr, ldr, mist, aoA, aoB, rayA, rayB, bloomA, bloomB]) t.dispose();
+      for (const t of [hdr, ldr, aa, mist, aoA, aoB, rayA, rayB, bloomA, bloomB, softDown, softA, softB, actA, actB, farA, farB]) t.dispose();
       depthTexture.dispose();
-      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat]) m.dispose();
+      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat, blitMat, gaussMat, softActMat, softFinalMat, depthDebugMat]) m.dispose();
       quad.geometry.dispose();
       renderer.info.autoReset = true;
     },
