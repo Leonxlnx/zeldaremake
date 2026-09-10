@@ -71,7 +71,9 @@ const SHAFT_RADIUS = 2.6;
  */
 const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
   { point: [0.0, 0, 6.0], radius: 3.0 },
-  { point: [2.5, 0, 2.0], radius: 3.0 },
+  // 1.5 m south of the plaza centre so its lit disc stays out of shot B's foreground band
+  // (z -1…-6), which the reference keeps in dappled shade (path p50 0.49)
+  { point: [2.5, 0, 3.5], radius: 2.8 },
 ];
 const PLAZA_SUN_POROSITY = 0.2;
 /**
