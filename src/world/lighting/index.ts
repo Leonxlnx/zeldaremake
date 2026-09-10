@@ -12,11 +12,13 @@
  *
  * `ctx.sun` stays a DirectionalLight (other systems read direction/colour/target from it).
  */
-import { DirectionalLight, HemisphereLight, Group, Vector3, Object3D, Color, PCFShadowMap } from 'three';
+import { DirectionalLight, HemisphereLight, Group, Vector3, Object3D, Color, BasicShadowMap } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { sunDirection } from './sun';
-import { createSkyDome } from '../atmosphere/sky';
+import { createSkyDome, SKY_ENV_TINT } from '../atmosphere/sky';
 import { buildSkyEnvironment } from './environment';
+import { installShadowFilter, SHADOW_FILTER_DEFAULTS } from './shadowfilter';
+import { WORLD } from '../config';
 
 export { sunDirection } from './sun';
 
@@ -24,6 +26,32 @@ const SHADOW_RADIUS_M = 46;
 const SHADOW_AHEAD_M = 18;
 const SHADOW_SNAP_M = 1;
 const SUN_DISTANCE_M = 140;
+const SHADOW_NEAR_M = 40;
+const SHADOW_FAR_M = 250;
+
+// Must run before any material compiles: replaces the BASIC shadow lookup with the PCSS filter.
+const SHADOW_FILTER = {
+  ...SHADOW_FILTER_DEFAULTS,
+  depthRangeM: SHADOW_FAR_M - SHADOW_NEAR_M,
+  texelM: (2 * SHADOW_RADIUS_M) / WORLD.sun.shadowMapSize,
+};
+const shadowFilterInstalled = installShadowFilter(SHADOW_FILTER);
+
+/**
+ * Tuning aid (unset in production): `globalThis.__ATMO_LIGHT__ = { sunIntensity, hemiIntensity,
+ * environmentIntensity, shadowRadius }` overrides the light parameters for the frame, so a probe
+ * (gauntlet/tmp) can isolate the key from the fill — or switch the sun off — without a rebuild.
+ */
+interface LightOverride {
+  sunIntensity?: number;
+  hemiIntensity?: number;
+  environmentIntensity?: number;
+  shadowRadius?: number;
+  /** hemisphere colours as hex (sRGB) */
+  hemiSky?: number;
+  hemiGround?: number;
+}
+const lightOverride = (): LightOverride | null => (globalThis as { __ATMO_LIGHT__?: LightOverride | null }).__ATMO_LIGHT__ ?? null;
 
 export function create(ctx: WorldContext): WorldSystem {
   const group = new Group();
@@ -31,8 +59,10 @@ export function create(ctx: WorldContext): WorldSystem {
   const s = ctx.config.sun;
   const dir = sunDirection(s.azimuthDeg, s.elevationDeg);
 
-  // PCF (Vogel disk + hardware compare) gives the softest well-behaved penumbra in r18x.
-  ctx.renderer.shadowMap.type = PCFShadowMap;
+  // BASIC keeps the sun's depth map readable (raw depth, no compare sampler); the lookup itself is
+  // the PCSS filter in shadowfilter.ts, which needs the occluder depth for its distance-dependent
+  // penumbra and canopy transmission (the compare-mode PCF sampler cannot give it).
+  ctx.renderer.shadowMap.type = BasicShadowMap;
 
   // The reference's lit surfaces measure golden (hue ≈ 40–50°, lit flagstone R/B ≈ 1.5); the config
   // colour is nudged a touch warmer so the lit ground lands there without re-tinting the albedos.
@@ -42,8 +72,8 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.position.copy(dir).multiplyScalar(SUN_DISTANCE_M);
   sun.castShadow = ctx.quality.shadows;
   sun.shadow.mapSize.set(s.shadowMapSize, s.shadowMapSize);
-  sun.shadow.camera.near = 40;
-  sun.shadow.camera.far = 250;
+  sun.shadow.camera.near = SHADOW_NEAR_M;
+  sun.shadow.camera.far = SHADOW_FAR_M;
   sun.shadow.camera.left = -SHADOW_RADIUS_M;
   sun.shadow.camera.right = SHADOW_RADIUS_M;
   sun.shadow.camera.top = SHADOW_RADIUS_M;
@@ -51,10 +81,11 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.shadow.camera.updateProjectionMatrix();
   sun.shadow.bias = -0.00012;
   sun.shadow.normalBias = 0.028;
-  // 6 texels ≈ 13 cm penumbra: the reference's canopy dapple on the plaza is broad soft blotches
-  // (its shadows soften to ≈ 20 cm at 15 m), and the leaf-card canopy otherwise throws a fine
-  // shadow noise; 5 Vogel taps × hardware 4-tap stay smooth at this radius
-  sun.shadow.radius = 6;
+  // the filter's minimum blur in texels (contact shadows): the PCSS penumbra grows from here with
+  // the occluder distance (shadowfilter.ts), so Link's shadow at 4 m stays crisp while the canopy's
+  // dapple softens to the reference's 20–40 cm blotches
+  const shadowRadius = 1.5;
+  sun.shadow.radius = shadowRadius;
   const target = new Object3D();
   target.name = 'sun-target';
   group.add(target);
@@ -68,15 +99,22 @@ export function create(ctx: WorldContext): WorldSystem {
   // together give a horizontal surface ≈ 1.25 of irradiance against the sun's ≈ 1.85 (3 · sin 38°),
   // the reference's lit/shade ratio (see config.sky.hemiIntensity for the measurements behind it).
   const hemiIntensity = ctx.config.sky.hemiIntensity;
-  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(1.0, 0.97, 0.9), 0.35);
-  const hemi = new HemisphereLight(hemiSky, ctx.config.sky.hemiGround, hemiIntensity);
+  // The sky term leans a touch less golden (linear B/R ≈ 0.87, was 0.84 with a (1.0, 0.97, 0.9)
+  // target): the reference's shaded flagstone keeps B/R ≈ 0.69–0.70 in display against ours at
+  // 0.63–0.67 — its shade is lit by a greyer sky than its golden key. Still no blue: a (0.96, 0.98,
+  // 1.0) target (B/R 0.90) with the IBL at 0.81 overshot the lit stone by 0.025 and the shaded
+  // stairs of shot A by 0.03.
+  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(0.98, 0.975, 0.95), 0.35);
+  const hemiGroundColor = new Color(ctx.config.sky.hemiGround);
+  const hemi = new HemisphereLight(hemiSky, hemiGroundColor, hemiIntensity);
   hemi.name = 'sky-hemisphere';
   group.add(hemi);
 
   // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
   // the reference's hazy key, radiance ≈ 0.24–0.32, see sky.ts).
   let environment = false;
-  const environmentIntensity = 0.6;
+  // 0.57 with the hemisphere at 0.95 (both × 0.95 against 0.6 / 1.0): see config.sun.intensity
+  const environmentIntensity = 0.57;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
@@ -96,16 +134,22 @@ export function create(ctx: WorldContext): WorldSystem {
     sunColor: `#${sunColor.getHexString()}`,
     shadows: sun.castShadow,
     shadowMapSize: sun.shadow.mapSize.x,
-    shadowType: 'pcf-vogel',
+    shadowType: shadowFilterInstalled ? 'pcss-vogel+canopy-transmission' : 'basic',
     shadowWindowRadiusM: SHADOW_RADIUS_M,
     shadowTexelCm: Math.round(((2 * SHADOW_RADIUS_M) / sun.shadow.mapSize.x) * 1000) / 10,
     shadowBias: sun.shadow.bias,
     shadowNormalBias: sun.shadow.normalBias,
     shadowRadiusTexels: sun.shadow.radius,
+    shadowPenumbraPerM: SHADOW_FILTER.penumbraPerM,
+    shadowPenumbraRangeM: [SHADOW_FILTER.penumbraMinM, SHADOW_FILTER.penumbraMaxM],
+    shadowCanopyLeak: SHADOW_FILTER.leak,
+    shadowCanopyLeakRangeM: [SHADOW_FILTER.leakStartM, SHADOW_FILTER.leakFullM],
     cascades: 1,
     hemiIntensity: hemi.intensity,
+    hemiSkyLinear: hemiSky.toArray().map((v) => Math.round(v * 1000) / 1000),
     environmentMap: environment,
     environmentIntensity: environment ? environmentIntensity : 0,
+    environmentTint: SKY_ENV_TINT,
   }));
 
   const camPos = new Vector3();
@@ -114,6 +158,15 @@ export function create(ctx: WorldContext): WorldSystem {
     name: 'lighting',
     group,
     update(_dt, _t, c) {
+      const o = lightOverride();
+      sun.intensity = o?.sunIntensity ?? s.intensity;
+      hemi.intensity = o?.hemiIntensity ?? hemiIntensity;
+      if (o?.hemiSky !== undefined) hemi.color.set(o.hemiSky);
+      else hemi.color.copy(hemiSky);
+      if (o?.hemiGround !== undefined) hemi.groundColor.set(o.hemiGround);
+      else hemi.groundColor.copy(hemiGroundColor);
+      if (environment) c.scene.environmentIntensity = o?.environmentIntensity ?? environmentIntensity;
+      sun.shadow.radius = o?.shadowRadius ?? shadowRadius;
       // shadow window fitted ahead of the camera, snapped to metre steps to avoid shimmering
       c.camera.getWorldPosition(camPos);
       c.camera.getWorldDirection(camDir);

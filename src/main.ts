@@ -1,4 +1,4 @@
-import { Scene, WebGLRenderer, ACESFilmicToneMapping, SRGBColorSpace, PCFShadowMap } from 'three';
+import { Scene, WebGLRenderer, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap } from 'three';
 import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
 import { createFollowCam, type FollowCam } from './camera/follow';
@@ -25,7 +25,7 @@ async function boot() {
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = WORLD.renderer.exposure;
   renderer.shadowMap.enabled = quality.shadows;
-  renderer.shadowMap.type = PCFShadowMap;
+  renderer.shadowMap.type = BasicShadowMap;
   host.appendChild(renderer.domElement);
   if (params.get('hud') !== '0') mountHud(host, { headless });
 

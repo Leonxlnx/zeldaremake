@@ -8,7 +8,7 @@
  *   2. mist overlay scene → premultiplied RGBA (half res), depth-faded             [½ res]
  *   3. SSAO from depth (10 taps, half res) → depth-aware 3×3 blur                  [2 × ½ res]
  *   4. god rays: volumetric march (¼ res, 24 jittered steps per pixel over 40 m, each tested
- *      against the sun's PCF shadow map and a world-space canopy-gap mask with fixed open columns
+ *      against the sun's depth map and a world-space canopy-gap mask with fixed open columns
  *      (atmosphere/shafts.ts), transmittance-weighted, upper-air only, haze density = height-fog
  *      model) → 2 × 12-tap smear along the screen-space sun direction to hide the jitter
  *                                                                                  [3 × ¼ res]
@@ -27,11 +27,14 @@ import {
   Color,
   DepthFormat,
   DepthTexture,
+  FloatType,
   HalfFloatType,
   LinearFilter,
   Matrix4,
   Mesh,
+  MeshLambertMaterial,
   NearestFilter,
+  type Object3D,
   OrthographicCamera,
   PlaneGeometry,
   RGBAFormat,
@@ -64,6 +67,7 @@ import {
   GAUSS_FRAG,
   RAY_BLUR_FRAG,
   RAY_MARCH_FRAG,
+  SHADOWMAP_DEBUG_FRAG,
   SOFT_ACTIVITY_FRAG,
   SOFT_FINAL_FRAG,
 } from './shaders';
@@ -76,10 +80,24 @@ import {
  * - `globalThis.__ATMO_SETTINGS__ = { rayIntensity: 0, softening: false, ... }` overrides numeric /
  *   boolean `ComposerSettings` fields for the frame, so a probe can isolate one pass's contribution
  *   without a rebuild.
+ * - `globalThis.__ATMO_HIDE__ = ['link']` hides the named scene objects for the frame (every pass,
+ *   shadow map included) so a probe can measure what one object contributes — e.g. locate a cast
+ *   shadow by differencing the frame against the same frame with the caster hidden.
+ * - `globalThis.__ATMO_SHADOWMAP_FOCUS__ = { point: [x, y, z], halfSpanM, depthSpanM }` zooms the
+ *   'shadowmap' debug view on the depth map around a world point (mid-grey = that point's depth).
  */
 const debugView = (): string => (globalThis as { __ATMO_DEBUG__?: string }).__ATMO_DEBUG__ ?? '';
+interface ShadowMapFocus {
+  point: [number, number, number];
+  halfSpanM?: number;
+  depthSpanM?: number;
+  /** also read the window's raw depth values back into globalThis.__ATMO_SHADOWMAP_READ__ */
+  read?: boolean;
+}
+const shadowMapFocus = (): ShadowMapFocus | null => (globalThis as { __ATMO_SHADOWMAP_FOCUS__?: ShadowMapFocus | null }).__ATMO_SHADOWMAP_FOCUS__ ?? null;
 type SettingsOverride = Partial<Record<keyof ComposerSettings, number | boolean>>;
 const settingsOverride = (): SettingsOverride | null => (globalThis as { __ATMO_SETTINGS__?: SettingsOverride | null }).__ATMO_SETTINGS__ ?? null;
+const hideList = (): string[] => (globalThis as { __ATMO_HIDE__?: string[] | null }).__ATMO_HIDE__ ?? [];
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -179,6 +197,9 @@ export interface ComposerSettings {
   /** selective grade of green-dominant pixels: hue pull toward gold, saturation softening */
   greenWarm: number;
   greenDesat: number;
+  /** chroma compressor: HSV saturation above `satKnee` keeps `satSlope` of its excess (1 = off) */
+  satKnee: number;
+  satSlope: number;
   shadowTint: Color;
   highlightTint: Color;
 }
@@ -265,8 +286,9 @@ export function createComposer(opts: ComposerOptions): Composer {
 
   const settings: ComposerSettings = {
     // 0.6 stacked with the grass blades' self-occlusion and pushed the vegetation-heavy dark
-    // quartile 0.05–0.08 under the reference's in every view
-    aoStrength: 0.5,
+    // quartile 0.05–0.08 under the reference's in every view; 0.4 once the canopy shade darkened
+    // (shadowfilter leak 0.35 → 0.1): the shaded banks of shots D/F sat 0.05–0.10 under the reference
+    aoStrength: 0.4,
     aoRadius: 0.5,
     // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
@@ -355,8 +377,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
     saturation: 1.12,
     // slightly < 1: the reference's blacks are lifted (shaded plaza stone ≥ 0.32 luminance, nothing
-    // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look
-    contrast: 0.97,
+    // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look.
+    // 0.93 with the sun-dominant balance (sun 3.1 / fill 0.95): the darker canopy shade left the
+    // D/F shaded banks 0.03 under the reference's p10 while the lit slabs already matched; 0.90
+    // over-lifted A/B's blacks (+0.025)
+    contrast: 0.93,
     contrastPivot: 0.18,
     // display-linear pedestal ≈ sRGB 0.06 at black: lifts p2–p10 by ≈ 0.015 and p50 by ≈ 0.01,
     // the shape of the deficit against the reference's compressed video shadows (0.006 put the
@@ -365,6 +390,14 @@ export function createComposer(opts: ComposerOptions): Composer {
     lift: 0.003,
     greenWarm: 0.3,
     greenDesat: 0.08,
+    // the reference's vegetation is far less saturated than ours (shot F's shaded bank 0.27 against
+    // 0.47, C's frame 0.28 against 0.32) while its flagstone matches (0.35–0.38); the warm key
+    // leaves the foliage yellow-dominant, so the green-keyed grade never reaches it. A soft knee
+    // just above the stone's saturation compresses what lies beyond it (video chroma compression):
+    // 0.40 / 0.5 takes F's bank to 0.43 and its frame −0.017 at a cost of −0.017 on B's plaza; a
+    // 0.36 knee cost the stone 0.03. The rest of the gap is the foliage albedo, not the grade.
+    satKnee: 0.4,
+    satSlope: 0.5,
     shadowTint: new Color(0.975, 0.985, 1.02),
     highlightTint: new Color(1.05, 1.0, 0.92),
   };
@@ -489,6 +522,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       uLift: { value: settings.lift },
       uGreenWarm: { value: settings.greenWarm },
       uGreenDesat: { value: settings.greenDesat },
+      uSatKnee: { value: new Vector2(settings.satKnee, settings.satSlope) },
       uShadowTint: { value: settings.shadowTint },
       uHighlightTint: { value: settings.highlightTint },
     },
@@ -504,6 +538,14 @@ export function createComposer(opts: ComposerOptions): Composer {
   });
   // FXAAShader's vertex shader uses the model-view/projection path; the quad + ortho camera cover NDC.
   const blitMat = mat(BLIT_FRAG, { tSrc: { value: null as Texture | null } }, 'postfx-blit');
+  const shadowDebugMat = new MeshLambertMaterial({ color: 0xffffff, name: 'postfx-shadow-debug' });
+  const shadowMapDebugMat = mat(
+    SHADOWMAP_DEBUG_FRAG,
+    { tSrc: { value: null as Texture | null }, uRect: { value: new Vector4(0, 0, 1, 1) }, uDepthCenter: { value: 0.495 }, uDepthScale: { value: 4 }, uRaw: { value: 0 } },
+    'postfx-shadowmap-debug',
+  );
+  /** diagnostic readback of the raw depth values in the focus window (see __ATMO_SHADOWMAP_FOCUS__.read) */
+  let shadowReadTarget: WebGLRenderTarget | null = null;
   const depthDebugMat = mat(DEPTH_DEBUG_FRAG, { tDepth: { value: depthTexture }, uNear: near, uFar: far, uProjInv: projInv }, 'postfx-depth-debug');
   const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 } }, 'postfx-gauss');
   const softActMat = mat(
@@ -577,11 +619,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     return s;
   };
 
-  /** the sun's PCF depth map is only bindable as sampler2DShadow once it exists with a compare fn */
+  /** the sun's raw depth map (BasicShadowMap: no compare function, so it binds as a plain sampler2D) */
   const bindShadow = (): boolean => {
     const sun = opts.sun();
     const depth = sun?.shadow.map?.depthTexture ?? null;
-    if (!sun || !depth || depth.compareFunction === null) return false;
+    if (!sun || !depth || depth.compareFunction !== null) return false;
     rayMarchMat.uniforms.tShadow.value = depth;
     rayMarchMat.uniforms.uShadowMatrix.value.copy(sun.shadow.matrix);
     rayMarchMat.uniforms.uViewInv.value.copy(camera.matrixWorld);
@@ -590,10 +632,90 @@ export function createComposer(opts: ComposerOptions): Composer {
 
   const render = () => {
     renderer.info.reset();
+    const hidden: Object3D[] = [];
+    for (const name of hideList()) {
+      const o = scene.getObjectByName(name);
+      if (o && o.visible) {
+        o.visible = false;
+        hidden.push(o);
+      }
+    }
+    try {
+      renderFrame();
+    } finally {
+      for (const o of hidden) o.visible = true;
+    }
+  };
+
+  const renderFrame = () => {
     if (debugView() === 'bypass') {
       // cost reference: plain forward render straight to the canvas, no post chain
       renderer.setRenderTarget(null);
       renderer.render(scene, camera);
+      return;
+    }
+    if (debugView() === 'shadowmap') {
+      // lighting diagnostic: the sun's depth map itself (near = white), stretched over the frame
+      const sun = opts.sun();
+      const depth = sun?.shadow.map?.depthTexture ?? null;
+      renderer.setRenderTarget(null);
+      if (sun && depth && depth.compareFunction === null) {
+        const focus = shadowMapFocus();
+        const rect = shadowMapDebugMat.uniforms.uRect.value as Vector4;
+        if (focus) {
+          // window the map around the focus point: shadow.matrix maps world → [0,1] uv + depth
+          const p = new Vector4(focus.point[0], focus.point[1], focus.point[2], 1).applyMatrix4(sun.shadow.matrix);
+          const cam = sun.shadow.camera;
+          const spanUv = (focus.halfSpanM ?? 3) / (cam.right - cam.left);
+          const u = p.x / p.w;
+          const v = p.y / p.w;
+          rect.set(u - spanUv, v - spanUv, u + spanUv, v + spanUv);
+          shadowMapDebugMat.uniforms.uDepthCenter.value = p.z / p.w;
+          shadowMapDebugMat.uniforms.uDepthScale.value = (cam.far - cam.near) / (focus.depthSpanM ?? 3);
+          if (focus.read) {
+            // raw depth readback of the window into a small float target → globalThis.__ATMO_SHADOWMAP_READ__
+            const n = 32;
+            shadowReadTarget ??= new WebGLRenderTarget(n, n, { type: FloatType, depthBuffer: false });
+            shadowMapDebugMat.uniforms.tSrc.value = depth;
+            shadowMapDebugMat.uniforms.uRaw.value = 1;
+            pass(shadowMapDebugMat, shadowReadTarget);
+            shadowMapDebugMat.uniforms.uRaw.value = 0;
+            const buf = new Float32Array(n * n * 4);
+            renderer.readRenderTargetPixels(shadowReadTarget, 0, 0, n, n, buf);
+            const values: number[] = [];
+            for (let i = 0; i < n * n; i++) values.push(buf[i * 4]);
+            (globalThis as { __ATMO_SHADOWMAP_READ__?: unknown }).__ATMO_SHADOWMAP_READ__ = {
+              n,
+              uv: [u, v],
+              focusDepth: p.z / p.w,
+              near: cam.near,
+              far: cam.far,
+              values,
+            };
+          }
+        } else {
+          rect.set(0, 0, 1, 1);
+          shadowMapDebugMat.uniforms.uDepthCenter.value = 0.495;
+          shadowMapDebugMat.uniforms.uDepthScale.value = 4;
+        }
+        shadowMapDebugMat.uniforms.tSrc.value = depth;
+        pass(shadowMapDebugMat, null);
+      } else {
+        renderer.clear();
+      }
+      return;
+    }
+    if (debugView() === 'shadow') {
+      // lighting diagnostic: every surface as white Lambert, so the frame shows N·L × shadow + fill
+      // with no albedo, haze or post in the way
+      const prevOverride = scene.overrideMaterial;
+      const prevFog = scene.fog;
+      scene.overrideMaterial = shadowDebugMat;
+      scene.fog = null;
+      renderer.setRenderTarget(null);
+      renderer.render(scene, camera);
+      scene.overrideMaterial = prevOverride;
+      scene.fog = prevFog;
       return;
     }
     const s = frameSettings();
@@ -683,6 +805,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     compositeMat.uniforms.uLift.value = s.lift;
     compositeMat.uniforms.uGreenWarm.value = s.greenWarm;
     compositeMat.uniforms.uGreenDesat.value = s.greenDesat;
+    (compositeMat.uniforms.uSatKnee.value as Vector2).set(s.satKnee, s.satSlope);
     pass(compositeMat, ldr);
 
     // 7. FXAA → LDR, 8. video softness → screen
@@ -828,7 +951,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     dispose: () => {
       for (const t of [hdr, ldr, aa, mist, aoA, aoB, rayA, rayB, bloomA, bloomB, softDown, softA, softB, actA, actB, farA, farB]) t.dispose();
       depthTexture.dispose();
-      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat, blitMat, gaussMat, softActMat, softFinalMat, depthDebugMat]) m.dispose();
+      shadowReadTarget?.dispose();
+      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat, blitMat, gaussMat, softActMat, softFinalMat, depthDebugMat, shadowDebugMat, shadowMapDebugMat]) m.dispose();
       quad.geometry.dispose();
       renderer.info.autoReset = true;
     },

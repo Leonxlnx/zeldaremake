@@ -140,7 +140,7 @@ ${DEPTH_UTILS}
 uniform mat4 uProjInv;
 uniform mat4 uViewInv;
 uniform mat4 uShadowMatrix;
-uniform sampler2DShadow tShadow;
+uniform sampler2D tShadow;   // the sun's raw depth map (BasicShadowMap; compared here by hand)
 uniform vec3 uSunDirView;
 uniform vec3 uSunRight;    // world basis of the plane perpendicular to the sun
 uniform vec3 uSunUp;
@@ -207,7 +207,7 @@ void main() {
     sc.xyz /= sc.w;
     float lit = 1.0;
     if ( sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0 ) {
-      lit = texture( tShadow, vec3( sc.xy, sc.z - 0.0006 ) );
+      lit = step( sc.z - 0.0006, texture2D( tShadow, sc.xy ).r );
     }
     // the noise gap pattern only carries beams in the near air and under the open plaza canopy:
     // past uFarAir.x along the ray, and north of uGapHollow.x in the world (the crowns close over
@@ -308,6 +308,27 @@ varying vec2 vUv;
 void main() {
   vec3 c = clamp( texture2D( tSrc, vUv ).rgb * uScale, 0.0, 1.0 );
   gl_FragColor = vec4( pow( c, vec3( 1.0 / 2.2 ) ), 1.0 );
+}
+`;
+
+/**
+ * Debug: the sun's shadow depth map (nearer to the sun = brighter). `uRect` selects the uv window
+ * shown, `uDepthCenter` / `uDepthScale` the depth mapped to mid-grey and the contrast around it.
+ */
+export const SHADOWMAP_DEBUG_FRAG = /* glsl */ `
+uniform sampler2D tSrc;
+uniform vec4 uRect;
+uniform float uDepthCenter;
+uniform float uDepthScale;
+uniform float uRaw;
+varying vec2 vUv;
+void main() {
+  float d = texture2D( tSrc, mix( uRect.xy, uRect.zw, vUv ) ).r;
+  if ( uRaw > 0.5 ) {
+    gl_FragColor = vec4( d, 0.0, 0.0, 1.0 );
+    return;
+  }
+  gl_FragColor = vec4( vec3( clamp( 0.5 + ( uDepthCenter - d ) * uDepthScale, 0.0, 1.0 ) ), 1.0 );
 }
 `;
 
@@ -476,6 +497,7 @@ uniform float uContrastPivot;
 uniform float uLift;
 uniform float uGreenWarm;
 uniform float uGreenDesat;
+uniform vec2 uSatKnee;  // (knee, slope): HSV saturation above the knee keeps slope × its excess
 uniform vec3 uShadowTint;
 uniform vec3 uHighlightTint;
 varying vec2 vUv;
@@ -542,6 +564,16 @@ void main() {
   // a pedestal that fades out by mid grey keeps the highlights where the sun puts them
   c += uLift * ( 1.0 - smoothstep( 0.0, 0.3, curved ) );
   c = clamp( c, 0.0, 1.0 );
-  gl_FragColor = vec4( linearToSRGB( c ), 1.0 );
+  vec3 s = linearToSRGB( c );
+  // chroma knee in the encoded (display) domain, where the reference is measured: its stone sits at
+  // HSV saturation ≈ 0.35 but its foliage never runs to ours (0.45+), so saturation above the knee
+  // is compressed toward it (hue and the max channel are kept)
+  float smax = max( s.r, max( s.g, s.b ) );
+  float ssat = ( smax - min( s.r, min( s.g, s.b ) ) ) / max( smax, 1e-4 );
+  if ( ssat > uSatKnee.x ) {
+    float target = uSatKnee.x + ( ssat - uSatKnee.x ) * uSatKnee.y;
+    s = mix( vec3( smax ), s, target / ssat );
+  }
+  gl_FragColor = vec4( s, 1.0 );
 }
 `;

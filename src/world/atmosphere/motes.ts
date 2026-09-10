@@ -32,7 +32,7 @@ uniform float uTime;
 uniform float uPixelRatio;
 uniform mat4 uShadowMatrix;
 uniform float uHasShadow;
-uniform sampler2DShadow tShadow;
+uniform sampler2D tShadow;   // the sun's raw depth map (BasicShadowMap), compared by hand
 varying float vLit;
 varying float vPulse;
 void main() {
@@ -47,7 +47,7 @@ void main() {
     vec4 sc = uShadowMatrix * world;
     sc.xyz /= sc.w;
     bool inside = sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0;
-    if ( inside ) vLit = texture( tShadow, vec3( sc.xy, sc.z - 0.0008 ) );
+    if ( inside ) vLit = step( sc.z - 0.0008, texture2D( tShadow, sc.xy ).r );
   }
   vPulse = 0.55 + 0.45 * sin( t * ( 1.3 + aSeed.w ) + aSeed.x * 4.0 );
   vec4 mv = viewMatrix * world;
@@ -142,10 +142,10 @@ export function createMotes(ctx: WorldContext, count = 180): Motes {
       uniforms.uTime.value = t;
       uniforms.uPixelRatio.value = pixelRatio;
       const depthTex = sun?.shadow.map?.depthTexture ?? null;
-      // The shader samples with sampler2DShadow, which WebGL2 only allows on a depth texture with a
-      // compare function (PCF mode). Until the first shadow pass has produced that texture, skip the
-      // draw entirely rather than bind an incompatible texture.
-      if (sun && depthTex && depthTex.compareFunction !== null) {
+      // The shader samples the depth map as a plain sampler2D, which WebGL2 only allows on a depth
+      // texture WITHOUT a compare function (BasicShadowMap, see lighting/index.ts). Until the first
+      // shadow pass has produced that texture, skip the draw rather than bind an incompatible one.
+      if (sun && depthTex && depthTex.compareFunction === null) {
         uniforms.tShadow.value = depthTex;
         uniforms.uShadowMatrix.value.copy(sun.shadow.matrix);
         uniforms.uHasShadow.value = 1;

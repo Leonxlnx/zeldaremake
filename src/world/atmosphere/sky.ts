@@ -32,6 +32,15 @@ export interface SkyDome {
  */
 export const SKY_GAP_GLARE: [number, number, number] = [0.292, 0.272, 0.208];
 
+/**
+ * Tint of the environment (IBL) render only. The dome's warm glare is what the camera sees, but as a
+ * fill it left the shaded flagstone golden (display B/R 0.63–0.67 against the reference's 0.69–0.70):
+ * under a real canopy the sky light reaching the ground is the grey of the gaps, not the glare's
+ * gold, so the IBL is cooled a touch (linear B/R 0.71 → 0.76; the hemisphere term sits at 0.87 —
+ * a stronger 0.81 / 0.90 pair overshot the lit stone by 0.025 in display B/R).
+ */
+export const SKY_ENV_TINT: [number, number, number] = [0.98, 1.0, 1.05];
+
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
 void main() {
@@ -53,6 +62,8 @@ uniform float uEnvMode;
 // angle where it saturates) and the tint at full dimming
 uniform vec2 uBackScatter;
 uniform vec3 uBackTint;
+// environment-map only: tint of the IBL fill (the visible dome keeps its own colour)
+uniform vec3 uEnvTint;
 varying vec3 vDir;
 
 float hash21( vec2 p ) {
@@ -123,6 +134,7 @@ void main() {
     col = mix( col, cloud, wisp * 0.4 );
   }
 
+  col *= mix( vec3( 1.0 ), uEnvTint, uEnvMode );
   gl_FragColor = vec4( col, 1.0 );
 }
 `;
@@ -140,6 +152,7 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uEnvMode: { value: 0 },
     uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },
     uBackTint: { value: new Color(...HEIGHT_FOG_DEFAULTS.backScatterTint) },
+    uEnvTint: { value: new Color(...SKY_ENV_TINT) },
   };
   const material = new ShaderMaterial({
     name: 'kokiri-sky',
