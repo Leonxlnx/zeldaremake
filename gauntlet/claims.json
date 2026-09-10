@@ -194,6 +194,19 @@
       "at": "2026-09-10T16:06:28.358Z",
       "expiresHours": 6,
       "note": "Phase 2/3 integration: Link/Navi/kids and the HUD land in every frame; cameras at the reference eye height"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W37"
+      ],
+      "at": "2026-09-10T18:44:57.934Z",
+      "expiresHours": 6,
+      "note": "Round seven vegetation: hero ferns on D, east-bank cover for F, W18 floor"
     }
   ]
 }
