@@ -116,7 +116,8 @@ void main() {
  * uniform under the canopy, clearing exponentially above it — so a column that climbs into the
  * open air above the crowns (shot F) accumulates far less than an eye-level column of the same
  * length. A Henyey–Greenstein phase term makes the shafts strongest when looking toward the sun
- * (shots A, B, F) and faint when it is behind the camera.
+ * (shots A, B, F); past 90° the haze's back-scatter lobe (heightfog.ts `rayBackScatterMin`) dims
+ * the in-scatter so shot C, looking away from the sun, is not washed by the lit air in front of it.
  *
  * Output: x = in-scatter (0..1), y = marched length / uMaxDist (the smear pass weights its taps by
  * this so beams in front of a near trunk are not overwritten by the long sky columns beside it).
@@ -133,6 +134,7 @@ uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
 uniform float uAnisotropy;
+uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the angle where it saturates
 varying vec2 vUv;
 #define STEPS 16
 void main() {
@@ -164,9 +166,12 @@ void main() {
     acc += lit * dens * stepLen;
   }
   // the phase term is normalised to 1 at 90° from the sun so uRayIntensity means "strength of a
-  // fully lit column"; in-scatter saturates (1 - e^-x) so sun-facing sky columns cannot blow out
+  // fully lit column"; in-scatter saturates (1 - e^-x) so sun-facing sky columns cannot blow out.
+  // Past 90° the same back-scatter lobe as the distance haze takes over (the HG term alone is
+  // nearly flat at this anisotropy), so the shafts and the veil dim together behind the camera
   float phaseN = phase * pow( 1.0 + g * g, 1.5 ) / ( 1.0 - g * g );
-  float rays = 1.0 - exp( -acc * ( 0.35 + 0.65 * phaseN ) );
+  float back = mix( 1.0, uBackScatter.x, smoothstep( 0.0, uBackScatter.y, -cosSun ) );
+  float rays = 1.0 - exp( -acc * ( 0.35 + 0.65 * phaseN ) * back );
   gl_FragColor = vec4( clamp( rays, 0.0, 1.0 ), maxDist / uMaxDist, 0.0, 1.0 );
 }
 `;

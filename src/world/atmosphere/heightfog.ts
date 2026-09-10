@@ -18,7 +18,12 @@
  *   2. exponential height fog — an analytic integral along the view ray of a density that decays
  *      with height above a mist base, weighted toward the north hollow (−Z) where the reference
  *      pools mist under the log arch; its share of the fog takes the warm ground-mist colour.
- *   3. sun in-scatter — the haze warms slightly when looking toward the sun.
+ *   3. sun-angle-dependent airlight — a Mie-like lobe around the sun direction: the calibrated
+ *      airlight colour is the side-scatter value (≈ 90° from the sun, where shots A/B/D look), the
+ *      haze brightens and warms inside ≈ 60° of the sun (shot F), and it dims toward
+ *      `backScatterMin` when the sun is behind the camera (shot C looks ≈ 120–140° away from it:
+ *      the reference's haze there is a dark warm grey, not the luminous veil of the sunward shots).
+ *      Extinction (the veil share) is direction-independent; only the veil's radiance changes.
  *
  * Everything is a pure function of the fragment's world position and the camera, so it is
  * deterministic and costs a few ALU per fragment. The vertex chunk needs `mvPosition` (present in
@@ -73,6 +78,21 @@ export interface HeightFogParams {
   /** distances (m) over which the haze colour grades from near to far */
   hazeGradeNear: number;
   hazeGradeFar: number;
+  /**
+   * Back-scatter lobe of the airlight: multiplier on the haze radiance when looking straight away
+   * from the sun (1 = no falloff). The dimming ramps in from 90° (side scatter, the calibrated
+   * colour) to `backScatterFullDeg` and holds beyond it.
+   */
+  backScatterMin: number;
+  backScatterFullDeg: number;
+  /** tint of the back-scattered haze at full dimming (the reference's anti-sun haze is warmer than its sunward veil) */
+  backScatterTint: [number, number, number];
+  /**
+   * The same lobe for the god-ray in-scatter (postfx ray march): single scattering of direct sun
+   * is more forward-peaked than the sky-lit, multiply-scattered veil, so its back lobe is deeper
+   * (Henyey–Greenstein g ≈ 0.6 gives ≈ 0.48 at 135° relative to 90°).
+   */
+  rayBackScatterMin: number;
 }
 
 export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
@@ -100,6 +120,18 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   mistColor: [0.175, 0.173, 0.154],
   hazeGradeNear: 20,
   hazeGradeFar: 55,
+  // shot C (centre ≈ 119° from the sun, left edge ≈ 138°) reads the reference's anti-sun haze at
+  // ≈ 0.75× the display value of our side-scatter veil. The lobe also scales the sky dome and the
+  // mist sheets (same numbers) and the god-ray in-scatter (deeper, see rayBackScatterMin), so the
+  // medium dims as one. Shots A/B/D/E look 64–86° from the sun at their centres (only A's and B's
+  // right quarter passes 90°), so they keep the calibrated colour; F (28°) sits entirely in the
+  // forward lobe.
+  backScatterMin: 0.62,
+  backScatterFullDeg: 135,
+  // the dimmed far haze displays ≈ #827d6e — the reference's anti-sun veil is #625e51-class (hue
+  // ≈ 46°, HSL saturation ≈ 0.09) where our neutral side-scatter grey would read yellow-green
+  backScatterTint: [1.08, 1.0, 0.9],
+  rayBackScatterMin: 0.45,
 };
 
 /** #rrggbb of a scene-linear colour after the composer's ACES (exposure 1) — for audits. */
@@ -162,6 +194,16 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const vec3 KF_MIST = vec3( ${params.mistColor.map(f).join(', ')} );
 	const float KF_GRADE_NEAR = ${f(params.hazeGradeNear)};
 	const float KF_GRADE_FAR = ${f(params.hazeGradeFar)};
+	const float KF_BACK_MIN = ${f(params.backScatterMin)};
+	const float KF_BACK_FULL = ${f(-Math.cos((params.backScatterFullDeg * Math.PI) / 180))};
+	const vec3 KF_BACK_TINT = vec3( ${params.backScatterTint.map(f).join(', ')} );
+
+	// back lobe of the airlight phase: 1 at and sunward of 90°, easing to KF_BACK_MIN (with a warm
+	// tint) once the ray points KF_BACK_FULL past the side-scatter direction. mu = dot( ray, sun ).
+	vec3 kfBackScatter( float mu ) {
+		float back = smoothstep( 0.0, KF_BACK_FULL, -mu );
+		return mix( vec3( 1.0 ), KF_BACK_TINT * KF_BACK_MIN, back );
+	}
 
 	// analytic optical depth of density(y) = D * exp( -k * (y - base) ) along a ray of length dist,
 	// written as the difference of the two endpoint terms D/(k*ry) * (e(y0) - e(y1)). Each factor is
@@ -193,7 +235,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		return ( below + above ) / span;
 	}
 
-	// returns (total fog, distance-haze share, mist share, sun in-scatter) for this fragment
+	// returns (total fog, distance-haze share, mist share, cos of the ray–sun angle) for this fragment
 	vec4 kfFog( vec3 worldPos, out vec3 rayDir ) {
 		vec3 v = worldPos - cameraPosition;
 		float dist = length( v );
@@ -213,17 +255,23 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		float hAmount = kfHeightFogAmount( cameraPosition, rayDir, dist, weight );
 		float heightFog = min( 1.0 - exp( -hAmount ), 0.7 );
 		float fog = min( 1.0 - ( 1.0 - distFog ) * ( 1.0 - heightFog ), KF_MAX_FOG );
-		// 3) in-scatter: the haze warms and brightens toward the sun
-		float sunAmt = pow( max( dot( rayDir, KF_SUN_DIR ), 0.0 ), 4.0 );
-		return vec4( fog, distFog, heightFog, sunAmt );
+		// 3) the ray–sun angle drives the airlight phase (forward lobe + back-scatter dimming)
+		return vec4( fog, distFog, heightFog, dot( rayDir, KF_SUN_DIR ) );
 	}
 
-	// depth-graded haze colour: dark warm grey near → lighter warm grey far, ground mist in the layer
-	vec3 kfHazeColor( float dist, float distFog, float heightFog, float sunAmt, float rayY ) {
+	// depth-graded haze colour: dark warm grey near → lighter warm grey far, ground mist in the layer,
+	// scaled by the airlight phase around the sun direction (mu = cos of the ray–sun angle)
+	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY ) {
 		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
-		col *= ( 1.0 + sunAmt * 0.35 ) * mix( vec3( 1.0 ), vec3( 1.06, 1.0, 0.9 ), sunAmt );
+		// forward lobe: the haze brightens toward the sun and takes the reference's warm gap-glare
+		// chroma (a slightly wider lobe for the tint than for the brightness, so the low sunward
+		// rays of shot F warm up without brightening)
+		float sunAmt = pow( max( mu, 0.0 ), 4.0 );
+		float sunTint = pow( max( mu, 0.0 ), 3.0 );
+		col *= ( 1.0 + sunAmt * 0.35 ) * mix( vec3( 1.0 ), vec3( 1.08, 1.0, 0.84 ), sunTint );
+		col *= kfBackScatter( mu );
 		// a hair darker when looking down into the ground layer
 		return col * mix( 1.0, 0.94, clamp( -rayY * 2.0, 0.0, 1.0 ) );
 	}

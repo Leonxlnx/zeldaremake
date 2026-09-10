@@ -244,6 +244,9 @@ export function createComposer(opts: ComposerOptions): Composer {
       // mild forward scattering: the sun-facing shot F gets ≈ 1.4× the side-lit strength of A/B
       // (0.3 gave 2.1×, a wash over the crowns rather than shafts through them)
       uAnisotropy: { value: 0.15 },
+      // the haze's back-scatter lobe (heightfog.ts): looking away from the sun (shot C) the lit air
+      // in-scatters far less — the reference shows no airlight wash from behind the camera
+      uBackScatter: { value: new Vector2(fog.rayBackScatterMin, -Math.cos((fog.backScatterFullDeg * Math.PI) / 180)) },
     },
     'postfx-ray-march',
   );
@@ -488,6 +491,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRaySteps: 16,
       godRayResolution: [qw, qh],
       godRayStrength: rayIntensity.value,
+      godRayBackScatterMin: fog.rayBackScatterMin,
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
       bloom: true,

@@ -8,7 +8,7 @@
  * rendered by the lighting system into a PMREM so standard materials receive matching sky/ground
  * bounce and specular.
  */
-import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
+import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector2, Vector3 } from 'three';
 import type { WorldConfig } from '../config';
 import { HEIGHT_FOG_DEFAULTS } from './heightfog';
 
@@ -26,9 +26,11 @@ export interface SkyDome {
  * the horizon is the far haze (#8d8e85), so the dome is a luminous warm haze that meets the
  * distance fog seamlessly. The gap glare sits a little under the reference's display value because
  * the god rays and the sun-facing brightening land on top of it (measured gaps ≈ 0.66–0.72
- * luminance in shot F). Exported for the audit; the horizon shares heightfog's `hazeFar`.
+ * luminance in shot F). Its chroma matches the reference glare (HSL saturation ≈ 0.12 at the same
+ * luminance — the gaps read as warm glare, not grey). Exported for the audit; the horizon shares
+ * heightfog's `hazeFar`.
  */
-export const SKY_GAP_GLARE: [number, number, number] = [0.285, 0.273, 0.223];
+export const SKY_GAP_GLARE: [number, number, number] = [0.292, 0.272, 0.208];
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -47,6 +49,10 @@ uniform vec3 uSunDir;
 uniform vec3 uSunColor;
 uniform float uTime;
 uniform float uEnvMode;
+// back-scatter lobe shared with the distance haze (heightfog.ts): (min multiplier, -cos of the
+// angle where it saturates) and the tint at full dimming
+uniform vec2 uBackScatter;
+uniform vec3 uBackTint;
 varying vec3 vDir;
 
 float hash21( vec2 p ) {
@@ -78,13 +84,20 @@ float fbm( vec2 p ) {
 void main() {
   vec3 d = normalize( vDir );
   float h = d.y;
-  float sd = max( dot( d, uSunDir ), 0.0 );
+  float mu = dot( d, uSunDir );
+  float sd = max( mu, 0.0 );
   // luminous warm haze: the far-haze grey at the horizon (seamless with the distance fog on
-  // geometry) brightening to the canopy-gap glare overhead; brighter again toward the sun, where
-  // the haze is front-lit. Nothing here is blue (the reference has 0 % sky-blue pixels).
+  // geometry) brightening to the canopy-gap glare overhead; brighter and warmer again toward the
+  // sun, where the haze is front-lit, and dimmer opposite the sun (the same back-scatter lobe the
+  // distance haze on geometry uses, so the far world and the dome behind it stay seamless; the
+  // environment map keeps the side-scatter value so the IBL calibration is untouched). Nothing here
+  // is blue (the reference has 0 % sky-blue pixels).
   float up = clamp( h, 0.0, 1.0 );
   vec3 sky = mix( uHorizon, uZenith, smoothstep( 0.0, 0.45, up ) );
-  sky *= 1.0 + 0.12 * pow( sd, 3.0 );
+  float s3 = pow( sd, 3.0 );
+  sky *= ( 1.0 + 0.12 * s3 ) * mix( vec3( 1.0 ), vec3( 1.05, 1.0, 0.9 ), s3 );
+  float back = smoothstep( 0.0, uBackScatter.y, -mu ) * ( 1.0 - uEnvMode );
+  sky *= mix( vec3( 1.0 ), uBackTint * uBackScatter.x, back );
   // below the horizon: haze darkening toward ground bounce (only matters for the env map)
   float down = clamp( -h, 0.0, 1.0 );
   vec3 below = mix( uHorizon * 0.8, uGround, smoothstep( 0.0, 0.35, down ) );
@@ -125,6 +138,8 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uSunColor: { value: new Color(cfg.sun.color) },
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
+    uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },
+    uBackTint: { value: new Color(...HEIGHT_FOG_DEFAULTS.backScatterTint) },
   };
   const material = new ShaderMaterial({
     name: 'kokiri-sky',

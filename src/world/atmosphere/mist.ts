@@ -86,6 +86,8 @@ uniform float uTime;
 uniform vec2 uWind;
 uniform vec3 uColor;
 uniform vec3 uSunDir;
+uniform vec2 uBackScatter;
+uniform vec3 uBackTint;
 uniform float uUpright;
 uniform float uDensity;
 varying vec2 vUv;
@@ -146,9 +148,12 @@ void main() {
   alpha *= 1.0 - smoothstep( 40.0, 95.0, dist );
 
   vec3 rayDir = normalize( vWorld - cameraPosition );
-  float sunAmt = pow( max( dot( rayDir, uSunDir ), 0.0 ), 5.0 );
-  // the reference's warm ground-mist grey (heightfog.ts mistColor), brighter toward the sun
+  float mu = dot( rayDir, uSunDir );
+  float sunAmt = pow( max( mu, 0.0 ), 5.0 );
+  // the reference's warm ground-mist grey (heightfog.ts mistColor), brighter toward the sun and
+  // dimmer opposite it (the distance haze's back-scatter lobe, so mist and haze stay one medium)
   vec3 col = uColor * ( 0.95 + 0.1 * vTint ) * ( 1.0 + 0.4 * sunAmt ) * mix( vec3( 0.99, 1.0, 1.01 ), vec3( 1.06, 1.0, 0.92 ), sunAmt );
+  col *= mix( vec3( 1.0 ), uBackTint * uBackScatter.x, smoothstep( 0.0, uBackScatter.y, -mu ) );
   gl_FragColor = vec4( col * alpha, alpha );
 }
 `;
@@ -213,6 +218,8 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
     // reference ground mist ≈ #7a796d (scene-linear value that ACES maps there, see heightfog.ts)
     uColor: { value: new Color(...HEIGHT_FOG_DEFAULTS.mistColor) },
     uSunDir: { value: sunDir.clone() },
+    uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },
+    uBackTint: { value: new Color(...HEIGHT_FOG_DEFAULTS.backScatterTint) },
   };
 
   const build = (items: Placement[], upright: boolean, density: number) => {
