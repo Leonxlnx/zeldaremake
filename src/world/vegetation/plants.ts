@@ -9,16 +9,21 @@ import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample, type FieldSample } from './field';
+import { rgb } from './geometry';
 import { LodInstancedSet } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { bushGeometry, cloverGeometry, fernGeometry, flowerGeometry, flowerSpikeGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry } from './plantgeo';
+import { bushGeometry, cloverGeometry, fernGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
+  /** big lit tree-fern crowns (0.7–0.9 m): the shot-D clump left of the boulder and accents on the east bank */
+  heroFerns: LodInstancedSet;
   bushes: LodInstancedSet;
   /** the low dark shot-A hedge on the bank between the plaza and Saria's terrace (≤ 1.2 m) */
   hedge: LodInstancedSet;
   flowers: LodInstancedSet;
+  /** pale-yellow cluster blooms tucked into the shot-D hero clump */
+  yellowFlowers: LodInstancedSet;
   weeds: LodInstancedSet;
   seedheads: LodInstancedSet;
   clover: LodInstancedSet;
@@ -103,12 +108,21 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   };
 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
+  // Hero crowns are read at frond scale from 6–8 m in shot D: high LOD out to 16 m. The reference
+  // clump is sunlit (0.35 mean, 0.49 p90 in frame 56) while our west verge sits under the
+  // north-west-near canopy, where fill alone rendered the fronds at 0.24: the crowns get the same
+  // kind of skylight lift the shaded grass bank uses (materials.ts uShadeFill), plus more backlight.
+  const heroFerns = mk('hero-ferns', variants(3, `${seed}/hero-fern`, pal, heroFernGeometry), 'plant', [16, 32], 1, { sway: 2.0, flutter: 0.014, stiffness: 0.35, transmission: 0.25, ambientBoost: 0.4 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
   // hero hedge: same bush variants at shrub scale, but it is read from 15 m in shot A so it keeps
   // the high LOD much further out than the scattered bushes
   const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, bushGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
   const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  // the pale-yellow blooms tucked into the shot-D fern clump: the same cluster-head plant in a
+  // straw-yellow palette (reference frame 56: small pale flowers at the base of the fronds)
+  const yellowPal = { ...pal, purple: rgb(0xd6c15c), purpleLight: rgb(0xefe094), purpleDeep: rgb(0xa8933a) };
+  const yellowFlowers = mk('flowers-yellow', variants(2, `${seed}/flower-yellow`, yellowPal, flowerGeometry), 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55 });
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
   const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 });
@@ -116,10 +130,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 
   const tint = new Color();
-  const placeInstance = (set: LodInstancedSet, x: number, z: number, s: FieldSample, rng: Rng, scale: number, tiltAmount: number, sink: number, color: Color, sxz = scale) => {
+  const placeInstance = (set: LodInstancedSet, x: number, z: number, s: FieldSample, rng: Rng, scale: number, tiltAmount: number, sink: number, color: Color, sxz = scale, variantRange: readonly [number, number] = [0, set.variantCount]) => {
     const y = T.height(x, z) - sink;
     composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, tiltAmount, rng() * Math.PI * 2, sxz, scale, sxz);
-    set.add(M, rng.int(0, set.variantCount), color);
+    set.add(M, rng.int(variantRange[0], variantRange[1]), color);
   };
   const greenVar = (rng: Rng, amount = 0.14) => tint.setRGB(1 + (rng() - 0.5) * amount, 1 + (rng() - 0.5) * amount * 0.7, 1 + (rng() - 0.5) * amount * 1.2);
 
@@ -164,9 +178,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, (0.6 + rng() * 0.55) * (1 - 0.4 * field.lowZone(x, z)), 0.7, 0.02, greenVar(rng, 0.2)),
   );
-  // Shot D left-centre (reference 0.05–0.14 × 0.55–0.68): 3–5 large fronds beside the mossy
-  // shot-d boulder. The cluster hugs the boulder's path-facing (east) side, which is what stays
-  // visible east of the north-west-near giant's roots from camera D.
+  // Shot D left-centre: understory fronds on the boulder's path-facing (east) side, between the
+  // rock and the flagstones. Kept at undergrowth scale — the reference's big lit clump is the
+  // hero crown WEST of the rock below; east of it the footage shows violets over short grass.
   scatter(
     ctx,
     field,
@@ -185,8 +199,39 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         return 0.7;
       },
     },
-    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 1.15 + rng() * 0.35, 0.7, 0.02, greenVar(rng, 0.2)),
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.8 + rng() * 0.25, 0.7, 0.02, greenVar(rng, 0.2)),
   );
+  // Shot-D hero clump (reference 0.05–0.14 × 0.55–0.68: a lit mass of big arching fronds LEFT of
+  // the mossy rock, against the dark north-west-near trunk). Three tree-fern crowns on the bank
+  // slope west of the boulder, 6–8 m from camera D so the fronds read at pinna scale; the rock's
+  // near face hides their rootstocks as in the footage. Authored spots, jittered by a forked stream.
+  {
+    const rng = ctx.rng.fork('plants/hero-ferns-shotD');
+    const s = newSample();
+    const spots: readonly [number, number, number][] = [
+      [dbx - 1.45, dbz - 0.75, 1.02],
+      [dbx - 1.0, dbz + 0.5, 0.92],
+      [dbx - 1.2, dbz - 1.7, 0.94],
+    ];
+    for (const [cx, cz, sc] of spots) {
+      const x = cx + (rng() - 0.5) * 0.16;
+      const z = cz + (rng() - 0.5) * 0.16;
+      field.sample(x, z, s);
+      if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
+      placeInstance(heroFerns, x, z, s, rng, sc * (0.96 + rng() * 0.08), 0.45, 0.02, greenVar(rng, 0.1));
+    }
+    // pale-yellow blooms at the crowns' feet, on the camera side so they show under the fronds
+    let blooms = 0;
+    for (let i = 0; i < 40 && blooms < 6; i++) {
+      const x = dbx - 1.7 + rng() * 1.3;
+      const z = dbz - 1.6 + rng() * 2.4;
+      field.sample(x, z, s);
+      if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
+      if (Math.hypot(x - dbx, z - dbz) < dbr + 0.15) continue;
+      placeInstance(yellowFlowers, x, z, s, rng, 0.7 + rng() * 0.25, 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1));
+      blooms++;
+    }
+  }
   // Shot D right verge (reference 0.55–0.85 × 0.60–0.72): low grass with a few small ferns,
   // nothing above ≈ 0.5 m; kept north of camera C's sight line.
   scatter(
@@ -226,6 +271,38 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       },
     },
     (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 1.05 + rng() * 0.3, 0.7, 0.02, greenVar(rng, 0.2)),
+  );
+  // ---- east bank: the stair's right flank rising from the plaza's south-east verge (frame 8's
+  // 0.6–1.0 × 0.3–0.7 and frame 1's 0.8–1.0 × 0.3–0.6). The reference shows a shaded bank densely
+  // covered with dark ferns, moss and broad-leaf ground cover around the kid, not a bare lawn:
+  // ≈ 1 fern per 2 m² (0.4–0.65 m), a few lit hero crowns, paddle-leaf weeds and moss cushions.
+  // Kept off camera C's stair-foot wedge, the kid's spot (kokiri-a) and the stair-foot rock.
+  const eastBank = (x: number, z: number, s: FieldSample, reach: number) => {
+    if (s.cliff > 0.35 || s.h > 4.6) return false;
+    if (field.edgeDistance(x, z) < 0.45) return false;
+    const clr = field.clearing(x, z);
+    if (clr.insideBoulder || clr.npc > 0 || field.boulderDistance(x, z) < 0.25) return false;
+    if (field.sightlineC(x, z, reach) > 0) return false;
+    return true;
+  };
+  const EAST_BANK: [number, number, number, number] = [9, -3.2, 16.5, 7.5];
+  scatter(
+    ctx,
+    field,
+    { label: 'ferns-east-bank', candidates: 4000, box: EAST_BANK, minSpacing: 0.85, accept: (x, z, s) => (eastBank(x, z, s, 1.0) ? 0.55 + 0.45 * field.cluster(x, z) : 0) },
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.8 + rng() * 0.3, 0.7, 0.02, greenVar(rng, 0.18).multiplyScalar(0.94)),
+  );
+  scatter(
+    ctx,
+    field,
+    { label: 'hero-ferns-east-bank', candidates: 1600, box: EAST_BANK, minSpacing: 1.7, accept: (x, z, s) => (eastBank(x, z, s, 1.0) && s.h > 0.2 ? 0.45 : 0) },
+    (x, z, s, rng) => placeInstance(heroFerns, x, z, s, rng, 0.56 + rng() * 0.16, 0.5, 0.02, greenVar(rng, 0.12)),
+  );
+  scatter(
+    ctx,
+    field,
+    { label: 'weeds-east-bank', candidates: 1800, box: EAST_BANK, minSpacing: 0.9, accept: (x, z, s) => (eastBank(x, z, s, 0.6) ? 0.45 : 0) },
+    (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 1.8 + rng() * 0.8, 0.8, 0.012, greenVar(rng, 0.16).multiplyScalar(0.85)),
   );
 
   // ---- bushes: embankments, ledge edges, house bases, the log arch
@@ -349,7 +426,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   );
 
   // ---- purple flowers: shot D left foreground, west verge of the spine, shot A left, scattered
-  const flowerPlace = (scaleMin: number, scaleMax: number) => (x: number, z: number, s: FieldSample, rng: Rng) => placeInstance(flowers, x, z, s, rng, scaleMin + rng() * (scaleMax - scaleMin), 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1));
+  /** flower variants 0–1 are the low cluster heads, 2–3 the taller bell spikes */
+  const CLUSTER_HEADS: readonly [number, number] = [0, 2];
+  const flowerPlace = (scaleMin: number, scaleMax: number, variantRange?: readonly [number, number]) => (x: number, z: number, s: FieldSample, rng: Rng) =>
+    placeInstance(flowers, x, z, s, rng, scaleMin + rng() * (scaleMax - scaleMin), 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1), undefined, variantRange);
   const flowerVerge = (x: number, z: number) => {
     const edge = field.edgeDistance(x, z);
     if (edge < 0.25) return 0;
@@ -361,10 +441,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   };
   // Authored clumps: the reference grows its violets in low, compact clumps 0.3–0.6 m across
   // (5–15 cm blooms), not in beds. Each centre gets a handful of clusters within `radius`.
-  const clumps = (label: string, centres: [number, number][], perClump: number, radius: number, scaleMin: number, scaleMax: number) => {
+  const clumps = (label: string, centres: [number, number][], perClump: number, radius: number, scaleMin: number, scaleMax: number, variantRange?: readonly [number, number]) => {
     const rng = ctx.rng.fork(`plants/${label}`);
     const s = newSample();
-    const place = flowerPlace(scaleMin, scaleMax);
+    const place = flowerPlace(scaleMin, scaleMax, variantRange);
     for (const [cx, cz] of centres) {
       let left = perClump;
       for (let i = 0; i < perClump * 4 && left > 0; i++) {
@@ -385,17 +465,27 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // frame's left edge, so the clumps sit on the verge strip between its roots and the path (the
   // boulder's east side projects to ≈ 0.18–0.25 × 0.75–0.85) and on the bank slope beyond it at
   // z ≈ −14…−16 (≈ 0.20–0.28 × 0.58–0.67, the reference's first patch).
+  // The footage's violets here are LOW cluster heads tucked among the fronds (reference box
+  // 0–0.25 × 0.5–0.8 measures hue 55°, i.e. green-dominated with purple accents), so the D clumps
+  // are small, use the cluster-head variants only and skip the tall bell spikes.
   const dClumps: [number, number][] = [[dbx + 1.0, dbz - 0.6], [-3.4, -14.9], [-2.9, -13.6], [-4.0, -15.6]];
-  for (const [i, c] of dClumps.entries()) clumps(`flowers-shotD-clump-${i}`, [c], 7 + (i % 3), 0.42, 1.0, 1.35);
-  // a few single blooms along the west verge strip (reference: "plus a few blooms")
-  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 700, box: [-3.4, -12.6, -1.3, -6.4], minSpacing: 1.2, accept: (x, z) => 0.2 * flowerVerge(x, z) }, flowerPlace(0.9, 1.2));
+  for (const [i, c] of dClumps.entries()) clumps(`flowers-shotD-clump-${i}`, [c], 3 + (i % 2), 0.36, 0.8, 1.05, CLUSTER_HEADS);
+  // a few single blooms along the west verge strip beyond the boulder (reference: "plus a few
+  // blooms" beside the fern clump; the near verge in D's bottom-left corner stays grass + litter)
+  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 700, box: [-3.4, -12.6, -1.3, -9.4], minSpacing: 1.2, accept: (x, z) => 0.1 * flowerVerge(x, z) }, flowerPlace(0.75, 0.95, CLUSTER_HEADS));
   // the strip continues south along the west verge (z ≤ −4.6 so camera B's lower-left stays
-  // grass): reference A's left-verge purple (0.0–0.14, 0.58–0.66)
-  scatter(ctx, field, { label: 'flowers-shotD', candidates: 800, box: [-3.8, -7.5, -1.4, -4.6], minSpacing: 0.5, accept: (x, z) => 0.4 * flowerVerge(x, z) }, flowerPlace(0.95, 1.3));
+  // grass): reference A's left-verge purple (0.0–0.14, 0.58–0.66) sits 11–14 m from camera A at
+  // its far-left edge. The same ground is camera D's bottom-left corner, where the footage shows
+  // sunlit grass and litter with no violets, so the clumps keep to the part of the strip that is
+  // off D's left edge (z > −6.3 or x < −3.1: both project to D sx < 0 at sy > 0.9).
+  scatter(ctx, field, { label: 'flowers-shotD', candidates: 800, box: [-3.8, -7.5, -1.4, -4.6], minSpacing: 0.55, accept: (x, z) => (z > -6.3 || x < -3.1 ? 0.2 * flowerVerge(x, z) : 0) }, flowerPlace(0.85, 1.1));
   // Shot B right edge: the purple clump at (0.95, 0.60) sits on the stair-flank embankment
   // 1 m above the plaza, among the big ferns; from A it is on the left stair flank. Seated with
   // the ferns past x ≈ 9.3 so it stays off camera C's left edge (flowerVerge rejects the wedge).
   clumps('flowers-shotB', [[9.55, -5.2]], 8, 0.38, 1.05, 1.35);
+  // Shot A right edge (reference ≈ 0.95 × 0.50, violets on the stair's right flank above the kid):
+  // one low clump on the east bank at (14.2, 0.2) → A (0.95, 0.47), east of camera C's wedge.
+  clumps('flowers-shotA-right', [[14.2, 0.2]], 6, 0.4, 0.95, 1.2, CLUSTER_HEADS);
   scatter(ctx, field, { label: 'flowers-shotA', candidates: 1800, box: [-7.5, 2, -2.8, 9.5], minSpacing: 0.5, accept: (x, z) => 0.45 * flowerVerge(x, z) }, flowerPlace(1.0, 1.5));
   scatter(
     ctx,
@@ -541,6 +631,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, _s, rng) => placeMoss(x, z, 0.05 + rng() * 0.16),
   );
+  // moss cushions between the east-bank ferns (frame 8: moss-green ground cover on the shaded bank)
+  scatter(
+    ctx,
+    field,
+    { label: 'moss-east-bank', candidates: 2200, box: EAST_BANK, minSpacing: 0.7, accept: (x, z, s) => (eastBank(x, z, s, 0.3) ? 0.4 * (0.5 + field.cluster(x, z)) : 0) },
+    (x, z, _s, rng) => placeMoss(x, z, 0.1 + rng() * 0.16),
+  );
 
   // ---- saplings: quiet spots away from paths and giant trunks
   scatter(
@@ -565,9 +662,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     (x, z, s, rng) => placeInstance(saplings, x, z, s, rng, 0.7 + rng() * 0.6, 0.3, 0.03, greenVar(rng, 0.16)),
   );
 
-  const all = [ferns, bushes, hedge, flowers, weeds, seedheads, clover, moss, saplings];
+  const all = [ferns, heroFerns, bushes, hedge, flowers, yellowFlowers, weeds, seedheads, clover, moss, saplings];
   for (const set of all) parent.add(set.build());
-  return { ferns, bushes, hedge, flowers, weeds, seedheads, clover, moss, saplings, all, materials };
+  return { ferns, heroFerns, bushes, hedge, flowers, yellowFlowers, weeds, seedheads, clover, moss, saplings, all, materials };
 }
 
 export { clamp };

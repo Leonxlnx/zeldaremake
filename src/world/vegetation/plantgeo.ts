@@ -106,6 +106,78 @@ export function fernGeometry(seed: string, pal: PlantPalette, detail: Detail): B
   return m.finish({ groundToZero: true });
 }
 
+/**
+ * Hero fern (reference D 0.05–0.14 × 0.55–0.68, left of the shot-d boulder): a tree-fern-like
+ * crown of 8–12 big arching fronds, 0.7–0.9 m tall, rising steeply from a short fibrous
+ * rootstock and leaning out at the top; broad rounded pinnae and curled fiddlehead tips. Lit
+ * yellow-olive (`#69692e` in the footage) rather than the deep shade green of the understory
+ * ferns, so the clump reads as the bright mass the reference box measures (lum ≈ 0.36).
+ */
+export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  const rng = createRng(seed);
+  const m = new MeshBuilder();
+  const high = detail === 'high';
+  const low = detail === 'low';
+  const fronds = low ? 6 : 8 + rng.int(0, 4);
+  const height = 0.7 + rng() * 0.2;
+  const azimuth = rng() * TAU;
+  // the footage's fronds are a lit yellow-olive (`#69692e`), a full step lighter than the
+  // understory fern green, and stay legible as separate arches against the dark bank
+  const frondColor = blend(pal.fern, pal.leafSun, 0.5);
+  const stemColor = blend(pal.stem, frondColor, 0.4);
+  // rootstock: a stubby fibrous trunk the fronds spring from
+  tube(m, [V(0, -0.02, 0), V(0.01, 0.06, 0), V(0, 0.13, 0.01)], 0.055, 0.035, tone(pal.bark, 0.9), high ? 6 : 4, true);
+  for (let f = 0; f < fronds; f++) {
+    const angle = azimuth + (f * TAU) / fronds + (rng() - 0.5) * 0.3;
+    const radial = V(Math.cos(angle), 0, Math.sin(angle));
+    const lateral = V(-Math.sin(angle), 0, Math.cos(angle));
+    // the odd fronds are the younger inner ring: steeper and shorter
+    const inner = f % 2 === 1;
+    const h = height * (inner ? 0.78 + rng() * 0.14 : 0.92 + rng() * 0.1);
+    const reach = inner ? 0.42 + rng() * 0.16 : 0.62 + rng() * 0.24;
+    const rise = inner ? 0.62 : 0.7 + rng() * 0.1;
+    const curve = arch(radial, lateral, reach, (rng() - 0.5) * 0.14, h, rise);
+    const segs = high ? 12 : low ? 5 : 7;
+    tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, high ? 5 : 3);
+    const pairs = high ? 12 : low ? 6 : 8;
+    const frondTone = 0.86 + rng() * 0.34;
+    for (let p = 0; p < pairs; p++) {
+      const t = 0.14 + (p / (pairs - 1)) * 0.82;
+      const envelope = Math.pow(Math.sin(Math.PI * ((t - 0.04) / 0.98)), 0.7);
+      const length = (0.2 + rng() * 0.05) * Math.max(0.12, envelope) * (1 - t * 0.2) * (low ? 1.3 : 1);
+      for (const sign of [-1, 1]) {
+        const origin = curve(Math.min(1, Math.max(0, t + sign * 0.004)));
+        const dir = lateral
+          .clone()
+          .multiplyScalar(sign)
+          .addScaledVector(radial, 0.2 + t * 0.35)
+          .add(V(0, 0.18 - t * 0.34 + (rng() - 0.5) * 0.12, 0));
+        // pinnae brighten toward the sunlit tip of the frond
+        const color = tone(frondColor, frondTone * (0.86 + t * 0.24 + rng() * 0.1));
+        const opts = { curl: 0.08 + rng() * 0.1, twist: sign * (0.05 + rng() * 0.15), ridge: 0.18, serration: 0.04 };
+        if (high) lanceLeaf(m, origin, dir, length * (0.94 + rng() * 0.12), length * (0.27 + rng() * 0.07), color, { ...opts, sections: 3 });
+        else if (low) foldedLeaf(m, origin, dir, length, length * 0.32, color, opts);
+        else curvedLeaf(m, origin, dir, length, length * 0.3, color, opts);
+      }
+    }
+    // fiddlehead: the tip curls back over itself
+    const tip = curve(1);
+    const back = radial.clone().multiplyScalar(-1);
+    if (high) {
+      const spiral: Vector3[] = [];
+      for (let k = 0; k <= 5; k++) {
+        const a = (k / 5) * Math.PI * 1.35;
+        const r = 0.035 * (1 - k / 9);
+        spiral.push(tip.clone().addScaledVector(radial, 0.035 - Math.cos(a) * r).add(V(0, Math.sin(a) * r + k * 0.002, 0)));
+      }
+      tube(m, spiral, 0.007, 0.004, tone(frondColor, 1.15), 4, true);
+    } else {
+      curvedLeaf(m, tip, back.add(V(0, 0.6, 0)), 0.07, 0.03, tone(frondColor, 1.1), { curl: 0.5 });
+    }
+  }
+  return m.finish({ groundToZero: true });
+}
+
 // ---------------------------------------------------------------- bushes
 export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);

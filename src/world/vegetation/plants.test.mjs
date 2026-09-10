@@ -81,6 +81,23 @@ const atBEdge=(set,x0,y0,y1)=>set.items.filter(it=>{const p=camB([it.x,top(set,i
 assert.ok(atBEdge(a.plants.ferns,0.84,0.35,0.8).length>=5,'Fern clumps at shot B\'s right edge');
 assert.ok(atBEdge(a.plants.flowers,0.88,0.35,0.7).length>=4,'Purple clump at shot B\'s right edge');
 assert.ok(a.plants.ferns.items.filter(it=>Math.hypot(it.x+3.2,it.z+10.2)<2.3).length>=3,'Fern cluster beside the shot-D boulder');
+// Frame 56: the big lit fern clump sits LEFT of the mossy rock (reference 0.05–0.14 × 0.55–0.68),
+// 0.7–1.0 m tall, with pale-yellow blooms at its feet; the near west verge (D's bottom-left
+// corner) shows grass and litter, not a lavender bed.
+const camD=camera('D_log');
+const dHero=a.plants.heroFerns.items.filter(it=>Math.hypot(it.x+3.7,it.z+10.3)<1.6);
+assert.ok(dHero.length>=3,'Hero fern crowns west of the shot-D boulder');
+for(const it of dHero){const p=camD([it.x,it.y,it.z]),h=top(a.plants.heroFerns,it)-it.y;
+  assert.ok(p&&p.sx>=-0.02&&p.sx<=0.16&&p.sy>=0.6&&p.sy<=0.74,`Hero crown root projects into D's left box, got (${p?.sx.toFixed(2)},${p?.sy.toFixed(2)})`);
+  assert.ok(h>=0.65&&h<=1.05,`Hero crown ${h.toFixed(2)} m tall`);}
+assert.ok(a.plants.yellowFlowers.items.filter(it=>Math.hypot(it.x+3.7,it.z+10.1)<1.6).length>=4,'Pale-yellow blooms in the shot-D clump');
+assert.equal(a.plants.flowers.items.filter(it=>it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3).length,0,'No violets on the near west verge in D\'s bottom-left corner');
+// Frames 1 / 8: the east bank (stair right flank) carries ferns, moss and broad-leaf cover, while
+// the Kokiri spots stay clear (nothing above 0.3 m within 0.6 m).
+assert.ok(a.plants.ferns.items.filter(it=>inBox(it,[9,-3.2,16.5,7.5])).length>=40,'Fern cover on the east bank');
+assert.ok(a.plants.moss.items.filter(it=>inBox(it,[9,-3.2,16.5,7.5])).length>=40,'Moss cushions on the east bank');
+for(const spot of LAYOUT.npcSpots)for(const set of a.plants.all)for(const it of set.items){
+  if(Math.hypot(it.x-spot.position[0],it.z-spot.position[2])<0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} taller than 0.3 m at NPC spot ${spot.id}`);}
 assert.ok(a.plants.flowers.count>=150,'W18: at least 150 flower clusters');
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
