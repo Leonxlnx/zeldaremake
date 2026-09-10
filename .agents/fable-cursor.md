@@ -367,6 +367,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   arch carries ray-mask stripes; the render is sharper than the video (ratio 1.0–1.5, gate ≥ 0.8) —
   a reference-matched softening is legitimate; (3) 26 items await codex's cross-review (offline 24 h).
 
+### 15:40 UTC — tick 22: take-0024 published (monitor `5bfa11d`), valid; atmosphere round three
+- `2318958` F beams (per-column gain ×7.5, columns exempt from the far-air blend; F top band 0.33 →
+  0.35 vs 0.39), reference-matched softening, smooth far arch (stripe spread 0.043 → 0.020);
+  `9c747d0` softening dialled back after the world-only frame measured A sharpness 0.773 (< 0.8 —
+  the agent's 0.905 had Link + HUD WIP in frame): now 0.838 world-only.
+- take-0024 (clean build of `9c747d0`): A 0.195 / B 0.178 / C 0.219 / D 0.219 / E 0.193 / F 0.190
+  — up on every view vs take-0023; sharpness 0.84–1.31; score 19/50. 24 entries in the ledger
+  (D4 needs ≥ 24 valid — take-0022 was invalid, so 23 valid so far).
+- Phase 2/3 running in parallel (character: Link/Navi/kids with per-view placement and a follow
+  camera; HUD: hearts/item slot/minimap + equipment screen) — both in their final captures.
+- Three biggest remaining gaps → (1) W37: the reference's Link, kid and HUD (10–15 % of every
+  frame) — landing next; (2) F: one broad beam where the reference has four crisp ones, top-left
+  is Saria's roof where the reference has canopy; D arch body/haze 0.895 vs 0.746; (3) 26 items
+  await codex's cross-review (offline 27 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -405,4 +420,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T12:37:00Z
+2026-09-10T15:42:00Z

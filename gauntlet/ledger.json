@@ -2504,6 +2504,117 @@
       },
       "prevHash": "sha256:8e88b19dc8ca8997635730454db3117c4e94f4f7b517bc795030692d67dc4a28",
       "hash": "sha256:6e1eff7fae9e939588ebdeadca324fb762ffc4574d349258e3392b7cc5d1fd23"
+    },
+    {
+      "id": "take-0024",
+      "number": 24,
+      "at": "2026-09-10T15:34:01.805Z",
+      "sha": "9c747d07d0200cabd175aacb6ef7a0723eae5e9e",
+      "shortSha": "9c747d0",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "postfx: softening dialled back so the world-only frame clears W35 (A sharpness 0.773 -> 0.838; 0.9+ once Link and the HUD add their edges)",
+      "agent": "fable-cursor",
+      "items": [
+        "W31",
+        "W32",
+        "W35",
+        "W37"
+      ],
+      "note": "Atmosphere round three. Frame 8 s: the reference has four slanted beams entering top-left (x 0.15–0.35) and reaching the stairs at mid-frame; ours showed none although the canopy holes existed — camera F looks 109° from the sun, so the columns' in-scatter died in the contrast curve; narrow columns now carry a ×7.5 gain, are exempt from the far-air blend and light the air to the ground (F top band mean 0.33 → 0.35 vs 0.39; one broad slanted beam reads where the reference has four). Every view was sharper than the soft 1280×716 video (sharpness ratio 1.0–1.5): a resolution-aware final softening (640-grid Gaussian with a luma-activity gate, depth-keyed haze blur 30–60 m) brings the ratio to 0.84–1.3, dialled so the world-only frame keeps A above W35's 0.8 gate (0.838; with Link and the HUD it reads ≈ 0.9); SSIM up on every view vs take-0023 (A 0.188 → 0.195, B 0.171 → 0.178, C 0.206 → 0.219, D 0.212 → 0.219, E 0.185 → 0.193, F 0.184 → 0.190). Frame 56 s: the far arch carried ray-mask stripes from the plaza columns integrated along D's ray — gap-noise in-scatter now fades beyond 25–38 m and in the hollow, SSAO fades out 22–34 m; stripe spread 0.043 → 0.020, the arch is a smooth silhouette (body/haze 0.895 vs reference 0.746).",
+      "score": {
+        "passed": 19,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "pending",
+          "W26": "pending",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "fail",
+          "C02": "pending",
+          "C03": "fail",
+          "C04": "fail",
+          "C05": "fail",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:d22502c3eb0fb7fbc489714a6b5286ff7cf55aaa4065a33f126840c33a3f5044",
+        "B_house": "sha256:18540713f318a38f631071d64dd2e13a0f4a7654c841eba3e0be32ba1d18d639",
+        "C_lookback": "sha256:9a6e17724d1ec63430f0f63126b4c0fb771acc0be25655da34fadadc0f45eb56",
+        "D_log": "sha256:00aa7a51bfa136f032f1d4721ae7868141dc0b5bcbc6bc01fa26d5e379523437",
+        "E_ground": "sha256:18540713f318a38f631071d64dd2e13a0f4a7654c841eba3e0be32ba1d18d639",
+        "F_canopy": "sha256:7097001e14939d0924c8d9d21829e1c0c7e1a2c641b6782c36a526a32b382bdd"
+      },
+      "distHash": "sha256:cad20d2fe20aee01f3d681ddfcaa1d78c0b99b644214dddd4bd7978ea945f035",
+      "stats": {
+        "drawCalls": 409,
+        "triangles": 6250790,
+        "captureMs": 472090,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W31",
+        "W32",
+        "W35",
+        "W37"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take24-cap",
+        "importedAt": "2026-09-10T15:34:50.010Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:6e1eff7fae9e939588ebdeadca324fb762ffc4574d349258e3392b7cc5d1fd23",
+      "hash": "sha256:b1762e54830fc134f47fc24124bf858f1bf61d2b268603a2c80ec837d9f691c6"
     }
   ]
 }
