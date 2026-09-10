@@ -115,8 +115,11 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
   // the haze; eye-level shots (A/D top rows reach ≈ 23–25°) lose ≤ 10 % on their very top row
   hazeUpwardCut: 0.9,
-  hazeNear: [0.15, 0.149, 0.134],
-  hazeFar: [0.28, 0.281, 0.255],
+  // a notch warmer than the earlier grey (B/R 0.89 → 0.84 linear): the reference's hazed regions
+  // read B/R ≈ 0.87 display ((119,118,105) in A's upper band, (141,138,122) in D's) while our
+  // mid-distance band carried ~9 more blue than the reference's
+  hazeNear: [0.15, 0.148, 0.126],
+  hazeFar: [0.28, 0.279, 0.24],
   mistColor: [0.175, 0.173, 0.154],
   hazeGradeNear: 20,
   hazeGradeFar: 55,
