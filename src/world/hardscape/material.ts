@@ -39,7 +39,9 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     // ~20 % lighter than the first pass, which landed at 1.05–1.18 and R−B 34–45. Warmth is set
     // by the blue channel only: the reference slab tops are sRGB B/R ≈ 0.66–0.69 (G/R ≈ 0.91),
     // which after the warm sun + neutral fill needs a linear albedo B/R of ≈ 0.63.
-    color: new Color(1.62, 1.46, 1.02),
+    // R/G 1.06: sunlit slabs measured (164,147,111) vs the reference's (157,145,104) — ours were
+    // a notch red of the reference's yellow-beige (stone hue 44° vs 48°)
+    color: new Color(1.58, 1.49, 1.02),
   });
   mat.name = opts.instanced ? 'stone-instanced' : 'stone';
   const mossDeep = new Color(P.mossDeep);

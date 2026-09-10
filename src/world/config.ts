@@ -79,8 +79,10 @@ export const WORLD = {
     grassDeep: 0x304616,
     mossBright: 0x83834a,
     mossDeep: 0x53572f,
-    soil: 0x6b5a3e,
-    soilDark: 0x453827,
+    // olive-brown, not orange-brown: the reference's dark ground pixels sit at hue 52–57°
+    // (joints (62,59,40), shade (108,102,78)); the old 0x6b5a3e / 0x453827 were 34–37°
+    soil: 0x69613c,
+    soilDark: 0x423b26,
     flagstone: 0xa79b7e,
     flagstoneDark: 0x797261,
     barkWhite: 0xc8c3b5,
