@@ -69,7 +69,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // --- sprouts in the joints ---------------------------------------------------------------
   const spots: SproutSpot[] = [];
   const srng = rng.fork('sprouts');
-  const target = Math.round(1500 * Math.max(0.6, ctx.quality.density));
+  // sparse like the reference's joints (E close-up: a tuft every metre or so, not a lawn in every
+  // seam); the stair joints below add ≈ 120 more, W21 asks for ≥ 500 in total
+  const target = Math.round(700 * Math.max(0.7, ctx.quality.density));
   let tries = 0;
   while (spots.length < target && tries < target * 40) {
     tries++;
@@ -104,7 +106,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
-  const sprouts = buildSproutMeshes(spots, srng, sproutMat);
+  const sprouts = buildSproutMeshes(spots, srng, sproutMat, ctx.config);
   for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 

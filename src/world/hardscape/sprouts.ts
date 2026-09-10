@@ -28,14 +28,12 @@ export interface SproutSpot {
   size: number;
 }
 
-function buildTuft(rng: Rng, blades: number, height: number, spread: number): BufferGeometry {
+function buildTuft(rng: Rng, blades: number, height: number, spread: number, deep: Color, light: Color): BufferGeometry {
   const pos: number[] = [];
   const nrm: number[] = [];
   const col: number[] = [];
   const wind: number[] = []; // (heightFactor, phase)
   const uv: number[] = [];
-  const deep = new Color(0x3f6a2c);
-  const light = new Color(0x9fc25a);
   const tmp = new Color();
   for (let b = 0; b < blades; b++) {
     const ang = (b / blades) * Math.PI * 2 + rng.range(-0.4, 0.4);
@@ -115,8 +113,16 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
   return wind.bind(mat);
 }
 
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial): { meshes: InstancedMesh[]; count: number } {
-  const variants = [buildTuft(rng.fork('tuft-a'), 6, 0.11, 0.05), buildTuft(rng.fork('tuft-b'), 8, 0.17, 0.08), buildTuft(rng.fork('tuft-c'), 5, 0.08, 0.04)];
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig): { meshes: InstancedMesh[]; count: number } {
+  // Reference (E close-up): short, sparse tufts in the joints, ≈ 5–8 cm, young shoots a shade
+  // lighter than the khaki grass — not lime blades standing 15–25 cm proud of the slabs.
+  const deep = new Color(config.palette.mossBright).lerp(new Color(config.palette.grassMid), 0.35);
+  const light = new Color(config.palette.grassLight).lerp(new Color(0xb9c26a), 0.6);
+  const variants = [
+    buildTuft(rng.fork('tuft-a'), 6, 0.06, 0.03, deep, light),
+    buildTuft(rng.fork('tuft-b'), 8, 0.09, 0.045, deep, light),
+    buildTuft(rng.fork('tuft-c'), 5, 0.045, 0.025, deep, light),
+  ];
   const lists: SproutSpot[][] = variants.map(() => []);
   for (const s of spots) lists[s.size > 0.66 ? 1 : s.size > 0.33 ? 0 : 2].push(s);
   const meshes: InstancedMesh[] = [];
@@ -131,12 +137,12 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     if (!list.length) return;
     const im = new InstancedMesh(variants[v], material, list.length);
     list.forEach((s, i) => {
-      const k = 0.75 + rng.range(0, 0.6);
+      const k = 0.8 + rng.range(0, 0.4);
       p.set(s.x, s.y - 0.01, s.z);
       q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
-      sc.set(k, k * rng.range(0.8, 1.25), k);
+      sc.set(k, k * rng.range(0.85, 1.15), k);
       im.setMatrixAt(i, m.compose(p, q, sc));
-      c.setRGB(0.8 + rng.range(0, 0.35), 0.85 + rng.range(0, 0.3), 0.7 + rng.range(0, 0.3));
+      c.setRGB(0.85 + rng.range(0, 0.3), 0.85 + rng.range(0, 0.3), 0.8 + rng.range(0, 0.25));
       im.setColorAt(i, c);
     });
     im.instanceMatrix.needsUpdate = true;
