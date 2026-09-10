@@ -24,6 +24,7 @@ import * as structures from './structures';
 import * as trees from './trees';
 import * as vegetation from './vegetation';
 import * as props from './props';
+import * as character from './character';
 
 const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'lighting', create: lighting.create },
@@ -35,6 +36,7 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'trees', create: trees.create },
   { name: 'vegetation', create: vegetation.create },
   { name: 'props', create: props.create },
+  { name: 'character', create: character.create },
 ];
 
 export interface SystemFailure {

@@ -5,6 +5,7 @@ import { getTerrain } from './world/terrain/heightfield';
 import { installCaptureApi, isHeadlessCapture } from './capture/api';
 import { WORLD } from './world/config';
 import type { Quality } from './world/system';
+import { mountHud } from './ui/hud';
 
 async function boot() {
   const host = document.getElementById('app')!;
@@ -24,6 +25,7 @@ async function boot() {
   renderer.shadowMap.enabled = quality.shadows;
   renderer.shadowMap.type = PCFShadowMap;
   host.appendChild(renderer.domElement);
+  if (params.get('hud') !== '0') mountHud(host, { headless });
 
   const scene = new Scene();
   const terrain = getTerrain();
