@@ -53,6 +53,27 @@ interface StairRect {
   halfWidth: number;
 }
 
+/** Soft-edged axis-aligned world box [x0, z0, x1, z1] → 1 inside, fading to 0 over `feather` metres. */
+function softBox(x: number, z: number, box: readonly [number, number, number, number], feather: number): number {
+  const dx = Math.max(box[0] - x, x - box[2], 0);
+  const dz = Math.max(box[1] - z, z - box[3], 0);
+  return 1 - smoothstep(0, feather, Math.hypot(dx, dz));
+}
+
+/**
+ * Reference-driven "keep it low" areas (world boxes; see reference/ANALYSIS.md §2):
+ *  - the slope east of the north path between camera C and the main stairs, which the reference
+ *    shows as low grass (frame 46: the stair foot is visible over it; frame 56: low verge with a
+ *    few ferns right of the path, nothing above ~0.5 m).
+ */
+const LOW_ZONES: readonly [number, number, number, number][] = [[1.5, -16, 8, -4]];
+/** Camera C's sight line to the stair foot: grass only, ≤ 0.4 m. */
+const C_SIGHTLINE: readonly [number, number, number, number] = [3.5, -9.5, 8, -4];
+/** Verge south-east of the plaza, the right foreground of frames 1 and 8: tidy short tufts. */
+const TRIM_ZONES: readonly [number, number, number, number][] = [[4, 0, 12, 8]];
+/** The plateau flank right of the stairs in frame 8: dark shaded moss/grass, no bright tips. */
+const SHADE_ZONES: readonly [number, number, number, number][] = [[11, -3, 22, 10]];
+
 export class VegField {
   readonly cell: number;
   readonly extent: number;
@@ -318,6 +339,32 @@ export class VegField {
   /** 0..1 patches where flowers/weeds like to grow. */
   flowerPatch(x: number, z: number): number {
     return smoothstep(0.05, 0.55, this.flowerNoise.fbm(x * 0.27 - 4, z * 0.27 + 8, 2));
+  }
+
+  /** 0..1 inside the reference's low-verge areas (short grass, no tall plants). */
+  lowZone(x: number, z: number): number {
+    let v = 0;
+    for (const b of LOW_ZONES) v = Math.max(v, softBox(x, z, b, 0.8));
+    return v;
+  }
+
+  /** 0..1 on camera C's sight line to the stair foot (grass only, ≤ 0.4 m). */
+  sightlineC(x: number, z: number): number {
+    return softBox(x, z, C_SIGHTLINE, 0.5);
+  }
+
+  /** 0..1 where the foreground tufts of frames 1 / 8 must stay short. */
+  trimZone(x: number, z: number): number {
+    let v = 0;
+    for (const b of TRIM_ZONES) v = Math.max(v, softBox(x, z, b, 1.5));
+    return v;
+  }
+
+  /** 0..1 where grass reads as shaded, desaturated moss/turf (frame 8's plateau flank). */
+  shadeZone(x: number, z: number): number {
+    let v = 0;
+    for (const b of SHADE_ZONES) v = Math.max(v, softBox(x, z, b, 2));
+    return v;
   }
 
   /** Hero-area falloff: full detail near the plaza, thinning toward the detail radius. */

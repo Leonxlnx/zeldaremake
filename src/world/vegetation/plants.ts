@@ -16,7 +16,7 @@ import { bushGeometry, cloverGeometry, fernGeometry, flowerGeometry, flowerSpike
 export interface PlantSets {
   ferns: LodInstancedSet;
   bushes: LodInstancedSet;
-  /** the tall shot-A hedge on the bank between the plaza and Saria's terrace */
+  /** the low dark shot-A hedge on the bank between the plaza and Saria's terrace (≤ 1.2 m) */
   hedge: LodInstancedSet;
   flowers: LodInstancedSet;
   weeds: LodInstancedSet;
@@ -123,6 +123,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   };
   const greenVar = (rng: Rng, amount = 0.14) => tint.setRGB(1 + (rng() - 0.5) * amount, 1 + (rng() - 0.5) * amount * 0.7, 1 + (rng() - 0.5) * amount * 1.2);
 
+  // the mossy boulder in shot D's left foreground anchors an authored fern + broadleaf cluster
+  const dBoulder = ctx.layout.heroBoulders.find((b) => b.id === 'shot-d-boulder');
+  const dbx = dBoulder?.position[0] ?? -3.2;
+  const dbz = dBoulder?.position[2] ?? -10.2;
+  const dbr = dBoulder?.radius ?? 0.9;
+
   // ---- ferns: embankments, tree bases, boulders, house shade, path verges
   scatter(
     ctx,
@@ -136,39 +142,84 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (edge < 0.35) return 0;
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0.2) return 0;
+        // camera C's sight line to the stair foot is grass only (reference frame 46)
+        if (field.sightlineC(x, z) > 0.3) return 0;
         const gd = field.giantDistance(x, z);
         const bd = field.boulderDistance(x, z);
         const house = field.houseInfo(x, z);
+        const low = field.lowZone(x, z);
         let p = 0.055 * field.falloff(x, z);
-        p *= 1 + 3.2 * smoothstep(0.15, 0.45, s.slope) * (1 - s.cliff);
+        p *= 1 + 3.2 * smoothstep(0.15, 0.45, s.slope) * (1 - s.cliff) * (1 - low);
         p *= 1 + 3 * (1 - smoothstep(0.35, 2.6, edge));
         p *= 1 + 3.5 * (1 - smoothstep(0.2, 3.2, gd));
         p *= 1 + 3 * (bd > 0.15 ? 1 - smoothstep(0.15, 1.6, bd) : 0);
         p *= 1 + 4 * (house.dist > 0.3 ? (1 - smoothstep(0.3, 3.5, house.dist)) * house.shade : 0);
         p *= 0.45 + 1.1 * field.cluster(x, z);
+        // the low verge right of the north path keeps only a few small ferns (reference frame 56)
+        p *= 1 - 0.7 * low;
+        // around the shot-D boulder the authored cluster below stands alone (reference: 3–5 fronds)
+        p *= smoothstep(1.2, 3.0, Math.hypot(x - dbx, z - dbz));
         return p;
       },
     },
-    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.6 + rng() * 0.55, 0.7, 0.02, greenVar(rng, 0.2)),
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, (0.6 + rng() * 0.55) * (1 - 0.4 * field.lowZone(x, z)), 0.7, 0.02, greenVar(rng, 0.2)),
   );
-  // large ferns arching over the west verge in the left foreground of shot D (with the flowers)
+  // Shot D left-centre (reference 0.05–0.14 × 0.55–0.68): 3–5 large fronds beside the mossy
+  // shot-d boulder. The cluster hugs the boulder's path-facing (east) side, which is what stays
+  // visible east of the north-west-near giant's roots from camera D.
   scatter(
     ctx,
     field,
     {
       label: 'ferns-shotD',
-      candidates: 1400,
-      box: [-6.2, -12, -3.2, -5.6],
-      minSpacing: 0.55,
+      candidates: 1200,
+      box: [dbx - 0.2, dbz - 1.5, dbx + 1.9, dbz + 1.5],
+      minSpacing: 0.75,
       accept(x, z) {
         const edge = field.edgeDistance(x, z);
         if (edge < 0.3) return 0;
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0.2) return 0;
-        return 0.45 * (1 - smoothstep(0.3, 2.4, edge) * 0.7);
+        const d = Math.hypot(x - dbx, z - dbz) - dbr;
+        if (d < 0.05 || d > 1.1) return 0;
+        return 0.7;
       },
     },
-    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.95 + rng() * 0.5, 0.7, 0.02, greenVar(rng, 0.2)),
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 1.15 + rng() * 0.35, 0.7, 0.02, greenVar(rng, 0.2)),
+  );
+  // Shot D right verge (reference 0.55–0.85 × 0.60–0.72): low grass with a few small ferns,
+  // nothing above ≈ 0.5 m; kept north of camera C's sight line.
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'ferns-shotD-right',
+      candidates: 400,
+      box: [2.8, -15.5, 6.2, -10],
+      minSpacing: 1.6,
+      accept(x, z, s) {
+        if (field.edgeDistance(x, z) < 0.5 || s.cliff > 0.3 || field.sightlineC(x, z) > 0) return 0;
+        return 0.5;
+      },
+    },
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.55 + rng() * 0.15, 0.7, 0.02, greenVar(rng, 0.2)),
+  );
+  // Shot B right edge (reference 0.90–1.0 × 0.55–0.75): big fern clumps on the stair-flank
+  // embankment east of the hedge; from camera B they land at x ≥ 0.88, clear of the door.
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'ferns-shotB',
+      candidates: 1400,
+      box: [8.0, -4.9, 9.5, -3.6],
+      minSpacing: 0.6,
+      accept(x, z, s) {
+        if (field.edgeDistance(x, z) < 0.3 || s.cliff > 0.3) return 0;
+        return 0.75;
+      },
+    },
+    (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 1.3 + rng() * 0.4, 0.7, 0.02, greenVar(rng, 0.2)),
   );
 
   // ---- bushes: embankments, ledge edges, house bases, the log arch
@@ -185,6 +236,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0) return 0;
         if (field.giantDistance(x, z) < 0.6) return 0;
+        if (field.lowZone(x, z) > 0.2) return 0;
         const house = field.houseInfo(x, z);
         const log = field.logDistance(x, z);
         let p = 0.02 * field.falloff(x, z);
@@ -210,6 +262,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       if (field.edgeDistance(x, z) < 1.65) return 0;
       const clr = field.clearing(x, z);
       if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 1.2) return 0;
+      if (field.lowZone(x, z) > 0.2) return 0;
       if (bushes.items.some(p => Math.hypot(p.x - x, p.z - z) < 2.3)) return 0;
       const house = field.houseInfo(x, z);
       const byHouse = house.dist > 1.3 ? 1 - smoothstep(1.3, 5.5, house.dist) : 0;
@@ -224,39 +277,67 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
   }, (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 1.05 + rng() * .3, .28, .035, greenVar(rng, .15)));
 
-  // ---- shot-A hedge. In reference frame 1 the centre of the frame beyond the plaza is a dark
-  // hedge/embankment; in ours Saria's doorway sat there. Camera A's sight line to the door runs
-  // over the grass bank at x ≈ 7.7–8.3 for z ∈ [-5.5, -4.5] while camera B's runs ≈ 1.5 m further
-  // west (x ≈ 6.0–6.9), so a dense mass of tall shrubs east of B's corridor hides the trunk and
-  // doorway from A yet only brushes the right of the door from B — where the reference B frame
-  // has a shrub as well. Positions stay on terrain that the mask allows (never path/stairs).
+  // ---- shot-A hedge. In reference frame 1 the band left of the stairs beyond the plaza
+  // (0.45–0.6 × 0.5–0.65) is a dark shrub/embankment. The row sits on the grass bank east of
+  // camera B's door corridor (B's ray x ≈ (2 − z)·0.92): two rows 1.1–2.4 m east of it, so it
+  // reads as one dark mass from A while staying right of the door from B. Crown tops are capped
+  // at ≈ 1.1 m ABOVE PLAZA LEVEL (≈ 1.2 m tall at the plaza end, shorter as the bank rises) so
+  // they project BELOW Saria's door threshold in B (y ≈ 0.55 — the reference B shows the terrace
+  // ramp and grass there, not a hedge); ground above 0.6 m is skipped for the same reason.
+  // Nothing south of z −5.1 so camera C (frame 46) sees the stair foot, not a bush, at its left
+  // edge.
   const bRayX = (z: number) => (2 - z) * 0.92;
-  const aRayX = (z: number) => 0.4 + (8.6 - z) * 0.556;
+  const hedgeHeight = (v: number) => hedge.opts.variants[v][0].boundingBox?.max.y ?? 1.4;
+  const HEDGE_TOP = 0.92;
   scatter(
     ctx,
     field,
     {
       label: 'hedge-shotA',
-      candidates: 2600,
-      box: [7.2, -6.6, 10.2, -3.8],
-      minSpacing: 0.62,
+      candidates: 3200,
+      box: [7.2, -7.0, 10.6, -5.1],
+      minSpacing: 0.45,
       accept(x, z, s) {
-        // A's sight line runs ~1.5 m east of B's; crowns reach ~0.6 m from the centre, so a row
-        // centred 1.1–1.45 m east of B's ray covers A's ray while leaving B's door (whose
-        // right-edge ray is ~0.4 m east of B's centre ray here) clear
         if (x < bRayX(z) + 1.1) return 0;
-        if (x > bRayX(z) + 1.45) return 0;
+        if (x > bRayX(z) + 2.4) return 0;
         if (s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5) return 0;
+        if (s.h > 0.6) return 0;
         if (field.houseInfo(x, z).dist < 0.4) return 0;
         return 0.9;
       },
     },
     (x, z, s, rng) => {
-      // scale 1 bushes stand 0.95–1.5 m; the hedge needs a 2.4–3 m crown so its top reaches the
-      // door lintel's projection in A, and it is kept narrower than tall so it stays out of B
-      const sc = 2.1 + rng() * 0.6;
-      placeInstance(hedge, x, z, s, rng, sc, 0.12, 0.05, tint.setRGB(0.7 + rng() * 0.1, 0.78 + rng() * 0.08, 0.66 + rng() * 0.1), sc * (0.46 + rng() * 0.08));
+      const top = Math.max(0.45, HEDGE_TOP - T.height(x, z)) * (0.9 + rng() * 0.1);
+      const variant = rng.int(0, hedge.variantCount);
+      const sc = top / hedgeHeight(variant);
+      const y = T.height(x, z) - 0.05;
+      composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.15 + rng() * 0.2), sc, sc * (1.15 + rng() * 0.2));
+      // deep shaded olive (reference #4c5537 shrubs) rather than lit leaf tones
+      hedge.add(M, variant, tint.setRGB(0.5 + rng() * 0.08, 0.56 + rng() * 0.08, 0.46 + rng() * 0.08));
     },
+  );
+
+  // ---- shrubby dark mass on the boulder bank west of the north path (reference D 0.15–0.35 ×
+  // 0.45–0.60 above the flowers; also the mossy terrace top-left of reference B). Shrubs sit on
+  // the bank's slope and top (ground ≥ 1.0 m), off the small north stair and its verge.
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'bushes-bank',
+      candidates: 2400,
+      box: [-7.0, -22.5, -2.2, -14.6],
+      minSpacing: 1.35,
+      accept(x, z, s) {
+        if (s.h < 1.0 || s.cliff > 0.4) return 0;
+        if (field.edgeDistance(x, z) < 0.9) return 0;
+        const clr = field.clearing(x, z);
+        if (clr.insideBoulder || clr.boulder > 0.5) return 0;
+        if (field.giantDistance(x, z) < 0.5) return 0;
+        return 0.8;
+      },
+    },
+    (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.85 + rng() * 0.4, 0.35, 0.04, tint.setRGB(0.6 + rng() * 0.1, 0.66 + rng() * 0.1, 0.54 + rng() * 0.1)),
   );
 
   // ---- purple flowers: shot D left foreground, west verge of the spine, shot A left, scattered
@@ -268,16 +349,42 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     if (clr.insideBoulder || clr.npc > 0) return 0;
     return 1 - smoothstep(0.25, 4, edge) * 0.6;
   };
-  // shot D (camera 1.2,1.9,-1 looking north): the frame's left edge runs from ≈(-2,-6) to (-7,-14),
-  // so the visible left-foreground verge is the strip just west of the path edge (x ≈ -4.5…-3.2)
-  // at z ∈ [-10,-5.5], opening into the hillside drift further north.
-  // camera D now stands at (1, -3) looking north, so the near bed extends 1.5 m further south
-  // and is denser: reference frame 56 carries a purple bed over the whole lower-left
-  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 9500, box: [-5.8, -11, -3.0, -3.8], minSpacing: 0.21, accept: (x, z) => 1.0 * flowerVerge(x, z) }, flowerPlace(1.6, 2.2));
-  scatter(ctx, field, { label: 'flowers-shotD-drift', candidates: 9000, box: [-7.8, -16.5, -3.2, -7.5], minSpacing: 0.24, accept: (x, z) => 0.95 * flowerVerge(x, z) }, flowerPlace(1.5, 2.1));
-  scatter(ctx, field, { label: 'flowers-shotD', candidates: 5000, box: [-7, -7.5, -2.6, 3], minSpacing: 0.4, accept: (x, z) => 0.6 * flowerVerge(x, z) }, flowerPlace(1.25, 1.8));
-  // a few blooms on the near right verge below the house stair (3–6 m from the shot-D camera)
-  scatter(ctx, field, { label: 'flowers-shotD-right', candidates: 1500, box: [2.4, -7.6, 4.8, -3.4], minSpacing: 0.45, accept: (x, z) => 0.5 * flowerVerge(x, z) }, flowerPlace(1.3, 1.8));
+  // Authored clumps: the reference grows its violets in low, compact clumps 0.3–0.6 m across
+  // (5–15 cm blooms), not in beds. Each centre gets a handful of clusters within `radius`.
+  const clumps = (label: string, centres: [number, number][], perClump: number, radius: number, scaleMin: number, scaleMax: number) => {
+    const rng = ctx.rng.fork(`plants/${label}`);
+    const s = newSample();
+    const place = flowerPlace(scaleMin, scaleMax);
+    for (const [cx, cz] of centres) {
+      let left = perClump;
+      for (let i = 0; i < perClump * 4 && left > 0; i++) {
+        const a = rng() * Math.PI * 2;
+        const d = Math.sqrt(rng()) * radius;
+        const x = cx + Math.cos(a) * d;
+        const z = cz + Math.sin(a) * d;
+        field.sample(x, z, s);
+        if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || flowerVerge(x, z) <= 0) continue;
+        place(x, z, s, rng);
+        left--;
+      }
+    }
+  };
+  // Shot D (camera (0.2, 1.9, −3) looking north): reference frame 56 has two modest desaturated
+  // violet patches, (0.17–0.27, 0.60–0.67) beside the ferns and (0.05–0.12, 0.55–0.60), plus a
+  // few blooms — not a solid field. West of the path the north-west-near giant's trunk fills the
+  // frame's left edge, so the clumps sit on the verge strip between its roots and the path (the
+  // boulder's east side projects to ≈ 0.18–0.25 × 0.75–0.85) and on the bank slope beyond it at
+  // z ≈ −14…−16 (≈ 0.20–0.28 × 0.58–0.67, the reference's first patch).
+  const dClumps: [number, number][] = [[dbx + 1.0, dbz - 0.6], [-3.4, -14.9], [-2.9, -13.6], [-4.0, -15.6]];
+  for (const [i, c] of dClumps.entries()) clumps(`flowers-shotD-clump-${i}`, [c], 7 + (i % 3), 0.42, 1.0, 1.35);
+  // a few single blooms along the west verge strip (reference: "plus a few blooms")
+  scatter(ctx, field, { label: 'flowers-shotD-near', candidates: 700, box: [-3.4, -12.6, -1.3, -6.4], minSpacing: 1.2, accept: (x, z) => 0.2 * flowerVerge(x, z) }, flowerPlace(0.9, 1.2));
+  // the strip continues south along the west verge (z ≤ −4.6 so camera B's lower-left stays
+  // grass): reference A's left-verge purple (0.0–0.14, 0.58–0.66)
+  scatter(ctx, field, { label: 'flowers-shotD', candidates: 800, box: [-3.8, -7.5, -1.4, -4.6], minSpacing: 0.5, accept: (x, z) => 0.4 * flowerVerge(x, z) }, flowerPlace(0.95, 1.3));
+  // Shot B right edge: the purple clump at (0.95, 0.60) sits on the stair-flank embankment
+  // 1 m above the plaza, among the big ferns; from A it is on the left stair flank.
+  clumps('flowers-shotB', [[8.85, -4.5]], 8, 0.38, 1.05, 1.35);
   scatter(ctx, field, { label: 'flowers-shotA', candidates: 1800, box: [-7.5, 2, -2.8, 9.5], minSpacing: 0.5, accept: (x, z) => 0.45 * flowerVerge(x, z) }, flowerPlace(1.0, 1.5));
   scatter(
     ctx,
@@ -289,10 +396,30 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       accept(x, z, s) {
         const v = flowerVerge(x, z);
         if (v <= 0) return 0;
-        return 0.075 * field.falloff(x, z) * field.flowerPatch(x, z) * (0.4 + v) * (1 - 0.6 * s.plateau) * (1 - field.giantProximity(x, z));
+        return 0.1 * field.falloff(x, z) * field.flowerPatch(x, z) * (0.4 + v) * (1 - 0.6 * s.plateau) * (1 - field.giantProximity(x, z)) * (1 - field.lowZone(x, z));
       },
     },
     flowerPlace(0.85, 1.4),
+  );
+
+  // ---- broad-leaf plant (hosta-like paddle leaves) beside the shot-D boulder, with the ferns
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'weeds-shotD-boulder',
+      candidates: 900,
+      box: [dbx - 0.4, dbz - 1.5, dbx + 1.7, dbz + 1.5],
+      minSpacing: 0.5,
+      accept(x, z) {
+        if (field.edgeDistance(x, z) < 0.3) return 0;
+        const clr = field.clearing(x, z);
+        if (clr.insideBoulder) return 0;
+        const d = Math.hypot(x - dbx, z - dbz) - dbr;
+        return d > 0.0 && d < 1.0 ? 0.6 : 0;
+      },
+    },
+    (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 2.4 + rng() * 0.9, 0.8, 0.012, greenVar(rng, 0.16).multiplyScalar(0.82)),
   );
 
   // ---- broad-leaf weeds: verges and clearings, in yellow-green patches
@@ -331,7 +458,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (edge < 0.4) return 0;
         const clr = field.clearing(x, z);
         if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0) return 0;
-        return 0.28 * field.falloff(x, z) * field.meadow(x, z) * (0.5 + field.cluster(x, z)) * (1 - field.giantProximity(x, z));
+        // 0.6–0.9 m stalks stay out of the low verges and thin out in the tidy foreground
+        return 0.28 * field.falloff(x, z) * field.meadow(x, z) * (0.5 + field.cluster(x, z)) * (1 - field.giantProximity(x, z)) * (1 - field.lowZone(x, z)) * (1 - 0.6 * field.trimZone(x, z));
       },
     },
     (x, z, s, rng) => placeInstance(seedheads, x, z, s, rng, 0.75 + rng() * 0.5, 0.5, 0.01, tint.setRGB(0.95 + rng() * 0.12, 0.95 + rng() * 0.08, 0.9 + rng() * 0.1)),
@@ -415,6 +543,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         if (field.giantDistance(x, z) < 2.5) return 0;
         if (field.boulderDistance(x, z) < 1.2) return 0;
         if (field.houseInfo(x, z).dist < 2.5 || field.logDistance(x, z) < 2) return 0;
+        if (field.lowZone(x, z) > 0.2) return 0;
         const clr = field.clearing(x, z);
         if (clr.npc > 0 || clr.boulder > 0) return 0;
         if (s.slope > 0.35) return 0;

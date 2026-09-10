@@ -44,7 +44,25 @@ for(let j=0;j<a.plants.all.length;j++){
     assert.ok(mesh.customDepthMaterial?.isMeshDepthMaterial);assert.ok(mesh.customDistanceMaterial?.isMeshDistanceMaterial);shadowMeshes++;
   }
 }
-assert.ok(a.plants.bushes.count>113,'Ledge clusters add shrubs to the original high-quality first pass');
+assert.ok(a.plants.bushes.count>=80,'W19: at least 80 bushes');
+assert.ok(a.plants.bushes.items.filter(it=>it.x>-7.5&&it.x<-2&&it.z>-23&&it.z<-14).length>=4,'Shrub mass on the boulder bank west of the north path (shot D left-centre)');
+// reference-driven composition constraints (see plants.ts / field.ts zones)
+const top=(set,it)=>{const g=set.opts.variants[it.variant][0];return it.y+g.boundingBox.max.y*Math.hypot(it.matrix[4],it.matrix[5],it.matrix[6]);};
+assert.ok(a.plants.hedge.count>=3,'Hedge row present for shot A');
+for(const it of a.plants.hedge.items){
+  assert.ok(top(a.plants.hedge,it)<=1.3,`Hedge crown top ${top(a.plants.hedge,it)} stays below Saria's door threshold as seen from camera B (≤ 1.3 m above plaza level)`);
+  assert.ok(it.z<=-5.1,'Hedge stays out of camera C\'s left edge');
+}
+const inBox=(it,b)=>it.x>=b[0]&&it.z>=b[1]&&it.x<=b[2]&&it.z<=b[3];
+const cSight=[3.5,-9.5,8,-4],dRight=[1.5,-16,7,-4];
+for(const set of[a.plants.ferns,a.plants.bushes,a.plants.seedheads,a.plants.saplings])for(const it of set.items){
+  assert.ok(!inBox(it,cSight),`${set.opts.name} at (${it.x},${it.z}) blocks camera C's sight line to the stair foot`);
+  if(inBox(it,dRight))assert.ok(top(set,it)-it.y<=0.55,`${set.opts.name} taller than 0.55 m on shot D's right verge`);
+}
+assert.ok(a.plants.ferns.items.filter(it=>inBox(it,[8.0,-4.9,9.5,-3.6])).length>=5,'Large fern clumps at shot B\'s right edge');
+assert.ok(a.plants.flowers.items.filter(it=>inBox(it,[8.5,-4.85,9.25,-4.15])).length>=4,'Purple clump at shot B\'s right edge');
+assert.ok(a.plants.ferns.items.filter(it=>Math.hypot(it.x+3.2,it.z+10.2)<2.3).length>=3,'Fern cluster beside the shot-D boulder');
+assert.ok(a.plants.flowers.count>=150,'W18: at least 150 flower clusters');
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
   for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}

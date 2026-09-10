@@ -148,6 +148,8 @@ function stairLocal(f: StairFrame, x: number, z: number) {
   return { u, v };
 }
 
+const D_BOULDER = LAYOUT.heroBoulders.find((b) => b.id === 'shot-d-boulder')?.position;
+
 /** Macro landform without paths/stairs. Returned as height and the "plateau-ness". */
 function landform(x: number, z: number) {
   const T = LAYOUT.terraces;
@@ -195,7 +197,11 @@ function landform(x: number, z: number) {
   // House terrace (north-east of the plaza).
   const house = T.houseTerrace.height * smoothstep(-7.5, -11, z) * smoothstep(2.5, 6.5, x) * smoothstep(19, 12, x);
 
-  const raised = Math.max(east, west, westNorth, north, house);
+  // Low mossy bank under the shot-D boulder / fern cluster (reference D: the cluster sits ~0.5 m
+  // above the path at 7–9 m, x 0.05–0.25 × 0.55–0.85).
+  const dBank = D_BOULDER ? 0.5 * (1 - smoothstep(1.2, 3.0, Math.hypot(x - D_BOULDER[0], z - D_BOULDER[2]))) : 0;
+
+  const raised = Math.max(east, west, westNorth, north, house, dBank);
   // the hollow only dips ground that no terrace or bank has lifted
   let h = base + raised + hollow * (1 - smoothstep(0, 0.6, raised));
 
@@ -225,6 +231,12 @@ function landform(x: number, z: number) {
 
 /** Paved plaza around the origin (reference frame 14): the flagstone disc where Link stands. */
 export const PLAZA = { x: 0, z: 0, radius: 6.0 };
+/**
+ * Paved discs: the plaza plus an eastern lobe toward the stair foot — frames 1 s and 8 s show
+ * flagstones in the right foreground (A (0.8–0.95, 0.75–0.9), F (0.6–0.95, 0.7–0.9) → world
+ * x 5–10, z 2–6) where the kid's grass verge and the stair-foot rock border the paving.
+ */
+export const PLAZA_DISCS = [PLAZA, { x: 5.0, z: 2.4, radius: 4.0 }];
 
 /**
  * Log-arch frame. Mirrors `structures/logArch.ts`: the axis runs east (slightly north) through
@@ -277,10 +289,14 @@ function pathInfluence(x: number, z: number) {
   let weight = 1 - smoothstep(bhw * 0.8, bhw * 1.9, best.dist);
   let surface = 1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist);
   let y = best.y;
-  // plaza disc: paved surface out to PLAZA.radius, flattened a little beyond it
-  const dp = Math.hypot(x - PLAZA.x, z - PLAZA.z);
-  const plazaSurface = 1 - smoothstep(PLAZA.radius * 0.85, PLAZA.radius * 1.05, dp);
-  const plazaWeight = 1 - smoothstep(PLAZA.radius * 0.9, PLAZA.radius * 1.45, dp);
+  // plaza discs: paved surface out to each radius, flattened (to y = 0) a little beyond it
+  let plazaSurface = 0;
+  let plazaWeight = 0;
+  for (const d of PLAZA_DISCS) {
+    const dp = Math.hypot(x - d.x, z - d.z);
+    plazaSurface = Math.max(plazaSurface, 1 - smoothstep(d.radius * 0.85, d.radius * 1.05, dp));
+    plazaWeight = Math.max(plazaWeight, 1 - smoothstep(d.radius * 0.9, d.radius * 1.45, dp));
+  }
   if (plazaWeight > weight) {
     y = lerp(y, 0, (plazaWeight - weight) / Math.max(plazaWeight, 1e-6));
     weight = plazaWeight;

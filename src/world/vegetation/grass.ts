@@ -126,27 +126,32 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
 
       const edge = field.edgeDistance(x, z);
       const verge = edge < 2.5 ? 1 + 0.9 * (1 - edge / 2.5) : 1;
-      const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff);
+      const low = field.lowZone(x, z);
+      const trim = field.trimZone(x, z);
+      const shade = field.shadeZone(x, z);
+      // the reference's slopes are not thicker than its flats; the boost stays for banks outside
+      // the low verges so the embankments still read dense
+      const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
       const cliffCut = 1 - s.cliff * 0.4;
       const giant = field.giantProximity(x, z);
       const cluster = field.cluster(x, z);
-      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc);
+      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low);
       if (rng() * DNORM > density) continue;
 
-      // type
+      // type: tall meadow blades are rare in the low verges and the tidy foreground
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.7 * trim);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
 
-      // size
+      // size (reference: 0.15–0.35 m tufts, ≈ 0.5 m in the verges — see ANALYSIS §5)
       const clusterVar = 0.82 + 0.32 * cluster;
       let h: number;
       let w: number;
       if (type === 1) {
-        h = (0.34 + 0.4 * rng()) * clusterVar;
+        h = (0.28 + 0.32 * rng()) * clusterVar;
         w = 0.008 + 0.008 * rng();
       } else if (type === 2) {
         h = (0.2 + 0.3 * rng()) * clusterVar;
@@ -158,13 +163,14 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (edge < 0.3) h *= 0.72;
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
+      h *= (1 - 0.4 * low) * (1 - 0.35 * trim) * (1 - 0.15 * shade);
       maxH = Math.max(maxH, h);
 
       // colour
-      let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0);
+      let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) - 0.6 * shade - 0.25 * trim;
       if (s.slope > 0.35) tn -= 0.15;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
-      const dryP = field.dry(x, z) * (0.35 + 0.65 * s.plateau) * (type === 2 ? 0.4 : 1);
+      const dryP = field.dry(x, z) * (0.35 + 0.65 * s.plateau) * (type === 2 ? 0.4 : 1) * (1 - shade);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
 
       // wind
