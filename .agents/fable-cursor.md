@@ -382,6 +382,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   is Saria's roof where the reference has canopy; D arch body/haze 0.895 vs 0.746; (3) 26 items
   await codex's cross-review (offline 27 h).
 
+### 16:08 UTC — tick 23: take-0025 published (monitor `6a0c4ef`), valid; Phase 2/3 land
+- `5b3dc01` character (Link, Navi, kids, gaits, per-view placement, play mode + follow camera),
+  `8774d21` HUD (hearts, item slot, minimap, equipment screen), `8928b71` cameras to the
+  reference's child eye height 1.45–1.5 m (Link spans y 0.56–0.88 at 4.6 m only from there;
+  stairs keep 0.63/0.26 in A, 0.60/0.23 in F), atmosphere fairy yields to Navi, `1c864e1`
+  kokiri-a in front of the stair-foot rock (he was hidden behind it in A).
+- take-0025 (clean build of `1c864e1`): A 0.230 / B 0.208 / C 0.253 / D 0.249 / E 0.225 / F 0.216
+  — up 0.03–0.035 on every view vs take-0024; pHash better on five; score 22/50 (C03/C04/C05
+  auto-pass; C01/C02/U01–U03 pending review). New claim for W01/W33/W37/C01–C05/U01–U03.
+- Round seven spawned: character-2 (Link fidelity: cap/fringe/undershirt/shield swirl, contact
+  shadows, Navi sparkle, kid stick), trees-7 (F top-left canopy 0.57 → 0.46, F bank shade +
+  edge trunk 0.52 → 0.31), vegetation-7 (D hero ferns hue 11° → 55°, F bank ferns, joint tufts),
+  hardscape-7 (irregular rounded 0.5–0.9 m slabs, dark joints, B plaza 0.53 → 0.46, stair tone).
+- Three biggest remaining gaps → (1) slab texture and Link fidelity (W37 SSIM 0.21–0.25 vs
+  0.42); (2) F top-left roof / sunlit bank, D lavender verge; (3) 27 items await codex's
+  cross-review (offline 29 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
