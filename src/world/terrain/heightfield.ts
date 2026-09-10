@@ -7,7 +7,7 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { LAYOUT } from '../layout';
+import { LAYOUT, houseSteppingStones } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 
@@ -270,6 +270,18 @@ function logAxisPoint(lu: number) {
   return { x: LOG.cx + LOG.ax * lu - LOG.az * bend, z: LOG.cz + LOG.az * lu + LOG.ax * bend };
 }
 
+const STEPPING_STONES = houseSteppingStones();
+
+/** 1 on a stepping stone of the house branch (paved), soft 10 % rim. */
+export function steppingStoneMask(x: number, z: number): number {
+  let m = 0;
+  for (const s of STEPPING_STONES) {
+    const d = Math.hypot(x - s.x, z - s.z);
+    if (d < s.r * 1.2) m = Math.max(m, 1 - smoothstep(s.r * 0.92, s.r * 1.12, d));
+  }
+  return m;
+}
+
 function pathInfluence(x: number, z: number) {
   const hw = LAYOUT.pathHalfWidth;
   const a = closestOnPolyline(LAYOUT.pathSpine, x, z);
@@ -278,16 +290,19 @@ function pathInfluence(x: number, z: number) {
   // pick the branch that dominates
   let best = a;
   let bhw = hw;
+  let paved = true;
   if (b.dist - hw * 0.8 < best.dist - bhw) {
     best = b;
     bhw = hw * 0.8;
   }
   if (c.dist - hw * 0.7 < best.dist - bhw) {
+    // the house branch is a grassy ramp with stepping stones: flattened, not paved
     best = c;
     bhw = hw * 0.7;
+    paved = false;
   }
   let weight = 1 - smoothstep(bhw * 0.8, bhw * 1.9, best.dist);
-  let surface = 1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist);
+  let surface = paved ? 1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist) : steppingStoneMask(x, z);
   let y = best.y;
   // plaza discs: paved surface out to each radius, flattened (to y = 0) a little beyond it
   let plazaSurface = 0;

@@ -99,13 +99,21 @@ export const LAYOUT = {
     [8.6, 0, -1.8],
   ] as [number, number, number][],
 
-  /** Branch from the plaza north-east up the short stair to the house terrace. */
+  /**
+   * Branch from the plaza north-east up to Saria's door. Reference B/E (frames 14 s / 24 s): this is
+   * NOT continuous paving — isolated round stepping stones climb a grassy slope to a door that sits
+   * only ~0.9 m above the plaza, no stair (the 4-step terrace stair of earlier rounds put a flight
+   * of steps in the centre of B where the footage has lawn). The heightfield flattens the ground
+   * to this polyline's y (a smooth ramp) and paves only the stones in `houseSteppingStones()`.
+   */
   pathToHouse: [
     [0.5, 0, -2],
-    [4.0, 0, -6.5],
-    [6.5, 1.2, -9.5],
-    [9.6, 1.2, -9.3],
+    [4.0, 0.08, -6.5],
+    [6.6, 0.5, -8.6],
+    [9.6, 0.9, -9.3],
   ] as [number, number, number][],
+  /** stepping stones along `pathToHouse`: first stone `from` metres in (past the plaza rim) */
+  steppingStones: { from: 3.2, spacing: 1.3, radius: [0.36, 0.5] as [number, number], wobble: 0.28 },
 
   stairs: [
     // The hero stairway of shot A — 18 wide, worn, moss-edged steps climbing to the east plateau.
@@ -114,8 +122,6 @@ export const LAYOUT = {
     // ray — rather than due east, and its base sits 13.7 m from the camera. The plateau ramp
     // follows this frame, so W04's probe at (18, -4) must stay on the 5.4 m top.
     { id: 'main', base: [9.0, 0, -2.0], dir: [1, -0.7], steps: 18, rise: 0.3, tread: 0.42, width: 3.2 },
-    // Short stair up to the Kokiri house terrace (right side of shot D).
-    { id: 'house', base: [4.6, 0, -7.2], dir: [0.66, -0.75], steps: 4, rise: 0.3, tread: 0.5, width: 2.2 },
     // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
     // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
     // The base sits just off the paved edge so the first riser meets flattened ground.
@@ -126,13 +132,15 @@ export const LAYOUT = {
   terraces: {
     eastPlateau: { height: 5.4 },
     westLedge: { height: 2.6 },
-    houseTerrace: { height: 1.2 },
+    // 0.9: reference B/E show the door threshold ~0.9 m above the plaza at the top of a grassy
+    // stepping-stone slope (W04's probe at (9, -12.5) allows 1.2 ± 0.35; proposal filed for 0.4)
+    houseTerrace: { height: 0.9 },
     /** the boulder bank west of the north path (top of stairs.north; terrace-boulder sits on it) */
     northTerrace: { height: 2.6 },
   },
 
   houses: [
-    { id: 'saria', position: [12.5, 1.2, -11.5], trunkRadius: 3.2, facing: [-0.7, 0.72], roofHeight: 6.5, lanterns: 3 },
+    { id: 'saria', position: [12.5, 0.9, -11.5], trunkRadius: 3.2, facing: [-0.7, 0.72], roofHeight: 6.5, lanterns: 3 },
     // On the plateau north of the fenced lip: reference F shows a second, smaller tree-house at the
     // top-left of the stairs (0.13–0.25, 0.13–0.20), ~24 m from camera F; projects to A (0.53, 0.18)
     // and the top-right corner of D, both hazed.
@@ -263,4 +271,56 @@ export function v3(a: readonly [number, number, number]): Vector3 {
 
 export function getViewpoint(id: string): Viewpoint | undefined {
   return LAYOUT.viewpoints.find((v) => v.id === id);
+}
+
+export interface SteppingStone {
+  x: number;
+  /** ground height of the path at the stone (the stone top sits a few cm above) */
+  y: number;
+  z: number;
+  /** radius (m) */
+  r: number;
+}
+
+/**
+ * Deterministic stepping stones along `pathToHouse` (terrain paves exactly these discs; hardscape
+ * builds a slab per disc; vegetation keeps grass off them). Stones start `from` metres along the
+ * polyline, every `spacing` m (±12 %), zig-zagging ±`wobble` m across the line like the footage's
+ * loosely laid slabs, and stop 0.7 m short of the door.
+ */
+export function houseSteppingStones(): SteppingStone[] {
+  const pts = LAYOUT.pathToHouse;
+  const { from, spacing, radius, wobble } = LAYOUT.steppingStones;
+  const segs: { ax: number; ay: number; az: number; dx: number; dy: number; dz: number; len: number }[] = [];
+  let total = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay, az] = pts[i];
+    const [bx, by, bz] = pts[i + 1];
+    const len = Math.hypot(bx - ax, bz - az);
+    segs.push({ ax, ay, az, dx: (bx - ax) / len, dy: (by - ay) / len, dz: (bz - az) / len, len });
+    total += len;
+  }
+  const hash = (n: number) => {
+    // small integer hash → [0, 1); keeps the layout free of the world PRNG
+    let h = (n * 374761393 + 668265263) | 0;
+    h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  };
+  const out: SteppingStone[] = [];
+  let d = from;
+  for (let i = 0; d < total - 0.7 && i < 64; i++) {
+    let rem = d;
+    let k = 0;
+    while (k < segs.length - 1 && rem > segs[k].len) rem -= segs[k++].len;
+    const sg = segs[k];
+    const side = (i % 2 === 0 ? 1 : -1) * wobble * (0.6 + 0.4 * hash(i * 3 + 1));
+    out.push({
+      x: sg.ax + sg.dx * rem - sg.dz * side,
+      y: sg.ay + sg.dy * rem,
+      z: sg.az + sg.dz * rem + sg.dx * side,
+      r: radius[0] + (radius[1] - radius[0]) * hash(i * 3 + 2),
+    });
+    d += spacing * (0.88 + 0.24 * hash(i * 3));
+  }
+  return out;
 }
