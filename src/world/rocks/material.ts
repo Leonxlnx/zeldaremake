@@ -19,7 +19,8 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
   const mat = new MeshStandardMaterial({
     map: color,
     normalMap: normal,
-    normalScale: new Vector2(0.8, 0.8),
+    // low relief: the reference boulders are weathered smooth, the texture only hints at pitting
+    normalScale: new Vector2(0.55, 0.55),
     roughnessMap: rough,
     roughness: 0.92,
     metalness: 0,
@@ -30,8 +31,8 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
   // the boulder caps in the reference are an olive-brown moss (#70683b, R > G), not the yellow-green
   // of the ground moss: pull both palette greens toward it
   const cap = new Color(0x70683b);
-  const mossDeep = new Color(P.mossDeep).lerp(cap, 0.45);
-  const mossBright = new Color(P.mossBright).lerp(cap, 0.55);
+  const mossDeep = new Color(P.mossDeep).lerp(cap, 0.6);
+  const mossBright = new Color(P.mossBright).lerp(cap, 0.7);
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uMossDeep = { value: mossDeep };
     shader.uniforms.uMossBright = { value: mossBright };
@@ -69,13 +70,16 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           vec3 cz = texture2D(map, vWPosR.xy * uRockTile).rgb;
           vec3 c = cx * bw.x + cy * bw.y + cz * bw.z;
           float l = dot(c, vec3(0.299, 0.587, 0.114));
-          // the source rock is orange; keep its detail but pull to a neutral warm grey
+          // the source rock is orange; keep its detail but pull to a neutral warm grey, and
+          // compress its cracked-texture contrast so the boulders read smooth, not crazed
           c = mix(c, vec3(l) * vec3(1.0, 0.99, 0.96), 0.7);
-          diffuseColor.rgb *= c * 1.15;
+          c = mix(vec3(0.3), c, 0.7);
+          diffuseColor.rgb *= c * 1.08;
           // moss: the texture luminance (mean ≈ 0.3) picks between deep and bright green so the
-          // moss keeps the rock's pitting; blend is near-opaque where the coverage is full
+          // moss keeps the rock's pitting; blend is near-opaque where the coverage is full. The
+          // reference caps are a muted olive (#70683b), so the lift stays modest.
           float ln = clamp(l / 0.3, 0.0, 1.8);
-          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.85 + 0.4 * ln);
+          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.74 + 0.34 * ln);
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.03, 0.85, clamp(vMossR, 0.0, 1.0)));
         }`,
       )
@@ -106,6 +110,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'rock-triplanar-v3';
+  mat.customProgramCacheKey = () => 'rock-triplanar-v5';
   return mat;
 }

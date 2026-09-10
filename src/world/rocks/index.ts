@@ -83,20 +83,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 8.8k for the small ones
       detail: r > 1.5 ? 28 : 20,
-      ridge: 0.2,
-      lump: 0.2,
-      cuts: r > 1.5 ? 5 : 3,
-      squashY: 0.78,
-      creaseDeg: 30,
-      cracks: 0.85,
+      // rounded, weathered boulders (reference A/C/D): low ridging, soft lumps, and only shallow
+      // sideways cleaves so the crown stays a dome under its moss cap instead of a faceted wedge
+      ridge: 0.12,
+      lump: 0.3,
+      cuts: r > 1.5 ? 4 : 2,
+      cutUp: [-0.35, 0.3],
+      cutDepth: [0.68, 0.84],
+      squashY: 0.74,
+      creaseDeg: 24,
+      // a few dark cracks, not a crazed surface: the reference boulders (C stair-foot loaf, A
+      // terrace boulder) are smooth mid-grey with two or three dark partings
+      cracks: 0.55,
       moss: 1.0,
-      // reference boulders (C, D): bedded rock — stacked layers with dark partings — under a
-      // thick moss cap, sitting in a dark collar of soil
-      strata: 0.14,
-      mossThickness: 0.05,
-      dirt: 0.7,
-      tint: new Color(0.6, 0.6, 0.575),
-      freq: 1.1,
+      // faint bedding (dark partings, only a hint of a ledge) under a thick moss cap, sitting in
+      // a dark collar of soil — the reference boulders are rounded first, layered second
+      strata: 0.06,
+      mossThickness: 0.06,
+      dirt: 0.75,
+      tint: new Color(0.56, 0.555, 0.535),
+      freq: 0.9,
     });
     // seat: base sinks ~15 % of the rock height into the ground under the footprint
     let gSum = 0;
@@ -107,7 +113,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       gn++;
     }
     const ground = gSum / gn;
-    const squash = 0.78;
+    const squash = 0.74;
     const height = 2 * r * squash;
     const sink = 0.15 * height;
     const cy = ground + r * squash * 0.62 - sink; // flat-ish bottom is at -0.62·r·squash

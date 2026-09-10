@@ -28,9 +28,12 @@ export async function buildJointMesh(
   // vertex colours are the *absolute* albedo here (the shader turns the texture into a
   // luminance modulator). The joint soil is the dark warm brown of the reference seams
   // (E/A/D dark band ≈ sRGB 60,50,30, hue 35–42°, R/G 1.2 — the palette's olive `soil` rendered
-  // them hue 48° and a fifth too bright); moss takes over only in patches.
-  const soil = new Color(0x58462c);
-  const soilMid = new Color(0x7a6240);
+  // them hue 48° and a fifth too bright); moss takes over only in patches. Now that the joints
+  // are 5–10 cm wide and sunk below the stones' shoulders (which shade them), the albedo is a
+  // notch lighter and greyer so the seams land on the reference's joint pixels (B/A dark band
+  // sRGB ≈ 95,79,49 / 84,74,52 — B/R 0.52–0.62) rather than a saturated near-black brown.
+  const soil = new Color(0x7a674d);
+  const soilMid = new Color(0x9c8666);
   const mossD = new Color(P.mossDeep).lerp(soil, 0.25);
   const mossB = new Color(P.mossBright);
   const tmp = new Color();

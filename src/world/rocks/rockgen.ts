@@ -81,6 +81,13 @@ export interface RockOptions {
   strata?: number;
   /** moss cushion thickness on the upward faces (fraction of the radius) */
   mossThickness?: number;
+  /**
+   * range of the cleave-plane normals' y component (default [-0.15, 1]: facets face up and out —
+   * angular scree). Rounded boulders use a sideways band so the crown stays a dome.
+   */
+  cutUp?: [number, number];
+  /** cleave depth range as a fraction of the radius for the first two cuts (default [0.42, 0.62]) */
+  cutDepth?: [number, number];
 }
 
 const _p = new Vector3();
@@ -154,11 +161,13 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   }
 
   // 2. cleave cuts: project everything beyond a plane onto it → flat fracture faces
+  const cutUp = o.cutUp ?? [-0.15, 1.0];
+  const cutDepth = o.cutDepth ?? [0.42, 0.62];
   for (let c = 0; c < cuts; c++) {
     // bias normals toward the upper hemisphere and sideways so facets are visible
-    _n.set(rng.range(-1, 1), rng.range(-0.15, 1.0), rng.range(-1, 1)).normalize();
+    _n.set(rng.range(-1, 1), rng.range(cutUp[0], cutUp[1]), rng.range(-1, 1)).normalize();
     // deeper cuts on the first planes (big fracture faces), shallower chips afterwards
-    const depth = c < 2 ? rng.range(0.42, 0.62) : rng.range(0.6, 0.82);
+    const depth = c < 2 ? rng.range(cutDepth[0], cutDepth[1]) : rng.range(0.6, 0.82);
     const dist = r * depth * (0.6 + 0.4 * squashY);
     for (let i = 0; i < count; i++) {
       _p.fromBufferAttribute(pos, i);
@@ -242,8 +251,9 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const tint = o.tint ?? new Color(0.72, 0.72, 0.7);
   const dirt = o.dirt ?? 0.5;
   const tmp = new Color();
-  const dark = new Color(0.22, 0.2, 0.17);
-  const soil = new Color(0.27, 0.21, 0.14);
+  // cracks and partings read near-black in the reference (A rock p10 ≈ 0.14 in frame)
+  const dark = new Color(0.15, 0.14, 0.12);
+  const soil = new Color(0.24, 0.19, 0.13);
   for (let i = 0; i < count; i++) {
     _p.fromBufferAttribute(pos, i);
     _n.fromBufferAttribute(nrm, i);
@@ -252,12 +262,12 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     const z = _p.z * freq + oz;
     // tonal variation, with the beds alternating slightly lighter / darker
     const v = N.fbm(x * 1.1 + 7, y * 1.1, z * 1.1, 2) * 0.5 + 0.5;
-    let tone = 0.82 + 0.36 * v;
+    let tone = 0.87 + 0.26 * v;
     if (strata > 0) tone *= 1 + 0.08 * bedding(_p.x, _p.y, _p.z, x, y, z).step;
     tmp.copy(tint).multiplyScalar(tone);
     // cracks + bedding partings: dark
     const crack = crackAt(_p);
-    tmp.lerp(dark, crack * 0.85);
+    tmp.lerp(dark, crack * 0.92);
     // contact dirt at the base (darker, higher than before: the reference boulders sit in a
     // shadowed collar of soil and moss)
     const h01 = clamp((_p.y + r * squashY) / (2 * r * squashY), 0, 1);

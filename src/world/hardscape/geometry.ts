@@ -339,13 +339,20 @@ export interface SlabOptions {
    * per-face luminance multiplier (local x,z of the face centre) — e.g. a worn nose highlight on
    * the front bevel of a tread, grime toward the flanks; 1 = unchanged. `edge` is 1 on the bevel
    * and sides and falls toward 0 at the centre of the top face (for rim dirt / wear gradients).
+   * May return an RGB triple for a tinted multiplier (moss film, damp patches).
    */
-  colorFn?: (x: number, z: number, part: 'top' | 'bevel' | 'side', edge: number) => number;
+  colorFn?: (x: number, z: number, part: 'top' | 'bevel' | 'side', edge: number) => number | [number, number, number];
   /**
    * smooth the bevel ring and the top face as one group so the rim rolls over softly (worn
    * flagstone) instead of showing a hard crease between bevel and top (cut stair nosing)
    */
   softBevel?: boolean;
+  /**
+   * explicit inner ring (same vertex count and order as `outline`) where the bevel/shoulder meets
+   * the top face. Lets the caller build the shoulder as a proper offset of the stone's cell (a
+   * rounded outline made of short segments defeats the miter inset).
+   */
+  topRing?: P2[];
 }
 
 const _a = new Vector3();
@@ -376,13 +383,16 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const topNoise = o.topNoise ?? (() => 0);
   const colorFn = o.colorFn;
   const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1, edge = 1): [number, number, number] => {
-    const m = (colorFn ? colorFn(ax, az, part, edge) : 1) * k;
-    return [base[0] * m, base[1] * m, base[2] * m];
+    const m = colorFn ? colorFn(ax, az, part, edge) : 1;
+    if (typeof m === 'number') return [base[0] * m * k, base[1] * m * k, base[2] * m * k];
+    return [base[0] * m[0] * k, base[1] * m[1] * k, base[2] * m[2] * k];
   };
 
-  const outer = ccw(outline);
+  const reversed = polygonArea(outline) > 0;
+  const outer = reversed ? [...outline].reverse() : outline;
   const n = outer.length;
-  const top = inset(outer, bevel);
+  const givenTop = o.topRing && o.topRing.length === n ? (reversed ? [...o.topRing].reverse() : o.topRing) : null;
+  const top = givenTop ?? inset(outer, bevel);
   const c = centroid(top);
   const topUv = (p: P2) => _ua.set(p.x * uvS + uvO[0], p.z * uvS + uvO[1]).clone();
   const topY = (p: P2, ringScale: number) => t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));

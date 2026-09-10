@@ -47,7 +47,9 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     // / B/R 0.51 at the same luminance (was 1.08 / 0.55). The post chain (warm channel mix,
     // ACES, saturation) compresses the rendered R/G to roughly a fifth of the albedo change, so
     // the albedo has to lean further red than the target itself.
-    color: new Color(1.586, 1.497, 0.911),
+    // (blue up a notch from 0.911: with the wider soil joints the plaza boxes measured sat 0.43
+    // against the reference's 0.38 — the stone tops themselves were a shade too warm)
+    color: new Color(1.586, 1.497, 0.95),
   });
   mat.name = opts.instanced ? 'stone-instanced' : 'stone';
   const mossDeep = new Color(P.mossDeep);
@@ -81,9 +83,11 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.55, 1.5), 0.2);
           // desaturate the orange-leaning rock texture toward the warm grey-beige of the reference
           float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.13, 1.0, 0.70), 0.7);
+          // (reference plaza box sat 0.38 against our 0.44 once the joints widened: a little less
+          // blue-starved than before)
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.12, 1.0, 0.74), 0.7);
           // lift the darkest pits so the slab tops stay pale and low-contrast (dusty, not pitted)
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.10, 1.0, 0.72), 0.24);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.09, 1.0, 0.76), 0.24);
           // fine grain breakup so distant slabs don't read as a single flat tone
           float grain = fract(sin(dot(floor(vWPosS.xz * 40.0), vec2(12.9898, 78.233))) * 43758.5453);
           diffuseColor.rgb *= 0.975 + 0.05 * grain;
@@ -103,6 +107,6 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v8-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v9-${opts.instanced ? 'i' : 's'}`;
   return mat;
 }

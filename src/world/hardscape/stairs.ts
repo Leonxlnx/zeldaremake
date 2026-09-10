@@ -107,11 +107,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     const uBack = (i + 1) * def.tread + 0.03;
     const depth = uBack - uFront;
     const yaw = rng.range(-0.02, 0.02);
-    // worn limestone treads: pale, only a mild tread-to-tread swing (the reference flight reads
-    // as one stone with lit nosings, not a patchwork)
-    const tint = 1.0 + rng.range(0, 0.14);
+    // worn treads: a darker grey-brown than the plaza slabs (reference A lit tread #746d5d
+    // against flagstone #a79774 — ≈ 0.7× in sRGB, cooler: B/R 0.80 vs 0.69), with only a mild
+    // tread-to-tread swing so the flight reads as one stone with lit nosings, not a patchwork
+    const tint = 0.7 + rng.range(0, 0.12);
     const hue = rng.range(-0.025, 0.025);
-    const color: [number, number, number] = [tint * (1 + hue), tint, tint * (1 - hue * 0.6)];
+    const color: [number, number, number] = [tint * (1 + hue) * 0.98, tint, tint * (1 - hue * 0.6) * 1.14];
 
     // split the tread into two stones sometimes
     const split = rng.chance(0.36);
@@ -130,7 +131,8 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const outline = jitteredRect(rng, pw, depth, { jitter: 0.014, segs: 5, chip: 0.09, chipChance: 0.5 });
       shapeHashes.push(outlineHash(outline));
       const dip = rng.range(0.01, 0.026);
-      const noseBright = rng.range(1.16, 1.3);
+      // the nose catches the light: brighter still now that the tread body is darker
+      const noseBright = rng.range(1.3, 1.48);
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
         bevel: rng.range(0.022, 0.034),
@@ -148,8 +150,8 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           const flank = smoothstep(hw - 0.75, hw + 0.05, Math.abs(x + cxl));
           const grime = 1 - 0.16 * flank * (0.6 + 0.4 * (wear.noise((x + cxl) * 2.1 + 7, (z + czl) * 2.1) * 0.5 + 0.5));
           if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime;
-          if (part === 'side') return (z < 0 ? 1.28 : 0.92) * grime; // the nose face is sky-lit, the buried sides stay dark
-          return (1 + 0.12 * front - 0.11 * back) * grime;
+          if (part === 'side') return (z < 0 ? 1.34 : 0.92) * grime; // the nose face is sky-lit, the buried sides stay dark
+          return (1 + 0.16 * front - 0.13 * back) * grime;
         },
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
@@ -173,8 +175,8 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
       // risers read as shadowed warm stone (reference #453e32 under #746d5d treads ≈ 0.35× the
-      // tread in linear light), with moss only where the run meets the grass flanks
-      const rc = 0.3 + rng.range(0, 0.1);
+      // tread in linear light) with a moss skin creeping over them from the joints
+      const rc = 0.27 + rng.range(0, 0.08);
       const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 3, chip: 0.05, chipChance: 0.3 });
       const ac = a + len / 2;
       placeSlab(riserOutline, ac, rBottom, i * def.tread + 0.01 + (def.tread * 0.9) / 2, yaw * 0.5, 0, 0, {
@@ -182,9 +184,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         bevel: 0.012,
         color: [rc * 1.04, rc, rc * 0.9],
         sideColor: [rc * 0.94, rc * 0.9, rc * 0.82],
-        mossEdge: 0.85,
-        mossInner: 0.12,
-        mossFn: (x, z) => 0.2 + 0.8 * mossAt(x + ac, z + i * def.tread),
+        mossEdge: 0.9,
+        mossInner: 0.3,
+        mossFn: (x, z) => 0.35 + 0.65 * mossAt(x + ac, z + i * def.tread),
         // riser shadow: darker still toward the flanks and at the foot (splash grime)
         colorFn: (x) => 1 - 0.22 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac)),
         uvScale,
@@ -210,7 +212,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const th = rng.range(0.28, 0.4);
       const ac = side * (hw + 0.1 + cw / 2 + rng.range(-0.03, 0.06));
       const outline = jitteredRect(rng, cw, len, { jitter: 0.04, segs: 3, chip: 0.12, chipChance: 0.8 });
-      const tint = 0.78 + rng.range(0, 0.22);
+      const tint = 0.64 + rng.range(0, 0.18);
       placeSlab(outline, ac, top - th, uc, rng.range(-0.25, 0.25), rng.range(-0.08, 0.08), side * rng.range(-0.04, 0.12), {
         thickness: th,
         bevel: rng.range(0.035, 0.06),
@@ -248,7 +250,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         const top = Math.max(ground + 0.05, topY - 0.02 - (uc - f.run) * 0.03);
         const th = rng.range(0.07, 0.1);
         const outline = jitteredRect(rng, len - 0.04, u1 - u0 - 0.04, { jitter: 0.02, segs: 4, chip: 0.1, chipChance: 0.5 });
-        const tint = 0.9 + rng.range(0, 0.18);
+        const tint = 0.8 + rng.range(0, 0.16);
         placeSlab(outline, ac, top - th, uc, rng.range(-0.05, 0.05), 0, 0, {
           thickness: th,
           bevel: 0.025,

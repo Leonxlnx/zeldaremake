@@ -1,19 +1,20 @@
 /**
- * Flagstone paving (W03). Seeds are dart-thrown over the paved mask (paths + plaza) in three
- * size classes (a few big 1.4–1.7 m slabs, the 0.6–1.2 m bulk, small fillers) with a random
- * elliptical footprint each, so the weighted Voronoi cells come out as a hand-laid mix of large,
- * small, squat and elongated stones rather than a hexagonal tiling. Each cell — clipped to the
- * paved boundary, shrunk by the joint width (3–8 cm of soil), corners worn by a per-stone amount
- * and edges hand-jittered — IS the slab outline, so every stone is unique and neighbours never
- * overlap. Slabs are seated on the terrain (≈ 20 samples per stone), tilted gently to the local
- * normal, with ≤ 4 cm height jitter, and merged into ONE geometry (vertex colour = per-stone
- * tint + rim dirt, aMoss = joint moss) → a single draw call.
+ * Flagstone paving (W03). The reference plaza/path is a hand-laid field of worn, rounded stones
+ * 0.5–0.9 m across (smaller at the paved rim, the odd 1.2–1.4 m slab on the path centre), each a
+ * distinct slightly domed cushion with rounded, chipped corners, sitting proud of 5–10 cm dark
+ * soil joints. Seeds come from a hex lattice with heavy jitter (half the spacing) and a slow
+ * domain warp, thinned/densified by the distance to the paved edge, so the Voronoi cells are
+ * strongly irregular (no hexagonal tiling). Each cell — clipped to the paved boundary, inset by
+ * half the joint, corners filleted, edges eroded — IS the stone outline; a second inset ring
+ * gives the rolled shoulder and the top domes 2–4 cm. Stones are seated on the terrain (≈ 20
+ * samples), tilted gently to the local normal, and merged into ONE geometry (vertex colour =
+ * per-stone tint + shoulder dirt + moss film, aMoss = joint moss) → a single draw call.
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, ccw, centroid, pointInPolygon, polygonArea, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, centroid, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
 
@@ -28,6 +29,7 @@ export interface PlacedStone {
   radius: number;
   thickness: number;
   bottomY: number;
+  /** height of the stone's crown (centre of the domed top) */
   topY: number;
   moss: number;
   /** elongation of the final outline (major / minor extent) */
@@ -54,11 +56,7 @@ function clipHalfPlane(poly: P2[], sx: number, sz: number, nx: number, nz: numbe
   return out;
 }
 
-/**
- * Elongation of a convex cell: extent along its principal axis over the extent across it.
- * Boundary cells at the path fringe get squeezed into long slivers; those are split (W03 asks for
- * hand-laid stones, and nobody lays a 2.5:1 sliver).
- */
+/** Elongation of a convex cell: extent along its principal axis over the extent across it. */
 function cellAspect(poly: P2[]) {
   const c = centroid(poly);
   let sxx = 0;
@@ -95,8 +93,8 @@ function cellAspect(poly: P2[]) {
 function splitElongated(poly: P2[], maxAspect: number, gap: number, depth = 0): P2[][] {
   if (poly.length < 3) return [];
   const a = cellAspect(poly);
-  // judge the stone as it will be cut: the joint + chamfer (~7 cm) shrink both extents
-  const shrunk = (a.major - 0.14) / Math.max(a.minor - 0.14, 1e-3);
+  // judge the stone as it will be cut: the joint + shoulder (~12 cm) shrink both extents
+  const shrunk = (a.major - 0.12) / Math.max(a.minor - 0.12, 1e-3);
   if (shrunk <= maxAspect || a.major < 0.5 || depth >= 3) return [poly];
   const left = clipHalfPlane(poly, a.c.x, a.c.z, a.ax, a.az, -gap / 2);
   const right = clipHalfPlane(poly, a.c.x, a.c.z, -a.ax, -a.az, -gap / 2);
@@ -118,94 +116,230 @@ function dedupe(p: P2[], eps: number): P2[] {
   return out;
 }
 
-interface OutlineStyle {
-  /** joint width (m) — the cell shrinks by half of it on every side */
-  joint: number;
-  /** corner wear: fraction of each edge taken off at the corners (0.03 angular … 0.2 rounded) */
-  wear: number;
-  /** one corner knocked off (fraction of the edge), 0 = none */
-  chip: number;
-  /** edge waviness (m) */
-  jitter: number;
-  maxRadius: number;
+/** ensure counter-clockwise-from-above (negative signed xz area) */
+function ccwOf(p: P2[]): P2[] {
+  return polygonArea(p) > 0 ? [...p].reverse() : p;
 }
 
 /**
- * Turn a Voronoi cell (seed-local coords) into a hand-cut slab outline: shrink by half the joint,
- * wear the corners by a per-stone amount (some slabs stay angular, some are rounded), knock a
- * chip off one corner now and then, and split long edges with a small perpendicular jitter.
- * Returns null if the result is too small to read as a stone.
+ * Exact inset of a convex polygon (ccw-from-above winding) by `d`: every edge's half-plane is
+ * moved inward and the polygon re-clipped, so short edges vanish instead of producing miter
+ * spikes. Returns [] if nothing is left.
  */
-function cellToOutline(cell: P2[], st: OutlineStyle, rng: Rng): P2[] | null {
-  let pts = dedupe(cell, 0.025);
-  if (pts.length < 3) return null;
-  const c = centroid(pts);
-  // radial shrink by joint/2 (robust for the near-convex cells we get from clipping)
-  pts = pts.map((p) => {
-    const dx = p.x - c.x;
-    const dz = p.z - c.z;
-    const l = Math.hypot(dx, dz) || 1e-6;
-    const k = Math.max(0, l - st.joint / 2) / l;
-    return { x: c.x + dx * k, z: c.z + dz * k };
-  });
-  // cap the slab size (very sparse seed → shrink toward the centroid, the joint widens there)
-  let maxR = 0;
-  for (const p of pts) maxR = Math.max(maxR, Math.hypot(p.x - c.x, p.z - c.z));
-  if (maxR > st.maxRadius) {
-    const k = st.maxRadius / maxR;
-    pts = pts.map((p) => ({ x: c.x + (p.x - c.x) * k, z: c.z + (p.z - c.z) * k }));
-  }
-  // worn corners: each corner becomes two points along its edges. The amount is per stone
-  // (angular slabs keep ~3 % of the edge, rounded ones lose ~20 %) with a little per-corner
-  // variation; one corner may carry a bigger chip.
-  const n = pts.length;
-  const chipAt = st.chip > 0 ? rng.int(0, n) : -1;
-  const cham: P2[] = [];
-  for (let i = 0; i < n; i++) {
-    const a = pts[i];
-    const b = pts[(i + 1) % n];
-    const len = Math.hypot(b.x - a.x, b.z - a.z);
-    if (len < 0.09) {
-      cham.push({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 });
-      continue;
-    }
-    const w0 = i === chipAt ? st.chip : st.wear * rng.range(0.6, 1.3);
-    const w1 = (i + 1) % n === chipAt ? st.chip : st.wear * rng.range(0.6, 1.3);
-    const t0 = clamp(w0 * (0.5 / Math.max(len, 0.3)), 0.015, 0.42);
-    const t1 = clamp(w1 * (0.5 / Math.max(len, 0.3)), 0.015, 0.42);
-    cham.push({ x: a.x + (b.x - a.x) * t0, z: a.z + (b.z - a.z) * t0 });
-    cham.push({ x: a.x + (b.x - a.x) * (1 - t1), z: a.z + (b.z - a.z) * (1 - t1) });
-  }
-  // hand-cut edges: split edges > 0.22 m (twice when > 0.6 m) with a perpendicular wobble
-  const out: P2[] = [];
-  const m = cham.length;
-  for (let i = 0; i < m; i++) {
-    const a = cham[i];
-    const b = cham[(i + 1) % m];
-    out.push(a);
+function convexInset(poly: P2[], d: number): P2[] {
+  let out = poly;
+  const n = poly.length;
+  for (let i = 0; i < n && out.length >= 3; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % n];
     const ex = b.x - a.x;
     const ez = b.z - a.z;
-    const len = Math.hypot(ex, ez);
-    if (len > 0.6) {
-      for (const f of [0.33, 0.66]) {
-        const j = rng.range(-st.jitter, st.jitter);
-        out.push({ x: a.x + ex * f - (ez / len) * j, z: a.z + ez * f + (ex / len) * j });
-      }
-    } else if (len > 0.22) {
-      const j = rng.range(-st.jitter, st.jitter);
-      out.push({ x: a.x + ex * 0.5 - (ez / len) * j, z: a.z + ez * 0.5 + (ex / len) * j });
+    const l = Math.hypot(ex, ez);
+    if (l < 1e-6) continue;
+    // outward normal for this winding is (-ez, ex)/l; keep dot(p - a, outward) <= -d
+    out = clipHalfPlane(out, a.x, a.z, -ez / l, ex / l, -d);
+  }
+  return dedupe(out, 0.008);
+}
+
+/**
+ * Outward miter offset of a convex polygon by `d` (the inverse of the inset for the surviving
+ * corners; very sharp corners are capped so the miter never spikes past the true offset).
+ */
+function miterOut(poly: P2[], d: number): P2[] {
+  const n = poly.length;
+  const out: P2[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = poly[(i - 1 + n) % n];
+    const b = poly[i];
+    const c = poly[(i + 1) % n];
+    const e1x = b.x - a.x;
+    const e1z = b.z - a.z;
+    const e2x = c.x - b.x;
+    const e2z = c.z - b.z;
+    const l1 = Math.hypot(e1x, e1z) || 1e-6;
+    const l2 = Math.hypot(e2x, e2z) || 1e-6;
+    // outward normals
+    const n1x = -e1z / l1;
+    const n1z = e1x / l1;
+    const n2x = -e2z / l2;
+    const n2z = e2x / l2;
+    let bx = n1x + n2x;
+    let bz = n1z + n2z;
+    const bl = Math.hypot(bx, bz);
+    if (bl < 1e-6) {
+      bx = n1x;
+      bz = n1z;
+    } else {
+      bx /= bl;
+      bz /= bl;
+    }
+    const cosHalf = Math.max(0.42, bx * n1x + bz * n1z);
+    out.push({ x: b.x + (bx * d) / cosHalf, z: b.z + (bz * d) / cosHalf });
+  }
+  return out;
+}
+
+interface OutlineStyle {
+  /** joint width (m) — the cell shrinks by half of it on every side */
+  joint: number;
+  /** horizontal width of the rolled shoulder between the outer edge and the flat-ish top (m) */
+  shoulder: number;
+  /** corner fillet radius (m), varied ±30 % per corner */
+  fillet: number;
+  /** edge erosion amplitude (m): the outer edge is nibbled inward by up to this much */
+  erosion: number;
+  /** per-stone noise for the erosion (world-ish coords → 0..1) */
+  erodeFn: (x: number, z: number) => number;
+}
+
+interface Outline {
+  outer: P2[];
+  inner: P2[];
+}
+
+/**
+ * Round the corners of a convex polygon with a fillet of radius `r[i]` per corner, emitting the
+ * two tangent points and (where `mid[i]`) the arc midpoint. Returns the points plus which corner
+ * each came from, so a second ring built from the same cell keeps index correspondence.
+ */
+function filletCorners(poly: P2[], r: number[], mid: boolean[]): P2[] {
+  const n = poly.length;
+  const out: P2[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = poly[(i - 1 + n) % n];
+    const b = poly[i];
+    const c = poly[(i + 1) % n];
+    const e1x = a.x - b.x;
+    const e1z = a.z - b.z;
+    const e2x = c.x - b.x;
+    const e2z = c.z - b.z;
+    const l1 = Math.hypot(e1x, e1z) || 1e-6;
+    const l2 = Math.hypot(e2x, e2z) || 1e-6;
+    const cosT = clamp((e1x * e2x + e1z * e2z) / (l1 * l2), -0.999, 0.999);
+    const theta = Math.acos(cosT); // interior angle
+    // tangent distance for the fillet, capped so neighbouring fillets never cross
+    let t = r[i] / Math.max(Math.tan(theta / 2), 0.2);
+    t = Math.min(t, 0.46 * Math.min(l1, l2));
+    const p1 = { x: b.x + (e1x / l1) * t, z: b.z + (e1z / l1) * t };
+    const p2 = { x: b.x + (e2x / l2) * t, z: b.z + (e2z / l2) * t };
+    out.push(p1);
+    if (mid[i]) out.push({ x: 0.25 * p1.x + 0.5 * b.x + 0.25 * p2.x, z: 0.25 * p1.z + 0.5 * b.z + 0.25 * p2.z });
+    out.push(p2);
+  }
+  return out;
+}
+
+/** interior angle (rad) at each corner of a polygon */
+function cornerAngles(poly: P2[]): number[] {
+  const n = poly.length;
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = poly[(i - 1 + n) % n];
+    const b = poly[i];
+    const c = poly[(i + 1) % n];
+    const e1x = a.x - b.x;
+    const e1z = a.z - b.z;
+    const e2x = c.x - b.x;
+    const e2z = c.z - b.z;
+    const l1 = Math.hypot(e1x, e1z) || 1e-6;
+    const l2 = Math.hypot(e2x, e2z) || 1e-6;
+    out.push(Math.acos(clamp((e1x * e2x + e1z * e2z) / (l1 * l2), -0.999, 0.999)));
+  }
+  return out;
+}
+
+/**
+ * Turn a Voronoi cell (seed-local coords) into a worn stone: two rings — the outer edge (cell
+ * inset by half the joint) and the shoulder ring (inset further by the shoulder width) — built
+ * from the same corners so they correspond index by index. Corners are filleted (6–12 cm), long
+ * edges get a midpoint, and the outer ring is eroded inward by per-stone noise so no two edges
+ * stay parallel and the joints widen into chips here and there.
+ * Returns null if the result is too small to read as a stone.
+ */
+function cellToOutline(cell: P2[], st: OutlineStyle, rng: Rng): Outline | null {
+  const base = dedupe(ccwOf(cell), 0.02);
+  if (base.length < 3) return null;
+  // shoulder ring = exact convex inset (short edges vanish); outer edge = its outward offset, so
+  // the two rings share corners one-to-one and the fillets below come out concentric
+  const innerCell = convexInset(base, st.joint / 2 + st.shoulder);
+  if (innerCell.length < 3 || Math.abs(polygonArea(innerCell)) < 0.012) return null;
+  const outerCell = miterOut(innerCell, st.shoulder);
+  if (Math.abs(polygonArea(outerCell)) < 0.035) return null;
+
+  const n = innerCell.length;
+  const angles = cornerAngles(outerCell);
+  const radii: number[] = [];
+  const mids: boolean[] = [];
+  for (let i = 0; i < n; i++) {
+    const r = st.fillet * rng.range(0.7, 1.3);
+    radii.push(r);
+    // sharp corners need the arc midpoint to read as round; obtuse ones are fine with two points
+    mids.push(angles[i] < 2.0 || r > 0.09);
+  }
+  // concentric arcs: the inner fillet is the outer one minus the shoulder width
+  const innerRadii = radii.map((r) => Math.max(0.01, r - st.shoulder));
+  let outer = filletCorners(outerCell, radii, mids);
+  let inner = filletCorners(innerCell, innerRadii, mids);
+  if (outer.length !== inner.length) return null;
+
+  // long edges get a midpoint (both rings) so the erosion can bow them
+  const o2: P2[] = [];
+  const i2: P2[] = [];
+  const m = outer.length;
+  for (let k = 0; k < m; k++) {
+    const a = outer[k];
+    const b = outer[(k + 1) % m];
+    const ai = inner[k];
+    const bi = inner[(k + 1) % m];
+    o2.push(a);
+    i2.push(ai);
+    const len = Math.hypot(b.x - a.x, b.z - a.z);
+    if (len > 0.42) {
+      o2.push({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 });
+      i2.push({ x: (ai.x + bi.x) / 2, z: (ai.z + bi.z) / 2 });
     }
   }
-  const final = dedupe(out, 0.012);
-  if (final.length < 4) return null;
-  // size gate: min radius from the centroid ≥ 7 cm and area ≥ 0.04 m² (small fillers are kept —
-  // dropping them leaves bare holes in the paving; undersized *cells* are already removed at the
-  // seed level so this rarely triggers)
-  const cc = centroid(final);
+  outer = o2;
+  inner = i2;
+
+  // erosion: nibble the outer edge toward its shoulder point (never past 70 % of the shoulder,
+  // so the rings can't cross), by a per-stone noise so chips cluster instead of dithering
+  const eroded: P2[] = outer.map((p, k) => {
+    const q = inner[k];
+    const dx = q.x - p.x;
+    const dz = q.z - p.z;
+    const l = Math.hypot(dx, dz) || 1e-6;
+    const nz01 = st.erodeFn(p.x, p.z);
+    const e = Math.min(st.erosion * (0.25 + 0.75 * nz01), l * 0.7);
+    return { x: p.x + (dx / l) * e, z: p.z + (dz / l) * e };
+  });
+
+  // joint dedupe (keep the rings in correspondence)
+  const fo: P2[] = [];
+  const fi: P2[] = [];
+  for (let k = 0; k < eroded.length; k++) {
+    const p = eroded[k];
+    const last = fo[fo.length - 1];
+    if (last && Math.hypot(p.x - last.x, p.z - last.z) <= 0.014) continue;
+    fo.push(p);
+    fi.push(inner[k]);
+  }
+  if (fo.length > 1) {
+    const a = fo[0];
+    const b = fo[fo.length - 1];
+    if (Math.hypot(a.x - b.x, a.z - b.z) <= 0.014) {
+      fo.pop();
+      fi.pop();
+    }
+  }
+  if (fo.length < 5) return null;
+  // size gate: min radius from the centroid ≥ 6 cm and area ≥ 0.03 m²
+  const cc = centroid(fo);
   let minR = Infinity;
-  for (const p of final) minR = Math.min(minR, Math.hypot(p.x - cc.x, p.z - cc.z));
-  if (minR < 0.05 || Math.abs(polygonArea(final)) < 0.03) return null;
-  return ccw(final);
+  for (const p of fo) minR = Math.min(minR, Math.hypot(p.x - cc.x, p.z - cc.z));
+  if (minR < 0.06 || Math.abs(polygonArea(fo)) < 0.03) return null;
+  return { outer: fo, inner: fi };
 }
 
 function outlineHash(p: P2[]): string {
@@ -254,6 +388,28 @@ export function isPaved(pc: PavingContext, x: number, z: number, threshold = 0.5
   return true;
 }
 
+/**
+ * Distance from a paved point to the unpaved boundary (m), by marching eight directions in 0.3 m
+ * steps; capped at 2.1 m. Drives the stone size (small stones at the rim, big ones mid-path).
+ */
+const RIM_STEPS = [0.3, 0.6, 0.9, 1.2, 1.5, 1.8];
+function rimDistance(pc: PavingContext, x: number, z: number): number {
+  let best = 2.1;
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    const dx = Math.cos(a);
+    const dz = Math.sin(a);
+    for (const s of RIM_STEPS) {
+      if (s >= best) break;
+      if (!isPaved(pc, x + dx * s, z + dz * s, 0.5)) {
+        best = s;
+        break;
+      }
+    }
+  }
+  return best;
+}
+
 export interface PavingResult {
   stones: PlacedStone[];
   mesh: Mesh;
@@ -261,113 +417,188 @@ export interface PavingResult {
   grid: Grid;
   /** true if the world point is on a stone's top face */
   onStone(x: number, z: number): boolean;
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; split: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; big: number; rim: number };
 }
 
-/**
- * A paving seed with an elliptical footprint: `r` is the mean radius, the ellipse is stretched
- * `st`× along the unit axis (ax, az) and squeezed by the same factor across it.
- */
 interface Seed {
   x: number;
   z: number;
-  r: number;
-  ax: number;
-  az: number;
-  st: number;
+  /** distance to the paved edge */
+  rim: number;
+  big: boolean;
 }
 
-/** radius of the seed's ellipse toward the unit direction (dx, dz) */
-function seedReach(s: Seed, dx: number, dz: number): number {
-  const u = dx * s.ax + dz * s.az;
-  const v = -dx * s.az + dz * s.ax;
-  return s.r / Math.hypot(u / s.st, v * s.st);
+/** lattice spacing (m) in the damp band: stones come out 0.6–1.0 m across after jitter and joints */
+const SPACING = 0.88;
+/** coarse lattice for the open paving: 0.7–1.3 m slabs (reference A/D/F foregrounds) */
+const OPEN_SPACING = 0.95;
+/** rim lattice spacing (m): 0.3–0.55 m stones along the paved edge */
+const RIM_SPACING = 0.46;
+
+/**
+ * The damp band: where the path leaves the plaza northward under the canopy (reference B/E
+ * foreground, camera B's lower quarter is z ≈ −1.5 → −5.5) the stones are smaller (0.5–0.9 m),
+ * darker, greyer and mossier, set in wide soil joints. Everywhere else — the open plaza south
+ * of the spawn (A/F) and the north path beyond the band (camera D's foreground, z ≈ −6.6 → −11)
+ * — the paving is big pale 0.8–1.5 m slabs with thin joints. Returns 1 inside the band, 0 outside.
+ */
+function dampBand(z: number) {
+  return smoothstep(0.8, -1.8, z) * smoothstep(-6.3, -4.8, z);
+}
+
+/** camera D's foreground path (reference D: three or four 1.5 m slabs fill the bottom quarter) */
+function dForeground(z: number) {
+  return smoothstep(-5.5, -7.0, z) * smoothstep(-13, -10.5, z);
 }
 
 export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
   const { terrain, rng, bbox } = pc;
-  const sizeNoise = new Noise2D(`${pc.seed}/flag-size`);
   const tintNoise = new Noise2D(`${pc.seed}/flag-tint`);
   const wearN = new Noise2D(`${pc.seed}/flag-wear`);
+  const warpN = new Noise2D(`${pc.seed}/flag-warp`);
 
-  // 1. dart-throw seeds. Three passes — a few big slabs first, then the bulk, then small
-  // fillers into whatever room is left — so sizes are intermixed everywhere (the reference plaza
-  // has 1.5 m slabs beside 0.5 m stones) instead of graded by the slow size noise alone. Every
-  // seed gets an elliptical reach: 45 % are clearly elongated (1.2–1.65:1), the rest near-round.
+  // 1. seeds: hex lattices jittered by half their spacing and warped by a slow noise field, so
+  // the Voronoi cells vary 2:1 in area and no three neighbours line up. A coarse lattice covers
+  // the open plaza south of the spawn (big slabs), the base lattice the paths and the north
+  // plaza, a finer one fills the ~1 m band along the paved edge with small stones, and ~6 % of
+  // the interior path seeds eat their nearest neighbours to become the big path-centre slabs.
   const seeds: Seed[] = [];
   const grid = new Grid(1.0);
-  const radiusAt = (x: number, z: number) => {
-    const n = sizeNoise.fbm(x * 0.14 + 3, z * 0.14 - 1, 2) * 0.5 + 0.5;
-    const plaza = 1 - smoothstep(4.5, 7.5, Math.hypot(x, z));
-    return 0.24 + 0.2 * n + 0.06 * plaza;
+  const warp = (x: number, z: number): [number, number] => [x + 0.32 * warpN.fbm(x * 0.11 + 3, z * 0.11 - 5, 2), z + 0.32 * warpN.fbm(x * 0.11 - 40, z * 0.11 + 17, 2)];
+  const rowH = (SPACING * Math.sqrt(3)) / 2;
+  const lat = rng.fork('lattice');
+  const pad = 1.0;
+  let row = 0;
+  const bigCandidates: number[] = [];
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, big: 0, rim: 0 };
+  /** add a seed unless another is closer than `minDist`, the point is unpaved or `accept(rim)` says no */
+  const tryAdd = (x: number, z: number, minDist: number, accept: (rim: number) => boolean): number => {
+    let ok = true;
+    grid.near(x, z, minDist, (id) => {
+      if (!ok) return;
+      const s = seeds[id];
+      if (Math.hypot(s.x - x, s.z - z) < minDist) ok = false;
+    });
+    if (!ok) return -1;
+    if (!isPaved(pc, x, z, 0.5)) return -1;
+    const rim = rimDistance(pc, x, z);
+    if (!accept(rim)) return -1;
+    grid.add(x, z, seeds.length);
+    seeds.push({ x, z, rim, big: false });
+    return seeds.length - 1;
   };
-  const attempts = Math.round(90000 * clamp(pc.density, 0.5, 1.5));
-  const passes: { share: number; size: [number, number]; elongated: number; stretch: [number, number] }[] = [
-    { share: 0.14, size: [1.4, 1.7], elongated: 0.5, stretch: [1.15, 1.35] },
-    { share: 0.56, size: [0.78, 1.25], elongated: 0.45, stretch: [1.2, 1.45] },
-    { share: 0.3, size: [0.5, 0.72], elongated: 0.35, stretch: [1.2, 1.5] },
-  ];
-  for (const pass of passes) {
-    const n = Math.round(attempts * pass.share);
-    for (let a = 0; a < n; a++) {
-      const x = rng.range(bbox.x0, bbox.x1);
-      const z = rng.range(bbox.z0, bbox.z1);
-      const r = radiusAt(x, z) * rng.range(pass.size[0], pass.size[1]);
-      const ang = rng.range(0, Math.PI);
-      const st = rng.chance(pass.elongated) ? rng.range(pass.stretch[0], pass.stretch[1]) : rng.range(1.0, 1.1);
-      const cand: Seed = { x, z, r, ax: Math.cos(ang), az: Math.sin(ang), st };
-      if (!isPaved(pc, x, z, 0.5)) continue;
-      let ok = true;
-      grid.near(x, z, r * st + 1.9, (id) => {
-        if (!ok) return;
-        const s = seeds[id];
-        const dx = s.x - x;
-        const dz = s.z - z;
-        const d = Math.hypot(dx, dz) || 1e-6;
-        if (d < (seedReach(cand, dx / d, dz / d) + seedReach(s, -dx / d, -dz / d)) * 0.93) ok = false;
-      });
-      if (!ok) continue;
-      grid.add(x, z, seeds.length);
-      seeds.push(cand);
+  // coarse open-paving lattice first (its seeds win the min-distance test), then the base
+  // lattice, thinned to ~15 % where the coarse lattice rules so a few small stones sit among the
+  // big slabs
+  const sRowH = (OPEN_SPACING * Math.sqrt(3)) / 2;
+  const slat = rng.fork('south-lattice');
+  for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += sRowH, row++) {
+    for (let x = bbox.x0 - pad + (row & 1 ? OPEN_SPACING / 2 : 0); x <= bbox.x1 + pad; x += OPEN_SPACING) {
+      const jr = 0.5 * OPEN_SPACING * Math.sqrt(slat());
+      const ja = slat.range(0, Math.PI * 2);
+      const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
+      const u = slat();
+      const big = slat.chance(0.07);
+      const open = 1 - dampBand(wz);
+      // thin the lattice on D's foreground path so the remaining cells grow to 1.2–1.6 m
+      const dz = dForeground(wz);
+      const id = tryAdd(wx, wz, 0.3, (rim) => rim >= 0.45 && u <= open * (1 - 0.55 * dz * smoothstep(0.8, 1.4, rim)));
+      // a few 1.2–1.4 m slabs down the path centre (reference D foreground)
+      if (id >= 0 && big && seeds[id].rim >= 1.4) bigCandidates.push(id);
     }
   }
+  row = 0;
+  for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rowH, row++) {
+    for (let x = bbox.x0 - pad + (row & 1 ? SPACING / 2 : 0); x <= bbox.x1 + pad; x += SPACING) {
+      const jr = 0.5 * SPACING * Math.sqrt(lat());
+      const ja = lat.range(0, Math.PI * 2);
+      const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
+      const thin = lat();
+      const big = lat.chance(0.065);
+      const open = 1 - dampBand(wz);
+      // thin the base lattice where the rim lattice takes over, and where the coarse lattice
+      // rules (none at all on D's foreground path so its slabs stay big)
+      const id = tryAdd(wx, wz, 0.3, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= 0.8 * open + 0.2 * dForeground(wz) * smoothstep(0.8, 1.4, rim));
+      if (id < 0) continue;
+      if (seeds[id].rim >= 1.25 && big && open < 0.5) bigCandidates.push(id);
+    }
+  }
+  // rim lattice
+  const rimRowH = (RIM_SPACING * Math.sqrt(3)) / 2;
+  const rlat = rng.fork('rim-lattice');
+  row = 0;
+  for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rimRowH, row++) {
+    for (let x = bbox.x0 - pad + (row & 1 ? RIM_SPACING / 2 : 0); x <= bbox.x1 + pad; x += RIM_SPACING) {
+      const jr = 0.5 * RIM_SPACING * Math.sqrt(rlat());
+      const ja = rlat.range(0, Math.PI * 2);
+      const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
+      const u = rlat();
+      // the open paving's edge keeps its big slabs: only a thin fringe of small stones there
+      const keep = 1 - 0.4 * (1 - dampBand(wz));
+      if (tryAdd(wx, wz, 0.32, (rim) => rim >= 0.12 && u <= smoothstep(1.1, 0.4, rim) * keep) >= 0) stats.rim++;
+    }
+  }
+  // big stones: the candidate eats up to two neighbours within ~0.75 spacing
+  const active = new Uint8Array(seeds.length).fill(1);
+  for (const id of bigCandidates) {
+    if (!active[id]) continue;
+    const s = seeds[id];
+    const near: { id: number; d: number }[] = [];
+    const eat = (dampBand(s.z) > 0.5 ? SPACING : OPEN_SPACING) * 0.78;
+    grid.near(s.x, s.z, eat, (o) => {
+      if (o === id || !active[o]) return;
+      const d = Math.hypot(seeds[o].x - s.x, seeds[o].z - s.z);
+      if (d < eat) near.push({ id: o, d });
+    });
+    if (!near.length) continue;
+    near.sort((a, b) => a.d - b.d);
+    // eat the nearest, then the nearest one roughly opposite it, so the merged cell stays round
+    // instead of becoming a sliver that the aspect split would cut back in two
+    const first = near[0];
+    active[first.id] = 0;
+    const a1 = Math.atan2(seeds[first.id].z - s.z, seeds[first.id].x - s.x);
+    for (const nb of near.slice(1)) {
+      const a2 = Math.atan2(seeds[nb.id].z - s.z, seeds[nb.id].x - s.x);
+      let da = Math.abs(a2 - a1);
+      if (da > Math.PI) da = 2 * Math.PI - da;
+      if (da > 1.75) {
+        active[nb.id] = 0;
+        break;
+      }
+    }
+    s.big = true;
+    stats.big++;
+  }
+  stats.seeds = seeds.length;
 
-  // 2. Voronoi cell per seed, clipped to the paved boundary → slab outline
+  // 2. Voronoi cell per seed, clipped to the paved boundary → stone outline
   const stones: PlacedStone[] = [];
   const up = new Vector3(0, 1, 0);
   const nrm = new Vector3();
   const q = new Quaternion();
   const pos = new Vector3();
   const stoneGrid = new Grid(1.0);
-  const stats = { seeds: seeds.length, skippedNarrow: 0, skippedSmall: 0, split: 0 };
   const all = new MeshBuilder();
   const one = new Matrix4();
 
-  const active = new Uint8Array(seeds.length).fill(1);
   const cellFor = (si: number): P2[] => {
     const s = seeds[si];
     let cell: P2[] = [
-      { x: s.x - 1.7, z: s.z - 1.7 },
-      { x: s.x + 1.7, z: s.z - 1.7 },
-      { x: s.x + 1.7, z: s.z + 1.7 },
-      { x: s.x - 1.7, z: s.z + 1.7 },
+      { x: s.x - 1.4, z: s.z - 1.4 },
+      { x: s.x + 1.4, z: s.z - 1.4 },
+      { x: s.x + 1.4, z: s.z + 1.4 },
+      { x: s.x - 1.4, z: s.z + 1.4 },
     ];
-    grid.near(s.x, s.z, 3.4, (id) => {
+    grid.near(s.x, s.z, 2.8, (id) => {
       if (id === si || !active[id] || cell.length < 3) return;
       const o = seeds[id];
       const dx = o.x - s.x;
       const dz = o.z - s.z;
       const l = Math.hypot(dx, dz);
-      if (l < 1e-6 || l > 3.4) return;
-      // power-diagram bisector (weights 0.6·r²): the plane is shared by both cells, and — unlike
-      // the ratio-of-reaches bisector used before — the three planes around every vertex concur,
-      // so the tessellation has no triangular holes where slabs of different size meet. The
-      // weight is damped so small seeds are not squeezed to nothing beside big ones (the dart
-      // throw already spaces seeds by size, so plain bisectors are nearly right). Elongation
-      // comes from the anisotropic seed spacing, which keeps neighbours further away along the
-      // long axis.
-      const d = (l * l + 0.6 * (s.r * s.r - o.r * o.r)) / (2 * l);
-      cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, clamp(d, 0.08, l - 0.08));
+      if (l < 1e-6 || l > 2.8) return;
+      // plain bisector: the irregular seeding does the size mixing; the shared plane keeps the
+      // tessellation hole-free where three cells meet
+      cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, clamp(l / 2, 0.08, l - 0.08));
     });
     if (cell.length < 3) return cell;
     // pull vertices outside the paved region toward the seed (bisection on the mask)
@@ -385,16 +616,19 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       return { x: s.x + (p.x - s.x) * lo, z: s.z + (p.z - s.z) * lo };
     });
   };
-  // cells too small to become a stone (< 0.07 m² or thinner than 20 cm before the joint shrink)
-  // drop their seed so the neighbours grow into the space — dropping the *stone* instead leaves
-  // a 20–40 cm soil hole, and there were ~35 of those, reading as huge joints at every corner
+  // cells too small to become a stone drop their seed so the neighbours grow into the space —
+  // dropping the *stone* instead would leave a 20–40 cm soil hole. Judged as the stone will be
+  // cut: inset by the joint + shoulder (≈ 9 cm) the core must still be ≥ 0.02 m² and ≥ 8 cm
+  // in radius everywhere, and the cell itself ≥ 0.08 m²
   const tooSmall = (cell: P2[]) => {
     if (cell.length < 3) return true;
-    if (Math.abs(polygonArea(cell)) < 0.07) return true;
-    const c = centroid(cell);
+    if (Math.abs(polygonArea(cell)) < 0.08) return true;
+    const core = convexInset(ccwOf(cell), 0.09);
+    if (core.length < 3 || Math.abs(polygonArea(core)) < 0.02) return true;
+    const c = centroid(core);
     let minR = Infinity;
-    for (const p of cell) minR = Math.min(minR, Math.hypot(p.x - c.x, p.z - c.z));
-    return minR < 0.12;
+    for (const p of core) minR = Math.min(minR, Math.hypot(p.x - c.x, p.z - c.z));
+    return minR < 0.08;
   };
   for (let iter = 0; iter < 4; iter++) {
     let dropped = 0;
@@ -413,129 +647,180 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (!active[si]) continue;
     const cell = cellFor(si);
     if (cell.length < 3) continue;
-    // sliver fringe cells (aspect > 3) become two or more stones with a joint between them; the
-    // deliberately elongated seeds (≤ 1.5:1 reach → ≈ 2.2:1 stones) stay whole
-    const pieces = splitElongated(cell, 3.0, rng.range(0.04, 0.07));
+    // sliver fringe cells (aspect > 2.6) become two or more stones with a joint between them;
+    // the merged path-centre slabs are allowed to be oblong (reference D has 1.3 × 0.6 m stones)
+    const pieces = splitElongated(cell, seeds[si].big ? 3.6 : 2.6, rng.range(0.06, 0.09));
     if (pieces.length > 1) stats.split += pieces.length - 1;
-    for (const piece of pieces) emitStone(piece);
+    for (const piece of pieces) emitStone(piece, seeds[si]);
   }
 
-  function emitStone(cell: P2[]) {
+  function emitStone(cell: P2[], seed: Seed) {
     if (cell.length < 3) return;
-    // the stone is built around its own centroid (== the seed for unsplit cells, near enough)
     const sc = centroid(cell);
     const s = { x: sc.x, z: sc.z };
-    // reference joints are 3–8 cm of soil; wider still where the paving is old (macro noise)
+    // reference joints are 5–10 cm of soil, wider where the paving is old (macro noise)
     const jointN = wearN.fbm(s.x * 0.3 + 11, s.z * 0.3 - 4, 2) * 0.5 + 0.5;
-    // (the bevels and the exposed sides add another ~2 cm of visual joint on each side, and every
-    // worn corner opens a small soil triangle where three slabs meet, so the geometric gap is
-    // kept at 2.5–7 cm — the rendered seam then reads 3–8 cm, ≈ 8 % of the plaza seen from above)
+    const ea = rng.range(0.01, 0.026);
+    // 1 on the open paving (big flat slabs, thin joints), 0 in the damp band
+    const open = 1 - dampBand(s.z);
+    // shoulder and fillet scale with the stone (a 40 cm stone has a 3 cm roll, an 80 cm one 5 cm)
+    const size = Math.sqrt(Math.abs(polygonArea(cell)));
+    // the geometric gap is 4–8 cm (3–6 cm between the big open-paving slabs); the rolled
+    // shoulders and the sunk side walls add ~2 cm of visual joint on each side, so the rendered
+    // seam reads 5–10 cm like the reference
     const style: OutlineStyle = {
-      joint: 0.025 + 0.035 * jointN + rng.range(0, 0.01),
-      wear: rng.chance(0.3) ? rng.range(0.01, 0.024) : rng.range(0.024, 0.055),
-      chip: rng.chance(0.2) ? rng.range(0.12, 0.2) : 0,
-      jitter: rng.range(0.006, 0.014),
-      // corner radius cap (a 1.6 m slab has 0.9–1.0 m corners); scaling a cell down to the cap
-      // opens a wide soil ring around it, so this must stay above what the seed sizes produce
-      maxRadius: 1.0,
+      joint: (0.035 + 0.03 * jointN + rng.range(0, 0.01)) * (1 - 0.35 * open),
+      shoulder: clamp(0.055 * size, 0.022, 0.042) * rng.range(0.85, 1.15),
+      fillet: clamp(0.15 * size, 0.055, 0.12) * rng.range(0.8, 1.2),
+      erosion: ea,
+      erodeFn: (x, z) => wearN.fbm((x + s.x) * 5.5 + 21, (z + s.z) * 5.5 - 9, 2) * 0.5 + 0.5,
     };
-    // work in seed-local coordinates (the slab is built around the seed, then placed)
+    // work in seed-local coordinates (the stone is built around its centroid, then placed)
     const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
     const outline = cellToOutline(local, style, rng);
     if (!outline) {
       stats.skippedSmall++;
       return;
     }
-    const c = centroid(outline);
+    const c = centroid(outline.outer);
     let radius = 0;
-    for (const p of outline) radius = Math.max(radius, Math.hypot(p.x, p.z));
+    for (const p of outline.outer) radius = Math.max(radius, Math.hypot(p.x, p.z));
 
-    // 3. seat on the terrain: sample height under ≈ 20 points of the slab
+    // 3. seat on the terrain: sample height under ≈ 20 points of the stone
     const hCentre = terrain.height(s.x, s.z);
     let hSum = hCentre;
     let hMin = hSum;
+    let hMax = hSum;
     let n = 1;
     terrain.normal(s.x, s.z, nrm);
     const nAcc = nrm.clone();
-    const stride = Math.max(1, Math.floor(outline.length / 10));
-    for (let i = 0; i < outline.length; i += stride) {
-      for (const f of [0.5, 0.85]) {
-        const px = s.x + c.x + (outline[i].x - c.x) * f;
-        const pz = s.z + c.z + (outline[i].z - c.z) * f;
+    const stride = Math.max(1, Math.floor(outline.outer.length / 10));
+    for (let i = 0; i < outline.outer.length; i += stride) {
+      for (const f of [0.5, 0.92]) {
+        const px = s.x + c.x + (outline.outer[i].x - c.x) * f;
+        const pz = s.z + c.z + (outline.outer[i].z - c.z) * f;
         const h = terrain.height(px, pz);
         hSum += h;
         hMin = Math.min(hMin, h);
+        hMax = Math.max(hMax, h);
         n++;
         if (f > 0.6) nAcc.add(terrain.normal(px, pz, nrm));
       }
     }
     const hMean = hSum / n;
     nAcc.normalize();
-    // gentle tilt only: blend the terrain normal toward up so slabs never look like ramps
-    nAcc.lerp(up, 0.35).normalize();
-    const thickness = rng.range(0.075, 0.11);
-    // the top sits 1.2–2 cm proud of the mean ground (joint fill is at +0.8 cm) so the pavement
-    // reads as one flush surface with soil-filled cracks, not as separate pillows — from the
-    // low cameras every centimetre of exposed side reads as ~3 cm of joint. If an edge would
-    // float > 3 cm over the lowest sampled ground point, sink the slab, but never below a 1.5 cm
-    // lip at the centre (measured at the bottom of the dish) so the top always clears the joint
-    // fill — otherwise the fill shows through the dish as a soil blob on the slab
-    const exposed = rng.range(0.012, 0.02);
-    const dipK = rng.range(0.004, 0.01);
-    let bottomY = hMean + exposed - thickness;
-    bottomY = Math.min(bottomY, hMin + 0.03, hCentre + 0.05 - thickness);
-    bottomY = Math.max(bottomY, hCentre + 0.015 + dipK - thickness);
-    const topY = bottomY + thickness;
+    // gentle tilt only: blend the terrain normal toward up so stones never look like ramps
+    nAcc.lerp(up, 0.5).normalize();
+    // the shoulder rolls down 1.2–2 cm to the outer edge; the top domes another 0.5–2.6 cm above
+    // the shoulder — some stones nearly flat, some clearly cushioned (2–4.5 cm crown in all)
+    const bevel = rng.range(0.012, 0.02);
+    const crown = (rng.chance(0.35) ? rng.range(0.005, 0.012) : rng.range(0.012, 0.026)) * (1 - 0.45 * open);
+    let thickness = rng.range(0.09, 0.12);
+    // the outer edge stands 2–3.2 cm proud of the mean ground (joint fill is at +0.8 cm) so the
+    // joints read as sunk soil channels 1.5–2.5 cm deep between the stones; from the low cameras
+    // every centimetre of shaded side wall reads as ~3 cm of dark joint, so the big open-paving
+    // slabs sit flusher (reference A/D: soft seams, no dark lines). The edge must clear the fill
+    // on the uphill side and never float > 3 cm on the downhill side.
+    const exposed = rng.range(0.016, 0.026) * (1 - 0.35 * open);
+    if (hMax - hMin > 0.28) {
+      // a slab cannot sit across a step this high (terrace lips, bank feet): leave soil here
+      stats.skippedSteep++;
+      return;
+    }
+    let rimY = Math.min(hMean + exposed, hCentre + 0.06);
+    // never float more than 3 cm over the lowest ground under the edge — sink instead, but keep
+    // the edge at least 1.6 cm clear of the joint fill at the centre; a deeper stone absorbs the rest
+    rimY = Math.min(rimY, hMin + 0.03 + (thickness - bevel));
+    rimY = Math.max(rimY, hCentre + 0.016);
+    let bottomY = rimY - (thickness - bevel);
+    if (bottomY > hMin + 0.03) {
+      thickness += bottomY - (hMin + 0.03);
+      bottomY = hMin + 0.03;
+    }
+    const topY = bottomY + thickness + crown;
 
-    // 4. per-stone look. Reference slabs differ visibly stone to stone: ≈ ±8 % luminance, ±3°
-    // hue (a 3 % swing of R against G), ±0.03 saturation (B against R), and about one in five is
-    // a cooler, greyer stone. The macro noise adds a slow pale ↔ mid drift across the plaza.
+    // 4. per-stone look. Reference stones differ visibly stone to stone: ± 12 % luminance, ± 8°
+    // hue; one in five is a cooler grey, one in eight a darker warm brown. A slow macro noise
+    // drifts pale ↔ mid across the plaza; big path-centre slabs lean pale (worn by feet).
     const tn = tintNoise.fbm(s.x * 0.35, s.z * 0.35, 2) * 0.5 + 0.5;
-    const grey = rng.chance(0.22);
-    const lum = (0.88 + 0.16 * tn + rng.range(-0.12, 0.12)) * (grey ? 0.93 : 1);
-    const hueK = rng.range(-0.03, 0.03);
-    const satK = rng.range(-0.045, 0.045) + (grey ? 0.07 : 0);
-    const tint: [number, number, number] = [lum * (1 + hueK), lum * (1 - hueK * 0.4), lum * (1 - hueK * 0.3 + satK)];
-    // moss lives in the joints and creeps only a little onto the bevels (E frame: dark soil
-    // seams with grass sprouts, the slab tops themselves stay clean)
-    const moss = clamp(0.2 + 0.6 * (tintNoise.fbm(s.x * 0.5 + 7, s.z * 0.5, 2) * 0.5 + 0.5) - 0.25 * smoothstep(3, 0, Math.hypot(s.x, s.z)), 0.05, 0.8);
-    // rim dirt: soil and dust collect on the worn bevel and the outer hand of the top, so every
-    // slab darkens toward its edge (the reference stones read as a pale centre in a dark halo)
-    const rim = rng.range(0.06, 0.15);
+    // dampness: the open paving is dry, pale, foot-worn stone (reference A/D/E foregrounds,
+    // lum ≈ 0.48–0.52); where the path leaves the plaza under the canopy toward the house the
+    // stones are darker, greyer and mossier (reference B foreground, lum ≈ 0.46). Path edges
+    // (small rim stones) are damper than the path centre too.
+    const damp = clamp(0.7 * dampBand(s.z) + 0.3 * smoothstep(1.6, 0.4, seed.rim), 0, 1);
+    const grey = rng.chance(0.2 + 0.15 * damp);
+    const darkWarm = !grey && rng.chance(0.13);
+    let lum = 0.9 + 0.14 * tn + rng.range(-0.12, 0.12) + (seed.big ? 0.05 : 0);
+    if (grey) lum *= 0.93;
+    if (darkWarm) lum *= 0.78;
+    lum *= 1 - 0.23 * damp;
+    const hueK = rng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0);
+    // the shaded band renders yellower than the sunlit plaza under the warm fill light (B/R 0.63
+    // vs 0.71 in A; the reference is 0.69 in both) and the post chain passes only ~1/5 of an
+    // albedo hue change, so its stones carry a lot of extra blue
+    const satK = rng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.28 * damp;
+    const tint: [number, number, number] = [lum * (1 + hueK), lum * (1 - hueK * 0.3), lum * (1 - hueK * 0.5 + satK)];
+    // moss lives in the joints and creeps onto the shoulders; a green film covers the shaded
+    // north/west side of ~30 % of the stones (damp side, reference B/E), more on the damp path
+    const moss = clamp(0.25 + 0.6 * (tintNoise.fbm(s.x * 0.5 + 7, s.z * 0.5, 2) * 0.5 + 0.5) - 0.2 * smoothstep(3, 0, Math.hypot(s.x, s.z)) + 0.2 * damp, 0.05, 0.9);
+    const film = rng.chance(0.3 + 0.25 * damp) ? rng.range(0.35, 0.7) : 0;
+    const filmDir = [-0.55 + rng.range(-0.25, 0.25), -0.83 + rng.range(-0.2, 0.2)]; // toward north-west
+    const filmL = Math.hypot(filmDir[0], filmDir[1]);
+    filmDir[0] /= filmL;
+    filmDir[1] /= filmL;
+    const invR = 1 / Math.max(radius, 0.12);
+    // shoulder dirt: soil and dust collect on the rolled edge, so every stone darkens toward it
+    const rim = rng.range(0.06, 0.13);
     const uvO: [number, number] = [rng() * 4, rng() * 4];
 
-    // 5. build the slab into the shared geometry and place it
+    // 5. build the stone into the shared geometry and place it
     const from = all.vertexCount;
-    buildSlab(all, outline, {
+    const filmAt = (x: number, z: number, edge: number) => {
+      if (!film) return 0;
+      const d = ((x - c.x) * filmDir[0] + (z - c.z) * filmDir[1]) * invR; // -1..1 toward the shaded side
+      const nz = wearN.fbm((x + s.x) * 3.1 - 13, (z + s.z) * 3.1 + 6, 2) * 0.5 + 0.5;
+      return film * smoothstep(-0.15, 0.55, d) * (0.4 + 0.6 * nz) * (0.45 + 0.55 * smoothstep(0.2, 0.9, edge));
+    };
+    buildSlab(all, outline.outer, {
       thickness,
-      // a soft roll-over (smoothed with the top) rather than a wide facet: a wide dark bevel
-      // reads as joint from the low cameras and the reference slab tops stay pale to the seam
-      bevel: rng.range(0.007, 0.014),
+      bevel,
+      topRing: outline.inner,
       softBevel: true,
-      dip: dipK,
+      dip: -crown,
       color: tint,
-      sideColor: [tint[0] * 0.86, tint[1] * 0.84, tint[2] * 0.8],
-      mossEdge: 0.45 * moss,
+      // the exposed side wall is half soil-stained, so the shoulder rolls into the joint instead
+      // of ending on a hard dark line
+      sideColor: [tint[0] * 0.6 + 0.24, tint[1] * 0.58 + 0.2, tint[2] * 0.55 + 0.16],
+      mossEdge: 0.4 * moss,
       mossInner: 0.03 * moss,
-      mossFn: (x, z) => 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5),
+      mossFn: (x, z) => {
+        const base = 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5);
+        return base + 0.5 * filmAt(x, z, 1);
+      },
       colorFn: (x, z, part, edge) => {
         const n = 0.75 + 0.5 * (wearN.fbm((x + s.x) * 1.7 + 5, (z + s.z) * 1.7, 2) * 0.5 + 0.5);
         if (part === 'side') return 0.95;
-        if (part === 'bevel') return 1 - 0.4 * rim * n;
-        return 1 - rim * n * smoothstep(0.45, 1, edge) * 0.8;
+        let k = part === 'bevel' ? 1 - 0.3 * rim * n : 1 - rim * n * smoothstep(0.4, 1, edge) * 0.6;
+        // tonal drift and mottling across the top (dirt patches, worn pale spots) so big tops
+        // don't read as one flat tone
+        k *= 1 + 0.05 * wearN.fbm((x + s.x) * 0.9 + 31, (z + s.z) * 0.9, 1) + 0.06 * wearN.fbm((x + s.x) * 2.6 - 17, (z + s.z) * 2.6 + 23, 2);
+        const f = filmAt(x, z, part === 'bevel' ? 1 : edge);
+        if (f <= 0.001) return k;
+        // moss film: greener, a little darker
+        return [k * (1 - 0.3 * f), k * (1 - 0.06 * f), k * (1 - 0.45 * f)];
       },
-      uvScale: 0.55,
+      uvScale: 0.62,
       uvOffset: uvO,
       topNoise: (x, z) => 0.003 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7),
-      rings: radius > 0.55 ? 3 : 2,
+      rings: radius > 0.42 ? 2 : 1,
     });
     q.setFromUnitVectors(up, nAcc);
     pos.set(s.x, bottomY, s.z);
     one.compose(pos, q, new Vector3(1, 1, 1));
     all.transform(one, from);
 
-    const poly = outline.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
-    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline), radius, thickness, bottomY, topY, moss, aspect: cellAspect(outline).aspect };
+    const poly = outline.outer.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
+    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline.outer), radius, thickness, bottomY, topY, moss, aspect: cellAspect(outline.outer).aspect };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
   }
