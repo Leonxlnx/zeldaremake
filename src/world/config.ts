@@ -58,7 +58,8 @@ export const WORLD = {
   },
 
   renderer: {
-    exposure: 1.0,
+    // frame means read 0.01–0.09 above the reference in every view (most in C/E/F)
+    exposure: 0.94,
     maxPixelRatio: 1.5,
   },
 

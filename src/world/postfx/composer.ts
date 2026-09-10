@@ -179,13 +179,14 @@ export function createComposer(opts: ComposerOptions): Composer {
     rayColor: new Color(1.0, 0.96, 0.82),
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
-    saturation: 1.03,
+    // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
+    saturation: 1.12,
     // slightly < 1: the reference's blacks are lifted (shaded plaza stone ≥ 0.32 luminance, nothing
     // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look
     contrast: 0.97,
     contrastPivot: 0.18,
     greenWarm: 0.3,
-    greenDesat: 0.15,
+    greenDesat: 0.08,
     shadowTint: new Color(0.975, 0.985, 1.02),
     highlightTint: new Color(1.05, 1.0, 0.92),
   };
