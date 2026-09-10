@@ -72,8 +72,9 @@ export interface Viewpoint {
 export const LAYOUT = {
   /** Main flagstone spine: south approach → plaza → north terrace → log arch. */
   // North of the plaza the spine bears slightly EAST (reference B recedes at x ≈ 0.3–0.6, on the
-  // D axis) and dips through a misty hollow (reference D: mist pool before the arch) instead of
-  // climbing a terrace; the raised bank with the small steps is WEST of it (see stairs.north).
+  // D axis), runs level through a misty hollow (reference D: mist pool before the arch) and then
+  // climbs ≈ 3.4 m to the arch, whose feet sit well above camera D (opening centre y ≈ 0.37).
+  // The raised bank with the small steps is WEST of the hollow (see stairs.north).
   pathSpine: [
     [1, 0, 16],
     [0, 0, 8],
@@ -81,11 +82,12 @@ export const LAYOUT = {
     [0.6, 0, -6],
     [1.5, 0, -12],
     [2.0, -0.1, -18],
-    [1.8, -0.35, -24],
-    [2.5, -0.2, -30],
-    [3.5, 0.5, -36],
-    [4.5, 0.85, -42],
-    [5, 0.9, -50],
+    [1.8, -0.13, -24],
+    [2.5, 1.7, -30],
+    [3.5, 3.35, -36],
+    [4.5, 4.3, -42],
+    [5.2, 5.6, -50],
+    [5.8, 5.8, -58],
   ] as [number, number, number][],
   pathHalfWidth: 2.4,
 
@@ -167,11 +169,16 @@ export const LAYOUT = {
   },
 
   logArch: {
-    /** giant hollow fallen log lying roughly east-west, the far landmark of shot D */
-    position: [6, 1.8, -34] as [number, number, number],
-    radius: 3.6,
+    /**
+     * Giant hollow fallen log lying roughly east-west across the north path, the far landmark of
+     * shot D. In frame 56 s it spans x 0.40–0.75 and y 0.27–0.45 with its feet ≈ 2 m above the
+     * camera: ≈ 47 m away on ground ≈ 5.6 m above the plaza (body ≈ 6 m thick, opening ≈ 4 m).
+     * The east end runs away north (yaw) so the log climbs to the right in the frame.
+     */
+    position: [5.6, 5.6, -50] as [number, number, number],
+    radius: 3.0,
     length: 22,
-    yawDeg: 15,
+    yawDeg: 20,
     lanterns: 2,
   },
 

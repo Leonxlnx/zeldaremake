@@ -183,8 +183,10 @@ function landform(x: number, z: number) {
 
   // North: the path dips through a shallow misty hollow (reference D's mist pool before the arch)
   // and then rises gently toward the log arch; the ground beyond climbs a little further.
-  const hollow = -0.35 * smoothstep(-14, -20, z) * smoothstep(-31, -25, z);
-  const northRise = 0.9 * smoothstep(-28, -44, z);
+  // Reference D puts the arch's feet ≈ 3.5 m above the camera at ≈ 47 m (feet y ≈ 0.45, top 0.27), so
+  // the ground climbs ≈ 5.6 m from the hollow to the arch (z ≈ −50) and levels off beyond.
+  const hollow = -0.2 * smoothstep(-14, -19, z) * smoothstep(-28, -23, z);
+  const northRise = 3.4 * smoothstep(-23, -37, z) + 2.2 * smoothstep(-36, -50, z);
   // Boulder bank WEST of the north path: the small `north` steps climb its face (top ≈ 1.5 m at
   // x ≈ −2.4) and it carries on up to the terrace boulder; it merges into the west-north ledge.
   const northBank = T.northTerrace.height * smoothstep(-1.0, -3.6, x) * smoothstep(-14, -17.5, z) * smoothstep(-33, -25, z);
