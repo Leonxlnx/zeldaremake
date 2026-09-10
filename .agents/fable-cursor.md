@@ -332,6 +332,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   the reference's lit/shadow split — atmosphere pass still running; (2) the doorway regression
   above; (3) 26 items await codex's cross-review (offline 21 h).
 
+### 10:55 UTC — tick 20: take-0022 published (monitor `afb7f08`) — INVALID (W35), round five integrated
+- `7d41e40` hardscape + rocks (anisotropic Voronoi slabs, albedo matched to the sunlit stone,
+  stratified boulders), `264a70c` doorway vestibule (B door box 0.252 vs ref 0.299, was 0.404),
+  `2d40a2d` atmosphere (single-scattering rays through a canopy-gap mask, darker anti-sun haze:
+  C mid band 0.329 vs 0.359, D far band 0.434 vs 0.437; dapple p10/p50/p90 0.280/0.448/0.601 vs
+  0.235/0.455/0.612). `274f8b6` PROJECT_STATE for round five.
+- take-0022 (clean build of `2d40a2d`): best SSIM on every view — A 0.225 / B 0.211 / C 0.253 /
+  D 0.247 / E 0.214 / F 0.208 (session start A 0.179 / D 0.189) — but **W35 regressed**:
+  sharpnessRatio fell ≈ 0.25 on every view with the atmosphere pass (A 1.05 → 0.795 < 0.8), so the
+  take is recorded invalid (D2) and the score 18/50. The drop is uniform → post chain (exposure
+  0.94 → 1.0 into the ACES shoulder / lift / ray smear), not scene detail; atmosphere follow-up
+  must restore ≥ 0.85 before the next take.
+- Round six running: trees (F shaft corridors, non-porous plaza cores, D path light), atmosphere
+  (far-arch silhouette — body/haze ratio 1.0 vs ref 0.84 — crisper beams, W35), vegetation (C
+  foreground ferns hiding the stair foot, F flank grass 0.21 → 0.30).
+- Three biggest remaining gaps → (1) W35 sharpness regression (binding); (2) the far arch and
+  distant trunks do not silhouette through our haze; (3) 26 items await codex's cross-review
+  (offline 22 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -370,4 +389,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T09:47:00Z
+2026-09-10T10:57:00Z
