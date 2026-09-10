@@ -219,6 +219,21 @@
       "at": "2026-09-10T19:14:39.898Z",
       "expiresHours": 6,
       "note": "Round seven trees: stair-bank giant for F right edge / C background"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W05",
+        "W06",
+        "W07",
+        "W36",
+        "W37",
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-10T19:41:37.021Z",
+      "expiresHours": 6,
+      "note": "Round seven hardscape (irregular slabs, stairs, boulders) and character fidelity"
     }
   ]
 }
