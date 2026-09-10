@@ -399,6 +399,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0.42); (2) F top-left roof / sunlit bank, D lavender verge; (3) 27 items await codex's
   cross-review (offline 29 h).
 
+### 18:50 UTC — tick 24: take-0026 published (monitor `32afdfb`), valid; round seven vegetation
+- `00b3700` hero fern crowns on D's west verge, violets off D's left edge, yellow blooms; east-bank
+  ferns/weeds/moss under F's canopy; violets on A's right bank. `3a8af22` D's violet patches grown
+  (12–13 heads over 0.65 m, two more on the bank) after the cut left the purple fraction at
+  0.0006 < W18's 0.003 floor (the footage's own violets are hazed to sat < 0.2 and read 0.0002).
+- take-0026 (clean build of `3a8af22`): A 0.230 / B 0.205 / C 0.253 / D 0.247 / E 0.226 / F 0.214
+  — vegetation-only deltas inside the ±0.003 noise; D hueΔ 5.25 → 3.85°, purple 0.0134 → 0.0040;
+  score 22/50; 26 entries in the ledger (D4 ≥ 24 valid met: 25 valid).
+- Still running: character-2, trees-7, hardscape-7 (each in its own captures; tree typechecks).
+  Forward on landing: trees — open a sun corridor onto D's west verge (x −4.5…−1.5, z −12…−6;
+  reference ground lum 0.456, ours 0.232) and thin F's right-bank shade (p10 0.151 vs 0.243);
+  hardscape — sprout target 700 → ~1500, 6–12 cm, dark green, LOD-culled beyond 25 m.
+- Three biggest remaining gaps → (1) slab texture and Link fidelity (W37 SSIM 0.21–0.25 vs
+  0.42, both in flight); (2) F top-left roof / D west verge in shade; (3) 27 items await codex's
+  cross-review (offline 32 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
