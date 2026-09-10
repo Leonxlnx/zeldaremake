@@ -318,6 +318,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   running); (2) the hedge still hides Saria's door threshold in B/E and D's right verge is a bush
   wall (vegetation pass running); (3) 26 items await codex's cross-review (offline 20 h).
 
+### 09:45 UTC — tick 19: take-0021 published (monitor `c089870`); vegetation + terrain landed
+- `ca263ff`: hedge crown ≤ 0.92 m (door line visible in B/E), D right verge ≤ 0.55 m, lavender →
+  four clumps at the reference boxes (purple 2.0 % → 0.42 %), fern ring on the shot-D boulder on a
+  new 0.5 m bank, bank bushes, B right-edge ferns + purple clump, C sight-line grass-only, second
+  paved disc (5.0, 2.4) r 4 (frames 1 s / 8 s show flagstone in the right foreground).
+- take-0021 (clean build of `ca263ff`): A 0.197 / B 0.171 / C 0.194 / D 0.201 / E 0.186 / F 0.173;
+  hue Δ A 0.4°, F 0.1°, D 1.9° (was 5.3°); score 19/50.
+- Regression caught in the strips: with the hedge shadow gone Saria's doorway reads as a bright
+  pale interior (B door box mean 0.404 vs ref 0.299) — structures follow-up running (dark
+  receding interior, warm lamp glint, lime/orange/lime pods as in frame 14 s).
+- Three biggest remaining gaps → (1) tone/haze: the far arch is a pale ghost and the plaza lacks
+  the reference's lit/shadow split — atmosphere pass still running; (2) the doorway regression
+  above; (3) 26 items await codex's cross-review (offline 21 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -356,4 +370,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T08:52:00Z
+2026-09-10T09:47:00Z
