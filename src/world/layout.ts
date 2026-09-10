@@ -216,32 +216,36 @@ export const LAYOUT = {
   /** Where the Kokiri kids / Link will stand later (Phase 2). Used now only to keep clear ground. */
   npcSpots: [
     { id: 'link-spawn', position: [0, 0, 0.5] as [number, number, number] },
-    { id: 'kokiri-a', position: [10.8, 0.9, 2.2] as [number, number, number] },
-    { id: 'kokiri-b', position: [-6.5, 0.1, -2] as [number, number, number] },
+    // by the stair-foot rock (right edge of A; the character system marches F's own spot)
+    { id: 'kokiri-a', position: [10.8, 0, 2.2] as [number, number, number] },
+    // left edge of B/E, 5.2 m from camera B on the path (marched from the reference (0.035, 0.885))
+    { id: 'kokiri-b', position: [-1.6, 0, -4.1] as [number, number, number] },
   ],
 
   viewpoints: [
     // Level aim at bearing 23.5° (the reference camera is not pitched): stair run at x ≈ 0.68–0.76,
     // base y ≈ 0.66, top y ≈ 0.29; pods around x ≈ 0.15–0.3, y ≈ 0.45.
-    { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.8, 8.6], target: [6.7, 1.8, -5.8], fov: 46 },
+    // Eye height 1.45 m: Link (1.25 m) spans y 0.56–0.88 at 4.6 m in the reference, which only a
+    // camera at ≈ 1.45 m gives with his feet at 0.88; the stair foot/top move to 0.63 / 0.26.
+    { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.45, 8.6], target: [6.7, 1.45, -5.8], fov: 46 },
     // Projected: house 0.68–0.88 with the door at (0.78, 0.48) ≈ reference (0.80, 0.50); sign 0.66; small steps 0.19.
-    { id: 'B_house', refSeconds: 14, label: "Saria's House", position: [0, 1.6, 2.0], target: [5, 1.8, -12], fov: 46 },
+    { id: 'B_house', refSeconds: 14, label: "Saria's House", position: [0, 1.5, 2.0], target: [5, 1.7, -12], fov: 46 },
     // Looking back SSE across the plaza with the stair foot cutting the left edge (0.12, 0.67;
     // reference 0.10–0.20, 0.60–0.66), the stair-foot rock at (0.28, 0.50) and the plaza-south
     // giant's trunk at x ≈ 0.58 in the haze (reference 0.50–0.62). Pitched ≈ 3.5° down.
-    { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.7, -9.5], target: [4.9, 0.9, 3.4], fov: 46 },
+    { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.45, -9.5], target: [4.9, 0.65, 3.4], fov: 46 },
     // Stands 2 m past the bough's tip so the pods stay behind the camera; the house stair then
     // sits at the right edge (x ≈ 0.9) as in the reference.
     // On the spine's axis so the flagstones fill the whole foreground as in the reference.
-    { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [0.2, 1.9, -3.0], target: [4.5, 3.2, -42], fov: 48 },
+    { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [0.2, 1.45, -3.0], target: [4.5, 2.75, -42], fov: 48 },
     // Frame 24 s is the same held camera as frame 14 s ten seconds later (Link has walked on):
     // identical pose so the two captures bracket the B composition.
-    { id: 'E_ground', refSeconds: 24, label: "Saria's House (hold)", position: [0, 1.6, 2.0], target: [5, 1.8, -12], fov: 46 },
+    { id: 'E_ground', refSeconds: 24, label: "Saria's House (hold)", position: [0, 1.5, 2.0], target: [5, 1.7, -12], fov: 46 },
     // Frame 8 s: eye level on the plaza, dead along the stair axis 12.6 m before the bottom riser,
     // pitched 3.3° down — stair foot (0.42, 0.59) / top (0.42, 0.21) vs reference (0.42, 0.60) /
     // (0.42, 0.22); kid spot (0.66, 0.46); plateau-west fence posts along y ≈ 0.19; the upper house
     // roof at the top-left (0.14, 0.04–0.2). The canopy fills the top half.
-    { id: 'F_canopy', refSeconds: 8, label: 'Up the Stairs', position: [-1.04, 1.7, 5.64], target: [10.22, 0.95, -0.86], fov: 46 },
+    { id: 'F_canopy', refSeconds: 8, label: 'Up the Stairs', position: [-1.04, 1.5, 5.64], target: [10.22, 1.06, -0.86], fov: 46 },
   ] as Viewpoint[],
 } as const;
 

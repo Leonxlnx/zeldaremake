@@ -41,8 +41,13 @@ export function create(ctx: WorldContext): WorldSystem {
   group.add(leaves.mesh);
   const motes = createMotes(ctx, 180);
   group.add(motes.points);
+  // The fairy is Navi, built by the character system (Phase 2) once it exists; the atmosphere's own
+  // placeholder orb only appears when no character system provides one (it would otherwise render
+  // as a second glow beside Navi). Resolved lazily: the character system is created after this one.
   const fairy = createFairy(ctx);
+  fairy.group.visible = false;
   group.add(fairy.group);
+  const hasNavi = () => !!ctx.scene.getObjectByName('navi');
 
   // Post-processing: consumed by main.ts through scene.userData.composer.
   let composer: Composer | null = null;
@@ -111,8 +116,9 @@ export function create(ctx: WorldContext): WorldSystem {
     godRays: composer !== null,
     fallingLeaves: leaves.count,
     fireflies: motes.count,
-    fairy: true,
-    fairyLight: fairy.light.intensity > 0,
+    fairy: hasNavi() || fairy.group.visible,
+    fairySource: hasNavi() ? 'character:navi' : 'atmosphere',
+    fairyLight: hasNavi() || fairy.light.intensity > 0,
     ambientOcclusion: composer !== null,
     bloom: composer !== null,
     antialiasing: composer ? 'fxaa' : 'msaa',
@@ -128,7 +134,8 @@ export function create(ctx: WorldContext): WorldSystem {
       sky.update(t, camPos);
       leaves.update(t);
       motes.update(t, c.sun, c.renderer.getPixelRatio());
-      fairy.update(t);
+      fairy.group.visible = !hasNavi();
+      if (fairy.group.visible) fairy.update(t);
     },
     dispose() {
       composer?.dispose();
