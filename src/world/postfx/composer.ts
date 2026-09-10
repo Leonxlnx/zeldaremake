@@ -113,6 +113,8 @@ export interface ComposerSettings {
   beamLo: number;
   beamHi: number;
   beamFloor: number;
+  /** openness (0..1) of the noise gaps; the fixed columns are always fully open, so < 1 makes them the bold shafts */
+  beamNoiseMax: number;
   /** radius multiplier of the fixed shaft columns (atmosphere/shafts.ts); 0 disables them */
   beamColumnScale: number;
   bloomThreshold: number;
@@ -212,8 +214,10 @@ export function createComposer(opts: ComposerOptions): Composer {
     // become a flat glow over the gaps — at 0.6 shot D's far band mid-tones sat 0.08 over the
     // reference's
     raySkyShare: 0.45,
-    // scattering = extinction (a non-absorbing aerosol): the same 1/m as the distance haze
-    rayBaseDensity: HEIGHT_FOG_DEFAULTS.hazeDensity,
+    // in-scatter per metre of lit air. Calibrated at the veil's earlier 0.032/m; kept there when
+    // the veil thinned to 0.02 so the beams' strength stays as tuned (the shafts are the bright
+    // part of the air, the veil between them the dark part)
+    rayBaseDensity: 0.032,
     // the mist pool adds little: at 0.01 the long hollow columns of shot D marched 3× the
     // in-scatter of shot A's and the far band whited out (0.57 against the reference's 0.44); it is
     // also the only in-scatter left in front of the plaza, where every hundredth costs edge contrast
@@ -228,9 +232,15 @@ export function createComposer(opts: ComposerOptions): Composer {
     // ≈ 35 % of the field was open and every ray averaged several gaps into a wash), leaf masses
     // between them letting ≈ 5 % through
     beamFrequency: 0.22,
-    beamLo: 0.58,
-    beamHi: 0.66,
+    // same centre (0.62) as the 0.58/0.66 band but a tighter ramp: the reference's beams have
+    // crisp edges, not a soft gradient into the veil
+    beamLo: 0.595,
+    beamHi: 0.645,
     beamFloor: 0.05,
+    // the noise gaps open to 65 %, the carved columns to 100 %: shot A's three columns are the
+    // reference's few bold beams, the noise gaps a softer wash between them (at 100 % every blob
+    // read as bold as a column and shot D's mid band was a field of equal stripes)
+    beamNoiseMax: 0.65,
     beamColumnScale: 1.0,
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
@@ -302,6 +312,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       uSunUp: { value: sunUp },
       uExtinction: { value: settings.rayExtinction },
       uBeam: { value: new Vector4(settings.beamFrequency, settings.beamLo, settings.beamHi, settings.beamFloor) },
+      uBeamNoiseMax: { value: settings.beamNoiseMax },
       uGaps: { value: gaps },
       uMaxDist: { value: settings.rayMaxDist },
       // the beams' own air profile: a taller, softer layer than the ground mist so shafts keep
@@ -484,6 +495,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
       (rayMarchMat.uniforms.uBeam.value as Vector4).set(s.beamFrequency, s.beamLo, s.beamHi, s.beamFloor);
+      rayMarchMat.uniforms.uBeamNoiseMax.value = s.beamNoiseMax;
       gaps.forEach((g, i) => (g.z = SHAFT_COLUMNS[i].radius * s.beamColumnScale));
       pass(rayMarchMat, rayA);
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
@@ -580,6 +592,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayMaxDistM: settings.rayMaxDist,
       godRayGapFrequencyPerM: settings.beamFrequency,
       godRayGapFloor: settings.beamFloor,
+      godRayGapNoiseMax: settings.beamNoiseMax,
       godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * settings.beamColumnScale]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,

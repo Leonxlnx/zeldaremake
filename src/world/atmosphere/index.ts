@@ -81,6 +81,9 @@ export function create(ctx: WorldContext): WorldSystem {
     hazeDensityPerM: HEIGHT_FOG_DEFAULTS.hazeDensity,
     hazeStartM: HEIGHT_FOG_DEFAULTS.hazeStart,
     hazeAt30m: Math.round((1 - Math.exp(-HEIGHT_FOG_DEFAULTS.hazeDensity * (30 - HEIGHT_FOG_DEFAULTS.hazeStart))) * 100) / 100,
+    // thin air in the hollow, a near-complete veil past the log arch (the far tree rows)
+    hazeFarStartM: HEIGHT_FOG_DEFAULTS.hazeFarStart,
+    hazeFarDensityPerM: HEIGHT_FOG_DEFAULTS.hazeFarDensity,
     // aerosol thins with altitude so upward rays (shot F) do not wash the near canopy pale
     hazeUniformHeightM: HEIGHT_FOG_DEFAULTS.hazeUniformHeight,
     hazeScaleHeightM: HEIGHT_FOG_DEFAULTS.hazeScaleHeight,
@@ -95,6 +98,11 @@ export function create(ctx: WorldContext): WorldSystem {
       HEIGHT_FOG_DEFAULTS.hazeFar.map((c, i) => c * HEIGHT_FOG_DEFAULTS.backScatterMin * HEIGHT_FOG_DEFAULTS.backScatterTint[i]) as [number, number, number],
     ),
     groundMistDisplay: displayHex(HEIGHT_FOG_DEFAULTS.mistColor),
+    // deep-forest shade on far surfaces (before the veil): distant trunks and the log arch stay
+    // silhouettes in the haze instead of pale ghosts
+    farShadeStartM: HEIGHT_FOG_DEFAULTS.farShadeStart,
+    farShadeFullM: HEIGHT_FOG_DEFAULTS.farShadeFull,
+    farShadeMin: HEIGHT_FOG_DEFAULTS.farShadeMin,
     skyGapDisplay: displayHex(SKY_GAP_GLARE),
     sky: 'procedural-warm-haze+sun+cirrus',
     groundMist: true,

@@ -152,6 +152,7 @@ uniform float uAnisotropy;
 uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the angle where it saturates
 uniform float uExtinction; // haze extinction (1/m) attenuating in-scatter on its way to the camera
 uniform vec4 uBeam;        // gap-mask frequency (1/m), threshold lo, threshold hi, floor outside gaps
+uniform float uBeamNoiseMax; // openness of the noise gaps (the fixed columns are always fully open)
 uniform vec3 uGaps[ GAPS ]; // fixed open columns: (sun-plane x, sun-plane y, radius) in metres; radius 0 = unused
 varying vec2 vUv;
 #define STEPS 24
@@ -168,17 +169,17 @@ float vnoise( vec2 p ) {
 }
 // canopy gaps as seen along the sun: broad blobs (the leaf masses between them are 2–4× wider)
 // with a ragged second octave so the shaft edges are not perfectly smooth, plus the fixed columns
-// (uGaps) the trees system carved corridors for — those are always open so the bold shafts sit
-// exactly where the canopy actually has a hole
+// (uGaps) the trees system carved corridors for — those are always fully open (the noise gaps only
+// to uBeamNoiseMax) so the bold shafts sit exactly where the canopy actually has a hole
 float beamMask( vec3 pw ) {
   vec2 q = vec2( dot( pw, uSunRight ), dot( pw, uSunUp ) );
   vec2 qn = q * uBeam.x;
   float n = vnoise( qn ) * 0.62 + vnoise( qn * 2.13 + vec2( 7.7, 3.1 ) ) * 0.26 + vnoise( qn * 4.7 + vec2( 1.3, 9.2 ) ) * 0.12;
-  float m = smoothstep( uBeam.y, uBeam.z, n );
+  float m = smoothstep( uBeam.y, uBeam.z, n ) * uBeamNoiseMax;
   for ( int i = 0; i < GAPS; i ++ ) {
     float r = uGaps[ i ].z;
     if ( r <= 0.0 ) continue;
-    m = max( m, 1.0 - smoothstep( r * 0.55, r, length( q - uGaps[ i ].xy ) ) );
+    m = max( m, 1.0 - smoothstep( r * 0.7, r, length( q - uGaps[ i ].xy ) ) );
   }
   return m;
 }
@@ -265,8 +266,9 @@ void main() {
     wsum += w;
   }
   // cross-axis taps: merge the canopy's fine lit/unlit streaks into broader slabs (the reference
-  // shows 3–5 beams 5–12 % of the frame wide) and soften the march jitter
-  vec2 perp = vec2( -dir.y, dir.x ) * uTexel * uLength * 16.0;
+  // shows 3–5 beams 5–12 % of the frame wide) and soften the march jitter — kept narrow (≈ 1.4
+  // quarter-res texels on the long pass) so the gap mask's beam edges survive
+  vec2 perp = vec2( -dir.y, dir.x ) * uTexel * uLength * 10.0;
   float side = 0.0;
   float sideW = 0.0;
   for ( int j = 0; j < 4; j ++ ) {

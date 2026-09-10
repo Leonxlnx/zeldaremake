@@ -5,9 +5,15 @@
  * open in a disc of `radius` around each column in the plane perpendicular to the sun, so the beam
  * is exactly where the trees system carved its shadow-map corridor rather than wherever the noise
  * field happens to open. The shadow map still decides whether the air is lit: a column with no
- * corridor through the canopy stays dark, so the F entries below are inert until the trees owner
- * opens the canopy on their sun lines.
+ * corridor through the canopy stays dark.
+ *
+ * The column axes come from the trees system (`src/world/trees/corridors.ts`, data only) so the
+ * beam discs and the carved canopy holes can never drift apart. The beam core is kept narrower than
+ * the trees' 2.6 m A/B corridors (≤ 1.8 m): at the corridor width it reads as a slab, and those
+ * columns stand in the centre of shot D where a wide disc washed the far band.
  */
+import { SHAFT_COLUMNS as TREE_SHAFT_COLUMNS } from '../trees/corridors';
+
 export interface ShaftColumn {
   /** a point in the air (m) on the column's axis; the axis runs along the sun direction */
   point: [number, number, number];
@@ -15,16 +21,10 @@ export interface ShaftColumn {
   radius: number;
 }
 
-export const SHAFT_COLUMNS: ShaftColumn[] = [
-  // mirrors SHAFT_AIR_POINTS / SHAFT_RADIUS in src/world/trees/index.ts (shots A/B, upper-left)
-  { point: [1.3, 6.6, -9.4], radius: 2.6 },
-  { point: [-3.0, 8.0, -14.5], radius: 2.6 },
-  { point: [5.0, 7.0, -17.0], radius: 2.6 },
-  // shot F (camera (-1.04, 1.7, 5.64) → (10.22, 0.95, -0.86), fov 46): the reference's shafts
-  // enter at the top edge between x ≈ 0.15 and 0.35 and lean down-right to the stairs at mid-frame.
-  // The view rays through (0.17, 0), (0.27, 0), (0.37, 0) at canopy height (6–8 m) give these axes;
-  // their sun lines reach the ground at screen ≈ (0.5–0.65, 0.5). Requested corridors — see report.
-  { point: [10.4, 8.0, -11.4], radius: 1.3 },
-  { point: [7.7, 6.0, -4.4], radius: 1.3 },
-  { point: [13.2, 8.0, -6.6], radius: 1.3 },
-];
+/** widest beam core (m); corridors carved wider than this still get a crisp central shaft */
+const BEAM_RADIUS_MAX = 1.8;
+
+export const SHAFT_COLUMNS: ShaftColumn[] = TREE_SHAFT_COLUMNS.map((c) => ({
+  point: [c.point[0], c.point[1], c.point[2]],
+  radius: Math.min(c.radius, BEAM_RADIUS_MAX),
+}));
