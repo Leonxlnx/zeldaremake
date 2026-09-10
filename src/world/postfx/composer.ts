@@ -338,12 +338,14 @@ export function createComposer(opts: ComposerOptions): Composer {
     // so the haze blur takes it ≈ 25 % down while shot F, whose excess is the near house, Link and
     // the sharp HUD overlay, moves ≈ 15 %; a stronger setting (haze from 10 m, 25 % uniform) gained
     // +0.035–0.05 SSIM in every view but put A at 0.55× the reference's sharpness
+    // Tuned again on the world-only frame: A's sharpness must clear W35 (≥ 0.8) before Link and the
+    // HUD add their edges (A 0.905 with them, 0.773 without at 0.45 / 0.1 / 30).
     softening: true,
-    softDetail: 0.45,
+    softDetail: 0.68,
     softActivityK: 0.08,
     softActivityPower: 4,
-    softUniform: 0.1,
-    softFarStart: 30,
+    softUniform: 0.04,
+    softFarStart: 36,
     softFarFull: 60,
     softBlurSigma: 1.2,
     softFarSigma: 1.0,
