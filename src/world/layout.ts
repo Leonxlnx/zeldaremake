@@ -12,6 +12,9 @@
  *   C "lookback" ~45–50 s : stairs now on the LEFT; Kokiri NPC on grass; giant tree in the distance.
  *   D "log"      ~55–60 s : short stair on the right, huge hollow log arch ahead in the mist, purple
  *                           flowers + mossy boulder in the left foreground.
+ *   E "hold"     ~24 s    : the B camera held ten seconds later (same pose).
+ *   F "up"       ~8 s     : eye level on the plaza looking dead up the stair axis; canopy fills the
+ *                           top half, fence posts along the plateau lip, the upper house top-left.
  *
  * Any agent may READ this file. Only change values here when a reference comparison demands it and
  * record the change in your .agents/<agent>.md log — several systems depend on these numbers.
@@ -68,17 +71,21 @@ export interface Viewpoint {
 
 export const LAYOUT = {
   /** Main flagstone spine: south approach → plaza → north terrace → log arch. */
+  // North of the plaza the spine bears slightly EAST (reference B recedes at x ≈ 0.3–0.6, on the
+  // D axis) and dips through a misty hollow (reference D: mist pool before the arch) instead of
+  // climbing a terrace; the raised bank with the small steps is WEST of it (see stairs.north).
   pathSpine: [
     [1, 0, 16],
     [0, 0, 8],
     [0, 0, 0],
-    [-0.8, 0, -6],
-    [-1.2, 0, -12],
-    [-2, 1.2, -18],
-    [-1.5, 1.4, -26],
-    [2, 1.7, -34],
-    [4, 1.9, -42],
-    [5, 2.0, -50],
+    [0.6, 0, -6],
+    [1.5, 0, -12],
+    [2.0, -0.1, -18],
+    [1.8, -0.35, -24],
+    [2.5, -0.2, -30],
+    [3.5, 0.5, -36],
+    [4.5, 0.85, -42],
+    [5, 0.9, -50],
   ] as [number, number, number][],
   pathHalfWidth: 2.4,
 
@@ -107,8 +114,10 @@ export const LAYOUT = {
     { id: 'main', base: [9.0, 0, -2.0], dir: [1, -0.7], steps: 18, rise: 0.3, tread: 0.42, width: 3.2 },
     // Short stair up to the Kokiri house terrace (right side of shot D).
     { id: 'house', base: [4.6, 0, -7.2], dir: [0.66, -0.75], steps: 4, rise: 0.3, tread: 0.5, width: 2.2 },
-    // Small steps on the north path to the boulder terrace (centre-left of shot B).
-    { id: 'north', base: [-1.4, 0, -13.5], dir: [-0.12, -1], steps: 4, rise: 0.3, tread: 0.5, width: 2.6 },
+    // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
+    // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
+    // The base sits just off the paved edge so the first riser meets flattened ground.
+    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 5, rise: 0.3, tread: 0.5, width: 2.6 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
@@ -116,13 +125,16 @@ export const LAYOUT = {
     eastPlateau: { height: 5.4 },
     westLedge: { height: 2.6 },
     houseTerrace: { height: 1.2 },
-    northTerrace: { height: 1.2 },
+    /** the boulder bank west of the north path (top of stairs.north; terrace-boulder sits on it) */
+    northTerrace: { height: 2.6 },
   },
 
   houses: [
     { id: 'saria', position: [12.5, 1.2, -11.5], trunkRadius: 3.2, facing: [-0.7, 0.72], roofHeight: 6.5, lanterns: 3 },
-    // East of the fenced lip, outside every reference frame (its roof showed above the stair top in A).
-    { id: 'upper', position: [28, 5.4, -2], trunkRadius: 2.7, facing: [-1, 0.1], roofHeight: 5.0, lanterns: 2 },
+    // On the plateau north of the fenced lip: reference F shows a second, smaller tree-house at the
+    // top-left of the stairs (0.13–0.25, 0.13–0.20), ~24 m from camera F; projects to A (0.53, 0.18)
+    // and the top-right corner of D, both hazed.
+    { id: 'upper', position: [13.5, 5.4, -17.5], trunkRadius: 2.7, facing: [-0.7, 0.7], roofHeight: 5.0, lanterns: 2 },
   ] as HouseDef[],
 
   signposts: [
@@ -165,8 +177,9 @@ export const LAYOUT = {
 
   /** Mossy boulders that are compositionally important (many smaller rocks are procedural). */
   heroBoulders: [
-    { id: 'terrace-boulder', position: [-4.5, 1.2, -19.5] as [number, number, number], radius: 2.2 },
-    { id: 'shot-d-boulder', position: [-3.6, 0, -11] as [number, number, number], radius: 0.9 },
+    { id: 'terrace-boulder', position: [-4.5, 2.6, -19.5] as [number, number, number], radius: 2.2 },
+    // left-centre of shot D (≈ 0.11, 0.77 at 6.7 m; reference 0.10–0.22, 0.66–0.75)
+    { id: 'shot-d-boulder', position: [-3.2, 0, -10.2] as [number, number, number], radius: 0.9 },
     // right edge of shot A (≈ 0.9, 0.7): the mossy rock the Kokiri kid stands beside
     { id: 'stair-foot', position: [9.1, 0.2, 2.5] as [number, number, number], radius: 1.0 },
   ],
@@ -182,6 +195,12 @@ export const LAYOUT = {
     { id: 'far-plateau', position: [31, 5.4, -30], trunkRadius: 1.7, height: 26 },
     { id: 'south-giant', position: [12, 0, 22], trunkRadius: 1.4, height: 23 },
     { id: 'south-centre', position: [-4.5, 0, 27], trunkRadius: 1.8, height: 27 },
+    // Reference C: a hazed giant trunk fills the centre-top (0.50–0.62, 0–0.35) ~20 m past Link
+    // with spreading limbs; behind every other camera.
+    { id: 'plaza-south', position: [8.5, 0, 10.5], trunkRadius: 1.4, height: 24 },
+    // Reference B/D/A: a big dark trunk cuts the LEFT edge (B 0.0–0.10, D 0.0–0.12, A behind the
+    // pods). Between the north path and the boulder bank, 6 m west of the spine.
+    { id: 'north-west-near', position: [-4.6, 0, -12.8], trunkRadius: 1.3, height: 24 },
   ] as GiantTreeDef[],
 
   /** Where the Kokiri kids / Link will stand later (Phase 2). Used now only to keep clear ground. */
@@ -197,13 +216,22 @@ export const LAYOUT = {
     { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.8, 8.6], target: [6.7, 1.8, -5.8], fov: 46 },
     // Projected: house 0.68–0.88 with the door at (0.78, 0.48) ≈ reference (0.80, 0.50); sign 0.66; small steps 0.19.
     { id: 'B_house', refSeconds: 14, label: "Saria's House", position: [0, 1.6, 2.0], target: [5, 1.8, -12], fov: 46 },
-    { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.8, -9.5], target: [3.9, 2.5, 3.5], fov: 46 },
+    // Looking back SSE across the plaza with the stair foot cutting the left edge (0.12, 0.67;
+    // reference 0.10–0.20, 0.60–0.66), the stair-foot rock at (0.28, 0.50) and the plaza-south
+    // giant's trunk at x ≈ 0.58 in the haze (reference 0.50–0.62). Pitched ≈ 3.5° down.
+    { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.7, -9.5], target: [4.9, 0.9, 3.4], fov: 46 },
     // Stands 2 m past the bough's tip so the pods stay behind the camera; the house stair then
     // sits at the right edge (x ≈ 0.9) as in the reference.
     // On the spine's axis so the flagstones fill the whole foreground as in the reference.
     { id: 'D_log', refSeconds: 56, label: 'The Log Arch', position: [0.2, 1.9, -3.0], target: [4.5, 3.2, -42], fov: 48 },
-    { id: 'E_ground', refSeconds: 24, label: 'Ground Close-up', position: [-1.2, 0.55, 2.5], target: [2, 0.1, -3], fov: 50, diagnostic: true },
-    { id: 'F_canopy', refSeconds: 8, label: 'Canopy & Shafts', position: [0, 1.7, 4], target: [-6, 14, -14], fov: 55, diagnostic: true },
+    // Frame 24 s is the same held camera as frame 14 s ten seconds later (Link has walked on):
+    // identical pose so the two captures bracket the B composition.
+    { id: 'E_ground', refSeconds: 24, label: "Saria's House (hold)", position: [0, 1.6, 2.0], target: [5, 1.8, -12], fov: 46 },
+    // Frame 8 s: eye level on the plaza, dead along the stair axis 12.6 m before the bottom riser,
+    // pitched 3.3° down — stair foot (0.42, 0.59) / top (0.42, 0.21) vs reference (0.42, 0.60) /
+    // (0.42, 0.22); kid spot (0.66, 0.46); plateau-west fence posts along y ≈ 0.19; the upper house
+    // roof at the top-left (0.14, 0.04–0.2). The canopy fills the top half.
+    { id: 'F_canopy', refSeconds: 8, label: 'Up the Stairs', position: [-1.04, 1.7, 5.64], target: [10.22, 0.95, -0.86], fov: 46 },
   ] as Viewpoint[],
 } as const;
 

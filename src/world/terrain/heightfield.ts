@@ -181,13 +181,21 @@ function landform(x: number, z: number) {
   const west = T.westLedge.height * smoothstep(-5.5, -10, x) * smoothstep(13, 6, z) * smoothstep(-30, -20, z);
   const westNorth = T.westLedge.height * 0.8 * smoothstep(-5.5, -10, x) * smoothstep(-20, -34, z);
 
-  // North terrace (beyond the small steps) rising gently toward the log arch.
-  const north = T.northTerrace.height * smoothstep(-13.5, -17.5, z) + 0.9 * smoothstep(-20, -44, z);
+  // North: the path dips through a shallow misty hollow (reference D's mist pool before the arch)
+  // and then rises gently toward the log arch; the ground beyond climbs a little further.
+  const hollow = -0.35 * smoothstep(-14, -20, z) * smoothstep(-31, -25, z);
+  const northRise = 0.9 * smoothstep(-28, -44, z);
+  // Boulder bank WEST of the north path: the small `north` steps climb its face (top ≈ 1.5 m at
+  // x ≈ −2.4) and it carries on up to the terrace boulder; it merges into the west-north ledge.
+  const northBank = T.northTerrace.height * smoothstep(-1.0, -3.6, x) * smoothstep(-14, -17.5, z) * smoothstep(-33, -25, z);
+  const north = Math.max(northRise, northBank);
 
   // House terrace (north-east of the plaza).
   const house = T.houseTerrace.height * smoothstep(-7.5, -11, z) * smoothstep(2.5, 6.5, x) * smoothstep(19, 12, x);
 
-  let h = base + Math.max(east, west, westNorth, north, house);
+  const raised = Math.max(east, west, westNorth, north, house);
+  // the hollow only dips ground that no terrace or bank has lifted
+  let h = base + raised + hollow * (1 - smoothstep(0, 0.6, raised));
 
   // Far hills: only beyond the detail radius; big soft forms with a few ridges.
   const r = Math.hypot(x, z);
@@ -205,7 +213,7 @@ function landform(x: number, z: number) {
       edgeOf(east / T.eastPlateau.height, T.eastPlateau.height),
       edgeOf(Math.max(west, westNorth) / T.westLedge.height, T.westLedge.height),
       edgeOf(house / T.houseTerrace.height, T.houseTerrace.height),
-      edgeOf(clamp(north / (T.northTerrace.height + 0.9), 0, 1), T.northTerrace.height + 0.9) * 0.8,
+      edgeOf(clamp(northBank / T.northTerrace.height, 0, 1), T.northTerrace.height),
     ),
     0,
     1,
