@@ -75,8 +75,10 @@ export const WORLD = {
     // light at the same 70–90° hue band (the grade warms it to the reference's ≈ 60°), with
     // saturation raised so the haze does not grey it out.
     grassLight: 0x73832e,
-    grassMid: 0x4f6321,
-    grassDeep: 0x304616,
+    // shaded blades warmer than lit ones (hue 70°/77° vs 79°/87°): the reference's shaded
+    // vegetation band reads ≈ 51° after grade where ours read 57° with the cooler deep greens
+    grassMid: 0x566021,
+    grassDeep: 0x374416,
     mossBright: 0x83834a,
     mossDeep: 0x53572f,
     // olive-brown, not orange-brown: the reference's dark ground pixels sit at hue 52–57°
