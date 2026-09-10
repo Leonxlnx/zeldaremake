@@ -1,6 +1,8 @@
 import { Scene, WebGLRenderer, ACESFilmicToneMapping, SRGBColorSpace, PCFShadowMap } from 'three';
 import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
+import { createFollowCam, type FollowCam } from './camera/follow';
+import type { PlayerHandle } from './world/character/player';
 import { getTerrain } from './world/terrain/heightfield';
 import { installCaptureApi, isHeadlessCapture } from './capture/api';
 import { WORLD } from './world/config';
@@ -57,10 +59,26 @@ async function boot() {
     lastNow = now;
     return dt;
   };
+  // Phase 2 walkable build: third-person follow camera behind Link (`?mode=play` or the P key).
+  // Never active under headless capture, so the reference-viewpoint captures are unaffected.
+  let follow: FollowCam | null = null;
+  const player = scene.userData.player as PlayerHandle | undefined;
+  const setPlayMode = (on: boolean) => {
+    if (headless || !player) return;
+    if (on && !follow) follow = createFollowCam(host, terrain, cam.camera, player);
+    if (follow) follow.enabled = on;
+    cam.enabled = !on;
+    player.setPlayMode(on);
+    if (on) follow?.snap();
+  };
+
   let simTime = 0;
   const step = (dt: number) => {
     simTime += dt;
-    if (!headless) cam.update(dt);
+    if (!headless) {
+      if (follow?.enabled) follow.update(dt);
+      else cam.update(dt);
+    }
     world.update(dt, simTime);
     if (composer) composer.render(dt);
     else renderer.render(scene, cam.camera);
@@ -124,8 +142,10 @@ async function boot() {
       devVisible = !devVisible;
       dev.classList.toggle('hidden', !devVisible);
     }
+    if (e.code === 'KeyP') setPlayMode(!follow?.enabled);
   });
   dev.classList.toggle('hidden', !devVisible);
+  if (params.get('mode') === 'play') setPlayMode(true);
 
   const loop = () => {
     if (!headless) {
@@ -143,7 +163,7 @@ async function boot() {
           dev.textContent =
             `${fps.toFixed(0)} fps · ${info.calls} draws · ${(info.triangles / 1e6).toFixed(2)}M tris\n` +
             `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${quality.tier}\n` +
-            `WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · H hide`;
+            `WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play (follow cam) · H hide`;
         }
       }
       requestAnimationFrame(loop);
