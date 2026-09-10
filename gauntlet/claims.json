@@ -234,6 +234,18 @@
       "at": "2026-09-10T19:41:37.021Z",
       "expiresHours": 6,
       "note": "Round seven hardscape (irregular slabs, stairs, boulders) and character fidelity"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W31",
+        "W37"
+      ],
+      "at": "2026-09-10T21:23:40.232Z",
+      "expiresHours": 6,
+      "note": "Round seven trees follow-up: bank/verge sun lines, deterministic corridors"
     }
   ]
 }
