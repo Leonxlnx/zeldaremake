@@ -2154,6 +2154,118 @@
       },
       "prevHash": "sha256:ecbf9694a004ab933ee5502d33a0688b49f203f199459a0d91d5f2357fe127a7",
       "hash": "sha256:836a013cad9217404d191bee5f6ff3bcf9af88d5b82de0c0a58b99b13b25eb04"
+    },
+    {
+      "id": "take-0021",
+      "number": 21,
+      "at": "2026-09-10T09:37:18.498Z",
+      "sha": "ca263ff9474b179504a8097df3b8bbcd13988994",
+      "shortSha": "ca263ff",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "vegetation pass + terrain: hedge capped below the door line, D verges and lavender to the frames; paved east lobe; D boulder bank",
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W15",
+        "W17",
+        "W18",
+        "W19"
+      ],
+      "note": "Vegetation pass against the frames plus two terrain changes. Frame 14 s: the door threshold and terrace ramp were hidden behind our 1.8–2.4 m hedge (its top projected to y 0.25 in B) — hedge crown capped at 0.92 m (tops now y 0.59–0.62, door line 0.54) while it stays the dark shrub band left of the stairs in A. Frame 56 s: our right verge was a wall of 0.5–0.75 m shrubs hiding the hollow and the arch's right leg — everything there is ≤ 0.55 m now; the solid lavender field (purple 2.0 % of the frame vs the reference's 0.02 %) became four clumps at the reference's boxes (0.42 %, above the 0.3 % floor); a fern/broadleaf ring on the shot-D boulder (13 fronds) on a new 0.5 m bank; bank bushes on the boulder terrace. Frame 46 s: a bush 4 m from camera C hid the stair foot — the sight-line box is grass-only. Frames 1 s / 8 s: the right foreground is flagstone in the reference, grass in ours — a second paved disc (5.0, 2.4) r 4 toward the stair foot; right-foreground grass trimmed/darkened; F plateau flank shaded. Regression noticed in this take: with the hedge shadow gone Saria's doorway reads as a brightly lit pale interior (B door box mean 0.404 vs reference 0.299) — structures follow-up running to make the interior dark with a single warm lamp glint.",
+      "score": {
+        "passed": 19,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "pending",
+          "W26": "pending",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "fail",
+          "C02": "pending",
+          "C03": "fail",
+          "C04": "fail",
+          "C05": "fail",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:664edcd2a997f81c9e686477a0ac41024acffcb67556cc3ec5e0600e75721448",
+        "B_house": "sha256:219dd54f5f15b9057f2f02277da2d3c52951a8872e10326a7c0de2fda8240b8a",
+        "C_lookback": "sha256:c0ab38585984a3ab3a964269b189b5c2e390c3ae9ecf9361e6f6a54810b9c35a",
+        "D_log": "sha256:5683af123405737f1909c0939db7197375a830706e248c256b84d30fad4807a8",
+        "E_ground": "sha256:219dd54f5f15b9057f2f02277da2d3c52951a8872e10326a7c0de2fda8240b8a",
+        "F_canopy": "sha256:4c8a73cc69496bd1a2b65114310a1ad73fd930383136fa9aa6f278a1332b3eb3"
+      },
+      "distHash": "sha256:c811a42c9a92c9e33759dd681497bcabd2e5f1e2d66824d0ccda1d0a399b1132",
+      "stats": {
+        "drawCalls": 395,
+        "triangles": 6233651,
+        "captureMs": 1577682,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W15",
+        "W17",
+        "W18",
+        "W19"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take21-cap",
+        "importedAt": "2026-09-10T09:42:03.999Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:836a013cad9217404d191bee5f6ff3bcf9af88d5b82de0c0a58b99b13b25eb04",
+      "hash": "sha256:86baf2c638b88920246425f9ed6d59e2249c6ce1af8e040d544a568c8a639c3b"
     }
   ]
 }
