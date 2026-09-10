@@ -3,7 +3,7 @@
  * north/west and on the plateaus, never on paths, stairs, structures, hero boulders, NPC spots,
  * fences, the lantern branch or inside a giant's footprint; minimum spacing between trees.
  */
-import type { Vector3 } from 'three';
+import { Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
@@ -15,6 +15,43 @@ export interface SunCorridor {
   point: Vector3;
   dir: Vector3;
   radius: number;
+}
+
+/**
+ * A screen window (fractions, x right / y down, may extend past the frame) of a pinhole camera
+ * that tree crowns beyond `minDistance` must not overlap — keeps a hero frame's haze gap open.
+ */
+export interface ViewGap {
+  position: Vector3;
+  target: Vector3;
+  fov: number;
+  aspect: number;
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+  minDistance: number;
+}
+
+export interface WhiteBarkResult {
+  placements: WhiteBarkPlacement[];
+  /** trees drawn again because their crown overlapped a view gap */
+  reseated: number;
+}
+
+/** pinhole projection matching three.js PerspectiveCamera (vertical fov, lookAt with +Y up) */
+function gapCamera(g: ViewGap) {
+  const forward = g.target.clone().sub(g.position).normalize();
+  const right = new Vector3(-forward.z, 0, forward.x).normalize();
+  const up = new Vector3().crossVectors(right, forward);
+  const th = Math.tan((g.fov * Math.PI) / 360);
+  const d = new Vector3();
+  return (p: Vector3): [number, number, number] | null => {
+    d.subVectors(p, g.position);
+    const z = d.dot(forward);
+    if (z <= 0.05) return null;
+    return [0.5 + (0.5 * (d.dot(right) / z)) / (th * g.aspect), 0.5 - (0.5 * (d.dot(up) / z)) / th, z];
+  };
 }
 
 export interface WhiteBarkPlacement {
@@ -41,12 +78,44 @@ function segmentDistance(px: number, pz: number, ax: number, az: number, bx: num
   return Math.hypot(px - (ax + dx * t), pz - (az + dz * t));
 }
 
-export function placeWhiteBark(ctx: WorldContext, rng: Rng, variants: VariantInfo[], target: number, inner = 12, outer = 60, avoid: SunCorridor[] = []): WhiteBarkPlacement[] {
+export function placeWhiteBark(
+  ctx: WorldContext,
+  rng: Rng,
+  variants: VariantInfo[],
+  target: number,
+  inner = 12,
+  outer = 60,
+  avoid: SunCorridor[] = [],
+  gaps: ViewGap[] = [],
+): WhiteBarkResult {
   const r = rng.fork('whitebark-placement');
   const clump = new Noise2D('whitebark-clumps');
   const L = ctx.layout;
   const terrain = ctx.terrain;
   const out: WhiteBarkPlacement[] = [];
+
+  /**
+   * True when the crown (a sphere of `crownRadius` around the upper 60 % of the tree) overlaps a
+   * view gap window from beyond its minimum distance.
+   */
+  const gapCams = gaps.map((g) => ({ g, project: gapCamera(g) }));
+  const crownPoint = new Vector3();
+  const closesGap = (x: number, z: number, y: number, height: number, crownRadius: number): boolean => {
+    for (const { g, project } of gapCams) {
+      const lo = project(crownPoint.set(x, y + height * 0.4, z));
+      const hi = project(crownPoint.set(x, y + height, z));
+      if (!lo || !hi || lo[2] < g.minDistance) continue;
+      const th = Math.tan((g.fov * Math.PI) / 360);
+      const dx = crownRadius / (lo[2] * 2 * th * g.aspect);
+      const dy = crownRadius / (lo[2] * 2 * th);
+      const x0 = Math.min(lo[0], hi[0]) - dx;
+      const x1 = Math.max(lo[0], hi[0]) + dx;
+      const y0 = Math.min(lo[1], hi[1]) - dy;
+      const y1 = Math.max(lo[1], hi[1]) + dy;
+      if (x1 > g.xMin && x0 < g.xMax && y1 > g.yMin && y0 < g.yMax) return true;
+    }
+    return false;
+  };
 
   /**
    * True when the crown (the upper 60 % of the tree) would intersect a sun corridor: the ray is
@@ -131,30 +200,47 @@ export function placeWhiteBark(ctx: WorldContext, rng: Rng, variants: VariantInf
     return pool.length ? pool[r.int(0, pool.length)] : r.int(0, variants.length);
   };
 
-  let attempts = 0;
-  while (out.length < target && attempts < target * 120) {
-    attempts++;
-    const a = r() * TAU;
-    const rad = Math.sqrt(inner * inner + (outer * outer - inner * inner) * r());
-    const x = Math.cos(a) * rad;
-    const z = Math.sin(a) * rad;
-    if (r() > density(x, z)) continue;
-    const variant = pickVariant();
-    const info = variants[variant];
-    const scale = r.range(0.9, 1.12);
-    if (blocked(x, z, info.radius * scale)) continue;
-    if (avoid.length && shadesCorridor(x, z, terrain.height(x, z), info.height * scale, info.radius * scale)) continue;
-    let clash = false;
-    for (const p of out) {
-      const other = variants[p.variant];
-      const minD = 2.2 + (info.radius * scale + other.radius * p.scale) * 0.35;
-      if (Math.hypot(p.x - x, p.z - z) < minD) {
-        clash = true;
-        break;
+  const fill = (testGaps: boolean) => {
+    let attempts = 0;
+    while (out.length < target && attempts < target * 120) {
+      attempts++;
+      const a = r() * TAU;
+      const rad = Math.sqrt(inner * inner + (outer * outer - inner * inner) * r());
+      const x = Math.cos(a) * rad;
+      const z = Math.sin(a) * rad;
+      if (r() > density(x, z)) continue;
+      const variant = pickVariant();
+      const info = variants[variant];
+      const scale = r.range(0.9, 1.12);
+      if (blocked(x, z, info.radius * scale)) continue;
+      if (avoid.length && shadesCorridor(x, z, terrain.height(x, z), info.height * scale, info.radius * scale)) continue;
+      if (testGaps && closesGap(x, z, terrain.height(x, z), info.height * scale, info.radius * scale)) continue;
+      let clash = false;
+      for (const p of out) {
+        const other = variants[p.variant];
+        const minD = 2.2 + (info.radius * scale + other.radius * p.scale) * 0.35;
+        if (Math.hypot(p.x - x, p.z - z) < minD) {
+          clash = true;
+          break;
+        }
       }
+      if (clash) continue;
+      out.push({ variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale });
     }
-    if (clash) continue;
-    out.push({ variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale });
+  };
+  // Pass 1 is the placement every other system was tuned against; the view-gap rule is applied
+  // afterwards so it can only remove trees from that set, and the replacements are drawn from the
+  // continuing stream (a rule inside pass 1 would shift every later draw and reshuffle the wood).
+  fill(false);
+  let reseated = 0;
+  if (gapCams.length) {
+    const kept = out.filter((p) => !closesGap(p.x, p.z, p.y, variants[p.variant].height * p.scale, variants[p.variant].radius * p.scale));
+    reseated = out.length - kept.length;
+    if (reseated) {
+      out.length = 0;
+      out.push(...kept);
+      fill(true);
+    }
   }
-  return out;
+  return { placements: out, reseated };
 }

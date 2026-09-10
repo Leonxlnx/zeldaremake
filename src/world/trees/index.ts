@@ -23,9 +23,10 @@ import type { WorldContext, WorldSystem } from '../system';
 import { createTreeMaterials } from './materials';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, type WhiteBarkPlacement } from './placement';
-import { createGiantTree, type GiantAsset } from './giant';
+import { createGiantTree, type GiantAsset, type GiantProfile } from './giant';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { mergeParts, type Detail } from './writer';
+import type { ViewGap } from './placement';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
@@ -46,6 +47,55 @@ const HOUSE_BOUGHS = [
   // the lobes' shadows are the shaded band across B's mid path (z −5…−8); raised to 10.6 m they
   // slid off the path and B's foreground measured 0.58 against the reference's 0.48.
   { giant: 'lantern-tree', to: [3.0, 8.6, -14.0] as [number, number, number], fromHeight: 6.8, radius: 0.6, foliage: 0.5 },
+];
+/**
+ * Per-tree shape overrides (see GiantProfile in giant.ts).
+ * north-west-near: 9 m from camera D at the left edge of shots B/D. With the generic flare and 4–7 m
+ *   roots it filled D's x 0–0.22 with a flared base; the reference trunk there is ≈ 0.12 wide, so the
+ *   bole is slimmer with a light flare and short roots. No extra random draws: its limbs and crown
+ *   (whose shadows sit near the D/B paths) are the same as without the profile.
+ * plaza-south: the centre tree of shot C (20 m past camera C, seen from the north). The reference
+ *   trunk forks at ≈ 6 m into two big leaders rising left and right (east/west — perpendicular to
+ *   the C axis) whose leaf lobes form the hazed dark band across the top of the frame; C's frame
+ *   top is only ≈ 9 m up at that distance, so the generic 14–24 m crown is invisible there. No wild
+ *   limbs: a random low limb from this trunk pointing north crosses the top-right of shot F and
+ *   the right edge of shot A a few metres from those cameras.
+ * east-giant: 24 m east of camera F at the right edge of shot F, standing on the 5.4 m plateau.
+ *   Two low limbs reach west over the plateau lip toward the stair top, at 6.5–9 m, wrapped in
+ *   dense lobes: the dark leaf mass across the top-right of reference F (x 0.6–1.0, y 0–0.2) just
+ *   above the fence line. Off-frame for B/C/D; A sees only their tips at its top-right corner. Their
+ *   shadows fall east of x ≈ 22, outside every frame.
+ */
+const GIANT_PROFILES: Record<string, GiantProfile> = {
+  // slim bole (reads ≈0.12 of the frame at D's left edge with layout radius 1.1)
+  'north-west-near': { flare: 0.12, girth: 0.55, rootReach: 0.5, rootGirth: 0.7 },
+  // reference C's centre tree: a fat column at x 0.50–0.62 forking at y≈0.26 into two near-horizontal
+  // limbs (east = screen-left, west = screen-right) whose clusters form the hazed band across the
+  // top of the frame. Girth up / flare down: thicker bole without a ballooning foot at 30 m.
+  'plaza-south': {
+    wildLimbs: 0,
+    girth: 1.3,
+    flare: 0.7,
+    spread: [
+      { azimuthDeg: -8, height: 6.2, length: 8.5, rise: 0.42, radius: 0.95, foliage: 1.0, density: 0.85 },
+      { azimuthDeg: 176, height: 5.6, length: 8.0, rise: 0.48, radius: 0.95, foliage: 1.0, density: 0.85 },
+    ],
+  },
+  'east-giant': {
+    spread: [
+      { azimuthDeg: -140, height: 3.3, length: 9.5, rise: -0.08, radius: 0.55, foliage: 1.1, density: 1.0, lift: 0.2 },
+      { azimuthDeg: -172.6, height: 2.6, length: 11.6, rise: -0.06, radius: 0.5, foliage: 1.1, density: 1.0, lift: 0.2 },
+    ],
+  },
+};
+/**
+ * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
+ * haze gap at the top-centre (x 0.35–0.55, y 0–0.10) where the stair shafts come from; white-bark
+ * crowns 15–45 m out on the plateau were closing it. Crowns overlapping a window are re-seated
+ * (drawn after the main placement, so no other tree moves).
+ */
+const VIEW_GAPS: { viewpoint: string; xMin: number; xMax: number; yMin: number; yMax: number; minDistance: number }[] = [
+  { viewpoint: 'F_canopy', xMin: 0.33, xMax: 0.57, yMin: -0.2, yMax: 0.12, minDistance: 12 },
 ];
 /**
  * God-ray corridors: world air points over the north of the plaza (the upper-left of shots A/B)
@@ -211,7 +261,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
 
   const whiteTarget = Math.round(80 * Math.max(0.75, ctx.quality.density));
-  const whitePlacements = placeWhiteBark(
+  const viewGaps: ViewGap[] = [];
+  for (const gap of VIEW_GAPS) {
+    const view = ctx.layout.viewpoints.find((v) => v.id === gap.viewpoint);
+    if (!view) continue;
+    viewGaps.push({
+      position: new Vector3(view.position[0], view.position[1], view.position[2]),
+      target: new Vector3(view.target[0], view.target[1], view.target[2]),
+      fov: view.fov,
+      aspect: 16 / 9,
+      xMin: gap.xMin,
+      xMax: gap.xMax,
+      yMin: gap.yMin,
+      yMax: gap.yMax,
+      minDistance: gap.minDistance,
+    });
+  }
+  const whitePlaced = placeWhiteBark(
     ctx,
     rng,
     whites.map((w) => ({ height: w.lods[0].height, radius: w.lods[0].radius, age: w.params.age })),
@@ -220,7 +286,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     60,
     // crowns stay out of the plaza sun corridors (trunks may cross them: thin shadows = dapple)
     plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
+    viewGaps,
   );
+  const whitePlacements = whitePlaced.placements;
   for (const p of whitePlacements) {
     const w = whites[p.variant];
     w.placements.push(p);
@@ -281,11 +349,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     // the giant nearest Saria's house sends two boughs over the dome (the reference frames the
     // house between the giant's limbs); targets are world points above the roof
-    const boughs = HOUSE_BOUGHS.filter((b) => b.giant === def.id).map((b) => ({
+    const boughs = HOUSE_BOUGHS.filter((b) => b.giant === def.id).map((b: (typeof HOUSE_BOUGHS)[number] & { density?: number }) => ({
       to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
       fromHeight: b.fromHeight,
       radius: b.radius,
       foliage: b.foliage,
+      density: b.density,
     }));
     // giants 35–45 m out are seen through the haze at 30+ m: fewer laminae, the cluster cards
     // carry their crowns
@@ -303,6 +372,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       corridors: giantCorridors.map((c) => ({ point: c.point.clone().sub(origin), dir: c.dir, radius: c.radius, porosity: c.porosity, cardPorosity: c.cardPorosity })),
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
+      profile: GIANT_PROFILES[def.id],
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     for (const g of [asset.geometry, asset.cards]) {
@@ -504,6 +574,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       whiteBarkVariants: whites.length,
       whiteBarkInstances: whitePlacements.length,
+      /** white-barks moved out of the hero-camera view gaps (VIEW_GAPS) */
+      whiteBarkReseated: whitePlaced.reseated,
       whiteBarkAges: whites.map((w) => w.params.age),
       whiteBarkLodInstances: lodInstances,
       leafGeometry: 'laminae',

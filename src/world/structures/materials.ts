@@ -27,14 +27,18 @@ export interface StructureMaterials {
   bark: MeshStandardMaterial;
   /** pale living branches over the roofs (bark_willow_02) */
   barkPale: MeshStandardMaterial;
-  /** log arch outer bark (bark_willow_02, greyer, mossy vertex tint) */
+  /** log arch outer bark (bark_brown_02, dark weathered grey-brown; vertex tint carries ridge/furrow shading + moss) */
   logBark: MeshStandardMaterial;
   /** hollow interiors seen from inside */
   interior: MeshStandardMaterial;
+  /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
+  logInterior: MeshStandardMaterial;
   /** thatch + moss dome (vertex colours drive the moss gradient) */
   roof: MeshStandardMaterial;
-  /** weathered planks: signpost, fences, door frames, thresholds */
+  /** weathered planks: signpost, door frames, thresholds */
   wood: MeshStandardMaterial;
+  /** fence posts + rails: dark, silvered weathered wood that silhouettes against the haze */
+  fenceWood: MeshStandardMaterial;
   /** darker wood for door frames / lantern hooks */
   woodDark: MeshStandardMaterial;
   /** warm emissive interior planes (hearth, shelves) */
@@ -381,13 +385,15 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     color: new Color(0xc4ae8e),
     vertexColors: true,
   });
+  // the fallen trunk is old, damp and weathered: the dark brown bark set, cooled toward grey,
+  // with a strong normal map so the fissures read at 30 m through the haze
   const logBark = new MeshStandardMaterial({
-    map: willowC,
-    normalMap: willowN,
-    normalScale: new Vector2(1.4, 1.4),
-    roughnessMap: willowR,
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(2.2, 2.2),
+    roughnessMap: barkR,
     roughness: 1,
-    color: new Color(0xa89478),
+    color: new Color(0x7e7268),
     vertexColors: true,
   });
   const interior = new MeshStandardMaterial({
@@ -395,6 +401,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     normalMap: barkN,
     roughness: 1,
     color: new Color(0x9a7452),
+    side: BackSide,
+  });
+  const logInterior = new MeshStandardMaterial({
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(1.5, 1.5),
+    roughness: 1,
+    color: new Color(0x2a221a),
     side: BackSide,
   });
   const roof = new MeshStandardMaterial({
@@ -420,6 +434,15 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     roughnessMap: plankR,
     roughness: 1,
     color: new Color(0x9a7650),
+  });
+  const fenceWood = new MeshStandardMaterial({
+    map: plankC,
+    normalMap: plankN,
+    normalScale: new Vector2(1.2, 1.2),
+    roughnessMap: plankR,
+    roughness: 1,
+    color: new Color(0x8e8272),
+    vertexColors: true,
   });
   // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream
   const hearth = new MeshBasicMaterial({ color: new Color(0xff8c2a).multiplyScalar(1.15), toneMapped: true });
@@ -462,8 +485,8 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   );
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
   const runes = new MeshStandardMaterial({ map: runeTexture(rng), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const endGrain = new MeshStandardMaterial({ color: new Color(0x8a6848), roughness: 1, map: willowC, vertexColors: true });
+  const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, interior, roof, wood, woodDark, hearth, windowGlow, lantern, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, windowGlow, lantern, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
 }

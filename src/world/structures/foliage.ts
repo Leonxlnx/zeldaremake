@@ -147,26 +147,33 @@ export class FoliageBuilder {
     }
   }
 
-  /** Loose cluster of leaves around a branch tip. */
-  addLeafCluster(center: Vector3, radius: number, count: number, opts: { size?: number; amount?: number; droop?: number } = {}): void {
+  /**
+   * Loose cluster of leaves around a branch tip. `tint` (linear rgb around 1) darkens or
+   * yellows the whole clump; `flatten` squashes the sphere toward a cushion lying on a surface.
+   */
+  addLeafCluster(center: Vector3, radius: number, count: number, opts: { size?: number; amount?: number; droop?: number; tint?: [number, number, number]; tintSpread?: number; flatten?: number } = {}): void {
     const phase = this.rng() * Math.PI * 2;
+    const base = opts.tint ? new Color().setRGB(opts.tint[0], opts.tint[1], opts.tint[2]) : null;
+    const flat = opts.flatten ?? 0.7;
     for (let i = 0; i < count; i++) {
       const u = this.rng() * 2 - 1;
       const a = this.rng() * Math.PI * 2;
       const r = radius * Math.cbrt(this.rng());
-      const off = new Vector3(Math.sqrt(1 - u * u) * Math.cos(a), u * 0.7, Math.sqrt(1 - u * u) * Math.sin(a)).multiplyScalar(r);
+      const off = new Vector3(Math.sqrt(1 - u * u) * Math.cos(a), u * flat, Math.sqrt(1 - u * u) * Math.sin(a)).multiplyScalar(r);
       const p = center.clone().add(off);
       _dir.copy(off).normalize().addScaledVector(DOWN, opts.droop ?? 0.7);
       if (_dir.lengthSq() < 1e-4) _dir.set(0, -1, 0);
-      this.addLeaf(p, _dir.clone(), (opts.size ?? 0.13) * (0.8 + this.rng() * 0.45), phase + this.rng() * 0.6, opts.amount ?? 0.05);
+      const tint = base ? tintOf(base, this.rng, opts.tintSpread ?? 0.22) : undefined;
+      this.addLeaf(p, _dir.clone(), (opts.size ?? 0.13) * (0.8 + this.rng() * 0.45), phase + this.rng() * 0.6, opts.amount ?? 0.05, tint);
     }
   }
 
-  /** Grass tuft (kind 0) or fern frond (kind 1) card cross at `pos`, growing along `normal`. */
-  addTuft(pos: Vector3, normal: Vector3, size: number, kind: 0 | 1, amount = 0.05): void {
+  /** Grass tuft (kind 0) or fern frond (kind 1) card cross at `pos`, growing along `normal`. `shade` multiplies the tint. */
+  addTuft(pos: Vector3, normal: Vector3, size: number, kind: 0 | 1, amount = 0.05, shade: [number, number, number] = [1, 1, 1]): void {
     const phase = this.rng() * Math.PI * 2;
     const cards = kind === 0 ? 2 : 3;
-    const tint: [number, number, number] = kind === 0 ? [0.95 + this.rng() * 0.3, 1.0 + this.rng() * 0.15, 0.85] : [0.8, 0.95 + this.rng() * 0.2, 0.8];
+    const raw: [number, number, number] = kind === 0 ? [0.95 + this.rng() * 0.3, 1.0 + this.rng() * 0.15, 0.85] : [0.8, 0.95 + this.rng() * 0.2, 0.8];
+    const tint: [number, number, number] = [raw[0] * shade[0], raw[1] * shade[1], raw[2] * shade[2]];
     const yaw0 = this.rng() * Math.PI;
     for (let c = 0; c < cards; c++) {
       const w = size * (kind === 0 ? 1.1 : 0.7);

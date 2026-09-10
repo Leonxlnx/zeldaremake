@@ -85,24 +85,25 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
 
   // ---- broken ends: oblique cut (west end faces south-west toward shot D) + splinter spikes ----
   const spikeRng = rng.fork('spikes');
-  const makeSpikes = (n: number): Spike[] => {
+  const makeSpikes = (n: number, maxLen: number): Spike[] => {
     const out: Spike[] = [];
-    for (let i = 0; i < n; i++) out.push({ psi: (i / n) * TAU + spikeRng() * (TAU / n) * 0.8, width: 0.18 + spikeRng() * 0.3, length: 0.5 + spikeRng() * 1.3 });
+    for (let i = 0; i < n; i++) out.push({ psi: (i / n) * TAU + spikeRng() * (TAU / n) * 0.8, width: 0.12 + spikeRng() * 0.26, length: 0.5 + spikeRng() * maxLen });
     return out;
   };
-  const spikesW = makeSpikes(7);
-  const spikesE = makeSpikes(6);
+  // the west (shot D) end is the hero break: many long, narrow splinters make a jagged rim
+  const spikesW = makeSpikes(11, 1.9);
+  const spikesE = makeSpikes(6, 1.3);
   const spikeAmount = (psi: number, spikes: Spike[]) => {
     let a = 0;
     for (const sp of spikes) {
       const d = Math.abs(angleDiff(psi, sp.psi)) / sp.width;
-      if (d < 1) a += sp.length * Math.pow(1 - d, 1.6);
+      if (d < 1) a += sp.length * Math.pow(1 - d, 1.4);
     }
     return a;
   };
   // west end: strongly oblique (the south lip is ~3.4 m shorter than the north) so the hollow
   // opens toward the path and shot D
-  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW) + 0.25 * noise.noise(psi * 3, 1.5);
+  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW) + 0.3 * noise.noise(psi * 3, 1.5);
   const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + spikeAmount(psi, spikesE) + 0.25 * noise.noise(psi * 3, 8.5);
 
   // ---- radius model: bulges along the length, bark ridges along the axis, moss cushions on top ----
@@ -111,32 +112,55 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const bulge = 1 + 0.05 * noise.fbm(s * 0.18, Math.cos(psi) * 0.6, 2) + 0.03 * noise.noise(s * 0.4 + 3, Math.sin(psi) * 0.8);
     return R * taper * bulge;
   };
-  const detail = (psi: number, s: number, up: number) => {
+  const upness = (psi: number) => Math.sin(psi);
+  /** thickness of the moss cap (metres) — a real cushion on the upper third, feathering out on the flanks */
+  const mossCap = (psi: number, s: number, up: number) => {
     const arc = psi * R;
-    // deep bark ridges running along the trunk (twisting slowly), broad furrows, lumps, grain
-    const ridge = noise.ridged(arc * 1.1 + noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06, s * 0.16, 3);
+    const cushions = 0.5 + 0.5 * noise.fbm(arc * 0.7 + 4, s * 0.7, 2);
+    const clumps = noise.ridged(arc * 1.4 + 2, s * 1.1, 2);
+    return smoothstep(0.1, 0.8, up) * (0.16 + 0.3 * cushions + 0.12 * clumps);
+  };
+  /** bark relief only (no moss): broad longitudinal ridges, deep narrow fissures, lumps, grain */
+  const bark = (psi: number, s: number) => {
+    const arc = psi * R;
+    const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
+    const ridge = noise.ridged(arc * 1.1 + twist, s * 0.16, 3);
+    const ridge2 = noise.ridged(arc * 2.4 + twist * 1.5 + 5, s * 0.3, 2);
     const furrow = Math.pow(Math.max(0, noise.noise(arc * 0.55 + 17, s * 0.09)), 2);
+    // fissures: sharp valleys where the slow noise crosses zero, running along the trunk
+    const fissure = Math.pow(1 - Math.abs(noise.noise(arc * 0.8 + 31 + twist * 0.5, s * 0.07)), 9);
     const lumps = noise.fbm(arc * 0.32, s * 0.28, 3);
     const fine = noise.noise(arc * 2.6, s * 2.6);
-    const moss = smoothstep(0.25, 0.9, up) * Math.max(0, noise.fbm(arc * 0.7 + 4, s * 0.7, 2)) * 0.22;
-    return (ridge - 0.5) * 0.3 - furrow * 0.22 + lumps * 0.18 + fine * 0.025 + moss;
+    return (ridge - 0.5) * 0.5 + (ridge2 - 0.5) * 0.12 - furrow * 0.3 - fissure * 0.4 + lumps * 0.2 + fine * 0.03;
   };
-  const upness = (psi: number) => Math.sin(psi);
+  const detail = (psi: number, s: number, up: number) => bark(psi, s) + mossCap(psi, s, up);
   const outerColor = (psi: number, s: number, disp: number): [number, number, number] => {
     const up = upness(psi);
     const arc = psi * R;
     const patches = noise.fbm(arc * 0.5 + 9, s * 0.5, 2);
-    const m = clamp(smoothstep(0.05, 0.75, up) * (0.7 + 0.6 * patches) + 0.2 * smoothstep(0.4, 0.8, noise.noise(arc * 1.1, s * 1.1 + 2)), 0, 1);
-    // ridges catch light, furrows stay dark and damp
-    const shade = 0.85 + 0.2 * noise.noise(arc * 0.9, s * 0.9 + 7) + 0.7 * clamp(disp / 0.3, -0.5, 0.5);
-    const barkC = [0.95 * shade, 0.9 * shade, 0.84 * shade];
-    const mossC = [0.5 + 0.4 * shade, 0.85 + 0.45 * shade, 0.22 + 0.12 * shade];
+    const relief = bark(psi, s);
+    // moss covers the cap and creeps down the flanks in patches (more on the shaded north side)
+    const m = clamp(smoothstep(0.05, 0.6, up) * (0.8 + 0.5 * patches) + 0.25 * smoothstep(0.35, 0.75, noise.noise(arc * 1.1, s * 1.1 + 2)) * smoothstep(-0.5, 0.4, up), 0, 1);
+    // strong occlusion in furrows and fissures, lit crests: this is what makes the ridges read
+    // at 30 m through the haze where the normal map alone would be lost
+    const ao = clamp(0.62 + 1.7 * relief, 0.18, 1.3);
+    const vari = 0.85 + 0.3 * noise.noise(arc * 0.9, s * 0.9 + 7);
+    // the underside and the shaded lower flanks get no sky: bake the occlusion so the belly of
+    // the arch stays dark in the flat ambient light of the hollow (reference: the mass under
+    // the crown reads ≈ 0.63 of the haze luminance)
+    const belly = lerp(0.42, 1, smoothstep(-0.95, 0.35, up));
+    const shade = ao * vari * belly;
+    // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest)
+    const barkC = [1.0 * shade, 0.96 * shade, 0.9 * shade];
+    // olive moss: yellow-green on the lit cushions, deep green in the hollows; the bark map
+    // underneath is brown, so the green has to be pushed hard through the vertex tint
+    const mossC = [1.3 + 0.8 * shade, 2.4 + 1.4 * shade, 0.5 + 0.3 * shade];
     return [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
   };
 
   const _n = new Vector3();
-  const cols = 168;
-  const rows = 132;
+  const cols = 224;
+  const rows = 160;
   const outer = gridSurface(
     (u, v, out) => {
       const psi = u * TAU;
@@ -161,7 +185,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     },
     { cols: 96, rows: 48, closedU: true },
   );
-  const innerMesh = new Mesh(inner, mats.interior);
+  const innerMesh = new Mesh(inner, mats.logInterior);
   innerMesh.name = 'log-interior';
   innerMesh.receiveShadow = true;
   group.add(innerMesh);
@@ -217,11 +241,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       radialSegments: 12,
       uvMetres: 1.6,
       displace: (t, ang) => (noise.ridged(ang * 1.5 + i, t * 5, 2) - 0.5) * 0.1 * (1 - 0.5 * t),
-      color: (t) => (t > 0.98 ? [0.25, 0.2, 0.15] : [0.8 + 0.15 * t, 0.76 + 0.15 * t, 0.7 + 0.15 * t]),
+      color: (t, ang) => (t > 0.98 ? [0.3, 0.25, 0.2] : [0.85 + 0.25 * Math.max(0, Math.sin(ang)), 0.82 + 0.2 * Math.max(0, Math.sin(ang)), 0.78]),
       capEnd: true,
     });
     stubParts.push(stub);
-    if (i !== 3) foliage.addLeafCluster(tip, 0.8, 56, { size: 0.14, amount: 0.06, droop: 0.5 });
+    if (i !== 3) foliage.addLeafCluster(tip, 0.9, 64, { size: 0.15, amount: 0.06, droop: 0.5, tint: [0.62, 0.7, 0.36], tintSpread: 0.3 });
   }
   const outerMesh = new Mesh(merge([outer, ...stubParts]), mats.logBark);
   outerMesh.name = 'log-bark';
@@ -230,14 +254,39 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
 
   // ---- vegetation: tufts and ferns along the top, vines hanging from the underside and the west lip ----
   const vegRng = rng.fork('veg');
-  for (let i = 0; i < 64; i++) {
-    const s = lerp(-L / 2 + 0.8, L / 2 - 0.8, vegRng());
-    const psi = Math.PI / 2 + (vegRng() - 0.5) * 1.5;
+  // the moss cap is thick with ferns and coarse grass (shaded olive, not lawn-green): a dense
+  // band along the crown, thinning down the flanks
+  const topShade: [number, number, number] = [0.6, 0.66, 0.5];
+  for (let i = 0; i < 130; i++) {
+    const s = lerp(-L / 2 + 0.6, L / 2 - 0.8, vegRng());
+    const spread = 0.5 + 1.2 * vegRng() * vegRng();
+    const psi = Math.PI / 2 + (vegRng() - 0.5) * 2 * spread;
+    if (s < sEndW(psi) + 0.4) continue;
     const r = rBase(psi, s) + detail(psi, s, upness(psi)) - 0.03;
     const p = surfacePoint(psi, s, r);
     const n = radialDir(psi, s);
-    const fern = vegRng() < 0.35;
-    foliage.addTuft(p, n, (fern ? 0.55 : 0.4) * (0.8 + vegRng() * 0.5), fern ? 1 : 0, 0.05);
+    n.y += 0.4;
+    n.normalize();
+    const fern = vegRng() < 0.45;
+    foliage.addTuft(p, n, (fern ? 0.85 : 0.55) * (0.75 + vegRng() * 0.6), fern ? 1 : 0, 0.05, topShade);
+  }
+  // hero ferns on the crown of the broken west mass: they break the silhouette against the haze
+  for (let i = 0; i < 6; i++) {
+    const psi = Math.PI / 2 + (vegRng() - 0.5) * 1.2;
+    const s = sEndW(psi) + 0.9 + vegRng() * 2.6;
+    const p = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.05);
+    const n = radialDir(psi, s);
+    n.y += 0.8;
+    n.normalize();
+    foliage.addTuft(p, n, 1.15 + vegRng() * 0.45, 1, 0.06, topShade);
+  }
+  // bushy leaf clumps (saplings / ivy mounds) rooted in the moss along the top
+  for (let i = 0; i < 9; i++) {
+    const psi = Math.PI / 2 + (vegRng() - 0.5) * 1.1;
+    const s = lerp(-L / 2 + 1.2, L / 2 - 1.5, (i + vegRng()) / 9);
+    if (s < sEndW(psi) + 0.8) continue;
+    const p = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + 0.25);
+    foliage.addLeafCluster(p, 0.55 + vegRng() * 0.45, 70, { size: 0.15, amount: 0.05, droop: 0.45, tint: [0.55, 0.64, 0.32], tintSpread: 0.3, flatten: 0.55 });
   }
   const pathS = (2 - cx) / A.x; // where the path spine crosses under the arch (x ≈ 2)
   for (let i = 0; i < 7; i++) {

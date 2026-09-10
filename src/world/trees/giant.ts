@@ -49,6 +49,47 @@ export interface GiantAsset {
   crownRadius: number;
 }
 
+/**
+ * An authored near-horizontal limb leaving the trunk at `height` (local metres) toward a world
+ * azimuth, rising `rise` metres per metre of run before sagging at the tip. Carries three leaf
+ * lobes along its outer half (scaled by `foliage`; 0 = a bare limb).
+ */
+export interface SpreadLimb {
+  /** world azimuth in degrees (0 = +x east, 90 = +z south) */
+  azimuthDeg: number;
+  height: number;
+  length: number;
+  rise: number;
+  radius?: number;
+  /** lobe size scale (0 = a bare limb) */
+  foliage?: number;
+  /** leaf + card population scale of the lobes (> 1 = dense dark masses) */
+  density?: number;
+  /** how far the lobes ride above the limb (1 = the wild-limb 1.2–1.8 m; 0 = wrapped around it) */
+  lift?: number;
+}
+
+/**
+ * Per-tree shape overrides for giants a hero camera sees from a few metres, where the generic
+ * heavy flare / 4–7 m root spread / random limbs do not match the reference silhouette. Flare,
+ * girth and root scaling draw no extra random numbers, so a profiled tree keeps the limbs and crown
+ * (and therefore the canopy shadows) it had without the profile.
+ */
+export interface GiantProfile {
+  /** basal flare multiplier (1 = the default heavy flare) */
+  flare?: number;
+  /** trunk girth multiplier below the fork (1 = the layout radius) */
+  girth?: number;
+  /** buttress root reach beyond the trunk (1 = 3–6 m) */
+  rootReach?: number;
+  /** buttress root thickness (1 = default) */
+  rootGirth?: number;
+  /** number of un-authored big limbs (default: 2–4 at random) */
+  wildLimbs?: number;
+  /** authored spreading limbs, built last from their own random stream */
+  spread?: SpreadLimb[];
+}
+
 export interface GiantOptions {
   /** local ground height under local (x, z); 0 at the origin */
   groundAt: (x: number, z: number) => number;
@@ -64,9 +105,12 @@ export interface GiantOptions {
   /**
    * Extra authored boughs (local space): each leaves the trunk at `fromHeight`, droops out to `to`
    * and carries leaf lobes along its length and at its tip (e.g. the boughs framing Saria's roof).
-   * `foliage` scales the lobe size and leaf count (1 = the default roof-lobe treatment).
+   * `foliage` scales the lobe size and leaf count (1 = the default roof-lobe treatment); `density`
+   * scales the leaf and card population of every lobe on the bough (dense dark masses > 1).
    */
-  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number; foliage?: number }[];
+  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number; foliage?: number; density?: number }[];
+  /** per-tree shape overrides (see GiantProfile) */
+  profile?: GiantProfile;
   /**
    * Clear corridors (local space): infinite lines, along the sun direction (shafts, sunlit ground)
    * or along a hero camera's line of sight (canopy gaps). Foliage inside a corridor is not built
@@ -127,6 +171,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const stiff = () => 1;
 
   // ---------- trunk ----------
+  const profile = o.profile ?? {};
+  const flare = 0.85 * (profile.flare ?? 1);
+  const girth = profile.girth ?? 1;
+  const rootReach = profile.rootReach ?? 1;
+  const rootGirth = profile.rootGirth ?? 1;
   const lean = Math.tan((bt(1, 3) * Math.PI) / 180);
   const leanAz = plazaBias ? Math.atan2(toPlaza.z, toPlaza.x) + bt(-0.7, 0.7) : r() * TAU;
   const fork = H * bt(0.5, 0.56);
@@ -136,8 +185,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const trunkRadii = trunk.map((pt, i) => {
     const t = i / (trunk.length - 1);
     const above = Math.max(0, pt.y) / H;
-    const radius = R * (0.42 + 0.58 * Math.pow(1 - t, 0.75));
-    return radius * (1 + 0.85 * Math.exp(-above * 7));
+    // girth thins the lower bole only; the radius at the fork (which sizes the crown leaders) is kept
+    const radius = R * (0.42 + 0.58 * girth * Math.pow(1 - t, 0.75));
+    return radius * (1 + flare * Math.exp(-above * 7));
   });
   tube(wood, trunk, trunkRadii, 30, r, {
     color: barkColor,
@@ -157,22 +207,24 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const angle = (i / rootCount) * TAU + bt(-0.22, 0.22);
     const dir = new Vector3(Math.cos(angle), 0, Math.sin(angle));
     const side = new Vector3(-dir.z, 0, dir.x);
-    const length = R + bt(3, 6);
-    const r0 = R * bt(0.36, 0.48);
+    const length = R + bt(3, 6) * rootReach;
+    const r0 = R * bt(0.36, 0.48) * rootGirth;
     const wigglePhase = r() * TAU;
     const wiggle = bt(0.15, 0.4);
     const segments = 11;
     const path: Vector3[] = [];
     const radii: number[] = [];
+    // the root collar sits on the flare: lower when the flare is reduced
+    const collar = R * (0.35 + 0.47 * flare);
     for (let k = 0; k <= segments; k++) {
       const t = k / segments;
       const radius = 0.14 + (r0 - 0.14) * Math.pow(1 - t, 0.9);
-      const d = R * 0.55 + (length - R * 0.55) * t;
+      const d = R * 0.55 * girth + (length - R * 0.55 * girth) * t;
       const p = dir.clone().multiplyScalar(d).addScaledVector(side, Math.sin(t * 4.2 + wigglePhase) * wiggle * t);
       const g = o.groundAt(p.x, p.z);
       // starts high on the flare, dives to the ground, then rides half-buried along the terrain
       const dive = smoothstep(0, 0.45, t);
-      p.y = (1 - dive) * (R * 0.75 * (1 - t * 0.8) + g) + dive * (g + radius * 0.4);
+      p.y = (1 - dive) * (collar * (1 - t * 0.8) + g) + dive * (g + radius * 0.4);
       if (k === segments) p.y = g - 0.25;
       path.push(p);
       radii.push(radius);
@@ -186,7 +238,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const st = bt(0.3, 0.65);
       const origin = sample(path, st);
       const a2 = angle + (s % 2 === 0 ? 1 : -1) * bt(0.55, 1.0);
-      const len = bt(1.4, 2.6);
+      const len = bt(1.4, 2.6) * rootReach;
       const sp: Vector3[] = [];
       const sr: number[] = [];
       const n = 6;
@@ -521,15 +573,16 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // `foliage` thins only the outer third + tip (the part that reaches into the hero frames); the
     // lobes near the trunk keep their full roof density
     const bf = spec.foliage ?? 1;
-    limbLobes(path, r0, [0.42, 0.64], 2.7, 1.3, 1.7, 0.62);
-    limbLobes(path, r0, [0.84], 2.7 * bf, 1.3 * bf, 1.1 + 0.6 * bf, 0.62 * bf, bf);
+    const bd = spec.density ?? 1;
+    limbLobes(path, r0, [0.42, 0.64], 2.7, 1.3, 1.7, 0.62 * bd, bd);
+    limbLobes(path, r0, [0.84], 2.7 * bf, 1.3 * bf, 1.1 + 0.6 * bf, 0.62 * bf * bd, bf * bd);
     const endCenter = path[path.length - 1].clone().addScaledVector(UP, 1.1 * bf).addScaledVector(horiz, 0.9);
     const endBough = growthPath(path[path.length - 2], endCenter, horiz, r, 5, 0.5);
     tube(wood, endBough, taper(endBough, r1 * 0.6, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
-    foliateLobe(endBough, endCenter, 2.9 * bf, 1.4 * bf, r1 * 0.6, bf < 0.7 ? 2 : 3, 3, bf < 0.7 ? 3 : 4, 0.62 * bf, bf);
+    foliateLobe(endBough, endCenter, 2.9 * bf, 1.4 * bf, r1 * 0.6, bf < 0.7 ? 2 : 3, 3, bf < 0.7 ? 3 : 4, 0.62 * bf * bd, bf * bd);
   }
 
-  const extraLimbs = o.limbSpec ? 2 : r.int(2, 4);
+  const extraLimbs = profile.wildLimbs ?? (o.limbSpec ? 2 : r.int(2, 4));
   const limbBaseAngle = o.limbSpec ? Math.atan2(o.limbSpec.to.z - o.limbSpec.from.z, o.limbSpec.to.x - o.limbSpec.from.x) : r() * TAU;
   for (let i = 0; i < extraLimbs; i++) {
     const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU + bt(-0.35, 0.35);
@@ -592,6 +645,46 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const hR = crownRadius * bt(0.27, 0.36);
       const vR = H * bt(0.08, 0.11);
       foliateLobe(bough, center, hR, vR, bRadius);
+    }
+  }
+
+  // ---------- authored spreading limbs ----------
+  // Built after everything else from their own stream, so adding or editing one never re-rolls the
+  // trunk, roots, wild limbs or crown above (the crown's shadows are tuned per hero frame).
+  const rs = r.fork('spread');
+  for (const spec of profile.spread ?? []) {
+    const az = (spec.azimuthDeg * Math.PI) / 180;
+    const dir = new Vector3(Math.cos(az), 0, Math.sin(az));
+    const side = new Vector3(-dir.z, 0, dir.x);
+    const tTrunk = Math.min(0.98, Math.max(0.05, (spec.height + skirt) / (fork + skirt)));
+    const origin = sample(trunk, tTrunk);
+    origin.y = spec.height;
+    const trunkR = trunkRadii[Math.round(tTrunk * (trunkRadii.length - 1))];
+    const r0 = spec.radius ?? Math.max(0.5, trunkR * 0.42);
+    const length = spec.length;
+    const sag = length * length * 0.007;
+    const n = 12;
+    const wigglePhase = rs() * TAU;
+    const path: Vector3[] = [];
+    for (let k = 0; k <= n; k++) {
+      const s = k / n;
+      // leaves the bole from inside its radius so the collar reads as a fork, not a peg
+      const run = -trunkR * 0.5 + (length + trunkR * 0.5) * s;
+      const p = origin
+        .clone()
+        .addScaledVector(dir, run)
+        .addScaledVector(UP, length * spec.rise * s - sag * s * s)
+        .addScaledVector(side, Math.sin(s * 5.5 + wigglePhase) * 0.07 * length * s);
+      path.push(p);
+    }
+    tube(wood, path, taper(path, r0, 0.08, 0.85), 12, rs, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    limbs++;
+    const lf = spec.foliage ?? 1;
+    const ld = spec.density ?? 1;
+    const lift = spec.lift ?? 1;
+    if (lf > 0) {
+      const hR = (1.9 + 0.6 * lf) * Math.min(1.15, length / 8);
+      limbLobes(path, r0, [0.48, 0.74, 0.98], hR, hR * 0.52, (1.2 + 0.6 * lf) * lift, 0.4 * lf * ld, lf * ld);
     }
   }
 

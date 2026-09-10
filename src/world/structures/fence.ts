@@ -19,8 +19,11 @@ export function buildFence(def: { id: string; points: readonly (readonly [number
   const parts = [];
   const bases: [number, number, number][] = [];
   const spacing = 1.8;
-  const postH = 1.05;
-  const railHeights = [0.5, 0.9];
+  const postH = 1.1;
+  const railHeights = [0.5, 0.92];
+  // silvered, weathered wood: dark enough to silhouette against the haze at the plateau lip
+  // (reference F: dark posts along y ≈ 0.19; reference A: the same posts hazed pale at 25 m)
+  const postShade = () => 0.42 + rng() * 0.22;
 
   // resample the polyline at ~spacing
   const pts: Vector3[] = [];
@@ -44,15 +47,17 @@ export function buildFence(def: { id: string; points: readonly (readonly [number
     const bottom = new Vector3(p.x - lean.x * 0.3, gy - 0.32, p.z - lean.z * 0.3);
     const ground = new Vector3(p.x, gy, p.z);
     const top = new Vector3(p.x + lean.x * h, gy + h, p.z + lean.z * h);
-    const shade = 0.72 + rng() * 0.25;
-    const grey = rng() * 0.15;
+    const shade = postShade();
+    const grey = rng() * 0.12;
     const post = sweepTube(new CatmullRomCurve3([bottom, ground, top]), {
-      radius: (t) => 0.082 - 0.024 * t,
+      // ≥ 0.16 m thick at the ground so a post still covers a few pixels at 20–25 m
+      radius: (t) => 0.095 - 0.028 * t,
       tubularSegments: 6,
-      radialSegments: 9,
+      radialSegments: 10,
       uvMetres: 0.8,
-      displace: (t, ang) => Math.sin(ang * 4 + i) * 0.004 + Math.sin(ang * 7 + t * 9) * 0.003,
-      color: () => [shade + grey * 0.2, shade * 0.93 + grey * 0.3, shade * 0.8 + grey * 0.5],
+      displace: (t, ang) => Math.sin(ang * 4 + i) * 0.006 + Math.sin(ang * 7 + t * 9) * 0.004,
+      // greyer, darker toward the ground where the wood stays damp
+      color: (t) => [(shade + grey * 0.3) * (0.8 + 0.2 * t), (shade * 0.95 + grey * 0.35) * (0.8 + 0.2 * t), (shade * 0.86 + grey * 0.5) * (0.8 + 0.2 * t)],
       capEnd: true,
     });
     parts.push(post);
@@ -79,13 +84,13 @@ export function buildFence(def: { id: string; points: readonly (readonly [number
       const p2 = new Vector3(b.x + dir.x * 0.06, yb, b.z + dir.z * 0.06);
       const p1 = p0.clone().lerp(p2, 0.5).addScaledVector(side, bow);
       p1.y -= sag;
-      const shade = 0.75 + rng() * 0.22;
+      const shade = postShade() + 0.08;
       const rail = sweepTube(new CatmullRomCurve3([p0, p1, p2]), {
-        radius: (t) => 0.046 * (1 + 0.15 * Math.sin(t * Math.PI * 1.7 + i)),
+        radius: (t) => 0.056 * (1 + 0.15 * Math.sin(t * Math.PI * 1.7 + i)),
         tubularSegments: Math.max(4, Math.round(len * 3)),
         radialSegments: 8,
         uvMetres: 0.8,
-        color: () => [shade, shade * 0.92, shade * 0.78],
+        color: () => [shade, shade * 0.94, shade * 0.84],
         capEnd: true,
         capStart: true,
       });
@@ -93,7 +98,7 @@ export function buildFence(def: { id: string; points: readonly (readonly [number
     }
   }
 
-  const mesh = new Mesh(merge(parts), mats.wood);
+  const mesh = new Mesh(merge(parts), mats.fenceWood);
   mesh.name = `fence-${def.id}`;
   mesh.castShadow = mesh.receiveShadow = true;
   return { mesh, posts: tops.length, bases };

@@ -202,12 +202,13 @@ export const LAYOUT = {
     { id: 'far-plateau', position: [31, 5.4, -30], trunkRadius: 1.7, height: 26 },
     { id: 'south-giant', position: [12, 0, 22], trunkRadius: 1.4, height: 23 },
     { id: 'south-centre', position: [-4.5, 0, 27], trunkRadius: 1.8, height: 27 },
-    // Reference C: a hazed giant trunk fills the centre-top (0.50–0.62, 0–0.35) ~20 m past Link
-    // with spreading limbs; behind every other camera.
-    { id: 'plaza-south', position: [8.5, 0, 10.5], trunkRadius: 1.4, height: 24 },
+    // Reference C: a hazed giant trunk fills the centre-top (0.50–0.62, 0–0.35) ~30 m from the
+    // camera with a Y-fork of spreading limbs (trees GIANT_PROFILES); projects to x ≈ 0.56 at
+    // 30 m, behind every other camera, 4.5 m past the south end of the spine.
+    { id: 'plaza-south', position: [4.4, 0, 20.5], trunkRadius: 2.2, height: 26 },
     // Reference B/D/A: a big dark trunk cuts the LEFT edge (B 0.0–0.10, D 0.0–0.12, A behind the
     // pods). Between the north path and the boulder bank, 6 m west of the spine.
-    { id: 'north-west-near', position: [-4.6, 0, -12.8], trunkRadius: 1.3, height: 24 },
+    { id: 'north-west-near', position: [-5.0, 0, -12.8], trunkRadius: 1.1, height: 24 },
   ] as GiantTreeDef[],
 
   /** Where the Kokiri kids / Link will stand later (Phase 2). Used now only to keep clear ground. */
