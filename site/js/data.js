@@ -29,8 +29,8 @@ export const DEFAULT_VIEWPOINTS = [
   { id: 'B_house', label: "Saria's House", refSeconds: 14 },
   { id: 'C_lookback', label: 'Look Back', refSeconds: 46 },
   { id: 'D_log', label: 'The Log Arch', refSeconds: 56 },
-  { id: 'E_ground', label: 'Ground Close-up', refSeconds: 24 },
-  { id: 'F_canopy', label: 'Canopy & Shafts', refSeconds: 8 },
+  { id: 'E_ground', label: "Saria's House (hold)", refSeconds: 24 },
+  { id: 'F_canopy', label: 'Up the Stairs', refSeconds: 8 },
 ];
 
 async function fetchJson(url, fallback) {

@@ -52,8 +52,9 @@ copied under `data/`.
           "viewpoint": "A_stairs",
           "label": "The Stairs",
           "refSeconds": 1,
-          "diagnostic": false,             // true for E_ground / F_canopy: reference frame is a material/lighting
-                                           // reference only — no image-similarity metrics; site labels it DIAGNOSTIC
+          "diagnostic": false,             // optional; true only for a camera whose reference frame is a material/lighting
+                                           // reference and not a matched composition (none since take-0019: E = held B
+                                           // camera, F = eye level up the stairs) — the site would label it DIAGNOSTIC
           "thumb": "takes/take-0007/A_stairs.thumb.jpg",   // optional 320×180 for filmstrip/reel
           "image": "takes/take-0007/A_stairs.jpg",
           "compare": "takes/take-0007/A_stairs.compare.jpg",
