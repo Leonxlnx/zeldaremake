@@ -225,6 +225,84 @@ export function lanceLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, 
   mesh.tri(last[1], tip, last[2]);
 }
 
+export type LeafShape = 'heart' | 'ovate' | 'round';
+
+export interface ShapedLeafOptions extends LeafOptions {
+  shape: LeafShape;
+  /** vertices across a row: 3 (far LOD) or 5 */
+  across?: 3 | 5;
+  /** midrib colour (default: a lighter, slightly yellower tone of the lamina) */
+  ribColor?: RGB;
+}
+
+/** half-width fraction of a leaf outline at 0 ≤ t ≤ 1 along the axis (base → tip) */
+function leafOutline(shape: LeafShape, t: number): number {
+  switch (shape) {
+    case 'heart':
+      // the lobes are already 0.6 wide at the petiole and the blade tapers to a drawn-out tip
+      return Math.pow(Math.sin(Math.PI * (0.19 + 0.81 * t)), 0.85);
+    case 'round':
+      return Math.pow(Math.max(0, 1 - (2 * t - 1) ** 2), 0.55);
+    default:
+      // ovate: widest a third of the way up, pointed tip
+      return Math.pow(Math.sin(Math.PI * Math.pow(t, 0.82)), 0.72);
+  }
+}
+
+/**
+ * Concept-sheet lamina (reference/concepts/01 “Leaves & plants”): heart-shaped Kokiri leaf, broad
+ * ovate forest leaf or round ground leaf. `sections` rows of `across` vertices, a raised and
+ * lighter midrib down the centre column, drooping edges (waxy convexity), curl along the axis. A
+ * heart's base row keeps its full width with the lobes swept back behind the petiole point. The
+ * front faces are the upper side (`gl_FrontFacing` selects the glossy top in materials.ts).
+ */
+export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: ShapedLeafOptions) {
+  const { shape, sections = 5, across = 5, curl = 0.12, twist = 0, ridge = 0.12 } = options;
+  const { axis, side, normal } = leafFrame(direction, options.planeNormal);
+  const rib: RGB = options.ribColor ?? [color[0] * 1.2 + 0.03, color[1] * 1.18 + 0.03, color[2] * 1.05];
+  const tipColor: RGB = options.tipColor ?? tone(color, 1.06);
+  const cols = across === 3 ? [-1, 0, 1] : [-1, -0.5, 0, 0.5, 1];
+  const notch = shape === 'heart' ? 0.16 : 0;
+  const rows: number[][] = [];
+  for (let j = 0; j <= sections; j++) {
+    const t = j / sections;
+    const w = width * 0.5 * leafOutline(shape, t);
+    const centre = base.clone().addScaledVector(axis, length * t).addScaledVector(normal, length * curl * Math.sin(t * Math.PI * 0.9));
+    const rowColor = blend(color, tipColor, t * 0.5);
+    if (j === sections || (j === 0 && notch === 0)) {
+      rows.push([mesh.vertex(centre, 0.5, t, rowColor)]);
+      continue;
+    }
+    const sideAt = side.clone().applyAxisAngle(axis, twist * t);
+    rows.push(
+      cols.map((s) => {
+        const a = Math.abs(s);
+        // lobes sweep back behind the petiole; edges droop, the midrib stands proud
+        const back = notch * length * Math.pow(1 - t, 3) * Math.sqrt(a);
+        const lift = s === 0 ? w * ridge : -w * (a < 0.75 ? 0.05 : 0.14);
+        const p = centre.clone().addScaledVector(sideAt, s * w).addScaledVector(axis, -back).addScaledVector(normal, lift);
+        const c = s === 0 ? blend(rowColor, rib, 0.75) : tone(rowColor, a < 0.75 ? 1.0 : 0.94);
+        return mesh.vertex(p, (s + 1) / 2, t, c);
+      }),
+    );
+  }
+  const n = cols.length;
+  let j0 = 0;
+  if (rows[0].length === 1) {
+    for (let k = 0; k < n - 1; k++) mesh.tri(rows[0][0], rows[1][k], rows[1][k + 1]);
+    j0 = 1;
+  }
+  for (let j = j0; j < sections - 1; j++) {
+    for (let k = 0; k < n - 1; k++) {
+      mesh.tri(rows[j][k], rows[j + 1][k], rows[j][k + 1]);
+      mesh.tri(rows[j][k + 1], rows[j + 1][k], rows[j + 1][k + 1]);
+    }
+  }
+  const last = rows[sections - 1];
+  const tip = rows[sections][0];
+  for (let k = 0; k < n - 1; k++) mesh.tri(last[k], tip, last[k + 1]);
+}
+
 /** Simple radial fan (flower petal ring, seed head cap). */
 export function disc(mesh: MeshBuilder, center: Vector3, normal: Vector3, radius: number, segments: number, color: RGB, edgeColor = color, lift = 0) {
   const [a, b] = frame(normal);

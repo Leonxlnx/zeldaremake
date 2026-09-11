@@ -1,7 +1,8 @@
 /**
  * Ground litter: instanced fallen leaves (curved laminae in autumn tints), twigs and small
- * surface roots. Heavier under the giant canopies and along the path verges, a light sprinkle
- * on the flagstones themselves. Every piece is seated on the exact terrain height.
+ * surface roots. Heavier under the giant canopies and along the path verges, collecting in the
+ * dirt seam at the flagstone rim, a light sprinkle on the flagstones themselves. Every piece is
+ * seated on the exact terrain height.
  */
 import { Color, Group, type BufferGeometry, type Material } from 'three';
 import type { WorldContext } from '../system';
@@ -80,6 +81,9 @@ export interface LitterResult {
 }
 
 const M = new Float32Array(16);
+/** lawn band outside the flagstone rim that collects the dirt-seam litter (concept sheet 02) */
+const RIM_BAND = 0.3;
+const RIM_LITTER_PER_M = 3.0;
 /** mm-quantise so the audited sample position queries the terrain at exactly the seated point */
 const mm = (v: number) => Math.round(v * 1000) / 1000;
 const rec = (samples: number[][], x: number, y: number, z: number) => samples.push([x, Math.round(y * 10000) / 10000, z]);
@@ -159,6 +163,36 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
       count++;
       if (count % 37 === 0 && samples.length < 400) rec(samples, x, y, z);
     }
+  }
+
+  // Dirt-seam litter along the flagstone rim (concept sheet 02 “Path boundary”): leaves and a
+  // few twigs collect in the 0.3 m of lawn just outside the paving of the spine and the stair
+  // branch, seated by their own stream after the scatters above so nothing else moves. The rim
+  // walk checks the terrain mask, so none of it lands on a slab.
+  {
+    const rng = ctx.rng.fork('litter/rim-seam');
+    field.rimCandidates(rng, RIM_LITTER_PER_M * q.density, RIM_BAND, (px, pz, edge) => {
+      const x = mm(px);
+      const z = mm(pz);
+      field.sample(x, z, s);
+      if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z)) return;
+      // densest right at the seam
+      const p = 0.75 * (1 - 0.5 * edge / RIM_BAND) * field.falloff(x, z);
+      if (rng() > p) return;
+      const y = T.height(x, z) + 0.004;
+      if (rng() < 0.82) {
+        const scale = 0.65 + rng() * 0.6;
+        composeMatrix(M, 0, x, y, z, s.nx + rng.gauss() * 0.08, s.ny, s.nz + rng.gauss() * 0.08, 1, rng() * TAU, scale, scale, scale);
+        tint.copy(LEAF_TINTS[rng.int(0, LEAF_TINTS.length)]).multiplyScalar(0.75 + rng() * 0.4);
+        leaves.add(M, rng.int(0, leafGeos.length), tint);
+      } else {
+        const scale = 0.7 + rng() * 0.5;
+        composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, rng() * TAU, scale, scale, scale);
+        twigs.add(M, rng.int(0, 3), tint.setRGB(0.85 + rng() * 0.3, 0.85 + rng() * 0.3, 0.85 + rng() * 0.3));
+      }
+      count++;
+      if (count % 29 === 0 && samples.length < 400) rec(samples, x, y, z);
+    });
   }
 
   // surface roots radiating from giant trunks

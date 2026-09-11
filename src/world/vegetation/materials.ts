@@ -194,8 +194,23 @@ const FOLIAGE_FRAGMENT_LIGHTS = /* glsl */ `
 }
 `;
 
+/**
+ * Waxy broad leaves (concept sheet 01): the upper face takes its own roughness so it carries a
+ * soft sheen while the underside keeps the matte base `roughness`. Front faces are the upper
+ * side of every lamina built by geometry.ts.
+ */
+const TOP_ROUGHNESS_PARS = /* glsl */ `
+uniform float uTopRoughness;
+`;
+const TOP_ROUGHNESS_FRAGMENT = /* glsl */ `
+#include <roughnessmap_fragment>
+roughnessFactor = gl_FrontFacing ? uTopRoughness : roughnessFactor;
+`;
+
 export interface VegMaterialOptions {
   roughness?: number;
+  /** roughness of the lamina's upper (front) face only; the underside keeps `roughness` */
+  topRoughness?: number;
   /** max geometry height used to normalise the sway height factor (plants) */
   plantHeight?: number;
   sway?: number;
@@ -264,6 +279,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     uLiftFeather: { value: SHADE_LIFT_ZONE.feather },
     uLiftFill: { value: opts.shadeLift ?? SHADE_LIFT_ZONE.fill },
   };
+  const glossyTop = opts.topRoughness !== undefined;
+  if (glossyTop) uniforms.uTopRoughness = { value: opts.topRoughness };
   if (kind === 'grass') {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
@@ -298,11 +315,12 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
       ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${LIFT_VERTEX}`)
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
     const lights = kind === 'grass' ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v7`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v8${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

@@ -107,6 +107,24 @@ for (const kind of ['grass', 'moss', 'litter']) {
   owned.push(optOut);
   assert.equal(prepare(optOut, 'standard').uniforms.uLiftFill.value, 0, 'shadeLift: 0 opts a set out of the zone lift');
 }
+{
+  // waxy broad leaves: the upper (front) face takes its own roughness, the underside keeps the base
+  const glossy = createVegMaterial(ctx, 'plant', { roughness: 0.9, topRoughness: 0.55 });
+  const matte = createVegMaterial(ctx, 'plant', { roughness: 0.9 });
+  owned.push(glossy, matte);
+  const gs = prepare(glossy, 'standard');
+  const ms = prepare(matte, 'standard');
+  assert.equal(gs.uniforms.uTopRoughness.value, 0.55);
+  assert.equal(glossy.roughness, 0.9, 'base roughness stays the matte underside');
+  assert.match(gs.fragmentShader, /#include <roughnessmap_fragment>\s*roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);
+  assert.equal((gs.fragmentShader.match(/uniform float uTopRoughness;/g) || []).length, 1);
+  assert.doesNotMatch(ms.fragmentShader, /uTopRoughness/);
+  assert.equal(ms.uniforms.uTopRoughness, undefined);
+  assert.notEqual(glossy.customProgramCacheKey(), matte.customProgramCacheKey(), 'glossy and matte plants compile separate programs');
+  const { depth, distance } = createVegShadowMaterials(glossy);
+  owned.push(depth, distance);
+  assert.equal(projection(prepare(depth, 'depth')), projection(gs), 'the glossy option leaves the shared projection block alone');
+}
 const unrelated = new THREE.MeshStandardMaterial();
 owned.push(unrelated);
 assert.throws(() => createVegShadowMaterials(unrelated), /plant or bush/);

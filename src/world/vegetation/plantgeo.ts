@@ -1,11 +1,13 @@
 /**
- * Plant geometry variants (ferns, bushes, purple flowers, broad-leaf weeds, seed-head stalks,
- * clover, moss tufts, saplings). Each builder returns one geometry per LOD, highest detail
- * first. Derived from Verdant Forest by Leonxlnx (understory.js / botanical-refinement.js).
+ * Plant geometry variants (ferns, bushes, purple and white flowers, fiddleheads, broad-leaf
+ * plants, seed-head stalks, clover, moss tufts, saplings). Each builder returns one geometry per
+ * LOD, highest detail first. Derived from Verdant Forest by Leonxlnx (understory.js /
+ * botanical-refinement.js); leaf, flower and bud shapes follow the owner's concept sheets
+ * (reference/concepts/01, see reference/CONCEPTS.md — the sheets are never loaded at runtime).
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
 
 export type Detail = 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
@@ -369,22 +371,165 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
   return m.finish({ groundToZero: true });
 }
 
-// ---------------------------------------------------------------- broad-leaf weeds (dock / plantain rosettes)
-export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+// ---------------------------------------------------------------- broad-leaf plants
+/** the three concept-sheet laminae, one per weed variant (sheet 01 “Leaves & plants”) */
+export const BROADLEAF_SHAPES: readonly LeafShape[] = ['heart', 'ovate', 'round'];
+
+/**
+ * Broad-leaf ground plant: 3–6 waxy leaves on short petioles rising from a crown, 0.15–0.35 m
+ * across at unit scale. Variant 0 grows the heart-shaped Kokiri leaf, 1 the broad ovate forest
+ * leaf, 2 the round ground leaf; each lamina carries a raised, lighter midrib. The glossy upper
+ * face comes from the material (`topRoughness`), the underside stays matte.
+ */
+export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, variant = 0): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const high = detail === 'high';
-  const leaves = high ? 5 + rng.int(0, 3) : 4;
+  const shape = BROADLEAF_SHAPES[variant % BROADLEAF_SHAPES.length];
+  const leaves = high ? 4 + rng.int(0, 3) : 3;
   const phase = rng() * TAU;
+  // heart leaves are the fresh mid green, forest leaves the deep glossy green, ground leaves yellower
+  const lamina = shape === 'ovate' ? blend(pal.weed, pal.leaf, 0.55) : shape === 'round' ? blend(pal.weed, pal.leafSun, 0.25) : blend(pal.weed, pal.leaf, 0.3);
+  const petioleColor = blend(pal.stem, lamina, 0.5);
+  const aspect = shape === 'round' ? 0.95 : shape === 'heart' ? 0.82 : 0.58;
   for (let l = 0; l < leaves; l++) {
-    const a = phase + (l * TAU) / leaves + (rng() - 0.5) * 0.5;
-    const lift = 0.35 + rng() * 0.45;
-    const dir = V(Math.cos(a), lift, Math.sin(a)).normalize();
-    const len = 0.12 + rng() * 0.12;
-    const color = tone(blend(pal.weed, pal.leaf, rng() * 0.4), 0.85 + rng() * 0.3);
-    const base = V(Math.cos(a) * 0.012, 0.004, Math.sin(a) * 0.012);
-    if (high) lanceLeaf(m, base, dir, len, len * (0.36 + rng() * 0.14), color, { sections: 3, curl: 0.22 + rng() * 0.15, twist: (rng() - 0.5) * 0.4, ridge: 0.14, serration: 0.04 });
-    else foldedLeaf(m, base, dir, len * 1.1, len * 0.45, color, { curl: 0.25, ridge: 0.12 });
+    const a = phase + (l * TAU) / leaves + (rng() - 0.5) * 0.6;
+    const radial = V(Math.cos(a), 0, Math.sin(a));
+    const len = (0.075 + rng() * 0.055) * (high ? 1 : 1.15);
+    const rise = 0.55 + rng() * 0.75;
+    // petiole: from the crown up and out, the blade continuing flatter so its face turns to the sky
+    const petiole = 0.03 + rng() * 0.05;
+    const root = V(Math.cos(a) * 0.01, 0.003, Math.sin(a) * 0.01);
+    const knee = root.clone().addScaledVector(radial, petiole * 0.8).add(V(0, petiole * rise, 0));
+    if (high) tube(m, [root, knee], 0.0035, 0.0025, petioleColor, 3);
+    const dir = radial.clone().multiplyScalar(1).add(V(0, rise * 0.35 - 0.1 + (rng() - 0.5) * 0.2, 0)).normalize();
+    const color = tone(lamina, 0.88 + rng() * 0.26);
+    shapedLeaf(m, knee, dir, len, len * aspect * (0.9 + rng() * 0.2), color, {
+      shape,
+      sections: high ? (shape === 'heart' ? 6 : 5) : 3,
+      across: high ? 5 : 3,
+      curl: 0.1 + rng() * 0.14,
+      twist: (rng() - 0.5) * 0.35,
+      ridge: 0.13,
+    });
+  }
+  return m.finish({ groundToZero: true });
+}
+
+// ---------------------------------------------------------------- white forest flowers
+/**
+ * White forest flowers (sheet 01 “Flower clumps”, 02 / 04): a clump of 8–15 small five-petal white
+ * blooms with yellow centres on thin stems, 0.3–0.5 m across and ≤ 0.25 m tall at unit scale,
+ * with a few heart-shaped leaves at its base.
+ */
+export function whiteFlowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  const rng = createRng(seed);
+  const m = new MeshBuilder();
+  const high = detail === 'high';
+  const blooms = high ? 8 + rng.int(0, 8) : 8;
+  // root radius; with the leaning stems and petals the clump reads 0.3–0.5 m across
+  const clumpR = 0.1 + rng() * 0.07;
+  const phase = rng() * TAU;
+  const white: RGB = [0.9, 0.9, 0.84];
+  const cream: RGB = [0.96, 0.95, 0.88];
+  const yellow: RGB = blend(pal.yellow, [1, 0.8, 0.2], 0.4);
+  const stemColor = blend(pal.stem, pal.grassLight, 0.4);
+  const leafColor = blend(pal.leaf, pal.grassLight, 0.3);
+  for (let i = 0; i < blooms; i++) {
+    const a = phase + (i * TAU) / blooms + (rng() - 0.5) * 0.8;
+    const r = clumpR * (0.25 + 0.75 * Math.sqrt(rng()));
+    const root = V(Math.cos(a) * r, 0, Math.sin(a) * r);
+    const h = 0.09 + rng() * 0.12;
+    const lean = V(Math.cos(a) * h * 0.22, h, Math.sin(a) * h * 0.22);
+    const top = root.clone().add(lean);
+    tube(m, high ? [root, root.clone().addScaledVector(lean, 0.5).add(V(Math.sin(a) * 0.006, 0, Math.cos(a) * 0.006)), top] : [root, top], 0.002, 0.0012, stemColor, 3);
+    // the bloom faces up and a little outward
+    const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.4, 0.5, (rng() - 0.5) * 0.4)).normalize();
+    const side = new Vector3().crossVectors(Math.abs(up.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), up).normalize();
+    const fwd = new Vector3().crossVectors(up, side).normalize();
+    const petalLen = 0.014 + rng() * 0.006;
+    const p0 = rng() * TAU;
+    const petals = high ? 5 : 4;
+    // the far LOD (> 12 m, where a bloom is a pixel or two) grows its petals so the white dots
+    // of frame 14 s survive the distance
+    const far = high ? 1 : 2.4;
+    for (let p = 0; p < petals; p++) {
+      const pa = p0 + (p * TAU) / petals;
+      const dir = side.clone().multiplyScalar(Math.cos(pa)).addScaledVector(fwd, Math.sin(pa)).addScaledVector(up, 0.12).normalize();
+      const base = top.clone().addScaledVector(dir, 0.003);
+      const color = blend(white, cream, rng() * 0.6);
+      // petals cup upward (positive curl toward `up`), the lamina plane pinned to the bloom's axis
+      if (high) curvedLeaf(m, base, dir, petalLen, petalLen * 0.72, color, { curl: 0.28, ridge: -0.05, planeNormal: up, tipColor: cream });
+      else foldedLeaf(m, base, dir, petalLen * far, petalLen * 0.9 * far, color, { curl: 0.25, ridge: -0.05, planeNormal: up });
+    }
+    disc(m, top.clone().addScaledVector(up, 0.002), up, 0.0042 * far, high ? 6 : 3, yellow, tone(yellow, 0.85), 0.002);
+  }
+  if (high) {
+    const leaves = 3 + rng.int(0, 3);
+    for (let l = 0; l < leaves; l++) {
+      const a = phase + (l * TAU) / leaves + rng() * 0.5;
+      const radial = V(Math.cos(a), 0, Math.sin(a));
+      const root = V(Math.cos(a) * 0.02, 0.003, Math.sin(a) * 0.02);
+      const knee = root.clone().addScaledVector(radial, 0.03).add(V(0, 0.035, 0));
+      tube(m, [root, knee], 0.0025, 0.0018, stemColor, 3);
+      const len = 0.04 + rng() * 0.025;
+      shapedLeaf(m, knee, radial.clone().add(V(0, 0.15, 0)), len, len * 0.85, tone(leafColor, 0.9 + rng() * 0.2), { shape: 'heart', sections: 4, across: 5, curl: 0.15, ridge: 0.12 });
+    }
+  }
+  return m.finish({ groundToZero: true });
+}
+
+// ---------------------------------------------------------------- fiddleheads (forest buds)
+/**
+ * Fiddleheads (sheet 01 “Forest buds (unopened)”, sheet 04): 2–4 spiral buds on stout stalks,
+ * 0.25–0.45 m tall at unit scale, the coil curling back over itself toward the crown. Sits at
+ * the centre of a fern crown.
+ */
+export function fiddleheadGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  const rng = createRng(seed);
+  const m = new MeshBuilder();
+  const high = detail === 'high';
+  const buds = high ? 2 + rng.int(0, 3) : 2;
+  const phase = rng() * TAU;
+  // dark fibrous stalks, the coil a lighter yellow-green (sheet 01: pale fuzzy spirals on dark stems)
+  const stalkColor = blend(pal.fern, pal.bark, 0.35);
+  const coilColor = tone(blend(pal.fern, pal.leafSun, 0.55), 1.1);
+  const scaleColor = blend(pal.bark, pal.straw, 0.35);
+  for (let b = 0; b < buds; b++) {
+    const a = phase + (b * TAU) / buds + (rng() - 0.5) * 0.7;
+    const radial = V(Math.cos(a), 0, Math.sin(a));
+    const root = radial.clone().multiplyScalar(0.02 + rng() * 0.04);
+    // stalk + coil: 0.26–0.41 m at unit scale
+    const h = 0.24 + rng() * 0.13;
+    const lean = 0.05 + rng() * 0.09;
+    const stalk = (t: number) => root.clone().addScaledVector(radial, lean * t * t).add(V(0, h * t, 0));
+    const points = sampleCurve(stalk, high ? 5 : 3);
+    tube(m, points, 0.0072, 0.0055, stalkColor, high ? 5 : 3);
+    // coil: tangent to the stalk at its top, curling inward (toward the crown) and over itself
+    const top = stalk(1);
+    const R = 0.026 + rng() * 0.014;
+    const centre = top.clone().addScaledVector(radial, -R);
+    const turns = 1.25 + rng() * 0.3;
+    const n = high ? 12 : 6;
+    const coil: Vector3[] = [];
+    for (let k = 0; k <= n; k++) {
+      const u = k / n;
+      const ang = u * turns * TAU;
+      const r = R * (1 - 0.55 * u);
+      coil.push(centre.clone().addScaledVector(radial, Math.cos(ang) * r).add(V(0, Math.sin(ang) * r, 0)).addScaledVector(V(-radial.z, 0, radial.x), Math.sin(u * Math.PI) * 0.004));
+    }
+    // a rope-thick spiral (sheet 01: fat fuzzy coils), tapering toward the tip
+    tube(m, coil, 0.0085, 0.0032, coilColor, high ? 6 : 3, true);
+    if (high) {
+      // papery brown scales clinging to the stalk and the outer coil
+      for (let s = 0; s < 3; s++) {
+        const t = 0.3 + s * 0.25;
+        const at = stalk(t);
+        const dir = radial.clone().multiplyScalar(s % 2 ? 1 : -1).add(V(0, 0.9, 0)).normalize();
+        foldedLeaf(m, at, dir, 0.014, 0.007, scaleColor, { curl: 0.3 });
+      }
+      foldedLeaf(m, coil[2], V(-radial.x, 0.4, -radial.z).normalize(), 0.012, 0.007, scaleColor, { curl: 0.3 });
+    }
   }
   return m.finish({ groundToZero: true });
 }
@@ -489,10 +634,10 @@ export function saplingGeometry(seed: string, pal: PlantPalette, detail: Detail)
   return m.finish({ groundToZero: true });
 }
 
-/** Build `count` variants × all LODs. */
-export function variants(count: number, seed: string, pal: PlantPalette, build: (seed: string, pal: PlantPalette, detail: Detail) => BufferGeometry, lods: Detail[] = DETAILS): BufferGeometry[][] {
+/** Build `count` variants × all LODs; builders may key their shape off the variant index. */
+export function variants(count: number, seed: string, pal: PlantPalette, build: (seed: string, pal: PlantPalette, detail: Detail, variant: number) => BufferGeometry, lods: Detail[] = DETAILS): BufferGeometry[][] {
   const out: BufferGeometry[][] = [];
-  for (let v = 0; v < count; v++) out.push(lods.map((d) => build(`${seed}/${v}`, pal, d)));
+  for (let v = 0; v < count; v++) out.push(lods.map((d) => build(`${seed}/${v}`, pal, d, v)));
   return out;
 }
 
