@@ -10,6 +10,14 @@ updated: 2026-09-11T09:06:55Z
 # Astra — resumed character work
 
 ## Current task
+2026-09-11T09:11:49Z: Deliberately integrating Fable'sdd9e15bb21e2578bdd004f896040aa595400c866
+house.ts + additive shared geometry helpers. Their parent files exactly match our source;
+HouseBuild/foliage/lantern interfaces stay compatible. Keep the full authored roof/porch/room
+change intact, with original attribution, and validate our combined build. No PR merge and
+no ownership transfer. Existing undisposed per-house indoorFog material clones are a known
+cleanup follow-up for Fable; no hidden source prerequisite was found. Lantern sepal pass45ed76d
+is pushed and awaits actual rendering. Current boot and smaller-gear galleries are preserved.
+
 2026-09-11T09:06:55Z: Published fuller frontal hair/cap/iris sourcef963398 and manual monitor checkpoint2781c6e.
 Integrated geometry probe confirms seated crown >=14.28 mm, brim >=8.18 mm, eyes/brows clear,
 all roots buried, and frontal hair/tail separate across105 poses. Smaller-gear8968561 actual
