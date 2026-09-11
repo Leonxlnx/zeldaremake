@@ -28,6 +28,16 @@ import { compareDir, deltaSummary } from './compare.mjs';
 import { scoreDir, renderTable } from './score.mjs';
 import { runAntiCheat, claimCovers } from './anti-cheat.mjs';
 
+/** Union local claims with the monitor checkout's data/claims.json and write both (idempotent). */
+function syncClaims(log = () => {}) {
+  const monitorClaimsPath = path.join(monitorDataDir(MONITOR_DIR), 'claims.json');
+  const union = mergeClaims(readJson(CLAIMS_PATH, { claims: [] }), readJson(monitorClaimsPath, { claims: [] }));
+  if (union.added.local) log(`claims: ${union.added.local} claim(s) from other agents pulled from the monitor`);
+  writeJson(CLAIMS_PATH, union.claims);
+  fs.mkdirSync(path.dirname(monitorClaimsPath), { recursive: true });
+  writeJson(monitorClaimsPath, union.claims);
+}
+
 /** Union of two claims files by (agent, at); returns the merged file and how many each side gained. */
 function mergeClaims(local, remote) {
   const key = (c) => `${c.agent}|${c.at}`;
@@ -75,7 +85,9 @@ function copyDir(src, dst) {
  * or gauntlet/out/last (pre-rotation).
  */
 function findPreviousTake({ ledger, at, monitorDir, rotateFrom, explicitDir }) {
-  const before = ledger.entries.filter((e) => !at || !e.at || e.at <= at);
+  // "previous" means captured earlier: a concurrent-publish resequence moves `at`, not capturedAt
+  const tOf = (e) => e.capturedAt ?? e.at;
+  const before = ledger.entries.filter((e) => !at || !tOf(e) || tOf(e) <= at);
   const valid = before.filter((e) => e.valid !== false);
   const entry = valid.length ? valid[valid.length - 1] : before.length ? before[before.length - 1] : null;
   const validBaseline = !!valid.length;
@@ -159,12 +171,7 @@ async function main() {
     }
     // Claims are per code branch, but D3 judges every agent's takes: keep the union on the monitor
     // (data/claims.json) and pull it back so another agent's CLI claims count here too.
-    const monitorClaimsPath = path.join(monitorDataDir(MONITOR_DIR), 'claims.json');
-    const union = mergeClaims(readJson(CLAIMS_PATH, { claims: [] }), readJson(monitorClaimsPath, { claims: [] }));
-    if (union.added.local) log(`claims: ${union.added.local} claim(s) from other agents pulled from the monitor`);
-    writeJson(CLAIMS_PATH, union.claims);
-    fs.mkdirSync(path.dirname(monitorClaimsPath), { recursive: true });
-    writeJson(monitorClaimsPath, union.claims);
+    syncClaims(log);
     log(`monitor: ${monitor.created ? 'new orphan branch' : `synced ${monitor.head?.slice(0, 7)}`} → ${rel(MONITOR_DIR)}`);
   }
 
@@ -305,9 +312,15 @@ async function main() {
   if (publish) {
     let applied = null;
     const apply = async () => {
+      // a retry resets the monitor checkout to the fetched head: re-union the claims onto it so an
+      // incoming grant published meanwhile is never dropped, then re-apply the take
+      syncClaims();
       applied = await applyToMonitor({ localLedgerPath: ledgerPath, entry: sealed, takeDir: finalDir, rubric, callouts, refCallouts, phase, log });
       if (applied.takeId !== sealed.id) log(`monitor: take renumbered ${sealed.id} → ${applied.takeId} (concurrent publish)`);
-      writeJson(path.join(finalDir, 'take.json'), { ...readJson(path.join(finalDir, 'take.json')), id: applied.takeId });
+      // the canonical (merged) entry may carry a new id/number, a resequenced `at`, capturedAt and
+      // new prevHash/hash: mirror the whole sealed record, not just the id
+      const canonical = loadLedger(ledgerPath).entries.find((e) => e.id === applied.takeId) ?? null;
+      writeJson(path.join(finalDir, 'take.json'), { ...readJson(path.join(finalDir, 'take.json')), ...(canonical ?? { id: applied.takeId }), takeDir: rel(finalDir) });
     };
     await apply();
     const msg = `take ${applied.takeId}: ${agent} → ${items.join(',')} (${score.passed}/${score.total}${score.regressions.length ? ', REGRESSED' : ''}${entry.valid ? '' : ', invalid'}) @${shortSha}`;

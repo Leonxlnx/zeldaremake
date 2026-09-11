@@ -127,7 +127,7 @@ export async function verifyExit({ ledgerPath = LEDGER_PATH, monitorDir = MONITO
   else report.pass('D7', `${records.length} cross-review(s) on file; every agent filed ≥ 1 per ${R.reviewsPerTakes} takes`);
 
   // E1 — ≥ 10 h span and ≥ 10 distinct clock hours
-  const times = valid.map((e) => Date.parse(e.at)).filter(Number.isFinite).sort((a, b) => a - b);
+  const times = valid.map((e) => Date.parse(e.capturedAt ?? e.at)).filter(Number.isFinite).sort((a, b) => a - b);
   const spanH = times.length ? (times[times.length - 1] - times[0]) / 3600_000 : 0;
   const hours = new Set(times.map((t) => new Date(t).toISOString().slice(0, 13)));
   if (spanH >= R.minHours && hours.size >= R.minClockHours) report.pass('E1', `takes span ${spanH.toFixed(1)} h across ${hours.size} distinct clock hours`);
