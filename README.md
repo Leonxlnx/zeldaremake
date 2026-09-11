@@ -2,6 +2,7 @@
 
 Named, dated screenshots of the actual Zelda remake game. Each gallery records its source commit.
 
+- [2026-09-11_212746-bde7184](progress/2026-09-11_212746-bde7184/)
 - [2026-09-11_205844-8efd467](progress/2026-09-11_205844-8efd467/)
 - [2026-09-11_205202-151744b](progress/2026-09-11_205202-151744b/)
 - [2026-09-11_203621-885b056](progress/2026-09-11_203621-885b056/)
