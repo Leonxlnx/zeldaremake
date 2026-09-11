@@ -475,7 +475,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   reference has lawn with stepping stones; F's top-left house; the D verge blockers (bole, platform
   prop, SE wall); (3) 27 items await codex's cross-review.
 
-### 00:40 UTC (Sep 11) — tick 29: take-0031 published (monitor `b85581a`), valid; lighting round four + house branch
+### 23:55 UTC — tick 29: take-0031 published (monitor `b85581a`), valid; lighting round four + house branch
 - `ceefaba` PCSS + canopy-transmission shadow filter on a raw depth map, sun-dominant balance
   (sun 3.1 / hemi 0.95 / env 0.57), cooler skylight, chroma knee: shade keeps 0.35 of a lit slab
   (was 0.73); Link's own shadow still blocked by a limb (D, 10–11 m up the sun ray) and crown
