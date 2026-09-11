@@ -45,7 +45,7 @@ const LANTERN_T = [0.68, 0.9, 0.45];
 const BRANCH_POD_SCALE = 0.62;
 /** short cords (W14): frame 1 s hangs the lamps grouped close under the bough; 0.5–0.7 m, where
  *  the 1–1.2 m cords read as a widely spaced row far below a smooth limb */
-const CORDS = [0.7, 0.7, 0.68];
+const CORDS = [0.62, 0.655, 0.59]; // shortened with the wider sleeve so the pods keep their tuned A screen heights (0.5-0.7 m spec)
 /** knees: where the sleeve's underside sags below the giant's limb (s along from→to, metres,
  *  half-width in s); the two outer pods hang from the second and third */
 const KNEES = [
