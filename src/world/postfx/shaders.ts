@@ -569,8 +569,13 @@ void main() {
   // HSV saturation ≈ 0.35 but its foliage never runs to ours (0.45+), so saturation above the knee
   // is compressed toward it (hue and the max channel are kept)
   float smax = max( s.r, max( s.g, s.b ) );
-  float ssat = ( smax - min( s.r, min( s.g, s.b ) ) ) / max( smax, 1e-4 );
-  if ( ssat > uSatKnee.x ) {
+  float smin = min( s.r, min( s.g, s.b ) );
+  float ssat = ( smax - smin ) / max( smax, 1e-4 );
+  // the violets (palette.flowerPurple, the only hues here with green as the weakest channel) are
+  // as vivid in the reference as ours: the knee would fade their 256×144 footprint under W18's
+  // 0.3 % (measured 0.0029 compressed, 0.0037 exempt), so they keep their chroma
+  bool violet = s.g <= smin + 1e-4;
+  if ( ssat > uSatKnee.x && ! violet ) {
     float target = uSatKnee.x + ( ssat - uSatKnee.x ) * uSatKnee.y;
     s = mix( vec3( smax ), s, target / ssat );
   }

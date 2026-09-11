@@ -396,6 +396,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // just above the stone's saturation compresses what lies beyond it (video chroma compression):
     // 0.40 / 0.5 takes F's bank to 0.43 and its frame −0.017 at a cost of −0.017 on B's plaza; a
     // 0.36 knee cost the stone 0.03. The rest of the gap is the foliage albedo, not the grade.
+    // Violets (green the weakest channel) are exempt in the shader: W18's purple footprint on D.
     satKnee: 0.4,
     satSlope: 0.5,
     shadowTint: new Color(0.975, 0.985, 1.02),
