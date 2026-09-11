@@ -40,9 +40,24 @@ export interface ShaftColumn {
  *   (13.2, 8.0, −6.6), looked straight into them 4–5 m up-sun) and then along the plateau oak's second
  *   house bough, which is nearly parallel to the sun. 10 m further out along that ray the line
  *   clears the house by 5.9 m and the bough wood by 1.7 m, passes 5.6 m from the oak's axis below its
- *   fork, and lands on the upper plateau at ≈ (26, 5.4, −8) — screen (0.53, 0.32) in F. The left
- *   column's own line ends on Saria's roof 1.6 m down-sun of its air point (1.4 m from the house
- *   axis); it is open above the roof.
+ *   fork, and lands on the upper plateau at ≈ (26, 5.4, −8) — screen (0.53, 0.32) in F.
+ * - The left F column first sat at (10.4, 8.0, −11.4), whose line ended on Saria's roof 1.6 m
+ *   down-sun of its air point: its beam crossed the dome in shots A/B/F (A crown box (0.53–0.65,
+ *   0.1–0.24) 0.53 against the reference's 0.48; B house box (0.62–1, 0–0.35) 0.40 against 0.36),
+ *   where the reference keeps the house in canopy shade (A house box hue 59°, sat 0.19 — a shaded
+ *   grey-olive bank). Round 8 shades both houses with lobes 16–19 m up (trees CANOPY_BOUGHS) and
+ *   slides this column out along its own view ray — same entry (0.20, 0) in F, still down the
+ *   frame's left third — to 22 m depth, where its sun line passes the dome's east rim with 0.3–0.6 m
+ *   to spare (line 4.8 m from the axis at 6 m, 5.9 m at 5 m; beam radius 1.3) and lands on the
+ *   plateau lip at ≈ (17.9, 5.4, −11.0), by the plateau-north fence: A (0.72, 0.31), F (0.37, 0.27),
+ *   B (0.95, 0.26). Measured (same tree state): A crown box 0.53 → 0.50 (ref 0.48), B house box
+ *   0.40 → 0.38 (ref 0.36), F top-left strip (0.1–0.35, 0–0.2) 0.43 → 0.41. Sliding it to 26 m
+ *   depth instead (line landing at (22.9, 5.4, −12.6) behind the stair top) matched B exactly
+ *   (0.36) but left the beam at 8–12 m in the thin aerosol, so F's left shaft all but vanished
+ *   (strip 0.39) and A's crown fell to 0.44. Its carve cuts the east end of the eastmost Saria lobe
+ *   (which shades the dome's self-shaded south-east flank) and stays 3.9 m from the crown's own sun
+ *   line and 2.6 m from the upper cap's, so the roof shade mostly holds (crown probe 26 % open,
+ *   15 % without this carve; 93 % before the lobes).
  * - The middle F column's sun line lands on the upper run of the main stairs at ≈ (12.5, 4.2, −4.3)
  *   — shot A (0.74, 0.31). Reference A keeps those treads dappled (box (0.62–0.8, 0.3–0.4) p50
  *   0.38, p90 0.48) while a fully carved column lit them flat (p50 0.49, p90 0.60), so this one is
@@ -52,7 +67,7 @@ export const SHAFT_COLUMNS: ShaftColumn[] = [
   { point: [1.3, 6.6, -9.4], radius: 2.6 },
   { point: [-3.0, 8.0, -14.5], radius: 2.6 },
   { point: [5.0, 7.0, -17.0], radius: 2.6 },
-  { point: [10.4, 8.0, -11.4], radius: 1.3, carve: 1.7 },
+  { point: [13.3, 10.0, -14.6], radius: 1.3, carve: 1.7 },
   { point: [9.6, 6.9, -6.6], radius: 1.3, carve: 1.7, porosity: 0.5, cardPorosity: 0.4 },
   { point: [20.4, 11.2, -12.8], radius: 1.3, carve: 1.7 },
 ];
