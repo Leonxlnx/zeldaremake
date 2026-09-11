@@ -29,6 +29,7 @@ import { createBootArticulation } from './boot-articulation';
 import { createLinkCapArticulation } from './cap-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkSleeveStitches } from './sleeve-stitches';
+import { finishLinkSleeveThreadNormals, shapeLinkSleeveDrape } from './sleeve-drape';
 import { createLinkNeckline } from './neckline-geometry';
 import { createLinkCollarStitches } from './collar-stitches';
 import { createLinkLeatherMaterial } from './leather-material';
@@ -567,7 +568,12 @@ export function createLink(): Character {
   buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true, smoothJoints: true });
   for (const shoulder of [rig.shoulderL, rig.shoulderR]) {
     const sleeve = shoulder.getObjectByName('sleeve') as Mesh;
-    part(shoulder, createLinkSleeveStitches(sleeve.geometry), matte('clothThread'), 'sleeve-stitches', false);
+    const stitches = createLinkSleeveStitches(sleeve.geometry);
+    const side = shoulder === rig.shoulderL ? 1 : -1;
+    shapeLinkSleeveDrape(sleeve.geometry, side);
+    shapeLinkSleeveDrape(stitches, side);
+    finishLinkSleeveThreadNormals(stitches, side);
+    part(shoulder, stitches, matte('clothThread'), 'sleeve-stitches', false);
   }
   buildTorso(rig);
   buildNeck(rig, skin);

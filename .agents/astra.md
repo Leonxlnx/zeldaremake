@@ -4,12 +4,68 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T23:34:20.581076+00:00
+updated: 2026-09-11T23:54:20.961917+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Shoulder composition passed typecheck/build (145 modules) and the existing static-batching
+invariants:73→67 meshes,169,238 triangles,1,508,256 sampled vertices/normals exact,
+UV/material/shadow/disposal/boot/NPC checks passed. Publishing the narrow shoulder patch
+for actual01/02/03/14 review; source alone does not establish visual improvement.
+
+Integrating corrected shoulder drape89a97314 with narrow patcha4b6f86. Root read the full
+69433010 handoff and helper. Six-state garment contact sets/769 source join faces remain
+exact; lining contacts are covered, stitched endpoints stay sewn. The new opposing thread
+cap normals are fixed with verified incident-face hemispheres (83 normals only), preserving
+all positions/indices and1,522 protected thread normals. Weakest untouched dot.000248522
+is positive, not the stronger replacement margin. No per-frame cost or new triangles/draws.
+Composed validation and actual01/02/03/14 are next; no rendered shoulder-quality claim yet.
+
+Actual socket9c979e4 reviewed and sent to owner: progress archive73aceb3117cd87d6df4f33832c32a96b265bc3dd,
+folder progress/2026-09-11_234730-9c979e4; captured23:47:30.513UTC. Eighteen retained JPGs,
+42 motion states, source and empty diagnostics/zero retries verified. Front/profile/blink
+shows reduced raised pads, but circular rims remain. Scoped embedding improvement accepted.
+Next one scratch fresh Link-soft eye-anchor candidate X.046/Y.009, preserving yaw/aperture/
+pigment/timing and original hair. Actual brow/lid/fringe contacts and old/new socket-domain
+union are the gates; no late group translation or blind floating brow preservation.
+
+Independent Fable take0057 review completed: monitorb9130ca/source2920056, play51-file
+hash18e83cc2,57 valid chain links and previous56 entries/934 artifact blobs exact.
+Viewed A/D/F. Bark reads closer to muted reference; heavy limb/dome/paving still dominate.
+Only audit changes are buildMs. PR2 comment5641935115 returned findings. No world merge.
+
+### 2026-09-11 23:50 UTC — cap publication and next character pass
+
+Published cap motion as fb5355e9467db4ea10df78465f7042313d7f6c82;
+fetched tree bf1b99d116c1aa61698ca9e27b23c4574fe69250 matches the local commit.
+Source ZIP verified (14,317,651 bytes / 400 entries). PR5 refreshed.
+Actual b42562b hair gallery is archived at progress/2026-09-11_233145-b42562b
+in 5b77a0f6e59f98126046959b75057dadde3e803d. All 18 retained JPG hashes,
+three source records and 42 motion states checked. One face retry, no motion retries;
+no recorded errors, console errors or system failures. Four actual views and ZIP sent
+to owner. The profile stripe is gone; descending locks are a scoped improvement.
+The broad bare cheek, repetitive original hair forms and face proportions remain weak.
+
+Next: one head-fitted cap remesh (design fb3667fc) in scratch. It replaces the old shelf
+rather than freezing old rows, re-establishes crown coverage and includes the inherited
+head-turn grip contact. Static seated fit and later moving geometry checks are distinct.
+Shoulder correction protects the measured original garment-join domain; final thread
+cap normals are being finished against their actual incident-face hemispheres. No
+production shoulder edit until that check passes. Socket9c actual front/profile/blink
+capture remains pending; eye-anchor feasibility is read-only until that visual review.
+
+Movement P3 clears a bounded 288 ms paired-transfer numerical prefix and 640 sampled
+actual boot poses (4,135,680 referenced vertices, none below floor). This is not a whole
+running controller pass: next left touchdown at 418 ms and plan continuation remain.
+Earlier running-refusal checkpoint30862b stays published and reproducible.
+
+Fetched Fable cd33065 and read tick41 plus PR2. Fable is refining shaded trees, paving,
+house and actual-limb wrap. Shared WorldContext geometry is their new contract. PR2
+comment5641917385 gives our actual gallery and requests read-only C01 critique. No
+world/lighting adoption or other-agent edits. C01/C02/C03 still expire01:09 UTC.
 
 Composing progressive cap articulation f4da33c0 after independent16debf67 review on new
 hair/lid. Narrow Link import/setup/sync adapted to preserve newly integrated orbitalcall
