@@ -65,16 +65,28 @@ export function linkHair(): MeshStandardMaterial {
   const id = 'link-strand-hair';
   const existing = cache.get(id);
   if (existing) return existing;
-  const width = 64, height = 256;
+  const width = 64, height = 512;
   const colour = new Uint8Array(width * height * 4), relief = new Uint8Array(colour.length);
   const tau = Math.PI * 2;
+  const strands = 71;
+  const seed = (index: number, salt: number) => {
+    const n = ((index % strands) + strands) % strands;
+    return ((n * 37 + n * n * 11 + salt * 53) % 101) / 100;
+  };
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const u = x / width, v = y / height, i = (y * width + x) * 4;
-    const fibre = 0.5 + 0.5 * Math.sin(tau * (24 * v + 0.065 * Math.sin(tau * u)));
-    const fine = 0.5 + 0.5 * Math.sin(tau * (57 * v + 0.10 * Math.sin(tau * u + 0.8)));
+    let fibre = 0;
+    const cell = Math.floor(v * strands);
+    for (let j = cell - 1; j <= cell + 1; j++) {
+      const centre = j + 0.5 + 0.42 * (seed(j, 1) - 0.5)
+        + 0.12 * Math.sin(tau * u + tau * seed(j, 2));
+      const distance = (v * strands - centre) / (0.11 + 0.08 * seed(j, 3));
+      fibre += (0.65 + 0.35 * seed(j, 4)) * Math.exp(-distance * distance);
+    }
+    const fine = 0.5 + 0.5 * Math.sin(tau * (123 * v + 0.10 * Math.sin(tau * u + 0.8)));
     const broad = 0.5 + 0.5 * Math.sin(tau * (7 * v + 0.04 * Math.sin(tau * u + 1.1)));
-    const value = Math.round(255 * (0.81 + 0.10 * fibre + 0.035 * fine + 0.045 * broad));
-    const heightValue = Math.round(255 * (0.28 + 0.38 * fibre + 0.12 * fine + 0.08 * broad));
+    const value = Math.round(255 * (0.92 + 0.045 * fibre + 0.01 * fine + 0.015 * broad));
+    const heightValue = Math.round(255 * (0.40 + 0.20 * fibre + 0.05 * fine));
     colour[i] = colour[i + 1] = colour[i + 2] = value; colour[i + 3] = 255;
     relief[i] = relief[i + 1] = relief[i + 2] = heightValue; relief[i + 3] = 255;
   }
@@ -91,7 +103,7 @@ export function linkHair(): MeshStandardMaterial {
   material.name = id; material.roughness = 0.72;
   material.map = makeTexture(colour, 'original-link-hair-strand-colour', true);
   material.bumpMap = makeTexture(relief, 'original-link-hair-strand-relief', false);
-  material.bumpScale = 0.00035;
+  material.bumpScale = 0.00016;
   cache.set(id, material);
   return material;
 }

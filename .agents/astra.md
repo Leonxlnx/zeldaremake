@@ -4,12 +4,49 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T07:14:31Z
+updated: 2026-09-11T07:38:18Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Real terrain/createGround route stalls at(8.96493,-1.95396), y=-.132414m, just before
+stairAt begins u=-.05. First tread is+.30m: ~.432m rise. heightfield.ts blends ramp-.18
+from u=-.4 to-.02, while hardscape excludes flagstones ahead of the riser. Please inspect
+that entrance in your terrain/hardscape scope. My .305m authored-stair controller allowance
+handles later .30m treads; no arbitrary larger ledge limit. Auxiliary capture route records
+one real entrance jump, then actual grounded ascent/descent, no teleport. Layout untouched.
+
+2026-09-11T07:38:18Z: C03 now covers a reproduced authored-stair controller defect: the .28m ledge
+limit rejected layout's .30m treads before onStairs was checked. Root owns locomotion.ts:
+.305m allowance/snap only on stairs, existing ordinary and airborne ledge guards retained.
+Helper owns play-pose.ts/locomotion.test.mjs for doubled stair lift and shin/riser contact.
+Root integrates original rigid boot shaft articulation through Character.syncGeometry after
+posing/before shadow passes, plus a Link-only56mm smoother knee cap to cover thigh end edges.
+Helper proved +1mm minimum flat ground gap,7.62mm conservative shin lining clearance and
+unchanged soles; actual stair poses still need correction and rendered validation. No geometry
+stretching/clamping to disguise bad foot targets. Current whole-model triangle audit recounts
+actual geometry. Root also owns auxiliary real-input stair capture; fixed rubric cameras stay.
+
+Actuale8487c2 hair render succeeded (2e8727f,07:22:17 UTC): growth-direction lines appear,
+but spacing is too regular/coarse and reads corrugated up close. Root refines only the
+original material to finer, irregularly spaced fibres with lower contrast/relief; fitted
+geometry and NPCs remain unchanged. Lower cupped ears are implemented/tested but unrendered.
+Actual429128a local-light comparison succeeded (3bdcb86,07:22:28 UTC), all3 images inspected:
+large white/gold bloom streak is gone; restrained warm edges/ground glow remain. Exact restore
+hash repeats baseline; errors[]. This local point block can be handed back to Fable after
+recording the result; no self-issued W26 verdict or global light edit.
+
+Boot articulation: current rigid calf versus independently oriented boot cannot be corrected
+with static skin shortening; a mouth-fitted calf would stretch400–550mm instead of225mm.
+Helper owns only new boot-articulation.ts and probes: preserve original sole/lower shoe,
+articulate shaft/cuff/tongue/laces with calf, synchronize before shadow passes, reject inverted
+or implausibly stretched geometry. Root owns later Character/index integration. Movement
+source4a1b7ac is committed/published and stays unchanged during this geometric correction.
+Root meanwhile applies the validated low cupped-ear candidate in face-geometry.ts only;
+all3185 skull vertices/normals and buried root rings remain identical, so fitted eyes/hair
+are unchanged. Existing nose projection14.1mm stays. New ear silhouette needs actual capture.
+
 W26: Fablef472323 explicitly hands Astra only the lanternBranch.ts point-placement block.
 Matched actual diagnosticb2575d6 passed (f0cf005,07:05:08 UTC): hiding only this point removes
 the gold leaf/cord streak; baseline/restored PNG hashes are identical, errors[]. Implement a
@@ -430,6 +467,18 @@ The first continuous run captured all four poses but failed before video frames 
 - Before every major task: fetch, reread Fable's newest log/claims and PR activity, inspect changed files, document overlap.
 
 ## Known issues
+- Canonical take-0038 (a35c949,monitor35e93db) is INVALID: D1 says take-0037 timestamp
+  2026-09-11T05:57:32.248Z precedes0036. The concurrent publisher renumbered in-flight0036
+  to0037 but kept its earlier capture-start time. Its own CI succeeded; the subsequent check
+  detects the ordered-history defect. Preserve all entries; do not edit old timestamps or
+  weaken D1. Shared publisher/repair proposal requires coordination. Score23/50 is not a
+  passed gate. Correction after source inspection: E_ground intentionally repeats B_house
+  (layout.ts labels it the24s held camera); the identical image is expected. My initial
+  ground-view suspicion was mistaken and is corrected in the PR comment. Images preserved.
+- Boot geometry diagnosis found extreme held stairs where the upper calf frame reaches135deg
+  relative to the upright foot; rigidly following it puts a tongue point145mm into the tread.
+  Movement reviewer is checking whether the original knee/calf already intersects the step;
+  do not hide this with mesh clamps or claim sole-only contact tests prove whole-leg clearance.
 - structures/geometry.ts merge() drops indices when mixing indexed/nonindexed input, rather
   than expanding triangles. The new sign supplies an explicit index before merging, so it
   avoids this latent utility defect without rewriting shared geometry. No current existing
@@ -447,4 +496,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T07:14:31Z
+2026-09-11T07:30:31Z

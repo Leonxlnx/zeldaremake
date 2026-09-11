@@ -14,10 +14,10 @@ function pointedEar(radius: number, side: 1 | -1): BufferGeometry {
   // x/radius, y/k, z/k, vertical half-width/k, front/back half-thickness/k.
   const sections = [
     [0.86, 0.005, 0.016, 0.018, 0.010],
-    [1.01, 0.012, 0.010, 0.030, 0.010],
-    [1.17, 0.024, -0.004, 0.032, 0.010],
-    [1.32, 0.042, -0.027, 0.021, 0.006],
-    [1.40, 0.055, -0.047, 0.009, 0.0035],
+    [1.00, 0.007, 0.016, 0.024, 0.010],
+    [1.13, 0.012, 0.007, 0.024, 0.010],
+    [1.25, 0.023, -0.010, 0.014, 0.006],
+    [1.33, 0.031, -0.023, 0.006, 0.003],
   ];
   const radial = 16;
   const vertices: number[] = [], indices: number[] = [];
@@ -27,8 +27,12 @@ function pointedEar(radius: number, side: 1 | -1): BufferGeometry {
   sections.forEach(([x, y, z, halfHeight, halfDepth], section) => {
     for (let j = 0; j < radial; j++) {
       const angle = j / radial * Math.PI * 2;
+      // A shallow inner cup leaves a rounded rim and a closed back, while
+      // fading to zero at the buried root and the sideways-pointing tip.
+      const cup = 1.25 * halfDepth * Math.sin(Math.PI * (x - 0.86) / (1.39 - 0.86)) ** 2
+        * Math.max(0, Math.sin(angle)) ** 2;
       vertices.push(side * x * radius, (y + halfHeight * Math.cos(angle)) * k,
-        (z + halfDepth * Math.sin(angle)) * k);
+        (z + halfDepth * Math.sin(angle) - cup) * k);
       if (section < sections.length - 1) {
         const a = section * radial + j, b = a + radial;
         const c = section * radial + (j + 1) % radial, d = c + radial;
@@ -37,7 +41,7 @@ function pointedEar(radius: number, side: 1 | -1): BufferGeometry {
     }
   });
   const tip = vertices.length / 3;
-  vertices.push(side * 1.47 * radius, 0.067 * k, -0.059 * k);
+  vertices.push(side * 1.39 * radius, 0.036 * k, -0.032 * k);
   const root = vertices.length / 3;
   vertices.push(side * sections[0][0] * radius, sections[0][1] * k, sections[0][2] * k);
   const last = (sections.length - 1) * radial;
