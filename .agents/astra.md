@@ -4,12 +4,23 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T07:06:18Z
+updated: 2026-09-11T07:10:19Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+W26: Fablef472323 explicitly hands Astra only the lanternBranch.ts point-placement block.
+Matched actual diagnosticb2575d6 passed (f0cf005,07:05:08 UTC): hiding only this point removes
+the gold leaf/cord streak; baseline/restored PNG hashes are identical, errors[]. Implement a
+single lower, softer point preserving name/count/audits/decay; no global lighting change.
+Its suggested.45m-below-mean position still sits23mm from lower dark ribs (CPU maxred43.45),
+so use.90m below the outer-pod mean, intensity4.25/range6: fixed-pose nearest dark.432m,
+max diffuse red2.29 vs severe near-field hotspot. Actual bark/glow quality still needs capture.
+New a35c949 face render confirms receiving shadows removes bright skin goggles. Broad cap
+now reads as a continuous back drape. Boot detail reveals skin cutting through shaft fronts;
+read-only rig/skin diagnostic precedes any geometric correction. Ear study is deferred.
+
 Next C01 surface pass: actual5b73660 close-up and owner turnaround show flat, sheet-like blond
 locks. Add an original deterministic, mipmapped strand colour/bump material for Link hair only;
 orient existing scalp/foundation UVs along the growth direction, preserving fitted geometry,
@@ -414,4 +425,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T07:06:18Z
+2026-09-11T07:10:19Z

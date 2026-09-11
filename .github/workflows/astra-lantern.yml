@@ -2,7 +2,7 @@ name: Astra lantern diagnosis
 on:
   push:
     branches: ['agent/astra-link-movement']
-    paths: ['gauntlet/scripts/capture-lantern-study.mjs', '.github/workflows/astra-lantern.yml']
+    paths: ['gauntlet/scripts/capture-lantern-study.mjs', '.github/workflows/astra-lantern.yml', 'src/world/structures/lanternBranch.ts']
   workflow_dispatch:
 permissions:
   contents: write
