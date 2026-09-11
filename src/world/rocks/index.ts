@@ -9,7 +9,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { buildRock } from './rockgen';
 import { createRockMaterial } from './material';
-import { BOULDER_PACKS, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../hardscape/sprouts';
+import { BOULDER_PACKS, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
 const _m = new Matrix4();

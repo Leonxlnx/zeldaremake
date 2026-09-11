@@ -8,7 +8,7 @@
  */
 import { Color, Float32BufferAttribute, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
 import type { Rng } from '../util/prng';
-import { JOINT_SOIL, JOINT_SOIL_MID } from './joints';
+
 
 /**
  * the seam fill's vertex albedo at the damp noise's mean: soil.lerp(soilMid, 0.3). Each pebble
@@ -16,7 +16,12 @@ import { JOINT_SOIL, JOINT_SOIL_MID } from './joints';
  * (joints.ts `jointFillLift`) and jittered ± 15 %, so it stays within ± 15 % of the fill it
  * sits on — relief in the seam, not pale specks on it.
  */
-export const SEAM_GRIT_TONE = new Color(JOINT_SOIL).lerp(new Color(JOINT_SOIL_MID), 0.3);
+/** Grit tone from a seam's soil colours (the caller owns the soil palette; hardscape passes its joints). */
+export function seamGritTone(soil: number | string | Color, soilMid: number | string | Color): Color {
+  return new Color(soil).lerp(new Color(soilMid), 0.3);
+}
+/** Neutral fallback when no seam palette is given (mid grey-brown). */
+export const DEFAULT_GRIT_TONE = new Color(0x8a7458);
 
 export function buildGritGeometry(rng: Rng, tone: Color): BufferGeometry {
   // detail 0: 20 triangles — a 2–4 cm pebble is a handful of pixels even from camera E

@@ -1,4 +1,9 @@
 /**
+ * Shared small-plant instancing (tufts, clover, moss cushions, fern fronds, seam grit) with variant
+ * packs: one InstancedMesh per pack, non-selected variants collapsed in the vertex shader. Lives in
+ * materials/ because hardscape (joint sprouts) and rocks (boulder cap plants) both build with it —
+ * systems must not import each other's internals (AGENTS.md rule 1).
+ *
  * Joint sprouts (W21): small grass / weed tufts growing out of flagstone and stair joints, plus
  * the moss cushions and the seam grit that live in the same joints. Geometry blades (no alpha
  * cards), GPU instanced, animated with the shared wind model's `windGrass` so they ripple with
@@ -22,7 +27,7 @@ import type { Rng } from '../util/prng';
 import type { Wind } from '../wind/wind';
 import { WIND_GLSL } from '../wind/wind';
 import type { WorldConfig } from '../config';
-import { SEAM_GRIT_TONE, buildGritGeometry } from './grit';
+import { DEFAULT_GRIT_TONE, buildGritGeometry } from './grit';
 
 export interface SproutSpot {
   x: number;
@@ -422,7 +427,7 @@ function packGeometries(geos: BufferGeometry[]): BufferGeometry {
   return g;
 }
 
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS): SproutBuild {
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color } = {}): SproutBuild {
   // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
   // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
   const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
@@ -438,7 +443,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     buildClover(rng.fork('clover'), 0.05, deep, light),
     buildCushion(rng.fork('cushion'), mossDeep, mossBright),
     buildFrond(rng.fork('fern'), 0.2, new Color(config.palette.grassDeep), new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.3)),
-    buildGritGeometry(rng.fork('grit-geo'), SEAM_GRIT_TONE),
+    buildGritGeometry(rng.fork('grit-geo'), opts.gritTone ?? DEFAULT_GRIT_TONE),
   ];
   const variantOf = (s: SproutSpot) => (s.kind === 'cushion' ? CUSHION : s.kind === 'fern' ? FERN : s.kind === 'grit' ? GRIT : s.size > 0.7 ? TUFT_B : s.size > 0.42 ? TUFT_A : s.size > 0.2 ? TUFT_C : CLOVER);
   const lists: SproutSpot[][] = variants.map(() => []);

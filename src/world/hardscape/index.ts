@@ -9,7 +9,9 @@ import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, placeFlagstones, type PavingContext } from './flagstones';
 import { buildJointMesh, jointFillLift } from './joints';
-import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
+import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
+import { seamGritTone } from '../materials/grit';
+import { JOINT_SOIL, JOINT_SOIL_MID } from './joints';
 import { smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
 
@@ -187,7 +189,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
-  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS);
+  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID) });
   for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 
