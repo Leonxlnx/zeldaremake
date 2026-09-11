@@ -1,6 +1,6 @@
 {
-  "source": "c754e18c7b9e8d5ca3f547646102cd0c7e9bee4d",
-  "capturedAt": "2026-09-11T08:51:57.619Z",
+  "source": "89685610de0f867bcd257ddfe4ac44c8d7b791ec",
+  "capturedAt": "2026-09-11T09:02:49.715Z",
   "captures": [
     {
       "name": "01-idle",
@@ -167,7 +167,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "3109656c0c3989cc2defda503a72459f5ef4dfc64a8031957a490a2ad4afdc7b"
+      "sha256": "81794cccbcedd0b45724ca41e35f55e36e0b4b3e682e2fccb0c94438141d270f"
     },
     {
       "name": "02-walk",
@@ -337,7 +337,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "abf4e28502bc6f8a9415bb0edd873f36e0fe27d5fae7ff39a5eeb3d9d3d6e26a"
+      "sha256": "1ea8d784ff3178f98a49bd48ea14f31f287b4880f237ce4902c3aad020a5ff34"
     },
     {
       "name": "03-run",
@@ -516,7 +516,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "32d8a43f658858133d2148a54827f326c97750b840503d331cf42eb0e9676d23"
+      "sha256": "58ceed48fd07caec32ca72fa285f61028763ffb6db772f36b34c73d8d7776643"
     },
     {
       "name": "04-jump",
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "463b2b7c4a8a0213352522713e29a9f71e9b3e134f28ad008f6ac1382e4e89ba"
+      "sha256": "dde34de9af29a0694b314f16ac6abd0cfe35a4b98d12babf14d6986ac3dddf30"
     },
     {
       "name": "05-outfit-back",
@@ -863,7 +863,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "71b268f0292bc830b2d456943922d3102ca260627d2cda1c28a234d88ab6b2e3"
+      "sha256": "85430ee3b5bc20adc09763f989e395ee05c158f0e651776cbe39f39826924dd6"
     },
     {
       "name": "06-face-detail",
@@ -1031,7 +1031,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "9c9066faa4c22a785c70addd29edab66df89630bb77665c121e9b2fe29f7195e"
+      "sha256": "7f083a07dda9e0f6078a9d3f09a16ec99aaf8a06d464ff5b44dfe14f0d0a2f08"
     },
     {
       "name": "07-leaf-lantern",
@@ -1507,8 +1507,8 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 465,
-        "triangles": 6378099,
+        "drawCalls": 463,
+        "triangles": 6374741,
         "geometries": 577,
         "textures": 73,
         "programs": 67,
@@ -1691,7 +1691,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "77905626e5cb5cfa23d07e47b434fb5eb2eb75f986514e0395811ba6071f4696"
+      "sha256": "48e153437682c3aa2fee0e3a451b426ddc9e4469efb592d8da291d7143ea195d"
     }
   ],
   "errors": []
