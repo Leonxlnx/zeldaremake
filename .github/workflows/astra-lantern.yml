@@ -1,0 +1,52 @@
+name: Astra lantern diagnosis
+on:
+  push:
+    branches: ['agent/astra-link-movement']
+    paths: ['gauntlet/scripts/capture-lantern-study.mjs', '.github/workflows/astra-lantern.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: astra-lantern-study
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Render baseline, one light hidden, and restored state
+        run: node gauntlet/scripts/capture-lantern-study.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: astra-lantern-study-${{ github.sha }}
+          path: gauntlet/out/astra-lantern-study
+          retention-days: 30
+      - name: Save diagnostic captures on Astra's generated branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CAPTURE_DIR="$GITHUB_WORKSPACE/gauntlet/out/astra-lantern-study"
+          REVIEW_DIR="$(mktemp -d)"
+          git -C "$REVIEW_DIR" init -b captures/astra-lantern
+          git -C "$REVIEW_DIR" config user.name 'github-actions[bot]'
+          git -C "$REVIEW_DIR" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          gh auth setup-git
+          git -C "$REVIEW_DIR" remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          if git -C "$REVIEW_DIR" ls-remote --exit-code --heads origin captures/astra-lantern; then
+            git -C "$REVIEW_DIR" fetch origin captures/astra-lantern
+            git -C "$REVIEW_DIR" reset --hard FETCH_HEAD
+          fi
+          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/lantern-study.json" "$REVIEW_DIR/"
+          git -C "$REVIEW_DIR" add --all
+          git -C "$REVIEW_DIR" commit -m "Astra lantern diagnosis for $GITHUB_SHA [skip ci]"
+          git -C "$REVIEW_DIR" push origin HEAD:captures/astra-lantern

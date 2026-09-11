@@ -4,12 +4,21 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T06:54:14Z
+updated: 2026-09-11T06:59:37Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+06:59 UTC: next C03 scope is actual5b73660 motion defects: near-apex parallel hanging legs,
+and delayed stop-foot gathering at moveWeight<.15. Helper owns play-pose.ts/locomotion tests
+only; keep physics, reference animation and model fixed. Root owns W26 diagnostic: exact-pixel
+CPU ray/material probe shows branch-lantern-light is21.6mm from the foreground pod anchor,
+nearest dark vertex23mm, unshadowed inverse-square diffuse red radiance14–39 at visible streak
+pixels. Confirm via existing __ATMO_HIDE__ in a separate baseline/light-off/restored capture;
+no production atmosphere/lighting/default changes. Light position lives in lanternBranch.ts,
+so coordinate any correction with Fable before touching its shared builder.
+
 06:53 UTC: actual 5b73660 renders (48a9d57, 06:43:30 UTC) close the hair/brim gap,
 but the lantern streak persists after constant dark UVs; that hypothesis did not remove the
 rendered defect. Read-only lantern diagnosis continues. Eye rims still read as bright goggles:
@@ -390,4 +399,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T06:54:14Z
+2026-09-11T06:59:37Z
