@@ -4,12 +4,75 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T21:20:52.772197Z
+updated: 2026-09-11T22:09:46.392692+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Integrating reviewed under-ear alternative: link66e60ad0 / sideburn7e1f8279 /
+under-ear helperadeb0074. Independent handoffe08c545f proves two closed positive shells,
+no self-crossing, six finite joins (short lock/carrier/outer nape each side), old18 charts
+exact to intended baselines (15/17 restored8efd; other16 b079),91 nodes/278nonhair arrays
+exact. Neutral nearestguard34.405mm/scabbard64.057mm/cap54.721mm/collar127.354mm.
+New hair totals8460v/16840tri/20charts, +1792tri/no draws. Thin returns have128 undefined
+UV triangles per shell, existing chart convention; visible outer charts defined.
+Candidate build141modules/staticbatch71→65/111226tri pass. Actual hair silhouette is
+pending; only published actual renderer evidence can judge whether it fixes the loop.
+
+Movement recovery checkpoint preserved on isolated branchagent/astra-motion-recovery-checkpoint
+commita602a6cf0c9e916ec34a558cccf595bba97d3584, treee17d974f797bef45ce55e12ab39d503b43ea1220.
+34 recovery/doc files, production source remains exactb079. Typecheck/build passed.
+PR2comment5641204368 confirms Fable569 fixes and flags remaining execSync path quoting;
+also gives actualb079gallery and honest hair/face limitations. Claims renewed until01:09:46UTC.
+
+
+Actual b0799bb eye/collar capture verified: archive 3b5a4ad19bd3639f995de6c31cda7b532be404cb,
+progress/2026-09-11_213849-b0799bb, captured21:38:49.832Z. All18 retained JPG hashes
+match capture-sources.json (original PNG hashes are separate, PNG bytes absent), all
+source metadata b079,42 sequence states, console/errors/systemFailures empty. Environment
+map present, intensity.57/hemi.95/sun3.1. Root viewed06/12/17/18: physical pupil stays
+round through blink; face still doll-like and cap stiff, hair C-loop remains visibly bad.
+Fouractuals +5,125,980byte23entryZIP/gallery delivered; no final facial acceptance.
+
+Recovery22:04UTC found no internal agent processes. Restarted bounded movement, tunic,
+cap and capture/Fable reviews from existing scratch artifacts, without duplicating finished
+work. External Fable latest569c5d3 at21:27:07; PR2 response21:27:30 confirms prior fixes.
+No direct visibility into its Cursor runtime. Its world tasks remain trees10/structures9b.
+
+Under-ear hair first construction: restore short locks8efd; new900v/1792triangles in two
+closed charts appended last. Skin minimum.75495mm, ears19.635mm; positive volume and
+opposite edge winding, finite normals, actual intersections with short locks/carrier/nape.
+Independent finite join/preservation review pending; actual appearance not yet rendered.
+
+Recovered cap first candidate is REJECTED: actual129.7deg face reversal,136.8deg crease,
+plus exposed3.2363mm carrier crossing. Negative tube-cap normal metric was not proof of
+new thread folding (baseline already worse). One compact C2 ring translation now keeps
+protected rows/X exact and restores shell gate; neutral contact review pending, UV scaling
+changes explicitly reported. Tunic rigid payload clears pockets but exposes retained side
+cloth/thigh intersections; held. Movement angular correction advances walk to27/run14,
+then refuses with exact rollback; next coupled outgoing reserve proposal pending.
+
+Preserving previous failed movement viability checkpoint on separate own branch under
+experiments/astra/, leaving its playable production source atb079.21 source overlay files,
+exact basef1155953, hashes and replay witnesses. This is recovery material, not a release.
+
+
+Actual bde7184 hair reviewed at21:27:46.967 capture: archivef6dc5b5/progress/
+2026-09-11_212746-bde7184,18hashes/42states/errors[] verified. Environment map is
+present; all18systemFailures, consoleWarnings and consoleErrors are empty.
+Root06/12/15/16: connected short lock makes an unnatural long C/loop under the ear;
+the bare side wedge remains. This shape is visually HELD, not accepted as natural.
+Fouractuals/gallery/5,123,009byteZIP delivered. These images predateb079 eye/collar.
+
+Root is constructing one under-ear hair alternative in scratch: restore pre-loop
+short temple locks, add a shallow connected hair mass below the actual ears that
+joins their lower sides to existing nape. This replaces the long dangling bridge
+with a close scalp layer. Keep all existing scalp/nape/frontal geometry, add new
+charts LAST to preserve earlier pigment origins, actual ear/skin contact gates.
+New helper + narrow Link addition + restored sideburn source; no materials, facial
+geometry or NPC changes. Cap agent continues pinnedbde pending later composition.
 
 Publishedbde718448222247069f89c6cccfd6f1c515e2188, treefff241729ae5234dfcd1552d80c53d38837bcee1:
 connected hair plus capture lighting/console metadata. Own branch fetched/tree-equal,
@@ -1438,4 +1501,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T19:42:45.326601Z
+2026-09-11T22:09:46.392692+00:00

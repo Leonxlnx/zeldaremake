@@ -1,8 +1,7 @@
 /** Original Link-only swept temple locks, fitted to the unchanged skull. */
-import { BufferGeometry, CatmullRomCurve3, CubicBezierCurve3, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
 import { createLinkFaceGeometry } from './face-geometry';
 import { merge } from './geometry';
-import { linkLowerHairJoins } from './scalp-geometry';
 
 // Match the scalp fitter: the largest connected component is the skull. Separate
 // pointed ears must not pull a hair lock out over the ear as it sweeps backward.
@@ -32,7 +31,6 @@ function skullSurface(radius: number): BufferGeometry {
 export function createLinkSideburnLocks(radius: number): BufferGeometry {
   if (!Number.isFinite(radius) || radius <= 0) throw new RangeError('Link hair radius must be positive and finite');
   const k = radius / .125, arcRadius = .115, steps = 26, radial = 12;
-  const lowerJoins = linkLowerHairJoins(radius);
   const surfaceGeometry = skullSurface(radius), material = new MeshBasicMaterial();
   const surface = new Mesh(surfaceGeometry, material); surface.updateMatrixWorld(true);
   const ray = new Raycaster(), direction = new Vector3();
@@ -51,30 +49,12 @@ export function createLinkSideburnLocks(radius: number): BufferGeometry {
   try {
     for (const side of [1, -1]) for (const [which, lock] of locks.entries()) {
       const curve = new CatmullRomCurve3(lock.path.map(([angle, y]) => new Vector3(side * angle * arcRadius, y, 0)), false, 'centripetal', .5);
-      // Keep the actual first eleven rows, not just their original controls.
-      // The retained tenth row guards the normals of rows zero through nine.
-      const rootEnd = 10 / steps, anchor = curve.getPoint(rootEnd);
-      const join = lowerJoins[side > 0 ? 0 : 1];
-      const joinAngle = Math.atan2(join.x, join.z), joinY = join.y / k;
-      const lower = which === 1 ? new CubicBezierCurve3(anchor,
-        anchor.clone().addScaledVector(curve.getTangent(rootEnd).normalize(), .075),
-        new Vector3(side * 1.45 * arcRadius, -.090, 0),
-        new Vector3(joinAngle * arcRadius, joinY, 0)) : null;
-      const joinSkin = skinAt(joinAngle, joinY);
-      const joinOffset = join.clone().sub(joinSkin.point.addScaledVector(joinSkin.normal, .00035 * k));
       const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
       let rootCentre = new Vector3();
       for (let row = 0; row < steps; row++) {
-        const t = row / steps, u = (t - rootEnd) / (1 - rootEnd), changed = lower !== null && row > 10;
-        const centre = changed ? lower.getPoint(u) : curve.getPoint(t);
-        const tangent = (changed ? lower.getTangent(u) : curve.getTangent(t)).normalize();
+        const t = row / steps, centre = curve.getPoint(t), tangent = curve.getTangent(t).normalize();
         const across = new Vector3(-tangent.y, tangent.x, 0);
-        let halfWidth = lock.width;
-        if (changed) {
-          const blend = Math.max(0, Math.min(1, (u - .30) / .40));
-          halfWidth += .007 * blend * blend * (3 - 2 * blend);
-        }
-        const width = halfWidth * (.40 + .65 * Math.sin(Math.PI * t)) * Math.sqrt(1 - t ** 2.2);
+        const width = lock.width * (.40 + .65 * Math.sin(Math.PI * t)) * Math.sqrt(1 - t ** 2.2);
         const depth = .0012 * (1 - t) + lock.depth * Math.sin(Math.PI * t) ** 1.15;
         if (row === 0) {
           const sample = skinAt(centre.x / arcRadius, centre.y);
@@ -85,10 +65,6 @@ export function createLinkSideburnLocks(radius: number): BufferGeometry {
           const sample = skinAt((centre.x + across.x * width * Math.cos(theta)) / arcRadius,
             centre.y + across.y * width * Math.cos(theta));
           const p = sample.point.addScaledVector(sample.normal, (.00035 + depth * (1 + Math.sin(theta)) * .5) * k);
-          if (changed) {
-            const blend = Math.max(0, Math.min(1, (u - .65) / .35));
-            p.addScaledVector(joinOffset, blend * blend * (3 - 2 * blend));
-          }
           positions.push(p.x, p.y, p.z); uvs.push(t, (1 + Math.cos(theta)) * .5);
         }
       }
@@ -98,9 +74,8 @@ export function createLinkSideburnLocks(radius: number): BufferGeometry {
       }
       const root = positions.length / 3; positions.push(...rootCentre.toArray()); uvs.push(0,.5);
       for (let j = 0; j < radial; j++) indices.push(j,root,(j + 1) % radial);
-      const end = (lower ?? curve).getPoint(1), sample = skinAt(end.x / arcRadius, end.y), tip = positions.length / 3;
-      const tipPoint = lower ? join : sample.point.addScaledVector(sample.normal, .00035 * k);
-      positions.push(...tipPoint.toArray()); uvs.push(1,.5);
+      const end = curve.getPoint(1), sample = skinAt(end.x / arcRadius, end.y), tip = positions.length / 3;
+      positions.push(...sample.point.addScaledVector(sample.normal, .00035 * k).toArray()); uvs.push(1,.5);
       for (let j = 0; j < radial; j++) indices.push((steps - 1) * radial + j,(steps - 1) * radial + (j + 1) % radial,tip);
       const geometry = new BufferGeometry();
       geometry.name = `link-sideburn-${side > 0 ? 'left' : 'right'}-${which === 0 ? 'long' : 'short'}`;

@@ -22,6 +22,7 @@ import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
 import { createLinkFringeLocks } from './fringe-geometry';
 import { createLinkSideburnLocks } from './sideburn-geometry';
+import { createLinkUnderEarHair } from './under-ear-hair';
 import { createLinkScalpAndNape } from './scalp-geometry';
 import { createArmArticulation } from './arm-articulation';
 import { createBootArticulation } from './boot-articulation';
@@ -262,6 +263,7 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
       createLinkFringeLocks(r),
       // Unequal rounded temple locks replace the old broad side strips.
       createLinkSideburnLocks(r),
+      createLinkUnderEarHair(r),
     ];
     const geometry = merge(parts);
     normalizeLinkHairUVs(geometry);
