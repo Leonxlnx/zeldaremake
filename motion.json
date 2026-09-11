@@ -1,6 +1,6 @@
 {
-  "source": "45ed76dce4a2551d60074c25bf7d21f10e2124b8",
-  "capturedAt": "2026-09-11T09:17:11.775Z",
+  "source": "61ac07ede73e23a6189b24e1127be3abee1b153e",
+  "capturedAt": "2026-09-11T09:22:34.641Z",
   "captures": [
     {
       "name": "01-idle",
@@ -157,11 +157,11 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 526,
-        "triangles": 6429327,
+        "drawCalls": 528,
+        "triangles": 6428003,
         "geometries": 513,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -327,11 +327,11 @@
       },
       "stats": {
         "simTime": 13.399999999999949,
-        "drawCalls": 525,
-        "triangles": 6382820,
+        "drawCalls": 527,
+        "triangles": 6381496,
         "geometries": 515,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -506,11 +506,11 @@
       },
       "stats": {
         "simTime": 13.19999999999996,
-        "drawCalls": 538,
-        "triangles": 6241059,
+        "drawCalls": 540,
+        "triangles": 6239735,
         "geometries": 517,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -679,11 +679,11 @@
       },
       "stats": {
         "simTime": 12.799999999999983,
-        "drawCalls": 578,
-        "triangles": 6439766,
+        "drawCalls": 580,
+        "triangles": 6438442,
         "geometries": 525,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -853,17 +853,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 548,
-        "triangles": 6349665,
+        "drawCalls": 550,
+        "triangles": 6348341,
         "geometries": 550,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "4091cc698f46ffe5e621a59c93b57ae140303873ca9114fc9d1efa09974e5269"
+      "sha256": "2d3173f55a0afb076c49449630e5d1bae3d2a9aee9e0c80c3a30a22461e869a8"
     },
     {
       "name": "06-face-detail",
@@ -1021,11 +1021,11 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 483,
-        "triangles": 6307758,
+        "drawCalls": 485,
+        "triangles": 6306434,
         "geometries": 553,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1180,11 +1180,11 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 452,
-        "triangles": 6221050,
+        "drawCalls": 454,
+        "triangles": 6219726,
         "geometries": 565,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1339,17 +1339,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 458,
-        "triangles": 6120987,
+        "drawCalls": 466,
+        "triangles": 6123607,
         "geometries": 577,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "c73edf4b0d026dc2860c5960142ec20a0a412af44381a0d7204f4119842e67a1"
+      "sha256": "d717bd2a2beb596ee11664541261140b26024cc69eed6e4b4aa4aef3a4f964a3"
     },
     {
       "name": "09-boot-detail",
@@ -1507,11 +1507,11 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 463,
-        "triangles": 6373717,
+        "drawCalls": 465,
+        "triangles": 6372393,
         "geometries": 577,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1681,11 +1681,11 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 540,
-        "triangles": 6283840,
+        "drawCalls": 542,
+        "triangles": 6282516,
         "geometries": 581,
-        "textures": 74,
-        "programs": 67,
+        "textures": 73,
+        "programs": 66,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
