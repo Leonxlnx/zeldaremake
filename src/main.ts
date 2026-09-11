@@ -145,7 +145,9 @@ async function boot() {
     if (e.code === 'KeyP') setPlayMode(!follow?.enabled);
   });
   dev.classList.toggle('hidden', !devVisible);
-  if (params.get('mode') === 'play') setPlayMode(true);
+  // The walkable build boots in play mode (you are Link); `?mode=free` (or P) gives the free camera
+  // used for authoring. Headless captures never enter play mode.
+  if (params.get('mode') !== 'free') setPlayMode(true);
 
   const loop = () => {
     if (!headless) {
@@ -163,7 +165,9 @@ async function boot() {
           dev.textContent =
             `${fps.toFixed(0)} fps · ${info.calls} draws · ${(info.triangles / 1e6).toFixed(2)}M tris\n` +
             `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${quality.tier}\n` +
-            `WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play (follow cam) · H hide`;
+            (follow?.enabled
+              ? `PLAY: WASD / arrows walk · Shift run · drag to look · Tab equipment · P free camera · H hide`
+              : `FREE CAM: WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play as Link · H hide`);
         }
       }
       requestAnimationFrame(loop);
