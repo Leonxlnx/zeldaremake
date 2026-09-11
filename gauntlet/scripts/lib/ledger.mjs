@@ -126,6 +126,16 @@ export function mergeLedgers(base, local) {
       content.id = next.id;
       content.number = next.number;
     }
+    // Concurrent publishers: an entry that started (or was imported with an `at`) before the entry
+    // now at the chain's head is appended AFTER it, so `at` — the chain's ordering time — moves to
+    // just after the head's while the original capture/record time is kept in `capturedAt`. This
+    // happens before sealing (the hash covers the final values); sealed entries are never touched.
+    const head = merged.entries[merged.entries.length - 1];
+    if (head?.at && content.at && Date.parse(content.at) <= Date.parse(head.at)) {
+      content.capturedAt = content.capturedAt ?? content.at;
+      content.at = new Date(Date.parse(head.at) + 1000).toISOString();
+      content.resequenced = true;
+    }
     const sealed = appendEntry(merged, content);
     appended.push(sealed.id);
     if (sealed.id !== e.id || sealed.hash !== e.hash) rebased.push(`${e.id}${sealed.id !== e.id ? `→${sealed.id}` : ''}`);
