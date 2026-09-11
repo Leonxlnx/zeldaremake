@@ -33,6 +33,7 @@ import { createLinkCapCrown } from './cap-geometry';
 import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
 import { createLinkStrapBuckle } from './strap-buckle-geometry';
+import { createLinkPouch } from './pouch-geometry';
 import { finishLinkLeatherStrap } from './strap-surface';
 
 export interface Character {
@@ -389,12 +390,14 @@ function buildTorso(rig: Rig): void {
     { segments: 72, scaleZ: 0.8, scallops: 18, scallopDepth: 0.010, folds: 3, foldDepth: 0.05 },
   );
   part(rig.hips, skirt, tunic, 'tunic-skirt');
-  // belt pouch on the left hip with a flap
-  const pouch = merge([
-    place(new BoxGeometry(0.07, 0.06, 0.04), 0, -0.03, 0),
-    place(new BoxGeometry(0.074, 0.028, 0.046), 0, 0.005, 0.002),
-  ]);
-  part(rig.hips, place(pouch, 0.105, hl(0.6), 0.03, [0, 0.55, 0]), matte('leatherDark'), 'pouch');
+  // Rounded satchel stays inside the original two-box pouch envelope.
+  const pouch = createLinkPouch();
+  const pouchLeather = createLinkLeatherMaterial(matte('packLeather'), [1, 1]);
+  const closureLeather = createLinkLeatherMaterial(matte('leather'), [1, 1]);
+  part(rig.hips, place(pouch.leather, .105, hl(.6), .03, [0, .55, 0]), pouchLeather, 'pouch');
+  part(rig.hips, place(pouch.closure, .105, hl(.6), .03, [0, .55, 0]), closureLeather, 'pouch-closure');
+  part(rig.hips, place(pouch.stitches, .105, hl(.6), .03, [0, .55, 0]), matte('leatherStitch'), 'pouch-stitches');
+  part(rig.hips, place(pouch.stud, .105, hl(.6), .03, [0, .55, 0]), matte('buckle'), 'pouch-stud');
   // Pale undershirt behind two folded collar flaps, open at the front of the neck.
   const undershirt = part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.045, 16), 0, cl(0.8325), 0), matte('undershirt'), 'undershirt');
   garmentSurfaces.push(new Mesh(undershirt.geometry, matte('undershirt')));

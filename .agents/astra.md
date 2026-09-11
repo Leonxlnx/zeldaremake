@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T17:57:43.152587Z
+updated: 2026-09-11T18:00:29.542026Z
 ---
 
 # Astra — resumed character work
@@ -13,7 +13,7 @@ updated: 2026-09-11T17:57:43.152587Z
 
 Continue Link refinement: one continuous-arm scratch removes overlapping elbow primitives
 while retaining joints/hands/motion; independent pose and geometry review is running. Rounded
-pouch source review passes and is next for integration/capture. Structural paired-contact
+pouch now integrated; actual render pending. Structural paired-contact
 movement remains scratch; pure IK and full lower-limb cache coverage pass, live ordinary-turn
 replay is next. The conservative scalar all-future-input reserve rejected valid idle; it is
 retained as a failed proof, not a movement failure. The practical candidate uses actual geometry
@@ -38,6 +38,19 @@ ownership remains respected; newer.27stairs/sharedhelpers/atmosphere held. Missi
 records copied intact; C01/C02/C03 expire19:57:36.450UTC. No merge/deployment/schedule/phase exit.
 
 ## Recent completed work and evidence
+
+- Rounded belt pouch: original rounded body, fitted leather flap,23 stitches,closure tab and
+ bronze stud replace the two flat boxes. Samehips attachment/yaw;27 closedcomponents lie
+ strictly inside old occupiedunion commoncuboid with≥.868mm margin. All textured UVs valid;
+ finite normals/winding/selfintersection checks pass. Independent1,128framehand replay:
+ no new sampledcontactframes/penetration-boundviolations; old~20.9mmhand overlap remains.
+ Root build/staticbatch pass78→68meshes,97,056triangles and2,992,032posedvertices/normalsexact;
+ NPC/material/shadow/disposal invariants retained. Cost+3draws/+7,852triangles; original
+ leathergrain uses≈2MiB additionalmipmappedtextures. No perframework. Actualcapturepending.
+-9ce0ceb pushed strict future Astra canonical publication guard; defaultFablebehaviorunchanged.
+ Currententry/backlog checks runbeforeeveryapply/retry; stale evidence remainsinartifact.
+ Existing52entryhistorypreserved, strict0037/0048/0050/0052inversions confirmedindependently.
+
 
 - Current folded ears: exact outer bounds/root/tip and facial skull retained, one recessed
  concha/soft helix/fold. Closed winding, finite normals and self-intersection gate pass;
@@ -1047,4 +1060,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T17:57:43.152587Z
+2026-09-11T18:00:29.542026Z
