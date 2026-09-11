@@ -3,6 +3,11 @@ on:
   push:
     branches: ['agent/astra-link-movement']
   workflow_dispatch:
+    inputs:
+      sequence:
+        description: 'Also capture a continuous motion clip'
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -14,6 +19,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -22,9 +29,23 @@ jobs:
       - run: node src/world/character/locomotion.test.mjs
       - run: node src/camera/follow.test.mjs
       - run: npm run build
+      - name: Decide whether motion needs a new clip
+        id: capture-mode
+        env:
+          REQUEST_SEQUENCE: ${{ inputs.sequence }}
+        shell: bash
+        run: |
+          if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet HEAD^ HEAD -- src/world/character/locomotion.ts src/world/character/play-pose.ts src/world/character/index.ts src/camera/follow.ts gauntlet/scripts/capture-motion.mjs .github/workflows/astra-character.yml; then
+            echo 'sequence=1' >> "$GITHUB_OUTPUT"
+          else
+            echo 'sequence=0' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install the clip encoder
+        if: steps.capture-mode.outputs.sequence == '1'
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
       - name: Capture actual idle, walk, run and jump
         env:
-          CAPTURE_SEQUENCE: '1'
+          CAPTURE_SEQUENCE: ${{ steps.capture-mode.outputs.sequence }}
         run: node gauntlet/scripts/capture-motion.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -49,7 +70,10 @@ jobs:
             git -C "$REVIEW_DIR" fetch origin captures/astra-character
             git -C "$REVIEW_DIR" reset --hard FETCH_HEAD
           fi
-          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$CAPTURE_DIR/motion.mp4" "$CAPTURE_DIR/sequence.json" "$REVIEW_DIR/"
-          git -C "$REVIEW_DIR" add '*.jpg' motion.json motion.mp4 sequence.json
+          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$REVIEW_DIR/"
+          if [ -f "$CAPTURE_DIR/motion.mp4" ]; then
+            cp "$CAPTURE_DIR/motion.mp4" "$CAPTURE_DIR/sequence.json" "$REVIEW_DIR/"
+          fi
+          git -C "$REVIEW_DIR" add --all
           git -C "$REVIEW_DIR" commit -m "Astra motion evidence for $GITHUB_SHA [skip ci]"
           git -C "$REVIEW_DIR" push origin HEAD:captures/astra-character

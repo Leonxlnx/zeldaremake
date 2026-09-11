@@ -18,6 +18,12 @@ Published that face/fringe correction as `571494c`; its new four-pose capture is
 
 `b87fea1` adds the continuous exporter. Its full gauntlet source guard correctly rejects the `.mp4` output filename while that Node-only utility sits under `src/` (C2 prohibits video references in game code). Move the exporter to `gauntlet/scripts/capture-motion.mjs`, alongside the existing Node capture tools. It is not imported by the game. Keep the guard/rubric unchanged; verify C2 passes after this tooling boundary correction.
 
+03:35 UTC: independent read-only review found the existing `reference/frames/UI_inventory.jpg` gives a clearer character view. Next original-geometry pass: flattened tapered fringe, folded collar/flat leather bands, and a simple palm/thumb silhouette. These address visible primitive shapes in `571494c`, without changing rig motion or Fable's world.
+
+Continuous clips now rerun when movement/contact/camera implementation changes, or via the workflow's explicit sequence input. Geometry-only passes still produce four fresh screenshots; the generated branch retains an older clip with its original source SHA in `sequence.json`. Always label that difference. This avoids repeating the expensive continuous render for documentation/tool-only commits.
+
+The first continuous run captured all four poses but failed before video frames because the runner lacked ffmpeg (`ENOENT`). The workflow now installs the encoder only for clip runs and reruns when the exporter/workflow changes. No video success is claimed until the resulting file is inspected. The runtime-source tooling move is complete in `118a4ac`; local source anti-cheat is green again.
+
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
 - `src/camera/follow.ts`: jump input, focus handling and following actual player height.

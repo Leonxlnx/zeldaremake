@@ -76,7 +76,7 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
  * Arms: optional tunic sleeve over the shoulder, then either bare skin or the long-sleeved
  * undershirt (`under`) down to a tight cuff at the wrist; skin hand.
  */
-export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
+export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; shapedHands?: boolean; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
   const p = rig.props;
   const limb = opts.under ?? opts.skin;
   for (const side of [1, -1] as const) {
@@ -93,7 +93,14 @@ export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: 
     part(elbow, new SphereGeometry(0.041, 10, 8), limb, 'elbow');
     part(elbow, place(new CylinderGeometry(0.039, 0.033, p.forearm - 0.02, 10), 0, -(p.forearm - 0.02) / 2, 0), limb, 'forearm');
     if (opts.under) part(elbow, place(new CylinderGeometry(0.036, 0.037, 0.03, 10), 0, -p.forearm + 0.005, 0), opts.cuff ?? opts.under, 'sleeve-cuff');
-    part(elbow, place(new SphereGeometry(0.04, 10, 8), 0, -p.forearm - 0.02, 0.005, undefined, [0.85, 1.15, 0.6]), opts.skin, 'hand');
+    if (opts.shapedHands) {
+      const hand = merge([
+        place(new SphereGeometry(0.035, 12, 10), 0, -p.forearm - 0.021, 0.008, undefined, [0.84, 1.1, 0.64]),
+        place(new SphereGeometry(0.027, 12, 8), 0, -p.forearm - 0.043, 0.015, undefined, [1.03, 0.68, 0.8]),
+        sweep([new Vector3(side * 0.023, -p.forearm - 0.012, 0.012), new Vector3(side * 0.026, -p.forearm - 0.022, 0.031), new Vector3(side * 0.017, -p.forearm - 0.037, 0.033)], [0.012, 0.012, 0.009], { segments: 8, radial: 8, closeTip: true, closeStart: true }),
+      ]);
+      part(elbow, hand, opts.skin, 'hand');
+    } else part(elbow, place(new SphereGeometry(0.04, 10, 8), 0, -p.forearm - 0.02, 0.005, undefined, [0.85, 1.15, 0.6]), opts.skin, 'hand');
   }
 }
 
@@ -195,7 +202,7 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
     const k = r / 0.125;
     // a clump of hair: a tapered strand from `from` (under the cap) to `to` (pointed tip)
     const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) =>
-      sweep([new Vector3(from[0], Math.min(from[1], 0.058), from[2]).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 10, radial: 9, closeTip: true, closeStart: true });
+      sweep([new Vector3(from[0], Math.min(from[1], 0.058), from[2]).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 12, radial: 9, closeTip: true, closeStart: true, flatten: 0.38, crease: 0.12 });
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008),
@@ -203,10 +210,10 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
       // bottom ≈ 0.071 k) over the forehead to the brows (y 0.047 k), swept toward Link's right
       // (−X); the thick section sits BELOW the brim and well in front of the skull (z ≈ 0.11 k) so
       // the fringe reads as a blond band at 4–5 m from above and below eye level alike
-      clump([-0.085, 0.076, 0.08], [-0.098, 0.05, 0.112], [-0.112, 0.018, 0.105], 0.026, 0.026, 0.012),
-      clump([-0.035, 0.078, 0.088], [-0.045, 0.052, 0.122], [-0.06, 0.024, 0.122], 0.028, 0.028, 0.013),
-      clump([0.02, 0.078, 0.09], [0.015, 0.052, 0.124], [-0.002, 0.028, 0.124], 0.028, 0.028, 0.013),
-      clump([0.072, 0.076, 0.082], [0.076, 0.052, 0.114], [0.066, 0.024, 0.11], 0.026, 0.025, 0.012),
+      clump([-0.085, 0.076, 0.08], [-0.098, 0.05, 0.112], [-0.112, 0.018, 0.105], 0.026, 0.026, 0.004),
+      clump([-0.035, 0.078, 0.088], [-0.045, 0.052, 0.122], [-0.06, 0.024, 0.122], 0.028, 0.028, 0.004),
+      clump([0.02, 0.078, 0.09], [0.015, 0.052, 0.124], [-0.002, 0.028, 0.124], 0.028, 0.028, 0.004),
+      clump([0.072, 0.076, 0.082], [0.076, 0.052, 0.114], [0.066, 0.024, 0.11], 0.026, 0.025, 0.004),
       // a thin stray lock over the left brow
       clump([0.045, 0.06, 0.11], [0.05, 0.04, 0.12], [0.06, 0.018, 0.115], 0.011, 0.009),
       // sideburn clumps in front of the ears, hanging to the jaw
@@ -230,6 +237,30 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
   }
 }
 
+/** Thin leather strap with a rectangular section, following the existing torso path. */
+function leatherBand(points: Vector3[], width: number): BufferGeometry {
+  const vertices: number[] = [], indices: number[] = [];
+  const tangent = new Vector3(), outward = new Vector3(), side = new Vector3(), vertex = new Vector3();
+  points.forEach((p, i) => {
+    tangent.subVectors(points[Math.min(i + 1, points.length - 1)], points[Math.max(0, i - 1)]).normalize();
+    outward.set(p.x * 0.6, 0, p.z).normalize();
+    side.crossVectors(tangent, outward).normalize();
+    outward.crossVectors(side, tangent).normalize();
+    for (const [sx, sy] of [[1, 1], [-1, 1], [-1, -1], [1, -1]]) {
+      vertex.copy(p).addScaledVector(side, sx * width / 2).addScaledVector(outward, sy * 0.002);
+      vertices.push(vertex.x, vertex.y, vertex.z);
+    }
+    if (i < points.length - 1) for (let edge = 0; edge < 4; edge++) {
+      const a = i * 4 + edge, b = (i + 1) * 4 + edge, c = i * 4 + (edge + 1) % 4, d = (i + 1) * 4 + (edge + 1) % 4;
+      indices.push(a, b, c, b, d, c);
+    }
+  });
+  const geo = new BufferGeometry();
+  geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+  geo.setIndex(indices); geo.computeVertexNormals();
+  return geo;
+}
+
 function buildTorso(rig: Rig): void {
   const p = rig.props;
   const tunic = cloth('tunic');
@@ -245,7 +276,7 @@ function buildTorso(rig: Rig): void {
       [0.128, cl(0.835)],
       [0.06, cl(0.86)],
     ],
-    { segments: 22, scaleZ: 0.74 },
+    { segments: 32, scaleZ: 0.74, folds: 5, foldDepth: 0.035 },
   );
   part(rig.chest, upper, tunic, 'tunic-upper');
   // skirt (hips joint): soft scalloped mid-thigh hem with three vertical fold ridges
@@ -265,12 +296,26 @@ function buildTorso(rig: Rig): void {
     place(new BoxGeometry(0.074, 0.028, 0.046), 0, 0.005, 0.002),
   ]);
   part(rig.hips, place(pouch, 0.105, hl(0.6), 0.03, [0, 0.55, 0]), matte('leatherDark'), 'pouch');
-  // pale undershirt at the neck + soft collar
+  // Pale undershirt behind two folded collar flaps, open at the front of the neck.
   part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.075, 12), 0, cl(0.845), 0), matte('undershirt'), 'undershirt');
-  part(rig.chest, place(new TorusGeometry(0.076, 0.014, 8, 20), 0, cl(0.846), 0.004, [Math.PI / 2 - 0.22, 0, 0], [1, 1, 0.82]), matte('tunicCollar'), 'collar');
+  for (const sign of [1, -1]) {
+    const outline = [[0.015, 0.855, 0.047], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.092]];
+    const vertices = [sign * 0.047, cl(0.834), 0.094];
+    const uv = [0.5, 0.5], indices: number[] = [];
+    outline.forEach(([x, y, z], i) => {
+      vertices.push(sign * x, cl(y), z); uv.push(x * 10, (y - 0.78) * 10);
+      const a = i + 1, b = (i + 1) % outline.length + 1;
+      indices.push(...(sign > 0 ? [0, b, a] : [0, a, b]));
+    });
+    const flap = new BufferGeometry();
+    flap.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+    flap.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+    flap.setIndex(indices); flap.computeVertexNormals();
+    part(rig.chest, flap, matte('tunicCollar'), 'collar-flap');
+  }
   // belt + round buckle
   const leather = matte('leather');
-  part(rig.hips, place(new TorusGeometry(0.114, 0.019, 8, 26), 0, hl(0.615), 0, [Math.PI / 2, 0, 0], [1, 1, 0.82]), leather, 'belt');
+  part(rig.hips, ovalLathe([[0.116, hl(0.596)], [0.120, hl(0.601)], [0.120, hl(0.634)], [0.116, hl(0.639)]], { segments: 36, scaleZ: 0.83 }), leather, 'belt');
   const buckle = merge([place(new TorusGeometry(0.022, 0.007, 6, 14), 0, hl(0.615), 0.108), place(new BoxGeometry(0.006, 0.034, 0.006), 0, hl(0.615), 0.108)]);
   part(rig.hips, buckle, matte('buckle', { roughness: 0.6 }), 'buckle', false);
   // small buckle where the straps cross on the chest
@@ -299,7 +344,7 @@ function buildTorso(rig: Rig): void {
     return pts.reverse();
   };
   for (const sign of [1, -1] as const) {
-    part(rig.chest, sweep(strapPts(sign), [0.011, 0.011, 0.011, 0.011], { segments: 14, radial: 6, smooth: true }), leather, 'strap');
+    part(rig.chest, leatherBand(strapPts(sign), 0.030), leather, 'strap');
   }
 }
 
@@ -333,7 +378,9 @@ function buildCap(rig: Rig): void {
   for (let i = 0; i < pos.count; i++) {
     const theta = Math.acos(MathUtils.clamp(pos.getY(i) / R, -1, 1));
     const f = taper(theta);
-    pos.setXYZ(i, pos.getX(i) * f, pos.getY(i) * stretch, pos.getZ(i) * f);
+    const x = pos.getX(i) * f, z = pos.getZ(i) * f;
+    const fold = 0.010 * Math.exp(-(((x - 0.025) / 0.055) ** 2) - ((z + 0.075) / 0.040) ** 2);
+    pos.setXYZ(i, x, pos.getY(i) * stretch - fold, z);
   }
   dome.computeVertexNormals();
   // sphere pole (+Y) → n is a rotation about X by -tilt; the dome centre is the head centre
@@ -400,7 +447,7 @@ export function createLink(): Character {
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
   buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('bootCuff'), shaftTop: 0.135, buckle: matte('buckle', { roughness: 0.6 }) });
-  buildArms(rig, { skin, sleeve: cloth('tunic'), sleeveRadius: 0.055 });
+  buildArms(rig, { skin, sleeve: cloth('tunic'), sleeveRadius: 0.055, shapedHands: true });
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085, softFeatures: true });
