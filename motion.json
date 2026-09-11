@@ -1,6 +1,6 @@
 {
-  "source": "c8dcf5f33e45be1b6a10d80df86f620086e794eb",
-  "capturedAt": "2026-09-11T15:47:23.981Z",
+  "source": "65f45b58ccf1d178b420c9f2d32949f8d588faf1",
+  "capturedAt": "2026-09-11T16:01:09.225Z",
   "captures": [
     {
       "name": "01-idle",
@@ -167,7 +167,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "a910e72dbb9d32f3f80e780481ee9e546a79ea8236c6fd8fa115837364298d0e"
+      "sha256": "9ae2eeca09ab5814a823b1869384121fe5d7143cba768c3b12094759577ef876"
     },
     {
       "name": "02-walk",
@@ -337,7 +337,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "ff2f3d33b0ebe488e466a4790473178e3fdc596012c32b50a49b25b8cbc605d8"
+      "sha256": "295a49852fdc7fb18b139a6859c02a22cc0811c6c418b226f94fa5ac6cc2772d"
     },
     {
       "name": "03-run",
@@ -516,7 +516,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "dbc377da15345c602a7e81d282f7cf6d5205d8f3bfe37fa8006c425af8e5c048"
+      "sha256": "eb1e4c38f3fa827e3a260d925b70603a2e9d96c4f046b621502f4b65fa40f8fc"
     },
     {
       "name": "04-jump",
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "9c7d7b420cd060e63d3339f30b081d78d2687a8ce7f7215c697bbd0bffc4f4ef"
+      "sha256": "9cefeee3c739efadf23bc7dce5584301b392b1016f8d273501eb5f9b80aefb56"
     },
     {
       "name": "05-outfit-back",
@@ -1031,7 +1031,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "fe3ff7e7de0f6661a5d3177d449c202e1e0f02462e8c634c5cd51f09bce622a6"
+      "sha256": "3c613ac1870663b58fd58456b409abefbef37d39d34ce5c07439533ea9e0e670"
     },
     {
       "name": "07-leaf-lantern",
@@ -2045,7 +2045,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "8406b9d31ae92893df60a87dd179108413f7692116dcb67bbb44d3a31d8bf9c7"
+      "sha256": "647fc9c42c745774e8e8706b08e15782e88bf991cb33afad1dd92893a4840465"
     },
     {
       "name": "13-backpack-detail",
