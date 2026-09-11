@@ -396,10 +396,48 @@ for (let i = 0; i < 480; i++) slowController.update(1 / 120, input(0, .2), (s, d
 });
 assert.ok(slowPlantDrift < .0001, `slow intended walking must not skate planted feet: ${slowPlantDrift}`);
 
+// A held forward arm can satisfy all sole tests. Check actual hand follow-through
+// and the landing recovery for stationary, walking and running jumps instead.
+function jumpArmReplay(kind, hz) {
+  const r = buildRig(LINK_PROPORTIONS, 'jump-arms-test'), p = createPlayPose(r, flat.height);
+  const c = createLocomotion(flat, 0, 0, 0), joints = [r.shoulderL, r.shoulderR, r.elbowL, r.elbowR];
+  const old = joints.map(j => j.quaternion.clone());
+  let first = true, peakStep = 0, apex = null, lastAir = null;
+  const command = jump => input(0, kind === 'standing' ? 0 : 1, kind === 'running', jump);
+  for (const [seconds, action] of [[1, command(false)], [.5, command(true)], [.5, command(false)], [1, input()]]) {
+    for (let frame = 0; frame < seconds * hz; frame++) c.update(1 / hz, action, (s, dt) => {
+      p.update(s, s.time, dt);
+      joints.forEach((joint, j) => {
+        if (!first) peakStep = Math.max(peakStep, joint.quaternion.angleTo(old[j]));
+        old[j].copy(joint.quaternion);
+      });
+      if (!s.grounded) {
+        const hand = r.elbowL.localToWorld(new THREE.Vector3(0, -r.props.forearm - .021, .008));
+        r.chest.worldToLocal(hand);
+        const sample = { speedY: Math.abs(s.vy), hand: hand.toArray(), elbow: Math.abs(r.elbowL.rotation.x) };
+        if (!apex || sample.speedY < apex.speedY) apex = sample;
+        lastAir = sample;
+      }
+      first = false;
+    });
+  }
+  assert.ok(apex && lastAir, `${kind} jump reaches and leaves its apex`);
+  assert.ok(apex.elbow > .40 && apex.elbow < .80, `${kind} jump elbow has moderate flexion`);
+  assert.ok(lastAir.elbow < apex.elbow - .04, `${kind} elbows relax before landing`);
+  assert.ok(lastAir.hand[1] < apex.hand[1] - .025, `${kind} hands lower relative to the chest during descent`);
+  assert.ok(lastAir.hand[2] < apex.hand[2] - .025, `${kind} hands recover from the held forward position`);
+  assert.ok(peakStep < .16, `${kind} arm motion exceeds the previous fixed-step envelope: ${peakStep}`);
+  return { apex, lastAir, peakStep };
+}
+const jumpArmReplays = ['standing', 'walking', 'running'].map(kind => jumpArmReplay(kind, 120));
+for (const hz of [30, 60, 144]) for (const [j, kind] of ['standing', 'walking', 'running'].entries()) {
+  assert.deepEqual(jumpArmReplay(kind, hz), jumpArmReplays[j], `${hz}Hz ${kind} arm recovery follows the same fixed-step path`);
+}
+
 // Fixed reference poses remain independent of playing/stopping/jumping beforehand.
 const poseState = () => [rig.hips, rig.chest, rig.neck, rig.thighL, rig.thighR, rig.kneeL, rig.kneeR, rig.ankleL, rig.ankleR].map(j => [...j.position, ...j.quaternion]);
 applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 }); const reference = poseState();
 poses.update({ ...walk.state, grounded: false, vy: 4 }, 100);
 applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 });
 assert.deepEqual(poseState(), reference, 'fixed pose does not accumulate play state');
-console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts, stairJumpContacts, restartContacts, analogueContacts, jumpStopReplays, slowPlantDrift }));
+console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts, stairJumpContacts, restartContacts, analogueContacts, jumpStopReplays, jumpArmReplays, slowPlantDrift }));

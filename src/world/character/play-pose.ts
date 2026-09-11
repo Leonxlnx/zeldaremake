@@ -149,8 +149,14 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
         r.kneeR.rotation.x = mix(0.22, 0.64 + 0.18 * rising, tuck);
         r.ankleL.rotation.x = -(r.thighL.rotation.x + r.kneeL.rotation.x);
         r.ankleR.rotation.x = -(r.thighR.rotation.x + r.kneeR.rotation.x);
-        r.shoulderL.rotation.set(-0.55 - 0.3 * rising, 0, 0.22);
-        r.shoulderR.rotation.set(-0.55 - 0.3 * rising, 0, -0.22);
+        // Arms follow the jump itself, then lower as the existing landing
+        // preparation extends the legs. Ground speed must not lock the elbows
+        // in a sprint curl for the entire airborne interval.
+        const armRecovery = prepare * prepare * (3 - 2 * prepare);
+        const shoulder = mix(-0.55 - 0.3 * rising, -0.40, armRecovery);
+        r.shoulderL.rotation.set(shoulder, 0, 0.22);
+        r.shoulderR.rotation.set(shoulder, 0, -0.22);
+        r.elbowL.rotation.x = r.elbowR.rotation.x = -mix(0.58 + 0.10 * rising, 0.50, armRecovery);
       }
 
       transitionTime += dt;

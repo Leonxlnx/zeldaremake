@@ -4,55 +4,47 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T14:59:10Z
+updated: 2026-09-11T15:14:21Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Vegetation/hardscape source96cff37 is pushed and rendering. Next adopt Fable structures
-with the reviewed minimal shadow-binding compatibility fix and a pure relocation of new
-fence/post declarations into layout (all coordinates/order exact). Seven source files plus
-layout and one real consolidation regression test; lanternBranch point settings remain ours.
-This integration preserves Fable design/ownership and avoids the architecture issue recorded
-earlier. Helper separately studies airborne arm follow-through in scratch only; ground gait
-physics and legs stay untouched. Independent W25 review on actual Fabletake0045 remains fail
-for heavy cross-dome bough/roof construction and isolated warm spot; see evidence note.
+Active clean worktree zeldaremake-active / local agent/astra-refinement-recovery publishes to
+agent/astra-link-movement / PR5. Preserve old dirty zeldaremake snapshot. CLI claims C01/C02/C03
+remain live through17:43:30.634UTC. Fable45be2fb ownership/next atmosphere and bough work retained.
 
+Source22ac061 publishes reviewed Fable houses, roof/interior, rope fences, lantern posts and
+log arch. Minimal batching adaptation preserves both depth/distance identities and bindings:
+81→41meshes,60294wind-shadow triangles retained. Pure declaration relocation keeps exact new
+fence/post coordinates/order in shared layout. All tests/typecheck/build pass. Independent
+actual W25take0045 still fails heavy cross-dome bough/roof mound/isolated interior glow; see
+new evidence note. Rocks/index cross-system dependency remains withheld and reported.
 
-Cap source a43fd6b is pushed; actual gallery and canonical take are running. Now integrate
-Fable45be2fb twelve vegetation and eight hardscape files byte-identically after independent
-source, shader, LOD, placement and deterministic construction review. Roots and terrain layout
-stay exact; this brings flowers, fiddleheads, moss/litter, stone-edge wear and dirt/grit joints.
-Variant packing saves48–50draw submissions but adds~1.07–1.30M submitted triangles before
-culling; hardscape adds165303triangles at the same8meshes. Combined canonical budget and real
-images must validate the result. Rocks and structures remain withheld pending documented
-integration fixes, Fable atmosphere/bough work unmodified.
+Source96cff37 exact12vegetation/8hardscape gallery completed15:11:44.503UTC:14stills/errors[],
+all archive hashes verified; no new motion clip because character source matches a43fd6b.
+House/stairs images inspected. Auxiliary max590draws/8356657triangles; these are not six-view
+canonical approval. Its queued canonical run was superseded by combined22ac061. That run and
+new structure gallery remain pending/in progress; preserve all strict limits/history.
 
+Sourcea43fd6b cloth crown gallery completed15:05:31.717UTC:14stills/42matching frames/errors[],
+all JPG archive hashes verified. Front/profile/back/walk and actual running/jump clip samples
+inspected. Fit retained; folds subtle and overall cap still needs shape refinement.
 
-Recovered to clean worktree zeldaremake-active on local alias agent/astra-refinement-recovery;
-publish to existing agent/astra-link-movement / PR5. Old dirty zeldaremake snapshot is preserved.
-C01/C02/C03 renewed via CLI14:43:30.634UTC through17:43:30.634UTC. Own canonical workflow now
-claims only these items; Fable's world/structures/global-performance ownership stays clear.
+Now publish a bounded airborne arm follow-through in play-pose.ts plus behavioral controller
+regression. Standing/walking/running elbows use a moderate jump bend; existing landing prepare
+lowers arms smoothly. Ground gait, physics, legs, feet and reference animation remain exact;
+30/60/120/144Hz replay passes,57.9mm descending hand travel instead of<1mm. First candidate is
+held in scratch due longer pouch sweep. Refined candidate restores standing/walking pouch
+contact duration, with minor existing-contact variation (1–2fixed frames, max additional
+sampled depth<0.74mm on run launch). Existing belt/pouch/pack contacts are not collision-clean;
+actual clip must judge the change. No canonical retrigger here: keep22ac061 world take queued.
 
-Publish original Link cap cloth crown:44x28 sampling, shallow irregular outward gathers capped
-3.8mm (actual3.726mm), protected lower/front hair band and existing rear10mm depression.
-63other meshes and all material/rig/brim/tail values remain exact;64meshes,73828triangles.
-Probe checks all unit normals/finite attributes, sampled hair/skull cover and6615tail-root
-samples over105sway poses. Two unchanged outer ear tips are outside both crowns by design.
-No new poke-through in sampled checks; actual gallery must establish cloth appearance.
-
-Read Fable45be2fb round eight and latest PR comments. Source-only integration review completed:
-12-file vegetation unit first;8-file hardscape later. Rocks/index.ts blocked on cross-system
-hardscape/sprouts import. Structures requires customDepth/Distance material IDs in batching key
-and both bindings copied, preserving60294wind-shadow triangles at41meshes (81before). These
-findings and embedded fence/post layout coordinates were sent through our PR2 coordination
-comment. No overwrite of their log, atmosphere work, blanket D1 tolerance or history changes.
-
-Actualb3e47a7 gallery has14stills/42matching frames/no errors; face,boots,belt,pack inspected.
-Leather still subtle and cap still primitive; this is work in progress, no95%/rubric-fidelity
-claim. Canonical0043 W38pass684draws,23/50overall,19/42phase, inherited D1invalid retained.
+Separate helper builds one scratch-only continuous hand to close measured2.5mm wrist gap;
+no hand source integration yet. Node22 source ZIP22ac061 is CRC-checked and available. Old
+screenshot automation is confirmed disabled (no next run); no new schedule, merge or deployment.
+Reference fidelity, natural high stairs and inherited D1 chronology remain unfinished.
 
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
