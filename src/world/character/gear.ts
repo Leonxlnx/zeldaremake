@@ -45,12 +45,16 @@ export function buildGear(rig: Rig, part: Attach): void {
     }
   }
   part(rig.chest, merge(seams), matte('leatherStitch'), 'pack-stitches', false);
-  const loops = [-1, 1].map(sign => place(new TorusGeometry(0.018, 0.004, 6, 18), sign * 0.091, cl(0.740), -0.137));
+  const loops = [-1, 1].map(sign => {
+    const anchor = back(sign * 0.065, 0.720, 0.002);
+    return place(new TorusGeometry(0.018, 0.004, 6, 18), anchor.x, anchor.y, anchor.z);
+  });
   part(rig.chest, merge(loops), matte('leatherDark'), 'pack-loops');
 
   const shield = new Group();
   shield.name = 'deku-shield';
-  shield.position.set(0, cl(0.700), -0.204);
+  shield.position.set(0, cl(0.610), -0.204);
+  shield.scale.setScalar(0.58);
   shield.rotation.set(-0.12, Math.PI, 0.06);
   rig.chest.add(shield);
   const shape = createWoodenShield();
@@ -60,14 +64,14 @@ export function buildGear(rig: Rig, part: Attach): void {
   part(shield, shape.shell, matte('shieldRim'), 'shield-back');
   // Kokiri Sword in its scabbard: from the left hip up past the right shoulder
   // the hilt clears the head beside the right ear so it reads from behind (reference A/D)
-  const bottom = new Vector3(0.09, 0.52, -0.105);
+  const bottom = new Vector3(0.15, 0.52, -0.105);
   const top = new Vector3(-0.15, 0.905, -0.1);
   const axis = top.clone().sub(bottom);
   const len = axis.length();
   const dir = axis.clone().normalize();
   const roll = Math.atan2(-dir.x, dir.y);
   const mid = bottom.clone().lerp(top, 0.5);
-  part(rig.chest, place(new BoxGeometry(0.046, len, 0.03), mid.x, cl(mid.y), mid.z, [0, 0, roll]), matte('scabbard'), 'scabbard');
+  part(rig.chest, place(new BoxGeometry(0.036, len, 0.03), mid.x, cl(mid.y), mid.z, [0, 0, roll]), matte('scabbard'), 'scabbard');
   const guardPos = top.clone().addScaledVector(dir, 0.01);
   part(rig.chest, place(new BoxGeometry(0.09, 0.016, 0.028), guardPos.x, cl(guardPos.y), guardPos.z, [0, 0, roll]), matte('swordGuard', { roughness: 0.6 }), 'sword-guard', false);
   const gripPos = top.clone().addScaledVector(dir, 0.06);

@@ -37,17 +37,21 @@ jobs:
         id: capture-mode
         env:
           REQUEST_SEQUENCE: ${{ inputs.sequence }}
-          PUSH_BASE: ${{ github.event.before }}
         shell: bash
         run: |
-          COMPARE_BASE=HEAD^
-          if [[ "$PUSH_BASE" =~ ^[0-9a-f]{40}$ ]] && [[ "$PUSH_BASE" != 0000000000000000000000000000000000000000 ]]; then
-            git cat-file -e "$PUSH_BASE^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$PUSH_BASE"
-            COMPARE_BASE="$PUSH_BASE"
+          COMPARE_BASE=
+          if git fetch --no-tags --depth=1 origin captures/astra-character; then
+            COMPARE_BASE="$(git show FETCH_HEAD:motion.json | node --input-type=module -e 'import fs from "node:fs"; process.stdout.write(JSON.parse(fs.readFileSync(0, "utf8")).source);')"
           fi
-          # A push may contain several meaningful commits; inspect the whole push so an
-          # earlier movement fix is not missed when the last commit only changes geometry.
-          if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet "$COMPARE_BASE" HEAD -- src/world/character/locomotion.ts src/world/character/play-pose.ts src/world/character/index.ts src/camera/follow.ts gauntlet/scripts/capture-motion.mjs; then
+          if [[ "$COMPARE_BASE" =~ ^[0-9a-f]{40}$ ]]; then
+            git cat-file -e "$COMPARE_BASE^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$COMPARE_BASE"
+          else
+            REQUEST_SEQUENCE=true
+            COMPARE_BASE=HEAD^
+          fi
+          # A queued run may be superseded by another push. Compare with the last
+          # completed capture so uncaptured movement or outfit changes still get a clip.
+          if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet "$COMPARE_BASE" HEAD -- src/world/character/locomotion.ts src/world/character/play-pose.ts src/world/character/index.ts src/world/character/link.ts src/world/character/gear.ts src/world/character/boot-articulation.ts src/camera/follow.ts gauntlet/scripts/capture-motion.mjs; then
             echo 'sequence=1' >> "$GITHUB_OUTPUT"
           else
             echo 'sequence=0' >> "$GITHUB_OUTPUT"

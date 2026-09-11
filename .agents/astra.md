@@ -4,12 +4,29 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T08:36:39Z
+updated: 2026-09-11T08:39:41Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+2026-09-11T08:39:41Z: Gear proportion pass retains the original bag, reduces the shield to .58 at Y .610,
+and fits its two loops to the actual bag surface. Scabbard bottom X .15 / body width .036 clears
+the new sleeve, with its upper anchor retained. Helper exact triangle checks across324 upper
+poses plus16 cap-only look limits: bag/shield19.846 mm, cap/shield12.087 mm, cap/sword18.295 mm,
+sleeve/bag28.028 mm, sleeve/scabbard2.251 mm, scabbard/forearm10.934 mm. Original bag geometry
+and seams are unchanged. Prior enlarged-bag experiments rejected; its extra upper-arm collisions
+are not introduced. Pre-existing bag/elbow/forearm overlaps on some running poses remain known.
+Typecheck/build pass. Visual comparison of this smaller shield is pending a real capture.
+The clip decision now compares against the last completed capture, not just the previous push;
+queued runs can be superseded, so uncaptured outfit/boot changes must still receive a new clip.
+Shell syntax checked. Automatic archive331a2c7 is confirmed at5fe74e0; c262dfb ten views plus
+source-matched clip are additionally archived at28b126c, retaining first12 and331a folders.
+The actual c262dfb profile exposes a floating green chest-strap arch despite clear collision
+checks. Helper is measuring a constrained front-envelope return; no tracked change yet.
+The appearance c262dfb actual capture just succeeded; retrieve and inspect it next. Fable inbox
+updated with ownership, capture folder convention, smaller-shield direction and unresolved stairs.
+
 2026-09-11T08:36:39Z: This commit publishes the original boot articulation independently of the rejected
 stair pose. The shaft, cuff, tongue, laces and buckle rigidly follow the actual calf direction;
 a closed leather ankle joint covers the split while shoe/sole geometry remains fixed. Link's
