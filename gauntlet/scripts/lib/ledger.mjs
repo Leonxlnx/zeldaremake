@@ -65,8 +65,19 @@ export function nextId(ledger) {
   return { id: `take-${String(max + 1).padStart(4, '0')}`, number: max + 1 };
 }
 
-/** How far an entry's `at` may precede the previous entry's when two agents publish concurrently. */
-export const CONCURRENT_PUBLISH_WINDOW_MS = 3 * 3600 * 1000;
+/**
+ * Sealed chronology exceptions (GAUNTLET.md §4 D1). Four entries were appended by concurrent CI
+ * publishes on 2026-09-11 with an `at` earlier than the entry before them, before `mergeLedgers`
+ * resequenced concurrent appends (capturedAt + at). They are sealed and stay as recorded; the
+ * verifier tolerates exactly these hashes and nothing else — any other backdated `at` is a chain
+ * problem. Decision logged in .agents/fable-cursor.md (tick 38) and INBOX 2026-09-11T19:25Z.
+ */
+export const SEALED_CHRONOLOGY_EXCEPTIONS = new Set([
+  'sha256:1da70ec123763c31158bdac5deeffb88e5f67cb5ed02d35eb57efe75a0a0e0a4', // take-0037 astra 05:57 after 06:06
+  'sha256:d0d83af6388ce58beae475d1e0ec9b4d93ed0694e20552fd8d68652ffb3b866b', // take-0048 astra 15:15 after 15:29
+  'sha256:a4def21c103f176e90c01ce0952a22afb035994cd676c40c265842798b1aa27a', // take-0050 astra 16:22 after 16:31
+  'sha256:dc95593cf6769d2bdd12b6c4acd79b21307832187737964ff07ba646982aa23d', // take-0052 astra 17:26 after 17:28
+]);
 
 /** Verify the whole chain. Returns { ok, problems, length }. */
 export function verifyChain(ledger) {
@@ -80,10 +91,12 @@ export function verifyChain(ledger) {
     if (e.hash !== h) problems.push(`${where}: hash ${short(e.hash)} ≠ recomputed ${short(h)}`);
     if (ids.has(e.id)) problems.push(`${where}: duplicate id`);
     ids.add(e.id);
-    // `at` is the capture/record time, not the sealing time: two agents publishing concurrently
-    // (CI on one branch, a local take on another) legitimately append an entry whose `at` precedes
-    // the previous entry's by up to the publish latency. Only gross backdating is a chain problem.
-    if (i > 0 && !e.imported && ledger.entries[i - 1].at && e.at && Date.parse(e.at) < Date.parse(ledger.entries[i - 1].at) - CONCURRENT_PUBLISH_WINDOW_MS) problems.push(`${where}: timestamp ${e.at} precedes previous entry by more than ${CONCURRENT_PUBLISH_WINDOW_MS / 3600000} h`);
+    // strict chronology: `at` orders the chain (concurrent appends are resequenced by mergeLedgers,
+    // keeping their capture time in capturedAt); the only tolerated inversions are the sealed
+    // pre-resequencing entries listed above, by hash
+    // imported captures (--import --sha --at) are not exempt: their `at` is the record time and a
+    // concurrent append is resequenced like any other
+    if (i > 0 && ledger.entries[i - 1].at && e.at && Date.parse(e.at) < Date.parse(ledger.entries[i - 1].at) && !SEALED_CHRONOLOGY_EXCEPTIONS.has(e.hash)) problems.push(`${where}: timestamp ${e.at} precedes previous entry`);
     prev = e.hash;
   });
   return { ok: problems.length === 0, problems, length: ledger.entries.length, head: prev };
