@@ -1,6 +1,6 @@
 {
-  "source": "a43fd6b343ab6a20a9533402877387ef6157caea",
-  "capturedAt": "2026-09-11T15:05:31.717Z",
+  "source": "96cff37e6446ecc3d623c48c52fae6711c3fe965",
+  "capturedAt": "2026-09-11T15:11:44.503Z",
   "captures": [
     {
       "name": "01-idle",
@@ -74,9 +74,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -157,17 +157,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 510,
-        "triangles": 6514881,
-        "geometries": 504,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 475,
+        "triangles": 8210321,
+        "geometries": 469,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "3dbc2fc06b146f30c1c4aa27513d9980ec2030b3e0bdc2aa19cd4361386f7146"
+      "sha256": "1d4ad0b8da2198b924f35d3b32dacdedc95592982611aedcbaa7edea12a132f2"
     },
     {
       "name": "02-walk",
@@ -241,9 +241,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -327,17 +327,17 @@
       },
       "stats": {
         "simTime": 13.399999999999949,
-        "drawCalls": 509,
-        "triangles": 6468374,
-        "geometries": 506,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 475,
+        "triangles": 8191919,
+        "geometries": 471,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "c0205c98d13dc0e1157df93f19d5a8aa40d9836465a0d08b869e9a4df712ff3f"
+      "sha256": "fd89346707ce47b3b4a987f1b10f4988925a74a710ccc67793fdce56831e996f"
     },
     {
       "name": "03-run",
@@ -411,9 +411,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -506,17 +506,17 @@
       },
       "stats": {
         "simTime": 13.19999999999996,
-        "drawCalls": 522,
-        "triangles": 6326613,
-        "geometries": 508,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 487,
+        "triangles": 8058613,
+        "geometries": 473,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "04a7d02222af8efeb88c0d2aa86474afdb9f248f408596894d18461c2511bd22"
+      "sha256": "97d7d11fe1660b84e70376ad0d00b8a86b23262940a037654e577f8d87e1b039"
     },
     {
       "name": "04-jump",
@@ -590,9 +590,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -679,17 +679,17 @@
       },
       "stats": {
         "simTime": 12.799999999999983,
-        "drawCalls": 562,
-        "triangles": 6525320,
-        "geometries": 516,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 527,
+        "triangles": 8164492,
+        "geometries": 481,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "08377995b7642851d7981979bfbec9da594cff36668305866b73762ecc32c933"
+      "sha256": "da32e94cc70218c7f4d5a83db22e34ccb0298c2015844e64f038532ccba90c3b"
     },
     {
       "name": "05-outfit-back",
@@ -764,9 +764,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -853,17 +853,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 532,
-        "triangles": 6435219,
-        "geometries": 541,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 497,
+        "triangles": 8059006,
+        "geometries": 505,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "526de3dd40e71bad26d4edbaddcc91a76a2f8068a93ad5087ecbda92fc5fe24d"
+      "sha256": "f9f60036793bb2a17967366ce4b80e5fb9a7ab1a2bea3d8515d33558396ba538"
     },
     {
       "name": "06-face-detail",
@@ -938,9 +938,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -1021,17 +1021,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 474,
-        "triangles": 6381896,
-        "geometries": 544,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 442,
+        "triangles": 8043257,
+        "geometries": 508,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "e1fec417ab633bba05be7c9e5f7e816ea38e392e8cbf1fa2a900544b2ea645f8"
+      "sha256": "c8452d840c7a7c465e22c5ad7f7227906d179892f5b485a24b27a44b6277729f"
     },
     {
       "name": "07-leaf-lantern",
@@ -1106,9 +1106,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -1180,17 +1180,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 445,
-        "triangles": 6289466,
-        "geometries": 556,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 409,
+        "triangles": 8014816,
+        "geometries": 519,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "73115e22215050bc1aefce66ef96d8308c9489fba5801e3be696e06cb717ceb8"
+      "sha256": "2505144e62b13fbd054ceaf1f8d2fb69f6e4722e1fd8152a49a7b4d4de73e68c"
     },
     {
       "name": "08-carved-sign",
@@ -1265,9 +1265,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -1339,17 +1339,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 457,
-        "triangles": 6193347,
-        "geometries": 568,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 423,
+        "triangles": 7939602,
+        "geometries": 531,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "41e54c10470797efac3d30bfcff98ce66bf5193c99c2e217d6f1167afc63c7b9"
+      "sha256": "58e477aaaeb8a21e30da029cd5674905d21d555da1054b79f9b2e416cd38b39a"
     },
     {
       "name": "09-boot-detail",
@@ -1424,9 +1424,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -1507,17 +1507,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 454,
-        "triangles": 6448301,
-        "geometries": 568,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 422,
+        "triangles": 8098039,
+        "geometries": 531,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "52359619623a5b2158c470f80ba123faf357dc83ae3cbcab25c5b020dfa2445e"
+      "sha256": "7cf5e6a169d549e751272c1d56c4e8135b2f00e80aa62a2a258506010915b265"
     },
     {
       "name": "10-tree-house",
@@ -1592,9 +1592,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -1687,17 +1687,17 @@
       },
       "stats": {
         "simTime": 13.999999999999915,
-        "drawCalls": 627,
-        "triangles": 6707122,
-        "geometries": 568,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 590,
+        "triangles": 8356657,
+        "geometries": 531,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "b253abee9ae6940cf5396ec6750af13a76d0ab5b1afe32a84bf52be2cfe996a2"
+      "sha256": "93dde5be2b4a70a006592b73b20e79d564ddf5e0870bad44a0f2e7ea8e366d15"
     },
     {
       "name": "11-stone-stairway",
@@ -1772,9 +1772,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -1861,17 +1861,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 593,
-        "triangles": 6612429,
-        "geometries": 572,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 554,
+        "triangles": 8101631,
+        "geometries": 535,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "a15ee0b4d7d6b021cef95ecc3fdc998e16c4868b1735d5c8c4b9718d089940d8"
+      "sha256": "759ae67220c93c3d7ae654500f8bd1949dfb9c8ce89a4213cfb9704a8880866e"
     },
     {
       "name": "12-face-profile",
@@ -1946,9 +1946,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -2035,17 +2035,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 530,
-        "triangles": 6361430,
-        "geometries": 573,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 496,
+        "triangles": 7963507,
+        "geometries": 536,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "6d89174ec029805bd95a6784451d0780063479b51fed3c91231a57b6708bb271"
+      "sha256": "93b5882ab37f2c3c18d6ae6c672ea4a63441e7babf71e24235d1e022da607f3c"
     },
     {
       "name": "13-backpack-detail",
@@ -2120,9 +2120,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -2209,17 +2209,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 485,
-        "triangles": 6355319,
-        "geometries": 573,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 450,
+        "triangles": 8009341,
+        "geometries": 536,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
-      "retries": 1,
-      "sha256": "13d8b918bf1e78e68a68333f6c0173a0480c72dd281574ffb389f0518370e738"
+      "retries": 0,
+      "sha256": "3a86d7038cb2e83b72288b4dda599648c84e20ff1bf1b9ec7ecd71b525454447"
     },
     {
       "name": "14-belt-detail",
@@ -2294,9 +2294,9 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33692,
+          "covered": 33695,
           "cellSize": 0.1,
-          "triangles": 64406
+          "triangles": 65772
         },
         "world": {
           "link": [
@@ -2377,17 +2377,17 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 463,
-        "triangles": 6373101,
-        "geometries": 573,
-        "textures": 88,
-        "programs": 67,
+        "drawCalls": 431,
+        "triangles": 8033797,
+        "geometries": 536,
+        "textures": 89,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "b966f929390384f10f20ea7eccbd4abed84459c30f2492dd7ed0f9f6d412e617"
+      "sha256": "3f4393e723357100e7327ecc59b40230f17414e2da74dbda98ebbfe11a57040c"
     }
   ],
   "errors": []
