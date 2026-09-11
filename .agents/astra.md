@@ -4,12 +4,32 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T08:31:59Z
+updated: 2026-09-11T08:36:39Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+2026-09-11T08:36:39Z: This commit publishes the original boot articulation independently of the rejected
+stair pose. The shaft, cuff, tongue, laces and buckle rigidly follow the actual calf direction;
+a closed leather ankle joint covers the split while shoe/sole geometry remains fixed. Link's
+56 mm smooth knee joint covers the earlier thigh-end seam. Synchronization runs after posing,
+before color/shadow rendering; NPC boots opt out and actual triangle counts are recounted.
+The invariant test passes (closed outward shells, preserved triangle edges, normals/bounds,
+fixed sole bytes and idempotency), plus typecheck/build. Fresh production-pose replay at120Hz
+passes idle/walk/run/jump/run-jump with minimum boot-ground gap +1 mm. The old stair pose still
+fails whole-boot clearance by145.5 mm on .24 m treads; this is explicitly unresolved. Keep the
+new .305 m controller allowance, its tests and stair capture script changes uncommitted until
+a continuous feasible gait is implemented. No sole-only or artificial clamp clearance claim.
+
+Visual helper now studies substantial curved frontal hair locks against the owner sheet and
+actual face capture; no tracked face/cap/link edits assigned. Gear helper is testing the
+original bag with a smaller .58 shield, keeping valid fitted loops and checking sword mounting.
+The enlarged bag candidate is rejected because it adds upper-arm collisions. Existing bag
+elbow/forearm overlaps were also documented; do not imply the equipment is fully clear yet.
+The dated progress archive is published at331a2c7 and will save every completed new capture.
+Fable f472323 remains the latest fetched world source; all world scope and D1 history preserved.
+
 2026-09-11T08:31:59Z: Owner requested permanent named screenshot folders after each completed pass.
 Created captures/astra-progress at9b9b902 with exactly12 actual JPGs in
 progress/2026-09-11_0809-first-12, a browsable gallery and capture provenance. Verified all12

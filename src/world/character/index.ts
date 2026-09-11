@@ -220,6 +220,7 @@ export function create(ctx: WorldContext): WorldSystem {
       applyPose(r, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn });
       plantFeet(r, ground.height, a.contact);
     }
+    a.char.syncGeometry?.();
     if (a === link) {
       const altitude = mode === 'play' ? Math.max(0, motion.state.y - ground.height(a.pos.x, a.pos.z)) : 0;
       (a.shadow.material as import('three').Material).opacity = 0.6 / (1 + altitude * 2.5);

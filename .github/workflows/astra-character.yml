@@ -29,6 +29,7 @@ jobs:
       - run: npm ci
       - run: node src/world/character/locomotion.test.mjs
       - run: node src/world/character/eye-geometry.test.mjs
+      - run: node src/world/character/boot-articulation.test.mjs
       - run: node src/camera/follow.test.mjs
       - run: node src/world/structures/foliage-shadow.test.mjs
       - run: npm run build

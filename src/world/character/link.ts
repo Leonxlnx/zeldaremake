@@ -18,6 +18,7 @@ import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
+import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 
 export interface Character {
@@ -27,6 +28,8 @@ export interface Character {
   triangles: number;
   /** total height incl. hat (m) for screen-box reporting */
   height: number;
+  /** Update articulated outfit geometry after posing and before any render pass. */
+  syncGeometry?: () => void;
 }
 
 let tally = 0;
@@ -61,7 +64,7 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
     part(thigh, place(new CylinderGeometry(0.06, 0.052, thighLen + 0.02, 12), 0, -thighLen / 2 + 0.01, 0), leg, 'thigh');
     part(knee, place(new CylinderGeometry(0.048, 0.04, shinLen, 12), 0, -shinLen / 2, 0), leg, 'shin');
     // knee cap
-    part(knee, new SphereGeometry(0.05, 10, 8), leg, 'knee');
+    part(knee, opts.shapedBoots ? new SphereGeometry(0.056, 16, 12) : new SphereGeometry(0.05, 10, 8), leg, 'knee');
     const soleY = rig.sole.y;
     if (opts.shapedBoots) {
       const boot = createLinkBoot(soleY, opts.shaftTop);
@@ -603,8 +606,12 @@ export function createLink(): Character {
   buildCap(rig);
   buildGear(rig, part);
   addOutfitDetails(rig, part);
+  const syncGeometry = createBootArticulation(rig);
   rig.root.userData.character = 'link';
-  return { kind: 'link', rig, group: rig.root, triangles: endTally(), height: 1.25 };
+  // Articulation replaces the boot geometry; count the resulting scene, including its joint.
+  let triangles = 0;
+  rig.root.traverse(o => { if (o instanceof Mesh) triangles += triangleCount(o.geometry); });
+  return { kind: 'link', rig, group: rig.root, triangles, height: 1.25, syncGeometry };
 }
 
 export { CHAR_COLORS };
