@@ -25,6 +25,7 @@ import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkNeckline } from './neckline-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
 import { batchStaticLinkParts } from './static-batching';
+import { createLinkCapCrown } from './cap-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -563,16 +564,7 @@ function buildCap(rig: Rig): void {
   const sinMax = Math.sin(thetaMax);
   const taper = (theta: number) => 1 - 0.18 * Math.pow(Math.max(0, 1 - Math.sin(theta) / sinMax), 1.5);
   const rimR = R * sinMax;
-  const dome = new SphereGeometry(R, 22, 14, 0, Math.PI * 2, 0, thetaMax);
-  const pos = dome.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const theta = Math.acos(MathUtils.clamp(pos.getY(i) / R, -1, 1));
-    const f = taper(theta);
-    const x = pos.getX(i) * f, z = pos.getZ(i) * f;
-    const fold = 0.010 * Math.exp(-(((x - 0.025) / 0.055) ** 2) - ((z + 0.075) / 0.040) ** 2);
-    pos.setXYZ(i, x, pos.getY(i) * stretch - fold, z);
-  }
-  dome.computeVertexNormals();
+  const dome = createLinkCapCrown(r);
   // sphere pole (+Y) → n is a rotation about X by -tilt; the dome centre is the head centre
   part(cap, place(dome, -centre.x, -centre.y, -centre.z, [-tilt, 0, 0]), capMat, 'cap-dome');
   // Tail: emerges from the back of the peak, folds back and drapes down between the shoulder

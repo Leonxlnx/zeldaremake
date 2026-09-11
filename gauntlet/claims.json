@@ -398,6 +398,17 @@
       "at": "2026-09-11T10:29:19.305Z",
       "expiresHours": 3,
       "scope": "Recover character draw-call budget through exact same-parent/material static batching; no world detail reduction or rubric change"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T14:43:30.634Z",
+      "expiresHours": 3,
+      "scope": "Resume Link-only cap, outfit materials and walk/run/jump; Fable retains world, structures and global performance work"
     }
   ]
 }

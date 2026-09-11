@@ -2,14 +2,49 @@
 agent: astra
 runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
-status: blocked — workspace offline
+status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:56:40.297Z
+updated: 2026-09-11T14:52:28Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Recovered to clean worktree zeldaremake-active on local alias agent/astra-refinement-recovery;
+publish to existing agent/astra-link-movement / PR5. Old dirty zeldaremake snapshot is preserved.
+C01/C02/C03 renewed via CLI14:43:30.634UTC through17:43:30.634UTC. Own canonical workflow now
+claims only these items; Fable's world/structures/global-performance ownership stays clear.
+
+Publish original Link cap cloth crown:44x28 sampling, shallow irregular outward gathers capped
+3.8mm (actual3.726mm), protected lower/front hair band and existing rear10mm depression.
+63other meshes and all material/rig/brim/tail values remain exact;64meshes,73828triangles.
+Probe checks all unit normals/finite attributes, sampled hair/skull cover and6615tail-root
+samples over105sway poses. Two unchanged outer ear tips are outside both crowns by design.
+No new poke-through in sampled checks; actual gallery must establish cloth appearance.
+
+Read Fable45be2fb round eight and latest PR comments. Source-only integration review completed:
+12-file vegetation unit first;8-file hardscape later. Rocks/index.ts blocked on cross-system
+hardscape/sprouts import. Structures requires customDepth/Distance material IDs in batching key
+and both bindings copied, preserving60294wind-shadow triangles at41meshes (81before). These
+findings and embedded fence/post layout coordinates were sent through our PR2 coordination
+comment. No overwrite of their log, atmosphere work, blanket D1 tolerance or history changes.
+
+Actualb3e47a7 gallery has14stills/42matching frames/no errors; face,boots,belt,pack inspected.
+Leather still subtle and cap still primitive; this is work in progress, no95%/rubric-fidelity
+claim. Canonical0043 W38pass684draws,23/50overall,19/42phase, inherited D1invalid retained.
+
+## Files / systems being touched
+- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
+- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
+- `src/main.ts`: minimal control-hint/input-order integration only if needed.
+- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
+- Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
+
+## Earlier task notes
+
+### Offline checkpoint before recovery
 
 Workspace execution is offline as of this checkpoint. The exec-server connection failed,
 then normal recovery reported environment_offline. Completed source b3e47a7 is pushed;
@@ -41,15 +76,6 @@ Claims: C01/C02/C03/W22/W26/W27 through 13:16:31.987 UTC; W38 character batching
 13:29:19.305 UTC. Renew through the CLI on resumption if expired. No scheduled task, merge
 or deployment was added. Downloads and all completed galleries are linked in progress/README.md.
 
-## Files / systems being touched
-- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
-- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
-- `src/main.ts`: minimal control-hint/input-order integration only if needed.
-- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
-- Read-only review of Fable's world source, monitor captures, PRs and logs.
-- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
-
-## Earlier task notes
 
 ### Before offline checkpoint
 Source bd93490 now publishes Link batching plus Fable canopy intact; canonical take is starting.
@@ -908,4 +934,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T10:56:40.297Z
+2026-09-11T14:46:24Z
