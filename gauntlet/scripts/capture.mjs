@@ -72,7 +72,8 @@ export function gitInfo(distDir = null) {
     subject: run('git log -1 --pretty=%s'),
     author: run('git log -1 --pretty=%an'),
     committedAt: run('git log -1 --pretty=%cI'),
-    dirty: run('git status --porcelain') !== '',
+    // untracked files are not dirt (a worktree gets a node_modules symlink); tracked changes are
+    dirty: run('git status --porcelain --untracked-files=no') !== '',
   };
 }
 
