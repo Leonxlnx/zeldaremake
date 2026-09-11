@@ -13,6 +13,7 @@ import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geo
 import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 import { createLinkFaceGeometry } from './face-geometry';
+import { addOutfitDetails } from './outfit-details';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -255,7 +256,7 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
 
 /** Thin leather strap with a rectangular section, following the existing torso path. */
 function leatherBand(points: Vector3[], width: number, surfaces: Mesh[], shoulderY: number, upperLayer: boolean): BufferGeometry {
-  const vertices: number[] = [], indices: number[] = [];
+  const vertices: number[] = [], indices: number[] = [], uvs: number[] = [];
   const tangent = new Vector3(), outward = new Vector3(), side = new Vector3(), vertex = new Vector3();
   const curve = new CatmullRomCurve3(points), ray = new Raycaster();
   const segments = 64, across = 4, ringSize = (across + 1) * 2;
@@ -276,6 +277,7 @@ function leatherBand(points: Vector3[], width: number, surfaces: Mesh[], shoulde
       const crossingLift = upperLayer && p.z > 0 ? 0.006 * Math.exp(-(((p.y - (shoulderY - 0.105)) / 0.05) ** 4)) : 0;
       vertex.addScaledVector(outward, 0.006 + crossingLift + layer * 0.002);
       vertices.push(vertex.x, vertex.y, vertex.z);
+      uvs.push(j / across, i / segments * 4);
     }
     if (i < segments) {
       for (let face = 0; face < 2; face++) for (let j = 0; j < across; j++) {
@@ -307,6 +309,7 @@ function leatherBand(points: Vector3[], width: number, surfaces: Mesh[], shoulde
   }
   const geo = new BufferGeometry();
   geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+  geo.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
   geo.setIndex(indices); geo.computeVertexNormals();
   return geo;
 }
@@ -340,7 +343,7 @@ function buildTorso(rig: Rig): void {
       [0.113, hl(0.58)],
       [0.108, hl(0.635)],
     ],
-    { segments: 36, scaleZ: 0.8, scallops: 7, scallopDepth: 0.028, folds: 3, foldDepth: 0.05 },
+    { segments: 72, scaleZ: 0.8, scallops: 18, scallopDepth: 0.010, folds: 3, foldDepth: 0.05 },
   );
   part(rig.hips, skirt, tunic, 'tunic-skirt');
   // belt pouch on the left hip with a flap
@@ -350,7 +353,7 @@ function buildTorso(rig: Rig): void {
   ]);
   part(rig.hips, place(pouch, 0.105, hl(0.6), 0.03, [0, 0.55, 0]), matte('leatherDark'), 'pouch');
   // Pale undershirt behind two folded collar flaps, open at the front of the neck.
-  part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.075, 12), 0, cl(0.845), 0), matte('undershirt'), 'undershirt');
+  part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.045, 16), 0, cl(0.8325), 0), matte('undershirt'), 'undershirt');
   for (const sign of [1, -1]) {
     const outline = [[0.015, 0.855, 0.056], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.098]];
     const centre = new Vector3(sign * 0.047, cl(0.834), 0.094);
@@ -381,8 +384,10 @@ function buildTorso(rig: Rig): void {
   // belt + round buckle
   const leather = matte('leather');
   part(rig.hips, ovalLathe([[0.116, hl(0.596)], [0.120, hl(0.601)], [0.120, hl(0.634)], [0.116, hl(0.639)]], { segments: 36, scaleZ: 0.83 }), leather, 'belt');
-  const buckle = merge([place(new TorusGeometry(0.022, 0.007, 6, 14), 0, hl(0.615), 0.108), place(new BoxGeometry(0.006, 0.034, 0.006), 0, hl(0.615), 0.108)]);
-  part(rig.hips, buckle, matte('buckle', { roughness: 0.6 }), 'buckle', false);
+  const buckle = merge([place(new TorusGeometry(0.022, 0.0035, 8, 24), 0, hl(0.615), 0.108), place(new BoxGeometry(0.003, 0.034, 0.004), 0, hl(0.615), 0.108)]);
+  const hardware = matte('buckle', { roughness: 0.75 }).clone();
+  hardware.color.set(0xa69b83); hardware.metalness = 0.25;
+  part(rig.hips, buckle, hardware, 'buckle', false);
   // small buckle where the straps cross on the chest
   part(rig.chest, place(new BoxGeometry(0.022, 0.024, 0.006), 0, cl(0.728), 0.108), matte('buckle', { roughness: 0.6 }), 'strap-buckle', false);
   // two diagonal chest straps hugging the torso surface (left shoulder → right hip and mirrored)
@@ -409,7 +414,7 @@ function buildTorso(rig: Rig): void {
     return pts.reverse();
   };
   for (const sign of [1, -1] as const) {
-    part(rig.chest, leatherBand(strapPts(sign), 0.026, garmentSurfaces, cl(0.835), sign > 0), leather, 'strap');
+    part(rig.chest, leatherBand(strapPts(sign), sign > 0 ? 0.028 : 0.021, garmentSurfaces, cl(0.835), sign > 0), sign > 0 ? leather : cloth('tunicCollar'), 'strap');
   }
 }
 
@@ -470,7 +475,7 @@ function buildCap(rig: Rig): void {
   ].map((v, i) => (i < 3 ? v : v.multiplyScalar(k)));
   part(cap, sweep(pts, [0.038 * k, 0.045 * k, 0.047 * k, 0.048 * k, 0.043 * k, 0.034 * k, 0.02 * k, 0.005], { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.48, crease: 0.16 }), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
-  part(cap, place(new TorusGeometry(rimR + 0.002, 0.014, 8, 32), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
+  part(cap, place(new TorusGeometry(rimR + 0.002, 0.0065, 8, 40), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }
 
 function buildGear(rig: Rig): void {
@@ -521,6 +526,7 @@ export function createLink(): Character {
   buildHair(rig, matte('hair'), 'link');
   buildCap(rig);
   buildGear(rig);
+  addOutfitDetails(rig, part);
   rig.root.userData.character = 'link';
   return { kind: 'link', rig, group: rig.root, triangles: endTally(), height: 1.25 };
 }

@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T05:24:56Z
+updated: 2026-09-11T05:25:23Z
 ---
 
 # Astra — resumed character work
@@ -118,6 +118,13 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Original outfit pass: fitted layered front tunic panels with sewn hems, cleaner scalloping,
+  one primary brown strap plus a green secondary band, restrained metal buckle, reduced cap
+  brim and white undershirt, boot tongues/crossed laces and cap-tail seam. The existing rig,
+  soles and movement tuning remain stable for comparison. CPU panel probe checks 4,800
+  triangle interiors with at least 4.16 mm clearance; strap probe has zero buried samples.
+  Build passes. The exporter now adds actual back-outfit and face-detail views and reruns
+  the continuous sequence; those images are pending, not evidence for this commit yet.
 - W26: six overlapping closed sepals, plant veins/ribs, twisted cord and bindings now replace
   the broad acorn cap. Leaves/rope receive shadows through the existing one-mesh material.
   Four RNG draws, all ten hooks/pod centres/scales/light variants remain unchanged. Root
@@ -184,4 +191,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T05:24:56Z
+2026-09-11T05:25:23Z

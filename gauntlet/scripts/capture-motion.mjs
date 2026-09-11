@@ -39,6 +39,8 @@ try {
     { name: '02-walk', seconds: 0.9, run: false, move: 1, jump: false },
     { name: '03-run', seconds: 0.7, run: true, move: 1, jump: false },
     { name: '04-jump', seconds: 0.30, run: false, move: 0, jump: true },
+    { name: '05-outfit-back', seconds: 0.5, run: false, move: 0, jump: false, view: 'back' },
+    { name: '06-face-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'face' },
   ];
   for (const c of cases) {
     const state = await page.evaluate(async c => {
@@ -52,6 +54,12 @@ try {
       const floor = s.y - (c.jump ? 0.765 : 0);
       const distance = c.jump ? 3.5 : 2.8;
       api.setPose([s.x + Math.sin(yaw) * distance, floor + (c.jump ? 1.5 : 1.28), s.z + Math.cos(yaw) * distance], [s.x, floor + (c.jump ? 1.03 : 0.70), s.z], c.jump ? 42 : 39);
+      if (c.view === 'back') {
+        const back = s.yaw + Math.PI + 0.25;
+        api.setPose([s.x + Math.sin(back) * 2.5, floor + 1.20, s.z + Math.cos(back) * 2.5], [s.x, floor + 0.72, s.z], 39);
+      } else if (c.view === 'face') {
+        api.setPose([s.x + Math.sin(s.yaw + 0.18) * 1.0, floor + 1.13, s.z + Math.cos(s.yaw + 0.18) * 1.0], [s.x, floor + 1.02, s.z], 32);
+      }
       await api.render(2, 0);
       return { character: api.audit().systems.character, camera: api.cameraPose(), stats: api.stats() };
     }, c);

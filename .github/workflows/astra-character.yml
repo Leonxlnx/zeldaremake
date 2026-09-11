@@ -28,6 +28,7 @@ jobs:
       - run: npm ci
       - run: node src/world/character/locomotion.test.mjs
       - run: node src/camera/follow.test.mjs
+      - run: node src/world/structures/foliage-shadow.test.mjs
       - run: npm run build
       - name: Decide whether motion needs a new clip
         id: capture-mode
@@ -43,7 +44,7 @@ jobs:
       - name: Install the clip encoder
         if: steps.capture-mode.outputs.sequence == '1'
         run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
-      - name: Capture actual idle, walk, run and jump
+      - name: Capture actual movement poses and outfit details
         env:
           CAPTURE_SEQUENCE: ${{ steps.capture-mode.outputs.sequence }}
         run: node gauntlet/scripts/capture-motion.mjs

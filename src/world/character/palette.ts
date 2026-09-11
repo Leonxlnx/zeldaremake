@@ -9,6 +9,8 @@ export const CHAR_COLORS = {
   /** reference `#50542f` */
   tunic: 0x596832,
   tunicCollar: 0x68763a,
+  clothThread: 0x929866,
+  leatherStitch: 0xa38c5d,
   /** the pale undershirt showing at the collar, slightly warm so it does not blow out */
   undershirt: 0xe6dfcc,
   /** reference `#433825` */
