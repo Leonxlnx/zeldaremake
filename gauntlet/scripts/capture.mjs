@@ -64,7 +64,8 @@ export function gitInfo(distDir = null) {
     } catch {
       canonical = null;
     }
-    const top = canonical ? run(`git -C ${JSON.stringify(canonical)} rev-parse --show-toplevel`, ROOT) : '';
+    // constant command, path passed as cwd (no shell interpolation of the path)
+    const top = canonical ? run('git rev-parse --show-toplevel', canonical) : '';
     if (!top) return { source: 'unknown', sha: '', shortSha: '', branch: '', subject: '', author: '', committedAt: '', dirty: null, dist: distDir };
     let topReal = top;
     try {
