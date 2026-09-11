@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: blocked — workspace offline
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:51:12.855Z
+updated: 2026-09-11T10:56:40.297Z
 ---
 
 # Astra — resumed character work
@@ -25,10 +25,12 @@ Actual a6092ff capture at 10:41:40 UTC has 14 stills and 42 matching motion fram
 All 14 JPGs match archive f3d5ef0 and are byte-identical to e4a395e: UV repair left those views
 unchanged. The e4 leather finish was too subtle; b3e47a7's stronger finish awaits rendering.
 
-Remote work already running: bd93490 character capture 34589847282 and canonical take
-34589847234; b3e47a7 character capture 34590568187 is queued. Canonical take 0042 remains
-INVALID for W38 at 704 draws plus inherited D1. Seven Link batches and Fable's byte-identical
-b7cc6da canopy integration are the next measured checkpoint; do not claim W38 recovery yet.
+Canonical take 0043 on bd93490 has completed: 684 draws, 6,852,362 triangles, W38 pass,
+23/50 overall and 19/42 phase, no regressions. It remains INVALID for inherited D1 chronology.
+Take 0042's W38/D1 failure remains preserved. Character capture bd93490 at 10:51:46 UTC has
+14 stills/42 matching motion frames, errors[], archived as d8da0e4. Metadata verified remotely;
+workspace outage prevented local visual inspection. Stronger leather source b3e47a7 capture
+34590568187 is now running. Reference fidelity/C01 and phase exit remain unfinished.
 
 A later cap study should test one 44x28 crown with folds capped at 3.8 mm, preserving the
 rim/front hair zone and existing rear depression. Only image/source inspection was completed;
@@ -663,6 +665,12 @@ The first continuous run captured all four poses but failed before video frames 
 
 
 ## Completed work
+- Canonical take 0043 (bd93490, start 10:34:25.424 UTC, run 34589847234) confirms W38 recovery:
+  704 to 684 draws, 6,852,362 triangles, no regressions. Overall 23/50 and phase 19/42;
+  INVALID only for inherited D1 in this entry. Preserve old take 0042's D2/W38 failure.
+  bd93490 also has 14 actual images/42 matching frames at 10:51:46 UTC, errors[], archive
+  d8da0e41e96326a71fcf483fb9c3179a068f6e95. Current workspace outage limits this newest
+  gallery review to metadata; no appearance-fidelity claim. Newer b3e47a7 leather render runs.
 - Leather refinement/boot opt-in ready: original neutral pigment now.8667–1.0000, mean.95382,
   effective roughness.77294–.9 and.35482mm bump span.24mm/16cell scale stays. Focused periodic
   probe1028samples max4.90e-14, independent texture generations exact, all opacity/base settings
@@ -900,4 +908,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T10:51:12.855Z
+2026-09-11T10:56:40.297Z
