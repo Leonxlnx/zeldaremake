@@ -23,6 +23,7 @@ import { createLinkScalpAndNape } from './scalp-geometry';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkNeckline } from './neckline-geometry';
+import { createLinkLeatherMaterial } from './leather-material';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -496,7 +497,7 @@ function buildTorso(rig: Rig): void {
   garmentSurfaces.push(new Mesh(neckline.insert, matte('undershirt')));
   // belt + round buckle
   const leather = matte('leather');
-  part(rig.hips, ovalLathe([[0.116, hl(0.596)], [0.120, hl(0.601)], [0.120, hl(0.634)], [0.116, hl(0.639)]], { segments: 36, scaleZ: 0.83 }), leather, 'belt');
+  part(rig.hips, ovalLathe([[0.116, hl(0.596)], [0.120, hl(0.601)], [0.120, hl(0.634)], [0.116, hl(0.639)]], { segments: 36, scaleZ: 0.83 }), createLinkLeatherMaterial(leather, [.696, .096]), 'belt');
   const buckle = merge([place(new TorusGeometry(0.022, 0.0035, 8, 24), 0, hl(0.615), 0.108), place(new BoxGeometry(0.003, 0.034, 0.004), 0, hl(0.615), 0.108)]);
   const hardware = matte('buckle', { roughness: 0.75 }).clone();
   hardware.color.set(0xa69b83); hardware.metalness = 0.25;

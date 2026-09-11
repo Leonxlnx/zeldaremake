@@ -48,6 +48,8 @@ try {
     { name: '10-tree-house', seconds: 1.5, run: false, move: 1, jump: false, viewpoint: 'B_house' },
     { name: '11-stone-stairway', seconds: 0.5, run: false, move: 0, jump: false, viewpoint: 'F_canopy' },
     { name: '12-face-profile', seconds: 0.5, run: false, move: 0, jump: false, view: 'profile' },
+    { name: '13-backpack-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'pack' },
+    { name: '14-belt-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'belt' },
   ];
   for (const c of cases) {
     const state = await page.evaluate(async c => {
@@ -72,6 +74,12 @@ try {
       } else if (c.view === 'boots') {
         const front = s.yaw + 0.38;
         api.setPose([s.x + Math.sin(front) * 0.9, floor + 0.30, s.z + Math.cos(front) * 0.9], [s.x, floor + 0.16, s.z], 30);
+      } else if (c.view === 'pack') {
+        const back = s.yaw + Math.PI + 0.25;
+        api.setPose([s.x + Math.sin(back) * 0.90, floor + 0.78, s.z + Math.cos(back) * 0.90], [s.x, floor + 0.64, s.z], 32);
+      } else if (c.view === 'belt') {
+        const front = s.yaw + 0.18;
+        api.setPose([s.x + Math.sin(front) * 0.74, floor + 0.71, s.z + Math.cos(front) * 0.74], [s.x, floor + 0.61, s.z], 32);
       } else if (c.view === 'lantern') {
         const [x, y, z] = api.audit().layout.lanternBranch.mid;
         // Mid-span pod: existing limb radius, cord length and pod offset from its builder.

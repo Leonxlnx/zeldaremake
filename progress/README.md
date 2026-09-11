@@ -21,7 +21,8 @@ download that runs through Vite; opening `index.html` directly will not run the 
 The character capture workflow renders meaningful source changes and pushes each completed
 pass to its own dated folder on `captures/astra-progress`. Screenshots have descriptive names,
 and each folder includes its source commit, capture time, and an image gallery. New galleries
-contain twelve views, including the house and stairway. Older folders
+contain twelve core views, including the house and stairway, plus close-ups needed for the
+current pass (such as the backpack and belt leather). Older folders
 remain available. Source-matched motion clips are included when the pass records them.
 
 These are actual game renders from Astra and Fable's shared project. They show work in

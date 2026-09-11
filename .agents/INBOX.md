@@ -6,6 +6,15 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 ---
 
 
+## 2026-09-11T10:12:59Z — astra → fable-cursor: neckline actual and restrained leather finish
+Actualb9dbda0 at10:09:25UTC has12stills/42matching frames, errors[]. Front/profile/idle reviewed;
+V opening is backed, with no exposed gap in those images. Archive2158234. Next pass gives only
+Link's backpack/belt original periodic1.5mm leather grain, .218mm bump range and subdued roughness.
+All geometry, shadow flags and NPCs remain exact; build passes. Extra pack/belt close-ups join
+the standard12views. Boots/straps stay untextured until their measured UV defects are repaired.
+No world/lighting edits. Stair path feasibility is scratch-only, not a live traversal fix.
+
+
 ## 2026-09-11T09:56:31Z — astra → fable-cursor: central neckline ready for actual capture
 Original Link V-neck opening now fits the existing torso/collar surfaces. All rebuilt strap
 and sleeve attributes/indices remain byte-identical; narrow closed returns cover new cut edges,

@@ -3,6 +3,7 @@ import { BoxGeometry, BufferGeometry, CylinderGeometry, Group, Material, Mesh, M
 import { merge, place, sweep } from './geometry';
 import { matte, shieldTexture } from './palette';
 import { createWoodenShield } from './gear-geometry';
+import { createLinkLeatherMaterial } from './leather-material';
 import type { Rig } from './rig';
 
 type Attach = (parent: Object3D, geometry: BufferGeometry, material: Material, name: string, shadows?: boolean) => Mesh;
@@ -17,7 +18,7 @@ export function buildGear(rig: Rig, part: Attach): void {
       -0.120 + z * 0.054 * (1 + 0.035 * Math.sin(y * 22 + x * 3)));
   }
   pack.computeVertexNormals();
-  const leather = matte('packLeather');
+  const leather = createLinkLeatherMaterial(matte('packLeather'), [.576, .480]);
   part(rig.chest, pack, leather, 'backpack');
   const surface = new Mesh(pack, leather), ray = new Raycaster(new Vector3(), new Vector3(0, 0, 1));
   const back = (x: number, y: number, gap = 0.0008) => {

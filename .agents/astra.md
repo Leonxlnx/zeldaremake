@@ -4,12 +4,36 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:00:50Z
+updated: 2026-09-11T10:12:59Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Leather finish is integrated on the backpack and belt only. Actual builder comparison against
+acc07b9 preserves every mesh geometry attribute/index, shadow flag and triangle count: Link
+74meshes/72002triangles, all three NPCs exact. Only those two material clones gain original
+colour/roughness/bump maps; their base colours/settings remain exact. Measured texture fields
+are periodic to4.9e-14, independent generations hash-identical, opaque and finite. Effective
+roughness is .836–.882 from the existing .9; linear colour multiplier averages .9861.
+Build/typecheck pass. Two extra close-ups (13backpack,14belt) make this material pass inspectable,
+alongside the twelve core views. Real rendered appearance remains pending publication/capture.
+
+Necklineb9dbda0 actual capture completed10:09:25UTC:12stills/42matching motion frames, errors[].
+Root viewed face/profile/idle: opening and backed underside read clearly, no exposed gap in
+those images. Archive2158234 preserves this source. acc07b9 clearer-house image is queued.
+Boot UV seam repair is still scratch-only: helper reports expanded geometry/sole equality
+across1416frames, pending root review and safe integration. Step-to stair paths are collision-free
+feasibility studies only; speed, pose naturalness and live control remain unresolved.
+
+Prepare a Link-only backpack/belt leather finish. Original periodic24mm tiles contain roughly
+1.5mm pebble grain with .218mm bump range; conservative neutral colour modulation retains base
+colours. Use measured UV repeats24x20 for pack and29x4 for belt only. Existing boot/cuff wrap
+seams, UV-less tongues and fitted strap stretch exclude them from this pass. Cloned materials
+must preserve other settings, mesh/triangle counts and every geometry array; NPCs remain exact.
+Separate scratch UV repair studies the boot seam/articulation ring interaction before any opt-in.
+Necklineb9dbda0 and canonical checkpoint are rendering; acc07b9 queues the clearer house image.
+
 Next auxiliary screenshot correction: the actual0dbb B_house image places the idle spawn cap
 and fairy too close to the saved camera. Advance Link1.5s using ordinary forward walking input
 for this one world view, then keep the authored B camera unchanged. It remains an actual
