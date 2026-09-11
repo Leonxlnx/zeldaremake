@@ -11,6 +11,19 @@ updated: 2026-09-11T16:22:53Z
 
 ## Current task
 
+Integrate only Fable fda213f's terrain approach correction from b70df65. The full terrain file
+has only that documented blend change versus our source and is copied exactly with attribution.
+It keeps the under-tread trench behind the first riser. The isolated CPU comparison lowers
+the entrance support rise from .433222 to .260134 m and lets ordinary input reach tread one;
+tread two still rejects its .30 m rise against the unchanged .28 guard. The .04–.36 blend and
+checked boundaries are continuous. This fixes a ground obstruction; it does not establish
+whole-leg stair clearance or finish movement. No controller, stair dimensions or lantern
+source is changed. Root production build passes; actual world images remain to be reviewed.
+
+Cloth ab669a8 is pushed; its and cap5529e85's character jobs run independently. Hand, temple
+hair and sleeve candidates remain separate. The owner continues to prioritize character.
+
+
 Now integrate original woven cloth and physical UV density on Link only. Files: new
 cloth-surface.ts and cloth-uv.ts, the existing palette cloth factory, and one hook in link.ts
 after outfit/boot construction and immediately before static batching. The combined candidate

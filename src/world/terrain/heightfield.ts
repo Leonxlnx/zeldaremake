@@ -358,9 +358,11 @@ function macroHeight(x: number, z: number) {
     const { u, v } = stairLocal(f, x, z);
     if (u > -1.2 && u < f.run + 2.4 && Math.abs(v) < f.halfWidth + 1.3) {
       const ramp = f.baseY + clamp(u / f.run, 0, 1) * f.rise;
-      // the under-tread trench starts under the first riser (buried to −0.3), not in front of
-      // it, so the flagstone spur meets the bottom step on level ground
-      const wu = smoothstep(-0.4, -0.02, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
+      // the under-tread trench starts under the FIRST TREAD (u ≥ 0.04), never in front of the
+      // first riser: blending it in from u = −0.4 dug a 0.17 m trench at the stair foot that the
+      // player controller read as a 0.47 m step (Astra, 2026-09-11). The approach now stays at
+      // base level and the first riser shows its full 0.30 m.
+      const wu = smoothstep(0.04, 0.36, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
       const av = Math.abs(v);
       // under the treads: keep the ground well below the slabs so nothing pokes through
       const wUnder = 1 - smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av);
