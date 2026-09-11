@@ -557,6 +557,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42; (2) W25 branch supports +
   W38 headroom; A top-band haze ceiling (atmosphere); (3) owner decisions (W04, concept vs frames).
 
+### 14:20 UTC — tick 34: take-0045 published (monitor `5a533f3`), valid; round eight complete
+- `d2a2847` vegetation (white flowers, fiddleheads, leaf shapes, rim moss/litter), `738b3df`
+  structures (arc boughs + pod row, roof moss, ember interior, threshold, rope fences, lantern
+  posts, arch dressing), `2be6e73` hardscape seam retune, `7d564e7` vegetation variant packs
+  (−51 draws, pixel-identical), `6f9c4c2` structures mesh merge (81 → 41, −70 draws, bit-identical):
+  A 743 → 622 draws (W38 700), 8.1 M tris (cap 9 M). `…` bough pods scaled 0.62 (next take).
+- take-0045 (clean build of `6f9c4c2`): A 0.254 / B 0.211 / C 0.264 / D 0.269 (best) / E 0.228 /
+  F 0.242; score 24/50 with reviews; 45 entries. B/A slightly down: the dark arc bough crosses
+  where the reference dome is smooth, and the bough pods read 2× the reference size in B.
+- No sub-agents running. Next: round nine — atmosphere (A top-band haze ceiling 0.55–0.59 vs
+  0.65; B roof p10 floor; hazeNear less yellow for the door box), house bough thinned/lifted,
+  layout: the reference B's thick near limb with pods crossing the roof top; Link colours (Astra).
+- Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42; (2) B/E: pods, bough, midground
+  contrast; (3) owner decisions (W04, concept vs frames), C01 (Astra).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
