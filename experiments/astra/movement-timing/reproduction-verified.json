@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "standing",
+    "frame": 204,
+    "stopExact": true,
+    "failureExactExceptTiming": true,
+    "snapshotExact": true,
+    "historyExact": true,
+    "auditExact": true
+  },
+  {
+    "kind": "walking",
+    "frame": 240,
+    "stopExact": true,
+    "failureExactExceptTiming": true,
+    "snapshotExact": true,
+    "historyExact": true,
+    "auditExact": true
+  },
+  {
+    "kind": "running",
+    "frame": 60,
+    "stopExact": true,
+    "failureExactExceptTiming": true,
+    "snapshotExact": true,
+    "historyExact": true,
+    "auditExact": true
+  }
+]

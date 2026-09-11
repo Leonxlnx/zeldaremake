@@ -1,0 +1,1257 @@
+[
+  {
+    "kind": "standing",
+    "frame": 204,
+    "audit": {
+      "maxKneeStep": 0.04081164630896731,
+      "maxPoleStep": 0,
+      "maxPlantedPositionDrift": 2.2033036935636169e-16,
+      "maxPlantedQuaternionChange": 2.914335439641036e-16,
+      "rejectionGraphExact": null
+    },
+    "cpu": {
+      "count": 204,
+      "totalMs": 177.1253020000131,
+      "medianMs": 0.6373780000003535,
+      "p95Ms": 1.8253300000005765,
+      "maximumMs": 8.374034999999822
+    },
+    "firstFailure": null,
+    "heightFallbacks": [],
+    "earlySupportReleases": [],
+    "contactPhases": [
+      {
+        "time": 1.0083333333333322,
+        "side": 0,
+        "mode": "air",
+        "physicalPhase": 0.25,
+        "schedulePhase": 0.25,
+        "plantedPhase": 0,
+        "physicalContactPhase": 0,
+        "endPhase": 0.25,
+        "releases": 1,
+        "commits": 0
+      },
+      {
+        "time": 1.0083333333333322,
+        "side": 1,
+        "mode": "air",
+        "physicalPhase": 0.25,
+        "schedulePhase": 0.25,
+        "plantedPhase": -0.5,
+        "physicalContactPhase": -0.5,
+        "endPhase": 0.25,
+        "releases": 1,
+        "commits": 0
+      },
+      {
+        "time": 1.6499999999999966,
+        "side": 0,
+        "mode": "planted",
+        "physicalPhase": 0.25,
+        "schedulePhase": 0.25,
+        "plantedPhase": 0.25,
+        "physicalContactPhase": 0.25,
+        "endPhase": 0.25,
+        "releases": 1,
+        "commits": 1
+      },
+      {
+        "time": 1.6499999999999966,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 0.25,
+        "schedulePhase": 0.25,
+        "plantedPhase": 0.25,
+        "physicalContactPhase": 0.25,
+        "endPhase": 0.25,
+        "releases": 1,
+        "commits": 1
+      }
+    ]
+  },
+  {
+    "kind": "walking",
+    "frame": 240,
+    "audit": {
+      "maxKneeStep": 0.0557233229729432,
+      "maxPoleStep": 0.006687706612635115,
+      "maxPlantedPositionDrift": 6.675778524870387e-16,
+      "maxPlantedQuaternionChange": 3.191891195797325e-16,
+      "rejectionGraphExact": null
+    },
+    "cpu": {
+      "count": 240,
+      "totalMs": 320.9676209999907,
+      "medianMs": 1.3228839999992488,
+      "p95Ms": 2.532513000000108,
+      "maximumMs": 6.239222000000154
+    },
+    "firstFailure": null,
+    "heightFallbacks": [],
+    "earlySupportReleases": [
+      {
+        "time": 0.21666666666666665,
+        "side": 0,
+        "exit": 0.010958068134523938,
+        "nominalDelay": 0.017579352497448367,
+        "age": 0.49106902918262796,
+        "duty": 0.52
+      },
+      {
+        "time": 0.5000000000000007,
+        "side": 1,
+        "exit": 0.0069601143416388005,
+        "nominalDelay": 0.014324640342364655,
+        "age": 0.49459709669522484,
+        "duty": 0.52
+      }
+    ],
+    "contactPhases": [
+      {
+        "time": 0.016666666666666666,
+        "side": 1,
+        "mode": "swing",
+        "physicalPhase": 0.2540952863538675,
+        "schedulePhase": 0.2540952863538675,
+        "plantedPhase": -0.5,
+        "physicalContactPhase": -0.5,
+        "endPhase": 0.5,
+        "releases": 1,
+        "commits": 0
+      },
+      {
+        "time": 0.20833333333333331,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 0.49106902918262796,
+        "schedulePhase": 0.49106902918262796,
+        "plantedPhase": 0.48899869005894153,
+        "physicalContactPhase": 0.48899869005894153,
+        "endPhase": 0.5,
+        "releases": 1,
+        "commits": 1
+      },
+      {
+        "time": 0.21666666666666665,
+        "side": 0,
+        "mode": "swing",
+        "physicalPhase": 0.5047834946905637,
+        "schedulePhase": 0.5047834946905637,
+        "plantedPhase": 0,
+        "physicalContactPhase": 0,
+        "endPhase": 1,
+        "releases": 1,
+        "commits": 0
+      },
+      {
+        "time": 0.49166666666666736,
+        "side": 0,
+        "mode": "planted",
+        "physicalPhase": 0.9835957867541664,
+        "schedulePhase": 0.9835957867541664,
+        "plantedPhase": 0.9797438873169464,
+        "physicalContactPhase": 0.9797438873169464,
+        "endPhase": 1,
+        "releases": 1,
+        "commits": 1
+      },
+      {
+        "time": 0.5000000000000007,
+        "side": 1,
+        "mode": "swing",
+        "physicalPhase": 0.998373879314512,
+        "schedulePhase": 0.998373879314512,
+        "plantedPhase": 0.48899869005894153,
+        "physicalContactPhase": 0.48899869005894153,
+        "endPhase": 1.4889986900589416,
+        "releases": 2,
+        "commits": 1
+      },
+      {
+        "time": 0.7749999999999997,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 1.4869264792172696,
+        "schedulePhase": 1.4869264792172696,
+        "plantedPhase": 1.4806263779156448,
+        "physicalContactPhase": 1.4806263779156448,
+        "endPhase": 1.4889986900589416,
+        "releases": 2,
+        "commits": 2
+      },
+      {
+        "time": 0.783333333333333,
+        "side": 0,
+        "mode": "swing",
+        "physicalPhase": 1.5017400684903726,
+        "schedulePhase": 1.5017400684903726,
+        "plantedPhase": 0.9797438873169464,
+        "physicalContactPhase": 0.9797438873169464,
+        "endPhase": 1.9797438873169464,
+        "releases": 2,
+        "commits": 1
+      },
+      {
+        "time": 1.0083333333333322,
+        "side": 1,
+        "mode": "air",
+        "physicalPhase": 1.8869144663175643,
+        "schedulePhase": 1.8869144663175643,
+        "plantedPhase": 1.4806263779156448,
+        "physicalContactPhase": 1.4806263779156448,
+        "endPhase": 1.4889986900589416,
+        "releases": 3,
+        "commits": 2
+      },
+      {
+        "time": 1.6499999999999966,
+        "side": 0,
+        "mode": "planted",
+        "physicalPhase": 1.9165440834912044,
+        "schedulePhase": 1.9165440834912044,
+        "plantedPhase": 1.9111408141292265,
+        "physicalContactPhase": 1.9111408141292265,
+        "endPhase": 1.9797438873169464,
+        "releases": 2,
+        "commits": 2
+      },
+      {
+        "time": 1.9416666666666622,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 2.435062547449197,
+        "schedulePhase": 0.5,
+        "plantedPhase": 0.4960784473122768,
+        "physicalContactPhase": 2.4311409947614737,
+        "endPhase": -0.44606385739025534,
+        "releases": 3,
+        "commits": 3
+      },
+      {
+        "time": 1.9499999999999955,
+        "side": 0,
+        "mode": "swing",
+        "physicalPhase": 2.4498773621023413,
+        "schedulePhase": 0.5148148146531444,
+        "plantedPhase": -0.023921733319970384,
+        "physicalContactPhase": 1.9111408141292265,
+        "endPhase": 0.9760782666800296,
+        "releases": 3,
+        "commits": 2
+      }
+    ]
+  },
+  {
+    "kind": "running",
+    "frame": 60,
+    "audit": {
+      "maxKneeStep": 0.07954340095398013,
+      "maxPoleStep": 0.0070183578579973965,
+      "maxPlantedPositionDrift": 4.477603233993732e-16,
+      "maxPlantedQuaternionChange": 3.677613769070831e-16,
+      "rejectionGraphExact": true,
+      "rejectionCoordinatorExact": true,
+      "rejectionGeometryExact": true
+    },
+    "cpu": {
+      "count": 61,
+      "totalMs": 204.67234200000348,
+      "medianMs": 2.4643860000014683,
+      "p95Ms": 6.124620000000505,
+      "maximumMs": 38.16928099999859
+    },
+    "firstFailure": {
+      "fraction": 1,
+      "status": "ordinary-height-response",
+      "detail": {
+        "attempts": [
+          {
+            "horizon": 0.12,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.3958089999996446,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.11302083333333333,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.3309689999987313,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.10604166666666666,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.45288799999980256,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.0990625,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.46299999999973807,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.09208333333333332,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.3408259999996517,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.08510416666666666,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.3760569999994914,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.078125,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.33629299999847717,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.07114583333333332,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.41705200000069453,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.06416666666666666,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.35793499999999767,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.057187499999999995,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.37893500000063796,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.05020833333333333,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.384686999999758,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.043229166666666666,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.37242800000058196,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.03625,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.36982499999976426,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.02927083333333333,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.41137499999967986,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.022291666666666668,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.400074000001041,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.0153125,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.5490769999996701,
+            "summary": "ordinary-support-curve"
+          },
+          {
+            "horizon": 0.008333333333333333,
+            "status": "ordinary-support-curve",
+            "elapsedMs": 0.4297450000012759,
+            "summary": "ordinary-support-curve"
+          }
+        ],
+        "lastFailure": {
+          "status": "ordinary-support-curve",
+          "detail": {
+            "heightPlan": {
+              "status": "infeasible",
+              "reason": "knee-rate",
+              "diagnostics": {
+                "samples": 28,
+                "affineConstraints": 336,
+                "rateConstraints": 15,
+                "rootIterations": 100,
+                "isolatedRoots": 2,
+                "fixedConstraints": 14,
+                "guarantee": "supplied samples plus exact consumed scalar height/speed extrema",
+                "reserve": "linear tangent estimate only",
+                "failure": {
+                  "index": 7,
+                  "time": 0.0022435897435897434,
+                  "side": 0
+                }
+              },
+              "intervals": []
+            },
+            "swayRate": 0.0040287812038939065,
+            "ordinaryLimit": 40.964617361572074,
+            "benchmarkStart": 28.19067106286199,
+            "benchmarkEnd": 28.207627689225845,
+            "samples": [
+              {
+                "time": 0,
+                "legs": [
+                  {
+                    "horizontalSq": 0.0488944684506573,
+                    "horizontalDot": 0.8643093748118401,
+                    "verticalOffset": -0.066187950040127,
+                    "verticalVelocityOffset": -0.014919303816373445,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.003995524176957827,
+                    "horizontalDot": 0.23389496930739678,
+                    "verticalOffset": -0.06381204995987301,
+                    "verticalVelocityOffset": 0.014919303816373445,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0003205128205128205,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04941197813937775,
+                    "horizontalDot": 0.7500066588844162,
+                    "verticalOffset": -0.0662309127715012,
+                    "verticalVelocityOffset": -0.25154822938043647,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.004146988105946145,
+                    "horizontalDot": 0.23867248929004756,
+                    "verticalOffset": -0.06380726813404204,
+                    "verticalVelocityOffset": 0.01491928930508547,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.000641025641025641,
+                "legs": [
+                  {
+                    "horizontalSq": 0.049855642219171416,
+                    "horizontalDot": 0.6339572262967034,
+                    "verticalOffset": -0.06634816050089765,
+                    "verticalVelocityOffset": -0.478457691475239,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.004301514548040256,
+                    "horizontalDot": 0.2434500101980788,
+                    "verticalOffset": -0.06380248631292344,
+                    "verticalVelocityOffset": 0.014919274411230926,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0009615384615384616,
+                "legs": [
+                  {
+                    "horizontalSq": 0.0502244297524417,
+                    "horizontalDot": 0.5164379850683207,
+                    "verticalOffset": -0.06653657801566595,
+                    "verticalVelocityOffset": -0.6956476901007815,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.004459103503834558,
+                    "horizontalDot": 0.24822753203538422,
+                    "verticalOffset": -0.06379770449663982,
+                    "verticalVelocityOffset": 0.014919259134810195,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.001282051282051282,
+                "legs": [
+                  {
+                    "horizontalSq": 0.05051748730673345,
+                    "horizontalDot": 0.3977258432202334,
+                    "verticalOffset": -0.06679305010315571,
+                    "verticalVelocityOffset": -0.9031182252570642,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.004619754973926037,
+                    "horizontalDot": 0.25300505480586016,
+                    "verticalOffset": -0.0637929226853138,
+                    "verticalVelocityOffset": 0.014919243475823667,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0016025641025641025,
+                "legs": [
+                  {
+                    "horizontalSq": 0.05073413895473324,
+                    "horizontalDot": 0.2780977087747498,
+                    "verticalOffset": -0.06711446155071651,
+                    "verticalVelocityOffset": -1.1008692969440879,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0047834689589140835,
+                    "horizontalDot": 0.25778257851340025,
+                    "verticalOffset": -0.06378814087906798,
+                    "verticalVelocityOffset": 0.014919227434271744,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0019230769230769232,
+                "legs": [
+                  {
+                    "horizontalSq": 0.050873886274270815,
+                    "horizontalDot": 0.15783048975552372,
+                    "verticalOffset": -0.06749769714569795,
+                    "verticalVelocityOffset": -1.2889009051618525,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0049502454594006744,
+                    "horizontalDot": 0.26256010316190076,
+                    "verticalOffset": -0.063783359078025,
+                    "verticalVelocityOffset": 0.014919211010154837,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0022435897435897434,
+                "legs": [
+                  {
+                    "horizontalSq": 0.05093640834831961,
+                    "horizontalDot": 0.03720109418755379,
+                    "verticalOffset": -0.06793964167544962,
+                    "verticalVelocityOffset": -1.4672130499103586,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.005120084475990228,
+                    "horizontalDot": 0.26733762875525624,
+                    "verticalOffset": -0.06377857728230747,
+                    "verticalVelocityOffset": 0.014919194203473365,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.002564102564102564,
+                "legs": [
+                  {
+                    "horizontalSq": 0.0509215617649979,
+                    "horizontalDot": -0.08351356990281722,
+                    "verticalOffset": -0.06843717992732111,
+                    "verticalVelocityOffset": -1.635805731189607,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0052929860092896215,
+                    "horizontalDot": 0.2721151552973602,
+                    "verticalOffset": -0.06377379549203802,
+                    "verticalVelocityOffset": 0.014919177014227769,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0028846153846153843,
+                "legs": [
+                  {
+                    "horizontalSq": 0.050829380617569316,
+                    "horizontalDot": -0.2040365944879018,
+                    "verticalOffset": -0.06898719668866204,
+                    "verticalVelocityOffset": -1.7946789489995973,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.005468950059908329,
+                    "horizontalDot": 0.27689268279210877,
+                    "verticalOffset": -0.06376901370733923,
+                    "verticalVelocityOffset": 0.01491915944241848,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.003205128205128205,
+                "legs": [
+                  {
+                    "horizontalSq": 0.05066007650444384,
+                    "horizontalDot": -0.3240910715386675,
+                    "verticalOffset": -0.069586576746822,
+                    "verticalVelocityOffset": -1.9438327033403306,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.005647976628458256,
+                    "horizontalDot": 0.28167021124339636,
+                    "verticalOffset": -0.06376423192833375,
+                    "verticalVelocityOffset": 0.01491914148804595,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0035256410256410253,
+                "legs": [
+                  {
+                    "horizontalSq": 0.05041403852917872,
+                    "horizontalDot": -0.4434000930247376,
+                    "verticalOffset": -0.07023220488915058,
+                    "verticalVelocityOffset": -2.083266994211807,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0058300657155538355,
+                    "horizontalDot": 0.28644774065511824,
+                    "verticalOffset": -0.06375945015514417,
+                    "verticalVelocityOffset": 0.014919123151110639,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0038461538461538464,
+                "legs": [
+                  {
+                    "horizontalSq": 0.050091833300479706,
+                    "horizontalDot": -0.5616867509143924,
+                    "verticalOffset": -0.07092096590299739,
+                    "verticalVelocityOffset": -2.2129818216140285,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0060152173218119016,
+                    "horizontalDot": 0.2912252710311669,
+                    "verticalOffset": -0.06375466838789313,
+                    "verticalVelocityOffset": 0.014919104431613024,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.004166666666666667,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04969420493220082,
+                    "horizontalDot": -0.6786741371745642,
+                    "verticalOffset": -0.07164974457571201,
+                    "verticalVelocityOffset": -2.3329771855469934,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0062034314478519505,
+                    "horizontalDot": 0.29600280237543936,
+                    "verticalOffset": -0.06374988662670324,
+                    "verticalVelocityOffset": 0.014919085329553574,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.004487179487179487,
+                "legs": [
+                  {
+                    "horizontalSq": 0.049222075043346414,
+                    "horizontalDot": -0.7940853437708433,
+                    "verticalOffset": -0.07241542569464404,
+                    "verticalVelocityOffset": -2.443253086010703,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0063947080942958045,
+                    "horizontalDot": 0.3007803346918281,
+                    "verticalOffset": -0.06374510487169711,
+                    "verticalVelocityOffset": 0.014919065844932787,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.004778054995755809,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04873003438796372,
+                    "horizontalDot": -0.8972280650477331,
+                    "verticalOffset": -0.07313963391044409,
+                    "verticalVelocityOffset": -2.53491904783089,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.006570948526975662,
+                    "horizontalDot": 0.30511609702041503,
+                    "verticalOffset": -0.06374076528344427,
+                    "verticalVelocityOffset": 0.014919047830889782,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.004807692307692308,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04867686614125968,
+                    "horizontalDot": -0.8967351262768086,
+                    "verticalOffset": -0.0732148940471431,
+                    "verticalVelocityOffset": -2.543809523005158,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.006589047261767955,
+                    "horizontalDot": 0.30555786798422985,
+                    "verticalOffset": -0.06374032312299736,
+                    "verticalVelocityOffset": 0.01491904597775116,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.005128205128205128,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04810374455021065,
+                    "horizontalDot": -0.8914042376630554,
+                    "verticalOffset": -0.07404503442055875,
+                    "verticalVelocityOffset": -2.6346464965303587,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.006786448950895221,
+                    "horizontalDot": 0.31033540225653716,
+                    "verticalOffset": -0.06373554138072661,
+                    "verticalVelocityOffset": 0.0149190257280092,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0054487179487179484,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04753404019570922,
+                    "horizontalDot": -0.8860733482473833,
+                    "verticalOffset": -0.07490273160224062,
+                    "verticalVelocityOffset": -2.7157640065863053,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.006986913162307051,
+                    "horizontalDot": 0.3151129375126459,
+                    "verticalOffset": -0.06373075964500746,
+                    "verticalVelocityOffset": 0.014919005095707436,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.005769230769230769,
+                "legs": [
+                  {
+                    "horizontalSq": 0.0469677530782709,
+                    "horizontalDot": -0.8807424580256783,
+                    "verticalOffset": -0.07578487037953831,
+                    "verticalVelocityOffset": -2.7871620531729993,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.007190439896635291,
+                    "horizontalDot": 0.3198904737564494,
+                    "verticalOffset": -0.06372597791596253,
+                    "verticalVelocityOffset": 0.014918984080846385,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.00608974358974359,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04640488319841351,
+                    "horizontalDot": -0.8754115669938254,
+                    "verticalOffset": -0.07668833553980138,
+                    "verticalVelocityOffset": -2.8488406362904413,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.007397029154514388,
+                    "horizontalDot": 0.32466801099184334,
+                    "verticalOffset": -0.06372119619371445,
+                    "verticalVelocityOffset": 0.014918962683426592,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.00641025641025641,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04584543055665793,
+                    "horizontalDot": -0.8700806751477121,
+                    "verticalOffset": -0.07761001187037947,
+                    "verticalVelocityOffset": -2.9007997559386296,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.007606680936581139,
+                    "horizontalDot": 0.3294455492227202,
+                    "verticalOffset": -0.06371641447838583,
+                    "verticalVelocityOffset": 0.014918940903448604,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.00673076923076923,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04528939515352728,
+                    "horizontalDot": -0.864749782483223,
+                    "verticalOffset": -0.07854678415862217,
+                    "verticalVelocityOffset": -2.943039412117567,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.007819395243474988,
+                    "horizontalDot": 0.3342230884529756,
+                    "verticalOffset": -0.06371163277009927,
+                    "verticalVelocityOffset": 0.014918918740912982,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.0070512820512820505,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04473677698954749,
+                    "horizontalDot": -0.859418888996244,
+                    "verticalOffset": -0.07949553719187907,
+                    "verticalVelocityOffset": -2.975559604827254,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.0080351720758378,
+                    "horizontalDot": 0.33900062868650355,
+                    "verticalOffset": -0.06370685106897739,
+                    "verticalVelocityOffset": 0.01491889619582029,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.007371794871794872,
+                "legs": [
+                  {
+                    "horizontalSq": 0.044187576065247154,
+                    "horizontalDot": -0.8540879946826614,
+                    "verticalOffset": -0.08045315575749976,
+                    "verticalVelocityOffset": -2.9983603340676903,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.008254011434313936,
+                    "horizontalDot": 0.3437781699271981,
+                    "verticalOffset": -0.06370206937514282,
+                    "verticalVelocityOffset": 0.014918873268171108,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.007692307692307693,
+                "legs": [
+                  {
+                    "horizontalSq": 0.043641792381157486,
+                    "horizontalDot": -0.8487570995383613,
+                    "verticalOffset": -0.08141652464283386,
+                    "verticalVelocityOffset": -3.011441599838877,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.00847591331955025,
+                    "horizontalDot": 0.34855571217895315,
+                    "verticalOffset": -0.06369728768871816,
+                    "verticalVelocityOffset": 0.014918849957966029,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.008012820512820514,
+                "legs": [
+                  {
+                    "horizontalSq": 0.04309942593781224,
+                    "horizontalDot": -0.8434262035592291,
+                    "verticalOffset": -0.08238252863523096,
+                    "verticalVelocityOffset": -3.0148034021408145,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.008700877732196145,
+                    "horizontalDot": 0.3533332554456634,
+                    "verticalOffset": -0.06369250600982602,
+                    "verticalVelocityOffset": 0.01491882626520564,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              },
+              {
+                "time": 0.008333333333333333,
+                "legs": [
+                  {
+                    "horizontalSq": 0.042560476735748004,
+                    "horizontalDot": -0.8380953067411522,
+                    "verticalOffset": -0.08334805252204067,
+                    "verticalVelocityOffset": -3.008445740973503,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  },
+                  {
+                    "horizontalSq": 0.008928904672903424,
+                    "horizontalDot": 0.3581107997312219,
+                    "verticalOffset": -0.06368772433858902,
+                    "verticalVelocityOffset": 0.01491880218989056,
+                    "minDistance": 0.015000000000000098,
+                    "maxDistance": 0.45299999999999996,
+                    "maxFlexRate": 40.964617361572074
+                  }
+                ]
+              }
+            ],
+            "request": {
+              "root": {
+                "x": 0,
+                "y": 0,
+                "z": 1.6741723045453267
+              },
+              "visualYaw": 0,
+              "hipsLocal": {
+                "x": 2.2559896059245e-06,
+                "y": 0.44464942422820797,
+                "z": 0
+              },
+              "hipsRotation": [
+                0.0001904500738057536,
+                -0.019735791073611137,
+                -0.009647655395242758,
+                0.999758663390742
+              ],
+              "soles": [
+                {
+                  "position": {
+                    "x": 0.08600000000000001,
+                    "y": 0.017035776860629685,
+                    "z": 1.4963458853387153
+                  },
+                  "rotation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                },
+                {
+                  "position": {
+                    "x": -0.08600000000000001,
+                    "y": 0,
+                    "z": 1.6037397079620732
+                  },
+                  "rotation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                }
+              ],
+              "poles": [
+                {
+                  "x": -0.03946573100278897,
+                  "y": -1.0842021724855044e-19,
+                  "z": 0.9992209245589363
+                },
+                {
+                  "x": -0.03946573100278897,
+                  "y": -1.0842021724855044e-19,
+                  "z": 0.9992209245589363
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "heightFallbacks": [
+      {
+        "time": 0.45000000000000057,
+        "horizon": 0.09775390625,
+        "fitCount": 9,
+        "elapsedMs": 6.238585999997667
+      }
+    ],
+    "earlySupportReleases": [
+      {
+        "time": 0.24999999999999997,
+        "side": 1,
+        "exit": 0.006833036734180441,
+        "nominalDelay": 0.00948625101715614,
+        "age": 0.383856742644964,
+        "duty": 0.41313875344826445
+      },
+      {
+        "time": 0.45000000000000057,
+        "side": 1,
+        "exit": 0.011485155985757717,
+        "nominalDelay": 0.036137658377261475,
+        "age": 0.2639080992166296,
+        "duty": 0.37005871396741125
+      }
+    ],
+    "contactPhases": [
+      {
+        "time": 0.016666666666666666,
+        "side": 1,
+        "mode": "swing",
+        "physicalPhase": 0.25998226048755213,
+        "schedulePhase": 0.25998226048755213,
+        "plantedPhase": -0.5,
+        "physicalContactPhase": -0.5,
+        "endPhase": 0.5,
+        "releases": 1,
+        "commits": 0
+      },
+      {
+        "time": 0.11666666666666665,
+        "side": 0,
+        "mode": "swing",
+        "physicalPhase": 0.4872528104131074,
+        "schedulePhase": 0.4872528104131074,
+        "plantedPhase": 0,
+        "physicalContactPhase": 0,
+        "endPhase": 1,
+        "releases": 1,
+        "commits": 0
+      },
+      {
+        "time": 0.12499999999999999,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 0.5123123966872509,
+        "schedulePhase": 0.5123123966872509,
+        "plantedPhase": 0.49078250565628095,
+        "physicalContactPhase": 0.49078250565628095,
+        "endPhase": 0.5,
+        "releases": 1,
+        "commits": 1
+      },
+      {
+        "time": 0.24166666666666664,
+        "side": 0,
+        "mode": "planted",
+        "physicalPhase": 0.874639248301245,
+        "schedulePhase": 0.874639248301245,
+        "plantedPhase": 0.8622816763073821,
+        "physicalContactPhase": 0.8622816763073821,
+        "endPhase": 1,
+        "releases": 1,
+        "commits": 1
+      },
+      {
+        "time": 0.24999999999999997,
+        "side": 1,
+        "mode": "swing",
+        "physicalPhase": 0.9003624508870567,
+        "schedulePhase": 0.9003624508870567,
+        "plantedPhase": 0.49078250565628095,
+        "physicalContactPhase": 0.49078250565628095,
+        "endPhase": 1.490782505656281,
+        "releases": 2,
+        "commits": 1
+      },
+      {
+        "time": 0.3583333333333336,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 1.228727225317302,
+        "schedulePhase": 1.228727225317302,
+        "plantedPhase": 1.211479523257676,
+        "physicalContactPhase": 1.211479523257676,
+        "endPhase": 1.490782505656281,
+        "releases": 2,
+        "commits": 2
+      },
+      {
+        "time": 0.366666666666667,
+        "side": 0,
+        "mode": "swing",
+        "physicalPhase": 1.2535780527453726,
+        "schedulePhase": 1.2535780527453726,
+        "plantedPhase": 0.8622816763073821,
+        "physicalContactPhase": 0.8622816763073821,
+        "endPhase": 1.862281676307382,
+        "releases": 2,
+        "commits": 1
+      },
+      {
+        "time": 0.4416666666666672,
+        "side": 0,
+        "mode": "planted",
+        "physicalPhase": 1.4753876224743057,
+        "schedulePhase": 1.4753876224743057,
+        "plantedPhase": 1.4661703160709358,
+        "physicalContactPhase": 1.4661703160709358,
+        "endPhase": 1.862281676307382,
+        "releases": 2,
+        "commits": 2
+      },
+      {
+        "time": 0.45000000000000057,
+        "side": 1,
+        "mode": "swing",
+        "physicalPhase": 1.4998659228395865,
+        "schedulePhase": 1.4998659228395865,
+        "plantedPhase": 1.211479523257676,
+        "physicalContactPhase": 1.211479523257676,
+        "endPhase": 2.211479523257676,
+        "releases": 3,
+        "commits": 2
+      },
+      {
+        "time": 0.5000000000000007,
+        "side": 1,
+        "mode": "planted",
+        "physicalPhase": 1.6462292347102618,
+        "schedulePhase": 1.6462292347102618,
+        "plantedPhase": 1.6256560234305553,
+        "physicalContactPhase": 1.6256560234305553,
+        "endPhase": 2.211479523257676,
+        "releases": 3,
+        "commits": 3
+      }
+    ]
+  }
+]
