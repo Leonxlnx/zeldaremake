@@ -1,22 +1,22 @@
 {
-  "source": "da46f42be4142445c1b9653d0d18235fdb84da18",
-  "capturedAt": "2026-09-11T20:00:56.592Z",
+  "source": "885b056f58ec9e6c6244ee3959101b8e29748f84",
+  "capturedAt": "2026-09-11T20:36:21.891Z",
   "images": [
     {
       "file": "01-idle.jpg",
-      "sha256": "2af93f7d4bfd50f9274337ea7837f82e26f1dabf28356baae0116c8eb8256fac"
+      "sha256": "67bf1fa29ec7f55d161595b650b07c4d7520ecd68b162b2a7bd73ad26cf5dcf7"
     },
     {
       "file": "02-walk.jpg",
-      "sha256": "6f27676c721c24bd3f797881f4f85b3851d81d0f3ff87ae6fad63d755c1b93d2"
+      "sha256": "8b949e5c5b9e9bc27564604b2e03d2bc9ab7ea2ee3e764995b189f00b700a220"
     },
     {
       "file": "03-run.jpg",
-      "sha256": "0d63260e7b7a7fd597724cd56aebbdf86493627090aaca46c4996ddb3417a096"
+      "sha256": "a3ba7e9192141b995e75cc04112a791b1a863ddfc998d30e1eb47dab2071a051"
     },
     {
       "file": "04-jump.jpg",
-      "sha256": "1aa885702738e140bcd252e64b27716175f80864e4af68cf87b6733264160c2a"
+      "sha256": "025b7232717488bee1da586ecacbd28e57466bb179f4129d94361cd395c011ab"
     },
     {
       "file": "05-outfit-back.jpg",
@@ -24,7 +24,7 @@
     },
     {
       "file": "06-face-detail.jpg",
-      "sha256": "8bb5cb151905008dc6603ab5fed8c564a1793b65fc7c650b8b25eb8adec84350"
+      "sha256": "8e4020f36af1c3a3e742e3a6cfbe5bd4a8513d815fc2da0880ccca7c4e1233c0"
     },
     {
       "file": "07-leaf-lantern.jpg",
@@ -48,7 +48,7 @@
     },
     {
       "file": "12-face-profile.jpg",
-      "sha256": "de0e837cdeab8c12331c7bd3289a203042685a47b05db6e23fccd74f53b6900c"
+      "sha256": "2722616014a2c4b7d29342fb5d8a45cd5469f9f7296b11d2b38c51d498a90782"
     },
     {
       "file": "13-backpack-detail.jpg",
@@ -68,11 +68,11 @@
     },
     {
       "file": "17-face-blink-transition.jpg",
-      "sha256": "9c0c4d71b032f01a928e33b0f7df4f5cb0dda815ed1e80a946f1de61381d186c"
+      "sha256": "e47a50970ae3baf4cff5f8914211d1210d5d01f8d136cd3894d069e890320667"
     },
     {
       "file": "18-face-blink-narrow.jpg",
-      "sha256": "6e2eafea2ac4959ca633b1650397d8ab54d3b5101e4e7fe3b36b2b2dbbcd9f23"
+      "sha256": "d82f4bf830f882c5bc4046757ea191468aa06d7fb121ee6882035532ecef684a"
     }
   ]
 }
