@@ -55,7 +55,7 @@ const cache = new Map<string, MeshStandardMaterial>();
 let weave: DataTexture | undefined;
 
 /** Sub-millimetre authored weave; mipmapped so it softens naturally at gameplay distance. */
-export function cloth(key: 'tunic' | 'cap' | 'capBrim'): MeshStandardMaterial {
+export function cloth(key: 'tunic' | 'tunicCollar' | 'cap' | 'capBrim'): MeshStandardMaterial {
   const id = `cloth-${key}`;
   const existing = cache.get(id);
   if (existing) return existing;

@@ -4,12 +4,41 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T04:30:21Z
+updated: 2026-09-11T05:01:36Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+05:00 UTC: scene review confirms structure ivy/leaves animate in the colour pass but use
+undeformed default shadow depth materials. Claim W22 for an isolated parity fix in
+structures/materials.ts, foliage.ts and material disposal in index.ts. No global sun/filter
+changes; no tree/vegetation rewrite. This supports the owner's explicit shadow request.
+Separate helper scope: wind-shadow parity only; lantern geometry remains W26.
+
+04:53 UTC: owner supplied ten readable concept/reference sheets and explicitly expanded
+work to outfit/walk/sprint, shadows, lighting and scene objects. They show a stitched green
+collared tunic, worn leather gear, rounded cuffed boots, shaped childlike face, leaf-capped
+lanterns, carved signboards, moss/ivy tree houses and warm dappled canopy light. Keep original
+assets and fixed gauntlet references; new concepts guide supplemental visual work, not rubric
+changes. Re-uploaded files are exact duplicates (20 local files, ten unique SHA-256 hashes).
+An attempted GitHub copy of the hero reference was rejected by automatic approval review as
+unrequested publication. No reference was uploaded; all ten stay local. Do not bypass this.
+Claim renewed C01/C02/C03 plus unclaimed W26 through 07:53 UTC with the existing CLI; no overlap.
+Next world scope is only structures/lantern.ts leaf/pod detail, preserving Fable placements,
+material/light contracts and counts. A separate helper is reviewing world light/shadow risks
+read-only. Main source work remains Link; no global lighting takeover yet.
+
+04:43 UTC: owner explicitly cancelled scheduled tasks. The sole Zelda automation is
+confirmed disabled with no next run; available automation controls do not expose deletion.
+Do not recreate a schedule. Continue foreground work and send actual captures at useful
+checkpoints. The four renderer poses from `351a7d7` passed (34562496032), generated `d07d41a`,
+04:32:36 UTC, no page errors. Inspected all four: broader ears/asymmetric locks and cleaner
+cap join are visible; eyes remain round/toy-like, collar and crossed straps still jagged.
+Next bounded pass: inspect actual garment intersections and correct collar/strap layering
+in character geometry only. Fable fetch remains `17f9217`, paused; PR #2 has no newer source.
+A helper may inspect collar and strap contacts read-only; I own source changes and capture.
+
 04:20 UTC: start the next character-only pass from the confirmed visual review in
 `.agents/reviews/astra-character-d181ef9.md`. A helper may author original shaped face/ear
 geometry in a new `src/world/character/face-geometry.ts` only; I own integration in link.ts
@@ -80,6 +109,13 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Garment contact correction: old collar fan interiors penetrated tunic by ~9.9 mm; corrected
+  subdivided/conformed flaps plus surface-fitted leather bands and a conservative collar-edge
+  bridge. Final CPU replay samples 21,504 strap triangle interiors: zero buried samples or
+  missed rays, minimum clearance 0.652/1.537 mm, crossover 1.912 mm. Collar is cloth-shaded.
+  Local build and movement/camera regressions pass; new actual renderer review is pending.
+- Full gauntlet on face/hair source `351a7d7` passed (34562496201); all four actual poses were
+  already inspected (34562496032, generated `d07d41a`). This predates garment fitting.
 - Canonical **take-0033 by astra** published at 04:23 UTC from `73b5e78`, CI run
   34560668396, monitor commit `cdfcd8f`. Valid, 36 integrity checks green, no rubric-item
   regressions; score still 22/50 (phase 1 19/42), 27 pending. SSIM A .2620 / B .2159 /
@@ -124,4 +160,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T04:30:21Z
+2026-09-11T05:01:36Z

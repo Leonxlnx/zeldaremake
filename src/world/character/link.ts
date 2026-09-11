@@ -8,7 +8,7 @@
  * Shield (orange-red swirl) on the back and the Kokiri Sword in a scabbard, hilt above the right
  * shoulder. No imported assets.
  */
-import { BoxGeometry, BufferGeometry, CircleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, SphereGeometry, TorusGeometry, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, CircleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geometry';
 import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
@@ -254,23 +254,57 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
 }
 
 /** Thin leather strap with a rectangular section, following the existing torso path. */
-function leatherBand(points: Vector3[], width: number): BufferGeometry {
+function leatherBand(points: Vector3[], width: number, surfaces: Mesh[], shoulderY: number, upperLayer: boolean): BufferGeometry {
   const vertices: number[] = [], indices: number[] = [];
   const tangent = new Vector3(), outward = new Vector3(), side = new Vector3(), vertex = new Vector3();
-  points.forEach((p, i) => {
-    tangent.subVectors(points[Math.min(i + 1, points.length - 1)], points[Math.max(0, i - 1)]).normalize();
-    outward.set(p.x * 0.6, 0, p.z).normalize();
+  const curve = new CatmullRomCurve3(points), ray = new Raycaster();
+  const segments = 64, across = 4, ringSize = (across + 1) * 2;
+  for (let i = 0; i <= segments; i++) {
+    const p = curve.getPoint(i / segments);
+    tangent.copy(curve.getTangent(i / segments));
+    // An upward normal around the shoulder avoids a frame flip as Z crosses zero.
+    outward.set(p.x * 0.25, Math.max(0, p.y - shoulderY + 0.025) * 3, p.z).normalize();
     side.crossVectors(tangent, outward).normalize();
     outward.crossVectors(side, tangent).normalize();
-    for (const [sx, sy] of [[1, 1], [-1, 1], [-1, -1], [1, -1]]) {
-      vertex.copy(p).addScaledVector(side, sx * width / 2).addScaledVector(outward, sy * 0.002);
+    // Fit both faces to the same actual garment hit. Subdivision across the
+    // width keeps the ribbon above curved cloth between its outer edges.
+    for (const layer of [1, -1]) for (let j = 0; j <= across; j++) {
+      vertex.copy(p).addScaledVector(side, (0.5 - j / across) * width);
+      ray.set(vertex.clone().addScaledVector(outward, 0.2), outward.clone().negate());
+      const hit = ray.intersectObjects(surfaces, false)[0];
+      if (hit) vertex.copy(hit.point);
+      const crossingLift = upperLayer && p.z > 0 ? 0.006 * Math.exp(-(((p.y - (shoulderY - 0.105)) / 0.05) ** 4)) : 0;
+      vertex.addScaledVector(outward, 0.006 + crossingLift + layer * 0.002);
       vertices.push(vertex.x, vertex.y, vertex.z);
     }
-    if (i < points.length - 1) for (let edge = 0; edge < 4; edge++) {
-      const a = i * 4 + edge, b = (i + 1) * 4 + edge, c = i * 4 + (edge + 1) % 4, d = (i + 1) * 4 + (edge + 1) % 4;
-      indices.push(a, b, c, b, d, c);
+    if (i < segments) {
+      for (let face = 0; face < 2; face++) for (let j = 0; j < across; j++) {
+        const a = i * ringSize + face * (across + 1) + j, b = a + ringSize;
+        indices.push(...(face === 0 ? [a, b, a + 1, b, b + 1, a + 1] : [a, a + 1, b, b, a + 1, b + 1]));
+      }
+      for (const j of [0, across]) {
+        const a = i * ringSize + j, b = a + ringSize, c = a + across + 1, d = b + across + 1;
+        indices.push(...(j === 0 ? [a, c, b, b, c, d] : [a, b, c, b, d, c]));
+      }
     }
-  });
+  }
+  // A fitted vertex may lie beside a collar edge while the triangle between
+  // vertices crosses its raised fabric. Bridge a small neighbourhood with a
+  // conservative, gently sloping envelope instead of dropping at that edge.
+  const fitted = vertices.slice();
+  for (let i = 0; i <= segments; i++) for (let j = 0; j <= across; j++) {
+    const v = (i * ringSize + across + 1 + j) * 3;
+    if (fitted[v + 2] < 0.04) continue;
+    let supportedZ = fitted[v + 2];
+    for (let ni = Math.max(0, i - 6); ni <= Math.min(segments, i + 6); ni++) for (let nj = 0; nj <= across; nj++) {
+      const q = (ni * ringSize + across + 1 + nj) * 3;
+      const distance = Math.hypot(fitted[v] - fitted[q], fitted[v + 1] - fitted[q + 1]);
+      if (distance < 0.025) supportedZ = Math.max(supportedZ, fitted[q + 2] - distance * 0.18);
+    }
+    const lift = supportedZ - fitted[v + 2];
+    vertices[v + 2] += lift;
+    vertices[v - (across + 1) * 3 + 2] += lift;
+  }
   const geo = new BufferGeometry();
   geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
   geo.setIndex(indices); geo.computeVertexNormals();
@@ -295,6 +329,9 @@ function buildTorso(rig: Rig): void {
     { segments: 32, scaleZ: 0.74, folds: 5, foldDepth: 0.035 },
   );
   part(rig.chest, upper, tunic, 'tunic-upper');
+  // Identity-space copies are only used to fit garment layers at construction.
+  const garmentSurfaces = [new Mesh(upper, tunic)];
+  const garmentRay = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
   // skirt (hips joint): soft scalloped mid-thigh hem with three vertical fold ridges
   const skirt = ovalLathe(
     [
@@ -316,18 +353,30 @@ function buildTorso(rig: Rig): void {
   part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.075, 12), 0, cl(0.845), 0), matte('undershirt'), 'undershirt');
   for (const sign of [1, -1]) {
     const outline = [[0.015, 0.855, 0.056], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.098]];
-    const vertices = [sign * 0.047, cl(0.834), 0.094];
+    const centre = new Vector3(sign * 0.047, cl(0.834), 0.094);
+    const vertices = [...centre.toArray()];
     const uv = [0.5, 0.5], indices: number[] = [];
-    outline.forEach(([x, y, z], i) => {
-      vertices.push(sign * x, cl(y), z); uv.push(x * 10, (y - 0.78) * 10);
-      const a = i + 1, b = (i + 1) % outline.length + 1;
-      indices.push(...(sign > 0 ? [0, b, a] : [0, a, b]));
-    });
+    const rings = 8, edgeSteps = 8, segments = outline.length * edgeSteps;
+    for (let ring = 1; ring <= rings; ring++) for (let j = 0; j < segments; j++) {
+      const edge = Math.floor(j / edgeSteps), t = (j % edgeSteps) / edgeSteps;
+      const a = outline[edge], b = outline[(edge + 1) % outline.length];
+      const v = new Vector3(sign * MathUtils.lerp(a[0], b[0], t), cl(MathUtils.lerp(a[1], b[1], t)), MathUtils.lerp(a[2], b[2], t)).lerp(centre, 1 - ring / rings);
+      garmentRay.ray.origin.set(v.x, v.y, 0.3);
+      const hit = garmentRay.intersectObject(garmentSurfaces[0], false)[0];
+      if (hit) v.z = Math.max(v.z, hit.point.z + 0.0035);
+      vertices.push(v.x, v.y, v.z); uv.push(v.x * 10, (v.y - cl(0.78)) * 10);
+      const q = 1 + (ring - 1) * segments + j, next = 1 + (ring - 1) * segments + (j + 1) % segments;
+      const faces = ring === 1 ? [0, next, q] : [q - segments, next, q, q - segments, next - segments, next];
+      if (sign < 0) for (let k = 0; k < faces.length; k += 3) [faces[k + 1], faces[k + 2]] = [faces[k + 2], faces[k + 1]];
+      indices.push(...faces);
+    }
     const flap = new BufferGeometry();
     flap.setAttribute('position', new Float32BufferAttribute(vertices, 3));
     flap.setAttribute('uv', new Float32BufferAttribute(uv, 2));
     flap.setIndex(indices); flap.computeVertexNormals();
-    part(rig.chest, flap, matte('tunicCollar'), 'collar-flap');
+    const collarMaterial = cloth('tunicCollar');
+    part(rig.chest, flap, collarMaterial, 'collar-flap');
+    garmentSurfaces.push(new Mesh(flap, collarMaterial));
   }
   // belt + round buckle
   const leather = matte('leather');
@@ -335,7 +384,7 @@ function buildTorso(rig: Rig): void {
   const buckle = merge([place(new TorusGeometry(0.022, 0.007, 6, 14), 0, hl(0.615), 0.108), place(new BoxGeometry(0.006, 0.034, 0.006), 0, hl(0.615), 0.108)]);
   part(rig.hips, buckle, matte('buckle', { roughness: 0.6 }), 'buckle', false);
   // small buckle where the straps cross on the chest
-  part(rig.chest, place(new BoxGeometry(0.024, 0.024, 0.008), 0, cl(0.728), 0.1), matte('buckle', { roughness: 0.6 }), 'strap-buckle', false);
+  part(rig.chest, place(new BoxGeometry(0.022, 0.024, 0.006), 0, cl(0.728), 0.108), matte('buckle', { roughness: 0.6 }), 'strap-buckle', false);
   // two diagonal chest straps hugging the torso surface (left shoulder → right hip and mirrored)
   const torsoR = (y: number) => {
     if (y > 0.835) return 0.128;
@@ -360,7 +409,7 @@ function buildTorso(rig: Rig): void {
     return pts.reverse();
   };
   for (const sign of [1, -1] as const) {
-    part(rig.chest, leatherBand(strapPts(sign), 0.030), leather, 'strap');
+    part(rig.chest, leatherBand(strapPts(sign), 0.026, garmentSurfaces, cl(0.835), sign > 0), leather, 'strap');
   }
 }
 
