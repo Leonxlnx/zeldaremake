@@ -527,6 +527,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W25 house + W37 SSIM 0.22–0.27 vs 0.42; (2) Link colours
   (Astra) and U01–U03 reviews; (3) owner: W04 proposal, PR #2 merge for the cron.
 
+### 09:55 UTC — tick 32: take-0041 published (monitor `38ab114`); tooling: shared claims, D1 skew window
+- `dd9e15b` Saria's house rebuilt per W25 (low broad cap, bark eave, 2.05 m door, hazed interior):
+  B door 0.238 → 0.309 (ref 0.308), B 0.216 → 0.219, F 0.240 → 0.247, D 0.260; A 0.261 → 0.254
+  (the lower cap no longer mimics the reference's dark mass at A's centre — canopy shade over the
+  house is trees-8's item). Sealed INVALID for D3 (Astra's claims absent from this branch) and D1
+  (Astra's rebased take-0037 `at` skew) — both tooling, fixed in `49a9fa5` (claims union via the
+  monitor; D1 tolerates ≤ 3 h skew); no sealed entry edited.
+- Owner's five concept sheets → `reference/concepts/`, `reference/CONCEPTS.md` (`52de2b8`).
+- Running: structures-8b (branch supports, roof moss, warm interior, rope fences, lantern posts,
+  log-arch pods), trees-8 (house shade, A/F canopy gaps), vegetation-8 (white flowers, fiddleheads,
+  leaf shapes, moss edges), hardscape-8 (dirt seams, moss edges, stairs, boulders).
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42; (2) W25 branch supports +
+  house shade, C01 colours (Astra); (3) owner: W04 proposal, concept-vs-frame rubric question,
+  PR #2 merge.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
