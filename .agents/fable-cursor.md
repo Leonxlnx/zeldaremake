@@ -610,6 +610,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   air; sunlit plaza/path 0.04–0.09 over the reference); (2) lantern limb irregularity (W14), C01
   colours (Astra); (3) owner decisions (W04 proposal, concept vs frames).
 
+### 19:30 UTC — tick 38: take-0054 published (monitor `53eb513`), valid; trees round nine
+- `903146b` fewer larger cluster cards (denser clump texture), leaf sky transmission, east-giant
+  bough closing F's lip gap (0.419 → 0.376 vs 0.371), moss/lichen on lower boles and roots. SSIM up
+  on every view vs take-0051: A 0.245 / B 0.219 / C 0.261 / D 0.265 / E 0.227 / F 0.242; 622 draws.
+  Rejected with evidence: a path canopy closing B's forest box loses 0.009–0.011 SSIM — the
+  reference's mass there is smooth mist; our near air at 8–25 m renders 0.58–0.63 vs 0.42–0.50 →
+  atmosphere-6 (running). Bark tone: shaded bark 0.21–0.31 vs the reference's hazed 0.35–0.50 →
+  trees round 10 proposal.
+- Publisher hardening with Astra's fixtures: `920bfff` resequencing, `431d965` identity on
+  capturedAt, `291a3f2` D3 at capture time + capturedAt in records/UI, `dfb3d36` canonical
+  take.json mirror + claims re-union on retry + E1/previous by capture time, `ef83594` baseline =
+  latest captured. Astra runs its own conflict guard; both keep sealed history exact.
+- Running: atmosphere-6 (near mist band over B's forest), structures-9 (irregular mossy lantern
+  limb, short cords — W14).
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42 — near-air mist, shaded bark
+  tone, dome in A; (2) W14 limb, C01 colours (Astra); (3) owner decisions (W04, concept vs frames).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
