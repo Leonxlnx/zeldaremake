@@ -1,6 +1,6 @@
 {
-  "source": "65f45b58ccf1d178b420c9f2d32949f8d588faf1",
-  "capturedAt": "2026-09-11T16:01:09.225Z",
+  "source": "42c710105e9d8f2f073b5f7ad3b58cca59702094",
+  "capturedAt": "2026-09-11T16:15:25.563Z",
   "captures": [
     {
       "name": "01-idle",
@@ -167,7 +167,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "9ae2eeca09ab5814a823b1869384121fe5d7143cba768c3b12094759577ef876"
+      "sha256": "4bba4e506fba07229a45ad99025d14f255db472d78352cd91d31817104748a8b"
     },
     {
       "name": "02-walk",
@@ -337,7 +337,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "295a49852fdc7fb18b139a6859c02a22cc0811c6c418b226f94fa5ac6cc2772d"
+      "sha256": "0c8fea00606c310aed6defce72df51c43104ceafcbc55a85cd5f67df7d3032b2"
     },
     {
       "name": "03-run",
@@ -516,7 +516,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "eb1e4c38f3fa827e3a260d925b70603a2e9d96c4f046b621502f4b65fa40f8fc"
+      "sha256": "0e8cbcaf5098bae1183d9464c3024fbbdd2c77e6bc7fca1e76af875543d5725a"
     },
     {
       "name": "04-jump",
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "9cefeee3c739efadf23bc7dce5584301b392b1016f8d273501eb5f9b80aefb56"
+      "sha256": "6854ac012d3534633101b41a979a1529ff268a909a8a9e6e45d4342969437622"
     },
     {
       "name": "05-outfit-back",
@@ -1030,8 +1030,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "retries": 0,
-      "sha256": "3c613ac1870663b58fd58456b409abefbef37d39d34ce5c07439533ea9e0e670"
+      "retries": 1,
+      "sha256": "bcc05f9db94eb697c87e5402b7025ec9a17d70a0cb45e82092891255a16c9d3d"
     },
     {
       "name": "07-leaf-lantern",
@@ -1697,7 +1697,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "e7022e8920f2fedaae237d1bb7a1865b9cb1a6f828e650e2b026f9ec89e22a97"
+      "sha256": "2c4ee9620dc02f8a8896661c57682f938c9a0a321cc0f202d00c24deee3defb0"
     },
     {
       "name": "11-stone-stairway",
@@ -1871,7 +1871,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "261a35a3e53f73979587ade8862d4d64b2ff00ecb1a2b18fc5cd20c8c0dffa2f"
+      "sha256": "9589ff1260e707efcc58004f14916a7267d6ef2477ea73dcb9428875a1b5f818"
     },
     {
       "name": "12-face-profile",
@@ -2045,7 +2045,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "647fc9c42c745774e8e8706b08e15782e88bf991cb33afad1dd92893a4840465"
+      "sha256": "449c2edf350b9bbd41284d21f70d31cd46a76d89a06ac710ee752ed68bf0e3a9"
     },
     {
       "name": "13-backpack-detail",
@@ -2219,7 +2219,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "d7a209d360cef4be790f19804701badeed095e4b93692ade6c0173095b3ef4f5"
+      "sha256": "8e1ac708dd47eb71cce6549c84424643f687606c6f3bc8c3a4f3205ddc07d608"
     },
     {
       "name": "14-belt-detail",
