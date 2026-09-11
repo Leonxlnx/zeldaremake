@@ -278,9 +278,15 @@ const descendingCommands = [[3, input(0, 1)], [3, input(0, -1)], [1, input()]];
 const descendingContacts = contactReplay(stair, 120, descendingCommands);
 const stairJumpCommands = [[1, input(0, 1)], [1, input(0, 1, false, true)], [1, input(0, 1)], [1, input()]];
 const stairJumpContacts = contactReplay(stair, 120, stairJumpCommands);
+const restartCommands = [[1, input(0, 1)], [1 / 6, input()], [1, input(0, 1, true)], [1 / 6, input()], [1, input(0, 1)]];
+const restartContacts = contactReplay(flat, 120, restartCommands);
+const analogueCommands = [.3, .4].map(amount => [[1, input(0, 1)], [2, input(0, amount)]]);
+const analogueContacts = analogueCommands.map(commands => contactReplay(flat, 120, commands));
 const contactCases = [[flat, undefined, contacts], [stair, undefined, stairContacts],
   [flat, jumpCommands, jumpContacts], [flat, runJumpCommands, runJumpContacts],
-  [stair, descendingCommands, descendingContacts], [stair, stairJumpCommands, stairJumpContacts]];
+  [stair, descendingCommands, descendingContacts], [stair, stairJumpCommands, stairJumpContacts],
+  [flat, restartCommands, restartContacts],
+  ...analogueCommands.map((commands, j) => [flat, commands, analogueContacts[j]])];
 for (const hz of [30, 60, 144]) {
   for (const [surface, commands, expected] of contactCases) {
     const c = contactReplay(surface, hz, commands);
@@ -292,6 +298,13 @@ for (const hz of [30, 60, 144]) {
 }
 assert.ok(contacts.jump < 0.10, `flat foot discontinuity ${contacts.jump}`);
 assert.ok(contacts.bootVertexJump < .10, `flat boot corner discontinuity ${contacts.bootVertexJump}`);
+assert.ok(restartContacts.bootPenetration < .002, `restarting a final step penetrates the ground ${restartContacts.bootPenetration}`);
+assert.ok(restartContacts.bootVertexJump < .10, `restarting a final step pops the boot ${restartContacts.bootVertexJump}`);
+for (const result of analogueContacts) {
+  assert.ok(result.settledHover < .005, `deliberate analogue slowdown must retain gait stance, not start an idle step: ${result.settledHover}`);
+  assert.ok(result.bootPenetration < .002, `analogue slowdown boot penetration ${result.bootPenetration}`);
+  assert.ok(result.bootVertexJump < .10, `analogue slowdown foot continuity ${result.bootVertexJump}`);
+}
 assert.ok(stairContacts.error < 0.01, `stair sole target error ${stairContacts.error}`);
 assert.ok(stairContacts.penetration < 0.005, `stair sole penetration ${stairContacts.penetration}`);
 assert.ok(contacts.settledHover < 0.005, `flat stance keeps its swing lift ${contacts.settledHover}`);
@@ -317,10 +330,76 @@ for (const [, , result] of contactCases) {
 assert.ok(contacts.recovery.walk[0] < -.055 && contacts.recovery.walk[1] > .055, `walk boot articulates both ways ${contacts.recovery.walk}`);
 assert.ok(contacts.recovery.run[0] < -.11 && contacts.recovery.run[1] > .11, `run boot articulates both ways ${contacts.recovery.run}`);
 
+// Rendered 5b73660 shows straight, parallel legs at the apex and a delayed idle
+// pull-in. Measure the solved joints and contacts, not the authored angle formula.
+function jumpStopReplay(running, hz) {
+  const r = buildRig(LINK_PROPORTIONS, 'jump-stop-test'), p = createPlayPose(r, flat.height);
+  const c = createLocomotion(flat, 0, 0, 0);
+  const thighs = [r.thighL, r.thighR], knees = [r.kneeL, r.kneeR], ankles = [r.ankleL, r.ankleR];
+  const hip = new THREE.Vector3(), knee = new THREE.Vector3(), ankle = new THREE.Vector3();
+  const old = [new THREE.Vector3(), new THREE.Vector3()];
+  let apex = null, lastAir = null, lateFootStep = 0, movingStopFrames = 0, unsupportedStopFrames = 0;
+  let settledAt = Infinity, first = true;
+  for (const [seconds, command] of [[1, input(0, 1, running)], [1, input(0, 1, running, true)], [1, input()]]) {
+    for (let n = 0; n < seconds * hz; n++) c.update(1 / hz, command, (s, dt) => {
+      p.update(s, s.time, dt);
+      const soles = ankles.map(a => a.localToWorld(r.sole.clone()));
+      if (!s.grounded) {
+        const flex = knees.map((k, j) => {
+          thighs[j].getWorldPosition(hip); k.getWorldPosition(knee); ankles[j].getWorldPosition(ankle);
+          return knee.clone().sub(hip).angleTo(ankle.sub(knee));
+        });
+        lastAir = flex;
+        if (!apex || Math.abs(s.vy) < apex.velocity) apex = { velocity: Math.abs(s.vy), flex };
+      }
+      if (s.time > 2 && !first) {
+        const elapsed = s.time - 2;
+        const horizontal = soles.map((v, j) => Math.hypot(v.x - old[j].x, v.z - old[j].z));
+        if (elapsed > .25) lateFootStep = Math.max(lateFootStep, ...soles.map((v, j) => v.distanceTo(old[j])));
+        if (elapsed > .08 && Math.max(...horizontal) > .001) {
+          movingStopFrames++;
+          if (!soles.some((v, j) => horizontal[j] < .0001 && Math.abs(v.y) < .003)) unsupportedStopFrames++;
+        }
+        if (!Number.isFinite(settledAt) && s.speed < .1 && soles.every(v => Math.abs(v.z - s.z - .025) < .025 && Math.abs(v.y) < .004)) settledAt = elapsed;
+      }
+      soles.forEach((v, j) => old[j].copy(v)); first = false;
+    });
+  }
+  assert.ok(apex.flex[0] > .8 && apex.flex[1] > .55 && apex.flex[0] - apex.flex[1] > .18,
+    `jump retains a modest asymmetric apex tuck: ${apex.flex}`);
+  assert.ok(lastAir.every((angle, j) => angle < .35 && angle < apex.flex[j] * .6),
+    `descending legs prepare for the ground: ${lastAir}`);
+  assert.ok(lateFootStep < .012, `late stop foot pull-in ${lateFootStep}`);
+  assert.ok(movingStopFrames > 10 && unsupportedStopFrames === 0,
+    `final steps retain a planted support foot: ${unsupportedStopFrames}/${movingStopFrames}`);
+  assert.ok(settledAt < .55, `feet finish stopping without a prolonged split stance: ${settledAt}`);
+  return { apex: apex.flex, lastAir, lateFootStep, movingStopFrames, unsupportedStopFrames, settledAt };
+}
+const jumpStopReplays = [false, true].map(running => jumpStopReplay(running, 120));
+for (const hz of [30, 60, 144]) for (const [j, running] of [false, true].entries()) {
+  const actual = jumpStopReplay(running, hz), expected = jumpStopReplays[j];
+  for (const metric of ['lateFootStep', 'movingStopFrames', 'unsupportedStopFrames', 'settledAt']) near(actual[metric], expected[metric], 1e-8, `${hz}Hz jump/stop ${metric}`);
+  for (const metric of ['apex', 'lastAir']) actual[metric].forEach((v, k) => near(v, expected[metric][k], 1e-8, `${hz}Hz ${metric} knee ${k}`));
+}
+// Slow intentional input must retain normal stance anchors instead of triggering idle settling.
+const slowRig = buildRig(LINK_PROPORTIONS, 'slow-contact-test'), slowPose = createPlayPose(slowRig, flat.height);
+const slowController = createLocomotion(flat, 0, 0, 0), slowOld = [new THREE.Vector3(), new THREE.Vector3()];
+const slowWasPlanted = [false, false]; let slowPlantDrift = 0;
+for (let i = 0; i < 480; i++) slowController.update(1 / 120, input(0, .2), (s, dt) => {
+  slowPose.update(s, s.time, dt);
+  [slowRig.ankleL, slowRig.ankleR].forEach((a, j) => {
+    const sole = a.localToWorld(slowRig.sole.clone()), phase = (s.phase + j * .5) % 1;
+    const planted = s.time > 1 && phase > .04 && phase < .48;
+    if (planted && slowWasPlanted[j]) slowPlantDrift = Math.max(slowPlantDrift, Math.hypot(sole.x - slowOld[j].x, sole.z - slowOld[j].z));
+    slowOld[j].copy(sole); slowWasPlanted[j] = planted;
+  });
+});
+assert.ok(slowPlantDrift < .0001, `slow intended walking must not skate planted feet: ${slowPlantDrift}`);
+
 // Fixed reference poses remain independent of playing/stopping/jumping beforehand.
 const poseState = () => [rig.hips, rig.chest, rig.neck, rig.thighL, rig.thighR, rig.kneeL, rig.kneeR, rig.ankleL, rig.ankleR].map(j => [...j.position, ...j.quaternion]);
 applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 }); const reference = poseState();
 poses.update({ ...walk.state, grounded: false, vy: 4 }, 100);
 applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 });
 assert.deepEqual(poseState(), reference, 'fixed pose does not accumulate play state');
-console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts, stairJumpContacts }));
+console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts, stairJumpContacts, restartContacts, analogueContacts, jumpStopReplays, slowPlantDrift }));

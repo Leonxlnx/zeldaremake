@@ -1,7 +1,7 @@
 /** Stateful foot contacts belong to live play only. Reference captures use animation.ts. */
 import { MathUtils, Quaternion, Vector3 } from 'three';
 import { applyPose, type GroundSampler } from './animation';
-import { strideLength, type MotionState } from './locomotion';
+import { MOVE, strideLength, type MotionState } from './locomotion';
 import type { Rig } from './rig';
 
 const DOWN = new Vector3(0, -1, 0);
@@ -16,6 +16,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
     side, anchor: new Vector3(), from: new Vector3(), to: new Vector3(), target: new Vector3(),
     takeoffRoot: new Vector3(),
     swing: false, initialised: false, yaw: 0, pitch: 0, transitionPitch: 0,
+    settling: false, settleTime: 0,
   }));
   const ankle = new Vector3(), local = new Vector3(), upper = new Vector3();
   const forward = new Vector3(), axis = new Vector3(), soleOffset = new Vector3();
@@ -25,12 +26,13 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
   let wasGrounded = true;
   let pelvisY = NaN;
   let transitionTime = 1;
+  let previousSpeed = 0;
   const upperJoints = [rig.hips, rig.chest, rig.neck, rig.shoulderL, rig.shoulderR, rig.elbowL, rig.elbowR, ...(rig.cap ? [rig.cap] : [])];
   const lastUpper = upperJoints.map(j => j.quaternion.clone());
   const transitionUpper = upperJoints.map(j => j.quaternion.clone());
   const reset = () => {
-    for (const f of feet) { f.initialised = false; f.pitch = 0; f.transitionPitch = 0; }
-    wasGrounded = true; pelvisY = NaN; transitionTime = 1;
+    for (const f of feet) { f.initialised = false; f.pitch = 0; f.transitionPitch = 0; f.settling = false; }
+    wasGrounded = true; pelvisY = NaN; transitionTime = 1; previousSpeed = 0;
   };
 
   // The rounded sole stays inside this .108 x .172 x .018 m envelope. Check both
@@ -84,6 +86,25 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
     contacts: feet.map((f) => f.target),
     update(s: MotionState, t: number, dt = 1 / 120) {
       const r = rig;
+      const deceleration = dt > 0 ? (previousSpeed - s.speed) / dt : 0;
+      const accelerating = s.speed > previousSpeed + 0.001;
+      // Invert the controller's known braking response. A deliberate analogue
+      // slowdown has a nonzero target; decreasing speed alone is not a stop.
+      const brakingGain = -Math.expm1(-MOVE.braking * dt);
+      const brakingTarget = brakingGain > 0 ? previousSpeed + (s.speed - previousSpeed) / brakingGain : s.speed;
+      previousSpeed = s.speed;
+      // Infer late braking from actual velocity, without settling a planted foot
+      // during a steady walk, a slow analogue walk or the normal stair gait.
+      const forwardSpeed = s.vx * Math.sin(s.yaw) + s.vz * Math.cos(s.yaw);
+      const stopping = s.grounded && !accelerating && (s.speed === 0 ||
+        (brakingTarget < 0.01 && forwardSpeed > s.speed * 0.95 &&
+          (s.speed < 0.02 || (s.speed < 1 && deceleration > 0.2))));
+      if (!s.grounded || accelerating) for (const f of feet) {
+        if (f.settling) {
+          f.from.copy(f.target); f.takeoffRoot.set(s.x, s.y, s.z); f.swing = false;
+        }
+        f.settling = false;
+      }
       if (s.grounded !== wasGrounded) {
         transitionTime = 0;
         transitionUpper.forEach((q, i) => q.copy(lastUpper[i]));
@@ -115,13 +136,17 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       if (r.cap) r.cap.rotation.set(0.02 + 0.055 * w * Math.cos(phi * 2 - 0.7), 0, 0.025 * wave * w);
 
       if (!s.grounded) {
-        // Quiet hop: knees tuck on ascent, feet reach for the ground on descent.
+        // Retain a small asymmetric tuck at the apex. Extend for landing only
+        // as downward motion brings the body near the upcoming ground.
         const rising = clamp(s.vy / 4.8, 0, 1);
-        r.chest.rotation.x = 0.10 + 0.08 * rising;
-        r.thighL.rotation.x = -0.20 - 0.45 * rising;
-        r.thighR.rotation.x = -0.12 - 0.32 * rising;
-        r.kneeL.rotation.x = 0.30 + 0.8 * rising;
-        r.kneeR.rotation.x = 0.22 + 0.7 * rising;
+        const clearance = s.y - ground(s.x + s.vx * 0.1, s.z + s.vz * 0.1);
+        const prepare = clamp(-s.vy / 2.5, 0, 1) * (1 - MathUtils.smoothstep(clearance, 0.1, 0.65));
+        const tuck = 1 - prepare;
+        r.chest.rotation.x = 0.10 + 0.05 * tuck + 0.03 * rising;
+        r.thighL.rotation.x = mix(-0.20, -0.52 - 0.10 * rising, tuck);
+        r.thighR.rotation.x = mix(-0.12, -0.33 - 0.07 * rising, tuck);
+        r.kneeL.rotation.x = mix(0.30, 0.88 + 0.20 * rising, tuck);
+        r.kneeR.rotation.x = mix(0.22, 0.64 + 0.18 * rising, tuck);
         r.ankleL.rotation.x = -(r.thighL.rotation.x + r.kneeL.rotation.x);
         r.ankleR.rotation.x = -(r.thighR.rotation.x + r.kneeR.rotation.x);
         r.shoulderL.rotation.set(-0.55 - 0.3 * rising, 0, 0.22);
@@ -142,11 +167,28 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       r.root.updateMatrixWorld(true);
       const stride = strideLength(run, stair);
       const lead = Math.min(0.245, stride * duty * 0.5) * w;
+      if (stopping && !feet.some(f => f.settling)) {
+        // A short final step starts from the actual sole. Keep the other foot
+        // anchored instead of pulling both planted feet toward idle together.
+        let next: typeof feet[number] | undefined;
+        let furthest = 0.025;
+        for (const f of feet) {
+          if (!f.initialised) continue;
+          restTarget.set(f.side * (r.props.hipHalfWidth + 0.018), 0, 0.025)
+            .applyAxisAngle(UP, s.yaw).add(r.root.position);
+          restTarget.y = supportHeight(restTarget.x, restTarget.z, f.yaw, f.pitch);
+          const distance = f.target.distanceTo(restTarget);
+          if (distance > 0.025 && (!next || (f.swing && !next.swing) ||
+            (f.swing === next.swing && distance > furthest))) { next = f; furthest = distance; }
+        }
+        if (next) { next.settling = true; next.settleTime = 0; next.from.copy(next.target); }
+      }
+      const settling = stopping || feet.some(f => f.settling);
       for (const f of feet) {
         previous.copy(f.target);
         const previousPitch = f.pitch;
         const phase = ((s.phase + (f.side > 0 ? 0 : 0.5)) % 1 + 1) % 1;
-        const swinging = w > 0.05 && phase >= duty;
+        const swinging = !settling && w > 0.05 && phase >= duty;
         const swingU = clamp((phase - duty) / (1 - duty), 0, 1);
         // A small toe-down / toe-up recovery, with zero value and slope at each endpoint.
         const desiredPitch = mix(0.10, 0.20, run) * Math.sin(TAU * swingU) * Math.sin(Math.PI * swingU) * w;
@@ -154,7 +196,9 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           : f.transitionPitch * (1 - transition);
         // A foot held at a riser may resume after its phase has advanced. Catch the angle
         // up gradually; normal walk/run recovery is already slower than this limit.
-        if (s.grounded && swinging) f.pitch = previousPitch + clamp(f.pitch - previousPitch, -6 * dt, 6 * dt);
+        if (s.grounded && (swinging || settling) && phase >= duty) {
+          f.pitch = previousPitch + clamp(f.pitch - previousPitch, -6 * dt, 6 * dt);
+        }
         const lateral = f.side * (r.props.hipHalfWidth + 0.018);
         const rest = (out: Vector3, z: number) => {
           out.set(lateral, 0, z).applyAxisAngle(UP, s.yaw).add(r.root.position);
@@ -175,6 +219,12 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
         if (!s.grounded) {
           // Approach the authored airborne pose through continuous world-space targets.
           (f.side > 0 ? r.ankleL : r.ankleR).localToWorld(f.target.copy(r.sole));
+        } else if (f.settling) {
+          f.settleTime += dt;
+          const u = clamp(f.settleTime / 0.20, 0, 1);
+          rest(restTarget, 0.025);
+          f.target.lerpVectors(f.from, restTarget, u * u * (3 - 2 * u));
+          f.target.y += 0.025 * Math.sin(Math.PI * u);
         } else if (swinging) {
           // Retarget only the free foot so planted soles do not skate when the camera turns.
           rest(f.to, lead + 0.025);
@@ -192,13 +242,6 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           if (f.swing) f.anchor.copy(f.target);
           f.target.copy(f.anchor);
           f.target.y = supportHeight(f.target.x, f.target.z, f.yaw, f.pitch);
-        }
-        if (s.grounded && w < 0.15) {
-          // A stopped phase can be halfway through a swing. Settle from the actual
-          // current contact instead of snapping to the planned touchdown point.
-          rest(restTarget, 0.025);
-          f.target.copy(previous).lerp(restTarget, 1 - Math.exp(-12 * dt));
-          f.anchor.copy(f.target); f.from.copy(f.target);
         }
         // Turning can leave an old contact behind the hips. Release it into a short
         // recovery step before it exceeds the leg's horizontal reach.
@@ -231,6 +274,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           f.target.y = Math.max(floor, clamp(f.target.y, previous.y - vertical, previous.y + vertical));
           f.yaw = nextYaw;
         }
+        if (f.settling && f.settleTime >= 0.20 && f.target.distanceTo(restTarget) < 0.012) f.settling = false;
         if (!swinging || !s.grounded) f.anchor.copy(f.target);
         f.swing = s.grounded && swinging;
       }

@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T07:10:19Z
+updated: 2026-09-11T07:14:31Z
 ---
 
 # Astra — resumed character work
@@ -253,6 +253,28 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Root reviewed and reran the jump/stop implementation and all9 actual rounded-sole scenarios
+  at30/60/120/144Hz: passed, zero sole penetration. Solved apex knees are50.6/36.7deg instead
+  of~18/13deg; pre-landing extension stays at previous values. Final steps finish the free foot
+  first, preserve a planted support, and settle in.425s walk/.475s run. Late per120Hz foot motion
+  falls20.34→6.97mm walk and17.67→11.60mm run. Existing stair corner/pelvis maxima73.622/26.628mm
+  and jump88.665/59.634mm remain. Deliberate analogue1→.3/.4 and restart mid-final-step pass;
+  negative controls catch old straight-apex behavior and unintended slow-walk settling.
+  Stop intent is estimated from the existing MOVE.braking response; physics/state/reference
+  animation are unchanged. Actual new continuous renderer review remains pending.
+- Matched lantern diagnosticb2575d6 succeeded (34572517687, generatedf0cf005,07:05:08 UTC).
+  Root inspected all3 images: hiding branch-lantern-light removes streak, and restoring it
+  reproduces the exact baseline PNG hash, errors[]. Fablef472323 granted the small builder-block
+  exception. New lower4.25-intensity/6m point samples2,425,566 dark vertices over30s wind:
+  minimum distance.42646m,max unoccluded diffuse red2.3074. Build passes; actual new local
+  illumination and W26 review remain pending. Lantern count/name/audits/decay are preserved.
+- a35c949 nine-view/clip capture succeeded (34572035043, generated3c4cfe8,07:05:55 UTC,
+  errors[]). Root inspected face/back/boots plus four poses; face shadow reception visibly
+  removes the pale eyelid rims, cap forms a broad continuous drape. Four face/cap/diagnostic
+  images sent to owner. New boot close-up exposes calf intersections in articulated idle:
+  the knee-parented shin no longer aligns with the independently oriented boot. Correcting
+  visual skin clearance is now the priority before the deferred cupped-ear study.
+
 - Sourcea35c949 published cap/face shadow changes after normal Fable merge9d77140. Source
   b2575d6 adds matched lantern diagnosis only; both auxiliary jobs are running. Full gauntlet
   on0fe7792 now passed for both push34569295590 and PR34569298208. Current gates are pending.
@@ -425,4 +447,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T07:10:19Z
+2026-09-11T07:14:31Z
