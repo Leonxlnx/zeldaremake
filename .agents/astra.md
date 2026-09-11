@@ -4,12 +4,34 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T23:07:18.801154+00:00
+updated: 2026-09-11T23:13:46.169534+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Publishing the independently reviewed descending behind-ear locks f239f550, replacing
+only the flat e2e7 band. Two tapered locks per side, first18 charts exact; +896tri/no draws.
+Review51aa4e5c verifies72 nonhairmeshes/286arrays/93nodes/32materials31textures/sixNPCs
+unchanged on0d; finite root/pair/nape joins and closed positive shells. Actualskin.476mm,
+ears4.508mm, minimum capbrim9.494mm/guard20.151mm across80 reference poses. Four tip normals
+use equal outward-face weighting, geometry unchanged. Actual silhouette still pending:
+look for tubes, bare gaps and exposed root caps in06/12/15/16, no visual acceptance yet.
+
+Lid4235f6c published and fetched/treeequal; sourceZIP14,323,161bytes/399entries verified.
+Actual0d sleeve capture22:47:04.016, archivec10e87f/progress/2026-09-11_224704-0d585d6:
+18JPG/42states/source/noerrors/no retries verified, same active environment lighting.
+Root01/02/03/14 sees subtle hem stitching but still blocky shoulders. Four actuals/gallery
+and verified screenshotZIP delivered. Next isolated shoulder-shape design will address
+outer-cap slope and oblique hem, not add further tiny detail over a weak silhouette.
+
+Fable0056 independently verified: monitor030b799, play51files hash394050b7, source50e823d,
+all56 chain links/previous55 entries/917 artifact blobs exact. OriginalPNGbytes absent;
+JPGderivatives retained. RootA/B/F visual: heavy horizontal beam still prominent; proposed
+following actual local limb sections to avoid oversized wiggle-box envelope in PR2comment
+5641690131. Latest2920056 shade-floor source reviewed, actual pending; no world adoption.
+
 
 Lid checkpoint ready for publication after composed typecheck/build (142 modules),
 eye mapping/blink tests and static batching pass: 73→67 meshes / 116826 triangles,
@@ -1613,4 +1635,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T23:07:18.801154+00:00
+2026-09-11T23:13:46.169534+00:00
