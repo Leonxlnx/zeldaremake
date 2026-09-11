@@ -119,6 +119,9 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
       p *= 1 + 2.8 * (1 - smoothstep(0, 11, gd));
       p *= 1 + 1.4 * (1 - smoothstep(-0.5, 3, edge));
       p *= 0.55 + 0.9 * field.cluster(x, z);
+      // the trodden strip between Saria's stepping stones shows dirt and leaf litter through
+      // its thin grass (frames 14 / 24; the branch already counts as a verge above)
+      p *= 1 + 1.5 * field.troddenZone(x, z);
       if (onPath) p *= 0.12;
       if (rng() > p) continue;
       const lift = onPath ? 0.035 : 0.004;
@@ -147,6 +150,7 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
       const gd = field.giantDistance(x, z);
       let p = 0.05 * field.falloff(x, z);
       p *= 1 + 3 * (1 - smoothstep(0, 9, gd));
+      p *= 1 + 1.2 * field.troddenZone(x, z);
       if (rng() > p) continue;
       const y = T.height(x, z) + 0.004;
       const scale = 0.8 + rng() * 0.6;

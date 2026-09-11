@@ -99,9 +99,32 @@ assert.ok(a.plants.moss.items.filter(it=>inBox(it,[9,-3.2,16.5,7.5])).length>=40
 for(const spot of LAYOUT.npcSpots)for(const set of a.plants.all)for(const it of set.items){
   if(Math.hypot(it.x-spot.position[0],it.z-spot.position[2])<0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} taller than 0.3 m at NPC spot ${spot.id}`);}
 assert.ok(a.plants.flowers.count>=150,'W18: at least 150 flower clusters');
+// Frames 14 / 24: Saria's branch is a grassy ramp with stepping stones and a trodden strip between
+// them — nothing standing within 0.5 m of a stone, clover tufts at every rim, and the strip's turf
+// at most 40 % of the lawn's height (grass checked below).
+const {houseSteppingStones}=read('layout'),stones=houseSteppingStones();
+assert.ok(stones.length>=6,'Stepping stones present on the house branch');
+const stoneDist=(x,z)=>Math.min(...stones.map(s=>Math.hypot(x-s.x,z-s.z)-s.r));
+for(const set of a.plants.all)for(const it of set.items){
+  if(stoneDist(it.x,it.z)<0.5)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} ${(top(set,it)-it.y).toFixed(2)} m tall within 0.5 m of a stepping stone at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
+  if(a.field.troddenZone(it.x,it.z)>0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} standing in the trodden strip at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}
+for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hypot(it.x-s.x,it.z-s.z)-s.r;return d>=0&&d<=0.3;}).length;
+  assert.ok(n>=4,`Clover fringe at the stepping stone (${s.x.toFixed(2)},${s.z.toFixed(2)}): ${n} tufts`);}
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
   for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}
 }
+// the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0)
+const grassMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'grass');
+const grass=await read('vegetation/grass').buildGrass(a.ctx,a.field,grassMaterial,new THREE.Group(),()=>{});
+const strip=[],lawn=[];
+for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;
+  for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<1.5||x>10||z<-10.5||z>-3)continue;
+    const h=Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]),tr=a.field.troddenZone(x,z);if(tr>=0.99)strip.push(h);else if(tr===0)lawn.push(h);}}
+const q=(arr,f)=>{const s=[...arr].sort((p,r)=>p-r);return s[Math.min(s.length-1,Math.floor(f*s.length))];};
+assert.ok(strip.length>=100&&lawn.length>=500,`Turf sampled on the strip (${strip.length}) and the lawn (${lawn.length})`);
+assert.ok(q(strip,1)<=0.4*q(lawn,1),`Tallest strip blade ${q(strip,1).toFixed(3)} ≤ 0.4 × tallest lawn blade ${q(lawn,1).toFixed(3)}`);
+assert.ok(q(strip,0.95)<=0.4*q(lawn,0.95),`Strip p95 height ${q(strip,0.95).toFixed(3)} ≤ 0.4 × lawn p95 ${q(lawn,0.95).toFixed(3)}`);
+grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g of t.lods)g.dispose();}
 for(const fixture of[a,b]){const geos=new Set();fixture.group.traverse(o=>{if(o.isMesh){geos.add(o.geometry);o.dispose();}});for(const g of geos)g.dispose();for(const m of fixture.plants.materials)m.dispose();}
-console.log(JSON.stringify({passed:true,checkedVertices,checkedBases,shadowMeshes,bushes:a.plants.bushes.count,note:'CPU geometry/placement contracts only; GPU capture and foliage appearance still require review.'}));
+console.log(JSON.stringify({passed:true,checkedVertices,checkedBases,shadowMeshes,bushes:a.plants.bushes.count,stripBlades:strip.length,stripHeightRatio:Math.round(q(strip,0.95)/q(lawn,0.95)*1000)/1000,note:'CPU geometry/placement contracts only; GPU capture and foliage appearance still require review.'}));

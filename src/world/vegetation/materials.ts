@@ -7,7 +7,7 @@
  * Litter and moss are static. All foliage is double sided and gets a cheap translucency
  * term (backlight through the lamina) so blades glow when the sun is behind them.
  */
-import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, MeshStandardMaterial, RGBADepthPacking, type WebGLProgramParametersWithUniforms } from 'three';
+import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, MeshStandardMaterial, RGBADepthPacking, Vector4, type WebGLProgramParametersWithUniforms } from 'three';
 import type { WorldContext } from '../system';
 import { WIND_GLSL, type Wind } from '../wind/wind';
 
@@ -138,6 +138,41 @@ const GRASS_FRAGMENT_FILL = /* glsl */ `
 reflectedLight.indirectDiffuse += diffuseColor.rgb * uShadeFill * vShadeLift;
 `;
 
+/**
+ * Shot D's west verge (world x −5.5…−1.5, z −18…−6) sits under the north-west-near canopy while
+ * the reference's verge is sunlit: its foliage measured 0.290 against the reference's 0.338
+ * (take 31, foliage-only), and an albedo move lifts shaded foliage only ≈ +0.015 display per
+ * ×1.19. The verge gets the skylight-fill path the flagged F-bank blades use (uShadeFill), as a
+ * world zone weighted by the sun's shadow term, so dappled sun inside the zone and the lit lawns
+ * outside it are unchanged. Measured on the same tree (high quality, D box foliage-only): 0.18 ×
+ * albedo lifted it +0.02 display, i.e. ≈ 0.12 per unit of fill under the verge's haze, so 0.34
+ * delivers the +0.04 asked for. Camera B sees the same verge in its lower-left (23 % of the
+ * (0–0.4, 0.6–0.85) box's ground), which rises by about a quarter of the D gain.
+ */
+export const SHADE_LIFT_ZONE = { box: [-5.5, -18, -1.5, -6] as readonly [number, number, number, number], feather: 1.0, fill: 0.34 };
+
+const LIFT_VERTEX_PARS = /* glsl */ `
+uniform vec4 uLiftBox;
+uniform float uLiftFeather;
+varying float vZoneLift;
+`;
+// evaluated at the instance root so a whole plant gets one lift value (no gradient across fronds)
+const LIFT_VERTEX = /* glsl */ `
+{
+  #ifdef USE_INSTANCING
+    vec2 liftRoot = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xz;
+  #else
+    vec2 liftRoot = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xz;
+  #endif
+  vec2 liftOut = max(max(uLiftBox.xy - liftRoot, liftRoot - uLiftBox.zw), vec2(0.0));
+  vZoneLift = 1.0 - smoothstep(0.0, uLiftFeather, length(liftOut));
+}
+`;
+const LIFT_FRAGMENT_PARS = /* glsl */ `
+uniform float uLiftFill;
+varying float vZoneLift;
+`;
+
 const FOLIAGE_FRAGMENT_LIGHTS = /* glsl */ `
 #include <lights_fragment_end>
 {
@@ -145,9 +180,16 @@ const FOLIAGE_FRAGMENT_LIGHTS = /* glsl */ `
   reflectedLight.indirectDiffuse += diffuseColor.rgb * uAmbientBoost;
   //VEG_EXTRA_FILL//
   #if NUM_DIR_LIGHTS > 0
+    // the sun's shadow term: directLight.color is the (only) directional light's colour after the
+    // shadow lookup, directionalLights[0].color the same light unshadowed; canopy transmission
+    // (shadowfilter.ts leak) still counts as shade, dappled sun ramps the lift off
+    float sunLit = clamp(dot(directLight.color, vec3(1.0)) / max(dot(directionalLights[0].color, vec3(1.0)), 1e-4), 0.0, 1.0);
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * uLiftFill * vZoneLift * (1.0 - smoothstep(0.05, 0.75, sunLit));
     float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
     float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.55;
     reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * uTransmission;
+  #else
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * uLiftFill * vZoneLift;
   #endif
 }
 `;
@@ -161,6 +203,8 @@ export interface VegMaterialOptions {
   stiffness?: number;
   transmission?: number;
   ambientBoost?: number;
+  /** full-shade fill inside SHADE_LIFT_ZONE, × albedo (default SHADE_LIFT_ZONE.fill; 0 opts out) */
+  shadeLift?: number;
   singleSided?: boolean;
   name?: string;
 }
@@ -216,6 +260,9 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
   const uniforms: Record<string, { value: unknown }> = {
     uAmbientBoost: { value: opts.ambientBoost ?? (kind === 'grass' ? 0.02 : kind === 'litter' || kind === 'moss' ? 0.015 : 0.02) },
     uTransmission: { value: opts.transmission ?? (kind === 'grass' ? 0.14 : kind === 'litter' ? 0.05 : kind === 'moss' ? 0 : 0.12) },
+    uLiftBox: { value: new Vector4(...SHADE_LIFT_ZONE.box) },
+    uLiftFeather: { value: SHADE_LIFT_ZONE.feather },
+    uLiftFill: { value: opts.shadeLift ?? SHADE_LIFT_ZONE.fill },
   };
   if (kind === 'grass') {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
@@ -245,12 +292,17 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     } else if (kind === 'plant' || kind === 'bush') {
       vs = injectPlantVertex(vs);
     }
+    // zone lift after the (shared) projection block, so the shadow passes keep an identical block
+    vs = `${LIFT_VERTEX_PARS}\n${vs}`;
+    vs = vs.includes('#include <project_vertex>')
+      ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${LIFT_VERTEX}`)
+      : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
     const lights = kind === 'grass' ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v6`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v7`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

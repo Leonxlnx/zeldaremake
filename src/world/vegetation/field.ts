@@ -6,6 +6,7 @@
  * boulders, NPC spots) and the clustering noise that keeps the grass from being a carpet.
  */
 import { Vector3 } from 'three';
+import { houseSteppingStones, type SteppingStone } from '../layout';
 import type { WorldContext } from '../system';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 
@@ -86,6 +87,15 @@ const TRIM_ZONES: readonly [number, number, number, number][] = [[4, 0, 12, 8]];
  * is a tint bias, not a blackout; its 2 m feather starts past the shot-A right foreground (x ≤ 10.5).
  */
 const SHADE_ZONES: readonly [number, number, number, number][] = [[12.5, -3, 22, 10]];
+/**
+ * Saria's branch (frames 14 / 24): isolated stepping stones climb a grassy ramp, and between them
+ * the footage shows a trodden strip — short sparse grass over bare dirt and litter, clover at the
+ * stone rims — while the lawn either side of it is ordinary sunlit turf. The strip follows
+ * `pathToHouse` at this half-width (plus each stone's disc × STONE_TRODDEN), feathered outward.
+ */
+const TRODDEN_HALF_WIDTH = 0.9;
+const TRODDEN_FEATHER = 0.6;
+const STONE_TRODDEN = 1.4;
 
 interface Frame {
   px: number;
@@ -118,6 +128,7 @@ export class VegField {
   private readonly n: number;
   private readonly data: Float32Array; // 11 floats per cell
   private readonly stairs: StairRect[];
+  private readonly stones: SteppingStone[] = houseSteppingStones();
   private readonly clusterNoise: Noise2D;
   private readonly tuftNoise: Noise2D;
   private readonly meadowNoise: Noise2D;
@@ -232,7 +243,11 @@ export class VegField {
     return this.ctx.terrain.vegetationAllowed(x, z);
   }
 
-  /** Distance from the nearest flagstone-path edge (negative inside the path surface). */
+  /**
+   * Distance from the nearest path edge (negative inside). The house branch counts with its old
+   * 0.7 × half-width so the plant scatters keep their corridor clear (and their candidate streams)
+   * now that it is a grassy ramp; the turf uses `lawnEdgeDistance`, which ignores it.
+   */
   pathEdgeDistance(x: number, z: number): number {
     const L = this.ctx.layout;
     const hw = L.pathHalfWidth;
@@ -240,6 +255,37 @@ export class VegField {
     const b = polylineDistance(L.pathToStairs, x, z) - hw * 0.8;
     const c = polylineDistance(L.pathToHouse, x, z) - hw * 0.7;
     return Math.min(a, b, c);
+  }
+
+  /**
+   * Hard-edge distance for the turf: flagstone paths and stairs only. Saria's branch is a grassy
+   * ramp with stepping stones, not paving, so it grows ordinary lawn with no verge; the trodden
+   * strip between its stones is `troddenZone` / `stoneDistance`.
+   */
+  lawnEdgeDistance(x: number, z: number): number {
+    const L = this.ctx.layout;
+    const hw = L.pathHalfWidth;
+    const a = polylineDistance(L.pathSpine, x, z) - hw;
+    const b = polylineDistance(L.pathToStairs, x, z) - hw * 0.8;
+    return Math.min(a, b, this.stairDistance(x, z));
+  }
+
+  /** Distance to the nearest stepping-stone rim of the house branch (negative on the stone). */
+  stoneDistance(x: number, z: number): number {
+    let best = Infinity;
+    for (const s of this.stones) best = Math.min(best, Math.hypot(x - s.x, z - s.z) - s.r);
+    return best;
+  }
+
+  /** 0..1 inside the trodden strip between Saria's stepping stones (1 = strip core). */
+  troddenZone(x: number, z: number): number {
+    const along = polylineDistance(this.ctx.layout.pathToHouse, x, z);
+    let v = 1 - smoothstep(TRODDEN_HALF_WIDTH, TRODDEN_HALF_WIDTH + TRODDEN_FEATHER, along);
+    for (const s of this.stones) {
+      const d = Math.hypot(x - s.x, z - s.z);
+      v = Math.max(v, 1 - smoothstep(s.r * STONE_TRODDEN, s.r * STONE_TRODDEN + TRODDEN_FEATHER, d));
+    }
+    return v;
   }
 
   /** Distance from the nearest stair footprint (0 inside). */

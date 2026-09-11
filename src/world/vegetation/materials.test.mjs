@@ -71,6 +71,12 @@ for (const kind of ['plant', 'bush']) {
     assert.equal((shader.vertexShader.match(/uniform float uTime;/g) || []).length, 1);
     assert.doesNotMatch(shader.vertexShader, /#include <project_vertex>/);
   }
+  // the west-verge zone lift lives in the colour pass only, after the shared projection block
+  for (const key of ['uLiftBox', 'uLiftFeather', 'uLiftFill']) assert.ok(standardShader.uniforms[key], `${key} uniform`);
+  assert.match(standardShader.vertexShader, /gl_Position = projectionMatrix \* mvPosition;\s*\{\s*#ifdef USE_INSTANCING\s+vec2 liftRoot/);
+  assert.match(standardShader.fragmentShader, /uLiftFill \* vZoneLift/);
+  assert.doesNotMatch(depthShader.vertexShader, /vZoneLift/);
+  assert.doesNotMatch(distanceShader.vertexShader, /vZoneLift/);
   assert.match(depthShader.vertexShader, /vHighPrecisionZW = gl_Position.zw;/);
   assert.match(depthShader.vertexShader, /#include <logdepthbuf_vertex>/);
   assert.match(distanceShader.vertexShader, /vec4 worldPosition = vegWorld;[\s\S]*vWorldPosition = worldPosition.xyz;/);
@@ -91,8 +97,15 @@ for (const kind of ['plant', 'bush']) {
 for (const kind of ['grass', 'moss', 'litter']) {
   const source = createVegMaterial(ctx, kind);
   owned.push(source);
-  prepare(source, 'standard');
+  const shader = prepare(source, 'standard');
+  assert.equal((shader.vertexShader.match(/vZoneLift = 1\.0 - smoothstep/g) || []).length, 1, `${kind} evaluates the zone lift once`);
+  assert.match(shader.fragmentShader, /uLiftFill \* vZoneLift/);
   assert.throws(() => createVegShadowMaterials(source), /plant or bush/);
+}
+{
+  const optOut = createVegMaterial(ctx, 'plant', { shadeLift: 0 });
+  owned.push(optOut);
+  assert.equal(prepare(optOut, 'standard').uniforms.uLiftFill.value, 0, 'shadeLift: 0 opts a set out of the zone lift');
 }
 const unrelated = new THREE.MeshStandardMaterial();
 owned.push(unrelated);

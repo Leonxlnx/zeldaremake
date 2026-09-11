@@ -5,6 +5,7 @@
  * stairs, house pads or cliffs) and the layout (clearings at NPC spots, boulder rings, trunks).
  */
 import { Color, Group, type Material } from 'three';
+import { houseSteppingStones } from '../layout';
 import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -39,9 +40,17 @@ interface ScatterOpts {
   /** [x0, z0, x1, z1]; default = detail disc */
   box?: [number, number, number, number];
   minSpacing?: number;
+  /**
+   * ≤ 0.3 m herb layer (clover, moss) that may grow in the trodden strip between Saria's stepping
+   * stones and right up to their rims; everything else keeps 0.5 m off the stones and out of the
+   * strip (reference B/E: short sparse grass and litter there, nothing standing).
+   */
+  low?: boolean;
   /** returns acceptance probability (0 = reject) */
   accept(x: number, z: number, s: FieldSample, rng: Rng): number;
 }
+
+const STONE_CLEARANCE = 0.5;
 
 class Spacing {
   private cells = new Map<number, number[]>();
@@ -81,6 +90,8 @@ function scatter(ctx: WorldContext, field: VegField, opts: ScatterOpts, place: (
     if (field.insideGiantTrunk(x, z)) continue;
     const p = opts.accept(x, z, s, rng);
     if (p <= 0 || rng() > p) continue;
+    // after the draw, so the candidate stream stays as it was for every other placement
+    if (!opts.low && (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6)) continue;
     if (spacing) {
       if (!spacing.ok(x, z, opts.minSpacing!)) continue;
       spacing.add(x, z);
@@ -112,6 +123,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // clump is sunlit (0.35 mean, 0.49 p90 in frame 56) while our west verge sits under the
   // north-west-near canopy, where fill alone rendered the fronds at 0.24: the crowns get the same
   // kind of skylight lift the shaded grass bank uses (materials.ts uShadeFill), plus more backlight.
+  // Under the round-4 lighting the clump (D 0.03–0.14 × 0.58–0.70) still measures 0.27 against
+  // the reference's 0.32 even with this boost and the +30 % fern palette, so the crowns take the
+  // west-verge zone lift (materials.ts SHADE_LIFT_ZONE) like the rest of the verge.
   const heroFerns = mk('hero-ferns', variants(3, `${seed}/hero-fern`, pal, heroFernGeometry), 'plant', [16, 32], 1, { sway: 2.0, flutter: 0.014, stiffness: 0.35, transmission: 0.25, ambientBoost: 0.4 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
   // hero hedge: same bush variants at shrub scale, but it is read from 15 m in shot A so it keeps
@@ -577,6 +591,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       label: 'clover',
       candidates: Math.round(40000 * q.density),
       minSpacing: 0.18,
+      low: true,
       accept(x, z, s) {
         const edge = field.edgeDistance(x, z);
         if (edge < 0.1) return 0;
@@ -590,6 +605,26 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 0.75 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.2)),
   );
+  // Clover hugging Saria's stepping stones (frames 14 / 24: a green fringe at each slab's rim where
+  // feet never land): 6–9 tufts per stone within 0.25 m of the rim, seated by their own stream.
+  {
+    const rng = ctx.rng.fork('plants/clover-stones');
+    const s = newSample();
+    for (const st of houseSteppingStones()) {
+      let left = 6 + rng.int(0, 4);
+      for (let i = 0; i < 40 && left > 0; i++) {
+        const a = rng() * Math.PI * 2;
+        const d = st.r + 0.04 + rng() * 0.21;
+        const x = st.x + Math.cos(a) * d;
+        const z = st.z + Math.sin(a) * d;
+        field.sample(x, z, s);
+        if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z)) continue;
+        if (field.stoneDistance(x, z) < 0.03) continue;
+        placeInstance(clover, x, z, s, rng, 0.8 + rng() * 0.45, 0.9, 0.008, greenVar(rng, 0.16));
+        left--;
+      }
+    }
+  }
 
   // ---- moss tufts: boulder bases, tree roots, shaded embankments
   const mossRng = ctx.rng.fork('plants/moss');
@@ -626,6 +661,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       label: 'moss-scatter',
       candidates: Math.round(12000 * q.density),
       minSpacing: 0.5,
+      low: true,
       accept(x, z, s) {
         if (field.edgeDistance(x, z) < 0.2) return 0;
         return 0.03 * field.falloff(x, z) * (0.3 + smoothstep(0.1, 0.4, s.slope)) * (0.5 + field.cluster(x, z)) * (1 - field.dry(x, z));
