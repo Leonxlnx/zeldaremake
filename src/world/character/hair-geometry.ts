@@ -67,7 +67,8 @@ export function createLinkFrontalHair(radius: number): BufferGeometry {
       for (let i = 0; i < layerSize; i++) {
         const p = points[i].clone().addScaledVector(normals[i], clearance);
         vertices.push(p.x, p.y, p.z);
-        uvs.push((i % stride) / columns, Math.floor(i / stride) / rows);
+        // U travels root to tip; V crosses the fibres, as on the separate swept locks.
+        uvs.push(1 - Math.floor(i / stride) / rows, (i % stride) / columns * 4);
       }
     }
     for (let row = 0; row < rows; row++) for (let column = 0; column < columns; column++) {

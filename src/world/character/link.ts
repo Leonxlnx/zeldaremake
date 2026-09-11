@@ -10,7 +10,7 @@
  */
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { merge, ovalLathe, place, sweep, triangleCount } from './geometry';
-import { CHAR_COLORS, cloth, matte } from './palette';
+import { CHAR_COLORS, cloth, linkHair, matte } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 import { createLinkFaceGeometry } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
@@ -295,9 +295,16 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
           flatten: 0.25, flattenFromRoot: true, crease: 0.08,
           surfaceNormal: outward });
     };
+    // Orient the same strand material down the scalp, matching the swept locks' U axis.
+    const scalp = place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008);
+    const scalpUV = scalp.attributes.uv;
+    for (let i = 0; i < scalpUV.count; i++) {
+      const across = scalpUV.getX(i), down = scalpUV.getY(i);
+      scalpUV.setXY(i, 1 - down, across * 6);
+    }
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
-      place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008),
+      scalp,
       createLinkFrontalHair(r),
       // Parted fringe opens toward both temples. Thin overlapping sections emerge
       // from beneath the brim; irregular tips stop above the fitted eye openings.
@@ -570,7 +577,7 @@ export function createLink(): Character {
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085, softFeatures: true });
-  buildHair(rig, matte('hair'), 'link');
+  buildHair(rig, linkHair(), 'link');
   buildCap(rig);
   buildGear(rig, part);
   addOutfitDetails(rig, part);

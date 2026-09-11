@@ -4,12 +4,18 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T06:59:37Z
+updated: 2026-09-11T07:06:18Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Next C01 surface pass: actual5b73660 close-up and owner turnaround show flat, sheet-like blond
+locks. Add an original deterministic, mipmapped strand colour/bump material for Link hair only;
+orient existing scalp/foundation UVs along the growth direction, preserving fitted geometry,
+cap clearance, NPC materials and mesh counts. Root owns palette.ts/link.ts/hair-geometry.ts.
+Actual confirmation remains required; this surface pass will not claim to solve all hair shape.
+
 06:59 UTC: next C03 scope is actual5b73660 motion defects: near-apex parallel hanging legs,
 and delayed stop-foot gathering at moveWeight<.15. Helper owns play-pose.ts/locomotion tests
 only; keep physics, reference animation and model fixed. Root owns W26 diagnostic: exact-pixel
@@ -236,6 +242,15 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Sourcea35c949 published cap/face shadow changes after normal Fable merge9d77140. Source
+  b2575d6 adds matched lantern diagnosis only; both auxiliary jobs are running. Full gauntlet
+  on0fe7792 now passed for both push34569295590 and PR34569298208. Current gates are pending.
+- Original Link-only hair material adds restrained directional colour and0.35mm bump relief,
+  with two64x256 mipmapped deterministic DataTextures. Scalp/foundation UVs follow growth
+  direction to match the existing swept locks. Geometry, rig, mesh count and NPC material path
+  are unchanged. Root build/typecheck and existing face contact/shadow-construction probe pass;
+  actual new-material render remains pending, and broad flat lock silhouette is still a limit.
+
 - Broader flattened cap drape preserves the crown/brim, cap joint and 888 tail triangles;
   upper drape is 229 mm broad and tip 59 mm higher. CPU probe of 133 reference poses found
   >=3.382 mm sampled rear gear clearance and the first two root rings buried >=44.989 mm.
@@ -399,4 +414,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T06:59:37Z
+2026-09-11T07:06:18Z

@@ -60,6 +60,42 @@ export type CharColorKey = keyof typeof CHAR_COLORS;
 const cache = new Map<string, MeshStandardMaterial>();
 let weave: DataTexture | undefined;
 
+/** Original strand variation; U follows each lock and V runs across its fibres. */
+export function linkHair(): MeshStandardMaterial {
+  const id = 'link-strand-hair';
+  const existing = cache.get(id);
+  if (existing) return existing;
+  const width = 64, height = 256;
+  const colour = new Uint8Array(width * height * 4), relief = new Uint8Array(colour.length);
+  const tau = Math.PI * 2;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const u = x / width, v = y / height, i = (y * width + x) * 4;
+    const fibre = 0.5 + 0.5 * Math.sin(tau * (24 * v + 0.065 * Math.sin(tau * u)));
+    const fine = 0.5 + 0.5 * Math.sin(tau * (57 * v + 0.10 * Math.sin(tau * u + 0.8)));
+    const broad = 0.5 + 0.5 * Math.sin(tau * (7 * v + 0.04 * Math.sin(tau * u + 1.1)));
+    const value = Math.round(255 * (0.81 + 0.10 * fibre + 0.035 * fine + 0.045 * broad));
+    const heightValue = Math.round(255 * (0.28 + 0.38 * fibre + 0.12 * fine + 0.08 * broad));
+    colour[i] = colour[i + 1] = colour[i + 2] = value; colour[i + 3] = 255;
+    relief[i] = relief[i + 1] = relief[i + 2] = heightValue; relief[i + 3] = 255;
+  }
+  const makeTexture = (data: Uint8Array, name: string, isColour: boolean) => {
+    const texture = new DataTexture(data, width, height);
+    texture.name = name;
+    texture.wrapS = texture.wrapT = RepeatWrapping;
+    if (isColour) texture.colorSpace = SRGBColorSpace;
+    texture.generateMipmaps = true; texture.minFilter = LinearMipmapLinearFilter;
+    texture.needsUpdate = true;
+    return texture;
+  };
+  const material = matte('hair').clone();
+  material.name = id; material.roughness = 0.72;
+  material.map = makeTexture(colour, 'original-link-hair-strand-colour', true);
+  material.bumpMap = makeTexture(relief, 'original-link-hair-strand-relief', false);
+  material.bumpScale = 0.00035;
+  cache.set(id, material);
+  return material;
+}
+
 /** Sub-millimetre authored weave; mipmapped so it softens naturally at gameplay distance. */
 export function cloth(key: 'tunic' | 'tunicCollar' | 'cap' | 'capBrim'): MeshStandardMaterial {
   const id = `cloth-${key}`;
