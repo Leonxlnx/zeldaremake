@@ -1,6 +1,7 @@
-/** A shared shallow eye surface over Link's unchanged skull, including blink seating. */
+/** A fixed convex eye surface over Link's unchanged skull, sampled under the moving lids. */
 import { DynamicDrawUsage, Matrix4, Mesh, Vector3, type BufferGeometry } from 'three';
-import { LINK_EYE_OPENING, LINK_EYE_SEGMENTS, createLinkUpperLashPath } from './eye-aperture';
+import { LINK_EYE_SURFACE_SEGMENTS, LINK_EYE_WHITE_VERTICES, createLinkUpperLashPath } from './eye-aperture';
+import { createLinkEyeCap } from './eye-cap';
 import type { Rig } from './rig';
 import { updateLinkEyeSurfaceUV } from './eye-surface';
 
@@ -57,7 +58,6 @@ interface Binding {
   name: EyePart;
   geometry: BufferGeometry;
   rest: Float32Array;
-  radial: Float64Array;
 }
 
 /**
@@ -70,37 +70,27 @@ export function createLinkEyeSeating(rig: Rig): () => void {
   const skull = rig.head.getObjectByName('skull');
   if (!(skull instanceof Mesh)) throw new Error('Link eye seating requires its actual skull');
   const k = rig.props.headRadius / .125;
-  const planes = LINK_EYE_OPENING.map(([x, y], i) => {
-    const next = LINK_EYE_OPENING[(i + 1) % LINK_EYE_SEGMENTS], nx = next[1] - y, ny = x - next[0];
-    return { nx, ny, distance: (nx * x + ny * y) * k };
-  });
-  const radial = (x: number, y: number) => {
-    let u = 0;
-    for (const p of planes) u = Math.max(u, (p.nx * x + p.ny * y) / p.distance);
-    return u;
-  };
   const lashPlane = createLinkUpperLashPath(k)[0].z;
   const updates = rig.eyes.map(eye => {
     eye.updateMatrix();
-    const skin = createEyeSkullField(skull.geometry, eye.matrix.clone().invert(), k);
+    const headToEye = eye.matrix.clone().invert();
+    const skin = createEyeSkullField(skull.geometry, headToEye, k);
+    const cap = createLinkEyeCap(skull.geometry, headToEye, k, skin);
+    const normal = new Vector3();
     const names: EyePart[] = ['eye-white', 'eyelid', 'lashes'];
     const bindings: Binding[] = names.map(name => {
       const mesh = eye.getObjectByName(name);
       if (!(mesh instanceof Mesh)) throw new Error(`Link eye is missing ${name}`);
       const geometry = mesh.geometry, position = geometry.attributes.position;
-      const rest = new Float32Array(position.array), radii = new Float64Array(position.count);
-      for (let i = 0; i < position.count; i++) radii[i] = radial(position.getX(i), position.getY(i));
-      if (name === 'eye-white') {
-        if (position.count !== 1 + 4 * LINK_EYE_SEGMENTS) throw new Error('Link white aperture topology changed');
-        // These vertices are the same boundary used by the skin rim, without a Z gap.
-        for (let i = position.count - LINK_EYE_SEGMENTS; i < position.count; i++) radii[i] = 1;
-      }
-      if (name === 'eyelid' && position.count !== 5 * LINK_EYE_SEGMENTS)
+      const rest = new Float32Array(position.array);
+      if (name === 'eye-white' && position.count !== LINK_EYE_WHITE_VERTICES)
+        throw new Error('Link white aperture topology changed');
+      if (name === 'eyelid' && position.count !== 5 * LINK_EYE_SURFACE_SEGMENTS)
         throw new Error('Link eyelid topology changed');
       position.setUsage(DynamicDrawUsage); geometry.attributes.normal.setUsage(DynamicDrawUsage);
-      return { name, geometry, rest, radial: radii };
+      return { name, geometry, rest };
     });
-    const whiteHeight = (x: number, y: number, u: number) => skin(x, y) + k * (.0006 + .0008 * (1 - u * u));
+    const white = bindings[0].geometry.attributes.position;
     let previous = NaN;
     return () => {
       const blinkScale = eye.scale.y;
@@ -114,27 +104,41 @@ export function createLinkEyeSeating(rig: Rig): () => void {
           const x = rest[i * 3], y = rest[i * 3 + 1], z = rest[i * 3 + 2];
           let localY = y, depth: number;
           if (binding.name === 'eyelid') {
-            const u = Math.floor(i / LINK_EYE_SEGMENTS) / 4;
+            const u = Math.floor(i / LINK_EYE_SURFACE_SEGMENTS) / 4;
             const actualY = y * (blinkScale + (1 - blinkScale) * u);
             localY = actualY / blinkScale;
             if (u === 1) depth = z; // The outer seam keeps the exact original skull fit.
-            else if (u === 0) depth = whiteHeight(x, actualY, 1);
-            else {
+            else if (u === 0) {
+              const shared = white.count - LINK_EYE_SURFACE_SEGMENTS + i;
+              position.setXYZ(i, white.getX(shared), white.getY(shared), white.getZ(shared));
+              continue;
+            } else {
               const roll = y > 0 ? .0009 : .00045;
-              depth = skin(x, actualY) + k * (.0006 * (1 - u) - .0004 * u + roll * Math.sin(Math.PI * u));
+              const shared = white.count - LINK_EYE_SURFACE_SEGMENTS + i % LINK_EYE_SURFACE_SEGMENTS;
+              const innerX = white.getX(shared), innerY = white.getY(shared) * blinkScale;
+              const innerOffset = cap.height(innerX, innerY) - skin(innerX, innerY);
+              depth = skin(x, actualY) + (1 - u) * innerOffset
+                + k * (-.0004 * u + roll * Math.sin(Math.PI * u));
             }
           } else if (binding.name === 'lashes') {
             // A partly seated tube follows the actual upper margin, not a separate plane.
-            depth = skin(x, y * blinkScale) + .0006 * k + z - lashPlane;
+            depth = cap.height(x, y * blinkScale) + z - lashPlane;
           } else {
-            depth = whiteHeight(x, y * blinkScale, binding.radial[i]);
+            depth = cap.height(x, y * blinkScale);
           }
           position.setXYZ(i, x, localY, depth);
         }
         if (binding.name === 'eye-white')
           updateLinkEyeSurfaceUV(binding.geometry, k, Math.sign(eye.position.x) as 1 | -1, blinkScale);
         position.needsUpdate = true;
-        binding.geometry.computeVertexNormals();
+        if (binding.name === 'eye-white') {
+          const normals = binding.geometry.attributes.normal;
+          for (let i = 0; i < position.count; i++) {
+            cap.normal(position.getX(i), position.getY(i) * blinkScale, blinkScale, normal);
+            normals.setXYZ(i, normal.x, normal.y, normal.z);
+          }
+          normals.needsUpdate = true;
+        } else binding.geometry.computeVertexNormals();
         binding.geometry.computeBoundingBox(); binding.geometry.computeBoundingSphere();
       }
     };

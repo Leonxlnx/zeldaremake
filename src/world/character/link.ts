@@ -27,6 +27,7 @@ import { createArmArticulation } from './arm-articulation';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkNeckline } from './neckline-geometry';
+import { createLinkCollarStitches } from './collar-stitches';
 import { createLinkLeatherMaterial } from './leather-material';
 import { batchStaticLinkParts } from './static-batching';
 import { normalizeLinkClothUVs } from './cloth-uv';
@@ -442,6 +443,7 @@ function buildTorso(rig: Rig): void {
     original.dispose();
   });
   upper.dispose();
+  part(rig.chest, createLinkCollarStitches(neckline.collarFlaps), matte('clothThread'), 'collar-stitches', false);
   part(rig.chest, neckline.insert, matte('undershirt'), 'neckline-insert');
   garmentSurfaces.push(new Mesh(neckline.insert, matte('undershirt')));
   // belt + round buckle

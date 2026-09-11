@@ -4,12 +4,45 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T21:12:17.473475Z
+updated: 2026-09-11T21:20:52.772197Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Publishedbde718448222247069f89c6cccfd6f1c515e2188, treefff241729ae5234dfcd1552d80c53d38837bcee1:
+connected hair plus capture lighting/console metadata. Own branch fetched/tree-equal,
+sourceZIP14,302,035bytes/395entries CRC/hash verified and delivered; PR5 updated.
+Actual hair capture queued. Production gameplay/physics remain unchanged.
+
+Now composing the one reviewed physical eye cap and collar seam overbde7184.
+Eye files55419041/57230e44/32c55277: one fixed elliptical convex cap in physical X/Y,
+blink reveals a narrower part; same pigments/materials/timing/outer seam. Centre
+clearance~4.4mm, maximum~5.06mm; actual profile/front appearance needs rendering.
++920tri/no draws. Finite245-white-vertex fixed column topology; small outer-corner
+facet approximation9.16deg/<.118mm sampled sag documented. Continuous nominal
+skin support≥.4855mm; nine aperture actual minimumverticalgap.6859mm. Original
+28outerrim vertices exact, addedmidpoints≤1.97nm polyline deviation. Independent
+58nonocular meshes/232 arrays/84nodes/materials/sixNPCs exact; physical UV test
+passes unchanged. Front sun-reflection point is occluded by existing lash; no
+catchlight guarantee or new light/emission. Root eye-only build139/staticbatchpass.
+
+Collar correctedhelper2a4d5a66/Linka4d7eeaa independently passes: original47point
+boundaries simplify to6corners with whole-outline deviation≤8.759nm before inset.
+Both inset paths simple,68closed stitches/1836v/2720tri; min actual thread boundary
+margin1.50005mm. One extra chestmesh, existingclothThread material, no perframework.
+All old geometry/rig exact. Neareststrap gaps1.7915/2.7039mm; endpiercingintentional.
+Initial663um offset backtrack preserved and corrected; no fabric shape edit.
+Combined build140modules and staticbatch PASS:71→65meshes/109434triangles;
+1,508,256 posed samples exact with UV/material/shadow/disposal/boot/NPC gates.
+Actual06/12/17/18+outfit appearance next; no visual acceptance yet.
+
+Fable freshf0b0a8c/bb09cda capture identity changes under review: build-checkout
+source selection and tracked-onlydirty semantics. No adoption/historymutation.
+Split tunic and movement remain held. Next tunic design explicitly frees lower
+side edges, keeps pocket payload rigid, and folds thin cloth seam under unchanged
+belt; old fixed-side/shared-offset construction cannot clear raised run thigh.
 
 Root composed build138modules and staticbatching gates PASS:70→64meshes,105794tri,
 1,508,256 posed vertices/normals exact; UV/material/shadow/disposal/boot/NPC gates.
