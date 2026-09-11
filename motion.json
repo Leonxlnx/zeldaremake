@@ -1,6 +1,6 @@
 {
-  "source": "e2e7d1691d4d915ec81cf415f0e5e84ccdc4e273",
-  "capturedAt": "2026-09-11T22:31:50.087Z",
+  "source": "0d585d6b8af3c9fe22e3d62030dcbe19234c3a8d",
+  "capturedAt": "2026-09-11T22:47:04.016Z",
   "captures": [
     {
       "name": "01-idle",
@@ -24,8 +24,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -196,9 +196,9 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 474,
-        "triangles": 8495020,
-        "geometries": 457,
+        "drawCalls": 476,
+        "triangles": 8499532,
+        "geometries": 459,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -206,7 +206,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "050bebe706aeab7904abaef99b4339e31509da09325d0955314818ae93117cb4"
+      "sha256": "29b9483db227427212b9531346e2db14caf5ef920bb37ccc574fde164ee53e7e"
     },
     {
       "name": "02-walk",
@@ -230,8 +230,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "walk",
@@ -405,9 +405,9 @@
       },
       "stats": {
         "simTime": 13.399999999999949,
-        "drawCalls": 476,
-        "triangles": 8489364,
-        "geometries": 459,
+        "drawCalls": 478,
+        "triangles": 8493876,
+        "geometries": 461,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -415,7 +415,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "c8d3d686c39ba2ad9112c4e3cba541bbe6594a7db9ba2087e91f826100b91f3c"
+      "sha256": "0633291ecb4c7f61ec76c970a0ce956661e799be6e1eb4cc4d5b588a085e831b"
     },
     {
       "name": "03-run",
@@ -439,8 +439,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "run",
@@ -623,9 +623,9 @@
       },
       "stats": {
         "simTime": 13.19999999999996,
-        "drawCalls": 489,
-        "triangles": 8367628,
-        "geometries": 461,
+        "drawCalls": 491,
+        "triangles": 8372140,
+        "geometries": 463,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -633,7 +633,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "26df86a5fb986cee2cc41795d8a21144634fb623f877cf054667e36d2f31ed2d"
+      "sha256": "43050b8e5a67bbbd326bd557c3d2286291dc5408dbf56617fa308edce66bed56"
     },
     {
       "name": "04-jump",
@@ -657,8 +657,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "jump",
@@ -835,9 +835,9 @@
       },
       "stats": {
         "simTime": 12.799999999999983,
-        "drawCalls": 528,
-        "triangles": 8473459,
-        "geometries": 469,
+        "drawCalls": 530,
+        "triangles": 8477971,
+        "geometries": 471,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -845,7 +845,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5ab2cf6589f3e1de932dd36891930bde7e13a6f59f179493e6b08fd4d3a1a6e6"
+      "sha256": "e36a376d2c1bef332ae14d0938f7800d8d799eb894fe92921c1347b54e41156f"
     },
     {
       "name": "05-outfit-back",
@@ -870,8 +870,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1048,9 +1048,9 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 500,
-        "triangles": 8427155,
-        "geometries": 493,
+        "drawCalls": 502,
+        "triangles": 8431667,
+        "geometries": 495,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -1058,7 +1058,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "df44e31bd563e990ef9de25a2a3f851a1f098e26ca8031637b7d454e551b759a"
+      "sha256": "452cce6335dda15be4002c3b8d6f09d88fee7957bffdd61815f5b89b1bba5a74"
     },
     {
       "name": "06-face-detail",
@@ -1083,8 +1083,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1255,9 +1255,9 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 436,
-        "triangles": 8302754,
-        "geometries": 496,
+        "drawCalls": 438,
+        "triangles": 8307266,
+        "geometries": 498,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -1265,7 +1265,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "230ec2151044ca92d2d054ef3ff59d27ff9355379e9b38bee173689529269748"
+      "sha256": "51364433c5069c6fb21bfdface38ff13fc461bdacf24a5911df3f0361a6c9b75"
     },
     {
       "name": "07-leaf-lantern",
@@ -1290,8 +1290,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1454,8 +1454,8 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 409,
-        "triangles": 8295815,
-        "geometries": 507,
+        "triangles": 8296071,
+        "geometries": 509,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -1488,8 +1488,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1652,8 +1652,8 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 407,
-        "triangles": 8074616,
-        "geometries": 519,
+        "triangles": 8074872,
+        "geometries": 521,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -1686,8 +1686,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1859,8 +1859,8 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 422,
-        "triangles": 8365086,
-        "geometries": 519,
+        "triangles": 8365342,
+        "geometries": 521,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -1893,8 +1893,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "walk",
@@ -2077,9 +2077,9 @@
       },
       "stats": {
         "simTime": 13.999999999999915,
-        "drawCalls": 573,
-        "triangles": 8587331,
-        "geometries": 519,
+        "drawCalls": 575,
+        "triangles": 8591843,
+        "geometries": 521,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -2087,7 +2087,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "dd3854fea3fb90d5a1b7794b9823032402bf25986964fc0579a4aca5bb94f8cd"
+      "sha256": "939e52e65bf827f2fd08e4e9d21e51aad927e264ba8d997881b2a6fe884ef697"
     },
     {
       "name": "11-stone-stairway",
@@ -2112,8 +2112,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2291,8 +2291,8 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 536,
-        "triangles": 8266409,
-        "geometries": 523,
+        "triangles": 8266665,
+        "geometries": 525,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -2325,8 +2325,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2503,9 +2503,9 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 493,
-        "triangles": 8266528,
-        "geometries": 524,
+        "drawCalls": 495,
+        "triangles": 8271040,
+        "geometries": 526,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -2513,7 +2513,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5a21848d013cab859ff083ce0c3412051321a95e9e2b8835ed8e7925ed48fd86"
+      "sha256": "5d25d7d7059fba88965616f4510805dc708df26dc602511b085d6166d03dc958"
     },
     {
       "name": "13-backpack-detail",
@@ -2538,8 +2538,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2716,9 +2716,9 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 457,
-        "triangles": 8345622,
-        "geometries": 524,
+        "drawCalls": 459,
+        "triangles": 8350134,
+        "geometries": 526,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -2726,7 +2726,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "26735365ab7eb1f80f1a429550206420552c79fc3c518f7a8e15dff29a569c01"
+      "sha256": "8e51c359bb1ba875ab88d0e290bbaa25bf41eff328f0a382ce79051a39715f4c"
     },
     {
       "name": "14-belt-detail",
@@ -2751,8 +2751,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2923,9 +2923,9 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 434,
-        "triangles": 8304286,
-        "geometries": 524,
+        "drawCalls": 436,
+        "triangles": 8308798,
+        "geometries": 526,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -2933,7 +2933,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "aa35a37fda8ddc1a79bdaf842072ad82d32b6c1e53078ddd4a676683f3379a2d"
+      "sha256": "efa2a4be7546461dedb3b1b2d51b609e41c9868742ac424f8f33ca41a340b017"
     },
     {
       "name": "15-run-rear-quarter",
@@ -2959,8 +2959,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "run",
@@ -3131,9 +3131,9 @@
       },
       "stats": {
         "simTime": 14.499999999999886,
-        "drawCalls": 491,
-        "triangles": 8317011,
-        "geometries": 525,
+        "drawCalls": 493,
+        "triangles": 8321523,
+        "geometries": 527,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -3141,7 +3141,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "42525e9bcd37f91b6312d1a654b6a86d7242c1becbeefed35724670835f69cc7"
+      "sha256": "552bc3acd764e8a6c2a709d28242ff87e29f0ec9793a481745ced8e452873396"
     },
     {
       "name": "16-run-jump-launch-rear-quarter",
@@ -3169,8 +3169,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "jump",
@@ -3341,9 +3341,9 @@
       },
       "stats": {
         "simTime": 14.56666666666655,
-        "drawCalls": 490,
-        "triangles": 8305138,
-        "geometries": 525,
+        "drawCalls": 492,
+        "triangles": 8309650,
+        "geometries": 527,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -3550,7 +3550,7 @@
         ]
       },
       "retries": 0,
-      "sha256": "dd700424bb73f8b401da7462117faabeeb448338bb5d1fcc37e12957c9ea8222"
+      "sha256": "a6a95e2acd855b74f961d4534d813247e1889bf88b2623271558fb240d96a1ff"
     },
     {
       "name": "17-face-blink-transition",
@@ -3576,8 +3576,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -3748,9 +3748,9 @@
       },
       "stats": {
         "simTime": 14.708333333333208,
-        "drawCalls": 436,
-        "triangles": 8302754,
-        "geometries": 525,
+        "drawCalls": 438,
+        "triangles": 8307266,
+        "geometries": 527,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -3758,7 +3758,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "b7b12e3889b7681dbc9369bdbbddbe15f882ebdf4690fdb929789e11f844c456"
+      "sha256": "e467efb6e0006b600a5a32466d6fbe7dfac4b31a53dd3f0788e73b4e1fe33adc"
     },
     {
       "name": "18-face-blink-narrow",
@@ -3784,8 +3784,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 131160,
-        "linkTriangles": 111226,
+        "triangles": 135416,
+        "linkTriangles": 115482,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -3956,9 +3956,9 @@
       },
       "stats": {
         "simTime": 14.749999999999872,
-        "drawCalls": 436,
-        "triangles": 8302754,
-        "geometries": 525,
+        "drawCalls": 438,
+        "triangles": 8307266,
+        "geometries": 527,
         "textures": 101,
         "programs": 68,
         "width": 1280,
@@ -3966,7 +3966,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "fa5495128feb8cdae809ab6215d8148066e5e54c8e6356c07042534ab364656f"
+      "sha256": "3e66f237b2e6ccdd4728c35944f7fbaf0b0e2f237dc9867de81f9480196dc9ac"
     }
   ],
   "errors": [],
