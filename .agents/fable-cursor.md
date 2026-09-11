@@ -498,10 +498,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   authoring camera) — verified headless: boot mode play, W walks Link 6.4 m, P returns to free.
 - take-0032 (clean build of `2fc0922`; play build `a6cf15f`): A 0.247 / B 0.210 / C 0.265 /
   D 0.263 / E 0.228 / F 0.229; hue distance down on every view; score 22/50; 32 entries.
-- Owner asked to pause. Still running when paused: trees-7c (Link's shadow rays at A/D, plaza vs
-  stairs coverage) and vegetation-7b (D verge shade lift, trodden strip between the stepping
-  stones) — their edits are in the working tree of the paused VM, uncommitted; integrate on resume
-  (typecheck in isolation against HEAD, commit per system, take).
+- Owner asked to pause. The last two agents reported minutes later and are committed (typechecked
+  in isolation, tests green), not yet captured: `8dcc1e1` trees — Link's shadow rays cleared at
+  A/D (bent north-west-near bole, wood-closed corridors; shadow 111 → 6710 px at D, 21 → 4238 px
+  at A; same-tree SSIM A +0.015, B +0.010, F +0.011), A plaza opened / upper stairs shaded;
+  `24ab5df` vegetation — D verge shade-lift zone (0.268 → 0.301) and the trodden strip between
+  the stepping stones. ON RESUME: clean-worktree capture of `24ab5df` → take-0033, then continue.
+  No sub-agents running.
 - Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42: Link fidelity (cap/fringe
   texture, floppier cap, shoulders), kids, per-view texture density; (2) Link's cast shadow
   (canopy on the sun ray), F top-left house vs the reference's haze, D verge blockers (bole,
