@@ -47,7 +47,9 @@ function remapV(geo: BufferGeometry, v0: number, v1: number) {
 
 function setV(geo: BufferGeometry, v: number) {
   const uv = geo.attributes.uv as Float32BufferAttribute;
-  for (let i = 0; i < uv.count; i++) uv.setY(i, v);
+  // A varying U still selects coarse mips on thin/grazing fibres. Those mips
+  // average the glowing body into this dark row, so pin both coordinates.
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, 0.5, v);
 }
 
 function bodyRadius(y: number): number {
@@ -106,7 +108,7 @@ function sepal(angle: number, length: number, outer: boolean, tint: number, scal
   for (const layer of [1, -1]) for (let i = 0; i <= rows; i++) for (let j = 0; j <= cols; j++) {
     const t = i / rows, u = j / cols * 2 - 1;
     const p = sepalPoint(t, u, angle, length, outer, layer * 0.0015).multiplyScalar(scale);
-    positions.push(p.x, p.y, p.z); uvs.push(j / cols, DARK_V);
+    positions.push(p.x, p.y, p.z); uvs.push(0.5, DARK_V);
     const rib = Math.exp(-u * u / 0.018) * Math.sin(Math.PI * t);
     const shade = tint * (layer > 0 ? 1 : 0.76) * (0.94 + 0.06 * Math.sin(Math.PI * t));
     colors.push((0.23 + 0.025 * rib) * shade, (0.32 + 0.04 * rib) * shade, (0.095 + 0.01 * rib) * shade);
