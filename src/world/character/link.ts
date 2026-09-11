@@ -12,6 +12,7 @@ import { BoxGeometry, BufferGeometry, CircleGeometry, ConeGeometry, CylinderGeom
 import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geometry';
 import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
+import { createLinkFaceGeometry } from './face-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -131,17 +132,8 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const c = base.addScaledVector(dir, opts.earLength * 0.42);
     return place(cone, c.x, c.y, c.z, [0, side * 0.5, 0]);
   };
-  const skullBase = new SphereGeometry(r, 24, 18);
-  if (opts.softFeatures) {
-    const vertices = skullBase.attributes.position;
-    for (let i = 0; i < vertices.count; i++) {
-      const jaw = MathUtils.clamp(-vertices.getY(i) / r, 0, 1);
-      vertices.setX(i, vertices.getX(i) * (1 - 0.16 * jaw * jaw));
-    }
-    skullBase.computeVertexNormals();
-  }
-  const skull = merge([
-    place(skullBase, 0, 0, 0, undefined, [1, 1.04, 0.98]),
+  const skull = opts.softFeatures ? createLinkFaceGeometry(r) : merge([
+    place(new SphereGeometry(r, 24, 18), 0, 0, 0, undefined, [1, 1.04, 0.98]),
     // nose
     place(new SphereGeometry(0.013, 8, 6), 0, -0.02 * (r / 0.125), r * 0.98),
     ear(1),
@@ -151,14 +143,39 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
   const white = matte('eyeWhite', { roughness: 0.6 });
   const pupil = matte('pupil', { roughness: 0.6 });
   const almond = (k: number) => {
-    const vertices: number[] = [], indices: number[] = [];
+    const vertices: number[] = [0, 0, 0.003 * k], indices: number[] = [];
     const segments = 28, rings = 4;
-    for (let ring = 0; ring <= rings; ring++) for (let j = 0; j <= segments; j++) {
+    for (let ring = 1; ring <= rings; ring++) for (let j = 0; j < segments; j++) {
       const u = ring / rings, a = j / segments * Math.PI * 2;
       vertices.push(0.025 * k * u * Math.cos(a), 0.0145 * k * u * Math.sin(a) * (0.82 + 0.18 * Math.abs(Math.sin(a))), 0.003 * k * (1 - u * u));
-      if (ring < rings && j < segments) {
-        const p = ring * (segments + 1) + j, q = p + segments + 1;
-        indices.push(p, q, p + 1, q, q + 1, p + 1);
+      const q = 1 + (ring - 1) * segments + j, next = 1 + (ring - 1) * segments + (j + 1) % segments;
+      if (ring === 1) indices.push(0, q, next);
+      else {
+        const p = q - segments, pNext = next - segments;
+        indices.push(p, q, pNext, q, next, pNext);
+      }
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices); geo.computeVertexNormals();
+    return geo;
+  };
+  const eyelid = (k: number, side: 1 | -1) => {
+    const vertices: number[] = [], indices: number[] = [], segments = 28, rings = 4;
+    for (let ring = 0; ring <= rings; ring++) for (let j = 0; j < segments; j++) {
+      const u = ring / rings, a = j / segments * Math.PI * 2, sy = Math.sin(a);
+      // Match the outer edge to the shaped orbit, mirrored for each eye.
+      // The shallow polynomial seats the edge ~0.25–0.8 mm into the face.
+      const cx = side * Math.cos(a);
+      const outer = -0.00550 - 0.00065 * cx - 0.00253 * cx * cx - 0.000052 * sy + 0.00036 * cx * sy;
+      // A rounded skin lip blends the eye aperture into the face rather than
+      // leaving a bright white disc floating in front of the cheek surface.
+      vertices.push((0.025 + 0.008 * u) * k * Math.cos(a),
+        (0.0145 + (sy > 0 ? 0.008 : 0.005) * u) * k * sy * (0.82 + 0.18 * Math.abs(sy)),
+        (0.0014 * (1 - u) + outer * u + 0.0018 * Math.sin(Math.PI * u)) * k);
+      if (ring < rings) {
+        const p = ring * segments + j, q = p + segments, next = ring * segments + (j + 1) % segments;
+        indices.push(p, q, next, q, next + segments, next);
       }
     }
     const geo = new BufferGeometry();
@@ -176,9 +193,10 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     head.add(eye);
     if (soft) {
       part(eye, almond(k), white, 'eye-white', false);
-      part(eye, new CircleGeometry(0.012 * k, 24).translate(0, -0.0005, 0.004 * k), opts.iris, 'iris', false);
-      part(eye, new CircleGeometry(0.0058 * k, 20).translate(0, -0.0005, 0.0045 * k), pupil, 'pupil', false);
-      const lid = [-1, -0.7, -0.35, 0, 0.35, 0.7, 1].map(x => new Vector3(x * 0.025 * k, 0.0145 * k * Math.sqrt(1 - x * x) * (0.82 + 0.18 * Math.sqrt(1 - x * x)), 0.001 * k));
+      part(eye, eyelid(k, side), opts.skin, 'eyelid', false);
+      part(eye, new CircleGeometry(0.014 * k, 28).translate(0, -0.0005, 0.004 * k), opts.iris, 'iris', false);
+      part(eye, new CircleGeometry(0.0062 * k, 20).translate(0, -0.0005, 0.0045 * k), pupil, 'pupil', false);
+      const lid = [-1, -0.7, -0.35, 0, 0.35, 0.7, 1].map(x => new Vector3(x * 0.025 * k, 0.0145 * k * Math.sqrt(1 - x * x) * (0.82 + 0.18 * Math.sqrt(1 - x * x)), 0.0025 * k));
       part(eye, sweep(lid, [0.0005 * k, 0.0014 * k, 0.0014 * k, 0.0005 * k], { segments: 18, radial: 5 }), matte('brow'), 'lashes', false);
     } else {
       part(eye, place(new SphereGeometry(0.032 * k, 12, 8), 0, 0, 0, undefined, [1, 0.92, 0.55]), white, 'eye-white', false);
@@ -202,20 +220,18 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
     const k = r / 0.125;
     // a clump of hair: a tapered strand from `from` (under the cap) to `to` (pointed tip)
     const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) =>
-      sweep([new Vector3(from[0], Math.min(from[1], 0.058), from[2]).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 12, radial: 9, closeTip: true, closeStart: true, flatten: 0.38, crease: 0.12 });
+      sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 16, radial: 10, closeTip: true, closeStart: true, flatten: 0.38, crease: 0.12 });
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008),
-      // bushy fringe: four thick clumps hanging from under the brim (front brim ≈ y 0.088 k, tube
-      // bottom ≈ 0.071 k) over the forehead to the brows (y 0.047 k), swept toward Link's right
-      // (−X); the thick section sits BELOW the brim and well in front of the skull (z ≈ 0.11 k) so
-      // the fringe reads as a blond band at 4–5 m from above and below eye level alike
-      clump([-0.085, 0.076, 0.08], [-0.098, 0.05, 0.112], [-0.112, 0.018, 0.105], 0.026, 0.026, 0.004),
-      clump([-0.035, 0.078, 0.088], [-0.045, 0.052, 0.122], [-0.06, 0.024, 0.122], 0.028, 0.028, 0.004),
-      clump([0.02, 0.078, 0.09], [0.015, 0.052, 0.124], [-0.002, 0.028, 0.124], 0.028, 0.028, 0.004),
-      clump([0.072, 0.076, 0.082], [0.076, 0.052, 0.114], [0.066, 0.024, 0.11], 0.026, 0.025, 0.004),
-      // a thin stray lock over the left brow
-      clump([0.045, 0.06, 0.11], [0.05, 0.04, 0.12], [0.06, 0.018, 0.115], 0.011, 0.009),
+      // Overlapping locks sweep across the forehead with different lengths;
+      // embedded roots sit under the brim, and central tips stop above the eyes.
+      clump([-0.080, 0.062, 0.084], [-0.099, 0.028, 0.108], [-0.117, -0.007, 0.082], 0.025, 0.021, 0.003),
+      clump([-0.032, 0.065, 0.095], [-0.050, 0.040, 0.131], [-0.069, 0.019, 0.123], 0.030, 0.025, 0.0025),
+      clump([0.023, 0.066, 0.095], [-0.008, 0.036, 0.133], [-0.029, 0.016, 0.130], 0.031, 0.024, 0.0025),
+      clump([0.076, 0.063, 0.080], [0.059, 0.039, 0.121], [0.034, 0.023, 0.132], 0.027, 0.024, 0.003),
+      // A longer temple lock breaks the symmetry without covering an iris.
+      clump([0.093, 0.057, 0.072], [0.105, 0.016, 0.080], [0.107, -0.030, 0.065], 0.015, 0.014, 0.003),
       // sideburn clumps in front of the ears, hanging to the jaw
       clump([0.108, 0.04, 0.045], [0.115, -0.02, 0.05], [0.108, -0.075, 0.045], 0.02, 0.016),
       clump([-0.108, 0.04, 0.045], [-0.115, -0.02, 0.05], [-0.108, -0.075, 0.045], 0.02, 0.016),
@@ -392,16 +408,18 @@ function buildCap(rig: Rig): void {
   // The tail is a flattened, creased tube (cloth lying on the back) with a gentle S-bend, reaching
   // mid-back (≈ 0.42 m below the brim).
   const pts = [
-    domeAt(0.25, 0.72),
-    domeAt(0.5, 1.0),
-    new Vector3(0.014, 0.085, -0.145),
-    new Vector3(0.03, 0.015, -0.185),
+    // Begin well inside the crown; the section emerges tangentially at the
+    // back instead of protruding through its top as a separate raised tube.
+    domeAt(0.45, 0.55),
+    domeAt(0.90, 0.75),
+    domeAt(1.15, 0.95),
+    new Vector3(0.018, -0.025, -0.175),
     new Vector3(0.012, -0.09, -0.2),
     new Vector3(-0.014, -0.2, -0.21),
     new Vector3(-0.006, -0.3, -0.215),
     new Vector3(0.012, -0.375, -0.22),
-  ].map((v, i) => (i < 2 ? v : v.multiplyScalar(k)));
-  part(cap, sweep(pts, [0.065 * k, 0.067 * k, 0.06 * k, 0.056 * k, 0.046 * k, 0.034 * k, 0.02 * k, 0.005], { segments: 30, radial: 12, closeTip: true, closeStart: true, flatten: 0.48, crease: 0.2 }), capMat, 'cap-tail');
+  ].map((v, i) => (i < 3 ? v : v.multiplyScalar(k)));
+  part(cap, sweep(pts, [0.038 * k, 0.045 * k, 0.047 * k, 0.048 * k, 0.043 * k, 0.034 * k, 0.02 * k, 0.005], { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.48, crease: 0.16 }), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
   part(cap, place(new TorusGeometry(rimR + 0.002, 0.014, 8, 32), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }

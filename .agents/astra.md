@@ -4,12 +4,27 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T03:56:00Z
+updated: 2026-09-11T04:30:21Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+04:20 UTC: start the next character-only pass from the confirmed visual review in
+`.agents/reviews/astra-character-d181ef9.md`. A helper may author original shaped face/ear
+geometry in a new `src/world/character/face-geometry.ts` only; I own integration in link.ts
+and longer asymmetric fringe / smoother cap-tail attachment. Keep NPC shapes unchanged.
+Do not merge these results into the already-running `73b5e78` take or relabel its evidence.
+New owner references remain pending; use existing inventory/B-house frames for this pass.
+The new face has a continuous nose, shallow cheek/orbit shaping and broader closed ears;
+NPC face construction stays on its existing path. Link-only skin eyelid rims and larger
+irises reduce the exposed white-disc appearance. Fringe lengths/directions now vary and
+the cap tail starts inside the crown, with a smaller section emerging at the back.
+Local build, locomotion/contact regression and source integrity pass; renderer review pending.
+Geometry probes found a constant eyelid edge depth alternately buried/floating around the
+curved orbit. The mirrored outer-edge profile now follows that orbit; measured perimeter
+embedding 0.25–0.8 mm, inner lip 5.9–8.7 mm clear. Re-probe if face shape/eye anchors change.
+
 04:12 UTC: `d181ef9` motion CI passed (34560470651): four poses plus 42 real frames,
 no page errors or blank-frame retries. All four stills inspected; fringe exterior is solid,
 the cap's dark inverted opening is gone. `73b5e78` four-pose CI also passed (34560668268),
@@ -65,6 +80,15 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Canonical **take-0033 by astra** published at 04:23 UTC from `73b5e78`, CI run
+  34560668396, monitor commit `cdfcd8f`. Valid, 36 integrity checks green, no rubric-item
+  regressions; score still 22/50 (phase 1 19/42), 27 pending. SSIM A .2620 / B .2159 /
+  C .2684 / D .2599 / E .2231 / F .2384. These aggregate differences also include Fable's
+  previously uncaptured world commits and must not all be attributed to character work.
+  The existing publisher also refreshes the monitor's `play/` review build; no Pages job ran.
+- The corrected front-three-quarter sequence on `143eb54` passed CI 34561370724:
+  42 frames, capture completed 04:21:46 UTC, generated commit `2bf9c44`. Frame review
+  shows takeoff/landing remain visible. This is a scripted review view, not manual gameplay.
 - Cloned all branches and recovered the entire `.agents/` history, AGENTS.md, GAUNTLET.md, PROJECT_STATE.md, open PRs #1–#4 and recent commits.
 - Based this branch on Fable's `725e681` (includes `8dcc1e1` tree shadows and `24ab5df` vegetation). Main remains the README-only initial commit.
 - Read historical Codex logs on props/vegetation branches; their accepted changes already exist in the foundation. Do not blindly merge those stale branches.
@@ -100,4 +124,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T03:56:00Z
+2026-09-11T04:30:21Z
