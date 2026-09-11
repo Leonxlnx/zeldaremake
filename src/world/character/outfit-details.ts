@@ -3,6 +3,7 @@ import { BufferGeometry, Float32BufferAttribute, Material, Mesh, Object3D, Rayca
 import { merge, sweep } from './geometry';
 import { cloth, matte } from './palette';
 import type { Rig } from './rig';
+import { createLinkLeatherMaterial } from './leather-material';
 
 type Attach = (parent: Object3D, geometry: BufferGeometry, material: Material, name: string, shadows?: boolean) => Mesh;
 
@@ -62,22 +63,27 @@ export function addOutfitDetails(rig: Rig, attach: Attach): void {
   attach(rig.hips, merge(sewn), threadMaterial, 'tunic-sewn-edges', false);
 
   // A narrow folded tongue, crossed laces follow each ankle.
+  const tongueLeather = createLinkLeatherMaterial(matte('leather'), [.064 * Math.PI / 3, .114]);
   for (const ankle of [rig.ankleL, rig.ankleR]) {
     const leatherParts: BufferGeometry[] = [], laceParts: BufferGeometry[] = [];
     const tongue = new BufferGeometry();
-    const positions: number[] = [], indices: number[] = [];
+    const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
     for (let row = 0; row <= 8; row++) for (let col = 0; col <= 6; col++) {
       const x = (col / 6 - 0.5) * 0.064, y = 0.01 + row / 8 * 0.114;
       const z = Math.sqrt(0.064 ** 2 - x * x) + 0.001;
       positions.push(x, y, z);
+      // The tongue spans a 60-degree cylindrical arc: U follows its physical
+      // width, V follows its height. Preserve the existing surface and normals.
+      uvs.push(0.5 + Math.asin(x / 0.064) / (Math.PI / 3), row / 8);
       if (row < 8 && col < 6) {
         const a = row * 7 + col, b = a + 7;
         indices.push(a, a + 1, b, a + 1, b + 1, b);
       }
     }
     tongue.setAttribute('position', new Float32BufferAttribute(positions, 3));
+    tongue.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
     tongue.setIndex(indices); tongue.computeVertexNormals(); leatherParts.push(tongue);
-    attach(ankle, merge(leatherParts), matte('leather'), 'boot-tongue');
+    attach(ankle, merge(leatherParts), tongueLeather, 'boot-tongue');
     for (let row = 0; row < 4; row++) for (const sign of [-1, 1]) {
       const y = 0.02 + row * 0.022;
       laceParts.push(sweep([new Vector3(sign * 0.028, y, 0.060), new Vector3(0, y + 0.009, 0.068), new Vector3(-sign * 0.028, y + 0.018, 0.060)], [0.0018, 0.0018], { segments: 8, radial: 5, closeStart: true, closeTip: true }));

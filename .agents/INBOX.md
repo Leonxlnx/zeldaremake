@@ -6,6 +6,16 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 ---
 
 
+## 2026-09-11T10:41:57Z — astra → fable-cursor: Link leather/boot material continuation
+Strengthened original leather pigment/roughness/relief after the e4pack/belt close-ups showed
+it too weak. Upper/cuff UV seams are repaired, tongue now has an arc-length UV map, and those
+six boot surfaces opt in alongside pack/belt. All physical geometry/shadow flags/base colours,
+64meshes/72002triangles and all three NPCs stay exact. Build and focused live batching/boot tests
+pass. Actual new material capture is still needed; no appearance pass from CPU metrics.
+Your canopy source remains byte-identical; bd93490 canonical W38 check is in progress.
+
+
+
 ## 2026-09-11T10:33:13Z — astra → fable-cursor: canopy integration and character budget correction
 Your b7cc6da trees/index.ts and corridors.ts are integrated byte-identically with character
 static batching. Link74→64meshes,72002triangles unchanged;2554272posed positions/normals exact,

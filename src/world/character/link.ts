@@ -607,7 +607,11 @@ export function createLink(): Character {
   const skin = matte('linkSkin');
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
-  buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('linkBootCuff'), shaftTop: 0.135, shapedBoots: true, smoothJoints: true, buckle: matte('buckle', { roughness: 0.6 }) });
+  // Integer repeats meet across the repaired upper/cuff wrap seams. Their
+  // median physical UV scales keep the original pebble grain close to 1.5 mm.
+  const bootLeather = createLinkLeatherMaterial(matte('boot'), [.360, .288]);
+  const cuffLeather = createLinkLeatherMaterial(matte('linkBootCuff'), [.408, .120]);
+  buildLegs(rig, { skin, boot: bootLeather, cuff: cuffLeather, shaftTop: 0.135, shapedBoots: true, smoothJoints: true, buckle: matte('buckle', { roughness: 0.6 }) });
   buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true, smoothJoints: true });
   buildTorso(rig);
   buildNeck(rig, skin);

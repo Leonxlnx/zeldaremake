@@ -53,9 +53,10 @@ function grainAt(u: number, v: number): Grain {
   const broad = .5 + .25 * Math.sin(TAU * (2 * u + 3 * v))
     + .25 * Math.sin(TAU * (3 * u - 2 * v));
   return {
-    // Neutral linear pigment modulation, no painted directional light or colour shift.
-    colour: .980 + .010 * broad + .006 * pigment - .006 * (1 - top),
-    roughness: .955 + .025 * (1 - top) - .025 * dome,
+    // Pigment stays close to the base on worn cell tops; narrow creases retain
+    // darker dye. This is neutral albedo variation, never directional lighting.
+    colour: .985 + .010 * broad + .005 * pigment - .120 * (1 - top),
+    roughness: .950 + .050 * (1 - top) - .090 * dome,
     height: .15 + .68 * top * (.72 + .28 * dome),
   };
 }
@@ -85,7 +86,8 @@ function grainPixels(): Pixels {
  * U repeat for a closed wrap (e.g. pack [.576, .480], belt [.696, .096]). Mesh UVs,
  * colour, opacity, roughness scalar and other material settings remain unchanged.
  * The caller owns this clone and its three textures. Assign only to reviewed meshes:
- * current boot/cuff wrap UVs, UV-less tongues and stretched straps need separate repair.
+ * boot/cuff wraps require their articulation UV repair, and tongues use an
+ * arc-length map. Fitted shoulder straps still need separate UV repair.
  */
 export function createLinkLeatherMaterial(
   base: MeshStandardMaterial, uvMetres: readonly [number, number],
@@ -113,6 +115,7 @@ export function createLinkLeatherMaterial(
   material.map = make('colour');
   material.roughnessMap = make('roughness');
   material.bumpMap = make('height');
-  material.bumpScale = .00032;
+  // The encoded height span makes this about .355 mm peak to valley, not .52 mm.
+  material.bumpScale = .00052;
   return material;
 }

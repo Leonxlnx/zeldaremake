@@ -85,6 +85,29 @@ for (const source of sources.filter(source => !disposed.has(source.geometry))) {
 batchStaticLinkParts(model.rig);
 assert.equal(meshes(model.group).length, oldCount - 10, 'batch setup is idempotent');
 
+// Separate rigs may own equivalent material clones and texture wrappers. Compare
+// their complete serialized settings/pixels once, omitting only generated UUIDs.
+function materialSnapshot(material) {
+  const json = material.toJSON(), references = new Map();
+  for (const [kind, entries] of [['texture', json.textures ?? []], ['image', json.images ?? []]]) {
+    entries.forEach((entry, i) => references.set(entry.uuid, `${kind}-${i}`));
+  }
+  const normalize = value => {
+    if (Array.isArray(value)) return value.map(normalize);
+    if (value && typeof value === 'object') return Object.fromEntries(
+      Object.entries(value).filter(([key]) => key !== 'uuid').map(([key, item]) => [key, normalize(item)]),
+    );
+    return references.get(value) ?? value;
+  };
+  return normalize(json);
+}
+const bootMaterials = new Map();
+for (const side of ['ankleL', 'ankleR']) for (const name of ['boot', 'boot-cuff', 'boot-sole', 'boot-tongue', 'boot-laces', 'boot-buckle']) {
+  const current = model.rig[side].getObjectByName(name), original = reference.rig[side].getObjectByName(name);
+  assert.deepEqual(materialSnapshot(current.material), materialSnapshot(original.material), `${name} material/map settings and data`);
+  bootMaterials.set(current, current.material); bootMaterials.set(original, original.material);
+}
+
 const ground = { height: () => 0, blocked: () => false, onStairs: () => false };
 const control = createLocomotion(ground, 0, 0, 0);
 const poses = [model, reference].map(character => createPlayPose(character.rig, ground.height));
@@ -115,7 +138,9 @@ for (let frame = 0; frame < 480; frame++) {
   }
   for (const side of ['ankleL', 'ankleR']) for (const name of ['boot', 'boot-cuff', 'boot-sole', 'boot-tongue', 'boot-laces', 'boot-buckle']) {
     const current = model.rig[side].getObjectByName(name), original = reference.rig[side].getObjectByName(name);
-    assert.equal(current.material, original.material); assert.equal(current.castShadow, original.castShadow);
+    assert.equal(current.material, bootMaterials.get(current), `${name} keeps its material during replay`);
+    assert.equal(original.material, bootMaterials.get(original), `${name} reference keeps its material during replay`);
+    assert.equal(current.castShadow, original.castShadow);
     assert.equal(current.receiveShadow, original.receiveShadow);
     assert.deepEqual(current.matrixWorld.elements, original.matrixWorld.elements);
     for (const key of Object.keys(original.geometry.attributes)) {

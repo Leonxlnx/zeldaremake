@@ -4,12 +4,20 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:33:13Z
+updated: 2026-09-11T10:41:57Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Source bd93490 now publishes Link batching plus Fable canopy intact; canonical take is starting.
+Continue the owner's leather-detail pass: helper strengthens only original pack/belt grain after
+inspected e4closeups showed it too weak. Root gives the existing boot tongue an arc-length UV
+map, preserving positions/normals/indices, then measures repaired upper/cuff UV scale before
+considering any boot material opt-in. Files leather-material.ts (helper), outfit-details.ts and
+potential explicit boot assignment in link.ts (root). Boots retain contact/articulation; no NPC,
+terrain, world light or silhouette edits. Capture must establish actual appearance.
+
 Deliberately integrate Fable b7cc6da trees/index.ts and corridors.ts intact with the character
 batching budget repair. Parent tree files match ours exactly. Review found no new mesh/material
 submissions, finite geometry and deterministic construction; north-west-near adds60885triangles
@@ -624,6 +632,16 @@ The first continuous run captured all four poses but failed before video frames 
 
 
 ## Completed work
+- Leather refinement/boot opt-in ready: original neutral pigment now.8667–1.0000, mean.95382,
+  effective roughness.77294–.9 and.35482mm bump span.24mm/16cell scale stays. Focused periodic
+  probe1028samples max4.90e-14, independent texture generations exact, all opacity/base settings
+  preserved. Boot upper15x12wraps, cuff17x5wraps; tongue uses its.064*pi/3m arc width/.114mheight.
+  Boot tongue has no singular UV faces; all physical positions/normals/indices unchanged.
+  bd93490 integrated-model comparison retains64meshes/72002triangles, all three NPCs exact.
+  Only eight leather surfaces change maps and two tongues gain UVs. Production build and both
+  articulation/batching tests pass. Batching test compares equivalent clone settings/pixels
+  across independent rigs and still enforces each rig's material identity throughout playback.
+  Actual rendered grain, filtering and appearance remain pending this source's capture.
 - Seven construction-only Link batches reduce74→64meshes while preserving72002triangles.
   480controller/pose updates and48 full triangle samples keep2554272world positions/normals exact,
   all local UVs/material identities/shadows unchanged. Boot surfaces and production NPCs exact.
@@ -851,4 +869,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T10:33:13Z
+2026-09-11T10:41:57Z
