@@ -14,6 +14,8 @@ Owner explicitly resumed Astra/Fable collaboration and requested improved origin
 
 03:25 UTC visual pass: motion CI `34557880413` passed on `91e4948`, four actual renderer images inspected (captured 03:20:05 UTC). Walk 1.600 m/s, run 3.899 m/s, jump airborne at 0.30 s, no page errors. The images expose overly circular staring eyes and hair tips intersecting the thinner brim. Next narrow the eyes to shallow almond surfaces and seat fringe roots under the brim. This is a captured defect, not a score-driven adjustment.
 
+Published that face/fringe correction as `571494c`; its new four-pose capture is running. Add a short continuous full-world renderer clip (walk → run → jump → stop, 12 fps) because still poses cannot establish natural motion or absence of skating. It uses the same player simulation with a scripted rear follow view, and is labelled as such in `sequence.json`; it is supplementary evidence, not a gauntlet take.
+
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
 - `src/camera/follow.ts`: jump input, focus handling and following actual player height.

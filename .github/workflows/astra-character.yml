@@ -23,6 +23,8 @@ jobs:
       - run: node src/camera/follow.test.mjs
       - run: npm run build
       - name: Capture actual idle, walk, run and jump
+        env:
+          CAPTURE_SEQUENCE: '1'
         run: node src/world/character/capture-motion.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -47,7 +49,7 @@ jobs:
             git -C "$REVIEW_DIR" fetch origin captures/astra-character
             git -C "$REVIEW_DIR" reset --hard FETCH_HEAD
           fi
-          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$REVIEW_DIR/"
-          git -C "$REVIEW_DIR" add '*.jpg' motion.json
+          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$CAPTURE_DIR/motion.mp4" "$CAPTURE_DIR/sequence.json" "$REVIEW_DIR/"
+          git -C "$REVIEW_DIR" add '*.jpg' motion.json motion.mp4 sequence.json
           git -C "$REVIEW_DIR" commit -m "Astra motion evidence for $GITHUB_SHA [skip ci]"
           git -C "$REVIEW_DIR" push origin HEAD:captures/astra-character

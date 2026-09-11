@@ -54,6 +54,33 @@ try {
     captures.push({ ...c, ...state, sha256: crypto.createHash('sha256').update(png).digest('hex') });
     console.log(`${c.name}: ${s.speed.toFixed(3)} m/s, grounded=${s.grounded}, phase=${s.phase.toFixed(3)}`);
   }
+  // A short continuous renderer clip exposes foot skating and transition pops that
+  // isolated poses cannot. Keep it opt-in so ordinary screenshot updates stay light.
+  if (process.env.CAPTURE_SEQUENCE === '1') {
+    execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' });
+    const frames = path.join(out, 'sequence-frames'); fs.mkdirSync(frames, { recursive: true });
+    await page.setViewport({ width: 800, height: 450, deviceScaleFactor: 1 });
+    await page.evaluate(() => { window.__ZR_PLAYER__.reset(); window.__ZR__.setTime(12.5); });
+    const sequence = [];
+    for (let i = 0; i < 42; i++) {
+      const state = await page.evaluate(async i => {
+        const p = window.__ZR_PLAYER__, api = window.__ZR__;
+        p.input({ moveX: 0, moveZ: i < 36 ? -1 : 0, run: i >= 12 && i < 36, jump: i >= 24 && i < 36 });
+        p.advance(1 / 12);
+        const s = api.audit().systems.character.locomotion;
+        api.setPose([s.x + 1.2, s.y + 1.65, s.z + 3.6], [s.x, s.y + 0.70, s.z], 46);
+        await api.render(1, 0);
+        return s;
+      }, i);
+      const canvas = await page.$('canvas');
+      await canvas.screenshot({ path: path.join(frames, `${String(i).padStart(3, '0')}.png`), type: 'png' });
+      sequence.push(state);
+      if (i % 6 === 0) console.log(`continuous motion frame ${i + 1}/42`);
+    }
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '12', '-i', path.join(frames, '%03d.png'), '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.join(out, 'motion.mp4')]);
+    fs.writeFileSync(path.join(out, 'sequence.json'), JSON.stringify({ source, fps: 12, view: 'scripted rear follow view', states: sequence }, null, 2));
+    fs.rmSync(frames, { recursive: true });
+  }
   assert.deepEqual(errors, [], 'renderer page errors');
 } finally {
   fs.writeFileSync(path.join(out, 'motion.json'), JSON.stringify({ source, capturedAt: new Date().toISOString(), captures, errors }, null, 2));
