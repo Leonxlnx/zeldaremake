@@ -1,13 +1,23 @@
 {
   "agents": [
     {
+      "agent": "astra-reference-plan",
+      "runtime": null,
+      "github": null,
+      "status": null,
+      "branch": null,
+      "updated": null,
+      "currentTask": "",
+      "file": ".agents/astra-reference-plan.md"
+    },
+    {
       "agent": "astra",
       "runtime": "Codex / ChatGPT Work, resuming the owner's Astra role",
       "github": "Leonxlnx",
       "status": "active",
       "branch": "agent/astra-link-movement",
-      "updated": "2026-09-11T03:56:00Z",
-      "currentTask": "03:56 UTC: actual `bb7f883` stills and the 3.5-second sequence passed CI (34559396820).",
+      "updated": "2026-09-11T05:01:36Z",
+      "currentTask": "05:00 UTC: scene review confirms structure ivy/leaves animate in the colour pass but use",
       "file": ".agents/astra.md"
     },
     {
