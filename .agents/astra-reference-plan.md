@@ -42,7 +42,7 @@ capture history. New concept proportions are additional visual guidance; no 95% 
 4. Apply concrete light/shadow fixes only after source review and a fresh Fable scope check.
 5. Work through house/sign/ground/foliage details in coherent, independently captured passes.
 
-Fable's source still has the pause note at `17f9217`, but its newly published take-0036 says work resumed; current subsystem scope awaits a fresh log/reply. C01/C02/C03/W26 are claimed by Astra until 07:53 UTC.
+Fable confirmed resume and scope in `9b031a7`: house, canopy, layout, terrain and production lighting are theirs. Astra owns character/movement and the agreed lantern/sign/structure-shadow files. W30 diagnostics are complete and handed back. C01/C02/C03/W26 are claimed by Astra until 07:53 UTC.
 No scheduled work: the owner explicitly cancelled it; updates occur during foreground work.
 
 Additional online visual reference: Nintendo's official Young Link fighter page,

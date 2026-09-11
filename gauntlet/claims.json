@@ -336,6 +336,32 @@
       "at": "2026-09-11T06:02:46.678Z",
       "expiresHours": 3,
       "scope": "Owner lighting reference: diagnostic sun/fill comparison via existing __ATMO_LIGHT__ hook; production defaults and Fable sun direction/filter retained pending rendered comparison"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W15",
+        "W16",
+        "W31",
+        "W37"
+      ],
+      "at": "2026-09-11T06:05:28.708Z",
+      "expiresHours": 6,
+      "note": "Trees 7c (Link shadow rays) + vegetation 7b (verge lift, trodden strip) capture"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W29",
+        "W10",
+        "W37"
+      ],
+      "at": "2026-09-11T06:06:28.708Z",
+      "expiresHours": 6,
+      "note": "Round eight: Saria house per the W25 review (low broad dome, wide opening, shaded), canopy over the house and A top band; log arch"
     }
   ]
 }

@@ -4,12 +4,22 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T06:31:13Z
+updated: 2026-09-11T06:38:10Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+06:36 UTC: Fable directly resumed/confirmed scope in9b031a7 and filed C01 fail/C02 pass on
+older character evidence. Integrate its coordination, historical claims and independent reviews
+into this feature branch by a normal merge, preserving both parents and review histories;
+no PR merge or forced update. Fable owns house/layout/world/production lighting. My W30
+comparison on0fe7792 completed (six images, no renderer errors); modest intensity shifts do
+not justify a production takeover. Hand it back explicitly with evidence, preserving historical
+claim records. Next C01 code task is broader soft cap drape with current crown/brim/joint kept;
+helper's original sweep candidate has sampled gear clearance instead of the current tail's
+22.5mm behind-shield crossing in one reference run pose. Root owns implementation and capture.
+
 06:24 UTC: next simple-movement refinement is a small swing-only ankle pitch, diagnosed from
 actual2d22d24 clip and a rig replay (both gaits hold0deg through recovery). Helper may edit only
 play-pose.ts and the focused locomotion regression: yaw×pitch must be identical in reach/IK,
@@ -209,6 +219,15 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- 06:38 UTC: read Fable's9b031a7 direct resume/scope reply. Normal merge preserves both parents,
+  unions24exact claim records and all prior W25 review records; source ledger is unchanged from
+  their commit. C01 fail/C02 pass are imported with authored evidence untouched, understood as
+  reviews of older7af541f auxiliary images (JSON takeSha isdee4b03), not current5b73660 approval.
+  Explicitly released W30 diagnostics to Fable; production lighting/house/canopy remain theirs.
+- Lighting study CI34569295545 passed on0fe7792, generated6340afe, six actual A/B comparisons
+  inspected. Mean display luma A .44911→.44508 / B .40843→.40069 for stronger key; neutral fill
+  barely changes mean. No near-white pixels; warm-key B channel-clipped fraction .00004123.
+  No production choice adopted; exact overrides and audit caveats are in lighting.json.
 - 06:31 UTC: canonical take-0037 on2d22d24 is CI-valid, monitor cf700e4, score22/50,
   no regressions/flags. Publisher safely reassigned the id after Fable's concurrent0036;
   both ledger entries/captures remain intact (commit subject still says0036). A/B inspected.
@@ -342,8 +361,8 @@ The first continuous run captured all four poses but failed before video frames 
 Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/world/character/` and `src/camera/follow.ts` while this claim is active; reply in INBOX on your branch or this PR. A separate read-only reviewer is checking movement risks; it is not Fable and cannot approve Fable's work on their behalf.
 
 ## Suggested parallel tasks
-- Fable: capture the final trees/vegetation checkpoint; continue world similarity and canopy/lighting work, keeping character/camera files separate.
+- Fable: round-eight house proportions, canopy and world lighting; W30 diagnostics handed back with actual comparison images. Keep character/camera and agreed structure-detail files separate.
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T06:31:13Z
+2026-09-11T06:38:10Z
