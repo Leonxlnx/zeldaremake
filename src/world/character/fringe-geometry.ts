@@ -11,23 +11,26 @@ interface Lock {
 }
 
 const LOCKS: readonly Lock[] = [
-  { path: [[.006, .083], [-.018, .071], [-.046, .056], [-.073, .043]], width: .024, depth: .021 },
-  { path: [[.014, .081], [.035, .070], [.057, .055], [.078, .041]], width: .023, depth: .020 },
-  { path: [[-.055, .075], [-.080, .058], [-.102, .023], [-.109, -.021]], width: .020, depth: .017 },
-  { path: [[.059, .073], [.085, .055], [.105, .020], [.113, -.024]], width: .0205, depth: .018 },
-  { path: [[-.002, .064], [-.007, .052], [-.014, .040], [-.018, .029]], width: .007, depth: .010 },
-  { path: [[.058, .056], [.073, .048], [.083, .038], [.091, .026]], width: .008, depth: .010 },
+  // Offset part, overlapping sweeps, and a longer central lock between the brows.
+  { path: [[.014, .087], [-.014, .076], [-.044, .064], [-.070, .047]], width: .013, depth: .017 },
+  { path: [[.004, .078], [-.022, .068], [-.048, .054], [-.081, .039]], width: .012, depth: .016 },
+  { path: [[.011, .083], [.001, .066], [-.010, .040], [-.014, .016]], width: .010, depth: .013 },
+  { path: [[.024, .082], [.043, .071], [.064, .058], [.083, .044]], width: .012, depth: .017 },
+  { path: [[.022, .073], [.039, .061], [.059, .052], [.077, .038]], width: .010, depth: .014 },
+  { path: [[.026, .076], [.021, .059], [.011, .046], [.004, .032]], width: .008, depth: .013 },
+  { path: [[-.058, .075], [-.081, .052], [-.099, .020], [-.108, -.018]], width: .013, depth: .016 },
+  { path: [[.057, .073], [.082, .050], [.101, .020], [.113, -.021]], width: .012, depth: .015 },
 ];
 
 /**
- * Four parted bundles and two secondary tips, front +Z, in local head coordinates.
+ * Eight narrower overlapping swept bundles, front +Z, in local head coordinates.
  * Keep the connected frontal foundation, scalp, sideburns and nape alongside this mesh.
  * Roots fit the seated crown/brim. Only rig.capTail sways; the crown stays on the head.
  */
 export function createLinkFringeLocks(radius: number): BufferGeometry {
   if (!Number.isFinite(radius) || radius <= 0) throw new RangeError('Link fringe radius must be positive and finite');
   const k = radius / .125;
-  const steps = 28, radial = 16, scalpRadius = .115;
+  const steps = 28, radial = 12, scalpRadius = .115;
   const skull = createLinkFaceGeometry(radius), material = new MeshBasicMaterial();
   const surface = new Mesh(skull, material);
   surface.updateMatrixWorld(true);
@@ -59,7 +62,8 @@ export function createLinkFringeLocks(radius: number): BufferGeometry {
         const t = i / steps, centre = curve.getPoint(t), tangent = curve.getTangent(t).normalize();
         const across = new Vector3(-tangent.y, tangent.x, 0);
         // Closed oval sections create curved volume instead of flattened sheet edges.
-        const width = lock.width * (.46 + .74 * Math.sin(Math.PI * t)) * (1 - t ** 2.4);
+        // A rounded terminal taper avoids turning the longer bundles into needles.
+        const width = lock.width * (.40 + .62 * Math.sin(Math.PI * t)) * Math.sqrt(1 - t ** 2.2);
         const seatedDepth = .0013 * (1 - t), bodyDepth = lock.depth * Math.sin(Math.PI * t) ** 1.15;
         const base = .00035;
         if (i === 0) {

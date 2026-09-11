@@ -4,12 +4,36 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T15:22:10Z
+updated: 2026-09-11T15:39:25Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Now integrate an eight-lock fringe and receding foundation hem in the two hair helpers.
+Owner sheet differences: current two large frontal lobes read as a smooth wig; reference has
+narrow asymmetric sweeps, lower central strands and a broken hairline. Preserve scalp, cap,
+sideburns, eyes, green secondary strap and motion. Candidate keeps 64 meshes / 74,596 triangles,
+5,376 fringe triangles, closed bundles with no self-intersections, all 63 other meshes exact.
+Sampled roots stay covered, brow/eyelid minimum triangle clearance 7.47/11.33 mm; no new pupil
+occlusion over 52,272 previously visible samples / 28 views. This is source-fit evidence;
+actual front/profile and motion captures must judge the visual result. Production build and
+actual batching regression pass: 2,664,864 posed positions/normals exact, UV/material/shadow/
+disposal and boot/NPC invariants retained.
+
+Fresh fetch 8f13daa adds only Fable log/claims/ledger. Tick35 reports atmosphere-5 and
+structures-8d running; no external process visibility. Existing rocks/shadow/layout differences
+remain, so no source integration from this tip. PR2 comment refreshed with own INBOX pointer,
+exact integrated work and current stair evidence: entrance -0.133222 to +0.30m, second rise
++0.30m, both rejected by the 0.28m guard. Keep guard and Fable terrain; one scratch-only
+committed-foot-contact prerequisite is under study, old rejected experiments stay untouched.
+
+Arms b79439c actual gallery at15:33:27.391UTC has 14 verified JPGs / 42 matching motion frames,
+errors[]. Four jump/descent/landing samples inspected: arms recover but character proportions
+remain too toy-like. Hand c8dcf5f actual capture is now running. Combined22ac061 has 14 actual
+stills, no renderer errors, auxiliary maximum568draws/8,525,679triangles; canonical pending.
+Cap take0046 remains INVALID for inherited D1 despite W38 pass. No reference fidelity pass.
 
 Active clean worktree zeldaremake-active / local agent/astra-refinement-recovery publishes to
 agent/astra-link-movement / PR5. Preserve old dirty zeldaremake snapshot. CLI claims C01/C02/C03
@@ -957,4 +981,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T14:46:24Z
+2026-09-11T15:39:25Z

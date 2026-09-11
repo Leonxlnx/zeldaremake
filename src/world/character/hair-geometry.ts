@@ -25,8 +25,13 @@ export function createLinkFrontalHair(radius: number): BufferGeometry {
   const lowerY = (angle: number): number => {
     const t = Math.max(0, Math.min(1, (Math.abs(angle) - 0.68) / (limit - 0.68)));
     const temple = t * t * (3 - 2 * t);
-    const fringe = 0.0012 * Math.sin(angle * 5.7 + 0.6) + 0.0006 * Math.sin(angle * 12.3 - 0.4);
-    return (0.042 - 0.022 * temple + fringe * (1 - temple)) * k;
+    // Recede beneath the individual sweeps instead of drawing a straight gold
+    // band across the forehead. The existing temple/scalp overlap stays seated.
+    const part = .049 + .005 * Math.exp(-(((angle + .08) / .23) ** 2))
+      - .006 * Math.exp(-(((angle - .55) / .22) ** 2))
+      - .008 * Math.exp(-(((angle + .67) / .20) ** 2));
+    const fringe = .0015 * Math.sin(angle * 7.1 + .6) + .0007 * Math.sin(angle * 13 - .4);
+    return ((part + fringe) * (1 - temple) + .020 * temple) * k;
   };
   const skinAt = (angle: number, y: number): { point: Vector3; normal: Vector3 } => {
     direction.set(Math.sin(angle), 0, Math.cos(angle));
