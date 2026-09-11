@@ -1,0 +1,685 @@
+[
+  {
+    "kind": "standing",
+    "stopFrame": 204,
+    "failure": null,
+    "audit": {
+      "maxKneeStep": 0.04081164630896731,
+      "maxPoleStep": 0,
+      "maxPlantedPositionDrift": 2.2033036935636169e-16,
+      "maxPlantedQuaternionChange": 2.914335439641036e-16,
+      "rejectionGraphExact": null
+    },
+    "cpu": {
+      "count": 204,
+      "totalMs": 172.72161300000062,
+      "medianMs": 0.6116959999999381,
+      "p95Ms": 1.623595000000023,
+      "maximumMs": 8.918427999999949
+    },
+    "state": null,
+    "acceptedRequest": {
+      "root": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "visualYaw": 0,
+      "hipsLocal": {
+        "x": 0.008310443982760802,
+        "y": 0.4334625102889825,
+        "z": 0
+      },
+      "hipsRotation": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "soles": [
+        {
+          "position": {
+            "x": 0.08600000000000001,
+            "y": 1.1102230246251565e-16,
+            "z": 0.025
+          },
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": {
+            "x": -0.08600000000000001,
+            "y": 0,
+            "z": 0.025
+          },
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "poles": [
+        {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        }
+      ]
+    },
+    "acceptedHeight": {
+      "height": 0.4334625102889825,
+      "velocity": 0.13632233585950604
+    }
+  },
+  {
+    "kind": "walking",
+    "stopFrame": 6,
+    "failure": {
+      "fraction": 1,
+      "status": "ordinary-support-curve",
+      "detail": {
+        "heightPlan": {
+          "status": "infeasible",
+          "reason": "knee-rate",
+          "diagnostics": {
+            "samples": 7,
+            "affineConstraints": 84,
+            "rateConstraints": 2,
+            "rootIterations": 0,
+            "isolatedRoots": 0,
+            "fixedConstraints": 14,
+            "guarantee": "supplied samples plus exact consumed scalar height/speed extrema",
+            "reserve": "linear tangent estimate only",
+            "failure": {
+              "index": 0,
+              "time": 0,
+              "side": 1
+            }
+          },
+          "intervals": []
+        },
+        "authoredRate": 8.571212454414601,
+        "swayRate": 0.09891313158551215,
+        "flexRate": 8.670125586000113,
+        "samples": [
+          {
+            "time": 0,
+            "legs": [
+              {
+                "horizontalSq": 0.0007281125411027455,
+                "horizontalDot": 0.015859846127092,
+                "verticalOffset": -0.06436172919568048,
+                "verticalVelocityOffset": 0.010328177574550297,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.0003468982072742372,
+                "horizontalDot": -0.0008285180143020313,
+                "verticalOffset": -0.08893041624265671,
+                "verticalVelocityOffset": -0.8993774602371745,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          },
+          {
+            "time": 0.001388888888888889,
+            "legs": [
+              {
+                "horizontalSq": 0.0007733546756556984,
+                "horizontalDot": 0.016714490909786217,
+                "verticalOffset": -0.06434738451535273,
+                "verticalVelocityOffset": 0.010328161700284305,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.00034446677715554205,
+                "horizontalDot": -0.0009157096533899888,
+                "verticalOffset": -0.0901835412464279,
+                "verticalVelocityOffset": -0.9049826116287412,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          },
+          {
+            "time": 0.002777777777777778,
+            "legs": [
+              {
+                "horizontalSq": 0.0008209708248269007,
+                "horizontalDot": 0.017569136655851046,
+                "verticalOffset": -0.06433303985872726,
+                "verticalVelocityOffset": 0.010328143443251201,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.00034184965825143245,
+                "horizontalDot": -0.000961076317863086,
+                "verticalOffset": -0.09144386812618438,
+                "verticalVelocityOffset": -0.9097481616676146,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          },
+          {
+            "time": 0.004166666666666667,
+            "legs": [
+              {
+                "horizontalSq": 0.0008709609913225428,
+                "horizontalDot": 0.01842378338700161,
+                "verticalOffset": -0.06431869522911349,
+                "verticalVelocityOffset": 0.010328122803455197,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.0003391725112145406,
+                "horizontalDot": -0.0009577922925353621,
+                "verticalOffset": -0.09271023076898477,
+                "verticalVelocityOffset": -0.9136741104236366,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          },
+          {
+            "time": 0.005555555555555556,
+            "legs": [
+              {
+                "horizontalSq": 0.0009233251779091326,
+                "horizontalDot": 0.019278431124952675,
+                "verticalOffset": -0.0643043506298208,
+                "verticalVelocityOffset": 0.010328099780901058,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.00033657995697179477,
+                "horizontalDot": -0.0008990318951008736,
+                "verticalOffset": -0.09398146306198475,
+                "verticalVelocityOffset": -0.916760457966678,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          },
+          {
+            "time": 0.006944444444444444,
+            "legs": [
+              {
+                "horizontalSq": 0.000978063387413497,
+                "horizontalDot": 0.02013307989141863,
+                "verticalOffset": -0.06429000606415856,
+                "verticalVelocityOffset": 0.01032807437559409,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.0003342355766330616,
+                "horizontalDot": -0.000777969476155302,
+                "verticalOffset": -0.09525639889243707,
+                "verticalVelocityOffset": -0.9190072043666396,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          },
+          {
+            "time": 0.008333333333333333,
+            "legs": [
+              {
+                "horizontalSq": 0.0010351756227227813,
+                "horizontalDot": 0.0209877297081135,
+                "verticalOffset": -0.06427566153543617,
+                "verticalVelocityOffset": 0.010328046587540156,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              },
+              {
+                "horizontalSq": 0.0003323219113997192,
+                "horizontalDot": -0.0005877794192174906,
+                "verticalOffset": -0.09653387214769156,
+                "verticalVelocityOffset": -0.9204143496934507,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 8.670125586000113
+              }
+            ]
+          }
+        ],
+        "request": {
+          "root": {
+            "x": 0,
+            "y": 0,
+            "z": 0.029511546167608444
+          },
+          "visualYaw": 0,
+          "hipsLocal": {
+            "x": 0.0001591656744149945,
+            "y": 0.48071422061940444,
+            "z": 0
+          },
+          "hipsRotation": [
+            5.8023095563314535e-05,
+            0.010893963985752864,
+            0.005325777601089585,
+            0.9999264744344663
+          ],
+          "soles": [
+            {
+              "position": {
+                "x": 0.08600000000000001,
+                "y": 0,
+                "z": 0.02626883442618721
+              },
+              "rotation": [
+                0,
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "position": {
+                "x": -0.08600000000000001,
+                "y": 0.03040475618873225,
+                "z": 0.05355755233547278
+              },
+              "rotation": [
+                0.008273818895037012,
+                0,
+                0,
+                0.9999657713746467
+              ]
+            }
+          ],
+          "poles": [
+            {
+              "x": 0.021786944037985208,
+              "y": -1.3552527156068805e-20,
+              "z": 0.999762636363995
+            },
+            {
+              "x": 0.021786944037985208,
+              "y": -1.3552527156068805e-20,
+              "z": 0.999762636363995
+            }
+          ]
+        }
+      }
+    },
+    "audit": {
+      "maxKneeStep": 0.01438749201924402,
+      "maxPoleStep": 0.004041205675094486,
+      "maxPlantedPositionDrift": 8.694409141350492e-17,
+      "maxPlantedQuaternionChange": 9.714451465470122e-17,
+      "rejectionGraphExact": true,
+      "rejectionCoordinatorExact": true,
+      "rejectionGeometryExact": true
+    },
+    "cpu": {
+      "count": 7,
+      "totalMs": 13.91728399999738,
+      "medianMs": 1.45206700000017,
+      "p95Ms": 3.8044620000000577,
+      "maximumMs": 3.8044620000000577
+    },
+    "state": {
+      "x": 0,
+      "y": 0,
+      "z": 0.029511546167608444,
+      "yaw": 0,
+      "vx": 0,
+      "vy": 0,
+      "vz": 0.8054635139337452,
+      "speed": 0.805463513933745,
+      "grounded": true,
+      "phase": 0.2827906068528982,
+      "moveWeight": 0.49465411089683387,
+      "runWeight": 0,
+      "stairWeight": 0,
+      "landing": 0,
+      "jumps": 0,
+      "time": 0.05833333333333333
+    },
+    "acceptedRequest": {
+      "root": {
+        "x": 0,
+        "y": 0,
+        "z": 0.02279935021816057
+      },
+      "visualYaw": 0,
+      "hipsLocal": {
+        "x": 0.0001533146114306225,
+        "y": 0.4816982626648094,
+        "z": 0
+      },
+      "hipsRotation": [
+        4.5053285257733406e-05,
+        0.009599548957842093,
+        0.004693003113279755,
+        0.9999429095462333
+      ],
+      "soles": [
+        {
+          "position": {
+            "x": 0.08600000000000001,
+            "y": 0,
+            "z": 0.02626883442618721
+          },
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": {
+            "x": -0.08600000000000001,
+            "y": 0.023047260825260117,
+            "z": 0.04436080600997121
+          },
+          "rotation": [
+            0.004961762977770212,
+            0,
+            0,
+            0.9999876903783128
+          ]
+        }
+      ],
+      "poles": [
+        {
+          "x": 0.019198424700888225,
+          "y": 1.3552527156068805e-20,
+          "z": 0.999815693260015
+        },
+        {
+          "x": 0.019198424700888225,
+          "y": 1.3552527156068805e-20,
+          "z": 0.999815693260015
+        }
+      ]
+    },
+    "acceptedHeight": {
+      "height": 0.4816982626648094,
+      "velocity": -0.10484774849439127
+    }
+  },
+  {
+    "kind": "running",
+    "stopFrame": 0,
+    "failure": {
+      "fraction": 1,
+      "status": "ordinary-support-curve",
+      "detail": {
+        "heightPlan": {
+          "status": "infeasible",
+          "reason": "knee-rate",
+          "diagnostics": {
+            "samples": 5,
+            "affineConstraints": 60,
+            "rateConstraints": 4,
+            "rootIterations": 148,
+            "isolatedRoots": 3,
+            "fixedConstraints": 14,
+            "guarantee": "supplied samples plus exact consumed scalar height/speed extrema",
+            "reserve": "linear tangent estimate only",
+            "failure": {
+              "index": 1,
+              "time": 0.0020833333333333333,
+              "side": 1
+            }
+          },
+          "intervals": []
+        },
+        "authoredRate": 0.2588441750922152,
+        "swayRate": 0,
+        "flexRate": 0.2588441750922152,
+        "samples": [
+          {
+            "time": 0,
+            "legs": [
+              {
+                "horizontalSq": 0.00032263126094143034,
+                "horizontalDot": 0,
+                "verticalOffset": -0.06486416628122094,
+                "verticalVelocityOffset": 0,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              },
+              {
+                "horizontalSq": 0.00032557711502071205,
+                "horizontalDot": 0,
+                "verticalOffset": -0.06513583371877907,
+                "verticalVelocityOffset": 0,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              }
+            ]
+          },
+          {
+            "time": 0.0020833333333333333,
+            "legs": [
+              {
+                "horizontalSq": 0.00032263126094143034,
+                "horizontalDot": 0,
+                "verticalOffset": -0.06486416628122094,
+                "verticalVelocityOffset": 0,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              },
+              {
+                "horizontalSq": 0.00032553859753093413,
+                "horizontalDot": -1.5170074294905191e-05,
+                "verticalOffset": -0.06538035522298054,
+                "verticalVelocityOffset": -0.2317252920783842,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              }
+            ]
+          },
+          {
+            "time": 0.004166666666666667,
+            "legs": [
+              {
+                "horizontalSq": 0.00032263126094143034,
+                "horizontalDot": 0,
+                "verticalOffset": -0.06486416628122094,
+                "verticalVelocityOffset": 0,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              },
+              {
+                "horizontalSq": 0.00032550154082165196,
+                "horizontalDot": 6.020517206775509e-06,
+                "verticalOffset": -0.06608879188604758,
+                "verticalVelocityOffset": -0.4453588331888682,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              }
+            ]
+          },
+          {
+            "time": 0.00625,
+            "legs": [
+              {
+                "horizontalSq": 0.00032263126094143034,
+                "horizontalDot": 0,
+                "verticalOffset": -0.06486416628122094,
+                "verticalVelocityOffset": 0,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              },
+              {
+                "horizontalSq": 0.0003256789036095552,
+                "horizontalDot": 9.187748505938024e-05,
+                "verticalOffset": -0.06722345606923158,
+                "verticalVelocityOffset": -0.6409045938148971,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              }
+            ]
+          },
+          {
+            "time": 0.008333333333333333,
+            "legs": [
+              {
+                "horizontalSq": 0.00032263126094143034,
+                "horizontalDot": 0,
+                "verticalOffset": -0.06486416628122094,
+                "verticalVelocityOffset": 0,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              },
+              {
+                "horizontalSq": 0.0003263869937279527,
+                "horizontalDot": 0.0002637804149926659,
+                "verticalOffset": -0.0687466696599543,
+                "verticalVelocityOffset": -0.8183665452906901,
+                "minDistance": 0.015000000000000098,
+                "maxDistance": 0.45299999999999996,
+                "maxFlexRate": 0.2588441750922152
+              }
+            ]
+          }
+        ],
+        "request": {
+          "root": {
+            "x": 0,
+            "y": 0,
+            "z": 0.0030927839138313157
+          },
+          "visualYaw": 0,
+          "hipsLocal": {
+            "x": 4.091304146220776e-05,
+            "y": 0.48136723320204977,
+            "z": 0
+          },
+          "hipsRotation": [
+            2.0404567838403675e-06,
+            0.0020429525766676626,
+            0.000998775757851455,
+            0.9999974143904531
+          ],
+          "soles": [
+            {
+              "position": {
+                "x": 0.08600000000000001,
+                "y": 0,
+                "z": 0.028092783913831316
+              },
+              "rotation": [
+                0,
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "position": {
+                "x": -0.08600000000000001,
+                "y": 0.003590576246498231,
+                "z": 0.02925973152800855
+              },
+              "rotation": [
+                0.0004056217022180689,
+                0,
+                0,
+                0.999999917735514
+              ]
+            }
+          ],
+          "poles": [
+            {
+              "x": 0.004085898664697494,
+              "y": 0,
+              "z": 0.999991652681212
+            },
+            {
+              "x": 0.004085898664697494,
+              "y": 0,
+              "z": 0.999991652681212
+            }
+          ]
+        }
+      }
+    },
+    "audit": {
+      "maxKneeStep": 0,
+      "maxPoleStep": 0,
+      "maxPlantedPositionDrift": 0,
+      "maxPlantedQuaternionChange": 0,
+      "rejectionGraphExact": true,
+      "rejectionCoordinatorExact": true,
+      "rejectionGeometryExact": true
+    },
+    "cpu": {
+      "count": 1,
+      "totalMs": 2.749331999999413,
+      "medianMs": 2.749331999999413,
+      "p95Ms": 2.749331999999413,
+      "maximumMs": 2.749331999999413
+    },
+    "state": {
+      "x": 0,
+      "y": 0,
+      "z": 0.0030927839138313157,
+      "yaw": 0,
+      "vx": 0,
+      "vy": 0,
+      "vz": 0.37113406965975787,
+      "speed": 0.37113406965975787,
+      "grounded": true,
+      "phase": 0.2534364265709237,
+      "moveWeight": 0.0908191699487555,
+      "runWeight": 0,
+      "stairWeight": 0,
+      "landing": 0,
+      "jumps": 0,
+      "time": 0.008333333333333333
+    },
+    "acceptedRequest": null,
+    "acceptedHeight": {
+      "height": 0.485,
+      "velocity": 0
+    }
+  }
+]

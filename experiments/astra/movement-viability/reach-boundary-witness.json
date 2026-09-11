@@ -1,0 +1,722 @@
+{
+  "scope": "Read-only saved-request arithmetic; no replay, no source edits, no new candidate. Counterfactual height values evaluate only the already-prescribed scalar polynomial at saved geometry times.",
+  "input": {
+    "path": "/workspace/scratch/0dfc487f788e/zeldaremake-active/gauntlet/tmp/paired-support-events/transition-gate-result.json",
+    "sha256": "accac9aa6d6e5eaa38a0f69b189f8ab3cf610b08f1bfbe3d968e87e8fa3338ff"
+  },
+  "manifest": {
+    "path": "/workspace/scratch/0dfc487f788e/zeldaremake-active/gauntlet/tmp/paired-support-events/candidate-hashes.json",
+    "sha256": "ebe856c10f7b15a5494603d4018f0e2c5f9601dd4cb18ad4397b1bcf6ff6e126"
+  },
+  "sources": {
+    "contact-coordinator.ts": "f9ae233ff48813377e6d6381d1bc152bf6162a3475991d190215ca79f70cbee2",
+    "contact-height.ts": "3e4f95fcc06268509f718fbc5c485ade0b944b4b08ac084a914328637cfb0d17",
+    "contact-pose.ts": "e9d631e3d3123e462ca6f9cf59eaa0360f58a161a350f3886deea0a1aa070329",
+    "contact-swing-height.ts": "c0e29d03e12ad69d167b8a1838fa93f874b063da267f2f82a2f319918d1a19d9",
+    "contact-duration.ts": "512bd16a68c004300c9d6995d9a425a5f6f71fd8630762d9a8599ccdeebae91b"
+  },
+  "dimensions": {
+    "a": 0.23000000000000004,
+    "b": 0.22499999999999998,
+    "reach": 0.453,
+    "hipHalfWidth": 0.068,
+    "sole": [
+      0,
+      -0.065,
+      0.025
+    ]
+  },
+  "dt": 0.008333333333333333,
+  "results": [
+    {
+      "kind": "walking",
+      "frame": 27,
+      "time": 0.2333333333333333,
+      "fraction": 0.14285714285714285,
+      "sampleTime": 0.0011904761904761904,
+      "allFiveTrialsSameFailureRequest": true,
+      "accepted": {
+        "height": 0.44843635126876846,
+        "sharedCeiling": 0.44843635126876846,
+        "legs": [
+          {
+            "side": "left",
+            "hip": [
+              0.0680583894301087,
+              0.44827044012775935,
+              0.2420817666670284
+            ],
+            "ankle": [
+              0.08600000000000001,
+              0.065,
+              0.001268834426187207
+            ],
+            "offset": [
+              0.0679989507800473,
+              -0.00016591114100910885,
+              0.00033936161538436737
+            ],
+            "delta": [
+              -0.01794161056989131,
+              0.38327044012775935,
+              0.24081293224084122
+            ],
+            "distance": 0.453,
+            "reachMargin": 0,
+            "horizontalDistance": 0.24148037130225228,
+            "ceiling": 0.44843635126876846,
+            "heightMargin": 0
+          },
+          {
+            "side": "right",
+            "hip": [
+              -0.06793951212998589,
+              0.4486022624097776,
+              0.24140304343625968
+            ],
+            "ankle": [
+              -0.08600000000000001,
+              0.065,
+              0.4245992960955946
+            ],
+            "offset": [
+              -0.0679989507800473,
+              0.00016591114100910885,
+              -0.00033936161538436737
+            ],
+            "delta": [
+              0.018060487870014116,
+              0.3836022624097776,
+              -0.18319625265933492
+            ],
+            "distance": 0.42548530401933465,
+            "reachMargin": 0.02751469598066536,
+            "horizontalDistance": 0.18408435080290178,
+            "ceiling": 0.47874464899182223,
+            "heightMargin": 0.030308297723053768
+          }
+        ]
+      },
+      "rejected": {
+        "height": 0.4474925630818377,
+        "sharedCeiling": 0.4473646125938828,
+        "legs": [
+          {
+            "side": "left",
+            "hip": [
+              0.06805749647952215,
+              0.447308884133161,
+              0.2439070423236931
+            ],
+            "ankle": [
+              0.08600000000000001,
+              0.06501821877450795,
+              0.0013400908853838274
+            ],
+            "offset": [
+              0.0679987140209623,
+              -0.00018367894867669715,
+              0.00037570405800182603
+            ],
+            "delta": [
+              -0.017942503520477854,
+              0.3822906653586531,
+              0.24256695143830925
+            ],
+            "distance": 0.45310794760522477,
+            "reachMargin": -0.00010794760522475633,
+            "horizontalDistance": 0.24322964326466756,
+            "ceiling": 0.4473646125938828,
+            "heightMargin": -0.0001279504879548865
+          },
+          {
+            "side": "right",
+            "hip": [
+              -0.06793993156240245,
+              0.4476762420305144,
+              0.24315563420768943
+            ],
+            "ankle": [
+              -0.08600000000000001,
+              0.065,
+              0.4245992960955946
+            ],
+            "offset": [
+              -0.0679987140209623,
+              0.00018367894867669715,
+              -0.00037570405800182603
+            ],
+            "delta": [
+              0.018060068437597554,
+              0.3826762420305144,
+              -0.18144366188790517
+            ],
+            "distance": 0.42389748138654937,
+            "reachMargin": 0.029102518613450645,
+            "horizontalDistance": 0.18234025477459212,
+            "ceiling": 0.47949816474445733,
+            "heightMargin": 0.03200560166261962
+          }
+        ]
+      },
+      "storedHeight": {
+        "height": 0.44843635126876846,
+        "velocity": -0.9122876044510274
+      },
+      "recoveredEndpoint": {
+        "root": [
+          0,
+          0,
+          0.2542649375499746
+        ],
+        "hipsLocal": [
+          0.00005484530955052401,
+          0.4418298339602532,
+          0
+        ],
+        "hipsRotation": [
+          0.00000931888384766601,
+          -0.00436591558011699,
+          -0.0021344372964945857,
+          0.9999881913661446
+        ],
+        "soles": null,
+        "note": "Root/hips endpoint algebraically recovered from the saved interpolated sample; full final sole request is not saved."
+      },
+      "sourceEndpointPrecheckPassed": true,
+      "recoveredEndpointRootErrorAgainstSavedState": 1.1102230246251565e-16,
+      "previousImplementedHeightSlope": -0.5208927500766204,
+      "recoveredRootVelocity": [
+        0,
+        0,
+        1.5027038997996625
+      ],
+      "recoveredHipsAngularVelocity": [
+        0.001505937472057068,
+        -0.44894762234883856,
+        -0.21948052711529845
+      ],
+      "priorFrameReconstructionError": [
+        {
+          "side": "left",
+          "hip": 0,
+          "ankle": 3.1031676915590914e-17
+        },
+        {
+          "side": "right",
+          "hip": 0,
+          "ankle": 1.2412670766236366e-16
+        }
+      ],
+      "preservedHermite": {
+        "horizon": 0.12,
+        "targetHeight": 0.4467443243677382,
+        "coefficients": [
+          0.44843635126876846,
+          -0.10947451253412328,
+          0.21387294436515578,
+          -0.10609045873206276
+        ],
+        "start": {
+          "height": 0.44843635126876846,
+          "velocity": -0.9122876044510274
+        },
+        "sameRejectedTime": {
+          "height": 0.447371240173032,
+          "velocity": -0.8771860473576591
+        },
+        "endOfTick": {
+          "height": 0.4418298339602532,
+          "velocity": -0.6775400871895699
+        },
+        "geometryAtSameTime": {
+          "height": 0.447371240173032,
+          "sharedCeiling": 0.4473646125938828,
+          "legs": [
+            {
+              "side": "left",
+              "hip": [
+                0.06805749647952215,
+                0.44718756122435527,
+                0.2439070423236931
+              ],
+              "ankle": [
+                0.08600000000000001,
+                0.06501821877450795,
+                0.0013400908853838274
+              ],
+              "offset": [
+                0.0679987140209623,
+                -0.00018367894867669715,
+                0.00037570405800182603
+              ],
+              "delta": [
+                -0.017942503520477854,
+                0.38216934244984735,
+                0.24256695143830925
+              ],
+              "distance": 0.4530055912140667,
+              "reachMargin": -0.000005591214066680283,
+              "horizontalDistance": 0.24322964326466756,
+              "ceiling": 0.4473646125938828,
+              "heightMargin": -0.00000662757914915435
+            },
+            {
+              "side": "right",
+              "hip": [
+                -0.06793993156240245,
+                0.4475549191217087,
+                0.24315563420768943
+              ],
+              "ankle": [
+                -0.08600000000000001,
+                0.065,
+                0.4245992960955946
+              ],
+              "offset": [
+                -0.0679987140209623,
+                0.00018367894867669715,
+                -0.00037570405800182603
+              ],
+              "delta": [
+                0.018060068437597554,
+                0.3825549191217087,
+                -0.18144366188790517
+              ],
+              "distance": 0.4237879595451955,
+              "reachMargin": 0.029212040454804522,
+              "horizontalDistance": 0.18234025477459212,
+              "ceiling": 0.47949816474445733,
+              "heightMargin": 0.03212692457142535
+            }
+          ]
+        }
+      },
+      "initialReachBoundaryDerivative": [
+        {
+          "side": "left",
+          "offsetVelocity": [
+            -0.00018876985502625258,
+            -0.0149249566178652,
+            0.030527717423113655
+          ],
+          "hipVelocityAtZeroHeightRate": [
+            -0.0007399707163312338,
+            -0.0149249566178652,
+            1.533231617222776
+          ],
+          "initialSoleVelocity": [
+            0,
+            0,
+            0
+          ],
+          "initialFootAngularVelocity": [
+            0,
+            0,
+            0
+          ],
+          "maximumHeightVelocityAtReachBoundary": -0.948455568348079,
+          "storedHeightVelocity": -0.9122876044510274,
+          "storedHeightVelocityMinusCeiling": 0.03616796389705157,
+          "initialRadialVelocityWithStoredHeight": 0.030600687508494165,
+          "implementedLinearHeightVelocity": -0.7927820770218298,
+          "initialRadialVelocityWithLinearHeight": 0.13171092171487073
+        },
+        {
+          "side": "right",
+          "offsetVelocity": [
+            0.00018876985502625258,
+            0.0149249566178652,
+            -0.030527717423113655
+          ],
+          "hipVelocityAtZeroHeightRate": [
+            -0.0003624310062787286,
+            0.0149249566178652,
+            1.472176182376549
+          ],
+          "initialSoleVelocity": [
+            0,
+            0,
+            0
+          ],
+          "initialFootAngularVelocity": [
+            0,
+            0,
+            0
+          ],
+          "maximumHeightVelocityAtReachBoundary": 0.6366740396965782,
+          "storedHeightVelocity": -0.9122876044510274,
+          "storedHeightVelocityMinusCeiling": -1.5489616441476057,
+          "initialRadialVelocityWithStoredHeight": -1.4429030607116655,
+          "implementedLinearHeightVelocity": -0.7927820770218298,
+          "initialRadialVelocityWithLinearHeight": -1.33516117101709
+        }
+      ],
+      "footDisplacement": [
+        {
+          "side": "left",
+          "displacement": [
+            0,
+            0.000015812054906789155,
+            0.00006499808904368576
+          ],
+          "rotationAngle": 0.00009628083398286841
+        },
+        {
+          "side": "right",
+          "displacement": [
+            0,
+            0,
+            0
+          ],
+          "rotationAngle": 0
+        }
+      ]
+    },
+    {
+      "kind": "running",
+      "frame": 30,
+      "time": 0.2583333333333333,
+      "fraction": 0.0625,
+      "sampleTime": 0.0005208333333333333,
+      "allFiveTrialsSameFailureRequest": true,
+      "accepted": {
+        "height": 0.4343219205502173,
+        "sharedCeiling": 0.4343219205502173,
+        "legs": [
+          {
+            "side": "left",
+            "hip": [
+              0.06801405723211701,
+              0.433472418565059,
+              0.6831017891059061
+            ],
+            "ankle": [
+              0.08600000000000001,
+              0.065,
+              0.8221532579450869
+            ],
+            "offset": [
+              0.06797249445437736,
+              -0.000849501985158264,
+              0.0017373382016322208
+            ],
+            "delta": [
+              -0.017985942767882998,
+              0.368472418565059,
+              -0.13905146883918074
+            ],
+            "distance": 0.3942470397691874,
+            "reachMargin": 0.05875296023081261,
+            "horizontalDistance": 0.14020986100693208,
+            "ceiling": 0.49660487905713024,
+            "heightMargin": 0.062282958506912955
+          },
+          {
+            "side": "right",
+            "hip": [
+              -0.06793093167663772,
+              0.43517142253537555,
+              0.6796271127026416
+            ],
+            "ankle": [
+              -0.08600000000000001,
+              0.065,
+              0.4191359867346691
+            ],
+            "offset": [
+              -0.06797249445437736,
+              0.000849501985158264,
+              -0.0017373382016322208
+            ],
+            "delta": [
+              0.01806906832336229,
+              0.37017142253537555,
+              0.2604911259679725
+            ],
+            "distance": 0.45299999999999996,
+            "reachMargin": 5.551115123125783e-17,
+            "horizontalDistance": 0.26111705792256557,
+            "ceiling": 0.4343219205502173,
+            "heightMargin": 0
+          }
+        ]
+      },
+      "rejected": {
+        "height": 0.4331574106370526,
+        "sharedCeiling": 0.43304501338647,
+        "legs": [
+          {
+            "side": "left",
+            "hip": [
+              0.06801464053589097,
+              0.43232023892401494,
+              0.685016323428551
+            ],
+            "ankle": [
+              0.08600000000000001,
+              0.065,
+              0.8221532579450869
+            ],
+            "offset": [
+              0.06797328709706887,
+              -0.000837171713037652,
+              0.0017121287166390249
+            ],
+            "delta": [
+              -0.017985359464109035,
+              0.36732023892401494,
+              -0.13713693451653586
+            ],
+            "distance": 0.39249735016537535,
+            "reachMargin": 0.06050264983462467,
+            "horizontalDistance": 0.1383112864651539,
+            "ceiling": 0.4972059096117803,
+            "heightMargin": 0.0640484989747277
+          },
+          {
+            "side": "right",
+            "hip": [
+              -0.06793193365824678,
+              0.43399458235009025,
+              0.6815920659952729
+            ],
+            "ankle": [
+              -0.08600000000000001,
+              0.06503847387822644,
+              0.41922426753063263
+            ],
+            "offset": [
+              -0.06797328709706887,
+              0.000837171713037652,
+              -0.0017121287166390249
+            ],
+            "delta": [
+              0.01806806634175323,
+              0.36895610847186383,
+              0.26236779846464026
+            ],
+            "distance": 0.4530915212969824,
+            "reachMargin": -0.00009152129698236644,
+            "horizontalDistance": 0.26298919501095874,
+            "ceiling": 0.43304501338647,
+            "heightMargin": -0.00011239725058259653
+          }
+        ]
+      },
+      "storedHeight": {
+        "height": 0.4343219205502173,
+        "velocity": -2.5913769837158536
+      },
+      "recoveredEndpoint": {
+        "root": [
+          0,
+          0,
+          0.7124003518264829
+        ],
+        "hipsLocal": [
+          0.00003821335505884991,
+          0.41568976193958224,
+          0
+        ],
+        "hipsRotation": [
+          0.00004704322680975642,
+          -0.009809249794666894,
+          -0.004795516173950399,
+          0.9999403879382143
+        ],
+        "soles": null,
+        "note": "Root/hips endpoint algebraically recovered from the saved interpolated sample; full final sole request is not saved."
+      },
+      "sourceEndpointPrecheckPassed": true,
+      "recoveredEndpointRootErrorAgainstSavedState": 3.3306690738754696e-16,
+      "previousImplementedHeightSlope": -1.3803729859498206,
+      "recoveredRootVelocity": [
+        0,
+        0,
+        3.7243081106650777
+      ],
+      "recoveredHipsAngularVelocity": [
+        -0.007863412987836632,
+        0.7121786561203257,
+        0.34808818006352804
+      ],
+      "priorFrameReconstructionError": [
+        {
+          "side": "left",
+          "hip": 0,
+          "ankle": 5.721958498152797e-17
+        },
+        {
+          "side": "right",
+          "hip": 0,
+          "ankle": 0
+        }
+      ],
+      "preservedHermite": {
+        "horizon": 0.12,
+        "targetHeight": 0.4392148974119594,
+        "coefficients": [
+          0.4343219205502173,
+          -0.3109652380459024,
+          0.6366094066770311,
+          -0.32075119176938666
+        ],
+        "start": {
+          "height": 0.4343219205502173,
+          "velocity": -2.5913769837158536
+        },
+        "sameRejectedTime": {
+          "height": 0.4329842112676673,
+          "velocity": -2.5454770138972567
+        },
+        "endOfTick": {
+          "height": 0.41568976193958224,
+          "velocity": -1.8932313538535233
+        },
+        "geometryAtSameTime": {
+          "height": 0.4329842112676673,
+          "sharedCeiling": 0.43304501338647,
+          "legs": [
+            {
+              "side": "left",
+              "hip": [
+                0.06801464053589097,
+                0.43214703955462963,
+                0.685016323428551
+              ],
+              "ankle": [
+                0.08600000000000001,
+                0.065,
+                0.8221532579450869
+              ],
+              "offset": [
+                0.06797328709706887,
+                -0.000837171713037652,
+                0.0017121287166390249
+              ],
+              "delta": [
+                -0.017985359464109035,
+                0.36714703955462963,
+                -0.13713693451653586
+              ],
+              "distance": 0.39233526557954823,
+              "reachMargin": 0.06066473442045178,
+              "horizontalDistance": 0.1383112864651539,
+              "ceiling": 0.4972059096117803,
+              "heightMargin": 0.06422169834411301
+            },
+            {
+              "side": "right",
+              "hip": [
+                -0.06793193365824678,
+                0.43382138298070494,
+                0.6815920659952729
+              ],
+              "ankle": [
+                -0.08600000000000001,
+                0.06503847387822644,
+                0.41922426753063263
+              ],
+              "offset": [
+                -0.06797328709706887,
+                0.000837171713037652,
+                -0.0017121287166390249
+              ],
+              "delta": [
+                0.01806806634175323,
+                0.3687829091024785,
+                0.26236779846464026
+              ],
+              "distance": 0.45295049479893384,
+              "reachMargin": 0.00004950520106616896,
+              "horizontalDistance": 0.26298919501095874,
+              "ceiling": 0.43304501338647,
+              "heightMargin": 0.000060802118802716354
+            }
+          ]
+        }
+      },
+      "initialReachBoundaryDerivative": [
+        {
+          "side": "left",
+          "offsetVelocity": [
+            0.0015329967856390328,
+            0.02367408329678145,
+            -0.04840187976872148
+          ],
+          "hipVelocityAtZeroHeightRate": [
+            0.0011310660639441761,
+            0.02367408329678145,
+            3.675906230896356
+          ],
+          "initialSoleVelocity": [
+            0,
+            0,
+            0
+          ],
+          "initialFootAngularVelocity": [
+            0,
+            0,
+            0
+          ],
+          "maximumHeightVelocityAtReachBoundary": 1.1629866787471046,
+          "storedHeightVelocity": -2.5913769837158536,
+          "storedHeightVelocityMinusCeiling": -3.754363662462958,
+          "initialRadialVelocityWithStoredHeight": -3.696383371040229,
+          "implementedLinearHeightVelocity": -2.2358590332762063,
+          "initialRadialVelocityWithLinearHeight": -3.3641080567639747
+        },
+        {
+          "side": "right",
+          "offsetVelocity": [
+            -0.0015329967856390328,
+            -0.02367408329678145,
+            0.04840187976872148
+          ],
+          "hipVelocityAtZeroHeightRate": [
+            -0.0019349275073338894,
+            -0.02367408329678145,
+            3.7727099904337993
+          ],
+          "initialSoleVelocity": [
+            0,
+            0,
+            0
+          ],
+          "initialFootAngularVelocity": [
+            0,
+            0,
+            0
+          ],
+          "maximumHeightVelocityAtReachBoundary": -2.631102734131566,
+          "storedHeightVelocity": -2.5913769837158536,
+          "storedHeightVelocityMinusCeiling": 0.03972575041571247,
+          "initialRadialVelocityWithStoredHeight": 0.03246211378072751,
+          "implementedLinearHeightVelocity": -2.2358590332762063,
+          "initialRadialVelocityWithLinearHeight": 0.3229755474476268
+        }
+      ],
+      "footDisplacement": [
+        {
+          "side": "left",
+          "displacement": [
+            0,
+            0,
+            0
+          ],
+          "rotationAngle": 0
+        },
+        {
+          "side": "right",
+          "displacement": [
+            0,
+            0.000032462258356189966,
+            0.00007264497192954744
+          ],
+          "rotationAngle": 0.00024054001454103813
+        }
+      ]
+    }
+  ]
+}

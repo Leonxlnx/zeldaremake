@@ -1,0 +1,193 @@
+{
+  "status": "NOT INTEGRATED \u2014 FAILED ORDINARY PREFIX",
+  "baseRevision": "f11559532805948079aaa0fdcf84b8a293ebab6b",
+  "sourceCandidate": "paired-support-viability/source",
+  "changedFiles": {
+    "src/world/character/play-pose.ts": {
+      "candidateSha256": "988abf3451f867f04add53fa48a9d3cc601c807cdb5362880c4658eef0ae4cfc",
+      "baseSha256": "98efcaad2326bf60007b98e02e7eaabff7b0b23ce78b718c34e89f3a87bf22fb"
+    },
+    "src/world/character/pose-stage.ts": {
+      "candidateSha256": "43891a4056855e9b4e305744aebb32600598028f9b52b5088e08c4fdf16ea56e",
+      "baseSha256": null
+    },
+    "src/world/character/contact-pose.ts": {
+      "candidateSha256": "e9d631e3d3123e462ca6f9cf59eaa0360f58a161a350f3886deea0a1aa070329",
+      "baseSha256": null
+    },
+    "src/world/character/lower-body-clearance.ts": {
+      "candidateSha256": "6cb50f56f49c39c7beecd98377067a488774edb1f8f60ef7b2f5e8bd40c9e9eb",
+      "baseSha256": null
+    },
+    "src/world/character/contact-coordinator.ts": {
+      "candidateSha256": "46186c967421e92a2f56b1076707e4b8b8b7f01e9bbe4187b6d560585fbc0a06",
+      "baseSha256": null
+    },
+    "src/world/character/contact-height.ts": {
+      "candidateSha256": "3e4f95fcc06268509f718fbc5c485ade0b944b4b08ac084a914328637cfb0d17",
+      "baseSha256": null
+    },
+    "src/world/character/contact-handoff.ts": {
+      "candidateSha256": "7186e72d54a1963c788533f300431b82df938a22a1f55a9bbbd5e49f2e963272",
+      "baseSha256": null
+    },
+    "src/world/character/support-recovery.ts": {
+      "candidateSha256": "a13426627df3ab80de357b65f111d20649eb8b44954d4a109700dab0d48fd1b1",
+      "baseSha256": null
+    },
+    "src/world/character/contact-recovery-endpoint.ts": {
+      "candidateSha256": "a2120f6bca0da37911f5ac563e50b663e9e21ce78c0d8109c4958cf0eb5d1ca9",
+      "baseSha256": null
+    },
+    "src/world/character/contact-height-rate.ts": {
+      "candidateSha256": "d3f54c31b665b97f493648b8516fd5d8e8e541bd17294aa992616ab58748dc8e",
+      "baseSha256": null
+    },
+    "src/world/character/contact-kinematics.ts": {
+      "candidateSha256": "e311d7d62dba15d54ccaee08500098d9be3257637cbd5db7f1eb4640d4934f7a",
+      "baseSha256": null
+    },
+    "src/world/character/air-configuration.ts": {
+      "candidateSha256": "c31b169c00077082b16b0b601942bdf3cd39aec18927a90c05fdd867b290fd72",
+      "baseSha256": null
+    },
+    "src/world/character/contact-flex.ts": {
+      "candidateSha256": "ec6e8bfc43c929c47011fe7d8f6463881327247693e13991c447d4c219d8c9af",
+      "baseSha256": null
+    },
+    "src/world/character/paired-air.ts": {
+      "candidateSha256": "65747df43fb37659ef13f722448d698e0866cef848d7c0a1ab10841608acf8c7",
+      "baseSha256": null
+    },
+    "src/world/character/contact-landing.ts": {
+      "candidateSha256": "33227d3d05b691e462d873930cc5b6108852545a2489c929a57d02402207de56",
+      "baseSha256": null
+    },
+    "src/world/character/contact-path.ts": {
+      "candidateSha256": "3c08fc5a46167aa428b045594b7fad3faa3b95b0bf15d164b24bbae6a8a720b5",
+      "baseSha256": null
+    },
+    "src/world/character/ordinary-body-curve.ts": {
+      "candidateSha256": "1cc3c4c02d2465afe2d0f82c9bda417a3d02a1f6e0b3e4ab3e4cf33367023ee3",
+      "baseSha256": null
+    },
+    "src/world/character/ordinary-support-height.ts": {
+      "candidateSha256": "c1c5105f357ff7141c545ca4aada56465c1442edba420fb00918a1d395139b5b",
+      "baseSha256": null
+    },
+    "src/world/character/contact-swing-height.ts": {
+      "candidateSha256": "c0e29d03e12ad69d167b8a1838fa93f874b063da267f2f82a2f319918d1a19d9",
+      "baseSha256": null
+    },
+    "src/world/character/contact-duration.ts": {
+      "candidateSha256": "512bd16a68c004300c9d6995d9a425a5f6f71fd8630762d9a8599ccdeebae91b",
+      "baseSha256": null
+    },
+    "src/world/character/contact-timing.ts": {
+      "candidateSha256": "4c1637655807466d900740c10eb993f248aa8e4ac2df9f9b2342d9a1e2a3259c",
+      "baseSha256": null
+    }
+  },
+  "dependencyHashes": {
+    "src/world/character/play-pose.ts": {
+      "candidateSha256": "988abf3451f867f04add53fa48a9d3cc601c807cdb5362880c4658eef0ae4cfc",
+      "baseSha256": "98efcaad2326bf60007b98e02e7eaabff7b0b23ce78b718c34e89f3a87bf22fb"
+    },
+    "src/world/character/pose-stage.ts": {
+      "candidateSha256": "43891a4056855e9b4e305744aebb32600598028f9b52b5088e08c4fdf16ea56e",
+      "baseSha256": null
+    },
+    "src/world/character/rig.ts": {
+      "candidateSha256": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86",
+      "baseSha256": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86"
+    },
+    "src/world/character/contact-pose.ts": {
+      "candidateSha256": "e9d631e3d3123e462ca6f9cf59eaa0360f58a161a350f3886deea0a1aa070329",
+      "baseSha256": null
+    },
+    "src/world/character/lower-body-clearance.ts": {
+      "candidateSha256": "6cb50f56f49c39c7beecd98377067a488774edb1f8f60ef7b2f5e8bd40c9e9eb",
+      "baseSha256": null
+    },
+    "src/world/character/contact-coordinator.ts": {
+      "candidateSha256": "46186c967421e92a2f56b1076707e4b8b8b7f01e9bbe4187b6d560585fbc0a06",
+      "baseSha256": null
+    },
+    "src/world/character/contact-height.ts": {
+      "candidateSha256": "3e4f95fcc06268509f718fbc5c485ade0b944b4b08ac084a914328637cfb0d17",
+      "baseSha256": null
+    },
+    "src/world/character/contact-handoff.ts": {
+      "candidateSha256": "7186e72d54a1963c788533f300431b82df938a22a1f55a9bbbd5e49f2e963272",
+      "baseSha256": null
+    },
+    "src/world/character/support-recovery.ts": {
+      "candidateSha256": "a13426627df3ab80de357b65f111d20649eb8b44954d4a109700dab0d48fd1b1",
+      "baseSha256": null
+    },
+    "src/world/character/contact-recovery-endpoint.ts": {
+      "candidateSha256": "a2120f6bca0da37911f5ac563e50b663e9e21ce78c0d8109c4958cf0eb5d1ca9",
+      "baseSha256": null
+    },
+    "src/world/character/contact-height-rate.ts": {
+      "candidateSha256": "d3f54c31b665b97f493648b8516fd5d8e8e541bd17294aa992616ab58748dc8e",
+      "baseSha256": null
+    },
+    "src/world/character/contact-kinematics.ts": {
+      "candidateSha256": "e311d7d62dba15d54ccaee08500098d9be3257637cbd5db7f1eb4640d4934f7a",
+      "baseSha256": null
+    },
+    "src/world/character/air-configuration.ts": {
+      "candidateSha256": "c31b169c00077082b16b0b601942bdf3cd39aec18927a90c05fdd867b290fd72",
+      "baseSha256": null
+    },
+    "src/world/character/contact-flex.ts": {
+      "candidateSha256": "ec6e8bfc43c929c47011fe7d8f6463881327247693e13991c447d4c219d8c9af",
+      "baseSha256": null
+    },
+    "src/world/character/paired-air.ts": {
+      "candidateSha256": "65747df43fb37659ef13f722448d698e0866cef848d7c0a1ab10841608acf8c7",
+      "baseSha256": null
+    },
+    "src/world/character/contact-landing.ts": {
+      "candidateSha256": "33227d3d05b691e462d873930cc5b6108852545a2489c929a57d02402207de56",
+      "baseSha256": null
+    },
+    "src/world/character/locomotion.ts": {
+      "candidateSha256": "975611ba8c69b308a56a9a2a794a143d3ca0a041872cade15bd28a623c2afaa9",
+      "baseSha256": "975611ba8c69b308a56a9a2a794a143d3ca0a041872cade15bd28a623c2afaa9"
+    },
+    "src/world/character/player.ts": {
+      "candidateSha256": "14b1d51c5f46ad7c87ea6a27fc9c0051b496a0673b15963587dfea75d48e4578",
+      "baseSha256": "14b1d51c5f46ad7c87ea6a27fc9c0051b496a0673b15963587dfea75d48e4578"
+    },
+    "src/world/character/animation.ts": {
+      "candidateSha256": "c57d41e9a6c80294ba757a82635446124665a684506c3cd36ba05792569b8f67",
+      "baseSha256": "c57d41e9a6c80294ba757a82635446124665a684506c3cd36ba05792569b8f67"
+    },
+    "src/world/character/contact-path.ts": {
+      "candidateSha256": "3c08fc5a46167aa428b045594b7fad3faa3b95b0bf15d164b24bbae6a8a720b5",
+      "baseSha256": null
+    },
+    "src/world/character/ordinary-body-curve.ts": {
+      "candidateSha256": "1cc3c4c02d2465afe2d0f82c9bda417a3d02a1f6e0b3e4ab3e4cf33367023ee3",
+      "baseSha256": null
+    },
+    "src/world/character/ordinary-support-height.ts": {
+      "candidateSha256": "c1c5105f357ff7141c545ca4aada56465c1442edba420fb00918a1d395139b5b",
+      "baseSha256": null
+    },
+    "src/world/character/contact-swing-height.ts": {
+      "candidateSha256": "c0e29d03e12ad69d167b8a1838fa93f874b063da267f2f82a2f319918d1a19d9",
+      "baseSha256": null
+    },
+    "src/world/character/contact-duration.ts": {
+      "candidateSha256": "512bd16a68c004300c9d6995d9a425a5f6f71fd8630762d9a8599ccdeebae91b",
+      "baseSha256": null
+    },
+    "src/world/character/contact-timing.ts": {
+      "candidateSha256": "4c1637655807466d900740c10eb993f248aa8e4ac2df9f9b2342d9a1e2a3259c",
+      "baseSha256": null
+    }
+  }
+}

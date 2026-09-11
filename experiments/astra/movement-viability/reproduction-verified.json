@@ -1,0 +1,70 @@
+{
+  "base": "f11559532805948079aaa0fdcf84b8a293ebab6b",
+  "scope": "Actual baseline-git source plus movement overlay replay. Same failures and accepted request objects as original candidate; full per-run graph and geometry rejection comparisons match. No rendered assertion.",
+  "rows": [
+    {
+      "kind": "standing",
+      "stopFrame": 204,
+      "failureRequestsExactlyReproduced": true,
+      "acceptedFinalRequestExactlyReproduced": true,
+      "audit": {
+        "maxKneeStep": 0.04081164630896731,
+        "maxPoleStep": 0,
+        "maxPlantedPositionDrift": 2.2033036935636169e-16,
+        "maxPlantedQuaternionChange": 2.914335439641036e-16,
+        "rejectionGraphExact": null
+      },
+      "cpu": {
+        "count": 204,
+        "totalMs": 170.9602600000053,
+        "medianMs": 0.5946340000000419,
+        "p95Ms": 1.5564389999999548,
+        "maximumMs": 9.867425999999796
+      }
+    },
+    {
+      "kind": "walking",
+      "stopFrame": 6,
+      "failureRequestsExactlyReproduced": true,
+      "acceptedFinalRequestExactlyReproduced": true,
+      "audit": {
+        "maxKneeStep": 0.01438749201924402,
+        "maxPoleStep": 0.004041205675094486,
+        "maxPlantedPositionDrift": 8.694409141350492e-17,
+        "maxPlantedQuaternionChange": 9.714451465470122e-17,
+        "rejectionGraphExact": true,
+        "rejectionCoordinatorExact": true,
+        "rejectionGeometryExact": true
+      },
+      "cpu": {
+        "count": 7,
+        "totalMs": 14.591072999999597,
+        "medianMs": 1.4410289999996166,
+        "p95Ms": 5.134681000000455,
+        "maximumMs": 5.134681000000455
+      }
+    },
+    {
+      "kind": "running",
+      "stopFrame": 0,
+      "failureRequestsExactlyReproduced": true,
+      "acceptedFinalRequestExactlyReproduced": true,
+      "audit": {
+        "maxKneeStep": 0,
+        "maxPoleStep": 0,
+        "maxPlantedPositionDrift": 0,
+        "maxPlantedQuaternionChange": 0,
+        "rejectionGraphExact": true,
+        "rejectionCoordinatorExact": true,
+        "rejectionGeometryExact": true
+      },
+      "cpu": {
+        "count": 1,
+        "totalMs": 2.7018349999998463,
+        "medianMs": 2.7018349999998463,
+        "p95Ms": 2.7018349999998463,
+        "maximumMs": 2.7018349999998463
+      }
+    }
+  ]
+}
