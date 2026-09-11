@@ -2,29 +2,37 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import * as THREE from 'three';
 
-// Follow the character tests' in-memory TypeScript loader; no emitted files or browser.
-const source = ts.transpileModule(readFileSync(new URL('./eye-geometry.ts', import.meta.url), 'utf8'), {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-}).outputText;
-const mod = { exports: {} };
-new Function('require', 'module', 'exports', source)(id => {
-  assert.equal(id, 'three'); return THREE;
-}, mod, mod.exports);
-const { createLinkEyeDisc } = mod.exports;
+// In-memory TypeScript loader follows the new shared aperture helper as well.
+const cache = new Map();
+function load(file) {
+  file = path.resolve(file);
+  if (cache.has(file)) return cache.get(file).exports;
+  const module = { exports: {} }; cache.set(file, module);
+  const source = ts.transpileModule(readFileSync(file, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  new Function('require', 'module', 'exports', source)(id => id === 'three' ? THREE
+    : load(path.resolve(path.dirname(file), id + '.ts')), module, module.exports);
+  return module.exports;
+}
+const { createLinkEyeDisc } = load(fileURLToPath(new URL('./eye-geometry.ts', import.meta.url)));
 
 // This is the existing eyelid's perimeter, independent of the disc's tessellation.
 const opening = Array.from({ length: 28 }, (_, i) => {
   const a = i / 28 * Math.PI * 2, sy = Math.sin(a);
-  return new THREE.Vector2(.025 * Math.cos(a), .0145 * sy * (.82 + .18 * Math.abs(sy)));
+  return new THREE.Vector2(.025 * Math.cos(a), .0165 * sy * (.82 + .18 * Math.abs(sy)));
 });
 const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
 let testedTriangles = 0;
 for (const scale of [1, .145 / .125]) for (const side of [-1, 1]) {
   const iris = createLinkEyeDisc(scale, side, .016, .0006);
   const pupil = createLinkEyeDisc(scale, side, .009, .001);
-  for (const [geometry, radius, depth] of [[iris, .016, .0006], [pupil, .009, .001]]) {
+  const oversized = createLinkEyeDisc(scale, side, .024, .0006);
+  for (const [geometry, radius, depth] of [[iris, .016, .0006], [pupil, .009, .001], [oversized, .024, .0006]]) {
     const p = geometry.attributes.position, n = geometry.attributes.normal;
     for (const attr of Object.values(geometry.attributes)) assert(Array.from(attr.array).every(Number.isFinite));
     for (let i = 0; i < p.count; i++) {
@@ -41,8 +49,8 @@ for (const scale of [1, .145 / .125]) for (const side of [-1, 1]) {
     }
     geometry.computeBoundingBox();
     assert(geometry.boundingBox.max.z - geometry.boundingBox.min.z > .0008 * scale, 'disc is curved, not a floating plane');
-    if (radius === .016) {
-      assert(geometry.boundingBox.min.y > (-.0005 - radius) * scale + .001 * scale, 'larger iris is visibly clipped at the lower lid');
+    if (radius === .024) {
+      assert(geometry.boundingBox.min.y > (-.0005 - radius) * scale + .005 * scale, 'oversized disc exercises lower-boundary clipping');
     }
     const index = geometry.index;
     for (let i = 0; i < index.count; i += 3) {
@@ -64,6 +72,6 @@ for (const scale of [1, .145 / .125]) for (const side of [-1, 1]) {
     const clearance = centre.z - hit.point.z;
     assert(clearance >= .00025 * scale && clearance <= .0006 * scale, 'pupil keeps a small positive iris clearance');
   }
-  mesh.material.dispose(); iris.dispose(); pupil.dispose();
+  mesh.material.dispose(); iris.dispose(); pupil.dispose(); oversized.dispose();
 }
 console.log(`eye-geometry.test.mjs: clipping, curved layers and +Z winding passed (${testedTriangles} triangles)`);

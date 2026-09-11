@@ -16,6 +16,7 @@ import { createLinkFaceGeometry } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
 import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
+import { createLinkEyeWhite, createLinkEyelid, createLinkUpperLashPath } from './eye-aperture';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
 import { createLinkFringeLocks } from './fringe-geometry';
@@ -170,47 +171,6 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
   part(head, skull, opts.skin, 'skull');
   const white = matte('eyeWhite', { roughness: 0.6 });
   const pupil = matte('pupil', { roughness: 0.6 });
-  const almond = (k: number) => {
-    const vertices: number[] = [0, 0, 0.003 * k], indices: number[] = [];
-    const segments = 28, rings = 4;
-    for (let ring = 1; ring <= rings; ring++) for (let j = 0; j < segments; j++) {
-      const u = ring / rings, a = j / segments * Math.PI * 2;
-      vertices.push(0.025 * k * u * Math.cos(a), 0.0145 * k * u * Math.sin(a) * (0.82 + 0.18 * Math.abs(Math.sin(a))), 0.003 * k * (1 - u * u));
-      const q = 1 + (ring - 1) * segments + j, next = 1 + (ring - 1) * segments + (j + 1) % segments;
-      if (ring === 1) indices.push(0, q, next);
-      else {
-        const p = q - segments, pNext = next - segments;
-        indices.push(p, q, pNext, q, next, pNext);
-      }
-    }
-    const geo = new BufferGeometry();
-    geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
-    geo.setIndex(indices); geo.computeVertexNormals();
-    return geo;
-  };
-  const eyelid = (k: number, side: 1 | -1) => {
-    const vertices: number[] = [], indices: number[] = [], segments = 28, rings = 4;
-    for (let ring = 0; ring <= rings; ring++) for (let j = 0; j < segments; j++) {
-      const u = ring / rings, a = j / segments * Math.PI * 2, sy = Math.sin(a);
-      // Match the outer edge to the shaped orbit, mirrored for each eye.
-      // The shallow polynomial seats the edge ~0.25–0.8 mm into the face.
-      const cx = side * Math.cos(a);
-      const outer = -0.00300 - 0.00065 * cx - 0.00253 * cx * cx - 0.000052 * sy + 0.00036 * cx * sy;
-      // A rounded skin lip blends the eye aperture into the face rather than
-      // leaving a bright white disc floating in front of the cheek surface.
-      vertices.push((0.025 + 0.008 * u) * k * Math.cos(a),
-        (0.0145 + (sy > 0 ? 0.008 : 0.005) * u) * k * sy * (0.82 + 0.18 * Math.abs(sy)),
-        (0.0010 * (1 - u) + outer * u + 0.0010 * Math.sin(Math.PI * u)) * k);
-      if (ring < rings) {
-        const p = ring * segments + j, q = p + segments, next = ring * segments + (j + 1) % segments;
-        indices.push(p, q, next, q, next + segments, next);
-      }
-    }
-    const geo = new BufferGeometry();
-    geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
-    geo.setIndex(indices); geo.computeVertexNormals();
-    return geo;
-  };
   for (const side of [1, -1] as const) {
     const eye = new Group();
     eye.name = 'eye';
@@ -225,11 +185,12 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     }
     head.add(eye);
     if (soft) {
-      part(eye, almond(k), white, 'eye-white', false);
-      part(eye, eyelid(k, side), opts.skin, 'eyelid', false);
+      eye.updateMatrix();
+      part(eye, createLinkEyeWhite(k), white, 'eye-white', false);
+      part(eye, createLinkEyelid(k, skull, eye.matrix), opts.skin, 'eyelid', false);
       part(eye, createLinkEyeDisc(k, side, 0.016, 0.0006), opts.iris, 'iris', false);
       part(eye, createLinkEyeDisc(k, side, 0.009, 0.001), pupil, 'pupil', false);
-      const lid = [-1, -0.7, -0.35, 0, 0.35, 0.7, 1].map(x => new Vector3(x * 0.025 * k, 0.0145 * k * Math.sqrt(1 - x * x) * (0.82 + 0.18 * Math.sqrt(1 - x * x)), 0.0025 * k));
+      const lid = createLinkUpperLashPath(k);
       part(eye, sweep(lid, [0.0005 * k, 0.0014 * k, 0.0014 * k, 0.0005 * k], { segments: 18, radial: 5 }), matte('brow'), 'lashes', false);
     } else {
       part(eye, place(new SphereGeometry(0.032 * k, 12, 8), 0, 0, 0, undefined, [1, 0.92, 0.55]), white, 'eye-white', false);

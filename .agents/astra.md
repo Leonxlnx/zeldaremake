@@ -4,49 +4,54 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T16:37:37Z
+updated: 2026-09-11T16:48:53Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Integrate two reviewed Link silhouette refinements: paired temple locks and softer sleeve
-walls. Files: new sideburn-geometry.ts and the small buildHair replacement in link.ts; existing
-sleeve-geometry.ts. Other face, clothing, hands, cap, rig, controller and NPCs remain in place.
-Each broad sideburn becomes a long forward lock plus a shorter rear sweep. Four closed locks
-have 2,160 covered-root samples, no skull/ear triangle crossings and no new pupil obscuration
-in the existing front/profile ray views. They remove a real portion of the lower sideplate.
-Hair adds 896 triangles; source ray checks are not actual render or full cap collision proof.
+Integrate one taller neutral eye aperture. Files: new eye-aperture.ts, eye-geometry.ts and
+its existing regression test, plus the narrow soft-eye construction patch in link.ts. Keep
+all other current character changes. White, rim, clipping and lashes share one 28-edge shape;
+half-height grows .0145k to .0165k, retaining width, centres/yaw, iris/pupil radii and blink.
+The outer lid is seated from actual unchanged skull ray hits. Candidate count remains
+64 meshes / 80,472 triangles; all 54 non-eye meshes and all three NPC variants remain exact.
 
-Sleeve walls bulge modestly at the upper middle then taper to a narrower cuff. All shoulder
-positions, hem height, topology and material stay; neighboring smooth normals recompute.
-Whole triangle checks preserve the fitted torso connection and improve upper-arm clearance;
-cuff gap remains 6.47 mm. Seventy-four sampled controller poses have no new skin/collar/strap
-contacts. Current woven-cloth UV seams and median density remain valid. With both changes and
-the already-pushed hands, Link count is 64 meshes / 80,472 triangles. Root production build and static-batching
-regression pass, including 2,992,032 posed positions/normals and UV/material/shadow/disposal/
-boot/NPC invariants. Front/profile/walk/run render review is still required.
+Triangle checks retain positive white/iris/pupil separations, .363–.687 mm continuous outer
+rim burial, and positive current hair/brow clearance. A recorded-camera actual-ground replay
+matches the idle state within 1e-12, with 568 independent ray checks supporting pixel-centre
+triangle visibility. No new white pixels above the iris apex in front/profile or sampled
+blink scales. A few upper-central white pixels do become exposed. Actual neutral expression
+must still be judged from rendered images; this is not facial completion or a new blink system.
+Root integrated eye regression passes 8,448 triangles; production typecheck/build pass.
 
-Hands 2bb72fc are pushed with four relaxed fingers and an inward thumb. Initial contact
-regression was corrected; existing deep pouch overlap remains explicitly unapproved. Cloth
-ab669a8 is capturing. Cap5529e85 character CI completed successfully at 16:34:40, including
-its new publisher. Actual gallery20c294c at16:34:23 has14 verified JPGs/42 matching frames,
-errors[]. Prior gallery bytes are unchanged; snapshotfcacee7 matches the source. Root viewed
-back/profile: broader tail is visible, folds still subtle. Four actual screenshots were shared.
-No visual approval for these latest passes until inspection.
+Temple/sleeve source6c455df is pushed. Its source ZIP has380 entries /14,258,428 bytes and
+passes CRC; delivered to owner. Cloth ab669a8 actual gallery039fc0d at16:39:51 has14 verified
+JPGs/42 matching frames/errors[] and preserves prior galleries. Root viewed face/cap, belt
+and pack: cloth is still very subdued in these captures. A later source-only material contrast
+study may be needed; do not claim the current pass achieves the reference's fabric richness.
 
-Next bounded work: one taller neutral eye aperture with matched lids/clipping, unchanged
-skull/eye centres/radii; and a broader low boot forefoot with a coherent sole-support contract.
-Both remain in scratch/design review. Boot geometry must not outgrow a hidden hardcoded
-collider. No broader movement-planner rewrite. Fable's terrain approach fix0fb629d permits
-only the first tread; .30 m second rise still blocks under the unchanged .28 guard.
+The broader140 mm boot candidate is REJECTED for integration: it adds actual outsole/boot
+intersections in reference walk/run phases and extra sharp-turn contacts. Existing movement
+regressions and diagonal-edge grounding alone missed that risk. Source/evidence stay scratch;
+helpers are diagnosing forefoot/heel contact and relative foot placement before another variant.
+No gait, stance or guard edit is authorized by that rejected candidate's passing tests.
 
-Owner priority remains Link, then world lighting/details. Fable retains world/house/lighting,
-and grants later W27 sign variants with protected projections. C01/C02/C03 claims live to
-17:43:30 UTC. No merge, deployment, new schedule or claim of reference completeness.
+Canonical cap source5529e85 published as0050 after retry, preserving all49 earlier entries.
+621 draws /8,539,129 triangles, W38 pass,23/50 and19/42, no item regressions. CI publication
+success does not clear integrity: retained capture-start precedes Fable0049, adding another
+D1 inversion; snapshot-specific D3 missing claims also reported. Do not rewrite sealed history
+or weaken rules. Fable's newer0049 pod grouping is under independent review; world stays theirs.
+C01/C02/C03 claims live through17:43:30 UTC. User priority remains Link and ongoing collaboration.
 
 ## Recent completed work and evidence
+
+- 6c455df: paired temple locks and softer tapered sleeves. Root build/static batching pass,
+ 64 meshes /80,472 triangles,2,992,032 posed positions/normals exact. Actual gallery pending.
+- ab669a8 actual gallery039fc0d / progress/2026-09-11_163951-ab669a8:14 verified JPGs/42 frames,
+ errors[]. Face/cap, belt and pack inspected. Fabric remains visually restrained, not matched
+ to owner reference. Earlier galleries remain unchanged by the second concurrent publication.
 
 - Cap5529e85 actual gallery20c294c / progress/2026-09-11_163423-5529e85: 14 JPG hashes verified,
  42 matching frames, errors[]. Back/profile inspected; fuller tail, subtle folds. First new

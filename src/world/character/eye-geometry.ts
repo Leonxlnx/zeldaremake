@@ -1,12 +1,9 @@
 /** Original curved eye discs, clipped to Link's existing almond-shaped eyelid opening. */
 import { BufferGeometry, Float32BufferAttribute } from 'three';
 
-// Match the 28 vertices of the white/lid opening. Clipping to its actual polygon prevents
-// a more finely tessellated iris from crossing the straight edges between those vertices.
-const opening = Array.from({ length: 28 }, (_, i) => {
-  const angle = i / 28 * Math.PI * 2, sy = Math.sin(angle);
-  return [0.025 * Math.cos(angle), 0.0145 * sy * (0.82 + 0.18 * Math.abs(sy))];
-});
+import { LINK_EYE_OPENING as opening } from './eye-aperture';
+
+// Clip the iris and pupil against the same polygon used by white and lid.
 const planes = opening.map(([x, y], i) => {
   const next = opening[(i + 1) % opening.length];
   const nx = next[1] - y, ny = x - next[0];
