@@ -9,10 +9,11 @@
  * its upper side, side twigs with leaf sprigs, vines hanging, and the lamps grouped on short
  * cords right under it (the owner's sheet 01 "Branch bridge" is the finish reference). This
  * module dresses the giant's limb between `from` and `to` without moving it:
- *   - a bark SLEEVE swept around the limb's own axis, a little wider than the limb (its random
- *     wiggle stays inside) and sagging below it in three knees, with ±20 % radius wobble and
- *     ridged bark; the sleeve tapers into the limb at both ends, so the giant's own bark carries
- *     on toward the trunk and past the tip;
+ *   - a bark SLEEVE swept around the limb's mean axis whose cross-section envelops the giant's
+ *     random wiggle box (±0.12 m across, ±0.05 m vertically) plus its bark bumps and a 1.5 cm
+ *     margin, sagging below it in three knees, with ridged bark raised outward; the sleeve tapers
+ *     into the limb at both ends, so the giant's own bark carries on toward the trunk and past
+ *     the tip;
  *   - textured moss sheets draped over the top, fraying down the flank that faces the cameras;
  *   - a fork stub and three side twigs tipped with shaded leaf sprigs;
  *   - ferns and grass tufts on the moss, vines hanging from the underside;
@@ -70,8 +71,8 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   if (e2.y < 0) e2.negate();
   const radial = (psi: number, out = new Vector3()) => out.set(0, 0, 0).addScaledVector(e2, Math.cos(psi)).addScaledVector(e1, Math.sin(psi));
 
-  /** the giant builder's limb: radius taper and shallow sag along from→to (its ±0.12 m side
-   *  wiggle has a random phase and is absorbed by the sleeve's margin) */
+  /** the giant builder's limb: radius taper and shallow sag along from→to (its random side and
+   *  vertical wiggle is absorbed by the sleeve's envelope below) */
   const r0 = def.radius ?? 0.42;
   const r1 = def.tipRadius ?? 0.16;
   const limbRadius = (s: number) => r0 + (r1 - r0) * Math.pow(clamp(s, 0, 1), 0.85);
@@ -79,20 +80,36 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
 
   const noise = new Noise2D(`${ctx.config.seed}/lantern-branch/bark`);
   const knee = (s: number) => KNEES.reduce((a, k) => a + k.sag * Math.exp(-(((s - k.s) / k.w) ** 2)), 0);
-  /** the sleeve's axis is the limb's own; the knees swell its underside only (egg sections) */
+  /** the sleeve's axis is the limb's mean axis; the knees swell its underside only (egg sections) */
   const spine = (s: number, out = new Vector3()) => limbAxis(s, out);
-  // the sleeve: the limb's radius plus a 1.5 cm margin and a slow 0–8 % wobble (with the ridges
-  // and gnarl below, ±20 % locally), tapering back inside the limb over the first and last tenth
-  const wobble = (s: number) => 0.5 + 0.5 * Math.sin(s * 21 + 1.3) * Math.cos(s * 7.7 + 0.4);
+  /** the sleeve is full over s 0.1–0.93 and tapers back inside the limb over the first and last
+   *  tenth, so the giant's own bark carries on toward the trunk and past the tip */
   const emerge = (s: number) => smoothstep(0, 0.1, s) * smoothstep(1, 0.93, s);
-  const sleeveBase = (s: number) => lerp(limbRadius(s) * 0.85, (limbRadius(s) + 0.015) * (1 + 0.08 * wobble(s)), emerge(s));
-  /** sleeve surface radius: bark ridges (fluting along the limb), metre-scale gnarl, and the
+  /**
+   * The sleeve's inner envelope. The giant's limb rings wander off the layout axis with a random
+   * phase — ±0.12·sin πs across (`side`) and ±0.05·sin πs vertically — and their bark ridges and
+   * gnarl bumps reach 1.10 × the nominal radius (measured on the built limb, gauntlet round 9c:
+   * the straight sleeve with a flat 1.5 cm margin left the limb up to 9 cm outside it). A circle
+   * of radius R whose centre may sit anywhere in that box is contained by R + a|sin ψ| + b|cos ψ|
+   * (the box's support function), so the sleeve grows mostly in depth — along `side`, i.e. toward
+   * and away from cameras A/B, where it does not show — and only the 5 cm vertical wiggle plus the
+   * bump allowance and the 1.5 cm margin thicken its silhouette.
+   */
+  const envelope = (s: number, psi: number) => {
+    const wiggle = Math.sin(Math.PI * clamp(s, 0, 1));
+    const full = limbRadius(s) * 1.12 + wiggle * (0.12 * Math.abs(Math.sin(psi)) + 0.05 * Math.abs(Math.cos(psi))) + 0.015;
+    return lerp(limbRadius(s) * 0.85, full, emerge(s));
+  };
+  /** mean sleeve radius (UV scale) */
+  const sleeveBase = (s: number) => envelope(s, Math.PI / 4);
+  /** sleeve surface radius: bark ridges (fluting along the limb) and metre-scale gnarl, both
+   *  raised OUTWARD from the envelope (0–14 %) so the texture never dips inside it, plus the
    *  knees' bellies hanging from the lower half */
   const sleeveR = (s: number, psi: number) => {
-    const ridge = noise.ridged(psi * 1.3 + s * 2, s * 11 + 2, 2) - 0.5;
-    const gnarl = noise.noise(s * 4 + 7, psi * 0.7);
+    const ridge = noise.ridged(psi * 1.3 + s * 2, s * 11 + 2, 2);
+    const gnarl = noise.noise(s * 4 + 7, psi * 0.7) + 1;
     const belly = Math.pow(smoothstep(0.15, 1, 0.5 - 0.5 * Math.cos(psi)), 1.4);
-    return sleeveBase(s) * (1 + 0.09 * ridge + 0.07 * gnarl) + knee(s) * belly * emerge(s);
+    return envelope(s, psi) * (1 + 0.09 * ridge + 0.035 * gnarl) + knee(s) * belly * emerge(s);
   };
   const _rad = new Vector3();
   const surface = (s: number, psi: number, lift: number, out = new Vector3()) => spine(s, out).addScaledVector(radial(psi, _rad), sleeveR(s, psi) + lift);
@@ -191,19 +208,24 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const sheetRng = rng.fork('branch-moss');
   const sheetParts = [];
   for (let i = 0; i < 7; i++) {
-    const s0 = lerp(0.08, 0.92, (i + 0.5 + (sheetRng() - 0.5) * 0.5) / 7);
-    const width = (1.0 + sheetRng() * 0.7) / len;
+    const place = (i + 0.5 + (sheetRng() - 0.5) * 0.5) / 7;
+    // the sheets (with their ±20 % s-wander) stay on the full sleeve, s 0.1–0.93: where it tapers
+    // into the limb a sheet would sit inside the giant's bark (round 9c measurement, −0.10 m at
+    // s 0.01); widths scaled by the same 0.85 so seven sheets cover that span as loosely as before
+    const width = (0.85 + sheetRng() * 0.6) / len;
+    const s0 = lerp(0.1 + width * 0.6, 0.93 - width * 0.6, place);
     const psiTop = -0.7 - sheetRng() * 0.4;
     const drop = 2.1 + sheetRng() * 0.8;
     const sheet = gridSurface(
       (u, v, out) => {
         const s = s0 + (u - 0.5) * width * (1 + 0.2 * noise.noise(v * 3 + i, u * 2 + 5));
         // v: 0 on the far shoulder, 1 at the frayed lower edge on the camera side; the edge
-        // wanders in lobes and the sheet is thickest over the top, tucking into the bark at its rim
+        // wanders in lobes and the sheet is thickest over the top, tucking into the bark at its
+        // rim (8 mm — inside the sleeve's 1.5 cm margin, so it stays clear of the limb)
         const fray = 0.8 + 0.2 * noise.noise(u * 6 + i * 7, 3) - 0.2 * Math.pow(Math.abs(u - 0.5) * 2, 3);
         const psi = psiTop + v * drop * fray;
         const rim = smoothstep(0.86, 1, v) + smoothstep(0.08, 0, v) + smoothstep(0.9, 1, Math.abs(u - 0.5) * 2);
-        const lift = lerp(0.05 + 0.03 * noise.noise(s * 9 + i, psi * 3), -0.015, clamp(rim, 0, 1));
+        const lift = lerp(0.05 + 0.03 * noise.noise(s * 9 + i, psi * 3), -0.008, clamp(rim, 0, 1));
         surface(s, psi, lift, out.position);
         out.uv = [(s * len) / 0.9, (psi * 0.4) / 0.9];
         const up = Math.cos(psi);
