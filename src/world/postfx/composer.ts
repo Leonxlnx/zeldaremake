@@ -147,6 +147,9 @@ export interface ComposerSettings {
   rayMistDensity: number;
   /** haze extinction (1/m) attenuating each step's in-scatter on its way to the camera */
   rayExtinction: number;
+  /** world heights (m) between which the base-air in-scatter fades in (the lit air is the upper air) */
+  rayAirFadeLo: number;
+  rayAirFadeHi: number;
   /** march length (m) */
   rayMaxDist: number;
   /** canopy-gap mask: frequency (1/m), smoothstep thresholds, floor outside the gaps */
@@ -321,6 +324,14 @@ export function createComposer(opts: ComposerOptions): Composer {
     // haze's rate the 30–50 m columns of shots B/D (into the hollow) integrated to a flat wash
     // (D's far band 0.47–0.50 against the reference's 0.44) while A's 10–25 m beams stayed faint
     rayExtinction: 0.045,
+    // the shafts are an upper-air effect (see RAY_MARCH_FRAG): the base-air in-scatter fades in
+    // between these heights so eye-level rays to the ground cross unlit air. Measured trade of a
+    // higher fade (2.5 / 6): shot B lands on the reference (roof darkest decile 0.236 → 0.214 vs
+    // 0.203, forest median 0.492 → 0.457 vs 0.434, frame median 0.403 vs 0.397) but shot D loses
+    // its hollow glow (far band median 0.488 → 0.448 vs 0.550) and both lose SSIM — kept at the
+    // calibrated heights, exposed here for the tuning hook
+    rayAirFadeLo: 1.5,
+    rayAirFadeHi: 4.5,
     // and the march stops where the veil has taken over (75 % fog at 40 m)
     rayMaxDist: 40,
     // gaps 1.5–3 m wide, sparse enough that a 30 m view ray crosses about one of them (at 0.5/0.6
@@ -362,13 +373,18 @@ export function createComposer(opts: ComposerOptions): Composer {
     // +0.035–0.05 SSIM in every view but put A at 0.55× the reference's sharpness
     // Tuned again on the world-only frame: A's sharpness must clear W35 (≥ 0.8) before Link and the
     // HUD add their edges (A 0.905 with them, 0.773 without at 0.45 / 0.1 / 30).
+    // The brighter dome and lit far veil (sky.ts, heightfog.ts) raised every view's sharpness ratio
+    // by ≈ 0.05 (A 1.10 → 1.16, B 0.97 → 1.03: harder leaf/gap edges in the canopy band) and cost
+    // SSIM there; a little more uniform band-limit and a haze blur from 30 m take the ratios back
+    // (A 1.08, B 0.94, D 1.18, F 1.31 at 0.1 / 28 / 50, E ≈ 0.9 — the binding hero view) and
+    // recover ≈ 40 % of that SSIM
     softening: true,
     softDetail: 0.68,
     softActivityK: 0.08,
     softActivityPower: 4,
-    softUniform: 0.04,
-    softFarStart: 36,
-    softFarFull: 60,
+    softUniform: 0.1,
+    softFarStart: 30,
+    softFarFull: 52,
     softBlurSigma: 1.2,
     softFarSigma: 1.0,
     softActivitySigma: 2.5,
@@ -464,6 +480,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       uFogParams: { value: new Vector4(2.3, 0.48, fog.northStartZ, fog.northFullZ) },
       // (mist-layer density, base air density) in 1/m — see ComposerSettings
       uDensity: { value: new Vector2(settings.rayMistDensity, settings.rayBaseDensity) },
+      uAirFade: { value: new Vector2(settings.rayAirFadeLo, settings.rayAirFadeHi) },
       // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
       // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
       // eye-level column, so the sun-facing upper frame is shafts, not a wash over the crowns
@@ -757,6 +774,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // 4. god rays (volumetric march through the sun's shadow map, then smear along the sun axis)
     if (rayIntensity.value > 0.001 && bindShadow()) {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
+      (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
       (rayMarchMat.uniforms.uBeam.value as Vector4).set(s.beamFrequency, s.beamLo, s.beamHi, s.beamFloor);

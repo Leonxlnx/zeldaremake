@@ -111,10 +111,14 @@ export function create(ctx: WorldContext): WorldSystem {
   group.add(hemi);
 
   // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
-  // the reference's hazy key, radiance ≈ 0.24–0.32, see sky.ts).
+  // the reference's hazy key, radiance ≈ 0.25–0.37, see sky.ts).
   let environment = false;
-  // 0.57 with the hemisphere at 0.95 (both × 0.95 against 0.6 / 1.0): see config.sun.intensity
-  const environmentIntensity = 0.57;
+  // 0.57 with the hemisphere at 0.95 (both × 0.95 against 0.6 / 1.0): see config.sun.intensity.
+  // The dome's gap glare then rose 0.292 → 0.372 with a shorter ramp (the visible far air), which
+  // lifts the cosine-weighted upper hemisphere ×1.35 in green: 0.57 × 0.271 / 0.367 keeps the IBL
+  // fill on the ground unchanged (the shade is calibrated by the hemisphere + IBL sum); the
+  // per-channel remainder is in SKY_ENV_TINT
+  const environmentIntensity = 0.421;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

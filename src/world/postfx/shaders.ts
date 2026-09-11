@@ -147,6 +147,7 @@ uniform vec3 uSunUp;
 uniform float uMaxDist;
 uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
+uniform vec2 uAirFade;     // world heights (m) between which the base-air in-scatter fades in
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
 uniform float uAnisotropy;
 uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the angle where it saturates
@@ -230,7 +231,7 @@ void main() {
     // stays lit down to the ground — the reference's F shafts land on the stairs. The plain plaza
     // columns keep the fade: shot D's rays to the arch cross their 2.5–4 m air, and lighting it
     // striped the arch body
-    float upperAir = max( smoothstep( 1.5, 4.5, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
+    float upperAir = max( smoothstep( uAirFade.x, uAirFade.y, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
     float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y * clear * upperAir;
     acc += lit * dens * stepLen * exp( -uExtinction * t );
   }

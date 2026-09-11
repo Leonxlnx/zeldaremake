@@ -24,22 +24,36 @@ export interface SkyDome {
  * Sky colours in scene-linear radiance (what the composer's ACES maps to the reference's display
  * values). The reference never shows blue sky: canopy gaps are a warm off-white glare (#aca896) and
  * the horizon is the far haze (#8d8e85), so the dome is a luminous warm haze that meets the
- * distance fog seamlessly. The gap glare sits a little under the reference's display value because
- * the god rays and the sun-facing brightening land on top of it (measured gaps ≈ 0.66–0.72
- * luminance in shot F). Its chroma matches the reference glare (HSL saturation ≈ 0.12 at the same
- * luminance — the gaps read as warm glare, not grey). Exported for the audit; the horizon shares
- * heightfog's `hazeFar`.
+ * distance fog seamlessly. The gap glare displays at ≈ 0.67 luminance on its own: the reference's
+ * open haze seen in the upper frame (A's top band, F's gaps, the glow above D's arch) reads
+ * 0.65–0.69, and at the earlier 0.292 (display 0.59) every dome pixel visible through the crowns
+ * measured 0.07–0.10 under it even with the god rays' sky share on top. Its chroma matches the
+ * reference glare (display hue ≈ 52°, HSV saturation ≈ 0.11, B/R ≈ 0.89 — a yellow-grey, not the
+ * orange-gold a 1 : 0.93 : 0.71 ratio gave at this brightness) and heightfog's lit-air veil
+ * (`hazeLit`) is a step under it, so hazed crowns read as silhouettes against it the way the
+ * reference's do. Exported for the audit; the horizon shares heightfog's `hazeFar`.
  */
-export const SKY_GAP_GLARE: [number, number, number] = [0.292, 0.272, 0.208];
+export const SKY_GAP_GLARE: [number, number, number] = [0.372, 0.368, 0.285];
+
+/**
+ * Elevation (sin) where the dome reaches the gap glare. The reference's air is at its full
+ * brightness from ≈ 12° up (the top bands of the eye-level shots, 14–23°, are already open haze);
+ * a ramp to 0.45 (27°) left them on the horizon grey.
+ */
+export const SKY_GLARE_RAMP = 0.2;
 
 /**
  * Tint of the environment (IBL) render only. The dome's warm glare is what the camera sees, but as a
  * fill it left the shaded flagstone golden (display B/R 0.63–0.67 against the reference's 0.69–0.70):
  * under a real canopy the sky light reaching the ground is the grey of the gaps, not the glare's
  * gold, so the IBL is cooled a touch (linear B/R 0.71 → 0.76; the hemisphere term sits at 0.87 —
- * a stronger 0.81 / 0.90 pair overshot the lit stone by 0.025 in display B/R).
+ * a stronger 0.81 / 0.90 pair overshot the lit stone by 0.025 in display B/R). The dome's glare
+ * later moved to the yellow-grey (0.372, 0.368, 0.285) with a faster ramp, which alone would make
+ * the cosine-weighted upper hemisphere (0.371, 0.367, 0.284) against the (0.289, 0.271, 0.208) the
+ * fill was calibrated on; this tint × `environmentIntensity` 0.421 (lighting/index.ts) maps that
+ * back onto the calibrated (0.283, 0.271, 0.218) × 0.57 per channel, so the IBL fill is unchanged.
  */
-export const SKY_ENV_TINT: [number, number, number] = [0.98, 1.0, 1.05];
+export const SKY_ENV_TINT: [number, number, number] = [1.033, 1.0, 1.041];
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -58,6 +72,7 @@ uniform vec3 uSunDir;
 uniform vec3 uSunColor;
 uniform float uTime;
 uniform float uEnvMode;
+uniform float uGlareRamp;
 // back-scatter lobe shared with the distance haze (heightfog.ts): (min multiplier, -cos of the
 // angle where it saturates) and the tint at full dimming
 uniform vec2 uBackScatter;
@@ -104,7 +119,7 @@ void main() {
   // environment map keeps the side-scatter value so the IBL calibration is untouched). Nothing here
   // is blue (the reference has 0 % sky-blue pixels).
   float up = clamp( h, 0.0, 1.0 );
-  vec3 sky = mix( uHorizon, uZenith, smoothstep( 0.0, 0.45, up ) );
+  vec3 sky = mix( uHorizon, uZenith, smoothstep( 0.0, uGlareRamp, up ) );
   float s3 = pow( sd, 3.0 );
   sky *= ( 1.0 + 0.12 * s3 ) * mix( vec3( 1.0 ), vec3( 1.05, 1.0, 0.9 ), s3 );
   float back = smoothstep( 0.0, uBackScatter.y, -mu ) * ( 1.0 - uEnvMode );
@@ -150,6 +165,7 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uSunColor: { value: new Color(cfg.sun.color) },
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
+    uGlareRamp: { value: SKY_GLARE_RAMP },
     uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },
     uBackTint: { value: new Color(...HEIGHT_FOG_DEFAULTS.backScatterTint) },
     uEnvTint: { value: new Color(...SKY_ENV_TINT) },

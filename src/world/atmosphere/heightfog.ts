@@ -89,6 +89,14 @@ export interface HeightFogParams {
   hazeGradeNear: number;
   hazeGradeFar: number;
   /**
+   * Lit air: the airlight colour of rays that climb out of the under-canopy layer (the open air the
+   * canopy gaps and the far tree rows are seen through), replacing the depth-graded colour as the
+   * ray's above-canopy share (1 − the aerosol profile's mean along it, see `kfAltitudeMean`) rises
+   * from 0 to `hazeLitKnee`. Eye-level rays under the closed roof keep the dim near veil.
+   */
+  hazeLit: [number, number, number];
+  hazeLitKnee: number;
+  /**
    * Back-scatter lobe of the airlight: multiplier on the haze radiance when looking straight away
    * from the sun (1 = no falloff). The dimming ramps in from 90° (side scatter, the calibrated
    * colour) to `backScatterFullDeg` and holds beyond it.
@@ -175,6 +183,18 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // the forest opens: the arch (46 m) takes ≈ 5 % of the far colour, the 56 m row ≈ 85 %
   hazeGradeNear: 44,
   hazeGradeFar: 60,
+  // the reference's air brightness follows the ray's elevation, not its length or sun angle: its
+  // fully open haze at 30–50 m in the upper frame (A's top band, the glow above D's arch, F's gaps)
+  // reads 0.65–0.69 display while the forest interior at eye level (B's left half, 45 m median)
+  // reads 0.41 — B is the most sunward of the three. Ours rendered both from the same 0.21–0.25
+  // veil (0.55–0.59 / 0.47). So rays whose span leaves the under-canopy layer take this brighter
+  // colour; the knee is reached by a 20° ray at ≈ 40 m (above-canopy share 0.19) while eye-level
+  // rays to the 45 m trunks of B (share < 0.01) and everything the 10–20 m band sees are
+  // untouched. Display ≈ 0.64 — a step under the dome's 0.67 glare: the reference's hazed crowns at
+  // 30–50 m sit at its top band's median 0.49 (a dark crown through ≈ 50 % veil of ≈ 0.31 linear),
+  // while a veil at the glare's own value pushed that median to 0.54
+  hazeLit: [0.32, 0.316, 0.245],
+  hazeLitKnee: 0.2,
   // shot C (centre ≈ 119° from the sun, left edge ≈ 138°) reads the reference's anti-sun haze at
   // ≈ 0.75× the display value of our side-scatter veil. The lobe also scales the sky dome and the
   // mist sheets (same numbers) and the god-ray in-scatter (deeper, see rayBackScatterMin), so the
@@ -267,6 +287,8 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const vec3 KF_MIST = vec3( ${params.mistColor.map(f).join(', ')} );
 	const float KF_GRADE_NEAR = ${f(params.hazeGradeNear)};
 	const float KF_GRADE_FAR = ${f(params.hazeGradeFar)};
+	const vec3 KF_HAZE_LIT = vec3( ${params.hazeLit.map(f).join(', ')} );
+	const float KF_LIT_KNEE = ${f(params.hazeLitKnee)};
 	const float KF_BACK_MIN = ${f(params.backScatterMin)};
 	const float KF_BACK_FULL = ${f(-Math.cos((params.backScatterFullDeg * Math.PI) / 180))};
 	const vec3 KF_BACK_TINT = vec3( ${params.backScatterTint.map(f).join(', ')} );
@@ -339,9 +361,12 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	}
 
 	// depth-graded haze colour: dark warm grey near → lighter warm grey far, ground mist in the layer,
-	// scaled by the airlight phase around the sun direction (mu = cos of the ray–sun angle)
-	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY ) {
+	// scaled by the airlight phase around the sun direction (mu = cos of the ray–sun angle).
+	// openShare = the ray's above-canopy share (1 − kfAltitudeMean): rays that climb out of the
+	// under-canopy layer see the lit open air instead of the dim veil under the closed roof
+	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare ) {
 		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
+		haze = mix( haze, KF_HAZE_LIT, smoothstep( 0.0, KF_LIT_KNEE, openShare ) );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
 		// forward lobe: the haze brightens toward the sun and takes the reference's warm gap-glare
@@ -362,7 +387,8 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	vec3 kfRay;
 	vec4 kfF = kfFog( vFogWorldPos, kfRay );
 	float kfDist = length( vFogWorldPos - cameraPosition );
-	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y );
+	float kfOpen = 1.0 - kfAltitudeMean( cameraPosition.y, vFogWorldPos.y );
+	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y, kfOpen );
 	// deep-forest shade on the surface itself (not the veil): distant trunks, the log arch and the
 	// far ground darken before the haze is laid over them, so they read as silhouettes in it; bright
 	// emissives (lantern glow, 2.0 linear) keep their radiance. The exemption starts above sunlit
