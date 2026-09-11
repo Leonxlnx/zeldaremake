@@ -69,8 +69,46 @@ const HOUSE_BOUGHS = [
  *   shadows fall east of x ≈ 22, outside every frame.
  */
 const GIANT_PROFILES: Record<string, GiantProfile> = {
-  // slim bole (reads ≈0.12 of the frame at D's left edge with layout radius 1.1)
-  'north-west-near': { flare: 0.12, girth: 0.55, rootReach: 0.5, rootGirth: 0.7 },
+  // slim bole (reads ≈0.13 of the frame at D's left edge with layout radius 1.1). The sun ray from
+  // Link's head at D (0.86, 1.3, −7.68) passes 0.43 m from this bole's axis 7.4 m up, so the bole
+  // shaded Link himself and his shadow never showed (see LINK_SHADOW_RAYS). Wood cannot be carved,
+  // so the bole bends out of the ray: it stands straight to ≈ 1.5 m, curves over 1.5–5.5 m and
+  // runs on at 45° toward azimuth 245° (WSW, ≈ 7° off camera D's left frame edge, which runs at
+  // 238°). D frames this trunk only up to ≈ 5.9 m, so what it sees is the same full-height column
+  // the layout put at its left edge (x 0.00–0.13; the ray demands the bole be ≥ 2.3 m from its
+  // upright position by 7 m up, which a lean from the ground could only do by sliding the framed
+  // part right and leaving a bright strip along the frame edge — 24° from the base cost D 0.009
+  // SSIM in the two left-edge cells). Where the two lines cross (≈ 8 m up) the axis clears the ray
+  // by ≈ 2 m of bark. Seen from no other hero camera (B: just off the left edge, leaning away).
+  // Its bole shadow moves from Link's slabs to the path 3 m north of him. The wild limbs leave
+  // higher (t 0.5–0.62 ≈ 5.7–7.4 m) and away from the ray's side: the gap in the spread is
+  // centred on azimuth 60° (SSE, where the ray climbs past the trunk toward Link), so they head
+  // SW / WNW / NNE — the reference D shows this trunk's boughs high at the top-left, not a limb
+  // crossing the upper-left quarter at y 0.1–0.3 as the random draw gave.
+  'north-west-near': {
+    flare: 0.12,
+    girth: 0.7,
+    rootReach: 0.5,
+    rootGirth: 0.7,
+    lean: { azimuthDeg: 245, degrees: 45, fromY: 3.5, blend: 2 },
+    wildLimbAzimuthDeg: 60,
+    wildLimbT: [0.5, 0.62],
+  },
+  // The lantern tree's bole is outside every hero frame (its limb and crown are the hero parts),
+  // but its shadow is not: the bole 8–14 m up shaded a 2 m band diagonally across the plaza's
+  // brightest reference patch (world (1, 2.6) → (3.6, 4.7), shot A (0.3–0.55, 0.75–0.95)), and
+  // the sun ray from Link's head at A (see LINK_SHADOW_RAYS) met the axis 0.78 m off, 0.9 m under
+  // the fork, whose leader bundle is ≈ 1.4 m thick. Sheared 20° toward azimuth 128° (SSW, the
+  // ray's own side, so the axis crosses it and ends 4.4 m beyond: the sun probe from Link's head
+  // sees the bark ≈ 2.3 m off the ray), the bole shadow band lands at (−3, 3.7) → (−1.6, 5.7):
+  // past shot A's left edge and frame bottom, behind cameras B/F. The opposite shear (330°,
+  // 11–14°) also cleared the bole but dropped the band onto the second plaza core at (4.0, 1.8) —
+  // the reference's brightest flagstones around Link. What the ray still meets is crown wood: the
+  // lowest leader boughs (15–17 m local) run up-sun through it 3–8 m from the axis whichever way
+  // the bole leans. The lantern limb leaves the tree's axis 2 m up, where the sheared bole is
+  // displaced 1.2 m — inside its 1.9 m radius — so the limb, its pods and its lobes are exactly
+  // where they were.
+  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 } },
   // reference C's centre tree: a fat column at x 0.50–0.62 forking at y≈0.26 into two near-horizontal
   // limbs (east = screen-left, west = screen-right) whose clusters form the hazed band across the
   // top of the frame. Girth up / flare down: thicker bole without a ballooning foot at 30 m.
@@ -140,10 +178,32 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * the reference's 0.287). Nothing hung between camera F and the house can do better: the F→house
  * ray passes within 1.5 m of camera B, so foliage below ~3.4 m lands in B's frame over the dome
  * and door, foliage 3–7 m out sits in A's centre, and the leaves' own light is tiny (sky-lit
- * undersides, ≈ 0.02 linear) next to the haze the reference shows there. The list is therefore
- * empty; the mechanism stays for authored boughs that can be measured to help.
+ * undersides, ≈ 0.02 linear) next to the haze the reference shows there. No bough hangs there.
+ *
+ * Stair shade (round 7c): the upper run of the main stairs (world x 11–15, 3.4–5.4 m up) is open
+ * to the sun — the sun probe from (12.5, −4.5) sees only hazed crowns 20–35 m out — so shot A's
+ * upper treads read flat-lit (box (0.62–0.8, 0.3–0.4) p50 0.49 against the reference's 0.38, p90
+ * 0.60 vs 0.48) while the lower half of the box already matches. Two shade lobes on a bough of the
+ * north-west-near giant sit on those treads' sun rays 16 m up: a caster at height Y over a tread
+ * at height y shades (X + 1.008 (Y − y), Z + 0.787 (Y − y)), so lobes at (−0.6, 16.2, −13.7) and
+ * (2.6, 16.4, −14.4) (hR 2.4) cover (11 → 15, −3.6 → −6.1) with a pair of 4.8 × 6 m ellipses;
+ * density 0.6 with roof cards, so from 16 m up the soft filter turns them into dapple rather
+ * than a solid patch, and the porous middle F shaft column keeps a lit fleck at (12.5, 4.2, −4.3).
+ * The bough and lobes are above every hero frame's top edge (D: tan 1.2–1.3 against 0.445; A/B/F:
+ * 0.66–1.1 against 0.42) and behind C.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [];
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [
+  {
+    giant: 'north-west-near',
+    fromY: 11.8,
+    to: [3.6, 15.4, -14.6],
+    radius: 0.45,
+    lobes: [
+      { t: 0.62, center: [-0.6, 16.2, -13.7], hR: 2.4, vR: 1.5, density: 0.6, eye: 0 },
+      { t: 0.92, center: [2.6, 16.4, -14.4], hR: 2.4, vR: 1.5, density: 0.6, eye: 0 },
+    ],
+  },
+];
 /**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
  * haze gap at the top-centre (x 0.35–0.55, y 0–0.10) where the stair shafts come from; white-bark
@@ -275,6 +335,31 @@ const F_BANK_CARD_POROSITY = 0.35;
 /** world height below which the bank corridors are inactive (the crown flank starts ≈ 13 m) */
 const F_BANK_MIN_Y = 12;
 /**
+ * Link's shadow: the reference frames show his shadow on the slabs at his feet in shots A and D;
+ * ours never did, because the sun depth map held tree geometry between him and the sun. Along the
+ * ray from his head toward the sun at D, the north-west-near giant's bole crossed it 7.4 m up
+ * (bent aside: see GIANT_PROFILES), a wild limb 6–9 m out (re-aimed there too), and its crown cards 14–21 m out
+ * (≈ (−8…−12, 9.5…13.5, −15…−18)); at A the lantern tree's crown cards 18–33 m out. These
+ * corridors (fully closed to foliage — laminae and cards — from 3 m out to 40 m, so the low
+ * hero boughs and the crown roof beyond stay) follow the ray from his head at each pose with a
+ * 1.5 m radius: enough for the bundle of rays through his whole silhouette plus the lit ring
+ * around it, since the feet ray sits only 1 m off the head ray in the ray's normal plane. Both
+ * rays pass ≥ 5 m from the lantern limb, so the lantern boughs of shots A and F are untouched.
+ * They are also closed to fine wood (lobe stems, twigs, crown boughs — the wild-limb lobe stems of
+ * the north-west-near giant crossed the D ray 17 m out, 0.2 m thick, and the lantern tree's
+ * lowest crown boughs run up-sun through the A ray 21–33 m out); the trunk, roots, big limbs
+ * and leaders are exempt. The A ray also grazed the lantern tree's bole/fork 21–24 m out
+ * (0.78 m off its axis, bole radius ≈ 0.83) — that bole is sheared aside (GIANT_PROFILES). Both
+ * ray segments lie outside every hero frame, so the cut wood is never seen.
+ */
+const LINK_SHADOW_RAYS: { id: string; head: [number, number, number] }[] = [
+  { id: 'D_log', head: [0.86, 1.3, -7.68] },
+  { id: 'A_stairs', head: [2.26, 1.3, 4.59] },
+];
+const LINK_RAY_RADIUS = 1.5;
+/** metres along the ray where the corridor starts / ends */
+const LINK_RAY_RANGE: [number, number] = [3, 40];
+/**
  * Canopy gaps over the north hollow as seen from camera D: air points 26–29 m north of the plaza at
  * 11–13 m (the height of the north-west / north-east giants' low limb lobes, which fill the upper
  * band of shot D as dark 25–30 m masses). The line from D's eye through each point is a porous
@@ -347,7 +432,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
-  // world-space sun corridors (see SHAFT_COLUMNS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS / F_BANK_SUN_POINTS)
+  // world-space sun corridors (see SHAFT_COLUMNS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS / F_BANK_SUN_POINTS / LINK_SHADOW_RAYS)
   interface WorldCorridor {
     point: Vector3;
     dir: Vector3;
@@ -356,6 +441,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     cardPorosity: number;
     /** world height below which the corridor is inactive */
     yMin?: number;
+    /** world height above which the corridor is inactive */
+    yMax?: number;
+    /** also cut the fine wood inside (see GiantOptions.corridors) */
+    wood?: boolean;
   }
   const groundLine = (q: [number, number, number], radius: number, porosity: number, cardPorosity = 0, yMin?: number): WorldCorridor => ({
     point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]),
@@ -365,16 +454,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     cardPorosity,
     yMin,
   });
+  // closed sun rays from Link's head (see LINK_SHADOW_RAYS): active only 3–40 m out along the
+  // ray, and closed to fine wood as well as foliage
+  const linkRays: WorldCorridor[] = LINK_SHADOW_RAYS.map(({ head }) => ({
+    point: new Vector3(head[0], head[1], head[2]),
+    dir: sunDir,
+    radius: LINK_RAY_RADIUS,
+    porosity: 0,
+    cardPorosity: 0,
+    yMin: head[1] + sunDir.y * LINK_RAY_RANGE[0],
+    yMax: head[1] + sunDir.y * LINK_RAY_RANGE[1],
+    wood: true,
+  }));
   const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, PLAZA_SUN_POROSITY, PLAZA_RING_CARD_POROSITY));
   // fully open cores inside the porous plaza rings (a tighter corridor wins where they overlap)
   const plazaCores = PLAZA_SUN_POINTS.map(({ core }) => groundLine([core.point[0], 0, core.point[1]], core.radius, 0, 0));
   const sunCorridors: WorldCorridor[] = [
-    ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: 0, cardPorosity: 0 })),
+    ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: c.porosity ?? 0, cardPorosity: c.cardPorosity ?? 0 })),
     ...plazaCorridors,
     ...plazaCores,
     ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
     ...D_VERGE_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_VERGE_SUN_POROSITY, D_VERGE_CARD_POROSITY)),
     ...F_BANK_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, F_BANK_SUN_POROSITY, F_BANK_CARD_POROSITY, F_BANK_MIN_Y)),
+    ...linkRays,
   ];
   // view corridors from camera D's eye through the hollow gap points (see HOLLOW_GAP_POINTS)
   const dView = ctx.layout.viewpoints.find((v) => v.id === 'D_log');
@@ -522,6 +624,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         porosity: c.porosity,
         cardPorosity: c.cardPorosity,
         yMin: c.yMin === undefined ? undefined : c.yMin - gy,
+        yMax: c.yMax === undefined ? undefined : c.yMax - gy,
+        wood: c.wood,
       })),
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,

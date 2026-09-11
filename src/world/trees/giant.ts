@@ -26,7 +26,7 @@ import {
   stiffnessFor,
   tangent,
   taper,
-  tube,
+  tube as sweep,
 } from './writer';
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
@@ -97,6 +97,23 @@ export interface GiantProfile {
    */
   barkTint?: [number, number, number];
   barkTintFade?: [number, number];
+  /**
+   * Authored trunk lean (default: 1–3° in a random or plaza-biased direction). The grown bole is
+   * sheared toward `azimuthDeg` (0 = +x east, 90 = +z south) by tan(degrees) × height above its
+   * base, on top of the random lean, whose draws are still made so the rest of the tree is
+   * unchanged. Used to carry a bole out of the sun ray through a hero character (a bole cannot be
+   * carved like foliage). With `fromY` (local metres) the bole stands straight below that height
+   * and bends into the lean over ±`blend` metres (a C1 ramp, default a sharp start), so the part a
+   * hero camera frames can stay where the layout put it.
+   */
+  lean?: { azimuthDeg: number; degrees: number; fromY?: number; blend?: number };
+  /**
+   * Authored base azimuth (degrees) of the un-authored big limbs, which are spread evenly from it
+   * (default: random, or the authored limb's direction). The random draw is still made.
+   */
+  wildLimbAzimuthDeg?: number;
+  /** trunk-parameter range the un-authored big limbs leave from (default [0.36, 0.62] ≈ 0.36–0.62 of the fork height) */
+  wildLimbT?: [number, number];
 }
 
 /**
@@ -159,9 +176,23 @@ export interface GiantOptions {
    * thin shadows; surviving laminae add a leaf fringe, surviving cards (0.5–1.2 m) are what casts
    * visible dapple from 25 m up, where laminae blur away in the soft shadow filter. `yMin` (local)
    * restricts a corridor to the part of the line at or above that height, so a sun line can thin a
-   * crown 15–25 m up without touching the low hero boughs it also crosses.
+   * crown 15–25 m up without touching the low hero boughs it also crosses; `yMax` caps it (a ray
+   * segment from a character toward the sun that must not carve the crown roof beyond it).
+   * `wood` also cuts the fine wood: rings of non-structural tubes (lobe stems, secondaries, twigs,
+   * crown boughs — never the trunk, roots, big limbs or leaders) inside the corridor are not built,
+   * for a ray that must be wholly clear (a character's sun ray, whose 0.1–0.3 m stems otherwise
+   * stripe his shadow). The gap is only ever seen from inside the corridor.
    */
-  corridors?: { point: Vector3; dir: Vector3; radius: number; porosity?: number; cardPorosity?: number; yMin?: number }[];
+  corridors?: {
+    point: Vector3;
+    dir: Vector3;
+    radius: number;
+    porosity?: number;
+    cardPorosity?: number;
+    yMin?: number;
+    yMax?: number;
+    wood?: boolean;
+  }[];
   /**
    * Foliage scale of the authored lantern limb's lobes (1 = full). The reference limb in shot A
    * is a bare bough with a few leaf clusters and haze between them, not a hedge on a pole.
@@ -200,6 +231,24 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const white = new Color(1, 1, 1);
   const crownRadius = H * bt(0.44, 0.5);
 
+  // fine wood inside a `wood` corridor is not built (see GiantOptions.corridors): every
+  // non-structural sweep below goes through this wrapper, which only adds the ring cull
+  const woodCorridors = (o.corridors ?? []).filter((c) => c.wood);
+  const woodTmp = new Vector3();
+  const woodCulled = (p: Vector3, radius: number) => {
+    for (const c of woodCorridors) {
+      if (c.yMin !== undefined && p.y < c.yMin) continue;
+      if (c.yMax !== undefined && p.y > c.yMax) continue;
+      woodTmp.subVectors(p, c.point);
+      woodTmp.addScaledVector(c.dir, -woodTmp.dot(c.dir));
+      const reach = c.radius + radius;
+      if (woodTmp.lengthSq() < reach * reach) return true;
+    }
+    return false;
+  };
+  const tube: typeof sweep = (writer, points, radii, sides, rngFn, opts) =>
+    sweep(writer, points, radii, sides, rngFn, opts.structural || !woodCorridors.length ? opts : { ...opts, cull: woodCulled });
+
   const barkColor = (pt: Vector3) => {
     // soil-stained near the ground, lighter with height; ridges shaded by the tube grain
     const soil = 1 - smoothstep(-0.5, 2.5, pt.y);
@@ -233,6 +282,27 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const top = new Vector3(Math.cos(leanAz) * lean * fork, fork, Math.sin(leanAz) * lean * fork);
   const skirt = 1.3;
   const trunk = growthPath(new Vector3(0, -skirt, 0), top, UP, r, 30, 0.18);
+  // an authored lean shears the grown bole (displacement linear in height above the bend, so the
+  // axis is where the profile says at every height); everything below samples the sheared path,
+  // and the crown leaders keep their absolute targets
+  if (profile.lean) {
+    const shear = Math.tan((profile.lean.degrees * Math.PI) / 180);
+    const az = (profile.lean.azimuthDeg * Math.PI) / 180;
+    const fromY = profile.lean.fromY ?? -skirt;
+    const blend = profile.lean.blend ?? 0;
+    // 0 below fromY - blend, slope 1 above fromY + blend, quadratic in between
+    const ramp = (y: number) => {
+      const u = y - fromY;
+      if (u <= -blend) return 0;
+      if (u >= blend) return u;
+      return ((u + blend) * (u + blend)) / (4 * blend);
+    };
+    for (const p of trunk) {
+      const d = ramp(p.y) * shear;
+      p.x += Math.cos(az) * d;
+      p.z += Math.sin(az) * d;
+    }
+  }
   const trunkRadii = trunk.map((pt, i) => {
     const t = i / (trunk.length - 1);
     const above = Math.max(0, pt.y) / H;
@@ -347,6 +417,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     let hit: (typeof corridors)[number] | null = null;
     for (const c of corridors) {
       if (c.yMin !== undefined && p.y < c.yMin) continue;
+      if (c.yMax !== undefined && p.y > c.yMax) continue;
       corrTmp.subVectors(p, c.point);
       const along = corrTmp.dot(c.dir);
       corrTmp.addScaledVector(c.dir, -along);
@@ -648,10 +719,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   }
 
   const extraLimbs = profile.wildLimbs ?? (o.limbSpec ? 2 : r.int(2, 4));
-  const limbBaseAngle = o.limbSpec ? Math.atan2(o.limbSpec.to.z - o.limbSpec.from.z, o.limbSpec.to.x - o.limbSpec.from.x) : r() * TAU;
+  const drawnLimbAngle = o.limbSpec ? Math.atan2(o.limbSpec.to.z - o.limbSpec.from.z, o.limbSpec.to.x - o.limbSpec.from.x) : r() * TAU;
+  const limbBaseAngle = profile.wildLimbAzimuthDeg === undefined ? drawnLimbAngle : (profile.wildLimbAzimuthDeg * Math.PI) / 180;
   for (let i = 0; i < extraLimbs; i++) {
     const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU + bt(-0.35, 0.35);
-    const t = bt(0.36, 0.62);
+    const t = bt(profile.wildLimbT?.[0] ?? 0.36, profile.wildLimbT?.[1] ?? 0.62);
     const origin = sample(trunk, t);
     const trunkR = trunkRadii[Math.round(t * (trunkRadii.length - 1))];
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));

@@ -151,6 +151,12 @@ export interface TubeOptions {
   structural?: boolean;
   /** darken the vertex colour inside bump crevices (multiplier on (bump - 1)); needs `bump` */
   creviceShade?: number;
+  /**
+   * rings whose centre (and radius) this rejects are not built: the sweep breaks there and resumes
+   * at the next accepted ring. Random draws are made up front, so a culled tube leaves every later
+   * draw where it was.
+   */
+  cull?: (point: Vector3, radius: number) => boolean;
 }
 
 /** Sweep a tapered ring mesh along `points`. Frame is transported to avoid angular seams. */
@@ -175,6 +181,7 @@ export function tube(writer: GeometryWriter, points: Vector3[], radii: number[],
   if (writer.detail === 'low') sides = Math.max(3, Math.ceil(sides * 0.5));
   const step = writer.detail === 'high' || opts.structural ? 1 : 2;
   let previousRow: number[] | null = null;
+  let tipBuilt = false;
   const circumference = TAU * radii[0];
   const tile = opts.barkTile ?? 0.7;
   const uTiles = Math.max(1, Math.round(circumference / tile));
@@ -183,6 +190,11 @@ export function tube(writer: GeometryWriter, points: Vector3[], radii: number[],
   for (let k = 0; k < points.length; k++) {
     if (k) distance += points[k].distanceTo(points[k - 1]);
     if (k % step !== 0 && k !== points.length - 1) continue;
+    if (opts.cull && opts.cull(points[k], radii[k])) {
+      previousRow = null;
+      continue;
+    }
+    tipBuilt = k === points.length - 1;
     const t = k / (points.length - 1);
     const axis = points[Math.min(points.length - 1, k + 1)].clone().sub(points[Math.max(0, k - 1)]).normalize();
     if (!u) u = frame(axis)[0];
@@ -221,7 +233,7 @@ export function tube(writer: GeometryWriter, points: Vector3[], radii: number[],
     previousRow = row;
   }
   // Tiny but nonzero tips are capped. The base is inside its parent branch.
-  if (writer.detail === 'high' || radii[0] > 0.007) {
+  if (tipBuilt && (writer.detail === 'high' || radii[0] > 0.007)) {
     const end = rows[rows.length - 1];
     const tipColor = typeof opts.color === 'function' ? opts.color(points[points.length - 1], 1) : opts.color;
     const stiffness = opts.stiffness ? opts.stiffness(radii[radii.length - 1], 1) : stiffnessFor(radii[radii.length - 1]);

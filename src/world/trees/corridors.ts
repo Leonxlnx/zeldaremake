@@ -13,6 +13,12 @@ export interface ShaftColumn {
    * margin, so the air inside `radius` is fully lit); defaults to `radius`
    */
   carve?: number;
+  /**
+   * share of giant laminae / cluster cards kept inside the carve (default none): a dappled
+   * shaft, whose landing reads as sun-flecked ground rather than a lit disc
+   */
+  porosity?: number;
+  cardPorosity?: number;
 }
 
 /**
@@ -37,12 +43,16 @@ export interface ShaftColumn {
  *   fork, and lands on the upper plateau at ≈ (26, 5.4, −8) — screen (0.53, 0.32) in F. The left
  *   column's own line ends on Saria's roof 1.6 m down-sun of its air point (1.4 m from the house
  *   axis); it is open above the roof.
+ * - The middle F column's sun line lands on the upper run of the main stairs at ≈ (12.5, 4.2, −4.3)
+ *   — shot A (0.74, 0.31). Reference A keeps those treads dappled (box (0.62–0.8, 0.3–0.4) p50
+ *   0.38, p90 0.48) while a fully carved column lit them flat (p50 0.49, p90 0.60), so this one is
+ *   porous: half the laminae and 40 % of the cards stay in its air, the beam itself is unchanged.
  */
 export const SHAFT_COLUMNS: ShaftColumn[] = [
   { point: [1.3, 6.6, -9.4], radius: 2.6 },
   { point: [-3.0, 8.0, -14.5], radius: 2.6 },
   { point: [5.0, 7.0, -17.0], radius: 2.6 },
   { point: [10.4, 8.0, -11.4], radius: 1.3, carve: 1.7 },
-  { point: [9.6, 6.9, -6.6], radius: 1.3, carve: 1.7 },
+  { point: [9.6, 6.9, -6.6], radius: 1.3, carve: 1.7, porosity: 0.5, cardPorosity: 0.4 },
   { point: [20.4, 11.2, -12.8], radius: 1.3, carve: 1.7 },
 ];
