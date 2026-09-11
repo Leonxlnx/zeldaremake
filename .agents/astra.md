@@ -4,12 +4,69 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T07:38:18Z
+updated: 2026-09-11T08:02:41Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Updated 2026-09-11T08:02:41Z. Published source is b970181 on PR #5; Fable source remains f472323.
+The owner wants the newer hero concept followed for the original model and simple movement.
+The locked video rubric and Fable's independent C01 fail / C02 pass remain unchanged.
+
+Actual b970181 nine-view capture c21f965 passed at 07:50:12 UTC with no renderer errors.
+The face close-up shows finer hair fibres without the earlier corrugation and lower cupped ears.
+Actual 4a1b7ac nine views / 42-frame clip a01e03c passed at 07:30:57 UTC: bent knees through the
+jump apex and more supported stopping steps. Matched lantern correction 429128a passed on
+3bdcb86: severe leaf/cord streak removed, warm glow retained, exact baseline/restored PNGs.
+That scoped local point block is released back to Fable; broader production lighting stays theirs.
+
+Uncommitted C03: original boot shafts and details follow the calves, soles remain unchanged,
+and Link's knee seam is covered by a smoother 56 mm joint. Geometry invariants and flat
+movement pass. The helper owns play-pose.ts / locomotion.test.mjs; root owns locomotion.ts,
+Character/index integration and actual-input capture. A .305 m allowance applies only to
+authored stairs. Whole-mesh stair clearance alone now passes, but support continuity still
+needs correction: a descending free foot chased the root onto a second lower tread, leaving
+both feet recovering. Fix landing-tread selection before accepting the candidate. No clearance
+claim from sole-only tests, geometry clamps, floating poses or softened old thresholds.
+
+The actual main entrance has a separate terrain defect: floor y=-.132414 m before the first
++.30 m tread, a .432 m rise. Reported coordinates and trench code to Fable in INBOX/PR #2.
+The auxiliary capture route records one honest entrance jump, then grounded ascent/descent;
+no teleport, layout edit or arbitrary larger ledge limit. Pose/boot CPU cost was 5.83 ms per
+120 Hz update on that route; optimize after correctness, preserving measured contacts.
+
+Uncommitted C01: root added a compact button nose / shallow lower lip (39 changed vertices,
+max 3.58 mm; scalp, ears and lateral orbits unchanged) and smaller, calmer mouth. Eye/brow
+clearance probe passes. Helper owns only new sleeve-geometry.ts for a low shoulder/flared
+cloth hem; existing shoulder straps cross the old sleeve during jumps, and the candidate is
+being checked against that. Root will integrate only after review. No gear/iris overhaul yet.
+
+A manual canonical checkpoint is due on the published appearance source. History remains
+invalid under D1: concurrent publication renumbered take-0037 while retaining its earlier
+capture-start time, so take-0038 flags chronology. Preserve all entries/hashes and the invalid
+verdict. Fable has the repair coordination request. E_ground intentionally repeats B_house;
+identical images there are expected, correcting my earlier suspicion. This is not phase exit.
+
+## Files / systems being touched
+- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
+- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
+- `src/main.ts`: minimal control-hint/input-order integration only if needed.
+- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
+- Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
+
+## Earlier task notes
+2026-09-11T07:55:02Z: Actualb970181 capturec21f965 passed (07:50:12 UTC,errors[]); face view
+inspected: finer fibres remove corrugation and lower cupped ears improve the sideways silhouette.
+Next bounded original shape work after fresh Fable fetch (stillf472323): helper owns ONLY new
+sleeve-geometry.ts for a low sloping shoulder/flared cloth hem; root owns buildArms integration
+later. Root now applies the scratch-measured compact nose/lower-lip addition (39vertices,
+~3.3mm actual tip gain) and quieter/narrower mouth in face-geometry.ts/link.ts, preserving fitted
+orbits/scalp and cap. Separate actual capture required. No iris palette/gear overhaul yet.
+Stair pose work remains uncommitted: whole-mesh descent and .30/.50 ascent still collide despite
+sole-only passes. CPU real-route pose+boot cost5.83ms/update; optimize only after correctness.
+
 Real terrain/createGround route stalls at(8.96493,-1.95396), y=-.132414m, just before
 stairAt begins u=-.05. First tread is+.30m: ~.432m rise. heightfield.ts blends ramp-.18
 from u=-.4 to-.02, while hardscape excludes flagstones ahead of the riser. Please inspect
@@ -281,13 +338,6 @@ Continuous clips now rerun when movement/contact/camera implementation changes, 
 
 The first continuous run captured all four poses but failed before video frames because the runner lacked ffmpeg (`ENOENT`). The workflow now installs the encoder only for clip runs and reruns when the exporter/workflow changes. No video success is claimed until the resulting file is inspected. The runtime-source tooling move is complete in `118a4ac`; local source anti-cheat is green again.
 
-## Files / systems being touched
-- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
-- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
-- `src/main.ts`: minimal control-hint/input-order integration only if needed.
-- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
-- Read-only review of Fable's world source, monitor captures, PRs and logs.
-- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
 - Root reviewed and reran the jump/stop implementation and all9 actual rounded-sole scenarios
@@ -496,4 +546,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T07:30:31Z
+2026-09-11T08:02:41Z
