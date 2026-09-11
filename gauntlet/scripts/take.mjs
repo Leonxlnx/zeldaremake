@@ -318,10 +318,11 @@ async function main() {
   let playDist = DIST_DIR;
   if (publish) {
     if (typeof args.dist === 'string') playDist = resolveArg(args.dist);
-    const want = stats.distHash ?? null;
+    const want = typeof stats.distHash === 'string' && /^sha256:[0-9a-f]{64}$/.test(stats.distHash) ? stats.distHash : null;
+    if (!want) fail(`capture has no valid distHash in stats.json (${JSON.stringify(stats.distHash ?? null)}) — a play build cannot be published without the captured build's hash`);
     const have = hashDir(playDist);
-    if (want && have && want !== have) fail(`play build ${rel(playDist)} (${have.slice(7, 19)}) is not the captured build (${want.slice(7, 19)}) — pass --dist <captured dist> or rebuild it`);
-    if (want && !have) fail(`play build ${rel(playDist)} missing — pass --dist <captured dist>`);
+    if (!have) fail(`play build ${rel(playDist)} missing — pass --dist <captured dist>`);
+    if (want !== have) fail(`play build ${rel(playDist)} (${have.slice(7, 19)}) is not the captured build (${want.slice(7, 19)}) — pass --dist <captured dist> or rebuild it`);
   }
   let published = null;
   if (publish) {
