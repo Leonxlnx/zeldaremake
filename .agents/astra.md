@@ -4,14 +4,55 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T18:45:00.730340Z
+updated: 2026-09-11T19:08:20.008956Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Publish continuous arm skin with two additional rear-quarter sprint/jump captures. Link
+Current checkpoint: flat sewn cap band and real automatic-blink close-up capture cases.
+Cap helper replaces the round cord with a10.2mm-high bevelled cloth band and two fine
+stitch rows. Same40-sector frame, shared palette and crown/tail/hair. New band/thread
+occupancy stays inside old actual torus sectors; complete crown cut edge remains buried
+by≥1.599763mm. Thread rear.120mm sewn in/front.220mm proud. Model69 meshes/96,736triangles,
++1draw/+1,920triangles, no per-frame work. Existing cap/hair clearance9.160→9.745mm remains;
+actual front/profile will judge whether the flatter edge exposes that space more strongly.
+Root build/static batching pass75→69 meshes,96,736triangles,1,508,256 posed positions/normals
+exact with UV/material/shadow/disposal/boot/NPC invariants. Automatic blink capture replay
+produces actual eye Y scales.5838095/.0800000 at265/270ticks; first16 cases/callback and
+42-frame clip source preserved. Cap helper SHA1d37cbff918b9677f165f1dcd2fa61ca4496ddc7e7e5de448d717e9deeade2c2.
+
+Actual arms6293 now published4f9e54d/progress/2026-09-11_190150-6293be7. Root verified16 JPEG
+hashes,42 matching clip states and errors[]. Rear run/jump show continuous elbow shape;
+no large new garment artifact apparent in those views, not an all-pose clipping guarantee.
+Current wrist/pouch review:42 poses, both cap surfaces covered, wrist ridge~.073mm with
+2.985° smooth-normal mismatch. Current rounded pouch336pairs +27component containment:
+no new exposed sampled witnesses outside oldarm/hand union; old overlaps persist. The
+older box-pouch new witness does not reproduce on this rounded pouch.
+
+Next task: refine the nose/midface and subtle lips against the owner's hero sheet. Actual
+3f5b4ce front/profile images show closer-fitting eyes, but the central face remains flat and
+the mouth is only a dark seam. Scratch helper owns face-geometry.ts and mouth construction;
+preserve the eye socket neighbourhood, hair/cap/ears, NPCs and runtime joint hierarchy.
+Root will review changed surface bounds and actual lit face/profile before acceptance.
+Parallel outfit task: fitted cloth pockets/flaps on the existing two front panels, using
+actual garment support and shared cloth UVs. Scratch owner touches a new pocket helper and
+addOutfitDetails hook only; preserve collar/undershirt, skirt silhouette, rig and world.
+Do not duplicate that patch. Actual belt/idle/walk review motivates the added cloth depth.
+Separate scratch cap task: replace the rounded rolled brim with a flatter sewn cloth band,
+keeping the current frame/crown/tail/hair/ears. New cap-brim helper and narrow buildCap hook;
+no crown or tail reshape. Root owns integration after fit/contact/actual-render review.
+Root capture extension appends two ordinary idle close-ups at265/270 physics ticks to
+review the existing automatic blink at transition/minimum. No eye/rig override; first16
+views and42-frame clip remain untouched. These will publish with the next source checkpoint.
+
+6293be7 pushed the continuous arm checkpoint and two additional real-input rear views.
+Actual eye gallery469099c verified14 JPEG hashes,42 matching clip states and no capture
+errors; root inspected front/profile, which retain readable pupils and a shallow lid edge.
+No95% or final face claim. Following arm checkpoint details remain applicable:
+
+Continuous arm skin now has two additional rear-quarter sprint/jump captures. Link
 keeps the existing shoulder/elbow/hand joints and authored movement; a 160 mm blend and
 38 mm elbow replace the three separate skin pieces per arm. Current composed model is
 68 meshes / 94,816 triangles (2,240 fewer), including eye seating3f5b4ce and pouch1623b75.
@@ -35,7 +76,7 @@ zero and7 further120Hz steps. Original14 views and42-frame clip remain unchanged
 controller/current-terrain and16-image archive/publisher fixtures pass; real framing pending.
 
 Eye source3f5b4ce pushed, actual469099c/progress/2026-09-11_183859-3f5b4ce now published;
-root retrieval/pixel review pending. Pouch actual2f568c1/progress/2026-09-11_181209-1623b75
+root verified and inspected front/profile; closer eye fit accepted as a checkpoint. Pouch actual2f568c1/progress/2026-09-11_181209-1623b75
 verified14 JPEG hashes,42 matching states/errors[]. Root viewed belt/walk: rounded flap
 and closure replace dark boxes; shared2 screenshots and downloadable1623 ZIP. Existing
 hand/pouch overlap remains.
@@ -49,9 +90,11 @@ and reachablelandingtargetunderexisting8m/sfootlimit. Productionphysics/poseunch
  bounded review; separate57–58mm root-relative knee jumps at takeoff/landing need smoothing.
  Off-rig staging passes exact rejection/retry including2.7rad yaw; not movement acceptance.
 
-Fabledfb3d36 fixescanonicalmetadata, retryclaimunion, cadence andpanelcapturetime. Root
-foundremainingprevious-baselineselectioninpublicationorder; exactfixture postedPR2comment
-5638726300. Strictguard9ce0ceb staysourwriterpolicy, noresequencing/relaxedverifieradopted.
+Fable ef83594 fixes latest-captured baseline selection; root exact function fixture,
+invalid-only fallback and later-chain tie pass. Fresh903146b tree pass pushed19:00:35:
+fewer larger leaf cards, sky transmission, east bough and moss/lichen. Not integrated;
+source-exact actuals requested in PR2 comment5639348015. Fable retains blanket3h tolerance
+for sealed history; our strict verifier continues to flag inherited inversions explicitly. Strictguard9ce0ceb staysourwriterpolicy, noresequencing/relaxedverifieradopted.
 Firstguardedcanonical0053/9ce0ceb published92c44c2 withunchanged18:00:16capturetime,622draws,
 8,556,757triangles,W38pass.23/50overall19/42phase; oldD1failures0037/0048/0050/0052remain.
 

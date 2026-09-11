@@ -31,6 +31,7 @@ import { batchStaticLinkParts } from './static-batching';
 import { normalizeLinkClothUVs } from './cloth-uv';
 import { normalizeLinkHairUVs } from './hair-uv';
 import { createLinkCapCrown } from './cap-geometry';
+import { createLinkCapBrim } from './cap-brim-geometry';
 import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
 import { createLinkStrapBuckle } from './strap-buckle-geometry';
@@ -540,8 +541,10 @@ function buildCap(rig: Rig): void {
   part(tailSway, shapeLinkCapTail(sweep(pts, [0.076, 0.096, 0.099, 0.087, 0.069, 0.046, 0.021, 0.0018].map(v => v * k),
     { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.22,
       flattenFromRoot: true, crease: 0.10, surfaceNormal: new Vector3(0, 0, -1) }), r), capMat, 'cap-tail');
-  // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
-  part(cap, place(new TorusGeometry(rimR + 0.002, 0.0065, 8, 40), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
+  // Sewn band retains the original brim plane and fitted circumference.
+  const brim = createLinkCapBrim(rimR);
+  part(cap, place(brim.band, 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
+  part(cap, place(brim.stitches, 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), matte('clothThread'), 'cap-brim-stitches', false);
 }
 
 

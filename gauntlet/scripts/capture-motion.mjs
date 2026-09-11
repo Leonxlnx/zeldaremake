@@ -54,6 +54,10 @@ try {
       evidence: 'Ordinary run from the actual spawn for two seconds; rear-left view of the continuous arms.' },
     { name: '16-run-jump-launch-rear-quarter', seconds: 8 / 120, run: true, move: 1, jump: true, view: 'rear-quarter', prepareRunSeconds: 2, launchFrame: 7,
       evidence: 'Actual world input replay, seven 120 Hz steps after the observed launch frame; not an exact flat-ground contact-study pose.' },
+    { name: '17-face-blink-transition', seconds: 265 / 120, run: false, move: 0, jump: false, view: 'face',
+      evidence: 'Ordinary idle at 265 simulation ticks, during the existing automatic blink; no eye pose override.' },
+    { name: '18-face-blink-narrow', seconds: 270 / 120, run: false, move: 0, jump: false, view: 'face',
+      evidence: 'Ordinary idle at 270 simulation ticks, near the existing blink minimum; the current blink retains a narrow aperture.' },
   ];
   for (const c of cases) {
     const state = await page.evaluate(async c => {
