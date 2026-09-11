@@ -97,6 +97,9 @@ function sepalPoint(t: number, u: number, angle: number, length: number, outer: 
   const y = 0.406 - length * t - 0.009 * bend + 0.006 * u * u * bend;
   let radius = 0.023 + 0.136 * Math.sin(Math.PI * t / 2) + 0.003 * (1 - u * u) * bend;
   if (y <= 0.315) radius = Math.max(radius, bodyRadius(y) + 0.007);
+  // Keep the attachment seated while the tip curls away from the glowing shell.
+  const tip = Math.max(0, Math.min(1, (t - 0.62) / 0.38));
+  radius += (outer ? 0.014 : 0.006) * tip * tip * (3 - 2 * tip);
   radius += (outer ? 0.008 * bend : 0) + offset;
   return new Vector3(Math.cos(theta) * radius, y, Math.sin(theta) * radius);
 }
@@ -161,8 +164,9 @@ export function buildLantern(hook: Vector3, cordLength: number, mats: StructureM
   const detail: BufferGeometry[] = [];
   for (let i = 0; i < 6; i++) {
     const angle = phase + i / 6 * Math.PI * 2;
-    const length = 0.206 + 0.007 * Math.sin(phase + i * 2.1);
     const outer = i % 2 === 0;
+    // Two staggered whorls retain the existing deterministic phase and attachment.
+    const length = (outer ? 0.236 : 0.188) + 0.010 * Math.sin(phase + i * 2.1);
     detail.push(sepal(angle, length, outer, capTint * (0.96 + 0.05 * Math.sin(phase + i)), scale));
     const veinPoint = (t: number, u: number, offset: number) => sepalPoint(t, u, angle, length, outer, 0.0015 + offset).multiplyScalar(scale);
     const midrib = Array.from({ length: 13 }, (_, j) => veinPoint(0.06 + j / 12 * 0.90, 0, 0.001));

@@ -4,12 +4,22 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T09:00:14Z
+updated: 2026-09-11T09:06:55Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+2026-09-11T09:06:55Z: Published fuller frontal hair/cap/iris sourcef963398 and manual monitor checkpoint2781c6e.
+Integrated geometry probe confirms seated crown >=14.28 mm, brim >=8.18 mm, eyes/brows clear,
+all roots buried, and frontal hair/tail separate across105 poses. Smaller-gear8968561 actual
+capture completed09:02:49 UTC with errors[]; profile/back reviewed; smaller shield exposes the bag edges, though material detail remains coarse. Fable just pushed
+house/geometrydd9e15b; inspecting both files for deliberate integration, retaining their design.
+Next root task is lantern.ts only: stagger inner/outer sepal lengths and curl their tips away
+from the shell.144 phase geometry study keeps1mesh/11570tris and four RNG calls; radius+12.32mm,
+minimum sampled leaf-body9.01mm. Lighting, body UVs, hooks and placement remain unchanged.
+Rear-hair helper owns a new isolated scalp/nape candidate; high stairs still withheld.
+
 2026-09-11T09:00:14Z: Fuller rounded frontal hair replaces eight flat swept clumps; the existing
 foundation, scalp, sideburns and nape remain. Original 5,376-triangle helper vs 6,400 old triangles,
 20–24 mm maximum thickness. Measured eyelid clearance >=20 mm and brow >=8.6 mm. Cap crown/brim
