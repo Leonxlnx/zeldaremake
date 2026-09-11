@@ -4,6 +4,10 @@ import { merge } from './geometry';
 
 const gaussian = (value: number, centre: number, width: number): number =>
   Math.exp(-Math.pow((value - centre) / width, 2));
+const compact = (value: number, extent: number): number => {
+  const u = Math.min(1, Math.abs(value) / extent);
+  return (1 - u * u) ** 2;
+};
 
 /**
  * A closed, swept leaf with a broad root and a swept-back point. The root is buried in the
@@ -95,6 +99,12 @@ export function createLinkFaceGeometry(radius: number): BufferGeometry {
       const wings = 0.0035 * k * (gaussian(x, -0.013 * k, 0.006 * k)
         + gaussian(x, 0.013 * k, 0.006 * k)) * gaussian(y, -0.034 * k, 0.009 * k);
       z += front * (bridge + tip + wings);
+      // A compact button tip and shallow lower lip resolve the profile without changing
+      // the fitted orbital shelf or scalp. Both additions fade to zero inside the face.
+      z += front * 0.004 * k * gaussian(x, 0, 0.012 * k) * gaussian(y, -0.030 * k, 0.012 * k)
+        * compact(x, 0.027 * k) * compact(y + 0.031 * k, 0.022 * k);
+      z += front * 0.0012 * k * gaussian(x, 0, 0.020 * k) * gaussian(y, -0.062 * k, 0.005 * k)
+        * compact(x, 0.032 * k) * compact(y + 0.062 * k, 0.010 * k);
     }
     position.setXYZ(i, x, y, z);
   }

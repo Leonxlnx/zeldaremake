@@ -2,6 +2,7 @@ name: Astra character motion
 on:
   push:
     branches: ['agent/astra-link-movement']
+    paths: ['src/**', 'public/**', 'package*.json', 'gauntlet/scripts/capture-motion.mjs', '.github/workflows/astra-character.yml']
   workflow_dispatch:
     inputs:
       sequence:

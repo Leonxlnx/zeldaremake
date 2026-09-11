@@ -4,12 +4,66 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T08:02:41Z
+updated: 2026-09-11T08:25:14Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Updated 2026-09-11T08:25:14Z. This commit publishes the original flared sleeve, medial shoulder-strap fitting,
+and compact button-nose/quieter mouth pass. The closed sleeve has 530 vertices / 1024 triangles,
+2.50 mm minimum sampled lining-to-arm gap. The strap route fits the existing undershirt too;
+a local envelope bridges actual garment edges. Across 324 reference/live upper poses, exact
+triangle checks found at least 1.34 mm sleeve separation, 1.116 mm collar separation and no
+intersections; all 1300 fitting rays hit a garment. Lower-chest route vertices are unchanged.
+Face changes affect 39 vertices (max 3.58 mm), preserving scalp/ears/lateral eye sockets.
+A new profile camera joins the nine existing auxiliary views; actual rendering is pending.
+The exact staged appearance tree passes typecheck, production build, eye geometry and the
+existing 30/60/120/144 Hz locomotion suite. No new stair-contact claim from those sole checks.
+
+Latest completed screenshots are b84bedc (same appearance as b970181), captured 08:09:01 UTC
+on generated branch b2d4563 with no renderer errors. Sent the owner 12 actual JPGs and a ZIP:
+nine latest character/object views plus three wider take-0038 world views. ZIP includes source
+provenance and labels older wide views. Reference similarity remains substantially unfinished.
+
+Boot articulation and 30 cm authored-stair controller allowance remain UNCOMMITTED. The
+whole-leg pose experiment failed riser clearance despite passing sole-only regressions; helper
+is restoring its pre-experiment pose and preserving diagnostics in scratch. Do not publish
+that candidate or accept abrupt feasible-pelvis corrections. Reassess a physically feasible
+one-riser gait. Original boot shaft/closed joint geometry passed its separate invariants and
+flat movement checks, but the old stair pose still needs correction. Exact per-update support
+memo reduced a fixed candidate's cost 26% with all 8568 contact coordinates identical; it is
+still scratch-only and must be checked against the accepted pose before integration.
+
+Root's gear proportion study in gear.ts is also uncommitted: shield scale .70, bag half-size
+.150/.180/.060 at Y .640. Helper checks cap/sword/sleeve clearance and refits loop anchors that
+fell outside the resized shell. Publish only after the construction/contact checks and render.
+
+Fable source remains f472323 after fetch/PR/inbox read; world/house/tree/global lighting scope
+is theirs. The lantern point fix429128a was rendered and handed back. The main stair entrance
+trench (43 cm effective first rise) remains reported to Fable. Canonical b84bedc manual take is
+running; take-0038 history remains INVALID D1 because concurrent publication retained an older
+capture-start timestamp after renumbering. Preserve entries/hashes/verdict. E_ground intentionally
+repeats B_house. Independent C01 fail/C02 pass remain strict to the locked video rubric.
+
+## Files / systems being touched
+- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
+- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
+- `src/main.ts`: minimal control-hint/input-order integration only if needed.
+- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
+- Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
+
+## Earlier task notes
+Previous task checkpoint:
+2026-09-11T08:24:00Z: Fresh fetch/PR read still shows Fable f472323, houses/trees/world owned
+there. Root adds a bounded gear proportion pass in gear.ts: a smaller shield carried over a
+slightly broader/taller bag, refitting all bag seams/loops to the same surface. This follows the
+owner's hero sheet and actual b970181 back view, where the shield hides nearly the whole bag.
+Check cap/sword/garment clearance before accepting; no placement or Fable system edits.
+Face/sleeve/strap changes will publish independently of the unresolved boot/stair pose if useful.
+Helper play-pose.ts / locomotion.test.mjs remains uncommitted and is not ready for publication.
+
 Updated 2026-09-11T08:02:41Z. Published source is b970181 on PR #5; Fable source remains f472323.
 The owner wants the newer hero concept followed for the original model and simple movement.
 The locked video rubric and Fable's independent C01 fail / C02 pass remain unchanged.
@@ -48,15 +102,7 @@ capture-start time, so take-0038 flags chronology. Preserve all entries/hashes a
 verdict. Fable has the repair coordination request. E_ground intentionally repeats B_house;
 identical images there are expected, correcting my earlier suspicion. This is not phase exit.
 
-## Files / systems being touched
-- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
-- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
-- `src/main.ts`: minimal control-hint/input-order integration only if needed.
-- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
-- Read-only review of Fable's world source, monitor captures, PRs and logs.
-- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
-## Earlier task notes
 2026-09-11T07:55:02Z: Actualb970181 capturec21f965 passed (07:50:12 UTC,errors[]); face view
 inspected: finer fibres remove corrugation and lower cupped ears improve the sideways silhouette.
 Next bounded original shape work after fresh Fable fetch (stillf472323): helper owns ONLY new
@@ -546,4 +592,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T08:02:41Z
+2026-09-11T08:25:14Z

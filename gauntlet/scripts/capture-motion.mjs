@@ -44,6 +44,7 @@ try {
     { name: '07-leaf-lantern', seconds: 0.5, run: false, move: 0, jump: false, view: 'lantern' },
     { name: '08-carved-sign', seconds: 0.5, run: false, move: 0, jump: false, view: 'sign' },
     { name: '09-boot-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'boots' },
+    { name: '12-face-profile', seconds: 0.5, run: false, move: 0, jump: false, view: 'profile' },
   ];
   for (const c of cases) {
     const state = await page.evaluate(async c => {
@@ -62,6 +63,9 @@ try {
         api.setPose([s.x + Math.sin(back) * 2.5, floor + 1.20, s.z + Math.cos(back) * 2.5], [s.x, floor + 0.72, s.z], 39);
       } else if (c.view === 'face') {
         api.setPose([s.x + Math.sin(s.yaw + 0.18) * 1.0, floor + 1.13, s.z + Math.cos(s.yaw + 0.18) * 1.0], [s.x, floor + 1.02, s.z], 32);
+      } else if (c.view === 'profile') {
+        api.setPose([s.x + Math.sin(s.yaw + 1.20) * 1.15, floor + 1.14,
+          s.z + Math.cos(s.yaw + 1.20) * 1.15], [s.x, floor + 1.015, s.z], 32);
       } else if (c.view === 'boots') {
         const front = s.yaw + 0.38;
         api.setPose([s.x + Math.sin(front) * 0.9, floor + 0.30, s.z + Math.cos(front) * 0.9], [s.x, floor + 0.16, s.z], 30);

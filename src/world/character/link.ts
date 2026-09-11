@@ -18,6 +18,7 @@ import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
+import { createLinkSleeve } from './sleeve-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -90,7 +91,7 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
  * Arms: optional tunic sleeve over the shoulder, then either bare skin or the long-sleeved
  * undershirt (`under`) down to a tight cuff at the wrist; skin hand.
  */
-export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; shapedHands?: boolean; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
+export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; shapedSleeves?: boolean; shapedHands?: boolean; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
   const p = rig.props;
   const limb = opts.under ?? opts.skin;
   for (const side of [1, -1] as const) {
@@ -99,7 +100,7 @@ export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: 
     part(shoulder, place(new CylinderGeometry(0.045, 0.039, p.upperArm, 10), 0, -p.upperArm / 2, 0), limb, 'upper-arm');
     if (opts.sleeve) {
       const radius = opts.sleeveRadius ?? 0.06;
-      const sleeve = merge([place(new SphereGeometry(radius, 12, 8), 0, 0.0, 0), place(new CylinderGeometry(radius, radius * 0.9, 0.1, 12), 0, -0.05, 0)]);
+      const sleeve = opts.shapedSleeves ? createLinkSleeve() : merge([place(new SphereGeometry(radius, 12, 8), 0, 0.0, 0), place(new CylinderGeometry(radius, radius * 0.9, 0.1, 12), 0, -0.05, 0)]);
       part(shoulder, sleeve, opts.sleeve, 'sleeve');
     } else {
       part(shoulder, new SphereGeometry(0.05, 12, 8), limb, 'shoulder');
@@ -249,8 +250,8 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const k = r / 0.125, surface = new Mesh(skull, opts.skin);
     const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
     const seam = Array.from({ length: 9 }, (_, i) => {
-      const u = i / 8 * 2 - 1, x = u * 0.018 * k;
-      const y = (-0.057 + 0.003 * u * u) * k;
+      const u = i / 8 * 2 - 1, x = u * 0.014 * k;
+      const y = (-0.057 + 0.0006 * u * u) * k;
       ray.ray.origin.set(x, y, 0.3 * k);
       const hit = ray.intersectObject(surface, false)[0];
       if (!hit) throw new Error('Link mouth must remain seated on the face');
@@ -375,6 +376,25 @@ function leatherBand(points: Vector3[], width: number, surfaces: Mesh[], shoulde
       }
     }
   }
+  // The medial shoulder turn crosses the existing undershirt and tunic rim.
+  // Bridge their support edges using nearby fitted heights, preserving the
+  // ribbon's thickness; both ends fade back to the unchanged lower route.
+  const supported = vertices.slice();
+  for (let i = 0; i <= segments; i++) for (let j = 0; j <= across; j++) {
+    const v = (i * ringSize + across + 1 + j) * 3;
+    const weight = MathUtils.smoothstep(supported[v + 1], shoulderY - 0.020, shoulderY + 0.005)
+      * (1 - MathUtils.smoothstep(Math.abs(supported[v + 2]), 0.045, 0.090));
+    if (weight === 0) continue;
+    let supportedY = supported[v + 1];
+    for (let ni = Math.max(0, i - 6); ni <= Math.min(segments, i + 6); ni++) for (let nj = 0; nj <= across; nj++) {
+      const q = (ni * ringSize + across + 1 + nj) * 3;
+      const distance = Math.hypot(supported[v] - supported[q], supported[v + 2] - supported[q + 2]);
+      if (distance < 0.025) supportedY = Math.max(supportedY, supported[q + 1] - distance * 0.35);
+    }
+    const lift = (supportedY - supported[v + 1]) * weight;
+    vertices[v + 1] += lift;
+    vertices[v - (across + 1) * 3 + 1] += lift;
+  }
   // A fitted vertex may lie beside a collar edge while the triangle between
   // vertices crosses its raised fabric. Bridge a small neighbourhood with a
   // conservative, gently sloping envelope instead of dropping at that edge.
@@ -438,7 +458,8 @@ function buildTorso(rig: Rig): void {
   ]);
   part(rig.hips, place(pouch, 0.105, hl(0.6), 0.03, [0, 0.55, 0]), matte('leatherDark'), 'pouch');
   // Pale undershirt behind two folded collar flaps, open at the front of the neck.
-  part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.045, 16), 0, cl(0.8325), 0), matte('undershirt'), 'undershirt');
+  const undershirt = part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.045, 16), 0, cl(0.8325), 0), matte('undershirt'), 'undershirt');
+  garmentSurfaces.push(new Mesh(undershirt.geometry, matte('undershirt')));
   for (const sign of [1, -1]) {
     const outline = [[0.015, 0.855, 0.056], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.098]];
     const centre = new Vector3(sign * 0.047, cl(0.834), 0.094);
@@ -490,12 +511,13 @@ function buildTorso(rig: Rig): void {
       const y = 0.84 - 0.23 * s;
       const rx = torsoR(y);
       const rz = rx * 0.74;
-      const x = sign * (0.08 - 0.165 * s);
+      const upper = MathUtils.smoothstep(y, 0.815, 0.84);
+      const x = sign * (0.08 - 0.165 * s - 0.015 * upper);
       const zz = Math.sqrt(Math.max(0, 1 - (x / rx) ** 2)) * rz + 0.007;
       pts.push(new Vector3(x, cl(y), zz));
     }
     // over the shoulder and a little way down the back
-    pts.unshift(new Vector3(sign * 0.092, cl(0.825), -0.075), new Vector3(sign * 0.092, cl(0.865), -0.02));
+    pts.unshift(new Vector3(sign * 0.065, cl(0.825), -0.075), new Vector3(sign * 0.059, cl(0.865), -0.02));
     return pts.reverse();
   };
   for (const sign of [1, -1] as const) {
@@ -573,7 +595,7 @@ export function createLink(): Character {
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
   buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('linkBootCuff'), shaftTop: 0.135, shapedBoots: true, buckle: matte('buckle', { roughness: 0.6 }) });
-  buildArms(rig, { skin, sleeve: cloth('tunic'), sleeveRadius: 0.055, shapedHands: true });
+  buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true });
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085, softFeatures: true });
