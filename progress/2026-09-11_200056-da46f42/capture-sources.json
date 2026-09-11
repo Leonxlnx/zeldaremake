@@ -1,0 +1,78 @@
+{
+  "source": "da46f42be4142445c1b9653d0d18235fdb84da18",
+  "capturedAt": "2026-09-11T20:00:56.592Z",
+  "images": [
+    {
+      "file": "01-idle.jpg",
+      "sha256": "2af93f7d4bfd50f9274337ea7837f82e26f1dabf28356baae0116c8eb8256fac"
+    },
+    {
+      "file": "02-walk.jpg",
+      "sha256": "6f27676c721c24bd3f797881f4f85b3851d81d0f3ff87ae6fad63d755c1b93d2"
+    },
+    {
+      "file": "03-run.jpg",
+      "sha256": "0d63260e7b7a7fd597724cd56aebbdf86493627090aaca46c4996ddb3417a096"
+    },
+    {
+      "file": "04-jump.jpg",
+      "sha256": "1aa885702738e140bcd252e64b27716175f80864e4af68cf87b6733264160c2a"
+    },
+    {
+      "file": "05-outfit-back.jpg",
+      "sha256": "baa3e6ae5a9d6377b3c266e264e11b4ef5d9f19630d1e8cc8f8ea3e96df5f6d0"
+    },
+    {
+      "file": "06-face-detail.jpg",
+      "sha256": "8bb5cb151905008dc6603ab5fed8c564a1793b65fc7c650b8b25eb8adec84350"
+    },
+    {
+      "file": "07-leaf-lantern.jpg",
+      "sha256": "40d8081e0a551156a367f52962e044f387373d1e40a8b203d1099de4b468482d"
+    },
+    {
+      "file": "08-carved-sign.jpg",
+      "sha256": "7bd589786d25c7cf9ad8f966a0416a13fcdd17d7764ecfa3a204fa7cb4992fe6"
+    },
+    {
+      "file": "09-boot-detail.jpg",
+      "sha256": "54cd4bd45faade9f3110bfcf3e389c9ea33b23df10b7fce4bd240b6f16d53d24"
+    },
+    {
+      "file": "10-tree-house.jpg",
+      "sha256": "31345fd1cea8d8e01b55aa84e9b20afda4324ffbeb41f7214c17745de9aa7b63"
+    },
+    {
+      "file": "11-stone-stairway.jpg",
+      "sha256": "56172f9af7f988da9d10e5d81b96360a5946bed304eb14447ebfe1687ec1d0e8"
+    },
+    {
+      "file": "12-face-profile.jpg",
+      "sha256": "de0e837cdeab8c12331c7bd3289a203042685a47b05db6e23fccd74f53b6900c"
+    },
+    {
+      "file": "13-backpack-detail.jpg",
+      "sha256": "4e276c1ea206b9f4eca365d67e8312b1cc3fa4f4799b99a466d56f54f912d0a7"
+    },
+    {
+      "file": "14-belt-detail.jpg",
+      "sha256": "b3471ad94479f70c444c18ddeb02e306dcf9f61f2ba5460ab82a25189a2a7d6e"
+    },
+    {
+      "file": "15-run-rear-quarter.jpg",
+      "sha256": "8876c4a68983bd45464fa97e9f37b611a91938b05a6ea4b567520b872f949cf1"
+    },
+    {
+      "file": "16-run-jump-launch-rear-quarter.jpg",
+      "sha256": "dee61a350f58bf1c90e2de11a7ff21a8b644c910157ce76aa3b78639df589309"
+    },
+    {
+      "file": "17-face-blink-transition.jpg",
+      "sha256": "9c0c4d71b032f01a928e33b0f7df4f5cb0dda815ed1e80a946f1de61381d186c"
+    },
+    {
+      "file": "18-face-blink-narrow.jpg",
+      "sha256": "6e2eafea2ac4959ca633b1650397d8ab54d3b5101e4e7fe3b36b2b2dbbcd9f23"
+    }
+  ]
+}
