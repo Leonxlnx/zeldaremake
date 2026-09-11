@@ -8,12 +8,13 @@
  * Shield (orange-red swirl) on the back and the Kokiri Sword in a scabbard, hilt above the right
  * shoulder. No imported assets.
  */
-import { BoxGeometry, BufferGeometry, CatmullRomCurve3, CircleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geometry';
 import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 import { createLinkFaceGeometry } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
+import { createLinkEyeDisc } from './eye-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -195,8 +196,8 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     if (soft) {
       part(eye, almond(k), white, 'eye-white', false);
       part(eye, eyelid(k, side), opts.skin, 'eyelid', false);
-      part(eye, new CircleGeometry(0.014 * k, 28).translate(0, -0.0005, 0.004 * k), opts.iris, 'iris', false);
-      part(eye, new CircleGeometry(0.0062 * k, 20).translate(0, -0.0005, 0.0045 * k), pupil, 'pupil', false);
+      part(eye, createLinkEyeDisc(k, side, 0.016, 0.0006), opts.iris, 'iris', false);
+      part(eye, createLinkEyeDisc(k, side, 0.009, 0.001), pupil, 'pupil', false);
       const lid = [-1, -0.7, -0.35, 0, 0.35, 0.7, 1].map(x => new Vector3(x * 0.025 * k, 0.0145 * k * Math.sqrt(1 - x * x) * (0.82 + 0.18 * Math.sqrt(1 - x * x)), 0.0025 * k));
       part(eye, sweep(lid, [0.0005 * k, 0.0014 * k, 0.0014 * k, 0.0005 * k], { segments: 18, radial: 5 }), matte('brow'), 'lashes', false);
     } else {
@@ -206,11 +207,27 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
       part(eye, place(new TorusGeometry(0.031 * k, 0.0032, 5, 12, Math.PI), 0, 0.002, 0.012 * k, [0.35, 0, 0], [1, 0.95, 1]), pupil, 'lashes', false);
     }
     // catch-light on the upper-outer iris
-    part(eye, new SphereGeometry((soft ? 0.0015 : 0.0035) * k, 6, 4).translate(side * 0.004 * k, 0.005 * k, (soft ? 0.005 : 0.031) * k), white, 'eye-highlight', false);
+    part(eye, new SphereGeometry((soft ? 0.0015 : 0.0035) * k, 6, 4).translate(side * 0.004 * k, 0.005 * k, (soft ? 0.0042 : 0.031) * k), white, 'eye-highlight', false);
     rig.eyes.push(eye);
     part(head, place(new BoxGeometry((soft ? 0.038 : 0.046) * k, soft ? 0.005 : 0.008, 0.008), side * 0.052 * k, (soft ? 0.034 : 0.047) * k, r * (soft ? 0.94 : 0.87), [0, side * (soft ? 0.3 : 0), side * 0.12]), matte('brow'), 'brow', false);
   }
-  part(head, place(new BoxGeometry(0.032, 0.005, 0.006), 0, -0.056 * (r / 0.125), r * 0.9), matte('mouth'), 'mouth', false);
+  if (opts.softFeatures) {
+    // Seat a small curved mouth seam on the continuous face instead of a flat box.
+    const k = r / 0.125, surface = new Mesh(skull, opts.skin);
+    const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
+    const seam = Array.from({ length: 9 }, (_, i) => {
+      const u = i / 8 * 2 - 1, x = u * 0.018 * k;
+      const y = (-0.057 + 0.003 * u * u) * k;
+      ray.ray.origin.set(x, y, 0.3 * k);
+      const hit = ray.intersectObject(surface, false)[0];
+      if (!hit) throw new Error('Link mouth must remain seated on the face');
+      return new Vector3(x, y, hit.point.z + 0.0006 * k);
+    });
+    part(head, sweep(seam, [0.0004 * k, 0.0011 * k, 0.0011 * k, 0.0004 * k],
+      { segments: 20, radial: 6, closeStart: true, closeTip: true }), matte('mouth'), 'mouth', false);
+  } else {
+    part(head, place(new BoxGeometry(0.032, 0.005, 0.006), 0, -0.056 * (r / 0.125), r * 0.9), matte('mouth'), 'mouth', false);
+  }
 }
 
 /** Hair: cap of hair leaving the face open + swept fringe + sideburns. */
@@ -221,16 +238,20 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
     const k = r / 0.125;
     // a clump of hair: a tapered strand from `from` (under the cap) to `to` (pointed tip)
     const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) =>
-      sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 16, radial: 10, closeTip: true, closeStart: true, flatten: 0.38, crease: 0.12 });
+      sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 20, radial: 12, closeTip: true, closeStart: true, flatten: 0.25, crease: 0.08 });
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008),
-      // Overlapping locks sweep across the forehead with different lengths;
-      // embedded roots sit under the brim, and central tips stop above the eyes.
-      clump([-0.080, 0.062, 0.084], [-0.099, 0.028, 0.108], [-0.117, -0.007, 0.082], 0.025, 0.021, 0.003),
-      clump([-0.032, 0.065, 0.095], [-0.050, 0.040, 0.131], [-0.069, 0.019, 0.123], 0.030, 0.025, 0.0025),
-      clump([0.023, 0.066, 0.095], [-0.008, 0.036, 0.133], [-0.029, 0.016, 0.130], 0.031, 0.024, 0.0025),
-      clump([0.076, 0.063, 0.080], [0.059, 0.039, 0.121], [0.034, 0.023, 0.132], 0.027, 0.024, 0.003),
+      // Parted fringe opens toward both temples. Thin overlapping sections emerge
+      // from beneath the brim; irregular tips stop above the fitted eye openings.
+      clump([-0.080, 0.062, 0.084], [-0.098, 0.030, 0.104], [-0.116, -0.007, 0.081], 0.022, 0.019, 0.002),
+      clump([-0.015, 0.076, 0.092], [-0.042, 0.050, 0.120], [-0.076, 0.019, 0.111], 0.024, 0.022, 0.002),
+      clump([0.012, 0.080, 0.090], [0.041, 0.050, 0.121], [0.073, 0.022, 0.113], 0.025, 0.021, 0.002),
+      clump([0.077, 0.065, 0.080], [0.094, 0.039, 0.102], [0.110, 0.003, 0.081], 0.022, 0.018, 0.002),
+      // Smaller offset locks break the broad main ribbons without covering an iris.
+      clump([-0.005, 0.078, 0.098], [-0.020, 0.046, 0.132], [-0.030, 0.025, 0.125], 0.012, 0.009, 0.0015),
+      clump([0.027, 0.074, 0.095], [0.051, 0.048, 0.126], [0.084, 0.030, 0.108], 0.012, 0.010, 0.0015),
+      clump([-0.049, 0.064, 0.098], [-0.072, 0.039, 0.119], [-0.095, 0.014, 0.094], 0.011, 0.010, 0.0015),
       // A longer temple lock breaks the symmetry without covering an iris.
       clump([0.093, 0.057, 0.072], [0.105, 0.016, 0.080], [0.107, -0.030, 0.065], 0.015, 0.014, 0.003),
       // sideburn clumps in front of the ears, hanging to the jaw
@@ -515,7 +536,7 @@ function buildGear(rig: Rig): void {
 export function createLink(): Character {
   beginTally();
   const rig = buildRig(LINK_PROPORTIONS, 'link');
-  const skin = matte('skin');
+  const skin = matte('linkSkin');
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
   buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('bootCuff'), shaftTop: 0.135, buckle: matte('buckle', { roughness: 0.6 }) });

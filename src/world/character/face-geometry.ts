@@ -68,7 +68,10 @@ export function createLinkFaceGeometry(radius: number): BufferGeometry {
     const originalX = position.getX(i), originalY = position.getY(i), originalZ = position.getZ(i);
     const ny = originalY / radius;
     const jaw = Math.max(0, -ny);
-    const x = originalX * (1 - 0.22 * Math.pow(jaw, 1.4));
+    // Keep the fitted orbital region exact; soften only the lower cheek/chin taper.
+    const lower = Math.min(1, Math.max(0, (jaw - 0.22) / 0.36));
+    const taper = 0.22 - 0.06 * lower * lower * (3 - 2 * lower);
+    const x = originalX * (1 - taper * Math.pow(jaw, 1.4));
     const y = originalY * 1.04;
     let z = originalZ * 0.98;
     if (originalZ > 0) {

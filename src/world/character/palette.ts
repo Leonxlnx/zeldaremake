@@ -29,6 +29,8 @@ export const CHAR_COLORS = {
   hairShade: 0x8c6630,
   /** reference `#87613e` hazed / `#be8556` in the 14 s sunlight: warm tan, a clear hue step from the hair */
   skin: 0xbe8a5e,
+  /** Owner's hero turnaround: softer warm skin, separate from the existing NPC palette. */
+  linkSkin: 0xd8ac88,
   eyeWhite: 0xf2f0ea,
   iris: 0x3268b8,
   irisKid: 0x5a3a22,

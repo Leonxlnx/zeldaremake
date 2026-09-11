@@ -4,12 +4,28 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T05:25:23Z
+updated: 2026-09-11T05:35:50Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+05:34 UTC: claim unclaimed W27 for existing signpost detail, following the owner prop sheet.
+A separate helper may edit signpost.ts only: hand-carved plank edge, peg/binding finish and
+rune-plane seating; preserve its current placement, dimensions, facing, wording and materials.
+The latest actual take-0034 B_house shows a plain rectangular board. No new layout objects or
+house/lighting changes in this bounded pass. Root continues character face/hair work.
+
+05:32 UTC: dee4b03 publishes sewn outfit, W22 wind-shadow parity (3f892c6) and W26 leafy pods
+(2158e6c); actual six character views/clip and canonical take are running. Fable fetched
+unchanged at 17f9217; latest logs/INBOX reread. The 1b39c87 idle image and hero turnaround
+show remaining round staring eyes, uniformly brown tapered cheeks and thick moulded fringe.
+Next character-only pass: larger clipped iris/pupil seated on the actual almond bulge,
+slightly lighter Link skin, lower-jaw softening without moving the eye sockets, and a parted
+layered fringe. A helper owns new eye-geometry.ts/test only; root owns link.ts/face-geometry.ts
+and palette integration. Preserve the rig, proportions, movement and NPC path. This work is
+based on inspected images, not claims of completed reference fidelity.
+
 05:06 UTC: garment contact fix is published as `1b39c87`; four-pose and six-view CI run now.
 Next character pass touches link.ts plus new outfit-details.ts: layered front tunic panels,
 restrained sewn edges, less prominent secondary cloth band, thinner hardware/brim and laced
@@ -118,6 +134,16 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Face follow-up: larger iris/pupil surfaces are clipped to the actual 28-edge lid opening,
+  curve with the sclera and keep positive layer clearance. Link-only skin is warmer/lighter,
+  lower-jaw taper is softened below the unchanged orbital region, a curved mouth seam follows
+  the face, and thinner parted fringe sections overlap. New eye geometry test checks 5,632
+  outward/nondegenerate triangles and both mirrored eyes at actual scale; build passes.
+  Model now 34,938 triangles. Actual close-up review is pending; no visual approval yet.
+- Canonical take-0034 from 1b39c87 published at 05:24 UTC, monitor 3fe30b7. 22/50,
+  phase 1 19/42, 27 pending, no item regressions/flags, deterministic diff zero. A–F SSIM
+  .2618/.2155/.2681/.2596/.2232/.2382; small mixed changes do not establish better similarity.
+  Its B_house image is inspected and still shows broad object/character fidelity gaps.
 - Original outfit pass: fitted layered front tunic panels with sewn hems, cleaner scalloping,
   one primary brown strap plus a green secondary band, restrained metal buckle, reduced cap
   brim and white undershirt, boot tongues/crossed laces and cap-tail seam. The existing rig,
@@ -191,4 +217,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T05:25:23Z
+2026-09-11T05:35:50Z
