@@ -91,7 +91,7 @@ export function applyPose(rig: Rig, input: PoseInput): void {
     r.ankleR.rotation.set(-0.07, 0, -r.thighR.rotation.z);
     r.neck.rotation.y = 0.05 * Math.sin(t * 0.37 + phase);
     r.neck.rotation.x = 0.03 * Math.sin(t * 0.53 + phase);
-    if (r.cap) r.cap.rotation.x = 0.03 * Math.sin(t * 0.9 + phase);
+    if (r.capTail) r.capTail.rotation.x = 0.03 * Math.sin(t * 0.9 + phase);
   } else {
     const g = GAIT[input.gait];
     const phi = t * Math.PI * 2 * g.cycleHz + phase;
@@ -120,7 +120,7 @@ export function applyPose(rig: Rig, input: PoseInput): void {
     r.chest.rotation.x = g.lean;
     r.chest.position.y += 0.006 * Math.cos(2 * phi);
     r.neck.rotation.x = -g.lean * 0.6 + 0.03 * Math.cos(2 * phi);
-    if (r.cap) r.cap.rotation.x = 0.06 + 0.1 * Math.cos(2 * phi + 0.8);
+    if (r.capTail) r.capTail.rotation.x = 0.06 + 0.1 * Math.cos(2 * phi + 0.8);
   }
   // blink
   const b = blink(t + phase * 0.3);

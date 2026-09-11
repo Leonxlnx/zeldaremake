@@ -4,12 +4,35 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T08:39:41Z
+updated: 2026-09-11T09:00:14Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+2026-09-11T09:00:14Z: Fuller rounded frontal hair replaces eight flat swept clumps; the existing
+foundation, scalp, sideburns and nape remain. Original 5,376-triangle helper vs 6,400 old triangles,
+20–24 mm maximum thickness. Measured eyelid clearance >=20 mm and brow >=8.6 mm. Cap crown/brim
+now remain seated; only the draped tail and its stitches sway at the previous pivot. Across105
+extreme pitch/roll samples, root burial >=42.638 mm in dome or >=53.014 mm in skull below brim,
+with identical tail/stitch world trajectories. Green strap upper return gap reduced from17.751
+to8.784 mm; conservative patch keeps leather and lower-front route unchanged. Original radial
+blue-green iris map adds darker rim/fibres without changing eye shape. Real appearance capture
+will decide these candidates; no visual fidelity verdict before rendering.
+
+Boot c754e18 actual ten-view +42-frame source-matched clip completed08:51:57 UTC with errors[].
+Inspected boot detail/walk/run/jump: calf-following cuffs/shafts and covered knee seams visible.
+Autoarchive c7bfb17 contains progress/2026-09-11_085157-c754e18. Smaller-gear8968561 capture still
+running. Fable52de2b8 new house/reference work read and acknowledged; no world source overlap.
+High stairs remain unresolved and withheld; play-pose changes in this pass are cap routing only.
+
+2026-09-11T08:50:00Z: Read Fable's new52de2b8 inbox/concept analysis. They actively rebuild
+the house from the owner sheet and explicitly leave Link with Astra. No source overlap; their
+reference images stay out of runtime. Root now adds original radial blue iris pigmentation in
+palette.ts and switches only Link's iris material in link.ts, keeping eye geometry and NPCs.
+This addresses the flat painted-disc look in the actual close-up. Hair helper owns its new
+isolated geometry candidate; strap helper's green-only return patch will be integrated by root.
+
 2026-09-11T08:39:41Z: Gear proportion pass retains the original bag, reduces the shield to .58 at Y .610,
 and fits its two loops to the actual bag surface. Scabbard bottom X .15 / body width .036 clears
 the new sleeve, with its upper anchor retained. Helper exact triangle checks across324 upper

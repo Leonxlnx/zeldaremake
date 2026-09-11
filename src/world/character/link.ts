@@ -10,7 +10,7 @@
  */
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { merge, ovalLathe, place, sweep, triangleCount } from './geometry';
-import { CHAR_COLORS, cloth, linkHair, matte } from './palette';
+import { CHAR_COLORS, cloth, linkHair, linkIris, matte } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 import { createLinkFaceGeometry } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
@@ -18,6 +18,7 @@ import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
+import { createLinkFringeLocks } from './fringe-geometry';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 
@@ -310,18 +311,7 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       scalp,
       createLinkFrontalHair(r),
-      // Parted fringe opens toward both temples. Thin overlapping sections emerge
-      // from beneath the brim; irregular tips stop above the fitted eye openings.
-      clump([-0.080, 0.062, 0.084], [-0.098, 0.030, 0.104], [-0.116, -0.007, 0.081], 0.022, 0.019, 0.002),
-      clump([-0.015, 0.058, 0.080], [-0.042, 0.050, 0.120], [-0.076, 0.019, 0.111], 0.020, 0.022, 0.002),
-      clump([0.012, 0.062, 0.080], [0.041, 0.050, 0.121], [0.073, 0.022, 0.113], 0.021, 0.021, 0.002),
-      clump([0.077, 0.061, 0.080], [0.094, 0.039, 0.102], [0.110, 0.003, 0.081], 0.022, 0.018, 0.002),
-      // Smaller offset locks break the broad main ribbons without covering an iris.
-      clump([-0.005, 0.060, 0.082], [-0.020, 0.046, 0.132], [-0.030, 0.025, 0.125], 0.012, 0.009, 0.0015),
-      clump([0.027, 0.058, 0.083], [0.051, 0.048, 0.126], [0.084, 0.030, 0.108], 0.012, 0.010, 0.0015),
-      clump([-0.049, 0.064, 0.098], [-0.072, 0.039, 0.119], [-0.095, 0.014, 0.094], 0.011, 0.010, 0.0015),
-      // A longer temple lock breaks the symmetry without covering an iris.
-      clump([0.093, 0.057, 0.072], [0.105, 0.016, 0.080], [0.107, -0.030, 0.065], 0.015, 0.014, 0.003),
+      createLinkFringeLocks(r),
       // sideburn clumps in front of the ears, hanging to the jaw
       clump([0.108, 0.04, 0.045], [0.115, -0.02, 0.05], [0.108, -0.075, 0.045], 0.02, 0.016),
       clump([-0.108, 0.04, 0.045], [-0.115, -0.02, 0.05], [-0.108, -0.075, 0.045], 0.02, 0.016),
@@ -405,11 +395,13 @@ function leatherBand(points: Vector3[], width: number, surfaces: Mesh[], shoulde
   for (let i = 0; i <= segments; i++) for (let j = 0; j <= across; j++) {
     const v = (i * ringSize + across + 1 + j) * 3;
     if (fitted[v + 2] < 0.04) continue;
+    const returnSlope = upperLayer ? 0.18 : MathUtils.lerp(0.18, 1.5,
+      MathUtils.smoothstep(fitted[v + 1], shoulderY - 0.015, shoulderY + 0.005));
     let supportedZ = fitted[v + 2];
     for (let ni = Math.max(0, i - 6); ni <= Math.min(segments, i + 6); ni++) for (let nj = 0; nj <= across; nj++) {
       const q = (ni * ringSize + across + 1 + nj) * 3;
       const distance = Math.hypot(fitted[v] - fitted[q], fitted[v + 1] - fitted[q + 1]);
-      if (distance < 0.025) supportedZ = Math.max(supportedZ, fitted[q + 2] - distance * 0.18);
+      if (distance < 0.025) supportedZ = Math.max(supportedZ, fitted[q + 2] - distance * returnSlope);
     }
     const lift = supportedZ - fitted[v + 2];
     vertices[v + 2] += lift;
@@ -545,6 +537,10 @@ function buildCap(rig: Rig): void {
   cap.position.copy(centre);
   head.add(cap);
   rig.cap = cap;
+  const tailSway = new Group();
+  tailSway.name = 'cap-tail-sway';
+  cap.add(tailSway);
+  rig.capTail = tailSway;
   const capMat = cloth('cap');
   // A low cloth crown follows the skull, then folds into the tail behind the head.
   const R = hairR + 0.008;
@@ -583,7 +579,7 @@ function buildCap(rig: Rig): void {
     new Vector3(-0.014, -0.275, -0.244),
     new Vector3(-0.008, -0.325, -0.247),
   ].map((v, i) => (i < 3 ? v : v.multiplyScalar(k)));
-  part(cap, sweep(pts, [0.076, 0.096, 0.099, 0.087, 0.069, 0.046, 0.021, 0.0018].map(v => v * k),
+  part(tailSway, sweep(pts, [0.076, 0.096, 0.099, 0.087, 0.069, 0.046, 0.021, 0.0018].map(v => v * k),
     { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.22,
       flattenFromRoot: true, crease: 0.10, surfaceNormal: new Vector3(0, 0, -1) }), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
@@ -601,7 +597,7 @@ export function createLink(): Character {
   buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true });
   buildTorso(rig);
   buildNeck(rig, skin);
-  buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085, softFeatures: true });
+  buildFace(rig, { skin, iris: linkIris(), earLength: 0.085, softFeatures: true });
   buildHair(rig, linkHair(), 'link');
   buildCap(rig);
   buildGear(rig, part);

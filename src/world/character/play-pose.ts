@@ -27,7 +27,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
   let pelvisY = NaN;
   let transitionTime = 1;
   let previousSpeed = 0;
-  const upperJoints = [rig.hips, rig.chest, rig.neck, rig.shoulderL, rig.shoulderR, rig.elbowL, rig.elbowR, ...(rig.cap ? [rig.cap] : [])];
+  const upperJoints = [rig.hips, rig.chest, rig.neck, rig.shoulderL, rig.shoulderR, rig.elbowL, rig.elbowR, ...(rig.capTail ? [rig.capTail] : [])];
   const lastUpper = upperJoints.map(j => j.quaternion.clone());
   const transitionUpper = upperJoints.map(j => j.quaternion.clone());
   const reset = () => {
@@ -133,7 +133,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       r.shoulderR.rotation.set(-arm * armWave, 0, -0.1);
       r.elbowL.rotation.x = r.elbowR.rotation.x = -mix(0.18, 1.1, run) - 0.16 * w;
       r.neck.rotation.x = -0.04 * w;
-      if (r.cap) r.cap.rotation.set(0.02 + 0.055 * w * Math.cos(phi * 2 - 0.7), 0, 0.025 * wave * w);
+      if (r.capTail) r.capTail.rotation.set(0.02 + 0.055 * w * Math.cos(phi * 2 - 0.7), 0, 0.025 * wave * w);
 
       if (!s.grounded) {
         // Retain a small asymmetric tuck at the apex. Extend for landing only

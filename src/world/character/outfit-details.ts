@@ -87,7 +87,7 @@ export function addOutfitDetails(rig: Rig, attach: Attach): void {
 
   // Sewn centre seam along the existing cap tail's backmost surface.
   const tail = rig.cap?.getObjectByName('cap-tail') as Mesh | undefined;
-  if (tail && rig.cap) {
+  if (tail && tail.parent) {
     const positions = tail.geometry.getAttribute('position'), seam: Vector3[] = [];
     const ringSize = 13;
     for (let ring = 8; ring <= 34; ring += 2) {
@@ -101,6 +101,6 @@ export function addOutfitDetails(rig: Rig, attach: Attach): void {
       const b = seam[i].clone().add(new Vector3(-side * 0.005, 0, 0));
       seams.push(sweep([a, b], [0.0009, 0.0009], { segments: 1, radial: 5, smooth: false, closeStart: true, closeTip: true }));
     }
-    attach(rig.cap, merge(seams), threadMaterial, 'cap-tail-stitches', false);
+    attach(tail.parent, merge(seams), threadMaterial, 'cap-tail-stitches', false);
   }
 }

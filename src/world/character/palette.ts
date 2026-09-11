@@ -3,7 +3,7 @@
  * post-haze display values; albedos here are ≈ 1.25–1.4× brighter so the graded, hazed frame lands
  * on the measured swatch (same convention as `config.ts`'s world palette).
  */
-import { CanvasTexture, Color, DataTexture, LinearMipmapLinearFilter, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
+import { CanvasTexture, Color, DataTexture, LinearFilter, LinearMipmapLinearFilter, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 
 export const CHAR_COLORS = {
   /** reference `#50542f` */
@@ -59,6 +59,39 @@ export type CharColorKey = keyof typeof CHAR_COLORS;
 
 const cache = new Map<string, MeshStandardMaterial>();
 let weave: DataTexture | undefined;
+
+/** Original blue-green iris pigment, using the clipped eye disc's radial UVs. */
+export function linkIris(): MeshStandardMaterial {
+  const id = 'link-radial-iris';
+  const existing = cache.get(id);
+  if (existing) return existing;
+  const size = 128, data = new Uint8Array(size * size * 4);
+  const smooth = (a: number, b: number, value: number) => {
+    const t = Math.max(0, Math.min(1, (value - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = (x + 0.5) / size * 2 - 1, v = (y + 0.5) / size * 2 - 1;
+    const radius = Math.hypot(u, v), angle = Math.atan2(v, u);
+    // Integer angular frequencies meet seamlessly; no random state or baked highlights.
+    const fibre = 0.5 + 0.25 * Math.sin(angle * 61 + radius * 5 + 0.2 * Math.sin(angle * 11))
+      + 0.15 * Math.sin(angle * 103 - radius * 8) + 0.10 * Math.sin(angle * 29 + radius * 13);
+    const inner = Math.exp(-(((radius - 0.64) / 0.055) ** 2));
+    const edge = smooth(0.85, 0.99, radius);
+    const pigment = [54 + 28 * fibre + 8 * inner, 114 + 39 * fibre + 4 * inner, 147 + 35 * fibre - 9 * inner];
+    const rim = [24, 51, 65], i = (y * size + x) * 4;
+    for (let channel = 0; channel < 3; channel++) data[i + channel] = Math.round(pigment[channel] * (1 - edge) + rim[channel] * edge);
+    data[i + 3] = 255;
+  }
+  const texture = new DataTexture(data, size, size);
+  texture.name = 'original-link-blue-green-iris'; texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true; texture.minFilter = LinearMipmapLinearFilter;
+  texture.magFilter = LinearFilter; texture.needsUpdate = true;
+  const material = new MeshStandardMaterial({ map: texture, color: 0xffffff, roughness: 0.6, metalness: 0 });
+  material.name = id;
+  cache.set(id, material);
+  return material;
+}
 
 /** Original strand variation; U follows each lock and V runs across its fibres. */
 export function linkHair(): MeshStandardMaterial {

@@ -80,8 +80,10 @@ export interface Rig {
   kneeR: Group;
   ankleL: Group;
   ankleR: Group;
-  /** optional accessory pivots the animation may nudge */
+  /** Seated cap root; recursive accessory lookups remain rooted here. */
   cap: Group | null;
+  /** Only the draped cloth tail sways; crown and brim stay seated. */
+  capTail: Group | null;
   /** objects scaled in Y for blinking */
   eyes: Object3D[];
   props: Proportions;
@@ -131,6 +133,7 @@ export function buildRig(props: Proportions, name: string): Rig {
     ankleL,
     ankleR,
     cap: null,
+    capTail: null,
     eyes: [],
     props,
     sole: new Vector3(props.sole[0], props.sole[1], props.sole[2]),
@@ -144,4 +147,5 @@ export function resetRig(rig: Rig): void {
   rig.hips.position.set(0, rig.props.hipY, 0);
   rig.chest.position.set(0, rig.props.chestY - rig.props.hipY, 0);
   if (rig.cap) rig.cap.rotation.set(0, 0, 0);
+  if (rig.capTail) rig.capTail.rotation.set(0, 0, 0);
 }
