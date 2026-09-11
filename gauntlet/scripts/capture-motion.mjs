@@ -11,7 +11,7 @@ const out = path.join(ROOT, 'gauntlet/out/astra-character');
 fs.mkdirSync(out, { recursive: true });
 const server = await serveStatic(path.join(ROOT, 'dist'));
 let browser;
-const errors = [], captures = [];
+const errors = [], captures = [], consoleWarnings = [], consoleErrors = [];
 const source = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 async function captureCanvas(page, label) {
   // SwiftShader can expose a cleared buffer immediately after changing cameras.
@@ -31,6 +31,13 @@ try {
   browser = await launchBrowser();
   const page = await browser.newPage();
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    const type = message.type();
+    if (type === 'warning' || type === 'error') {
+      const entry = { text: message.text(), location: message.location() };
+      (type === 'warning' ? consoleWarnings : consoleErrors).push(entry);
+    }
+  });
   await page.goto(`${server.url}/?capture=1&motion=1&hud=0&dev=0`, { waitUntil: 'load', timeout: 900000 });
   await page.waitForFunction(() => !!window.__ZR__ && !!window.__ZR_PLAYER__, { timeout: 900000 });
   await page.evaluate(() => window.__ZR__.ready());
@@ -128,7 +135,9 @@ try {
       // in play mode, so these images do not substitute for canonical rubric takes.
       if (c.viewpoint && !api.setViewpoint(c.viewpoint)) throw new Error(`Missing progress viewpoint: ${c.viewpoint}`);
       await api.render(2, 0);
-      return { character: api.audit().systems.character, camera: api.cameraPose(), stats: api.stats(), ...(inputTrace ? { inputTrace } : {}) };
+      const audit = api.audit();
+      return { character: audit.systems.character, lighting: audit.systems.lighting, systemFailures: audit.systemFailures,
+        camera: api.cameraPose(), stats: api.stats(), ...(inputTrace ? { inputTrace } : {}) };
     }, c);
     assert.equal(state.character.mode, 'play');
     const s = state.character.locomotion;
@@ -179,7 +188,7 @@ try {
   }
   assert.deepEqual(errors, [], 'renderer page errors');
 } finally {
-  fs.writeFileSync(path.join(out, 'motion.json'), JSON.stringify({ source, capturedAt: new Date().toISOString(), captures, errors }, null, 2));
+  fs.writeFileSync(path.join(out, 'motion.json'), JSON.stringify({ source, capturedAt: new Date().toISOString(), captures, errors, consoleWarnings, consoleErrors }, null, 2));
   if (browser) await browser.close();
   await server.close();
 }

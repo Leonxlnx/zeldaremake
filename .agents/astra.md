@@ -4,12 +4,82 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T20:39:06.606151Z
+updated: 2026-09-11T21:12:17.473475Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Root composed build138modules and staticbatching gates PASS:70→64meshes,105794tri,
+1,508,256 posed vertices/normals exact; UV/material/shadow/disposal/boot/NPC gates.
+Integrating the independently reviewed two-helper connected hair candidate over8efd467:
+scalp3ae11b59 / sideburn14f166f1. Actual-surface joins seat short temple locks inside
+outer nape masses (tip depths2.741/3.626mm), finer staggered tips; protected frontal
+charts/upper rows/central and ear incident channel exact. Same7560v/15048tri hair and
+18UVcharts.80 head poses+16 tail states complete: new surface clears ears/gear;30
+cap-root intersection segments are covered along their full length by actual cap
+with≥18.3519mm depth/1.2570mm edge margin. The28.375nm inner-wall discrepancy is
+recorded, not labelled exact old geometry. Independent cache/order/NPC/UV checks pass.
+No actual render for this hair yet; nape tip shading and remaining skin gaps need
+06/12/15/16 review. Metadata87b06028 also composed, driver trace unchanged.
+
+Actual8efd467 shield completed20:58:44.414UTC; archive6e8ca896/progress/
+2026-09-11_205844-8efd467.18 image hashes/42states/source/errors[] verified.
+Root13/15/16 versus151: wood relief is subtle; old painted grain remains visually
+dominant. Four actuals, GitHub gallery and5,120,106-byte23-entry ZIP delivered.
+
+Fable0055 verification complete:51-file play hash exactly sealed/stats b2d0861b…842d36,
+55 chain links verify, old54 entries/900 artifacts exact. Original PNG bytes absent;
+JPG derivatives retained. dirty:true without status cannot certify clean ec0 source,
+but does not prove wrong source. Root actual A/B/F: B darker veil improves; thick
+overhead limb/exposed pods, tall visible dome and bright regular paving remain.
+PR2 comments5640591834 and5640649938 relay findings, IBL caveat and verification.
+
+Collar seam c35babd7/a4d7eeaa remains scratch under independent review:70 closed
+stitches/1890v/2800tri,+1chest draw using existing thread material. All old geometry
+exact, min gap to green strap1.48455mm/leather2.83569mm/insert4.07472mm.
+Physical eye cap candidate is separately in source/invariant review.
+Split-front tunic clears early walk self-crossing but still crosses raised-leg
+pockets substantially at run240; held while cloth-only hinge band is derived.
+Landing events candidate reveals earlier ordinary reach-boundary derivative failures
+and abrupt knee motion. All production pose/physics/boot assets remain unchanged.
+
+Root isolated task: original construction-only collar running stitches from existing
+collar boundary/surface, retaining fabric geometry, straps and fit. New helper only
+plus narrow Link attachment; scratch first, separate from split lower tunic.
+
+Verified151744b actual skin capture completed20:52:02.784UTC. Progress archive
+5c97e5030c5cb46f94faa1ad7e5245f35c4d597c/progress/2026-09-11_205202-151744b;
+18 image SHA256s/source/42 sequence states/no pageerrors verified. Root06/12 A/B
+against885: slightly less yellow, softer lip shading, no obvious hard pigment edge at
+full frame. Four actuals plus5,120,230-byte23-entry screenshots+clipZIP delivered.
+Published8efd467 shield sourceZIP14,304,783bytes/395entries/CRC and SHA verified,
+delivered. Actual shield capture still running; no rendered relief verdict yet.
+
+Current isolated work remains Link-first: connected short temple/nape hair bridge,
+physical convex ocular surface, split-front tunic, and paired foot landing recovery.
+Closed-skirt deformation is HELD: actual live walk tick8 self-crosses despite passing
+reference poses. The optimized version is byte-exact to that failure, not accepted.
+A new construction follows the shirt reference: independently bending front flaps,
+fixed waistband and retained side/rear seams. No production tunic or physics edits.
+Landing coordinator remains scratch: completed running contact212, but step218 timing
+rejected and calf-rigid laces penetrate floor at216/217. Current bounded contact correction
+handles within-tick arrival instead of stretching a foot curve to one full tick. These
+are separate blockers; no guard limits increased and no collision-free claim.
+
+Capture metadata-only patch reviewed at87b06028: retain lighting/systemFailures from
+existing audit plus browser warnings/errors. Driver normal/retry/pageerror paths keep
+all input/camera/render/audit calls and42-state clip source exact. Will join next
+meaningful character checkpoint; no changed pass/fail policy or timeline.
+
+Fable fresh tip2f25919 (20:53) and monitorc2adedf publish take0055/ec0aa70.
+Log tick39: atmosphere6 + mossy limb completed; trees10 bark/crown and structures9b
+ivy curtains active. Root is reviewing actual A/B/F; source review confirms global
+world-direction airlight, not viewpoint masks. Upward IBL preservation does not imply
+vertical Link-face fill preservation (environment-only west component ~20–21% lower).
+Metadata reports dirty:true for0055; artifact/play provenance review ongoing. No
+world integration or other-branch edits. Fable still owns atmosphere/lighting/structures.
 
 Actual885b056 eyes completed20:36:21.891UTC, archive8ca68d7/progress/
 2026-09-11_203621-885b056.18imagehashes/42states/source verified,errors[].

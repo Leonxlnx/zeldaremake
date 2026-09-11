@@ -1,7 +1,45 @@
 /** Original closed scalp base and rounded nape locks; no imported assets. */
-import { BufferGeometry, CubicBezierCurve3, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
+import { BufferGeometry, CubicBezierCurve3, DoubleSide, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Triangle, Vector3 } from 'three';
 import { createLinkFaceGeometry } from './face-geometry';
 import { merge } from './geometry';
+
+const joinPoints = new Map<number, readonly [Vector3, Vector3]>();
+
+/** Interior of an actual outer-lock section, so the lower temple layer ends inside hair. */
+function fitLowerJoin(geometry: BufferGeometry, hint: Vector3, k: number): Vector3 {
+  const material = new MeshBasicMaterial({ side: DoubleSide }), mesh = new Mesh(geometry, material);
+  mesh.updateMatrixWorld(true);
+  const ray = new Raycaster(), triangle = new Triangle(), centre = new Vector3(), normal = new Vector3(), radial = new Vector3();
+  const position = geometry.attributes.position, index = geometry.index!;
+  let result: Vector3 | undefined, nearest = Infinity;
+  try {
+    for (let i = 0; i < index.count; i += 3) {
+      triangle.a.fromBufferAttribute(position, index.getX(i));
+      triangle.b.fromBufferAttribute(position, index.getX(i + 1));
+      triangle.c.fromBufferAttribute(position, index.getX(i + 2));
+      triangle.getMidpoint(centre); triangle.getNormal(normal);
+      radial.set(centre.x, 0, centre.z).normalize();
+      const angle = Math.atan2(Math.abs(centre.x), centre.z);
+      if (angle < 1.95 || angle > 2.35 || centre.y / k < -.080 || centre.y / k > -.040 || normal.dot(radial) < .45) continue;
+      ray.set(radial.clone().multiplyScalar(.35 * k).setY(centre.y), radial.clone().negate());
+      const hits = ray.intersectObject(mesh, false).filter(hit => hit.point.dot(radial) > 0);
+      const section: Vector3[] = [];
+      for (const hit of hits) if (!section.length || hit.point.distanceTo(section[section.length - 1]) > 1e-8 * k) section.push(hit.point);
+      if (section.length !== 2 || section[0].distanceTo(section[1]) < .003 * k) continue;
+      const midpoint = section[0].clone().add(section[1]).multiplyScalar(.5), distance = midpoint.distanceTo(hint);
+      if (distance < nearest) { result = midpoint; nearest = distance; }
+    }
+    if (!result) throw new Error('Link lower temple layer requires a finite nape attachment');
+    return result;
+  } finally { material.dispose(); }
+}
+
+/** Two cached points only; returned clones keep the authored attachment independent of callers. */
+export function linkLowerHairJoins(radius: number): readonly [Vector3, Vector3] {
+  if (!joinPoints.has(radius)) createLinkScalpAndNape(radius).dispose();
+  const points = joinPoints.get(radius)!;
+  return [points[0].clone(), points[1].clone()];
+}
 
 /** Fit the largest connected face component, so hair never follows the separate ear tips. */
 function skullSurface(radius: number): BufferGeometry {
@@ -74,7 +112,15 @@ export function createLinkScalpAndNape(radius: number): BufferGeometry {
         // The centre stays at its existing height under the cap tail. Broad
         // side lobes taper into that clearance channel, independent of pose.
         const side = smooth((Math.abs(angle - Math.PI) - .52) / .23);
-        const y = low + (.110 - low) * row / rows - .052 * posterior(angle) * side * (1 - smooth(row / 6));
+        let y = low + (.110 - low) * row / rows - .052 * posterior(angle) * side * (1 - smooth(row / 6));
+        // Continue the lower side layer behind the ear, retaining the complete
+        // ear-facing sample guard, upper rows and central cap-tail channel.
+        const sideAngle = Math.min(angle, Math.PI * 2 - angle);
+        const bridge = smooth((sideAngle - 1.90) / .15) * (1 - smooth((sideAngle - 2.16) / .20));
+        if (row < 6 && bridge > 0) {
+          const hem = low - .052 * posterior(angle) * side;
+          y -= Math.max(0, hem + .066) * bridge * (1 - smooth(row / 6));
+        }
         const sample = skinAt(angle, y);
         points.push(sample.point);
         normals.push(sample.normal);
@@ -114,20 +160,21 @@ export function createLinkScalpAndNape(radius: number): BufferGeometry {
     // The same four closed charts form broad overlapping masses, with uneven
     // lengths and shallow curls. The carrier remains visible between their roots.
     const locks = [
-      { path: [[2.16, -.006], [2.22, -.043], [2.18, -.079], [2.29, -.098]], width: .031, depth: .0145 },
-      { path: [[2.53, -.014], [2.51, -.051], [2.44, -.087], [2.49, -.104]], width: .020, depth: .0135 },
-      { path: [[4.12, -.008], [4.06, -.044], [4.12, -.076], [4.00, -.096]], width: .031, depth: .014 },
-      { path: [[3.76, -.015], [3.79, -.052], [3.86, -.085], [3.80, -.102]], width: .020, depth: .0135 },
+      { path: [[2.16, -.006], [1.96, -.041], [2.14, -.074], [2.31, -.086]], width: .028, depth: .0115 },
+      { path: [[2.53, -.014], [2.50, -.049], [2.34, -.088], [2.49, -.100]], width: .020, depth: .0105 },
+      { path: [[4.12, -.008], [4.30, -.043], [4.16, -.072], [3.99, -.084]], width: .028, depth: .011 },
+      { path: [[3.76, -.015], [3.79, -.050], [3.94, -.086], [3.80, -.098]], width: .020, depth: .0105 },
     ];
     const steps = 22, radial = 12;
-    for (const lock of locks) {
+    const joins: Vector3[] = [];
+    for (const [which, lock] of locks.entries()) {
       const controls = lock.path.map(([a, y]) => new Vector3(a * .115, y, 0));
       const curve = new CubicBezierCurve3(controls[0], controls[1], controls[2], controls[3]);
       const v: number[] = [], uv: number[] = [], ind: number[] = [];
       let first = new Vector3();
       for (let i = 0; i < steps; i++) {
         const t = i / steps, c = curve.getPoint(t), tangent = curve.getTangent(t).normalize(), across = new Vector3(-tangent.y, tangent.x, 0);
-        const width = lock.width * (.45 + .72 * Math.sin(Math.PI * t)) * Math.sqrt(1 - t * t), depth = .0012 * (1 - t) + lock.depth * Math.sin(Math.PI * t) ** 1.15;
+        const width = lock.width * (.45 + .72 * Math.sin(Math.PI * t)) * (1 - t) ** .65, depth = .0012 * (1 - t) + lock.depth * Math.sin(Math.PI * t) ** 1.15;
         const sample = skinAt(c.x / .115, c.y);
         if (i === 0)
           first = sample.point.clone().addScaledVector(sample.normal, (.0003 + depth * .5) * k);
@@ -158,8 +205,13 @@ export function createLinkScalpAndNape(radius: number): BufferGeometry {
       g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
       g.setIndex(ind);
       g.computeVertexNormals();
+      if ((which === 0 || which === 2) && !joinPoints.has(radius)) {
+        const hint = skinAt(which === 0 ? 2.02 : Math.PI * 2 - 2.02, -.068);
+        joins.push(fitLowerJoin(g, hint.point.addScaledVector(hint.normal, .00035 * k), k));
+      }
       parts.push(g);
     }
+    if (joins.length === 2) joinPoints.set(radius, [joins[0], joins[1]]);
     const result = merge(parts);
     result.name = 'link-fitted-scalp-and-nape';
     result.computeBoundingBox();
