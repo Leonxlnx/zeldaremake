@@ -1,26 +1,26 @@
 {
-  "source": "0fb629d153db3c28ef19d76c17116bb637c63d6b",
-  "capturedAt": "2026-09-11T16:43:16.756Z",
+  "source": "2bb72fc2a73e6c45bcb3130f6ffce8694d9e5e57",
+  "capturedAt": "2026-09-11T16:50:46.121Z",
   "images": [
     {
       "file": "01-idle.jpg",
-      "sha256": "125a3a5f948d56ac98db7171a5018e2b21ab4d3d04012ce3a86a6c102adedd0c"
+      "sha256": "bd1e6ee8f2d597f6250cc475ff996933d1488e6b4527b68d7acbd0350318e8bb"
     },
     {
       "file": "02-walk.jpg",
-      "sha256": "665494dc9ba7d86ce6147bee595385c43628e6c85127c7a9112a1253f876bbab"
+      "sha256": "9fa767819c4caaa24c254e7b5751ef894d5b1351cfb8bfc4b13e4761720293d6"
     },
     {
       "file": "03-run.jpg",
-      "sha256": "3cdb380166afe00fbdf05f730f0bc5afed427efde1d7d643f5141efb9a70f3be"
+      "sha256": "f6746c58a6e2817bd1cd3a0a574062b42286e62c7ad617c3a57e9817fc4217f2"
     },
     {
       "file": "04-jump.jpg",
-      "sha256": "6998f73ca38c7775798eb8b3229f3388538c52e00177665cb4f8723ed3ff8482"
+      "sha256": "7567fa4a233981f1819e08842f0565a1498f595eb42c2020dba457ca3fec57b3"
     },
     {
       "file": "05-outfit-back.jpg",
-      "sha256": "65b656e2a9c1ed2f06412b0374db0fa493160fb1909cddd6d1a01fbdedc195e4"
+      "sha256": "c8dedb8097af2d799d357265c812cb2a21dba23c433e80a9082498a9b4b022a4"
     },
     {
       "file": "06-face-detail.jpg",
@@ -40,11 +40,11 @@
     },
     {
       "file": "10-tree-house.jpg",
-      "sha256": "7c03f8fad1a3fa83bccf0ecc4e8c06e23afbf15367226c0620b81bebde187be3"
+      "sha256": "2d5d01b244a6b51600f3b5a09656282e3434f460435e4d66d16533a7e38ef43d"
     },
     {
       "file": "11-stone-stairway.jpg",
-      "sha256": "56172f9af7f988da9d10e5d81b96360a5946bed304eb14447ebfe1687ec1d0e8"
+      "sha256": "5b8c99bcf2a9799503f4783e6672540b7abe4de24dc79f8f8b47ee487efd50a1"
     },
     {
       "file": "12-face-profile.jpg",
@@ -52,11 +52,11 @@
     },
     {
       "file": "13-backpack-detail.jpg",
-      "sha256": "1be8b9b088ffda25c25568df11d113bf0379b0470fdfd62df59f3688a062f8df"
+      "sha256": "8b3ed0bbbcf84e93c25d3bed4be1eb93324232b56ec08233ad54097b1606cf59"
     },
     {
       "file": "14-belt-detail.jpg",
-      "sha256": "a44d7e9b0fe097662430f682f4d4f64c89857be0c7ce7ac1810b37c036eb8c35"
+      "sha256": "821e201ef8dce32a58dc1f2bf6c5f82397997507848694744e6a9fd5a197a18f"
     }
   ]
 }
