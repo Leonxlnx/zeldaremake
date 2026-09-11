@@ -12,7 +12,7 @@ import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
-import { LodInstancedSet } from './lodset';
+import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
 import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
@@ -117,6 +117,28 @@ function scatter(ctx: WorldContext, field: VegField, opts: ScatterOpts, place: (
 
 const M = new Float32Array(16);
 
+/**
+ * Variant packs (lodset.ts): which variants of a set share one InstancedMesh at each LOD. Every
+ * variant merged into a pack saves a draw (two where the LOD casts shadows), but each instance
+ * then submits every packed variant's triangles — the unselected ones collapsed to zero area, so
+ * they cost vertex work and the W38 triangle budget, never fill. LODs with thousands of instances
+ * and big geometry therefore stay in separate draws. Measured on the layout cameras (A / B / D)
+ * against one draw per variant: this table saves 51 / 49 / 48 draws for +1.1 M submitted
+ * triangles, where packing every LOD would save 66 for +2.3 M (ferns alone +2.1 M). Sets without
+ * an entry take the default: all variants in one pack at every LOD.
+ */
+const SINGLE = (n: number): number[][] => Array.from({ length: n }, (_, v) => [v]);
+const ALL = (n: number): number[][] => [Array.from({ length: n }, (_, v) => v)];
+const PACKS: Record<string, PackLayout> = {
+  // 965 clumps of the biggest geometry: near / mid LODs one draw per variant, far LOD in pairs
+  ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
+  // the two heads and the two spikes pair up near, everything shares the mid / far draws
+  flowers: [[[0, 1], [2, 3]], ALL(4), ALL(4)],
+  // 3 000+ laminae: only the sparse near LOD packs
+  weeds: [ALL(3), SINGLE(3)],
+  seedheads: [ALL(3), SINGLE(3)],
+};
+
 export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): PlantSets {
   const P = ctx.config.palette;
   const pal = makePalette(P);
@@ -130,7 +152,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     materials.push(material);
     const shadowMaterials = castShadowLods > 0 ? createVegShadowMaterials(material) : undefined;
     if (shadowMaterials) materials.push(shadowMaterials.depth, shadowMaterials.distance);
-    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods });
+    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods, packs: PACKS[label] });
   };
 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });

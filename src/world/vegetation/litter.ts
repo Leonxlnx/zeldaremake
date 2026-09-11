@@ -94,9 +94,12 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   const R = ctx.config.detailRadius;
   const seed = ctx.config.seed;
   const leafGeos = [leafGeometry(`${seed}/leaf/0`, 'oval'), leafGeometry(`${seed}/leaf/1`, 'lance'), leafGeometry(`${seed}/leaf/2`, 'broad'), leafGeometry(`${seed}/leaf/3`, 'oval')];
-  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g) => [g]), material, lodDistances: [], receiveShadow: true });
+  // Variant packs (lodset.ts): twigs share one draw. The 8 700 leaves keep one draw per variant
+  // (packing them would submit +0.37 M collapsed triangles for 3 draws), and the roots must: they
+  // cast shadows through three's own depth material, which does not know the pack collapse.
+  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g) => [g]), material, lodDistances: [], receiveShadow: true, packs: [[0], [1], [2], [3]] });
   const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: [[twigGeometry(`${seed}/twig/0`, false)], [twigGeometry(`${seed}/twig/1`, true)], [twigGeometry(`${seed}/twig/2`, false)]], material, lodDistances: [], receiveShadow: true });
-  const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true });
+  const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
 
   const s = newSample();
   const tint = new Color();

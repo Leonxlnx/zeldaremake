@@ -10,7 +10,8 @@
  *
  * Grass is chunked into 8 m tiles (one InstancedMesh each) with three geometry LODs swapped by
  * camera distance; other plants live in variant × LOD instanced sets that re-bucket by
- * distance. Three wind layers: windGrass (blades), windBranch + windLeaf (plants / bushes).
+ * distance, with several variants packed into one draw per LOD (lodset.ts). Three wind layers:
+ * windGrass (blades), windBranch + windLeaf (plants / bushes).
  */
 import { Group, InstancedMesh, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
@@ -136,10 +137,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // Grass swaps geometries on one mesh, so traversal alone misses dormant LODs.
       const geometries = new Set<BufferGeometry>();
       for (const tile of grass.tiles) for (const geometry of tile.lods) geometries.add(geometry);
-      for (const set of sets) for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
-      group.traverse((object) => {
+      grassGroup.traverse((object) => {
         if (object instanceof InstancedMesh) object.dispose();
       });
+      // the sets own their packed meshes and geometries; the variants they were packed from are ours
+      for (const set of sets) {
+        set.dispose();
+        for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
+      }
       for (const geometry of geometries) geometry.dispose();
       grassMaterial.dispose();
       litterMaterial.dispose();
