@@ -572,6 +572,15 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42; (2) B/E: pods, bough, midground
   contrast; (3) owner decisions (W04, concept vs frames), C01 (Astra).
 
+### 15:45 UTC — tick 35: take-0047 published (monitor `bad3eec`), valid; pods to reference size
+- `f434c37` bough pods ×0.62 (frame 1 s: ~0.27 m at 10.7 m; ours 0.45 m dominated B's upper-left):
+  B 0.211 → 0.216, E 0.228 → 0.233, A 0.255, C 0.266, D 0.269, F 0.242; A 621 draws.
+- Astra merged my house/prop work into its branch (`22ac061`); no new inbox since 06:59.
+- Running: atmosphere-5 (open-haze ceiling, B roof floor, door chroma, Link shadow ratio),
+  structures-8d (arc bough above the dome, door frame desaturated).
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42; (2) B/E midground contrast and
+  the dome/bough composition; (3) owner decisions (W04, concept vs frames), C01 (Astra).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
