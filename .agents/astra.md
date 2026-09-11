@@ -4,62 +4,54 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T16:22:53Z
+updated: 2026-09-11T16:32:54Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Integrate only Fable fda213f's terrain approach correction from b70df65. The full terrain file
-has only that documented blend change versus our source and is copied exactly with attribution.
-It keeps the under-tread trench behind the first riser. The isolated CPU comparison lowers
-the entrance support rise from .433222 to .260134 m and lets ordinary input reach tread one;
-tread two still rejects its .30 m rise against the unchanged .28 guard. The .04–.36 blend and
-checked boundaries are continuous. This fixes a ground obstruction; it does not establish
-whole-leg stair clearance or finish movement. No controller, stair dimensions or lantern
-source is changed. Root production build passes; actual world images remain to be reviewed.
+Integrate the refined relaxed hand in hand-geometry.ts only. It retains wrist geometry and
+forearm coverage, shortens the palm and adds four staggered fingers with a soft inward thumb.
+There are no new joints, materials or gestures. Six closed overlapping components per hand
+are not a welded union. Link remains 64 meshes and now has 79,576 triangles (+2,272).
+72 other unbatched meshes and all three NPCs remain exact; existing fingertip reach and
+whole forearm/hand bounding box are preserved. Digit root caps remain buried by at least
+4.575 mm. Independent geometry/mirror/root-coverage and virtual typecheck checks pass.
 
-Cloth ab669a8 is pushed; its and cap5529e85's character jobs run independently. Hand, temple
-hair and sleeve candidates remain separate. The owner continues to prioritize character.
+The initial inward thumb increased running belt contact and was rejected. The final candidate
+tucks it closer to the palm, narrows the index and applies a targeted 1.2 mm index correction.
+The full refinement replay covers stand/walk/run/jumps/turns/stop; the final local correction
+is verified on the same 432-frame running trace. No new sampled exterior-contact frames and
+no belt depth regressions remain. Pouch contact frames fall 188 to 185. Eight pouch frames
+still expose deeper surface samples, but all 21 such events lie inside the old palm volume
+by at least .719 mm. Existing deep pouch overlap remains, and full solid containment is not
+proved. A tiny .040 mm index strip outside the old mesh did not introduce sampled intrusion.
+Actual hand/belt close-ups and motion must judge joins and existing overlap before approval.
 
+Root production build and static-batching regression pass: 74 to 64 meshes, 79,576
+triangles, 2,992,032 posed positions/normals exact; UV/material/shadow/disposal/boot/NPC
+invariants preserved. Fable's isolated approach correction is
+pushed as 0fb629d, with attribution. It permits the first tread in the examined ordinary-input
+route; the second .30 m riser still blocks at the unchanged .28 guard. No full stair-clearance
+claim. Cloth ab669a8 and cap5529e85 are rendering; their CI build and focused tests pass.
+The publisher's first actual archive remains pending. Side-hair and sleeve silhouettes remain
+separate candidates. Root's additional face/boot reviewers are read-only at this stage.
 
-Now integrate original woven cloth and physical UV density on Link only. Files: new
-cloth-surface.ts and cloth-uv.ts, the existing palette cloth factory, and one hook in link.ts
-after outfit/boot construction and immediately before static batching. The combined candidate
-has been checked against the new folded cap: 64 meshes / 77,304 triangles / 28 material names
-remain; all geometry positions, normals and indices and all three NPCs remain exact.
-Four cloth material instances share two original 256×256 textures. The packed surface uses
-R height / G roughness, 0.35 mm bump scale, and effective average roughness about .930.
-Quantized linear albedo mean compensation preserves average tile reflectance and hue.
-
-UVs repair four panel/collar fan centres, then use measured surface gradients for approximately
-1.2 mm yarn spacing. Circular charts close on integer tiles. This is a median per chart;
-the narrow brim has a finer .62 mm axis, and existing UV-degenerate edge regions remain.
-The new 927-vertex cap tail and 444 appended UV vertices pass, with 1.20 / 1.13 mm medians.
-Root production build and static-batching regression pass on the integrated cloth files:
-74 to 64 meshes, 77,304 triangles, 2,664,864 posed positions/normals exact, UV/material/shadow/
-disposal/boot/NPC invariants intact. Actual close-up and moving renders must judge weave
-strength, seams and shimmer.
-
-The owner explicitly prioritizes Link while asleep and asks continued collaboration/pushes.
-Our C01/C02/C03 claim runs through 17:43:30 UTC. Fable has now replied at 16:15:26 and pushed
-b70df65: approach-trench fix, convergence with our shadow/layout/point settings, and grouped
-lantern pods. The isolated terrain delta now passes a bounded input audit: entrance rise falls from .433
-to .260 m, allowing tread one; tread two still stalls on .30 > .28. Its blend is continuous
-at checked boundaries. No world source is integrated in this cloth pass. Fable grants W27
-sign variants and scoped signposts layout entries; preserve their protected camera boxes and
-minimum paving/NPC separation. Sign work follows character priority. External process state
-is not visible; the fresh commits/reply are confirmed activity.
-
-The four-finger hand candidate remains held for deeper existing belt/pouch contact; helper
-is correcting the thumb and fingertip envelope before integration. Supported-chin actual
-front/profile images are inspected: intermediate improvement, still round toy-like proportions.
-A separate reviewer is proposing one larger hair/face silhouette improvement from the owner
-sheet. No character completeness or 95% fidelity claim. Controller and .28 step guard stay
-unchanged; Fable's proposed stair-only .32 limit needs full-leg movement validation first.
+The owner asks sustained character-first work and continued collaboration while asleep.
+Fable b70df65 / PR2 reply16:15 confirms current work and grants scoped W27 sign variants for
+later. They retain world/lighting/house ownership. Their pod grouping is reviewed source,
+not yet integrated; rocks' cross-system import remains held under the architecture rule.
+Claims C01/C02/C03 live through 17:43:30 UTC. No new schedule, merge or deployment.
 
 ## Recent completed work and evidence
+
+- 0fb629d: exact Fable fda213f terrain approach file, credited. Production build and bounded
+ input/height-continuity proof pass; source-specific world images follow. Full stair movement
+ remains blocked at the second riser. Evidence: .agents/reviews/astra-stair-approach-fda213f.md.
+- ab669a8: original shared woven cloth and physical UV density with four repaired fan centres.
+ Root build/static batching pass, 64 meshes / 77,304 triangles unchanged. Actual CI capture
+ running; weave strength, seams and shimmer have no visual approval yet.
 
 - 5529e85: broader folded cap and fitted curved crossing stitches, 64 meshes / 77,304 triangles.
  Root build passes; actual cap gallery and canonical take now requested. Its character
