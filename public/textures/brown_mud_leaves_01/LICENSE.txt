@@ -1,6 +1,0 @@
-Texture set: brown_mud_leaves_01
-Source: https://polyhaven.com/a/brown_mud_leaves_01
-Author: Poly Haven contributors (see source page)
-Licence: CC0 1.0 Universal (public domain) — https://polyhaven.com/license
-Files: color.jpg normal.jpg 
-Re-encoded to JPEG (1k) from the Poly Haven originals; nor_gl (OpenGL convention) normal map.

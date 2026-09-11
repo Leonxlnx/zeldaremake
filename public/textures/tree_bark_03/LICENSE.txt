@@ -1,7 +1,0 @@
-Texture set: tree_bark_03
-Source: https://polyhaven.com/a/tree_bark_03
-Author: Rob Tuytel (Poly Haven)
-Licence: CC0 1.0 Universal (public domain) — https://polyhaven.com/license
-Files: color.jpg normal.jpg roughness.jpg
-Re-encoded to JPEG (1k) from the Poly Haven originals; nor_gl (OpenGL convention) normal map.
-Used by: src/world/trees (giant Kokiri tree bark).

@@ -1,5 +1,0 @@
-weathered_planks
-Source: https://polyhaven.com/a/weathered_planks
-Files: color.jpg (diffuse), normal.jpg (OpenGL normal), roughness.jpg — 1K JPEG re-encodes of the Poly Haven originals.
-Licence: CC0 1.0 Universal (public domain) — https://creativecommons.org/publicdomain/zero/1.0/
-Author: Poly Haven contributors (see source page).

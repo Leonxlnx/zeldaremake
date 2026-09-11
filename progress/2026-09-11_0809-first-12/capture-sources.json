@@ -1,0 +1,77 @@
+[
+  {
+    "file": "01-idle.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "d1c013a37dbcd9d967c2ee738f74ea31de0107e87bf9dace6c4adb48758d44ae"
+  },
+  {
+    "file": "02-walk.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "ae8244c53aff946dc4acc644252686990e4357951de1b368fc8671d039bc2261"
+  },
+  {
+    "file": "03-run.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "a2a6aabba68e3503e4cc33bd97aae53b98f617418b880be1f7012c18c0d4325a"
+  },
+  {
+    "file": "04-jump.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "bb6808e9d0d5b31d0be7bafc259b7bb0811d2dde2a92d3a776f6b6b573bb8df4"
+  },
+  {
+    "file": "05-outfit-back.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "1738a2dec5e857da305b73098f14c71a3839cab370ab107a73525a93eb4faeac"
+  },
+  {
+    "file": "06-face-detail.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "d78f66c7d195865f794f671f71b78a563ea9314a01bb3180204e6b7719d56423"
+  },
+  {
+    "file": "07-leaf-lantern.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "8ecfc5f9a4630159bfd63498f23731af34c876a3477186a58210e261b14b49e0"
+  },
+  {
+    "file": "08-carved-sign.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "145057cb7f5e0a7fa234d868f67e068b97f5b2aba6eba93e5a4b58e692e71926"
+  },
+  {
+    "file": "09-boot-detail.jpg",
+    "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+    "capturedAt": "2026-09-11T08:09:01.865Z",
+    "sha256": "24fc5e2cedfc1204e2df1d4f027c37ab012c6298ecc6ce40578e5500ec0c098d"
+  },
+  {
+    "file": "10-forest-stairway.jpg",
+    "source": "a35c949",
+    "take": "take-0038",
+    "capturedAt": "2026-09-11T06:55:50.217Z",
+    "sha256": "92a38d0833c1e294ac9b51fa21eee617f15d326ba09d1b6eb4d036e0f58ba1cb"
+  },
+  {
+    "file": "11-tree-house.jpg",
+    "source": "a35c949",
+    "take": "take-0038",
+    "capturedAt": "2026-09-11T06:55:50.217Z",
+    "sha256": "0c5103c68ee98e126078624949077238422dcd2c91231db0f7dcc37a200849eb"
+  },
+  {
+    "file": "12-forest-path.jpg",
+    "source": "a35c949",
+    "take": "take-0038",
+    "capturedAt": "2026-09-11T06:55:50.217Z",
+    "sha256": "f8058baaef3425cf7e79465b76ddb4315b0602d7c2b9ecef99fa24e86b3fc46d"
+  }
+]
