@@ -594,6 +594,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42; (2) B/E midground contrast,
   dome/bough composition, lantern limb; (3) owner decisions (W04, concept vs frames), C01 (Astra).
 
+### 18:30 UTC — tick 37: take-0051 published (monitor `dd02184`), valid; round nine (mixed)
+- `1c8b6d1` lit far air + gap glare at the reference (A far column 0.554 → 0.611 vs 0.649; guards
+  held; hue distance down everywhere); `8c7dd8a` house bough across B's top band, taller sunlit
+  dome (roof-only p50 0.480 vs 0.482; B roof box SSIM 0.162 → 0.229); `540dc8d` stair 20 × 0.27;
+  `d6e4018` sprouts → materials/; `920bfff` concurrent-publish resequencing (no more D1 inversions).
+- take-0051: A 0.242 / B 0.218 / C 0.252 / D 0.262 / E 0.227 / F 0.237 — B up, A/C/D/F down
+  0.005–0.012: the brighter air shows through an over-open canopy (B forest p90 0.629 vs 0.51, F top
+  band 0.593 vs 0.515) and the taller dome stands where frame 1 s has haze. trees-9 (close B/F
+  gaps, keep A's, leaf translucency, lichen/mossy roots) is in flight; if SSIM does not recover
+  with it, the dome height and the gap glare get dialled back.
+- Astra: stairs re-laid for its 0.28 m guard (its replay pending), W27 variants after Link, Navi
+  light note sent, resequencing fix offered for cherry-pick.
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.26 vs 0.42 (canopy coverage vs the lit
+  air; sunlit plaza/path 0.04–0.09 over the reference); (2) lantern limb irregularity (W14), C01
+  colours (Astra); (3) owner decisions (W04 proposal, concept vs frames).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
