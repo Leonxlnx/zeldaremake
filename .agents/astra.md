@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T02:39:00Z
+updated: 2026-09-11T03:05:00Z
 ---
 
 # Astra — resumed character work
@@ -18,12 +18,18 @@ Owner explicitly resumed Astra/Fable collaboration and requested improved origin
 - `src/main.ts`: minimal control-hint/input-order integration only if needed.
 - `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
 - Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
 - Cloned all branches and recovered the entire `.agents/` history, AGENTS.md, GAUNTLET.md, PROJECT_STATE.md, open PRs #1–#4 and recent commits.
 - Based this branch on Fable's `725e681` (includes `8dcc1e1` tree shadows and `24ab5df` vegetation). Main remains the README-only initial commit.
 - Read historical Codex logs on props/vegetation branches; their accepted changes already exist in the foundation. Do not blindly merge those stale branches.
 - Fable's newest tick 30 says PAUSED by owner, no sub-agents running. Its next planned capture is take-0033 of `24ab5df`; do not impersonate Fable or mark that capture complete.
+- Published coordination commit `7b2635e` and draft PR #5. Fable replied in `17f9217`: paused, respecting C01/C02/C03 and character/follow-camera scope; character subagent retired.
+- Implemented fixed 120 Hz movement/contacts, acceleration, continuous gait blending, a 0.768 m / 0.64 s jump, edge buffering, collision sampling, stair/ledge support and live-only foot IK. Input blur/menu cleanup and post-simulation camera follow are in place.
+- CPU replay checks pass at 30/60/120/144 Hz, including actual Three.js sole coordinates, jump buffering, wall sliding and 5 mm wall regression. Flat and stair centre-sole target error is currently ~1e-15 m; no centre-sole penetration in the tested replay. Full boot volume/step continuity still needs rendered review.
+- Baseline gauntlet CI run 34555513864 passed. This is the pre-movement source, not visual evidence of the new controller.
+- Model pass underway: reduce shoulder/sleeve width toward the measured 1.2× head target, flatten protruding eyes, soften the jaw, lower the cap crown/thin its brim and add original mipmapped cloth weave. Existing NPC proportions/materials are preserved.
 
 ## Important decisions
 - Current owner instruction authorizes character work over the old Phase-1-only prose; preserve locked rubric and existing fixed-camera capture composition.
@@ -32,10 +38,10 @@ Owner explicitly resumed Astra/Fable collaboration and requested improved origin
 - Before every major task: fetch, reread Fable's newest log/claims and PR activity, inspect changed files, document overlap.
 
 ## Known issues
-- Existing controller snaps velocity on/off, gait phase follows global time, blocked input still animates, and jumping is absent.
-- Camera/input has no blur cleanup and follows ground instead of actual vertical player position.
+- Stair foot transitions and full boot/tread clearance require visual review; the current numeric test covers sole centres, not the whole boot mesh.
+- Structure collisions sample the existing heightfield mask, not arbitrary mesh triangles. Camera boom checks terrain; tree geometry is not a separate camera collider.
 - Existing reference captures and visual reviews do not prove faithful motion. New movement tests and real rendered evidence are required.
-- Previous Work environment could not create WebGL; checking current browser before promising a fresh capture. CI-attested gauntlet remains the completion gate.
+- Work preview browser rejected terminal.local with ERR_BLOCKED_BY_CLIENT. The connector's artifact download URL also returned Cloudflare 403. Use repository CI for real renderer captures and its own generated capture branch for screenshot retrieval. Do not claim local browser success.
 
 ## Coordination notes
 Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/world/character/` and `src/camera/follow.ts` while this claim is active; reply in INBOX on your branch or this PR. A separate read-only reviewer is checking movement risks; it is not Fable and cannot approve Fable's work on their behalf.
@@ -45,4 +51,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T02:39:00Z
+2026-09-11T03:05:00Z

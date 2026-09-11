@@ -3,7 +3,7 @@
  * post-haze display values; albedos here are ≈ 1.25–1.4× brighter so the graded, hazed frame lands
  * on the measured swatch (same convention as `config.ts`'s world palette).
  */
-import { CanvasTexture, Color, MeshStandardMaterial, SRGBColorSpace } from 'three';
+import { CanvasTexture, Color, DataTexture, LinearMipmapLinearFilter, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 
 export const CHAR_COLORS = {
   /** reference `#50542f` */
@@ -52,6 +52,35 @@ export const CHAR_COLORS = {
 export type CharColorKey = keyof typeof CHAR_COLORS;
 
 const cache = new Map<string, MeshStandardMaterial>();
+let weave: DataTexture | undefined;
+
+/** Sub-millimetre authored weave; mipmapped so it softens naturally at gameplay distance. */
+export function cloth(key: 'tunic' | 'cap' | 'capBrim'): MeshStandardMaterial {
+  const id = `cloth-${key}`;
+  const existing = cache.get(id);
+  if (existing) return existing;
+  if (!weave) {
+    const size = 64, data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const thread = Math.sin(x * Math.PI / 2) * Math.cos(y * Math.PI / 2);
+      const grain = ((x * 13 + y * 29 + x * y * 7) % 17) / 16 - 0.5;
+      data[i] = data[i + 1] = data[i + 2] = Math.round(128 + 26 * thread + 8 * grain);
+      data[i + 3] = 255;
+    }
+    weave = new DataTexture(data, size, size);
+    weave.name = 'original-character-cloth-weave';
+    weave.wrapS = weave.wrapT = RepeatWrapping;
+    weave.repeat.set(5, 5);
+    weave.generateMipmaps = true; weave.minFilter = LinearMipmapLinearFilter;
+    weave.needsUpdate = true;
+  }
+  const material = matte(key).clone();
+  material.name = id; material.roughness = 0.97;
+  material.bumpMap = weave; material.bumpScale = 0.0007;
+  cache.set(id, material);
+  return material;
+}
 
 /**
  * Shared matte MeshStandardMaterial per colour key (fog-compatible: the atmosphere patches the fog

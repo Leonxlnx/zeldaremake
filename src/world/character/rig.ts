@@ -36,7 +36,7 @@ export const LINK_PROPORTIONS: Proportions = {
   hipHalfWidth: 0.068,
   chestY: 0.66,
   shoulderY: 0.835,
-  shoulderHalfWidth: 0.14,
+  shoulderHalfWidth: 0.118,
   upperArm: 0.155,
   forearm: 0.14,
   neckY: 0.85,

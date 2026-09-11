@@ -10,7 +10,7 @@
  */
 import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geometry';
-import { CHAR_COLORS, matte, shieldTexture } from './palette';
+import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 
 export interface Character {
@@ -76,7 +76,7 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
  * Arms: optional tunic sleeve over the shoulder, then either bare skin or the long-sleeved
  * undershirt (`under`) down to a tight cuff at the wrist; skin hand.
  */
-export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
+export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
   const p = rig.props;
   const limb = opts.under ?? opts.skin;
   for (const side of [1, -1] as const) {
@@ -84,7 +84,8 @@ export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: 
     const elbow = side > 0 ? rig.elbowL : rig.elbowR;
     part(shoulder, place(new CylinderGeometry(0.045, 0.039, p.upperArm, 10), 0, -p.upperArm / 2, 0), limb, 'upper-arm');
     if (opts.sleeve) {
-      const sleeve = merge([place(new SphereGeometry(0.06, 12, 8), 0, 0.0, 0), place(new CylinderGeometry(0.06, 0.054, 0.1, 12), 0, -0.05, 0)]);
+      const radius = opts.sleeveRadius ?? 0.06;
+      const sleeve = merge([place(new SphereGeometry(radius, 12, 8), 0, 0.0, 0), place(new CylinderGeometry(radius, radius * 0.9, 0.1, 12), 0, -0.05, 0)]);
       part(shoulder, sleeve, opts.sleeve, 'sleeve');
     } else {
       part(shoulder, new SphereGeometry(0.05, 12, 8), limb, 'shoulder');
@@ -108,6 +109,7 @@ export interface FaceOptions {
   skin: MeshStandardMaterial;
   iris: MeshStandardMaterial;
   earLength: number;
+  softFeatures?: boolean;
 }
 
 /** Head: skull, big eyes (blink-able groups), brows, nose, mouth, pointed ears. */
@@ -122,8 +124,17 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const c = base.addScaledVector(dir, opts.earLength * 0.42);
     return place(cone, c.x, c.y, c.z, [0, side * 0.5, 0]);
   };
+  const skullBase = new SphereGeometry(r, 24, 18);
+  if (opts.softFeatures) {
+    const vertices = skullBase.attributes.position;
+    for (let i = 0; i < vertices.count; i++) {
+      const jaw = MathUtils.clamp(-vertices.getY(i) / r, 0, 1);
+      vertices.setX(i, vertices.getX(i) * (1 - 0.16 * jaw * jaw));
+    }
+    skullBase.computeVertexNormals();
+  }
   const skull = merge([
-    place(new SphereGeometry(r, 20, 14), 0, 0, 0, undefined, [1, 1.04, 0.98]),
+    place(skullBase, 0, 0, 0, undefined, [1, 1.04, 0.98]),
     // nose
     place(new SphereGeometry(0.013, 8, 6), 0, -0.02 * (r / 0.125), r * 0.98),
     ear(1),
@@ -136,15 +147,17 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const eye = new Group();
     eye.name = 'eye';
     const k = r / 0.125;
-    eye.position.set(side * 0.05 * k, -0.002 * k, r * 0.84);
+    const soft = !!opts.softFeatures;
+    eye.position.set(side * 0.05 * k, -0.002 * k, r * (soft ? 0.91 : 0.84));
+    if (soft) eye.rotation.y = side * 0.28;
     head.add(eye);
-    part(eye, place(new SphereGeometry(0.032 * k, 12, 8), 0, 0, 0, undefined, [1, 0.92, 0.55]), white, 'eye-white', false);
-    part(eye, place(new SphereGeometry(0.0235 * k, 10, 8), 0, -0.001, 0.016 * k, undefined, [1, 1, 0.45]), opts.iris, 'iris', false);
-    part(eye, place(new SphereGeometry(0.013 * k, 8, 6), 0, -0.001, 0.0262 * k, undefined, [1, 1, 0.5]), pupil, 'pupil', false);
+    part(eye, place(new SphereGeometry(0.032 * k, 16, 10), 0, 0, 0, undefined, [1, soft ? 0.66 : 0.92, soft ? 0.23 : 0.55]), white, 'eye-white', false);
+    part(eye, place(new SphereGeometry((soft ? 0.0185 : 0.0235) * k, 12, 8), 0, -0.001, (soft ? 0.007 : 0.016) * k, undefined, [1, 1, soft ? 0.18 : 0.45]), opts.iris, 'iris', false);
+    part(eye, place(new SphereGeometry((soft ? 0.009 : 0.013) * k, 10, 8), 0, -0.001, (soft ? 0.010 : 0.0262) * k, undefined, [1, 1, soft ? 0.2 : 0.5]), pupil, 'pupil', false);
     // catch-light on the upper-outer iris
-    part(eye, new SphereGeometry(0.0035 * k, 6, 4).translate(side * 0.006 * k, 0.007 * k, 0.031 * k), white, 'eye-highlight', false);
+    part(eye, new SphereGeometry((soft ? 0.0022 : 0.0035) * k, 6, 4).translate(side * 0.005 * k, 0.007 * k, (soft ? 0.012 : 0.031) * k), white, 'eye-highlight', false);
     // dark upper lash line: half torus hugging the top of the eye white
-    part(eye, place(new TorusGeometry(0.031 * k, 0.0032, 5, 12, Math.PI), 0, 0.002, 0.012 * k, [0.35, 0, 0], [1, 0.95, 1]), pupil, 'lashes', false);
+    part(eye, place(new TorusGeometry(0.031 * k, soft ? 0.002 : 0.0032, 5, 16, Math.PI), 0, 0.002, (soft ? 0.005 : 0.012) * k, [0.35, 0, 0], [1, soft ? 0.66 : 0.95, 1]), pupil, 'lashes', false);
     rig.eyes.push(eye);
     part(head, place(new BoxGeometry(0.046 * k, 0.008, 0.01), side * 0.052 * k, 0.047 * k, r * 0.87, [0, 0, side * 0.2]), matte('brow'), 'brow', false);
   }
@@ -196,7 +209,7 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
 
 function buildTorso(rig: Rig): void {
   const p = rig.props;
-  const tunic = matte('tunic');
+  const tunic = cloth('tunic');
   const cl = (y: number) => y - p.chestY;
   const hl = (y: number) => y - p.hipY;
   // upper tunic (chest joint): waist → shoulders → neck opening
@@ -284,14 +297,13 @@ function buildCap(rig: Rig): void {
   cap.position.copy(centre);
   head.add(cap);
   rig.cap = cap;
-  const capMat = matte('cap');
-  // Dome: a shell just outside the hair, stretched along the brim normal into a tall peak that
-  // tapers toward the tip, clipped where it meets the brim plane (polar angle thetaMax).
+  const capMat = cloth('cap');
+  // A low cloth crown follows the skull, then folds into the tail behind the head.
   const R = hairR + 0.008;
-  const stretch = 1.32;
+  const stretch = 1.12;
   const thetaMax = Math.acos(d / (stretch * R));
   const sinMax = Math.sin(thetaMax);
-  const taper = (theta: number) => 1 - 0.4 * Math.pow(Math.max(0, 1 - Math.sin(theta) / sinMax), 1.5);
+  const taper = (theta: number) => 1 - 0.18 * Math.pow(Math.max(0, 1 - Math.sin(theta) / sinMax), 1.5);
   const rimR = R * sinMax;
   const dome = new SphereGeometry(R, 22, 14, 0, Math.PI * 2, 0, thetaMax);
   const pos = dome.attributes.position;
@@ -319,9 +331,9 @@ function buildCap(rig: Rig): void {
     new Vector3(-0.006, -0.3, -0.215),
     new Vector3(0.012, -0.375, -0.22),
   ].map((v, i) => (i < 2 ? v : v.multiplyScalar(k)));
-  part(cap, sweep(pts, [0.062 * k, 0.06 * k, 0.056 * k, 0.05 * k, 0.043 * k, 0.034 * k, 0.022 * k, 0.005], { segments: 30, radial: 12, closeTip: true, closeStart: true, flatten: 0.62, crease: 0.3 }), capMat, 'cap-tail');
+  part(cap, sweep(pts, [0.065 * k, 0.067 * k, 0.06 * k, 0.056 * k, 0.046 * k, 0.034 * k, 0.02 * k, 0.005], { segments: 30, radial: 12, closeTip: true, closeStart: true, flatten: 0.48, crease: 0.2 }), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
-  part(cap, place(new TorusGeometry(rimR, 0.02, 8, 26), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), matte('capBrim'), 'cap-brim');
+  part(cap, place(new TorusGeometry(rimR, 0.011, 8, 32), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }
 
 function buildGear(rig: Rig): void {
@@ -365,10 +377,10 @@ export function createLink(): Character {
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
   buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('bootCuff'), shaftTop: 0.135, buckle: matte('buckle', { roughness: 0.6 }) });
-  buildArms(rig, { skin, sleeve: matte('tunic') });
+  buildArms(rig, { skin, sleeve: cloth('tunic'), sleeveRadius: 0.055 });
   buildTorso(rig);
   buildNeck(rig, skin);
-  buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085 });
+  buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085, softFeatures: true });
   buildHair(rig, matte('hair'), 'link');
   buildCap(rig);
   buildGear(rig);
