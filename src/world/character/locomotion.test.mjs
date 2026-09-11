@@ -208,11 +208,15 @@ function contactReplay(surface, hz, commands = [[2, input(0, 1)], [1, input(0, 1
   const soleMeshes = [r.ankleL, r.ankleR].map(a => a.getObjectByName('boot-sole'));
   const soleVertices = soleMeshes.map(mesh => {
     const positions = mesh.geometry.attributes.position;
-    const vertices = Array.from({ length: positions.count }, (_, i) => new THREE.Vector3().fromBufferAttribute(positions, i));
-    const bottom = Math.min(...vertices.map(v => v.y));
-    return vertices.filter(v => Math.abs(v.y - bottom) < 1e-7);
+    // Pitch can put a bevel/side vertex ahead of the underside. Check the whole rounded sole.
+    return Array.from({ length: positions.count }, (_, i) => new THREE.Vector3().fromBufferAttribute(positions, i));
   });
   let error = 0, penetration = 0, jump = 0, bootPenetration = 0, pelvisJump = 0, settledHover = 0;
+  let bootVertexJump = 0, stancePitch = 0, pitchStep = 0, transitionPitchStep = 0;
+  const recovery = { walk: [0, 0], run: [0, 0] };
+  const oldCorners = soleVertices.map(vertices => vertices.map(() => new THREE.Vector3()));
+  const oldPitch = [0, 0]; let oldGrounded = true;
+  const footRotation = new THREE.Quaternion(), footForward = new THREE.Vector3();
   const hip = new THREE.Vector3(), oldHip = new THREE.Vector3();
   const corner = new THREE.Vector3();
   const old = [new THREE.Vector3(), new THREE.Vector3()]; let first = true;
@@ -225,41 +229,69 @@ function contactReplay(surface, hz, commands = [[2, input(0, 1)], [1, input(0, 1
         penetration = Math.max(penetration, surface.height(sole.x, sole.z) - sole.y);
         if (!first) jump = Math.max(jump, sole.distanceTo(old[j]));
         old[j].copy(sole);
+        ankle.getWorldQuaternion(footRotation);
+        footForward.set(0, 0, 1).applyQuaternion(footRotation);
+        const pitch = Math.atan2(-footForward.y, Math.hypot(footForward.x, footForward.z));
+        if (!first) {
+          const step = Math.abs(pitch - oldPitch[j]); pitchStep = Math.max(pitchStep, step);
+          if (s.grounded !== oldGrounded) transitionPitchStep = Math.max(transitionPitchStep, step);
+        }
+        oldPitch[j] = pitch;
         let highestSupport = -Infinity;
-        for (const v of soleVertices[j]) {
+        for (const [vertex, v] of soleVertices[j].entries()) {
           soleMeshes[j].localToWorld(corner.copy(v));
           const h = surface.height(corner.x, corner.z);
           bootPenetration = Math.max(bootPenetration, h - corner.y);
           highestSupport = Math.max(highestSupport, h);
+          if (!first) bootVertexJump = Math.max(bootVertexJump, corner.distanceTo(oldCorners[j][vertex]));
+          oldCorners[j][vertex].copy(corner);
         }
         const phase = ((s.phase + j * 0.5) % 1 + 1) % 1;
         const duty = 0.52 - 0.16 * s.runWeight;
         if (s.grounded && s.moveWeight > 0.9 && phase > 0.05 && phase < duty) {
           settledHover = Math.max(settledHover, sole.y - highestSupport);
         }
+        if (s.grounded && phase < duty) stancePitch = Math.max(stancePitch, Math.abs(pitch));
+        if (s.grounded && phase >= duty && s.time > 1.5 && !s.stairWeight && s.moveWeight > .99) {
+          const gait = s.runWeight < .01 && s.speed > 1.4 ? 'walk' : s.runWeight > .95 && s.speed > 3.7 ? 'run' : null;
+          if (gait) {
+            recovery[gait][0] = Math.min(recovery[gait][0], pitch);
+            recovery[gait][1] = Math.max(recovery[gait][1], pitch);
+          }
+        }
       });
       r.hips.getWorldPosition(hip);
       if (!first) pelvisJump = Math.max(pelvisJump, hip.distanceTo(oldHip));
       oldHip.copy(hip);
-      first = false;
+      first = false; oldGrounded = s.grounded;
     });
   }
-  return { feet: old.flatMap(v => v.toArray()), error, penetration, jump, bootPenetration, pelvisJump, settledHover };
+  return { feet: old.flatMap(v => v.toArray()), error, penetration, jump, bootPenetration, pelvisJump, settledHover,
+    bootVertexJump, stancePitch, pitchStep, transitionPitchStep, recovery };
 }
 const contacts = contactReplay(flat, 120), stairContacts = contactReplay(stair, 120);
 const jumpCommands = [[1, input(0, 1)], [1, input(0, 1, false, true)], [1, input()]];
 const runJumpCommands = [[1, input(0, 1, true)], [1, input(0, 1, true, true)], [1, input()]];
 const jumpContacts = contactReplay(flat, 120, jumpCommands);
 const runJumpContacts = contactReplay(flat, 120, runJumpCommands);
-const descendingContacts = contactReplay(stair, 120, [[3, input(0, 1)], [3, input(0, -1)], [1, input()]]);
+const descendingCommands = [[3, input(0, 1)], [3, input(0, -1)], [1, input()]];
+const descendingContacts = contactReplay(stair, 120, descendingCommands);
+const stairJumpCommands = [[1, input(0, 1)], [1, input(0, 1, false, true)], [1, input(0, 1)], [1, input()]];
+const stairJumpContacts = contactReplay(stair, 120, stairJumpCommands);
+const contactCases = [[flat, undefined, contacts], [stair, undefined, stairContacts],
+  [flat, jumpCommands, jumpContacts], [flat, runJumpCommands, runJumpContacts],
+  [stair, descendingCommands, descendingContacts], [stair, stairJumpCommands, stairJumpContacts]];
 for (const hz of [30, 60, 144]) {
-  for (const [surface, commands, expected] of [[flat, undefined, contacts], [stair, undefined, stairContacts], [flat, jumpCommands, jumpContacts]]) {
+  for (const [surface, commands, expected] of contactCases) {
     const c = contactReplay(surface, hz, commands);
     c.feet.forEach((v, i) => near(v, expected.feet[i], 1e-8, `${hz}Hz contact ${i}`));
-    for (const metric of ['error', 'jump', 'bootPenetration', 'pelvisJump']) near(c[metric], expected[metric], 1e-8, `${hz}Hz ${metric}`);
+    for (const metric of ['error', 'jump', 'bootPenetration', 'pelvisJump', 'bootVertexJump', 'stancePitch', 'pitchStep', 'transitionPitchStep']) {
+      near(c[metric], expected[metric], 1e-8, `${hz}Hz ${metric}`);
+    }
   }
 }
 assert.ok(contacts.jump < 0.10, `flat foot discontinuity ${contacts.jump}`);
+assert.ok(contacts.bootVertexJump < .10, `flat boot corner discontinuity ${contacts.bootVertexJump}`);
 assert.ok(stairContacts.error < 0.01, `stair sole target error ${stairContacts.error}`);
 assert.ok(stairContacts.penetration < 0.005, `stair sole penetration ${stairContacts.penetration}`);
 assert.ok(contacts.settledHover < 0.005, `flat stance keeps its swing lift ${contacts.settledHover}`);
@@ -267,13 +299,23 @@ for (const stairs of [stairContacts, descendingContacts]) {
   assert.ok(stairs.jump < 0.085, `riser horizontal catch-up ${stairs.jump}`);
   assert.ok(stairs.pelvisJump < 0.04, `pelvis pops on a tread ${stairs.pelvisJump}`);
   assert.ok(stairs.bootPenetration < 0.002, `rendered boot penetrates riser ${stairs.bootPenetration}`);
+  assert.ok(stairs.bootVertexJump < .085, `stair boot corner discontinuity ${stairs.bootVertexJump}`);
 }
-for (const jumpPose of [jumpContacts, runJumpContacts]) {
+for (const jumpPose of [jumpContacts, runJumpContacts, stairJumpContacts]) {
   assert.ok(jumpPose.jump < 0.095, `takeoff/landing foot pop ${jumpPose.jump}`);
   assert.ok(jumpPose.pelvisJump < 0.07, `takeoff/landing pelvis pop ${jumpPose.pelvisJump}`);
   assert.ok(jumpPose.error < 0.005, `airborne IK target error ${jumpPose.error}`);
   assert.ok(jumpPose.bootPenetration < 0.002, `landing boot penetration ${jumpPose.bootPenetration}`);
+  assert.ok(jumpPose.bootVertexJump < .095, `jump boot corner discontinuity ${jumpPose.bootVertexJump}`);
 }
+for (const [, , result] of contactCases) {
+  assert.ok(result.stancePitch < 1e-7, `stance sole remains level ${result.stancePitch}`);
+  assert.ok(result.pitchStep < .065, `boot rotation advances smoothly per fixed step ${result.pitchStep}`);
+  assert.ok(result.transitionPitchStep < .025, `jump transition must not flatten the boot abruptly ${result.transitionPitchStep}`);
+}
+// The former yaw-only solve passes contact tests but fails these actual boot-direction checks.
+assert.ok(contacts.recovery.walk[0] < -.055 && contacts.recovery.walk[1] > .055, `walk boot articulates both ways ${contacts.recovery.walk}`);
+assert.ok(contacts.recovery.run[0] < -.11 && contacts.recovery.run[1] > .11, `run boot articulates both ways ${contacts.recovery.run}`);
 
 // Fixed reference poses remain independent of playing/stopping/jumping beforehand.
 const poseState = () => [rig.hips, rig.chest, rig.neck, rig.thighL, rig.thighR, rig.kneeL, rig.kneeR, rig.ankleL, rig.ankleR].map(j => [...j.position, ...j.quaternion]);
@@ -281,4 +323,4 @@ applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 }); const reference = poseSt
 poses.update({ ...walk.state, grounded: false, vy: 4 }, 100);
 applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 });
 assert.deepEqual(poseState(), reference, 'fixed pose does not accumulate play state');
-console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts }));
+console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts, stairJumpContacts }));

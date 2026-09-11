@@ -6,6 +6,7 @@ import type { Rig } from './rig';
 
 const DOWN = new Vector3(0, -1, 0);
 const UP = new Vector3(0, 1, 0);
+const RIGHT = new Vector3(1, 0, 0);
 const TAU = Math.PI * 2;
 const clamp = MathUtils.clamp;
 const mix = MathUtils.lerp;
@@ -14,11 +15,11 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
   const feet = [1, -1].map((side) => ({
     side, anchor: new Vector3(), from: new Vector3(), to: new Vector3(), target: new Vector3(),
     takeoffRoot: new Vector3(),
-    swing: false, initialised: false, yaw: 0,
+    swing: false, initialised: false, yaw: 0, pitch: 0, transitionPitch: 0,
   }));
   const ankle = new Vector3(), local = new Vector3(), upper = new Vector3();
   const forward = new Vector3(), axis = new Vector3(), soleOffset = new Vector3();
-  const parentQ = new Quaternion(), footQ = new Quaternion(), desiredUpper = new Quaternion();
+  const parentQ = new Quaternion(), footQ = new Quaternion(), pitchQ = new Quaternion(), desiredUpper = new Quaternion();
   const hipWorld = new Vector3(), movingFrom = new Vector3();
   const previous = new Vector3(), restTarget = new Vector3(), delta = new Vector3();
   let wasGrounded = true;
@@ -28,27 +29,32 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
   const lastUpper = upperJoints.map(j => j.quaternion.clone());
   const transitionUpper = upperJoints.map(j => j.quaternion.clone());
   const reset = () => {
-    for (const f of feet) f.initialised = false;
+    for (const f of feet) { f.initialised = false; f.pitch = 0; f.transitionPitch = 0; }
     wasGrounded = true; pelvisY = NaN; transitionTime = 1;
   };
 
-  // The rendered boot-sole in link.ts is .108 x .172 m, centred at ankle Z=.03.
-  // Contacts refer to rig.sole (Z=.025), so check the full sole, including toe/heel.
-  const supportHeight = (x: number, z: number, yaw: number) => {
+  // The rounded sole stays inside this .108 x .172 x .018 m envelope. Check both
+  // height levels: pitch can put an upper bevel ahead of the underside at a riser.
+  const supportHeight = (x: number, z: number, yaw: number, pitch: number) => {
     const sn = Math.sin(yaw), cs = Math.cos(yaw);
+    const sp = Math.sin(pitch), cp = Math.cos(pitch);
     let h = ground(x, z);
-    for (const ox of [-0.054, 0, 0.054]) for (const localZ of [-0.056, 0.03, 0.116]) {
+    for (const height of [0, 0.018]) for (const ox of [-0.054, 0, 0.054]) for (const localZ of [-0.056, 0.03, 0.116]) {
       const oz = localZ - rig.sole.z;
-      h = Math.max(h, ground(x + cs * ox + sn * oz, z - sn * ox + cs * oz));
+      const dy = height * cp - oz * sp, dz = height * sp + oz * cp;
+      h = Math.max(h, ground(x + cs * ox + sn * dz, z - sn * ox + cs * dz) - dy);
     }
     return h;
   };
 
-  const solve = (side: number, target: Vector3, yaw: number) => {
+  const orientFoot = (yaw: number, pitch: number) =>
+    footQ.setFromAxisAngle(UP, yaw).multiply(pitchQ.setFromAxisAngle(RIGHT, pitch));
+
+  const solve = (side: number, target: Vector3, yaw: number, pitch: number) => {
     const thigh = side > 0 ? rig.thighL : rig.thighR;
     const knee = side > 0 ? rig.kneeL : rig.kneeR;
     const foot = side > 0 ? rig.ankleL : rig.ankleR;
-    footQ.setFromAxisAngle(UP, yaw);
+    orientFoot(yaw, pitch);
     soleOffset.copy(rig.sole).applyQuaternion(footQ);
     ankle.copy(target).sub(soleOffset);
     rig.hips.worldToLocal(local.copy(ankle));
@@ -83,6 +89,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
         transitionUpper.forEach((q, i) => q.copy(lastUpper[i]));
         // Preserve the descending feet instead of restarting at a mid-stride target.
         for (const f of feet) {
+          f.transitionPitch = f.pitch;
           f.anchor.copy(f.target); f.from.copy(f.target); f.swing = false;
           f.takeoffRoot.set(s.x, s.y, s.z);
         }
@@ -137,12 +144,21 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       const lead = Math.min(0.245, stride * duty * 0.5) * w;
       for (const f of feet) {
         previous.copy(f.target);
+        const previousPitch = f.pitch;
         const phase = ((s.phase + (f.side > 0 ? 0 : 0.5)) % 1 + 1) % 1;
         const swinging = w > 0.05 && phase >= duty;
+        const swingU = clamp((phase - duty) / (1 - duty), 0, 1);
+        // A small toe-down / toe-up recovery, with zero value and slope at each endpoint.
+        const desiredPitch = mix(0.10, 0.20, run) * Math.sin(TAU * swingU) * Math.sin(Math.PI * swingU) * w;
+        f.pitch = s.grounded ? (swinging ? mix(f.transitionPitch, desiredPitch, transition) : 0)
+          : f.transitionPitch * (1 - transition);
+        // A foot held at a riser may resume after its phase has advanced. Catch the angle
+        // up gradually; normal walk/run recovery is already slower than this limit.
+        if (s.grounded && swinging) f.pitch = previousPitch + clamp(f.pitch - previousPitch, -6 * dt, 6 * dt);
         const lateral = f.side * (r.props.hipHalfWidth + 0.018);
         const rest = (out: Vector3, z: number) => {
           out.set(lateral, 0, z).applyAxisAngle(UP, s.yaw).add(r.root.position);
-          out.y = supportHeight(out.x, out.z, f.yaw);
+          out.y = supportHeight(out.x, out.z, f.yaw, f.pitch);
         };
         if (!f.initialised) {
           f.yaw = s.yaw;
@@ -162,7 +178,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
         } else if (swinging) {
           // Retarget only the free foot so planted soles do not skate when the camera turns.
           rest(f.to, lead + 0.025);
-          const u = clamp((phase - duty) / (1 - duty), 0, 1);
+          const u = swingU;
           const ease = u * u * (3 - 2 * u);
           // Carry the free foot with the moving pelvis while it swings. Its world-space
           // lift-off point alone would lag behind a running body and overextend the knee.
@@ -171,11 +187,11 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           movingFrom.z += s.z - f.takeoffRoot.z;
           f.target.lerpVectors(movingFrom, f.to, ease);
           const lift = (0.07 + 0.10 * run + 0.12 * stair) * Math.sin(Math.PI * u);
-          f.target.y = Math.max(f.target.y, supportHeight(f.target.x, f.target.z, f.yaw)) + lift;
+          f.target.y = Math.max(f.target.y, supportHeight(f.target.x, f.target.z, f.yaw, f.pitch)) + lift;
         } else {
           if (f.swing) f.anchor.copy(f.target);
           f.target.copy(f.anchor);
-          f.target.y = supportHeight(f.target.x, f.target.z, f.yaw);
+          f.target.y = supportHeight(f.target.x, f.target.z, f.yaw, f.pitch);
         }
         if (s.grounded && w < 0.15) {
           // A stopped phase can be halfway through a swing. Settle from the actual
@@ -204,10 +220,13 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
         const yawStep = clamp(Math.atan2(Math.sin(angle), Math.cos(angle)), -9 * dt, 9 * dt);
         const nextYaw = f.yaw + yawStep;
         const vertical = (s.grounded ? 3 : 7) * dt;
-        const floor = supportHeight(f.target.x, f.target.z, nextYaw);
+        const floor = supportHeight(f.target.x, f.target.z, nextYaw, f.pitch);
         if (floor > previous.y + vertical + 1e-5) {
           f.target.x = previous.x; f.target.z = previous.z;
           f.target.y = previous.y + Math.min(floor - previous.y, vertical);
+          // Hold orientation as well as position until the toe/bevel clears the riser.
+          // Rotating a held foot can otherwise introduce a new contact across the step edge.
+          f.pitch = previousPitch;
         } else {
           f.target.y = Math.max(floor, clamp(f.target.y, previous.y - vertical, previous.y + vertical));
           f.yaw = nextYaw;
@@ -228,7 +247,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       const reach = r.props.hipY - r.props.ankleY - 0.002;
       for (const f of feet) {
         (f.side > 0 ? r.thighL : r.thighR).getWorldPosition(hipWorld);
-        footQ.setFromAxisAngle(UP, f.yaw);
+        orientFoot(f.yaw, f.pitch);
         soleOffset.copy(rig.sole).applyQuaternion(footQ);
         ankle.copy(f.target).sub(soleOffset);
         const horizontal = Math.hypot(hipWorld.x - ankle.x, hipWorld.z - ankle.z);
@@ -238,7 +257,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       r.hips.position.y -= drop;
       pelvisY -= drop;
       r.root.updateMatrixWorld(true);
-      for (const f of feet) solve(f.side, f.target, f.yaw);
+      for (const f of feet) solve(f.side, f.target, f.yaw, f.pitch);
       wasGrounded = s.grounded;
       r.root.updateMatrixWorld(true);
     },
