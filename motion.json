@@ -1,6 +1,6 @@
 {
-  "source": "ab669a8eceda9225beed8c4af3039afcca24a86a",
-  "capturedAt": "2026-09-11T16:39:51.879Z",
+  "source": "0fb629d153db3c28ef19d76c17116bb637c63d6b",
+  "capturedAt": "2026-09-11T16:43:16.756Z",
   "captures": [
     {
       "name": "01-idle",
@@ -74,7 +74,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -241,7 +241,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -411,7 +411,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -590,7 +590,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "fb5dfb582b230983543d652c2c5c549080b4b4b2ac10d027d441b2be4a6734d5"
+      "sha256": "d2649d849c1732a4b592bf306967d7fbe9d4bdc2358c6aa75d6b32a0d023fecb"
     },
     {
       "name": "05-outfit-back",
@@ -764,7 +764,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -863,7 +863,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "2ab48387a3474f5bce483dfa621ce4c859fc7848653033b3469a11533f9dff9a"
+      "sha256": "7253b6d477e0720f0d55e108d7b91bc8d10422b0db29eb668c5234a1647ec5e3"
     },
     {
       "name": "06-face-detail",
@@ -938,7 +938,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -1106,7 +1106,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -1190,7 +1190,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "7f17efd254236284deda72dd658ac58bdaf69733b04f85d5d165eef3914a5f77"
+      "sha256": "7fb83de407053ffe9a8499f429fc72ac1ac4e75a6baed2af7eb30ad45a5240f4"
     },
     {
       "name": "08-carved-sign",
@@ -1265,7 +1265,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -1424,7 +1424,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -1592,7 +1592,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -1697,7 +1697,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "cef4bf8c2aae70afa0bdd75b815d81478deffc8accbf3fdce21dc8dd2d20cc27"
+      "sha256": "ef594de39d03a5c44372654b4eefd15a90002e288c6f07311485fef4d7b97d12"
     },
     {
       "name": "11-stone-stairway",
@@ -1772,7 +1772,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -1871,7 +1871,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "2b3e67f0d87c53f04bb2acd958ddd9f7f8f30c5169378d0bb784e28236f5f1bd"
+      "sha256": "aaa62e1b56fd1b933a7c702edc8eba7c27068e0ca4fca38e0778e4cda5f1889a"
     },
     {
       "name": "12-face-profile",
@@ -1946,7 +1946,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -2045,7 +2045,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "8b4abc7f8a127c1839e68b64baa373c5335e8ebf5693b0b24b92bd5e2baf03d1"
+      "sha256": "a270457d67e19acaf932cbdde700b5226aacea7aec816d69f596758dc57a4b10"
     },
     {
       "name": "13-backpack-detail",
@@ -2120,7 +2120,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
@@ -2219,7 +2219,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "a5d8097710c6783d6f42ce4b605fb900f0bea889dc755cb483a5ab01873c7e73"
+      "sha256": "fccf45a2e0e21cc2719b1bf291597143dfdc58abe78653cc0210c669c0212f03"
     },
     {
       "name": "14-belt-detail",
@@ -2294,7 +2294,7 @@
         "contactShadows": 4,
         "pavingSurface": {
           "cells": 122295,
-          "covered": 33695,
+          "covered": 33694,
           "cellSize": 0.1,
           "triangles": 65772
         },
