@@ -1,0 +1,53 @@
+name: Astra character motion
+on:
+  push:
+    branches: ['agent/astra-link-movement']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: astra-character
+  cancel-in-progress: false
+jobs:
+  motion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node src/world/character/locomotion.test.mjs
+      - run: node src/camera/follow.test.mjs
+      - run: npm run build
+      - name: Capture actual idle, walk, run and jump
+        run: node src/world/character/capture-motion.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: astra-character-${{ github.sha }}
+          path: gauntlet/out/astra-character
+          retention-days: 30
+      - name: Save four review images on Astra's generated branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CAPTURE_DIR="$GITHUB_WORKSPACE/gauntlet/out/astra-character"
+          REVIEW_DIR="$(mktemp -d)"
+          git -C "$REVIEW_DIR" init -b captures/astra-character
+          git -C "$REVIEW_DIR" config user.name 'github-actions[bot]'
+          git -C "$REVIEW_DIR" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          gh auth setup-git
+          git -C "$REVIEW_DIR" remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          if git -C "$REVIEW_DIR" ls-remote --exit-code --heads origin captures/astra-character; then
+            git -C "$REVIEW_DIR" fetch origin captures/astra-character
+            git -C "$REVIEW_DIR" reset --hard FETCH_HEAD
+          fi
+          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$REVIEW_DIR/"
+          git -C "$REVIEW_DIR" add '*.jpg' motion.json
+          git -C "$REVIEW_DIR" commit -m "Astra motion evidence for $GITHUB_SHA [skip ci]"
+          git -C "$REVIEW_DIR" push origin HEAD:captures/astra-character

@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T03:05:00Z
+updated: 2026-09-11T03:20:00Z
 ---
 
 # Astra — resumed character work
@@ -30,6 +30,8 @@ Owner explicitly resumed Astra/Fable collaboration and requested improved origin
 - CPU replay checks pass at 30/60/120/144 Hz, including actual Three.js sole coordinates, jump buffering, wall sliding and 5 mm wall regression. Flat and stair centre-sole target error is currently ~1e-15 m; no centre-sole penetration in the tested replay. Full boot volume/step continuity still needs rendered review.
 - Baseline gauntlet CI run 34555513864 passed. This is the pre-movement source, not visual evidence of the new controller.
 - Model pass underway: reduce shoulder/sleeve width toward the measured 1.2× head target, flatten protruding eyes, soften the jaw, lower the cap crown/thin its brim and add original mipmapped cloth weave. Existing NPC proportions/materials are preserved.
+- Published model checkpoint `4d04c12`; ordinary gauntlet CI is running on that source.
+- Cross-reviewed Fable's take-0032 W25 using the actual B_house image and fixed reference. Filed a strict visual fail through the review CLI: the roof mass is too tall/steep and the entrance too narrow versus the broad dome/overhang/opening in the reference. Evidence is copied unchanged from monitor `98d1249`; detailed measurements remain Fable's structure task.
 
 ## Important decisions
 - Current owner instruction authorizes character work over the old Phase-1-only prose; preserve locked rubric and existing fixed-camera capture composition.
@@ -38,7 +40,7 @@ Owner explicitly resumed Astra/Fable collaboration and requested improved origin
 - Before every major task: fetch, reread Fable's newest log/claims and PR activity, inspect changed files, document overlap.
 
 ## Known issues
-- Stair foot transitions and full boot/tread clearance require visual review; the current numeric test covers sole centres, not the whole boot mesh.
+- Expanded regressions now sample actual boot-sole mesh corners. Tested stair ascent/descent, reversal and jump replays have no boot penetration; maximum 120 Hz stair foot displacement fell from 15.5 cm to 7.1 cm and pelvis movement from 7.6 cm to 2.7 cm. Takeoff/landing foot change is below 8.9 cm and pelvis below 6 cm in tested walking/running jumps. These numerical bounds do not certify reference-quality animation; real capture/video review remains necessary. A lowering foot can briefly be above the next tread during recovery.
 - Structure collisions sample the existing heightfield mask, not arbitrary mesh triangles. Camera boom checks terrain; tree geometry is not a separate camera collider.
 - Existing reference captures and visual reviews do not prove faithful motion. New movement tests and real rendered evidence are required.
 - Work preview browser rejected terminal.local with ERR_BLOCKED_BY_CLIENT. The connector's artifact download URL also returned Cloudflare 403. Use repository CI for real renderer captures and its own generated capture branch for screenshot retrieval. Do not claim local browser success.
@@ -51,4 +53,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T03:05:00Z
+2026-09-11T03:20:00Z
