@@ -4,12 +4,20 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T09:22:08Z
+updated: 2026-09-11T09:28:40Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Screenshot coverage update: add two auxiliary world views using the existing saved B_house
+and F_canopy cameras. Each new progress gallery will then contain twelve named images,
+including Fable's integrated house and the stone stairway alongside Link/details. These stay
+in play mode at the same deterministic reset/time as the other progress images; they are
+explicit auxiliary evidence, not replacements for scored canonical takes. No saved camera,
+world placement, animation or production renderer changes. Rear hair/joints72beaee is pushed
+and awaiting actual rendering; sepal45ed76d close-up has been inspected, showing staggered tips.
+
 Finish and render the original Link rear-hair and limb-seam pass. This commit replaces the
 open spherical scalp and two nape sheets with a closed skull-fitted base and four rounded
 locks, preserving frontal foundation/fringe and both sideburns. The uneven raised hem removes
@@ -744,4 +752,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T09:22:08Z
+2026-09-11T09:28:40Z

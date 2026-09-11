@@ -44,6 +44,8 @@ try {
     { name: '07-leaf-lantern', seconds: 0.5, run: false, move: 0, jump: false, view: 'lantern' },
     { name: '08-carved-sign', seconds: 0.5, run: false, move: 0, jump: false, view: 'sign' },
     { name: '09-boot-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'boots' },
+    { name: '10-tree-house', seconds: 0.5, run: false, move: 0, jump: false, viewpoint: 'B_house' },
+    { name: '11-stone-stairway', seconds: 0.5, run: false, move: 0, jump: false, viewpoint: 'F_canopy' },
     { name: '12-face-profile', seconds: 0.5, run: false, move: 0, jump: false, view: 'profile' },
   ];
   for (const c of cases) {
@@ -79,6 +81,9 @@ try {
         const x = 7.0, z = -9.3, y = api.probe(x, z).height;
         api.setPose([x - 0.6 * 2.2, y + 1.42, z + 0.8 * 2.2], [x, y + 1.28, z], 36);
       }
+      // Auxiliary world evidence uses the existing authored camera; Link remains
+      // in play mode, so these images do not substitute for canonical rubric takes.
+      if (c.viewpoint && !api.setViewpoint(c.viewpoint)) throw new Error(`Missing progress viewpoint: ${c.viewpoint}`);
       await api.render(2, 0);
       return { character: api.audit().systems.character, camera: api.cameraPose(), stats: api.stats() };
     }, c);
