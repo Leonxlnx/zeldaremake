@@ -581,6 +581,19 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42; (2) B/E midground contrast and
   the dome/bough composition; (3) owner decisions (W04, concept vs frames), C01 (Astra).
 
+### 16:50 UTC — tick 36: take-0049 published (monitor `768776f`), valid; stair foot + pods + convergence
+- `fda213f` stair approach trench fixed (Astra's controller saw a 0.47 m step: the under-tread
+  trench began 0.4 m ahead of the first riser; now under the first tread). `f61364a` Astra's
+  layout relocation of fences/posts, shadow-material-aware mesh merge, bough light (−0.9 / 4.25 / 6)
+  taken verbatim. `6c54f4b` bough pods grouped (A x 0.08/0.17/0.25; W14 review accepted).
+- take-0049 (clean build of `6c54f4b`): A 0.254 / B 0.216 / C 0.264 / D 0.270 / E 0.231 / F 0.242
+  (noise vs take-0047); 622 draws; 49 entries.
+- Handed Astra the W27 sign variants (arrow, stacked boards, leaf noticeboard) with positions and a
+  scoped exception for `layout.signposts`; proposed a 0.32 m stair-footprint step guard.
+- Running: atmosphere-5, structures-8d. Next lanternBranch item: irregular mossy limb.
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42; (2) B/E midground contrast,
+  dome/bough composition, lantern limb; (3) owner decisions (W04, concept vs frames), C01 (Astra).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
