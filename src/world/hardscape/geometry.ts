@@ -214,12 +214,16 @@ export function radialProfile(p: P2[], samples: number): Float32Array {
 
 // ---------------------------------------------------------------------------------------------
 
+export type Rgb = [number, number, number];
+
 export class MeshBuilder {
   pos: number[] = [];
   nrm: number[] = [];
   uv: number[] = [];
   col: number[] = [];
   moss: number[] = [];
+  /** soil stain amount per vertex (`aStain`): the joint soil creeping up a slab's flank */
+  stain: number[] = [];
   private groupStart = 0;
 
   get vertexCount() {
@@ -230,8 +234,11 @@ export class MeshBuilder {
     this.groupStart = this.pos.length / 3;
   }
 
-  /** push one triangle with an explicit normal (or computed from winding if omitted) */
-  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: [number, number, number], moss: [number, number, number], n?: Vector3) {
+  /**
+   * push one triangle with an explicit normal (or computed from winding if omitted); `stain` is
+   * the per-vertex soil-stain amount (`aStain`, clamped 0..1 in the shader after interpolation)
+   */
+  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb, moss: [number, number, number], n?: Vector3, stain?: [number, number, number]) {
     let nx: number;
     let ny: number;
     let nz: number;
@@ -259,6 +266,8 @@ export class MeshBuilder {
     this.uv.push(uva.x, uva.y, uvb.x, uvb.y, uvc.x, uvc.y);
     this.col.push(col[0], col[1], col[2], col[0], col[1], col[2], col[0], col[1], col[2]);
     this.moss.push(moss[0], moss[1], moss[2]);
+    if (stain) this.stain.push(stain[0], stain[1], stain[2]);
+    else this.stain.push(0, 0, 0);
   }
 
   /** average normals of coincident vertices inside the current group (smooth shading) */
@@ -310,6 +319,7 @@ export class MeshBuilder {
     cat(this.uv, other.uv);
     cat(this.col, other.col);
     cat(this.moss, other.moss);
+    cat(this.stain, other.stain);
   }
 
   build(): BufferGeometry {
@@ -319,6 +329,7 @@ export class MeshBuilder {
     g.setAttribute('uv', new Float32BufferAttribute(this.uv, 2));
     g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
     g.setAttribute('aMoss', new Float32BufferAttribute(this.moss, 1));
+    g.setAttribute('aStain', new Float32BufferAttribute(this.stain, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
@@ -336,6 +347,12 @@ export interface SlabOptions {
   color?: [number, number, number];
   /** colour multiplier for the sides (usually darker) */
   sideColor?: [number, number, number];
+  /**
+   * soil stain (`aStain`) at the foot of the side walls (y = 0), falling linearly to 0 at the
+   * shoulder ring; the shader clamps it to 0..1 after interpolation, so a value > 1 puts the
+   * fully stained band on the buried part of the wall and the fade-out just above the fill
+   */
+  sideStain?: number;
   /** moss amount on the top-edge ring / sides (0..1) and how far in it creeps (0..1) */
   mossEdge?: number;
   mossInner?: number;
@@ -396,6 +413,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const dip = o.dip ?? 0;
   const col = o.color ?? [1, 1, 1];
   const scol = o.sideColor ?? [col[0] * 0.8, col[1] * 0.8, col[2] * 0.8];
+  const sideStain = o.sideStain ?? 0;
   const uvS = o.uvScale ?? 1 / 1.6;
   const uvO = o.uvOffset ?? [0, 0];
   const rings = Math.max(1, o.rings ?? 2);
@@ -440,8 +458,9 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     const aQ = mossAdd(q.x, q.z, 1);
     const mx = (p.x + q.x) / 2;
     const mz = (p.z + q.z) / 2;
-    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ]);
-    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP]);
+    // soil stain: a, b at the foot, c, d at the shoulder ring
+    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], undefined, [sideStain, sideStain, 0]);
+    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], undefined, [sideStain, 0, 0]);
   }
 
   // --- bevel ring (smooth) ---

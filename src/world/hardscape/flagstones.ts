@@ -476,6 +476,8 @@ const OPEN_SPACING = 1.2;
 const SOUTH_SPACING = 0.95;
 /** rim lattice spacing (m): 0.35–0.5 m stones along the paved edge */
 const RIM_SPACING = 0.46;
+/** soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder */
+const FLANK_STAIN_AT_FILL = 0.7;
 
 /**
  * The damp band: where the path leaves the plaza northward under the canopy (reference B/E
@@ -902,10 +904,22 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     }
     // ~60 % of the rim edge carries the film: 4 of 5 rim stones get one, and the per-vertex
     // noise below (plus the shader's ragged boundary) leaves a quarter of their outer edge bare
-    const edgeMoss = unpaved >= 2 && srng.chance(0.8) ? srng.range(0.85, 1.2) : 0;
+    const edgeMoss = unpaved >= 2 && srng.chance(0.8) ? srng.range(0.7, 1.0) : 0;
     // shoulder dirt: soil and dust collect on the rolled edge, so every stone darkens toward it
     const rim = srng.range(0.06, 0.13);
     const uvO: [number, number] = [srng() * 4, srng() * 4];
+    // flank: the visible flank — the 1–2 cm between the joint fill and the shoulder ring — is
+    // stone-coloured (a shade darker than the top); the soil stain (the stone shader's `aStain`
+    // tint) sits on the foot of the wall where it meets the fill (sheet 02: the seam's brown runs
+    // a little way up the stone) and fades out toward the shoulder. Round 8's fully soil-stained
+    // flank widened every seam into a dark band (a small part of the B plaza box's SSIM loss —
+    // most of it was the fill's luminance, see joints.ts); a bare stone flank gives the
+    // reference's dark quantile away again (p10 0.350 vs 0.331). So the
+    // stain is graded: FLANK_STAIN_AT_FILL at the fill line, nothing at the shoulder. The wall
+    // below the fill is buried, so the foot value may run past 1 (the shader clamps).
+    const wallH = thickness - bevel;
+    const fillH = clamp(hMean + 0.008 - bottomY, 0.2 * wallH, 0.95 * wallH);
+    const footStain = (FLANK_STAIN_AT_FILL * wallH) / (wallH - fillH);
 
     // 5. build the stone into the shared geometry and place it
     const from = all.vertexCount;
@@ -939,10 +953,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       softBevel: true,
       dip: -crown,
       color: tint,
-      // the exposed side wall is half soil-stained, so the shoulder rolls into the joint instead
-      // of ending on a hard dark line; stained toward the seam's brown (sheet 02) rather than
-      // grey-beige, since from the low cameras the flank is a good part of every seam pixel
-      sideColor: [tint[0] * 0.58 + 0.22, tint[1] * 0.54 + 0.18, tint[2] * 0.5 + 0.13],
+      sideColor: [tint[0] * 0.6 + 0.24, tint[1] * 0.58 + 0.2, tint[2] * 0.55 + 0.16],
+      sideStain: footStain,
       mossEdge: 0.4 * moss,
       mossInner: 0.03 * moss,
       mossFn: (x, z) => 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5),

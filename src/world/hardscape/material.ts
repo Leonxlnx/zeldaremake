@@ -9,6 +9,13 @@ import type { WorldConfig } from '../config';
 
 export const STONE_SET = 'worn_rock_natural_01';
 
+/**
+ * the soil stain as a multiplier on the stone flank colour: the round-8 soil-stained side colour
+ * over the plain stone side colour was ≈ (0.95, 0.92, 0.88); this keeps its luminance and leans
+ * browner, toward the damp seam soil (the reference's dark quantile is a saturated brown)
+ */
+const STAIN_TINT = new Color(0.97, 0.93, 0.85);
+
 export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
   const [color, normal, rough, ao] = await Promise.all([
     textures.load(STONE_SET, 'color', { anisotropy }),
@@ -56,25 +63,26 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
   const mossBright = new Color(P.mossBright);
   // the growth on slab rims is as much damp soil and dead moss as living green (reference joints
   // are dark warm brown with green only in patches), so the moss blend is pulled toward soil
-  const mossSoil = new Color(P.soilDark).lerp(new Color(0x3a2c1c), 0.5);
+  const mossSoil = new Color(P.soilDark).lerp(new Color(0x3a2c1c), 0.5).lerp(mossDeep, 0.5);
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uMossDeep = { value: mossDeep };
     shader.uniforms.uMossBright = { value: mossBright };
     shader.uniforms.uMossSoil = { value: mossSoil };
+    shader.uniforms.uStainTint = { value: STAIN_TINT };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute float aMoss; varying float vMoss; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+        '#include <common>\nattribute float aMoss; attribute float aStain; varying float vMoss; varying float vStain; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
       )
       .replace(
         '#include <worldpos_vertex>',
-        '#include <worldpos_vertex>\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+        '#include <worldpos_vertex>\nvStain = aStain;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; varying float vMoss; varying vec3 vWPosS;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; varying float vMoss; varying float vStain; varying vec3 vWPosS;
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -103,7 +111,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           // moss: bright to deep green with the stone's luminance as detail, pulled toward damp
           // soil where the coverage is thin (rim grime) and green only where it is full
           float ln = clamp(l / 0.4, 0.0, 1.6);
-          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.4, 1.3, ln)) * (0.75 + 0.45 * ln);
+          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.25, 1.1, ln)) * (0.85 + 0.5 * ln);
           // ragged inner boundary: a 6–10 cm world-space noise scales the interpolated coverage,
           // so a moss film ends in a feathered, lobed edge (sheet 02 'Moss edges') rather than
           // along the mesh rings; clean tops (vMoss = 0) stay clean
@@ -115,12 +123,20 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         }`,
       )
       .replace(
+        '#include <color_fragment>',
+        /* glsl */ `
+        #include <color_fragment>
+        // joint soil creeping up a slab's flank (aStain: > 1 on the buried foot, 0 at the shoulder);
+        // clamped after interpolation so the stained band ends where the caller put it
+        diffuseColor.rgb *= mix(vec3(1.0), uStainTint, clamp(vStain, 0.0, 1.0));`,
+      )
+      .replace(
         '#include <roughnessmap_fragment>',
         /* glsl */ `
         #include <roughnessmap_fragment>
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v10-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v11e-stain-${opts.instanced ? 'i' : 's'}`;
   return mat;
 }

@@ -8,9 +8,8 @@ import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, placeFlagstones, type PavingContext } from './flagstones';
-import { buildJointMesh } from './joints';
-import { SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
-import { GRIT_LOD_FAR, buildGritMesh, createGritMaterial, type GritSpot } from './grit';
+import { buildJointMesh, jointFillLift } from './joints';
+import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
 import { smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
 
@@ -70,7 +69,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // treat them as paving (the disc that touches the plaza rim keeps the fill around it)
   const grassDiscs = paving.steppingStones.filter((d) => !d.atRim);
   const paved = (x: number, z: number, threshold?: number) => isPaved(pc, x, z, threshold) && !nearIsolatedDisc(grassDiscs, x, z, 1.4);
-  const joints = await buildJointMesh(T, paved, bbox, ctx.textures, ctx.config, ctx.config.seed);
+  const joints = await buildJointMesh(T, paved, bbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: paving.edgeGap, onStone: paving.onStone });
   group.add(joints.mesh);
 
   // --- sprouts in the joints ---------------------------------------------------------------
@@ -147,24 +146,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
   }
-  const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
-  const sprouts = buildSproutMeshes(spots, srng, sproutMat, ctx.config);
-  for (const m of sprouts.meshes) group.add(m);
-
   // --- seam grit -----------------------------------------------------------------------------
   // small stones packed into the dirt seams (sheet 02): 1.5–4 cm, in the joints only (not on a
   // stone, within a slab's reach), biased to the joint-reading cameras, plus a scatter at the
-  // stair feet; ≤ 3000 instances, LOD-collapsed beyond GRIT_LOD_FAR
-  const grit: GritSpot[] = [];
+  // stair feet; ≤ 3000, in the fill's own tone. They are sprout instances (variant GRIT) so they
+  // share the joint flora's instanced sets and draw calls, LOD-collapsed with the tufts.
+  const gritSpots: SproutSpot[] = [];
   const grng = rng.fork('grit');
   const gritTarget = Math.min(3000, Math.round(2200 * Math.max(0.7, ctx.quality.density)));
   const gritCamWeight = (x: number, z: number) => {
     let d = Infinity;
     for (const c of cams) d = Math.min(d, Math.hypot(c[0] - x, c[2] - z));
-    return 0.2 + 0.8 * (1 - smoothstep(GRIT_LOD_FAR - 8, GRIT_LOD_FAR + 1, d));
+    // a pebble is a few pixels by 12 m and nothing by 21 m, well inside the sprouts' LOD range
+    return 0.2 + 0.8 * (1 - smoothstep(12, 21, d));
   };
   tries = 0;
-  while (grit.length < gritTarget - 120 && tries < gritTarget * 40) {
+  while (gritSpots.length < gritTarget - 120 && tries < gritTarget * 40) {
     tries++;
     const x = grng.range(bbox.x0, bbox.x1);
     const z = grng.range(bbox.z0, bbox.z1);
@@ -176,20 +173,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const size = grng.chance(0.2) ? grng.range(0.03, 0.04) : grng.range(0.015, 0.026);
     // the fill sits 0.8 cm over the ground; keep the pebble out of the stones' bevel zone
     if (gap < size * 0.8) continue;
-    grit.push({ x, y: T.height(x, z) + 0.01, z, size });
+    // tinted to the fill it sits in: damp brown in a tight seam, pale khaki in an open junction
+    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint: jointFillLift(gap) });
   }
-  const seamGrit = grit.length;
+  const seamGrit = gritSpots.length;
   for (const f of frames) {
     const hw = f.def.width / 2;
     for (let k = 0; k < 60; k++) {
       const [x, z] = stairToWorld(f, grng.range(-hw - 0.3, hw + 0.3), grng.range(-1.1, -0.05));
       if (paving.onStone(x, z)) continue;
       const size = grng.chance(0.3) ? grng.range(0.03, 0.045) : grng.range(0.015, 0.028);
-      grit.push({ x, y: T.height(x, z) + 0.008, z, size });
+      gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit' });
     }
   }
-  const gritMesh = buildGritMesh(grit, grng, createGritMaterial());
-  group.add(gritMesh.mesh);
+  const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
+  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS);
+  for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 
   // --- audit -------------------------------------------------------------------------------
@@ -223,22 +222,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointSproutsOnFlagstones: flagstoneSprouts,
     jointSproutsOnStairs: sprouts.count - flagstoneSprouts - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
+    // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
+    jointSproutPacks: HARDSCAPE_PACKS,
     jointSproutHeightCm: [6, 12],
     jointSproutLodFar: SPROUT_LOD_FAR,
-    jointSproutTriangles: sprouts.triangles,
+    // triangles shown / submitted (a packed instance collapses its other variants to zero area)
+    jointSproutTriangles: sprouts.triangles - sprouts.gritTriangles,
+    jointSproutSubmittedTriangles: sprouts.submittedTriangles,
     // low moss pads in wide seam junctions and the stair tread/riser corners (part of jointSprouts)
     mossCushions: sprouts.cushions,
     mossCushionsInSeams: cushions,
-    // small stones packed into the dirt seams + a scatter at the stair feet
-    seamGrit: gritMesh.count,
+    // small stones packed into the dirt seams + a scatter at the stair feet (sprout instances)
+    seamGrit: sprouts.grit,
     seamGritInSeams: seamGrit,
-    seamGritAtStairFeet: gritMesh.count - seamGrit,
-    seamGritLodFar: GRIT_LOD_FAR,
-    seamGritTriangles: gritMesh.triangles,
-    seamGritDrawCalls: 1,
+    seamGritAtStairFeet: sprouts.grit - seamGrit,
+    seamGritLodFar: SPROUT_LOD_FAR,
+    seamGritTriangles: sprouts.gritTriangles,
+    seamGritDrawCalls: 0,
     jointFillTriangles: joints.triangles,
-    hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles + gritMesh.triangles,
+    // joint-width field (5 cm texels) the fill shader reads: tight seams dark, wide junctions pale
+    jointGapField: joints.gapField,
+    hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles,
     plazaRadius: 6,
     samplePositions: {
       // top-centre of each slab: 2–5 cm above the ground by design (the slab is seated in it)

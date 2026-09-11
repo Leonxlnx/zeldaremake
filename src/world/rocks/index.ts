@@ -9,7 +9,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { buildRock } from './rockgen';
 import { createRockMaterial } from './material';
-import { buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../hardscape/sprouts';
+import { BOULDER_PACKS, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../hardscape/sprouts';
 import type { Rng } from '../util/prng';
 
 const _m = new Matrix4();
@@ -300,8 +300,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
-  // the boulder-cap plants share the hardscape joint-sprout geometry and wind material
-  const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config);
+  // the boulder-cap plants share the hardscape joint-sprout geometry and wind material; the
+  // tufts and ferns are packed into one InstancedMesh (one draw for all the cap plants)
+  const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config, BOULDER_PACKS);
   for (const m of plants.meshes) {
     m.name = `boulder-plants-${m.name}`;
     group.add(m);
