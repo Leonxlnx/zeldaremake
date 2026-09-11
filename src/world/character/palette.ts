@@ -4,6 +4,7 @@
  * on the measured swatch (same convention as `config.ts`'s world palette).
  */
 import { CanvasTexture, Color, DataTexture, LinearFilter, LinearMipmapLinearFilter, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
+import { createLinkClothSurface, type LinkClothSurface } from './cloth-surface';
 
 export const CHAR_COLORS = {
   /** reference `#50542f` */
@@ -58,7 +59,7 @@ export const CHAR_COLORS = {
 export type CharColorKey = keyof typeof CHAR_COLORS;
 
 const cache = new Map<string, MeshStandardMaterial>();
-let weave: DataTexture | undefined;
+let wovenCloth: LinkClothSurface | undefined;
 
 /** Original blue-green iris pigment, using the clipped eye disc's radial UVs. */
 export function linkIris(): MeshStandardMaterial {
@@ -141,30 +142,21 @@ export function linkHair(): MeshStandardMaterial {
   return material;
 }
 
-/** Sub-millimetre authored weave; mipmapped so it softens naturally at gameplay distance. */
+/** Original woven cloth; Link's construction normalizes its physical UV density. */
 export function cloth(key: 'tunic' | 'tunicCollar' | 'cap' | 'capBrim'): MeshStandardMaterial {
   const id = `cloth-${key}`;
   const existing = cache.get(id);
   if (existing) return existing;
-  if (!weave) {
-    const size = 64, data = new Uint8Array(size * size * 4);
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-      const i = (y * size + x) * 4;
-      const thread = Math.sin(x * Math.PI / 2) * Math.cos(y * Math.PI / 2);
-      const grain = ((x * 13 + y * 29 + x * y * 7) % 17) / 16 - 0.5;
-      data[i] = data[i + 1] = data[i + 2] = Math.round(128 + 26 * thread + 8 * grain);
-      data[i + 3] = 255;
-    }
-    weave = new DataTexture(data, size, size);
-    weave.name = 'original-character-cloth-weave';
-    weave.wrapS = weave.wrapT = RepeatWrapping;
-    weave.repeat.set(5, 5);
-    weave.generateMipmaps = true; weave.minFilter = LinearMipmapLinearFilter;
-    weave.needsUpdate = true;
-  }
+  wovenCloth ??= createLinkClothSurface();
   const material = matte(key).clone();
   material.name = id; material.roughness = 0.97;
-  material.bumpMap = weave; material.bumpScale = 0.0007;
+  // A reflectance texture cannot exceed white. Compensate its measured linear
+  // mean so fibre variation retains the original palette's average brightness.
+  material.color.multiplyScalar(1 / wovenCloth.albedoMean);
+  material.map = wovenCloth.albedo;
+  material.bumpMap = wovenCloth.surface;
+  material.roughnessMap = wovenCloth.surface;
+  material.bumpScale = 0.00035;
   cache.set(id, material);
   return material;
 }

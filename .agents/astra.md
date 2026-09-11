@@ -4,46 +4,57 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T16:18:39Z
+updated: 2026-09-11T16:22:53Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-The owner is going to bed and explicitly asks us to continue collaborating, prioritize Link
-until the character is substantially better, and keep publishing named screenshot checkpoints.
-We continue on agent/astra-link-movement / PR5, with C01/C02/C03 claims through 17:43:30 UTC.
-Fable retains world, house, terrain, lighting and placement work; external process state is
-not visible. A helper is checking their fresh commits and reply to PR2 comment 5637211895.
+Now integrate original woven cloth and physical UV density on Link only. Files: new
+cloth-surface.ts and cloth-uv.ts, the existing palette cloth factory, and one hook in link.ts
+after outfit/boot construction and immediately before static batching. The combined candidate
+has been checked against the new folded cap: 64 meshes / 77,304 triangles / 28 material names
+remain; all geometry positions, normals and indices and all three NPCs remain exact.
+Four cloth material instances share two original 256×256 textures. The packed surface uses
+R height / G roughness, 0.35 mm bump scale, and effective average roughness about .930.
+Quantized linear albedo mean compensation preserves average tile reflectance and hue.
 
-Publish the broader folded cap tail and fitted crossing stitches. The owner sheet has fuller
-lower lobes and cloth valleys; the previous actual back/profile view had a narrow smooth tail.
-The new tail adds three soft folds, up to 48.72 mm width and 9.25 mm rear relief, retaining
-root, tip, centreline, rig and sway. The same 26 crossing threads follow the cloth surface.
-Link stays at 64 meshes, now 77,304 triangles (+2,708); all 62 other meshes are exact.
-Triangle checks find no thread/cloth intersection, with minimum 0.103 mm separation. Tested
-gear clearance is at least 32.62 mm; head clearance beyond the original covered attachment
-is at least 10.78 mm. Root production build passes. Actual back/profile/motion review follows.
+UVs repair four panel/collar fan centres, then use measured surface gradients for approximately
+1.2 mm yarn spacing. Circular charts close on integer tiles. This is a median per chart;
+the narrow brim has a finer .62 mm axis, and existing UV-degenerate edge regions remain.
+The new 927-vertex cap tail and 444 appended UV vertices pass, with 1.20 / 1.13 mm medians.
+Root production build and static-batching regression pass on the integrated cloth files:
+74 to 64 meshes, 77,304 triangles, 2,664,864 posed positions/normals exact, UV/material/shadow/
+disposal/boot/NPC invariants intact. Actual close-up and moving renders must judge weave
+strength, seams and shimmer.
 
-The screenshot publisher is being made safe for simultaneous source captures: separate workflow
-concurrency per source commit, immutable archives first, fresh-head normal-push retries, and
-stale clip removal from a later still-only snapshot. Its integrated local Git race regression passes on both branches, including stale-file
-cleanup, immutable archives, idempotence and partial recovery. Canonical capture and sealed history remain unchanged.
+The owner explicitly prioritizes Link while asleep and asks continued collaboration/pushes.
+Our C01/C02/C03 claim runs through 17:43:30 UTC. Fable has now replied at 16:15:26 and pushed
+b70df65: approach-trench fix, convergence with our shadow/layout/point settings, and grouped
+lantern pods. The isolated terrain delta now passes a bounded input audit: entrance rise falls from .433
+to .260 m, allowing tread one; tread two still stalls on .30 > .28. Its blend is continuous
+at checked boundaries. No world source is integrated in this cloth pass. Fable grants W27
+sign variants and scoped signposts layout entries; preserve their protected camera boxes and
+minimum paving/NPC separation. Sign work follows character priority. External process state
+is not visible; the fresh commits/reply are confirmed activity.
 
-Next character work is already in parallel: physical cloth UV scale with four repaired fan
-centres, original woven albedo/height/roughness, and a relaxed four-finger hand silhouette.
-Neither cloth nor finger candidates are production changes yet. The proposed coupled stair
-trajectory clears sampled leg/tread triangles but takes 4.65 seconds and is unsuitable for
-ordinary movement; retain that feasibility evidence only. Do not relax the step guard or
-reapply rejected controller experiments. Fable has the exact entrance-trench report.
-
-Independent W14 review of Fable take0047 is filed through the CLI as fail: smaller pods are
-progress, but the high smooth limb and spread-out cords still differ from the lower irregular
-reference grouping. Evidence is in .agents/reviews/astra-W14-take0047.md. Asked Fable to own
-or hand off the missing sign variants; no world placements changed here.
+The four-finger hand candidate remains held for deeper existing belt/pouch contact; helper
+is correcting the thumb and fingertip envelope before integration. Supported-chin actual
+front/profile images are inspected: intermediate improvement, still round toy-like proportions.
+A separate reviewer is proposing one larger hair/face silhouette improvement from the owner
+sheet. No character completeness or 95% fidelity claim. Controller and .28 step guard stay
+unchanged; Fable's proposed stair-only .32 limit needs full-leg movement validation first.
 
 ## Recent completed work and evidence
+
+- 5529e85: broader folded cap and fitted curved crossing stitches, 64 meshes / 77,304 triangles.
+ Root build passes; actual cap gallery and canonical take now requested. Its character
+ publisher has per-source concurrency and normal-push retries; integrated local two-writer
+ regression passes on both branches with immutable archive and stale-clip protection.
+- 42c7101 actual gallery 0980368 at 16:15:25 UTC: 14 JPG hashes verified, 42 matching motion
+ frames, errors[]. Front/profile inspected. Chin more supported; broad gold temple plate,
+ round face and stiff shoulders still need visible refinement.
 
 - 42c7101: continuous lower-front chin support; all other meshes and upper-face attachments
  unchanged. Closed geometry/contact proofs and production build pass. Character CI

@@ -25,6 +25,7 @@ import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkNeckline } from './neckline-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
 import { batchStaticLinkParts } from './static-batching';
+import { normalizeLinkClothUVs } from './cloth-uv';
 import { createLinkCapCrown } from './cap-geometry';
 import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
@@ -611,6 +612,7 @@ export function createLink(): Character {
   buildGear(rig, part);
   addOutfitDetails(rig, part);
   const syncGeometry = createBootArticulation(rig);
+  normalizeLinkClothUVs(rig);
   batchStaticLinkParts(rig);
   rig.root.userData.character = 'link';
   // Articulation replaces the boot geometry; count the resulting scene, including its joint.
