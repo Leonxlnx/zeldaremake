@@ -1,7 +1,7 @@
 {
-  "source": "429128a5a5a7cbb070da0f6dbf837e5244a6bf9e",
-  "distHash": "sha256:ce28da54c62a48d2e7c342bbc02c85c35e861235c5c0a30193b6826d1993b2ea",
-  "startedAt": "2026-09-11T07:19:28.102Z",
+  "source": "22ac0613bd527a69973c0f12ca2949eb97127da1",
+  "distHash": "sha256:047e7e0815214d3399f2a8666b59882f50b3303dc392ce22c1fa789ede366e32",
+  "startedAt": "2026-09-11T15:09:14.287Z",
   "status": "complete",
   "captures": [
     {
@@ -22,23 +22,23 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 452,
-        "triangles": 6154658,
-        "geometries": 508,
-        "textures": 73,
-        "programs": 67,
+        "drawCalls": 405,
+        "triangles": 8209385,
+        "geometries": 450,
+        "textures": 90,
+        "programs": 70,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "audit": {
         "scene": {
-          "meshes": 625,
-          "instancedMeshes": 272,
-          "instances": 519528,
-          "triangles": 5605043,
-          "materials": 112,
-          "uniqueGeometries": 617,
+          "meshes": 559,
+          "instancedMeshes": 228,
+          "instances": 522567,
+          "triangles": 7391138,
+          "materials": 118,
+          "uniqueGeometries": 551,
           "textures": [
             "bark_brown_02/color",
             "bark_brown_02/normal",
@@ -56,8 +56,12 @@
             "leafy_grass/color",
             "leafy_grass/normal",
             "original-character-cloth-weave",
+            "original-link-blue-green-iris",
             "original-link-hair-strand-colour",
             "original-link-hair-strand-relief",
+            "original-link-leather-colour",
+            "original-link-leather-height",
+            "original-link-leather-roughness",
             "procedural:leaf-cluster",
             "procedural:whitebark/color",
             "procedural:whitebark/normal",
@@ -97,8 +101,8 @@
             },
             "hardscape": {
               "meshes": 8,
-              "instances": 1607,
-              "triangles": 185748
+              "instances": 4106,
+              "triangles": 351051
             },
             "rocks": {
               "meshes": 15,
@@ -106,19 +110,19 @@
               "triangles": 292780
             },
             "structures": {
-              "meshes": 54,
-              "instances": 54,
-              "triangles": 387752
+              "meshes": 41,
+              "instances": 41,
+              "triangles": 477316
             },
             "trees": {
               "meshes": 46,
               "instances": 812,
-              "triangles": 1522741
+              "triangles": 1549042
             },
             "vegetation": {
-              "meshes": 215,
-              "instances": 513595,
-              "triangles": 2499982
+              "meshes": 171,
+              "instances": 514157,
+              "triangles": 3983555
             },
             "props": {
               "meshes": 15,
@@ -126,9 +130,9 @@
               "triangles": 16508
             },
             "character": {
-              "meshes": 208,
-              "instances": 223,
-              "triangles": 72408
+              "meshes": 199,
+              "instances": 214,
+              "triangles": 93762
             }
           },
           "forbidden": []
@@ -285,9 +289,9 @@
                   1
                 ],
                 [
-                  10.4,
-                  8,
-                  -11.4,
+                  13.3,
+                  10,
+                  -14.6,
                   1.3,
                   7.5
                 ],
@@ -398,7 +402,7 @@
             "halfSize": 220,
             "heightAtOrigin": 0,
             "heightAtStairTop": 3.8426769971847534,
-            "buildMs": 4035
+            "buildMs": 3798
           },
           "hardscape": {
             "stairways": [
@@ -420,13 +424,14 @@
             "stairGeometry": "procedural-v2",
             "uniqueStepShapes": 33,
             "mossJoints": true,
-            "stairTriangles": 10497,
+            "stairTriangles": 13220,
             "flagstones": 542,
             "flagstoneShapes": 542,
             "flagstoneGeometry": "voronoi-cells-v5-jittered-lattice",
             "flagstoneSplitCells": 34,
             "flagstoneBigSlabs": 6,
             "flagstoneRimStones": 207,
+            "flagstoneEdgeMossStones": 175,
             "steppingStones": 8,
             "steppingStoneDiscs": [
               [
@@ -471,19 +476,51 @@
               ]
             ],
             "flagstoneMaxAspect": 2.515,
-            "flagstoneTriangles": 84239,
+            "flagstoneTriangles": 85605,
             "flagstoneDrawCalls": 1,
             "jointFillVertices": 11518,
-            "jointSprouts": 1603,
+            "jointSprouts": 1932,
             "jointSproutsOnFlagstones": 1500,
-            "jointSproutsOnStairs": 103,
-            "jointSproutVariants": 4,
+            "jointSproutsOnStairs": 105,
+            "jointSproutVariants": 7,
             "jointSproutDrawCalls": 4,
+            "jointSproutPacks": [
+              [
+                1
+              ],
+              [
+                0
+              ],
+              [
+                2,
+                6
+              ],
+              [
+                3,
+                4
+              ]
+            ],
             "jointSproutHeightCm": [
               6,
               12
             ],
             "jointSproutLodFar": 25,
+            "jointSproutTriangles": 85440,
+            "jointSproutSubmittedTriangles": 230244,
+            "mossCushions": 327,
+            "mossCushionsInSeams": 246,
+            "seamGrit": 2170,
+            "seamGritInSeams": 2080,
+            "seamGritAtStairFeet": 90,
+            "seamGritLodFar": 25,
+            "seamGritTriangles": 43400,
+            "seamGritDrawCalls": 0,
+            "jointFillTriangles": 21982,
+            "jointGapField": [
+              407,
+              1609
+            ],
+            "hardscapeTriangles": 249647,
             "plazaRadius": 6,
             "samplePositions": {
               "flagstones": [
@@ -1405,119 +1442,119 @@
                   -2.407
                 ],
                 [
-                  9.75,
-                  0.607,
-                  -1.59
+                  9.32,
+                  0.595,
+                  -2.227
                 ],
                 [
-                  8.816,
-                  0.607,
-                  -2.925
+                  9.68,
+                  0.905,
+                  -2.457
                 ],
                 [
-                  9.67,
-                  0.894,
-                  -2.453
+                  10.021,
+                  1.198,
+                  -2.691
                 ],
                 [
-                  10.022,
-                  1.202,
-                  -2.703
+                  10.347,
+                  1.494,
+                  -2.954
                 ],
                 [
-                  10.367,
-                  1.493,
-                  -2.952
+                  10.687,
+                  1.803,
+                  -3.19
                 ],
                 [
-                  10.705,
-                  1.792,
-                  -3.168
+                  11.693,
+                  2.095,
+                  -2.535
                 ],
                 [
-                  11.06,
-                  2.107,
-                  -3.444
+                  10.758,
+                  2.095,
+                  -3.871
                 ],
                 [
-                  11.955,
-                  2.392,
-                  -2.862
+                  11.791,
+                  2.397,
+                  -3.136
                 ],
                 [
-                  11.031,
-                  2.392,
-                  -4.182
+                  10.856,
+                  2.397,
+                  -4.472
                 ],
                 [
-                  11.736,
-                  2.692,
-                  -3.916
+                  12.071,
+                  2.707,
+                  -3.426
                 ],
                 [
-                  12.092,
-                  3.005,
-                  -4.168
+                  11.137,
+                  2.707,
+                  -4.76
                 ],
                 [
-                  12.432,
-                  3.295,
-                  -4.4
+                  12.562,
+                  3.007,
+                  -3.469
                 ],
                 [
-                  13.409,
-                  3.597,
-                  -3.699
+                  11.625,
+                  3.007,
+                  -4.809
                 ],
                 [
-                  12.47,
-                  3.597,
-                  -5.041
+                  12.433,
+                  3.297,
+                  -4.398
                 ],
                 [
-                  13.744,
-                  3.893,
-                  -4.006
+                  12.986,
+                  3.604,
+                  -4.311
                 ],
                 [
-                  12.804,
-                  3.893,
-                  -5.349
+                  12.066,
+                  3.604,
+                  -5.624
                 ],
                 [
-                  13.879,
-                  4.201,
-                  -4.518
+                  13.103,
+                  3.894,
+                  -4.865
                 ],
                 [
-                  12.953,
-                  4.201,
-                  -5.841
+                  13.448,
+                  4.194,
+                  -5.119
                 ],
                 [
-                  13.784,
-                  4.504,
-                  -5.363
+                  14.035,
+                  4.499,
+                  -5.036
                 ],
                 [
-                  14.129,
-                  4.798,
-                  -5.615
+                  13.109,
+                  4.499,
+                  -6.359
                 ],
                 [
-                  14.477,
-                  5.104,
-                  -5.843
+                  14.141,
+                  4.794,
+                  -5.591
                 ],
                 [
-                  15.25,
-                  5.397,
-                  -5.482
+                  14.49,
+                  5.093,
+                  -5.817
                 ],
                 [
-                  14.317,
-                  5.397,
-                  -6.815
+                  14.809,
+                  5.394,
+                  -6.085
                 ],
                 [
                   -0.899,
@@ -1525,39 +1562,39 @@
                   -15.993
                 ],
                 [
-                  -0.666,
-                  0.597,
-                  -16.794
+                  -0.475,
+                  0.6,
+                  -16.913
                 ],
                 [
-                  -1.726,
-                  0.597,
-                  -15.999
+                  -1.523,
+                  0.6,
+                  -16.127
                 ],
                 [
-                  -1.484,
-                  0.895,
-                  -16.798
+                  -1.48,
+                  0.904,
+                  -16.788
                 ],
                 [
-                  -1.784,
-                  1.199,
-                  -17.177
+                  -1.451,
+                  1.202,
+                  -17.444
                 ],
                 [
-                  -2.111,
-                  1.503,
-                  -17.594
+                  -2.509,
+                  1.202,
+                  -16.651
                 ],
                 [
-                  -1.959,
-                  1.805,
-                  -18.295
+                  -2.098,
+                  1.498,
+                  -17.582
                 ],
                 [
-                  -3.028,
-                  1.805,
-                  -17.493
+                  -2.385,
+                  1.796,
+                  -17.968
                 ]
               ]
             },
@@ -2765,25 +2802,30 @@
             }
           },
           "structures": {
-            "meshes": 54,
-            "triangles": 387752,
+            "meshes": 41,
+            "triangles": 477316,
+            "meshesBeforeMerge": 81,
+            "mergedMeshes": 16,
             "houses": 2,
             "geometry": "procedural-v1",
             "mossRoof": true,
             "doorLight": true,
-            "lanterns": 10,
-            "houseLanterns": 5,
+            "lanterns": 16,
+            "houseLanterns": 6,
             "branchLanterns": 3,
             "lanternBranch": true,
-            "logLanterns": 2,
+            "logLanterns": 5,
             "signposts": 1,
-            "fences": 2,
-            "fencePosts": 10,
+            "fences": 4,
+            "fencePosts": 17,
+            "ropeFences": 2,
+            "lanternPosts": 2,
+            "postLanterns": 2,
             "logArch": true,
             "houseRoots": 11,
-            "houseBranches": 12,
-            "leaves": 11363,
-            "pointLights": 6,
+            "houseBranches": 16,
+            "leaves": 12136,
+            "pointLights": 10,
             "textureSets": [
               "bark_brown_02",
               "bark_willow_02",
@@ -2824,6 +2866,16 @@
                   -11.273952313140345
                 ],
                 [
+                  8.392414477726092,
+                  1.0417568322978512,
+                  -13.854674202683112
+                ],
+                [
+                  14.475768791748566,
+                  5.257714912424187,
+                  -7.39608194700426
+                ],
+                [
                   12.880989315080557,
                   3.7389605715956504,
                   -11.833360559972373
@@ -2847,6 +2899,16 @@
                   8.20212888220814,
                   1.1822320292653201,
                   -17.081304438363727
+                ],
+                [
+                  10.040690606967893,
+                  5.368756218201764,
+                  -19.548310400934
+                ],
+                [
+                  15.183558703767941,
+                  5.187564643145342,
+                  -13.873224301644434
                 ],
                 [
                   7,
@@ -2904,6 +2966,51 @@
                   -15.37262355523184
                 ],
                 [
+                  -6.574197360239923,
+                  0.11945159877783704,
+                  -0.8850946263596415
+                ],
+                [
+                  -6.774581266567111,
+                  0.3486993106434918,
+                  1.2748373173363508
+                ],
+                [
+                  -6.3176928388886155,
+                  0.06197889796451023,
+                  2.712207653205842
+                ],
+                [
+                  -5.930201602727175,
+                  -0.034764621224252015,
+                  3.91793193500489
+                ],
+                [
+                  9.519903465583921,
+                  -0.20867598117034392,
+                  4.910514938086272
+                ],
+                [
+                  10.269573369361462,
+                  -0.27933139717815997,
+                  4.238879496715963
+                ],
+                [
+                  10.997838458269834,
+                  -0.3804153512820958,
+                  3.5693768456019463
+                ],
+                [
+                  10.55,
+                  0.389500267803669,
+                  -0.45
+                ],
+                [
+                  -2.6,
+                  -0.014889327809214592,
+                  -4.6
+                ],
+                [
                   -5.027161778679655,
                   4.967591389981767,
                   -46.292963593501064
@@ -2932,8 +3039,8 @@
             "giantRoots": true,
             "giantRootsMin": 6,
             "giantLimbsMin": 2,
-            "giantLeaves": 108086,
-            "giantCanopyCards": 6696,
+            "giantLeaves": 113410,
+            "giantCanopyCards": 6633,
             "giantMeshes": 6,
             "giantCrownRadii": [
               13,
@@ -2970,7 +3077,7 @@
               40
             ],
             "leafGeometry": "laminae",
-            "leafCount": 237181,
+            "leafCount": 242505,
             "whiteBarkLeafCount": 129095,
             "distantTrees": 726,
             "distantLod": [
@@ -2987,9 +3094,9 @@
             "maxBaseGap": 0,
             "basesChecked": 1040,
             "triangles": {
-              "wood": 452972,
-              "leaves": 931066,
-              "canopyCards": 13392,
+              "wood": 458027,
+              "leaves": 952438,
+              "canopyCards": 13266,
               "distant": 125311
             },
             "samplePositions": {
@@ -3814,19 +3921,26 @@
             ],
             "ferns": 977,
             "heroFerns": 12,
+            "fiddleheads": 260,
             "flowers": 259,
             "yellowFlowers": 6,
+            "whiteFlowers": 50,
             "weeds": 3136,
+            "weedLeafShapes": [
+              "heart",
+              "ovate",
+              "round"
+            ],
             "seedheads": 1009,
             "bushes": 104,
             "hedge": 5,
             "clover": 3117,
-            "mossPatches": 578,
+            "mossPatches": 696,
             "saplings": 25,
-            "litter": 9967,
+            "litter": 10101,
             "litterKinds": {
-              "leaves": 8615,
-              "twigs": 1217,
+              "leaves": 8726,
+              "twigs": 1240,
               "roots": 135
             },
             "windLayers": 3,
@@ -3835,10 +3949,10 @@
               "windLeaf",
               "windBranch"
             ],
-            "buildMs": 5005,
+            "buildMs": 4767,
             "drawableEstimate": {
-              "drawCalls": 217,
-              "triangles": 2664490,
+              "drawCalls": 177,
+              "triangles": 4234865,
               "grassLodTiles": [
                 14,
                 29,
@@ -9777,6 +9891,520 @@
                   2.681,
                   -17.713
                 ]
+              ],
+              "whiteFlowers": [
+                [
+                  -1.487,
+                  0.111,
+                  -11.197
+                ],
+                [
+                  -1.814,
+                  0.124,
+                  -14.747
+                ],
+                [
+                  -0.999,
+                  -0.026,
+                  -14.897
+                ],
+                [
+                  -2.397,
+                  0.369,
+                  -11.542
+                ],
+                [
+                  -1.48,
+                  -0.075,
+                  -13.585
+                ],
+                [
+                  -3.228,
+                  0.513,
+                  -8.253
+                ],
+                [
+                  -2.571,
+                  0.365,
+                  -15.418
+                ],
+                [
+                  -1.381,
+                  0.003,
+                  -12.05
+                ],
+                [
+                  -2.41,
+                  0.15,
+                  -12.494
+                ],
+                [
+                  -3.112,
+                  0.931,
+                  -16.016
+                ],
+                [
+                  -2.759,
+                  0,
+                  -5.148
+                ],
+                [
+                  -3.164,
+                  0.124,
+                  -6.985
+                ],
+                [
+                  10.286,
+                  1.431,
+                  -6.663
+                ],
+                [
+                  9.198,
+                  0.541,
+                  -6.145
+                ],
+                [
+                  10.393,
+                  1.067,
+                  -7.566
+                ],
+                [
+                  8.672,
+                  0.556,
+                  -7.128
+                ],
+                [
+                  4.917,
+                  -0.147,
+                  -3.406
+                ],
+                [
+                  9.439,
+                  0.906,
+                  -7.629
+                ],
+                [
+                  8.069,
+                  -0.305,
+                  -5.738
+                ],
+                [
+                  14.959,
+                  2.428,
+                  -0.698
+                ],
+                [
+                  14.741,
+                  2.981,
+                  -1.773
+                ],
+                [
+                  14.848,
+                  2.241,
+                  0.293
+                ],
+                [
+                  15.812,
+                  2.662,
+                  0.641
+                ],
+                [
+                  15.69,
+                  3.516,
+                  -1.591
+                ],
+                [
+                  13.744,
+                  1.995,
+                  -0.791
+                ],
+                [
+                  16.371,
+                  3.433,
+                  -0.494
+                ],
+                [
+                  14.937,
+                  3.493,
+                  -2.574
+                ],
+                [
+                  -4.372,
+                  0.239,
+                  -14.234
+                ],
+                [
+                  -3.117,
+                  0.201,
+                  -12.776
+                ],
+                [
+                  -5.214,
+                  1.217,
+                  -15.686
+                ],
+                [
+                  -3.985,
+                  0.807,
+                  -9.672
+                ],
+                [
+                  -5.547,
+                  0.481,
+                  -11.402
+                ],
+                [
+                  -12.909,
+                  2.768,
+                  -3.992
+                ],
+                [
+                  10.763,
+                  -0.096,
+                  23.433
+                ],
+                [
+                  25.144,
+                  5.176,
+                  7.701
+                ],
+                [
+                  10.747,
+                  -0.324,
+                  2.825
+                ],
+                [
+                  -21.91,
+                  2.575,
+                  6.619
+                ],
+                [
+                  -0.786,
+                  -0.133,
+                  -20.384
+                ],
+                [
+                  17.308,
+                  5.791,
+                  -22.012
+                ],
+                [
+                  -6.747,
+                  0.418,
+                  28.631
+                ],
+                [
+                  9.051,
+                  1.074,
+                  -4.389
+                ],
+                [
+                  21.693,
+                  5.529,
+                  -21.712
+                ],
+                [
+                  -24.973,
+                  2.778,
+                  5.766
+                ],
+                [
+                  10.166,
+                  -0.319,
+                  3.888
+                ],
+                [
+                  24.445,
+                  5.237,
+                  6.53
+                ],
+                [
+                  -1.558,
+                  0.098,
+                  -21.614
+                ],
+                [
+                  -1.893,
+                  -0.05,
+                  -7.447
+                ],
+                [
+                  -1.87,
+                  -0.096,
+                  -7.033
+                ],
+                [
+                  -2.299,
+                  0.113,
+                  -7.958
+                ],
+                [
+                  -2.214,
+                  0.03,
+                  -7.611
+                ]
+              ],
+              "fiddleheads": [
+                [
+                  -4.097,
+                  0.75,
+                  -10.299
+                ],
+                [
+                  -3.42,
+                  0.691,
+                  -9.185
+                ],
+                [
+                  16.42,
+                  1.374,
+                  5.005
+                ],
+                [
+                  16.333,
+                  4.181,
+                  -2.238
+                ],
+                [
+                  16.124,
+                  0.554,
+                  6.945
+                ],
+                [
+                  14.766,
+                  2.136,
+                  0.431
+                ],
+                [
+                  16.446,
+                  3.347,
+                  -0.131
+                ],
+                [
+                  -2.531,
+                  1.838,
+                  -22.524
+                ],
+                [
+                  11.693,
+                  3.417,
+                  -6.371
+                ],
+                [
+                  -6.211,
+                  0.83,
+                  -12.29
+                ],
+                [
+                  -4.783,
+                  0.342,
+                  -14.663
+                ],
+                [
+                  -11.899,
+                  2.941,
+                  -9.794
+                ],
+                [
+                  16.077,
+                  4.612,
+                  -9.625
+                ],
+                [
+                  -8.459,
+                  0.9,
+                  10.487
+                ],
+                [
+                  -5.613,
+                  -0.09,
+                  4.546
+                ],
+                [
+                  -14.089,
+                  0.429,
+                  10.715
+                ],
+                [
+                  -12.292,
+                  2.725,
+                  -2.159
+                ],
+                [
+                  -10.107,
+                  2.971,
+                  -11.096
+                ],
+                [
+                  -8.502,
+                  2.269,
+                  -9.237
+                ],
+                [
+                  -1.726,
+                  0.356,
+                  -20.758
+                ],
+                [
+                  -1.208,
+                  0.085,
+                  19.268
+                ],
+                [
+                  -12.528,
+                  0.076,
+                  14.533
+                ],
+                [
+                  -9.524,
+                  2.87,
+                  -8.035
+                ],
+                [
+                  12.415,
+                  -0.101,
+                  12.184
+                ],
+                [
+                  2.219,
+                  0.382,
+                  22.041
+                ],
+                [
+                  8.822,
+                  -0.34,
+                  8.559
+                ],
+                [
+                  -6.381,
+                  0.17,
+                  3.367
+                ],
+                [
+                  12.495,
+                  -0.036,
+                  10.939
+                ],
+                [
+                  -7.061,
+                  0.991,
+                  -13.528
+                ],
+                [
+                  -11.975,
+                  2.937,
+                  -11.005
+                ],
+                [
+                  -11.865,
+                  0.356,
+                  16.297
+                ],
+                [
+                  11.82,
+                  -0.219,
+                  15.972
+                ],
+                [
+                  1.932,
+                  0.207,
+                  18.815
+                ],
+                [
+                  -1.758,
+                  0.407,
+                  -21.518
+                ],
+                [
+                  -2.08,
+                  0.16,
+                  -14.495
+                ],
+                [
+                  -2.337,
+                  -0.089,
+                  -5.841
+                ],
+                [
+                  13.958,
+                  0.38,
+                  3.914
+                ],
+                [
+                  -7.477,
+                  1.47,
+                  -11.434
+                ],
+                [
+                  9.363,
+                  0.83,
+                  -5.62
+                ],
+                [
+                  -11.888,
+                  2.58,
+                  4.517
+                ],
+                [
+                  13.866,
+                  -0.08,
+                  7.562
+                ],
+                [
+                  8.981,
+                  -0.205,
+                  18.592
+                ],
+                [
+                  -11.418,
+                  2.96,
+                  -9.474
+                ],
+                [
+                  -7.016,
+                  0.844,
+                  -14.643
+                ],
+                [
+                  -2.942,
+                  0.688,
+                  -15.76
+                ],
+                [
+                  -2.274,
+                  0.185,
+                  -12.184
+                ],
+                [
+                  -2.489,
+                  0.52,
+                  -10.641
+                ],
+                [
+                  8.863,
+                  0.139,
+                  -6.335
+                ],
+                [
+                  9.351,
+                  0.969,
+                  -5.356
+                ],
+                [
+                  14.852,
+                  0.085,
+                  7.3
+                ],
+                [
+                  13.21,
+                  -0.036,
+                  4.703
+                ],
+                [
+                  13.554,
+                  0.64,
+                  2.322
+                ]
               ]
             }
           },
@@ -9851,8 +10479,8 @@
             "fairyTrail": 16,
             "npcs": 3,
             "geometry": "procedural-v1",
-            "triangles": 72408,
-            "linkTriangles": 52474,
+            "triangles": 93762,
+            "linkTriangles": 73828,
             "mode": "play",
             "view": null,
             "linkGait": "idle",
@@ -9901,9 +10529,9 @@
             "contactShadows": 4,
             "pavingSurface": {
               "cells": 122295,
-              "covered": 33692,
+              "covered": 33695,
               "cellSize": 0.1,
-              "triangles": 64406
+              "triangles": 65772
             },
             "world": {
               "link": [
@@ -10334,45 +10962,45 @@
         }
       },
       "file": "01-baseline.jpg",
-      "source": "429128a5a5a7cbb070da0f6dbf837e5244a6bf9e",
-      "capturedAt": "2026-09-11T07:21:26.230Z",
+      "source": "22ac0613bd527a69973c0f12ca2949eb97127da1",
+      "capturedAt": "2026-09-11T15:11:03.944Z",
       "retries": 0,
-      "rendererPngSha256": "sha256:256c5260b45bd99a6efb5f9550bb6284f0181d6ac2b578a2fc416846e68bdbcd",
-      "sha256": "sha256:8ecfc5f9a4630159bfd63498f23731af34c876a3477186a58210e261b14b49e0",
+      "rendererPngSha256": "sha256:7f17efd254236284deda72dd658ac58bdaf69733b04f85d5d165eef3914a5f77",
+      "sha256": "sha256:78a3a47d2c76c6b7ceb437df85206710853f25aefc99c58fa35fa0bfb2656faf",
       "channels": [
         {
-          "min": 29,
+          "min": 22,
           "max": 255,
-          "sum": 83864439,
-          "squaresSum": 9219175515,
-          "mean": 90.998740234375,
-          "stdev": 41.50514184143421,
-          "minX": 228,
-          "minY": 570,
-          "maxX": 258,
-          "maxY": 176
-        },
-        {
-          "min": 29,
-          "max": 229,
-          "sum": 79938614,
-          "squaresSum": 8117663776,
-          "mean": 86.73894748263889,
-          "stdev": 35.84111196767462,
-          "minX": 153,
-          "minY": 608,
-          "maxX": 558,
-          "maxY": 594
+          "sum": 81777529,
+          "squaresSum": 8527405127,
+          "mean": 88.73429796006944,
+          "stdev": 37.135597552861014,
+          "minX": 522,
+          "minY": 285,
+          "maxX": 606,
+          "maxY": 379
         },
         {
           "min": 17,
+          "max": 233,
+          "sum": 77920543,
+          "squaresSum": 7661849261,
+          "mean": 84.54920030381945,
+          "stdev": 34.13315855908372,
+          "minX": 449,
+          "minY": 432,
+          "maxX": 547,
+          "maxY": 475
+        },
+        {
+          "min": 13,
           "max": 191,
-          "sum": 57154215,
-          "squaresSum": 4538866831,
-          "mean": 62.016292317708334,
-          "stdev": 32.84762348539807,
-          "minX": 1118,
-          "minY": 364,
+          "sum": 56049425,
+          "squaresSum": 4391239387,
+          "mean": 60.81751844618056,
+          "stdev": 32.65011927757744,
+          "minX": 534,
+          "minY": 291,
           "maxX": 694,
           "maxY": 715
         }
@@ -10398,23 +11026,23 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 452,
-        "triangles": 6154658,
-        "geometries": 508,
-        "textures": 73,
-        "programs": 95,
+        "drawCalls": 405,
+        "triangles": 8209385,
+        "geometries": 450,
+        "textures": 90,
+        "programs": 100,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "audit": {
         "scene": {
-          "meshes": 625,
-          "instancedMeshes": 272,
-          "instances": 519528,
-          "triangles": 5605043,
-          "materials": 112,
-          "uniqueGeometries": 617,
+          "meshes": 559,
+          "instancedMeshes": 228,
+          "instances": 522567,
+          "triangles": 7391138,
+          "materials": 118,
+          "uniqueGeometries": 551,
           "textures": [
             "bark_brown_02/color",
             "bark_brown_02/normal",
@@ -10432,8 +11060,12 @@
             "leafy_grass/color",
             "leafy_grass/normal",
             "original-character-cloth-weave",
+            "original-link-blue-green-iris",
             "original-link-hair-strand-colour",
             "original-link-hair-strand-relief",
+            "original-link-leather-colour",
+            "original-link-leather-height",
+            "original-link-leather-roughness",
             "procedural:leaf-cluster",
             "procedural:whitebark/color",
             "procedural:whitebark/normal",
@@ -10473,8 +11105,8 @@
             },
             "hardscape": {
               "meshes": 8,
-              "instances": 1607,
-              "triangles": 185748
+              "instances": 4106,
+              "triangles": 351051
             },
             "rocks": {
               "meshes": 15,
@@ -10482,19 +11114,19 @@
               "triangles": 292780
             },
             "structures": {
-              "meshes": 54,
-              "instances": 54,
-              "triangles": 387752
+              "meshes": 41,
+              "instances": 41,
+              "triangles": 477316
             },
             "trees": {
               "meshes": 46,
               "instances": 812,
-              "triangles": 1522741
+              "triangles": 1549042
             },
             "vegetation": {
-              "meshes": 215,
-              "instances": 513595,
-              "triangles": 2499982
+              "meshes": 171,
+              "instances": 514157,
+              "triangles": 3983555
             },
             "props": {
               "meshes": 15,
@@ -10502,9 +11134,9 @@
               "triangles": 16508
             },
             "character": {
-              "meshes": 208,
-              "instances": 223,
-              "triangles": 72408
+              "meshes": 199,
+              "instances": 214,
+              "triangles": 93762
             }
           },
           "forbidden": []
@@ -10661,9 +11293,9 @@
                   1
                 ],
                 [
-                  10.4,
-                  8,
-                  -11.4,
+                  13.3,
+                  10,
+                  -14.6,
                   1.3,
                   7.5
                 ],
@@ -10774,7 +11406,7 @@
             "halfSize": 220,
             "heightAtOrigin": 0,
             "heightAtStairTop": 3.8426769971847534,
-            "buildMs": 4035
+            "buildMs": 3798
           },
           "hardscape": {
             "stairways": [
@@ -10796,13 +11428,14 @@
             "stairGeometry": "procedural-v2",
             "uniqueStepShapes": 33,
             "mossJoints": true,
-            "stairTriangles": 10497,
+            "stairTriangles": 13220,
             "flagstones": 542,
             "flagstoneShapes": 542,
             "flagstoneGeometry": "voronoi-cells-v5-jittered-lattice",
             "flagstoneSplitCells": 34,
             "flagstoneBigSlabs": 6,
             "flagstoneRimStones": 207,
+            "flagstoneEdgeMossStones": 175,
             "steppingStones": 8,
             "steppingStoneDiscs": [
               [
@@ -10847,19 +11480,51 @@
               ]
             ],
             "flagstoneMaxAspect": 2.515,
-            "flagstoneTriangles": 84239,
+            "flagstoneTriangles": 85605,
             "flagstoneDrawCalls": 1,
             "jointFillVertices": 11518,
-            "jointSprouts": 1603,
+            "jointSprouts": 1932,
             "jointSproutsOnFlagstones": 1500,
-            "jointSproutsOnStairs": 103,
-            "jointSproutVariants": 4,
+            "jointSproutsOnStairs": 105,
+            "jointSproutVariants": 7,
             "jointSproutDrawCalls": 4,
+            "jointSproutPacks": [
+              [
+                1
+              ],
+              [
+                0
+              ],
+              [
+                2,
+                6
+              ],
+              [
+                3,
+                4
+              ]
+            ],
             "jointSproutHeightCm": [
               6,
               12
             ],
             "jointSproutLodFar": 25,
+            "jointSproutTriangles": 85440,
+            "jointSproutSubmittedTriangles": 230244,
+            "mossCushions": 327,
+            "mossCushionsInSeams": 246,
+            "seamGrit": 2170,
+            "seamGritInSeams": 2080,
+            "seamGritAtStairFeet": 90,
+            "seamGritLodFar": 25,
+            "seamGritTriangles": 43400,
+            "seamGritDrawCalls": 0,
+            "jointFillTriangles": 21982,
+            "jointGapField": [
+              407,
+              1609
+            ],
+            "hardscapeTriangles": 249647,
             "plazaRadius": 6,
             "samplePositions": {
               "flagstones": [
@@ -11781,119 +12446,119 @@
                   -2.407
                 ],
                 [
-                  9.75,
-                  0.607,
-                  -1.59
+                  9.32,
+                  0.595,
+                  -2.227
                 ],
                 [
-                  8.816,
-                  0.607,
-                  -2.925
+                  9.68,
+                  0.905,
+                  -2.457
                 ],
                 [
-                  9.67,
-                  0.894,
-                  -2.453
+                  10.021,
+                  1.198,
+                  -2.691
                 ],
                 [
-                  10.022,
-                  1.202,
-                  -2.703
+                  10.347,
+                  1.494,
+                  -2.954
                 ],
                 [
-                  10.367,
-                  1.493,
-                  -2.952
+                  10.687,
+                  1.803,
+                  -3.19
                 ],
                 [
-                  10.705,
-                  1.792,
-                  -3.168
+                  11.693,
+                  2.095,
+                  -2.535
                 ],
                 [
-                  11.06,
-                  2.107,
-                  -3.444
+                  10.758,
+                  2.095,
+                  -3.871
                 ],
                 [
-                  11.955,
-                  2.392,
-                  -2.862
+                  11.791,
+                  2.397,
+                  -3.136
                 ],
                 [
-                  11.031,
-                  2.392,
-                  -4.182
+                  10.856,
+                  2.397,
+                  -4.472
                 ],
                 [
-                  11.736,
-                  2.692,
-                  -3.916
+                  12.071,
+                  2.707,
+                  -3.426
                 ],
                 [
-                  12.092,
-                  3.005,
-                  -4.168
+                  11.137,
+                  2.707,
+                  -4.76
                 ],
                 [
-                  12.432,
-                  3.295,
-                  -4.4
+                  12.562,
+                  3.007,
+                  -3.469
                 ],
                 [
-                  13.409,
-                  3.597,
-                  -3.699
+                  11.625,
+                  3.007,
+                  -4.809
                 ],
                 [
-                  12.47,
-                  3.597,
-                  -5.041
+                  12.433,
+                  3.297,
+                  -4.398
                 ],
                 [
-                  13.744,
-                  3.893,
-                  -4.006
+                  12.986,
+                  3.604,
+                  -4.311
                 ],
                 [
-                  12.804,
-                  3.893,
-                  -5.349
+                  12.066,
+                  3.604,
+                  -5.624
                 ],
                 [
-                  13.879,
-                  4.201,
-                  -4.518
+                  13.103,
+                  3.894,
+                  -4.865
                 ],
                 [
-                  12.953,
-                  4.201,
-                  -5.841
+                  13.448,
+                  4.194,
+                  -5.119
                 ],
                 [
-                  13.784,
-                  4.504,
-                  -5.363
+                  14.035,
+                  4.499,
+                  -5.036
                 ],
                 [
-                  14.129,
-                  4.798,
-                  -5.615
+                  13.109,
+                  4.499,
+                  -6.359
                 ],
                 [
-                  14.477,
-                  5.104,
-                  -5.843
+                  14.141,
+                  4.794,
+                  -5.591
                 ],
                 [
-                  15.25,
-                  5.397,
-                  -5.482
+                  14.49,
+                  5.093,
+                  -5.817
                 ],
                 [
-                  14.317,
-                  5.397,
-                  -6.815
+                  14.809,
+                  5.394,
+                  -6.085
                 ],
                 [
                   -0.899,
@@ -11901,39 +12566,39 @@
                   -15.993
                 ],
                 [
-                  -0.666,
-                  0.597,
-                  -16.794
+                  -0.475,
+                  0.6,
+                  -16.913
                 ],
                 [
-                  -1.726,
-                  0.597,
-                  -15.999
+                  -1.523,
+                  0.6,
+                  -16.127
                 ],
                 [
-                  -1.484,
-                  0.895,
-                  -16.798
+                  -1.48,
+                  0.904,
+                  -16.788
                 ],
                 [
-                  -1.784,
-                  1.199,
-                  -17.177
+                  -1.451,
+                  1.202,
+                  -17.444
                 ],
                 [
-                  -2.111,
-                  1.503,
-                  -17.594
+                  -2.509,
+                  1.202,
+                  -16.651
                 ],
                 [
-                  -1.959,
-                  1.805,
-                  -18.295
+                  -2.098,
+                  1.498,
+                  -17.582
                 ],
                 [
-                  -3.028,
-                  1.805,
-                  -17.493
+                  -2.385,
+                  1.796,
+                  -17.968
                 ]
               ]
             },
@@ -13141,25 +13806,30 @@
             }
           },
           "structures": {
-            "meshes": 54,
-            "triangles": 387752,
+            "meshes": 41,
+            "triangles": 477316,
+            "meshesBeforeMerge": 81,
+            "mergedMeshes": 16,
             "houses": 2,
             "geometry": "procedural-v1",
             "mossRoof": true,
             "doorLight": true,
-            "lanterns": 10,
-            "houseLanterns": 5,
+            "lanterns": 16,
+            "houseLanterns": 6,
             "branchLanterns": 3,
             "lanternBranch": true,
-            "logLanterns": 2,
+            "logLanterns": 5,
             "signposts": 1,
-            "fences": 2,
-            "fencePosts": 10,
+            "fences": 4,
+            "fencePosts": 17,
+            "ropeFences": 2,
+            "lanternPosts": 2,
+            "postLanterns": 2,
             "logArch": true,
             "houseRoots": 11,
-            "houseBranches": 12,
-            "leaves": 11363,
-            "pointLights": 6,
+            "houseBranches": 16,
+            "leaves": 12136,
+            "pointLights": 10,
             "textureSets": [
               "bark_brown_02",
               "bark_willow_02",
@@ -13200,6 +13870,16 @@
                   -11.273952313140345
                 ],
                 [
+                  8.392414477726092,
+                  1.0417568322978512,
+                  -13.854674202683112
+                ],
+                [
+                  14.475768791748566,
+                  5.257714912424187,
+                  -7.39608194700426
+                ],
+                [
                   12.880989315080557,
                   3.7389605715956504,
                   -11.833360559972373
@@ -13223,6 +13903,16 @@
                   8.20212888220814,
                   1.1822320292653201,
                   -17.081304438363727
+                ],
+                [
+                  10.040690606967893,
+                  5.368756218201764,
+                  -19.548310400934
+                ],
+                [
+                  15.183558703767941,
+                  5.187564643145342,
+                  -13.873224301644434
                 ],
                 [
                   7,
@@ -13280,6 +13970,51 @@
                   -15.37262355523184
                 ],
                 [
+                  -6.574197360239923,
+                  0.11945159877783704,
+                  -0.8850946263596415
+                ],
+                [
+                  -6.774581266567111,
+                  0.3486993106434918,
+                  1.2748373173363508
+                ],
+                [
+                  -6.3176928388886155,
+                  0.06197889796451023,
+                  2.712207653205842
+                ],
+                [
+                  -5.930201602727175,
+                  -0.034764621224252015,
+                  3.91793193500489
+                ],
+                [
+                  9.519903465583921,
+                  -0.20867598117034392,
+                  4.910514938086272
+                ],
+                [
+                  10.269573369361462,
+                  -0.27933139717815997,
+                  4.238879496715963
+                ],
+                [
+                  10.997838458269834,
+                  -0.3804153512820958,
+                  3.5693768456019463
+                ],
+                [
+                  10.55,
+                  0.389500267803669,
+                  -0.45
+                ],
+                [
+                  -2.6,
+                  -0.014889327809214592,
+                  -4.6
+                ],
+                [
                   -5.027161778679655,
                   4.967591389981767,
                   -46.292963593501064
@@ -13308,8 +14043,8 @@
             "giantRoots": true,
             "giantRootsMin": 6,
             "giantLimbsMin": 2,
-            "giantLeaves": 108086,
-            "giantCanopyCards": 6696,
+            "giantLeaves": 113410,
+            "giantCanopyCards": 6633,
             "giantMeshes": 6,
             "giantCrownRadii": [
               13,
@@ -13346,7 +14081,7 @@
               40
             ],
             "leafGeometry": "laminae",
-            "leafCount": 237181,
+            "leafCount": 242505,
             "whiteBarkLeafCount": 129095,
             "distantTrees": 726,
             "distantLod": [
@@ -13363,9 +14098,9 @@
             "maxBaseGap": 0,
             "basesChecked": 1040,
             "triangles": {
-              "wood": 452972,
-              "leaves": 931066,
-              "canopyCards": 13392,
+              "wood": 458027,
+              "leaves": 952438,
+              "canopyCards": 13266,
               "distant": 125311
             },
             "samplePositions": {
@@ -14190,19 +14925,26 @@
             ],
             "ferns": 977,
             "heroFerns": 12,
+            "fiddleheads": 260,
             "flowers": 259,
             "yellowFlowers": 6,
+            "whiteFlowers": 50,
             "weeds": 3136,
+            "weedLeafShapes": [
+              "heart",
+              "ovate",
+              "round"
+            ],
             "seedheads": 1009,
             "bushes": 104,
             "hedge": 5,
             "clover": 3117,
-            "mossPatches": 578,
+            "mossPatches": 696,
             "saplings": 25,
-            "litter": 9967,
+            "litter": 10101,
             "litterKinds": {
-              "leaves": 8615,
-              "twigs": 1217,
+              "leaves": 8726,
+              "twigs": 1240,
               "roots": 135
             },
             "windLayers": 3,
@@ -14211,10 +14953,10 @@
               "windLeaf",
               "windBranch"
             ],
-            "buildMs": 5005,
+            "buildMs": 4767,
             "drawableEstimate": {
-              "drawCalls": 217,
-              "triangles": 2664490,
+              "drawCalls": 177,
+              "triangles": 4234865,
               "grassLodTiles": [
                 14,
                 29,
@@ -20153,6 +20895,520 @@
                   2.681,
                   -17.713
                 ]
+              ],
+              "whiteFlowers": [
+                [
+                  -1.487,
+                  0.111,
+                  -11.197
+                ],
+                [
+                  -1.814,
+                  0.124,
+                  -14.747
+                ],
+                [
+                  -0.999,
+                  -0.026,
+                  -14.897
+                ],
+                [
+                  -2.397,
+                  0.369,
+                  -11.542
+                ],
+                [
+                  -1.48,
+                  -0.075,
+                  -13.585
+                ],
+                [
+                  -3.228,
+                  0.513,
+                  -8.253
+                ],
+                [
+                  -2.571,
+                  0.365,
+                  -15.418
+                ],
+                [
+                  -1.381,
+                  0.003,
+                  -12.05
+                ],
+                [
+                  -2.41,
+                  0.15,
+                  -12.494
+                ],
+                [
+                  -3.112,
+                  0.931,
+                  -16.016
+                ],
+                [
+                  -2.759,
+                  0,
+                  -5.148
+                ],
+                [
+                  -3.164,
+                  0.124,
+                  -6.985
+                ],
+                [
+                  10.286,
+                  1.431,
+                  -6.663
+                ],
+                [
+                  9.198,
+                  0.541,
+                  -6.145
+                ],
+                [
+                  10.393,
+                  1.067,
+                  -7.566
+                ],
+                [
+                  8.672,
+                  0.556,
+                  -7.128
+                ],
+                [
+                  4.917,
+                  -0.147,
+                  -3.406
+                ],
+                [
+                  9.439,
+                  0.906,
+                  -7.629
+                ],
+                [
+                  8.069,
+                  -0.305,
+                  -5.738
+                ],
+                [
+                  14.959,
+                  2.428,
+                  -0.698
+                ],
+                [
+                  14.741,
+                  2.981,
+                  -1.773
+                ],
+                [
+                  14.848,
+                  2.241,
+                  0.293
+                ],
+                [
+                  15.812,
+                  2.662,
+                  0.641
+                ],
+                [
+                  15.69,
+                  3.516,
+                  -1.591
+                ],
+                [
+                  13.744,
+                  1.995,
+                  -0.791
+                ],
+                [
+                  16.371,
+                  3.433,
+                  -0.494
+                ],
+                [
+                  14.937,
+                  3.493,
+                  -2.574
+                ],
+                [
+                  -4.372,
+                  0.239,
+                  -14.234
+                ],
+                [
+                  -3.117,
+                  0.201,
+                  -12.776
+                ],
+                [
+                  -5.214,
+                  1.217,
+                  -15.686
+                ],
+                [
+                  -3.985,
+                  0.807,
+                  -9.672
+                ],
+                [
+                  -5.547,
+                  0.481,
+                  -11.402
+                ],
+                [
+                  -12.909,
+                  2.768,
+                  -3.992
+                ],
+                [
+                  10.763,
+                  -0.096,
+                  23.433
+                ],
+                [
+                  25.144,
+                  5.176,
+                  7.701
+                ],
+                [
+                  10.747,
+                  -0.324,
+                  2.825
+                ],
+                [
+                  -21.91,
+                  2.575,
+                  6.619
+                ],
+                [
+                  -0.786,
+                  -0.133,
+                  -20.384
+                ],
+                [
+                  17.308,
+                  5.791,
+                  -22.012
+                ],
+                [
+                  -6.747,
+                  0.418,
+                  28.631
+                ],
+                [
+                  9.051,
+                  1.074,
+                  -4.389
+                ],
+                [
+                  21.693,
+                  5.529,
+                  -21.712
+                ],
+                [
+                  -24.973,
+                  2.778,
+                  5.766
+                ],
+                [
+                  10.166,
+                  -0.319,
+                  3.888
+                ],
+                [
+                  24.445,
+                  5.237,
+                  6.53
+                ],
+                [
+                  -1.558,
+                  0.098,
+                  -21.614
+                ],
+                [
+                  -1.893,
+                  -0.05,
+                  -7.447
+                ],
+                [
+                  -1.87,
+                  -0.096,
+                  -7.033
+                ],
+                [
+                  -2.299,
+                  0.113,
+                  -7.958
+                ],
+                [
+                  -2.214,
+                  0.03,
+                  -7.611
+                ]
+              ],
+              "fiddleheads": [
+                [
+                  -4.097,
+                  0.75,
+                  -10.299
+                ],
+                [
+                  -3.42,
+                  0.691,
+                  -9.185
+                ],
+                [
+                  16.42,
+                  1.374,
+                  5.005
+                ],
+                [
+                  16.333,
+                  4.181,
+                  -2.238
+                ],
+                [
+                  16.124,
+                  0.554,
+                  6.945
+                ],
+                [
+                  14.766,
+                  2.136,
+                  0.431
+                ],
+                [
+                  16.446,
+                  3.347,
+                  -0.131
+                ],
+                [
+                  -2.531,
+                  1.838,
+                  -22.524
+                ],
+                [
+                  11.693,
+                  3.417,
+                  -6.371
+                ],
+                [
+                  -6.211,
+                  0.83,
+                  -12.29
+                ],
+                [
+                  -4.783,
+                  0.342,
+                  -14.663
+                ],
+                [
+                  -11.899,
+                  2.941,
+                  -9.794
+                ],
+                [
+                  16.077,
+                  4.612,
+                  -9.625
+                ],
+                [
+                  -8.459,
+                  0.9,
+                  10.487
+                ],
+                [
+                  -5.613,
+                  -0.09,
+                  4.546
+                ],
+                [
+                  -14.089,
+                  0.429,
+                  10.715
+                ],
+                [
+                  -12.292,
+                  2.725,
+                  -2.159
+                ],
+                [
+                  -10.107,
+                  2.971,
+                  -11.096
+                ],
+                [
+                  -8.502,
+                  2.269,
+                  -9.237
+                ],
+                [
+                  -1.726,
+                  0.356,
+                  -20.758
+                ],
+                [
+                  -1.208,
+                  0.085,
+                  19.268
+                ],
+                [
+                  -12.528,
+                  0.076,
+                  14.533
+                ],
+                [
+                  -9.524,
+                  2.87,
+                  -8.035
+                ],
+                [
+                  12.415,
+                  -0.101,
+                  12.184
+                ],
+                [
+                  2.219,
+                  0.382,
+                  22.041
+                ],
+                [
+                  8.822,
+                  -0.34,
+                  8.559
+                ],
+                [
+                  -6.381,
+                  0.17,
+                  3.367
+                ],
+                [
+                  12.495,
+                  -0.036,
+                  10.939
+                ],
+                [
+                  -7.061,
+                  0.991,
+                  -13.528
+                ],
+                [
+                  -11.975,
+                  2.937,
+                  -11.005
+                ],
+                [
+                  -11.865,
+                  0.356,
+                  16.297
+                ],
+                [
+                  11.82,
+                  -0.219,
+                  15.972
+                ],
+                [
+                  1.932,
+                  0.207,
+                  18.815
+                ],
+                [
+                  -1.758,
+                  0.407,
+                  -21.518
+                ],
+                [
+                  -2.08,
+                  0.16,
+                  -14.495
+                ],
+                [
+                  -2.337,
+                  -0.089,
+                  -5.841
+                ],
+                [
+                  13.958,
+                  0.38,
+                  3.914
+                ],
+                [
+                  -7.477,
+                  1.47,
+                  -11.434
+                ],
+                [
+                  9.363,
+                  0.83,
+                  -5.62
+                ],
+                [
+                  -11.888,
+                  2.58,
+                  4.517
+                ],
+                [
+                  13.866,
+                  -0.08,
+                  7.562
+                ],
+                [
+                  8.981,
+                  -0.205,
+                  18.592
+                ],
+                [
+                  -11.418,
+                  2.96,
+                  -9.474
+                ],
+                [
+                  -7.016,
+                  0.844,
+                  -14.643
+                ],
+                [
+                  -2.942,
+                  0.688,
+                  -15.76
+                ],
+                [
+                  -2.274,
+                  0.185,
+                  -12.184
+                ],
+                [
+                  -2.489,
+                  0.52,
+                  -10.641
+                ],
+                [
+                  8.863,
+                  0.139,
+                  -6.335
+                ],
+                [
+                  9.351,
+                  0.969,
+                  -5.356
+                ],
+                [
+                  14.852,
+                  0.085,
+                  7.3
+                ],
+                [
+                  13.21,
+                  -0.036,
+                  4.703
+                ],
+                [
+                  13.554,
+                  0.64,
+                  2.322
+                ]
               ]
             }
           },
@@ -20227,8 +21483,8 @@
             "fairyTrail": 16,
             "npcs": 3,
             "geometry": "procedural-v1",
-            "triangles": 72408,
-            "linkTriangles": 52474,
+            "triangles": 93762,
+            "linkTriangles": 73828,
             "mode": "play",
             "view": null,
             "linkGait": "idle",
@@ -20277,9 +21533,9 @@
             "contactShadows": 4,
             "pavingSurface": {
               "cells": 122295,
-              "covered": 33692,
+              "covered": 33695,
               "cellSize": 0.1,
-              "triangles": 64406
+              "triangles": 65772
             },
             "world": {
               "link": [
@@ -20710,45 +21966,45 @@
         }
       },
       "file": "02-branch-light-hidden.jpg",
-      "source": "429128a5a5a7cbb070da0f6dbf837e5244a6bf9e",
-      "capturedAt": "2026-09-11T07:21:53.904Z",
+      "source": "22ac0613bd527a69973c0f12ca2949eb97127da1",
+      "capturedAt": "2026-09-11T15:11:34.462Z",
       "retries": 0,
-      "rendererPngSha256": "sha256:84570de321d38a22b9a38d43b121573d8053a09dcd753ed0ae527f530b9dd3c2",
-      "sha256": "sha256:3777ae68c74db45d9703f7f9bece17c0310c09206145179cbccf9ce803bc3f3f",
+      "rendererPngSha256": "sha256:a4a45b480424db01b42ef9bfe7227d6fce9373617a7cc997a6d336cd787c4425",
+      "sha256": "sha256:1e9c34b798422f16d4fe48f24d620af3d5fe1e5daeb3cc1d2e1148db83b1b63d",
       "channels": [
         {
-          "min": 29,
+          "min": 14,
           "max": 255,
-          "sum": 83330839,
-          "squaresSum": 9097163421,
-          "mean": 90.41974717881945,
-          "stdev": 41.17432718222313,
-          "minX": 228,
-          "minY": 570,
-          "maxX": 258,
-          "maxY": 176
+          "sum": 80877134,
+          "squaresSum": 8366390614,
+          "mean": 87.7573068576389,
+          "stdev": 37.10487033429685,
+          "minX": 449,
+          "minY": 432,
+          "maxX": 259,
+          "maxY": 149
         },
         {
-          "min": 29,
-          "max": 204,
-          "sum": 79352387,
-          "squaresSum": 7955512121,
-          "mean": 86.10285047743055,
-          "stdev": 34.90821650147079,
-          "minX": 153,
-          "minY": 608,
-          "maxX": 552,
-          "maxY": 604
+          "min": 13,
+          "max": 227,
+          "sum": 77234192,
+          "squaresSum": 7521085546,
+          "mean": 83.80446180555556,
+          "stdev": 33.73000935364131,
+          "minX": 449,
+          "minY": 432,
+          "maxX": 547,
+          "maxY": 476
         },
         {
-          "min": 17,
+          "min": 11,
           "max": 191,
-          "sum": 56719044,
-          "squaresSum": 4454647978,
-          "mean": 61.5441015625,
-          "stdev": 32.34079628661383,
-          "minX": 1129,
-          "minY": 342,
+          "sum": 55666753,
+          "squaresSum": 4337819847,
+          "mean": 60.40229275173611,
+          "stdev": 32.53305934361827,
+          "minX": 441,
+          "minY": 467,
           "maxX": 694,
           "maxY": 715
         }
@@ -20772,23 +22028,23 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 452,
-        "triangles": 6154658,
-        "geometries": 508,
-        "textures": 73,
-        "programs": 95,
+        "drawCalls": 405,
+        "triangles": 8209385,
+        "geometries": 450,
+        "textures": 90,
+        "programs": 100,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "audit": {
         "scene": {
-          "meshes": 625,
-          "instancedMeshes": 272,
-          "instances": 519528,
-          "triangles": 5605043,
-          "materials": 112,
-          "uniqueGeometries": 617,
+          "meshes": 559,
+          "instancedMeshes": 228,
+          "instances": 522567,
+          "triangles": 7391138,
+          "materials": 118,
+          "uniqueGeometries": 551,
           "textures": [
             "bark_brown_02/color",
             "bark_brown_02/normal",
@@ -20806,8 +22062,12 @@
             "leafy_grass/color",
             "leafy_grass/normal",
             "original-character-cloth-weave",
+            "original-link-blue-green-iris",
             "original-link-hair-strand-colour",
             "original-link-hair-strand-relief",
+            "original-link-leather-colour",
+            "original-link-leather-height",
+            "original-link-leather-roughness",
             "procedural:leaf-cluster",
             "procedural:whitebark/color",
             "procedural:whitebark/normal",
@@ -20847,8 +22107,8 @@
             },
             "hardscape": {
               "meshes": 8,
-              "instances": 1607,
-              "triangles": 185748
+              "instances": 4106,
+              "triangles": 351051
             },
             "rocks": {
               "meshes": 15,
@@ -20856,19 +22116,19 @@
               "triangles": 292780
             },
             "structures": {
-              "meshes": 54,
-              "instances": 54,
-              "triangles": 387752
+              "meshes": 41,
+              "instances": 41,
+              "triangles": 477316
             },
             "trees": {
               "meshes": 46,
               "instances": 812,
-              "triangles": 1522741
+              "triangles": 1549042
             },
             "vegetation": {
-              "meshes": 215,
-              "instances": 513595,
-              "triangles": 2499982
+              "meshes": 171,
+              "instances": 514157,
+              "triangles": 3983555
             },
             "props": {
               "meshes": 15,
@@ -20876,9 +22136,9 @@
               "triangles": 16508
             },
             "character": {
-              "meshes": 208,
-              "instances": 223,
-              "triangles": 72408
+              "meshes": 199,
+              "instances": 214,
+              "triangles": 93762
             }
           },
           "forbidden": []
@@ -21035,9 +22295,9 @@
                   1
                 ],
                 [
-                  10.4,
-                  8,
-                  -11.4,
+                  13.3,
+                  10,
+                  -14.6,
                   1.3,
                   7.5
                 ],
@@ -21148,7 +22408,7 @@
             "halfSize": 220,
             "heightAtOrigin": 0,
             "heightAtStairTop": 3.8426769971847534,
-            "buildMs": 4035
+            "buildMs": 3798
           },
           "hardscape": {
             "stairways": [
@@ -21170,13 +22430,14 @@
             "stairGeometry": "procedural-v2",
             "uniqueStepShapes": 33,
             "mossJoints": true,
-            "stairTriangles": 10497,
+            "stairTriangles": 13220,
             "flagstones": 542,
             "flagstoneShapes": 542,
             "flagstoneGeometry": "voronoi-cells-v5-jittered-lattice",
             "flagstoneSplitCells": 34,
             "flagstoneBigSlabs": 6,
             "flagstoneRimStones": 207,
+            "flagstoneEdgeMossStones": 175,
             "steppingStones": 8,
             "steppingStoneDiscs": [
               [
@@ -21221,19 +22482,51 @@
               ]
             ],
             "flagstoneMaxAspect": 2.515,
-            "flagstoneTriangles": 84239,
+            "flagstoneTriangles": 85605,
             "flagstoneDrawCalls": 1,
             "jointFillVertices": 11518,
-            "jointSprouts": 1603,
+            "jointSprouts": 1932,
             "jointSproutsOnFlagstones": 1500,
-            "jointSproutsOnStairs": 103,
-            "jointSproutVariants": 4,
+            "jointSproutsOnStairs": 105,
+            "jointSproutVariants": 7,
             "jointSproutDrawCalls": 4,
+            "jointSproutPacks": [
+              [
+                1
+              ],
+              [
+                0
+              ],
+              [
+                2,
+                6
+              ],
+              [
+                3,
+                4
+              ]
+            ],
             "jointSproutHeightCm": [
               6,
               12
             ],
             "jointSproutLodFar": 25,
+            "jointSproutTriangles": 85440,
+            "jointSproutSubmittedTriangles": 230244,
+            "mossCushions": 327,
+            "mossCushionsInSeams": 246,
+            "seamGrit": 2170,
+            "seamGritInSeams": 2080,
+            "seamGritAtStairFeet": 90,
+            "seamGritLodFar": 25,
+            "seamGritTriangles": 43400,
+            "seamGritDrawCalls": 0,
+            "jointFillTriangles": 21982,
+            "jointGapField": [
+              407,
+              1609
+            ],
+            "hardscapeTriangles": 249647,
             "plazaRadius": 6,
             "samplePositions": {
               "flagstones": [
@@ -22155,119 +23448,119 @@
                   -2.407
                 ],
                 [
-                  9.75,
-                  0.607,
-                  -1.59
+                  9.32,
+                  0.595,
+                  -2.227
                 ],
                 [
-                  8.816,
-                  0.607,
-                  -2.925
+                  9.68,
+                  0.905,
+                  -2.457
                 ],
                 [
-                  9.67,
-                  0.894,
-                  -2.453
+                  10.021,
+                  1.198,
+                  -2.691
                 ],
                 [
-                  10.022,
-                  1.202,
-                  -2.703
+                  10.347,
+                  1.494,
+                  -2.954
                 ],
                 [
-                  10.367,
-                  1.493,
-                  -2.952
+                  10.687,
+                  1.803,
+                  -3.19
                 ],
                 [
-                  10.705,
-                  1.792,
-                  -3.168
+                  11.693,
+                  2.095,
+                  -2.535
                 ],
                 [
-                  11.06,
-                  2.107,
-                  -3.444
+                  10.758,
+                  2.095,
+                  -3.871
                 ],
                 [
-                  11.955,
-                  2.392,
-                  -2.862
+                  11.791,
+                  2.397,
+                  -3.136
                 ],
                 [
-                  11.031,
-                  2.392,
-                  -4.182
+                  10.856,
+                  2.397,
+                  -4.472
                 ],
                 [
-                  11.736,
-                  2.692,
-                  -3.916
+                  12.071,
+                  2.707,
+                  -3.426
                 ],
                 [
-                  12.092,
-                  3.005,
-                  -4.168
+                  11.137,
+                  2.707,
+                  -4.76
                 ],
                 [
-                  12.432,
-                  3.295,
-                  -4.4
+                  12.562,
+                  3.007,
+                  -3.469
                 ],
                 [
-                  13.409,
-                  3.597,
-                  -3.699
+                  11.625,
+                  3.007,
+                  -4.809
                 ],
                 [
-                  12.47,
-                  3.597,
-                  -5.041
+                  12.433,
+                  3.297,
+                  -4.398
                 ],
                 [
-                  13.744,
-                  3.893,
-                  -4.006
+                  12.986,
+                  3.604,
+                  -4.311
                 ],
                 [
-                  12.804,
-                  3.893,
-                  -5.349
+                  12.066,
+                  3.604,
+                  -5.624
                 ],
                 [
-                  13.879,
-                  4.201,
-                  -4.518
+                  13.103,
+                  3.894,
+                  -4.865
                 ],
                 [
-                  12.953,
-                  4.201,
-                  -5.841
+                  13.448,
+                  4.194,
+                  -5.119
                 ],
                 [
-                  13.784,
-                  4.504,
-                  -5.363
+                  14.035,
+                  4.499,
+                  -5.036
                 ],
                 [
-                  14.129,
-                  4.798,
-                  -5.615
+                  13.109,
+                  4.499,
+                  -6.359
                 ],
                 [
-                  14.477,
-                  5.104,
-                  -5.843
+                  14.141,
+                  4.794,
+                  -5.591
                 ],
                 [
-                  15.25,
-                  5.397,
-                  -5.482
+                  14.49,
+                  5.093,
+                  -5.817
                 ],
                 [
-                  14.317,
-                  5.397,
-                  -6.815
+                  14.809,
+                  5.394,
+                  -6.085
                 ],
                 [
                   -0.899,
@@ -22275,39 +23568,39 @@
                   -15.993
                 ],
                 [
-                  -0.666,
-                  0.597,
-                  -16.794
+                  -0.475,
+                  0.6,
+                  -16.913
                 ],
                 [
-                  -1.726,
-                  0.597,
-                  -15.999
+                  -1.523,
+                  0.6,
+                  -16.127
                 ],
                 [
-                  -1.484,
-                  0.895,
-                  -16.798
+                  -1.48,
+                  0.904,
+                  -16.788
                 ],
                 [
-                  -1.784,
-                  1.199,
-                  -17.177
+                  -1.451,
+                  1.202,
+                  -17.444
                 ],
                 [
-                  -2.111,
-                  1.503,
-                  -17.594
+                  -2.509,
+                  1.202,
+                  -16.651
                 ],
                 [
-                  -1.959,
-                  1.805,
-                  -18.295
+                  -2.098,
+                  1.498,
+                  -17.582
                 ],
                 [
-                  -3.028,
-                  1.805,
-                  -17.493
+                  -2.385,
+                  1.796,
+                  -17.968
                 ]
               ]
             },
@@ -23515,25 +24808,30 @@
             }
           },
           "structures": {
-            "meshes": 54,
-            "triangles": 387752,
+            "meshes": 41,
+            "triangles": 477316,
+            "meshesBeforeMerge": 81,
+            "mergedMeshes": 16,
             "houses": 2,
             "geometry": "procedural-v1",
             "mossRoof": true,
             "doorLight": true,
-            "lanterns": 10,
-            "houseLanterns": 5,
+            "lanterns": 16,
+            "houseLanterns": 6,
             "branchLanterns": 3,
             "lanternBranch": true,
-            "logLanterns": 2,
+            "logLanterns": 5,
             "signposts": 1,
-            "fences": 2,
-            "fencePosts": 10,
+            "fences": 4,
+            "fencePosts": 17,
+            "ropeFences": 2,
+            "lanternPosts": 2,
+            "postLanterns": 2,
             "logArch": true,
             "houseRoots": 11,
-            "houseBranches": 12,
-            "leaves": 11363,
-            "pointLights": 6,
+            "houseBranches": 16,
+            "leaves": 12136,
+            "pointLights": 10,
             "textureSets": [
               "bark_brown_02",
               "bark_willow_02",
@@ -23574,6 +24872,16 @@
                   -11.273952313140345
                 ],
                 [
+                  8.392414477726092,
+                  1.0417568322978512,
+                  -13.854674202683112
+                ],
+                [
+                  14.475768791748566,
+                  5.257714912424187,
+                  -7.39608194700426
+                ],
+                [
                   12.880989315080557,
                   3.7389605715956504,
                   -11.833360559972373
@@ -23597,6 +24905,16 @@
                   8.20212888220814,
                   1.1822320292653201,
                   -17.081304438363727
+                ],
+                [
+                  10.040690606967893,
+                  5.368756218201764,
+                  -19.548310400934
+                ],
+                [
+                  15.183558703767941,
+                  5.187564643145342,
+                  -13.873224301644434
                 ],
                 [
                   7,
@@ -23654,6 +24972,51 @@
                   -15.37262355523184
                 ],
                 [
+                  -6.574197360239923,
+                  0.11945159877783704,
+                  -0.8850946263596415
+                ],
+                [
+                  -6.774581266567111,
+                  0.3486993106434918,
+                  1.2748373173363508
+                ],
+                [
+                  -6.3176928388886155,
+                  0.06197889796451023,
+                  2.712207653205842
+                ],
+                [
+                  -5.930201602727175,
+                  -0.034764621224252015,
+                  3.91793193500489
+                ],
+                [
+                  9.519903465583921,
+                  -0.20867598117034392,
+                  4.910514938086272
+                ],
+                [
+                  10.269573369361462,
+                  -0.27933139717815997,
+                  4.238879496715963
+                ],
+                [
+                  10.997838458269834,
+                  -0.3804153512820958,
+                  3.5693768456019463
+                ],
+                [
+                  10.55,
+                  0.389500267803669,
+                  -0.45
+                ],
+                [
+                  -2.6,
+                  -0.014889327809214592,
+                  -4.6
+                ],
+                [
                   -5.027161778679655,
                   4.967591389981767,
                   -46.292963593501064
@@ -23682,8 +25045,8 @@
             "giantRoots": true,
             "giantRootsMin": 6,
             "giantLimbsMin": 2,
-            "giantLeaves": 108086,
-            "giantCanopyCards": 6696,
+            "giantLeaves": 113410,
+            "giantCanopyCards": 6633,
             "giantMeshes": 6,
             "giantCrownRadii": [
               13,
@@ -23720,7 +25083,7 @@
               40
             ],
             "leafGeometry": "laminae",
-            "leafCount": 237181,
+            "leafCount": 242505,
             "whiteBarkLeafCount": 129095,
             "distantTrees": 726,
             "distantLod": [
@@ -23737,9 +25100,9 @@
             "maxBaseGap": 0,
             "basesChecked": 1040,
             "triangles": {
-              "wood": 452972,
-              "leaves": 931066,
-              "canopyCards": 13392,
+              "wood": 458027,
+              "leaves": 952438,
+              "canopyCards": 13266,
               "distant": 125311
             },
             "samplePositions": {
@@ -24564,19 +25927,26 @@
             ],
             "ferns": 977,
             "heroFerns": 12,
+            "fiddleheads": 260,
             "flowers": 259,
             "yellowFlowers": 6,
+            "whiteFlowers": 50,
             "weeds": 3136,
+            "weedLeafShapes": [
+              "heart",
+              "ovate",
+              "round"
+            ],
             "seedheads": 1009,
             "bushes": 104,
             "hedge": 5,
             "clover": 3117,
-            "mossPatches": 578,
+            "mossPatches": 696,
             "saplings": 25,
-            "litter": 9967,
+            "litter": 10101,
             "litterKinds": {
-              "leaves": 8615,
-              "twigs": 1217,
+              "leaves": 8726,
+              "twigs": 1240,
               "roots": 135
             },
             "windLayers": 3,
@@ -24585,10 +25955,10 @@
               "windLeaf",
               "windBranch"
             ],
-            "buildMs": 5005,
+            "buildMs": 4767,
             "drawableEstimate": {
-              "drawCalls": 217,
-              "triangles": 2664490,
+              "drawCalls": 177,
+              "triangles": 4234865,
               "grassLodTiles": [
                 14,
                 29,
@@ -30527,6 +31897,520 @@
                   2.681,
                   -17.713
                 ]
+              ],
+              "whiteFlowers": [
+                [
+                  -1.487,
+                  0.111,
+                  -11.197
+                ],
+                [
+                  -1.814,
+                  0.124,
+                  -14.747
+                ],
+                [
+                  -0.999,
+                  -0.026,
+                  -14.897
+                ],
+                [
+                  -2.397,
+                  0.369,
+                  -11.542
+                ],
+                [
+                  -1.48,
+                  -0.075,
+                  -13.585
+                ],
+                [
+                  -3.228,
+                  0.513,
+                  -8.253
+                ],
+                [
+                  -2.571,
+                  0.365,
+                  -15.418
+                ],
+                [
+                  -1.381,
+                  0.003,
+                  -12.05
+                ],
+                [
+                  -2.41,
+                  0.15,
+                  -12.494
+                ],
+                [
+                  -3.112,
+                  0.931,
+                  -16.016
+                ],
+                [
+                  -2.759,
+                  0,
+                  -5.148
+                ],
+                [
+                  -3.164,
+                  0.124,
+                  -6.985
+                ],
+                [
+                  10.286,
+                  1.431,
+                  -6.663
+                ],
+                [
+                  9.198,
+                  0.541,
+                  -6.145
+                ],
+                [
+                  10.393,
+                  1.067,
+                  -7.566
+                ],
+                [
+                  8.672,
+                  0.556,
+                  -7.128
+                ],
+                [
+                  4.917,
+                  -0.147,
+                  -3.406
+                ],
+                [
+                  9.439,
+                  0.906,
+                  -7.629
+                ],
+                [
+                  8.069,
+                  -0.305,
+                  -5.738
+                ],
+                [
+                  14.959,
+                  2.428,
+                  -0.698
+                ],
+                [
+                  14.741,
+                  2.981,
+                  -1.773
+                ],
+                [
+                  14.848,
+                  2.241,
+                  0.293
+                ],
+                [
+                  15.812,
+                  2.662,
+                  0.641
+                ],
+                [
+                  15.69,
+                  3.516,
+                  -1.591
+                ],
+                [
+                  13.744,
+                  1.995,
+                  -0.791
+                ],
+                [
+                  16.371,
+                  3.433,
+                  -0.494
+                ],
+                [
+                  14.937,
+                  3.493,
+                  -2.574
+                ],
+                [
+                  -4.372,
+                  0.239,
+                  -14.234
+                ],
+                [
+                  -3.117,
+                  0.201,
+                  -12.776
+                ],
+                [
+                  -5.214,
+                  1.217,
+                  -15.686
+                ],
+                [
+                  -3.985,
+                  0.807,
+                  -9.672
+                ],
+                [
+                  -5.547,
+                  0.481,
+                  -11.402
+                ],
+                [
+                  -12.909,
+                  2.768,
+                  -3.992
+                ],
+                [
+                  10.763,
+                  -0.096,
+                  23.433
+                ],
+                [
+                  25.144,
+                  5.176,
+                  7.701
+                ],
+                [
+                  10.747,
+                  -0.324,
+                  2.825
+                ],
+                [
+                  -21.91,
+                  2.575,
+                  6.619
+                ],
+                [
+                  -0.786,
+                  -0.133,
+                  -20.384
+                ],
+                [
+                  17.308,
+                  5.791,
+                  -22.012
+                ],
+                [
+                  -6.747,
+                  0.418,
+                  28.631
+                ],
+                [
+                  9.051,
+                  1.074,
+                  -4.389
+                ],
+                [
+                  21.693,
+                  5.529,
+                  -21.712
+                ],
+                [
+                  -24.973,
+                  2.778,
+                  5.766
+                ],
+                [
+                  10.166,
+                  -0.319,
+                  3.888
+                ],
+                [
+                  24.445,
+                  5.237,
+                  6.53
+                ],
+                [
+                  -1.558,
+                  0.098,
+                  -21.614
+                ],
+                [
+                  -1.893,
+                  -0.05,
+                  -7.447
+                ],
+                [
+                  -1.87,
+                  -0.096,
+                  -7.033
+                ],
+                [
+                  -2.299,
+                  0.113,
+                  -7.958
+                ],
+                [
+                  -2.214,
+                  0.03,
+                  -7.611
+                ]
+              ],
+              "fiddleheads": [
+                [
+                  -4.097,
+                  0.75,
+                  -10.299
+                ],
+                [
+                  -3.42,
+                  0.691,
+                  -9.185
+                ],
+                [
+                  16.42,
+                  1.374,
+                  5.005
+                ],
+                [
+                  16.333,
+                  4.181,
+                  -2.238
+                ],
+                [
+                  16.124,
+                  0.554,
+                  6.945
+                ],
+                [
+                  14.766,
+                  2.136,
+                  0.431
+                ],
+                [
+                  16.446,
+                  3.347,
+                  -0.131
+                ],
+                [
+                  -2.531,
+                  1.838,
+                  -22.524
+                ],
+                [
+                  11.693,
+                  3.417,
+                  -6.371
+                ],
+                [
+                  -6.211,
+                  0.83,
+                  -12.29
+                ],
+                [
+                  -4.783,
+                  0.342,
+                  -14.663
+                ],
+                [
+                  -11.899,
+                  2.941,
+                  -9.794
+                ],
+                [
+                  16.077,
+                  4.612,
+                  -9.625
+                ],
+                [
+                  -8.459,
+                  0.9,
+                  10.487
+                ],
+                [
+                  -5.613,
+                  -0.09,
+                  4.546
+                ],
+                [
+                  -14.089,
+                  0.429,
+                  10.715
+                ],
+                [
+                  -12.292,
+                  2.725,
+                  -2.159
+                ],
+                [
+                  -10.107,
+                  2.971,
+                  -11.096
+                ],
+                [
+                  -8.502,
+                  2.269,
+                  -9.237
+                ],
+                [
+                  -1.726,
+                  0.356,
+                  -20.758
+                ],
+                [
+                  -1.208,
+                  0.085,
+                  19.268
+                ],
+                [
+                  -12.528,
+                  0.076,
+                  14.533
+                ],
+                [
+                  -9.524,
+                  2.87,
+                  -8.035
+                ],
+                [
+                  12.415,
+                  -0.101,
+                  12.184
+                ],
+                [
+                  2.219,
+                  0.382,
+                  22.041
+                ],
+                [
+                  8.822,
+                  -0.34,
+                  8.559
+                ],
+                [
+                  -6.381,
+                  0.17,
+                  3.367
+                ],
+                [
+                  12.495,
+                  -0.036,
+                  10.939
+                ],
+                [
+                  -7.061,
+                  0.991,
+                  -13.528
+                ],
+                [
+                  -11.975,
+                  2.937,
+                  -11.005
+                ],
+                [
+                  -11.865,
+                  0.356,
+                  16.297
+                ],
+                [
+                  11.82,
+                  -0.219,
+                  15.972
+                ],
+                [
+                  1.932,
+                  0.207,
+                  18.815
+                ],
+                [
+                  -1.758,
+                  0.407,
+                  -21.518
+                ],
+                [
+                  -2.08,
+                  0.16,
+                  -14.495
+                ],
+                [
+                  -2.337,
+                  -0.089,
+                  -5.841
+                ],
+                [
+                  13.958,
+                  0.38,
+                  3.914
+                ],
+                [
+                  -7.477,
+                  1.47,
+                  -11.434
+                ],
+                [
+                  9.363,
+                  0.83,
+                  -5.62
+                ],
+                [
+                  -11.888,
+                  2.58,
+                  4.517
+                ],
+                [
+                  13.866,
+                  -0.08,
+                  7.562
+                ],
+                [
+                  8.981,
+                  -0.205,
+                  18.592
+                ],
+                [
+                  -11.418,
+                  2.96,
+                  -9.474
+                ],
+                [
+                  -7.016,
+                  0.844,
+                  -14.643
+                ],
+                [
+                  -2.942,
+                  0.688,
+                  -15.76
+                ],
+                [
+                  -2.274,
+                  0.185,
+                  -12.184
+                ],
+                [
+                  -2.489,
+                  0.52,
+                  -10.641
+                ],
+                [
+                  8.863,
+                  0.139,
+                  -6.335
+                ],
+                [
+                  9.351,
+                  0.969,
+                  -5.356
+                ],
+                [
+                  14.852,
+                  0.085,
+                  7.3
+                ],
+                [
+                  13.21,
+                  -0.036,
+                  4.703
+                ],
+                [
+                  13.554,
+                  0.64,
+                  2.322
+                ]
               ]
             }
           },
@@ -30601,8 +32485,8 @@
             "fairyTrail": 16,
             "npcs": 3,
             "geometry": "procedural-v1",
-            "triangles": 72408,
-            "linkTriangles": 52474,
+            "triangles": 93762,
+            "linkTriangles": 73828,
             "mode": "play",
             "view": null,
             "linkGait": "idle",
@@ -30651,9 +32535,9 @@
             "contactShadows": 4,
             "pavingSurface": {
               "cells": 122295,
-              "covered": 33692,
+              "covered": 33695,
               "cellSize": 0.1,
-              "triangles": 64406
+              "triangles": 65772
             },
             "world": {
               "link": [
@@ -31084,45 +32968,45 @@
         }
       },
       "file": "03-restored.jpg",
-      "source": "429128a5a5a7cbb070da0f6dbf837e5244a6bf9e",
-      "capturedAt": "2026-09-11T07:22:17.068Z",
+      "source": "22ac0613bd527a69973c0f12ca2949eb97127da1",
+      "capturedAt": "2026-09-11T15:11:59.637Z",
       "retries": 0,
-      "rendererPngSha256": "sha256:256c5260b45bd99a6efb5f9550bb6284f0181d6ac2b578a2fc416846e68bdbcd",
-      "sha256": "sha256:8ecfc5f9a4630159bfd63498f23731af34c876a3477186a58210e261b14b49e0",
+      "rendererPngSha256": "sha256:7f17efd254236284deda72dd658ac58bdaf69733b04f85d5d165eef3914a5f77",
+      "sha256": "sha256:78a3a47d2c76c6b7ceb437df85206710853f25aefc99c58fa35fa0bfb2656faf",
       "channels": [
         {
-          "min": 29,
+          "min": 22,
           "max": 255,
-          "sum": 83864439,
-          "squaresSum": 9219175515,
-          "mean": 90.998740234375,
-          "stdev": 41.50514184143421,
-          "minX": 228,
-          "minY": 570,
-          "maxX": 258,
-          "maxY": 176
-        },
-        {
-          "min": 29,
-          "max": 229,
-          "sum": 79938614,
-          "squaresSum": 8117663776,
-          "mean": 86.73894748263889,
-          "stdev": 35.84111196767462,
-          "minX": 153,
-          "minY": 608,
-          "maxX": 558,
-          "maxY": 594
+          "sum": 81777529,
+          "squaresSum": 8527405127,
+          "mean": 88.73429796006944,
+          "stdev": 37.135597552861014,
+          "minX": 522,
+          "minY": 285,
+          "maxX": 606,
+          "maxY": 379
         },
         {
           "min": 17,
+          "max": 233,
+          "sum": 77920543,
+          "squaresSum": 7661849261,
+          "mean": 84.54920030381945,
+          "stdev": 34.13315855908372,
+          "minX": 449,
+          "minY": 432,
+          "maxX": 547,
+          "maxY": 475
+        },
+        {
+          "min": 13,
           "max": 191,
-          "sum": 57154215,
-          "squaresSum": 4538866831,
-          "mean": 62.016292317708334,
-          "stdev": 32.84762348539807,
-          "minX": 1118,
-          "minY": 364,
+          "sum": 56049425,
+          "squaresSum": 4391239387,
+          "mean": 60.81751844618056,
+          "stdev": 32.65011927757744,
+          "minX": 534,
+          "minY": 291,
           "maxX": 694,
           "maxY": 715
         }
@@ -31153,5 +33037,5 @@
     "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
   },
   "baselineRestoredIdentical": true,
-  "capturedAt": "2026-09-11T07:22:28.618Z"
+  "capturedAt": "2026-09-11T15:12:12.212Z"
 }
