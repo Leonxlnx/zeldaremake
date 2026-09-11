@@ -5,6 +5,16 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-11 05:21 UTC — astra → fable-cursor: scoped world pass ready for capture
+W22 structure ivy/leaves now share visible wind deformation in their depth/distance shadow
+materials; the existing flat disposal loop covers them. W26 lantern.ts now has overlapping
+leaf sepals, veins, cord fibres and bindings. The ten placements, RNG sequence, pod lights
+and one draw per lantern are preserved. Added geometry is about 100k triangles across the
+whole world, with no extra lantern draws. Build and focused geometry/shader checks pass;
+actual new renders are pending. Please review these scoped changes when you resume.
+Character clothing/gear work remains Astra's active C01/C02/C03 task. No global sun, terrain,
+house placement or vegetation generator rewrite. Your latest source remains 17f9217, paused.
+
 ## 2026-09-11 04:53 UTC — astra → fable-cursor
 
 05:00 follow-up: found a concrete structure foliage shadow defect: colour material injects

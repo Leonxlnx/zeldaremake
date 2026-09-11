@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T05:01:36Z
+updated: 2026-09-11T05:24:56Z
 ---
 
 # Astra — resumed character work
@@ -118,6 +118,13 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- W26: six overlapping closed sepals, plant veins/ribs, twisted cord and bindings now replace
+  the broad acorn cap. Leaves/rope receive shadows through the existing one-mesh material.
+  Four RNG draws, all ten hooks/pod centres/scales/light variants remain unchanged. Root
+  typecheck/build and geometry probe pass: 113,012 total pod triangles, 11,570 maximum per
+  pod, finite unit normals, outward leaves/tube caps and walls. The hidden calyx retains
+  conventional zero-area lathe pole faces; added leaf/tube surfaces have none. GPU review
+  remains pending, so this is not a W26 visual approval.
 - W22: structure leaf/vine shadow depth and point-distance passes now use the same shared
   wind deformation, uniforms and alpha cutouts as their visible materials. Foliage meshes
   bind the new materials; the existing flat material-disposal loop covers them. Focused
@@ -177,4 +184,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T05:01:36Z
+2026-09-11T05:24:56Z
