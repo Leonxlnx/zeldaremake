@@ -7,10 +7,11 @@ import { Group, Mesh } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
-import { isPaved, placeFlagstones, type PavingContext } from './flagstones';
+import { isPaved, nearIsolatedDisc, placeFlagstones, type PavingContext } from './flagstones';
 import { buildJointMesh } from './joints';
 import { SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
 import { smoothstep } from '../util/noise';
+import { houseSteppingStones } from '../layout';
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
@@ -57,13 +58,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   bbox.x1 = Math.max(bbox.x1, 7.5);
   bbox.z0 = Math.min(bbox.z0, -7.5);
   bbox.z1 = Math.max(bbox.z1, 7.5);
-  const pc: PavingContext = { terrain: T, frames, rng: rng.fork('paving'), seed: ctx.config.seed, bbox, density: ctx.quality.density };
+  const pc: PavingContext = { terrain: T, frames, rng: rng.fork('paving'), seed: ctx.config.seed, bbox, density: ctx.quality.density, steppingStones: houseSteppingStones() };
   const paving = placeFlagstones(pc, stoneMat);
   group.add(paving.mesh);
   ctx.progress('hardscape', 0.7);
 
   // --- joint fill --------------------------------------------------------------------------
-  const paved = (x: number, z: number, threshold?: number) => isPaved(pc, x, z, threshold);
+  // the stepping stones on Saria's grassy ramp are paved discs with no joints: grass and clover
+  // run up to each stone's edge in the reference, so neither the soil fill nor the joint sprouts
+  // treat them as paving (the disc that touches the plaza rim keeps the fill around it)
+  const grassDiscs = paving.steppingStones.filter((d) => !d.atRim);
+  const paved = (x: number, z: number, threshold?: number) => isPaved(pc, x, z, threshold) && !nearIsolatedDisc(grassDiscs, x, z, 1.4);
   const joints = await buildJointMesh(T, paved, bbox, ctx.textures, ctx.config, ctx.config.seed);
   group.add(joints.mesh);
 
@@ -139,6 +144,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneSplitCells: paving.stats.split,
     flagstoneBigSlabs: paving.stats.big,
     flagstoneRimStones: paving.stats.rim,
+    // round slabs on the house branch's stepping-stone discs (merged into the flagstone mesh and
+    // counted in `flagstones` too)
+    steppingStones: paving.stats.steppingStones,
+    steppingStoneDiscs: paving.steppingStones.map((d) => [round(d.x), round(d.z), round(d.r)]),
     flagstoneMaxAspect: round(Math.max(...paving.stones.map((s) => s.aspect))),
     flagstoneTriangles: paving.triangles,
     flagstoneDrawCalls: 1,

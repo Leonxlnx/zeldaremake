@@ -17,6 +17,7 @@ import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
+import type { SteppingStone } from '../layout';
 
 export interface PlacedStone {
   x: number;
@@ -379,6 +380,41 @@ export interface PavingContext {
   /** bounding box of the paved region */
   bbox: { x0: number; x1: number; z0: number; z1: number };
   density: number;
+  /** the house branch's stepping-stone discs (the terrain paves exactly these) */
+  steppingStones: SteppingStone[];
+}
+
+/** a stepping stone that sits in grass (not inside the plaza paving): gets its own round slab */
+export interface IsolatedDisc {
+  x: number;
+  z: number;
+  r: number;
+  /** true when the disc touches the continuous paving (plaza rim), so joint fill stays around it */
+  atRim: boolean;
+}
+
+/**
+ * Classify the stepping-stone discs: a disc whose 1.5 r ring is (almost) all paved lies inside the
+ * plaza and is already covered by the Voronoi paving; the others are isolated stones in grass.
+ */
+export function isolatedDiscs(pc: PavingContext): IsolatedDisc[] {
+  const out: IsolatedDisc[] = [];
+  for (const d of pc.steppingStones) {
+    let paved = 0;
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      if (isPaved(pc, d.x + Math.cos(a) * d.r * 1.5, d.z + Math.sin(a) * d.r * 1.5, 0.5)) paved++;
+    }
+    if (paved >= 7) continue;
+    out.push({ x: d.x, z: d.z, r: d.r, atRim: paved >= 3 });
+  }
+  return out;
+}
+
+/** true within `k` radii of an isolated stepping stone (used to keep lattice seeds, joint fill and sprouts off the grassy ramp) */
+export function nearIsolatedDisc(discs: IsolatedDisc[], x: number, z: number, k = 1.3): boolean {
+  for (const d of discs) if (Math.hypot(x - d.x, z - d.z) < d.r * k) return true;
+  return false;
 }
 
 export function isPaved(pc: PavingContext, x: number, z: number, threshold = 0.5): boolean {
@@ -417,7 +453,9 @@ export interface PavingResult {
   grid: Grid;
   /** true if the world point is on a stone's top face */
   onStone(x: number, z: number): boolean;
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; big: number; rim: number };
+  /** the house branch's stepping stones that got their own round slab */
+  steppingStones: IsolatedDisc[];
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; big: number; rim: number; steppingStones: number };
 }
 
 interface Seed {
@@ -485,7 +523,11 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pad = 1.0;
   let row = 0;
   const bigCandidates: number[] = [];
-  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, big: 0, rim: 0 };
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, big: 0, rim: 0, steppingStones: 0 };
+  // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
+  // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
+  // the disc as bare grass) and the plaza's rim cells are clipped back from them
+  const discs = isolatedDiscs(pc);
   /** add a seed unless another is closer than `minDist`, the point is unpaved or `accept(rim)` says no */
   const tryAdd = (x: number, z: number, minDist: number, accept: (rim: number) => boolean): number => {
     let ok = true;
@@ -496,6 +538,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     });
     if (!ok) return -1;
     if (!isPaved(pc, x, z, 0.5)) return -1;
+    if (nearIsolatedDisc(discs, x, z, 1.5)) return -1;
     const rim = rimDistance(pc, x, z);
     if (!accept(rim)) return -1;
     grid.add(x, z, seeds.length);
@@ -619,6 +662,15 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // tessellation hole-free where three cells meet
       cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, clamp(l / 2, 0.08, l - 0.08));
     });
+    // keep a joint's width clear of the round stepping stones at the plaza rim
+    for (const d of discs) {
+      if (cell.length < 3) break;
+      const dx = d.x - s.x;
+      const dz = d.z - s.z;
+      const l = Math.hypot(dx, dz);
+      if (l < 1e-6 || l > 2.8 + d.r) continue;
+      cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, clamp(l - d.r - 0.06, 0.08, l));
+    }
     if (cell.length < 3) return cell;
     // pull vertices outside the paved region toward the seed (bisection on the mask)
     return cell.map((p) => {
@@ -671,6 +723,26 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const pieces = splitElongated(cell, seeds[si].big ? 3.6 : 2.6, rng.range(0.06, 0.09));
     if (pieces.length > 1) stats.split += pieces.length - 1;
     for (const piece of pieces) emitStone(piece, seeds[si]);
+  }
+
+  // the stepping stones up to Saria's door (reference B/E): one round slab per disc, filling the
+  // disc the terrain paves (the cell is drawn ~2.5 cm outside the disc because the half-joint
+  // inset takes that back, so the shoulder lands on the grass line), lightly wobbled so no two are
+  // the same circle, then seated, domed and tinted exactly like every other stone
+  for (const d of discs) {
+    const drng = rng.fork(`stepping/${Math.round(d.x * 50)}/${Math.round(d.z * 50)}`);
+    const n = 16;
+    const phase = drng.range(0, Math.PI * 2);
+    const cell: P2[] = [];
+    for (let k = 0; k < n; k++) {
+      const a = phase + (k / n) * Math.PI * 2;
+      const rr = (d.r + 0.025) * (1 + 0.035 * Math.sin(a * 3 + phase) + drng.range(-0.02, 0.02));
+      cell.push({ x: d.x + Math.cos(a) * rr, z: d.z + Math.sin(a) * rr });
+    }
+    const before = stones.length;
+    // rim 0.45: a stone in the grass is a rim stone (damper, mossier edges than the path centre)
+    emitStone(cell, { x: d.x, z: d.z, rim: 0.45, big: false });
+    if (stones.length > before) stats.steppingStones++;
   }
 
   function emitStone(cell: P2[], seed: Seed) {
@@ -875,5 +947,5 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     return hit;
   };
 
-  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, stats };
+  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, steppingStones: discs, stats };
 }
