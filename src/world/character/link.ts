@@ -17,6 +17,7 @@ import { addOutfitDetails } from './outfit-details';
 import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
 import { createLinkBoot } from './boot-geometry';
+import { createLinkFrontalHair } from './hair-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -179,12 +180,12 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
       // Match the outer edge to the shaped orbit, mirrored for each eye.
       // The shallow polynomial seats the edge ~0.25–0.8 mm into the face.
       const cx = side * Math.cos(a);
-      const outer = -0.00550 - 0.00065 * cx - 0.00253 * cx * cx - 0.000052 * sy + 0.00036 * cx * sy;
+      const outer = -0.00300 - 0.00065 * cx - 0.00253 * cx * cx - 0.000052 * sy + 0.00036 * cx * sy;
       // A rounded skin lip blends the eye aperture into the face rather than
       // leaving a bright white disc floating in front of the cheek surface.
       vertices.push((0.025 + 0.008 * u) * k * Math.cos(a),
         (0.0145 + (sy > 0 ? 0.008 : 0.005) * u) * k * sy * (0.82 + 0.18 * Math.abs(sy)),
-        (0.0014 * (1 - u) + outer * u + 0.0018 * Math.sin(Math.PI * u)) * k);
+        (0.0010 * (1 - u) + outer * u + 0.0010 * Math.sin(Math.PI * u)) * k);
       if (ring < rings) {
         const p = ring * segments + j, q = p + segments, next = ring * segments + (j + 1) % segments;
         indices.push(p, q, next, q, next + segments, next);
@@ -201,7 +202,12 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const k = r / 0.125;
     const soft = !!opts.softFeatures;
     eye.position.set(side * 0.05 * k, -0.002 * k, r * (soft ? 0.94 : 0.84));
-    if (soft) eye.rotation.y = side * 0.4;
+    if (soft) {
+      eye.rotation.y = side * 0.4;
+      // Recess the whole aperture along its own normal. The rim's outer depth
+      // compensates above, keeping its perimeter seated in the existing face.
+      eye.translateZ(-0.0025 * k);
+    }
     head.add(eye);
     if (soft) {
       part(eye, almond(k), white, 'eye-white', false);
@@ -219,7 +225,24 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     // catch-light on the upper-outer iris
     part(eye, new SphereGeometry((soft ? 0.0015 : 0.0035) * k, 6, 4).translate(side * 0.004 * k, 0.005 * k, (soft ? 0.0042 : 0.031) * k), white, 'eye-highlight', false);
     rig.eyes.push(eye);
-    part(head, place(new BoxGeometry((soft ? 0.038 : 0.046) * k, soft ? 0.005 : 0.008, 0.008), side * 0.052 * k, (soft ? 0.034 : 0.047) * k, r * (soft ? 0.94 : 0.87), [0, side * (soft ? 0.3 : 0), side * 0.12]), matte('brow'), 'brow', false);
+    if (soft) {
+      const surface = new Mesh(skull, opts.skin);
+      const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
+      const brow = Array.from({ length: 9 }, (_, i) => {
+        const u = i / 8 * 2 - 1, x = (side * 0.052 + u * 0.019) * k;
+        const y = (0.029 + 0.006 * (1 - u * u) - side * 0.002 * u) * k;
+        ray.ray.origin.set(x, y, 0.3 * k);
+        const hit = ray.intersectObject(surface, false)[0];
+        if (!hit) throw new Error('Link brow must remain seated on the forehead');
+        return new Vector3(x, y, hit.point.z + 0.0013 * k);
+      });
+      part(head, sweep(brow, [0.0004 * k, 0.0020 * k, 0.0020 * k, 0.0004 * k],
+        { segments: 24, radial: 8, closeTip: true, closeStart: true, flatten: 0.35,
+          flattenFromRoot: true, surfaceNormal: new Vector3(side * 0.4, 0.2, 1).normalize() }), matte('brow'), 'brow', false);
+    } else {
+      part(head, place(new BoxGeometry(0.046 * k, 0.008, 0.008), side * 0.052 * k,
+        0.047 * k, r * 0.87, [0, 0, side * 0.12]), matte('brow'), 'brow', false);
+    }
   }
   if (opts.softFeatures) {
     // Seat a small curved mouth seam on the continuous face instead of a flat box.
@@ -246,17 +269,36 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
   const head = rig.head;
   if (style === 'link') {
     const k = r / 0.125;
+    // Use the actual forehead for roots. The old points sat inside the skull,
+    // making locks appear as disconnected petals after they emerged from it.
+    const skull = head.getObjectByName('skull') as Mesh;
+    const surface = new Mesh(skull.geometry, skull.material);
+    const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
     // a clump of hair: a tapered strand from `from` (under the cap) to `to` (pointed tip)
-    const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) =>
-      sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 20, radial: 12, closeTip: true, closeStart: true, flatten: 0.25, crease: 0.08 });
+    const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) => {
+      const root = new Vector3(...from).multiplyScalar(k);
+      const outward = new Vector3(root.x, 0, root.z).normalize();
+      if (from[2] > 0.07 && from[1] > 0.03) {
+        ray.ray.origin.set(root.x, root.y, 0.3 * k);
+        const hit = ray.intersectObject(surface, false)[0];
+        if (!hit) throw new Error('Link fringe root must meet the forehead');
+        if (hit.normal) outward.copy(hit.normal).normalize();
+        root.copy(hit.point).addScaledVector(outward, 0.0025 * k);
+      }
+      return sweep([root, new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)],
+        [r0 * k, r1 * k, tip * k], { segments: 24, radial: 16, closeTip: true, closeStart: true,
+          flatten: 0.25, flattenFromRoot: true, crease: 0.08,
+          surfaceNormal: outward });
+    };
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008),
+      createLinkFrontalHair(r),
       // Parted fringe opens toward both temples. Thin overlapping sections emerge
       // from beneath the brim; irregular tips stop above the fitted eye openings.
       clump([-0.080, 0.062, 0.084], [-0.098, 0.030, 0.104], [-0.116, -0.007, 0.081], 0.022, 0.019, 0.002),
-      clump([-0.015, 0.058, 0.080], [-0.042, 0.050, 0.120], [-0.076, 0.019, 0.111], 0.024, 0.022, 0.002),
-      clump([0.012, 0.062, 0.080], [0.041, 0.050, 0.121], [0.073, 0.022, 0.113], 0.025, 0.021, 0.002),
+      clump([-0.015, 0.058, 0.080], [-0.042, 0.050, 0.120], [-0.076, 0.019, 0.111], 0.020, 0.022, 0.002),
+      clump([0.012, 0.062, 0.080], [0.041, 0.050, 0.121], [0.073, 0.022, 0.113], 0.021, 0.021, 0.002),
       clump([0.077, 0.061, 0.080], [0.094, 0.039, 0.102], [0.110, 0.003, 0.081], 0.022, 0.018, 0.002),
       // Smaller offset locks break the broad main ribbons without covering an iris.
       clump([-0.005, 0.060, 0.082], [-0.020, 0.046, 0.132], [-0.030, 0.025, 0.125], 0.012, 0.009, 0.0015),
