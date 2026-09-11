@@ -340,7 +340,7 @@ function buildTorso(rig: Rig): void {
       pts.push(new Vector3(x, cl(y), zz));
     }
     // over the shoulder and a little way down the back
-    pts.unshift(new Vector3(sign * 0.092, cl(0.85), -0.02), new Vector3(sign * 0.092, cl(0.825), -0.075));
+    pts.unshift(new Vector3(sign * 0.092, cl(0.825), -0.075), new Vector3(sign * 0.092, cl(0.865), -0.02));
     return pts.reverse();
   };
   for (const sign of [1, -1] as const) {

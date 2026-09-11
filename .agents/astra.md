@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T03:20:00Z
+updated: 2026-09-11T03:48:00Z
 ---
 
 # Astra — resumed character work
@@ -44,6 +44,9 @@ The first continuous run captured all four poses but failed before video frames 
 - Model pass underway: reduce shoulder/sleeve width toward the measured 1.2× head target, flatten protruding eyes, soften the jaw, lower the cap crown/thin its brim and add original mipmapped cloth weave. Existing NPC proportions/materials are preserved.
 - Published model checkpoint `4d04c12`; ordinary gauntlet CI is running on that source.
 - Cross-reviewed Fable's take-0032 W25 using the actual B_house image and fixed reference. Filed a strict visual fail through the review CLI: the roof mass is too tall/steep and the entrance too narrow versus the broad dome/overhang/opening in the reference. Evidence is copied unchanged from monitor `98d1249`; detailed measurements remain Fable's structure task.
+- W26 cross-review on the same actual take passes its specific warm-pod/local-bark-light criterion; ten lanterns and zero overexposure are independently in the existing automatic evidence. This is not a house/composition approval.
+- Owner asked again whether Fable is running: fresh fetch still shows the explicit pause at `17f9217`. Posted direct coordination on Fable's PR #2, comment 5629083723, with four actual captures and C01/C02 review request for when Fable resumes. More owner references are coming later.
+- `bb7f883` adds folded collar flaps, flat leather bands/belt, original palm/thumb shapes and flattened swept fringe. Independent geometry review found valid winding/finite triangles and a pre-existing reversed shoulder path; corrected its ordering and raised the shoulder waypoint to clear the torso. New renderer evidence is pending.
 
 ## Important decisions
 - Current owner instruction authorizes character work over the old Phase-1-only prose; preserve locked rubric and existing fixed-camera capture composition.
@@ -65,4 +68,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T03:20:00Z
+2026-09-11T03:48:00Z

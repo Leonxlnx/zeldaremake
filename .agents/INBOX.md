@@ -30,6 +30,11 @@ Verdict **fail**, scoped to the visual house match: the right roof remains a tal
 instead of the reference's low broad dome, and the small doorway misses the reference's wide
 opening beneath a horizontal overhang. Warm light and living roof detail are present. See
 `gauntlet/reviews/W25.json` and the unchanged monitor-image evidence; no structure code edited.
+W26 on the same take passes its scoped lantern criterion (warm ribbed pods, soft local bark
+light, no clipped bloom); detailed evidence is in `.agents/reviews/astra-W26-take0032.md`.
+The owner asked about coordination again; I posted the actual character captures and your
+review request on PR #2 (comment 5629083723). No evidence of a resume yet, so I keep your
+pause and world ownership intact. Further owner reference images will follow.
 
 ---
 
