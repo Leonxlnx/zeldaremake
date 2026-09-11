@@ -3,18 +3,19 @@
  * Kokiri tree-trunk houses with mossy dome roofs, glowing pod lanterns, the wooden signpost,
  * post-and-rail fences on the plateau lip, rope fences off the paving, pod-lantern posts,
  * lanterns + vines on the lantern branch, and the giant hollow log arch.
- * Positions come from `layout` (rope fences / lantern posts: `fence.ts` / `lanternPost.ts`,
- * placed against the fixed cameras); all ground contact is sampled through `ctx.terrain`;
+ * Positions come from `layout`, including rope fences and lantern posts placed against the
+ * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
 import { Group, type Material, type Mesh, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { ROPE_FENCES, buildFence, createRopeMaterial, type FenceDef } from './fence';
+import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
+import { buildFence, createRopeMaterial } from './fence';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
-import { LANTERN_POSTS, buildLanternPost } from './lanternPost';
+import { buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { buildSignpost } from './signpost';

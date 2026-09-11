@@ -9,38 +9,17 @@
  */
 import { CatmullRomCurve3, Color, type Material, Mesh, MeshStandardMaterial, TorusGeometry, Vector3 } from 'three';
 import type { WorldContext } from '../system';
+import type { FenceDef } from '../layout';
 import type { Rng } from '../util/prng';
 import { Noise2D } from '../util/noise';
 import { merge, setColorAttribute, sweepTube } from './geometry';
 import type { StructureMaterials } from './materials';
-
-export interface FenceDef {
-  id: string;
-  points: readonly (readonly [number, number, number])[];
-  style?: 'rail' | 'rope';
-}
 
 export interface FenceBuild {
   meshes: Mesh[];
   posts: number;
   bases: [number, number, number][];
 }
-
-/**
- * Rope fences off the paving (the layout's `fences` are the plateau-lip rails). Placed against the
- * fixed cameras (gauntlet/tmp/proj.mjs): the plaza-west run projects outside A/B/D/E/F and off C's
- * right edge (x ≥ 1.09); the stair-bank run sits outside A (x ≥ 1.08), in F at (0.74–0.82,
- * 0.54–0.67) right of the kid spot (0.72, 0.67), and in C at (0.22–0.31, 0.49–0.58) behind the
- * stair-foot rock — clear of the stair foot (C 0.10–0.20, 0.60–0.66). Both keep ≥ 1 m from the
- * npc spots (kokiri-b (−6.5, −2): the west run starts at z = −0.9; kokiri-a (9.0, 3.6): the bank
- * run starts 1.4 m away).
- */
-export const ROPE_FENCES: FenceDef[] = [
-  // foot of the west bank, ~0.5 m off the plaza rim (paving ends at x ≈ −6 at z = 0)
-  { id: 'plaza-west', style: 'rope', points: [[-6.6, 0, -0.9], [-6.75, 0, 1.3], [-6.3, 0, 2.7], [-5.9, 0, 3.9]] },
-  // stair-side bank south of the stair foot, east of the stair-foot rock
-  { id: 'stair-bank', style: 'rope', points: [[9.5, 0, 4.9], [10.3, 0, 4.2], [11.0, 0, 3.6]] },
-];
 
 /** Twisted vine rope (rails, lashings, lantern-post bindings). Owned by the structures system. */
 export function createRopeMaterial(): MeshStandardMaterial {

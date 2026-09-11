@@ -325,7 +325,7 @@ export function consolidateStaticMeshes(root: Object3D, skip: (m: Mesh) => boole
         return `${n}:${a.itemSize}:${a.array.constructor.name}:${a.normalized ? 1 : 0}`;
       })
       .join(',');
-    const key = [mat.uuid, m.castShadow, m.receiveShadow, m.renderOrder, m.layers.mask, m.visible, m.frustumCulled, layout].join('|');
+    const key = [mat.uuid, m.customDepthMaterial?.uuid, m.customDistanceMaterial?.uuid, m.castShadow, m.receiveShadow, m.renderOrder, m.layers.mask, m.visible, m.frustumCulled, layout].join('|');
     const list = buckets.get(key);
     if (list) list.push(m);
     else buckets.set(key, [m]);
@@ -342,6 +342,8 @@ export function consolidateStaticMeshes(root: Object3D, skip: (m: Mesh) => boole
     const first = list[0];
     const mesh = new Mesh(geo, first.material);
     mesh.name = `merged:${first.name}`;
+    mesh.customDepthMaterial = first.customDepthMaterial;
+    mesh.customDistanceMaterial = first.customDistanceMaterial;
     mesh.castShadow = first.castShadow;
     mesh.receiveShadow = first.receiveShadow;
     mesh.renderOrder = first.renderOrder;

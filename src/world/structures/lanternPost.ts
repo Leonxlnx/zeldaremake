@@ -6,40 +6,13 @@
  */
 import { CatmullRomCurve3, Group, type Material, Mesh, PointLight, TorusGeometry, Vector3 } from 'three';
 import type { WorldContext } from '../system';
+import type { LanternPostDef } from '../layout';
 import type { Rng } from '../util/prng';
 import { Noise2D, lerp, smoothstep } from '../util/noise';
 import { merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
-import { buildLantern, type LanternKind, type LanternRig } from './lantern';
+import { buildLantern, type LanternRig } from './lantern';
 import type { StructureMaterials } from './materials';
-
-export interface LanternPostDef {
-  id: string;
-  /** foot of the post (y is sampled from the terrain) */
-  position: [number, number];
-  /** horizontal direction the hook reaches toward (the path) */
-  facing: [number, number];
-  /** post height to the bend (metres) */
-  height: number;
-  tint?: LanternKind;
-}
-
-/**
- * Placed against the fixed cameras (gauntlet/tmp/proj.mjs). The stair-foot post stands on the
- * right of the bottom risers: its pod projects to A (0.80, 0.38) — the reference's lit pod right
- * of the stairs at (0.83, 0.36) — and F (0.53, 0.35) (reference 0.52, 0.35); in C it is a thin
- * post at x ≈ 0.09, left of the stair foot. The fork post marks the junction of the spine and the
- * house path from the WEST verge: at the fork's inner corner (3, −4.2) a 2.6 m post would stand
- * 7 m from camera B at (0.57, 0.35) over the signpost and 5 m from camera C beside Link — neither
- * is in the footage — so it sits across the path on the west verge, off the paving, with its
- * hook reaching north along the path edge: outside B/C/D/E/F (B's left edge is at x ≈ −0.02)
- * and just inside A's left edge (pod ≈ (0.03, 0.4)), where the reference has a pod on a bent
- * stick.
- */
-export const LANTERN_POSTS: LanternPostDef[] = [
-  { id: 'stair-foot', position: [10.55, -0.45], facing: [-0.75, -0.66], height: 2.55, tint: 'orange' },
-  { id: 'fork-west', position: [-2.6, -4.6], facing: [0.3, -1], height: 2.4, tint: 'orange' },
-];
 
 export interface LanternPostBuild {
   group: Group;
