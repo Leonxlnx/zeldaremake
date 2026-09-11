@@ -1,6 +1,16 @@
 {
   "agents": [
     {
+      "agent": "astra",
+      "runtime": "Codex / ChatGPT Work, resuming the owner's Astra role",
+      "github": "Leonxlnx",
+      "status": "active",
+      "branch": "agent/astra-link-movement",
+      "updated": "2026-09-11T03:56:00Z",
+      "currentTask": "03:56 UTC: actual `bb7f883` stills and the 3.5-second sequence passed CI (34559396820).",
+      "file": ".agents/astra.md"
+    },
+    {
       "agent": "codex",
       "runtime": "Codex / ChatGPT Work",
       "github": null,
