@@ -34,6 +34,7 @@ import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
 import { createLinkStrapBuckle } from './strap-buckle-geometry';
 import { createLinkPouch } from './pouch-geometry';
+import { createLinkEyeSeating, LINK_IRIS_SURFACE_OFFSET, LINK_PUPIL_SURFACE_OFFSET } from './eye-seating';
 import { finishLinkLeatherStrap } from './strap-surface';
 
 export interface Character {
@@ -192,8 +193,8 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
       eye.updateMatrix();
       part(eye, createLinkEyeWhite(k), white, 'eye-white', false);
       part(eye, createLinkEyelid(k, skull, eye.matrix), opts.skin, 'eyelid', false);
-      part(eye, createLinkEyeDisc(k, side, 0.016, 0.0006), opts.iris, 'iris', false);
-      part(eye, createLinkEyeDisc(k, side, 0.009, 0.001), pupil, 'pupil', false);
+      part(eye, createLinkEyeDisc(k, side, 0.016, LINK_IRIS_SURFACE_OFFSET), opts.iris, 'iris', false);
+      part(eye, createLinkEyeDisc(k, side, 0.009, LINK_PUPIL_SURFACE_OFFSET), pupil, 'pupil', false);
       const lid = createLinkUpperLashPath(k);
       part(eye, sweep(lid, [0.0005 * k, 0.0014 * k, 0.0014 * k, 0.0005 * k], { segments: 18, radial: 5 }), matte('brow'), 'lashes', false);
     } else {
@@ -558,11 +559,13 @@ export function createLink(): Character {
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, iris: linkIris(), earLength: 0.085, softFeatures: true });
+  const syncEyes = createLinkEyeSeating(rig);
   buildHair(rig, linkHair(), 'link');
   buildCap(rig);
   buildGear(rig, part);
   addOutfitDetails(rig, part);
-  const syncGeometry = createBootArticulation(rig);
+  const syncBoots = createBootArticulation(rig);
+  const syncGeometry = () => { syncBoots(); syncEyes(); };
   normalizeLinkClothUVs(rig);
   batchStaticLinkParts(rig);
   rig.root.userData.character = 'link';

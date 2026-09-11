@@ -4,40 +4,61 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T18:00:29.542026Z
+updated: 2026-09-11T18:21:55.360931Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Continue Link refinement: one continuous-arm scratch removes overlapping elbow primitives
-while retaining joints/hands/motion; independent pose and geometry review is running. Rounded
-pouch now integrated; actual render pending. Structural paired-contact
-movement remains scratch; pure IK and full lower-limb cache coverage pass, live ordinary-turn
-replay is next. The conservative scalar all-future-input reserve rejected valid idle; it is
-retained as a failed proof, not a movement failure. The practical candidate uses actual geometry
-checks and bounded substeps; no all-input safety claim.
+Publish the skull-fitted Link eyes, then review actual front/profile and blink captures.
+White/iris/pupil/lid/lash/highlight share a shallow field from the unchanged skull. Inner
+white/lid boundary joins exactly and outer rim stays fixed during the existing blink.
+Current Link68 meshes/97,056 triangles, including rounded pouch1623b75. Root build, static
+batching and template-eye tests pass; independent runtime seating/visibility review passes
+at the tested values. This is a source checkpoint pending lit appearance, not95% or final.
 
-0748a84 ear/hair/stitch/cloth actual gallery478184d, captured17:54:47UTC, verified14 JPG hashes,
-42 matching sequence states and no capture errors. Root inspected face/profile/belt/run:
-ear folds and sewn strap read; cloth broad blotches are gone. Face still looks toy-like and
-eyes protrude in profile; a coherent socket-seating review is queued. Not95% or final.
+Pouch actual2f568c1/progress/2026-09-11_181209-1623b75 verified14 JPEG hashes,42 matching
+states/errors[]. Root viewed belt/walk: rounded flap/closure replaces dark boxes; shared
+2 screenshots and downloadable1623 ZIP. Existing hand/pouch overlap remains.
 
-Integrate our opt-in strict capture-order publication guard. Future Astra canonical captures
-refresh the monitor before apply/retry and defer stale captures or unrelated unpublished local
-backlog, preserving the artifact unchanged. No synthetic times/history rewrite/verifier change.
-Focused bare-Git real push-race and backlog fixtures passed; character galleries stay independent.
-An already-running pre-guard f115 job published0052 atmonitor eb10fc7: original capture17:26:30
-was appended afterFable0051 at17:28:10. Strict chain now has0037/0048/0050/0052 inversions;
-all51 prior entries are retained. No claim the new guard protects old runs.
+Arm candidate remains scratch:100mmblend near-cusp rejected,160mm fixesrunbutold40.7mm
+elbowradius introducesidletuniccontact. Revised38mmelbowclearsidle; same42posecontact
+characterization finds submillimetre new extensions nearexistinggarmentcrossings, with
+ambiguities/occlusion still underreview. No repeatedperpose-radiusadjustment. Root26pose
+normal/selfcrossingcheck passes; nozero-clipping/all-angleclaim. Keepfailedsources.
 
-Fable291a3f2 follows our boundary report with D3 capture-time and metadata/UI changes; independent
-read-only review is underway, not adopted yet. Fable declinesCI-only capture. World/house/canopy
-ownership remains respected; newer.27stairs/sharedhelpers/atmosphere held. Missing Fable claim
-records copied intact; C01/C02/C03 expire19:57:36.450UTC. No merge/deployment/schedule/phase exit.
+Paired contact firstcandidate rejected: real exposedcuff/knee crossing277 andactualrig
+reset253.95mmonthedebugthrow despitecachedanchorsremainingfixed. RevisedONEscratchuses
+persistentcontact/liftoffkneeplanes, continuouslate-swingtransition, fullposeoffrigstaging
+and reachablelandingtargetunderexisting8m/sfootlimit. Productionphysics/poseunchanged.
+
+Fabledfb3d36 fixescanonicalmetadata, retryclaimunion, cadence andpanelcapturetime. Root
+foundremainingprevious-baselineselectioninpublicationorder; exactfixture postedPR2comment
+5638726300. Strictguard9ce0ceb staysourwriterpolicy, noresequencing/relaxedverifieradopted.
+Firstguardedcanonical0053/9ce0ceb published92c44c2 withunchanged18:00:16capturetime,622draws,
+8,556,757triangles,W38pass.23/50overall19/42phase; oldD1failures0037/0048/0050/0052remain.
+
+Fableowns world/house/canopy/lighting. Newer.27stairs, sharedhelpers andatmosphere stillheld;
+firststairapproachfixalreadyintegrated. C01/C02/C03 expire19:57:36.450UTC. No merge,deployment,
+schedule,phaseexit or95%fidelityclaim.
 
 ## Recent completed work and evidence
+
+- Skull-fittedeyes: neweye-seating.ts +narrowLinkhooks; no newtriangles/draws/materials/textures.
+ SameeyeXYaperture/centres/iris-pupilradii; actualwhite/skullstandoff1.750–4.240→.578–1.624mm,
+ sampled near-eyevalues. Both eyes/nineblinkstates: minactualtriangle gapswhite/skull.487mm,
+ white/iris.465mm, iris/pupil.382mm; all28innerboundarysegmentsjoinexactly. Outeredgefull
+ intervalcoverageburied.363–.687mm andstationarywithin1.863nm.56nonocularLinkmeshes/6NPC
+ variants exact. ActualrecordedcamerasCPUcoveragekeepsopenpupilcounts:front694/549→692/547,
+ profile279→296. Notshaderimages. Two121-stateblinkcyclesbyte-exact,steadyeyesnouploads.
+ Two newrear-lashnormalmismatchesat.08 arebehindopaquegeometry; zero visiblepixelsin
+ recordedfront/profileat1/.5/.08. Noall-angle/all-blinkproof. Runtimecadencebenchmarkbeing
+ correctedtoexacttriangularpulse; donotciteearliersinusoidaverage. Activeblinkstress<1.1ms
+ p95 fullsyncincludingbootslocally, notGPU/frame-rateclaim. Rootbuild/staticbatchpass:
+ 78→68meshes,97,056triangles,2,992,032posedvertices/normalsexact; eye-template8,448trispass.
+
+
 
 - Rounded belt pouch: original rounded body, fitted leather flap,23 stitches,closure tab and
  bronze stud replace the two flat boxes. Samehips attachment/yaw;27 closedcomponents lie
@@ -1060,4 +1081,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T18:00:29.542026Z
+2026-09-11T18:21:55.360931Z
