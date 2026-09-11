@@ -166,7 +166,9 @@ function landform(x: number, z: number) {
   const corridor = alongRun * (1 - smoothstep(ms.halfWidth + 0.3, ms.halfWidth + 3.2, Math.abs(sv)));
   const base = (macro.fbm(x * 0.021, z * 0.021, 3) * 0.75 + medium.fbm(x * 0.07, z * 0.07, 3) * 0.22) * (1 - 0.85 * corridor);
 
-  const eastRamp = smoothstep(-1.5, ms.run + 1.5, su);
+  // full plateau height 0.6 m past the top tread (was +1.5: with the 20-step run the W04 probe at
+  // (18, -4) sat on the ramp's tail at 4.94 m)
+  const eastRamp = smoothstep(-1.5, ms.run + 0.6, su);
   const eastZone = smoothstep(14, -32, z) * smoothstep(-36, -26, z) + smoothstep(-32, 14, z) * smoothstep(16, 8, z);
   let east = T.eastPlateau.height * eastRamp * clamp(eastZone, 0, 1) * smoothstep(3.5, 9, x);
   // North-west flank of the run (v < 0, the house side): the ramp does not carry on as a shelf

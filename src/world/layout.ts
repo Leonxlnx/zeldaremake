@@ -174,11 +174,14 @@ export const LAYOUT = {
     // top ≈ 0.74, base ≈ 17 m away), so it runs at bearing ≈ 55° — only ~16° off camera A's
     // ray — rather than due east, and its base sits 13.7 m from the camera. The plateau ramp
     // follows this frame, so W04's probe at (18, -4) must stay on the 5.4 m top.
-    { id: 'main', base: [9.0, 0, -2.0], dir: [1, -0.7], steps: 18, rise: 0.3, tread: 0.42, width: 3.2 },
+    // 20 × 0.27 m (was 18 × 0.30): the player controller's step guard is 0.28 m and Astra's whole-leg
+    // study found shin/riser intersections above it, so the flight climbs the same 5.4 m in twenty
+    // child-scale risers (W02 allows 16–20; the top moves 0.84 m along the run, A/F projections hold).
+    { id: 'main', base: [9.0, 0, -2.0], dir: [1, -0.7], steps: 20, rise: 0.27, tread: 0.42, width: 3.2 },
     // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
     // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
     // The base sits just off the paved edge so the first riser meets flattened ground.
-    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 6, rise: 0.3, tread: 0.5, width: 2.6 },
+    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 7, rise: 0.26, tread: 0.5, width: 2.6 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
