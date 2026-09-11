@@ -28,10 +28,12 @@ import { createLinkNeckline } from './neckline-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
 import { batchStaticLinkParts } from './static-batching';
 import { normalizeLinkClothUVs } from './cloth-uv';
+import { normalizeLinkHairUVs } from './hair-uv';
 import { createLinkCapCrown } from './cap-geometry';
 import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
 import { createLinkStrapBuckle } from './strap-buckle-geometry';
+import { finishLinkLeatherStrap } from './strap-surface';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -258,7 +260,9 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
       // Unequal rounded temple locks replace the old broad side strips.
       createLinkSideburnLocks(r),
     ];
-    part(head, merge(parts), hair, 'hair');
+    const geometry = merge(parts);
+    normalizeLinkHairUVs(geometry);
+    part(head, geometry, hair, 'hair');
   } else {
     // auburn bob: rounder, longer at the sides/back, straight fringe under the headband
     const parts = [
@@ -469,8 +473,12 @@ function buildTorso(rig: Rig): void {
   };
   for (const sign of [1, -1] as const) {
     const band = leatherBand(strapPts(sign), sign > 0 ? 0.028 : 0.021, garmentSurfaces, cl(0.835), sign > 0);
-    part(rig.chest, band, sign > 0 ? leather : cloth('tunicCollar'), 'strap');
-    if (sign > 0) part(rig.chest, createLinkStrapBuckle(band, rig.props.chestY), hardware, 'strap-buckle', false);
+    if (sign > 0) {
+      const finish = finishLinkLeatherStrap(band, leather);
+      part(rig.chest, band, finish.material, 'strap');
+      part(rig.chest, createLinkStrapBuckle(band, rig.props.chestY), hardware, 'strap-buckle', false);
+      part(rig.chest, finish.stitches, matte('leatherStitch'), 'strap-stitches', false);
+    } else part(rig.chest, band, cloth('tunicCollar'), 'strap');
   }
 }
 

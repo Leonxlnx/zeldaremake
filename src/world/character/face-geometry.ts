@@ -1,6 +1,7 @@
 /** Original Link face, centred on the existing head pivot. No imported assets. */
-import { BufferGeometry, Float32BufferAttribute, SphereGeometry } from 'three';
+import { BufferGeometry, SphereGeometry } from 'three';
 import { merge } from './geometry';
+import { createLinkEarGeometry } from './ear-geometry';
 
 const gaussian = (value: number, centre: number, width: number): number =>
   Math.exp(-Math.pow((value - centre) / width, 2));
@@ -8,58 +9,6 @@ const compact = (value: number, extent: number): number => {
   const u = Math.min(1, Math.abs(value) / extent);
   return (1 - u * u) ** 2;
 };
-
-/**
- * A closed, swept leaf with a broad root and a swept-back point. The root is buried in the
- * temple; the outer surfaces have enough thickness to remain visible from either side.
- */
-function pointedEar(radius: number, side: 1 | -1): BufferGeometry {
-  const k = radius / 0.125;
-  // x/radius, y/k, z/k, vertical half-width/k, front/back half-thickness/k.
-  const sections = [
-    [0.86, 0.005, 0.016, 0.018, 0.010],
-    [1.00, 0.007, 0.016, 0.024, 0.010],
-    [1.13, 0.012, 0.007, 0.024, 0.010],
-    [1.25, 0.023, -0.010, 0.014, 0.006],
-    [1.33, 0.031, -0.023, 0.006, 0.003],
-  ];
-  const radial = 16;
-  const vertices: number[] = [], indices: number[] = [];
-  const triangle = (a: number, b: number, c: number): void => {
-    indices.push(...(side > 0 ? [a, b, c] : [a, c, b]));
-  };
-  sections.forEach(([x, y, z, halfHeight, halfDepth], section) => {
-    for (let j = 0; j < radial; j++) {
-      const angle = j / radial * Math.PI * 2;
-      // A shallow inner cup leaves a rounded rim and a closed back, while
-      // fading to zero at the buried root and the sideways-pointing tip.
-      const cup = 1.25 * halfDepth * Math.sin(Math.PI * (x - 0.86) / (1.39 - 0.86)) ** 2
-        * Math.max(0, Math.sin(angle)) ** 2;
-      vertices.push(side * x * radius, (y + halfHeight * Math.cos(angle)) * k,
-        (z + halfDepth * Math.sin(angle) - cup) * k);
-      if (section < sections.length - 1) {
-        const a = section * radial + j, b = a + radial;
-        const c = section * radial + (j + 1) % radial, d = c + radial;
-        triangle(a, c, b); triangle(b, c, d);
-      }
-    }
-  });
-  const tip = vertices.length / 3;
-  vertices.push(side * 1.39 * radius, 0.036 * k, -0.032 * k);
-  const root = vertices.length / 3;
-  vertices.push(side * sections[0][0] * radius, sections[0][1] * k, sections[0][2] * k);
-  const last = (sections.length - 1) * radial;
-  for (let j = 0; j < radial; j++) {
-    const next = (j + 1) % radial;
-    triangle(last + j, last + next, tip);
-    triangle(j, root, next);
-  }
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
-}
 
 /**
  * Skull, cheeks, jaw, continuous nose and pointed ears for Link's softFeatures path only.
@@ -122,7 +71,7 @@ export function createLinkFaceGeometry(radius: number): BufferGeometry {
       normal.setXYZ(i, 0, Math.sign(position.getY(i)), 0);
     }
   }
-  const geometry = merge([skull, pointedEar(radius, 1), pointedEar(radius, -1)]);
+  const geometry = merge([skull, createLinkEarGeometry(radius, 1), createLinkEarGeometry(radius, -1)]);
   geometry.name = 'original-link-shaped-face';
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();

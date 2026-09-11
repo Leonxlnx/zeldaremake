@@ -4,41 +4,62 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T17:21:40.381244Z
+updated: 2026-09-11T17:38:31.735129Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Refine Link's actual outfit and ear surfaces after inspecting c8194c6 and6c455df captures.
-Root owns new strap-buckle-geometry.ts and a narrow buildTunic hook: replace the solid gold
-chest block with a rounded open frame/pin fitted to the existing brown strap. Strap route,
-green secondary band, rig and other gear remain outside this task. A helper owns one scratch
-ear-geometry candidate with a recessed concha/soft helix, preserving outer bounds and NPCs.
-Actual renders, rather than texture/geometry statistics alone, decide visual improvement.
+Publish the reviewed Link surface/ear checkpoint, then inspect actual screenshots and motion.
+Integrated new closed folded ears, consistent grouped golden hair pigment/UV scale, physical
+brown strap leather and fitted inset stitches. Corrected cloth albedo after actual eca1179
+looked blotchy: individual warp/weft pigment now dominates, broad dye is restrained. This is
+not a visual completion claim; the new complete checkpoint still needs actual rendering.
 
-All14 JPG hashes and42 matching motion states/errors[] verified for2bb72fc,6c455df,c8194c6.
-Root inspected latest front/profile, belt/hands and walking. Fingers and split temple locks
-read more clearly; overall model remains toy-like and fabric/equipment plain. eca1179 stronger
-cloth is pushed with typecheck/build pass; its actual render is pending. PR5 updated.
+Character has65 meshes /89,204 triangles. Root full production build, static batching and eye
+regression pass:2,992,032 posed positions/normals exact and8,448 eye triangles. Existing NPC
+geometry/materials/poses remain unchanged. Ear adds2,560 triangles and no draws; strap adds
+5,400 stitch triangles and one draw. Hardware f115595 stays exact.
 
-The coordinated140mm boot/live routing candidate FAILS and remains scratch-only. Reference
-172mm moving stance passes604 articulated samples and preserves NPCs, but live reversal305
-has real shoe/cuff and shoe/shin crossings;304 also has sole/ankle-joint contact missed by the
-cuff-only runtime gate. Sampled visible cuff penetration1.070mm; no acceptance based on hull
-statistics. A read-only structural movement review now addresses anatomical side reversal,
-anchor mutation and post-pelvis whole-volume feasibility. No guard increase or rig scaling.
+The broader140mm boots and late cuff-routing candidate remain rejected. A new ONE scratch
+structural implementation is underway on current narrow boots: paired committed foot poses,
+visual body-yaw lag, actual-velocity landings, final shared pelvis/IK and whole opposing-leg
+clearance with a bounded continuation reserve. Physics/camera response is unchanged. Independent
+envelope/replay review is separate from implementation. Flat ordinary movement is first gate;
+stair anticipation and broader boots remain unresolved. No production movement edit here.
 
-Fable8c7dd8a remains active on world/house/lighting. Reviewer reproduced920bfff publisher
-identity failure and duplicate remerge; root sent PR2comment5638092094. Do not integrate
-resequencing or bundled49a9fa5/3h tolerance. Canonical0050 remains invalid; old sealed history
-stays exact. Fresh captures should share the existing monitor lock before timestamp creation.
-Fable20x.27 stairs traverse under.28guard but still have visible entrance shin/boot collisions;
-not integrated. Shared sprout/grit dependency is resolved upstream but adoption/lighting held.
-C01/C02/C03 claims renewed via CLI through19:57:36.450UTC; four Fable records copied unchanged.
+Fable431d965 fixes the identity lookup/dedup bug we reported, but capture-time D3/cadence/metadata
+semantics of resequencing remain under review. Fable declines CI-only capture; a fresh-workflow
+offer and strict capture-order guard for our future publisher are being prepared in scratch.
+No shared publisher/history/rule changes integrated. New Fable0051 does not exercise resequencing;
+its old50entries remain exact and strict0037/0048/0050 failures persist. Our f115 canonical run
+is still in flight and may again encounter a later local Fable publication. No cancel-run
+capability is exposed. Character galleries remain independent and immutable.
+
+Fable world/house/canopy ownership remains respected; .27stairs/shared helpers/atmosphere held.
+C01/C02/C03 claims remain active through19:57:36.450UTC. No merge, deployment, new schedule,
+phase exit, or95% fidelity claim.
 
 ## Recent completed work and evidence
+
+- Current folded ears: exact outer bounds/root/tip and facial skull retained, one recessed
+ concha/soft helix/fold. Closed winding, finite normals and self-intersection gate pass;
+ new folds ≥1.969mm from skull/≥1.423mm from hair. Original attachment span preserved.
+- Current hair:18 connected charts share160/64mm physical tile, nominal4mm pigment groups
+ and.8mm fibres. Geometry/normals/index/bounds unchanged; all648 existing degenerateUV
+ triangles retained. Independent NPC/seam/determinism checks pass. Two maps1MiB raw;
+ once-cached generation85–95ms in helper. Actual hue/stripes/shimmer review pending.
+- Current strap: original geometry/route and green secondary band retained. Brown leather
+ now uses measured24mm UV units, warm brown pigment and inset stitches. Initial bilinear
+ shoulder stitch fit failed by.538mm; actual triangle refit plus1.4mm centre offset yields
+ ≥.430mm sampled clearance across10,800 triangle samples, no missed rays.73 other original
+ geometry meshes unchanged in paired check excluding separately changed skull.
+- Cloth correction: eca actual1971623 / progress/2026-09-11_173036-eca1179 has14 verified JPGs,
+ 42 matching states/errors[]. Root front/belt/back rejected broad blotches. New yarn-led
+ albedo keeps surface/UV/geometry bytes exact, deterministic maps and compensated mean;
+4.8mm averaged tile variation .07249→.01072. Actual revised appearance still pending.
+
 
 - Pending strap hardware checkpoint: actual brown band now carries a rounded open metal
  frame with crossbar and curved pin, rather than a solid gold box. Same grey-bronze material
@@ -1030,4 +1051,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T17:21:40.381244Z
+2026-09-11T17:38:31.735129Z
