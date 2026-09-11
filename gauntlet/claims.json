@@ -526,6 +526,28 @@
       "at": "2026-09-11T20:51:30.077Z",
       "expiresHours": 6,
       "note": "Atmosphere round six (closed-roof veil by direction) and the mossy lantern limb"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T22:09:46.326Z",
+      "expiresHours": 3,
+      "scope": "Link model, basic movement, outfit contacts and follow camera; collaborating via PR5 and PR2"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W14",
+        "W36",
+        "W37"
+      ],
+      "at": "2026-09-11T22:29:42.088Z",
+      "expiresHours": 6,
+      "note": "Lantern limb sleeve contains the giant limb; cords retuned"
     }
   ]
 }
