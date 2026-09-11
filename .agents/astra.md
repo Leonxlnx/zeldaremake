@@ -4,51 +4,43 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T09:28:40Z
+updated: 2026-09-11T09:52:19Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
-Screenshot coverage update: add two auxiliary world views using the existing saved B_house
-and F_canopy cameras. Each new progress gallery will then contain twelve named images,
-including Fable's integrated house and the stone stairway alongside Link/details. These stay
-in play mode at the same deterministic reset/time as the other progress images; they are
-explicit auxiliary evidence, not replacements for scored canonical takes. No saved camera,
-world placement, animation or production renderer changes. Rear hair/joints72beaee is pushed
-and awaiting actual rendering; sepal45ed76d close-up has been inspected, showing staggered tips.
+Prepare the original central V-neckline in an isolated helper. The current collar has a closed
+horizontal band above its flaps; the owner hero sheet has an open folded V. Keep the cut within
+front |x|<=.035m and y>=.8335m including its edge return. Preserve the original shoulder and
+strap-bearing surfaces. A shallow fitted undershirt insert covers the old deep recess. Existing
+collar flaps are front fans; the new cut-edge returns are closed, not the whole garment.
+Final full-build strap-array and oblique-edge checks precede source integration and real renders.
 
-Finish and render the original Link rear-hair and limb-seam pass. This commit replaces the
-open spherical scalp and two nape sheets with a closed skull-fitted base and four rounded
-locks, preserving frontal foundation/fringe and both sideburns. The uneven raised hem removes
-the straight yellow band seen in f963398. `smoothJoints` opts Link into near-tangent limb ends
-and finer elbow/knee spheres; NPCs keep their existing geometry and animation.
+Parallel scratch-only movement study assesses continuous step-to motion on .30m rise/.42m
+treads: immutable stance and landing targets, reach-limited root progress, smooth support
+handoff. The rejected controller/pose changes remain absent from source. High-stair whole-leg
+clearance is unresolved; the entrance trench remains Fable's terrain/hardscape scope.
 
-Construction checks pass: all 48 nape roots and 26 front overlap samples are buried; visible
-base is at least 1.455 mm outside the skull, exposed ears 1.841 mm clear with no sampled
-triangle intersections, brim 10.475 mm clear. The hidden central base remains behind the cap
-drape. Limb terminal caps stay at least .163 mm inside elbow / .213 mm inside knee spheres;
-measured seam-normal jumps improve from 24–33 degrees to under 9.1 degrees. Wider shins retain
-at least 7.614 mm clearance to boot shafts and 6.011 mm to cuffs. This remains an approximate
-rigid joint, not continuous skin. Typecheck, production build, boot invariants and actual
-cap/rig construction checks pass. New side/back/motion renders remain the visual gate.
+Completed actual0dbb1bc capture at09:44:40UTC has twelve named images and42 source-matched motion
+frames, errors[]. Every JPG matches archive94bb9e5 byte-for-byte. Root inspected house/stairway
+views plus preceding72beaee side/back/walk/run and four clip frames. Raised rear hair and cleaner
+elbow/knee shading are visible; rigid joints remain approximate. The extra saved-world views
+are auxiliary evidence, not replacements for canonical scored takes. Both source and first12
+ZIP links plus local run controls are in progress/README.md. No schedule was created.
 
-Published integration 61ac07e brings Fable's dd9e15b house/geometry files in byte-for-byte,
-with attribution and no PR merge. Combined build and two-house CPU construction pass. Fable
-retains houses, shared structure geometry, terrain, trees and global lighting; their material
-cleanup follow-up is reported in INBOX and PR2. Lantern sepal source 45ed76d has completed CI;
-retrieve its real close-up next. The most recently inspected character gallery is f963398,
-captured 09:11:59 UTC: rounded frontal hair, seated crown, blue-green iris and closer strap.
+Fable's dd9e15b house/geometry is integrated intact as61ac07e. Their latest749f413 announces
+structures/tree/vegetation/hardscape follow-ups. Independent W25 review on take0041 is still
+fail with substantial progress: the low roof/wide entry improved, but interior haze, warm-light
+readability and roof-rim construction remain short of the fixed reference. CLI preserves prior
+review history; pinned actual image and hashes are in .agents/reviews/astra-W25-take0041.md.
 
-Named screenshot galleries are preserved on `captures/astra-progress`; the first twelve and
-pinned ZIP are at 9b9b902. The user also received the current source-branch ZIP link. No schedule
-was created. Capture publication runs after completed source work and preserves old folders.
-
-High-stair movement remains unresolved. The .305 m controller/capture proposal is preserved
-in `gauntlet/tmp/astra-deferred-stair-controller-capture.patch`, and all four affected source
-files are restored to the published baseline. Failed pose studies remain scratch-only. Main
-stair entrance trench is still Fable's terrain follow-up. Manual monitor checkpoint 2781c6e is
-running; inherited D1 chronology and all historical invalid verdicts remain unchanged.
+Fable's shared-claims proposal49a9fa5 loses claims on concurrent normal/heartbeat retry in
+isolated actual git probes. Union at every regeneration callback fixes the reproduction;
+conflicting same-agent/time grants also need explicit rejection. Findings are in INBOX/PR2 and
+the repair remains Fable's tooling scope. Do not adopt the blanket3h D1 tolerance. Take0040
+on2781c6e is23/50,700draws,6770746triangles, still INVALID D1; all sealed timestamps/hashes/tags
+remain unchanged. Latest monitor38ab114 includes Fable0041, also invalid. No phase/fidelity pass.
 
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
