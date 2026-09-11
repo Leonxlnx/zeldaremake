@@ -4,12 +4,43 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T20:34:47.578649Z
+updated: 2026-09-11T20:39:06.606151Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Actual885b056 eyes completed20:36:21.891UTC, archive8ca68d7/progress/
+2026-09-11_203621-885b056.18imagehashes/42states/source verified,errors[].
+Root06/12/17/18 review: pupil is visiblyround through normalblink17, filterededges
+soften; wetcatchlight remainsweak inopenface/profile. Readonlyreflectiongeometry/
+scene/shaderdiagnosisnext, no bakedglint/lightchange. Fouractuals and5,119,354-byte
+18image+clipZIP delivered. These885renders predate151complexion andnewshield.
+
+Composedshieldrootbuildpasses138modules; staticbatch70→64meshes/105794tri,
+1508256posedposition/normal comparisons exact andUV/material/shadow/boot/NPC gates.
+Newmaterialusesexistingpaintgenerationunchanged; real13/15/16renderpending.
+
+Published151744b (tree040ea7b): one static complexion candidate and corrected
+sourceZIP/play instructions. Verified14,302,008-byteZIP/394entries/CRCpass delivered;
+root build137modules/staticbatchpass. Actual skinrenderpending; no nearreferenceclaim.
+
+Next integration: originalshield woodheight/roughness helper92778d11 and gear
+materialhook6d1b0f46. Independent3447Canvascommands preserve oldpaint artwork;
+200paintmaskcapsules align with oneYflip, originalgeometry/UV/transforms unchanged.
+One shared512² Rheight/Groughness texture1MiB,74.6mscoldgeneration measuredonce;
+no draws/triangles/perframework. Effective roughness.790–.946, bumpScale.00022.
+Initial181-frequency/power10 groove was undersampled (.471pxnominalhalfwidth),
+preserved thenreplacedwith73/power2 before anyrender. Correctedfeature≥1.513px
+underboundedwarp, not a blanketaliasproof. Actualbag13/rear15+16mustjudgereadability.
+Sourceonlychangegear.ts+newhelper; Fable retains allworldlighting/structures.
+
+Live tunicfold cause nowidentified: rotationblend reversesYroworderbeforeenvelope,
+5mmrestrow maps-.290mm Y; radialprojection keepsangle/Y but consumesremainingradial
+separation. Exact0.8416mm selfcross segment atwalktick8, bothfrozen/optimizedsame.
+Designnext uses an order-preservingsharedmap; finertriangles/normalhidingnotaccepted.
+No production garment or locomotion change. Hairbridge/landing/skinrenderworkcontinues.
 
 Root composed complexion build passes137modules; staticbatch70→64meshes,105794tri
 and1508256posedposition/normal samples exact withUV/material/shadow/boot/NPC checks.

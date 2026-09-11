@@ -1,7 +1,8 @@
 /** Original carrying gear on the existing chest joint. */
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Group, Material, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { merge, place, sweep } from './geometry';
-import { matte, shieldTexture } from './palette';
+import { matte } from './palette';
+import { createLinkShieldMaterial } from './shield-surface';
 import { createWoodenShield } from './gear-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
 import type { Rig } from './rig';
@@ -59,8 +60,7 @@ export function buildGear(rig: Rig, part: Attach): void {
   shield.rotation.set(-0.12, Math.PI, 0.06);
   rig.chest.add(shield);
   const shape = createWoodenShield();
-  const shieldMat = new MeshStandardMaterial({ map: shieldTexture(), color: 0xffffff, roughness: 0.9, metalness: 0 });
-  shieldMat.name = 'char-shield';
+  const shieldMat = createLinkShieldMaterial();
   part(shield, shape.face, shieldMat, 'shield-face');
   part(shield, shape.shell, matte('shieldRim'), 'shield-back');
   // Kokiri Sword in its scabbard: from the left hip up past the right shoulder
