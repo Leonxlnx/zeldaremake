@@ -3,6 +3,7 @@ import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
 import { createFollowCam, type FollowCam } from './camera/follow';
 import type { PlayerHandle } from './world/character/player';
+import { installPlayerCapture } from './world/character/capture';
 import { getTerrain } from './world/terrain/heightfield';
 import { installCaptureApi, isHeadlessCapture } from './capture/api';
 import { WORLD } from './world/config';
@@ -27,7 +28,7 @@ async function boot() {
   renderer.shadowMap.enabled = quality.shadows;
   renderer.shadowMap.type = BasicShadowMap;
   host.appendChild(renderer.domElement);
-  if (params.get('hud') !== '0') mountHud(host, { headless });
+  const hud = params.get('hud') !== '0' ? mountHud(host, { headless }) : null;
 
   const scene = new Scene();
   const terrain = getTerrain();
@@ -74,12 +75,16 @@ async function boot() {
 
   let simTime = 0;
   const step = (dt: number) => {
+    const paused = !headless && hud?.getScreen?.() === 'equipment';
+    follow?.setSuspended(paused);
+    if (paused) dt = 0;
     simTime += dt;
     if (!headless) {
       if (follow?.enabled) follow.update(dt);
       else cam.update(dt);
     }
-    world.update(dt, simTime);
+    if (!paused) world.update(dt, simTime);
+    if (!headless) follow?.lateUpdate(dt);
     if (composer) composer.render(dt);
     else renderer.render(scene, cam.camera);
   };
@@ -123,6 +128,16 @@ async function boot() {
     },
   });
 
+  if (headless && params.get('motion') === '1' && player) {
+    installPlayerCapture(player, seconds => {
+      // Run the same world/character simulation without an expensive GPU draw at every tick.
+      for (let remaining = seconds; remaining > 1e-9;) {
+        const dt = Math.min(remaining, 1 / 120);
+        simTime += dt; world.update(dt, simTime); remaining -= dt;
+      }
+    });
+  }
+
   const onResize = () => {
     const w = host.clientWidth;
     const h = host.clientHeight;
@@ -138,11 +153,13 @@ async function boot() {
   let fps = 0;
   let devVisible = !headless && params.get('dev') !== '0';
   window.addEventListener('keydown', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (e.defaultPrevented || e.repeat || target?.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target?.tagName ?? '')) return;
     if (e.code === 'KeyH') {
       devVisible = !devVisible;
       dev.classList.toggle('hidden', !devVisible);
     }
-    if (e.code === 'KeyP') setPlayMode(!follow?.enabled);
+    if (e.code === 'KeyP' && hud?.getScreen?.() !== 'equipment') setPlayMode(!follow?.enabled);
   });
   dev.classList.toggle('hidden', !devVisible);
   // The walkable build boots in play mode (you are Link); `?mode=free` (or P) gives the free camera
@@ -166,7 +183,7 @@ async function boot() {
             `${fps.toFixed(0)} fps · ${info.calls} draws · ${(info.triangles / 1e6).toFixed(2)}M tris\n` +
             `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${quality.tier}\n` +
             (follow?.enabled
-              ? `PLAY: WASD / arrows walk · Shift run · drag to look · Tab equipment · P free camera · H hide`
+              ? `PLAY: WASD / arrows walk · Shift run · Space jump · drag to look · Tab equipment · P free camera · H hide`
               : `FREE CAM: WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play as Link · H hide`);
         }
       }

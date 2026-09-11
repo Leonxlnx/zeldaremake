@@ -77,8 +77,11 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const c = new Vector3();
   for (const r of lanterns.slice(1)) c.add(r.pod);
   c.divideScalar(Math.max(1, lanterns.length - 1));
-  c.y -= 0.2;
-  const light = new PointLight(ctx.config.palette.lanternGlow, 7, 7, 2);
+  // This single point approximates the group of emitting pods. Keep it below
+  // their complete shells: the outer-pod mean lies against the middle lantern,
+  // where an unshadowed inverse-square point burned its leaves and rope white.
+  c.y -= 0.9;
+  const light = new PointLight(ctx.config.palette.lanternGlow, 4.25, 6, 2);
   light.position.copy(c);
   light.name = 'branch-lantern-light';
   group.add(light);

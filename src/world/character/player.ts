@@ -10,6 +10,8 @@ export interface PlayerInput {
   moveX: number;
   moveZ: number;
   run: boolean;
+  /** Held button; the simulation consumes only a rising edge (no automatic repeated jump). */
+  jump?: boolean;
 }
 
 export interface PlayerHandle {

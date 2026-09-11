@@ -15,6 +15,8 @@ import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Came
 import type { WorldContext, WorldSystem } from '../system';
 import { applyPose, GAIT_SPEED, GAITS, HERO_PHASE, plantFeet, type Gait } from './animation';
 import { createGround } from './ground';
+import { createLocomotion } from './locomotion';
+import { createPlayPose } from './play-pose';
 import { createKokiri } from './kokiri';
 import { createLink, type Character } from './link';
 import { createNavi, TRAIL_COUNT } from './navi';
@@ -153,10 +155,16 @@ export function create(ctx: WorldContext): WorldSystem {
   // ---- play mode (walkable build) ----
   const input: PlayerInput = { moveX: 0, moveZ: 0, run: false };
   const velocity = new Vector3();
+  const motion = createLocomotion(ground, link.pos.x, link.pos.z, link.yaw);
+  const playPose = createPlayPose(link.char.rig, ground.height);
+  // Only Link fades in flight; NPC contact shadows retain their shared material.
+  link.shadow.material = (link.shadow.material as import('three').Material).clone();
   const player: PlayerHandle = {
     position: link.pos,
     heading: () => link.yaw,
     setPlayMode(on) {
+      input.moveX = input.moveZ = 0; input.run = false; input.jump = false;
+      motion.clearInput();
       if (on) {
         // start the walk at the spawn with the kids on their layout spots
         placeFree();
@@ -164,6 +172,10 @@ export function create(ctx: WorldContext): WorldSystem {
         view = null;
         camPose = null;
         velocity.set(0, 0, 0);
+        motion.reset(link.pos.x, link.pos.z, link.yaw);
+        link.pos.y = motion.state.y;
+        playPose.reset();
+        playPose.update(motion.state, 0, 0);
       } else {
         mode = 'free';
         lastCamPos.set(NaN, NaN, NaN);
@@ -175,47 +187,45 @@ export function create(ctx: WorldContext): WorldSystem {
       input.moveX = i.moveX;
       input.moveZ = i.moveZ;
       input.run = i.run;
+      input.jump = !!i.jump;
     },
   };
   ctx.scene.userData[PLAYER_KEY] = player;
 
   const stepPlayer = (dt: number, t: number) => {
-    const mag = Math.min(1, Math.hypot(input.moveX, input.moveZ));
-    const onStairs = ground.onStairs(link.pos.x, link.pos.z);
-    if (mag > 0.05) {
-      const target = Math.atan2(input.moveX, input.moveZ);
-      let d = target - link.yaw;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      link.yaw += MathUtils.clamp(d, -dt * 9, dt * 9);
-      link.gait = onStairs ? 'stairs' : input.run ? 'run' : 'walk';
-      const speed = GAIT_SPEED[link.gait] * mag;
-      const nx = link.pos.x + (input.moveX / mag) * speed * dt;
-      const nz = link.pos.z + (input.moveZ / mag) * speed * dt;
-      const h0 = ground.height(link.pos.x, link.pos.z);
-      const h1 = ground.height(nx, nz);
-      if (h1 - h0 < 0.55 && !ground.blocked(nx, nz)) {
-        velocity.set((nx - link.pos.x) / Math.max(dt, 1e-4), 0, (nz - link.pos.z) / Math.max(dt, 1e-4));
-        link.pos.set(nx, 0, nz);
-      } else velocity.set(0, 0, 0);
-    } else {
-      link.gait = 'idle';
-      velocity.set(0, 0, 0);
-    }
+    const state = motion.update(dt, input, (s, step) => playPose.update(s, s.time, step));
+    link.pos.set(state.x, state.y, state.z);
+    link.yaw = state.yaw;
+    link.gait = state.speed < 0.05 ? 'idle' : state.stairWeight > 0.5 ? 'stairs' : state.runWeight > 0.5 ? 'run' : 'walk';
+    velocity.set(state.vx, state.vy, state.vz);
     // Navi orbits the head, leading when Link moves
     const lead = velocity.length() > 0.2 ? 0.7 : 0;
     naviAnchor.set(
       link.pos.x + 0.45 * Math.sin(t * 0.5) + Math.sin(link.yaw) * lead,
-      ground.height(link.pos.x, link.pos.z) + 1.4 + 0.05 * Math.sin(t * 0.8),
+      link.pos.y + 1.4 + 0.05 * Math.sin(t * 0.8),
       link.pos.z + 0.45 * Math.cos(t * 0.5) + Math.cos(link.yaw) * lead,
     );
   };
 
   const poseActor = (a: Actor, t: number, look: Vector3 | null) => {
     const r = a.char.rig;
-    r.root.position.set(a.pos.x, ground.height(a.pos.x, a.pos.z), a.pos.z);
-    r.root.rotation.y = a.yaw;
-    applyPose(r, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn });
-    plantFeet(r, ground.height, a.contact);
+    if (a === link && mode === 'play') {
+      // Contact state advances with the fixed simulation, never once per rendered frame.
+      // Report an actual sole point in flight as well as on the ground.
+      a.contact.copy(r.sole);
+      r.ankleL.localToWorld(a.contact);
+    } else {
+      r.root.position.set(a.pos.x, ground.height(a.pos.x, a.pos.z), a.pos.z);
+      r.root.rotation.y = a.yaw;
+      applyPose(r, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn });
+      plantFeet(r, ground.height, a.contact);
+    }
+    a.char.syncGeometry?.();
+    if (a === link) {
+      const altitude = mode === 'play' ? Math.max(0, motion.state.y - ground.height(a.pos.x, a.pos.z)) : 0;
+      (a.shadow.material as import('three').Material).opacity = 0.6 / (1 + altitude * 2.5);
+      a.shadow.scale.setScalar(1 + altitude * 0.25);
+    }
     // contact shadow just above the ground under the body centre
     a.shadow.position.set(a.pos.x, ground.decalHeight(a.pos.x, a.pos.z, a.shadowRadius), a.pos.z);
   };
@@ -246,8 +256,8 @@ export function create(ctx: WorldContext): WorldSystem {
     };
     return {
       link: true,
-      animations: GAITS.length,
-      animationNames: [...GAITS],
+      animations: GAITS.length + 3,
+      animationNames: [...GAITS, 'jump', 'fall', 'land'],
       fairy: true,
       fairyTrail: TRAIL_COUNT,
       npcs: kids.length,
@@ -256,7 +266,8 @@ export function create(ctx: WorldContext): WorldSystem {
       linkTriangles: link.char.triangles,
       mode,
       view,
-      linkGait: link.gait,
+      linkGait: mode === 'play' && !motion.state.grounded ? (motion.state.vy > 0 ? 'jump' : 'fall') : link.gait,
+      locomotion: mode === 'play' ? { ...motion.state } : null,
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
       contactShadows: 1 + kids.length,
       pavingSurface: ground.surfaceInfo(),      world: { link: feetOf(link), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },

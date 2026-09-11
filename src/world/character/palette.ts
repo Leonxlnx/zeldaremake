@@ -3,21 +3,25 @@
  * post-haze display values; albedos here are ≈ 1.25–1.4× brighter so the graded, hazed frame lands
  * on the measured swatch (same convention as `config.ts`'s world palette).
  */
-import { CanvasTexture, Color, MeshStandardMaterial, SRGBColorSpace } from 'three';
+import { CanvasTexture, Color, DataTexture, LinearFilter, LinearMipmapLinearFilter, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 
 export const CHAR_COLORS = {
   /** reference `#50542f` */
   tunic: 0x596832,
   tunicCollar: 0x68763a,
+  clothThread: 0x929866,
+  leatherStitch: 0xa38c5d,
   /** the pale undershirt showing at the collar, slightly warm so it does not blow out */
   undershirt: 0xe6dfcc,
   /** reference `#433825` */
   leather: 0x54462d,
   leatherDark: 0x3e3221,
+  packLeather: 0x765738,
   buckle: 0xc4a25c,
   /** reference `#624d33` lit / `#533a21` shade: saturated leather brown, tan fold-over cuff `#876849` */
   boot: 0x6b4a2c,
   bootCuff: 0x957852,
+  linkBootCuff: 0x81613f,
   sole: 0x2c2118,
   /** reference `#828450` (lighter than the tunic) */
   cap: 0x6f7c40,
@@ -27,6 +31,8 @@ export const CHAR_COLORS = {
   hairShade: 0x8c6630,
   /** reference `#87613e` hazed / `#be8556` in the 14 s sunlight: warm tan, a clear hue step from the hair */
   skin: 0xbe8a5e,
+  /** Owner's hero turnaround: softer warm skin, separate from the existing NPC palette. */
+  linkSkin: 0xd8ac88,
   eyeWhite: 0xf2f0ea,
   iris: 0x3268b8,
   irisKid: 0x5a3a22,
@@ -52,6 +58,116 @@ export const CHAR_COLORS = {
 export type CharColorKey = keyof typeof CHAR_COLORS;
 
 const cache = new Map<string, MeshStandardMaterial>();
+let weave: DataTexture | undefined;
+
+/** Original blue-green iris pigment, using the clipped eye disc's radial UVs. */
+export function linkIris(): MeshStandardMaterial {
+  const id = 'link-radial-iris';
+  const existing = cache.get(id);
+  if (existing) return existing;
+  const size = 128, data = new Uint8Array(size * size * 4);
+  const smooth = (a: number, b: number, value: number) => {
+    const t = Math.max(0, Math.min(1, (value - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = (x + 0.5) / size * 2 - 1, v = (y + 0.5) / size * 2 - 1;
+    const radius = Math.hypot(u, v), angle = Math.atan2(v, u);
+    // Integer angular frequencies meet seamlessly; no random state or baked highlights.
+    const fibre = 0.5 + 0.25 * Math.sin(angle * 61 + radius * 5 + 0.2 * Math.sin(angle * 11))
+      + 0.15 * Math.sin(angle * 103 - radius * 8) + 0.10 * Math.sin(angle * 29 + radius * 13);
+    const inner = Math.exp(-(((radius - 0.64) / 0.055) ** 2));
+    const edge = smooth(0.85, 0.99, radius);
+    const pigment = [54 + 28 * fibre + 8 * inner, 114 + 39 * fibre + 4 * inner, 147 + 35 * fibre - 9 * inner];
+    const rim = [24, 51, 65], i = (y * size + x) * 4;
+    for (let channel = 0; channel < 3; channel++) data[i + channel] = Math.round(pigment[channel] * (1 - edge) + rim[channel] * edge);
+    data[i + 3] = 255;
+  }
+  const texture = new DataTexture(data, size, size);
+  texture.name = 'original-link-blue-green-iris'; texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true; texture.minFilter = LinearMipmapLinearFilter;
+  texture.magFilter = LinearFilter; texture.needsUpdate = true;
+  const material = new MeshStandardMaterial({ map: texture, color: 0xffffff, roughness: 0.6, metalness: 0 });
+  material.name = id;
+  cache.set(id, material);
+  return material;
+}
+
+/** Original strand variation; U follows each lock and V runs across its fibres. */
+export function linkHair(): MeshStandardMaterial {
+  const id = 'link-strand-hair';
+  const existing = cache.get(id);
+  if (existing) return existing;
+  const width = 64, height = 512;
+  const colour = new Uint8Array(width * height * 4), relief = new Uint8Array(colour.length);
+  const tau = Math.PI * 2;
+  const strands = 71;
+  const seed = (index: number, salt: number) => {
+    const n = ((index % strands) + strands) % strands;
+    return ((n * 37 + n * n * 11 + salt * 53) % 101) / 100;
+  };
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const u = x / width, v = y / height, i = (y * width + x) * 4;
+    let fibre = 0;
+    const cell = Math.floor(v * strands);
+    for (let j = cell - 1; j <= cell + 1; j++) {
+      const centre = j + 0.5 + 0.42 * (seed(j, 1) - 0.5)
+        + 0.12 * Math.sin(tau * u + tau * seed(j, 2));
+      const distance = (v * strands - centre) / (0.11 + 0.08 * seed(j, 3));
+      fibre += (0.65 + 0.35 * seed(j, 4)) * Math.exp(-distance * distance);
+    }
+    const fine = 0.5 + 0.5 * Math.sin(tau * (123 * v + 0.10 * Math.sin(tau * u + 0.8)));
+    const broad = 0.5 + 0.5 * Math.sin(tau * (7 * v + 0.04 * Math.sin(tau * u + 1.1)));
+    const value = Math.round(255 * (0.92 + 0.045 * fibre + 0.01 * fine + 0.015 * broad));
+    const heightValue = Math.round(255 * (0.40 + 0.20 * fibre + 0.05 * fine));
+    colour[i] = colour[i + 1] = colour[i + 2] = value; colour[i + 3] = 255;
+    relief[i] = relief[i + 1] = relief[i + 2] = heightValue; relief[i + 3] = 255;
+  }
+  const makeTexture = (data: Uint8Array, name: string, isColour: boolean) => {
+    const texture = new DataTexture(data, width, height);
+    texture.name = name;
+    texture.wrapS = texture.wrapT = RepeatWrapping;
+    if (isColour) texture.colorSpace = SRGBColorSpace;
+    texture.generateMipmaps = true; texture.minFilter = LinearMipmapLinearFilter;
+    texture.needsUpdate = true;
+    return texture;
+  };
+  const material = matte('hair').clone();
+  material.name = id; material.roughness = 0.72;
+  material.map = makeTexture(colour, 'original-link-hair-strand-colour', true);
+  material.bumpMap = makeTexture(relief, 'original-link-hair-strand-relief', false);
+  material.bumpScale = 0.00016;
+  cache.set(id, material);
+  return material;
+}
+
+/** Sub-millimetre authored weave; mipmapped so it softens naturally at gameplay distance. */
+export function cloth(key: 'tunic' | 'tunicCollar' | 'cap' | 'capBrim'): MeshStandardMaterial {
+  const id = `cloth-${key}`;
+  const existing = cache.get(id);
+  if (existing) return existing;
+  if (!weave) {
+    const size = 64, data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const thread = Math.sin(x * Math.PI / 2) * Math.cos(y * Math.PI / 2);
+      const grain = ((x * 13 + y * 29 + x * y * 7) % 17) / 16 - 0.5;
+      data[i] = data[i + 1] = data[i + 2] = Math.round(128 + 26 * thread + 8 * grain);
+      data[i + 3] = 255;
+    }
+    weave = new DataTexture(data, size, size);
+    weave.name = 'original-character-cloth-weave';
+    weave.wrapS = weave.wrapT = RepeatWrapping;
+    weave.repeat.set(5, 5);
+    weave.generateMipmaps = true; weave.minFilter = LinearMipmapLinearFilter;
+    weave.needsUpdate = true;
+  }
+  const material = matte(key).clone();
+  material.name = id; material.roughness = 0.97;
+  material.bumpMap = weave; material.bumpScale = 0.0007;
+  cache.set(id, material);
+  return material;
+}
 
 /**
  * Shared matte MeshStandardMaterial per colour key (fog-compatible: the atmosphere patches the fog
@@ -80,7 +196,7 @@ export function shieldTexture(): CanvasTexture {
   canvas.width = size;
   canvas.height = size;
   const g = canvas.getContext('2d')!;
-  g.fillStyle = '#6e4d2a';
+  g.fillStyle = '#85633c';
   g.fillRect(0, 0, size, size);
   // grain: vertical-ish wavy dark lines
   for (let i = 0; i < 26; i++) {
@@ -125,20 +241,12 @@ export function shieldTexture(): CanvasTexture {
   spiral(3, 96, 2.05, 16, 34, 'rgba(60,14,8,0.95)');
   spiral(3, 96, 2.05, 10, 26, '#7a2418');
   spiral(3, 96, 2.05, 3, 7, 'rgba(170,70,45,0.3)');
-  // worn wooden rim: darker outer band with lighter scuffs
-  const rimGrad = g.createRadialGradient(cx, cy, size * 0.36, cx, cy, size * 0.5);
-  rimGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  rimGrad.addColorStop(0.55, 'rgba(40,24,10,0.35)');
-  rimGrad.addColorStop(1, 'rgba(30,18,8,0.7)');
-  g.fillStyle = rimGrad;
-  g.fillRect(0, 0, size, size);
-  for (let i = 0; i < 40; i++) {
-    const a = (i / 40) * Math.PI * 2 + Math.sin(i * 3.1) * 0.05;
-    const r = size * (0.42 + 0.06 * Math.abs(Math.sin(i * 1.7)));
-    g.fillStyle = i % 3 === 0 ? 'rgba(200,160,110,0.35)' : 'rgba(150,110,70,0.25)';
-    g.beginPath();
-    g.ellipse(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.5 + (i % 3), 4 + (i % 4) * 2, a, 0, Math.PI * 2);
-    g.fill();
+  // Restrained hand-worn nicks; the new shield geometry supplies its own shaped bevel.
+  for (let i = 0; i < 34; i++) {
+    const x = 11 + ((i * 67) % 234), y = 9 + ((i * 43) % 237);
+    g.strokeStyle = i % 3 ? 'rgba(176,143,94,0.28)' : 'rgba(40,26,13,0.24)';
+    g.lineWidth = 0.6 + (i % 3) * 0.4;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 1.5, y + 3 + i % 7); g.stroke();
   }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;

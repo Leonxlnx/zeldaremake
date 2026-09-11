@@ -1,0 +1,114 @@
+name: Astra character motion
+on:
+  push:
+    branches: ['agent/astra-link-movement']
+    paths: ['src/**', 'public/**', 'package*.json', 'gauntlet/scripts/capture-motion.mjs', 'gauntlet/scripts/archive-character-capture.mjs', '.github/workflows/astra-character.yml']
+  workflow_dispatch:
+    inputs:
+      sequence:
+        description: 'Also capture a continuous motion clip'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: astra-character
+  cancel-in-progress: false
+jobs:
+  motion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node src/world/character/locomotion.test.mjs
+      - run: node src/world/character/eye-geometry.test.mjs
+      - run: node src/world/character/boot-articulation.test.mjs
+      - run: node src/camera/follow.test.mjs
+      - run: node src/world/structures/foliage-shadow.test.mjs
+      - run: npm run build
+      - name: Decide whether motion needs a new clip
+        id: capture-mode
+        env:
+          REQUEST_SEQUENCE: ${{ inputs.sequence }}
+        shell: bash
+        run: |
+          COMPARE_BASE=
+          if git fetch --no-tags --depth=1 origin captures/astra-character; then
+            COMPARE_BASE="$(git show FETCH_HEAD:motion.json | node --input-type=module -e 'import fs from "node:fs"; process.stdout.write(JSON.parse(fs.readFileSync(0, "utf8")).source);')"
+          fi
+          if [[ "$COMPARE_BASE" =~ ^[0-9a-f]{40}$ ]]; then
+            git cat-file -e "$COMPARE_BASE^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$COMPARE_BASE"
+          else
+            REQUEST_SEQUENCE=true
+            COMPARE_BASE=HEAD^
+          fi
+          # A queued run may be superseded by another push. Compare with the last
+          # completed capture so uncaptured movement or outfit changes still get a clip.
+          # Include character helpers/materials: their edits can change the rendered
+          # player even when the top-level builder and controller files are unchanged.
+          if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet "$COMPARE_BASE" HEAD -- src/world/character/ src/camera/follow.ts gauntlet/scripts/capture-motion.mjs; then
+            echo 'sequence=1' >> "$GITHUB_OUTPUT"
+          else
+            echo 'sequence=0' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install the clip encoder
+        if: steps.capture-mode.outputs.sequence == '1'
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Capture actual character motion and object details
+        env:
+          CAPTURE_SEQUENCE: ${{ steps.capture-mode.outputs.sequence }}
+        run: node gauntlet/scripts/capture-motion.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: astra-character-${{ github.sha }}
+          path: gauntlet/out/astra-character
+          retention-days: 30
+      - name: Save review images on Astra's generated branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CAPTURE_DIR="$GITHUB_WORKSPACE/gauntlet/out/astra-character"
+          REVIEW_DIR="$(mktemp -d)"
+          git -C "$REVIEW_DIR" init -b captures/astra-character
+          git -C "$REVIEW_DIR" config user.name 'github-actions[bot]'
+          git -C "$REVIEW_DIR" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          gh auth setup-git
+          git -C "$REVIEW_DIR" remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          if git -C "$REVIEW_DIR" ls-remote --exit-code --heads origin captures/astra-character; then
+            git -C "$REVIEW_DIR" fetch origin captures/astra-character
+            git -C "$REVIEW_DIR" reset --hard FETCH_HEAD
+          fi
+          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$REVIEW_DIR/"
+          if [ -f "$CAPTURE_DIR/motion.mp4" ]; then
+            cp "$CAPTURE_DIR/motion.mp4" "$CAPTURE_DIR/sequence.json" "$REVIEW_DIR/"
+          fi
+          git -C "$REVIEW_DIR" add --all
+          git -C "$REVIEW_DIR" commit -m "Astra motion evidence for $GITHUB_SHA [skip ci]"
+          git -C "$REVIEW_DIR" push origin HEAD:captures/astra-character
+      - name: Preserve the completed pass in a dated progress folder
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROGRESS_DIR="$(mktemp -d)"
+          gh auth setup-git
+          git clone --single-branch --branch captures/astra-progress "https://github.com/$GITHUB_REPOSITORY.git" "$PROGRESS_DIR"
+          git -C "$PROGRESS_DIR" config user.name 'github-actions[bot]'
+          git -C "$PROGRESS_DIR" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          node gauntlet/scripts/archive-character-capture.mjs "$GITHUB_WORKSPACE/gauntlet/out/astra-character" "$PROGRESS_DIR"
+          git -C "$PROGRESS_DIR" add --all
+          if ! git -C "$PROGRESS_DIR" diff --cached --quiet; then
+            git -C "$PROGRESS_DIR" commit -m "Progress screenshots for $GITHUB_SHA [skip ci]"
+            git -C "$PROGRESS_DIR" push origin HEAD:captures/astra-progress
+          fi

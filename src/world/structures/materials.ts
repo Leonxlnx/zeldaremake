@@ -12,9 +12,12 @@ import {
   LinearFilter,
   LinearMipmapLinearFilter,
   MeshBasicMaterial,
+  MeshDepthMaterial,
+  MeshDistanceMaterial,
   MeshStandardMaterial,
   NoColorSpace,
   RepeatWrapping,
+  RGBADepthPacking,
   SRGBColorSpace,
   Texture,
   Vector2,
@@ -59,6 +62,11 @@ export interface StructureMaterials {
   leaf: MeshStandardMaterial;
   /** vine stems, wind-animated */
   vine: MeshStandardMaterial;
+  /** Shadow passes share the visible foliage's wind and alpha cutout. */
+  leafDepth: MeshDepthMaterial;
+  leafDistance: MeshDistanceMaterial;
+  vineDepth: MeshDepthMaterial;
+  vineDistance: MeshDistanceMaterial;
   /** grass tufts + fern fronds on roofs and the log, wind-animated */
   tuft: MeshStandardMaterial;
   /** moss cushions (vertex colours) */
@@ -354,9 +362,12 @@ export function runeTexture(seedRng: () => number): Texture {
   return finishTexture(new CanvasTexture(c), true, 'structures:runes');
 }
 
-/** Inject the shared wind model into a MeshStandardMaterial; uses aPhase/aAmount vertex attributes. */
-export function windLeafMaterial<T extends MeshStandardMaterial>(mat: T, ctx: WorldContext, key: string): T {
+/** Identical deformation in visible, directional-shadow and point-shadow passes. */
+export function windLeafMaterial<T extends MeshStandardMaterial | MeshDepthMaterial | MeshDistanceMaterial>(mat: T, ctx: WorldContext, key: string): T {
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    if (!shader.vertexShader.includes('#include <common>') || !shader.vertexShader.includes('#include <begin_vertex>')) {
+      throw new Error('Structure foliage wind requires the Three.js common and begin_vertex chunks');
+    }
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute float aPhase;\nattribute float aAmount;`)
       .replace(
@@ -372,6 +383,19 @@ export function windLeafMaterial<T extends MeshStandardMaterial>(mat: T, ctx: Wo
   mat.customProgramCacheKey = () => key;
   ctx.wind.bind(mat);
   return mat;
+}
+
+/** Caller owns both materials; textures and live wind uniforms remain shared. */
+export function createStructureShadowMaterials(source: MeshStandardMaterial, ctx: WorldContext, key: string): {
+  depth: MeshDepthMaterial;
+  distance: MeshDistanceMaterial;
+} {
+  const cutout = { map: source.map, alphaMap: source.alphaMap, alphaTest: source.alphaTest, side: source.side };
+  const depth = windLeafMaterial(new MeshDepthMaterial({ ...cutout, depthPacking: RGBADepthPacking }), ctx, `${key}-depth-v1`);
+  const distance = windLeafMaterial(new MeshDistanceMaterial(cutout), ctx, `${key}-distance-v1`);
+  depth.name = `${key}-depth`;
+  distance.name = `${key}-distance`;
+  return { depth, distance };
 }
 
 export async function loadMaterials(ctx: WorldContext, rng: () => number): Promise<StructureMaterials> {
@@ -501,6 +525,8 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     'structures-leaf',
   );
   const vine = windLeafMaterial(new MeshStandardMaterial({ color: new Color(0x4c5a2c), roughness: 1 }), ctx, 'structures-vine');
+  const { depth: leafDepth, distance: leafDistance } = createStructureShadowMaterials(leaf, ctx, 'structures-leaf');
+  const { depth: vineDepth, distance: vineDistance } = createStructureShadowMaterials(vine, ctx, 'structures-vine');
   const tuft = windLeafMaterial(
     new MeshStandardMaterial({
       map: tuftTexture(),
@@ -518,5 +544,5 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, leafDepth, leafDistance, vineDepth, vineDistance, tuft, moss, runes, endGrain, texturedSets };
 }

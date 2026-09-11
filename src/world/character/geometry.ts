@@ -19,6 +19,10 @@ export interface SweepOptions {
   smooth?: boolean;
   /** cross-section scale along the binormal (< 1 flattens the tube, e.g. a cap tail lying on the back) */
   flatten?: number;
+  /** Keep a flattened section from the first ring (hair); the default preserves cap roots. */
+  flattenFromRoot?: boolean;
+  /** Preferred outward thickness direction at the root, for a ribbon following a surface. */
+  surfaceNormal?: Vector3;
   /** depth (fraction of the radius) of a groove along the +binormal side (cloth crease) */
   crease?: number;
 }
@@ -56,6 +60,10 @@ export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {
   const t0 = tangents[0];
   const helper = Math.abs(t0.y) < 0.9 ? new Vector3(0, 1, 0) : new Vector3(1, 0, 0);
   normal.crossVectors(t0, helper).normalize();
+  if (opts.surfaceNormal) {
+    const surfaceWidth = new Vector3().crossVectors(opts.surfaceNormal, t0);
+    if (surfaceWidth.lengthSq() > 1e-10) normal.copy(surfaceWidth).normalize();
+  }
   const positions: number[] = [];
   const uvs: number[] = [];
   const indices: number[] = [];
@@ -71,7 +79,7 @@ export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {
     const c = centres[i];
     // the flattening/crease fade in over the first 40 % of the tube so a tail that starts inside
     // a dome emerges with a plain round section (no groove edge poking through the shell)
-    const ramp = flatten === 1 && crease === 0 ? 1 : Math.min(1, i / segments / 0.4);
+    const ramp = opts.flattenFromRoot || (flatten === 1 && crease === 0) ? 1 : Math.min(1, i / segments / 0.4);
     const rampS = ramp * ramp * (3 - 2 * ramp);
     const creaseI = crease * rampS;
     const flattenI = 1 + (flatten - 1) * rampS;
@@ -90,7 +98,8 @@ export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {
     for (let j = 0; j < radial; j++) {
       const a = i * ring + j;
       const b = a + ring;
-      indices.push(a, b, a + 1, b, b + 1, a + 1);
+      // binormal = tangent × normal, so radial → tangent winds outward.
+      indices.push(a, a + 1, b, b, a + 1, b + 1);
     }
   }
   if (opts.closeTip) {
@@ -99,14 +108,14 @@ export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {
     positions.push(c.x, c.y, c.z);
     uvs.push(1, 0.5);
     const base = segments * ring;
-    for (let j = 0; j < radial; j++) indices.push(base + j, ci, base + j + 1);
+    for (let j = 0; j < radial; j++) indices.push(base + j, base + j + 1, ci);
   }
   if (opts.closeStart) {
     const c = centres[0];
     const ci = positions.length / 3;
     positions.push(c.x, c.y, c.z);
     uvs.push(0, 0.5);
-    for (let j = 0; j < radial; j++) indices.push(j + 1, ci, j);
+    for (let j = 0; j < radial; j++) indices.push(j, ci, j + 1);
   }
   const geo = new BufferGeometry();
   geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
