@@ -1,6 +1,6 @@
 {
-  "source": "acc07b911dbf27d823f7d272b8f1cfb3e5faeb55",
-  "capturedAt": "2026-09-11T10:16:08.781Z",
+  "source": "e4a395e2a6f297186db2f5c13151e72f7d88c3b1",
+  "capturedAt": "2026-09-11T10:29:05.953Z",
   "captures": [
     {
       "name": "01-idle",
@@ -160,14 +160,14 @@
         "drawCalls": 530,
         "triangles": 6458627,
         "geometries": 514,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "fb8701a517d15ff1af025cda0432443ecbf5bf1be9c89a6861e76227a1e66bde"
+      "sha256": "e659f619e7f06ddc03f5c72cabf5298f7a3198583a039aaa739147eb265a6859"
     },
     {
       "name": "02-walk",
@@ -330,14 +330,14 @@
         "drawCalls": 529,
         "triangles": 6412120,
         "geometries": 516,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "30a26800eda9951052ebe071bc19d5c075fae1bb471dd13ae53c659cd90f62de"
+      "sha256": "f929a9852504be675ab8521a067b29194c1620127cf8761e7dfa5d2e35467183"
     },
     {
       "name": "03-run",
@@ -509,14 +509,14 @@
         "drawCalls": 542,
         "triangles": 6270359,
         "geometries": 518,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "84884815e3bda69e8a2e87f76f4cafec632cccd6425fdaa0a981ababf4a14957"
+      "sha256": "7a1574cfa36eba769df0d72a676b5ef60e221584503176043d0a16e047477b86"
     },
     {
       "name": "04-jump",
@@ -682,14 +682,14 @@
         "drawCalls": 582,
         "triangles": 6469066,
         "geometries": 526,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "6015c61c15e1e52d7fad2c75783d2216284bd74e2b3df4c3e66e84f0841dedff"
+      "sha256": "c35d0d63c0473defe843c0faccb940539272fd6276ffa56484fc284c30eef10f"
     },
     {
       "name": "05-outfit-back",
@@ -856,14 +856,14 @@
         "drawCalls": 552,
         "triangles": 6378965,
         "geometries": 551,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "f2a6d2a2993c101929cccd7b623634f9d1a87b2783c75e118c5258090b1b2539"
+      "sha256": "a2271563b34ad16cdcf6e85fb243e7fba74ccc21f10dd5e9877fc8bfd1568c57"
     },
     {
       "name": "06-face-detail",
@@ -1024,8 +1024,8 @@
         "drawCalls": 487,
         "triangles": 6325642,
         "geometries": 554,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1183,8 +1183,8 @@
         "drawCalls": 455,
         "triangles": 6235038,
         "geometries": 566,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1342,8 +1342,8 @@
         "drawCalls": 467,
         "triangles": 6138919,
         "geometries": 578,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1510,8 +1510,8 @@
         "drawCalls": 466,
         "triangles": 6393273,
         "geometries": 578,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1690,14 +1690,14 @@
         "drawCalls": 647,
         "triangles": 6650868,
         "geometries": 578,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "bbf74a911118732c45663fb4bde1dc95c4b605b6464aeb1adfd047cc26394e9e"
+      "sha256": "5c654a73a2e33728656e8084240c311aa28cac18dbe312b9622f7efb6fb91257"
     },
     {
       "name": "11-stone-stairway",
@@ -1864,14 +1864,14 @@
         "drawCalls": 603,
         "triangles": 6558001,
         "geometries": 582,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "8633e5eee3a04a99bbd7748f26b4987ac2f34087e6d394b1d5f8a9d45dd846be"
+      "sha256": "c68176d84970bf72b26864bf71d5ffc5d6257c50bbf707f71cdccb15f3bb5c55"
     },
     {
       "name": "12-face-profile",
@@ -2038,14 +2038,356 @@
         "drawCalls": 544,
         "triangles": 6304648,
         "geometries": 583,
-        "textures": 73,
-        "programs": 66,
+        "textures": 79,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "fc60901128d204edbb481bd55c7cecfc021d452befe8511383aaaea20508860f"
+      "sha256": "7932e5bc12fc44f12ed003f60da19f235ce44ab53a2b29b7d8804f06bf6100bc"
+    },
+    {
+      "name": "13-backpack-detail",
+      "seconds": 0.5,
+      "run": false,
+      "move": 0,
+      "jump": false,
+      "view": "pack",
+      "character": {
+        "link": true,
+        "animations": 7,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs",
+          "jump",
+          "fall",
+          "land"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "procedural-v1",
+        "triangles": 91936,
+        "linkTriangles": 72002,
+        "mode": "play",
+        "view": null,
+        "linkGait": "idle",
+        "locomotion": {
+          "x": 0,
+          "y": 0.03977188095450401,
+          "z": 0.5,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "speed": 0,
+          "grounded": true,
+          "phase": 0.25,
+          "moveWeight": 0,
+          "runWeight": 0,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 0.5000000000000007
+        },
+        "samplePositions": {
+          "feet": [
+            [
+              -0.08600000000000001,
+              0.043797545135021154,
+              0.475
+            ],
+            [
+              8.952823477432966,
+              -0.17777700773880767,
+              3.6727007358898796
+            ],
+            [
+              -6.5329145909237125,
+              0.17830649728858933,
+              -1.9212561716398022
+            ],
+            [
+              10.572130267930271,
+              1.089167620054289,
+              -7.532173070484263
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33692,
+          "cellSize": 0.1,
+          "triangles": 64406
+        },
+        "world": {
+          "link": [
+            -0.08600000000000001,
+            0.043797545135021154,
+            0.475
+          ],
+          "navi": [
+            0.09680399463951074,
+            1.398380557500222,
+            0.939464431577612
+          ],
+          "kids": [
+            [
+              8.952823477432966,
+              -0.17777700773880767,
+              3.6727007358898796
+            ],
+            [
+              -6.5329145909237125,
+              0.17830649728858933,
+              -1.9212561716398022
+            ],
+            [
+              10.572130267930271,
+              1.089167620054289,
+              -7.532173070484263
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.428,
+            1.529
+          ],
+          "linkHead": [
+            0.5,
+            -0.56
+          ],
+          "navi": [
+            0.459,
+            -2.64
+          ],
+          "kids": [
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": [
+                -0.646,
+                0.46
+              ],
+              "head": [
+                -0.658,
+                0.068
+              ]
+            },
+            {
+              "feet": [
+                2.515,
+                0.149
+              ],
+              "head": [
+                2.532,
+                -0.174
+              ]
+            }
+          ]
+        }
+      },
+      "camera": {
+        "position": [
+          0.22266356332907042,
+          0.819771880954504,
+          1.3720211795395802
+        ],
+        "direction": [
+          -0.2444639266240365,
+          -0.15370700628187062,
+          -0.9573983208672463
+        ],
+        "fov": 32
+      },
+      "stats": {
+        "simTime": 12.999999999999972,
+        "drawCalls": 503,
+        "triangles": 6300635,
+        "geometries": 583,
+        "textures": 79,
+        "programs": 67,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "retries": 0,
+      "sha256": "9cd18b0c87b7da7679c2cc14358b0c33fca8f9f4974b7b092778762d8ebbd993"
+    },
+    {
+      "name": "14-belt-detail",
+      "seconds": 0.5,
+      "run": false,
+      "move": 0,
+      "jump": false,
+      "view": "belt",
+      "character": {
+        "link": true,
+        "animations": 7,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs",
+          "jump",
+          "fall",
+          "land"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "procedural-v1",
+        "triangles": 91936,
+        "linkTriangles": 72002,
+        "mode": "play",
+        "view": null,
+        "linkGait": "idle",
+        "locomotion": {
+          "x": 0,
+          "y": 0.03977188095450401,
+          "z": 0.5,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "speed": 0,
+          "grounded": true,
+          "phase": 0.25,
+          "moveWeight": 0,
+          "runWeight": 0,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 0.5000000000000007
+        },
+        "samplePositions": {
+          "feet": [
+            [
+              -0.08600000000000001,
+              0.043797545135021154,
+              0.475
+            ],
+            [
+              8.952823477432966,
+              -0.17777700773880767,
+              3.6727007358898796
+            ],
+            [
+              -6.5329145909237125,
+              0.17830649728858933,
+              -1.9212561716398022
+            ],
+            [
+              10.572130267930271,
+              1.089167620054289,
+              -7.532173070484263
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33692,
+          "cellSize": 0.1,
+          "triangles": 64406
+        },
+        "world": {
+          "link": [
+            -0.08600000000000001,
+            0.043797545135021154,
+            0.475
+          ],
+          "navi": [
+            0.09680399463951074,
+            1.398380557500222,
+            0.939464431577612
+          ],
+          "kids": [
+            [
+              8.952823477432966,
+              -0.17777700773880767,
+              3.6727007358898796
+            ],
+            [
+              -6.5329145909237125,
+              0.17830649728858933,
+              -1.9212561716398022
+            ],
+            [
+              10.572130267930271,
+              1.089167620054289,
+              -7.532173070484263
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.6,
+            1.84
+          ],
+          "linkHead": [
+            0.501,
+            -0.917
+          ],
+          "navi": [
+            0.485,
+            -0.781
+          ],
+          "kids": [
+            {
+              "feet": [
+                -0.959,
+                0.559
+              ],
+              "head": [
+                -1.02,
+                0.217
+              ]
+            },
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": null,
+              "head": null
+            }
+          ]
+        }
+      },
+      "camera": {
+        "position": [
+          -0.1324818843351099,
+          0.749771880954504,
+          -0.2280443326632099
+        ],
+        "direction": [
+          0.17741695208458091,
+          -0.133917896001395,
+          0.9749816522599679
+        ],
+        "fov": 32
+      },
+      "stats": {
+        "simTime": 12.999999999999972,
+        "drawCalls": 481,
+        "triangles": 6318673,
+        "geometries": 583,
+        "textures": 79,
+        "programs": 67,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "retries": 0,
+      "sha256": "5cfaedbbde075514035ed4c368cea346b162b547b9b7e5067cfa768fc4dc8709"
     }
   ],
   "errors": []
