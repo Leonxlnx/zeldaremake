@@ -19,6 +19,7 @@ import { createLinkEyeDisc } from './eye-geometry';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
 import { createLinkFringeLocks } from './fringe-geometry';
+import { createLinkSideburnLocks } from './sideburn-geometry';
 import { createLinkScalpAndNape } from './scalp-geometry';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
@@ -287,36 +288,13 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
   const r = rig.props.headRadius;
   const head = rig.head;
   if (style === 'link') {
-    const k = r / 0.125;
-    // Use the actual forehead for roots. The old points sat inside the skull,
-    // making locks appear as disconnected petals after they emerged from it.
-    const skull = head.getObjectByName('skull') as Mesh;
-    const surface = new Mesh(skull.geometry, skull.material);
-    const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
-    // a clump of hair: a tapered strand from `from` (under the cap) to `to` (pointed tip)
-    const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) => {
-      const root = new Vector3(...from).multiplyScalar(k);
-      const outward = new Vector3(root.x, 0, root.z).normalize();
-      if (from[2] > 0.07 && from[1] > 0.03) {
-        ray.ray.origin.set(root.x, root.y, 0.3 * k);
-        const hit = ray.intersectObject(surface, false)[0];
-        if (!hit) throw new Error('Link fringe root must meet the forehead');
-        if (hit.normal) outward.copy(hit.normal).normalize();
-        root.copy(hit.point).addScaledVector(outward, 0.0025 * k);
-      }
-      return sweep([root, new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)],
-        [r0 * k, r1 * k, tip * k], { segments: 24, radial: 16, closeTip: true, closeStart: true,
-          flatten: 0.25, flattenFromRoot: true, crease: 0.08,
-          surfaceNormal: outward });
-    };
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       createLinkScalpAndNape(r),
       createLinkFrontalHair(r),
       createLinkFringeLocks(r),
-      // sideburn clumps in front of the ears, hanging to the jaw
-      clump([0.108, 0.04, 0.045], [0.115, -0.02, 0.05], [0.108, -0.075, 0.045], 0.02, 0.016),
-      clump([-0.108, 0.04, 0.045], [-0.115, -0.02, 0.05], [-0.108, -0.075, 0.045], 0.02, 0.016),
+      // Unequal rounded temple locks replace the old broad side strips.
+      createLinkSideburnLocks(r),
     ];
     part(head, merge(parts), hair, 'hair');
   } else {

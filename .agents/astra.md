@@ -4,47 +4,58 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T16:32:54Z
+updated: 2026-09-11T16:37:37Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Integrate the refined relaxed hand in hand-geometry.ts only. It retains wrist geometry and
-forearm coverage, shortens the palm and adds four staggered fingers with a soft inward thumb.
-There are no new joints, materials or gestures. Six closed overlapping components per hand
-are not a welded union. Link remains 64 meshes and now has 79,576 triangles (+2,272).
-72 other unbatched meshes and all three NPCs remain exact; existing fingertip reach and
-whole forearm/hand bounding box are preserved. Digit root caps remain buried by at least
-4.575 mm. Independent geometry/mirror/root-coverage and virtual typecheck checks pass.
+Integrate two reviewed Link silhouette refinements: paired temple locks and softer sleeve
+walls. Files: new sideburn-geometry.ts and the small buildHair replacement in link.ts; existing
+sleeve-geometry.ts. Other face, clothing, hands, cap, rig, controller and NPCs remain in place.
+Each broad sideburn becomes a long forward lock plus a shorter rear sweep. Four closed locks
+have 2,160 covered-root samples, no skull/ear triangle crossings and no new pupil obscuration
+in the existing front/profile ray views. They remove a real portion of the lower sideplate.
+Hair adds 896 triangles; source ray checks are not actual render or full cap collision proof.
 
-The initial inward thumb increased running belt contact and was rejected. The final candidate
-tucks it closer to the palm, narrows the index and applies a targeted 1.2 mm index correction.
-The full refinement replay covers stand/walk/run/jumps/turns/stop; the final local correction
-is verified on the same 432-frame running trace. No new sampled exterior-contact frames and
-no belt depth regressions remain. Pouch contact frames fall 188 to 185. Eight pouch frames
-still expose deeper surface samples, but all 21 such events lie inside the old palm volume
-by at least .719 mm. Existing deep pouch overlap remains, and full solid containment is not
-proved. A tiny .040 mm index strip outside the old mesh did not introduce sampled intrusion.
-Actual hand/belt close-ups and motion must judge joins and existing overlap before approval.
+Sleeve walls bulge modestly at the upper middle then taper to a narrower cuff. All shoulder
+positions, hem height, topology and material stay; neighboring smooth normals recompute.
+Whole triangle checks preserve the fitted torso connection and improve upper-arm clearance;
+cuff gap remains 6.47 mm. Seventy-four sampled controller poses have no new skin/collar/strap
+contacts. Current woven-cloth UV seams and median density remain valid. With both changes and
+the already-pushed hands, Link count is 64 meshes / 80,472 triangles. Root production build and static-batching
+regression pass, including 2,992,032 posed positions/normals and UV/material/shadow/disposal/
+boot/NPC invariants. Front/profile/walk/run render review is still required.
 
-Root production build and static-batching regression pass: 74 to 64 meshes, 79,576
-triangles, 2,992,032 posed positions/normals exact; UV/material/shadow/disposal/boot/NPC
-invariants preserved. Fable's isolated approach correction is
-pushed as 0fb629d, with attribution. It permits the first tread in the examined ordinary-input
-route; the second .30 m riser still blocks at the unchanged .28 guard. No full stair-clearance
-claim. Cloth ab669a8 and cap5529e85 are rendering; their CI build and focused tests pass.
-The publisher's first actual archive remains pending. Side-hair and sleeve silhouettes remain
-separate candidates. Root's additional face/boot reviewers are read-only at this stage.
+Hands 2bb72fc are pushed with four relaxed fingers and an inward thumb. Initial contact
+regression was corrected; existing deep pouch overlap remains explicitly unapproved. Cloth
+ab669a8 is capturing. Cap5529e85 character CI completed successfully at 16:34:40, including
+its new publisher. Actual gallery20c294c at16:34:23 has14 verified JPGs/42 matching frames,
+errors[]. Prior gallery bytes are unchanged; snapshotfcacee7 matches the source. Root viewed
+back/profile: broader tail is visible, folds still subtle. Four actual screenshots were shared.
+No visual approval for these latest passes until inspection.
 
-The owner asks sustained character-first work and continued collaboration while asleep.
-Fable b70df65 / PR2 reply16:15 confirms current work and grants scoped W27 sign variants for
-later. They retain world/lighting/house ownership. Their pod grouping is reviewed source,
-not yet integrated; rocks' cross-system import remains held under the architecture rule.
-Claims C01/C02/C03 live through 17:43:30 UTC. No new schedule, merge or deployment.
+Next bounded work: one taller neutral eye aperture with matched lids/clipping, unchanged
+skull/eye centres/radii; and a broader low boot forefoot with a coherent sole-support contract.
+Both remain in scratch/design review. Boot geometry must not outgrow a hidden hardcoded
+collider. No broader movement-planner rewrite. Fable's terrain approach fix0fb629d permits
+only the first tread; .30 m second rise still blocks under the unchanged .28 guard.
+
+Owner priority remains Link, then world lighting/details. Fable retains world/house/lighting,
+and grants later W27 sign variants with protected projections. C01/C02/C03 claims live to
+17:43:30 UTC. No merge, deployment, new schedule or claim of reference completeness.
 
 ## Recent completed work and evidence
+
+- Cap5529e85 actual gallery20c294c / progress/2026-09-11_163423-5529e85: 14 JPG hashes verified,
+ 42 matching frames, errors[]. Back/profile inspected; fuller tail, subtle folds. First new
+ publisher completed archive and matching snapshotfcacee7 while preserving all earlier
+ gallery files. This is source-specific evidence before cloth, terrain and finger passes.
+
+- 2bb72fc: relaxed four-finger hands, 64 meshes / 79,576 triangles. Root build/static batching
+ pass, 2,992,032 posed positions/normals exact. Contact candidate refinement documented;
+ no new sampled exterior contact frames, existing pouch overlap remains. Real capture follows.
 
 - 0fb629d: exact Fable fda213f terrain approach file, credited. Production build and bounded
  input/height-continuity proof pass; source-specific world images follow. Full stair movement

@@ -1,14 +1,14 @@
 /** Original short cloth sleeve, in Link's unchanged shoulder-joint coordinates. */
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 
-/** A low shoulder cap and gently flared, folded opening around the existing upper arm. */
+/** A low fitted shoulder cap, soft upper sleeve and gently narrowed folded opening. */
 export function createLinkSleeve(): BufferGeometry {
   // Outer cap -> hem fold -> inner lining. Separate poles close the shoulder's fabric;
   // the hem remains an open arm aperture with a real 4 mm folded edge.
   const profile = [
     [0, .030], [.020, .029], [.038, .024], [.049, .014], [.055, .001],
-    [.056, -.030], [.0585, -.077], [.061, -.101], [.0605, -.105],
-    [.0565, -.105], [.056, -.101], [.054, -.077], [.0515, -.030],
+    [.059, -.030], [.0575, -.077], [.0565, -.101], [.056, -.105],
+    [.052, -.105], [.0525, -.101], [.053, -.077], [.0545, -.030],
     [.0505, .001], [.045, .014], [.034, .021], [.016, .025], [0, .026],
   ];
   const sides = 32, positions: number[] = [], uvs: number[] = [], indices: number[] = [];
