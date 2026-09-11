@@ -41,6 +41,8 @@ try {
     { name: '04-jump', seconds: 0.30, run: false, move: 0, jump: true },
     { name: '05-outfit-back', seconds: 0.5, run: false, move: 0, jump: false, view: 'back' },
     { name: '06-face-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'face' },
+    { name: '07-leaf-lantern', seconds: 0.5, run: false, move: 0, jump: false, view: 'lantern' },
+    { name: '08-carved-sign', seconds: 0.5, run: false, move: 0, jump: false, view: 'sign' },
   ];
   for (const c of cases) {
     const state = await page.evaluate(async c => {
@@ -59,6 +61,15 @@ try {
         api.setPose([s.x + Math.sin(back) * 2.5, floor + 1.20, s.z + Math.cos(back) * 2.5], [s.x, floor + 0.72, s.z], 39);
       } else if (c.view === 'face') {
         api.setPose([s.x + Math.sin(s.yaw + 0.18) * 1.0, floor + 1.13, s.z + Math.cos(s.yaw + 0.18) * 1.0], [s.x, floor + 1.02, s.z], 32);
+      } else if (c.view === 'lantern') {
+        const [x, y, z] = api.audit().layout.lanternBranch.mid;
+        // Mid-span pod: existing limb radius, cord length and pod offset from its builder.
+        const podY = y - 0.29 * 0.9 - 1.2 - 0.2;
+        api.setPose([x + 1.0, podY + 0.18, z + 1.2], [x, podY + 0.05, z], 35);
+      } else if (c.view === 'sign') {
+        // Existing Saria sign from layout.ts; probe the actual rendered terrain for its base.
+        const x = 7.0, z = -9.3, y = api.probe(x, z).height;
+        api.setPose([x - 0.6 * 2.2, y + 1.42, z + 0.8 * 2.2], [x, y + 1.28, z], 36);
       }
       await api.render(2, 0);
       return { character: api.audit().systems.character, camera: api.cameraPose(), stats: api.stats() };

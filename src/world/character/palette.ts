@@ -16,6 +16,7 @@ export const CHAR_COLORS = {
   /** reference `#433825` */
   leather: 0x54462d,
   leatherDark: 0x3e3221,
+  packLeather: 0x765738,
   buckle: 0xc4a25c,
   /** reference `#624d33` lit / `#533a21` shade: saturated leather brown, tan fold-over cuff `#876849` */
   boot: 0x6b4a2c,
@@ -113,7 +114,7 @@ export function shieldTexture(): CanvasTexture {
   canvas.width = size;
   canvas.height = size;
   const g = canvas.getContext('2d')!;
-  g.fillStyle = '#6e4d2a';
+  g.fillStyle = '#85633c';
   g.fillRect(0, 0, size, size);
   // grain: vertical-ish wavy dark lines
   for (let i = 0; i < 26; i++) {
@@ -158,20 +159,12 @@ export function shieldTexture(): CanvasTexture {
   spiral(3, 96, 2.05, 16, 34, 'rgba(60,14,8,0.95)');
   spiral(3, 96, 2.05, 10, 26, '#7a2418');
   spiral(3, 96, 2.05, 3, 7, 'rgba(170,70,45,0.3)');
-  // worn wooden rim: darker outer band with lighter scuffs
-  const rimGrad = g.createRadialGradient(cx, cy, size * 0.36, cx, cy, size * 0.5);
-  rimGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  rimGrad.addColorStop(0.55, 'rgba(40,24,10,0.35)');
-  rimGrad.addColorStop(1, 'rgba(30,18,8,0.7)');
-  g.fillStyle = rimGrad;
-  g.fillRect(0, 0, size, size);
-  for (let i = 0; i < 40; i++) {
-    const a = (i / 40) * Math.PI * 2 + Math.sin(i * 3.1) * 0.05;
-    const r = size * (0.42 + 0.06 * Math.abs(Math.sin(i * 1.7)));
-    g.fillStyle = i % 3 === 0 ? 'rgba(200,160,110,0.35)' : 'rgba(150,110,70,0.25)';
-    g.beginPath();
-    g.ellipse(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.5 + (i % 3), 4 + (i % 4) * 2, a, 0, Math.PI * 2);
-    g.fill();
+  // Restrained hand-worn nicks; the new shield geometry supplies its own shaped bevel.
+  for (let i = 0; i < 34; i++) {
+    const x = 11 + ((i * 67) % 234), y = 9 + ((i * 43) % 237);
+    g.strokeStyle = i % 3 ? 'rgba(176,143,94,0.28)' : 'rgba(40,26,13,0.24)';
+    g.lineWidth = 0.6 + (i % 3) * 0.4;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 1.5, y + 3 + i % 7); g.stroke();
   }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;

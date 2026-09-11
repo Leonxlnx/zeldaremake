@@ -1,6 +1,6 @@
 # Astra — owner reference implementation sequence
 
-Updated 2026-09-11 04:57 UTC. The owner supplied ten concept sheets in this chat and asked
+Updated 2026-09-11 05:55 UTC. The owner supplied ten concept sheets in this chat and asked
 for outfit, walk/sprint, shadows/light and the depicted objects. Images were inspected locally;
 their publication is not authorized. Do not upload them or put reference imagery into runtime.
 The re-upload contains the same ten images. This document records implementation observations,
@@ -48,3 +48,11 @@ No scheduled work: the owner explicitly cancelled it; updates occur during foreg
 Additional online visual reference: Nintendo's official Young Link fighter page,
 https://www.smashbros.com/en_US/fighter/22.html (viewed 2026-09-11). Anatomy/gear reference only;
 no game meshes or textures imported. The owner's concept sheets determine this project's style.
+
+## Latest implementation checkpoint
+Outfit and leafy lantern/shadow passes are captured in take-0035 (dee4b03). The larger seated
+eyes, lighter Link skin, curved mouth and parted fringe are captured separately on7af541f.
+The next capture covers the pointed plank shield and sewn bag, hidden fringe roots, corrected
+arm timing and carved sign. W27 is claimed until08:33 UTC. Rounded boot anatomy, cap cloth
+drape, face detail, broader house forms, additional sign/notice variants, window/interior
+objects and canopy/light refinement remain work, not completed assets.

@@ -4,12 +4,20 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T05:35:50Z
+updated: 2026-09-11T05:54:49Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+05:49 UTC: 7af541f actual capture passed (generated 5168eee, 05:47:07 UTC); front/back/face
+views inspected. Larger pupils and curved mouth read more naturally, but two new blond roots
+poke above the centre brim. Lower only those central/auxiliary roots into the existing hair/cap
+volume before the next capture; midpoints/tips and fitted eyes stay stable. A helper will
+probe exposed root vertices read-only; root owns the coordinate correction. Canonical take-0035
+on dee4b03 passed with no regressions/flags, score still 22/50; B_house/D_log inspected and leaf
+caps now read as leaves rather than acorn lids. Broader world match is still far from the target.
+
 05:43 UTC: next C02 scope is original gear geometry in new gear-geometry.ts and buildGear in
 link.ts. The inspected dee4b03 back view shows an oversized smooth circular shield; the owner
 turnaround has a smaller tapered hand-carved plank shield over a practical brown bag. Shape
@@ -152,6 +160,21 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- C02 original gear: tapered wooden shield with four recessed plank joins, chipped top,
+  beveled edge and closed back (3,358 triangles); original swirl/wood texture retained with
+  the obsolete circular vignette removed. A fitted brown pack with seams/loops sits behind
+  it. Gear moved into gear.ts; rig and sword placement retained. Root closure/winding probe,
+  build and CPU construction pass; 239 sampled bag-back points clear the shield by at least
+  4.91 mm. Model totals 40,930 triangles. Actual back/side appearance remains pending.
+- Captured central fringe roots extended ~1.79/6.42 mm beyond the hat. Lowered root centres
+  now have zero exposed root-section vertices against the real dome/brim triangles; lowered
+  one minor outer candidate too. Midpoints/tips and eye sockets unchanged.
+- Capture tooling now covers the full pushed commit range when deciding whether movement
+  needs a new clip, avoiding a missed earlier movement commit in a multi-commit push. It adds
+  separate actual lantern/sign detail views without moving the fixed six gauntlet cameras.
+- Take-0035 from dee4b03 published, monitor 54c4a4e: 22/50, no item regressions/flags,
+  A–F SSIM .2622/.2157/.2683/.2597/.2244/.2382. B_house and D_log inspected; leaf-pod
+  silhouette is visible, but overall composition/lighting/model quality remains below target.
 - W27 sign finish: beveled hand-cut board, four margin pegs, tied post binding and a planar
   rune face seated ~1 mm above wood. Same two meshes/materials, placement, post vertices and
   RNG consumption; +845 triangles. Root build/probe passes across 12 seeds/9,348 decal rays.
@@ -231,6 +254,10 @@ The first continuous run captured all four poses but failed before video frames 
 - Before every major task: fetch, reread Fable's newest log/claims and PR activity, inspect changed files, document overlap.
 
 ## Known issues
+- structures/geometry.ts merge() drops indices when mixing indexed/nonindexed input, rather
+  than expanding triangles. The new sign supplies an explicit index before merging, so it
+  avoids this latent utility defect without rewriting shared geometry. No current existing
+  caller failure was established; document for Fable before any shared-helper correction.
 - Expanded regressions now sample actual boot-sole mesh corners. Tested stair ascent/descent, reversal and jump replays have no boot penetration; maximum 120 Hz stair foot displacement fell from 15.5 cm to 7.1 cm and pelvis movement from 7.6 cm to 2.7 cm. Takeoff/landing foot change is below 8.9 cm and pelvis below 6 cm in tested walking/running jumps. These numerical bounds do not certify reference-quality animation; real capture/video review remains necessary. A lowering foot can briefly be above the next tread during recovery.
 - Structure collisions sample the existing heightfield mask, not arbitrary mesh triangles. Camera boom checks terrain; tree geometry is not a separate camera collider.
 - Existing reference captures and visual reviews do not prove faithful motion. New movement tests and real rendered evidence are required.
@@ -244,4 +271,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T05:35:50Z
+2026-09-11T05:54:49Z

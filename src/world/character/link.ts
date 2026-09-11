@@ -9,11 +9,12 @@
  * shoulder. No imported assets.
  */
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
-import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geometry';
-import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
+import { merge, ovalLathe, place, sweep, triangleCount } from './geometry';
+import { CHAR_COLORS, cloth, matte } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 import { createLinkFaceGeometry } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
+import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
 
 export interface Character {
@@ -245,12 +246,12 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
       // Parted fringe opens toward both temples. Thin overlapping sections emerge
       // from beneath the brim; irregular tips stop above the fitted eye openings.
       clump([-0.080, 0.062, 0.084], [-0.098, 0.030, 0.104], [-0.116, -0.007, 0.081], 0.022, 0.019, 0.002),
-      clump([-0.015, 0.076, 0.092], [-0.042, 0.050, 0.120], [-0.076, 0.019, 0.111], 0.024, 0.022, 0.002),
-      clump([0.012, 0.080, 0.090], [0.041, 0.050, 0.121], [0.073, 0.022, 0.113], 0.025, 0.021, 0.002),
-      clump([0.077, 0.065, 0.080], [0.094, 0.039, 0.102], [0.110, 0.003, 0.081], 0.022, 0.018, 0.002),
+      clump([-0.015, 0.058, 0.080], [-0.042, 0.050, 0.120], [-0.076, 0.019, 0.111], 0.024, 0.022, 0.002),
+      clump([0.012, 0.062, 0.080], [0.041, 0.050, 0.121], [0.073, 0.022, 0.113], 0.025, 0.021, 0.002),
+      clump([0.077, 0.061, 0.080], [0.094, 0.039, 0.102], [0.110, 0.003, 0.081], 0.022, 0.018, 0.002),
       // Smaller offset locks break the broad main ribbons without covering an iris.
-      clump([-0.005, 0.078, 0.098], [-0.020, 0.046, 0.132], [-0.030, 0.025, 0.125], 0.012, 0.009, 0.0015),
-      clump([0.027, 0.074, 0.095], [0.051, 0.048, 0.126], [0.084, 0.030, 0.108], 0.012, 0.010, 0.0015),
+      clump([-0.005, 0.060, 0.082], [-0.020, 0.046, 0.132], [-0.030, 0.025, 0.125], 0.012, 0.009, 0.0015),
+      clump([0.027, 0.058, 0.083], [0.051, 0.048, 0.126], [0.084, 0.030, 0.108], 0.012, 0.010, 0.0015),
       clump([-0.049, 0.064, 0.098], [-0.072, 0.039, 0.119], [-0.095, 0.014, 0.094], 0.011, 0.010, 0.0015),
       // A longer temple lock breaks the symmetry without covering an iris.
       clump([0.093, 0.057, 0.072], [0.105, 0.016, 0.080], [0.107, -0.030, 0.065], 0.015, 0.014, 0.003),
@@ -499,39 +500,6 @@ function buildCap(rig: Rig): void {
   part(cap, place(new TorusGeometry(rimR + 0.002, 0.0065, 8, 40), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }
 
-function buildGear(rig: Rig): void {
-  const p = rig.props;
-  const cl = (y: number) => y - p.chestY;
-  // Deku Shield: bulged oval disc with the swirl texture + wooden rim, on the back
-  const shieldMat = new MeshStandardMaterial({ map: shieldTexture(), color: 0xffffff, roughness: 0.9, metalness: 0 });
-  shieldMat.name = 'char-shield';
-  const shield = new Group();
-  shield.name = 'deku-shield';
-  shield.position.set(0.0, cl(0.7), -0.15);
-  shield.rotation.set(-0.12, Math.PI, 0.06);
-  rig.chest.add(shield);
-  const SR = 0.215;
-  part(shield, bulgedDisc(SR, 0.048, { segments: 30, rings: 5, sx: 0.92, sy: 1.08 }), shieldMat, 'shield-face');
-  part(shield, place(new TorusGeometry(SR, 0.013, 8, 30), 0, 0, 0.002, undefined, [0.92, 1.08, 1]), matte('shieldRim'), 'shield-rim');
-  // back plate so the shield is not paper-thin from the side
-  part(shield, place(new CylinderGeometry(SR, SR, 0.012, 30), 0, 0, -0.006, [Math.PI / 2, 0, 0], [0.92, 1, 1.08]), matte('shieldRim'), 'shield-back');
-  // Kokiri Sword in its scabbard: from the left hip up past the right shoulder
-  // the hilt clears the head beside the right ear so it reads from behind (reference A/D)
-  const bottom = new Vector3(0.09, 0.52, -0.105);
-  const top = new Vector3(-0.15, 0.905, -0.1);
-  const axis = top.clone().sub(bottom);
-  const len = axis.length();
-  const dir = axis.clone().normalize();
-  const roll = Math.atan2(-dir.x, dir.y);
-  const mid = bottom.clone().lerp(top, 0.5);
-  part(rig.chest, place(new BoxGeometry(0.046, len, 0.03), mid.x, cl(mid.y), mid.z, [0, 0, roll]), matte('scabbard'), 'scabbard');
-  const guardPos = top.clone().addScaledVector(dir, 0.01);
-  part(rig.chest, place(new BoxGeometry(0.09, 0.016, 0.028), guardPos.x, cl(guardPos.y), guardPos.z, [0, 0, roll]), matte('swordGuard', { roughness: 0.6 }), 'sword-guard', false);
-  const gripPos = top.clone().addScaledVector(dir, 0.06);
-  part(rig.chest, place(new CylinderGeometry(0.012, 0.013, 0.095, 8), gripPos.x, cl(gripPos.y), gripPos.z, [0, 0, roll]), matte('swordGrip'), 'sword-grip', false);
-  const pommel = top.clone().addScaledVector(dir, 0.115);
-  part(rig.chest, place(new SphereGeometry(0.019, 8, 6), pommel.x, cl(pommel.y), pommel.z), matte('steel', { roughness: 0.6 }), 'sword-pommel', false);
-}
 
 export function createLink(): Character {
   beginTally();
@@ -546,7 +514,7 @@ export function createLink(): Character {
   buildFace(rig, { skin, iris: matte('iris', { roughness: 0.6 }), earLength: 0.085, softFeatures: true });
   buildHair(rig, matte('hair'), 'link');
   buildCap(rig);
-  buildGear(rig);
+  buildGear(rig, part);
   addOutfitDetails(rig, part);
   rig.root.userData.character = 'link';
   return { kind: 'link', rig, group: rig.root, triangles: endTally(), height: 1.25 };
