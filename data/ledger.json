@@ -3775,6 +3775,117 @@
       "dirty": true,
       "prevHash": "sha256:1a543a00b1e5f7084417d7f7c781b50b209ea79d53edfa5e743ad85f30c9910a",
       "hash": "sha256:d560517a4f74519606fc27a33dcbd36a35e71d3e3dc89d685bd935960b5741ed"
+    },
+    {
+      "id": "take-0036",
+      "number": 36,
+      "at": "2026-09-11T06:06:28.000Z",
+      "sha": "17f92173282a2c368d7af6fb992b55a952abb24d",
+      "shortSha": "17f9217",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "inbox: acknowledge Astra's C01-C03 claim (paused; character files hands-off; facts for the movement work)",
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W15",
+        "W16",
+        "W31",
+        "W37"
+      ],
+      "note": "Trees and vegetation follow-ups, resumed after the owner's pause. Frames 1 s / 56 s: Link casts a crisp shadow on sunlit ground; ours was blocked by the north-west-near giant's bole 7.4 m up the sun ray (0.43 m off its axis) and a lobe stem at 17 m. The bole now stands straight to 1.5 m and bends over 1.5-5.5 m so D still frames the same column at its left edge while the axis clears the ray by 2 m; two sun-ray corridors also cull non-structural wood 3-40 m out. Tube probes 99 % / 98 % open; the shadow renders at D (111 -> 6710 px, ratio 0.75) and A (21 -> 4238 px, ratio 0.79). A's plaza is opened toward the reference's bright patches (p50 0.519 -> 0.646 vs 0.539) and the upper stair run shaded by a 16 m bough (p50 0.491 -> 0.346 vs 0.383). Frame 56 s left verge: a sun-shadow-weighted shade-lift zone on the vegetation's indirect term lifts the box 0.268 -> 0.301 (ref 0.357, foliage-only within 0.018). Frames 14 s / 24 s: between the stepping stones the footage has a trodden strip - short sparse turf, dirt, litter, clover hugging the slabs - not meadow grass: height x0.38, density x0.4-0.65, litter x2.5, 6-9 clover tufts per stone. SSIM A 0.247 -> 0.261, B 0.210 -> 0.216, C 0.265 -> 0.270, F 0.229 -> 0.240, D 0.263 -> 0.258 (lit dapple), E 0.228 -> 0.224. Astra published takes 0033/0034 on its character branch meanwhile, so this entry takes the next free id. Score 22/50.",
+      "score": {
+        "passed": 22,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "pending",
+          "W26": "pending",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:2360046c43a38ef7a0a3784dba07b69c75ddc8f12ca179919b262a1fa3fcf1ce",
+        "B_house": "sha256:fb5c78b0e1c5f0f688113f252ea8aaf69a68df1bdb988d7ded2bce5c3abbd913",
+        "C_lookback": "sha256:6c6c94d94265b7dc651994632e351fdfcadca25fc72ce628b38d9130a3bce786",
+        "D_log": "sha256:ad43c0f1f323bbefc016f42e8851f67db6dbacbd1f668663354700d08222d7de",
+        "E_ground": "sha256:fb5c78b0e1c5f0f688113f252ea8aaf69a68df1bdb988d7ded2bce5c3abbd913",
+        "F_canopy": "sha256:8fd439d3a5e995374ca13e41ffaeed7245780811c444dfd4dcd443a7dabfb17d"
+      },
+      "distHash": "sha256:46def435bada09ea9cfa87b1750acf36eda2954e73d8cb0799f13c1a0ab19984",
+      "stats": {
+        "drawCalls": 681,
+        "triangles": 6475668,
+        "captureMs": 555736,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": false,
+      "invalid": "D3 take-0033 (astra) has no live claim for C01, C02, C03 at 2026-09-11T04:02:35.742Z",
+      "invalidAll": [
+        "D3 take-0033 (astra) has no live claim for C01, C02, C03 at 2026-09-11T04:02:35.742Z",
+        "D3 take-0034 (astra) has no live claim for C01, C02, C03 at 2026-09-11T05:03:40.400Z",
+        "D3 take-0035 (astra) has no live claim for C01, C02, C03, W22, W26 at 2026-09-11T05:28:48.887Z"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take33-cap",
+        "importedAt": "2026-09-11T06:06:29.520Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:d560517a4f74519606fc27a33dcbd36a35e71d3e3dc89d685bd935960b5741ed",
+      "hash": "sha256:1c823e840beeb1e558d8ee56119b9db540dcd678c5d0263f40a4e7c713d647d8"
     }
   ]
 }
