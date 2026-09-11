@@ -91,6 +91,9 @@ export function normalise({ takes, rubric, agents, missing = {} }) {
   list.forEach((t, i) => {
     t.index = i;
     t.atMs = toDate(t.at)?.getTime() ?? 0;
+    // the card shows when the frame was captured; `at` orders the chain
+    t.capturedAt = t.capturedAt ?? t.at;
+    t.capturedAtMs = toDate(t.capturedAt)?.getTime() ?? t.atMs;
     t.prev = i > 0 ? list[i - 1] : null;
     t.next = i < list.length - 1 ? list[i + 1] : null;
     t.color = colorOf(t.agent);

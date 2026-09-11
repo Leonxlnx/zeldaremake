@@ -63,7 +63,7 @@ export function renderReel(root, data) {
       <div class="panel-h"><span class="t">All takes · ${esc(vp?.id || '')}</span><span class="sub">${takes.length ? 'click a frame to scrub · double-click opens it in the monitor' : 'no takes yet'}</span></div>
       ${takes.length ? `<div class="reel-thumbs">${takes.map((t, i) => `<button type="button" class="rt-item${i === idx && !refPreview ? ' cur' : ''}${t.valid ? '' : ' invalid'}" data-reel-i="${i}" style="--ac:${esc(t.color)}" title="${esc(t.subject || '')}">
           <img src="${esc(dataUrl(t.shotBy[vp.id].image))}" alt="" loading="lazy" decoding="async"><span class="stripe"></span>
-          <span class="cap"><b>T${pad(t.number ?? t.index + 1)}${t.valid ? '' : ' ✕'}</b><span>${esc(fmtTime(t.at))}</span><span>${esc(t.agent)}</span></span></button>`).join('')}</div>`
+          <span class="cap"><b>T${pad(t.number ?? t.index + 1)}${t.valid ? '' : ' ✕'}</b><span>${esc(fmtTime(t.capturedAt ?? t.at))}</span><span>${esc(t.agent)}</span></span></button>`).join('')}</div>`
         : '<div class="fs-empty">WAITING FOR TAKE 01</div>'}
     </section>
     <section class="panel">
@@ -88,7 +88,7 @@ function stageInner(cur, vp) {
   }
   const shot = cur.shotBy[vp.id];
   return `<div class="panes"><div class="pane"><img class="img" src="${esc(dataUrl(shot.image))}" alt="" draggable="false" data-reel-img>
-      <div class="tag tag-tl" data-reel-tag><b>T${pad(cur.number ?? cur.index + 1)}</b> · ${esc(fmtTime(cur.at))} · ${esc(cur.agent)}</div>
+      <div class="tag tag-tl" data-reel-tag><b>T${pad(cur.number ?? cur.index + 1)}</b> · ${esc(fmtTime(cur.capturedAt ?? cur.at))} · ${esc(cur.agent)}</div>
       <div class="tag tag-tr"><b>Reel</b> · ${esc(vp.id)}</div></div></div>
     ${frame(vp, cur)}
     <div class="struck" data-reel-struck ${cur.valid ? 'hidden' : ''}>STRUCK<small>${esc(cur.invalid || '')}</small></div>`;
@@ -102,7 +102,7 @@ function frame(vp, take) {
 
 function posText(cur, idx, n) {
   if (!cur) return '— / —';
-  return `<b>T${pad(cur.number ?? cur.index + 1)}</b> · ${esc(fmtDateTime(cur.at))} · ${esc(cur.agent)} · ${idx + 1}/${n}`;
+  return `<b>T${pad(cur.number ?? cur.index + 1)}</b> · ${esc(fmtDateTime(cur.capturedAt ?? cur.at))} · ${esc(cur.agent)} · ${idx + 1}/${n}`;
 }
 
 /** Cheap update when only reelIndex / reelPlaying changed (no DOM rebuild → smooth playback). */
@@ -117,7 +117,7 @@ export function updateReel(root, data) {
     if (!$('[data-reel-img]', stage)) stage.innerHTML = stageInner(cur, vp);
     else {
       $('[data-reel-img]', stage).src = dataUrl(cur.shotBy[vp.id].image);
-      $('[data-reel-tag]', stage).innerHTML = `<b>T${pad(cur.number ?? cur.index + 1)}</b> · ${esc(fmtTime(cur.at))} · ${esc(cur.agent)}`;
+      $('[data-reel-tag]', stage).innerHTML = `<b>T${pad(cur.number ?? cur.index + 1)}</b> · ${esc(fmtTime(cur.capturedAt ?? cur.at))} · ${esc(cur.agent)}`;
       $('[data-reel-tc]', stage).textContent = ` · T${pad(cur.number ?? cur.index + 1)}`;
       const st = $('[data-reel-struck]', stage);
       if (st) { st.hidden = cur.valid; st.innerHTML = `STRUCK<small>${esc(cur.invalid || '')}</small>`; }

@@ -45,7 +45,7 @@ export function renderNotes(root, data) {
       ${st.triangles != null ? `<span>tris <b>${esc(fmtNum(st.triangles))}</b></span>` : ''}
       ${st.captureMs != null ? `<span>capture <b>${esc((st.captureMs / 1000).toFixed(0))} s</b></span>` : ''}
       ${take.score ? `<span>score <b>${esc(String(take.score.passed))}/${esc(String(take.score.total))}</b></span>` : ''}
-      <span title="${esc(fmtDateTime(take.at))}">shot <b>${esc(fmtDateTime(take.at))}</b></span>
+      <span title="captured ${esc(fmtDateTime(take.capturedAt ?? take.at))}${take.resequenced ? ` · sealed ${esc(fmtDateTime(take.at))}` : ''}">shot <b>${esc(fmtDateTime(take.capturedAt ?? take.at))}</b></span>
     </div>`;
 }
 
