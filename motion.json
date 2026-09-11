@@ -1,6 +1,6 @@
 {
-  "source": "bb7f8832001406236db08cfcf80b2f606a7ca573",
-  "capturedAt": "2026-09-11T03:49:57.215Z",
+  "source": "d181ef9c1e9628fcabbcc7ab1e3d7100b6a5255d",
+  "capturedAt": "2026-09-11T04:06:48.914Z",
   "captures": [
     {
       "name": "01-idle",
@@ -166,7 +166,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "sha256": "059629f43dca5c80fb3376bbc67696a8d2e54ae306a3e5d9929e619a9ab84fa1"
+      "retries": 0,
+      "sha256": "9c5d01d7171789a2dfe7033e9095820c6015df418bae19867ea135edb850faf9"
     },
     {
       "name": "02-walk",
@@ -335,7 +336,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "sha256": "6b0e2ddc67895bed8bed14bbea757037b6904b94de60a198ab8182f61d36122d"
+      "retries": 0,
+      "sha256": "61724352b87f279b0c35564405d99a23fb4cfe9608a43ddfbb4f2e25ff06538f"
     },
     {
       "name": "03-run",
@@ -513,7 +515,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "sha256": "4680035736b775a0148ce4447e32b39f3a2d9af010a7a9bdd5ac1d740e1b1a5e"
+      "retries": 0,
+      "sha256": "eb6070295c06a4a80f6d20c335318e21c756195f3f2dd19fc6cfd7026b526d4b"
     },
     {
       "name": "04-jump",
@@ -685,7 +688,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "sha256": "f13bafe482deb7fdeb373454987c3b6741c3a45d052caa2c85db2673fa6b01e1"
+      "retries": 0,
+      "sha256": "6f300b54001c29f050152bd30ecb3b9bd130e81fdde9c63d8066ec2d28120397"
     }
   ],
   "errors": []

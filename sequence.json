@@ -1,5 +1,5 @@
 {
-  "source": "bb7f8832001406236db08cfcf80b2f606a7ca573",
+  "source": "d181ef9c1e9628fcabbcc7ab1e3d7100b6a5255d",
   "fps": 12,
   "view": "scripted rear follow view",
   "states": [
@@ -19,7 +19,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.08333333333333333
+      "time": 0.08333333333333333,
+      "retries": 0
     },
     {
       "x": 0,
@@ -37,7 +38,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.16666666666666666
+      "time": 0.16666666666666666,
+      "retries": 0
     },
     {
       "x": 0,
@@ -55,7 +57,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.24999999999999997
+      "time": 0.24999999999999997,
+      "retries": 0
     },
     {
       "x": 0,
@@ -73,7 +76,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.33333333333333354
+      "time": 0.33333333333333354,
+      "retries": 0
     },
     {
       "x": 0,
@@ -91,7 +95,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.41666666666666713
+      "time": 0.41666666666666713,
+      "retries": 0
     },
     {
       "x": 0,
@@ -109,7 +114,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.5000000000000007
+      "time": 0.5000000000000007,
+      "retries": 0
     },
     {
       "x": 0,
@@ -127,7 +133,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.5833333333333337
+      "time": 0.5833333333333337,
+      "retries": 0
     },
     {
       "x": 0,
@@ -145,7 +152,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.6666666666666667
+      "time": 0.6666666666666667,
+      "retries": 0
     },
     {
       "x": 0,
@@ -163,7 +171,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.7499999999999998
+      "time": 0.7499999999999998,
+      "retries": 0
     },
     {
       "x": 0,
@@ -181,7 +190,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.8333333333333328
+      "time": 0.8333333333333328,
+      "retries": 0
     },
     {
       "x": 0,
@@ -199,7 +209,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.9166666666666659
+      "time": 0.9166666666666659,
+      "retries": 0
     },
     {
       "x": 0,
@@ -217,7 +228,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 0.9999999999999989
+      "time": 0.9999999999999989,
+      "retries": 0
     },
     {
       "x": 0,
@@ -235,7 +247,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.083333333333332
+      "time": 1.083333333333332,
+      "retries": 0
     },
     {
       "x": 0,
@@ -253,7 +266,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.166666666666665
+      "time": 1.166666666666665,
+      "retries": 0
     },
     {
       "x": 0,
@@ -271,7 +285,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.249999999999998
+      "time": 1.249999999999998,
+      "retries": 0
     },
     {
       "x": 0,
@@ -289,7 +304,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.333333333333331
+      "time": 1.333333333333331,
+      "retries": 0
     },
     {
       "x": 0,
@@ -307,7 +323,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.416666666666664
+      "time": 1.416666666666664,
+      "retries": 0
     },
     {
       "x": 0,
@@ -325,7 +342,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.4999999999999971
+      "time": 1.4999999999999971,
+      "retries": 0
     },
     {
       "x": 0,
@@ -343,7 +361,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.5833333333333302
+      "time": 1.5833333333333302,
+      "retries": 0
     },
     {
       "x": 0,
@@ -361,7 +380,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.6666666666666632
+      "time": 1.6666666666666632,
+      "retries": 0
     },
     {
       "x": 0,
@@ -379,7 +399,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.7499999999999962
+      "time": 1.7499999999999962,
+      "retries": 0
     },
     {
       "x": 0,
@@ -397,7 +418,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.8333333333333293
+      "time": 1.8333333333333293,
+      "retries": 0
     },
     {
       "x": 0,
@@ -415,7 +437,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.9166666666666623
+      "time": 1.9166666666666623,
+      "retries": 0
     },
     {
       "x": 0,
@@ -433,7 +456,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 0,
-      "time": 1.9999999999999953
+      "time": 1.9999999999999953,
+      "retries": 0
     },
     {
       "x": 0,
@@ -451,7 +475,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.0833333333333286
+      "time": 2.0833333333333286,
+      "retries": 0
     },
     {
       "x": 0,
@@ -469,7 +494,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.1666666666666616
+      "time": 2.1666666666666616,
+      "retries": 0
     },
     {
       "x": 0,
@@ -487,7 +513,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.2499999999999947
+      "time": 2.2499999999999947,
+      "retries": 0
     },
     {
       "x": 0,
@@ -505,7 +532,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.3333333333333277
+      "time": 2.3333333333333277,
+      "retries": 0
     },
     {
       "x": 0,
@@ -523,7 +551,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.4166666666666607
+      "time": 2.4166666666666607,
+      "retries": 0
     },
     {
       "x": 0,
@@ -541,7 +570,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.499999999999994
+      "time": 2.499999999999994,
+      "retries": 0
     },
     {
       "x": 0,
@@ -559,7 +589,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.583333333333327
+      "time": 2.583333333333327,
+      "retries": 0
     },
     {
       "x": 0,
@@ -577,7 +608,8 @@
       "stairWeight": 0,
       "landing": 0.8750000000000001,
       "jumps": 1,
-      "time": 2.66666666666666
+      "time": 2.66666666666666,
+      "retries": 0
     },
     {
       "x": 0,
@@ -595,7 +627,8 @@
       "stairWeight": 0,
       "landing": 0.45833333333333376,
       "jumps": 1,
-      "time": 2.749999999999993
+      "time": 2.749999999999993,
+      "retries": 0
     },
     {
       "x": 0,
@@ -613,7 +646,8 @@
       "stairWeight": 0,
       "landing": 0.04166666666666704,
       "jumps": 1,
-      "time": 2.833333333333326
+      "time": 2.833333333333326,
+      "retries": 0
     },
     {
       "x": 0,
@@ -631,7 +665,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.916666666666659
+      "time": 2.916666666666659,
+      "retries": 0
     },
     {
       "x": 0,
@@ -649,7 +684,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 2.999999999999992
+      "time": 2.999999999999992,
+      "retries": 0
     },
     {
       "x": 0,
@@ -667,7 +703,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 3.083333333333325
+      "time": 3.083333333333325,
+      "retries": 0
     },
     {
       "x": 0,
@@ -685,7 +722,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 3.166666666666658
+      "time": 3.166666666666658,
+      "retries": 0
     },
     {
       "x": 0,
@@ -703,7 +741,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 3.249999999999991
+      "time": 3.249999999999991,
+      "retries": 0
     },
     {
       "x": 0,
@@ -721,7 +760,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 3.333333333333324
+      "time": 3.333333333333324,
+      "retries": 0
     },
     {
       "x": 0,
@@ -739,7 +779,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 3.416666666666657
+      "time": 3.416666666666657,
+      "retries": 0
     },
     {
       "x": 0,
@@ -757,7 +798,8 @@
       "stairWeight": 0,
       "landing": 0,
       "jumps": 1,
-      "time": 3.4999999999999902
+      "time": 3.4999999999999902,
+      "retries": 0
     }
   ]
 }
