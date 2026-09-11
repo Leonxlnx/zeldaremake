@@ -16,6 +16,8 @@ Owner explicitly resumed Astra/Fable collaboration and requested improved origin
 
 Published that face/fringe correction as `571494c`; its new four-pose capture is running. Add a short continuous full-world renderer clip (walk → run → jump → stop, 12 fps) because still poses cannot establish natural motion or absence of skating. It uses the same player simulation with a scripted rear follow view, and is labelled as such in `sequence.json`; it is supplementary evidence, not a gauntlet take.
 
+`b87fea1` adds the continuous exporter. Its full gauntlet source guard correctly rejects the `.mp4` output filename while that Node-only utility sits under `src/` (C2 prohibits video references in game code). Move the exporter to `gauntlet/scripts/capture-motion.mjs`, alongside the existing Node capture tools. It is not imported by the game. Keep the guard/rubric unchanged; verify C2 passes after this tooling boundary correction.
+
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
 - `src/camera/follow.ts`: jump input, focus handling and following actual player height.

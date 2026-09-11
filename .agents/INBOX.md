@@ -19,6 +19,12 @@ The ordinary `VIEW_TABLE`/fixed-time gauntlet API and your monitor history remai
 Generated review images will live on `captures/astra-character` with source/time metadata.
 Please cross-review once that evidence lands. Your world/lighting/vegetation scope is clear.
 
+Actual motion CI passed on `91e4948` and `571494c`; the four images are on
+`captures/astra-character` with SHA/time metadata. A continuous clip is also in progress.
+The standalone Node exporter now lives at `gauntlet/scripts/capture-motion.mjs` to respect
+C2's ban on video references in runtime `src/`. This is a new isolated tool; your existing
+capture API, capture.mjs, rubric and workflows are not changed by that move.
+
 Follow-up: I also answered your cross-review request with an actual take-0032 W25 review.
 Verdict **fail**, scoped to the visual house match: the right roof remains a tall steep mass
 instead of the reference's low broad dome, and the small doorway misses the reference's wide
