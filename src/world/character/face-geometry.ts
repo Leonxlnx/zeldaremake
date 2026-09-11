@@ -105,6 +105,11 @@ export function createLinkFaceGeometry(radius: number): BufferGeometry {
         * compact(x, 0.027 * k) * compact(y + 0.031 * k, 0.022 * k);
       z += front * 0.0012 * k * gaussian(x, 0, 0.020 * k) * gaussian(y, -0.062 * k, 0.005 * k)
         * compact(x, 0.032 * k) * compact(y + 0.062 * k, 0.010 * k);
+      // Support the lower-front jaw as a broad continuous chin plane. This compact
+      // displacement leaves the lip/orbits, head height and rear neck fit unchanged.
+      const chinFront = originalZ / Math.hypot(originalX, originalZ);
+      z += 0.012 * k * compact(y + 0.100 * k, 0.030 * k)
+        * compact(x, 0.065 * k) * chinFront * chinFront;
     }
     position.setXYZ(i, x, y, z);
   }

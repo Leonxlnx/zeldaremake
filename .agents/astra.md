@@ -4,82 +4,72 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T15:39:25Z
+updated: 2026-09-11T15:52:12Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Now integrate an eight-lock fringe and receding foundation hem in the two hair helpers.
-Owner sheet differences: current two large frontal lobes read as a smooth wig; reference has
-narrow asymmetric sweeps, lower central strands and a broken hairline. Preserve scalp, cap,
-sideburns, eyes, green secondary strap and motion. Candidate keeps 64 meshes / 74,596 triangles,
-5,376 fringe triangles, closed bundles with no self-intersections, all 63 other meshes exact.
-Sampled roots stay covered, brow/eyelid minimum triangle clearance 7.47/11.33 mm; no new pupil
-occlusion over 52,272 previously visible samples / 28 views. This is source-fit evidence;
-actual front/profile and motion captures must judge the visual result. Production build and
-actual batching regression pass: 2,664,864 posed positions/normals exact, UV/material/shadow/
-disposal and boot/NPC invariants retained.
+Continue owner-authorized original Link refinement in clean zeldaremake-active, local
+agent/astra-refinement-recovery publishing agent/astra-link-movement / PR5. Preserve old dirty
+zeldaremake worktree. CLI C01/C02/C03 claims live through17:43:30.634UTC. Fresh Fable8f13daa
+adds only log/claims/ledger; tick35 reports atmosphere-5 and structures-8d active. External
+processes are not visible. Fable keeps world/house/lighting/terrain ownership; PR2 comment
+5629083723 points to this branch's current INBOX and coordination evidence.
 
-Fresh fetch 8f13daa adds only Fable log/claims/ledger. Tick35 reports atmosphere-5 and
-structures-8d running; no external process visibility. Existing rocks/shadow/layout differences
-remain, so no source integration from this tip. PR2 comment refreshed with own INBOX pointer,
-exact integrated work and current stair evidence: entrance -0.133222 to +0.30m, second rise
-+0.30m, both rejected by the 0.28m guard. Keep guard and Fable terrain; one scratch-only
-committed-foot-contact prerequisite is under study, old rejected experiments stay untouched.
+Now integrate one lower-front supported chin in face-geometry.ts. Owner profile has a small
+supported jaw; current spherical face recedes30–44mm behind lower lip. Forward-only compact
+support below y/k=-.070 advances at most13.762mm, unchanged height/width and upper attachments.
+397vertices/850triangles change; all63non-skull meshes exact, including eyes/mouth/brows and
+new eight-lock hair. Closed welded topology, positive winding/unit normals, no new patch
+self-intersections; all850affected planar triangles have positive dZ/dY. Thirty bounded neck
+poses retain only existing intentional neck insertion; clothing gaps stay≥5.69mm. This is a
+source-fit candidate, not visual approval; production build/typecheck pass; actual render follows.
 
-Arms b79439c actual gallery at15:33:27.391UTC has 14 verified JPGs / 42 matching motion frames,
-errors[]. Four jump/descent/landing samples inspected: arms recover but character proportions
-remain too toy-like. Hand c8dcf5f actual capture is now running. Combined22ac061 has 14 actual
-stills, no renderer errors, auxiliary maximum568draws/8,525,679triangles; canonical pending.
-Cap take0046 remains INVALID for inherited D1 despite W38 pass. No reference fidelity pass.
+Parallel scratch work: broader cap-tail drape with shallow folds and retained root/rig/sway.
+Existing seam was measured buried/floating, so scope includes only tail seam fitting in
+outfit-details.ts; other outfit remains exact. Candidate not integrated. Root is investigating
+cloth texture scale/variation; no material edit yet. Movement helper's immutable contact-pair
+candidate is REJECTED: valid soles/raw reach still produce a shin/riser intersection97.86mm
+below tread top in a fixed-pelvis diagnostic. Next study couples body/foot trajectory; no
+production controller/guard or terrain change, no rejected old experiment reapplied.
 
-Active clean worktree zeldaremake-active / local agent/astra-refinement-recovery publishes to
-agent/astra-link-movement / PR5. Preserve old dirty zeldaremake snapshot. CLI claims C01/C02/C03
-remain live through17:43:30.634UTC. Fable45be2fb ownership/next atmosphere and bough work retained.
+## Recent completed work and evidence
 
-Source22ac061 publishes reviewed Fable houses, roof/interior, rope fences, lantern posts and
-log arch. Minimal batching adaptation preserves both depth/distance identities and bindings:
-81→41meshes,60294wind-shadow triangles retained. Pure declaration relocation keeps exact new
-fence/post coordinates/order in shared layout. All tests/typecheck/build pass. Independent
-actual W25take0045 still fails heavy cross-dome bough/roof mound/isolated interior glow; see
-new evidence note. Rocks/index cross-system dependency remains withheld and reported.
-
-Source96cff37 exact12vegetation/8hardscape gallery completed15:11:44.503UTC:14stills/errors[],
-all archive hashes verified; no new motion clip because character source matches a43fd6b.
-House/stairs images inspected. Auxiliary max590draws/8356657triangles; these are not six-view
-canonical approval. Its queued canonical run was superseded by combined22ac061. That run and
-new structure gallery remain pending/in progress; preserve all strict limits/history.
-
-Sourcea43fd6b cloth crown gallery completed15:05:31.717UTC:14stills/42matching frames/errors[],
-all JPG archive hashes verified. Front/profile/back/walk and actual running/jump clip samples
-inspected. Fit retained; folds subtle and overall cap still needs shape refinement.
-
-Now publish a bounded airborne arm follow-through in play-pose.ts plus behavioral controller
-regression. Standing/walking/running elbows use a moderate jump bend; existing landing prepare
-lowers arms smoothly. Ground gait, physics, legs, feet and reference animation remain exact;
-30/60/120/144Hz replay passes,57.9mm descending hand travel instead of<1mm. First candidate is
-held in scratch due longer pouch sweep. Refined candidate restores standing/walking pouch
-contact duration, with minor existing-contact variation (1–2fixed frames, max additional
-sampled depth<0.74mm on run launch). Existing belt/pouch/pack contacts are not collision-clean;
-actual clip must judge the change. No canonical retrigger here: keep22ac061 world take queued.
-
-Arms sourceb79439c is pushed; its real clip is queued. Canonical cap take0046 on a43fd6b
-completed:684draws/6856014triangles,23/50overall and19/42phase, no regressions; inherited D1
-still invalidates it. Combined22ac061 take is now running and remains the canonical budget check.
-
-Now integrate one original relaxed hand helper: continuous closed wrist/palm/finger pad joins
-the forearm across its previous2.5mm air gap. Root starts10mm inside the forearm; same32-sided
-33.1mm ring covers all32existing33mm end-rim vertices. Fingertip and complete forearm/hand
-bounds stay exact; thumb root is buried, right thumb explicitly mirrors left. This is an
-overlapping closed palm/thumb approximation, not a welded hand solid; old internal thumb folds
-remain buried.72non-hand Link meshes and all3NPCs exact,64batchedmeshes/74596triangles (+768).
-Construction/normal/closure/mirror/batching/typecheck proofs pass; actual belt/walk/run images
-must judge the join and remaining clothing contact. Files hand-geometry.ts and Link hand call
-only; no pose/physics/material/rig change. Preserve22ac061 canonical run without retrigger. Node22 source ZIP22ac061 is CRC-checked and available. Old
-screenshot automation is confirmed disabled (no next run); no new schedule, merge or deployment.
-Reference fidelity, natural high stairs and inherited D1 chronology remain unfinished.
+-65f45b5: eight narrower asymmetric fringe locks and receding foundation hem,64meshes/74596tris
+ unchanged. Brows/eyelids clear, no new pupil occlusion among52272visible samples/28views.
+ Production build and actual static-batching proof pass; real capture now running.
+-c8dcf5f: continuous wrist/palm fills old2.5mm gap; fingertip/whole limb bounds retained.
+ Closed palm with overlapping buried thumb, not welded union. Actual archivef336528 at
+ 15:47:23.981UTC:14verifiedJPGs/42matchingframes/errors[]. Belt/idle/walk/run inspected; gap
+ closed, grouped fingers/thumb and cylindrical arm joins remain visibly approximate.
+-b79439c: airborne arms lower through existing landing preparation, moderate shared elbow
+ bend; groundgait/physics/feet unchanged,30/60/120/144Hz replay passes. Existing pouch/pack
+ contacts remain. Actual archive8d884b1 at15:33:27.391UTC has14verifiedJPGs/42matchingframes,
+ errors[]; four jump/descent/landing samples inspected. No faithful-motion completion claim.
+-a43fd6b: shallow fitted cap-crown gathers, preserving brim/hair/root and moving tail.
+ Actual archive3d13777 at15:05:31UTC has14stills/42matchingframes, no renderer errors; front/
+ profile/back/walk and motion samples inspected. Folds subtle, cap still needs better drape.
+-96cff37: Fable45be2fb exact12vegetation/8hardscape files, with attribution. Actual14stills
+ archive6c4f630 at15:11:44UTC verified/errors[]; no new motion because character unchanged.
+-22ac061: reviewed Fable house/roof/interior/fences/lanternposts/log arch. Both custom shadow
+ material identities and bindings retained during81→41mesh consolidation, all60294wind-shadow
+ triangles preserved. Exact fence/post arrays/types relocated into layout, coordinates/order/
+ RNG unchanged; existing branch point4.25/6/mean−.90 retained. Actual14stills archive7179e42
+ at15:19:31UTC verified/errors[], house/stairs inspected. Lantern diagnosticfc6561b restores
+ baseline identically, errors[]. Focused shadow/builder/typecheck/build proofs pass.
+-Canonical take0048 on22ac061 (monitor6bf74c3) completed15:37:37UTC: six-view maximum621draws/
+ 8533997triangles,W38pass,23/50overall,19/42phase,no item regressions. Inherited D1 invalidates
+ it; concurrent publisher renumbered0047→0048 while retaining earlier15:15:08capture start.
+ Preserve all sealed timestamps/hashes/history/failures. Cap0046 similarlyinvalid,W38pass.
+-Rocks/index cross-system hardscape dependency remains withheld. Independent actual W25
+ take0045review remainsfail for heavy bough/uniformroof/isolatedglow; evidence note preserved.
+-Actual current hero-stair entrance -0.133222→+0.30m and internal+0.30m rise both exceed0.28m
+ guard. Ordinary-input stall and exactpositions reported to Fable for approach trench.
+-SourceZIP65f45b5 CRCpass,370entries/14.23MB, latest arms/hands/fringe, no node_modules.
+ ScreenshotZIPb79439c CRCpass,14JPGs/matchingMP4/metadata,4.22MB. First12gallery remains linked.
+ Old screenshot automation confirmed disabled/no next_run; no new schedule, merge/deploy.
 
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
@@ -981,4 +971,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T15:39:25Z
+2026-09-11T15:52:12Z
