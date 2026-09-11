@@ -4,12 +4,25 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T08:25:14Z
+updated: 2026-09-11T08:31:59Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+2026-09-11T08:31:59Z: Owner requested permanent named screenshot folders after each completed pass.
+Created captures/astra-progress at9b9b902 with exactly12 actual JPGs in
+progress/2026-09-11_0809-first-12, a browsable gallery and capture provenance. Verified all12
+remote blobs. Sent owner the GitHub folder and pinned-commit ZIP link after sandbox display
+failed for them. This commit adds progress/README.md to source and an event-driven publisher:
+each successful character capture archives named JPGs in its own dated/source folder; matching
+clips only, old folders preserved, conflicting retry bytes rejected. Actual b970181 capture
+archived locally twice identically, and its older4a clip was correctly excluded. No schedule.
+Published appearance source is c262dfb; ten-view/profile/42-frame CI is running34579245867.
+Canonical take0039 completed onb84bedc at08:04:51UTC, 700draws/6.76Mtris, score23/50,
+still INVALID under inherited D1 chronology. The workflow succeeded but this is not a passed
+quality verdict. Fable source unchanged; remaining gear/boot/stair experiments excluded.
+
 Updated 2026-09-11T08:25:14Z. This commit publishes the original flared sleeve, medial shoulder-strap fitting,
 and compact button-nose/quieter mouth pass. The closed sleeve has 530 vertices / 1024 triangles,
 2.50 mm minimum sampled lining-to-arm gap. The strap route fits the existing undershirt too;
