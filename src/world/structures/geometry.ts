@@ -356,6 +356,68 @@ export function setColorAttribute(geo: BufferGeometry, rgb: [number, number, num
 
 export const TAU = Math.PI * 2;
 
+/**
+ * Signed distance to a rectangle [x0,x1]×[y0,y1] with all four corners rounded by `rc`
+ * (negative inside). Used for the openings cut into the house walls.
+ */
+export function rrectSD(x: number, y: number, x0: number, x1: number, y0: number, y1: number, rc: number): number {
+  const r = Math.min(rc, (x1 - x0) / 2, (y1 - y0) / 2);
+  const qx = Math.abs(x - (x0 + x1) / 2) - ((x1 - x0) / 2 - r);
+  const qy = Math.abs(y - (y0 + y1) / 2) - ((y1 - y0) / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+}
+
+/** Move (x, y) by `e` along the gradient of `sd` (outward for e > 0). */
+export function offsetAlongSD(sd: (x: number, y: number) => number, x: number, y: number, e: number): [number, number] {
+  const h = 0.005;
+  let gx = sd(x + h, y) - sd(x - h, y);
+  let gy = sd(x, y + h) - sd(x, y - h);
+  const l = Math.hypot(gx, gy);
+  if (l < 1e-9) return [x, y];
+  gx /= l;
+  gy /= l;
+  return [x + gx * e, y + gy * e];
+}
+
+export interface Outline {
+  /** total length */
+  length: number;
+  /** point at arc-length fraction s ∈ [0,1] */
+  at(s: number): [number, number];
+}
+
+/**
+ * Open outline of an arch-like opening: up the left side from (x0, y0), round the two top
+ * corners (radius `rc`), across the top and down the right side to (x1, y0). Arc-length
+ * parametrised so a tube or tunnel swept along it has even segments.
+ */
+export function rrectOutline(x0: number, x1: number, y0: number, y1: number, rc: number): Outline {
+  const r = Math.min(rc, (x1 - x0) / 2, y1 - y0);
+  const side = y1 - r - y0;
+  const top = x1 - x0 - 2 * r;
+  const arc = (Math.PI / 2) * r;
+  const length = 2 * side + 2 * arc + top;
+  const at = (s: number): [number, number] => {
+    let l = Math.max(0, Math.min(1, s)) * length;
+    if (l <= side) return [x0, y0 + l];
+    l -= side;
+    if (l <= arc) {
+      const ang = Math.PI - (l / arc) * (Math.PI / 2);
+      return [x0 + r + Math.cos(ang) * r, y1 - r + Math.sin(ang) * r];
+    }
+    l -= arc;
+    if (l <= top) return [x0 + r + l, y1];
+    l -= top;
+    if (l <= arc) {
+      const ang = Math.PI / 2 - (l / arc) * (Math.PI / 2);
+      return [x1 - r + Math.cos(ang) * r, y1 - r + Math.sin(ang) * r];
+    }
+    l -= arc;
+    return [x1, y1 - r - Math.min(l, side)];
+  };
+  return { length, at };
+}
+
 /** signed shortest angular difference in (-π, π] */
 export function angleDiff(a: number, b: number): number {
   let d = (a - b) % TAU;
