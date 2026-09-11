@@ -88,8 +88,11 @@ function findPreviousTake({ ledger, at, monitorDir, rotateFrom, explicitDir }) {
   // "previous" means captured earlier: a concurrent-publish resequence moves `at`, not capturedAt
   const tOf = (e) => e.capturedAt ?? e.at;
   const before = ledger.entries.filter((e) => !at || !tOf(e) || tOf(e) <= at);
+  // the baseline is the LATEST-CAPTURED eligible entry, not the last appended: a resequenced entry
+  // can sit at the chain's head with an older capture time. Ties fall to the later chain position.
+  const latest = (list) => list.reduce((best, e) => (!best || (tOf(e) ?? '') >= (tOf(best) ?? '') ? e : best), null);
   const valid = before.filter((e) => e.valid !== false);
-  const entry = valid.length ? valid[valid.length - 1] : before.length ? before[before.length - 1] : null;
+  const entry = valid.length ? latest(valid) : before.length ? latest(before) : null;
   const validBaseline = !!valid.length;
   let dir = null;
   let metrics = null;
