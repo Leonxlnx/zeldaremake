@@ -468,6 +468,16 @@
       "note": "Stair approach trench, bough pods grouped, lantern light, structures convergence"
     },
     {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T16:57:36.450Z",
+      "expiresHours": 3
+    },
+    {
       "agent": "fable-cursor",
       "items": [
         "W02",
@@ -481,6 +491,18 @@
       "at": "2026-09-11T17:27:10.157Z",
       "expiresHours": 6,
       "note": "Round nine: lit far air, house bough above the dome, 20-step stair, shared sprouts"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W10",
+        "W11",
+        "W37"
+      ],
+      "at": "2026-09-11T19:16:12.147Z",
+      "expiresHours": 6,
+      "note": "Trees round nine: larger cluster cards, leaf transmission, F lip lobes, moss/lichen bark"
     }
   ]
 }
