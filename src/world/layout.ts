@@ -113,7 +113,10 @@ export const LAYOUT = {
     [9.6, 1.05, -9.3],
   ] as [number, number, number][],
   /** stepping stones along `pathToHouse`: first stone `from` metres in (past the plaza rim) */
-  steppingStones: { from: 3.2, spacing: 1.3, radius: [0.36, 0.5] as [number, number], wobble: 0.28 },
+  // reference stones read 0.8-1.0 m across and nearly touching, with a trodden strip between
+  // (hardscape 7c measured ours at 0.7-1.0 m with 1.3 m of grass between): larger, closer discs.
+  // spacing x min jitter 0.88 = 1.06 m > 2 x 0.52 so neighbours never overlap.
+  steppingStones: { from: 3.2, spacing: 1.2, radius: [0.42, 0.52] as [number, number], wobble: 0.22 },
 
   stairs: [
     // The hero stairway of shot A — 18 wide, worn, moss-edged steps climbing to the east plateau.
@@ -288,7 +291,7 @@ export interface SteppingStone {
  * Deterministic stepping stones along `pathToHouse` (terrain paves exactly these discs; hardscape
  * builds a slab per disc; vegetation keeps grass off them). Stones start `from` metres along the
  * polyline, every `spacing` m (±12 %), zig-zagging ±`wobble` m across the line like the footage's
- * loosely laid slabs, and stop 0.7 m short of the door.
+ * loosely laid slabs, and run to the polyline end (0.7 m short of the door).
  */
 export function houseSteppingStones(): SteppingStone[] {
   const pts = LAYOUT.pathToHouse;
@@ -310,7 +313,7 @@ export function houseSteppingStones(): SteppingStone[] {
   };
   const out: SteppingStone[] = [];
   let d = from;
-  for (let i = 0; d < total - 0.7 && i < 64; i++) {
+  for (let i = 0; d < total - 0.2 && i < 64; i++) {
     let rem = d;
     let k = 0;
     while (k < segs.length - 1 && rem > segs[k].len) rem -= segs[k++].len;
