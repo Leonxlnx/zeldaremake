@@ -69,8 +69,8 @@ function combine(root: Object3D, parent: Object3D, meshes: Mesh[], expected: num
 
 /**
  * Call only from createLink, after all fitted outfit details and boot setup finish.
- * Rig groups, boots, eye groups and NPC builders stay independent. Seven batches
- * replace seventeen meshes: ten fewer draws whenever those surfaces are visible.
+ * Rig groups, dynamic arms, boots, eye groups and NPC builders stay independent.
+ * Five remaining batches replace eleven meshes, removing six static draws.
  */
 export function batchStaticLinkParts(rig: Rig): void {
   if (completed.has(rig)) return;
@@ -78,6 +78,7 @@ export function batchStaticLinkParts(rig: Rig): void {
     (object): object is Mesh => object instanceof Mesh && names.includes(object.name),
   );
   for (const elbow of [rig.elbowL, rig.elbowR]) {
+    if (rig.root.userData.linkContinuousArms) continue;
     combine(rig.root, elbow, select(elbow, ['elbow', 'forearm', 'hand']), 3);
   }
   for (const knee of [rig.kneeL, rig.kneeR]) {

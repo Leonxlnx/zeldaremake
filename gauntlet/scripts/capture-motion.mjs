@@ -50,13 +50,38 @@ try {
     { name: '12-face-profile', seconds: 0.5, run: false, move: 0, jump: false, view: 'profile' },
     { name: '13-backpack-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'pack' },
     { name: '14-belt-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'belt' },
+    { name: '15-run-rear-quarter', seconds: 2, run: true, move: 1, jump: false, view: 'rear-quarter',
+      evidence: 'Ordinary run from the actual spawn for two seconds; rear-left view of the continuous arms.' },
+    { name: '16-run-jump-launch-rear-quarter', seconds: 8 / 120, run: true, move: 1, jump: true, view: 'rear-quarter', prepareRunSeconds: 2, launchFrame: 7,
+      evidence: 'Actual world input replay, seven 120 Hz steps after the observed launch frame; not an exact flat-ground contact-study pose.' },
   ];
   for (const c of cases) {
     const state = await page.evaluate(async c => {
       const api = window.__ZR__, player = window.__ZR_PLAYER__;
       player.reset(); api.setTime(12.5);
-      player.input({ moveX: 0, moveZ: -c.move, run: c.run, jump: c.jump });
-      player.advance(c.seconds);
+      let inputTrace;
+      if (c.prepareRunSeconds) {
+        const runInput = { moveX: 0, moveZ: -c.move, run: true, jump: false };
+        player.input(runInput); player.advance(c.prepareRunSeconds);
+        const preLaunch = api.audit().systems.character.locomotion;
+        if (!preLaunch.grounded || preLaunch.jumps !== 0 || preLaunch.speed < 3.8 || preLaunch.runWeight < 0.99) {
+          throw new Error(c.name + ': ordinary run did not settle before the jump');
+        }
+        player.input({ ...runInput, jump: true });
+        const launchStates = [];
+        for (let frame = 0; frame <= c.launchFrame; frame++) {
+          player.advance(1 / 120);
+          const state = api.audit().systems.character.locomotion;
+          if (state.grounded || state.jumps !== 1) throw new Error(c.name + ': expected one airborne launch');
+          launchStates.push(state);
+        }
+        inputTrace = { runInput, prepareRunSeconds: c.prepareRunSeconds, preLaunch,
+          launchInput: { ...runInput, jump: true }, stepSeconds: 1 / 120,
+          launchFrameZero: launchStates[0], capturedFrameAfterLaunch: c.launchFrame, launchStates };
+      } else {
+        player.input({ moveX: 0, moveZ: -c.move, run: c.run, jump: c.jump });
+        player.advance(c.seconds);
+      }
       const character = api.audit().systems.character;
       const s = character.locomotion;
       const yaw = s.yaw + (c.jump ? 0.8 : 0.3);
@@ -66,6 +91,11 @@ try {
       if (c.view === 'back') {
         const back = s.yaw + Math.PI + 0.25;
         api.setPose([s.x + Math.sin(back) * 2.5, floor + 1.20, s.z + Math.cos(back) * 2.5], [s.x, floor + 0.72, s.z], 39);
+      } else if (c.view === 'rear-quarter') {
+        // Existing camera API only; follow the actual body height in early flight.
+        const rearLeft = s.yaw + Math.PI - 0.65;
+        api.setPose([s.x + Math.sin(rearLeft) * 1.9, s.y + 1.15,
+          s.z + Math.cos(rearLeft) * 1.9], [s.x, s.y + 0.72, s.z], 36);
       } else if (c.view === 'face') {
         api.setPose([s.x + Math.sin(s.yaw + 0.18) * 1.0, floor + 1.13, s.z + Math.cos(s.yaw + 0.18) * 1.0], [s.x, floor + 1.02, s.z], 32);
       } else if (c.view === 'profile') {
@@ -94,12 +124,20 @@ try {
       // in play mode, so these images do not substitute for canonical rubric takes.
       if (c.viewpoint && !api.setViewpoint(c.viewpoint)) throw new Error(`Missing progress viewpoint: ${c.viewpoint}`);
       await api.render(2, 0);
-      return { character: api.audit().systems.character, camera: api.cameraPose(), stats: api.stats() };
+      return { character: api.audit().systems.character, camera: api.cameraPose(), stats: api.stats(), ...(inputTrace ? { inputTrace } : {}) };
     }, c);
     assert.equal(state.character.mode, 'play');
     const s = state.character.locomotion;
     if (c.jump) { assert.equal(s.grounded, false); assert.equal(s.jumps, 1); }
     else if (c.move) assert.ok(s.speed > (c.run ? 2 : 1), `${c.name}: player failed to move`);
+    if (c.view === 'rear-quarter' && !c.jump) {
+      assert.ok(s.grounded && s.speed > 3.8 && s.runWeight > 0.99, c.name + ': expected a settled ordinary run');
+    }
+    if (state.inputTrace) {
+      assert.equal(state.inputTrace.launchStates.length, c.launchFrame + 1);
+      assert.ok(Math.abs(s.time - state.inputTrace.launchFrameZero.time - c.launchFrame / 120) < 1e-8,
+        c.name + ': capture must be seven simulation steps after launch');
+    }
     const { png, retries } = await captureCanvas(page, c.name);
     fs.writeFileSync(path.join(out, `${c.name}.png`), png);
     await sharp(png).jpeg({ quality: 92 }).toFile(path.join(out, `${c.name}.jpg`));

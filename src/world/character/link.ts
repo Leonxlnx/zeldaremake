@@ -22,6 +22,7 @@ import { createLinkFrontalHair } from './hair-geometry';
 import { createLinkFringeLocks } from './fringe-geometry';
 import { createLinkSideburnLocks } from './sideburn-geometry';
 import { createLinkScalpAndNape } from './scalp-geometry';
+import { createArmArticulation } from './arm-articulation';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkNeckline } from './neckline-geometry';
@@ -565,7 +566,8 @@ export function createLink(): Character {
   buildGear(rig, part);
   addOutfitDetails(rig, part);
   const syncBoots = createBootArticulation(rig);
-  const syncGeometry = () => { syncBoots(); syncEyes(); };
+  const syncArms = createArmArticulation(rig);
+  const syncGeometry = () => { syncBoots(); syncArms(); syncEyes(); };
   normalizeLinkClothUVs(rig);
   batchStaticLinkParts(rig);
   rig.root.userData.character = 'link';

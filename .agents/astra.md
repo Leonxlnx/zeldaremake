@@ -4,34 +4,50 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T18:21:55.360931Z
+updated: 2026-09-11T18:45:00.730340Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Publish the skull-fitted Link eyes, then review actual front/profile and blink captures.
-White/iris/pupil/lid/lash/highlight share a shallow field from the unchanged skull. Inner
-white/lid boundary joins exactly and outer rim stays fixed during the existing blink.
-Current Link68 meshes/97,056 triangles, including rounded pouch1623b75. Root build, static
-batching and template-eye tests pass; independent runtime seating/visibility review passes
-at the tested values. This is a source checkpoint pending lit appearance, not95% or final.
+Publish continuous arm skin with two additional rear-quarter sprint/jump captures. Link
+keeps the existing shoulder/elbow/hand joints and authored movement; a 160 mm blend and
+38 mm elbow replace the three separate skin pieces per arm. Current composed model is
+68 meshes / 94,816 triangles (2,240 fewer), including eye seating3f5b4ce and pouch1623b75.
+Root build and static batching pass:74→68 meshes,1,508,256 posed positions/normals exact,
+with UV/material/shadow/disposal/boot/NPC invariants. No new physics/controller changes.
 
-Pouch actual2f568c1/progress/2026-09-11_181209-1623b75 verified14 JPEG hashes,42 matching
-states/errors[]. Root viewed belt/walk: rounded flap/closure replaces dark boxes; shared
-2 screenshots and downloadable1623 ZIP. Existing hand/pouch overlap remains.
+This is a visual checkpoint, not a zero-clipping acceptance. Fixed38mm arm review covers
+42 poses /1,848 body/gear pairs against the pinned0748 body.16 poses have new exposed
+crossing points; maximum sampled distance to the old arm surface is .688382 mm at the
+left tunic in early running jump. This is neither penetration depth nor a pixel bound.
+Rear visibility probes find tunic/pouch witnesses exposed; belt/pack witnesses hidden in
+8 sampled directions. Original sleeve-envelope ambiguities resolved without tolerance
+changes. Pouch target was the old box shape, not the newer rounded pouch; current combined
+appearance requires rendering. Keep fixed geometry for that review rather than repeated
+per-pose radius tuning. Root26-pose closed-surface/normal check passes (minimum normal
+agreement .9933); no all-input/self-contact guarantee. Arm38 helper SHA0d55b2a3c1a89a4.
 
-Arm candidate remains scratch:100mmblend near-cusp rejected,160mm fixesrunbutold40.7mm
-elbowradius introducesidletuniccontact. Revised38mmelbowclearsidle; same42posecontact
-characterization finds submillimetre new extensions nearexistinggarmentcrossings, with
-ambiguities/occlusion still underreview. No repeatedperpose-radiusadjustment. Root26pose
-normal/selfcrossingcheck passes; nozero-clipping/all-angleclaim. Keepfailedsources.
+Capture script appends15-run-rear-quarter and16-run-jump-launch-rear-quarter using ordinary
+real inputs and existing camera API. Both settle a2-second run; jump records launch frame
+zero and7 further120Hz steps. Original14 views and42-frame clip remain unchanged. CPU
+controller/current-terrain and16-image archive/publisher fixtures pass; real framing pending.
+
+Eye source3f5b4ce pushed, actual469099c/progress/2026-09-11_183859-3f5b4ce now published;
+root retrieval/pixel review pending. Pouch actual2f568c1/progress/2026-09-11_181209-1623b75
+verified14 JPEG hashes,42 matching states/errors[]. Root viewed belt/walk: rounded flap
+and closure replace dark boxes; shared2 screenshots and downloadable1623 ZIP. Existing
+hand/pouch overlap remains.
 
 Paired contact firstcandidate rejected: real exposedcuff/knee crossing277 andactualrig
 reset253.95mmonthedebugthrow despitecachedanchorsremainingfixed. RevisedONEscratchuses
 persistentcontact/liftoffkneeplanes, continuouslate-swingtransition, fullposeoffrigstaging
 and reachablelandingtargetunderexisting8m/sfootlimit. Productionphysics/poseunchanged.
+ Revised endpoint witnesses have positive3.513/.574mm gaps, but first adaptive path
+ checking costs466/172ms on failures and is held. Distance-bracket optimization under
+ bounded review; separate57–58mm root-relative knee jumps at takeoff/landing need smoothing.
+ Off-rig staging passes exact rejection/retry including2.7rad yaw; not movement acceptance.
 
 Fabledfb3d36 fixescanonicalmetadata, retryclaimunion, cadence andpanelcapturetime. Root
 foundremainingprevious-baselineselectioninpublicationorder; exactfixture postedPR2comment
@@ -53,9 +69,10 @@ schedule,phaseexit or95%fidelityclaim.
  variants exact. ActualrecordedcamerasCPUcoveragekeepsopenpupilcounts:front694/549→692/547,
  profile279→296. Notshaderimages. Two121-stateblinkcyclesbyte-exact,steadyeyesnouploads.
  Two newrear-lashnormalmismatchesat.08 arebehindopaquegeometry; zero visiblepixelsin
- recordedfront/profileat1/.5/.08. Noall-angle/all-blinkproof. Runtimecadencebenchmarkbeing
- correctedtoexacttriangularpulse; donotciteearliersinusoidaverage. Activeblinkstress<1.1ms
- p95 fullsyncincludingbootslocally, notGPU/frame-rateclaim. Rootbuild/staticbatchpass:
+ recordedfront/profileat1/.5/.08. Noall-angle/all-blinkproof. Corrected production triangular blink benchmark:98 changing scales/2,400 ticks;
+ full sync mean .222→.253 ms (+.031 ms), p95 .455 ms. Active blink stress mean .225→.847 ms,
+ p95 1.025 ms; steady .223→.226 ms. Earlier sinusoid average was wrong harness. Local CPU
+ only, not GPU/frame-rate evidence. Rootbuild/staticbatchpass:
  78→68meshes,97,056triangles,2,992,032posedvertices/normalsexact; eye-template8,448trispass.
 
 

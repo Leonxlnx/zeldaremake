@@ -52,9 +52,9 @@ for (const source of sources) source.geometry.addEventListener('dispose', () => 
 const oldCount = sources.length, oldTriangles = triangleCount(model.group);
 batchStaticLinkParts(model.rig);
 const after = meshes(model.group), batches = after.filter(mesh => mesh.userData.staticBatch);
-assert.equal(oldCount - after.length, 10, 'ten actual mesh submissions removed');
-assert.equal(batches.length, 7); assert.equal(triangleCount(model.group), oldTriangles);
-assert.equal(disposed.size, 17, 'only the seventeen replaced static geometries are disposed');
+assert.equal(oldCount - after.length, 6, 'six remaining static mesh submissions removed');
+assert.equal(batches.length, 5); assert.equal(triangleCount(model.group), oldTriangles);
+assert.equal(disposed.size, 11, 'only the eleven replaced static geometries are disposed');
 const records = [];
 for (const mesh of batches) {
   assert.equal(mesh.geometry.groups.length, 0, 'one draw per merged material');
@@ -83,7 +83,7 @@ for (const source of sources.filter(source => !disposed.has(source.geometry))) {
   assert.equal(source.mesh.parent, source.parent); assert.equal(source.mesh.material, source.material);
 }
 batchStaticLinkParts(model.rig);
-assert.equal(meshes(model.group).length, oldCount - 10, 'batch setup is idempotent');
+assert.equal(meshes(model.group).length, oldCount - 6, 'batch setup is idempotent');
 
 // Separate rigs may own equivalent material clones and texture wrappers. Compare
 // their complete serialized settings/pixels once, omitting only generated UUIDs.
@@ -156,7 +156,7 @@ for (const source of npcBefore) {
   assert.deepEqual(source.geometry.index.array, source.index);
 }
 const integrated = production('src/world/character/link.ts').createLink();
-assert.equal(meshes(integrated.group).length, oldCount - 10, 'production hook batches Link');
+assert.equal(meshes(integrated.group).length, oldCount - 6, 'production hook batches Link');
 assert.equal(integrated.triangles, oldTriangles, 'reported triangles describe full geometry');
 const productionNpc = production('src/world/character/kokiri.ts').createKokiri(0);
 const productionNpcMeshes = meshes(productionNpc.group);
