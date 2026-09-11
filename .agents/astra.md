@@ -4,48 +4,62 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T16:48:53Z
+updated: 2026-09-11T16:59:29Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Integrate one taller neutral eye aperture. Files: new eye-aperture.ts, eye-geometry.ts and
-its existing regression test, plus the narrow soft-eye construction patch in link.ts. Keep
-all other current character changes. White, rim, clipping and lashes share one 28-edge shape;
-half-height grows .0145k to .0165k, retaining width, centres/yaw, iris/pupil radii and blink.
-The outer lid is seated from actual unchanged skull ray hits. Candidate count remains
-64 meshes / 80,472 triangles; all 54 non-eye meshes and all three NPC variants remain exact.
+Strengthen original cloth reflectance variation after the actual ab669a8 close-ups remained
+plain. Only cloth-surface.ts changes at runtime: more distinct yarn colour plus smooth
+periodic dye/fibre patches about6.4 mm across. This is albedo variation, not painted folds or
+lighting. Existing packed height/roughness bytes, UVs, texture dimensions/flags, geometry,
+materials and per-frame logic stay unchanged. Palette compensation still preserves linear
+average tile reflectance and hue, not a claim of unchanged screen brightness.
 
-Triangle checks retain positive white/iris/pupil separations, .363–.687 mm continuous outer
-rim burial, and positive current hair/brow clearance. A recorded-camera actual-ground replay
-matches the idle state within 1e-12, with 568 independent ray checks supporting pixel-centre
-triangle visibility. No new white pixels above the iris apex in front/profile or sampled
-blink scales. A few upper-central white pixels do become exposed. Actual neutral expression
-must still be judged from rendered images; this is not facial completion or a new blink system.
-Root integrated eye regression passes 8,448 triangles; production typecheck/build pass.
+The deterministic candidate has quantized albedo mean .809039 versus .946371, with measured
+relative contrast about7.51 times the subtle previous map. Compensation becomes1.236035.
+Two original256x256 textures still total524,288 bytes;64 yarns/tile and.0768m tile remain.
+Two independent construction calls are byte-identical, height/roughness map is byte-identical
+to production, and compensated tile mean error is under3e-13. Root production typecheck/build pass.
+Actual front/back/belt and motion must decide whether the stronger fabric is appropriate.
 
-Temple/sleeve source6c455df is pushed. Its source ZIP has380 entries /14,258,428 bytes and
-passes CRC; delivered to owner. Cloth ab669a8 actual gallery039fc0d at16:39:51 has14 verified
-JPGs/42 matching frames/errors[] and preserves prior galleries. Root viewed face/cap, belt
-and pack: cloth is still very subdued in these captures. A later source-only material contrast
-study may be needed; do not claim the current pass achieves the reference's fabric richness.
+Eyes c8194c6 are pushed with coherent taller white/lid/clipping/lash aperture; eye regression
+and build pass. Actual neutral-expression review remains pending. Temple/sleeve6c455df and
+fingers2bb72fc also await their source-specific actual galleries. Latest downloadable source
+6c455df is verified and delivered. None of these passes claims95% fidelity or character completion.
 
-The broader140 mm boot candidate is REJECTED for integration: it adds actual outsole/boot
-intersections in reference walk/run phases and extra sharp-turn contacts. Existing movement
-regressions and diagonal-edge grounding alone missed that risk. Source/evidence stay scratch;
-helpers are diagnosing forefoot/heel contact and relative foot placement before another variant.
-No gait, stance or guard edit is authorized by that rejected candidate's passing tests.
+Fresh Fable32e01b5 adds a neutral shared sprout/grit module, revised20x.27main/7x.26north stairs,
+and atmosphere/lighting changes. Root's helper checked only the movement-relevant layout/
+terrain delta under our unchanged .28guard: ordinary input now reaches the upper landing in
+8.392seconds, but actual shin/nose and boot/side intersections persist. Soles/reach alone
+would miss those errors. The delta is not yet integrated; lighting integration stays behind Link priority.
+Navi point-light suggestion is specific to Fable's new atmosphere and is not adopted blindly.
+Broad140mmboot candidate remains rejected for actual opposite-shoe/cuff crossings. A new
+coordinated reference stance/live turn foot-placement design is under review before any variant;
+no old rejected controller experiment, production stance edit or guard increase applied.
+The bounded coordinated boot/placement design is now approved for one scratch candidate: share
+the live172mm stance with Link reference poses, stage both targets/provisional IK, and route an
+obstructed free foot with one latched horizontal waypoint around the actual tilted opposing
+cuff. Full final geometry/sweep/ground/reach/rate checks decide acceptance; no candidate yet
+accepted. Physics/controller/rig and existing stair timing remain outside that proposal.
 
-Canonical cap source5529e85 published as0050 after retry, preserving all49 earlier entries.
-621 draws /8,539,129 triangles, W38 pass,23/50 and19/42, no item regressions. CI publication
-success does not clear integrity: retained capture-start precedes Fable0049, adding another
-D1 inversion; snapshot-specific D3 missing claims also reported. Do not rewrite sealed history
-or weaken rules. Fable's newer0049 pod grouping is under independent review; world stays theirs.
-C01/C02/C03 claims live through17:43:30 UTC. User priority remains Link and ongoing collaboration.
+Copied four missing Fable claim entries intact from32e01b5, preserving all local history,
+then renewed C01/C02/C03 through CLI to19:57:36.450UTC with no overlap warning. Filed W14take49
+fail via CLI with grouping progress and dirty-snapshot provenance limits; previous47 review
+is retained in history. Root inspected actual A and fixed reference. Fable keeps limb/moss work.
+Canonical0050/5529e85 remains invalid for inherited/new D1 and snapshot D3 despite W38pass.
+Astra/monitor already share the monitor concurrency group; Fable's local import publisher is
+outside that lock. Future fresh canonical capture must join the lock before timestamp creation;
+proposal is for coordination only, with no workflow or sealed-history changes here.
 
 ## Recent completed work and evidence
+
+- c8194c6: coherent taller neutral eye aperture, unchanged centres/width/iris/pupil sizes,
+ current skull/hair and all54non-eye meshes. Root eye test8,448triangles and production build
+ pass. Recorded-camera CPU visibility keeps iris apex free of upper white crescents in tested
+ views; actual expression still needs render review. No new blink or gesture system.
 
 - 6c455df: paired temple locks and softer tapered sleeves. Root build/static batching pass,
  64 meshes /80,472 triangles,2,992,032 posed positions/normals exact. Actual gallery pending.

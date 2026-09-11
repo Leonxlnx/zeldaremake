@@ -23,6 +23,17 @@ export function createLinkClothSurface(): LinkClothSurface {
     const ix = ((x % yarns) + yarns) % yarns, iy = ((y % yarns) + yarns) % yarns;
     return ((ix * 37 + iy * 53 + ix * iy * 11 + salt * 29) % 251) / 250;
   };
+  // Smooth fibre-dye variation over 6.4 mm patches; periodic at the tile edges.
+  // The cloth's geometry and real lights still provide every fold and shadow.
+  const fibrePatch = (u: number, v: number) => {
+    const cells = 12, x = u * cells, y = v * cells, ix = Math.floor(x), iy = Math.floor(y);
+    const smooth = (t: number) => t * t * (3 - 2 * t);
+    const sx = smooth(x - ix), sy = smooth(y - iy);
+    const value = (a: number, b: number) => hash((a + cells) % cells, (b + cells) % cells, 7);
+    const low = value(ix, iy) * (1 - sx) + value(ix + 1, iy) * sx;
+    const high = value(ix, iy + 1) * (1 - sx) + value(ix + 1, iy + 1) * sx;
+    return low * (1 - sy) + high * sy;
+  };
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size, v = (y + .5) / size;
     // Gentle periodic wander gives the yarns an uneven hand-woven alignment.
@@ -40,7 +51,8 @@ export function createLinkClothSurface(): LinkClothSurface {
     const broad = .50 + .24 * Math.sin(tau * (2 * u + v) + .7)
       + .16 * Math.sin(tau * (u - 3 * v) + 1.4)
       + .10 * Math.sin(tau * (5 * u + 2 * v) - .4);
-    const reflected = clamp(.925 + .035 * top + .025 * (broad - .5) + .018 * irregular, .875, .995);
+    const reflected = clamp(.78 + .18 * (top - .5) + .34 * (fibrePatch(u, v) - .5)
+      + .10 * (broad - .5) + .060 * irregular, .62, .995);
     const roughness = clamp(.98 - .035 * top + .012 * (broad - .5) + .014 * irregular, .92, .995);
     const i = (y * size + x) * 4, value = Math.round(255 * reflected);
     pigment[i] = pigment[i + 1] = pigment[i + 2] = value; pigment[i + 3] = 255;

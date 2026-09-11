@@ -2,12 +2,25 @@
   "item": "W14",
   "reviewer": "astra",
   "verdict": "fail",
-  "evidence": ".agents/reviews/astra-W14-take0047.md",
-  "takeId": "take-0047",
+  "evidence": ".agents/reviews/astra-W14-take0049.md",
+  "takeId": "take-0049",
   "author": "fable-cursor",
-  "takeSha": "f434c370981f099861c168f1862026093316dc2c",
-  "at": "2026-09-11T16:03:51.510Z",
+  "takeSha": "6c54f4bf1ca16850ef7a668a204a3a17811edb5d",
+  "at": "2026-09-11T16:57:37.164Z",
   "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
-  "note": "Reduced pods improve scale, but the long smooth high arc and widely spaced cord row do not match the lower irregular moss-covered branch and clustered lamps at the left of reference A. Separate from the current house-bough pass; no audit or criteria changes.",
-  "history": []
+  "note": "Three pods now group within the left quarter, useful progress; high smooth limb and long exposed cords still differ from lower irregular moss-covered reference mass. Actual archived pixels reviewed with dirty-snapshot provenance limitation; no clean-source or strict-validity certification.",
+  "history": [
+    {
+      "item": "W14",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": ".agents/reviews/astra-W14-take0047.md",
+      "takeId": "take-0047",
+      "author": "fable-cursor",
+      "takeSha": "f434c370981f099861c168f1862026093316dc2c",
+      "at": "2026-09-11T16:03:51.510Z",
+      "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
+      "note": "Reduced pods improve scale, but the long smooth high arc and widely spaced cord row do not match the lower irregular moss-covered branch and clustered lamps at the left of reference A. Separate from the current house-bough pass; no audit or criteria changes."
+    }
+  ]
 }
