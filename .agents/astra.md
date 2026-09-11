@@ -2,14 +2,54 @@
 agent: astra
 runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
-status: active
+status: blocked — workspace offline
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:41:57Z
+updated: 2026-09-11T10:51:12.855Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Workspace execution is offline as of this checkpoint. The exec-server connection failed,
+then normal recovery reported environment_offline. Completed source b3e47a7 is pushed;
+the cap prototype write never executed, so no new crown geometry exists. Resume normal
+workspace access before further edits. Do not work around access controls.
+
+Latest playable code b3e47a7 strengthens original leather grain on the backpack, belt and
+repaired boot upper/cuff/tongue surfaces. Link has 64 meshes and 72,002 triangles. Typecheck,
+production build, articulation and batching tests pass. All physical geometry/base settings
+and three NPCs match bd93490; only eight leather surfaces and two tongue UV maps change.
+
+Actual a6092ff capture at 10:41:40 UTC has 14 stills and 42 matching motion frames, errors[].
+All 14 JPGs match archive f3d5ef0 and are byte-identical to e4a395e: UV repair left those views
+unchanged. The e4 leather finish was too subtle; b3e47a7's stronger finish awaits rendering.
+
+Remote work already running: bd93490 character capture 34589847282 and canonical take
+34589847234; b3e47a7 character capture 34590568187 is queued. Canonical take 0042 remains
+INVALID for W38 at 704 draws plus inherited D1. Seven Link batches and Fable's byte-identical
+b7cc6da canopy integration are the next measured checkpoint; do not claim W38 recovery yet.
+
+A later cap study should test one 44x28 crown with folds capped at 3.8 mm, preserving the
+rim/front hair zone and existing rear depression. Only image/source inspection was completed;
+no candidate, fit proof or appearance result exists. Natural high-stair traversal and reference
+fidelity remain unfinished. Fable keeps house/world/terrain/lighting ownership.
+
+Claims: C01/C02/C03/W22/W26/W27 through 13:16:31.987 UTC; W38 character batching through
+13:29:19.305 UTC. Renew through the CLI on resumption if expired. No scheduled task, merge
+or deployment was added. Downloads and all completed galleries are linked in progress/README.md.
+
+## Files / systems being touched
+- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
+- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
+- `src/main.ts`: minimal control-hint/input-order integration only if needed.
+- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
+- Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
+
+## Earlier task notes
+
+### Before offline checkpoint
 Source bd93490 now publishes Link batching plus Fable canopy intact; canonical take is starting.
 Continue the owner's leather-detail pass: helper strengthens only original pack/belt grain after
 inspected e4closeups showed it too weak. Root gives the existing boot tongue an arc-length UV
@@ -53,15 +93,6 @@ Fetched Fable b7cc6da: canopy shade lobes over both houses, F shaft relocation, 
 foliage corridors. These remain their tree/lighting scope pending deliberate integration.
 Claims C01/C02/C03/W22/W26/W27 renewed through CLI at10:16:31.987 until13:16:31.987UTC.
 
-## Files / systems being touched
-- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
-- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
-- `src/main.ts`: minimal control-hint/input-order integration only if needed.
-- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
-- Read-only review of Fable's world source, monitor captures, PRs and logs.
-- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
-
-## Earlier task notes
 
 ### Before boot UV publication
 Reviewed isolated boot UV repair for production integration. It runs after the original32-vertex
@@ -869,4 +900,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T10:41:57Z
+2026-09-11T10:51:12.855Z
