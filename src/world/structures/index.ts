@@ -10,7 +10,8 @@
 import { Group, type Material, type Mesh, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, buildFence, createRopeMaterial, type FenceDef } from './fence';
-import { buildHouse } from './house';
+import { consolidateStaticMeshes } from './geometry';
+import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
 import { LANTERN_POSTS, buildLanternPost } from './lanternPost';
@@ -37,7 +38,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   let leaves = 0;
 
   // ---- houses ----
-  const houses = ctx.layout.houses.map((h) => buildHouse(h, ctx, mats, rng.fork(`house/${h.id}`)));
+  const sharedHouseMats: HouseSharedMaterials = {};
+  const houses = ctx.layout.houses.map((h) => buildHouse(h, ctx, mats, rng.fork(`house/${h.id}`), sharedHouseMats));
   for (const hb of houses) {
     group.add(hb.group);
     lanterns.push(...hb.lanterns);
@@ -93,6 +95,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   lights.push(...log.lights);
   bases.push(...log.bases);
   leaves += log.leaves;
+
+  // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
+  // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
+  // unique-material parts; everything else — bark, roof, boughs, fence posts and ropes, lantern
+  // posts, door frames, the sign's wood, leaves, vines, tufts — renders as one draw per material.
+  const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
   ctx.progress('structures', 1);
 
   // count real scene facts for the audit (cross-checked against the scene graph)
@@ -124,6 +132,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.audit('structures', () => ({
     ...budget(),
+    meshesBeforeMerge: draws.before,
+    mergedMeshes: draws.merged,
     houses: houses.length,
     geometry: 'procedural-v1',
     mossRoof: true,

@@ -73,6 +73,14 @@ export interface HouseBuild {
   leaves: number;
 }
 
+/**
+ * Materials that every house can share (identical parameters, no per-house uniforms), so their
+ * parts fold into one draw call across houses. The first house creates them and owns disposal.
+ */
+export interface HouseSharedMaterials {
+  stone?: MeshStandardMaterial;
+}
+
 /** Local frame: F = out of the door, Rt = viewer's right when facing the door. */
 class Frame {
   constructor(
@@ -208,7 +216,7 @@ function roomMaterial(mats: StructureMaterials): MeshStandardMaterial {
   });
 }
 
-export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng): HouseBuild {
+export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng, shared: HouseSharedMaterials = {}): HouseBuild {
   const group = new Group();
   group.name = `house-${def.id}`;
   const noise = new Noise2D(`${ctx.config.seed}/structures/house/${def.id}`);
@@ -618,8 +626,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // ---- stone threshold slab at path level in front of the sill (sheet 04: the door opens on
   // the flagstones) — an irregular worn slab, grey-brown like the path stones ----
   {
-    const stone = new MeshStandardMaterial({ color: new Color(0xa79b7e), roughness: 1, vertexColors: true, normalMap: mats.moss.normalMap, normalScale: new Vector2(0.25, 0.25) });
-    materials.push(stone);
+    let stone = shared.stone;
+    if (!stone) {
+      stone = shared.stone = new MeshStandardMaterial({ color: new Color(0xa79b7e), roughness: 1, vertexColors: true, normalMap: mats.moss.normalMap, normalScale: new Vector2(0.25, 0.25) });
+      materials.push(stone);
+    }
     const slabW = (doorW1 - doorW0) * 0.5 + 0.35 * k;
     const slabD = 0.42 * k;
     const slabC = frame.door((doorW0 + doorW1) / 2 + 0.05 * k, 0, dBack + 0.42 * k);

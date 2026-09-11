@@ -1,9 +1,10 @@
 /**
  * Procedural geometry helpers for the structures system: parametric grid surfaces with
  * analytic normals and cell-level holes (trunk walls with doorways, domes, logs), tapered
- * swept tubes along curves (roots, branches, cords, frames) and a small merge wrapper.
+ * swept tubes along curves (roots, branches, cords, frames), a small merge wrapper and the
+ * draw-call consolidation pass that folds a system's static meshes into one mesh per material.
  */
-import { BufferGeometry, Float32BufferAttribute, Matrix4, Vector3, type Curve } from 'three';
+import { type BufferAttribute, BufferGeometry, Float32BufferAttribute, Matrix4, Mesh, type Object3D, Vector3, type Curve } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export interface SurfaceSample {
@@ -289,6 +290,73 @@ export function merge(geos: BufferGeometry[]): BufferGeometry {
   const out = mergeGeometries(list, false);
   if (!out) throw new Error('structures: mergeGeometries failed');
   return out;
+}
+
+/**
+ * Fold the static meshes under `root` into one mesh per (material, shadow flags, render flags,
+ * vertex layout), so the system costs one draw call per material — in the colour pass and again
+ * in the shadow pass — instead of one per part. The result renders identically: the same material
+ * instances, the same vertex data concatenated in scene-graph order (which, for identity-transform
+ * meshes sharing a material, is the order three.js drew them in), the same flags. Only meshes that
+ * are at the identity transform, opaque, single-material and indexed qualify; positioned or
+ * animated meshes (lantern pivots), transparent ones (their blend order hangs on the per-object
+ * sort key) and anything the caller's `skip` names are left alone, as are singletons. Buckets whose
+ * attribute layouts differ are never mixed, so no vertex ever gains or loses an attribute.
+ */
+export function consolidateStaticMeshes(root: Object3D, skip: (m: Mesh) => boolean = () => false): { before: number; after: number; merged: number } {
+  root.updateMatrixWorld(true);
+  const identity = new Matrix4();
+  const buckets = new Map<string, Mesh[]>();
+  let before = 0;
+  root.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh) return;
+    before++;
+    if (skip(m)) return;
+    const mat = m.material;
+    if (Array.isArray(mat) || mat.transparent) return;
+    if (!m.matrixWorld.equals(identity)) return;
+    const g = m.geometry;
+    if (!g.index || Object.keys(g.morphAttributes).length > 0) return;
+    const layout = Object.keys(g.attributes)
+      .sort()
+      .map((n) => {
+        const a = g.attributes[n] as BufferAttribute;
+        return `${n}:${a.itemSize}:${a.array.constructor.name}:${a.normalized ? 1 : 0}`;
+      })
+      .join(',');
+    const key = [mat.uuid, m.castShadow, m.receiveShadow, m.renderOrder, m.layers.mask, m.visible, m.frustumCulled, layout].join('|');
+    const list = buckets.get(key);
+    if (list) list.push(m);
+    else buckets.set(key, [m]);
+  });
+  let after = before;
+  let merged = 0;
+  for (const list of buckets.values()) {
+    if (list.length < 2) continue;
+    const geo = mergeGeometries(
+      list.map((m) => m.geometry),
+      false,
+    );
+    if (!geo) continue;
+    const first = list[0];
+    const mesh = new Mesh(geo, first.material);
+    mesh.name = `merged:${first.name}`;
+    mesh.castShadow = first.castShadow;
+    mesh.receiveShadow = first.receiveShadow;
+    mesh.renderOrder = first.renderOrder;
+    mesh.layers.mask = first.layers.mask;
+    mesh.visible = first.visible;
+    mesh.frustumCulled = first.frustumCulled;
+    for (const m of list) {
+      m.removeFromParent();
+      m.geometry.dispose();
+    }
+    root.add(mesh);
+    after -= list.length - 1;
+    merged++;
+  }
+  return { before, after, merged };
 }
 
 /** Apply a matrix to a geometry (positions + normals) in place and return it. */
