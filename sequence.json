@@ -1,5 +1,5 @@
 {
-  "source": "a35c949599494b8d1c8f5cb745120a4eed6a185c",
+  "source": "4a1b7acc418a77a97872e8363322630486c611bf",
   "fps": 12,
   "view": "scripted front three-quarter follow view",
   "states": [
@@ -20,7 +20,7 @@
       "landing": 0,
       "jumps": 0,
       "time": 0.08333333333333333,
-      "retries": 1
+      "retries": 0
     },
     {
       "x": 0,
