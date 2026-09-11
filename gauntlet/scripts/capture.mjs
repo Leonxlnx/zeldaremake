@@ -39,15 +39,33 @@ export function parseArgs(argv) {
   return args;
 }
 
-export function gitInfo() {
+/**
+ * Git identity of the tree a build came from. When `distDir` sits inside a checkout other than
+ * ROOT (a pinned worktree built for the capture), that checkout is described — including its own
+ * `dirty` flag — so the record says what was actually built, not what the orchestrator's working
+ * tree looked like while other agents edited it.
+ */
+export function gitInfo(distDir = null) {
+  let cwd = ROOT;
+  if (distDir) {
+    let d = path.resolve(distDir);
+    for (let i = 0; i < 4 && d !== path.dirname(d); i++) {
+      d = path.dirname(d);
+      if (fs.existsSync(path.join(d, '.git'))) {
+        cwd = d;
+        break;
+      }
+    }
+  }
   const run = (c) => {
     try {
-      return execSync(c, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+      return execSync(c, { cwd, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
     } catch {
       return '';
     }
   };
   return {
+    source: cwd === ROOT ? 'workspace' : 'worktree',
     sha: run('git rev-parse HEAD'),
     shortSha: run('git rev-parse --short HEAD'),
     branch: run('git rev-parse --abbrev-ref HEAD'),
@@ -319,7 +337,7 @@ export async function captureAll({
       quality,
       settleFrames,
       simTime: DEFAULT_SIM_TIME,
-      git: gitInfo(),
+      git: gitInfo(distDir),
       distHash: hashDir(distDir),
       viewpoints: results,
       renderer,
