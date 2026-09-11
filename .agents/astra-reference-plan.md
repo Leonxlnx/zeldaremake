@@ -1,6 +1,6 @@
 # Astra — owner reference implementation sequence
 
-Updated 2026-09-11 05:55 UTC. The owner supplied ten concept sheets in this chat and asked
+Updated 2026-09-11 06:31 UTC. The owner supplied ten concept sheets in this chat and asked
 for outfit, walk/sprint, shadows/light and the depicted objects. Images were inspected locally;
 their publication is not authorized. Do not upload them or put reference imagery into runtime.
 The re-upload contains the same ten images. This document records implementation observations,
@@ -42,7 +42,7 @@ capture history. New concept proportions are additional visual guidance; no 95% 
 4. Apply concrete light/shadow fixes only after source review and a fresh Fable scope check.
 5. Work through house/sign/ground/foliage details in coherent, independently captured passes.
 
-Fable remains paused at `17f9217`. C01/C02/C03/W26 are claimed by Astra until 07:53 UTC.
+Fable's source still has the pause note at `17f9217`, but its newly published take-0036 says work resumed; current subsystem scope awaits a fresh log/reply. C01/C02/C03/W26 are claimed by Astra until 07:53 UTC.
 No scheduled work: the owner explicitly cancelled it; updates occur during foreground work.
 
 Additional online visual reference: Nintendo's official Young Link fighter page,
@@ -50,9 +50,10 @@ https://www.smashbros.com/en_US/fighter/22.html (viewed 2026-09-11). Anatomy/gea
 no game meshes or textures imported. The owner's concept sheets determine this project's style.
 
 ## Latest implementation checkpoint
-Outfit and leafy lantern/shadow passes are captured in take-0035 (dee4b03). The larger seated
-eyes, lighter Link skin, curved mouth and parted fringe are captured separately on7af541f.
-The next capture covers the pointed plank shield and sewn bag, hidden fringe roots, corrected
-arm timing and carved sign. W27 is claimed until08:33 UTC. Rounded boot anatomy, cap cloth
-drape, face detail, broader house forms, additional sign/notice variants, window/interior
-objects and canopy/light refinement remain work, not completed assets.
+Canonical take-0037 on2d22d24 includes the original shield/pack, outfit, carved sign, leafy
+pods and structure wind-shadow parity;22/50, no integrity failures or item regressions.
+Rounded open-cuff boots are separately captured on0fe7792. Connected frontal hair, seated
+brows/eyes, non-emissive lantern UV correction and small swing-foot pitch are ready for a
+new actual capture. Diagnostic lighting baseline/key/fill comparison is rendering; production
+defaults are unchanged. Cap drape, face richness, broader house forms, additional sign/notice
+variants, window/interior objects and canopy/light refinement remain unfinished.

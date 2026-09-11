@@ -4,12 +4,29 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T06:17:00Z
+updated: 2026-09-11T06:31:13Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+06:24 UTC: next simple-movement refinement is a small swing-only ankle pitch, diagnosed from
+actual2d22d24 clip and a rig replay (both gaits hold0deg through recovery). Helper may edit only
+play-pose.ts and the focused locomotion regression: yaw×pitch must be identical in reach/IK,
+pitched sole corners must remain above stair support, and jump transitions must blend the
+existing foot pitch. Root continues face/hair/lantern; no walk speed, gravity, jumping physics,
+reference animation or new moves. Source/log/claims fetched again before this task.
+
+06:24 UTC: 0fe7792 publishes rounded boots (f3865ee) and diagnostic lighting captures. Next
+W26 correction pins both non-emissive UV coordinates to(.5,.95): the actual shader/gradient
+probe found 10,890 dark triangles still vary U, so mip selection can leak amber into dark
+leaf/cord rows. No triangles interpolate directly between pod and leaf V. Keep emitting body
+UVs and existing material/draw/placement/light contracts. Actual visible confirmation pending.
+Next C01 correction adds a connected frontal hair foundation under the brim, flattened strand
+roots and a 2.5 mm eye-group recess with seated rim compensation. Actual close-up shows bald
+gap/petal fringe and projecting eyelid rims. Helper owns new hair-geometry.ts; root owns
+link.ts, geometry.ts and the small lantern.ts UV change. Movement review is read-only.
+
 06:17 UTC: publish rounded boots and the diagnostic lighting study. Root reviewed the helper
 geometry/script, ran full 30/60/120/144 Hz locomotion with actual new sole vertices, closed-shell
 boot bounds/clearance probe, syntax and build. New soles remain flat inside the old contact
@@ -192,6 +209,28 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- 06:31 UTC: canonical take-0037 on2d22d24 is CI-valid, monitor cf700e4, score22/50,
+  no regressions/flags. Publisher safely reassigned the id after Fable's concurrent0036;
+  both ledger entries/captures remain intact (commit subject still says0036). A/B inspected.
+  0fe7792 actual eight-view capture passed at06:21:34 UTC, generated43dbd19; new rounded
+  boots/back view inspected, open cuffs and round soles visible. Full2d22d24 PR CI passed.
+- Ready for actual rendering: closed connected forehead hair shell2,128tri, surface-fitted
+  elliptic fringe roots, shallower seated eye rims and curved brow strands. Root CPU probes
+  show whites>=1.55mm, brows>=.49mm above actual face; frontal foundation2.42–2.65mm nominal
+  clearance, no cap protrusions. Central root peaks fall from14–15mm to~7mm nominal scale.
+  Original model totals52,474tri after rounded boots/hair/brows; actual appearance pending.
+- W26 filtering fix: all11,178 dark lantern triangles now have constant(.5,.95) UVs (10,890
+  previously varied U); emitting body UVs/material/draws/counts unchanged. This removes the
+  coarse-mip sampling mechanism found in the bright leaf/cord streak; visible confirmation pending.
+- Simple swing-foot articulation is ready: ~±4.4deg walk/±8.8deg run, level planted soles,
+  shared yaw×pitch reach/IK and pitched sole-envelope support. Initial stair toe collision
+  was caught and fixed by holding pitch at blocked risers plus bounded angular catch-up.
+  Root reran all6actual rounded-sole scenarios at30/60/120/144Hz: no penetration. Stair corner
+  step73.62mm (<85mm); conservative stair stance hover48.16mm (was46.06mm), not eliminated.
+  Physics/reference animation unchanged. Clip verdict remains pending.
+- Independent W25 review filed through CLI on Fable's take-0036: fail for narrow doorway and
+  tall/steep upper mass versus locked B_house reference. Prior review history preserved; the
+  take's D3-invalid/local-attestation marker remains untouched.
 - 06:17 local checkpoint: original hollow rounded boots/open folded cuffs integrated for Link;
   NPC construction retained. Sole-contact replay and geometry probes pass; build/typecheck green.
   Separate six-case-view lighting script/workflow records exact overrides/source/camera/time,
@@ -307,4 +346,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T05:54:49Z
+2026-09-11T06:31:13Z
