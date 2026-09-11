@@ -226,8 +226,10 @@ export const LAYOUT = {
     // grows the limb from the trunk to it); the midpoint must project inside shot A for W01.
     // The bough itself rides high (y ≈ 0.15–0.3 in A, mostly above shot B's frame); the pods
     // hang on long cords to the reference's y ≈ 0.45.
-    from: [-4.0, 4.6, -5.0] as [number, number, number],
-    to: [1.5, 3.6, -2.6] as [number, number, number],
+    // 0.35 m lower since the cameras dropped to 1.45 m (the limb rode ~0.04 higher in A than the
+    // reference's) and the pods moved to 0.7 m cords: pods now hang at A y ≈ 0.40-0.41 (ref 0.38-0.5)
+    from: [-4.0, 4.25, -5.0] as [number, number, number],
+    to: [1.5, 3.25, -2.6] as [number, number, number],
     /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
     radius: 0.42,
     tipRadius: 0.16,
