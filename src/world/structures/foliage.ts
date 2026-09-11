@@ -210,6 +210,8 @@ export class FoliageBuilder {
       m.name = `${namePrefix}-leaves`;
       m.castShadow = true;
       m.receiveShadow = true;
+      m.customDepthMaterial = mats.leafDepth;
+      m.customDistanceMaterial = mats.leafDistance;
       out.push(m);
     }
     if (this.stems.length) {
@@ -217,6 +219,8 @@ export class FoliageBuilder {
       m.name = `${namePrefix}-vines`;
       m.castShadow = true;
       m.receiveShadow = true;
+      m.customDepthMaterial = mats.vineDepth;
+      m.customDistanceMaterial = mats.vineDistance;
       out.push(m);
     }
     if (this.tufts.length) {

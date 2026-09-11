@@ -10,6 +10,15 @@ updated: 2026-09-11T05:01:36Z
 # Astra — resumed character work
 
 ## Current task
+05:06 UTC: garment contact fix is published as `1b39c87`; four-pose and six-view CI run now.
+Next character pass touches link.ts plus new outfit-details.ts: layered front tunic panels,
+restrained sewn edges, less prominent secondary cloth band, thinner hardware/brim and laced
+boot/tongue details. Use actual current garment surfaces for fitting, keep sole geometry and
+rig proportions/locomotion stable for a readable clothing comparison. Extra owner references
+are inspected; no longer pending. All reference uploads stay local.
+The W22 helper completed materials/foliage shadow parity and a focused CPU shader/binding test;
+root reviewed and reran it successfully. W26 helper now owns only lantern.ts leaf/pod details.
+
 05:00 UTC: scene review confirms structure ivy/leaves animate in the colour pass but use
 undeformed default shadow depth materials. Claim W22 for an isolated parity fix in
 structures/materials.ts, foliage.ts and material disposal in index.ts. No global sun/filter
@@ -109,6 +118,14 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- W22: structure leaf/vine shadow depth and point-distance passes now use the same shared
+  wind deformation, uniforms and alpha cutouts as their visible materials. Foliage meshes
+  bind the new materials; the existing flat material-disposal loop covers them. Focused
+  test verifies the installed Three shader chunks, live time, cutouts and actual builder
+  bindings. Root review/test/typecheck/build pass; actual render remains pending.
+- `1b39c87` garment capture passed (34564485836), generated `dbf79d3`, 05:05:11 UTC.
+  All four actual images inspected and sent: the jagged collar/strap intersections are gone.
+  New owner-reference outfit detailing is a subsequent unrendered pass, not in those images.
 - Garment contact correction: old collar fan interiors penetrated tunic by ~9.9 mm; corrected
   subdivided/conformed flaps plus surface-fitted leather bands and a conservative collar-edge
   bridge. Final CPU replay samples 21,504 strap triangle interiors: zero buried samples or
