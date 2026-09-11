@@ -4,12 +4,71 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T22:09:46.392692+00:00
+updated: 2026-09-11T22:27:58.558629+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Sleeve composedbuild142modules/typecheck/staticbatch PASS:73→67meshes/115482triangles,
+1,508,256 posedvertices/normals/UV/material/shadow/disposal/boot/NPC batchingchecks.
+Publishingonevisualcheckpoint now; physicaleye/lidcandidate remains scratch only.
+
+
+Composing independent sleeve hem candidate over e2e7d16 via narrow patch a6c50b2a;
+never replace Link wholesale. Source sleeve440050f3/threadbc9fb97a; handoffdde1ccef.
+Short sleeve now has softened lower barrel, gently flared folded opening and50fitted
+thread dashes each, existing material/shoulderframe, no newcallback/armalgorithm.
+133 shoulderpositions/224indices exact; rows0–3normals exact, row4 changes≤3.124deg.
+Sixstates reproduceactual01/02/03 andexistingbendextremes: skin2.560945mm andleather
+strap1.593666mm oldgaps exact. Newthreadskin≥13.1307mm; medialseamcontacts remain
+≥8.973mminward, lowerflareextendsburiedmedialboundary~3.5mm. No universalno-contactclaim.
++4256tri/+2draws, no material/texture/NPC/physicschange. Actual01/02/03/14needed.
+
+Lid transition first4interval candidate reduced outeradjacentgeometry normal angles
+~42–43→34–35deg but remainsunderresolved. Initialsource/probe preserved; one8interval
+refinement nowunderindependentreview, +896tri, originalwhite andboundary exact inrootprobe.
+No productioneyeedit yet. Matchingoutershadingalone isnot geometricorvisualacceptance.
+
+
+Root begins one fixed-anchor eyelid-transition candidate on exacte2e7d16 in scratch.
+Eye white/cap/iris/anchors, facialgeometry/materials andblinktiming remainunchanged.
+Replace all three nonzero-slope outeroffsetterms with endpoint-eased inner/actualouter
+residual basis and quarticroll. Match outershadingnormals to actualinterpolatedskull,
+properlyconvertedthroughparentblinkscale. Start original4radialintervals; refine only
+if measuredadjacenttrianglejoin unresolved. Sourceeye-seating only plus narrowlyneeded
+fieldtype; independentreviewthenactual06/12/17/18. Raisedcap4.4mm remainsprofile risk.
+Referenceproposal990b4256 documents bothfrontpanelratios and defers higher/inwardanchors.
+
+
+Publishede2e7d1691d4d915ec81cf415f0e5e84ccdc4e273 (treec4e17d53a09af0d3b9e95af5518346ac6c2cc5ec)
+under-ear hair; fetched/tree-equal and source ZIP14,317,651bytes398entries CRC/hash
+verified, delivered. Actual character CI34653256207/34653256180 started22:16 (identify
+workflow name before attributing one run); screenshots pending. PR5 updated withactual
+b079 evidence, held hair/cap/tunic and separate movement recovery branch.
+
+Next major face scope under reference review: facial eye line proportions and raised
+lid-to-skull transition. Current linear offset falloff reaches outer skin seam with a
+nonzero slope, creating two visible lid discs in17/18. A higher/inward eye-anchor hypothesis
+also changes skull curvature/stand-off, so layout and physical blending must be reviewed
+together before editing. No eye source change yet, no added glow/light.
+
+Sleeve agent is constructing one small Link-only flared hem/fold/thread pass; arm
+articulation does not deform existing sleeves, so shared shoulder parent preserves thread
+parity. No lower-tunic adoption: raised front payload exposes inherited underarm/sidecloth
+and flares nearlyhorizontal83deg atoldrun240. Cap alternatives remain held; design now
+uses actual covered attachment contact instead of assuming rows0–9 alone suffice.
+
+Movement criterion corrected explicitly: instantaneous reference-derived rate envelope is
+not a physical hard requirement and is incompatible with allowed next-input changes at
+some frozen poses. Preserve it as diagnostic; fixed authored-domain continuity bound derives
+from original blends/cadence/sway,40.964617rad/s, with existing10.75 jump-windowguard unchanged.
+New bounded replay still fails physical tangent reserve atwalk26/run13, with exactrollback.
+Current target selection exhausts active height upperbound despite feasible modest lower
+targets. One causal preferred-target reserve is being implemented; no changed anatomy,
+geometry clamp or hidden failure. Old failed checkpoint remains reproducible.
+
 
 Integrating reviewed under-ear alternative: link66e60ad0 / sideburn7e1f8279 /
 under-ear helperadeb0074. Independent handoffe08c545f proves two closed positive shells,
@@ -1501,4 +1560,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T22:09:46.392692+00:00
+2026-09-11T22:27:58.558629+00:00

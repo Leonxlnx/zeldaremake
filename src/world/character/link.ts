@@ -27,6 +27,7 @@ import { createLinkScalpAndNape } from './scalp-geometry';
 import { createArmArticulation } from './arm-articulation';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
+import { createLinkSleeveStitches } from './sleeve-stitches';
 import { createLinkNeckline } from './neckline-geometry';
 import { createLinkCollarStitches } from './collar-stitches';
 import { createLinkLeatherMaterial } from './leather-material';
@@ -562,6 +563,10 @@ export function createLink(): Character {
   const cuffLeather = createLinkLeatherMaterial(matte('linkBootCuff'), [.408, .120]);
   buildLegs(rig, { skin, boot: bootLeather, cuff: cuffLeather, shaftTop: 0.135, shapedBoots: true, smoothJoints: true, buckle: matte('buckle', { roughness: 0.6 }) });
   buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true, smoothJoints: true });
+  for (const shoulder of [rig.shoulderL, rig.shoulderR]) {
+    const sleeve = shoulder.getObjectByName('sleeve') as Mesh;
+    part(shoulder, createLinkSleeveStitches(sleeve.geometry), matte('clothThread'), 'sleeve-stitches', false);
+  }
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, earLength: 0.085, softFeatures: true });

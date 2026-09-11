@@ -4,11 +4,12 @@ import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 /** A low fitted shoulder cap, soft upper sleeve and gently narrowed folded opening. */
 export function createLinkSleeve(): BufferGeometry {
   // Outer cap -> hem fold -> inner lining. Separate poles close the shoulder's fabric;
-  // the hem remains an open arm aperture with a real 4 mm folded edge.
+  // the hem remains an open arm aperture with a real 2 mm sewn return.
   const profile = [
     [0, .030], [.020, .029], [.038, .024], [.049, .014], [.055, .001],
-    [.059, -.030], [.0575, -.077], [.0565, -.101], [.056, -.105],
-    [.052, -.105], [.0525, -.101], [.053, -.077], [.0545, -.030],
+    [.0565, -.030], [.0583, -.077], [.0591, -.095], [.0589, -.099],
+    [.060, -.103], [.060, -.105], [.058, -.105], [.057, -.101],
+    [.0563, -.077], [.0545, -.030],
     [.0505, .001], [.045, .014], [.034, .021], [.016, .025], [0, .026],
   ];
   const sides = 32, positions: number[] = [], uvs: number[] = [], indices: number[] = [];
@@ -22,9 +23,15 @@ export function createLinkSleeve(): BufferGeometry {
       // The duplicate UV seam shares exactly the same position and, below, its normal.
       const angle = (j % sides) / sides * Math.PI * 2;
       const hem = Math.max(0, Math.min(1, -y / .105));
-      const fold = 1 + .009 * hem * hem * Math.sin(3 * angle + .4);
+      // Unequal millimetre-scale cloth folds vanish at the unchanged shoulder cap.
+      // Matching inner/outer radial displacement preserves the sewn return thickness.
+      const oldFold = 1 + .009 * hem * hem * Math.sin(3 * angle + .4);
+      const lower = Math.max(0, Math.min(1, (-y - .030) / .075));
+      const detail = lower * lower * (.00032 * Math.sin(5 * angle - .8)
+        + .00020 * Math.sin(2 * angle + 1.1));
+      const foldedRadius = radius === 0 ? 0 : radius * oldFold + detail;
       row.push(positions.length / 3);
-      positions.push(radius * Math.sin(angle) * fold, y, radius * Math.cos(angle) * .94 * fold);
+      positions.push(foldedRadius * Math.sin(angle), y, foldedRadius * Math.cos(angle) * .94);
       uvs.push(radius === 0 ? .5 : j / sides, distances[i] / length);
     }
     rows.push(row);
