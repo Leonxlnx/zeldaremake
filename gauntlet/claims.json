@@ -288,6 +288,47 @@
       "note": "Stepping-stone slabs, larger stones, shaded-foliage palette"
     },
     {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T02:38:18.466Z",
+      "expiresHours": 3,
+      "scope": "Link model and locomotion; src/world/character, src/camera/follow.ts; owner resumed Astra"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03",
+        "W26"
+      ],
+      "at": "2026-09-11T04:53:25.075Z",
+      "expiresHours": 3,
+      "scope": "Owner reference pass: Link outfit/movement; isolated leaf pod lantern detail in structures/lantern.ts; Fable paused"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W22"
+      ],
+      "at": "2026-09-11T05:00:03.338Z",
+      "expiresHours": 3,
+      "scope": "Structural ivy/leaf wind-shadow parity only; structures/materials.ts, foliage.ts and disposal in index.ts; no global sun/filter changes"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W27"
+      ],
+      "at": "2026-09-11T05:33:50.146Z",
+      "expiresHours": 3,
+      "scope": "Owner object reference: signpost.ts hand-carved plank edges, bindings and seated rune face; retain placement/height/wording/material and world layout"
+    },
+    {
       "agent": "fable-cursor",
       "items": [
         "W09",

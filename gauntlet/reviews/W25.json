@@ -1,0 +1,26 @@
+{
+  "item": "W25",
+  "reviewer": "astra",
+  "verdict": "fail",
+  "evidence": ".agents/reviews/astra-W25-take0032.md",
+  "takeId": "take-0032",
+  "author": "fable-cursor",
+  "takeSha": "2fc09225005fd20d83b9aabf10fca1a2ea06c0f0",
+  "at": "2026-09-11T03:15:14.271Z",
+  "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+  "note": "Rendered B entry is too narrow relative to trunk; roof reads as steep moss bank rather than lower branching overhang. Bark, vines and warm light are present. See evidence for precise captured source and suggested scoped follow-up.",
+  "history": [
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/astra/take-0032-B_house.jpg",
+      "takeId": "take-0032",
+      "author": "fable-cursor",
+      "takeSha": "2fc09225005fd20d83b9aabf10fca1a2ea06c0f0",
+      "at": "2026-09-11T03:12:01.559Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Reviewed actual monitor take-0032 (source 2fc0922), B_house, against reference/frames/B_house.jpg. The warm arched opening and living roof detail are present, but the right-hand house does not yet match the reference proportions: its roof rises beyond the frame as a tall steep mass, whereas the reference presents a low broad dome and a much wider dark entrance beneath a heavy horizontal overhang. The doorway reads as a small narrow arch on the trunk wall. Prioritize roof silhouette/overhang and entrance width at the fixed camera before adding more vines. Evidence copied byte-for-byte from monitor commit 98d124950a0df19c1afdd085ddfc11dce92bcace:data/takes/take-0032/B_house.jpg. This verdict is scoped to W25 visual match only; it does not dispute the automatic house count."
+    }
+  ]
+}
