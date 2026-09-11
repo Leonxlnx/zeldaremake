@@ -46,34 +46,55 @@ export function parseArgs(argv) {
  * tree looked like while other agents edited it.
  */
 export function gitInfo(distDir = null) {
-  let cwd = ROOT;
-  if (distDir) {
-    let d = path.resolve(distDir);
-    for (let i = 0; i < 4 && d !== path.dirname(d); i++) {
-      d = path.dirname(d);
-      if (fs.existsSync(path.join(d, '.git'))) {
-        cwd = d;
-        break;
-      }
-    }
-  }
-  const run = (c) => {
+  const run = (c, cwd) => {
     try {
       return execSync(c, { cwd, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
     } catch {
       return '';
     }
   };
+  let cwd = ROOT;
+  let source = 'workspace';
+  if (distDir) {
+    // resolve symlinks first (a dist may be a link into another checkout), then let git find the
+    // containing checkout; if none contains the dist the identity is unknown rather than ROOT's
+    let canonical = null;
+    try {
+      canonical = fs.realpathSync(path.resolve(distDir));
+    } catch {
+      canonical = null;
+    }
+    const top = canonical ? run(`git -C ${JSON.stringify(canonical)} rev-parse --show-toplevel`, ROOT) : '';
+    if (!top) return { source: 'unknown', sha: '', shortSha: '', branch: '', subject: '', author: '', committedAt: '', dirty: null, dist: distDir };
+    let topReal = top;
+    try {
+      topReal = fs.realpathSync(top);
+    } catch {
+      topReal = top;
+    }
+    cwd = topReal;
+    let rootReal = ROOT;
+    try {
+      rootReal = fs.realpathSync(ROOT);
+    } catch {
+      rootReal = ROOT;
+    }
+    source = topReal === rootReal ? 'workspace' : 'worktree';
+  }
+  // dirty = any tracked change or untracked file that could be a build input; the only ignored
+  // untracked entry is the checkout-root node_modules link a worktree gets (never a build input)
+  const porcelain = run('git status --porcelain --untracked-files=all', cwd)
+    .split('\n')
+    .filter((l) => l && !/^\?\? node_modules(\/|$)/.test(l));
   return {
-    source: cwd === ROOT ? 'workspace' : 'worktree',
-    sha: run('git rev-parse HEAD'),
-    shortSha: run('git rev-parse --short HEAD'),
-    branch: run('git rev-parse --abbrev-ref HEAD'),
-    subject: run('git log -1 --pretty=%s'),
-    author: run('git log -1 --pretty=%an'),
-    committedAt: run('git log -1 --pretty=%cI'),
-    // untracked files are not dirt (a worktree gets a node_modules symlink); tracked changes are
-    dirty: run('git status --porcelain --untracked-files=no') !== '',
+    source,
+    sha: run('git rev-parse HEAD', cwd),
+    shortSha: run('git rev-parse --short HEAD', cwd),
+    branch: run('git rev-parse --abbrev-ref HEAD', cwd),
+    subject: run('git log -1 --pretty=%s', cwd),
+    author: run('git log -1 --pretty=%an', cwd),
+    committedAt: run('git log -1 --pretty=%cI', cwd),
+    dirty: porcelain.length > 0,
   };
 }
 
