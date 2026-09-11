@@ -24,6 +24,7 @@ import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkNeckline } from './neckline-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
+import { batchStaticLinkParts } from './static-batching';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -616,6 +617,7 @@ export function createLink(): Character {
   buildGear(rig, part);
   addOutfitDetails(rig, part);
   const syncGeometry = createBootArticulation(rig);
+  batchStaticLinkParts(rig);
   rig.root.userData.character = 'link';
   // Articulation replaces the boot geometry; count the resulting scene, including its joint.
   let triangles = 0;

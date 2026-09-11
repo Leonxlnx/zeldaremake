@@ -4,12 +4,31 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:24:38Z
+updated: 2026-09-11T10:33:13Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Deliberately integrate Fable b7cc6da trees/index.ts and corridors.ts intact with the character
+batching budget repair. Parent tree files match ours exactly. Review found no new mesh/material
+submissions, finite geometry and deterministic construction; north-west-near adds60885triangles
+and extends bounds. Saved-view rays are world-authored at creation, not active-camera-dependent.
+Nonblocking finding for Fable: yMin/yMax cuts are not exact axial minDistance planes for finite
+cylinders (potential early cut), though instrumented near-tree candidates showed no newly cut
+lamina centres. Do not silently rewrite their corridor implementation. Combined capture needed.
+
+Actual e4a395e gallery at10:29:05UTC has14stills/42matching motion frames, errors[], every image
+hash matching archive1bac332. Root inspected pack/belt/back: grain is too subtle to approach the
+owner sheet's leather finish. Record that limitation; no visual-quality pass from shader tests.
+
+Boot UV source a6092ff is pushed. Now implement seven same-parent/material Link-only static
+batches, preserving all source triangle attributes and parent animation; expected74→64meshes
+with72002triangles unchanged. Files static-batching.ts/link.ts and focused equivalence evidence.
+Guard exact transforms, materials, shadows, attribute layouts and ownership before disposal.
+Real canonical render must establish W38 recovery; geometric equality alone is insufficient.
+CLI claims W38 for this character-only optimization; existing character claims remain active.
+
 Publish the isolated boot UV repair, then inspect the new backpack/belt renders. Actual
 production articulation tests and typecheck/build pass. Repair runs after anatomical ring
 closure; movement-region seam duplicates preserve expanded positions/normals and fixed soles.
@@ -605,6 +624,17 @@ The first continuous run captured all four poses but failed before video frames 
 
 
 ## Completed work
+- Seven construction-only Link batches reduce74→64meshes while preserving72002triangles.
+  480controller/pose updates and48 full triangle samples keep2554272world positions/normals exact,
+  all local UVs/material identities/shadows unchanged. Boot surfaces and production NPCs exact.
+  Only17replaced owned static geometries disposed; original unbatched buffers remain live.
+  Removed names retained in userData.staticBatch ranges; current animation/fitting consumers
+  do not address those meshes after construction. Combined typecheck/build with Fable trees pass.
+  W38 canonical result is pending; no claim from the predicted draw saving alone.
+- Fable b7cc6da trees/index.ts and corridors.ts integrated byte-identically, with original author
+  attribution. Both relevant giant constructions finite/index-valid, no new mesh/material groups;
+  +60885triangles on north-west-near and expanded bounds. Potential minDistance plane mismatch
+  reported back instead of rewriting Fable's implementation. Their ownership remains unchanged.
 - Boot UV repair ready: upper2269verts/3520tri and cuff429verts/768tri with no singular UV faces
   or interpolation across wrap seams. Frozen candidate replay:1416frames at30/60/120/144Hz,
   231634944 expanded position/normal comparisons exact; soles byte-identical. Integrated
@@ -821,4 +851,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T10:24:38Z
+2026-09-11T10:33:13Z

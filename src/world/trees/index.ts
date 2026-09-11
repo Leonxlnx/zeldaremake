@@ -191,6 +191,40 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * than a solid patch, and the porous middle F shaft column keeps a lit fleck at (12.5, 4.2, −4.3).
  * The bough and lobes are above every hero frame's top edge (D: tan 1.2–1.3 against 0.445; A/B/F:
  * 0.66–1.1 against 0.42) and behind C.
+ *
+ * House shade (round 8): the reference keeps Saria's tree-house in canopy shade — shot A's house
+ * box (0.45–0.65, 0.3–0.5) is a grey-olive bank (hue 59°, sat 0.19) and shot B (14 s) lights the
+ * house mainly by its lanterns and skylight — while ours showed a sunlit green roof (sat 0.27): sun
+ * probes from the roof crown read 93 % open and from the sun-facing north-west flank 93 %. Two
+ * more boughs of the same giant carry dense casters on the roofs' sun lines (a caster at height Y
+ * shades the roof point (x, y, z) from (x − 1.008 (Y − y), Y, z − 0.787 (Y − y))). Saria's dome
+ * (axis (12.5, −11.5), pad 1.05 m; eaves 4.05 m at r 4.2–4.6, crown 6.45 m + 0.6 m of moss) is
+ * shaded from 16.4 m by casters filling the strip from (−1.8, −22.7) (its up-sun eave) to (5.5,
+ * −17.3) (its down-sun shoulder), 3.2 m wide, so the second bough leaves at 12.4 m and carries four
+ * hR 3.2 lobes along that strip. A lobe's leaf and card count does not grow with its size, so at
+ * hR 3 the stock density is a 60–70 % filter (the crown probe still read 29 % open with three
+ * hR 3.4 lobes at density 1.2, 24 % at density 2.5); density 4 (≈ 100 cards + 2000 laminae per
+ * lobe) closes the crown's cone to 26 % (15 % before the left F column's carve nicked the
+ * eastmost lobe), the north-west flank's to 33 % and the up-sun lip's to 59 % (the strip's west
+ * edge; the upper house's cap probes 45 %). The upper house (axis (13.5,
+ * −17.5), r 2.7, dome 8.2–11.1 m) is further north, where 16 m would sit on A's top edge, so its
+ * casters ride a third bough at 19 m: (1.6, −26.8) and (3.6, −25.2) cover the eaves and the dome
+ * to ≈ 10 m, (5.0, −24.1) the cap; the re-seated left F shaft column (corridors.ts) carves through
+ * the east edges of that lobe and of the eastmost Saria lobe, 2.6 m and 3.9 m from the caps' own
+ * sun lines, so the cap's east rim stays open to it. Every path point and lobe
+ * projects above A's top edge by ≥ 0.05 of the frame (B/D by ≥ 0.13) and off F's left edge. Their
+ * ground shadows fall inside the houses' own shadows on the plateau (x 10–19, z −16…−6): the
+ * stair treads' casters sit ≥ 3.8 m from these centres (the 7c dapple lobes are untouched), and
+ * no plaza or path point is reached.
+ *
+ * Measured effect: small. With the hemisphere and IBL switched off, the dome under the sun reads
+ * as lit straw between the house's own leaf clusters (structures/foliage.ts, which cover most of
+ * the cap from the sun's side), but in the hero frames the roof is 15–22 m into the haze and the
+ * sun's whole contribution to its pixels is only +0.01–0.04 (sun on/off: A roof-top patch 0.399
+ * vs 0.367, B cap 0.378 vs 0.360), so shading it moves the A house box by ≤ 0.005. The roof's
+ * "lit green" look (sat 0.25–0.29) is the baked moss vertex colour and the lit leaf clusters,
+ * i.e. structures' materials. What did light the house in A/B was the left F shaft column's beam
+ * crossing the crown (corridors.ts: A crown box 0.53 → 0.44, B house box 0.40 → 0.36 = ref).
  */
 const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [
   {
@@ -201,6 +235,31 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     lobes: [
       { t: 0.62, center: [-0.6, 16.2, -13.7], hR: 2.4, vR: 1.5, density: 0.6, eye: 0 },
       { t: 0.92, center: [2.6, 16.4, -14.4], hR: 2.4, vR: 1.5, density: 0.6, eye: 0 },
+    ],
+  },
+  // Saria's roof: casters on the sun lines of the dome (crown → eaves = east → west along the line)
+  {
+    giant: 'north-west-near',
+    fromY: 12.4,
+    to: [5.5, 15.8, -17.6],
+    radius: 0.45,
+    lobes: [
+      { t: 0.51, center: [-0.9, 16.4, -22.0], hR: 3.2, vR: 2.0, density: 4, eye: 0 },
+      { t: 0.68, center: [1.3, 16.4, -20.3], hR: 3.2, vR: 2.0, density: 4, eye: 0 },
+      { t: 0.85, center: [3.5, 16.4, -18.6], hR: 3.2, vR: 2.0, density: 4, eye: 0 },
+      { t: 0.98, center: [5.2, 16.4, -17.3], hR: 3.2, vR: 2.0, density: 4, eye: 0 },
+    ],
+  },
+  // the upper house's roof
+  {
+    giant: 'north-west-near',
+    fromY: 13.2,
+    to: [5.6, 18.6, -24.4],
+    radius: 0.4,
+    lobes: [
+      { t: 0.77, center: [1.6, 19.0, -26.8], hR: 3.2, vR: 1.8, density: 4, eye: 0 },
+      { t: 0.88, center: [3.6, 19.0, -25.2], hR: 3.2, vR: 1.8, density: 4, eye: 0 },
+      { t: 0.96, center: [5.0, 19.0, -24.1], hR: 2.6, vR: 1.8, density: 4, eye: 0 },
     ],
   },
 ];
@@ -373,6 +432,57 @@ const HOLLOW_GAP_POINTS: { point: [number, number, number]; radius: number }[] =
 ];
 const HOLLOW_GAP_POROSITY = 0.15;
 /**
+ * Porous view corridors through screen points of a hero camera (the same rule as the hollow gaps,
+ * authored on the screen instead of in the air): the line from the camera's eye through the point
+ * is carved from `minDistance` outward, so the near hero foliage the same ray crosses (the lantern
+ * limb 5–11 m from A/F) is untouched and only the crowns 18–60 m out open onto the haze.
+ *
+ * Shot A's top band (0–0.2): the reference is bright haze between dark crown silhouettes (p90
+ * 0.65, mean 0.49); ours read 0.575 / 0.446 because the band's right half (x 0.5–0.85) is a closed
+ * roof at 22–55 m: the plateau oak's house-bough lobes and low crown (x 0.6, 22–40 m), its east
+ * limb lobes (x 0.7, 32–36 m), the far-plateau giant's crown (x 0.7–0.8, 47–54 m) and the
+ * north-east giant's crown (x 0.5, 47–58 m) — where the reference shows 0.58–0.66 haze with no
+ * texture at all. Their shadows fall on the east plateau (x > 17) and beyond, outside every frame,
+ * so opening them does not light the plaza; they sit above B's and F's top edges (y < 0) and
+ * off D, so the same holes are seen only as a thin fringe along B's top-right edge. The rays cull
+ * foliage only: the oak's two house boughs (≈ 1 m thick where they leave the trunk, x 0.6–0.7 at
+ * 32–36 m) and its crown wood stay, so the band keeps dark limbs where the reference has none,
+ * and fully open haze at 30–50 m renders at 0.55–0.59 (A x 0.8–0.85, p90 0.59) against the
+ * reference's 0.65–0.69 — the band's p90 is capped by the atmosphere's haze brightness, not by
+ * the canopy. First pass (six rays): top-right (0.55–0.85, 0–0.2) 0.444 → 0.472, p90 0.56 → 0.57.
+ *
+ * Shot F's top-left (0–0.35, 0–0.4): pale haze with dark silhouettes in the reference (mean 0.46,
+ * p90 0.68); ours is Saria's house (18–22 m; structures is lowering its roof) with the plateau
+ * oak's bough lobes and low west crown behind it at 25–40 m along the y ≈ 0.05 rays, then the
+ * far-plateau crown at 47–58 m. The rays that meet the upper house (x ≤ 0.12) are left alone.
+ */
+const VIEW_GAP_RAYS: { viewpoint: string; screen: [number, number]; radius: number; minDistance: number }[] = [
+  { viewpoint: 'A_stairs', screen: [0.52, 0.05], radius: 2.2, minDistance: 24 },
+  { viewpoint: 'A_stairs', screen: [0.62, 0.06], radius: 1.8, minDistance: 18 },
+  { viewpoint: 'A_stairs', screen: [0.72, 0.05], radius: 2.2, minDistance: 20 },
+  { viewpoint: 'A_stairs', screen: [0.82, 0.05], radius: 2.4, minDistance: 24 },
+  { viewpoint: 'A_stairs', screen: [0.66, 0.14], radius: 1.8, minDistance: 24 },
+  { viewpoint: 'A_stairs', screen: [0.76, 0.14], radius: 2.2, minDistance: 20 },
+  // second pass: the crown mass at 36–40 m behind the upper house (x 0.42–0.5), the oak's house-bough
+  // lobes between the first rays (x 0.58–0.65), the far-plateau crown (x 0.7, 47–54 m) and the
+  // north-west giant's crown at A's left edge (43–50 m; the lantern tree's limb and second bough
+  // 11–29 m along that ray are the W01 composition, hence minDistance 35)
+  { viewpoint: 'A_stairs', screen: [0.45, 0.08], radius: 2.4, minDistance: 30 },
+  { viewpoint: 'A_stairs', screen: [0.58, 0.1], radius: 2.0, minDistance: 20 },
+  { viewpoint: 'A_stairs', screen: [0.65, 0.02], radius: 2.0, minDistance: 24 },
+  { viewpoint: 'A_stairs', screen: [0.7, 0.1], radius: 2.2, minDistance: 24 },
+  { viewpoint: 'A_stairs', screen: [0.05, 0.09], radius: 2.4, minDistance: 35 },
+  { viewpoint: 'F_canopy', screen: [0.18, 0.05], radius: 1.8, minDistance: 14 },
+  { viewpoint: 'F_canopy', screen: [0.25, 0.05], radius: 1.8, minDistance: 14 },
+  { viewpoint: 'F_canopy', screen: [0.32, 0.05], radius: 1.8, minDistance: 14 },
+  // the oak's first house bough ends over Saria's crown (12.5, 9, −11.5): its lobes are the dark
+  // clusters at F (0.1–0.2, 0–0.15) above the roof; the limb foliage 7–11 m out is kept
+  { viewpoint: 'F_canopy', screen: [0.12, 0.05], radius: 1.6, minDistance: 14 },
+  { viewpoint: 'F_canopy', screen: [0.06, 0.12], radius: 1.6, minDistance: 14 },
+];
+const VIEW_GAP_RAY_POROSITY = 0.2;
+const VIEW_GAP_RAY_CARD_POROSITY = 0.1;
+/**
  * Giants whose LOW foliage the hero cameras see from a few metres: the lantern tree's limb lobes
  * hang 3–8 m from cameras A/B, the plateau oak's house boughs are ~20 m from B. Their low lobes
  * get leaf-sized laminae instead of cluster cards (see GiantOptions.eyeDetail).
@@ -487,7 +597,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         return { point, dir, radius, porosity: HOLLOW_GAP_POROSITY, cardPorosity: 0 };
       })
     : [];
-  const giantCorridors: WorldCorridor[] = [...sunCorridors, ...gapCorridors];
+  // view corridors through screen points of a hero camera (see VIEW_GAP_RAYS): the ray through the
+  // point, active from `minDistance` out — a rising ray is capped from below by the height it has
+  // there (a falling one from above), which is the same cut since height is monotonic along it
+  const rayCorridors: WorldCorridor[] = [];
+  for (const gap of VIEW_GAP_RAYS) {
+    const view = ctx.layout.viewpoints.find((v) => v.id === gap.viewpoint);
+    if (!view) continue;
+    const eye = new Vector3(view.position[0], view.position[1], view.position[2]);
+    const forward = new Vector3(view.target[0], view.target[1], view.target[2]).sub(eye).normalize();
+    const right = new Vector3(-forward.z, 0, forward.x).normalize();
+    const up = new Vector3().crossVectors(right, forward);
+    const th = Math.tan((view.fov * Math.PI) / 360);
+    const dir = forward
+      .clone()
+      .addScaledVector(right, (gap.screen[0] - 0.5) * 2 * th * (16 / 9))
+      .addScaledVector(up, (0.5 - gap.screen[1]) * 2 * th)
+      .normalize();
+    const point = eye.clone().addScaledVector(dir, gap.minDistance);
+    rayCorridors.push({
+      point,
+      dir,
+      radius: gap.radius,
+      porosity: VIEW_GAP_RAY_POROSITY,
+      cardPorosity: VIEW_GAP_RAY_CARD_POROSITY,
+      yMin: dir.y > 0 ? point.y : undefined,
+      yMax: dir.y < 0 ? point.y : undefined,
+    });
+  }
+  const giantCorridors: WorldCorridor[] = [...sunCorridors, ...gapCorridors, ...rayCorridors];
 
   // ------------------------------------------------------------------ white-bark variants
   const whiteRng = rng.fork('whitebark');
