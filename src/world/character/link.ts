@@ -26,6 +26,7 @@ import { createLinkUnderEarHair } from './under-ear-hair';
 import { createLinkScalpAndNape } from './scalp-geometry';
 import { createArmArticulation } from './arm-articulation';
 import { createBootArticulation } from './boot-articulation';
+import { createLinkCapArticulation } from './cap-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 import { createLinkSleeveStitches } from './sleeve-stitches';
 import { createLinkNeckline } from './neckline-geometry';
@@ -580,8 +581,9 @@ export function createLink(): Character {
   addOutfitDetails(rig, part);
   const syncBoots = createBootArticulation(rig);
   const syncArms = createArmArticulation(rig);
-  const syncGeometry = () => { syncBoots(); syncArms(); syncEyes(); };
   normalizeLinkClothUVs(rig);
+  const syncCap = createLinkCapArticulation(rig);
+  const syncGeometry = () => { syncBoots(); syncArms(); syncEyes(); syncCap(); };
   batchStaticLinkParts(rig);
   rig.root.userData.character = 'link';
   // Articulation replaces the boot geometry; count the resulting scene, including its joint.

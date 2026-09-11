@@ -4,12 +4,36 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T23:29:03.564421+00:00
+updated: 2026-09-11T23:34:20.581076+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Composing progressive cap articulation f4da33c0 after independent16debf67 review on new
+hair/lid. Narrow Link import/setup/sync adapted to preserve newly integrated orbitalcall
+order; never replace wholeLinkfile. OriginalclothUVnormalization precedes seat/deformation.
+FixedseatSx.01084846295894886, row12pivot, shared C2influence/Jacobiannormalscloth+26stitches;
+2meshparentschange, emptyoriginaldriver retained. No newtri/draw; incrementalNode median
+.170ms/p95.240ms. Protected891vertices exact; independent8inputs/2383verts inclactual
+playdriverobservations confirm math; first5poses+Q0 composedcontacts pass. Existing346
+coveredcarriercontacts remain directionalexceptions. At headturntail1287/grip10 old.444mm
+cross reproducedwithin2nm; old241 opposedstitchcorners carriedunchanged (clothnone).
+Neither is a newly introducedprogressivefailure; staticshape/threadnormalwork remains.
+Actualrear/profile walk/run/jump willjudge scopedattachment improvement.
+
+Orbital9c979e4c5101451f62cea035ef413a09d1d53cfd published/fetched/treeequal9f9eb1c1.
+Composedtypecheck/build143modules/eyephysicalmapping/staticbatch73→67meshes169238tri
+passes;1,508,256 batchingposesexact. SourceZIP14,330,374bytes/400entries CRC/hashchecked.
+Actualpending, no puffiness/likenessclaim. Latestb425haircapture23:31:45 arrived forreview;
+onefacecapture retry recorded, not an all-zero retryclaim.
+
+Shoulderfirstshapeheldfornew exposed .174/1.082mm sleeve/tunic contact at outerface286
+nearX2.55–2.97mm, priorgap2.626um. Innerliningcontacts areactuallycovered≥3.636mm;
+allthreadendpoints remainincloth. Nextcorrection protects thefull measuredexistinggarment
+join domain beforestartingoutwardshear; doesnotmovebody/straps tohidecrossing.
+
 
 Integrating one actual-skull orbital recess after actual4235 lid images still show raised
 round pads during blink. Root read helper9901588e and independent math/focusedpreservation;
@@ -1664,4 +1688,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T23:29:03.564421+00:00
+2026-09-11T23:34:20.581076+00:00
