@@ -1,6 +1,6 @@
-# Link and world details — 2026-09-11 18:38:59 UTC
+# Link and world details — 2026-09-11 19:01:50 UTC
 
-Actual game renders from source [3f5b4ce](https://github.com/Leonxlnx/zeldaremake/commit/3f5b4ce9cd36bb83df0c29ff745165412bd7fa31). This is progress evidence, not a claim that the reference or quality gates are complete.
+Actual game renders from source [6293be7](https://github.com/Leonxlnx/zeldaremake/commit/6293be796477f5f81f0a35f1a641d250dc79c6cd). This is progress evidence, not a claim that the reference or quality gates are complete.
 
 [Walking, running and jumping clip](motion.mp4)
 
@@ -59,4 +59,12 @@ Actual game renders from source [3f5b4ce](https://github.com/Leonxlnx/zeldaremak
 ## Belt detail
 
 ![belt detail](14-belt-detail.jpg)
+
+## Run rear quarter
+
+![run rear quarter](15-run-rear-quarter.jpg)
+
+## Run jump launch rear quarter
+
+![run jump launch rear quarter](16-run-jump-launch-rear-quarter.jpg)
 

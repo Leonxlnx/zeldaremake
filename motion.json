@@ -1,6 +1,6 @@
 {
-  "source": "3f5b4ce9cd36bb83df0c29ff745165412bd7fa31",
-  "capturedAt": "2026-09-11T18:38:59.013Z",
+  "source": "6293be796477f5f81f0a35f1a641d250dc79c6cd",
+  "capturedAt": "2026-09-11T19:01:50.150Z",
   "captures": [
     {
       "name": "01-idle",
@@ -24,8 +24,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -158,7 +158,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 476,
-        "triangles": 8471832,
+        "triangles": 8467352,
         "geometries": 460,
         "textures": 100,
         "programs": 68,
@@ -167,7 +167,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "2f57258c65ee9d5cbc862caca11ae049bb5f8accf9b363425800eda8ce306e17"
+      "sha256": "61339b5988817acfe0bbbe761b07f7297350e8baab5553e4cec9fd00b0101622"
     },
     {
       "name": "02-walk",
@@ -191,8 +191,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "walk",
@@ -328,7 +328,7 @@
       "stats": {
         "simTime": 13.399999999999949,
         "drawCalls": 478,
-        "triangles": 8466176,
+        "triangles": 8461696,
         "geometries": 462,
         "textures": 100,
         "programs": 68,
@@ -337,7 +337,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "eaca6d228a91dbeb1d52fa0a2f89381c8cabe073268f9fd72dd90dedb2fffd29"
+      "sha256": "9735f726c41b068f76a226c6f48c14beff943a30d88d24e418d46457d6009fb8"
     },
     {
       "name": "03-run",
@@ -361,8 +361,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "run",
@@ -507,7 +507,7 @@
       "stats": {
         "simTime": 13.19999999999996,
         "drawCalls": 491,
-        "triangles": 8344440,
+        "triangles": 8339960,
         "geometries": 464,
         "textures": 100,
         "programs": 68,
@@ -516,7 +516,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "64bbbde5f922e5830e86321119ede5bbe71c0c9d2e66c9e71d7c8b853d40a697"
+      "sha256": "20a2efbbd8d45edb1c8c6d61688fb33302c526fc693cf8d0497e4de170b220cd"
     },
     {
       "name": "04-jump",
@@ -540,8 +540,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "jump",
@@ -680,7 +680,7 @@
       "stats": {
         "simTime": 12.799999999999983,
         "drawCalls": 530,
-        "triangles": 8450271,
+        "triangles": 8445791,
         "geometries": 472,
         "textures": 100,
         "programs": 68,
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "2721587dc6fc4359de3c4c2e43c35efb1b69e18d04ec4afa1e69882b3c9f6016"
+      "sha256": "646382a4c8f79d7de3138404284fe29c2d37e231ebcb9dd6ab559d0a3974734b"
     },
     {
       "name": "05-outfit-back",
@@ -714,8 +714,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -854,7 +854,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 502,
-        "triangles": 8403967,
+        "triangles": 8399487,
         "geometries": 496,
         "textures": 100,
         "programs": 68,
@@ -863,7 +863,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5c446f8acea0690126be8aa40ec6e5be0a433e89710ec4a0b945681c8f6f0fb3"
+      "sha256": "82c73a8d70b8d31c3ded9ed4b15060d779d63c260a17ca5ac0cd71110b1294be"
     },
     {
       "name": "06-face-detail",
@@ -888,8 +888,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1022,7 +1022,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 439,
-        "triangles": 8281534,
+        "triangles": 8283262,
         "geometries": 499,
         "textures": 100,
         "programs": 68,
@@ -1056,8 +1056,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1181,7 +1181,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 408,
-        "triangles": 8286797,
+        "triangles": 8284557,
         "geometries": 510,
         "textures": 100,
         "programs": 68,
@@ -1215,8 +1215,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1340,7 +1340,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 406,
-        "triangles": 8065598,
+        "triangles": 8063358,
         "geometries": 522,
         "textures": 100,
         "programs": 68,
@@ -1374,8 +1374,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1508,7 +1508,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 420,
-        "triangles": 8347892,
+        "triangles": 8345652,
         "geometries": 522,
         "textures": 100,
         "programs": 68,
@@ -1542,8 +1542,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "walk",
@@ -1688,7 +1688,7 @@
       "stats": {
         "simTime": 13.999999999999915,
         "drawCalls": 575,
-        "triangles": 8564143,
+        "triangles": 8559663,
         "geometries": 522,
         "textures": 100,
         "programs": 68,
@@ -1697,7 +1697,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "caf1522f0be3abe4b2ebcead11b6f43fe1993b71c7861163430df4d71164b5ae"
+      "sha256": "ac33218efea79a98cc83041b998013a28db3dcdbc3cbe1264c44b19dbee135dd"
     },
     {
       "name": "11-stone-stairway",
@@ -1722,8 +1722,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -1862,7 +1862,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 535,
-        "triangles": 8257391,
+        "triangles": 8255151,
         "geometries": 526,
         "textures": 100,
         "programs": 68,
@@ -1896,8 +1896,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2035,8 +2035,8 @@
       },
       "stats": {
         "simTime": 12.999999999999972,
-        "drawCalls": 497,
-        "triangles": 8250460,
+        "drawCalls": 496,
+        "triangles": 8247036,
         "geometries": 527,
         "textures": 100,
         "programs": 68,
@@ -2070,8 +2070,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2210,7 +2210,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 455,
-        "triangles": 8323026,
+        "triangles": 8318546,
         "geometries": 527,
         "textures": 100,
         "programs": 68,
@@ -2219,7 +2219,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "f62942b0532690fd3adfcd9d715d642363bbc52deccb0b6fb6d27b62cb2c4a00"
+      "sha256": "815bb9d6c5e9389aaf7926e3e32e8fc554a4d277c23280b5d7a7d237acff1971"
     },
     {
       "name": "14-belt-detail",
@@ -2244,8 +2244,8 @@
         "fairyTrail": 16,
         "npcs": 3,
         "geometry": "procedural-v1",
-        "triangles": 116990,
-        "linkTriangles": 97056,
+        "triangles": 114750,
+        "linkTriangles": 94816,
         "mode": "play",
         "view": null,
         "linkGait": "idle",
@@ -2378,7 +2378,7 @@
       "stats": {
         "simTime": 12.999999999999972,
         "drawCalls": 431,
-        "triangles": 8282842,
+        "triangles": 8278362,
         "geometries": 527,
         "textures": 100,
         "programs": 68,
@@ -2387,7 +2387,546 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "aa78832d137337657c9ca4a80c8010004542e68b787250c2c47c7656334d037d"
+      "sha256": "5781ffeb1ab3f3b6227edbcbd3909e49a997fe5a397e1b12ec526a8442a4a2af"
+    },
+    {
+      "name": "15-run-rear-quarter",
+      "seconds": 2,
+      "run": true,
+      "move": 1,
+      "jump": false,
+      "view": "rear-quarter",
+      "evidence": "Ordinary run from the actual spawn for two seconds; rear-left view of the continuous arms.",
+      "character": {
+        "link": true,
+        "animations": 7,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs",
+          "jump",
+          "fall",
+          "land"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "procedural-v1",
+        "triangles": 114750,
+        "linkTriangles": 94816,
+        "mode": "play",
+        "view": null,
+        "linkGait": "run",
+        "locomotion": {
+          "x": 0,
+          "y": 0.020188624039292336,
+          "z": -6.990979211806478,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": -3.8999999998527697,
+          "speed": 3.8999999998527812,
+          "grounded": true,
+          "phase": 5.983053391393927,
+          "moveWeight": 0.9999999999992936,
+          "runWeight": 0.9999999818800845,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 1.9999999999999953
+        },
+        "samplePositions": {
+          "feet": [
+            [
+              -0.08599999999999997,
+              0.03966808824121207,
+              -7.257904615258932
+            ],
+            [
+              8.951358996891111,
+              -0.1773596104659546,
+              3.6720084388994536
+            ],
+            [
+              -6.527866328068241,
+              0.17536607064175364,
+              -1.9181341699505794
+            ],
+            [
+              10.57048073430135,
+              1.0903952304508295,
+              -7.5291566448822325
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33694,
+          "cellSize": 0.1,
+          "triangles": 65772
+        },
+        "world": {
+          "link": [
+            -0.08599999999999997,
+            0.03966808824121207,
+            -7.257904615258932
+          ],
+          "navi": [
+            0.37038639555516306,
+            1.3790471942908542,
+            -7.435413333826545
+          ],
+          "kids": [
+            [
+              8.951358996891111,
+              -0.1773596104659546,
+              3.6720084388994536
+            ],
+            [
+              -6.527866328068241,
+              0.17536607064175364,
+              -1.9181341699505794
+            ],
+            [
+              10.57048073430135,
+              1.0903952304508295,
+              -7.5291566448822325
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.412,
+            0.941
+          ],
+          "linkHead": [
+            0.479,
+            0.196
+          ],
+          "navi": [
+            0.509,
+            0.013
+          ],
+          "kids": [
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": [
+                1.321,
+                0.166
+              ],
+              "head": [
+                1.335,
+                -0.037
+              ]
+            }
+          ]
+        }
+      },
+      "camera": {
+        "position": [
+          -1.149854170898476,
+          1.1701886240392922,
+          -5.478419994563273
+        ],
+        "direction": [
+          0.5902589715239833,
+          -0.2207335192400867,
+          -0.7764477187933105
+        ],
+        "fov": 36
+      },
+      "stats": {
+        "simTime": 14.499999999999886,
+        "drawCalls": 493,
+        "triangles": 8289343,
+        "geometries": 528,
+        "textures": 100,
+        "programs": 68,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "retries": 0,
+      "sha256": "8bc40b8ebcdf0411f5c574351415118d447041fb77365f53df20376d4f5626ec"
+    },
+    {
+      "name": "16-run-jump-launch-rear-quarter",
+      "seconds": 0.06666666666666667,
+      "run": true,
+      "move": 1,
+      "jump": true,
+      "view": "rear-quarter",
+      "prepareRunSeconds": 2,
+      "launchFrame": 7,
+      "evidence": "Actual world input replay, seven 120 Hz steps after the observed launch frame; not an exact flat-ground contact-study pose.",
+      "character": {
+        "link": true,
+        "animations": 7,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs",
+          "jump",
+          "fall",
+          "land"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "procedural-v1",
+        "triangles": 114750,
+        "linkTriangles": 94816,
+        "mode": "play",
+        "view": null,
+        "linkGait": "jump",
+        "locomotion": {
+          "x": 0,
+          "y": 0.30685529070595896,
+          "z": -7.25097921179855,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 3.8,
+          "vz": -3.899999999894505,
+          "speed": 3.8999999998944546,
+          "grounded": false,
+          "phase": 5.983053391393927,
+          "moveWeight": 0.9999999999997222,
+          "runWeight": 0.9999999906721292,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 1,
+          "time": 2.066666666666662
+        },
+        "samplePositions": {
+          "feet": [
+            [
+              -0.09023263706929668,
+              0.36874694376466616,
+              -7.310086496363194
+            ],
+            [
+              8.951306866670432,
+              -0.1773459423644548,
+              3.671970561302766
+            ],
+            [
+              -6.527640560752126,
+              0.17523784861274816,
+              -1.9180113245704737
+            ],
+            [
+              10.570358345165985,
+              1.090479720912283,
+              -7.5289494815627025
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33694,
+          "cellSize": 0.1,
+          "triangles": 65772
+        },
+        "world": {
+          "link": [
+            -0.09023263706929668,
+            0.36874694376466616,
+            -7.310086496363194
+          ],
+          "navi": [
+            0.37869792950732556,
+            1.6672870800294437,
+            -7.707899228692445
+          ],
+          "kids": [
+            [
+              8.951306866670432,
+              -0.1773459423644548,
+              3.671970561302766
+            ],
+            [
+              -6.527640560752126,
+              0.17523784861274816,
+              -1.9180113245704737
+            ],
+            [
+              10.570358345165985,
+              1.090479720912283,
+              -7.5289494815627025
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.455,
+            0.975
+          ],
+          "linkHead": [
+            0.482,
+            0.124
+          ],
+          "navi": [
+            0.509,
+            0.013
+          ],
+          "kids": [
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": [
+                1.351,
+                0.221
+              ],
+              "head": [
+                1.366,
+                0.015
+              ]
+            }
+          ]
+        }
+      },
+      "camera": {
+        "position": [
+          -1.149854170898476,
+          1.4568552907059589,
+          -5.738419994555345
+        ],
+        "direction": [
+          0.5902589715239833,
+          -0.22073351924008683,
+          -0.7764477187933104
+        ],
+        "fov": 36
+      },
+      "stats": {
+        "simTime": 14.56666666666655,
+        "drawCalls": 492,
+        "triangles": 8277470,
+        "geometries": 528,
+        "textures": 100,
+        "programs": 68,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "inputTrace": {
+        "runInput": {
+          "moveX": 0,
+          "moveZ": -1,
+          "run": true,
+          "jump": false
+        },
+        "prepareRunSeconds": 2,
+        "preLaunch": {
+          "x": 0,
+          "y": 0.020188624039292336,
+          "z": -6.990979211806478,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": -3.8999999998527697,
+          "speed": 3.8999999998527812,
+          "grounded": true,
+          "phase": 5.983053391393927,
+          "moveWeight": 0.9999999999992936,
+          "runWeight": 0.9999999818800845,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 1.9999999999999953
+        },
+        "launchInput": {
+          "moveX": 0,
+          "moveZ": -1,
+          "run": true,
+          "jump": true
+        },
+        "stepSeconds": 0.008333333333333333,
+        "launchFrameZero": {
+          "x": 0,
+          "y": 0.059667790705959005,
+          "z": -7.023479211805368,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 4.675,
+          "vz": -3.8999999998667807,
+          "speed": 3.8999999998667434,
+          "grounded": false,
+          "phase": 5.983053391393927,
+          "moveWeight": 0.9999999999993714,
+          "runWeight": 0.9999999833242406,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 1,
+          "time": 2.008333333333329
+        },
+        "capturedFrameAfterLaunch": 7,
+        "launchStates": [
+          {
+            "x": 0,
+            "y": 0.059667790705959005,
+            "z": -7.023479211805368,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 4.675,
+            "vz": -3.8999999998667807,
+            "speed": 3.8999999998667434,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999993714,
+            "runWeight": 0.9999999833242406,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.008333333333329
+          },
+          {
+            "x": 0,
+            "y": 0.098105290705959,
+            "z": -7.055979211804294,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 4.55,
+            "vz": -3.8999999998711483,
+            "speed": 3.8999999998711132,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999994406,
+            "runWeight": 0.9999999846530802,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.016666666666662
+          },
+          {
+            "x": 0,
+            "y": 0.13550112403929235,
+            "z": -7.088479211803255,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 4.425,
+            "vz": -3.8999999998753725,
+            "speed": 3.8999999998753765,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999995022,
+            "runWeight": 0.9999999858758198,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.0249999999999955
+          },
+          {
+            "x": 0,
+            "y": 0.171855290705959,
+            "z": -7.120979211802251,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 4.3,
+            "vz": -3.899999999879458,
+            "speed": 3.8999999998794266,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.999999999999557,
+            "runWeight": 0.9999999870009354,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.0333333333333288
+          },
+          {
+            "x": 0,
+            "y": 0.207167790705959,
+            "z": -7.153479211801279,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 4.175,
+            "vz": -3.89999999988341,
+            "speed": 3.89999999988337,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999996058,
+            "runWeight": 0.9999999880362288,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.041666666666662
+          },
+          {
+            "x": 0,
+            "y": 0.24143862403929234,
+            "z": -7.185979211800339,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 4.05,
+            "vz": -3.8999999998872323,
+            "speed": 3.899999999887207,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999996492,
+            "runWeight": 0.9999999889888781,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.0499999999999954
+          },
+          {
+            "x": 0,
+            "y": 0.274667790705959,
+            "z": -7.21847921179943,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 3.925,
+            "vz": -3.8999999998909294,
+            "speed": 3.8999999998909374,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999996878,
+            "runWeight": 0.9999999898654874,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.0583333333333287
+          },
+          {
+            "x": 0,
+            "y": 0.30685529070595896,
+            "z": -7.25097921179855,
+            "yaw": 3.141592653589793,
+            "vx": 0,
+            "vy": 3.8,
+            "vz": -3.899999999894505,
+            "speed": 3.8999999998944546,
+            "grounded": false,
+            "phase": 5.983053391393927,
+            "moveWeight": 0.9999999999997222,
+            "runWeight": 0.9999999906721292,
+            "stairWeight": 0,
+            "landing": 0,
+            "jumps": 1,
+            "time": 2.066666666666662
+          }
+        ]
+      },
+      "retries": 0,
+      "sha256": "53a361683680da40392debcc74e981fbb4f545d3f2f143a75709b982f9d8afb3"
     }
   ],
   "errors": []
