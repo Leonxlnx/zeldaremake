@@ -654,6 +654,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (hardscape albedo), shaded bark, the dome in A/F, B's pods; (2) C01 colours (Astra);
   (3) owner decisions (W04, concept vs frames).
 
+### 23:15 UTC — tick 41: take-0057 published (monitor `b9130ca`), valid; trees round ten
+- `2920056` shade floor on giant bark + leaves (D left trunks 0.219 → 0.330 vs 0.429; F right
+  trunk 0.223 → 0.326 vs 0.331; A top-band dark tree pixels 8.6 → 1.1 %). Shader-only.
+- take-0057: A 0.255 / B 0.221 / C 0.320 / D 0.300 / E 0.237 / F 0.256 — best on every view;
+  hue distance down everywhere (C 0.02°, D 1.2°); 622 draws.
+- Running: hardscape-9 (sunlit slab tops −10..12 % toward A plaza 0.553 / D path 0.490), trees-11
+  (shade floor → shared materials/shadeFloor.ts for structures' bark). Next: structures-10 (dome
+  crown height A/B test 0.83/0.90/0.97 against A+B+F; limb wrap on the shared floor).
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.32 vs 0.42: sunlit paving, the dome in A/F,
+  B's pods and E/B foreground; (2) C01 colours (Astra); (3) owner decisions (W04, concept vs frames).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
