@@ -1,22 +1,22 @@
 {
-  "source": "eca1179fbe5dfc51f95a578e76014ac28d2e7f9a",
-  "capturedAt": "2026-09-11T17:30:36.804Z",
+  "source": "f11559532805948079aaa0fdcf84b8a293ebab6b",
+  "capturedAt": "2026-09-11T17:40:07.342Z",
   "images": [
     {
       "file": "01-idle.jpg",
-      "sha256": "506f511f276dbf3ec73d8e7ca84f89e4eea4aeb1f6827edfc921ac223119d6c2"
+      "sha256": "52b49c37ee158c4066a6437033fbc06188b18547c41ff11d44532d02b4fd30a3"
     },
     {
       "file": "02-walk.jpg",
-      "sha256": "ca84c50f683f7395f0d3a7f0fe5b598327181305f9b8cf33dc28b7301c450b6d"
+      "sha256": "1f6680faf3753857b9b29583f67a4a62d86349f59706bbd17bba574e2db13676"
     },
     {
       "file": "03-run.jpg",
-      "sha256": "26c9b2658a22c0dcfaca613fee8551d27959171ad40355ca6505da682acf78f3"
+      "sha256": "52e24bfd93edb2e0cf9c1b9c834fb3a7e29029115a8edcc08b732c9f85df5441"
     },
     {
       "file": "04-jump.jpg",
-      "sha256": "60846772cd15acc857ba65900a763a5b2c07d3477341530a67ddad0e7fd27ad6"
+      "sha256": "cb4001a5b46d7cc6a4a059b29f578c7a77fef818e515633323717d0d6cc747cc"
     },
     {
       "file": "05-outfit-back.jpg",
@@ -40,15 +40,15 @@
     },
     {
       "file": "10-tree-house.jpg",
-      "sha256": "282e1c42ea9d8ff31d6cbf9cbe6fc3ccceeaf4ecc4ad734e72897aa84886dfcb"
+      "sha256": "7f9f4161871b70327771f259134c8494d23c281b68ef6b7dccee63f6272a769c"
     },
     {
       "file": "11-stone-stairway.jpg",
-      "sha256": "56172f9af7f988da9d10e5d81b96360a5946bed304eb14447ebfe1687ec1d0e8"
+      "sha256": "5b8c99bcf2a9799503f4783e6672540b7abe4de24dc79f8f8b47ee487efd50a1"
     },
     {
       "file": "12-face-profile.jpg",
-      "sha256": "1d9aa35375e8b96c130fc3e293e891eda54348426ede3706ef1504d4a2f20acf"
+      "sha256": "aa13045482013e37c49aa4b7f94dafec2b3b77083dc2d14b2e45e61fa664eb42"
     },
     {
       "file": "13-backpack-detail.jpg",
@@ -56,7 +56,7 @@
     },
     {
       "file": "14-belt-detail.jpg",
-      "sha256": "bbe189532a64330f90ed319cb885bddf0312eef0a09c496da71b113080ba2d14"
+      "sha256": "594e6e1e89a96798977abd6bcf18d4b7f0e7bfe97f43bcfdad279ecdb68b0a61"
     }
   ]
 }
