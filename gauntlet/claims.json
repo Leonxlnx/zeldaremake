@@ -414,6 +414,24 @@
       "at": "2026-09-11T13:00:34.722Z",
       "expiresHours": 6,
       "note": "Round eight trees (house shade, canopy gaps) + hardscape (dirt seams, moss edges, stairs, boulders)"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W17",
+        "W18",
+        "W20",
+        "W25",
+        "W26",
+        "W28",
+        "W29",
+        "W37",
+        "W38"
+      ],
+      "at": "2026-09-11T14:06:10.742Z",
+      "expiresHours": 6,
+      "note": "Round eight: concept-sheet vegetation, house boughs/fences/posts/arch, draw-call packs and merges"
     }
   ]
 }
