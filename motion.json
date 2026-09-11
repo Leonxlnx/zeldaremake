@@ -1,6 +1,6 @@
 {
-  "source": "5b7366077dd520f03d7151a1baf5ec3a3d19d304",
-  "capturedAt": "2026-09-11T06:43:30.358Z",
+  "source": "a35c949599494b8d1c8f5cb745120a4eed6a185c",
+  "capturedAt": "2026-09-11T07:05:55.293Z",
   "captures": [
     {
       "name": "01-idle",
@@ -167,7 +167,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "7812db035940d2adbba72087c5a597858dbcbdfe4b9a6c9cd13a6bb2d2f6f2b5"
+      "sha256": "f527690a5cd352b89a76f9c05db7172627078bbc5208f1a95aadfc889c291df0"
     },
     {
       "name": "02-walk",
@@ -337,7 +337,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "f93af63c76bd6f0879c800187492c94db103c83be6ab2e1ad0f95c6867b07256"
+      "sha256": "d60f9851e2cda9d6cb650b631a869acb8a10e43e492ac4cf62353f4d7df7d19f"
     },
     {
       "name": "03-run",
@@ -516,7 +516,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "6bf7cef819b50b6367306c88ec4e88354f1b6791f77828f2ef19fa1728bc99d8"
+      "sha256": "49a111f8779d03e7cb31f7f0feaf359657f39e718d9620e8514d1a6247a8ffbf"
     },
     {
       "name": "04-jump",
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "0c3d020545a79a4c8a95dff91aca9bbff9fc3aad663dfafae64cebd6836464c1"
+      "sha256": "11ab89cd2ba5502e3a39ad7a1a11bddff4d88a64c4eb97a215c3572e0f9255a0"
     },
     {
       "name": "05-outfit-back",
@@ -863,7 +863,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "35a15c0f12bfa451ab10c824c54c5a30dd022e21fda120df75e3609bb4aeff83"
+      "sha256": "5bfce58796fc29776a77e87a72351ab5f6a05cb0679688408d53cf7c0fdb1946"
     },
     {
       "name": "06-face-detail",
@@ -1031,7 +1031,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "98a70161621d8b6c30d2a47e69d5836199c7c5b5378ce57af7f91a3b2b504888"
+      "sha256": "4442043cb6b41c3f828e69435adaf9c23df91a58e5c74bf677166271b56e6315"
     },
     {
       "name": "07-leaf-lantern",
@@ -1350,6 +1350,174 @@
       },
       "retries": 0,
       "sha256": "9edd4c670a331ab1112c32dd839684847806c5ae589287f12df9df647e0367c8"
+    },
+    {
+      "name": "09-boot-detail",
+      "seconds": 0.5,
+      "run": false,
+      "move": 0,
+      "jump": false,
+      "view": "boots",
+      "character": {
+        "link": true,
+        "animations": 7,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs",
+          "jump",
+          "fall",
+          "land"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "procedural-v1",
+        "triangles": 72408,
+        "linkTriangles": 52474,
+        "mode": "play",
+        "view": null,
+        "linkGait": "idle",
+        "locomotion": {
+          "x": 0,
+          "y": 0.03977188095450401,
+          "z": 0.5,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "speed": 0,
+          "grounded": true,
+          "phase": 0.25,
+          "moveWeight": 0,
+          "runWeight": 0,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 0.5000000000000007
+        },
+        "samplePositions": {
+          "feet": [
+            [
+              -0.08600000000000001,
+              0.043797545135021154,
+              0.475
+            ],
+            [
+              8.952823477432966,
+              -0.17777700773880767,
+              3.6727007358898796
+            ],
+            [
+              -6.5329145909237125,
+              0.17830649728858933,
+              -1.9212561716398022
+            ],
+            [
+              10.572130267930271,
+              1.089167620054289,
+              -7.532173070484263
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33692,
+          "cellSize": 0.1,
+          "triangles": 64406
+        },
+        "world": {
+          "link": [
+            -0.08600000000000001,
+            0.043797545135021154,
+            0.475
+          ],
+          "navi": [
+            0.09680399463951074,
+            1.398380557500222,
+            0.939464431577612
+          ],
+          "kids": [
+            [
+              8.952823477432966,
+              -0.17777700773880767,
+              3.6727007358898796
+            ],
+            [
+              -6.5329145909237125,
+              0.17830649728858933,
+              -1.9212561716398022
+            ],
+            [
+              10.572130267930271,
+              1.089167620054289,
+              -7.532173070484263
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.584,
+            0.845
+          ],
+          "linkHead": [
+            0.499,
+            -1.951
+          ],
+          "navi": [
+            0.566,
+            -1.506
+          ],
+          "kids": [
+            {
+              "feet": [
+                -0.546,
+                0.346
+              ],
+              "head": [
+                -0.585,
+                0.059
+              ]
+            },
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": null,
+              "head": null
+            }
+          ]
+        }
+      },
+      "camera": {
+        "position": [
+          -0.3338284224716842,
+          0.339771880954504,
+          -0.3357981720188593
+        ],
+        "direction": [
+          0.36651262449944366,
+          -0.1537070062818706,
+          0.9176288205491341
+        ],
+        "fov": 30
+      },
+      "stats": {
+        "simTime": 12.999999999999972,
+        "drawCalls": 465,
+        "triangles": 6369235,
+        "geometries": 577,
+        "textures": 71,
+        "programs": 66,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "retries": 0,
+      "sha256": "44eb62116fee7b2d347df89be370b2b4aec1d0352f6e352e7f2f0a669b1c4208"
     }
   ],
   "errors": []
