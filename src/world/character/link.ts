@@ -16,6 +16,7 @@ import { createLinkFaceGeometry, linkMouthHeight } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
 import { buildGear } from './gear';
 import { linkEyeSurface } from './eye-surface';
+import { applyLinkSkinPigment, linkMouthMaterial } from './skin-surface';
 import { createLinkEyeWhite, createLinkEyelid, createLinkUpperLashPath } from './eye-aperture';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
@@ -237,7 +238,7 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
       return new Vector3(x, y, hit.point.z + 0.00018 * k);
     });
     part(head, sweep(seam, [0.0002 * k, 0.00042 * k, 0.00042 * k, 0.0002 * k],
-      { segments: 20, radial: 6, closeStart: true, closeTip: true }), matte('mouth'), 'mouth', false);
+      { segments: 20, radial: 6, closeStart: true, closeTip: true }), linkMouthMaterial(), 'mouth', false);
     // Fine facial layers should not cast jagged self-shadows, but must receive
     // the same cap, hair and canopy shade as the skull they sit on.
     head.traverse(object => {
@@ -548,7 +549,7 @@ function buildCap(rig: Rig): void {
 export function createLink(): Character {
   beginTally();
   const rig = buildRig(LINK_PROPORTIONS, 'link');
-  const skin = matte('linkSkin');
+  const skin = matte('linkSkin', { roughness: .72 });
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
   // Integer repeats meet across the repaired upper/cuff wrap seams. Their
@@ -570,6 +571,7 @@ export function createLink(): Character {
   const syncGeometry = () => { syncBoots(); syncArms(); syncEyes(); };
   normalizeLinkClothUVs(rig);
   batchStaticLinkParts(rig);
+  applyLinkSkinPigment(rig);
   rig.root.userData.character = 'link';
   // Articulation replaces the boot geometry; count the resulting scene, including its joint.
   let triangles = 0;

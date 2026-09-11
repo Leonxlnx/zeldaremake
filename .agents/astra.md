@@ -4,12 +4,60 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T20:15:57.797374Z
+updated: 2026-09-11T20:34:47.578649Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Root composed complexion build passes137modules; staticbatch70→64meshes,105794tri
+and1508256posedposition/normal samples exact withUV/material/shadow/boot/NPC checks.
+Actualrender pending. Tunic integration is now blocked by a real skirt self-crossing
+at ordinary live-walktick8 (.0666667s),11327/11350; unoptimized/optimizedcause and
+local mapping are being inspected. This is distinct from the earlier tick7 shading
+normal anomaly. No garment code or movement coordinator was integrated.
+
+Integrating one frozen Link complexion candidate over885b056: base#ddb59b/.72
+roughness, static restrained head-local cheek/lip/ear pigment and dedicated softer
+mouth seam. Three-file patch preserves all253 old arrays/bounds,84 rig nodes and
+sixNPCs;64meshes/105794tri unchanged. New78168-byte vertexcolor,materials31→32,
+no new texture/per-frame work. Every triangle reaching lowerlid andneck bands
+staysbasecolor;49 duplicateposition groupsmatch. Actualgradients maystilllook
+faceted and lowerroughness needs realrender; no visualapproval beforecapture.
+Rootbuild next. README control/runtime correction travels in samecheckpoint.
+
+Fable nowec0aa70: directional canopy openness/closed-roof haze and IBL rebalance;
+read latest log/PR before this newcharacter task, no overlap. Ownnewshield study
+is scratchmaterialonly: retain paintedcanvas/shape, add originalwood bump/roughness.
+Hair two-helper connectedside/nape candidate is authorized in scratch with exact
+root/fringe/channel/ear guards. Tunic actualcontroller firstwalk reveals a small
+normal-alignment anomaly with no self-fold sofar; fulltrace still being checked.
+
+Published885b056 (treee3c6100): continuous physical eye pigment and blink UVs.
+Root tree equality verified after fast-forward push. SourceZIP14,298,403bytes,
+393entries/CRCpass, delivered. CharacterCI34643738602 started20:21UTC; pending.
+Independentda46 composition passes:58 nonocular meshes, faceab154/scalp91fd actual
+arrays and sixNPCs exact. Final64meshes/105794tri/31materials/30textures; shared
+983040-byte eye texture across actors. No new material disposal churn; inherited
+application-lifetime shared-material caches require a future dedicated teardown.
+Actual ocular reflection/filter quality awaits images; no rendered approval yet.
+
+Next isolated design work: connected/staggered side and rear hair based on actual
+separated locks, and subtle original head-space skin/lip pigmentation. Preserve
+face/eye fitting geometry and all NPCs/global lighting. Tunic optimization reuses
+3116 of14840 support queries and examines exact Float32 normal accumulation; no
+shape, topology, support margin or guard changes. Running recovery is deriving
+feasible contact targets from shared pelvis/leg-rate constraints, no limit increase.
+
+README run instructions now recommend Node22.12+, npmci and ?mode=play with controls;
+automated Chrome requirement is distinguished from ordinary browser play. No test
+needed for this documentation correction; controls/engine checked in current code.
+
+Fable4694b0f review:19 mandatory-hash fixture cases pass. New97c35e6/16f10e4 limb
+and endpoint35cm lowering remain separate; actual monitor still7000e79/take0054.
+PR2comment5640187110 reports eye checkpoint and asks to check the sleeve axis versus
+the original giant limb wiggle before treating1.5cm margin as containment proof.
 
 Actual da46 capture verified at20:00:56.592UTC, archiveb5e73e5/progress/
 2026-09-11_200056-da46f42:18 image hashes,42 source-matched states,errors[].

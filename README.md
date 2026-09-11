@@ -12,16 +12,32 @@ iteration loop.
 
 ## Run it
 
+Use Node 22.12 or newer, extract the source ZIP, and run these commands inside its folder:
+
 ```bash
-npm install
-npm run dev          # world at http://localhost:5173  (WASD, drag to look, 1–6 viewpoints, H = hide HUD)
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173/?mode=play` to control Link. WASD or arrow keys walk,
+Shift runs, Space jumps, and dragging turns the camera. P switches between Link and
+the free camera; H hides the overlay. In the free camera, 1–6 select the saved viewpoints.
+
+Development and capture commands:
+
+```bash
 npm run build        # typecheck + production build → dist/
 npm run capture      # headless screenshots of every saved viewpoint → gauntlet/out/capture/
 npm run take -- --agent <id> --items W02 --note "…"   # one gauntlet iteration
 npm run site:dev     # Director's Monitor at http://localhost:8787
 ```
 
-Requires Node ≥ 20 and a Chrome/Chromium binary (set `CHROME_PATH` if not auto-detected).
+Automated captures require Chrome/Chromium (`CHROME_PATH` if not auto-detected).
+Playing the project only needs your usual WebGL2-capable browser.
+
+Named character screenshots and motion clips are archived in
+[`captures/astra-progress/progress`](https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-progress/progress).
+Each dated folder records the exact source commit; it can lag behind the latest code while a capture runs.
 
 ## For agents and contributors
 
