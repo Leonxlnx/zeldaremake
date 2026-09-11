@@ -4,12 +4,71 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T19:12:31.299641Z
+updated: 2026-09-11T19:42:45.326601Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Local checkpoint combines nape91fd7360 and face-normalab154495, no movement change.
+Composed root npm run build (TypeScript + Vite) passes.
+Nape root build/static-batching pass76→70meshes/108682tri/1508256posed samples exact.
+Face normals now retain the smooth base curvature through displacement Jacobian;
+allgeometrypositions/index/UV exact,1936N changed,maxangle29.678deg. Changed-face
+outward normal dot remains≥.72855 (old.86338);allface minimum.49863 is inherited.
+Independent matrix check agrees exactly beforeFloat32; half/double10µm epsilon
+changes normals≤.001342/.005368deg. Activepatch stays10.901mm from hardzgate.
+Existing abs(x) shape function has centre-line derivative cusp (upperliponesided
+normalgap6.701deg); centralderivative averagesit, not new geometry or instability.
+Actual shading still pending, not a claimed rendered fix. C01/C02/C03 renewed byCLI
+until22:41:50.274UTC; other claims preserved. Current eye/garment/landing work scratch.
+
+Nape91fd7360 integrated locally after independent f9 composition: four broad curved
+side locks and lower carrier retain a central cap/scabbard channel. Same70 meshes/
+108,682triangles; five nape charts and full18chartorder exact. First five UV charts
+rescale physically, including unchanged upper carrier; frontal5–17 arrays exact.
+All69 non-hairmeshes/threeNPCs exact.80 boundedhead/gait +16tailsway checks hold;
+initial fullyextended nape failed (exposedtail/scabbard), preserved and corrected.
+No newlyexposed tail/carrier volume in revised sampledposes; old contacts remain.
+Actual rear render pending. Root reviewed narrow source diff; no rig/material change.
+
+Actualf9 capture completed19:31:30.837UTC, archivea613a2c/progress/
+2026-09-11_193130-f9eda31.18JPEGhashes verified,42states/source exact,errors[].
+Pockets read as folded sewn cloth in belt14; raised thigh still exposes inherited
+rigid garment clipping inrun03. Face06/profile12 show the new nose/lips but angular
+shading; root normalfield candidate leaves allpositions/index/UV exact,1936normal
+vertices changed,1827otherarrays/288eye arrays exact across9blink samples.
+Candidate normal review pending; no visualfixclaim. Currenteye plan uses original
+pigment on one curved white surface to avoid the squeezed pupil/raised cutedge.
+
+Root new scratch task: actualf9 face06/profile12 reveals angular bridge/tip shading.
+Investigating smooth base normals through the displacement Jacobian only; all face
+positions/index/UV/rig/material remain unchanged. Scratch midface-normal-candidate.
+Nape91fd7360 is frozen pending independent composition; garment support and landing
+origin corrections remain isolated. No production movement/eye change yet.
+
+Actual0bbb1fd cap-band capture completed19:26:36.572UTC, archive88ba129/progress/
+2026-09-11_192636-0bbb1fd:18 JPEG hashes verified,42-state clip source exact,errors[].
+Root inspected face06/profile12 and normal automatic blink17/18. Flat sewn band reads
+more clearly than old roll; inherited side hair gap remains. Blink visibly compresses
+iris/pupil into ovals: queued physically unscaled disc clipping review. These actuals
+predate f9 nose/pockets. Four images shared with owner;18-image/clip ZIP CRC verified.
+
+Published f9eda31 (tree b17efbbf2ce81b32df6853669ff6264bb40c94a0): nose/lips and sewn
+pockets composed over cap-band0bbb1fd. Root build/static batching pass:70 meshes,
+108,682triangles,1,508,256 posed position/normal samples exact. Source ZIP verified
+CRC/392entries; actual18-view galleries for0bbb/f9 were in flight at19:25 UTC.
+
+Current isolated work: rear scalp/nape geometry only (first candidate held for newly
+exposed inner-lock/scabbard crossings at yaw+.95/pitch+.55); shared hips-space tunic
+articulation from final thigh transforms (frozen run1/6 first gate); paired C1 landing
+configuration planning (production play-pose/locomotion unchanged). Read-only optical
+eye review checks the weak current catch-light. Helpers never edit production directly.
+Fable replied19:21, latest8c4c64f: atmosphere-6 and irregular lantern limb active; tree
+903146b take0054 pinned atmonitor53eb513 for independent actual review.3130705 replaces
+blanket3h chronology tolerance with four sealed-hash exceptions; review only, our strict
+verifier and deferring writer remain unchanged. No world integration or quality claim.
 
 Current integration: refined nose/lips and fitted tunic pockets over cap-band0bbb1fd.
 Face1493049d keeps a compact upper domain: clearer bridge/tip/alar shoulders, shallow
@@ -1168,4 +1227,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T18:21:55.360931Z
+2026-09-11T19:42:45.326601Z

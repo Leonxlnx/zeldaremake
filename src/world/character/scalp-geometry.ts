@@ -1,5 +1,5 @@
 /** Original closed scalp base and rounded nape locks; no imported assets. */
-import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
+import { BufferGeometry, CubicBezierCurve3, Float32BufferAttribute, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
 import { createLinkFaceGeometry } from './face-geometry';
 import { merge } from './geometry';
 
@@ -62,11 +62,19 @@ export function createLinkScalpAndNape(radius: number): BufferGeometry {
     const ear = .066 * (Math.exp(-Math.pow((angle - Math.PI / 2) / .30, 2)) + Math.exp(-Math.pow((angle - Math.PI * 1.5) / .30, 2)));
     return -.029 + .011 * fade * fade + irregular + ear;
   };
+  // Extend the rear carrier below the occiput, while leaving the ear arches,
+  // frontal sectors and upper cap-facing rows at their existing skull samples.
+  const smooth = (x: number): number => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+  const posterior = (angle: number): number => smooth((angle - 1.94) / .40) * smooth((Math.PI * 2 - 1.94 - angle) / .40);
   const parts: BufferGeometry[] = [], points: Vector3[] = [], normals: Vector3[] = [], positions: number[] = [], uvs: number[] = [], indices: number[] = [];
   try {
     for (let row = 0; row <= rows; row++)
       for (let col = 0; col <= columns; col++) {
-        const angle = start + (end - start) * col / columns, low = lowerY(angle), y = low + (.110 - low) * row / rows;
+        const angle = start + (end - start) * col / columns, low = lowerY(angle);
+        // The centre stays at its existing height under the cap tail. Broad
+        // side lobes taper into that clearance channel, independent of pose.
+        const side = smooth((Math.abs(angle - Math.PI) - .52) / .23);
+        const y = low + (.110 - low) * row / rows - .052 * posterior(angle) * side * (1 - smooth(row / 6));
         const sample = skinAt(angle, y);
         points.push(sample.point);
         normals.push(sample.normal);
@@ -103,20 +111,23 @@ export function createLinkScalpAndNape(radius: number): BufferGeometry {
     shell.setIndex(indices);
     shell.computeVertexNormals();
     parts.push(shell);
+    // The same four closed charts form broad overlapping masses, with uneven
+    // lengths and shallow curls. The carrier remains visible between their roots.
     const locks = [
-      { path: [[1.94, .004], [2.00, -.030], [1.94, -.059]], width: .0105, depth: .011 },
-      { path: [[2.32, -.013], [2.40, -.037], [2.34, -.070]], width: .0115, depth: .012 },
-      { path: [[4.33, .004], [4.26, -.032], [4.35, -.062]], width: .0100, depth: .0105 },
-      { path: [[3.93, -.015], [3.87, -.038], [3.92, -.067]], width: .0110, depth: .0115 },
+      { path: [[2.16, -.006], [2.22, -.043], [2.18, -.079], [2.29, -.098]], width: .031, depth: .0145 },
+      { path: [[2.53, -.014], [2.51, -.051], [2.44, -.087], [2.49, -.104]], width: .020, depth: .0135 },
+      { path: [[4.12, -.008], [4.06, -.044], [4.12, -.076], [4.00, -.096]], width: .031, depth: .014 },
+      { path: [[3.76, -.015], [3.79, -.052], [3.86, -.085], [3.80, -.102]], width: .020, depth: .0135 },
     ];
     const steps = 22, radial = 12;
     for (const lock of locks) {
-      const curve = new CatmullRomCurve3(lock.path.map(([a, y]) => new Vector3(a * .115, y, 0)), false, 'centripetal', .5);
+      const controls = lock.path.map(([a, y]) => new Vector3(a * .115, y, 0));
+      const curve = new CubicBezierCurve3(controls[0], controls[1], controls[2], controls[3]);
       const v: number[] = [], uv: number[] = [], ind: number[] = [];
       let first = new Vector3();
       for (let i = 0; i < steps; i++) {
         const t = i / steps, c = curve.getPoint(t), tangent = curve.getTangent(t).normalize(), across = new Vector3(-tangent.y, tangent.x, 0);
-        const width = lock.width * (.45 + .72 * Math.sin(Math.PI * t)) * (1 - t ** 2.2), depth = .0012 * (1 - t) + lock.depth * Math.sin(Math.PI * t) ** 1.15;
+        const width = lock.width * (.45 + .72 * Math.sin(Math.PI * t)) * Math.sqrt(1 - t * t), depth = .0012 * (1 - t) + lock.depth * Math.sin(Math.PI * t) ** 1.15;
         const sample = skinAt(c.x / .115, c.y);
         if (i === 0)
           first = sample.point.clone().addScaledVector(sample.normal, (.0003 + depth * .5) * k);

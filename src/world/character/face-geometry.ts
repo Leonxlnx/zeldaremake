@@ -112,8 +112,19 @@ function sculptMidface(skull: BufferGeometry, k: number): BufferGeometry {
   result.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
   result.setIndex(triangles); result.computeVertexNormals();
   const normal = result.attributes.normal;
-  for (let i = 0; i < normal.count; i++) if (displacements[i] === 0)
-    normal.setXYZ(i, normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
+  const epsilon = .00001 * k;
+  for (let i = 0; i < normal.count; i++) {
+    const nx = normals[i * 3], ny = normals[i * 3 + 1], nz = normals[i * 3 + 2];
+    if (displacements[i] === 0) { normal.setXYZ(i, nx, ny, nz); continue; }
+    // Preserve the original smooth skull curvature through local refinement.
+    // For z += d(x,y), inverse-transpose sends N to (Nx - dX*Nz, Ny - dY*Nz, Nz).
+    const x = positions[i * 3], y = positions[i * 3 + 1];
+    const z = positions[i * 3 + 2] - displacements[i];
+    const dx = (midfaceDepth(x + epsilon, y, z, k) - midfaceDepth(x - epsilon, y, z, k)) / (2 * epsilon);
+    const dy = (midfaceDepth(x, y + epsilon, z, k) - midfaceDepth(x, y - epsilon, z, k)) / (2 * epsilon);
+    const tx = nx - dx * nz, ty = ny - dy * nz, length = Math.hypot(tx, ty, nz);
+    normal.setXYZ(i, tx / length, ty / length, nz / length);
+  }
   skull.dispose();
   return result;
 }
