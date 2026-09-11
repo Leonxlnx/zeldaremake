@@ -12,7 +12,7 @@ import { BoxGeometry, BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGe
 import { merge, ovalLathe, place, sweep, triangleCount } from './geometry';
 import { CHAR_COLORS, cloth, linkHair, linkIris, matte } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
-import { createLinkFaceGeometry } from './face-geometry';
+import { createLinkFaceGeometry, linkMouthHeight } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
 import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
@@ -232,14 +232,14 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const k = r / 0.125, surface = new Mesh(skull, opts.skin);
     const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
     const seam = Array.from({ length: 9 }, (_, i) => {
-      const u = i / 8 * 2 - 1, x = u * 0.014 * k;
-      const y = (-0.057 + 0.0006 * u * u) * k;
+      const u = i / 8 * 2 - 1, x = u * 0.015 * k;
+      const y = linkMouthHeight(x, k);
       ray.ray.origin.set(x, y, 0.3 * k);
       const hit = ray.intersectObject(surface, false)[0];
       if (!hit) throw new Error('Link mouth must remain seated on the face');
-      return new Vector3(x, y, hit.point.z + 0.0006 * k);
+      return new Vector3(x, y, hit.point.z + 0.00018 * k);
     });
-    part(head, sweep(seam, [0.0004 * k, 0.0011 * k, 0.0011 * k, 0.0004 * k],
+    part(head, sweep(seam, [0.0002 * k, 0.00042 * k, 0.00042 * k, 0.0002 * k],
       { segments: 20, radial: 6, closeStart: true, closeTip: true }), matte('mouth'), 'mouth', false);
     // Fine facial layers should not cast jagged self-shadows, but must receive
     // the same cap, hair and canopy shade as the skull they sit on.

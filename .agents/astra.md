@@ -4,14 +4,41 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T19:08:20.008956Z
+updated: 2026-09-11T19:12:31.299641Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Current checkpoint: flat sewn cap band and real automatic-blink close-up capture cases.
+Current integration: refined nose/lips and fitted tunic pockets over cap-band0bbb1fd.
+Face1493049d keeps a compact upper domain: clearer bridge/tip/alar shoulders, shallow
+philtrum, subtle upper/lower lip planes and a thinner curved mouth seam. Initialcf7 upper
+fade moved24 fringe vertices by≤.583444mm/46 normals by≤5.366°; preserved, then corrected
+only fade limit+.028k→+.008k. Revised hair/brows/ears/other body/NPCs exact. Root checks:
+288 final eye arrays +indices/transforms exact at9 blink values;82 backing vertices and119
+original support triangles retained; no new front-facing triangle enters any of1138
+continuous query/rim segments per eye over.08–1. Independent closed-surface/winding and
+local self-crossing checks pass; patch/hair gap9.498mm, brows36.439mm. No rendered verdict.
+Actual geometry samples: tip+6.23mm, bridge+2.67mm, upper/lower lip+2.22/+3.01mm; same
+negative-Y targets after correction. Recorded-camera CPU projection shifts tip~7px, not
+an actual image. Face alone adds3,770triangles and no draws/materials/per-frame work.
+
+Pocket helper adds two52×78mm cloth pockets and56×31mm folded flaps to actual existing
+front panels. Four closed shells,1.2mm thickness, shared original material/thread batch.
+Complete assemblies inset4mm after exposed upper-corner pouch seam; final pouch gap2.376mm.
+Original panels/skirt/collar/undershirt/other Link meshes and6NPCvariants exact. +1mesh,
++8,176triangles,+0materials/per-frame work.12 idle+12 walk+2 run samples clear before a
+run thigh crossing of lower pocket edge. Exact camera classification finds same skin
+already visible through baseline skirt/panel; inherited clipping remains. No full gait/
+jump or collision-free acceptance. Root composed build/static batching pass76→70meshes/108,682triangles,
+1,508,256 posed positions/normals exact; UV/material/shadow/disposal/boot/NPC checks pass.
+Ready for source publication and actual18-view capture.
+
+Parallel scratch: fuller posterior hair underlayer plus broader existing4 nape locks,
+preserving5 charts/frontal pigment UVs; paired airborne/contact movement still held.
+
+Prior cap checkpoint: flat sewn cap band and real automatic-blink close-up capture cases.
 Cap helper replaces the round cord with a10.2mm-high bevelled cloth band and two fine
 stitch rows. Same40-sector frame, shared palette and crown/tail/hair. New band/thread
 occupancy stays inside old actual torus sectors; complete crown cut edge remains buried

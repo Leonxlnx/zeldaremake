@@ -5,6 +5,7 @@ import { cloth, matte } from './palette';
 import type { Rig } from './rig';
 import { createLinkLeatherMaterial } from './leather-material';
 import { createLinkCapTailStitches } from './cap-tail-stitches';
+import { createLinkTunicPockets } from './tunic-pocket-geometry';
 
 type Attach = (parent: Object3D, geometry: BufferGeometry, material: Material, name: string, shadows?: boolean) => Mesh;
 
@@ -34,6 +35,7 @@ export function addOutfitDetails(rig: Rig, attach: Attach): void {
     return new Vector3(x, y - rig.props.hipY, hit.point.z + gap);
   };
   const sewn: BufferGeometry[] = [];
+  const panels: BufferGeometry[] = [];
   // Two shaped overskirt panels leave a small central opening and a visible lower hem.
   for (const sign of [-1, 1]) {
     const outline = [[0.012, 0.586], [0.092, 0.586], [0.124, 0.485], [0.110, 0.451], [0.023, 0.442]];
@@ -58,8 +60,12 @@ export function addOutfitDetails(rig: Rig, attach: Attach): void {
     panel.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
     panel.setIndex(indices); panel.computeVertexNormals();
     attach(rig.hips, panel, cloth('tunicCollar'), 'tunic-front-panel');
+    panels.push(panel);
     border.push(border[0]); sewn.push(...stitches(border, 0.010, 0.0008));
   }
+  const pockets = createLinkTunicPockets(panels, rig.props.hipY);
+  attach(rig.hips, pockets.cloth, cloth('tunic'), 'tunic-pockets');
+  for (const path of pockets.stitchPaths) sewn.push(...stitches(path, 0.008, 0.00045));
   const threadMaterial = matte('clothThread');
   attach(rig.hips, merge(sewn), threadMaterial, 'tunic-sewn-edges', false);
 

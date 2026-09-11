@@ -1,5 +1,5 @@
 /** Original Link face, centred on the existing head pivot. No imported assets. */
-import { BufferGeometry, SphereGeometry } from 'three';
+import { BufferGeometry, Float32BufferAttribute, SphereGeometry } from 'three';
 import { merge } from './geometry';
 import { createLinkEarGeometry } from './ear-geometry';
 
@@ -9,6 +9,114 @@ const compact = (value: number, extent: number): number => {
   const u = Math.min(1, Math.abs(value) / extent);
   return (1 - u * u) ** 2;
 };
+
+const smooth = (a: number, b: number, value: number): number => {
+  const u = Math.max(0, Math.min(1, (value - a) / (b - a)));
+  return u * u * (3 - 2 * u);
+};
+
+/** A restrained cupid's bow shared by the continuous lips and their fitted mouth seam. */
+export function linkMouthHeight(x: number, k: number): number {
+  const u = x / k;
+  return k * (-.057 + .0006 * (u / .015) ** 2
+    + .0008 * gaussian(Math.abs(u), .005, .003) - .0003 * gaussian(u, 0, .003));
+}
+
+/** The narrow bridge widens below the fitted eye rims, then into the lip plane. */
+function midfaceWeight(x: number, y: number, z: number, k: number): number {
+  if (z < .08 * k) return 0;
+  const height = y / k;
+  const halfWidth = (.011 + .021 * smooth(.022, .038, -height)) * k;
+  return compact(x, halfWidth) * smooth(-.085, -.075, height) * (1 - smooth(.001, .008, height));
+}
+
+function midfaceDepth(x: number, y: number, z: number, k: number): number {
+  const weight = midfaceWeight(x, y, z, k);
+  if (weight === 0) return 0;
+  const px = x / k, py = y / k;
+  const bridge = .0023 * gaussian(px, 0, .0057) * gaussian(py, -.003, .019);
+  const sidePlanes = -.0010 * gaussian(Math.abs(px), .011, .0035) * gaussian(py, -.014, .015);
+  const tip = .0048 * gaussian(px, 0, .0078) * gaussian(py, -.025, .0085);
+  const alar = .0024 * gaussian(Math.abs(px), .011, .0042) * gaussian(py, -.034, .0055);
+  const underside = -.0018 * gaussian(px, 0, .012) * gaussian(py, -.039, .0030)
+    + .0008 * gaussian(px, 0, .003) * gaussian(py, -.036, .005);
+  const philtrum = (.0007 * gaussian(Math.abs(px), .0035, .0018)
+    - .0003 * gaussian(px, 0, .0018)) * gaussian(py, -.048, .0065);
+  const seam = linkMouthHeight(x, k) / k, lipWidth = compact(px, .021);
+  const lips = lipWidth * (.0022 * gaussian(py, seam + .0021, .0024)
+    + .0027 * gaussian(py, seam - .0038, .0030) - .0004 * gaussian(py, seam, .0008));
+  const lowerFold = -.0005 * gaussian(px, 0, .023) * gaussian(py, -.068, .0035);
+  return k * weight * (bridge + sidePlanes + tip + alar + underside + philtrum + lips + lowerFold);
+}
+
+/**
+ * Refine only the centre/lower face. Shared edge bisection and conforming transition
+ * triangles avoid cracks; all new rest positions stay on their original triangle planes.
+ * The orbital triangles lie outside this compact domain. Preserve their original vertex
+ * normals explicitly, so a changed adjacent nose triangle cannot change socket shading.
+ */
+function sculptMidface(skull: BufferGeometry, k: number): BufferGeometry {
+  const source = skull.attributes.position, sourceNormal = skull.attributes.normal, sourceUv = skull.attributes.uv;
+  const positions = Array.from(source.array), normals = Array.from(sourceNormal.array), uvs = Array.from(sourceUv.array);
+  let triangles = Array.from(skull.index!.array);
+  const key = (a: number, b: number) => a < b ? `${a}:${b}` : `${b}:${a}`;
+  for (let pass = 0; pass < 3; pass++) {
+    const split = new Map<string, number>();
+    for (let t = 0; t < triangles.length; t += 3) for (let j = 0; j < 3; j++) {
+      const a = triangles[t + j], b = triangles[t + (j + 1) % 3], edge = key(a, b);
+      if (split.has(edge)) continue;
+      const x = (positions[a * 3] + positions[b * 3]) / 2;
+      const y = (positions[a * 3 + 1] + positions[b * 3 + 1]) / 2;
+      const z = (positions[a * 3 + 2] + positions[b * 3 + 2]) / 2;
+      const length = Math.hypot(positions[a * 3] - positions[b * 3],
+        positions[a * 3 + 1] - positions[b * 3 + 1], positions[a * 3 + 2] - positions[b * 3 + 2]);
+      if (midfaceWeight(x, y, z, k) === 0 || length <= .0028 * k) continue;
+      const vertex = positions.length / 3;
+      positions.push(x, y, z);
+      const nx = normals[a * 3] + normals[b * 3], ny = normals[a * 3 + 1] + normals[b * 3 + 1];
+      const nz = normals[a * 3 + 2] + normals[b * 3 + 2], n = Math.hypot(nx, ny, nz);
+      normals.push(nx / n, ny / n, nz / n);
+      uvs.push((uvs[a * 2] + uvs[b * 2]) / 2, (uvs[a * 2 + 1] + uvs[b * 2 + 1]) / 2);
+      split.set(edge, vertex);
+    }
+    if (split.size === 0) break;
+    const next: number[] = [];
+    for (let t = 0; t < triangles.length; t += 3) {
+      const a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
+      const ab = split.get(key(a, b)), bc = split.get(key(b, c)), ca = split.get(key(c, a));
+      const count = Number(ab !== undefined) + Number(bc !== undefined) + Number(ca !== undefined);
+      if (count === 0) next.push(a, b, c);
+      else if (count === 3) next.push(a, ab!, ca!, ab!, b, bc!, ca!, bc!, c, ab!, bc!, ca!);
+      else if (count === 1) {
+        if (ab !== undefined) next.push(a, ab, c, ab, b, c);
+        else if (bc !== undefined) next.push(b, bc, a, bc, c, a);
+        else next.push(c, ca!, b, ca!, a, b);
+      } else {
+        // Rotate the triangle so the two split edges meet at the middle vertex.
+        let x: number, y: number, z: number, xy: number, yz: number;
+        if (ca === undefined) { x = a; y = b; z = c; xy = ab!; yz = bc!; }
+        else if (ab === undefined) { x = b; y = c; z = a; xy = bc!; yz = ca; }
+        else { x = c; y = a; z = b; xy = ca; yz = ab; }
+        next.push(xy, y, yz, x, xy, yz, x, yz, z);
+      }
+    }
+    triangles = next;
+  }
+  const displacements: number[] = [];
+  for (let i = 0; i < positions.length; i += 3) {
+    const depth = midfaceDepth(positions[i], positions[i + 1], positions[i + 2], k);
+    positions[i + 2] += depth; displacements.push(depth);
+  }
+  const result = new BufferGeometry();
+  result.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  result.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  result.setIndex(triangles); result.computeVertexNormals();
+  const normal = result.attributes.normal;
+  for (let i = 0; i < normal.count; i++) if (displacements[i] === 0)
+    normal.setXYZ(i, normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
+  skull.dispose();
+  return result;
+}
 
 /**
  * Skull, cheeks, jaw, continuous nose and pointed ears for Link's softFeatures path only.
@@ -71,7 +179,7 @@ export function createLinkFaceGeometry(radius: number): BufferGeometry {
       normal.setXYZ(i, 0, Math.sign(position.getY(i)), 0);
     }
   }
-  const geometry = merge([skull, createLinkEarGeometry(radius, 1), createLinkEarGeometry(radius, -1)]);
+  const geometry = merge([sculptMidface(skull, k), createLinkEarGeometry(radius, 1), createLinkEarGeometry(radius, -1)]);
   geometry.name = 'original-link-shaped-face';
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
