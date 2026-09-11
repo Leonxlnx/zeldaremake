@@ -158,6 +158,45 @@ for (let i = 0; i < 600; i++) {
 assert.ok(worstContact < 0.035, `world sole target error ${worstContact} m`);
 assert.ok(lowestSole > -0.005, `sole under ground ${lowestSole}`);
 
+// Live arms must oppose their own legs, not merely oppose the other arm. Measure actual
+// transformed soles and elbow positions so a quarter-cycle timing error fails this replay.
+const armLegReplays = [];
+for (const running of [false, true]) {
+  const r = buildRig(LINK_PROPORTIONS, 'arm-leg-test'), p = createPlayPose(r, flat.height);
+  const c = createLocomotion(flat, 0, 0, 0), samples = [[], []];
+  const sole = new THREE.Vector3(), elbow = new THREE.Vector3();
+  for (let i = 0; i < 720; i++) c.update(1 / 120, input(0, 1, running), (s, dt) => {
+    p.update(s, s.time, dt);
+    if (s.time < 2) return; // Let speed, gait blend and contact anchors settle.
+    for (const [j, ankle] of [r.ankleL, r.ankleR].entries()) {
+      ankle.localToWorld(sole.copy(r.sole)); r.root.worldToLocal(sole);
+      (j === 0 ? r.elbowL : r.elbowR).getWorldPosition(elbow); r.chest.worldToLocal(elbow);
+      samples[j].push({ foot: sole.z - r.sole.z, arm: elbow.z,
+        phase: (s.phase + j * .5) % 1, duty: .52 - .16 * s.runWeight });
+    }
+  });
+  const correlations = [], endpoints = [];
+  for (const [j, values] of samples.entries()) {
+    const meanFoot = values.reduce((sum, v) => sum + v.foot, 0) / values.length;
+    const meanArm = values.reduce((sum, v) => sum + v.arm, 0) / values.length;
+    let covariance = 0, footVariance = 0, armVariance = 0;
+    for (const v of values) {
+      covariance += (v.foot - meanFoot) * (v.arm - meanArm);
+      footVariance += (v.foot - meanFoot) ** 2; armVariance += (v.arm - meanArm) ** 2;
+    }
+    const correlation = covariance / Math.sqrt(footVariance * armVariance);
+    const label = `${running ? 'run' : 'walk'} ${j === 0 ? 'left' : 'right'}`;
+    assert.ok(correlation < -.94, `${label}: arm must move opposite its leg, correlation ${correlation}`);
+    const touchdown = values.filter(v => Math.min(v.phase, 1 - v.phase) < .02);
+    const liftOff = values.filter(v => Math.abs(v.phase - v.duty) < .02);
+    assert.ok(touchdown.length >= 8 && liftOff.length >= 8, `${label}: replay covers both stride endpoints`);
+    assert.ok(touchdown.every(v => v.foot > .17 && v.arm < -.02), `${label}: forward landing foot has a backward arm`);
+    assert.ok(liftOff.every(v => v.foot < -.16 && v.arm > .02), `${label}: rear lift-off foot has a forward arm`);
+    correlations.push(correlation); endpoints.push([touchdown.length, liftOff.length]);
+  }
+  armLegReplays.push({ gait: running ? 'run' : 'walk', correlations, endpoints });
+}
+
 // Contact state uses the same fixed steps as physics, including turns and stopping mid-swing.
 function contactReplay(surface, hz, commands = [[2, input(0, 1)], [1, input(0, 1, true)], [1, input(0, -1)], [1, input()]]) {
   const r = buildRig(LINK_PROPORTIONS, 'contact-test'), p = createPlayPose(r, surface.height);
@@ -242,4 +281,4 @@ applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 }); const reference = poseSt
 poses.update({ ...walk.state, grounded: false, vy: 4 }, 100);
 applyPose(rig, { gait: 'run', t: 12.6, phase: -1.11 });
 assert.deepEqual(poseState(), reference, 'fixed pose does not accumulate play state');
-console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts }));
+console.log(JSON.stringify({ passed: true, replaysHz: [30, 60, 120, 144], apex, landedAt, worstContact, lowestSole, armLegReplays, contacts, stairContacts, jumpContacts, runJumpContacts, descendingContacts }));

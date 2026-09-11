@@ -92,13 +92,17 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       applyPose(r, { gait: 'idle', t, phase: 0, lookWeight: 0 });
       const w = s.moveWeight, run = s.runWeight, stair = s.stairWeight;
       const phi = s.phase * TAU, wave = Math.sin(phi);
+      const duty = mix(0.52, 0.36, run);
+      // Arms pass neutral with the feet at mid-stance/mid-swing; positive shoulder X
+      // swings backward as the same-side foot reaches forward for touchdown.
+      const armWave = Math.cos(phi + Math.PI * (0.5 - duty));
       const arm = mix(0.32, 0.66, run) * w;
       r.hips.position.x *= 1 - w;
       r.hips.rotation.set(0, 0.045 * wave * w, 0.022 * wave * w);
       r.chest.rotation.set(0.025 + (0.07 + 0.13 * run + 0.07 * stair) * w, -0.035 * wave * w, 0);
       r.chest.position.y += 0.004 * Math.cos(phi * 2) * w;
-      r.shoulderL.rotation.set(arm * wave, 0, 0.1);
-      r.shoulderR.rotation.set(-arm * wave, 0, -0.1);
+      r.shoulderL.rotation.set(arm * armWave, 0, 0.1);
+      r.shoulderR.rotation.set(-arm * armWave, 0, -0.1);
       r.elbowL.rotation.x = r.elbowR.rotation.x = -mix(0.18, 1.1, run) - 0.16 * w;
       r.neck.rotation.x = -0.04 * w;
       if (r.cap) r.cap.rotation.set(0.02 + 0.055 * w * Math.cos(phi * 2 - 0.7), 0, 0.025 * wave * w);
@@ -129,7 +133,6 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       // A slight knee bend gives the leg solver room; landing compresses without moving physics.
       if (s.grounded) r.hips.position.y -= 0.035 + 0.04 * w + 0.01 * run + 0.055 * s.landing;
       r.root.updateMatrixWorld(true);
-      const duty = mix(0.52, 0.36, run);
       const stride = strideLength(run, stair);
       const lead = Math.min(0.245, stride * duty * 0.5) * w;
       for (const f of feet) {

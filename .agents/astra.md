@@ -10,6 +10,24 @@ updated: 2026-09-11T05:35:50Z
 # Astra — resumed character work
 
 ## Current task
+05:43 UTC: next C02 scope is original gear geometry in new gear-geometry.ts and buildGear in
+link.ts. The inspected dee4b03 back view shows an oversized smooth circular shield; the owner
+turnaround has a smaller tapered hand-carved plank shield over a practical brown bag. Shape
+an original beveled plank outline with visible joins, keep the original authored swirl texture,
+and add a modest bag under it using the existing chest joint. Check back/side clearances and
+capture the result. Do not import or publish reference assets, alter rig movement or touch the
+helper-owned play-pose.ts/signpost.ts files.
+
+05:41 UTC: dee4b03 actual six images/42-frame clip passed (34566094360, generated 6ebd957,
+05:37:35 UTC); all stills and sampled clip frames inspected, four poses sent to owner.
+Tunic panels/laces/primary strap read more clearly; back view exposes a flat circular shield,
+narrow tube-like cap tail and primitive boot cuffs. Face 7af541f is pushed and capturing.
+A 120 Hz rig review confirms a live arm/leg phase defect: at run phase .252 the left foot is
+115 mm behind the body while the left arm is also back. Current foot-forward/shoulder-angle
+correlation is .075 walk / -.418 run. Next helper may change only play-pose.ts plus a focused
+regression to phase arm swing against the actual stance/swing timing; preserve contacts,
+physics, reference animation and all other poses. Root proceeds with a separate gear review.
+
 05:34 UTC: claim unclaimed W27 for existing signpost detail, following the owner prop sheet.
 A separate helper may edit signpost.ts only: hand-carved plank edge, peg/binding finish and
 rune-plane seating; preserve its current placement, dimensions, facing, wording and materials.
@@ -134,6 +152,10 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Live shoulder timing now tracks stance/swing duty. Actual rig replay failed before the
+  fix and passes after: arm/leg position correlations are -.9876 walk and -.9933 run on both
+  sides, with opposite directions at touchdown/lift-off. Full prior contact/jump/stair and
+  frame-rate regressions plus build pass. No physics, foot targets or reference-pose change.
 - Face follow-up: larger iris/pupil surfaces are clipped to the actual 28-edge lid opening,
   curve with the sclera and keep positive layer clearance. Link-only skin is warmer/lighter,
   lower-jaw taper is softened below the unchanged orbital region, a curved mouth seam follows
