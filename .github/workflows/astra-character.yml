@@ -32,6 +32,7 @@ jobs:
       - run: node src/world/character/boot-articulation.test.mjs
       - run: node src/camera/follow.test.mjs
       - run: node src/world/structures/foliage-shadow.test.mjs
+      - run: node src/world/structures/consolidation-shadow.test.mjs
       - run: npm run build
       - name: Decide whether motion needs a new clip
         id: capture-mode

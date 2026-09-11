@@ -29,6 +29,7 @@ export interface LanternBranchBuild {
 // they hang behind it). The third sits at the trunk end of the bough: just outside shot A's
 // left edge (x ≈ -0.05) and outside B, C and D.
 const LANTERN_T = [0.5, 0.9, 0.1];
+const BRANCH_POD_SCALE = 0.62;
 const CORDS = [1.2, 1.0, 1.0];
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
@@ -53,7 +54,9 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     // slight offset to the side of the limb so cords don't all hang from the centreline
     hook.x += (lanternRng() - 0.5) * 0.15;
     hook.z += (lanternRng() - 0.5) * 0.15;
-    const rig = buildLantern(hook, CORDS[i % CORDS.length], mats, lanternRng, 1.0);
+    // Reference frame 1 s: the bough pods span ~0.03 of the frame height at 10.7 m (≈ 0.27 m);
+    // at scale 1.0 ours read ~0.45 m and dominate frame 14 s, where the footage shows them small.
+    const rig = buildLantern(hook, CORDS[i % CORDS.length], mats, lanternRng, BRANCH_POD_SCALE);
     group.add(rig.pivot);
     lanterns.push(rig);
   }
@@ -77,9 +80,6 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const c = new Vector3();
   for (const r of lanterns.slice(1)) c.add(r.pod);
   c.divideScalar(Math.max(1, lanterns.length - 1));
-  // This single point approximates the group of emitting pods. Keep it below
-  // their complete shells: the outer-pod mean lies against the middle lantern,
-  // where an unshadowed inverse-square point burned its leaves and rope white.
   c.y -= 0.9;
   const light = new PointLight(ctx.config.palette.lanternGlow, 4.25, 6, 2);
   light.position.copy(c);

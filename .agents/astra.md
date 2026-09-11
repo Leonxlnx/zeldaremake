@@ -4,12 +4,22 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T14:54:55Z
+updated: 2026-09-11T14:59:10Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Vegetation/hardscape source96cff37 is pushed and rendering. Next adopt Fable structures
+with the reviewed minimal shadow-binding compatibility fix and a pure relocation of new
+fence/post declarations into layout (all coordinates/order exact). Seven source files plus
+layout and one real consolidation regression test; lanternBranch point settings remain ours.
+This integration preserves Fable design/ownership and avoids the architecture issue recorded
+earlier. Helper separately studies airborne arm follow-through in scratch only; ground gait
+physics and legs stay untouched. Independent W25 review on actual Fabletake0045 remains fail
+for heavy cross-dome bough/roof construction and isolated warm spot; see evidence note.
+
 
 Cap source a43fd6b is pushed; actual gallery and canonical take are running. Now integrate
 Fable45be2fb twelve vegetation and eight hardscape files byte-identically after independent

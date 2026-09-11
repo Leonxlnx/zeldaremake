@@ -1,8 +1,9 @@
 /**
  * Giant hollow log arch: a fallen trunk of radius ~3.6 m whose ends are sunk into the ground
  * while its belly arches over the north path. Open, obliquely broken and splintered ends show
- * the hollow interior; bark ridges run along the length; moss, grass tufts, ferns and heart-leaf
- * vines grow on top and hang from the underside; two pod lanterns hang under the arch.
+ * the hollow interior; bark ridges run along the length; moss cushions and draped moss sheets,
+ * grass tufts, ferns and heart-leaf vines grow on top and hang from the flanks and underside;
+ * two pod lanterns hang under the arch and three more under the near (west) end (sheet 01).
  */
 import { CatmullRomCurve3, Group, Mesh, PointLight, Vector3 } from 'three';
 import type { WorldContext } from '../system';
@@ -315,9 +316,54 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
     foliage.addSurfaceVine(pts, nrms, { amount: 0.02, thickness: 0.025 });
   }
+  // ---- concept sheet 01 "Branch bridge": the crown is hung with vines along its whole length
+  // and moss drapes over the flanks in sheets ----
+  // vine strands from the upper flanks on both sides (the crown's own hang from the belly above)
+  for (let i = 0; i < 16; i++) {
+    const s = lerp(-L / 2 + 1.0, L / 2 - 2.0, (i + vegRng()) / 16);
+    const north = i % 2 === 1;
+    const psi = north ? Math.PI - 0.15 - vegRng() * 0.4 : 0.15 + vegRng() * 0.4;
+    if (s < sEndW(psi) + 0.6) continue;
+    const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.05);
+    foliage.addHangingVine(hook, 0.9 + vegRng() * 1.6, { amount: 0.1, thickness: 0.018 });
+  }
+  // moss sheets: ragged cushions of moss lying over the crown and hanging down one flank, thick
+  // enough to stand off the bark (their lower edge frays into lobes); denser toward the west end
+  // that faces shot D
+  const sheetParts = [];
+  const sheetRng = rng.fork('moss-sheets');
+  for (let i = 0; i < 11; i++) {
+    const s0 = i < 7 ? lerp(-L / 2 + 0.8, -1.5, (i + sheetRng()) / 7) : lerp(0.5, L / 2 - 2.5, (i - 7 + sheetRng()) / 4);
+    const dirSign = sheetRng() < 0.5 ? 1 : -1;
+    const width = 1.4 + sheetRng() * 1.6;
+    const drop = 0.9 + sheetRng() * 1.1;
+    const psiTop = Math.PI / 2 - dirSign * (0.1 + sheetRng() * 0.3);
+    const sheet = gridSurface(
+      (u, v, out) => {
+        const s = s0 + (u - 0.5) * width * (1 + 0.15 * noise.noise(v * 3 + i, u * 2));
+        // v: 0 at the crown, 1 at the frayed lower edge; the edge wanders in lobes
+        const fray = 0.8 + 0.2 * noise.noise(u * 5 + i * 7, 3) - 0.15 * Math.pow(Math.abs(u - 0.5) * 2, 3);
+        const psi = psiTop + dirSign * v * drop * fray;
+        const r = rBase(psi, s) + detail(psi, s, upness(psi)) + 0.07 + 0.05 * noise.noise(s * 2 + i, psi * 3);
+        surfacePoint(psi, s, r, out.position);
+        out.uv = [s / 1.2, (psi * R) / 1.2];
+        const up = upness(psi);
+        const lit = 0.55 + 0.45 * smoothstep(-0.2, 0.9, up) * (0.7 + 0.3 * noise.noise(s * 1.6, psi * 2 + 5));
+        const mossy = 0.85 + 0.3 * noise.noise(s * 3 + 2, psi * 4);
+        out.color = [0.1 * lit * mossy, 0.13 * lit * mossy, 0.045 * lit * mossy];
+      },
+      { cols: 10, rows: 8 },
+    );
+    faceTowards(sheet, (p, o) => o.copy(p).addScaledVector(radialDir(psiTop + dirSign * 0.5 * drop, s0), 4));
+    sheetParts.push(sheet);
+  }
+  const sheetMesh = new Mesh(merge(sheetParts), mats.moss);
+  sheetMesh.name = 'log-moss-sheets';
+  sheetMesh.castShadow = sheetMesh.receiveShadow = true;
+  group.add(sheetMesh);
   for (const m of foliage.build(mats, 'log')) group.add(m);
 
-  // ---- lanterns under the arch opening ----
+  // ---- lanterns under the arch opening + a cluster under the near (west) end ----
   const lanterns: LanternRig[] = [];
   const lanternRng = rng.fork('lanterns');
   const podCentre = new Vector3();
@@ -330,9 +376,25 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     lanterns.push(rig);
     podCentre.add(rig.pod);
   }
+  // near-end pods (concept sheet 01): three hang on longer cords from the belly of the west
+  // third, where shot D sees the underside at (0.40–0.44, 0.42–0.45) — no extra light, the
+  // shared glow above covers them and at 47 m they read as faint warm dots in the haze
+  const nearEnd: [number, number, number][] = [
+    [-8.6, -0.3, 1.5],
+    [-7.0, 0.22, 1.15],
+    [-5.6, -0.12, 1.35],
+  ];
+  for (const [s, dpsi, cord] of nearEnd) {
+    const psi = -Math.PI / 2 + dpsi;
+    if (s < sEndW(psi) + 0.5) continue;
+    const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);
+    const rig = buildLantern(hook, cord, mats, lanternRng, 1.15, lanternRng() < 0.4 ? 'lime' : 'orange');
+    group.add(rig.pivot);
+    lanterns.push(rig);
+  }
   const lights: PointLight[] = [];
-  if (lanterns.length) {
-    podCentre.divideScalar(lanterns.length);
+  if (def.lanterns > 0) {
+    podCentre.divideScalar(def.lanterns);
     podCentre.y -= 0.3;
     const light = new PointLight(ctx.config.palette.lanternGlow, 8, 8, 2);
     light.position.copy(podCentre);
