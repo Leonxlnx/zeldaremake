@@ -272,6 +272,20 @@
       "at": "2026-09-11T00:00:48.770Z",
       "expiresHours": 6,
       "note": "Atmosphere round four (PCSS shadows, sun/fill split) and the stepping-stone house branch"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W05",
+        "W15",
+        "W18",
+        "W34",
+        "W37"
+      ],
+      "at": "2026-09-11T02:22:39.159Z",
+      "expiresHours": 6,
+      "note": "Stepping-stone slabs, larger stones, shaded-foliage palette"
     }
   ]
 }
