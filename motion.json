@@ -1,6 +1,6 @@
 {
-  "source": "22ac0613bd527a69973c0f12ca2949eb97127da1",
-  "capturedAt": "2026-09-11T15:19:31.301Z",
+  "source": "b79439cd1050e54d64c84278d79c7a0cc4e5e269",
+  "capturedAt": "2026-09-11T15:33:27.391Z",
   "captures": [
     {
       "name": "01-idle",
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "df8cd76385b520ff4d7981fa2f9e583c1bfe35adb1347040cd6fe003ec5a35ba"
+      "sha256": "bcd79040cb1d772b437e921da4cca4fc9cc31fff48d315726a6c94a9b3ba9cc2"
     },
     {
       "name": "05-outfit-back",
