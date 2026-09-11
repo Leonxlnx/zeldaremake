@@ -44,7 +44,8 @@ try {
     { name: '07-leaf-lantern', seconds: 0.5, run: false, move: 0, jump: false, view: 'lantern' },
     { name: '08-carved-sign', seconds: 0.5, run: false, move: 0, jump: false, view: 'sign' },
     { name: '09-boot-detail', seconds: 0.5, run: false, move: 0, jump: false, view: 'boots' },
-    { name: '10-tree-house', seconds: 0.5, run: false, move: 0, jump: false, viewpoint: 'B_house' },
+    // Walk into the scene so the spawn-position cap/fairy do not fill this saved camera.
+    { name: '10-tree-house', seconds: 1.5, run: false, move: 1, jump: false, viewpoint: 'B_house' },
     { name: '11-stone-stairway', seconds: 0.5, run: false, move: 0, jump: false, viewpoint: 'F_canopy' },
     { name: '12-face-profile', seconds: 0.5, run: false, move: 0, jump: false, view: 'profile' },
   ];

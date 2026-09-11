@@ -4,12 +4,22 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T09:56:31Z
+updated: 2026-09-11T10:00:50Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Next auxiliary screenshot correction: the actual0dbb B_house image places the idle spawn cap
+and fairy too close to the saved camera. Advance Link1.5s using ordinary forward walking input
+for this one world view, then keep the authored B camera unchanged. It remains an actual
+play-mode image with recorded input/state, not a posed canonical take or changed layout.
+Clip comparison now covers all character helper/material files, because a helper-only change
+can alter a rendered pose without modifying the listed top-level controller/builder files.
+The last-completed-source comparison and source-matched archive checks remain unchanged.
+Parallel material study is isolated to original procedural Link leather maps; no production
+palette/gear/boot edits yet. Existing base colours/geometry/NPCs must stay unchanged.
+
 Implemented the original central V neckline in Link's torso builder. It removes only a64mm-wide,
 25mm-deep central opening, with1.8mm closed edge returns and a shallow fitted undershirt insert.
 Existing collar/neck/hem boundaries remain open as before. Original840 torso/collar attribute

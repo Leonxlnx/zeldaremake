@@ -51,7 +51,9 @@ jobs:
           fi
           # A queued run may be superseded by another push. Compare with the last
           # completed capture so uncaptured movement or outfit changes still get a clip.
-          if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet "$COMPARE_BASE" HEAD -- src/world/character/locomotion.ts src/world/character/play-pose.ts src/world/character/index.ts src/world/character/link.ts src/world/character/gear.ts src/world/character/boot-articulation.ts src/camera/follow.ts gauntlet/scripts/capture-motion.mjs; then
+          # Include character helpers/materials: their edits can change the rendered
+          # player even when the top-level builder and controller files are unchanged.
+          if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet "$COMPARE_BASE" HEAD -- src/world/character/ src/camera/follow.ts gauntlet/scripts/capture-motion.mjs; then
             echo 'sequence=1' >> "$GITHUB_OUTPUT"
           else
             echo 'sequence=0' >> "$GITHUB_OUTPUT"
