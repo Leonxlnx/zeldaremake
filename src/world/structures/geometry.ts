@@ -341,14 +341,15 @@ export function ensureColor(geo: BufferGeometry, rgb: [number, number, number] =
   return geo;
 }
 
-/** Fill a constant per-vertex colour attribute. */
-export function setColorAttribute(geo: BufferGeometry, rgb: [number, number, number]): BufferGeometry {
+/** Fill a per-vertex colour attribute: a constant, or a function of the vertex index. */
+export function setColorAttribute(geo: BufferGeometry, rgb: [number, number, number] | ((i: number) => [number, number, number])): BufferGeometry {
   const count = geo.attributes.position.count;
   const arr = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
-    arr[i * 3] = rgb[0];
-    arr[i * 3 + 1] = rgb[1];
-    arr[i * 3 + 2] = rgb[2];
+    const c = typeof rgb === 'function' ? rgb(i) : rgb;
+    arr[i * 3] = c[0];
+    arr[i * 3 + 1] = c[1];
+    arr[i * 3 + 2] = c[2];
   }
   geo.setAttribute('color', new Float32BufferAttribute(arr, 3));
   return geo;

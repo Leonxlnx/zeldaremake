@@ -1,16 +1,19 @@
 /**
  * Structures — owner: structures agent.
  * Kokiri tree-trunk houses with mossy dome roofs, glowing pod lanterns, the wooden signpost,
- * post-and-rail fences, lanterns + vines on the lantern branch, and the giant hollow log arch.
- * All positions come from `layout`; all ground contact is sampled through `ctx.terrain`;
+ * post-and-rail fences on the plateau lip, rope fences off the paving, pod-lantern posts,
+ * lanterns + vines on the lantern branch, and the giant hollow log arch.
+ * Positions come from `layout` (rope fences / lantern posts: `fence.ts` / `lanternPost.ts`,
+ * placed against the fixed cameras); all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Mesh, type PointLight } from 'three';
+import { Group, type Material, type Mesh, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { buildFence } from './fence';
+import { ROPE_FENCES, buildFence, createRopeMaterial, type FenceDef } from './fence';
 import { buildHouse } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
+import { LANTERN_POSTS, buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { buildSignpost } from './signpost';
@@ -20,11 +23,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.name = 'structures';
   const rng = ctx.rng.fork('structures');
   const mats = await loadMaterials(ctx, rng.fork('canvas'));
+  // vine rope shared by the rope fences and the lantern posts (defined here, not in materials.ts)
+  const rope = createRopeMaterial();
   ctx.progress('structures', 0.15);
 
   const lanterns: LanternRig[] = [];
   const lights: PointLight[] = [];
   const bases: [number, number, number][] = [];
+  const extraMaterials: Material[] = [rope];
   let houseLanterns = 0;
   let houseRoots = 0;
   let houseBranches = 0;
@@ -37,6 +43,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     lanterns.push(...hb.lanterns);
     lights.push(...hb.lights);
     bases.push(...hb.bases);
+    extraMaterials.push(...hb.materials);
     houseLanterns += hb.lanterns.length;
     houseRoots += hb.roots;
     houseBranches += hb.branches;
@@ -58,13 +65,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bases.push(sb.base);
   }
 
-  // ---- fences ----
-  const fences = ctx.layout.fences.map((f) => buildFence(f, ctx, mats, rng.fork(`fence/${f.id}`)));
+  // ---- fences: the plateau-lip rails from the layout + the rope fences off the paving ----
+  const fenceDefs: FenceDef[] = [...ctx.layout.fences, ...ROPE_FENCES];
+  const fences = fenceDefs.map((f) => buildFence(f, ctx, mats, rng.fork(`fence/${f.id}`), rope));
   let fencePosts = 0;
   for (const fb of fences) {
-    group.add(fb.mesh);
+    for (const m of fb.meshes) group.add(m);
     bases.push(...fb.bases);
     fencePosts += fb.posts;
+  }
+
+  // ---- lantern posts (stair foot, path fork) ----
+  const posts = LANTERN_POSTS.map((p) => buildLanternPost(p, ctx, mats, rng.fork(`lantern-post/${p.id}`), rope));
+  for (const pb of posts) {
+    group.add(pb.group);
+    lanterns.push(...pb.lanterns);
+    lights.push(...pb.lights);
+    bases.push(pb.base);
+    leaves += pb.leaves;
   }
   ctx.progress('structures', 0.75);
 
@@ -118,6 +136,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,
+    ropeFences: ROPE_FENCES.length,
+    lanternPosts: posts.length,
+    postLanterns: posts.reduce((n, p) => n + p.lanterns.length, 0),
     logArch: true,
     houseRoots,
     houseBranches,
@@ -143,6 +164,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (const mat of Object.values(mats)) {
         if (mat && typeof (mat as { dispose?: () => void }).dispose === 'function') (mat as { dispose: () => void }).dispose();
       }
+      for (const m of extraMaterials) m.dispose();
     },
   };
 }
