@@ -31,9 +31,20 @@ export interface SkyDome {
  * reference glare (display hue ≈ 52°, HSV saturation ≈ 0.11, B/R ≈ 0.89 — a yellow-grey, not the
  * orange-gold a 1 : 0.93 : 0.71 ratio gave at this brightness) and heightfog's lit-air veil
  * (`hazeLit`) is a step under it, so hazed crowns read as silhouettes against it the way the
- * reference's do. Exported for the audit; the horizon shares heightfog's `hazeFar`.
+ * reference's do. Exported for the audit; the horizon shares heightfog's `hazeFar`. Both hold only
+ * toward the open east plateau and overhead: toward the closed north hollow / west stand the dome
+ * is heightfog's `hazeClosed` (see `openDir` there) — the reference's B forest band and A left
+ * quadrant are a dim closed roof with no bright gaps (p90 0.49–0.54).
  */
 export const SKY_GAP_GLARE: [number, number, number] = [0.372, 0.368, 0.285];
+
+/**
+ * Forward lobe hook of the dome (gain at mu = 1, tint at mu = 1, both at mu³). Was 0.12 /
+ * (1.05, 1.0, 0.9); off since the sunward directions (WNW–N) are where the reference's air is
+ * dimmest — see heightfog's `sunLobeGain`.
+ */
+export const SKY_SUN_LOBE_GAIN = 0.0;
+export const SKY_SUN_LOBE_TINT: [number, number, number] = [1.0, 1.0, 1.0];
 
 /**
  * Elevation (sin) where the dome reaches the gap glare. The reference's air is at its full
@@ -52,8 +63,11 @@ export const SKY_GLARE_RAMP = 0.2;
  * the cosine-weighted upper hemisphere (0.371, 0.367, 0.284) against the (0.289, 0.271, 0.208) the
  * fill was calibrated on; this tint × `environmentIntensity` 0.421 (lighting/index.ts) maps that
  * back onto the calibrated (0.283, 0.271, 0.218) × 0.57 per channel, so the IBL fill is unchanged.
+ * Round 6: the closed-roof dome toward the north/west (`hazeClosed`) and the dropped sunward term
+ * take the cosine-weighted hemisphere (with the halo, integrated in 2D) from (0.393, 0.383, 0.290)
+ * to (0.339, 0.336, 0.264); (1.049, 1.0, 1.0025) × 0.481 keeps the same (0.171, 0.161, 0.127) fill.
  */
-export const SKY_ENV_TINT: [number, number, number] = [1.033, 1.0, 1.041];
+export const SKY_ENV_TINT: [number, number, number] = [1.049, 1.0, 1.0025];
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -73,6 +87,15 @@ uniform vec3 uSunColor;
 uniform float uTime;
 uniform float uEnvMode;
 uniform float uGlareRamp;
+// canopy openness by direction, shared with heightfog.ts: horizontal unit direction of the open
+// east plateau, smoothstep edges on the horizontal dot product, and the closed-roof haze colour the
+// dome takes toward the north hollow / west stand
+uniform vec2 uOpenDir;
+uniform vec2 uOpenEdges;
+uniform vec3 uClosed;
+// forward lobe hook (gain at mu = 1, tint at mu = 1; off by default like heightfog's sunLobeGain)
+uniform float uSunLobeGain;
+uniform vec3 uSunLobeTint;
 // back-scatter lobe shared with the distance haze (heightfog.ts): (min multiplier, -cos of the
 // angle where it saturates) and the tint at full dimming
 uniform vec2 uBackScatter;
@@ -113,15 +136,23 @@ void main() {
   float mu = dot( d, uSunDir );
   float sd = max( mu, 0.0 );
   // luminous warm haze: the far-haze grey at the horizon (seamless with the distance fog on
-  // geometry) brightening to the canopy-gap glare overhead; brighter and warmer again toward the
-  // sun, where the haze is front-lit, and dimmer opposite the sun (the same back-scatter lobe the
-  // distance haze on geometry uses, so the far world and the dome behind it stay seamless; the
-  // environment map keeps the side-scatter value so the IBL calibration is untouched). Nothing here
-  // is blue (the reference has 0 % sky-blue pixels).
+  // geometry) brightening to the canopy-gap glare overhead, and dimmer opposite the sun (the same
+  // back-scatter lobe the distance haze on geometry uses, so the far world and the dome behind it
+  // stay seamless; the environment map keeps the side-scatter value so the IBL calibration is
+  // untouched). Nothing here is blue (the reference has 0 % sky-blue pixels).
   float up = clamp( h, 0.0, 1.0 );
-  vec3 sky = mix( uHorizon, uZenith, smoothstep( 0.0, uGlareRamp, up ) );
+  // canopy openness of this direction (heightfog.ts kfOpenness): the gap glare and the far-haze
+  // horizon toward the open east plateau and overhead; toward the closed north hollow / west stand
+  // the dome is the same dim closed-roof veil the geometry there is hazed with, so the far rows and
+  // the gaps between them converge on one tone (the reference's B forest band and A left quadrant)
+  float len = length( d.xz );
+  float e = len > 1e-4 ? dot( d.xz / len, uOpenDir ) : 1.0;
+  float open = max( smoothstep( uOpenEdges.x, uOpenEdges.y, e ), smoothstep( 0.42, 0.7, h ) );
+  vec3 zenith = mix( uClosed, uZenith, open );
+  vec3 horizon = mix( uClosed, uHorizon, open );
+  vec3 sky = mix( horizon, zenith, smoothstep( 0.0, uGlareRamp, up ) );
   float s3 = pow( sd, 3.0 );
-  sky *= ( 1.0 + 0.12 * s3 ) * mix( vec3( 1.0 ), vec3( 1.05, 1.0, 0.9 ), s3 );
+  sky *= ( 1.0 + uSunLobeGain * s3 ) * mix( vec3( 1.0 ), uSunLobeTint, s3 );
   float back = smoothstep( 0.0, uBackScatter.y, -mu ) * ( 1.0 - uEnvMode );
   sky *= mix( vec3( 1.0 ), uBackTint * uBackScatter.x, back );
   // below the horizon: haze darkening toward ground bounce (only matters for the env map)
@@ -166,6 +197,11 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
     uGlareRamp: { value: SKY_GLARE_RAMP },
+    uOpenDir: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.openDir) },
+    uOpenEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi) },
+    uClosed: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeClosed) },
+    uSunLobeGain: { value: SKY_SUN_LOBE_GAIN },
+    uSunLobeTint: { value: new Color(...SKY_SUN_LOBE_TINT) },
     uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },
     uBackTint: { value: new Color(...HEIGHT_FOG_DEFAULTS.backScatterTint) },
     uEnvTint: { value: new Color(...SKY_ENV_TINT) },

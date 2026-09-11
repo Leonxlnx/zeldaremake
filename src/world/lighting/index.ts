@@ -117,8 +117,9 @@ export function create(ctx: WorldContext): WorldSystem {
   // The dome's gap glare then rose 0.292 → 0.372 with a shorter ramp (the visible far air), which
   // lifts the cosine-weighted upper hemisphere ×1.35 in green: 0.57 × 0.271 / 0.367 keeps the IBL
   // fill on the ground unchanged (the shade is calibrated by the hemisphere + IBL sum); the
-  // per-channel remainder is in SKY_ENV_TINT
-  const environmentIntensity = 0.421;
+  // per-channel remainder is in SKY_ENV_TINT. 0.481 once the dome went to the closed-roof veil
+  // toward the north/west (hemisphere mean ×0.876 in green, see SKY_ENV_TINT) — same fill again
+  const environmentIntensity = 0.481;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

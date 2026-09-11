@@ -98,6 +98,12 @@ export function create(ctx: WorldContext): WorldSystem {
     // rays climbing out of the under-canopy layer see the lit open air (the reference's upper-frame haze)
     hazeLitDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeLit),
     hazeLitKnee: HEIGHT_FOG_DEFAULTS.hazeLitKnee,
+    // canopy openness by direction: the lit air / gap glare hold toward the open east plateau, the
+    // north hollow and the west stand are a dim closed roof (the dome takes the same colour there)
+    canopyOpenBearingDeg: Math.round((Math.atan2(HEIGHT_FOG_DEFAULTS.openDir[0], -HEIGHT_FOG_DEFAULTS.openDir[1]) * 180) / Math.PI),
+    canopyOpenEdges: [HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi],
+    hazeClosedDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeClosed),
+    hazeSunLobeGain: HEIGHT_FOG_DEFAULTS.sunLobeGain,
     // Mie-like airlight lobe: side-scatter is the calibrated colour, the veil dims when the sun is
     // behind the camera (shot C); the display value is the far haze seen straight away from the sun
     hazeBackScatterMin: HEIGHT_FOG_DEFAULTS.backScatterMin,
