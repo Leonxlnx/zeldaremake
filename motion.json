@@ -1,6 +1,6 @@
 {
-  "source": "f963398f311c372676457935f65c7998744fe0d1",
-  "capturedAt": "2026-09-11T09:11:59.164Z",
+  "source": "45ed76dce4a2551d60074c25bf7d21f10e2124b8",
+  "capturedAt": "2026-09-11T09:17:11.775Z",
   "captures": [
     {
       "name": "01-idle",
@@ -337,7 +337,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "8b89d7af0ae8d5ee1e98b971930364affe1e3d8fa78b054b6b08a9a28a0d4cc0"
+      "sha256": "03173b15f469204ba14ba8dd03091416fd56751670b88f49942d7175459d5f52"
     },
     {
       "name": "03-run",
@@ -515,8 +515,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "retries": 1,
-      "sha256": "efeac764b168ee8c5a58d80c8f1a074db489293fee9d72b9225beaf89a2202c3"
+      "retries": 0,
+      "sha256": "27401747be94ba65eea62c04948fcb99e65f4422fd748cbbd69cdbecab3ff7ab"
     },
     {
       "name": "04-jump",
@@ -689,7 +689,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "ba66bcb873e0a967bfed917f1fd0b5e7f0db0c5cd0082ac2be40e097dcb201d0"
+      "sha256": "ed2fd49179a5bc146fd3e9e7fdebaaf18b11fd5b7443251be6c79876ba7dc968"
     },
     {
       "name": "05-outfit-back",
@@ -863,7 +863,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5b7712d2963cc4bced6f8530a950cec43ee3391f4062bb6362d37c53c3cc3b40"
+      "sha256": "4091cc698f46ffe5e621a59c93b57ae140303873ca9114fc9d1efa09974e5269"
     },
     {
       "name": "06-face-detail",
@@ -1190,7 +1190,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "256c5260b45bd99a6efb5f9550bb6284f0181d6ac2b578a2fc416846e68bdbcd"
+      "sha256": "73115e22215050bc1aefce66ef96d8308c9489fba5801e3be696e06cb717ceb8"
     },
     {
       "name": "08-carved-sign",
@@ -1349,7 +1349,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "3995c272e3a38b857f22d5e184efae2c75edc85c631f8a2f398a4a4eb13e543c"
+      "sha256": "c73edf4b0d026dc2860c5960142ec20a0a412af44381a0d7204f4119842e67a1"
     },
     {
       "name": "09-boot-detail",
