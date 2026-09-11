@@ -311,7 +311,7 @@ async function toJpeg(src, dst, { width = 1280, quality = 82 } = {}) {
  * Apply the local ledger + one new take to the monitor checkout: reconcile ledgers, write take
  * assets, regenerate takes.json / agents.json, copy rubric + reference frames. Returns { takeId, record }.
  */
-export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath, entry, takeDir, rubric, callouts, refCallouts, phase = 1, log = console.error }) {
+export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath, entry, takeDir, rubric, callouts, refCallouts, phase = 1, distDir = DIST_DIR, log = console.error }) {
   const dataDir = monitorDataDir(monitorDir);
   fs.mkdirSync(dataDir, { recursive: true });
   const local = loadLedger(localLedgerPath);
@@ -365,7 +365,9 @@ export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath
   }
   fs.writeFileSync(path.join(monitorDir, 'README.txt'), `Director's Monitor — deployed site (root) + data (data/). Written only by gauntlet/scripts/take.mjs --publish and CI. See site/SCHEMA.md on the code branch. Do not edit by hand.\n`);
   syncSiteFiles(monitorDir);
-  syncPlayBuild(monitorDir);
+  // the walkable build under play/ must be the build that was captured: callers pass the dist
+  // they captured from (take.mjs verifies its hash against stats.distHash first)
+  syncPlayBuild(monitorDir, distDir);
   return { takeId, record, takes };
 }
 

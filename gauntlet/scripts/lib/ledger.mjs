@@ -84,6 +84,7 @@ export function verifyChain(ledger) {
   const problems = [];
   let prev = genesisHash(ledger);
   const ids = new Set();
+  let lastAt = null; // last well-formed ordering time seen (chronology is checked against it)
   ledger.entries.forEach((e, i) => {
     const where = `entry ${i} (${e.id ?? '?'})`;
     if (e.prevHash !== prev) problems.push(`${where}: prevHash ${short(e.prevHash)} ≠ expected ${short(prev)}`);
@@ -91,12 +92,20 @@ export function verifyChain(ledger) {
     if (e.hash !== h) problems.push(`${where}: hash ${short(e.hash)} ≠ recomputed ${short(h)}`);
     if (ids.has(e.id)) problems.push(`${where}: duplicate id`);
     ids.add(e.id);
+    // chronology needs a real timestamp: a missing or unparsable `at` would slip past the numeric
+    // comparisons below (Date.parse -> NaN), so it is a chain problem in itself
+    if (!e.at || !Number.isFinite(Date.parse(e.at))) problems.push(`${where}: missing or malformed timestamp ${JSON.stringify(e.at ?? null)}`);
+    if (e.capturedAt !== undefined && !Number.isFinite(Date.parse(e.capturedAt))) problems.push(`${where}: malformed capturedAt ${JSON.stringify(e.capturedAt)}`);
     // strict chronology: `at` orders the chain (concurrent appends are resequenced by mergeLedgers,
     // keeping their capture time in capturedAt); the only tolerated inversions are the sealed
     // pre-resequencing entries listed above, by hash
     // imported captures (--import --sha --at) are not exempt: their `at` is the record time and a
     // concurrent append is resequenced like any other
-    if (i > 0 && ledger.entries[i - 1].at && e.at && Date.parse(e.at) < Date.parse(ledger.entries[i - 1].at) && !SEALED_CHRONOLOGY_EXCEPTIONS.has(e.hash)) problems.push(`${where}: timestamp ${e.at} precedes previous entry`);
+    const atMs = Date.parse(e.at);
+    if (Number.isFinite(atMs)) {
+      if (lastAt !== null && atMs < lastAt && !SEALED_CHRONOLOGY_EXCEPTIONS.has(e.hash)) problems.push(`${where}: timestamp ${e.at} precedes the previous well-formed entry`);
+      lastAt = Math.max(lastAt ?? -Infinity, atMs);
+    }
     prev = e.hash;
   });
   return { ok: problems.length === 0, problems, length: ledger.entries.length, head: prev };

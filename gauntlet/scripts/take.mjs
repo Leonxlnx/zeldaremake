@@ -7,6 +7,7 @@
  *        [--no-build] [--out gauntlet/out/last] [--previous <dir>] [--ledger gauntlet/ledger.json]
  *        [--settle 90] [--quality high]                        capture options (see capture.mjs)
  *        [--import <captureDir> --sha <sha> --at <iso>]      backfill a historical capture
+ *        [--dist <dir>]                                     the captured build to publish under play/ (hash must match stats.distHash)
  *        [--auto-note] [--force] [--strict]                  monitor mode (see .github/workflows/monitor.yml)
  *
  * Steps: build → capture (or import) → compare vs reference + previous take → score → anti-cheat →
@@ -19,11 +20,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync, execFileSync } from 'node:child_process';
-import { ROOT, LEDGER_PATH, CLAIMS_PATH, OUT_DIR, LAST_DIR, PREV_DIR, MONITOR_DIR, readJson, writeJson, resolveArg, rel, loadRubric } from './lib/paths.mjs';
+import { ROOT, LEDGER_PATH, CLAIMS_PATH, OUT_DIR, LAST_DIR, PREV_DIR, MONITOR_DIR, DIST_DIR, readJson, writeJson, resolveArg, rel, loadRubric } from './lib/paths.mjs';
 import { parseArgs, listArg } from './lib/cli.mjs';
 import { loadLedger, saveLedger, appendEntry, lastEntry, nextId, validateNote, mergeLedgers } from './lib/ledger.mjs';
 import { attestation } from './lib/attest.mjs';
-import { captureAll, gitInfo } from './capture.mjs';
+import { captureAll, gitInfo, hashDir } from './capture.mjs';
 import { compareDir, deltaSummary } from './compare.mjs';
 import { scoreDir, renderTable } from './score.mjs';
 import { runAntiCheat, claimCovers } from './anti-cheat.mjs';
@@ -311,6 +312,17 @@ async function main() {
   }
 
   // h. publish --------------------------------------------------------------------------------
+  // the play build published under monitor/play must be the captured build: with --dist <dir> the
+  // captured dist is used and its hash must equal stats.distHash; without it the default dist is
+  // hashed against stats.distHash and publishing refuses on a mismatch (no stale builds go live)
+  let playDist = DIST_DIR;
+  if (publish) {
+    if (typeof args.dist === 'string') playDist = resolveArg(args.dist);
+    const want = stats.distHash ?? null;
+    const have = hashDir(playDist);
+    if (want && have && want !== have) fail(`play build ${rel(playDist)} (${have.slice(7, 19)}) is not the captured build (${want.slice(7, 19)}) — pass --dist <captured dist> or rebuild it`);
+    if (want && !have) fail(`play build ${rel(playDist)} missing — pass --dist <captured dist>`);
+  }
   let published = null;
   if (publish) {
     let applied = null;
@@ -318,7 +330,7 @@ async function main() {
       // a retry resets the monitor checkout to the fetched head: re-union the claims onto it so an
       // incoming grant published meanwhile is never dropped, then re-apply the take
       syncClaims();
-      applied = await applyToMonitor({ localLedgerPath: ledgerPath, entry: sealed, takeDir: finalDir, rubric, callouts, refCallouts, phase, log });
+      applied = await applyToMonitor({ localLedgerPath: ledgerPath, entry: sealed, takeDir: finalDir, rubric, callouts, refCallouts, phase, distDir: playDist, log });
       if (applied.takeId !== sealed.id) log(`monitor: take renumbered ${sealed.id} → ${applied.takeId} (concurrent publish)`);
       // the canonical (merged) entry may carry a new id/number, a resequenced `at`, capturedAt and
       // new prevHash/hash: mirror the whole sealed record, not just the id
