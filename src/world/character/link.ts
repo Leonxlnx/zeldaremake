@@ -22,6 +22,7 @@ import { createLinkFringeLocks } from './fringe-geometry';
 import { createLinkScalpAndNape } from './scalp-geometry';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
+import { createLinkNeckline } from './neckline-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -427,7 +428,7 @@ function buildTorso(rig: Rig): void {
     ],
     { segments: 32, scaleZ: 0.74, folds: 5, foldDepth: 0.035 },
   );
-  part(rig.chest, upper, tunic, 'tunic-upper');
+  const upperMesh = part(rig.chest, upper, tunic, 'tunic-upper');
   // Identity-space copies are only used to fit garment layers at construction.
   const garmentSurfaces = [new Mesh(upper, tunic)];
   const garmentRay = new Raycaster(new Vector3(), new Vector3(0, 0, -1));
@@ -451,6 +452,7 @@ function buildTorso(rig: Rig): void {
   // Pale undershirt behind two folded collar flaps, open at the front of the neck.
   const undershirt = part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.045, 16), 0, cl(0.8325), 0), matte('undershirt'), 'undershirt');
   garmentSurfaces.push(new Mesh(undershirt.geometry, matte('undershirt')));
+  const collarMeshes: Mesh[] = [];
   for (const sign of [1, -1]) {
     const outline = [[0.015, 0.855, 0.056], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.098]];
     const centre = new Vector3(sign * 0.047, cl(0.834), 0.094);
@@ -475,9 +477,23 @@ function buildTorso(rig: Rig): void {
     flap.setAttribute('uv', new Float32BufferAttribute(uv, 2));
     flap.setIndex(indices); flap.computeVertexNormals();
     const collarMaterial = cloth('tunicCollar');
-    part(rig.chest, flap, collarMaterial, 'collar-flap');
+    collarMeshes.push(part(rig.chest, flap, collarMaterial, 'collar-flap'));
     garmentSurfaces.push(new Mesh(flap, collarMaterial));
   }
+  // Fit the collars to the original torso first, then open only the central V.
+  // The closed edge returns cover this cut; the existing outer flap boundaries stay open.
+  const neckline = createLinkNeckline(upper, collarMeshes.map(mesh => mesh.geometry), p.chestY);
+  upperMesh.geometry = neckline.upper;
+  garmentSurfaces[0].geometry = neckline.upper;
+  collarMeshes.forEach((mesh, i) => {
+    const original = mesh.geometry;
+    mesh.geometry = neckline.collarFlaps[i];
+    garmentSurfaces[i + 2].geometry = neckline.collarFlaps[i];
+    original.dispose();
+  });
+  upper.dispose();
+  part(rig.chest, neckline.insert, matte('undershirt'), 'neckline-insert');
+  garmentSurfaces.push(new Mesh(neckline.insert, matte('undershirt')));
   // belt + round buckle
   const leather = matte('leather');
   part(rig.hips, ovalLathe([[0.116, hl(0.596)], [0.120, hl(0.601)], [0.120, hl(0.634)], [0.116, hl(0.639)]], { segments: 36, scaleZ: 0.83 }), leather, 'belt');

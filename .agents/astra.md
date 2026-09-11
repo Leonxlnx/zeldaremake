@@ -4,18 +4,23 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T09:52:19Z
+updated: 2026-09-11T09:56:31Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
-Prepare the original central V-neckline in an isolated helper. The current collar has a closed
-horizontal band above its flaps; the owner hero sheet has an open folded V. Keep the cut within
-front |x|<=.035m and y>=.8335m including its edge return. Preserve the original shoulder and
-strap-bearing surfaces. A shallow fitted undershirt insert covers the old deep recess. Existing
-collar flaps are front fans; the new cut-edge returns are closed, not the whole garment.
-Final full-build strap-array and oblique-edge checks precede source integration and real renders.
+Implemented the original central V neckline in Link's torso builder. It removes only a64mm-wide,
+25mm-deep central opening, with1.8mm closed edge returns and a shallow fitted undershirt insert.
+Existing collar/neck/hem boundaries remain open as before. Original840 torso/collar attribute
+prefix vertices stay exact; both rebuilt straps and sleeves retain every position/normal/UV/index
+value, verified on actual integrated source against d1f6e55. New geometry remains15.38mm lateral
+from protected strap vertices. All408 opening samples have backing and all254 new cut-edge
+samples have front/back/side coverage. Added rims/insert are closed/outward, finite and
+nondegenerate. Adds614 triangles and one mesh; original replaced buffers are disposed.
+Typecheck/production build pass. Actual face/profile/outfit/motion render is the next visual gate;
+these construction checks do not certify the appearance. New monitor take note records this
+and the completed rear-hair/joint/Fable-house integration since checkpoint0040.
 
 Parallel scratch-only movement study assesses continuous step-to motion on .30m rise/.42m
 treads: immutable stance and landing targets, reach-limited root progress, smooth support
