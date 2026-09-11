@@ -10,6 +10,15 @@ updated: 2026-09-11T03:56:00Z
 # Astra — resumed character work
 
 ## Current task
+04:12 UTC: `d181ef9` motion CI passed (34560470651): four poses plus 42 real frames,
+no page errors or blank-frame retries. All four stills inspected; fringe exterior is solid,
+the cap's dark inverted opening is gone. `73b5e78` four-pose CI also passed (34560668268),
+same game source, captured 04:09:46 UTC; generated commit `2c4b56d`.
+Detailed sequence frame review found the scripted rear camera passes through a pod during
+the jump and obscures a few frames. Move only this supplementary camera to a front
+three-quarter follow view, retain the actual player commands/world and label the view in
+sequence.json. Canonical six-view Astra take on `73b5e78` (34560668396) is still running.
+
 03:56 UTC: actual `bb7f883` stills and the 3.5-second sequence passed CI (34559396820).
 Inspected all four stills and extracted sequence frames; the clip reaches one airborne jump,
 lands, and stops. The hair appears as disconnected curls and the cap join has a dark slit.

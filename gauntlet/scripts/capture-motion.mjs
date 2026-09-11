@@ -79,7 +79,9 @@ try {
         p.input({ moveX: 0, moveZ: i < 36 ? -1 : 0, run: i >= 12 && i < 36, jump: i >= 24 && i < 36 });
         p.advance(1 / 12);
         const s = api.audit().systems.character.locomotion;
-        api.setPose([s.x + 1.2, s.y + 1.65, s.z + 3.6], [s.x, s.y + 0.70, s.z], 46);
+        // Retreat in front of Link: the rear path passes through the hanging
+        // pods at jump height and obscures the exact transition being reviewed.
+        api.setPose([s.x + 1.2, s.y + 1.65, s.z - 3.6], [s.x, s.y + 0.70, s.z], 46);
         await api.render(1, 0);
         return s;
       }, i);
@@ -89,7 +91,7 @@ try {
       if (i % 6 === 0) console.log(`continuous motion frame ${i + 1}/42`);
     }
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '12', '-i', path.join(frames, '%03d.png'), '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.join(out, 'motion.mp4')]);
-    fs.writeFileSync(path.join(out, 'sequence.json'), JSON.stringify({ source, fps: 12, view: 'scripted rear follow view', states: sequence }, null, 2));
+    fs.writeFileSync(path.join(out, 'sequence.json'), JSON.stringify({ source, fps: 12, view: 'scripted front three-quarter follow view', states: sequence }, null, 2));
     fs.rmSync(frames, { recursive: true });
   }
   assert.deepEqual(errors, [], 'renderer page errors');
