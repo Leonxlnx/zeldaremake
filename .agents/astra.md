@@ -4,12 +4,27 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T03:48:00Z
+updated: 2026-09-11T03:56:00Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+03:56 UTC: actual `bb7f883` stills and the 3.5-second sequence passed CI (34559396820).
+Inspected all four stills and extracted sequence frames; the clip reaches one airborne jump,
+lands, and stops. The hair appears as disconnected curls and the cap join has a dark slit.
+Independent review plus a cross-product check found `geometry.sweep()` winds walls and both
+end caps inward. Next fix the shared character helper, with an outward-normal regression,
+then capture before changing hair coordinates again. Affects Link fringe, cap tail, lashes
+and thumbs; current NPC bob geometry does not use this helper. Fable fetch still at `17f9217`.
+The new normal regression failed on the old helper's first triangle, then passes after reversing
+wall and cap winding. Existing locomotion/contact/input tests, build and source anti-cheat pass.
+The `5799a33` pose job failed on a uniform second canvas image after a healthy idle image.
+Add the established capture harness's bounded same-state re-render retry to Astra's exporter,
+keeping the nonblank assertion and recording retries for both stills and sequence frames.
+Read-only mesh raycasts also confirmed two collar vertices penetrate the actual tunic by
+6.3/2.4 mm, explaining clipped edges in the captures. Lift those vertices to ~3 mm clearance.
+
 Owner explicitly resumed Astra/Fable collaboration and requested improved original 3D Link with faithful, simple walking, running and jumping. Claim C01/C02/C03; begin with independent movement simulation, smooth locomotion transitions, jump/landing and camera/input correctness. Later owner reference images remain pending; no 95% similarity claim is possible yet.
 
 03:25 UTC visual pass: motion CI `34557880413` passed on `91e4948`, four actual renderer images inspected (captured 03:20:05 UTC). Walk 1.600 m/s, run 3.899 m/s, jump airborne at 0.30 s, no page errors. The images expose overly circular staring eyes and hair tips intersecting the thinner brim. Next narrow the eyes to shallow almond surfaces and seat fringe roots under the brim. This is a captured defect, not a score-driven adjustment.
@@ -68,4 +83,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T03:48:00Z
+2026-09-11T03:56:00Z

@@ -25,6 +25,28 @@ const { createPlayPose } = load(path.join(here, 'play-pose.ts'));
 const { buildRig, LINK_PROPORTIONS } = load(path.join(here, 'rig.ts'));
 const { buildLegs } = load(path.join(here, 'link.ts'));
 const { applyPose } = load(path.join(here, 'animation.ts'));
+const { sweep } = load(path.join(here, 'geometry.ts'));
+
+// FrontSide character surfaces must face out: otherwise only interior walls of
+// hair, cap tails and thumbs survive backface culling, despite valid positions.
+for (const direction of [new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 2, -3).normalize()]) {
+  const geometry = sweep([new THREE.Vector3(), direction.clone().multiplyScalar(2)], [0.2, 0.2], {
+    segments: 8, radial: 12, closeStart: true, closeTip: true, flatten: 0.38, crease: 0.12,
+  });
+  const positions = geometry.getAttribute('position'), indices = geometry.getIndex();
+  for (let i = 0; i < indices.count; i += 3) {
+    const a = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(i));
+    const b = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(i + 1));
+    const c = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(i + 2));
+    const centre = a.clone().add(b).add(c).multiplyScalar(1 / 3);
+    const normal = b.sub(a).cross(c.sub(a));
+    assert.ok(normal.lengthSq() > 1e-14, 'sweep has no degenerate triangles');
+    const along = centre.dot(direction);
+    const outward = along < 1e-6 ? direction.clone().negate() : along > 2 - 1e-6 ? direction : centre.clone().addScaledVector(direction, -along);
+    assert.ok(normal.dot(outward) > 0, `sweep triangle ${i / 3} faces out, including closed ends`);
+  }
+  geometry.dispose();
+}
 const flat = { height: () => 0, blocked: () => false, onStairs: () => false };
 const input = (moveX = 0, moveZ = 0, run = false, jump = false) => ({ moveX, moveZ, run, jump });
 const near = (a, b, tolerance, name) => assert.ok(Math.abs(a - b) <= tolerance, `${name}: ${a} vs ${b}`);

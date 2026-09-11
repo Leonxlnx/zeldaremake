@@ -13,6 +13,20 @@ const server = await serveStatic(path.join(ROOT, 'dist'));
 let browser;
 const errors = [], captures = [];
 const source = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+async function captureCanvas(page, label) {
+  // SwiftShader can expose a cleared buffer immediately after changing cameras.
+  // Re-render the exact same state, like the main capture harness; never accept
+  // a uniform frame or advance simulation time to get a different pose.
+  const canvas = await page.$('canvas');
+  for (let attempt = 0; attempt <= 3; attempt++) {
+    const png = Buffer.from(await canvas.screenshot({ type: 'png' }));
+    const stats = await sharp(png).stats();
+    if (Math.max(...stats.channels.slice(0, 3).map(x => x.stdev)) > 2) return { png, retries: attempt };
+    assert.ok(attempt < 3, `${label}: blank renderer capture after 3 retries`);
+    console.log(`${label}: blank buffer; re-rendering unchanged state (${attempt + 1}/3)`);
+    await page.evaluate(() => window.__ZR__.render(2, 0));
+  }
+}
 try {
   browser = await launchBrowser();
   const page = await browser.newPage();
@@ -45,13 +59,10 @@ try {
     const s = state.character.locomotion;
     if (c.jump) { assert.equal(s.grounded, false); assert.equal(s.jumps, 1); }
     else if (c.move) assert.ok(s.speed > (c.run ? 2 : 1), `${c.name}: player failed to move`);
-    const canvas = await page.$('canvas');
-    const png = Buffer.from(await canvas.screenshot({ type: 'png' }));
-    const stats = await sharp(png).stats();
-    assert.ok(Math.max(...stats.channels.slice(0, 3).map(x => x.stdev)) > 2, 'blank renderer capture');
+    const { png, retries } = await captureCanvas(page, c.name);
     fs.writeFileSync(path.join(out, `${c.name}.png`), png);
     await sharp(png).jpeg({ quality: 92 }).toFile(path.join(out, `${c.name}.jpg`));
-    captures.push({ ...c, ...state, sha256: crypto.createHash('sha256').update(png).digest('hex') });
+    captures.push({ ...c, ...state, retries, sha256: crypto.createHash('sha256').update(png).digest('hex') });
     console.log(`${c.name}: ${s.speed.toFixed(3)} m/s, grounded=${s.grounded}, phase=${s.phase.toFixed(3)}`);
   }
   // A short continuous renderer clip exposes foot skating and transition pops that
@@ -72,9 +83,9 @@ try {
         await api.render(1, 0);
         return s;
       }, i);
-      const canvas = await page.$('canvas');
-      await canvas.screenshot({ path: path.join(frames, `${String(i).padStart(3, '0')}.png`), type: 'png' });
-      sequence.push(state);
+      const { png, retries } = await captureCanvas(page, `sequence ${i}`);
+      fs.writeFileSync(path.join(frames, `${String(i).padStart(3, '0')}.png`), png);
+      sequence.push({ ...state, retries });
       if (i % 6 === 0) console.log(`continuous motion frame ${i + 1}/42`);
     }
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '12', '-i', path.join(frames, '%03d.png'), '-c:v', 'libx264', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.join(out, 'motion.mp4')]);

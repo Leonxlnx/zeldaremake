@@ -90,7 +90,8 @@ export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {
     for (let j = 0; j < radial; j++) {
       const a = i * ring + j;
       const b = a + ring;
-      indices.push(a, b, a + 1, b, b + 1, a + 1);
+      // binormal = tangent × normal, so radial → tangent winds outward.
+      indices.push(a, a + 1, b, b, a + 1, b + 1);
     }
   }
   if (opts.closeTip) {
@@ -99,14 +100,14 @@ export function sweep(points: Vector3[], radii: number[], opts: SweepOptions = {
     positions.push(c.x, c.y, c.z);
     uvs.push(1, 0.5);
     const base = segments * ring;
-    for (let j = 0; j < radial; j++) indices.push(base + j, ci, base + j + 1);
+    for (let j = 0; j < radial; j++) indices.push(base + j, base + j + 1, ci);
   }
   if (opts.closeStart) {
     const c = centres[0];
     const ci = positions.length / 3;
     positions.push(c.x, c.y, c.z);
     uvs.push(0, 0.5);
-    for (let j = 0; j < radial; j++) indices.push(j + 1, ci, j);
+    for (let j = 0; j < radial; j++) indices.push(j, ci, j + 1);
   }
   const geo = new BufferGeometry();
   geo.setAttribute('position', new Float32BufferAttribute(positions, 3));

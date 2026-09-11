@@ -299,7 +299,7 @@ function buildTorso(rig: Rig): void {
   // Pale undershirt behind two folded collar flaps, open at the front of the neck.
   part(rig.chest, place(new CylinderGeometry(0.054, 0.06, 0.075, 12), 0, cl(0.845), 0), matte('undershirt'), 'undershirt');
   for (const sign of [1, -1]) {
-    const outline = [[0.015, 0.855, 0.047], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.092]];
+    const outline = [[0.015, 0.855, 0.056], [0.077, 0.852, 0.064], [0.096, 0.813, 0.083], [0.050, 0.785, 0.101], [0.020, 0.824, 0.098]];
     const vertices = [sign * 0.047, cl(0.834), 0.094];
     const uv = [0.5, 0.5], indices: number[] = [];
     outline.forEach(([x, y, z], i) => {
