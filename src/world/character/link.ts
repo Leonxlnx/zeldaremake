@@ -26,6 +26,7 @@ import { createLinkNeckline } from './neckline-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
 import { batchStaticLinkParts } from './static-batching';
 import { createLinkCapCrown } from './cap-geometry';
+import { createLinkRelaxedHand } from './hand-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -123,11 +124,7 @@ export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: 
     part(elbow, place(new CylinderGeometry(elbowRadius, 0.033, p.forearm - 0.02, radial), 0, -(p.forearm - 0.02) / 2, 0), limb, 'forearm');
     if (opts.under) part(elbow, place(new CylinderGeometry(0.036, 0.037, 0.03, 10), 0, -p.forearm + 0.005, 0), opts.cuff ?? opts.under, 'sleeve-cuff');
     if (opts.shapedHands) {
-      const hand = merge([
-        place(new SphereGeometry(0.035, 12, 10), 0, -p.forearm - 0.021, 0.008, undefined, [0.84, 1.1, 0.64]),
-        place(new SphereGeometry(0.027, 12, 8), 0, -p.forearm - 0.043, 0.015, undefined, [1.03, 0.68, 0.8]),
-        sweep([new Vector3(side * 0.023, -p.forearm - 0.012, 0.012), new Vector3(side * 0.026, -p.forearm - 0.022, 0.031), new Vector3(side * 0.017, -p.forearm - 0.037, 0.033)], [0.012, 0.012, 0.009], { segments: 8, radial: 8, closeTip: true, closeStart: true }),
-      ]);
+      const hand = createLinkRelaxedHand(p.forearm, side);
       part(elbow, hand, opts.skin, 'hand');
     } else part(elbow, place(new SphereGeometry(0.04, 10, 8), 0, -p.forearm - 0.02, 0.005, undefined, [0.85, 1.15, 0.6]), opts.skin, 'hand');
   }

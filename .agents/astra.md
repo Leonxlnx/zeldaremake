@@ -4,7 +4,7 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T15:14:21Z
+updated: 2026-09-11T15:22:10Z
 ---
 
 # Astra — resumed character work
@@ -41,8 +41,19 @@ contact duration, with minor existing-contact variation (1–2fixed frames, max 
 sampled depth<0.74mm on run launch). Existing belt/pouch/pack contacts are not collision-clean;
 actual clip must judge the change. No canonical retrigger here: keep22ac061 world take queued.
 
-Separate helper builds one scratch-only continuous hand to close measured2.5mm wrist gap;
-no hand source integration yet. Node22 source ZIP22ac061 is CRC-checked and available. Old
+Arms sourceb79439c is pushed; its real clip is queued. Canonical cap take0046 on a43fd6b
+completed:684draws/6856014triangles,23/50overall and19/42phase, no regressions; inherited D1
+still invalidates it. Combined22ac061 take is now running and remains the canonical budget check.
+
+Now integrate one original relaxed hand helper: continuous closed wrist/palm/finger pad joins
+the forearm across its previous2.5mm air gap. Root starts10mm inside the forearm; same32-sided
+33.1mm ring covers all32existing33mm end-rim vertices. Fingertip and complete forearm/hand
+bounds stay exact; thumb root is buried, right thumb explicitly mirrors left. This is an
+overlapping closed palm/thumb approximation, not a welded hand solid; old internal thumb folds
+remain buried.72non-hand Link meshes and all3NPCs exact,64batchedmeshes/74596triangles (+768).
+Construction/normal/closure/mirror/batching/typecheck proofs pass; actual belt/walk/run images
+must judge the join and remaining clothing contact. Files hand-geometry.ts and Link hand call
+only; no pose/physics/material/rig change. Preserve22ac061 canonical run without retrigger. Node22 source ZIP22ac061 is CRC-checked and available. Old
 screenshot automation is confirmed disabled (no next run); no new schedule, merge or deployment.
 Reference fidelity, natural high stairs and inherited D1 chronology remain unfinished.
 
