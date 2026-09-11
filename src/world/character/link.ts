@@ -19,6 +19,7 @@ import { createLinkEyeDisc } from './eye-geometry';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
 import { createLinkFringeLocks } from './fringe-geometry';
+import { createLinkScalpAndNape } from './scalp-geometry';
 import { createBootArticulation } from './boot-articulation';
 import { createLinkSleeve } from './sleeve-geometry';
 
@@ -53,7 +54,7 @@ export function endTally(): number {
 }
 
 /** Legs + boots shared by Link and the kids (kids get taller, darker boots). */
-export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: MeshStandardMaterial; cuff: MeshStandardMaterial | null; shaftTop: number; shapedBoots?: boolean; buckle?: MeshStandardMaterial; tights?: MeshStandardMaterial }): void {
+export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: MeshStandardMaterial; cuff: MeshStandardMaterial | null; shaftTop: number; shapedBoots?: boolean; smoothJoints?: boolean; buckle?: MeshStandardMaterial; tights?: MeshStandardMaterial }): void {
   const p = rig.props;
   const thighLen = p.hipY - p.kneeY;
   const shinLen = p.kneeY - p.ankleY;
@@ -62,10 +63,13 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
     const thigh = side > 0 ? rig.thighL : rig.thighR;
     const knee = side > 0 ? rig.kneeL : rig.kneeR;
     const ankle = side > 0 ? rig.ankleL : rig.ankleR;
-    part(thigh, place(new CylinderGeometry(0.06, 0.052, thighLen + 0.02, 12), 0, -thighLen / 2 + 0.01, 0), leg, 'thigh');
-    part(knee, place(new CylinderGeometry(0.048, 0.04, shinLen, 12), 0, -shinLen / 2, 0), leg, 'shin');
+    // Link's limb ends approach the joint equator, burying the flat caps and
+    // reducing the scalloped normal discontinuity of the coarse sphere joins.
+    const radial = opts.smoothJoints ? 32 : 12;
+    part(thigh, place(new CylinderGeometry(0.06, opts.smoothJoints ? 0.0556 : 0.052, thighLen + 0.02, radial), 0, -thighLen / 2 + 0.01, 0), leg, 'thigh');
+    part(knee, place(new CylinderGeometry(opts.smoothJoints ? 0.0556 : 0.048, 0.04, shinLen, radial), 0, -shinLen / 2, 0), leg, 'shin');
     // knee cap
-    part(knee, opts.shapedBoots ? new SphereGeometry(0.056, 16, 12) : new SphereGeometry(0.05, 10, 8), leg, 'knee');
+    part(knee, opts.smoothJoints ? new SphereGeometry(0.056, 48, 32) : opts.shapedBoots ? new SphereGeometry(0.056, 16, 12) : new SphereGeometry(0.05, 10, 8), leg, 'knee');
     const soleY = rig.sole.y;
     if (opts.shapedBoots) {
       const boot = createLinkBoot(soleY, opts.shaftTop);
@@ -95,13 +99,15 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
  * Arms: optional tunic sleeve over the shoulder, then either bare skin or the long-sleeved
  * undershirt (`under`) down to a tight cuff at the wrist; skin hand.
  */
-export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; shapedSleeves?: boolean; shapedHands?: boolean; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
+export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: MeshStandardMaterial | null; sleeveRadius?: number; shapedSleeves?: boolean; shapedHands?: boolean; smoothJoints?: boolean; under?: MeshStandardMaterial; cuff?: MeshStandardMaterial }): void {
   const p = rig.props;
   const limb = opts.under ?? opts.skin;
   for (const side of [1, -1] as const) {
     const shoulder = side > 0 ? rig.shoulderL : rig.shoulderR;
     const elbow = side > 0 ? rig.elbowL : rig.elbowR;
-    part(shoulder, place(new CylinderGeometry(0.045, 0.039, p.upperArm, 10), 0, -p.upperArm / 2, 0), limb, 'upper-arm');
+    const radial = opts.smoothJoints ? 32 : 10;
+    const elbowRadius = opts.smoothJoints ? 0.0407 : 0.039;
+    part(shoulder, place(new CylinderGeometry(0.045, elbowRadius, p.upperArm, radial), 0, -p.upperArm / 2, 0), limb, 'upper-arm');
     if (opts.sleeve) {
       const radius = opts.sleeveRadius ?? 0.06;
       const sleeve = opts.shapedSleeves ? createLinkSleeve() : merge([place(new SphereGeometry(radius, 12, 8), 0, 0.0, 0), place(new CylinderGeometry(radius, radius * 0.9, 0.1, 12), 0, -0.05, 0)]);
@@ -109,8 +115,8 @@ export function buildArms(rig: Rig, opts: { skin: MeshStandardMaterial; sleeve: 
     } else {
       part(shoulder, new SphereGeometry(0.05, 12, 8), limb, 'shoulder');
     }
-    part(elbow, new SphereGeometry(0.041, 10, 8), limb, 'elbow');
-    part(elbow, place(new CylinderGeometry(0.039, 0.033, p.forearm - 0.02, 10), 0, -(p.forearm - 0.02) / 2, 0), limb, 'forearm');
+    part(elbow, new SphereGeometry(0.041, opts.smoothJoints ? 48 : 10, opts.smoothJoints ? 32 : 8), limb, 'elbow');
+    part(elbow, place(new CylinderGeometry(elbowRadius, 0.033, p.forearm - 0.02, radial), 0, -(p.forearm - 0.02) / 2, 0), limb, 'forearm');
     if (opts.under) part(elbow, place(new CylinderGeometry(0.036, 0.037, 0.03, 10), 0, -p.forearm + 0.005, 0), opts.cuff ?? opts.under, 'sleeve-cuff');
     if (opts.shapedHands) {
       const hand = merge([
@@ -300,24 +306,14 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
           flatten: 0.25, flattenFromRoot: true, crease: 0.08,
           surfaceNormal: outward });
     };
-    // Orient the same strand material down the scalp, matching the swept locks' U axis.
-    const scalp = place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008);
-    const scalpUV = scalp.attributes.uv;
-    for (let i = 0; i < scalpUV.count; i++) {
-      const across = scalpUV.getX(i), down = scalpUV.getY(i);
-      scalpUV.setXY(i, 1 - down, across * 6);
-    }
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
-      scalp,
+      createLinkScalpAndNape(r),
       createLinkFrontalHair(r),
       createLinkFringeLocks(r),
       // sideburn clumps in front of the ears, hanging to the jaw
       clump([0.108, 0.04, 0.045], [0.115, -0.02, 0.05], [0.108, -0.075, 0.045], 0.02, 0.016),
       clump([-0.108, 0.04, 0.045], [-0.115, -0.02, 0.05], [-0.108, -0.075, 0.045], 0.02, 0.016),
-      // tufts at the nape below the cap brim
-      clump([0.05, -0.02, -0.105], [0.06, -0.06, -0.1], [0.05, -0.095, -0.085], 0.024, 0.016),
-      clump([-0.05, -0.02, -0.105], [-0.06, -0.06, -0.1], [-0.05, -0.095, -0.085], 0.024, 0.016),
     ];
     part(head, merge(parts), hair, 'hair');
   } else {
@@ -593,8 +589,8 @@ export function createLink(): Character {
   const skin = matte('linkSkin');
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
-  buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('linkBootCuff'), shaftTop: 0.135, shapedBoots: true, buckle: matte('buckle', { roughness: 0.6 }) });
-  buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true });
+  buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('linkBootCuff'), shaftTop: 0.135, shapedBoots: true, smoothJoints: true, buckle: matte('buckle', { roughness: 0.6 }) });
+  buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true, smoothJoints: true });
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, iris: linkIris(), earLength: 0.085, softFeatures: true });

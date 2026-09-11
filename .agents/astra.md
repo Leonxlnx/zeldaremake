@@ -4,12 +4,82 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T09:06:55Z
+updated: 2026-09-11T09:22:08Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Finish and render the original Link rear-hair and limb-seam pass. This commit replaces the
+open spherical scalp and two nape sheets with a closed skull-fitted base and four rounded
+locks, preserving frontal foundation/fringe and both sideburns. The uneven raised hem removes
+the straight yellow band seen in f963398. `smoothJoints` opts Link into near-tangent limb ends
+and finer elbow/knee spheres; NPCs keep their existing geometry and animation.
+
+Construction checks pass: all 48 nape roots and 26 front overlap samples are buried; visible
+base is at least 1.455 mm outside the skull, exposed ears 1.841 mm clear with no sampled
+triangle intersections, brim 10.475 mm clear. The hidden central base remains behind the cap
+drape. Limb terminal caps stay at least .163 mm inside elbow / .213 mm inside knee spheres;
+measured seam-normal jumps improve from 24–33 degrees to under 9.1 degrees. Wider shins retain
+at least 7.614 mm clearance to boot shafts and 6.011 mm to cuffs. This remains an approximate
+rigid joint, not continuous skin. Typecheck, production build, boot invariants and actual
+cap/rig construction checks pass. New side/back/motion renders remain the visual gate.
+
+Published integration 61ac07e brings Fable's dd9e15b house/geometry files in byte-for-byte,
+with attribution and no PR merge. Combined build and two-house CPU construction pass. Fable
+retains houses, shared structure geometry, terrain, trees and global lighting; their material
+cleanup follow-up is reported in INBOX and PR2. Lantern sepal source 45ed76d has completed CI;
+retrieve its real close-up next. The most recently inspected character gallery is f963398,
+captured 09:11:59 UTC: rounded frontal hair, seated crown, blue-green iris and closer strap.
+
+Named screenshot galleries are preserved on `captures/astra-progress`; the first twelve and
+pinned ZIP are at 9b9b902. The user also received the current source-branch ZIP link. No schedule
+was created. Capture publication runs after completed source work and preserves old folders.
+
+High-stair movement remains unresolved. The .305 m controller/capture proposal is preserved
+in `gauntlet/tmp/astra-deferred-stair-controller-capture.patch`, and all four affected source
+files are restored to the published baseline. Failed pose studies remain scratch-only. Main
+stair entrance trench is still Fable's terrain follow-up. Manual monitor checkpoint 2781c6e is
+running; inherited D1 chronology and all historical invalid verdicts remain unchanged.
+
+## Files / systems being touched
+- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
+- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
+- `src/main.ts`: minimal control-hint/input-order integration only if needed.
+- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
+- Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
+
+## Earlier task notes
+Historical checkpoints below are retained for provenance; current scope/status is above.
+
+Rear-hair helper now replaces only the old open spherical scalp and two nape sheets with a
+closed skull-fitted base and four rounded locks.5,048triangles; same merged hair material/draw.
+Raised uneven hem and ear arches remove the old constant-latitude yellow band. All48 lock
+roots and26 front-overlap samples buried; visible base >=1.455mm outside skull, exposed ears
+>=1.841mm with zero sampled triangle intersections, brim>=10.475mm, neck>=75.3mm. Central base
+intentionally overlaps hidden cap-drape interior but has >=49.27mm rear cover across12 extremes.
+Existing frontal foundation/rounded fringe and both sideburns remain. Limb smoothJoints is an
+explicit Link-only option; expanded shin remains >=7.614mm from boot shaft /6.011mm from cuff.
+These are construction checks pending actual side/back and moving-pose render, not visual approval.
+
+The incomplete .305m authored-stair allowance and traversal capture are now saved in
+`gauntlet/tmp/astra-deferred-stair-controller-capture.patch`; those four working files were
+restored to the published source. Failed pose studies remain in scratch. There is no active
+high-stair candidate mixed into local builds. Only the new Link limb finish/rear hair remain.
+
+2026-09-11T09:17:02Z: Next original-Link-only limb seam pass in link.ts. Actual896/f963 back images show
+scalloped elbow/knee joins. A near-equator radius fit (arm .0407m, knee .0556m) with48x32 joint
+spheres and32-sided cylinders improves measured normal jumps25–33deg to8.6–9.1deg, retaining
+joint centres/radii/pose behavior. Sphere triangle-plane cap burial is >=.163mm elbow/.213mm
+knee at any rotation. Coarse prior elbows exposed terminal-cap samples up to.670mm. This is
+a smoother approximate rigid join, not continuous skinned anatomy; no full seam-free claim.
+A dedicated opt-in preserves every NPC limb. Verify expanded calf against the articulated boot,
+then capture alongside the isolated rear-hair candidate if its root/ear fit finishes.
+Fable house61ac07e is published intact with green build/CPU construction; f963 actual09:11:59
+face/profile/walk/back inspected, error-free. Iris colour and rounded fringe are visible; rear
+hair and limb seams remain obvious. Both generated galleries and first12 download are retained.
+
 2026-09-11T09:11:49Z: Deliberately integrating Fable'sdd9e15bb21e2578bdd004f896040aa595400c866
 house.ts + additive shared geometry helpers. Their parent files exactly match our source;
 HouseBuild/foliage/lantern interfaces stay compatible. Keep the full authored roof/porch/room
@@ -137,15 +207,6 @@ running; take-0038 history remains INVALID D1 because concurrent publication ret
 capture-start timestamp after renumbering. Preserve entries/hashes/verdict. E_ground intentionally
 repeats B_house. Independent C01 fail/C02 pass remain strict to the locked video rubric.
 
-## Files / systems being touched
-- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
-- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
-- `src/main.ts`: minimal control-hint/input-order integration only if needed.
-- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
-- Read-only review of Fable's world source, monitor captures, PRs and logs.
-- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
-
-## Earlier task notes
 Previous task checkpoint:
 2026-09-11T08:24:00Z: Fresh fetch/PR read still shows Fable f472323, houses/trees/world owned
 there. Root adds a bounded gear proportion pass in gear.ts: a smaller shield carried over a
@@ -683,4 +744,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T08:25:14Z
+2026-09-11T09:22:08Z
