@@ -250,11 +250,111 @@ const LEAF_SKY_TRANSMISSION = /* glsl */ `
  */
 const LEAF_TRANSMIT = 1.2;
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string) {
+/**
+ * Shade floor: the light under the closed roof. What reaches a face the sun does not is not the
+ * open hemisphere but light that has come through and off the leaves many times — flat, dim,
+ * slightly leaf-tinted, and much the same from every direction. The reference's trunks out of
+ * the sun are hazed grey-green columns (D left trunks (0–0.15, 0.2–0.7) p50 0.43, hue 65°; the
+ * lantern limb's underside ≈ 0.50) while ours, lit by the hemisphere alone, read 0.19–0.31 and
+ * warm: the bark albedo is dark and orange-brown (kept so for the sunlit rims, which match the
+ * reference) and a Lambert response to the hemisphere is all a shadowed face gets. Likewise the
+ * self-shadowed upper faces of the canopy cards seen from below in shot A (p10 0.29) sit below
+ * the reference's roof (p10 0.39).
+ *
+ * The floor is the hemisphere's mean colour (sky/ground average, so undersides get it too), part
+ * leaf-filtered and part desaturated, times a near-flat albedo, scaled by `lift`. It is a floor,
+ * not an addition: it
+ * fades out linearly as the light the fragment already has reaches it, so the sunlit faces are
+ * unchanged, dappled light never reads darker than the shade around it, and only the faces below
+ * the floor move. Moss, lichen and tufts ride on the same diffuseColor and are lifted with it.
+ */
+interface ShadeFloor {
+  /** multiple of the hemisphere-mean Lambert response (at the mean albedo) the floor sits at (0 = off) */
+  lift: number;
+  /** share of the surface's own textured, coloured albedo kept in the floor (1 = fully textured) */
+  texture: number;
+  /** share of the floor's light that is leaf-filtered (toward the sunlit leaf colour's hue) */
+  canopy: number;
+  /** mean linear albedo luminance of the surface in shade: the level the floor's flat grey sits at before `lift` */
+  albedo: number;
+  /** chroma kept in the floor's light (1 = the tinted hemisphere mean as is, 0 = its luminance as grey) */
+  chroma: number;
+}
+/** GLSL for a shade floor whose uniforms are `${u}Lift`, `${u}Texture`, `${u}Canopy`, `${u}Albedo`, `${u}Chroma` */
+const shadeFloor = (u: string) => /* glsl */ `
+  #if NUM_HEMI_LIGHTS > 0
+  {
+    vec3 lumW = vec3(0.2126, 0.7152, 0.0722);
+    vec3 ambientMean = (hemisphereLights[0].skyColor + hemisphereLights[0].groundColor) * 0.5;
+    vec3 canopyFilter = mix(vec3(1.0), uLeafSun / max(dot(uLeafSun, lumW), 1e-3), ${u}Canopy);
+    vec3 floorAlbedo = mix(vec3(${u}Albedo), diffuseColor.rgb, ${u}Texture);
+    vec3 floorLight = ${u}Lift * ambientMean * canopyFilter * BRDF_Lambert(floorAlbedo);
+    floorLight = mix(vec3(dot(floorLight, lumW)), floorLight, ${u}Chroma);
+    float have = dot(reflectedLight.directDiffuse + reflectedLight.indirectDiffuse, lumW);
+    reflectedLight.indirectDiffuse += max(0.0, 1.0 - have / (dot(floorLight, lumW) + 1e-4)) * floorLight;
+  }
+  #endif
+`;
+const SHADE_FLOOR_PARS = (u: string) => `uniform float ${u}Lift;\nuniform float ${u}Texture;\nuniform float ${u}Canopy;\nuniform float ${u}Albedo;\nuniform float ${u}Chroma;\n`;
+function bindShadeFloor(shader: WebGLProgramParametersWithUniforms, u: string, floor: ShadeFloor) {
+  shader.uniforms[`${u}Lift`] = { value: floor.lift };
+  shader.uniforms[`${u}Texture`] = { value: floor.texture };
+  shader.uniforms[`${u}Canopy`] = { value: floor.canopy };
+  shader.uniforms[`${u}Albedo`] = { value: floor.albedo };
+  shader.uniforms[`${u}Chroma`] = { value: floor.chroma };
+}
+/**
+ * giants' bark: mostly flat (the fissures and the orange tint only modulate the floor by 0.25 —
+ * the reference's hazed columns are near-smooth), leaf-filtered for the hue and then half
+ * desaturated, because the reference's shaded trunks are grey-green (D's left trunks (0–0.15,
+ * 0.2–0.7) hue 65°, sat 0.18) while the hemisphere mean is yellow (53°) and the bark orange.
+ * Calibration (round 10, quick shots at the hero poses, same tree, wood pixels by a mask render):
+ * - additive lift of the bark's own Lambert response: ×1.4 moved D's left trunks p50 only
+ *   0.219 → 0.244 and ×4.5 → 0.287, hue drifting warmer (54° → 52°) as the orange texture came
+ *   up with it, and the trunk's SSIM cells fell (the fissures gained contrast while the
+ *   reference column is smooth): the visible 0.2 of a shaded trunk is mostly veil over a tiny
+ *   albedo × ambient term, so the term has to be flat, not scaled.
+ * - flat floor, texture 0.3: D left trunks p50 0.365 / hue 58.6° at lift 8 (reference 0.429 /
+ *   65°), D's SSIM +0.014 with the gain in the trunk's own cells; F's stair-bank trunk
+ *   (0.85–1, 0.3–0.7) overshot at 0.385 against 0.331 and cost F −0.002 — the two trunks stand
+ *   at the same 10–11 m but the reference veils D's more — so lift 7 sits between them (D 0.33,
+ *   F 0.33).
+ * - hue and chroma: canopy 0 → 0.5 turned the D box 53° → 58°, 0.8 → 60° but at sat 0.38
+ *   (an olive column); chroma 0.5 with canopy 1 gives 59.6° at sat 0.30 — the greener filter
+ *   buys hue, the desaturation gives most of it back, and the pair is the closest to the
+ *   reference's grey-green the two allow without a neutral floor that would leave the hue at 53°.
+ * - sunlit wood is untouched by construction: wood pixels the control rendered above 0.5 moved
+ *   ≤ +0.006 in every view while the 0.2–0.3 bucket moved +0.12–0.18.
+ */
+const GIANT_BARK_FLOOR: ShadeFloor = { lift: 7, texture: 0.25, canopy: 1, albedo: 0.08, chroma: 0.5 };
+/** white-barks are pale already; their shaded sides are not among the measured gaps */
+const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
+/**
+ * leaves (all species and the canopy cards): the floor keeps the leaf's own colour and texture
+ * and only catches the darkest self-shadowed faces. Measured in shot A's top band (0–1, 0–0.2)
+ * with facing masks: no visible leaf face there is sunlit (the band is the roof's underside), 17 %
+ * of the band is card undersides toward the camera (p10 0.32 — the sky transmission above
+ * already carries them) and 13 % is upper/side faces in the crown's own shadow (p10 0.29, 21 %
+ * of the darkest decile against the undersides' 6 %): the dark cards are the self-shadowed faces,
+ * not the undersides, so the fix is a floor under those faces rather than more transmission or a
+ * thinner card set. A floor proportional to the leaf's own albedo (texture 1) never reached them
+ * at lift 2.5 or 5 (p10 +0.002): the dark faces are the dark-albedo leaves and card edges, and
+ * a proportional floor is dark with them — like the bark it needs a flat part. At 0.6 flat ×
+ * 0.15 (the leaves' mean albedo) and lift 6 the band's leaf pixels below 0.34 fall from 5.9 % to
+ * 1.0 % (undersides p10 0.32 → 0.36, self-shadowed faces 0.29 → 0.37) with the band's saturation
+ * 0.145 → 0.153 against the reference's 0.148 — no neon. The band's p10 itself is then capped
+ * near 0.35 by pixels that are not trees (the HUD's item box at (0.86–0.98, 0.02–0.18) and the
+ * lantern limb's wrap — 7.4 % of the band below 0.34, 80 % of the darkest decile).
+ */
+const LEAF_FLOOR: ShadeFloor = { lift: 6, texture: 0.4, canopy: 0.3, albedo: 0.15, chroma: 1 };
+
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
-  shader.fragmentShader = TREE_FRAGMENT_PARS + shader.fragmentShader;
+  bindShadeFloor(shader, 'uBarkFloor', barkFloor);
+  bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
+  shader.fragmentShader = TREE_FRAGMENT_PARS + SHADE_FLOOR_PARS('uBarkFloor') + SHADE_FLOOR_PARS('uLeafFloor') + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -302,6 +402,9 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
         reflectedLight.directDiffuse += sunTint * directLight.color * transmission * 0.22;
       }
       #endif
+      ${shadeFloor('uLeafFloor')}
+    } else {
+      ${shadeFloor('uBarkFloor')}
     }
     `,
   );
@@ -325,7 +428,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR), 'white');
+  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(whiteTreeDepth, wind, whiteWind, undefined, 'white-depth');
 
@@ -338,7 +441,8 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   ]);
   // Reference giant bark measures #6c604a lit / #473e33 in shade (warm dark brown-grey); the
   // shaded side is mostly haze at 15 m, so the tint mainly sets the sunlit rim — kept dark and
-  // warm so it never reads as pale grey next to the (genuinely pale) white-bark species.
+  // warm so it never reads as pale grey next to the (genuinely pale) white-bark species. The
+  // shaded faces are carried by GIANT_BARK_FLOOR instead, which does not touch the lit rim.
   const giantTree = new MeshStandardMaterial({
     map: gColor as Texture,
     normalMap: gNormal as Texture,
@@ -351,7 +455,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR), 'giant');
+  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR), 'giant');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
 
@@ -374,7 +478,8 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
       biasedMap(s);
       s.uniforms.uLeafSun = { value: leafSun };
       s.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
-      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\n` + s.fragmentShader;
+      bindShadeFloor(s, 'uLeafFloor', LEAF_FLOOR);
+      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\n` + SHADE_FLOOR_PARS('uLeafFloor') + s.fragmentShader;
       s.fragmentShader = s.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
@@ -387,6 +492,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
           reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * 0.2;
         }
         #endif
+        ${shadeFloor('uLeafFloor')}
         `,
       );
     },
