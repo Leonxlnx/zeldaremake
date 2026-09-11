@@ -32,8 +32,9 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'terrain', create: terrain.create },
   { name: 'hardscape', create: hardscape.create },
   { name: 'rocks', create: rocks.create },
-  { name: 'structures', create: structures.create },
+  // trees before structures: the lantern bough wraps the giant's BUILT limb (ctx.shared.lanternLimb)
   { name: 'trees', create: trees.create },
+  { name: 'structures', create: structures.create },
   { name: 'vegetation', create: vegetation.create },
   { name: 'props', create: props.create },
   { name: 'character', create: character.create },
@@ -88,6 +89,7 @@ export async function createWorld(opts: {
     rng: createRng(WORLD.seed),
     textures: createTextureLibrary(opts.renderer.capabilities.getMaxAnisotropy()),
     headless: opts.headless,
+    shared: {},
     audit: (name, fn) => opts.audits.set(name, fn),
     progress: (name, value) => opts.onProgress?.(name, value),
   };

@@ -5,7 +5,7 @@
  * `WorldContext` (terrain sampling, wind uniforms, sun, quality) — never import another
  * system's internals. This is what lets two agents work in parallel without merge conflicts.
  */
-import type { Camera, Object3D, Scene, WebGLRenderer, DirectionalLight } from 'three';
+import type { Vector3, Camera, Object3D, Scene, WebGLRenderer, DirectionalLight } from 'three';
 import type { Terrain } from './terrain/heightfield';
 import type { Wind } from './wind/wind';
 import type { Rng } from './util/prng';
@@ -40,10 +40,31 @@ export interface WorldContext {
   textures: TextureLibrary;
   /** true when running under the headless capture harness (deterministic time, no input) */
   headless: boolean;
+  /**
+   * Shared geometry published by one system for another to build against (the trees system
+   * publishes the lantern bough's built limb path so structures can wrap it exactly; systems never
+   * import each other's internals). Absent until the publishing system has been created.
+   */
+  shared: SharedGeometry;
   /** register data for the automated rubric checks (see gauntlet/scripts/score.mjs) */
   audit(name: string, fn: () => Record<string, unknown>): void;
   /** report loading progress (0..1) for the boot overlay */
   progress(name: string, value: number): void;
+}
+
+/** A sampled tube centreline: world-space centres and radii at parameter s in [0, 1]. */
+export interface TubePath {
+  /** world position of the tube axis at s */
+  centre(s: number, out?: Vector3): Vector3;
+  /** tube radius (m) at s, before bark relief */
+  radius(s: number): number;
+  /** the s range along which the tube exists (e.g. the visible lantern-bearing part) */
+  range: readonly [number, number];
+}
+
+export interface SharedGeometry {
+  /** the giant's limb that carries LAYOUT.lanternBranch, as actually built (with its wiggle) */
+  lanternLimb?: TubePath;
 }
 
 export interface WorldSystem {
