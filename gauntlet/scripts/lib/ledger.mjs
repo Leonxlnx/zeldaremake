@@ -102,7 +102,9 @@ export function appendEntry(ledger, entry) {
 
 /** Content identity of an entry (independent of chain position and id) — used to reconcile ledgers. */
 export function entryIdentity(e) {
-  return canonicalJSON({ at: e.at, sha: e.sha, agent: e.agent, images: e.images ?? null, note: e.note ?? null });
+  // `capturedAt` survives a resequence (see mergeLedgers); `at` is the chain's ordering time and may
+  // move, so identity is keyed on the original time.
+  return canonicalJSON({ at: e.capturedAt ?? e.at, sha: e.sha, agent: e.agent, images: e.images ?? null, note: e.note ?? null });
 }
 
 /**
