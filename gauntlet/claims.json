@@ -376,6 +376,44 @@
       "at": "2026-09-11T07:30:31.163Z",
       "expiresHours": 3,
       "scope": "Link model, outfit and live walk/run/jump; structure foliage shadow parity, lantern and sign details. Fable f472323 grants only lanternBranch.ts local point block until captured; world/house/global lighting remain Fable."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03",
+        "W22",
+        "W26",
+        "W27"
+      ],
+      "at": "2026-09-11T10:16:31.987Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W38"
+      ],
+      "at": "2026-09-11T10:29:19.305Z",
+      "expiresHours": 3,
+      "scope": "Recover character draw-call budget through exact same-parent/material static batching; no world detail reduction or rubric change"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W06",
+        "W09",
+        "W10",
+        "W21",
+        "W23",
+        "W24",
+        "W37"
+      ],
+      "at": "2026-09-11T13:00:34.722Z",
+      "expiresHours": 6,
+      "note": "Round eight trees (house shade, canopy gaps) + hardscape (dirt seams, moss edges, stairs, boulders)"
     }
   ]
 }
