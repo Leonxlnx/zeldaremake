@@ -33,16 +33,20 @@ export function createLeafClusterTexture(rng: Rng, palette: LeafClusterPalette, 
   const warm = new Color(0x93ab3f);
   const css = (c: Color) => `rgb(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)})`;
 
-  const gauss = () => r.gauss();
-  // a fine-grained tuft: many small leaves so a 1–2 m card reads as a cluster of 10–20 cm leaves,
-  // not as one big lamina. Coverage loss in the mip chain is compensated by a dark outline around
-  // each leaf and a lower alpha test / negative mip bias in the material.
-  const leaves = 84;
+  // clamped so no leaf strays far from the clump: the outliers of an unclamped spread were what
+  // made a card read as a star of loose leaves rather than a clump
+  const gauss = () => Math.max(-2.2, Math.min(2.2, r.gauss()));
+  // a dense tuft: many overlapping leaves so a 1–2 m card reads as one soft clump of 10–20 cm
+  // leaves (sheet 01's foliage: dense soft clumps, the back leaves lost in shade), not as one big
+  // lamina and not as a sparse spray. 110 leaves at a 0.13 spread cover ≈ 48 % of the card
+  // (the 84-leaf 0.16 spread covered 36 %). Coverage loss in the mip chain is compensated by a
+  // dark outline around each leaf and a lower alpha test / negative mip bias in the material.
+  const leaves = 110;
   for (let i = 0; i < leaves; i++) {
     const depth = i / leaves; // back leaves first (darker), front leaves last (brighter)
-    const cx = size * (0.56 + gauss() * 0.16);
-    const cy = size * (0.44 + gauss() * 0.16);
-    const length = size * r.range(0.11, 0.19);
+    const cx = size * (0.56 + gauss() * 0.13);
+    const cy = size * (0.44 + gauss() * 0.13);
+    const length = size * r.range(0.13, 0.22);
     const width = length * r.range(0.5, 0.72);
     const angle = r.range(0, Math.PI * 2);
     const shade = 0.55 + 0.55 * depth + r.range(-0.08, 0.08);

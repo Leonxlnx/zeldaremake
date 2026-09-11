@@ -225,6 +225,42 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * "lit green" look (sat 0.25–0.29) is the baked moss vertex colour and the lit leaf clusters,
  * i.e. structures' materials. What did light the house in A/B was the left F shaft column's beam
  * crossing the crown (corridors.ts: A crown box 0.53 → 0.44, B house box 0.40 → 0.36 = ref).
+ *
+ * Path canopy (round 9) — tried and dropped. The reference B (14 s) roofs its forest box (x 0–0.4,
+ * y 0.1–0.5) with a soft, nearly closed canopy — a smooth mass at 0.42–0.50 — where ours shows the
+ * far haze of the north hollow (box p50 0.50 / p90 0.63 against 0.43 / 0.51). Nothing in the box
+ * is closer than 18 m: the north-west-near giant's crown starts 12 m up and camera B looks under
+ * it, so the box is the same air camera D's frame centre looks into 5 m further along the path.
+ * Foliage that closes B's box without entering D's frame must sit near B and low — B's ray at the
+ * box top (y 0.1) rises 0.31 m per metre, D's frame top 0.445 from 5 m closer, so the window
+ * between them at z −6…−9 is 3–4.9 m up — and that same air is A's left quadrant under the W01
+ * limb (A (0–0.3, 0.17–0.5)), where the reference is smooth bright haze. Five same-tree A/B builds
+ * (a lantern-tree bough from 5.6 m drooping east to (2.8, 4.9, −8) with six dense eye-0 lobes,
+ * hR 1.2–1.9 at 3.7–5.2 m; density 1.6–2.5, tone 0.8–1.2) closed the box to p50 0.36–0.45 / p90
+ * 0.52–0.58 and lost SSIM every time: B −0.009…−0.011, A −0.005, D −0.001. The per-window map
+ * (gauntlet compare's 8×8 windows on 256×144) shows why: where the reference is a smooth mass,
+ * its window variance is ≈ 0.0005 and the structure term (2 cov + C2) / (va + vb + C2) pays
+ * ≈ 0.5 for our smooth haze but ≈ 0.1 for textured leaf clusters at 8–10 m (va ≈ 0.01), while the
+ * luminance term forgives the haze's 0.58 against the reference's 0.42 at 0.95. The lobes gained
+ * only over B's top-left cells (x 0–0.2, y 0–0.17: +0.13, +0.06 per cell), where they replaced
+ * the lantern tree's hard limb-against-haze edges, and lost −0.17…−0.23 per cell over x 0.2–0.5
+ * (smooth haze in both frames before) and −0.06…−0.12 per cell over A's left quadrant. The box
+ * can only be closed by something as smooth as the haze itself (the reference's mass is
+ * in-scattered mist, ≈ 0.42 with no texture), which foliage at 8–10 m is not; leaving it open is
+ * the better score until the atmosphere renders the near air closer to the reference.
+ *
+ * Plateau lip (round 9): reference F (8 s) has a dark leaf mass from the stair top to the right
+ * edge (x 0.5–1.0, y 0.05–0.35); the east giant's two low limbs already give x 0.7–1.0 but the
+ * haze showed between them and the house (F (0.5–0.7, 0.1–0.2) 0.44 against 0.30; (0.55–0.7,
+ * 0.2–0.35) 0.35 against 0.26). A third, west bough (from 9.6 m to (17.6, 8.2, −2.4)) hangs two
+ * lobes over the lip at (19.2, 7.8, −1.2) and (17.9, 7.3, −2.5): F (0.55–0.7, 0.03–0.18), their
+ * shadows on the plateau behind the fence (F (0.63–0.7, 0.24–0.26), reference 0.26). Off B/C/D;
+ * A frames the west lobe's edge at (0.84–0.92, 0.1), inside its dark top-right corner (reference
+ * (0.85–1, 0–0.1) 0.37, p10 0.10) and short of the bright cell (0.7–0.85, 0–0.15) that must stay.
+ * Same-tree A/B: F (0.5–0.7, 0–0.2) 0.42 → 0.37 (reference 0.37), per-window SSIM +0.12 over the
+ * cell F (0.6–0.7, 0–0.17) and +0.12 over A's top-right corner cell, ≈ +0.002 on each frame's
+ * total. F x 0.4–0.5 (haze over the stairs, 0.58 against 0.44) is left: any caster there sits in
+ * A's bright cell.
  */
 const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [
   {
@@ -260,6 +296,18 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.77, center: [1.6, 19.0, -26.8], hR: 3.2, vR: 1.8, density: 4, eye: 0 },
       { t: 0.88, center: [3.6, 19.0, -25.2], hR: 3.2, vR: 1.8, density: 4, eye: 0 },
       { t: 0.96, center: [5.0, 19.0, -24.1], hR: 2.6, vR: 1.8, density: 4, eye: 0 },
+    ],
+  },
+  // the plateau-lip canopy of shot F (round 9): a west bough of the east giant, its two lobes the
+  // dark leaf mass the reference shows over the stair top (F x 0.5–0.7, y 0.05–0.2)
+  {
+    giant: 'east-giant',
+    fromY: 9.6,
+    to: [17.6, 8.2, -2.4],
+    radius: 0.5,
+    lobes: [
+      { t: 0.8, center: [19.2, 7.8, -1.2], hR: 2.4, vR: 1.3, density: 2, eye: 0 },
+      { t: 0.97, center: [17.9, 7.3, -2.5], hR: 2.2, vR: 1.2, density: 2, eye: 0 },
     ],
   },
 ];
@@ -424,6 +472,10 @@ const LINK_RAY_RANGE: [number, number] = [3, 40];
  * band of shot D as dark 25–30 m masses). The line from D's eye through each point is a porous
  * corridor, so the hazed far layer (and the sky at the very top) shows through a few leaf-fringed
  * openings instead of a closed roof — the reference's top band is crown silhouettes against glare.
+ * Note for anything low over the north path: the lines climb from D's eye at 1.45 m and pass
+ * 3.5 m up at z −8 with a 1.8 m radius, so they also carve foliage authored there (the round-9
+ * path-canopy trial lost most of its lobes to them until a `yMin` floor was added; the trial and
+ * the floor are gone, see CANOPY_BOUGHS).
  */
 const HOLLOW_GAP_POINTS: { point: [number, number, number]; radius: number }[] = [
   { point: [-1.9, 12.1, -28.9], radius: 1.8 },

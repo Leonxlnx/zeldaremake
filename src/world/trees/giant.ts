@@ -508,7 +508,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const spin = r() * TAU;
       const su = cardU.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardW, Math.sin(spin));
       const sw = cardW.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardU, -Math.sin(spin));
-      const s = Math.min(1.25, Math.max(0.36, bt(0.22, 0.34) * hR)) * sizeF;
+      // fewer, larger clumps (sheet 01: dense soft clumps, not stars): ×1.12 on the card and
+      // every fourth card dropped — after its draws, so the main stream is what it was with the
+      // smaller, more numerous cards and nothing else in the tree re-rolls
+      const s = Math.min(1.4, Math.max(0.4, bt(0.25, 0.38) * hR)) * sizeF;
       const heightF = p.y / H;
       const outF = Math.hypot(p.x, p.z) / crownRadius;
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * bt(0.35, 1);
@@ -519,6 +522,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .lerp(sunny, sun * (1 - interior * 0.7))
         .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.25))
         .multiplyScalar(bt(0.85, 1.05) * (1 - interior * 0.4) * lobeTone);
+      if (i % 4 === 3) continue;
       // culled after its draws (see leafSpray): the corridors never shift the main stream
       if (!cardAllowed(p, s)) continue;
       const V = (du: number, dw: number, u: number, v: number) =>

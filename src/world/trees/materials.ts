@@ -134,6 +134,7 @@ varying float vTreeLocalY;
 varying float vIsLeaf;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
+uniform float uLeafTransmit;
 float treeHash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 24.11))) * 43758.5453); }
 float treeNoise(vec3 p) {
   vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -161,21 +162,98 @@ const WHITE_BARK_COLOR = /* glsl */ `
   diffuseColor.rgb *= 0.9 + tone * 0.2;
 `;
 
-/** giant bark: fissured texture × vertex colour, patchy moss on upward faces and around the base */
+/**
+ * giant bark: fissured texture × vertex colour, patchy moss on upward faces and around the base.
+ * Sheet 01 'Mossy tree trunk' / 'Roots' (below ≈ 3 m, where the hero cameras see the boles up
+ * close): the root tops wear continuous moss sheets rather than the bole's patchy upward-face
+ * moss, the bare bark between carries pale grey-green lichen crusts in clustered flecks (same
+ * family as the boulders' lichen in rocks/material.ts), and a few small moss cushions / leafy
+ * tufts sit in the fissures on the sides of the bole, each with a shaded rim so it sits in the
+ * bark. Lichen and tufts fade out between 4 and 10 m of view distance: the hero cameras see the
+ * boles from 10–15 m, where the reference shows them as smooth dark columns and the same flecks
+ * measured as SSIM noise (F's right-edge trunk −0.004 with them on at that range). Shader-only:
+ * no geometry, no draw calls.
+ */
 const GIANT_BARK_COLOR = /* glsl */ `
   float coarse = treeNoise(vTreeWorld * 0.55) * 0.55 + treeNoise(vTreeWorld * 2.1) * 0.45;
   float up = clamp(inverseTransformDirection(normalize(vNormal), viewMatrix).y, 0.0, 1.0);
   float lowBand = 1.0 - smoothstep(0.3, 4.5, vTreeLocalY);
   float moss = smoothstep(0.5, 0.82, up * 0.5 + coarse * 0.55 + lowBand * 0.22);
   vec3 mossColor = mix(vec3(0.12, 0.19, 0.05), vec3(0.28, 0.4, 0.11), coarse);
+  // root sheets: the upward faces of the roots and the foot of the bole, under a soft-edged
+  // cover that follows the coarse noise so the sheets still have ragged margins
+  float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.18, 0.5, coarse);
+  moss = max(moss, sheet);
+  mossColor = mix(mossColor, vec3(0.33, 0.47, 0.13), sheet * 0.65);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.8);
+  // close-range detail only: past 4–10 m the flecks are 1–3 px of speckle on boles the reference
+  // frames show as smooth hazed columns (F's stair-bank giant at 10 m, D's north-west-near at 11 m)
+  float foot = (1.0 - smoothstep(1.6, 3.2, vTreeLocalY)) * (1.0 - smoothstep(4.0, 10.0, length(vViewPosition)));
+  // lichen: clustered crusts 3–6 cm across on the bare bark, thinning out under the moss. Kept
+  // small, sparse and only a little paler than the bark: a first cut at 10–20 cm and 0.75 blend
+  // read as a plane tree's blotches from 8 m
+  float lichenCluster = smoothstep(0.55, 0.75, treeNoise(vTreeWorld * 1.7 + 5.0));
+  float lichenFleck = smoothstep(0.6, 0.7, treeNoise(vTreeWorld * 22.0) * 0.7 + treeNoise(vTreeWorld * 55.0 + 3.0) * 0.3);
+  float lichen = lichenCluster * lichenFleck * foot * (1.0 - moss);
+  vec3 lichenColor = mix(vec3(0.46, 0.5, 0.38), vec3(0.55, 0.56, 0.48), treeNoise(vTreeWorld * 4.0 + 9.0));
+  diffuseColor.rgb = mix(diffuseColor.rgb, lichenColor, lichen * 0.6);
+  // moss cushions and small plant tufts: 10–20 cm, rare, on the sides of the bole (not on the
+  // moss sheets), a shaded rim under each so they sit in the bark instead of on it. A first cut at
+  // 40 cm in a yellow-green with a hard dark outline read as leaves stuck to the trunk
+  float tuftN = treeNoise(vTreeWorld * 7.5 + 17.0) * 0.7 + treeNoise(vTreeWorld * 21.0 + 2.0) * 0.3;
+  float tuftSide = foot * (1.0 - smoothstep(0.55, 0.9, up)) * (1.0 - sheet);
+  float tuftCore = smoothstep(0.74, 0.8, tuftN) * tuftSide;
+  float tuftRim = (smoothstep(0.7, 0.74, tuftN) - smoothstep(0.74, 0.8, tuftN)) * tuftSide;
+  vec3 tuftColor = mix(vec3(0.27, 0.4, 0.12), vec3(0.36, 0.5, 0.15), treeNoise(vTreeWorld * 13.0 + 31.0));
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.6, tuftRim * 0.7);
+  diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.85);
   float tone = treeNoise(vec3(vTreeWorld.x * 0.08, vTreeWorld.y * 0.15, vTreeWorld.z * 0.08));
   diffuseColor.rgb *= 0.86 + tone * 0.28;
 `;
 
+/**
+ * Sky light through the lamina. A leaf is thin: the face turned away from the viewer is lit by
+ * the hemisphere (and the environment) it faces, and a share of that comes through, tinted toward
+ * the sunlit leaf colour (chlorophyll passes yellow-green). This is what lifts the undersides of
+ * the near crowns (6–21 m in shot A) from opaque dark cut-outs toward the reference's glowing
+ * backlit roof (A top band p10 0.39 against our 0.29 without it). Wood never gets it (gated on
+ * vIsLeaf by the callers; the cluster cards are all leaf). The sun's own transmission stays the
+ * separate directional term below, so this adds nothing sun-dependent in the shadowed crown.
+ */
+const LEAF_SKY_TRANSMISSION = /* glsl */ `
+  {
+    vec3 backNormal = -geometryNormal;
+    vec3 skyThrough = vec3(0.0);
+    #if NUM_HEMI_LIGHTS > 0
+    #pragma unroll_loop_start
+    for (int i = 0; i < NUM_HEMI_LIGHTS; i++) {
+      skyThrough += getHemisphereLightIrradiance(hemisphereLights[i], backNormal);
+    }
+    #pragma unroll_loop_end
+    #endif
+    #if defined(USE_ENVMAP) && defined(ENVMAP_TYPE_CUBE_UV)
+    skyThrough += getIBLIrradiance(backNormal);
+    #endif
+    // the tint leans to the sunlit leaf colour but is part-desaturated: at full chroma the glow
+    // read as yellow-green neon (B forest box sat 0.21 against the reference's 0.14)
+    vec3 through = mix(diffuseColor.rgb, uLeafSun, 0.25);
+    through = mix(through, vec3(dot(through, vec3(0.2126, 0.7152, 0.0722))), 0.4);
+    reflectedLight.indirectDiffuse += skyThrough * BRDF_Lambert(through) * uLeafTransmit;
+  }
+`;
+/**
+ * share of the back-face sky irradiance that comes through a leaf (see LEAF_SKY_TRANSMISSION).
+ * Calibration (round 9, shot A top band): 0.7 was invisible, 4.0 a neon glow (+0.03 mean, sat
+ * 0.19 vs 0.15); 1.2 lifts the near laminae without changing the band's mean. The band's darkest
+ * decile (p10 0.31 vs the reference's 0.39) does not move with any value — it is bough and limb
+ * bark, not leaf: transmission cannot reach it.
+ */
+const LEAF_TRANSMIT = 1.2;
+
 function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
+  shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
   shader.fragmentShader = TREE_FRAGMENT_PARS + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -215,6 +293,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     if (vIsLeaf > 0.5) {
       // ambient fill so the underside of the canopy is never black
       reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.08;
+      ${LEAF_SKY_TRANSMISSION}
       #if NUM_DIR_LIGHTS > 0
       {
         float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
@@ -294,11 +373,13 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     (s) => {
       biasedMap(s);
       s.uniforms.uLeafSun = { value: leafSun };
-      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\n` + s.fragmentShader;
+      s.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
+      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\n` + s.fragmentShader;
       s.fragmentShader = s.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
         reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.1;
+        ${LEAF_SKY_TRANSMISSION}
         #if NUM_DIR_LIGHTS > 0
         {
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
