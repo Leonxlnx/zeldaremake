@@ -856,18 +856,21 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     let lum = 0.9 + 0.14 * tn + srng.range(-0.12, 0.12) + (seed.big ? 0.05 : 0);
     if (grey) lum *= 0.93;
     if (darkWarm) lum *= 0.78;
-    // (measured at renderer exposure 1.0: the B plaza box rendered 0.52 against the reference's
-    // 0.46 with a 0.25 damp factor, the A plaza box 0.54 against 0.52)
-    lum *= 1 - 0.34 * damp;
+    // (round 9: the stone albedo came down 28 % as a whole (material.ts STONE_ALBEDO_SCALE) to
+    // put the sunlit A/D paving on the reference; the band's own darkening shrank with it so the
+    // B foreground keeps the reference's lit-top ratio to A — B/A 0.89 in sRGB, ours had 0.83)
+    lum *= 1 - 0.16 * damp;
     lum *= 1 - 0.06 * southPlaza(s.z);
     // camera D's foreground is the most trodden stretch of the path: its slab tops are the palest
-    // (reference D box bright pixels 0.60 against our 0.59 once the joints there were sunk)
-    lum *= 1 + 0.06 * dForeground(s.z);
-    const hueK = srng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0);
-    // the shaded band renders yellower than the sunlit plaza under the warm fill light (B/R 0.63
-    // vs 0.71 in A; the reference is 0.69 in both) and the post chain passes only ~1/5 of an
-    // albedo hue change, so its stones carry a lot of extra blue
-    const satK = srng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.28 * damp;
+    // of their own frame, but not paler than the A plaza (reference lit tops D 0.58 / A 0.63 in
+    // sRGB, ours rendered 0.67 / 0.69) — no extra lift
+    const hueK = srng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0) - 0.22 * damp;
+    // the shaded band renders redder and more saturated than the sunlit plaza under the warm
+    // fill light (B lit tops sRGB B/R 0.61, R/G 1.20 against the reference's 0.69 / 1.12, where
+    // the A plaza matches at 0.71 / 1.10) and the post chain passes only ~1/4 of an albedo
+    // colour change, so its stones' albedo leans grey-green (hueK −0.22, satK +0.55 at full
+    // dampness) to render as the reference's khaki grey (B lit tops 0.70 / 1.12, hue 39°)
+    const satK = srng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.55 * damp;
     const tint: [number, number, number] = [lum * (1 + hueK), lum * (1 - hueK * 0.3), lum * (1 - hueK * 0.5 + satK)];
     // moss lives in the joints and creeps onto the shoulders; a green film covers the shaded
     // north/west side of ~30 % of the stones (damp side, reference B/E), more on the damp path

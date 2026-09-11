@@ -16,6 +16,16 @@ export const STONE_SET = 'worn_rock_natural_01';
  */
 const STAIN_TINT = new Color(0.97, 0.93, 0.85);
 
+/**
+ * linear multiplier on the stone albedo. Round 9: with the lighting settled, the sunlit paving
+ * measured 0.05–0.09 over the reference in sRGB (A plaza p50 0.625 vs 0.553, D path 0.579 vs
+ * 0.490) and the excess was flat across the tonal range (Q-Q ratio p50 1.13, p95 1.06 in A), i.e.
+ * diffuse albedo, not sun specular. The post chain passes only ~0.32 of a linear albedo change
+ * into sRGB, so −28 % linear brings the A p50 to 0.56 and D to 0.51; the stone lands at a linear
+ * albedo of ≈ 0.32 (was 0.45 — whiter than limestone).
+ */
+const STONE_ALBEDO_SCALE = 0.72;
+
 export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
   const [color, normal, rough, ao] = await Promise.all([
     textures.load(STONE_SET, 'color', { anisotropy }),
@@ -40,10 +50,8 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     metalness: 0,
     vertexColors: true,
     // worn_rock_natural_01 averages ~0.30 linear luminance and leans orange; the shader
-    // desaturates it, this lift takes the sunlit slabs to the pale warm beige of the reference.
-    // Measured against the frames the stone must sit ≈ 1.2–1.5× brighter than the grass beside
-    // it (A plaza 1.21, B path 1.26, D path 1.49) with R−B ≈ 47–52 at lum ≈ 130 — i.e. warmer and
-    // ~20 % lighter than the first pass, which landed at 1.05–1.18 and R−B 34–45. Warmth (R−B)
+    // desaturates it, this lift (× STONE_ALBEDO_SCALE) sets the sunlit slabs' luminance — the
+    // pale warm grey-beige of the reference (A plaza p50 0.55, D path 0.49 in sRGB). Warmth (R−B)
     // is set by the blue channel: the reference slab tops are sRGB B/R ≈ 0.66–0.69.
     // Hue: worn_rock_natural_01 is orange (linear R/G 1.44); the desat/lift targets below set most
     // of the final hue. Measured on the pure-stone boxes of A/E/F/D (gauntlet/tmp/hard/bands.mjs)
@@ -56,7 +64,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     // the albedo has to lean further red than the target itself.
     // (blue up a notch from 0.911: with the wider soil joints the plaza boxes measured sat 0.43
     // against the reference's 0.38 — the stone tops themselves were a shade too warm)
-    color: new Color(1.586, 1.497, 0.95),
+    color: new Color(1.586, 1.497, 0.95).multiplyScalar(STONE_ALBEDO_SCALE),
   });
   mat.name = opts.instanced ? 'stone-instanced' : 'stone';
   const mossDeep = new Color(P.mossDeep);
