@@ -8,7 +8,7 @@
  * Shield (orange-red swirl) on the back and the Kokiri Sword in a scabbard, hilt above the right
  * shoulder. No imported assets.
  */
-import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, SphereGeometry, TorusGeometry, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CircleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { bulgedDisc, merge, ovalLathe, place, sweep, triangleCount } from './geometry';
 import { CHAR_COLORS, cloth, matte, shieldTexture } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
@@ -143,23 +143,46 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
   part(head, skull, opts.skin, 'skull');
   const white = matte('eyeWhite', { roughness: 0.6 });
   const pupil = matte('pupil', { roughness: 0.6 });
+  const almond = (k: number) => {
+    const vertices: number[] = [], indices: number[] = [];
+    const segments = 28, rings = 4;
+    for (let ring = 0; ring <= rings; ring++) for (let j = 0; j <= segments; j++) {
+      const u = ring / rings, a = j / segments * Math.PI * 2;
+      vertices.push(0.025 * k * u * Math.cos(a), 0.0145 * k * u * Math.sin(a) * (0.82 + 0.18 * Math.abs(Math.sin(a))), 0.003 * k * (1 - u * u));
+      if (ring < rings && j < segments) {
+        const p = ring * (segments + 1) + j, q = p + segments + 1;
+        indices.push(p, q, p + 1, q, q + 1, p + 1);
+      }
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices); geo.computeVertexNormals();
+    return geo;
+  };
   for (const side of [1, -1] as const) {
     const eye = new Group();
     eye.name = 'eye';
     const k = r / 0.125;
     const soft = !!opts.softFeatures;
-    eye.position.set(side * 0.05 * k, -0.002 * k, r * (soft ? 0.91 : 0.84));
-    if (soft) eye.rotation.y = side * 0.28;
+    eye.position.set(side * 0.05 * k, -0.002 * k, r * (soft ? 0.94 : 0.84));
+    if (soft) eye.rotation.y = side * 0.4;
     head.add(eye);
-    part(eye, place(new SphereGeometry(0.032 * k, 16, 10), 0, 0, 0, undefined, [1, soft ? 0.66 : 0.92, soft ? 0.23 : 0.55]), white, 'eye-white', false);
-    part(eye, place(new SphereGeometry((soft ? 0.0185 : 0.0235) * k, 12, 8), 0, -0.001, (soft ? 0.007 : 0.016) * k, undefined, [1, 1, soft ? 0.18 : 0.45]), opts.iris, 'iris', false);
-    part(eye, place(new SphereGeometry((soft ? 0.009 : 0.013) * k, 10, 8), 0, -0.001, (soft ? 0.010 : 0.0262) * k, undefined, [1, 1, soft ? 0.2 : 0.5]), pupil, 'pupil', false);
+    if (soft) {
+      part(eye, almond(k), white, 'eye-white', false);
+      part(eye, new CircleGeometry(0.012 * k, 24).translate(0, -0.0005, 0.004 * k), opts.iris, 'iris', false);
+      part(eye, new CircleGeometry(0.0058 * k, 20).translate(0, -0.0005, 0.0045 * k), pupil, 'pupil', false);
+      const lid = [-1, -0.7, -0.35, 0, 0.35, 0.7, 1].map(x => new Vector3(x * 0.025 * k, 0.0145 * k * Math.sqrt(1 - x * x) * (0.82 + 0.18 * Math.sqrt(1 - x * x)), 0.001 * k));
+      part(eye, sweep(lid, [0.0005 * k, 0.0014 * k, 0.0014 * k, 0.0005 * k], { segments: 18, radial: 5 }), matte('brow'), 'lashes', false);
+    } else {
+      part(eye, place(new SphereGeometry(0.032 * k, 12, 8), 0, 0, 0, undefined, [1, 0.92, 0.55]), white, 'eye-white', false);
+      part(eye, place(new SphereGeometry(0.0235 * k, 10, 8), 0, -0.001, 0.016 * k, undefined, [1, 1, 0.45]), opts.iris, 'iris', false);
+      part(eye, place(new SphereGeometry(0.013 * k, 8, 6), 0, -0.001, 0.0262 * k, undefined, [1, 1, 0.5]), pupil, 'pupil', false);
+      part(eye, place(new TorusGeometry(0.031 * k, 0.0032, 5, 12, Math.PI), 0, 0.002, 0.012 * k, [0.35, 0, 0], [1, 0.95, 1]), pupil, 'lashes', false);
+    }
     // catch-light on the upper-outer iris
-    part(eye, new SphereGeometry((soft ? 0.0022 : 0.0035) * k, 6, 4).translate(side * 0.005 * k, 0.007 * k, (soft ? 0.012 : 0.031) * k), white, 'eye-highlight', false);
-    // dark upper lash line: half torus hugging the top of the eye white
-    part(eye, place(new TorusGeometry(0.031 * k, soft ? 0.002 : 0.0032, 5, 16, Math.PI), 0, 0.002, (soft ? 0.005 : 0.012) * k, [0.35, 0, 0], [1, soft ? 0.66 : 0.95, 1]), pupil, 'lashes', false);
+    part(eye, new SphereGeometry((soft ? 0.0015 : 0.0035) * k, 6, 4).translate(side * 0.004 * k, 0.005 * k, (soft ? 0.005 : 0.031) * k), white, 'eye-highlight', false);
     rig.eyes.push(eye);
-    part(head, place(new BoxGeometry(0.046 * k, 0.008, 0.01), side * 0.052 * k, 0.047 * k, r * 0.87, [0, 0, side * 0.2]), matte('brow'), 'brow', false);
+    part(head, place(new BoxGeometry((soft ? 0.038 : 0.046) * k, soft ? 0.005 : 0.008, 0.008), side * 0.052 * k, (soft ? 0.034 : 0.047) * k, r * (soft ? 0.94 : 0.87), [0, side * (soft ? 0.3 : 0), side * 0.12]), matte('brow'), 'brow', false);
   }
   part(head, place(new BoxGeometry(0.032, 0.005, 0.006), 0, -0.056 * (r / 0.125), r * 0.9), matte('mouth'), 'mouth', false);
 }
@@ -172,7 +195,7 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
     const k = r / 0.125;
     // a clump of hair: a tapered strand from `from` (under the cap) to `to` (pointed tip)
     const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) =>
-      sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 8, radial: 7, closeTip: true, closeStart: true });
+      sweep([new Vector3(from[0], Math.min(from[1], 0.058), from[2]).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 10, radial: 9, closeTip: true, closeStart: true });
     const parts = [
       // back/sides of the head, open toward the face (+Z is phi = π/2)
       place(new SphereGeometry(r * 1.06, 18, 10, Math.PI * 0.78, Math.PI * 1.44, 0, Math.PI * 0.62), 0, 0.005, -0.008),
@@ -333,7 +356,7 @@ function buildCap(rig: Rig): void {
   ].map((v, i) => (i < 2 ? v : v.multiplyScalar(k)));
   part(cap, sweep(pts, [0.065 * k, 0.067 * k, 0.06 * k, 0.056 * k, 0.046 * k, 0.034 * k, 0.02 * k, 0.005], { segments: 30, radial: 12, closeTip: true, closeStart: true, flatten: 0.48, crease: 0.2 }), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
-  part(cap, place(new TorusGeometry(rimR, 0.011, 8, 32), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
+  part(cap, place(new TorusGeometry(rimR + 0.002, 0.014, 8, 32), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }
 
 function buildGear(rig: Rig): void {

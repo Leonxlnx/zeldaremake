@@ -12,6 +12,8 @@ updated: 2026-09-11T03:20:00Z
 ## Current task
 Owner explicitly resumed Astra/Fable collaboration and requested improved original 3D Link with faithful, simple walking, running and jumping. Claim C01/C02/C03; begin with independent movement simulation, smooth locomotion transitions, jump/landing and camera/input correctness. Later owner reference images remain pending; no 95% similarity claim is possible yet.
 
+03:25 UTC visual pass: motion CI `34557880413` passed on `91e4948`, four actual renderer images inspected (captured 03:20:05 UTC). Walk 1.600 m/s, run 3.899 m/s, jump airborne at 0.30 s, no page errors. The images expose overly circular staring eyes and hair tips intersecting the thinner brim. Next narrow the eyes to shallow almond surfaces and seat fringe roots under the brim. This is a captured defect, not a score-driven adjustment.
+
 ## Files / systems being touched
 - `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
 - `src/camera/follow.ts`: jump input, focus handling and following actual player height.
