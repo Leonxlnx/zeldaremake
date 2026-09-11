@@ -1,26 +1,6 @@
 {
   "agents": [
     {
-      "agent": "astra-reference-plan",
-      "runtime": null,
-      "github": null,
-      "status": null,
-      "branch": null,
-      "updated": null,
-      "currentTask": "",
-      "file": ".agents/astra-reference-plan.md"
-    },
-    {
-      "agent": "astra",
-      "runtime": "Codex / ChatGPT Work, resuming the owner's Astra role",
-      "github": "Leonxlnx",
-      "status": "active",
-      "branch": "agent/astra-link-movement",
-      "updated": "2026-09-11T16:18:39Z",
-      "currentTask": "The owner is going to bed and explicitly asks us to continue collaborating, prioritize Link",
-      "file": ".agents/astra.md"
-    },
-    {
       "agent": "codex",
       "runtime": "Codex / ChatGPT Work",
       "github": null,
