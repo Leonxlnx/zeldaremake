@@ -1,6 +1,6 @@
 {
-  "source": "b2575d663ac9008e40cba4c2abdba44e37fe7be4",
-  "capturedAt": "2026-09-11T07:10:50.459Z",
+  "source": "e8487c2f4a927e060d01ab3a4c07759947a9c5b6",
+  "capturedAt": "2026-09-11T07:22:17.868Z",
   "captures": [
     {
       "name": "01-idle",
@@ -160,14 +160,14 @@
         "drawCalls": 526,
         "triangles": 6420895,
         "geometries": 513,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "f527690a5cd352b89a76f9c05db7172627078bbc5208f1a95aadfc889c291df0"
+      "sha256": "c37fd642b0f2c6375aa8a575ab9ce20e29b5f1b19fc2eb63a39809d2eef9b796"
     },
     {
       "name": "02-walk",
@@ -330,14 +330,14 @@
         "drawCalls": 525,
         "triangles": 6374388,
         "geometries": 515,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "d60f9851e2cda9d6cb650b631a869acb8a10e43e492ac4cf62353f4d7df7d19f"
+      "sha256": "046bbef214c6025c65af70aec2010f0379721ad91dd60a0068033fd76b3ecbfd"
     },
     {
       "name": "03-run",
@@ -509,14 +509,14 @@
         "drawCalls": 538,
         "triangles": 6232627,
         "geometries": 517,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "49a111f8779d03e7cb31f7f0feaf359657f39e718d9620e8514d1a6247a8ffbf"
+      "sha256": "4785fe8309efa2c58e2fead99dd29cb0840d74d434fbe7255649017b42b1ad7c"
     },
     {
       "name": "04-jump",
@@ -682,14 +682,14 @@
         "drawCalls": 578,
         "triangles": 6431334,
         "geometries": 525,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "11ab89cd2ba5502e3a39ad7a1a11bddff4d88a64c4eb97a215c3572e0f9255a0"
+      "sha256": "9eec831e66224270b4b6ae5662d5a035e97e6176de755d98c65e7e113a45f45f"
     },
     {
       "name": "05-outfit-back",
@@ -856,14 +856,14 @@
         "drawCalls": 548,
         "triangles": 6341233,
         "geometries": 550,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5bfce58796fc29776a77e87a72351ab5f6a05cb0679688408d53cf7c0fdb1946"
+      "sha256": "d5d5341e0f41f0094786fd4117400ca5a57277fb6ab70aedfc43f2bd47797891"
     },
     {
       "name": "06-face-detail",
@@ -1024,14 +1024,14 @@
         "drawCalls": 483,
         "triangles": 6302950,
         "geometries": 553,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "4442043cb6b41c3f828e69435adaf9c23df91a58e5c74bf677166271b56e6315"
+      "sha256": "900f71292ae73cc55421d0169fb6c54282c16d5d1900ea63cad53536373574a8"
     },
     {
       "name": "07-leaf-lantern",
@@ -1183,8 +1183,8 @@
         "drawCalls": 452,
         "triangles": 6216834,
         "geometries": 565,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1342,8 +1342,8 @@
         "drawCalls": 458,
         "triangles": 6116771,
         "geometries": 577,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1510,8 +1510,8 @@
         "drawCalls": 465,
         "triangles": 6369235,
         "geometries": 577,
-        "textures": 71,
-        "programs": 66,
+        "textures": 73,
+        "programs": 67,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
