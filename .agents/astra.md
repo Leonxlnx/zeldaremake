@@ -4,42 +4,56 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T15:52:12Z
+updated: 2026-09-11T16:18:39Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Continue owner-authorized original Link refinement in clean zeldaremake-active, local
-agent/astra-refinement-recovery publishing agent/astra-link-movement / PR5. Preserve old dirty
-zeldaremake worktree. CLI C01/C02/C03 claims live through17:43:30.634UTC. Fresh Fable8f13daa
-adds only log/claims/ledger; tick35 reports atmosphere-5 and structures-8d active. External
-processes are not visible. Fable keeps world/house/lighting/terrain ownership; PR2 comment
-5629083723 points to this branch's current INBOX and coordination evidence.
+The owner is going to bed and explicitly asks us to continue collaborating, prioritize Link
+until the character is substantially better, and keep publishing named screenshot checkpoints.
+We continue on agent/astra-link-movement / PR5, with C01/C02/C03 claims through 17:43:30 UTC.
+Fable retains world, house, terrain, lighting and placement work; external process state is
+not visible. A helper is checking their fresh commits and reply to PR2 comment 5637211895.
 
-Now integrate one lower-front supported chin in face-geometry.ts. Owner profile has a small
-supported jaw; current spherical face recedes30–44mm behind lower lip. Forward-only compact
-support below y/k=-.070 advances at most13.762mm, unchanged height/width and upper attachments.
-397vertices/850triangles change; all63non-skull meshes exact, including eyes/mouth/brows and
-new eight-lock hair. Closed welded topology, positive winding/unit normals, no new patch
-self-intersections; all850affected planar triangles have positive dZ/dY. Thirty bounded neck
-poses retain only existing intentional neck insertion; clothing gaps stay≥5.69mm. This is a
-source-fit candidate, not visual approval; production build/typecheck pass; actual render follows.
+Publish the broader folded cap tail and fitted crossing stitches. The owner sheet has fuller
+lower lobes and cloth valleys; the previous actual back/profile view had a narrow smooth tail.
+The new tail adds three soft folds, up to 48.72 mm width and 9.25 mm rear relief, retaining
+root, tip, centreline, rig and sway. The same 26 crossing threads follow the cloth surface.
+Link stays at 64 meshes, now 77,304 triangles (+2,708); all 62 other meshes are exact.
+Triangle checks find no thread/cloth intersection, with minimum 0.103 mm separation. Tested
+gear clearance is at least 32.62 mm; head clearance beyond the original covered attachment
+is at least 10.78 mm. Root production build passes. Actual back/profile/motion review follows.
 
-Parallel scratch work: broader cap-tail drape with shallow folds and retained root/rig/sway.
-Existing seam was measured buried/floating, so scope includes only tail seam fitting in
-outfit-details.ts; other outfit remains exact. Candidate not integrated. Root is investigating
-cloth texture scale/variation; no material edit yet. Movement helper's immutable contact-pair
-candidate is REJECTED: valid soles/raw reach still produce a shin/riser intersection97.86mm
-below tread top in a fixed-pelvis diagnostic. Next study couples body/foot trajectory; no
-production controller/guard or terrain change, no rejected old experiment reapplied.
+The screenshot publisher is being made safe for simultaneous source captures: separate workflow
+concurrency per source commit, immutable archives first, fresh-head normal-push retries, and
+stale clip removal from a later still-only snapshot. Its integrated local Git race regression passes on both branches, including stale-file
+cleanup, immutable archives, idempotence and partial recovery. Canonical capture and sealed history remain unchanged.
+
+Next character work is already in parallel: physical cloth UV scale with four repaired fan
+centres, original woven albedo/height/roughness, and a relaxed four-finger hand silhouette.
+Neither cloth nor finger candidates are production changes yet. The proposed coupled stair
+trajectory clears sampled leg/tread triangles but takes 4.65 seconds and is unsuitable for
+ordinary movement; retain that feasibility evidence only. Do not relax the step guard or
+reapply rejected controller experiments. Fable has the exact entrance-trench report.
+
+Independent W14 review of Fable take0047 is filed through the CLI as fail: smaller pods are
+progress, but the high smooth limb and spread-out cords still differ from the lower irregular
+reference grouping. Evidence is in .agents/reviews/astra-W14-take0047.md. Asked Fable to own
+or hand off the missing sign variants; no world placements changed here.
 
 ## Recent completed work and evidence
 
+- 42c7101: continuous lower-front chin support; all other meshes and upper-face attachments
+ unchanged. Closed geometry/contact proofs and production build pass. Character CI
+ 34618878493 completed successfully; its actual images have not yet been inspected.
+
 -65f45b5: eight narrower asymmetric fringe locks and receding foundation hem,64meshes/74596tris
  unchanged. Brows/eyelids clear, no new pupil occlusion among52272visible samples/28views.
- Production build and actual static-batching proof pass; real capture now running.
+ Production build and static-batching proof pass. Actual archive f5d4404 at 16:01:09 UTC
+ has 14 verified JPGs and 42 matching frames, errors[]. Front/profile inspected: individual
+ strands and asymmetric centre read more clearly; hair remains chunky and C01 unfinished.
 -c8dcf5f: continuous wrist/palm fills old2.5mm gap; fingertip/whole limb bounds retained.
  Closed palm with overlapping buried thumb, not welded union. Actual archivef336528 at
  15:47:23.981UTC:14verifiedJPGs/42matchingframes/errors[]. Belt/idle/walk/run inspected; gap
@@ -971,4 +985,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T15:52:12Z
+2026-09-11T16:08:17Z

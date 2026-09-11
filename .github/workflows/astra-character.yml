@@ -2,7 +2,7 @@ name: Astra character motion
 on:
   push:
     branches: ['agent/astra-link-movement']
-    paths: ['src/**', 'public/**', 'package*.json', 'gauntlet/scripts/capture-motion.mjs', 'gauntlet/scripts/archive-character-capture.mjs', '.github/workflows/astra-character.yml']
+    paths: ['src/**', 'public/**', 'package*.json', 'gauntlet/scripts/capture-motion.mjs', 'gauntlet/scripts/archive-character-capture.mjs', 'gauntlet/scripts/publish-character-capture.mjs', 'gauntlet/scripts/test-character-publication.mjs', '.github/workflows/astra-character.yml']
   workflow_dispatch:
     inputs:
       sequence:
@@ -12,7 +12,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: astra-character
+  group: astra-character-${{ github.sha }}
   cancel-in-progress: false
 jobs:
   motion:
@@ -27,6 +27,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node gauntlet/scripts/test-character-publication.mjs
       - run: node src/world/character/locomotion.test.mjs
       - run: node src/world/character/eye-geometry.test.mjs
       - run: node src/world/character/boot-articulation.test.mjs
@@ -50,8 +51,8 @@ jobs:
             REQUEST_SEQUENCE=true
             COMPARE_BASE=HEAD^
           fi
-          # A queued run may be superseded by another push. Compare with the last
-          # completed capture so uncaptured movement or outfit changes still get a clip.
+          # Different source commits have independent capture slots. Compare with
+          # the last published capture to decide whether this source needs a clip.
           # Include character helpers/materials: their edits can change the rendered
           # player even when the top-level builder and controller files are unchanged.
           if [ "$REQUEST_SEQUENCE" = 'true' ] || ! git diff --quiet "$COMPARE_BASE" HEAD -- src/world/character/ src/camera/follow.ts gauntlet/scripts/capture-motion.mjs; then
@@ -65,51 +66,21 @@ jobs:
       - name: Capture actual character motion and object details
         env:
           CAPTURE_SEQUENCE: ${{ steps.capture-mode.outputs.sequence }}
-        run: node gauntlet/scripts/capture-motion.mjs
+        run: |
+          rm -rf gauntlet/out/astra-character
+          node gauntlet/scripts/capture-motion.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: astra-character-${{ github.sha }}
           path: gauntlet/out/astra-character
           retention-days: 30
-      - name: Save review images on Astra's generated branch
+      - name: Preserve gallery and publish the completed snapshot
         env:
           GH_TOKEN: ${{ github.token }}
+          CAPTURE_SEQUENCE: ${{ steps.capture-mode.outputs.sequence }}
         shell: bash
         run: |
           set -euo pipefail
-          CAPTURE_DIR="$GITHUB_WORKSPACE/gauntlet/out/astra-character"
-          REVIEW_DIR="$(mktemp -d)"
-          git -C "$REVIEW_DIR" init -b captures/astra-character
-          git -C "$REVIEW_DIR" config user.name 'github-actions[bot]'
-          git -C "$REVIEW_DIR" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           gh auth setup-git
-          git -C "$REVIEW_DIR" remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
-          if git -C "$REVIEW_DIR" ls-remote --exit-code --heads origin captures/astra-character; then
-            git -C "$REVIEW_DIR" fetch origin captures/astra-character
-            git -C "$REVIEW_DIR" reset --hard FETCH_HEAD
-          fi
-          cp "$CAPTURE_DIR"/*.jpg "$CAPTURE_DIR/motion.json" "$REVIEW_DIR/"
-          if [ -f "$CAPTURE_DIR/motion.mp4" ]; then
-            cp "$CAPTURE_DIR/motion.mp4" "$CAPTURE_DIR/sequence.json" "$REVIEW_DIR/"
-          fi
-          git -C "$REVIEW_DIR" add --all
-          git -C "$REVIEW_DIR" commit -m "Astra motion evidence for $GITHUB_SHA [skip ci]"
-          git -C "$REVIEW_DIR" push origin HEAD:captures/astra-character
-      - name: Preserve the completed pass in a dated progress folder
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          PROGRESS_DIR="$(mktemp -d)"
-          gh auth setup-git
-          git clone --single-branch --branch captures/astra-progress "https://github.com/$GITHUB_REPOSITORY.git" "$PROGRESS_DIR"
-          git -C "$PROGRESS_DIR" config user.name 'github-actions[bot]'
-          git -C "$PROGRESS_DIR" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          node gauntlet/scripts/archive-character-capture.mjs "$GITHUB_WORKSPACE/gauntlet/out/astra-character" "$PROGRESS_DIR"
-          git -C "$PROGRESS_DIR" add --all
-          if ! git -C "$PROGRESS_DIR" diff --cached --quiet; then
-            git -C "$PROGRESS_DIR" commit -m "Progress screenshots for $GITHUB_SHA [skip ci]"
-            git -C "$PROGRESS_DIR" push origin HEAD:captures/astra-progress
-          fi
+          node gauntlet/scripts/publish-character-capture.mjs "$GITHUB_WORKSPACE/gauntlet/out/astra-character" "https://github.com/$GITHUB_REPOSITORY.git"

@@ -4,6 +4,7 @@ import { merge, sweep } from './geometry';
 import { cloth, matte } from './palette';
 import type { Rig } from './rig';
 import { createLinkLeatherMaterial } from './leather-material';
+import { createLinkCapTailStitches } from './cap-tail-stitches';
 
 type Attach = (parent: Object3D, geometry: BufferGeometry, material: Material, name: string, shadows?: boolean) => Mesh;
 
@@ -94,19 +95,6 @@ export function addOutfitDetails(rig: Rig, attach: Attach): void {
   // Sewn centre seam along the existing cap tail's backmost surface.
   const tail = rig.cap?.getObjectByName('cap-tail') as Mesh | undefined;
   if (tail && tail.parent) {
-    const positions = tail.geometry.getAttribute('position'), seam: Vector3[] = [];
-    const ringSize = 13;
-    for (let ring = 8; ring <= 34; ring += 2) {
-      let back = ring * ringSize;
-      for (let j = 1; j < 12; j++) if (positions.getZ(ring * ringSize + j) < positions.getZ(back)) back = ring * ringSize + j;
-      seam.push(new Vector3().fromBufferAttribute(positions, back).add(new Vector3(0, 0, -0.0012)));
-    }
-    const seams: BufferGeometry[] = [];
-    for (let i = 1; i < seam.length; i++) for (const side of [-1, 1]) {
-      const a = seam[i - 1].clone().add(new Vector3(side * 0.005, 0, 0));
-      const b = seam[i].clone().add(new Vector3(-side * 0.005, 0, 0));
-      seams.push(sweep([a, b], [0.0009, 0.0009], { segments: 1, radial: 5, smooth: false, closeStart: true, closeTip: true }));
-    }
-    attach(tail.parent, merge(seams), threadMaterial, 'cap-tail-stitches', false);
+    attach(tail.parent, createLinkCapTailStitches(tail.geometry), threadMaterial, 'cap-tail-stitches', false);
   }
 }

@@ -26,6 +26,7 @@ import { createLinkNeckline } from './neckline-geometry';
 import { createLinkLeatherMaterial } from './leather-material';
 import { batchStaticLinkParts } from './static-batching';
 import { createLinkCapCrown } from './cap-geometry';
+import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
 
 export interface Character {
@@ -582,9 +583,9 @@ function buildCap(rig: Rig): void {
     new Vector3(-0.014, -0.275, -0.244),
     new Vector3(-0.008, -0.325, -0.247),
   ].map((v, i) => (i < 3 ? v : v.multiplyScalar(k)));
-  part(tailSway, sweep(pts, [0.076, 0.096, 0.099, 0.087, 0.069, 0.046, 0.021, 0.0018].map(v => v * k),
+  part(tailSway, shapeLinkCapTail(sweep(pts, [0.076, 0.096, 0.099, 0.087, 0.069, 0.046, 0.021, 0.0018].map(v => v * k),
     { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.22,
-      flattenFromRoot: true, crease: 0.10, surfaceNormal: new Vector3(0, 0, -1) }), capMat, 'cap-tail');
+      flattenFromRoot: true, crease: 0.10, surfaceNormal: new Vector3(0, 0, -1) }), r), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
   part(cap, place(new TorusGeometry(rimR + 0.002, 0.0065, 8, 40), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }

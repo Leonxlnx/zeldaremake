@@ -1,0 +1,13 @@
+{
+  "item": "W14",
+  "reviewer": "astra",
+  "verdict": "fail",
+  "evidence": ".agents/reviews/astra-W14-take0047.md",
+  "takeId": "take-0047",
+  "author": "fable-cursor",
+  "takeSha": "f434c370981f099861c168f1862026093316dc2c",
+  "at": "2026-09-11T16:03:51.510Z",
+  "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
+  "note": "Reduced pods improve scale, but the long smooth high arc and widely spaced cord row do not match the lower irregular moss-covered branch and clustered lamps at the left of reference A. Separate from the current house-bough pass; no audit or criteria changes.",
+  "history": []
+}
