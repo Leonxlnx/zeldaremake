@@ -65,6 +65,9 @@ export function nextId(ledger) {
   return { id: `take-${String(max + 1).padStart(4, '0')}`, number: max + 1 };
 }
 
+/** How far an entry's `at` may precede the previous entry's when two agents publish concurrently. */
+export const CONCURRENT_PUBLISH_WINDOW_MS = 3 * 3600 * 1000;
+
 /** Verify the whole chain. Returns { ok, problems, length }. */
 export function verifyChain(ledger) {
   const problems = [];
@@ -77,7 +80,10 @@ export function verifyChain(ledger) {
     if (e.hash !== h) problems.push(`${where}: hash ${short(e.hash)} ≠ recomputed ${short(h)}`);
     if (ids.has(e.id)) problems.push(`${where}: duplicate id`);
     ids.add(e.id);
-    if (i > 0 && !e.imported && ledger.entries[i - 1].at && e.at && e.at < ledger.entries[i - 1].at) problems.push(`${where}: timestamp ${e.at} precedes previous entry`);
+    // `at` is the capture/record time, not the sealing time: two agents publishing concurrently
+    // (CI on one branch, a local take on another) legitimately append an entry whose `at` precedes
+    // the previous entry's by up to the publish latency. Only gross backdating is a chain problem.
+    if (i > 0 && !e.imported && ledger.entries[i - 1].at && e.at && Date.parse(e.at) < Date.parse(ledger.entries[i - 1].at) - CONCURRENT_PUBLISH_WINDOW_MS) problems.push(`${where}: timestamp ${e.at} precedes previous entry by more than ${CONCURRENT_PUBLISH_WINDOW_MS / 3600000} h`);
     prev = e.hash;
   });
   return { ok: problems.length === 0, problems, length: ledger.entries.length, head: prev };

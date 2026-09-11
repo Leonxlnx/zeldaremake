@@ -27,6 +27,20 @@ import { captureAll, gitInfo } from './capture.mjs';
 import { compareDir, deltaSummary } from './compare.mjs';
 import { scoreDir, renderTable } from './score.mjs';
 import { runAntiCheat, claimCovers } from './anti-cheat.mjs';
+
+/** Union of two claims files by (agent, at); returns the merged file and how many each side gained. */
+function mergeClaims(local, remote) {
+  const key = (c) => `${c.agent}|${c.at}`;
+  const have = new Set((local.claims ?? []).map(key));
+  const theirs = new Set((remote.claims ?? []).map(key));
+  const claims = [...(local.claims ?? [])];
+  let addedLocal = 0;
+  for (const c of remote.claims ?? []) if (!have.has(key(c))) { claims.push(c); addedLocal++; }
+  let addedRemote = 0;
+  for (const c of local.claims ?? []) if (!theirs.has(key(c))) addedRemote++;
+  claims.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  return { claims: { ...local, claims }, added: { local: addedLocal, remote: addedRemote } };
+}
 import { syncMonitor, applyToMonitor, commitAndPush, heartbeat, parseCallouts, readTakes, rendererShort, redactRemote, monitorDataDir } from './lib/monitor.mjs';
 
 const log = (...a) => console.error(...a);
@@ -143,6 +157,14 @@ async function main() {
       ledger = merged;
       saveLedger(ledgerPath, ledger);
     }
+    // Claims are per code branch, but D3 judges every agent's takes: keep the union on the monitor
+    // (data/claims.json) and pull it back so another agent's CLI claims count here too.
+    const monitorClaimsPath = path.join(monitorDataDir(MONITOR_DIR), 'claims.json');
+    const union = mergeClaims(readJson(CLAIMS_PATH, { claims: [] }), readJson(monitorClaimsPath, { claims: [] }));
+    if (union.added.local) log(`claims: ${union.added.local} claim(s) from other agents pulled from the monitor`);
+    writeJson(CLAIMS_PATH, union.claims);
+    fs.mkdirSync(path.dirname(monitorClaimsPath), { recursive: true });
+    writeJson(monitorClaimsPath, union.claims);
     log(`monitor: ${monitor.created ? 'new orphan branch' : `synced ${monitor.head?.slice(0, 7)}`} → ${rel(MONITOR_DIR)}`);
   }
 
