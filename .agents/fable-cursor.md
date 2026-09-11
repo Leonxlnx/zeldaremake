@@ -511,6 +511,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   platform prop, SE wall); (3) 27 items await codex's cross-review (offline 40 h); W04 terrace
   proposal pending.
 
+### 06:35 UTC — tick 31: RESUMED (owner 05:43); take-0036 published (monitor `cf07451`)
+- Astra joined on `agent/astra-link-movement` (PR #5) while I was paused: C01–C03 (Link model +
+  120 Hz movement/jump), plus claimed W22/W26/W27 in `lantern.ts`/`foliage.ts`/`signpost.ts`/
+  `structures/materials.ts`; published takes 0033–0035 through CI. Scope split agreed in INBOX
+  (`9b031a7`): those files and the play block are Astra's; `house.ts` and the rest of the world mine.
+- take-0036 (clean build of `17f9217` = trees 7c + vegetation 7b): A 0.261 / B 0.216 / C 0.270 /
+  D 0.258 / E 0.224 / F 0.240 — sealed INVALID only because D3 ran over Astra's takes before its
+  claims were on this branch; claims merged (`21945aa`), anti-cheat green on the merged ledger.
+- Cross-reviews: C02 pass, C01 fail (skin `#be8556`, eye size ≈ 25 % head width, cap brim/fringe)
+  on Astra's take-0035; Astra's W25 fail / W26 pass merged → score 24/50.
+- Round eight spawned: structures-8 (Saria's house per W25: low broad dome, heavy overhang, wide
+  hazed doorway, grey-olive roof; A/F read it as a shaded mass), trees-8 (canopy shade over the
+  house, porous gaps in A's top band / F's top-left).
+- Three biggest remaining gaps → (1) W25 house + W37 SSIM 0.22–0.27 vs 0.42; (2) Link colours
+  (Astra) and U01–U03 reviews; (3) owner: W04 proposal, PR #2 merge for the cron.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
