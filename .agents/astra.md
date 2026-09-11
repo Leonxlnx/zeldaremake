@@ -152,6 +152,11 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- W27 sign finish: beveled hand-cut board, four margin pegs, tied post binding and a planar
+  rune face seated ~1 mm above wood. Same two meshes/materials, placement, post vertices and
+  RNG consumption; +845 triangles. Root build/probe passes across 12 seeds/9,348 decal rays.
+  Old jitter causes 300 penetration samples in that seed set (none in the production seed);
+  the new face has none. Visual appearance remains pending capture.
 - Live shoulder timing now tracks stance/swing duty. Actual rig replay failed before the
   fix and passes after: arm/leg position correlations are -.9876 walk and -.9933 run on both
   sides, with opposite directions at touchdown/lift-off. Full prior contact/jump/stair and
