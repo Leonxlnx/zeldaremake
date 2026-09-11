@@ -548,6 +548,17 @@
       "at": "2026-09-11T22:29:42.088Z",
       "expiresHours": 6,
       "note": "Lantern limb sleeve contains the giant limb; cords retuned"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W37"
+      ],
+      "at": "2026-09-11T23:33:22.692Z",
+      "expiresHours": 6,
+      "note": "Trees round ten: shade floor on giant bark and leaves"
     }
   ]
 }
