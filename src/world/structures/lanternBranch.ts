@@ -28,7 +28,9 @@ export interface LanternBranchBuild {
 // reference's y ≈ 0.45 at x ≈ 0.1 and 0.26 in shot A; camera D stands past the bough's tip so
 // they hang behind it). The third sits at the trunk end of the bough: just outside shot A's
 // left edge (x ≈ -0.05) and outside B, C and D.
-const LANTERN_T = [0.5, 0.9, 0.1];
+// Reference frame 1 s: the three pods hang grouped over the plaza's west edge at screen x 0.08–0.26;
+// at t 0.1 the outer pod fell off A's left edge (x −0.05) and the row read widely spaced (W14 review).
+const LANTERN_T = [0.68, 0.9, 0.45];
 const BRANCH_POD_SCALE = 0.62;
 const CORDS = [1.2, 1.0, 1.0];
 
