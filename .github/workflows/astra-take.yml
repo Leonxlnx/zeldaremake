@@ -33,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           node gauntlet/scripts/take.mjs --agent astra --items C01,C02,C03 \
-            --note "$(cat .agents/astra-take-note.txt)" --publish --settle 8
+            --note "$(cat .agents/astra-take-note.txt)" --publish --require-capture-order --settle 8
       - uses: actions/upload-artifact@v4
         if: always()
         with:

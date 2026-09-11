@@ -7,6 +7,7 @@
  *        [--no-build] [--out gauntlet/out/last] [--previous <dir>] [--ledger gauntlet/ledger.json]
  *        [--settle 90] [--quality high]                        capture options (see capture.mjs)
  *        [--import <captureDir> --sha <sha> --at <iso>]      backfill a historical capture
+ *        [--require-capture-order]                           defer a stale capture after a concurrent publish
  *        [--auto-note] [--force] [--strict]                  monitor mode (see .github/workflows/monitor.yml)
  *
  * Steps: build → capture (or import) → compare vs reference + previous take → score → anti-cheat →
@@ -21,7 +22,7 @@ import path from 'node:path';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { ROOT, LEDGER_PATH, CLAIMS_PATH, OUT_DIR, LAST_DIR, PREV_DIR, MONITOR_DIR, readJson, writeJson, resolveArg, rel, loadRubric } from './lib/paths.mjs';
 import { parseArgs, listArg } from './lib/cli.mjs';
-import { loadLedger, saveLedger, appendEntry, lastEntry, nextId, validateNote, mergeLedgers } from './lib/ledger.mjs';
+import { loadLedger, saveLedger, appendEntry, lastEntry, nextId, validateNote, mergeLedgers, entryIdentity } from './lib/ledger.mjs';
 import { attestation } from './lib/attest.mjs';
 import { captureAll, gitInfo } from './capture.mjs';
 import { compareDir, deltaSummary } from './compare.mjs';
@@ -106,6 +107,48 @@ export function generateAutoNote({ git: g, at, agent, score, compare, prevEntry,
   return lines.join(' ');
 }
 
+
+/** Opt-in publication guard. Preserve the captured files and all canonical entries on conflict. */
+export function assertCaptureOrderForPublish(entry, canonical, takeDir, local) {
+  const identity = entryIdentity(entry);
+  const known = new Set(canonical.entries.map(entryIdentity));
+  // applyToMonitor merges every missing local entry, not only this capture. Do
+  // not import an unpublished backlog implicitly. Compare content identities:
+  // earlier apply/retry calls may have changed local ids and chain seals.
+  const backlog = local.entries.filter(existing => {
+    const id = entryIdentity(existing);
+    return id !== identity && !known.has(id);
+  });
+  const head = lastEntry(canonical);
+  let reason, detail;
+  if (backlog.length) {
+    reason = 'unpublished-local-backlog';
+    detail = `local ledger contains ${backlog.length} unpublished take(s) besides this capture`;
+  } else {
+    // A push may have succeeded even if its response was lost. An already
+    // canonical capture may be retried after another publisher follows it.
+    if (known.has(identity) || !head) return;
+    const captureTime = Date.parse(entry.at), headTime = Date.parse(head.at);
+    if (!Number.isFinite(captureTime) || !Number.isFinite(headTime)) {
+      throw new Error('capture-order check requires valid capture and canonical-head timestamps');
+    }
+    if (captureTime >= headTime) return;
+    reason = 'capture-start-precedes-canonical-head';
+    detail = `${entry.at} precedes canonical ${head.id} at ${head.at}`;
+  }
+  const metadata = take => ({ id: take.id, sha: take.sha, at: take.at, hash: take.hash });
+  const conflict = {
+    status: 'not-published', reason,
+    detectedAt: new Date().toISOString(),
+    capture: metadata(entry),
+    canonicalHead: head ? metadata(head) : null,
+    ...(backlog.length ? { unpublishedLocalEntries: backlog.map(metadata) } : {}),
+    artifacts: rel(takeDir),
+  };
+  writeJson(path.join(takeDir, 'publication-deferred.json'), conflict);
+  throw new Error(`Capture preserved but not published: ${detail}. Request a fresh take from a checkout without unpublished backlog; see ${rel(path.join(takeDir, 'publication-deferred.json'))}.`);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2), { multi: ['callout'] });
   const agent = typeof args.agent === 'string' ? args.agent : null;
@@ -120,6 +163,7 @@ async function main() {
   const outDir = resolveArg(args.out, LAST_DIR);
   const rotate = outDir === LAST_DIR;
   const publish = !!args.publish;
+  const requireCaptureOrder = !!args['require-capture-order'];
   const importDir = args.import ? resolveArg(args.import) : null;
   const noBuild = !!args['no-build'] || !!importDir;
   const autoNote = !!args['auto-note'];
@@ -281,8 +325,14 @@ async function main() {
   // h. publish --------------------------------------------------------------------------------
   let published = null;
   if (publish) {
+    // Capture and rotation are complete, so a rejected publication still leaves
+    // all evidence in the workflow's always-upload directory.
+    if (requireCaptureOrder) syncMonitor({ log });
     let applied = null;
     const apply = async () => {
+      if (requireCaptureOrder) {
+        assertCaptureOrderForPublish(sealed, loadLedger(path.join(monitorDataDir(MONITOR_DIR), 'ledger.json')), finalDir, loadLedger(ledgerPath));
+      }
       applied = await applyToMonitor({ localLedgerPath: ledgerPath, entry: sealed, takeDir: finalDir, rubric, callouts, refCallouts, phase, log });
       if (applied.takeId !== sealed.id) log(`monitor: take renumbered ${sealed.id} → ${applied.takeId} (concurrent publish)`);
       writeJson(path.join(finalDir, 'take.json'), { ...readJson(path.join(finalDir, 'take.json')), id: applied.takeId });

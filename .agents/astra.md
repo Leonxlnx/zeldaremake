@@ -4,42 +4,38 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T17:38:31.735129Z
+updated: 2026-09-11T17:57:43.152587Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Publish the reviewed Link surface/ear checkpoint, then inspect actual screenshots and motion.
-Integrated new closed folded ears, consistent grouped golden hair pigment/UV scale, physical
-brown strap leather and fitted inset stitches. Corrected cloth albedo after actual eca1179
-looked blotchy: individual warp/weft pigment now dominates, broad dye is restrained. This is
-not a visual completion claim; the new complete checkpoint still needs actual rendering.
+Continue Link refinement: one continuous-arm scratch removes overlapping elbow primitives
+while retaining joints/hands/motion; independent pose and geometry review is running. Rounded
+pouch source review passes and is next for integration/capture. Structural paired-contact
+movement remains scratch; pure IK and full lower-limb cache coverage pass, live ordinary-turn
+replay is next. The conservative scalar all-future-input reserve rejected valid idle; it is
+retained as a failed proof, not a movement failure. The practical candidate uses actual geometry
+checks and bounded substeps; no all-input safety claim.
 
-Character has65 meshes /89,204 triangles. Root full production build, static batching and eye
-regression pass:2,992,032 posed positions/normals exact and8,448 eye triangles. Existing NPC
-geometry/materials/poses remain unchanged. Ear adds2,560 triangles and no draws; strap adds
-5,400 stitch triangles and one draw. Hardware f115595 stays exact.
+0748a84 ear/hair/stitch/cloth actual gallery478184d, captured17:54:47UTC, verified14 JPG hashes,
+42 matching sequence states and no capture errors. Root inspected face/profile/belt/run:
+ear folds and sewn strap read; cloth broad blotches are gone. Face still looks toy-like and
+eyes protrude in profile; a coherent socket-seating review is queued. Not95% or final.
 
-The broader140mm boots and late cuff-routing candidate remain rejected. A new ONE scratch
-structural implementation is underway on current narrow boots: paired committed foot poses,
-visual body-yaw lag, actual-velocity landings, final shared pelvis/IK and whole opposing-leg
-clearance with a bounded continuation reserve. Physics/camera response is unchanged. Independent
-envelope/replay review is separate from implementation. Flat ordinary movement is first gate;
-stair anticipation and broader boots remain unresolved. No production movement edit here.
+Integrate our opt-in strict capture-order publication guard. Future Astra canonical captures
+refresh the monitor before apply/retry and defer stale captures or unrelated unpublished local
+backlog, preserving the artifact unchanged. No synthetic times/history rewrite/verifier change.
+Focused bare-Git real push-race and backlog fixtures passed; character galleries stay independent.
+An already-running pre-guard f115 job published0052 atmonitor eb10fc7: original capture17:26:30
+was appended afterFable0051 at17:28:10. Strict chain now has0037/0048/0050/0052 inversions;
+all51 prior entries are retained. No claim the new guard protects old runs.
 
-Fable431d965 fixes the identity lookup/dedup bug we reported, but capture-time D3/cadence/metadata
-semantics of resequencing remain under review. Fable declines CI-only capture; a fresh-workflow
-offer and strict capture-order guard for our future publisher are being prepared in scratch.
-No shared publisher/history/rule changes integrated. New Fable0051 does not exercise resequencing;
-its old50entries remain exact and strict0037/0048/0050 failures persist. Our f115 canonical run
-is still in flight and may again encounter a later local Fable publication. No cancel-run
-capability is exposed. Character galleries remain independent and immutable.
-
-Fable world/house/canopy ownership remains respected; .27stairs/shared helpers/atmosphere held.
-C01/C02/C03 claims remain active through19:57:36.450UTC. No merge, deployment, new schedule,
-phase exit, or95% fidelity claim.
+Fable291a3f2 follows our boundary report with D3 capture-time and metadata/UI changes; independent
+read-only review is underway, not adopted yet. Fable declinesCI-only capture. World/house/canopy
+ownership remains respected; newer.27stairs/sharedhelpers/atmosphere held. Missing Fable claim
+records copied intact; C01/C02/C03 expire19:57:36.450UTC. No merge/deployment/schedule/phase exit.
 
 ## Recent completed work and evidence
 
@@ -1051,4 +1047,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T17:38:31.735129Z
+2026-09-11T17:57:43.152587Z
