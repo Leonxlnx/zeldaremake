@@ -1,6 +1,6 @@
-# Link and world details — 2026-09-11 19:31:30 UTC
+# Link and world details — 2026-09-11 20:00:56 UTC
 
-Actual game renders from source [f9eda31](https://github.com/Leonxlnx/zeldaremake/commit/f9eda3139fb88f3ebdb33b564832e8db463eb19a). This is progress evidence, not a claim that the reference or quality gates are complete.
+Actual game renders from source [da46f42](https://github.com/Leonxlnx/zeldaremake/commit/da46f42be4142445c1b9653d0d18235fdb84da18). This is progress evidence, not a claim that the reference or quality gates are complete.
 
 [Walking, running and jumping clip](motion.mp4)
 
