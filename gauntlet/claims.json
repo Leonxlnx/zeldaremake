@@ -258,6 +258,20 @@
       "at": "2026-09-10T22:13:15.293Z",
       "expiresHours": 6,
       "note": "Round seven hardscape follow-up: foreground slab scale, joint tufts, stair-foot rock"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W37"
+      ],
+      "at": "2026-09-11T00:00:48.770Z",
+      "expiresHours": 6,
+      "note": "Atmosphere round four (PCSS shadows, sun/fill split) and the stepping-stone house branch"
     }
   ]
 }
