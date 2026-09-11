@@ -2,6 +2,7 @@
 import { DynamicDrawUsage, Matrix4, Mesh, Vector3, type BufferGeometry } from 'three';
 import { LINK_EYE_OPENING, LINK_EYE_SEGMENTS, createLinkUpperLashPath } from './eye-aperture';
 import type { Rig } from './rig';
+import { updateLinkEyeSurfaceUV } from './eye-surface';
 
 export const LINK_IRIS_SURFACE_OFFSET = .0006;
 export const LINK_PUPIL_SURFACE_OFFSET = .001;
@@ -51,7 +52,7 @@ export function createEyeSkullField(skull: BufferGeometry, headToEye: Matrix4, k
   };
 }
 
-type EyePart = 'eye-white' | 'iris' | 'pupil' | 'eyelid' | 'lashes' | 'eye-highlight';
+type EyePart = 'eye-white' | 'eyelid' | 'lashes';
 interface Binding {
   name: EyePart;
   geometry: BufferGeometry;
@@ -60,7 +61,8 @@ interface Binding {
 }
 
 /**
- * Keep the existing eye groups, aperture topology, UVs and blink timing. Only Link calls this.
+ * Keep the existing eye groups, white aperture and blink timing. Only Link calls this.
+ * White UVs track physical pigment coordinates while the parent closes the aperture.
  * Eye meshes are intentionally excluded from static batching, so these bindings remain live.
  * The updater runs after posing, alongside the existing boot geometry synchronization.
  */
@@ -81,7 +83,7 @@ export function createLinkEyeSeating(rig: Rig): () => void {
   const updates = rig.eyes.map(eye => {
     eye.updateMatrix();
     const skin = createEyeSkullField(skull.geometry, eye.matrix.clone().invert(), k);
-    const names: EyePart[] = ['eye-white', 'iris', 'pupil', 'eyelid', 'lashes', 'eye-highlight'];
+    const names: EyePart[] = ['eye-white', 'eyelid', 'lashes'];
     const bindings: Binding[] = names.map(name => {
       const mesh = eye.getObjectByName(name);
       if (!(mesh instanceof Mesh)) throw new Error(`Link eye is missing ${name}`);
@@ -98,10 +100,6 @@ export function createLinkEyeSeating(rig: Rig): () => void {
       position.setUsage(DynamicDrawUsage); geometry.attributes.normal.setUsage(DynamicDrawUsage);
       return { name, geometry, rest, radial: radii };
     });
-    const highlight = bindings.find(binding => binding.name === 'eye-highlight')!;
-    highlight.geometry.computeBoundingSphere();
-    const highlightCentre = highlight.geometry.boundingSphere!.center.clone();
-    const highlightRadius = highlight.geometry.boundingSphere!.radius;
     const whiteHeight = (x: number, y: number, u: number) => skin(x, y) + k * (.0006 + .0008 * (1 - u * u));
     let previous = NaN;
     return () => {
@@ -110,8 +108,6 @@ export function createLinkEyeSeating(rig: Rig): () => void {
       if (!Number.isFinite(blinkScale) || blinkScale < .079 || blinkScale > 1.001)
         throw new Error('Link eye seating received an unsupported blink scale');
       previous = blinkScale;
-      const highlightZ = whiteHeight(highlightCentre.x, highlightCentre.y * blinkScale,
-        radial(highlightCentre.x, highlightCentre.y)) + LINK_IRIS_SURFACE_OFFSET * k - .5 * highlightRadius;
       for (const binding of bindings) {
         const position = binding.geometry.attributes.position, rest = binding.rest;
         for (let i = 0; i < position.count; i++) {
@@ -130,15 +126,13 @@ export function createLinkEyeSeating(rig: Rig): () => void {
           } else if (binding.name === 'lashes') {
             // A partly seated tube follows the actual upper margin, not a separate plane.
             depth = skin(x, y * blinkScale) + .0006 * k + z - lashPlane;
-          } else if (binding.name === 'eye-highlight') {
-            depth = highlightZ + z - highlightCentre.z;
           } else {
             depth = whiteHeight(x, y * blinkScale, binding.radial[i]);
-            if (binding.name === 'iris') depth += LINK_IRIS_SURFACE_OFFSET * k;
-            if (binding.name === 'pupil') depth += LINK_PUPIL_SURFACE_OFFSET * k;
           }
           position.setXYZ(i, x, localY, depth);
         }
+        if (binding.name === 'eye-white')
+          updateLinkEyeSurfaceUV(binding.geometry, k, Math.sign(eye.position.x) as 1 | -1, blinkScale);
         position.needsUpdate = true;
         binding.geometry.computeVertexNormals();
         binding.geometry.computeBoundingBox(); binding.geometry.computeBoundingSphere();

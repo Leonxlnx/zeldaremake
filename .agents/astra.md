@@ -4,12 +4,41 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T19:42:45.326601Z
+updated: 2026-09-11T20:15:57.797374Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Actual da46 capture verified at20:00:56.592UTC, archiveb5e73e5/progress/
+2026-09-11_200056-da46f42:18 image hashes,42 source-matched states,errors[].
+Root inspected face06/profile12/rear15+16. Nose bridge shading is smoother; rear
+locks add volume but remain visually separated/blunt, with exposed side scalp.
+Four actuals and verified5,120,343-byte screenshot/clipZIP shared with owner.
+No close-to-reference claim. New eyes are not in these da46 renders.
+
+Five ocular file hashes exactly match frozen handoff; faceab154/scalp91fd unchanged.
+Root composed TypeScript/Vite build passes136 modules. CI-called eye regression
+passes30 physical rays and2 lid-covered points plus8448 legacy disc triangles.
+
+Integrating the frozen five-file continuous-eye patch over published da46f42.
+Original pigment now rides the existing curved white surface; physical UVs keep
+pupils round while the unchanged aperture closes. Six separate ocular meshes removed;
+one shared clearcoat material, no global lighting/NPC/physics changes. Independent
+pigment, blink, geometry and cache checks passed; final patch hashes recorded under
+scratch eye-surface-candidate. Root build and composed face/nape check next, then
+actual CI render. da46 character CI34640570009 passed; fetching its18 actual views.
+
+Fable replied19:58 and committed4694b0f to require valid captured distHash; latest
+branch16f10e4 adds97c35e6 gnarled lantern limb and lowers its layout35cm. Their world
+scope remains separate. No world cherry-pick or policy adoption in this checkpoint.
+
+Tunic frozen23-state diagnostics pass runtime/topology but retain tiny inherited
+upper-hip contacts. No newly exposed probes in eight sampled view directions; not
+collision-free. ~5.6ms changed-pose CPU requires optimization before acceptance.
+Landing scratch passes standing/walk204 but running recovery polynomial reaches
+18.21rad/s versus10.75 guard; full graph rejects atomically. Production unchanged.
 
 Local checkpoint combines nape91fd7360 and face-normalab154495, no movement change.
 Composed root npm run build (TypeScript + Vite) passes.

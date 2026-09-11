@@ -10,12 +10,12 @@
  */
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Raycaster, SphereGeometry, TorusGeometry, Vector3 } from 'three';
 import { merge, ovalLathe, place, sweep, triangleCount } from './geometry';
-import { CHAR_COLORS, cloth, linkHair, linkIris, matte } from './palette';
+import { CHAR_COLORS, cloth, linkHair, matte } from './palette';
 import { buildRig, LINK_PROPORTIONS, type Rig } from './rig';
 import { createLinkFaceGeometry, linkMouthHeight } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
 import { buildGear } from './gear';
-import { createLinkEyeDisc } from './eye-geometry';
+import { linkEyeSurface } from './eye-surface';
 import { createLinkEyeWhite, createLinkEyelid, createLinkUpperLashPath } from './eye-aperture';
 import { createLinkBoot } from './boot-geometry';
 import { createLinkFrontalHair } from './hair-geometry';
@@ -36,7 +36,7 @@ import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
 import { createLinkStrapBuckle } from './strap-buckle-geometry';
 import { createLinkPouch } from './pouch-geometry';
-import { createLinkEyeSeating, LINK_IRIS_SURFACE_OFFSET, LINK_PUPIL_SURFACE_OFFSET } from './eye-seating';
+import { createLinkEyeSeating } from './eye-seating';
 import { finishLinkLeatherStrap } from './strap-surface';
 
 export interface Character {
@@ -149,12 +149,11 @@ export function buildNeck(rig: Rig, skin: MeshStandardMaterial): void {
   part(rig.chest, place(new CylinderGeometry(0.042, 0.048, top - bottom, 10), 0, (top + bottom) / 2 - p.chestY, 0), skin, 'neck');
 }
 
-export interface FaceOptions {
+export type FaceOptions = {
   skin: MeshStandardMaterial;
-  iris: MeshStandardMaterial;
   earLength: number;
-  softFeatures?: boolean;
-}
+} & ({ softFeatures: true; iris?: never }
+  | { softFeatures?: false; iris: MeshStandardMaterial });
 
 /** Head: skull, big eyes (blink-able groups), brows, nose, mouth, pointed ears. */
 export function buildFace(rig: Rig, opts: FaceOptions): void {
@@ -193,10 +192,8 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     head.add(eye);
     if (soft) {
       eye.updateMatrix();
-      part(eye, createLinkEyeWhite(k), white, 'eye-white', false);
+      part(eye, createLinkEyeWhite(k), linkEyeSurface(), 'eye-white', false);
       part(eye, createLinkEyelid(k, skull, eye.matrix), opts.skin, 'eyelid', false);
-      part(eye, createLinkEyeDisc(k, side, 0.016, LINK_IRIS_SURFACE_OFFSET), opts.iris, 'iris', false);
-      part(eye, createLinkEyeDisc(k, side, 0.009, LINK_PUPIL_SURFACE_OFFSET), pupil, 'pupil', false);
       const lid = createLinkUpperLashPath(k);
       part(eye, sweep(lid, [0.0005 * k, 0.0014 * k, 0.0014 * k, 0.0005 * k], { segments: 18, radial: 5 }), matte('brow'), 'lashes', false);
     } else {
@@ -205,8 +202,8 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
       part(eye, place(new SphereGeometry(0.013 * k, 8, 6), 0, -0.001, 0.0262 * k, undefined, [1, 1, 0.5]), pupil, 'pupil', false);
       part(eye, place(new TorusGeometry(0.031 * k, 0.0032, 5, 12, Math.PI), 0, 0.002, 0.012 * k, [0.35, 0, 0], [1, 0.95, 1]), pupil, 'lashes', false);
     }
-    // catch-light on the upper-outer iris
-    part(eye, new SphereGeometry((soft ? 0.0015 : 0.0035) * k, 6, 4).translate(side * 0.004 * k, 0.005 * k, (soft ? 0.0042 : 0.031) * k), white, 'eye-highlight', false);
+    // Legacy NPC highlight. Link's continuous wet surface reflects scene lighting.
+    if (!soft) part(eye, new SphereGeometry(0.0035 * k, 6, 4).translate(side * 0.004 * k, 0.005 * k, 0.031 * k), white, 'eye-highlight', false);
     rig.eyes.push(eye);
     if (soft) {
       const surface = new Mesh(skull, opts.skin);
@@ -562,7 +559,7 @@ export function createLink(): Character {
   buildArms(rig, { skin, sleeve: cloth('tunic'), shapedSleeves: true, shapedHands: true, smoothJoints: true });
   buildTorso(rig);
   buildNeck(rig, skin);
-  buildFace(rig, { skin, iris: linkIris(), earLength: 0.085, softFeatures: true });
+  buildFace(rig, { skin, earLength: 0.085, softFeatures: true });
   const syncEyes = createLinkEyeSeating(rig);
   buildHair(rig, linkHair(), 'link');
   buildCap(rig);

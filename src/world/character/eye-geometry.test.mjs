@@ -5,6 +5,7 @@ import ts from 'typescript';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import * as THREE from 'three';
+import * as geometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 // In-memory TypeScript loader follows the new shared aperture helper as well.
 const cache = new Map();
@@ -16,6 +17,7 @@ function load(file) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   new Function('require', 'module', 'exports', source)(id => id === 'three' ? THREE
+    : id.endsWith('/utils/BufferGeometryUtils.js') ? geometryUtils
     : load(path.resolve(path.dirname(file), id + '.ts')), module, module.exports);
   return module.exports;
 }
@@ -75,3 +77,61 @@ for (const scale of [1, .145 / .125]) for (const side of [-1, 1]) {
   mesh.material.dispose(); iris.dispose(); pupil.dispose(); oversized.dispose();
 }
 console.log(`eye-geometry.test.mjs: clipping, curved layers and +Z winding passed (${testedTriangles} triangles)`);
+
+// Exercise the production surface through its actual triangles and parent scale.
+// Fixed UVs and compensating the white geometry instead of UVs must both fail.
+{
+  const context = new Proxy({}, { get: (_, key) => String(key).endsWith('Gradient')
+    ? () => ({ addColorStop() {} }) : () => {} });
+  globalThis.document = { createElement: () => ({ width: 0, height: 0, getContext: () => context }) };
+  const base = path.dirname(fileURLToPath(import.meta.url));
+  const actor = load(path.join(base, 'link.ts')).createLink();
+  const chart = load(path.join(base, 'eye-surface.ts')).LINK_EYE_SURFACE;
+  assert.equal(chart.irisRadius, .016); assert.equal(chart.pupilRadius, .009);
+  const k = actor.rig.props.headRadius / .125;
+  const surfaces = actor.rig.eyes.map(eye => eye.getObjectByName('eye-white'));
+  const openUV = surfaces.map(mesh => mesh.geometry.attributes.uv.array.slice());
+  const localY = surfaces.map(mesh => Array.from({ length: mesh.geometry.attributes.position.count },
+    (_, i) => mesh.geometry.attributes.position.getY(i)));
+  const ray = new THREE.Raycaster();
+  let mappedHits = 0, coveredPoints = 0;
+  for (const blink of [1, .5838095238095872, .08, 1]) {
+    for (const eye of actor.rig.eyes) eye.scale.y = blink;
+    actor.syncGeometry(); actor.group.updateMatrixWorld(true);
+    for (const [sideIndex, eye] of actor.rig.eyes.entries()) {
+      const mesh = surfaces[sideIndex], side = Math.sign(eye.position.x), cx = -side * .0025 * k, cy = -.0005 * k;
+      const hitAt = (x, y) => {
+        const origin = eye.localToWorld(new THREE.Vector3(x, y / blink, .3));
+        ray.set(origin, new THREE.Vector3(0, 0, -1).transformDirection(eye.matrixWorld));
+        return ray.intersectObject(mesh, false)[0];
+      };
+      for (const dx of [0, -.009 * k, .009 * k]) {
+        const hit = hitAt(cx + dx, cy); assert(hit?.uv, 'fixed pupil position remains on the aperture');
+        assert(Math.abs(hit.uv.x - (.5 + dx / k / chart.width)) < 8e-8);
+        assert(Math.abs(hit.uv.y - .5) < 8e-8, 'blink must not move the pigment centre');
+        const radius = Math.hypot((hit.uv.x - .5) * chart.width, (hit.uv.y - .5) * chart.height);
+        assert(Math.abs(radius - Math.abs(dx / k)) < 5e-9, 'physical pupil radius does not squash');
+        mappedHits++;
+      }
+      const top = hitAt(cx, cy + .009 * k);
+      if (blink === .08) { assert.equal(top, undefined); coveredPoints++; }
+      else {
+        assert(top?.uv); assert(Math.abs(top.uv.y - (.5 + .009 / chart.height)) < 8e-8); mappedHits++;
+      }
+      const position = mesh.geometry.attributes.position, uv = mesh.geometry.attributes.uv;
+      let minV = Infinity, maxV = -Infinity;
+      for (let i = 0; i < position.count; i++) {
+        assert.equal(position.getY(i), localY[sideIndex][i], 'white retains its original local height');
+        minV = Math.min(minV, uv.getY(i)); maxV = Math.max(maxV, uv.getY(i));
+      }
+      assert(Math.abs((maxV - minV) - .033 * blink / chart.height) < 9e-8,
+        'closing aperture samples a narrower original pigment strip');
+    }
+    const versions = surfaces.map(mesh => mesh.geometry.attributes.uv.version);
+    actor.syncGeometry(); actor.syncGeometry();
+    assert.deepEqual(surfaces.map(mesh => mesh.geometry.attributes.uv.version), versions,
+      'steady blink must not upload UVs again');
+  }
+  surfaces.forEach((mesh, i) => assert.deepEqual(mesh.geometry.attributes.uv.array, openUV[i], 'open reset restores mapping'));
+  console.log(`eye-geometry.test.mjs: continuous eye mapping passed (${mappedHits} physical rays, ${coveredPoints} lid-covered points, blink/reset/cache)`);
+}
