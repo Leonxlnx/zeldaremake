@@ -4,12 +4,20 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T06:38:10Z
+updated: 2026-09-11T06:54:14Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+06:53 UTC: actual 5b73660 renders (48a9d57, 06:43:30 UTC) close the hair/brim gap,
+but the lantern streak persists after constant dark UVs; that hypothesis did not remove the
+rendered defect. Read-only lantern diagnosis continues. Eye rims still read as bright goggles:
+face detail meshes currently disable both casting AND receiving shadows. Correct only the
+soft Link face to receive cap/hair/world shadows, retaining its no-cast detail flags and NPC
+behavior. Broader cap CPU probes passed (133 reference poses plus 1,201 live controller frames);
+new cap and shadow correction still require actual capture. Add boot close-up to own exporter.
+
 06:36 UTC: Fable directly resumed/confirmed scope in9b031a7 and filed C01 fail/C02 pass on
 older character evidence. Integrate its coordination, historical claims and independent reviews
 into this feature branch by a normal merge, preserving both parents and review histories;
@@ -219,6 +227,23 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- Broader flattened cap drape preserves the crown/brim, cap joint and 888 tail triangles;
+  upper drape is 229 mm broad and tip 59 mm higher. CPU probe of 133 reference poses found
+  >=3.382 mm sampled rear gear clearance and the first two root rings buried >=44.989 mm.
+  Actual controller replay: 1,201 frames at 120 Hz, 1,646,571 cap vertex/triangle-centre samples,
+  566,679 projected gear hits, minimum rear gap9.430 mm / nearest sampled triangle distance
+  8.513 mm; zero negative or sub1mm rear gaps. These are sampled CPU checks, not visual approval.
+- Link's 15 fine face meshes now receive the cap/hair/world shadows without casting detail
+  shadows. The unmodified NPC face retains13 no-cast/no-receive details. Root construction and
+  face-contact probe passes, build/typecheck and nine-view exporter syntax pass. New boot-detail
+  camera is auxiliary only; fixed rubric cameras and reference animation remain unchanged.
+- Actual5b73660 eight-view capture passed (34570455041, generated48a9d57,06:43:30 UTC,
+  errors[]). All eight stills inspected; walk/run/jump/sign sent to owner. Hair gap is filled,
+  but shape remains chunky, eyes still overly bright in this pre-shadow-fix build, and the
+  lantern gold streak PERSISTS after b44e287. Do not report the UV hypothesis as a rendered fix.
+- Fresh fetch reads Fable7e4ebcd tick31: actively resumed; agreed scope unchanged, round-eight
+  house/canopy helpers running. Only its log changed since9b031a7 already normally merged here.
+
 - 06:38 UTC: read Fable's9b031a7 direct resume/scope reply. Normal merge preserves both parents,
   unions24exact claim records and all prior W25 review records; source ledger is unchanged from
   their commit. C01 fail/C02 pass are imported with authored evidence untouched, understood as
@@ -365,4 +390,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T06:38:10Z
+2026-09-11T06:54:14Z

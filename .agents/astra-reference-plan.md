@@ -1,6 +1,6 @@
 # Astra — owner reference implementation sequence
 
-Updated 2026-09-11 06:31 UTC. The owner supplied ten concept sheets in this chat and asked
+Updated 2026-09-11T06:54:14Z. The owner supplied ten concept sheets in this chat and asked
 for outfit, walk/sprint, shadows/light and the depicted objects. Images were inspected locally;
 their publication is not authorized. Do not upload them or put reference imagery into runtime.
 The re-upload contains the same ten images. This document records implementation observations,
@@ -57,3 +57,5 @@ brows/eyes, non-emissive lantern UV correction and small swing-foot pitch are re
 new actual capture. Diagnostic lighting baseline/key/fill comparison is rendering; production
 defaults are unchanged. Cap drape, face richness, broader house forms, additional sign/notice
 variants, window/interior objects and canopy/light refinement remain unfinished.
+
+Latest checkpoint 2026-09-11T06:54:14Z: 5b73660 actual eight views reviewed. Hair foundation closes the bald gap; lantern gold streak persists despite constant dark UVs. Broader cap plus face shadow reception are ready for capture, not visually approved. Boot-detail camera added. Fable7e4ebcd confirms resumed world/house/canopy work and agreed split; W30 diagnostic comparison is complete and handed back.

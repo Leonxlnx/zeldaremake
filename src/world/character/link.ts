@@ -258,6 +258,11 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     });
     part(head, sweep(seam, [0.0004 * k, 0.0011 * k, 0.0011 * k, 0.0004 * k],
       { segments: 20, radial: 6, closeStart: true, closeTip: true }), matte('mouth'), 'mouth', false);
+    // Fine facial layers should not cast jagged self-shadows, but must receive
+    // the same cap, hair and canopy shade as the skull they sit on.
+    head.traverse(object => {
+      if (object instanceof Mesh) object.receiveShadow = true;
+    });
   } else {
     part(head, place(new BoxGeometry(0.032, 0.005, 0.006), 0, -0.056 * (r / 0.125), r * 0.9), matte('mouth'), 'mouth', false);
   }
@@ -532,21 +537,23 @@ function buildCap(rig: Rig): void {
   // blades. `b` is "backward" in the brim frame (perpendicular to n).
   const b = new Vector3(0, -Math.sin(tilt), -Math.cos(tilt));
   const domeAt = (theta: number, scale: number) => n.clone().multiplyScalar(-d + scale * R * stretch * Math.cos(theta)).addScaledVector(b, scale * R * Math.sin(theta) * taper(theta));
-  // The tail is a flattened, creased tube (cloth lying on the back) with a gentle S-bend, reaching
-  // mid-back (≈ 0.42 m below the brim).
+  // Broad cloth grows out of a buried crown root and folds down over the pack.
+  // Keep its thickness backward-facing so the upper drape stays wide, not tubular.
   const pts = [
     // Begin well inside the crown; the section emerges tangentially at the
     // back instead of protruding through its top as a separate raised tube.
-    domeAt(0.45, 0.55),
-    domeAt(0.90, 0.75),
-    domeAt(1.15, 0.95),
-    new Vector3(0.018, -0.025, -0.175),
-    new Vector3(0.012, -0.09, -0.2),
-    new Vector3(-0.014, -0.2, -0.21),
-    new Vector3(-0.006, -0.3, -0.215),
-    new Vector3(0.012, -0.375, -0.22),
+    domeAt(0.45, 0.40),
+    domeAt(0.90, 0.64),
+    domeAt(1.15, 0.86),
+    new Vector3(0.006, -0.052, -0.165),
+    new Vector3(0.010, -0.105, -0.195),
+    new Vector3(-0.010, -0.190, -0.225),
+    new Vector3(-0.014, -0.275, -0.244),
+    new Vector3(-0.008, -0.325, -0.247),
   ].map((v, i) => (i < 3 ? v : v.multiplyScalar(k)));
-  part(cap, sweep(pts, [0.038 * k, 0.045 * k, 0.047 * k, 0.048 * k, 0.043 * k, 0.034 * k, 0.02 * k, 0.005], { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.48, crease: 0.16 }), capMat, 'cap-tail');
+  part(cap, sweep(pts, [0.076, 0.096, 0.099, 0.087, 0.069, 0.046, 0.021, 0.0018].map(v => v * k),
+    { segments: 36, radial: 12, closeTip: true, closeStart: true, flatten: 0.22,
+      flattenFromRoot: true, crease: 0.10, surfaceNormal: new Vector3(0, 0, -1) }), capMat, 'cap-tail');
   // rolled brim in the brim plane: torus XY plane → horizontal (+π/2) → tilted back by `tilt`
   part(cap, place(new TorusGeometry(rimR + 0.002, 0.0065, 8, 40), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]), cloth('capBrim'), 'cap-brim');
 }
