@@ -79,6 +79,22 @@ export function inset(p: P2[], d: number): P2[] {
   return out;
 }
 
+/** Distance from a point to the closest edge of a polygon (0 when on an edge; sign-less). */
+export function distToPolygon(p: P2[], x: number, z: number): number {
+  let best = Infinity;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+    const ax = p[j].x;
+    const az = p[j].z;
+    const ex = p[i].x - ax;
+    const ez = p[i].z - az;
+    const l2 = ex * ex + ez * ez || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - ax) * ex + (z - az) * ez) / l2));
+    const d = Math.hypot(x - (ax + ex * t), z - (az + ez * t));
+    if (d < best) best = d;
+  }
+  return best;
+}
+
 /** Point-in-polygon (ray casting). */
 export function pointInPolygon(p: P2[], x: number, z: number): boolean {
   let inside = false;
@@ -198,12 +214,16 @@ export function radialProfile(p: P2[], samples: number): Float32Array {
 
 // ---------------------------------------------------------------------------------------------
 
+export type Rgb = [number, number, number];
+
 export class MeshBuilder {
   pos: number[] = [];
   nrm: number[] = [];
   uv: number[] = [];
   col: number[] = [];
   moss: number[] = [];
+  /** soil stain amount per vertex (`aStain`): the joint soil creeping up a slab's flank */
+  stain: number[] = [];
   private groupStart = 0;
 
   get vertexCount() {
@@ -214,8 +234,11 @@ export class MeshBuilder {
     this.groupStart = this.pos.length / 3;
   }
 
-  /** push one triangle with an explicit normal (or computed from winding if omitted) */
-  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: [number, number, number], moss: [number, number, number], n?: Vector3) {
+  /**
+   * push one triangle with an explicit normal (or computed from winding if omitted); `stain` is
+   * the per-vertex soil-stain amount (`aStain`, clamped 0..1 in the shader after interpolation)
+   */
+  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb, moss: [number, number, number], n?: Vector3, stain?: [number, number, number]) {
     let nx: number;
     let ny: number;
     let nz: number;
@@ -243,6 +266,8 @@ export class MeshBuilder {
     this.uv.push(uva.x, uva.y, uvb.x, uvb.y, uvc.x, uvc.y);
     this.col.push(col[0], col[1], col[2], col[0], col[1], col[2], col[0], col[1], col[2]);
     this.moss.push(moss[0], moss[1], moss[2]);
+    if (stain) this.stain.push(stain[0], stain[1], stain[2]);
+    else this.stain.push(0, 0, 0);
   }
 
   /** average normals of coincident vertices inside the current group (smooth shading) */
@@ -294,6 +319,7 @@ export class MeshBuilder {
     cat(this.uv, other.uv);
     cat(this.col, other.col);
     cat(this.moss, other.moss);
+    cat(this.stain, other.stain);
   }
 
   build(): BufferGeometry {
@@ -303,6 +329,7 @@ export class MeshBuilder {
     g.setAttribute('uv', new Float32BufferAttribute(this.uv, 2));
     g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
     g.setAttribute('aMoss', new Float32BufferAttribute(this.moss, 1));
+    g.setAttribute('aStain', new Float32BufferAttribute(this.stain, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
@@ -320,11 +347,23 @@ export interface SlabOptions {
   color?: [number, number, number];
   /** colour multiplier for the sides (usually darker) */
   sideColor?: [number, number, number];
+  /**
+   * soil stain (`aStain`) at the foot of the side walls (y = 0), falling linearly to 0 at the
+   * shoulder ring; the shader clamps it to 0..1 after interpolation, so a value > 1 puts the
+   * fully stained band on the buried part of the wall and the fade-out just above the fill
+   */
+  sideStain?: number;
   /** moss amount on the top-edge ring / sides (0..1) and how far in it creeps (0..1) */
   mossEdge?: number;
   mossInner?: number;
   /** per-vertex moss modulation callback (world-ish local x,z) */
   mossFn?: (x: number, z: number) => number;
+  /**
+   * additive per-vertex moss (local x,z; `edge` is 1 on the sides / bevel / shoulder ring and
+   * falls to 0 at the top centre) — a moss film creeping in over a stone's edge with its own
+   * falloff, independent of the multiplicative `mossFn` ring gradient
+   */
+  mossAdd?: (x: number, z: number, edge: number) => number;
   /** uv scale (texels per metre → 1/tile) */
   uvScale?: number;
   /** uv offset so each slab samples a different part of the texture */
@@ -374,12 +413,14 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const dip = o.dip ?? 0;
   const col = o.color ?? [1, 1, 1];
   const scol = o.sideColor ?? [col[0] * 0.8, col[1] * 0.8, col[2] * 0.8];
+  const sideStain = o.sideStain ?? 0;
   const uvS = o.uvScale ?? 1 / 1.6;
   const uvO = o.uvOffset ?? [0, 0];
   const rings = Math.max(1, o.rings ?? 2);
   const mossEdge = o.mossEdge ?? 0;
   const mossInner = o.mossInner ?? 0;
   const mossFn = o.mossFn ?? (() => 1);
+  const mossAdd = o.mossAdd ?? (() => 0);
   const topNoise = o.topNoise ?? (() => 0);
   const colorFn = o.colorFn;
   const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1, edge = 1): [number, number, number] => {
@@ -413,10 +454,13 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _ud.set(u0 + uvO[0], (t - bevel) * uvS + uvO[1]);
     // grime: darker toward the bottom → encode via colour; moss on the lower side
     const mSide = mossEdge * 0.8 * mossFn(p.x, p.z);
+    const aP = mossAdd(p.x, p.z, 1);
+    const aQ = mossAdd(q.x, q.z, 1);
     const mx = (p.x + q.x) / 2;
     const mz = (p.z + q.z) / 2;
-    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, 0.75), [mSide, mSide, mSide * 0.5]);
-    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide, mSide * 0.5, mSide * 0.5]);
+    // soil stain: a, b at the foot, c, d at the shoulder ring
+    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], undefined, [sideStain, sideStain, 0]);
+    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], undefined, [sideStain, 0, 0]);
   }
 
   // --- bevel ring (smooth) ---
@@ -430,11 +474,13 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _b.set(q.x, t - bevel, q.z);
     _c.set(qi.x, topY(qi, 1), qi.z);
     _d.set(pi.x, topY(pi, 1), pi.z);
-    const mE = mossEdge * mossFn(p.x, p.z);
-    const mE2 = mossEdge * mossFn(q.x, q.z);
+    const aP = mossAdd(p.x, p.z, 1);
+    const aQ = mossAdd(q.x, q.z, 1);
+    const mE = mossEdge * mossFn(p.x, p.z) + aP;
+    const mE2 = mossEdge * mossFn(q.x, q.z) + aQ;
     const bc = shade(scol, 'bevel', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4);
-    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mE, mE2, mE2 * 0.7]);
-    mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mE, mE2 * 0.7, mE * 0.7]);
+    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mE, mE2, mossEdge * mossFn(q.x, q.z) * 0.7 + aQ]);
+    mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mE, mossEdge * mossFn(q.x, q.z) * 0.7 + aQ, mossEdge * mossFn(p.x, p.z) * 0.7 + aP]);
   }
   if (!o.softBevel) mb.smoothGroup();
 
@@ -462,10 +508,10 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       _b.set(q.x, topY(q, sA), q.z);
       _c.set(qi.x, topY(qi, sB), qi.z);
       _d.set(pi.x, topY(pi, sB), pi.z);
-      const m1 = mA * mossFn(p.x, p.z);
-      const m2 = mA * mossFn(q.x, q.z);
-      const m3 = mB * mossFn(qi.x, qi.z);
-      const m4 = mB * mossFn(pi.x, pi.z);
+      const m1 = mA * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sA);
+      const m2 = mA * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sA);
+      const m3 = mB * mossFn(qi.x, qi.z) + mossAdd(qi.x, qi.z, sB);
+      const m4 = mB * mossFn(pi.x, pi.z) + mossAdd(pi.x, pi.z, sB);
       const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4, 1, (sA + sB) / 2) : col;
       mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3]);
       mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4]);
@@ -474,15 +520,16 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const last = ringPts[rings];
   const sL = scales[rings];
   _c.set(c.x, topY(c, 0), c.z);
-  const mC = mossInner * mossFn(c.x, c.z);
+  const mC = mossInner * mossFn(c.x, c.z) + mossAdd(c.x, c.z, 0);
   for (let i = 0; i < n; i++) {
     const p = last[i];
     const q = last[(i + 1) % n];
     _a.set(p.x, topY(p, sL), p.z);
     _b.set(q.x, topY(q, sL), q.z);
-    const mL = mossInner * mossFn(p.x, p.z);
+    const mL = mossInner * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sL);
+    const mQ = mossInner * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sL);
     const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2) : col;
-    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mL, mC]);
+    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mQ, mC]);
   }
   mb.smoothGroup();
 

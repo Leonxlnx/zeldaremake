@@ -270,6 +270,49 @@ export class VegField {
     return Math.min(a, b, this.stairDistance(x, z));
   }
 
+  /** Distance to the centreline of Saria's stepping-stone ramp (`pathToHouse`). */
+  rampDistance(x: number, z: number): number {
+    return polylineDistance(this.ctx.layout.pathToHouse, x, z);
+  }
+
+  /**
+   * Candidate points in the lawn band just outside the flagstone rim of the spine and the stair
+   * branch (the house branch is a grassy ramp with no rim), for the path-edge softening of concept
+   * sheet 02. Walks the layout polylines within the detail radius, drawing `perMetre` points per
+   * metre of rim per side from `rng` (t, side, offset — three draws each, so callers can keep their
+   * acceptance draws stable), and visits those the terrain mask puts in 0..`band` m of grass beyond
+   * the paving (the mask, not the polyline, says where the plaza, pads and corners really end).
+   */
+  rimCandidates(rng: () => number, perMetre: number, band: number, visit: (x: number, z: number, edge: number) => void) {
+    const L = this.ctx.layout;
+    const R = this.ctx.config.detailRadius;
+    const rims: [readonly P3[], number][] = [
+      [L.pathSpine, L.pathHalfWidth],
+      [L.pathToStairs, L.pathHalfWidth * 0.8],
+    ];
+    for (const [line, hw] of rims) {
+      for (let i = 0; i < line.length - 1; i++) {
+        const [ax, , az] = line[i];
+        const [bx, , bz] = line[i + 1];
+        if (Math.hypot((ax + bx) / 2, (az + bz) / 2) > R) continue;
+        const len = Math.hypot(bx - ax, bz - az);
+        const dx = (bx - ax) / len;
+        const dz = (bz - az) / len;
+        const n = Math.round(len * perMetre * 2);
+        for (let k = 0; k < n; k++) {
+          const t = rng();
+          const side = rng() < 0.5 ? -1 : 1;
+          const off = hw + rng() * band;
+          const x = ax + dx * t * len - dz * side * off;
+          const z = az + dz * t * len + dx * side * off;
+          const edge = this.lawnEdgeDistance(x, z);
+          if (edge < -0.05 || edge > band || this.stairDistance(x, z) < 0.1) continue;
+          visit(x, z, Math.max(0, edge));
+        }
+      }
+    }
+  }
+
   /** Distance to the nearest stepping-stone rim of the house branch (negative on the stone). */
   stoneDistance(x: number, z: number): number {
     let best = Infinity;

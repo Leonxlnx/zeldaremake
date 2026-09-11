@@ -10,8 +10,27 @@
 import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, MeshStandardMaterial, RGBADepthPacking, Vector4, type WebGLProgramParametersWithUniforms } from 'three';
 import type { WorldContext } from '../system';
 import { WIND_GLSL, type Wind } from '../wind/wind';
+import { PACK_INSTANCE_ATTRIBUTE, PACK_VERTEX_ATTRIBUTE } from './lodset';
 
 export type VegKind = 'grass' | 'plant' | 'bush' | 'litter' | 'moss';
+
+/**
+ * Variant packing (lodset.ts): a LodInstancedSet mesh carries several variant geometries in one
+ * buffer, each vertex tagged with its variant slot, each instance with the slot it shows. The
+ * other slots' vertices collapse onto the instance root, so their triangles have zero area and
+ * rasterise nothing; a kept vertex goes through exactly the arithmetic it did unpacked. Plant,
+ * bush, moss and litter materials all take these attributes (grass has its own tile shader); a
+ * geometry without them reads the attributes as 0 and 0, i.e. keeps every vertex.
+ */
+const PACK_VERTEX_PARS = /* glsl */ `
+attribute float ${PACK_VERTEX_ATTRIBUTE};
+attribute float ${PACK_INSTANCE_ATTRIBUTE};
+`;
+const PACK_BEGIN_VERTEX = /* glsl */ `
+#include <begin_vertex>
+bool vegKeep = abs(${PACK_VERTEX_ATTRIBUTE} - ${PACK_INSTANCE_ATTRIBUTE}) < 0.5;
+if (!vegKeep) transformed = vec3(0.0);
+`;
 
 const GRASS_VERTEX_PARS = /* glsl */ `
 attribute vec4 aData; // phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, type + dryness
@@ -115,7 +134,8 @@ vec4 vegWorld = modelMatrix * mvPosition;
   float phase = fract(sin(dot(rootWorld.xz, vec2(12.9898, 78.233))) * 43758.5453);
   vec3 sway = windBranch(rootWorld, hf * uSwayAmount, uStiffness);
   vec3 flutter = windLeaf(vegWorld.xyz, phase + uv.y * 0.31, uFlutterAmount * (0.3 + 0.7 * hf) * uv.y);
-  vegWorld.xyz += sway * hf + flutter;
+  // collapsed pack vertices stay exactly on the root so their triangles keep zero area
+  if (vegKeep) vegWorld.xyz += sway * hf + flutter;
 }
 mvPosition = viewMatrix * vegWorld;
 gl_Position = projectionMatrix * mvPosition;
@@ -194,8 +214,23 @@ const FOLIAGE_FRAGMENT_LIGHTS = /* glsl */ `
 }
 `;
 
+/**
+ * Waxy broad leaves (concept sheet 01): the upper face takes its own roughness so it carries a
+ * soft sheen while the underside keeps the matte base `roughness`. Front faces are the upper
+ * side of every lamina built by geometry.ts.
+ */
+const TOP_ROUGHNESS_PARS = /* glsl */ `
+uniform float uTopRoughness;
+`;
+const TOP_ROUGHNESS_FRAGMENT = /* glsl */ `
+#include <roughnessmap_fragment>
+roughnessFactor = gl_FrontFacing ? uTopRoughness : roughnessFactor;
+`;
+
 export interface VegMaterialOptions {
   roughness?: number;
+  /** roughness of the lamina's upper (front) face only; the underside keeps `roughness` */
+  topRoughness?: number;
   /** max geometry height used to normalise the sway height factor (plants) */
   plantHeight?: number;
   sway?: number;
@@ -221,7 +256,8 @@ function injectPlantVertex(vertexShader: string): string {
   if (!vertexShader.includes('#include <project_vertex>')) {
     throw new Error('Vegetation wind shader requires the Three.js project_vertex chunk');
   }
-  return `${WIND_GLSL}\n${PLANT_VERTEX_PARS}\n${vertexShader}`
+  return `${WIND_GLSL}\n${PLANT_VERTEX_PARS}\n${PACK_VERTEX_PARS}\n${vertexShader}`
+    .replace('#include <begin_vertex>', PACK_BEGIN_VERTEX)
     .replace('#include <project_vertex>', PLANT_PROJECT_VERTEX)
     // The distance shader consumes worldPosition; the depth shader only needs gl_Position.
     .replace('#include <worldpos_vertex>', WORLDPOS_VERTEX);
@@ -239,7 +275,7 @@ export function createVegShadowMaterials(source: MeshStandardMaterial): { depth:
       Object.assign(shader.uniforms, state.uniforms);
       shader.vertexShader = injectPlantVertex(shader.vertexShader);
     };
-    mat.customProgramCacheKey = () => `veg-${state.kind}-${pass}-v1`;
+    mat.customProgramCacheKey = () => `veg-${state.kind}-${pass}-v2`;
     state.wind.bind(mat);
   }
   return { depth, distance };
@@ -264,6 +300,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     uLiftFeather: { value: SHADE_LIFT_ZONE.feather },
     uLiftFill: { value: opts.shadeLift ?? SHADE_LIFT_ZONE.fill },
   };
+  const glossyTop = opts.topRoughness !== undefined;
+  if (glossyTop) uniforms.uTopRoughness = { value: opts.topRoughness };
   if (kind === 'grass') {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
@@ -291,6 +329,9 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
         .replace('#include <worldpos_vertex>', WORLDPOS_VERTEX);
     } else if (kind === 'plant' || kind === 'bush') {
       vs = injectPlantVertex(vs);
+    } else {
+      // moss / litter: static geometry, three's own projection, packed variants collapse the same way
+      vs = `${PACK_VERTEX_PARS}\n${vs}`.replace('#include <begin_vertex>', PACK_BEGIN_VERTEX);
     }
     // zone lift after the (shared) projection block, so the shadow passes keep an identical block
     vs = `${LIFT_VERTEX_PARS}\n${vs}`;
@@ -298,11 +339,12 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
       ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${LIFT_VERTEX}`)
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
     const lights = kind === 'grass' ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v7`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

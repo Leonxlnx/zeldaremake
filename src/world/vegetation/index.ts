@@ -1,16 +1,17 @@
 /**
  * Vegetation — owner: vegetation agent.
  *
- * GPU-instanced grass (turf / tall meadow / sedge blades + broad-leaf weeds), ferns (understory
- * clumps + big lit hero crowns), purple flowers, seed-head weeds, bushes, clover, moss tufts,
- * saplings and ground litter (leaves, twigs, roots). Placement samples deterministic candidates (ctx.rng.fork) against the terrain
+ * GPU-instanced grass (turf / tall meadow / sedge blades + broad-leaf plants), ferns (understory
+ * clumps + big lit hero crowns) with fiddleheads, purple and white flowers, seed-head weeds,
+ * bushes, clover, moss tufts, saplings and ground litter (leaves, twigs, roots). Placement samples deterministic candidates (ctx.rng.fork) against the terrain
  * mask (never on flagstones / stairs / structure pads / cliffs), the layout (verges, embankments,
  * trunks, boulders, NPC clearings) and clustering noise; every instance is seated on the exact
  * terrain height and tilted to the local normal.
  *
  * Grass is chunked into 8 m tiles (one InstancedMesh each) with three geometry LODs swapped by
  * camera distance; other plants live in variant × LOD instanced sets that re-bucket by
- * distance. Three wind layers: windGrass (blades), windBranch + windLeaf (plants / bushes).
+ * distance, with several variants packed into one draw per LOD (lodset.ts). Three wind layers:
+ * windGrass (blades), windBranch + windLeaf (plants / bushes).
  */
 import { Group, InstancedMesh, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
@@ -90,9 +91,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     lodDistances: grass.lodDistances.map((d) => Math.round(d * 10) / 10),
     ferns: plants.ferns.count + plants.heroFerns.count,
     heroFerns: plants.heroFerns.count,
+    fiddleheads: plants.fiddleheads.count,
     flowers: plants.flowers.count + plants.yellowFlowers.count,
     yellowFlowers: plants.yellowFlowers.count,
+    whiteFlowers: plants.whiteFlowers.count,
     weeds,
+    weedLeafShapes: ['heart', 'ovate', 'round'],
     seedheads: plants.seedheads.count,
     bushes: plants.bushes.count,
     hedge: plants.hedge.count,
@@ -113,6 +117,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       heroFerns: plants.heroFerns.samples(40),
       bushes: plants.bushes.samples(100),
       flowers: plants.flowers.samples(200),
+      whiteFlowers: plants.whiteFlowers.samples(60),
+      fiddleheads: plants.fiddleheads.samples(60),
     },
   }));
 
@@ -131,10 +137,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // Grass swaps geometries on one mesh, so traversal alone misses dormant LODs.
       const geometries = new Set<BufferGeometry>();
       for (const tile of grass.tiles) for (const geometry of tile.lods) geometries.add(geometry);
-      for (const set of sets) for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
-      group.traverse((object) => {
+      grassGroup.traverse((object) => {
         if (object instanceof InstancedMesh) object.dispose();
       });
+      // the sets own their packed meshes and geometries; the variants they were packed from are ours
+      for (const set of sets) {
+        set.dispose();
+        for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
+      }
       for (const geometry of geometries) geometry.dispose();
       grassMaterial.dispose();
       litterMaterial.dispose();

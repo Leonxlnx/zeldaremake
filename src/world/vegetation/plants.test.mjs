@@ -110,6 +110,60 @@ for(const set of a.plants.all)for(const it of set.items){
   if(a.field.troddenZone(it.x,it.z)>0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} standing in the trodden strip at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}
 for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hypot(it.x-s.x,it.z-s.z)-s.r;return d>=0&&d<=0.3;}).length;
   assert.ok(n>=4,`Clover fringe at the stepping stone (${s.x.toFixed(2)},${s.z.toFixed(2)}): ${n} tufts`);}
+// Round 8, concept sheets (reference/CONCEPTS.md): the sheets rule plant shapes, flower kinds and
+// the path-edge treatment; the video frames still rule the scored compositions.
+const cams=LAYOUT.viewpoints.map(v=>[v.position[0],v.position[2]]),nearCam=(it,r)=>cams.some(([x,z])=>Math.hypot(it.x-x,it.z-z)<r);
+// White forest flowers (sheet 01 “Flower clumps”): ≤ 0.3 m clumps 0.3–0.5 m across, ~40 within
+// 25 m of the cameras, in each authored region, off the trodden strip, never on a violet.
+const whites=a.plants.whiteFlowers;
+assert.ok(whites.items.filter(it=>nearCam(it,25)).length>=40,`≥ 40 white clumps within 25 m of a camera (${whites.count})`);
+for(const it of whites.items){const h=top(whites,it)-it.y,r=reach(whites,it);
+  assert.ok(h<=0.3,`white clump ${h.toFixed(2)} m tall`);assert.ok(r>=0.1&&r<=0.27,`white clump reach ${r.toFixed(2)} m (0.3–0.5 m across)`);
+  assert.equal(a.field.troddenZone(it.x,it.z),0,'white clumps stay off the trodden strip');
+  assert.ok(!a.plants.flowers.items.some(f=>Math.hypot(f.x-it.x,f.z-it.z)<0.45),'white clumps do not cover the violets');
+  if(it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3){const p=camB([it.x,it.y,it.z]);
+    assert.ok(it.x>-2.5&&it.z<-7.0&&a.field.lawnEdgeDistance(it.x,it.z)<=0.8&&p&&p.sx>=0.07&&p.sx<=0.15&&p.sy>=0.6&&p.sy<=0.85,`D's near west verge keeps grass and litter only, bar the B-rim cluster (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
+    // and those clumps are not buried under the boulder cluster's paddle leaves
+    assert.ok(!a.plants.weeds.items.some(w=>{const r=reach(a.plants.weeds,w);return r>=0.25&&Math.hypot(w.x-it.x,w.z-it.z)<r-0.02;}),`B-rim white clump at (${it.x.toFixed(2)},${it.z.toFixed(2)}) sits under a big weed`);}}
+const camA=camera('A_stairs'),inFrame=(cam,set,it,b)=>{const p=cam([it.x,it.y,it.z]);return p&&p.depth<30&&p.sx>=b[0]&&p.sx<=b[2]&&p.sy>=b[1]&&p.sy<=b[3];};
+assert.ok(whites.items.filter(it=>inFrame(camB,whites,it,[0,0.6,0.4,0.85])).length>=6,'white dots on B/E\'s left lawn edge (frame 14 s)');
+// the far west-verge clumps hide behind nearer ferns from B; the rim cluster 8–10 m out is the one that reads
+assert.ok(whites.items.filter(it=>{const p=camB([it.x,it.y,it.z]);return p&&p.depth<10.5&&inFrame(camB,whites,it,[0.07,0.6,0.15,0.85]);}).length>=3,'unoccluded white clumps on B\'s west rim within 10.5 m');
+assert.ok(whites.items.filter(it=>it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3).length<=4,'the B-rim cluster stays sparse in D\'s bottom-left corner');
+assert.ok(whites.items.filter(it=>inFrame(camA,whites,it,[0.8,0.3,1,0.6])).length>=4,'white clumps on A\'s right bank near the kid');
+assert.ok(whites.items.filter(it=>inFrame(camD,whites,it,[0,0.5,0.25,0.8])).length>=3,'a few white clumps among the D verge ferns');
+assert.ok(whites.items.filter(it=>a.field.rampDistance(it.x,it.z)<3.2&&it.x>1&&it.z>-10.5&&it.z<-1.5).length>=6,'white clumps on the ramp\'s outer lawn');
+for(const g of whites.opts.variants.flat()){const c=g.attributes.color.array;let white=0,yellow=0;
+  for(let i=0;i<c.length;i+=3){const r=c[i],g=c[i+1],b=c[i+2];if(r>0.72&&g>0.72&&b>0.66&&Math.max(r,g,b)-Math.min(r,g,b)<0.12)white++;else if(r>0.7&&g>0.5&&b<0.4)yellow++;}
+  assert.ok(white>=8*4*3&&yellow>=8*3,'each variant carries ≥ 8 white five-petal blooms with yellow centres');}
+// Fiddleheads (sheet 01 “Forest buds”): 2–4 buds of 0.25–0.45 m at every hero crown and at
+// ≈ 30 % of the ordinary fern clumps within 15 m of a camera.
+const buds=a.plants.fiddleheads,budsNear=(x,z,r)=>buds.items.filter(it=>Math.hypot(it.x-x,it.z-z)<=r&&top(buds,it)-it.y<=0.45).length;
+// the shot-D hero clump is the exception: frame 56's lit mass left of the rock is tall bud stalks (0.5–0.9 m)
+const dTall=it=>Math.hypot(it.x+2.6,it.z+9.6)<2.2&&it.x<-3.2;
+for(const it of buds.items){const h=top(buds,it)-it.y;assert.ok(h>=0.25&&h<=(dTall(it)?0.9:0.45),`fiddlehead ${h.toFixed(3)} m tall at (${it.x.toFixed(1)},${it.z.toFixed(1)})`);}
+const dStalks=buds.items.filter(it=>dTall(it)&&top(buds,it)-it.y>=0.45);assert.ok(dStalks.length>=2,`tall bud stalks at the shot-D clump: ${dStalks.length}`);
+for(const it of dStalks){const p=camD([it.x,it.y,it.z]);assert.ok(p&&p.sx>=-0.02&&p.sx<=0.12&&p.sy>=0.6&&p.sy<=0.74,`shot-D stalk root projects left of the rock, got (${p?.sx.toFixed(2)},${p?.sy.toFixed(2)})`);}
+for(const it of a.plants.heroFerns.items){const n=budsNear(it.x,it.z,0.2);assert.ok(n>=2&&n<=4,`${n} buds at the hero crown (${it.x.toFixed(1)},${it.z.toFixed(1)})`);}
+const nearFerns=a.plants.ferns.items.filter(it=>nearCam(it,15)),budded=nearFerns.filter(it=>budsNear(it.x,it.z,0.16)>0).length/nearFerns.length;
+assert.ok(budded>=0.22&&budded<=0.38,`${(budded*100).toFixed(0)} % of the near fern clumps carry fiddleheads (≈ 30 %)`);
+assert.ok(buds.items.every(it=>dTall(it)||a.plants.ferns.items.concat(a.plants.heroFerns.items).some(f=>Math.hypot(f.x-it.x,f.z-it.z)<=0.2)),'every bud sits in a fern crown');
+// Leaf shapes (sheet 01 “Leaves & plants”): heart / ovate / round broad-leaf variants, 3–6 leaves
+// per plant, 0.15–0.35 m, with a lighter midrib; glossy top face via the material.
+const weeds=a.plants.weeds;assert.equal(weeds.variantCount,3,'heart, ovate and round variants');
+for(const [v,lods] of weeds.opts.variants.entries()){const g=lods[0],b=g.boundingBox,span=Math.max(b.max.x-b.min.x,b.max.z-b.min.z);
+  assert.ok(span>=0.15&&span<=0.36,`variant ${v} spans ${span.toFixed(2)} m`);assert.ok(b.max.y<=0.3,`variant ${v} height ${b.max.y.toFixed(2)}`);
+  const c=g.attributes.color.array;let lum=[];for(let i=0;i<c.length;i+=3)lum.push(0.2126*c[i]+0.7152*c[i+1]+0.0722*c[i+2]);
+  const sorted=[...lum].sort((p,q)=>p-q);assert.ok(sorted[sorted.length-1]/sorted[Math.floor(sorted.length*0.5)]>=1.12,`variant ${v} has a visibly lighter midrib`);}
+const weedMat=a.plants.materials.find(m=>m.name==='veg-weeds');assert.ok(weedMat,'weed material');
+{const sh={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};weedMat.onBeforeCompile(sh,{});
+  assert.equal(sh.uniforms.uTopRoughness.value,0.55,'waxy top face roughness 0.55');assert.match(sh.fragmentShader,/roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);assert.ok(weedMat.roughness>=0.85,'matte underside');}
+// Path-edge softening (sheet 02): dense short moss in the 0.25 m band outside the flagstone rim
+// of the spine / stair branch, nothing on the slabs (every root passed `allowed` above).
+const rimMoss=a.plants.moss.items.filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z);return e>=-0.05&&e<=0.25;});
+assert.ok(rimMoss.length>=100,`moss cushions along the paved rim: ${rimMoss.length}`);
+assert.ok(rimMoss.filter(it=>it.x>1.5&&it.z>-4.5&&it.z<1).length>=6,'rim moss along the stair branch too');
+assert.ok(rimMoss.every(it=>top(a.plants.moss,it)-it.y<=0.12),'rim moss stays a short cushion');
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
   for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}
@@ -125,6 +179,27 @@ const q=(arr,f)=>{const s=[...arr].sort((p,r)=>p-r);return s[Math.min(s.length-1
 assert.ok(strip.length>=100&&lawn.length>=500,`Turf sampled on the strip (${strip.length}) and the lawn (${lawn.length})`);
 assert.ok(q(strip,1)<=0.4*q(lawn,1),`Tallest strip blade ${q(strip,1).toFixed(3)} ≤ 0.4 × tallest lawn blade ${q(lawn,1).toFixed(3)}`);
 assert.ok(q(strip,0.95)<=0.4*q(lawn,0.95),`Strip p95 height ${q(strip,0.95).toFixed(3)} ≤ 0.4 × lawn p95 ${q(lawn,0.95).toFixed(3)}`);
+// Path-edge softening (sheet 02): the blades in the 0.25 m band before the paving bend (local +z)
+// toward the slabs and lean their roots the same way; blades further out keep a random yaw.
+let rimBlades=0,rimToward=0,rimLean=0,lawnToward=0,lawnBlades=0;
+for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;
+  for(let i=0;i<t.count;i++){const o=i*16,x=m[o+12],z=m[o+14];if(Math.hypot(x,z)>20)continue;
+    const e=a.field.lawnEdgeDistance(x,z);if(e<0||e>1)continue;
+    const gx=a.field.lawnEdgeDistance(x+0.05,z)-a.field.lawnEdgeDistance(x-0.05,z),gz=a.field.lawnEdgeDistance(x,z+0.05)-a.field.lawnEdgeDistance(x,z-0.05),gl=Math.hypot(gx,gz);if(gl<1e-6)continue;
+    const toward=(-gx*m[o+8]-gz*m[o+10])/(gl*Math.hypot(m[o+8],m[o+10])||1);
+    if(e<0.25){rimBlades++;if(toward>0.3)rimToward++;const up=[m[o+4],m[o+5],m[o+6]],ul=Math.hypot(...up);if((-gx*up[0]-gz*up[2])/(gl*ul)>0.1)rimLean++;}
+    else{lawnBlades++;if(toward>0.3)lawnToward++;}}}
+assert.ok(rimBlades>=300,`rim blades sampled: ${rimBlades}`);
+assert.ok(rimToward/rimBlades>=0.85,`${(rimToward/rimBlades*100).toFixed(0)} % of the rim blades bend toward the slabs`);
+assert.ok(rimLean/rimBlades>=0.6,`${(rimLean/rimBlades*100).toFixed(0)} % of the rim blades lean over the paving`);
+assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random yaw (${(lawnToward/lawnBlades*100).toFixed(0)} % toward)`);
 grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g of t.lods)g.dispose();}
+// dirt-seam litter along the rim (sheet 02 “Path boundary”), none of it on the slabs
+{const litterMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'litter'),litter=read('vegetation/litter').buildLitter(a.ctx,a.field,litterMaterial,new THREE.Group());
+  const seam=litter.leaves.items.concat(litter.twigs.items).filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z);return e>=0&&e<=0.3&&a.field.stairDistance(it.x,it.z)>0.1;});
+  assert.ok(seam.length>=250,`litter in the rim seam: ${seam.length}`);
+  const sample=newSample();for(const it of litter.twigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'twigs never lie on the paving');}
+  for(const it of seam){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample)||it.y-a.ctx.terrain.height(it.x,it.z)>0.03,'seam litter is grass-seated; only the lifted sprinkle lies on slabs');}
+  litterMaterial.dispose();for(const set of litter.all)for(const v of set.opts.variants)for(const g of v)g.dispose();}
 for(const fixture of[a,b]){const geos=new Set();fixture.group.traverse(o=>{if(o.isMesh){geos.add(o.geometry);o.dispose();}});for(const g of geos)g.dispose();for(const m of fixture.plants.materials)m.dispose();}
 console.log(JSON.stringify({passed:true,checkedVertices,checkedBases,shadowMeshes,bushes:a.plants.bushes.count,stripBlades:strip.length,stripHeightRatio:Math.round(q(strip,0.95)/q(lawn,0.95)*1000)/1000,note:'CPU geometry/placement contracts only; GPU capture and foliage appearance still require review.'}));

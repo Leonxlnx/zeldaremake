@@ -68,9 +68,15 @@ for (const kind of ['plant', 'bush']) {
     assert.match(shader.vertexShader, /#else\s+vec3 rootWorld = \(modelMatrix \*/);
     assert.match(shader.vertexShader, /#include <begin_vertex>/);
     assert.match(shader.vertexShader, /#include <clipping_planes_vertex>/);
+    // variant packs (lodset.ts): both slot attributes declared once, unselected slots collapse
+    // onto the root before projection and skip the wind, in the shadow passes exactly as in colour
+    assert.equal((shader.vertexShader.match(/attribute float aVariant;/g) || []).length, 1, 'per-vertex slot declared once');
+    assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, 'per-instance slot declared once');
+    assert.match(shader.vertexShader, /#include <begin_vertex>\s*bool vegKeep = abs\(aVariant - aPlantVariant\) < 0\.5;\s*if \(!vegKeep\) transformed = vec3\(0\.0\);/);
     assert.equal((shader.vertexShader.match(/uniform float uTime;/g) || []).length, 1);
     assert.doesNotMatch(shader.vertexShader, /#include <project_vertex>/);
   }
+  assert.match(block, /if \(vegKeep\) vegWorld\.xyz \+= sway \* hf \+ flutter;/, 'kept vertices take the unchanged wind sum');
   // the west-verge zone lift lives in the colour pass only, after the shared projection block
   for (const key of ['uLiftBox', 'uLiftFeather', 'uLiftFill']) assert.ok(standardShader.uniforms[key], `${key} uniform`);
   assert.match(standardShader.vertexShader, /gl_Position = projectionMatrix \* mvPosition;\s*\{\s*#ifdef USE_INSTANCING\s+vec2 liftRoot/);
@@ -101,11 +107,37 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.equal((shader.vertexShader.match(/vZoneLift = 1\.0 - smoothstep/g) || []).length, 1, `${kind} evaluates the zone lift once`);
   assert.match(shader.fragmentShader, /uLiftFill \* vZoneLift/);
   assert.throws(() => createVegShadowMaterials(source), /plant or bush/);
+  if (kind === 'grass') {
+    assert.doesNotMatch(shader.vertexShader, /aPlantVariant/, 'grass tiles are not packed');
+  } else {
+    // static moss / litter packs collapse the same way and keep Three's own projection
+    assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);
+    assert.match(shader.vertexShader, /#include <begin_vertex>\s*bool vegKeep = abs\(aVariant - aPlantVariant\) < 0\.5;\s*if \(!vegKeep\) transformed = vec3\(0\.0\);/);
+    assert.match(shader.vertexShader, /#include <project_vertex>/);
+  }
 }
 {
   const optOut = createVegMaterial(ctx, 'plant', { shadeLift: 0 });
   owned.push(optOut);
   assert.equal(prepare(optOut, 'standard').uniforms.uLiftFill.value, 0, 'shadeLift: 0 opts a set out of the zone lift');
+}
+{
+  // waxy broad leaves: the upper (front) face takes its own roughness, the underside keeps the base
+  const glossy = createVegMaterial(ctx, 'plant', { roughness: 0.9, topRoughness: 0.55 });
+  const matte = createVegMaterial(ctx, 'plant', { roughness: 0.9 });
+  owned.push(glossy, matte);
+  const gs = prepare(glossy, 'standard');
+  const ms = prepare(matte, 'standard');
+  assert.equal(gs.uniforms.uTopRoughness.value, 0.55);
+  assert.equal(glossy.roughness, 0.9, 'base roughness stays the matte underside');
+  assert.match(gs.fragmentShader, /#include <roughnessmap_fragment>\s*roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);
+  assert.equal((gs.fragmentShader.match(/uniform float uTopRoughness;/g) || []).length, 1);
+  assert.doesNotMatch(ms.fragmentShader, /uTopRoughness/);
+  assert.equal(ms.uniforms.uTopRoughness, undefined);
+  assert.notEqual(glossy.customProgramCacheKey(), matte.customProgramCacheKey(), 'glossy and matte plants compile separate programs');
+  const { depth, distance } = createVegShadowMaterials(glossy);
+  owned.push(depth, distance);
+  assert.equal(projection(prepare(depth, 'depth')), projection(gs), 'the glossy option leaves the shared projection block alone');
 }
 const unrelated = new THREE.MeshStandardMaterial();
 owned.push(unrelated);

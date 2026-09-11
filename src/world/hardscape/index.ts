@@ -8,8 +8,8 @@ import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, placeFlagstones, type PavingContext } from './flagstones';
-import { buildJointMesh } from './joints';
-import { SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
+import { buildJointMesh, jointFillLift } from './joints';
+import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from './sprouts';
 import { smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
 
@@ -69,7 +69,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // treat them as paving (the disc that touches the plaza rim keeps the fill around it)
   const grassDiscs = paving.steppingStones.filter((d) => !d.atRim);
   const paved = (x: number, z: number, threshold?: number) => isPaved(pc, x, z, threshold) && !nearIsolatedDisc(grassDiscs, x, z, 1.4);
-  const joints = await buildJointMesh(T, paved, bbox, ctx.textures, ctx.config, ctx.config.seed);
+  const joints = await buildJointMesh(T, paved, bbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: paving.edgeGap, onStone: paving.onStone });
   group.add(joints.mesh);
 
   // --- sprouts in the joints ---------------------------------------------------------------
@@ -105,7 +105,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng() });
   }
   const flagstoneSprouts = spots.length;
-  // stair joints: foot of each riser + along the cheeks
+  // moss cushions (sheet 02 'Moss edges'): small pads where the seams widen into junctions —
+  // a joint point at least 5.5 cm from every stone edge — biased to the joint-reading cameras
+  const cushionTarget = Math.round(300 * Math.max(0.7, ctx.quality.density));
+  let cushions = 0;
+  tries = 0;
+  while (cushions < cushionTarget && tries < cushionTarget * 60) {
+    tries++;
+    const x = srng.range(bbox.x0, bbox.x1);
+    const z = srng.range(bbox.z0, bbox.z1);
+    if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap < 0.055 || gap > 0.22) continue;
+    if (srng() > camWeight(x, z)) continue;
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion' });
+    cushions++;
+  }
+  // stair joints: foot of each riser + along the cheeks, with moss cushions in the tread/riser
+  // corner (sheet 01 environment inset, sheet 04 path inset: mossy risers, pads in the corners)
   for (const f of frames) {
     const hw = f.def.width / 2;
     for (let i = 0; i < f.def.steps; i++) {
@@ -115,6 +132,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const [x, z] = stairToWorld(f, a, i * f.def.tread + 0.035);
         spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.005, z, size: srng() * 0.6 });
       }
+      const nc = srng.int(2, 6);
+      for (let k = 0; k < nc; k++) {
+        // heavier toward the flanks, where the moss field on the stones is strongest
+        const a = (srng.chance(0.6) ? srng.range(0.35, 0.95) : srng.range(0, 0.35)) * hw * (srng.chance(0.5) ? -1 : 1);
+        const [x, z] = stairToWorld(f, a, i * f.def.tread + 0.05);
+        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.006, z, size: 0.45 + srng() * 0.55, kind: 'cushion', scale: 1.15 });
+      }
       for (const side of [-1, 1]) {
         if (!srng.chance(0.7)) continue;
         const [x, z] = stairToWorld(f, side * (hw - 0.03), i * f.def.tread + srng.range(0.05, f.def.tread - 0.05));
@@ -122,8 +146,48 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
   }
+  // --- seam grit -----------------------------------------------------------------------------
+  // small stones packed into the dirt seams (sheet 02): 1.5–4 cm, in the joints only (not on a
+  // stone, within a slab's reach), biased to the joint-reading cameras, plus a scatter at the
+  // stair feet; ≤ 3000, in the fill's own tone. They are sprout instances (variant GRIT) so they
+  // share the joint flora's instanced sets and draw calls, LOD-collapsed with the tufts.
+  const gritSpots: SproutSpot[] = [];
+  const grng = rng.fork('grit');
+  const gritTarget = Math.min(3000, Math.round(2200 * Math.max(0.7, ctx.quality.density)));
+  const gritCamWeight = (x: number, z: number) => {
+    let d = Infinity;
+    for (const c of cams) d = Math.min(d, Math.hypot(c[0] - x, c[2] - z));
+    // a pebble is a few pixels by 12 m and nothing by 21 m, well inside the sprouts' LOD range
+    return 0.2 + 0.8 * (1 - smoothstep(12, 21, d));
+  };
+  tries = 0;
+  while (gritSpots.length < gritTarget - 120 && tries < gritTarget * 40) {
+    tries++;
+    const x = grng.range(bbox.x0, bbox.x1);
+    const z = grng.range(bbox.z0, bbox.z1);
+    if (!paved(x, z, 0.4) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap > 0.3) continue;
+    if (grng() > gritCamWeight(x, z)) continue;
+    // the odd bigger stone (3–4 cm) among a scatter of 1.5–2.5 cm ones
+    const size = grng.chance(0.2) ? grng.range(0.03, 0.04) : grng.range(0.015, 0.026);
+    // the fill sits 0.8 cm over the ground; keep the pebble out of the stones' bevel zone
+    if (gap < size * 0.8) continue;
+    // tinted to the fill it sits in: damp brown in a tight seam, pale khaki in an open junction
+    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint: jointFillLift(gap) });
+  }
+  const seamGrit = gritSpots.length;
+  for (const f of frames) {
+    const hw = f.def.width / 2;
+    for (let k = 0; k < 60; k++) {
+      const [x, z] = stairToWorld(f, grng.range(-hw - 0.3, hw + 0.3), grng.range(-1.1, -0.05));
+      if (paving.onStone(x, z)) continue;
+      const size = grng.chance(0.3) ? grng.range(0.03, 0.045) : grng.range(0.015, 0.028);
+      gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit' });
+    }
+  }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
-  const sprouts = buildSproutMeshes(spots, srng, sproutMat, ctx.config);
+  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS);
   for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 
@@ -144,6 +208,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneSplitCells: paving.stats.split,
     flagstoneBigSlabs: paving.stats.big,
     flagstoneRimStones: paving.stats.rim,
+    // rim stones carrying a moss film over their outer (grass-side) edge (sheet 02 'Moss edges')
+    flagstoneEdgeMossStones: paving.stats.edgeMossStones,
     // round slabs on the house branch's stepping-stone discs (merged into the flagstone mesh and
     // counted in `flagstones` too)
     steppingStones: paving.stats.steppingStones,
@@ -154,11 +220,30 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts,
-    jointSproutsOnStairs: sprouts.count - flagstoneSprouts,
+    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
+    // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
+    jointSproutPacks: HARDSCAPE_PACKS,
     jointSproutHeightCm: [6, 12],
     jointSproutLodFar: SPROUT_LOD_FAR,
+    // triangles shown / submitted (a packed instance collapses its other variants to zero area)
+    jointSproutTriangles: sprouts.triangles - sprouts.gritTriangles,
+    jointSproutSubmittedTriangles: sprouts.submittedTriangles,
+    // low moss pads in wide seam junctions and the stair tread/riser corners (part of jointSprouts)
+    mossCushions: sprouts.cushions,
+    mossCushionsInSeams: cushions,
+    // small stones packed into the dirt seams + a scatter at the stair feet (sprout instances)
+    seamGrit: sprouts.grit,
+    seamGritInSeams: seamGrit,
+    seamGritAtStairFeet: sprouts.grit - seamGrit,
+    seamGritLodFar: SPROUT_LOD_FAR,
+    seamGritTriangles: sprouts.gritTriangles,
+    seamGritDrawCalls: 0,
+    jointFillTriangles: joints.triangles,
+    // joint-width field (5 cm texels) the fill shader reads: tight seams dark, wide junctions pale
+    jointGapField: joints.gapField,
+    hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles,
     plazaRadius: 6,
     samplePositions: {
       // top-centre of each slab: 2–5 cm above the ground by design (the slab is seated in it)

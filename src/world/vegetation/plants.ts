@@ -1,6 +1,7 @@
 /**
- * Placement of the non-grass plants: ferns, bushes, purple flowers, broad-leaf weeds, seed-head
- * stalks, clover, moss tufts and saplings. Every plant is seated on the exact terrain height
+ * Placement of the non-grass plants: ferns and their fiddleheads, bushes, purple and white
+ * flowers, broad-leaf plants, seed-head stalks, clover, moss tufts (including the path-edge
+ * band) and saplings. Every plant is seated on the exact terrain height
  * and tilted toward the local normal; positions respect the terrain mask (never on flagstones,
  * stairs, house pads or cliffs) and the layout (clearings at NPC spots, boulder rings, trunks).
  */
@@ -11,20 +12,25 @@ import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
-import { LodInstancedSet } from './lodset';
+import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { bushGeometry, cloverGeometry, fernGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry } from './plantgeo';
+import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
   /** big lit tree-fern crowns (0.7–0.9 m): the shot-D clump left of the boulder and accents on the east bank */
   heroFerns: LodInstancedSet;
+  /** spiral buds (0.25–0.45 m) at the hero crowns and a share of the near fern clumps (concept sheet 01 / 04) */
+  fiddleheads: LodInstancedSet;
   bushes: LodInstancedSet;
   /** the low dark shot-A hedge on the bank between the plaza and Saria's terrace (≤ 1.2 m) */
   hedge: LodInstancedSet;
   flowers: LodInstancedSet;
   /** pale-yellow cluster blooms tucked into the shot-D hero clump */
   yellowFlowers: LodInstancedSet;
+  /** small five-petal white forest flowers with yellow centres, in clumps along the path edges (concept sheets 01 / 02 / 04) */
+  whiteFlowers: LodInstancedSet;
+  /** broad-leaf ground plants: heart / ovate / round laminae with a glossy top face */
   weeds: LodInstancedSet;
   seedheads: LodInstancedSet;
   clover: LodInstancedSet;
@@ -46,11 +52,18 @@ interface ScatterOpts {
    * strip (reference B/E: short sparse grass and litter there, nothing standing).
    */
   low?: boolean;
+  /** stop after this many placements (authored clump counts) */
+  max?: number;
   /** returns acceptance probability (0 = reject) */
   accept(x: number, z: number, s: FieldSample, rng: Rng): number;
 }
 
 const STONE_CLEARANCE = 0.5;
+/** metres of lawn outside the flagstone rim that the path-edge moss / litter soften (sheet 02) */
+const RIM_BAND = 0.25;
+const RIM_MOSS_CANDIDATES_PER_M = 3.8;
+/** frame 56's sunlit bud stalks are khaki-yellow against the green bank */
+const TALL_BUD_TINT = new Color(1.55, 1.38, 0.82);
 
 class Spacing {
   private cells = new Map<number, number[]>();
@@ -81,7 +94,8 @@ function scatter(ctx: WorldContext, field: VegField, opts: ScatterOpts, place: (
   const box = opts.box ?? [-R, -R, R, R];
   const s = newSample();
   const spacing = opts.minSpacing ? new Spacing(Math.max(opts.minSpacing, 0.5)) : null;
-  for (let i = 0; i < opts.candidates; i++) {
+  let placed = 0;
+  for (let i = 0; i < opts.candidates && placed < (opts.max ?? Infinity); i++) {
     const x = box[0] + rng() * (box[2] - box[0]);
     const z = box[1] + rng() * (box[3] - box[1]);
     if (!opts.box && Math.hypot(x, z) > R) continue;
@@ -97,10 +111,33 @@ function scatter(ctx: WorldContext, field: VegField, opts: ScatterOpts, place: (
       spacing.add(x, z);
     }
     place(x, z, s, rng);
+    placed++;
   }
 }
 
 const M = new Float32Array(16);
+
+/**
+ * Variant packs (lodset.ts): which variants of a set share one InstancedMesh at each LOD. Every
+ * variant merged into a pack saves a draw (two where the LOD casts shadows), but each instance
+ * then submits every packed variant's triangles — the unselected ones collapsed to zero area, so
+ * they cost vertex work and the W38 triangle budget, never fill. LODs with thousands of instances
+ * and big geometry therefore stay in separate draws. Measured on the layout cameras (A / B / D)
+ * against one draw per variant: this table saves 51 / 49 / 48 draws for +1.1 M submitted
+ * triangles, where packing every LOD would save 66 for +2.3 M (ferns alone +2.1 M). Sets without
+ * an entry take the default: all variants in one pack at every LOD.
+ */
+const SINGLE = (n: number): number[][] => Array.from({ length: n }, (_, v) => [v]);
+const ALL = (n: number): number[][] => [Array.from({ length: n }, (_, v) => v)];
+const PACKS: Record<string, PackLayout> = {
+  // 965 clumps of the biggest geometry: near / mid LODs one draw per variant, far LOD in pairs
+  ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
+  // the two heads and the two spikes pair up near, everything shares the mid / far draws
+  flowers: [[[0, 1], [2, 3]], ALL(4), ALL(4)],
+  // 3 000+ laminae: only the sparse near LOD packs
+  weeds: [ALL(3), SINGLE(3)],
+  seedheads: [ALL(3), SINGLE(3)],
+};
 
 export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): PlantSets {
   const P = ctx.config.palette;
@@ -115,7 +152,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     materials.push(material);
     const shadowMaterials = castShadowLods > 0 ? createVegShadowMaterials(material) : undefined;
     if (shadowMaterials) materials.push(shadowMaterials.depth, shadowMaterials.distance);
-    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods });
+    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods, packs: PACKS[label] });
   };
 
   const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
@@ -137,7 +174,14 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // straw-yellow palette (reference frame 56: small pale flowers at the base of the fronds)
   const yellowPal = { ...pal, purple: rgb(0xd6c15c), purpleLight: rgb(0xefe094), purpleDeep: rgb(0xa8933a) };
   const yellowFlowers = mk('flowers-yellow', variants(2, `${seed}/flower-yellow`, yellowPal, flowerGeometry), 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
-  const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55 });
+  // white forest flowers (concept sheet 01): matte petals like the violets; the far LOD keeps every
+  // bloom as an enlarged four-petal fold so the white dots survive at 12–25 m, and the petals get
+  // a little skylight fill so they still read white under the verge canopy (frame 14 s dots ≈ 0.6)
+  const whiteFlowers = mk('flowers-white', variants(3, `${seed}/flower-white`, pal, whiteFlowerGeometry, ['high', 'low']), 'plant', [12], 0, { sway: 2.0, flutter: 0.01, stiffness: 0.45, roughness: 1, ambientBoost: 0.36, transmission: 0.06 });
+  // the three sheet laminae (heart / ovate / round) with a waxy upper face and a matte underside
+  const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55, roughness: 0.9, topRoughness: 0.55 });
+  // stout buds barely move in the wind
+  const fiddleheads = mk('fiddleheads', variants(3, `${seed}/fiddlehead`, pal, fiddleheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 0.9, flutter: 0.003, stiffness: 0.75, transmission: 0.05 });
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
   const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 });
   const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 });
@@ -156,6 +200,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const dbx = dBoulder?.position[0] ?? -3.2;
   const dbz = dBoulder?.position[2] ?? -10.2;
   const dbr = dBoulder?.radius ?? 0.9;
+  const cameraXZ = ctx.layout.viewpoints.map((v) => [v.position[0], v.position[2]] as const);
+  const nearCamera = (x: number, z: number, r: number) => cameraXZ.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < r);
 
   // ---- ferns: embankments, tree bases, boulders, house shade, path verges
   scatter(
@@ -318,6 +364,60 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     { label: 'weeds-east-bank', candidates: 1800, box: EAST_BANK, minSpacing: 0.9, accept: (x, z, s) => (eastBank(x, z, s, 0.6) ? 0.45 : 0) },
     (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 1.8 + rng() * 0.8, 0.8, 0.012, greenVar(rng, 0.16).multiplyScalar(0.85)),
   );
+
+  // ---- fiddleheads (concept sheet 01 “Forest buds”, sheet 04): 2–4 spiral buds rise from the
+  // centre of every hero crown and from about 30 % of the ordinary fern clumps within 15 m of a
+  // camera. Their own stream, seeded after every fern is placed, so the ferns never reshuffle.
+  // Each bud keeps the fern's own clearances (stones, the trodden strip, camera C's stair foot).
+  {
+    const rng = ctx.rng.fork('plants/fiddleheads');
+    const s = newSample();
+    const budsAt = (cx: number, cz: number, spread: number, scale: number, count: number) => {
+      for (let i = 0; i < count; i++) {
+        const a = rng() * Math.PI * 2;
+        const d = spread * (0.3 + 0.7 * rng());
+        const x = cx + Math.cos(a) * d;
+        const z = cz + Math.sin(a) * d;
+        field.sample(x, z, s);
+        if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
+        if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6 || field.sightlineC(x, z, 0.3) > 0) continue;
+        placeInstance(fiddleheads, x, z, s, rng, scale, 0.5, 0.012, greenVar(rng, 0.12));
+      }
+    };
+    for (const it of heroFerns.items) budsAt(it.x, it.z, 0.16, 1.0 + rng() * 0.1, 2 + rng.int(0, 3));
+    for (const it of ferns.items) {
+      // the draw comes first so the 30 % pick does not depend on the camera set
+      const pick = rng() < 0.3;
+      if (!pick || !nearCamera(it.x, it.z, 15)) continue;
+      const fernScale = Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]);
+      budsAt(it.x, it.z, 0.1 * fernScale, 0.96 + rng() * 0.14, 2 + rng.int(0, 2));
+    }
+  }
+  // Shot D's hero clump (reference frame 56, 0.05–0.14 × 0.55–0.68): the lit mass left of the
+  // mossy rock is five or six TALL unopened bud stalks, 0.6–0.8 m, their yellow-green coils
+  // standing above the rock with fronds at their feet. Our boulder projects about twice the
+  // reference rock's size (sx 0.05–0.24), so the stalks sit on the bank where their coils clear
+  // its left shoulder (root sx 0.01–0.09). The one place the sheet's 0.25–0.45 m bud is outgrown.
+  {
+    const rng = ctx.rng.fork('plants/fiddleheads-shotD');
+    const s = newSample();
+    const spots: readonly [number, number][] = [
+      [dbx - 1.0, dbz + 0.3],
+      [dbx - 1.15, dbz - 0.6],
+      [dbx - 1.4, dbz - 1.1],
+    ];
+    for (const [cx, cz] of spots) {
+      const x = cx + (rng() - 0.5) * 0.12;
+      const z = cz + (rng() - 0.5) * 0.12;
+      field.sample(x, z, s);
+      if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.boulderDistance(x, z) < 0.15) continue;
+      // lit khaki-yellow like the footage's buds (sunlit above the green fronds, so they separate
+      // from the bank behind); stretched sideways so the stalks read as thumb-thick and the coils
+      // as fist-sized bulbs
+      const scale = 1.95 + rng() * 0.3;
+      placeInstance(fiddleheads, x, z, s, rng, scale, 0.3, 0.015, greenVar(rng, 0.1).multiply(TALL_BUD_TINT), scale * 1.7);
+    }
+  }
 
   // ---- bushes: embankments, ledge edges, house bases, the log arch
   scatter(
@@ -519,6 +619,122 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     flowerPlace(0.85, 1.4),
   );
 
+  // ---- white forest flowers (concept sheets 01 “Flower clumps”, 02, 04): small five-petal white
+  // clusters with yellow centres, 8–15 blooms per 0.3–0.5 m clump, growing in natural clusters
+  // along the path edges, near roots and rocks. Placed AFTER the violets by their own streams, so
+  // no purple clump moves; each clump keeps ≥ 0.45 m from every violet so the whites never cover
+  // them (D's purple fraction is a scored metric). All clumps are ≤ 0.3 m tall, so they may sit
+  // near the Kokiri (≥ 1 m) and the ramp lawn, but they are gated off the stones and the trodden strip.
+  const whitePlace = (x: number, z: number, s: FieldSample, rng: Rng) =>
+    placeInstance(whiteFlowers, x, z, s, rng, 0.8 + rng() * 0.35, 0.6, 0.01, tint.setRGB(0.96 + rng() * 0.08, 0.96 + rng() * 0.08, 0.94 + rng() * 0.08));
+  const nearViolet = (x: number, z: number, r: number) => flowers.items.some((it) => Math.hypot(it.x - x, it.z - z) < r);
+  const nearKokiri = (x: number, z: number, r: number) => ctx.layout.npcSpots.some((n) => Math.hypot(x - n.position[0], z - n.position[2]) < r);
+  // D's bottom-left corner (the near west verge) stays grass and litter, as for the violets —
+  // except the rim strip that frame 14 s shows dotted white (`allowRim`, the B-rim cluster below)
+  const dNearCorner = (x: number, z: number) => x > -3.1 && x < -1.4 && z > -9.4 && z < -6.3;
+  const whiteGround = (x: number, z: number, s: FieldSample, cReach = 0.2, allowRim = false) => {
+    if (s.cliff > 0.3 || (!allowRim && dNearCorner(x, z))) return false;
+    const clr = field.clearing(x, z);
+    if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
+    if (nearKokiri(x, z, 1.0) || field.sightlineC(x, z, cReach) > 0 || nearViolet(x, z, 0.45)) return false;
+    return true;
+  };
+  // B / E left lawn edge (frame 14 s: a few white dots at 0–0.4 × 0.6–0.85): the west verge of the
+  // spine, 0.3–1.8 m off the flagstones, from the boulder north to the bank
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'white-flowers-west-verge',
+      candidates: 3000,
+      box: [-4.0, -16.5, -0.8, -5.0],
+      minSpacing: 0.8,
+      max: 12,
+      accept(x, z, s) {
+        const edge = field.edgeDistance(x, z);
+        if (edge < 0.3 || edge > 1.8 || !whiteGround(x, z, s)) return 0;
+        return 0.7 * (1 - 0.5 * smoothstep(0.3, 1.8, edge));
+      },
+    },
+    whitePlace,
+  );
+  // the stepping-stone ramp's outer lawn (frames 14 / 24), off the trodden strip and the spine's verge
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'white-flowers-ramp',
+      candidates: 3000,
+      box: [1.0, -10.5, 10.5, -1.5],
+      minSpacing: 0.9,
+      max: 9,
+      accept(x, z, s) {
+        if (field.troddenZone(x, z) > 0) return 0;
+        const ramp = field.rampDistance(x, z);
+        if (ramp < 1.3 || ramp > 3.2 || field.lawnEdgeDistance(x, z) < 0.4 || field.houseInfo(x, z).dist < 1.0) return 0;
+        return whiteGround(x, z, s) ? 0.7 : 0;
+      },
+    },
+    whitePlace,
+  );
+  // shot A's right bank near the kid (frame 1: 0.8–1 × 0.3–0.6, the east bank above kokiri-a)
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'white-flowers-east-bank',
+      candidates: 3000,
+      box: [10.8, -4.5, 16.5, 1.0],
+      minSpacing: 0.8,
+      max: 8,
+      accept(x, z, s) {
+        if (s.h > 4.6 || field.edgeDistance(x, z) < 0.45 || !whiteGround(x, z, s)) return 0;
+        // frame 1's box is 0.8–1 × 0.3–0.6: the bank 12–17 m out, right of the stair
+        const a = field.screenX('A_stairs', x, z);
+        return a && a.sx >= 0.8 && a.depth >= 11.5 ? 0.7 : 0;
+      },
+    },
+    whitePlace,
+  );
+  // sparingly among the shot-D verge ferns, on the bank behind the edge strip
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'white-flowers-d-verge',
+      candidates: 2000,
+      box: [-5.6, -17.5, -2.4, -9.6],
+      minSpacing: 1.1,
+      max: 5,
+      accept(x, z, s) {
+        if (field.edgeDistance(x, z) < 1.6 || !whiteGround(x, z, s)) return 0;
+        return 0.6;
+      },
+    },
+    whitePlace,
+  );
+  // natural clusters elsewhere within 25 m of the cameras: path edges, boulder feet and tree roots
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'white-flowers-scatter',
+      candidates: Math.round(12000 * q.density),
+      minSpacing: 1.2,
+      max: 14,
+      accept(x, z, s) {
+        if (!nearCamera(x, z, 25) || !whiteGround(x, z, s, 0.3)) return 0;
+        const edge = field.edgeDistance(x, z);
+        if (edge < 0.3) return 0;
+        const verge = 1 - smoothstep(0.3, 1.5, edge);
+        const rock = 1 - smoothstep(0.25, 1.2, field.boulderDistance(x, z));
+        const root = 1 - smoothstep(0.3, 2.5, field.giantDistance(x, z));
+        return 0.35 * Math.max(verge, rock, root) * (0.4 + field.flowerPatch(x, z)) * (1 - field.lowZone(x, z));
+      },
+    },
+    whitePlace,
+  );
+
   // ---- broad-leaf plant (hosta-like paddle leaves) beside the shot-D boulder, with the ferns
   scatter(
     ctx,
@@ -561,6 +777,40 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 0.65 + rng() * 0.65, 0.8, 0.012, greenVar(rng, 0.22)),
   );
+
+  // The west-verge white clumps beyond 11 m sit below B's line of sight over the nearer ferns, so
+  // the dots that actually read in frame 14 s (0.06–0.14 × 0.70–0.79, just left of the flagstones)
+  // come from this cluster on the spine's west rim 7.5–10 m out, the one pocket of that verge with
+  // nothing taller in front of it. Placed after the weeds so the blooms are kept out from under the
+  // boulder cluster's big paddle leaves. It is also D's bottom-left grass strip: a few clumps only.
+  {
+    const weedReach = (it: (typeof weeds.items)[number]) =>
+      (weeds.opts.variants[it.variant][0].boundingBox?.max.x ?? 0.16) * Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]);
+    const underLeaves = (x: number, z: number) =>
+      weeds.items.some((it) => {
+        const r = weedReach(it);
+        return r >= 0.25 && Math.hypot(it.x - x, it.z - z) < r;
+      });
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'white-flowers-b-rim',
+        candidates: 2500,
+        box: [-2.5, -9.4, -1.6, -7.0],
+        minSpacing: 0.35,
+        max: 4,
+        accept(x, z, s) {
+          const edge = field.lawnEdgeDistance(x, z);
+          if (edge < 0.15 || edge > 0.8 || field.troddenZone(x, z) > 0 || !whiteGround(x, z, s, 0.2, true) || underLeaves(x, z)) return 0;
+          const b = field.screenX('B_house', x, z);
+          return b && b.sx >= 0.075 && b.sx <= 0.145 && b.depth >= 7.5 && b.depth <= 10.2 ? 0.8 : 0;
+        },
+      },
+      // the top of the clump size range: these are the dots the frame is scored on
+      (x, z, s, rng) => placeInstance(whiteFlowers, x, z, s, rng, 1.0 + rng() * 0.15, 0.6, 0.01, tint.setRGB(0.98 + rng() * 0.06, 0.98 + rng() * 0.06, 0.96 + rng() * 0.06)),
+    );
+  }
 
   // ---- seed-head stalks: meadow patches
   scatter(
@@ -629,14 +879,16 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // ---- moss tufts: boulder bases, tree roots, shaded embankments
   const mossRng = ctx.rng.fork('plants/moss');
   const mossSample = newSample();
-  const placeMoss = (x: number, z: number, radius: number) => {
+  const placeMossWith = (rng: Rng, x: number, z: number, radius: number): boolean => {
     field.sample(x, z, mossSample);
-    if (!field.allowed(x, z, mossSample) || field.insideGiantTrunk(x, z)) return;
+    if (!field.allowed(x, z, mossSample) || field.insideGiantTrunk(x, z)) return false;
     const y = T.height(x, z) - 0.012;
-    const h = radius * (0.22 + mossRng() * 0.2);
-    composeMatrix(M, 0, x, y, z, mossSample.nx, mossSample.ny, mossSample.nz, 0.95, mossRng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + mossRng() * 0.5));
-    moss.add(M, mossRng.int(0, 2), tint.setRGB(0.9 + mossRng() * 0.2, 0.92 + mossRng() * 0.16, 0.9 + mossRng() * 0.2));
+    const h = radius * (0.22 + rng() * 0.2);
+    composeMatrix(M, 0, x, y, z, mossSample.nx, mossSample.ny, mossSample.nz, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
+    moss.add(M, rng.int(0, 2), tint.setRGB(0.9 + rng() * 0.2, 0.92 + rng() * 0.16, 0.9 + rng() * 0.2));
+    return true;
   };
+  const placeMoss = (x: number, z: number, radius: number) => placeMossWith(mossRng, x, z, radius);
   for (const b of ctx.layout.heroBoulders) {
     const n = Math.round(30 * q.density);
     for (let i = 0; i < n; i++) {
@@ -676,6 +928,20 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     { label: 'moss-east-bank', candidates: 2200, box: EAST_BANK, minSpacing: 0.7, accept: (x, z, s) => (eastBank(x, z, s, 0.3) ? 0.4 * (0.5 + field.cluster(x, z)) : 0) },
     (x, z, _s, rng) => placeMoss(x, z, 0.1 + rng() * 0.16),
   );
+  // Path-edge softening (concept sheet 02 “Moss edges” / “Path boundary”): grass and moss creep
+  // over the flagstone rim. Dense short moss cushions in the 0.25 m band just outside the paved
+  // edge of the spine and the stair branch (the house branch is a grassy ramp, no rim), walked
+  // along the layout polylines by their own stream and checked against the exact terrain mask so
+  // nothing lands on a slab. Adds ≈ 20 % to the moss count. The blades leaning over the stones
+  // and the dirt-seam litter live in grass.ts / litter.ts.
+  {
+    const rng = ctx.rng.fork('plants/moss-path-edge');
+    field.rimCandidates(rng, RIM_MOSS_CANDIDATES_PER_M * q.density, RIM_BAND, (x, z) => {
+      const p = 0.55 * (0.4 + 0.6 * field.cluster(x, z)) * field.falloff(x, z);
+      if (rng() > p) return;
+      placeMossWith(rng, x, z, 0.05 + rng() * 0.09);
+    });
+  }
 
   // ---- saplings: quiet spots away from paths and giant trunks
   scatter(
@@ -700,9 +966,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     (x, z, s, rng) => placeInstance(saplings, x, z, s, rng, 0.7 + rng() * 0.6, 0.3, 0.03, greenVar(rng, 0.16)),
   );
 
-  const all = [ferns, heroFerns, bushes, hedge, flowers, yellowFlowers, weeds, seedheads, clover, moss, saplings];
+  const all = [ferns, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings];
   for (const set of all) parent.add(set.build());
-  return { ferns, heroFerns, bushes, hedge, flowers, yellowFlowers, weeds, seedheads, clover, moss, saplings, all, materials };
+  return { ferns, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, all, materials };
 }
 
 export { clamp };

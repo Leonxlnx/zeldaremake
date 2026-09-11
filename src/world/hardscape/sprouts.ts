@@ -1,13 +1,16 @@
 /**
- * Joint sprouts (W21): small grass / weed tufts growing out of flagstone and stair joints.
- * Geometry blades (no alpha cards), two tuft variants, GPU instanced, animated with the shared
- * wind model's `windGrass` so they ripple with the rest of the vegetation.
+ * Joint sprouts (W21): small grass / weed tufts growing out of flagstone and stair joints, plus
+ * the moss cushions and the seam grit that live in the same joints. Geometry blades (no alpha
+ * cards), GPU instanced, animated with the shared wind model's `windGrass` so they ripple with
+ * the rest of the vegetation. Variants are packed several to an InstancedMesh (see
+ * `HARDSCAPE_PACKS`) so the whole set costs four draw calls.
  */
 import {
   BufferGeometry,
   Color,
   DoubleSide,
   Float32BufferAttribute,
+  InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
@@ -19,13 +22,164 @@ import type { Rng } from '../util/prng';
 import type { Wind } from '../wind/wind';
 import { WIND_GLSL } from '../wind/wind';
 import type { WorldConfig } from '../config';
+import { SEAM_GRIT_TONE, buildGritGeometry } from './grit';
 
 export interface SproutSpot {
   x: number;
   y: number;
   z: number;
-  /** 0..1 size factor */
+  /** 0..1 size factor (picks the tuft / clover variant; cushion radius); for 'grit' the pebble radius in metres */
   size: number;
+  /**
+   * 'cushion' = low moss dome (seam junctions, tread/riser corners); 'fern' = small frond
+   * (boulder cracks); 'grit' = a small stone packed into the dirt seam
+   */
+  kind?: 'tuft' | 'cushion' | 'fern' | 'grit';
+  /** overall scale multiplier (default 1) */
+  scale?: number;
+  /** 'grit': albedo multiplier of the fill under the pebble (joints.ts `jointFillLift`); default 1 */
+  tint?: [number, number, number];
+}
+
+/**
+ * Moss cushion: a low dome (unit radius, 0.3 high) in deep→bright moss green with a faintly
+ * lumpy top — the pads that sit in wide seam junctions and at the stair tread/riser corners
+ * (concept sheet 02 'Moss edges', sheet 04 stairs inset). No wind (heightFactor 0).
+ */
+function buildCushion(rng: Rng, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const segs = 10;
+  const rings = 3;
+  const tmp = new Color();
+  const phase = rng();
+  const bump = Array.from({ length: segs * (rings + 1) }, () => rng.range(0.9, 1.1));
+  const pt = (r: number, s: number): number[] => {
+    // r = 0 is the crown, r = rings the rim; profile: cos dome squashed to 0.3 of the radius
+    const t = r / rings;
+    const a = (s / segs) * Math.PI * 2 + (r & 1 ? Math.PI / segs : 0);
+    const rad = Math.sin((t * Math.PI) / 2) * (0.92 + 0.12 * bump[r * segs + (s % segs)]);
+    const h = 0.3 * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
+    return [Math.cos(a) * rad, h, Math.sin(a) * rad, t];
+  };
+  const push = (p: number[]) => {
+    pos.push(p[0], p[1], p[2]);
+    // dome normal ≈ direction from a point below the centre
+    const l = Math.hypot(p[0], p[1] + 0.35, p[2]) || 1;
+    nrm.push(p[0] / l, (p[1] + 0.35) / l, p[2] / l);
+    tmp.copy(light).lerp(deep, 0.25 + 0.7 * p[3]);
+    col.push(tmp.r, tmp.g, tmp.b);
+    wind.push(0, phase);
+    uv.push(0, p[3]);
+  };
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segs; s++) {
+      const a = pt(r, s);
+      const b = pt(r, s + 1);
+      const c = pt(r + 1, s);
+      const d = pt(r + 1, s + 1);
+      if (r === 0) {
+        // crown fan
+        push([0, 0.3, 0, 0]);
+        push(d);
+        push(c);
+      } else {
+        push(a);
+        push(d);
+        push(c);
+        push(a);
+        push(b);
+        push(d);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** small fern frond: an arching midrib with paired leaflets (the plants in the hero boulders' cracks) */
+function buildFrond(rng: Rng, length: number, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const tmp = new Color();
+  const push = (p: number[], n: number[], c: Color, wf: number, phase: number) => {
+    pos.push(p[0], p[1], p[2]);
+    nrm.push(n[0], n[1], n[2]);
+    col.push(c.r, c.g, c.b);
+    wind.push(wf, phase);
+    uv.push(0, wf);
+  };
+  const fronds = 3;
+  for (let f = 0; f < fronds; f++) {
+    const ang = (f / fronds) * Math.PI * 2 + rng.range(-0.5, 0.5);
+    const L = length * rng.range(0.75, 1.15);
+    const dx = Math.cos(ang);
+    const dz = Math.sin(ang);
+    const px = -dz;
+    const pz = dx;
+    const phase = rng();
+    const rise = rng.range(0.55, 0.8); // how steeply the frond climbs before arching over
+    const pairs = 6;
+    const rib = (t: number): number[] => {
+      // parabola: up then over
+      const y = L * (rise * t - 0.45 * t * t);
+      const out = L * (0.25 * t + 0.6 * t * t);
+      return [dx * out, y, dz * out];
+    };
+    // midrib: a thin quad strip
+    for (let s = 0; s < pairs; s++) {
+      const a = rib(s / pairs);
+      const b = rib((s + 1) / pairs);
+      const w = 0.003 * (1 - s / pairs) + 0.001;
+      tmp.copy(deep).lerp(light, 0.3);
+      const n = [0, 1, 0];
+      push([a[0] - px * w, a[1], a[2] - pz * w], n, tmp, s / pairs, phase);
+      push([a[0] + px * w, a[1], a[2] + pz * w], n, tmp, s / pairs, phase);
+      push([b[0] + px * w, b[1], b[2] + pz * w], n, tmp, (s + 1) / pairs, phase);
+      push([a[0] - px * w, a[1], a[2] - pz * w], n, tmp, s / pairs, phase);
+      push([b[0] + px * w, b[1], b[2] + pz * w], n, tmp, (s + 1) / pairs, phase);
+      push([b[0] - px * w, b[1], b[2] - pz * w], n, tmp, (s + 1) / pairs, phase);
+    }
+    // leaflets: pairs of tapered quads, longest a third of the way out
+    for (let s = 1; s <= pairs; s++) {
+      const t = (s - 0.5) / pairs;
+      const a = rib(t);
+      const b = rib(t + 0.07);
+      const len = L * 0.42 * Math.sin(Math.PI * Math.min(1, t * 1.1)) * (0.7 + 0.3 * (1 - t)) + 0.01;
+      for (const side of [-1, 1]) {
+        const sx = px * side;
+        const sz = pz * side;
+        // droop the leaflet tip a little
+        const tip = [a[0] + sx * len + dx * len * 0.35, a[1] - len * 0.25, a[2] + sz * len + dz * len * 0.35];
+        const n = [sx * 0.3, 0.9, sz * 0.3];
+        tmp.copy(light).lerp(deep, 0.2 + 0.4 * t);
+        const c2 = new Color().copy(deep).lerp(light, 0.35);
+        push(a, n, c2, t, phase);
+        push(b, n, c2, t, phase);
+        push(tip, n, tmp, t + 0.1, phase);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
 }
 
 function buildTuft(rng: Rng, blades: number, height: number, spread: number, deep: Color, light: Color): BufferGeometry {
@@ -186,65 +340,182 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uSproutLodFar = { value: SPROUT_LOD_FAR };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; uniform float uSproutLodFar;`)
+      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; attribute float aVariant; attribute float aSproutVariant; uniform float uSproutLodFar;`)
       .replace(
         '#include <project_vertex>',
         /* glsl */ `
+        // Variant packs: one InstancedMesh carries several sprout variants in one geometry; an
+        // instance shows only the variant it was assigned (aSproutVariant) and collapses the
+        // others' vertices onto its base point (zero-area triangles, no fill), so tufts, moss
+        // cushions and seam grit share draw calls.
+        float sproutKeep = 1.0 - step(0.5, abs(aVariant - aSproutVariant));
         // LOD: tufts further than uSproutLodFar from the camera shrink onto their base point over
         // the last 4 m, so distant joints cost no fill and the near ones keep their blades
         vec3 sproutBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-        float sproutLod = 1.0 - smoothstep(uSproutLodFar - 4.0, uSproutLodFar, distance(sproutBase, cameraPosition));
+        float sproutLod = (1.0 - smoothstep(uSproutLodFar - 4.0, uSproutLodFar, distance(sproutBase, cameraPosition))) * sproutKeep;
         vec4 wp = modelMatrix * instanceMatrix * vec4(transformed * sproutLod, 1.0);
         wp.xyz += windGrass(wp.xyz, aWind.x, aWind.y, 0.3) * sproutLod;
         vec4 mvPosition = viewMatrix * wp;
         gl_Position = projectionMatrix * mvPosition;`,
       );
   };
-  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v2-lod';
+  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v3-variant-packs';
   return wind.bind(mat);
 }
 
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig): { meshes: InstancedMesh[]; count: number; variants: number } {
+/** sprout variant indices */
+export const TUFT_A = 0;
+export const TUFT_B = 1;
+export const TUFT_C = 2;
+export const CLOVER = 3;
+export const CUSHION = 4;
+export const FERN = 5;
+export const GRIT = 6;
+
+/**
+ * Which variants share an InstancedMesh (= one draw call). Every instance of a pack processes the
+ * vertices of all its variants (the others collapse), so the pairs are chosen to keep that
+ * overhead small: the 2 000+ seam pebbles (60 vertices) ride with the smallest tuft (90), the
+ * moss cushions (150) with the clover (126). Four draws for the whole joint flora + grit — the
+ * same count the four tuft/clover variants alone used before the cushions and grit existed.
+ */
+export const HARDSCAPE_PACKS: number[][] = [[TUFT_B], [TUFT_A], [TUFT_C, GRIT], [CLOVER, CUSHION]];
+/** the boulder cap plants: a few dozen instances, all variants in one draw */
+export const BOULDER_PACKS: number[][] = [[TUFT_A, TUFT_B, FERN]];
+
+const NO_TINT: [number, number, number] = [1, 1, 1];
+
+export interface SproutBuild {
+  meshes: InstancedMesh[];
+  /** tufts + clover + cushions + ferns (not grit) */
+  count: number;
+  variants: number;
+  cushions: number;
+  ferns: number;
+  grit: number;
+  /** triangles actually shown (each instance's own variant), flora + grit */
+  triangles: number;
+  /** the grit's share of `triangles` */
+  gritTriangles: number;
+  /** triangles submitted to the GPU per frame, including the collapsed other-variant triangles */
+  submittedTriangles: number;
+}
+
+/** concatenate non-indexed variant geometries (same attribute set) and tag each vertex with its variant slot */
+function packGeometries(geos: BufferGeometry[]): BufferGeometry {
+  const names = ['position', 'normal', 'color', 'uv', 'aWind'];
+  const sizes: Record<string, number> = { position: 3, normal: 3, color: 3, uv: 2, aWind: 2 };
+  const out: Record<string, number[]> = Object.fromEntries(names.map((n) => [n, []]));
+  const variant: number[] = [];
+  geos.forEach((g, slot) => {
+    for (const n of names) {
+      const arr = g.getAttribute(n).array as Float32Array;
+      for (let i = 0; i < arr.length; i++) out[n].push(arr[i]);
+    }
+    const count = g.getAttribute('position').count;
+    for (let i = 0; i < count; i++) variant.push(slot);
+  });
+  const g = new BufferGeometry();
+  for (const n of names) g.setAttribute(n, new Float32BufferAttribute(out[n], sizes[n]));
+  g.setAttribute('aVariant', new Float32BufferAttribute(variant, 1));
+  g.computeBoundingSphere();
+  return g;
+}
+
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS): SproutBuild {
   // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
   // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
   const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
   const light = new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.45);
+  // cushions: the palette moss greens (deep→bright), a touch yellower on the crown like the
+  // sheet's pads; the stone material's moss uses the same two colours so films and pads agree
+  const mossDeep = new Color(config.palette.mossDeep).lerp(new Color(config.palette.grassDeep), 0.3);
+  const mossBright = new Color(config.palette.mossBright).lerp(new Color(config.palette.grassLight), 0.25);
   const variants = [
     buildTuft(rng.fork('tuft-a'), 7, 0.08, 0.035, deep, light),
     buildTuft(rng.fork('tuft-b'), 9, 0.11, 0.05, deep, light),
     buildTuft(rng.fork('tuft-c'), 5, 0.065, 0.03, deep, light),
     buildClover(rng.fork('clover'), 0.05, deep, light),
+    buildCushion(rng.fork('cushion'), mossDeep, mossBright),
+    buildFrond(rng.fork('fern'), 0.2, new Color(config.palette.grassDeep), new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.3)),
+    buildGritGeometry(rng.fork('grit-geo'), SEAM_GRIT_TONE),
   ];
+  const variantOf = (s: SproutSpot) => (s.kind === 'cushion' ? CUSHION : s.kind === 'fern' ? FERN : s.kind === 'grit' ? GRIT : s.size > 0.7 ? TUFT_B : s.size > 0.42 ? TUFT_A : s.size > 0.2 ? TUFT_C : CLOVER);
   const lists: SproutSpot[][] = variants.map(() => []);
-  for (const s of spots) lists[s.size > 0.7 ? 1 : s.size > 0.42 ? 0 : s.size > 0.2 ? 2 : 3].push(s);
+  for (const s of spots) lists[variantOf(s)].push(s);
+  const packOf = new Map<number, [number, number]>(); // variant → [pack, slot]
+  packs.forEach((pack, pi) => pack.forEach((v, slot) => packOf.set(v, [pi, slot])));
+  for (let v = 0; v < variants.length; v++) if (lists[v].length && !packOf.has(v)) throw new Error(`sprout variant ${v} has instances but no pack`);
+
   const meshes: InstancedMesh[] = [];
   const m = new Matrix4();
   const p = new Vector3();
   const q = new Quaternion();
   const sc = new Vector3();
+  const axis = new Vector3();
   const up = new Vector3(0, 1, 0);
   const c = new Color();
   let count = 0;
-  lists.forEach((list, v) => {
-    if (!list.length) return;
-    const im = new InstancedMesh(variants[v], material, list.length);
-    list.forEach((s, i) => {
-      const k = 0.9 + rng.range(0, 0.2);
-      p.set(s.x, s.y - 0.01, s.z);
-      q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
-      sc.set(k, k * rng.range(0.9, 1.1), k);
-      im.setMatrixAt(i, m.compose(p, q, sc));
-      c.setRGB(0.78 + rng.range(0, 0.25), 0.8 + rng.range(0, 0.25), 0.75 + rng.range(0, 0.2));
-      im.setColorAt(i, c);
-    });
+  let triangles = 0;
+  let gritTriangles = 0;
+  let submittedTriangles = 0;
+  packs.forEach((pack, pi) => {
+    const n = pack.reduce((a, v) => a + lists[v].length, 0);
+    if (!n) return;
+    const geo = packGeometries(pack.map((v) => variants[v]));
+    const slotOf = new Float32Array(n);
+    const im = new InstancedMesh(geo, material, n);
+    let i = 0;
+    for (const v of pack) {
+      const slot = packOf.get(v)![1];
+      const triCount = variants[v].attributes.position.count / 3;
+      for (const s of lists[v]) {
+        const k = (0.9 + rng.range(0, 0.2)) * (s.scale ?? 1);
+        if (v === GRIT) {
+          // the pebble sits in the dirt: its centre a little below the fill so only the crown
+          // shows; tumbled about a near-vertical axis, squashed unevenly
+          p.set(s.x, s.y - s.size * 0.12, s.z);
+          axis.set(rng.range(-0.25, 0.25), 1, rng.range(-0.25, 0.25)).normalize();
+          q.setFromAxisAngle(axis, rng.range(0, Math.PI * 2));
+          sc.set(s.size * rng.range(0.8, 1.25), s.size * rng.range(0.7, 1.05), s.size * rng.range(0.8, 1.25));
+          // the fill's tone at this spot (vertex colours × the joint-width lift), then within
+          // ± 15 % of it with a hint of warm / cool drift — no pale specks
+          const t = s.tint ?? NO_TINT;
+          const l = rng.range(0.87, 1.13);
+          const w = rng.range(-0.02, 0.02);
+          c.setRGB(t[0] * l * (1 + w), t[1] * l, t[2] * l * (1 - w));
+        } else {
+          q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
+          if (v === CUSHION) {
+            // the unit dome becomes a 4–7.5 cm radius, 1.2–2.5 cm high pad, sunk a few mm
+            const r = (0.04 + 0.035 * s.size) * (s.scale ?? 1);
+            p.set(s.x, s.y - 0.004, s.z);
+            sc.set(r * rng.range(0.85, 1.2), r * rng.range(0.85, 1.15), r * rng.range(0.85, 1.2));
+            c.setRGB(0.85 + rng.range(0, 0.3), 0.85 + rng.range(0, 0.3), 0.8 + rng.range(0, 0.2));
+          } else {
+            p.set(s.x, s.y - 0.01, s.z);
+            sc.set(k, k * rng.range(0.9, 1.1), k);
+            c.setRGB(0.78 + rng.range(0, 0.25), 0.8 + rng.range(0, 0.25), 0.75 + rng.range(0, 0.2));
+          }
+        }
+        im.setMatrixAt(i, m.compose(p, q, sc));
+        im.setColorAt(i, c);
+        slotOf[i] = slot;
+        i++;
+      }
+      triangles += triCount * lists[v].length;
+      if (v === GRIT) gritTriangles += triCount * lists[v].length;
+      else count += lists[v].length;
+    }
+    geo.setAttribute('aSproutVariant', new InstancedBufferAttribute(slotOf, 1));
+    submittedTriangles += (geo.attributes.position.count / 3) * n;
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor) im.instanceColor.needsUpdate = true;
     im.castShadow = false;
     im.receiveShadow = true;
-    im.name = `joint-sprouts-v${v}`;
+    im.name = `joint-sprouts-p${pi}-v${pack.join('')}`;
     im.computeBoundingSphere();
     meshes.push(im);
-    count += list.length;
   });
-  return { meshes, count, variants: variants.length };
+  return { meshes, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, grit: lists[GRIT].length, triangles, gritTriangles, submittedTriangles };
 }

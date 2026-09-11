@@ -70,6 +70,10 @@ const TILE = 8;
 /** candidate blades per m² at full density before mask/cluster rejection */
 const CANDIDATES_PER_M2 = 340;
 const DNORM = 1.5;
+/** lawn band outside the flagstone rim whose blades lean over the slabs (concept sheet 02) */
+const RIM_LEAN = 0.25;
+/** root tilt toward the paving at the rim itself (≈ 24° with the 0.5 normal blend), fading to 0 across the band */
+const RIM_LEAN_TILT = 0.9;
 
 export async function buildGrass(ctx: WorldContext, field: VegField, material: Material, parent: Group, onProgress: (f: number) => void): Promise<GrassResult> {
   const T = ctx.terrain;
@@ -190,9 +194,26 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const stiffness = clamp(1 - h * (0.75 + 0.35 * rng()), 0.05, 0.95);
 
       const y = T.height(x, z) - 0.012;
-      const yaw = rng() * Math.PI * 2;
-      const nx = s.nx + rng.gauss() * 0.07;
-      const nz = s.nz + rng.gauss() * 0.07;
+      let yaw = rng() * Math.PI * 2;
+      let nx = s.nx + rng.gauss() * 0.07;
+      let nz = s.nz + rng.gauss() * 0.07;
+      if (edge >= 0 && edge < RIM_LEAN) {
+        // Path-edge softening (concept sheet 02): the blades in the last 0.25 m before the paving
+        // lean out over the slabs. The shader bends every blade along its local +z, so the rim
+        // blades are yawed (± jitter, from the same draw) toward the nearest paved edge and their
+        // roots tilted the same way. No extra draws: the rest of the tile keeps its layout.
+        const gx = field.lawnEdgeDistance(x + 0.05, z) - field.lawnEdgeDistance(x - 0.05, z);
+        const gz = field.lawnEdgeDistance(x, z + 0.05) - field.lawnEdgeDistance(x, z - 0.05);
+        const gl = Math.hypot(gx, gz);
+        if (gl > 1e-6) {
+          const k = 1 - edge / RIM_LEAN;
+          const tx = -gx / gl;
+          const tz = -gz / gl;
+          yaw = Math.atan2(tx, tz) + (yaw / (Math.PI * 2) - 0.5) * (1.6 - 0.9 * k);
+          nx += tx * RIM_LEAN_TILT * k;
+          nz += tz * RIM_LEAN_TILT * k;
+        }
+      }
       composeMatrix(matrices, count * 16, x, y, z, nx, s.ny, nz, 0.5, yaw, w, h, h);
       const o = count * 4;
       data[o] = phase;

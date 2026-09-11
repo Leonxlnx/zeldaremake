@@ -4,12 +4,22 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T14:52:28Z
+updated: 2026-09-11T14:54:55Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Cap source a43fd6b is pushed; actual gallery and canonical take are running. Now integrate
+Fable45be2fb twelve vegetation and eight hardscape files byte-identically after independent
+source, shader, LOD, placement and deterministic construction review. Roots and terrain layout
+stay exact; this brings flowers, fiddleheads, moss/litter, stone-edge wear and dirt/grit joints.
+Variant packing saves48–50draw submissions but adds~1.07–1.30M submitted triangles before
+culling; hardscape adds165303triangles at the same8meshes. Combined canonical budget and real
+images must validate the result. Rocks and structures remain withheld pending documented
+integration fixes, Fable atmosphere/bough work unmodified.
+
 
 Recovered to clean worktree zeldaremake-active on local alias agent/astra-refinement-recovery;
 publish to existing agent/astra-link-movement / PR5. Old dirty zeldaremake snapshot is preserved.
