@@ -16,8 +16,8 @@
       "github": "Leonxlnx",
       "status": "active",
       "branch": "agent/astra-link-movement",
-      "updated": "2026-09-11T05:01:36Z",
-      "currentTask": "05:00 UTC: scene review confirms structure ivy/leaves animate in the colour pass but use",
+      "updated": "2026-09-11T05:25:23Z",
+      "currentTask": "05:06 UTC: garment contact fix is published as `1b39c87`; four-pose and six-view CI run now.",
       "file": ".agents/astra.md"
     },
     {
