@@ -1,6 +1,6 @@
 {
-  "source": "b970181a734200dd31cc0d051a0cc2cbb1fe1b4a",
-  "capturedAt": "2026-09-11T07:50:12.134Z",
+  "source": "b84bedc22aca8cc6f74e6ae0bb65f6d22b561c38",
+  "capturedAt": "2026-09-11T08:09:01.865Z",
   "captures": [
     {
       "name": "01-idle",
@@ -515,7 +515,7 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "retries": 0,
+      "retries": 1,
       "sha256": "908713326388c675d5aba3ffeab89fd0ecc7b1e8a8aaee8e1ef00c738d65630b"
     },
     {
