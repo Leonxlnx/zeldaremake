@@ -627,6 +627,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W37 SSIM 0.22–0.27 vs 0.42 — near-air mist, shaded bark
   tone, dome in A; (2) W14 limb, C01 colours (Astra); (3) owner decisions (W04, concept vs frames).
 
+### 20:55 UTC — tick 39: take-0055 published (monitor `c2adedf`), valid; atmosphere six + W14 limb
+- `ec0aa70` canopy openness by direction: eye-level rays into the north/west stand see one dim
+  closed-roof veil; dome follows; sunward lobe off (B forest 0.493 → 0.453 vs 0.434; A left quad
+  0.418 vs 0.441; C frame 0.390 vs 0.385; D far band traded 0.469 vs 0.550). `97c35e6` gnarled
+  mossy limb with 0.7 m cords (W14), `16f10e4` bough −0.35 m.
+- take-0055: A 0.250 / B 0.220 / C 0.288 / D 0.278 / E 0.233 / F 0.245 — best on every view;
+  hue distance down everywhere; 622 draws; play build = captured dist (hash-verified publish).
+- Publisher hardening finished with Astra: strict D1 + sealed allowlist (`3130705`), well-formed
+  timestamps, play-build hash gate (`6a530f4`, `4694b0f`), baseline by capture time (`ef83594`).
+- Running: structures-9b (ivy curtains hiding the bough pods from B, not A), trees-10 (shaded
+  bark tone toward the reference's hazed trunks; dark crown cards).
+- Three biggest remaining gaps → (1) W37 SSIM 0.22–0.29 vs 0.42: sunlit slabs 0.05–0.09 over
+  (hardscape albedo), shaded bark, the dome in A; (2) B's pods/canopy, C01 colours (Astra);
+  (3) owner decisions (W04, concept vs frames).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
