@@ -1,7 +1,7 @@
 {
-  "source": "d181ef9c1e9628fcabbcc7ab1e3d7100b6a5255d",
+  "source": "143eb54ab154b33ec38c3cb19d1f17fac8bdb9e3",
   "fps": 12,
-  "view": "scripted rear follow view",
+  "view": "scripted front three-quarter follow view",
   "states": [
     {
       "x": 0,
