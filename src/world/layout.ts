@@ -69,6 +69,56 @@ export interface Viewpoint {
   diagnostic?: boolean;
 }
 
+export interface FenceDef {
+  id: string;
+  points: readonly (readonly [number, number, number])[];
+  style?: 'rail' | 'rope';
+}
+
+export interface LanternPostDef {
+  id: string;
+  /** foot of the post (y is sampled from the terrain) */
+  position: [number, number];
+  /** horizontal direction the hook reaches toward (the path) */
+  facing: [number, number];
+  /** post height to the bend (metres) */
+  height: number;
+  tint?: 'orange' | 'lime';
+}
+
+/**
+ * Rope fences off the paving (the layout's `fences` are the plateau-lip rails). Placed against the
+ * fixed cameras (gauntlet/tmp/proj.mjs): the plaza-west run projects outside A/B/D/E/F and off C's
+ * right edge (x ≥ 1.09); the stair-bank run sits outside A (x ≥ 1.08), in F at (0.74–0.82,
+ * 0.54–0.67) right of the kid spot (0.72, 0.67), and in C at (0.22–0.31, 0.49–0.58) behind the
+ * stair-foot rock — clear of the stair foot (C 0.10–0.20, 0.60–0.66). Both keep ≥ 1 m from the
+ * npc spots (kokiri-b (−6.5, −2): the west run starts at z = −0.9; kokiri-a (9.0, 3.6): the bank
+ * run starts 1.4 m away).
+ */
+export const ROPE_FENCES: FenceDef[] = [
+  // foot of the west bank, ~0.5 m off the plaza rim (paving ends at x ≈ −6 at z = 0)
+  { id: 'plaza-west', style: 'rope', points: [[-6.6, 0, -0.9], [-6.75, 0, 1.3], [-6.3, 0, 2.7], [-5.9, 0, 3.9]] },
+  // stair-side bank south of the stair foot, east of the stair-foot rock
+  { id: 'stair-bank', style: 'rope', points: [[9.5, 0, 4.9], [10.3, 0, 4.2], [11.0, 0, 3.6]] },
+];
+
+/**
+ * Placed against the fixed cameras (gauntlet/tmp/proj.mjs). The stair-foot post stands on the
+ * right of the bottom risers: its pod projects to A (0.80, 0.38) — the reference's lit pod right
+ * of the stairs at (0.83, 0.36) — and F (0.53, 0.35) (reference 0.52, 0.35); in C it is a thin
+ * post at x ≈ 0.09, left of the stair foot. The fork post marks the junction of the spine and the
+ * house path from the WEST verge: at the fork's inner corner (3, −4.2) a 2.6 m post would stand
+ * 7 m from camera B at (0.57, 0.35) over the signpost and 5 m from camera C beside Link — neither
+ * is in the footage — so it sits across the path on the west verge, off the paving, with its
+ * hook reaching north along the path edge: outside B/C/D/E/F (B's left edge is at x ≈ −0.02)
+ * and just inside A's left edge (pod ≈ (0.03, 0.4)), where the reference has a pod on a bent
+ * stick.
+ */
+export const LANTERN_POSTS: LanternPostDef[] = [
+  { id: 'stair-foot', position: [10.55, -0.45], facing: [-0.75, -0.66], height: 2.55, tint: 'orange' },
+  { id: 'fork-west', position: [-2.6, -4.6], facing: [0.3, -1], height: 2.4, tint: 'orange' },
+];
+
 export const LAYOUT = {
   /** Main flagstone spine: south approach → plaza → north terrace → log arch. */
   // North of the plaza the spine bears slightly EAST (reference B recedes at x ≈ 0.3–0.6, on the

@@ -80,8 +80,10 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const c = new Vector3();
   for (const r of lanterns.slice(1)) c.add(r.pod);
   c.divideScalar(Math.max(1, lanterns.length - 1));
-  c.y -= 0.2;
-  const light = new PointLight(ctx.config.palette.lanternGlow, 7, 7, 2);
+  // 0.9 m below the pod mean: at −0.2 the point sat against the middle pod's leaf shell and
+  // painted a gold streak on it (Astra's matched renders, 2026-09-11); light falls from the pods.
+  c.y -= 0.9;
+  const light = new PointLight(ctx.config.palette.lanternGlow, 4.25, 6, 2);
   light.position.copy(c);
   light.name = 'branch-lantern-light';
   group.add(light);
