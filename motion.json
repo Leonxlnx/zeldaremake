@@ -1,6 +1,6 @@
 {
-  "source": "151744b252e43a53d15233ed933aed495ef602c5",
-  "capturedAt": "2026-09-11T20:52:02.784Z",
+  "source": "8efd467e0975891ee36968b941b5b69a5501c55c",
+  "capturedAt": "2026-09-11T20:58:44.414Z",
   "captures": [
     {
       "name": "01-idle",
@@ -160,8 +160,8 @@
         "drawCalls": 473,
         "triangles": 8487796,
         "geometries": 456,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -330,8 +330,8 @@
         "drawCalls": 475,
         "triangles": 8482140,
         "geometries": 458,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -509,8 +509,8 @@
         "drawCalls": 488,
         "triangles": 8360404,
         "geometries": 460,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -682,8 +682,8 @@
         "drawCalls": 527,
         "triangles": 8466235,
         "geometries": 468,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -856,14 +856,14 @@
         "drawCalls": 499,
         "triangles": 8419931,
         "geometries": 492,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "30d68d4259b108186cf55cfe1d3122fb9100c5313dc3086df6ed44b3aa7dece4"
+      "sha256": "a1864cb3d272619cd2307de515928c05a2013b20b45b28be054449429b4e6fd5"
     },
     {
       "name": "06-face-detail",
@@ -1024,8 +1024,8 @@
         "drawCalls": 435,
         "triangles": 8295530,
         "geometries": 495,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1183,8 +1183,8 @@
         "drawCalls": 409,
         "triangles": 8294023,
         "geometries": 506,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1342,8 +1342,8 @@
         "drawCalls": 407,
         "triangles": 8072824,
         "geometries": 518,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1510,8 +1510,8 @@
         "drawCalls": 422,
         "triangles": 8363294,
         "geometries": 518,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -1690,14 +1690,14 @@
         "drawCalls": 572,
         "triangles": 8580107,
         "geometries": 518,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "6cf6079746e796912c49d5d9e74f65d05d1f7fcc91d1450fd10973d9160a4545"
+      "sha256": "60e886b5b9705b3b1fce90faeab2740abc56262eca12773832ef84010e98ad2d"
     },
     {
       "name": "11-stone-stairway",
@@ -1864,14 +1864,14 @@
         "drawCalls": 536,
         "triangles": 8264617,
         "geometries": 522,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "aaa62e1b56fd1b933a7c702edc8eba7c27068e0ca4fca38e0778e4cda5f1889a"
+      "sha256": "c1cd9009ac90061bd227c11b9035e75dd5272a680aa5bcd212e55a941192cd8b"
     },
     {
       "name": "12-face-profile",
@@ -2038,8 +2038,8 @@
         "drawCalls": 492,
         "triangles": 8259304,
         "geometries": 523,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -2212,14 +2212,14 @@
         "drawCalls": 456,
         "triangles": 8339318,
         "geometries": 523,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "db40f687232b575695be3f32e522cc27674e217cff02986c2bc57f66732d2f2f"
+      "sha256": "26735365ab7eb1f80f1a429550206420552c79fc3c518f7a8e15dff29a569c01"
     },
     {
       "name": "14-belt-detail",
@@ -2380,8 +2380,8 @@
         "drawCalls": 433,
         "triangles": 8299774,
         "geometries": 523,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -2549,14 +2549,14 @@
         "drawCalls": 490,
         "triangles": 8309787,
         "geometries": 524,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "a874d74035ce48e7744c6e24c16d7cbdd047bff16336da306fc08f0af6ccfca4"
+      "sha256": "cfcf7637454b63d32a5e81286464c1b61865cde629fcf035b573e9d89a11c5d8"
     },
     {
       "name": "16-run-jump-launch-rear-quarter",
@@ -2720,8 +2720,8 @@
         "drawCalls": 489,
         "triangles": 8297914,
         "geometries": 524,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -2926,7 +2926,7 @@
         ]
       },
       "retries": 0,
-      "sha256": "0f16b7e1f09164dd474d26ea27ef7ad1e669700fe06744b553cf9cfc429798ad"
+      "sha256": "612f672dea1e88a72bdef8c931c603161bb760a428e77c6f03ed74a55cbd0107"
     },
     {
       "name": "17-face-blink-transition",
@@ -3088,8 +3088,8 @@
         "drawCalls": 435,
         "triangles": 8295530,
         "geometries": 524,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
@@ -3257,8 +3257,8 @@
         "drawCalls": 435,
         "triangles": 8295530,
         "geometries": 524,
-        "textures": 100,
-        "programs": 69,
+        "textures": 101,
+        "programs": 68,
         "width": 1280,
         "height": 720,
         "pixelRatio": 1
