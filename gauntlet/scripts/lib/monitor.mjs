@@ -278,6 +278,9 @@ export function buildTakeRecord({ entry, takeDir, rubric, previous = null, callo
     id: entry.id,
     number: entry.number,
     at: entry.at,
+    // capture/record time when a concurrent publish resequenced the ordering time (else = at)
+    capturedAt: entry.capturedAt ?? entry.at,
+    resequenced: entry.resequenced ?? false,
     agent: entry.agent,
     sha: entry.sha,
     shortSha: entry.shortSha,

@@ -280,7 +280,8 @@ export function checkLedger(report, { ledgerPath = LEDGER_PATH, claimsPath = CLA
   const d3warn = [];
   for (const e of ledger.entries) {
     if (e.agent === 'ci-monitor') continue;
-    const missing = (e.items ?? []).filter((it) => !claimCovers(claims, e.agent, it, e.at));
+    // claims are judged at the capture/record time, which a concurrent-publish resequence preserves
+    const missing = (e.items ?? []).filter((it) => !claimCovers(claims, e.agent, it, e.capturedAt ?? e.at));
     if (!missing.length) continue;
     if (e.unclaimed) d3warn.push(`${e.id} (${e.agent}) targeted unclaimed item(s) ${missing.join(', ')}`);
     else d3fail.push(`${e.id} (${e.agent}) has no live claim for ${missing.join(', ')} at ${e.at}`);

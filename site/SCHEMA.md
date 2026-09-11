@@ -32,7 +32,9 @@ copied under `data/`.
     {
       "id": "take-0007",                 // zero-padded, monotonic
       "number": 7,
-      "at": "2026-09-09T12:00:04Z",
+      "at": "2026-09-09T12:00:04Z",            // chain ordering time (= capturedAt unless resequenced)
+      "capturedAt": "2026-09-09T12:00:04Z",    // when the frames were captured/recorded; cards show this
+      "resequenced": false,                    // true when a concurrent publish moved `at` behind a newer head
       "agent": "fable-cursor",           // .agents/<agent>.md
       "sha": "9f2c…", "shortSha": "9f2c1ab", "branch": "cursor/kokiri-world-phase1-f65e",
       "subject": "Stairs: carve 18 individual slabs",   // commit subject
