@@ -542,6 +542,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   house shade, C01 colours (Astra); (3) owner: W04 proposal, concept-vs-frame rubric question,
   PR #2 merge.
 
+### 11:45 UTC — tick 33: take-0044 published (monitor `61f4a87`), valid; round eight trees + hardscape
+- `b7cc6da` trees: the "lit roof" was the left F shaft column crossing the dome (sun adds only
+  0.01–0.04 through the haze) — column moved to the plateau lip, shade lobes on both roofs' sun
+  lines (A crown 0.533 → 0.496 vs 0.484), seven more view rays. `632e543` hardscape/rocks: brown
+  dirt seams + 2170 grit, feathered moss films on rim stones + 246 cushions, rolled stair noses,
+  mossy risers, greyer lichen boulders with cap plants (B p10 0.337 vs 0.331; A stairs 0.333 vs
+  0.339). Lower-half SSIM −0.006 (stained flanks) → hardscape-8b dialling back + draw calls.
+- take-0044 (clean build of `632e543`): A 0.256 / B 0.213 / C 0.268 / D 0.260 / E 0.225 / F 0.243;
+  draw calls A 688 / 700 (W38 tight; character = 195 meshes → asked Astra to merge per material);
+  score 24/50 with reviews; 44 entries; claims union via the monitor working.
+- Running: structures-8b (branch supports, roof moss, warm interior, fences, lantern posts, arch
+  pods), vegetation-8 (white flowers, fiddleheads, leaf shapes, moss edges), hardscape-8b.
+- Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42; (2) W25 branch supports +
+  W38 headroom; A top-band haze ceiling (atmosphere); (3) owner decisions (W04, concept vs frames).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
