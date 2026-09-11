@@ -204,7 +204,7 @@ function contactReplay(surface, hz, commands = [[2, input(0, 1)], [1, input(0, 1
   // Read the actual authored boot meshes. A centre point alone missed toes passing
   // 23.5 cm through a stair riser despite perfect solver/target agreement.
   const material = new THREE.MeshStandardMaterial();
-  buildLegs(r, { skin: material, boot: material, cuff: null, shaftTop: 0.135 });
+  buildLegs(r, { skin: material, boot: material, cuff: null, shaftTop: 0.135, shapedBoots: true });
   const soleMeshes = [r.ankleL, r.ankleR].map(a => a.getObjectByName('boot-sole'));
   const soleVertices = soleMeshes.map(mesh => {
     const positions = mesh.geometry.attributes.position;

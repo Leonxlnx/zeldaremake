@@ -327,6 +327,15 @@
       "at": "2026-09-11T05:33:50.146Z",
       "expiresHours": 3,
       "scope": "Owner object reference: signpost.ts hand-carved plank edges, bindings and seated rune face; retain placement/height/wording/material and world layout"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W30"
+      ],
+      "at": "2026-09-11T06:02:46.678Z",
+      "expiresHours": 3,
+      "scope": "Owner lighting reference: diagnostic sun/fill comparison via existing __ATMO_LIGHT__ hook; production defaults and Fable sun direction/filter retained pending rendered comparison"
     }
   ]
 }

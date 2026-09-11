@@ -16,6 +16,7 @@ import { createLinkFaceGeometry } from './face-geometry';
 import { addOutfitDetails } from './outfit-details';
 import { buildGear } from './gear';
 import { createLinkEyeDisc } from './eye-geometry';
+import { createLinkBoot } from './boot-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -46,7 +47,7 @@ export function endTally(): number {
 }
 
 /** Legs + boots shared by Link and the kids (kids get taller, darker boots). */
-export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: MeshStandardMaterial; cuff: MeshStandardMaterial | null; shaftTop: number; buckle?: MeshStandardMaterial; tights?: MeshStandardMaterial }): void {
+export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: MeshStandardMaterial; cuff: MeshStandardMaterial | null; shaftTop: number; shapedBoots?: boolean; buckle?: MeshStandardMaterial; tights?: MeshStandardMaterial }): void {
   const p = rig.props;
   const thighLen = p.hipY - p.kneeY;
   const shinLen = p.kneeY - p.ankleY;
@@ -60,18 +61,26 @@ export function buildLegs(rig: Rig, opts: { skin: MeshStandardMaterial; boot: Me
     // knee cap
     part(knee, new SphereGeometry(0.05, 10, 8), leg, 'knee');
     const soleY = rig.sole.y;
-    const shaftH = opts.shaftTop - (soleY + 0.02);
-    const boot = merge([
-      place(new CylinderGeometry(0.062, 0.057, shaftH, 12), 0, soleY + 0.02 + shaftH / 2, 0),
-      place(new BoxGeometry(0.105, 0.058, 0.16, 1, 1, 1), 0, soleY + 0.029, 0.03),
-      place(new SphereGeometry(0.052, 10, 8), 0, soleY + 0.032, 0.105, undefined, [1, 0.62, 1]),
-      place(new SphereGeometry(0.055, 10, 8), 0, soleY + 0.034, -0.02, undefined, [0.95, 0.6, 1]),
-    ]);
-    part(ankle, boot, opts.boot, 'boot');
-    // dark sole slab under the boot
-    part(ankle, place(new BoxGeometry(0.108, 0.018, 0.172), 0, soleY + 0.009, 0.03), matte('sole'), 'boot-sole');
-    // fold-over cuff: flares outward at the top of the shaft
-    if (opts.cuff) part(ankle, place(new CylinderGeometry(0.078, 0.066, 0.055, 12), 0, opts.shaftTop - 0.0275, 0), opts.cuff, 'boot-cuff');
+    if (opts.shapedBoots) {
+      const boot = createLinkBoot(soleY, opts.shaftTop);
+      part(ankle, boot.upper, opts.boot, 'boot');
+      part(ankle, boot.sole, matte('sole'), 'boot-sole');
+      if (opts.cuff) part(ankle, boot.cuff, opts.cuff, 'boot-cuff');
+      else boot.cuff.dispose();
+    } else {
+      const shaftH = opts.shaftTop - (soleY + 0.02);
+      const boot = merge([
+        place(new CylinderGeometry(0.062, 0.057, shaftH, 12), 0, soleY + 0.02 + shaftH / 2, 0),
+        place(new BoxGeometry(0.105, 0.058, 0.16, 1, 1, 1), 0, soleY + 0.029, 0.03),
+        place(new SphereGeometry(0.052, 10, 8), 0, soleY + 0.032, 0.105, undefined, [1, 0.62, 1]),
+        place(new SphereGeometry(0.055, 10, 8), 0, soleY + 0.034, -0.02, undefined, [0.95, 0.6, 1]),
+      ]);
+      part(ankle, boot, opts.boot, 'boot');
+      // dark sole slab under the boot
+      part(ankle, place(new BoxGeometry(0.108, 0.018, 0.172), 0, soleY + 0.009, 0.03), matte('sole'), 'boot-sole');
+      // fold-over cuff: flares outward at the top of the shaft
+      if (opts.cuff) part(ankle, place(new CylinderGeometry(0.078, 0.066, 0.055, 12), 0, opts.shaftTop - 0.0275, 0), opts.cuff, 'boot-cuff');
+    }
     if (opts.buckle) part(ankle, place(new BoxGeometry(0.018, 0.022, 0.006), side * 0.06, opts.shaftTop - 0.075, 0.01), opts.buckle, 'boot-buckle', false);
   }
 }
@@ -507,7 +516,7 @@ export function createLink(): Character {
   const skin = matte('linkSkin');
   // reference frames 1 s / 14 s: bare arms below the puffed tunic sleeves and bare legs between the
   // ragged hem and the boot cuffs (the pale undershirt only shows at the collar)
-  buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('bootCuff'), shaftTop: 0.135, buckle: matte('buckle', { roughness: 0.6 }) });
+  buildLegs(rig, { skin, boot: matte('boot'), cuff: matte('linkBootCuff'), shaftTop: 0.135, shapedBoots: true, buckle: matte('buckle', { roughness: 0.6 }) });
   buildArms(rig, { skin, sleeve: cloth('tunic'), sleeveRadius: 0.055, shapedHands: true });
   buildTorso(rig);
   buildNeck(rig, skin);

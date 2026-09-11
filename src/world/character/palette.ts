@@ -21,6 +21,7 @@ export const CHAR_COLORS = {
   /** reference `#624d33` lit / `#533a21` shade: saturated leather brown, tan fold-over cuff `#876849` */
   boot: 0x6b4a2c,
   bootCuff: 0x957852,
+  linkBootCuff: 0x81613f,
   sole: 0x2c2118,
   /** reference `#828450` (lighter than the tunic) */
   cap: 0x6f7c40,

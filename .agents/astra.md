@@ -4,12 +4,44 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T05:54:49Z
+updated: 2026-09-11T06:17:00Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+06:17 UTC: publish rounded boots and the diagnostic lighting study. Root reviewed the helper
+geometry/script, ran full 30/60/120/144 Hz locomotion with actual new sole vertices, closed-shell
+boot bounds/clearance probe, syntax and build. New soles remain flat inside the old contact
+footprint, toe ends 7 mm inside the sole, tongue/lace gaps >=.665/1.038 mm; 2,944 triangles per
+boot. Actual new-boot/light renders are pending. 2d22d24 eight views/clip passed at06:06:52 UTC;
+all stills inspected and four poses/clip sent to owner. New defects to correct are bald-looking
+fringe/brim gap and bright thin lantern detail streaks (read-only diagnosis in progress).
+
+Coordination changed: monitor cf07451 contains Fable's take-0036 on17f9217, published06:06 UTC;
+its note says resumed after owner's pause. Source branch/log has not advanced, so active scope
+is not independently known. The take is locally attested and invalid under D3 because that
+branch's historical claim snapshot lacks Astra's later claims; don't modify its ledger entry.
+PR2 coordination comment updated with scope, evidence and claim-snapshot finding. My 2d22d24
+canonical CI take is still running and must use the next free ID. Older7af541f push run failed
+B5 (A_stairs re-capture97.88% different); its PR run passed. Current-source gates remain pending.
+
+06:04 UTC: Fable fetched unchanged at17f9217; its W30 claim has expired. Claimed W30 only for
+an actual lighting comparison using the existing __ATMO_LIGHT__ tuning hook. Source review
+shows current warm sun and grey-olive fill; owner concepts call for clearer warm light/cooler
+canopy shade. A helper may author a separate diagnostic capture script, baseline and bounded
+fill variants at fixed A/B views. No production light defaults, sun direction, fog, shadow
+filter or Fable world geometry change until actual comparisons support a choice. Root remains
+on character integration; W34/W37 and terrain/vegetation claims stay Fable's.
+
+06:01 UTC: 2d22d24 is pushed; eight-view/clip CI and next canonical take are running. PR5 and
+Fable's PR2 coordination comment are current. Next C01 task is original boot shape, based on
+7af541f back/idle and the owner hero turnaround: round the blocky sole/toe and replace the
+solid cuff top discs with a folded open leather rim. A helper may create boot-geometry.ts and
+a focused CPU contact/bounds probe; root owns buildLegs integration and palette. Keep the
+existing ankle joint, shaft height, sole plane/bounds and laces so movement contacts and NPC
+geometry remain stable. Do not touch helper-owned gear or movement geometry in parallel.
+
 05:49 UTC: 7af541f actual capture passed (generated 5168eee, 05:47:07 UTC); front/back/face
 views inspected. Larger pupils and curved mouth read more naturally, but two new blond roots
 poke above the centre brim. Lower only those central/auxiliary roots into the existing hair/cap
@@ -160,6 +192,10 @@ The first continuous run captured all four poses but failed before video frames 
 - Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
 
 ## Completed work
+- 06:17 local checkpoint: original hollow rounded boots/open folded cuffs integrated for Link;
+  NPC construction retained. Sole-contact replay and geometry probes pass; build/typecheck green.
+  Separate six-case-view lighting script/workflow records exact overrides/source/camera/time,
+  renderer errors and display-luma/clipping statistics; production lighting is unchanged.
 - C02 original gear: tapered wooden shield with four recessed plank joins, chipped top,
   beveled edge and closed back (3,358 triangles); original swirl/wood texture retained with
   the obsolete circular vignette removed. A fitted brown pack with seams/loops sits behind
