@@ -475,6 +475,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   reference has lawn with stepping stones; F's top-left house; the D verge blockers (bole, platform
   prop, SE wall); (3) 27 items await codex's cross-review.
 
+### 00:40 UTC (Sep 11) — tick 29: take-0031 published (monitor `b85581a`), valid; lighting round four + house branch
+- `ceefaba` PCSS + canopy-transmission shadow filter on a raw depth map, sun-dominant balance
+  (sun 3.1 / hemi 0.95 / env 0.57), cooler skylight, chroma knee: shade keeps 0.35 of a lit slab
+  (was 0.73); Link's own shadow still blocked by a limb (D, 10–11 m up the sun ray) and crown
+  (A, 22–36 m) — trees-7c on it. `6df097a` Saria's branch = grassy ramp + 7 deterministic stepping
+  stones, terrace 1.2 → 0.9, 'house' stair removed; `75dab48` terrace → 1.05 after the first
+  capture read W04's probe at 0.777 (pad + erosion sit ~0.12 under the authored height).
+- take-0031 (clean build of `75dab48`): A 0.246 / B 0.209 / C 0.255 / D 0.266 / E 0.228 / F 0.234
+  — best A, B, D, E, F so far; C −0.009 (cooler shade on its trunks); score 22/50; 31 entries.
+- Running: hardscape-7c (round slabs per stepping stone), trees-7c (Link shadow rays, A
+  plaza/stairs coverage), atmosphere-4b (shaded-foliage palette: brighter, lower chroma).
+- Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42: texture density and canopy
+  coverage per view; (2) Link's cast shadow; F top-left house vs the reference's haze; (3) 27
+  items await codex's cross-review (offline 38 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
