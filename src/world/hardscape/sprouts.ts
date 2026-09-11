@@ -24,8 +24,153 @@ export interface SproutSpot {
   x: number;
   y: number;
   z: number;
-  /** 0..1 size factor */
+  /** 0..1 size factor (picks the tuft / clover variant) */
   size: number;
+  /** 'cushion' = low moss dome (seam junctions, tread/riser corners); 'fern' = small frond (boulder cracks) */
+  kind?: 'tuft' | 'cushion' | 'fern';
+  /** overall scale multiplier (default 1) */
+  scale?: number;
+}
+
+/**
+ * Moss cushion: a low dome (unit radius, 0.3 high) in deep→bright moss green with a faintly
+ * lumpy top — the pads that sit in wide seam junctions and at the stair tread/riser corners
+ * (concept sheet 02 'Moss edges', sheet 04 stairs inset). No wind (heightFactor 0).
+ */
+function buildCushion(rng: Rng, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const segs = 10;
+  const rings = 3;
+  const tmp = new Color();
+  const phase = rng();
+  const bump = Array.from({ length: segs * (rings + 1) }, () => rng.range(0.9, 1.1));
+  const pt = (r: number, s: number): number[] => {
+    // r = 0 is the crown, r = rings the rim; profile: cos dome squashed to 0.3 of the radius
+    const t = r / rings;
+    const a = (s / segs) * Math.PI * 2 + (r & 1 ? Math.PI / segs : 0);
+    const rad = Math.sin((t * Math.PI) / 2) * (0.92 + 0.12 * bump[r * segs + (s % segs)]);
+    const h = 0.3 * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
+    return [Math.cos(a) * rad, h, Math.sin(a) * rad, t];
+  };
+  const push = (p: number[]) => {
+    pos.push(p[0], p[1], p[2]);
+    // dome normal ≈ direction from a point below the centre
+    const l = Math.hypot(p[0], p[1] + 0.35, p[2]) || 1;
+    nrm.push(p[0] / l, (p[1] + 0.35) / l, p[2] / l);
+    tmp.copy(light).lerp(deep, 0.25 + 0.7 * p[3]);
+    col.push(tmp.r, tmp.g, tmp.b);
+    wind.push(0, phase);
+    uv.push(0, p[3]);
+  };
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segs; s++) {
+      const a = pt(r, s);
+      const b = pt(r, s + 1);
+      const c = pt(r + 1, s);
+      const d = pt(r + 1, s + 1);
+      if (r === 0) {
+        // crown fan
+        push([0, 0.3, 0, 0]);
+        push(d);
+        push(c);
+      } else {
+        push(a);
+        push(d);
+        push(c);
+        push(a);
+        push(b);
+        push(d);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** small fern frond: an arching midrib with paired leaflets (the plants in the hero boulders' cracks) */
+function buildFrond(rng: Rng, length: number, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const tmp = new Color();
+  const push = (p: number[], n: number[], c: Color, wf: number, phase: number) => {
+    pos.push(p[0], p[1], p[2]);
+    nrm.push(n[0], n[1], n[2]);
+    col.push(c.r, c.g, c.b);
+    wind.push(wf, phase);
+    uv.push(0, wf);
+  };
+  const fronds = 3;
+  for (let f = 0; f < fronds; f++) {
+    const ang = (f / fronds) * Math.PI * 2 + rng.range(-0.5, 0.5);
+    const L = length * rng.range(0.75, 1.15);
+    const dx = Math.cos(ang);
+    const dz = Math.sin(ang);
+    const px = -dz;
+    const pz = dx;
+    const phase = rng();
+    const rise = rng.range(0.55, 0.8); // how steeply the frond climbs before arching over
+    const pairs = 6;
+    const rib = (t: number): number[] => {
+      // parabola: up then over
+      const y = L * (rise * t - 0.45 * t * t);
+      const out = L * (0.25 * t + 0.6 * t * t);
+      return [dx * out, y, dz * out];
+    };
+    // midrib: a thin quad strip
+    for (let s = 0; s < pairs; s++) {
+      const a = rib(s / pairs);
+      const b = rib((s + 1) / pairs);
+      const w = 0.003 * (1 - s / pairs) + 0.001;
+      tmp.copy(deep).lerp(light, 0.3);
+      const n = [0, 1, 0];
+      push([a[0] - px * w, a[1], a[2] - pz * w], n, tmp, s / pairs, phase);
+      push([a[0] + px * w, a[1], a[2] + pz * w], n, tmp, s / pairs, phase);
+      push([b[0] + px * w, b[1], b[2] + pz * w], n, tmp, (s + 1) / pairs, phase);
+      push([a[0] - px * w, a[1], a[2] - pz * w], n, tmp, s / pairs, phase);
+      push([b[0] + px * w, b[1], b[2] + pz * w], n, tmp, (s + 1) / pairs, phase);
+      push([b[0] - px * w, b[1], b[2] - pz * w], n, tmp, (s + 1) / pairs, phase);
+    }
+    // leaflets: pairs of tapered quads, longest a third of the way out
+    for (let s = 1; s <= pairs; s++) {
+      const t = (s - 0.5) / pairs;
+      const a = rib(t);
+      const b = rib(t + 0.07);
+      const len = L * 0.42 * Math.sin(Math.PI * Math.min(1, t * 1.1)) * (0.7 + 0.3 * (1 - t)) + 0.01;
+      for (const side of [-1, 1]) {
+        const sx = px * side;
+        const sz = pz * side;
+        // droop the leaflet tip a little
+        const tip = [a[0] + sx * len + dx * len * 0.35, a[1] - len * 0.25, a[2] + sz * len + dz * len * 0.35];
+        const n = [sx * 0.3, 0.9, sz * 0.3];
+        tmp.copy(light).lerp(deep, 0.2 + 0.4 * t);
+        const c2 = new Color().copy(deep).lerp(light, 0.35);
+        push(a, n, c2, t, phase);
+        push(b, n, c2, t, phase);
+        push(tip, n, tmp, t + 0.1, phase);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
 }
 
 function buildTuft(rng: Rng, blades: number, height: number, spread: number, deep: Color, light: Color): BufferGeometry {
@@ -204,19 +349,33 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
   return wind.bind(mat);
 }
 
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig): { meshes: InstancedMesh[]; count: number; variants: number } {
+/** variant index: 0–2 tufts, 3 clover, 4 moss cushion, 5 fern frond */
+const CUSHION = 4;
+const FERN = 5;
+
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig): { meshes: InstancedMesh[]; count: number; variants: number; cushions: number; ferns: number; triangles: number } {
   // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
   // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
   const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
   const light = new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.45);
+  // cushions: the palette moss greens (deep→bright), a touch yellower on the crown like the
+  // sheet's pads; the stone material's moss uses the same two colours so films and pads agree
+  const mossDeep = new Color(config.palette.mossDeep).lerp(new Color(config.palette.grassDeep), 0.3);
+  const mossBright = new Color(config.palette.mossBright).lerp(new Color(config.palette.grassLight), 0.25);
   const variants = [
     buildTuft(rng.fork('tuft-a'), 7, 0.08, 0.035, deep, light),
     buildTuft(rng.fork('tuft-b'), 9, 0.11, 0.05, deep, light),
     buildTuft(rng.fork('tuft-c'), 5, 0.065, 0.03, deep, light),
     buildClover(rng.fork('clover'), 0.05, deep, light),
+    buildCushion(rng.fork('cushion'), mossDeep, mossBright),
+    buildFrond(rng.fork('fern'), 0.2, new Color(config.palette.grassDeep), new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.3)),
   ];
   const lists: SproutSpot[][] = variants.map(() => []);
-  for (const s of spots) lists[s.size > 0.7 ? 1 : s.size > 0.42 ? 0 : s.size > 0.2 ? 2 : 3].push(s);
+  for (const s of spots) {
+    if (s.kind === 'cushion') lists[CUSHION].push(s);
+    else if (s.kind === 'fern') lists[FERN].push(s);
+    else lists[s.size > 0.7 ? 1 : s.size > 0.42 ? 0 : s.size > 0.2 ? 2 : 3].push(s);
+  }
   const meshes: InstancedMesh[] = [];
   const m = new Matrix4();
   const p = new Vector3();
@@ -225,18 +384,28 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
   const up = new Vector3(0, 1, 0);
   const c = new Color();
   let count = 0;
+  let triangles = 0;
   lists.forEach((list, v) => {
     if (!list.length) return;
     const im = new InstancedMesh(variants[v], material, list.length);
     list.forEach((s, i) => {
-      const k = 0.9 + rng.range(0, 0.2);
-      p.set(s.x, s.y - 0.01, s.z);
+      const k = (0.9 + rng.range(0, 0.2)) * (s.scale ?? 1);
       q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
-      sc.set(k, k * rng.range(0.9, 1.1), k);
+      if (v === CUSHION) {
+        // the unit dome becomes a 4–7.5 cm radius, 1.2–2.5 cm high pad, sunk a few mm
+        const r = (0.04 + 0.035 * s.size) * (s.scale ?? 1);
+        p.set(s.x, s.y - 0.004, s.z);
+        sc.set(r * rng.range(0.85, 1.2), r * rng.range(0.85, 1.15), r * rng.range(0.85, 1.2));
+        c.setRGB(0.85 + rng.range(0, 0.3), 0.85 + rng.range(0, 0.3), 0.8 + rng.range(0, 0.2));
+      } else {
+        p.set(s.x, s.y - 0.01, s.z);
+        sc.set(k, k * rng.range(0.9, 1.1), k);
+        c.setRGB(0.78 + rng.range(0, 0.25), 0.8 + rng.range(0, 0.25), 0.75 + rng.range(0, 0.2));
+      }
       im.setMatrixAt(i, m.compose(p, q, sc));
-      c.setRGB(0.78 + rng.range(0, 0.25), 0.8 + rng.range(0, 0.25), 0.75 + rng.range(0, 0.2));
       im.setColorAt(i, c);
     });
+    triangles += (variants[v].attributes.position.count / 3) * list.length;
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor) im.instanceColor.needsUpdate = true;
     im.castShadow = false;
@@ -246,5 +415,5 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     meshes.push(im);
     count += list.length;
   });
-  return { meshes, count, variants: variants.length };
+  return { meshes, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, triangles };
 }

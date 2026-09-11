@@ -9,6 +9,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { buildRock } from './rockgen';
 import { createRockMaterial } from './material';
+import { buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../hardscape/sprouts';
 import type { Rng } from '../util/prng';
 
 const _m = new Matrix4();
@@ -81,6 +82,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const boulderInfo: { id: string; radius: number; triangles: number; sink: number; contacts: number }[] = [];
   const rubble: Instance[] = [];
   const pebbles: Instance[] = [];
+  const boulderPlants: SproutSpot[] = [];
   const bRng = rng.fork('boulders');
   for (const b of ctx.layout.heroBoulders) {
     const r = b.radius;
@@ -102,11 +104,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       cracks: 0.55,
       moss: 1.0,
       // faint bedding (dark partings, only a hint of a ledge) under a thick moss cap, sitting in
-      // a dark collar of soil — the reference boulders are rounded first, layered second
+      // a dark collar of soil — the reference boulders are rounded first, layered second.
+      // Sheet 01 'Mossy root' / sheet 04: the caps are thick pads (cushion 8.5 % of the radius)
+      // over grey — not warm-brown — rock faces
       strata: 0.06,
-      mossThickness: 0.06,
+      mossThickness: 0.085,
       dirt: 0.75,
-      tint: new Color(0.56, 0.555, 0.535),
+      tint: new Color(0.55, 0.555, 0.55),
       freq: 0.9,
     });
     // seat: base sinks ~15 % of the rock height into the ground under the footprint
@@ -159,6 +163,39 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     contact.push(...keep);
     boulderInfo.push({ id: b.id, radius: r, triangles: pos.count / 3, sink: Math.round(sink * 1000) / 1000, contacts: keep.length });
+
+    // small plants in the cap (sheet 01 'Roots' / 'Mossy root', sheet 04): grass tufts and a
+    // fern or two rooted where a dark parting crosses the mossy upper faces — one candidate per
+    // upward, mossy triangle, cracks first, spaced ≥ 0.28 r apart
+    {
+      const nrmA = geo.attributes.normal;
+      const colA = geo.attributes.color;
+      const mossA = geo.attributes.aMoss;
+      const cand: { i: number; crack: boolean }[] = [];
+      for (let i = 0; i < pos.count; i += 3) {
+        _n.fromBufferAttribute(nrmA, i);
+        if (_n.y < 0.55) continue;
+        if (mossA.getX(i) < 0.35) continue;
+        // world height: only the crown and shoulders, never the buried collar
+        va.fromBufferAttribute(pos, i);
+        if (va.y < -0.1 * r) continue;
+        cand.push({ i, crack: colA.getX(i) + colA.getY(i) + colA.getZ(i) < 1.1 });
+      }
+      cand.sort((p, q) => Number(q.crack) - Number(p.crack) || p.i - q.i);
+      const want = r > 1.5 ? 14 : 8;
+      const placed: Vector3[] = [];
+      // own stream: the rubble skirt and pebbles drawn from bRng below must not move
+      const pRng = bRng.fork(`plants-${b.id}`);
+      for (const cd of cand) {
+        if (placed.length >= want) break;
+        if (!pRng.chance(cd.crack ? 0.45 : 0.12)) continue;
+        va.fromBufferAttribute(pos, cd.i).applyMatrix4(mesh.matrixWorld);
+        if (placed.some((p) => p.distanceTo(va) < 0.28 * r)) continue;
+        placed.push(va.clone());
+        const fern = pRng.chance(0.3);
+        boulderPlants.push({ x: va.x, y: va.y - 0.006, z: va.z, size: fern ? 0.5 : pRng.range(0.45, 0.95), kind: fern ? 'fern' : 'tuft', scale: fern ? pRng.range(0.9, 1.3) : pRng.range(1.2, 1.7) });
+      }
+    }
 
     // rubble skirt + pebbles at the base
     const nRub = Math.round(rng.range(9, 16) * (0.6 + 0.4 * r) * density);
@@ -263,6 +300,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
+  // the boulder-cap plants share the hardscape joint-sprout geometry and wind material
+  const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config);
+  for (const m of plants.meshes) {
+    m.name = `boulder-plants-${m.name}`;
+    group.add(m);
+  }
 
   const samplePebbles = pebbles.filter((_, i) => i % Math.max(1, Math.ceil(pebbles.length / 200)) === 0).slice(0, 200);
   const rnd = (v: number) => Math.round(v * 1000) / 1000;
@@ -270,8 +313,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     heroBoulders: boulderInfo.length,
     boulders: boulderInfo,
     geometry: 'procedural-v2-strata',
-    features: ['ridged-displacement', 'bedding-strata', 'cleave-cuts', 'moss-cushion', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'triplanar-texture'],
+    features: ['ridged-displacement', 'bedding-strata', 'cleave-cuts', 'moss-cushion', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'triplanar-texture', 'lichen-flecks', 'cap-plants'],
     mossCoverage: true,
+    boulderPlants: plants.count,
+    boulderFerns: plants.ferns,
+    boulderPlantDrawCalls: plants.meshes.length,
     rubble: rubble.length,
     strata: strata.length,
     scree: rubble.length + strata.length,

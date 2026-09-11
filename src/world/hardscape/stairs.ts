@@ -11,7 +11,7 @@ import type { StairDef } from '../layout';
 import type { Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, jitteredRect, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, inset, jitteredRect, type P2 } from './geometry';
 
 export interface StairFrame {
   def: StairDef;
@@ -133,15 +133,34 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const dip = rng.range(0.01, 0.026);
       // the nose catches the light: brighter still now that the tread body is darker
       const noseBright = rng.range(1.3, 1.48);
+      const bevel = rng.range(0.022, 0.034);
+      // worn, rounded nose (sheet 01 / 04 stairs insets): the shoulder ring is pushed a further
+      // 3–4.5 cm back along the front edge, so the nose bevel is 5–8 cm wide for the same drop
+      // and, smoothed as one group with the top (softBevel), rolls over instead of showing a
+      // cut crease; the back and flanks keep the tight bevel
+      const noseRound = rng.range(0.03, 0.045);
+      const topRing = inset(outline, bevel).map((p, k) => {
+        const front = smoothstep(-depth / 2 + 0.14, -depth / 2 + 0.015, outline[k].z);
+        return { x: p.x, z: p.z + front * noseRound };
+      });
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
-        bevel: rng.range(0.022, 0.034),
+        bevel,
+        topRing,
+        softBevel: true,
         dip,
         color,
         sideColor: [color[0] * 0.62, color[1] * 0.62, color[2] * 0.64],
         mossEdge: 0.85,
         mossInner: 0.05,
         mossFn: (x, z) => mossAt(x + cxl, z + czl),
+        // moss pads in the tread/riser corner: the back edge of the tread, where the next riser
+        // stands on it, carries moss in patches that spill a hand's width onto the tread
+        mossAdd: (x, z, edge) => {
+          const back = smoothstep(depth / 2 - 0.16, depth / 2 - 0.02, z);
+          const patch = smoothstep(0.35, 0.8, noise.fbm((x + cxl) * 3.4 + i * 17.3, (z + czl) * 3.4 - 2.2, 2) * 0.5 + 0.5);
+          return 1.1 * back * patch * (0.3 + 0.7 * smoothstep(0.4, 1, edge)) * (0.55 + 0.45 * mossAt(x + cxl, z + czl));
+        },
         // worn nose: the front bevel and the first ~12 cm of the tread catch the light, the back
         // of the tread (under the next riser) and the flanks pick up grime
         colorFn: (x, z, part) => {
@@ -177,16 +196,25 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // risers read as shadowed warm stone (reference #453e32 under #746d5d treads ≈ 0.35× the
       // tread in linear light) with a moss skin creeping over them from the joints
       const rc = 0.27 + rng.range(0, 0.08);
-      const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 3, chip: 0.05, chipChance: 0.3 });
+      // more vertices along the face (segs 7) so the moss patches below can vary every 15–40 cm
+      const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
       const ac = a + len / 2;
-      placeSlab(riserOutline, ac, rBottom, i * def.tread + 0.01 + (def.tread * 0.9) / 2, yaw * 0.5, 0, 0, {
+      const uc = i * def.tread + 0.01 + (def.tread * 0.9) / 2;
+      placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
         color: [rc * 1.04, rc, rc * 0.9],
         sideColor: [rc * 0.94, rc * 0.9, rc * 0.82],
-        mossEdge: 0.9,
+        // mossy risers (sheet 01 / 04): a moss skin creeps up the face from the tread below —
+        // strongest toward the flanks — broken into patches by the noise so it reads as
+        // cushions of moss between bare dark stone, not a green wash
+        mossEdge: 1.0,
         mossInner: 0.3,
-        mossFn: (x, z) => 0.35 + 0.65 * mossAt(x + ac, z + i * def.tread),
+        mossFn: (x, z) => 0.45 + 0.7 * mossAt(x + ac, z + uc),
+        mossAdd: (x) => {
+          const patch = smoothstep(0.32, 0.7, noise.fbm((x + ac) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
+          return 1.2 * patch * (0.55 + 0.45 * mossAt(x + ac, uc));
+        },
         // riser shadow: darker still toward the flanks and at the foot (splash grime)
         colorFn: (x) => 1 - 0.22 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac)),
         uvScale,

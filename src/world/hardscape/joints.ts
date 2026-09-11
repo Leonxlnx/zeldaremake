@@ -17,7 +17,7 @@ export async function buildJointMesh(
   textures: TextureLibrary,
   config: WorldConfig,
   seed: string,
-): Promise<{ mesh: Mesh; vertices: number }> {
+): Promise<{ mesh: Mesh; vertices: number; triangles: number }> {
   const step = 0.2;
   const x0 = Math.floor(bbox.x0 / step) * step;
   const z0 = Math.floor(bbox.z0 / step) * step;
@@ -30,10 +30,15 @@ export async function buildJointMesh(
   // (E/A/D dark band ≈ sRGB 60,50,30, hue 35–42°, R/G 1.2 — the palette's olive `soil` rendered
   // them hue 48° and a fifth too bright); moss takes over only in patches. Now that the joints
   // are 5–10 cm wide and sunk below the stones' shoulders (which shade them), the albedo is a
-  // notch lighter and greyer so the seams land on the reference's joint pixels (B/A dark band
-  // sRGB ≈ 95,79,49 / 84,74,52 — B/R 0.52–0.62) rather than a saturated near-black brown.
-  const soil = new Color(0x7a674d);
-  const soilMid = new Color(0x9c8666);
+  // notch lighter so the seams land on the reference's joint pixels (B/A dark band sRGB ≈
+  // 95,79,49 / 84,74,52) rather than a saturated near-black brown. The concept sheet (02 'Stone
+  // path' / 'Path boundary') settles the hue: packed brown dirt, ≈ #5a4a38 in shade / #8a7458
+  // lit (hue 32–34°, R/B 1.6), not grey soil — so the albedo leans well redder (hue ≈ 26–31°,
+  // R/B 2.0–2.2) at nearly the same luminance as before: the rendered seam is a mix of fill,
+  // shaded stone flank and shadow, and the post chain passes only part of an albedo hue change
+  // (the first step, hue 29° at R/B 1.85, moved the B dark-quantile B/R by just 0.007).
+  const soil = new Color(0x80583a);
+  const soilMid = new Color(0xa47c52);
   const mossD = new Color(P.mossDeep).lerp(soil, 0.25);
   const mossB = new Color(P.mossBright);
   const tmp = new Color();
@@ -114,5 +119,5 @@ export async function buildJointMesh(
   mesh.receiveShadow = true;
   mesh.castShadow = false;
   mesh.name = 'flagstone-joints';
-  return { mesh, vertices: pos.length / 3 };
+  return { mesh, vertices: pos.length / 3, triangles: idx.length / 3 };
 }

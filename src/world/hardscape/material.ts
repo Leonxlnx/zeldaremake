@@ -71,7 +71,16 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         '#include <worldpos_vertex>\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; varying float vMoss; varying vec3 vWPosS;')
+      .replace(
+        '#include <common>',
+        /* glsl */ `#include <common>
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; varying float vMoss; varying vec3 vWPosS;
+        float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float stoneVNoise(vec2 p) {
+          vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(stoneHash(i), stoneHash(i + vec2(1.0, 0.0)), f.x), mix(stoneHash(i + vec2(0.0, 1.0)), stoneHash(i + vec2(1.0, 1.0)), f.x), f.y);
+        }`,
+      )
       .replace(
         '#include <map_fragment>',
         /* glsl */ `
@@ -95,9 +104,14 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           // soil where the coverage is thin (rim grime) and green only where it is full
           float ln = clamp(l / 0.4, 0.0, 1.6);
           vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.4, 1.3, ln)) * (0.75 + 0.45 * ln);
-          float m = clamp(vMoss, 0.0, 1.0);
-          moss = mix(uMossSoil * (0.8 + 0.4 * ln), moss, smoothstep(0.3, 0.9, m));
-          diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.08, 0.8, m));
+          // ragged inner boundary: a 6–10 cm world-space noise scales the interpolated coverage,
+          // so a moss film ends in a feathered, lobed edge (sheet 02 'Moss edges') rather than
+          // along the mesh rings; clean tops (vMoss = 0) stay clean
+          float rag = stoneVNoise(vWPosS.xz * 13.0) * 0.6 + stoneVNoise(vWPosS.xz * 31.0 + 5.7) * 0.4;
+          float m = clamp(vMoss * (0.62 + 0.76 * rag), 0.0, 1.0);
+          // thin coverage is damp soil grime on the shoulder; real green needs a solid film
+          moss = mix(uMossSoil * (0.8 + 0.4 * ln), moss, smoothstep(0.28, 0.72, m));
+          diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.07, 0.72, m));
         }`,
       )
       .replace(
@@ -107,6 +121,6 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v9-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v10-${opts.instanced ? 'i' : 's'}`;
   return mat;
 }

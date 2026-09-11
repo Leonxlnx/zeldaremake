@@ -14,7 +14,7 @@ import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, centroid, pointInPolygon, polygonArea, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
 import type { SteppingStone } from '../layout';
@@ -453,9 +453,11 @@ export interface PavingResult {
   grid: Grid;
   /** true if the world point is on a stone's top face */
   onStone(x: number, z: number): boolean;
+  /** distance (m) from a joint point to the nearest stone edge (Infinity when no stone is near) */
+  edgeGap(x: number, z: number): number;
   /** the house branch's stepping stones that got their own round slab */
   steppingStones: IsolatedDisc[];
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; big: number; rim: number; steppingStones: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; big: number; rim: number; steppingStones: number; edgeMossStones: number };
 }
 
 interface Seed {
@@ -523,7 +525,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pad = 1.0;
   let row = 0;
   const bigCandidates: number[] = [];
-  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, big: 0, rim: 0, steppingStones: 0 };
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, big: 0, rim: 0, steppingStones: 0, edgeMossStones: 0 };
   // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
   // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
   // the disc as bare grass) and the plaza's rim cells are clipped back from them
@@ -874,6 +876,33 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     filmDir[0] /= filmL;
     filmDir[1] /= filmL;
     const invR = 1 / Math.max(radius, 0.12);
+    // rim stones (sheet 02 'Moss edges'): moss creeps in over the outer 5–15 cm of the stones
+    // along the paved edge, from the grass side. Which side is "outer" comes from sampling the
+    // paved mask around the stone; a stone in the grass (stepping stone) is mossy all round.
+    let outX = 0;
+    let outZ = 0;
+    let unpaved = 0;
+    if (seed.rim < 0.9) {
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * Math.PI * 2;
+        const dx = Math.cos(a);
+        const dz = Math.sin(a);
+        if (!isPaved(pc, s.x + dx * (radius + 0.3), s.z + dz * (radius + 0.3), 0.5)) {
+          outX += dx;
+          outZ += dz;
+          unpaved++;
+        }
+      }
+    }
+    const outL = Math.hypot(outX, outZ);
+    const allRound = unpaved >= 10;
+    if (outL > 1e-6) {
+      outX /= outL;
+      outZ /= outL;
+    }
+    // ~60 % of the rim edge carries the film: 4 of 5 rim stones get one, and the per-vertex
+    // noise below (plus the shader's ragged boundary) leaves a quarter of their outer edge bare
+    const edgeMoss = unpaved >= 2 && srng.chance(0.8) ? srng.range(0.85, 1.2) : 0;
     // shoulder dirt: soil and dust collect on the rolled edge, so every stone darkens toward it
     const rim = srng.range(0.06, 0.13);
     const uvO: [number, number] = [srng() * 4, srng() * 4];
@@ -886,6 +915,23 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       const nz = wearN.fbm((x + s.x) * 3.1 - 13, (z + s.z) * 3.1 + 6, 2) * 0.5 + 0.5;
       return film * smoothstep(-0.15, 0.55, d) * (0.4 + 0.6 * nz) * (0.45 + 0.55 * smoothstep(0.2, 0.9, edge));
     };
+    const edgeFilmAt = (x: number, z: number, edge: number) => {
+      let v = 0;
+      if (edgeMoss) {
+        const d = ((x - c.x) * outX + (z - c.z) * outZ) * invR; // -1..1 toward the grass side
+        const nz = wearN.fbm((x + s.x) * 4.5 + 41, (z + s.z) * 4.5 - 27, 2) * 0.5 + 0.5;
+        // full on the shoulder, a third on the second ring (the feathered inner boundary lands
+        // between them), nothing further in
+        v += edgeMoss * (allRound ? 0.85 : smoothstep(-0.45, 0.45, d)) * (0.4 + 0.85 * nz) * smoothstep(0.45, 1.0, edge);
+      }
+      if (film) {
+        // the shaded north-west side of interior stones: a softer, thinner film — shoulder plus a
+        // feathered fringe (the second ring gets a sixth), so the film stays a 5–10 cm edge on
+        // the big slabs; reaching a third of the way in cost the B plaza box 0.03 of SSIM
+        v += 0.9 * filmAt(x, z, 1) * smoothstep(0.55, 1.0, edge);
+      }
+      return v;
+    };
     buildSlab(all, outline.outer, {
       thickness,
       bevel,
@@ -894,14 +940,13 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       dip: -crown,
       color: tint,
       // the exposed side wall is half soil-stained, so the shoulder rolls into the joint instead
-      // of ending on a hard dark line
-      sideColor: [tint[0] * 0.6 + 0.24, tint[1] * 0.58 + 0.2, tint[2] * 0.55 + 0.16],
+      // of ending on a hard dark line; stained toward the seam's brown (sheet 02) rather than
+      // grey-beige, since from the low cameras the flank is a good part of every seam pixel
+      sideColor: [tint[0] * 0.58 + 0.22, tint[1] * 0.54 + 0.18, tint[2] * 0.5 + 0.13],
       mossEdge: 0.4 * moss,
       mossInner: 0.03 * moss,
-      mossFn: (x, z) => {
-        const base = 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5);
-        return base + 0.5 * filmAt(x, z, 1);
-      },
+      mossFn: (x, z) => 0.3 + 0.7 * (wearN.fbm((x + s.x) * 2.2, (z + s.z) * 2.2, 2) * 0.5 + 0.5),
+      mossAdd: edgeFilmAt,
       colorFn: (x, z, part, edge) => {
         const n = 0.75 + 0.5 * (wearN.fbm((x + s.x) * 1.7 + 5, (z + s.z) * 1.7, 2) * 0.5 + 0.5);
         if (part === 'side') return 0.95;
@@ -917,7 +962,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       uvScale: 0.62,
       uvOffset: uvO,
       topNoise: (x, z) => 0.003 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7),
-      rings: radius > 0.42 ? 2 : 1,
+      // a second ring gives the edge film somewhere to end (5–15 cm in) on the small rim stones
+      rings: radius > 0.42 || edgeMoss > 0 ? 2 : 1,
     });
     q.setFromUnitVectors(up, nAcc);
     pos.set(s.x, bottomY, s.z);
@@ -928,6 +974,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline.outer), radius, thickness, bottomY, topY, moss, aspect: cellAspect(outline.outer).aspect };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
+    if (edgeMoss > 0) stats.edgeMossStones++;
   }
 
   const geometry = all.build();
@@ -946,6 +993,16 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     });
     return hit;
   };
+  const edgeGap = (x: number, z: number) => {
+    let best = Infinity;
+    stoneGrid.near(x, z, 1.3, (id) => {
+      const st = stones[id];
+      if (Math.hypot(st.x - x, st.z - z) > st.radius + 0.4) return;
+      const d = distToPolygon(st.polygon, x, z);
+      if (d < best) best = d;
+    });
+    return best;
+  };
 
-  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, steppingStones: discs, stats };
+  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, edgeGap, steppingStones: discs, stats };
 }

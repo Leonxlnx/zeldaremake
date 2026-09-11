@@ -62,7 +62,12 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         /* glsl */ `#include <common>
         uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform float uRockTile;
         varying float vMossR; varying vec3 vWPosR; varying vec3 vWNrmR;
-        vec3 triW(vec3 n) { vec3 w = pow(abs(n), vec3(4.0)); return w / (w.x + w.y + w.z); }`,
+        vec3 triW(vec3 n) { vec3 w = pow(abs(n), vec3(4.0)); return w / (w.x + w.y + w.z); }
+        float rockHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float rockVNoise(vec2 p) {
+          vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(rockHash(i), rockHash(i + vec2(1.0, 0.0)), f.x), mix(rockHash(i + vec2(0.0, 1.0)), rockHash(i + vec2(1.0, 1.0)), f.x), f.y);
+        }`,
       )
       .replace(
         '#include <map_fragment>',
@@ -74,18 +79,31 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           vec3 cz = texture2D(map, vWPosR.xy * uRockTile).rgb;
           vec3 c = cx * bw.x + cy * bw.y + cz * bw.z;
           float l = dot(c, vec3(0.299, 0.587, 0.114));
-          // the source rock is orange; keep its detail but pull to a neutral warm grey, and
+          // the source rock is orange; keep its detail but pull to a near-neutral grey (the
+          // concept sheets' boulders are grey stone under the moss, not warm brown), and
           // compress its cracked-texture contrast so the boulders read smooth, not crazed
-          c = mix(c, vec3(l) * vec3(1.0, 0.99, 0.96), 0.7);
+          c = mix(c, vec3(l) * vec3(0.985, 0.99, 0.99), 0.78);
           c = mix(vec3(0.3), c, 0.7);
           diffuseColor.rgb *= c * 1.08;
+          float mossCov = smoothstep(0.03, 0.85, clamp(vMossR, 0.0, 1.0));
+          // lichen flecks (sheet 01 'Roots' / sheet 04): pale grey-green crusts 3–6 cm across,
+          // clustered, on the bare rock only (they fade out under the moss cap and near the base)
+          {
+            vec3 bwl = bw * bw;
+            vec2 lp = vWPosR.zy * bwl.x + vWPosR.xz * bwl.y + vWPosR.xy * bwl.z;
+            float cluster = smoothstep(0.5, 0.72, rockVNoise(lp * 3.1 + 11.0));
+            float fleck = smoothstep(0.58, 0.7, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);
+            float lichen = cluster * fleck * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y);
+            vec3 lichenCol = mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)) * diffuse;
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), 0.7 * lichen);
+          }
           // moss: the texture luminance (mean ≈ 0.3) picks between deep and bright green so the
           // moss keeps the rock's pitting; blend is near-opaque where the coverage is full. The
           // reference caps are a muted olive (#70683b), so the lift stays modest.
           float ln = clamp(l / 0.3, 0.0, 1.8);
           // the material colour is the per-rock shade and applies to the moss cap as well
           vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.74 + 0.34 * ln) * diffuse;
-          diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.03, 0.85, clamp(vMossR, 0.0, 1.0)));
+          diffuseColor.rgb = mix(diffuseColor.rgb, moss, mossCov);
         }`,
       )
       .replace(
@@ -115,6 +133,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'rock-triplanar-v6';
+  mat.customProgramCacheKey = () => 'rock-triplanar-v7-lichen';
   return mat;
 }
