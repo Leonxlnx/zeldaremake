@@ -7,6 +7,10 @@ export const LINK_EYE_SEGMENTS = 28;
 /** Midpoints preserve the original polygonal opening and the rim's outer boundary. */
 export const LINK_EYE_SURFACE_SEGMENTS = LINK_EYE_SEGMENTS * 2;
 const WHITE_ROWS = 8;
+/** Extra radial stations resolve the visible join, before the buried outer anchor. */
+export const LINK_EYE_LID_STATIONS = [0, .125, .25, .375, .5, .625, .6875, .71875, .75, .875, 1] as const;
+export const LINK_EYE_LID_INTERVALS = LINK_EYE_LID_STATIONS.length - 1;
+export const LINK_EYE_VISIBLE_JOIN = .75;
 export const LINK_EYE_WHITE_VERTICES = (LINK_EYE_SURFACE_SEGMENTS / 2 - 1) * (WHITE_ROWS - 1)
   + LINK_EYE_SURFACE_SEGMENTS;
 
@@ -62,12 +66,12 @@ export function createLinkEyeWhite(k: number): BufferGeometry {
 /** Angular subdivision keeps every original vertex and the same outer 3D polyline. */
 function refineEyelid(geometry: BufferGeometry): BufferGeometry {
   const p = geometry.attributes.position, vertices: number[] = [], indices: number[] = [];
-  for (let ring = 0; ring <= 4; ring++) for (let j = 0; j < LINK_EYE_SEGMENTS; j++) {
+  for (let ring = 0; ring <= LINK_EYE_LID_INTERVALS; ring++) for (let j = 0; j < LINK_EYE_SEGMENTS; j++) {
     const a = ring * LINK_EYE_SEGMENTS + j, b = ring * LINK_EYE_SEGMENTS + (j + 1) % LINK_EYE_SEGMENTS;
     vertices.push(p.getX(a), p.getY(a), p.getZ(a), (p.getX(a) + p.getX(b)) / 2,
       (p.getY(a) + p.getY(b)) / 2, (p.getZ(a) + p.getZ(b)) / 2);
   }
-  for (let ring = 0; ring < 4; ring++) for (let j = 0; j < LINK_EYE_SURFACE_SEGMENTS; j++) {
+  for (let ring = 0; ring < LINK_EYE_LID_INTERVALS; ring++) for (let j = 0; j < LINK_EYE_SURFACE_SEGMENTS; j++) {
     const a = ring * LINK_EYE_SURFACE_SEGMENTS + j, b = a + LINK_EYE_SURFACE_SEGMENTS;
     const next = ring * LINK_EYE_SURFACE_SEGMENTS + (j + 1) % LINK_EYE_SURFACE_SEGMENTS;
     indices.push(a, b, next, b, next + LINK_EYE_SURFACE_SEGMENTS, next);
@@ -80,7 +84,7 @@ function refineEyelid(geometry: BufferGeometry): BufferGeometry {
 
 /** Fit the outer skin rim to the actual unchanged skull along the eye's own normal. */
 export function createLinkEyelid(k: number, skull: BufferGeometry, eyeToHead: Matrix4): BufferGeometry {
-  const vertices: number[] = [], indices: number[] = [], rings = 4, segments = LINK_EYE_SEGMENTS;
+  const vertices: number[] = [], indices: number[] = [], rings = LINK_EYE_LID_INTERVALS, segments = LINK_EYE_SEGMENTS;
   const headToEye = eyeToHead.clone().invert();
   const material = new MeshBasicMaterial(), surface = new Mesh(skull, material);
   const direction = new Vector3(0, 0, -1).transformDirection(eyeToHead), ray = new Raycaster();
@@ -95,7 +99,7 @@ export function createLinkEyelid(k: number, skull: BufferGeometry, eyeToHead: Ma
   });
   material.dispose();
   for (let ring = 0; ring <= rings; ring++) for (let j = 0; j < segments; j++) {
-    const u = ring / rings, angle = j / segments * Math.PI * 2, sy = Math.sin(angle);
+    const u = LINK_EYE_LID_STATIONS[ring], angle = j / segments * Math.PI * 2, sy = Math.sin(angle);
     vertices.push((LINK_EYE_HALF_WIDTH + 0.008 * u) * k * Math.cos(angle),
       (LINK_EYE_HALF_HEIGHT + (sy > 0 ? 0.008 : 0.005) * u) * k * sy * (0.82 + 0.18 * Math.abs(sy)),
       0.001 * k * (1 - u) + outerDepth[j] * u + 0.001 * k * Math.sin(Math.PI * u));

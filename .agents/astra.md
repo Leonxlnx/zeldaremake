@@ -4,12 +4,65 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T22:27:58.558629+00:00
+updated: 2026-09-11T23:07:18.801154+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Lid checkpoint ready for publication after composed typecheck/build (142 modules),
+eye mapping/blink tests and static batching pass: 73→67 meshes / 116826 triangles,
+1,508,256 posed samples exact. Source two-file hashes 2e3ee074 / 12d2d622 match reviewed
+handoff957a62e3. This reduces measured visible crease; actual face/profile/blink review
+remains pending and central cap still protrudes. No movement or world source changed.
+
+Latest movement recovery is frozen for separate experiment publication: standing204,
+walking240 pass, running stops60 at knee-rate. Actual indexed boot floor passes 2,869,128
+standing/walking vertex samples; running/stairs/continuous contacts remain unproven.
+Fresh-apex experiment reaches64 but incurs 28ms extra trials and is HELD for redesign.
+Next is joint contact/liftoff trajectory design, not further layered fallback searches.
+
+Approved one isolated progressive cap sway implementation with explicit fixed seating
+Sx=.01084846295894886, row12 pivot and shared cloth/thread Jacobian deformation.
+Two parent changes and changed tip trajectory are intentional. Actual contact/cost gates
+pending. New descending hair locks f239f550 independently reviewed next; first18 hair
+charts exact in author checks. Neither candidate is integrated yet.
+
+Fable latest remains2920056 (trees shade floor), PR2 replied to containment review with
+0bc8f58 actual ray diagnostics and fixed unsafe shell path interpolation in863fb82.
+World remains Fable-owned; no adoption while character is still being corrected.
+
+
+Published0d585d6b8af3c9fe22e3d62030dcbe19234c3a8d sleeve checkpoint (tree3f2d74a510ba9d963d7a3606ee68e76d19f2b139).
+Fetched/tree-equal; source ZIP14,320,778bytes399entries CRC/hash verified and delivered.
+Actual sleeve capture pending. Actuale2e7 hair capture22:31:50.087, archive7e1d10e/
+progress/2026-09-11_223150-e2e7d16:18 retainedJPG hashes/source/42states/noerrors verified,
+environmentmap active. Root06/12/15/16: loopgonebutnewhelperlooksflatlikehorizontal
+cheekband, visuallyHELD. Fouractuals/gallery/5,123,180byteZIP delivered. Next actual
+behind-ear proposal replaces onlylasthelper withtwo descendinglocks perside; nofrontal,
+carrier/nape/eargeometry edits initially. Measuredcandidate earclearance4.508mm; reviewpending.
+
+Integrating two-file separated-visible-lid checkpoint (2e3ee074/12d2d622; independent
+handoff957a62e3). Sameanchors/physicalwhite/cap/pigment/lashes/outerseam; visiblejoin intended
+at.75 withnonuniformstations and separateburiedreturn. Nineblinkscales/reset preserve
+69non-lidmeshes/276arrays/91nodes/32materials31textures/sixNPCs exactly relativee2e7.
++1344tri/no draws. Actualgeometricseam43–44deg→≤22.012deg; shadingjump40deg→≤22.433deg.
+Not tangent or seamless: actualskullchord error57–106um causes earliercrossing; one18um
+returnstripbulge visible. Firstburied-edgecandidate andfourintervalversions preserved.
+This is a measuredcrease reduction foractual06/12/17/18 review, notfacecompletion.
+Centralopticalcapstill4.4mmaboveface; shalloworbitalrecess design follows actualcomparison.
+
+Cap staticfit correctly stopped: originalwhole-tail sway movesattachment~8mm and exposes
+11mmhaircrossings atwalk.69/1.23 withinfrozenrows11/12. Q0constructionitselfexposes12mm
+crossing, so freezingdefectiverest isnotacceptable. Rootauthorizes explicitfixedseating
+fromknown-goodneutral+.010848 rotation as a designstartingpoint, thenprogressiveambient
+sway forloosecloth/thread withactualJacobian normals. No candidateyet; originalrestexactness
+was ourconservativechoice, not ownerrequirement. Furtherstaticdrape awaitsattachedmotion.
+
+FreshFable2920056 adds shadedbark/leaflightfloor after0056limbcontainmenttake; latestmonitor
+030b799 fetched. Newsourcehas nocharacterconflict. World/sourceactualreviewnext; noadoption.
+
 
 Sleeve composedbuild142modules/typecheck/staticbatch PASS:73→67meshes/115482triangles,
 1,508,256 posedvertices/normals/UV/material/shadow/disposal/boot/NPC batchingchecks.
@@ -1560,4 +1613,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T22:27:58.558629+00:00
+2026-09-11T23:07:18.801154+00:00
