@@ -503,6 +503,29 @@
       "at": "2026-09-11T19:16:12.147Z",
       "expiresHours": 6,
       "note": "Trees round nine: larger cluster cards, leaf transmission, F lip lobes, moss/lichen bark"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T19:41:50.274Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W14",
+        "W30",
+        "W32",
+        "W34",
+        "W37"
+      ],
+      "at": "2026-09-11T20:51:30.077Z",
+      "expiresHours": 6,
+      "note": "Atmosphere round six (closed-roof veil by direction) and the mossy lantern limb"
     }
   ]
 }
