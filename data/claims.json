@@ -432,6 +432,28 @@
       "at": "2026-09-11T14:06:10.742Z",
       "expiresHours": 6,
       "note": "Round eight: concept-sheet vegetation, house boughs/fences/posts/arch, draw-call packs and merges"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T14:43:30.634Z",
+      "expiresHours": 3,
+      "scope": "Resume Link-only cap, outfit materials and walk/run/jump; Fable retains world, structures and global performance work"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W14",
+        "W26",
+        "W37"
+      ],
+      "at": "2026-09-11T15:28:32.216Z",
+      "expiresHours": 6,
+      "note": "Bough pods scaled to the reference size"
     }
   ]
 }
