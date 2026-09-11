@@ -490,6 +490,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   coverage per view; (2) Link's cast shadow; F top-left house vs the reference's haze; (3) 27
   items await codex's cross-review (offline 38 h).
 
+### 02:30 UTC — tick 30: take-0032 published (monitor `98d1249`), valid; PAUSED by the owner
+- `520cfb0` one round slab per stepping stone (8 discs, no fragments), `9861414` discs r 0.42–0.52
+  every 1.2 m to the door step, `2fc0922` shaded-foliage palette (grass/moss sat ×0.70 value ×1.08,
+  leaves ×0.75/×1.06, ferns +30 %) + violet-exempt chroma knee (D purple 0.0029 → 0.0037),
+  `a6cf15f` the interactive build boots in play mode (you are Link; `?mode=free` / P for the
+  authoring camera) — verified headless: boot mode play, W walks Link 6.4 m, P returns to free.
+- take-0032 (clean build of `2fc0922`; play build `a6cf15f`): A 0.247 / B 0.210 / C 0.265 /
+  D 0.263 / E 0.228 / F 0.229; hue distance down on every view; score 22/50; 32 entries.
+- Owner asked to pause. Still running when paused: trees-7c (Link's shadow rays at A/D, plaza vs
+  stairs coverage) and vegetation-7b (D verge shade lift, trodden strip between the stepping
+  stones) — their edits are in the working tree of the paused VM, uncommitted; integrate on resume
+  (typecheck in isolation against HEAD, commit per system, take).
+- Three biggest remaining gaps → (1) W37 SSIM 0.21–0.27 vs 0.42: Link fidelity (cap/fringe
+  texture, floppier cap, shoulders), kids, per-view texture density; (2) Link's cast shadow
+  (canopy on the sun ray), F top-left house vs the reference's haze, D verge blockers (bole,
+  platform prop, SE wall); (3) 27 items await codex's cross-review (offline 40 h); W04 terrace
+  proposal pending.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
