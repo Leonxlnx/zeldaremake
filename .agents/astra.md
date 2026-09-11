@@ -4,57 +4,56 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T16:59:29Z
+updated: 2026-09-11T17:21:40.381244Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
 
-Strengthen original cloth reflectance variation after the actual ab669a8 close-ups remained
-plain. Only cloth-surface.ts changes at runtime: more distinct yarn colour plus smooth
-periodic dye/fibre patches about6.4 mm across. This is albedo variation, not painted folds or
-lighting. Existing packed height/roughness bytes, UVs, texture dimensions/flags, geometry,
-materials and per-frame logic stay unchanged. Palette compensation still preserves linear
-average tile reflectance and hue, not a claim of unchanged screen brightness.
+Refine Link's actual outfit and ear surfaces after inspecting c8194c6 and6c455df captures.
+Root owns new strap-buckle-geometry.ts and a narrow buildTunic hook: replace the solid gold
+chest block with a rounded open frame/pin fitted to the existing brown strap. Strap route,
+green secondary band, rig and other gear remain outside this task. A helper owns one scratch
+ear-geometry candidate with a recessed concha/soft helix, preserving outer bounds and NPCs.
+Actual renders, rather than texture/geometry statistics alone, decide visual improvement.
 
-The deterministic candidate has quantized albedo mean .809039 versus .946371, with measured
-relative contrast about7.51 times the subtle previous map. Compensation becomes1.236035.
-Two original256x256 textures still total524,288 bytes;64 yarns/tile and.0768m tile remain.
-Two independent construction calls are byte-identical, height/roughness map is byte-identical
-to production, and compensated tile mean error is under3e-13. Root production typecheck/build pass.
-Actual front/back/belt and motion must decide whether the stronger fabric is appropriate.
+All14 JPG hashes and42 matching motion states/errors[] verified for2bb72fc,6c455df,c8194c6.
+Root inspected latest front/profile, belt/hands and walking. Fingers and split temple locks
+read more clearly; overall model remains toy-like and fabric/equipment plain. eca1179 stronger
+cloth is pushed with typecheck/build pass; its actual render is pending. PR5 updated.
 
-Eyes c8194c6 are pushed with coherent taller white/lid/clipping/lash aperture; eye regression
-and build pass. Actual neutral-expression review remains pending. Temple/sleeve6c455df and
-fingers2bb72fc also await their source-specific actual galleries. Latest downloadable source
-6c455df is verified and delivered. None of these passes claims95% fidelity or character completion.
+The coordinated140mm boot/live routing candidate FAILS and remains scratch-only. Reference
+172mm moving stance passes604 articulated samples and preserves NPCs, but live reversal305
+has real shoe/cuff and shoe/shin crossings;304 also has sole/ankle-joint contact missed by the
+cuff-only runtime gate. Sampled visible cuff penetration1.070mm; no acceptance based on hull
+statistics. A read-only structural movement review now addresses anatomical side reversal,
+anchor mutation and post-pelvis whole-volume feasibility. No guard increase or rig scaling.
 
-Fresh Fable32e01b5 adds a neutral shared sprout/grit module, revised20x.27main/7x.26north stairs,
-and atmosphere/lighting changes. Root's helper checked only the movement-relevant layout/
-terrain delta under our unchanged .28guard: ordinary input now reaches the upper landing in
-8.392seconds, but actual shin/nose and boot/side intersections persist. Soles/reach alone
-would miss those errors. The delta is not yet integrated; lighting integration stays behind Link priority.
-Navi point-light suggestion is specific to Fable's new atmosphere and is not adopted blindly.
-Broad140mmboot candidate remains rejected for actual opposite-shoe/cuff crossings. A new
-coordinated reference stance/live turn foot-placement design is under review before any variant;
-no old rejected controller experiment, production stance edit or guard increase applied.
-The bounded coordinated boot/placement design is now approved for one scratch candidate: share
-the live172mm stance with Link reference poses, stage both targets/provisional IK, and route an
-obstructed free foot with one latched horizontal waypoint around the actual tilted opposing
-cuff. Full final geometry/sweep/ground/reach/rate checks decide acceptance; no candidate yet
-accepted. Physics/controller/rig and existing stair timing remain outside that proposal.
-
-Copied four missing Fable claim entries intact from32e01b5, preserving all local history,
-then renewed C01/C02/C03 through CLI to19:57:36.450UTC with no overlap warning. Filed W14take49
-fail via CLI with grouping progress and dirty-snapshot provenance limits; previous47 review
-is retained in history. Root inspected actual A and fixed reference. Fable keeps limb/moss work.
-Canonical0050/5529e85 remains invalid for inherited/new D1 and snapshot D3 despite W38pass.
-Astra/monitor already share the monitor concurrency group; Fable's local import publisher is
-outside that lock. Future fresh canonical capture must join the lock before timestamp creation;
-proposal is for coordination only, with no workflow or sealed-history changes here.
+Fable8c7dd8a remains active on world/house/lighting. Reviewer reproduced920bfff publisher
+identity failure and duplicate remerge; root sent PR2comment5638092094. Do not integrate
+resequencing or bundled49a9fa5/3h tolerance. Canonical0050 remains invalid; old sealed history
+stays exact. Fresh captures should share the existing monitor lock before timestamp creation.
+Fable20x.27 stairs traverse under.28guard but still have visible entrance shin/boot collisions;
+not integrated. Shared sprout/grit dependency is resolved upstream but adoption/lighting held.
+C01/C02/C03 claims renewed via CLI through19:57:36.450UTC; four Fable records copied unchanged.
 
 ## Recent completed work and evidence
+
+- Pending strap hardware checkpoint: actual brown band now carries a rounded open metal
+ frame with crossbar and curved pin, rather than a solid gold box. Same grey-bronze material
+ as the belt buckle. Constructor fits the rigid assembly to the unchanged curved strap.
+ All73 other unbatched meshes are byte-exact.784 hardware triangles replace12; final Link
+ 64 meshes /81,244 triangles.2,554 triangle surface samples have minimum0.676mm front-depth
+ clearance from the strap;784 triangle windings agree with normals. Typecheck/build and
+ static batching pass (2,992,032 posed positions/normals exact). Actual render pending.
+- eca1179 stronger original cloth albedo is pushed, keeping height/roughness bytes exact.
+- c8194c6 actual gallery ef19d42 / progress/2026-09-11_170928-c8194c6:14 hashes verified,
+ 42 matching motion states,errors[]. Neutral front/profile inspected: taller opening is
+ coherent but face remains toy-like; no fidelity/completion verdict.
+- 6c455df actual gallery ef154ea / progress/2026-09-11_165318-6c455df:14 hashes verified,
+ 42 matching states,errors[]. Front/profile,belt/hands and walking inspected;4 images sent.
+
 
 - c8194c6: coherent taller neutral eye aperture, unchanged centres/width/iris/pupil sizes,
  current skull/hair and all54non-eye meshes. Root eye test8,448triangles and production build
@@ -1031,4 +1030,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T16:08:17Z
+2026-09-11T17:21:40.381244Z

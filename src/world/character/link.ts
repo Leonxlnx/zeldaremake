@@ -31,6 +31,7 @@ import { normalizeLinkClothUVs } from './cloth-uv';
 import { createLinkCapCrown } from './cap-geometry';
 import { shapeLinkCapTail } from './cap-tail-geometry';
 import { createLinkRelaxedHand } from './hand-geometry';
+import { createLinkStrapBuckle } from './strap-buckle-geometry';
 
 export interface Character {
   kind: 'link' | 'kokiri';
@@ -442,8 +443,6 @@ function buildTorso(rig: Rig): void {
   const hardware = matte('buckle', { roughness: 0.75 }).clone();
   hardware.color.set(0xa69b83); hardware.metalness = 0.25;
   part(rig.hips, buckle, hardware, 'buckle', false);
-  // small buckle where the straps cross on the chest
-  part(rig.chest, place(new BoxGeometry(0.022, 0.024, 0.006), 0, cl(0.728), 0.108), matte('buckle', { roughness: 0.6 }), 'strap-buckle', false);
   // two diagonal chest straps hugging the torso surface (left shoulder → right hip and mirrored)
   const torsoR = (y: number) => {
     if (y > 0.835) return 0.128;
@@ -469,7 +468,9 @@ function buildTorso(rig: Rig): void {
     return pts.reverse();
   };
   for (const sign of [1, -1] as const) {
-    part(rig.chest, leatherBand(strapPts(sign), sign > 0 ? 0.028 : 0.021, garmentSurfaces, cl(0.835), sign > 0), sign > 0 ? leather : cloth('tunicCollar'), 'strap');
+    const band = leatherBand(strapPts(sign), sign > 0 ? 0.028 : 0.021, garmentSurfaces, cl(0.835), sign > 0);
+    part(rig.chest, band, sign > 0 ? leather : cloth('tunicCollar'), 'strap');
+    if (sign > 0) part(rig.chest, createLinkStrapBuckle(band, rig.props.chestY), hardware, 'strap-buckle', false);
   }
 }
 
