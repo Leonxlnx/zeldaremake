@@ -4,12 +4,41 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T23:13:46.169534+00:00
+updated: 2026-09-11T23:29:03.564421+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Integrating one actual-skull orbital recess after actual4235 lid images still show raised
+round pads during blink. Root read helper9901588e and independent math/focusedpreservation;
+patch93c5b1d9 applied narrowly overb425 descendinghair. Full openingplateau2.5mm deep,
+fade ends at old.75 annulus. Eyeanchors/curvature/physicalpigment unchanged; fittedcap shifts
+-2.5mm within.560nm, actualwhite/skullgap≥.676mm across9blinks. Originalouterseam and348
+indexedseamkeys unchanged;6472 originalnormals/6514pigment samples exact. OriginalUVabsent
+remainsabsent; no facefactory/hair/NPC change. +51516tri, measuredhelper515.7ms construction,
+no newdraw/callback. Costaccepted temporarily foractualvisualreview, notfinalperformance.
+Polygon-sector ridge13.77deg is real; radialquinticdoesnotmakegloballyC1field. Exactwitness
+covered in81forward rays at9blinks, notuniversalvisibilityproof. Handoff98871410.
+
+Actual4235 captured23:22:23.948, galleryf09b417/progress/2026-09-11_232223-4235f6c;
+source/18JPG/42states/error/lightingverified. Root06/12/17/18: raisedpadsstillobvious,
+not visualfacecompletion. Fouractuals/gallery/5,125,188byteZIP delivered. Newhairb42562b
+published/treeequal/sourceZIPverified; actualpending. Productionmovementunchanged.
+
+Separate recoverycheckpoint30862b15db01ca643eb0808121efd3b8577602e5 publishedandfetched,
+tree9fa66ff3248e261778276805b3ad649c805c7ed9.30 files preserve24movementoverlay sources,
+oldexperiment/src/publictreesexact. Relocatedpinnedreplay204standing/240walking/runrefusal60
+reproduces. Next movementnumericalprototype jointlyplans bothfoot events/configurations,
+recognizing anchor exitlimitsitsownliftoff anddoesnotforceoppositecontact in31ms.
+
+Cap progressive sourcef4da33c0 author/independentfirstgatespass; oneheadturn reveals
+inherited seatedtail1287/grip10 .444mmcross within2nmofbaseline, no exposedclaim.
+Scopedattachmentcheckpoint awaitsfinalindependenthandoff. RootshoulderYshearcandidate
+slopesoutercap17mm/hem15mm, no topology; newinnerlining/skincontactsunderindependentcover
+review, outerskin gap2.039mm. Neither candidateintegrated yet.
+
 
 Publishing the independently reviewed descending behind-ear locks f239f550, replacing
 only the flat e2e7 band. Two tapered locks per side, first18 charts exact; +896tri/no draws.
@@ -1635,4 +1664,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T23:13:46.169534+00:00
+2026-09-11T23:29:03.564421+00:00

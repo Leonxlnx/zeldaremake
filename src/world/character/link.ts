@@ -41,6 +41,7 @@ import { createLinkRelaxedHand } from './hand-geometry';
 import { createLinkStrapBuckle } from './strap-buckle-geometry';
 import { createLinkPouch } from './pouch-geometry';
 import { createLinkEyeSeating } from './eye-seating';
+import { recessLinkOrbitals } from './orbital-recess';
 import { finishLinkLeatherStrap } from './strap-surface';
 
 export interface Character {
@@ -570,6 +571,8 @@ export function createLink(): Character {
   buildTorso(rig);
   buildNeck(rig, skin);
   buildFace(rig, { skin, earLength: 0.085, softFeatures: true });
+  applyLinkSkinPigment(rig);
+  recessLinkOrbitals(rig);
   const syncEyes = createLinkEyeSeating(rig);
   buildHair(rig, linkHair(), 'link');
   buildCap(rig);
@@ -580,7 +583,6 @@ export function createLink(): Character {
   const syncGeometry = () => { syncBoots(); syncArms(); syncEyes(); };
   normalizeLinkClothUVs(rig);
   batchStaticLinkParts(rig);
-  applyLinkSkinPigment(rig);
   rig.root.userData.character = 'link';
   // Articulation replaces the boot geometry; count the resulting scene, including its joint.
   let triangles = 0;

@@ -23,7 +23,7 @@ const compact = (value: number, extent: number): number => {
 };
 
 /**
- * Call once after fitting and static batching. Existing position, normal and
+ * Call once on the original built skin, before local orbital refinement. Existing position, normal and
  * index attributes remain untouched; no UVs or animation callback are needed.
  */
 export function applyLinkSkinPigment(rig: Rig): void {
