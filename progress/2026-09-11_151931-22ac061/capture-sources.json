@@ -1,0 +1,62 @@
+{
+  "source": "22ac0613bd527a69973c0f12ca2949eb97127da1",
+  "capturedAt": "2026-09-11T15:19:31.301Z",
+  "images": [
+    {
+      "file": "01-idle.jpg",
+      "sha256": "ecdf384d6c84867d97a25567e79e69505fdf8daeb57feacf996369b2ddc8d7b1"
+    },
+    {
+      "file": "02-walk.jpg",
+      "sha256": "9e0f2c3d9b6353c04a0724c092d4c5a7a4946565d34dc5e358c2cefb3a09bdd5"
+    },
+    {
+      "file": "03-run.jpg",
+      "sha256": "b09590c84cb1460406c80051d7280b3a9ade1de0bdac9b01e50a78d20fbf2a6c"
+    },
+    {
+      "file": "04-jump.jpg",
+      "sha256": "8a2759922ed093e65d9c376e7a248a9fcf1ae6ddf766703a0bab806243b3274b"
+    },
+    {
+      "file": "05-outfit-back.jpg",
+      "sha256": "8a8adf9e3dcd0e1436e52268c77d14a0019834e45532b95ca46fd6f7fc2c647d"
+    },
+    {
+      "file": "06-face-detail.jpg",
+      "sha256": "aec6cb1cd6baa95d8a948caf8673a36f6ff5dd81fc3964e5b714f09bc389327e"
+    },
+    {
+      "file": "07-leaf-lantern.jpg",
+      "sha256": "78a3a47d2c76c6b7ceb437df85206710853f25aefc99c58fa35fa0bfb2656faf"
+    },
+    {
+      "file": "08-carved-sign.jpg",
+      "sha256": "7bd589786d25c7cf9ad8f966a0416a13fcdd17d7764ecfa3a204fa7cb4992fe6"
+    },
+    {
+      "file": "09-boot-detail.jpg",
+      "sha256": "7a4c85839a50cbb482a4b7b06db2af829b8aaf4d2344bcea763be82052aa861d"
+    },
+    {
+      "file": "10-tree-house.jpg",
+      "sha256": "b8afd9779e182f408e5200c0f77681cf67b499ced43fe38a858ab40693fa5dc9"
+    },
+    {
+      "file": "11-stone-stairway.jpg",
+      "sha256": "615062a1dde8e55cf35e1940d255a929ff3e8a193e783b66989176acb5aeec75"
+    },
+    {
+      "file": "12-face-profile.jpg",
+      "sha256": "468b15d44582359f9b597c6bbc827dfd677e14701483369b9ed23d7c0ca40f31"
+    },
+    {
+      "file": "13-backpack-detail.jpg",
+      "sha256": "5a97374714c30db8826f98121b8f748d6bc0796f57d86eca54bbd723b6f1e9cb"
+    },
+    {
+      "file": "14-belt-detail.jpg",
+      "sha256": "8cadc37f9d35cc235a684423027b6cb135768b2148939b7294b3a61045161d4c"
+    }
+  ]
+}
