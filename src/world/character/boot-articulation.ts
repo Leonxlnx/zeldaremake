@@ -4,6 +4,7 @@ import {
   SphereGeometry, Vector3,
 } from 'three';
 import type { Rig } from './rig';
+import { repairBootPeriodicUvs } from './boot-uv';
 
 type Surface = { position: number[]; normal: number[]; uv: number[]; index: number[] };
 type MovingSurface = {
@@ -106,6 +107,10 @@ function articulatedUpper(original: BufferGeometry, cutY: number): MovingSurface
 
 function movingSurface(geometry: BufferGeometry, first = 0,
   end = geometry.getAttribute('position').count): MovingSurface {
+  if (geometry.name === 'original-link-articulated-boot-upper' || geometry.name === 'original-link-open-folded-cuff') {
+    const repaired = repairBootPeriodicUvs(geometry, first, end, geometry.name === 'original-link-open-folded-cuff');
+    first = repaired.first; end = repaired.end;
+  }
   const position = geometry.getAttribute('position') as Float32BufferAttribute;
   const normal = geometry.getAttribute('normal') as Float32BufferAttribute;
   position.setUsage(DynamicDrawUsage); normal.setUsage(DynamicDrawUsage);

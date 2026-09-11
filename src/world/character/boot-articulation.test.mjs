@@ -10,7 +10,9 @@ function load(name) {
   }).outputText;
   const mod = { exports: {} };
   new Function('require', 'module', 'exports', source)(id => {
-    assert.equal(id, 'three'); return THREE;
+    if (id === 'three') return THREE;
+    assert.ok(id.startsWith('./'), 'local geometry helpers only');
+    return load(`${id}.ts`);
   }, mod, mod.exports);
   return mod.exports;
 }
@@ -49,6 +51,21 @@ function edgeLengths(geometry) {
 const sources = meshes.map(mesh => ({ mesh, geometry: mesh.geometry,
   position: mesh.geometry.attributes.position.array.slice(), lengths: edgeLengths(mesh.geometry),
   uv: mesh.geometry.attributes.uv.array.slice(), index: mesh.geometry.index.array.slice() }));
+for (const { mesh, geometry } of sources) if (mesh.name === 'boot' || mesh.name === 'boot-cuff') {
+  const p = geometry.attributes.position, uv = geometry.attributes.uv, index = geometry.index;
+  for (let i = 0; i < index.count; i += 3) {
+    const ids = [index.getX(i), index.getX(i + 1), index.getX(i + 2)];
+    const u = ids.map(j => uv.getX(j)), v = ids.map(j => uv.getY(j));
+    const area = Math.abs((u[1] - u[0]) * (v[2] - v[0]) - (u[2] - u[0]) * (v[1] - v[0])) / 2;
+    assert(Number.isFinite(area) && area > 1e-8, 'leather faces have nonsingular texture coordinates');
+    // Horizontal closure faces use a planar map; only the wrapped shell needs unwrapping.
+    const y = ids.map(j => p.getY(j));
+    if (mesh.name === 'boot-cuff' || Math.max(...y) - Math.min(...y) > 1e-8) {
+      assert(Math.max(...u) - Math.min(...u) <= .5, 'no interpolation across the U wrap');
+      assert(Math.max(...v) - Math.min(...v) <= .5, 'no interpolation across the V wrap');
+    }
+  }
+}
 const attachmentDistances = ankles.map(ankle => {
   const cuff = ankle.getObjectByName('boot-cuff').geometry.attributes.position;
   return ['boot-tongue', 'boot-laces', 'boot-buckle'].map(name => {
@@ -101,8 +118,12 @@ for (const angle of [.23, -.7, 1.4, 2.5, .23]) {
   assert.deepEqual(ankles.map(ankle => [...ankle.position, ...ankle.quaternion, ...ankle.scale]), pose, 'geometry never changes pose');
   for (const [side, ankle] of ankles.entries()) {
     const boot = sources.find(source => source.mesh === ankle.getObjectByName('boot'));
-    const p = boot.geometry.attributes.position, centre = new THREE.Vector3(); let count = 0;
+    const p = boot.geometry.attributes.position, centre = new THREE.Vector3(), uniqueMouth = new Set(); let count = 0;
     for (let i = 0; i < p.count; i++) if (Math.abs(boot.position[i * 3 + 1] - .135) < 1e-7) {
+      // UV seam duplicates represent the same physical point and must not weight the centre.
+      const key = Array.from(boot.position.slice(i * 3, i * 3 + 3)).map(v => Math.round(v * 1e7)).join(',');
+      if (uniqueMouth.has(key)) continue;
+      uniqueMouth.add(key);
       centre.add(a.fromBufferAttribute(p, i)); count++;
     }
     (side ? rig.kneeR : rig.kneeL).getWorldPosition(a); ankle.worldToLocal(a);

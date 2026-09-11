@@ -4,12 +4,49 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T10:12:59Z
+updated: 2026-09-11T10:24:38Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+Publish the isolated boot UV repair, then inspect the new backpack/belt renders. Actual
+production articulation tests and typecheck/build pass. Repair runs after anatomical ring
+closure; movement-region seam duplicates preserve expanded positions/normals and fixed soles.
+No boot texture opt-in yet. Current pack/belt leather source e4a395e awaits its actual14-view
+capture; acc07b9 has12stills/42matching frames, errors[], and its unobstructed house approach
+was inspected. Existing reference and high-stair quality gaps remain open.
+
+Canonical take0042 on b9dbda0 finished:22/50,18/42 phase,704draws,6799760triangles. W38 now
+fails the locked700-call budget (plus inherited D1). Investigate exact character mesh merging;
+do not relax the budget, suppress evidence or lower detail. Independent helper audits safe
+same-parent/material merges while root publishes UV work. No claim of a phase/fidelity pass.
+
+Fetched Fable b7cc6da: canopy shade lobes over both houses, F shaft relocation, porous A/F
+foliage corridors. These remain their tree/lighting scope pending deliberate integration.
+Claims C01/C02/C03/W22/W26/W27 renewed through CLI at10:16:31.987 until13:16:31.987UTC.
+
+## Files / systems being touched
+- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
+- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
+- `src/main.ts`: minimal control-hint/input-order integration only if needed.
+- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
+- Read-only review of Fable's world source, monitor captures, PRs and logs.
+- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
+
+## Earlier task notes
+
+### Before boot UV publication
+Reviewed isolated boot UV repair for production integration. It runs after the original32-vertex
+instep rings are extracted/capped, preserving that anatomical split. Seam duplicates remain
+within fixed/moving/fixed buckets and return corrected contiguous moving ranges. Cuff V follows
+its closed profile arc length; cap UVs are planar. Expanded positions/normals match production
+exactly across1416frames at30/60/120/144Hz, soles byte-identical, triangles unchanged. Existing
+articulation test's mouth-centre measurement needs unique positions so UV duplicates do not
+bias its average; retain its direction threshold and all rigid/contact/closure assertions.
+Add a focused UV-area/seam guard, then build before publication. No boot material opt-in yet.
+CLI renewed existing character and own-object claims; Fable's terrain/house/lighting scope stays.
+
 Leather finish is integrated on the backpack and belt only. Actual builder comparison against
 acc07b9 preserves every mesh geometry attribute/index, shadow flag and triangle count: Link
 74meshes/72002triangles, all three NPCs exact. Only those two material clones gain original
@@ -81,15 +118,6 @@ the repair remains Fable's tooling scope. Do not adopt the blanket3h D1 toleranc
 on2781c6e is23/50,700draws,6770746triangles, still INVALID D1; all sealed timestamps/hashes/tags
 remain unchanged. Latest monitor38ab114 includes Fable0041, also invalid. No phase/fidelity pass.
 
-## Files / systems being touched
-- `src/world/character/`: existing Link geometry and rig, animation, player contract, a separate locomotion controller, integration and focused tests.
-- `src/camera/follow.ts`: jump input, focus handling and following actual player height.
-- `src/main.ts`: minimal control-hint/input-order integration only if needed.
-- `.agents/astra.md`, shared `.agents/INBOX.md`, claim tool output and own review evidence.
-- Read-only review of Fable's world source, monitor captures, PRs and logs.
-- Own motion capture hook/script and `.github/workflows/astra-character.yml`; generated screenshots go to `captures/astra-character`, separate from Fable's monitor history.
-
-## Earlier task notes
 Historical checkpoints below are retained for provenance; current scope/status is above.
 
 Rear-hair helper now replaces only the old open spherical scalp and two nape sheets with a
@@ -577,6 +605,16 @@ The first continuous run captured all four poses but failed before video frames 
 
 
 ## Completed work
+- Boot UV repair ready: upper2269verts/3520tri and cuff429verts/768tri with no singular UV faces
+  or interpolation across wrap seams. Frozen candidate replay:1416frames at30/60/120/144Hz,
+  231634944 expanded position/normal comparisons exact; soles byte-identical. Integrated
+  production test retains all closure/rigidity/contact/bounds/NPC guards and adds UV area/wrap
+  checks. Mouth-centroid measurement counts unique physical points to avoid UV seam weighting;
+  original direction threshold unchanged. Typecheck/build and articulation test pass.
+- Stair ascent scratch hypothesis reduces worst knee153.44 to126.65degrees with a preplanned
+  80mm hip retreat and diagonal lead-foot lift/land.338geometry samples clear; stance stays
+  fixed. Slow cycle2.76s still needs1.5–2x timing for inspection; thigh rotation peaks123degrees.
+  No live input/entrance/interrupt validation or production stair change. Frozen V6 remains.
 - Root reviewed and reran the jump/stop implementation and all9 actual rounded-sole scenarios
   at30/60/120/144Hz: passed, zero sole penetration. Solved apex knees are50.6/36.7deg instead
   of~18/13deg; pre-landing extension stays at previous values. Final steps finish the free foot
@@ -783,4 +821,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T09:28:40Z
+2026-09-11T10:24:38Z
