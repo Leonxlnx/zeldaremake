@@ -1,15 +1,19 @@
 /**
- * Joint fill: a terrain-hugging surface of dark damp soil + moss that sits a hair above the
+ * Joint fill: a terrain-hugging surface of dark mossy earth (packed soil only where feet keep
+ * the moss off — the dry plaza core and the trodden strip, zones.ts) that sits a hair above the
  * ground under the paved area, so the gaps between slabs read as filled joints rather than
  * holes down to the terrain texture. Grid is aligned to the terrain's 0.2 m detail grid so the
  * two surfaces are parallel (no z-fighting). A joint-width field (5 cm texels) lets the shader
- * keep the tight seams dark and dry the wide junctions out to pale packed dirt.
+ * keep the tight soil seams dark and dry the wide soil junctions out to pale packed dirt; the
+ * mossy earth stays dark whatever the joint width (reference B/E foreground: 15–45 cm joints
+ * of one dark olive tone between the slabs).
  */
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, LinearFilter, Mesh, MeshStandardMaterial, RedFormat, UnsignedByteType, Vector2, Vector4 } from 'three';
 import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
+import { jointSoil, lawnPocket, lawnZone } from './zones';
 
 /** what the joint fill needs to know about the slabs around it */
 export interface JointPaving {
@@ -24,30 +28,55 @@ const GAP_CELL = 0.05;
 const GAP_MAX = 0.3;
 
 /**
- * Joint-width tinting of the fill (the shader below and `jointFillLift` share these): a seam
- * tighter than ~3 cm stays damp soil — same luminance, browner (the reference's dark quantile
- * is a saturated brown, B/R 0.52); a joint wider than ~5 cm dries out to pale khaki packed dirt.
+ * Joint-width tinting of the fill (the shader below and `jointFillLift` share these). Soil: a
+ * seam tighter than ~3 cm stays damp soil — same luminance, browner (the reference's dark
+ * quantile is a saturated brown, B/R 0.52); a joint wider than ~5 cm dries out to pale khaki
+ * packed dirt. Mossy earth: the tight seam is a shade darker and browner, the wide joint barely
+ * lifted and a touch greener — the reference's wide B/E joints are one dark tone edge to edge.
  */
 const CREVICE_RAMP: [number, number] = [0.015, 0.035];
 const OPEN_RAMP: [number, number] = [0.02, 0.055];
 const CREVICE_TINT: [number, number, number] = [1.0, 0.96, 0.84];
 const OPEN_TINT: [number, number, number] = [1.35, 1.75, 1.6];
+const TURF_CREVICE_TINT: [number, number, number] = [0.92, 0.9, 0.82];
+const TURF_OPEN_TINT: [number, number, number] = [1.06, 1.14, 1.0];
 const glslVec3 = (v: [number, number, number]) => v.map((n) => n.toFixed(4)).join(', ');
 
 /**
- * The fill's albedo multiplier at a point `gap` metres from the nearest slab edge — the CPU
+ * The fill's albedo multiplier at a point `gap` metres from the nearest slab edge, for a fill
+ * that is `soil` (0..1, zones.ts `jointSoil`) packed dirt and otherwise mossy earth — the CPU
  * twin of the joint shader's gap-field tint, so what sits in the seam (the grit) can be tinted
  * to the fill it sits on instead of to the fill's mid-seam average.
  */
-export function jointFillLift(gap: number): [number, number, number] {
+export function jointFillLift(gap: number, soil = 1): [number, number, number] {
   const crevice = 1 - smoothstep(CREVICE_RAMP[0], CREVICE_RAMP[1], gap);
   const open = smoothstep(OPEN_RAMP[0], OPEN_RAMP[1], gap);
   const out: [number, number, number] = [1, 1, 1];
   for (let i = 0; i < 3; i++) {
-    const k = 1 + (CREVICE_TINT[i] - 1) * crevice;
-    out[i] = k + (OPEN_TINT[i] - k) * open;
+    const ks = 1 + (CREVICE_TINT[i] - 1) * crevice;
+    const kSoil = ks + (OPEN_TINT[i] - ks) * open;
+    const kt = 1 + (TURF_CREVICE_TINT[i] - 1) * crevice;
+    const kTurf = kt + (TURF_OPEN_TINT[i] - kt) * open;
+    out[i] = kTurf + (kSoil - kTurf) * soil;
   }
   return out;
+}
+
+/**
+ * The fill's two albedos (linear, from the palette): packed soil (`JOINT_SOIL` → `JOINT_SOIL_MID`
+ * where the damp noise lifts it) and mossy earth — the soil pulled two thirds of the way to the
+ * deep grass green, the reference's dark olive joint tone (B/E dark quantile sRGB ≈ 95,79,49:
+ * hue 39°, sat 0.48, B/R 0.53 — ours rendered the soil at 122,97,64, a fifth too bright and
+ * redder). `mean` is the tone at the damp noise's mean (soil.lerp(mid, 0.3)) for the seam grit.
+ */
+export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; soilMid: Color; turf: Color; turfMid: Color; lawn: Color; soilMean: Color; turfMean: Color } {
+  const soil = new Color(JOINT_SOIL);
+  const soilMid = new Color(JOINT_SOIL_MID);
+  const turf = new Color(JOINT_SOIL).lerp(new Color(palette.grassDeep), 0.56);
+  const turfMid = new Color(JOINT_SOIL_MID).lerp(new Color(palette.grassMid), 0.55);
+  // the lawn pocket's fill: the deep grass green itself (the sprouts' tufts sit on it)
+  const lawn = new Color(palette.grassDeep).lerp(new Color(palette.grassMid), 0.15);
+  return { soil, soilMid, turf, turfMid, lawn, soilMean: soil.clone().lerp(soilMid, 0.3), turfMean: turf.clone().lerp(turfMid, 0.3) };
 }
 
 /**
@@ -134,22 +163,20 @@ export async function buildJointMesh(
   const noise = new Noise2D(`${seed}/joints`);
   const P = config.palette;
   // vertex colours are the *absolute* albedo here (the shader turns the texture into a
-  // luminance modulator). The joint soil is the dark warm brown of the reference seams
-  // (E/A/D dark band ≈ sRGB 60,50,30, hue 35–42°, R/G 1.2 — the palette's olive `soil` rendered
-  // them hue 48° and a fifth too bright); moss takes over only in patches. Now that the joints
-  // are 5–10 cm wide and sunk below the stones' shoulders (which shade them), the albedo is a
-  // notch lighter so the seams land on the reference's joint pixels (B/A dark band sRGB ≈
-  // 95,79,49 / 84,74,52) rather than a saturated near-black brown. The concept sheet (02 'Stone
-  // path' / 'Path boundary') settles the hue: packed brown dirt, ≈ #5a4a38 in shade / #8a7458
-  // lit (hue 32–34°, R/B 1.6), not grey soil — so the albedo leans well redder (hue ≈ 26–31°,
-  // R/B 2.0–2.2) at nearly the same luminance as before: the rendered seam is a mix of fill,
-  // shaded stone flank and shadow, and the post chain passes only part of an albedo hue change
-  // (the first step, hue 29° at R/B 1.85, moved the B dark-quantile B/R by just 0.007).
-  const soil = new Color(JOINT_SOIL);
-  const soilMid = new Color(JOINT_SOIL_MID);
+  // luminance modulator). Two fills (jointFillTones): packed soil — the dark warm brown of the
+  // concept sheet's seams (02 'Stone path': ≈ #5a4a38 in shade / #8a7458 lit, hue 32–34°) at an
+  // albedo leaning redder (hue ≈ 26–31°, R/B 2.0–2.2) because the rendered seam is a mix of
+  // fill, shaded stone flank and shadow and the post chain passes only part of an albedo hue
+  // change — and mossy earth, the soil pulled toward the deep grass green, for the reference's
+  // dark olive joints (B/E dark quantile sRGB ≈ 95,79,49, hue 39°, sat 0.48, B/R 0.53; the soil
+  // rendered there at 122,97,64 — a fifth too bright and 5° too red — and reference C/D's
+  // joints are more olive still). Round 10: mossy earth is the default, soil only where feet
+  // keep the moss off (zones.ts `jointSoil`); moss proper takes over in patches.
+  const { soil, soilMid, turf, turfMid, lawn: lawnFill } = jointFillTones(P);
   const mossD = new Color(P.mossDeep).lerp(soil, 0.25);
   const mossB = new Color(P.mossBright);
   const tmp = new Color();
+  const tmp2 = new Color();
 
   // mark paved grid points (slightly wider than the slabs so the fill peeks out at the edges)
   const pavedFlag = new Uint8Array((nx + 1) * (nz + 1));
@@ -159,6 +186,7 @@ export async function buildJointMesh(
   const pos: number[] = [];
   const col: number[] = [];
   const uv: number[] = [];
+  const soilW: number[] = [];
   const idx: number[] = [];
   const vertexFor = (i: number, j: number) => {
     const k = j * (nx + 1) + i;
@@ -171,14 +199,23 @@ export async function buildJointMesh(
     uv.push(x / 1.1, z / 1.1);
     const m = noise.fbm(x * 0.9 + 4, z * 0.9 - 2, 3) * 0.5 + 0.5;
     const dampN = noise.fbm(x * 0.25, z * 0.25 + 9, 2) * 0.5 + 0.5;
-    tmp.copy(soil).lerp(soilMid, 0.5 * dampN);
-    // reference joints are warm dark soil with moss in patches, not green seams everywhere:
-    // keep the soil dominant and let moss take over only where the noise peaks, thinner still
-    // in the plaza centre
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z)));
+    // mossy earth everywhere feet do not keep it off (zones.ts): packed soil only in the dry
+    // plaza core (camera A's foreground) and down the trodden strip of the north path
+    const sw = jointSoil(x, z);
+    tmp.copy(turf).lerp(turfMid, 0.5 * dampN);
+    tmp2.copy(soil).lerp(soilMid, 0.5 * dampN);
+    tmp.lerp(tmp2, sw);
+    // the lawn pocket (zones.ts): dark lawn, not earth — the reference's grass west of the path
+    // is darker than its joints (lum 0.28 vs 0.35) and green (hue 59°)
+    tmp.lerp(lawnFill, 0.9 * lawnPocket(x, z));
+    // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
+    // a little heavier on the lawn paving where the slabs sit in it)
+    const lawn = lawnZone(x, z);
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
-    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3);
+    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
     col.push(tmp.r, tmp.g, tmp.b);
+    soilW.push(sw);
     index[k] = pos.length / 3 - 1;
     return index[k];
   };
@@ -201,6 +238,7 @@ export async function buildJointMesh(
   g.setAttribute('position', new Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aSoil', new Float32BufferAttribute(soilW, 1));
   g.setIndex(new BufferAttribute(new Uint32Array(idx), 1));
   g.computeVertexNormals();
   g.computeBoundingSphere();
@@ -218,34 +256,40 @@ export async function buildJointMesh(
     shader.uniforms.uGapRect = { value: gapField?.rect ?? new Vector4(0, 0, 1, 1) };
     shader.uniforms.uGapMax = { value: GAP_MAX };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vJointXZ;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvJointXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+      .replace('#include <common>', '#include <common>\nvarying vec2 vJointXZ; attribute float aSoil; varying float vJointSoil;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvJointXZ = (modelMatrix * vec4(transformed, 1.0)).xz; vJointSoil = aSoil;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec2 vJointXZ;\n${gapField ? '#define JOINT_GAP_FIELD' : ''}\nuniform sampler2D uGapMap; uniform vec4 uGapRect; uniform float uGapMax;`)
+      .replace('#include <common>', `#include <common>\nvarying vec2 vJointXZ; varying float vJointSoil;\n${gapField ? '#define JOINT_GAP_FIELD' : ''}\nuniform sampler2D uGapMap; uniform vec4 uGapRect; uniform float uGapMax;`)
       .replace(
         '#include <map_fragment>',
         /* glsl */ `
       #include <map_fragment>
       {
+        // the mud texture as a luminance modulator: ± 70 % on the packed soil (its pits are
+        // the reference's dark quantile), ± 45 % on the mossy earth, whose reference joints are
+        // one even dark tone (B p10 fell to 0.27 against the reference's 0.33 at ± 70 %)
         float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
         float d = clamp(l / 0.10, 0.3, 2.4);
-        diffuseColor.rgb = vec3(mix(1.0, d, 0.7));
+        diffuseColor.rgb = vec3(mix(1.0, d, mix(0.45, 0.7, clamp(vJointSoil, 0.0, 1.0))));
       }
       #ifdef JOINT_GAP_FIELD
       {
-        // joint width (see buildGapField): tight seams stay damp dark soil, wide junctions dry
-        // out to pale, mossy packed dirt (the vertex albedo is the mid-width seam)
+        // joint width (see buildGapField): tight soil seams stay damp dark soil, wide soil
+        // junctions dry out to pale, mossy packed dirt (the vertex albedo is the mid-width
+        // seam); the mossy earth (aSoil → 0) keeps one dark tone at every width
         float gap = texture2D(uGapMap, (vJointXZ - uGapRect.xy) * uGapRect.zw).r * uGapMax;
         float crevice = 1.0 - smoothstep(${CREVICE_RAMP[0].toFixed(4)}, ${CREVICE_RAMP[1].toFixed(4)}, gap);
         float open = smoothstep(${OPEN_RAMP[0].toFixed(4)}, ${OPEN_RAMP[1].toFixed(4)}, gap);
-        vec3 k = mix(vec3(1.0), vec3(${glslVec3(CREVICE_TINT)}), crevice);
-        k = mix(k, vec3(${glslVec3(OPEN_TINT)}), open);
-        diffuseColor.rgb *= k;
+        vec3 kSoil = mix(vec3(1.0), vec3(${glslVec3(CREVICE_TINT)}), crevice);
+        kSoil = mix(kSoil, vec3(${glslVec3(OPEN_TINT)}), open);
+        vec3 kTurf = mix(vec3(1.0), vec3(${glslVec3(TURF_CREVICE_TINT)}), crevice);
+        kTurf = mix(kTurf, vec3(${glslVec3(TURF_OPEN_TINT)}), open);
+        diffuseColor.rgb *= mix(kTurf, kSoil, clamp(vJointSoil, 0.0, 1.0));
       }
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v3-gap${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v4-turf-gap${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;

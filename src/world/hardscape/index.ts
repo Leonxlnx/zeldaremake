@@ -8,10 +8,11 @@ import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, placeFlagstones, type PavingContext } from './flagstones';
-import { buildJointMesh, jointFillLift } from './joints';
+import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
 import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
 import { JOINT_SOIL, JOINT_SOIL_MID } from './joints';
+import { jointSoil, lawnPocket, lawnZone } from './zones';
 import { smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
 
@@ -123,6 +124,48 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion' });
     cushions++;
   }
+  // the lawn paving (zones.ts, reference B/E foreground): the 15–45 cm joints between the big
+  // slabs carry short grass — cropped tufts (TUFT_C / TUFT_A, 6–8 cm), one to every 30 cm or
+  // so of joint, one in seven a moss pad — mostly at the slab edges where feet miss; the joint
+  // fill under them is the dark mossy earth, not lawn-green (the reference's joint pixels are a
+  // dark olive, its greens are the sparse tufts; 300 of these read as a meadow, not a path)
+  const lawnTarget = Math.round(150 * Math.max(0.7, ctx.quality.density));
+  let lawnSprouts = 0;
+  let lawnTufts = 0;
+  tries = 0;
+  while (lawnSprouts < lawnTarget && tries < lawnTarget * 80) {
+    tries++;
+    const x = srng.range(-2.5, 5.0);
+    const z = srng.range(-8.0, 1.5);
+    if (srng() > lawnZone(x, z)) continue;
+    if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap > 0.5) continue;
+    // toward the slab edges: accept mid-joint spots half as often
+    if (gap > 0.12 && srng.chance(0.5)) continue;
+    if (srng.chance(0.15)) {
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion' });
+    } else {
+      spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng.range(0.15, 0.6) });
+      lawnTufts++;
+    }
+    lawnSprouts++;
+  }
+  // the lawn pocket west of the path (zones.ts `lawnPocket`, reference B/E's left third): no
+  // slabs, dark lawn fill, and proper grass on it — taller tufts (TUFT_A / TUFT_B) and clover,
+  // about 25 to the square metre, so the strip reads as the reference's grass, not bare earth
+  const pocketTarget = Math.round(220 * Math.max(0.7, ctx.quality.density));
+  let pocketTufts = 0;
+  tries = 0;
+  while (pocketTufts < pocketTarget && tries < pocketTarget * 80) {
+    tries++;
+    const x = srng.range(-2.4, 1.0);
+    const z = srng.range(-7.8, -2.4);
+    if (srng() > lawnPocket(x, z)) continue;
+    if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng.chance(0.2) ? srng.range(0.05, 0.2) : srng.range(0.3, 0.95) });
+    pocketTufts++;
+  }
   // stair joints: foot of each riser + along the cheeks, with moss cushions in the tread/riser
   // corner (sheet 01 environment inset, sheet 04 path inset: mossy risers, pads in the corners)
   for (const f of frames) {
@@ -162,6 +205,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // a pebble is a few pixels by 12 m and nothing by 21 m, well inside the sprouts' LOD range
     return 0.2 + 0.8 * (1 - smoothstep(12, 21, d));
   };
+  // the grit geometry is built in the soil's tone; where the fill is mossy earth the pebble's
+  // tint carries the ratio of the two fills so it still sits within ± 15 % of what it lies on
+  const tones = jointFillTones(ctx.config.palette);
+  const turfOverSoil: [number, number, number] = [tones.turfMean.r / tones.soilMean.r, tones.turfMean.g / tones.soilMean.g, tones.turfMean.b / tones.soilMean.b];
   tries = 0;
   while (gritSpots.length < gritTarget - 120 && tries < gritTarget * 40) {
     tries++;
@@ -171,12 +218,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const gap = paving.edgeGap(x, z);
     if (gap > 0.3) continue;
     if (grng() > gritCamWeight(x, z)) continue;
+    // packed dirt is gritty; mossy earth carries a quarter as much, the lawn paving a tenth
+    // (reference B/E: a faint speckle in the wide joints, not a gravel bed)
+    const soilW = jointSoil(x, z);
+    if (grng() > (0.25 + 0.75 * soilW) * (1 - 0.6 * lawnZone(x, z)) * (1 - lawnPocket(x, z))) continue;
     // the odd bigger stone (3–4 cm) among a scatter of 1.5–2.5 cm ones
     const size = grng.chance(0.2) ? grng.range(0.03, 0.04) : grng.range(0.015, 0.026);
     // the fill sits 0.8 cm over the ground; keep the pebble out of the stones' bevel zone
     if (gap < size * 0.8) continue;
-    // tinted to the fill it sits in: damp brown in a tight seam, pale khaki in an open junction
-    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint: jointFillLift(gap) });
+    // tinted to the fill it sits in: damp brown in a tight seam, pale khaki in an open soil
+    // junction, dark olive on the mossy earth
+    const lift = jointFillLift(gap, soilW);
+    const tint: [number, number, number] = [lift[0] * (1 + (turfOverSoil[0] - 1) * (1 - soilW)), lift[1] * (1 + (turfOverSoil[1] - 1) * (1 - soilW)), lift[2] * (1 + (turfOverSoil[2] - 1) * (1 - soilW))];
+    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint });
   }
   const seamGrit = gritSpots.length;
   for (const f of frames) {
@@ -210,6 +264,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneSplitCells: paving.stats.split,
     flagstoneBigSlabs: paving.stats.big,
     flagstoneRimStones: paving.stats.rim,
+    // seeds of the lawn paving (zones.ts): 1.0–1.6 m slabs in 15–45 cm turf joints (B/E foreground)
+    flagstoneLawnSlabs: paving.stats.lawn,
+    // camera B/E foreground slabs seeded at the reference frame's slab centres (zones.ts B_FOREGROUND_SLABS)
+    flagstoneAuthoredSlabs: paving.stats.authored,
+    lawnPaving: { x: [-1.5, 3.5], z: [-6.5, -0.5], northEast: { x: [0, 4.2], z: [-3, 0.2] }, fadeM: 1.5, pocketWestOfPathEdge: true },
     // rim stones carrying a moss film over their outer (grass-side) edge (sheet 02 'Moss edges')
     flagstoneEdgeMossStones: paving.stats.edgeMossStones,
     // round slabs on the house branch's stepping-stone discs (merged into the flagstone mesh and
@@ -221,8 +280,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneDrawCalls: 1,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
-    jointSproutsOnFlagstones: flagstoneSprouts,
-    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - sprouts.cushions,
+    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts,
+    // short tufts + moss pads sown thick in the lawn paving's turf joints (part of jointSprouts)
+    jointSproutsInLawnPaving: lawnSprouts,
+    // grass on the slab-free lawn pocket west of the path (part of jointSprouts)
+    jointSproutsInLawnPocket: pocketTufts,
+    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
     // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
@@ -243,7 +306,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     seamGritTriangles: sprouts.gritTriangles,
     seamGritDrawCalls: 0,
     jointFillTriangles: joints.triangles,
-    // joint-width field (5 cm texels) the fill shader reads: tight seams dark, wide junctions pale
+    // the fill: dark mossy earth, packed soil only in the dry plaza core and the trodden strip
+    jointFill: 'mossy-earth-v1',
+    // joint-width field (5 cm texels) the fill shader reads: tight soil seams dark, wide soil junctions pale
     jointGapField: joints.gapField,
     hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles,
     plazaRadius: 6,
