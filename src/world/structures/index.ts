@@ -11,6 +11,7 @@ import { Group, type Material, type Mesh, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildFence, createRopeMaterial } from './fence';
+import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
@@ -52,6 +53,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseBranches += hb.branches;
     leaves += hb.leaves;
   }
+  // ---- distant tree houses (round 16): three lit huts 30–47 m out on existing trunks; their
+  // bark / plank / cap parts fold into the house draws below, their glow is one emissive mesh ----
+  const distant = buildDistantHouses(ctx, mats, rng.fork('distant-houses'));
+  group.add(distant.group);
   ctx.progress('structures', 0.55);
 
   // ---- lantern branch (cords + pods + vines; the limb is the trees system's) ----
@@ -180,6 +185,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** flower heads on the caps / pots and bottles on the shelves, all houses */
     houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
     houseProps: houses.reduce((n, h) => n + h.props, 0),
+    /** round 16: the far village — huts on existing trunks, audited apart from the two hero houses */
+    distantHouses: distant.audit.length,
+    distantHouseTriangles: distant.triangles,
+    /** the shared emissive's peak channel (linear); must exceed the height fog's 2.0 far-shade exemption */
+    distantGlowPeak: +distantGlowPeak(mats).toFixed(2),
+    distantHouseDetail: distant.audit,
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,
