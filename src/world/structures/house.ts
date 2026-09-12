@@ -11,10 +11,12 @@
  * glowing pink-amber low on the right, and a pale-amber light under the arch that spills onto
  * the threshold. Nothing horizontal sits over the door (rounds 8–11's bark roll and eave bough
  * read as a beam in B): the cap's moss rim simply overhangs, and the pods hang on cords from the
- * soffit under it. The cap is built in the plain moss material
- * (vertex colours are its albedo — olive, grainy, lumpy, ±0.22 m mounds) with patches of lighter
- * straw in the roof material (`THATCH_THRESHOLD`), moss clumps and a drooping fringe of leaves and
- * vines over the rim, and it is held by the house's own living branch in the trunk's bark: a
+ * soffit under it. The cap is built in its own cap-moss material (round 13: a procedural mossy
+ * normal map — soft 3–6 cm clumps over broader cushions and fine grain, roughness 0.9 — instead of
+ * the shared moss material's thatch-stalk relief; vertex colours are its albedo — olive, grainy,
+ * lumpy, ±0.22 m mounds) with patches of lighter straw in the roof material (`THATCH_THRESHOLD`),
+ * moss clumps, grass tufts, ferns, small white flowers and a drooping fringe of leaves and trailing
+ * vines over the rim (board 03 "moss-covered roof with plants"), and it is held by the house's own living branch in the trunk's bark: a
  * gnarled bough rises from the roots on the left, climbs the left shoulder and arches over the
  * FRONT of the cap well clear of the moss (frame B looks up at it, so it runs as a thick dark
  * limb across the top band above the dome, like the reference's near limb) before sinking back
@@ -22,7 +24,18 @@
  * bark takes a structures-owned shade floor tinted to the reference's warm dark brown
  * (`HOUSE_BARK_FLOOR`), not the giants' grey-green one. Buttress roots seat the trunk on the
  * terrain, pale limbs drape over the cap, moss, leaf clumps, ferns, broad-leaf plants and
- * heart-leaf vines shroud the cap, and a small round window glows on the left flank.
+ * heart-leaf vines shroud the cap.
+ *
+ * Round 13 (owner boards 03 / 04 / 06 are the authority for construction, material and props):
+ * a ROUND WINDOW ≈ 0.9 m across is carved into the trunk high on the left flank — a bark collar
+ * rolling into an obliquely bored socket whose back glows with the room's amber, a rough wooden
+ * cross frame, moss on the collar and vines trailing off it (board 04 "window detail"); two
+ * curved living BRANCH PILLARS stand just outside the root lips and rise into the soffit and rim
+ * (board 03 "natural wooden supports", board 04 "wooden branch pillars support the entrance");
+ * SIX POD LANTERNS hang across the front — the three tuned B pods over the door, one on each
+ * flank under the rim and one on the right flank (board 03: five across the front); and through
+ * the door, SHELVES of pots, jars and bottles line the back wall under the lamp pools (boards
+ * 03 / 06). `CAP_RIM_SCALE` carries the round-13 roof-width A/B.
  *
  * Every dimension is expressed in terms of `trunkRadius` / `roofHeight`, so the same builder
  * produces Saria's hero house and the small upper house.
@@ -37,6 +50,7 @@ import {
   DoubleSide,
   Group,
   type Material,
+  Matrix4,
   Mesh,
   type MeshBasicMaterial,
   MeshStandardMaterial,
@@ -148,6 +162,14 @@ export interface HouseBuild {
   cap: CapProfile;
   /** hearth kerb underside above the local room floor (m; must be >= 0 or the kerb is buried) */
   hearthClearance: number;
+  /** the round window (round 13): centre on the wall surface (world), clear radius, height above the floor */
+  window: { centre: P3; radius: number; height: number };
+  /** the branch pillars' feet (world, on the terrain) and the pillars' rim ends */
+  pillars: { foot: P3; top: P3 }[];
+  /** small white flower heads on the cap */
+  flowers: number;
+  /** pots, bottles and bowls on the interior shelves */
+  props: number;
 }
 
 /**
@@ -211,6 +233,15 @@ const LANTERNS: Record<string, LanternSpec[]> = {
     { a: -0.04, cord: 0.14, hook: 'bough', tint: 'orange' },
     { a: 0.08, cord: 0.06, hook: 'bough', tint: 'lime' },
     { a: 1.2, cord: 0.3, hook: 'eave', tint: 'orange' },
+    // round 13 (board 03: five pods across the front, the outer ones lower on the supports): two
+    // more on the flanks under the rim — left, under the round window (B (0.64, 0.43); the
+    // window sits at (0.658, 0.37)) on a long cord, so it hangs below the window's sill where
+    // reference B has its own warm lantern on the left flank at (0.659, 0.437); right, past the
+    // right branch pillar (B (0.91, 0.35)). Appended so the first four pods' draws from the
+    // lantern stream, and their tuned B positions, are unchanged; one lime and one orange keep
+    // the shared glow's colour mix at half lime.
+    { a: -1.15, cord: 0.7, hook: 'eave', tint: 'orange' },
+    { a: 0.75, cord: 0.3, hook: 'eave', tint: 'lime' },
   ],
   // the upper house's pods hang on its plateau-side flanks: with Saria's cap lowered its front
   // shows above her roof in B, where the reference has only dark canopy (no lit pods there)
@@ -251,12 +282,27 @@ const CROWN_SCALE = 0.85;
  *   ×1.15 ×0.85  0.7961         0.394 / 0.34 / 50°  536     116        0.216  179      1.75 / 1.27 / 0.77
  *   ×1.30 ×0.92  0.7959         0.389 / 0.35 / 50°  617      88        0.143  179      2.44 / 1.90 / 1.34
  *   ×1.30 ×0.85  0.7952         0.389 / 0.35 / 50°  617      80        0.130  166      2.44 / 1.90 / 1.34
- * The four wide variants tie on SSIM (spread 0.001) and colour; ×1.15 / ×0.85 is kept for the
+ * The four wide variants tie on SSIM (spread 0.001) and colour; round 12 kept ×1.15 / ×0.85 for the
  * silhouette (height 116 px vs the reference's 115, overhang inside the 1.5–2 m spec). With the
  * finished round-12 house the same A/B costs 0.005 combined SSIM (0.7978 at ×1.0 / ×1.0 vs 0.7928),
  * so flip both back to 1.0 for the SSIM-optimal cap.
+ *
+ * Round 13 re-tests the width with the round-13 house (window, pillars, cap plants, six pods,
+ * shelves) against the owner's boards 03 / 04 — the cap is roughly as wide as the trunk plus its
+ * roots, not wider than the whole facade — and frame 14 s (rim ≈ 410 px, lit mound 282). One tree,
+ * A + B + F, control = round-12 HEAD built at the same moment (combined SSIM 0.7979; B 0.2573):
+ *   rim    combined  B full / upper  F full  A full  B rim px  crown→edge px  h/w    A rim px  overhang f/s/b m
+ *   ×1.05  0.7973    0.2596 / 0.3631 0.2652  0.2724  479       92             0.192  316       1.29 / 0.86 / 0.40
+ *   ×1.10  0.7970    0.2580 / 0.3598 0.2669  0.2720  504       88             0.175  332       1.52 / 1.06 / 0.59
+ *   ×1.15  0.7940    0.2554 / 0.3544 0.2662  0.2724  536       116            0.216  351       1.75 / 1.27 / 0.77
+ * (The crown→edge height is the highest DISPLACED shell sample, so it wanders ±0.3 m with the
+ * cap noise as the rim moves; the undisplaced crown is the same in all three.) ×1.05 is kept:
+ * nearest the reference's rim width, the best B (the round-13 house with the ×1.15 rim is the only
+ * variant to lose B against the round-12 control) and tied with ×1.10 on the combined score
+ * (0.0003 apart; ×1.15 costs 0.003). Its front overhang, 1.29 m over the wall at the eave, is
+ * under the boards' 1.5–2 m read — ×1.10 (1.52 m) is the pick if that overhang is preferred.
  */
-const CAP_RIM_SCALE = 1.15;
+const CAP_RIM_SCALE = 1.05;
 /**
  * Thatch patches on the moss cap: the patch noise (simplex, ∈ [−1, 1]) above this threshold
  * (+0.125, the midpoint of the smoothstep) shows straw (the roof material), below it moss. Round
@@ -339,7 +385,7 @@ function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, 
  * the doorway plane (`indoorFog`) so the haze does not also fill the room. Double-sided so the
  * flat room planes need no winding.
  */
-function roomMaterial(mats: StructureMaterials): MeshStandardMaterial {
+function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e): MeshStandardMaterial {
   const m = new MeshStandardMaterial({
     normalMap: mats.interior.normalMap,
     normalScale: new Vector2(0.3, 0.3),
@@ -349,8 +395,9 @@ function roomMaterial(mats: StructureMaterials): MeshStandardMaterial {
     // haze between the camera and the door contributes most of the opening's light, and that
     // airlight is yellow-olive, so the walls' own tint goes cool grey (round 11's warm 0x6e6457 /
     // 0xffd08a @ 0.17 filled the whole opening with amber, sat 0.34) and only the emissive is
-    // amber. The vertex colours carry the shading, the `aGlow` attribute the pools
-    color: new Color(0x3c3b3e),
+    // amber. The vertex colours carry the shading, the `aGlow` attribute the pools. (Round 13's
+    // shelf props take the same material with a paler base so the lamps' light shows their colours.)
+    color: new Color(color),
     // a deeper amber than round 11's 0xffe0b8: at pool strength the pale tint read as beige
     emissive: new Color(0xffc478),
     emissiveIntensity: 0.2,
@@ -396,6 +443,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    */
   const lipR = 0.12 * k;
   const rollBottom = lipTop - 2 * lipR;
+  /** the cap's uneven sag (back-left heavier) at angle a — the rim, soffit and curl all carry it */
+  const sagAt = (a: number) => (0.1 + 0.12 * Math.sin(a + 2.2)) * k;
   /** cap crown of the bare shell (moss lumps and leaf clumps add ~0.4 m on top); reference B's
    *  dome is a tall mound — at frame x 0.72–0.80 its sunlit moss runs from the eave (y 0.26) up to
    *  y 0.13, twice the height of a 0.83 crown; header estimate crown ≈ 6–6.5 m. The rim (eave,
@@ -487,11 +536,29 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // the opening's edge wanders ±7 cm (a hole gnawed in bark, not a cut frame — reference B's
   // arch is ragged where it meets the lips)
   const doorSD = (w: number, y: number) => rrectSD(w, y, doorW0, doorW1, sill - 1.5, doorTop, doorRc) - 0.07 * k * noise.noise(w * 1.6 + 9, y * 1.6 - 4);
-  // small round window high on the lit left flank (sheet 04, upper left of the trunk): left of
-  // the porch pillar, below the eave bough's left leg — in B at ≈ (0.67, 0.40), clear of the roof
-  const winA = -0.72;
-  const winY = 0.62 * eaveY;
-  const winR = 0.24 * sk;
+  // Round window carved into the trunk (round 13; boards 03 / 04 "round window built into
+  // trunk": ≈ 0.9 m across, a wooden cross frame, bark rolling into the hole, moss and vines
+  // round it, a warm interior glow). Left of the arch on the lit left flank, between the left
+  // branch pillar and the arc bough's leg, as high as the wall allows: the soffit meets this flank
+  // at ≈ 3.05 m (rollBottom less the rim's sag there), so a 0.88 m window tops out just under it
+  // with its centre at 2.6 m — in B at (0.658, 0.370), box x 0.64–0.675, y 0.34–0.40, left of
+  // the pods and clear of the lip. The first round-13 probe had it at a = −0.88, where the left
+  // branch pillar (feet 2.5 m nearer B than the door, so ≈ 15 % larger in frame than the
+  // door-plane estimate) covered its right half; −1.08 puts it a pillar's width further left.
+  // (Rounds 8–12 had a 0.48 m porthole low on this flank at 1.85 m.)
+  const winA = -1.08;
+  const winR = 0.44 * sk;
+  const winY = rollBottom - sagAt(winA) - winR - 0.03 * k;
+  /** the window's face is turned this far from the trunk's normal towards the door: B looks at
+   *  this flank 72° off its normal, where a round hole is a sliver, and ≈ 40° off the turned face.
+   *  The face sits in a bark boss — proud of the trunk on the far side, funnelled into it on the
+   *  door side — and the shell is opened to the boss's foot (`winHoleR`). */
+  const WIN_TILT = 0.58;
+  /** the face's centre stands this far off the trunk along its normal, so the turned face's
+   *  door-side edge sinks only 0.12 m: B's 72°-oblique sightline into anything deeper is cut off
+   *  by the boss's own funnel wall (at 0 the right third of the glow was hidden behind it) */
+  const WIN_STANDOFF = 0.15 * k;
+  const winHoleR = winR + 0.34 * k;
 
   // ---- trunk radius model ----
   const rSmooth = (a: number, y: number) => {
@@ -541,7 +608,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const rs = rSmooth(a, y);
       const w = wOf(a, rs);
       const psd = porchSD(w, y);
-      const wsd = Math.hypot(winW(a, rs), y - winY) - winR;
+      const wsd = Math.hypot(winW(a, rs), y - winY) - winHoleR;
       const fade = smoothstep(0.02, 0.3, Math.min(psd, wsd));
       const r = rs + detail(a, y) * fade;
       frame.at(a, r, y, out.position);
@@ -584,7 +651,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const a = u * TAU;
     const y = lerp(yBase, wallTop, v);
     const rs = rSmooth(a, y);
-    return porchSD(wOf(a, rs), y) < 0 || Math.hypot(winW(a, rs), y - winY) < winR;
+    return porchSD(wOf(a, rs), y) < 0 || Math.hypot(winW(a, rs), y - winY) < winHoleR;
   };
   const inBand = (v: number) => lerp(yBase, wallTop, v) > bandY0;
   const shellOpts = {
@@ -858,6 +925,106 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   roomMesh.receiveShadow = true;
   group.add(roomMesh);
 
+  // ---- shelves of pots and bottles on the back wall (round 13; boards 03 / 06 show shelves of
+  // jars, pots and a bottle in the lamplight behind the door). Low-poly turned shapes in the
+  // room material with a paler base, so the lamp above them shows their glazes, lit by the same
+  // `aGlow` pools as the walls: two shelves under the left lamp, one under the right, all in the
+  // sightline through the door from B (back wall w −1.15…1.2). ----
+  const propsMat = indoorFog(roomMaterial(mats, 0x9a8878), doorPlanePoint, F);
+  materials.push(propsMat);
+  let propCount = 0;
+  {
+    const propRng = rng.fork('props');
+    const props: BufferGeometry[] = [];
+    const shelfD = 0.26 * k;
+    /** a plank on two brackets, its back edge against the (concave) wall; returns its top */
+    const shelf = (w0: number, w1: number, y: number) => {
+      const wc = (w0 + w1) / 2;
+      const d = Math.max(roomBackD(w0), roomBackD(wc), roomBackD(w1)) + shelfD / 2 + 0.01 * k;
+      const board = new BoxGeometry(w1 - w0, 0.035 * k, shelfD);
+      board.applyMatrix4(basisMatrix(frame.door(wc, y, d), F));
+      setColorAttribute(board, [0.4, 0.32, 0.24]);
+      props.push(board);
+      for (const w of [w0 + 0.12 * k, w1 - 0.12 * k]) {
+        const bracket = new BoxGeometry(0.04 * k, 0.16 * k, shelfD * 0.75);
+        bracket.applyMatrix4(basisMatrix(frame.door(w, y - 0.1 * k, d - 0.03 * k), F));
+        setColorAttribute(bracket, [0.3, 0.24, 0.18]);
+        props.push(bracket);
+      }
+      return { y: y + 0.018 * k, d };
+    };
+    const glazes: [number, number, number][] = [
+      [0.95, 0.55, 0.38], // terracotta
+      [0.92, 0.88, 0.74], // cream glaze
+      [0.36, 0.52, 0.36], // green glass
+      [0.42, 0.46, 0.72], // blue glaze
+      [0.56, 0.42, 0.3], // brown earthenware
+    ];
+    // the shapes are built standing along +y, turned onto +z (rotateX +90°) and stood up on the
+    // shelf by basisMatrix (local +z → world up)
+    const place = (geo: BufferGeometry, w: number, top: { y: number; d: number }, tint: [number, number, number]) => {
+      geo.applyMatrix4(basisMatrix(frame.door(w, top.y, top.d + (propRng() - 0.5) * 0.06 * k), new Vector3(0, 1, 0)));
+      setColorAttribute(geo, tint);
+      props.push(geo);
+      propCount++;
+    };
+    /** a jar (tapered cylinder), a round pot (squashed sphere), a bottle (body + neck) or a bowl */
+    const jar = (w: number, top: { y: number; d: number }, r: number, h: number, tint: [number, number, number]) => {
+      const g = new CylinderGeometry(r * 0.8, r, h, 10, 1);
+      g.rotateX(Math.PI / 2);
+      g.translate(0, 0, h / 2);
+      place(g, w, top, tint);
+    };
+    const roundPot = (w: number, top: { y: number; d: number }, r: number, tint: [number, number, number]) => {
+      const g = new SphereGeometry(r, 10, 7);
+      g.scale(1, 0.8, 1);
+      g.rotateX(Math.PI / 2);
+      g.translate(0, 0, r * 0.8);
+      place(g, w, top, tint);
+    };
+    const bottle = (w: number, top: { y: number; d: number }, r: number, h: number, tint: [number, number, number]) => {
+      const body = new CylinderGeometry(r, r * 0.95, h * 0.62, 8, 1);
+      body.translate(0, h * 0.31, 0);
+      const neck = new CylinderGeometry(r * 0.38, r * 0.7, h * 0.38, 8, 1);
+      neck.translate(0, h * 0.81, 0);
+      const g = merge([body, neck]);
+      g.rotateX(Math.PI / 2);
+      place(g, w, top, tint);
+    };
+    const bowl = (w: number, top: { y: number; d: number }, r: number, tint: [number, number, number]) => {
+      const g = new CylinderGeometry(r, r * 0.55, r * 0.55, 10, 1);
+      g.rotateX(Math.PI / 2);
+      g.translate(0, 0, r * 0.275);
+      place(g, w, top, tint);
+    };
+    // upper left shelf, right under the left lamp's pool; a lower one beneath it; one on the
+    // right under the second lamp
+    const s1 = shelf(lampW - 0.7 * k, lampW + 0.5 * k, lampY - 0.52 * k);
+    jar(lampW - 0.5 * k, s1, 0.11 * k, 0.24 * k, glazes[0]);
+    roundPot(lampW - 0.22 * k, s1, 0.1 * k, glazes[1]);
+    bottle(lampW + 0.02 * k, s1, 0.045 * k, 0.32 * k, glazes[2]);
+    jar(lampW + 0.2 * k, s1, 0.08 * k, 0.17 * k, glazes[4]);
+    bowl(lampW + 0.38 * k, s1, 0.1 * k, glazes[1]);
+    const s2 = shelf(lampW - 0.6 * k, lampW + 0.35 * k, lampY - 1.02 * k);
+    roundPot(lampW - 0.42 * k, s2, 0.13 * k, glazes[4]);
+    bottle(lampW - 0.16 * k, s2, 0.05 * k, 0.28 * k, glazes[3]);
+    jar(lampW + 0.05 * k, s2, 0.09 * k, 0.2 * k, glazes[0]);
+    bottle(lampW + 0.24 * k, s2, 0.04 * k, 0.24 * k, glazes[2]);
+    const lamp2Y = lamp2Pos.y - yFloor;
+    const s3 = shelf(lamp2W - 0.45 * k, lamp2W + 0.35 * k, lamp2Y - 0.42 * k);
+    jar(lamp2W - 0.28 * k, s3, 0.1 * k, 0.22 * k, glazes[1]);
+    roundPot(lamp2W - 0.02 * k, s3, 0.11 * k, glazes[0]);
+    bottle(lamp2W + 0.22 * k, s3, 0.045 * k, 0.3 * k, glazes[3]);
+    const propsGeo = merge(props);
+    const pos = propsGeo.attributes.position;
+    const _g = new Vector3();
+    setFloatAttribute(propsGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+    const propsMesh = new Mesh(propsGeo, propsMat);
+    propsMesh.name = 'interior-props';
+    propsMesh.receiveShadow = true;
+    group.add(propsMesh);
+  }
+
   // ---- door frame: a sill beam only. Round 12 drops round 11's posts and lintel — the thin
   // dark timber outline round the opening read in B as a neat frame; the reference opening has
   // none, its edge is bark rounding into the root lips ----
@@ -953,17 +1120,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const block = new BoxGeometry(0.22 * k, 0.5 * k, 0.22 * k);
     block.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.25 * k, tableD), F));
     setColorAttribute(block, [0.16, 0.15, 0.14]);
-    // a shelf on the back wall left (sheet 04: shelves inside), a dark ledge the lamp glow catches
-    const shelfW = doorW0 + 0.3 * k;
-    const shelf = new BoxGeometry(0.9 * k, 0.04 * k, 0.22 * k);
-    shelf.applyMatrix4(basisMatrix(frame.door(shelfW, doorTop - 0.3 * sk, roomBackD(shelfW) + 0.13 * k), F));
-    setColorAttribute(shelf, [0.24, 0.22, 0.2]);
+    // (round 12's single dark shelf up by the lamp is replaced by round 13's stocked shelves in
+    // the room material, see `interior-props`)
     // ember ring: a low stone kerb round the glow
     const kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
     kerb.rotateX(Math.PI / 2);
     kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
     setColorAttribute(kerb, [0.18, 0.18, 0.18]);
-    const furnitureMesh = new Mesh(merge([slab, block, shelf, kerb]), mats.woodDark);
+    const furnitureMesh = new Mesh(merge([slab, block, kerb]), mats.woodDark);
     furnitureMesh.name = 'door-lamp-cord';
     group.add(furnitureMesh);
     // the embers themselves (dim orange) and a small soft pink-amber halo facing the door — kept
@@ -1007,35 +1171,137 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   group.add(emberLight);
   lights.push(emberLight);
 
-  // ---- round window: socket + glow + wooden ring ----
+  // ---- round window (round 13, board 04 "window detail"): a bark collar rolling into the
+  // hole, a socket bored into the trunk whose back glows amber — the unlit window-glow material
+  // the round 8–12 porthole used, with a vertex-colour gradient (a lamp's pool at the back's
+  // centre, the socket's walls dimming to its mouth) so it reads as a lit hole, not a flat disc;
+  // the room material's lit-by-the-lamps glow is far too faint out here on the flank, 4 m from
+  // the nearest lamp — a wooden cross frame set a hand into the socket, moss on the collar's top
+  // and vines trailing off it ----
+  const winCentre = frame.at(winA, rSmooth(winA, winY) + WIN_STANDOFF, winY);
+  /** the turned face's normal and its horizontal tangent towards the door */
+  const winO = frame.dir(winA + WIN_TILT);
+  const winT = new Vector3().crossVectors(new Vector3(0, 1, 0), winO).normalize();
+  /** buttress roots, root lips and the window's bark collar — one bark mesh */
+  const rootParts: BufferGeometry[] = [];
   {
-    const O = frame.dir(winA);
-    const surf = frame.at(winA, rSmooth(winA, winY) + 0.02, winY);
-    // shallow socket: B and A look at this flank at 50–60° off its normal, so a deep socket
-    // would hide the glow behind its near rim
-    const socketD = 0.08 * k;
-    const socket = new CylinderGeometry(winR, winR, socketD + 0.1, 24, 1, true);
+    const O = winO;
+    const T = winT;
+    const up = new Vector3(0, 1, 0);
+    const surf = winCentre.clone();
+    // B looks at the turned face ≈ 40° off its normal. The hole is bored obliquely — its axis
+    // leans a further 0.62 rad towards the door, i.e. nearly along B's line of sight — and is
+    // 0.15 m deep, so from B the whole glowing back shows through the mouth (at 0.35 rad the
+    // door-side wall of the bore covered the right third of the glow, a D not a disc) while
+    // from the flank the rim still reads as a hole in the trunk
+    const socketD = 0.15 * k;
+    const lean = Math.tan(0.62);
+    /** local x of basisMatrix(·, O) is the tangent towards the door; shear each ring towards it
+     *  by its depth into the trunk (local −z) */
+    const shear = new Matrix4().set(1, 0, -lean, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    const winParts: BufferGeometry[] = [];
+    const socket = new CylinderGeometry(winR, winR * 0.94, socketD + 0.1, 28, 1, true);
     socket.rotateX(Math.PI / 2);
-    socket.applyMatrix4(basisMatrix(surf.clone().addScaledVector(O, -(socketD + 0.1) / 2 + 0.02), O));
-    const socketMesh = new Mesh(socket, mats.interior);
-    socketMesh.name = 'window-socket';
-    group.add(socketMesh);
-    const glass = new CircleGeometry(winR, 24);
-    glass.applyMatrix4(basisMatrix(surf.clone().addScaledVector(O, -socketD), O));
-    const glassMesh = new Mesh(glass, mats.windowGlow);
-    glassMesh.name = 'window-glow';
-    group.add(glassMesh);
-    const ring = new TorusGeometry(winR + 0.03, 0.065, 8, 28);
-    ring.applyMatrix4(basisMatrix(surf.clone().addScaledVector(O, 0.02), O));
-    const ringMesh = new Mesh(ring, mats.woodDark);
-    ringMesh.name = 'window-frame';
-    ringMesh.castShadow = ringMesh.receiveShadow = true;
-    group.add(ringMesh);
+    // the cylinder is centred 0.03 proud of the surface; move it so the shear is about the mouth
+    socket.translate(0, 0, -(socketD + 0.1) / 2 + 0.03);
+    socket.applyMatrix4(shear);
+    socket.applyMatrix4(basisMatrix(surf, O));
+    winParts.push(socket);
+    const back = new CircleGeometry(winR * 0.95, 28);
+    back.applyMatrix4(basisMatrix(surf.clone().addScaledVector(O, -socketD).addScaledVector(T, socketD * lean), O));
+    winParts.push(back);
+    const winGeo = merge(winParts);
+    {
+      // the glow: brightest at the back's centre (a lamp in the room behind it), the back's edge
+      // at 0.6 and the socket's walls dimming from there to 0.3 at the mouth
+      const pos = winGeo.attributes.position;
+      const _w = new Vector3();
+      const backC = winCentre.clone().addScaledVector(O, -socketD).addScaledVector(T, socketD * lean);
+      setColorAttribute(winGeo, (i) => {
+        _w.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+        const depth = clamp(-_w.clone().sub(winCentre).dot(O) / socketD, 0, 1);
+        const radial = clamp(_w.sub(backC).length() / winR, 0, 1);
+        const g = depth >= 0.98 ? lerp(1, 0.6, radial * radial) : lerp(0.3, 0.6, depth);
+        return [g, g * (0.97 - 0.04 * g), g * (0.9 - 0.08 * g)];
+      });
+    }
+    const winGlowMat = mats.windowGlow.clone();
+    winGlowMat.vertexColors = true;
+    materials.push(winGlowMat);
+    const winMesh = new Mesh(winGeo, winGlowMat);
+    winMesh.name = 'window-socket';
+    group.add(winMesh);
+    // cross frame: two rough branch bars, a little irregular, set 8 cm into the socket
+    const barParts: BufferGeometry[] = [];
+    const barC = surf.clone().addScaledVector(O, -0.08 * k).addScaledVector(T, 0.08 * k * lean);
+    for (const axis of [new Vector3(0, 1, 0), T]) {
+      const bar = new CylinderGeometry(0.05 * sk, 0.045 * sk, 2 * winR + 0.1, 8, 1);
+      // CylinderGeometry stands along +y; basisMatrix maps local +z → axis, so turn y onto z first
+      bar.rotateX(Math.PI / 2);
+      bar.applyMatrix4(basisMatrix(barC, axis));
+      setColorAttribute(bar, [0.55, 0.5, 0.42]);
+      barParts.push(bar);
+    }
+    const barsMesh = new Mesh(merge(barParts), mats.woodDark);
+    barsMesh.name = 'window-frame';
+    barsMesh.castShadow = barsMesh.receiveShadow = true;
+    group.add(barsMesh);
+    // bark collar: a knobbly ring of the trunk's bark rolling over the hole's edge
+    const collarPts: Vector3[] = [];
+    for (let i = 0; i <= 24; i++) {
+      const t = (i / 24) * TAU;
+      collarPts.push(surf.clone().addScaledVector(up, Math.cos(t) * (winR + 0.05 * k)).addScaledVector(T, Math.sin(t) * (winR + 0.05 * k)).addScaledVector(O, -0.03 * k + 0.02 * k * Math.cos(t)));
+    }
+    const collarCurve = new CatmullRomCurve3(collarPts, true, 'catmullrom', 0.5);
+    let collarCrest = 0;
+    const collar = sweepTube(collarCurve, {
+      radius: (t) => 0.11 * k * (1 + 0.15 * Math.sin(t * TAU * 5 + 1) + 0.08 * Math.sin(t * TAU * 13)),
+      tubularSegments: 40,
+      radialSegments: 9,
+      uvMetres: 1.2,
+      displace: (t, ang) => {
+        collarCrest = noise.ridged(ang * 1.3 + t * 9, t * 4 + 3, 2) - 0.5;
+        return collarCrest * 0.035 * k;
+      },
+      color: (t, ang) => {
+        const d = 0.7 * (0.85 + 0.2 * Math.max(0, Math.sin(ang))) * (1 + 0.4 * clamp(collarCrest * 2.4, -1, 1));
+        return [d, d * 0.95, d * 0.88];
+      },
+    });
+    rootParts.push(mossOnTop(collar, [0.5, 0.64, 0.3], 0.5, noise));
+    // the boss: a bark skirt from under the collar out to the trunk — on the far side a burl
+    // standing ≈ 0.4 m off the wall, on the door side a shallow funnel — whose foot tucks under
+    // the shell's opening (winHoleR, the shell is smooth there: `detail` fades out round the hole)
+    const skirtR0 = winR + 0.02 * k;
+    const skirtR1 = winR + 0.42 * k;
+    const rsW = rSmooth(winA, winY);
+    const O0 = frame.dir(winA);
+    let skirtCrest = 0;
+    const skirt = gridSurface(
+      (u, v, out) => {
+        const t = u * TAU;
+        const ct = Math.cos(t);
+        const st = Math.sin(t);
+        const inner = surf.clone().addScaledVector(up, ct * skirtR0).addScaledVector(T, st * skirtR0).addScaledVector(O, -0.07 * k);
+        const aO = winA + (st * skirtR1) / rsW;
+        const yO = winY + ct * skirtR1;
+        const outer = frame.at(aO, rSmooth(aO, yO) - 0.06 * k, yO);
+        const s = smoothstep(0, 1, v);
+        out.position.copy(inner).lerp(outer, s);
+        skirtCrest = noise.ridged(t * 2.5 + 7, v * 3 + 1, 2) - 0.5;
+        out.position.addScaledVector(O0, skirtCrest * 0.03 * k * Math.sin(v * Math.PI));
+        out.uv = [(t * skirtR1) / 1.2, (v * 0.4) / 1.2];
+        const d = 0.7 * (0.85 + 0.2 * Math.max(0, ct)) * (1 + 0.4 * clamp(skirtCrest * 2.4, -1, 1)) * lerp(0.9, 1, s);
+        out.color = [d, d * 0.95, d * 0.88];
+      },
+      // u runs up → towards the door, v inner → outer: dv × du points into the trunk; flip
+      { cols: 36, rows: 4, closedU: true, flip: true },
+    );
+    rootParts.push(mossOnTop(skirt, [0.5, 0.64, 0.3], 0.35, noise));
   }
 
   // ---- buttress roots seated on the terrain ----
   const bases: [number, number, number][] = [];
-  const rootParts = [];
   const rootCount = def.id === 'saria' ? 6 : 5;
   const rootRng = rng.fork('roots');
   for (let i = 0; i < rootCount; i++) {
@@ -1126,6 +1392,81 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       capEnd: true,
     });
     rootParts.push(mossOnTop(lip, [0.5, 0.64, 0.3], 0.35, noise));
+    bases.push([foot.x, foot.y, foot.z]);
+  }
+  // ---- branch pillars (round 13; board 03 "natural wooden supports (branches)", board 04
+  // "wooden branch pillars support the entrance"): two curved living-branch posts stand just
+  // outside the root lips — feet on the ground a step in front of the lips' feet, leaning in a
+  // little as they rise past the lip to the cap's underside, where each sinks into the soffit
+  // and throws a short fork up into the rim. In B the left one stands on the lip's outer edge
+  // (foot (0.685, 0.58) → rim (0.71, 0.34)) and the right one at 0.85–0.88, where the reference
+  // has its thick right root, so they read as more of the root mass rather than as a separate
+  // colonnade. Same bark as the lips, knuckled, ridged, mossy on top. (Feet 0.5 m outside the
+  // jambs: the first probe's 0.84 m put the left post over the round window.) ----
+  const pillarRng = rng.fork('pillars');
+  const pillarTops: { top: Vector3; foot: P3; side: -1 | 1 }[] = [];
+  for (const side of [-1, 1] as const) {
+    const jamb = side < 0 ? doorW0 : doorW1;
+    const jit6 = () => (pillarRng() - 0.5) * 0.06 * k;
+    const wBase = jamb + side * 0.5 * k;
+    const dBase = dOut(wBase, 0) + 0.6 * k;
+    const foot = frame.door(wBase, 0, dBase);
+    foot.y = terrain.height(foot.x, foot.z);
+    // meets the cap's underside 0.3 m inside the rim's edge, roughly above the foot
+    const aTop = Math.atan2(wBase - side * 0.25 * k, dBase - 0.3 * k);
+    const rTop = capR(aTop) - capInset - 0.3 * k;
+    // the soffit is flat at rollBottom less the sag; the post's end sits 0.12 m up inside it
+    const top = frame.at(aTop, rTop, rollBottom - sagAt(aTop) + 0.12 * k);
+    const pts = [
+      foot.clone().setY(foot.y - 0.3 * k),
+      foot,
+      frame.door(wBase + side * 0.1 * k + jit6(), 0.9 * k, dBase + 0.05 * k + jit6()),
+      frame.door(wBase - side * 0.04 * k + jit6(), 1.9 * k, dBase - 0.05 * k + jit6()),
+      top.clone().lerp(foot, 0.22).add(new Vector3(jit6(), 0, jit6())),
+      top,
+    ];
+    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    const pillarR = (t: number) => (0.17 - 0.05 * t) * k * (1 + 0.12 * Math.sin(t * 13 + side * 2) + 0.06 * Math.sin(t * 31 + side));
+    let pillarCrest = 0;
+    const post = sweepTube(curve, {
+      radius: pillarR,
+      tubularSegments: 26,
+      radialSegments: 10,
+      uvMetres: 1.4,
+      displace: (t, ang, pos) => {
+        pillarCrest = noise.ridged(ang * 1.5 + side * 4.1, t * 7 + pos.y * 0.4, 2) - 0.5;
+        return pillarCrest * 0.035 * k;
+      },
+      color: (t, ang) => {
+        // the same shade curve as the lips: lit crests, dark furrows, darker under the rim
+        const crest = clamp(pillarCrest * 2.4, -1, 1);
+        const d = lerp(0.58, 0.4, smoothstep(0.55, 1, t)) * (0.78 + 0.28 * Math.max(0, Math.sin(ang))) * (1 + 0.45 * crest);
+        return [d, d * 0.95, d * 0.88];
+      },
+      capEnd: true,
+    });
+    rootParts.push(mossOnTop(post, [0.5, 0.64, 0.3], 0.45, noise));
+    // the fork: a short branch from the post's upper third, up into the rim — outward on the
+    // right, inward (towards the door) on the left, where an outward fork crossed the round
+    // window's top right in B
+    const forkFrom = curve.getPointAt(0.72);
+    const forkA = aTop + (side < 0 ? 0.08 : 0.12);
+    const forkTo = frame.at(forkA, capR(forkA) - capInset + 0.05 * k, rollBottom - sagAt(forkA) + 0.1 * k);
+    const forkMid = forkFrom.clone().lerp(forkTo, 0.5).add(new Vector3(jit6(), -0.12 * k, jit6()));
+    const fork = sweepTube(new CatmullRomCurve3([forkFrom, forkMid, forkTo], false, 'catmullrom', 0.5), {
+      radius: (t) => (0.075 - 0.035 * t) * k * (1 + 0.1 * Math.sin(t * 17)),
+      tubularSegments: 10,
+      radialSegments: 8,
+      uvMetres: 1.2,
+      displace: (t, ang) => (noise.ridged(ang * 1.5 + 5, t * 6, 2) - 0.5) * 0.015 * k,
+      color: (t, ang) => {
+        const d = 0.5 * (0.8 + 0.25 * Math.max(0, Math.sin(ang)));
+        return [d, d * 0.95, d * 0.88];
+      },
+      capEnd: true,
+    });
+    rootParts.push(fork);
+    pillarTops.push({ top: curve.getPointAt(0.85), foot: [foot.x, foot.y, foot.z], side });
     bases.push([foot.x, foot.y, foot.z]);
   }
   const rootsMesh = new Mesh(merge(rootParts), mats.bark);
@@ -1367,7 +1708,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     { cols: 72, rows: 3, closedU: true },
   );
   faceTowards(soffit, (p, o) => o.set(p.x, p.y - 5, p.z));
-  const roofMesh = new Mesh(domeMoss, mats.moss);
+  // round 13: the cap's own moss material — procedural clump-and-grain normals, no straw stalks
+  // (the shared `moss` binds the thatch normal map; the roots, limbs and threshold keep it)
+  const roofMesh = new Mesh(domeMoss, mats.capMoss);
   roofMesh.name = 'roof';
   roofMesh.castShadow = roofMesh.receiveShadow = true;
   group.add(roofMesh);
@@ -1892,10 +2235,105 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     lights.push(lanternLight);
   }
 
+  // ---- round 13: plants on the cap (board 03 "moss-covered roof with plants"): grass tufts
+  // along the front rim, ferns on the shoulders where B sees them, loose clusters of small white
+  // flowers over the moss, trailing vines over the rim on the flanks; moss and vines round the
+  // window and off the pillar tops. Drawn from their own stream, after the pods' vines, so every
+  // round-12 plant, clump, vine and pod keeps its place. ----
+  const capRng = rng.fork('cap-plants');
+  let flowerCount = 0;
+  {
+    // grass tufts standing on the rim's shoulder across the front
+    const rimTufts = def.id === 'saria' ? 14 : 8;
+    for (let i = 0; i < rimTufts; i++) {
+      const a = -1.9 + (i / (rimTufts - 1)) * 3.8 + (capRng() - 0.5) * 0.2;
+      const v = 0.6 + capRng() * 0.1;
+      const p = surfacePoint(a, v, -0.02);
+      const n = domeNormal(a, v);
+      n.y += 0.8;
+      n.normalize();
+      foliage.addTuft(p, n, (0.3 + capRng() * 0.14) * sk, 0, 0.07, [0.78, 0.74, 0.42]);
+    }
+    // ferns on the front shoulders, the faces B looks at
+    const capFerns: [number, number][] = def.id === 'saria' ? [[-0.55, 0.5], [-1.1, 0.56], [0.35, 0.47], [0.95, 0.55], [-0.15, 0.61]] : [[-0.6, 0.5], [0.6, 0.5], [0.1, 0.6]];
+    for (const [a0, v0] of capFerns) {
+      const a = a0 + (capRng() - 0.5) * 0.1;
+      const v = v0 + (capRng() - 0.5) * 0.04;
+      const p = surfacePoint(a, v, -0.04);
+      const n = domeNormal(a, v);
+      n.y += 0.7;
+      n.normalize();
+      foliage.addTuft(p, n, (0.62 + capRng() * 0.18) * sk, 1, 0.06, [0.7, 0.84, 0.5]);
+    }
+    // white flowers in loose clusters over the shoulders and crown (heads 8–11 cm: pale specks
+    // at B's distance, as board 03 scatters them)
+    const flowerClusters = def.id === 'saria' ? 18 : 7;
+    for (let i = 0; i < flowerClusters; i++) {
+      const a = capRng() * TAU;
+      const v = 0.15 + capRng() * 0.55;
+      const heads = 4 + Math.floor(capRng() * 5);
+      const spread = (0.14 + capRng() * 0.14) * sk;
+      for (let j = 0; j < heads; j++) {
+        const aj = a + ((capRng() - 0.5) * 2 * spread) / Math.max(0.5, capR(a) * (v / V_CAP));
+        const vj = clamp(v + (capRng() - 0.5) * 0.05, 0.05, 0.7);
+        const p = surfacePoint(aj, vj, 0.02);
+        const n = domeNormal(aj, vj);
+        foliage.addFlower(p, n, (0.08 + capRng() * 0.03) * sk, (0.04 + capRng() * 0.05) * sk, 0.05, [1, 1, 0.94]);
+        flowerCount++;
+      }
+    }
+    // long vines trailing over the rim on the flanks (the strands over the door stay short)
+    const trailing: number[] = def.id === 'saria' ? [-0.95, -1.45, -2.0, 0.95, 1.4, 2.05] : [-1.2, 1.2, 2.4];
+    for (const a0 of trailing) {
+      const a = a0 + (capRng() - 0.5) * 0.15;
+      const hook = surfacePoint(a, 0.9, -0.03);
+      hook.y -= 0.08 * k;
+      foliage.addHangingVine(hook, (1.0 + capRng() * 0.6) * k, { amount: 0.1 });
+    }
+    // the window: moss on the collar's crown, vines off its upper sides (board 04 "surrounded by
+    // moss and vines"), kept off the glow itself
+    {
+      const O = winO;
+      const T = winT;
+      const crown = winCentre.clone().addScaledVector(O, 0.1 * k);
+      crown.y += winR + 0.12 * k;
+      foliage.addLeafCluster(crown, 0.2 * k, 16, { size: 0.13 * sk, amount: 0.05, droop: 0.7, tint: [0.4, 0.5, 0.14], tintSpread: 0.25, flatten: 0.4 });
+      for (const th of [-1.15, -0.75, 0.8, 1.2]) {
+        const hook = winCentre.clone().addScaledVector(O, 0.1 * k).addScaledVector(T, Math.sin(th) * (winR + 0.08 * k));
+        hook.y += Math.cos(th) * (winR + 0.08 * k);
+        foliage.addHangingVine(hook, (0.45 + capRng() * 0.45) * k, { amount: 0.08 });
+      }
+    }
+    // the pillar tops: a vine or two off each fork, a few leaves where it meets the rim
+    for (const pt of pillarTops) {
+      for (let i = 0; i < 2; i++) {
+        const hook = pt.top.clone().add(new Vector3((capRng() - 0.5) * 0.2, -0.05 * k, (capRng() - 0.5) * 0.2));
+        foliage.addHangingVine(hook, (0.4 + capRng() * 0.5) * k, { amount: 0.08 });
+      }
+    }
+  }
+
   for (const m of foliage.build(mats, `house-${def.id}`)) group.add(m);
 
   // draped limbs + arc bough + broken stub + right limb + chimney
   const hearthFloor = Math.max(yFloor + roomFloorY, terrain.height(hearthPos.x, hearthPos.z) + 0.05);
   const hearthClearance = hearthPos.y - 0.14 * k - 0.05 * k - hearthFloor;
-  return { group, bases, lanterns, lights, materials, roots: rootCount + 2, branches: branchDefs.length + 4, leaves: foliage.leafCount, eave, door, cap, hearthClearance };
+  return {
+    group,
+    bases,
+    lanterns,
+    lights,
+    materials,
+    roots: rootCount + 2,
+    branches: branchDefs.length + 4,
+    leaves: foliage.leafCount,
+    eave,
+    door,
+    cap,
+    hearthClearance,
+    window: { centre: winCentre.toArray() as P3, radius: winR, height: winY },
+    pillars: pillarTops.map((p) => ({ foot: p.foot, top: p.top.toArray() as P3 })),
+    flowers: flowerCount,
+    props: propCount,
+  };
 }

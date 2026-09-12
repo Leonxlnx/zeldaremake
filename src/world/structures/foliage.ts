@@ -34,10 +34,12 @@ export class FoliageBuilder {
   private leaves: BufferGeometry[] = [];
   private stems: BufferGeometry[] = [];
   private tufts: BufferGeometry[] = [];
+  private flowers: BufferGeometry[] = [];
   private noise: Noise2D;
   leafCount = 0;
   tuftCount = 0;
   vineCount = 0;
+  flowerCount = 0;
   /** linear-space tint around 1 so the leaf texture keeps its brightness */
   private leafBase = new Color().setRGB(1.0, 1.04, 0.86);
 
@@ -202,7 +204,34 @@ export class FoliageBuilder {
     this.tuftCount++;
   }
 
-  /** Merge everything into up to three meshes. */
+  /**
+   * A small flower head: one card facing along `normal`, spun at random about it, lifted
+   * `lift` metres off `pos` on the growing side (the stem is not drawn — at scene distances a
+   * flower is a pale speck, and the card's own size carries it). `tint` multiplies the white.
+   */
+  addFlower(pos: Vector3, normal: Vector3, size: number, lift: number, amount = 0.04, tint: [number, number, number] = [1, 1, 1]): void {
+    const s = size * (0.85 + this.rng() * 0.3);
+    const g = quad(s, s, { bend: 0.1, segments: 2 });
+    g.translate(0, -s / 2, 0);
+    _dir.copy(normal).normalize();
+    // the card tilts a little off the normal so the heads do not all face the same way
+    _dir.x += (this.rng() - 0.5) * 0.5;
+    _dir.z += (this.rng() - 0.5) * 0.5;
+    _dir.normalize();
+    _q.setFromUnitVectors(new Vector3(0, 0, 1), _dir);
+    _q2.setFromAxisAngle(_dir, this.rng() * Math.PI * 2);
+    _q2.multiply(_q);
+    _s.set(1, 1, 1);
+    _m.compose(pos.clone().addScaledVector(_dir, lift), _q2, _s);
+    g.applyMatrix4(_m);
+    setFloatAttribute(g, 'aPhase', this.rng() * Math.PI * 2);
+    setFloatAttribute(g, 'aAmount', amount);
+    setColorAttribute(g, tint);
+    this.flowers.push(g);
+    this.flowerCount++;
+  }
+
+  /** Merge everything into up to four meshes. */
   build(mats: StructureMaterials, namePrefix: string): Mesh[] {
     const out: Mesh[] = [];
     if (this.leaves.length) {
@@ -226,9 +255,17 @@ export class FoliageBuilder {
       m.receiveShadow = true;
       out.push(m);
     }
+    if (this.flowers.length) {
+      const m = new Mesh(merge(this.flowers), mats.flower);
+      m.name = `${namePrefix}-flowers`;
+      m.castShadow = false;
+      m.receiveShadow = true;
+      out.push(m);
+    }
     this.leaves = [];
     this.stems = [];
     this.tufts = [];
+    this.flowers = [];
     return out;
   }
 }

@@ -168,6 +168,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** Saria's cap silhouette (rim ring, crown top, overhang, straw share), now and at ×1.0 */
     houseCap: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.cap,
     hearthClearance: houses.map((h) => +h.hearthClearance.toFixed(3)),
+    /** Saria's round window (round 13): wall-surface centre, clear radius, height above her floor */
+    houseWindow: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.window,
+    /** Saria's branch pillars: feet on the terrain and rim ends (world) */
+    housePillars: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.pillars,
+    /** flower heads on the caps / pots and bottles on the shelves, all houses */
+    houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
+    houseProps: houses.reduce((n, h) => n + h.props, 0),
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,
