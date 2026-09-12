@@ -1,6 +1,6 @@
 {
-  "source": "aeb6374066373bf5c1eaaeb0c2de8580baff9aed",
-  "capturedAt": "2026-09-12T00:20:46.991Z",
+  "source": "579078ca77b7af846f4805c27fbfecf21c784d72",
+  "capturedAt": "2026-09-12T00:26:21.250Z",
   "captures": [
     {
       "name": "01-idle",
@@ -206,7 +206,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "9c646167eb9c749487b68d033e9be384ea7fa7400493bdfdae3713a6a99c2db4"
+      "sha256": "92ef910ffde520295ccd2a5b6e39713e2162be58195fc2e1723200b17f01a612"
     },
     {
       "name": "02-walk",
@@ -415,7 +415,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "140de3955bd98e9d7d3aaa0bda16b1bad900b319097ae5f891d694f295671e53"
+      "sha256": "66d9a704fe2389b525148331bda650703b1d1bacb21cf463979631461a1f9429"
     },
     {
       "name": "03-run",
@@ -633,7 +633,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "fad6d6c63468b323e1f4108c7212ca625f241f7d32f3c8ecb0cdab1bfb811012"
+      "sha256": "3f16cbcb3b4e698f3a280460a3c58f24ffeb99316d2e55503df3cb5ec3d1ef2c"
     },
     {
       "name": "04-jump",
@@ -845,7 +845,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5ebed679fd48b70e4699ed5fe32080cbf63030f39bf0b6a321aa52ac2cb0e2c0"
+      "sha256": "94f72964c8617cd37c966cbe4f4629ecefdb44e78bc8db688251c198bd99fb89"
     },
     {
       "name": "05-outfit-back",
@@ -1058,7 +1058,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "3d5ecfcb0b95d9ba09815f1134524408bf7feb4172658d12c470e18d2032df48"
+      "sha256": "2c61c71fab07e250060f6912022b0d06be0c87c0b73894d6f6e2ba77971892b0"
     },
     {
       "name": "06-face-detail",
@@ -1265,7 +1265,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "b52608aa9c55aa867e8278084a1cf65123382ba5b97747f03e86eef47c32e8a8"
+      "sha256": "9787b6c22c7bddb3b212c2e0de9a83c74b21749c74f262dc2d104403336acce6"
     },
     {
       "name": "07-leaf-lantern",
@@ -2087,7 +2087,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "663453b2ec546f754e9dd785cfe1092dff4861c3bfed07b5eb98a344242643b3"
+      "sha256": "d76260e66f50da5993ece6a2ff40cd8892a5463bbde6960bfa959fb98cd30aa5"
     },
     {
       "name": "11-stone-stairway",
@@ -2300,7 +2300,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "aaa62e1b56fd1b933a7c702edc8eba7c27068e0ca4fca38e0778e4cda5f1889a"
+      "sha256": "684590eb496609e032ee8e78b7fbae3240fbff889f933b398870ec4881de443f"
     },
     {
       "name": "12-face-profile",
@@ -2512,8 +2512,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "retries": 0,
-      "sha256": "57ecc7fd9a1b1a5fcc469491e9c7a67190f647280fb5877a25f6af5090c84aa4"
+      "retries": 1,
+      "sha256": "94eeff69b28e233949abb152571733afe5e5b786660552748aec708f78b2dd09"
     },
     {
       "name": "13-backpack-detail",
@@ -3141,7 +3141,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "8c516e8fa601160762635c3b94e0082f87014b317434aeea6021327b1a140f78"
+      "sha256": "44b4e62842749e98fc55532b99ad8df4becf4c8fa6ab36803691c4251acfe871"
     },
     {
       "name": "16-run-jump-launch-rear-quarter",
@@ -3550,7 +3550,7 @@
         ]
       },
       "retries": 0,
-      "sha256": "0cd6737b5e23a78b0b8a73ca0035dd70041df94148164a999c7b45bfb0742662"
+      "sha256": "3ad780fd807d6c92135fd67a75d5010c39e12b9f1da3ed0413a2e54862b52fcc"
     },
     {
       "name": "17-face-blink-transition",
@@ -3758,7 +3758,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "1c905f9b70432078530adabddf2668ef7351025511bea0ff4c6866d894630d41"
+      "sha256": "407dc9b917701154458e299552d1ca99837e3e809e04a30cae0877322212b526"
     },
     {
       "name": "18-face-blink-narrow",
@@ -3966,7 +3966,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "6536d880ab9e78d97cc0c49577b07e161618ebbcbb233cb678dc075117980215"
+      "sha256": "b25aabcd6bba59a230bfc973bad5c472278e806aea918e50135edb26dd68c475"
     }
   ],
   "errors": [],
