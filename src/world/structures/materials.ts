@@ -21,8 +21,47 @@ import {
   type WebGLProgramParametersWithUniforms,
 } from 'three';
 import type { WorldContext } from '../system';
-import { GIANT_BARK_FLOOR, applyShadeFloor } from '../materials/shadeFloor';
+import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
 import { WIND_GLSL } from '../wind/wind';
+
+/**
+ * Shade floors for the structures' bark (round 11). The giants' preset (lift 7, flat, leaf-
+ * filtered, half desaturated) is calibrated for trunks 10–30 m away, seen through the haze as
+ * smooth grey-green columns. Saria's house stands 5–8 m from camera B and its bark is the
+ * reference's warm dark brown: the door-frame lips measure rgb(109,94,74) / rgb(112,88,67) —
+ * lum 0.36–0.38, hue 27–34°, sat 0.32–0.40 — and the shadow band under the moss overhang
+ * rgb(87,73,54), lum 0.29, hue 35°. Under the giants' floor those read lum 0.34–0.38 but hue
+ * 47–57° at sat 0.26 (pale grey-green concrete), because the floor's light is leaf-filtered and
+ * 75 % of its albedo is a flat grey. So the house keeps a luminance floor but takes its hue from
+ * the bark: `texture` 0.4 lets the bark map and the vertex shading (dark bough, dark soffit)
+ * through, `canopy` 1 with `HOUSE_BARK_TINT` as the "leaf" colour tints the floor's light
+ * toward the measured lip bark instead of the leaf sun, `chroma` 1 keeps that tint, and the
+ * lift (6.3) is set so the door-frame lips land on the reference luminance (probes: lift 4 /
+ * texture 0.6 hit the hue, 35°, but read 0.09 too dark; 5.2 / 0.5 read 0.31 on the left lip,
+ * 0.065 under; 6 / 0.4 read 0.33 / 33° there; 7 / 0.3 read 0.35 / 31° but lifted the shadow
+ * band under the moss to 0.36 against the reference's 0.31 — the darker `texture` share is what
+ * keeps the bough and roll dark under the floor. The shaded right pillar is lit by the ambient,
+ * not the floor, so its warmth comes from its vertex tint in house.ts).
+ */
+export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 6.3, texture: 0.4, canopy: 1, albedo: 0.08, chroma: 1 };
+/** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
+ *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
+ *  the target (hue 27°) to land between the two lips */
+export const HOUSE_BARK_TINT = 0x70553f;
+/**
+ * The lantern limb's sleeve: the reference bough (A top-left, 0.04–0.20 × 0.335–0.385) is hazed
+ * grey-olive bark, rgb(90,88,75) — lum 0.34, hue 52°, sat 0.17 — darker and browner than the
+ * giants' floor made ours (lum 0.43, hue 62°), and in B's top band the reference limb is hazed
+ * grey-olive, rgb(109,110,96) — hue 62°, sat 0.13. So: mostly flat albedo (`texture` 0.3, the
+ * sleeve's own vertex shading is dark), a grey-olive tint and half chroma, with the lift set so
+ * the dark sleeve bark lands near the giants' limb brightness (probes: lift 3 / texture 0.55 /
+ * tint 40° read lum 0.16, hue 35°; lift 6.5 / 0.5 / 54° read 0.23, 42° — the warm bark map
+ * pulls the hue ~10° below the tint).
+ */
+export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 9, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
+/** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
+ *  reference bough's 52° */
+export const LIMB_BARK_TINT = 0x6c6e48;
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -31,6 +70,8 @@ export interface StructureMaterials {
   barkPale: MeshStandardMaterial;
   /** log arch outer bark (bark_brown_02, dark weathered grey-brown; vertex tint carries ridge/furrow shading + moss) */
   logBark: MeshStandardMaterial;
+  /** the lantern limb's bark sleeve: `bark` with its own (olive-brown, lower) shade floor */
+  sleeveBark: MeshStandardMaterial;
   /** house interiors seen through the door: near-black warm wood so the opening reads dark */
   interior: MeshStandardMaterial;
   /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
@@ -518,16 +559,20 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const runes = new MeshStandardMaterial({ map: runeTexture(rng), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
 
-  // Shade floor (materials/shadeFloor.ts) on every bark that stands against the giants — the
-  // lantern limb's sleeve, the house trunk / roots / porch / eave roll / support boughs, the
-  // lantern posts and rope-fence posts (all `bark`), the pale draped limbs and the log arch: the
-  // reference's shaded wood is the same hazed grey-green everywhere, where a Lambert response to
-  // the hemisphere alone leaves these dark orange-brown. The floor only lifts faces below it, so
-  // the sunlit rims are untouched. Applied last: these materials have no other compile hooks, and
-  // `applyShadeFloor` chains onto whatever hook a material already carries; clones would need
-  // their own call (none of these are cloned).
-  for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, GIANT_BARK_FLOOR, P.leafSun);
+  // Shade floors (materials/shadeFloor.ts) on every bark that stands in the roof's shade, where
+  // a Lambert response to the hemisphere alone leaves it near-black orange-brown: the house
+  // trunk / roots / porch / eave roll / support boughs, the lantern posts and rope-fence posts
+  // (all `bark`), the pale draped limbs and the log arch take the house preset (warm, textured,
+  // lift 4 — see HOUSE_BARK_FLOOR); the lantern limb's sleeve is a clone of `bark` with its own
+  // olive-brown, lower floor (a clone does not carry compile hooks, so it gets its own call).
+  // The floors only lift faces below them, so the sunlit rims are untouched. Applied last: these
+  // materials have no other compile hooks, and `applyShadeFloor` chains onto whatever hook a
+  // material already carries.
+  const sleeveBark = bark.clone();
+  sleeveBark.name = 'structures:sleeve-bark';
+  for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, sleeveBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
 }

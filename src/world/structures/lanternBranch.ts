@@ -13,14 +13,17 @@
  *     sweep's own ring centres and nominal radii as `ctx.shared.lanternLimb` (a `TubePath`; s = 0
  *     at `from`, 1 at `to`, wiggle and sag included) — with a circular section of the limb's
  *     radius plus a 1.5 cm bark relief in the plane normal to the local tangent, sagging below
- *     it in three knees, with ridged bark raised outward; the sleeve tapers into the limb at both
- *     ends, so the giant's own bark carries on toward the trunk and past the tip. Until round 10
- *     the sleeve was a straight tube around the layout axis whose section had to enclose the
- *     whole wiggle box (±0.12 m across, ±0.05 m vertically) plus a bump allowance, and it read in
- *     shot B as a heavy dark beam ~1.7 × the limb; the reference limb there is ~0.4 m thick under
- *     dense foliage. When the trees have not published the path (`lanternLimb` undefined) the
- *     sleeve falls back to the layout axis with the giant builder's nominal sag and radius taper
- *     (audit `wrapSource`: 'shared' | 'layout');
+ *     it in three knees, with ridged bark raised outward. Round 11: the sleeve runs the whole
+ *     published limb (`range`, trunk junction to tip — s ≈ −1.3 … 1.3), tapering into the limb
+ *     only over its last 0.06 of s at each end; until then it stopped at `from` / `to` and, once
+ *     its bark took the house's warm floor, the giant's grey-green bark beyond showed as a hard
+ *     seam in A (x ≈ 0.26) and B (x ≈ 0.45). Until round 10 the sleeve was a straight tube
+ *     around the layout axis whose section had to enclose the whole wiggle box (±0.12 m across,
+ *     ±0.05 m vertically) plus a bump allowance, and it read in shot B as a heavy dark beam
+ *     ~1.7 × the limb; the reference limb there is ~0.4 m thick under dense foliage. When the
+ *     trees have not published the path (`lanternLimb` undefined) the sleeve falls back to the
+ *     layout axis over s 0–1 with the giant builder's nominal sag and radius taper (audit
+ *     `wrapSource`: 'shared' | 'layout');
  *   - textured moss sheets draped over the top, fraying down the flank that faces the cameras;
  *   - a fork stub and three side twigs tipped with shaded leaf sprigs;
  *   - ferns and grass tufts on the moss, vines hanging from the underside;
@@ -61,8 +64,13 @@ export interface ContainmentReport {
   maxProtrusionBumps: number;
   /** mean clearance of the nominal limb surface inside the sleeve (m) */
   meanClearance: number;
-  /** in the taper zones (s < 0.1, s > 0.93) the sleeve dips inside the limb by design: max protrusion there */
+  /** in the end tapers (the last 0.06 of s at the trunk junction and the tip) the sleeve dips inside the limb by design: max protrusion there */
   taperMaxProtrusion: number;
+  /** limb-surface samples over the sleeve's round-11 extension (trunk side of `from`, past `to`) and their max protrusion */
+  extensionSamples: number;
+  extensionMaxProtrusion: number | null;
+  /** the s span the sleeve covers */
+  span: [number, number];
 }
 
 const UP = new Vector3(0, 1, 0);
@@ -113,13 +121,16 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
    *  axis with the builder's nominal sag and taper when the trees have not published it */
   const limb: TubePath | undefined = ctx.shared.lanternLimb;
   const wrapSource: 'shared' | 'layout' = limb ? 'shared' : 'layout';
+  /** the s span the sleeve covers: the whole published limb, or `from` → `to` on the fallback axis */
+  const sMin = limb ? limb.range[0] : 0;
+  const sMax = limb ? limb.range[1] : 1;
   const r0 = def.radius ?? 0.42;
   const r1 = def.tipRadius ?? 0.16;
   const nominalRadius = (s: number) => r0 + (r1 - r0) * Math.pow(clamp(s, 0, 1), 0.85);
   const limbAxis = (s: number, out = new Vector3()) => out.copy(from).addScaledVector(span, s).addScaledVector(UP, -0.16 * Math.sin(Math.PI * s));
-  const limbRadius = (s: number) => (limb ? limb.radius(clamp(s, 0, 1)) : nominalRadius(s));
+  const limbRadius = (s: number) => (limb ? limb.radius(clamp(s, sMin, sMax)) : nominalRadius(s));
   /** the sleeve's axis IS the limb's centreline; the knees swell its underside only (egg sections) */
-  const spine = (s: number, out = new Vector3()) => (limb ? limb.centre(clamp(s, 0, 1), out) : limbAxis(s, out));
+  const spine = (s: number, out = new Vector3()) => (limb ? limb.centre(clamp(s, sMin, sMax), out) : limbAxis(s, out));
 
   /**
    * Cross-section frame at s: e1 across (horizontal, +toward cameras A/B), e2 "up", both normal
@@ -135,9 +146,9 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const _e1 = new Vector3();
   const _e2 = new Vector3();
   const frameAt = (s: number) => {
-    const sc = clamp(s, 0, 1);
-    spine(Math.min(1, sc + TANGENT_H), _tA);
-    spine(Math.max(0, sc - TANGENT_H), _tB);
+    const sc = clamp(s, sMin, sMax);
+    spine(Math.min(sMax, sc + TANGENT_H), _tA);
+    spine(Math.max(sMin, sc - TANGENT_H), _tB);
     _T.subVectors(_tA, _tB);
     if (_T.lengthSq() < 1e-12) _T.copy(dir);
     else _T.normalize();
@@ -154,9 +165,11 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   };
 
   const noise = new Noise2D(`${ctx.config.seed}/lantern-branch/bark`);
-  /** the sleeve is full over s 0.1–0.93 and tapers back inside the limb over the first and last
-   *  tenth, so the giant's own bark carries on toward the trunk and past the tip */
-  const emerge = (s: number) => smoothstep(0, 0.1, s) * smoothstep(1, 0.93, s);
+  /** the sleeve is full along the limb and tapers back inside it over the last 0.06 of s at the
+   *  trunk junction and the tip, so the giant's own bark takes over only where the limb leaves the
+   *  trunk and at its very end (on the fallback axis: over the first and last tenth of from → to) */
+  const taperS = limb ? 0.06 : 0.1;
+  const emerge = (s: number) => smoothstep(sMin, sMin + taperS, s) * smoothstep(sMax, sMax - taperS, s);
   /** the sleeve's inner envelope: the limb's own radius plus the bark relief — no wiggle box, the
    *  axis already follows the built limb — tapering to 0.85 × the limb inside the end zones */
   const envelope = (s: number) => lerp(limbRadius(s) * 0.85, limbRadius(s) + RELIEF, emerge(s));
@@ -193,22 +206,25 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     const d = fill * (0.75 + 0.3 * ridge);
     // the bark set's pale tan (0xdcb086) pulled down to the giants' albedo — 0x9b7e62 × their
     // (0.7, 0.64, 0.56) bark base ≈ (0.17, 0.1, 0.05) linear — so the sleeve reads as the same
-    // wood as the limb it wraps; moss tint (the giants' shader moss, ≈ (0.2, 0.3, 0.08) linear)
-    // over the top where the sheets do not cover it
-    const moss = 0.85 * smoothstep(0.15, 0.7, mossFringe(s, psi));
-    return [lerp(d * 0.3, 0.3, moss), lerp(d * 0.28, 0.72, moss), lerp(d * 0.26, 0.34, moss)];
+    // wood as the limb it wraps; a dark olive moss tint over the top where the sheets do not
+    // cover it (round 11: the lime (0.3, 0.72, 0.34) of round 10 read as a green tube under the
+    // shade floor — the reference bough's moss line is hazed grey-olive, hue 53°, sat 0.16)
+    const moss = 0.8 * smoothstep(0.15, 0.7, mossFringe(s, psi));
+    return [lerp(d * 0.33, 0.3, moss), lerp(d * 0.32, 0.46, moss), lerp(d * 0.28, 0.2, moss)];
   };
   const sleeve = gridSurface(
     (u, v, out) => {
       const psi = u * TAU;
-      surface(v, psi, 0, out.position);
-      out.uv = [(psi * sleeveBase(v)) / 1.4, (v * len) / 1.4];
-      out.color = barkColor(v, psi);
+      const s = lerp(sMin, sMax, v);
+      surface(s, psi, 0, out.position);
+      out.uv = [(psi * sleeveBase(s)) / 1.4, (s * len) / 1.4];
+      out.color = barkColor(s, psi);
     },
-    { cols: 16, rows: 60, closedU: true },
+    // ~60 rings per unit of s (a ring every 0.1 m of limb)
+    { cols: 16, rows: Math.round(60 * (sMax - sMin)), closedU: true },
   );
   faceTowards(sleeve, (p, o) => {
-    const s = clamp(p.clone().sub(from).dot(dir) / len, 0, 1);
+    const s = clamp(p.clone().sub(from).dot(dir) / len, sMin, sMax);
     return o.copy(p).addScaledVector(p.clone().sub(spine(s)), 4);
   });
 
@@ -264,7 +280,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     barkParts.push(twig);
     foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.12), 0.2, 12, { size: 0.11, amount: 0.06, droop: 0.6, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
   }
-  const barkMesh = new Mesh(merge(barkParts), mats.bark);
+  const barkMesh = new Mesh(merge(barkParts), mats.sleeveBark);
   barkMesh.name = 'lantern-branch-bark';
   barkMesh.castShadow = barkMesh.receiveShadow = true;
   group.add(barkMesh);
@@ -320,6 +336,46 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     const pos = surface(s, psi, 0.03);
     const nrm = radial(s, psi).addScaledVector(UP, 0.4).normalize();
     foliage.addTuft(pos, nrm, 0.22 + vegRng() * 0.12, i % 3 === 2 ? 0 : 1, 0.06, topShade);
+  }
+  // ---- canopy-limb foliage (round 11): leaf clumps riding the top and shoulders of the sleeve
+  // and fern sprigs standing off its flanks, so the limb reads as part of the roof (reference A
+  // top-left: dark mossy bark with foliage breaking its upper silhouette) rather than a bare
+  // tube. Clumps sit on the moss (psi within ±1.1 of the top), root 5 cm into the sheets, and are
+  // shaded olive like the sprigs; the undersides where the pods hang stay clear. ----
+  const clumpRng = rng.fork('branch-clumps');
+  const clumpTint: [number, number, number] = [0.5, 0.58, 0.3];
+  for (let i = 0; i < 11; i++) {
+    const s = lerp(0.12, 0.9, (i + 0.2 + clumpRng() * 0.6) / 11);
+    const psi = (clumpRng() - 0.5) * 2.2 + 0.2;
+    const r = 0.22 + clumpRng() * 0.14;
+    const centre = surface(s, psi, r * 0.45 - 0.05);
+    foliage.addLeafCluster(centre, r, 14 + Math.floor(clumpRng() * 8), { size: 0.11, amount: 0.06, droop: 0.5, tint: clumpTint, tintSpread: 0.3, flatten: 0.55 });
+  }
+  for (let i = 0; i < 6; i++) {
+    const s = lerp(0.15, 0.88, (i + clumpRng()) / 6);
+    // fern sprigs lean out from the shoulders, alternating sides
+    const psi = (i % 2 ? 1 : -1) * (0.9 + clumpRng() * 0.5);
+    const pos = surface(s, psi, 0.02);
+    const nrm = radial(s, psi).addScaledVector(UP, 0.9).normalize();
+    foliage.addTuft(pos, nrm, 0.3 + clumpRng() * 0.14, 1, 0.07, topShade);
+  }
+  // the trunk-side stretch of the limb (s < 0, the giant's own bark until round 11) gets the same
+  // clumps and sprigs, thinning toward the trunk, so the whole limb reads as one canopy bough
+  if (sMin < -0.4) {
+    const n = Math.round((0 - sMin) * 5);
+    for (let i = 0; i < n; i++) {
+      const s = lerp(sMin + 0.15, 0.05, (i + 0.5 + (clumpRng() - 0.5) * 0.6) / n);
+      const psi = (clumpRng() - 0.5) * 2.0 + 0.2;
+      const r = 0.24 + clumpRng() * 0.16;
+      const centre = surface(s, psi, r * 0.45 - 0.05);
+      foliage.addLeafCluster(centre, r, 14 + Math.floor(clumpRng() * 8), { size: 0.11, amount: 0.06, droop: 0.5, tint: clumpTint, tintSpread: 0.3, flatten: 0.55 });
+      if (i % 2 === 0) {
+        const ps = (clumpRng() - 0.5) * 2.4;
+        const pos = surface(s + 0.04, ps, 0.02);
+        const nrm = radial(s + 0.04, ps).addScaledVector(UP, 0.9).normalize();
+        foliage.addTuft(pos, nrm, 0.28 + clumpRng() * 0.14, 1, 0.07, topShade);
+      }
+    }
   }
 
   // ---- lanterns on short cords from the knees' undersides ----
@@ -379,7 +435,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const _q = new Vector3();
   const _c = new Vector3();
   const outsideSleeve = (p: Vector3, sGuess: number) => {
-    let s = clamp(sGuess, 0, 1);
+    let s = clamp(sGuess, sMin, sMax);
     for (let it = 0; it < 12; it++) {
       const f = frameAt(s);
       spine(s, _c);
@@ -387,7 +443,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       const along = _q.dot(f.t);
       if (Math.abs(along) < 1e-5) break;
       // the polyline's speed |dspine/ds| ≈ len; step s to zero the along-tangent component
-      s = clamp(s + along / len, 0, 1);
+      s = clamp(s + along / len, sMin, sMax);
     }
     const f = frameAt(s);
     spine(s, _c);
@@ -412,8 +468,8 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const _n2 = new Vector3();
   const _p = new Vector3();
   const limbSurfacePoint = (s: number, phi: number, scale: number, out: Vector3) => {
-    spine(Math.min(1, s + 1e-3), _la);
-    spine(Math.max(0, s - 1e-3), _lb);
+    spine(Math.min(sMax, s + 1e-3), _la);
+    spine(Math.max(sMin, s - 1e-3), _lb);
     _lt.subVectors(_la, _lb);
     if (_lt.lengthSq() < 1e-14) _lt.copy(dir);
     else _lt.normalize();
@@ -437,13 +493,35 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       clearance += -d;
       maxProtrusionBumps = Math.max(maxProtrusionBumps, outsideSleeve(limbSurfacePoint(s, phi, 1.1, _p), s));
     }
+    // the extension over the rest of the published limb (round 11): trunk side and past the tip,
+    // outside the end tapers
+    let extensionMaxProtrusion = -Infinity;
+    let extensionSamples = 0;
+    if (sMin < 0.1 - taperS || sMax > 0.93 + taperS) {
+      const M = 120;
+      for (let i = 0; i < M; i++) {
+        const s = i < M / 2 ? lerp(sMin + taperS, 0.1, (i + 0.5) / (M / 2)) : lerp(0.93, sMax - taperS, (i - M / 2 + 0.5) / (M / 2));
+        if (s < sMin + taperS || s > sMax - taperS) continue;
+        extensionSamples++;
+        extensionMaxProtrusion = Math.max(extensionMaxProtrusion, outsideSleeve(limbSurfacePoint(s, i * golden, 1, _p), s));
+      }
+    }
     let taperMaxProtrusion = -Infinity;
     for (let i = 0; i < 60; i++) {
-      const s = i < 30 ? lerp(0, 0.1, (i + 0.5) / 30) : lerp(0.93, 1, (i - 30 + 0.5) / 30);
+      const s = i < 30 ? lerp(sMin, sMin + taperS, (i + 0.5) / 30) : lerp(sMax - taperS, sMax, (i - 30 + 0.5) / 30);
       taperMaxProtrusion = Math.max(taperMaxProtrusion, outsideSleeve(limbSurfacePoint(s, i * golden, 1, _p), s));
     }
     const mm = (v: number) => Math.round(v * 1e4) / 1e4;
-    return { samples: N, maxProtrusion: mm(maxProtrusion), maxProtrusionBumps: mm(maxProtrusionBumps), meanClearance: mm(clearance / N), taperMaxProtrusion: mm(taperMaxProtrusion) };
+    return {
+      samples: N,
+      maxProtrusion: mm(maxProtrusion),
+      maxProtrusionBumps: mm(maxProtrusionBumps),
+      meanClearance: mm(clearance / N),
+      taperMaxProtrusion: mm(taperMaxProtrusion),
+      extensionSamples,
+      extensionMaxProtrusion: extensionSamples ? mm(extensionMaxProtrusion) : null,
+      span: [mm(sMin), mm(sMax)],
+    };
   };
   const silhouette = [0.15, 0.3, 0.45, 0.6, 0.75, 0.9].map((s) => {
     const top = surface(s, 0, 0);
