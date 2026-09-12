@@ -159,6 +159,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ropeFences: ROPE_FENCES.length,
     lanternPosts: posts.length,
     postLanterns: posts.reduce((n, p) => n + p.lanterns.length, 0),
+    postLightIntensities: posts.flatMap((p) => p.lights.map((l) => +l.intensity.toFixed(3))),
     logArch: true,
     houseRoots,
     houseBranches,

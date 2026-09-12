@@ -7,41 +7,33 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Published hedge-light source 2e9c19fb8ab2d3749a421ff1c5e6a030b6a8453f, tree
-2f503e0058569207b446f37a7ce34de053a1d37e, parent d41b354. PR2 comment 5646848710 records its
-0.65 leaf-only hemisphere difference, exact original geometry/placement/RNG, all-LOD mask,
-small attribute cost and unchanged shadow programs. Its actual 12+4 capture is underway.
-Do not judge that pinned checkpoint from this later working tree.
+84ecde9ccafb9057e466544340335d07b31f72c9 is published (tree e74c8a872071ba25334026bfbbd841f9ff297cec,
+sole parent 2e9c19f). Its separate upper-air color capture is running as 34702832368.
+The two-endpoint source boundary, conserved endpoint luminance and coherent sky/PMREM rebuild
+are documented in docs/reviews/2026-09-12-cool-upper-air.md. Actual appearance remains pending.
 
-Current separate trial: cool only the upper sky and open-air haze endpoint at conserved
-linear luminance. Candidate SKY_GAP_GLARE [.315,.3670755,.462], hazeLit [.29,.33185123,.36].
-Retain all fog density/ranges/lower colors, direct sun, hemisphere, environment intensity/tint,
-material palettes, geometry and current gain 1-versus-3 controls. A fresh source/page rebuild
-updates the visible sky and baked PMREM together. No live dome-only recoloring.
+Current next trial: lower only the two post PointLights from 3.2 to 1.2. Their emissive body/maps,
+geometry, placement, animation and other lanterns stay unchanged. Actual bright bindings/rims
+have black emissive texels; the internal unshadowed point is the supported first target.
+Point-only HDR energy decreases 62.5%; this is not a predicted display brightness reduction.
+Review retained amber glow, quieter bindings and the reduced nearby warm light pool in real CI.
+Add one minimal postLightIntensities audit reading actual objects in structures/index.ts.
+PR2 comment 5646971818 announces that narrow overlap with Fable's active house audit work.
 
-Most apparent gray sky in actual A/F is fogged distant geometry; only 1/6 of the upper 1,200
-coarse depth probes are pure sky. Pairing the milder hazeLit endpoint reaches that open upper
-geometry while retaining the horizon and closed/lower fog. CPU angular integration preserves
-upper PMREM-input luminance within -0.14%, but intentionally shifts R -14.1% / B +55.7%.
-Actual shaded paving, roof, skin and gaps must be reviewed for excessive cool/cyan color.
-No endpoint calculation is a predicted pixel or visual acceptance. The two-constant source
-boundary check passes; endpoint luminance changes remain below 3e-9. Typecheck/build pass
-(107 modules). The previous hedge capture is confirmed in progress before this next push.
-
-All d41 actual 12+4 contracts passed with zero retries/final errors/warnings. Root reviewed all
-five world views and L01/L02: grain activates on instanced columns, Fable foreground is fuller,
-paths readable, individual pod leaves/amber gaps clear. B/E is 8,714,720 triangles / 650 calls;
-max calls A659. Fine pod veins, pale ties and thin bright rims remain. Eight inline archive
-preview targets and all historical folders are verified. Character stays paused for local Blender.
+All 2e9 actual 12+4 contracts pass with zero retries/final errors/warnings. Undersides become
+modestly greener and clearer, upper leaf surfaces broadly stable; geometry, depth, packing and
+calls/triangles match d41. D and S01/S02 JPEGs are identical; L01/L02 only tiny residuals.
+Sparse wood pixel changes preclude a pixel-exact wood isolation claim despite exact source mask.
+All eight preview targets, historical archive bytes and source/image ZIPs are verified.
 
 ## Files / systems being touched
-- Root: atmosphere/sky.ts, atmosphere/heightfog.ts, own log and color-study review.
-  Published hedge material/geometry source and captures stay pinned independently.
+- Root: structures/lanternPost.ts, one structures/index.ts audit line, own log and post-light review.
+  Published upper-air and hedge sources stay pinned independently for their actual captures.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
-- World helper: sky/air source diagnosis completed; read-only take flag review confirmed
-  Fable already fixed the historical typo in f5681bf. No duplicate tooling patch.
-- Prop helper: completed independent hedge mask/geometry/program proof, no production edits.
+- World helper: frozen scratch-only hedge midrib/four-vein proposal, derivative filtered and
+  distance faded, no geometry or texture changes; not yet applied or visually accepted.
+- Prop helper: completed source/actual pod light diagnosis, no production edits.
 - Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
 
 ## Partner state / coordination
@@ -64,7 +56,8 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
-| 2e9c19f | Leaf-only hedge sky transmission; exact original geometry/placement/packing/RNG and small mask data. Actual 12+4 pending. |
+| 84ecde9 | Separate cooler upper sky/open-air haze study, conserved endpoint luminance; actual capture running. |
+| 2e9c19f | Actual 12+4 pass: modest greener hedge undersides, unchanged geometry/depth/calls/triangles; 0 retries/errors/warnings. |
 | d41b354 | Actual 12+4 verified: active grain, denser planting, all under budget, separate seated pod leaves. Zero retries/errors/warnings. |
 | d7552ee | Fable 1cc ancestry, column grain trial and sign chisel response. Actual column trial fails to activate; installed fragment-prefix defect is being corrected. Sign remains mostly ink-like. All 16 source/image/control contracts pass; L01/L02 identical to 640. |
 | 64028c4 | Actual 12+4 pass. Gain 3 gives a modest upper-flight improvement: A/F local mean +1.335/+0.966 in 8-bit luminance, plaza controls identical, C/D identical across toggle. Retained, still weaker than reference beams. |
@@ -107,7 +100,7 @@ The scene remains materially below owner references. House cap/support silhouett
 foreground plant forms/density, flat column/sleeve shading, restrained but weak light shafts,
 and shallow sign engraving remain visible weaknesses. Fable owns roof and hardscape foreground improvements.
 Narrower pod sepals now read individually in actual L01/L02; fine veins remain weak and
-thin bright edge/tie highlights persist. Near hedge undersides await their material capture.
+thin bright edge/tie highlights persist. Near hedge undersides improve modestly; internal surface detail remains weak.
 Gain 3 is a verified modest improvement, not prominent reference-like beams. Existing texture grain cannot
 substitute for the references' irregular silhouettes, moss thickness and planted fissures.
 Character is a placeholder; paused character branch/worktree is preserved for local Blender.
@@ -132,8 +125,8 @@ Detailed earlier chronology is preserved in `docs/reviews/astra-environment-hist
 
 ## Suggested parallel tasks
 Fable: publish the active roof/support pass and hardscape lawn work, with exact source and overlap.
-Astra: finish the tree shader gate correction, publish the merged foreground/sepal checkpoint,
-then review actual images. Diagnose black near leaves before changing their materials.
+Astra: review the upper-air color capture, then the isolated post-light trial. Apply a bounded
+hedge surface study only after its independent lighting controls are available.
 
 ## Last updated
-2026-09-12T15:37:06.618390+00:00
+2026-09-12T15:54:57.259566+00:00

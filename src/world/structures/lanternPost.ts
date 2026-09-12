@@ -169,8 +169,9 @@ export function buildLanternPost(def: LanternPostDef, ctx: WorldContext, mats: S
   const cord = 0.22 + rng() * 0.1;
   const rig = podBuilder(hook, cord, mats, rng.fork('pod'), 1.0, def.tint ?? 'orange');
   group.add(rig.pivot);
-  // soft warm pool under the pod: the emissive pod itself carries the glow (no bloom clipping)
-  const light = new PointLight(ctx.config.palette.lanternGlow, 3.2, 5.0, 2);
+  // Keep the unshadowed local pool restrained: the body's separate emission carries its glow.
+  // A stronger internal point overlights opaque ties and thin rims through the enclosing pod.
+  const light = new PointLight(ctx.config.palette.lanternGlow, 1.2, 5.0, 2);
   light.position.copy(rig.pod);
   light.position.y -= 0.15;
   light.name = 'lantern-post-light';
