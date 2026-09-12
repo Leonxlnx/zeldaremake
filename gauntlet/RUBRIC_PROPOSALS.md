@@ -67,3 +67,16 @@ Why: with the pinned azimuth our risers are lit and treads shaded; the reference
 "short stair" reading. The footage's light is camera-relative across shots (noted 2026-09-10), so a
 single world azimuth cannot match every frame; the pin should at least admit the hero frame's.
 Owner decision: pending
+
+## 2026-09-12 — fable-cursor — W32 (far-layer count)
+Current: `depth D_log farLayerCount >= 3`, where a layer is a run of 2.5 m depth buckets each holding
+≥ 1.5 % of the non-sky pixels beyond 8 m (`src/capture/api.ts depthHistogram`).
+Proposed: count a layer as a run of buckets ≥ 1.5 % with hysteresis (a run ends only when a bucket
+falls below 1.0 %), or smooth the histogram with a 3-bucket box before thresholding; keep `>= 3`.
+Why: take-0071 flipped W32 from pass (3 layers) to fail (2) although the D scene's depth layering did
+not change — bucket 10 (25–27.5 m) rose 0.0140 → 0.0155 and bucket 18 (45–47.5 m) fell 0.0150 →
+0.0147 when the distant huts' openings became recesses (a few hundred pixels). A hard 1.5 % cut on
+2.5 m buckets makes the count a coin flip for any change near the boundary; the intent (distinct
+depth layers under haze) is unchanged. Evidence: `gauntlet/out/take70-cap/checks.json` vs
+`take71-cap/checks.json` (`depth.D_log.buckets`).
+Owner decision: pending
