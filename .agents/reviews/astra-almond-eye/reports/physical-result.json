@@ -1,0 +1,2131 @@
+{
+  "pin": "56d13f4bad8d52074b751c1895863ae33ffc4d12",
+  "nonocularMeshesExact": 66,
+  "nonocularArraysExact": 264,
+  "sourceDifferences": [
+    "src/world/character/eye-aperture.ts"
+  ],
+  "counts": [
+    {
+      "actorTriangles": 176252,
+      "skullVertices": 34435,
+      "skullTriangles": 68508
+    },
+    {
+      "actorTriangles": 174140,
+      "skullVertices": 33379,
+      "skullTriangles": 66396
+    }
+  ],
+  "eyeFit": [],
+  "blink": [
+    {
+      "scale": 1,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.000661297533216208,
+            "witness": {
+              "a": 167,
+              "b": 21393
+            },
+            "tested": 9038
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.01009958460932715,
+              "witness": {
+                "a": 167,
+                "b": 395
+              },
+              "tested": 121
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894957223239271,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 338
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.008502170120978285,
+              "witness": {
+                "a": 68,
+                "b": 8
+              },
+              "tested": 2017
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.066847136185697,
+              "witness": {
+                "a": 38,
+                "b": 390
+              },
+              "tested": 162
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.05792549265749546,
+              "witness": {
+                "a": 1061,
+                "b": 390
+              },
+              "tested": 111
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06699499098032877,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 360
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.023958758296959783,
+              "witness": {
+                "a": 247,
+                "b": 7025
+              },
+              "tested": 326
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.01464761926002172,
+              "witness": {
+                "a": 1032,
+                "b": 5162
+              },
+              "tested": 198
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.022345574318074976,
+              "witness": {
+                "a": 107,
+                "b": 7025
+              },
+              "tested": 738
+            }
+          ],
+          "fieldDepthError": 3.946495907847236e-16,
+          "joinDepthError": 2.272029231420447e-10,
+          "joinNormalError": 2.0345159766136628e-8,
+          "whiteCapHeightError": 2.1959243971803044e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.0006612291513303886,
+            "witness": {
+              "a": 279,
+              "b": 13590
+            },
+            "tested": 14134
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06682024472824098,
+              "witness": {
+                "a": 422,
+                "b": 398
+              },
+              "tested": 226
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161707010703,
+              "witness": {
+                "a": 1011,
+                "b": 398
+              },
+              "tested": 210
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06696664235255813,
+              "witness": {
+                "a": 175,
+                "b": 397
+              },
+              "tested": 360
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.010095094563998002,
+              "witness": {
+                "a": 279,
+                "b": 376
+              },
+              "tested": 515
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.001767581780040391,
+              "witness": {
+                "a": 1033,
+                "b": 345
+              },
+              "tested": 516
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.00849502188081136,
+              "witness": {
+                "a": 118,
+                "b": 376
+              },
+              "tested": 2036
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.023262379788891466,
+              "witness": {
+                "a": 166,
+                "b": 19704
+              },
+              "tested": 305
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.01410770019640369,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1048
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.021710368224432945,
+              "witness": {
+                "a": 68,
+                "b": 19656
+              },
+              "tested": 997
+            }
+          ],
+          "fieldDepthError": 2.2148081979533885e-15,
+          "joinDepthError": 2.0659407518053285e-10,
+          "joinNormalError": 1.893864109552e-8,
+          "whiteCapHeightError": 2.2708983651864578e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.85,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0013381091366674053,
+            "witness": {
+              "a": 167,
+              "b": 19154
+            },
+            "tested": 5329
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.012374127641674447,
+              "witness": {
+                "a": 167,
+                "b": 395
+              },
+              "tested": 129
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894960002413694,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 338
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.010954990001262103,
+              "witness": {
+                "a": 68,
+                "b": 395
+              },
+              "tested": 2215
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06706296065231708,
+              "witness": {
+                "a": 23,
+                "b": 390
+              },
+              "tested": 165
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.05792549269095565,
+              "witness": {
+                "a": 1061,
+                "b": 390
+              },
+              "tested": 111
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06700893244976758,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 314
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.02660226428216682,
+              "witness": {
+                "a": 247,
+                "b": 7025
+              },
+              "tested": 331
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014647619619854089,
+              "witness": {
+                "a": 1033,
+                "b": 7025
+              },
+              "tested": 195
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.02525177942834777,
+              "witness": {
+                "a": 108,
+                "b": 5162
+              },
+              "tested": 794
+            }
+          ],
+          "fieldDepthError": 3.9118014383277e-16,
+          "joinDepthError": 3.0618441115848327e-10,
+          "joinNormalError": 6.383827865486953e-8,
+          "whiteCapHeightError": 2.147134050417554e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.0013286448877547973,
+            "witness": {
+              "a": 279,
+              "b": 13590
+            },
+            "tested": 12531
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06703513760222572,
+              "witness": {
+                "a": 423,
+                "b": 398
+              },
+              "tested": 206
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.057921617103558566,
+              "witness": {
+                "a": 1011,
+                "b": 398
+              },
+              "tested": 210
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0669805249386764,
+              "witness": {
+                "a": 175,
+                "b": 397
+              },
+              "tested": 312
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.012371823144259175,
+              "witness": {
+                "a": 279,
+                "b": 376
+              },
+              "tested": 548
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.0017675820483482076,
+              "witness": {
+                "a": 1033,
+                "b": 345
+              },
+              "tested": 528
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.010952767459283004,
+              "witness": {
+                "a": 118,
+                "b": 376
+              },
+              "tested": 2331
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.025599360443498583,
+              "witness": {
+                "a": 166,
+                "b": 19704
+              },
+              "tested": 981
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107700435222133,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1068
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.0243421864260698,
+              "witness": {
+                "a": 57,
+                "b": 19751
+              },
+              "tested": 1755
+            }
+          ],
+          "fieldDepthError": 4.623038063478191e-16,
+          "joinDepthError": 2.253559561182783e-10,
+          "joinNormalError": 6.389056109546504e-8,
+          "whiteCapHeightError": 1.694425919018805e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.7,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 7,
+              "b": 30025
+            },
+            "tested": 5163
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.014732068914386387,
+              "witness": {
+                "a": 167,
+                "b": 395
+              },
+              "tested": 137
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894962781587651,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 336
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.013579185045632113,
+              "witness": {
+                "a": 67,
+                "b": 395
+              },
+              "tested": 2508
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06727890554692534,
+              "witness": {
+                "a": 23,
+                "b": 390
+              },
+              "tested": 187
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.05792549264076536,
+              "witness": {
+                "a": 1060,
+                "b": 390
+              },
+              "tested": 117
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06702287427063151,
+              "witness": {
+                "a": 4,
+                "b": 389
+              },
+              "tested": 232
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.029227506940215024,
+              "witness": {
+                "a": 263,
+                "b": 7025
+              },
+              "tested": 412
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014647619979686447,
+              "witness": {
+                "a": 1033,
+                "b": 7025
+              },
+              "tested": 201
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.028118978338788132,
+              "witness": {
+                "a": 117,
+                "b": 7025
+              },
+              "tested": 966
+            }
+          ],
+          "fieldDepthError": 3.5561831257524545e-16,
+          "joinDepthError": 2.955653499725486e-10,
+          "joinNormalError": 8.104763543473013e-8,
+          "whiteCapHeightError": 2.010451388700929e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 430,
+              "b": 28127
+            },
+            "tested": 10542
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06725015449607635,
+              "witness": {
+                "a": 423,
+                "b": 398
+              },
+              "tested": 224
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161705338126,
+              "witness": {
+                "a": 1011,
+                "b": 398
+              },
+              "tested": 210
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06699440770386161,
+              "witness": {
+                "a": 177,
+                "b": 397
+              },
+              "tested": 239
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.01472964487508371,
+              "witness": {
+                "a": 279,
+                "b": 376
+              },
+              "tested": 580
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.001767582316656019,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 512
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.013577496080724569,
+              "witness": {
+                "a": 117,
+                "b": 376
+              },
+              "tested": 2579
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.0279207308419007,
+              "witness": {
+                "a": 151,
+                "b": 19751
+              },
+              "tested": 1123
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107700893995668,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1050
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.02687060930963809,
+              "witness": {
+                "a": 56,
+                "b": 19751
+              },
+              "tested": 1449
+            }
+          ],
+          "fieldDepthError": 4.510281037539698e-16,
+          "joinDepthError": 2.0945289946894263e-10,
+          "joinNormalError": 8.571075510213373e-8,
+          "whiteCapHeightError": 2.2653784317178127e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.5838095,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 5,
+              "b": 30025
+            },
+            "tested": 4740
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.016571646551887566,
+              "witness": {
+                "a": 167,
+                "b": 395
+              },
+              "tested": 104
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894953839983757,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 336
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.015645411012227363,
+              "witness": {
+                "a": 57,
+                "b": 395
+              },
+              "tested": 2728
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06744624348965075,
+              "witness": {
+                "a": 23,
+                "b": 390
+              },
+              "tested": 259
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.05792549258632748,
+              "witness": {
+                "a": 1059,
+                "b": 390
+              },
+              "tested": 106
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06703367375277348,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 226
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030168858835338482,
+              "witness": {
+                "a": 23,
+                "b": 19055
+              },
+              "tested": 981
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014647618821976195,
+              "witness": {
+                "a": 1033,
+                "b": 7025
+              },
+              "tested": 201
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030190264173970752,
+              "witness": {
+                "a": 117,
+                "b": 7025
+              },
+              "tested": 2819
+            }
+          ],
+          "fieldDepthError": 4.2413988987632933e-16,
+          "joinDepthError": 3.05317326976251e-10,
+          "joinNormalError": 6.976966266860577e-8,
+          "whiteCapHeightError": 1.1436368562225963e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 430,
+              "b": 28127
+            },
+            "tested": 8039
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06741677714554634,
+              "witness": {
+                "a": 407,
+                "b": 398
+              },
+              "tested": 297
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161699895745,
+              "witness": {
+                "a": 1012,
+                "b": 398
+              },
+              "tested": 167
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06700516157969855,
+              "witness": {
+                "a": 176,
+                "b": 397
+              },
+              "tested": 241
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.016568341767268763,
+              "witness": {
+                "a": 279,
+                "b": 376
+              },
+              "tested": 811
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.0017675814534132111,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 512
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.01564277850155917,
+              "witness": {
+                "a": 128,
+                "b": 376
+              },
+              "tested": 2774
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.029684157762161156,
+              "witness": {
+                "a": 151,
+                "b": 19751
+              },
+              "tested": 1151
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107699273435156,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1039
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.02875921802283345,
+              "witness": {
+                "a": 56,
+                "b": 19751
+              },
+              "tested": 1217
+            }
+          ],
+          "fieldDepthError": 4.145989107584569e-16,
+          "joinDepthError": 2.26011431792017e-10,
+          "joinNormalError": 8.590409939669804e-8,
+          "whiteCapHeightError": 2.132489107173341e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.5,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 5,
+              "b": 30025
+            },
+            "tested": 4508
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.017894339770363577,
+              "witness": {
+                "a": 167,
+                "b": 395
+              },
+              "tested": 90
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894957223239271,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 336
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.017128096565944998,
+              "witness": {
+                "a": 57,
+                "b": 395
+              },
+              "tested": 2839
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06756337644142592,
+              "witness": {
+                "a": 7,
+                "b": 389
+              },
+              "tested": 318
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.05792549265749546,
+              "witness": {
+                "a": 1059,
+                "b": 390
+              },
+              "tested": 112
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06704146351367185,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 211
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030360783202992205,
+              "witness": {
+                "a": 23,
+                "b": 19055
+              },
+              "tested": 926
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.01464761926002172,
+              "witness": {
+                "a": 1032,
+                "b": 5162
+              },
+              "tested": 213
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030547662586666535,
+              "witness": {
+                "a": 6,
+                "b": 19055
+              },
+              "tested": 3226
+            }
+          ],
+          "fieldDepthError": 4.0679265511656126e-16,
+          "joinDepthError": 2.272029231420447e-10,
+          "joinNormalError": 2.2337154364150588e-8,
+          "whiteCapHeightError": 1.1406667624336286e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 429,
+              "b": 28127
+            },
+            "tested": 7740
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06753480491735153,
+              "witness": {
+                "a": 431,
+                "b": 397
+              },
+              "tested": 359
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161707010703,
+              "witness": {
+                "a": 1012,
+                "b": 398
+              },
+              "tested": 173
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06701291832577055,
+              "witness": {
+                "a": 176,
+                "b": 397
+              },
+              "tested": 226
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.017890187359383913,
+              "witness": {
+                "a": 279,
+                "b": 376
+              },
+              "tested": 886
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.001767581780040391,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 512
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.01712450684175898,
+              "witness": {
+                "a": 126,
+                "b": 376
+              },
+              "tested": 2821
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03092272265574284,
+              "witness": {
+                "a": 151,
+                "b": 19751
+              },
+              "tested": 1228
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.01410770019640369,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1039
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03008843953457504,
+              "witness": {
+                "a": 45,
+                "b": 19751
+              },
+              "tested": 1084
+            }
+          ],
+          "fieldDepthError": 2.2148081979533885e-15,
+          "joinDepthError": 2.0659407518053285e-10,
+          "joinNormalError": 2.0407754442338655e-8,
+          "whiteCapHeightError": 2.2708983651864578e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.35,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 7,
+              "b": 30025
+            },
+            "tested": 4117
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.020238741980858916,
+              "witness": {
+                "a": 167,
+                "b": 395
+              },
+              "tested": 337
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894962781587651,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 336
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0196802319117464,
+              "witness": {
+                "a": 56,
+                "b": 395
+              },
+              "tested": 2155
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06756435047362204,
+              "witness": {
+                "a": 7,
+                "b": 389
+              },
+              "tested": 231
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.05792549264076536,
+              "witness": {
+                "a": 1060,
+                "b": 390
+              },
+              "tested": 106
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06705540565219328,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 140
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03070633348591977,
+              "witness": {
+                "a": 38,
+                "b": 19055
+              },
+              "tested": 1172
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014647619979686447,
+              "witness": {
+                "a": 1032,
+                "b": 7025
+              },
+              "tested": 205
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03058517135923381,
+              "witness": {
+                "a": 6,
+                "b": 19055
+              },
+              "tested": 2164
+            }
+          ],
+          "fieldDepthError": 4.206704429243757e-16,
+          "joinDepthError": 2.955653499725486e-10,
+          "joinNormalError": 7.784779859304936e-8,
+          "whiteCapHeightError": 1.1502202836022324e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 429,
+              "b": 28127
+            },
+            "tested": 6753
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0675352363978093,
+              "witness": {
+                "a": 429,
+                "b": 397
+              },
+              "tested": 262
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161705338126,
+              "witness": {
+                "a": 1012,
+                "b": 398
+              },
+              "tested": 167
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0670268016906413,
+              "witness": {
+                "a": 176,
+                "b": 397
+              },
+              "tested": 148
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.020232904543887306,
+              "witness": {
+                "a": 279,
+                "b": 376
+              },
+              "tested": 725
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.001767582316656019,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 510
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.019675294818242973,
+              "witness": {
+                "a": 126,
+                "b": 376
+              },
+              "tested": 2169
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.032447045386762824,
+              "witness": {
+                "a": 407,
+                "b": 18397
+              },
+              "tested": 1461
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107700893995668,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1041
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.032391149796266,
+              "witness": {
+                "a": 45,
+                "b": 19751
+              },
+              "tested": 1517
+            }
+          ],
+          "fieldDepthError": 4.510281037539698e-16,
+          "joinDepthError": 2.0945289946894263e-10,
+          "joinNormalError": 8.854313022025906e-8,
+          "whiteCapHeightError": 1.694425919018805e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.2,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 6,
+              "b": 30025
+            },
+            "tested": 3574
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.02136444611379061,
+              "witness": {
+                "a": 407,
+                "b": 375
+              },
+              "tested": 767
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894948885716416,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 335
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.021521329835035533,
+              "witness": {
+                "a": 176,
+                "b": 375
+              },
+              "tested": 832
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06756435047362204,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 156
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.057925492590575084,
+              "witness": {
+                "a": 1059,
+                "b": 390
+              },
+              "tested": 113
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06706934791688966,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 120
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03096523835241808,
+              "witness": {
+                "a": 6,
+                "b": 19055
+              },
+              "tested": 2385
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014647618180524628,
+              "witness": {
+                "a": 1033,
+                "b": 7025
+              },
+              "tested": 202
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030622703113740435,
+              "witness": {
+                "a": 6,
+                "b": 19055
+              },
+              "tested": 1485
+            }
+          ],
+          "fieldDepthError": 3.677613769070831e-16,
+          "joinDepthError": 4.37820890653029e-10,
+          "joinNormalError": 7.753214926750511e-8,
+          "whiteCapHeightError": 1.1619418448238772e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 431,
+              "b": 28127
+            },
+            "tested": 5170
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0675352363978093,
+              "witness": {
+                "a": 427,
+                "b": 397
+              },
+              "tested": 164
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161700320395,
+              "witness": {
+                "a": 1012,
+                "b": 398
+              },
+              "tested": 173
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06704068501018495,
+              "witness": {
+                "a": 176,
+                "b": 397
+              },
+              "tested": 126
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.021345631297214458,
+              "witness": {
+                "a": 39,
+                "b": 6
+              },
+              "tested": 731
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.0017675809751169526,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 593
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.021504482013544032,
+              "witness": {
+                "a": 5,
+                "b": 6
+              },
+              "tested": 835
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03288678865501791,
+              "witness": {
+                "a": 407,
+                "b": 18397
+              },
+              "tested": 1391
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107699858996809,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1017
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.0325707547904759,
+              "witness": {
+                "a": 178,
+                "b": 19074
+              },
+              "tested": 656
+            }
+          ],
+          "fieldDepthError": 3.5561831257524545e-16,
+          "joinDepthError": 3.7711056499745155e-10,
+          "joinNormalError": 5.599245130813552e-8,
+          "whiteCapHeightError": 1.694425919018805e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.12,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 1,
+              "b": 30025
+            },
+            "tested": 3559
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.021613095424956996,
+              "witness": {
+                "a": 407,
+                "b": 375
+              },
+              "tested": 750
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894957779074172,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 335
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.021537558344845165,
+              "witness": {
+                "a": 175,
+                "b": 375
+              },
+              "tested": 358
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06756435047362204,
+              "witness": {
+                "a": 1,
+                "b": 389
+              },
+              "tested": 141
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.057925492590575084,
+              "witness": {
+                "a": 1059,
+                "b": 390
+              },
+              "tested": 136
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06707678389018404,
+              "witness": {
+                "a": 4,
+                "b": 389
+              },
+              "tested": 118
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03096523835241808,
+              "witness": {
+                "a": 1,
+                "b": 19055
+              },
+              "tested": 2428
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014647619331988191,
+              "witness": {
+                "a": 1033,
+                "b": 7025
+              },
+              "tested": 215
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030640886994489958,
+              "witness": {
+                "a": 6,
+                "b": 19055
+              },
+              "tested": 889
+            }
+          ],
+          "fieldDepthError": 3.9985376121265404e-16,
+          "joinDepthError": 4.37820890653029e-10,
+          "joinNormalError": 5.852179430828417e-8,
+          "whiteCapHeightError": 1.1587633803877839e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 424,
+              "b": 28127
+            },
+            "tested": 5137
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0675352363978093,
+              "witness": {
+                "a": 427,
+                "b": 397
+              },
+              "tested": 177
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161700320395,
+              "witness": {
+                "a": 1012,
+                "b": 398
+              },
+              "tested": 173
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06704808950502446,
+              "witness": {
+                "a": 177,
+                "b": 397
+              },
+              "tested": 120
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.021594120391994626,
+              "witness": {
+                "a": 38,
+                "b": 6
+              },
+              "tested": 684
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.0017675818337019482,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 591
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.02152073979435644,
+              "witness": {
+                "a": 4,
+                "b": 6
+              },
+              "tested": 352
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03293589508625582,
+              "witness": {
+                "a": 424,
+                "b": 19074
+              },
+              "tested": 1386
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107700650550097,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1017
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.032587808980301,
+              "witness": {
+                "a": 177,
+                "b": 19074
+              },
+              "tested": 464
+            }
+          ],
+          "fieldDepthError": 4.501607420159814e-16,
+          "joinDepthError": 2.836966217500958e-10,
+          "joinNormalError": 6.104377916897111e-8,
+          "whiteCapHeightError": 1.694425919018805e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    },
+    {
+      "scale": 0.08,
+      "eyes": [
+        {
+          "side": 0,
+          "whiteSkull": {
+            "distance": 0.0015346721395874028,
+            "witness": {
+              "a": 1,
+              "b": 30025
+            },
+            "tested": 3999
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.02173422400773133,
+              "witness": {
+                "a": 423,
+                "b": 375
+              },
+              "tested": 826
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0017894953332395227,
+              "witness": {
+                "a": 1039,
+                "b": 41
+              },
+              "tested": 335
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.021545653061181707,
+              "witness": {
+                "a": 175,
+                "b": 375
+              },
+              "tested": 210
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06756435047362204,
+              "witness": {
+                "a": 1,
+                "b": 389
+              },
+              "tested": 137
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.057925492644111384,
+              "witness": {
+                "a": 1059,
+                "b": 390
+              },
+              "tested": 148
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.06708050190579208,
+              "witness": {
+                "a": 6,
+                "b": 389
+              },
+              "tested": 111
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03096523835241808,
+              "witness": {
+                "a": 1,
+                "b": 19055
+              },
+              "tested": 2149
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.01464761875625641,
+              "witness": {
+                "a": 1033,
+                "b": 7025
+              },
+              "tested": 215
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.030648129702188665,
+              "witness": {
+                "a": 6,
+                "b": 19055
+              },
+              "tested": 684
+            }
+          ],
+          "fieldDepthError": 3.5995512126518747e-16,
+          "joinDepthError": 3.285509642125817e-10,
+          "joinNormalError": 5.974948258783068e-8,
+          "whiteCapHeightError": 1.1409350504296145e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        },
+        {
+          "side": 1,
+          "whiteSkull": {
+            "distance": 0.00147312265181256,
+            "witness": {
+              "a": 424,
+              "b": 28127
+            },
+            "tested": 5131
+          },
+          "neighbours": [
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.0675352363978093,
+              "witness": {
+                "a": 424,
+                "b": 397
+              },
+              "tested": 172
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.05792161705672642,
+              "witness": {
+                "a": 1012,
+                "b": 398
+              },
+              "tested": 173
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+              "distance": 0.06705179178494775,
+              "witness": {
+                "a": 176,
+                "b": 397
+              },
+              "tested": 110
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.021715459537038174,
+              "witness": {
+                "a": 23,
+                "b": 6
+              },
+              "tested": 780
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.0017675814044094652,
+              "witness": {
+                "a": 1032,
+                "b": 345
+              },
+              "tested": 591
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+              "distance": 0.021528829942768057,
+              "witness": {
+                "a": 4,
+                "b": 6
+              },
+              "tested": 201
+            },
+            {
+              "mesh": "white",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.03293589508625582,
+              "witness": {
+                "a": 424,
+                "b": 19074
+              },
+              "tested": 1337
+            },
+            {
+              "mesh": "lid",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.014107699607293477,
+              "witness": {
+                "a": 1043,
+                "b": 19751
+              },
+              "tested": 1016
+            },
+            {
+              "mesh": "lashes",
+              "target": "hips:0/chest:0/neck:0/head:0/hair:0",
+              "distance": 0.0325947716764788,
+              "witness": {
+                "a": 177,
+                "b": 19074
+              },
+              "tested": 428
+            }
+          ],
+          "fieldDepthError": 4.482091781055075e-16,
+          "joinDepthError": 3.001536796887194e-10,
+          "joinNormalError": 1.7768473601879218e-7,
+          "whiteCapHeightError": 1.694425919018805e-10,
+          "innerSeamExact": true,
+          "backingRays": 616
+        }
+      ]
+    }
+  ],
+  "failure": null,
+  "sourceHashes": [
+    {
+      "src/world/character/link.ts": "527e402ac575fef6a200941bfeed44d6ddce40a4e67839b0c3eed47aab460210",
+      "src/world/character/geometry.ts": "9a16798da918f811c6e90494a09d360bcef96740e3bef92080234835714dffcc",
+      "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "src/world/character/palette.ts": "8c1baf4cb171c9f43f0cafd31500a72c3ce25225495d2663f2b0b725d4c3b8a5",
+      "src/world/character/cloth-surface.ts": "923e41dd47ce0a622d9d483a3fb2c48d549c6b6b295d3b61bbf919c03705187e",
+      "src/world/character/hair-surface.ts": "7ec822450456a46501b766cb5af6f6867370beac2df00cfb766379c7ac8db899",
+      "src/world/character/rig.ts": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86",
+      "src/world/character/face-geometry.ts": "10d2619af2efc384f18cfe9be6b954ca754544d2ee59ca75cd80c86a584a76db",
+      "src/world/character/ear-geometry.ts": "159555dafa3689ba2573d3e98d1e35ab166608b225dd3d8d7a1d8a8788708700",
+      "src/world/character/lower-face-geometry.ts": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+      "src/world/character/outfit-details.ts": "afa90938c0181bf58fa07428174c89a024bfe355330f14637ee499d3d95538f9",
+      "src/world/character/leather-material.ts": "d9994f5bcc6582f767cea9e7e0ec56118bc66d2814d29ede477f544a83367ebf",
+      "src/world/character/cap-tail-stitches.ts": "499946daf356ef42ba97591f4c15f2ab5d0faeac86ff76261a68b5c2b7569d2a",
+      "src/world/character/tunic-pocket-geometry.ts": "42f783b351f7f31568827d65e4a3621f332be1d82772ef75cf78e73d04f82cd6",
+      "src/world/character/gear.ts": "6d1b0f4611a1f1807fdfb1d0eb0dd3376195badf7642aa96cbe8d0629a749665",
+      "src/world/character/shield-surface.ts": "92778d11b0bc8c53e0c1186278045075b9caa98bf6b620bc40292d9e2bcc6820",
+      "src/world/character/gear-geometry.ts": "8ae301f5545be5f666dde986a321ed31149bce00d5102516b4826c0b38681bb4",
+      "src/world/character/eye-surface.ts": "d0f28eb832e546ef21dad3cdda0f57cc1a3a626b8500b792db560a42ce555792",
+      "src/world/character/skin-surface.ts": "4901fc10ceb3f15e5c462d60b10ff7435fe490cb92b9b4be6dc48c4872d9f7d8",
+      "src/world/character/eye-aperture.ts": "12d2d6228571e816c80488b69281f44ef119f10b8c059726ebccbe9dfa0ce8d6",
+      "src/world/character/boot-geometry.ts": "49a0d801ab5873b9f7a70e1950f5b7af2e7d6b0c1f45199e559ab5496d1ab2a0",
+      "src/world/character/hair-geometry.ts": "4ed09ba0cc45650aad036b03449fd4f482237878e913eb8a970cf6db5ab0fd9c",
+      "src/world/character/fringe-geometry.ts": "7bfb8e8f806a6de51162436a5e7e87908625a5b378a5e1ac14db733a2b9d9b6c",
+      "src/world/character/sideburn-geometry.ts": "7e1f8279be2e06c2db5fcdb0b43a9b82b2908b51ae229e08c5347d74cd03c5e8",
+      "src/world/character/under-ear-hair.ts": "f239f55080df29a3383532722761c7e6879fc49c53885fe9f2e069ac3f1579b6",
+      "src/world/character/scalp-geometry.ts": "3ae11b599ede1f8a89b73a8ab3dda618764eb46121955a0a132d087a4b6c647a",
+      "src/world/character/arm-articulation.ts": "0d55b2a3c1a89a4a13ed65204124406f29c11907da073c3b5d1a9e0475b47252",
+      "src/world/character/boot-articulation.ts": "359f1f61ad63a0a47751111cb5ae47b52fbea354ae7acfd02de3367cc10a2d2f",
+      "src/world/character/boot-uv.ts": "440d51056ea4989a8e4910b64d539d27e8c4da5f62583052f6e0dd4e413a50d2",
+      "src/world/character/cap-articulation.ts": "f4da33c09ec3aa3562505abdefb814e6e04755502adf8dd27555814cbb9b20e8",
+      "src/world/character/sleeve-geometry.ts": "440050f35e6abf1bfc7448b338ff6621003663740f3b9450ac8fdb5a311a241f",
+      "src/world/character/sleeve-stitches.ts": "bc9fb97a7f776f8f537435876fd1b82e3a332415d1bad27240b2602d1626c176",
+      "src/world/character/sleeve-drape.ts": "a636053e4e8deadcef93a4918482955a3c69df38b225dd36e94cdfe584c889d0",
+      "src/world/character/neckline-geometry.ts": "5fe17887eadccc68012ac659c5baf6ed738e20a09e62025fa3ed39c92f00ced1",
+      "src/world/character/collar-stitches.ts": "2a4d5a664dcc761b1895d7f6d6dec2481f9c5b405371d482ee6fe6d35c0a136f",
+      "src/world/character/cloth-uv.ts": "1cdc6f41b5334ae039932bbebba12d541082ba03a647a474713eb965da7dbc88",
+      "src/world/character/hair-uv.ts": "0bbdf5c6945eea661117b4a6f5f89d9a92dde3a8d80a643b9f1b08d2ccfaf8fa",
+      "src/world/character/cap-geometry.ts": "b9360d276f2a4cf0acadb012c2757f7ca481a3b773adb50cd1a050b9737e8d60",
+      "src/world/character/cap-brim-geometry.ts": "1d37cbff918b9677f165f1dcd2fa61ca4496ddc7e7e5de448d717e9deeade2c2",
+      "src/world/character/cap-tail-geometry.ts": "4681beb2a4f534e194546e3f5ae76698f79e2ac28aa2f691c302aedca69f4813",
+      "src/world/character/hand-geometry.ts": "ab1f97f14c27907034344598506784a50ff25326a53da749e66c9d0e20bf4f77",
+      "src/world/character/strap-buckle-geometry.ts": "5b5fd13efef1d1672713bc831845d551df2bbb42323fb5d10f65336ed1bbf772",
+      "src/world/character/pouch-geometry.ts": "40ad8b9ec982e2fc34645b2daf331063506332d196fe4b943fc31cb0c34e6b3b",
+      "src/world/character/eye-seating.ts": "2e3ee0748467630167c5370a79f7c8d17f6fbde672939ca03cb9cbb93bf0c77e",
+      "src/world/character/eye-cap.ts": "55419041206104070ca5ab9327285cef36ef7ed44c77a4483b1575808f77ff4d",
+      "src/world/character/orbital-recess.ts": "9901588e638b7cf2d1d69a4f18ce72cd00168a142b299f7e0b72470f8cc419e0",
+      "src/world/character/strap-surface.ts": "5f27aedfc46ef4dc76f69aed8b563ec74101c318d868005af13b1b195204c838"
+    },
+    {
+      "src/world/character/link.ts": "527e402ac575fef6a200941bfeed44d6ddce40a4e67839b0c3eed47aab460210",
+      "src/world/character/geometry.ts": "9a16798da918f811c6e90494a09d360bcef96740e3bef92080234835714dffcc",
+      "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "src/world/character/palette.ts": "8c1baf4cb171c9f43f0cafd31500a72c3ce25225495d2663f2b0b725d4c3b8a5",
+      "src/world/character/cloth-surface.ts": "923e41dd47ce0a622d9d483a3fb2c48d549c6b6b295d3b61bbf919c03705187e",
+      "src/world/character/hair-surface.ts": "7ec822450456a46501b766cb5af6f6867370beac2df00cfb766379c7ac8db899",
+      "src/world/character/rig.ts": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86",
+      "src/world/character/face-geometry.ts": "10d2619af2efc384f18cfe9be6b954ca754544d2ee59ca75cd80c86a584a76db",
+      "src/world/character/ear-geometry.ts": "159555dafa3689ba2573d3e98d1e35ab166608b225dd3d8d7a1d8a8788708700",
+      "src/world/character/lower-face-geometry.ts": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+      "src/world/character/outfit-details.ts": "afa90938c0181bf58fa07428174c89a024bfe355330f14637ee499d3d95538f9",
+      "src/world/character/leather-material.ts": "d9994f5bcc6582f767cea9e7e0ec56118bc66d2814d29ede477f544a83367ebf",
+      "src/world/character/cap-tail-stitches.ts": "499946daf356ef42ba97591f4c15f2ab5d0faeac86ff76261a68b5c2b7569d2a",
+      "src/world/character/tunic-pocket-geometry.ts": "42f783b351f7f31568827d65e4a3621f332be1d82772ef75cf78e73d04f82cd6",
+      "src/world/character/gear.ts": "6d1b0f4611a1f1807fdfb1d0eb0dd3376195badf7642aa96cbe8d0629a749665",
+      "src/world/character/shield-surface.ts": "92778d11b0bc8c53e0c1186278045075b9caa98bf6b620bc40292d9e2bcc6820",
+      "src/world/character/gear-geometry.ts": "8ae301f5545be5f666dde986a321ed31149bce00d5102516b4826c0b38681bb4",
+      "src/world/character/eye-surface.ts": "d0f28eb832e546ef21dad3cdda0f57cc1a3a626b8500b792db560a42ce555792",
+      "src/world/character/skin-surface.ts": "4901fc10ceb3f15e5c462d60b10ff7435fe490cb92b9b4be6dc48c4872d9f7d8",
+      "src/world/character/eye-aperture.ts": "ceef5ca5f1a4db88d8921845438372fb717085a15d506690f270ccaefef10ee8",
+      "src/world/character/boot-geometry.ts": "49a0d801ab5873b9f7a70e1950f5b7af2e7d6b0c1f45199e559ab5496d1ab2a0",
+      "src/world/character/hair-geometry.ts": "4ed09ba0cc45650aad036b03449fd4f482237878e913eb8a970cf6db5ab0fd9c",
+      "src/world/character/fringe-geometry.ts": "7bfb8e8f806a6de51162436a5e7e87908625a5b378a5e1ac14db733a2b9d9b6c",
+      "src/world/character/sideburn-geometry.ts": "7e1f8279be2e06c2db5fcdb0b43a9b82b2908b51ae229e08c5347d74cd03c5e8",
+      "src/world/character/under-ear-hair.ts": "f239f55080df29a3383532722761c7e6879fc49c53885fe9f2e069ac3f1579b6",
+      "src/world/character/scalp-geometry.ts": "3ae11b599ede1f8a89b73a8ab3dda618764eb46121955a0a132d087a4b6c647a",
+      "src/world/character/arm-articulation.ts": "0d55b2a3c1a89a4a13ed65204124406f29c11907da073c3b5d1a9e0475b47252",
+      "src/world/character/boot-articulation.ts": "359f1f61ad63a0a47751111cb5ae47b52fbea354ae7acfd02de3367cc10a2d2f",
+      "src/world/character/boot-uv.ts": "440d51056ea4989a8e4910b64d539d27e8c4da5f62583052f6e0dd4e413a50d2",
+      "src/world/character/cap-articulation.ts": "f4da33c09ec3aa3562505abdefb814e6e04755502adf8dd27555814cbb9b20e8",
+      "src/world/character/sleeve-geometry.ts": "440050f35e6abf1bfc7448b338ff6621003663740f3b9450ac8fdb5a311a241f",
+      "src/world/character/sleeve-stitches.ts": "bc9fb97a7f776f8f537435876fd1b82e3a332415d1bad27240b2602d1626c176",
+      "src/world/character/sleeve-drape.ts": "a636053e4e8deadcef93a4918482955a3c69df38b225dd36e94cdfe584c889d0",
+      "src/world/character/neckline-geometry.ts": "5fe17887eadccc68012ac659c5baf6ed738e20a09e62025fa3ed39c92f00ced1",
+      "src/world/character/collar-stitches.ts": "2a4d5a664dcc761b1895d7f6d6dec2481f9c5b405371d482ee6fe6d35c0a136f",
+      "src/world/character/cloth-uv.ts": "1cdc6f41b5334ae039932bbebba12d541082ba03a647a474713eb965da7dbc88",
+      "src/world/character/hair-uv.ts": "0bbdf5c6945eea661117b4a6f5f89d9a92dde3a8d80a643b9f1b08d2ccfaf8fa",
+      "src/world/character/cap-geometry.ts": "b9360d276f2a4cf0acadb012c2757f7ca481a3b773adb50cd1a050b9737e8d60",
+      "src/world/character/cap-brim-geometry.ts": "1d37cbff918b9677f165f1dcd2fa61ca4496ddc7e7e5de448d717e9deeade2c2",
+      "src/world/character/cap-tail-geometry.ts": "4681beb2a4f534e194546e3f5ae76698f79e2ac28aa2f691c302aedca69f4813",
+      "src/world/character/hand-geometry.ts": "ab1f97f14c27907034344598506784a50ff25326a53da749e66c9d0e20bf4f77",
+      "src/world/character/strap-buckle-geometry.ts": "5b5fd13efef1d1672713bc831845d551df2bbb42323fb5d10f65336ed1bbf772",
+      "src/world/character/pouch-geometry.ts": "40ad8b9ec982e2fc34645b2daf331063506332d196fe4b943fc31cb0c34e6b3b",
+      "src/world/character/eye-seating.ts": "2e3ee0748467630167c5370a79f7c8d17f6fbde672939ca03cb9cbb93bf0c77e",
+      "src/world/character/eye-cap.ts": "55419041206104070ca5ab9327285cef36ef7ed44c77a4483b1575808f77ff4d",
+      "src/world/character/orbital-recess.ts": "9901588e638b7cf2d1d69a4f18ce72cd00168a142b299f7e0b72470f8cc419e0",
+      "src/world/character/strap-surface.ts": "5f27aedfc46ef4dc76f69aed8b563ec74101c318d868005af13b1b195204c838"
+    }
+  ]
+}

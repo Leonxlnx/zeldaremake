@@ -1,0 +1,63 @@
+--- a/src/world/character/eye-aperture.ts
++++ b/src/world/character/eye-aperture.ts
+@@ -2,7 +2,7 @@
+ import { BufferGeometry, Float32BufferAttribute, Matrix4, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
+ 
+ export const LINK_EYE_HALF_WIDTH = 0.025;
+-export const LINK_EYE_HALF_HEIGHT = 0.0165;
++export const LINK_EYE_HALF_HEIGHT = 0.0145;
+ export const LINK_EYE_SEGMENTS = 28;
+ /** Midpoints preserve the original polygonal opening and the rim's outer boundary. */
+ export const LINK_EYE_SURFACE_SEGMENTS = LINK_EYE_SEGMENTS * 2;
+--- a/src/world/character/eye-geometry.test.mjs
++++ b/src/world/character/eye-geometry.test.mjs
+@@ -23,10 +23,10 @@
+ }
+ const { createLinkEyeDisc } = load(fileURLToPath(new URL('./eye-geometry.ts', import.meta.url)));
+ 
+-// This is the existing eyelid's perimeter, independent of the disc's tessellation.
++// Independent authored aperture dimensions; do not derive them from the generated white mesh.
+ const opening = Array.from({ length: 28 }, (_, i) => {
+   const a = i / 28 * Math.PI * 2, sy = Math.sin(a);
+-  return new THREE.Vector2(.025 * Math.cos(a), .0165 * sy * (.82 + .18 * Math.abs(sy)));
++  return new THREE.Vector2(.025 * Math.cos(a), .0145 * sy * (.82 + .18 * Math.abs(sy)));
+ });
+ const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+ let testedTriangles = 0;
+@@ -113,10 +113,23 @@
+         assert(Math.abs(radius - Math.abs(dx / k)) < 5e-9, 'physical pupil radius does not squash');
+         mappedHits++;
+       }
+-      const top = hitAt(cx, cy + .009 * k);
+-      if (blink === .08) { assert.equal(top, undefined); coveredPoints++; }
+-      else {
+-        assert(top?.uv); assert(Math.abs(top.uv.y - (.5 + .009 / chart.height)) < 8e-8); mappedHits++;
++      // The shorter authored opening covers the 9mm pupil-top point sooner.
++      // Decide exposure from the independent physical polygon, then retain exact
++      // UV expectations on every ray that should remain visible. The 6mm sample
++      // still exercises vertical pigment mapping during the half blink.
++      for (const dy of [.006, .009]) {
++        const px = cx / k, py = (cy / k + dy) / blink;
++        const exposed = opening.every((start, j) => {
++          const end = opening[(j + 1) % opening.length];
++          return (end.x - start.x) * (py - start.y) - (end.y - start.y) * (px - start.x) >= 0;
++        });
++        const hit = hitAt(cx, cy + dy * k);
++        if (!exposed) { assert.equal(hit, undefined, 'closed margin covers the physical pigment point'); coveredPoints++; }
++        else {
++          assert(hit?.uv, 'physical pigment point remains exposed inside the aperture');
++          assert(Math.abs(hit.uv.x - .5) < 8e-8);
++          assert(Math.abs(hit.uv.y - (.5 + dy / chart.height)) < 8e-8); mappedHits++;
++        }
+       }
+       const position = mesh.geometry.attributes.position, uv = mesh.geometry.attributes.uv;
+       let minV = Infinity, maxV = -Infinity;
+@@ -124,7 +137,7 @@
+         assert.equal(position.getY(i), localY[sideIndex][i], 'white retains its original local height');
+         minV = Math.min(minV, uv.getY(i)); maxV = Math.max(maxV, uv.getY(i));
+       }
+-      assert(Math.abs((maxV - minV) - .033 * blink / chart.height) < 9e-8,
++      assert(Math.abs((maxV - minV) - .029 * blink / chart.height) < 9e-8,
+         'closing aperture samples a narrower original pigment strip');
+     }
+     const versions = surfaces.map(mesh => mesh.geometry.attributes.uv.version);

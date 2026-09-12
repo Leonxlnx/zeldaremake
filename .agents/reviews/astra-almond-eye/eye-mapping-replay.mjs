@@ -7,20 +7,9 @@ import path from 'node:path';
 import * as THREE from 'three';
 import * as geometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-// In-memory TypeScript loader follows the new shared aperture helper as well.
-const cache = new Map();
-function load(file) {
-  file = path.resolve(file);
-  if (cache.has(file)) return cache.get(file).exports;
-  const module = { exports: {} }; cache.set(file, module);
-  const source = ts.transpileModule(readFileSync(file, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText;
-  new Function('require', 'module', 'exports', source)(id => id === 'three' ? THREE
-    : id.endsWith('/utils/BufferGeometryUtils.js') ? geometryUtils
-    : load(path.resolve(path.dirname(file), id + '.ts')), module, module.exports);
-  return module.exports;
-}
+import{loader}from'./loader.mjs';
+const fixture=loader(true);
+function load(file){return fixture.load('src/world/character/'+path.basename(file));}
 const { createLinkEyeDisc } = load(fileURLToPath(new URL('./eye-geometry.ts', import.meta.url)));
 
 // Independent authored aperture dimensions; do not derive them from the generated white mesh.

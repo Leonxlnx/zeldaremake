@@ -1,0 +1,351 @@
+{
+  "stuckContactWitnesses": [
+    {
+      "case": "turn-into-stair-band",
+      "frame": 180,
+      "time": 1.5083333333333304,
+      "side": 1,
+      "root": [
+        0,
+        0,
+        5.57347921605332
+      ],
+      "phase": 0.5626828020216408,
+      "phaseSwinging": true,
+      "ordinary": true,
+      "settling": false,
+      "swing": true,
+      "curve": {
+        "end": 1.666666666666664,
+        "to": [
+          0.08600000000000001,
+          0,
+          6.458979225909171
+        ]
+      },
+      "target": [
+        0.08600000000000001,
+        0.12043728237284065,
+        5.505646212270407
+      ],
+      "anchor": [
+        0.08600000000000001,
+        0,
+        5.09397968365367
+      ],
+      "velocity": [
+        0,
+        2.0072880395473582,
+        6.499997820264292
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 181,
+      "time": 1.5166666666666637,
+      "side": 1,
+      "root": [
+        0.0030927839138313157,
+        0,
+        5.6028864317342375
+      ],
+      "phase": 0.5846757033775036,
+      "phaseSwinging": true,
+      "ordinary": true,
+      "settling": false,
+      "swing": true,
+      "curve": null,
+      "target": [
+        0.09026184691367291,
+        0.14543728237284065,
+        5.572176514429114
+      ],
+      "anchor": [
+        0.08600000000000001,
+        0.12043728237284065,
+        5.505646212270407
+      ],
+      "velocity": [
+        0.5114216296407481,
+        2.999999999999999,
+        7.983636259044857
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 189,
+      "time": 1.5833333333333302,
+      "side": 1,
+      "root": [
+        0.10911768850816642,
+        0,
+        5.756861525018025
+      ],
+      "phase": 0.734181074465388,
+      "phaseSwinging": true,
+      "ordinary": false,
+      "settling": false,
+      "swing": true,
+      "curve": null,
+      "target": [
+        0.28220647246999697,
+        0.19747594163101934,
+        5.80954864231438
+      ],
+      "anchor": [
+        0.08600000000000001,
+        0.12043728237284065,
+        5.505646212270407
+      ],
+      "velocity": [
+        3.9025539181322655,
+        -0.9153671535939667,
+        1.7357844622979357
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 199,
+      "time": 1.6666666666666632,
+      "side": 1,
+      "root": [
+        0.2493635825229427,
+        0,
+        5.820291736975317
+      ],
+      "phase": 0.8741554288932845,
+      "phaseSwinging": true,
+      "ordinary": false,
+      "settling": false,
+      "swing": true,
+      "curve": null,
+      "target": [
+        0.48460777308579195,
+        0.14606769020236693,
+        5.764846120991553
+      ],
+      "anchor": [
+        0.08600000000000001,
+        0.12043728237284065,
+        5.505646212270407
+      ],
+      "velocity": [
+        1.3241272056973097,
+        -1.2552587971447593,
+        -1.5446558802841537
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 200,
+      "time": 1.6749999999999965,
+      "side": 1,
+      "root": [
+        0.26047375957905616,
+        0,
+        5.822829391085384
+      ],
+      "phase": 0.8859963210224233,
+      "phaseSwinging": true,
+      "ordinary": false,
+      "settling": false,
+      "swing": true,
+      "curve": null,
+      "target": [
+        0.49368902343402965,
+        0.13480991073889712,
+        5.751195033579747
+      ],
+      "anchor": [
+        0.08600000000000001,
+        0.12043728237284065,
+        5.505646212270407
+      ],
+      "velocity": [
+        1.0897500417885242,
+        -1.3509335356163776,
+        -1.6381304894167315
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 220,
+      "time": 1.8416666666666626,
+      "side": 1,
+      "root": [
+        0.45521845229888475,
+        0,
+        5.837729276985576
+      ],
+      "phase": 0.11717791247496656,
+      "phaseSwinging": false,
+      "ordinary": false,
+      "settling": false,
+      "swing": false,
+      "curve": null,
+      "target": [
+        0.5853551333923399,
+        0,
+        5.748430610256865
+      ],
+      "anchor": [
+        0.5853551333923399,
+        0,
+        5.748430610256865
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 300,
+      "time": 2.508333333333327,
+      "side": 1,
+      "root": [
+        1.1891496880815233,
+        0,
+        5.838236774018815
+      ],
+      "phase": 0.08909388414001551,
+      "phaseSwinging": false,
+      "ordinary": false,
+      "settling": false,
+      "swing": false,
+      "curve": null,
+      "target": [
+        1.33543790078306,
+        0,
+        5.752233088449172
+      ],
+      "anchor": [
+        1.33543790078306,
+        0,
+        5.752233088449172
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "turn-into-stair-band",
+      "frame": 419,
+      "time": 3.4999999999999902,
+      "side": 1,
+      "root": [
+        2.2799830250885194,
+        0,
+        5.838236774018815
+      ],
+      "phase": 0.5435306572284704,
+      "phaseSwinging": true,
+      "ordinary": false,
+      "settling": false,
+      "swing": true,
+      "curve": null,
+      "target": [
+        2.099246007698499,
+        0.0295691480844628,
+        5.75223677204229
+      ],
+      "anchor": [
+        2.087265009672069,
+        0,
+        5.752236772028408
+      ],
+      "velocity": [
+        1.3583511727710196,
+        1.850419917852689,
+        1.2742873423121637e-9
+      ]
+    }
+  ],
+  "outsideOrdinaryCount": 0,
+  "unknownContextCount": 0,
+  "afterClockCount": 0,
+  "source": "9a317b8",
+  "candidate": "10",
+  "phaseCalls": 8400,
+  "activeCurveCalls": 2445,
+  "phaseEndedWithUnfinishedCurve": 0,
+  "staleCompletionCount": 0,
+  "byCase": [
+    {
+      "case": "run-leave-stair-band",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "walk-leave-stair-band",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "walk-turn90",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "run-stop180",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "run-stop165",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "run-walk180",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "walk-analogue180",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "unknown-context",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "turn-into-stair-band",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    },
+    {
+      "case": "walk-obstruction",
+      "retired": 0,
+      "stale": 0,
+      "outsideOrdinary": 0,
+      "late": 0
+    }
+  ],
+  "retired": [],
+  "completions": [],
+  "limits": "Live unchanged controller/rig, flat sampled surface, source instrumentation only; no mesh/render proof."
+}

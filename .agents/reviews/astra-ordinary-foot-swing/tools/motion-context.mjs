@@ -1,0 +1,16 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import crypto from 'node:crypto';import {createRequire} from 'node:module';import {fileURLToPath} from 'node:url';
+const root=path.resolve(process.argv[2]??'.'),output=path.resolve(process.argv[3]??'tmp/ordinary-foot-swing-review');fs.mkdirSync(output,{recursive:true});const require=createRequire(path.join(root,'package.json')),ts=require('typescript');
+const baseFile=path.join(path.dirname(fileURLToPath(import.meta.url)),'baseline-locomotion.ts'),candidateFile=path.join(root,'src/world/character/locomotion.ts');
+const base=fs.readFileSync(baseFile,'utf8'),candidate=fs.readFileSync(candidateFile,'utf8');
+let stripped=candidate.slice(0,candidate.indexOf('export interface MotionContext'))+candidate.slice(candidate.indexOf('/** One complete left/right stride'));
+const begin=stripped.indexOf('  const rememberInput = '),end=stripped.indexOf('  let remainder = 0;',begin);
+stripped=stripped.slice(0,begin)+stripped.slice(end);
+stripped=stripped.replace(' rememberInput({ moveX: 0, moveZ: 0, run: false, jump: false });','').replace('    rememberInput(input);\n','');
+assert.equal(stripped,base,'removing only the context accessor and its side-effect calls restores byte-exact physical source');
+function load(text){const m={exports:{}};new Function('module','exports',ts.transpileModule(text,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(m,m.exports);return m.exports;}
+const original=load(base),next=load(candidate),flat={height:()=>0,blocked:()=>false,onStairs:()=>false};let snapshots=0;
+for(const hz of [30,60,120,144]){const a=original.createLocomotion(flat,0,0,0),b=next.createLocomotion(flat,0,0,0);const actions=[[1,{moveX:0,moveZ:1,run:false,jump:false}],[1,{moveX:1,moveZ:0,run:false,jump:false}],[1,{moveX:0,moveZ:-1,run:true,jump:false}],[1,{moveX:0,moveZ:-1,run:true,jump:true}],[1,{moveX:0,moveZ:0,run:false,jump:false}]];
+ for(const[seconds,input]of actions)for(let i=0;i<seconds*hz;i++){const before=[];a.update(1/hz,input,s=>before.push({...s}));let step=0;b.update(1/hz,input,s=>{assert.deepEqual(s,before[step++]);const observed=next.getMotionContext(s);assert.deepEqual(observed.input,input);assert.equal(observed.surface,flat);assert(Object.isFrozen(observed)&&Object.isFrozen(observed.input));snapshots++;});assert.equal(step,before.length);assert.deepEqual(a.state,b.state);}
+ assert.equal(next.getMotionContext({...b.state}),null,'a copied state cannot inherit a live context');
+ const held={moveX:0,moveZ:1,run:false,jump:false};b.update(1/120,held);const observed=next.getMotionContext(b.state);held.moveX=1;assert.equal(observed.input.moveX,0,'mutating caller input does not rewrite accepted history');b.clearInput();assert.deepEqual(next.getMotionContext(b.state).input,{moveX:0,moveZ:0,run:false,jump:false});}
+const result={passed:true,numericStateSnapshotsCompared:snapshots,replayHz:[30,60,120,144],physicalSourceByteExactAfterRemovingAccessor:true,candidateSha256:crypto.createHash('sha256').update(candidate).digest('hex'),scope:'Accessor immutability, state-copy isolation and exact controller-state comparison. No foot/geometry claim.'};fs.writeFileSync(path.join(output,'motion-context.json'),JSON.stringify(result,null,2));console.log(result);

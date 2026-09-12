@@ -1,0 +1,8 @@
+{
+  "curveCount": 439,
+  "maximumPlanar": 7.144596205365571,
+  "maximumVertical": 2.997,
+  "minimumY": -5.551115123125783e-17,
+  "failures": [],
+  "scope": "Analytic extrema of stored world-foot curves; numeric floating point. Rate8/3m/s unchanged. Roundoff1e-9 used only to classify arithmetic noise. Does not certify actual terrain clearance, IK or whole-body motion."
+}

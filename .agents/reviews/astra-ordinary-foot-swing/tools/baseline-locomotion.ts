@@ -28,16 +28,6 @@ export interface MotionState {
   time: number;
 }
 
-export interface MotionContext {
-  readonly input: Readonly<PlayerInput>;
-  readonly surface: Readonly<WalkSurface>;
-}
-const motionContexts = new WeakMap<MotionState, MotionContext>();
-/** The actual last held input, without adding fields to numeric simulation state. */
-export function getMotionContext(state: MotionState): MotionContext | null {
-  return motionContexts.get(state) ?? null;
-}
-
 /** One complete left/right stride, sized to the 45.5 cm legs rather than adult gaits. */
 export const strideLength = (run: number, stairs: number) => 0.9 + 0.45 * run - 0.15 * stairs;
 
@@ -50,16 +40,12 @@ export function createLocomotion(surface: WalkSurface, x: number, z: number, yaw
     x, y: surface.height(x, z), z, yaw, vx: 0, vy: 0, vz: 0, speed: 0,
     grounded: true, phase: 0.25, moveWeight: 0, runWeight: 0, stairWeight: 0, landing: 0, jumps: 0, time: 0,
   };
-  const rememberInput = (input: PlayerInput) => motionContexts.set(state, Object.freeze({
-    input: Object.freeze({ moveX: input.moveX, moveZ: input.moveZ, run: input.run, jump: !!input.jump }), surface,
-  }));
-  rememberInput({ moveX: 0, moveZ: 0, run: false, jump: false });
   let remainder = 0;
   let jumpHeld = false;
   let buffered = 0;
   let coyote = MOVE.coyoteTime as number;
 
-  const clearInput = () => { buffered = 0; jumpHeld = false; rememberInput({ moveX: 0, moveZ: 0, run: false, jump: false }); };
+  const clearInput = () => { buffered = 0; jumpHeld = false; };
   const reset = (px: number, pz: number, heading: number) => {
     Object.assign(state, { x: px, y: surface.height(px, pz), z: pz, yaw: heading,
       vx: 0, vy: 0, vz: 0, speed: 0, grounded: true, phase: 0.25,
@@ -81,7 +67,6 @@ export function createLocomotion(surface: WalkSurface, x: number, z: number, yaw
     return false;
   };
   const tick = (dt: number, input: PlayerInput) => {
-    rememberInput(input);
     const s = state;
     s.time += dt;
     let mx = Number.isFinite(input.moveX) ? input.moveX : 0;

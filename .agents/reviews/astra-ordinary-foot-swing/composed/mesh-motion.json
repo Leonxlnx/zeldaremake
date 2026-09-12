@@ -1,0 +1,925 @@
+{
+  "sourceHashes": {
+    "src/world/character/link.ts": "527e402ac575fef6a200941bfeed44d6ddce40a4e67839b0c3eed47aab460210",
+    "src/world/character/geometry.ts": "9a16798da918f811c6e90494a09d360bcef96740e3bef92080234835714dffcc",
+    "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+    "src/world/character/palette.ts": "8c1baf4cb171c9f43f0cafd31500a72c3ce25225495d2663f2b0b725d4c3b8a5",
+    "src/world/character/cloth-surface.ts": "923e41dd47ce0a622d9d483a3fb2c48d549c6b6b295d3b61bbf919c03705187e",
+    "src/world/character/hair-surface.ts": "7ec822450456a46501b766cb5af6f6867370beac2df00cfb766379c7ac8db899",
+    "src/world/character/rig.ts": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86",
+    "src/world/character/face-geometry.ts": "10d2619af2efc384f18cfe9be6b954ca754544d2ee59ca75cd80c86a584a76db",
+    "src/world/character/ear-geometry.ts": "159555dafa3689ba2573d3e98d1e35ab166608b225dd3d8d7a1d8a8788708700",
+    "src/world/character/lower-face-geometry.ts": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+    "src/world/character/outfit-details.ts": "afa90938c0181bf58fa07428174c89a024bfe355330f14637ee499d3d95538f9",
+    "src/world/character/leather-material.ts": "d9994f5bcc6582f767cea9e7e0ec56118bc66d2814d29ede477f544a83367ebf",
+    "src/world/character/cap-tail-stitches.ts": "499946daf356ef42ba97591f4c15f2ab5d0faeac86ff76261a68b5c2b7569d2a",
+    "src/world/character/tunic-pocket-geometry.ts": "42f783b351f7f31568827d65e4a3621f332be1d82772ef75cf78e73d04f82cd6",
+    "src/world/character/gear.ts": "6d1b0f4611a1f1807fdfb1d0eb0dd3376195badf7642aa96cbe8d0629a749665",
+    "src/world/character/shield-surface.ts": "92778d11b0bc8c53e0c1186278045075b9caa98bf6b620bc40292d9e2bcc6820",
+    "src/world/character/gear-geometry.ts": "8ae301f5545be5f666dde986a321ed31149bce00d5102516b4826c0b38681bb4",
+    "src/world/character/eye-surface.ts": "d0f28eb832e546ef21dad3cdda0f57cc1a3a626b8500b792db560a42ce555792",
+    "src/world/character/skin-surface.ts": "4901fc10ceb3f15e5c462d60b10ff7435fe490cb92b9b4be6dc48c4872d9f7d8",
+    "src/world/character/eye-aperture.ts": "ceef5ca5f1a4db88d8921845438372fb717085a15d506690f270ccaefef10ee8",
+    "src/world/character/boot-geometry.ts": "49a0d801ab5873b9f7a70e1950f5b7af2e7d6b0c1f45199e559ab5496d1ab2a0",
+    "src/world/character/hair-geometry.ts": "4ed09ba0cc45650aad036b03449fd4f482237878e913eb8a970cf6db5ab0fd9c",
+    "src/world/character/fringe-geometry.ts": "7bfb8e8f806a6de51162436a5e7e87908625a5b378a5e1ac14db733a2b9d9b6c",
+    "src/world/character/sideburn-geometry.ts": "7e1f8279be2e06c2db5fcdb0b43a9b82b2908b51ae229e08c5347d74cd03c5e8",
+    "src/world/character/under-ear-hair.ts": "f239f55080df29a3383532722761c7e6879fc49c53885fe9f2e069ac3f1579b6",
+    "src/world/character/scalp-geometry.ts": "3ae11b599ede1f8a89b73a8ab3dda618764eb46121955a0a132d087a4b6c647a",
+    "src/world/character/arm-articulation.ts": "0d55b2a3c1a89a4a13ed65204124406f29c11907da073c3b5d1a9e0475b47252",
+    "src/world/character/boot-articulation.ts": "359f1f61ad63a0a47751111cb5ae47b52fbea354ae7acfd02de3367cc10a2d2f",
+    "src/world/character/boot-uv.ts": "440d51056ea4989a8e4910b64d539d27e8c4da5f62583052f6e0dd4e413a50d2",
+    "src/world/character/cap-articulation.ts": "f4da33c09ec3aa3562505abdefb814e6e04755502adf8dd27555814cbb9b20e8",
+    "src/world/character/sleeve-geometry.ts": "440050f35e6abf1bfc7448b338ff6621003663740f3b9450ac8fdb5a311a241f",
+    "src/world/character/sleeve-stitches.ts": "bc9fb97a7f776f8f537435876fd1b82e3a332415d1bad27240b2602d1626c176",
+    "src/world/character/sleeve-drape.ts": "a636053e4e8deadcef93a4918482955a3c69df38b225dd36e94cdfe584c889d0",
+    "src/world/character/neckline-geometry.ts": "5fe17887eadccc68012ac659c5baf6ed738e20a09e62025fa3ed39c92f00ced1",
+    "src/world/character/collar-stitches.ts": "2a4d5a664dcc761b1895d7f6d6dec2481f9c5b405371d482ee6fe6d35c0a136f",
+    "src/world/character/static-batching.ts": "b9b135bc1aae1c9f37257410c01a12aeeb4c72bf2ab66a88bdbab84cba4464b1",
+    "src/world/character/cloth-uv.ts": "1cdc6f41b5334ae039932bbebba12d541082ba03a647a474713eb965da7dbc88",
+    "src/world/character/hair-uv.ts": "0bbdf5c6945eea661117b4a6f5f89d9a92dde3a8d80a643b9f1b08d2ccfaf8fa",
+    "src/world/character/cap-geometry.ts": "b9360d276f2a4cf0acadb012c2757f7ca481a3b773adb50cd1a050b9737e8d60",
+    "src/world/character/cap-brim-geometry.ts": "1d37cbff918b9677f165f1dcd2fa61ca4496ddc7e7e5de448d717e9deeade2c2",
+    "src/world/character/cap-tail-geometry.ts": "4681beb2a4f534e194546e3f5ae76698f79e2ac28aa2f691c302aedca69f4813",
+    "src/world/character/hand-geometry.ts": "ab1f97f14c27907034344598506784a50ff25326a53da749e66c9d0e20bf4f77",
+    "src/world/character/strap-buckle-geometry.ts": "5b5fd13efef1d1672713bc831845d551df2bbb42323fb5d10f65336ed1bbf772",
+    "src/world/character/pouch-geometry.ts": "40ad8b9ec982e2fc34645b2daf331063506332d196fe4b943fc31cb0c34e6b3b",
+    "src/world/character/eye-seating.ts": "2e3ee0748467630167c5370a79f7c8d17f6fbde672939ca03cb9cbb93bf0c77e",
+    "src/world/character/eye-cap.ts": "55419041206104070ca5ab9327285cef36ef7ed44c77a4483b1575808f77ff4d",
+    "src/world/character/orbital-recess.ts": "9901588e638b7cf2d1d69a4f18ce72cd00168a142b299f7e0b72470f8cc419e0",
+    "src/world/character/strap-surface.ts": "5f27aedfc46ef4dc76f69aed8b563ec74101c318d868005af13b1b195204c838",
+    "src/world/character/locomotion.ts": "ba2eea6619545a4d08f037dc75ecb07e63a2f78dc75cd5709fa9ffa11f208194",
+    "src/world/character/play-pose.ts": "fe1b6c4555ae4bb0537967799d4e07ebcdd7bb10860b02fc67573cce42f6946e",
+    "src/world/character/animation.ts": "c57d41e9a6c80294ba757a82635446124665a684506c3cd36ba05792569b8f67",
+    "src/world/character/foot-swing.ts": "dc12637baa16f4a55cee19c2f06ecc376b9ed818695ccb51b7f1843464975d7e"
+  },
+  "results": [
+    {
+      "case": "walk-run-stop-restart-jump",
+      "status": "sampled-floor-clear",
+      "samples": 725,
+      "vertices": 4684950,
+      "minimum": {
+        "frame": 484,
+        "side": "R",
+        "name": "boot-sole",
+        "vertex": 0,
+        "world": [
+          -0.08600000000000002,
+          2.3841855295581027e-9,
+          7.437951761733885
+        ],
+        "y": 2.3841855295581027e-9
+      },
+      "firstNegative": null
+    },
+    {
+      "case": "run-jump-stop",
+      "status": "sampled-floor-clear",
+      "samples": 355,
+      "vertices": 2294010,
+      "minimum": {
+        "frame": 257,
+        "side": "R",
+        "name": "boot-sole",
+        "vertex": 6,
+        "world": [
+          -0.04794253969592296,
+          2.3841855573136783e-9,
+          8.07623419289934
+        ],
+        "y": 2.3841855573136783e-9
+      },
+      "firstNegative": null
+    }
+  ],
+  "planning": {
+    "stats": {
+      "count": 27,
+      "median": 0.1046779999996943,
+      "p95": 0.20938500000011118,
+      "max": 0.5157359999993787
+    },
+    "events": [
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 61,
+        "ms": 0.5157359999993787
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 87,
+        "ms": 0.20158300000002782
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 121,
+        "ms": 0.15515299999970011
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 155,
+        "ms": 0.19511299999976472
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 188,
+        "ms": 0.20805300000029092
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 210,
+        "ms": 0.0758640000003652
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 217,
+        "ms": 0.1659990000007383
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 234,
+        "ms": 0.13306999999986147
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 252,
+        "ms": 0.20938500000011118
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 272,
+        "ms": 0.12710100000003877
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 292,
+        "ms": 0.16557900000043446
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 313,
+        "ms": 0.07604400000127498
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 334,
+        "ms": 0.06820299999890267
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 355,
+        "ms": 0.06631999999990512
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 451,
+        "ms": 0.07746700000097917
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 484,
+        "ms": 0.06996499999877415
+      },
+      {
+        "case": "walk-run-stop-restart-jump",
+        "frame": 518,
+        "ms": 0.07136799999898358
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 0,
+        "ms": 0.12597900000037043
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 13,
+        "ms": 0.053581000000122
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 30,
+        "ms": 0.1046779999996943
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 48,
+        "ms": 0.06335499999840977
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 68,
+        "ms": 0.09330000000045402
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 89,
+        "ms": 0.06312400000024354
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 110,
+        "ms": 0.058307999999669846
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 131,
+        "ms": 0.1405720000002475
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 151,
+        "ms": 0.0637060000008205
+      },
+      {
+        "case": "run-jump-stop",
+        "frame": 172,
+        "ms": 0.14239399999860325
+      }
+    ]
+  },
+  "evaluation": {
+    "count": 674,
+    "median": 0.0016429999996034894,
+    "p95": 0.005458999999973457,
+    "max": 2.826049999999668
+  },
+  "curves": [
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 61,
+      "curve": {
+        "start": 0.508333333333334,
+        "duration": 0.20833333333333331,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 0.025
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 0.47541913436210714
+        },
+        "apex": 0.07,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 87,
+      "curve": {
+        "start": 0.7249999999999999,
+        "duration": 0.2833333333333334,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 0.025
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 0.9456227750510378
+        },
+        "apex": 0.07,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 121,
+      "curve": {
+        "start": 1.0083333333333322,
+        "duration": 0.275,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 0.47541913436210714
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 1.3855614408580212
+        },
+        "apex": 0.07,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 155,
+      "curve": {
+        "start": 1.2916666666666645,
+        "duration": 0.275,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 0.9456227750510378
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 1.83888916990633
+        },
+        "apex": 0.07,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 188,
+      "curve": {
+        "start": 1.5666666666666635,
+        "duration": 0.2833333333333334,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 1.3855614408580212
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 2.292222250760167
+        },
+        "apex": 0.07,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 210,
+      "curve": {
+        "start": 1.7499999999999962,
+        "duration": 0.06666666666666667,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0.05539588845919033,
+          "z": 1.987039036969573
+        },
+        "velocity": {
+          "x": 0,
+          "y": -0.6155098717687708,
+          "z": 3.5555325878515514
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 2.298853797323336
+        },
+        "apex": 0.07,
+        "liftFraction": 0
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 217,
+      "curve": {
+        "start": 1.8083333333333294,
+        "duration": 0.175,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 1.83888916990633
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 2.8820614238877913
+        },
+        "apex": 0.14309888748449,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 234,
+      "curve": {
+        "start": 1.9499999999999955,
+        "duration": 0.19999999999999998,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 2.298853797323336
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 3.5221108581753797
+        },
+        "apex": 0.163370103940428,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 252,
+      "curve": {
+        "start": 2.099999999999995,
+        "duration": 0.22499999999999998,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 2.8820614238877913
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 4.202021600136702
+        },
+        "apex": 0.16864697453175287,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 272,
+      "curve": {
+        "start": 2.2666666666666613,
+        "duration": 0.22499999999999998,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 3.5221108581753797
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 4.851579713351081
+        },
+        "apex": 0.16971877654819154,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 292,
+      "curve": {
+        "start": 2.4333333333333274,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 4.202021600136702
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 5.53399633951945
+        },
+        "apex": 0.16994780087197275,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 313,
+      "curve": {
+        "start": 2.6083333333333267,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 4.851579713351081
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 6.216482143424138
+        },
+        "apex": 0.16999052139383702,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 334,
+      "curve": {
+        "start": 2.783333333333326,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 5.53399633951945
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 6.8989797156357
+        },
+        "apex": 0.16999830293265977,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 355,
+      "curve": {
+        "start": 2.9583333333333255,
+        "duration": 0.22499999999999998,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 6.216482143424138
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 7.548979306238334
+        },
+        "apex": 0.16999967308596836,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 451,
+      "curve": {
+        "start": 3.7583333333333226,
+        "duration": 0.275,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 6.790577630440368
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 7.3512517633551315
+        },
+        "apex": 0.0700038967407137,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 484,
+      "curve": {
+        "start": 4.0333333333333234,
+        "duration": 0.2833333333333334,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 6.832315365352562
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 1.5466027680634653
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 7.805463096183125
+        },
+        "apex": 0.07000022919253969,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "walk-run-stop-restart-jump",
+      "frame": 518,
+      "curve": {
+        "start": 4.316666666666671,
+        "duration": 0.2833333333333334,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 7.3512517633551315
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 8.2587539457024
+        },
+        "apex": 0.07000001348029652,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 0,
+      "curve": {
+        "start": 0,
+        "duration": 0.12499999999999999,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0.00007085370478950937,
+          "z": 0.028092783913831316
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 0.47203931474078287
+        },
+        "apex": 0.0939662747931809,
+        "liftFraction": 0.49981142056538713
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 13,
+      "curve": {
+        "start": 0.10833333333333332,
+        "duration": 0.175,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 0.028092783913831316
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 1.0715521995155481
+        },
+        "apex": 0.14434676586873704,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 30,
+      "curve": {
+        "start": 0.24999999999999997,
+        "duration": 0.20833333333333331,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 0.47203931474078287
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 1.7487878790211357
+        },
+        "apex": 0.1641605530826606,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 48,
+      "curve": {
+        "start": 0.4000000000000004,
+        "duration": 0.22499999999999998,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 1.0715521995155481
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 2.3969502861666077
+        },
+        "apex": 0.16872055904308225,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 68,
+      "curve": {
+        "start": 0.5666666666666671,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 1.7487878790211357
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 3.07906274118028
+        },
+        "apex": 0.16975476996859437,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 89,
+      "curve": {
+        "start": 0.7416666666666665,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 2.3969502861666077
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 3.761493737331508
+        },
+        "apex": 0.16995458158299548,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 110,
+      "curve": {
+        "start": 0.9166666666666659,
+        "duration": 0.22499999999999998,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 3.07906274118028
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 4.411481942852997
+        },
+        "apex": 0.16999106335045028,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 131,
+      "curve": {
+        "start": 1.0916666666666652,
+        "duration": 0.22499999999999998,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 3.761493737331508
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 5.09397968365367
+        },
+        "apex": 0.16999840057624493,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 151,
+      "curve": {
+        "start": 1.2583333333333313,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 4.411481942852997
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": -0.08600000000000001,
+          "y": 0,
+          "z": 5.776479293363982
+        },
+        "apex": 0.16999971637165393,
+        "liftFraction": 0.5
+      }
+    },
+    {
+      "case": "run-jump-stop",
+      "frame": 172,
+      "curve": {
+        "start": 1.4333333333333307,
+        "duration": 0.2333333333333333,
+        "from": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 5.09397968365367
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "to": {
+          "x": 0.08600000000000001,
+          "y": 0,
+          "z": 6.458979225909171
+        },
+        "apex": 0.16999995001598567,
+        "liftFraction": 0.5
+      }
+    }
+  ],
+  "scope": "Current actual createLink boot/detail geometry synchronized at120Hz over live initialized flat input schedules; stops on first raw negative worldY. No geometry/physics edit, no continuous mesh collision proof. Instrumentation inserts timing calls only; source hashes are original uninstrumented candidate bytes."
+}

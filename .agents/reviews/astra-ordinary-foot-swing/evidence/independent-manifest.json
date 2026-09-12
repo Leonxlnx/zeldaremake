@@ -1,0 +1,31 @@
+{
+  "baseline": "9a317b873eae4a036e0ad179027201fdfdb217c1",
+  "candidate": "10",
+  "sourceHashes": {
+    "foot-swing.ts": "dc12637baa16f4a55cee19c2f06ecc376b9ed818695ccb51b7f1843464975d7e",
+    "locomotion.ts": "ba2eea6619545a4d08f037dc75ecb07e63a2f78dc75cd5709fa9ffa11f208194",
+    "play-pose.ts": "fe1b6c4555ae4bb0537967799d4e07ebcdd7bb10860b02fc67573cce42f6946e"
+  },
+  "files": {
+    "event-witness.json": {
+      "bytes": 7232,
+      "sha256": "8891019404e46a1f6cd0bfc7e665dfce6cdda1df16becf21895dda457abc3b0b"
+    },
+    "event-witness.mjs": {
+      "bytes": 5962,
+      "sha256": "5e925dd7ec6459e212b28fb12c0baec5b511c08b855bc922bec017439c4ac119"
+    },
+    "findings.md": {
+      "bytes": 2631,
+      "sha256": "22f389a008fdfd4a116464795a78dd4bcc3db5fc7853d71a7a89adbce904f0c7"
+    },
+    "replay-stdout.json": {
+      "bytes": 7194,
+      "sha256": "54bf00516f6fd7624a8528bc4dfc0893242997fbf8b87b07f3f45676ce72c8e4"
+    }
+  },
+  "priorContextEvidence": {
+    "independent-candidate07-review/context-witness.mjs": "bd4292fda1269223e3feb90a6e814524e07536419b8202b95482d29374afbe0e",
+    "independent-candidate07-review/context-witness.json": "967a500dba35b5ca156cf66e8c0e01d931811433a457c03f01208562fc4c1fb9"
+  }
+}

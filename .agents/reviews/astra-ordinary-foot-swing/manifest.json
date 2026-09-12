@@ -1,0 +1,30 @@
+{
+  "files": {
+    "README.md": "bd14a728a6c8390dde7395edacab9024dc4178aab31ea4ca81f0931cfe4e821e",
+    "composed/corrections.json": "9df2a055ebb99ff56cb220aa81e69b5401d1cff6e8f7fcfa65576b2146eca385",
+    "composed/curve-rates.json": "2d5282de7eb37fbd1d04df7efd2eef4ed5e4d5c24c2d3c5e57a3e26ea94e436f",
+    "composed/mesh-motion.json": "f0b3551a66744fb9653ee407cb5e25dfa98c0ece6f6d8f77bae6ba7c559475ec",
+    "evidence/candidate10-all-test-curve-rates.json": "2d5282de7eb37fbd1d04df7efd2eef4ed5e4d5c24c2d3c5e57a3e26ea94e436f",
+    "evidence/candidate10-all-test-curves.json": "db4400d190b5639f78784a229e50ec5c392be0762cf3902730cc0977163f24c6",
+    "evidence/candidate10-build-stderr.txt": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+    "evidence/candidate10-build-stdout.txt": "d05236dc4c9f082be6436ac9268173e1e38570aa23dc2def6c766e685637cef8",
+    "evidence/candidate10-curve-corrections.json": "4fa053e9b55748658aeb4653b37e6a62fd5020fa4c7aea30810553965e90ec5d",
+    "evidence/candidate10-mesh-motion-review.json": "5542bb181c87835624ab5ffcbe06f9166a3019f18d650059a51e5d216f0ff9a0",
+    "evidence/candidate10-motion-context-review.json": "87a3fa6f5172d91d4b8c4a2add8532beee0dbea052adda9b33c02c5d446afd33",
+    "evidence/candidate10-test-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/candidate10-test-stdout.json": "b2f6a259c22baea6c58c9139c1fa8cd4c2e366f1973a2909481f22e7399e0e7c",
+    "evidence/candidate10-touchdown-comparison.json": "7b6e670b4f4a211cfd32e3a620ddbb6dc0b367b4e70af72e607d596b8fc1ec52",
+    "evidence/independent-event-witness.json": "8891019404e46a1f6cd0bfc7e665dfce6cdda1df16becf21895dda457abc3b0b",
+    "evidence/independent-event-witness.mjs": "5e925dd7ec6459e212b28fb12c0baec5b511c08b855bc922bec017439c4ac119",
+    "evidence/independent-findings.md": "22f389a008fdfd4a116464795a78dd4bcc3db5fc7853d71a7a89adbce904f0c7",
+    "evidence/independent-manifest.json": "56716b6ba61a425869534514812a444685de6f68b4d93a3d98555293161204aa",
+    "evidence/independent-replay-stdout.json": "54bf00516f6fd7624a8528bc4dfc0893242997fbf8b87b07f3f45676ce72c8e4",
+    "source-manifest.json": "af40b9eb13bb3b1d8e72424acafcc7170232e532246d5d8c472169792a93fbf9",
+    "tools/baseline-locomotion.ts": "975611ba8c69b308a56a9a2a794a143d3ca0a041872cade15bd28a623c2afaa9",
+    "tools/curve-rates.py": "fcb704c0811ba6a7b0344565f199d92f1be5420a2591efcf884ff90c5ede2d8d",
+    "tools/mesh-motion.mjs": "0b32293cb389523b8bfb12188874bec32ef4cfe58bbf6e45e49d542bc15f6599",
+    "tools/motion-context.mjs": "4ddb7b3103a5fef1ffd2f08d115d56bd7e384e06cf994b3877fee4cee8724119",
+    "tools/ownership-witness.mjs": "95a53f61818d26ab8a5253a1a670c5520a7534e3201049d2a1db0479b61a2bd9",
+    "tools/verify.mjs": "7c7965f6538b9ef407d0244b3a209e2f52742c5f14c2a56bee57170d14d7b279"
+  }
+}

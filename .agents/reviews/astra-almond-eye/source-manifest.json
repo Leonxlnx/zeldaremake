@@ -1,0 +1,14 @@
+{
+  "src/world/character/eye-aperture.ts": {
+    "bytes": 6919,
+    "sha256": "ceef5ca5f1a4db88d8921845438372fb717085a15d506690f270ccaefef10ee8"
+  },
+  "src/world/character/eye-geometry.test.mjs": {
+    "bytes": 9174,
+    "sha256": "2251e44160b567d641f0bd62ed046eba34b271f21df87628bf2aa426b2b60e48"
+  },
+  "almond-eye.patch": {
+    "bytes": 3478,
+    "sha256": "bd4160e1d6b99163764d438e33e51cba7c9f8a16e9894dff50610a3eb96d793a"
+  }
+}

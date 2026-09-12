@@ -4,12 +4,55 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-12T05:55:03.397369+00:00
+updated: 2026-09-12T06:31:34.912575+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+### Integrating ordinary touchdown and almond aperture
+
+Latest fetch still Fable501b350; their log/PR reply and KID-only placement plan reviewed.
+Our movement edit is confined to locomotion.ts, play-pose.ts and new foot-swing.ts;
+placement and all world systems remain untouched. C01-C03 active through08:34UTC.
+
+Actual56d fringe18 images/42 states verified and front/profile/back/blink images inspected.
+It improves the shallow layered silhouette modestly; wide smooth locks and cap shape still
+fall short of the concept. Gallery progress/2026-09-12_062038-56d13f4 on captures/astra-progress;
+archive45debc560365ae7d0f8d50ba7b6132c0a1306594, no render errors/retries.
+
+Integrating reviewed candidate10 ordinary stored-foot curves. Existing numerical controller
+is unchanged; actual immutable held-input/surface context informs a short event forecast.
+Stationary touchdown replaces the root-carried free foot during uninterrupted ordinary gait.
+Independent10-case ownership replay and unchanged full suite/curve/actual boot audits pass.
+Stop/stair/jump transitions retain existing behavior; no all-mode continuous-velocity claim.
+Portable evidence is in reviews/astra-ordinary-foot-swing/. Root composed full suite,439 curves,1,080 actual boot ticks and zero stored-curve corrections pass. Eye mapping and typecheck/build147 pass. Static batching73→67 meshes/174140 triangles with1,508,256 posed vertices/normals exact; UV/material/shadow/disposal and boot/NPC invariants pass. Actual composed render is next.
+
+Root aperture candidate reduces half-height16.5→14.5mm with unchanged width/anchors/pigment.
+Independent nine-blink geometry, physical UV exposure, skull support and topology checks pass.
+The expected29mm physical aperture and earlier occluded pupil-top are explicit test updates;
+physical iris/pupil sizes and ray/UV tolerances remain fixed. Integrating for rendered review,
+not claiming final eye appearance. Portable21-file eye proof in reviews/astra-almond-eye/ passed its own relocated replay. Cap drape/sewn tube work remains isolated in scratch, now under independent review. Existing18+42 capture uses actual live playPose; a separate optional side stop/restart clip is being prepared without changing its primary sequence.
+
+### Ongoing work after fringe publication
+
+Published56d13f4 (tree24500229) and verified local/remote source equality. Source ZIP
+zeldaremake-56d13f4-source.zip is CRC-clean,14,534,440 bytes, SHA757a6bd47bc8305e238e149edffc08317bff7072da88825947bddac9529861bd.
+Owner received source download; jaw/fringe actual capture jobs are still running.
+
+Fable replied05:44 (5643926551), adopting W25 points as next house silhouette/arch/recess
+brief and warning of KID-only VIEW_TABLE edits in placement.ts. Our placement file is exact
+merge-base9b031a7 and is not being edited. Latest Fable501b350 imports our W25 evidence;
+38532ae adds haze/depth diagnostics. Do not overwrite their planned kid entries.
+
+Cap agent starts one isolated moderate rest-field below the fixed attachment; movement
+agent corrects actual-intent, curve ownership and accepted-state rates under independent
+review. Root measures eye relief before further shape work: flattening the convex ocular
+cap lowers its centre1.72mm but slightly raises the lower aperture edge, so it does not
+address the circular lower-lid outline and is not being integrated. Root now prepares one isolated neutral almond aperture candidate (half-height16.5→14.5mm,
+width/physical iris/pupil/anchors unchanged) while captures run. It will not be integrated
+before actual jaw/fringe review and fresh ocular geometry checks. No production eye edit.
 
 ### Integrating twelve layered fringe locks
 
@@ -1886,4 +1929,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-12T00:36:24.295Z
+2026-09-12T06:36:54.594631+00:00

@@ -1,0 +1,20 @@
+[
+  {
+    "halfHeight": 0.0165,
+    "blink": 0.5838095238095872,
+    "physicalUpperMargin": 0.009505274208850714,
+    "pupilTopY": 0.008499999999999999,
+    "pupilInnerY": 0.0055,
+    "topExposed": true,
+    "innerExposed": true
+  },
+  {
+    "halfHeight": 0.0145,
+    "blink": 0.5838095238095872,
+    "physicalUpperMargin": 0.008353119759293051,
+    "pupilTopY": 0.008499999999999999,
+    "pupilInnerY": 0.0055,
+    "topExposed": false,
+    "innerExposed": true
+  }
+]

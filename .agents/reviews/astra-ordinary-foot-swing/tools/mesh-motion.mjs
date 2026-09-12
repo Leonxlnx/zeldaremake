@@ -1,0 +1,29 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import assert from 'node:assert/strict';import {createRequire} from 'node:module';import {pathToFileURL} from 'node:url';
+const root=path.resolve(process.argv[2]??'.'),output=path.resolve(process.argv[3]??'tmp/ordinary-foot-swing-review');fs.mkdirSync(output,{recursive:true});const require=createRequire(path.join(root,'package.json'));const ts=require('typescript'),T=await import(pathToFileURL(path.join(path.dirname(require.resolve('three')),'three.module.js'))),U=await import(pathToFileURL(require.resolve('three/addons/utils/BufferGeometryUtils.js')));
+const sourceHashes={},cache=new Map();
+const context=new Proxy({}, {get:(_,k)=>k==='createImageData'||k==='getImageData'?(w,h)=>({data:new Uint8ClampedArray(w*h*4),width:w,height:h}):String(k).endsWith('Gradient')?()=>({addColorStop(){}}):()=>{}});globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>context})};
+let tick=-1,currentCase='';const planning=[],evaluating=[],curves=[];
+function load(name){const file=path.resolve(root,name);if(cache.has(file))return cache.get(file).exports;const raw=fs.readFileSync(file,'utf8'),m={exports:{}};cache.set(file,m);sourceHashes[path.relative(root,file)]=crypto.createHash('sha256').update(raw).digest('hex');let text=raw;
+ if(file.endsWith('/play-pose.ts')){text=text.replace('          if (!forecast || forecastSurface !== context!.surface) {','          const planStarted = performance.now();\n          if (!forecast || forecastSurface !== context!.surface) {').replace('          f.from.copy(f.target); f.to.copy(landing); f.takeoffRoot.copy(r.root.position);','          f.from.copy(f.target); f.to.copy(landing); f.takeoffRoot.copy(r.root.position);\n          globalThis.__planCost(performance.now() - planStarted);');}
+ new Function('require','module','exports',ts.transpileModule(text,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(id=>id==='three'?T:id.includes('BufferGeometryUtils')?U:load(path.resolve(path.dirname(file),id+'.ts')),m,m.exports);
+ if(file.endsWith('/foot-swing.ts')){const create=m.exports.createFootSwing,at=m.exports.sampleFootSwing;m.exports.createFootSwing=(...args)=>{const curve=create(...args);curves.push({case:currentCase,frame:tick,curve});return curve;};m.exports.sampleFootSwing=(...args)=>{const start=performance.now();at(...args);evaluating.push(performance.now()-start);};}
+ return m.exports;}
+globalThis.__planCost=ms=>planning.push({case:currentCase,frame:tick,ms});
+const {createLink}=load('src/world/character/link.ts'),{createLocomotion,MOVE}=load('src/world/character/locomotion.ts'),{createPlayPose}=load('src/world/character/play-pose.ts');
+const input=(move=0,run=false,jump=false)=>({moveX:0,moveZ:move,run,jump});
+const flat={height:()=>0,blocked:()=>false,onStairs:()=>false};
+const schedules=[{name:'walk-run-stop-restart-jump',steps:[[60,input()],[150,input(1)],[150,input(1,true)],[90,input()],[100,input(1)],[85,input(1,false,true)],[90,input()]]},{name:'run-jump-stop',steps:[[180,input(1,true)],[85,input(1,true,true)],[90,input()]]}];
+const results=[];const point=new T.Vector3();
+for(const schedule of schedules){currentCase=schedule.name;const actor=createLink(),rig=actor.rig,p=createPlayPose(rig,flat.height),c=createLocomotion(flat,0,0,0),parts=[];for(const side of ['L','R'])for(const name of ['boot','boot-sole','boot-cuff','boot-tongue','boot-laces','boot-buckle']){const mesh=rig['ankle'+side].getObjectByName(name);assert(mesh?.isMesh&&mesh.geometry.index);parts.push({side,name,mesh,vertices:[...new Set(mesh.geometry.index.array)]});}
+ let samples=0,vertices=0,firstNegative=null,minimum=null;tick=-1;let failed=false;
+ for(const [count,command]of schedule.steps){for(let i=0;i<count;i++){tick++;c.update(MOVE.fixedStep,command,(s,dt)=>p.update(s,s.time,dt));actor.syncGeometry();rig.root.updateMatrixWorld(true);samples++;
+  for(const part of parts){const attr=part.mesh.geometry.attributes.position;for(const vertex of part.vertices){point.fromBufferAttribute(attr,vertex).applyMatrix4(part.mesh.matrixWorld);vertices++;assert([point.x,point.y,point.z].every(Number.isFinite));if(!minimum||point.y<minimum.y)minimum={frame:tick,side:part.side,name:part.name,vertex,world:point.toArray(),y:point.y};if(point.y<0&&!firstNegative)firstNegative={frame:tick,side:part.side,name:part.name,vertex,world:point.toArray(),y:point.y,state:{...c.state}};}}
+  if(firstNegative){failed=true;break;}
+ }if(failed)break;}
+ results.push({case:currentCase,status:firstNegative?'raw-floor-refused':'sampled-floor-clear',samples,vertices,minimum,firstNegative});if(firstNegative)break;
+}
+const stats=values=>{const sorted=values.slice().sort((a,b)=>a-b);return{count:sorted.length,median:sorted[Math.floor(sorted.length*.5)]??0,p95:sorted[Math.floor(sorted.length*.95)]??0,max:sorted.at(-1)??0};};
+const result={sourceHashes,results,planning:{stats:stats(planning.map(p=>p.ms)),events:planning},evaluation:stats(evaluating),curves,scope:'Current actual createLink boot/detail geometry synchronized at120Hz over live initialized flat input schedules; stops on first raw negative worldY. No geometry/physics edit, no continuous mesh collision proof. Instrumentation inserts timing calls only; source hashes are original uninstrumented candidate bytes.'};fs.writeFileSync(path.join(output,'mesh-motion.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({...result,curves:curves.length,sourceHashes:Object.fromEntries(Object.entries(sourceHashes).filter(([p])=>p.includes('play-pose')||p.includes('locomotion')||p.includes('foot-swing')))},null,2));
+
+assert.equal(results.reduce((sum,r)=>sum+r.samples,0),1080,'both live schedules complete');
+assert(results.every(r=>r.firstNegative===null),'raw floor clearance, without numerical tolerance');

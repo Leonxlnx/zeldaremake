@@ -1,0 +1,19 @@
+eye-geometry.test.mjs: clipping, curved layers and +Z winding passed (8448 triangles)
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: closing aperture samples a narrower original pigment strip
+    at file:///workspace/scratch/0dfc487f788e/zeldaremake-resumed/gauntlet/tmp/almond-eye-candidate/src/world/character/eye-geometry.test.mjs:127:7
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

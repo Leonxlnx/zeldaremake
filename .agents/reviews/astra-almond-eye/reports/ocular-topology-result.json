@@ -1,0 +1,591 @@
+{
+  "pin": "56d13f4bad8d52074b751c1895863ae33ffc4d12",
+  "frames": [
+    {
+      "blink": 1,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 7.55351322318383e-8,
+          "minProjected": 1.4628135758341237e-7,
+          "minNormalLength": 0.9999999686767721,
+          "maxNormalLength": 1.0000000316241078
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 2.995113567965632e-7,
+          "minProjected": 5.774154527484621e-7,
+          "minNormalLength": 0.9999999680162143,
+          "maxNormalLength": 1.0000000297871274
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 0.000001425675771434228,
+          "minProjected": -0.000007007493364014419,
+          "minNormalLength": 0.9999999637531769,
+          "maxNormalLength": 1.000000030695438
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 7.463668133997941e-8,
+          "minProjected": 1.4628135758341237e-7,
+          "minNormalLength": 0.999999969537787,
+          "maxNormalLength": 1.000000035898308
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 3.0001629874168765e-7,
+          "minProjected": 5.774154527484621e-7,
+          "minNormalLength": 0.9999999704452228,
+          "maxNormalLength": 1.0000000324068667
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 0.000001442873474194779,
+          "minProjected": -0.000007007493364014419,
+          "minNormalLength": 0.9999999701905194,
+          "maxNormalLength": 1.0000000370602746
+        }
+      ]
+    },
+    {
+      "blink": 0.85,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 6.45124917941117e-8,
+          "minProjected": 1.243391539459005e-7,
+          "minNormalLength": 0.9999999685885061,
+          "maxNormalLength": 1.000000030545348
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 2.995716906996356e-7,
+          "minProjected": 5.76974787122858e-7,
+          "minNormalLength": 0.999999969604504,
+          "maxNormalLength": 1.000000032603096
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 0.0000012347814204163378,
+          "minProjected": -0.000005956369359412261,
+          "minNormalLength": 0.9999999616136633,
+          "maxNormalLength": 1.0000000369326554
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 6.386133513482314e-8,
+          "minProjected": 1.243391539459005e-7,
+          "minNormalLength": 0.999999967886017,
+          "maxNormalLength": 1.0000000304553154
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 3.0008267987308715e-7,
+          "minProjected": 5.76974787122858e-7,
+          "minNormalLength": 0.9999999682484111,
+          "maxNormalLength": 1.0000000304870018
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 0.00000125000049311302,
+          "minProjected": -0.000005956369359412261,
+          "minNormalLength": 0.9999999594522864,
+          "maxNormalLength": 1.0000000306279335
+        }
+      ]
+    },
+    {
+      "blink": 0.7,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 5.3374441597025605e-8,
+          "minProjected": 1.0239695030838867e-7,
+          "minNormalLength": 0.999999968808329,
+          "maxNormalLength": 1.0000000296961582
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 2.996300110607507e-7,
+          "minProjected": 5.765341485058575e-7,
+          "minNormalLength": 0.9999999703136617,
+          "maxNormalLength": 1.000000030662228
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 0.000001053281229587388,
+          "minProjected": -0.000004905245354810095,
+          "minNormalLength": 0.9999999691717445,
+          "maxNormalLength": 1.0000000395184285
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 5.2929728668192625e-8,
+          "minProjected": 1.0239695030838867e-7,
+          "minNormalLength": 0.9999999696543029,
+          "maxNormalLength": 1.0000000290108098
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 3.001474313433642e-7,
+          "minProjected": 5.765341485058575e-7,
+          "minNormalLength": 0.9999999703619533,
+          "maxNormalLength": 1.0000000321788285
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 0.0000010661311710115158,
+          "minProjected": -0.000004905245354810095,
+          "minNormalLength": 0.9999999640344239,
+          "maxNormalLength": 1.000000032300869
+        }
+      ]
+    },
+    {
+      "blink": 0.5838095,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 4.465833658187079e-8,
+          "minProjected": 8.540044623009318e-8,
+          "minNormalLength": 0.999999971411425,
+          "maxNormalLength": 1.0000000308471004
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 2.996738390410971e-7,
+          "minProjected": 5.761927666088913e-7,
+          "minNormalLength": 0.9999999702796513,
+          "maxNormalLength": 1.0000000305562233
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 9.219399618873578e-7,
+          "minProjected": -0.0000040910411970985766,
+          "minNormalLength": 0.9999999689684773,
+          "maxNormalLength": 1.0000000368877064
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 4.4345846113854426e-8,
+          "minProjected": 8.540044623009318e-8,
+          "minNormalLength": 0.9999999711282017,
+          "maxNormalLength": 1.0000000290095017
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 3.001962624664718e-7,
+          "minProjected": 5.761927666088913e-7,
+          "minNormalLength": 0.9999999702094752,
+          "maxNormalLength": 1.000000032234912
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 9.327063614139441e-7,
+          "minProjected": -0.0000040910411970985766,
+          "minNormalLength": 0.9999999632900118,
+          "maxNormalLength": 1.0000000401991023
+        }
+      ]
+    },
+    {
+      "blink": 0.5,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 3.83129443932819e-8,
+          "minProjected": 7.314067879170619e-8,
+          "minNormalLength": 0.9999999697188655,
+          "maxNormalLength": 1.00000002955089
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 2.9970474614912314e-7,
+          "minProjected": 5.759465898369515e-7,
+          "minNormalLength": 0.9999999689579913,
+          "maxNormalLength": 1.0000000367286008
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 8.343019910689018e-7,
+          "minProjected": -0.0000035037466820072097,
+          "minNormalLength": 0.9999999696961424,
+          "maxNormalLength": 1.0000000262423696
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 3.8092765326055576e-8,
+          "minProjected": 7.314067879170619e-8,
+          "minNormalLength": 0.9999999696398458,
+          "maxNormalLength": 1.0000000312375281
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 3.0023096939556307e-7,
+          "minProjected": 5.759465898369515e-7,
+          "minNormalLength": 0.9999999702877523,
+          "maxNormalLength": 1.0000000297356022
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 8.43443590349883e-7,
+          "minProjected": -0.0000035037466820072097,
+          "minNormalLength": 0.9999999696585333,
+          "maxNormalLength": 1.000000031233201
+        }
+      ]
+    },
+    {
+      "blink": 0.35,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 2.6870574513190518e-8,
+          "minProjected": 5.1198475154194336e-8,
+          "minNormalLength": 0.9999999688125994,
+          "maxNormalLength": 1.000000030401143
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 2.997598888103743e-7,
+          "minProjected": 5.755058972027436e-7,
+          "minNormalLength": 0.999999969920442,
+          "maxNormalLength": 1.000000029000692
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 6.219183592999572e-7,
+          "minProjected": -0.0000024526226774050474,
+          "minNormalLength": 0.9999999652096919,
+          "maxNormalLength": 1.000000033997883
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 2.6785178929749723e-8,
+          "minProjected": 5.1198475154194336e-8,
+          "minNormalLength": 0.9999999701723686,
+          "maxNormalLength": 1.0000000291525257
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 3.0029285875644694e-7,
+          "minProjected": 5.755058972027436e-7,
+          "minNormalLength": 0.9999999685492752,
+          "maxNormalLength": 1.0000000318335425
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 6.307260803975922e-7,
+          "minProjected": -0.0000024526226774050474,
+          "minNormalLength": 0.9999999621767243,
+          "maxNormalLength": 1.0000000370406783
+        }
+      ]
+    },
+    {
+      "blink": 0.2,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 1.5378242998162523e-8,
+          "minProjected": 2.9256271516682466e-8,
+          "minNormalLength": 0.9999999691627401,
+          "maxNormalLength": 1.0000000315981301
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 1.8819511096701945e-7,
+          "minProjected": 3.734057217396215e-7,
+          "minNormalLength": 0.999999968698158,
+          "maxNormalLength": 1.0000000335149237
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 3.606949069264947e-7,
+          "minProjected": -0.0000014014986728028836,
+          "minNormalLength": 0.9999999641129792,
+          "maxNormalLength": 1.000000036948954
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 1.535619951613634e-8,
+          "minProjected": 2.9256271516682466e-8,
+          "minNormalLength": 0.9999999698548021,
+          "maxNormalLength": 1.0000000301769716
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 1.9017773794319307e-7,
+          "minProjected": 3.734057217396215e-7,
+          "minNormalLength": 0.9999999698554042,
+          "maxNormalLength": 1.0000000309875217
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 3.669305317754822e-7,
+          "minProjected": -0.0000014014986728028836,
+          "minNormalLength": 0.9999999618681638,
+          "maxNormalLength": 1.0000000352164518
+        }
+      ]
+    },
+    {
+      "blink": 0.12,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 9.233045891763662e-9,
+          "minProjected": 1.755376291000948e-8,
+          "minNormalLength": 0.9999999706506993,
+          "maxNormalLength": 1.0000000300635798
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 1.1435200873385073e-7,
+          "minProjected": 2.2404343304377286e-7,
+          "minNormalLength": 0.9999999666017526,
+          "maxNormalLength": 1.0000000317912903
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 2.227740967885284e-7,
+          "minProjected": -8.408992036817292e-7,
+          "minNormalLength": 0.999999963942288,
+          "maxNormalLength": 1.000000037965606
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 9.224892731182015e-9,
+          "minProjected": 1.755376291000948e-8,
+          "minNormalLength": 0.9999999677694889,
+          "maxNormalLength": 1.000000029760949
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 1.1944087106567674e-7,
+          "minProjected": 2.2404343304377286e-7,
+          "minNormalLength": 0.9999999674326719,
+          "maxNormalLength": 1.0000000321402327
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 2.2805194751233992e-7,
+          "minProjected": -8.408992036817292e-7,
+          "minNormalLength": 0.9999999700805664,
+          "maxNormalLength": 1.0000000337539394
+        }
+      ]
+    },
+    {
+      "blink": 0.08,
+      "meshes": [
+        {
+          "side": 0,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 6.1571402809860205e-9,
+          "minProjected": 1.170250860667299e-8,
+          "minNormalLength": 0.9999999702262202,
+          "maxNormalLength": 1.0000000301576808
+        },
+        {
+          "side": 0,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 7.911609576538859e-8,
+          "minProjected": 1.4936228869584857e-7,
+          "minNormalLength": 0.999999970345966,
+          "maxNormalLength": 1.0000000314200663
+        },
+        {
+          "side": 0,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 1.5526250428645477e-7,
+          "minProjected": -5.605994691211536e-7,
+          "minNormalLength": 0.9999999676342909,
+          "maxNormalLength": 1.0000000330252177
+        },
+        {
+          "side": 1,
+          "name": "eye-white",
+          "vertices": 245,
+          "triangles": 432,
+          "minArea": 6.1527574078006045e-9,
+          "minProjected": 1.170250860667299e-8,
+          "minNormalLength": 0.9999999674657465,
+          "maxNormalLength": 1.0000000292080276
+        },
+        {
+          "side": 1,
+          "name": "eyelid",
+          "vertices": 616,
+          "triangles": 1120,
+          "minArea": 8.7563659752571e-8,
+          "minProjected": 1.4936228869584857e-7,
+          "minNormalLength": 0.9999999682746376,
+          "maxNormalLength": 1.0000000298110372
+        },
+        {
+          "side": 1,
+          "name": "lashes",
+          "vertices": 114,
+          "triangles": 180,
+          "minArea": 1.587667569205034e-7,
+          "minProjected": -5.605994691211536e-7,
+          "minNormalLength": 0.9999999599215494,
+          "maxNormalLength": 1.0000000323548623
+        }
+      ]
+    }
+  ],
+  "failure": null
+}

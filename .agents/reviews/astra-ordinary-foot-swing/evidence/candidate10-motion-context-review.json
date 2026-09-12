@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "numericStateSnapshotsCompared": 2400,
+  "replayHz": [
+    30,
+    60,
+    120,
+    144
+  ],
+  "physicalSourceByteExactAfterRemovingAccessor": true,
+  "candidateSha256": "ba2eea6619545a4d08f037dc75ecb07e63a2f78dc75cd5709fa9ffa11f208194",
+  "scope": "Accessor immutability, state-copy isolation and exact controller-state comparison. No foot/geometry claim."
+}

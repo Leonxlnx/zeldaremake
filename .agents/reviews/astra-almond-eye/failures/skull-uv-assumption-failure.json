@@ -1,0 +1,23 @@
+{
+  "pin": "56d13f4bad8d52074b751c1895863ae33ffc4d12",
+  "originalVertices": 6514,
+  "originalColorsUVExact": 0,
+  "strictOutsideVertices": 0,
+  "changedOriginalPositions": [],
+  "refinement": [
+    {
+      "addedVertices": 27921,
+      "addedTriangles": 55842,
+      "refinementPasses": 6,
+      "maxDepthError": 0.0000393207027763613
+    },
+    {
+      "addedVertices": 26865,
+      "addedTriangles": 53730,
+      "refinementPasses": 5,
+      "maxDepthError": 0.000038327551854040005
+    }
+  ],
+  "topology": [],
+  "failure": "Cannot read properties of undefined (reading 'itemSize')"
+}

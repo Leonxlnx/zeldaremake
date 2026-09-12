@@ -1,0 +1,2 @@
+eye-geometry.test.mjs: clipping, curved layers and +Z winding passed (8448 triangles)
+eye-geometry.test.mjs: continuous eye mapping passed (34 physical rays, 6 lid-covered points, blink/reset/cache)

@@ -1,0 +1,62 @@
+{
+  "pin": "56d13f4bad8d52074b751c1895863ae33ffc4d12",
+  "originalVertices": 6514,
+  "uvPresentBoth": [
+    false,
+    false
+  ],
+  "originalColorsUVExact": 6514,
+  "strictOutsideVertices": 6438,
+  "changedOriginalPositions": [
+    1376,
+    1377,
+    1378,
+    1384,
+    1385,
+    1386,
+    1440,
+    1444,
+    1448,
+    1452,
+    1505,
+    1517,
+    1574,
+    1578,
+    1637,
+    1638,
+    1644,
+    1645
+  ],
+  "refinement": [
+    {
+      "addedVertices": 27921,
+      "addedTriangles": 55842,
+      "refinementPasses": 6,
+      "maxDepthError": 0.0000393207027763613
+    },
+    {
+      "addedVertices": 26865,
+      "addedTriangles": 53730,
+      "refinementPasses": 5,
+      "maxDepthError": 0.000038327551854040005
+    }
+  ],
+  "topology": [
+    {
+      "vertices": 34435,
+      "triangles": 68508,
+      "minArea": 3.4177826896742897e-10,
+      "minAverageFaceDot": 0.4265023575929595,
+      "zeroArea": 0
+    },
+    {
+      "vertices": 33379,
+      "triangles": 66396,
+      "minArea": 5.256515941948364e-11,
+      "minAverageFaceDot": 0.4014223067155491,
+      "zeroArea": 0
+    }
+  ],
+  "failure": null,
+  "boundaryDefectsExact": 348
+}

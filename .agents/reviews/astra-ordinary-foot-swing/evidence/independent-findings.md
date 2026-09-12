@@ -1,0 +1,13 @@
+# Independent movement candidate 10 review
+
+The candidate preserves the fixes for the independently identified ownership defects in all ten bounded replay cases. No new blocker was found in this source/event scope. The author's exact-source assertion suite, raw curve-rate/correction audit, actual mesh verification and eventual rendered review remain separate required evidence.
+
+The ten cases cover walking/running away from a stair band, walking through a 90° turn, two running stops, running-to-walking and analogue changes, a blocked walk, a copied/unknown state introduced during swing, and running through a turn into a stair band. Across 8,400 foot observations and 2,445 active-curve observations there are zero samples outside the supported mode, zero samples after a stored curve's end, zero phase-retired unfinished curves and zero stale completions. This replays the exact prior failures; flat stair flags isolate mode ownership and make no actual stair mesh claim.
+
+Candidate 09/10 retains interrupted stopping-step recovery in the existing gait until a nonswing phase, allowing a later actual lift-off to create a new ordinary curve. Candidate 10's play-pose bytes are identical to candidate 09. Its helper changes only the planar ramp from 15% to 10% of the duration plus comments. This retains its piecewise continuous position/velocity and stationary endpoint for positive durations. I have not independently recreated the author's newly found pitched-sole/restart clearance witness; the unchanged full-suite correction and actual mesh audits address that risk.
+
+The context accessor is byte-identical to candidate 07, which independently matched 480 numeric baseline controller states exactly and passed copied/frozen input, mutation isolation, unknown clone, reset, clear and zero-dt checks. Inputs are the actual raw held inputs; the unchanged numerical controller still sanitizes them.
+
+Mode interruptions return to the existing gait from the accepted target and retain its 8 m/s planar, 3 m/s grounded vertical and orientation limits. The bounded stair-turn interruption reaches these limits. Consequently, the quality claim is ordinary held-input touchdown; no blanket C1 claim applies to terrain, stop, jump, unknown-context handoffs or arbitrary downstream corrections.
+
+Files remain frozen under `review-candidate10`. The replay loads unchanged dependencies from pinned `9a317b873eae4a036e0ad179027201fdfdb217c1`. Run `node independent-candidate10-review/event-witness.mjs` from `/workspace/scratch/0dfc487f788e/astra-movement-review`. No production files or remote branches were edited by this review.

@@ -1,0 +1,110 @@
+{
+  "baseline": "56d13f4bad8d52074b751c1895863ae33ffc4d12",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1738,
+      "sha256": "930938653bfc83511b06e1882a933068e808f472d76a35f81cca71b02c16fe48"
+    },
+    {
+      "path": "almond-eye.patch",
+      "bytes": 3478,
+      "sha256": "bd4160e1d6b99163764d438e33e51cba7c9f8a16e9894dff50610a3eb96d793a"
+    },
+    {
+      "path": "candidate/src/world/character/eye-aperture.ts",
+      "bytes": 6919,
+      "sha256": "ceef5ca5f1a4db88d8921845438372fb717085a15d506690f270ccaefef10ee8"
+    },
+    {
+      "path": "candidate/src/world/character/eye-geometry.test.mjs",
+      "bytes": 9174,
+      "sha256": "2251e44160b567d641f0bd62ed046eba34b271f21df87628bf2aa426b2b60e48"
+    },
+    {
+      "path": "eye-mapping-replay.mjs",
+      "bytes": 8620,
+      "sha256": "23b965d9b6527bdf9065642f54251132fc0c6eff03b9511dfb66b56593bfbe60"
+    },
+    {
+      "path": "failures/original-eye-geometry.test.mjs",
+      "bytes": 8356,
+      "sha256": "1e7e6bb87ca3ec9076e0e0fc469f375d491e713b664ec0a071161875bdabd321"
+    },
+    {
+      "path": "failures/original-eye-test-failure.txt",
+      "bytes": 745,
+      "sha256": "47ad96965821ffb036052a2359db5c68a006992651be9b2c51ab2004500484bd"
+    },
+    {
+      "path": "failures/skull-uv-assumption-failure.json",
+      "bytes": 589,
+      "sha256": "f42606cf985e4d27aef2aacfa006dbdf1ac294a767478cad94ff25b83e98b00b"
+    },
+    {
+      "path": "handoff.md",
+      "bytes": 4578,
+      "sha256": "53ba448fd48af5769cb1925001a2fbad40a22c7fea8b9fd25f12d67f74697841"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 2280,
+      "sha256": "8ccfcf925555cab9b62ab0d824628da987a8dce7f6ca95ada95f9e84fb7c7a83"
+    },
+    {
+      "path": "ocular-topology-review.mjs",
+      "bytes": 1876,
+      "sha256": "eaa0ac0147aa7aa3f66be385c77b6f3d25954296a98ae45167cba864fe0f3bf6"
+    },
+    {
+      "path": "physical-review.mjs",
+      "bytes": 6264,
+      "sha256": "afd2a2e825c6a346a823c2c3293be0c4a1dfff268a21a89a4da8015dfa0c10cd"
+    },
+    {
+      "path": "replay.mjs",
+      "bytes": 941,
+      "sha256": "a68f99bd3d09e447cba13e41f0d5225d69443cfbd543a2110ae57ab91ab17fdf"
+    },
+    {
+      "path": "reports/exposure-classification.json",
+      "bytes": 468,
+      "sha256": "44fe773ed77856d8205700fdbe042bf9dd329144ac834067783b9441ed11d8d6"
+    },
+    {
+      "path": "reports/ocular-topology-result.json",
+      "bytes": 17683,
+      "sha256": "656529959c7774702254898dc4aec5964e1cb080fab9496fc585829e2a7e0d61"
+    },
+    {
+      "path": "reports/physical-result.json",
+      "bytes": 69272,
+      "sha256": "564cda3972832232592ba7b6739951bd35c33b97195b8ba5b2a65fa56fcf545e"
+    },
+    {
+      "path": "reports/skull-result.json",
+      "bytes": 1146,
+      "sha256": "5927150ba2c1e5278b8171f02ddbf3b930713f468723d7f096e9dc6fd5de8910"
+    },
+    {
+      "path": "reports/updated-eye-test.txt",
+      "bytes": 199,
+      "sha256": "123a745ee9960323fbb30fb29feb57de8dfe07ae242068a74c5cad4c081a2631"
+    },
+    {
+      "path": "skull-review.mjs",
+      "bytes": 3797,
+      "sha256": "2c8b458ea6fdd23aa91f5a1b411cabdd4c4185b1fc077d78624102391d9a0525"
+    },
+    {
+      "path": "source-manifest.json",
+      "bytes": 434,
+      "sha256": "9a56aa52c64ac6181a372f9f70f947ff1abdf6638827fd41ef7f8a14acc0e291"
+    },
+    {
+      "path": "triangle-distance.mjs",
+      "bytes": 3007,
+      "sha256": "44a178de9f9f7271f53aa034d941d171ea120739c52027b62cf49ffbe7b4e6e5"
+    }
+  ]
+}

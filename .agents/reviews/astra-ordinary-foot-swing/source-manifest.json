@@ -1,0 +1,13 @@
+{
+  "sourceBaseline": "9a317b873eae4a036e0ad179027201fdfdb217c1",
+  "sourceHashes": {
+    "src/world/character/foot-swing.ts": "dc12637baa16f4a55cee19c2f06ecc376b9ed818695ccb51b7f1843464975d7e",
+    "src/world/character/play-pose.ts": "fe1b6c4555ae4bb0537967799d4e07ebcdd7bb10860b02fc67573cce42f6946e",
+    "src/world/character/locomotion.ts": "ba2eea6619545a4d08f037dc75ecb07e63a2f78dc75cd5709fa9ffa11f208194"
+  },
+  "baselineHashes": {
+    "src/world/character/locomotion.ts": "975611ba8c69b308a56a9a2a794a143d3ca0a041872cade15bd28a623c2afaa9",
+    "src/world/character/play-pose.ts": "98efcaad2326bf60007b98e02e7eaabff7b0b23ce78b718c34e89f3a87bf22fb"
+  },
+  "unchangedTestSha256": "deeefd9e9e2b9aa21dbfd19cce640e0b9039388667d4639a88cde9c16aa434f3"
+}

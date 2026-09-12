@@ -1,7 +1,8 @@
 /** Stateful foot contacts belong to live play only. Reference captures use animation.ts. */
 import { MathUtils, Quaternion, Vector3 } from 'three';
 import { applyPose, type GroundSampler } from './animation';
-import { MOVE, strideLength, type MotionState } from './locomotion';
+import { createLocomotion, getMotionContext, MOVE, strideLength, type MotionState } from './locomotion';
+import { createFootSwing, sampleFootSwing, type FootSwing } from './foot-swing';
 import type { Rig } from './rig';
 
 const DOWN = new Vector3(0, -1, 0);
@@ -17,6 +18,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
     takeoffRoot: new Vector3(),
     swing: false, initialised: false, yaw: 0, pitch: 0, transitionPitch: 0,
     settling: false, settleTime: 0,
+    curve: null as FootSwing | null, velocity: new Vector3(), legacyRecovery: false,
   }));
   const ankle = new Vector3(), local = new Vector3(), upper = new Vector3();
   const forward = new Vector3(), axis = new Vector3(), soleOffset = new Vector3();
@@ -27,12 +29,16 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
   let pelvisY = NaN;
   let transitionTime = 1;
   let previousSpeed = 0;
+  let lastIntent = '';
+  let forecast: ReturnType<typeof createLocomotion> | null = null;
+  let forecastSurface: NonNullable<ReturnType<typeof getMotionContext>>['surface'] | undefined;
+  const landing = new Vector3();
   const upperJoints = [rig.hips, rig.chest, rig.neck, rig.shoulderL, rig.shoulderR, rig.elbowL, rig.elbowR, ...(rig.capTail ? [rig.capTail] : [])];
   const lastUpper = upperJoints.map(j => j.quaternion.clone());
   const transitionUpper = upperJoints.map(j => j.quaternion.clone());
   const reset = () => {
-    for (const f of feet) { f.initialised = false; f.pitch = 0; f.transitionPitch = 0; f.settling = false; }
-    wasGrounded = true; pelvisY = NaN; transitionTime = 1; previousSpeed = 0;
+    for (const f of feet) { f.initialised = false; f.pitch = 0; f.transitionPitch = 0; f.settling = false; f.curve = null; f.velocity.set(0, 0, 0); f.legacyRecovery = false; }
+    wasGrounded = true; pelvisY = NaN; transitionTime = 1; previousSpeed = 0; lastIntent = '';
   };
 
   // The rounded sole stays inside this .108 x .172 x .018 m envelope. Check both
@@ -88,6 +94,12 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
       const r = rig;
       const deceleration = dt > 0 ? (previousSpeed - s.speed) / dt : 0;
       const accelerating = s.speed > previousSpeed + 0.001;
+      const context = getMotionContext(s), held = context?.input;
+      const intentKey = held ? `${held.moveX},${held.moveZ},${held.run}` : '';
+      const changedIntent = intentKey !== lastIntent;
+      lastIntent = intentKey;
+      const ordinary = !!context && !!held && Math.hypot(held.moveX, held.moveZ) > 0.05
+        && s.stairWeight < 1e-5 && !context.surface.onStairs(s.x, s.z);
       // Invert the controller's known braking response. A deliberate analogue
       // slowdown has a nonzero target; decreasing speed alone is not a stop.
       const brakingGain = -Math.expm1(-MOVE.braking * dt);
@@ -101,6 +113,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           (s.speed < 0.02 || (s.speed < 1 && deceleration > 0.2))));
       if (!s.grounded || accelerating) for (const f of feet) {
         if (f.settling) {
+          f.legacyRecovery = s.grounded;
           f.from.copy(f.target); f.takeoffRoot.set(s.x, s.y, s.z); f.swing = false;
         }
         f.settling = false;
@@ -111,6 +124,7 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
         // Preserve the descending feet instead of restarting at a mid-stride target.
         for (const f of feet) {
           f.transitionPitch = f.pitch;
+          f.curve = null; f.legacyRecovery = false;
           f.anchor.copy(f.target); f.from.copy(f.target); f.swing = false;
           f.takeoffRoot.set(s.x, s.y, s.z);
         }
@@ -187,17 +201,33 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           if (distance > 0.025 && (!next || (f.swing && !next.swing) ||
             (f.swing === next.swing && distance > furthest))) { next = f; furthest = distance; }
         }
-        if (next) { next.settling = true; next.settleTime = 0; next.from.copy(next.target); }
+        if (next) { next.settling = true; next.settleTime = 0; next.from.copy(next.target); next.curve = null; }
       }
       const settling = stopping || feet.some(f => f.settling);
       for (const f of feet) {
         previous.copy(f.target);
         const previousPitch = f.pitch;
+        // Terrain, stopping, or an unknown caller state returns ownership to
+        // the existing gait from the last accepted sole, never an old endpoint.
+        const useLegacyGait = () => {
+          f.curve = null; f.legacyRecovery = false;
+          f.anchor.copy(f.target); f.from.copy(f.target);
+          f.takeoffRoot.copy(r.root.position); f.swing = false;
+        };
+        if (f.curve && !ordinary) useLegacyGait();
         const phase = ((s.phase + (f.side > 0 ? 0 : 0.5)) % 1 + 1) % 1;
-        const swinging = !settling && w > 0.05 && phase >= duty;
+        const phaseSwinging = !settling && w > 0.05 && phase >= duty;
+        // An interrupted stopping step keeps the existing recovery until this
+        // foot's next actual lift-off; it is not a new flat sliding swing.
+        if (!phaseSwinging) f.legacyRecovery = false;
+        // A stored curve owns its release-to-contact interval. A phase crossing
+        // cannot freeze an unfinished curve and leave a stale completion behind.
+        let swinging = !settling && (phaseSwinging || f.curve !== null);
+        let sampledCurve = false;
+        let completingCurve = false;
         const swingU = clamp((phase - duty) / (1 - duty), 0, 1);
         // A small toe-down / toe-up recovery, with zero value and slope at each endpoint.
-        const desiredPitch = mix(0.10, 0.20, run) * Math.sin(TAU * swingU) * Math.sin(Math.PI * swingU) * w;
+        const desiredPitch = phaseSwinging ? mix(0.10, 0.20, run) * Math.sin(TAU * swingU) * Math.sin(Math.PI * swingU) * w : 0;
         f.pitch = s.grounded ? (swinging ? mix(f.transitionPitch, desiredPitch, transition) : 0)
           : f.transitionPitch * (1 - transition);
         // A foot held at a riser may resume after its phase has advanced. Catch the angle
@@ -217,9 +247,46 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           previous.copy(f.target);
           f.swing = false; f.initialised = true;
         }
-        if (s.grounded && swinging && !f.swing) {
-          f.from.copy(f.target);
-          f.takeoffRoot.copy(r.root.position);
+        if (s.grounded && progress === 1 && ordinary && !f.legacyRecovery && swinging && (!f.swing || (changedIntent && f.curve))) {
+          if (!forecast || forecastSurface !== context!.surface) {
+            forecastSurface = context!.surface;
+            forecast = createLocomotion(forecastSurface, s.x, s.z, s.yaw);
+          }
+          forecast.reset(s.x, s.z, s.yaw);
+          Object.assign(forecast.state, s);
+          // A forecast is a separate controller with its own input association.
+          // Its future assumes no new jump press; observed flight clears the curve.
+          const intent = { ...held!, jump: false };
+          const endPhase = Math.floor(s.phase + (f.side > 0 ? 0 : 0.5)) + 1;
+          let duration = 0, ordinaryWindow = true;
+          while (duration < 8 && forecast.state.phase + (f.side > 0 ? 0 : 0.5) < endPhase) {
+            forecast.update(MOVE.fixedStep, intent); duration += MOVE.fixedStep;
+            if (!forecast.state.grounded || forecast.state.stairWeight > 1e-5 || forecast.state.speed === 0) {
+              ordinaryWindow = false; break;
+            }
+          }
+          // Choose the existing stair/cliff/blocked-motion mode before building
+          // a curve; it is not entered after a failed trajectory-rate check.
+          if (ordinaryWindow) {
+            duration = Math.max(MOVE.fixedStep, duration);
+            const future = forecast.state;
+            const futureDuty = mix(0.52, 0.36, future.runWeight);
+            const futureLead = Math.min(0.245, strideLength(future.runWeight, future.stairWeight) * futureDuty * 0.5) * future.moveWeight;
+            landing.set(lateral, 0, futureLead + 0.025).applyAxisAngle(UP, future.yaw);
+            landing.x += future.x; landing.z += future.z;
+            landing.y = supportHeight(landing.x, landing.z, future.yaw, 0);
+            f.curve = createFootSwing(s.time - dt, duration + dt, f.target, f.velocity, landing,
+              0.07 + 0.10 * future.runWeight, f.curve);
+            f.legacyRecovery = false;
+            f.from.copy(f.target); f.to.copy(landing); f.takeoffRoot.copy(r.root.position);
+          } else if (f.curve) {
+            // Changed intent can turn an otherwise ordinary swing toward stairs,
+            // an obstruction, or a ledge. The old forecast no longer owns it.
+            useLegacyGait(); swinging = phaseSwinging;
+          }
+        }
+        if (s.grounded && swinging && !f.swing && !f.curve) {
+          f.from.copy(f.target); f.takeoffRoot.copy(r.root.position);
           rest(f.to, lead + 0.025);
         }
         if (!s.grounded) {
@@ -231,13 +298,15 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           rest(restTarget, 0.025);
           f.target.lerpVectors(f.from, restTarget, u * u * (3 - 2 * u));
           f.target.y += 0.025 * Math.sin(Math.PI * u);
+        } else if (swinging && f.curve) {
+          sampleFootSwing(f.curve, s.time, f.target, f.velocity);
+          sampledCurve = true;
+          completingCurve = s.time >= f.curve.start + f.curve.duration - 1e-10;
         } else if (swinging) {
-          // Retarget only the free foot so planted soles do not skate when the camera turns.
+          // Preserve the existing jump/landing transition. The next actual
+          // ordinary lift-off starts a stored curve after that transition ends.
           rest(f.to, lead + 0.025);
-          const u = swingU;
-          const ease = u * u * (3 - 2 * u);
-          // Carry the free foot with the moving pelvis while it swings. Its world-space
-          // lift-off point alone would lag behind a running body and overextend the knee.
+          const u = swingU, ease = u * u * (3 - 2 * u);
           movingFrom.copy(f.from);
           movingFrom.x += s.x - f.takeoffRoot.x;
           movingFrom.z += s.z - f.takeoffRoot.z;
@@ -246,9 +315,10 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           f.target.y = Math.max(f.target.y, supportHeight(f.target.x, f.target.z, f.yaw, f.pitch)) + lift;
         } else {
           if (f.swing) f.anchor.copy(f.target);
-          f.target.copy(f.anchor);
+          f.target.copy(f.anchor); f.velocity.set(0, 0, 0);
           f.target.y = supportHeight(f.target.x, f.target.z, f.yaw, f.pitch);
         }
+        landing.copy(f.target);
         // Turning can leave an old contact behind the hips. Release it into a short
         // recovery step before it exceeds the leg's horizontal reach.
         rest(restTarget, 0.025);
@@ -281,8 +351,18 @@ export function createPlayPose(rig: Rig, ground: GroundSampler) {
           f.yaw = nextYaw;
         }
         if (f.settling && f.settleTime >= 0.20 && f.target.distanceTo(restTarget) < 0.012) f.settling = false;
-        if (!swinging || !s.grounded) f.anchor.copy(f.target);
-        f.swing = s.grounded && swinging;
+        // A downstream support/riser correction changes the accepted trajectory.
+        // Keep its observed velocity with that accepted position for any replan.
+        if (dt > 0 && (!sampledCurve || f.target.distanceToSquared(landing) > 1e-18)) {
+          f.velocity.copy(f.target).sub(previous).divideScalar(dt);
+        }
+        if (completingCurve && f.curve && f.target.distanceToSquared(f.curve.to) < 1e-16) {
+          f.anchor.copy(f.target); f.curve = null; f.velocity.set(0, 0, 0);
+          f.swing = false;
+        } else {
+          if (!swinging || !s.grounded) f.anchor.copy(f.target);
+          f.swing = s.grounded && swinging;
+        }
       }
       // Smooth the visible pelvis across a tread or landing without moving physics.
       const desiredPelvisY = s.y + r.hips.position.y;
