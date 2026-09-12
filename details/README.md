@@ -6,6 +6,7 @@ Four actual production closeups per checkpoint: sign front, sign oblique, stair-
 
 | Captured UTC | Source | Detail views |
 | --- | --- | --- |
+| 2026-09-12T14:51:21.523Z | [64028c4](https://github.com/Leonxlnx/zeldaremake/commit/64028c4ff4010aab9195d33dfa966e00e766621f) | [4 images](2026-09-12_145121523-64028c4/) |
 | 2026-09-12T14:39:19.735Z | [561345b](https://github.com/Leonxlnx/zeldaremake/commit/561345b03d1e12c0552921678f63fbe14054abd4) | [4 images](2026-09-12_143919735-561345b/) |
 | 2026-09-12T14:23:30.355Z | [f630ebb](https://github.com/Leonxlnx/zeldaremake/commit/f630ebbbb0e5f3465495814e1aa73df6d07a6de6) | [4 images](2026-09-12_142330355-f630ebb/) |
 | 2026-09-12T14:10:48.044Z | [ccc7e7f](https://github.com/Leonxlnx/zeldaremake/commit/ccc7e7f5eff6aa5da1e268ac1bb00bf565f19378) | [4 images](2026-09-12_141048044-ccc7e7f/) |
