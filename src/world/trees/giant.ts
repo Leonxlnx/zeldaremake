@@ -837,6 +837,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const topRadius = trunkRadii[trunkRadii.length - 1];
   for (let i = 0; i < leaders; i++) {
     const origin = sample(trunk, i === 0 ? 1 : bt(0.93, 0.995));
+    // the crown leaders are limbs too: the bare bole ends at the lowest of them (stair-bank-giant
+    // published 10.72 m with a leader at 10.04 - Astra's review of 7eba56e)
+    bareHeight = Math.min(bareHeight, origin.y);
     const angle = leanAz + (i / leaders) * TAU + bt(-0.35, 0.35);
     const radial = crownRadius * bt(0.35, 0.58);
     const target = new Vector3(Math.cos(angle) * radial, H * bt(0.76, 0.92), Math.sin(angle) * radial);
