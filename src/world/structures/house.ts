@@ -1,26 +1,28 @@
 /**
  * Kokiri tree-trunk house (reference B, 14 s; concept sheet 04 "Tree-house exterior"): a hollow
- * living stump under a BROAD mushroom-cap roof — a tall sunlit moss mound whose rolled eave
- * overhangs the trunk by a third of its radius, with a dark soffit that shades a deep porch cut
- * into the front of the trunk. Two thick bark pillars (bulges of the trunk wall) flank the porch;
- * the actual doorway — a wide, low opening with a wooden frame over a stone threshold slab —
- * nearly fills the porch's back wall and opens on a warm amber room lit from inside (two pod
- * lamps under the ceiling, an amber fill, a candle on a low table, embers glowing pink-amber low
- * on the right; brightest under the arch, fading to the threshold). The cap is an irregular mossy
- * mound in the roof material — lumpy, darker olive moss with patchy lighter thatch, moss clumps
- * and a drooping fringe of leaves and vines over the rim — sitting on a thin rolled bark lip in
- * the bark material (0.24 m: the reference eave is a ragged moss edge over a dark shadow band,
- * not a beam), and it is held by the house's own living branches in
- * the trunk's bark: one gnarled bough rises from the roots on the left, climbs the left shoulder
- * and arches over the FRONT of the cap well clear of the moss (frame B looks up at it, so it runs
- * as a thick dark limb across the top band above the dome, like the reference's near limb) before
- * sinking back into the moss behind the right shoulder; a second, dark under the moss's shadow,
- * runs along the front eave above the door, arching up over the doorway into the lip, with the
- * pod lanterns hanging from it (sheet 04 "Natural wooden supports (branches)"). The bark takes a
- * structures-owned shade floor tinted to the reference's warm dark brown (`HOUSE_BARK_FLOOR`),
- * not the giants' grey-green one. Buttress roots seat the trunk on the terrain,
- * pale limbs drape over the cap, moss, leaf clumps, ferns, broad-leaf plants and heart-leaf vines
- * shroud the cap, and a small round window glows on the left flank.
+ * living stump under a LOW BROAD mushroom-cap roof — a flat-topped, irregular olive moss mound
+ * whose moss rim overhangs the trunk all round (`CAP_RIM_SCALE`), with a dark soffit that shades
+ * a deep, dark porch cut into the front of the trunk. Two thick ROOT LIPS — buttress roots
+ * hugging the jambs, flaring forward and outward to their feet on the ground and curving up and
+ * inward into the moss rim — frame the doorway: a WIDE, low, ragged-edged opening (width ≈ 1.15 ×
+ * height, a broad arch rounding into the roots, no timber frame) over a sill beam and a stone
+ * threshold slab, opening on a dark cool recess — a deep room whose back wall sits ≈ 3 m in, with
+ * the amber local to two pod lamps hanging in front of it, a candle on a low table, embers
+ * glowing pink-amber low on the right, and a pale-amber light under the arch that spills onto
+ * the threshold. Nothing horizontal sits over the door (rounds 8–11's bark roll and eave bough
+ * read as a beam in B): the cap's moss rim simply overhangs, and the pods hang on cords from the
+ * soffit under it. The cap is built in the plain moss material
+ * (vertex colours are its albedo — olive, grainy, lumpy, ±0.22 m mounds) with patches of lighter
+ * straw in the roof material (`THATCH_THRESHOLD`), moss clumps and a drooping fringe of leaves and
+ * vines over the rim, and it is held by the house's own living branch in the trunk's bark: a
+ * gnarled bough rises from the roots on the left, climbs the left shoulder and arches over the
+ * FRONT of the cap well clear of the moss (frame B looks up at it, so it runs as a thick dark
+ * limb across the top band above the dome, like the reference's near limb) before sinking back
+ * into the moss behind the right shoulder (sheet 04 "Natural wooden supports (branches)"). The
+ * bark takes a structures-owned shade floor tinted to the reference's warm dark brown
+ * (`HOUSE_BARK_FLOOR`), not the giants' grey-green one. Buttress roots seat the trunk on the
+ * terrain, pale limbs drape over the cap, moss, leaf clumps, ferns, broad-leaf plants and
+ * heart-leaf vines shroud the cap, and a small round window glows on the left flank.
  *
  * Every dimension is expressed in terms of `trunkRadius` / `roofHeight`, so the same builder
  * produces Saria's hero house and the small upper house.
@@ -73,16 +75,61 @@ type P3 = [number, number, number];
 
 /** World-space eave profile on the door axis, for projected-thickness checks in frame B. */
 export interface EaveProfile {
-  /** top of the bark roll (where the moss ends) and its underside */
-  rollTop: P3;
-  rollBottom: P3;
-  /** top / bottom of the eave bough over the door centre */
-  boughTop: P3;
-  boughBottom: P3;
+  /** top of the moss rim's curl (where the cap's top surface ends) and its underside */
+  rimTop: P3;
+  rimBottom: P3;
+  /**
+   * bark elements over the door centre: null since round 12 — the eave bough and the bark roll
+   * are gone; the moss rim simply overhangs and the door is framed by the root lips
+   */
+  bough: { top: P3; bottom: P3 } | null;
+  barkRoll: { top: P3; bottom: P3 } | null;
   /** the door arch's top edge */
   doorTop: P3;
-  /** the same bark profile as round 10 built it (0.52 m roll, straight bough under it) */
+  /** the same bark profile as round 11 built it (0.24 m bark roll, arched bough under it) */
+  round11: { rollTop: P3; rollBottom: P3; boughTop: P3; boughBottom: P3 };
+  /** ...and as round 10 built it (0.52 m roll, straight bough under it) */
   round10: { rollTop: P3; rollBottom: P3; boughTop: P3; boughBottom: P3 };
+}
+
+/** The doorway opening (world), for the aspect / projected-size checks in frame B. */
+export interface DoorOpening {
+  /** clear width and height of the opening (m) and width / height */
+  width: number;
+  height: number;
+  aspect: number;
+  /** sill centre, arch top, left and right jambs at half height (world) */
+  sill: P3;
+  top: P3;
+  left: P3;
+  right: P3;
+  /** how far the root lips' feet flare outward from the jamb line at the ground (m) */
+  lipFlare: number;
+  /** round 11's opening for before/after */
+  round11: { width: number; height: number; aspect: number; sill: P3; top: P3; left: P3; right: P3 };
+}
+
+/** Cap silhouette samples (world) so the audit can project rim width / crown height into B. */
+export interface CapProfile {
+  rimScale: number;
+  crownScale: number;
+  /** displaced rim edge (top of the curl) at 48 angles round the house, angle 0 = over the door */
+  rim: P3[];
+  /** highest displaced point of the bare moss shell */
+  crownTop: P3;
+  /** displaced shell samples (36 angles × v 0…0.6) for the projected silhouette / top plateau */
+  shell: P3[];
+  /** rim edge over the door centre and at the back */
+  rimFront: P3;
+  rimBack: P3;
+  /** overhang of the rim past the trunk wall at the eave, front / side / back (m) */
+  overhang: { front: number; side: number; back: number };
+  /** share of the cap's top surface that shows straw (area-weighted) */
+  thatchFraction: number;
+  /** the share round 11 tinted as straw over its all-straw cap (same noise, its 0.35–0.75 mix past ½) */
+  thatchFraction11: number;
+  /** the same rim / crown at ×1.0 / ×1.0 for before/after */
+  round11: { rim: P3[]; crownTop: P3; rimFront: P3 };
 }
 
 export interface HouseBuild {
@@ -97,6 +144,8 @@ export interface HouseBuild {
   branches: number;
   leaves: number;
   eave: EaveProfile;
+  door: DoorOpening;
+  cap: CapProfile;
 }
 
 /**
@@ -182,8 +231,42 @@ const LANTERNS: Record<string, LanternSpec[]> = {
  * Only the cap crown moved (door and threshold identical in all four B frames; the thatch top edge
  * in B drops from y 0.136 to 0.151 / 0.208 / 0.214). No variant beat ×1.0 on any view beyond
  * +0.0001; the largest loss was B's upper half at ×0.83 (0.3516 → 0.3442).
+ * Round 12 re-tests the crown together with the rim (table under `CAP_RIM_SCALE`).
  */
-const CROWN_SCALE = 1.0;
+const CROWN_SCALE = 0.85;
+/**
+ * Rim (cap radius) multiplier — round 12 A/B on width/shape. The reference cap (B, sheet 04) is a
+ * low broad mushroom cap whose moss rim overhangs the trunk by ~1.5–2 m all round; at ×1.0 ours
+ * overhung the wall by 0.9 m at the front and barely 0.1 m at the back. The door, eave height and
+ * lip are fixed; the rim, soffit, the draped limbs and the cap's plants follow the radius.
+ * Round 12 A/B, one tree, A + B + F vs the reference frames (256×144 SSIM; the cap box is B frame
+ * 0.55–0.98 × 0.05–0.35; silhouette from the `houseCap` audit projected with B's pose, the
+ * reference's from frame 14 s: height 115 px crown top → moss edge, rim ≈ 410 px, ratio 0.28,
+ * flat top ≈ 205 px; reference cap box lum / sat / hue 0.374 / 0.34 / 49°):
+ *   rim × crown  combined full  cap lum/sat/hue    rim px  height px  ratio  flat px  overhang f/s/b m
+ *   ×1.00 ×1.00  0.8017         0.394 / 0.33 / 51°  453     147        0.325  —        1.06 / 0.65 / 0.21
+ *   ×1.15 ×0.92  0.7962         0.395 / 0.34 / 50°  536      94        0.175  154      1.75 / 1.27 / 0.77
+ *   ×1.15 ×0.85  0.7961         0.394 / 0.34 / 50°  536     116        0.216  179      1.75 / 1.27 / 0.77
+ *   ×1.30 ×0.92  0.7959         0.389 / 0.35 / 50°  617      88        0.143  179      2.44 / 1.90 / 1.34
+ *   ×1.30 ×0.85  0.7952         0.389 / 0.35 / 50°  617      80        0.130  166      2.44 / 1.90 / 1.34
+ * The four wide variants tie on SSIM (spread 0.001) and colour; ×1.15 / ×0.85 is kept for the
+ * silhouette (height 116 px vs the reference's 115, overhang inside the 1.5–2 m spec). With the
+ * finished round-12 house the same A/B costs 0.005 combined SSIM (0.7978 at ×1.0 / ×1.0 vs 0.7928),
+ * so flip both back to 1.0 for the SSIM-optimal cap.
+ */
+const CAP_RIM_SCALE = 1.15;
+/**
+ * Thatch patches on the moss cap: the patch noise (simplex, ∈ [−1, 1]) above this threshold
+ * (+0.125, the midpoint of the smoothstep) shows straw (the roof material), below it moss. Round
+ * 11 built the whole cap in the straw material and only tinted it toward moss where the same
+ * noise fell under 0.55, so the stalks showed everywhere; the reference cap is olive moss with
+ * only patches of lighter thatch. Round 12's probes: 0.55 left 6.5 % straw — too little to read
+ * as patches — and 0.12 gave 35 %; 0.23 lands near the brief's quarter (audited as
+ * `thatchFraction`, with round 11's straw-dominant share alongside for the before/after).
+ */
+const THATCH_THRESHOLD = 0.23;
+/** straw patch albedo multiplier (round 12: −25 %, the patches read as bright straw) */
+const THATCH_ALBEDO = 0.75;
 
 /** Blend a moss tint into a swept branch's vertex colours on its upward-facing side. */
 function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: number, noise: Noise2D): BufferGeometry {
@@ -249,7 +332,8 @@ function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, 
  * wood lit from inside — an amber fill light, two pod lamps under the ceiling and an emissive
  * gradient on the walls (brightest under the arch, fading to the threshold) carried by a
  * per-vertex `aGlow` attribute that scales the material's emissive, so the glow follows the
- * room's geometry without a texture. The airlight between the camera and the door is clamped to
+ * room's geometry without a texture. Round 12: a dark cool recess with the amber concentrated in
+ * pools round the lamps and under the arch. The airlight between the camera and the door is clamped to
  * the doorway plane (`indoorFog`) so the haze does not also fill the room. Double-sided so the
  * flat room planes need no winding.
  */
@@ -258,12 +342,16 @@ function roomMaterial(mats: StructureMaterials): MeshStandardMaterial {
     normalMap: mats.interior.normalMap,
     normalScale: new Vector2(0.3, 0.3),
     roughness: 1,
-    // warm dark wood (the round-10 blue-grey 0x64656e read as a grey box); the vertex colours
-    // carry the shading, the emissive the lamp glow. Amber, not orange: the reference doorway
-    // box reads hue 40° / lum 0.30 / sat 0.12 as a whole, hue ≈ 30° only right under the arch
-    color: new Color(0x6e6457),
-    emissive: new Color(0xffd08a),
-    emissiveIntensity: 0.17,
+    // Round 12: a dark COOL recess with warm pools. The reference doorway is near-neutral grey
+    // (box rgb(80,77,72), sat 0.12, hue 40°) with the amber local to the lamps; at B's 18 m the
+    // haze between the camera and the door contributes most of the opening's light, and that
+    // airlight is yellow-olive, so the walls' own tint goes cool grey (round 11's warm 0x6e6457 /
+    // 0xffd08a @ 0.17 filled the whole opening with amber, sat 0.34) and only the emissive is
+    // amber. The vertex colours carry the shading, the `aGlow` attribute the pools
+    color: new Color(0x3c3b3e),
+    // a deeper amber than round 11's 0xffe0b8: at pool strength the pale tint read as beige
+    emissive: new Color(0xffc478),
+    emissiveIntensity: 0.2,
     vertexColors: true,
     side: DoubleSide,
   });
@@ -292,16 +380,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // ≈ 3.1 m above the terrace, lip top ≈ 3.6 m, crown ≈ 6–6.5 m, cap ≈ 9 m wide) ----
   /** underside of the eave (soffit level at the trunk wall; reference B: frame y ≈ 0.30 → ≈ 3.0 m) */
   const eaveY = def.roofHeight * 0.46;
-  /** base of the moss cap = top of the rolled lip (fixed since round 8) */
+  /** base of the moss cap = top of the rim curl (fixed since round 8) */
   const lipTop = eaveY + 0.52 * k;
-  /** how far the cap's base sits inside the lip's outer edge (the old 0.26 m roll) */
+  /** how far the cap's base sits inside the rim's outer edge (the old 0.26 m roll) */
   const capInset = 0.26 * k;
   /**
-   * Rolled lip half-thickness. Round 11: 0.12 m (a 0.24 m roll). The round-8 0.26 m roll (0.52 m
-   * tall, on top of the 0.5 m eave bough hugging its underside) read in B as a broad lit beam
-   * sitting on the doorway; the reference has a ragged moss edge, then a dark shadow band with
-   * the pods in it, down to the door arch — the bark under the moss is a gnarled dark branch,
-   * not a straight lit rim. The cap base stays at `lipTop`; the roll hangs from it, and the
+   * Rim curl half-thickness (0.12 m). Round 8's 0.26 m bark roll (0.52 m tall, on top of the
+   * 0.5 m eave bough hugging its underside) read in B as a broad lit beam sitting on the doorway;
+   * round 11 thinned it to 0.24 m and arched the bough; round 12 drops the bark altogether — the
+   * curl is moss (the reference has a ragged moss edge, then a dark shadow band with the pods in
+   * it, down to the door arch). The cap base stays at `lipTop`; the curl hangs from it, and the
    * soffit meets its bottom edge (`rollBottom`).
    */
   const lipR = 0.12 * k;
@@ -310,46 +398,48 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    *  dome is a tall mound — at frame x 0.72–0.80 its sunlit moss runs from the eave (y 0.26) up to
    *  y 0.13, twice the height of a 0.83 crown; header estimate crown ≈ 6–6.5 m. The rim (eave,
    *  lip) and the door are fixed; `CROWN_SCALE` moves the crown alone (round 10 A/B, see below). */
-  const crownY = def.roofHeight * 0.97 * CROWN_SCALE;
-  /** outer radius of the lip: heavier overhang at the front (over the porch) than at the back */
-  const capR = (a: number) => R * (1.3 + 0.13 * Math.cos(a));
+  const crownY = lipTop + (def.roofHeight * 0.97 - lipTop) * CROWN_SCALE;
+  /** outer radius of the rim at ×1.0: heavier overhang at the front (over the porch) than at the back */
+  const capR0 = (a: number) => R * (1.3 + 0.13 * Math.cos(a));
+  /** outer radius of the rim as built (round-12 rim A/B) */
+  const capR = (a: number) => capR0(a) * CAP_RIM_SCALE;
   /** trunk wall top, hidden under the cap */
   const wallTop = eaveY + 0.3 * k;
   // porch: a wide recess cut into the front of the trunk under the eave, sitting a little right of
-  // the axis like the reference's (its pillars at frame x ≈ 0.70 / 0.85 in B). The back wall
-  // stays well forward because the plateau slope rises steeply inside the trunk on the right
+  // the axis like the reference's (its root lips at frame x ≈ 0.64–0.72 / 0.86–0.93 in B). The back
+  // wall stays well forward because the plateau slope rises steeply inside the trunk on the right
   // (terrain +0.3 m at 1.2 m right of the axis, 2.2 m in; +0.8 m at 1.8 m in).
-  const porchW0 = -0.5 * R;
-  const porchW1 = 0.4 * R;
+  const porchW0 = -0.56 * R;
+  const porchW1 = 0.46 * R;
   const porchTop = eaveY - 0.2 * k;
   const porchRc = 0.22 * R;
   /** porch back wall depth from the centre */
   const dBack = 0.75 * R;
-  /** pillar bulges of the wall at the porch edges: amplitude / gaussian width */
-  const pillarA = 0.9 * k;
+  /** pillar bulges of the wall at the porch edges: amplitude / gaussian width (round 12: the
+   *  root lips flanking the door carry the frame's mass, so the wall's own bulge is halved) */
+  const pillarA = 0.5 * k;
   const pillarS = 0.36 * k;
-  // inner doorway in the porch back wall: it nearly fills the recess between the pillars (in the
+  // inner doorway in the porch back wall: it nearly fills the recess between the lips (in the
   // reference the cavity runs from the soffit to the ground with no wall band showing; the dark
-  // region ≈ 1.9 m wide at frame x 0.755–0.845 is its interior, the pillars' shaded inner faces
-  // read only a little darker), over a low threshold rather than a stair
-  const doorW0 = -0.3 * R;
-  const doorW1 = 0.34 * R;
+  // region ≈ 2.2 m wide at frame x 0.72–0.86 is its interior). Round 12: WIDE and low —
+  // reference B's opening is ≈ 2.2 m wide × 2.0 m tall at the threshold (width ≈ 1.15 × height;
+  // round 11's 2.05 × 2.28 read as a narrow upright arch) — over a low threshold rather than a stair
+  const doorW0 = -0.36 * R;
+  const doorW1 = 0.38 * R;
   const sill = 0.12 * k;
-  const doorH = 2.28 * sk;
+  const doorH = 2.06 * sk;
   const doorTop = sill + doorH;
-  const doorRc = 0.42 * sk;
+  /** big corner radius: the top is a broad arch that rounds straight into the root lips */
+  const doorRc = 0.85 * sk;
   const wallT = 0.32 * k;
-  // room behind the doorway: deeper on the left where the ground inside the trunk stays low
+  /** round 11's opening (audit before/after) */
+  const door11 = { w0: -0.3 * R, w1: 0.34 * R, h: 2.28 * sk, rc: 0.42 * sk };
+  // room behind the doorway
   const roomW0 = doorW0 - 0.8 * k;
-  const roomW1 = doorW1;
+  const roomW1 = doorW1 + 0.3 * k;
   const roomFloorY = sill + 0.15 * k;
   const roomCeilY = doorTop + 0.5 * k;
   const roomFront = dBack - wallT;
-  // the back wall is the hollow's concave inside, swinging away from the doorway in the middle
-  const roomBackD = (w: number) => {
-    const t = clamp((w - roomW0) / (roomW1 - roomW0), 0, 1);
-    return lerp(0.3 * R, 0.62 * R, t) - 0.3 * k * Math.sin(Math.PI * t);
-  };
 
   const F = new Vector3(def.facing[0], 0, def.facing[1]).normalize();
   const Rt = new Vector3(F.z, 0, -F.x);
@@ -368,9 +458,33 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   }
   const yBase = ringMin - 0.45;
 
+  /**
+   * The room's back wall is the hollow's concave inside. Round 12: a deep recess — the reference
+   * opening is dark at its centre (lum 0.12–0.18) with the glow local to the lamps, so the wall
+   * the door looks at sits ≈ 3 m behind the doorway, swinging deepest in the middle. The plateau
+   * slope rises inside the trunk toward the back-right, so each column pulls its wall forward
+   * until the ground there stays well under the ceiling.
+   */
+  const _bd = new Vector3();
+  const roomBackD = (w: number) => {
+    const t = clamp((w - roomW0) / (roomW1 - roomW0), 0, 1);
+    let d = -0.1 * R - 0.16 * R * Math.sin(Math.PI * t) + 0.06 * R * noise.noise(w * 0.9 + 2, 0.5);
+    for (let i = 0; i < 16 && d < roomFront - 0.8 * k; i++) {
+      frame.door(w, 0, d, _bd);
+      if (terrain.height(_bd.x, _bd.z) - yFloor < roomCeilY - 0.8 * k) break;
+      d += 0.15 * k;
+    }
+    return d;
+  };
+  const roomBackMin = Math.min(roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1));
+  /** 0 at the doorway's inner face → 1 at the deepest back wall */
+  const depthOf = (p: Vector3) => clamp((roomFront - _bd.copy(p).sub(frame.C).dot(F)) / Math.max(0.5, roomFront - roomBackMin), 0, 1);
+
   // ---- openings (door-space lateral metres × local height) ----
   const porchSD = (w: number, y: number) => rrectSD(w, y, porchW0, porchW1, yBase - 2, porchTop, porchRc);
-  const doorSD = (w: number, y: number) => rrectSD(w, y, doorW0, doorW1, sill - 1.5, doorTop, doorRc);
+  // the opening's edge wanders ±7 cm (a hole gnawed in bark, not a cut frame — reference B's
+  // arch is ragged where it meets the lips)
+  const doorSD = (w: number, y: number) => rrectSD(w, y, doorW0, doorW1, sill - 1.5, doorTop, doorRc) - 0.07 * k * noise.noise(w * 1.6 + 9, y * 1.6 - 4);
   // small round window high on the lit left flank (sheet 04, upper left of the trunk): left of
   // the porch pillar, below the eave bough's left leg — in B at ≈ (0.67, 0.40), clear of the roof
   const winA = -0.72;
@@ -413,8 +527,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // ---- outer shell ----
   const cols = Math.round(240 * sk);
   const rows = Math.round(72 * sk);
-  const outer = gridSurface(
-    (u, v, out) => {
+  /**
+   * The wall band under the cap's overhang (from just under the porch top up to the soffit) is
+   * built as a second mesh over the same vertex grid, in the recess bark: reference B's shadow
+   * band under the moss is rgb(87,73,54), lum 0.29, and under HOUSE_BARK_FLOOR ours sat at 0.39.
+   */
+  const bandY0 = porchTop - 0.08 * k;
+  const shellVertex = (u: number, v: number, out: SurfaceSample) => {
       const a = u * TAU;
       const y = lerp(yBase, wallTop, v);
       const rs = rSmooth(a, y);
@@ -458,25 +577,31 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const gg = lerp(0.97 * vari, 0.62, base * 0.6) * ao * shade * warm;
       const bb = lerp(1.0 * vari, 0.64, base * 0.6) * ao * (1 - 0.1 * Math.max(0, crest)) * shade * warmB;
       out.color = [lerp(rr, 0.55, mossy * 0.6), lerp(gg, 0.72, mossy * 0.6), lerp(bb, 0.4, mossy * 0.6)];
-    },
-    {
-      cols,
-      rows,
-      closedU: true,
-      // u runs clockwise (viewer's right) and v upward → dv × du points inward; flip to face out
-      flip: true,
-      hole: (u, v) => {
-        const a = u * TAU;
-        const y = lerp(yBase, wallTop, v);
-        const rs = rSmooth(a, y);
-        return porchSD(wOf(a, rs), y) < 0 || Math.hypot(winW(a, rs), y - winY) < winR;
-      },
-    },
-  );
+  };
+  const shellHole = (u: number, v: number) => {
+    const a = u * TAU;
+    const y = lerp(yBase, wallTop, v);
+    const rs = rSmooth(a, y);
+    return porchSD(wOf(a, rs), y) < 0 || Math.hypot(winW(a, rs), y - winY) < winR;
+  };
+  const inBand = (v: number) => lerp(yBase, wallTop, v) > bandY0;
+  const shellOpts = {
+    cols,
+    rows,
+    closedU: true,
+    // u runs clockwise (viewer's right) and v upward → dv × du points inward; flip to face out
+    flip: true,
+  };
+  const outer = gridSurface(shellVertex, { ...shellOpts, hole: (u, v) => shellHole(u, v) || inBand(v) });
+  const outerBand = gridSurface(shellVertex, { ...shellOpts, hole: (u, v) => shellHole(u, v) || !inBand(v) });
   const trunk = new Mesh(outer, mats.bark);
   trunk.name = 'trunk';
   trunk.castShadow = trunk.receiveShadow = true;
   group.add(trunk);
+  const trunkBand = new Mesh(outerBand, mats.recessBark);
+  trunkBand.name = 'trunk-eave-band';
+  trunkBand.castShadow = trunkBand.receiveShadow = true;
+  group.add(trunkBand);
 
   // ---- porch: tunnel (side walls + ceiling), back wall with the doorway, floor ----
   /** depth of the outer wall surface at lateral w */
@@ -497,8 +622,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         frame.door(w, y, d, out.position);
         out.uv = [(s * outline.length) / 2.2, d / 2.2];
         // grey-brown in the recess: the warm bark map is pulled toward neutral (reference porch
-        // flanks/frame ≈ (72, 78, 76))
-        const dark = lerp(0.6, 0.3, Math.pow(q, 0.7));
+        // flanks/frame ≈ (72, 78, 76)). Round 12: the recess is a dark cavity — the reference's
+        // band between the moss edge and the arch sits at the haze floor (p50 0.26 in B, ours
+        // rendered 0.38) — so the whole tunnel drops to ⅔ of round 11's tint
+        const dark = lerp(0.4, 0.2, Math.pow(q, 0.7));
         out.color = [dark * 0.8, dark * 0.92, dark * 1.12];
       },
       { cols: 72, rows: 5 },
@@ -517,7 +644,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         frame.door(w, y, dBack, out.position);
         out.uv = [w / 2.2, y / 2.2];
         // the recess is a dark cavity in the reference (lum 0.21–0.27 above the doorway)
-        const shade = 0.3 + 0.08 * noise.noise(w * 1.3 + 4, y * 1.3) - 0.08 * smoothstep(doorTop - 0.3, porchTop, y);
+        const shade = 0.2 + 0.06 * noise.noise(w * 1.3 + 4, y * 1.3) - 0.06 * smoothstep(doorTop - 0.3, porchTop, y);
         out.color = [shade * 0.8, shade * 0.92, shade * 1.12];
       },
       {
@@ -541,7 +668,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // packed earth in the eave's shade: a grey-brown (reference threshold band lum ≈ 0.30,
         // saturation ≈ 0.1), so the warm bark map is pulled toward neutral
         const shade = 0.58 + 0.08 * noise.noise(w * 2.1, d * 2.1 + 3);
-        out.color = [shade * 0.88, shade * 0.96, shade * 1.06];
+        out.color = [shade * 0.82, shade * 0.94, shade * 1.16];
       },
       { cols: 18, rows: 14 },
     );
@@ -551,14 +678,28 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // mouth flares outside the cut at the front and ends slightly inside it past the room's
     // front plane, hiding the jagged cell edges of both holes.
     const doorOutline = rrectOutline(doorW0, doorW1, sill - 0.4, doorTop, doorRc);
+    /** the point of the (wobbly) doorSD = e iso-line nearest (w, y): a few Newton steps */
+    const onDoorIso = (w: number, y: number, e: number): [number, number] => {
+      const h = 0.005;
+      for (let i = 0; i < 4; i++) {
+        const v = doorSD(w, y) - e;
+        const gx = (doorSD(w + h, y) - doorSD(w - h, y)) / (2 * h);
+        const gy = (doorSD(w, y + h) - doorSD(w, y - h)) / (2 * h);
+        const l2 = gx * gx + gy * gy;
+        if (l2 < 1e-9 || Math.abs(v) < 1e-4) break;
+        w -= (v * gx) / l2;
+        y -= (v * gy) / l2;
+      }
+      return [w, y];
+    };
     const doorTunnel = gridSurface(
       (s, q, out) => {
         const [w0, y0] = doorOutline.at(s);
-        const [w, y] = offsetAlongSD(doorSD, w0, y0, lerp(0.1, -0.06, q));
+        const [w, y] = onDoorIso(w0, y0, lerp(0.1, -0.06, q));
         const d = lerp(dBack + 0.04, roomFront - 0.06, q);
         frame.door(w, y, d, out.position);
         out.uv = [(s * doorOutline.length) / 2.2, d / 2.2];
-        const dark = lerp(0.34, 0.2, q);
+        const dark = lerp(0.24, 0.14, q);
         out.color = [dark * 0.8, dark * 0.92, dark * 1.12];
       },
       { cols: 40, rows: 3 },
@@ -566,7 +707,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     faceTowards(doorTunnel, (p, o) => frame.door((doorW0 + doorW1) / 2, Math.min(p.y - yFloor, doorTop - doorRc - 0.2), (dBack + roomFront) / 2, o));
     porchParts.push(doorTunnel);
   }
-  const porchMesh = new Mesh(merge(porchParts), mats.bark);
+  // the recess bark: the same maps under a fifth of the shade floor (RECESS_BARK_FLOOR) — under
+  // HOUSE_BARK_FLOOR the porch's vertex tints never showed, every shaded face sat at the floor
+  const porchMesh = new Mesh(merge(porchParts), mats.recessBark);
   porchMesh.name = 'porch';
   porchMesh.castShadow = porchMesh.receiveShadow = true;
   group.add(porchMesh);
@@ -578,44 +721,56 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // the room's light sources: two pod lamps under the ceiling (reference B: a lamp glint at
   // frame (0.78, 0.44) ≈ 1.3 m up left of centre; sheet 04: pod lanterns inside), a bed of
   // embers glowing pink-amber low on the right, and an amber fill under the ceiling
+  // Round 12: the lamps hang just in front of the deep back wall — the surface frame B looks at
+  // through the door — so their pools of light show on it round the pods, over a dark recess
   const lampW = doorW0 + 0.55 * k;
-  const lampY = doorTop - 0.55 * sk;
-  const lampPos = frame.door(lampW, lampY, roomFront - 0.55 * k);
-  const lamp2Pos = frame.door(doorW1 - 0.62 * k, doorTop - 0.95 * sk, roomFront - 0.3 * k);
-  const hearthPos = frame.door(doorW1 - 0.5 * k, sill + 0.32 * k, roomFront - 0.26 * k);
-  const fillPos = frame.door((doorW0 + doorW1) / 2 - 0.2 * k, roomCeilY - 0.25 * k, roomFront - 0.55 * k);
+  const lampY = doorTop - 0.3 * sk;
+  const lampPos = frame.door(lampW, lampY, roomBackD(lampW) + 0.3 * k);
+  const lamp2W = doorW1 - 0.5 * k;
+  const lamp2Pos = frame.door(lamp2W, doorTop - 1.0 * sk, roomBackD(lamp2W) + 0.3 * k);
+  const hearthPos = frame.door(doorW1 - 0.3 * k, sill + 0.32 * k, roomBackD(doorW1 - 0.3 * k) + 0.55 * k);
+  /** the arch's inner top edge: the cut's underside and the jambs just inside the door catch a glow */
+  const archPos = frame.door((doorW0 + doorW1) / 2, doorTop - 0.15 * k, roomFront - 0.25 * k);
   const roomParts = [];
   /**
-   * Emissive gradient (scales the material's amber emissive): brightest under the ceiling and the
-   * arch, fading toward the threshold, with pools round the two lamps — the "lit back wall with
-   * depth" of the reference doorway. Deeper walls glow less, so the room recedes.
+   * Emissive gradient (scales the material's amber emissive). Round 12: LOCAL glow — tight pools
+   * round the two lamps and under the arch (local peaks ≈ 0.5–0.6 in B) over a dark recess: the
+   * base term is small and dies away with depth, so the back wall the door looks at stays dark
+   * while the lamps read as bright points with a hand's breadth of lit wood around them. (The
+   * first round-12 probe's 0.55 m pools at ×1.7 overlapped in the middle of the back wall and
+   * filled the opening with pale light again — door centre p50 0.47.)
    */
+  /**
+   * A lamp's pool on the surfaces round it: full within `standoff` of the lamp (the wall it hangs
+   * in front of gets the peak, not a third of it), then a gaussian fall-off over `radius`.
+   */
+  const pool = (p: Vector3, c: Vector3, standoff: number, radius: number, peak: number) => {
+    const d = Math.max(0, p.distanceTo(c) - standoff) / radius;
+    return peak * Math.exp(-d * d * 2.2);
+  };
   const glowOf = (p: Vector3): number => {
     const h = clamp((p.y - (yFloor + roomFloorY)) / (roomCeilY - roomFloorY), 0, 1);
-    const depth = clamp(p.clone().sub(frame.C).dot(F) - (roomFront - 1.3 * k), 0, 1.3 * k) / (1.3 * k);
-    const dl = p.distanceTo(lampPos) / (0.8 * k);
-    const d2 = p.distanceTo(lamp2Pos) / (0.7 * k);
-    const dh = p.distanceTo(hearthPos) / (0.6 * k);
-    return (0.06 + 0.7 * Math.pow(h, 2)) * lerp(0.6, 1, depth) + 0.5 * Math.exp(-dl * dl * 1.6) + 0.35 * Math.exp(-d2 * d2 * 1.6) + 0.3 * Math.exp(-dh * dh * 1.6);
+    const deep = depthOf(p);
+    return (0.01 + 0.12 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.3 * k, 0.32 * k, 1.4) + pool(p, lamp2Pos, 0.28 * k, 0.3 * k, 1.15) + pool(p, hearthPos, 0.2 * k, 0.3 * k, 0.5) + pool(p, archPos, 0.15 * k, 0.4 * k, 0.5);
   };
   {
-    // diffuse shading: warm dark wood, a little lighter toward the middle and the ceiling (the
-    // reference opening is brightest under the arch and darkest at the threshold); the fill
-    // light and the emissive gradient carry the rest
+    // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
+    // toward the ceiling; the lamps' pools and the emissive gradient carry the rest
     const roomWc = (roomW0 + roomW1) / 2;
     const roomHw = (roomW1 - roomW0) / 2;
     const _p = new Vector3();
     const glowAt = (p: Vector3): [number, number, number] => {
       // the embers' pool stays pink-amber in the diffuse tint too
-      const dh = p.distanceTo(hearthPos) / (0.7 * k);
-      const gh = Math.exp(-dh * dh * 1.8) * 0.2;
+      const dh = p.distanceTo(hearthPos) / (0.6 * k);
+      const gh = Math.exp(-dh * dh * 1.8) * 0.16;
       return [gh * 0.8, gh * 0.6, gh * 0.55];
     };
-    const wallShade = (w: number, y: number, depth: number, p: Vector3): [number, number, number] => {
+    const wallShade = (w: number, y: number, p: Vector3): [number, number, number] => {
       const lat = 1 - 0.25 * smoothstep(0.45, 1, Math.abs(w - roomWc) / roomHw);
-      const s = lerp(0.28, 0.5, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 0.8)) * lerp(1, 0.7, depth) * lat;
+      const s = lerp(0.1, 0.32, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.4, depthOf(p)) * lat;
       const g = glowAt(p);
-      return [s * 1.0 + g[0], s * 0.9 + g[1], s * 0.78 + g[2]];
+      // cool grey (see `roomMaterial`); the embers' pool is the only warm diffuse tint
+      return [s * 0.92 + g[0], s * 0.96 + g[1], s * 1.05 + g[2]];
     };
     // room's front plane (inside face of the back wall) around the doorway
     roomParts.push(
@@ -625,7 +780,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
           frame.door(w, y, roomFront + 0.01, out.position);
           out.uv = [w / 2.2, y / 2.2];
-          out.color = wallShade(w, y, 0.3, out.position);
+          out.color = wallShade(w, y, out.position);
         },
         {
           cols: 30,
@@ -634,7 +789,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         },
       ),
     );
-    // back wall (diagonal: deep on the left, shallow on the right), side walls, floor, ceiling
+    // back wall (the deep recess), side walls, floor, ceiling
     roomParts.push(
       gridSurface(
         (u, v, out) => {
@@ -642,7 +797,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
           frame.door(w, y, roomBackD(w), out.position);
           out.uv = [w / 2.2, y / 2.2];
-          out.color = wallShade(w, y, 1 - u, out.position);
+          out.color = wallShade(w, y, out.position);
         },
         { cols: 24, rows: 12 },
       ),
@@ -655,9 +810,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
             const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
             frame.door(w, y, d, out.position);
             out.uv = [d / 2.2, y / 2.2];
-            out.color = wallShade(w, y, 0.5 * (1 - u), out.position);
+            out.color = wallShade(w, y, out.position);
           },
-          { cols: 6, rows: 8 },
+          { cols: 12, rows: 8 },
         ),
       );
     }
@@ -668,20 +823,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
             frame.door(w, y, d, out.position);
-            let s = y === roomFloorY ? 0.42 : 0.3;
+            let s = (y === roomFloorY ? 0.2 : 0.3) * lerp(1, 0.4, depthOf(out.position));
             if (y === roomFloorY) {
               const th = terrain.height(out.position.x, out.position.z) + 0.05;
               if (th > out.position.y) {
-                // where the plateau slope rises through the floor (right rear) it stays in shadow
+                // where the plateau slope rises through the floor (rear) it stays in shadow
                 s *= lerp(1, 0.35, clamp((th - out.position.y) / 0.25, 0, 1));
                 out.position.y = th;
               }
             }
             out.uv = [w / 2.2, d / 2.2];
             const g = glowAt(_p.copy(out.position));
-            out.color = [s * 1.0 + g[0] * 0.5, s * 0.9 + g[1] * 0.5, s * 0.78 + g[2] * 0.5];
+            out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
           },
-          { cols: 16, rows: 10 },
+          { cols: 16, rows: 16 },
         ),
       );
     }
@@ -697,7 +852,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   roomMesh.receiveShadow = true;
   group.add(roomMesh);
 
-  // ---- door frame: sill beam, posts, lintel hugging the opening ----
+  // ---- door frame: a sill beam only. Round 12 drops round 11's posts and lintel — the thin
+  // dark timber outline round the opening read in B as a neat frame; the reference opening has
+  // none, its edge is bark rounding into the root lips ----
   const woodParts = [];
   {
     const sillBeam = new BoxGeometry(doorW1 - doorW0 + 0.5 * k, 0.12 * k, 0.6 * k);
@@ -706,24 +863,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // plank map's warmth is countered by a cool vertex tint
     setColorAttribute(sillBeam, [0.6, 0.62, 0.62]);
     woodParts.push(sillBeam);
-    const frameR = 0.085 * sk;
-    for (const side of [-1, 1]) {
-      const w = (side < 0 ? doorW0 : doorW1) + side * frameR * 0.8;
-      const pts = [frame.door(w, sill - 0.1, dBack + 0.02), frame.door(w, lerp(sill, doorTop - doorRc, 0.5), dBack + 0.04), frame.door(w, doorTop - doorRc + 0.05, dBack + 0.04)];
-      const post = sweepTube(new CatmullRomCurve3(pts), { radius: (t) => frameR * (1 - 0.12 * t), tubularSegments: 6, radialSegments: 9, uvMetres: 0.6 });
-      setColorAttribute(post, [0.34, 0.34, 0.35]);
-      woodParts.push(post);
-    }
-    const outline = rrectOutline(doorW0 - frameR * 0.8, doorW1 + frameR * 0.8, sill, doorTop + frameR * 0.7, doorRc + frameR * 0.6);
-    const s0 = (doorTop - doorRc - sill) / outline.length;
-    const pts: Vector3[] = [];
-    for (let i = 0; i <= 16; i++) {
-      const [w, y] = outline.at(lerp(s0 - 0.02, 1 - s0 + 0.02, i / 16));
-      pts.push(frame.door(w, y, dBack + 0.04));
-    }
-    const lintel = sweepTube(new CatmullRomCurve3(pts), { radius: (t) => frameR * (0.95 + 0.2 * Math.sin(t * Math.PI)), tubularSegments: 28, radialSegments: 9, uvMetres: 0.6 });
-    setColorAttribute(lintel, [0.32, 0.32, 0.33]);
-    woodParts.push(lintel);
   }
   const woodMesh = new Mesh(merge(woodParts), mats.wood);
   woodMesh.name = 'door-frame';
@@ -794,7 +933,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       group.add(rig.pivot);
       lanterns.push(rig);
     }
-    const candlePos = frame.door(doorW0 + 0.7 * k, sill + 0.55 * k, roomFront - 0.85 * k);
+    const tableD = roomFront - 1.1 * k;
+    const candlePos = frame.door(doorW0 + 0.7 * k, sill + 0.55 * k, tableD);
     const candle = new SphereGeometry(0.028 * sk, 10, 7);
     candle.translate(candlePos.x, candlePos.y, candlePos.z);
     const lampMesh = new Mesh(candle, mats.hearth);
@@ -802,16 +942,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     group.add(lampMesh);
     // low table under the candle: a slab on a block, dark silhouettes that give the room depth
     const slab = new BoxGeometry(0.7 * k, 0.05 * k, 0.45 * k);
-    slab.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.5 * k, roomFront - 0.85 * k), F));
-    setColorAttribute(slab, [0.27, 0.26, 0.25]);
+    slab.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.5 * k, tableD), F));
+    setColorAttribute(slab, [0.22, 0.21, 0.2]);
     const block = new BoxGeometry(0.22 * k, 0.5 * k, 0.22 * k);
-    block.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.25 * k, roomFront - 0.85 * k), F));
-    setColorAttribute(block, [0.2, 0.19, 0.18]);
+    block.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.25 * k, tableD), F));
+    setColorAttribute(block, [0.16, 0.15, 0.14]);
     // a shelf on the back wall left (sheet 04: shelves inside), a dark ledge the lamp glow catches
     const shelfW = doorW0 + 0.3 * k;
     const shelf = new BoxGeometry(0.9 * k, 0.04 * k, 0.22 * k);
-    shelf.applyMatrix4(basisMatrix(frame.door(shelfW, doorTop - 0.3 * sk, roomBackD(shelfW) - 0.13 * k), F));
-    setColorAttribute(shelf, [0.3, 0.27, 0.24]);
+    shelf.applyMatrix4(basisMatrix(frame.door(shelfW, doorTop - 0.3 * sk, roomBackD(shelfW) + 0.13 * k), F));
+    setColorAttribute(shelf, [0.24, 0.22, 0.2]);
     // ember ring: a low stone kerb round the glow
     const kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
     kerb.rotateX(Math.PI / 2);
@@ -837,21 +977,25 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lights: PointLight[] = [];
   // Round 11: the room is lit from inside — reference B's opening is a warm amber glow, a lit
   // back wall with visible depth, brightest under the arch and fading to the threshold (sheet 04
-  // draws the same). The lamp light shapes the pool round the upper pod; the fill under the
-  // ceiling carries the amber over the back wall and the floor. Both stop at the walls (short
-  // range), so the porch and the bark outside keep the eave's shadow.
-  const doorLight = new PointLight(0xffd090, 0.25 * k, 2.2 * k, 2);
-  doorLight.position.copy(lampPos).addScaledVector(F, -0.1);
+  // draws the same). Round 12: the light stays LOCAL — the lamp light shapes the pool round the
+  // upper pod, the short-range fill under the ceiling lights the arch and the near walls; neither
+  // reaches the deep back wall, which stays a dark recess (reference: p50 0.30, centre 0.12–0.18).
+  const doorLight = new PointLight(0xffd8a0, 0.28 * k, 1.7 * k, 2);
+  doorLight.position.copy(lampPos).addScaledVector(F, 0.1);
   doorLight.name = 'door-light';
   group.add(doorLight);
   lights.push(doorLight);
-  const fillLight = new PointLight(0xffc880, 0.36 * k, 3.4 * k, 2);
-  fillLight.position.copy(fillPos);
+  // the "fill" sits just inside the arch, a little below it: it lights the jambs and the
+  // threshold (the reference spills warm light there), not the recess. (At `archPos` itself, a
+  // few centimetres under the arch's inner edge, the inverse-square falloff blew that edge out
+  // to a pale band in the first round-12 probe.)
+  const fillLight = new PointLight(0xffd8a8, 0.15 * k, 1.6 * k, 2);
+  fillLight.position.copy(frame.door((doorW0 + doorW1) / 2, doorTop - 0.55 * k, roomFront - 0.5 * k));
   fillLight.name = 'room-fill';
   group.add(fillLight);
   lights.push(fillLight);
   // pink-amber ember glow low right (reference doorway crop): short range, low on the floor
-  const emberLight = new PointLight(0xf5cfc0, 0.08 * k, 1.2 * k, 2);
+  const emberLight = new PointLight(0xf5cfc0, 0.08 * k, 1.0 * k, 2);
   emberLight.position.copy(hearthPos);
   emberLight.name = 'ember-light';
   group.add(emberLight);
@@ -922,25 +1066,86 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     rootParts.push(mossOnTop(root, [0.5, 0.64, 0.3], 0.55, noise));
     bases.push([p3.x, p3.y, p3.z]);
   }
+  // ---- root lips (round 12): two thick buttress roots frame the doorway. Reference B's opening
+  // is framed by root-like bark lips — thick, curving, flaring outward at the ground and curving
+  // up and inward into the moss cap; nothing horizontal sits over the door. They hug the JAMBS:
+  // at door height each lip's axis sits 0.34 m outside the jamb line, just in front of the
+  // porch's back wall, so its inner face overlaps the cut (no wall band shows between root and
+  // opening — the first round-12 probe, with the lips out at the porch edges, left the opening
+  // reading as a smooth-rimmed rounded rectangle). From there each root leans forward and
+  // outward to a foot `lipFlare` outside the jamb line on the terrain in front of the trunk, and
+  // its top curves in over the arch's shoulder into the moss rim, so the arch rounds into the
+  // roots and the door reads as an opening between two roots under an overhanging moss cap. ----
+  const lipFlare = 0.55 * k;
+  const lipRng = rng.fork('lips');
+  for (const side of [-1, 1] as const) {
+    const jamb = side < 0 ? doorW0 : doorW1;
+    const wAxis = jamb + side * 0.34 * k;
+    const jit8 = () => (lipRng() - 0.5) * 0.08 * k;
+    const wFoot = wAxis + side * lipFlare;
+    const dFoot = dOut(wFoot, 0);
+    const foot = frame.door(wFoot, 0, dFoot + 0.4 * k);
+    foot.y = terrain.height(foot.x, foot.z);
+    const pts = [
+      frame.door(wFoot + side * 0.35 * k, -0.5 * k, dFoot + 0.55 * k),
+      foot,
+      frame.door(wAxis + side * 0.3 * k + jit8(), 0.8 * k, dBack + 0.45 * k + jit8()),
+      frame.door(wAxis + jit8(), 1.7 * k, dBack + 0.3 * k + jit8()),
+      frame.door(wAxis - side * 0.18 * k + jit8(), doorTop + 0.4 * k, dBack + 0.24 * k),
+      frame.door(wAxis - side * 0.6 * k, lipTop + 0.25 * k, dBack + 0.1 * k),
+    ];
+    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    const lipR = (t: number) => (0.5 - 0.2 * t) * k * (1 + 0.1 * Math.sin(t * 11 + side) + 0.05 * Math.sin(t * 27 + 2 * side));
+    // the cord relief of the vertex being placed (sweepTube colours a vertex right after displacing it)
+    let lipCrest = 0;
+    const lip = sweepTube(curve, {
+      radius: lipR,
+      tubularSegments: 30,
+      radialSegments: 13,
+      uvMetres: 1.4,
+      // deep longitudinal cords, softening toward the foot
+      displace: (t, ang, pos) => {
+        lipCrest = noise.ridged(ang * 1.4 + side * 2.3, t * 5 + pos.y * 0.3, 2) - 0.5;
+        return lipCrest * 0.09 * k * (0.6 + 0.4 * t);
+      },
+      color: (t, ang) => {
+        // bark in the porch's shade (reference lips: lum 0.36–0.38, hue 27–34°, sat ≈ 0.32–0.40,
+        // p10 0.22–0.28 / p90 0.47): cord crests lit, furrows dark — the first probe's flat
+        // 0.74 tint rendered p10 0.34 / p90 0.37, a smooth pale column — darker where the lip
+        // sinks under the rim
+        const crest = clamp(lipCrest * 2.4, -1, 1);
+        const d = lerp(0.56, 0.38, smoothstep(0.5, 1, t)) * (0.76 + 0.3 * Math.max(0, Math.sin(ang))) * (1 + 0.5 * crest);
+        return [d, d * 0.95, d * 0.88];
+      },
+      capEnd: true,
+    });
+    rootParts.push(mossOnTop(lip, [0.5, 0.64, 0.3], 0.35, noise));
+    bases.push([foot.x, foot.y, foot.z]);
+  }
   const rootsMesh = new Mesh(merge(rootParts), mats.bark);
   rootsMesh.name = 'roots';
   rootsMesh.castShadow = rootsMesh.receiveShadow = true;
   group.add(rootsMesh);
 
-  // ---- roof: low broad mushroom cap with a rolled lip and a dark soffit ----
+  // ---- roof: low broad mushroom cap of moss with a curled rim and a dark soffit ----
   // v ∈ [0, V_CAP] is the cap top (q = v / V_CAP is the normalised radius: flat crown, rounded
-  // shoulder — (1 − q³)^1.5), (V_CAP, 1] rolls round the lip from its top to its underside.
+  // shoulder — (1 − q³)^1.5), (V_CAP, 1] curls round the rim from its top to its underside.
+  // Round 12: the rim is MOSS all the way round to the soffit — the round-8/11 bark roll under it
+  // read in B as a horizontal eave beam; the reference cap's moss edge simply overhangs.
   const V_CAP = 0.72;
   const capHeight = crownY - lipTop;
-  const domeBase = (a: number, v: number, out = new Vector3()) => {
-    const rc = capR(a) - capInset;
+  /** the bare cap at an arbitrary rim / crown scale (the audit compares against ×1.0 / ×1.0) */
+  const domeBaseS = (a: number, v: number, out: Vector3, rimScale: number, crownScale: number) => {
+    const rc = capR0(a) * rimScale - capInset;
     let r: number;
     let y: number;
     if (v <= V_CAP) {
       const q = v / V_CAP;
-      const prof = Math.pow(Math.max(0, 1 - q * q * q), 1.5);
+      // Round 12: a mushroom-cap profile — flat top, rounded shoulder falling to the rim
+      // ((1 − q⁴)^1.3; the round-8 (1 − q³)^1.5 rose to a point from B's low viewpoint)
+      const prof = Math.pow(Math.max(0, 1 - q * q * q * q), 1.3);
       r = rc * q;
-      y = lipTop + capHeight * prof;
+      y = lipTop + (capHeight / CROWN_SCALE) * crownScale * prof;
       frame.dir(a, out).multiplyScalar(r).add(frame.C);
       out.y += y;
       // the crown leans a little toward the back; the cap sags unevenly (back-left heavier)
@@ -956,6 +1161,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     return out;
   };
+  const domeBase = (a: number, v: number, out = new Vector3()) => domeBaseS(a, v, out, CAP_RIM_SCALE, CROWN_SCALE);
   const _da = new Vector3();
   const _db = new Vector3();
   const domeNormal = (a: number, v: number, out = new Vector3()) => {
@@ -978,7 +1184,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const lumps = noise.fbm(p.x * 0.5, p.z * 0.5 + p.y * 0.3, 3) * 0.22 * k * (0.35 + 0.65 * onCap);
     // Round 11: mid-frequency mounds (≈ ±0.15 m, 2–4 m across) so the crown's silhouette is
     // lumpy — reference B / sheet 04 show an irregular mossy mound, not a smooth tent
-    const mounds = noise.noise(p.x * 0.8 + 17, p.z * 0.8 - 6) * 0.15 * k * onCap;
+    const mounds = noise.noise(p.x * 0.8 + 17, p.z * 0.8 - 6) * 0.22 * k * onCap;
     const cushions = (noise.ridged(p.x * 1.2 + 3, p.z * 1.2, 2) - 0.5) * 0.2 * k * smoothstep(0.85, 0.2, v);
     // small clumps: the crown is a mass of leaf clusters, so the surface itself is knobbly
     const clumps = (noise.ridged(p.x * 2.2 + 8, p.z * 2.2 + p.y * 0.5, 2) - 0.5) * 0.12 * k * onCap;
@@ -986,65 +1192,149 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     return lumps + mounds + cushions + clumps + fine;
   };
   const _n = new Vector3();
-  const roofRes = Math.round(180 * sk);
-  // The cap is two meshes sharing the boundary curve at V_ROLL: the mossy top in the roof
-  // material, the rolled lip in the bark material — reference B's eave is a heavy dark-brown
-  // bark rim under the moss, not a straw edge.
-  const V_ROLL = 0.75;
-  const domeVertex = (a: number, v: number, out: SurfaceSample) => {
+  // vertex pitch ≈ 0.09 m at the rim (≈ 5 px in B): the moss grain lives in the vertex colours
+  const roofRes = Math.round(300 * sk);
+  const roofRows = Math.round(roofRes * 0.4);
+  /**
+   * Straw patches: the patch noise above `THATCH_THRESHOLD` shows the straw (roof) material,
+   * everything else is moss. Decided per cell (both cap meshes share the vertex grid, so the
+   * patches partition the surface without cracks); no straw on the rim curl.
+   */
+  const patchNoise = (p: Vector3) => noise.noise(p.x * 0.9 + 23, p.z * 0.9 + 5);
+  const thatchAt = (p: Vector3, v: number) => smoothstep(THATCH_THRESHOLD, THATCH_THRESHOLD + 0.25, patchNoise(p)) * smoothstep(0.95, 0.7, v);
+  const _tc = new Vector3();
+  const isThatchCell = (u: number, v: number) => {
+    domeBase(u * TAU, v, _tc);
+    return thatchAt(_tc, v) > 0.5;
+  };
+  /** area-weighted straw share of the cap top (accumulated while the moss mesh's cells are decided) */
+  let thatchArea = 0;
+  let mossArea = 0;
+  /** ...and the share round 11 tinted as straw (its mix passed ½ where the same noise exceeded 0.55) */
+  let thatch11Area = 0;
+  const _c0 = new Vector3();
+  const _c1 = new Vector3();
+  const _c2 = new Vector3();
+  const cellArea = (u: number, v: number) => {
+    const du = 0.5 / roofRes;
+    const dv = 0.5 / (roofRows - 1);
+    domeBase(u * TAU, v, _c0);
+    domeBase((u + du) * TAU, v, _c1).sub(_c0);
+    domeBase(u * TAU, Math.min(1, v + dv), _c2).sub(_c0);
+    return _c1.cross(_c2).length() * 4;
+  };
+  const domeVertex = (a: number, v: number, out: SurfaceSample, straw: boolean) => {
     domeBase(a, v, out.position);
     domeNormal(a, v, _n);
     const disp = domeDisp(out.position, v);
     out.position.addScaledVector(_n, disp);
-    // uneven droop of the lip
+    // uneven droop of the rim
     const lip = smoothstep(V_CAP, 1, v);
     out.position.y -= lip * (0.06 + 0.1 * noise.noise(a * R * 1.1, 3.3) + 0.05 * noise.noise(a * R * 4, 7)) * k;
     out.uv = [(a * capR(a)) / 1.6, (v * (capHeight + 4 * lipR)) / 1.6];
     const p = out.position;
-    if (v >= V_ROLL) {
-      // bark roll: in the moss overhang's shadow (reference B: the band under the moss edge is
-      // dark warm brown, lum ≈ 0.29, hue 35°), darker still on the underside
-      const under = smoothstep(0.84, 0.97, v);
-      const grain = 0.9 + 0.2 * noise.noise(p.x * 2.5, p.y * 2.5 + 4);
-      const c = lerp(0.46, 0.3, under) * grain;
-      out.color = [c, c * 0.92, c * 0.84];
+    if (straw) {
+      // dry straw showing through the moss (vertex tint × the straw map); round 12: −25 % albedo
+      const strawTone = (0.9 + 0.2 * noise.noise(p.x * 2.5, p.y * 2.5 + 4)) * THATCH_ALBEDO;
+      out.color = [0.66 * strawTone, 0.55 * strawTone, 0.26 * strawTone];
       return;
     }
     const patches = noise.fbm(p.x * 0.8 + 11, p.z * 0.8, 2);
-    // moss covers most of the cap (sheet 04 "moss-covered roof"), with straw showing through
-    // toward the rim and — round 11 — in irregular lighter thatch patches over the mound
-    // (reference B / sheet 04: darker olive moss with patchy lighter thatch)
-    const rim = smoothstep(0.55, V_ROLL, v);
-    const thatch = smoothstep(0.35, 0.75, noise.noise(p.x * 0.9 + 23, p.z * 0.9 + 5)) * smoothstep(1, 0.7, v);
-    const m = clamp(0.88 + 0.2 * (0.5 + 0.5 * patches) + 0.2 * smoothstep(0.3, 0.7, noise.noise(p.x * 1.5 + 3, p.z * 1.5)) - 0.22 * rim * smoothstep(0.4, 0.7, patches) - 0.6 * thatch, 0, 1);
     const upness = smoothstep(0.05, 0.9, _n.y);
     // lit crowns of the clumps vs shaded hollows and flanks: a steep curve so the cap reads
-    // as many small lit/dark leaf clusters rather than a smooth skin
+    // as many small lit/dark tufts rather than a smooth skin
     const bright = clamp(Math.pow(upness, 1.4) * (0.35 + 0.65 * (0.5 + 0.5 * noise.noise(p.x * 1.3, p.z * 1.3 + 9))) + 0.6 * (disp / (0.25 * k)), 0, 1);
-    // fine dark speckle (round 11): the reference moss is a grainy mass with dark pits between
-    // the lit tufts, not a smooth straw skin
+    // Round 12: the cap is built in the plain moss material, so the vertex colour IS the albedo
+    // (no straw map with its stalks under it — that map is what made round 11's moss read as
+    // thatch). The reference moss is a fine grainy mass: a per-vertex grain of lit specks and
+    // dark pits at the vertex pitch (≈ 0.12 m) carries that at B's distance.
     const speck = smoothstep(0.45, 0.9, noise.noise(p.x * 3.2 + 31, p.z * 3.2 + p.y * 1.5));
-    const mottle = (0.62 + 0.45 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.14 * noise.noise(p.x * 3.1, p.z * 3.1 + 1)) * (1 - 0.4 * speck);
-    // vertex colours multiply the light straw map: deep olive in the hollows and down the
-    // flanks, warm yellow-olive on the lit clumps (reference B cap box hue 49°, sat 0.34 —
-    // round 10's 57°/0.28 read as a lime lawn), the thatch patches a lighter dry straw
-    const strawTone = 0.9 + 0.2 * noise.noise(p.x * 2.5, p.y * 2.5 + 4);
-    const straw: [number, number, number] = [0.66 * strawTone, 0.55 * strawTone, 0.26 * strawTone];
-    const deep: [number, number, number] = [0.22, 0.26, 0.06];
-    const sun: [number, number, number] = [1.36, 1.16, 0.22];
-    // reference B: the cap's shoulder right above the lip is its brightest band (lum 0.45–0.7,
-    // sun on the moss; box p90 ≈ 0.55), the crown under the canopy is darker (box p10 ≈ 0.20);
-    // the front face over the porch — the dome frame B looks at — is sunlit moss (roof-only box
-    // p50 ≈ 0.48), so it carries an extra lift
+    // pits at the vertex pitch: near-uncorrelated between neighbours, so they read as dark dots
+    const pit = smoothstep(0.3, 0.8, noise.noise(p.x * 13 + 41, p.z * 13 + p.y * 4));
+    const fleck = smoothstep(0.55, 0.9, noise.noise(p.x * 11 + 7, p.z * 11 - p.y * 3));
+    const grain = (0.78 + 0.44 * (0.5 + 0.5 * noise.noise(p.x * 9.1, p.z * 9.1 + p.y * 3))) * (1 - 0.6 * pit) * (1 + 0.35 * fleck);
+    const mottle = (0.66 + 0.4 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.14 * noise.noise(p.x * 3.1, p.z * 3.1 + 1)) * (1 - 0.35 * speck) * grain;
+    // olive albedos (linear): deep grey-olive in the hollows and down the flanks, saturated
+    // yellow-olive on the lit tufts (reference B pure moss face rgb(131,124,77): lum 0.48, sat
+    // 0.42, hue 51° — the round-11 cap rendered at sat 0.34–0.36, a paler, beige read)
+    // (the first round-12 probe rendered the lit face at hue 56°, 5° greener than the reference,
+    // so the sunlit tone leans a little warmer)
+    const deep: [number, number, number] = [0.06, 0.062, 0.008];
+    const sun: [number, number, number] = [0.88, 0.67, 0.05];
+    // reference B: the cap's shoulder right above the rim is its brightest band (lum 0.45–0.7,
+    // sun on the moss; box p90 ≈ 0.55), the crown under the canopy is darker (box p10 ≈ 0.20 —
+    // ours 0.32 with the crown at 0.7, so it drops to 0.5); the front face over the porch — the
+    // dome frame B looks at — is sunlit moss (roof-only box p50 ≈ 0.48), so it carries an extra lift
     const frontFace = smoothstep(1.5, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.15, 0.4, v);
-    const shoulder = lerp(0.7, 1.6, smoothstep(0.2, 0.62, v)) * (1 + 0.85 * frontFace);
+    const shoulder = lerp(0.5, 1.6, smoothstep(0.2, 0.62, v)) * (1 + 0.85 * frontFace);
     const flank = lerp(0.4, 1, smoothstep(-0.2, 0.8, _n.y)) * shoulder;
-    const mossC = [lerp(deep[0], sun[0], bright) * mottle * flank, lerp(deep[1], sun[1], bright) * mottle * flank, lerp(deep[2], sun[2], bright) * mottle * flank];
-    out.color = [lerp(straw[0], mossC[0], m), lerp(straw[1], mossC[1], m), lerp(straw[2], mossC[2], m)];
+    // the rim curl darkens toward its underside (the moss edge over a dark shadow band)
+    const under = smoothstep(0.8, 0.97, v);
+    const rimShade = lerp(1, 0.35, under) * (1 - 0.3 * smoothstep(0.4, 0.7, patches) * smoothstep(0.55, V_CAP, v));
+    const m = flank * rimShade;
+    out.color = [lerp(deep[0], sun[0], bright) * mottle * m, lerp(deep[1], sun[1], bright) * mottle * m, lerp(deep[2], sun[2], bright) * mottle * m];
   };
-  const dome = gridSurface((u, v, out) => domeVertex(u * TAU, v * V_ROLL, out), { cols: roofRes, rows: Math.round(roofRes * 0.32), closedU: true });
-  const roll = gridSurface((u, v, out) => domeVertex(u * TAU, lerp(V_ROLL, 1, v), out), { cols: roofRes, rows: Math.round(roofRes * 0.1), closedU: true });
-  // soffit: the dark underside from the roll's inner bottom edge back to the trunk wall (it
+  const domeMoss = gridSurface((u, v, out) => domeVertex(u * TAU, v, out, false), {
+    cols: roofRes,
+    rows: roofRows,
+    closedU: true,
+    hole: (u, v) => {
+      const straw = isThatchCell(u, v);
+      if (v <= V_CAP) {
+        const area = cellArea(u, v);
+        if (straw) thatchArea += area;
+        else mossArea += area;
+        if (smoothstep(0.35, 0.75, patchNoise(_tc)) * smoothstep(1, 0.7, v) > 0.5) thatch11Area += area;
+      }
+      return straw;
+    },
+  });
+  const domeStraw = gridSurface((u, v, out) => domeVertex(u * TAU, v, out, true), {
+    cols: roofRes,
+    rows: roofRows,
+    closedU: true,
+    hole: (u, v) => !isThatchCell(u, v),
+  });
+  const thatchFraction = thatchArea / Math.max(1e-6, thatchArea + mossArea);
+  const thatchFraction11 = thatch11Area / Math.max(1e-6, thatchArea + mossArea);
+  // cap silhouette for the audit (projected rim width / crown height in B), as built and at ×1.0
+  const cap: CapProfile = (() => {
+    const sample = (rimScale: number, crownScale: number) => {
+      const p = new Vector3();
+      const n = new Vector3();
+      const at = (a: number, v: number): P3 => {
+        domeBaseS(a, v, p, rimScale, crownScale);
+        // the displacement is evaluated on the scaled shell (the same noise the mesh uses)
+        const disp = domeDisp(p, v);
+        domeNormal(a, v, n);
+        return p.addScaledVector(n, disp).toArray() as P3;
+      };
+      const rim: P3[] = [];
+      for (let i = 0; i < 48; i++) rim.push(at((i / 48) * TAU, V_CAP));
+      let crownTop: P3 = at(0, 0);
+      const shell: P3[] = [];
+      for (let i = 0; i < 36; i++)
+        for (let j = 0; j <= 8; j++) {
+          const q = at((i / 36) * TAU, (j / 8) * 0.64);
+          if (q[1] > crownTop[1]) crownTop = q;
+          shell.push(q.map((x) => Math.round(x * 1000) / 1000) as P3);
+        }
+      return { rim, crownTop, shell, rimFront: at(0, V_CAP), rimBack: at(Math.PI, V_CAP) };
+    };
+    const now = sample(CAP_RIM_SCALE, CROWN_SCALE);
+    const wall = (a: number) => rSmooth(a, eaveY) + pillarBulge(wOf(a, rSmooth(a, eaveY)), eaveY) * Math.max(0, Math.cos(a));
+    const over = (a: number) => capR(a) - capInset + lipR - wall(a);
+    return {
+      rimScale: CAP_RIM_SCALE,
+      crownScale: CROWN_SCALE,
+      ...now,
+      overhang: { front: over(0), side: (over(Math.PI / 2) + over(-Math.PI / 2)) / 2, back: over(Math.PI) },
+      thatchFraction,
+      thatchFraction11,
+      round11: sample(1, 1),
+    };
+  })();
+  // soffit: the dark underside from the rim curl's inner bottom edge back to the trunk wall (it
   // meets the wall just under `wallTop`, so the wall band above the porch is in its shadow)
   const soffitY = (a: number, r: number) => {
     const rc = capR(a) - capInset;
@@ -1053,7 +1343,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   };
   /** the round-10 soffit (outer edge at `eaveY`, rising 0.12 m to the wall): pod hooks on it keep their pods put */
   const soffitYRound10 = (a: number, r: number) => {
-    const rc = capR(a) - capInset;
+    const rc = capR0(a) - capInset;
     const rw = rSmooth(a, eaveY) - 0.1;
     return eaveY + 0.12 * k * clamp((rc - r) / Math.max(0.1, rc - rw), 0, 1) - (0.1 + 0.12 * Math.sin(a + 2.2)) * k;
   };
@@ -1071,11 +1361,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     { cols: 72, rows: 3, closedU: true },
   );
   faceTowards(soffit, (p, o) => o.set(p.x, p.y - 5, p.z));
-  const roofMesh = new Mesh(dome, mats.roof);
+  const roofMesh = new Mesh(domeMoss, mats.moss);
   roofMesh.name = 'roof';
   roofMesh.castShadow = roofMesh.receiveShadow = true;
   group.add(roofMesh);
-  const eaveMesh = new Mesh(merge([roll, soffit]), mats.bark);
+  const strawMesh = new Mesh(domeStraw, mats.roof);
+  strawMesh.name = 'roof-straw';
+  strawMesh.castShadow = strawMesh.receiveShadow = true;
+  group.add(strawMesh);
+  const eaveMesh = new Mesh(soffit, mats.recessBark);
   eaveMesh.name = 'roof-eave';
   eaveMesh.castShadow = eaveMesh.receiveShadow = true;
   group.add(eaveMesh);
@@ -1213,109 +1507,97 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     bases.push([footL.x, footL.y, footL.z]);
   }
-  // eave bough across the front, following the lip's droop; its left end meets the arc's leg at
-  // the eave and both ends sink into the lip roll as if grown out of it
+  /**
+   * The eave bough (rounds 8–11: a bark limb along the front lip above the porch, the pod cords
+   * tied to its underside) is gone in round 12 — from B it read as a broad horizontal beam sitting
+   * on the doorway, where the reference has only the moss rim over a dark band. Its geometry's
+   * share of the branch stream is skipped so the stub and the right limb keep their tuned B
+   * positions; the pods keep the exact world positions round 10 tuned them to (they now hang from
+   * the soffit under the moss rim), so the formulas that fixed those positions stay:
+   */
   const boughA0 = -1.1;
   const boughA1 = 0.92;
-  const boughR = (a: number) => {
+  const boughR11 = (a: number) => {
     const u = (a - boughA0) / (boughA1 - boughA0);
     return (0.21 + 0.06 * Math.abs(u - 0.5) * 2) * k * (1 + 0.08 * Math.sin(a * 11 + 3));
   };
-  /**
-   * Round 11: the bough arches over the doorway — its apex over the door centre rises 0.22 m and
-   * sinks into the roll and the moss, so from B the bark under the moss edge reads as a gnarled
-   * limb curving up with the door (reference: root-like lips curving into the cap, no straight
-   * beam) and the shadow band between it and the door arch opens up where the pods hang.
-   */
-  const boughArch = (a: number) => 0.22 * k * Math.exp(-(((a - 0.02) / 0.55) ** 2));
-  const boughAt = (a: number, out = new Vector3()) => {
+  const boughArch11 = (a: number) => 0.22 * k * Math.exp(-(((a - 0.02) / 0.55) ** 2));
+  /** round 11's bough centre (0.24 m roll, +0.22 m arch over the door), at the ×1.0 rim */
+  const boughAt11 = (a: number, out = new Vector3()) => {
     const u = (a - boughA0) / (boughA1 - boughA0);
     const ends = smoothstep(0.7, 1, Math.abs(u - 0.5) * 2);
-    const rc = capR(a) - capInset;
-    // hugging the thin roll: centred just outside the cap base, its upper third buried in the
-    // roll (reference B has the moss, a dark shadow line, then the branch at frame y 0.28–0.32
-    // at x 0.72–0.80, the pods hanging below it into the porch)
+    const rc = capR0(a) - capInset;
     const r = rc + 0.1 * k + 0.04 * k * Math.cos(a * 3 + 1) - 0.25 * k * ends;
-    const y = rollBottom - 0.6 * boughR(a) + boughArch(a) + 0.2 * k * ends - (0.1 + 0.12 * Math.sin(a + 2.2)) * k;
+    const y = rollBottom - 0.6 * boughR11(a) + boughArch11(a) + 0.2 * k * ends - (0.1 + 0.12 * Math.sin(a + 2.2)) * k;
     return frame.at(a, r, y, out);
   };
-  /**
-   * Where the round-10 bough's underside hook sat (0.26 m roll, no arch): the pods keep their
-   * tuned B screen positions, so a pod's cord grows by exactly the amount its hook has risen.
-   */
+  /** where the round-10 bough's underside hook sat (0.26 m roll, no arch) */
   const boughHookYRound10 = (a: number) => {
     const u = (a - boughA0) / (boughA1 - boughA0);
     const ends = smoothstep(0.7, 1, Math.abs(u - 0.5) * 2);
     const r10 = (0.24 + 0.07 * Math.abs(u - 0.5) * 2) * k * (1 + 0.08 * Math.sin(a * 11 + 3));
     return yFloor + eaveY + 0.26 * k - 0.09 * k - 0.07 * k * Math.sin(u * Math.PI) + 0.2 * k * ends - (0.1 + 0.12 * Math.sin(a + 2.2)) * k - r10 * 0.9;
   };
-  {
-    const n = 14;
-    const pts: Vector3[] = [];
-    for (let i = 0; i <= n; i++) pts.push(boughAt(lerp(boughA0, boughA1, i / n)).add(i === 0 || i === n ? new Vector3() : jit(0.05)));
-    const boughCurve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-    const bough = sweepTube(boughCurve, {
-      radius: (t) => boughR(lerp(boughA0, boughA1, t)),
-      tubularSegments: 56,
-      radialSegments: 12,
-      uvMetres: 1.4,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.5 + t * 8 + 4, pos.y * 1.3, 2) - 0.5) * 0.07 * k,
-      // reference B: the branch the pods hang from is dark bark under the moss's shadow — the
-      // band at frame y 0.31–0.36 reads 0.34–0.39 WITH the pods in it, so the bark itself sits
-      // near 0.3; it is the pods, not the bough, that light the band
-      color: (t, ang) => shadedColor(t, ang, 0.9),
-      capEnd: true,
-      capStart: true,
-    });
-    supportParts.push(mossOnTop(bough, [0.36, 0.62, 0.22], 0.6, noise));
-    // small ferns ride on the bough, vines trail from it beside the pods
-    for (const t of [0.18, 0.5, 0.82]) {
-      const p = boughCurve.getPointAt(t);
-      const nrm = new Vector3(0, 1, 0);
-      p.y += boughR(lerp(boughA0, boughA1, t)) * 0.8;
-      foliage.addTuft(p, nrm, 0.3 * sk, 1, 0.06, [0.6, 0.62, 0.4]);
-    }
-    for (const t of [0.08, 0.36, 0.64, 0.9]) {
-      const p = boughCurve.getPointAt(t);
-      p.y -= boughR(lerp(boughA0, boughA1, t)) * 0.8;
-      foliage.addHangingVine(p.add(jit(0.1)), (0.35 + branchRng() * 0.5) * k, { amount: 0.1 });
-    }
+  for (let i = 1; i < 14; i++) jit(0.05);
+  for (let i = 0; i < 4; i++) {
+    jit(0.1);
+    branchRng();
   }
-  // the eave's bark profile over the door centre (audit: projected thickness in B), now and as
-  // round 10 built it — the sag term is the deterministic droop; the roll's noise sag (≤ 0.2 m,
-  // shared by both) is left out
+  // the eave's profile over the door centre (audit: projected thickness in B), now and as rounds
+  // 10 / 11 built it — the sag term is the deterministic droop; the rim's noise sag (≤ 0.2 m,
+  // shared by all) is left out
   const eave: EaveProfile = (() => {
     const sag = (0.1 + 0.12 * Math.sin(2.2)) * k;
     const rc = capR(0) - capInset;
+    const rc0 = capR0(0) - capInset;
     const pt = (r: number, y: number): P3 => frame.at(0, r, y).toArray() as P3;
-    const c = boughAt(0);
-    const rB = boughR(0);
+    const c11 = boughAt11(0);
+    const rB11 = boughR11(0);
     const u10 = (0 - boughA0) / (boughA1 - boughA0);
     const r10 = (0.24 + 0.07 * Math.abs(u10 - 0.5) * 2) * k * (1 + 0.08 * Math.sin(3));
     const c10 = boughHookYRound10(0) + r10 * 0.9;
-    const cr10 = frame.at(0, rc + 0.02 * k, 0);
+    const cr10 = frame.at(0, rc0 + 0.02 * k, 0);
     return {
-      rollTop: pt(rc, lipTop - sag),
-      rollBottom: pt(rc + lipR, rollBottom - sag),
-      boughTop: [c.x, c.y + rB, c.z],
-      boughBottom: [c.x, c.y - rB, c.z],
+      rimTop: pt(rc, lipTop - sag),
+      rimBottom: pt(rc + lipR, rollBottom - sag),
+      bough: null,
+      barkRoll: null,
       doorTop: frame.door((doorW0 + doorW1) / 2, doorTop, dBack).toArray() as P3,
+      round11: {
+        rollTop: pt(rc0, lipTop - sag),
+        rollBottom: pt(rc0 + lipR, rollBottom - sag),
+        boughTop: [c11.x, c11.y + rB11, c11.z],
+        boughBottom: [c11.x, c11.y - rB11, c11.z],
+      },
       round10: {
-        rollTop: pt(rc, lipTop - sag),
-        rollBottom: pt(rc + 0.26 * k, eaveY - sag),
+        rollTop: pt(rc0, lipTop - sag),
+        rollBottom: pt(rc0 + 0.26 * k, eaveY - sag),
         boughTop: [cr10.x, c10 + r10, cr10.z],
         boughBottom: [cr10.x, c10 - r10, cr10.z],
       },
     };
+  })();
+  // the doorway opening (audit: aspect / projected size in B), now and as round 11 built it
+  const door: DoorOpening = (() => {
+    const mid = (w0: number, w1: number, h: number) => ({
+      width: w1 - w0,
+      height: h,
+      aspect: (w1 - w0) / h,
+      sill: frame.door((w0 + w1) / 2, sill, dBack).toArray() as P3,
+      top: frame.door((w0 + w1) / 2, sill + h, dBack).toArray() as P3,
+      left: frame.door(w0, sill + h / 2, dBack).toArray() as P3,
+      right: frame.door(w1, sill + h / 2, dBack).toArray() as P3,
+    });
+    return { ...mid(doorW0, doorW1, doorH), lipFlare, round11: mid(door11.w0, door11.w1, door11.h) };
   })();
   // broken stub: a splintered limb of the old trunk poking out through the moss on the cap's
   // left shoulder and leaning left-down over the eave (reference B: the sunlit limb at
   // (0.60–0.68, 0.20–0.32) beside the dome's left edge, splintered end)
   {
     const stubPts = [
-      frame.at(-1.4, 2.9 * k, lipTop + 1.3 * k),
-      frame.at(-1.5, 4.3 * k, lipTop + 0.7 * k).add(jit(0.1)),
-      frame.at(-1.55, 5.3 * k, eaveY + 0.6 * k).add(jit(0.1)),
+      frame.at(-1.4, 2.9 * k * CAP_RIM_SCALE, lipTop + 1.3 * k),
+      frame.at(-1.5, 4.3 * k * CAP_RIM_SCALE, lipTop + 0.7 * k).add(jit(0.1)),
+      frame.at(-1.55, 5.3 * k * CAP_RIM_SCALE, eaveY + 0.6 * k).add(jit(0.1)),
     ];
     const stubCurve = new CatmullRomCurve3(stubPts, false, 'catmullrom', 0.5);
     const stubR = (t: number) => (0.34 - 0.12 * t) * k * (1 + 0.08 * Math.sin(t * 9 + 2));
@@ -1444,10 +1726,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const clumpCount = Math.round(140 * k * k);
   // olive greens, deeper in the hollows (reference roof hue ≈ 49°, sat ≈ 0.34)
   const tints: [number, number, number][] = [
-    [0.22, 0.27, 0.07],
-    [0.42, 0.44, 0.11],
-    [0.72, 0.64, 0.17],
-    [1.0, 0.84, 0.24],
+    [0.2, 0.25, 0.06],
+    [0.4, 0.44, 0.1],
+    [0.66, 0.62, 0.15],
+    [0.92, 0.8, 0.2],
   ];
   for (let i = 0; i < clumpCount; i++) {
     const a = clumpRng() * TAU;
@@ -1541,16 +1823,23 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     let hook: Vector3;
     let cord = spec.cord * k;
     if (spec.hook === 'bough') {
-      // tied round the eave bough: the cord knot sits on its underside; the pod itself stays
-      // where round 10 tuned it (the cord takes up the bough's arch and the thinner roll)
-      hook = boughAt(spec.a);
-      hook.y -= boughR(spec.a) * 0.9;
-      hook.addScaledVector(frame.dir(spec.a), -0.04 * k);
-      cord += hook.y - boughHookYRound10(spec.a);
+      // Round 12: no eave bough — the cord runs up into the shadow under the moss rim and is tied
+      // to the soffit there. The pod itself stays exactly where round 10 tuned it (B: pod centres
+      // at frame x ≈ 0.728 / 0.758 / 0.79): the round-11 hook line fixes (x, z) and the knot
+      // height it hung from, and the cord takes up whatever the soffit sits above that.
+      const line = boughAt11(spec.a);
+      line.y -= boughR11(spec.a) * 0.9;
+      line.addScaledVector(frame.dir(spec.a), -0.04 * k);
+      const knotY11 = boughHookYRound10(spec.a);
+      const r = Math.hypot(line.x - frame.C.x, line.z - frame.C.z);
+      hook = line.clone();
+      hook.y = Math.max(line.y, yFloor + soffitY(spec.a, r) - 0.03);
+      cord += hook.y - knotY11;
     } else if (spec.hook === 'eave') {
-      // hooked to the soffit a little in from the lip; the cord is a vine. The soffit sits higher
-      // than in round 10 (it meets the thin roll), so the cord grows by as much and the pod stays.
-      const r = capR(spec.a) - capInset - 0.45 * k;
+      // hooked to the soffit a little in from the ×1.0 lip; the cord is a vine. The soffit sits
+      // higher than in round 10 (it meets the thin rim), so the cord grows by as much and the pod
+      // stays put whatever the rim scale.
+      const r = capR0(spec.a) - capInset - 0.45 * k;
       hook = frame.at(spec.a, r, soffitY(spec.a, r) - 0.03);
       cord += soffitY(spec.a, r) - soffitYRound10(spec.a, r);
       foliage.addHangingVine(hook.clone(), cord * 0.85, { amount: 0.08, thickness: 0.012 });
@@ -1599,6 +1888,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   for (const m of foliage.build(mats, `house-${def.id}`)) group.add(m);
 
-  // draped limbs + arc bough + eave bough + broken stub + right limb + chimney
-  return { group, bases, lanterns, lights, materials, roots: rootCount, branches: branchDefs.length + 5, leaves: foliage.leafCount, eave };
+  // draped limbs + arc bough + broken stub + right limb + chimney
+  return { group, bases, lanterns, lights, materials, roots: rootCount + 2, branches: branchDefs.length + 4, leaves: foliage.leafCount, eave, door, cap };
 }

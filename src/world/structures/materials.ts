@@ -62,6 +62,17 @@ export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 9, texture: 0.3, canopy: 1, a
 /** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
  *  reference bough's 52° */
 export const LIMB_BARK_TINT = 0x6c6e48;
+/**
+ * The house's recess (round 12): the porch cut into the trunk, its soffit and the wall band under
+ * the cap's overhang. Reference B's cavity between the moss edge and the door arch sits at the
+ * haze floor — rgb(92,80,52), p50 0.26; the shadow band under the moss rgb(87,73,54), 0.29 —
+ * while under HOUSE_BARK_FLOOR (set so the door-frame lips land at 0.36–0.38) every shaded face
+ * is pinned to the floor's flat term: the round-12 probe halved the porch's vertex tints and the
+ * band did not move (p50 0.38 → 0.38). Light inside a cavity under an overhang is a fraction of
+ * the leaf-filtered light under the open roof, so the recess takes the same warm, textured floor
+ * at a fifth of the lift.
+ */
+export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2 };
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -72,6 +83,8 @@ export interface StructureMaterials {
   logBark: MeshStandardMaterial;
   /** the lantern limb's bark sleeve: `bark` with its own (olive-brown, lower) shade floor */
   sleeveBark: MeshStandardMaterial;
+  /** the house's porch recess, soffit and the wall band under the overhang: `bark` with RECESS_BARK_FLOOR */
+  recessBark: MeshStandardMaterial;
   /** house interiors seen through the door: near-black warm wood so the opening reads dark */
   interior: MeshStandardMaterial;
   /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
@@ -570,9 +583,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // material already carries.
   const sleeveBark = bark.clone();
   sleeveBark.name = 'structures:sleeve-bark';
+  // the house's recess: the same bark under a much lower floor (same program — the floor's
+  // values are uniforms — one more draw per house)
+  const recessBark = bark.clone();
+  recessBark.name = 'structures:recess-bark';
   for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
+  applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
 }

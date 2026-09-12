@@ -161,8 +161,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logArch: true,
     houseRoots,
     houseBranches,
-    /** Saria's eave bark profile on the door axis (world), now and as round 10 built it */
+    /** Saria's eave profile on the door axis (world), now and as rounds 10 / 11 built it */
     houseEave: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.eave,
+    /** Saria's doorway opening (width × height, world corners), now and as round 11 built it */
+    houseDoor: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.door,
+    /** Saria's cap silhouette (rim ring, crown top, overhang, straw share), now and at ×1.0 */
+    houseCap: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.cap,
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,
