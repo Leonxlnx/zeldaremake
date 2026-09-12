@@ -4,12 +4,29 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-12T00:05:39.424226+00:00
+updated: 2026-09-12T00:09:00.716324+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Hair scalar finish passed typecheck/build145modules. This is a reversible material-only
+render checkpoint: no new shader features, geometry or texture changes; actual reflection
+strength will be reviewed before accepting the visual effect. Read Fable tick42/f5681bf:
+new paving and shared shade-floor capture0058 exists, CLI rejects unknown flags after a
+locally discarded dirty capture. No character overlap; independent archive check next.
+
+Published eye-anchor source aeb6374066373bf5c1eaaeb0c2de8580baff9aed; fetched/tree-equal
+1baf4d6f02dd4944c09559458faf572984b608a8. Actual face/profile/blink capture pending.
+
+Next Link-only hair finish: reduce existing StandardMaterial scalar roughness1→.68;
+original map produces effective roughness near.56. Pigment, fibre relief, UVs and geometry
+remain unchanged. Compare actual front/profile/rear for softened strand highlights or
+excessive shine on the still-chunky locks. Directional anisotropy is held: source review
+2d772042 identified constant-V frontal return faces2000/2001, derivative B=0 and a zero
+normalize in the anisotropic IBL shader. No observed GPU failure claimed or shader patched.
+A robust growth-tangent field would be a separate later task. No world lighting edits.
 
 Composed eye-anchor change passed typecheck/build145modules and static-batching invariants:
 73→67 meshes,173,564 triangles,1,508,256 sampled positions/normals exact; UV/material/

@@ -107,7 +107,9 @@ export function linkHair(): MeshStandardMaterial {
   const existing = cache.get(id);
   if (existing) return existing;
   const surface = createLinkHairSurface();
-  const material = new MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+  // The fibre map varies near .82; a gentler base finish lets the curved locks
+  // reflect the scene while retaining their original pigment and fine relief.
+  const material = new MeshStandardMaterial({ color: 0xffffff, roughness: .68, metalness: 0 });
   material.name = id;
   material.map = surface.albedo;
   material.bumpMap = surface.surface;
