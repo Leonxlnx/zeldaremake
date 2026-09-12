@@ -2,6 +2,7 @@
 import { BufferGeometry, Float32BufferAttribute, SphereGeometry } from 'three';
 import { merge } from './geometry';
 import { createLinkEarGeometry } from './ear-geometry';
+import { shapeLinkLowerFace } from './lower-face-geometry';
 
 const gaussian = (value: number, centre: number, width: number): number =>
   Math.exp(-Math.pow((value - centre) / width, 2));
@@ -133,8 +134,9 @@ function sculptMidface(skull: BufferGeometry, k: number): BufferGeometry {
  * Skull, cheeks, jaw, continuous nose and pointed ears for Link's softFeatures path only.
  * The scalp retains the existing radius and ±1.04r height. Existing eyes, brows and mouth
  * remain separate meshes at their current anchors. Positive Z faces the viewer.
+ * Hair fitters use the unchanged carrier by default; the visible Link face opts into the jaw.
  */
-export function createLinkFaceGeometry(radius: number): BufferGeometry {
+export function createLinkFaceGeometry(radius: number, lowerJaw = false): BufferGeometry {
   if (!Number.isFinite(radius) || radius <= 0) throw new RangeError('Link face radius must be positive and finite');
   const k = radius / 0.125;
   // Extra samples resolve the nose bridge directly in the skull, without a pasted-on sphere.
@@ -190,7 +192,7 @@ export function createLinkFaceGeometry(radius: number): BufferGeometry {
       normal.setXYZ(i, 0, Math.sign(position.getY(i)), 0);
     }
   }
-  const geometry = merge([sculptMidface(skull, k), createLinkEarGeometry(radius, 1), createLinkEarGeometry(radius, -1)]);
+  const geometry = merge([lowerJaw ? shapeLinkLowerFace(sculptMidface(skull, k), k) : sculptMidface(skull, k), createLinkEarGeometry(radius, 1), createLinkEarGeometry(radius, -1)]);
   geometry.name = 'original-link-shaped-face';
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();

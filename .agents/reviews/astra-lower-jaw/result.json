@@ -1,0 +1,76 @@
+{
+  "baseline": "9a317b873eae4a036e0ad179027201fdfdb217c1",
+  "helperSha": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+  "exactMeshes": 71,
+  "exactArrays": 282,
+  "protectedVertices": 31567,
+  "changed": 2803,
+  "maxDisplacement": 0.015310190618038177,
+  "minTriangleNormal": -0.6697402145088328,
+  "minArea": 3.4177826896742897e-10,
+  "affectedFaces": 5652,
+  "blinks": [
+    {
+      "blink": 1,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.85,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.7,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.5838095238095872,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.5,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.35,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.2,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.12,
+      "exactArrays": 16
+    },
+    {
+      "blink": 0.08,
+      "exactArrays": 16
+    },
+    {
+      "blink": 1,
+      "exactArrays": 16
+    }
+  ],
+  "info": [
+    {
+      "name": "mouth",
+      "key": "hips:0/chest:0/neck:0/head:0/mouth:0",
+      "vertices": 149
+    },
+    {
+      "name": "hair",
+      "key": "hips:0/chest:0/neck:0/head:0/hair:0",
+      "vertices": 8912
+    },
+    {
+      "name": "neck",
+      "key": "hips:0/chest:0/neck:1",
+      "vertices": 64
+    }
+  ],
+  "limitations": [
+    "No rendered likeness acceptance.",
+    "No all-pose swept contact proof.",
+    "Neck and changed lower-skull/hair contact checks remain separate."
+  ]
+}

@@ -1,0 +1,317 @@
+{
+  "source": "9a317b8",
+  "candidateHelperSha": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+  "k": 1.16,
+  "changedFaces": 5652,
+  "hair": [
+    {
+      "candidate": false,
+      "changedSkullVsFullHair": {
+        "distance": 0,
+        "witness": {
+          "a": 924,
+          "b": 511
+        },
+        "tested": 988
+      },
+      "hairFaces": 17736
+    },
+    {
+      "candidate": true,
+      "changedSkullVsFullHair": {
+        "distance": 0,
+        "witness": {
+          "a": 924,
+          "b": 511
+        },
+        "tested": 820
+      },
+      "hairFaces": 17736
+    }
+  ],
+  "neck": [
+    {
+      "yaw": 0,
+      "pitch": 0,
+      "versions": [
+        {
+          "candidate": false,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.05958121470079822,
+            "witness": {
+              "a": 6,
+              "b": 64407
+            },
+            "tested": 1456
+          },
+          "centre": {
+            "x": 0,
+            "y": -0.07249999046325672,
+            "z": 0
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.14988111191769168
+          },
+          "completeTopDiskInside": true
+        },
+        {
+          "candidate": true,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.049747380179478676,
+            "witness": {
+              "a": 6,
+              "b": 64280
+            },
+            "tested": 747
+          },
+          "centre": {
+            "x": 0,
+            "y": -0.07249999046325672,
+            "z": 0
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.14988111191769168
+          },
+          "completeTopDiskInside": true
+        }
+      ]
+    },
+    {
+      "yaw": -0.95,
+      "pitch": -0.45,
+      "versions": [
+        {
+          "candidate": false,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.021598300056001205,
+            "witness": {
+              "a": 8,
+              "b": 64321
+            },
+            "tested": 610
+          },
+          "centre": {
+            "x": 2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": 0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.1145177925990505
+          },
+          "completeTopDiskInside": true
+        },
+        {
+          "candidate": true,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.020066108122305193,
+            "witness": {
+              "a": 8,
+              "b": 64322
+            },
+            "tested": 584
+          },
+          "centre": {
+            "x": 2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": 0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.1142155072333431
+          },
+          "completeTopDiskInside": true
+        }
+      ]
+    },
+    {
+      "yaw": -0.95,
+      "pitch": 0.45,
+      "versions": [
+        {
+          "candidate": false,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.013951782032519015,
+            "witness": {
+              "a": 3,
+              "b": 64249
+            },
+            "tested": 144
+          },
+          "centre": {
+            "x": -2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": -0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.1584815110631211
+          },
+          "completeTopDiskInside": true
+        },
+        {
+          "candidate": true,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.013540456409037867,
+            "witness": {
+              "a": 3,
+              "b": 64246
+            },
+            "tested": 182
+          },
+          "centre": {
+            "x": -2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": -0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.1584790460804357
+          },
+          "completeTopDiskInside": true
+        }
+      ]
+    },
+    {
+      "yaw": 0.95,
+      "pitch": -0.45,
+      "versions": [
+        {
+          "candidate": false,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.021589104200915248,
+            "witness": {
+              "a": 0,
+              "b": 64311
+            },
+            "tested": 607
+          },
+          "centre": {
+            "x": -2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": 0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.11451779259905054
+          },
+          "completeTopDiskInside": true
+        },
+        {
+          "candidate": true,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.020070434217516163,
+            "witness": {
+              "a": 0,
+              "b": 64308
+            },
+            "tested": 593
+          },
+          "centre": {
+            "x": -2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": 0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.11421550723334312
+          },
+          "completeTopDiskInside": true
+        }
+      ]
+    },
+    {
+      "yaw": 0.95,
+      "pitch": 0.45,
+      "versions": [
+        {
+          "candidate": false,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.013948582026864508,
+            "witness": {
+              "a": 7,
+              "b": 64254
+            },
+            "tested": 149
+          },
+          "centre": {
+            "x": 2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": -0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.158481511063121
+          },
+          "completeTopDiskInside": true
+        },
+        {
+          "candidate": true,
+          "topTriangles": 10,
+          "nearestSurface": {
+            "distance": 0.013533843222188481,
+            "witness": {
+              "a": 7,
+              "b": 64257
+            },
+            "tested": 179
+          },
+          "centre": {
+            "x": 2.983724325740549e-17,
+            "y": -0.08369969239799108,
+            "z": -0.04893362673566801
+          },
+          "test": {
+            "inside": true,
+            "crossings": 1,
+            "nearest": 0.1584790460804356
+          },
+          "completeTopDiskInside": true
+        }
+      ]
+    }
+  ],
+  "analytic": {
+    "map": "F(x,y,z)=(s(y)x,y,z), s=1-.18 quintic(u), u=clamp((-y/k-.030)/.080,0,1)",
+    "jacobianDeterminantRange": [
+      0.82,
+      1
+    ],
+    "maxSPrime": 3.636853448275862,
+    "normal": "normalize(nx/s, ny-x*sPrime*nx/s, nz)",
+    "C2Boundary": true,
+    "points": 2868,
+    "maxPositionError": 7.221130360335337e-9,
+    "maxNormalTangentDot": 3.9592006728650375e-8,
+    "maxNormalLengthError": 4.0066927109450035e-8
+  },
+  "failures": [
+    "Candidate changed lower skull intersects hair; see witness."
+  ],
+  "limitations": [
+    "Finite floating-point surface checks.",
+    "Only rest and four stated head-turn corners checked for neck coverage; no all-pose swept proof.",
+    "Hair geometry unchanged and head-rigid, so its pairwise contact result is invariant under shared rigid head rotations.",
+    "No rendered likeness verdict."
+  ]
+}

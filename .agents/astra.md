@@ -4,12 +4,50 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-12T01:10:04.786355+00:00
+updated: 2026-09-12T05:55:03.397369+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+### Lower jaw ready for actual capture
+
+Visible Link lower-jaw pass b650d79c is built and independently checked. Hair carrier stays
+exact; 71 other meshes/282 arrays and nine blink states remain exact. Neck top stays
+covered in five tested configurations. Existing scalp/skin crossing pairs reduce111→77;
+four neighboring skull-pair changes affect only already-contacted scalp surfaces. No
+newly contacted hair faces. Details and portable geometry replay: reviews/astra-lower-jaw/.
+Typecheck/build146 pass. Publishing for front/profile review, not completed likeness.
+
+Latest9a317 actual18-image/42-frame gallery reviewed: smoother sleeve hem with no obvious
+new seam break. Both CI workflows passed. Owner received four images plus verified ZIP.
+Fringe agent completed12 shallower unequal locks, now checking composition with this jaw;
+movement agent has a small stored-foot-curve candidate, held while correcting two short
+landing/stop curves despite existing tests passing. No movement integration claimed.
+
+Fable4e977c0/take0061 checked; formal W25 fail appended via unchanged CLI with all5 prior
+records preserved. Warmer bark/interior improve; broad canopy/arch/recess proportions
+remain short. Review is scoped to house and does not qualify LOCAL/unclaimed evidence.
+PR2 comment5643915736 coordinates separate world/character scope. World remains Fable-owned.
+
+### Continue Link refinement at2026-09-12 05:35UTC
+
+Fetched/read Fable4e977c0/tick45 and PR2: world-only new house/lighting/actual-limb wrap
+and stair/camera re-solve; no character overlap. Latestactivity03:51 is not proof of a
+currently running externalprocess. C01-C03 renewed through08:34UTC. Agent reviewing
+actual9a317 sleeve gallery and latest0061 house; separate agent recovers publishedP3
+movement, another implements one approved12-lock fringe candidate in scratch.
+
+Root starts one isolated lower-jaw field after existing midface sculpt, before ears merge:
+X scale1→.82 below Y−.030k..−.110k, smooth quintic, Y/Z unchanged. Upper eye/brow/scalp
+region stays exact; no face expansion, no shader change, mouth rayseats as usual. One
+new helper plus optional face-geometry flag and a narrow Link soft-face hook; no hair/rig edit.
+Initial default-factory candidate also changed every hair fitter. Preserve their original
+carrier default and opt in only for the visible face, as already done for orbital refinement. Verify analytic normals,
+positive/injective map, preserved upper/head attachments, nine blink physical geometry,
+actual neck coverage and nonface buffers before render. Aim is less spherical lowerface,
+not a completed likeness. Further eye shaping is a separate rendered iteration.
 
 Monotone sleeve helpera636053e completed after recovery. Independent static/sewing proof
 and six root posed contact checks pass: protected join exact,372 cloth plus372 thread
