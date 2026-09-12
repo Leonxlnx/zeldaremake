@@ -16,6 +16,7 @@ import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
 import { buildLanternPost } from './lanternPost';
+import { buildLeafLantern } from './leafPod';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { buildSignpost } from './signpost';
@@ -79,7 +80,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
 
   // ---- lantern posts (stair foot, path fork) ----
-  const posts = LANTERN_POSTS.map((p) => buildLanternPost(p, ctx, mats, rng.fork(`lantern-post/${p.id}`), rope));
+  const posts = LANTERN_POSTS.map((p) => buildLanternPost(p, ctx, mats, rng.fork(`lantern-post/${p.id}`), rope, buildLeafLantern));
   for (const pb of posts) {
     group.add(pb.group);
     lanterns.push(...pb.lanterns);

@@ -1,8 +1,8 @@
 /**
  * Pod-lantern posts (concept sheets 02/04/05): a bent, rough wooden post 2.2–2.6 m tall whose top
  * hooks over toward the path; one pod lantern hangs from the hook on a short cord, the hook is
- * lashed with vine rope, and a strand of heart-leaf vine trails off it. Built from the same pod
- * builder as every other lantern (`buildLantern`), so the pod count / swing contract holds.
+ * lashed with vine rope, and a strand of heart-leaf vine trails off it. The optional pod builder
+ * defaults to the shared lantern and preserves its rig contract.
  */
 import { CatmullRomCurve3, Group, CircleGeometry, type BufferGeometry, type Material, Mesh, PointLight, Vector3 } from 'three';
 import type { WorldContext } from '../system';
@@ -22,7 +22,7 @@ export interface LanternPostBuild {
   leaves: number;
 }
 
-export function buildLanternPost(def: LanternPostDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng, rope: Material): LanternPostBuild {
+export function buildLanternPost(def: LanternPostDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng, rope: Material, podBuilder: typeof buildLantern = buildLantern): LanternPostBuild {
   const group = new Group();
   group.name = `lantern-post-${def.id}`;
   const noise = new Noise2D(`${ctx.config.seed}/structures/lantern-post/${def.id}`);
@@ -167,7 +167,7 @@ export function buildLanternPost(def: LanternPostDef, ctx: WorldContext, mats: S
   group.add(ropeMesh);
 
   const cord = 0.22 + rng() * 0.1;
-  const rig = buildLantern(hook, cord, mats, rng.fork('pod'), 1.0, def.tint ?? 'orange');
+  const rig = podBuilder(hook, cord, mats, rng.fork('pod'), 1.0, def.tint ?? 'orange');
   group.add(rig.pivot);
   // soft warm pool under the pod: the emissive pod itself carries the glow (no bloom clipping)
   const light = new PointLight(ctx.config.palette.lanternGlow, 3.2, 5.0, 2);

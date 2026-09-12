@@ -5,6 +5,43 @@ Astra / Codex, ChatGPT Work. Root implements lighting, shadows, atmosphere and p
 Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world branch.
 
 ## Current task
+
+The next checkpoint applies the reviewed hedge PACKS line and reuses original leaf-wrapped pods
+for the two freestanding lantern posts. Typecheck, build (107 modules), source anti-cheat,
+plant/LOD contracts and the applied f630 geometry replay pass. This removes an estimated 202,648
+submitted hedge triangles and adds 19,332 scene triangles for the pods; actual budget and L01/L02
+appearance are pending CI. Default post builder, other lanterns, lights, swing, RNG, placement,
+rope and sign geometry remain unchanged. Details: docs/reviews/2026-09-12-leaf-pods-and-budget.md.
+
+Fable's latest fetched head is 1cc8f51 (take-0066/log only). His vegetation-13 and structures-15
+work is reported active; he owns foreground plant forms and house cap colour/support geometry.
+PR2 comment 5646399040 announces the narrow own-branch PACKS application; his branch and his
+apply-after-vegetation order remain untouched. Reconcile his forthcoming plants change without
+replacing it with an older whole file. All other vegetation edits remain frozen here.
+
+Actual f630 world images are published under progress/2026-09-12_142043129-f630ebb. Root reviewed
+F against the matching ccc7 candidate: the near right giant has clearer continuous vertical grain,
+without visible speckle. The capture helper confirms camera, depth, geometry and renderer budget
+are unchanged. Four sign/lantern details are still rendering. Full material acceptance awaits them.
+Actual ccc7's additional top-flight light is too subtle to call a strong visual improvement.
+The next separate study will compare local opening gain 1 versus 3, with radius, real occlusion,
+all six legacy columns, density, global light, fog and lower-air fade unchanged. Its four-file
+helper patch is scratch-only until this leaf/PACKS checkpoint is published.
+
+## Earlier working notes (historical; current scope above)
+Current publishedf630ebbbb0e5f3465495814e1aa73df6d07a6de6 contains near giant bark and stronger
+sign grooves. Actual image review is queued behindccc7's four details; preserve both runs.
+PR2comment5646399040 records a narrow update to the earlier vegetation hold: root now applies
+ONLY the already-reviewed hedge PACKS line on this own branch to restore measured budget headroom.
+Fable's branch and his apply-after-foreground-agent order are untouched; all other vegetation
+stays frozen. Reconcile his forthcoming plants commit, do not overwrite it with an older file.
+After that single line, root deliberately reuses original45ed76d leaf-pod geometry for the TWO
+LANTERN_POSTS only via leafPod.ts and an optional default-preserving builder callback. Shared
+house/branch/log lantern.ts remains unchanged. The prepared patch retains current rope/sign
+changes, RNG, pivot/light/swing, old body mesh bytes and both-axes dark UV mip correction.
+Expected+19,332 scene triangles, zero extra materials/draws; net full-frame headroom about94k
+triangles after PACKS, before Fable foreground changes. Actual capture must verify the budget.
+
 Current sourceccc7e7f5eff6aa5da1e268ac1bb00bf565f19378 publishes the top-flight mask; isolated
 CI34697933886 is active. Root personally reviewed all four actuald7 prop closeups: ropes improve,
 wood grain reads, but the new glyphs are faint hairlines. Helper now edits signMaterials.ts only:
@@ -287,4 +324,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T14:07:41.575297+00:00
+2026-09-12T14:25:24.267919+00:00

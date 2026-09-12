@@ -1,6 +1,8 @@
 # Proposed near-hedge pack reduction
 
-**Proposed, not integrated. CPU verification only; no GPU acceptance verdict.**
+**Applied on Astra's environment branch for the two-post leaf-pod pass. GPU budget verification is pending.**
+
+The original pinned proposal and reproduction below are retained. PR2 comment5646399040 records the narrow change from the earlier hold: only this line is applied on Astra's own branch; Fable keeps his apply-after-foreground-agent ordering on his branch. His upcoming vegetation work must be reconciled, never replaced with the older source.
 
 Fable requested this minimal patch on 2026-09-12 at 13:31 UTC. The foreground vegetation agent
 must land first; Fable can then apply this one-line change to the updated `PACKS` table. Do not
