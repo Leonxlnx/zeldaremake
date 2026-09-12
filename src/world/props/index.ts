@@ -6,6 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
 import { PROP_LAYOUT } from './layout';
+import { createCrateWoodMaterial, tagCrateWood } from './crateWood';
 
 type MaterialKey = 'wood' | 'clay' | 'iron' | 'rope';
 const UP = new Vector3(0, 1, 0);
@@ -22,7 +23,7 @@ export function placementAllowed(ctx: Pick<WorldContext, 'terrain' | 'layout'>, 
   return true;
 }
 
-export function create(ctx: WorldContext): WorldSystem {
+export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const root = new Group(); root.name = 'props';
   const materials: Record<MaterialKey, MeshStandardMaterial> = {
     wood: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.93 }),
@@ -30,6 +31,7 @@ export function create(ctx: WorldContext): WorldSystem {
     iron: new MeshStandardMaterial({ color: 0x403d32, roughness: 0.72, metalness: 0.55 }),
     rope: new MeshStandardMaterial({ color: 0x948462, roughness: 1 }),
   };
+  const crateWood = createCrateWoodMaterial(materials.wood, await ctx.textures.load('weathered_planks', 'color'));
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
   const counts = { pots: 0, crates: 0, buckets: 0, platforms: 0, ladders: 0, ropeRailings: 0 };
@@ -55,9 +57,11 @@ export function create(ctx: WorldContext): WorldSystem {
     root.add(group); bases.push([x, groundY, z]);
     const batches: Record<MaterialKey, BufferGeometry[]> = { wood: [], clay: [], iron: [], rope: [] };
 
-    function add(geometry: BufferGeometry, key: MaterialKey, position = new Vector3(), rotation = new Quaternion(), tint?: number) {
-      // Strip UVs: all surfaces use original geometry/vertex pigments, no texture dependencies.
-      geometry.deleteAttribute('uv');
+    let crateBoard = def.id === 'upper-crate' ? 1 : 0;
+    function add(geometry: BufferGeometry, key: MaterialKey, position = new Vector3(), rotation = new Quaternion(), tint?: number, grainAxis: 'x' | 'y' = 'y') {
+      // Only crate wood borrows a map. Tag the board before its existing transform.
+      if (def.kind === 'crate' && key === 'wood') tagCrateWood(geometry, grainAxis, crateBoard++);
+      else geometry.deleteAttribute('uv');
       const g = geometry.index ? geometry.toNonIndexed() : geometry;
       if (g !== geometry) geometry.dispose();
       if (key === 'wood' || key === 'clay') {
@@ -113,7 +117,7 @@ export function create(ctx: WorldContext): WorldSystem {
       const w=s, h=s*.82, plank=s/5;
       const plankRng = createRng(`${ctx.config.seed}/props/${def.id}/planks`);
       function cratePlank(width: number, height: number, depth: number, position: Vector3, grainAxis: 'x' | 'y', tint?: number) {
-        add(new BoxGeometry(width, height, depth), 'wood', position, undefined, tint);
+        add(new BoxGeometry(width, height, depth), 'wood', position, undefined, tint, grainAxis);
         const geometry = batches.wood[batches.wood.length - 1];
         const colors = geometry.attributes.color, normals = geometry.attributes.normal;
         // One stable value per board; exposed cuts absorb more stain than long grain.
@@ -241,10 +245,10 @@ export function create(ctx: WorldContext): WorldSystem {
         }
       }
       merged.computeBoundingBox(); merged.computeBoundingSphere(); ownedGeometry.push(merged);
-      const mesh=new Mesh(merged,materials[key]); mesh.name=`${def.id}-${key}`;
+      const mesh=new Mesh(merged,def.kind === 'crate' && key === 'wood' ? crateWood : materials[key]); mesh.name=`${def.id}-${key}`;
       mesh.castShadow=ctx.quality.shadows; mesh.receiveShadow=true; group.add(mesh);
     }
   }
   ctx.audit('props',()=>({ ...counts, geometry:'original-lathed-pottery-planked-joinery-rope', samplePositions:{bases}, skipped, meshes:ownedGeometry.length }));
-  return {name:'props',group:root,dispose(){ownedGeometry.forEach(g=>g.dispose());Object.values(materials).forEach(m=>m.dispose());root.clear();}};
+  return {name:'props',group:root,dispose(){crateWood.dispose();ownedGeometry.forEach(g=>g.dispose());Object.values(materials).forEach(m=>m.dispose());root.clear();}};
 }

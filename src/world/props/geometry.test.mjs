@@ -38,8 +38,10 @@ const {WORLD}=loadTs(path.join(here,'../config.ts'));
 const {createTerrain}=loadTs(path.join(here,'../terrain/heightfield.ts'));
 const {Vector3}=THREE;
 const audits=[];
-const ctx={terrain:createTerrain(),layout:LAYOUT,config:WORLD,quality:{shadows:true},audit:(_,fn)=>audits.push(fn)};
-const one=create(ctx), two=create({...ctx,terrain:createTerrain()});
+const woodMap = new THREE.Texture(); woodMap.name = 'weathered_planks/color';
+let borrowedMapDisposals = 0; woodMap.addEventListener('dispose', () => borrowedMapDisposals++);
+const ctx={textures:{load:async(set,kind)=>{assert.equal(set,'weathered_planks');assert.equal(kind,'color');return woodMap;}},terrain:createTerrain(),layout:LAYOUT,config:WORLD,quality:{shadows:true},audit:(_,fn)=>audits.push(fn)};
+const one=await create(ctx), two=await create({...ctx,terrain:createTerrain()});
 const audit=audits[0]();
 assert.ok(audit.pots>=1 && audit.crates>=1 && audit.buckets>=1,'Each domestic prop type must actually be placed');
 assert.equal(audit.platforms,1,'Platform must fit the authored placement');
@@ -110,12 +112,34 @@ assert.equal(placementAllowed(ctx,0,0,.3),false,'Keep plaza path clear');
 assert.equal(placementAllowed(ctx,12.5,-11.5,.3),false,'Keep house interior clear');
 assert.equal(placementAllowed(ctx,-11.5,-7.2,.3),false,'Keep giant trunk clear');
 const blocked={...ctx,terrain:{...ctx.terrain,mask:()=>({path:1,stairs:1,structure:1,cliff:1})}};
-const empty=create(blocked);
+const empty=await create(blocked);
 assert.equal(empty.group.children.length,0,'No fallback placements on forbidden ground');
 // Normal alignment is measurable, not merely a stored audit claim.
 for(const g of one.group.children) if(!g.name.includes('platform')) {
   const actual=new Vector3(0,1,0).applyQuaternion(g.quaternion);
   assert.ok(actual.dot(ctx.terrain.normal(g.position.x,g.position.z,new Vector3()))>.9999);
+}
+const propMeshes=one.group.children.flatMap(g=>g.children);
+const mapped=propMeshes.filter(m=>m.geometry.attributes.aCrateGrainMean);
+assert.equal(mapped.length,2,'Only the two crate wood batches borrow the map');
+assert.equal(new Set(mapped.map(m=>m.material)).size,1,'One owned crate material, no per-board materials');
+for(const mesh of propMeshes) {
+  const crate=mesh.name.endsWith('crate-wood');
+  assert.equal(!!mesh.geometry.attributes.uv,crate,'UVs remain crate-only');
+  assert.equal(!!mesh.geometry.attributes.aCrateGrainMean,crate,'Surface tag remains crate-only');
+  if(!crate)continue;
+  assert.equal(mesh.material.map,null,'Borrow through a color-only sampler; keep automatic depth programs unchanged');
+  const shader={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};
+  mesh.material.onBeforeCompile(shader,{});
+  assert.equal(shader.uniforms.crateWoodMap.value,woodMap);
+  assert.equal(mesh.material.normalMap,null);
+  assert.equal(mesh.material.roughnessMap,null);
+  const uv=mesh.geometry.attributes.uv,mean=mesh.geometry.attributes.aCrateGrainMean;
+  assert.ok([...uv.array,...mean.array].every(Number.isFinite));
+  for(let i=0;i<mean.count;i+=3) {
+    assert.equal(mean.getX(i),mean.getX(i+1),'Every triangle stays inside one board surface');
+    assert.equal(mean.getX(i),mean.getX(i+2));
+  }
 }
 let disposedGeometry=0,disposedMaterial=0;
 first.forEach(g=>g.addEventListener('dispose',()=>disposedGeometry++));
@@ -126,3 +150,5 @@ one.dispose();two.dispose();empty.dispose();
 assert.equal(disposedGeometry,first.length,'Every owned geometry is disposed');
 assert.equal(disposedMaterial,mats.size,'Every used material is disposed');
 assert.equal(one.group.children.length,0,'Dispose detaches meshes');
+
+assert.equal(borrowedMapDisposals,0,'Props must never dispose the cached shared texture');

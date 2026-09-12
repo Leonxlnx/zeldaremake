@@ -7,32 +7,29 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Integrating published Fable ownership cleanup through0bd5235094211fd189d825b38393861d5def0abc
-onto1e97463582c6479e3624fa9c963b0aff2685fc85. Partner2f4415b corrects duplicate helper geometry
-disposal and releases the stone material's owned AO clone exactly once. The pinned original
-source passes both helper/system ordering checks. Astra's alternative scratch patch remains
-unapplied. Fable0bd also adopts our711 tuft shader unchanged (SHAa7571d03); preserve those bytes.
+Starting the bounded crate wood trial on published660dcac756f9095fa6b3b9c08ccd646d2bf5f499,
+treeaccbda430e510531132b78d6edddad2693c233a4. Its exact Fable0bd ancestry cleanup passed
+resource ordering, typecheck/build111 and exact three-file source boundary. The current
+correct environment run34710805539 is actually in progress, so the next source can queue.
+Fresh targeted partner fetch still0bd; no props overlap or new partner changes.
 
-711 actual12+4 is retained: clearer olive tufts and lawn blades with shape/shade preserved;
-all source, geometry, depth, resource and excluded-family controls pass. Root inspected
-B/A/D/F/L02. L02 used one permitted same-state blank-buffer retry; no final errors/warnings.
-1e actual12+4 is complete: distant huts add inhabited height in A/B/D, but bright flat yellow
-openings and simplified lamps remain weak. Root reviewed A/D. C/F and S01/L01/L02 JPEGs are
-exact711. C/L02 unexpectedly add137036 submitted triangles/one call despite identical pixels;
-read-only source investigation is active. Max8725061 triangles/661 calls remains under budget.
-D candidate used one same-state retry; no errors. No motion/FPS or formal phase-pass claim.
+Root reviewed the actual owner board06 and the frozen real-map proposal. Applied exactly its
+four props files: one owned crate material borrows the already cached credited CC0 planks
+color map, with physical-grain interior UVs, neutral end grain and derivative fading.
+Original positions/normals/pigments/contacts/RNG/shadow programs remain exact. No new texture,
+draw or triangle;31,104 attribute bytes and one material/color program. D may benefit modestly,
+B probably less. Existing real-terrain geometry test, typecheck/build112 and exact frozen
+file hashes pass. CI runs the existing props contract before capture. Actual original B/D decides; no relocation or exposure compensation.
 
-After this cleanup checkpoint, trial the existing crate wood using the cached credited CC0
-weathered_planks map and bounded interior UVs. Scratch proposal is independently verified;
-no production crate changes yet. Keep existing crate positions, Fable roots, lighting and
-pigments. Actual unchanged B/D decides whether its modest grain benefit merits retention.
-Original PNG publication remains blocked by the stalled/cancelled complete-blob connector
-call; no new original-reference branch exists. Exact ZIP and published previews are available.
+711 actual12+4 is retained with clearer olive tufts and all geometry/depth/resources exact.
+One same-state L02 retry, no final errors.1e actual12+4 adds inhabited height but distant yellow
+openings need local depth/material work. C/L02 hidden submitted-cost increase is under a
+read-only bucket investigation; current maximum8725061 triangles/661calls. Fable owns active
+structures and has the actual findings. OriginalPNG upload remains blocked; ZIP/previews exist.
 
 ## Files / systems being touched
-- Root: exact hardscape/index.ts, joints.ts and material.ts cleanup ancestry; own log/claims
-  and pinned review package. No partner source rewrite and no new render changes here.
-- Next independent root trial: props/index.ts, new props/crateWood.ts, existing geometry
+- Completed root cleanup: exact hardscape/index.ts, joints.ts and material.ts ancestry.
+- Active independent root trial: props/index.ts, new props/crateWood.ts, existing geometry
   contract and props README. No layout/camera change or new raster asset.
 - World helper: read-only final structure-bucket bounds investigation for C/L02; scratch only.
 - Capture helper: source-pinned actual image/ZIP/history receipts; no production writes.
@@ -139,4 +136,4 @@ Astra: finish published cleanup integration, then the independent crate material
 Capture helper: review the next pinned source after publication. Character waits for Blender.
 
 ## Last updated
-2026-09-12T18:15:47.898850+00:00
+2026-09-12T18:21:39.198557+00:00
