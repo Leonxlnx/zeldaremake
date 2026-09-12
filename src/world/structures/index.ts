@@ -218,8 +218,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** round 16: the far village — huts on existing trunks, audited apart from the two hero houses */
     distantHouses: distant.audit.length,
     distantHouseTriangles: distant.triangles,
+    /** round 18: 'shared' = every hut sits on a seat from `ctx.shared.trunkSeats`, 'constants' = the authored copies, 'mixed' = some of each */
+    distantHostSource: distant.hostSource,
+    /** round 18: zero-area triangles left in the huts (the cap poles and pod apexes are filtered; expect 0) */
+    distantDegenerateTriangles: distant.degenerateTriangles,
     /** the shared emissive's peak channel (linear); must exceed the height fog's 2.0 far-shade exemption */
     distantGlowPeak: +distantGlowPeak(mats).toFixed(2),
+    /** peak linear channel of each glow tint as rendered (lamps / pods ≥ 2.0 are fog-exempt; the rims are not meant to be) */
+    distantGlowTints: distant.glowTintPeaks,
     distantHouseDetail: distant.audit,
     leaves,
     pointLights: lights.length,

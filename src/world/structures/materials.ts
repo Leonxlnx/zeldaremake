@@ -172,9 +172,10 @@ export interface StructureMaterials {
   /** warm window glow disc */
   windowGlow: MeshBasicMaterial;
   /**
-   * Round 16: the distant houses' windows, door glows and pods (one mesh, vertex colours tint the
-   * lime pods). Peak 2.2 linear: above the height fog's far-shade exemption (heightfog.ts, 2.0) so
-   * the lit points 30–47 m out keep their radiance under the veil like the pod lanterns do.
+   * Round 16 / 18: the distant houses' window and door lamps, the openings' rims and the pods (one
+   * mesh; white × 2.2, the vertex tints carry the hue at peak 1.0). Peak 2.2 linear: above the
+   * height fog's far-shade exemption (heightfog.ts, 2.0) so the lit points 30–47 m out keep their
+   * radiance under the veil like the pod lanterns do (the rims are tinted 0.8 → 1.76, lit not lamps).
    */
   distantGlow: MeshBasicMaterial;
   /**
@@ -840,9 +841,12 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const hearth = new MeshBasicMaterial({ color: new Color(0xffa040).multiplyScalar(1.4), toneMapped: true });
   const ember = new MeshBasicMaterial({ color: new Color(0x8a4014), map: own(glowTexture()), transparent: true, depthWrite: false, toneMapped: true });
   const windowGlow = new MeshBasicMaterial({ color: new Color(0xffb04a).multiplyScalar(1.3), toneMapped: true });
-  // deeper orange than the pods' amber, ×2.2: the veil mixes 50–65 % warm grey into it at 30–47 m,
-  // which lifts the blue channel — a paler base read as cream through the haze
-  const distantGlow = new MeshBasicMaterial({ color: new Color(0xff9a2a).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
+  // white × 2.2 — the hue lives in the vertex tints (distantHouse.ts: deep orange 0xff9a2a for the
+  // lamps, the near lanterns' lime for the lime pods, 0.8 × orange for the openings' rims), each
+  // scaled so its peak channel is 1.0, so every lamp / pod peaks at 2.2 linear. Round 16 carried
+  // the orange in the material and the lime pods' [0.72, 1, 0.36] tint on top of it peaked at
+  // 1.58 — below the height fog's 2.0 far-shade exemption, and orange rather than lime.
+  const distantGlow = new MeshBasicMaterial({ color: new Color(1, 1, 1).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
 
   const lanternBase = {
     color: new Color(0xffffff),

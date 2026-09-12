@@ -1,0 +1,43 @@
+{
+  "pin": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "live": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "productionFilesFrom901": [
+    "src/world/structures/distantHouse.ts",
+    "src/world/structures/materials.ts",
+    "src/world/structures/index.ts"
+  ],
+  "distantHouseAndMaterialsLiveEqualParent": true,
+  "indexThreeWayConflictCount": 0,
+  "full901PatchApplyCheckPassed": true,
+  "distantCapConsolidationBlockExactBothBranches": true,
+  "astraSignPostExtrasPreserved": true,
+  "indexOnlyNewSixAuditLines": true,
+  "hashes": {
+    "candidate-distantHouse.ts": "e274324d3b534906a31c771d180b8156ee065815400288c6e7d69645761bd15d",
+    "candidate-materials.ts": "a1ff83add8f3c3ef13a8fe1f9da7ce432b23ae6dbd69ffb7ac24473dcc2d7da1",
+    "integrated-index.ts": "18dacf009704de2683b78500fddbc21902eb38b61147db855634868138e92bea",
+    "901b.patch": "3fda9444f6da6eccd7f67bec2baab5ef17a30175cddb008d217da52ee3ae10e7"
+  },
+  "cost": {
+    "oldActualSource": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+    "oldActualDistantTriangleAudit": 5217,
+    "newSourceTriangles": 9661,
+    "triangleDelta": 4444,
+    "newTrianglesByMaterial": {
+      "bark": 4210,
+      "recessBark": 369,
+      "capMoss": 924,
+      "wood": 1416,
+      "distantGlow": 2742
+    },
+    "oldCollapsedCapTriangleCount": 84,
+    "newDegenerateTriangles": 0,
+    "newSourceMeshesBeforeConsolidation": 13,
+    "oldSourceMeshesBeforeConsolidation": 10,
+    "newMaterials": 0,
+    "newTextures": 0,
+    "newLights": 0,
+    "newFinalMaterialBucketsExpected": 0,
+    "limitation": "Final consolidated draw visibility must be checked in actual integrated captures; matching existing material/layout/flags supports same bucket count, not exact camera GPU cost."
+  }
+}

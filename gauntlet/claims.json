@@ -798,6 +798,17 @@
       "at": "2026-09-12T20:49:07.213Z",
       "expiresHours": 3,
       "scope": "Bounded elevated east-flank grass height profile using existing field values; preserve roots, RNG, plant placement, material and Fable geometry; PR2 coordination after corrected trunk-seat handoff"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W09",
+        "W25",
+        "W36"
+      ],
+      "at": "2026-09-12T21:45:52.863Z",
+      "expiresHours": 3,
+      "scope": "Reapply reviewed Fable trunk seats and structures18/take71 onto exact bank-grass rollback4ae; preserve canopy and cap/sign/post contracts; actual source comparison queued separately"
     }
   ]
 }

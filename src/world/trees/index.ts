@@ -20,18 +20,18 @@
  * ctx.terrain.height; randomness only via ctx.rng.
  */
 import { BufferGeometry, Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
-import type { WorldContext, WorldSystem } from '../system';
+import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { createTreeMaterials } from './materials';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
-import { columnParams, createColumnTree, emergentParams, type ColumnParams } from './column';
+import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
 import { createGiantTree, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import type { GiantTreeDef } from '../layout';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 import { CANOPY_OPENINGS, CANOPY_OPENING_COLLAR, CANOPY_OPENING_DENSIFY, SHAFT_COLUMNS } from './corridors';
-import { tubePathFromRings } from './tubePath';
+import { trunkSeatFromRings, tubePathFromRings } from './tubePath';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
@@ -710,9 +710,9 @@ const _s = new Vector3();
 const _p = new Vector3();
 
 /** an instanced tree family variant: 3 LOD assets, one InstancedMesh per LOD, its placements */
-interface FamilyVariant<P, T extends { x: number; z: number; scale: number }> {
+interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A extends TreeAsset = TreeAsset> {
   params: P;
-  lods: TreeAsset[];
+  lods: A[];
   meshes: InstancedMesh[];
   placements: T[];
   matrices: Matrix4[];
@@ -720,6 +720,8 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }> {
 }
 type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
 interface ColumnPlacement {
+  /** stable id published with the seat: 'seat-<COLUMN_SEATS index>' / 'swap-<white-bark placement index>' */
+  id: string;
   x: number;
   y: number;
   z: number;
@@ -728,7 +730,7 @@ interface ColumnPlacement {
   /** 'seat' = authored COLUMN_SEATS entry, 'swap' = a mature white-bark built as a column */
   source: 'seat' | 'swap';
 }
-type ColumnVariant = FamilyVariant<ColumnParams, ColumnPlacement>;
+type ColumnVariant = FamilyVariant<ColumnParams, ColumnPlacement, ColumnAsset>;
 
 interface DistantSet {
   variant: DistantVariant;
@@ -973,9 +975,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // the swapped white-barks first (their seats are already clear), then the authored seats
   for (const p of swappedWhites) {
     const variant = seatRng.int(0, COLUMN_VARIANTS);
-    seatFamily(columns, { x: p.x, y: p.y, z: p.z, yaw: seatRng() * TAU, scale: seatRng.range(0.95, 1.05), source: 'swap' }, variant);
+    const id = `swap-${whitePlaced.placements.indexOf(p)}`;
+    seatFamily(columns, { id, x: p.x, y: p.y, z: p.z, yaw: seatRng() * TAU, scale: seatRng.range(0.95, 1.05), source: 'swap' }, variant);
   }
-  for (const seat of COLUMN_SEATS) {
+  for (let i = 0; i < COLUMN_SEATS.length; i++) {
+    const seat = COLUMN_SEATS[i];
     // one yaw and one scale draw per seat whether or not it is built, so a skipped seat never
     // re-rolls the ones after it
     const yaw = seatRng() * TAU;
@@ -985,7 +989,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       columnSeatsSkipped.push({ x: seat.x, z: seat.z, reason });
       continue;
     }
-    seatFamily(columns, { x: seat.x, y: terrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat' }, seat.variant);
+    seatFamily(columns, { id: `seat-${i}`, x: seat.x, y: terrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat' }, seat.variant);
   }
   const columnPlacements = columns.flatMap((c) => c.placements);
   // A variant's flat roots cannot be shared between differently sloped seats. These ten
@@ -1010,6 +1014,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
   }
   group.add(columnGroup);
+  // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
+  // the trunk that is there instead of duplicating the seat constants: the sweep's own ring
+  // centres and nominal radii taken through the instance matrix (yaw, scale, terrain contact), so
+  // lean, wobble and root flare are all in; every LOD is grown from the same stream, so the high
+  // one's rings are the family's. The giants append theirs below.
+  const trunkSeats: TrunkSeat[] = [];
+  for (const c of seatedColumns) {
+    const p = c.placements[0];
+    const asset = c.lods[0];
+    const centres = asset.trunkPath.map((v) => v.clone().applyMatrix4(c.matrices[0]));
+    const radii = asset.trunkRadii.map((r) => r * p.scale);
+    trunkSeats.push(trunkSeatFromRings(p.id, new Vector3(p.x, p.y, p.z), p.yaw, p.scale, centres, radii, asset.bareHeight * p.scale));
+  }
+  ctx.shared.trunkSeats = trunkSeats;
   ctx.progress('trees', 0.55);
   await yieldFrame();
 
@@ -1130,6 +1148,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const rings = centres.map((c, i) => [Math.round(ringS[i] * 1e4) / 1e4, ...mm(c), Math.round(ringRadii[i] * 1e3) / 1e3]);
       lanternLimbAudit = { samples: centres.length, range: [tube.range[0], tube.range[1]], side, vertical, ends: [mm(tube.centre(0)), mm(tube.centre(1))], rings };
     }
+    // the giant's bole joins the seats under its layout id (giants are only translated: yaw 0, scale 1)
+    trunkSeats.push(trunkSeatFromRings(def.id, origin, 0, 1, asset.trunkPath.map((p) => p.clone().add(origin)), asset.trunkRadii, asset.bareHeight));
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
     for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
@@ -1387,6 +1407,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** every published ring as [s, x, y, z, radius] (world, mm) — project them to check the wrap */
       lanternLimbRings: lanternLimbAudit?.rings ?? null,
       canopyOpenings: ctx.shared.canopyOpenings ?? [],
+      /** ctx.shared.trunkSeats: every seated column's and giant's bole as built, for structures */
+      trunkSeatsPublished: trunkSeats.length,
+      /** one row per seat: [id, x, z, baseY, r0 = radiusAt(0), rBare = radiusAt(bareHeight), bareHeight] (world, mm) */
+      trunkSeats: trunkSeats.map((s) => {
+        const mm = (v: number) => Math.round(v * 1e3) / 1e3;
+        return [s.id, mm(s.x), mm(s.z), mm(s.y), mm(s.radiusAt(0)), mm(s.radiusAt(s.bareHeight)), mm(s.bareHeight)];
+      }),
       triangles: { wood: woodTriangles, leaves: leafTriangles, canopyCards: giantCards * 2, distant: distantTriangles },
       samplePositions: { bases: sampleBases },
     };

@@ -929,6 +929,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) light (Astra): key/shade separation, the lit over-door band
   (p90 0.71 vs 0.49), cap highlight; (2) distant huts' openings (depth, not flat panels) and
   attachment; (3) A centre / layout call.
+
+### 21:15 UTC — tick 55: take-0071 published (monitor `7c8fa8b`), valid; round eighteen
+- `90920a7` SharedGeometry.trunkSeats contract; `7eba56e` trees publish 22 seats as built (byte-
+  identical renders); `bb3b7bf` bareHeight includes crown leaders (Astra's review).
+- `901b65b` structures-18: huts on the published seats (`distantHostSource: 'shared'`; hollow-column
+  clearance −2.7 cm → +0.185 m), openings as 0.30–0.35 m recesses with lamps and warm rims (D
+  window profile flat 0.79 → rim 0.75 / interior 0.40 / lamp 0.71), teardrop pods, bracketed
+  hangers, glow tints fixed, 84 degenerate triangles → 0. Draws unchanged.
+- `1216a48` Astra's W25 on take-70 merged (fail; grounds narrowed to wall fins/forked supports +
+  separate cap vs the reference's knotted arch flowing into the crown).
+- take-0071: A 0.259 / B 0.252 / C 0.306 / D 0.301 / E 0.273 / F 0.268. **W32 flipped pending →
+  fail (3 → 2 far layers)** on a 0.03 % change in bucket 10/18 at the 1.5 % cut with D's layering
+  unchanged — sealed as is, proposal filed (`14f43da`: hysteresis/smoothing). 23/50; draws 671.
+- Queued: structures-19 (burl atan2 seam → periodic; arch + crown as one knotted mass, pillars as
+  roots — W25 take-70 grounds); trees follow-up (rebucket cache on onCameraMove; free-camera draws
+  710–714 over the envelope). Astra: sleeve trial held pending the top-band baseline (her light
+  reads 0.17 vs the frame's 0.43 there); hedge form, plateau grass height, farShade 22→32 trials.
+- Three biggest remaining gaps → (1) light (Astra): the bright hazed canopy at the top of B/A
+  (0.17 vs 0.43), key/shade separation; (2) house: knotted arch flowing into the crown; (3) the
+  A/B camera-distance layout call.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -974,4 +994,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T19:40:00Z
+2026-09-12T21:15:00Z

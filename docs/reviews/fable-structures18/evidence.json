@@ -1,0 +1,721 @@
+{
+  "ref": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "scope": "One source tree construction for exact published seats and actual hut geometry. Diagnostic materials only. No RNG reproving, renderer or production writes. Nominal bole clearance excludes bark relief/branches; negative clearance is a source intersection risk requiring actual host geometry before declaring a visible defect.",
+  "audit": [
+    {
+      "id": "hollow-column",
+      "host": "trees COLUMN_SEATS (8.8, -26.9) variant 3",
+      "hostSource": "shared",
+      "seatId": "seat-3",
+      "centre": [
+        8.29,
+        9.51,
+        -26.88
+      ],
+      "floorY": 9.51,
+      "radius": 1.65,
+      "radiusForBole": 1.511,
+      "boleClearance": 0.185,
+      "window": [
+        7.89,
+        10.86,
+        -25.37
+      ],
+      "door": [
+        8.95,
+        10.19,
+        -25.33
+      ],
+      "lamps": [
+        [
+          7.94,
+          10.86,
+          -25.56
+        ],
+        [
+          8.85,
+          10.48,
+          -25.56
+        ]
+      ],
+      "pods": [
+        [
+          3.13,
+          9.7,
+          -27.57
+        ],
+        [
+          8.43,
+          10.67,
+          -24.88
+        ],
+        [
+          4.87,
+          9.84,
+          -26.52
+        ]
+      ],
+      "litPoints": [
+        [
+          7.94,
+          10.86,
+          -25.56
+        ],
+        [
+          8.85,
+          10.48,
+          -25.56
+        ],
+        [
+          3.13,
+          9.7,
+          -27.57
+        ],
+        [
+          8.43,
+          10.67,
+          -24.88
+        ],
+        [
+          4.87,
+          9.84,
+          -26.52
+        ]
+      ]
+    },
+    {
+      "id": "north-east",
+      "host": "layout giantTrees 'north-east'",
+      "hostSource": "shared",
+      "seatId": "north-east",
+      "centre": [
+        15.96,
+        11.83,
+        -36.38
+      ],
+      "floorY": 11.83,
+      "radius": 2.48,
+      "radiusForBole": 2.48,
+      "boleClearance": 0.153,
+      "window": [
+        15.18,
+        13.18,
+        -34.1
+      ],
+      "door": [
+        16.84,
+        12.5,
+        -34.09
+      ],
+      "lamps": [
+        [
+          15.24,
+          13.18,
+          -34.29
+        ],
+        [
+          16.75,
+          12.8,
+          -34.33
+        ]
+      ],
+      "pods": [
+        [
+          9.58,
+          11.8,
+          -37.25
+        ],
+        [
+          16.01,
+          13.2,
+          -33.55
+        ],
+        [
+          11.51,
+          11.95,
+          -36.15
+        ]
+      ],
+      "litPoints": [
+        [
+          15.24,
+          13.18,
+          -34.29
+        ],
+        [
+          16.75,
+          12.8,
+          -34.33
+        ],
+        [
+          9.58,
+          11.8,
+          -37.25
+        ],
+        [
+          16.01,
+          13.2,
+          -33.55
+        ],
+        [
+          11.51,
+          11.95,
+          -36.15
+        ]
+      ]
+    },
+    {
+      "id": "west-column",
+      "host": "trees COLUMN_SEATS (-5.7, -31.9) variant 1",
+      "hostSource": "shared",
+      "seatId": "seat-1",
+      "centre": [
+        -5.73,
+        8.72,
+        -31.55
+      ],
+      "floorY": 8.72,
+      "radius": 1.7,
+      "radiusForBole": 0.715,
+      "boleClearance": 0.944,
+      "window": [
+        -5.46,
+        10.07,
+        -29.99
+      ],
+      "door": [
+        -6.48,
+        9.39,
+        -30.02
+      ],
+      "lamps": [
+        [
+          -5.49,
+          10.07,
+          -30.18
+        ],
+        [
+          -6.36,
+          9.69,
+          -30.25
+        ]
+      ],
+      "pods": [
+        [
+          -1.09,
+          8.94,
+          -31.13
+        ],
+        [
+          -6.02,
+          9.96,
+          -29.52
+        ]
+      ],
+      "litPoints": [
+        [
+          -5.49,
+          10.07,
+          -30.18
+        ],
+        [
+          -6.36,
+          9.69,
+          -30.25
+        ],
+        [
+          -1.09,
+          8.94,
+          -31.13
+        ],
+        [
+          -6.02,
+          9.96,
+          -29.52
+        ]
+      ]
+    }
+  ],
+  "triangles": 9661,
+  "degenerateAudit": 0,
+  "hostSource": "shared",
+  "glowTintPeaks": {
+    "amber": 2.2,
+    "door": 2.2,
+    "lime": 2.2,
+    "rim": 1.76
+  },
+  "geometry": [
+    {
+      "name": "distant-house-bark:hollow-column",
+      "triangles": 1116,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9959187034209988,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "bark",
+      "casts": true
+    },
+    {
+      "name": "distant-house-recess:hollow-column",
+      "triangles": 123,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9971299395079084,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "recessBark",
+      "casts": true
+    },
+    {
+      "name": "distant-house-cap:hollow-column",
+      "triangles": 308,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9877325316850663,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "capMoss",
+      "casts": true
+    },
+    {
+      "name": "distant-house-planks:hollow-column",
+      "triangles": 480,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9990383952532196,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "wood",
+      "casts": true
+    },
+    {
+      "name": "distant-house-bark:north-east",
+      "triangles": 1962,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9984487447585634,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "bark",
+      "casts": true
+    },
+    {
+      "name": "distant-house-recess:north-east",
+      "triangles": 123,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9971711796582141,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "recessBark",
+      "casts": true
+    },
+    {
+      "name": "distant-house-cap:north-east",
+      "triangles": 308,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9878664743863215,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "capMoss",
+      "casts": true
+    },
+    {
+      "name": "distant-house-planks:north-east",
+      "triangles": 480,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9990383078144736,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "wood",
+      "casts": true
+    },
+    {
+      "name": "distant-house-bark:west-column",
+      "triangles": 1132,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9961434195052448,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "bark",
+      "casts": true
+    },
+    {
+      "name": "distant-house-recess:west-column",
+      "triangles": 123,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9972254307214258,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "recessBark",
+      "casts": true
+    },
+    {
+      "name": "distant-house-cap:west-column",
+      "triangles": 308,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9878680437099766,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "capMoss",
+      "casts": true
+    },
+    {
+      "name": "distant-house-planks:west-column",
+      "triangles": 456,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.9990383368190496,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "wood",
+      "casts": true
+    },
+    {
+      "name": "distant-glow",
+      "triangles": 2742,
+      "degenerate": 0,
+      "opposedNormalCount": 0,
+      "minDot": 0.5655715392396278,
+      "nonfinite": 0,
+      "attributes": [
+        "position",
+        "normal",
+        "uv",
+        "color"
+      ],
+      "material": "distantGlow",
+      "casts": false
+    }
+  ],
+  "houses": [
+    {
+      "id": "hollow-column",
+      "seat": "seat-3",
+      "nearest": [
+        {
+          "id": "seat-3",
+          "distance": 0
+        },
+        {
+          "id": "swap-18",
+          "distance": 2.9813874762264736
+        }
+      ],
+      "bareHeight": 9.830622456284388,
+      "hutBand": [
+        3.9000000000000004,
+        6.3500000000000005
+      ],
+      "nominalNeedExactAtPiecewiseKnots": 1.2959253778587363,
+      "needSampledAt01": 1.2958659676222484,
+      "needUnderstatement": 0.00005941023648792232,
+      "lastSample": 6.299999999999992,
+      "upperEndpointOmitted": 0.050000000000008704,
+      "nominalWallLowerBoundClearance": 0.1851146221412634,
+      "parts": [
+        {
+          "part": "windowTunnel",
+          "triangles": 32,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.9388930090882008,
+          "minimumNominalBoleClearance": 1.045990783589148,
+          "minimumPoint": [
+            8.333649635314941,
+            10.862549781799316,
+            -25.647659301757812
+          ]
+        },
+        {
+          "part": "windowBack",
+          "triangles": 32,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.748489573379229,
+          "minimumNominalBoleClearance": 1.1121187696453918,
+          "minimumPoint": [
+            8.32560920715332,
+            10.707180976867676,
+            -25.566360473632812
+          ]
+        },
+        {
+          "part": "doorTunnel",
+          "triangles": 46,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.45227733547096516,
+          "minimumNominalBoleClearance": 0.6766681542617401,
+          "minimumPoint": [
+            9.152688026428223,
+            9.512550354003906,
+            -25.781455993652344
+          ]
+        },
+        {
+          "part": "doorFloor",
+          "triangles": 2,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.9774047148646787,
+          "minimumNominalBoleClearance": 0.6901980001559438,
+          "minimumPoint": [
+            9.125988006591797,
+            9.527549743652344,
+            -25.764554977416992
+          ]
+        },
+        {
+          "part": "doorBack",
+          "triangles": 11,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.30109394410411733,
+          "minimumNominalBoleClearance": 0.6702326679767048,
+          "minimumPoint": [
+            9.143329620361328,
+            9.532549858093262,
+            -25.788785934448242
+          ]
+        }
+      ]
+    },
+    {
+      "id": "north-east",
+      "seat": "north-east",
+      "nearest": [
+        {
+          "id": "north-east",
+          "distance": 0
+        },
+        {
+          "id": "swap-8",
+          "distance": 7.48002496490163
+        }
+      ],
+      "bareHeight": 4.930346343111357,
+      "hutBand": [
+        7.7,
+        10.55
+      ],
+      "nominalNeedExactAtPiecewiseKnots": 2.165980702381545,
+      "needSampledAt01": 2.165980702381545,
+      "needUnderstatement": 0,
+      "lastSample": 10.499999999999991,
+      "upperEndpointOmitted": 0.05000000000000959,
+      "nominalWallLowerBoundClearance": 0.05999999999999961,
+      "parts": [
+        {
+          "part": "windowTunnel",
+          "triangles": 32,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.9125567620200573,
+          "minimumNominalBoleClearance": 1.1609961363002235,
+          "minimumPoint": [
+            14.707444190979004,
+            13.179708480834961,
+            -34.564998626708984
+          ]
+        },
+        {
+          "part": "windowBack",
+          "triangles": 32,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.6038263770160909,
+          "minimumNominalBoleClearance": 1.135900891732756,
+          "minimumPoint": [
+            14.744904518127441,
+            12.948115348815918,
+            -34.5692024230957
+          ]
+        },
+        {
+          "part": "doorTunnel",
+          "triangles": 46,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.45804662532527024,
+          "minimumNominalBoleClearance": 1.6343850244791962,
+          "minimumPoint": [
+            16.36520767211914,
+            12.221013069152832,
+            -34.39144515991211
+          ]
+        },
+        {
+          "part": "doorFloor",
+          "triangles": 2,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.9809240991355863,
+          "minimumNominalBoleClearance": 1.6504114095485787,
+          "minimumPoint": [
+            16.39814567565918,
+            11.844708442687988,
+            -34.37751770019531
+          ]
+        },
+        {
+          "part": "doorBack",
+          "triangles": 11,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.3010933720925843,
+          "minimumNominalBoleClearance": 1.7212353143966674,
+          "minimumPoint": [
+            16.379051208496094,
+            11.849708557128906,
+            -34.28322982788086
+          ]
+        }
+      ]
+    },
+    {
+      "id": "west-column",
+      "seat": "seat-1",
+      "nearest": [
+        {
+          "id": "seat-1",
+          "distance": 0
+        },
+        {
+          "id": "seat-2",
+          "distance": 5.920304046246275
+        }
+      ],
+      "bareHeight": 8.109179537041973,
+      "hutBand": [
+        5.7,
+        8.25
+      ],
+      "nominalNeedExactAtPiecewiseKnots": 0.5825233226226695,
+      "needSampledAt01": 0.5820133224865257,
+      "needUnderstatement": 0.0005100001361437734,
+      "lastSample": 8.199999999999992,
+      "upperEndpointOmitted": 0.050000000000007816,
+      "nominalWallLowerBoundClearance": 0.9433966773773302,
+      "parts": [
+        {
+          "part": "windowTunnel",
+          "triangles": 32,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.9431246157149238,
+          "minimumNominalBoleClearance": 0.9067279003395109,
+          "minimumPoint": [
+            -5.774704933166504,
+            9.780990600585938,
+            -30.286239624023438
+          ]
+        },
+        {
+          "part": "windowBack",
+          "triangles": 32,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.7388194450817422,
+          "minimumNominalBoleClearance": 0.93972041143996,
+          "minimumPoint": [
+            -5.664827823638916,
+            9.683308601379395,
+            -30.258899688720703
+          ]
+        },
+        {
+          "part": "doorTunnel",
+          "triangles": 46,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.4643452960685025,
+          "minimumNominalBoleClearance": 0.8845618592705986,
+          "minimumPoint": [
+            -6.56205415725708,
+            9.901344299316406,
+            -30.512773513793945
+          ]
+        },
+        {
+          "part": "doorFloor",
+          "triangles": 2,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.9798453001902956,
+          "minimumNominalBoleClearance": 0.897369778795161,
+          "minimumPoint": [
+            -6.010284900665283,
+            8.734490394592285,
+            -30.27088165283203
+          ]
+        },
+        {
+          "part": "doorBack",
+          "triangles": 11,
+          "wrongFacingTowardInterior": 0,
+          "minimumTowardDot": 0.3010942814786132,
+          "minimumNominalBoleClearance": 0.9286995123591228,
+          "minimumPoint": [
+            -6.446362018585205,
+            10.05208683013916,
+            -30.39628028869629
+          ]
+        }
+      ]
+    }
+  ]
+}

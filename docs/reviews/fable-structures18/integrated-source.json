@@ -1,0 +1,17 @@
+{
+  "parent": "4ae74cd4ae383e615ad021fe7a0ef51ce62a91d2",
+  "partner": "fc853db87ee56ffd395600cdd41d68ea42393d1b",
+  "sourceSha256": {
+    "src/world/trees/column.ts": "1f4db9f4649707f0ee4a1c3bd336ff01f19f5a79c40886bc29d132eef4412cbf",
+    "src/world/trees/giant.ts": "69568206cdd4f1d3d4f833dc4b00a599843a5ac5712824bed13d432397a6b88d",
+    "src/world/trees/tubePath.ts": "563b22f427d9265b64c301ace36f6d25d72bb373c8e98dbc89eef1f7ad34a27e",
+    "src/world/structures/distantHouse.ts": "e274324d3b534906a31c771d180b8156ee065815400288c6e7d69645761bd15d",
+    "src/world/structures/materials.ts": "a1ff83add8f3c3ef13a8fe1f9da7ce432b23ae6dbd69ffb7ac24473dcc2d7da1",
+    "src/world/structures/index.ts": "18dacf009704de2683b78500fddbc21902eb38b61147db855634868138e92bea",
+    "src/world/trees/index.ts": "1975f40c6b5b5e38ef3548d5252d3c6641cb4115c73b0be169bb0e1291c32f9b"
+  },
+  "typecheck": "pass",
+  "buildModules": 111,
+  "actualIntegratedCapture": "pending",
+  "grassTrial": "rejected and restored before integration"
+}

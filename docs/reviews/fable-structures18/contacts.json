@@ -1,0 +1,665 @@
+{
+  "scope": "Actual generated host bark cross-sections and18 short opening-interior host rays per hut, plus exact source window-back boundary comparison. No whole-scene visibility or rendered defect claim; branch/canopy elsewhere may overlap, as bareHeight warns.",
+  "rows": [
+    {
+      "id": "hollow-column",
+      "hostTrunkSpan": 391,
+      "hostWorldBox": {
+        "min": [
+          3.712012767791748,
+          3.723222255706787,
+          -31.898645401000977
+        ],
+        "max": [
+          13.317655563354492,
+          28.214576721191406,
+          -21.359079360961914
+        ]
+      },
+      "actualBarkSectionSamples": 952,
+      "minimumActualBarkToWallM": 0.21456465486768717,
+      "witness": {
+        "point": [
+          9.41249471046273,
+          11.502550067901614,
+          -27.555664717862445
+        ],
+        "wallPoint": [
+          9.59633775473285,
+          11.502550067901614,
+          -27.666298013899326
+        ]
+      },
+      "openingHostTests": [
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        }
+      ],
+      "curvedWindowBack": {
+        "tunnelBackOffsetFromFlatBackPlaneM": [
+          -0.08060891111189852,
+          0.01766727659894968
+        ],
+        "maximumTunnelProjectedRadiusBeyondBackDiscM": -0.009999805450436827,
+        "limitation": "Nonzero plane offsets mean the back surface is an overlapping approximation rather than a welded recess. Positive projected excess is a possible narrow seam at the back; image visibility is separate."
+      }
+    },
+    {
+      "id": "north-east",
+      "hostTrunkSpan": 961,
+      "hostWorldBox": {
+        "min": [
+          1.0730199813842773,
+          2.159677743911743,
+          -47.18685531616211
+        ],
+        "max": [
+          25.775371551513672,
+          27.122251510620117,
+          -18.4189510345459
+        ]
+      },
+      "actualBarkSectionSamples": 1794,
+      "minimumActualBarkToWallM": 0.1678878193120461,
+      "witness": {
+        "point": [
+          13.924966326178621,
+          11.839708576202392,
+          -37.13636898741897
+        ],
+        "wallPoint": [
+          13.767597282570424,
+          11.839708576202392,
+          -37.19486090128059
+        ]
+      },
+      "openingHostTests": [
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        }
+      ],
+      "curvedWindowBack": {
+        "tunnelBackOffsetFromFlatBackPlaneM": [
+          -0.19064733937063447,
+          0.060507199182736573
+        ],
+        "maximumTunnelProjectedRadiusBeyondBackDiscM": -0.008921936709830325,
+        "limitation": "Nonzero plane offsets mean the back surface is an overlapping approximation rather than a welded recess. Positive projected excess is a possible narrow seam at the back; image visibility is separate."
+      }
+    },
+    {
+      "id": "west-column",
+      "hostTrunkSpan": 391,
+      "hostWorldBox": {
+        "min": [
+          -10.243014335632324,
+          1.9327772855758667,
+          -35.75807189941406
+        ],
+        "max": [
+          -2.028594970703125,
+          21.39101791381836,
+          -28.20973014831543
+        ]
+      },
+      "actualBarkSectionSamples": 884,
+      "minimumActualBarkToWallM": 0.9996485815714697,
+      "witness": {
+        "point": [
+          -6.264309632780119,
+          10.80949005126953,
+          -31.721787821427636
+        ],
+        "wallPoint": [
+          -7.216208657825598,
+          10.80949005126953,
+          -32.02705087643973
+        ]
+      },
+      "openingHostTests": [
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            -0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "window",
+          "uv": [
+            0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            -0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            -0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            0
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        },
+        {
+          "which": "door",
+          "uv": [
+            0.65,
+            0.55
+          ],
+          "hostWithinOpeningDepth": false,
+          "distance": null,
+          "point": null
+        }
+      ],
+      "curvedWindowBack": {
+        "tunnelBackOffsetFromFlatBackPlaneM": [
+          -0.07249120589366537,
+          0.0538032990141844
+        ],
+        "maximumTunnelProjectedRadiusBeyondBackDiscM": -0.00999962615964417,
+        "limitation": "Nonzero plane offsets mean the back surface is an overlapping approximation rather than a welded recess. Positive projected excess is a possible narrow seam at the back; image visibility is separate."
+      }
+    }
+  ]
+}

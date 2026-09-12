@@ -7,6 +7,19 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
+The pure grass rollback is published as `4ae74cd4ae383e615ad021fe7a0ef51ce62a91d2`, tree
+`fe41b457c799dd3e0ff88d1f4614e18fc244fa4b`, sole parent 5fa. Every production source byte is
+again exact e8. Correct rollback run 34720807233 is actually rendering from 21:45 UTC.
+The separately reviewed Fable integration is now reapplied on that restored source, preserving
+partner ancestry `fc853db87ee56ffd395600cdd41d68ea42393d1b`. The sole adjacent tree-audit
+conflict again retains both canopyOpenings and trunkSeats. All seven integrated production
+files match the first prepared 6a version exactly; grass remains restored. The original local
+6a experiment is preserved on `agent/astra-huts18-prepared-6a43383` and is not published.
+Current claims W09/W25/W36 run from 21:45 to 00:45 UTC. Source/art receipts are preserved in
+`docs/reviews/fable-structures18/`. No flower or sleeve change is included. The hut capture
+can follow the already running pure rollback, keeping both comparisons separate.
+
+
 Reject the actual height-only grass trial `5fa3f774c121a78fe8b520540a4b9ff9d2444de9`.
 Root and the independent capture reviewer compared original A/F against e8: lower tips and
 dark wavy interruptions do not make the existing ferns read as coherent groups. F remains a
@@ -262,4 +275,4 @@ Astra: decide the current light trial, then grass profile and coherent flower fo
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T21:43:10.478835+00:00
+2026-09-12T21:46:43.161573+00:00
