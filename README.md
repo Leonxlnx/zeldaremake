@@ -2,24 +2,27 @@
 
 Original game screenshots: twelve matched baseline/candidate images per checkpoint. Open a dated folder for the comparison, requested controls, audits and source identity. Historical checkpoint bytes are preserved.
 
+[Original environment camera samples](motion/)
+
 [Four closeup world detail views per checkpoint](details/)
 
 These are supplemental art-direction comparisons, not gauntlet takes or quality-gate approvals. Both variants within a checkpoint use one built source and fixed cameras/time; geometry and fog remain identical within each pair.
 
-## Latest rendered candidate — 9ef903c
+## Latest rendered candidate — e2ee5f0
 
-Captured 2026-09-12T20:07:27.869Z. Open an image for full size, or [compare all six baseline/candidate pairs](progress/2026-09-12_200727869-9ef903c/).
+Captured 2026-09-12T20:41:48.982Z. Open an image for full size, or [compare all six baseline/candidate pairs](progress/2026-09-12_204148982-e2ee5f0/).
 
 | Stairway | Tree house |
 | --- | --- |
-| [![Stairway](progress/2026-09-12_200727869-9ef903c/A_stairs-candidate.jpg)](progress/2026-09-12_200727869-9ef903c/A_stairs-candidate.jpg) | [![Tree house](progress/2026-09-12_200727869-9ef903c/B_house-candidate.jpg)](progress/2026-09-12_200727869-9ef903c/B_house-candidate.jpg) |
+| [![Stairway](progress/2026-09-12_204148982-e2ee5f0/A_stairs-candidate.jpg)](progress/2026-09-12_204148982-e2ee5f0/A_stairs-candidate.jpg) | [![Tree house](progress/2026-09-12_204148982-e2ee5f0/B_house-candidate.jpg)](progress/2026-09-12_204148982-e2ee5f0/B_house-candidate.jpg) |
 | Path through the forest | Canopy and upper flight |
-| [![Path through the forest](progress/2026-09-12_200727869-9ef903c/C_lookback-candidate.jpg)](progress/2026-09-12_200727869-9ef903c/C_lookback-candidate.jpg) | [![Canopy and upper flight](progress/2026-09-12_200727869-9ef903c/F_canopy-candidate.jpg)](progress/2026-09-12_200727869-9ef903c/F_canopy-candidate.jpg) |
+| [![Path through the forest](progress/2026-09-12_204148982-e2ee5f0/C_lookback-candidate.jpg)](progress/2026-09-12_204148982-e2ee5f0/C_lookback-candidate.jpg) | [![Canopy and upper flight](progress/2026-09-12_204148982-e2ee5f0/F_canopy-candidate.jpg)](progress/2026-09-12_204148982-e2ee5f0/F_canopy-candidate.jpg) |
 
 ## All checkpoints
 
 | Captured UTC | Source | Comparison |
 | --- | --- | --- |
+| 2026-09-12T20:41:48.982Z | [e2ee5f0](https://github.com/Leonxlnx/zeldaremake/commit/e2ee5f076774ab36d1e751b1f1753781795a417d) | [12 images](progress/2026-09-12_204148982-e2ee5f0/) |
 | 2026-09-12T20:07:27.869Z | [9ef903c](https://github.com/Leonxlnx/zeldaremake/commit/9ef903c58c3ee70eccaf919d565a1eb19cd1bef1) | [12 images](progress/2026-09-12_200727869-9ef903c/) |
 | 2026-09-12T19:53:38.310Z | [0d4ae52](https://github.com/Leonxlnx/zeldaremake/commit/0d4ae524bb29a64df796e7506e34761498626244) | [12 images](progress/2026-09-12_195338310-0d4ae52/) |
 | 2026-09-12T19:41:22.798Z | [7bafeb0](https://github.com/Leonxlnx/zeldaremake/commit/7bafeb0dbfadb5fd2d0830ef8fde7a690ca7b9b7) | [12 images](progress/2026-09-12_194122798-7bafeb0/) |
@@ -58,5 +61,3 @@ Captured 2026-09-12T20:07:27.869Z. Open an image for full size, or [compare all 
 | 2026-09-12T08:45:15.200Z | [f11517e](https://github.com/Leonxlnx/zeldaremake/commit/f11517e424cf333468c325885fe121245b54f756) | [12 images](progress/2026-09-12_084515200-f11517e/) |
 | 2026-09-12T08:29:55.432Z | [f6a33ea](https://github.com/Leonxlnx/zeldaremake/commit/f6a33eafd9a480c90a2e4bb1542d522d3b273970) | [12 images](progress/2026-09-12_082955432-f6a33ea/) |
 | 2026-09-12T08:22:25.685Z | [23ea37a](https://github.com/Leonxlnx/zeldaremake/commit/23ea37a7d9ffaf6462362b1d15b1198707c89408) | [12 images](progress/2026-09-12_082225685-23ea37a/) |
-
-[Original bank-hedge camera sweeps](motion/)
