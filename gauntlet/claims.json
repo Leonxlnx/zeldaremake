@@ -559,6 +559,285 @@
       "at": "2026-09-11T23:33:22.692Z",
       "expiresHours": 6,
       "note": "Trees round ten: shade floor on giant bark and leaves"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W36"
+      ],
+      "at": "2026-09-12T07:25:30.044Z",
+      "expiresHours": 3,
+      "scope": "Owner changed priority to environment. Astra separate lighting/postfx/shadow/depth comparison branch based on Fable501b350; Fable retains geometry. PR2 coordination5644445067."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W26",
+        "W27"
+      ],
+      "at": "2026-09-12T09:11:41.971Z",
+      "expiresHours": 3,
+      "scope": "Fable explicitly handed off signpost.ts and lanternPost.ts at PR2 comment5644903321. Owner environment detail, board06; no house/shared-material/branch/arch/fence edits."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W26",
+        "W27",
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W36"
+      ],
+      "at": "2026-09-12T12:10:13.905Z",
+      "expiresHours": 3,
+      "scope": "Owner environment-only continuation. Fable explicit signpost/lanternPost handoff comment5644903321; root lighting/post/fog. No house/shared-material/hardscape production edits."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W03",
+        "W09",
+        "W12",
+        "W13",
+        "W36"
+      ],
+      "at": "2026-09-12T12:26:19.479Z",
+      "expiresHours": 3,
+      "scope": "Own environment branch only: deliberate integration of published Fable ddd24fd/bb11762 slices with narrowly reviewed root-contact/cap-winding/joint-edge corrections. Announced PR2comment5645869931. Fable branch and ongoing houses/canopy work untouched; use equivalent newer fixes if published."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W15",
+        "W17",
+        "W19",
+        "W25",
+        "W03",
+        "W09",
+        "W31"
+      ],
+      "at": "2026-09-12T13:09:03.991Z",
+      "expiresHours": 3,
+      "scope": "PR2 comment5646077042: deliberate own-branch review/integration of published Fable77dd665/86be323/a05ffb0; high-LOD hedge leaf shape only in plantgeo.ts, preserve plants.ts/RNG/normalization. Fable retains ongoing house/terrain/layout changes."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W09",
+        "W26",
+        "W27",
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W36"
+      ],
+      "at": "2026-09-12T14:41:41.889Z",
+      "expiresHours": 3,
+      "scope": "PR2 comment 5646560839: own-branch ancestry merge of Fable 1cc8f51; bounded near instanced bark floor grain and sign chisel response; root retains light/post/atmosphere. Fable owns foreground and roof; no changes to his branch."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W19",
+        "W22"
+      ],
+      "at": "2026-09-12T15:17:28.971188+00:00",
+      "expiresHours": 3,
+      "scope": "Own environment branch: bounded hedge lamina sky-transmission diagnosis/material opt-in after exact Fable3dc integration. No plant placement/RNG/packing or roof leaves. Announced in PR2 after d41 publication; Fable retains roof and hardscape."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W15"
+      ],
+      "at": "2026-09-12T16:42:36.238Z",
+      "expiresHours": 3,
+      "scope": "PR2 comment 5647251867: grass-only terrain-up lighting-normal correction in vegetation/materials.ts and existing contract; preserve geometry, density, field, RNG, palette, wind and all non-grass programs. Independent actual capture before Fable lawn integration."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W03",
+        "W20",
+        "W21",
+        "W36"
+      ],
+      "at": "2026-09-12T16:54:23.798Z",
+      "expiresHours": 3,
+      "scope": "PR2 comments 5647299378 and 5647304378: deliberate 6128726/87d3f31 lawn ancestry integration and narrow flower-normal/owned-resource cleanup only. Fable retains active shared sprout RNG and structures fixes; index overlap only flowers.dispose hook."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W09",
+        "W30",
+        "W31"
+      ],
+      "at": "2026-09-12T17:10:31.269Z",
+      "expiresHours": 3,
+      "scope": "PR2 5647405366: one central canopy opening survival study in trees/corridors.ts, .35 existing leaves/cards at (2.7,3), unchanged radius/band/collars and other openings. All original geometry/RNG/light controls retained; actual A/F/C decides. Fable structures and shared sprout RNG untouched."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W20",
+        "W21",
+        "W23",
+        "W24",
+        "W36"
+      ],
+      "at": "2026-09-12T17:27:04.065Z",
+      "expiresHours": 3,
+      "scope": "Fable cee9888 ancestry integration and shared tuft-only authored-up fragment normal correction; preserve source jitter, geometry, wind, non-tuft materials and our owned flower cleanup. PR2 release5647471072."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W25",
+        "W32",
+        "W36"
+      ],
+      "at": "2026-09-12T17:50:19.929Z",
+      "expiresHours": 3,
+      "scope": "Exact Fable871 distant-house ancestry integration and actual comparison; preserve own post material/lights/audits/disposal and tuft711. No hero-house/global lighting rewrite; known host/window/moss defects sent PR2 5647627605."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W20",
+        "W21",
+        "W36"
+      ],
+      "at": "2026-09-12T18:15:48.173Z",
+      "expiresHours": 3,
+      "scope": "PR2 5647766377: adopt exact Fable2f cleanup through0bd ancestry; preserve tuft711 and all current rendering inputs; alternative Astra patch unapplied."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W36"
+      ],
+      "at": "2026-09-12T18:20:39.365Z",
+      "expiresHours": 3,
+      "scope": "PR2 5647766377: props-only crate long-grain material using cached credited CC0 map; preserve geometry/RNG/contacts/shadow programs and all Fable structure work."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W38"
+      ],
+      "at": "2026-09-12T18:29:22.585Z",
+      "expiresHours": 3,
+      "scope": "PR2 5647841319: one-block structures/index cap-only consolidation correction; preserve all original geometry/material/light/builder work, adopt any equivalent partner fix; integrate exact749 take69 history."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W03",
+        "W36"
+      ],
+      "at": "2026-09-12T18:41:24.214Z",
+      "expiresHours": 3,
+      "scope": "Fable5647820443, exactscope5647902527: near flagstone shoulder facets plus optional geometry.topRelief; preserve dry-run/breakCell/kernel, flat crown, footprints/RNG/stairs/discs. Actual trial only, no material/light compensation."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W21",
+        "W38"
+      ],
+      "at": "2026-09-12T19:13:46.656Z",
+      "expiresHours": 3,
+      "scope": "Hardscape-only sprout variant batches; exact planting, RNG, shader and bounds; +2 calls for fewer submissions; actual gate pending"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W25",
+        "W36"
+      ],
+      "at": "2026-09-12T19:27:18.155Z",
+      "expiresHours": 3,
+      "scope": "Integrate published Fable structures17 and take70 history; preserve sign/post/canopy contracts; actual cross-review pending"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W19",
+        "W22"
+      ],
+      "at": "2026-09-12T19:51:39.398Z",
+      "expiresHours": 3,
+      "scope": "High-LOD hedge leaf pitch, cupping and droop in plantgeo.ts; preserve placement, stems, RNG and material; actual full-scene LOD sweep and historical A/F review"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W32"
+      ],
+      "at": "2026-09-12T20:07:43.228Z",
+      "expiresHours": 3,
+      "scope": "Separate far-surface fade trial: delay existing extra attenuation22 to32m, keep44m endpoint and all other lighting/fog/source controls; prepare matched actual middle-forest and camera-travel checks"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W16",
+        "W17"
+      ],
+      "at": "2026-09-12T20:49:07.213Z",
+      "expiresHours": 3,
+      "scope": "Bounded elevated east-flank grass height profile using existing field values; preserve roots, RNG, plant placement, material and Fable geometry; PR2 coordination after corrected trunk-seat handoff"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W09",
+        "W25",
+        "W36"
+      ],
+      "at": "2026-09-12T21:45:52.863Z",
+      "expiresHours": 3,
+      "scope": "Reapply reviewed Fable trunk seats and structures18/take71 onto exact bank-grass rollback4ae; preserve canopy and cap/sign/post contracts; actual source comparison queued separately"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W18"
+      ],
+      "at": "2026-09-12T21:49:24.694Z",
+      "expiresHours": 3,
+      "scope": "Purple cluster flower family with cupped petals and shared High/Medium/Low plant definition; preserve all other families, roots/instances/materials and Fable house work; PR2 coordination5648763284"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W16",
+        "W17"
+      ],
+      "at": "2026-09-12T22:12:05.429Z",
+      "expiresHours": 3,
+      "scope": "Ordinary fern pinna-profile study after rejected grass-height trial; preserve frond axes/counts/roots/height/RNG/placements/materials, coherent LODs; scratch preparation only until flower capture, PR2 coordination5649023824"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W30",
+        "W36"
+      ],
+      "at": "2026-09-12T22:18:51.309Z",
+      "expiresHours": 3,
+      "scope": "Isolated0.20 lantern sleeve angular shade-floor response; only structures/materials.ts import/call plus sleeveBark.ts; preserve Fable901b materials, global light and all plant source; PR2 scope5648925496/5649023824"
     }
   ]
 }

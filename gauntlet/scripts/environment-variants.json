@@ -1,0 +1,17 @@
+{
+  "schema": "zeldaremake.environment-variants.v1",
+  "baselineSource": "561345b03d1e12c0552921678f63fbe14054abd4",
+  "time": 12.5,
+  "baseline": {
+    "label": "Current world with the real shadow-tested top-flight opening at local gain 1",
+    "light": null,
+    "post": {
+      "beamCanopyGain": 1
+    }
+  },
+  "candidate": {
+    "label": "Same world and 1 m opening with local gain 3; global light, fog and legacy shafts unchanged",
+    "light": null,
+    "post": null
+  }
+}

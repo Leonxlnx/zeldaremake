@@ -85,6 +85,19 @@ export interface SharedGeometry {
   lanternLimb?: TubePath;
   /** the column trees' seats as actually placed and built, for structures that hang on them */
   trunkSeats?: TrunkSeat[];
+  /** terrain-anchored sun corridors, published only after the trees have been built */
+  canopyOpenings?: readonly SharedCanopyOpening[];
+}
+
+/** Resolved geometry of a canopy opening; atmosphere owns any scattering treatment. */
+export interface SharedCanopyOpening {
+  readonly id?: string;
+  readonly point: readonly [number, number, number];
+  /** unit world direction toward the sun */
+  readonly axis: readonly [number, number, number];
+  readonly radius: number;
+  /** foliage carve's world height band, not a limit on the air below the opening */
+  readonly band: readonly [number, number];
 }
 
 export interface WorldSystem {

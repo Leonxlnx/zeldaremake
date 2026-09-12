@@ -1,0 +1,2733 @@
+{
+  "source": "9f2e98b27ab6afd177d344e4d9a830ef24efab31",
+  "previousSource": "f56d0d22548a85ef776e9cc8c36644c3af8fb56f",
+  "strictAssertionsPassed": true,
+  "unexpectedFailures": [],
+  "groups": {
+    "progress": {
+      "rows": [
+        {
+          "file": "A_stairs-baseline.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 7038,
+          "inferredLowPackInstanceCountFromSourceFormula": 207,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 665,
+          "actualTriangles": 8618508,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 7038
+          },
+          "depthChangedCells": 11,
+          "depthCells": [
+            {
+              "cell": [
+                76,
+                14
+              ],
+              "oldM": 15.99449634552002,
+              "newM": 16.057859420776367
+            },
+            {
+              "cell": [
+                77,
+                14
+              ],
+              "oldM": 15.915332794189453,
+              "newM": 17.209503173828125
+            },
+            {
+              "cell": [
+                78,
+                14
+              ],
+              "oldM": 17.145936965942383,
+              "newM": 15.947076797485352
+            },
+            {
+              "cell": [
+                79,
+                14
+              ],
+              "oldM": 15.93487548828125,
+              "newM": 15.983505249023438
+            },
+            {
+              "cell": [
+                78,
+                15
+              ],
+              "oldM": 16.426095962524414,
+              "newM": 16.26264190673828
+            },
+            {
+              "cell": [
+                31,
+                20
+              ],
+              "oldM": 22.324411392211914,
+              "newM": 23.70610237121582
+            },
+            {
+              "cell": [
+                32,
+                20
+              ],
+              "oldM": 22.617599487304688,
+              "newM": 25.095823287963867
+            },
+            {
+              "cell": [
+                30,
+                21
+              ],
+              "oldM": 22.701148986816406,
+              "newM": 22.02197265625
+            },
+            {
+              "cell": [
+                10,
+                23
+              ],
+              "oldM": 20.51307487487793,
+              "newM": 18.81100845336914
+            },
+            {
+              "cell": [
+                9,
+                24
+              ],
+              "oldM": 18.552860260009766,
+              "newM": 18.555421829223633
+            },
+            {
+              "cell": [
+                5,
+                26
+              ],
+              "oldM": 14.064535140991211,
+              "newM": 14.108460426330566
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.10049696180555556,
+            "maxChannel8Bit": 126,
+            "pixelsAnyChannelOver3Fraction": 0.012682291666666666,
+            "meanDisplayLumaDelta8Bit": 2.0177951388888894e-05
+          },
+          "retries": 0
+        },
+        {
+          "file": "A_stairs-candidate.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 7038,
+          "inferredLowPackInstanceCountFromSourceFormula": 207,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 665,
+          "actualTriangles": 8618508,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 7038
+          },
+          "depthChangedCells": 11,
+          "depthCells": [
+            {
+              "cell": [
+                76,
+                14
+              ],
+              "oldM": 15.99449634552002,
+              "newM": 16.057859420776367
+            },
+            {
+              "cell": [
+                77,
+                14
+              ],
+              "oldM": 15.915332794189453,
+              "newM": 17.209503173828125
+            },
+            {
+              "cell": [
+                78,
+                14
+              ],
+              "oldM": 17.145936965942383,
+              "newM": 15.947076797485352
+            },
+            {
+              "cell": [
+                79,
+                14
+              ],
+              "oldM": 15.93487548828125,
+              "newM": 15.983505249023438
+            },
+            {
+              "cell": [
+                78,
+                15
+              ],
+              "oldM": 16.426095962524414,
+              "newM": 16.26264190673828
+            },
+            {
+              "cell": [
+                31,
+                20
+              ],
+              "oldM": 22.324411392211914,
+              "newM": 23.70610237121582
+            },
+            {
+              "cell": [
+                32,
+                20
+              ],
+              "oldM": 22.617599487304688,
+              "newM": 25.095823287963867
+            },
+            {
+              "cell": [
+                30,
+                21
+              ],
+              "oldM": 22.701148986816406,
+              "newM": 22.02197265625
+            },
+            {
+              "cell": [
+                10,
+                23
+              ],
+              "oldM": 20.51307487487793,
+              "newM": 18.81100845336914
+            },
+            {
+              "cell": [
+                9,
+                24
+              ],
+              "oldM": 18.552860260009766,
+              "newM": 18.555421829223633
+            },
+            {
+              "cell": [
+                5,
+                26
+              ],
+              "oldM": 14.064535140991211,
+              "newM": 14.108460426330566
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.10049696180555556,
+            "maxChannel8Bit": 126,
+            "pixelsAnyChannelOver3Fraction": 0.012682291666666666,
+            "meanDisplayLumaDelta8Bit": 2.0177951388888894e-05
+          },
+          "retries": 0
+        },
+        {
+          "file": "B_house-baseline.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 4862,
+          "inferredLowPackInstanceCountFromSourceFormula": 143,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 656,
+          "actualTriangles": 8625840,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 4862
+          },
+          "depthChangedCells": 19,
+          "depthCells": [
+            {
+              "cell": [
+                75,
+                20
+              ],
+              "oldM": 11.39854907989502,
+              "newM": 11.640615463256836
+            },
+            {
+              "cell": [
+                76,
+                21
+              ],
+              "oldM": 10.160164833068848,
+              "newM": 10.221827507019043
+            },
+            {
+              "cell": [
+                75,
+                22
+              ],
+              "oldM": 10.615331649780273,
+              "newM": 10.63792610168457
+            },
+            {
+              "cell": [
+                9,
+                23
+              ],
+              "oldM": 19.65338897705078,
+              "newM": 18.544429779052734
+            },
+            {
+              "cell": [
+                10,
+                23
+              ],
+              "oldM": 18.870899200439453,
+              "newM": 19.658315658569336
+            },
+            {
+              "cell": [
+                41,
+                23
+              ],
+              "oldM": 16.441770553588867,
+              "newM": 15.978774070739746
+            },
+            {
+              "cell": [
+                42,
+                23
+              ],
+              "oldM": 16.10454750061035,
+              "newM": 19.96649169921875
+            },
+            {
+              "cell": [
+                43,
+                23
+              ],
+              "oldM": 16.813364028930664,
+              "newM": 19.99839210510254
+            },
+            {
+              "cell": [
+                41,
+                24
+              ],
+              "oldM": 15.953034400939941,
+              "newM": 16.535268783569336
+            },
+            {
+              "cell": [
+                70,
+                24
+              ],
+              "oldM": 11.693489074707031,
+              "newM": 12.316437721252441
+            },
+            {
+              "cell": [
+                75,
+                24
+              ],
+              "oldM": 10.629667282104492,
+              "newM": 11.426814079284668
+            },
+            {
+              "cell": [
+                72,
+                25
+              ],
+              "oldM": 11.22397518157959,
+              "newM": 10.502657890319824
+            },
+            {
+              "cell": [
+                12,
+                26
+              ],
+              "oldM": 13.112561225891113,
+              "newM": 15.787546157836914
+            },
+            {
+              "cell": [
+                12,
+                27
+              ],
+              "oldM": 12.232678413391113,
+              "newM": 16.843103408813477
+            },
+            {
+              "cell": [
+                12,
+                28
+              ],
+              "oldM": 12.012529373168945,
+              "newM": 11.860246658325195
+            },
+            {
+              "cell": [
+                13,
+                28
+              ],
+              "oldM": 13.02342414855957,
+              "newM": 11.528297424316406
+            },
+            {
+              "cell": [
+                14,
+                28
+              ],
+              "oldM": 11.90310287475586,
+              "newM": 13.12978458404541
+            },
+            {
+              "cell": [
+                72,
+                28
+              ],
+              "oldM": 10.53258228302002,
+              "newM": 10.526346206665039
+            },
+            {
+              "cell": [
+                69,
+                30
+              ],
+              "oldM": 11.201231956481934,
+              "newM": 11.16635799407959
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.19788230613425925,
+            "maxChannel8Bit": 106,
+            "pixelsAnyChannelOver3Fraction": 0.022513020833333335,
+            "meanDisplayLumaDelta8Bit": 0.010350295355902778
+          },
+          "retries": 0
+        },
+        {
+          "file": "B_house-candidate.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 4862,
+          "inferredLowPackInstanceCountFromSourceFormula": 143,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 656,
+          "actualTriangles": 8625840,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 4862
+          },
+          "depthChangedCells": 19,
+          "depthCells": [
+            {
+              "cell": [
+                75,
+                20
+              ],
+              "oldM": 11.39854907989502,
+              "newM": 11.640615463256836
+            },
+            {
+              "cell": [
+                76,
+                21
+              ],
+              "oldM": 10.160164833068848,
+              "newM": 10.221827507019043
+            },
+            {
+              "cell": [
+                75,
+                22
+              ],
+              "oldM": 10.615331649780273,
+              "newM": 10.63792610168457
+            },
+            {
+              "cell": [
+                9,
+                23
+              ],
+              "oldM": 19.65338897705078,
+              "newM": 18.544429779052734
+            },
+            {
+              "cell": [
+                10,
+                23
+              ],
+              "oldM": 18.870899200439453,
+              "newM": 19.658315658569336
+            },
+            {
+              "cell": [
+                41,
+                23
+              ],
+              "oldM": 16.441770553588867,
+              "newM": 15.978774070739746
+            },
+            {
+              "cell": [
+                42,
+                23
+              ],
+              "oldM": 16.10454750061035,
+              "newM": 19.96649169921875
+            },
+            {
+              "cell": [
+                43,
+                23
+              ],
+              "oldM": 16.813364028930664,
+              "newM": 19.99839210510254
+            },
+            {
+              "cell": [
+                41,
+                24
+              ],
+              "oldM": 15.953034400939941,
+              "newM": 16.535268783569336
+            },
+            {
+              "cell": [
+                70,
+                24
+              ],
+              "oldM": 11.693489074707031,
+              "newM": 12.316437721252441
+            },
+            {
+              "cell": [
+                75,
+                24
+              ],
+              "oldM": 10.629667282104492,
+              "newM": 11.426814079284668
+            },
+            {
+              "cell": [
+                72,
+                25
+              ],
+              "oldM": 11.22397518157959,
+              "newM": 10.502657890319824
+            },
+            {
+              "cell": [
+                12,
+                26
+              ],
+              "oldM": 13.112561225891113,
+              "newM": 15.787546157836914
+            },
+            {
+              "cell": [
+                12,
+                27
+              ],
+              "oldM": 12.232678413391113,
+              "newM": 16.843103408813477
+            },
+            {
+              "cell": [
+                12,
+                28
+              ],
+              "oldM": 12.012529373168945,
+              "newM": 11.860246658325195
+            },
+            {
+              "cell": [
+                13,
+                28
+              ],
+              "oldM": 13.02342414855957,
+              "newM": 11.528297424316406
+            },
+            {
+              "cell": [
+                14,
+                28
+              ],
+              "oldM": 11.90310287475586,
+              "newM": 13.12978458404541
+            },
+            {
+              "cell": [
+                72,
+                28
+              ],
+              "oldM": 10.53258228302002,
+              "newM": 10.526346206665039
+            },
+            {
+              "cell": [
+                69,
+                30
+              ],
+              "oldM": 11.201231956481934,
+              "newM": 11.16635799407959
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.19788230613425925,
+            "maxChannel8Bit": 106,
+            "pixelsAnyChannelOver3Fraction": 0.022513020833333335,
+            "meanDisplayLumaDelta8Bit": 0.010350295355902778
+          },
+          "retries": 0
+        },
+        {
+          "file": "C_lookback-baseline.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 3400,
+          "inferredLowPackInstanceCountFromSourceFormula": 100,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 559,
+          "actualTriangles": 8346999,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 3400
+          },
+          "depthChangedCells": 15,
+          "depthCells": [
+            {
+              "cell": [
+                79,
+                20
+              ],
+              "oldM": 19.763553619384766,
+              "newM": 19.391958236694336
+            },
+            {
+              "cell": [
+                62,
+                21
+              ],
+              "oldM": 21.835979461669922,
+              "newM": 23.548566818237305
+            },
+            {
+              "cell": [
+                70,
+                22
+              ],
+              "oldM": 18.896894454956055,
+              "newM": 18.597393035888672
+            },
+            {
+              "cell": [
+                71,
+                22
+              ],
+              "oldM": 20.945411682128906,
+              "newM": 16.990968704223633
+            },
+            {
+              "cell": [
+                73,
+                22
+              ],
+              "oldM": 17.222274780273438,
+              "newM": 17.218090057373047
+            },
+            {
+              "cell": [
+                75,
+                22
+              ],
+              "oldM": 17.382518768310547,
+              "newM": 18.042951583862305
+            },
+            {
+              "cell": [
+                76,
+                22
+              ],
+              "oldM": 17.32017707824707,
+              "newM": 16.088563919067383
+            },
+            {
+              "cell": [
+                79,
+                22
+              ],
+              "oldM": 16.896106719970703,
+              "newM": 18.36888885498047
+            },
+            {
+              "cell": [
+                69,
+                23
+              ],
+              "oldM": 14.25699234008789,
+              "newM": 14.228428840637207
+            },
+            {
+              "cell": [
+                70,
+                23
+              ],
+              "oldM": 14.541483879089355,
+              "newM": 18.767065048217773
+            },
+            {
+              "cell": [
+                71,
+                23
+              ],
+              "oldM": 14.250362396240234,
+              "newM": 14.314152717590332
+            },
+            {
+              "cell": [
+                74,
+                23
+              ],
+              "oldM": 14.394087791442871,
+              "newM": 14.373501777648926
+            },
+            {
+              "cell": [
+                77,
+                23
+              ],
+              "oldM": 14.075682640075684,
+              "newM": 17.924861907958984
+            },
+            {
+              "cell": [
+                79,
+                23
+              ],
+              "oldM": 14.897811889648438,
+              "newM": 15.380126953125
+            },
+            {
+              "cell": [
+                76,
+                24
+              ],
+              "oldM": 16.129350662231445,
+              "newM": 14.027386665344238
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.15895435474537037,
+            "maxChannel8Bit": 118,
+            "pixelsAnyChannelOver3Fraction": 0.015598958333333333,
+            "meanDisplayLumaDelta8Bit": -0.006534645833333334
+          },
+          "retries": 0
+        },
+        {
+          "file": "C_lookback-candidate.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 3400,
+          "inferredLowPackInstanceCountFromSourceFormula": 100,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 559,
+          "actualTriangles": 8346999,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 3400
+          },
+          "depthChangedCells": 15,
+          "depthCells": [
+            {
+              "cell": [
+                79,
+                20
+              ],
+              "oldM": 19.763553619384766,
+              "newM": 19.391958236694336
+            },
+            {
+              "cell": [
+                62,
+                21
+              ],
+              "oldM": 21.835979461669922,
+              "newM": 23.548566818237305
+            },
+            {
+              "cell": [
+                70,
+                22
+              ],
+              "oldM": 18.896894454956055,
+              "newM": 18.597393035888672
+            },
+            {
+              "cell": [
+                71,
+                22
+              ],
+              "oldM": 20.945411682128906,
+              "newM": 16.990968704223633
+            },
+            {
+              "cell": [
+                73,
+                22
+              ],
+              "oldM": 17.222274780273438,
+              "newM": 17.218090057373047
+            },
+            {
+              "cell": [
+                75,
+                22
+              ],
+              "oldM": 17.382518768310547,
+              "newM": 18.042951583862305
+            },
+            {
+              "cell": [
+                76,
+                22
+              ],
+              "oldM": 17.32017707824707,
+              "newM": 16.088563919067383
+            },
+            {
+              "cell": [
+                79,
+                22
+              ],
+              "oldM": 16.896106719970703,
+              "newM": 18.36888885498047
+            },
+            {
+              "cell": [
+                69,
+                23
+              ],
+              "oldM": 14.25699234008789,
+              "newM": 14.228428840637207
+            },
+            {
+              "cell": [
+                70,
+                23
+              ],
+              "oldM": 14.541483879089355,
+              "newM": 18.767065048217773
+            },
+            {
+              "cell": [
+                71,
+                23
+              ],
+              "oldM": 14.250362396240234,
+              "newM": 14.314152717590332
+            },
+            {
+              "cell": [
+                74,
+                23
+              ],
+              "oldM": 14.394087791442871,
+              "newM": 14.373501777648926
+            },
+            {
+              "cell": [
+                77,
+                23
+              ],
+              "oldM": 14.075682640075684,
+              "newM": 17.924861907958984
+            },
+            {
+              "cell": [
+                79,
+                23
+              ],
+              "oldM": 14.897811889648438,
+              "newM": 15.380126953125
+            },
+            {
+              "cell": [
+                76,
+                24
+              ],
+              "oldM": 16.129350662231445,
+              "newM": 14.027386665344238
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.15895435474537037,
+            "maxChannel8Bit": 118,
+            "pixelsAnyChannelOver3Fraction": 0.015598958333333333,
+            "meanDisplayLumaDelta8Bit": -0.006534645833333334
+          },
+          "retries": 0
+        },
+        {
+          "file": "D_log-baseline.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 2312,
+          "inferredLowPackInstanceCountFromSourceFormula": 68,
+          "DCountIndependentlyFrozen": true,
+          "actualCalls": 538,
+          "actualTriangles": 8410961,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 2312
+          },
+          "depthChangedCells": 35,
+          "depthCells": [
+            {
+              "cell": [
+                17,
+                21
+              ],
+              "oldM": 13.71192741394043,
+              "newM": 13.8458833694458
+            },
+            {
+              "cell": [
+                18,
+                22
+              ],
+              "oldM": 13.388172149658203,
+              "newM": 15.14211654663086
+            },
+            {
+              "cell": [
+                14,
+                23
+              ],
+              "oldM": 13.125303268432617,
+              "newM": 13.168560981750488
+            },
+            {
+              "cell": [
+                19,
+                23
+              ],
+              "oldM": 13.104334831237793,
+              "newM": 13.120058059692383
+            },
+            {
+              "cell": [
+                20,
+                23
+              ],
+              "oldM": 13.571599960327148,
+              "newM": 13.614005088806152
+            },
+            {
+              "cell": [
+                58,
+                23
+              ],
+              "oldM": 12.581777572631836,
+              "newM": 12.635157585144043
+            },
+            {
+              "cell": [
+                59,
+                23
+              ],
+              "oldM": 12.630086898803711,
+              "newM": 12.626327514648438
+            },
+            {
+              "cell": [
+                60,
+                23
+              ],
+              "oldM": 12.810639381408691,
+              "newM": 17.202159881591797
+            },
+            {
+              "cell": [
+                61,
+                23
+              ],
+              "oldM": 12.923787117004395,
+              "newM": 12.995552062988281
+            },
+            {
+              "cell": [
+                63,
+                23
+              ],
+              "oldM": 12.242353439331055,
+              "newM": 12.286506652832031
+            },
+            {
+              "cell": [
+                64,
+                23
+              ],
+              "oldM": 12.470466613769531,
+              "newM": 11.812416076660156
+            },
+            {
+              "cell": [
+                12,
+                24
+              ],
+              "oldM": 13.153647422790527,
+              "newM": 13.181807518005371
+            },
+            {
+              "cell": [
+                17,
+                24
+              ],
+              "oldM": 12.508813858032227,
+              "newM": 12.535983085632324
+            },
+            {
+              "cell": [
+                20,
+                24
+              ],
+              "oldM": 13.638799667358398,
+              "newM": 14.137520790100098
+            },
+            {
+              "cell": [
+                21,
+                24
+              ],
+              "oldM": 13.715389251708984,
+              "newM": 13.768369674682617
+            },
+            {
+              "cell": [
+                61,
+                24
+              ],
+              "oldM": 11.153056144714355,
+              "newM": 11.211284637451172
+            },
+            {
+              "cell": [
+                62,
+                24
+              ],
+              "oldM": 11.183307647705078,
+              "newM": 15.546491622924805
+            },
+            {
+              "cell": [
+                19,
+                25
+              ],
+              "oldM": 12.320030212402344,
+              "newM": 12.356030464172363
+            },
+            {
+              "cell": [
+                60,
+                25
+              ],
+              "oldM": 12.2556791305542,
+              "newM": 11.269543647766113
+            },
+            {
+              "cell": [
+                61,
+                25
+              ],
+              "oldM": 11.236525535583496,
+              "newM": 11.276272773742676
+            },
+            {
+              "cell": [
+                20,
+                26
+              ],
+              "oldM": 11.984037399291992,
+              "newM": 12.728821754455566
+            },
+            {
+              "cell": [
+                58,
+                26
+              ],
+              "oldM": 11.017125129699707,
+              "newM": 11.040969848632812
+            },
+            {
+              "cell": [
+                20,
+                28
+              ],
+              "oldM": 10.998064041137695,
+              "newM": 11.057861328125
+            },
+            {
+              "cell": [
+                21,
+                28
+              ],
+              "oldM": 8.118674278259277,
+              "newM": 8.192973136901855
+            },
+            {
+              "cell": [
+                20,
+                29
+              ],
+              "oldM": 7.719761848449707,
+              "newM": 7.630669116973877
+            },
+            {
+              "cell": [
+                21,
+                29
+              ],
+              "oldM": 7.699492454528809,
+              "newM": 7.781754016876221
+            },
+            {
+              "cell": [
+                22,
+                29
+              ],
+              "oldM": 7.68331241607666,
+              "newM": 8.301642417907715
+            },
+            {
+              "cell": [
+                20,
+                30
+              ],
+              "oldM": 7.475053310394287,
+              "newM": 7.62137508392334
+            },
+            {
+              "cell": [
+                21,
+                30
+              ],
+              "oldM": 7.359930038452148,
+              "newM": 7.363194942474365
+            },
+            {
+              "cell": [
+                23,
+                30
+              ],
+              "oldM": 7.577905178070068,
+              "newM": 7.628067970275879
+            },
+            {
+              "cell": [
+                19,
+                31
+              ],
+              "oldM": 6.598552227020264,
+              "newM": 6.618868827819824
+            },
+            {
+              "cell": [
+                20,
+                31
+              ],
+              "oldM": 6.627143859863281,
+              "newM": 6.688968181610107
+            },
+            {
+              "cell": [
+                24,
+                31
+              ],
+              "oldM": 7.166308403015137,
+              "newM": 8.205329895019531
+            },
+            {
+              "cell": [
+                18,
+                32
+              ],
+              "oldM": 6.850837230682373,
+              "newM": 6.821002006530762
+            },
+            {
+              "cell": [
+                21,
+                32
+              ],
+              "oldM": 6.596810340881348,
+              "newM": 6.626891613006592
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.2784790943287037,
+            "maxChannel8Bit": 131,
+            "pixelsAnyChannelOver3Fraction": 0.029586588541666667,
+            "meanDisplayLumaDelta8Bit": 0.014291289279513888
+          },
+          "retries": 0
+        },
+        {
+          "file": "D_log-candidate.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 2312,
+          "inferredLowPackInstanceCountFromSourceFormula": 68,
+          "DCountIndependentlyFrozen": true,
+          "actualCalls": 538,
+          "actualTriangles": 8410961,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 2312
+          },
+          "depthChangedCells": 35,
+          "depthCells": [
+            {
+              "cell": [
+                17,
+                21
+              ],
+              "oldM": 13.71192741394043,
+              "newM": 13.8458833694458
+            },
+            {
+              "cell": [
+                18,
+                22
+              ],
+              "oldM": 13.388172149658203,
+              "newM": 15.14211654663086
+            },
+            {
+              "cell": [
+                14,
+                23
+              ],
+              "oldM": 13.125303268432617,
+              "newM": 13.168560981750488
+            },
+            {
+              "cell": [
+                19,
+                23
+              ],
+              "oldM": 13.104334831237793,
+              "newM": 13.120058059692383
+            },
+            {
+              "cell": [
+                20,
+                23
+              ],
+              "oldM": 13.571599960327148,
+              "newM": 13.614005088806152
+            },
+            {
+              "cell": [
+                58,
+                23
+              ],
+              "oldM": 12.581777572631836,
+              "newM": 12.635157585144043
+            },
+            {
+              "cell": [
+                59,
+                23
+              ],
+              "oldM": 12.630086898803711,
+              "newM": 12.626327514648438
+            },
+            {
+              "cell": [
+                60,
+                23
+              ],
+              "oldM": 12.810639381408691,
+              "newM": 17.202159881591797
+            },
+            {
+              "cell": [
+                61,
+                23
+              ],
+              "oldM": 12.923787117004395,
+              "newM": 12.995552062988281
+            },
+            {
+              "cell": [
+                63,
+                23
+              ],
+              "oldM": 12.242353439331055,
+              "newM": 12.286506652832031
+            },
+            {
+              "cell": [
+                64,
+                23
+              ],
+              "oldM": 12.470466613769531,
+              "newM": 11.812416076660156
+            },
+            {
+              "cell": [
+                12,
+                24
+              ],
+              "oldM": 13.153647422790527,
+              "newM": 13.181807518005371
+            },
+            {
+              "cell": [
+                17,
+                24
+              ],
+              "oldM": 12.508813858032227,
+              "newM": 12.535983085632324
+            },
+            {
+              "cell": [
+                20,
+                24
+              ],
+              "oldM": 13.638799667358398,
+              "newM": 14.137520790100098
+            },
+            {
+              "cell": [
+                21,
+                24
+              ],
+              "oldM": 13.715389251708984,
+              "newM": 13.768369674682617
+            },
+            {
+              "cell": [
+                61,
+                24
+              ],
+              "oldM": 11.153056144714355,
+              "newM": 11.211284637451172
+            },
+            {
+              "cell": [
+                62,
+                24
+              ],
+              "oldM": 11.183307647705078,
+              "newM": 15.546491622924805
+            },
+            {
+              "cell": [
+                19,
+                25
+              ],
+              "oldM": 12.320030212402344,
+              "newM": 12.356030464172363
+            },
+            {
+              "cell": [
+                60,
+                25
+              ],
+              "oldM": 12.2556791305542,
+              "newM": 11.269543647766113
+            },
+            {
+              "cell": [
+                61,
+                25
+              ],
+              "oldM": 11.236525535583496,
+              "newM": 11.276272773742676
+            },
+            {
+              "cell": [
+                20,
+                26
+              ],
+              "oldM": 11.984037399291992,
+              "newM": 12.728821754455566
+            },
+            {
+              "cell": [
+                58,
+                26
+              ],
+              "oldM": 11.017125129699707,
+              "newM": 11.040969848632812
+            },
+            {
+              "cell": [
+                20,
+                28
+              ],
+              "oldM": 10.998064041137695,
+              "newM": 11.057861328125
+            },
+            {
+              "cell": [
+                21,
+                28
+              ],
+              "oldM": 8.118674278259277,
+              "newM": 8.192973136901855
+            },
+            {
+              "cell": [
+                20,
+                29
+              ],
+              "oldM": 7.719761848449707,
+              "newM": 7.630669116973877
+            },
+            {
+              "cell": [
+                21,
+                29
+              ],
+              "oldM": 7.699492454528809,
+              "newM": 7.781754016876221
+            },
+            {
+              "cell": [
+                22,
+                29
+              ],
+              "oldM": 7.68331241607666,
+              "newM": 8.301642417907715
+            },
+            {
+              "cell": [
+                20,
+                30
+              ],
+              "oldM": 7.475053310394287,
+              "newM": 7.62137508392334
+            },
+            {
+              "cell": [
+                21,
+                30
+              ],
+              "oldM": 7.359930038452148,
+              "newM": 7.363194942474365
+            },
+            {
+              "cell": [
+                23,
+                30
+              ],
+              "oldM": 7.577905178070068,
+              "newM": 7.628067970275879
+            },
+            {
+              "cell": [
+                19,
+                31
+              ],
+              "oldM": 6.598552227020264,
+              "newM": 6.618868827819824
+            },
+            {
+              "cell": [
+                20,
+                31
+              ],
+              "oldM": 6.627143859863281,
+              "newM": 6.688968181610107
+            },
+            {
+              "cell": [
+                24,
+                31
+              ],
+              "oldM": 7.166308403015137,
+              "newM": 8.205329895019531
+            },
+            {
+              "cell": [
+                18,
+                32
+              ],
+              "oldM": 6.850837230682373,
+              "newM": 6.821002006530762
+            },
+            {
+              "cell": [
+                21,
+                32
+              ],
+              "oldM": 6.596810340881348,
+              "newM": 6.626891613006592
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.2784790943287037,
+            "maxChannel8Bit": 131,
+            "pixelsAnyChannelOver3Fraction": 0.029586588541666667,
+            "meanDisplayLumaDelta8Bit": 0.014291289279513888
+          },
+          "retries": 0
+        },
+        {
+          "file": "E_ground-baseline.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 4862,
+          "inferredLowPackInstanceCountFromSourceFormula": 143,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 656,
+          "actualTriangles": 8625840,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 4862
+          },
+          "depthChangedCells": 19,
+          "depthCells": [
+            {
+              "cell": [
+                75,
+                20
+              ],
+              "oldM": 11.39854907989502,
+              "newM": 11.640615463256836
+            },
+            {
+              "cell": [
+                76,
+                21
+              ],
+              "oldM": 10.160164833068848,
+              "newM": 10.221827507019043
+            },
+            {
+              "cell": [
+                75,
+                22
+              ],
+              "oldM": 10.615331649780273,
+              "newM": 10.63792610168457
+            },
+            {
+              "cell": [
+                9,
+                23
+              ],
+              "oldM": 19.65338897705078,
+              "newM": 18.544429779052734
+            },
+            {
+              "cell": [
+                10,
+                23
+              ],
+              "oldM": 18.870899200439453,
+              "newM": 19.658315658569336
+            },
+            {
+              "cell": [
+                41,
+                23
+              ],
+              "oldM": 16.441770553588867,
+              "newM": 15.978774070739746
+            },
+            {
+              "cell": [
+                42,
+                23
+              ],
+              "oldM": 16.10454750061035,
+              "newM": 19.96649169921875
+            },
+            {
+              "cell": [
+                43,
+                23
+              ],
+              "oldM": 16.813364028930664,
+              "newM": 19.99839210510254
+            },
+            {
+              "cell": [
+                41,
+                24
+              ],
+              "oldM": 15.953034400939941,
+              "newM": 16.535268783569336
+            },
+            {
+              "cell": [
+                70,
+                24
+              ],
+              "oldM": 11.693489074707031,
+              "newM": 12.316437721252441
+            },
+            {
+              "cell": [
+                75,
+                24
+              ],
+              "oldM": 10.629667282104492,
+              "newM": 11.426814079284668
+            },
+            {
+              "cell": [
+                72,
+                25
+              ],
+              "oldM": 11.22397518157959,
+              "newM": 10.502657890319824
+            },
+            {
+              "cell": [
+                12,
+                26
+              ],
+              "oldM": 13.112561225891113,
+              "newM": 15.787546157836914
+            },
+            {
+              "cell": [
+                12,
+                27
+              ],
+              "oldM": 12.232678413391113,
+              "newM": 16.843103408813477
+            },
+            {
+              "cell": [
+                12,
+                28
+              ],
+              "oldM": 12.012529373168945,
+              "newM": 11.860246658325195
+            },
+            {
+              "cell": [
+                13,
+                28
+              ],
+              "oldM": 13.02342414855957,
+              "newM": 11.528297424316406
+            },
+            {
+              "cell": [
+                14,
+                28
+              ],
+              "oldM": 11.90310287475586,
+              "newM": 13.12978458404541
+            },
+            {
+              "cell": [
+                72,
+                28
+              ],
+              "oldM": 10.53258228302002,
+              "newM": 10.526346206665039
+            },
+            {
+              "cell": [
+                69,
+                30
+              ],
+              "oldM": 11.201231956481934,
+              "newM": 11.16635799407959
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.19788230613425925,
+            "maxChannel8Bit": 106,
+            "pixelsAnyChannelOver3Fraction": 0.022513020833333335,
+            "meanDisplayLumaDelta8Bit": 0.010350295355902778
+          },
+          "retries": 0
+        },
+        {
+          "file": "E_ground-candidate.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 4862,
+          "inferredLowPackInstanceCountFromSourceFormula": 143,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 656,
+          "actualTriangles": 8625840,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 4862
+          },
+          "depthChangedCells": 19,
+          "depthCells": [
+            {
+              "cell": [
+                75,
+                20
+              ],
+              "oldM": 11.39854907989502,
+              "newM": 11.640615463256836
+            },
+            {
+              "cell": [
+                76,
+                21
+              ],
+              "oldM": 10.160164833068848,
+              "newM": 10.221827507019043
+            },
+            {
+              "cell": [
+                75,
+                22
+              ],
+              "oldM": 10.615331649780273,
+              "newM": 10.63792610168457
+            },
+            {
+              "cell": [
+                9,
+                23
+              ],
+              "oldM": 19.65338897705078,
+              "newM": 18.544429779052734
+            },
+            {
+              "cell": [
+                10,
+                23
+              ],
+              "oldM": 18.870899200439453,
+              "newM": 19.658315658569336
+            },
+            {
+              "cell": [
+                41,
+                23
+              ],
+              "oldM": 16.441770553588867,
+              "newM": 15.978774070739746
+            },
+            {
+              "cell": [
+                42,
+                23
+              ],
+              "oldM": 16.10454750061035,
+              "newM": 19.96649169921875
+            },
+            {
+              "cell": [
+                43,
+                23
+              ],
+              "oldM": 16.813364028930664,
+              "newM": 19.99839210510254
+            },
+            {
+              "cell": [
+                41,
+                24
+              ],
+              "oldM": 15.953034400939941,
+              "newM": 16.535268783569336
+            },
+            {
+              "cell": [
+                70,
+                24
+              ],
+              "oldM": 11.693489074707031,
+              "newM": 12.316437721252441
+            },
+            {
+              "cell": [
+                75,
+                24
+              ],
+              "oldM": 10.629667282104492,
+              "newM": 11.426814079284668
+            },
+            {
+              "cell": [
+                72,
+                25
+              ],
+              "oldM": 11.22397518157959,
+              "newM": 10.502657890319824
+            },
+            {
+              "cell": [
+                12,
+                26
+              ],
+              "oldM": 13.112561225891113,
+              "newM": 15.787546157836914
+            },
+            {
+              "cell": [
+                12,
+                27
+              ],
+              "oldM": 12.232678413391113,
+              "newM": 16.843103408813477
+            },
+            {
+              "cell": [
+                12,
+                28
+              ],
+              "oldM": 12.012529373168945,
+              "newM": 11.860246658325195
+            },
+            {
+              "cell": [
+                13,
+                28
+              ],
+              "oldM": 13.02342414855957,
+              "newM": 11.528297424316406
+            },
+            {
+              "cell": [
+                14,
+                28
+              ],
+              "oldM": 11.90310287475586,
+              "newM": 13.12978458404541
+            },
+            {
+              "cell": [
+                72,
+                28
+              ],
+              "oldM": 10.53258228302002,
+              "newM": 10.526346206665039
+            },
+            {
+              "cell": [
+                69,
+                30
+              ],
+              "oldM": 11.201231956481934,
+              "newM": 11.16635799407959
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.19788230613425925,
+            "maxChannel8Bit": 106,
+            "pixelsAnyChannelOver3Fraction": 0.022513020833333335,
+            "meanDisplayLumaDelta8Bit": 0.010350295355902778
+          },
+          "retries": 0
+        },
+        {
+          "file": "F_canopy-baseline.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 5814,
+          "inferredLowPackInstanceCountFromSourceFormula": 171,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 627,
+          "actualTriangles": 8433641,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 5814
+          },
+          "depthChangedCells": 2,
+          "depthCells": [
+            {
+              "cell": [
+                38,
+                14
+              ],
+              "oldM": 16.502674102783203,
+              "newM": 16.655929565429688
+            },
+            {
+              "cell": [
+                11,
+                24
+              ],
+              "oldM": 13.438580513000488,
+              "newM": 13.430248260498047
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.07199544270833333,
+            "maxChannel8Bit": 115,
+            "pixelsAnyChannelOver3Fraction": 0.009710286458333333,
+            "meanDisplayLumaDelta8Bit": 0.0023174318576388887
+          },
+          "retries": 0
+        },
+        {
+          "file": "F_canopy-candidate.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 5814,
+          "inferredLowPackInstanceCountFromSourceFormula": 171,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 627,
+          "actualTriangles": 8433641,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 5814
+          },
+          "depthChangedCells": 2,
+          "depthCells": [
+            {
+              "cell": [
+                38,
+                14
+              ],
+              "oldM": 16.502674102783203,
+              "newM": 16.655929565429688
+            },
+            {
+              "cell": [
+                11,
+                24
+              ],
+              "oldM": 13.438580513000488,
+              "newM": 13.430248260498047
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.07199544270833333,
+            "maxChannel8Bit": 115,
+            "pixelsAnyChannelOver3Fraction": 0.009710286458333333,
+            "meanDisplayLumaDelta8Bit": 0.0023174318576388887
+          },
+          "retries": 1
+        }
+      ]
+    },
+    "details": {
+      "rows": [
+        {
+          "file": "S01-sign-front.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 4216,
+          "inferredLowPackInstanceCountFromSourceFormula": 124,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 438,
+          "actualTriangles": 8076375,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 4216
+          },
+          "depthChangedCells": 22,
+          "depthCells": [
+            {
+              "cell": [
+                1,
+                19
+              ],
+              "oldM": 10.071358680725098,
+              "newM": 6.5122880935668945
+            },
+            {
+              "cell": [
+                2,
+                19
+              ],
+              "oldM": 6.405468940734863,
+              "newM": 6.43917989730835
+            },
+            {
+              "cell": [
+                3,
+                19
+              ],
+              "oldM": 6.2234954833984375,
+              "newM": 9.674407005310059
+            },
+            {
+              "cell": [
+                4,
+                19
+              ],
+              "oldM": 6.195106029510498,
+              "newM": 6.195650100708008
+            },
+            {
+              "cell": [
+                5,
+                19
+              ],
+              "oldM": 6.411922931671143,
+              "newM": 6.459403038024902
+            },
+            {
+              "cell": [
+                1,
+                20
+              ],
+              "oldM": 6.181811332702637,
+              "newM": 6.228536605834961
+            },
+            {
+              "cell": [
+                3,
+                20
+              ],
+              "oldM": 9.304312705993652,
+              "newM": 6.293677806854248
+            },
+            {
+              "cell": [
+                4,
+                20
+              ],
+              "oldM": 6.059608459472656,
+              "newM": 6.069604873657227
+            },
+            {
+              "cell": [
+                5,
+                20
+              ],
+              "oldM": 6.383240222930908,
+              "newM": 6.373249053955078
+            },
+            {
+              "cell": [
+                6,
+                20
+              ],
+              "oldM": 6.410586357116699,
+              "newM": 6.457443714141846
+            },
+            {
+              "cell": [
+                9,
+                20
+              ],
+              "oldM": 6.0295257568359375,
+              "newM": 6.073421001434326
+            },
+            {
+              "cell": [
+                0,
+                21
+              ],
+              "oldM": 5.69486665725708,
+              "newM": 5.715446472167969
+            },
+            {
+              "cell": [
+                1,
+                21
+              ],
+              "oldM": 5.679577827453613,
+              "newM": 6.216176986694336
+            },
+            {
+              "cell": [
+                3,
+                21
+              ],
+              "oldM": 5.961165428161621,
+              "newM": 6.006683349609375
+            },
+            {
+              "cell": [
+                4,
+                21
+              ],
+              "oldM": 5.680039882659912,
+              "newM": 5.677186965942383
+            },
+            {
+              "cell": [
+                5,
+                21
+              ],
+              "oldM": 5.731174468994141,
+              "newM": 5.864895820617676
+            },
+            {
+              "cell": [
+                6,
+                21
+              ],
+              "oldM": 5.8706841468811035,
+              "newM": 5.896144866943359
+            },
+            {
+              "cell": [
+                9,
+                21
+              ],
+              "oldM": 6.237886428833008,
+              "newM": 9.473031997680664
+            },
+            {
+              "cell": [
+                0,
+                22
+              ],
+              "oldM": 6.0605974197387695,
+              "newM": 8.488125801086426
+            },
+            {
+              "cell": [
+                4,
+                22
+              ],
+              "oldM": 6.141343116760254,
+              "newM": 6.168546199798584
+            },
+            {
+              "cell": [
+                5,
+                22
+              ],
+              "oldM": 6.035468578338623,
+              "newM": 6.106453895568848
+            },
+            {
+              "cell": [
+                6,
+                22
+              ],
+              "oldM": 6.1355085372924805,
+              "newM": 8.135446548461914
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.17571614583333334,
+            "maxChannel8Bit": 116,
+            "pixelsAnyChannelOver3Fraction": 0.012902560763888888,
+            "meanDisplayLumaDelta8Bit": 0.011754120225694444
+          },
+          "retries": 0
+        },
+        {
+          "file": "S02-sign-oblique.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 4556,
+          "inferredLowPackInstanceCountFromSourceFormula": 134,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 447,
+          "actualTriangles": 8196899,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 4556
+          },
+          "depthChangedCells": 14,
+          "depthCells": [
+            {
+              "cell": [
+                32,
+                15
+              ],
+              "oldM": 7.718213081359863,
+              "newM": 7.808795928955078
+            },
+            {
+              "cell": [
+                34,
+                15
+              ],
+              "oldM": 8.041970252990723,
+              "newM": 17.292821884155273
+            },
+            {
+              "cell": [
+                36,
+                15
+              ],
+              "oldM": 10.369787216186523,
+              "newM": 8.188838958740234
+            },
+            {
+              "cell": [
+                26,
+                19
+              ],
+              "oldM": 6.424171447753906,
+              "newM": 6.500070571899414
+            },
+            {
+              "cell": [
+                28,
+                19
+              ],
+              "oldM": 6.3070783615112305,
+              "newM": 6.320499420166016
+            },
+            {
+              "cell": [
+                25,
+                20
+              ],
+              "oldM": 6.664186954498291,
+              "newM": 17.798995971679688
+            },
+            {
+              "cell": [
+                26,
+                20
+              ],
+              "oldM": 6.884924411773682,
+              "newM": 6.871641159057617
+            },
+            {
+              "cell": [
+                24,
+                21
+              ],
+              "oldM": 6.597172260284424,
+              "newM": 6.850746154785156
+            },
+            {
+              "cell": [
+                25,
+                21
+              ],
+              "oldM": 6.2304768562316895,
+              "newM": 6.278321266174316
+            },
+            {
+              "cell": [
+                27,
+                21
+              ],
+              "oldM": 6.25514030456543,
+              "newM": 6.251467227935791
+            },
+            {
+              "cell": [
+                23,
+                22
+              ],
+              "oldM": 6.875243186950684,
+              "newM": 14.658778190612793
+            },
+            {
+              "cell": [
+                21,
+                23
+              ],
+              "oldM": 6.712466239929199,
+              "newM": 13.204291343688965
+            },
+            {
+              "cell": [
+                22,
+                23
+              ],
+              "oldM": 6.9059929847717285,
+              "newM": 13.137590408325195
+            },
+            {
+              "cell": [
+                23,
+                23
+              ],
+              "oldM": 6.808815956115723,
+              "newM": 13.154338836669922
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.10933449074074074,
+            "maxChannel8Bit": 94,
+            "pixelsAnyChannelOver3Fraction": 0.009816623263888888,
+            "meanDisplayLumaDelta8Bit": 0.02455426085069444
+          },
+          "retries": 0
+        },
+        {
+          "file": "L01-stair-foot-bindings.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 5576,
+          "inferredLowPackInstanceCountFromSourceFormula": 164,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 416,
+          "actualTriangles": 8191095,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 5576
+          },
+          "depthChangedCells": 14,
+          "depthCells": [
+            {
+              "cell": [
+                27,
+                12
+              ],
+              "oldM": 7.349687576293945,
+              "newM": 8.30469036102295
+            },
+            {
+              "cell": [
+                31,
+                12
+              ],
+              "oldM": 7.368876934051514,
+              "newM": 8.488226890563965
+            },
+            {
+              "cell": [
+                32,
+                12
+              ],
+              "oldM": 7.276714324951172,
+              "newM": 7.819162368774414
+            },
+            {
+              "cell": [
+                33,
+                12
+              ],
+              "oldM": 8.817933082580566,
+              "newM": 6.962376594543457
+            },
+            {
+              "cell": [
+                32,
+                13
+              ],
+              "oldM": 7.15294075012207,
+              "newM": 7.212339401245117
+            },
+            {
+              "cell": [
+                33,
+                13
+              ],
+              "oldM": 6.995769500732422,
+              "newM": 7.03461217880249
+            },
+            {
+              "cell": [
+                35,
+                13
+              ],
+              "oldM": 7.427020072937012,
+              "newM": 7.390223979949951
+            },
+            {
+              "cell": [
+                32,
+                14
+              ],
+              "oldM": 7.219878196716309,
+              "newM": 7.2646026611328125
+            },
+            {
+              "cell": [
+                33,
+                14
+              ],
+              "oldM": 7.042449474334717,
+              "newM": 7.126586437225342
+            },
+            {
+              "cell": [
+                34,
+                14
+              ],
+              "oldM": 7.344862461090088,
+              "newM": 7.367579460144043
+            },
+            {
+              "cell": [
+                35,
+                14
+              ],
+              "oldM": 7.086477279663086,
+              "newM": 8.116350173950195
+            },
+            {
+              "cell": [
+                36,
+                14
+              ],
+              "oldM": 7.038955211639404,
+              "newM": 6.841636657714844
+            },
+            {
+              "cell": [
+                35,
+                15
+              ],
+              "oldM": 6.953375816345215,
+              "newM": 7.794095516204834
+            },
+            {
+              "cell": [
+                36,
+                15
+              ],
+              "oldM": 7.197112083435059,
+              "newM": 7.266045093536377
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.1060134548611111,
+            "maxChannel8Bit": 95,
+            "pixelsAnyChannelOver3Fraction": 0.009985894097222222,
+            "meanDisplayLumaDelta8Bit": 0.0021348155381944443
+          },
+          "retries": 0
+        },
+        {
+          "file": "L02-fork-west-lantern.jpg",
+          "unexpectedAuditPaths": [],
+          "unrelatedAuditsCameraControlsActorResourcesPass": true,
+          "auditedSceneTriangleDelta": 3332,
+          "inferredLowPackInstanceCountFromSourceFormula": 98,
+          "DCountIndependentlyFrozen": false,
+          "actualCalls": 547,
+          "actualTriangles": 8315207,
+          "actualCostDelta": {
+            "calls": 0,
+            "triangles": 3332
+          },
+          "depthChangedCells": 37,
+          "depthCells": [
+            {
+              "cell": [
+                33,
+                17
+              ],
+              "oldM": 17.805551528930664,
+              "newM": 77.9153060913086
+            },
+            {
+              "cell": [
+                30,
+                18
+              ],
+              "oldM": 18.89447784423828,
+              "newM": 29.34383201599121
+            },
+            {
+              "cell": [
+                37,
+                18
+              ],
+              "oldM": 14.008431434631348,
+              "newM": 14.034578323364258
+            },
+            {
+              "cell": [
+                24,
+                20
+              ],
+              "oldM": 18.433107376098633,
+              "newM": 15.98986530303955
+            },
+            {
+              "cell": [
+                32,
+                20
+              ],
+              "oldM": 15.330053329467773,
+              "newM": 16.371736526489258
+            },
+            {
+              "cell": [
+                22,
+                21
+              ],
+              "oldM": 14.844074249267578,
+              "newM": 14.900249481201172
+            },
+            {
+              "cell": [
+                23,
+                21
+              ],
+              "oldM": 14.672962188720703,
+              "newM": 18.203805923461914
+            },
+            {
+              "cell": [
+                32,
+                21
+              ],
+              "oldM": 15.615926742553711,
+              "newM": 14.345858573913574
+            },
+            {
+              "cell": [
+                36,
+                21
+              ],
+              "oldM": 12.710134506225586,
+              "newM": 12.68038558959961
+            },
+            {
+              "cell": [
+                23,
+                22
+              ],
+              "oldM": 16.19362449645996,
+              "newM": 13.717764854431152
+            },
+            {
+              "cell": [
+                24,
+                22
+              ],
+              "oldM": 14.006332397460938,
+              "newM": 12.642037391662598
+            },
+            {
+              "cell": [
+                25,
+                22
+              ],
+              "oldM": 13.813136100769043,
+              "newM": 13.897721290588379
+            },
+            {
+              "cell": [
+                30,
+                22
+              ],
+              "oldM": 12.549873352050781,
+              "newM": 12.623038291931152
+            },
+            {
+              "cell": [
+                31,
+                22
+              ],
+              "oldM": 13.272412300109863,
+              "newM": 12.513813018798828
+            },
+            {
+              "cell": [
+                32,
+                22
+              ],
+              "oldM": 12.333261489868164,
+              "newM": 13.537090301513672
+            },
+            {
+              "cell": [
+                35,
+                22
+              ],
+              "oldM": 12.596481323242188,
+              "newM": 13.879096984863281
+            },
+            {
+              "cell": [
+                31,
+                23
+              ],
+              "oldM": 11.82473087310791,
+              "newM": 14.117098808288574
+            },
+            {
+              "cell": [
+                33,
+                23
+              ],
+              "oldM": 13.670173645019531,
+              "newM": 11.295929908752441
+            },
+            {
+              "cell": [
+                35,
+                23
+              ],
+              "oldM": 12.561866760253906,
+              "newM": 11.61147403717041
+            },
+            {
+              "cell": [
+                53,
+                35
+              ],
+              "oldM": 4.0264105796813965,
+              "newM": 4.282444000244141
+            },
+            {
+              "cell": [
+                50,
+                36
+              ],
+              "oldM": 3.961705446243286,
+              "newM": 5.030450344085693
+            },
+            {
+              "cell": [
+                54,
+                37
+              ],
+              "oldM": 3.882472276687622,
+              "newM": 3.8927526473999023
+            },
+            {
+              "cell": [
+                55,
+                37
+              ],
+              "oldM": 3.901251792907715,
+              "newM": 3.930133819580078
+            },
+            {
+              "cell": [
+                39,
+                38
+              ],
+              "oldM": 3.5304620265960693,
+              "newM": 4.148396015167236
+            },
+            {
+              "cell": [
+                40,
+                38
+              ],
+              "oldM": 4.579217433929443,
+              "newM": 3.5868091583251953
+            },
+            {
+              "cell": [
+                49,
+                38
+              ],
+              "oldM": 3.8889803886413574,
+              "newM": 3.8899948596954346
+            },
+            {
+              "cell": [
+                50,
+                38
+              ],
+              "oldM": 3.8607590198516846,
+              "newM": 4.557840347290039
+            },
+            {
+              "cell": [
+                53,
+                38
+              ],
+              "oldM": 3.718319892883301,
+              "newM": 3.7529656887054443
+            },
+            {
+              "cell": [
+                36,
+                39
+              ],
+              "oldM": 4.3298563957214355,
+              "newM": 3.5646867752075195
+            },
+            {
+              "cell": [
+                40,
+                41
+              ],
+              "oldM": 3.3745696544647217,
+              "newM": 3.4096264839172363
+            },
+            {
+              "cell": [
+                41,
+                41
+              ],
+              "oldM": 3.3758227825164795,
+              "newM": 3.428262233734131
+            },
+            {
+              "cell": [
+                34,
+                42
+              ],
+              "oldM": 3.4102296829223633,
+              "newM": 3.4693868160247803
+            },
+            {
+              "cell": [
+                35,
+                42
+              ],
+              "oldM": 3.2274954319000244,
+              "newM": 3.261227607727051
+            },
+            {
+              "cell": [
+                40,
+                42
+              ],
+              "oldM": 3.4690260887145996,
+              "newM": 3.631615400314331
+            },
+            {
+              "cell": [
+                41,
+                42
+              ],
+              "oldM": 3.367861032485962,
+              "newM": 3.9385898113250732
+            },
+            {
+              "cell": [
+                38,
+                43
+              ],
+              "oldM": 3.201141595840454,
+              "newM": 3.237581491470337
+            },
+            {
+              "cell": [
+                39,
+                43
+              ],
+              "oldM": 3.223433017730713,
+              "newM": 3.840345621109009
+            }
+          ],
+          "jpegBytesEqual": false,
+          "pixels": {
+            "maeChannel8Bit": 0.4469162326388889,
+            "maxChannel8Bit": 161,
+            "pixelsAnyChannelOver3Fraction": 0.04258680555555556,
+            "meanDisplayLumaDelta8Bit": 0.007694002821180553
+          },
+          "retries": 0
+        }
+      ]
+    }
+  },
+  "limits": [
+    "Only scene/vegetation/drawableEstimate triangle deltas are source-bounded to34 times0..312 low flower pack instances; D independently matches the frozen68-instance source receipt. Other per-view counts are inferred from actual inventory, not independently reconstructed roots.",
+    "GPU submissions and depth changes are measured separately; changed geometry permits no blanket unrelated state exception.",
+    "The extra11 hedge poses are a hedge regression and never a flower LOD-transition test."
+  ]
+}

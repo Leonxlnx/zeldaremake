@@ -1290,6 +1290,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   rebucket(ctx.camera);
 
+  // Publish the axes actually used above, without new terrain samples or random draws. Atmosphere
+  // was constructed earlier and reads this lazily through WorldContext once the world is ready.
+  ctx.shared.canopyOpenings = openingCorridors.map((c, i) => ({
+    id: CANOPY_OPENINGS[i].id,
+    point: [c.point.x, c.point.y, c.point.z] as const,
+    axis: [c.dir.x, c.dir.y, c.dir.z] as const,
+    radius: c.radius,
+    band: [c.yMin!, c.yMax!] as const,
+  }));
+
   // ------------------------------------------------------------------ audit
   const whiteBases: [number, number, number][] = whitePlacements.map((p) => [p.x, p.y, p.z]);
   const columnBases: [number, number, number][] = columnPlacements.map((p) => [p.x, p.y, p.z]);
@@ -1396,6 +1406,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         : null,
       /** every published ring as [s, x, y, z, radius] (world, mm) — project them to check the wrap */
       lanternLimbRings: lanternLimbAudit?.rings ?? null,
+      canopyOpenings: ctx.shared.canopyOpenings ?? [],
       /** ctx.shared.trunkSeats: every seated column's and giant's bole as built, for structures */
       trunkSeatsPublished: trunkSeats.length,
       /** one row per seat: [id, x, z, baseY, r0 = radiusAt(0), rBare = radiusAt(bareHeight), bareHeight] (world, mm) */

@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "sourceTree": "f64208c218dfe51c1ade44f0342e40a158385ee8",
+  "requiredPublishedCommitCount": 1,
+  "originalFiles": {
+    "README.md": "11eeb2e94171177f167ac7821cb3e50cd22cc7895bcc2839cad926cb13e6d6c1",
+    "candidate/materials.ts": "e024a03cbb46900c5403d4dea7cbda8f67cde4e48fe84aa40a18aa7abfe4c13e",
+    "candidate/sleeveBark.ts": "f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7",
+    "check.mjs": "25acb6e4f948fad16bab5e945702a0b65422f48258b0ec1bc436dd8c222e8b28",
+    "evidence.json": "5002ddc662f7d1178722b9fc5d8bfb537ea7f13b158bb2e948981a03d3e20621",
+    "freeze.json": "2b0dcdf8bd770a6d27079d4ba39f90c3f12ad75e17ee4b1c2cd4249a5eda5cf7",
+    "pin.json": "9335972212331efb969f0ce231b7e40838aa349d525c92966437f7f171ef2afb",
+    "sleeve-angular.patch": "37a1076ff9427977ea5b1add329b1473199c809f79166c76743914fc335b7955"
+  },
+  "copiedFiles": {
+    "README.frozen.md": "11eeb2e94171177f167ac7821cb3e50cd22cc7895bcc2839cad926cb13e6d6c1",
+    "pin.json": "9335972212331efb969f0ce231b7e40838aa349d525c92966437f7f171ef2afb",
+    "freeze.json": "2b0dcdf8bd770a6d27079d4ba39f90c3f12ad75e17ee4b1c2cd4249a5eda5cf7",
+    "evidence.json": "5002ddc662f7d1178722b9fc5d8bfb537ea7f13b158bb2e948981a03d3e20621",
+    "sleeve-angular.patch": "37a1076ff9427977ea5b1add329b1473199c809f79166c76743914fc335b7955"
+  },
+  "editsSha256": "56d34577f8ccd2487c66aa859cccb4884ab8a6c8d03104e39ae9f11ccbf90b29",
+  "editCount": 2,
+  "helperReconstruction": "Exact 34 added lines in frozen sleeve-angular.patch; no helper or full materials.ts snapshot needed.",
+  "sourceTypecheck": "Existing noEmit case, using published source tree plus two in-memory candidate modules. Installed locked dependencies remain required.",
+  "requiredTools": [
+    "Node >=20",
+    "git",
+    "cpp",
+    "repository dependencies including Three r186 and TypeScript"
+  ],
+  "scope": "Packaging only: existing focused check and evidence; no new cases or measurements, world/RNG/GPU/render tests."
+}

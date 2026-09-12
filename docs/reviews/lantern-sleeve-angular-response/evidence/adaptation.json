@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "adaptationRuns": 1,
+  "originalPackageFilesByteExact": 8,
+  "copiedOriginalFilesByteExact": [
+    "README.frozen.md",
+    "pin.json",
+    "freeze.json",
+    "evidence.json",
+    "sleeve-angular.patch"
+  ],
+  "focusedEvidenceReproducedExactly": true,
+  "sourceCommit": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "sourceTree": "f64208c218dfe51c1ade44f0342e40a158385ee8",
+  "contextEdits": 2,
+  "helperLines": 34,
+  "helperSHA256": "f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7",
+  "candidateMaterialSHA256": "e024a03cbb46900c5403d4dea7cbda8f67cde4e48fe84aa40a18aa7abfe4c13e",
+  "fullSourceSnapshots": 0,
+  "newCasesMeasurementsWorldRngGpuRenderTests": false,
+  "productionWrites": false,
+  "logSHA256": "8ee111ef4251a5c6a6cc023e0cfd0d4054fd283292a83da37497a493e712be0f"
+}

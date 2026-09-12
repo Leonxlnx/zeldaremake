@@ -23,6 +23,7 @@ import {
 import type { WorldContext } from '../system';
 import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
 import { WIND_GLSL } from '../wind/wind';
+import { applySleeveBarkResponse } from './sleeveBark';
 
 const GRAD3: [number, number, number][] = [
   [1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0],
@@ -928,6 +929,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   recessBark.name = 'structures:recess-bark';
   for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
+  applySleeveBarkResponse(sleeveBark);
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));

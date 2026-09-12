@@ -1,37 +1,15 @@
 /**
- * Height-aware atmospheric perspective for EVERY material in the scene.
+ * Height-aware atmospheric perspective shared by every fog-enabled material.
  *
- * three.js resolves `#include <fog_fragment>` etc. from the mutable `ShaderChunk` table at program
- * compile time, so replacing the four fog chunks once at module load upgrades every built-in
- * material (and any custom ShaderMaterial that includes the standard fog chunks) to:
+ * The analytic medium combines distance haze, a shallow north-hollow mist layer and a canopy
+ * altitude profile. A clear foreground gives way to distinct middle-distance tree layers;
+ * extra extinction only enters beyond the hollow. Cool gray-green ambient air separates from
+ * the golden sun shafts. The far veil is capped so geometry continues to contribute.
  *
- *   1. distance haze — exponential extinction (≈ 0.028 m⁻¹ after a crisp 2.5 m foreground, thickening past the log arch; cf.
- *      the depth-vs-blend measurements in reference/ANALYSIS.md §8) that is capped below 1.0: the
- *      far world is veiled, never erased. `scene.fog` stays a plain `THREE.Fog` (its near/far are
- *      the audited visibility distances) so the rest of the codebase is unaffected. The airlight
- *      is depth-graded warm grey — mid grey through the hollow, brighter past ≈ 44 m where far light
- *      arrives through more canopy gaps (see `hazeNear`/`hazeFar`) — and the extinction jumps past
- *      the log arch (`hazeFarStart`) so the far tree rows are a luminous wall. The aerosol is densest under the
- *      canopy: its density is uniform up to `hazeUniformHeight` and decays exponentially above,
- *      and steeply climbing rays are attenuated further, so rays toward the crowns (shot F)
- *      accumulate far less haze than rays along the ground and the near canopy stays dark
- *      against the bright gaps.
- *   2. exponential height fog — an analytic integral along the view ray of a density that decays
- *      with height above a mist base, weighted toward the north hollow (−Z) where the reference
- *      pools mist under the log arch; its share of the fog takes the warm ground-mist colour.
- *   3. direction-dependent airlight — (a) canopy openness: toward the open east plateau the veil
- *      grades near → far → lit air and the dome shows the gap glare; toward the closed north hollow
- *      and west stand every distance shows one dim closed-roof veil (`openDir`, `hazeClosed`), the
- *      reference's B forest band / A left quadrant; (b) the back-scatter lobe: the veil dims toward
- *      `backScatterMin` when the sun is behind the camera (shot C looks ≈ 120–140° away from it:
- *      the reference's haze there is a dark warm grey). A forward lobe is kept as a hook
- *      (`sunLobeGain`, off: the reference's most sunward air is its dimmest). Extinction (the veil
- *      share) is direction-independent; only the veil's radiance changes.
- *
- * Everything is a pure function of the fragment's world position and the camera, so it is
- * deterministic and costs a few ALU per fragment. The vertex chunk needs `mvPosition` (present in
- * every built-in vertex shader before `fog_vertex`), the fragment chunk needs `cameraPosition`
- * (declared by the renderer for every fragment shader).
+ * Airlight follows canopy openness and the view-to-sun angle. Position/camera inputs are pure,
+ * with no time jitter or screen-painted scenery. The built-in THREE.Fog object preserves the
+ * shared visibility interface; ShaderChunk supplies the actual exponential medium to built-in
+ * materials and custom shaders that use standard fog includes.
  */
 import { ShaderChunk } from 'three';
 import type { WorldConfig } from '../config';
@@ -56,9 +34,9 @@ export interface HeightFogParams {
   baseWeight: number;
   /** maximum total fog (keeps the far world visible) */
   maxFog: number;
-  /** distance-haze extinction (1/m); reference/ANALYSIS.md §8 measures 0.028–0.035 */
+  /** distance-haze extinction (1/m); the concept study retains more middle-distance surface contrast */
   hazeDensity: number;
-  /** distance (m) before the distance haze starts (the reference foreground stays crisp, but its dark undersides at 8–12 m are already lifted) */
+  /** distance (m) before distance haze starts; local bark, paving and entrance recesses stay clear */
   hazeStart: number;
   /**
    * Far air: beyond `hazeFarStart` (m) the extinction gains `hazeFarDensity` (1/m) on top of
@@ -147,9 +125,14 @@ export interface HeightFogParams {
   farShadeMin: number;
 }
 
+/**
+ * Retained forest-depth model with a separate upper-air colour study.
+ * Retains the analytic height profile, canopy openness and physical shadowed shaft model.
+ * The owner concepts call for readable close bark and successive forest layers; the earlier
+ * footage fit made 25–40 m forms converge into one olive veil. The retained depth settings
+ * postpone extra far extinction; this trial changes only the open upper-air colour endpoint.
+ */
 export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
-  // a thin pool: a shallow eye-level ray into the hollow picks up ≈ 20 % mist at the log arch
-  // (30 m) on top of the ≈ 50 % distance haze — the arch stays a dark silhouette, not grey mush
   baseHeight: 0.4,
   falloff: 1.0,
   density: 0.012,
@@ -157,124 +140,34 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   northFullZ: -24,
   baseWeight: 0.16,
   maxFog: 0.86,
-  // the near range decides the dark undersides: the reference's lantern limb at ≈ 10 m is lifted
-  // to ≈ 0.39 luminance while its 30 m log arch keeps ≈ 55–60 % veil — so the haze starts close
-  // (≈ 21 % at 10 m). The slope follows ANALYSIS §8 (25–30 m 55–65 %, 40–60 m 80–90 %): at
-  // 0.026 the forest interiors of shots B/C/D still showed every 25–40 m trunk as a distinct dark
-  // silhouette (darkest decile 0.17–0.23 against the reference's 0.26–0.28) where the reference
-  // is a flat grey veil with pale trunks; 0.032 gave 58 % at 30 m, 70 % at 40 m, 84 % at 60 m —
-  // but 78 % at the 47 m log arch of shot D, which the reference keeps as a dark silhouette (body
-  // 0.84× the haze above it; ours read 0.92×) with the 30–40 m trunks still darker columns. So
-  // the air is thinner (42 % at 30 m, 58 % at 47 m) and the veil colour 15 % brighter: a 30 m
-  // trunk stays the same pale grey (0.58 × bark + 0.42 × veil ≈ 0.42 × bark + 0.58 × old veil)
-  // while the background it stands against rises — contrast per metre, not less mood.
-  // Round 12, fitted per depth bin (our per-pixel view distance, the reference sampled at the same
-  // pixels, hero shots A–D): at 0.02 every view's 20–30 m band sat 0.025–0.05 under the
-  // reference's median (0.38 vs 0.41–0.48) and 0.06–0.12 over its saturation, i.e. the mid
-  // distance still showed lit foliage where the reference is a grey veil; the 8×8 local contrast
-  // already matched (±0.01). 0.028 (≈ 21 % veil at 12.5 m, 47 % at 25 m, 65 % at 40 m) puts the
-  // 10–50 m medians within ±0.03 of the reference in A/B/C and halves the saturation excess;
-  // 0.03 fitted a hair better but cost the W35 sharpness margin. Verified by A/B capture.
-  hazeDensity: 0.028,
-  hazeStart: 2.5,
-  // the thin air alone left the far tree rows (52–58 m, 80–95 m) at 67–75 % veil: the arch at 61 %
-  // stood against a background only a notch brighter than itself (body 0.99× the band above it).
-  // Past the arch the extinction jumps so the 55 m row reaches the 0.86 cap within ~7 m (it took
-  // 0.032/m to 60 m before): the arch and the 30–40 m trunks are silhouettes against a luminous
-  // wall, the way the reference's far field reads (measured: arch body 0.89× the band above it)
-  hazeFarStart: 49,
-  hazeFarDensity: 0.11,
+  // Clear foreground and a gradual middle-distance veil; keep the far rows visible.
+  hazeDensity: 0.016,
+  hazeStart: 6.0,
+  hazeFarStart: 60,
+  hazeFarDensity: 0.045,
   hazeUniformHeight: 8.0,
   hazeScaleHeight: 7.0,
-  // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
-  // the haze; eye-level shots (A/D top rows reach ≈ 23–25°) lose ≤ 10 % on their very top row
   hazeUpwardCut: 0.9,
-  // a notch warmer than the earlier grey (B/R 0.89 → 0.84 linear): the reference's hazed regions
-  // read B/R ≈ 0.87 display ((119,118,105) in A's upper band, (141,138,122) in D's) while our
-  // mid-distance band carried ~9 more blue than the reference's
-  // near veil ≈ 12 % brighter than the first calibration (#727166 → #7a7a6e display, the
-  // reference's mid haze #7a796d): the shaded trunks and limbs it veils at 10–25 m measured
-  // 0.05–0.10 under the reference's darkest decile in every hazed band; ×1.25 again with the
-  // thinner air and the deep-forest shade (see hazeDensity, farShade*) so the veiled tones hold.
-  // Round 12: every veil colour drops ≈ 6 % blue (B/R 0.84–0.88 → 0.78–0.82 linear). In the
-  // veil-dominated 30 m+ bins the reference's HSV saturation is 0.12–0.15 where ours read
-  // 0.08–0.11 — the display saturation of the closed veil goes 0.09 → 0.13 (hue stays 57–63°)
-  hazeNear: [0.215, 0.213, 0.168],
-  // far veil well under the old #a09f95 (→ #87867f display): the reference's far bands are a
-  // mid grey (median 0.435 in B's left half, D's far band and C's mid band) with the god rays
-  // carrying the bright part of the air, so the veil between the shafts has to sit under them —
-  // at 0.28 shot D's far band read 0.54–0.57 and B's forest interior 0.52 against the
-  // reference's 0.44 / 0.41. 0.19 → 0.238 (display ≈ 0.52) with the thinner air and the
-  // deep-forest shade: the far background the 47 m arch and the 30–40 m trunks stand against —
-  // the reference's haze right above the arch reads 0.51–0.57. 0.25 (display ≈ 0.55 at the far
-  // cap) for the wall of veiled tree rows behind the arch
-  hazeFar: [0.25, 0.248, 0.198],
-  mistColor: [0.205, 0.203, 0.168],
-  // the grade used to run 20 → 55 m, so the 47 m arch already wore 87 % of the far colour and the
-  // far rows behind it nothing brighter. The whole hollow (to the arch) now keeps the dark near
-  // veil — the air under its closed roof is dim — and the colour brightens only past ≈ 44 m where
-  // the forest opens: the arch (46 m) takes ≈ 5 % of the far colour, the 56 m row ≈ 85 %
+  // Cool gray-green ambient air separates from golden direct-sun shafts. Linear radiance.
+  hazeNear: [0.18, 0.205, 0.205],
+  hazeFar: [0.25, 0.29, 0.29],
+  mistColor: [0.19, 0.205, 0.185],
   hazeGradeNear: 44,
   hazeGradeFar: 60,
-  // the reference's air brightness follows the ray's elevation, not its length or sun angle: its
-  // fully open haze at 30–50 m in the upper frame (A's top band, the glow above D's arch, F's gaps)
-  // reads 0.65–0.69 display while the forest interior at eye level (B's left half, 45 m median)
-  // reads 0.41 — B is the most sunward of the three. Ours rendered both from the same 0.21–0.25
-  // veil (0.55–0.59 / 0.47). So rays whose span leaves the under-canopy layer take this brighter
-  // colour; the knee is reached by a 20° ray at ≈ 40 m (above-canopy share 0.19) while eye-level
-  // rays to the 45 m trunks of B (share < 0.01) and everything the 10–20 m band sees are
-  // untouched. Display ≈ 0.64 — a step under the dome's 0.67 glare: the reference's hazed crowns at
-  // 30–50 m sit at its top band's median 0.49 (a dark crown through ≈ 50 % veil of ≈ 0.31 linear),
-  // while a veil at the glare's own value pushed that median to 0.54
-  hazeLit: [0.32, 0.316, 0.245],
+  // Cooler open upper air at the old endpoint luminance; lower/horizon fog stays exact.
+  hazeLit: [0.29, 0.33185123, 0.36],
   hazeLitKnee: 0.2,
-  // open side = bearing 75° (ENE: the plateau, the stair corridor, the upper tree-house). Fully open
-  // within ≈ 45° of it (A's far column at 47°, F's whole upper frame at 23–97°), closed beyond 75°
-  // (bearings ≤ 0° and ≥ 150°): B's forest band (−17..+12°) is ≈ 90 % closed, A's left quadrant
-  // (−13..+20°) ≈ 70 %, D's far band (−9..+21°) ≈ 65 % — the reference's D hollow (0.57) is brighter
-  // than B/A's north (0.45–0.48) though it is the same air 5 m further along, so D gives up part of
-  // its glow here (measured in the round-6 report)
   openDir: [0.9659, -0.2588],
   openLo: 0.25,
   openHi: 0.7,
-  // the closed-roof veil: a dim grey-green (display ≈ 0.51, hue ≈ 60°, B/R 0.93 — the reference's
-  // B forest bank is 0.434 median / 0.51 p90 with the god rays' wash on top) at every distance, so
-  // the far rows and the dome behind them converge on it instead of the 0.58–0.68 lit air. A hair
-  // greener than hazeNear: the reference's forest haze is grey-green (hue 56–65°), ours read yellow
-  hazeClosed: [0.19, 0.192, 0.152],
-  // was 0.35 / (1.08, 1.0, 0.84): calibrated when shot F was believed to look toward the sun; with
-  // the sun at azimuth −128° the sunward views are B's left and A's left quadrant, where the
-  // reference's air is its dimmest and greyest (sat 0.11 against our 0.15)
+  hazeClosed: [0.145, 0.165, 0.158],
   sunLobeGain: 0.0,
   sunLobeTint: [1.0, 1.0, 1.0],
-  // shot C (centre ≈ 119° from the sun, left edge ≈ 138°) reads the reference's anti-sun haze at
-  // ≈ 0.75× the display value of our side-scatter veil. The lobe also scales the sky dome and the
-  // mist sheets (same numbers) and the god-ray in-scatter (deeper, see rayBackScatterMin), so the
-  // medium dims as one. Shots A/B/D/E look 64–86° from the sun at their centres (only A's and B's
-  // right quarter passes 90°), so they keep the calibrated colour; F (28°) sits entirely in the
-  // forward lobe.
-  // deeper than the first calibration (0.62): with the brighter near veil, shot C's mid band
-  // measured 0.49 against the reference's 0.36 — its anti-sun haze is a dark grey, the darkest
-  // haze of the six frames. 0.45 then undershot (0.32) once the god-ray mask went sparse and the
-  // rays stopped adding a faint back-scatter veil of their own; 0.65 with the thinner air and the
-  // deep-forest shade (the 15–35 m trunks of C carry less veil and darken, so the veil between
-  // them is a notch brighter)
   backScatterMin: 0.65,
   backScatterFullDeg: 135,
-  // the dimmed far haze is #625e51-class like the reference's anti-sun veil (hue ≈ 46°, HSL
-  // saturation ≈ 0.09) where our neutral side-scatter grey would read yellow-green. Blue 0.9 →
-  // 0.93 with the warmer base veils (round 12): shot C's 50 m+ band measured HSV 0.20 against
-  // the reference's 0.18 at 0.9, 0.166 at the old veils
   backScatterTint: [1.08, 1.0, 0.93],
-  // direct-sun in-scatter is far more forward-peaked than the sky-lit veil: looking away from the
-  // sun the lit air in front of the camera adds little (0.7 washed shot C's whole foreground by
-  // +0.09). Shot F (109° from the sun) keeps ≈ 70 % of the side-lit beam strength, C (127°) ≈ 40 %.
   rayBackScatterMin: 0.35,
-  // the arch (47 m) rendered at ≈ 0.45 display before the veil — brighter than the veil itself — so
-  // no haze density could make it a silhouette; ×0.3 makes its body the veil's own tone through
-  // 58 % veil (dark against the far wall behind it), and the 30 m trunks (×0.55) become the
-  // reference's darker columns
-  farShadeStart: 22,
+  farShadeStart: 32,
   farShadeFull: 44,
   farShadeMin: 0.3,
 };
@@ -398,8 +291,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		vec3 v = worldPos - cameraPosition;
 		float dist = length( v );
 		rayDir = v / max( dist, 1e-4 );
-		// 1) distance haze: exponential extinction after a crisp foreground (the reference measures
-		//    ~25 % at 12 m, ~60 % at 30 m, 80–90 % at 40–60 m). fogFar is the audited visibility
+		// 1) distance haze: exponential extinction after a clear foreground. fogFar is the audited visibility
 		//    distance; the visible ramp is this density, capped so the far world stays a silhouette.
 		//    The aerosol thins with altitude and steep upward rays are cut further, so the crowns
 		//    overhead stay dark silhouettes against the luminous gaps instead of washing pale.

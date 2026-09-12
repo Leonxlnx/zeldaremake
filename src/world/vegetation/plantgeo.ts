@@ -5,9 +5,9 @@
  * botanical-refinement.js); leaf, flower and bud shapes follow the owner's concept sheets
  * (reference/concepts/01, see reference/CONCEPTS.md — the sheets are never loaded at runtime).
  */
-import { Vector3, type BufferGeometry } from 'three';
+import { Uint8BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafOptions, type LeafShape, type RGB } from './geometry';
 
 export type Detail = 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
@@ -181,11 +181,115 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
 }
 
 // ---------------------------------------------------------------- bushes
+/**
+ * Near hedge lamina: broad ovate shoulders and a continuous curved midrib (owner sheets 01/05).
+ * Keep the old five anchors, including their colours and UVs. Only six shoulder-row vertices
+ * are added, inside the inherited leaf bounds: crown height and hedgeHeight placement stay exact.
+ * No random draws, and no change to the shared cheap lamina used by other plants and lower LODs.
+ */
+function hedgeLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
+  const first = mesh.p.length / 3;
+  const indexStart = mesh.i.length;
+  curvedLeaf(mesh, base, direction, length, width, color, options);
+  mesh.i.length = indexStart;
+  const [a, l, c, r, t] = Array.from({ length: 5 }, (_, i) => V().fromArray(mesh.p, (first + i) * 3));
+  const minimum = a.clone();
+  const maximum = a.clone();
+  for (const p of [l, c, r, t]) {
+    minimum.min(p);
+    maximum.max(p);
+  }
+  const anchorColor = (i: number): RGB => mesh.c.slice((first + i) * 3, (first + i + 1) * 3) as RGB;
+  const middleColor = anchorColor(2);
+  const rows: number[][] = [[first]];
+  for (const u of [0.25, 0.5, 0.75]) {
+    if (u === 0.5) {
+      rows.push([first + 1, first + 2, first + 3]);
+      continue;
+    }
+    // Quadratic interpolation through the existing attachment, raised midrib and curled tip.
+    const centre = a.clone().multiplyScalar((1 - u) * (1 - 2 * u))
+      .addScaledVector(c, 4 * u * (1 - u)).addScaledVector(t, u * (2 * u - 1));
+    const safeCentre = u < 0.5 ? a.clone().lerp(c, u * 2) : c.clone().lerp(t, u * 2 - 1);
+    const shoulder = u < 0.5 ? 0.82 : 0.68;
+    const rowColor = u < 0.5 ? blend(anchorColor(0), middleColor, u * 2) : blend(middleColor, anchorColor(4), u * 2 - 1);
+    rows.push([-1, 0, 1].map((side) => {
+      const point = centre.clone();
+      if (side) point.addScaledVector((side < 0 ? l : r).clone().sub(c), shoulder);
+      // Limit along this displacement, rather than clamping axes independently into flat corners.
+      const delta = point.clone().sub(safeCentre);
+      let inset = 1;
+      for (const axis of ['x', 'y', 'z'] as const) {
+        if (delta[axis] > 0) inset = Math.min(inset, (maximum[axis] - safeCentre[axis]) / delta[axis]);
+        else if (delta[axis] < 0) inset = Math.min(inset, (minimum[axis] - safeCentre[axis]) / delta[axis]);
+      }
+      point.copy(safeCentre).addScaledVector(delta, Math.max(0, inset));
+      return mesh.vertex(point, (side + 1) / 2, u, side ? tone(rowColor, side < 0 ? 0.95 / 1.07 : 0.97 / 1.07) : rowColor);
+    }));
+  }
+  rows.push([first + 4]);
+  mesh.tri(rows[0][0], rows[1][0], rows[1][1]);
+  mesh.tri(rows[0][0], rows[1][1], rows[1][2]);
+  for (let row = 1; row < 3; row++) {
+    for (let side = 0; side < 2; side++) {
+      mesh.tri(rows[row][side], rows[row + 1][side], rows[row][side + 1]);
+      mesh.tri(rows[row][side + 1], rows[row + 1][side], rows[row + 1][side + 1]);
+    }
+  }
+  mesh.tri(rows[3][0], rows[4][0], rows[3][1]);
+  mesh.tri(rows[3][1], rows[4][0], rows[3][2]);
+}
+
+/** Vary near hedge leaf profiles without moving their petioles or the authored crown box.
+ * Vertical shears retain each broad lamina's horizontal footprint and triangle winding.
+ * Existing width and twist variation supplies the pose; this consumes no random numbers.
+ */
+function poseHedgeLeaves(mesh: MeshBuilder, ranges: [number, number][]) {
+  const axes = ['x', 'y', 'z'] as const;
+  const minimum = V(Infinity, Infinity, Infinity);
+  const maximum = V(-Infinity, -Infinity, -Infinity);
+  for (let i = 0; i < mesh.p.length; i += 3) {
+    const point = V().fromArray(mesh.p, i);
+    minimum.min(point);
+    maximum.max(point);
+  }
+  for (const [first, end] of ranges) {
+    // Preserve the leaves defining the existing envelope, including the exact maximum y
+    // used by hedgeHeight() to scale every authored instance. Tubes are never in these ranges.
+    const points = Array.from({ length: end - first }, (_, j) => V().fromArray(mesh.p, (first + j) * 3));
+    if (points.some(point => axes.some(axis => point[axis] === minimum[axis] || point[axis] === maximum[axis]))) continue;
+    const length = points[4].distanceTo(points[0]);
+    const width = points[3].distanceTo(points[1]);
+    const form = Math.max(0, Math.min(1, (width / length - 0.55) / 0.25));
+    const pitch = (form - 0.5) * 0.64 + (points[3].y - points[1].y) / width * 0.25;
+    const droop = 0.1 + (1 - form) * 0.1;
+    const shifts = points.map((_, j) => {
+      const u = mesh.uv[(first + j) * 2 + 1];
+      const side = mesh.uv[(first + j) * 2] * 2 - 1;
+      return length * (pitch * u - droop * u * u * u)
+        - width * (0.04 + form * 0.06) * side * side * Math.sin(Math.PI * u);
+    });
+    // One shared amount per leaf keeps the curve coherent; never clamp individual vertices.
+    let amount = 1;
+    for (let j = 0; j < points.length; j++) {
+      const delta = shifts[j];
+      if (delta > 0) amount = Math.min(amount, (maximum.y - points[j].y) / delta);
+      else if (delta < 0) amount = Math.min(amount, (minimum.y - points[j].y) / delta);
+    }
+    for (let j = 1; j < points.length; j++) mesh.p[(first + j) * 3 + 1] += shifts[j] * Math.max(0, amount);
+  }
+}
+
 export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const high = detail === 'high';
   const low = detail === 'low';
+  // variants() appends /0, /1, ...; only the authored hedge namespace receives the near detail.
+  const isHedge = /\/hedge\/\d+$/.test(seed);
+  const leaf = high && isHedge ? hedgeLeaf : curvedLeaf;
+  // Separate thin laminae from solid stems without changing any generated surface or RNG draw.
+  const leafRanges: [number, number][] | null = isHedge ? [] : null;
   const stems = 5 + rng.int(0, 3);
   const height = 0.95 + rng() * 0.55;
   const phase = rng() * TAU;
@@ -222,18 +326,29 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
         const sun = Math.min(1, (attach.y / height) * 0.7 + Math.hypot(attach.x, attach.z) * 0.5);
         const color = tone(blend(pal.leaf, pal.leafSun, sun * 0.7), 0.85 + rng() * 0.3);
         const opts = { curl: 0.1 + rng() * 0.12, twist: (rng() - 0.5) * 0.6, ridge: 0.12 };
+        const leafStart = m.p.length / 3;
         if (low) foldedLeaf(m, attach, dir, len, len * 0.6, color, opts);
-        else curvedLeaf(m, attach, dir, len, len * (0.55 + rng() * 0.25), color, opts);
+        else leaf(m, attach, dir, len, len * (0.55 + rng() * 0.25), color, opts);
+        leafRanges?.push([leafStart, m.p.length / 3]);
       }
     }
     for (let terminal = 0; terminal < 2; terminal++) {
       const dir = radial.clone().addScaledVector(lateral, terminal ? 0.55 : -0.55).add(V(0, 0.45, 0));
       const color = tone(pal.leafSun, 0.95 + rng() * 0.15);
+      const leafStart = m.p.length / 3;
       if (low) foldedLeaf(m, curve(0.98), dir, 0.12, 0.08, color);
-      else curvedLeaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { curl: 0.17, twist: 0.15, ridge: 0.11 });
+      else leaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { curl: 0.17, twist: 0.15, ridge: 0.11 });
+      leafRanges?.push([leafStart, m.p.length / 3]);
     }
   }
-  return m.finish({ groundToZero: true });
+  if (high && leafRanges) poseHedgeLeaves(m, leafRanges);
+  const geometry = m.finish({ groundToZero: true });
+  if (leafRanges) {
+    const surface = new Uint8Array(geometry.attributes.position.count);
+    for (const [start, end] of leafRanges) surface.fill(255, start, end);
+    geometry.setAttribute('aLeafSurface', new Uint8BufferAttribute(surface, 1, true));
+  }
+  return geometry;
 }
 
 // ---------------------------------------------------------------- purple flowers
@@ -284,7 +399,121 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   }
 }
 
+/** Purple corolla: six separated petals around a recessed throat. High uses52 triangles,
+ * medium26 and low14; low keeps the actual root, shoulders and tip of each petal. The caller supplies
+ * its existing independent head fork, so botanical form cannot advance the stem/layout stream.
+ */
+function purpleCorollaHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, rng: Rng, pal: PlantPalette, detail: Detail) {
+  const high = detail === 'high';
+  const n = normal.clone().normalize();
+  const side = new Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize();
+  const fwd = new Vector3().crossVectors(n, side).normalize();
+  const phase = rng() * TAU;
+  const at = (x: number, z: number, h: number) => center.clone().addScaledVector(side, x).addScaledVector(fwd, z).addScaledVector(n, h);
+  for (let p = 0; p < 6; p++) {
+    const angle = phase + p * TAU / 6 + (rng() - 0.5) * 0.07;
+    const reach = radius * (1.28 + rng() * 0.16);
+    const width = 0.28 + rng() * 0.035;
+    const color = blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
+    // The eight-point outline widens into a rounded spoon, with a narrow shared throat. Its
+    // central fan vertex sits below the rim; normals come from this real cupped surface.
+    const contour = [[0, 0, 0], [0.72, -width, 0.26], [0.94, -width * 0.65, 0.54],
+      [1, 0, 0.6], [0.94, width * 0.65, 0.58], [0.72, width, 0.3]];
+    // High's extra neck points lie on the same real contour segments as medium. Only the
+    // interior cup is simplified; no closed dome is inserted behind the petals.
+    const outline = high ? [contour[0], [0.3, -width * 0.3 / 0.72, 0.26 * 0.3 / 0.72],
+      ...contour.slice(1), [0.3, width * 0.3 / 0.72, 0.3 * 0.3 / 0.72]]
+      : detail === 'low' ? [contour[0], contour[1], contour[3], contour[5]] : contour;
+    const point = (u: number, v: number, h: number) => at(
+      reach * (Math.cos(angle) * u - Math.sin(angle) * v),
+      reach * (Math.sin(angle) * u + Math.cos(angle) * v), radius * h);
+    const middle = high ? m.vertex(point(0.58, 0, 0.08), 0.5, 0.58, color) : -1;
+    const edge = outline.map(([u, v, h]) => m.vertex(point(u, v, h), 0.5 + v / (width * 2), u,
+      u > 0.9 ? blend(color, pal.purpleLight, 0.35) : color));
+    if (high) for (let i = 0; i < edge.length; i++) m.tri(middle, edge[i], edge[(i + 1) % edge.length]);
+    else for (let i = 1; i < edge.length - 1; i++) m.tri(edge[0], edge[i], edge[i + 1]);
+  }
+  // A tiny four-sided bowl meets the original stem endpoint, without a floating disk, pollen
+  // glint, texture or new colour. It covers the six petals' common attachment.
+  const throat = high ? m.vertex(center, 0.5, 0.5, pal.purpleDeep) : -1;
+  const rim = Array.from({ length: 4 }, (_, i) => {
+    const a = phase + i * TAU / 4;
+    return m.vertex(at(Math.cos(a) * radius * 0.28, Math.sin(a) * radius * 0.28, radius * 0.15),
+      0.5 + Math.cos(a) * 0.5, 0.5 + Math.sin(a) * 0.5, blend(pal.purpleDeep, pal.purple, 0.35));
+  });
+  if (high) for (let i = 0; i < rim.length; i++) m.tri(throat, rim[i], rim[(i + 1) % rim.length]);
+  else { m.tri(rim[0], rim[1], rim[2]); m.tri(rim[0], rim[2], rim[3]); }
+}
+
+/** Preserve the established cluster family, including its separate yellow-palette reuse. */
 export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  return buildFlowerGeometry(seed, pal, detail);
+}
+
+// One real botanical definition supplies every purple cluster LOD. Leaf descriptors remain
+// part of the plant even when low omits their surfaces; sampling is independent of tessellation.
+type PurpleLeaf = [Vector3, Vector3, number, number, RGB, LeafOptions];
+interface PurpleStem {
+  points: Vector3[];
+  leaves: PurpleLeaf[];
+  center: Vector3;
+  normal: Vector3;
+  radius: number;
+  headRng: Rng;
+}
+
+function purplePlantDefinition(seed: string, pal: PlantPalette) {
+  const rng = createRng(seed);
+  const count = 6 + rng.int(0, 4);
+  const phase = rng() * TAU;
+  const leafColor = blend(pal.leaf, pal.grassLight, 0.3);
+  const stems: PurpleStem[] = [];
+  for (let i = 0; i < count; i++) {
+    const angle = phase + (i * TAU) / count + (rng() - 0.5) * 0.5;
+    const radius = 0.03 + rng() * 0.11;
+    const root = V(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+    const height = 0.22 + rng() * 0.2;
+    const lean = V(Math.cos(angle) * height * 0.3, height, Math.sin(angle) * height * 0.3);
+    const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
+    const leaves: PurpleLeaf[] = [];
+    for (let j = 0; j < 2; j++) {
+      for (const sign of [-1, 1]) {
+        const dir = V(Math.cos(angle + j * 1.3) * sign, 0.3, Math.sin(angle + j * 1.3) * sign);
+        leaves.push([curve(0.22 + j * 0.3), dir, 0.05 + rng() * 0.035, 0.02, tone(leafColor, 0.9 + rng() * 0.25), { curl: 0.12, twist: sign * 0.15 }]);
+      }
+    }
+    const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
+    stems.push({ points: sampleCurve(curve, 3), leaves, center: curve(1), normal: up,
+      radius: 0.034 + rng() * 0.016, headRng: rng.fork(`head-${i}`) });
+  }
+  const rosette: PurpleLeaf[] = [];
+  const countRosette = 4 + rng.int(0, 3);
+  for (let l = 0; l < countRosette; l++) {
+    const a = phase + (l * TAU) / countRosette + rng() * 0.4;
+    const dir = V(Math.cos(a), 0.55 + rng() * 0.3, Math.sin(a)).normalize();
+    rosette.push([V(Math.cos(a) * 0.02, 0.005, Math.sin(a) * 0.02), dir, 0.07 + rng() * 0.05, 0.035, tone(leafColor, 0.85 + rng() * 0.2), { curl: 0.2, ridge: 0.12 }]);
+  }
+  return { stems, rosette };
+}
+
+/** Purple LODs share actual roots, axes, heads and petal samples. High/mid emit unchanged. */
+export function purpleFlowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  const plant = purplePlantDefinition(seed, pal);
+  const m = new MeshBuilder();
+  const low = detail === 'low';
+  for (const stem of plant.stems) {
+    // Keep the root's first tangent (t=0 -> 1/3), hence the grounded head heights. Low drops
+    // only the t=2/3 ring, not an entire plant or its endpoint; no substitute coverage shell.
+    const points = low ? [stem.points[0], stem.points[1], stem.points[3]] : stem.points;
+    tube(m, points, 0.0026, 0.0014, pal.stem, 3);
+    if (!low) for (const leaf of stem.leaves) curvedLeaf(m, ...leaf);
+    purpleCorollaHead(m, stem.center, stem.normal, stem.radius, stem.headRng, pal, detail);
+  }
+  if (!low) for (const leaf of plant.rosette) curvedLeaf(m, ...leaf);
+  return m.finish({ groundToZero: true });
+}
+
+function buildFlowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const low = detail === 'low';
@@ -312,7 +541,6 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     // head: dense cluster bloom (~7–10 cm across)
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
     // Petal tessellation must not advance the layout stream and move the next stem.
-    // Retain the existing cheap low LOD; only high/mid need matching silhouettes.
     clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, low ? rng : rng.fork(`head-${i}`), pal, detail);
   }
   if (!low) {

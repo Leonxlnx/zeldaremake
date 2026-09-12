@@ -1,0 +1,826 @@
+{
+  "pin": "71843a28538f00bdbbd0005a65a1b588315753b5",
+  "scope": "Actual pinned hardscape CPU geometry and character ground sampler. No image creation/GPU visibility, light response or frame-time claim. Additional terrain queries are post-build diagnosis only.",
+  "hashes": {
+    "baselineGeometry": "1de36e8eb2ee8d324de65e07ce75b8dc1ea2d432840fa29d2968d3d5eee2b086",
+    "candidateGeometry": "3ec4614c68033d90f6d63d46cc4dda4e0b50f6158844c276dbf49a4d13db08d9",
+    "baselineFlagstones": "178c61f6297024a8ce5a7076e630fd2aef34da1e7d71f1db5374b217698da3bd",
+    "candidateFlagstones": "aa3f608d6876adcf22e1e6b7daba4e096e637b989a16739b5656e632cda6b7f1",
+    "oldPositions": "054fcd2f6e7e44999d32c455e82cae3936d3e5e16b8a00897071f712d8694d26",
+    "newPositions": "426175263d640246417a662c474b65a38290f8ba9bf18cb79508ff23770afe8a",
+    "oldNormals": "2b811535547e8662cda4e1bedb073df4203f8e6877f22b678ed1a67d5bf2d658",
+    "newNormals": "3e537689d0a50462a1cd482ea0b25345edebd7aa6764c89e6ff4492a1ddf9240"
+  },
+  "rng": {
+    "exact": true,
+    "streams": 1134,
+    "totalDraws": 2937681,
+    "digest": "38deb3e45e597be078b3f445a5595cad42efeccc852e00c4036f396164b152f9",
+    "rootTail": [
+      0.9828448388725519,
+      0.5871250866912305,
+      0.5269210720434785,
+      0.6630725972354412,
+      0.6312565333209932,
+      0.9881966297980398,
+      0.8984479152131826,
+      0.6297316472046077
+    ]
+  },
+  "scopeChecks": {
+    "changedStones": 196,
+    "unchangedStones": 423,
+    "steppingDiscsExact": 8,
+    "changedVertices": 11933,
+    "maxWorldDisplacement": 0.009000002872652148,
+    "maxWorldXZShift": 0.00018629524931066524,
+    "maxDropM": 0.008999999999999994,
+    "minTopClearanceBefore": -0.07115826075596487,
+    "minTopClearanceAfter": -0.07115826075596487,
+    "newBelowTerrainVertices": 0,
+    "worstExistingPenetrationDelta": 0,
+    "localDownwardBefore": 0,
+    "localDownwardAfter": 0,
+    "worldDownwardBefore": 0,
+    "worldDownwardAfter": 0,
+    "degenerateTopBefore": 0,
+    "degenerateTopAfter": 0,
+    "topOutsideBefore": 0,
+    "topOutsideAfter": 0,
+    "maxTopAreaError": 1.7763568394002505e-15,
+    "maxNormalAngleDeg": 20.760283874292377,
+    "outerWallsAndBottomExact": true,
+    "allExistingUVColorMossStainExact": true
+  },
+  "stoneMetadataAndStatsExact": true,
+  "allSproutSpotHeadAndInstanceBytesExact": true,
+  "unchangedOtherHardscapeMeshes": 8,
+  "slabVertices": 258963,
+  "slabTriangles": 86321,
+  "extraTriangles": 0,
+  "extraDrawCalls": 0,
+  "extraMaterials": 0,
+  "extraPrograms": 0,
+  "extraTextures": 0,
+  "oldBound": {
+    "radius": 39.56689104542308,
+    "center": [
+      1.7917323112487793,
+      2.8018245846033096,
+      -20.993974685668945
+    ]
+  },
+  "newBound": {
+    "radius": 39.56689104542308,
+    "center": [
+      1.7917323112487793,
+      2.8018245846033096,
+      -20.993974685668945
+    ]
+  },
+  "notchedFallback": {
+    "nonPositiveTriangles": 0,
+    "area": 7
+  },
+  "walkability": {
+    "scope": "Existing 10cm surface grid, all 0.1m samples in x[-8,10],z[-14,10]. Blocking/stair membership exact; grid coverage changes separately quantified. Actual motion/collision rendering not run.",
+    "surfaceInfoBefore": {
+      "cells": 122295,
+      "covered": 28873,
+      "cellSize": 0.1,
+      "triangles": 64664
+    },
+    "surfaceInfoAfter": {
+      "cells": 122295,
+      "covered": 28878,
+      "cellSize": 0.1,
+      "triangles": 64841
+    },
+    "walkHeightGate": true,
+    "maxRiseToleranceM": 0.0001,
+    "maxDropToleranceM": 0.0091,
+    "raisedSampleExamples": [
+      {
+        "x": -0.6000000000000116,
+        "z": -9.200000000000017,
+        "oldHeight": 0.04705657437443733,
+        "newHeight": 0.04709101840853691,
+        "delta": 3.444403409957886e-05
+      },
+      {
+        "x": -4.000000000000014,
+        "z": -2.200000000000034,
+        "oldHeight": 0.0291044469922781,
+        "newHeight": 0.02911721169948578,
+        "delta": 1.2764707207679749e-05
+      },
+      {
+        "x": -4.000000000000014,
+        "z": -2.100000000000034,
+        "oldHeight": 0.0291044469922781,
+        "newHeight": 0.02911721169948578,
+        "delta": 1.2764707207679749e-05
+      },
+      {
+        "x": 2.4999999999999893,
+        "z": -2.100000000000034,
+        "oldHeight": 0.037842877209186554,
+        "newHeight": 0.03787761181592941,
+        "delta": 3.473460674285889e-05
+      },
+      {
+        "x": 3.7999999999999905,
+        "z": -1.8000000000000336,
+        "oldHeight": 0.021418552845716476,
+        "newHeight": 0.021443340927362442,
+        "delta": 2.4788081645965576e-05
+      },
+      {
+        "x": -4.300000000000013,
+        "z": -0.200000000000033,
+        "oldHeight": 0.04815209284424782,
+        "newHeight": 0.048203326761722565,
+        "delta": 5.1233917474746704e-05
+      },
+      {
+        "x": 3.5999999999999903,
+        "z": -0.100000000000033,
+        "oldHeight": 0.036831971257925034,
+        "newHeight": 0.03688179701566696,
+        "delta": 4.98257577419281e-05
+      },
+      {
+        "x": -3.0000000000000133,
+        "z": 0.299999999999967,
+        "oldHeight": 0.03594179451465607,
+        "newHeight": 0.03595712035894394,
+        "delta": 1.5325844287872314e-05
+      },
+      {
+        "x": 1.6999999999999889,
+        "z": 0.9999999999999669,
+        "oldHeight": 0.03515021875500679,
+        "newHeight": 0.03516274318099022,
+        "delta": 1.2524425983428955e-05
+      }
+    ],
+    "walkSamples": 43621,
+    "changedHeights": 3131,
+    "maxHeightDelta": 5.1233917474746704e-05,
+    "minHeightDelta": -0.008999980986118317,
+    "maxNeighborDelta": 0.008999977260828018
+  },
+  "projected": {
+    "A_stairs": {
+      "scope": "Projected changed vertices in original camera frustum, not visibility/occlusion or actual pixel differences.",
+      "vertices": 6737,
+      "stones": 113,
+      "deltaPxP50P90Max": [
+        0.12706747935144408,
+        0.7329819666812913,
+        1.8236125719831118
+      ],
+      "largest": [
+        {
+          "stone": 67,
+          "x": 6.2707850678963695,
+          "y": 677.4001732170813,
+          "deltaPx": 1.8236125719831118,
+          "distance": 5.309605482830022,
+          "localVertex": 116
+        },
+        {
+          "stone": 67,
+          "x": 6.2707850678963695,
+          "y": 677.4001732170813,
+          "deltaPx": 1.8236125719831118,
+          "distance": 5.309605482830022,
+          "localVertex": 118
+        },
+        {
+          "stone": 67,
+          "x": 6.2707850678963695,
+          "y": 677.4001732170813,
+          "deltaPx": 1.8236125719831118,
+          "distance": 5.309605482830022,
+          "localVertex": 125
+        },
+        {
+          "stone": 67,
+          "x": 6.2707850678963695,
+          "y": 677.4001732170813,
+          "deltaPx": 1.8236125719831118,
+          "distance": 5.309605482830022,
+          "localVertex": 187
+        },
+        {
+          "stone": 67,
+          "x": 6.2707850678963695,
+          "y": 677.4001732170813,
+          "deltaPx": 1.8236125719831118,
+          "distance": 5.309605482830022,
+          "localVertex": 192
+        },
+        {
+          "stone": 67,
+          "x": 6.2707850678963695,
+          "y": 677.4001732170813,
+          "deltaPx": 1.8236125719831118,
+          "distance": 5.309605482830022,
+          "localVertex": 195
+        },
+        {
+          "stone": 67,
+          "x": 20.32710909615652,
+          "y": 674.6555739511836,
+          "deltaPx": 1.8098935423159617,
+          "distance": 5.3081151737657635,
+          "localVertex": 110
+        },
+        {
+          "stone": 67,
+          "x": 20.32710909615652,
+          "y": 674.6555739511836,
+          "deltaPx": 1.8098935423159617,
+          "distance": 5.3081151737657635,
+          "localVertex": 112
+        },
+        {
+          "stone": 67,
+          "x": 20.32710909615652,
+          "y": 674.6555739511836,
+          "deltaPx": 1.8098935423159617,
+          "distance": 5.3081151737657635,
+          "localVertex": 119
+        },
+        {
+          "stone": 67,
+          "x": 20.32710909615652,
+          "y": 674.6555739511836,
+          "deltaPx": 1.8098935423159617,
+          "distance": 5.3081151737657635,
+          "localVertex": 181
+        },
+        {
+          "stone": 67,
+          "x": 20.32710909615652,
+          "y": 674.6555739511836,
+          "deltaPx": 1.8098935423159617,
+          "distance": 5.3081151737657635,
+          "localVertex": 186
+        },
+        {
+          "stone": 67,
+          "x": 20.32710909615652,
+          "y": 674.6555739511836,
+          "deltaPx": 1.8098935423159617,
+          "distance": 5.3081151737657635,
+          "localVertex": 189
+        }
+      ]
+    },
+    "B_house": {
+      "scope": "Projected changed vertices in original camera frustum, not visibility/occlusion or actual pixel differences.",
+      "vertices": 3308,
+      "stones": 62,
+      "deltaPxP50P90Max": [
+        0.09515528985866903,
+        0.5438284673637056,
+        2.12106969547279
+      ],
+      "largest": [
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 236
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 238
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 245
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 361
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 366
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 369
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 242
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 244
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 251
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 367
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 372
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 375
+        }
+      ]
+    },
+    "C_lookback": {
+      "scope": "Projected changed vertices in original camera frustum, not visibility/occlusion or actual pixel differences.",
+      "vertices": 7656,
+      "stones": 118,
+      "deltaPxP50P90Max": [
+        0.11972383665344573,
+        0.6917274641090306,
+        1.507555904205401
+      ],
+      "largest": [
+        {
+          "stone": 0,
+          "x": 1225.7157374066287,
+          "y": 549.4377673857389,
+          "deltaPx": 1.507555904205401,
+          "distance": 6.0974353804789105,
+          "localVertex": 131
+        },
+        {
+          "stone": 0,
+          "x": 1225.7157374066287,
+          "y": 549.4377673857389,
+          "deltaPx": 1.507555904205401,
+          "distance": 6.0974353804789105,
+          "localVertex": 248
+        },
+        {
+          "stone": 0,
+          "x": 1225.7157374066287,
+          "y": 549.4377673857389,
+          "deltaPx": 1.507555904205401,
+          "distance": 6.0974353804789105,
+          "localVertex": 250
+        },
+        {
+          "stone": 0,
+          "x": 1225.7157374066287,
+          "y": 549.4377673857389,
+          "deltaPx": 1.507555904205401,
+          "distance": 6.0974353804789105,
+          "localVertex": 252
+        },
+        {
+          "stone": 0,
+          "x": 1225.7157374066287,
+          "y": 549.4377673857389,
+          "deltaPx": 1.507555904205401,
+          "distance": 6.0974353804789105,
+          "localVertex": 255
+        },
+        {
+          "stone": 0,
+          "x": 1225.7157374066287,
+          "y": 549.4377673857389,
+          "deltaPx": 1.507555904205401,
+          "distance": 6.0974353804789105,
+          "localVertex": 373
+        },
+        {
+          "stone": 0,
+          "x": 1232.2582299086046,
+          "y": 552.8719360714329,
+          "deltaPx": 1.4726327006291446,
+          "distance": 6.036077336175066,
+          "localVertex": 128
+        },
+        {
+          "stone": 0,
+          "x": 1232.2582299086046,
+          "y": 552.8719360714329,
+          "deltaPx": 1.4726327006291446,
+          "distance": 6.036077336175066,
+          "localVertex": 130
+        },
+        {
+          "stone": 0,
+          "x": 1232.2582299086046,
+          "y": 552.8719360714329,
+          "deltaPx": 1.4726327006291446,
+          "distance": 6.036077336175066,
+          "localVertex": 137
+        },
+        {
+          "stone": 0,
+          "x": 1232.2582299086046,
+          "y": 552.8719360714329,
+          "deltaPx": 1.4726327006291446,
+          "distance": 6.036077336175066,
+          "localVertex": 253
+        },
+        {
+          "stone": 0,
+          "x": 1232.2582299086046,
+          "y": 552.8719360714329,
+          "deltaPx": 1.4726327006291446,
+          "distance": 6.036077336175066,
+          "localVertex": 258
+        },
+        {
+          "stone": 0,
+          "x": 1232.2582299086046,
+          "y": 552.8719360714329,
+          "deltaPx": 1.4726327006291446,
+          "distance": 6.036077336175066,
+          "localVertex": 261
+        }
+      ]
+    },
+    "D_log": {
+      "scope": "Projected changed vertices in original camera frustum, not visibility/occlusion or actual pixel differences.",
+      "vertices": 2654,
+      "stones": 53,
+      "deltaPxP50P90Max": [
+        0.10042582910885303,
+        0.771109647896984,
+        1.407461336675
+      ],
+      "largest": [
+        {
+          "stone": 389,
+          "x": 483.35268475547343,
+          "y": 635.3334462649993,
+          "deltaPx": 1.407461336675,
+          "distance": 5.013498257702105,
+          "localVertex": 158
+        },
+        {
+          "stone": 389,
+          "x": 483.35268475547343,
+          "y": 635.3334462649993,
+          "deltaPx": 1.407461336675,
+          "distance": 5.013498257702105,
+          "localVertex": 160
+        },
+        {
+          "stone": 389,
+          "x": 483.35268475547343,
+          "y": 635.3334462649993,
+          "deltaPx": 1.407461336675,
+          "distance": 5.013498257702105,
+          "localVertex": 167
+        },
+        {
+          "stone": 389,
+          "x": 483.35268475547343,
+          "y": 635.3334462649993,
+          "deltaPx": 1.407461336675,
+          "distance": 5.013498257702105,
+          "localVertex": 277
+        },
+        {
+          "stone": 389,
+          "x": 483.35268475547343,
+          "y": 635.3334462649993,
+          "deltaPx": 1.407461336675,
+          "distance": 5.013498257702105,
+          "localVertex": 282
+        },
+        {
+          "stone": 389,
+          "x": 483.35268475547343,
+          "y": 635.3334462649993,
+          "deltaPx": 1.407461336675,
+          "distance": 5.013498257702105,
+          "localVertex": 285
+        },
+        {
+          "stone": 389,
+          "x": 477.837124559266,
+          "y": 635.677783787019,
+          "deltaPx": 1.4016624527416073,
+          "distance": 5.010543169433651,
+          "localVertex": 164
+        },
+        {
+          "stone": 389,
+          "x": 477.837124559266,
+          "y": 635.677783787019,
+          "deltaPx": 1.4016624527416073,
+          "distance": 5.010543169433651,
+          "localVertex": 166
+        },
+        {
+          "stone": 389,
+          "x": 477.837124559266,
+          "y": 635.677783787019,
+          "deltaPx": 1.4016624527416073,
+          "distance": 5.010543169433651,
+          "localVertex": 173
+        },
+        {
+          "stone": 389,
+          "x": 477.837124559266,
+          "y": 635.677783787019,
+          "deltaPx": 1.4016624527416073,
+          "distance": 5.010543169433651,
+          "localVertex": 283
+        },
+        {
+          "stone": 389,
+          "x": 477.837124559266,
+          "y": 635.677783787019,
+          "deltaPx": 1.4016624527416073,
+          "distance": 5.010543169433651,
+          "localVertex": 288
+        },
+        {
+          "stone": 389,
+          "x": 477.837124559266,
+          "y": 635.677783787019,
+          "deltaPx": 1.4016624527416073,
+          "distance": 5.010543169433651,
+          "localVertex": 291
+        }
+      ]
+    },
+    "E_ground": {
+      "scope": "Projected changed vertices in original camera frustum, not visibility/occlusion or actual pixel differences.",
+      "vertices": 3308,
+      "stones": 62,
+      "deltaPxP50P90Max": [
+        0.09515528985866903,
+        0.5438284673637056,
+        2.12106969547279
+      ],
+      "largest": [
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 236
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 238
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 245
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 361
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 366
+        },
+        {
+          "stone": 0,
+          "x": 215.16784729874004,
+          "y": 713.3082986743199,
+          "deltaPx": 2.12106969547279,
+          "distance": 4.308234862168619,
+          "localVertex": 369
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 242
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 244
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 251
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 367
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 372
+        },
+        {
+          "stone": 0,
+          "x": 221.5613182683594,
+          "y": 707.3924027035939,
+          "deltaPx": 2.0837633582377997,
+          "distance": 4.364683121210034,
+          "localVertex": 375
+        }
+      ]
+    },
+    "F_canopy": {
+      "scope": "Projected changed vertices in original camera frustum, not visibility/occlusion or actual pixel differences.",
+      "vertices": 2835,
+      "stones": 46,
+      "deltaPxP50P90Max": [
+        0.2881814999613024,
+        1.249493462133307,
+        2.026013570406547
+      ],
+      "largest": [
+        {
+          "stone": 46,
+          "x": 292.60557367766097,
+          "y": 715.1791623588693,
+          "deltaPx": 2.026013570406547,
+          "distance": 4.22506731017939,
+          "localVertex": 206
+        },
+        {
+          "stone": 46,
+          "x": 292.60557367766097,
+          "y": 715.1791623588693,
+          "deltaPx": 2.026013570406547,
+          "distance": 4.22506731017939,
+          "localVertex": 208
+        },
+        {
+          "stone": 46,
+          "x": 292.60557367766097,
+          "y": 715.1791623588693,
+          "deltaPx": 2.026013570406547,
+          "distance": 4.22506731017939,
+          "localVertex": 215
+        },
+        {
+          "stone": 46,
+          "x": 292.60557367766097,
+          "y": 715.1791623588693,
+          "deltaPx": 2.026013570406547,
+          "distance": 4.22506731017939,
+          "localVertex": 349
+        },
+        {
+          "stone": 46,
+          "x": 292.60557367766097,
+          "y": 715.1791623588693,
+          "deltaPx": 2.026013570406547,
+          "distance": 4.22506731017939,
+          "localVertex": 354
+        },
+        {
+          "stone": 46,
+          "x": 292.60557367766097,
+          "y": 715.1791623588693,
+          "deltaPx": 2.026013570406547,
+          "distance": 4.22506731017939,
+          "localVertex": 357
+        },
+        {
+          "stone": 46,
+          "x": 303.98439308182896,
+          "y": 697.2800769849954,
+          "deltaPx": 1.9411592780510487,
+          "distance": 4.370193496042912,
+          "localVertex": 200
+        },
+        {
+          "stone": 46,
+          "x": 303.98439308182896,
+          "y": 697.2800769849954,
+          "deltaPx": 1.9411592780510487,
+          "distance": 4.370193496042912,
+          "localVertex": 202
+        },
+        {
+          "stone": 46,
+          "x": 303.98439308182896,
+          "y": 697.2800769849954,
+          "deltaPx": 1.9411592780510487,
+          "distance": 4.370193496042912,
+          "localVertex": 209
+        },
+        {
+          "stone": 46,
+          "x": 303.98439308182896,
+          "y": 697.2800769849954,
+          "deltaPx": 1.9411592780510487,
+          "distance": 4.370193496042912,
+          "localVertex": 343
+        },
+        {
+          "stone": 46,
+          "x": 303.98439308182896,
+          "y": 697.2800769849954,
+          "deltaPx": 1.9411592780510487,
+          "distance": 4.370193496042912,
+          "localVertex": 348
+        },
+        {
+          "stone": 46,
+          "x": 303.98439308182896,
+          "y": 697.2800769849954,
+          "deltaPx": 1.9411592780510487,
+          "distance": 4.370193496042912,
+          "localVertex": 351
+        }
+      ]
+    }
+  },
+  "fullEvidenceSHA256": "95fc03118d95c22c6cf30ce75a57404152e74c42bdd9a561af6272d5602d0b31",
+  "omittedPerStoneRows": 619,
+  "note": "Run check.mjs to regenerate the full619-row evidence and1134 per-stream hashes in ignored scratch output."
+}

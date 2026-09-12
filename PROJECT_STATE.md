@@ -8,7 +8,49 @@ Per-agent progress lives in `.agents/<agent>.md`; the live picture is the Direct
 `gauntlet/reports/verify-exit.json` — see GAUNTLET.md §6) with **Phase 2 (Link) and Phase 3
 (HUD) content landed in parallel** since take-0025 so the frames can be compared whole.
 
-## Latest integrated milestone
+## Integrated environment milestone — 2026-09-12
+
+Astra's `agent/astra-environment-lighting` (draft PR #6 against Fable's world branch) deliberately
+integrates Fable's structures 18 and take 71 history, retaining Astra's sign/post work, canopy
+contract and reviewed lighting/vegetation changes. Checkpoint `0d4ae52` establishes that house
+integration; `9ef903c` adds the reviewed high-detail hedge leaf form. `f56d0d2` then integrates
+corrected runtime tree seats and recessed distant huts after the rejected bank-height trial
+was rolled back in4ae. The isolated32m middle-surface light onset e8 is retained after27 actual
+comparisons. These are branch milestones,
+not a merge to main or completion of Phase 1. Active experiments and current source identities
+remain in `.agents/astra-environment.md` and PR #6.
+
+The integrated build has clearer tree-house windows and a wider dark entrance, an irregular
+moss crown, detailed sign/rope/post materials, cooler shaded air, stable light-space shadow
+snapping, corrected grass/tuft lighting, seated leaf pods and varied hedge leaf pitch/cupping. Distant huts now use published trunk seats and have dark
+recesses, small interior lamps and shaped pods; their conspicuous continuous glowing rims
+remain an explicit Fable follow-up.
+Independent actual reviews retain those specific gains. Rejected crate-grain, paving-shoulder
+and broad canopy-shadow trials were rolled back; their original evidence is preserved.
+
+Two retained batching changes reduce unnecessary submissions: separate distant caps and sprout
+variants. The sprout change saves 120,322 submitted triangles in every fixed view for two calls,
+with exact original image/depth bytes. At the 9ef milestone all six saved world views remain
+below 700 calls and 9 M submitted triangles. Free-camera studies can exceed that envelope; these
+are capture counts, not measured real-time FPS or a claim that every camera meets the budget.
+
+Actual source-pinned screenshots are published regularly under
+[captures/astra-environment](https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment):
+12 comparison JPEGs (10 distinct because B/E share a camera), four fixed full-scene details,
+and named original PNG camera studies with source/time/controls/depth metadata. Comparisons
+within one checkpoint use one source with different shaft gains; historical source changes
+must be compared between matching checkpoints. Camera studies do not establish continuous
+interactive playback. Owner concept boards are comparison references, never scenery.
+
+Major remaining weaknesses include smooth house supports/cap construction (take 70 W25 remains
+an independently reviewed fail), bright graphic distant-hut rim outlines, overly fine bank
+planting and incomplete light/material separation. Fable owns the continuing tree/house geometry;
+Astra owns the coordinated environment lighting and vegetation passes. The runtime trunk-seat
+API and its reported crown-height correction are integrated and checked against the actual
+22 seat rows. The latest isolated flower candidate is still an experiment in the agent log. Character modelling remains paused for the owner's local Blender MCP
+session; the visible character is a placeholder. No scheduled tasks are used for this work.
+
+## Foundation snapshot — 2026-09-10 (retained history)
 `main` = empty repository (initial commit). Everything below is on branch
 `cursor/kokiri-world-phase1-f65e` (PR #2, draft): foundation + five content rounds on every
 world system + gauntlet tooling + Director's Monitor + walkable build. Second agent (`codex`)

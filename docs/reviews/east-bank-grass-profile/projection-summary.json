@@ -1,0 +1,120 @@
+{
+  "status": "Retained static projection summary; not rerendered or recomputed by the portable source proof",
+  "actualSource": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "actualTree": "b38411104adebad7689f025adb8a30202ff9b38b",
+  "archiveCommit": "6c0888409116600733cc06b5391791a582deb0b1",
+  "archiveFolder": "progress/2026-09-12_200727869-9ef903c",
+  "metadataSHA256": "3d33a0a90cdf0f331ef3cc42dbe61b843c86e6fd1079d99e2ef2ef159f9824a7",
+  "frozenFullProjectionSHA256": "639a7e3d7136e03b10538628f3eeb28f157a3e88e82b0218c498e2ff9c29c478",
+  "scope": "Existing 9ef actual cameras/depth, unchanged grass geometry since that source. Root-centred projection screens candidates by positive depth and coarse80x45 cell depth+1.3m. This deliberately loose filter is not per-blade actual visibility. Source blade shape is projected without wind; changed stiffness and world-dependent wind can alter actual pixels. Statistics count source roots, not rendered coverage or aesthetic improvement. C ROI only, never a whole-C invariance claim.",
+  "views": [
+    {
+      "id": "A_stairs",
+      "jpeg": "A_stairs-candidate.jpg",
+      "jpegSHA256": "3aa15d91c8824a86fd6dfada4f5e47e9c02714a62ed3f2d9d6f0dd920ae7b894",
+      "roi": [
+        1050,
+        140,
+        1280,
+        340
+      ],
+      "roiChangedOver1mm": 2759,
+      "roiOldHeights": {
+        "count": 2759,
+        "min": 0.0962861173776706,
+        "p10": 0.1343133784830299,
+        "median": 0.2777986247025359,
+        "p90": 0.49840728945339813,
+        "max": 0.6297086787470227
+      },
+      "roiNewHeights": {
+        "count": 2759,
+        "min": 0.03783076401686366,
+        "p10": 0.06298487787867545,
+        "median": 0.15900733420005286,
+        "p90": 0.3183433234579609,
+        "max": 0.6048909645919378
+      },
+      "roiStaticTipDeltaPx": {
+        "count": 2759,
+        "min": 0.05634873072281654,
+        "p10": 0.6226093532724066,
+        "median": 5.584603592985598,
+        "p90": 13.507009587078432,
+        "max": 20.93299631380562
+      }
+    },
+    {
+      "id": "C_lookback",
+      "jpeg": "C_lookback-candidate.jpg",
+      "jpegSHA256": "5477f9cd54f7d5e2d48874322e88e502ad812a59b50293b746015b6390720e8e",
+      "roi": [
+        40,
+        345,
+        345,
+        585
+      ],
+      "roiChangedOver1mm": 0,
+      "roiOldHeights": {
+        "count": 0,
+        "min": null,
+        "p10": null,
+        "median": null,
+        "p90": null,
+        "max": null
+      },
+      "roiNewHeights": {
+        "count": 0,
+        "min": null,
+        "p10": null,
+        "median": null,
+        "p90": null,
+        "max": null
+      },
+      "roiStaticTipDeltaPx": {
+        "count": 0,
+        "min": null,
+        "p10": null,
+        "median": null,
+        "p90": null,
+        "max": null
+      }
+    },
+    {
+      "id": "F_canopy",
+      "jpeg": "F_canopy-candidate.jpg",
+      "jpegSHA256": "55724e6172230f5c76dcf735be49eb868f3ee0412d53488dc48cfcbc154449e0",
+      "roi": [
+        460,
+        155,
+        850,
+        330
+      ],
+      "roiChangedOver1mm": 7836,
+      "roiOldHeights": {
+        "count": 7836,
+        "min": 0.07659522837947132,
+        "p10": 0.12662096558686117,
+        "median": 0.2578218040555354,
+        "p90": 0.4899615612960337,
+        "max": 0.6389786130717418
+      },
+      "roiNewHeights": {
+        "count": 7836,
+        "min": 0.03680355587982246,
+        "p10": 0.0610640337930534,
+        "median": 0.15146100796423903,
+        "p90": 0.3400890353089005,
+        "max": 0.6323870864982131
+      },
+      "roiStaticTipDeltaPx": {
+        "count": 7836,
+        "min": 0.03765456257885247,
+        "p10": 0.3971514658248979,
+        "median": 4.0578312533193515,
+        "p90": 10.53321677145044,
+        "max": 18.78352311890416
+      }
+    }
+  ]
+}

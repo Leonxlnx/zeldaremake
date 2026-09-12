@@ -109,7 +109,18 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.throws(() => createVegShadowMaterials(source), /plant or bush/);
   if (kind === 'grass') {
     assert.doesNotMatch(shader.vertexShader, /aPlantVariant/, 'grass tiles are not packed');
+    // Three flips both components of the authored up-biased normal on back faces. Grass keeps
+    // its upward component while retaining the flipped horizontal facing; other families do not.
+    assert.equal((shader.vertexShader.match(/varying vec3 vGrassTerrainUp;/g) || []).length, 1);
+    assert.equal((shader.fragmentShader.match(/varying vec3 vGrassTerrainUp;/g) || []).length, 1);
+    assert.match(shader.vertexShader, /vGrassTerrainUp = normalMatrix \* bladeUp;/);
+    assert.match(shader.fragmentShader, /#include <normal_fragment_begin>\s*#ifdef DOUBLE_SIDED/);
+    assert.match(shader.fragmentShader, /normal = normalize\(normal - 2\.0 \* upComponent \* grassUp\);\s*nonPerturbedNormal = normal;/);
+    assert.match(source.customProgramCacheKey(), /-terrain-up-v1/);
+
   } else {
+    assert.doesNotMatch(shader.vertexShader + shader.fragmentShader, /vGrassTerrainUp|upComponent/);
+    assert.doesNotMatch(source.customProgramCacheKey(), /-terrain-up-v1/);
     // static moss / litter packs collapse the same way and keep Three's own projection
     assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);
     assert.match(shader.vertexShader, /#include <begin_vertex>\s*bool vegKeep = abs\(aVariant - aPlantVariant\) < 0\.5;\s*if \(!vegKeep\) transformed = vec3\(0\.0\);/);
@@ -140,6 +151,65 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.equal(projection(prepare(depth, 'depth')), projection(gs), 'the glossy option leaves the shared projection block alone');
 }
 const unrelated = new THREE.MeshStandardMaterial();
+{
+  const plain = createVegMaterial(ctx, 'bush');
+  const leaf = createVegMaterial(ctx, 'bush', { leafSkyTransmission: 0.65 });
+  owned.push(plain, leaf);
+  const ps = prepare(plain, 'standard'), ls = prepare(leaf, 'standard');
+  assert.equal(ls.uniforms.uLeafSkyTransmission.value, 0.65);
+  assert.notEqual(plain.customProgramCacheKey(), leaf.customProgramCacheKey(), 'Tagged and untagged vegetation cannot share a program');
+  assert.equal(projection(ls), projection(ps), 'Thin-leaf response does not alter wind or position');
+  assert.equal((ls.vertexShader.match(/attribute float aLeafSurface;/g) || []).length, 1);
+  assert.match(ls.vertexShader, /vLeafSurface = aLeafSurface;/);
+  assert.match(ls.fragmentShader, /if \(vLeafSurface > 0\.5\)/, 'Solid stems do not transmit sky');
+  assert.doesNotMatch(ps.vertexShader + ps.fragmentShader, /aLeafSurface|vLeafSurface|uLeafSkyTransmission/);
+  for (const amount of [0, -1, NaN, Infinity]) {
+    const disabled = createVegMaterial(ctx, 'bush', { leafSkyTransmission: amount });
+    owned.push(disabled);
+    const ds = prepare(disabled, 'standard');
+    assert.equal(ds.vertexShader, ps.vertexShader);
+    assert.equal(ds.fragmentShader, ps.fragmentShader);
+    assert.equal(disabled.customProgramCacheKey(), plain.customProgramCacheKey());
+  }
+  const plainShadow = createVegShadowMaterials(plain), leafShadow = createVegShadowMaterials(leaf);
+  for (const [pass, shaderName] of [['depth', 'depth'], ['distance', 'distance']]) {
+    owned.push(plainShadow[pass], leafShadow[pass]);
+    const before = prepare(plainShadow[pass], shaderName), after = prepare(leafShadow[pass], shaderName);
+    assert.equal(after.vertexShader, before.vertexShader, 'Lamina tag is absent from shadow geometry');
+    assert.equal(after.fragmentShader, before.fragmentShader, 'Sun/point shadow encoding stays exact');
+    assert.equal(leafShadow[pass].customProgramCacheKey(), plainShadow[pass].customProgramCacheKey());
+    assert.equal(after.uniforms.uTime, ls.uniforms.uTime, 'Color/shadow wind remains live and shared');
+  }
+}
+// Surface detail may share the lamina tag with sky transmission, but never deform shadows
+// or accidentally opt another vegetation family into a shader requiring absent attributes.
+for (const amount of [0, 0.65]) {
+  const plain = createVegMaterial(ctx, 'bush', { leafSkyTransmission: amount });
+  const detail = createVegMaterial(ctx, 'bush', { leafSkyTransmission: amount, leafSurfaceDetail: true });
+  owned.push(plain, detail);
+  const ps = prepare(plain, 'standard'), ds = prepare(detail, 'standard');
+  assert.notEqual(detail.customProgramCacheKey(), plain.customProgramCacheKey());
+  assert.equal(projection(ds), projection(ps), 'Veins retain exact deformation');
+  assert.equal((ds.vertexShader.match(/attribute float aLeafSurface;/g) || []).length, 1);
+  assert.deepEqual(Object.keys(ds.uniforms), Object.keys(ps.uniforms), 'No extra lighting uniforms');
+  for (const key of Object.keys(wind.uniforms)) assert.equal(ds.uniforms[key], ps.uniforms[key]);
+  const beforeShadow = createVegShadowMaterials(plain), afterShadow = createVegShadowMaterials(detail);
+  for (const pass of ['depth', 'distance']) {
+    owned.push(beforeShadow[pass], afterShadow[pass]);
+    const before = prepare(beforeShadow[pass], pass), after = prepare(afterShadow[pass], pass);
+    assert.equal(after.vertexShader, before.vertexShader);
+    assert.equal(after.fragmentShader, before.fragmentShader);
+    assert.equal(afterShadow[pass].customProgramCacheKey(), beforeShadow[pass].customProgramCacheKey());
+  }
+}
+for (const kind of ['plant', 'grass', 'moss', 'litter']) {
+  const plain = createVegMaterial(ctx, kind), ignored = createVegMaterial(ctx, kind, { leafSurfaceDetail: true });
+  owned.push(plain, ignored);
+  const ps = prepare(plain, 'standard'), is = prepare(ignored, 'standard');
+  assert.equal(is.vertexShader, ps.vertexShader, `${kind} ignores hedge-only UV detail`);
+  assert.equal(is.fragmentShader, ps.fragmentShader);
+  assert.equal(ignored.customProgramCacheKey(), plain.customProgramCacheKey());
+}
 owned.push(unrelated);
 assert.throws(() => createVegShadowMaterials(unrelated), /plant or bush/);
 for (const material of owned) material.dispose();

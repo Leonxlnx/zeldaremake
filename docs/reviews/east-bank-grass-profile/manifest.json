@@ -1,0 +1,13 @@
+{
+  "source": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "scope": "Durable pinned source proof and retained compact projection summary; no full candidate production file or temporary input dependency.",
+  "files": {
+    "README.md": "41a22655a05af34ff174d229dc8b7c53a36b7b1d99ce114c6c4e320919a7f049",
+    "edit.json": "d37685b04dbe47cf1e02a210e05b4ed1f2356ee5df51f308db0f347a424edf24",
+    "expected.json": "e696ad028890b8565cdd00eec5c9d35762fb324e5b53a2a57b26692d396eb19c",
+    "projection-summary.json": "a0fe055b91e6845ad477d2fb4f71806e545b6541e0279e56c469cda4ad17f44e",
+    "proof.mjs": "04ce49389241cb4b3fce93771b170d3ebdc89554c0ab6ba1d4bb8f25850a65f6",
+    "provenance.json": "eadf2aba46790b618f0260eaeb0b3b1d1a174b86a6771376ad954dbd87fd3d54",
+    "verification.json": "e30805a53f7b9b19bfd3117a7c836cd754bf1be81222529686f96a9060326124"
+  }
+}

@@ -1,0 +1,394 @@
+{
+  "pin": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+  "candidateSha256": "98ccdc110e23283097b1b9366bec39aabf3d7f914e4419deb5f19a35957a02f9",
+  "controlSource": "e7069a456e6bb3e58f4354983446cdb10f4b35fd",
+  "time": 12.5,
+  "scope": "CPU source-wind projection at exact actual A/F cameras; candidate has not been rendered. No original image edits.",
+  "views": [
+    {
+      "view": "A_stairs",
+      "camera": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "roi": [
+        770,
+        180,
+        1280,
+        510
+      ],
+      "scope": "All leaf projections intersecting the selected original image rectangle, including hidden leaves. No full-world occlusion or GPU raster.",
+      "changedProjectedLeaves": 367,
+      "profileDisplacementPx": {
+        "count": 372,
+        "min": 0,
+        "p10": 1.6749281556466347,
+        "median": 5.650048061230522,
+        "p90": 14.82704787148416,
+        "max": 21.490556594084847
+      },
+      "widthPx": {
+        "before": {
+          "count": 372,
+          "min": 0.03615484881000014,
+          "p10": 0.6875305038801419,
+          "median": 4.198267878436522,
+          "p90": 16.421948306356594,
+          "max": 52.42610723788526
+        },
+        "after": {
+          "count": 372,
+          "min": 0.05975918981145329,
+          "p10": 0.6469325322748285,
+          "median": 4.595229287151683,
+          "p90": 18.000427470514026,
+          "max": 54.499146448975026
+        }
+      },
+      "selected": [
+        {
+          "pixel": [
+            1092,
+            262
+          ],
+          "item": 10,
+          "leafFirst": 3540,
+          "maxDisplacementPx": 1.2742391413499066,
+          "tipDisplacementPx": 1.2742391413499066,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1200,
+            294
+          ],
+          "item": 10,
+          "leafFirst": 3440,
+          "maxDisplacementPx": 6.564999172855061,
+          "tipDisplacementPx": 6.564999172855061,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1230,
+            320
+          ],
+          "item": 10,
+          "leafFirst": 903,
+          "maxDisplacementPx": 13.9686104223591,
+          "tipDisplacementPx": 13.9686104223591,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1142,
+            323
+          ],
+          "item": 10,
+          "leafFirst": 313,
+          "maxDisplacementPx": 2.5809099115849228,
+          "tipDisplacementPx": 2.5809099115849228,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1180,
+            352
+          ],
+          "item": 10,
+          "leafFirst": 180,
+          "maxDisplacementPx": 6.6214251064438905,
+          "tipDisplacementPx": 6.6214251064438905,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        }
+      ]
+    },
+    {
+      "view": "F_canopy",
+      "camera": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "roi": [
+        770,
+        170,
+        1160,
+        460
+      ],
+      "scope": "All leaf projections intersecting the selected original image rectangle, including hidden leaves. No full-world occlusion or GPU raster.",
+      "changedProjectedLeaves": 601,
+      "profileDisplacementPx": {
+        "count": 611,
+        "min": 0,
+        "p10": 1.266198238854128,
+        "median": 4.191578318173789,
+        "p90": 10.736177909827083,
+        "max": 17.166763891867028
+      },
+      "widthPx": {
+        "before": {
+          "count": 611,
+          "min": 7.355386724736997e-07,
+          "p10": 0.5226332490879131,
+          "median": 3.965702525817116,
+          "p90": 15.644798935015547,
+          "max": 27.417421070300545
+        },
+        "after": {
+          "count": 611,
+          "min": 0.007464156569542367,
+          "p10": 0.6039022960011736,
+          "median": 3.8449980567172233,
+          "p90": 16.903138815827912,
+          "max": 29.26209350427274
+        }
+      },
+      "selected": [
+        {
+          "pixel": [
+            1066,
+            248
+          ],
+          "item": 10,
+          "leafFirst": 2961,
+          "maxDisplacementPx": 0,
+          "tipDisplacementPx": 0,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1017,
+            259
+          ],
+          "item": 10,
+          "leafFirst": 2906,
+          "maxDisplacementPx": 1.3623710096424078,
+          "tipDisplacementPx": 0.2962730789799823,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1000,
+            271
+          ],
+          "item": 10,
+          "leafFirst": 2327,
+          "maxDisplacementPx": 3.719117938232675,
+          "tipDisplacementPx": 3.470778278333387,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            973,
+            287
+          ],
+          "item": 10,
+          "leafFirst": 3407,
+          "maxDisplacementPx": 3.861052426159781,
+          "tipDisplacementPx": 3.4455658515269825,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            913,
+            273
+          ],
+          "item": 10,
+          "leafFirst": 3507,
+          "maxDisplacementPx": 8.542361227835046,
+          "tipDisplacementPx": 8.542361227835046,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            879,
+            344
+          ],
+          "item": 10,
+          "leafFirst": 3864,
+          "maxDisplacementPx": 11.460441616323266,
+          "tipDisplacementPx": 11.460441616323266,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            1038,
+            241
+          ],
+          "item": 11,
+          "leafFirst": 2371,
+          "maxDisplacementPx": 0,
+          "tipDisplacementPx": 0,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        },
+        {
+          "pixel": [
+            943,
+            333
+          ],
+          "item": 11,
+          "leafFirst": 3185,
+          "maxDisplacementPx": 6.243903206302447,
+          "tipDisplacementPx": 6.243903206302447,
+          "note": "Identifies a leaf hit in the current original. Does not assert candidate coverage or visibility at that pixel."
+        }
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "viewBearing": "A_stairs",
+      "item": 10,
+      "horizontalDistanceM": 26,
+      "scope": "Diagnostic original/candidate high-LOD profile difference just before 26 m threshold; framing targets the plant. No new capture.",
+      "additionalProfileDisplacementPx": {
+        "count": 329,
+        "min": 0,
+        "p10": 0.4264062777837354,
+        "median": 1.4691331562388497,
+        "p90": 3.5923436859263354,
+        "max": 5.247991398339136
+      },
+      "oldHighBoundsPx": [
+        595.0364202232552,
+        338.51623822840156,
+        681.425789290313,
+        392.7177294170631
+      ],
+      "candidateHighBoundsPx": [
+        595.0364202232552,
+        338.47973349456834,
+        681.4160176120545,
+        392.7177294170631
+      ],
+      "unchangedMidBoundsPx": [
+        588.6330420012274,
+        335.9399014065618,
+        686.3953187552559,
+        392.6946819656133
+      ],
+      "beforeHighTriangles": 4858,
+      "unchangedMidTriangles": 938
+    },
+    {
+      "viewBearing": "A_stairs",
+      "item": 11,
+      "horizontalDistanceM": 26,
+      "scope": "Diagnostic original/candidate high-LOD profile difference just before 26 m threshold; framing targets the plant. No new capture.",
+      "additionalProfileDisplacementPx": {
+        "count": 282,
+        "min": 0,
+        "p10": 0.4073733637466304,
+        "median": 1.2785765516381842,
+        "p90": 3.356038805730604,
+        "max": 5.150267592545
+      },
+      "oldHighBoundsPx": [
+        598.8085174891306,
+        333.98957793576216,
+        680.1862098587718,
+        392.7189492222463
+      ],
+      "candidateHighBoundsPx": [
+        598.8085174891306,
+        333.98957793576216,
+        680.2392858846019,
+        392.7189492222463
+      ],
+      "unchangedMidBoundsPx": [
+        597.3512525447381,
+        335.93611195398336,
+        684.5665186332677,
+        392.77492206789213
+      ],
+      "beforeHighTriangles": 4164,
+      "unchangedMidTriangles": 804
+    },
+    {
+      "viewBearing": "F_canopy",
+      "item": 10,
+      "horizontalDistanceM": 26,
+      "scope": "Diagnostic original/candidate high-LOD profile difference just before 26 m threshold; framing targets the plant. No new capture.",
+      "additionalProfileDisplacementPx": {
+        "count": 329,
+        "min": 0,
+        "p10": 0.43178555607984953,
+        "median": 1.466453292456281,
+        "p90": 3.6298869510415894,
+        "max": 5.351180461007455
+      },
+      "oldHighBoundsPx": [
+        590.0675811921956,
+        338.9688283851196,
+        690.5939664679413,
+        392.74323852131516
+      ],
+      "candidateHighBoundsPx": [
+        590.0675811921956,
+        338.9688283851196,
+        690.5939664679413,
+        392.74323852131516
+      ],
+      "unchangedMidBoundsPx": [
+        588.8652185260718,
+        335.767060024884,
+        684.5752187482142,
+        392.73170043388416
+      ],
+      "beforeHighTriangles": 4858,
+      "unchangedMidTriangles": 938
+    },
+    {
+      "viewBearing": "F_canopy",
+      "item": 11,
+      "horizontalDistanceM": 26,
+      "scope": "Diagnostic original/candidate high-LOD profile difference just before 26 m threshold; framing targets the plant. No new capture.",
+      "additionalProfileDisplacementPx": {
+        "count": 282,
+        "min": 0,
+        "p10": 0.4044517549050504,
+        "median": 1.2689033423697949,
+        "p90": 3.3167500575249664,
+        "max": 5.099690466845729
+      },
+      "oldHighBoundsPx": [
+        602.5721917084514,
+        334.5145839136696,
+        684.2372439032255,
+        392.7482419359173
+      ],
+      "candidateHighBoundsPx": [
+        602.5721917084514,
+        334.5145839136696,
+        684.2372439032255,
+        392.7482419359173
+      ],
+      "unchangedMidBoundsPx": [
+        604.1917774464869,
+        335.4237974308848,
+        685.2660825900484,
+        392.79829397902097
+      ],
+      "beforeHighTriangles": 4164,
+      "unchangedMidTriangles": 804
+    }
+  ]
+}

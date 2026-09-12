@@ -1,0 +1,12 @@
+{
+  "status": "Frozen scratch proposal; published 901b source; no production writes; original candidate/helper/patch bytes retained",
+  "files": {
+    "README.md": "11eeb2e94171177f167ac7821cb3e50cd22cc7895bcc2839cad926cb13e6d6c1",
+    "candidate/materials.ts": "e024a03cbb46900c5403d4dea7cbda8f67cde4e48fe84aa40a18aa7abfe4c13e",
+    "candidate/sleeveBark.ts": "f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7",
+    "check.mjs": "25acb6e4f948fad16bab5e945702a0b65422f48258b0ec1bc436dd8c222e8b28",
+    "evidence.json": "5002ddc662f7d1178722b9fc5d8bfb537ea7f13b158bb2e948981a03d3e20621",
+    "pin.json": "9335972212331efb969f0ce231b7e40838aa349d525c92966437f7f171ef2afb",
+    "sleeve-angular.patch": "37a1076ff9427977ea5b1add329b1473199c809f79166c76743914fc335b7955"
+  }
+}

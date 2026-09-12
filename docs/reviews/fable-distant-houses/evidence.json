@@ -1,0 +1,1145 @@
+{
+  "ref": "871d27b08218f5f10d509e443483f9ad83d0110c",
+  "base": "cee9888d735dfa957007a13af2bc267e6457d452",
+  "scope": "Read-only committed-source CPU geometry/contact/cost review; no actual GPU capture available locally",
+  "fixtureMaterialScope": "Structure material identities and relevant consolidation flags are faithful stubs; generated textures/shading are not rendered. Real geometry and PRNG source executes.",
+  "sourceHashes": {
+    "src/world/structures/distantHouse.ts": "9f512701f799dfc48a47e476c613ec2a0b40ff4dc28e9d6d8076fe23ea14dae0",
+    "src/world/structures/index.ts": "8b19f006836094bb19dae4f282ed29625729de331809e40b578541d0f2347241",
+    "src/world/structures/materials.ts": "0e5a7722fd0140158433c5be462588a076463c9eaa63d87366ae83cf6f80b86e"
+  },
+  "priorAcceptedFixes": {
+    "houseSourceExact0f": true,
+    "capMossOwnedMapDisposalListener": false
+  },
+  "cost": {
+    "before": {
+      "meshes": 53,
+      "triangles": 387383,
+      "shadowTriangles": 369013,
+      "points": 12
+    },
+    "after": {
+      "meshes": 54,
+      "triangles": 392600,
+      "shadowTriangles": 372733,
+      "points": 12
+    },
+    "delta": {
+      "meshes": 1,
+      "triangles": 5217,
+      "shadowTriangles": 3720,
+      "points": 0
+    },
+    "distantTrianglesAudit": 5217
+  },
+  "audit": {
+    "oldAuditChanged": [
+      "meshes",
+      "triangles",
+      "meshesBeforeMerge"
+    ],
+    "houses": 2,
+    "distantHouses": 3,
+    "distantGlowPeak": 2.2,
+    "detail": [
+      {
+        "id": "hollow-column",
+        "host": "trees COLUMN_SEATS (8.8, -26.9) variant 3",
+        "centre": [
+          8.2,
+          9.51,
+          -26.7
+        ],
+        "floorY": 9.51,
+        "radius": 1.55,
+        "window": [
+          7.81,
+          10.86,
+          -25.26
+        ],
+        "door": [
+          8.83,
+          10.19,
+          -25.21
+        ],
+        "pods": [
+          [
+            3.14,
+            9.75,
+            -27.39
+          ],
+          [
+            8.33,
+            10.81,
+            -24.8
+          ],
+          [
+            4.88,
+            9.88,
+            -26.33
+          ]
+        ],
+        "litPoints": [
+          [
+            7.81,
+            10.86,
+            -25.26
+          ],
+          [
+            8.83,
+            10.19,
+            -25.21
+          ],
+          [
+            3.14,
+            9.75,
+            -27.39
+          ],
+          [
+            8.33,
+            10.81,
+            -24.8
+          ],
+          [
+            4.88,
+            9.88,
+            -26.33
+          ]
+        ]
+      },
+      {
+        "id": "north-east",
+        "host": "layout giantTrees 'north-east'",
+        "centre": [
+          16,
+          11.83,
+          -36.7
+        ],
+        "floorY": 11.83,
+        "radius": 2.4,
+        "window": [
+          15.23,
+          13.18,
+          -34.47
+        ],
+        "door": [
+          16.86,
+          12.5,
+          -34.45
+        ],
+        "pods": [
+          [
+            9.7,
+            11.91,
+            -37.56
+          ],
+          [
+            16.05,
+            13.4,
+            -33.95
+          ],
+          [
+            11.63,
+            12.05,
+            -36.46
+          ]
+        ],
+        "litPoints": [
+          [
+            15.23,
+            13.18,
+            -34.47
+          ],
+          [
+            16.86,
+            12.5,
+            -34.45
+          ],
+          [
+            9.7,
+            11.91,
+            -37.56
+          ],
+          [
+            16.05,
+            13.4,
+            -33.95
+          ],
+          [
+            11.63,
+            12.05,
+            -36.46
+          ]
+        ]
+      },
+      {
+        "id": "west-column",
+        "host": "trees COLUMN_SEATS (-5.7, -31.9) variant 1",
+        "centre": [
+          -5.7,
+          8.72,
+          -31.9
+        ],
+        "floorY": 8.72,
+        "radius": 1.7,
+        "window": [
+          -5.42,
+          10.07,
+          -30.31
+        ],
+        "door": [
+          -6.46,
+          9.39,
+          -30.34
+        ],
+        "pods": [
+          [
+            -1.06,
+            8.97,
+            -31.48
+          ],
+          [
+            -5.99,
+            10.09,
+            -29.87
+          ]
+        ],
+        "litPoints": [
+          [
+            -5.42,
+            10.07,
+            -30.31
+          ],
+          [
+            -6.46,
+            9.39,
+            -30.34
+          ],
+          [
+            -1.06,
+            8.97,
+            -31.48
+          ],
+          [
+            -5.99,
+            10.09,
+            -29.87
+          ]
+        ]
+      }
+    ]
+  },
+  "geometry": [
+    {
+      "name": "distant-house-bark:hollow-column",
+      "triangles": 376,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9970758933472399,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-cap:hollow-column",
+      "triangles": 336,
+      "degenerate": 28,
+      "opposedNormals": 0,
+      "minDot": 0.9878496834923853,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-planks:hollow-column",
+      "triangles": 532,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9990383898299388,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-bark:north-east",
+      "triangles": 376,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9967566317515423,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-cap:north-east",
+      "triangles": 336,
+      "degenerate": 28,
+      "opposedNormals": 0,
+      "minDot": 0.9879332492407967,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-planks:north-east",
+      "triangles": 532,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9990382978022817,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-bark:west-column",
+      "triangles": 376,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9967751716092443,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-cap:west-column",
+      "triangles": 336,
+      "degenerate": 28,
+      "opposedNormals": 0,
+      "minDot": 0.9878678432825685,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-house-planks:west-column",
+      "triangles": 520,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9990383208562958,
+      "nonfinite": 0
+    },
+    {
+      "name": "distant-glow",
+      "triangles": 1497,
+      "degenerate": 0,
+      "opposedNormals": 0,
+      "minDot": 0.9917095243156302,
+      "nonfinite": 0
+    }
+  ],
+  "hostReports": [
+    {
+      "id": "hollow-column",
+      "seat": [
+        8.8,
+        5.312550067901613,
+        -26.9
+      ],
+      "sections": [
+        {
+          "y": 9.412550067901615,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": null,
+          "minRadius": 0.16263306757899892,
+          "maxRadius": 1.4763429651680688,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 9.522550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.03597546648198735,
+          "minRadius": 0.15355691344281786,
+          "maxRadius": 1.479082678939466,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 9.687550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.027647589291885932,
+          "minRadius": 0.15957905962170035,
+          "maxRadius": 1.4832269144652845,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 9.852550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.019311151794497716,
+          "minRadius": 0.19615320341793907,
+          "maxRadius": 1.4874124385081382,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 10.017550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.0166941731311947,
+          "minRadius": 0.22354413671611323,
+          "maxRadius": 1.4854958768093707,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 10.182550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.01420681303779503,
+          "minRadius": 0.21855619347773547,
+          "maxRadius": 1.4834505648765555,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 10.347550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.011718024875177369,
+          "minRadius": 0.2342307677669495,
+          "maxRadius": 1.4814166770768815,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 10.512550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.009227375640068702,
+          "minRadius": 0.26695263558130483,
+          "maxRadius": 1.4793942605284303,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 10.677550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.0037471771689909783,
+          "minRadius": 0.281575880849362,
+          "maxRadius": 1.4798967883115755,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 10.842550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": 0.0023722769390663867,
+          "minRadius": 0.28382363253170123,
+          "maxRadius": 1.4809387617481105,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 11.007550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": 0.008491063873817595,
+          "minRadius": 0.29802713927456964,
+          "maxRadius": 1.4819809263083732,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 11.172550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": 0.014609489994909408,
+          "minRadius": 0.32261112931542923,
+          "maxRadius": 1.4830232815894435,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 11.337550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": 0.02077049947674281,
+          "minRadius": 0.3334918280913503,
+          "maxRadius": 1.4836207203702672,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 11.502550067901614,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": 0.02694823019225412,
+          "minRadius": 0.3390502480391348,
+          "maxRadius": 1.4840166886847042,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        },
+        {
+          "y": 12.712550067901613,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": null,
+          "minRadius": 0.4207126007135884,
+          "maxRadius": 1.4715061073680256,
+          "shellRadius": 1.55,
+          "platformRadius": 1.77
+        }
+      ],
+      "litPointOcclusion": [
+        {
+          "label": "window",
+          "point": [
+            7.81,
+            10.86,
+            -25.26
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 35.82584681483468
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.861568947394577
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 25.337083494356648
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 32.15095799505825
+            }
+          }
+        },
+        {
+          "label": "door",
+          "point": [
+            8.83,
+            10.19,
+            -25.21
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 35.84094167289693
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.897643719865286
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 25.38008274218191
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 32.24965581211682
+            }
+          }
+        },
+        {
+          "label": "pod0",
+          "point": [
+            3.14,
+            9.75,
+            -27.39
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 36.95930464713859
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 30.687036350876244
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 25.930786721578656
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 32.780247100960054
+            }
+          }
+        },
+        {
+          "label": "pod1",
+          "point": [
+            8.33,
+            10.81,
+            -24.8
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 35.491196091425266
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.56864893768398
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 25.07880579293998
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 31.88266300044587
+            }
+          }
+        },
+        {
+          "label": "pod2",
+          "point": [
+            4.88,
+            9.88,
+            -26.33
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 36.13117352093619
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.9437422510948
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 25.24393392480657
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 32.12445952852748
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "north-east",
+      "seat": [
+        15,
+        3.8297085762023926,
+        -37
+      ],
+      "sections": [
+        {
+          "y": 11.729708576202393,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": null,
+          "minRadius": 0.02101770743741814,
+          "maxRadius": 2.1622031150458003,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 11.839708576202392,
+          "intersections": 124,
+          "hostSurfaceBeyondActualWall": -0.15699074419323322,
+          "minRadius": 0.019249040738939436,
+          "maxRadius": 2.1553799240329314,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 12.038041909535727,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.17433903743806445,
+          "minRadius": 0.02639218558398401,
+          "maxRadius": 2.141372549673852,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 12.236375242869059,
+          "intersections": 124,
+          "hostSurfaceBeyondActualWall": -0.1838950794171561,
+          "minRadius": 0.03847518312678349,
+          "maxRadius": 2.1253871408929386,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 12.434708576202393,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.20502488117183448,
+          "minRadius": 0.045919285533896924,
+          "maxRadius": 2.0983047410572304,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 12.633041909535725,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.24143190958480654,
+          "minRadius": 0.016343451297024744,
+          "maxRadius": 2.0566379514826245,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 12.83137524286906,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.2789721842371211,
+          "minRadius": 0.05609562224352955,
+          "maxRadius": 2.0139511481476773,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 13.029708576202392,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.31554911692769405,
+          "minRadius": 0.03802169991381337,
+          "maxRadius": 1.9886765600234193,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 13.228041909535726,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.3346033382490248,
+          "minRadius": 0.07474991342087707,
+          "maxRadius": 1.9703635994538353,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 13.426375242869058,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.3420493020728028,
+          "minRadius": 0.07112451334491264,
+          "maxRadius": 1.9475172791079869,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 13.624708576202393,
+          "intersections": 124,
+          "hostSurfaceBeyondActualWall": -0.33654813853833176,
+          "minRadius": 0.12882302272974064,
+          "maxRadius": 1.9295814270518727,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 13.823041909535725,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.3137032433085549,
+          "minRadius": 0.09533805965894407,
+          "maxRadius": 1.937718870834549,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 14.021375242869059,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.2908477266620282,
+          "minRadius": 0.14733263798663418,
+          "maxRadius": 1.9458605332278462,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 14.219708576202393,
+          "intersections": 120,
+          "hostSurfaceBeyondActualWall": -0.27907025335429636,
+          "minRadius": 0.1466188111655719,
+          "maxRadius": 1.9346053713617433,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        },
+        {
+          "y": 15.979708576202391,
+          "intersections": 0,
+          "hostSurfaceBeyondActualWall": null,
+          "minRadius": null,
+          "maxRadius": null,
+          "shellRadius": 2.4,
+          "platformRadius": 2.62
+        }
+      ],
+      "litPointOcclusion": [
+        {
+          "label": "window",
+          "point": [
+            15.23,
+            13.18,
+            -34.47
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 46.951658117685255
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 41.21208803251783
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 36.79476457323786
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 43.64563437504374
+            }
+          }
+        },
+        {
+          "label": "door",
+          "point": [
+            16.86,
+            12.5,
+            -34.45
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 47.315157190904486
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 41.63966978735542
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 37.26607840919139
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 44.12578497885335
+            }
+          }
+        },
+        {
+          "label": "pod0",
+          "point": [
+            9.7,
+            11.91,
+            -37.56
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 48.16064472159815
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 42.041071584820486
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 37.33704862465699
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 44.332846739184255
+            }
+          }
+        },
+        {
+          "label": "pod1",
+          "point": [
+            16.05,
+            13.4,
+            -33.95
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 46.797275561724746
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 41.12924750101806
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 36.76856673845202
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 43.57892380497711
+            }
+          }
+        },
+        {
+          "label": "pod2",
+          "point": [
+            11.63,
+            12.05,
+            -36.46
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 47.556061653589445
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": "host:north-east",
+              "distance": 41.54191858833677
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 36.91309388279449
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 43.89489947590722
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "west-column",
+      "seat": [
+        -5.7,
+        2.7194900512695295,
+        -31.9
+      ],
+      "sections": [
+        {
+          "y": 8.61949005126953,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": null,
+          "minRadius": 0.06732352189181566,
+          "maxRadius": 0.7715706637608382,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 8.72949005126953,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8320389027762205,
+          "minRadius": 0.06111525454305147,
+          "maxRadius": 0.7662740926994396,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 8.902823384602863,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8380006452714579,
+          "minRadius": 0.06733513892486127,
+          "maxRadius": 0.7584380412973134,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 9.076156717936197,
+          "intersections": 68,
+          "hostSurfaceBeyondActualWall": -0.8426012048866186,
+          "minRadius": 0.07450074738829647,
+          "maxRadius": 0.7512012770028567,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 9.249490051269529,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8462173235974095,
+          "minRadius": 0.044044554208799075,
+          "maxRadius": 0.7442088603932716,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 9.422823384602863,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8474740431389208,
+          "minRadius": 0.013602815733138028,
+          "maxRadius": 0.7408201556658142,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 9.596156717936196,
+          "intersections": 68,
+          "hostSurfaceBeyondActualWall": -0.8486501100141677,
+          "minRadius": 0.016902747784570085,
+          "maxRadius": 0.7422955325402204,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 9.769490051269528,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8546320195744553,
+          "minRadius": 0.020184613399600912,
+          "maxRadius": 0.7460029068174234,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 9.942823384602862,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8620945451077161,
+          "minRadius": 0.03687841428637166,
+          "maxRadius": 0.7500852041028133,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 10.116156717936196,
+          "intersections": 68,
+          "hostSurfaceBeyondActualWall": -0.870666079920186,
+          "minRadius": 0.0577839911670219,
+          "maxRadius": 0.7545363390393538,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 10.28949005126953,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8791002306431105,
+          "minRadius": 0.05187558229427689,
+          "maxRadius": 0.7584019449298793,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 10.462823384602864,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8828838611828985,
+          "minRadius": 0.050428967242017654,
+          "maxRadius": 0.7624092992537576,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 10.636156717936196,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8791236654308371,
+          "minRadius": 0.06571100719596841,
+          "maxRadius": 0.766587793242515,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 10.80949005126953,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": -0.8727520392876913,
+          "minRadius": 0.07823737209346512,
+          "maxRadius": 0.7679844884203973,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        },
+        {
+          "y": 12.06949005126953,
+          "intersections": 64,
+          "hostSurfaceBeyondActualWall": null,
+          "minRadius": 0.14601490239430623,
+          "maxRadius": 0.7800425814871309,
+          "shellRadius": 1.7,
+          "platformRadius": 1.92
+        }
+      ],
+      "litPointOcclusion": [
+        {
+          "label": "window",
+          "point": [
+            -5.42,
+            10.07,
+            -30.31
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 40.202654141237986
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 33.86380663776593
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.184326272847212
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 35.4618189042807
+            }
+          }
+        },
+        {
+          "label": "door",
+          "point": [
+            -6.46,
+            9.39,
+            -30.34
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 40.26153623497245
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 33.90957534384647
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.23824208121959
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 35.45551720113529
+            }
+          }
+        },
+        {
+          "label": "pod0",
+          "point": [
+            -1.06,
+            8.97,
+            -31.48
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 40.7424459255946
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 34.319599356635855
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 29.48301884136019
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 36.20841476784092
+            }
+          }
+        },
+        {
+          "label": "pod1",
+          "point": [
+            -5.99,
+            10.09,
+            -29.87
+          ],
+          "cameras": {
+            "A_stairs": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 39.86849758894859
+            },
+            "B_house": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 33.546461810450296
+            },
+            "D_log": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 28.895719406168105
+            },
+            "F_canopy": {
+              "hostOrHouseBeforePoint": null,
+              "distance": 35.101878867092005
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "disposeOnce": {
+    "geometry": 1,
+    "distantGlowMaterial": 1
+  },
+  "limitations": [
+    "Cross-sections isolate the actual generated principal trunk vertex span; branches are excluded from those section radii.",
+    "Centre rays use rounded audit positions and only each house plus its own real host: these are contact/occlusion diagnostics, not full-scene visibility.",
+    "Host seat constants are duplicated; current hosts exist, but future tree-layout/seed changes require a shared geometry contract."
+  ],
+  "summary": {
+    "maxMeasuredBoleBeyondWallM": {
+      "hollow-column": 0.02694823019225412,
+      "north-east": -0.15699074419323322,
+      "west-column": -0.8320389027762205
+    },
+    "collapsedPoleTriangles": 84,
+    "materialPeakLinear": 2.2,
+    "limeTintedPeakLinear": 1.584,
+    "priorFixesAbsent": [
+      "Saria support bough/window correction",
+      "Owned cap-moss normal/albedo disposal"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "before": "import { WIND_GLSL } from '../wind/wind';\n",
+    "after": "import { WIND_GLSL } from '../wind/wind';\nimport { applySleeveBarkResponse } from './sleeveBark';\n"
+  },
+  {
+    "before": "  applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));\n",
+    "after": "  applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));\n  applySleeveBarkResponse(sleeveBark);\n"
+  }
+]

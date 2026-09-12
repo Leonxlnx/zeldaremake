@@ -1,0 +1,92 @@
+--- a/src/world/hardscape/joints.ts
++++ b/src/world/hardscape/joints.ts
+@@ -9,7 +9,7 @@
+  * of one dark olive tone between the slabs).
+  */
+ import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, LinearFilter, Mesh, MeshStandardMaterial, RedFormat, UnsignedByteType, Vector2, Vector4 } from 'three';
+-import type { Terrain } from '../terrain/heightfield';
++import { surfaceMask, type Terrain } from '../terrain/heightfield';
+ import type { TextureLibrary } from '../materials/textures';
+ import type { WorldConfig } from '../config';
+ import { Noise2D, clamp, smoothstep } from '../util/noise';
+@@ -219,6 +219,64 @@
+     index[k] = pos.length / 3 - 1;
+     return index[k];
+   };
++  // Keep the original paved-corner admission (including stairs, structures and isolated-disc
++  // exclusions), then trim only the path mask's overhang. Every result stays inside its
++  // original terrain triangle: this cannot expand the inherited exclusion boundaries.
++  const pathInside = (v: number) => surfaceMask(pos[v * 3], pos[v * 3 + 2]).path >= 0.38;
++  const crossings = new Map<string, number>();
++  const crossingVertex = (a: number, b: number, aInside: boolean): number => {
++    const key = a < b ? `${a}/${b}` : `${b}/${a}`;
++    const cached = crossings.get(key);
++    if (cached !== undefined) return cached;
++    const ax = pos[a * 3], az = pos[a * 3 + 2];
++    const bx = pos[b * 3], bz = pos[b * 3 + 2];
++    let lo = 0, hi = 1;
++    for (let k = 0; k < 12; k++) {
++      const t = (lo + hi) / 2;
++      const inside = surfaceMask(ax + (bx - ax) * t, az + (bz - az) * t).path >= 0.38;
++      if (inside === aInside) lo = t;
++      else hi = t;
++    }
++    // Choose the inside bracket end, with a 0.1 mm inset for float32 storage. Interpolate
++    // all attributes on the original triangle edge, including Y: never re-sample a
++    // different terrain plane at the crossing. Adjacent triangles share each new vertex.
++    const guard = Math.min(0.25, 0.0001 / Math.hypot(bx - ax, bz - az));
++    const t = aInside ? Math.max(0, lo - guard) : Math.min(1, hi + guard);
++    if (t === 0 || t === 1) {
++      const endpoint = t === 0 ? a : b;
++      crossings.set(key, endpoint);
++      return endpoint;
++    }
++    const v = pos.length / 3;
++    for (const [buffer, size] of [[pos, 3], [col, 3], [uv, 2], [soilW, 1]] as const) {
++      for (let k = 0; k < size; k++) buffer.push(buffer[a * size + k] + (buffer[b * size + k] - buffer[a * size + k]) * t);
++    }
++    crossings.set(key, v);
++    return v;
++  };
++  const emitTriangle = (a: number, b: number, c: number) => {
++    const ax = Math.fround(pos[a * 3]), az = Math.fround(pos[a * 3 + 2]);
++    const bx = Math.fround(pos[b * 3]), bz = Math.fround(pos[b * 3 + 2]);
++    const cx = Math.fround(pos[c * 3]), cz = Math.fround(pos[c * 3 + 2]);
++    // A crossing at an existing corner can collapse a sliver after float32 conversion.
++    // Discard only numerically negligible faces; the retained winding stays upward.
++    if ((bz - az) * (cx - ax) - (bx - ax) * (cz - az) > 1e-10) idx.push(a, b, c);
++  };
++  const clipPathTriangle = (a: number, b: number, c: number) => {
++    const vertices = [a, b, c];
++    const inside = vertices.map(pathInside);
++    if (inside.every(Boolean)) {
++      idx.push(a, b, c);
++      return;
++    }
++    const polygon: number[] = [];
++    for (let k = 0; k < 3; k++) {
++      const n = (k + 1) % 3;
++      if (inside[k]) polygon.push(vertices[k]);
++      if (inside[k] !== inside[n]) polygon.push(crossingVertex(vertices[k], vertices[n], inside[k]));
++    }
++    for (let k = 1; k + 1 < polygon.length; k++) emitTriangle(polygon[0], polygon[k], polygon[k + 1]);
++  };
+   for (let j = 0; j < nz; j++) {
+     for (let i = 0; i < nx; i++) {
+       const a = pavedFlag[j * (nx + 1) + i];
+@@ -230,8 +288,13 @@
+       const vb = vertexFor(i + 1, j);
+       const vc = vertexFor(i, j + 1);
+       const vd = vertexFor(i + 1, j + 1);
+-      if ((i + j) & 1) idx.push(va, vc, vb, vb, vc, vd);
+-      else idx.push(va, vc, vd, va, vd, vb);
++      if ((i + j) & 1) {
++        clipPathTriangle(va, vc, vb);
++        clipPathTriangle(vb, vc, vd);
++      } else {
++        clipPathTriangle(va, vc, vd);
++        clipPathTriangle(va, vd, vb);
++      }
+     }
+   }
+   const g = new BufferGeometry();

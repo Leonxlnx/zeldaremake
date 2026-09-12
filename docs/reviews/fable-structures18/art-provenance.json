@@ -1,0 +1,360 @@
+{
+  "monitor": "7c8fa8b048a7391d0e0039cfe07d52904cb8703f",
+  "sealedBy": "fc853db87ee56ffd395600cdd41d68ea42393d1b",
+  "actualSource": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "previousSource": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+  "capturedAt": "2026-09-12T21:02:04.906Z",
+  "dirtyReported": false,
+  "sourceSealProductionBytesEqual": true,
+  "allSixPosesMatch": true,
+  "publishedArtifactsExactPinnedGitBlobs": true,
+  "recordedPngDigestsAgree": true,
+  "recordedDistHashesAgree": true,
+  "originalPngBytesAvailableInMonitor": false,
+  "independentBuildHashVerification": false,
+  "referencesSourceBytesEqual": true,
+  "attestation": {
+    "source": "local"
+  },
+  "unclaimed": true,
+  "unclaimedItems": [
+    "W25",
+    "W09",
+    "W32"
+  ],
+  "artifacts": [
+    {
+      "gitPath": "data/takes/take-0070/A_stairs.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-A_stairs.jpg",
+      "gitBlob": "ea9f413f51e6d62444b371466c7aee405bf2c27c",
+      "sha256": "b1f301f8f9487449d1785e50eb95e99f4b3c1ece361b0a04b3eb8bc7018aba66",
+      "bytes": 109295
+    },
+    {
+      "gitPath": "data/takes/take-0070/B_house.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-B_house.jpg",
+      "gitBlob": "c9d0b65d4961f2347926caefaeeb52b89b2fbe3d",
+      "sha256": "1c4afd65e11e8b1a2f7196bea481c1b77e33d41246ed452fe6efa3efb9af88ac",
+      "bytes": 104086
+    },
+    {
+      "gitPath": "data/takes/take-0070/C_lookback.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-C_lookback.jpg",
+      "gitBlob": "9bcca5c31566f1ba26072e770ccc924b755e6ce7",
+      "sha256": "07a5ade7fc5da565c6c470dbd32f419533243dc3d33a4f48535ca6cde0cef6ee",
+      "bytes": 95470
+    },
+    {
+      "gitPath": "data/takes/take-0070/D_log.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-D_log.jpg",
+      "gitBlob": "bed8e8e0a8327b4dcc6cff0e2d0d267ba4035ed2",
+      "sha256": "71530734b2633bf46e91ec5017277a4a2e1470493912d5bd6f793fee8a165bfe",
+      "bytes": 94013
+    },
+    {
+      "gitPath": "data/takes/take-0070/E_ground.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-E_ground.jpg",
+      "gitBlob": "c9d0b65d4961f2347926caefaeeb52b89b2fbe3d",
+      "sha256": "1c4afd65e11e8b1a2f7196bea481c1b77e33d41246ed452fe6efa3efb9af88ac",
+      "bytes": 104086
+    },
+    {
+      "gitPath": "data/takes/take-0070/F_canopy.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-F_canopy.jpg",
+      "gitBlob": "cc02318c41e6d067f42b1a1adcb607cf5a39755c",
+      "sha256": "4d77ccc93be46e401c39ff2d39f676e733f153bd07858305b4dba978f33a3709",
+      "bytes": 111392
+    },
+    {
+      "gitPath": "data/takes/take-0070/stats.json",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/70-stats.json",
+      "gitBlob": "36ddc716afdaf38918fb63aba2d1f4fe0ce205c7",
+      "sha256": "b66285dd0b54f74181c86268d7f758f861fd32e8bdb0e1025c9da2ec3216783c",
+      "bytes": 6787
+    },
+    {
+      "gitPath": "data/takes/take-0071/A_stairs.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-A_stairs.jpg",
+      "gitBlob": "a6cb4562e3e1de7e910691261c5dd0bba0c659d0",
+      "sha256": "e48367d72be98aae0ad038fea2211e3bb322c5aa0bc3b9e102c8c7b4bce7ad8b",
+      "bytes": 109238
+    },
+    {
+      "gitPath": "data/takes/take-0071/B_house.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-B_house.jpg",
+      "gitBlob": "f6ef9b498058c8f081d095eae3364731304372c2",
+      "sha256": "c3d78c471f0bfb2ede3f43c998d4a465cdd1386be64bcc44681a86b8b3e124ed",
+      "bytes": 104060
+    },
+    {
+      "gitPath": "data/takes/take-0071/C_lookback.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-C_lookback.jpg",
+      "gitBlob": "39fa4252524a2eccaaf796524c0d17cc184b48ce",
+      "sha256": "c0623efede88e2c963ba69c202fc9dc998212c55ae4a7ea2fe6b845f4fbee8ee",
+      "bytes": 95455
+    },
+    {
+      "gitPath": "data/takes/take-0071/D_log.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-D_log.jpg",
+      "gitBlob": "89e98c483057a669707f767ee54607c3007d5426",
+      "sha256": "a9510cc0c9e4f086455dafeb0fdcdfbf8ebe5f700b7ca2f5361bb6b362cc7171",
+      "bytes": 94254
+    },
+    {
+      "gitPath": "data/takes/take-0071/E_ground.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-E_ground.jpg",
+      "gitBlob": "f6ef9b498058c8f081d095eae3364731304372c2",
+      "sha256": "c3d78c471f0bfb2ede3f43c998d4a465cdd1386be64bcc44681a86b8b3e124ed",
+      "bytes": 104060
+    },
+    {
+      "gitPath": "data/takes/take-0071/F_canopy.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-F_canopy.jpg",
+      "gitBlob": "3f72dc6a0612928dbd4a0e1d6538e59c7dfebb9a",
+      "sha256": "179da5f21ba0cf0895ff29fa8a164307e7c3ca60811690058fe39528ed4c82e6",
+      "bytes": 111384
+    },
+    {
+      "gitPath": "data/takes/take-0071/stats.json",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-stats.json",
+      "gitBlob": "7690f581882e213942153583b13fbca5cfa8c506",
+      "sha256": "c4fdbb845fab9418433cb31931a29a2d3867d6d66db541b9e37dacac06caaa8b",
+      "bytes": 7383
+    },
+    {
+      "gitPath": "data/takes/take-0071/A_stairs.compare.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-A_stairs.compare.jpg",
+      "gitBlob": "663079418bf7ceeb68d09a535f7e1fae9d530b5c",
+      "sha256": "c7ccf7a709428c82296f8e72db7a9aad4019dce95bdb2a74e0d84ae7d742c25a",
+      "bytes": 115469
+    },
+    {
+      "gitPath": "data/takes/take-0071/B_house.compare.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-B_house.compare.jpg",
+      "gitBlob": "6e30c51f36c360e7ec8f430b949a8a045f2ce226",
+      "sha256": "bc726d105488a4a22567a0448d54cb489a4f282943be4bc24a4f79c6c96c227d",
+      "bytes": 110483
+    },
+    {
+      "gitPath": "data/takes/take-0071/D_log.compare.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-D_log.compare.jpg",
+      "gitBlob": "48de0c91752bee3aa8c88bb7f01f561591e52b5a",
+      "sha256": "ed072c65966555e098eda7a0d1f780ece3e91a3f86a86929b01dcf69e32f9a86",
+      "bytes": 100989
+    },
+    {
+      "gitPath": "data/takes/take-0071/audit.json",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-audit.json",
+      "gitBlob": "8f63483a00c03d7902c3c2809a5c76897537bd5a",
+      "sha256": "1aa79e68a866334cece020feec52fbc58b1d6cc88afd722b47811ce406a3121b",
+      "bytes": 309536
+    },
+    {
+      "gitPath": "data/takes/take-0071/checks.json",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-checks.json",
+      "gitBlob": "0f03ab132a8f5b7c9b84280d9123177615dee5d3",
+      "sha256": "d11cc6574259f211c68a6043bfd21176f0a2b6d0db17a05a75a6e2f274b3d535",
+      "bytes": 13869
+    },
+    {
+      "gitPath": "data/takes/take-0071/score.json",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-score.json",
+      "gitBlob": "4304ece759edf9ffa6a6fcadb39c85b58e01e7a8",
+      "sha256": "7a553d0a3b971a69104ff3eb26ef9f457f7d56ac7c08477a5a1d44a6ddb03c9d",
+      "bytes": 52114
+    },
+    {
+      "gitPath": "data/takes/take-0071/compare.json",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/71-compare.json",
+      "gitBlob": "d4177a3b5733f1bd65df9a795c80abdeeb6fe06f",
+      "sha256": "b02a752fbbc1ff5861b88ef645f2a76ce643bb14d2b99d19a4e876ed4c71be55",
+      "bytes": 7896
+    },
+    {
+      "gitPath": "data/reference/frames/A_stairs.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/reference-A_stairs.jpg",
+      "gitBlob": "c81af0725851f15abaf88b0fd38372467fdbec06",
+      "sha256": "e907a532b5521d044fc1539e6826aedcbb0d8e7995b9851d6240d8e29ead9dbe",
+      "bytes": 38044
+    },
+    {
+      "gitPath": "data/reference/frames/B_house.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/reference-B_house.jpg",
+      "gitBlob": "927fc0a7d4900414e6f4b676ec295b0424e6ac74",
+      "sha256": "54aae888ca401482105ee783b28a37a48f9560410504e91a99709c67fa4a8eec",
+      "bytes": 36636
+    },
+    {
+      "gitPath": "data/reference/frames/D_log.jpg",
+      "local": "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/gauntlet/tmp/fable-take71-review/reference-D_log.jpg",
+      "gitBlob": "e3be50747734d032d0f9e0f76bcf3ea68430e88c",
+      "sha256": "38f55cff243dfa87699ad12985c02ab8b0f40d0d265d8334d2ff844e55367b80",
+      "bytes": 30468
+    }
+  ],
+  "BEBytesIdentical": true,
+  "allRetriesZero": true,
+  "W25": {
+    "id": "W25",
+    "title": "Kokiri tree-trunk houses",
+    "group": "structures",
+    "phase": 1,
+    "verify": "both",
+    "weight": 3,
+    "status": "fail",
+    "autoStatus": "pass",
+    "value": 2,
+    "threshold": "\u2265 2",
+    "viewpoint": "B_house",
+    "primaryCheck": 0,
+    "checks": [
+      {
+        "type": "audit",
+        "path": "systems.structures.houses",
+        "op": ">=",
+        "value": 2,
+        "threshold": "\u2265 2",
+        "ok": true
+      },
+      {
+        "type": "audit",
+        "path": "systems.structures.geometry",
+        "op": "!=",
+        "value": "procedural-v1",
+        "threshold": "\u2260 \"placeholder-massing\"",
+        "ok": true
+      },
+      {
+        "type": "audit",
+        "path": "systems.structures.mossRoof",
+        "op": "truthy",
+        "threshold": "truthy",
+        "value": true,
+        "ok": true
+      },
+      {
+        "type": "audit",
+        "path": "systems.structures.doorLight",
+        "op": "truthy",
+        "threshold": "truthy",
+        "value": true,
+        "ok": true
+      }
+    ],
+    "review": {
+      "reviewer": "astra",
+      "verdict": "fail",
+      "takeId": "take-0070",
+      "at": "2026-09-12T19:33:34.725Z",
+      "evidence": "docs/reviews/fable-take-0070/B_house.compare.jpg",
+      "valid": true,
+      "reason": null
+    },
+    "previousStatus": "fail",
+    "statusDelta": null,
+    "valueDelta": null,
+    "trend": "",
+    "delta": null
+  },
+  "W32": {
+    "id": "W32",
+    "title": "Layered atmospheric perspective",
+    "group": "lighting",
+    "phase": 1,
+    "verify": "both",
+    "weight": 2,
+    "status": "fail",
+    "autoStatus": "fail",
+    "value": 2,
+    "threshold": "\u2265 3",
+    "viewpoint": "D_log",
+    "primaryCheck": 2,
+    "checks": [
+      {
+        "type": "audit",
+        "path": "systems.atmosphere.fogFar",
+        "op": ">=",
+        "value": 190,
+        "threshold": "\u2265 150",
+        "ok": true
+      },
+      {
+        "type": "audit",
+        "path": "systems.atmosphere.groundMist",
+        "op": "truthy",
+        "threshold": "truthy",
+        "value": true,
+        "ok": true
+      },
+      {
+        "type": "depth",
+        "viewpoint": "D_log",
+        "metric": "farLayerCount",
+        "op": ">=",
+        "value": 2,
+        "threshold": "\u2265 3",
+        "ok": false
+      }
+    ],
+    "review": null,
+    "previousStatus": "pending",
+    "statusDelta": "pending\u2192fail",
+    "valueDelta": -1,
+    "trend": "\u25bc",
+    "delta": "pending\u2192fail"
+  },
+  "recordedCleanSignals": {
+    "consoleErrors": 0,
+    "flags": [],
+    "regressions": []
+  },
+  "systemFailures": [],
+  "originalOwnerBoards": [
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/01-village-lighting.png",
+      "sha256": "afa7664c8d1605e70ce8b08d94f240a01bd27e1a5ba992c629a3b5c0ea7526c7"
+    },
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/03-tree-house-front.png",
+      "sha256": "0924e0f056830d89c801c3c0b0c08ac7d75c4c9c67a0b77009576afeb8c87f34"
+    },
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/04-tree-house-structure.png",
+      "sha256": "573596c8c386a6d7f974b46e828ed557b6ef38a7963140fa816fc5fbbd4492d7"
+    },
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/08-gameplay-composition.png",
+      "sha256": "9a06911b78eb14aabce09a949020021e0fbc4aae8911307b73b9017d8ae10e02"
+    }
+  ],
+  "scope": "Read-only independent visual review. No formal W25 verdict, historical score/ledger/rubric/source edits, CI or render.",
+  "globalLightSourceChangedFiles": [],
+  "heroHouseSourceChangedFiles": [],
+  "personallyViewedOriginals": {
+    "70": [
+      "A_stairs",
+      "B_house",
+      "C_lookback",
+      "D_log",
+      "F_canopy"
+    ],
+    "71": [
+      "A_stairs",
+      "B_house",
+      "C_lookback",
+      "D_log",
+      "F_canopy"
+    ]
+  },
+  "personallyViewedComparisonStrips": [
+    "71-A_stairs.compare.jpg",
+    "71-D_log.compare.jpg"
+  ],
+  "personallyViewedOwnerOriginals": [
+    1,
+    3,
+    4,
+    8
+  ],
+  "visualConclusion": "Recessed dark centres improve opening read, but uniform bright perimeter rings/arches remain a new conspicuous graphic-lighting defect; preserve geometry/host work and refine opening rim shading. Existing W25 fail unchanged; no formal verdict."
+}

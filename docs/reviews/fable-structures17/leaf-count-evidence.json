@@ -1,0 +1,166 @@
+{
+  "scope": "Focused primitive leaf-count attribution only; initial unexpected capture field retained. No GPU verdict and no production writes.",
+  "base": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+  "candidate": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+  "rows": [
+    {
+      "house": "saria",
+      "before": 1876,
+      "after": 1879,
+      "calls": 100,
+      "changedCounts": [
+        {
+          "call": 77,
+          "before": {
+            "source": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+            "house": "saria",
+            "method": "addHangingVine",
+            "hook": [
+              9.100179563483115,
+              4.020438730993292,
+              -12.743028486474351
+            ],
+            "length": 0.7833660978245008,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 15
+          },
+          "after": {
+            "source": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+            "house": "saria",
+            "method": "addHangingVine",
+            "hook": [
+              9.100179563483115,
+              4.062598809347596,
+              -12.743028486474351
+            ],
+            "length": 0.8192021644256596,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 16
+          }
+        },
+        {
+          "call": 78,
+          "before": {
+            "source": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+            "house": "saria",
+            "method": "addHangingVine",
+            "hook": [
+              12.419982943036176,
+              4.101678800381252,
+              -7.746470228119115
+            ],
+            "length": 0.4460093357780608,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 8
+          },
+          "after": {
+            "source": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+            "house": "saria",
+            "method": "addHangingVine",
+            "hook": [
+              12.419982943036176,
+              4.173623134093165,
+              -7.746470228119115
+            ],
+            "length": 0.5071620194331876,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 10
+          }
+        }
+      ]
+    },
+    {
+      "house": "upper",
+      "before": 1345,
+      "after": 1345,
+      "calls": 76,
+      "changedCounts": [
+        {
+          "call": 56,
+          "before": {
+            "source": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+            "house": "upper",
+            "method": "addHangingVine",
+            "hook": [
+              12.267619798713518,
+              7.758349966032791,
+              -20.011381592653585
+            ],
+            "length": 0.3299062499999998,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 6
+          },
+          "after": {
+            "source": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+            "house": "upper",
+            "method": "addHangingVine",
+            "hook": [
+              12.267619798713518,
+              7.787619501696845,
+              -20.011381592653585
+            ],
+            "length": 0.3547853553144459,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 7
+          }
+        },
+        {
+          "call": 57,
+          "before": {
+            "source": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+            "house": "upper",
+            "method": "addHangingVine",
+            "hook": [
+              16.091320805746907,
+              7.876518433914127,
+              -16.535861846273882
+            ],
+            "length": 0.40162499999999984,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 8
+          },
+          "after": {
+            "source": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+            "house": "upper",
+            "method": "addHangingVine",
+            "hook": [
+              16.091320805746907,
+              7.845128140032026,
+              -16.535861846273882
+            ],
+            "length": 0.3749432502002141,
+            "options": {
+              "amount": 0.08,
+              "thickness": 0.012
+            },
+            "added": 7
+          }
+        }
+      ]
+    }
+  ],
+  "foliageSourceExact": true,
+  "root7bHouseExactToBase": true,
+  "released3abHouseExactToCandidate": true
+}

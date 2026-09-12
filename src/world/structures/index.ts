@@ -17,6 +17,8 @@ import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
 import { buildLanternPost } from './lanternPost';
+import { buildLeafLantern } from './leafPod';
+import { createPostPodMaterial } from './postPodMaterial';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { buildSignpost } from './signpost';
@@ -93,7 +95,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
 
   // ---- lantern posts (stair foot, path fork) ----
-  const posts = LANTERN_POSTS.map((p) => buildLanternPost(p, ctx, mats, rng.fork(`lantern-post/${p.id}`), rope));
+  const postPod = createPostPodMaterial(mats.lantern, ctx.config.palette.lanternGlow);
+  const postMats = { ...mats, lantern: postPod.material };
+  const posts = LANTERN_POSTS.map((p) => buildLanternPost(p, ctx, postMats, rng.fork(`lantern-post/${p.id}`), rope, buildLeafLantern));
   for (const pb of posts) {
     group.add(pb.group);
     lanterns.push(...pb.lanterns);
@@ -188,6 +192,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ropeFences: ROPE_FENCES.length,
     lanternPosts: posts.length,
     postLanterns: posts.reduce((n, p) => n + p.lanterns.length, 0),
+    postLightIntensities: posts.flatMap((p) => p.lights.map((l) => +l.intensity.toFixed(3))),
     logArch: true,
     houseRoots,
     houseBranches,
@@ -227,7 +232,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     textureSets: mats.texturedSets,
     /** round 17: the canvas textures this system generated and will dispose (not the library's maps) */
     ownedTextures: mats.ownedTextures.map((t) => t.name),
-    /** everything `dispose()` releases besides the geometries and `mats`: rope + house materials, distant glow, owned textures */
+    /** resources in `owned`: rope, house materials, distant glow and generated textures;
+     *  sign and post-pod helpers retain their own separately managed extras */
     ownedResources: owned.length,
     maxBaseGap: maxBaseGap(),
     samplePositions: { bases },
@@ -261,6 +267,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
       for (const r of owned) once(r);
       owned.length = 0;
+      // Existing sign/post helpers own their additional materials and generated maps.
+      for (const sb of signposts) sb.disposeMaterials();
+      postPod.dispose();
     },
   };
 }

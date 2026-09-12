@@ -1,0 +1,17 @@
+  // Distant caps need their own bounds: merging them into the hero roofs' large mesh
+  // makes the old roof bucket intersect look-back cameras even when every roof is offscreen.
+  // Keep material/geometry data shared; only the static draw grouping changes.
+  const distantCaps = new Group();
+  distantCaps.name = 'distant-house-caps';
+  const distantCapMeshes: Mesh[] = [];
+  distant.group.traverse((object) => {
+    const mesh = object as Mesh;
+    if (mesh.isMesh && mesh.material === mats.capMoss) distantCapMeshes.push(mesh);
+  });
+  for (const mesh of distantCapMeshes) distantCaps.attach(mesh);
+  const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
+  const capDraws = consolidateStaticMeshes(distantCaps);
+  group.add(distantCaps);
+  draws.before += capDraws.before;
+  draws.after += capDraws.after;
+  draws.merged += capDraws.merged;

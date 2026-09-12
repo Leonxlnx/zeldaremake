@@ -22,7 +22,7 @@
  *      round every leaf; the reference's shaded flagstone keeps ≈ 64 % of the lit stone's radiance
  *      while Link's own crisp shadow keeps only ≈ 37 % (its shadow blocks the near light entirely).
  *
- * Installed at module load (before any material compiles), like the fog chunks.
+ * Installed by the first lighting-system creation before any material compiles.
  */
 import { ShaderChunk } from 'three';
 

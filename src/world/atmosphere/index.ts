@@ -58,6 +58,8 @@ export function create(ctx: WorldContext): WorldSystem {
       camera: ctx.camera as PerspectiveCamera,
       sunDirection: sunDir,
       sun: () => ctx.sun,
+      // Trees are constructed later; resolve their actual terrain-anchored axes at render time.
+      canopyOpenings: () => ctx.shared.canopyOpenings ?? [],
       exposure: cfg.renderer.exposure,
       headless: ctx.headless,
       overlay: {
@@ -119,7 +121,8 @@ export function create(ctx: WorldContext): WorldSystem {
     farShadeFullM: HEIGHT_FOG_DEFAULTS.farShadeFull,
     farShadeMin: HEIGHT_FOG_DEFAULTS.farShadeMin,
     skyGapDisplay: displayHex(SKY_GAP_GLARE),
-    sky: 'procedural-warm-haze+sun+cirrus',
+    sky: 'procedural-canopy-gaps+sun+cirrus',
+    skyClosedGapShare: sky.material.uniforms.uClosedGapShare.value,
     groundMist: true,
     groundMistBillboards: mist.billboards,
     groundMistSheets: mist.sheets,

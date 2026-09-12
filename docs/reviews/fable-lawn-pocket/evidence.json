@@ -1,0 +1,319 @@
+{
+  "base": "0f9426c7267d06f13cc96be4591821fce795cb84",
+  "candidate": "612872691c51949655102bf9e60361ec33039fb2",
+  "scope": "Pinned source CPU geometry, RNG and scene resource review; no GPU verdict",
+  "sources": {
+    "src/world/hardscape/index.ts": "2a43748736a308824461e3f70c0df725558f498103de223086f4a7b4ef679d6b",
+    "src/world/hardscape/joints.ts": "5e80ff4ec319931ad6c0d09f57628111129be78f220b4d0cba60b11ca6841b92",
+    "src/world/hardscape/flowers.ts": "5b7c166342df730b097bcd8dc352d97787e01f558c51bbc1330424541a71d49a"
+  },
+  "before": {
+    "meshes": 8,
+    "submittedTriangles": 369178,
+    "castingTriangles": 101298,
+    "finite": true
+  },
+  "after": {
+    "meshes": 9,
+    "submittedTriangles": 444174,
+    "castingTriangles": 101298,
+    "finite": true
+  },
+  "delta": {
+    "meshes": 1,
+    "submittedTriangles": 74996,
+    "castingTriangles": 0
+  },
+  "protectedGeometry": {
+    "stairs-main": {
+      "position": true,
+      "normal": true,
+      "uv": true,
+      "color": true,
+      "aMoss": true,
+      "aStain": true
+    },
+    "stairs-north": {
+      "position": true,
+      "normal": true,
+      "uv": true,
+      "color": true,
+      "aMoss": true,
+      "aStain": true
+    },
+    "flagstones": {
+      "position": true,
+      "normal": true,
+      "uv": true,
+      "color": true,
+      "aMoss": true,
+      "aStain": true
+    },
+    "flagstone-joints": {
+      "position": true,
+      "color": false,
+      "uv": true,
+      "aSoil": true,
+      "aRim": true,
+      "normal": true,
+      "index": true
+    }
+  },
+  "protectedAudit": {
+    "stairways": true,
+    "totalSteps": true,
+    "treadSlabs": true,
+    "stairGeometry": true,
+    "uniqueStepShapes": true,
+    "stairTriangles": true,
+    "flagstones": true,
+    "flagstoneShapes": true,
+    "flagstoneGeometry": true,
+    "flagstoneSplitCells": true,
+    "flagstoneBrokenCells": true,
+    "flagstoneAcrossM": true,
+    "flagstoneAcrossLawnM": true,
+    "flagstoneCrownCm": true,
+    "flagstoneShoulderRollCm": true,
+    "flagstoneFilletCm": true,
+    "flagstoneJointCm": true,
+    "flagstoneNotches": true,
+    "flagstoneChippedCorners": true,
+    "flagstoneBigSlabs": true,
+    "flagstoneRimStones": true,
+    "flagstoneLawnSlabs": true,
+    "flagstoneAuthoredSlabs": true,
+    "flagstoneEdgeMossStones": true,
+    "steppingStones": true,
+    "steppingStoneDiscs": true,
+    "flagstoneMaxAspect": true,
+    "flagstoneTriangles": true,
+    "flagstoneDrawCalls": true,
+    "jointFillTriangles": true,
+    "jointFill": true,
+    "jointSoilAlbedo": true,
+    "jointFillIso": true,
+    "jointFillClippedCells": true,
+    "jointFillRimVertices": true,
+    "jointFillRimLengthM": true,
+    "jointGapField": true,
+    "plazaRadius": true,
+    "samplePositions": true,
+    "flagstoneTopOffset": true,
+    "maxBottomGap": true
+  },
+  "fillColor": {
+    "changedInside": 355,
+    "changedOutside": 0
+  },
+  "oldOutside": {
+    "n": 3899,
+    "missing": 0,
+    "spotChanged": 0,
+    "matrixChanged": 3365,
+    "colorChanged": 3365,
+    "variantChanged": 0,
+    "byKind": {
+      "tuft": {
+        "n": 1797,
+        "matrixChanged": 1263,
+        "colorChanged": 1263,
+        "spotChanged": 0
+      },
+      "grit": {
+        "n": 1686,
+        "matrixChanged": 1686,
+        "colorChanged": 1686,
+        "spotChanged": 0
+      },
+      "cushion": {
+        "n": 416,
+        "matrixChanged": 416,
+        "colorChanged": 416,
+        "spotChanged": 0
+      }
+    },
+    "examples": [
+      {
+        "position": [
+          5.9336524200858545,
+          0.001785733947132254,
+          3.2507661052979557
+        ],
+        "kind": "tuft",
+        "spotChanged": false,
+        "matrixChanged": true,
+        "colorChanged": true,
+        "oldColor": [
+          0.9631448984146118,
+          0.8014665842056274,
+          0.8836804032325745
+        ],
+        "newColor": [
+          1.0288549661636353,
+          0.9945380091667175,
+          0.807907223701477
+        ]
+      },
+      {
+        "position": [
+          -5.667717203288339,
+          -0.025291712152907354,
+          -0.7746203650720389
+        ],
+        "kind": "tuft",
+        "spotChanged": false,
+        "matrixChanged": true,
+        "colorChanged": true,
+        "oldColor": [
+          0.8850390315055847,
+          0.9027400612831116,
+          0.8744649291038513
+        ],
+        "newColor": [
+          0.9238313436508179,
+          0.8761554956436157,
+          0.8351105451583862
+        ]
+      },
+      {
+        "position": [
+          3.158202199125663,
+          0.04133150598032942,
+          -4.344016719516368
+        ],
+        "kind": "tuft",
+        "spotChanged": false,
+        "matrixChanged": true,
+        "colorChanged": true,
+        "oldColor": [
+          0.9070165753364563,
+          1.0362906455993652,
+          0.7943480610847473
+        ],
+        "newColor": [
+          0.8137656450271606,
+          0.9513199925422668,
+          0.9399335980415344
+        ]
+      },
+      {
+        "position": [
+          -0.2592812846880408,
+          0.10654650619155827,
+          -24.989401047024877
+        ],
+        "kind": "tuft",
+        "spotChanged": false,
+        "matrixChanged": true,
+        "colorChanged": true,
+        "oldColor": [
+          0.783487856388092,
+          0.913613498210907,
+          0.8073173761367798
+        ],
+        "newColor": [
+          0.8443118333816528,
+          0.9803056716918945,
+          0.8842043876647949
+        ]
+      }
+    ]
+  },
+  "oldInside": {
+    "n": 376,
+    "sizeChanged": 58
+  },
+  "newSpots": 1467,
+  "newContactOffsets": {
+    "min": 0.0019999990725598597,
+    "max": 0.00800000039259225
+  },
+  "flower": {
+    "count": 14,
+    "triangles": 1148,
+    "vertexBytes": 123984,
+    "contactRange": [
+      0.007908343344532748,
+      0.00809165778654905
+    ],
+    "minSpacing": 0.3818202806951993,
+    "maxHeadNormalErrorDeg": 8.924675013157984,
+    "stemNormalErrorRange": [
+      40.61366274577444,
+      132.9199607723504
+    ],
+    "castShadow": false,
+    "receiveShadow": true,
+    "side": 0,
+    "hasWindAttribute": false,
+    "hasSystemDispose": false,
+    "disposalEventsAfterSystemDispose": {
+      "geometry": 0,
+      "material": 0
+    },
+    "projectedHeadFootprints": [
+      {
+        "camera": "B_house",
+        "widthPixels": [
+          4.0206855536603925,
+          8.81571781455321
+        ],
+        "heightPixels": [
+          2.731508331452017,
+          5.729696365652983
+        ]
+      },
+      {
+        "camera": "E_ground",
+        "widthPixels": [
+          4.0206855536603925,
+          8.81571781455321
+        ],
+        "heightPixels": [
+          2.731508331452017,
+          5.729696365652983
+        ]
+      }
+    ]
+  },
+  "auditLawn": {
+    "areaM2": 10.752,
+    "latticeCm": 8.2,
+    "tufts": 1352,
+    "clover": 161,
+    "mossPads": 4,
+    "edgeTufts": 69,
+    "edgeOverhangCm": 6.6,
+    "edgeBandTufts": 101,
+    "footprintCm": {
+      "n": 1132,
+      "p10": 10.186,
+      "p50": 12.011,
+      "p90": 16.526
+    },
+    "heightCm": {
+      "n": 1132,
+      "p10": 7.972,
+      "p50": 9.4,
+      "p90": 12.934
+    },
+    "tuftsPerM2": 156.534,
+    "flowerHeads": 14,
+    "flowerTriangles": 1148,
+    "flowerDrawCalls": 1,
+    "groundFill": "mossy-earth (JOINT_SOIL_MID lerp grassDeep 0.85, dimmed 0.6)"
+  },
+  "sprouts": {
+    "before": {
+      "count": 2580,
+      "grit": 1695,
+      "submitted": 246548
+    },
+    "after": {
+      "count": 4047,
+      "grit": 1695,
+      "submitted": 320396
+    }
+  }
+}

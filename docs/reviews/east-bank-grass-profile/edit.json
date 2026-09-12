@@ -1,0 +1,10 @@
+{
+  "baseSource": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "actualGeometrySource": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "file": "src/world/vegetation/grass.ts",
+  "beforeSHA256": "3f30d6804c1abcf72b59e20c90cce52a6ad70670a02de3210ec839655a064745",
+  "candidateSHA256": "06012017b7d52794204b9936e4890f8cc2942cbfb4f1e33cb8509aa4c2c51da4",
+  "anchor": "      maxH = Math.max(maxH, h);\n",
+  "insertBefore": "      // Break the elevated east flank's fine grass wall into short understory patches around\n      // its existing fern / broadleaf groups. Keep tall islands in the strongest existing\n      // clumps; shade's 2 m border and the 1.2\u20132 m height ramp feather the same fixed region.\n      // This changes final height (and its derived wind stiffness), never the random stream,\n      // blade type, root, width or other plant placement. The low C sight line stays exact.\n      if (shade > 0 && s.h > 1.2) {\n        const bankProfile = shade * smoothstep(1.2, 2, s.h)\n          * (1 - field.sightlineC(x, z, 1)) * (1 - trim);\n        const shortPatch = 1 - smoothstep(0.45, 0.8, cluster);\n        h *= 1 - 0.62 * bankProfile * shortPatch;\n      }\n",
+  "note": "Unique-context 11-line recipe only. Reconstruct in memory from pinned Git bytes, verify both full source hashes, and never write the production file."
+}

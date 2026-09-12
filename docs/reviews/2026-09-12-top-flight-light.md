@@ -1,0 +1,15 @@
+# Top-flight canopy light study
+
+Historical implementation note for ccc7e7f. Its actual images show only a subtle improvement; the subsequent controlled gain study is documented in [2026-09-12-top-flight-gain.md](2026-09-12-top-flight-gain.md).
+
+The existing top-flight canopy opening is real geometry from Fable a05ffb0. Its air axis falls in the volumetric mask's5% noise floor because that mask only knows six older shaft columns. This pass admits that one opening to the mask while keeping the real sun-shadow lookup decisive. It does not brighten the sun, change fog density or carve more foliage.
+
+Fable released the additive shared contract in PR2comment5646240291. Trees now publish all seven resolved openings through `ctx.shared.canopyOpenings`, after construction. Their existing terrain-anchored points and sun axes are copied without extra terrain samples or RNG draws. Only the top entry receives the semantic id `flight-top`. Atmosphere reads through a deferred callback because it is constructed before trees.
+
+The composer admits only `flight-top`, with radius1 m and gain1. Eight stable uniform slots and an active count avoid shader recompilation on late publication or the diagnostic toggle. The new contribution requires an actually lit shadow sample inside the map in X/Y/depth, including nonnegative depth. The old outside-map fallback is unchanged and cannot activate this new opening. The six legacy columns, noise, lower-air fade, aerosol profile, extinction and sun coupling remain intact.
+
+The resolved ground point is `[14.9, 4.5908427238464355, -6]`; its sun-plane center is `[-13.901420503992643, 8.572102282063343]`. Using ground height0 would shift that axis3.618 m, enough to miss the real opening. The tree audit records the published geometry; the post-processing audit records the actual frame setting, active count, point/axis, radius/gain and sun-plane center.
+
+Validation: typecheck/build, source anti-cheat and the focused composer lifecycle test pass. That test exercises absent→published→disabled→enabled data, missing shadow maps, sun-off, stable uniform identities and the actual scalar shader guard. It is CPU validation; the renderer stub produces no image. An independent full tree CPU comparison against d7ddc01 found identical76 meshes,1,841,268 vertices, instance buffers, RNG continuation, prior audits and21 lantern-limb samples; geometry hash `61922244a89a99d7aa43a3c9a86d3a5f5715f7d9c2864ecc606aed334d918901` before and after.
+
+The next12-image CI comparison changes only `beamCanopyOpenings`: baseline false, candidate current production with no runtime overrides. Both columns use the same new source, geometry, camera, time12.5 and depth. The previous f115 fill/contrast study is retained in its historical galleries and is no longer this comparison's baseline. Four additional prop views remain full-scene production captures. These forthcoming images must determine whether the new beam is visible, coherent and restrained; no visual success is inferred from CPU checks.

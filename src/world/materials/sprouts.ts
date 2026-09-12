@@ -1,14 +1,15 @@
 /**
  * Shared small-plant instancing (tufts, clover, moss cushions, fern fronds, seam grit) with variant
- * packs: one InstancedMesh per pack, non-selected variants collapsed in the vertex shader. Lives in
+ * packs: legacy pack traversal preserves jitter; optional separate batches omit collapsed variants.
+ * Lives in
  * materials/ because hardscape (joint sprouts) and rocks (boulder cap plants) both build with it —
  * systems must not import each other's internals (AGENTS.md rule 1).
  *
  * Joint sprouts (W21): small grass / weed tufts growing out of flagstone and stair joints, plus
  * the moss cushions and the seam grit that live in the same joints. Geometry blades (no alpha
  * cards), GPU instanced, animated with the shared wind model's `windGrass` so they ripple with
- * the rest of the vegetation. Variants are packed several to an InstancedMesh (see
- * `HARDSCAPE_PACKS`) so the whole set costs four draw calls.
+ * the rest of the vegetation. `HARDSCAPE_PACKS` keeps the original four-pack traversal; hardscape
+ * opts into six variant batches to avoid submitting the other variants for every instance.
  */
 import {
   BufferGeometry,
@@ -433,6 +434,10 @@ const NO_TINT: [number, number, number] = [1, 1, 1];
 
 export interface SproutBuild {
   meshes: InstancedMesh[];
+  /** actual emitted variant batches, in legacy traversal order */
+  packs: number[][];
+  /** draws dedicated to grit (a shared pack does not count as dedicated) */
+  gritDrawCalls: number;
   /** tufts + clover + cushions + ferns (not grit) */
   count: number;
   variants: number;
@@ -481,8 +486,10 @@ function packGeometries(geos: BufferGeometry[], variantIds: number[]): BufferGeo
  * instances after it. `opts.jitter` replaces that with one stream per (spot.source, variant), each
  * consumed in list order by its own instances only: a scatter can then grow or shrink without
  * re-rolling any other scatter's instances. Without the option the behaviour is exactly the old one.
+ * `opts.splitVariants` separates populated variants after that same traversal, retaining each
+ * original pack's bounding sphere and material; its additional draw calls are reported explicitly.
  */
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color; jitter?: SproutJitterStreams } = {}): SproutBuild {
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color; jitter?: SproutJitterStreams; splitVariants?: boolean } = {}): SproutBuild {
   // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
   // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
   const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
@@ -508,6 +515,8 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
   for (let v = 0; v < variants.length; v++) if (lists[v].length && !packOf.has(v)) throw new Error(`sprout variant ${v} has instances but no pack`);
 
   const meshes: InstancedMesh[] = [];
+  const emittedPacks: number[][] = [];
+  let gritDrawCalls = 0;
   const m = new Matrix4();
   const p = new Vector3();
   const q = new Quaternion();
@@ -580,14 +589,49 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
       else count += lists[v].length;
     }
     geo.setAttribute('aSproutVariant', new InstancedBufferAttribute(slotOf, 1));
-    submittedTriangles += (geo.attributes.position.count / 3) * n;
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor) im.instanceColor.needsUpdate = true;
     im.castShadow = false;
     im.receiveShadow = true;
     im.name = `joint-sprouts-p${pi}-v${pack.join('')}`;
     im.computeBoundingSphere();
-    meshes.push(im);
+    if (!opts.splitVariants || pack.length === 1) {
+      submittedTriangles += (geo.attributes.position.count / 3) * n;
+      meshes.push(im);
+      emittedPacks.push([...pack]);
+      if (pack.length === 1 && pack[0] === GRIT) gritDrawCalls++;
+      return;
+    }
+    // Build jitter in the original pack/variant/list order above, then copy its exact bytes.
+    // Each batch keeps the old pack sphere: this removes collapsed geometry without changing
+    // frustum admission, depth-sort centre or the existing wind/LOD visibility envelope.
+    let first = 0;
+    for (const v of pack) {
+      const count = lists[v].length;
+      if (!count) continue;
+      const part = packGeometries([variants[v]], [v]);
+      part.setAttribute('aSproutVariant', new InstancedBufferAttribute(new Float32Array(count), 1));
+      const batch = new InstancedMesh(part, material, count);
+      batch.instanceMatrix.array.set(im.instanceMatrix.array.subarray(first * 16, (first + count) * 16));
+      batch.instanceMatrix.needsUpdate = true;
+      if (im.instanceColor) {
+        batch.instanceColor = new InstancedBufferAttribute(im.instanceColor.array.slice(first * 3, (first + count) * 3), 3);
+        batch.instanceColor.needsUpdate = true;
+      }
+      batch.castShadow = im.castShadow;
+      batch.receiveShadow = im.receiveShadow;
+      batch.name = `joint-sprouts-p${pi}-v${v}`;
+      batch.boundingSphere = im.boundingSphere!.clone();
+      meshes.push(batch);
+      emittedPacks.push([v]);
+      submittedTriangles += (part.attributes.position.count / 3) * count;
+      if (v === GRIT) gritDrawCalls++;
+      first += count;
+    }
+    // The temporary pack never enters the scene or uploads buffers. New batches own their
+    // geometries/instance attributes and borrow the same material; dispose only scaffolding.
+    im.dispose();
+    geo.dispose();
   });
-  return { meshes, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, grit: lists[GRIT].length, triangles, gritTriangles, submittedTriangles };
+  return { meshes, packs: emittedPacks, gritDrawCalls, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, grit: lists[GRIT].length, triangles, gritTriangles, submittedTriangles };
 }

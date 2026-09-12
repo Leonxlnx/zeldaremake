@@ -1,0 +1,186 @@
+name: Astra environment comparison
+on:
+  push:
+    branches: ['agent/astra-environment-lighting']
+  workflow_dispatch:
+    inputs:
+      hedge_lod_sweep:
+        description: 'Capture the bounded bank-hedge LOD sweep (11 full-scene frames)'
+        type: boolean
+        default: false
+      middepth_sweep:
+        description: 'Capture eleven full-scene D approach distance samples'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: astra-environment
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Locate runner Chrome
+        id: chrome
+        shell: bash
+        run: |
+          CAPTURE_CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          echo "path=$CAPTURE_CHROME" >> "$GITHUB_OUTPUT"
+      - name: Install Chrome fallback
+        if: steps.chrome.outputs.path == ''
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - name: Export Chrome path
+        env:
+          RUNNER_CHROME: ${{ steps.chrome.outputs.path }}
+          FALLBACK_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+        shell: bash
+        run: |
+          CAPTURE_CHROME="${RUNNER_CHROME:-$FALLBACK_CHROME}"
+          echo "CHROME_PATH=$CAPTURE_CHROME" >> "$GITHUB_ENV"
+          "$CAPTURE_CHROME" --version
+      - name: Detect a hedge geometry checkpoint
+        id: hedge-sweep
+        env:
+          MANUAL_HEDGE_SWEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.hedge_lod_sweep }}
+        shell: bash
+        run: |
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            HEDGE_CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD^ HEAD -- src/world/vegetation/plantgeo.ts gauntlet/scripts/environment-hedge-sweep-data.mjs)"
+          else
+            HEDGE_CHANGED="$(git ls-tree --name-only HEAD -- src/world/vegetation/plantgeo.ts gauntlet/scripts/environment-hedge-sweep-data.mjs)"
+          fi
+          if [ -n "$HEDGE_CHANGED" ] || [ "$MANUAL_HEDGE_SWEEP" = 'true' ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Detect a middle forest distance checkpoint
+        id: middepth-sweep
+        env:
+          MANUAL_MIDDEPTH_SWEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.middepth_sweep }}
+        shell: bash
+        run: |
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            MIDDEPTH_CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD^ HEAD -- src/world/atmosphere/heightfog.ts gauntlet/scripts/environment-middepth-sweep-data.mjs)"
+          else
+            MIDDEPTH_CHANGED="$(git ls-tree --name-only HEAD -- src/world/atmosphere/heightfog.ts gauntlet/scripts/environment-middepth-sweep-data.mjs)"
+          fi
+          if [ -n "$MIDDEPTH_CHANGED" ] || [ "$MANUAL_MIDDEPTH_SWEEP" = 'true' ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+          fi
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Check source integrity
+        run: node gauntlet/scripts/anti-cheat.mjs --skip-capture-checks
+      - name: Check screenshot state invariants
+        run: node gauntlet/scripts/test-environment-capture-state.mjs
+      - name: Check detail publication integrity
+        run: node gauntlet/scripts/test-environment-details.mjs
+      - name: Check shadow texel stability under camera motion
+        run: node src/world/lighting/shadowframe.test.mjs
+      - name: Check deferred canopy mask and shadow guard
+        run: node src/world/atmosphere/shafts.test.mjs
+      - name: Check vegetation shading and shared shadow deformation
+        run: node src/world/vegetation/materials.test.mjs
+      - name: Check semantic shared-tuft lighting masks
+        run: node src/world/materials/sprouts.test.mjs
+      - name: Check prop geometry and terrain contact
+        run: node src/world/props/geometry.test.mjs
+      - name: Check owned post-pod finish and resource disposal
+        run: node src/world/structures/postPodMaterial.test.mjs
+      - name: Render six matched environment comparisons
+        run: node gauntlet/scripts/capture-environment.mjs
+      - name: Retain actual images and metadata, including partial failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified dated gallery
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          node gauntlet/scripts/publish-environment-capture.mjs gauntlet/out/astra-environment "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Twelve environment comparison images](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
+      - name: Render four production world detail views
+        run: node gauntlet/scripts/capture-environment-details.mjs
+      - name: Retain actual detail images and metadata, including partial failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-details-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment-details
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified dated detail gallery
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          node gauntlet/scripts/publish-environment-details.mjs gauntlet/out/astra-environment-details "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-detail-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-detail-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-detail-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Four production world detail views](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
+      - name: Capture bank-hedge LOD sweep for geometry changes
+        if: steps.hedge-sweep.outputs.enabled == 'true'
+        timeout-minutes: 12
+        run: node gauntlet/scripts/capture-environment-hedge-sweep.mjs
+      - name: Retain original hedge sweep and partial failure metadata
+        if: always() && steps.hedge-sweep.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-hedge-sweep-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment-hedge-sweep
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified original hedge sweep
+        if: steps.hedge-sweep.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          node gauntlet/scripts/publish-environment-hedge-sweep.mjs gauntlet/out/astra-environment-hedge-sweep "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-motion-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-motion-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-motion-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Eleven original hedge LOD sweep frames](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
+      - name: Capture middle forest distance samples
+        if: steps.middepth-sweep.outputs.enabled == 'true'
+        timeout-minutes: 12
+        run: node gauntlet/scripts/capture-environment-hedge-sweep.mjs --middepth
+      - name: Retain original middle forest samples and partial failure metadata
+        if: always() && steps.middepth-sweep.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-middepth-sweep-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment-middepth-sweep
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified original middle forest samples
+        if: steps.middepth-sweep.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          node gauntlet/scripts/publish-environment-hedge-sweep.mjs gauntlet/out/astra-environment-middepth-sweep "https://github.com/$GITHUB_REPOSITORY.git" --middepth > "$RUNNER_TEMP/astra-environment-middepth-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-middepth-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-middepth-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Eleven original middle forest distance samples](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'

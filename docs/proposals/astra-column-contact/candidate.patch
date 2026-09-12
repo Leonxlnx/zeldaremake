@@ -1,0 +1,92 @@
+--- a/src/world/trees/column.ts
++++ b/src/world/trees/column.ts
+@@ -105,7 +105,8 @@
+   };
+ }
+ 
+-export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail): TreeAsset {
++/** `groundAt` samples terrain in this particular seat's local coordinates; only roots use it. */
++export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAt: (x: number, z: number) => number = () => 0): TreeAsset {
+   const rng = createRng(`column/${p.seed}`);
+   const bt = (a: number, b: number) => between(rng, a, b);
+   const gnarl = new Noise2D(`column-bark/${p.seed}`);
+@@ -164,7 +165,7 @@
+   // ---------- buttress roots ----------
+   const rootColor = barkBase.clone().lerp(barkDeep, 0.5);
+   for (let i = 0; i < p.roots; i++) {
+-    rootButtress(wood, (i / p.roots) * TAU + bt(-0.25, 0.25), R * bt(p.rootReach[0], p.rootReach[1]), R * bt(0.42, 0.6), R * bt(0.9, 1.3), rootColor, rng);
++    rootButtress(wood, (i / p.roots) * TAU + bt(-0.25, 0.25), R * bt(p.rootReach[0], p.rootReach[1]), R * bt(0.42, 0.6), R * bt(0.9, 1.3), rootColor, rng, groundAt);
+   }
+ 
+   // ---------- crown ----------
+--- a/src/world/trees/index.ts
++++ b/src/world/trees/index.ts
+@@ -862,10 +862,9 @@
+   const columnRng = rng.fork('columns');
+   const columns: ColumnVariant[] = [];
+   const columnParamSets = [...Array.from({ length: COLUMN_VARIANTS }, (_, i) => columnParams(columnRng, i, COLUMN_VARIANTS)), emergentParams(columnRng)];
++  // Finalize deterministic placements before creating terrain-dependent root geometry.
+   for (const params of columnParamSets) {
+-    const lods = DETAILS.map((d) => createColumnTree(params, palette, d));
+-    columns.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
+-    await yieldFrame();
++    columns.push({ params, lods: [], meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
+   }
+   const seatRng = columnRng.fork('seats');
+   const columnSeatsSkipped: { x: number; z: number; reason: string }[] = [];
+@@ -903,9 +902,27 @@
+     seatFamily(columns, { x: seat.x, y: terrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat' }, seat.variant);
+   }
+   const columnPlacements = columns.flatMap((c) => c.placements);
++  // A variant's flat roots cannot be shared between differently sloped seats. These ten
++  // authored/swapped columns get one family per seat; the existing LOD/shadow rules stay intact.
++  // Reusing the architecture seed preserves every bole/crown and all downstream random draws.
++  const seatedColumns: ColumnVariant[] = [];
++  for (const c of columns) for (let i = 0; i < c.placements.length; i++) {
++    const p = c.placements[i];
++    const cos = Math.cos(p.yaw), sin = Math.sin(p.yaw);
++    const groundAt = (lx: number, lz: number) => (
++      terrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
++    ) / p.scale;
++    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, groundAt));
++    seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0] });
++    await yieldFrame();
++  }
+   const columnGroup = new Group();
+   columnGroup.name = 'columns';
+-  familyMeshes(columns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
++  familyMeshes(seatedColumns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
++  for (const c of seatedColumns) for (const m of c.meshes) {
++    const p = c.placements[0];
++    m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
++  }
+   group.add(columnGroup);
+   ctx.progress('trees', 0.55);
+   await yieldFrame();
+@@ -1121,7 +1138,7 @@
+   };
+   const bucketWhite = (cam: Vector3) => {
+     bucketFamily(whites, cam);
+-    bucketFamily(columns, cam);
++    bucketFamily(seatedColumns, cam);
+   };
+ 
+   const bucketDistant = (cam: Vector3) => {
+@@ -1186,7 +1203,7 @@
+     }
+     let columnLeaves = 0;
+     const columnLodInstances = [0, 0, 0];
+-    for (const c of columns) {
++    for (const c of seatedColumns) {
+       for (let l = 0; l < 3; l++) {
+         columnLeaves += c.counts[l] * c.lods[l].leafCount;
+         woodTriangles += c.counts[l] * c.lods[l].woodTriangles;
+@@ -1281,7 +1298,7 @@
+     },
+     dispose() {
+       for (const w of whites) for (const l of w.lods) l.geometry.dispose();
+-      for (const c of columns) for (const l of c.lods) l.geometry.dispose();
++      for (const c of seatedColumns) for (const l of c.lods) l.geometry.dispose();
+       for (const g of sectorGeometries) g.dispose();
+       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
+     },

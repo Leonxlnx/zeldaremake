@@ -1,0 +1,13 @@
+# Sign and rope detail after18e193
+
+Source before this pass:18e19331fb0571daf336b17debc9f146f9fc8cfc. Owner board06 and the actual18e S01/S02/L01/L02 views guide this local pass. Production geometry has not yet been judged in a new GPU capture.
+
+The sign's authored face is almost perpendicular to the sun (dot approximately−0.016). Its old shared wood was dark even with large existing vertex-colour gains. The sign now borrows the same PBR plank maps through a locally owned material with the existing bounded indirect shade floor. Original11/8 cut symbols replace the thick rounded painted atlas; tapered strokes are2.7–3.38 pixels wide at512×192, with a shallow positive-Z normal map. Binding triangles retain their positions and get a neutral fibre material. Standard direct lighting, shadows and fog remain active; no emission or world-light change.
+
+Combined geometry is exact:1,279 triangles,1,530 vertices, unchanged RNG. The64 rune clearances remain0.99970–1.00016 mm; four peg seats remain4 mm embedded, the10 mm board joint stays open. Splitting the binding/material introduces one mesh; reserve two additional consolidated draw calls. Three local materials and four generated maps (851,968 base bytes, approximately1.08 MiB with mips) are disposed exactly once; borrowed shared maps are never disposed here. Source/type/lifecycle checks pass.
+
+The two lantern posts keep their original rope centrelines, knot, binding, hook, swing pivot, pod, lights, foliage and RNG. Three laid strands now use an8.5 cm physical pitch,12 radial samples and deeper valleys within the previous1.09R outer radius. Radius displacement tapers at the end caps. Neutral fibre colour reduces the old compounded yellow tint under the warm lamp; roughness remains1. Rope geometry rises from2,954 to16,368/16,488 triangles (+26,948 scene triangles total). No extra draw calls/materials, no new degenerate faces;28 inherited lathe pole triangles per pod remain.
+
+Actual18e B/E submitted9,016,050 triangles, already16,050 over the9M performance target. This prop pass temporarily adds approximately53,896 submitted triangles when drawn in colour and sun-shadow passes. The independent one-line hedge PACKS proposal offers202,648 triangles of headroom at+4 calls, with exact visible geometry/placement/LOD. Fable requested application after his running foreground vegetation work; production vegetation is deliberately not edited here. This checkpoint is a reviewable prop iteration, not a performance or appearance acceptance.
+
+Typecheck, production build and source anti-cheat pass. The next complete-scene CI12+4 captures must judge glyph visibility, wood texture, rope silhouette, lamp colour and the actual render budget. CPU evidence supports contracts only.
