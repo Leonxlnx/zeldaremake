@@ -6,5 +6,6 @@ Eleven unmodified full-scene PNGs per checkpoint at fixed simulation time 12.5 s
 
 | Captured UTC | Source | Camera plan | Original frames and metadata |
 | --- | --- | --- | --- |
+| 2026-09-12T20:58:49.465Z | [e2ee5f0](https://github.com/Leonxlnx/zeldaremake/commit/e2ee5f076774ab36d1e751b1f1753781795a417d) | Middle forest / 16 m forward / shade start 22 m | [11 original frames](2026-09-12_205849465-e2ee5f0/) |
 | 2026-09-12T20:51:15.879Z | [e2ee5f0](https://github.com/Leonxlnx/zeldaremake/commit/e2ee5f076774ab36d1e751b1f1753781795a417d) | Bank hedge / LOD return sweep | [11 original frames](2026-09-12_205115879-e2ee5f0/) |
 | 2026-09-12T20:13:00.924Z | [9ef903c](https://github.com/Leonxlnx/zeldaremake/commit/9ef903c58c3ee70eccaf919d565a1eb19cd1bef1) | Bank hedge / LOD return sweep | [11 original frames](2026-09-12_201300924-9ef903c/) |
