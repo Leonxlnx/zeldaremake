@@ -392,6 +392,8 @@ export interface SlabOptions {
    * rounded outline made of short segments defeats the miter inset).
    */
   topRing?: P2[];
+  /** Validate the radial cap centre against concave notch edges; other slabs keep their old topology. */
+  notchedTop?: boolean;
 }
 
 const _a = new Vector3();
@@ -402,6 +404,52 @@ const _ua = new Vector2();
 const _ub = new Vector2();
 const _uc = new Vector2();
 const _ud = new Vector2();
+
+/**
+ * A fan and its homothetic rings must see every edge from their centre. Shallow V-notches
+ * can put the ordinary vertex centroid outside that visibility kernel. Preserve the outline
+ * and move only the centre to the nearest point inside the kernel (with a small inset).
+ * A genuinely non-star-shaped cap has no kernel and uses the triangulated fallback below.
+ */
+function slabFanCentre(poly: P2[]): P2 | null {
+  const original = centroid(poly);
+  const sign = Math.sign(polygonArea(poly));
+  const planes = poly.map((a, i) => {
+    const b = poly[(i + 1) % poly.length];
+    const length = Math.hypot(b.x - a.x, b.z - a.z);
+    return (p: P2) => sign * ((b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x)) / Math.max(length, 1e-12);
+  });
+  if (planes.every((d) => d(original) > 1e-8)) return original;
+  const xs = poly.map((p) => p.x), zs = poly.map((p) => p.z);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
+  let kernel: P2[] = [{ x: x0, z: z0 }, { x: x1, z: z0 }, { x: x1, z: z1 }, { x: x0, z: z1 }];
+  for (const distance of planes) {
+    const clipped: P2[] = [];
+    for (let i = 0; i < kernel.length; i++) {
+      const a = kernel[i], b = kernel[(i + 1) % kernel.length];
+      // 0.01 mm inward margin prevents collapsed fan wedges after float32 storage.
+      const da = distance(a) - 1e-5, db = distance(b) - 1e-5;
+      if (da >= 0) clipped.push(a);
+      if ((da >= 0) !== (db >= 0)) {
+        const t = da / (da - db);
+        clipped.push({ x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t });
+      }
+    }
+    kernel = clipped;
+    if (kernel.length < 3) return null;
+  }
+  const interior = centroid(kernel);
+  let closest = interior, best = Infinity;
+  for (let i = 0; i < kernel.length; i++) {
+    const a = kernel[i], b = kernel[(i + 1) % kernel.length];
+    const dx = b.x - a.x, dz = b.z - a.z;
+    const t = Math.max(0, Math.min(1, ((original.x - a.x) * dx + (original.z - a.z) * dz) / Math.max(dx * dx + dz * dz, 1e-20)));
+    const p = { x: a.x + dx * t, z: a.z + dz * t };
+    const d = (p.x - original.x) ** 2 + (p.z - original.z) ** 2;
+    if (d < best) { best = d; closest = p; }
+  }
+  return { x: closest.x + (interior.x - closest.x) * 0.02, z: closest.z + (interior.z - closest.z) * 0.02 };
+}
 
 /**
  * Build a bevelled slab from a ccw outline (local xz, y up; bottom at y=0, top at y=thickness).
@@ -434,7 +482,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const n = outer.length;
   const givenTop = o.topRing && o.topRing.length === n ? (reversed ? [...o.topRing].reverse() : o.topRing) : null;
   const top = givenTop ?? inset(outer, bevel);
-  const c = centroid(top);
+  const fanCentre = o.notchedTop ? slabFanCentre(top) : centroid(top);
+  const c = fanCentre ?? centroid(top);
   const topUv = (p: P2) => _ua.set(p.x * uvS + uvO[0], p.z * uvS + uvO[1]).clone();
   const topY = (p: P2, ringScale: number) => t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));
 
@@ -486,50 +535,67 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
 
   // --- top: concentric rings toward the centroid, then a fan ---
   if (!o.softBevel) mb.beginGroup();
-  const ringPts: P2[][] = [];
-  for (let r = 0; r <= rings; r++) {
-    const s = 1 - r / (rings + 1);
-    ringPts.push(top.map((p) => ({ x: c.x + (p.x - c.x) * s, z: c.z + (p.z - c.z) * s })));
-  }
-  const scales = ringPts.map((_, r) => 1 - r / (rings + 1));
-  for (let r = 0; r < rings; r++) {
-    const A = ringPts[r];
-    const B = ringPts[r + 1];
-    const sA = scales[r];
-    const sB = scales[r + 1];
-    const mA = mossEdge * (1 - r / rings) * 0.7 + mossInner * (r / rings);
-    const mB = mossEdge * (1 - (r + 1) / rings) * 0.7 + mossInner * ((r + 1) / rings);
-    for (let i = 0; i < n; i++) {
-      const p = A[i];
-      const q = A[(i + 1) % n];
-      const pi = B[i];
-      const qi = B[(i + 1) % n];
-      _a.set(p.x, topY(p, sA), p.z);
-      _b.set(q.x, topY(q, sA), q.z);
-      _c.set(qi.x, topY(qi, sB), qi.z);
-      _d.set(pi.x, topY(pi, sB), pi.z);
-      const m1 = mA * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sA);
-      const m2 = mA * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sA);
-      const m3 = mB * mossFn(qi.x, qi.z) + mossAdd(qi.x, qi.z, sB);
-      const m4 = mB * mossFn(pi.x, pi.z) + mossAdd(pi.x, pi.z, sB);
-      const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4, 1, (sA + sB) / 2) : col;
-      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3]);
-      mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4]);
+  if (!fanCentre) {
+    // Rare non-star-shaped outlines cannot use one radial crown. Triangulate their exact
+    // boundary instead, preserving shoulder contact, UVs, noise and material attributes.
+    const triangles = ShapeUtils.triangulateShape(top.map((p) => new Vector2(p.x, p.z)), []);
+    for (const tri of triangles) {
+      const points = tri.map((i) => top[i]);
+      if (polygonArea(points) > 0) points.reverse();
+      const [p, q, r] = points;
+      _a.set(p.x, topY(p, 1), p.z);
+      _b.set(q.x, topY(q, 1), q.z);
+      _c.set(r.x, topY(r, 1), r.z);
+      const mossAt = (v: P2) => mossEdge * 0.7 * mossFn(v.x, v.z) + mossAdd(v.x, v.z, 1);
+      const tc = colorFn ? shade(col, 'top', (p.x + q.x + r.x) / 3, (p.z + q.z + r.z) / 3, 1, 1) : col;
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(r), tc, [mossAt(p), mossAt(q), mossAt(r)]);
     }
-  }
-  const last = ringPts[rings];
-  const sL = scales[rings];
-  _c.set(c.x, topY(c, 0), c.z);
-  const mC = mossInner * mossFn(c.x, c.z) + mossAdd(c.x, c.z, 0);
-  for (let i = 0; i < n; i++) {
-    const p = last[i];
-    const q = last[(i + 1) % n];
-    _a.set(p.x, topY(p, sL), p.z);
-    _b.set(q.x, topY(q, sL), q.z);
-    const mL = mossInner * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sL);
-    const mQ = mossInner * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sL);
-    const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2) : col;
-    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mQ, mC]);
+  } else {
+    const ringPts: P2[][] = [];
+    for (let r = 0; r <= rings; r++) {
+      const s = 1 - r / (rings + 1);
+      ringPts.push(top.map((p) => ({ x: c.x + (p.x - c.x) * s, z: c.z + (p.z - c.z) * s })));
+    }
+    const scales = ringPts.map((_, r) => 1 - r / (rings + 1));
+    for (let r = 0; r < rings; r++) {
+      const A = ringPts[r];
+      const B = ringPts[r + 1];
+      const sA = scales[r];
+      const sB = scales[r + 1];
+      const mA = mossEdge * (1 - r / rings) * 0.7 + mossInner * (r / rings);
+      const mB = mossEdge * (1 - (r + 1) / rings) * 0.7 + mossInner * ((r + 1) / rings);
+      for (let i = 0; i < n; i++) {
+        const p = A[i];
+        const q = A[(i + 1) % n];
+        const pi = B[i];
+        const qi = B[(i + 1) % n];
+        _a.set(p.x, topY(p, sA), p.z);
+        _b.set(q.x, topY(q, sA), q.z);
+        _c.set(qi.x, topY(qi, sB), qi.z);
+        _d.set(pi.x, topY(pi, sB), pi.z);
+        const m1 = mA * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sA);
+        const m2 = mA * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sA);
+        const m3 = mB * mossFn(qi.x, qi.z) + mossAdd(qi.x, qi.z, sB);
+        const m4 = mB * mossFn(pi.x, pi.z) + mossAdd(pi.x, pi.z, sB);
+        const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4, 1, (sA + sB) / 2) : col;
+        mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3]);
+        mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4]);
+      }
+    }
+    const last = ringPts[rings];
+    const sL = scales[rings];
+    _c.set(c.x, topY(c, 0), c.z);
+    const mC = mossInner * mossFn(c.x, c.z) + mossAdd(c.x, c.z, 0);
+    for (let i = 0; i < n; i++) {
+      const p = last[i];
+      const q = last[(i + 1) % n];
+      _a.set(p.x, topY(p, sL), p.z);
+      _b.set(q.x, topY(q, sL), q.z);
+      const mL = mossInner * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sL);
+      const mQ = mossInner * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sL);
+      const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2) : col;
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mQ, mC]);
+    }
   }
   mb.smoothGroup();
 

@@ -1207,6 +1207,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       thickness,
       bevel,
       topRing: outline.inner,
+      notchedTop: outline.notches > 0,
       softBevel: true,
       dip: -crown,
       color: tint,
