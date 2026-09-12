@@ -654,6 +654,15 @@
       "at": "2026-09-12T15:17:28.971188+00:00",
       "expiresHours": 3,
       "scope": "Own environment branch: bounded hedge lamina sky-transmission diagnosis/material opt-in after exact Fable3dc integration. No plant placement/RNG/packing or roof leaves. Announced in PR2 after d41 publication; Fable retains roof and hardscape."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W15"
+      ],
+      "at": "2026-09-12T16:42:36.238Z",
+      "expiresHours": 3,
+      "scope": "PR2 comment 5647251867: grass-only terrain-up lighting-normal correction in vegetation/materials.ts and existing contract; preserve geometry, density, field, RNG, palette, wind and all non-grass programs. Independent actual capture before Fable lawn integration."
     }
   ]
 }

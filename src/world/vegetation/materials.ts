@@ -39,6 +39,7 @@ uniform vec3 uDryTip;
 uniform float uSeedTip;
 varying float vBladeT;
 varying float vShadeLift;
+varying vec3 vGrassTerrainUp;
 `;
 
 const GRASS_COLOR_VERTEX = /* glsl */ `
@@ -91,6 +92,7 @@ vec3 transformedNormal;
   float side = uv.x * 2.0 - 1.0;
   mat3 im = mat3(instanceMatrix);
   vec3 bladeUp = normalize(im[1]);
+  vGrassTerrainUp = normalMatrix * bladeUp;
   vec3 bladeFace = normalize(im[2]);
   vec3 bladeSide = normalize(im[0]);
   vec3 n = normalize(bladeFace * 0.8 + bladeSide * side * 0.6);
@@ -152,10 +154,28 @@ vec4 worldPosition = vegWorld;
  */
 const GRASS_FRAGMENT_PARS = /* glsl */ `
 varying float vShadeLift;
+varying vec3 vGrassTerrainUp;
 uniform float uShadeFill;
 `;
 const GRASS_FRAGMENT_FILL = /* glsl */ `
 reflectedLight.indirectDiffuse += diffuseColor.rgb * uShadeFill * vShadeLift;
+`;
+
+/** The authored grass normal blends toward terrain up. Three's double-sided face flip must
+ * reverse the horizontal blade facing while retaining that upward lighting bias on both sides.
+ * Reflect only a downward component; do not add light or alter geometry/shadow coordinates. */
+const GRASS_FRAGMENT_NORMAL = /* glsl */ `
+#include <normal_fragment_begin>
+#ifdef DOUBLE_SIDED
+{
+  vec3 grassUp = normalize(vGrassTerrainUp);
+  float upComponent = dot(normal, grassUp);
+  if (upComponent < 0.0) {
+    normal = normalize(normal - 2.0 * upComponent * grassUp);
+    nonPerturbedNormal = normal;
+  }
+}
+#endif
 `;
 
 /**
@@ -384,6 +404,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
         .replace('#include <begin_vertex>', GRASS_SHAPE_VERTEX)
         .replace('#include <project_vertex>', GRASS_PROJECT_VERTEX)
         .replace('#include <worldpos_vertex>', WORLDPOS_VERTEX);
+      fs = fs.replace('#include <normal_fragment_begin>', GRASS_FRAGMENT_NORMAL);
     } else if (kind === 'plant' || kind === 'bush') {
       vs = injectPlantVertex(vs);
     } else {
@@ -419,7 +440,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}${leafSkyTransmission > 0 ? '-leaf-sky-v1' : ''}${leafSurfaceDetail ? '-veins-v1' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v9${kind === 'grass' ? '-terrain-up-v1' : ''}${glossyTop ? '-glossy' : ''}${leafSkyTransmission > 0 ? '-leaf-sky-v1' : ''}${leafSurfaceDetail ? '-veins-v1' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

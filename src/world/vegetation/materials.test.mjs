@@ -109,7 +109,18 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.throws(() => createVegShadowMaterials(source), /plant or bush/);
   if (kind === 'grass') {
     assert.doesNotMatch(shader.vertexShader, /aPlantVariant/, 'grass tiles are not packed');
+    // Three flips both components of the authored up-biased normal on back faces. Grass keeps
+    // its upward component while retaining the flipped horizontal facing; other families do not.
+    assert.equal((shader.vertexShader.match(/varying vec3 vGrassTerrainUp;/g) || []).length, 1);
+    assert.equal((shader.fragmentShader.match(/varying vec3 vGrassTerrainUp;/g) || []).length, 1);
+    assert.match(shader.vertexShader, /vGrassTerrainUp = normalMatrix \* bladeUp;/);
+    assert.match(shader.fragmentShader, /#include <normal_fragment_begin>\s*#ifdef DOUBLE_SIDED/);
+    assert.match(shader.fragmentShader, /normal = normalize\(normal - 2\.0 \* upComponent \* grassUp\);\s*nonPerturbedNormal = normal;/);
+    assert.match(source.customProgramCacheKey(), /-terrain-up-v1/);
+
   } else {
+    assert.doesNotMatch(shader.vertexShader + shader.fragmentShader, /vGrassTerrainUp|upComponent/);
+    assert.doesNotMatch(source.customProgramCacheKey(), /-terrain-up-v1/);
     // static moss / litter packs collapse the same way and keep Three's own projection
     assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);
     assert.match(shader.vertexShader, /#include <begin_vertex>\s*bool vegKeep = abs\(aVariant - aPlantVariant\) < 0\.5;\s*if \(!vegKeep\) transformed = vec3\(0\.0\);/);

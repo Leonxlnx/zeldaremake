@@ -7,62 +7,48 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Integrating Fable's published roof/support checkpoint 0f9426c7267d06f13cc96be4591821fce795cb84
-(PR2 comment 5647132216), whose parent is 8701b86. Root fetched all refs and read the source
-and current partner state before merging. Adopt his house.ts/materials.ts exactly and merge
-the one houseBough audit into our index, retaining our post builder/material/disposal/audit.
-His 8701 log and 67-entry ledger also enter ancestry unchanged. No PR/main/other-branch merge.
-Root acknowledgement 5647158080 records this coordination. A read-only helper checks cap cone
-UVs/seams, noise/material behavior, bough contacts and resource ownership before publication.
+Starting the independently pinned grass-normal correction after published roof merge
+5ea5b6d9be4c8c9e3e6f7ff7348f04961aac34ca, tree 67dff99f334ec61518a9ae369bc8de8f800584cb,
+parents a350849 + Fable0f9426c. Actual roof environment run 34705955967 is active.
 
-This roof milestone takes priority over the small crate texture study, now paused in scratch.
-Fable's hardscape lawn work remains active and separate. His reported image improvements are
-partner evidence, not our combined-world visual verdict. Combined actual capture must decide.
+Before this major step root fetched all refs, read Fable's newest log/commits and PR2 comments,
+and claimed W15. PR2 comment 5647251867 announces grass-only materials.ts and existing contract.
+Fable has no vegetation overlap: 6128726 hardscape lawn is published, 87d3f31 seals take68;
+his new active structures pass adds distant houses and will correct the accepted lower-bough
+window occlusion / owned moss-map disposal findings (PR2 5647244951). Do not touch his files.
+Integrate the lawn after this grass checkpoint so each actual comparison has one causal change.
 
-Read-only integration checks pass for protected house geometry, exact terrain contacts and
-bough audit. Two findings were reported in PR2 comment 5647226781: lower support now obscures
-the existing round window from B; generated moss normal/albedo lack disposal. Fable was asked
-to clear the lower branch and add one-shot owned-map disposal. Initial merge deliberately
-preserves his source; these known issues remain explicit pending his correction. The unsplit
-rear cone-UV seam is hidden in all canonical views; inherited rim-normal sensitivity remains.
-Typecheck/build (108 modules) and owned post material contract pass on the combined tree.
+The grass shader intentionally tilts normals toward terrain up, but Three's DoubleSide flip
+reverses that bias on back faces. The prepared scratch candidate reflects only a negative
+terrain-up component after the standard face flip. It preserves horizontal facing and does not
+add fill, exposure, texture, geometry or density. Direct lighting and IBL also change; two
+actual-image CPU-correspondence anchors can reach NdotSun .997, so actual whole-world review
+must reject a pale/uniformly lit lawn. Current contracts preserve all non-grass programs and
+original wind/deformation/shadow coordinates, with only one vec3 varying added.
 
-Our post-membrane source a350849993d05141e8d640775b2b3c6d919facd6 is independently published,
-tree 805192155fc72988cf06af40fc2846be5a4dd17c, parent 6686b0b. Exact frozen factory/index/test
-adopted; ownership test/typecheck/build (108 modules) and integration boundary pass. Actual 12+4 source/image/ownership/resource contracts now pass. Root reviewed L01/L02: faint
-branching is useful nearby, still mostly smooth at L02. Keep this bounded improvement. The 668
-hedge capture also passes, but internal veins are too subtle to call a meaningful world improvement.
-
-All ab7796 actual 12+4 contracts, archive/history/preview targets and source/image ZIPs pass,
-zero retries/errors/warnings. Root reviewed F/D/L01/L02; two independent reviews retain 1.2:
-rope/wood are quieter, amber stays clear, thin golden rims remain. Original and reduced light
-controls are immutable. All earlier 84ec and 2e9 actual contracts also pass.
-
-Read-only grass diagnosis now finds actual dark near-bank back faces whose entire upward-biased
-normal is flipped downward by DoubleSide shading. Two actual F probes have albedo Y about .17
-but normal Y below -.91; they are not dark-root pigments. A scratch-only terrain-up normal correction and installed shader contracts are complete.
-It changes direct NdotSun up to .997 at two anchors, so actual review is mandatory; no global
-lighting compensation and no grass production edit yet.
+All a350 and 668 actual 12+4 contracts and source/image ZIPs pass. a350 retains faint branching
+at L01 without glowing bindings; L02 remains mostly smooth. Hedge veins are too subtle to call
+a substantial world improvement. Earlier ab post light 1.2, 84 cooler air and 2e9 sky response
+are retained with their independent actual evidence. Crate texture study remains paused.
 
 ## Files / systems being touched
-- Root: ancestry merge of Fable0f house.ts/materials.ts/houseBough audit, partner history intact,
-  own log/integration review. Published atlas and hedge captures remain independently pinned.
+- Root: grass-only materials.ts correction + existing materials.test.mjs, own claim/log/review.
+  Published 5ea roof merge preserves partner bytes, log and ledger; no further house edits.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
 - World helper: read-only roof/support integration review. Crate texture work paused; the earlier
   cosine proposal was not applied. Ordinary root occlusion does not warrant prop relocation.
 - Prop helper: independent actual energy review complete; waits for pinned atlas detail review.
-- Shadow helper: actual grass-normal diagnosis and scratch-only terrain-up normal proposal.
-  No density/layout/wind overlap or production edits.
+- Shadow helper: completed frozen grass-normal diagnosis/proposal; root adopts exact bounded
+  patch after coordination. No density/layout/wind changes.
 - Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
 
 ## Partner state / coordination
-Latest Fable head is 0f9426c (roof/support); PR2 comment 5647132216 announces the three-file
-checkpoint and keeps hardscape lawn-pocket work active. Roof source replaces vertically
-stretched fields with 3D noise/developed-cone UVs, reduces straw and dark roof foliage and
-turns the support hoop into a rising branch. Latest log/ledger is still tick51/take67, 23/50;
-no phase completion. Comment 5646798877 clears our bounded vegetation material work with no
-vegetation overlap; his active files remain structures and hardscape.
+Latest fetched Fable head 87d3f31 seals take68 with 0f9426c roof and 6128726 hardscape lawn.
+Read PR2 comments 5647232830 and 5647244951: lawn completed; active structures follow-up adds
+budget-capped distant houses and fixes the accepted bough/window and owned moss-map defects.
+Our 5ea merge deliberately preserves his roof bytes pending that source. No active vegetation
+overlap; his earlier 5646798877 release and our renewed 5647251867 scope are explicit.
 
 Fable approved bounded near-tree material work in 5646342247 and handed over signpost/lanternPost
 in 5644903321. Preserve his geometry/roof direction and announce renewed overlap before editing.
@@ -153,4 +139,4 @@ lawn work with exact source and overlap. Astra: capture the combined roof checkp
 independently test the grass-normal correction. Crate grain remains lower priority.
 
 ## Last updated
-2026-09-12T16:39:16.161929+00:00
+2026-09-12T16:42:36.273016+00:00
