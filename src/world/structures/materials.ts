@@ -370,7 +370,9 @@ export function mossNormalTexture(seedRng: () => number): Texture {
       const i = (y * S + x) * 4;
       img.data[i] = Math.round((0.5 - 0.5 * dx * inv) * 255);
       img.data[i + 1] = Math.round((0.5 + 0.5 * dy * inv) * 255);
-      img.data[i + 2] = Math.round(inv * 255);
+      // tangent-space RGB: z is encoded 0.5 + 0.5·nz like x and y (encoding nz directly decoded as
+      // nz < 0 wherever the slope passed 45°; Astra, 12:58)
+      img.data[i + 2] = Math.round((0.5 + 0.5 * inv) * 255);
       img.data[i + 3] = 255;
     }
   }
