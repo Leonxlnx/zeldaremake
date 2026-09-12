@@ -90,6 +90,8 @@ export interface CanopyOpening {
   collar?: number;
   /** extra card density in the collar, × the lobe's own (default CANOPY_OPENING_DENSIFY; 0 = none) */
   densify?: number;
+  /** stable semantic id for cross-system consumers (atmosphere selects openings by id, not index) */
+  id?: string;
 }
 export const CANOPY_OPENING_COLLAR = 1.8;
 export const CANOPY_OPENING_DENSIFY = 2.5;
@@ -174,5 +176,5 @@ export const CANOPY_OPENINGS: CanopyOpening[] = [
   // run (through the second 7c lobe)
   { point: [8.3, -0.9], radius: 1.0, band: [10, 30], densify: 0 },
   { point: [12.0, -3.8], radius: 1.0, band: [12, 30], densify: 0 },
-  { point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0 },
+  { point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0, id: 'flight-top' },
 ];
