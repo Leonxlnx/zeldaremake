@@ -675,6 +675,17 @@
       "at": "2026-09-12T16:54:23.798Z",
       "expiresHours": 3,
       "scope": "PR2 comments 5647299378 and 5647304378: deliberate 6128726/87d3f31 lawn ancestry integration and narrow flower-normal/owned-resource cleanup only. Fable retains active shared sprout RNG and structures fixes; index overlap only flowers.dispose hook."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W09",
+        "W30",
+        "W31"
+      ],
+      "at": "2026-09-12T17:10:31.269Z",
+      "expiresHours": 3,
+      "scope": "PR2 5647405366: one central canopy opening survival study in trees/corridors.ts, .35 existing leaves/cards at (2.7,3), unchanged radius/band/collars and other openings. All original geometry/RNG/light controls retained; actual A/F/C decides. Fable structures and shared sprout RNG untouched."
     }
   ]
 }

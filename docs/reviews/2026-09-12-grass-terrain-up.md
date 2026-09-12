@@ -61,3 +61,25 @@ separation and retained canopy dapple/contact shade, without a pale or uniformly
 lawn. Exact geometry/depth/audits/resources/budgets are required. Same-source world pairs
 still compare canopy gain 1 / 3; only matching historical variants isolate this normal change.
 Static images cannot establish moving-camera stability.
+
+## Actual 2c4a8c0 result — retained
+
+All 12+4 contracts pass at 2c4a8c0cc9831568236afd2c7602ef8a4d6455b5. Root inspected A/B/F;
+the capture reviewer all distinct worlds/details. Black middle-blade strokes visibly reduce,
+with olive light-catching blades on the bank, retained dark bases/hedge shade and no obvious
+pale lawn wash. Some blades remain bright and coarse in closeup. Keep this correction.
+
+Every historical camera/control, geometry/depth, deterministic audit, material/texture inventory
+and draw/triangle count matches 5ea. Programs/textures stay 74/70; zero retries/errors/warnings.
+The two original F anchors change RGB (20,22,0)/(32,28,0) to (113,112,58)/(137,134,65). Fixed
+lit-grass display Y is 81.19 to 87.27, under-hedge mixed shade 31.28 to 32.64; the near-stone
+control is pixel-exact. These JPEG measurements do not isolate irradiance or prove material
+attribution at every pixel. Direct sun/specular/IBL change together as expected.
+
+Actual progress/2026-09-12_170146264-2c4a8c0 and details/2026-09-12_170431000-2c4a8c0
+are pinned to archives 9fbd0227c03fccf00cff298c45756e2f56607273 /
+369da7fce14ee30096e14964fa1c885d1298458b. All history/eight previews and ZIP CRC/bytes pass;
+source ZIP has 369 exact tracked files. Static images do not establish motion stability or FPS.
+
+Shared hardscape/boulder tuft materials are a separate system and remain unchanged here. Their
+authored-up-normal interaction is under read-only investigation while Fable corrects shared RNG.
