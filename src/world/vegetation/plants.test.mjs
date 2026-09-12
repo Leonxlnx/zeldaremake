@@ -168,11 +168,25 @@ const weedMat=a.plants.materials.find(m=>m.name==='veg-weeds');assert.ok(weedMat
 {const sh={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};weedMat.onBeforeCompile(sh,{});
   assert.equal(sh.uniforms.uTopRoughness.value,0.55,'waxy top face roughness 0.55');assert.match(sh.fragmentShader,/roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);assert.ok(weedMat.roughness>=0.85,'matte underside');}
 // Path-edge softening (sheet 02): dense short moss in the 0.25 m band outside the flagstone rim
-// of the spine / stair branch, nothing on the slabs (every root passed `allowed` above).
+// of the spine / stair branch / plaza, nothing on the slabs (every root passed `allowed` above).
+// Since aff169d / e17f310 the stair branch ends at (6.6, −0.5) inside the plaza's east lobe, so its
+// paved rim toward the stair foot is the lobe's north arc (x 4–6, z −4.5..−2.4), the branch's short
+// north rim (z ≈ −2.4) and its end cap north of the foot — the box below is that rim, no longer the
+// branch polyline's own half-width band (which now lies on the paving).
 const rimMoss=a.plants.moss.items.filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z);return e>=-0.05&&e<=0.25;});
 assert.ok(rimMoss.length>=100,`moss cushions along the paved rim: ${rimMoss.length}`);
 assert.ok(rimMoss.filter(it=>it.x>1.5&&it.z>-4.5&&it.z<1).length>=6,'rim moss along the stair branch too');
 assert.ok(rimMoss.every(it=>top(a.plants.moss,it)-it.y<=0.12),'rim moss stays a short cushion');
+// The flagstones end where the heightfield's plaza discs end and at the toe of the stair's south
+// bank (e17f310: S_BANK, (3.3, 5.9) → 0.25 m past the first riser's south corner), not at the
+// polylines' half-width. The field reads those rims off the terrain mask (`pavedRimDistance`) so the
+// turf treatment follows them; the toe (≈ 6.9 m) is the foot of the bank the shot-A kid stands on
+// and keeps grass only (frame 1: lit tufts overhang the slabs — no cushions, herbs or broad leaves).
+const rimStats=a.field.pavedRimStats();
+assert.ok(rimStats.metres>=20&&rimStats.bankMetres>=6,`mask-derived paved rim: ${rimStats.metres.toFixed(1)} m, ${rimStats.bankMetres.toFixed(1)} m of it the bank toe`);
+assert.ok(rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length>=15,`rim moss along the plaza discs' own rim: ${rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length}`);
+{const bs=newSample();for(const set of a.plants.all)for(const it of set.items){if(a.field.bankFace(it.x,it.z)<=0.3)continue;a.field.sample(it.x,it.z,bs);
+  assert.ok(bs.slope<=0.2,`${set.opts.name} on the shot-A bank face at (${it.x.toFixed(2)},${it.z.toFixed(2)}), slope ${bs.slope.toFixed(2)}`);}}
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
   for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}
@@ -207,6 +221,8 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
 {const litterMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'litter'),litter=read('vegetation/litter').buildLitter(a.ctx,a.field,litterMaterial,new THREE.Group());
   const seam=litter.leaves.items.concat(litter.twigs.items).filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z);return e>=0&&e<=0.3&&a.field.stairDistance(it.x,it.z)>0.1;});
   assert.ok(seam.length>=250,`litter in the rim seam: ${seam.length}`);
+  // the seam runs along the plaza discs and collects at the bank toe as well (the rim there is grass, not moss)
+  assert.ok(seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length>=10,`seam litter at the bank toe: ${seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length}`);
   const sample=newSample();for(const it of litter.twigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'twigs never lie on the paving');}
   for(const it of seam){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample)||it.y-a.ctx.terrain.height(it.x,it.z)>0.03,'seam litter is grass-seated; only the lifted sprinkle lies on slabs');}
   litterMaterial.dispose();for(const set of litter.all)for(const v of set.opts.variants)for(const g of v)g.dispose();}

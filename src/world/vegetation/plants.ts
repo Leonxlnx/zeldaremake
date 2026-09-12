@@ -699,7 +699,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // except the rim strip that frame 14 s shows dotted white (`allowRim`, the B-rim cluster below)
   const dNearCorner = (x: number, z: number) => x > -3.1 && x < -1.4 && z > -9.4 && z < -6.3;
   const whiteGround = (x: number, z: number, s: FieldSample, cReach = 0.2, allowRim = false) => {
-    if (s.cliff > 0.3 || (!allowRim && dNearCorner(x, z))) return false;
+    if (s.cliff > 0.3 || (!allowRim && dNearCorner(x, z)) || field.bankFace(x, z) > 0.3) return false;
     const clr = field.clearing(x, z);
     if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
     if (nearKokiri(x, z, 1.0) || field.sightlineC(x, z, cReach) > 0 || nearViolet(x, z, 0.45)) return false;
@@ -743,21 +743,23 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     whitePlace,
   );
-  // shot A's right bank near the kid (frame 1: 0.8–1 × 0.3–0.6, the east bank above kokiri-a)
+  // shot A's right bank near the kid (frame 1: 0.8–1 × 0.3–0.6, the stair's south flank above the
+  // kid). With the flight re-laid toward the plaza (aff169d) that box is the flank 11–15 m out at
+  // 1–3.3 m of ground, x 10.5–14.5; the old depth-only gate (≥ 11.5 m, x ≥ 10.8) now put the clumps
+  // on the plateau ramp at 3–4 m, above the box (A y 0.26–0.34), so each clump is projected in full.
   scatter(
     ctx,
     field,
     {
       label: 'white-flowers-east-bank',
       candidates: 3000,
-      box: [10.8, -4.5, 16.5, 1.0],
+      box: [10.0, -3.0, 15.5, 2.5],
       minSpacing: 0.8,
       max: 8,
       accept(x, z, s) {
         if (s.h > 4.6 || field.edgeDistance(x, z) < 0.45 || !whiteGround(x, z, s)) return 0;
-        // frame 1's box is 0.8–1 × 0.3–0.6: the bank 12–17 m out, right of the stair
-        const a = field.screenX('A_stairs', x, z);
-        return a && a.sx >= 0.8 && a.depth >= 11.5 ? 0.7 : 0;
+        const a = field.screenPoint('A_stairs', x, T.height(x, z), z);
+        return a && a.sx >= 0.81 && a.sx <= 0.99 && a.sy >= 0.32 && a.sy <= 0.58 ? 0.7 : 0;
       },
     },
     whitePlace,
@@ -833,7 +835,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         const edge = field.edgeDistance(x, z);
         if (edge < 0.15) return 0;
         const clr = field.clearing(x, z);
-        if (clr.insideBoulder) return 0;
+        // the turf face climbing off the paving beside the shot-A kid is grass only (frame 1)
+        if (clr.insideBoulder || field.bankFace(x, z) > 0.3) return 0;
         let p = 0.42 * field.falloff(x, z) * (0.3 + field.flowerPatch(x, z)) * field.cluster(x, z);
         p *= 1 + 1.6 * (1 - smoothstep(0.15, 3, edge));
         p *= 1 - 0.6 * field.giantProximity(x, z);
@@ -912,7 +915,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         const edge = field.edgeDistance(x, z);
         if (edge < 0.1) return 0;
         const clr = field.clearing(x, z);
-        if (clr.insideBoulder) return 0;
+        if (clr.insideBoulder || field.bankFace(x, z) > 0.3) return 0;
         let p = 0.16 * field.falloff(x, z) * (0.4 + field.cluster(x, z));
         p *= 1 + 1.5 * (1 - smoothstep(0.1, 4, edge));
         p *= 1 + 0.8 * field.giantProximity(x, z, 5);
@@ -951,7 +954,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     const y = T.height(x, z) - 0.012;
     const h = radius * (0.22 + rng() * 0.2);
     composeMatrix(M, 0, x, y, z, mossSample.nx, mossSample.ny, mossSample.nz, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
-    moss.add(M, rng.int(0, 2), tint.setRGB(0.9 + rng() * 0.2, 0.92 + rng() * 0.16, 0.9 + rng() * 0.2));
+    const variant = rng.int(0, 2);
+    tint.setRGB(0.9 + rng() * 0.2, 0.92 + rng() * 0.16, 0.9 + rng() * 0.2);
+    // drawn first so the stream is the same with or without the cushion: the shot-A turf bank
+    // (frame 1) stays grass, the stair-foot rock's moss skirt included
+    if (field.bankFace(x, z) > 0.3) return false;
+    moss.add(M, variant, tint);
     return true;
   };
   const placeMoss = (x: number, z: number, radius: number) => placeMossWith(mossRng, x, z, radius);
@@ -981,7 +989,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       minSpacing: 0.5,
       low: true,
       accept(x, z, s) {
-        if (field.edgeDistance(x, z) < 0.2) return 0;
+        // the slope boost would otherwise pick the shot-A bank face, which stays grass (frame 1)
+        if (field.edgeDistance(x, z) < 0.2 || field.bankFace(x, z) > 0.3) return 0;
         return 0.03 * field.falloff(x, z) * (0.3 + smoothstep(0.1, 0.4, s.slope)) * (0.5 + field.cluster(x, z)) * (1 - field.dry(x, z));
       },
     },
@@ -996,15 +1005,17 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   );
   // Path-edge softening (concept sheet 02 “Moss edges” / “Path boundary”): grass and moss creep
   // over the flagstone rim. Dense short moss cushions in the 0.25 m band just outside the paved
-  // edge of the spine and the stair branch (the house branch is a grassy ramp, no rim), walked
-  // along the layout polylines by their own stream and checked against the exact terrain mask so
-  // nothing lands on a slab. Adds ≈ 20 % to the moss count. The blades leaning over the stones
-  // and the dirt-seam litter live in grass.ts / litter.ts.
+  // edge of the spine, the stair branch and the plaza discs (the house branch is a grassy ramp,
+  // no rim), walked along the layout polylines and the mask-derived rim by their own stream and
+  // checked against the exact terrain mask so nothing lands on a slab. Adds ≈ 20 % to the moss
+  // count. The blades leaning over the stones and the dirt-seam litter live in grass.ts /
+  // litter.ts. Where the paving meets the foot of the shot-A turf bank (frame 1: grass tufts
+  // overhang the slabs, no dark cushion line) the band stays grass.
   {
     const rng = ctx.rng.fork('plants/moss-path-edge');
     field.rimCandidates(rng, RIM_MOSS_CANDIDATES_PER_M * q.density, RIM_BAND, (x, z) => {
       const p = 0.55 * (0.4 + 0.6 * field.cluster(x, z)) * field.falloff(x, z);
-      if (rng() > p) return;
+      if (rng() > p || field.bankFace(x, z) > 0.3) return;
       placeMossWith(rng, x, z, 0.05 + rng() * 0.09);
     });
   }

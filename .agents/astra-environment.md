@@ -135,5 +135,26 @@ reconcileda97302e. No overlap with lighting. These geometry changes remain unint
 same-geometry comparison finishes. PR2 comment5644760641 shares actual gallery and findings.
 Old-fog controlf6a succeeded08:30UTC, archive8a3deccb; all12 actual images are now under review.
 
+## Next integration boundary
+
+Published adoptionf11517e, tree8f49bd3f14b359590519ed3c8ccd23c0a21a3d03; capture is running.
+Its authored hemiGround also rebuilds the procedural sky lower hemisphere/IBL, unlike23ea's
+runtime-only hemisphere override. This is a coherent ground-bounce update, but the adoption is
+not claimed pixel-identical; actual images will be reviewed. Shaft gain remains1.8 at key3.6.
+
+Fable cross-reviewed actual23ea in PR2 comment5644770204: form separation improved; retain bright
+air between dark trunks, improve physically cast canopy dapple, and record the footage's
+camera-relative shaft direction mismatch. Root reply5644806338 keeps a coherent world-space key
+for gameplay/new boards and requests real clustered canopy openings from the tree pass.
+No screen-painted shadow pattern or camera-following sun is being added.
+
+Read-only review confirms a97302e vegetation can be integrated independently onto e17 geometry:
+mask-derived planted plaza/bank rims, coherent edge litter, white-clump placement and restored
+placement contracts. Root applied those four files byte-for-byte: exact diff against a973 vegetation is empty.
+Typecheck/build103modules and all five affected vegetation suites pass (placement, shader wind,
+LOD, flower reduction and disposal). These CPU checks do not claim visual acceptance.
+Housebb08/91c changes remain held until Fable publishes the announced floor/back-wall/roof fixes;
+the deeper room still exposes a terrain-raised floor through the opening. No W25 acceptance.
+
 ## Last updated
-2026-09-12T08:33:26.065523+00:00
+2026-09-12T08:45:20.347761+00:00
