@@ -7111,6 +7111,115 @@
       },
       "prevHash": "sha256:4e6b4965ed78062ae661379caefb377a9c194552f9c79a5472498685bef81bee",
       "hash": "sha256:5860f1526acc27d2be05c6b7a1c5e8b9739e49a3b0524479841d8807c1e2e6b4"
+    },
+    {
+      "id": "take-0067",
+      "number": 67,
+      "at": "2026-09-12T15:18:40.044Z",
+      "sha": "3dc217d1b687fe04c47a0c7055250f74bb536e54",
+      "shortSha": "3dc217d",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "vegetation: foreground framing from the frames and the owner's boards - a west bed (violets, ferns, broadleaf) on the verge north of the boulder for A-left/D-left, ferns and broadleaf on the south-bank crest behind the A kid, a denser B right mass (green 0.646 -> 0.757, purple 0.006 -> 0.017 vs ref 0.623/0.019), D right verge and C stair-foot clusters, 44 heart/ovate leaf clusters along every path edge within camera reach (board 06), and the B/D lawn band (frame 14 s left third) as short dense turf (+55 % blades, height -30 %) with clover, white dots (7 -> 15 detected) and moss cushions, fern clumps pruned out of it; PACKS re-balanced (weeds/fiddleheads near SINGLE, flowers mid pairs, ferns far pairs: -280 K submitted triangles per view for +5 draws) and Astra's reviewed hedge pack line (hedge: SINGLE(3) near, -200 K triangles, +4 draws); C-foot cluster trimmed to scale 1.1-1.5 so C's bottom-left stays an accent (agent measured 0.74 vs the frame's 0.45 at 1.5-2.1)",
+      "agent": "fable-cursor",
+      "items": [
+        "W17",
+        "W18",
+        "W19"
+      ],
+      "note": "Round fifteen, vegetation: the foregrounds framed as the frames and the owner's boards have them. Frame 1 s' left edge is a purple-and-fern bed with broadleaf weeds - a west bed now sits on the verge north of the boulder for A-left and D-left; frame 14 s' right foreground is a dark leafy mass - B's right verge is densified (green 0.65 -> 0.76, purple 0.006 -> 0.017 vs the frame's 0.62/0.019); frame 14 s' left third is a low lawn with white dots - the B/D lawn band is short dense turf with clover, white heads (7 -> 15 visible) and moss cushions, fern clumps pruned out; ferns and broadleaf on the south-bank crest behind the A kid; D's right verge and C's stair foot; 44 heart-leaf clusters along every path edge within camera reach per board 06. Packing re-balanced (-280 K submitted triangles per view) with Astra's reviewed hedge pack line. Frame metrics within noise; E 0.274 best ever. Still out of vegetation's reach and logged: A's near-left is paving, B's lawn pocket is hardscape's mask.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:d30d37fbee75f78a12152d22a1ca1afa541ee3e6ec7d8e9188c04cbc040bc88d",
+        "B_house": "sha256:1d66b2d2af3fb7dc35b28e6c034a8d615d29c269586690d2303776fece99e74a",
+        "C_lookback": "sha256:1da0564485241d36ef61a30233c52df67bfeadab2e6e2c1049b07f4ed5d882e4",
+        "D_log": "sha256:3bcd7411b03c27287bb05e5c3d05bcc072742c35430e7a2e2c2a7023650635a6",
+        "E_ground": "sha256:1d66b2d2af3fb7dc35b28e6c034a8d615d29c269586690d2303776fece99e74a",
+        "F_canopy": "sha256:8db28c5d6ef70804c76e4d6cf9cb332a99f14dbb282a2fcfd396f13318078c3a"
+      },
+      "distHash": "sha256:87f4cee155f01019f96b7019ba76bea970b79a18e157ba5b8ed4e28039555ae8",
+      "stats": {
+        "drawCalls": 667,
+        "triangles": 8566906,
+        "captureMs": 785564,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W17",
+        "W18",
+        "W19"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take67-cap",
+        "importedAt": "2026-09-12T15:19:37.080Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:5860f1526acc27d2be05c6b7a1c5e8b9739e49a3b0524479841d8807c1e2e6b4",
+      "hash": "sha256:8f6ef1a9f8b8f44e6d1416d7fff32608c3b6e19f952900f50f6d1c1597ad195a"
     }
   ]
 }
