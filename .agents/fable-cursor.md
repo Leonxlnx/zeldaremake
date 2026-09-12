@@ -794,6 +794,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) light (Astra): key/shade separation, dapple, bright veil with
   dark trunks; (2) house: floor/back-wall envelope, rounded moss relief, support-bough integration;
   (3) paving scale/finish vs boards 02/07 + the F-edge joint teeth.
+
+### 11:50 UTC — tick 48: take-0064 published (monitor `918bc15`), valid; round thirteen, slice two
+- `bb11762` hardscape-11: broken slabs per boards 02/07 outside the B lawn zone (across p50
+  0.92 → 0.64 m, 321 → 619 stones; crowns/fillets halved; chips/notches; planted edge seams).
+- `df3cd52` structures-13: capMoss (no thatch normal on the cap), rim ×1.05, round trunk window,
+  branch pillars, cap plants/vines, 12 pods (flank pod within 0.02 of the reference lantern),
+  interior shelves.
+- take-0064: A 0.273 / B 0.263 / C 0.301 / D 0.320 / E 0.270 / F 0.269 — B best ever; C/D −0.002
+  /−0.011 where the frames show ~1 m slabs (boards are the target there). 23/50; W35 B 0.911;
+  draws 653.
+- Running: hardscape-12 (perimeter joint-fill clipped to the mask — Astra's F-edge teeth; seams
+  darkened to the frame's tone), structures-14 (level floor pad / back wall so the doorway stops
+  showing the terrain-raised floor; cap tone distribution; support-bough branching), trees-14
+  (canopy openings → dapple; CANOPY_OPENINGS export). Astra: props/signpost/lanternPost slice
+  (W26/W27 claimed to 12:11) and lighting on PR #6.
+- Three biggest remaining gaps → (1) light (Astra); (2) house doorway floor + cap tone spread;
+  (3) seam tone / F-edge teeth (hardscape-12).
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -839,4 +856,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T10:05:00Z
+2026-09-12T11:50:00Z
