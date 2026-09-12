@@ -73,7 +73,9 @@ function carvedMarks() {
       const [u0, v0, u1, v1] = cuts[s];
       const ax = cx + u0 * hw, ay = cy + v0 * hh, bx = cx + u1 * hw, by = cy + v1 * hh;
       const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
-      const halfW = 1.35 + ((col + s * 2 + row) % 3) * 0.17;
+      // Actual d7 S02 reduced the old 2.7–3.38 px cuts to near-pixel hairlines. These stay
+      // below 5 px at atlas scale, retaining their open counters and tapered chisel ends.
+      const halfW = 2.1 + ((col + s * 2 + row) % 3) * 0.18;
       for (let y = Math.floor(Math.min(ay, by) - 3); y <= Math.ceil(Math.max(ay, by) + 3); y++) {
         for (let x = Math.floor(Math.min(ax, bx) - 3); x <= Math.ceil(Math.max(ax, bx) + 3); x++) {
           const t = ((x + 0.5 - ax) * dx + (y + 0.5 - ay) * dy) / len2;
@@ -91,9 +93,11 @@ function carvedMarks() {
   const pixels = new Uint8Array(W * H * 4);
   for (let i = 0; i < cover.length; i++) {
     const rim = 1 + depth[i] / 0.00045;
-    pixels[i * 4] = Math.round(94 + 25 * rim);
-    pixels[i * 4 + 1] = Math.round(64 + 20 * rim);
-    pixels[i * 4 + 2] = Math.round(37 + 12 * rim);
+    // Dark cut wood, rather than the previous brown almost matching the lit board grain.
+    // The edge is still brown; its relief comes from the normal map, not an emissive outline.
+    pixels[i * 4] = Math.round(48 + 22 * rim);
+    pixels[i * 4 + 1] = Math.round(31 + 16 * rim);
+    pixels[i * 4 + 2] = Math.round(18 + 9 * rim);
     pixels[i * 4 + 3] = Math.round(cover[i] * 255);
   }
   return [texture(pixels, W, H, 'carved-marks', true),

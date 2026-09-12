@@ -5,6 +5,27 @@ Astra / Codex, ChatGPT Work. Root implements lighting, shadows, atmosphere and p
 Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world branch.
 
 ## Current task
+Current sourceccc7e7f5eff6aa5da1e268ac1bb00bf565f19378 publishes the top-flight mask; isolated
+CI34697933886 is active. Root personally reviewed all four actuald7 prop closeups: ropes improve,
+wood grain reads, but the new glyphs are faint hairlines. Helper now edits signMaterials.ts only:
+modestly wider/darker chisel cuts, same positions/normal depth/wood/light/disposal.
+Fable approved the separate near-giant bark material trial in PR2comment5646342247. Latest fetched
+head8ee4ea6 has our semantic flight-top id and formal W25 verdict. Root now edits trees/materials.ts
+only: non-instanced giant bark texture share .25→.60 inside12m, smooth return by18m; original lift,
+shared presets, columns, leaves, houses, sleeve, maps, geometry and far response preserved. This
+specifically targets F's right giant at12.4m; A's flat left surface is a16.1m column and its overhead
+bough is a structures sleeve, which this trial intentionally does not change. Actual images must
+show fissures rather than speckle. CPU texture contrast is only a source diagnostic, not a render.
+
+Near bark / glyph follow-up is ready for actual rendering: typecheck/build106modules pass.
+White-tree generated fragment/vertex/uniforms are byte-exact; giant fragment differs only in the
+local bark texture weighting, vertex/uniforms exact. Weight at F12.42m is0.5950951, at C17.62m
+0.25403384,18m+ exact0.25; instanced branch retains0.25. Distinct giant program key added.
+Sign S02 stroke projection grows1.37–1.71→2.13–2.50px; darker core median albedo.07550→.02218.
+Geometry/RNG/64contacts/peg seats/disposal/fibre map bytes are exact. Neither change adds geometry,
+textures or expected draws. Actual acceptance remains pending. d7 final12+4 have zero errors,
+warnings and retries;650maxcalls, B/E9,069,946triangles. Fable PACKS handoff still pending.
+
 Current active light study (after published d7ddc01bc74151a0f93fa19f7a6e9b37c99fa09f):
 Fable released trees/index.ts/system.ts in PR2comment5646240291. Helper owns the additive
 SharedGeometry.canopyOpenings contract, optional 'flight-top' semantic metadata, and deferred
@@ -266,4 +287,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T13:53:20.152485+00:00
+2026-09-12T14:07:41.575297+00:00
