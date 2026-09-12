@@ -1,6 +1,6 @@
 {
-  "source": "579078ca77b7af846f4805c27fbfecf21c784d72",
-  "capturedAt": "2026-09-12T00:26:21.250Z",
+  "source": "9a317b873eae4a036e0ad179027201fdfdb217c1",
+  "capturedAt": "2026-09-12T01:24:21.532Z",
   "captures": [
     {
       "name": "01-idle",
@@ -206,7 +206,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "92ef910ffde520295ccd2a5b6e39713e2162be58195fc2e1723200b17f01a612"
+      "sha256": "ebe9b5799a1b352559130377c728a56975e42d489af6a89419d2dba47e0eb98e"
     },
     {
       "name": "02-walk",
@@ -415,7 +415,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "66d9a704fe2389b525148331bda650703b1d1bacb21cf463979631461a1f9429"
+      "sha256": "4a726403fd95e695120bcd751ff48c4dcd86d75e1f92980e1a8bfa4013ca5688"
     },
     {
       "name": "03-run",
@@ -633,7 +633,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "3f16cbcb3b4e698f3a280460a3c58f24ffeb99316d2e55503df3cb5ec3d1ef2c"
+      "sha256": "e81f890c64002b177d1cc055522a740e56176e24c67e21700c5f097c853b8efe"
     },
     {
       "name": "04-jump",
@@ -845,7 +845,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "94f72964c8617cd37c966cbe4f4629ecefdb44e78bc8db688251c198bd99fb89"
+      "sha256": "60c33cf0bda5d72ce701af333771bba2fde06347bf7dd0ed858559562c2100a4"
     },
     {
       "name": "05-outfit-back",
@@ -1058,7 +1058,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "2c61c71fab07e250060f6912022b0d06be0c87c0b73894d6f6e2ba77971892b0"
+      "sha256": "181511b311bcab9da715ac0002d22b79236de2fcc86da783be3231302077e145"
     },
     {
       "name": "06-face-detail",
@@ -1265,7 +1265,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "9787b6c22c7bddb3b212c2e0de9a83c74b21749c74f262dc2d104403336acce6"
+      "sha256": "7249882bc4a4853d56a1d81723f2a48872b66b1def94e8fbafbf3bf3a1e71daa"
     },
     {
       "name": "07-leaf-lantern",
@@ -2087,7 +2087,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "d76260e66f50da5993ece6a2ff40cd8892a5463bbde6960bfa959fb98cd30aa5"
+      "sha256": "b16be6c913cce1f87c5a8ad94ba44c0483d56fe8b7ca1e4f39a89c1d33719b66"
     },
     {
       "name": "11-stone-stairway",
@@ -2300,7 +2300,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "684590eb496609e032ee8e78b7fbae3240fbff889f933b398870ec4881de443f"
+      "sha256": "aaa62e1b56fd1b933a7c702edc8eba7c27068e0ca4fca38e0778e4cda5f1889a"
     },
     {
       "name": "12-face-profile",
@@ -2512,8 +2512,8 @@
         "height": 720,
         "pixelRatio": 1
       },
-      "retries": 1,
-      "sha256": "94eeff69b28e233949abb152571733afe5e5b786660552748aec708f78b2dd09"
+      "retries": 0,
+      "sha256": "021699aa3d9e95a58841775b16b39d7585f5c2961826ec57f284ed94b2de5236"
     },
     {
       "name": "13-backpack-detail",
@@ -2726,7 +2726,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "ff5df5b12825c52c54ad56ca10f37b74d26c4724b9222096ddaa9077682273d8"
+      "sha256": "e78c797ba34cb8f5b68dca8e9a5ef20b6cd1bd12b79ee35c0fcd98e7a30247ec"
     },
     {
       "name": "14-belt-detail",
@@ -2933,7 +2933,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "f18d3f2adf100ca9c7db4b535636a0d9ab6994dd44b1550fad15839ab74def08"
+      "sha256": "14fe20a69c099d3a249d9257e0eed41a29ea4846f1188cb6b71652dfb7316463"
     },
     {
       "name": "15-run-rear-quarter",
@@ -3141,7 +3141,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "44b4e62842749e98fc55532b99ad8df4becf4c8fa6ab36803691c4251acfe871"
+      "sha256": "bb4be7938b55bda9513ffeee78721f0a14c50c3f33a4d67590cfe76f62623036"
     },
     {
       "name": "16-run-jump-launch-rear-quarter",
@@ -3550,7 +3550,7 @@
         ]
       },
       "retries": 0,
-      "sha256": "3ad780fd807d6c92135fd67a75d5010c39e12b9f1da3ed0413a2e54862b52fcc"
+      "sha256": "a788ed9ea0673f2450374f7d478d17abe12697b0fc6cfe6b7b0155d3180ee545"
     },
     {
       "name": "17-face-blink-transition",
@@ -3758,7 +3758,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "407dc9b917701154458e299552d1ca99837e3e809e04a30cae0877322212b526"
+      "sha256": "2a7eecf200b5ce1cd1bec6e53891eaea486af68e4ce525924c1367a27fee0675"
     },
     {
       "name": "18-face-blink-narrow",
@@ -3966,7 +3966,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "b25aabcd6bba59a230bfc973bad5c472278e806aea918e50135edb26dd68c475"
+      "sha256": "d87cc0981c27021150b5577b6c4b865ca67814d27e55ec5c845be850b6a3e5bd"
     }
   ],
   "errors": [],
