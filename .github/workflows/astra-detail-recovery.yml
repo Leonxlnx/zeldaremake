@@ -1,0 +1,67 @@
+name: Recover original Astra prop detail images
+on:
+  push:
+    branches: ['agent/astra-detail-recovery']
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: astra-detail-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out corrected publication tooling
+        uses: actions/checkout@v4
+        with:
+          ref: 0169c3f72948e1638624664afe031ad1cb640ad9
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Retrieve the original four images and metadata
+        uses: actions/download-artifact@v4
+        with:
+          repository: Leonxlnx/zeldaremake
+          run-id: 34693542107
+          name: astra-environment-details-0590dbe5c680787ef430ab0d88889b93b0ac15ee-1
+          github-token: ${{ github.token }}
+          path: gauntlet/out/recovered-0590-details
+      - name: Verify the original bundle without modifying its bytes
+        env:
+          ORIGINAL_SOURCE: 0590dbe5c680787ef430ab0d88889b93b0ac15ee
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { execFileSync } from 'node:child_process';
+          import { readCompletedDetails } from './gauntlet/scripts/environment-detail-data.mjs';
+          import { digest } from './gauntlet/scripts/environment-capture-data.mjs';
+          const source = process.env.ORIGINAL_SOURCE;
+          const report = readCompletedDetails('gauntlet/out/recovered-0590-details', source);
+          const git = args => execFileSync('git', args, { encoding: 'utf8' }).trim();
+          assert.equal(report.tree, git(['rev-parse', `${source}^{tree}`]));
+          const inputs = ['src', 'public', 'index.html', 'package.json', 'package-lock.json',
+            'tsconfig.json', 'vite.config.ts', 'gauntlet/scripts', '.github/workflows/astra-environment.yml'];
+          const files = git(['ls-tree', '-r', '--name-only', source, '--', ...inputs]).split('\n').filter(Boolean).sort();
+          const hash = digest(files.map(name => `${name}\0${digest(execFileSync('git', ['show', `${source}:${name}`]))}\n`).join(''));
+          assert.equal(report.sourceHash, hash);
+          assert.equal(report.sourceHashFileCount, files.length);
+          console.log(JSON.stringify({ source, tree: report.tree, capturedAt: report.capturedAt,
+            sourceHash: hash, images: report.captures.map(c => ({ file: c.file, sha256: c.sha256 })),
+            note: 'Original source0590 image and report bytes retained. Corrected0169 tooling validates the existing sha256-prefixed build digest. No build or render performed.' }));
+          JS
+      - name: Publish the original source0590 checkpoint
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_SOURCE: 0590dbe5c680787ef430ab0d88889b93b0ac15ee
+        shell: bash
+        run: |
+          gh auth setup-git
+          env GITHUB_SHA="$ORIGINAL_SOURCE" node gauntlet/scripts/publish-environment-details.mjs gauntlet/out/recovered-0590-details "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-detail-recovery-publication.json"
+          cat "$RUNNER_TEMP/astra-detail-recovery-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-detail-recovery-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Four original source0590 world detail images](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
