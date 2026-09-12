@@ -174,5 +174,25 @@ an unaccepted appearance study until actual capture. Baseline controls explicitl
 prior production fill/contrast/AO; candidate uses the new no-hook production refinement. Both
 columns share the same new sky and the integrateda973 planted-rim geometry.
 
+## Shadow motion correction under investigation
+
+Root owns this lighting-only change. The current46m orthographic window snaps its target in
+world X/Z at1m increments, which are fractional texels in the rotated light-space4096 map. Terrain
+height changes also move its projected Y phase. This can resample static shadow edges during
+walking. Replace that target quantization with the actual shadow camera right/up axes and exact
+92/4096m texels; keep sun direction, window extent, resolution, PCSS filter/bias and terrain-centred
+coverage. Validate against Three.js real LightShadow matrices along camera/height paths, including
+a negative control showing old world-grid phase drift. Actual screenshot/motion review is still
+needed; this does not claim all aliasing or moving-leaf shimmer is eliminated.
+Technique reference: https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps#moving-the-light-in-texel-sized-increments
+Source check: installed three/src/lights/LightShadow.js updateMatrices uses shadow-camera lookAt.
+
+The implemented snapper passes7,680 actual shadow-coordinate checks across two sun bearings,
+two map sizes and walking/turning/terrain paths. Worst fractional phase residual is2.96e-12 texel;
+the old world-metre negative control reaches0.499 texel. Snapping moves the desired centre by
+at most half a texel per light axis and preserves its depth component. Test uses Three.js real
+DirectionalLight/LightShadow matrices; no GPU-motion or all-aliasing claim. Typecheck/build pass
+104modules. The focused check is added only to Astra's existing push/manual workflow.
+
 ## Last updated
-2026-09-12T08:49:28.656920+00:00
+2026-09-12T08:58:04.892374+00:00

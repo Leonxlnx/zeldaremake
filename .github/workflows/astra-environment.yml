@@ -48,6 +48,8 @@ jobs:
         run: node gauntlet/scripts/anti-cheat.mjs --skip-capture-checks
       - name: Check screenshot state invariants
         run: node gauntlet/scripts/test-environment-capture-state.mjs
+      - name: Check shadow texel stability under camera motion
+        run: node src/world/lighting/shadowframe.test.mjs
       - name: Render six matched environment comparisons
         run: node gauntlet/scripts/capture-environment.mjs
       - name: Retain actual images and metadata, including partial failures
