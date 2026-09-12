@@ -11,6 +11,7 @@ import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, ty
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
 import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
+import { SPROUT_JITTER_SCHEME, createSproutJitterStreams } from './sprout-jitter';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
 import { jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone } from './zones';
 import { buildFlowerHeads, type FlowerHead } from './flowers';
@@ -108,7 +109,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     });
     if (!nearStone) continue;
     if (srng() > camWeight(x, z)) continue;
-    spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng() });
+    spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng(), source: 'joints' });
   }
   const flagstoneSprouts = spots.length;
   // moss cushions (sheet 02 'Moss edges'): small pads where the seams widen into junctions —
@@ -124,7 +125,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const gap = paving.edgeGap(x, z);
     if (gap < 0.055 || gap > 0.22) continue;
     if (srng() > camWeight(x, z)) continue;
-    spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion' });
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion', source: 'seam-cushions' });
     cushions++;
   }
   // the lawn paving (zones.ts, reference B/E foreground): the 15–45 cm joints between the big
@@ -147,9 +148,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // toward the slab edges: accept mid-joint spots half as often
     if (gap > 0.12 && srng.chance(0.5)) continue;
     if (srng.chance(0.15)) {
-      spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion' });
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion', source: 'lawn-paving' });
     } else {
-      spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng.range(0.15, 0.6) });
+      spots.push({ x, y: T.height(x, z) + 0.015, z, size: srng.range(0.15, 0.6), source: 'lawn-paving' });
       lawnTufts++;
     }
     lawnSprouts++;
@@ -168,7 +169,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (srng() > lawnPocket(x, z)) continue;
     if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
     const s0 = srng.chance(0.2) ? srng.range(0.05, 0.2) : srng.range(0.3, 0.95);
-    spots.push({ x, y: T.height(x, z) + 0.012, z, size: Math.min(0.69, s0) });
+    // (the tufts the cap moved down from TUFT_B are their own source, so the others keep their draws)
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: Math.min(0.69, s0), source: s0 > 0.7 ? 'pocket-scatter-capped' : 'pocket-scatter' });
     pocketTufts++;
   }
   // connected planted joints (boards 02 'Moss edges' / 07 'path texture'): along the paved edges
@@ -200,9 +202,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (erng() > camWeight(x, z)) continue;
     const r = erng();
     if (r < 0.16) {
-      spots.push({ x, y: T.height(x, z) + 0.012, z, size: erng(), kind: 'cushion' });
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: erng(), kind: 'cushion', source: 'edge-turf' });
     } else {
-      spots.push({ x, y: T.height(x, z) + 0.015, z, size: r < 0.26 ? erng.range(0.05, 0.2) : erng.range(0.22, 0.75) });
+      spots.push({ x, y: T.height(x, z) + 0.015, z, size: r < 0.26 ? erng.range(0.05, 0.2) : erng.range(0.22, 0.75), source: 'edge-turf' });
       edgeGrass++;
     }
     edgeTufts++;
@@ -216,19 +218,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (let k = 0; k < n; k++) {
         const a = srng.range(-hw + 0.1, hw - 0.1);
         const [x, z] = stairToWorld(f, a, i * f.def.tread + 0.035);
-        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.005, z, size: srng() * 0.6 });
+        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.005, z, size: srng() * 0.6, source: 'stairs' });
       }
       const nc = srng.int(2, 6);
       for (let k = 0; k < nc; k++) {
         // heavier toward the flanks, where the moss field on the stones is strongest
         const a = (srng.chance(0.6) ? srng.range(0.35, 0.95) : srng.range(0, 0.35)) * hw * (srng.chance(0.5) ? -1 : 1);
         const [x, z] = stairToWorld(f, a, i * f.def.tread + 0.05);
-        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.006, z, size: 0.45 + srng() * 0.55, kind: 'cushion', scale: 1.15 });
+        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.006, z, size: 0.45 + srng() * 0.55, kind: 'cushion', scale: 1.15, source: 'stairs' });
       }
       for (const side of [-1, 1]) {
         if (!srng.chance(0.7)) continue;
         const [x, z] = stairToWorld(f, side * (hw - 0.03), i * f.def.tread + srng.range(0.05, f.def.tread - 0.05));
-        spots.push({ x, y: f.def.base[1] + (i + 1) * f.def.rise - 0.02, z, size: 0.4 + srng() * 0.6 });
+        spots.push({ x, y: f.def.base[1] + (i + 1) * f.def.rise - 0.02, z, size: 0.4 + srng() * 0.6, source: 'stairs' });
       }
     }
   }
@@ -258,10 +260,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const u = lrng();
       const scale = 1.1 + 0.9 * u * u;
       if (r < 0.14) {
-        spots.push({ x, y: T.height(x, z) + 0.012, z, size: lrng.range(0.05, 0.19), scale: scale * 1.2 });
+        spots.push({ x, y: T.height(x, z) + 0.012, z, size: lrng.range(0.05, 0.19), scale: scale * 1.2, source: 'pocket-lawn' });
         lawnPocketClover++;
       } else {
-        spots.push({ x, y: T.height(x, z) + 0.012, z, size: r < 0.55 ? lrng.range(0.21, 0.41) : lrng.range(0.43, 0.69), scale });
+        spots.push({ x, y: T.height(x, z) + 0.012, z, size: r < 0.55 ? lrng.range(0.21, 0.41) : lrng.range(0.43, 0.69), scale, source: 'pocket-lawn' });
         lawnScales.push(scale);
       }
       lawnPocketTufts++;
@@ -275,7 +277,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const x = lrng.range(-2.4, 0.8);
     const z = lrng.range(-6.8, -3.0);
     if (lawnPocket(x, z) < 0.8 || !paved(x, z, 0.42) || paving.onStone(x, z)) continue;
-    spots.push({ x, y: T.height(x, z) + 0.012, z, size: lrng.range(0.6, 1), kind: 'cushion', scale: lrng.range(1.8, 2.6) });
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: lrng.range(0.6, 1), kind: 'cushion', scale: lrng.range(1.8, 2.6), source: 'pocket-pads' });
     lawnPocketPads++;
   }
   // the soft edge: the pocket's fill fades out 5–35 cm west of the slab rims (the rims wander
@@ -301,7 +303,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const x = xs - gap;
     if (paved(x, zz, 0.42) && !paving.onStone(x, zz)) {
       const scale = lrng.range(1.7, 2.1);
-      spots.push({ x, y: T.height(x, zz) + 0.012, z: zz, size: lrng.range(0.43, 0.69), scale });
+      spots.push({ x, y: T.height(x, zz) + 0.012, z: zz, size: lrng.range(0.43, 0.69), scale, source: 'pocket-rim' });
       lawnEdgeTufts++;
       lawnEdgeOverhang += 0.046 * scale - Math.min(gap, paving.edgeGap(x, zz));
     }
@@ -311,7 +313,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const bz = zz + lrng.range(-0.02, 0.02);
       if (bx > xs - 0.09 || !paved(bx, bz, 0.42) || paving.onStone(bx, bz)) continue;
       const scale = lrng.range(1.15, 1.7);
-      spots.push({ x: bx, y: T.height(bx, bz) + 0.012, z: bz, size: lrng.range(0.3, 0.69), scale });
+      spots.push({ x: bx, y: T.height(bx, bz) + 0.012, z: bz, size: lrng.range(0.3, 0.69), scale, source: 'pocket-band' });
       lawnEdgeBand++;
     }
   }
@@ -369,7 +371,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // junction, dark olive on the mossy earth
     const lift = jointFillLift(gap, soilW);
     const tint: [number, number, number] = [lift[0] * (1 + (turfOverSoil[0] - 1) * (1 - soilW)), lift[1] * (1 + (turfOverSoil[1] - 1) * (1 - soilW)), lift[2] * (1 + (turfOverSoil[2] - 1) * (1 - soilW))];
-    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint });
+    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint, source: 'seam-grit' });
   }
   const seamGrit = gritSpots.length;
   // the stair grit keeps round 10's soil tone (the grit geometry is built in the round-12 soil)
@@ -380,11 +382,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const [x, z] = stairToWorld(f, grng.range(-hw - 0.3, hw + 0.3), grng.range(-1.1, -0.05));
       if (paving.onStone(x, z)) continue;
       const size = grng.chance(0.3) ? grng.range(0.03, 0.045) : grng.range(0.015, 0.028);
-      gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit', tint: stairGritTint });
+      gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit', tint: stairGritTint, source: 'stair-grit' });
     }
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
-  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID) });
+  // per-(source, variant) jitter streams (sprout-jitter.ts): a scatter can change without re-rolling any other
+  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID), jitter: createSproutJitterStreams(rng) });
   for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 
@@ -483,6 +486,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
     jointSproutPacks: HARDSCAPE_PACKS,
+    // instance jitter drawn per (source, variant) stream, not from the shared list order (sprout-jitter.ts)
+    sproutJitter: SPROUT_JITTER_SCHEME,
     jointSproutHeightCm: [6, 12],
     jointSproutLodFar: SPROUT_LOD_FAR,
     // triangles shown / submitted (a packed instance collapses its other variants to zero area)
