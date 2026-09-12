@@ -52,9 +52,18 @@ retained. Publisher concurrency/history and input validation checks pass. Combin
 build pass (103 modules). Capture results are still pending; no production lighting defaults or
 fog changes have been adopted.
 
-Root has a held atmosphere study: thinner close/middle air, postponed far extinction and cool
-ambient air against golden key/shafts. It stays in ignored scratch until the first light-only
-comparison is rendered. Numerical optical depth is not visual acceptance. Geometry stays Fable's.
+Root is implementing the next atmosphere candidate on this draft branch: thinner close/middle
+air (0.016/m after6 m), extra far extinction beyond60 m (0.045/m), cool gray-green ambient air
+against golden key/shafts. At25/40 m the horizontal distance-only veil changes47/65% to26/42%;
+this excludes mist/shafts and is not a rendered quality result. The first7ffe416 comparison keeps
+all Fable fog values, so it remains a separate light-only checkpoint. Geometry stays Fable's.
+Fable bb08ebc house revision is under independent source review and has not been integrated into
+this atmosphere candidate; this keeps the two checkpoint geometries identical for depth review.
+
+Published checkpoint7ffe416ff61dc900c99de52f7524674c89317e81, PR6. Actual comparison run34681762568
+is rendering; typecheck/build/integrity have passed. Reference publication now prioritizes clearly
+labeled960px JPEG previews after exact-original chunk transport proved too slow. All original PNGs
+remain preserved with hashes; no preview is represented as an exact original.
 
 ## Suggested parallel work
 
@@ -62,4 +71,4 @@ Fable: house/arch/canopy and terrain/vegetation geometry, with original-source c
 capture helper: named actual environment comparisons with source/audit/history preservation.
 
 ## Last updated
-2026-09-12T07:46:34.630991+00:00
+2026-09-12T07:56:52.588195+00:00
