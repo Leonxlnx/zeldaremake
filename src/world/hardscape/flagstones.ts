@@ -543,11 +543,21 @@ export function nearIsolatedDisc(discs: IsolatedDisc[], x: number, z: number, k 
   return false;
 }
 
-export function isPaved(pc: PavingContext, x: number, z: number, threshold = 0.5): boolean {
+/**
+ * The paving mask level at a point: the terrain's path mask, or 0 under stairs, structures and
+ * the stair footprints. `isPaved(pc, x, z, t)` is `pavedLevel(pc, x, z) >= t`; the joint fill
+ * marches this field to its 0.5 iso (`PAVED_ISO`), the slab level the vegetation's rim follows.
+ */
+export const PAVED_ISO = 0.5;
+export function pavedLevel(pc: PavingContext, x: number, z: number): number {
   const m = surfaceMask(x, z);
-  if (m.path < threshold || m.stairs >= 0.5 || m.structure >= 0.5) return false;
-  for (const f of pc.frames) if (inStairFootprint(f, x, z)) return false;
-  return true;
+  if (m.stairs >= 0.5 || m.structure >= 0.5) return 0;
+  for (const f of pc.frames) if (inStairFootprint(f, x, z)) return 0;
+  return m.path;
+}
+
+export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAVED_ISO): boolean {
+  return pavedLevel(pc, x, z) >= threshold;
 }
 
 /**
@@ -1158,7 +1168,15 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // below the fill is buried, so the foot value may run past 1 (the shader clamps).
     const wallH = thickness - bevel;
     const fillH = clamp(hMean + 0.008 - bottomY, 0.2 * wallH, 0.95 * wallH);
-    const footStain = (FLANK_STAIN_AT_FILL * wallH) / (wallH - fillH);
+    // Round 12: from camera A's low angle 42 % of a 5–10 cm joint's pixels are the far slab's
+    // flank, and it rendered as lit stone (sRGB 156,134,95 against the reference seam's 78,66,45),
+    // so the seam tone is as much the flank as the fill: the flank of a paved stone is darker and
+    // browner (soil-grimed cut edge, frame 1 s / board 02) with a stronger stain at the fill line.
+    // The stepping-stone discs keep round 11's flank (they are pixel-identical); the lawn slabs
+    // keep most of theirs (B/E match) — 15 % of the darkening.
+    const flankW = disc ? 0 : 1 - 0.85 * lawn;
+    const footStain = (FLANK_STAIN_AT_FILL * (1 + 0.2 * flankW) * wallH) / (wallH - fillH);
+    const flankK: [number, number, number] = [1 - 0.25 * flankW, 1 - 0.3 * flankW, 1 - 0.38 * flankW];
 
     // 5. build the stone into the shared geometry and place it
     const from = all.vertexCount;
@@ -1193,7 +1211,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       softBevel: true,
       dip: -crown,
       color: tint,
-      sideColor: [tint[0] * 0.6 + 0.24, tint[1] * 0.58 + 0.2, tint[2] * 0.55 + 0.16],
+      sideColor: [(tint[0] * 0.6 + 0.24) * flankK[0], (tint[1] * 0.58 + 0.2) * flankK[1], (tint[2] * 0.55 + 0.16) * flankK[2]],
       sideStain: footStain,
       mossEdge: 0.4 * moss,
       mossInner: 0.03 * moss,

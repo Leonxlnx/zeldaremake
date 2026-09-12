@@ -14,7 +14,7 @@ export const DETAIL_VIEWS = [
   { id: 'S01-sign-front', label: 'Sign front — boards, grain and carved marks', anchor: 'saria-sign', eye: [2.4, 0, 1.3], aim: [0.06, 0, 1.08], fov: 34 },
   { id: 'S02-sign-oblique', label: 'Sign oblique — board edges, pegs and binding', anchor: 'saria-sign', eye: [2.25, 1.65, 1.42], aim: [0, 0, 0.98], fov: 40 },
   { id: 'L01-stair-foot-bindings', label: 'Stair-foot lantern — rope binding and suspension', anchor: 'stair-foot', eye: [1.6, 1.55, 2.38], aim: [0.18, 0, 2.23], fov: 34 },
-  { id: 'L02-fork-west-lantern', label: 'Fork-west lantern — whole post and ground contact', anchor: 'fork-west', eye: [3.2, -0.85, 1.72], aim: [0.18, 0, 1.35], fov: 46 },
+  { id: 'L02-fork-west-lantern', label: 'Fork-west lantern — whole post and ground contact', anchor: 'fork-west', eye: [3.8, -0.85, 1.8], aim: [0.18, 0, 1.4], fov: 46 },
 ];
 
 /** Read the actual authored layout without a production API/asset/layout modification. */

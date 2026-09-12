@@ -5,6 +5,39 @@ Astra / Codex, ChatGPT Work. Root implements lighting, shadows, atmosphere and p
 Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world branch.
 
 ## Current task
+Current checkpoint (2026-09-12, after Fable's12:59 reply): production0169c3f and all12 comparison /
+4detail images are published, independently byte/source checked and personally reviewed. Actual
+draws512–635; F turf teeth removed, column/paving detail integrated. Detail weaknesses confirmed:
+dark sign, smooth ropes/pods, clipped L02 hook; near hedges still use diamond leaves.
+Fable has now published77dd665 (joint clip/tone),86be323 (level room/back wall/roof/bough),a05ffb0
+(canopy openings/casters). PR2comment5646077042 announces deliberate own-branch adoption after
+review, preserving our column-contact/cap-winding fixes. House hold can be lifted only after this
+new source review. No Fable branch or log edits. Root reviews/integrates these published slices;
+helper improves hedge-specific HIGH leaf outlines in plantgeo.ts only, preserving stems/RNG/
+anchors/bounds/hedgeHeight and all plants.ts placements. Another helper reviews house dependencies;
+capture helper fixes L02 framing only and diagnoses prop-local readability. Updated claims cover
+this scope; no shared material redesign or new global light lift to compensate for dark leaves.
+Actual galleries: progress/2026-09-12_124621276-0169c3f and
+details/2026-09-12_124821285-0169c3f on captures/astra-environment. Original0590 details were
+recovered unchanged through the separate recovery branch/run34694488559; source remains0590.
+Round14 integration now ready for actual rendering: exact77dd hardscape, exacta05 canopy delta,
+and four86be house files, with one corrected normal-map blue encoding. Existing column terrain
+seating and notched-cap correction are retained. New joint mesh21,332tris, no degenerate/downward
+faces, terrain+8mm contact residual below0.85µm; all6 old F teeth rays remain terrain. My four-point
+per-face sampled outside-.5-mask area falls8.13→1.03m²; this sampled diagnostic differs from Fable's
+own area metric, and curved/discontinuous-edge approximation remains. No exact-boundary claim.
+House source review confirms no invading upper-house roots in64doorway rays; Fable take0065 B
+visibly clears the pale obstruction. Roof tone/support silhouette still weak. Moss normal correction
+keeps RG/alpha and height field exact;6,996negative decodedZ texels→0 at diagnostic seed512².
+Hedge near leaves:846laminae get curved ovate shoulders, all2,849compared leaf calls/old anchors/
+stems/RNG and all12placements/tints unchanged. F-bank10/11 world bounds exact; another hedge can
+expand9.6mm in rotated world bounds. High geometry22,260→48,580tris; inherited variant packing
+adds at most81,216submittedtris/pass, no new draws. Mid/far/ordinary bushes byte-exact.
+L02 camera now includes exposed post/pod/foliage with55px top margin in CPU projection; actual
+occlusion/framing awaits CI. Typecheck/build105modules, all5vegetation suites, detail-invariant
+checks pass. Source anti-cheat green with historical claim warnings; no formal exit acceptance.
+The historical sections below retain original evidence/status at each checkpoint.
+
 Owner explicitly paused character/model work. Improve the whole environment against the ten
 new owner concepts, prioritize light/shadows/depth, collaborate through the repo, publish named
 actual screenshots regularly. No schedules. No main/other-agent PR merge or force push.
@@ -200,4 +233,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T12:35:26.803358+00:00
+2026-09-12T13:15:22.059041+00:00

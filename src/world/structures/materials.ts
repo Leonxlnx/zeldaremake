@@ -62,6 +62,17 @@ export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 9, texture: 0.3, canopy: 1, a
 /** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
  *  reference bough's 52° */
 export const LIMB_BARK_TINT = 0x6c6e48;
+/**
+ * The house's recess (round 12): the porch cut into the trunk, its soffit and the wall band under
+ * the cap's overhang. Reference B's cavity between the moss edge and the door arch sits at the
+ * haze floor — rgb(92,80,52), p50 0.26; the shadow band under the moss rgb(87,73,54), 0.29 —
+ * while under HOUSE_BARK_FLOOR (set so the door-frame lips land at 0.36–0.38) every shaded face
+ * is pinned to the floor's flat term: the round-12 probe halved the porch's vertex tints and the
+ * band did not move (p50 0.38 → 0.38). Light inside a cavity under an overhang is a fraction of
+ * the leaf-filtered light under the open roof, so the recess takes the same warm, textured floor
+ * at a fifth of the lift.
+ */
+export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2 };
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -72,6 +83,8 @@ export interface StructureMaterials {
   logBark: MeshStandardMaterial;
   /** the lantern limb's bark sleeve: `bark` with its own (olive-brown, lower) shade floor */
   sleeveBark: MeshStandardMaterial;
+  /** the house's porch recess, soffit and the wall band under the overhang: `bark` with RECESS_BARK_FLOOR */
+  recessBark: MeshStandardMaterial;
   /** house interiors seen through the door: near-black warm wood so the opening reads dark */
   interior: MeshStandardMaterial;
   /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
@@ -105,6 +118,10 @@ export interface StructureMaterials {
   tuft: MeshStandardMaterial;
   /** moss cushions (vertex colours) */
   moss: MeshStandardMaterial;
+  /** the house cap's moss: vertex-colour albedo under a procedural mossy normal map (no stalks) */
+  capMoss: MeshStandardMaterial;
+  /** small white flower cards on the cap, wind-animated */
+  flower: MeshStandardMaterial;
   /** carved rune decal for the signpost plank */
   runes: MeshStandardMaterial;
   /** dark splintered end-grain */
@@ -282,6 +299,120 @@ export function strawTexture(seedRng: () => number): Texture {
     g.fill();
   }
   return finishTexture(new CanvasTexture(c), true, 'structures:straw');
+}
+
+/**
+ * Tangent-space normal map for the house cap's moss (round 13). The cap had been sharing the
+ * plain moss material, whose relief is the thatch_roof_angled normal map at half strength — so
+ * the "moss" carried straw-stalk relief (the reviewer's source read). This is a moss surface:
+ * soft cushions (10–25 cm), a dense layer of clumps 3–6 cm across, and a fine grain at the
+ * texel pitch — one tile is 1.6 m on the cap (the cap's UV scale), so 3.1 mm per texel. The
+ * height field is periodic (bumps wrap, the grain lattice repeats) and is differenced into
+ * normals here, so nothing is loaded. Deterministic through `seedRng`.
+ */
+export function mossNormalTexture(seedRng: () => number): Texture {
+  const S = 512;
+  const h = new Float32Array(S * S);
+  const wrap = (i: number) => ((i % S) + S) % S;
+  const bump = (cx: number, cy: number, r: number, amp: number) => {
+    const ri = Math.ceil(r * 1.6);
+    const inv = 1 / (r * r);
+    for (let dy = -ri; dy <= ri; dy++) {
+      const row = wrap(cy + dy) * S;
+      for (let dx = -ri; dx <= ri; dx++) {
+        const d2 = (dx * dx + dy * dy) * inv;
+        if (d2 > 2.56) continue;
+        h[row + wrap(cx + dx)] += amp * Math.exp(-d2 * 1.7);
+      }
+    }
+  };
+  // cushions: 10–25 cm across, gentle
+  for (let i = 0; i < 140; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), 16 + seedRng() * 24, 0.5 + seedRng() * 0.5);
+  // clumps: 3–6 cm across (radius 5–10 texels), dense enough to tile the surface
+  for (let i = 0; i < 3400; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), 5 + seedRng() * 5, 0.55 + seedRng() * 0.45);
+  // fine grain: two octaves of periodic value noise (2.5 cm and 1.2 cm lattices)
+  const lattice = (cells: number, amp: number) => {
+    const g = new Float32Array(cells * cells);
+    for (let i = 0; i < g.length; i++) g[i] = seedRng();
+    const step = S / cells;
+    for (let y = 0; y < S; y++) {
+      const fy = y / step;
+      const y0 = Math.floor(fy);
+      const ty = fy - y0;
+      const sy = ty * ty * (3 - 2 * ty);
+      const ya = (y0 % cells) * cells;
+      const yb = ((y0 + 1) % cells) * cells;
+      for (let x = 0; x < S; x++) {
+        const fx = x / step;
+        const x0 = Math.floor(fx);
+        const tx = fx - x0;
+        const sx = tx * tx * (3 - 2 * tx);
+        const xa = x0 % cells;
+        const xb = (x0 + 1) % cells;
+        const top = g[ya + xa] + (g[ya + xb] - g[ya + xa]) * sx;
+        const bot = g[yb + xa] + (g[yb + xb] - g[yb + xa]) * sx;
+        h[y * S + x] += amp * (top + (bot - top) * sy);
+      }
+    }
+  };
+  lattice(64, 0.45);
+  lattice(128, 0.25);
+  // central differences → tangent-space normal (+u right, +v up: canvas rows run downward and
+  // the CanvasTexture is flipped on upload, so canvas −y is +v)
+  const { c, g } = canvas(S, S);
+  const img = g.createImageData(S, S);
+  const K = 2.6;
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const dx = (h[y * S + wrap(x + 1)] - h[y * S + wrap(x - 1)]) * K;
+      const dy = (h[wrap(y + 1) * S + x] - h[wrap(y - 1) * S + x]) * K;
+      const inv = 1 / Math.sqrt(dx * dx + dy * dy + 1);
+      const i = (y * S + x) * 4;
+      img.data[i] = Math.round((0.5 - 0.5 * dx * inv) * 255);
+      img.data[i + 1] = Math.round((0.5 + 0.5 * dy * inv) * 255);
+      img.data[i + 2] = Math.round((0.5 + 0.5 * inv) * 255);
+      img.data[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  return finishTexture(new CanvasTexture(c), false, 'structures:moss-normal');
+}
+
+/**
+ * Small five-petal white flower on transparent (round 13, board 03 "moss-covered roof with
+ * plants": white flowers scattered over the cap's moss). Petals shade to a faint grey-green at
+ * the centre round a yellow eye; alpha carries the shape.
+ */
+export function flowerTexture(): Texture {
+  const S = 128;
+  const { c, g } = canvas(S, S);
+  g.clearRect(0, 0, S, S);
+  const cx = S / 2;
+  const cy = S / 2;
+  for (let i = 0; i < 5; i++) {
+    const ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    const px = cx + Math.cos(ang) * S * 0.24;
+    const py = cy + Math.sin(ang) * S * 0.24;
+    const grad = g.createRadialGradient(px, py, S * 0.02, px, py, S * 0.24);
+    grad.addColorStop(0, '#fffdf6');
+    grad.addColorStop(0.7, '#f4f1e6');
+    grad.addColorStop(1, '#cfd2c0');
+    g.fillStyle = grad;
+    g.beginPath();
+    g.ellipse(px, py, S * 0.23, S * 0.16, ang, 0, Math.PI * 2);
+    g.fill();
+  }
+  const eye = g.createRadialGradient(cx, cy, 0, cx, cy, S * 0.11);
+  eye.addColorStop(0, '#ffd25a');
+  eye.addColorStop(0.6, '#e8b53a');
+  eye.addColorStop(1, '#b08a2a');
+  g.fillStyle = eye;
+  g.beginPath();
+  g.arc(cx, cy, S * 0.11, 0, Math.PI * 2);
+  g.fill();
+  const tex = finishTexture(new CanvasTexture(c), true, 'structures:flower');
+  tex.wrapS = tex.wrapT = ClampToEdgeWrapping;
+  return tex;
 }
 
 /** UV v above this row of the lantern gradient is black (caps, stems, cords). */
@@ -558,6 +689,25 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
   const runes = new MeshStandardMaterial({ map: runeTexture(rng), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
+  // the cap's moss (round 13): the shared `moss` binds the thatch normal map at 0.5, which put
+  // straw-stalk relief on the cap's majority moss; this one takes the procedural mossy normals
+  // (clumps + grain) and a slightly lower roughness so the lit tufts keep a soft sheen. Built
+  // after the straw and rune canvases so their draws from the shared canvas rng are unchanged.
+  // Round 14: normal scale 0.85 → 0.55 — under the low sun the full-strength clump normals
+  // streaked the lit front face; the reference dome is a soft, near-uniform mossy olive.
+  const capMoss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 0.9, normalMap: mossNormalTexture(rng), normalScale: new Vector2(0.55, 0.55) });
+  const flower = windLeafMaterial(
+    new MeshStandardMaterial({
+      map: flowerTexture(),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      roughness: 0.8,
+      vertexColors: true,
+      color: new Color(0xffffff),
+    }),
+    ctx,
+    'structures-flower',
+  );
 
   // Shade floors (materials/shadeFloor.ts) on every bark that stands in the roof's shade, where
   // a Lambert response to the hemisphere alone leaves it near-black orange-brown: the house
@@ -570,9 +720,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // material already carries.
   const sleeveBark = bark.clone();
   sleeveBark.name = 'structures:sleeve-bark';
+  // the house's recess: the same bark under a much lower floor (same program — the floor's
+  // values are uniforms — one more draw per house)
+  const recessBark = bark.clone();
+  recessBark.name = 'structures:recess-bark';
   for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
+  applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets };
 }

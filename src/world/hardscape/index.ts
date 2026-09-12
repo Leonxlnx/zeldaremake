@@ -7,11 +7,11 @@ import { Group, Mesh } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
-import { isPaved, nearIsolatedDisc, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
+import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
 import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
-import { JOINT_SOIL, JOINT_SOIL_MID } from './joints';
+import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
 import { jointSoil, lawnPocket, lawnZone } from './zones';
 import { Noise2D, smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
@@ -72,7 +72,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // treat them as paving (the disc that touches the plaza rim keeps the fill around it)
   const grassDiscs = paving.steppingStones.filter((d) => !d.atRim);
   const paved = (x: number, z: number, threshold?: number) => isPaved(pc, x, z, threshold) && !nearIsolatedDisc(grassDiscs, x, z, 1.4);
-  const joints = await buildJointMesh(T, paved, bbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: paving.edgeGap, onStone: paving.onStone });
+  // the fill is clipped to the mask's 0.5 iso (the slab level; joints.ts), so it takes the level itself
+  const pavedLevelAt = (x: number, z: number) => (nearIsolatedDisc(grassDiscs, x, z, 1.4) ? 0 : pavedLevel(pc, x, z));
+  const joints = await buildJointMesh(T, pavedLevelAt, bbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: paving.edgeGap, onStone: paving.onStone });
   group.add(joints.mesh);
 
   // --- sprouts in the joints ---------------------------------------------------------------
@@ -270,13 +272,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint });
   }
   const seamGrit = gritSpots.length;
+  // the stair grit keeps round 10's soil tone (the grit geometry is built in the round-12 soil)
+  const stairGritTint: [number, number, number] = [tones.soilMeanR10.r / tones.soilMean.r, tones.soilMeanR10.g / tones.soilMean.g, tones.soilMeanR10.b / tones.soilMean.b];
   for (const f of frames) {
     const hw = f.def.width / 2;
     for (let k = 0; k < 60; k++) {
       const [x, z] = stairToWorld(f, grng.range(-hw - 0.3, hw + 0.3), grng.range(-1.1, -0.05));
       if (paving.onStone(x, z)) continue;
       const size = grng.chance(0.3) ? grng.range(0.03, 0.045) : grng.range(0.015, 0.028);
-      gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit' });
+      gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit', tint: stairGritTint });
     }
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
@@ -373,8 +377,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     seamGritTriangles: sprouts.gritTriangles,
     seamGritDrawCalls: 0,
     jointFillTriangles: joints.triangles,
-    // the fill: dark mossy earth, packed soil only in the dry plaza core and the trodden strip
-    jointFill: 'mossy-earth-v1',
+    // the fill: dark mossy earth, packed soil only in the dry plaza core and the trodden strip;
+    // clipped to the paving mask's 0.5 iso (was: whole 0.2 m quads with any corner paved at 0.38)
+    jointFill: 'mossy-earth-v2-clipped-dark-soil',
+    // the packed-soil fill (A plaza core, trodden strip) as sRGB hex: frame 1 s's seams sample at 78,66,45
+    jointSoilAlbedo: [JOINT_SOIL.toString(16), JOINT_SOIL_MID.toString(16), JOINT_SOIL_DRY.toString(16)],
+    jointFillIso: 0.5,
+    jointFillClippedCells: joints.clippedCells,
+    jointFillRimVertices: joints.rimVertices,
+    jointFillRimLengthM: round(joints.rimLength),
     // joint-width field (5 cm texels) the fill shader reads: tight soil seams dark, wide soil junctions pale
     jointGapField: joints.gapField,
     hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles,

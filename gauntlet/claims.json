@@ -612,6 +612,21 @@
       "at": "2026-09-12T12:26:19.479Z",
       "expiresHours": 3,
       "scope": "Own environment branch only: deliberate integration of published Fable ddd24fd/bb11762 slices with narrowly reviewed root-contact/cap-winding/joint-edge corrections. Announced PR2comment5645869931. Fable branch and ongoing houses/canopy work untouched; use equivalent newer fixes if published."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W15",
+        "W17",
+        "W19",
+        "W25",
+        "W03",
+        "W09",
+        "W31"
+      ],
+      "at": "2026-09-12T13:09:03.991Z",
+      "expiresHours": 3,
+      "scope": "PR2 comment5646077042: deliberate own-branch review/integration of published Fable77dd665/86be323/a05ffb0; high-LOD hedge leaf shape only in plantgeo.ts, preserve plants.ts/RNG/normalization. Fable retains ongoing house/terrain/layout changes."
     }
   ]
 }

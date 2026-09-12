@@ -7,7 +7,7 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafOptions, type LeafShape, type RGB } from './geometry';
 
 export type Detail = 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
@@ -181,11 +181,72 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
 }
 
 // ---------------------------------------------------------------- bushes
+/**
+ * Near hedge lamina: broad ovate shoulders and a continuous curved midrib (owner sheets 01/05).
+ * Keep the old five anchors, including their colours and UVs. Only six shoulder-row vertices
+ * are added, inside the inherited leaf bounds: crown height and hedgeHeight placement stay exact.
+ * No random draws, and no change to the shared cheap lamina used by other plants and lower LODs.
+ */
+function hedgeLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
+  const first = mesh.p.length / 3;
+  const indexStart = mesh.i.length;
+  curvedLeaf(mesh, base, direction, length, width, color, options);
+  mesh.i.length = indexStart;
+  const [a, l, c, r, t] = Array.from({ length: 5 }, (_, i) => V().fromArray(mesh.p, (first + i) * 3));
+  const minimum = a.clone();
+  const maximum = a.clone();
+  for (const p of [l, c, r, t]) {
+    minimum.min(p);
+    maximum.max(p);
+  }
+  const anchorColor = (i: number): RGB => mesh.c.slice((first + i) * 3, (first + i + 1) * 3) as RGB;
+  const middleColor = anchorColor(2);
+  const rows: number[][] = [[first]];
+  for (const u of [0.25, 0.5, 0.75]) {
+    if (u === 0.5) {
+      rows.push([first + 1, first + 2, first + 3]);
+      continue;
+    }
+    // Quadratic interpolation through the existing attachment, raised midrib and curled tip.
+    const centre = a.clone().multiplyScalar((1 - u) * (1 - 2 * u))
+      .addScaledVector(c, 4 * u * (1 - u)).addScaledVector(t, u * (2 * u - 1));
+    const safeCentre = u < 0.5 ? a.clone().lerp(c, u * 2) : c.clone().lerp(t, u * 2 - 1);
+    const shoulder = u < 0.5 ? 0.82 : 0.68;
+    const rowColor = u < 0.5 ? blend(anchorColor(0), middleColor, u * 2) : blend(middleColor, anchorColor(4), u * 2 - 1);
+    rows.push([-1, 0, 1].map((side) => {
+      const point = centre.clone();
+      if (side) point.addScaledVector((side < 0 ? l : r).clone().sub(c), shoulder);
+      // Limit along this displacement, rather than clamping axes independently into flat corners.
+      const delta = point.clone().sub(safeCentre);
+      let inset = 1;
+      for (const axis of ['x', 'y', 'z'] as const) {
+        if (delta[axis] > 0) inset = Math.min(inset, (maximum[axis] - safeCentre[axis]) / delta[axis]);
+        else if (delta[axis] < 0) inset = Math.min(inset, (minimum[axis] - safeCentre[axis]) / delta[axis]);
+      }
+      point.copy(safeCentre).addScaledVector(delta, Math.max(0, inset));
+      return mesh.vertex(point, (side + 1) / 2, u, side ? tone(rowColor, side < 0 ? 0.95 / 1.07 : 0.97 / 1.07) : rowColor);
+    }));
+  }
+  rows.push([first + 4]);
+  mesh.tri(rows[0][0], rows[1][0], rows[1][1]);
+  mesh.tri(rows[0][0], rows[1][1], rows[1][2]);
+  for (let row = 1; row < 3; row++) {
+    for (let side = 0; side < 2; side++) {
+      mesh.tri(rows[row][side], rows[row + 1][side], rows[row][side + 1]);
+      mesh.tri(rows[row][side + 1], rows[row + 1][side], rows[row + 1][side + 1]);
+    }
+  }
+  mesh.tri(rows[3][0], rows[4][0], rows[3][1]);
+  mesh.tri(rows[3][1], rows[4][0], rows[3][2]);
+}
+
 export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const high = detail === 'high';
   const low = detail === 'low';
+  // variants() appends /0, /1, ...; only the authored hedge namespace receives the near detail.
+  const leaf = high && /\/hedge\/\d+$/.test(seed) ? hedgeLeaf : curvedLeaf;
   const stems = 5 + rng.int(0, 3);
   const height = 0.95 + rng() * 0.55;
   const phase = rng() * TAU;
@@ -223,14 +284,14 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
         const color = tone(blend(pal.leaf, pal.leafSun, sun * 0.7), 0.85 + rng() * 0.3);
         const opts = { curl: 0.1 + rng() * 0.12, twist: (rng() - 0.5) * 0.6, ridge: 0.12 };
         if (low) foldedLeaf(m, attach, dir, len, len * 0.6, color, opts);
-        else curvedLeaf(m, attach, dir, len, len * (0.55 + rng() * 0.25), color, opts);
+        else leaf(m, attach, dir, len, len * (0.55 + rng() * 0.25), color, opts);
       }
     }
     for (let terminal = 0; terminal < 2; terminal++) {
       const dir = radial.clone().addScaledVector(lateral, terminal ? 0.55 : -0.55).add(V(0, 0.45, 0));
       const color = tone(pal.leafSun, 0.95 + rng() * 0.15);
       if (low) foldedLeaf(m, curve(0.98), dir, 0.12, 0.08, color);
-      else curvedLeaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { curl: 0.17, twist: 0.15, ridge: 0.11 });
+      else leaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { curl: 0.17, twist: 0.15, ridge: 0.11 });
     }
   }
   return m.finish({ groundToZero: true });

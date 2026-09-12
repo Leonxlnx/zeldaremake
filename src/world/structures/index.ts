@@ -161,8 +161,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logArch: true,
     houseRoots,
     houseBranches,
-    /** Saria's eave bark profile on the door axis (world), now and as round 10 built it */
+    /** Saria's eave profile on the door axis (world), now and as rounds 10 / 11 built it */
     houseEave: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.eave,
+    /** Saria's doorway opening (width × height, world corners), now and as round 11 built it */
+    houseDoor: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.door,
+    /** Saria's cap silhouette (rim ring, crown top, overhang, straw share), now and at ×1.0 */
+    houseCap: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.cap,
+    hearthClearance: houses.map((h) => +h.hearthClearance.toFixed(3)),
+    /** Saria's round window (round 13): wall-surface centre, clear radius, height above her floor */
+    houseWindow: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.window,
+    /** Saria's branch pillars: feet on the terrain and rim ends (world) */
+    housePillars: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.pillars,
+    /** Saria's room: the level floor pad's height, back-wall depths (left / mid / right) and the
+     *  slope's poke through the pad (≤ 0 = the pad is clear; round 14) */
+    houseRoom: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.room,
+    /** flower heads on the caps / pots and bottles on the shelves, all houses */
+    houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
+    houseProps: houses.reduce((n, h) => n + h.props, 0),
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,
