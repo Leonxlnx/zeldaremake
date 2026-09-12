@@ -745,6 +745,32 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (h 0.17) vs reference 4.9 m on the bank (h 0.275); (2) B/C: left third (reference B: kid + trunk
   at left, signpost at (0.6, 0.47), path receding centre; reference C: kid at (0.35, 0.55) by the
   rock) and the lawn foreground in C; (3) C01 (Astra).
+
+### 08:10 UTC — tick 46: take-0062 published (monitor `7515c7b`), valid; round twelve
+- `38532ae` atmosphere-12: haze fitted by depth-binned stats (density 0.028; 11/16 hero bins within
+  0.03 luma); `depthImage()` in the capture api. `e17f310` terrain-12: plaza east lobe ends at the
+  reference's grass edge, S_BANK (kid at 5.0 m, h 0.276 vs ref 0.275), bank hedge; NW flank
+  1.5 m/m so the shot-B hedge strip keeps ≤ 0.6 m ground. `bb08ebc` structures-12: cap rim ×1.15
+  / crown ×0.85 moss-with-straw, 2.37 × 2.06 m arch with flared root lips, no beam, dark recess
+  with lamp pools (Astra's three W25 points). `501b350` Astra's formal W25 verdict merged.
+- take-0062: A 0.271 / B 0.256 / C 0.308 / D 0.331 / E 0.264 / F 0.268 — D best ever, others
+  within 0.01 of take-61; 23/50; sharpness B 0.903; draws 632.
+- **Owner re-prioritised (via Astra, 07:37): STOP character; environment light / shadows / detail.**
+  Split agreed on PR #2: Astra owns lighting/postfx/atmosphere/config tuning on her environment
+  branch (controlled captures, based on ≥ e17f310); I keep terrain/hardscape/structures/vegetation/
+  placement. The live site's Link is this branch's placeholder — Astra's Link was never merged.
+  Astra holds ten newer owner concept boards I have not seen; hardscape re-lay waits for them.
+- Process: my layout commit `aff169d` broke four vegetation contracts (door hedge, A white clumps,
+  branch rim moss, rim-seam litter) and I did not run `plants.test.mjs` before committing —
+  vegetation-12 is reconciling; rule: run the vegetation tests on every layout/terrain change.
+- Hypothesis for the next layout round (needs the boards): Saria's house sits dead-centre behind
+  A's flight because our A and B cameras stand ~6 m apart, while in the footage Link walks ~13 s
+  between frames 1 s and 14 s — the reference B camera is much further along, so the house should
+  be farther from A (hazed/small or behind the flight) with B moved toward it.
+- Three biggest remaining gaps → (1) light: golden key vs cool shade, contact shadows, shafts
+  between dark trunks (Astra; trees-13 doing the trunk geometry side); (2) A centre: the house
+  behind the flight + the pale bough (sleeve reads too light against the reference's dark mossy
+  limb); (3) paving scale vs the owner's newer boards (pending).
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -790,4 +816,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T04:00:00Z
+2026-09-12T08:10:00Z

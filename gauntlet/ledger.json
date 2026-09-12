@@ -6566,6 +6566,115 @@
       },
       "prevHash": "sha256:e5f334630174b1861405f2279708ae032bf88919616d3ed04b124cc50180b86a",
       "hash": "sha256:ab7bd678ac8aeb123d4ded6e262ae0df08ba60df507613505a415f197bd8f6f7"
+    },
+    {
+      "id": "take-0062",
+      "number": 62,
+      "at": "2026-09-12T07:57:49.358Z",
+      "sha": "bb08ebc2eb15bfca8df3c08d74bc27140b8e6dd7",
+      "shortSha": "bb08ebc",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "structures: Saria's house to the reviewer's W25 read - cap rim x1.15 / crown x0.85 (flat top 179 px, crown-to-moss-edge 116 px vs reference 115; overhang 1.75 m front) built as moss with straw patches (28 % straw, albedo x0.75; cap box 0.381/0.33/50 deg vs ref 0.374/0.34/49); doorway widened to 2.37 x 2.06 m (aspect 1.15, was 0.90) with a ragged rounded arch, jamb-hugging root lips flaring 0.55 m at the foot, the timber frame cut to the sill and the eave roll and porch bough removed (bark over the door 0 px, was 22.6 px); interior a cool dark recess with two tight amber lamp pools and an arch-top pool (doorway box p50 0.29 = reference, sat 0.32 -> 0.25, door-centre peak 0.76 -> 0.48); recessBark clone (lift 1.2) for the porch/soffit/under-eave band where the house floor pinned shaded bark to 0.4; audit gains houseDoor / houseCap",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W04",
+        "W36"
+      ],
+      "note": "Round twelve: haze fitted to the frames by depth-binned statistics (density 0.028: past 15 m the footage dissolves to bright mist; 11 of 16 mid-distance bins now within 0.03 luma of the reference, was 9), a grassy bank on shot A's right where frame 1 s has the Kokiri kid at 4.9 m on raised ground (ours was flat paving with the kid at 8 m; now 5.0 m, height in frame 0.276 vs 0.275) with paving ending at the reference's grass edge, and Saria's house reshaped to the reviewer's W25 read: cap rim x1.15 / crown x0.85 as moss with straw patches (crown-to-rim 116 px vs reference 115), doorway 2.37 x 2.06 m with flared root lips and no beam over the door, a dark recess with local amber lamp pools. D 0.319 -> 0.331 best ever; A/B/C/E/F within 0.01 of take-61 (the metric does not reward silhouette). Sharpness B 0.903. Lighting/post now owned by Astra on a separate branch.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:81e100042bc9145f9be7c5fb76e9874f73a36000ca1732fbdadc899e14212cf8",
+        "B_house": "sha256:39b42b43b280a29a17b65b668459233d50ba092b7439ec279f9866d12dbd3dcf",
+        "C_lookback": "sha256:1507dce5aaa1669a6e931970c8cc5e9faeae3cc732bb80891386ffbf04bd026d",
+        "D_log": "sha256:66f7526bbd70a6f90a8581f44b75b008730c2beb61788067801f372a630ba778",
+        "E_ground": "sha256:39b42b43b280a29a17b65b668459233d50ba092b7439ec279f9866d12dbd3dcf",
+        "F_canopy": "sha256:87a6521a35cb5eeb1482f960c48925a7b10b0521137f312886ea66047dd0d90f"
+      },
+      "distHash": "sha256:25da24582e597b4ab3a0707d74258e343ba8cec57d5f04b717125a5f7b87f53b",
+      "stats": {
+        "drawCalls": 632,
+        "triangles": 8563095,
+        "captureMs": 828582,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W04",
+        "W36"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take62-cap",
+        "importedAt": "2026-09-12T07:59:03.495Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:ab7bd678ac8aeb123d4ded6e262ae0df08ba60df507613505a415f197bd8f6f7",
+      "hash": "sha256:6d254a3ce34bb31865bbe72c4c169d94c561cda31f574305c1dd2e9841b77343"
     }
   ]
 }
