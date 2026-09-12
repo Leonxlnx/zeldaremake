@@ -14,21 +14,13 @@ export const WORLD = {
   /** Terrain mesh extent (half-size). Distant hills live beyond this as separate meshes. */
   terrainHalfSize: 220,
 
-  // Sun: the reference shows late-morning light from behind-left of the stairs shot,
-  // strong shafts entering high from the upper-left of the frame, soft long shadows.
-  // Measured on the reference plaza (percentiles of the foreground flagstones): sunlit stone
-  // ≈ 0.62–0.66 luminance, shaded stone ≈ 0.33–0.40 (a display ratio of only ≈ 1.8) — a warm
-  // key over a generous, near-neutral fill; the deep darks (0.16–0.23) are shaded vegetation.
-  // With the lantern crown's sun corridors open (trees 99b6c2b) the plaza's sunlit slabs measured
-  // 0.70–0.80 at intensity 5.0, so the key is a notch lower to land them on the reference's band.
-  // 3.1 against a fill of 0.95 (was 3.0 / 1.0): the reference is sun-dominated — its canopy-shaded
-  // path keeps ≈ 0.35 of a lit slab in linear light and Link's shadow ≈ 0.29, so the fill is ≈ 0.38
-  // of a lit horizontal surface here (0.40 before) with the lit slabs unchanged.
+  // Keep the footage's sun direction. The owner concept pass uses a stronger golden key
+  // against cooler canopy fill; actual six-camera review is archived in23ea37a.
   sun: {
     azimuthDeg: -128, // measured from +Z toward +X; negative = light coming from the west-north-west
     elevationDeg: 38,
     color: 0xffe9c4,
-    intensity: 3.1,
+    intensity: 3.6,
     shadowMapSize: 4096,
     shadowRadius: 60,
   },
@@ -36,23 +28,10 @@ export const WORLD = {
   sky: {
     zenith: 0xcfd3c8,
     horizon: 0xe2dfd0,
-    hemiSky: 0xc9c8b4,
-    /**
-     * ground bounce: a warm khaki rather than dark olive — the clearing floor is sunlit beige
-     * flagstone and khaki grass, so limb and leaf undersides (the lantern limb at 10 m in shot A)
-     * receive a visible fill from below instead of reading near-black.
-     */
-    hemiGround: 0x7d7860,
-    /**
-     * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
-     * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs
-     * measured 0.50–0.60 luminance at 1.2 against the reference's 0.30–0.50 band. Measured on the
-     * open path of shots B/E (lit slabs 0.60, shaded 0.38–0.42 against the reference's 0.60–0.66
-     * and 0.33–0.40): 1.15 over-lit the shaded slabs by 0.05, 0.95–1.0 lands them. 0.95 (with the
-     * IBL at 0.57) once the canopy shade darkened: shots B/D's paths measured 0.05 over the reference
-     * at 1.0 / 0.6 with the sun at 3.0 — see sun.intensity for the balance.
-     */
-    hemiIntensity: 0.95,
+    // Explicit sRGB fill colours; lighting uses them without a hidden warm-white blend.
+    hemiSky: 0xb8c8d2,
+    hemiGround: 0x6d715a,
+    hemiIntensity: 0.6,
   },
 
   fog: {

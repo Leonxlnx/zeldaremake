@@ -114,5 +114,26 @@ Avoid another source push until that fixed baseline starts, because GitHub concu
 only one pending run. The preserved23ea study may itself complete; inspect actual results before
 reapplying the fog values. No background schedules are created.
 
+## Reviewed environment adoption
+
+The complete23ea study is published at captures/astra-environment commitd5c37b0, folder
+progress/2026-09-12_082225685-23ea37a. All12JPEGs, source/tree and state contracts are verified.
+Root personally reviewed every camera. The candidate improves trunk/arch layering, stair contacts,
+paver dapple and colour separation. Near foliage is dark and bright lamps clip individual channels;
+coarse paving, plant cards and house construction remain unresolved. B/E are identical cameras,
+so12 named files contain10 distinct images. This is not a gauntlet pass or a finished target.
+
+Adopting that reviewed candidate as production: key3.6, cool hemi0.6, IBL0.3, unblended authored
+hemi colours, AO0.5, contrast1.08, no pedestal, reduced green warming/compression and bloom0.18,
+video-softening disabled. Restore the reviewed23ea thinner/cooler fog. Sun-coupled shaft gain is
+normalized to preserve the reviewed rendered1.8 at key3.6 (setting1.55 at calibration3.1).
+Next diagnostic candidate ONLY increases cool fill to0.68/0.34 and eases contrast1.04/AO0.45 to
+retain near-leaf detail. Baseline now means adopted23ea controls, not earlier Fable defaults.
+
+Fable fetched at a97302e: hearth91c0886, owner-reference readff2f131 and vegetation contracts
+reconcileda97302e. No overlap with lighting. These geometry changes remain unintegrated until
+same-geometry comparison finishes. PR2 comment5644760641 shares actual gallery and findings.
+Old-fog controlf6a succeeded08:30UTC, archive8a3deccb; all12 actual images are now under review.
+
 ## Last updated
-2026-09-12T08:19:05.261403+00:00
+2026-09-12T08:33:26.065523+00:00

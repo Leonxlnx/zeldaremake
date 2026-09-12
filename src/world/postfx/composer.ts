@@ -288,20 +288,16 @@ export function createComposer(opts: ComposerOptions): Composer {
     new ShaderMaterial({ name, vertexShader: FULLSCREEN_VERT, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false });
 
   const settings: ComposerSettings = {
-    // 0.6 stacked with the grass blades' self-occlusion and pushed the vegetation-heavy dark
-    // quartile 0.05–0.08 under the reference's in every view; 0.4 once the canopy shade darkened
-    // (shadowfilter leak 0.35 → 0.1): the shaded banks of shots D/F sat 0.05–0.10 under the reference
-    aoStrength: 0.4,
+    // Reviewed23ea contacts: retain small crevices without blurring the image.
+    aoStrength: 0.5,
     aoRadius: 0.5,
     // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
     aoFadeStart: 22,
     aoFadeEnd: 34,
-    // "radiance of a fully lit column": with the sparse gap mask only ≈ 15 % of the under-canopy
-    // air is lit, so the beams need this to read as +0.10–0.15 display luminance over the haze
-    // between them (the reference's shaft core #8f8b7c over #696960). The pow curve on the smeared
-    // buffer keeps the faint multi-gap wash down so the beams read as slabs against the veil
-    rayIntensity: 1.8,
+    // updateSun scales this by actual key /3.1. At the reviewed3.6 key this keeps
+    // the previous1.8 rendered shaft gain; turning the key off also removes its shafts.
+    rayIntensity: 1.55,
     rayContrast: 1.5,
     // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
     // (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange, (1.0, 0.975,
@@ -362,31 +358,9 @@ export function createComposer(opts: ComposerOptions): Composer {
     // gap wash south of −8, so they keep their shape
     beamHollowStartZ: -8,
     beamHollowFullZ: -24,
-    // the reference is soft video of a hazy scene (ours measured 1.0–1.5× its sharpness). Per-cell
-    // Laplacian maps put the excess in hazed mid-distance foliage and busy near texture, not the
-    // flagstones, and an activity gate alone scaled every view by the same factor (it cannot tell
-    // shot F's crisp near house from shot C's veiled leaf cards) — the haze blur, keyed on view
-    // distance, is what separates them. Tuned offline on the six HQ frames (replica of this chain)
-    // (LQ frames + depth, chain replica): shot A is the binding view — its excess is 20–40 m foliage,
-    // so the haze blur takes it ≈ 25 % down while shot F, whose excess is the near house, Link and
-    // the sharp HUD overlay, moves ≈ 15 %; a stronger setting (haze from 10 m, 25 % uniform) gained
-    // +0.035–0.05 SSIM in every view but put A at 0.55× the reference's sharpness
-    // Tuned again on the world-only frame: A's sharpness must clear W35 (≥ 0.8) before Link and the
-    // HUD add their edges (A 0.905 with them, 0.773 without at 0.45 / 0.1 / 30).
-    // The brighter dome and lit far veil (sky.ts, heightfog.ts) raised every view's sharpness ratio
-    // by ≈ 0.05 (A 1.10 → 1.16, B 0.97 → 1.03: harder leaf/gap edges in the canopy band) and cost
-    // SSIM there; a little more uniform band-limit and a haze blur from 30 m take the ratios back
-    // (A 1.08, B 0.94, D 1.18, F 1.31 at 0.1 / 28 / 50, E ≈ 0.9 — the binding hero view) and
-    // recover ≈ 40 % of that SSIM.
-    // Round 12: the haze fitted per depth bin (heightfog.ts hazeDensity 0.02 → 0.028) takes the
-    // mid-distance detail the softening used to remove, so the softening gives the sharpness back:
-    // with the old settings A/B read 0.76/0.75 (W35 gate 0.8). Measured on the same build with
-    // runtime overrides: detail floor 0.68 → 0.85 / uniform 0.1 → 0.05 / haze 36–56 m gave
-    // A 0.80, B 0.80 (SSIM −0.003); the floor at 1.0 changed nothing more (the gate is now a small
-    // band-limit on the busiest cells); uniform 0 → A 0.84, B 0.83; the whole stage off → 0.90/0.89
-    // but −0.012/−0.010 SSIM. The haze blur is the SSIM-efficient part (+0.008 A for −0.06 sharp);
-    // its start moved 36 → 40 m (+0.004 sharp, −0.001 SSIM)
-    softening: true,
+    // The owner concepts call for readable materials. Keep the optional historic video
+    // filter for comparison hooks, but use the sharp FXAA image in the normal game.
+    softening: false,
     softDetail: 0.85,
     softActivityK: 0.08,
     softActivityPower: 4,
@@ -397,32 +371,18 @@ export function createComposer(opts: ComposerOptions): Composer {
     softFarSigma: 1.0,
     softActivitySigma: 2.5,
     bloomThreshold: 1.0,
-    bloomIntensity: 0.25,
+    bloomIntensity: 0.18,
     // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
     saturation: 1.12,
-    // slightly < 1: the reference's blacks are lifted (shaded plaza stone ≥ 0.32 luminance, nothing
-    // below ≈ 0.16) while its sunlit stone tops out around 0.66 — a soft, low-key video look.
-    // 0.93 with the sun-dominant balance (sun 3.1 / fill 0.95): the darker canopy shade left the
-    // D/F shaded banks 0.03 under the reference's p10 while the lit slabs already matched; 0.90
-    // over-lifted A/B's blacks (+0.025)
-    contrast: 0.93,
+    // Adopted from actual23ea all-view review: stronger form, less olive colour drift.
+    // The next comparison eases contrast/fill locally; do not raise a global black pedestal.
+    contrast: 1.08,
     contrastPivot: 0.18,
-    // display-linear pedestal ≈ sRGB 0.06 at black: lifts p2–p10 by ≈ 0.015 and p50 by ≈ 0.01,
-    // the shape of the deficit against the reference's compressed video shadows (0.006 put the
-    // darkest percentile 0.02–0.04 over the reference's; at exposure 1.0 the shaded plaza already
-    // reads 0.03 over the reference's p10, so a hair less than the 0.004 used at 0.94)
-    lift: 0.003,
-    greenWarm: 0.3,
-    greenDesat: 0.08,
-    // the reference's vegetation is far less saturated than ours (shot F's shaded bank 0.27 against
-    // 0.47, C's frame 0.28 against 0.32) while its flagstone matches (0.35–0.38); the warm key
-    // leaves the foliage yellow-dominant, so the green-keyed grade never reaches it. A soft knee
-    // just above the stone's saturation compresses what lies beyond it (video chroma compression):
-    // 0.40 / 0.5 takes F's bank to 0.43 and its frame −0.017 at a cost of −0.017 on B's plaza; a
-    // 0.36 knee cost the stone 0.03. The rest of the gap is the foliage albedo, not the grade.
-    // Violets (green the weakest channel) are exempt in the shader: W18's purple footprint on D.
+    lift: 0,
+    greenWarm: 0.08,
+    greenDesat: 0.02,
     satKnee: 0.4,
-    satSlope: 0.5,
+    satSlope: 0.75,
     shadowTint: new Color(0.975, 0.985, 1.02),
     highlightTint: new Color(1.05, 1.0, 0.92),
   };

@@ -93,33 +93,18 @@ export function create(ctx: WorldContext): WorldSystem {
   group.add(sun);
   ctx.sun = sun;
 
-  // The reference is soft: shaded flagstone still reads ≈ 0.33–0.40 luminance next to sunlit stone
-  // at 0.62–0.66, so the fill is generous but near-neutral — warm grey-olive canopy light, never
-  // cyan and clearly less golden than the key, so shade reads cooler than sun. Hemisphere + IBL
-  // together give a horizontal surface ≈ 1.25 of irradiance against the sun's ≈ 1.85 (3 · sin 38°),
-  // the reference's lit/shade ratio (see config.sky.hemiIntensity for the measurements behind it).
+  // Cool canopy bounce stays distinct from the golden key. These are the reviewed23ea
+  // light controls; keep the authored colour literal so runtime probes and defaults match.
   const hemiIntensity = ctx.config.sky.hemiIntensity;
-  // The sky term leans a touch less golden (linear B/R ≈ 0.87, was 0.84 with a (1.0, 0.97, 0.9)
-  // target): the reference's shaded flagstone keeps B/R ≈ 0.69–0.70 in display against ours at
-  // 0.63–0.67 — its shade is lit by a greyer sky than its golden key. Still no blue: a (0.96, 0.98,
-  // 1.0) target (B/R 0.90) with the IBL at 0.81 overshot the lit stone by 0.025 and the shaded
-  // stairs of shot A by 0.03.
-  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(0.98, 0.975, 0.95), 0.35);
+  const hemiSky = new Color(ctx.config.sky.hemiSky);
   const hemiGroundColor = new Color(ctx.config.sky.hemiGround);
   const hemi = new HemisphereLight(hemiSky, hemiGroundColor, hemiIntensity);
   hemi.name = 'sky-hemisphere';
   group.add(hemi);
 
-  // Sky environment (IBL) — built from the same procedural sky the atmosphere draws (a warm haze at
-  // the reference's hazy key, radiance ≈ 0.25–0.37, see sky.ts).
+  // Build indirect light from the same sky/air model as the visible atmosphere.
   let environment = false;
-  // 0.57 with the hemisphere at 0.95 (both × 0.95 against 0.6 / 1.0): see config.sun.intensity.
-  // The dome's gap glare then rose 0.292 → 0.372 with a shorter ramp (the visible far air), which
-  // lifts the cosine-weighted upper hemisphere ×1.35 in green: 0.57 × 0.271 / 0.367 keeps the IBL
-  // fill on the ground unchanged (the shade is calibrated by the hemisphere + IBL sum); the
-  // per-channel remainder is in SKY_ENV_TINT. 0.481 once the dome went to the closed-roof veil
-  // toward the north/west (hemisphere mean ×0.876 in green, see SKY_ENV_TINT) — same fill again
-  const environmentIntensity = 0.481;
+  const environmentIntensity = 0.3;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
