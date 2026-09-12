@@ -170,6 +170,35 @@ const unrelated = new THREE.MeshStandardMaterial();
     assert.equal(after.uniforms.uTime, ls.uniforms.uTime, 'Color/shadow wind remains live and shared');
   }
 }
+// Surface detail may share the lamina tag with sky transmission, but never deform shadows
+// or accidentally opt another vegetation family into a shader requiring absent attributes.
+for (const amount of [0, 0.65]) {
+  const plain = createVegMaterial(ctx, 'bush', { leafSkyTransmission: amount });
+  const detail = createVegMaterial(ctx, 'bush', { leafSkyTransmission: amount, leafSurfaceDetail: true });
+  owned.push(plain, detail);
+  const ps = prepare(plain, 'standard'), ds = prepare(detail, 'standard');
+  assert.notEqual(detail.customProgramCacheKey(), plain.customProgramCacheKey());
+  assert.equal(projection(ds), projection(ps), 'Veins retain exact deformation');
+  assert.equal((ds.vertexShader.match(/attribute float aLeafSurface;/g) || []).length, 1);
+  assert.deepEqual(Object.keys(ds.uniforms), Object.keys(ps.uniforms), 'No extra lighting uniforms');
+  for (const key of Object.keys(wind.uniforms)) assert.equal(ds.uniforms[key], ps.uniforms[key]);
+  const beforeShadow = createVegShadowMaterials(plain), afterShadow = createVegShadowMaterials(detail);
+  for (const pass of ['depth', 'distance']) {
+    owned.push(beforeShadow[pass], afterShadow[pass]);
+    const before = prepare(beforeShadow[pass], pass), after = prepare(afterShadow[pass], pass);
+    assert.equal(after.vertexShader, before.vertexShader);
+    assert.equal(after.fragmentShader, before.fragmentShader);
+    assert.equal(afterShadow[pass].customProgramCacheKey(), beforeShadow[pass].customProgramCacheKey());
+  }
+}
+for (const kind of ['plant', 'grass', 'moss', 'litter']) {
+  const plain = createVegMaterial(ctx, kind), ignored = createVegMaterial(ctx, kind, { leafSurfaceDetail: true });
+  owned.push(plain, ignored);
+  const ps = prepare(plain, 'standard'), is = prepare(ignored, 'standard');
+  assert.equal(is.vertexShader, ps.vertexShader, `${kind} ignores hedge-only UV detail`);
+  assert.equal(is.fragmentShader, ps.fragmentShader);
+  assert.equal(ignored.customProgramCacheKey(), plain.customProgramCacheKey());
+}
 owned.push(unrelated);
 assert.throws(() => createVegShadowMaterials(unrelated), /plant or bush/);
 for (const material of owned) material.dispose();

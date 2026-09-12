@@ -245,6 +245,36 @@ const TOP_ROUGHNESS_FRAGMENT = /* glsl */ `
 roughnessFactor = gl_FrontFacing ? uTopRoughness : roughnessFactor;
 `;
 
+/** Optional hedge-only detail. Box-filter thin veins in their own UV domain, then fade
+ * frequencies that no longer fit the actual pixel footprint. No stochastic speckle or bump. */
+const LEAF_DETAIL_PARS = /* glsl */ `
+varying vec2 vLeafDetailUv;
+float hedgeVeinBand(float x, float halfWidth, float pixelWidth) {
+  float width = max(pixelWidth, 0.0001);
+  return clamp((min(x + width * 0.5, halfWidth) - max(x - width * 0.5, -halfWidth)) / width, 0.0, 1.0);
+}
+`;
+const LEAF_DETAIL_COLOR = /* glsl */ `
+// Derivatives are evaluated for the whole primitive, before the lamina mask.
+float hedgeAcross = vLeafDetailUv.x - 0.5;
+float hedgeAcrossWidth = fwidth(vLeafDetailUv.x);
+float hedgePhase = vLeafDetailUv.y * 4.0 - abs(hedgeAcross) * 1.4;
+float hedgePhaseWidth = fwidth(hedgePhase);
+float hedgeRib = (hedgeVeinBand(hedgeAcross, 0.018, hedgeAcrossWidth) - 0.036)
+  * (1.0 - smoothstep(0.18, 0.40, hedgeAcrossWidth));
+float hedgeVeins = (hedgeVeinBand(fract(hedgePhase + 0.5) - 0.5, 0.06, hedgePhaseWidth) - 0.12)
+  * (1.0 - smoothstep(0.20, 0.48, hedgePhaseWidth));
+float hedgeDetailMask = step(0.5, vLeafSurface)
+  * (1.0 - smoothstep(18.0, 24.0, length(vViewPosition)))
+  * smoothstep(0.04, 0.13, vLeafDetailUv.y)
+  * (1.0 - smoothstep(0.88, 0.98, vLeafDetailUv.y));
+// Remove each band's uniform-UV mean; contrast retains the inherited leaf hue.
+diffuseColor.rgb *= 1.0 + hedgeDetailMask * (0.20 * hedgeRib + 0.08 * hedgeVeins);
+`;
+const LEAF_DETAIL_ROUGHNESS = /* glsl */ `
+roughnessFactor = clamp(roughnessFactor + hedgeDetailMask * (0.035 * hedgeRib + 0.02 * hedgeVeins), 0.04, 1.0);
+`;
+
 export interface VegMaterialOptions {
   roughness?: number;
   /** roughness of the lamina's upper (front) face only; the underside keeps `roughness` */
@@ -258,6 +288,8 @@ export interface VegMaterialOptions {
   ambientBoost?: number;
   /** Plant/bush opposite-hemisphere transmission (0..1); geometry must provide aLeafSurface (leaf 1, wood 0). */
   leafSkyTransmission?: number;
+  /** Opt-in UV vein response; bush laminae must carry aLeafSurface. */
+  leafSurfaceDetail?: boolean;
   /** full-shade fill inside SHADE_LIFT_ZONE, × albedo (default SHADE_LIFT_ZONE.fill; 0 opts out) */
   shadeLift?: number;
   singleSided?: boolean;
@@ -325,6 +357,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
   const requestedLeafSky = opts.leafSkyTransmission ?? 0;
   const leafSkyTransmission = (kind === 'plant' || kind === 'bush') && Number.isFinite(requestedLeafSky)
     ? Math.min(1, Math.max(0, requestedLeafSky)) : 0;
+  const leafSurfaceDetail = kind === 'bush' && opts.leafSurfaceDetail === true;
   if (leafSkyTransmission > 0) uniforms.uLeafSkyTransmission = { value: leafSkyTransmission };
   if (kind === 'grass') {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
@@ -371,10 +404,22 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
         .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>\n${LEAF_SKY_TRANSMISSION}`);
     }
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
+    if (leafSurfaceDetail) {
+      if (leafSkyTransmission <= 0) {
+        vs = `attribute float aLeafSurface;\nvarying float vLeafSurface;\n${vs}`
+          .replace('#include <color_vertex>', '#include <color_vertex>\nvLeafSurface = aLeafSurface;');
+        fs = `varying float vLeafSurface;\n${fs}`;
+      }
+      vs = `varying vec2 vLeafDetailUv;\n${vs}`
+        .replace('#include <color_vertex>', '#include <color_vertex>\nvLeafDetailUv = uv;');
+      fs = `${LEAF_DETAIL_PARS}${fs}`
+        .replace('#include <color_fragment>', `#include <color_fragment>\n${LEAF_DETAIL_COLOR}`)
+        .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${LEAF_DETAIL_ROUGHNESS}`);
+    }
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}${leafSkyTransmission > 0 ? '-leaf-sky-v1' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}${leafSkyTransmission > 0 ? '-leaf-sky-v1' : ''}${leafSurfaceDetail ? '-veins-v1' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

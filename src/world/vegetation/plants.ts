@@ -178,7 +178,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
   // hero hedge: same bush variants at shrub scale, but it is read from 15 m in shot A so it keeps
   // the high LOD much further out than the scattered bushes
-  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, bushGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7, leafSkyTransmission: 0.65 });
+  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, bushGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7, leafSkyTransmission: 0.65, leafSurfaceDetail: true });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
   const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   // the pale-yellow blooms tucked into the shot-D fern clump: the same cluster-head plant in a

@@ -57,3 +57,24 @@ resources, draw calls or texture assets are introduced. The CPU angular/depth an
 recorded in scratch `gauntlet/tmp/cool-upper-air-review/`. Actual CI appearance remains pending.
 The locked footage rubric is unchanged; this is owner-board art direction, not a self-awarded
 quality score or phase completion.
+
+
+## Actual 84ec result — retained
+
+Source 84ecde9, tree e74c8a872071ba25334026bfbbd841f9ff297cec, CI 34702832368 succeeded.
+All 12 world and four detail captures pass with zero retries/errors/warnings. Root reviewed
+A/B/F and L01; independent review covered every distinct world/detail view. The upper air is
+cooler gray; shaded paving is less yellow; sunlit stone stays warm. No obvious cyan veil or
+horizon seam. The roof remains yellow/smooth and broad distant gray layers remain unfinished.
+
+Matching candidate A/F upper rectangles change mean RGB by (-2.37,+.08,+4.87) and
+(-2.57,+.06,+5.55) on the 0–255 display scale, with mean luma about -.10/-.11. B shaded paving
+blue/red rises .831 to .939; lit A paving .631 to .666. These are fixed JPEG regions containing
+mixed surfaces, not irradiance or isolated PMREM measurements. Geometry/depth/cameras/gain,
+resources/programs and budgets remain exact; only the two source-derived atmosphere audit
+endpoints differ. B/E remains 8,714,720 triangles / 650 calls; maximum calls A659.
+
+World gallery: `progress/2026-09-12_155249299-84ecde9`; details:
+`details/2026-09-12_155535503-84ecde9`, both on `captures/astra-environment`. Archive bytes,
+all eight latest previews, history and source/image ZIPs verified. Later post-light changes are
+absent from these control images. This is a retained color improvement, not phase completion.

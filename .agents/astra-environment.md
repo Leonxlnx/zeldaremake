@@ -7,33 +7,40 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-84ecde9ccafb9057e466544340335d07b31f72c9 is published (tree e74c8a872071ba25334026bfbbd841f9ff297cec,
-sole parent 2e9c19f). Its separate upper-air color capture is running as 34702832368.
-The two-endpoint source boundary, conserved endpoint luminance and coherent sky/PMREM rebuild
-are documented in docs/reviews/2026-09-12-cool-upper-air.md. Actual appearance remains pending.
+Published post-light trial ab7796ef928defa0e2beec5150ffcf0ba6de398c, tree
+6501b3d91c06a3f14d2e78f3c011fcecc8418d67, parent 84ecde9. Exactly the two post PointLights
+change 3.2 to 1.2 and one real postLightIntensities audit is added; emission, geometry and all
+shared lamps remain unchanged. Typecheck/build and executable-boundary check pass. PR2 comment
+5646992419 records the source; actual comparison against original-strength 84ec is running.
 
-Current next trial: lower only the two post PointLights from 3.2 to 1.2. Their emissive body/maps,
-geometry, placement, animation and other lanterns stay unchanged. Actual bright bindings/rims
-have black emissive texels; the internal unshadowed point is the supported first target.
-Point-only HDR energy decreases 62.5%; this is not a predicted display brightness reduction.
-Review retained amber glow, quieter bindings and the reduced nearby warm light pool in real CI.
-Add one minimal postLightIntensities audit reading actual objects in structures/index.ts.
-PR2 comment 5646971818 announces that narrow overlap with Fable's active house audit work.
+Current next trial: hedge-only antialiased UV midrib and four secondary vein pairs. Existing
+leaf tags isolate laminae; derivative filtering and an 18–24 m fade avoid unresolved frequencies.
+No texture, bump, geometry, layout, RNG, LOD, wind or shadow changes. The .65 hemisphere response
+stays exact. Source mean contrast is near neutral, not a display brightness prediction. Root
+revisited original board05. At near-F footprints most leaves support only the midrib; actual
+captures must establish useful detail without grainy edge-on leaves. PR2 comment 5646996750
+announces the exact materials.ts + one plants.ts option scope before production edits.
 
-All 2e9 actual 12+4 contracts pass with zero retries/final errors/warnings. Undersides become
-modestly greener and clearer, upper leaf surfaces broadly stable; geometry, depth, packing and
-calls/triangles match d41. D and S01/S02 JPEGs are identical; L01/L02 only tiny residuals.
-Sparse wood pixel changes preclude a pixel-exact wood isolation claim despite exact source mask.
-All eight preview targets, historical archive bytes and source/image ZIPs are verified.
+All 84ec actual 12+4 contracts pass with zero retries/final errors/warnings. Root reviewed A/B/F
+and L01; helper all views. Upper air and shaded paving read cooler while sunlight stays warm,
+with no obvious cyan veil/horizon seam. Retained. All geometry/depth/camera/gain controls,
+resources/programs and budgets match 2e9; only the two atmosphere endpoint audits differ.
+All eight preview targets, history bytes and source/image ZIPs verified. Roof remains yellow
+and smooth (Fable), post rims bright in this original-strength control.
+
+All 2e9 actual 12+4 contracts pass. Undersides become modestly greener; geometry, depth, packing
+and calls/triangles match d41. D and S01/S02 JPEGs identical; sparse wood pixel residuals preclude
+pixel-exact wood isolation despite the exact source mask. Character stays paused for Blender.
 
 ## Files / systems being touched
-- Root: structures/lanternPost.ts, one structures/index.ts audit line, own log and post-light review.
-  Published upper-air and hedge sources stay pinned independently for their actual captures.
+- Root: vegetation/materials.ts, one plants.ts option, existing material contracts, own log/reviews.
+  Published post-light source remains pinned independently for its actual capture.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
-- World helper: frozen scratch-only hedge midrib/four-vein proposal, derivative filtered and
-  distance faded, no geometry or texture changes; not yet applied or visually accepted.
-- Prop helper: completed source/actual pod light diagnosis, no production edits.
+- World helper: hedge proposal complete; read-only review of existing props visibility/contact.
+  No house/roof/hardscape source changes or uncoordinated prop relocation.
+- Prop helper: scratch-only original owned pod membrane atlas proposal, explicit resource disposal;
+  no production changes or acceptance before the separate light trial.
 - Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
 
 ## Partner state / coordination
@@ -56,7 +63,8 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
-| 84ecde9 | Separate cooler upper sky/open-air haze study, conserved endpoint luminance; actual capture running. |
+| ab7796e | Isolated post PointLight 3.2 to 1.2 + real audit; actual capture pending. |
+| 84ecde9 | Actual 12+4 pass: cooler air/shaded paving, warm sun retained, no obvious cyan veil/seam; unchanged cost/depth. Retained. |
 | 2e9c19f | Actual 12+4 pass: modest greener hedge undersides, unchanged geometry/depth/calls/triangles; 0 retries/errors/warnings. |
 | d41b354 | Actual 12+4 verified: active grain, denser planting, all under budget, separate seated pod leaves. Zero retries/errors/warnings. |
 | d7552ee | Fable 1cc ancestry, column grain trial and sign chisel response. Actual column trial fails to activate; installed fragment-prefix defect is being corrected. Sign remains mostly ink-like. All 16 source/image/control contracts pass; L01/L02 identical to 640. |
@@ -125,8 +133,8 @@ Detailed earlier chronology is preserved in `docs/reviews/astra-environment-hist
 
 ## Suggested parallel tasks
 Fable: publish the active roof/support pass and hardscape lawn work, with exact source and overlap.
-Astra: review the upper-air color capture, then the isolated post-light trial. Apply a bounded
-hedge surface study only after its independent lighting controls are available.
+Astra: review actual post-light response and the subsequent isolated hedge surface study.
+Continue source-based prop diagnosis and integrate Fable's roof/hardscape when published.
 
 ## Last updated
-2026-09-12T15:54:57.259566+00:00
+2026-09-12T16:00:19.804549+00:00
