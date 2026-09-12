@@ -201,6 +201,16 @@ export interface GiantOptions {
     wood?: boolean;
   }[];
   /**
+   * Dense leaf collars (local space) around the canopy openings (see CANOPY_OPENINGS): an annulus
+   * `inner`–`outer` (m) around a sun line, active within the local height band. Every crown lobe
+   * a collar crosses grows extra cluster cards inside the annulus (about `factor` × its own card
+   * density there), so the openings read as holes in a dense leaf mass — clustered gaps between
+   * leaf clumps — rather than as thin spots in an even canopy, and the shadow between two sun
+   * pools on the ground is solid. The extra cards come from a stream forked per lobe (keyed by the
+   * lobe centre), so no other draw in the tree moves when a collar is added or edited.
+   */
+  densify?: { point: Vector3; dir: Vector3; inner: number; outer: number; factor: number; yMin?: number; yMax?: number }[];
+  /**
    * Foliage scale of the authored lantern limb's lobes (1 = full). The reference limb in shot A
    * is a bare bough with a few leaf clusters and haze between them, not a hedge on a pole.
    */
@@ -498,40 +508,46 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     count = Math.max(2, Math.round(count * 1.5 * Math.min(1.4, o.cardDensity ?? density)));
     const stiffness = stiffnessFor(boughRadius * 0.5);
     const phase = r();
-    for (let i = 0; i < count; i++) {
-      const rr = Math.pow(r(), 0.4) * (1 - 0.45 * eye);
-      const th = r() * TAU;
-      const ph = Math.acos(2 * r() - 1);
+    /**
+     * one card drawn from stream `g`: every draw is made before the culls, so a culled card leaves
+     * the stream exactly where a built one would (the corridors never shift the main stream);
+     * `keep` is the densify pass's collar test
+     */
+    const placeCard = (g: Rng, drop: boolean, keep?: (p: Vector3) => boolean) => {
+      const gb = (a: number, b: number) => between(g, a, b);
+      const rr = Math.pow(g(), 0.4) * (1 - 0.45 * eye);
+      const th = g() * TAU;
+      const ph = Math.acos(2 * g() - 1);
       const local = new Vector3(Math.sin(ph) * Math.cos(th) * hR * rr, Math.cos(ph) * vR * rr, Math.sin(ph) * Math.sin(th) * hR * rr);
       const p = center.clone().add(local);
       cardN.set(local.x / hR, local.y / vR + 0.7, local.z / hR).normalize();
-      cardN.x += bt(-0.35, 0.35);
-      cardN.z += bt(-0.35, 0.35);
+      cardN.x += gb(-0.35, 0.35);
+      cardN.z += gb(-0.35, 0.35);
       cardN.normalize();
       const ref = Math.abs(cardN.y) < 0.9 ? UP : new Vector3(1, 0, 0);
       cardU.crossVectors(cardN, ref).normalize();
       cardW.crossVectors(cardN, cardU).normalize();
       // spin the card in its plane
-      const spin = r() * TAU;
+      const spin = g() * TAU;
       const su = cardU.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardW, Math.sin(spin));
       const sw = cardW.clone().multiplyScalar(Math.cos(spin)).addScaledVector(cardU, -Math.sin(spin));
       // fewer, larger clumps (sheet 01: dense soft clumps, not stars): ×1.12 on the card and
       // every fourth card dropped — after its draws, so the main stream is what it was with the
       // smaller, more numerous cards and nothing else in the tree re-rolls
-      const s = Math.min(1.4, Math.max(0.4, bt(0.25, 0.38) * hR)) * sizeF;
+      const s = Math.min(1.4, Math.max(0.4, gb(0.25, 0.38) * hR)) * sizeF;
       const heightF = p.y / H;
       const outF = Math.hypot(p.x, p.z) / crownRadius;
-      const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * bt(0.35, 1);
+      const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * gb(0.35, 1);
       const interior = 1 - rr;
       const color = canopy
         .clone()
         .multiplyScalar(0.9)
         .lerp(sunny, sun * (1 - interior * 0.7))
-        .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.25))
-        .multiplyScalar(bt(0.85, 1.05) * (1 - interior * 0.4) * lobeTone);
-      if (i % 4 === 3) continue;
-      // culled after its draws (see leafSpray): the corridors never shift the main stream
-      if (!cardAllowed(p, s)) continue;
+        .lerp(gb(0, 1) < 0.5 ? cool : warm, gb(0, 0.25))
+        .multiplyScalar(gb(0.85, 1.05) * (1 - interior * 0.4) * lobeTone);
+      if (drop) return;
+      if (keep && !keep(p)) return;
+      if (!cardAllowed(p, s)) return;
       const V = (du: number, dw: number, u: number, v: number) =>
         cards.vertexN(
           p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s),
@@ -550,7 +566,39 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const d = V(-1, 1, 0, 1);
       cards.triangle(a, b, c);
       cards.triangle(a, c, d);
-    }
+    };
+    for (let i = 0; i < count; i++) placeCard(r, i % 4 === 3);
+
+    // densify pass (see GiantOptions.densify): the collars whose annulus can reach this lobe get
+    // extra cards from a per-lobe stream — sampled over the same lobe ellipsoid and kept only inside
+    // an annulus, so the local card density there rises by about the collar's factor while the
+    // lobe's shape, and every other draw in the tree, stay what they were
+    const collars = o.densify;
+    if (!collars?.length) return;
+    const reach = Math.max(hR, vR);
+    const near = collars.filter((d) => {
+      if (d.yMin !== undefined && center.y + vR < d.yMin) return false;
+      if (d.yMax !== undefined && center.y - vR > d.yMax) return false;
+      corrTmp.subVectors(center, d.point);
+      corrTmp.addScaledVector(d.dir, -corrTmp.dot(d.dir));
+      return corrTmp.length() < d.outer + reach;
+    });
+    if (!near.length) return;
+    const factor = Math.max(...near.map((d) => d.factor));
+    const rd = r.fork(`densify/${center.x.toFixed(2)},${center.y.toFixed(2)},${center.z.toFixed(2)}`);
+    const inCollar = (p: Vector3) => {
+      for (const d of near) {
+        if (d.yMin !== undefined && p.y < d.yMin) continue;
+        if (d.yMax !== undefined && p.y > d.yMax) continue;
+        corrTmp.subVectors(p, d.point);
+        corrTmp.addScaledVector(d.dir, -corrTmp.dot(d.dir));
+        const off = corrTmp.length();
+        if (off >= d.inner && off < d.outer && rd() * factor < d.factor) return true;
+      }
+      return false;
+    };
+    const attempts = Math.round(count * factor);
+    for (let i = 0; i < attempts; i++) placeCard(rd, false, inCollar);
   }
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1) {

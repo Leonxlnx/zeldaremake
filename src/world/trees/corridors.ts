@@ -71,3 +71,108 @@ export const SHAFT_COLUMNS: ShaftColumn[] = [
   { point: [9.6, 6.9, -6.6], radius: 1.3, carve: 1.7, porosity: 0.5, cardPorosity: 0.4 },
   { point: [20.4, 11.2, -12.8], radius: 1.3, carve: 1.7 },
 ];
+
+/**
+ * A canopy opening: a cylinder of sun rays standing on a ground pool, cleared of giant foliage
+ * within a world height band and ringed by a dense leaf collar (see CANOPY_OPENINGS).
+ */
+export interface CanopyOpening {
+  /** ground centre of the sun pool (world x, z); the ground height is looked up */
+  point: [number, number];
+  /** cylinder radius (m) in the plane perpendicular to the sun — half the pool's width */
+  radius: number;
+  /** world height band [yMin, yMax] (m) of the cylinder that is cleared */
+  band: [number, number];
+  /** share of giant laminae / cluster cards kept inside (default none) */
+  porosity?: number;
+  cardPorosity?: number;
+  /** width (m) of the dense collar around the cylinder (default CANOPY_OPENING_COLLAR) */
+  collar?: number;
+  /** extra card density in the collar, × the lobe's own (default CANOPY_OPENING_DENSIFY; 0 = none) */
+  densify?: number;
+}
+export const CANOPY_OPENING_COLLAR = 1.8;
+export const CANOPY_OPENING_DENSIFY = 2.5;
+
+/**
+ * Canopy openings (round 14, for the lighting owner): clustered gaps in the crowns over the plaza
+ * and the hero flight, so the sun's shadow map paints a dapple of 1–3 m sun pools on the paving
+ * (frame 1 s: pools ≈ 1–2 m across over ≈ 40 % of the plaza; board 02: ≈ 50 % lit in soft-edged
+ * patches) instead of an even shade or an even sheet of light. Each entry is the GROUND pool: its
+ * sun line (azimuth −128°, elevation 38° — a caster at height Y shades (x + 1.008 Y, z + 0.787 Y),
+ * so the occluder of a pool at (x, z) stands at (x − 1.008 Y, z − 0.787 Y)) is cleared of giant
+ * laminae and cluster cards between `band[0]` and `band[1]`, and the annulus `collar` wide around
+ * it is packed with extra cards (giant.ts, GiantOptions.densify), so two neighbouring pools are
+ * separated by solid leaf shade rather than a thin spot. The atmosphere's shafts may read the same
+ * table (the openings are where the god rays can fall). Data only — no three.js imports.
+ *
+ * What stands on the sun rays (a top-down sun-on/off map of the paving, 10 cm cells, and 6° sun
+ * probes off the round-14 control):
+ * - plaza disc, east half (x ≥ 0, z ≥ 0): one lit sheet — shot A's plaza box 99.5 % sunlit, the
+ *   few blockers 10–20 m up (the lantern tree's crown edge and the F-bank lines' survivors) — no
+ *   canopy to cut a gap in. The casters are added first: the lantern tree's plaza-roof lobes
+ *   (trees CANOPY_BOUGHS) at 12.5 m, whose shadows frame the box — the strip west of it (the
+ *   reference's dark left edge of A) and the path mouth north of it (F's dark left edge) — while
+ *   the box itself, lit in both reference frames, is listed here as the big pool so the lobes'
+ *   rims facing it are packed by the collars.
+ * - plaza disc, west third (x ≤ −1): 0–50 % open with the blockers 5–10 m up — the lantern limb's
+ *   own lobes and the sheared bole, wood and hero foliage that stay. No opening there.
+ * - the path north of the plaza (z −1 … −6.5): 35 % lit already, in 1–3 m pools between the
+ *   lantern limb's shadow band ((0.3, −1.7) → (4.8, 0)) and the emergent column's bole stripe
+ *   ((−2.7 + 1.008 h, −7.9 + 0.787 h)) — dapple from wood, left as it is; its biggest pool is
+ *   listed so the shaft mask knows it.
+ * - hero flight: the lower and middle run one 7.4 m sheet of sun, the top run dark; the blockers
+ *   12–14 m above the treads are the round-7c stair-shade lobes of the north-west-near giant
+ *   ((−0.6, 16.2, −13.7) and (2.6, 16.4, −14.4), hR 2.4, density 0.6). The top opening is cut
+ *   through the second; the shade between the flight's three pools comes from two small dense
+ *   lobes of a new north-west-near bough (CANOPY_BOUGHS "flight roof").
+ * - east lobe of the plaza (x 6–8.5, z −2 … 2): 41 % lit in 0.7–1.4 m pools between the lantern
+ *   limb's tail (≈ (6.5, 0.5)) and the emergent bole's stripe — wood dapple, left as it is; the
+ *   stair-foot pool (5.7, 0.7) at its west edge is the one listed (59 % lit after the cut, the
+ *   pool at (7.3, 0.7) 1.9 m).
+ * Every band starts at 10 m or higher: the lantern limb's lobes 3–8 m over the plaza (the hero
+ * foliage of shots A and F) and the lantern pods are never touched.
+ *
+ * Pool geometry. A cylinder of radius r lands as an ellipse 2 r across the sun and 2 r / sin 38°
+ * = 3.25 r along it (ground direction (0.788, 0.615)). A lobe card is dropped when its centre is
+ * within r + 0.7 s of the axis (giant.ts cardAllowed; s = its half-size ≈ 0.31 hR, 0.55–0.85 m
+ * in the roof lobes) and the survivors reach ≈ 0.35 s back in, so the clear radius for cards is
+ * ≈ r + 0.25 and the r 0.75–0.8 pools land ≈ 2 × 3.2 m; the first cut at r 1.0–1.1 carved 3.3 m
+ * holes that merged two box pools into one 3.8 m patch and gutted the tip lobes (shot A's box 72 %
+ * lit). Pools on the same sun line or within ≈ 2 m across it merge. The reference frames, read
+ * cell by cell against the same-tree control (trees index.ts, "Plaza roof"), keep the whole box
+ * lit — A rows 0.75–1.0 are bright from x 0.19 to 0.81 and F's brightest paving is its centre —
+ * and put the leaf shade on the strip WEST of the box (x < −0.1) and the path mouth NORTH of it
+ * (z < 0.5); a first cut that dappled the box itself with 2 m pools between hR 2 roof lobes cost
+ * F 0.0044 and C 0.0016 SSIM and was dropped. So the plaza pools are the box's lit middle
+ * ((2.7, 3.0) r 2.2, one 4.4 m gap — the brief's upper size), Link's own pool and the stair
+ * foot. Link's pool is the closed r 1.5 ray from his head (LINK_SHADOW_RAYS), which culls the
+ * roof's cards to ≈ 1.85 m — a 3 × 4.6 m pool centred on his shadow, what the reference shows
+ * (Link's shadow lies on lit stone). Every axis passes ≥ 1.9 m from the roof bough's wood (whose
+ * own shadow band runs (−2.6, 4.2) → (0.75, −2.5), west and north of the box). No densify on the
+ * flight: its casters are the sparse dapple
+ * lobes, which the collars packed into a dark canopy in the first cut (shot F's flight box
+ * 66 → 79 % shade).
+ */
+export const CANOPY_OPENINGS: CanopyOpening[] = [
+  // ---- plaza disc (0, 0) r 6 — shot A's plaza box is world (0.3–5.3, 1.5–5.8), the near paving
+  // Link's pool at A: the footprint of the closed r 1.5 sun ray from his head (trees index.ts
+  // LINK_SHADOW_RAYS, which already clears it 3–40 m out); listed so the roof gets its collar and
+  // the shaft mask its hole. Big enough to hold Link and his 2 m shadow, as the reference does.
+  { point: [3.6, 5.6], radius: 1.5, band: [10, 30] },
+  // the box's lit middle (x 0.5–4.9, z 0.8–5.2) north-west of Link's pool: the sheet of sun the
+  // reference keeps between the shaded strip west of the box and the shaded path mouth
+  { point: [2.7, 3.0], radius: 2.2, band: [10, 30] },
+  // the stair foot, the bright spot of shot F's paving (its (0.375, 0.667) cell) under the flight's
+  // first treads; the paving east of it ((6–7, 1.5–3)) is dark in both A and F and stays unlisted
+  { point: [5.7, 0.7], radius: 0.8, band: [10, 30] },
+  // Link's pool at D on the path north of the plaza: the D ray's footprint (no roof there, the
+  // 2.9 m pool lies between the limb band and the emergent bole's stripe)
+  { point: [2.2, -6.7], radius: 1.5, band: [10, 30], densify: 0 },
+  // ---- hero flight: base (7.3, −0.1) bearing 52°, 20 × 0.54 m run to ≈ (15.8, −6.7); pools on
+  // the lower run (already open), the middle run (through the first 7c lobe's remnants) and the top
+  // run (through the second 7c lobe)
+  { point: [8.3, -0.9], radius: 1.0, band: [10, 30], densify: 0 },
+  { point: [12.0, -3.8], radius: 1.0, band: [12, 30], densify: 0 },
+  { point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0 },
+];

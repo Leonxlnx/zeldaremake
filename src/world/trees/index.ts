@@ -30,7 +30,7 @@ import type { GiantTreeDef } from '../layout';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
-import { SHAFT_COLUMNS } from './corridors';
+import { CANOPY_OPENINGS, CANOPY_OPENING_COLLAR, CANOPY_OPENING_DENSIFY, SHAFT_COLUMNS } from './corridors';
 import { tubePathFromRings } from './tubePath';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
@@ -264,6 +264,48 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * cell F (0.6–0.7, 0–0.17) and +0.12 over A's top-right corner cell, ≈ +0.002 on each frame's
  * total. F x 0.4–0.5 (haze over the stairs, 0.58 against 0.44) is left: any caster there sits in
  * A's bright cell.
+ *
+ * Plaza roof (round 14, for the lighting owner): the reference plaza is dapple — frame 1 s has
+ * sun pools 1–2 m across over ≈ 40 % of the paving, 14 s / 46 s keep the path north of it in
+ * dappled shade with Link's shadow on lit stone — while ours read an even sheet of sun: a
+ * top-down sun-on/off map had 99.5 % of shot A's plaza box (0.2–0.75, 0.75–0.99 = world
+ * (0.3–5.3, 1.5–5.8)) lit, one 4.6 m patch. Nothing stands on those sun rays 10–25 m up: the
+ * lantern tree's bole is sheared out of them (GIANT_PROFILES) and its crown lobes (17–26 m,
+ * shifted toward the plaza) cast onto the east bank, the north-west-near giant leans away to the
+ * north-west, and the white-barks keep off the plaza lines. The caster that shades a plaza point
+ * (x, z) from height Y stands at (x − 1.008 Y, z − 0.787 Y): for the box at Y 13.5 that is the
+ * patch (−13 … −8, −10 … −4.5), 2–7 m east of the sheared bole (≈ (−14, −4) at that height).
+ * One bough of the lantern tree leaves the bole at 11 m and runs 7.5 m ACROSS the sun (toward
+ * (+x, −z)), so its wood's shadow is one band (−2.6, 4.2) → (0.75, −2.5) west of the box (a
+ * bough's grown bole has its own 1–3° random lean, so its axis is only known to ≈ 0.6 m; the
+ * first cut's three boughs crossed three of their own openings' sun lines). Three small lobes
+ * (hR 0.8–1.2, density 3, ≈ 55 cards each, a 3-layer cluster the soft filter resolves from
+ * 12 m) stand 1.5–2 m above it on short stems. Where they shade is read off the reference
+ * frames cell by cell (16 × 6 luminance grid of A and F against the same-tree control, cells
+ * unprojected to the paving): the plaza box itself is LIT in both frames — A rows 0.75–1.0 are
+ * 0.54–0.65 from x 0.19 to 0.81 (control 0.50–0.62) and F's brightest paving is its centre
+ * (0.31–0.5, 0.67–0.92: 0.53–0.73) — while the strip WEST of the box (A x < 0.13 = world
+ * (−1.2 … −0.1, 1.4–4.3): 0.30–0.40 against the control's 0.51–0.56) and the path mouth NORTH of
+ * it (F (0.125–0.25, 0.83) = world (2.3–2.5, 0–1.0): 0.21–0.35 against 0.37) are in leaf shade.
+ * So two hR 0.8 lobes land ≈ 1.6 × 2.6 m ellipses at (−1.0, 3.8) and (−1.0, 2.0) — a strip
+ * x −2.1 … 0.1, z 1–4.8 whose only spill east of x −0.2 is the ellipses' tips — and an hR 1.2
+ * lobe a ≈ 2.4 × 3.9 m patch at (2.4, −0.8), reaching z 0.7 at most; the box's lit middle is
+ * listed as the big pool of CANOPY_OPENINGS (corridors.ts) so the collars pack the lobes' rims
+ * and the shaft mask knows the gap. Two earlier cuts were measured and rejected: a roof of five
+ * hR 2–2.2 lobes over the whole box (A +0.002 but F −0.0044 / C −0.0016 SSIM, F's bright
+ * centre darkened) and one shading the box's west third plus its north edge (A +0.0008,
+ * F −0.0030 / C −0.0021: the reference's shade stops at x ≈ −0.1, the cells x 0.13–0.31 it
+ * darkened are the reference's brightest). The dark spot east of the box ((6–7, 1.5–3), both
+ * frames) has no caster reachable without a stem or bough shadow across the lit middle and is
+ * left. The flight roof is a
+ * fourth bough of the north-west-near giant (appended, so the three older boughs draw the same
+ * stream) with two small dense lobes on the sun lines of treads 4 and 8: the shade bands between
+ * the flight's three pools (its own casters, the round-7c dapple lobes, lit the lower run as one
+ * 7.4 m sheet and blacked out the top). Every bough and lobe is outside all six hero frames
+ * (A/B/D: ≥ 61° off the view axis against a 41–44° half-diagonal, or above the frame top; C/F:
+ * behind the camera), so they act only through the shadow map and the shaft mask; the lantern
+ * limb, built earlier from the main stream, is untouched (audit lanternLimb* identical). The
+ * Link A/D sun rays (LINK_SHADOW_RAYS) carve Link's own pools through the lobes as before.
  */
 const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [
   {
@@ -313,6 +355,33 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.97, center: [17.9, 7.3, -2.5], hR: 2.2, vR: 1.2, density: 2, eye: 0 },
     ],
   },
+  // the plaza roof (round 14): the casters that frame shot A's lit plaza box — one bough across
+  // the sun, three small dense lobes above it whose shadows land on the strip west of the box
+  // ((-1.0, 3.8) and (-1.0, 2.0), the frame's left edge) and on the path mouth north of it
+  // ((2.4, -0.8)); the lit box between them is the CANOPY_OPENINGS pool of corridors.ts
+  {
+    giant: 'lantern-tree',
+    fromY: 11.0,
+    to: [-9.75, 10.4, -10.7],
+    radius: 0.5,
+    lobes: [
+      { t: 0.25, center: [-13.6, 12.5, -6.0], hR: 0.8, vR: 0.7, density: 3, eye: 0 },
+      { t: 0.54, center: [-13.6, 12.5, -7.8], hR: 0.8, vR: 0.7, density: 3, eye: 0 },
+      { t: 0.97, center: [-10.2, 12.5, -10.6], hR: 1.2, vR: 1.0, density: 3, eye: 0 },
+    ],
+  },
+  // the flight roof (round 14): two small dense lobes whose shadows are the bands between the
+  // hero flight's three sun pools — treads 4 (a ≈ 2.6–5.4 m up the run) and 8 (a ≈ 7.2–9.2 m)
+  {
+    giant: 'north-west-near',
+    fromY: 12.6,
+    to: [0.0, 15.6, -16.0],
+    radius: 0.45,
+    lobes: [
+      { t: 0.75, center: [-3.65, 16.0, -13.6], hR: 1.4, vR: 1.1, density: 3, eye: 0 },
+      { t: 0.97, center: [1.8, 16.0, -14.5], hR: 1.1, vR: 1.0, density: 3, eye: 0 },
+    ],
+  },
 ];
 /**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
@@ -343,21 +412,24 @@ const VIEW_GAPS: { viewpoint: string; xMin: number; xMax: number; yMin: number; 
  * disc is below its frame; the second core is therefore placed east of both shadow axes at
  * (4.0, 1.8) — A screen ≈ (0.55, 0.78), where the reference's brightest flagstones are (around
  * Link) — and behind camera B.
+ *
+ * Round 14: once the bole was sheared out of the plaza's sun lines (GIANT_PROFILES) these rings and
+ * their fully open cores left the plaza an even sheet of sun (88 % of shot A's plaza box lit, sun
+ * probes 60–99 % open), so they no longer carve the giants: the plaza's casters are now the lantern
+ * tree's plaza-roof lobes (CANOPY_BOUGHS) and its sun pools the CANOPY_OPENINGS (corridors.ts).
+ * The rings and cores had no height floor, so they also thinned the lantern limb's own lobes
+ * 3–8 m up where its sun lines cross them; with the openings starting at 10 m that hero foliage
+ * is whole again and throws its leaf dapple onto the box's north-east ((4–5.6, 1–3), which the
+ * reference keeps half-lit) and the disc's west — the 6° sun probe at (4.3, 0.6) sees 32 % of
+ * its cone blocked 0–5 m up against 8 % before, while the limb's wood (audit lanternLimb*) and
+ * its look in A/F's upper-left (cell luminance within 0.02) are unchanged. The points are kept as
+ * the white-bark placement's avoidance lines (a white-bark crown on them would blanket the
+ * pools), so no white-bark moves.
  */
-const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number; core: { point: [number, number]; radius: number } }[] = [
-  { point: [0.0, 0, 6.0], radius: 3.0, core: { point: [-0.3, 6.3], radius: 1.8 } },
-  // 1.5 m south of the plaza centre so its lit disc stays out of shot B's foreground band
-  // (z -1…-6), which the reference keeps in dappled shade (path p50 0.49)
-  { point: [2.5, 0, 3.5], radius: 2.8, core: { point: [4.0, 1.8], radius: 1.6 } },
+const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
+  { point: [0.0, 0, 6.0], radius: 3.0 },
+  { point: [2.5, 0, 3.5], radius: 2.8 },
 ];
-/** laminae survival in the porous ring around each plaza core */
-const PLAZA_SUN_POROSITY = 0.3;
-/**
- * cluster cards kept in the ring: cards (0.5–1.2 m) are the casters that still read as bold dapple
- * from 20–30 m up (laminae blur away in the soft shadow filter), so a few of them between the lit
- * cores give the reference's broad light/shadow contrast instead of a uniform half-light
- */
-const PLAZA_RING_CARD_POROSITY = 0.3;
 /**
  * Sunlit path in shot D: camera D (z ≈ −3, level, fov 48) sees the path from z ≈ −8 to −16 in its
  * foreground; the reference path there is sunlit with Link's shadow on it. Sun-probes from those
@@ -716,13 +788,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     yMax: head[1] + sunDir.y * LINK_RAY_RANGE[1],
     wood: true,
   }));
-  const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, PLAZA_SUN_POROSITY, PLAZA_RING_CARD_POROSITY));
-  // fully open cores inside the porous plaza rings (a tighter corridor wins where they overlap)
-  const plazaCores = PLAZA_SUN_POINTS.map(({ core }) => groundLine([core.point[0], 0, core.point[1]], core.radius, 0, 0));
+  // the plaza lines the white-bark placement keeps its crowns off (see PLAZA_SUN_POINTS; not passed
+  // to the giants since round 14)
+  const plazaCorridors = PLAZA_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, 1, 1));
+  // canopy openings (see CANOPY_OPENINGS): the sun cylinder over each ground pool, cleared within
+  // its height band, and the dense card collar around it (GiantOptions.densify)
+  const openingCorridors: WorldCorridor[] = CANOPY_OPENINGS.map((c) => ({
+    ...groundLine([c.point[0], 0, c.point[1]], c.radius, c.porosity ?? 0, c.cardPorosity ?? 0, c.band[0]),
+    yMax: c.band[1],
+  }));
+  const openingCollars = CANOPY_OPENINGS.map((c) => ({
+    point: new Vector3(c.point[0], terrain.height(c.point[0], c.point[1]), c.point[1]),
+    dir: sunDir,
+    inner: c.radius,
+    outer: c.radius + (c.collar ?? CANOPY_OPENING_COLLAR),
+    factor: c.densify ?? CANOPY_OPENING_DENSIFY,
+    yMin: c.band[0],
+    yMax: c.band[1],
+  }));
   const sunCorridors: WorldCorridor[] = [
     ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: c.porosity ?? 0, cardPorosity: c.cardPorosity ?? 0 })),
-    ...plazaCorridors,
-    ...plazaCores,
+    ...openingCorridors,
     ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
     ...D_VERGE_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_VERGE_SUN_POROSITY, D_VERGE_CARD_POROSITY)),
     ...F_BANK_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, F_BANK_SUN_POROSITY, F_BANK_CARD_POROSITY, F_BANK_MIN_Y)),
@@ -977,6 +1063,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         yMin: c.yMin === undefined ? undefined : c.yMin - gy,
         yMax: c.yMax === undefined ? undefined : c.yMax - gy,
         wood: c.wood,
+      })),
+      densify: openingCollars.map((c) => ({
+        point: c.point.clone().sub(origin),
+        dir: c.dir,
+        inner: c.inner,
+        outer: c.outer,
+        factor: c.factor,
+        yMin: c.yMin - gy,
+        yMax: c.yMax - gy,
       })),
       eyeDetail: EYE_DETAIL[def.id] ?? 0,
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
