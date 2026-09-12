@@ -1,0 +1,30 @@
+{
+  "schema": "zeldaremake.environment-variants.v1",
+  "baselineSource": "e17f310d5e05b8879b9dfdcb89b453a5e4597b26",
+  "time": 12.5,
+  "baseline": {
+    "label": "Production defaults, no runtime overrides",
+    "light": null,
+    "post": null
+  },
+  "candidate": {
+    "label": "Concept light hypothesis: golden key, cooler shade, stronger form and less video softness",
+    "light": {
+      "sunIntensity": 3.6,
+      "hemiIntensity": 0.6,
+      "environmentIntensity": 0.3,
+      "hemiSky": 12110034,
+      "hemiGround": 7172442
+    },
+    "post": {
+      "contrast": 1.08,
+      "lift": 0,
+      "greenWarm": 0.08,
+      "greenDesat": 0.02,
+      "satSlope": 0.75,
+      "aoStrength": 0.5,
+      "bloomIntensity": 0.18,
+      "softening": false
+    }
+  }
+}

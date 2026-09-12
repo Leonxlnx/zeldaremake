@@ -632,6 +632,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     rayIntensity.value = s.rayIntensity;
   };
 
+  // Audit the controls used by the most recently rendered frame, including
+  // diagnostic overrides. Reporting defaults made captured comparisons ambiguous.
+  let lastFrameSettings: ComposerSettings = { ...settings };
+  let hasRenderedSettings = false;
+
   /** the frame's settings: the live object, or a copy with the numeric tuning overrides applied */
   const frameSettings = (): ComposerSettings => {
     const o = settingsOverride();
@@ -745,6 +750,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       return;
     }
     const s = frameSettings();
+    lastFrameSettings = { ...s };
+    hasRenderedSettings = true;
     near.value = camera.near;
     far.value = camera.far;
     proj.value.copy(camera.projectionMatrix);
@@ -934,6 +941,9 @@ export function createComposer(opts: ComposerOptions): Composer {
         'soften-final',
       ],
       hdr: true,
+      effectiveSettingsRendered: hasRenderedSettings,
+      effectiveSettings: Object.fromEntries(Object.entries(lastFrameSettings)
+        .filter(([, value]) => typeof value === 'number' || typeof value === 'boolean')),
       resolution: [W, H],
       ambientOcclusion: true,
       aoResolution: [hw, hh],
@@ -943,34 +953,34 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayResolution: [qw, qh],
       godRayStrength: rayIntensity.value,
       godRayBackScatterMin: fog.rayBackScatterMin,
-      godRayExtinctionPerM: settings.rayExtinction,
-      godRayMaxDistM: settings.rayMaxDist,
-      godRayGapFrequencyPerM: settings.beamFrequency,
-      godRayGapFloor: settings.beamFloor,
-      godRayGapNoiseMax: settings.beamNoiseMax,
-      godRayFarAirM: [settings.beamFarStart, settings.beamFarEnd],
-      godRayFarAirFill: settings.beamFarFill,
-      godRayGapHollowZ: [settings.beamHollowStartZ, settings.beamHollowFullZ],
-      godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * settings.beamColumnScale, c.gain]),
+      godRayExtinctionPerM: lastFrameSettings.rayExtinction,
+      godRayMaxDistM: lastFrameSettings.rayMaxDist,
+      godRayGapFrequencyPerM: lastFrameSettings.beamFrequency,
+      godRayGapFloor: lastFrameSettings.beamFloor,
+      godRayGapNoiseMax: lastFrameSettings.beamNoiseMax,
+      godRayFarAirM: [lastFrameSettings.beamFarStart, lastFrameSettings.beamFarEnd],
+      godRayFarAirFill: lastFrameSettings.beamFarFill,
+      godRayGapHollowZ: [lastFrameSettings.beamHollowStartZ, lastFrameSettings.beamHollowFullZ],
+      godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * lastFrameSettings.beamColumnScale, c.gain]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
       bloom: true,
-      bloomThreshold: settings.bloomThreshold,
+      bloomThreshold: lastFrameSettings.bloomThreshold,
       toneMapping: 'aces-fitted',
-      contrast: settings.contrast,
-      contrastPivot: settings.contrastPivot,
-      lift: settings.lift,
-      aoStrength: settings.aoStrength,
-      aoFadeM: [settings.aoFadeStart, settings.aoFadeEnd],
+      contrast: lastFrameSettings.contrast,
+      contrastPivot: lastFrameSettings.contrastPivot,
+      lift: lastFrameSettings.lift,
+      aoStrength: lastFrameSettings.aoStrength,
+      aoFadeM: [lastFrameSettings.aoFadeStart, lastFrameSettings.aoFadeEnd],
       antialiasing: 'fxaa',
       // final video-softness stage on a fixed 640/320-wide grid (see SOFT_FINAL_FRAG)
-      softening: settings.softening,
+      softening: lastFrameSettings.softening,
       softeningGrid: [sw, sh],
-      softeningDetailFloor: settings.softDetail,
-      softeningActivityKnee: settings.softActivityK,
-      softeningUniform: settings.softUniform,
-      softeningHazeRangeM: [settings.softFarStart, settings.softFarFull],
-      softeningBlurSigmaGrid: [settings.softBlurSigma, settings.softFarSigma],
+      softeningDetailFloor: lastFrameSettings.softDetail,
+      softeningActivityKnee: lastFrameSettings.softActivityK,
+      softeningUniform: lastFrameSettings.softUniform,
+      softeningHazeRangeM: [lastFrameSettings.softFarStart, lastFrameSettings.softFarFull],
+      softeningBlurSigmaGrid: [lastFrameSettings.softBlurSigma, lastFrameSettings.softFarSigma],
       // every pass is a pure function of the frame (no temporal jitter/accumulation), headless or not
       deterministic: true,
       headless: opts.headless,

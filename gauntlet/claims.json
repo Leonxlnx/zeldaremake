@@ -559,6 +559,20 @@
       "at": "2026-09-11T23:33:22.692Z",
       "expiresHours": 6,
       "note": "Trees round ten: shade floor on giant bark and leaves"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W36"
+      ],
+      "at": "2026-09-12T07:25:30.044Z",
+      "expiresHours": 3,
+      "scope": "Owner changed priority to environment. Astra separate lighting/postfx/shadow/depth comparison branch based on Fable501b350; Fable retains geometry. PR2 coordination5644445067."
     }
   ]
 }

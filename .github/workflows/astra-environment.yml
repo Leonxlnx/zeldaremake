@@ -1,0 +1,67 @@
+name: Astra environment comparison
+on:
+  push:
+    branches: ['agent/astra-environment-lighting']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: astra-environment
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Locate runner Chrome
+        id: chrome
+        shell: bash
+        run: |
+          CAPTURE_CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          echo "path=$CAPTURE_CHROME" >> "$GITHUB_OUTPUT"
+      - name: Install Chrome fallback
+        if: steps.chrome.outputs.path == ''
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - name: Export Chrome path
+        env:
+          RUNNER_CHROME: ${{ steps.chrome.outputs.path }}
+          FALLBACK_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+        shell: bash
+        run: |
+          CAPTURE_CHROME="${RUNNER_CHROME:-$FALLBACK_CHROME}"
+          echo "CHROME_PATH=$CAPTURE_CHROME" >> "$GITHUB_ENV"
+          "$CAPTURE_CHROME" --version
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Check source integrity
+        run: node gauntlet/scripts/anti-cheat.mjs --skip-capture-checks
+      - name: Render six matched environment comparisons
+        run: node gauntlet/scripts/capture-environment.mjs
+      - name: Retain actual images and metadata, including partial failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified dated gallery
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          node gauntlet/scripts/publish-environment-capture.mjs gauntlet/out/astra-environment "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Twelve environment comparison images](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'

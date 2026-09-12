@@ -151,9 +151,10 @@ export function create(ctx: WorldContext): WorldSystem {
     shadowCanopyLeakRangeM: [SHADOW_FILTER.leakStartM, SHADOW_FILTER.leakFullM],
     cascades: 1,
     hemiIntensity: hemi.intensity,
-    hemiSkyLinear: hemiSky.toArray().map((v) => Math.round(v * 1000) / 1000),
+    hemiSkyLinear: hemi.color.toArray().map((v) => Math.round(v * 1000) / 1000),
     environmentMap: environment,
-    environmentIntensity: environment ? environmentIntensity : 0,
+    environmentIntensity: environment ? ctx.scene.environmentIntensity : 0,
+    hemiGroundLinear: hemi.groundColor.toArray().map((v) => Math.round(v * 1000) / 1000),
     environmentTint: SKY_ENV_TINT,
   }));
 
