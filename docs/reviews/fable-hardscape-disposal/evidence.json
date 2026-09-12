@@ -1,0 +1,228 @@
+{
+  "base": "d7f5e98c6db67c8d2742712c7647f60e665d1b31",
+  "candidate": "2f4415b76b36e0b457644cf45356ce49ea086bd3",
+  "status": "Actual published Fable correction verified for deliberate adoption; competing Astra patch remains unapplied",
+  "scope": "Exact committed source factories without source overlays, real Three disposal events, shader strings and buffer/image-data comparisons; no GPU appearance verdict",
+  "sourceHashes": {
+    "src/world/hardscape/index.ts": {
+      "baseline": "2de4e09350b246bea5eb857cfe54f1afca3532519a23c5970390cb7d9205e4ab",
+      "candidate": "06ec2717848880439c9c98b28c863a2d96ca254e22d7e635a30e0280403b5a04"
+    },
+    "src/world/hardscape/material.ts": {
+      "baseline": "9eadbe67e0ce698d89d522620d8b1d3f8b46b78b5660b2746b5bfae4599b752c",
+      "candidate": "da7a7f7102a7b600eca18e8f25683350fa3d738f22c64eb2bea20e33efe34e84"
+    }
+  },
+  "preserved": {
+    "geometry": [
+      {
+        "name": "stairs-main",
+        "attributes": 6,
+        "instanced": false
+      },
+      {
+        "name": "stairs-north",
+        "attributes": 6,
+        "instanced": false
+      },
+      {
+        "name": "flagstones",
+        "attributes": 6,
+        "instanced": false
+      },
+      {
+        "name": "flagstone-joints",
+        "attributes": 7,
+        "instanced": false
+      },
+      {
+        "name": "lawn-flowers",
+        "attributes": 3,
+        "instanced": false
+      },
+      {
+        "name": "joint-sprouts-p0-v1",
+        "attributes": 7,
+        "instanced": true
+      },
+      {
+        "name": "joint-sprouts-p1-v0",
+        "attributes": 7,
+        "instanced": true
+      },
+      {
+        "name": "joint-sprouts-p2-v26",
+        "attributes": 7,
+        "instanced": true
+      },
+      {
+        "name": "joint-sprouts-p3-v34",
+        "attributes": 7,
+        "instanced": true
+      }
+    ],
+    "all5742SpotsMatricesColors": true,
+    "allAudits": true,
+    "allFlowerHeads": true,
+    "allFlagstonesAndEightSteppingDiscs": true,
+    "allGeneratedShaderStringsAndProgramKeys": true,
+    "shadowRenderFlags": true,
+    "imageData": {
+      "cached": {
+        "worn_rock_natural_01/color": {
+          "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+          "width": 1,
+          "height": 1
+        },
+        "worn_rock_natural_01/normal": {
+          "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+          "width": 1,
+          "height": 1
+        },
+        "worn_rock_natural_01/roughness": {
+          "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+          "width": 1,
+          "height": 1
+        },
+        "worn_rock_natural_01/ao": {
+          "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+          "width": 1,
+          "height": 1
+        },
+        "brown_mud_leaves_01/color": {
+          "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+          "width": 1,
+          "height": 1
+        },
+        "brown_mud_leaves_01/normal": {
+          "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+          "width": 1,
+          "height": 1
+        }
+      },
+      "gap": {
+        "data": "be95c5f7e74655e0a12fa9c7c2aabb194b1dabe8510768f499b1cb3a0fb81e1d",
+        "width": 407,
+        "height": 1609
+      },
+      "ao": {
+        "data": "dde5bcff31e3b2e6085239af1da9827447d0705e8500092ab6bdf699d819c231",
+        "channel": 0,
+        "wrapS": 1001,
+        "wrapT": 1001,
+        "minFilter": 1003,
+        "magFilter": 1003
+      }
+    }
+  },
+  "systemFirstThenHelperRepeats": {
+    "geometry": {
+      "stairs-main": 1,
+      "stairs-north": 1,
+      "flagstones": 1,
+      "flagstone-joints": 1,
+      "lawn-flowers": 1,
+      "joint-sprouts-p0-v1": 1,
+      "joint-sprouts-p1-v0": 1,
+      "joint-sprouts-p2-v26": 1,
+      "joint-sprouts-p3-v34": 1
+    },
+    "material": {
+      "stone": 1,
+      "flagstone-joints": 1,
+      "lawn-flowers": 1,
+      "joint-sprouts": 1
+    },
+    "instancedMesh": {
+      "joint-sprouts-p0-v1": 1,
+      "joint-sprouts-p1-v0": 1,
+      "joint-sprouts-p2-v26": 1,
+      "joint-sprouts-p3-v34": 1
+    },
+    "texture": {
+      "borrowed:worn_rock_natural_01/color": 0,
+      "borrowed:worn_rock_natural_01/normal": 0,
+      "borrowed:worn_rock_natural_01/roughness": 0,
+      "borrowed:worn_rock_natural_01/ao": 0,
+      "borrowed:brown_mud_leaves_01/color": 0,
+      "borrowed:brown_mud_leaves_01/normal": 0,
+      "owned:generated-gap-field": 1,
+      "owned:stone-ao-clone": 1
+    }
+  },
+  "helperFirstThenSystemRepeats": {
+    "geometry": {
+      "stairs-main": 1,
+      "stairs-north": 1,
+      "flagstones": 1,
+      "flagstone-joints": 1,
+      "lawn-flowers": 1,
+      "joint-sprouts-p0-v1": 1,
+      "joint-sprouts-p1-v0": 1,
+      "joint-sprouts-p2-v26": 1,
+      "joint-sprouts-p3-v34": 1
+    },
+    "material": {
+      "stone": 1,
+      "flagstone-joints": 1,
+      "lawn-flowers": 1,
+      "joint-sprouts": 1
+    },
+    "instancedMesh": {
+      "joint-sprouts-p0-v1": 1,
+      "joint-sprouts-p1-v0": 1,
+      "joint-sprouts-p2-v26": 1,
+      "joint-sprouts-p3-v34": 1
+    },
+    "texture": {
+      "borrowed:worn_rock_natural_01/color": 0,
+      "borrowed:worn_rock_natural_01/normal": 0,
+      "borrowed:worn_rock_natural_01/roughness": 0,
+      "borrowed:worn_rock_natural_01/ao": 0,
+      "borrowed:brown_mud_leaves_01/color": 0,
+      "borrowed:brown_mud_leaves_01/normal": 0,
+      "owned:generated-gap-field": 1,
+      "owned:stone-ao-clone": 1
+    }
+  },
+  "rawMaterialDisposeTwiceAfterSystem": {
+    "events": {
+      "geometry": {
+        "stairs-main": 1,
+        "stairs-north": 1,
+        "flagstones": 1,
+        "flagstone-joints": 1,
+        "lawn-flowers": 1,
+        "joint-sprouts-p0-v1": 1,
+        "joint-sprouts-p1-v0": 1,
+        "joint-sprouts-p2-v26": 1,
+        "joint-sprouts-p3-v34": 1
+      },
+      "material": {
+        "stone": 3,
+        "flagstone-joints": 1,
+        "lawn-flowers": 1,
+        "joint-sprouts": 1
+      },
+      "instancedMesh": {
+        "joint-sprouts-p0-v1": 1,
+        "joint-sprouts-p1-v0": 1,
+        "joint-sprouts-p2-v26": 1,
+        "joint-sprouts-p3-v34": 1
+      },
+      "texture": {
+        "borrowed:worn_rock_natural_01/color": 0,
+        "borrowed:worn_rock_natural_01/normal": 0,
+        "borrowed:worn_rock_natural_01/roughness": 0,
+        "borrowed:worn_rock_natural_01/ao": 0,
+        "borrowed:brown_mud_leaves_01/color": 0,
+        "borrowed:brown_mud_leaves_01/normal": 0,
+        "owned:generated-gap-field": 1,
+        "owned:stone-ao-clone": 1
+      }
+    },
+    "note": "Three emits three total stone material events (system + two explicit calls). The owned AO cleanup runs once; no raw Material.dispose override is introduced."
+  },
+  "groupDetached": true,
+  "productionEdits": false
+}

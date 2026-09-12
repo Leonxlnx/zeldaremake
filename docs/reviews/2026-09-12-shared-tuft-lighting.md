@@ -79,3 +79,20 @@ No actual appearance or moving-camera stability verdict is claimed before that c
 Current tufts use positive scale and yaw, with no tangent/object normal map. Future normal
 maps or differently oriented geometry require reconsidering the authored-up convention and
 injection order. Existing world layouts and materials remain the basis of this correction.
+
+## Actual711 result — retained
+
+Source711758d8bda00458c0ae7339eb9ec55654a1e23b, environment run34709127732.
+[12 original world images](https://github.com/Leonxlnx/zeldaremake/tree/a94b4e94e9e1d8fc6f3d1c0ce53c9416d86293eb/progress/2026-09-12_175329916-711758d)
+and [four original details](https://github.com/Leonxlnx/zeldaremake/tree/6a6fdbe816f3951d14a98912ed0d6ca26120359d/details/2026-09-12_175613539-711758d).
+Root reviewed B/A/D/F/L02; the independent reviewer inspected all five distinct world views
+and four details. B/L02 olive blades replace the near-black jagged carpet while bank/root
+shade and shape remain. Joint changes in F are modest. No obvious global wash or new sparkle
+appears in these static views. This does not establish moving-camera stability.
+
+All16 source/image/control contracts pass. Geometry, depth, resources, audits, cameras and
+submitted budgets remain exactdebe; excluded broadleaf/hedge/roof controls are unchanged.
+S01 JPEG is exactdebe. Max B/E8716124 triangles/651calls, A660calls,70textures/74programs.
+L02 required one permitted unchanged-state blank-buffer retry; all other images used zero,
+with no final errors/warnings. ZIP bytes, historical originals and eight preview links pass.
+Fable adopted the identical shader as0bd5235094211fd189d825b38393861d5def0abc for take69.

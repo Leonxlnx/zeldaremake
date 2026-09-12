@@ -146,5 +146,10 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
       );
   };
   mat.customProgramCacheKey = () => `stone-moss-v11e-stain-${opts.instanced ? 'i' : 's'}`;
+  // the ao clone is ours (the library keeps the original); release it with the material, once
+  mat.addEventListener('dispose', function onDispose() {
+    mat.removeEventListener('dispose', onDispose);
+    aoT.dispose();
+  });
   return mat;
 }

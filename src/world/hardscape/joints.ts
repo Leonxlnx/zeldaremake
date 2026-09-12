@@ -222,7 +222,7 @@ export async function buildJointMesh(
   config: WorldConfig,
   seed: string,
   paving?: JointPaving,
-): Promise<{ mesh: Mesh; vertices: number; triangles: number; gapField: [number, number] | null; clippedCells: number; rimVertices: number; rimLength: number }> {
+): Promise<{ mesh: Mesh; vertices: number; triangles: number; gapField: [number, number] | null; clippedCells: number; rimVertices: number; rimLength: number; dispose(): void }> {
   const step = 0.2;
   const x0 = Math.floor(bbox.x0 / step) * step;
   const z0 = Math.floor(bbox.z0 / step) * step;
@@ -530,5 +530,22 @@ export async function buildJointMesh(
   mesh.receiveShadow = true;
   mesh.castShadow = false;
   mesh.name = 'flagstone-joints';
-  return { mesh, vertices: pos.length / 3, triangles: idx.length / 3, gapField: gapField ? [gapField.texture.image.width, gapField.texture.image.height] : null, clippedCells, rimVertices, rimLength };
+  let disposed = false;
+  return {
+    mesh,
+    vertices: pos.length / 3,
+    triangles: idx.length / 3,
+    gapField: gapField ? [gapField.texture.image.width, gapField.texture.image.height] : null,
+    clippedCells,
+    rimVertices,
+    rimLength,
+    /** owned: the geometry, the material and the generated gap-field texture (the colour/normal maps are the TextureLibrary's) */
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      g.dispose();
+      mat.dispose();
+      gapField?.texture.dispose();
+    },
+  };
 }

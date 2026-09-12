@@ -49,3 +49,23 @@ obscuring the central house, stairs or log opening. No appearance acceptance is 
 Typecheck/build (111 modules), exact three-file production boundary and preserved tuft
 source hash pass. The complete index diff contains only the partner's new import, build call
 and distant audit fields, retaining all prior Astra post work. Combined actual capture pending.
+
+## Actual1e result — depth addition retained, finish incomplete
+
+Combined source1e97463582c6479e3624fa9c963b0aff2685fc85, successful environment run34709573674.
+[12 original world images](https://github.com/Leonxlnx/zeldaremake/tree/f2f22acfd99f1873c1491af8ab7d58334cbef565/progress/2026-09-12_180621994-1e97463)
+and [four original details](https://github.com/Leonxlnx/zeldaremake/tree/4ee2f9c5b0b10ed31618136d79e4675f0d783a7e/details/2026-09-12_180910927-1e97463).
+Root reviewed A/D: elevated huts read clearly and leave the main house/stairs/log readable,
+but D doors/windows resemble flat yellow cutouts and pods are simplified spheres. This needs
+local opening/material/attachment work in Fable's active structures scope, not an exposure
+change. PR2 comment5647766377 reports it. Source-only wall/hanger defects remain unverified
+at full-scene image scale. C/F and S01/L01/L02 JPEGs are byte-exact711; S02 background changes
+slightly (MAE.319/255). All four detail depth hashes are unchanged.
+
+All16 source/image/control contracts, ZIP bytes, archive history and eight previews pass.
+Scene inventory adds5217 triangles and one mesh/material/geometry; textures70, programs75.
+Actual A/B/D/E and S01/S02 submit8937 additional triangles/one call; F7440/0calls and L016432/0.
+C/L02 instead add137036/one call despite byte-identical pixels. Expanded consolidation bounds
+are a hypothesis under source investigation, not an established cause. Max8725061 triangles
+at B/E and661calls at A remain below budget. D candidate used one permitted same-state retry;
+every other image used zero, with no final errors/warnings. No FPS or moving-camera claim.

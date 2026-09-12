@@ -7,70 +7,46 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Starting deliberate exact Fable distant-house integration871d27b08218f5f10d509e443483f9ad83d0110c
-onto published tuft source711758d8bda00458c0ae7339eb9ec55654a1e23b, tree
-22bb4e3f5038a4c9ab94cb92198914e4016802c5, parentdebe215.711's correct environment run34709127732
-is actually in progress, so its isolated tuft capture will finish before the next source.
-The candidate SHAa7571d03 remained exact before/after semantic test/typecheck/build110.
-Actual tuft appearance remains pending; no global lighting/geometry change accompanies it.
+Integrating published Fable ownership cleanup through0bd5235094211fd189d825b38393861d5def0abc
+onto1e97463582c6479e3624fa9c963b0aff2685fc85. Partner2f4415b corrects duplicate helper geometry
+disposal and releases the stone material's owned AO clone exactly once. The pinned original
+source passes both helper/system ordering checks. Astra's alternative scratch patch remains
+unapplied. Fable0bd also adopts our711 tuft shader unchanged (SHAa7571d03); preserve those bytes.
 
-Fresh targeted partner fetch/PR2/source review confirms only three structure files in871.
-Latest fetched d7f5e98 adds hardscape teardown after it and is reviewed separately; this
-checkpoint deliberately integrates the pinned871 parent. Typecheck/build111 and exact
-three-file boundary pass; frozen tuft hash staysa7571d03.
-Root read the whole distantHouse source and independent report, and revisited original board01.
-Fable's authored direction adds three warm inhabited structures at different depths. Source
-review confirms real hosts/platform attachment,5217 new triangles (3720 casting),one new
-consolidated mesh and no point lights. Current host constants align; shared accepted-host data
-is a future coupling improvement. Existing costs/audits match. No GPU appearance verdict yet.
+711 actual12+4 is retained: clearer olive tufts and lawn blades with shape/shade preserved;
+all source, geometry, depth, resource and excluded-family controls pass. Root inspected
+B/A/D/F/L02. L02 used one permitted same-state blank-buffer retry; no final errors/warnings.
+1e actual12+4 is complete: distant huts add inhabited height in A/B/D, but bright flat yellow
+openings and simplified lamps remain weak. Root reviewed A/D. C/F and S01/L01/L02 JPEGs are
+exact711. C/L02 unexpectedly add137036 submitted triangles/one call despite identical pixels;
+read-only source investigation is active. Max8725061 triangles/661 calls remains under budget.
+D candidate used one same-state retry; no errors. No motion/FPS or formal phase-pass claim.
 
-Concrete follow-ups sent in PR2 comment5647627605: hollow-column bole protrudes2.695cm through
-its upper wall; proposed local1.59radius is not yet tested. Some post-pod hangers have short
-unsupported offsets;84 collapsed cap-pole triangles are minor overhead. Header peak2.6 is
-stale (real material2.2; lime vertex peak1.584). Main Saria window/bough and owned moss-map
-disposal fixes are still absent. Fable was asked whether those remain in his active follow-up;
-root continues this exact ancestry integration without rewriting his source.
-
-All16 debe actual source/bytes/control/ZIP/history checks now pass with0retry/error/warning.
-Both F JPEGs/depth are exactpre-lawn2c; geometry/resources/budgets match9eb. Root inspected
-B/L02 originals: the stable-jitter source still has the known dark jagged turf; shader711 is
-the separate proposed correction. Independent jitter review proves4225 old transform/color
-pairs and all source-isolation cases; owned flower disposer remains. Failed canopy09b is
-reverted exactly and its actual archive retained.
-
-Parallel prop helper now investigates real long-axis crate grain using the unchanged cached
-CC0weathered_planks texture, scratch only; no crate/root relocation or generic cosine patch.
-Original PNG upload is blocked by a stalled/cancelled complete-blob connector call; exact blob
-still404, no new branch/commit. No supported smaller/file-stream API was found. Original ZIP
-and published previews are available; local authenticated Git upload can finish later.
+After this cleanup checkpoint, trial the existing crate wood using the cached credited CC0
+weathered_planks map and bounded interior UVs. Scratch proposal is independently verified;
+no production crate changes yet. Keep existing crate positions, Fable roots, lighting and
+pigments. Actual unchanged B/D decides whether its modest grain benefit merits retention.
+Original PNG publication remains blocked by the stalled/cancelled complete-blob connector
+call; no new original-reference branch exists. Exact ZIP and published previews are available.
 
 ## Files / systems being touched
-- Root: exact distantHouse.ts/materials.ts ancestry and careful structures/index.ts merge,
-  retaining own post material/lights/audits/disposal and all711 tuft work. Own log/claim/review.
-- Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
-  captures. Current same-source gain 1-versus-3 controls remain unchanged.
-- World helper: independent c4b9578 / cee9888 jitter and owned-resource integration review.
-  No production edits. Root alone adapts the prior tuft concept to the fresh source.
-- Prop helper: independent actual atlas review complete; fresh take68 W25 recommendation ready.
-- Shadow helper: frozen central-canopy survival proposal and exact geometry/RNG/footprint proof.
-  No evidence warrants another global PCSS/AO/exposure/fill change.
-- Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
+- Root: exact hardscape/index.ts, joints.ts and material.ts cleanup ancestry; own log/claims
+  and pinned review package. No partner source rewrite and no new render changes here.
+- Next independent root trial: props/index.ts, new props/crateWood.ts, existing geometry
+  contract and props README. No layout/camera change or new raster asset.
+- World helper: read-only final structure-bucket bounds investigation for C/L02; scratch only.
+- Capture helper: source-pinned actual image/ZIP/history receipts; no production writes.
+- Character remains paused for local Blender. No scheduled tasks or automatic merges.
 
 ## Partner state / coordination
-Latest fetched Fable head cee9888d735dfa957007a13af2bc267e6457d452 adopts our flower correction.
-Its parent c4b95781a19fe282f3f3bfbc7d61bd9b93854ec3 introduces per-source/variant jitter
-streams preserving old instances; cb83faa adopts the take68 W25 evidence. PR2 release5647471072
-supersedes stale running lines in his log: only structures/distant houses remain active.
-The exact merge keeps materials/sprouts.ts, hardscape/sprout-jitter.ts and flowers.ts identical
-to cee; hardscape/index.ts differs only by our already published flowers.dispose system hook.
-No shared-source normal patch is in this baseline checkpoint; its exact candidate is frozen
-for independent verification and a separate next capture.
-
-Fable approved bounded near-tree material work in 5646342247 and handed over signpost/lanternPost
-in 5644903321. Preserve his geometry/roof direction and announce renewed overlap before editing.
-Our d755 merge imports his earlier 1cc8f51 ancestry, log, 66-entry ledger and review/reference
-files intact; it does not merge PR2/main or change his branch. His column-root, cap-winding and
-moss-normal fixes are already integrated, along with formal W25 evidence and flight-top id.
+Fresh targeted fetch confirms0bd5235 after2f4415b/d7f5e98. PR2 comments5647666994 and5647704949
+confirm corrected disposal and exact adoption of our tuft shader into the upcoming take69.
+Fable continues structures; Saria window/bough and generated cap-moss texture cleanup remain
+pending. PR2 comment5647766377 announces this adoption, actual distant-window weakness,
+read-only hidden-budget investigation and the independent props finish trial. Preserve Fable's
+ongoing source and use his published fixes instead of competing rewrites.
+Targeted fetch avoids racing the capture helper's archive fetch. No main/Fable PR merge,
+force push, score change or rewriting another agent's log.
 
 ## Completed checkpoints / actual evidence
 All named images: https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment .
@@ -79,6 +55,9 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
+| 1e97463 | Exact871 distant houses; actual12+4 pass. Inhabited height visible; flat glow panels and C/L02 hidden budget cost need follow-up. |
+| 711758d | Tuft-only normal correction retained from actual12+4; B/L02 blades improve, all geometry/depth/resources exact. One L02 retry. |
+| debe215 | Exact stable jitter and rejected-canopy revert retained; F images/depth restored byte-exact pre-lawn2c. Actual12+4 pass,0retry/error. |
 | 09b4143 | Actual A/F/C rejects central foliage survival: broad soft shade instead of fine dapple. Exact9eb corridor bytes restored next. |
 | 9eb9deb | Actual12+4 contracts pass: denser lawn/white heads, but dark jagged tuft carpet and acknowledged outside jitter drift remain. |
 | 2c4a8c0 | Actual12+4 pass: much clearer lit blades, dark roots/bank shade retained; geometry/depth/audits/resources/budgets exact. Retained. |
@@ -154,11 +133,10 @@ The exact original PNG ZIP was delivered; previews do not pretend to be original
 Detailed earlier chronology is preserved in `docs/reviews/astra-environment-history-through-64028c4.md`.
 
 ## Suggested parallel tasks
-Fable: finish the active distant-house pass and accepted window/moss-map follow-ups.
-Astra: publish the preserved-jitter baseline, then independently prove/render tuft-only lighting.
-Capture helper: finish original09b trial receipts, then pin the next actual checkpoint.
-Reference helper: publish the ten exact original owner PNGs on a separate branch if supported.
-Crate surface study remains lower priority; character waits for local Blender.
+Fable: active structures/take69, accepted main window and generated moss-map ownership fixes,
+and distant opening/pod depth based on actual D. Source helper: explain C/L02 extra submits.
+Astra: finish published cleanup integration, then the independent crate material trial.
+Capture helper: review the next pinned source after publication. Character waits for Blender.
 
 ## Last updated
-2026-09-12T17:52:31.308606+00:00
+2026-09-12T18:15:47.898850+00:00
