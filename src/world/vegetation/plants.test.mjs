@@ -48,10 +48,19 @@ assert.ok(a.plants.bushes.count>=80,'W19: at least 80 bushes');
 assert.ok(a.plants.bushes.items.filter(it=>it.x>-7.5&&it.x<-2&&it.z>-23&&it.z<-14).length>=4,'Shrub mass on the boulder bank west of the north path (shot D left-centre)');
 // reference-driven composition constraints (see plants.ts / field.ts zones)
 const top=(set,it)=>{const g=set.opts.variants[it.variant][0];return it.y+g.boundingBox.max.y*Math.hypot(it.matrix[4],it.matrix[5],it.matrix[6]);};
-assert.ok(a.plants.hedge.count>=3,'Hedge row present for shot A');
-for(const it of a.plants.hedge.items){
+// the hedge set holds two scatters: the door-side row of shot A/B (z <= -5.1) and, since round 12,
+// the crest of the south bank behind the shot-A kid (box (6.0, 3.9)-(8.6, 5.6), crowns up to ~2.4 m
+// with the bank's 1.15 m crest) - only the door-side row is bound by Saria's threshold.
+const doorHedge=a.plants.hedge.items.filter(it=>it.z<=-3),bankHedge=a.plants.hedge.items.filter(it=>it.z>-3);
+assert.ok(doorHedge.length>=3,'Hedge row present for shot A');
+for(const it of doorHedge){
   assert.ok(top(a.plants.hedge,it)<=1.3,`Hedge crown top ${top(a.plants.hedge,it)} stays below Saria's door threshold as seen from camera B (≤ 1.3 m above plaza level)`);
   assert.ok(it.z<=-5.1,'Hedge stays out of camera C\'s left edge');
+}
+assert.ok(bankHedge.length>=2,'Bank hedge present behind the shot-A kid');
+for(const it of bankHedge){
+  assert.ok(it.x>=6.0&&it.x<=8.6&&it.z>=3.9&&it.z<=5.6,`Bank hedge stays in its box (${it.x.toFixed(2)}, ${it.z.toFixed(2)})`);
+  assert.ok(top(a.plants.hedge,it)<=2.7,`Bank hedge crown top ${top(a.plants.hedge,it)} stays below 2.7 m (reference A hedge top y ≈ 0.30)`);
 }
 const inBox=(it,b)=>it.x>=b[0]&&it.z>=b[1]&&it.x<=b[2]&&it.z<=b[3];
 // pinhole projection of the layout cameras (vertical fov, 16:9, +Y up) — the gauntlet's maths

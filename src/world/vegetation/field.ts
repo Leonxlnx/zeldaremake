@@ -66,8 +66,15 @@ function softBox(x: number, z: number, box: readonly [number, number, number, nu
  *  - the slope east of the north path between camera C and the main stairs, which the reference
  *    shows as low grass (frame 46: the stair foot is visible over it; frame 56: low verge with a
  *    few ferns right of the path, nothing above ~0.5 m).
+ *  - the plaza end of the main stair's south bank (terrain S_BANK), camera A's right foreground
+ *    3–6 m out (frame 1: x 0.78–1.0 × 0.7–1.0): the reference shows the Kokiri kid standing in
+ *    lit grass tufts on the bank's face, no fronds — without this the ferns' slope boost fills
+ *    the ~50° face with fronds.
  */
-const LOW_ZONES: readonly [number, number, number, number][] = [[1.5, -16, 8, -4]];
+const LOW_ZONES: readonly [number, number, number, number][] = [
+  [1.5, -16, 8, -4],
+  [3.0, 4.6, 6.0, 7.2],
+];
 /**
  * Camera C stands IN the grass at (3.2, −9.5): anything 1–3 m to its left/front is in frame at
  * frond scale, so the ground around the camera is grass only (≤ 0.4 m). The sight line itself
@@ -79,8 +86,15 @@ const C_GRASS_BOX: readonly [number, number, number, number] = [1.5, -12, 7.5, -
 const C_FRAME_SX: readonly [number, number] = [-0.02, 0.34];
 /** view depth of the wedge: up to the stair-foot rock's near face (centre 12.7 m); beyond it the rock, the stairs and the plaza fill the view */
 const C_FRAME_DEPTH = 12;
-/** Verge south-east of the plaza, the right foreground of frames 1 and 8: tidy short tufts. */
-const TRIM_ZONES: readonly [number, number, number, number][] = [[4, 0, 12, 8]];
+/**
+ * Verge south-east of the plaza, the right foreground of frames 1 and 8: tidy short tufts. The
+ * plaza end of the south bank's face (the low zone above) is left out: there the reference's tufts
+ * are the untrimmed lit grass the kid stands in, and the low zone already keeps them short.
+ */
+const TRIM_ZONES: readonly [number, number, number, number][] = [
+  [4, 0, 12, 4.6],
+  [6.0, 4.6, 12, 8],
+];
 /**
  * The plateau flank right of the stairs in frame 8 (0.55–1 × 0.3–0.6, world x ≳ 11): shaded
  * olive moss/grass. The reference box measures ≈ 0.30 luminance with visible blade texture, so it

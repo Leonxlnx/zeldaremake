@@ -6,7 +6,7 @@
  * stairs, house pads or cliffs) and the layout (clearings at NPC spots, boulder rings, trunks).
  */
 import { Color, Group, type Material } from 'three';
-import { houseSteppingStones } from '../layout';
+import { ROPE_FENCES, houseSteppingStones } from '../layout';
 import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -513,6 +513,72 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.15 + rng() * 0.2), sc, sc * (1.15 + rng() * 0.2));
       // deep shaded olive (reference #4c5537 shrubs) rather than lit leaf tones
       hedge.add(M, variant, tint.setRGB(0.5 + rng() * 0.08, 0.56 + rng() * 0.08, 0.46 + rng() * 0.08));
+    },
+  );
+
+  // ---- shot-A bank hedge: the dark leafy bushes on the crest of the stair's south bank
+  // (terrain S_BANK). Reference frame 1 s: the hedge behind and right of the Kokiri kid, x 0.80–1.0
+  // with its top at y ≈ 0.30; frame 8 s: the dark mass on the bank right of the kid (0.6–0.95 ×
+  // 0.3–0.5); frame 46 s: dark bushes over the bank behind the stair-foot rock. Crowns are sized
+  // so their tops meet camera A's y ≈ 0.30 ray (1.8 m + 0.11 m per metre of depth above the
+  // plaza), ≈ 1.7–1.9 m tall. They stay on the crest (off the face and toe), 1.2 m from the kid
+  // spots of frames 1 and 8 (placement.ts marches them to ≈ (5.0, 5.3) and (6.2, 3.2)), 0.7 m
+  // from the stair-bank rope fence, out of the kokiri-a clearing and the rock ring, and — seen
+  // from F — either behind the frame-8 kid or wholly right of his column, so he is never covered.
+  // Camera C keeps them beyond the stair-foot rock (depth ≥ 12.2 m): behind it, never over the
+  // stair foot at C's left edge.
+  const A_BANK_KID: readonly [number, number] = [4.96, 5.29];
+  const F_BANK_KID: readonly [number, number] = [6.21, 3.2];
+  const bankFence = ROPE_FENCES.find((f) => f.id === 'stair-bank')?.points ?? [];
+  const bankFenceDistance = (x: number, z: number) => {
+    let best = Infinity;
+    for (let i = 0; i < bankFence.length - 1; i++) {
+      const [ax, , az] = bankFence[i];
+      const [bx, , bz] = bankFence[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return best;
+  };
+  const BANK_CROWN_REACH = 1.1;
+  scatter(
+    ctx,
+    field,
+    {
+      label: 'hedge-shotA-bank',
+      candidates: 1600,
+      box: [6.0, 3.9, 8.6, 5.6],
+      minSpacing: 0.8,
+      accept(x, z, s) {
+        if (s.h < 0.55 || s.slope > 0.2 || s.path > 0.02 || s.cliff > 0.3) return 0;
+        if (field.edgeDistance(x, z) < 0.6) return 0;
+        if (Math.hypot(x - A_BANK_KID[0], z - A_BANK_KID[1]) < 1.2 || Math.hypot(x - F_BANK_KID[0], z - F_BANK_KID[1]) < 1.5) return 0;
+        const clr = field.clearing(x, z);
+        if (clr.npc > 0 || clr.boulder > 0) return 0;
+        if (bankFenceDistance(x, z) < 0.7) return 0;
+        const a = field.screenX('A_stairs', x, z);
+        if (!a || a.depth < 5.8 || a.sx < 0.84 || a.sx > 1.1) return 0;
+        const f = field.screenX('F_canopy', x, z);
+        // F's right is +z: the crown's west edge is its left edge in frame 8
+        const fEdge = field.screenX('F_canopy', x, z - BANK_CROWN_REACH);
+        if (f && fEdge && f.depth < 9.2 && fEdge.sx < 0.62) return 0;
+        const c = field.screenX('C_lookback', x, z);
+        if (c && c.depth < 12.2) return 0;
+        return 0.9;
+      },
+    },
+    (x, z, s, rng) => {
+      const depthA = field.screenX('A_stairs', x, z)?.depth ?? 6.5;
+      const ground = T.height(x, z);
+      const top = clamp(1.8 + 0.11 * depthA - ground, 1.4, 2.1) * (0.92 + rng() * 0.12);
+      const variant = rng.int(0, hedge.variantCount);
+      const sc = top / hedgeHeight(variant);
+      composeMatrix(M, 0, x, ground - 0.05, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.1 + rng() * 0.2), sc, sc * (1.1 + rng() * 0.2));
+      // a shade darker than the shot-A hedge: the reference reads these crowns at ≈ 0.22 median
+      // luminance in frame 1 (0.9–1.0 × 0.28–0.45) against the lit bank, a soft near-black mass
+      hedge.add(M, variant, tint.setRGB(0.42 + rng() * 0.07, 0.48 + rng() * 0.07, 0.39 + rng() * 0.07));
     },
   );
 

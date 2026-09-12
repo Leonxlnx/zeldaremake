@@ -161,19 +161,25 @@ export interface ViewPlacement {
  */
 export const VIEW_TABLE: Record<string, ViewPlacement> = {
   // 1 s: back view centre, slightly turned right, walking toward the stairs; kid at (0.86–0.91,
-  // 0.42–0.70) right of the stair-foot rock. The layout `kokiri-a` spot projects to x 0.98 here
-  // (cut by the frame edge), so this view marches the reference box instead: (7.8, 0, 3.0), 1.4 m
-  // from the rock centre (radius 1.0) on the plaza's east edge.
-  A_stairs: { feet: [0.5, 0.88], facing: 'away', yawDeg: -12, gait: 'walk', navi: [0.455, 0.57], look: 0.4, kids: [{ slot: 0, screen: [0.875, 0.71] }] },
+  // 0.42–0.70), feet (0.885, 0.70), ON the grassy bank right of the paving, 4.9 m from the camera
+  // (head at y ≈ 0.425). The layout `kokiri-a` spot projects to x 0.98 here (cut by the frame
+  // edge), so this view marches the reference feet instead: the ray meets the south bank's crest
+  // (terrain S_BANK) at ≈ (5.0, 0.68, 5.3), 0.7 m above the plaza.
+  A_stairs: { feet: [0.5, 0.88], facing: 'away', yawDeg: -12, gait: 'walk', navi: [0.455, 0.57], look: 0.4, kids: [{ slot: 0, screen: [0.885, 0.7] }] },
   // 14 s: facing camera, idle; Navi right of his head; kid cut by the left edge ~4–5 m away; kid by the door
   B_house: { feet: [0.5, 0.91], facing: 'toward', yawDeg: 0, gait: 'idle', navi: [0.565, 0.585], look: 0.25, kids: [{ slot: 1, screen: [0.035, 0.885], yawDeg: -40 }, { slot: 2 }] },
   E_ground: { feet: [0.5, 0.91], facing: 'toward', yawDeg: 0, gait: 'idle', navi: [0.565, 0.585], look: 0.25, kids: [{ slot: 1, screen: [0.035, 0.885], yawDeg: -40 }, { slot: 2 }] },
-  // 46 s: walking toward the camera; kid on the grass between the stairs and Link
-  C_lookback: { feet: [0.5, 0.91], facing: 'toward', yawDeg: 0, gait: 'walk', navi: [0.565, 0.565], look: 0.3, kids: [{ slot: 0 }] },
+  // 46 s: walking toward the camera; kid between the stairs and Link, feet at (0.375, 0.62), ≈ 9 m
+  // out. The layout `kokiri-a` spot now stands on the crest of the stair's south bank (terrain
+  // S_BANK, 0.85 m up: feet (0.22, 0.49), head over the stair-foot rock), so this view marches
+  // the reference feet instead: ≈ (5.2, 0, 0.9) on the plaza's east lobe, 2.3 m from the stair foot.
+  C_lookback: { feet: [0.5, 0.91], facing: 'toward', yawDeg: 0, gait: 'walk', navi: [0.565, 0.565], look: 0.3, kids: [{ slot: 0, screen: [0.375, 0.62] }] },
   // 56 s: running away toward the log arch; Navi ahead-left
   D_log: { feet: [0.5, 0.9], facing: 'away', yawDeg: 0, gait: 'run', navi: [0.435, 0.55], look: 0.25, kids: [{ slot: 0 }] },
-  // 8 s: back view, walking up the stair axis; kid + pods on the grass right of the stairs. The
-  // layout `kokiri-a` spot (grass verge in front of the stair-foot rock) projects to (0.72, 0.67)
-  // here — right of the rock and nearer than it, so no per-view override is needed.
-  F_canopy: { feet: [0.5, 0.93], facing: 'away', yawDeg: 0, gait: 'walk', navi: [0.472, 0.545], look: 0.5, kids: [{ slot: 0, yawDeg: 160 }] },
+  // 8 s: back view, walking up the stair axis; kid + pods on the grass right of the stairs, the
+  // kid at (0.585, 0.60) where the paving meets the bank. The layout `kokiri-a` spot now sits on
+  // the crest of the south bank (0.85 m up: feet (0.63, 0.52), head in the bank hedge), so this
+  // view marches the reference column down to the paving edge at the bank's toe instead:
+  // (0.585, 0.68) → ≈ (6.2, 0, 3.2), 8.2 m out, the dark bank hedge behind and right of him.
+  F_canopy: { feet: [0.5, 0.93], facing: 'away', yawDeg: 0, gait: 'walk', navi: [0.472, 0.545], look: 0.5, kids: [{ slot: 0, screen: [0.585, 0.68], yawDeg: 160 }] },
 };

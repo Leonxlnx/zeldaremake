@@ -161,6 +161,9 @@ export function layerWeights(
   const roots = d?.roots ?? 0;
   const damp = d?.damp ?? 0;
   const hollow = d?.hollow ?? 0;
+  // the stair's south bank is turf: its steep face keeps grass ~12° longer before soil/rock show
+  const bank = d?.bank ?? 0;
+  const bankSlope = 0.22 * bank;
 
   // 1. leaf litter: patches + under the giant trees + in hollows
   let litterA = 0.8 * smoothstep(0.5, 0.82, N.litter.fbm(x * 0.13 + 9.1, z * 0.13 - 2.3, 3) * 0.5 + 0.5) + hollow * 0.45;
@@ -178,7 +181,7 @@ export function layerWeights(
   // 3. soil: slopes, erosion gullies, terrace risers, worn path verges, under structures/stairs
   const soilN = N.soil.fbm(x * 0.23 + 1.7, z * 0.23 - 8.4, 2) * 0.5 + 0.5;
   const soilA =
-    0.9 * smoothstep(0.2, 0.48, slope) +
+    0.9 * smoothstep(0.2 + bankSlope, 0.48 + bankSlope, slope) +
     erosion * 0.95 +
     terrace * 0.55 +
     roots * 0.35 +
@@ -190,7 +193,7 @@ export function layerWeights(
 
   // 4. cliff rock: steep faces + terrace edges on steep ground
   const rockN = N.rock.fbm(x * 0.31, z * 0.31 + 3.3, 2) * 0.5 + 0.5;
-  const rockA = smoothstep(0.4, 0.72, slope) * (0.65 + 0.35 * rockN) + cliff * 0.85 + terrace * smoothstep(0.3, 0.5, slope) * 0.6;
+  const rockA = smoothstep(0.4 + bankSlope, 0.72 + bankSlope, slope) * (0.65 + 0.35 * rockN) + cliff * 0.85 + terrace * smoothstep(0.3 + bankSlope, 0.5 + bankSlope, slope) * 0.6;
   rock += cover(rockA);
 
   // 5. path gravel under/around the flagstones

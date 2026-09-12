@@ -66,6 +66,11 @@ export interface TerrainDetail {
   damp: number;
   /** 0..1 shallow depressions in flat ground */
   hollow: number;
+  /**
+   * 0..1 on the authored south bank of the main stair (S_BANK): a turfed bank whose ~50° face
+   * stays grass instead of turning to the soil/rock the splat gives natural slopes that steep.
+   */
+  bank: number;
 }
 
 /** Number of authored detail passes applied on top of the macro landform (audited by W05). */
@@ -137,7 +142,10 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
  * The main run's north-west embankment (toward Saria's terrace): a flush grass lip `lip` m
  * beyond the tread ends, then a bank falling `slope` m per metre (0.8 ≈ 39°, grass-safe).
  */
-const NW_BANK = { lip: 0.35, slope: 0.8 };
+// 1.5 m per metre (~56 deg): with the flight re-laid 2.5 m nearer the plaza (aff169d) the old 39 deg
+// embankment reached the shot-B hedge strip (x 7.2-10.6, z -7..-5.1) at 0.4-1.7 m and the hedge
+// (ground <= 0.6 m) vanished; the steeper flank returns that strip to <= 0.6 m over 77 % of its cells.
+const NW_BANK = { lip: 0.35, slope: 1.5 };
 
 /** Project point into a stair's local frame: u along ascent, v across. */
 function stairLocal(f: StairFrame, x: number, z: number) {
@@ -149,6 +157,65 @@ function stairLocal(f: StairFrame, x: number, z: number) {
 }
 
 const D_BOULDER = LAYOUT.heroBoulders.find((b) => b.id === 'shot-d-boulder')?.position;
+
+/**
+ * South bank of the main stair (reference frame 1 s, right third; frame 8 s, right half): the
+ * grassy bank between the plaza's east lobe and the stair's south flank. Its TOE is the line from
+ * camera A's bottom-edge paving end — A (0.78, 1.0) unprojected to (3.3, 5.9) — to 0.25 m south
+ * of the first riser's south corner, which projects as the near-vertical grass/paving edge at
+ * x ≈ 0.78 of frame 1 s. South-east of the toe nothing is paved or flattened (`pathInfluence`):
+ * the ground climbs `rise` over the first 0.8 m (the Kokiri kid stands on it 4.9 m from camera
+ * A, feet at (0.885, 0.70), ≈ 0.7 m above the plaza) and on to `crest` two to three metres out.
+ * Alongside the first treads the bank dips back to the flank's flush tread-end lip (the first
+ * riser meets flat ground; the stair-foot post keeps its pod near the reference's height) and
+ * the crest carries on 1.6 m out, where the stair-foot rock sits ≈ 0.5 m up. Fades out at the
+ * plaza end of the toe and toward the stair-bank giant; further up the run the plateau ramp's
+ * flank takes over (`landform` max).
+ */
+const S_BANK = (() => {
+  const ms = stairFrames[0];
+  const ax = 3.3;
+  const az = 5.9;
+  const bx = ms.ox - ms.dz * (ms.halfWidth + 0.25);
+  const bz = ms.oz + ms.dx * (ms.halfWidth + 0.25);
+  const l = Math.hypot(bx - ax, bz - az);
+  // unit normal of the toe line pointing south-east, onto the bank
+  return { ax, az, nx: -(bz - az) / l, nz: (bx - ax) / l, rise: 0.85, crest: 1.15 };
+})();
+
+/**
+ * South-bank frame: `d` = signed distance from the toe line (positive on the bank), `u`/`v` the
+ * main stair's local coordinates, `along` = 1 over the toe's run (from its plaza end to a few
+ * metres up the flight, where the plateau ramp is the taller landform anyway).
+ */
+function southBankFrame(x: number, z: number) {
+  const d = (x - S_BANK.ax) * S_BANK.nx + (z - S_BANK.az) * S_BANK.nz;
+  const { u, v } = stairLocal(stairFrames[0], x, z);
+  const along = smoothstep(-9.0, -7.2, u) * (1 - smoothstep(3.5, 6.5, u));
+  // 1 over the toe strip (paving edge → first metre of the face): the detail passes and the
+  // breakup noise fade out there so the paving meets the foot of the bank at plaza level
+  const toe = along * smoothstep(-0.8, -0.3, d) * (1 - smoothstep(0.1, 0.9, d));
+  return { d, u, v, along, toe };
+}
+
+/** South-bank landform: height `h` (0 off the bank) and the zone weight `w` that damps the base undulation under it. */
+function southBank(x: number, z: number) {
+  const { d, u, v, along } = southBankFrame(x, z);
+  if (d <= -0.9 || along <= 0) return { h: 0, w: 0 };
+  // a steep grassy face over the first 0.8 m, then a gentler climb to the crest
+  const profile = S_BANK.rise * smoothstep(-0.1, 0.78, d) + (S_BANK.crest - S_BANK.rise) * smoothstep(1.6, 3.4, d);
+  // alongside the treads (u > 0) the ground next to them is the flank bank's flush lip
+  // (macroHeight), so the bank only rises again 0.9–2.3 m out from the tread ends
+  const valley = 1 - (1 - smoothstep(2.4, 3.8, v)) * smoothstep(-1.2, 0.3, u);
+  // across the run: the plaza end of the bank is narrower (4.5–7.5 m from the stair axis) than
+  // the stair-foot end (6–9 m), so frame 8's right edge keeps its paving-then-low-bank profile
+  const k = smoothstep(-5, -1, u);
+  const across = 1 - smoothstep(4.5 + 1.5 * k, 7.5 + 1.5 * k, v);
+  const w = along * across;
+  // the base undulation is damped from 0.9 m before the toe, i.e. before the path flattening
+  // lets go of the paving (pathInfluence), so no bump or dip surfaces between the two
+  return { h: profile * valley * w, w: w * smoothstep(-0.9, -0.3, d) };
+}
 
 /** Macro landform without paths/stairs. Returned as height and the "plateau-ness". */
 function landform(x: number, z: number) {
@@ -162,9 +229,11 @@ function landform(x: number, z: number) {
 
   // gentle base undulation — damped beside the main run: its embankments are built banks that
   // hug the ruler-straight ramp, so the ±0.5 m landform waviness must not surface as bumps and
-  // catch-up cliffs at the bank edges (it returns ~3 m out from the treads)
+  // catch-up cliffs at the bank edges (it returns ~3 m out from the treads); damped as well
+  // under the authored south bank, whose toe must meet the plaza at 0
   const corridor = alongRun * (1 - smoothstep(ms.halfWidth + 0.3, ms.halfWidth + 3.2, Math.abs(sv)));
-  const base = (macro.fbm(x * 0.021, z * 0.021, 3) * 0.75 + medium.fbm(x * 0.07, z * 0.07, 3) * 0.22) * (1 - 0.85 * corridor);
+  const sBank = southBank(x, z);
+  const base = (macro.fbm(x * 0.021, z * 0.021, 3) * 0.75 + medium.fbm(x * 0.07, z * 0.07, 3) * 0.22) * (1 - 0.85 * corridor) * (1 - 0.85 * sBank.w);
 
   // full plateau height 0.6 m past the top tread (was +1.5: with the 20-step run the W04 probe at
   // (18, -4) sat on the ramp's tail at 4.94 m)
@@ -173,7 +242,7 @@ function landform(x: number, z: number) {
   let east = T.eastPlateau.height * eastRamp * clamp(eastZone, 0, 1) * smoothstep(3.5, 9, x);
   // North-west flank of the run (v < 0, the house side): the ramp does not carry on as a shelf
   // toward Saria's terrace (1.2 m) — from the flush lip at the tread ends (+0.07) it falls at
-  // ~39° (0.8 m per metre; see NW_BANK) so the flank reads as one continuous grassy embankment
+  // ~56° (1.5 m per metre; see NW_BANK) so the flank reads as one continuous grassy embankment
   // down to the door path instead of a hump cut by the house pad. Past the top step the plateau
   // is full width again (the fence runs sit on it).
   const nwBeyond = -sv - (ms.halfWidth + NW_BANK.lip);
@@ -203,7 +272,7 @@ function landform(x: number, z: number) {
   // above the path at 7–9 m, x 0.05–0.25 × 0.55–0.85).
   const dBank = D_BOULDER ? 0.5 * (1 - smoothstep(1.2, 3.0, Math.hypot(x - D_BOULDER[0], z - D_BOULDER[2]))) : 0;
 
-  const raised = Math.max(east, west, westNorth, north, house, dBank);
+  const raised = Math.max(east, west, westNorth, north, house, dBank, sBank.h);
   // the hollow only dips ground that no terrace or bank has lifted
   let h = base + raised + hollow * (1 - smoothstep(0, 0.6, raised));
 
@@ -224,21 +293,26 @@ function landform(x: number, z: number) {
       edgeOf(Math.max(west, westNorth) / T.westLedge.height, T.westLedge.height),
       edgeOf(house / T.houseTerrace.height, T.houseTerrace.height),
       edgeOf(clamp(northBank / T.northTerrace.height, 0, 1), T.northTerrace.height),
+      // the south bank's face: a little erosion/terracing so the grassy rise is not a ruler
+      0.6 * edgeOf(clamp(sBank.h / S_BANK.crest, 0, 1), S_BANK.crest),
     ),
     0,
     1,
   );
-  return { h, plateau, east, west: Math.max(west, westNorth), north, house, embank };
+  return { h, plateau, east, west: Math.max(west, westNorth), north, house, embank, bank: sBank.w };
 }
 
 /** Paved plaza around the origin (reference frame 14): the flagstone disc where Link stands. */
 export const PLAZA = { x: 0, z: 0, radius: 6.0 };
 /**
- * Paved discs: the plaza plus an eastern lobe toward the stair foot — frames 1 s and 8 s show
- * flagstones in the right foreground (A (0.8–0.95, 0.75–0.9), F (0.6–0.95, 0.7–0.9) → world
- * x 5–10, z 2–6) where the kid's grass verge and the stair-foot rock border the paving.
+ * Paved discs: the plaza plus an eastern lobe toward the stair foot — frame 8 s shows flagstones
+ * in the right foreground (F (0.6–0.95, 0.7–0.9) → world x 4–8, z 2–6) — and a small disc at the
+ * south bank's plaza end, so the flagstones run right up to the bank's toe at camera A's bottom
+ * edge (the lobe alone fades out 0.3 m short of it). Both are cut off by the toe (`S_BANK`,
+ * `pathInfluence`): in frame 1 s the paving ends at x ≈ 0.78 and the grassy bank with the Kokiri
+ * kid and the stair-foot rock rises east of it.
  */
-export const PLAZA_DISCS = [PLAZA, { x: 5.0, z: 2.4, radius: 4.0 }];
+export const PLAZA_DISCS = [PLAZA, { x: 5.0, z: 2.4, radius: 4.0 }, { x: 3.25, z: 5.45, radius: 1.1 }];
 
 /**
  * Log-arch frame. Mirrors `structures/logArch.ts`: the axis runs east (slightly north) through
@@ -319,7 +393,14 @@ function pathInfluence(x: number, z: number) {
     weight = plazaWeight;
   }
   surface = Math.max(surface, plazaSurface);
-  return { weight, surface, y, dist: best.dist };
+  // the south bank's toe (S_BANK): nothing is paved or flattened south-east of it — the plaza's
+  // east lobe ends at the reference's grass edge (frame 1 s: x ≈ 0.78) and the bank rises there
+  const sb = southBankFrame(x, z);
+  if (sb.along > 0 && sb.d > -0.4) {
+    surface *= 1 - sb.along * smoothstep(-0.1, 0.06, sb.d);
+    weight *= 1 - sb.along * smoothstep(-0.2, 0.25, sb.d);
+  }
+  return { weight, surface, y, dist: best.dist, toe: sb.toe };
 }
 
 /** Macro landform + authored flattening (paths, stair ramps, house pads). No detail yet. */
@@ -406,8 +487,9 @@ function macroHeight(x: number, z: number) {
     }
   }
 
-  // how much authored flat surface is here (detail passes fade out on it)
-  const suppress = clamp(Math.max(p.surface, stairW, padW, logW), 0, 1);
+  // how much authored flat surface is here (detail passes fade out on it); the south bank's toe
+  // strip counts as one so the paving edge and the foot of the bank stay at plaza level
+  const suppress = clamp(Math.max(p.surface, stairW, padW, logW, p.toe), 0, 1);
   return { h, land, p, suppress, logW, embank: land.embank * (1 - suppress) };
 }
 
@@ -454,9 +536,10 @@ function detailPasses(x: number, z: number, m: ReturnType<typeof macroHeight>) {
     dh += m.embank * 0.11 * medium.fbm(x * 0.55 + 21, z * 0.55 - 9, 2);
   }
 
-  // 3. shallow depressions on flat open ground
+  // 3. shallow depressions on flat open ground (not on the authored south bank: its face is a
+  // built slope, and a 12 cm dish would put the Kokiri kid's feet below frame 1's ground line)
   const dep = smoothstep(0.28, 0.72, medium.fbm(x * 0.11 + 7.5, z * 0.11 - 3.2, 2) * 0.5 + 0.5);
-  const hollow = dep * (1 - m.embank) * open * (1 - 0.65 * m.land.plateau);
+  const hollow = dep * (1 - m.embank) * open * (1 - 0.65 * m.land.plateau) * (1 - m.land.bank);
   dh -= 0.12 * hollow;
 
   // 4. root bumps around the giant trees: radial ridges + a low mound
@@ -486,7 +569,7 @@ function detailPasses(x: number, z: number, m: ReturnType<typeof macroHeight>) {
   const foot = smoothstep(0.02, 0.22, m.embank) * (1 - smoothstep(0.5, 0.85, m.land.plateau));
   const damp = clamp(Math.max(northHollow * 0.9, foot * 0.35, hollow * 0.45) * (0.75 + 0.25 * (medium.fbm(x * 0.3, z * 0.3, 2) * 0.5 + 0.5)), 0, 1);
 
-  return { dh, detail: { embank: m.embank, erosion, terrace, roots, damp, hollow } as TerrainDetail };
+  return { dh, detail: { embank: m.embank, erosion, terrace, roots, damp, hollow, bank: m.land.bank } as TerrainDetail };
 }
 
 function hashAngle(id: string) {
@@ -498,8 +581,8 @@ function hashAngle(id: string) {
 function rawHeight(x: number, z: number): number {
   const m = macroHeight(x, z);
   let h = m.h;
-  // Medium + small breakup, suppressed on paths and under the log-arch mouth.
-  const breakup = (1 - Math.max(m.p.surface, m.logW)) * (medium.fbm(x * 0.35, z * 0.35, 3) * 0.14 + fine.noise(x * 1.7, z * 1.7) * 0.035);
+  // Medium + small breakup, suppressed on paths, under the log-arch mouth and along the south bank's toe.
+  const breakup = (1 - Math.max(m.p.surface, m.logW, m.p.toe)) * (medium.fbm(x * 0.35, z * 0.35, 3) * 0.14 + fine.noise(x * 1.7, z * 1.7) * 0.035);
   h += breakup;
   h += detailPasses(x, z, m).dh;
   return h;
