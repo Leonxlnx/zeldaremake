@@ -38,6 +38,8 @@ materials, foliage, structures index, branch, arch and fence remain Fable-owned 
 - Own log and PR2/PR6 coordination. Locked rubric/ledger/scoring definitions unchanged.
 
 ## Current prop checkpoint
+Production source bc05ca3212161cd96ef275c7e142f8c354752962 published12:16UTC;
+actual CI run34693234294 in progress. Source ZIP delivered and CRC-verified.
 - Owner reaffirmed environment-only cooperation12:07; character work is postponed for Blender MCP
   on the owner's local PC later. No promised unattended15h execution or schedules.
 - Lantern posts: continuous4-turn binding, tied return,2-turn suspension at unchanged swing pivot,
@@ -49,7 +51,19 @@ materials, foliage, structures index, branch, arch and fence remain Fable-owned 
  64actual ray checks put runes0.9997–1.0002mm above wood;4peg tails4mm inside cleats, heads
  3.5mm above rune plane; joint ray-tested open. Base/post vertices/roll/determinism exact;
  +987triangles, still2 meshes. Typecheck/build104modules and source anti-cheat pass.
-- Actual closeup capture support is a separate follow-up. Build/source checks are not visual acceptance.
+- Supplemental closeup pipeline now ready: four fixed layout/terrain-relative cameras, full scene,
+  null hooks, time12.5, independent source/state/depth checks and immutable details/ archive.
+  Existing12-image comparisons/validators untouched; only their index links to details/.
+  Focused local Git publication test checks source/camera/time/override/depth/image corruption,
+  append-only history, idempotence and rejected historical overwrite. No local browser used.
+  All four cameras clear actual terrain by1.61/1.79/2.69/1.71m; framing/occlusion await CI.
+- Joint-boundary proposal under docs/proposals/astra-joint-boundary/ is reviewed, not integrated.
+  All six observed F teeth removed in CPU rays; no new degenerate/downward faces; bank path-outside
+  samples100→0; contact stays terrain+8mm. Per-face subset/attribute checks pass. Candidate
+  SHA2566cc3bac71e60a71086ca05c07e31848cf0e1b10deba32ce0acc46c24a9ea4beb.
+  Original exclusions remain an inherited subset;25 off-bank curved/discontinuous mask samples
+  still fail threshold. Explicit narrow fix, no exact-mask/GPU acceptance claim. The failed
+  generic recursive proposal was rejected and is not shipped. Build/source checks are not visual acceptance.
 
 ## Production decisions
 - Golden key3.6 at existing azimuth−128/elevation38; cool hemisphere0.68, IBL0.34,
@@ -153,4 +167,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T12:15:26.341606+00:00
+2026-09-12T12:22:20.571770+00:00

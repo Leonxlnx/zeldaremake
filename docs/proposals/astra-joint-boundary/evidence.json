@@ -1,0 +1,331 @@
+{
+  "status": "proposed; not integrated; no GPU appearance verdict",
+  "source": "141082bae8a2b0064ec826e3908aececdc5b9e44",
+  "dependencyVersion": "186",
+  "scope": "Actual CPU-built geometry and recorded F camera; null texture loaders. Preserves original whole-cell admission; clips path mask only.",
+  "bbox": {
+    "x0": -7.5,
+    "x1": 12.8,
+    "z0": -61.2,
+    "z1": 19.2
+  },
+  "parityOffset": 0,
+  "unchangedPavingCount": 321,
+  "witnesses": [
+    {
+      "pixel": [
+        929,
+        527
+      ],
+      "before": {
+        "mesh": "flagstone-joints",
+        "face": 17496,
+        "world": [
+          4.7092725321346265,
+          0.09097846125170506,
+          4.717181049041779
+        ],
+        "aboveTerrain": 0.007999944728668856
+      },
+      "after": {
+        "mesh": "terrain-chunk-r0-0-0",
+        "face": 5566,
+        "world": [
+          4.716957392286791,
+          0.08900919227086246,
+          4.71800744143152
+        ],
+        "aboveTerrain": -6.478718167501896e-8
+      }
+    },
+    {
+      "pixel": [
+        963,
+        535
+      ],
+      "before": {
+        "mesh": "flagstone-joints",
+        "face": 17576,
+        "world": [
+          4.50024739236713,
+          0.09960616819397661,
+          4.931724323649495
+        ],
+        "aboveTerrain": 0.007999989612168412
+      },
+      "after": {
+        "mesh": "terrain-chunk-r0-0-0",
+        "face": 5804,
+        "world": [
+          4.507500615949698,
+          0.09769705606692702,
+          4.932770414368053
+        ],
+        "aboveTerrain": -5.120358581578444e-9
+      }
+    },
+    {
+      "pixel": [
+        1000,
+        542
+      ],
+      "before": {
+        "mesh": "flagstone-joints",
+        "face": 17650,
+        "world": [
+          4.301761029279313,
+          0.11738396638268944,
+          5.1486216488126715
+        ],
+        "aboveTerrain": 0.00800007055635582
+      },
+      "after": {
+        "mesh": "terrain-chunk-r0-0-0",
+        "face": 6042,
+        "world": [
+          4.308681657724542,
+          0.11552430416782666,
+          5.149891129333951
+        ],
+        "aboveTerrain": 6.14592924330637e-8
+      }
+    },
+    {
+      "pixel": [
+        1036,
+        550
+      ],
+      "before": {
+        "mesh": "flagstone-joints",
+        "face": 17718,
+        "world": [
+          4.103069117541643,
+          0.1307327796145923,
+          5.339746685734898
+        ],
+        "aboveTerrain": 0.008000085724645542
+      },
+      "after": {
+        "mesh": "terrain-chunk-r0-0-0",
+        "face": 6280,
+        "world": [
+          4.109590590406343,
+          0.12893730595749986,
+          5.341187725163479
+        ],
+        "aboveTerrain": 8.975645110487207e-8
+      }
+    },
+    {
+      "pixel": [
+        1074,
+        557
+      ],
+      "before": {
+        "mesh": "flagstone-joints",
+        "face": 17782,
+        "world": [
+          3.914612648197032,
+          0.15185403608485704,
+          5.526567581002744
+        ],
+        "aboveTerrain": 0.008000020440290995
+      },
+      "after": {
+        "mesh": "terrain-chunk-r0-0-0",
+        "face": 6518,
+        "world": [
+          3.9207038168965926,
+          0.1501451344586726,
+          5.528150422497837
+        ],
+        "aboveTerrain": 2.7331396285079634e-8
+      }
+    },
+    {
+      "pixel": [
+        1113,
+        580
+      ],
+      "before": {
+        "mesh": "flagstone-joints",
+        "face": 17844,
+        "world": [
+          3.661809265056358,
+          0.09443869166690044,
+          5.684681845351564
+        ],
+        "aboveTerrain": 0.008000062933633159
+      },
+      "after": {
+        "mesh": "terrain-chunk-r0-0-0",
+        "face": 6756,
+        "world": [
+          3.6674916051398316,
+          0.09271476633784248,
+          5.686384666405498
+        ],
+        "aboveTerrain": 6.464135901551593e-8
+      }
+    }
+  ],
+  "before": {
+    "vertices": 10926,
+    "triangles": 20826,
+    "zeroArea": 0,
+    "wrongWinding": 0,
+    "bankTriangles": 210,
+    "maxBankContactError": 2.0316185022489774e-7,
+    "boundaryEdges": 1022,
+    "bankBoundaryEdges": 26,
+    "outsideSamples": 3925,
+    "outsideBankSamples": 100
+  },
+  "after": {
+    "vertices": 12567,
+    "triangles": 21556,
+    "zeroArea": 0,
+    "wrongWinding": 0,
+    "bankTriangles": 224,
+    "maxBankContactError": 1.6496676024518875e-7,
+    "boundaryEdges": 1762,
+    "bankBoundaryEdges": 41,
+    "outsideSamples": 521,
+    "outsideBankSamples": 0
+  },
+  "subset": {
+    "triangles": 21556,
+    "unmapped": 0,
+    "maxBaryOutside": 0.000016231205282663716,
+    "maxAttributeErrors": {
+      "position": 0.0000014787850415309833,
+      "color": 4.114054192871919e-7,
+      "uv": 0.0000051392075377521,
+      "aSoil": 3.29531799625471e-8
+    },
+    "maxAreaExpansion": 0
+  },
+  "classifications": {
+    "before": {
+      "tested": 83304,
+      "path": 3456,
+      "stairs": 129,
+      "structure": 272,
+      "isolatedDisc": 11,
+      "stairFootprint": 215,
+      "pathExamples": [
+        {
+          "face": 0,
+          "x": 5.066666603088379,
+          "z": -60.333334604899086,
+          "mask": 0.06420315344507921
+        },
+        {
+          "face": 0,
+          "x": 5,
+          "z": -60.30000114440918,
+          "mask": 0.08267776075026756
+        },
+        {
+          "face": 0,
+          "x": 5.099999904632568,
+          "z": -60.30000114440918,
+          "mask": 0.14660440531650154
+        },
+        {
+          "face": 0,
+          "x": 5.099999904632568,
+          "z": -60.400001525878906,
+          "mask": 0.00506291295537975
+        },
+        {
+          "face": 1,
+          "x": 5.133333206176758,
+          "z": -60.266667683919266,
+          "mask": 0.2518636931480588
+        },
+        {
+          "face": 1,
+          "x": 5.099999904632568,
+          "z": -60.30000114440918,
+          "mask": 0.14660440531650154
+        },
+        {
+          "face": 1,
+          "x": 5.199999809265137,
+          "z": -60.30000114440918,
+          "mask": 0.21344815465925426
+        },
+        {
+          "face": 2,
+          "x": 5.266666571299234,
+          "z": -60.266667683919266,
+          "mask": 0.35029812741496547
+        }
+      ]
+    },
+    "after": {
+      "tested": 86224,
+      "path": 25,
+      "stairs": 130,
+      "structure": 275,
+      "isolatedDisc": 4,
+      "stairFootprint": 218,
+      "pathExamples": [
+        {
+          "face": 3013,
+          "x": 2.192589044570923,
+          "z": -42.26505088806152,
+          "mask": 0.37740268953825895
+        },
+        {
+          "face": 6297,
+          "x": 4.794496059417725,
+          "z": -29.65340518951416,
+          "mask": 0.3785832359058088
+        },
+        {
+          "face": 7773,
+          "x": 4.129187107086182,
+          "z": -23.93797492980957,
+          "mask": 0.3740827133669018
+        },
+        {
+          "face": 9185,
+          "x": -0.3245728462934494,
+          "z": -18.038756370544434,
+          "mask": 0.3768813768473873
+        },
+        {
+          "face": 10582,
+          "x": -0.8072742223739624,
+          "z": -12.260570049285889,
+          "mask": 0.3749411611844473
+        },
+        {
+          "face": 11810,
+          "x": 3.0709840059280396,
+          "z": -7.650279521942139,
+          "mask": 0
+        },
+        {
+          "face": 11859,
+          "x": 2.980262517929077,
+          "z": -7.4795286655426025,
+          "mask": 0
+        },
+        {
+          "face": 11861,
+          "x": 3.0212634801864624,
+          "z": -7.559791088104248,
+          "mask": 0
+        }
+      ]
+    }
+  },
+  "hashes": {
+    "baseline-joints.ts": "1ceef0c1606547dde859d1cb85d436678eb4ce8d6240af25716a4541cde35df4",
+    "mask-only-joints.ts": "6cc3bac71e60a71086ca05c07e31848cf0e1b10deba32ce0acc46c24a9ea4beb",
+    "mask-only-joints.patch": "05def77fce660236aeb47f93e44b4f1093b69cc35998f559f5448f049e4363c5"
+  }
+}

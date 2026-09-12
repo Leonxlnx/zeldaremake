@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Append verified comparison bytes to one dedicated branch with bounded non-force retries. */
+/** Append verified detail bytes without replacing comparison folders or archive history. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,7 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
-import { readCompletedComparison, readJson } from './environment-capture-data.mjs';
+import { readJson } from './environment-capture-data.mjs';
+import { readCompletedDetails } from './environment-detail-data.mjs';
 
 const BRANCH = 'captures/astra-environment';
 function git(cwd, args, mayFail = false) {
@@ -30,33 +31,37 @@ function copyImmutable(source, destination) {
   } else { fs.mkdirSync(destination, { recursive: true }); for (const name of names) fs.copyFileSync(path.join(source, name), path.join(destination, name)); }
 }
 function indexReadme(directory) {
-  const folders = fs.readdirSync(path.join(directory, 'progress'), { withFileTypes: true })
+  const folders = fs.readdirSync(path.join(directory, 'details'), { withFileTypes: true })
     .filter(e => e.isDirectory()).map(e => e.name).sort().reverse();
-  const lines = ['# Astra environment progress', '',
-    'Original game screenshots: twelve matched baseline/candidate images per checkpoint. Open a dated folder for the comparison, requested controls, audits and source identity. Historical checkpoint bytes are preserved.', '',
-    'These are supplemental art-direction comparisons, not gauntlet takes or quality-gate approvals. Both variants within a checkpoint use one built source and fixed cameras/time; geometry and fog remain identical within each pair.', '',
-    '| Captured UTC | Source | Comparison |', '| --- | --- | --- |'];
-  if (fs.existsSync(path.join(directory, 'details', 'README.md'))) lines.splice(4, 0, '[Four closeup world detail views per checkpoint](details/)', '');
+  const lines = ['# World detail checkpoints', '',
+    'Four actual production closeups per checkpoint: sign front, sign oblique, stair-foot lantern binding, and fork-west lantern. Fixed layout-relative cameras, time 12.5 s, no light/post overrides, complete scene. These are supplemental evidence, not gauntlet takes or quality approvals.', '',
+    '[Environment comparisons](../)', '', '| Captured UTC | Source | Detail views |', '| --- | --- | --- |'];
   for (const folder of folders) {
     assert.match(folder, /^\d{4}-\d{2}-\d{2}_\d{9}-[a-f0-9]{7}$/);
-    const r = readJson(path.join(directory, 'progress', folder, 'environment.json'));
+    const r = readJson(path.join(directory, 'details', folder, 'details.json'));
     assert.match(r.source, /^[a-f0-9]{40}$/);
-    lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [12 images](progress/${folder}/) |`);
+    lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [4 images](${folder}/) |`);
   }
-  fs.writeFileSync(path.join(directory, 'README.md'), lines.join('\n') + '\n');
+  fs.writeFileSync(path.join(directory, 'details', 'README.md'), lines.join('\n') + '\n');
+  const rootReadme = path.join(directory, 'README.md');
+  let main = fs.existsSync(rootReadme) ? fs.readFileSync(rootReadme, 'utf8') : '# Astra environment progress\n';
+  if (!main.includes('(details/)')) {
+    main += '\n[Four closeup world detail views per checkpoint](details/)\n';
+    fs.writeFileSync(rootReadme, main);
+  }
 }
 
-export async function publishEnvironmentCapture({ captureDir, remote, source, temporaryRoot = os.tmpdir(), maxAttempts = 6 }) {
+export async function publishEnvironmentDetails({ captureDir, remote, source, temporaryRoot = os.tmpdir(), maxAttempts = 6 }) {
   assert(typeof remote === 'string' && remote); assert.match(source, /^[a-f0-9]{40}$/);
   assert(Number.isInteger(maxAttempts) && maxAttempts >= 1 && maxAttempts <= 10);
   captureDir = path.resolve(captureDir);
-  const report = readCompletedComparison(captureDir, source);
+  const report = readCompletedDetails(captureDir, source);
   const stamp = new Date(report.capturedAt).toISOString().replace('T', '_').replace(/[:.]/g, '').replace('Z', '');
-  const folder = `progress/${stamp}-${source.slice(0, 7)}`;
-  const workspace = fs.mkdtempSync(path.join(temporaryRoot, 'astra-environment-publication-'));
+  const folder = `details/${stamp}-${source.slice(0, 7)}`;
+  const workspace = fs.mkdtempSync(path.join(temporaryRoot, 'astra-environment-detail-publication-'));
   try {
     const frozen = path.join(workspace, 'frozen'); copyImmutable(captureDir, frozen);
-    readCompletedComparison(frozen, source);
+    readCompletedDetails(frozen, source);
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const checkout = fs.mkdtempSync(path.join(workspace, 'attempt-'));
       try {
@@ -70,11 +75,11 @@ export async function publishEnvironmentCapture({ captureDir, remote, source, te
           git(checkout, ['reset', '--hard', 'FETCH_HEAD']); base = git(checkout, ['rev-parse', 'HEAD']).stdout.trim();
         }
         copyImmutable(frozen, path.join(checkout, folder)); indexReadme(checkout);
-        git(checkout, ['add', '--', 'README.md', folder]);
+        git(checkout, ['add', '--', 'README.md', 'details/README.md', folder]);
         const diff = git(checkout, ['diff', '--cached', '--quiet'], true);
         if (diff.status === 0) return { branch: BRANCH, head: base, folder, source, attempt, changed: false };
         assert.equal(diff.status, 1, diff.stderr);
-        git(checkout, ['commit', '-m', `Environment comparison for ${source} [skip ci]`]);
+        git(checkout, ['commit', '-m', `World detail views for ${source} [skip ci]`]);
         const head = git(checkout, ['rev-parse', 'HEAD']).stdout.trim();
         const push = git(checkout, ['push', 'origin', `HEAD:refs/heads/${BRANCH}`], true);
         if (push.status === 0 || remoteHead(checkout) === head) return { branch: BRANCH, head, folder, source, attempt, changed: true };
@@ -90,6 +95,6 @@ export async function publishEnvironmentCapture({ captureDir, remote, source, te
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [captureDir, remote] = process.argv.slice(2);
-  assert(captureDir && remote && process.env.GITHUB_SHA, 'Usage: GITHUB_SHA=SOURCE node publish-environment-capture.mjs CAPTURE_DIR REMOTE');
-  console.log(JSON.stringify(await publishEnvironmentCapture({ captureDir, remote, source: process.env.GITHUB_SHA })));
+  assert(captureDir && remote && process.env.GITHUB_SHA, 'Usage: GITHUB_SHA=SOURCE node publish-environment-details.mjs CAPTURE_DIR REMOTE');
+  console.log(JSON.stringify(await publishEnvironmentDetails({ captureDir, remote, source: process.env.GITHUB_SHA })));
 }

@@ -48,6 +48,8 @@ jobs:
         run: node gauntlet/scripts/anti-cheat.mjs --skip-capture-checks
       - name: Check screenshot state invariants
         run: node gauntlet/scripts/test-environment-capture-state.mjs
+      - name: Check detail publication integrity
+        run: node gauntlet/scripts/test-environment-details.mjs
       - name: Check shadow texel stability under camera motion
         run: node src/world/lighting/shadowframe.test.mjs
       - name: Render six matched environment comparisons
@@ -69,3 +71,21 @@ jobs:
           node gauntlet/scripts/publish-environment-capture.mjs gauntlet/out/astra-environment "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-publication.json"
           cat "$RUNNER_TEMP/astra-environment-publication.json"
           node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Twelve environment comparison images](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
+      - name: Render four production world detail views
+        run: node gauntlet/scripts/capture-environment-details.mjs
+      - name: Retain actual detail images and metadata, including partial failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-details-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment-details
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified dated detail gallery
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          node gauntlet/scripts/publish-environment-details.mjs gauntlet/out/astra-environment-details "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-detail-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-detail-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-detail-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Four production world detail views](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
