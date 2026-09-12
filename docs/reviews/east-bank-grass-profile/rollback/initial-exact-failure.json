@@ -1,0 +1,216 @@
+{
+  "source": "4ae74cd4ae383e615ad021fe7a0ef51ce62a91d2",
+  "comparisonSource": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "allAssertionsPassed": false,
+  "failures": [
+    "A_stairs-baseline.jpg strict JPEG bytes",
+    "A_stairs-candidate.jpg strict JPEG bytes",
+    "B_house-baseline.jpg strict JPEG bytes",
+    "B_house-candidate.jpg strict JPEG bytes",
+    "C_lookback-baseline.jpg strict JPEG bytes",
+    "C_lookback-candidate.jpg strict JPEG bytes",
+    "D_log-baseline.jpg strict JPEG bytes",
+    "D_log-candidate.jpg strict JPEG bytes",
+    "E_ground-baseline.jpg strict JPEG bytes",
+    "E_ground-candidate.jpg strict JPEG bytes",
+    "F_canopy-baseline.jpg strict JPEG bytes",
+    "F_canopy-candidate.jpg strict JPEG bytes"
+  ],
+  "rows": [
+    {
+      "file": "A_stairs-baseline.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 665,
+      "triangles": 8603827,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0005425347222222222,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 4
+      }
+    },
+    {
+      "file": "A_stairs-candidate.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 665,
+      "triangles": 8603827,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0005067274305555555,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 1
+      }
+    },
+    {
+      "file": "B_house-baseline.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 656,
+      "triangles": 8613335,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0003172019675925926,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 10
+      }
+    },
+    {
+      "file": "B_house-candidate.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 656,
+      "triangles": 8613335,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.00041051793981481484,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 5
+      }
+    },
+    {
+      "file": "C_lookback-baseline.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 558,
+      "triangles": 8321753,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.001328486689814815,
+        "maxChannel8Bit": 4,
+        "pixelsAnyChannelOver3": 2
+      }
+    },
+    {
+      "file": "C_lookback-candidate.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 558,
+      "triangles": 8321753,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.001328486689814815,
+        "maxChannel8Bit": 4,
+        "pixelsAnyChannelOver3": 2
+      }
+    },
+    {
+      "file": "D_log-baseline.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 538,
+      "triangles": 8401006,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0006611689814814814,
+        "maxChannel8Bit": 6,
+        "pixelsAnyChannelOver3": 11
+      }
+    },
+    {
+      "file": "D_log-candidate.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 538,
+      "triangles": 8401006,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0006611689814814814,
+        "maxChannel8Bit": 6,
+        "pixelsAnyChannelOver3": 11
+      }
+    },
+    {
+      "file": "E_ground-baseline.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 656,
+      "triangles": 8613335,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0003172019675925926,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 10
+      }
+    },
+    {
+      "file": "E_ground-candidate.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 656,
+      "triangles": 8613335,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.00041051793981481484,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 5
+      }
+    },
+    {
+      "file": "F_canopy-baseline.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 627,
+      "triangles": 8421345,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0013295717592592593,
+        "maxChannel8Bit": 5,
+        "pixelsAnyChannelOver3": 8
+      }
+    },
+    {
+      "file": "F_canopy-candidate.jpg",
+      "jpegBytesExact": false,
+      "completeNormalizedCameraControlsActorAuditsResourcesStatsExact": true,
+      "completeDepthExact": true,
+      "drawCalls": 627,
+      "triangles": 8421345,
+      "programs": 75,
+      "textures": 70,
+      "retries": 0,
+      "pixelDiagnostic": {
+        "maeChannel8Bit": 0.0013230613425925927,
+        "maxChannel8Bit": 3,
+        "pixelsAnyChannelOver3": 0
+      }
+    }
+  ],
+  "normalization": [
+    "Only terrain and vegetation audit buildMs timing fields removed; all other state values exact."
+  ]
+}

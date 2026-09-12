@@ -41,3 +41,28 @@ sections and 54 opening rays pass. Keep those limits explicit.
 W25's existing take-70 hero-house fail remains exact; the new take-71 W32 fail stays sealed.
 The partner's rubric proposal is retained as a proposal, without changing the locked rubric.
 No phase-exit or reference-quality approval follows from this integration.
+
+## Actual integrated checkpoint retained with unfinished rim lighting
+
+`f56d0d22548a85ef776e9cc8c36644c3af8fb56f` completed all sixteen original/source/publication
+contracts, with zero retries/errors/warnings. The actual22 seat rows, host/detail audits and
+all unrelated camera/actor/resource states match their explicit source expectations. Root
+compared B/D to4ae, viewed A/F and both lantern details; the independent reviewer inspected
+all five world views and four details. Retain useful dark interiors, small internal lights and
+less spherical pods as an intermediate step. Bright continuous circular/arched rims remain
+conspicuous, particularly D. Fable retains that follow-up (PR2 comment5649023824); hero-house
+W25 and take71 W32 failures remain unchanged.
+
+Measured extra submitted triangles/calls: A/B/D/E and S01/S02 +7643/0; F +6482/0;
+C/L01/L02 +21846/+1. The larger delta's cause is unproven. No new resources are allocated;
+these multipass observations are not the +4444 unique-source count or an FPS measurement.
+A/B/D depth changes52/57/123 cells; C/F and all four details have exact4ae depth. S01 JPEG
+is byte-identical; S02 MAE is .116/255 and other detail residuals are tiny. See the full
+[actual review](actual-appearance.md) and preserved per-view comparison rather than assuming
+all unchanged-depth images are byte-identical.
+
+Original world gallery `progress/2026-09-12_220611885-f56d0d2`, detail gallery
+`details/2026-09-12_220903532-f56d0d2`, final archive
+`8536bd7411a62d7b9db450b1dcda2d8ce2f142a0`. Source snapshot465 files and207 capture inputs
+verified; all earlier capture history is retained. The prior rollback4ae strict world-JPEG
+failure versus e8 remains separate and explicitly unwaived.

@@ -111,3 +111,23 @@ with exact actual costs and unrelated audits. The independent reviewer saw all f
 and compared L01 directly: some near-background leaves are less obstructed, but dark stubbly
 gaps remain and the principal A/F planting criterion is still unmet. The rejection stands.
 The rollback build restores every `src/` file exactly to e8 and passes typecheck/build 111.
+
+
+## Actual rollback: source restored, strict JPEG comparison remains failed
+
+The isolated rollback `4ae74cd4ae383e615ad021fe7a0ef51ce62a91d2` restores every production
+source byte and all 207 capture inputs exactly to the retained e8 checkpoint. All sixteen
+original/publication contracts pass, with zero retries, errors or warnings. All depth arrays,
+normalized states, actors, resources and actual costs are exact e8; the four detail JPEGs
+are also byte-identical.
+
+The twelve world JPEGs fail the strict byte-equality gate. Mean absolute channel residuals
+are 0.000317–0.001330 out of 255, maximum 3–6, with at most eleven pixels per image exceeding
+3 in a channel. The cause is unproven. No tolerance, replacement image or rerender converts
+this into a pass. The independent five-view visual check found no visible deterioration.
+Retain the intended source rollback while preserving the overall strict JPEG **FAIL**.
+Full original failure and comparison receipts are retained in [rollback](rollback/appearance.md).
+
+Final archive `af5aad5fb810698dd78608c3c6ff4bbba4b4ee2c`, world folder
+`progress/2026-09-12_215355477-4ae74cd`, details `details/2026-09-12_215648877-4ae74cd`.
+The later f56 house integration is a separate source and does not explain these residuals.

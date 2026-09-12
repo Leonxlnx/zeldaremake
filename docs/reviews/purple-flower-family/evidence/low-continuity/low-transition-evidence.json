@@ -1,0 +1,64 @@
+{
+  "pin": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "scope": "Same two existing-instance16m probes as frozen family. Union of actual head triangles on1/8px lattice; excludes stems/leaves, wind, world occlusion, AA, shading and GPU/continuous-motion judgment.",
+  "rows": [
+    {
+      "variant": 0,
+      "item": 0,
+      "cameraPosition": [
+        2.5707746706525922,
+        1.45,
+        5.045637026451498
+      ],
+      "rootDistanceM": 16,
+      "sampleStepPx": 0.125,
+      "headCounts": [
+        7,
+        5,
+        7
+      ],
+      "unionAreaPx2": {
+        "frozenMedium": 77.28125,
+        "frozenLow": 69.53125,
+        "candidateLow": 64.28125
+      },
+      "midToLowIoU": {
+        "frozen": 0.04936341299977664,
+        "candidate": 0.8203737191078964
+      },
+      "symmetricDifferencePx2": {
+        "frozen": 133,
+        "candidate": 13.96875
+      }
+    },
+    {
+      "variant": 1,
+      "item": 2,
+      "cameraPosition": [
+        2.3693352977214484,
+        1.45,
+        5.608181699534782
+      ],
+      "rootDistanceM": 16,
+      "sampleStepPx": 0.125,
+      "headCounts": [
+        7,
+        5,
+        7
+      ],
+      "unionAreaPx2": {
+        "frozenMedium": 75.1875,
+        "frozenLow": 72.984375,
+        "candidateLow": 61.671875
+      },
+      "midToLowIoU": {
+        "frozen": 0.07504818047840381,
+        "candidate": 0.8104588673005374
+      },
+      "symmetricDifferencePx2": {
+        "frozen": 127.484375,
+        "candidate": 14.328125
+      }
+    }
+  ]
+}

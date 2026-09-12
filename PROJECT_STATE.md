@@ -11,15 +11,20 @@ Per-agent progress lives in `.agents/<agent>.md`; the live picture is the Direct
 ## Integrated environment milestone — 2026-09-12
 
 Astra's `agent/astra-environment-lighting` (draft PR #6 against Fable's world branch) deliberately
-integrates Fable's structures 17 and take 70 history, retaining Astra's sign/post work, canopy
+integrates Fable's structures 18 and take 71 history, retaining Astra's sign/post work, canopy
 contract and reviewed lighting/vegetation changes. Checkpoint `0d4ae52` establishes that house
-integration; `9ef903c` adds the reviewed high-detail hedge leaf form. These are branch milestones,
+integration; `9ef903c` adds the reviewed high-detail hedge leaf form. `f56d0d2` then integrates
+corrected runtime tree seats and recessed distant huts after the rejected bank-height trial
+was rolled back in4ae. The isolated32m middle-surface light onset e8 is retained after27 actual
+comparisons. These are branch milestones,
 not a merge to main or completion of Phase 1. Active experiments and current source identities
 remain in `.agents/astra-environment.md` and PR #6.
 
 The integrated build has clearer tree-house windows and a wider dark entrance, an irregular
 moss crown, detailed sign/rope/post materials, cooler shaded air, stable light-space shadow
-snapping, corrected grass/tuft lighting, seated leaf pods and varied hedge leaf pitch/cupping.
+snapping, corrected grass/tuft lighting, seated leaf pods and varied hedge leaf pitch/cupping. Distant huts now use published trunk seats and have dark
+recesses, small interior lamps and shaped pods; their conspicuous continuous glowing rims
+remain an explicit Fable follow-up.
 Independent actual reviews retain those specific gains. Rejected crate-grain, paving-shoulder
 and broad canopy-shadow trials were rolled back; their original evidence is preserved.
 
@@ -38,11 +43,11 @@ must be compared between matching checkpoints. Camera studies do not establish c
 interactive playback. Owner concept boards are comparison references, never scenery.
 
 Major remaining weaknesses include smooth house supports/cap construction (take 70 W25 remains
-an independently reviewed fail), flat distant-hut openings/attachments, overly regular bank
-grass and incomplete light/material separation. Fable owns the continuing tree/house geometry;
+an independently reviewed fail), bright graphic distant-hut rim outlines, overly fine bank
+planting and incomplete light/material separation. Fable owns the continuing tree/house geometry;
 Astra owns the coordinated environment lighting and vegetation passes. The runtime trunk-seat
-API and its reported crown-height correction are published by Fable but not yet integrated
-into this milestone. Character modelling remains paused for the owner's local Blender MCP
+API and its reported crown-height correction are integrated and checked against the actual
+22 seat rows. The latest isolated flower candidate is still an experiment in the agent log. Character modelling remains paused for the owner's local Blender MCP
 session; the visible character is a placeholder. No scheduled tasks are used for this work.
 
 ## Foundation snapshot — 2026-09-10 (retained history)

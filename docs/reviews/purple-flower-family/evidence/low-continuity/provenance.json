@@ -1,0 +1,46 @@
+{
+  "source": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "baseline": "../source.mjs candidateSource: frozen High/Medium family",
+  "parentFiles": {
+    "README.md": "59480a3133501523faa67e72bc0dad6151e0bbf99d1bb34655d5c79f4aab71cb",
+    "check.mjs": "da8f28dd9181ea6329f5e0cf4496b64c3e193638bff7128697a6121b6aaed576",
+    "edits.json": "62884fb09909772762bdfb1bbc0e4e6f57bf50dd814c81c6ff4bf68cf696a75d",
+    "evidence.json": "b5955a5979b3d0b9ea90a08bd69bafa81187d14b2e579bc10f8b84308202a37c",
+    "lod-silhouette-evidence.json": "4c0f85d5cbb61fa036a3fb696f6beb7f7ccda5fc773a7429786112c4b64be394",
+    "low-transition-evidence.json": "72ba2ccffba6c3f75f167e66e1eefc8cb32e374c4e848318665b42679cf575ca",
+    "provenance.json": "02ee00bdaff3f7b64a91f8387f7a257a57668531c2bd92d730f068aca3b1379b",
+    "rejected-high-only-transition.json": "54e6993eb37f9ac07a45cada53c45d678120c0a6b04aef65622914b1f8382ae3",
+    "source.mjs": "c4d15ba1a32aee31769fbf4494f3e219a32bae7779df87e20cb099f83920c93a",
+    "typecheck.json": "7d3734d352b1f1d0e2a35a6d0013a0341d3dd4cbdd090b718edebd3dc3a3b28f",
+    "typecheck.mjs": "20981e97d729d5070a1dd681f9c2082654c7c465b4bd9c58f94dcd51211012db"
+  },
+  "files": [
+    {
+      "file": "src/world/vegetation/plantgeo.ts",
+      "baseline": "8446563ea0521492a2c89fd99d0209edf51158af60ad383929393f7b4afb3cc8",
+      "candidate": "c83af546fc05cd063871d171a233b07f67570e01c9d411a5ce78adf8700acc20"
+    }
+  ],
+  "unchangedPrerequisites": {
+    "src/world/vegetation/plants.ts": "203c90cdbd9723bbb51866d7a99fd14a958515c125c0e0436bddfd9104897ae0"
+  },
+  "editsSha256": "b5943050f98cdfe42939c34335668cfb370ff9848657ca5b07cc456fc82ce597",
+  "editCount": 4,
+  "receipts": {
+    "evidence.json": {
+      "sha256": "49dc1339e5aafa0c8cb21d4d60333d9a34a1cb7e36dfbbc9795912c19e9b71c6",
+      "origin": "frozen purple-flower-low-continuity/evidence.json"
+    },
+    "low-transition-evidence.json": {
+      "sha256": "fbd0743086e0b1944e728bd57d374f69b4520090fde46a5aea7c5787d81e7563",
+      "origin": "frozen purple-flower-low-continuity/low-transition-evidence.json"
+    },
+    "typecheck.json": {
+      "sha256": "f66fb411a3c42831f334c106069b2648e0e64b46123b50ca134e353eb6d340da",
+      "origin": "frozen purple-flower-low-continuity/typecheck.json"
+    }
+  },
+  "originalReportSha256": "a18b79d96ad6806808627cee24d6637639c3075e49136d097a89645a8ddc6861",
+  "originalCheckSha256": "aad0bc445a4cb55b5d335e5dd459f4ae67e79c578ef646853bbf9bd8f0629433",
+  "scope": "Existing two-stage source composition only; original Low evidence retained byte-exact; no new metrics, production build or render."
+}

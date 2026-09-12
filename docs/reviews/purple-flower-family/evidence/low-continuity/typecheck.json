@@ -1,0 +1,12 @@
+{
+  "source": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "candidates": {
+    "baseline-plantgeo.ts": "8446563ea0521492a2c89fd99d0209edf51158af60ad383929393f7b4afb3cc8",
+    "candidate-plantgeo.ts": "c83af546fc05cd063871d171a233b07f67570e01c9d411a5ce78adf8700acc20",
+    "baseline-plants.ts": "203c90cdbd9723bbb51866d7a99fd14a958515c125c0e0436bddfd9104897ae0",
+    "candidate-plants.ts": "203c90cdbd9723bbb51866d7a99fd14a958515c125c0e0436bddfd9104897ae0",
+    "candidate.patch": "5b61fe50023d33370dba528ab3f15e7a8f91f01c33e958eb99ccc05c5d025751"
+  },
+  "diagnosticCount": 0,
+  "passed": true
+}

@@ -7,6 +7,48 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
+Published source `f56d0d22548a85ef776e9cc8c36644c3af8fb56f` integrates Fable's corrected
+trunk seats and structures18 on the pure grass rollback, preserving partner ancestry fc853db.
+Its actual normal12 is archived at `08a98e82393dbf0ea5adf3adf95b85b2bc1fe10e`, folder
+`progress/2026-09-12_220611885-f56d0d2`; all four details and final archive contracts also pass. Correct run 34720977061 started normal captures at 21:57:39 UTC. Root compared
+B/D with4ae and viewed A/F, plus owner board05. Dark interiors and less spherical pods improve;
+the continuous bright rings/arches remain a conspicuous graphic-outline weakness. Fable owns
+that follow-up, recorded in PR2 comment5649023824. No finished-house or W25 approval.
+Normal contracts/22 corrected seats/host audits and all unrelated states/resources/actors pass.
+Actual extra triangles/calls: A/B/D/E 7643/0, F6482/0, C21846/1. C depth is exact; the larger
+submission delta has no proven cause and is not described as an established frustum bug.
+
+Local production candidate: the coherent purple cluster family in plantgeo.ts/plants.ts.
+The frozen High/Medium six-petal stage and Low continuation are applied together, exactly
+matching the portable resolver. Production typecheck/build111 passes. The entire original
+proof package is preserved intact under docs/reviews/purple-flower-family/evidence/, with a
+new combined overview outside the hash-pinned parent package. Only two purple variants across
+three LODs change; yellow/spikes/white/hedges, all10297 placements, materials and wind remain.
+Low retains seven real stems/heads instead of five different plants. Per Low variant +17
+triangles/+99 vertices; combined GPU buffers +23820B. Actual submitted costs and appearance
+remain pending. Static9m/16m improvements do not establish seamless playback; Low heads remain
+17–18% smaller in projected area. The automatic hedge sweep is only a regression control.
+The f56 detail review is now complete; publish this isolated candidate next. No sleeve/fern/light edits are bundled.
+
+The rejected5fa height-only grass remains removed. Actual4ae source/depth/full normalized
+state and all207 inputs are exacte8; all4 detail JPEGs are byte-identical. The normal12 strict
+JPEG gate remains FAIL: small unexplained channel residuals MAE .000317–.001330/255, max3–6.
+All16 original/publication contracts pass with zero retries/errors/warnings. Independent
+five-view inspection finds no visible deterioration; retain source rollback without waiving
+that failed equality predicate. Original failure/comparison records are now durable under
+`docs/reviews/east-bank-grass-profile/rollback/`; final archive af5aad5f.
+
+Next independent scratch study: ordinary fernGeometry pinna profile only. The seven-instance
+bank diagnosis finds static leaf clearance but median free pinnae only .61–1.05px wide in F;
+whole fans already span44–70px. A helper prepares one broader paired profile, preserving paths,
+counts, roots, RNG, materials, height and coherent LODs; no LIVE fern edit. No change to hero
+ferns or grass density. Latest partner fetch remains fc853db/tick55, queued structures19 and
+tree cache; no vegetation overlap. Root alone applies/publishes production. Sleeve0.20 is still
+frozen separately against901b material bytes. Character remains paused for local Blender MCP.
+
+
+## Earlier checkpoints (retained chronological observations)
+
 The pure grass rollback is published as `4ae74cd4ae383e615ad021fe7a0ef51ce62a91d2`, tree
 `fe41b457c799dd3e0ff88d1f4614e18fc244fa4b`, sole parent 5fa. Every production source byte is
 again exact e8. Correct rollback run 34720807233 is actually rendering from 21:45 UTC.
@@ -271,8 +313,16 @@ Detailed earlier chronology is preserved in `docs/reviews/astra-environment-hist
 
 ## Suggested parallel tasks
 Fable: periodic burl seam and a coherent knotted hero arch/crown; tree-cache follow-up.
-Astra: decide the current light trial, then grass profile and coherent flower forms; adopt reviewed hut work.
+Astra: capture/review the coherent flower family, then ordinary fern profile and isolated sleeve response.
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T21:46:43.161573+00:00
+2026-09-12T22:13:28.871809+00:00
+
+
+### Continuation checkpoint — 2026-09-12T22:12:05.428542+00:00
+Flower candidate build/source equality complete; f56 actual detail review pending; ordinary fern
+profile delegated in scratch. PR2 coordination5649023824. No scheduled/background tasks.
+
+Actual f56 all16 complete; intermediate host/recess integration retained with rim follow-up.
+Root inspected L01/L02; C/L01/L02 extra cost cause remains unknown. Flower publication next.

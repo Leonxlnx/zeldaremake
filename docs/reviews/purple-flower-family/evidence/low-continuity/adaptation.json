@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "adaptationRuns": 1,
+  "parentFilesByteExact": 11,
+  "frozenReceiptsByteExact": [
+    "evidence.json",
+    "low-transition-evidence.json",
+    "typecheck.json"
+  ],
+  "reproducedReceipts": [
+    "evidence.json",
+    "low-transition-evidence.json"
+  ],
+  "typecheckReceipt": "Preserved original; not rerun",
+  "newMeasurements": false,
+  "productionWritesBuildsRenders": false,
+  "candidatePlantgeoSha256": "c83af546fc05cd063871d171a233b07f67570e01c9d411a5ce78adf8700acc20",
+  "logSha256": "81dfabd9163cd2a3736b0221501c6ce2c2a9cb156ad9a0ddbe4041853922b45f"
+}

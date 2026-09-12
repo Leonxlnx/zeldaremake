@@ -809,6 +809,25 @@
       "at": "2026-09-12T21:45:52.863Z",
       "expiresHours": 3,
       "scope": "Reapply reviewed Fable trunk seats and structures18/take71 onto exact bank-grass rollback4ae; preserve canopy and cap/sign/post contracts; actual source comparison queued separately"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W18"
+      ],
+      "at": "2026-09-12T21:49:24.694Z",
+      "expiresHours": 3,
+      "scope": "Purple cluster flower family with cupped petals and shared High/Medium/Low plant definition; preserve all other families, roots/instances/materials and Fable house work; PR2 coordination5648763284"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W16",
+        "W17"
+      ],
+      "at": "2026-09-12T22:12:05.429Z",
+      "expiresHours": 3,
+      "scope": "Ordinary fern pinna-profile study after rejected grass-height trial; preserve frond axes/counts/roots/height/RNG/placements/materials, coherent LODs; scratch preparation only until flower capture, PR2 coordination5649023824"
     }
   ]
 }

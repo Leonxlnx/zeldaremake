@@ -399,7 +399,121 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   }
 }
 
+/** Purple corolla: six separated petals around a recessed throat. High uses52 triangles,
+ * medium26 and low14; low keeps the actual root, shoulders and tip of each petal. The caller supplies
+ * its existing independent head fork, so botanical form cannot advance the stem/layout stream.
+ */
+function purpleCorollaHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, rng: Rng, pal: PlantPalette, detail: Detail) {
+  const high = detail === 'high';
+  const n = normal.clone().normalize();
+  const side = new Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize();
+  const fwd = new Vector3().crossVectors(n, side).normalize();
+  const phase = rng() * TAU;
+  const at = (x: number, z: number, h: number) => center.clone().addScaledVector(side, x).addScaledVector(fwd, z).addScaledVector(n, h);
+  for (let p = 0; p < 6; p++) {
+    const angle = phase + p * TAU / 6 + (rng() - 0.5) * 0.07;
+    const reach = radius * (1.28 + rng() * 0.16);
+    const width = 0.28 + rng() * 0.035;
+    const color = blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
+    // The eight-point outline widens into a rounded spoon, with a narrow shared throat. Its
+    // central fan vertex sits below the rim; normals come from this real cupped surface.
+    const contour = [[0, 0, 0], [0.72, -width, 0.26], [0.94, -width * 0.65, 0.54],
+      [1, 0, 0.6], [0.94, width * 0.65, 0.58], [0.72, width, 0.3]];
+    // High's extra neck points lie on the same real contour segments as medium. Only the
+    // interior cup is simplified; no closed dome is inserted behind the petals.
+    const outline = high ? [contour[0], [0.3, -width * 0.3 / 0.72, 0.26 * 0.3 / 0.72],
+      ...contour.slice(1), [0.3, width * 0.3 / 0.72, 0.3 * 0.3 / 0.72]]
+      : detail === 'low' ? [contour[0], contour[1], contour[3], contour[5]] : contour;
+    const point = (u: number, v: number, h: number) => at(
+      reach * (Math.cos(angle) * u - Math.sin(angle) * v),
+      reach * (Math.sin(angle) * u + Math.cos(angle) * v), radius * h);
+    const middle = high ? m.vertex(point(0.58, 0, 0.08), 0.5, 0.58, color) : -1;
+    const edge = outline.map(([u, v, h]) => m.vertex(point(u, v, h), 0.5 + v / (width * 2), u,
+      u > 0.9 ? blend(color, pal.purpleLight, 0.35) : color));
+    if (high) for (let i = 0; i < edge.length; i++) m.tri(middle, edge[i], edge[(i + 1) % edge.length]);
+    else for (let i = 1; i < edge.length - 1; i++) m.tri(edge[0], edge[i], edge[i + 1]);
+  }
+  // A tiny four-sided bowl meets the original stem endpoint, without a floating disk, pollen
+  // glint, texture or new colour. It covers the six petals' common attachment.
+  const throat = high ? m.vertex(center, 0.5, 0.5, pal.purpleDeep) : -1;
+  const rim = Array.from({ length: 4 }, (_, i) => {
+    const a = phase + i * TAU / 4;
+    return m.vertex(at(Math.cos(a) * radius * 0.28, Math.sin(a) * radius * 0.28, radius * 0.15),
+      0.5 + Math.cos(a) * 0.5, 0.5 + Math.sin(a) * 0.5, blend(pal.purpleDeep, pal.purple, 0.35));
+  });
+  if (high) for (let i = 0; i < rim.length; i++) m.tri(throat, rim[i], rim[(i + 1) % rim.length]);
+  else { m.tri(rim[0], rim[1], rim[2]); m.tri(rim[0], rim[2], rim[3]); }
+}
+
+/** Preserve the established cluster family, including its separate yellow-palette reuse. */
 export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  return buildFlowerGeometry(seed, pal, detail);
+}
+
+// One real botanical definition supplies every purple cluster LOD. Leaf descriptors remain
+// part of the plant even when low omits their surfaces; sampling is independent of tessellation.
+type PurpleLeaf = [Vector3, Vector3, number, number, RGB, LeafOptions];
+interface PurpleStem {
+  points: Vector3[];
+  leaves: PurpleLeaf[];
+  center: Vector3;
+  normal: Vector3;
+  radius: number;
+  headRng: Rng;
+}
+
+function purplePlantDefinition(seed: string, pal: PlantPalette) {
+  const rng = createRng(seed);
+  const count = 6 + rng.int(0, 4);
+  const phase = rng() * TAU;
+  const leafColor = blend(pal.leaf, pal.grassLight, 0.3);
+  const stems: PurpleStem[] = [];
+  for (let i = 0; i < count; i++) {
+    const angle = phase + (i * TAU) / count + (rng() - 0.5) * 0.5;
+    const radius = 0.03 + rng() * 0.11;
+    const root = V(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+    const height = 0.22 + rng() * 0.2;
+    const lean = V(Math.cos(angle) * height * 0.3, height, Math.sin(angle) * height * 0.3);
+    const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
+    const leaves: PurpleLeaf[] = [];
+    for (let j = 0; j < 2; j++) {
+      for (const sign of [-1, 1]) {
+        const dir = V(Math.cos(angle + j * 1.3) * sign, 0.3, Math.sin(angle + j * 1.3) * sign);
+        leaves.push([curve(0.22 + j * 0.3), dir, 0.05 + rng() * 0.035, 0.02, tone(leafColor, 0.9 + rng() * 0.25), { curl: 0.12, twist: sign * 0.15 }]);
+      }
+    }
+    const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
+    stems.push({ points: sampleCurve(curve, 3), leaves, center: curve(1), normal: up,
+      radius: 0.034 + rng() * 0.016, headRng: rng.fork(`head-${i}`) });
+  }
+  const rosette: PurpleLeaf[] = [];
+  const countRosette = 4 + rng.int(0, 3);
+  for (let l = 0; l < countRosette; l++) {
+    const a = phase + (l * TAU) / countRosette + rng() * 0.4;
+    const dir = V(Math.cos(a), 0.55 + rng() * 0.3, Math.sin(a)).normalize();
+    rosette.push([V(Math.cos(a) * 0.02, 0.005, Math.sin(a) * 0.02), dir, 0.07 + rng() * 0.05, 0.035, tone(leafColor, 0.85 + rng() * 0.2), { curl: 0.2, ridge: 0.12 }]);
+  }
+  return { stems, rosette };
+}
+
+/** Purple LODs share actual roots, axes, heads and petal samples. High/mid emit unchanged. */
+export function purpleFlowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  const plant = purplePlantDefinition(seed, pal);
+  const m = new MeshBuilder();
+  const low = detail === 'low';
+  for (const stem of plant.stems) {
+    // Keep the root's first tangent (t=0 -> 1/3), hence the grounded head heights. Low drops
+    // only the t=2/3 ring, not an entire plant or its endpoint; no substitute coverage shell.
+    const points = low ? [stem.points[0], stem.points[1], stem.points[3]] : stem.points;
+    tube(m, points, 0.0026, 0.0014, pal.stem, 3);
+    if (!low) for (const leaf of stem.leaves) curvedLeaf(m, ...leaf);
+    purpleCorollaHead(m, stem.center, stem.normal, stem.radius, stem.headRng, pal, detail);
+  }
+  if (!low) for (const leaf of plant.rosette) curvedLeaf(m, ...leaf);
+  return m.finish({ groundToZero: true });
+}
+
+function buildFlowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const low = detail === 'low';
@@ -427,7 +541,6 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     // head: dense cluster bloom (~7–10 cm across)
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
     // Petal tessellation must not advance the layout stream and move the next stem.
-    // Retain the existing cheap low LOD; only high/mid need matching silhouettes.
     clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, low ? rng : rng.fork(`head-${i}`), pal, detail);
   }
   if (!low) {

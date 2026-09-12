@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, purpleFlowerGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -180,7 +180,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // the high LOD much further out than the scattered bushes
   const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, bushGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7, leafSkyTransmission: 0.65, leafSurfaceDetail: true });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
-  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, purpleFlowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   // the pale-yellow blooms tucked into the shot-D fern clump: the same cluster-head plant in a
   // straw-yellow palette (reference frame 56: small pale flowers at the base of the fronds)
   const yellowPal = { ...pal, purple: rgb(0xd6c15c), purpleLight: rgb(0xefe094), purpleDeep: rgb(0xa8933a) };
