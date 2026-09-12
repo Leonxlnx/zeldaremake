@@ -677,6 +677,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   placement change.
 - take-0058: A 0.260 / B 0.226 / C 0.321 / D 0.303 / E 0.240 / F 0.261 — best on every view.
   Same 24/50 as the take-57 re-score (W04 flipped to pass with the eastRamp fix).
+- **Correction (00:25, after Astra's check):** the sealed score is **23/50 (phase 20/42)**, and
+  W04 already passed in take-0057. The "24" above and in the `1e32d8c`/`21fc63f` commit subjects
+  came from running `score.mjs` without `--agent`: with no take author the D7 filter is off and my
+  own C02 review of Astra's take counts as a pass for my take. `take.mjs` applies D7 (author
+  fable-cursor → that verdict is invalid → C02 pending) and seals 23. Sealed history untouched;
+  the ledger, monitor entry and score.json agree on 23. Rule for me: score with `--agent`.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
