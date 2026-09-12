@@ -54,6 +54,12 @@ export interface GiantAsset {
   limbS?: number[];
   limbRadii?: number[];
   crownRadius: number;
+  /** the bole's ring centres in local space, skirt → fork, as swept (any authored lean applied) */
+  trunkPath: Vector3[];
+  /** one nominal radius per `trunkPath` ring, before the bark relief (root flare included) */
+  trunkRadii: number[];
+  /** local height where the lowest limb leaves the bole (the crown begins here; ≤ the fork) */
+  bareHeight: number;
 }
 
 /**
@@ -649,6 +655,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- big near-horizontal limbs ----------
   let limbs = 0;
+  // where the lowest limb of any kind leaves the bole (the crown leaders start at the fork)
+  let bareHeight = fork;
   let limbPath: Vector3[] | undefined;
   let limbS: number[] | undefined;
   let limbRadii: number[] | undefined;
@@ -677,6 +685,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const r1 = o.limbSpec.tipRadius ?? 0.25;
     const path: Vector3[] = [new Vector3(0, from.y, 0)];
     const radii: number[] = [r0 * 1.3];
+    bareHeight = Math.min(bareHeight, from.y);
     // nominal advance of each ring along from → to in units of `len` (see GiantAsset.limbS);
     // bookkeeping only — it draws nothing and moves nothing
     const sAlong: number[] = [];
@@ -747,6 +756,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
     origin.y = spec.fromHeight;
+    bareHeight = Math.min(bareHeight, origin.y);
     const to = spec.to;
     const dir = to.clone().sub(origin);
     const len = dir.length();
@@ -795,6 +805,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU + bt(-0.35, 0.35);
     const t = bt(profile.wildLimbT?.[0] ?? 0.36, profile.wildLimbT?.[1] ?? 0.62);
     const origin = sample(trunk, t);
+    bareHeight = Math.min(bareHeight, origin.y);
     const trunkR = trunkRadii[Math.round(t * (trunkRadii.length - 1))];
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
     const side = new Vector3(-dir.z, 0, dir.x);
@@ -866,6 +877,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.height + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
     origin.y = spec.height;
+    bareHeight = Math.min(bareHeight, origin.y);
     const trunkR = trunkRadii[Math.round(tTrunk * (trunkRadii.length - 1))];
     const r0 = spec.radius ?? Math.max(0.5, trunkR * 0.42);
     const length = spec.length;
@@ -903,6 +915,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
     origin.y = spec.fromHeight;
+    bareHeight = Math.min(bareHeight, origin.y);
     const to = spec.to;
     const run = Math.hypot(to.x - origin.x, to.z - origin.z);
     const horiz = new Vector3(to.x - origin.x, 0, to.z - origin.z).normalize();
@@ -962,5 +975,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     limbS,
     limbRadii,
     crownRadius,
+    trunkPath: trunk,
+    trunkRadii,
+    bareHeight,
   };
 }

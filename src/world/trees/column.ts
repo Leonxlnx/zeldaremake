@@ -17,6 +17,16 @@ import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail } from './writer';
 import type { Palette, TreeAsset } from './whitebark';
 
+/** A column tree plus the bole its `tube()` sweep was built from, for `ctx.shared.trunkSeats`. */
+export interface ColumnAsset extends TreeAsset {
+  /** the bole's ring centres in local space, base → fork (the first ring is the skirt below y = 0) */
+  trunkPath: Vector3[];
+  /** one nominal radius per `trunkPath` ring, before the gnarl relief (root flare included) */
+  trunkRadii: number[];
+  /** local height where the lowest bough leaves the bole (the crown begins here; ≤ the fork) */
+  bareHeight: number;
+}
+
 export interface ColumnParams {
   seed: string;
   height: number;
@@ -106,7 +116,7 @@ export function emergentParams(rng: Rng): ColumnParams {
 }
 
 /** `groundAt` samples terrain in this particular seat's local coordinates; only roots use it. */
-export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAt: (x: number, z: number) => number = () => 0): TreeAsset {
+export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAt: (x: number, z: number) => number = () => 0): ColumnAsset {
   const rng = createRng(`column/${p.seed}`);
   const bt = (a: number, b: number) => between(rng, a, b);
   const gnarl = new Noise2D(`column-bark/${p.seed}`);
@@ -232,9 +242,11 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     lobe(path, radius, center, crownRadius * bt(0.32, 0.42), H * bt(0.07, 0.1), bt(0.9, 1.05));
   }
   // boughs: leave the bole between `boughStart` and just under the fork, reach out to the crown's rim
+  let bareHeight = forkY;
   for (let j = 0; j < p.boughs; j++) {
     const t = p.boughStart + (j / Math.max(1, p.boughs - 1)) * (0.99 - p.boughStart) + bt(-0.02, 0.02);
     const origin = sample(trunk, Math.min(1, t));
+    bareHeight = Math.min(bareHeight, origin.y);
     const angle = p.leanAzimuth + 1.1 + j * 2.13 + bt(-0.5, 0.5);
     const radial = crownRadius * bt(0.62, 0.9);
     const lobeY = origin.y + H * bt(0.06, 0.14);
@@ -257,5 +269,8 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     leafTriangles: leaves.triangles,
     height: geometry.boundingBox!.max.y,
     radius,
+    trunkPath: trunk,
+    trunkRadii,
+    bareHeight,
   };
 }
