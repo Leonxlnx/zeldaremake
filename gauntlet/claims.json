@@ -730,6 +730,15 @@
       "at": "2026-09-12T18:20:39.365Z",
       "expiresHours": 3,
       "scope": "PR2 5647766377: props-only crate long-grain material using cached credited CC0 map; preserve geometry/RNG/contacts/shadow programs and all Fable structure work."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W38"
+      ],
+      "at": "2026-09-12T18:29:22.585Z",
+      "expiresHours": 3,
+      "scope": "PR2 5647841319: one-block structures/index cap-only consolidation correction; preserve all original geometry/material/light/builder work, adopt any equivalent partner fix; integrate exact749 take69 history."
     }
   ]
 }

@@ -7,36 +7,47 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Starting the bounded crate wood trial on published660dcac756f9095fa6b3b9c08ccd646d2bf5f499,
-treeaccbda430e510531132b78d6edddad2693c233a4. Its exact Fable0bd ancestry cleanup passed
-resource ordering, typecheck/build111 and exact three-file source boundary. The current
-correct environment run34710805539 is actually in progress, so the next source can queue.
-Fresh targeted partner fetch still0bd; no props overlap or new partner changes.
+Starting the cap-only consolidation correction on published71843a28538f00bdbbd0005a65a1b588315753b5,
+treea16253e4989cc057a9c67bf2ea22d3a8524b9b68. That isolated crate finish passed actual-source
+geometry/typecheck/build112 and frozen proposal hashes; visual verdict is pending its queued
+capture. Do not push a third source until its correct environment run actually starts.
 
-Root reviewed the actual owner board06 and the frozen real-map proposal. Applied exactly its
-four props files: one owned crate material borrows the already cached credited CC0 planks
-color map, with physical-grain interior UVs, neutral end grain and derivative fading.
-Original positions/normals/pigments/contacts/RNG/shadow programs remain exact. No new texture,
-draw or triangle;31,104 attribute bytes and one material/color program. D may benefit modestly,
-B probably less. Existing real-terrain geometry test, typecheck/build112 and exact frozen
-file hashes pass. CI runs the existing props contract before capture. Actual original B/D decides; no relocation or exposure compensation.
+Fresh partner fetch confirms74918cd56025eb60c3bd71b13d727e59f26656e7, only Fable's own log and
+append-only take69 ledger after0bd. Deliberately integrate this history before the cap fix.
+Root read tick53 and the actual take record: source0bd,23/50 overall,20/42phase,local/unclaimed;
+these numbers are not a phase-exit claim. Fable actively owns structures17/window/moss/crown.
+Fable explicitly accepted this cap split in PR2comment5647847074 and will adopt our SHA
+after structures17; only his new audit lines overlap. PR2comments5647801272/5647841319
+record the source proof and one-block scope; preserve his
+builder/material/disposal work and adopt any equivalent published correction.
 
-711 actual12+4 is retained with clearer olive tufts and all geometry/depth/resources exact.
-One same-state L02 retry, no final errors.1e actual12+4 adds inhabited height but distant yellow
-openings need local depth/material work. C/L02 hidden submitted-cost increase is under a
-read-only bucket investigation; current maximum8725061 triangles/661calls. Fable owns active
-structures and has the actual findings. OriginalPNG upload remains blocked; ZIP/previews exist.
+Source frustum proof explains the actual1e C/L02 excess: distant caps inflate the merged roof
+sphere7.497→20.295m, submitting the old129596-triangle roof. A cap-only identity group restores
+original hero roof buffers/bounds and separates just the distant caps. Applied candidate hash75927a8f; actual-source typecheck/build112 and the self-contained
+pinned reproduction pass. Crate/tuft hashes remain exact. Expected C/L02 savings
+130604 submitted triangles with0netcalls; A/B/D/E add2calls with same triangles. No geometry,
+material, lighting, placement or texture changes; actual images must preserve appearance.
+
+Next geometry study is explicitly released by Fable in5647820443: near flagstone edge/form,
+with low crown/footprints/contacts/placements/seeds/RNG, stairs/discs and repaired kernel fan
+preserved. emitStone dry-run/breakCell and inverted-top-face gates remain required. Source
+helper explores shallow local fracture facets, scratch only. No production paving change yet.
+
+711 tuft actual retained;1e distant height useful but flat yellow openings and simple pods
+remain with Fable. Original PNG upload is blocked; exact ZIP and published previews exist.
+Character remains paused for local Blender, no scheduled tasks or automatic main/PR merges.
 
 ## Files / systems being touched
-- Completed root cleanup: exact hardscape/index.ts, joints.ts and material.ts ancestry.
-- Active independent root trial: props/index.ts, new props/crateWood.ts, existing geometry
-  contract and props README. No layout/camera change or new raster asset.
-- World helper: read-only final structure-bucket bounds investigation for C/L02; scratch only.
-- Capture helper: source-pinned actual image/ZIP/history receipts; no production writes.
-- Character remains paused for local Blender. No scheduled tasks or automatic merges.
+- Root: structures/index.ts consolidation block only, own log/claim/review and exact749 history.
+  No distant builder, material, hero-house, geometry helper or light changes.
+- Published crate trial: props/index.ts +crateWood.ts; existing contact/resource test in CI.
+- World helper: frozen cap-only bounds/buffer/lifecycle proof, scratch only.
+- Shadow helper: independent near flagstone edge study under explicit partner handoff.
+- Prop helper: exact take69 W25 partner review, no production changes.
+- Capture helper: pinned660 then718 actual images/ZIP/history, no LIVE writes.
 
 ## Partner state / coordination
-Fresh targeted fetch confirms0bd5235 after2f4415b/d7f5e98. PR2 comments5647666994 and5647704949
+Fresh targeted fetch confirms74918cd/take69 after0bd5235/2f4415b/d7f5e98. PR2 comments5647666994 and5647704949
 confirm corrected disposal and exact adoption of our tuft shader into the upcoming take69.
 Fable continues structures; Saria window/bough and generated cap-moss texture cleanup remain
 pending. PR2 comment5647766377 announces this adoption, actual distant-window weakness,
@@ -52,6 +63,8 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
+| 71843a2 | Isolated cached-CC0 crate grain trial; source geometry/type/build112 pass, actual pending. |
+| 660dcac | Exact Fable hardscape cleanup; actual12 world JPEGs/depth/audits/resources/budgets byte-exact1e,0retries/errors; details pending. |
 | 1e97463 | Exact871 distant houses; actual12+4 pass. Inhabited height visible; flat glow panels and C/L02 hidden budget cost need follow-up. |
 | 711758d | Tuft-only normal correction retained from actual12+4; B/L02 blades improve, all geometry/depth/resources exact. One L02 retry. |
 | debe215 | Exact stable jitter and rejected-canopy revert retained; F images/depth restored byte-exact pre-lawn2c. Actual12+4 pass,0retry/error. |
@@ -136,4 +149,4 @@ Astra: finish published cleanup integration, then the independent crate material
 Capture helper: review the next pinned source after publication. Character waits for Blender.
 
 ## Last updated
-2026-09-12T18:21:39.198557+00:00
+2026-09-12T18:31:58.926874+00:00

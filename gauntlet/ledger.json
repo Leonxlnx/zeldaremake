@@ -7329,6 +7329,115 @@
       },
       "prevHash": "sha256:8f6ef1a9f8b8f44e6d1416d7fff32608c3b6e19f952900f50f6d1c1597ad195a",
       "hash": "sha256:c642e87984f3dcb7f67acd9b687f605bba312a323eea4a822abf8a8d99b3b525"
+    },
+    {
+      "id": "take-0069",
+      "number": 69,
+      "at": "2026-09-12T18:17:46.835Z",
+      "sha": "0bd5235094211fd189d825b38393861d5def0abc",
+      "shortSha": "0bd5235",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "materials: tuft-only two-sided lighting fix (Astra's 711758d, adopted as-is) - buildTuft authors an upward-biased blade normal that the DoubleSide back-face flip pointed at the ground, so the joint and boulder tufts lit like the underside of a leaf; a packed per-vertex tuft tag (TUFT_A/B/C only; clover, cushions, grit and ferns excluded) and a fragment correction reflect only the downward component about the instance's up axis, keeping the horizontal facing; the per-source jitter option is preserved",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W21",
+        "W36"
+      ],
+      "note": "Round sixteen: the village gets depth and the lawn gets light. The owner's boards 01 and 08 show Kokiri Village as several lit tree houses stacked in the misty background - three distant huts are now built into existing trunks at 23-45 m (bark shell, low moss cap, round window and door glowing amber, pods, a plank walkway stub), one draw per view and no new lights; lit points in the background bands A 0 -> 6, B 2 -> 9, D 0 -> 9. The frames show canopy there, so A/B/D give back 0.003-0.012 in their upper bands by design. The lawn's tufts read near-black because the two-sided material flipped their up-biased normals toward the ground - Astra's tuft-only correction is adopted (B lawn luma 47 -> 61 in her captures). Determinism defects from the reviewer's source checks are closed: sprout jitter now draws per source (all 4,225 pre-existing instances reproduce their round-12 draws exactly), the flower heads carry correct normals, and hardscape disposes what it owns exactly once.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:84a5d0c68b86a4f63d86fc50d577bf8c7ad9cecafc7f81a15bab5bcccc2e123b",
+        "B_house": "sha256:1b6a72b6132bdbbb0a47db800110a4d5d17ecdb8ec11c9722805ccfc284b4c28",
+        "C_lookback": "sha256:3b4b9202c1e2692745d3ffe1624290ab794db98c1e2bf2037398ceea1d353619",
+        "D_log": "sha256:aa7390d31f911e96068d382893391e434dfd5924ed3e6bab1667e8efbff3e8ff",
+        "E_ground": "sha256:1b6a72b6132bdbbb0a47db800110a4d5d17ecdb8ec11c9722805ccfc284b4c28",
+        "F_canopy": "sha256:836602aa0e1ce498bb9be4a75293b23302eaebd0b3e38fab20f3c542455dcefc"
+      },
+      "distHash": "sha256:ecbd1417c991d6ef399b67567a4dabeaf64f35c8083f2c7566b59305cbba5372",
+      "stats": {
+        "drawCalls": 669,
+        "triangles": 8577247,
+        "captureMs": 697296,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W21",
+        "W36"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take69-cap",
+        "importedAt": "2026-09-12T18:19:06.572Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:c642e87984f3dcb7f67acd9b687f605bba312a323eea4a822abf8a8d99b3b525",
+      "hash": "sha256:6e8c1a998f2444b262c59ee7a3c130f958a66bb6d3af3ecd5dd30bfefd8dc138"
     }
   ]
 }

@@ -1,0 +1,754 @@
+{
+  "worldBefore": {
+    "originalReportSHA256": "70769fb934d188015dc7a25e54df2a52989209a52a8757e6f4f669352bff21e9",
+    "originalPath": "gauntlet/tmp/environment-711758d-review/progress/2026-09-12_175329916-711758d/environment.json",
+    "captures": [
+      {
+        "viewpoint": "A_stairs",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0.4,
+              1.8,
+              8.6
+            ],
+            "direction": [
+              0.4001487551488514,
+              -0.05779926463261199,
+              -0.9146257260545179
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8706616,
+            "drawCalls": 660
+          }
+        }
+      },
+      {
+        "viewpoint": "A_stairs",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0.4,
+              1.8,
+              8.6
+            ],
+            "direction": [
+              0.4001487551488514,
+              -0.05779926463261199,
+              -0.9146257260545179
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8706616,
+            "drawCalls": 660
+          }
+        }
+      },
+      {
+        "viewpoint": "B_house",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8716124,
+            "drawCalls": 651
+          }
+        }
+      },
+      {
+        "viewpoint": "B_house",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8716124,
+            "drawCalls": 651
+          }
+        }
+      },
+      {
+        "viewpoint": "C_lookback",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              2.33,
+              1.45,
+              -7.67
+            ],
+            "direction": [
+              0.13040706314611447,
+              -0.06136802971581855,
+              0.9895594791675757
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8427361,
+            "drawCalls": 555
+          }
+        }
+      },
+      {
+        "viewpoint": "C_lookback",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              2.33,
+              1.45,
+              -7.67
+            ],
+            "direction": [
+              0.13040706314611447,
+              -0.06136802971581855,
+              0.9895594791675757
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8427361,
+            "drawCalls": 555
+          }
+        }
+      },
+      {
+        "viewpoint": "D_log",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0.2,
+              1.45,
+              -3
+            ],
+            "direction": [
+              0.10953219056304957,
+              0.03311438319348014,
+              -0.9934314958044038
+            ],
+            "fov": 48
+          },
+          "stats": {
+            "triangles": 8503795,
+            "drawCalls": 533
+          }
+        }
+      },
+      {
+        "viewpoint": "D_log",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0.2,
+              1.45,
+              -3
+            ],
+            "direction": [
+              0.10953219056304957,
+              0.03311438319348014,
+              -0.9934314958044038
+            ],
+            "fov": 48
+          },
+          "stats": {
+            "triangles": 8503795,
+            "drawCalls": 533
+          }
+        }
+      },
+      {
+        "viewpoint": "E_ground",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8716124,
+            "drawCalls": 651
+          }
+        }
+      },
+      {
+        "viewpoint": "E_ground",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8716124,
+            "drawCalls": 651
+          }
+        }
+      },
+      {
+        "viewpoint": "F_canopy",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              -1.96,
+              1.8,
+              4
+            ],
+            "direction": [
+              0.9721254966661625,
+              -0.06836560096623101,
+              -0.22427252024288002
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8526639,
+            "drawCalls": 624
+          }
+        }
+      },
+      {
+        "viewpoint": "F_canopy",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              -1.96,
+              1.8,
+              4
+            ],
+            "direction": [
+              0.9721254966661625,
+              -0.06836560096623101,
+              -0.22427252024288002
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8526639,
+            "drawCalls": 624
+          }
+        }
+      }
+    ]
+  },
+  "worldAfter": {
+    "originalReportSHA256": "76397c689c0a80c0b500d43e4c31f6c23cacffec4bdd705c275c3d70aab4439b",
+    "originalPath": "gauntlet/tmp/environment-1e97463-review/progress/2026-09-12_180621994-1e97463/environment.json",
+    "captures": [
+      {
+        "viewpoint": "A_stairs",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0.4,
+              1.8,
+              8.6
+            ],
+            "direction": [
+              0.4001487551488514,
+              -0.05779926463261199,
+              -0.9146257260545179
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8715553,
+            "drawCalls": 661
+          }
+        }
+      },
+      {
+        "viewpoint": "A_stairs",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0.4,
+              1.8,
+              8.6
+            ],
+            "direction": [
+              0.4001487551488514,
+              -0.05779926463261199,
+              -0.9146257260545179
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8715553,
+            "drawCalls": 661
+          }
+        }
+      },
+      {
+        "viewpoint": "B_house",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8725061,
+            "drawCalls": 652
+          }
+        }
+      },
+      {
+        "viewpoint": "B_house",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8725061,
+            "drawCalls": 652
+          }
+        }
+      },
+      {
+        "viewpoint": "C_lookback",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              2.33,
+              1.45,
+              -7.67
+            ],
+            "direction": [
+              0.13040706314611447,
+              -0.06136802971581855,
+              0.9895594791675757
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8564397,
+            "drawCalls": 556
+          }
+        }
+      },
+      {
+        "viewpoint": "C_lookback",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              2.33,
+              1.45,
+              -7.67
+            ],
+            "direction": [
+              0.13040706314611447,
+              -0.06136802971581855,
+              0.9895594791675757
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8564397,
+            "drawCalls": 556
+          }
+        }
+      },
+      {
+        "viewpoint": "D_log",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0.2,
+              1.45,
+              -3
+            ],
+            "direction": [
+              0.10953219056304957,
+              0.03311438319348014,
+              -0.9934314958044038
+            ],
+            "fov": 48
+          },
+          "stats": {
+            "triangles": 8512732,
+            "drawCalls": 534
+          }
+        }
+      },
+      {
+        "viewpoint": "D_log",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0.2,
+              1.45,
+              -3
+            ],
+            "direction": [
+              0.10953219056304957,
+              0.03311438319348014,
+              -0.9934314958044038
+            ],
+            "fov": 48
+          },
+          "stats": {
+            "triangles": 8512732,
+            "drawCalls": 534
+          }
+        }
+      },
+      {
+        "viewpoint": "E_ground",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8725061,
+            "drawCalls": 652
+          }
+        }
+      },
+      {
+        "viewpoint": "E_ground",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8725061,
+            "drawCalls": 652
+          }
+        }
+      },
+      {
+        "viewpoint": "F_canopy",
+        "variant": "baseline",
+        "state": {
+          "camera": {
+            "position": [
+              -1.96,
+              1.8,
+              4
+            ],
+            "direction": [
+              0.9721254966661625,
+              -0.06836560096623101,
+              -0.22427252024288002
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8534079,
+            "drawCalls": 624
+          }
+        }
+      },
+      {
+        "viewpoint": "F_canopy",
+        "variant": "candidate",
+        "state": {
+          "camera": {
+            "position": [
+              -1.96,
+              1.8,
+              4
+            ],
+            "direction": [
+              0.9721254966661625,
+              -0.06836560096623101,
+              -0.22427252024288002
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8534079,
+            "drawCalls": 624
+          }
+        }
+      }
+    ]
+  },
+  "detailBefore": {
+    "originalReportSHA256": "fdb3a1bcbb6111f2244710c6e4d612ac4efb9415d9d18e26f19b08fb1a154c1e",
+    "originalPath": "gauntlet/tmp/environment-711758d-review/details/2026-09-12_175613539-711758d/details.json",
+    "captures": [
+      {
+        "viewpoint": "S01-sign-front",
+        "state": {
+          "camera": {
+            "position": [
+              5.5600000000000005,
+              1.9656122505664826,
+              -7.380000000000001
+            ],
+            "direction": [
+              0.5973656869449189,
+              -0.09360430992014408,
+              -0.7964875825932246
+            ],
+            "fov": 34
+          },
+          "stats": {
+            "triangles": 8167305,
+            "drawCalls": 433
+          }
+        }
+      },
+      {
+        "viewpoint": "S02-sign-oblique",
+        "state": {
+          "camera": {
+            "position": [
+              6.970000000000001,
+              2.0856122505664825,
+              -6.510000000000001
+            ],
+            "direction": [
+              0.010620816572513906,
+              -0.15577197639686927,
+              -0.9877359412437852
+            ],
+            "fov": 40
+          },
+          "stats": {
+            "triangles": 8287489,
+            "drawCalls": 442
+          }
+        }
+      },
+      {
+        "viewpoint": "L01-stair-foot-bindings",
+        "state": {
+          "camera": {
+            "position": [
+              7.074885135840954,
+              2.6848085570335387,
+              1.7066013194030314
+            ],
+            "direction": [
+              0.9917073281210746,
+              -0.07117562918288735,
+              -0.1070075004912251
+            ],
+            "fov": 34
+          },
+          "stats": {
+            "triangles": 8269281,
+            "drawCalls": 412
+          }
+        }
+      },
+      {
+        "viewpoint": "L02-fork-west-lantern",
+        "state": {
+          "camera": {
+            "position": [
+              -0.6939256924099091,
+              1.7851106721907855,
+              -7.995494181108982
+            ],
+            "direction": [
+              -0.495828366261767,
+              -0.10695454792531445,
+              0.8618091180118013
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8395637,
+            "drawCalls": 543
+          }
+        }
+      }
+    ]
+  },
+  "detailAfter": {
+    "originalReportSHA256": "c9c80810e0e6d082151bc20835f835f18064a483ee85b4c5fd1a1b5777b13564",
+    "originalPath": "gauntlet/tmp/environment-1e97463-review/details/2026-09-12_180910927-1e97463/details.json",
+    "captures": [
+      {
+        "viewpoint": "S01-sign-front",
+        "state": {
+          "camera": {
+            "position": [
+              5.5600000000000005,
+              1.9656122505664826,
+              -7.380000000000001
+            ],
+            "direction": [
+              0.5973656869449189,
+              -0.09360430992014408,
+              -0.7964875825932246
+            ],
+            "fov": 34
+          },
+          "stats": {
+            "triangles": 8176242,
+            "drawCalls": 434
+          }
+        }
+      },
+      {
+        "viewpoint": "S02-sign-oblique",
+        "state": {
+          "camera": {
+            "position": [
+              6.970000000000001,
+              2.0856122505664825,
+              -6.510000000000001
+            ],
+            "direction": [
+              0.010620816572513906,
+              -0.15577197639686927,
+              -0.9877359412437852
+            ],
+            "fov": 40
+          },
+          "stats": {
+            "triangles": 8296426,
+            "drawCalls": 443
+          }
+        }
+      },
+      {
+        "viewpoint": "L01-stair-foot-bindings",
+        "state": {
+          "camera": {
+            "position": [
+              7.074885135840954,
+              2.6848085570335387,
+              1.7066013194030314
+            ],
+            "direction": [
+              0.9917073281210746,
+              -0.07117562918288735,
+              -0.1070075004912251
+            ],
+            "fov": 34
+          },
+          "stats": {
+            "triangles": 8275713,
+            "drawCalls": 412
+          }
+        }
+      },
+      {
+        "viewpoint": "L02-fork-west-lantern",
+        "state": {
+          "camera": {
+            "position": [
+              -0.6939256924099091,
+              1.7851106721907855,
+              -7.995494181108982
+            ],
+            "direction": [
+              -0.495828366261767,
+              -0.10695454792531445,
+              0.8618091180118013
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "triangles": 8532673,
+            "drawCalls": 544
+          }
+        }
+      }
+    ]
+  }
+}
