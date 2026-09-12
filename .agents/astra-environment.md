@@ -84,5 +84,35 @@ This repair temporarily restores7ffe416 fog so the first complete twelve-image c
 be a true light-only comparison. The depth study will be re-applied for the next actual capture,
 with matching geometry and cameras. No appearance acceptance from failed/partial output.
 
+## Reference integration and world review
+
+All ten960px JPEG previews are published at agent/astra-owner-reference-previews, commit
+f5ef8bad071ace0c0426c70848619f6504f93797; tree da58bac7893b439f6a89851b060aa5d83dfbd212
+and each image/document blob verified. This merge deliberately includes that exact reference
+folder. They are clearly labeled compressed comparisons, not original PNG bytes or game renders.
+Exact originals were delivered to the owner as a verified36,516,933-byte ZIP; SHA256
+0c0dd850b99727cea5d350c48d83f6fa47a0cf52fd9dabf77680eadcb26949fc. Full PNG GitHub upload
+remains pending after large-payload timeouts. Owner explicitly authorized reference publication.
+
+Root personally viewed actual take0062 A/B/D from monitor7515c7b. The monitor makes quality82JPEG
+derivatives from the attestedbb08ebc PNGs, so these JPEG hashes are not the ledger PNG hashes.
+Independent source/camera ray review identifies B's pale inner taper as terrain-raised room floor
+faces1556/1559 at pixels(995,355)/(1002,371), not outer roots; upper patches hit the back wall.
+The deeper hearth assembly is buried. Coarse roof displacement/bright colour and retained thatch
+normal give angular pale clumps; looping support-boughs remain too regular. All findings were
+sent to Fable in PR2 comments5644600827/5644605909/5644684138. Fable retains these geometry fixes.
+No W25 pass, new score or completed visual target is asserted. Geometry changes aftere17 remain
+unintegrated here while light/depth pairs retain the same geometry.
+
+Root also fixes a concrete lighting inconsistency: ray brightness now follows actual directional
+sun intensity, normalized at the prior3.1 calibration. Zero sun gives zero sun shafts; the same
+shadow-map visibility still decides where rays appear. Audits retain the actual key and scale.
+The ordinary3.1 key keeps its previous ray brightness. Combined typecheck/build pass103modules.
+
+Fixed baseline run34682349834 onf6a33ea is pending behind atmospheric study23ea's ongoing run.
+Avoid another source push until that fixed baseline starts, because GitHub concurrency keeps
+only one pending run. The preserved23ea study may itself complete; inspect actual results before
+reapplying the fog values. No background schedules are created.
+
 ## Last updated
-2026-09-12T08:03:13.125106+00:00
+2026-09-12T08:19:05.261403+00:00

@@ -607,6 +607,11 @@ export function createComposer(opts: ComposerOptions): Composer {
   const camDir = new Vector3();
   const sunWorld = new Vector3();
   const prevClear = new Color();
+  // Existing ray gains were authored with the directional key at intensity 3.1.
+  // Preserve that look at the calibration point, but let the actual key control
+  // its scattered light too: an extinguished sun must not leave glowing shafts.
+  const rayCalibrationSunIntensity = 3.1;
+  let renderedSunIntensity = 0;
 
   renderer.info.autoReset = false;
 
@@ -629,7 +634,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     const len = Math.hypot(dx, dy);
     const maxR = 4.0;
     if (len > maxR) sunUv.set(0.5 + (dx / len) * maxR, 0.5 + (dy / len) * maxR);
-    rayIntensity.value = s.rayIntensity;
+    renderedSunIntensity = Math.max(0, opts.sun()?.intensity ?? 0);
+    rayIntensity.value = s.rayIntensity * renderedSunIntensity / rayCalibrationSunIntensity;
   };
 
   // Audit the controls used by the most recently rendered frame, including
@@ -952,6 +958,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRaySteps: 24,
       godRayResolution: [qw, qh],
       godRayStrength: rayIntensity.value,
+      godRaySunIntensity: renderedSunIntensity,
+      godRaySunScale: renderedSunIntensity / rayCalibrationSunIntensity,
       godRayBackScatterMin: fog.rayBackScatterMin,
       godRayExtinctionPerM: lastFrameSettings.rayExtinction,
       godRayMaxDistM: lastFrameSettings.rayMaxDist,
