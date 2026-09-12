@@ -36,3 +36,21 @@ before actual captures arrive.
 Reducing light energy will not create missing membrane veins or texture the green sepals.
 A separately owned original emissive atlas may be considered after this result; it would address
 body variation only and would require explicit material/texture disposal, not a shared-map edit.
+
+## Actual ab7796 result — retained
+
+All 12 world and four detail captures pass source/audit/geometry/depth/program/budget checks,
+with actual postLightIntensities [1.2,1.2] and zero retries. Root reviewed F/D and L01/L02;
+independent review covers every world/detail view. Rope and lit wood are visibly quieter,
+while amber bodies remain bright and legible. Thin golden leaf edges remain; this is a
+reduction in overlighting, not a complete solution to their material response.
+
+Fixed L01 display regions change in mean luminance: rope 141.3 to 96.5, wood 80.0 to 51.8;
+the edge region's brightest old decile changes 238.0 to 202.8. The lower amber body remains
+186.4 to 185.7 (L02 188.2 to 187.9). These are mixed JPEG regions on the 0–255 display scale,
+not isolated emission or linear radiance measurements. Global sunlit paving stays warm.
+All geometry, resource/program counts and draw/triangle totals remain unchanged from 84ec.
+
+Named galleries on captures/astra-environment:
+`progress/2026-09-12_160641321-ab7796e` and `details/2026-09-12_160930279-ab7796e`.
+The new membrane atlas is absent from these independently pinned control images.

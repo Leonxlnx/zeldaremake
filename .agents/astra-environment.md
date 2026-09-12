@@ -7,40 +7,42 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Published post-light trial ab7796ef928defa0e2beec5150ffcf0ba6de398c, tree
-6501b3d91c06a3f14d2e78f3c011fcecc8418d67, parent 84ecde9. Exactly the two post PointLights
-change 3.2 to 1.2 and one real postLightIntensities audit is added; emission, geometry and all
-shared lamps remain unchanged. Typecheck/build and executable-boundary check pass. PR2 comment
-5646992419 records the source; actual comparison against original-strength 84ec is running.
+Published hedge surface source 6686b0b5c4383d2202f1c57ae70290b8efbe98d6, tree
+57feb2f3fe23da47c3707938aa16f78f1633359f, parent ab7796e. Its run 34704061998 is confirmed
+in progress; the distinct post-energy control was fully rendered first. Actual leaf-detail
+appearance remains pending. Existing material suite/typecheck/build and source boundary pass.
 
-Current next trial: hedge-only antialiased UV midrib and four secondary vein pairs. Existing
-leaf tags isolate laminae; derivative filtering and an 18–24 m fade avoid unresolved frequencies.
-No texture, bump, geometry, layout, RNG, LOD, wind or shadow changes. The .65 hemisphere response
-stays exact. Source mean contrast is near neutral, not a display brightness prediction. Root
-revisited original board05. At near-F footprints most leaves support only the midrib; actual
-captures must establish useful detail without grainy edge-on leaves. PR2 comment 5646996750
-announces the exact materials.ts + one plants.ts option scope before production edits.
+Current next trial: original branching membrane emissive atlas for the two post pods. One
+256-square owned texture, one material clone shared by those pods and a UV-band gate prevent
+coarse mips from lighting opaque bindings. Existing 1.2 point lights, body mean emission,
+geometry/rig/swing/RNG and shared lamp files stay unchanged. Minimal index routing/disposal
+was announced in PR2 comment 5647059948 before edits. Root read the complete frozen proposal,
+viewed its texture swatch and original board05; no swatch is represented as a game render.
+The patch is pinned to published ab7796e, whose relevant structure files remain exact at 6686b0b.
 
-All 84ec actual 12+4 contracts pass with zero retries/final errors/warnings. Root reviewed A/B/F
-and L01; helper all views. Upper air and shaded paving read cooler while sunlight stays warm,
-with no obvious cyan veil/horizon seam. Retained. All geometry/depth/camera/gain controls,
-resources/programs and budgets match 2e9; only the two atmosphere endpoint audits differ.
-All eight preview targets, history bytes and source/image ZIPs verified. Roof remains yellow
-and smooth (Fable), post rims bright in this original-strength control.
+Root reviewed actual ab7796 F/D and L01/L02. Local post/rope light is quieter, amber bodies
+remain clear, and world sunlit paving stays warm. Retain intensity 1.2. Thin bright rims remain;
+this is not a claim that all non-body highlights are resolved. All 12 macro source/audit/depth/
+resource/budget checks pass, reporting real postLightIntensities [1.2,1.2]. Final detail/ZIP
+verification is finishing. The atlas is a subsequent independent surface-detail experiment.
 
-All 2e9 actual 12+4 contracts pass. Undersides become modestly greener; geometry, depth, packing
-and calls/triangles match d41. D and S01/S02 JPEGs identical; sparse wood pixel residuals preclude
-pixel-exact wood isolation despite the exact source mask. Character stays paused for Blender.
+All 84ec actual 12+4 contracts pass with zero retries/errors/warnings. Cooler upper air and
+shaded paving with retained warm key are accepted; roof and broad gray distant layers remain
+unfinished. All 2e9 actual 12+4 contracts also pass: modestly greener hedge undersides with exact
+geometry/depth/packing/cost. Historical galleries and source/image ZIPs remain independently
+pinned; no current worktree changes are substituted for their actual captured sources.
 
 ## Files / systems being touched
-- Root: vegetation/materials.ts, one plants.ts option, existing material contracts, own log/reviews.
-  Published post-light source remains pinned independently for its actual capture.
+- Root: new structures/postPodMaterial.ts and ownership test, minimal structures/index.ts
+  routing/disposal, CI test invocation, own log/reviews. Hedge capture remains independently pinned.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
-- World helper: hedge proposal complete; read-only review of existing props visibility/contact.
-  No house/roof/hardscape source changes or uncoordinated prop relocation.
-- Prop helper: scratch-only original owned pod membrane atlas proposal, explicit resource disposal;
-  no production changes or acceptance before the separate light trial.
+- World helper: frozen scratch-only crate surface proposal; original contact/geometry/program
+  checks pass. Ordinary root occlusion is not a supported collision defect; no relocation.
+- Prop helper: frozen atlas and explicit ownership/disposal contract complete; independent
+  actual post-energy closeup review finishing.
+- Shadow helper: read-only diagnosis of dark near grass; checking blade normal/DoubleSide behavior
+  against actual pixels. No grass/lighting production edits or density/layout overlap.
 - Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
 
 ## Partner state / coordination
@@ -63,7 +65,8 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
-| ab7796e | Isolated post PointLight 3.2 to 1.2 + real audit; actual capture pending. |
+| 6686b0b | Hedge-only filtered midrib/four veins; actual capture running. |
+| ab7796e | Actual world/L01/L02 review: quieter post/rope light, amber retained; keep 1.2. All 12 macro contracts pass; final details/ZIPs finishing. |
 | 84ecde9 | Actual 12+4 pass: cooler air/shaded paving, warm sun retained, no obvious cyan veil/seam; unchanged cost/depth. Retained. |
 | 2e9c19f | Actual 12+4 pass: modest greener hedge undersides, unchanged geometry/depth/calls/triangles; 0 retries/errors/warnings. |
 | d41b354 | Actual 12+4 verified: active grain, denser planting, all under budget, separate seated pod leaves. Zero retries/errors/warnings. |
@@ -108,7 +111,7 @@ The scene remains materially below owner references. House cap/support silhouett
 foreground plant forms/density, flat column/sleeve shading, restrained but weak light shafts,
 and shallow sign engraving remain visible weaknesses. Fable owns roof and hardscape foreground improvements.
 Narrower pod sepals now read individually in actual L01/L02; fine veins remain weak and
-thin bright edge/tie highlights persist. Near hedge undersides improve modestly; internal surface detail remains weak.
+thin bright edge highlights persist; intensity 1.2 quiets broader post/rope illumination. Near hedge undersides improve modestly; internal surface detail remains weak.
 Gain 3 is a verified modest improvement, not prominent reference-like beams. Existing texture grain cannot
 substitute for the references' irregular silhouettes, moss thickness and planted fissures.
 Character is a placeholder; paused character branch/worktree is preserved for local Blender.
@@ -133,8 +136,8 @@ Detailed earlier chronology is preserved in `docs/reviews/astra-environment-hist
 
 ## Suggested parallel tasks
 Fable: publish the active roof/support pass and hardscape lawn work, with exact source and overlap.
-Astra: review actual post-light response and the subsequent isolated hedge surface study.
-Continue source-based prop diagnosis and integrate Fable's roof/hardscape when published.
+Astra: finish actual hedge review, publish and review the separate pod atlas, then consider
+crate grain and the grass-normal diagnosis. Integrate Fable's roof/hardscape when published.
 
 ## Last updated
-2026-09-12T16:00:19.804549+00:00
+2026-09-12T16:14:58.747328+00:00
