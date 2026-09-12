@@ -143,6 +143,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseLanterns,
     branchLanterns: branch.lanterns.length,
     lanternBranch: branch.lanterns.length >= 3,
+    /** the sleeve's centreline: the trees' published limb path ('shared') or the layout axis ('layout') */
+    branchWrapSource: branch.wrapSource,
+    /** giant limb surface vs sleeve: max protrusion (m, ≤ 0 = the limb is inside the sleeve) */
+    branchContainment: branch.containment,
+    /** world centres of the bough's pods (project to A: tuned y ≈ 0.40–0.41) */
+    branchPodPositions: branch.podPositions,
+    /** sleeve top / bottom surface points along the bough for projected-thickness checks */
+    branchSilhouette: branch.silhouette,
     logLanterns: log.lanterns.length,
     signposts: signposts.length,
     fences: fences.length,

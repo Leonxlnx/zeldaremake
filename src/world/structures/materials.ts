@@ -21,6 +21,7 @@ import {
   type WebGLProgramParametersWithUniforms,
 } from 'three';
 import type { WorldContext } from '../system';
+import { GIANT_BARK_FLOOR, applyShadeFloor } from '../materials/shadeFloor';
 import { WIND_GLSL } from '../wind/wind';
 
 export interface StructureMaterials {
@@ -516,6 +517,16 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
   const runes = new MeshStandardMaterial({ map: runeTexture(rng), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
+
+  // Shade floor (materials/shadeFloor.ts) on every bark that stands against the giants — the
+  // lantern limb's sleeve, the house trunk / roots / porch / eave roll / support boughs, the
+  // lantern posts and rope-fence posts (all `bark`), the pale draped limbs and the log arch: the
+  // reference's shaded wood is the same hazed grey-green everywhere, where a Lambert response to
+  // the hemisphere alone leaves these dark orange-brown. The floor only lifts faces below it, so
+  // the sunlit rims are untouched. Applied last: these materials have no other compile hooks, and
+  // `applyShadeFloor` chains onto whatever hook a material already carries; clones would need
+  // their own call (none of these are cloned).
+  for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, GIANT_BARK_FLOOR, P.leafSun);
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
   return { bark, barkPale, logBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, runes, endGrain, texturedSets };

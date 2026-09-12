@@ -146,6 +146,22 @@ const LANTERNS: Record<string, LanternSpec[]> = {
   ],
 };
 
+/**
+ * Crown height multiplier on the cap's bare-shell crown (rim and door fixed). Reference A has
+ * Saria's moss cap sitting low behind the stair bank (top at frame y ≈ 0.18, x 0.55–0.95) and F a
+ * low broad cap; ours read taller in both. Round 10 A/B over ×1.0 / ×0.97 / ×0.90 / ×0.83 on one
+ * tree (A + B + F, SSIM full and by half, 256×144 vs the reference frames) kept the current height:
+ *   scale  combined full  combined upper   (A / B / F full)
+ *   ×1.00  0.7749         1.0739           0.2757 / 0.2364 / 0.2629
+ *   ×0.97  0.7717         1.0674           0.2748 / 0.2357 / 0.2612
+ *   ×0.90  0.7727         1.0691           0.2740 / 0.2358 / 0.2629
+ *   ×0.83  0.7713         1.0665           0.2755 / 0.2327 / 0.2630
+ * Only the cap crown moved (door and threshold identical in all four B frames; the thatch top edge
+ * in B drops from y 0.136 to 0.151 / 0.208 / 0.214). No variant beat ×1.0 on any view beyond
+ * +0.0001; the largest loss was B's upper half at ×0.83 (0.3516 → 0.3442).
+ */
+const CROWN_SCALE = 1.0;
+
 /** Blend a moss tint into a swept branch's vertex colours on its upward-facing side. */
 function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: number, noise: Noise2D): BufferGeometry {
   const pos = geo.attributes.position;
@@ -239,8 +255,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lipTop = eaveY + 2 * lipR;
   /** cap crown of the bare shell (moss lumps and leaf clumps add ~0.4 m on top); reference B's
    *  dome is a tall mound — at frame x 0.72–0.80 its sunlit moss runs from the eave (y 0.26) up to
-   *  y 0.13, twice the height of a 0.83 crown; header estimate crown ≈ 6–6.5 m */
-  const crownY = def.roofHeight * 0.97;
+   *  y 0.13, twice the height of a 0.83 crown; header estimate crown ≈ 6–6.5 m. The rim (eave,
+   *  lip) and the door are fixed; `CROWN_SCALE` moves the crown alone (round 10 A/B, see below). */
+  const crownY = def.roofHeight * 0.97 * CROWN_SCALE;
   /** outer radius of the lip: heavier overhang at the front (over the porch) than at the back */
   const capR = (a: number) => R * (1.3 + 0.13 * Math.cos(a));
   /** trunk wall top, hidden under the cap */

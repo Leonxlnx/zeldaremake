@@ -9,19 +9,27 @@
  * its upper side, side twigs with leaf sprigs, vines hanging, and the lamps grouped on short
  * cords right under it (the owner's sheet 01 "Branch bridge" is the finish reference). This
  * module dresses the giant's limb between `from` and `to` without moving it:
- *   - a bark SLEEVE swept around the limb's mean axis whose cross-section envelops the giant's
- *     random wiggle box (±0.12 m across, ±0.05 m vertically) plus its bark bumps and a 1.5 cm
- *     margin, sagging below it in three knees, with ridged bark raised outward; the sleeve tapers
- *     into the limb at both ends, so the giant's own bark carries on toward the trunk and past
- *     the tip;
+ *   - a bark SLEEVE swept along the limb's BUILT centreline — the trees system publishes the
+ *     sweep's own ring centres and nominal radii as `ctx.shared.lanternLimb` (a `TubePath`; s = 0
+ *     at `from`, 1 at `to`, wiggle and sag included) — with a circular section of the limb's
+ *     radius plus a 1.5 cm bark relief in the plane normal to the local tangent, sagging below
+ *     it in three knees, with ridged bark raised outward; the sleeve tapers into the limb at both
+ *     ends, so the giant's own bark carries on toward the trunk and past the tip. Until round 10
+ *     the sleeve was a straight tube around the layout axis whose section had to enclose the
+ *     whole wiggle box (±0.12 m across, ±0.05 m vertically) plus a bump allowance, and it read in
+ *     shot B as a heavy dark beam ~1.7 × the limb; the reference limb there is ~0.4 m thick under
+ *     dense foliage. When the trees have not published the path (`lanternLimb` undefined) the
+ *     sleeve falls back to the layout axis with the giant builder's nominal sag and radius taper
+ *     (audit `wrapSource`: 'shared' | 'layout');
  *   - textured moss sheets draped over the top, fraying down the flank that faces the cameras;
  *   - a fork stub and three side twigs tipped with shaded leaf sprigs;
  *   - ferns and grass tufts on the moss, vines hanging from the underside;
- *   - the three pod lanterns on 0.5–0.7 m cords from the knees' undersides.
+ *   - the three pod lanterns on cords from the knees' actual undersides, cord lengths set so the
+ *     pods keep their tuned shot-A screen heights (y ≈ 0.40–0.41; reference 0.38–0.50).
  * The endpoints and radii are the layout's, so the W01 projection is unchanged.
  */
 import { CatmullRomCurve3, Group, Mesh, PointLight, Vector3 } from 'three';
-import type { WorldContext } from '../system';
+import type { TubePath, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, faceTowards, gridSurface, merge, sweepTube } from './geometry';
@@ -34,24 +42,59 @@ export interface LanternBranchBuild {
   lanterns: LanternRig[];
   lights: PointLight[];
   leaves: number;
+  /** which centreline the sleeve was swept along */
+  wrapSource: 'shared' | 'layout';
+  /** containment of the giant's limb surface inside the sleeve (see `checkContainment`) */
+  containment: ContainmentReport;
+  /** world positions of the three pods' glowing centres (projected by the gauntlet to check the A heights) */
+  podPositions: [number, number, number][];
+  /** sleeve silhouette samples [s, top, bottom] (world, the ψ = 0 / ψ = π surface points) for thickness checks */
+  silhouette: { s: number; top: [number, number, number]; bottom: [number, number, number]; radius: number }[];
+}
+
+export interface ContainmentReport {
+  /** limb-surface samples taken over the sleeve's full span (s 0.1–0.93) */
+  samples: number;
+  /** max signed distance of a nominal-radius limb-surface point outside the sleeve surface (m); ≤ 0 = contained */
+  maxProtrusion: number;
+  /** the same for the limb's bark bumps (1.10 × the nominal radius, the measured relief of the giant's tube) */
+  maxProtrusionBumps: number;
+  /** mean clearance of the nominal limb surface inside the sleeve (m) */
+  meanClearance: number;
+  /** in the taper zones (s < 0.1, s > 0.93) the sleeve dips inside the limb by design: max protrusion there */
+  taperMaxProtrusion: number;
 }
 
 const UP = new Vector3(0, 1, 0);
+/** bark relief the sleeve stands off the limb's nominal surface (m); its ridges rise outward from there */
+const RELIEF = 0.015;
+/** finite-difference half-step (in s) for the sleeve's local tangent: ~0.12 m, a third of a limb
+ *  ring spacing, so the frame is a running average over the published polyline's kinks */
+const TANGENT_H = 0.02;
 
 // Reference frame 1 s: the pods hang grouped over the plaza's west edge at screen x 0.08–0.26;
 // at t 0.1 the outer pod fell off A's left edge (x −0.05) and the row read widely spaced (W14
 // review). The third sits toward the trunk end, outside B, C and D.
 const LANTERN_T = [0.68, 0.9, 0.45];
 const BRANCH_POD_SCALE = 0.62;
-/** short cords (W14): frame 1 s hangs the lamps grouped close under the bough; 0.5–0.7 m, where
- *  the 1–1.2 m cords read as a widely spaced row far below a smooth limb */
-const CORDS = [0.62, 0.655, 0.59]; // shortened with the wider sleeve so the pods keep their tuned A screen heights (0.5-0.7 m spec)
-/** knees: where the sleeve's underside sags below the giant's limb (s along from→to, metres,
- *  half-width in s); the two outer pods hang from the second and third */
+/**
+ * Cord lengths (m) per LANTERN_T entry. The pods' tuned shot-A screen heights (y ≈ 0.40–0.41,
+ * reference 0.38–0.50) were set with the straight sleeve on 0.59–0.66 m cords; its underside hung
+ * 0.05–0.12 m below the limb's, so with the knees hanging from the limb's actual underside the
+ * cords are longer by that much and the pods stay put — round 10 A/B on one tree: control pod
+ * glows at A (0.159, 0.414) / (0.247, 0.412) / (0.069, 0.398), wrapped sleeve on 0.72 / 0.70 /
+ * 0.71 m cords at (0.158, 0.409) / (0.248, 0.414) / (0.071, 0.403); the residual ±0.005 of frame
+ * is ±5 cm of cord at 12 m, corrected here.
+ */
+const CORDS = [0.77, 0.68, 0.66];
+/** knees: where the sleeve's underside sags below the giant's limb (s along from→to, sag as a
+ *  multiple of the local sleeve radius so they scale with the limb's taper — 0.17 / 0.14 / 0.11 m
+ *  on the old 0.46 / 0.39 / 0.32 m envelope — and half-width in s); the two outer pods hang from
+ *  the second and third */
 const KNEES = [
-  { s: 0.22, sag: 0.17, w: 0.11 },
-  { s: 0.46, sag: 0.14, w: 0.09 },
-  { s: 0.69, sag: 0.11, w: 0.08 },
+  { s: 0.22, sag: 0.37, w: 0.11 },
+  { s: 0.46, sag: 0.36, w: 0.09 },
+  { s: 0.69, sag: 0.34, w: 0.08 },
 ];
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
@@ -65,54 +108,76 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   const len = span.length();
   /** horizontal unit vector across the limb; +side faces cameras A and B */
   const side = new Vector3(-dir.z, 0, dir.x).normalize();
-  /** cross-section basis: e1 across, e2 "up" (⟂ dir) — ψ = 0 is the top, +ψ turns toward the cameras */
-  const e1 = side;
-  const e2 = new Vector3().crossVectors(side, dir).normalize();
-  if (e2.y < 0) e2.negate();
-  const radial = (psi: number, out = new Vector3()) => out.set(0, 0, 0).addScaledVector(e2, Math.cos(psi)).addScaledVector(e1, Math.sin(psi));
 
-  /** the giant builder's limb: radius taper and shallow sag along from→to (its random side and
-   *  vertical wiggle is absorbed by the sleeve's envelope below) */
+  /** the giant builder's limb as published (its rings' centres and nominal radii), or the layout
+   *  axis with the builder's nominal sag and taper when the trees have not published it */
+  const limb: TubePath | undefined = ctx.shared.lanternLimb;
+  const wrapSource: 'shared' | 'layout' = limb ? 'shared' : 'layout';
   const r0 = def.radius ?? 0.42;
   const r1 = def.tipRadius ?? 0.16;
-  const limbRadius = (s: number) => r0 + (r1 - r0) * Math.pow(clamp(s, 0, 1), 0.85);
+  const nominalRadius = (s: number) => r0 + (r1 - r0) * Math.pow(clamp(s, 0, 1), 0.85);
   const limbAxis = (s: number, out = new Vector3()) => out.copy(from).addScaledVector(span, s).addScaledVector(UP, -0.16 * Math.sin(Math.PI * s));
+  const limbRadius = (s: number) => (limb ? limb.radius(clamp(s, 0, 1)) : nominalRadius(s));
+  /** the sleeve's axis IS the limb's centreline; the knees swell its underside only (egg sections) */
+  const spine = (s: number, out = new Vector3()) => (limb ? limb.centre(clamp(s, 0, 1), out) : limbAxis(s, out));
+
+  /**
+   * Cross-section frame at s: e1 across (horizontal, +toward cameras A/B), e2 "up", both normal
+   * to the local tangent — ψ = 0 is the top, +ψ turns toward the cameras. The published
+   * centreline is a polyline through the rings, so the tangent is a central difference over
+   * ±TANGENT_H, which keeps the frame continuous across the ring kinks; the residual tilt of the
+   * section against the true local normal plane is ≤ 5°, a second-order (< 2 mm) containment
+   * error that the 1.5 cm relief absorbs.
+   */
+  const _tA = new Vector3();
+  const _tB = new Vector3();
+  const _T = new Vector3();
+  const _e1 = new Vector3();
+  const _e2 = new Vector3();
+  const frameAt = (s: number) => {
+    const sc = clamp(s, 0, 1);
+    spine(Math.min(1, sc + TANGENT_H), _tA);
+    spine(Math.max(0, sc - TANGENT_H), _tB);
+    _T.subVectors(_tA, _tB);
+    if (_T.lengthSq() < 1e-12) _T.copy(dir);
+    else _T.normalize();
+    _e1.set(-_T.z, 0, _T.x);
+    if (_e1.lengthSq() < 1e-12) _e1.copy(side);
+    else _e1.normalize();
+    _e2.crossVectors(_e1, _T).normalize();
+    if (_e2.y < 0) _e2.negate();
+    return { e1: _e1, e2: _e2, t: _T };
+  };
+  const radial = (s: number, psi: number, out = new Vector3()) => {
+    const f = frameAt(s);
+    return out.set(0, 0, 0).addScaledVector(f.e2, Math.cos(psi)).addScaledVector(f.e1, Math.sin(psi));
+  };
 
   const noise = new Noise2D(`${ctx.config.seed}/lantern-branch/bark`);
-  const knee = (s: number) => KNEES.reduce((a, k) => a + k.sag * Math.exp(-(((s - k.s) / k.w) ** 2)), 0);
-  /** the sleeve's axis is the limb's mean axis; the knees swell its underside only (egg sections) */
-  const spine = (s: number, out = new Vector3()) => limbAxis(s, out);
   /** the sleeve is full over s 0.1–0.93 and tapers back inside the limb over the first and last
    *  tenth, so the giant's own bark carries on toward the trunk and past the tip */
   const emerge = (s: number) => smoothstep(0, 0.1, s) * smoothstep(1, 0.93, s);
-  /**
-   * The sleeve's inner envelope. The giant's limb rings wander off the layout axis with a random
-   * phase — ±0.12·sin πs across (`side`) and ±0.05·sin πs vertically — and their bark ridges and
-   * gnarl bumps reach 1.10 × the nominal radius (measured on the built limb, gauntlet round 9c:
-   * the straight sleeve with a flat 1.5 cm margin left the limb up to 9 cm outside it). A circle
-   * of radius R whose centre may sit anywhere in that box is contained by R + a|sin ψ| + b|cos ψ|
-   * (the box's support function), so the sleeve grows mostly in depth — along `side`, i.e. toward
-   * and away from cameras A/B, where it does not show — and only the 5 cm vertical wiggle plus the
-   * bump allowance and the 1.5 cm margin thicken its silhouette.
-   */
-  const envelope = (s: number, psi: number) => {
-    const wiggle = Math.sin(Math.PI * clamp(s, 0, 1));
-    const full = limbRadius(s) * 1.12 + wiggle * (0.12 * Math.abs(Math.sin(psi)) + 0.05 * Math.abs(Math.cos(psi))) + 0.015;
-    return lerp(limbRadius(s) * 0.85, full, emerge(s));
-  };
+  /** the sleeve's inner envelope: the limb's own radius plus the bark relief — no wiggle box, the
+   *  axis already follows the built limb — tapering to 0.85 × the limb inside the end zones */
+  const envelope = (s: number) => lerp(limbRadius(s) * 0.85, limbRadius(s) + RELIEF, emerge(s));
   /** mean sleeve radius (UV scale) */
-  const sleeveBase = (s: number) => envelope(s, Math.PI / 4);
+  const sleeveBase = (s: number) => envelope(s);
+  const knee = (s: number) => KNEES.reduce((a, k) => a + k.sag * envelope(k.s) * Math.exp(-(((s - k.s) / k.w) ** 2)), 0);
   /** sleeve surface radius: bark ridges (fluting along the limb) and metre-scale gnarl, both
-   *  raised OUTWARD from the envelope (0–14 %) so the texture never dips inside it, plus the
+   *  raised OUTWARD from the envelope (0–16 %) so the texture never dips inside it, plus the
    *  knees' bellies hanging from the lower half */
   const sleeveR = (s: number, psi: number) => {
     const ridge = noise.ridged(psi * 1.3 + s * 2, s * 11 + 2, 2);
     const gnarl = noise.noise(s * 4 + 7, psi * 0.7) + 1;
     const belly = Math.pow(smoothstep(0.15, 1, 0.5 - 0.5 * Math.cos(psi)), 1.4);
-    return envelope(s, psi) * (1 + 0.09 * ridge + 0.035 * gnarl) + knee(s) * belly * emerge(s);
+    return envelope(s) * (1 + 0.09 * ridge + 0.035 * gnarl) + knee(s) * belly * emerge(s);
   };
   const _rad = new Vector3();
-  const surface = (s: number, psi: number, lift: number, out = new Vector3()) => spine(s, out).addScaledVector(radial(psi, _rad), sleeveR(s, psi) + lift);
+  const surface = (s: number, psi: number, lift: number, out = new Vector3()) => {
+    const r = sleeveR(s, psi) + lift;
+    radial(s, psi, _rad);
+    return spine(s, out).addScaledVector(_rad, r);
+  };
 
   // ---- bark sleeve ----
   const mossFringe = (s: number, psi: number) => {
@@ -185,7 +250,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     [0.84, 0.5],
   ]) {
     const base = surface(s0, psi0, -0.05);
-    const heading = radial(psi0).multiplyScalar(0.6).addScaledVector(UP, 0.75).addScaledVector(dir, (twigRng() - 0.5) * 0.6).normalize();
+    const heading = radial(s0, psi0).multiplyScalar(0.6).addScaledVector(UP, 0.75).addScaledVector(dir, (twigRng() - 0.5) * 0.6).normalize();
     const l = 0.55 + twigRng() * 0.3;
     const pts = [base.clone().addScaledVector(heading, -0.1), base, base.clone().addScaledVector(heading, l * 0.55).add(jit(0.1)), base.clone().addScaledVector(heading, l).addScaledVector(UP, 0.08)];
     const twig = sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
@@ -238,7 +303,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       },
       { cols: 12, rows: 9 },
     );
-    faceTowards(sheet, (p, o) => o.copy(p).addScaledVector(radial(psiTop + 0.5 * drop), 4));
+    faceTowards(sheet, (p, o) => o.copy(p).addScaledVector(radial(s0, psiTop + 0.5 * drop), 4));
     sheetParts.push(sheet);
   }
   const sheetMesh = new Mesh(merge(sheetParts), mats.moss);
@@ -253,7 +318,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     const s = lerp(0.12, 0.92, (i + vegRng()) / 9);
     const psi = (vegRng() - 0.4) * 1.3;
     const pos = surface(s, psi, 0.03);
-    const nrm = radial(psi).addScaledVector(UP, 0.4).normalize();
+    const nrm = radial(s, psi).addScaledVector(UP, 0.4).normalize();
     foliage.addTuft(pos, nrm, 0.22 + vegRng() * 0.12, i % 3 === 2 ? 0 : 1, 0.06, topShade);
   }
 
@@ -305,5 +370,95 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   group.add(light);
   lights.push(light);
 
-  return { group, lanterns, lights, leaves: foliage.leafCount };
+  // ---- verification data for the audit ----
+  /**
+   * Signed distance of a world point outside the sleeve surface, measured in the sleeve's own
+   * section: find the s whose section plane (normal = local tangent) holds the point, then compare
+   * its radial distance with the sleeve radius in that direction. Positive = outside the sleeve.
+   */
+  const _q = new Vector3();
+  const _c = new Vector3();
+  const outsideSleeve = (p: Vector3, sGuess: number) => {
+    let s = clamp(sGuess, 0, 1);
+    for (let it = 0; it < 12; it++) {
+      const f = frameAt(s);
+      spine(s, _c);
+      _q.subVectors(p, _c);
+      const along = _q.dot(f.t);
+      if (Math.abs(along) < 1e-5) break;
+      // the polyline's speed |dspine/ds| ≈ len; step s to zero the along-tangent component
+      s = clamp(s + along / len, 0, 1);
+    }
+    const f = frameAt(s);
+    spine(s, _c);
+    _q.subVectors(p, _c);
+    const a = _q.dot(f.e2);
+    const b = _q.dot(f.e1);
+    const psi = Math.atan2(b, a);
+    const radialDist = Math.hypot(a, b);
+    return radialDist - sleeveR(s, psi);
+  };
+  /**
+   * Sample the giant's limb surface — centre(s) + radius(s) in the plane normal to the limb's own
+   * local tangent (the published polyline's segment direction) — and report how far outside the
+   * sleeve it reaches. 200 samples over the full-sleeve span s ∈ [0.1, 0.93] (deterministic
+   * stratified s, golden-angle ψ), 60 more in the taper zones where the sleeve dips inside the
+   * limb by design.
+   */
+  const _lt = new Vector3();
+  const _la = new Vector3();
+  const _lb = new Vector3();
+  const _n1 = new Vector3();
+  const _n2 = new Vector3();
+  const _p = new Vector3();
+  const limbSurfacePoint = (s: number, phi: number, scale: number, out: Vector3) => {
+    spine(Math.min(1, s + 1e-3), _la);
+    spine(Math.max(0, s - 1e-3), _lb);
+    _lt.subVectors(_la, _lb);
+    if (_lt.lengthSq() < 1e-14) _lt.copy(dir);
+    else _lt.normalize();
+    _n1.set(-_lt.z, 0, _lt.x).normalize();
+    _n2.crossVectors(_n1, _lt).normalize();
+    spine(s, out);
+    const r = limbRadius(s) * scale;
+    return out.addScaledVector(_n1, Math.sin(phi) * r).addScaledVector(_n2, Math.cos(phi) * r);
+  };
+  const checkContainment = (): ContainmentReport => {
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    let maxProtrusion = -Infinity;
+    let maxProtrusionBumps = -Infinity;
+    let clearance = 0;
+    const N = 200;
+    for (let i = 0; i < N; i++) {
+      const s = lerp(0.1, 0.93, (i + 0.5) / N);
+      const phi = i * golden;
+      const d = outsideSleeve(limbSurfacePoint(s, phi, 1, _p), s);
+      maxProtrusion = Math.max(maxProtrusion, d);
+      clearance += -d;
+      maxProtrusionBumps = Math.max(maxProtrusionBumps, outsideSleeve(limbSurfacePoint(s, phi, 1.1, _p), s));
+    }
+    let taperMaxProtrusion = -Infinity;
+    for (let i = 0; i < 60; i++) {
+      const s = i < 30 ? lerp(0, 0.1, (i + 0.5) / 30) : lerp(0.93, 1, (i - 30 + 0.5) / 30);
+      taperMaxProtrusion = Math.max(taperMaxProtrusion, outsideSleeve(limbSurfacePoint(s, i * golden, 1, _p), s));
+    }
+    const mm = (v: number) => Math.round(v * 1e4) / 1e4;
+    return { samples: N, maxProtrusion: mm(maxProtrusion), maxProtrusionBumps: mm(maxProtrusionBumps), meanClearance: mm(clearance / N), taperMaxProtrusion: mm(taperMaxProtrusion) };
+  };
+  const silhouette = [0.15, 0.3, 0.45, 0.6, 0.75, 0.9].map((s) => {
+    const top = surface(s, 0, 0);
+    const bottom = surface(s, Math.PI, 0);
+    return { s, top: top.toArray() as [number, number, number], bottom: bottom.toArray() as [number, number, number], radius: Math.round(limbRadius(s) * 1e4) / 1e4 };
+  });
+
+  return {
+    group,
+    lanterns,
+    lights,
+    leaves: foliage.leafCount,
+    wrapSource,
+    containment: checkContainment(),
+    podPositions: lanterns.map((r) => r.pod.toArray() as [number, number, number]),
+    silhouette,
+  };
 }
