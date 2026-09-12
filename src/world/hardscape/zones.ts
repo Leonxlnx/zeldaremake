@@ -146,12 +146,13 @@ export function troddenStrip(x: number, z: number) {
 /**
  * How much of the joint fill is bare soil (0 = turf / moss, 1 = packed dirt): the dry plaza core
  * south of the spawn (camera A's foreground — reference A's plaza joints are dark green-brown,
- * board 02's seams dark dirt with moss, so the core is a 55 % blend rather than round 10's 80 %)
- * and the trodden strip; the lawn zone overrides both toward turf.
+ * board 02's seams dark dirt with moss; round 12 makes the soil itself that damp dark seam soil
+ * (joints.ts JOINT_SOIL, a third of round 10's luminance), so the core is 90 % soil again) and
+ * the trodden strip; the lawn zone overrides both toward turf.
  */
 export function jointSoil(x: number, z: number) {
   // the strip is half soil: reference D's centre joints are a browner shade of the same dark
   // olive as its edge joints, not bare dirt
-  const soil = Math.max(0.55 * southPlaza(z), 0.5 * troddenStrip(x, z));
+  const soil = Math.max(0.9 * southPlaza(z), 0.5 * troddenStrip(x, z));
   return soil * (1 - 0.85 * lawnZone(x, z)) * (1 - lawnPocket(x, z));
 }
