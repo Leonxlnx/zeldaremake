@@ -99,7 +99,7 @@ export const ROPE_FENCES: FenceDef[] = [
   // foot of the west bank, ~0.5 m off the plaza rim (paving ends at x ≈ −6 at z = 0)
   { id: 'plaza-west', style: 'rope', points: [[-6.6, 0, -0.9], [-6.75, 0, 1.3], [-6.3, 0, 2.7], [-5.9, 0, 3.9]] },
   // stair-side bank south of the stair foot, east of the stair-foot rock
-  { id: 'stair-bank', style: 'rope', points: [[9.5, 0, 4.9], [10.3, 0, 4.2], [11.0, 0, 3.6]] },
+  { id: 'stair-bank', style: 'rope', points: [[8.2, 0, 3.4], [9.0, 0, 2.7], [9.7, 0, 2.1]] },
 ];
 
 /**
@@ -115,7 +115,7 @@ export const ROPE_FENCES: FenceDef[] = [
  * stick.
  */
 export const LANTERN_POSTS: LanternPostDef[] = [
-  { id: 'stair-foot', position: [10.55, -0.45], facing: [-0.75, -0.66], height: 2.55, tint: 'orange' },
+  { id: 'stair-foot', position: [9.3, 1.6], facing: [-0.75, -0.66], height: 2.55, tint: 'orange' },
   { id: 'fork-west', position: [-2.6, -4.6], facing: [0.3, -1], height: 2.4, tint: 'orange' },
 ];
 
@@ -144,9 +144,9 @@ export const LAYOUT = {
   /** Branch from the plaza east to the foot of the main stairs. */
   pathToStairs: [
     [0, 0, 0],
-    [3.5, 0, -0.6],
-    [6.5, 0, -1.3],
-    [8.6, 0, -1.8],
+    [3.0, 0, -0.3],
+    [5.2, 0, -0.5],
+    [6.6, 0, -0.5],
   ] as [number, number, number][],
 
   /**
@@ -177,7 +177,12 @@ export const LAYOUT = {
     // 20 × 0.27 m (was 18 × 0.30): the player controller's step guard is 0.28 m and Astra's whole-leg
     // study found shin/riser intersections above it, so the flight climbs the same 5.4 m in twenty
     // child-scale risers (W02 allows 16–20; the top moves 0.84 m along the run, A/F projections hold).
-    { id: 'main', base: [9.0, 0, -2.0], dir: [1, -0.7], steps: 20, rise: 0.27, tread: 0.42, width: 3.2 },
+    // Re-laid to the nosing fit of frames 1 s and 8 s (20 risers, rms <= 0.6 px): the foot moves
+    // ~2.5 m toward the plaza and the treads deepen to 0.54 m (slope 26.6 deg, was 32.7) so the flight
+    // converges like the reference's (depth ratio 1.8 vs 1.5). Bearing 52 deg; the W04 probe at
+    // (18, -4) sits 0.1 m past the top tread (run 10.8 m); the reference run is ~12.4 m, which the probe
+    // forbids (RUBRIC_PROPOSALS 2026-09-12).
+    { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 20, rise: 0.27, tread: 0.54, width: 3.0 },
     // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
     // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
     // The base sits just off the paved edge so the first riser meets flattened ground.
@@ -283,7 +288,7 @@ export const LAYOUT = {
     // 8–9 m from the camera at the south foot of the stair-side bank; 6.9 m off the paved east
     // lobe, behind B/D/E, beyond A's right edge, a hazed column at x ≈ 0.32 in C's background
     // (the reference C shows a trunk behind the kid there). Profile: trees GIANT_PROFILES.
-    { id: 'stair-bank-giant', position: [10.1, 0, 7.0], trunkRadius: 1.1, height: 21 },
+    { id: 'stair-bank-giant', position: [10.6, 0, 9.15], trunkRadius: 1.1, height: 21 },
   ] as GiantTreeDef[],
 
   /** Where the Kokiri kids / Link will stand later (Phase 2). Used now only to keep clear ground. */
@@ -301,13 +306,16 @@ export const LAYOUT = {
     // base y ≈ 0.66, top y ≈ 0.29; pods around x ≈ 0.15–0.3, y ≈ 0.45.
     // Eye height 1.45 m: Link (1.25 m) spans y 0.56–0.88 at 4.6 m in the reference, which only a
     // camera at ≈ 1.45 m gives with his feet at 0.88; the stair foot/top move to 0.63 / 0.26.
-    { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.45, 8.6], target: [6.7, 1.45, -5.8], fov: 46 },
+    // Eye 1.8 m pitched 3.3 deg down: the only Link-consistent camera under which the 20 x 0.27 m
+    // flight reproduces the reference foot (0.695, 0.612), top (0.755, 0.220) and mid-flight nosings
+    // (<= 0.01 uv). A level 1.45 m eye would need a 7.5 m flight. Heading unchanged.
+    { id: 'A_stairs', refSeconds: 1, label: 'The Stairs', position: [0.4, 1.8, 8.6], target: [6.7, 0.89, -5.8], fov: 46 },
     // Projected: house 0.68–0.88 with the door at (0.78, 0.48) ≈ reference (0.80, 0.50); sign 0.66; small steps 0.19.
     { id: 'B_house', refSeconds: 14, label: "Saria's House", position: [0, 1.5, 2.0], target: [5, 1.7, -12], fov: 46 },
     // Looking back SSE across the plaza with the stair foot cutting the left edge (0.12, 0.67;
     // reference 0.10–0.20, 0.60–0.66), the stair-foot rock at (0.28, 0.50) and the plaza-south
     // giant's trunk at x ≈ 0.58 in the haze (reference 0.50–0.62). Pitched ≈ 3.5° down.
-    { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [3.2, 1.45, -9.5], target: [4.9, 0.65, 3.4], fov: 46 },
+    { id: 'C_lookback', refSeconds: 46, label: 'Look Back', position: [2.33, 1.45, -7.67], target: [4.03, 0.65, 5.23], fov: 46 },
     // Stands 2 m past the bough's tip so the pods stay behind the camera; the house stair then
     // sits at the right edge (x ≈ 0.9) as in the reference.
     // On the spine's axis so the flagstones fill the whole foreground as in the reference.
@@ -319,7 +327,9 @@ export const LAYOUT = {
     // pitched 3.3° down — stair foot (0.42, 0.59) / top (0.42, 0.21) vs reference (0.42, 0.60) /
     // (0.42, 0.22); kid spot (0.66, 0.46); plateau-west fence posts along y ≈ 0.19; the upper house
     // roof at the top-left (0.14, 0.04–0.2). The canopy fills the top half.
-    { id: 'F_canopy', refSeconds: 8, label: 'Up the Stairs', position: [-1.04, 1.5, 5.64], target: [10.22, 1.06, -0.86], fov: 46 },
+    // Frame 8 s: the flight recedes 25 deg LEFT of the view axis (foot (0.365, 0.595), top (0.27, 0.213)),
+    // not dead-on; eye 1.8 m, 3.9 deg down, heading 77 deg. Stair-bank giant at the right edge (x 0.97).
+    { id: 'F_canopy', refSeconds: 8, label: 'Up the Stairs', position: [-1.96, 1.8, 4.0], target: [9.7, 0.98, 1.31], fov: 46 },
   ] as Viewpoint[],
 } as const;
 
