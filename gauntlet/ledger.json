@@ -6675,6 +6675,115 @@
       },
       "prevHash": "sha256:ab7bd678ac8aeb123d4ded6e262ae0df08ba60df507613505a415f197bd8f6f7",
       "hash": "sha256:6d254a3ce34bb31865bbe72c4c169d94c561cda31f574305c1dd2e9841b77343"
+    },
+    {
+      "id": "take-0063",
+      "number": 63,
+      "at": "2026-09-12T10:01:27.943Z",
+      "sha": "ddd24fd0a3a9f71eb9991e3f16311336a4316fd0",
+      "shortSha": "ddd24fd",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "trees: a dark-boled 'column' family for the mid/far forest wall (trees/column.ts: straight gnarled bole bare to 8-10 m, buttress roots, lobed laminae crown on the top 40 %, 3 LODs; an 'emergent' variant 28 m / R 0.63 bare to 17.9 m) - 8 authored COLUMN_SEATS checked against masks/giants/houses, two mature white-barks in hero far walls rebuilt as columns; column-profile fit of the frames' background bands: B left strip lum 0.400 -> 0.349 (ref 0.336), F right-top 0.385 -> 0.363 (ref 0.323), new dark columns in F at x 0.68-0.70 and 0.84-0.88, in B at 0.00-0.10",
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W13",
+        "W20"
+      ],
+      "note": "Round thirteen, first slice: the mid/far forest wall gets the frames' dark trunks. A column-profile fit of the background bands (8-px luminance columns) showed the reference B has one dark trunk filling x 0-0.13 at lum 0.33 where ours was open haze at 0.40, and reference F has dark columns at x 0.65-0.71 that we lacked; a new dark-boled column tree family (bare bole to 8-10 m, buttress roots, laminae crown) now seats 8 authored trunks and rebuilds two white-barks in hero far walls: B left strip 0.400 -> 0.349 (ref 0.336), F right-top 0.385 -> 0.363 (ref 0.323). Also in: the hearth seated on the local room floor (the deeper round-12 hearth was buried), the vegetation contracts reconciled with the re-laid stair and the south bank (mask-derived paved rim for moss and litter; all suites green), and the owner's ten newer concept boards in reference/owner-concepts. A 0.276, B 0.260 (both best ever), D 0.331.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:475afc7bb73dc71a928f627b3f14a54ee07d5c405be018bb46e5cea9acbeb060",
+        "B_house": "sha256:aa2c79250083b90d6c7b808099595e7928daef1693b1b5bc861eb12a83e9ca29",
+        "C_lookback": "sha256:50ab54350f038307354cabf2c4f11e34dff4029dd8ea4928f60fe116cfc1074d",
+        "D_log": "sha256:6b532dbcbfdaaa2cbe4670ac8803276bfbc74a1d4032c9f58a4590e608fc0ca1",
+        "E_ground": "sha256:aa2c79250083b90d6c7b808099595e7928daef1693b1b5bc861eb12a83e9ca29",
+        "F_canopy": "sha256:55d43c11fadbcf5cc447223794dbc07b24b2c6a648123db1d74e72cd2bf686d2"
+      },
+      "distHash": "sha256:6f30db36c0a89669ba7c21eca44c76f7f246a7142fafb0896d525e17ccb199fc",
+      "stats": {
+        "drawCalls": 644,
+        "triangles": 8688793,
+        "captureMs": 2910009,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W09",
+        "W13",
+        "W20"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take63-cap",
+        "importedAt": "2026-09-12T10:02:08.858Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:6d254a3ce34bb31865bbe72c4c169d94c561cda31f574305c1dd2e9841b77343",
+      "hash": "sha256:6765c1ea0ae024f3e44ef5817d2e9c15e47934a158789d663dfedf719d724702"
     }
   ]
 }

@@ -771,6 +771,29 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   between dark trunks (Astra; trees-13 doing the trunk geometry side); (2) A centre: the house
   behind the flight + the pale bough (sleeve reads too light against the reference's dark mossy
   limb); (3) paving scale vs the owner's newer boards (pending).
+
+### 10:05 UTC — tick 47: take-0063 published (monitor `1c87ca9`), valid; round thirteen, slice one
+- `91c0886` hearth seated on the local floor (Astra's ray check); `501b350` Astra's W25 verdict on
+  take-61 merged; `ff2f131` the owner's ten newer boards + per-system read in CONCEPTS.md;
+  `a97302e` vegetation contracts reconciled (mask-derived paved rim; all suites green);
+  `ddd24fd` trees-13 column family (B left strip 0.400 → 0.349 vs ref 0.336; F right-top
+  0.385 → 0.363 vs 0.323).
+- take-0063: A 0.276 / B 0.260 / C 0.303 / D 0.331 / E 0.272 / F 0.271 — A, B, D, E best ever;
+  C −0.005 (near emergent at D/C's left). 23/50. Sharpness D 0.861 (≥ 0.82 floor kept); draws 644.
+- Finding (trees-13) for the lighting owner: beyond ~20 m the haze sets the luminance floor;
+  bark 0.52 → 0.35 moved a 36 m trunk 0 points. The reference's dark far trunks in a bright veil
+  need a fog term that spares dense verticals — posted to Astra.
+- Astra: lighting/postfx/atmosphere on PR #6 (12-image controlled comparisons; my notes: keep the
+  bright far veil, shafts anchor upper-left in the frames, dapple on the paving); she has the
+  props/signpost/lanternPost slice by agreement. Her ray diagnoses queued: doorway pale taper =
+  terrain-raised room floor/back wall; cap clumps from domeDisp; F's paving-edge teeth = perimeter
+  joint-fill quads kept when any corner is paved.
+- Running: hardscape-11 (smaller broken stones per boards 02/07, envelope unchanged), structures-13
+  (house moss material, roof width in-frame, board 03/04 features), trees-14 (canopy openings →
+  dapple; CANOPY_OPENINGS export for Astra's shafts). Box at load ~28; captures take 3× longer.
+- Three biggest remaining gaps → (1) light (Astra): key/shade separation, dapple, bright veil with
+  dark trunks; (2) house: floor/back-wall envelope, rounded moss relief, support-bough integration;
+  (3) paving scale/finish vs boards 02/07 + the F-edge joint teeth.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -816,4 +839,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T08:10:00Z
+2026-09-12T10:05:00Z
