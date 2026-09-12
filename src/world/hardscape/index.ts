@@ -3,7 +3,7 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, Mesh } from 'three';
+import { Group, InstancedMesh, Mesh } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
@@ -530,7 +530,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     maxBottomGap: round(Math.max(...paving.stones.map((s) => Math.abs(s.bottomY - T.height(s.x, s.z))))),
   }));
 
-  return { name: 'hardscape', group };
+  let disposed = false;
+  return {
+    name: 'hardscape',
+    group,
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      // owned: stair/paving geometries and the stone material (its maps are the TextureLibrary's),
+      // the joint fill (geometry, material, generated gap field), the sprout instanced meshes and
+      // their material, the flower heads
+      group.traverse((object) => {
+        if (object instanceof InstancedMesh) object.dispose();
+        if (object instanceof Mesh) object.geometry.dispose();
+      });
+      stoneMat.dispose();
+      joints.dispose();
+      sproutMat.dispose();
+      flowers.dispose();
+      group.removeFromParent();
+    },
+  };
 }
 
 function round(v: number) {
