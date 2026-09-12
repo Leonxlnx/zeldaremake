@@ -7,50 +7,62 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Published hedge surface source 6686b0b5c4383d2202f1c57ae70290b8efbe98d6, tree
-57feb2f3fe23da47c3707938aa16f78f1633359f, parent ab7796e. Its run 34704061998 is confirmed
-in progress; the distinct post-energy control was fully rendered first. Actual leaf-detail
-appearance remains pending. Existing material suite/typecheck/build and source boundary pass.
+Integrating Fable's published roof/support checkpoint 0f9426c7267d06f13cc96be4591821fce795cb84
+(PR2 comment 5647132216), whose parent is 8701b86. Root fetched all refs and read the source
+and current partner state before merging. Adopt his house.ts/materials.ts exactly and merge
+the one houseBough audit into our index, retaining our post builder/material/disposal/audit.
+His 8701 log and 67-entry ledger also enter ancestry unchanged. No PR/main/other-branch merge.
+Root acknowledgement 5647158080 records this coordination. A read-only helper checks cap cone
+UVs/seams, noise/material behavior, bough contacts and resource ownership before publication.
 
-Current next trial: original branching membrane emissive atlas for the two post pods. One
-256-square owned texture, one material clone shared by those pods and a UV-band gate prevent
-coarse mips from lighting opaque bindings. Existing 1.2 point lights, body mean emission,
-geometry/rig/swing/RNG and shared lamp files stay unchanged. Minimal index routing/disposal
-was announced in PR2 comment 5647059948 before edits. Root read the complete frozen proposal,
-viewed its texture swatch and original board05; no swatch is represented as a game render.
-The patch is pinned to published ab7796e, whose relevant structure files remain exact at 6686b0b.
+This roof milestone takes priority over the small crate texture study, now paused in scratch.
+Fable's hardscape lawn work remains active and separate. His reported image improvements are
+partner evidence, not our combined-world visual verdict. Combined actual capture must decide.
 
-Root reviewed actual ab7796 F/D and L01/L02. Local post/rope light is quieter, amber bodies
-remain clear, and world sunlit paving stays warm. Retain intensity 1.2. Thin bright rims remain;
-this is not a claim that all non-body highlights are resolved. All 12 macro source/audit/depth/
-resource/budget checks pass, reporting real postLightIntensities [1.2,1.2]. Final detail/ZIP
-verification is finishing. The atlas is a subsequent independent surface-detail experiment.
+Read-only integration checks pass for protected house geometry, exact terrain contacts and
+bough audit. Two findings were reported in PR2 comment 5647226781: lower support now obscures
+the existing round window from B; generated moss normal/albedo lack disposal. Fable was asked
+to clear the lower branch and add one-shot owned-map disposal. Initial merge deliberately
+preserves his source; these known issues remain explicit pending his correction. The unsplit
+rear cone-UV seam is hidden in all canonical views; inherited rim-normal sensitivity remains.
+Typecheck/build (108 modules) and owned post material contract pass on the combined tree.
 
-All 84ec actual 12+4 contracts pass with zero retries/errors/warnings. Cooler upper air and
-shaded paving with retained warm key are accepted; roof and broad gray distant layers remain
-unfinished. All 2e9 actual 12+4 contracts also pass: modestly greener hedge undersides with exact
-geometry/depth/packing/cost. Historical galleries and source/image ZIPs remain independently
-pinned; no current worktree changes are substituted for their actual captured sources.
+Our post-membrane source a350849993d05141e8d640775b2b3c6d919facd6 is independently published,
+tree 805192155fc72988cf06af40fc2846be5a4dd17c, parent 6686b0b. Exact frozen factory/index/test
+adopted; ownership test/typecheck/build (108 modules) and integration boundary pass. Actual 12+4 source/image/ownership/resource contracts now pass. Root reviewed L01/L02: faint
+branching is useful nearby, still mostly smooth at L02. Keep this bounded improvement. The 668
+hedge capture also passes, but internal veins are too subtle to call a meaningful world improvement.
+
+All ab7796 actual 12+4 contracts, archive/history/preview targets and source/image ZIPs pass,
+zero retries/errors/warnings. Root reviewed F/D/L01/L02; two independent reviews retain 1.2:
+rope/wood are quieter, amber stays clear, thin golden rims remain. Original and reduced light
+controls are immutable. All earlier 84ec and 2e9 actual contracts also pass.
+
+Read-only grass diagnosis now finds actual dark near-bank back faces whose entire upward-biased
+normal is flipped downward by DoubleSide shading. Two actual F probes have albedo Y about .17
+but normal Y below -.91; they are not dark-root pigments. A scratch-only terrain-up normal correction and installed shader contracts are complete.
+It changes direct NdotSun up to .997 at two anchors, so actual review is mandatory; no global
+lighting compensation and no grass production edit yet.
 
 ## Files / systems being touched
-- Root: new structures/postPodMaterial.ts and ownership test, minimal structures/index.ts
-  routing/disposal, CI test invocation, own log/reviews. Hedge capture remains independently pinned.
+- Root: ancestry merge of Fable0f house.ts/materials.ts/houseBough audit, partner history intact,
+  own log/integration review. Published atlas and hedge captures remain independently pinned.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
-- World helper: frozen scratch-only crate surface proposal; original contact/geometry/program
-  checks pass. Ordinary root occlusion is not a supported collision defect; no relocation.
-- Prop helper: frozen atlas and explicit ownership/disposal contract complete; independent
-  actual post-energy closeup review finishing.
-- Shadow helper: read-only diagnosis of dark near grass; checking blade normal/DoubleSide behavior
-  against actual pixels. No grass/lighting production edits or density/layout overlap.
+- World helper: read-only roof/support integration review. Crate texture work paused; the earlier
+  cosine proposal was not applied. Ordinary root occlusion does not warrant prop relocation.
+- Prop helper: independent actual energy review complete; waits for pinned atlas detail review.
+- Shadow helper: actual grass-normal diagnosis and scratch-only terrain-up normal proposal.
+  No density/layout/wind overlap or production edits.
 - Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
 
 ## Partner state / coordination
-Latest Fable head is 8701b86 (ledger/log only); last world source remains 3dc217d; PR2 comment 5646616508 releases vegetation-13 and keeps
-structures-15 active (cap front colour/streaks, roof leaf blobs, support bough). Fable also owns
-queued hardscape lawn-pocket tufts/mask work. His latest tick-51 log/take-0067 reports 23/50; no phase
-completion. PR2 comment 5646798877 explicitly clears our bounded vegetation material/hedge
-option work: his active files are structures and hardscape, with no vegetation overlap. Comments 5646649074 and 5646701325 document our exact merge and focused grass proof.
+Latest Fable head is 0f9426c (roof/support); PR2 comment 5647132216 announces the three-file
+checkpoint and keeps hardscape lawn-pocket work active. Roof source replaces vertically
+stretched fields with 3D noise/developed-cone UVs, reduces straw and dark roof foliage and
+turns the support hoop into a rising branch. Latest log/ledger is still tick51/take67, 23/50;
+no phase completion. Comment 5646798877 clears our bounded vegetation material work with no
+vegetation overlap; his active files remain structures and hardscape.
 
 Fable approved bounded near-tree material work in 5646342247 and handed over signpost/lanternPost
 in 5644903321. Preserve his geometry/roof direction and announce renewed overlap before editing.
@@ -65,8 +77,9 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
-| 6686b0b | Hedge-only filtered midrib/four veins; actual capture running. |
-| ab7796e | Actual world/L01/L02 review: quieter post/rope light, amber retained; keep 1.2. All 12 macro contracts pass; final details/ZIPs finishing. |
+| a350849 | Actual 12+4 pass: faint irregular branches improve L01; L02 mostly smooth, no luminous bindings. Exactly +1 material/texture/program; geometry/depth/budgets exact. |
+| 6686b0b | Actual 12+4 pass: very subtle hedge surface variation; no substantial world improvement. Geometry/depth/budgets exact, no obvious pale glow. |
+| ab7796e | Actual world/L01/L02 review: quieter post/rope light, amber retained; keep 1.2. All 12 macro contracts pass; all 16 contracts/ZIPs/history complete. |
 | 84ecde9 | Actual 12+4 pass: cooler air/shaded paving, warm sun retained, no obvious cyan veil/seam; unchanged cost/depth. Retained. |
 | 2e9c19f | Actual 12+4 pass: modest greener hedge undersides, unchanged geometry/depth/calls/triangles; 0 retries/errors/warnings. |
 | d41b354 | Actual 12+4 verified: active grain, denser planting, all under budget, separate seated pod leaves. Zero retries/errors/warnings. |
@@ -135,9 +148,9 @@ The exact original PNG ZIP was delivered; previews do not pretend to be original
 Detailed earlier chronology is preserved in `docs/reviews/astra-environment-history-through-64028c4.md`.
 
 ## Suggested parallel tasks
-Fable: publish the active roof/support pass and hardscape lawn work, with exact source and overlap.
-Astra: finish actual hedge review, publish and review the separate pod atlas, then consider
-crate grain and the grass-normal diagnosis. Integrate Fable's roof/hardscape when published.
+Fable: correct lower bough/window occlusion and dispose owned moss maps; publish active hardscape
+lawn work with exact source and overlap. Astra: capture the combined roof checkpoint, then
+independently test the grass-normal correction. Crate grain remains lower priority.
 
 ## Last updated
-2026-09-12T16:14:58.747328+00:00
+2026-09-12T16:39:16.161929+00:00

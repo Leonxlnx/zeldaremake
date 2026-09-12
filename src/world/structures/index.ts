@@ -180,6 +180,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** Saria's room: the level floor pad's height, back-wall depths (left / mid / right) and the
      *  slope's poke through the pad (≤ 0 = the pad is clear; round 14) */
     houseRoom: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.room,
+    /** Saria's support bough: centre line (33 world points from the trunk to the tip) and radii (round 15) */
+    houseBough: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.bough,
     /** flower heads on the caps / pots and bottles on the shelves, all houses */
     houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
     houseProps: houses.reduce((n, h) => n + h.props, 0),

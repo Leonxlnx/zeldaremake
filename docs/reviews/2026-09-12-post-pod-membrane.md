@@ -59,3 +59,23 @@ The existing within-source world pairs still compare upper-flight gain 1 and 3, 
 
 Frozen factory SHA-256: ec27f7b601a56d29cc3714bb4c5f17cf5dfc8f1cc8a57c325a20d8560cc3ca3d.
 Original atlas SHA-256: 15ee4f759ce9b8ed5b908a68f300aa6871eb6dd1c23ca67b5d1bef5af89ddfdf.
+
+## Actual a350849 result
+
+CI 34704806867 and all 12+4 publication contracts pass at source
+a350849993d05141e8d640775b2b3c6d919facd6, tree 805192155fc72988cf06af40fc2846be5a4dd17c.
+Root and two independent reviewers inspected original L01/L02 and matching historical controls.
+Faint irregular branches improve the nearby L01 membrane; at L02/gameplay distance the pod
+remains mostly smooth amber. Keep this small closeup improvement, without claiming finished
+reference-level detail. Existing pale rims remain; no new glowing bindings or loose leaf bases.
+
+Exactly one material, texture and program are added (123 / 69 / 73 total respectively).
+Geometry, placements, depth, cameras, lights [1.2,1.2], submitted triangles and calls remain
+exact against 668. All images have zero retries/errors/warnings. Historical B/E, D and both
+sign JPEGs are byte-identical. Archive 886fbfe4e01ef49c17fca18ebafc885a9d66b0a6 retains every
+prior dated file; source ZIP contains all 364 tracked files byte-exact.
+
+Actual images: progress/2026-09-12_162536040-a350849 and
+details/2026-09-12_162723902-a350849 on captures/astra-environment.
+Same-source world pairs still test canopy gain 1 / 3; historical matching variants isolate
+the membrane. These static JPEGs do not establish motion stability or hardware frame rate.

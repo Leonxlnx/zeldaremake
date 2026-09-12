@@ -1,0 +1,361 @@
+{
+  "base": "8701b86381c0c35c9ae68a6ca6cf1b19c349bd56",
+  "candidate": "0f9426c7267d06f13cc96be4591821fce795cb84",
+  "scope": "Pinned CPU geometry, original texture generation and source ownership; no GPU appearance verdict",
+  "before": {
+    "tris": 296576,
+    "vertices": 309642,
+    "meshes": 58,
+    "nonfinite": 0
+  },
+  "after": {
+    "tris": 259688,
+    "vertices": 259180,
+    "meshes": 58,
+    "nonfinite": 0
+  },
+  "houses": [
+    {
+      "id": "saria",
+      "windowSight": {
+        "before": {
+          "trunk": 9,
+          "trunk-eave-band": 1,
+          "roots": 1,
+          "house-saria-leaves": 4,
+          "window-frame": 6,
+          "window-socket": 7
+        },
+        "after": {
+          "trunk": 8,
+          "house-saria-leaves": 3,
+          "trunk-eave-band": 1,
+          "roots": 1,
+          "support-boughs": 14,
+          "house-saria-vines": 1
+        }
+      },
+      "beforeLeaves": 6405,
+      "afterLeaves": 1876,
+      "beforeBases": 12,
+      "afterBases": 10,
+      "baseContactsMaxAbs": 0,
+      "basesSame": false,
+      "retainedBasesAreExactSubset": true,
+      "unchangedGeometry": {
+        "trunk": true,
+        "trunk-eave-band": true,
+        "porch": true,
+        "interior": true,
+        "interior-props": true,
+        "door-frame": true,
+        "threshold": true,
+        "roots": true,
+        "window-socket": true,
+        "window-frame": true,
+        "roof-eave": true
+      },
+      "unchangedAudit": {
+        "room": true,
+        "hearthClearance": true,
+        "window": true,
+        "pillars": true,
+        "door": true,
+        "eave": true
+      },
+      "bough": {
+        "points": 33,
+        "auditPointError": 0.0007335853769318783,
+        "auditRadiusError": 0.0004884078059660957,
+        "start": [
+          9.8,
+          2.975,
+          -12.278
+        ],
+        "end": [
+          16.405,
+          10.47,
+          -6.658
+        ],
+        "startRadius": 0.544,
+        "endRadius": 0.183,
+        "curveLength": 18.6385997882922,
+        "radiallyOutwardAttachmentHits": [
+          {
+            "distance": 0.4842807734706547,
+            "mesh": "roots",
+            "point": [
+              9.334212041164022,
+              2.9745295180645743,
+              -12.412112656282758
+            ]
+          }
+        ]
+      },
+      "roof": {
+        "vertices": 36120,
+        "cols": 300,
+        "rows": 120,
+        "poleCoincidentVertices": 301,
+        "capDegenerate": 300,
+        "capBefore": {
+          "degenerate": 300,
+          "opposedToAverageNormal": 140,
+          "opposedByV": {
+            "0.7": 140
+          },
+          "minOpposedV": 0.7198879551820728,
+          "maxOpposedV": 0.7282913165266107,
+          "minOpposedArea": 0.0001159033214767504,
+          "maxOpposedArea": 0.0031734435931761603
+        },
+        "capAfter": {
+          "degenerate": 300,
+          "opposedToAverageNormal": 215,
+          "opposedByV": {
+            "0.7": 215
+          },
+          "minOpposedV": 0.7198879551820728,
+          "maxOpposedV": 0.7282913165266107,
+          "minOpposedArea": 1.5211759602507031e-05,
+          "maxOpposedArea": 0.002110611853704809
+        },
+        "backCutTriangles": 234,
+        "maxUVJump": 3.2554280365454122,
+        "maxPhysicalStep": 0.08006944772680742,
+        "cutVisibility": [
+          {
+            "camera": "A_stairs",
+            "onScreen": 234,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "B_house",
+            "onScreen": 234,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "C_lookback",
+            "onScreen": 0,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "D_log",
+            "onScreen": 0,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "E_ground",
+            "onScreen": 234,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "F_canopy",
+            "onScreen": 234,
+            "houseUnoccluded": 0
+          }
+        ]
+      },
+      "beforeStats": {
+        "tris": 162907,
+        "vertices": 170931,
+        "meshes": 31,
+        "nonfinite": 0
+      },
+      "afterStats": {
+        "tris": 141607,
+        "vertices": 141606,
+        "meshes": 31,
+        "nonfinite": 0
+      }
+    },
+    {
+      "id": "upper",
+      "windowSight": {
+        "before": {
+          "support-boughs": 28
+        },
+        "after": {
+          "roots": 10,
+          "house-upper-leaves": 2,
+          "house-upper-vines": 1,
+          "support-boughs": 15
+        }
+      },
+      "beforeLeaves": 4586,
+      "afterLeaves": 1345,
+      "beforeBases": 10,
+      "afterBases": 8,
+      "baseContactsMaxAbs": 0,
+      "basesSame": false,
+      "retainedBasesAreExactSubset": true,
+      "unchangedGeometry": {
+        "trunk": true,
+        "trunk-eave-band": true,
+        "porch": true,
+        "interior": true,
+        "interior-props": true,
+        "door-frame": true,
+        "threshold": true,
+        "roots": true,
+        "window-socket": true,
+        "window-frame": true,
+        "roof-eave": true
+      },
+      "unchangedAudit": {
+        "room": true,
+        "hearthClearance": true,
+        "window": true,
+        "pillars": true,
+        "door": true,
+        "eave": true
+      },
+      "bough": {
+        "points": 33,
+        "auditPointError": 0.0007305175352353186,
+        "auditRadiusError": 0.0004785368912065824,
+        "start": [
+          11.012,
+          6.823,
+          -18.255
+        ],
+        "end": [
+          16.737,
+          12.937,
+          -13.368
+        ],
+        "startRadius": 0.46,
+        "endRadius": 0.154,
+        "curveLength": 15.447361675955534,
+        "radiallyOutwardAttachmentHits": [
+          {
+            "distance": 0.31954852837219494,
+            "mesh": "roots",
+            "point": [
+              10.706220227897305,
+              6.822646386957251,
+              -18.34772035317475
+            ]
+          },
+          {
+            "distance": 0.3981445770931929,
+            "mesh": "roots",
+            "point": [
+              10.631010267631119,
+              6.822646386957251,
+              -18.37054141255665
+            ]
+          },
+          {
+            "distance": 0.48744675507266394,
+            "mesh": "roots",
+            "point": [
+              10.5455554214039,
+              6.822646386957251,
+              -18.396471091462484
+            ]
+          }
+        ]
+      },
+      "roof": {
+        "vertices": 30470,
+        "cols": 276,
+        "rows": 110,
+        "poleCoincidentVertices": 277,
+        "capDegenerate": 276,
+        "capBefore": {
+          "degenerate": 276,
+          "opposedToAverageNormal": 160,
+          "opposedByV": {
+            "0.7": 160
+          },
+          "minOpposedV": 0.7186544342507645,
+          "maxOpposedV": 0.7308868501529052,
+          "minOpposedArea": 1.5933896857835506e-05,
+          "maxOpposedArea": 0.0013346282443861776
+        },
+        "capAfter": {
+          "degenerate": 276,
+          "opposedToAverageNormal": 99,
+          "opposedByV": {
+            "0.7": 99
+          },
+          "minOpposedV": 0.7217125382262998,
+          "maxOpposedV": 0.7308868501529052,
+          "minOpposedArea": 3.108079497205995e-05,
+          "maxOpposedArea": 0.0012332208974871052
+        },
+        "backCutTriangles": 208,
+        "maxUVJump": 2.6572093987042313,
+        "maxPhysicalStep": 0.0730183624370123,
+        "cutVisibility": [
+          {
+            "camera": "A_stairs",
+            "onScreen": 208,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "B_house",
+            "onScreen": 208,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "C_lookback",
+            "onScreen": 0,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "D_log",
+            "onScreen": 150,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "E_ground",
+            "onScreen": 208,
+            "houseUnoccluded": 0
+          },
+          {
+            "camera": "F_canopy",
+            "onScreen": 0,
+            "houseUnoccluded": 0
+          }
+        ]
+      },
+      "beforeStats": {
+        "tris": 133669,
+        "vertices": 138711,
+        "meshes": 27,
+        "nonfinite": 0
+      },
+      "afterStats": {
+        "tris": 118081,
+        "vertices": 117574,
+        "meshes": 27,
+        "nonfinite": 0
+      }
+    }
+  ],
+  "moss": {
+    "seed": "roof-round15-review",
+    "normalByteExact": true,
+    "normalSha": "5e563485ea48b94f4cc1b2ff2aa0677c754a7a544a1c1df4174e991bd52c1029",
+    "albedoSha": "4b54a8b1ce63c128dbd09788bc44a8b5bbeb3ee9eb9c04bf41c4c65fe8ddb5ad",
+    "texels": 262144,
+    "meanLinearY": 0.5292249341043629,
+    "whiteChannelFraction": 0.04296747843424479,
+    "blackChannelFraction": 0,
+    "normalColorSpace": "",
+    "albedoColorSpace": "srgb",
+    "additionalMipBytes": 1398101.3333333333
+  },
+  "noise3D": {
+    "maxBoundaryJump": 2.2999999838013707e-07,
+    "epsilon": 1e-07,
+    "maxDeterminismError": 0
+  },
+  "candidateFilesSha256": {
+    "src/world/structures/house.ts": "a17da9345fa0969399f0d9b9de3fda5b1c8041e08cab99cabdcc9b4651d91a9d",
+    "src/world/structures/materials.ts": "56d1b3e01e005f88f3ba39380b3f676afc707407e38df0e2b1492bd4fad3a029",
+    "src/world/structures/index.ts": "91956e84f90e619675cc03fc1b4d20d05c44b76feb4be83a3f23f6b1c5e417d3"
+  }
+}

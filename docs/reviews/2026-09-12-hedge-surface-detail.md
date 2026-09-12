@@ -51,3 +51,18 @@ ab7796e for this change; the current within-source pair still tests canopy gain 
 Inspect near F/A leaves for useful subtle internal structure without bright strokes or grainy
 edge-on patterns. Still captures cannot prove motion stability; the derivative/distance bounds
 reduce risk but do not constitute a GPU motion verdict. No visual acceptance is claimed yet.
+
+## Actual 6686b0b result
+
+All 12+4 source/image/control/depth/resource/budget contracts pass at
+6686b0b5c4383d2202f1c57ae70290b8efbe98d6, tree 57feb2f3fe23da47c3707938aa16f78f1633359f.
+Root inspected F and the capture reviewer inspected A/B/C/F. Variation is very restrained;
+four secondary veins cannot confidently be read at the normal 1280px world view. This is
+not a substantial scene-level improvement. No obvious pale glow or shaded-shape loss appears.
+
+Geometry/depth/calls/triangles and deterministic audits match ab7796. Programs stay 72; zero
+retries/errors/warnings. F whole-image historical JPEG MAE is .0505324 / 255, with .317925%
+pixels changing more than 3 in any channel. These metrics do not measure perceived quality.
+D and both sign images are byte-identical. Archive f688a212554244def51f470edcbaf1aa2419bd40
+retains all prior dated files and eight preview targets; source ZIP has 361 exact tracked files.
+Actual images: progress/2026-09-12_161702336-6686b0b and details/2026-09-12_161918349-6686b0b.
