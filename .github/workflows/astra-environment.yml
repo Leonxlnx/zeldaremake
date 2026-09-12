@@ -54,6 +54,8 @@ jobs:
         run: node src/world/lighting/shadowframe.test.mjs
       - name: Check deferred canopy mask and shadow guard
         run: node src/world/atmosphere/shafts.test.mjs
+      - name: Check vegetation shading and shared shadow deformation
+        run: node src/world/vegetation/materials.test.mjs
       - name: Render six matched environment comparisons
         run: node gauntlet/scripts/capture-environment.mjs
       - name: Retain actual images and metadata, including partial failures

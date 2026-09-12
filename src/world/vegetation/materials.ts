@@ -214,6 +214,24 @@ const FOLIAGE_FRAGMENT_LIGHTS = /* glsl */ `
 }
 `;
 
+/** Thin leaves transmit some of the brighter opposite hemisphere. The positive difference
+ * retains the existing upper-face response; a geometry tag keeps solid stems opaque. */
+const LEAF_SKY_TRANSMISSION = /* glsl */ `
+  #if NUM_HEMI_LIGHTS > 0
+  if (vLeafSurface > 0.5) {
+    vec3 skyDifference = vec3(0.0);
+    #pragma unroll_loop_start
+    for (int i = 0; i < NUM_HEMI_LIGHTS; i++) {
+      skyDifference += max(
+        getHemisphereLightIrradiance(hemisphereLights[i], -geometryNormal)
+        - getHemisphereLightIrradiance(hemisphereLights[i], geometryNormal), vec3(0.0));
+    }
+    #pragma unroll_loop_end
+    reflectedLight.indirectDiffuse += skyDifference * BRDF_Lambert(diffuseColor.rgb) * uLeafSkyTransmission;
+  }
+  #endif
+`;
+
 /**
  * Waxy broad leaves (concept sheet 01): the upper face takes its own roughness so it carries a
  * soft sheen while the underside keeps the matte base `roughness`. Front faces are the upper
@@ -238,6 +256,8 @@ export interface VegMaterialOptions {
   stiffness?: number;
   transmission?: number;
   ambientBoost?: number;
+  /** Plant/bush opposite-hemisphere transmission (0..1); geometry must provide aLeafSurface (leaf 1, wood 0). */
+  leafSkyTransmission?: number;
   /** full-shade fill inside SHADE_LIFT_ZONE, × albedo (default SHADE_LIFT_ZONE.fill; 0 opts out) */
   shadeLift?: number;
   singleSided?: boolean;
@@ -302,6 +322,10 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
   };
   const glossyTop = opts.topRoughness !== undefined;
   if (glossyTop) uniforms.uTopRoughness = { value: opts.topRoughness };
+  const requestedLeafSky = opts.leafSkyTransmission ?? 0;
+  const leafSkyTransmission = (kind === 'plant' || kind === 'bush') && Number.isFinite(requestedLeafSky)
+    ? Math.min(1, Math.max(0, requestedLeafSky)) : 0;
+  if (leafSkyTransmission > 0) uniforms.uLeafSkyTransmission = { value: leafSkyTransmission };
   if (kind === 'grass') {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
@@ -340,11 +364,17 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
     const lights = kind === 'grass' ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '');
     fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${kind === 'grass' ? GRASS_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    if (leafSkyTransmission > 0) {
+      vs = `attribute float aLeafSurface;\nvarying float vLeafSurface;\n${vs}`
+        .replace('#include <color_vertex>', '#include <color_vertex>\nvLeafSurface = aLeafSurface;');
+      fs = `varying float vLeafSurface;\nuniform float uLeafSkyTransmission;\n${fs}`
+        .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>\n${LEAF_SKY_TRANSMISSION}`);
+    }
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}${leafSkyTransmission > 0 ? '-leaf-sky-v1' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

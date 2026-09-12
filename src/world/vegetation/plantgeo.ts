@@ -5,7 +5,7 @@
  * botanical-refinement.js); leaf, flower and bud shapes follow the owner's concept sheets
  * (reference/concepts/01, see reference/CONCEPTS.md — the sheets are never loaded at runtime).
  */
-import { Vector3, type BufferGeometry } from 'three';
+import { Uint8BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
 import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafOptions, type LeafShape, type RGB } from './geometry';
 
@@ -246,7 +246,10 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
   const high = detail === 'high';
   const low = detail === 'low';
   // variants() appends /0, /1, ...; only the authored hedge namespace receives the near detail.
-  const leaf = high && /\/hedge\/\d+$/.test(seed) ? hedgeLeaf : curvedLeaf;
+  const isHedge = /\/hedge\/\d+$/.test(seed);
+  const leaf = high && isHedge ? hedgeLeaf : curvedLeaf;
+  // Separate thin laminae from solid stems without changing any generated surface or RNG draw.
+  const leafRanges: [number, number][] | null = isHedge ? [] : null;
   const stems = 5 + rng.int(0, 3);
   const height = 0.95 + rng() * 0.55;
   const phase = rng() * TAU;
@@ -283,18 +286,28 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
         const sun = Math.min(1, (attach.y / height) * 0.7 + Math.hypot(attach.x, attach.z) * 0.5);
         const color = tone(blend(pal.leaf, pal.leafSun, sun * 0.7), 0.85 + rng() * 0.3);
         const opts = { curl: 0.1 + rng() * 0.12, twist: (rng() - 0.5) * 0.6, ridge: 0.12 };
+        const leafStart = m.p.length / 3;
         if (low) foldedLeaf(m, attach, dir, len, len * 0.6, color, opts);
         else leaf(m, attach, dir, len, len * (0.55 + rng() * 0.25), color, opts);
+        leafRanges?.push([leafStart, m.p.length / 3]);
       }
     }
     for (let terminal = 0; terminal < 2; terminal++) {
       const dir = radial.clone().addScaledVector(lateral, terminal ? 0.55 : -0.55).add(V(0, 0.45, 0));
       const color = tone(pal.leafSun, 0.95 + rng() * 0.15);
+      const leafStart = m.p.length / 3;
       if (low) foldedLeaf(m, curve(0.98), dir, 0.12, 0.08, color);
       else leaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { curl: 0.17, twist: 0.15, ridge: 0.11 });
+      leafRanges?.push([leafStart, m.p.length / 3]);
     }
   }
-  return m.finish({ groundToZero: true });
+  const geometry = m.finish({ groundToZero: true });
+  if (leafRanges) {
+    const surface = new Uint8Array(geometry.attributes.position.count);
+    for (const [start, end] of leafRanges) surface.fill(255, start, end);
+    geometry.setAttribute('aLeafSurface', new Uint8BufferAttribute(surface, 1, true));
+  }
+  return geometry;
 }
 
 // ---------------------------------------------------------------- purple flowers

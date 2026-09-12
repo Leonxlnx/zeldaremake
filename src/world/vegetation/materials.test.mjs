@@ -140,6 +140,36 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.equal(projection(prepare(depth, 'depth')), projection(gs), 'the glossy option leaves the shared projection block alone');
 }
 const unrelated = new THREE.MeshStandardMaterial();
+{
+  const plain = createVegMaterial(ctx, 'bush');
+  const leaf = createVegMaterial(ctx, 'bush', { leafSkyTransmission: 0.65 });
+  owned.push(plain, leaf);
+  const ps = prepare(plain, 'standard'), ls = prepare(leaf, 'standard');
+  assert.equal(ls.uniforms.uLeafSkyTransmission.value, 0.65);
+  assert.notEqual(plain.customProgramCacheKey(), leaf.customProgramCacheKey(), 'Tagged and untagged vegetation cannot share a program');
+  assert.equal(projection(ls), projection(ps), 'Thin-leaf response does not alter wind or position');
+  assert.equal((ls.vertexShader.match(/attribute float aLeafSurface;/g) || []).length, 1);
+  assert.match(ls.vertexShader, /vLeafSurface = aLeafSurface;/);
+  assert.match(ls.fragmentShader, /if \(vLeafSurface > 0\.5\)/, 'Solid stems do not transmit sky');
+  assert.doesNotMatch(ps.vertexShader + ps.fragmentShader, /aLeafSurface|vLeafSurface|uLeafSkyTransmission/);
+  for (const amount of [0, -1, NaN, Infinity]) {
+    const disabled = createVegMaterial(ctx, 'bush', { leafSkyTransmission: amount });
+    owned.push(disabled);
+    const ds = prepare(disabled, 'standard');
+    assert.equal(ds.vertexShader, ps.vertexShader);
+    assert.equal(ds.fragmentShader, ps.fragmentShader);
+    assert.equal(disabled.customProgramCacheKey(), plain.customProgramCacheKey());
+  }
+  const plainShadow = createVegShadowMaterials(plain), leafShadow = createVegShadowMaterials(leaf);
+  for (const [pass, shaderName] of [['depth', 'depth'], ['distance', 'distance']]) {
+    owned.push(plainShadow[pass], leafShadow[pass]);
+    const before = prepare(plainShadow[pass], shaderName), after = prepare(leafShadow[pass], shaderName);
+    assert.equal(after.vertexShader, before.vertexShader, 'Lamina tag is absent from shadow geometry');
+    assert.equal(after.fragmentShader, before.fragmentShader, 'Sun/point shadow encoding stays exact');
+    assert.equal(leafShadow[pass].customProgramCacheKey(), plainShadow[pass].customProgramCacheKey());
+    assert.equal(after.uniforms.uTime, ls.uniforms.uTime, 'Color/shadow wind remains live and shared');
+  }
+}
 owned.push(unrelated);
 assert.throws(() => createVegShadowMaterials(unrelated), /plant or bush/);
 for (const material of owned) material.dispose();

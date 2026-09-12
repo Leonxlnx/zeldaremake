@@ -40,6 +40,16 @@ no automatic retuning masks the old defect. These are CPU albedo proxies, not im
 Patch SHA256: `743a71e9c42f562a33642cd69ddf9f46321e21025b25dfcc833bb2c18f41300e`.
 Corrected material SHA256: `d36d899af7d0c70555731676990b80b71cbb0763dec7663255739daa3d790a0e`.
 
+## Actual d41 correction review
+
+The corrected branch now activates visibly in the actual A/B/F columns. Fixed historical
+image rectangles versus d755 show display luminance +3.70% for A, +31.48% for B's near-left
+trunk and +22.14% for D's mixed bark/lichen rectangle; these are image measurements, not the
+CPU floor proxies above. B is noticeably lifted but still dark wood, and D retains readable
+grained bark. The ordinary giant at F's far-right control rectangle is pixel-identical.
+Root and the independent capture reviewer inspected all five distinct world views. Retain
+this corrected response; actual images support improved grain without obvious pale washout.
+
 ## Column bark — intended trial, superseded activation assumption
 
 The emergent trunk at `(-2.7, -7.9)` is instanced; the trial incorrectly assumed f630's fragment gate excluded it. Its displaced bole, normals and metre-scaled bark UVs already contain detail. At the sampled A surface the old shaded floor is about 94% flat albedo; a larger normal scale cannot restore contrast cancelled by that floor.

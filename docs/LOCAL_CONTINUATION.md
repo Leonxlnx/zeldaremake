@@ -28,7 +28,7 @@ and partner activity may have changed since this note.
 - [Astra source / PR6](https://github.com/Leonxlnx/zeldaremake/pull/6)
 - [Fable world source / PR2](https://github.com/Leonxlnx/zeldaremake/pull/2)
 
-The dated comparison folders contain12 actual images, with10 distinct images because B/E use
+The dated comparison folders contain 12 actual images, with 10 distinct images because B/E use
 the same saved camera. Supplemental `details/` folders contain four fixed full-scene closeups.
 Capture metadata distinguishes source, controls, camera, time and depth. These are art-review
 checkpoints, not formal gauntlet takes or declarations of completion.
