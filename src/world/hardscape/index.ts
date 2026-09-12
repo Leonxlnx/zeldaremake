@@ -542,7 +542,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // their material, the flower heads
       group.traverse((object) => {
         if (object instanceof InstancedMesh) object.dispose();
-        if (object instanceof Mesh) object.geometry.dispose();
+        // the joint fill and the flower heads release their own geometry below
+        if (object instanceof Mesh && object !== joints.mesh && object !== flowers.mesh) object.geometry.dispose();
       });
       stoneMat.dispose();
       joints.dispose();
