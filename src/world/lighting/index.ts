@@ -104,7 +104,7 @@ export function create(ctx: WorldContext): WorldSystem {
 
   // Build indirect light from the same sky/air model as the visible atmosphere.
   let environment = false;
-  const environmentIntensity = 0.3;
+  const environmentIntensity = 0.34;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

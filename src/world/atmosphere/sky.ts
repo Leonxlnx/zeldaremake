@@ -32,11 +32,16 @@ export interface SkyDome {
  * orange-gold a 1 : 0.93 : 0.71 ratio gave at this brightness) and heightfog's lit-air veil
  * (`hazeLit`) is a step under it, so hazed crowns read as silhouettes against it the way the
  * reference's do. Exported for the audit; the horizon shares heightfog's `hazeFar`. Both hold only
- * toward the open east plateau and overhead: toward the closed north hollow / west stand the dome
- * is heightfog's `hazeClosed` (see `openDir` there) — the reference's B forest band and A left
- * quadrant are a dim closed roof with no bright gaps (p90 0.49–0.54).
+ * toward the open east plateau and overhead. The closed north/west horizon remains `hazeClosed`;
+ * visible upper gaps now retain SKY_CLOSED_GAP_SHARE of the zenith light, behind the actual
+ * dark canopy silhouettes. This prevents the directional mask from flattening the whole sky.
  */
 export const SKY_GAP_GLARE: [number, number, number] = [0.372, 0.368, 0.285];
+
+/** A visible gap above the closed forest still sees luminous upper air. Blend only the
+ * upper gradient; the horizon remains the shared closed haze. Real canopy meshes occlude
+ * the dome, and the identical shader rebuilds IBL so visible and indirect light stay coherent. */
+export const SKY_CLOSED_GAP_SHARE = 0.30;
 
 /**
  * Forward lobe hook of the dome (gain at mu = 1, tint at mu = 1, both at mu³). Was 0.12 /
@@ -93,6 +98,7 @@ uniform float uGlareRamp;
 uniform vec2 uOpenDir;
 uniform vec2 uOpenEdges;
 uniform vec3 uClosed;
+uniform float uClosedGapShare;
 // forward lobe hook (gain at mu = 1, tint at mu = 1; off by default like heightfog's sunLobeGain)
 uniform float uSunLobeGain;
 uniform vec3 uSunLobeTint;
@@ -143,12 +149,12 @@ void main() {
   float up = clamp( h, 0.0, 1.0 );
   // canopy openness of this direction (heightfog.ts kfOpenness): the gap glare and the far-haze
   // horizon toward the open east plateau and overhead; toward the closed north hollow / west stand
-  // the dome is the same dim closed-roof veil the geometry there is hazed with, so the far rows and
-  // the gaps between them converge on one tone (the reference's B forest band and A left quadrant)
+  // the horizon meets the same closed-haze colour as the far geometry. Above it, visible gaps
+  // retain some luminous upper air; canopy meshes still provide the actual occluding silhouettes.
   float len = length( d.xz );
   float e = len > 1e-4 ? dot( d.xz / len, uOpenDir ) : 1.0;
   float open = max( smoothstep( uOpenEdges.x, uOpenEdges.y, e ), smoothstep( 0.42, 0.7, h ) );
-  vec3 zenith = mix( uClosed, uZenith, open );
+  vec3 zenith = mix( uClosed, uZenith, mix( uClosedGapShare, 1.0, open ) );
   vec3 horizon = mix( uClosed, uHorizon, open );
   vec3 sky = mix( horizon, zenith, smoothstep( 0.0, uGlareRamp, up ) );
   float s3 = pow( sd, 3.0 );
@@ -190,6 +196,7 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     // measured reference values (see reference/ANALYSIS.md §8) rather than config's display
     // colours, which are still cool-grey; the horizon is exactly the far-haze colour
     uZenith: { value: new Color(...SKY_GAP_GLARE) },
+    uClosedGapShare: { value: SKY_CLOSED_GAP_SHARE },
     uHorizon: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFar) },
     uGround: { value: new Color(cfg.sky.hemiGround).multiplyScalar(0.5) },
     uSunDir: { value: sunDir.clone() },

@@ -288,8 +288,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     new ShaderMaterial({ name, vertexShader: FULLSCREEN_VERT, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false });
 
   const settings: ComposerSettings = {
-    // Reviewed23ea contacts: retain small crevices without blurring the image.
-    aoStrength: 0.5,
+    // Reviewed f115 contacts: retain crevices and readable near-leaf detail.
+    aoStrength: 0.45,
     aoRadius: 0.5,
     // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
@@ -374,9 +374,9 @@ export function createComposer(opts: ComposerOptions): Composer {
     bloomIntensity: 0.18,
     // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
     saturation: 1.12,
-    // Adopted from actual23ea all-view review: stronger form, less olive colour drift.
-    // The next comparison eases contrast/fill locally; do not raise a global black pedestal.
-    contrast: 1.08,
+    // Adopted from actual f115 review: retain form while easing the near-shadow toe.
+    // Keep a true black point; the fill restores detail without a global pedestal.
+    contrast: 1.04,
     contrastPivot: 0.18,
     lift: 0,
     greenWarm: 0.08,

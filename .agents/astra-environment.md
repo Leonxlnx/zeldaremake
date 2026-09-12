@@ -156,5 +156,23 @@ LOD, flower reduction and disposal). These CPU checks do not claim visual accept
 Housebb08/91c changes remain held until Fable publishes the announced floor/back-wall/roof fixes;
 the deeper room still exposes a terrain-raised floor through the opening. No W25 acceptance.
 
+## Foreground refinement and upper-sky study
+
+Actualf115 comparison completed08:45UTC, archive5f45234e, folder
+progress/2026-09-12_084515200-f11517e. Root/helper independently reviewed A/B/C/D/F; candidate
+hemi0.68/IBL0.34/contrast1.04/AO0.45 restores modest shadow detail and is adopted. P10 rises
+0.017–0.022 while P90 changes0.002–0.009; these display-space statistics support the visual read,
+not an independent quality score. f115 baseline has exact23ea candidate camera/time/geometry/depth
+and rendered shaft gain1.8. Rebuilt sky ground bounce changes pixel bytes slightly (mean absolute
+channel difference0.70–0.84/255), not a visible broad direction change. All12files/source verified.
+
+Next narrow hypothesis: the shared sky gives closed-direction upper gaps a0.30 share of zenith
+radiance while leaving the horizon, thin fog and ray settings unchanged. Actual canopy geometry
+still occludes the dome. The environment map is rebuilt from the same shader, so indirect light
+also changes; do not compensate it preemptively or claim this is a fog-density change. This is
+an unaccepted appearance study until actual capture. Baseline controls explicitly retainf115's
+prior production fill/contrast/AO; candidate uses the new no-hook production refinement. Both
+columns share the same new sky and the integrateda973 planted-rim geometry.
+
 ## Last updated
-2026-09-12T08:45:20.347761+00:00
+2026-09-12T08:49:28.656920+00:00

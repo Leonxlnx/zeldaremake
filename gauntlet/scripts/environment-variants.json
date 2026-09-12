@@ -1,21 +1,21 @@
 {
   "schema": "zeldaremake.environment-variants.v1",
-  "baselineSource": "23ea37a7d9ffaf6462362b1d15b1198707c89408",
+  "baselineSource": "f11517e424cf333468c325885fe121245b54f756",
   "time": 12.5,
   "baseline": {
-    "label": "Production adoption of reviewed23ea candidate: cool fill, clear air, sharp materials; no runtime overrides",
-    "light": null,
-    "post": null
-  },
-  "candidate": {
-    "label": "Near-shadow refinement: modest extra cool fill and gentler contrast/contact AO",
+    "label": "Previous f115 production fill and contact contrast; current shared sky and geometry",
     "light": {
-      "hemiIntensity": 0.68,
-      "environmentIntensity": 0.34
+      "hemiIntensity": 0.6,
+      "environmentIntensity": 0.3
     },
     "post": {
-      "contrast": 1.04,
-      "aoStrength": 0.45
+      "contrast": 1.08,
+      "aoStrength": 0.5
     }
+  },
+  "candidate": {
+    "label": "Adopted near-shadow refinement, current production without runtime overrides",
+    "light": null,
+    "post": null
   }
 }

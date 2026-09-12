@@ -31,7 +31,7 @@ export const WORLD = {
     // Explicit sRGB fill colours; lighting uses them without a hidden warm-white blend.
     hemiSky: 0xb8c8d2,
     hemiGround: 0x6d715a,
-    hemiIntensity: 0.6,
+    hemiIntensity: 0.68,
   },
 
   fog: {
