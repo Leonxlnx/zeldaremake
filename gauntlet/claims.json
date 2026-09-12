@@ -788,6 +788,16 @@
       "at": "2026-09-12T20:07:43.228Z",
       "expiresHours": 3,
       "scope": "Separate far-surface fade trial: delay existing extra attenuation22 to32m, keep44m endpoint and all other lighting/fog/source controls; prepare matched actual middle-forest and camera-travel checks"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W16",
+        "W17"
+      ],
+      "at": "2026-09-12T20:49:07.213Z",
+      "expiresHours": 3,
+      "scope": "Bounded elevated east-flank grass height profile using existing field values; preserve roots, RNG, plant placement, material and Fable geometry; PR2 coordination after corrected trunk-seat handoff"
     }
   ]
 }

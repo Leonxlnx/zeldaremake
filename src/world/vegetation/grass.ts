@@ -185,6 +185,17 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
       h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band);
+      // Break the elevated east flank's fine grass wall into short understory patches around
+      // its existing fern / broadleaf groups. Keep tall islands in the strongest existing
+      // clumps; shade's 2 m border and the 1.2–2 m height ramp feather the same fixed region.
+      // This changes final height (and its derived wind stiffness), never the random stream,
+      // blade type, root, width or other plant placement. The low C sight line stays exact.
+      if (shade > 0 && s.h > 1.2) {
+        const bankProfile = shade * smoothstep(1.2, 2, s.h)
+          * (1 - field.sightlineC(x, z, 1)) * (1 - trim);
+        const shortPatch = 1 - smoothstep(0.45, 0.8, cluster);
+        h *= 1 - 0.62 * bankProfile * shortPatch;
+      }
       maxH = Math.max(maxH, h);
 
       // colour. The shade zone (frame 8's right embankment) measures ≈ 0.30 luminance in the

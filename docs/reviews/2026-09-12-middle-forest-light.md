@@ -76,3 +76,58 @@ Control source `e2ee5f076774ab36d1e751b1f1753781795a417d` is published with exac
 production; environment run34717456744 is running. The separate frozen32 m scalar is now
 applied for the candidate checkpoint. All camera/data/geometry bytes stay exact control;
 only the source shade audit should differ. No result or retention is claimed before images.
+
+## Completed22 m control
+
+Source e2ee5f0 completed all38 original captures in successful environment run34717456744.
+All16 normal JPEG/depth bytes and normalized actor/audit/resource/camera/control records match9ef
+exactly. Its corrected hedge11 and middepth11 dedicated PNG/source/plan/state contracts also
+pass. There are zero retries, errors or warnings across the entire control. Final original
+archive: `479f16b12d3f05cdd8b7dacdf8312a5661b2a8b3`; middle-path folder:
+`motion/2026-09-12_205849465-e2ee5f0`.
+
+Root inspected original M01/M05/M09/M11; the capture reviewer inspected all11. The path and
+middle trunks are framed usefully, with the ordinary branch/character/occluders retained. This
+is not an all33-probe visibility claim. Upper-trunk M01 is branch-blocked; M02 has a coarse-depth
+branch-edge ambiguity; M03–M11 support the estimated target within about.32 m. Low-trunk M01/M02
+and M06/M07 hit background in the coarse sampler, so exact surface identity is unproven there;
+M03–M05/M08–M11 agree within about.29 m. The open path's sparse-depth offsets vary with its
+shallow angle, from1.61 m initially to nearly zero around M09. No blocked or ambiguous probe
+counts as successful tracking. Discrete1.6 m steps still do not measure continuous playback.
+
+The unchanged22 m approach submits450–675 calls and8,241,471–8,766,247 triangles. The separately
+pinned32 candidate is `e8ccfe6779a8b89bb8fbb1362b58c247598a4b57`, now actually rendering in
+environment run34717576609. Its geometry and poses remain exact control. New bank-grass work
+is local and unpublished; it cannot affect either remote light comparison. Actual32 retention
+remains pending.
+
+## Actual 32 m decision: retain
+
+Source `e8ccfe6779a8b89bb8fbb1362b58c247598a4b57` completed all 27 original captures in
+successful environment run 34717576609. The 16 fixed views and 11 middle-path PNGs match the
+22 m control in every original depth array, camera, actor, resource and submitted-cost record.
+Complete normalized audits differ only in the explicitly intended farShadeStartM 22 → 32.
+All source/PNG/plan/state/history/ZIP contracts pass, with zero retries/errors/warnings.
+The 207-input source hash is `883c19b908501531012bc8241c00a780f59b9e9e7068a651225fe391782f4758`.
+
+Root compared actual A/D/F pairs, viewed B/C, compared M05/M09 pairs and inspected M01/M11.
+The independent capture reviewer personally compared all eleven path pairs, A/C/D/F and the
+four details. The later onset gives a modest but useful improvement in middle paving and
+trunk separation. Neither review finds an obvious pale middle band, washed-out trunk strip
+or new step in the sampled approach. The dark distant arch and established warm near lights
+remain; F's change is restrained. Retain 32 m. This is a bounded visual gain, not a wholesale
+lighting solution or a reference-quality/phase-exit claim.
+
+All 33 probe camera projections and sparse depth samples match the control exactly. The known
+M01 obstruction and other edge/background ambiguities remain excluded from confirmed surface
+measurements. The path's display-luma delta rises smoothly from 0 to 11.42 and then 6.49 on an
+8-bit scale; the confirmed upper-trunk series reaches 4.86 and then 3.00. These are local
+display-pixel measurements, not HDR values or material-masked contrast. Eleven fixed steps
+do not establish continuous playback or frame rate. No additional render is required for
+this decision.
+
+Original archive `9dcc1cffde8b0256699598e46aab9f630658b799` contains the unchanged historical
+folders and the new `motion/2026-09-12_212006394-e8ccfe6` originals. Normal world/detail folders
+are `progress/2026-09-12_210826998-e8ccfe6` and `details/2026-09-12_211121078-e8ccfe6`.
+The separately prepared grass trial begins after this retained light checkpoint, preserving
+the exact 32 m shader source and avoiding an ambiguous combined light/geometry comparison.

@@ -1,0 +1,212 @@
+{
+  "pin": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "actualGeometrySource": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "allGrassTiles": 120,
+  "totalBlades": 499880,
+  "changedBlades": 20574,
+  "allUnchangedMatrixAndDataRows": 479306,
+  "rootMaxDeltaM": 0,
+  "rootHeightMinusExisting12mmSinkMaxErrorM": 3.4981372318831916e-06,
+  "rng": {
+    "calls": 10243658,
+    "sha256": "8a3c6620f10d4eab64fed90c7d3c063bb9627ed435d64e3c20fe041adb1d3ae0"
+  },
+  "baseBladePositionNormalUvIndicesExactAll3LODs": true,
+  "positiveDeterminantMinimum": 5.406230819547984e-06,
+  "heightsOld": {
+    "min": 0.06801844107366473,
+    "p10": 0.1240435751907634,
+    "median": 0.2457626984490085,
+    "p90": 0.4784065178544794,
+    "max": 0.6420196821112738
+  },
+  "heightsNew": {
+    "min": 0.03680355587982246,
+    "p10": 0.06201295694054279,
+    "median": 0.15637477144435322,
+    "p90": 0.38074186644937247,
+    "max": 0.6411775783693114
+  },
+  "heightScale": {
+    "min": 0.37999996620217674,
+    "p10": 0.3800000007812062,
+    "median": 0.6976339216621367,
+    "p90": 0.9933005134737884,
+    "max": 1
+  },
+  "stiffnessDelta": {
+    "min": 0,
+    "p10": 0.001537919044494629,
+    "median": 0.055823326110839844,
+    "p90": 0.17596369981765747,
+    "max": 0.3791002631187439
+  },
+  "audit": {
+    "oldMean": 0.2657724823869388,
+    "newMean": 0.2624374274051505,
+    "oldCV": 0.4949151401029905,
+    "newCV": 0.5034985453685838
+  },
+  "maxConservativeBoundRadiusChangeM": 0,
+  "typeCounts": [
+    342735,
+    106396,
+    50749
+  ],
+  "views": [
+    {
+      "id": "A_stairs",
+      "grassInventory": {
+        "drawCalls": 120,
+        "triangles": 1355858,
+        "lodCounts": [
+          12,
+          32,
+          76
+        ]
+      }
+    },
+    {
+      "id": "B_house",
+      "grassInventory": {
+        "drawCalls": 120,
+        "triangles": 1387470,
+        "lodCounts": [
+          14,
+          28,
+          78
+        ]
+      }
+    },
+    {
+      "id": "C_lookback",
+      "grassInventory": {
+        "drawCalls": 120,
+        "triangles": 1330138,
+        "lodCounts": [
+          14,
+          29,
+          77
+        ]
+      }
+    },
+    {
+      "id": "D_log",
+      "grassInventory": {
+        "drawCalls": 120,
+        "triangles": 1381836,
+        "lodCounts": [
+          14,
+          30,
+          76
+        ]
+      }
+    },
+    {
+      "id": "E_ground",
+      "grassInventory": {
+        "drawCalls": 120,
+        "triangles": 1387470,
+        "lodCounts": [
+          14,
+          28,
+          78
+        ]
+      }
+    },
+    {
+      "id": "F_canopy",
+      "grassInventory": {
+        "drawCalls": 120,
+        "triangles": 1280864,
+        "lodCounts": [
+          10,
+          31,
+          79
+        ]
+      }
+    }
+  ],
+  "plantCounts": [
+    {
+      "set": "ferns",
+      "count": 996,
+      "instanceSHA256": "f3c343bf9ad02bab2a91c19dc22121c08feb6b5bd851e210e6f15a4a7f006331"
+    },
+    {
+      "set": "hero-ferns",
+      "count": 18,
+      "instanceSHA256": "feddfe2bf45ffdacf4e4d3745db4a440d8a8b0dcf29fd5a1e85ff785153603ee"
+    },
+    {
+      "set": "fiddleheads",
+      "count": 300,
+      "instanceSHA256": "69a88ba734ecdc2244583dbcb470eef4d1826d3ce49d9fb340beec043af0896b"
+    },
+    {
+      "set": "bushes",
+      "count": 108,
+      "instanceSHA256": "1b8d77db337c59d731c54c5c7ccf727cfc408b13afb3a895bc65b5334d860b0b"
+    },
+    {
+      "set": "hedge",
+      "count": 12,
+      "instanceSHA256": "057def40b2850e908f6eab00454c1f86153ace09437844f03109f76fd6919d73"
+    },
+    {
+      "set": "flowers",
+      "count": 312,
+      "instanceSHA256": "75388747656c1fe43b4b77056e754edc51e7f198a6a686af421581965dc51f5c"
+    },
+    {
+      "set": "flowers-yellow",
+      "count": 6,
+      "instanceSHA256": "b4745234f2fed50befc7ed7fa7e5d36804ba0bf62b838c239824edc092ca038c"
+    },
+    {
+      "set": "flowers-white",
+      "count": 57,
+      "instanceSHA256": "bb53347afdb82fe5bb403857e5b5f8ba2ae841f7a22c0e20178eb6d97987fd70"
+    },
+    {
+      "set": "weeds",
+      "count": 3477,
+      "instanceSHA256": "6e6e97e8781d23f4c36a23c7f4721cc5fdb823707a480845ea3d0ede70799d02"
+    },
+    {
+      "set": "seedheads",
+      "count": 1009,
+      "instanceSHA256": "2d685cb1209b837ac6bfb8015cf8fe463e1b5d3decd82c91878f593c993ca952"
+    },
+    {
+      "set": "clover",
+      "count": 3247,
+      "instanceSHA256": "05d550d0325ed580943fe3eab4607fc71002cfae94903e7e538ca28a4881705e"
+    },
+    {
+      "set": "moss",
+      "count": 728,
+      "instanceSHA256": "b79cc6e8548cf002ce0032785ab1a17d91ef75927ff7168f5511fc3c53afba6f"
+    },
+    {
+      "set": "saplings",
+      "count": 27,
+      "instanceSHA256": "a8006bad4ace94dc2c73833fb2e132d2af7522e6de47b8301dd5a4f2fa6b334d"
+    }
+  ],
+  "sourceHashes": {
+    "src/world/config.ts": "b82d848c53f1770dc21fe50ab36c94fe9a5968ce1a5795c0d40ee3fcb7849c88",
+    "src/world/layout.ts": "3b6fcacd4d4c27d665a445f7f62348f15c465960443d415647a25217434bde75",
+    "src/world/terrain/heightfield.ts": "519d2f17455d64d34ad488d2651b65636d84585ee93b7f9f49ba548339c02db4",
+    "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+    "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+    "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+    "src/world/vegetation/field.ts": "d5c515213089c940d8267e6f4aef873b606c53c576944172a816a4cbd10f16fd",
+    "src/world/vegetation/grass.ts": "3f30d6804c1abcf72b59e20c90cce52a6ad70670a02de3210ec839655a064745",
+    "src/world/vegetation/plants.ts": "29a50da8a741b38a5a1d991d817d4977562113ec4ef325364d41d1d2c37f8b64",
+    "src/world/vegetation/geometry.ts": "952c939dac4196977acc21b64df054d60ff45eb941f0d1842e0a66a4e7be12a7",
+    "src/world/vegetation/lodset.ts": "9385426bc84896daf62bdf6dc197ef70d0fe922db369fd0a6948ad3da7eaef62",
+    "src/world/vegetation/materials.ts": "7f11c56c2347bd2a247ebf48f72f14c199c615cd1fe5e73c663948c1c839d48b",
+    "src/world/vegetation/plantgeo.ts": "98ccdc110e23283097b1b9366bec39aabf3d7f914e4419deb5f19a35957a02f9"
+  }
+}

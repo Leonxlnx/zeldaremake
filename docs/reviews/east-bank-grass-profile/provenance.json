@@ -1,0 +1,16 @@
+{
+  "baseSource": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "actualGeometrySource": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+  "originalFrozenEvidenceSHA256": "89f3d1247f9f0e9cd4c58886e166724201597bd2a8c0421e82ee257cce81d690",
+  "originalPatchSHA256": "2c6684444553fbacb21534fe657f79d17598b1c7f890277a6b62e0475a75d467",
+  "originalCandidateSHA256": "06012017b7d52794204b9936e4890f8cc2942cbfb4f1e33cb8509aa4c2c51da4",
+  "originalProofSHA256": "4072ef4f01af9f36445295a6aa72532915dbdc630fb9456e07d7294fe813b5b7",
+  "sourceChangeScope": "Only the recorded 11-line grass.ts insertion; full candidate reconstructed in memory, never copied into this directory or production.",
+  "actualArchive": {
+    "source": "9ef903c58c3ee70eccaf919d565a1eb19cd1bef1",
+    "tree": "b38411104adebad7689f025adb8a30202ff9b38b",
+    "archiveCommit": "6c0888409116600733cc06b5391791a582deb0b1",
+    "folder": "progress/2026-09-12_200727869-9ef903c"
+  },
+  "sourceProofInputPolicy": "Historical Git objects plus installed locked project dependencies; no ignored scratch/reference/capture metadata dependency. The archived static projection summary is retained separately and is not claimed as rerun by proof.mjs."
+}

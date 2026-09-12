@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "source": "e8ccfe6779a8b89bb8fbb1362b58c247598a4b57",
+  "beforeSHA256": "3f30d6804c1abcf72b59e20c90cce52a6ad70670a02de3210ec839655a064745",
+  "candidateSHA256": "06012017b7d52794204b9936e4890f8cc2942cbfb4f1e33cb8509aa4c2c51da4",
+  "expectedFileSHA256": "e696ad028890b8565cdd00eec5c9d35762fb324e5b53a2a57b26692d396eb19c",
+  "substantiveSHA256": "692af866e983b04a97843f65384d3e4daddba927ffd8975962a0bd82b4e4034e",
+  "comparedFields": [
+    "pin",
+    "actualGeometrySource",
+    "allGrassTiles",
+    "totalBlades",
+    "changedBlades",
+    "allUnchangedMatrixAndDataRows",
+    "rootMaxDeltaM",
+    "rootHeightMinusExisting12mmSinkMaxErrorM",
+    "rng",
+    "baseBladePositionNormalUvIndicesExactAll3LODs",
+    "positiveDeterminantMinimum",
+    "heightsOld",
+    "heightsNew",
+    "heightScale",
+    "stiffnessDelta",
+    "audit",
+    "maxConservativeBoundRadiusChangeM",
+    "typeCounts",
+    "views",
+    "plantCounts",
+    "sourceHashes"
+  ],
+  "nodeVersion": "v24.19.0",
+  "scope": "Pinned CPU source builds, not an app build or render. Original roots/RNG/non-grass placements and all grass inventories compare exactly; no appearance, whole-view invariance or GPU-frustum assertion."
+}

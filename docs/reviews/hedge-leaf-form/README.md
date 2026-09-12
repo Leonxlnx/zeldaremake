@@ -114,3 +114,26 @@ residual, and does not establish renderer nondeterminism.
 The new free-camera views cost 710–714 calls / 9,078,425–9,127,857 submitted triangles,
 above the saved-view 700 / 9M envelope. No matching earlier sweep establishes a regression.
 These are supplemental observations; neither performance nor phase-exit approval is claimed.
+
+## Corrected actual view: e2ee5f0
+
+The tooling-only control `e2ee5f076774ab36d1e751b1f1753781795a417d` keeps exact9ef
+production and moves the sweep track1 m south. All16 normal JPEG/depth/audit contracts match9ef
+exactly, with zero retries/errors/warnings. The corrected11 original PNGs are archived at
+`fab1e65fdc2dc5170d5c4551b1fb1327bdaed73b/motion/2026-09-12_205115879-e2ee5f0`.
+Their dedicated schema/source/dist/plan/PNG/state/history checks pass, also with zero retries,
+errors or warnings. The original failed-framing9ef gallery remains intact.
+
+Root personally inspected H02/H03 and H04/H05. The birch now sits left of both target centres;
+bank foliage is visible, with no obvious whole-crown jump across either10 cm bracket. Small,
+dark overlapping crowns limit judgment of individual leaf popping. Source-root probes are
+approximate visibility aids, not exact leaf/material IDs; sparse depth now finds foliage or
+background rather than the former5.7 m birch. This supports provisional retention of the modest
+A/F form gain, without claiming a seamless interactive transition or a matched pre9ef/new9ef
+comparison on this corrected track. Continuous playback remains unmeasured.
+
+Return pairs H02/H10 and H03/H09 are depth-exact; H04/H08 and H05/H07 each differ at one depth
+cell. H01/H11 is fully exact. Tiny return PNG differences and tree-inventory changes preserve
+the previously explained1.5 m tree cache; no tree update or equality guard is changed. Actual
+free-camera cost is713–717 calls and9,101,218–9,226,004 submitted triangles. The corrected track
+has no historical same-track baseline; it is not a fixed-view budget or FPS approval.
