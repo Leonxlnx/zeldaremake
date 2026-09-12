@@ -1,22 +1,22 @@
 {
-  "source": "0520d443187cb842c5c4888f7861e6f97fb841ca",
-  "capturedAt": "2026-09-12T00:11:20.286Z",
+  "source": "aeb6374066373bf5c1eaaeb0c2de8580baff9aed",
+  "capturedAt": "2026-09-12T00:20:46.991Z",
   "images": [
     {
       "file": "01-idle.jpg",
-      "sha256": "c81e7aada67ebbc10076a73c45cbb759f6782919303e2715f890c3ef39827668"
+      "sha256": "990ead22264e9dae2560fd029d283b58d564e2ab8cca0b64ebbcbed79d98be95"
     },
     {
       "file": "02-walk.jpg",
-      "sha256": "aab288b81730379230f22b94ff38e813733ca393d7b5109848bf1b7d4bf7d9a7"
+      "sha256": "90ba3f4c2a537c76ed727b62db1acce027e1cd7f13444e396b62e4b6b91f81f0"
     },
     {
       "file": "03-run.jpg",
-      "sha256": "0d2c31d085b943e2941897efd3936770e4ffe646004493a39ce52df00440327e"
+      "sha256": "07b78bc8f8ecc7b68e36b13f491a5a19cf47d408d002906e9637b7684e6af063"
     },
     {
       "file": "04-jump.jpg",
-      "sha256": "d1ecd409df6fcd14e906863cb663975130eddffd5f5ed8a682fa0c8d1ce7ba18"
+      "sha256": "50d4bca84d13e36cd6864513e17f55823a4f88edc61a82918a16ea893660675b"
     },
     {
       "file": "05-outfit-back.jpg",
@@ -24,7 +24,7 @@
     },
     {
       "file": "06-face-detail.jpg",
-      "sha256": "1798484bc096b0e560690e372fc056c179dd8cdb5938402b1a49f8d65c2ccc3e"
+      "sha256": "0c7801af7567556c7f2940a3c8792b8f3f314ae5644e1cd6ab936e54ae59a600"
     },
     {
       "file": "07-leaf-lantern.jpg",
@@ -48,7 +48,7 @@
     },
     {
       "file": "12-face-profile.jpg",
-      "sha256": "6668e3f9413a317aaf9700c8e8282d93227a30901816295f36bdc27af2ec555b"
+      "sha256": "7cec2a70c9a4a66c022230e1a1d76638fb0c33a81b5f819fafd0ae811735df37"
     },
     {
       "file": "13-backpack-detail.jpg",
@@ -60,7 +60,7 @@
     },
     {
       "file": "15-run-rear-quarter.jpg",
-      "sha256": "892762fb20c5a2d0307b9f5ed0c1fb93b616a3cb8b3ceb2feeda3ca306d7d533"
+      "sha256": "5b7a04f352656d18dc1ad4530a8394ebee390f23014d93e8728f39e664f9f9a0"
     },
     {
       "file": "16-run-jump-launch-rear-quarter.jpg",
@@ -68,11 +68,11 @@
     },
     {
       "file": "17-face-blink-transition.jpg",
-      "sha256": "6a78867f708c308ee17233d9a35e72fdccd5fd1c242240bc25b4c134556ae6ff"
+      "sha256": "2487ee474cd6c629973714897786c61cc877f052078c69a14bc259119d4ed735"
     },
     {
       "file": "18-face-blink-narrow.jpg",
-      "sha256": "ff53839a1e8e2825bc6e4e714f5982b89401e9c7b75887f85d9e2ca3641bc45d"
+      "sha256": "b909ae6094f32cf03fbcc41b202b24413b4cc12d3178e9e2eee931a6b46728db"
     }
   ]
 }
