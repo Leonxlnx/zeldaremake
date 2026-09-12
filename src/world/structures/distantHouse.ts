@@ -68,7 +68,15 @@ export interface DistantHouseDef {
   pods: number;
 }
 
-/** authored hosts: layout giants + the trees system's COLUMN_SEATS (see the header) */
+/**
+ * authored hosts: layout giants + the trees system's COLUMN_SEATS (see the header)
+ *
+ * TODO(seat publication): the two COLUMN_SEATS hosts duplicate the trees system's constants.
+ * Once the trees system publishes its column seats through `ctx.shared` (as it does the lantern
+ * limb's path), read the host seat / variant from there and drop the copies here — until then
+ * a change to COLUMN_SEATS silently strands these huts off their trunks (the audit's
+ * `distantHouseDetail.host` is the check).
+ */
 export const DISTANT_HOUSES: DistantHouseDef[] = [
   {
     id: 'hollow-column',

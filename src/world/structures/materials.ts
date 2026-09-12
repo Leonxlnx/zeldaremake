@@ -202,6 +202,13 @@ export interface StructureMaterials {
   endGrain: MeshStandardMaterial;
   /** number of materials that ended up with real texture files */
   texturedSets: string[];
+  /**
+   * Round 17: the canvas textures this system generated itself (moss albedo / normal, straw,
+   * ember glow, the two lantern gradients, leaf / tuft / flower cards, the rune decal) — the
+   * TextureLibrary's bark / plank / thatch maps are borrowed and NOT in here. `structures.dispose()`
+   * releases each of these exactly once; `material.dispose()` never disposes a material's maps.
+   */
+  ownedTextures: Texture[];
 }
 
 function canvas(w: number, h: number) {
@@ -742,6 +749,12 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     T.load('weathered_planks', 'roughness'),
   ]);
   const P = ctx.config.palette;
+  /** every canvas texture built below goes through here (round 17: the owned-textures list) */
+  const ownedTextures: Texture[] = [];
+  const own = <T extends Texture>(tex: T): T => {
+    ownedTextures.push(tex);
+    return tex;
+  };
 
   const bark = new MeshStandardMaterial({
     map: barkC,
@@ -791,7 +804,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     side: BackSide,
   });
   const roof = new MeshStandardMaterial({
-    map: strawTexture(rng),
+    map: own(strawTexture(rng)),
     normalMap: thatchN,
     normalScale: new Vector2(0.9, 0.9),
     roughnessMap: thatchR,
@@ -825,7 +838,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   });
   // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream
   const hearth = new MeshBasicMaterial({ color: new Color(0xffa040).multiplyScalar(1.4), toneMapped: true });
-  const ember = new MeshBasicMaterial({ color: new Color(0x8a4014), map: glowTexture(), transparent: true, depthWrite: false, toneMapped: true });
+  const ember = new MeshBasicMaterial({ color: new Color(0x8a4014), map: own(glowTexture()), transparent: true, depthWrite: false, toneMapped: true });
   const windowGlow = new MeshBasicMaterial({ color: new Color(0xffb04a).multiplyScalar(1.3), toneMapped: true });
   // deeper orange than the pods' amber, ×2.2: the veil mixes 50–65 % warm grey into it at 30–47 m,
   // which lifts the blue channel — a paler base read as cream through the haze
@@ -839,13 +852,13 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     roughness: 0.6,
     metalness: 0,
   };
-  const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: lanternGradientTexture(P.lanternGlow) });
+  const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(P.lanternGlow)) });
   // lime pod: yellow-green bottom, deeper green toward the cap
-  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: lanternGradientTexture(0xd2ee48, [0.5, 0.78, 0.3]) });
+  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(0xd2ee48, [0.5, 0.78, 0.3])) });
 
   const leaf = windLeafMaterial(
     new MeshStandardMaterial({
-      map: heartLeafTexture(),
+      map: own(heartLeafTexture()),
       alphaTest: 0.45,
       side: DoubleSide,
       roughness: 0.75,
@@ -858,7 +871,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const vine = windLeafMaterial(new MeshStandardMaterial({ color: new Color(0x4c5a2c), roughness: 1 }), ctx, 'structures-vine');
   const tuft = windLeafMaterial(
     new MeshStandardMaterial({
-      map: tuftTexture(),
+      map: own(tuftTexture()),
       alphaTest: 0.4,
       side: DoubleSide,
       roughness: 0.85,
@@ -869,7 +882,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     'structures-tuft',
   );
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
-  const runes = new MeshStandardMaterial({ map: runeTexture(rng), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const runes = new MeshStandardMaterial({ map: own(runeTexture(rng)), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
   // the cap's moss (round 13): the shared `moss` binds the thatch normal map at 0.5, which put
   // straw-stalk relief on the cap's majority moss; this one takes the procedural mossy normals
@@ -880,10 +893,10 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // Round 15: the moss albedo map (`mossTextures`) under the vertex tint — the reference's
   // fine dark-speckled texture at a scale the vertex grid cannot carry.
   const mossMaps = mossTextures(rng);
-  const capMoss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 0.9, map: mossMaps.albedo, normalMap: mossMaps.normal, normalScale: new Vector2(0.55, 0.55) });
+  const capMoss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 0.9, map: own(mossMaps.albedo), normalMap: own(mossMaps.normal), normalScale: new Vector2(0.55, 0.55) });
   const flower = windLeafMaterial(
     new MeshStandardMaterial({
-      map: flowerTexture(),
+      map: own(flowerTexture()),
       alphaTest: 0.5,
       side: DoubleSide,
       roughness: 0.8,
@@ -914,5 +927,5 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }

@@ -174,8 +174,13 @@ export interface CapProfile {
   thatchFraction: number;
   /** the share round 11 tinted as straw over its all-straw cap (same noise, its 0.35–0.75 mix past ½) */
   thatchFraction11: number;
-  /** the same rim / crown at ×1.0 / ×1.0 for before/after */
+  /** the same rim / crown at ×1.0 / ×1.0 (no round-17 lobes) for before/after */
   round11: { rim: P3[]; crownTop: P3; rimFront: P3 };
+  /** round 17: the rim ring's horizontal reach from the cap's axis — mean / std / std ÷ mean / min / max (m) */
+  rimRadius: { mean: number; std: number; cv: number; min: number; max: number };
+  /** round 17: the rim-reach lobes' and the eave-line wave's amplitudes (m) */
+  rimLobeAmplitude: number;
+  rimWaveAmplitude: number;
 }
 
 export interface HouseBuild {
@@ -503,16 +508,48 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const crownY = lipTop + (def.roofHeight * 0.97 - lipTop) * CROWN_SCALE;
   /** outer radius of the rim at ×1.0: heavier overhang at the front (over the porch) than at the back */
   const capR0 = (a: number) => R * (1.3 + 0.13 * Math.cos(a));
-  /** outer radius of the rim as built (round-12 rim A/B) */
-  const capR = (a: number) => capR0(a) * CAP_RIM_SCALE;
+  /**
+   * Round 17: the crown's low-frequency IRREGULARITY. Rounds 8–16 built the rim as a smooth
+   * ellipse-ish ring and the crown as an even dome — take-68's remaining W25 ground was "even
+   * roof / eave … vs the reference's irregular crown": at 14 s and on boards 03 / 04 the rim's
+   * lobes reach differently (±0.4 m), the eave line is wavy, one side of the crown sits lower
+   * and a couple of the shoulder's bulges sag. Three terms, all smooth in `a` so the developed-
+   * cone moss map stays continuous:
+   *  - `rimLobe`: two + three lobes on the rim's reach (±0.4 m): ≈ 0 over the door (the pods'
+   *    overhang and the front-overhang audit hold), +0.26 m over the right lip, −0.4 m on the
+   *    right flank (B's right silhouette recedes), the back reaches out inside the giant.
+   *  - `rimWave`: a three- plus five-lobe ±0.17 m wave on the rim's height (the eave line),
+   *    zero at the window's angle so the window keeps its 3 cm under the soffit.
+   *  - `crownLobe` (in `domeBaseS`): the left shoulder sits up to 0.22 m lower, and two bulges
+   *    (right of the door, back-left) sag a further 0.16 m; the front shoulder — the crown's
+   *    height from B — is untouched.
+   * `capR0`, `soffitYRound10` and `boughAt11` — the ×1.0 references the pods' hooks are placed
+   * from — and the audit's round-11 sample do not carry them.
+   */
+  const RIM_LOBE = 0.4 * k;
+  const rimLobe = (a: number) => RIM_LOBE * (0.55 * Math.sin(2 * a + 1.5) + 0.55 * Math.sin(3 * a + 5.4));
+  const rimWave = (a: number) => 0.12 * k * Math.sin(3 * a + 3.24) + 0.05 * k * Math.sin(5 * a + 5.4);
+  const RIM_WAVE = 0.17 * k;
+  /** outer radius of the rim as built (round-12 rim A/B; round-17 lobes) */
+  const capR = (a: number) => capR0(a) * CAP_RIM_SCALE + rimLobe(a);
   /** trunk wall top, hidden under the cap */
   const wallTop = eaveY + 0.3 * k;
   // porch: a wide recess cut into the front of the trunk under the eave, sitting a little right of
   // the axis like the reference's (its root lips at frame x ≈ 0.64–0.72 / 0.86–0.93 in B). The back
   // wall stays well forward because the plateau slope rises steeply inside the trunk on the right
   // (terrain +0.3 m at 1.2 m right of the axis, 2.2 m in; +0.8 m at 1.8 m in).
-  const porchW0 = -0.56 * R;
-  const porchW1 = 0.46 * R;
+  // Round 17: the dark arch is WIDER. Take-68 read the reference opening as wider than ours:
+  // in B the reference's dark cavity runs between its root lips' inner faces at x 0.715 and
+  // 0.865 (0.150 of the frame, ≈ 3.0 m at the door plane; the reviewer's coarser read
+  // 0.70–0.86) where ours ran 0.725–0.845 (0.120, 20 % narrower). The root lips move apart
+  // (`lipOut`, +0.2 m on the left, +0.5 m on the right — the reference sits right of the axis)
+  // and the porch cut widens behind them (−0.63 R … 0.55 R, was −0.56 … 0.46) so no lit wall
+  // shows between a lip and the recess; the inner doorway and the room behind it are unchanged,
+  // the porch's back wall around the doorway is recess bark at lum ≈ 0.2 in B, as dark as the
+  // reference's cavity. Measured in B (pixel rays, lip rows y 0.42–0.44): lips' inner faces
+  // 0.716 / 0.867 — 0.151 of the frame, within 1 % of the reference (HEAD: 0.725 / 0.839).
+  const porchW0 = -0.63 * R;
+  const porchW1 = 0.55 * R;
   const porchTop = eaveY - 0.2 * k;
   const porchRc = 0.22 * R;
   /** porch back wall depth from the centre */
@@ -910,7 +947,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const deep = depthOf(p);
     // (round 14: the back wall stands ≈ 0.3 m nearer the door, so the lamps' pools cover more
     // of the opening — their peaks come down a tenth to hold the doorway's p90 under 0.45)
-    return (0.01 + 0.12 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.3 * k, 0.32 * k, 1.25) + pool(p, lamp2Pos, 0.28 * k, 0.3 * k, 1.0) + pool(p, hearthPos, 0.2 * k, 0.3 * k, 0.5) + pool(p, archPos, 0.15 * k, 0.4 * k, 0.5);
+    // Round 17: the opening must read DARK with two local pools — reference doorway box
+    // (0.75–0.83 × 0.40–0.54) p90 0.35 with 3.7 % of it over 0.40 (one glint); take-68's ours
+    // p90 0.44 with 19.7 % over 0.40: the whole top-left cell of the box (the left lamp's pool
+    // + the arch's glow on the cut) and the right lamp's / hearth's pools. The pools tighten
+    // (radius −25 %, peaks −35 %), the arch glow drops to a trace and the ceiling ramp halves
+    // (probe 1 at peaks 0.9 / 0.72: p90 0.38, 6.8 % over 0.40; as built, peaks 0.8 / 0.65:
+    // p90 0.37, 5.7 % over 0.40 — the left lamp's pool and the right lamp's, nothing between).
+    return (0.01 + 0.06 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.8) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.65) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.4) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.18);
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
@@ -1409,6 +1453,64 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     );
     rootParts.push(mossOnTop(skirt, [0.5, 0.64, 0.3], 0.35, noise));
   }
+  // ---- burls (round 17): take-68's "knotted trunk" — the reference trunk is gnarled where it
+  // meets the roots and the arch, ours read as a smooth shell (B left-silhouette roughness,
+  // linear-detrended edge std, 2.2 px — a straight line). Five knots, 0.3–0.36 m proud of the
+  // smooth wall, sunk 0.15 m into it, ridged, mossy on top: two on the left flank's silhouette
+  // (B x ≈ 0.60–0.62, y 0.41 / 0.45 — above the buttress roots, which hide the wall below
+  // ≈ 1.2 m from B), one left of the left lip above the south-west root's junction, one right
+  // of the right post above the east root's, one high on the right silhouette. Clear of the
+  // window's boss (≥ 0.95 m from its skirt), the pillars and the bough's root. As built the B
+  // left-silhouette edge std is 3.0 px (HEAD 2.2; the reference's 13.7 is its sign's moss slope,
+  // not a trunk edge). ----
+  const burlRng = rng.fork('burls');
+  const burls: { a: number; y: number; bump: number }[] = [
+    { a: -1.5, y: 1.8, bump: 0.36 },
+    { a: -1.38, y: 1.3, bump: 0.3 },
+    { a: -0.95, y: 1.4, bump: 0.3 },
+    { a: 1.02, y: 1.5, bump: 0.32 },
+    { a: 1.4, y: 2.0, bump: 0.3 },
+  ];
+  for (const b of burls) {
+    const rb = (b.bump + 0.15) * k;
+    const yb = b.y * k;
+    const N = frame.dir(b.a);
+    /** squash along the wall's normal: a flatter dome whose front stands `bump` proud of the smooth wall */
+    const squash = 0.85;
+    const centre = frame.at(b.a, rSmooth(b.a, yb) + b.bump * k - squash * rb, yb);
+    // the knot: a squashed sphere (poles up, bark cords running round it top to bottom, a few
+    // lumps), the shell's bark tint with lit crests and dark furrows
+    const seed = burlRng() * 10;
+    const knot = new SphereGeometry(rb, 20, 14);
+    knot.scale(1, 1, squash);
+    {
+      const pos = knot.attributes.position;
+      const _q = new Vector3();
+      const crests: number[] = [];
+      for (let i = 0; i < pos.count; i++) {
+        _q.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+        const dir = _q.clone().normalize();
+        const ang = Math.atan2(dir.z, dir.x);
+        const crest = noise.ridged(ang * 1.6 + seed, dir.y * 2.2 + seed * 0.3, 2) - 0.5;
+        const lump = noise.noise(dir.x * 1.8 + seed, dir.y * 1.8 - seed) * 0.08;
+        crests.push(crest);
+        _q.addScaledVector(dir, (crest * 0.1 + lump) * k);
+        pos.setXYZ(i, _q.x, _q.y, _q.z);
+      }
+      knot.computeVertexNormals();
+      setColorAttribute(knot, (i) => {
+        const c = clamp(crests[i] * 2.4, -1, 1);
+        const d = 0.62 * (1 + 0.45 * c) * (0.85 + 0.15 * Math.max(0, knot.attributes.normal.getY(i)));
+        return [d, d * 0.95, d * 0.86];
+      });
+      // bark map at the trunk's density (metres / 2.2)
+      const uv = knot.attributes.uv;
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * TAU * rb) / 2.2 + b.a, (uv.getY(i) * Math.PI * rb) / 2.2 + yb);
+    }
+    // basisMatrix maps local +z → N and keeps local +y (the poles) up
+    knot.applyMatrix4(basisMatrix(centre, N));
+    rootParts.push(mossOnTop(knot, [0.5, 0.64, 0.3], 0.6, noise));
+  }
 
   // ---- buttress roots seated on the terrain ----
   const bases: [number, number, number][] = [];
@@ -1485,9 +1587,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // roots and the door reads as an opening between two roots under an overhanging moss cap. ----
   const lipFlare = 0.55 * k;
   const lipRng = rng.fork('lips');
+  /** each lip's axis outside its jamb line (round 12: 0.34 m both; round 17: the arch widens —
+   *  see `porchW0` — 0.54 m left, 0.84 m right) */
+  const lipOut = (side: -1 | 1) => (side < 0 ? 0.54 : 0.84) * k;
   for (const side of [-1, 1] as const) {
     const jamb = side < 0 ? doorW0 : doorW1;
-    const wAxis = jamb + side * 0.34 * k;
+    const wAxis = jamb + side * lipOut(side);
     const jit8 = () => (lipRng() - 0.5) * 0.08 * k;
     const wFoot = wAxis + side * lipFlare;
     const dFoot = dOut(wFoot, 0);
@@ -1543,7 +1648,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   for (const side of [-1, 1] as const) {
     const jamb = side < 0 ? doorW0 : doorW1;
     const jit6 = () => (pillarRng() - 0.5) * 0.06 * k;
-    const wBase = jamb + side * 0.5 * k;
+    // round 17: the right post follows its lip out (+0.5 m, foot at B x ≈ 0.905 — the reference's
+    // thick right root); the left one stays — 0.2 m further left it would stand over the round
+    // window's right edge from B — and now rises in front of the middle of its lip
+    const wBase = jamb + side * (side < 0 ? 0.5 : 1.0) * k;
     const dBase = dOut(wBase, 0) + 0.6 * k;
     const foot = frame.door(wBase, 0, dBase);
     foot.y = terrain.height(foot.x, foot.z);
@@ -1551,7 +1659,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const aTop = Math.atan2(wBase - side * 0.25 * k, dBase - 0.3 * k);
     const rTop = capR(aTop) - capInset - 0.3 * k;
     // the soffit is flat at rollBottom less the sag; the post's end sits 0.12 m up inside it
-    const top = frame.at(aTop, rTop, rollBottom - sagAt(aTop) + 0.12 * k);
+    const top = frame.at(aTop, rTop, rollBottom - sagAt(aTop) - rimWave(aTop) + 0.12 * k);
     const pts = [
       foot.clone().setY(foot.y - 0.3 * k),
       foot,
@@ -1586,7 +1694,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // window's top right in B
     const forkFrom = curve.getPointAt(0.72);
     const forkA = aTop + (side < 0 ? 0.08 : 0.12);
-    const forkTo = frame.at(forkA, capR(forkA) - capInset + 0.05 * k, rollBottom - sagAt(forkA) + 0.1 * k);
+    const forkTo = frame.at(forkA, capR(forkA) - capInset + 0.05 * k, rollBottom - sagAt(forkA) - rimWave(forkA) + 0.1 * k);
     const forkMid = forkFrom.clone().lerp(forkTo, 0.5).add(new Vector3(jit6(), -0.12 * k, jit6()));
     const fork = sweepTube(new CatmullRomCurve3([forkFrom, forkMid, forkTo], false, 'catmullrom', 0.5), {
       radius: (t) => (0.075 - 0.035 * t) * k * (1 + 0.1 * Math.sin(t * 17)),
@@ -1617,8 +1725,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const V_CAP = 0.72;
   const capHeight = crownY - lipTop;
   /** the bare cap at an arbitrary rim / crown scale (the audit compares against ×1.0 / ×1.0) */
-  const domeBaseS = (a: number, v: number, out: Vector3, rimScale: number, crownScale: number) => {
-    const rc = capR0(a) * rimScale - capInset;
+  /** round 17: the shoulder's height lobes — one side lower, two sagging bulges (see `rimLobe`) */
+  // (the low side is the LEFT shoulder, a ≈ −1.5, and the two sags sit right of the door and at
+  // the back-left: the first probe put the low side on the front-left, where B's low viewpoint
+  // reads the front shoulder as the crown's height — the mound lost 18 px against a reference
+  // that is already the taller)
+  const crownLobe = (a: number, q: number) => (-0.22 * k * Math.pow(Math.max(0, Math.sin(a + 3.07)), 2) * smoothstep(0.1, 0.7, q) - 0.16 * k * Math.pow(Math.max(0, Math.sin(2 * a + 0.1)), 2) * smoothstep(0.3, 0.8, q)) * smoothstep(1, 0.86, q);
+  const domeBaseS = (a: number, v: number, out: Vector3, rimScale: number, crownScale: number, lobes = 1) => {
+    const rc = capR0(a) * rimScale - capInset + lobes * rimLobe(a);
+    const wave = lobes * rimWave(a);
     let r: number;
     let y: number;
     if (v <= V_CAP) {
@@ -1633,13 +1748,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // the crown leans a little toward the back; the cap sags unevenly (back-left heavier)
       out.addScaledVector(F, -0.35 * k * prof);
       out.y -= (0.1 + 0.12 * Math.sin(a + 2.2)) * smoothstep(0.25, 1, q) * k;
+      // round 17: the rim's height wave fades in over the shoulder; the shoulder's own lobes
+      out.y -= wave * smoothstep(0.2, 1, q) - lobes * crownLobe(a, q);
     } else {
       const phi = ((v - V_CAP) / (1 - V_CAP)) * Math.PI;
       r = rc + lipR * Math.sin(phi);
       y = rollBottom + lipR * (1 + Math.cos(phi));
       frame.dir(a, out).multiplyScalar(r).add(frame.C);
       out.y += y;
-      out.y -= (0.1 + 0.12 * Math.sin(a + 2.2)) * k;
+      out.y -= (0.1 + 0.12 * Math.sin(a + 2.2)) * k + wave;
     }
     return out;
   };
@@ -1890,11 +2007,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const thatchFraction11 = thatch11Area / Math.max(1e-6, thatchArea + mossArea);
   // cap silhouette for the audit (projected rim width / crown height in B), as built and at ×1.0
   const cap: CapProfile = (() => {
-    const sample = (rimScale: number, crownScale: number) => {
+    const sample = (rimScale: number, crownScale: number, lobes = 1) => {
       const p = new Vector3();
       const n = new Vector3();
       const at = (a: number, v: number): P3 => {
-        domeBaseS(a, v, p, rimScale, crownScale);
+        domeBaseS(a, v, p, rimScale, crownScale, lobes);
         // the displacement is evaluated on the scaled shell (the same noise the mesh uses)
         const disp = domeDisp(p, v);
         domeNormal(a, v, n);
@@ -1913,6 +2030,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       return { rim, crownTop, shell, rimFront: at(0, V_CAP), rimBack: at(Math.PI, V_CAP) };
     };
     const now = sample(CAP_RIM_SCALE, CROWN_SCALE);
+    const rimStats = (rim: P3[]) => {
+      const rr = rim.map((p) => Math.hypot(p[0] - frame.C.x, p[2] - frame.C.z));
+      const mean = rr.reduce((s, r) => s + r, 0) / rr.length;
+      const std = Math.sqrt(rr.reduce((s, r) => s + (r - mean) ** 2, 0) / rr.length);
+      const r3 = (x: number) => Math.round(x * 1000) / 1000;
+      return { mean: r3(mean), std: r3(std), cv: r3(std / mean), min: r3(Math.min(...rr)), max: r3(Math.max(...rr)) };
+    };
     const wall = (a: number) => rSmooth(a, eaveY) + pillarBulge(wOf(a, rSmooth(a, eaveY)), eaveY) * Math.max(0, Math.cos(a));
     const over = (a: number) => capR(a) - capInset + lipR - wall(a);
     return {
@@ -1922,7 +2046,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       overhang: { front: over(0), side: (over(Math.PI / 2) + over(-Math.PI / 2)) / 2, back: over(Math.PI) },
       thatchFraction,
       thatchFraction11,
-      round11: sample(1, 1),
+      round11: sample(1, 1, 0),
+      /** round 17: the rim ring's reach (48 points from the cap's axis) and the lobes' amplitude */
+      rimRadius: rimStats(now.rim),
+      rimLobeAmplitude: RIM_LOBE,
+      rimWaveAmplitude: RIM_WAVE,
     };
   })();
   // soffit: the dark underside from the rim curl's inner bottom edge back to the trunk wall (it
@@ -1930,7 +2058,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const soffitY = (a: number, r: number) => {
     const rc = capR(a) - capInset;
     const rw = rSmooth(a, eaveY) - 0.1;
-    return rollBottom + (wallTop - 0.02 * k - rollBottom) * clamp((rc - r) / Math.max(0.1, rc - rw), 0, 1) - (0.1 + 0.12 * Math.sin(a + 2.2)) * k;
+    return rollBottom + (wallTop - 0.02 * k - rollBottom) * clamp((rc - r) / Math.max(0.1, rc - rw), 0, 1) - (0.1 + 0.12 * Math.sin(a + 2.2)) * k - rimWave(a);
   };
   /** the round-10 soffit (outer edge at `eaveY`, rising 0.12 m to the wall): pod hooks on it keep their pods put */
   const soffitYRound10 = (a: number, r: number) => {
@@ -2061,8 +2189,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const shadedColor = (t: number, ang: number, shade: number): [number, number, number] => supportColor(t, ang).map((c) => c * lerp(1, 0.42, shade)) as [number, number, number];
   const mossTint: [number, number, number] = [0.5, 1.12, 0.34];
   const jit = (s: number) => new Vector3((branchRng() - 0.5) * s, (branchRng() - 0.5) * s * 0.5, (branchRng() - 0.5) * s);
-  /** where the bough passes the eave on the left, just outside the rim (its burl sits here) */
-  const arcEavePoint = frame.at(-1.2, capR(-1.2) + 0.3 * k, eaveY - 0.1 * k);
+  /**
+   * Where the bough passes the eave on the left, just outside the rim (its burl sits here).
+   * Round 17: on the left-BACK flank, a = −1.7 — 0.62 rad behind the round window (`winA`
+   * −1.08). Round 15 rooted the limb at a = −1.08 … −1.2, 2.0–2.9 m up: the 0.5 m tube grew
+   * out of the wall through the window's own collar and hid it from B (28 rays from B to the
+   * window's back: 16 first hit the bough, 1 the window). From B the new root is behind the
+   * trunk's left silhouette (tangent at a ≈ −1.39); the limb emerges past that edge just under
+   * the lip, 0.45 m further left than before (< 2 % of the frame), and the upper silhouette —
+   * `arcPts[3]` on — is unchanged (as built: 16 / 28 rays reach the window or its frame, 0 hit
+   * the bough; the B centre line still rises off the top of the frame with no descent).
+   */
+  const arcEavePoint = frame.at(-1.7, capR(-1.7) + 0.3 * k, eaveY - 0.1 * k);
   /** the bough's centre line and radii sampled for the audit (`houseBough`) */
   let boughSamples: { pts: P3[]; radii: number[] } = { pts: [], radii: [] };
   {
@@ -2076,11 +2214,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // the HUD box, and leaves the top of the frame at x ≈ 0.90 to a leafy tip 9.6 m up beyond
     // the right rim (visible from A / F). Like the reference, where the limb over the roof
     // comes out from behind the mound on the right and climbs away. No ground contact.
-    const aE = -1.2;
+    const aE = -1.7;
     const arcPts = [
-      // rooted in the trunk wall under the eave (the first segment is inside the bark)
-      frame.at(aE + 0.12, rSmooth(aE + 0.12, eaveY - 1.0 * k) - 0.45 * k, eaveY - 1.0 * k),
-      frame.at(aE + 0.05, rSmooth(aE + 0.05, eaveY - 0.6 * k) + 0.05 * k, eaveY - 0.6 * k),
+      // rooted in the trunk wall under the eave (the first segment is inside the bark), leaning
+      // a little forward as it climbs to the burl (round 17: a = −1.85 → −1.77 → −1.7, all
+      // ≥ 0.6 rad behind the window)
+      frame.at(aE - 0.15, rSmooth(aE - 0.15, eaveY - 1.0 * k) - 0.45 * k, eaveY - 1.0 * k),
+      frame.at(aE - 0.07, rSmooth(aE - 0.07, eaveY - 0.6 * k) + 0.05 * k, eaveY - 0.6 * k),
       arcEavePoint.clone(),
       frame.at(-1.6, capR(-1.6) + 0.1 * k, lipTop + 1.0 * k).add(jit(0.1)),
       frame.at(-2.2, 0.85 * capR(-2.2), crownY - 0.7 * k).add(jit(0.1)),
