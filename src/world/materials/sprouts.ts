@@ -20,6 +20,7 @@ import {
   Matrix4,
   MeshStandardMaterial,
   Quaternion,
+  Uint8BufferAttribute,
   Vector3,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
@@ -357,7 +358,18 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uSproutLodFar = { value: SPROUT_LOD_FAR };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; attribute float aVariant; attribute float aSproutVariant; uniform float uSproutLodFar;`)
+      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; attribute float aVariant; attribute float aSproutVariant; attribute float aTuftLighting; varying vec4 vTuftLighting; uniform float uSproutLodFar;`)
+      .replace(
+        '#include <defaultnormal_vertex>',
+        /* glsl */ `#include <defaultnormal_vertex>
+        // buildTuft authors an upward-biased blade normal. Preserve that axis across the
+        // standard two-sided normal flip; the semantic mask excludes every other variant.
+        vec3 sproutAuthoredUp = vec3(0.0, 1.0, 0.0);
+        #ifdef USE_INSTANCING
+          sproutAuthoredUp = normalize(instanceMatrix[1].xyz);
+        #endif
+        vTuftLighting = vec4(normalMatrix * sproutAuthoredUp, aTuftLighting);`,
+      )
       .replace(
         '#include <project_vertex>',
         /* glsl */ `
@@ -375,8 +387,25 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
         vec4 mvPosition = viewMatrix * wp;
         gl_Position = projectionMatrix * mvPosition;`,
       );
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec4 vTuftLighting;')
+      .replace(
+        '#include <normal_fragment_begin>',
+        /* glsl */ `#include <normal_fragment_begin>
+        #ifdef DOUBLE_SIDED
+          if (vTuftLighting.w > 0.5) {
+            vec3 sproutUp = normalize(vTuftLighting.xyz);
+            float upComponent = dot(normal, sproutUp);
+            if (upComponent < 0.0) {
+              // Reflect only the downward component, retaining the horizontal face direction.
+              normal = normalize(normal - 2.0 * upComponent * sproutUp);
+              nonPerturbedNormal = normal;
+            }
+          }
+        #endif`,
+      );
   };
-  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v3-variant-packs';
+  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v3-variant-packs-tuft-up-v1';
   return wind.bind(mat);
 }
 
@@ -419,22 +448,29 @@ export interface SproutBuild {
 }
 
 /** concatenate non-indexed variant geometries (same attribute set) and tag each vertex with its variant slot */
-function packGeometries(geos: BufferGeometry[]): BufferGeometry {
+function packGeometries(geos: BufferGeometry[], variantIds: number[]): BufferGeometry {
   const names = ['position', 'normal', 'color', 'uv', 'aWind'];
   const sizes: Record<string, number> = { position: 3, normal: 3, color: 3, uv: 2, aWind: 2 };
   const out: Record<string, number[]> = Object.fromEntries(names.map((n) => [n, []]));
   const variant: number[] = [];
+  const tuftLighting: number[] = [];
   geos.forEach((g, slot) => {
     for (const n of names) {
       const arr = g.getAttribute(n).array as Float32Array;
       for (let i = 0; i < arr.length; i++) out[n].push(arr[i]);
     }
     const count = g.getAttribute('position').count;
-    for (let i = 0; i < count; i++) variant.push(slot);
+    const id = variantIds[slot];
+    const isTuft = id === TUFT_A || id === TUFT_B || id === TUFT_C;
+    for (let i = 0; i < count; i++) {
+      variant.push(slot);
+      tuftLighting.push(isTuft ? 255 : 0);
+    }
   });
   const g = new BufferGeometry();
   for (const n of names) g.setAttribute(n, new Float32BufferAttribute(out[n], sizes[n]));
   g.setAttribute('aVariant', new Float32BufferAttribute(variant, 1));
+  g.setAttribute('aTuftLighting', new Uint8BufferAttribute(tuftLighting, 1, true));
   g.computeBoundingSphere();
   return g;
 }
@@ -497,7 +533,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
   packs.forEach((pack, pi) => {
     const n = pack.reduce((a, v) => a + lists[v].length, 0);
     if (!n) return;
-    const geo = packGeometries(pack.map((v) => variants[v]));
+    const geo = packGeometries(pack.map((v) => variants[v]), pack);
     const slotOf = new Float32Array(n);
     const im = new InstancedMesh(geo, material, n);
     let i = 0;

@@ -7,35 +7,43 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Integrating Fable cee9888 / c4b9578 after his explicit PR2 release5647471072 at17:21UTC.
-He has completed per-source sprout jitter preservation and adopted our exact flowers.ts patch.
-Only his structures/distant-house pass is still running. Independent review now passes:4225
-old matrix/color pairs,25 offsets,13 source removals,32 pair appends,30 boulder plants.
-Pinned reproducible evidence is in docs/reviews/fable-sprout-jitter/. Root fetched the branch, reread the
-partner log and new commits/PR discussion; the stale log's older running lines are superseded.
+Starting the isolated shared-tuft normal correction on published jitter baseline
+debe215 (full source debe21530c9085bf67ec2b25586a2d13ba61889b), tree
+b3412315d8feb093bc8803b3345d139b04031cbc, parents09b4143 + Fablecee9888. Its correct
+environment run34708734690 is actually in progress. Fable's source preservation review passes;
+our existing flower disposer hook remains. The canopy trial09b was rejected and exact9eb
+corridors restored. PR2 publication/scope comment5647563983 documents this separation.
 
-Root will preserve the jitter API/source streams and our current flowers.dispose hook, then
-apply a semantic tuft-only normal correction in materials/sprouts.ts. Scope is3025 hardscape
-and20 boulder tufts; clover/cushion/grit/fern remain excluded. No geometry, RNG, palette, wind,
-packing or lighting parameter changes belong to that correction. An independent helper reviews
-Fable's source-stream preservation while root handles the integration and shader. Review-only
-cb83faa ancestry adopts our take68 W25 verdict; preserve its history and original evidence.
+Root reread fresh PR2 and Fable commits/log; his explicit5647471072 handoff releases shared
+sprouts while he continues structures/distant houses. The first targeted re-fetch encountered
+an HTTP502; the retry succeeded at871d27b08218f5f10d509e443483f9ad83d0110c. Its only
+changes are three structure files, so there is no shared-sprout overlap. The world helper
+reviews those distant houses independently while this lighting checkpoint stays separate.
 
-Published09b4143 / treeddfe25586f032f5d74b460cf8f4612d377e9541e failed its visual gate.
-Root compared original A/F against9eb and inspected C; added shade forms broad soft patches on
-right/stair-foot paving and darkens the NPC beside Link. His pool stays clear, but desired fine
-dapple does not justify the lobe. Capture helper independently agrees. Restore exact9eb
-corridors.ts; no global compensation. Original failed-trial images remain archived.
+The frozen tuft candidate a7571d03aea7c4bb0e53cadb4aa0efd8d2a16dd76f922b982890864ac07e14f6
+adds a normalized Uint8 semantic mask to packed TUFT_A/B/C only and transports their authored
+up direction to the fragment. After Three's face flip, only a downward component reflects;
+nonPerturbedNormal follows. This includes20 boulder tufts, excludes clover/cushion/grit/fern,
+and preserves the whole new jitter API/body except the packer's semantic-ID argument.
 
-Lawn9eb actual12+4 are complete. Root inspected original B/L02: denser coverage and small pale
-heads, but a near-black jagged turf band is a significant weakness, consistent with the separate
-shared-tuft normal diagnosis. Outside jitter drift is visible; Fable's new correction addresses
-it. This is not finished lawn. Actual costs and source/control/ZIP/history receipts are in the
-capture review. Grass2c actual remains retained: lit blades improve without a global wash.
+Independent checks pass: all old packed/instance/color/bounds/wind/projection bytes and
+3,179,761 draws in1211 evaluated hardscape+rocks streams remain exact.3025 hardscape plus20
+boulder tufts are selected;2727 other instances excluded. Cost1218 static attribute bytes,
+one attribute location/vec4 varying, zero geometry/draw/material/texture additions. Installed
+Three186 prefix/preprocessing places correction after face flip and before roughness/lighting;
+this is CPU source verification, not GPU compilation. Direct/specular response also changes.
+A focused test rejects missing masks and incorrectly treating pack slot as botanical identity.
+
+Frozen source is applied byte-exact, with the focused regression added to CI. The semantic
+test and typecheck/build110 pass; source hash remains a7571d03 before/after both gates.
+The production diff contains only sprouts.ts. Render separately against
+debe. Retain only if B/L02/world tufts become readable without overbright flat grass, sparkle,
+or altered excluded-family behavior. Exact geometry/depth/audits/budgets are the capture gate.
+Character remains paused for local Blender. Owner-original PNG publication is separate.
 
 ## Files / systems being touched
-- Root: deliberate Fable jitter ancestry integration, then materials/sprouts.ts tuft-only normal
-  correction; own log/claim/reviews. Central canopy waits on actuals, no further tree edits.
+- Root: materials/sprouts.ts tuft-only normal correction, focused semantic-mask test/CI and
+  own log/review. Jitter integration is published; rejected canopy is already reverted.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
 - World helper: independent c4b9578 / cee9888 jitter and owned-resource integration review.
@@ -150,4 +158,4 @@ Reference helper: publish the ten exact original owner PNGs on a separate branch
 Crate surface study remains lower priority; character waits for local Blender.
 
 ## Last updated
-2026-09-12T17:34:27.095986+00:00
+2026-09-12T17:43:25.513047+00:00
