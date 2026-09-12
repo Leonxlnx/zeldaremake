@@ -6457,6 +6457,115 @@
       },
       "prevHash": "sha256:f5b53d15dc3098370dda9a66448e5bf5636c4465767cf990df45cb1e54d49309",
       "hash": "sha256:e5f334630174b1861405f2279708ae032bf88919616d3ed04b124cc50180b86a"
+    },
+    {
+      "id": "take-0061",
+      "number": 61,
+      "at": "2026-09-12T03:48:56.007Z",
+      "sha": "aff169daa8374d962c81cd1e07221d8f9d574e83",
+      "shortSha": "aff169d",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "layout: shot A's camera and the hero flight to the reference's geometry - eye 1.8 m pitched 3.3 deg down (the only Link-consistent camera under which 20 x 0.27 m risers reproduce the frame's foot, top and nosings; a level 1.45 m eye needs a 7.5 m flight), stair base (7.3, -0.1) bearing 52 deg with 0.54 m treads (slope 26.6 deg, depth ratio 1.8), width 3.0; F re-aimed to the frame's 25-deg-left flight (eye 1.8, 3.9 deg down), C moved 1.8 m south to keep the foot at its left edge (0.18, 0.64); stair-foot post, pathToStairs end, stair-bank rope fence re-seated at the new foot; stair-bank giant to F's right edge (x 0.97)",
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W02",
+        "W25"
+      ],
+      "note": "Round eleven: the hero flight and shot A's camera re-solved from the frames. A nosing fit of frames 1 s and 8 s (20 risers) shows shot A is shot from a 1.8 m eye pitched 3.3 deg down, not a level 1.45 m eye - under the old camera the reference flight would need a 7.5 m rise. With the new camera and the foot moved 2.5 m toward the plaza on 0.54 m treads, our foot/top land at (0.674, 0.599)/(0.762, 0.214) vs the reference (0.695, 0.612)/(0.755, 0.220); F re-aimed to the frame's 25-deg-left flight; C keeps the foot at its left edge. Saria's house goes warm brown (bark hue 47 -> 31 deg vs ref 34), the entrance lit amber (0.339 vs ref 0.303), the cap lumpy olive moss with a leaf fringe, the eave over the door 0.73 -> 0.48 m, and the bough gets bark tone plus foliage. E/F/D up; A -0.007, C -0.022 (camera move) accepted for the hero composition.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:5745de4977a02b28b74f47effbc615a4e7efe26b1dfba0e35a6b07d1e1c662a7",
+        "B_house": "sha256:4697334736206fea430fd8ac29ad2c040fb412731d8fc9e02a56938814b09db2",
+        "C_lookback": "sha256:78d53d233eb3aa0f256e58f51a691ab2d34b27d3a008b67a113eec5c0a5f6e92",
+        "D_log": "sha256:b91a6b68856de9bede8a676ef2c82374296f8b3d43425b20f7bac2868cf6e45a",
+        "E_ground": "sha256:4697334736206fea430fd8ac29ad2c040fb412731d8fc9e02a56938814b09db2",
+        "F_canopy": "sha256:1e41990bd219aee43b264134510e8ce0150bad160632f89c9999900805e8538f"
+      },
+      "distHash": "sha256:7c1d07b162c3383b04c412b0a113e448df59dce51aad459048a6331ec5e2a405",
+      "stats": {
+        "drawCalls": 630,
+        "triangles": 8158033,
+        "captureMs": 594505,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W01",
+        "W02",
+        "W25"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take61-cap",
+        "importedAt": "2026-09-12T03:50:21.037Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:e5f334630174b1861405f2279708ae032bf88919616d3ed04b124cc50180b86a",
+      "hash": "sha256:ab7bd678ac8aeb123d4ded6e262ae0df08ba60df507613505a415f197bd8f6f7"
     }
   ]
 }
