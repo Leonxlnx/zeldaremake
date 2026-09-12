@@ -715,6 +715,36 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   y ≈ 0.32. Waiting for its numbers before touching layout (W01/W02/W04 coupled).
 - Three biggest remaining gaps → (1) B: house colour/entrance/cap texture (structures-11);
   (2) A: stair height/flight length in frame + dome behind it; (3) C01 (Astra).
+
+### 04:00 UTC — tick 45: take-0061 published (monitor `5247e1c`), valid; stair re-solve + house colour
+- **Shot A stair analysis (read-only agent, nosing fit of frames 1 s / 8 s, 20 lit risers, rms
+  ≤ 0.6 px).** Reference A: foot nosing (0.695, 0.612), top (0.755, 0.220), depth ratio top/foot
+  2.16; ours (take-59): (0.683, 0.606) / (0.758, 0.267), ratio 1.52. Under a level 1.45 m eye the
+  reference flight needs r ≈ 0.37 m (7.5 m rise) — impossible under W04/step guard. The Link-
+  consistent family (feet 0.88 / cap 0.555) that gives r ≈ 0.27 and H 5.4–5.6 is **eye 1.8 m,
+  3.3–3.9° down** (F fits independently at 1.8 m / 3.9°). F's flight recedes 25° LEFT of the view
+  axis, not dead-on. Reference ground keeps rising past the landing (lantern posts / upper house
+  base at ≈ 6.3–7 m, 22–25 m out). W04's probe at (18, −4) caps the run at ≈ 11 m (reference
+  ≈ 12.4 m along view, t ≈ 0.68). Filed W04/W02/W01/W30 in RUBRIC_PROPOSALS (`74cf49b`).
+- `aff169d` layout: A camera [0.4, 1.8, 8.6] → [6.7, 0.89, −5.8]; `stairs.main` base (7.3, −0.1),
+  dir (1, −0.78), 20 × 0.27, tread 0.54, width 3.0; F [−1.96, 1.8, 4.0] → [9.7, 0.98, 1.31];
+  C [2.33, 1.45, −7.67] → [4.03, 0.65, 5.23]; stair-foot post (9.3, 1.6); pathToStairs end
+  (6.6, −0.5); stair-bank fence re-seated; stair-bank giant → (10.6, 9.15) (F right edge x 0.97).
+  Captured: A foot (0.674, 0.599) / top (0.762, 0.214); F foot (0.374, 0.599) / top (0.281, 0.195).
+  W04 5.13 unchanged; W01/W02 hold; draws 630.
+- `22b6392` structures-11: HOUSE_BARK_FLOOR warm tint (door-frame bark 47° → 31°, ref 34°), grey-
+  olive LIMB_BARK_FLOOR sleeve (B top band lum 0.32 vs ref 0.35), eave 0.73 → 0.48 m + arched
+  porch bough, amber entrance (0.339 vs ref 0.303, hue 38 vs 40), lumpy mossy cap (46° vs 49°),
+  foliage on the bough. Astra's three W25 points addressed; misses: root-lip hue (bark 33° where
+  the reference has moss 53°), doorway sat 0.34 vs 0.12, F cap 0.12 dark.
+- take-0061: A 0.267 / B 0.250 / C 0.307 / D 0.319 / E 0.271 / F 0.271. E/F/D best ever; A −0.007,
+  B −0.005, C −0.022 vs take-60 (camera moves + the cap's structure) — accepted for the hero
+  composition; W35 B 0.804 → 0.834. 23/50.
+- Three biggest remaining gaps → (1) A: Saria's cap sits dead-centre behind the flight (heading
+  27° vs camera 23.6°) where the reference has trunks and bright haze at 15–25 m; kid 8 m away
+  (h 0.17) vs reference 4.9 m on the bank (h 0.275); (2) B/C: left third (reference B: kid + trunk
+  at left, signpost at (0.6, 0.47), path receding centre; reference C: kid at (0.35, 0.55) by the
+  rock) and the lawn foreground in C; (3) C01 (Astra).
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -760,4 +790,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T02:32:00Z
+2026-09-12T04:00:00Z
