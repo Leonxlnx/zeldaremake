@@ -890,6 +890,27 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   bright veil vs dark trunks; (2) A: the house dead-centre behind the flight + Link's near-left
   paving where frame 1 s has a flower bed (A/B camera-distance layout decision); (3) props/finish
   (Astra) and the far background layering (trees/atmosphere).
+
+### 18:30 UTC — tick 53: take-0069 published (monitor `3dcf0ce`), valid; round sixteen
+- `871d27b` structures-16: three distant lit tree huts on existing trunks at 23–45 m (boards
+  01/08), +1 draw, no lights; lit points A 0 → 6, B 2 → 9, D 0 → 9.
+- Reviewer-driven defect fixes: `c4b9578` per-source sprout jitter streams (4,225/4,225 legacy
+  instances reproduce their round-12 draws; adding/removing a scatter no longer re-rolls others);
+  `cee9888` Astra's flower normals/teardown; `d7f5e98` + `2f4415b` hardscape `dispose()` (owned
+  geometry/materials/gap field/flowers, exactly once; stone ao clone disposed with its material);
+  `0bd5235` Astra's tuft-only two-sided lighting fix adopted (lawn tufts lit from above).
+- Also merged: Astra's W25 verdict on take-68 (`cb83faa`: even roof/eave, upright frame vs the
+  reference's irregular crown, knotted trunk, wider dark arch).
+- take-0069: A 0.259 / B 0.251 / C 0.306 / D 0.305 / E 0.268 / F 0.266 — upper bands pay for the
+  huts (D −0.012); lower halves flat; 23/50; draws 669; W35 B 0.896.
+- Running: structures-17 (bough off the window angle, moss-map disposal, irregular crown, knotted
+  trunk, wider dark arch). Queued: distant-hut fixes from Astra's 871 review; host seats via
+  ctx.shared.
+- Astra (her branch): tuft fix retained, canopy central-caster trial REJECTED on her gate (broad
+  soft shade), upper-air colour retained, post lights 1.2 + membrane atlas, sign cuts, grass normal
+  fix retained. Owner: environment only.
+- Three biggest remaining gaps → (1) light (Astra): key/shade separation and the cap highlight;
+  (2) house silhouette per W25 grounds (structures-17); (3) A centre / layout call.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -935,4 +956,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T16:50:00Z
+2026-09-12T18:30:00Z
