@@ -96,8 +96,13 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   const soilMid = new Color(JOINT_SOIL_MID);
   const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.56);
   const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.55);
-  // the lawn pocket's fill: the deep grass green itself (the sprouts' tufts sit on it)
-  const lawn = new Color(palette.grassDeep).lerp(new Color(palette.grassMid), 0.15);
+  // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
+  // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
+  // earth between dense grass. The pocket's warm light lifts a fill's red a fifth and drops its
+  // hue ~30° (the deep grass green rendered 79,75,44, hue 53°), so a brighter or browner fill
+  // reads as bare dirt wherever the blades part (reference frame 14 s: the pocket's mid tones
+  // are 56,56,24, its darkest 37,41,18 — a lawn's shadowed floor, not soil)
+  const lawn = new Color(JOINT_SOIL_MID).lerp(new Color(palette.grassDeep), 0.85).multiplyScalar(0.6);
   return {
     soil,
     soilMid,
@@ -284,8 +289,9 @@ export async function buildJointMesh(
     tmp.copy(turf).lerp(turfMid, 0.5 * dampN);
     tmp2.copy(soil).lerp(soilMid, 0.5 * dampN);
     tmp.lerp(tmp2, sw);
-    // the lawn pocket (zones.ts): dark lawn, not earth — the reference's grass west of the path
-    // is darker than its joints (lum 0.28 vs 0.35) and green (hue 59°)
+    // the lawn pocket (zones.ts): the dark mossy earth under the dense lawn (index.ts sows the
+    // turf on it) — the reference's grass west of the path is darker than its joints (lum 0.28
+    // vs 0.35); what shows between the tufts is shadowed earth, not pale dirt
     tmp.lerp(lawnFill, 0.9 * lawnPocket(x, z));
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
     // a little heavier on the lawn paving where the slabs sit in it)

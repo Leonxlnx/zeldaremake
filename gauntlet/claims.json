@@ -663,6 +663,18 @@
       "at": "2026-09-12T16:42:36.238Z",
       "expiresHours": 3,
       "scope": "PR2 comment 5647251867: grass-only terrain-up lighting-normal correction in vegetation/materials.ts and existing contract; preserve geometry, density, field, RNG, palette, wind and all non-grass programs. Independent actual capture before Fable lawn integration."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W03",
+        "W20",
+        "W21",
+        "W36"
+      ],
+      "at": "2026-09-12T16:54:23.798Z",
+      "expiresHours": 3,
+      "scope": "PR2 comments 5647299378 and 5647304378: deliberate 6128726/87d3f31 lawn ancestry integration and narrow flower-normal/owned-resource cleanup only. Fable retains active shared sprout RNG and structures fixes; index overlap only flowers.dispose hook."
     }
   ]
 }

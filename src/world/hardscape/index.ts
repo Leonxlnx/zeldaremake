@@ -12,7 +12,8 @@ import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
 import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
-import { jointSoil, lawnPocket, lawnZone } from './zones';
+import { jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone } from './zones';
+import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { Noise2D, smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
 
@@ -153,9 +154,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     lawnSprouts++;
   }
-  // the lawn pocket west of the path (zones.ts `lawnPocket`, reference B/E's left third): no
-  // slabs, dark lawn fill, and proper grass on it — taller tufts (TUFT_A / TUFT_B) and clover,
-  // about 25 to the square metre, so the strip reads as the reference's grass, not bare earth
+  // the lawn pocket west of the path (zones.ts `lawnPocket`, reference B/E's left third): the
+  // round-10 scatter, 220 tufts on this stream, keeps its places (so every sprout sown after it
+  // does too); the dense lawn proper is sown below on its own stream. Capped below TUFT_B: the
+  // lawn is short turf, and these now stand among 1 400 short tufts
   const pocketTarget = Math.round(220 * Math.max(0.7, ctx.quality.density));
   let pocketTufts = 0;
   tries = 0;
@@ -165,7 +167,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const z = srng.range(-7.8, -2.4);
     if (srng() > lawnPocket(x, z)) continue;
     if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
-    spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng.chance(0.2) ? srng.range(0.05, 0.2) : srng.range(0.3, 0.95) });
+    const s0 = srng.chance(0.2) ? srng.range(0.05, 0.2) : srng.range(0.3, 0.95);
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: Math.min(0.69, s0) });
     pocketTufts++;
   }
   // connected planted joints (boards 02 'Moss edges' / 07 'path texture'): along the paved edges
@@ -229,6 +232,103 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
   }
+  // --- the lawn pocket's dense lawn (round 13) -------------------------------------------------
+  // Reference frame 14 s, left third: a low dense green turf with white dots, meeting the path at
+  // a soft grass edge. The pocket is path mask 1.0, so the vegetation system may not plant it
+  // (W15); the turf is joint sprouts. Short blade clumps (TUFT_A / TUFT_C, at 1.1–2× → 10–22 cm
+  // footprints, 7–17 cm tall, most at the short end) with clover among them, on a jittered
+  // 8 cm lattice (≈ 120 / m², the clumps overlap) so that from B/E (5–9 m, a 10–17° grazing
+  // view) the blades hide the earth; a few moss pads; along the pocket's east edge a row of
+  // larger clumps hugging the slab rims, their blades hanging 3–9 cm over the stone (the soft
+  // edge); white flower heads (flowers.ts). Own streams, so nothing sown before moves.
+  const lrng = rng.fork('pocket-lawn');
+  let lawnPocketArea = 0;
+  const lawnCell = 0.082 / Math.sqrt(Math.max(0.7, ctx.quality.density));
+  let lawnPocketTufts = 0;
+  let lawnPocketClover = 0;
+  const lawnScales: number[] = [];
+  for (let gz = -7.0; gz <= -2.5; gz += lawnCell) {
+    for (let gx = -2.7; gx <= 1.0; gx += lawnCell) {
+      const x = gx + lrng.range(-0.4, 0.4) * lawnCell;
+      const z = gz + lrng.range(-0.4, 0.4) * lawnCell;
+      if (lawnPocket(gx, gz) >= 0.5) lawnPocketArea += lawnCell * lawnCell;
+      if (lrng() > lawnPocket(x, z)) continue;
+      if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+      const r = lrng();
+      const u = lrng();
+      const scale = 1.1 + 0.9 * u * u;
+      if (r < 0.14) {
+        spots.push({ x, y: T.height(x, z) + 0.012, z, size: lrng.range(0.05, 0.19), scale: scale * 1.2 });
+        lawnPocketClover++;
+      } else {
+        spots.push({ x, y: T.height(x, z) + 0.012, z, size: r < 0.55 ? lrng.range(0.21, 0.41) : lrng.range(0.43, 0.69), scale });
+        lawnScales.push(scale);
+      }
+      lawnPocketTufts++;
+    }
+  }
+  // moss pads in the lawn (the reference's darker clumps): a handful, 9–20 cm across
+  let lawnPocketPads = 0;
+  tries = 0;
+  while (lawnPocketPads < 4 && tries < 400) {
+    tries++;
+    const x = lrng.range(-2.4, 0.8);
+    const z = lrng.range(-6.8, -3.0);
+    if (lawnPocket(x, z) < 0.8 || !paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    spots.push({ x, y: T.height(x, z) + 0.012, z, size: lrng.range(0.6, 1), kind: 'cushion', scale: lrng.range(1.8, 2.6) });
+    lawnPocketPads++;
+  }
+  // the soft edge: the pocket's fill fades out 5–35 cm west of the slab rims (the rims wander
+  // east of `lawnPocketEdgeX`), so per 5 cm row the first slab east of the pocket is found by
+  // marching, and (a) a clump is set 1–5 cm from its rim at 1.7–2.1× (footprint radius 8–10 cm)
+  // so the outer blades reach 3–9 cm over the stone, and (b) one or two clumps fill the soil
+  // band behind it, so the lawn runs up to the slabs instead of stopping at a bare strip
+  let lawnEdgeTufts = 0;
+  let lawnEdgeBand = 0;
+  let lawnEdgeOverhang = 0;
+  for (let z = -6.8; z <= -3.0; z += 0.05) {
+    const zz = z + lrng.range(-0.02, 0.02);
+    const ex = lawnPocketEdgeX(zz);
+    let xs = NaN;
+    for (let x = ex - 0.3; x <= ex + 0.7; x += 0.01) {
+      if (paving.onStone(x, zz)) {
+        xs = x;
+        break;
+      }
+    }
+    if (Number.isNaN(xs)) continue;
+    const gap = lrng.range(0.01, 0.05);
+    const x = xs - gap;
+    if (paved(x, zz, 0.42) && !paving.onStone(x, zz)) {
+      const scale = lrng.range(1.7, 2.1);
+      spots.push({ x, y: T.height(x, zz) + 0.012, z: zz, size: lrng.range(0.43, 0.69), scale });
+      lawnEdgeTufts++;
+      lawnEdgeOverhang += 0.046 * scale - Math.min(gap, paving.edgeGap(x, zz));
+    }
+    const n = lrng.int(1, 3);
+    for (let k = 0; k < n; k++) {
+      const bx = lrng.range(ex - 0.32, xs - 0.09);
+      const bz = zz + lrng.range(-0.02, 0.02);
+      if (bx > xs - 0.09 || !paved(bx, bz, 0.42) || paving.onStone(bx, bz)) continue;
+      const scale = lrng.range(1.15, 1.7);
+      spots.push({ x: bx, y: T.height(bx, bz) + 0.012, z: bz, size: lrng.range(0.3, 0.69), scale });
+      lawnEdgeBand++;
+    }
+  }
+  // white flower heads: 14 dots over the lawn, ≥ 35 cm apart
+  const flowerHeads: FlowerHead[] = [];
+  const frng = rng.fork('pocket-flowers');
+  tries = 0;
+  while (flowerHeads.length < 14 && tries < 2000) {
+    tries++;
+    const x = frng.range(-2.4, 0.8);
+    const z = frng.range(-6.8, -3.0);
+    if (lawnPocket(x, z) < 0.6 || !paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    if (flowerHeads.some((h) => Math.hypot(h.x - x, h.z - z) < 0.35)) continue;
+    flowerHeads.push({ x, y: T.height(x, z) + 0.008, z });
+  }
+  const flowers = buildFlowerHeads(flowerHeads, frng, ctx.config.palette);
+  group.add(flowers.mesh);
   // --- seam grit -----------------------------------------------------------------------------
   // small stones packed into the dirt seams (sheet 02): 1.5–4 cm, in the joints only (not on a
   // stone, within a slab's reach), biased to the joint-reading cameras, plus a scatter at the
@@ -349,14 +449,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneDrawCalls: 1,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
-    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + edgeGrass,
+    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass,
     // short tufts + moss pads sown thick in the lawn paving's turf joints (part of jointSprouts)
     jointSproutsInLawnPaving: lawnSprouts,
-    // grass on the slab-free lawn pocket west of the path (part of jointSprouts)
-    jointSproutsInLawnPocket: pocketTufts,
+    // the lawn pocket west of the path (part of jointSprouts): round 10's scatter + round 13's
+    // dense short lawn on a jittered lattice, its clover, moss pads and slab-rim edge clumps
+    jointSproutsInLawnPocket: pocketTufts + lawnPocketTufts + lawnPocketPads + lawnEdgeTufts + lawnEdgeBand,
+    lawnPocket: {
+      areaM2: round(lawnPocketArea),
+      latticeCm: round(lawnCell * 100),
+      tufts: pocketTufts + lawnPocketTufts - lawnPocketClover,
+      clover: lawnPocketClover,
+      mossPads: lawnPocketPads,
+      // clumps hugging the slab rims along the pocket's east edge, their mean blade overhang over
+      // the stone (cm), and the clumps filling the soil band between the pocket's fade and the rims
+      edgeTufts: lawnEdgeTufts,
+      edgeOverhangCm: round((lawnEdgeOverhang / Math.max(1, lawnEdgeTufts)) * 100),
+      edgeBandTufts: lawnEdgeBand,
+      // clump footprint / height (cm) of the lattice tufts at their 1.1–2× scales
+      footprintCm: quantiles(lawnScales.map((k) => k * 9.2)),
+      heightCm: quantiles(lawnScales.map((k) => k * 7.2)),
+      tuftsPerM2: round((pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand) / Math.max(1e-6, lawnPocketArea)),
+      // white flower heads (flowers.ts): one merged mesh, one draw
+      flowerHeads: flowerHeads.length,
+      flowerTriangles: flowers.triangles,
+      flowerDrawCalls: 1,
+      groundFill: 'mossy-earth (JOINT_SOIL_MID lerp grassDeep 0.85, dimmed 0.6)',
+    },
     // connected planted joints: tufts, clover and pads in runs along the seams near the paved edge (part of jointSprouts)
     jointSproutsInEdgeSeams: edgeTufts,
-    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - edgeGrass - sprouts.cushions,
+    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
     // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
@@ -388,7 +510,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointFillRimLengthM: round(joints.rimLength),
     // joint-width field (5 cm texels) the fill shader reads: tight soil seams dark, wide soil junctions pale
     jointGapField: joints.gapField,
-    hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles,
+    hardscapeTriangles: stairTriangles + paving.triangles + joints.triangles + sprouts.triangles + flowers.triangles,
     plazaRadius: 6,
     samplePositions: {
       // top-centre of each slab: 2–5 cm above the ground by design (the slab is seated in it)
@@ -403,7 +525,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     maxBottomGap: round(Math.max(...paving.stones.map((s) => Math.abs(s.bottomY - T.height(s.x, s.z))))),
   }));
 
-  return { name: 'hardscape', group };
+  return { name: 'hardscape', group, dispose() { flowers.dispose(); } };
 }
 
 function round(v: number) {

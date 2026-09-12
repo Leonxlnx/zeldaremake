@@ -867,6 +867,29 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Running: structures-15 (cap front colour by moss mask, streaks, black leaf blobs, hoop bough).
 - Three biggest remaining gaps → (1) light (Astra); (2) house cap front + hoop bough
   (structures-15); (3) B lawn pocket turf (hardscape) and the A/B camera-distance layout call.
+
+### 16:50 UTC — tick 52: take-0068 published (monitor `7c3fb42`), valid; round fifteen
+- `0f9426c` structures-15: the cap's yellow streaks had two real causes — round-14 relief noise
+  was 2D (x, z), constant up the vertical face; and the cylindrical map layout sheared the moss
+  map 2.5 m/m of meridian (3.8 px diagonal striation). 3D noise + developed-cone map; straw 12 →
+  2 %; moss-mask hue 65 → 57° (ref 60); streak index 2.74 → 1.38 (ref 0.96); cap plants tinted
+  to lit moss (dark blob share 0.132 → 0.088 vs ref 0.022; 48 % of the rest is the lantern
+  giant's own foliage at 4.4 m from camera B); bough rises off frame as a branch (turning 371 →
+  233°). Residual for lighting: the reference's lit moss crests (0.61) are a directional
+  highlight the cap front does not receive at B (sun·normal 0.08).
+- `6128726` hardscape-13: the lawn pocket as dense short lawn — 8.2 cm lattice of tufts + clover
+  (1,687 sprouts in the pocket), moss pads, rim clumps overhanging the slabs, 14 white heads
+  (flowers.ts, +1 draw), ground fill dimmed/greened. B lawn band green 0.51 → 0.63 (ref 0.62),
+  soil 0.22 → 0.18 (0.20), lum p10 0.20 → 0.155 (0.145).
+- take-0068: A 0.262 / B 0.255 / C 0.303 / D 0.316 / E 0.269 / F 0.265. B −0.006 (structure
+  term: resolved 3 px tufts vs the frame's blur — luminance term up; the texture is what the
+  frame shows), others within noise. 23/50; W35 B 0.978; draws 668.
+- Astra (her branch): ancestry-merged my head; adopted 3dc217d; bark grain gate fixed; hedge sky
+  transmission + veins; upper-air colour; post lights 1.2 + membrane atlas; grass normal review.
+- Three biggest remaining gaps → (1) light (Astra): key/shade separation, dapple, cap highlight,
+  bright veil vs dark trunks; (2) A: the house dead-centre behind the flight + Link's near-left
+  paving where frame 1 s has a flower bed (A/B camera-distance layout decision); (3) props/finish
+  (Astra) and the far background layering (trees/atmosphere).
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -912,4 +935,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T15:35:00Z
+2026-09-12T16:50:00Z

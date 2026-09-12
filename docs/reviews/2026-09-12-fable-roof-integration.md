@@ -47,3 +47,24 @@ than silently replacing partner geometry.
 
 The pinned reproducible CPU diagnostic and exact evidence are preserved in
 [fable-roof-round15](fable-roof-round15/README.md).
+
+## Actual combined 5ea5b6d review
+
+All 12+4 source/image/control contracts pass with zero retries/errors/warnings. Root inspected
+A/B/D/F and the capture reviewer all distinct views/details. Mottled olive moss has substantially
+less yellow streaking and fewer dark leaf clumps; the rising branch removes the old hoop.
+The useful surface improvement is retained pending the already-owned window correction.
+Thick smooth limbs and broad house forms remain below the references. B's glowing round window
+is visibly obstructed, confirming the source diagnosis. Warm interior/prop lighting remains.
+
+Scene triangles fall exactly 36,888 in structures; submitted multi-pass triangles fall 73,592
+per saved world view, draws unchanged. Renderer textures/programs rise by one to 70/74 for
+the moss albedo. Maximum B/E submission is 8,641,128 triangles / 650 calls; A has 659 calls.
+Non-house audits/lighting/layout remain exact. Historical depth and cast shadows intentionally
+change with the new geometry. C JPEG/depth is byte-identical to a350.
+
+Actual progress/2026-09-12_164938704-5ea5b6d and details/2026-09-12_165226690-5ea5b6d
+are on captures/astra-environment; archive pins 906edb947554459858d3e5e62a8491473ae285fc and
+bc54c11e715dbd54071ef6dd6cc4a40e987d0736. All previous dated files/eight preview targets and
+source/image ZIP bytes pass. Source ZIP has 368 exact tracked files. This is not a hardware
+frame-rate or moving-camera stability claim.
