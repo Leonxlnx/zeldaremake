@@ -266,10 +266,19 @@ const TREE_FLOOR_GLSL: ShadeFloorGlslOptions = { leafSun: 'uLeafSun' };
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
 
 function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, nearGiantBark = false) {
-  const barkFloorBlock = shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL);
+  let barkFloorBlock = shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL);
+  if (nearGiantBark) barkFloorBlock = barkFloorBlock.replace('    vec3 floorLight =', /* glsl */ `
+    #if defined(USE_INSTANCING) && defined(USE_MAP)
+      // The dark columns' flat floor hides the existing bark. Center a bounded neutral grain
+      // response on this map's linear median, retaining the floor's tint and broad brightness.
+      float columnNear = 1.0 - smoothstep(18.0, 24.0, length(vViewPosition));
+      float columnGrain = clamp(dot(sampledDiffuseColor.rgb, lumW) / 0.2581, 0.65, 1.35);
+      floorAlbedo *= mix(1.0, columnGrain, 0.60 * columnNear);
+    #endif
+    vec3 floorLight =`);
   // The original flat floor hides the existing fissure albedo on nearby shaded giants.
   // Keep its brightness/tint model, admitting more of the real texture close to the camera.
-  // Instanced column trees and the complete far response retain their original preset.
+  // This non-instanced treatment is independent of the column grain above; far response is retained.
   const barkShade = nearGiantBark ? /* glsl */ `
     float nearBarkTexture = uBarkFloorTexture;
     #ifndef USE_INSTANCING
@@ -383,7 +392,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR, true), 'giant-near-bark');
+  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR, true), 'giant-near-bark-column-grain');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
 

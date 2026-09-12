@@ -627,6 +627,23 @@
       "at": "2026-09-12T13:09:03.991Z",
       "expiresHours": 3,
       "scope": "PR2 comment5646077042: deliberate own-branch review/integration of published Fable77dd665/86be323/a05ffb0; high-LOD hedge leaf shape only in plantgeo.ts, preserve plants.ts/RNG/normalization. Fable retains ongoing house/terrain/layout changes."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W09",
+        "W26",
+        "W27",
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W36"
+      ],
+      "at": "2026-09-12T14:41:41.889Z",
+      "expiresHours": 3,
+      "scope": "PR2 comment 5646560839: own-branch ancestry merge of Fable 1cc8f51; bounded near instanced bark floor grain and sign chisel response; root retains light/post/atmosphere. Fable owns foreground and roof; no changes to his branch."
     }
   ]
 }

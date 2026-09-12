@@ -92,3 +92,43 @@ The W25 fix, drawn:
 - structures (Astra): lantern pod = leaf sepals + core, closed unlit pods; sign finish.
 - atmosphere: motes in three tints with soft trails.
 - character (Astra): sheet 03.
+
+## The owner's ten newer boards (2026-09-12, `reference/owner-concepts/`, 960 px previews via Astra)
+
+The owner's current art direction (relayed 07:37 UTC: "STOP character; environment, light, shadows,
+detail"). Rule unchanged: the footage frames still score the rubric; the boards are the authority for
+light, materials, construction and prop finish, and where a board and a frame disagree on a scored
+composition the frame wins. Previews only — never load at runtime (anti-cheat C2).
+
+- **01 village lighting.** Golden key from upper right through the canopy as visible volumetric
+  shafts; sunlit leaves/stone read yellow-gold while shade is cool green-grey (two clearly separated
+  colour families — the reference frames have the same split, we render one olive family). Tree
+  houses stacked in the misty background at several depths; hanging pod lanterns everywhere as warm
+  points; the foreground framed by dark rocks, purple/white flowers and ferns. → lighting (Astra):
+  key/shade separation, shafts; trees: layered dark trunks with light between; vegetation: dense
+  flowered foreground.
+- **02 paths and overhead shadows.** Slabs 0.5–1.0 m, irregular, with dirt seams 5–10 cm and grass/moss
+  at the edges; path 2.0–2.5 m wide with planted boundaries (flower clusters, ferns) and rope fences;
+  the canopy casts broken shadow across the paving — the stones are NOT an evenly lit sheet.
+  → hardscape: the B "lawn" slabs (p50 1.4 m) are larger than any board shows; the frames (14 s)
+  do show 1–1.6 m stones, so B's foreground stays frame-driven but everywhere else the boards'
+  0.5–1.0 m with seams is the target; lighting: canopy shadow on the paving.
+- **03 tree-house front / 04 structure.** A broad, low entrance (opening ≈ 1.15× wider than tall)
+  under a thick living-branch lintel with wooden branch pillars, a round window carved into the
+  trunk, a moss-and-plant roof (grass, ferns, small flowers on the cap, vines at the rim), roots
+  blending into rock, four to six pod lanterns on cords, a warm inhabited interior with shelves and
+  a lamp. → structures: round 12's arch/root-lip direction is right; add the round trunk window,
+  branch pillars, plants on the cap, more lanterns, interior shelving.
+- **05 foliage, bark and bridge.** Bark deeply fissured and mossy; a rope-and-plank bridge between
+  trees; leaf clusters as layered laminae with sun-lit edges. → trees/structures.
+- **06 props, signs and lanterns.** Signposts (village, directional, multi-sign, notice board) with
+  carved runes; pod lanterns hung from bent branches with rope lashings; stone steps overgrown with
+  moss at the risers; shields with the spiral motif; ferns, moss rocks, purple/white flowers.
+  → structures/props: signage and lantern variety; hardscape: mossy risers.
+- **07 village scale.** Path width 2.0–2.5 m; kids ≈ 1.0 m tall; stairs shown as ~8 steps / 1.6 m
+  (conflicts with the footage's 20 risers — the frame wins for W02); path texture: small stones
+  with grass seams. → the plaza's 4.8 m spine and 6 m disc are wider than the boards' paths.
+- **08 gameplay composition.** The hero frame with HUD: hearts top-left, item/ZR top-right, round
+  minimap bottom-right; the village has several lit houses at different depths, a low stone wall
+  at right, a rock with a carved spiral, lanterns on posts. → HUD (matches ours), structures/props.
+- **09 / 10 character and equipment.** Paused per the owner.

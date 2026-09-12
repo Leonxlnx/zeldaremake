@@ -1,7 +1,7 @@
 /** Sign-owned finishes. Shared plank maps are borrowed; only the generated maps are disposed. */
 import {
   ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter,
-  MeshStandardMaterial, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Texture,
+  MeshStandardMaterial, NoColorSpace, RepeatWrapping, SRGBColorSpace, Vector2, type Texture,
 } from 'three';
 import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
 import type { StructureMaterials } from './materials';
@@ -93,11 +93,11 @@ function carvedMarks() {
   const pixels = new Uint8Array(W * H * 4);
   for (let i = 0; i < cover.length; i++) {
     const rim = 1 + depth[i] / 0.00045;
-    // Dark cut wood, rather than the previous brown almost matching the lit board grain.
-    // The edge is still brown; its relief comes from the normal map, not an emissive outline.
-    pixels[i * 4] = Math.round(48 + 22 * rim);
-    pixels[i * 4 + 1] = Math.round(31 + 16 * rim);
-    pixels[i * 4 + 2] = Math.round(18 + 9 * rim);
+    // Keep the dark narrow cut bottom; the exposed side faces retain more wood albedo.
+    // Both sides share this depth-based tint: only real lighting chooses the brighter face.
+    pixels[i * 4] = Math.round(48 + 78 * rim);
+    pixels[i * 4 + 1] = Math.round(31 + 63 * rim);
+    pixels[i * 4 + 2] = Math.round(18 + 42 * rim);
     pixels[i * 4 + 3] = Math.round(cover[i] * 255);
   }
   return [texture(pixels, W, H, 'carved-marks', true),
@@ -127,11 +127,14 @@ export function createSignMaterials(mats: StructureMaterials) {
   applyShadeFloor(wood, WOOD_FLOOR, WOOD_BOUNCE);
 
   const [marks, groove] = carvedMarks();
+  // The encoded 0.45 mm profile at scale 2.5 gives a 1.125 mm shallow V cut in 55 mm wood.
+  // Keep the readable 7.2–8.5 mm stroke width; no displacement/parallax is implied.
   const runes = new MeshStandardMaterial({
-    name: 'sign-carved-marks', map: marks, normalMap: groove, roughness: 1,
+    name: 'sign-carved-marks', map: marks, normalMap: groove, normalScale: new Vector2(2.5, 2.5), roughness: 1,
     transparent: true, alphaTest: 0.08, depthWrite: false,
   });
-  applyShadeFloor(runes, { ...WOOD_FLOOR, texture: 1 }, WOOD_BOUNCE);
+  // A weaker cavity floor lets the cut normals respond to the existing directional light.
+  applyShadeFloor(runes, { ...WOOD_FLOOR, lift: 1.4, texture: 1 }, WOOD_BOUNCE);
 
   const [fibres, fibreNormal] = bindingMaps();
   const binding = new MeshStandardMaterial({

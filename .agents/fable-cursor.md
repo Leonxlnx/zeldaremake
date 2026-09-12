@@ -745,6 +745,111 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (h 0.17) vs reference 4.9 m on the bank (h 0.275); (2) B/C: left third (reference B: kid + trunk
   at left, signpost at (0.6, 0.47), path receding centre; reference C: kid at (0.35, 0.55) by the
   rock) and the lawn foreground in C; (3) C01 (Astra).
+
+### 08:10 UTC — tick 46: take-0062 published (monitor `7515c7b`), valid; round twelve
+- `38532ae` atmosphere-12: haze fitted by depth-binned stats (density 0.028; 11/16 hero bins within
+  0.03 luma); `depthImage()` in the capture api. `e17f310` terrain-12: plaza east lobe ends at the
+  reference's grass edge, S_BANK (kid at 5.0 m, h 0.276 vs ref 0.275), bank hedge; NW flank
+  1.5 m/m so the shot-B hedge strip keeps ≤ 0.6 m ground. `bb08ebc` structures-12: cap rim ×1.15
+  / crown ×0.85 moss-with-straw, 2.37 × 2.06 m arch with flared root lips, no beam, dark recess
+  with lamp pools (Astra's three W25 points). `501b350` Astra's formal W25 verdict merged.
+- take-0062: A 0.271 / B 0.256 / C 0.308 / D 0.331 / E 0.264 / F 0.268 — D best ever, others
+  within 0.01 of take-61; 23/50; sharpness B 0.903; draws 632.
+- **Owner re-prioritised (via Astra, 07:37): STOP character; environment light / shadows / detail.**
+  Split agreed on PR #2: Astra owns lighting/postfx/atmosphere/config tuning on her environment
+  branch (controlled captures, based on ≥ e17f310); I keep terrain/hardscape/structures/vegetation/
+  placement. The live site's Link is this branch's placeholder — Astra's Link was never merged.
+  Astra holds ten newer owner concept boards I have not seen; hardscape re-lay waits for them.
+- Process: my layout commit `aff169d` broke four vegetation contracts (door hedge, A white clumps,
+  branch rim moss, rim-seam litter) and I did not run `plants.test.mjs` before committing —
+  vegetation-12 is reconciling; rule: run the vegetation tests on every layout/terrain change.
+- Hypothesis for the next layout round (needs the boards): Saria's house sits dead-centre behind
+  A's flight because our A and B cameras stand ~6 m apart, while in the footage Link walks ~13 s
+  between frames 1 s and 14 s — the reference B camera is much further along, so the house should
+  be farther from A (hazed/small or behind the flight) with B moved toward it.
+- Three biggest remaining gaps → (1) light: golden key vs cool shade, contact shadows, shafts
+  between dark trunks (Astra; trees-13 doing the trunk geometry side); (2) A centre: the house
+  behind the flight + the pale bough (sleeve reads too light against the reference's dark mossy
+  limb); (3) paving scale vs the owner's newer boards (pending).
+
+### 10:05 UTC — tick 47: take-0063 published (monitor `1c87ca9`), valid; round thirteen, slice one
+- `91c0886` hearth seated on the local floor (Astra's ray check); `501b350` Astra's W25 verdict on
+  take-61 merged; `ff2f131` the owner's ten newer boards + per-system read in CONCEPTS.md;
+  `a97302e` vegetation contracts reconciled (mask-derived paved rim; all suites green);
+  `ddd24fd` trees-13 column family (B left strip 0.400 → 0.349 vs ref 0.336; F right-top
+  0.385 → 0.363 vs 0.323).
+- take-0063: A 0.276 / B 0.260 / C 0.303 / D 0.331 / E 0.272 / F 0.271 — A, B, D, E best ever;
+  C −0.005 (near emergent at D/C's left). 23/50. Sharpness D 0.861 (≥ 0.82 floor kept); draws 644.
+- Finding (trees-13) for the lighting owner: beyond ~20 m the haze sets the luminance floor;
+  bark 0.52 → 0.35 moved a 36 m trunk 0 points. The reference's dark far trunks in a bright veil
+  need a fog term that spares dense verticals — posted to Astra.
+- Astra: lighting/postfx/atmosphere on PR #6 (12-image controlled comparisons; my notes: keep the
+  bright far veil, shafts anchor upper-left in the frames, dapple on the paving); she has the
+  props/signpost/lanternPost slice by agreement. Her ray diagnoses queued: doorway pale taper =
+  terrain-raised room floor/back wall; cap clumps from domeDisp; F's paving-edge teeth = perimeter
+  joint-fill quads kept when any corner is paved.
+- Running: hardscape-11 (smaller broken stones per boards 02/07, envelope unchanged), structures-13
+  (house moss material, roof width in-frame, board 03/04 features), trees-14 (canopy openings →
+  dapple; CANOPY_OPENINGS export for Astra's shafts). Box at load ~28; captures take 3× longer.
+- Three biggest remaining gaps → (1) light (Astra): key/shade separation, dapple, bright veil with
+  dark trunks; (2) house: floor/back-wall envelope, rounded moss relief, support-bough integration;
+  (3) paving scale/finish vs boards 02/07 + the F-edge joint teeth.
+
+### 11:50 UTC — tick 48: take-0064 published (monitor `918bc15`), valid; round thirteen, slice two
+- `bb11762` hardscape-11: broken slabs per boards 02/07 outside the B lawn zone (across p50
+  0.92 → 0.64 m, 321 → 619 stones; crowns/fillets halved; chips/notches; planted edge seams).
+- `df3cd52` structures-13: capMoss (no thatch normal on the cap), rim ×1.05, round trunk window,
+  branch pillars, cap plants/vines, 12 pods (flank pod within 0.02 of the reference lantern),
+  interior shelves.
+- take-0064: A 0.273 / B 0.263 / C 0.301 / D 0.320 / E 0.270 / F 0.269 — B best ever; C/D −0.002
+  /−0.011 where the frames show ~1 m slabs (boards are the target there). 23/50; W35 B 0.911;
+  draws 653.
+- Running: hardscape-12 (perimeter joint-fill clipped to the mask — Astra's F-edge teeth; seams
+  darkened to the frame's tone), structures-14 (level floor pad / back wall so the doorway stops
+  showing the terrain-raised floor; cap tone distribution; support-bough branching), trees-14
+  (canopy openings → dapple; CANOPY_OPENINGS export). Astra: props/signpost/lanternPost slice
+  (W26/W27 claimed to 12:11) and lighting on PR #6.
+- Three biggest remaining gaps → (1) light (Astra); (2) house doorway floor + cap tone spread;
+  (3) seam tone / F-edge teeth (hardscape-12).
+
+### 13:20 UTC — tick 49: take-0065 published (monitor `e835922`), valid; round fourteen
+- `77dd665` hardscape-12: joint fill clipped to the mask iso (fill outside paving 26.4 → 0.06 m²,
+  F toe teeth 21 → 0); seams to the frame's tone (seam/stone 0.60 → 0.50, ref 0.47).
+- `86be323` structures-14: level floor pad + vertical back wall (doorway rays: floor/roots 31 → 0
+  of 64; the first hit had been the UPPER house's buttress root in Saria's room), cap as a
+  distribution (straw 12 %, moss-face sd = ref), support bough branched into the cap.
+- `a05ffb0` trees-14: casters + CANOPY_OPENINGS (7, exported) — shade on the west strip (28 → 83 %)
+  and the path mouth, flight top-run pools; the plaza box stays lit as in frames 1 s / 8 s.
+- take-0065: A 0.262 / B 0.261 / C 0.305 / D 0.319 / E 0.274 / F 0.265 — E best, C up; A −0.011
+  (sharper dark seams cannot coincide with the reference's; variance now matches, covariance
+  drops), B/F −0.002..−0.004 (the smoother cap trades the accidental straw/moss correlation).
+  23/50. Draws 653. All three of Astra's ray diagnoses closed; her cross-review requested.
+- Three biggest remaining gaps → (1) light: key/shade separation, dapple from the new casters
+  needs her shadow pass, bright veil with dark far trunks (Astra); (2) B/E foreground: reference
+  has a low green lawn band with white dots at left and the path receding into bright mist — ours
+  reads as slabs to the horizon; (3) A: the house still fills the centre behind the flight
+  (A/B camera-distance hypothesis, tick 46) — a layout decision for the next round.
+
+### 14:30 UTC — tick 50: take-0066 published (monitor `6eeede6`), valid; reviewer's source fixes
+- Astra's read-only source reviews of ddd24fd / bb11762 / 86be323 found three real defects; two fixed
+  by adopting her patches verbatim (`51f2fbb` column roots seat on the terrain per seat — 316/784
+  root-edge samples floated, worst 2.67 m; `786084e` notched slab caps fan from the visibility
+  kernel — 95 inverted top triangles on 19 stones), one by a one-line fix (`d5abc91` cap-moss
+  normal z = 0.5 + 0.5·nz). `8ee4ea6` merges her formal W25 fail on take-65 (cap taller/steeper,
+  yellow streaking, hoop support; doorway credited) and tags the flight-top opening for her shafts.
+- take-0066: A 0.262 / B 0.261 / C 0.305 / D 0.319 / E 0.274 / F 0.265 — within noise of take-65
+  (contact/topology fixes). 23/50; draws 658.
+- Coordination: Astra owns lighting/postfx/atmosphere + signpost/lanternPost + a bounded
+  trees/materials.ts bark trial; her hedge PACKS line (`hedge: [SINGLE(3), ALL(3), ALL(3)]`) is
+  applied after vegetation-13 lands; her canopy bridge (ccc7e7f on her branch) publishes resolved
+  openings via ctx.shared. Owner (via Astra): environment only; character deferred to a local
+  Blender workflow.
+- Running: vegetation-13 (foreground framing per frames + boards), structures-15 (cap FRONT colour
+  by moss-mask — ours yellow ~45°, reference green ~65–75°; vertical streaks; black leaf blobs;
+  hoop bough).
+- Three biggest remaining gaps → (1) light (Astra: dapple from the new casters, bright veil vs dark
+  trunks, cooler shade); (2) house cap front colour/streaks + hoop bough (structures-15);
+  (3) foreground density vs frames/boards (vegetation-13), then the A/B camera-distance layout call.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -790,4 +895,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T04:00:00Z
+2026-09-12T14:30:00Z
