@@ -811,6 +811,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (W26/W27 claimed to 12:11) and lighting on PR #6.
 - Three biggest remaining gaps → (1) light (Astra); (2) house doorway floor + cap tone spread;
   (3) seam tone / F-edge teeth (hardscape-12).
+
+### 13:20 UTC — tick 49: take-0065 published (monitor `e835922`), valid; round fourteen
+- `77dd665` hardscape-12: joint fill clipped to the mask iso (fill outside paving 26.4 → 0.06 m²,
+  F toe teeth 21 → 0); seams to the frame's tone (seam/stone 0.60 → 0.50, ref 0.47).
+- `86be323` structures-14: level floor pad + vertical back wall (doorway rays: floor/roots 31 → 0
+  of 64; the first hit had been the UPPER house's buttress root in Saria's room), cap as a
+  distribution (straw 12 %, moss-face sd = ref), support bough branched into the cap.
+- `a05ffb0` trees-14: casters + CANOPY_OPENINGS (7, exported) — shade on the west strip (28 → 83 %)
+  and the path mouth, flight top-run pools; the plaza box stays lit as in frames 1 s / 8 s.
+- take-0065: A 0.262 / B 0.261 / C 0.305 / D 0.319 / E 0.274 / F 0.265 — E best, C up; A −0.011
+  (sharper dark seams cannot coincide with the reference's; variance now matches, covariance
+  drops), B/F −0.002..−0.004 (the smoother cap trades the accidental straw/moss correlation).
+  23/50. Draws 653. All three of Astra's ray diagnoses closed; her cross-review requested.
+- Three biggest remaining gaps → (1) light: key/shade separation, dapple from the new casters
+  needs her shadow pass, bright veil with dark far trunks (Astra); (2) B/E foreground: reference
+  has a low green lawn band with white dots at left and the path receding into bright mist — ours
+  reads as slabs to the horizon; (3) A: the house still fills the centre behind the flight
+  (A/B camera-distance hypothesis, tick 46) — a layout decision for the next round.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -856,4 +874,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T11:50:00Z
+2026-09-12T13:20:00Z
