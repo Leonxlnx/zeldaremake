@@ -126,11 +126,11 @@ export interface HeightFogParams {
 }
 
 /**
- * Environment depth study, pending actual game-render review.
+ * Retained forest-depth model with a separate upper-air colour study.
  * Retains the analytic height profile, canopy openness and physical shadowed shaft model.
  * The owner concepts call for readable close bark and successive forest layers; the earlier
- * footage fit made 25–40 m forms converge into one olive veil. This candidate postpones the
- * extra far extinction and cools ambient air while leaving the golden key to direct lighting.
+ * footage fit made 25–40 m forms converge into one olive veil. The retained depth settings
+ * postpone extra far extinction; this trial changes only the open upper-air colour endpoint.
  */
 export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   baseHeight: 0.4,
@@ -154,7 +154,8 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   mistColor: [0.19, 0.205, 0.185],
   hazeGradeNear: 44,
   hazeGradeFar: 60,
-  hazeLit: [0.32, 0.33, 0.29],
+  // Cooler open upper air at the old endpoint luminance; lower/horizon fog stays exact.
+  hazeLit: [0.29, 0.33185123, 0.36],
   hazeLitKnee: 0.2,
   openDir: [0.9659, -0.2588],
   openLo: 0.25,

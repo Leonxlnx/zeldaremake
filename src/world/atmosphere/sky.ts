@@ -1,5 +1,5 @@
 /**
- * Procedural sky dome: a luminous warm-haze gradient (canopy-gap glare overhead → the far-haze grey
+ * Procedural sky dome: a cool upper-air gradient (canopy-gap light overhead → the far-haze grey
  * at the horizon, so it meets the distance fog seamlessly), a soft sun glow (small hot core + wide
  * Mie-like halo), and a few thin cirrus wisps from value-noise fbm on a high altitude plane. No
  * photos. Time-driven drift is a pure function of `t`.
@@ -21,22 +21,13 @@ export interface SkyDome {
 }
 
 /**
- * Sky colours in scene-linear radiance (what the composer's ACES maps to the reference's display
- * values). The reference never shows blue sky: canopy gaps are a warm off-white glare (#aca896) and
- * the horizon is the far haze (#8d8e85), so the dome is a luminous warm haze that meets the
- * distance fog seamlessly. The gap glare displays at ≈ 0.67 luminance on its own: the reference's
- * open haze seen in the upper frame (A's top band, F's gaps, the glow above D's arch) reads
- * 0.65–0.69, and at the earlier 0.292 (display 0.59) every dome pixel visible through the crowns
- * measured 0.07–0.10 under it even with the god rays' sky share on top. Its chroma matches the
- * reference glare (display hue ≈ 52°, HSV saturation ≈ 0.11, B/R ≈ 0.89 — a yellow-grey, not the
- * orange-gold a 1 : 0.93 : 0.71 ratio gave at this brightness) and heightfog's lit-air veil
- * (`hazeLit`) is a step under it, so hazed crowns read as silhouettes against it the way the
- * reference's do. Exported for the audit; the horizon shares heightfog's `hazeFar`. Both hold only
- * toward the open east plateau and overhead. The closed north/west horizon remains `hazeClosed`;
- * visible upper gaps now retain SKY_CLOSED_GAP_SHARE of the zenith light, behind the actual
- * dark canopy silhouettes. This prevents the directional mask from flattening the whole sky.
+ * Upper-sky colour in scene-linear radiance. The earlier footage fit used warm gray
+ * [.372, .368, .285]; the owner's environment boards separate cool upper air from warm sun.
+ * This candidate preserves that endpoint's luminance while moving its hue toward blue-gray.
+ * The shared horizon/closed fog is unchanged. The same sky rebuilds the environment map,
+ * so indirect material appearance must be reviewed along with the visible gaps.
  */
-export const SKY_GAP_GLARE: [number, number, number] = [0.372, 0.368, 0.285];
+export const SKY_GAP_GLARE: [number, number, number] = [0.315, 0.3670755, 0.462];
 
 /** A visible gap above the closed forest still sees luminous upper air. Blend only the
  * upper gradient; the horizon remains the shared closed haze. Real canopy meshes occlude
@@ -59,18 +50,10 @@ export const SKY_SUN_LOBE_TINT: [number, number, number] = [1.0, 1.0, 1.0];
 export const SKY_GLARE_RAMP = 0.2;
 
 /**
- * Tint of the environment (IBL) render only. The dome's warm glare is what the camera sees, but as a
- * fill it left the shaded flagstone golden (display B/R 0.63–0.67 against the reference's 0.69–0.70):
- * under a real canopy the sky light reaching the ground is the grey of the gaps, not the glare's
- * gold, so the IBL is cooled a touch (linear B/R 0.71 → 0.76; the hemisphere term sits at 0.87 —
- * a stronger 0.81 / 0.90 pair overshot the lit stone by 0.025 in display B/R). The dome's glare
- * later moved to the yellow-grey (0.372, 0.368, 0.285) with a faster ramp, which alone would make
- * the cosine-weighted upper hemisphere (0.371, 0.367, 0.284) against the (0.289, 0.271, 0.208) the
- * fill was calibrated on; this tint × `environmentIntensity` 0.421 (lighting/index.ts) maps that
- * back onto the calibrated (0.283, 0.271, 0.218) × 0.57 per channel, so the IBL fill is unchanged.
- * Round 6: the closed-roof dome toward the north/west (`hazeClosed`) and the dropped sunward term
- * take the cosine-weighted hemisphere (with the halo, integrated in 2D) from (0.393, 0.383, 0.290)
- * to (0.339, 0.336, 0.264); (1.049, 1.0, 1.0025) × 0.481 keeps the same (0.171, 0.161, 0.127) fill.
+ * Retained environment-only tint from the earlier lighting calibration. Keep it and the
+ * lighting system's 0.34 environment intensity fixed during the upper-air colour study;
+ * both visible sky and PMREM still use the same new sky endpoint. This is a colour change,
+ * not compensation that leaves stale warm indirect light behind a cool visible dome.
  */
 export const SKY_ENV_TINT: [number, number, number] = [1.049, 1.0, 1.0025];
 
