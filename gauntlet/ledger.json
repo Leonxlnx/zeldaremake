@@ -6137,6 +6137,113 @@
       },
       "prevHash": "sha256:4b075e539d86e1cb4e259a113405146d06e286c2999f3cb1e98336e15eb1264f",
       "hash": "sha256:27e5725830a93eeffb685882ce1cb78f4edcf9f9fb850470475a877e312549d4"
+    },
+    {
+      "id": "take-0058",
+      "number": 58,
+      "at": "2026-09-11T23:46:46.219Z",
+      "sha": "1e32d8cad692d29f8a9a348fa4778edf286eecc5",
+      "shortSha": "1e32d8c",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "hardscape: lit stone tops to the reference - stone albedo x0.72 (-28 % linear; the post chain passes ~0.32 of an albedo change into sRGB), damp-band darkening halved and the D-foreground lift removed so B/A and D/A lit ratios match the frames, damp band hueK/satK toward the reference's cooler B foreground",
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W34",
+        "W11"
+      ],
+      "note": "Round nine lands: sunlit flagstones come down to the frames (stone albedo x0.72 after a Q-Q showed the excess was diffuse, not specular; A plaza p50 0.625 -> 0.566 vs ref 0.553, B 0.509 -> 0.480 vs 0.462, D 0.579 -> 0.510 vs 0.490), the damp band in B/E goes cooler toward the reference's hue, and the shade floor that stops giant bark and canopy going black moves into a shared module so the bough wrap and Saria's bark can use it. 24/50.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:7819b7baea6feb65a332992bcf830de113e92e15602e11e39e7fc50e819ed83c",
+        "B_house": "sha256:14262b94b60bcd625f55a2801ad43cd4a018a9b02f04c289843e66e871af4e30",
+        "C_lookback": "sha256:c5765172a5d63c97d6fa24c0ed3dd14d4be5f3cff9feae69aaddd7f5ba03f2b5",
+        "D_log": "sha256:08e2f77863407917faa644efde7759ad33427fb0f0ba25904cc718a2cc25d326",
+        "E_ground": "sha256:14262b94b60bcd625f55a2801ad43cd4a018a9b02f04c289843e66e871af4e30",
+        "F_canopy": "sha256:b30a12d2c82fc52d1eb58d47d109008de3c366249c0bce6f3577b889bfcfdd57"
+      },
+      "distHash": "sha256:fb60b9cec2dba1d8cddd789f49c6fd50ef67dfda4c0c0e8576568992cbd0788f",
+      "stats": {
+        "drawCalls": 622,
+        "triangles": 8188689,
+        "captureMs": 556696,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W03"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take58-cap",
+        "importedAt": "2026-09-12T00:03:11.319Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:27e5725830a93eeffb685882ce1cb78f4edcf9f9fb850470475a877e312549d4",
+      "hash": "sha256:fc00c2e99a6e3b06fba9122048afbb7b4acf7a11033018f079915c652550464c"
     }
   ]
 }

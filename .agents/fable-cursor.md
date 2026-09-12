@@ -665,6 +665,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) W37 SSIM 0.22–0.32 vs 0.42: sunlit paving, the dome in A/F,
   B's pods and E/B foreground; (2) C01 colours (Astra); (3) owner decisions (W04, concept vs frames).
 
+### 00:05 UTC (Sep 12) — tick 42: take-0058 published (monitor `d8cc3b9`), valid; round nine lands
+- `11c94f8` shade floor → `materials/shadeFloor.ts` (byte-identical trees render; the draft with a
+  per-floor uniform changed the program text and sparkled 722 px, hence identical GLSL).
+- `1e32d8c` hardscape-9: stone albedo ×0.72 (Q-Q said diffuse, not specular; post chain passes
+  ≈0.32 of a linear albedo change into sRGB); damp-band darkening halved, D lift removed; B/E
+  damp band hueK −0.22 / satK +0.55. A plaza p50 0.625 → 0.566 (ref 0.553), B 0.509 → 0.480
+  (0.462, hue 35.8 → 39.8 vs 39.2), D 0.579 → 0.510 (0.490); seams/boulders unchanged.
+- `cd33065` `WorldContext.shared` (TubePath `lanternLimb`); trees build before structures so the
+  bough wraps the limb as grown (Astra's centreline proposal). PRNG forks are per name → no
+  placement change.
+- take-0058: A 0.260 / B 0.226 / C 0.321 / D 0.303 / E 0.240 / F 0.261 — best on every view.
+  Same 24/50 as the take-57 re-score (W04 flipped to pass with the eastRamp fix).
+- Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
+  dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
+  re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
+  (tooling todo).
+- Running: trees-12 (publish the built limb path). Next: structures-10 (wrap on the published
+  centreline with the shared floor; dome height A/B 0.83/0.90/0.97 against A+B+F).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -703,4 +722,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-10T15:42:00Z
+2026-09-12T00:05:00Z
