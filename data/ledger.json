@@ -7547,6 +7547,115 @@
       },
       "prevHash": "sha256:6e8c1a998f2444b262c59ee7a3c130f958a66bb6d3af3ecd5dd30bfefd8dc138",
       "hash": "sha256:d668cf6518a78130f4ce702b059849a0f04638cd5ec9676dda460a2dea908976"
+    },
+    {
+      "id": "take-0071",
+      "number": 71,
+      "at": "2026-09-12T21:02:04.906Z",
+      "sha": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+      "shortSha": "901b65b",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "structures: the distant huts hang on the published trunks (ctx.shared.trunkSeats: nearest seat within 1.5 m of the constants, centre on axisAt(floor), wall radius = max(authored, radiusAt over the hut's height band + drift + 6 cm clearance); fallback to the constants audited as distantHostSource) - hollow-column bole clearance 0.185 m (was -2.7 cm), north-east grows to R 2.48 on the giant's bole; openings become 0.30-0.35 m recesses (dark tunnel and back on recessBark, a lamp disc at 65 % depth, a warm conforming rim) instead of flat glowing discs - D window profile rim-minus-mid -0.15 -> +0.19, door plateau std 0.081 -> 0.012; pods are the near lanterns' body/cap profile with four sepal fins (lit-blob aspect 0.94 -> 1.14-1.18); post-pod cords hang from 4.5 cm brackets; glow material white x2.2 with the hue in the tints (header/material agree; lime was rendering orange); zero-area cap fans dropped (84 degenerate triangles -> 0, audited)",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W09",
+        "W32"
+      ],
+      "note": "Round eighteen: the distant huts hang on real trunks and get real openings. The trees system now publishes every column and giant bole as built (22 trunk seats: base, yaw, radius and axis by height, bare height) and the huts read those seats instead of duplicated constants - hollow-column's wall, which the bole poked through by 2.7 cm, now clears it by 0.19 m and the north-east hut grows to its giant's girth. The reviewer read the huts' doors and windows as flat bright yellow panels and the lamps as spheres in frame 56 s; they are now 30-35 cm recesses with a dark tunnel, a lamp inside and a warm rim (D window profile: flat plateau -> rim 0.75 / interior 0.40 / lamp 0.71), and the pods take the near lanterns' teardrop-and-cap profile. Hangers bracketed, glow tints corrected (lime rendered orange), 84 degenerate cap triangles removed. Draws unchanged; A/B/D up 0.001-0.002. W32's far-layer count flipped 3 -> 2 on a 0.03 % change in one 2.5 m depth bucket at the 1.5 % threshold (the recess pixels at 25-27 m) - a metric-fragility, filed as a proposal, not hidden.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "fail",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:6ef4667cc9af46be0f67a4f9dd62b65b6d22a5b493f6c1436918fe7c26eb8fad",
+        "B_house": "sha256:7bea33d4f2e872caafd5d6a32ab6badef9e190ec5c2d179e3023145e2e3f4d2e",
+        "C_lookback": "sha256:3b4b9202c1e2692745d3ffe1624290ab794db98c1e2bf2037398ceea1d353619",
+        "D_log": "sha256:41aaa18afdda4e32309e97fec3aa73e7e65075e8470bfc546bbf6ed26ab0a4a0",
+        "E_ground": "sha256:7bea33d4f2e872caafd5d6a32ab6badef9e190ec5c2d179e3023145e2e3f4d2e",
+        "F_canopy": "sha256:50bc2ed1d507a4a8f5bb182c035aa40edc168f905f1357d644fd6ae16bd21cc0"
+      },
+      "distHash": "sha256:841b7e0f72075c4bce54128ded3e49a83505f8af27caed675026a5cbf0d4a289",
+      "stats": {
+        "drawCalls": 671,
+        "triangles": 8593486,
+        "captureMs": 646338,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W09",
+        "W32"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take71-cap",
+        "importedAt": "2026-09-12T21:04:25.514Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:d668cf6518a78130f4ce702b059849a0f04638cd5ec9676dda460a2dea908976",
+      "hash": "sha256:704bc7f3fabbf8c0b11ddbf9116fd7d649e05ec89fa94ccf5a2872f677685bc3"
     }
   ]
 }
