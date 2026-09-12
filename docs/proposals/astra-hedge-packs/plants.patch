@@ -1,0 +1,10 @@
+--- a/src/world/vegetation/plants.ts
++++ b/src/world/vegetation/plants.ts
+@@ -130,6 +130,7 @@
+ const SINGLE = (n: number): number[][] => Array.from({ length: n }, (_, v) => [v]);
+ const ALL = (n: number): number[][] => [Array.from({ length: n }, (_, v) => v)];
+ const PACKS: Record<string, PackLayout> = {
++  hedge: [SINGLE(3), ALL(3), ALL(3)],
+   // 965 clumps of the biggest geometry: near / mid LODs one draw per variant, far LOD in pairs
+   ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
+   // the two heads and the two spikes pair up near, everything shares the mid / far draws

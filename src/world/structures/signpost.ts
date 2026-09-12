@@ -7,10 +7,13 @@ import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { basisMatrix, merge, setColorAttribute, sweepTube } from './geometry';
 import type { StructureMaterials } from './materials';
+import { createSignMaterials } from './signMaterials';
 
 export interface SignpostBuild {
   group: Group;
   base: [number, number, number];
+  /** Releases only this sign's materials/generated maps, never shared plank library textures. */
+  disposeMaterials(): void;
 }
 
 /** Map box UVs to a slice of the plank texture so the grain runs along the plank. */
@@ -84,6 +87,7 @@ function carvedPlank(control: BufferGeometry, width: number, height: number, thi
 }
 
 export function buildSignpost(def: { id: string; position: readonly [number, number, number]; facing: readonly [number, number] }, ctx: WorldContext, mats: StructureMaterials, rng: Rng): SignpostBuild {
+  const finishes = createSignMaterials(mats);
   const group = new Group();
   group.name = `signpost-${def.id}`;
   const x = def.position[0];
@@ -161,29 +165,34 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
     parts.push(peg);
   }
   // Three turns of natural-fibre lashing below the board, fitted to the leaning post.
+  const bindingParts: BufferGeometry[] = [];
   const wrap: Vector3[] = [];
   for (let i = 0; i <= 48; i++) {
     const t = i / 48, angle = t * Math.PI * 6;
     wrap.push(axisAt(plankY - 0.02 - t * 0.055).addScaledVector(Rt, Math.cos(angle) * 0.065).addScaledVector(F, Math.sin(angle) * 0.065));
   }
-  parts.push(sweepTube(new CatmullRomCurve3(wrap), {
+  bindingParts.push(sweepTube(new CatmullRomCurve3(wrap), {
     radius: () => 0.009, tubularSegments: 64, radialSegments: 5, uvMetres: 0.12,
     color: () => [1.3, 1.03, 0.62], capStart: true, capEnd: true,
   }));
   const tie = wrap[wrap.length - 1];
-  parts.push(sweepTube(new CatmullRomCurve3([
+  bindingParts.push(sweepTube(new CatmullRomCurve3([
     tie, tie.clone().addScaledVector(F, 0.016).add(new Vector3(0, -0.018, 0)),
     tie.clone().addScaledVector(Rt, -0.008).add(new Vector3(0, -0.08, 0)),
   ]), {
     radius: (t) => 0.009 - t * 0.003, tubularSegments: 7, radialSegments: 5, uvMetres: 0.12,
     color: () => [1.3, 1.03, 0.62], capEnd: true,
   }));
-  const woodMesh = new Mesh(merge(parts), mats.wood);
+  const woodMesh = new Mesh(merge(parts), finishes.wood);
   woodMesh.name = 'signpost-wood';
   woodMesh.castShadow = woodMesh.receiveShadow = true;
   group.add(woodMesh);
+  const bindingMesh = new Mesh(merge(bindingParts), finishes.binding);
+  bindingMesh.name = 'signpost-binding';
+  bindingMesh.castShadow = bindingMesh.receiveShadow = true;
+  group.add(bindingMesh);
 
-  // Keep both rows of the existing rune atlas at their original positions and scale. Split the
+  // Keep both rows of the sign-owned cut-mark atlas at the original positions and scale. Split the
   // receiving face at the joint so no lettering plane bridges air; every stroke is 1 mm above
   // its flat board, unlike the old jittered front whose peaks could bury the decal.
   const letterH = plankH * 0.8;
@@ -200,10 +209,10 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
     decal.applyMatrix4(plankM);
     decals.push(decal);
   }
-  const decalMesh = new Mesh(merge(decals), mats.runes);
+  const decalMesh = new Mesh(merge(decals), finishes.runes);
   decalMesh.name = 'signpost-runes';
   decalMesh.receiveShadow = true;
   group.add(decalMesh);
 
-  return { group, base: [x, gy, z] };
+  return { group, base: [x, gy, z], disposeMaterials: finishes.dispose };
 }

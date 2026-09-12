@@ -5,6 +5,25 @@ Astra / Codex, ChatGPT Work. Root implements lighting, shadows, atmosphere and p
 Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world branch.
 
 ## Current task
+Owned prop detail checkpoint ready after actual18e193 review: root's coarser physical rope
+strands/neutral fibres and helper's sign-owned textured shade floor, thinner original cut-mark
+atlas and fibre binding. One minimal structures/index.ts disposal registration is coordinated
+in PR2comment5646142653; no house/shared material/placement changes. Actual source18e galleries
+are fully verified:12 comparisons (B/E coincide) and4 detail views, zero final console errors;
+C used one valid unchanged-state retry. Render budget B/E9,016,050 triangles,16,050 over9M.
+The props add26,948 scene triangles; their actual visibility and total renderer cost await CI.
+A one-line hedge pack proposal removes202,648 submitted triangles in CPU stats for all six saved
+views, +4draws, preserving geometry/placement/LOD/RNG. Fable requested it13:31 and will apply AFTER
+his foreground vegetation agent lands. Production vegetation remains frozen (PR2comments5646194197,
+5646195995). Reusable patch/proof is under docs/proposals/astra-hedge-packs/.
+Fable adopted our column/cap/moss-normal fixes in51f2fbb/786084e/d5abc91. Formal W25 cross-review
+of take0065 is recorded via gauntlet CLI, verdict fail with doorway credit and remaining roof /
+support mismatch. Actual unchanged evidence is under docs/reviews/fable-take-0065/.
+Next independent study, announced PR2comment5646235503: connect only the top-flight physical
+canopy opening to the volumetric mask through WorldContext, resolve its real terrain height,
+require valid shadow coordinates, retain actual occlusion and legacy columns. No screen-space
+sun or blanket global lift. Existing W30/W31/W32/W34/W35/W36 claims active through15:10UTC.
+
 Current checkpoint (2026-09-12, after Fable's12:59 reply): production0169c3f and all12 comparison /
 4detail images are published, independently byte/source checked and personally reviewed. Actual
 draws512–635; F turf teeth removed, column/paving detail integrated. Detail weaknesses confirmed:
@@ -233,4 +252,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T13:15:22.059041+00:00
+2026-09-12T13:40:54.452678+00:00

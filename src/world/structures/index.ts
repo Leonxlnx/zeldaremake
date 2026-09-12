@@ -201,6 +201,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         if (mat && typeof (mat as { dispose?: () => void }).dispose === 'function') (mat as { dispose: () => void }).dispose();
       }
       for (const m of extraMaterials) m.dispose();
+      for (const sb of signposts) sb.disposeMaterials();
     },
   };
 }

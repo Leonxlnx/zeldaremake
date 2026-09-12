@@ -115,16 +115,25 @@ export function buildLanternPost(def: LanternPostDef, ctx: WorldContext, mats: S
   };
   const ropeParts: BufferGeometry[] = [];
   const addRope = (points: Vector3[], segments: number, radius = 0.013) => {
-    ropeParts.push(sweepTube(new CatmullRomCurve3(points, false, 'centripetal'), {
-      radius: () => radius, tubularSegments: segments, radialSegments: 7, uvMetres: 0.15,
-      // Three shallow twisted ridges read as laid fibres, without adding separate strand meshes.
-      displace: (t, a) => Math.cos(a * 3 + t * segments * 0.85) * radius * 0.09,
+    const path = new CatmullRomCurve3(points, false, 'centripetal');
+    const length = path.getLength();
+    const pitch = 0.085;
+    const strand = (t: number, a: number) => Math.cos(3 * (a - t * length / pitch * Math.PI * 2));
+    const geometry = sweepTube(path, {
+      // Resolve the three laid strands at a consistent physical pitch along every coil and knot.
+      // Deeper valleys stay inside the previous 1.09R outside envelope, so bindings stay fitted.
+      radius: () => radius * 0.86,
+      tubularSegments: Math.max(segments, Math.ceil(length / pitch * 18)),
+      radialSegments: 12, uvMetres: 0.15,
+      displace: (t, a) => strand(t, a) * radius * 0.23
+        * smoothstep(0, radius * 0.75, Math.min(t, 1 - t) * length),
       color: (t, a) => {
-        const v = 0.88 + 0.08 * Math.cos(a * 3 + t * segments * 0.85);
-        return [v, v * 0.88, v * 0.69];
+        const v = 0.8 + 0.17 * strand(t, a) + 0.025 * Math.sin(t * length * 97 + a);
+        return [v * 0.96, v * 0.98, v * 1.02];
       },
       capStart: true, capEnd: true,
-    }));
+    });
+    ropeParts.push(geometry);
   };
   const turns = 4;
   const t0 = 0.66;
