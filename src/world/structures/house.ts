@@ -50,6 +50,25 @@
  * under leaf clusters, a leafy up-limb off the span, and a prop root off its far end down the
  * right flank to the ground.
  *
+ * Round 15 (the reviewer's read of take-0065's B: "a flat yellow-khaki field with broad vertical
+ * streaks and dark disconnected leaf blobs" against the reference's dense soft green moss):
+ * every cap noise term — relief and vertex colour — is a 3D field sampled at the vertex
+ * (`n3`), so the front face carries the same isotropic grain as the crown (the 2D (x, z) fields
+ * were constant along y on the vertical face: streaks); the angular lifts are gone (no
+ * front-face multiplier, a gentle crown→shoulder slope only) and the albedo is retargeted to
+ * the reference's lit-mound tertiles (light rgb(168,162,101), mid (134,128,77), dark
+ * (102,95,58): greener and less saturated than round 14's, its hollows warm olive, not
+ * grey-green); the moss material carries a speckled albedo map for the reference's fine dark
+ * dots (materials.ts `mossTextures`), laid on the cap as a developed cone (polar UVs from the
+ * meridian length — the old `u = a·r(v)` sheared the map into fine diagonal streaks left of
+ * the porch, see `meridian`); straw ≈ 2 %. The cap vegetation is small plants lit like
+ * the moss — leaf clusters, grass tufts and rosettes tinted up to the moss's own linear albedo,
+ * the three hero ferns — with vines only at the rim (no surface vines draped over the cap). The
+ * support bough is a BRANCH, not a hoop: it grows out of the trunk at the left eave, passes
+ * behind the crown and climbs away past the right shoulder, leaving the top of frame B to a
+ * leafy tip beyond the right rim, the two cap sub-limbs and the up-limb kept; the ground leg
+ * and the prop root are gone.
+ *
  * Every dimension is expressed in terms of `trunkRadius` / `roofHeight`, so the same builder
  * produces Saria's hero house and the small upper house.
  */
@@ -96,7 +115,7 @@ import {
 } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
-import type { StructureMaterials } from './materials';
+import { MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
 
 type P3 = [number, number, number];
 
@@ -189,6 +208,8 @@ export interface HouseBuild {
    * toward the door), and how far the plateau slope pokes up through the pad (≤ 0 = never).
    */
   room: { floorY: number; backD: [number, number, number]; floorPoke: number; pokeAt: [number, number] };
+  /** the support bough's centre line (33 world points, t = 0 at the trunk) and radii (round 15) */
+  bough: { pts: P3[]; radii: number[] };
 }
 
 /**
@@ -333,8 +354,11 @@ const CAP_RIM_SCALE = 1.05;
  * Round 14: the reviewer's read of B was "bright yellow straw blobs on dark moss" against a
  * near-uniform dark mossy olive — the share drops to ≈ 10 % (0.46) and the straw itself is
  * pulled toward the moss (darker, greener: `THATCH_TINT`), the moss a touch lighter.
+ * Round 15: the reference's cap shows no straw at all (dense moss with a few plants), and the
+ * straw map's stalks run down the front face as fine vertical striations — ≈ 3 % (0.72), the
+ * last of it on the crown's far side.
  */
-const THATCH_THRESHOLD = 0.46;
+const THATCH_THRESHOLD = 0.72;
 /** straw patch albedo multiplier (round 12: −25 %, the patches read as bright straw) */
 const THATCH_ALBEDO = 0.75;
 /** straw patch vertex tint (linear): round 12's dry yellow straw [0.66, 0.55, 0.26] → an olive
@@ -445,6 +469,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const group = new Group();
   group.name = `house-${def.id}`;
   const noise = new Noise2D(`${ctx.config.seed}/structures/house/${def.id}`);
+  /** isotropic 3D field for the cap's relief and colour grain (round 15; see `Noise3D`) */
+  const n3 = new Noise3D(rng.fork('cap-noise3'));
   const terrain = ctx.terrain;
   const R = def.trunkRadius;
   const k = R / 3.2; // detail scale relative to the hero house
@@ -1640,16 +1666,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * frequency — the reviewer read the old mix (±0.22 m fbm lumps at 0.5/m, ±0.22 m mounds at
    * 0.8/m, two `ridged` terms at 1.2 and 2.2/m) as "coarse pale angular clumps" once the
    * front-face lift brightened their crests; the reference dome is a smooth mound with soft
-   * variation. No ridged (creased) noise: every term is smooth simplex.
+   * variation. No ridged (creased) noise: every term is smooth noise. Round 15: every term is
+   * the 3D field `n3` at the vertex — the 2D (x, z) terms were constant along y on the front
+   * face, which drew the relief (and its shading) as vertical streaks.
    */
   const domeDisp = (p: Vector3, v: number) => {
     const onCap = smoothstep(1, 0.66, v);
-    const lumps = noise.fbm(p.x * 0.35, p.z * 0.35 + p.y * 0.2, 2) * 0.12 * k * (0.35 + 0.65 * onCap);
+    const lumps = n3.fbm(p.x * 0.35, p.y * 0.35, p.z * 0.35, 2) * 0.12 * k * (0.35 + 0.65 * onCap);
     // mid-frequency mounds (≈ ±0.1 m, 3–5 m across) keep the crown's silhouette gently lumpy
-    const mounds = noise.noise(p.x * 0.55 + 17, p.z * 0.55 - 6) * 0.11 * k * onCap;
-    const cushions = noise.noise(p.x * 0.9 + 3, p.z * 0.9) * 0.07 * k * smoothstep(0.85, 0.2, v);
-    const clumps = noise.noise(p.x * 1.5 + 8, p.z * 1.5 + p.y * 0.4) * 0.035 * k * onCap;
-    const fine = noise.noise(p.x * 2.4, p.z * 2.4 + p.y) * 0.02;
+    const mounds = n3.noise(p.x * 0.55 + 17, p.y * 0.55, p.z * 0.55 - 6) * 0.11 * k * onCap;
+    const cushions = n3.noise(p.x * 0.9 + 3, p.y * 0.9 + 5, p.z * 0.9) * 0.07 * k * smoothstep(0.85, 0.2, v);
+    const clumps = n3.noise(p.x * 1.5 + 8, p.y * 1.5, p.z * 1.5) * 0.035 * k * onCap;
+    const fine = n3.noise(p.x * 2.4, p.y * 2.4 + 1, p.z * 2.4) * 0.02;
     return lumps + mounds + cushions + clumps + fine;
   };
   const _n = new Vector3();
@@ -1684,6 +1712,55 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     domeBase(u * TAU, Math.min(1, v + dv), _c2).sub(_c0);
     return _c1.cross(_c2).length() * 4;
   };
+  /**
+   * Surface length along the meridian from the crown to (a, v), tabulated (round 15). The cap's
+   * UVs used to run `v` over `capHeight + 4·lipR` metres of texture, but the mushroom profile
+   * puts most of the meridian's length on the steep shoulder — ≈ 11 m of surface per unit v on
+   * the front face against 3.2 m of texture — so the moss normal map's cushions were drawn
+   * ≈ 3.6× taller than wide there: fine vertical striations over the whole front. Mapping v by
+   * true surface length makes the map's relief isotropic in scale — but not u by the local
+   * circumference, `u = a·r(v)`: for a fixed meridian u then drifts with v in proportion to a,
+   * a shear of the tiles that reaches 2.5 m sideways per metre up the meridian just left of the
+   * front seam (a ≈ 5.8 rad; probe t1, a 20 cm checker drawn through the cap's map: upright
+   * squares right of the porch, sub-pixel diagonal streaks left of it). So the moss map is
+   * laid out as a DEVELOPED CONE instead: the cap unrolls onto a disc sector, polar radius the
+   * meridian length from the apex, polar angle κ·a with κ = r/s (1.05 on the flat plateau,
+   * 0.86 on the shoulder; a constant 0.85 keeps the scale error within ±11 % everywhere and
+   * has no shear at all). The sector's gap — the one seam — sits at a = π, the back of the cap,
+   * inside the giant's trunk. The straw patches keep a cylindrical layout (stalks along the
+   * meridians).
+   */
+  const MER_A = 48;
+  const MER_V = 64;
+  /** developed-cone angle factor (polar angle per radian of `a`) and polar radius at the apex ring */
+  const CAP_UV_KAPPA = 0.85;
+  const CAP_UV_S0 = (0.19 * R) / CAP_UV_KAPPA;
+  const merTable = new Float32Array((MER_A + 1) * (MER_V + 1));
+  {
+    const p0 = new Vector3();
+    const p1 = new Vector3();
+    for (let i = 0; i <= MER_A; i++) {
+      const a = (i / MER_A) * TAU;
+      let s = 0;
+      domeBase(a, 0, p0);
+      for (let j = 1; j <= MER_V; j++) {
+        domeBase(a, j / MER_V, p1);
+        s += p1.distanceTo(p0);
+        p0.copy(p1);
+        merTable[i * (MER_V + 1) + j] = s;
+      }
+    }
+  }
+  const meridian = (a: number, v: number) => {
+    const fa = ((((a / TAU) % 1) + 1) % 1) * MER_A;
+    const ia = Math.floor(fa);
+    const ta = fa - ia;
+    const fv = clamp(v, 0, 1) * MER_V;
+    const iv = Math.min(MER_V - 1, Math.floor(fv));
+    const tv = fv - iv;
+    const at = (i: number, j: number) => merTable[(i % (MER_A + 1)) * (MER_V + 1) + j];
+    return lerp(lerp(at(ia, iv), at(ia, iv + 1), tv), lerp(at(ia + 1, iv), at(ia + 1, iv + 1), tv), ta);
+  };
   const domeVertex = (a: number, v: number, out: SurfaceSample, straw: boolean) => {
     domeBase(a, v, out.position);
     domeNormal(a, v, _n);
@@ -1692,58 +1769,100 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // uneven droop of the rim
     const lip = smoothstep(V_CAP, 1, v);
     out.position.y -= lip * (0.06 + 0.1 * noise.noise(a * R * 1.1, 3.3) + 0.05 * noise.noise(a * R * 4, 7)) * k;
-    out.uv = [(a * capR(a)) / 1.6, (v * (capHeight + 4 * lipR)) / 1.6];
+    // 1.6 m texture tiles that are 1.6 m on the surface both ways: the moss as a developed cone
+    // (see `meridian`), the straw cylindrical with its stalks down the meridians
+    const s = meridian(a, v);
+    if (straw) {
+      out.uv = [(a * capR(a)) / 1.6, s / 1.6];
+    } else {
+      // the crown's flat top is a 0.19 R (0.57 m) disc at v = 0 (audit shell): the polar radius
+      // starts there so the tiles keep their size on the plateau; the angle wraps at the back
+      const th = CAP_UV_KAPPA * (a > Math.PI ? a - TAU : a);
+      const rho = (s + CAP_UV_S0) / 1.6;
+      out.uv = [rho * Math.cos(th) + 8, rho * Math.sin(th) + 8];
+    }
     const p = out.position;
     if (straw) {
       // thin straw showing through the moss (vertex tint × the straw map); round 12: −25 %
       // albedo; round 14: an olive straw tint (`THATCH_TINT`) so the patches sit close to the moss
-      const strawTone = (0.9 + 0.2 * noise.noise(p.x * 2.5, p.y * 2.5 + 4)) * THATCH_ALBEDO;
+      const strawTone = (0.9 + 0.2 * n3.noise(p.x * 2.5, p.y * 2.5 + 4, p.z * 2.5)) * THATCH_ALBEDO;
       out.color = [THATCH_TINT[0] * strawTone, THATCH_TINT[1] * strawTone, THATCH_TINT[2] * strawTone];
       return;
     }
-    const patches = noise.fbm(p.x * 0.8 + 11, p.z * 0.8, 2);
+    // Round 15: every field below is the 3D `n3` at the vertex position. The round-14 terms
+    // were 2D in (x, z) with y at a third of the weight or absent (mottle, `bright`, `patches`,
+    // mounds): on the near-vertical front face they were constant or 3× stretched along y, and
+    // B read the cap as "broad vertical streaks" (detrended column/row profile sd ratio 2.8;
+    // reference 0.96).
+    const patches = n3.fbm(p.x * 0.8 + 11, p.y * 0.8, p.z * 0.8, 2);
     const upness = smoothstep(0.05, 0.9, _n.y);
     // lit tops vs shaded hollows and flanks. Round 14: a soft curve — the relief's crests get a
     // quarter of the lift they had (0.6 × disp / 0.25 m read as pale angular clumps on the
     // front face), the modulation is broad (0.7/m, was 1.3/m) and narrower (±0.25, was ±0.33)
-    const bright = clamp(Math.pow(upness, 1.2) * (0.6 + 0.4 * (0.5 + 0.5 * noise.noise(p.x * 0.7, p.z * 0.7 + 9))) + 0.25 * (disp / (0.2 * k)), 0, 1);
+    const bright = clamp(Math.pow(upness, 1.2) * (0.6 + 0.4 * (0.5 + 0.5 * n3.noise(p.x * 0.7, p.y * 0.7 + 9, p.z * 0.7))) + 0.25 * (disp / (0.2 * k)), 0, 1);
     // Round 12: the cap is built in the plain moss material, so the vertex colour IS the albedo
     // (no straw map with its stalks under it — that map is what made round 11's moss read as
     // thatch). The reference moss is a fine grainy mass: a per-vertex grain of lit specks and
     // dark pits at the vertex pitch (≈ 0.12 m) carries that at B's distance.
-    const speck = smoothstep(0.45, 0.9, noise.noise(p.x * 3.2 + 31, p.z * 3.2 + p.y * 1.5));
+    const speck = smoothstep(0.45, 0.9, n3.noise(p.x * 3.2 + 31, p.y * 3.2, p.z * 3.2));
     // pits at the vertex pitch: near-uncorrelated between neighbours, so they read as dark dots
-    const pit = smoothstep(0.3, 0.8, noise.noise(p.x * 13 + 41, p.z * 13 + p.y * 4));
-    const fleck = smoothstep(0.55, 0.9, noise.noise(p.x * 11 + 7, p.z * 11 - p.y * 3));
-    const grain = (0.78 + 0.44 * (0.5 + 0.5 * noise.noise(p.x * 9.1, p.z * 9.1 + p.y * 3))) * (1 - 0.6 * pit) * (1 + 0.35 * fleck);
+    const pit = smoothstep(0.3, 0.8, n3.noise(p.x * 13 + 41, p.y * 13, p.z * 13));
+    const fleck = smoothstep(0.55, 0.9, n3.noise(p.x * 11 + 7, p.y * 11, p.z * 11));
+    // (round 15: the grain's swing is up a fifth — the reference's lit mound has 8×8 tile
+    // contrast 0.045 that round 14's leaf blobs, now gone, had been supplying)
+    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.65 * pit) * (1 + 0.4 * fleck);
     // (round 14: the broad mottle is halved — ±0.4 at 0.38/m was the largest coarse term left
     // once the relief's crests stopped carrying the light: moss-face 32 px blotchiness 0.064
     // against the reference's 0.038)
-    const mottle = (0.74 + 0.2 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.1 * noise.noise(p.x * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
-    // olive albedos (linear): deep grey-olive in the hollows and down the flanks, saturated
-    // yellow-olive on the lit tufts (reference B pure moss face rgb(131,124,77): lum 0.48, sat
-    // 0.42, hue 51° — the round-11 cap rendered at sat 0.34–0.36, a paler, beige read)
-    // (the first round-12 probe rendered the lit face at hue 56°, 5° greener than the reference,
-    // so the sunlit tone leans a little warmer)
-    // Round 14: the hollows a touch lighter and greener (the reviewer's "dark moss" between the
-    // straw), the lit tone a shade greener (reference lit moss hue 51°; the old [0.88, 0.67]
-    // rendered ≈ 45°)
-    const deep: [number, number, number] = [0.16, 0.165, 0.028];
-    const sun: [number, number, number] = [0.76, 0.63, 0.055];
-    // reference B: the cap's shoulder right above the rim is its brightest band (lum 0.45–0.7,
-    // sun on the moss; box p90 ≈ 0.55), the crown under the canopy is darker (box p10 ≈ 0.20 —
-    // ours 0.32 with the crown at 0.7, so it drops to 0.5); the front face over the porch — the
-    // dome frame B looks at — is sunlit moss (roof-only box p50 ≈ 0.48), so it carries an extra
-    // lift (round 14: +75 %, was +85 %, on a shoulder ramp to 1.3 rather than 1.6, and the
-    // whole lift is capped at ×2 — the first round-14 probes' shoulder over the porch rendered
-    // hot yellow (sRGB r > 190) where the ramp and the front lift multiplied)
-    const frontFace = smoothstep(1.5, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.15, 0.4, v);
-    const shoulder = lerp(0.5, 1.3, smoothstep(0.2, 0.62, v)) * (1 + 0.75 * frontFace);
-    const flank = lerp(0.4, 1, smoothstep(-0.2, 0.8, _n.y)) * shoulder;
+    // (round 15: the broad term is back up to ±0.32 at 0.45/m — the reference mound's
+    // luminance tertiles run 0.37 / 0.49 / 0.62, a wide soft shading that the first round-15
+    // probe, at ±0.2, rendered as a flat 0.55–0.68 field)
+    const mottle = (0.7 + 0.32 * n3.fbm(p.x * 0.45 + 5, p.y * 0.45, p.z * 0.45 - 2, 2) + 0.1 * n3.noise(p.x * 3.1, p.y * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
+    // Albedos (linear), lit tufts vs hollows. Round 15 retargets them to the reference's lit
+    // mound measured by luminance tertile (B, 0.66–0.86 × 0.12–0.25): light rgb(168,162,101) —
+    // hue 55°, sat 0.40 —, mid (134,128,77), dark (102,95,58), a warm olive; take-0065 rendered
+    // (158,148,85) / (120,115,74) / (94,92,66): a redder, more saturated yellow with grey-green
+    // shadows. So the lit tone is greener (G/R 0.94, was 0.83) and carries three times the blue,
+    // the hollows are warm (R > G). The lift the front face and the shoulder ramp used to apply
+    // (×2 over the porch) is folded into the tones themselves — see `slope` below.
+    // (probe 1 at [1.45, 1.36, 0.24] rendered the mound's light tertile on target, (175,166,99),
+    // but the mid at (159,152,91) against (134,128,77); probe 2 at [1.22, 1.14, 0.2] still
+    // (152,145,87) — the display gamma shows a 16 % albedo cut as 4–5 %. The vertex tones are
+    // now the LIT moss (the albedo map in materials.ts, mean ≈ 0.86 with dark specks, takes the
+    // surface below them), and the lit tone is greener and bluer again: the reference's light
+    // tertile is G/R 0.92, B/R 0.33 in linear light against probe 2's 0.875 / 0.28.)
+    // (probes 3–4 at [0.98, 0.97, 0.21] under the clipped map: mid tertile 0.48 on the
+    // reference's 0.49, box mean 0.400 on 0.371 + 0.03; with the crests unclipped the tones
+    // come down 6 % so the box mean holds)
+    // (probe 6, crests unclipped at [0.92, 0.91, 0.2]: tertiles 0.40 / 0.52 / 0.59 on the
+    // reference's 0.38 / 0.49 / 0.61, box mean 0.413 — the mid a step down again; probe 7 at
+    // [0.84, 0.83, 0.18] with `canopy`: 0.39 / 0.48 / 0.53, box 0.402 — mid and dark on target,
+    // the crests dim, so the map's crest gain goes up and the tones come down another 5 %)
+    const deep: [number, number, number] = [0.266, 0.238, 0.052];
+    const sun: [number, number, number] = [0.8, 0.79, 0.17];
+    // Round 15: no angular gradient. Round 14's shoulder ramp (0.5 → 1.3 with v) times a
+    // front-face lift (+75 % over the porch) put a smooth luminance ramp across the cap that
+    // the vertex grain then modulated — B read it as a flat field with bands. What remains is a
+    // crown→shoulder slope (the crown sits under the canopy: reference box p10 0.21) and the
+    // flank fall-off by surface normal, which the light itself would give. The slope follows
+    // the reference mound's row profile in B (six bands, top → bottom: 0.41 0.45 0.51 0.56
+    // 0.54 0.50 — darkest at the crown, brightest two-thirds of the way down the shoulder,
+    // dimmer again toward the rim); probe 2's ran 0.45 → 0.58 monotonically, brightest at the
+    // rim, which is the flat-field read; probe 3's 0.43 0.44 0.44 0.46 0.50 0.50 lacked the
+    // bulge.
+    const slope = lerp(0.45, 1.2, smoothstep(0.15, 0.48, v)) * lerp(1, 0.88, smoothstep(0.58, V_CAP, v));
+    const flank = lerp(0.4, 1, smoothstep(-0.2, 0.8, _n.y)) * slope;
     // the rim curl darkens toward its underside (the moss edge over a dark shadow band)
     const under = smoothstep(0.8, 0.97, v);
     const rimShade = lerp(1, 0.35, under) * (1 - 0.3 * smoothstep(0.4, 0.7, patches) * smoothstep(0.55, V_CAP, v));
-    const m = Math.min(2, flank * rimShade * mottle);
+    // × the albedo map's peak: the map (materials.ts `mossTextures`) is stored over it, so the
+    // tones above render as the mid tone under the map's mid, and the crests go to ×2
+    // the canopy's shade on the crown, baked: the reference cap's moss outside the lit front
+    // mound — crown and shoulders under the giant's canopy — reads at 0.22–0.39 (box moss-mask
+    // p10 / p50) where probe 6's sunlit top read 0.33 / 0.46; the flatter the moss faces up
+    // into the canopy, the less light it gets
+    const canopy = lerp(1, 0.65, smoothstep(0.35, 0.95, _n.y));
+    const m = Math.min(2, flank * rimShade * mottle * canopy) * MOSS_ALBEDO_PEAK;
     out.color = [lerp(deep[0], sun[0], bright) * m, lerp(deep[1], sun[1], bright) * m, lerp(deep[2], sun[2], bright) * m];
   };
   const domeMoss = gridSurface((u, v, out) => domeVertex(u * TAU, v, out, false), {
@@ -1867,6 +1986,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const foliage = new FoliageBuilder(rng.fork('foliage'), `${ctx.config.seed}/house/${def.id}`);
   const branchParts = [];
   const leafTint: [number, number, number] = [0.62, 0.7, 0.36];
+  // Plant albedos on the cap are set against the moss they grow in (round 15). The leaf map's
+  // body is sRGB 0x86bb4a (linear 0.24, 0.50, 0.07) and the grass atlas ≈ (0.14, 0.28, 0.05):
+  // at tint 1 both are a third of the lit moss (`sun` in domeVertex ≈ 0.92, 0.91, 0.2) in red
+  // and darker still in blue, so however the tint was nudged (probes 1–2: ×0.55–2.0) they
+  // stayed dark green shapes. These tints take each map to about the moss's own linear
+  // albedo, a little greener: ≈ (0.85, 1.0, 0.18) for the leaves, so a plant on the cap is a
+  // lighter yellow-green in the same light.
+  const MOSS_LIT_LEAF: [number, number, number] = [3.6, 2.0, 2.6];
+  const MOSS_LIT_GRASS: [number, number, number] = [5.2, 3.1, 3.9];
   // dark grey-brown limb bark (willow set, darkened): the reference limbs are as dark as the
   // shaded trunk but cooler/greyer than its warm bark — dark branches lying on a bright dome
   const limbColor = (t: number, ang: number): [number, number, number] => {
@@ -1895,11 +2023,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     branchParts.push(geo);
     for (const at of b.leavesAt) {
       const p = curve.getPointAt(at);
-      foliage.addLeafCluster(p, 0.55 * k, 44, { size: 0.13, amount: 0.06, droop: 0.55, tint: leafTint, tintSpread: 0.28 });
-      // a couple of short vines trail from each leafy tip
-      for (let s = 0; s < 2; s++) {
-        const hook = p.clone().add(new Vector3((branchRng() - 0.5) * 0.4, -0.1, (branchRng() - 0.5) * 0.4));
-        foliage.addHangingVine(hook, 0.45 + branchRng() * 0.55, { amount: 0.1 });
+      // round 15: the tip clusters lie on the moss, so they take the moss-lit leaf tint (at
+      // `leafTint` they were 0.55 m dark green blobs on the crown — the largest of the "dark
+      // disconnected leaf blobs"), and are smaller; vines trail from a tip only at the rim
+      const tipV = b.path[b.path.length - 1][1];
+      foliage.addLeafCluster(p, 0.4 * k, 28, { size: 0.12, amount: 0.06, droop: 0.45, tint: MOSS_LIT_LEAF, tintSpread: 0.28, flatten: 0.45 });
+      if (tipV >= 0.6) {
+        for (let s = 0; s < 2; s++) {
+          const hook = p.clone().add(new Vector3((branchRng() - 0.5) * 0.4, -0.1, (branchRng() - 0.5) * 0.4));
+          foliage.addHangingVine(hook, 0.45 + branchRng() * 0.55, { amount: 0.1 });
+        }
       }
     }
   }
@@ -1927,37 +2060,36 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    *  legs' — `shade` 0 = sunlit, 1 = fully shaded */
   const shadedColor = (t: number, ang: number, shade: number): [number, number, number] => supportColor(t, ang).map((c) => c * lerp(1, 0.42, shade)) as [number, number, number];
   const mossTint: [number, number, number] = [0.5, 1.12, 0.34];
-  /** ground contact of a leg at angle a, just outside the flared trunk foot */
-  const legFoot = (a: number, out = 0.35) => {
-    const p = frame.at(a, rSmooth(a, 0) + out * k, 0);
-    p.y = terrain.height(p.x, p.z);
-    return p;
-  };
   const jit = (s: number) => new Vector3((branchRng() - 0.5) * s, (branchRng() - 0.5) * s * 0.5, (branchRng() - 0.5) * s);
-  /** where the arc's left leg passes the eave (the eave bough's left end meets it here) */
+  /** where the bough passes the eave on the left, just outside the rim (its burl sits here) */
   const arcEavePoint = frame.at(-1.2, capR(-1.2) + 0.3 * k, eaveY - 0.1 * k);
+  /** the bough's centre line and radii sampled for the audit (`houseBough`) */
+  let boughSamples: { pts: P3[]; radii: number[] } = { pts: [], radii: [] };
   {
-    const aL = -1.32;
-    const footL = legFoot(aL);
+    // Round 15: a BRANCH, not a hoop. Rounds 8–14 ran this limb from a foot on the ground up
+    // the left flank, over the front of the cap and back down the right flank (a prop root at
+    // its far end) — in B a closed arc sitting over the roof (start (0.60, 0.57) → apex (0.82,
+    // 0.09) → end (0.96, 0.20), heading change 148°). Now it grows out of the trunk's flank
+    // under the left eave, breaks out past the rim (the burl), climbs the left-back shoulder
+    // and passes BEHIND the crown — the cap hides it from B between the left shoulder (0.69,
+    // 0.23) and the crown's right (0.83, 0.14) — then rises past the right shoulder, clear of
+    // the HUD box, and leaves the top of the frame at x ≈ 0.90 to a leafy tip 9.6 m up beyond
+    // the right rim (visible from A / F). Like the reference, where the limb over the roof
+    // comes out from behind the mound on the right and climbs away. No ground contact.
+    const aE = -1.2;
     const arcPts = [
-      footL.clone().setY(footL.y - 0.4),
-      footL,
-      frame.at(aL + 0.04, rSmooth(aL, 0.4 * eaveY) + 0.22 * k, 0.4 * eaveY).add(jit(0.12)),
+      // rooted in the trunk wall under the eave (the first segment is inside the bark)
+      frame.at(aE + 0.12, rSmooth(aE + 0.12, eaveY - 1.0 * k) - 0.45 * k, eaveY - 1.0 * k),
+      frame.at(aE + 0.05, rSmooth(aE + 0.05, eaveY - 0.6 * k) + 0.05 * k, eaveY - 0.6 * k),
       arcEavePoint.clone(),
-      // climbing the left shoulder, then arching over the FRONT of the cap 1.5 m clear of the
-      // moss: frame B looks up at it, so it runs as a thick dark limb across the top band —
-      // (0.61, 0.25) → (0.66, 0.10) → (0.76, 0.05) → (0.86, 0.06) → (0.92, 0.11) — above the
-      // dome's silhouette, like the reference's near limb, and from the stairs (A) it arches
-      // over the crown the same way
-      frame.at(-1.45, capR(-1.45) + 0.2 * k, lipTop + 1.1 * k).add(jit(0.1)),
-      frame.at(-1.25, capR(-1.25) + 0.1 * k, crownY - 0.5 * k).add(jit(0.1)),
-      frame.at(-0.7, 0.9 * capR(-0.7), crownY - 0.45 * k).add(jit(0.1)),
-      frame.at(-0.1, 0.8 * capR(-0.1), crownY - 0.5 * k).add(jit(0.08)),
-      frame.at(0.45, 0.82 * capR(0.45), crownY - 0.7 * k).add(jit(0.08)),
-      // ...and sinks back into the moss behind the right shoulder (in B behind the HUD box; in A
-      // a short drop onto the dome's right, where the reference has only bright haze above)
-      frame.at(0.7, 0.92 * capR(0.7), crownY - 1.3 * k).add(jit(0.08)),
-      frame.at(0.85, capR(0.85) - 0.35 * k, lipTop + 0.45 * k),
+      frame.at(-1.6, capR(-1.6) + 0.1 * k, lipTop + 1.0 * k).add(jit(0.1)),
+      frame.at(-2.2, 0.85 * capR(-2.2), crownY - 0.7 * k).add(jit(0.1)),
+      frame.at(-2.9, 0.62 * capR(-2.9), crownY - 0.1 * k).add(jit(0.1)),
+      frame.at(2.6, 0.62 * capR(2.6), crownY + 0.45 * k).add(jit(0.08)),
+      frame.at(2.1, 0.88 * capR(2.1), crownY + 1.4 * k).add(jit(0.08)),
+      frame.at(1.75, capR(1.75) + 0.3 * k, crownY + 2.4 * k),
+      frame.at(1.55, capR(1.55) + 1.0 * k, crownY + 3.1 * k),
+      frame.at(1.45, capR(1.45) + 1.8 * k, crownY + 3.6 * k),
     ];
     const arcCurve = new CatmullRomCurve3(arcPts, false, 'catmullrom', 0.5);
     /** the curve parameter where the bough passes the eave (leaves the trunk's flank) */
@@ -1973,13 +2105,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       }
       return best;
     })();
-    // thick at the roots (0.46 m), tapering only to 0.36 m where it re-enters the cap, knuckled;
-    // it clears the moss by well over its own diameter, so it can stay a heavy limb. Round 14: a
-    // burl where it meets the trunk at the eave (+0.16 m radius over ≈ 1 m of limb — the bough
-    // grows out of the trunk there, it does not lean on it) so the loop reads as anchored.
-    const arcR = (t: number) => (0.46 - 0.1 * t) * k * (1 + 0.1 * Math.sin(t * 17 + 1) + 0.06 * Math.sin(t * 41)) + 0.16 * k * Math.exp(-(((t - tEave) / 0.045) ** 2));
-    // sunlit up the leg, shaded by the canopy from the eave upward
-    const arcShade = (t: number) => 0.8 * smoothstep(0.28, 0.42, t);
+    // a heavy limb at the trunk (0.5 m radius, a burl where it breaks out past the rim) that
+    // tapers along its length to 0.2 m at the leafy tip, knuckled; it clears the moss by about
+    // its own diameter over the crown, the sub-limbs below drop from it into the cap
+    const arcR = (t: number) => (0.5 - 0.3 * t) * k * (1 + 0.1 * Math.sin(t * 17 + 1) + 0.06 * Math.sin(t * 41)) + 0.14 * k * Math.exp(-(((t - tEave) / 0.06) ** 2));
+    // in the eave's shadow at the trunk, then in the canopy's shade over the cap
+    const arcShade = (t: number) => 0.8 * smoothstep(0.05, 0.2, t);
     const arc = sweepTube(arcCurve, {
       radius: arcR,
       tubularSegments: 96,
@@ -1990,23 +2121,33 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       capEnd: true,
     });
     supportParts.push(mossOnTop(arc, mossTint, 0.85, noise));
-    // no leaf sprigs on the arch itself (their drooping leaves would hang as dark specks in
-    // front of the sunlit moss in B); vines trail only from the leg beside the lip
-    for (const t of [0.3, 0.38]) {
-      const p = arcCurve.getPointAt(t);
-      p.y -= arcR(t) * 0.8;
-      foliage.addHangingVine(p.add(jit(0.15)), (0.5 + branchRng() * 0.6) * k, { amount: 0.1 });
+    // the leafy tip beyond the rim, in the canopy above frame B
+    {
+      const tip = arcCurve.getPointAt(1);
+      const near = arcCurve.getPointAt(0.93);
+      lateFoliage.push(() => {
+        foliage.addLeafCluster(tip, 0.75 * k, 56, { size: 0.14, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
+        foliage.addLeafCluster(near, 0.45 * k, 24, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
+      });
     }
-    bases.push([footL.x, footL.y, footL.z]);
+    boughSamples = (() => {
+      const pts: P3[] = [];
+      const radii: number[] = [];
+      for (let i = 0; i <= 32; i++) {
+        const t = i / 32;
+        pts.push(arcCurve.getPointAt(t).toArray().map((x) => Math.round(x * 1000) / 1000) as P3);
+        radii.push(Math.round(arcR(t) * 1000) / 1000);
+      }
+      return { pts, radii };
+    })();
 
     // ---- round 14: the bough's SUB-LIMBS, so the loop over the house reads as the tree's branch
     // holding the roof (boards 03 / 04 "curved trunk forms a natural roof", "upper branches with
     // foliage") rather than a detached hoop: two limbs fork off the span and drop into the cap,
     // each with a leaf cluster where it enters the moss; one forks upward off the top of the
-    // span into a leafy tip; and one forks DOWN off the far end as a prop root — a pillar to
-    // the ground on the right flank (in B beside the right root, where the reference has its
-    // thick right root mass; it runs behind the HUD box up top). All in the bough's bark, mossy
-    // on top, in the canopy's shade above the eave. Own rng stream: the arc's draws are untouched.
+    // span into a leafy tip. (Round 14's prop root down the right flank is gone in round 15.)
+    // All in the bough's bark, mossy on top, in the canopy's shade above the eave. Own rng
+    // stream: the arc's draws are untouched.
     const subRng = rng.fork('bough-sublimbs');
     const sjit = (s: number) => new Vector3((subRng() - 0.5) * s, (subRng() - 0.5) * s * 0.5, (subRng() - 0.5) * s);
     const _rel = new Vector3();
@@ -2049,14 +2190,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         capEnd: true,
       });
       supportParts.push(mossOnTop(limb, mossTint, 0.7, noise));
-      lateFoliage.push(() => foliage.addLeafCluster(onMoss, 0.5 * k, 36, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 }));
+      // (the cluster sits on the moss: the moss-lit leaf tint, not the canopy's `leafTint`)
+      lateFoliage.push(() => foliage.addLeafCluster(onMoss, 0.4 * k, 24, { size: 0.12, amount: 0.06, droop: 0.4, tint: MOSS_LIT_LEAF, tintSpread: 0.28, flatten: 0.4 }));
       return limb;
     };
+    // (round 15: the span behind the crown runs t ≈ 0.45–0.65 of the new curve; the second
+    // limb drops into the right shoulder, where B sees it)
     capLimb(0.5, -0.12, 0.2);
-    capLimb(0.64, 0.14, 0.17);
+    capLimb(0.7, 0.1, 0.17);
     // the up-limb: off the top of the span, up and back into the canopy, leafy at the tip
     {
-      const from = arcCurve.getPointAt(0.57);
+      const from = arcCurve.getPointAt(0.58);
       const tip = from.clone().add(new Vector3(0, 1.35 * k, 0)).addScaledVector(F, -0.7 * k).add(sjit(0.2));
       const mid = from.clone().lerp(tip, 0.5).addScaledVector(Rt, -0.25 * k).add(sjit(0.15));
       const upCurve = new CatmullRomCurve3([from, mid, tip], false, 'catmullrom', 0.5);
@@ -2075,42 +2219,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         foliage.addLeafCluster(upCurve.getPointAt(0.6), 0.35 * k, 18, { size: 0.12, amount: 0.05, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
       });
     }
-    // the prop root: off the span's far end, down the right flank to the ground
-    {
-      const aP = 0.88;
-      const from = arcCurve.getPointAt(0.9);
-      const footP = legFoot(aP, 0.4);
-      const pts = [
-        from,
-        frame.at(0.8, capR(0.8) + 0.15 * k, lipTop - 0.2 * k).add(sjit(0.12)),
-        frame.at(0.85, rSmooth(0.85, 0.55 * eaveY) + 0.45 * k, 0.55 * eaveY).add(sjit(0.12)),
-        footP,
-        footP.clone().setY(footP.y - 0.4),
-      ];
-      const propCurve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-      // from the span's thickness (0.3 m) swelling to a root's foot (0.36 m)
-      const propR = (s: number) => (0.28 + 0.08 * smoothstep(0.55, 1, s)) * k * (1 + 0.1 * Math.sin(s * 15 + 3) + 0.05 * Math.sin(s * 37));
-      const prop = sweepTube(propCurve, {
-        radius: propR,
-        tubularSegments: 40,
-        radialSegments: 12,
-        uvMetres: 1.4,
-        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 6 + 3, pos.y * 1.3 + 1, 2) - 0.5) * 0.08 * k,
-        // the right flank never sees the sun (reference: the darkest bark in the frame)
-        color: (s, ang) => shadedColor(s, ang, lerp(0.8, 0.55, smoothstep(0.4, 0.9, s))),
-        capEnd: true,
-      });
-      supportParts.push(mossOnTop(prop, mossTint, 0.6, noise));
-      const vineHooks = [0.25, 0.45].map((s) => {
-        const p = propCurve.getPointAt(s);
-        p.y -= propR(s) * 0.8;
-        return { p: p.add(sjit(0.15)), len: (0.4 + subRng() * 0.5) * k };
-      });
-      lateFoliage.push(() => {
-        for (const h of vineHooks) foliage.addHangingVine(h.p, h.len, { amount: 0.1 });
-      });
-      bases.push([footP.x, footP.y, footP.z]);
-    }
+    // (round 15: the prop root that forked off the far end down the right flank to the ground is
+    // gone — with it the bough closed into a hoop over the roof; the branch now ends in the air)
   }
   /**
    * The eave bough (rounds 8–11: a bark limb along the front lip above the porch, the pod cords
@@ -2294,68 +2404,57 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const len = (0.6 + vineRng() * 1.1) * (0.8 + 0.4 * Math.abs(Math.sin(a))) * (1 - 0.6 * overDoor);
     foliage.addHangingVine(hook, len * k, { amount: 0.1 });
   }
-  const draped = def.id === 'saria' ? 6 : 4;
-  for (let i = 0; i < draped; i++) {
-    const a0 = (i / draped) * TAU + vineRng() * 0.6;
-    const pts: Vector3[] = [];
-    const nrms: Vector3[] = [];
-    const n = 7;
-    for (let j = 0; j <= n; j++) {
-      const t = j / n;
-      const a = a0 + Math.sin(t * 2.2 + i) * 0.35;
-      const v = lerp(0.15 + vineRng() * 0.1, 0.88, t);
-      pts.push(surfacePoint(a, v, 0.03));
-      nrms.push(domeNormal(a, v));
-    }
-    foliage.addSurfaceVine(pts, nrms, { amount: 0.02 });
-  }
-  const tuftCount = def.id === 'saria' ? 46 : 28;
-  const roofShade: [number, number, number] = [0.6, 0.6, 0.38];
+  // (round 15: the surface vines that used to be draped from the crown to the rim are gone —
+  // the reference cap carries vines only at its rim, the hanging strands above)
+  // ---- small plants over the moss (round 15). Reference B's lit mound is dense moss with a
+  // few small plants in it: grass tufts and leaves lit like the moss (pixels below 0.85× the
+  // mound's median luminance with a green hue: 2.2 % of the mound; take-0065's leaf clumps
+  // covered 13 %, mid-dark green shapes on the yellow field — "dark disconnected blobs"). So:
+  // more, smaller grass tufts in a moss-lit tint, ferns only as the three hero ferns below, and
+  // the leaf clusters small and light. ----
+  // (plant tints: `MOSS_LIT_LEAF` / `MOSS_LIT_GRASS`, defined with `leafTint` above)
+  const tuftCount = def.id === 'saria' ? 36 : 24;
+  const roofShade: [number, number, number] = MOSS_LIT_GRASS;
   for (let i = 0; i < tuftCount; i++) {
     const a = vineRng() * TAU;
     const v = 0.05 + vineRng() * 0.7;
-    // the front face is thinned (see the clump shroud below), not cleared
-    if (vineRng() < 0.5 * smoothstep(1.3, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.18, 0.32, v)) continue;
+    // the front face is thinned a little (a few plants), not cleared
+    if (vineRng() < 0.3 * smoothstep(1.3, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.18, 0.32, v)) continue;
     const p = surfacePoint(a, v, -0.03);
     const n = domeNormal(a, v);
-    const fern = vineRng() < 0.35;
+    // grass only — the cap's ferns are the two or three hero ferns below
     const low = lerp(0.6, 1, smoothstep(0.1, 0.4, v));
-    foliage.addTuft(p, n, (fern ? 0.5 : 0.34) * (0.8 + vineRng() * 0.5) * sk * low, fern ? 1 : 0, 0.05, roofShade);
+    foliage.addTuft(p, n, 0.22 * (0.8 + vineRng() * 0.5) * sk * low, 0, 0.05, roofShade);
   }
-  // ---- leaf-cluster shroud: the cap is a mass of overlapping leaf clumps (reference B: lit
-  // yellow-olive tops, dark shaded undersides), so the moss shell only shows through between
-  // them. Tints run from deep grey-olive in the hollows to yellow-olive on the lit clumps; the
-  // front face over the porch is thinned (round 11: half, not nine-tenths — reference B's cap is
-  // an irregular mossy mound, its front lumpy with moss clumps, not a smooth sunlit tent).
+  // ---- leaf clusters: small plants in the moss (round 15), not a shroud. Tints (linear,
+  // multiplying the leaf map) run from the moss-lit tone in the hollows to a lighter one on the
+  // upper faces, so a cluster reads as a plant catching the same light as the moss around it
+  // rather than a dark patch on it. Low, flat cushions (droop 0.3, flatten 0.25) so most leaf
+  // faces lie along the moss and take the same light. ----
   const clumpRng = rng.fork('clumps');
-  const clumpCount = Math.round(140 * k * k);
-  // olive greens, deeper in the hollows (reference roof hue ≈ 49°, sat ≈ 0.34). Round 14: the
-  // two lit tints come down (0.66 / 0.92 → 0.5 / 0.64) — reference B's clumps read as DARK
-  // green specks on the lit moss (its moss face: dark specks rgb ≈ (101,92,56) on
-  // (150,144,89)); ours stood out as bright yellow-green leaves above a darker moss
+  // (probe 3, at 30 k² clusters of 10 leaves plus 44 tufts and 10 rosettes, still put green
+  // shapes below 0.85× the mound's median on 10 % of it — the same colour as the reference's
+  // plants, rgb(89,94,65) against (95,98,60), but five times their area — so fewer and lighter)
+  const clumpCount = Math.round(18 * k * k);
   const tints: [number, number, number][] = [
-    [0.2, 0.25, 0.06],
-    [0.36, 0.4, 0.09],
-    [0.5, 0.5, 0.12],
-    [0.64, 0.6, 0.15],
+    MOSS_LIT_LEAF.map((c) => c * 0.95) as [number, number, number],
+    MOSS_LIT_LEAF.map((c) => c * 1.15) as [number, number, number],
+    MOSS_LIT_LEAF.map((c) => c * 1.35) as [number, number, number],
+    MOSS_LIT_LEAF.map((c) => c * 1.6) as [number, number, number],
   ];
   for (let i = 0; i < clumpCount; i++) {
     const a = clumpRng() * TAU;
     const v = 0.04 + Math.pow(clumpRng(), 0.8) * 0.74;
     const frontFace = smoothstep(1.3, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.18, 0.32, v);
-    // (round 14: the front face keeps two clumps in five, was two in three, and they are smaller
-    // there — reference B's lit mound carries small dark specks, not a mat of leaf clusters)
-    if (clumpRng() < 0.6 * frontFace) continue;
-    const p = surfacePoint(a, v, 0.08 * k);
+    if (clumpRng() < 0.4 * frontFace) continue;
+    const p = surfacePoint(a, v, 0.04 * k);
     const n = domeNormal(a, v);
-    // lit side (upper faces) gets the yellower clumps, flanks the deep ones; the crown sits
-    // under the canopy and stays in the darker tints (×0.85: more of the clumps fall into the
-    // darker olives, so the mound reads as moss clumps on thatch rather than more thatch)
-    const lit = clamp(0.85 * (n.y * 0.75 + 0.3 * clumpRng() + 0.15 * noise.noise(p.x * 1.5, p.z * 1.5)) * lerp(0.55, 1, smoothstep(0.15, 0.5, v)), 0, 0.999);
+    // upper faces get the lit tints, flanks and the crown under the canopy the deeper ones
+    const lit = clamp((n.y * 0.75 + 0.3 * clumpRng() + 0.15 * n3.noise(p.x * 1.5, p.y * 1.5, p.z * 1.5)) * lerp(0.6, 1, smoothstep(0.15, 0.5, v)), 0, 0.999);
     const tint = tints[Math.floor(lit * tints.length)];
-    // flatter, smaller clumps on the crown so the cap's top silhouette stays low
-    const radius = (0.3 + clumpRng() * 0.26) * k * lerp(0.7, 1, smoothstep(0.1, 0.4, v)) * lerp(1, 0.7, frontFace);
-    foliage.addLeafCluster(p, radius, 34, { size: 0.2 * sk * lerp(1, 0.8, frontFace), amount: 0.05, droop: 0.5, tint, tintSpread: 0.25, flatten: lerp(0.3, 0.5, smoothstep(0.1, 0.4, v)) });
+    // small plants: 0.12–0.24 m across, 10 leaves, flatter on the crown
+    const radius = (0.12 + clumpRng() * 0.12) * k * lerp(0.7, 1, smoothstep(0.1, 0.4, v));
+    foliage.addLeafCluster(p, radius, 10, { size: 0.1 * sk, amount: 0.05, droop: 0.3, tint, tintSpread: 0.2, flatten: 0.25 });
   }
   // ---- rim fringe (round 11): a drooping skirt of leaf clumps and short vines over the lip, so
   // the cap's edge is a ragged moss fringe hanging past the bark roll (reference B: the moss edge
@@ -2371,7 +2470,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     p.addScaledVector(frame.dir(a), 0.14 * k);
     p.y -= (0.1 + 0.08 * fringeRng()) * k;
     const radius = (0.24 + fringeRng() * 0.12) * k * lerp(1, 0.7, overDoor);
-    const tint = tints[1 + Math.floor(fringeRng() * 2)];
+    // the skirt hangs in the rim's shade: a third to a half of the moss-lit leaf tint
+    const tint: [number, number, number] = fringeRng() < 0.5 ? [1.2, 0.75, 0.9] : [1.8, 1.1, 1.3];
     foliage.addLeafCluster(p, radius, 20, { size: 0.16 * sk, amount: 0.05, droop: 0.9, tint, tintSpread: 0.25, flatten: 0.4 });
     if (fringeRng() < 0.5) {
       const hook = p.clone().add(new Vector3((fringeRng() - 0.5) * 0.1, 0, (fringeRng() - 0.5) * 0.1));
@@ -2380,12 +2480,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   }
   // a few big ferns / grass clumps on the shoulders that break the cap silhouette (kept off
   // the crown so the top of the cap stays low)
+  // (round 15: three ferns and one grass clump, in the moss-lit tints — the atlas at shade 1 was
+  // a dark green on the lit cap)
   const heroTufts: { a: number; v: number; size: number; kind: 0 | 1 }[] = [
-    { a: -1.45, v: 0.5, size: 0.8, kind: 1 },
-    { a: -1.85, v: 0.6, size: 0.7, kind: 0 },
-    { a: -0.95, v: 0.45, size: 0.65, kind: 1 },
-    { a: 0.7, v: 0.42, size: 0.6, kind: 1 },
-    { a: 2.1, v: 0.5, size: 0.7, kind: 0 },
+    { a: -1.45, v: 0.5, size: 0.7, kind: 1 },
+    { a: -1.85, v: 0.6, size: 0.6, kind: 0 },
+    { a: -0.95, v: 0.45, size: 0.6, kind: 1 },
+    { a: 2.1, v: 0.5, size: 0.6, kind: 1 },
   ];
   for (const ht of heroTufts) {
     const p = surfacePoint(ht.a, ht.v, -0.05);
@@ -2393,34 +2494,32 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // lean the clump a little toward vertical so it stands proud of the moss
     n.y += 0.6;
     n.normalize();
-    foliage.addTuft(p, n, ht.size * sk, ht.kind, 0.06);
+    foliage.addTuft(p, n, ht.size * sk, ht.kind, 0.06, ht.kind === 0 ? MOSS_LIT_GRASS : [3.4, 2.3, 3.1]);
   }
-  // ---- small plants growing in the moss (sheet 04 "moss-covered roof with plants"): broad
-  // upright leaves in little rosettes and young fern fronds scattered over the shoulders and
-  // crown — kept off the front lip so the eave line and the doorway stay clear ----
+  // ---- small plants growing in the moss (sheet 04 "moss-covered roof with plants"): little
+  // rosettes of upright leaves scattered over the shoulders and crown — kept off the front lip
+  // so the eave line and the doorway stay clear. Round 15: these were the "dark disconnected
+  // leaf blobs" — 16 rosettes of 5–8 leaves 0.3–0.46 m across at a tint of 0.45–0.65 (a fifth
+  // of the moss's albedo) standing up off the cap; now 10 rosettes of leaves 0.16–0.24 m in the
+  // moss-lit tint, and no more ferns here (the hero ferns above are the cap's ferns). ----
   const plantRng = rng.fork('plants');
-  const plantCount = def.id === 'saria' ? 16 : 9;
+  const plantCount = def.id === 'saria' ? 8 : 5;
   for (let i = 0; i < plantCount; i++) {
     const a = plantRng() * TAU;
     const v = 0.08 + plantRng() * 0.62;
     if (Math.abs(angleDiff(a, 0)) < 0.5 && v > 0.45) continue;
     const p = surfacePoint(a, v, 0.02);
     const n = domeNormal(a, v);
-    if (plantRng() < 0.55) {
-      // rosette of 5–8 broad leaves standing up and fanning out
-      const leaves = 5 + Math.floor(plantRng() * 4);
-      const size = (0.3 + plantRng() * 0.16) * sk;
-      const yaw0 = plantRng() * TAU;
-      const tint: [number, number, number] = [0.42 + plantRng() * 0.1, 0.58 + plantRng() * 0.1, 0.24];
-      for (let j = 0; j < leaves; j++) {
-        const yaw = yaw0 + (j / leaves) * TAU + (plantRng() - 0.5) * 0.5;
-        const dir = new Vector3(Math.cos(yaw), 0, Math.sin(yaw)).multiplyScalar(0.55).addScaledVector(n, 0.9).normalize();
-        foliage.addLeaf(p.clone().addScaledVector(n, 0.02), dir, size * (0.85 + plantRng() * 0.3), plantRng() * Math.PI * 2, 0.06, tint);
-      }
-    } else {
-      n.y += 0.7;
-      n.normalize();
-      foliage.addTuft(p, n, (0.45 + plantRng() * 0.25) * sk, 1, 0.06, [0.62, 0.7, 0.42]);
+    // rosette of 5–8 leaves fanning out, lying low (0.4 up the normal, was 0.9)
+    const leaves = 5 + Math.floor(plantRng() * 4);
+    const size = (0.16 + plantRng() * 0.08) * sk;
+    const yaw0 = plantRng() * TAU;
+    const tintK = 0.9 + plantRng() * 0.4;
+    const tint: [number, number, number] = [MOSS_LIT_LEAF[0] * tintK, MOSS_LIT_LEAF[1] * tintK * 1.05, MOSS_LIT_LEAF[2] * tintK];
+    for (let j = 0; j < leaves; j++) {
+      const yaw = yaw0 + (j / leaves) * TAU + (plantRng() - 0.5) * 0.5;
+      const dir = new Vector3(Math.cos(yaw), 0, Math.sin(yaw)).multiplyScalar(0.8).addScaledVector(n, 0.4).normalize();
+      foliage.addLeaf(p.clone().addScaledVector(n, 0.02), dir, size * (0.85 + plantRng() * 0.3), plantRng() * Math.PI * 2, 0.06, tint);
     }
   }
 
@@ -2600,5 +2699,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     flowers: flowerCount,
     props: propCount,
     room: { floorY: roomFloorY, backD: [roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1)], floorPoke, pokeAt },
+    bough: boughSamples,
   };
 }
