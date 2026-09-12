@@ -829,6 +829,27 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   has a low green lawn band with white dots at left and the path receding into bright mist — ours
   reads as slabs to the horizon; (3) A: the house still fills the centre behind the flight
   (A/B camera-distance hypothesis, tick 46) — a layout decision for the next round.
+
+### 14:30 UTC — tick 50: take-0066 published (monitor `6eeede6`), valid; reviewer's source fixes
+- Astra's read-only source reviews of ddd24fd / bb11762 / 86be323 found three real defects; two fixed
+  by adopting her patches verbatim (`51f2fbb` column roots seat on the terrain per seat — 316/784
+  root-edge samples floated, worst 2.67 m; `786084e` notched slab caps fan from the visibility
+  kernel — 95 inverted top triangles on 19 stones), one by a one-line fix (`d5abc91` cap-moss
+  normal z = 0.5 + 0.5·nz). `8ee4ea6` merges her formal W25 fail on take-65 (cap taller/steeper,
+  yellow streaking, hoop support; doorway credited) and tags the flight-top opening for her shafts.
+- take-0066: A 0.262 / B 0.261 / C 0.305 / D 0.319 / E 0.274 / F 0.265 — within noise of take-65
+  (contact/topology fixes). 23/50; draws 658.
+- Coordination: Astra owns lighting/postfx/atmosphere + signpost/lanternPost + a bounded
+  trees/materials.ts bark trial; her hedge PACKS line (`hedge: [SINGLE(3), ALL(3), ALL(3)]`) is
+  applied after vegetation-13 lands; her canopy bridge (ccc7e7f on her branch) publishes resolved
+  openings via ctx.shared. Owner (via Astra): environment only; character deferred to a local
+  Blender workflow.
+- Running: vegetation-13 (foreground framing per frames + boards), structures-15 (cap FRONT colour
+  by moss-mask — ours yellow ~45°, reference green ~65–75°; vertical streaks; black leaf blobs;
+  hoop bough).
+- Three biggest remaining gaps → (1) light (Astra: dapple from the new casters, bright veil vs dark
+  trunks, cooler shade); (2) house cap front colour/streaks + hoop bough (structures-15);
+  (3) foreground density vs frames/boards (vegetation-13), then the A/B camera-distance layout call.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -874,4 +895,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T13:20:00Z
+2026-09-12T14:30:00Z

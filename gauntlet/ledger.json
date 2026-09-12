@@ -7002,6 +7002,115 @@
       },
       "prevHash": "sha256:2e5d6871adece38019fb7cddc5ee9bd14a7822364bbadc99a7926d24abace469",
       "hash": "sha256:4e6b4965ed78062ae661379caefb377a9c194552f9c79a5472498685bef81bee"
+    },
+    {
+      "id": "take-0066",
+      "number": 66,
+      "at": "2026-09-12T14:21:30.481Z",
+      "sha": "8ee4ea663696d2034412f7a84e4cf4345e01482a",
+      "shortSha": "8ee4ea6",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "reviews: merge Astra's formal W25 verdict on take-0065 (fail: cap taller/steeper with yellow streaking, hoop-like support; doorway repair credited) with its evidence; trees: CanopyOpening gains an optional semantic id, the flight-top opening is tagged 'flight-top' for the atmosphere's deferred shaft selector",
+      "agent": "fable-cursor",
+      "items": [
+        "W12",
+        "W03",
+        "W25"
+      ],
+      "note": "Round fourteen, repairs from the independent reviewer's source checks: the new column trees' buttress roots were generated against flat ground and floated up to 2.7 m on slopes (316 of 784 root-edge samples more than 3 cm off the terrain) - each of the ten seats now builds its roots against the local terrain (0 floating samples); the V-notches of the broken slabs made 19 caps concave enough that the centroid fan produced 95 downward top triangles - the fan centre now sits inside the outline's visibility kernel (0 inverted); the cap-moss normal map encoded z directly and decoded as inward-facing on 7,000 texels past 45 degrees - now 0.5 + 0.5 nz. Astra's formal W25 verdict on take-0065 is merged (fail: cap still taller/steeper with yellow streaking, hoop-like support; doorway repair credited) and the top-flight canopy opening is tagged for her deferred shaft selector. Frame metrics unchanged within noise (A 0.262, B 0.261, C 0.305, D 0.319, E 0.274, F 0.265); the fixes are contact and topology, not composition.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:888aa8220eebe985cfe727dcec5e0ce25448c21b1a64f17813cc3ac10a758a1d",
+        "B_house": "sha256:21c83dcabfd58ee1139cc000f464f7420f41208171a5ff5c20c07831b106271b",
+        "C_lookback": "sha256:80d3b50f4e176d63e4077f64074d21468e312a3f0c2f77f34637b78e5d74fb3b",
+        "D_log": "sha256:81a536563ab88b25eb8d97d8a410ed3ecdaa1e55695954ca91b4898948b1277c",
+        "E_ground": "sha256:21c83dcabfd58ee1139cc000f464f7420f41208171a5ff5c20c07831b106271b",
+        "F_canopy": "sha256:69e53e5eba64c20553b0318be9a47408d6b61f8fbe09ed5f268ff9296d6cdf3a"
+      },
+      "distHash": "sha256:0f30163c131e960905eec1a71e0013480affa7e961bf7702038ef1d3d1d6054d",
+      "stats": {
+        "drawCalls": 658,
+        "triangles": 8841274,
+        "captureMs": 945348,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W12",
+        "W03",
+        "W25"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take66-cap",
+        "importedAt": "2026-09-12T14:22:14.686Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:4e6b4965ed78062ae661379caefb377a9c194552f9c79a5472498685bef81bee",
+      "hash": "sha256:5860f1526acc27d2be05c6b7a1c5e8b9739e49a3b0524479841d8807c1e2e6b4"
     }
   ]
 }
