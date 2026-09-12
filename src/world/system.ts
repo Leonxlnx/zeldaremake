@@ -62,9 +62,29 @@ export interface TubePath {
   range: readonly [number, number];
 }
 
+/** A tree trunk another system may build against (the column family's authored/swapped seats). */
+export interface TrunkSeat {
+  id: string;
+  /** world position of the bole's base (terrain contact) */
+  x: number;
+  y: number;
+  z: number;
+  /** yaw (rad) and uniform scale the variant was placed with */
+  yaw: number;
+  scale: number;
+  /** nominal bole radius (m) at height h above the base, as built (lean/wobble included) */
+  radiusAt(h: number): number;
+  /** world-space bole axis centre at height h above the base (lean included) */
+  axisAt(h: number, out?: Vector3): Vector3;
+  /** height (m) of the bare bole (crown begins above this) */
+  bareHeight: number;
+}
+
 export interface SharedGeometry {
   /** the giant's limb that carries LAYOUT.lanternBranch, as actually built (with its wiggle) */
   lanternLimb?: TubePath;
+  /** the column trees' seats as actually placed and built, for structures that hang on them */
+  trunkSeats?: TrunkSeat[];
   /** terrain-anchored sun corridors, published only after the trees have been built */
   canopyOpenings?: readonly SharedCanopyOpening[];
 }

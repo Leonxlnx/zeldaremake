@@ -72,3 +72,18 @@ remain archived. The four props files return exactly to660, removing the extra o
 program and31104static attribute bytes. The existing general geometry/contact test stays inCI;
 cap-bounds and near-stone trials remain independent. The frozen proposal remains reproducible
 as source718 if a future real asset/camera requirement merits revisiting it.
+
+## Actual e6 rollback continuity
+
+The rollback source `e6d6ac06dc8706b8b41f13b0518077f7d8c1d242` completed run 34712642317.
+All 16 source, original-byte, ZIP and archive-history checks pass. Depth hashes, actor state,
+other audits and submitted budgets match e706 exactly. Scene materials fall by one, programs
+76 → 75, textures remain 70. C/F/L01/L02 JPEGs are exact; the remaining small differences are
+the removed faint crate grain, with no meaningful quality loss in independent B/D/sign review.
+One E candidate used an unchanged-state blank-buffer retry; the other fifteen used zero.
+Both reports have zero final errors and warnings. This source still contains the subsequently
+rejected stone shoulders; ef2100e restores those separately.
+
+[Rollback world originals](https://github.com/Leonxlnx/zeldaremake/tree/f76103bc5fafddc53a65ba6efff403114e8b7184/progress/2026-09-12_191607744-e6d6ac0)
+and [details](https://github.com/Leonxlnx/zeldaremake/tree/c42a649aa77ae84b7c8031516b11411aef92ffb6/details/2026-09-12_191859142-e6d6ac0)
+remain immutable. This verifies a rollback, not a new visual improvement.

@@ -7438,6 +7438,115 @@
       },
       "prevHash": "sha256:c642e87984f3dcb7f67acd9b687f605bba312a323eea4a822abf8a8d99b3b525",
       "hash": "sha256:6e8c1a998f2444b262c59ee7a3c130f958a66bb6d3af3ecd5dd30bfefd8dc138"
+    },
+    {
+      "id": "take-0070",
+      "number": 70,
+      "at": "2026-09-12T19:21:27.894Z",
+      "sha": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+      "shortSha": "eadb660",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "structures: the distant huts' cap-moss meshes consolidate in their own bucket (Astra's 8714d2a, adopted as-is) - merged into Saria's roof they grew its bounding sphere 7.5 -> 20.3 m and C/L02 submitted the whole roof (+130,604 triangles for nothing visible); now C -130 K triangles at the same calls, the visible-roof views +2 calls at the same triangles",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W38",
+        "W36"
+      ],
+      "note": "Round seventeen: Saria's house to the reviewer's formal W25 grounds on take-0068 (even roof/eave, broad upright frame, narrow arch vs frame 14 s's irregular crown, knotted trunk and wider dark arch). The crown now carries rim lobes of different reach, a wavy eave, a lower left shoulder and two sags (rim radius spread 0.038 -> 0.066; B eave-line waviness 9.3 -> 7.8 px vs the frame's 7.3); five mossy burls knot the trunk where roots and arch meet; the root lips move apart so the arch spans 0.716-0.867 of B's width exactly as the frame's 0.715-0.865, with the arch glow halved and the lamp pools tightened so the opening reads dark with two lamps (doorway p90 0.44 -> 0.37, frame 0.35). The bough that hid the round window from B now attaches behind it (window rays 1 -> 16 of 28). Structures releases every resource it owns exactly once, and the distant huts' caps consolidate in their own bucket so C stops submitting the whole roof (-130 K triangles). Frame metrics within noise; the visual gap left for lighting is the lit band above the lintel.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:9addf5510f3b24dbadcfabcd8e2ab0d8726f88e60d7faf5fb5eeb064669faa62",
+        "B_house": "sha256:ddb90f16fe446ff09696d0e776d31427a9af9f9ce292290d7a9fea0fcceb53d7",
+        "C_lookback": "sha256:a9a34162ca8a053d22311f4be3bc0d152b93af1005af7eccf73d98be9045656d",
+        "D_log": "sha256:b003596f7c6083ccb0abfced335e17c4221909c761c47e0d20407717f8f80886",
+        "E_ground": "sha256:ddb90f16fe446ff09696d0e776d31427a9af9f9ce292290d7a9fea0fcceb53d7",
+        "F_canopy": "sha256:f013e1738f95d75a41a1c674d2b3cf391551e3c50049950aad75c01cf476b7fb"
+      },
+      "distHash": "sha256:74663d88ad9a07f959ddcfc4edc389f0d7663c19d063e2bb89b7f14e7511a7c7",
+      "stats": {
+        "drawCalls": 671,
+        "triangles": 8585843,
+        "captureMs": 629429,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W38",
+        "W36"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take70-cap",
+        "importedAt": "2026-09-12T19:22:25.334Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:6e8c1a998f2444b262c59ee7a3c130f958a66bb6d3af3ecd5dd30bfefd8dc138",
+      "hash": "sha256:d668cf6518a78130f4ce702b059849a0f04638cd5ec9676dda460a2dea908976"
     }
   ]
 }

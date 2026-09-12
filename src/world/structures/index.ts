@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Material, type Mesh, type PointLight } from 'three';
+import { Group, type Mesh, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildFence, createRopeMaterial } from './fence';
@@ -35,7 +35,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const lanterns: LanternRig[] = [];
   const lights: PointLight[] = [];
   const bases: [number, number, number][] = [];
-  const extraMaterials: Material[] = [rope];
+  /**
+   * GPU resources this system owns besides the meshes' geometries and the `mats` materials: the
+   * rope material, the houses' own materials (room / window-glow clones), the distant huts' glow
+   * material + geometry, and every canvas texture materials.ts generated (round 17 — the moss
+   * albedo / normal maps and the other canvases were never released; `Material.dispose()` does
+   * not dispose maps, and the TextureLibrary does not own these). Each is disposed exactly once
+   * in `dispose()`; the library's borrowed bark / plank / thatch maps are never in here.
+   */
+  const owned: { dispose(): void }[] = [rope, ...mats.ownedTextures];
   let houseLanterns = 0;
   let houseRoots = 0;
   let houseBranches = 0;
@@ -49,7 +57,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     lanterns.push(...hb.lanterns);
     lights.push(...hb.lights);
     bases.push(...hb.bases);
-    extraMaterials.push(...hb.materials);
+    owned.push(...hb.materials);
     houseLanterns += hb.lanterns.length;
     houseRoots += hb.roots;
     houseBranches += hb.branches;
@@ -59,6 +67,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // bark / plank / cap parts fold into the house draws below, their glow is one emissive mesh ----
   const distant = buildDistantHouses(ctx, mats, rng.fork('distant-houses'));
   group.add(distant.group);
+  owned.push(mats.distantGlow, distant.glow.geometry);
   ctx.progress('structures', 0.55);
 
   // ---- lantern branch (cords + pods + vines; the limb is the trees system's) ----
@@ -215,11 +224,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,
+    /** round 17: the canvas textures this system generated and will dispose (not the library's maps) */
+    ownedTextures: mats.ownedTextures.map((t) => t.name),
+    /** resources in `owned`: rope, house materials, distant glow and generated textures;
+     *  sign and post-pod helpers retain their own separately managed extras */
+    ownedResources: owned.length,
     maxBaseGap: maxBaseGap(),
     samplePositions: { bases },
   }));
 
   const windDir = ctx.wind.direction;
+  let disposed = false;
   return {
     name: 'structures',
     group,
@@ -227,14 +242,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
     },
     dispose() {
+      // one-shot: every geometry, material and owned texture is released exactly once, however
+      // many lists it sits in (the distant glow's material is in `mats` and in `owned`)
+      if (disposed) return;
+      disposed = true;
+      const done = new Set<object>();
+      const once = (r: { dispose(): void } | null | undefined) => {
+        if (!r || done.has(r)) return;
+        done.add(r);
+        r.dispose();
+      };
       group.traverse((o) => {
         const m = o as Mesh;
-        if (m.isMesh) m.geometry?.dispose();
+        if (m.isMesh) once(m.geometry);
       });
       for (const mat of Object.values(mats)) {
-        if (mat && typeof (mat as { dispose?: () => void }).dispose === 'function') (mat as { dispose: () => void }).dispose();
+        if (mat && typeof (mat as { dispose?: () => void }).dispose === 'function') once(mat as { dispose: () => void });
       }
-      for (const m of extraMaterials) m.dispose();
+      for (const r of owned) once(r);
+      owned.length = 0;
+      // Existing sign/post helpers own their additional materials and generated maps.
       for (const sb of signposts) sb.disposeMaterials();
       postPod.dispose();
     },

@@ -759,6 +759,16 @@
       "at": "2026-09-12T19:13:46.656Z",
       "expiresHours": 3,
       "scope": "Hardscape-only sprout variant batches; exact planting, RNG, shader and bounds; +2 calls for fewer submissions; actual gate pending"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W25",
+        "W36"
+      ],
+      "at": "2026-09-12T19:27:18.155Z",
+      "expiresHours": 3,
+      "scope": "Integrate published Fable structures17 and take70 history; preserve sign/post/canopy contracts; actual cross-review pending"
     }
   ]
 }

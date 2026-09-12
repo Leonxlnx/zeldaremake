@@ -911,6 +911,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   fix retained. Owner: environment only.
 - Three biggest remaining gaps → (1) light (Astra): key/shade separation and the cap highlight;
   (2) house silhouette per W25 grounds (structures-17); (3) A centre / layout call.
+
+### 19:40 UTC — tick 54: take-0070 published (monitor `a8d3fe9`), valid; round seventeen
+- `3ab1222` structures-17: bough root behind the window (window rays 1 → 16/28, bough 16 → 0);
+  irregular crown (rim lobes ±0.4 m, eave wave ±0.17 m, lower left shoulder, sags; rim std/mean
+  0.038 → 0.066; B eave waviness 9.3 → 7.8 px vs frame 7.3); five mossy burls; lips apart so
+  the arch spans B 0.716–0.867 (frame 0.715–0.865); glow halved (doorway p90 0.44 → 0.37, ref
+  0.35); structures owns its resources — one-shot dispose() (10 canvases 1×, library maps 0×).
+  `eadb660` Astra's cap-bounds split adopted (distant caps own bucket; C −130 K tris).
+- take-0070: A 0.258 / B 0.250 / C 0.306 / D 0.299 / E 0.271 / F 0.268 — within noise except
+  D −0.006 (consolidation change moved the D roof draws; verify). 23/50; W35 B 0.916; draws 671.
+- Astra: adopted 2f4415b/0bd5235 exactly; cap-bounds split retained on her side; crate trial
+  rejected; shoulder-relief and sprout-batching trials pending their gates; sleeve preset next
+  (materials.ts released). Her W25 on take-69 = existing fail retained (same house source).
+- Queued: distant-hut follow-up (bole through the wall, hanger gaps, header constant, flat bright
+  panels/spherical lamps), host seats via ctx.shared.
+- Three biggest remaining gaps → (1) light (Astra): key/shade separation, the lit over-door band
+  (p90 0.71 vs 0.49), cap highlight; (2) distant huts' openings (depth, not flat panels) and
+  attachment; (3) A centre / layout call.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -956,4 +974,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T18:30:00Z
+2026-09-12T19:40:00Z
