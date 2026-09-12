@@ -8,6 +8,7 @@ These are supplemental art-direction comparisons, not gauntlet takes or quality-
 
 | Captured UTC | Source | Comparison |
 | --- | --- | --- |
+| 2026-09-12T15:00:32.336Z | [d7552ee](https://github.com/Leonxlnx/zeldaremake/commit/d7552ee9ac5121fb9a5d5e0011bf128e87d0be6e) | [12 images](progress/2026-09-12_150032336-d7552ee/) |
 | 2026-09-12T14:48:36.992Z | [64028c4](https://github.com/Leonxlnx/zeldaremake/commit/64028c4ff4010aab9195d33dfa966e00e766621f) | [12 images](progress/2026-09-12_144836992-64028c4/) |
 | 2026-09-12T14:36:35.631Z | [561345b](https://github.com/Leonxlnx/zeldaremake/commit/561345b03d1e12c0552921678f63fbe14054abd4) | [12 images](progress/2026-09-12_143635631-561345b/) |
 | 2026-09-12T14:20:43.129Z | [f630ebb](https://github.com/Leonxlnx/zeldaremake/commit/f630ebbbb0e5f3465495814e1aa73df6d07a6de6) | [12 images](progress/2026-09-12_142043129-f630ebb/) |
