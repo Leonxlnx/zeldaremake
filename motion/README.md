@@ -1,9 +1,10 @@
-# Bank hedge camera sweeps
+# Environment camera samples
 
-Eleven unmodified full-scene PNGs per checkpoint, crossing both bank-hedge LOD thresholds and returning at fixed time 12.5 s. Explicit free-camera poses force rebucketing; this does not measure the interactive 0.6 m movement gate. These are supplemental observations, not quality approvals.
+Eleven unmodified full-scene PNGs per checkpoint at fixed simulation time 12.5 s. Bank hedge views cross two LOD thresholds and return; middle forest views travel 16 m forward through the 32–44 m shade band. Explicit free-camera poses force vegetation rebucketing; trees retain their own distance cache. These discrete samples do not measure continuous playback or the interactive 0.6 m movement gate; they are supplemental evidence, not gauntlet approvals.
 
 [Environment comparisons](../) · [World details](../details/)
 
-| Captured UTC | Source | Original frames and metadata |
-| --- | --- | --- |
-| 2026-09-12T20:13:00.924Z | [9ef903c](https://github.com/Leonxlnx/zeldaremake/commit/9ef903c58c3ee70eccaf919d565a1eb19cd1bef1) | [11 original frames](2026-09-12_201300924-9ef903c/) |
+| Captured UTC | Source | Camera plan | Original frames and metadata |
+| --- | --- | --- | --- |
+| 2026-09-12T20:51:15.879Z | [e2ee5f0](https://github.com/Leonxlnx/zeldaremake/commit/e2ee5f076774ab36d1e751b1f1753781795a417d) | Bank hedge / LOD return sweep | [11 original frames](2026-09-12_205115879-e2ee5f0/) |
+| 2026-09-12T20:13:00.924Z | [9ef903c](https://github.com/Leonxlnx/zeldaremake/commit/9ef903c58c3ee70eccaf919d565a1eb19cd1bef1) | Bank hedge / LOD return sweep | [11 original frames](2026-09-12_201300924-9ef903c/) |
