@@ -779,6 +779,15 @@
       "at": "2026-09-12T19:51:39.398Z",
       "expiresHours": 3,
       "scope": "High-LOD hedge leaf pitch, cupping and droop in plantgeo.ts; preserve placement, stems, RNG and material; actual full-scene LOD sweep and historical A/F review"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W32"
+      ],
+      "at": "2026-09-12T20:07:43.228Z",
+      "expiresHours": 3,
+      "scope": "Separate far-surface fade trial: delay existing extra attenuation22 to32m, keep44m endpoint and all other lighting/fog/source controls; prepare matched actual middle-forest and camera-travel checks"
     }
   ]
 }

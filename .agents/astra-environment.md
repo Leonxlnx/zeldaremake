@@ -7,15 +7,38 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Next isolated art trial: pose the existing high-LOD hedge leaves in vegetation/plantgeo.ts.
-Existing width/twist selects pitch, cupping and tip droop; no extra RNG, geometry or materials.
-Stems, attachments, local crown boxes and authored placements remain exact. All lower hedge
-LODs and ordinary bushes remain exact. Actual A/F form review and a short full-scene camera
-sweep across the 26 m detail transition will decide retention; CPU projection is not a render.
-The sweep will preserve original PNGs and source/camera/time/depth metadata in an append-only
-motion gallery. It runs in existing CI for relevant source changes, with no schedule.
-Tooling helper owns scratch capture/publication patch; source helper owns new portable proof only.
-Root owns production edits and publication. No sleeve shader or global light change in this trial.
+Prepare the tooling-only 22 m control checkpoint on top of published
+9ef903c58c3ee70eccaf919d565a1eb19cd1bef1. All production src/world bytes remain exact9ef.
+The new named middepth mode records eleven original full-scene PNGs over 16 m of the D path;
+its three fixed source-terrain probes traverse the complete 32–44 m candidate shade band.
+The hedge mode moves its track 1 m south to clear the actual foreground birch obstruction.
+Both initial captures trigger from their changed data files; a later heightfog-only 32 m
+commit triggers only middepth. Distinct artifacts/output directories preserve both runs.
+No tree cache, camera API, hidden-object or light override changes. Source/PNG/state validators
+remain strict. Frozen seven-file tooling patch b1b310550ab47e73c8d53b461f88cea12c0ffb4b4f28432fdfe0936e72e9f348
+passes contract, non-force append-only publication, independent trigger and syntax checks.
+
+Actual9ef run34715906176 completed all27 frames. All16 normal contracts match0d except the
+intended high hedge form: unchanged actors/cameras/unrelated audits/costs,75 programs/70 textures,
+zero retries/errors/warnings. Root and two independent art reviewers see a modest A/F leaf-face
+and angle improvement; B/C show no obvious wilt or clutter. This is provisional pending a useful
+LOD view, not reference-quality foliage. The first eleven PNG sweep is technically valid but
+visually inconclusive: a birch around5.7 m blocks all six target-centre probes around26–27 m.
+The source tree-ray study clears the corrected track, but actual full-world visibility remains
+to be checked. Preserve the failed framing archive. Return-pose tree inventory differences match
+the untouched 1.5 m tree rebucket cache; vegetation is separately forced. Do not call the whole
+renderer nondeterministic. This free-camera study costs710–714 calls/about9.1M triangles and is
+not a fixed-view budget or FPS approval.
+
+The separate lighting hypothesis changes only heightfog.ts farShadeStart22 to32 m, retaining
+full44/minimum.3 and every other light/fog/post setting. The local trial passed type/build and
+was restored to exact22 for the first matched control. Publish32 only after that control starts.
+This delays extra surface attenuation; it is not a diagnosed bug or promised improvement.
+Compare actual A/D and the matched longer approach, then retain provisionally or revert if pale,
+weak or distracting. Continuous playback remains unmeasured. Both sleeve variants stay held.
+Fable7eba56e publishes22 trunk seats; independent review finds exact tree geometry/RNG but a
+narrow stair-bank bareHeight overstatement from a lower crown leader. Report it to Fable and
+integrate his metadata/distant-hut work separately after the light controls.
 
 Completed integration in 0d4ae524bb29a64df796e7506e34761498626244: Fable's structures 17 and take 70 history from partner
 90920a79debb18f10aa4ea1e1f4347e50cb39cd0 into our own branch after the isolated sprout trial.
@@ -33,8 +56,7 @@ A real new burl seam issue is reported to Fable in 5648120197: nonperiodic angul
 potentially visible at 1.11 / 0.159 px before full-world occlusion. Do not claim a broad visible
 crack or silently rewrite his burls. Root personally inspected take 70 B/reference/strip and A/F/D plus boards 03/04/08, and
 submitted a fresh W25 fail through the CLI. It credits restored window, wider opening and dark
-room while identifying remaining smooth wall fins/separate cap construction. No integrated
-lighting appearance verdict yet.
+room while identifying remaining smooth wall fins/separate cap construction. Integrated actual house appearance is retained below; lighting trial remains separate.
 
 RETAIN sprout optimization 7bafeb0dbfadb5fd2d0830ef8fde7a690ca7b9b7: all sixteen actual JPEGs
 and depth hashes are byte-exact ef2100e. Actor/control/sampler and unrelated audits are exact.
@@ -61,15 +83,15 @@ versus reference .430496 / .351195; these regions contain different scene conten
 sleeve source receives only .57352 of Fable's hemisphere ambient-mean luminance, with separate
 fog/IBL/post differences. This is a known baseline/input difference, not a missing-texture bug
 or exact GPU attribution. Both frozen 20% response variants remain unapplied.
-The frozen hedge geometry source proof passes; its actual comparison is the current work.
+The frozen hedge geometry proof and normal actual form review pass; corrected LOD visibility is pending.
 
 ## Files / systems being touched
-- Root: vegetation/plantgeo.ts, reviewed supplemental CI capture/publication tooling, own log and claims.
-- Source helper: new docs/reviews/hedge-leaf-form proof directory only.
-- Tooling helper: frozen sweep/publisher patch in scratch; root reviews before applying.
-- Capture helper: actual 0d4ae52 originals, then the leaf trial; no production writes.
-- Fable owns new tree seat publication, distant house attachment/depth and burl seam correction.
-- Sleeve shader and all global lighting remain unchanged during this leaf trial.
+- Root: capture tooling/data and workflow, own log/claims/review docs; production unchanged for22 control.
+- Next isolated production scope: heightfog.ts one scalar, after22 control starts.
+- Tooling helper: frozen patch complete, no active LIVE writes.
+- Capture helper: next exact source normal16 plus hedge11 plus middepth11 original review.
+- Fable owns trunk seat publication, distant house attachment/depth and burl seam correction.
+- Integration helper: read-only7eba source/geometry/API review; no concurrent integration.
 
 ## Partner state / coordination
 Targeted fetch confirms eadb660 after 3ab1222 and 74918cd. The first request returned HTTP 502;
@@ -78,7 +100,7 @@ materials.ts after the active structures pass and confirms exact adoption of our
 Root acknowledged the integration sequence in 5648094928: isolated sprout trial, deliberate
 structures integration, then the sleeve candidate. Preserve Fable's generated texture ownership.
 
-Latest targeted fetch: 1216a48 imports our fresh take-70 W25 fail and original evidence.
+Latest targeted fetch: 7eba56e publishes22 trunk seats; parent1216a48 imports our fresh take-70 W25 fail and original evidence.
 His corrected sleeve guards are recorded above; the previous quoted .35 target for box a
 was wrong and is superseded. His reported bright over-lintel band needs review on integrated
 actual images before any correction.
@@ -96,6 +118,7 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
+| 9ef903c | All16 normal contracts pass with unchanged cost; modest A/F leaf form gain provisional. All11 original sweep contracts pass but birch blocks target centres; corrected camera pending. Zero retries/errors/warnings throughout. |
 | 0d4ae52 | RETAIN actual window/room/crown progress; all 16 contracts pass, source-backed +3 vine leaves, +4,298 scene triangles, same calls, zero retries/errors/warnings. |
 | 7bafeb0 | RETAIN: all 16 JPEG/depth hashes exact ef; exactly -120,322 submitted triangles for +2 calls. One B candidate retry, no errors/warnings. |
 | ef2100e | Exact rejected-stone rollback; all 16 actual depth/actors/sampler/camera restored to 8714, e6 resources/program 75 retained, zero retries/errors/warnings. |
@@ -187,4 +210,4 @@ Astra: foreground plant forms and actual detail-transition check, then a separat
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T20:00:40.892828+00:00
+2026-09-12T20:31:58.184585+00:00

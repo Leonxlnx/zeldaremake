@@ -73,3 +73,44 @@ Production typecheck/build passes (111 modules), and the installed plantgeo SHA-
 the candidate above. This integrates only the leaf form; global light, material and Fable house
 source remain unchanged. The separate CI sweep retains full-scene original PNGs and explicit
 forced-rebucketing limitations. Actual appearance and transition decisions remain pending.
+
+## Actual 9ef result: form gain, transition decision still open
+
+Published `9ef903c58c3ee70eccaf919d565a1eb19cd1bef1` completed all twelve world and four detail
+captures. Root viewed A/F/B/C and compared the 0d predecessors; two independent reviewers
+inspected the same originals and owner boards 05/08. F shows broader visible leaf faces and
+less uniform horizontal stacking; A supports that modest gain. B/C show no convincing wilt,
+clutter or newly blocked path. The hedge remains dark and regularly branched. Art retention
+is provisional until the separate detail-transition observation is useful.
+
+All sixteen source/image/publication contracts pass. Cameras, actors, layout, audits except
+construction timing, material/resources and submitted budgets match 0d exactly. Programs stay
+75 and textures 70. A/B/C/F change 108/33/48/124 of 3,600 depth samples; D and S01/S02 JPEGs
+and depth are byte-exact. L01/L02 depth remains exact with tiny image residuals. All sixteen
+have zero retries, errors and warnings. Source inputs hash
+`939e8ed36003a28fc9c19d968985bc5dfd00fad57d61f9f6b02eb9a28f67a4ce` over 206 files.
+
+[World originals](https://github.com/Leonxlnx/zeldaremake/tree/6c0888409116600733cc06b5391791a582deb0b1/progress/2026-09-12_200727869-9ef903c)
+and [four details](https://github.com/Leonxlnx/zeldaremake/tree/6c0888409116600733cc06b5391791a582deb0b1/details/2026-09-12_200903738-9ef903c).
+
+The first eleven original PNG sweep frames publish successfully and pass their data contract,
+but **fail the intended framing requirement**: a foreground birch at approximately 5.7 m
+obscures both hedge target centres around x 638–641 / y 340–367, versus their 26–27 m depth.
+Sparse probes do not prove every leaf hidden, but the view is insufficient to judge both
+transitions. It is inconclusive, not a seamless-LOD pass. The next camera plan must avoid the
+identified blocker without altering scene objects.
+
+[First sweep originals and unmodified findings](https://github.com/Leonxlnx/zeldaremake/tree/d34908eb9cd58ccad3c4fba8019144cde35fb49b/motion/2026-09-12_201300924-9ef903c)
+remain available. All eleven PNGs have zero retries/errors/warnings; complete archive history
+and original-file ZIP verification pass. H01/H11 repeats are exact; the other four pairs differ
+in PNG/audit, and H04/H08 has one changed depth cell. These results stay recorded.
+
+The tree inventory sequence is explained by source: trees/index.ts retains a 1.5 m camera
+cache in both update and onCameraMove. The 1.608 m sweep rebuckets trees at H01 far, H06 near
+and H11 far only; intermediate return pairs inherit different tree buckets. Vegetation's
+explicit forced update is separate. This explains inventory counts, not every tiny pixel
+residual, and does not establish renderer nondeterminism.
+
+The new free-camera views cost 710–714 calls / 9,078,425–9,127,857 submitted triangles,
+above the saved-view 700 / 9M envelope. No matching earlier sweep establishes a regression.
+These are supplemental observations; neither performance nor phase-exit approval is claimed.

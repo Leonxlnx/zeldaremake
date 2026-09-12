@@ -8,6 +8,10 @@ on:
         description: 'Capture the bounded bank-hedge LOD sweep (11 full-scene frames)'
         type: boolean
         default: false
+      middepth_sweep:
+        description: 'Capture eleven full-scene D approach distance samples'
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -54,11 +58,27 @@ jobs:
         shell: bash
         run: |
           if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-            HEDGE_CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD^ HEAD -- src/world/vegetation/plantgeo.ts)"
+            HEDGE_CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD^ HEAD -- src/world/vegetation/plantgeo.ts gauntlet/scripts/environment-hedge-sweep-data.mjs)"
           else
-            HEDGE_CHANGED="$(git ls-tree --name-only HEAD -- src/world/vegetation/plantgeo.ts)"
+            HEDGE_CHANGED="$(git ls-tree --name-only HEAD -- src/world/vegetation/plantgeo.ts gauntlet/scripts/environment-hedge-sweep-data.mjs)"
           fi
           if [ -n "$HEDGE_CHANGED" ] || [ "$MANUAL_HEDGE_SWEEP" = 'true' ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Detect a middle forest distance checkpoint
+        id: middepth-sweep
+        env:
+          MANUAL_MIDDEPTH_SWEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.middepth_sweep }}
+        shell: bash
+        run: |
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            MIDDEPTH_CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD^ HEAD -- src/world/atmosphere/heightfog.ts gauntlet/scripts/environment-middepth-sweep-data.mjs)"
+          else
+            MIDDEPTH_CHANGED="$(git ls-tree --name-only HEAD -- src/world/atmosphere/heightfog.ts gauntlet/scripts/environment-middepth-sweep-data.mjs)"
+          fi
+          if [ -n "$MIDDEPTH_CHANGED" ] || [ "$MANUAL_MIDDEPTH_SWEEP" = 'true' ]; then
             echo 'enabled=true' >> "$GITHUB_OUTPUT"
           else
             echo 'enabled=false' >> "$GITHUB_OUTPUT"
@@ -142,3 +162,25 @@ jobs:
           node gauntlet/scripts/publish-environment-hedge-sweep.mjs gauntlet/out/astra-environment-hedge-sweep "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-motion-publication.json"
           cat "$RUNNER_TEMP/astra-environment-motion-publication.json"
           node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-motion-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Eleven original hedge LOD sweep frames](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
+      - name: Capture middle forest distance samples
+        if: steps.middepth-sweep.outputs.enabled == 'true'
+        timeout-minutes: 12
+        run: node gauntlet/scripts/capture-environment-hedge-sweep.mjs --middepth
+      - name: Retain original middle forest samples and partial failure metadata
+        if: always() && steps.middepth-sweep.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-middepth-sweep-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment-middepth-sweep
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified original middle forest samples
+        if: steps.middepth-sweep.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          node gauntlet/scripts/publish-environment-hedge-sweep.mjs gauntlet/out/astra-environment-middepth-sweep "https://github.com/$GITHUB_REPOSITORY.git" --middepth > "$RUNNER_TEMP/astra-environment-middepth-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-middepth-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-middepth-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Eleven original middle forest distance samples](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'

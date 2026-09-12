@@ -10,7 +10,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { readJson, sourceIdentity } from './environment-capture-data.mjs';
 import { ROOT } from './lib/browser.mjs';
 import { hashDir } from './capture.mjs';
-import { loadHedgeSweep } from './environment-hedge-sweep-data.mjs';
+import { SWEEP_SCHEMA, loadHedgeSweep } from './environment-hedge-sweep-data.mjs';
+import { MIDDEPTH_SCHEMA, loadMiddepthSweep } from './environment-middepth-sweep-data.mjs';
 import { readCompletedHedgeSweep } from './environment-hedge-sweep-publication-data.mjs';
 
 const BRANCH = 'captures/astra-environment';
@@ -36,20 +37,23 @@ function copyImmutable(source, destination) {
 function indexReadme(directory) {
   const folders = fs.readdirSync(path.join(directory, 'motion'), { withFileTypes: true })
     .filter(e => e.isDirectory()).map(e => e.name).sort().reverse();
-  const lines = ['# Bank hedge camera sweeps', '',
-    'Eleven unmodified full-scene PNGs per checkpoint, crossing both bank-hedge LOD thresholds and returning at fixed time 12.5 s. Explicit free-camera poses force rebucketing; this does not measure the interactive 0.6 m movement gate. These are supplemental observations, not quality approvals.', '',
+  const lines = ['# Environment camera samples', '',
+    'Eleven unmodified full-scene PNGs per checkpoint at fixed simulation time 12.5 s. Bank hedge views cross two LOD thresholds and return; middle forest views travel 16 m forward through the 32–44 m shade band. Explicit free-camera poses force vegetation rebucketing; trees retain their own distance cache. These discrete samples do not measure continuous playback or the interactive 0.6 m movement gate; they are supplemental evidence, not gauntlet approvals.', '',
     '[Environment comparisons](../) · [World details](../details/)', '',
-    '| Captured UTC | Source | Original frames and metadata |', '| --- | --- | --- |'];
+    '| Captured UTC | Source | Camera plan | Original frames and metadata |', '| --- | --- | --- | --- |'];
   for (const folder of folders) {
     assert.match(folder, /^\d{4}-\d{2}-\d{2}_\d{9}-[a-f0-9]{7}$/);
     const r = readJson(path.join(directory, 'motion', folder, 'sweep.json')); assert.match(r.source, /^[a-f0-9]{40}$/);
-    lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [11 original frames](${folder}/) |`);
+    assert([SWEEP_SCHEMA, MIDDEPTH_SCHEMA].includes(r.schema), 'Archive contains a known named camera plan');
+    if (r.schema === MIDDEPTH_SCHEMA) assert([22, 32].includes(r.plan?.farShade?.startM), 'Known middle forest shade checkpoint');
+    const label = r.schema === MIDDEPTH_SCHEMA ? `Middle forest / 16 m forward / shade start ${r.plan.farShade.startM} m` : 'Bank hedge / LOD return sweep';
+    lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | ${label} | [11 original frames](${folder}/) |`);
   }
   fs.writeFileSync(path.join(directory, 'motion', 'README.md'), lines.join('\n') + '\n');
   const rootReadme = path.join(directory, 'README.md');
   let main = fs.existsSync(rootReadme) ? fs.readFileSync(rootReadme, 'utf8') : '# Astra environment progress\n';
   if (!main.includes('(motion/)')) {
-    main += '\n[Original bank-hedge camera sweeps](motion/)\n'; fs.writeFileSync(rootReadme, main);
+    main += '\n[Original environment camera samples](motion/)\n'; fs.writeFileSync(rootReadme, main);
   }
 }
 
@@ -82,7 +86,7 @@ export async function publishEnvironmentHedgeSweep({ captureDir, remote, expecte
         const diff = git(checkout, ['diff', '--cached', '--quiet'], true);
         if (diff.status === 0) return { branch: BRANCH, head: base, folder, source, attempt, changed: false };
         assert.equal(diff.status, 1, diff.stderr);
-        git(checkout, ['commit', '-m', `Bank hedge camera sweep for ${source} [skip ci]`]);
+        git(checkout, ['commit', '-m', `${report.schema === MIDDEPTH_SCHEMA ? 'Middle forest distance samples' : 'Bank hedge camera sweep'} for ${source} [skip ci]`]);
         const head = git(checkout, ['rev-parse', 'HEAD']).stdout.trim();
         const push = git(checkout, ['push', 'origin', `HEAD:refs/heads/${BRANCH}`], true);
         if (push.status === 0 || remoteHead(checkout) === head) return { branch: BRANCH, head, folder, source, attempt, changed: true };
@@ -97,9 +101,11 @@ export async function publishEnvironmentHedgeSweep({ captureDir, remote, expecte
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const [captureDir, remote] = process.argv.slice(2);
+  const [captureDir, remote, mode, ...extra] = process.argv.slice(2);
+  assert(extra.length === 0 && [undefined, '--middepth'].includes(mode), 'Only the named --middepth alternative is supported');
   assert(captureDir && remote && process.env.GITHUB_SHA, 'Usage: GITHUB_SHA=SOURCE node publish-environment-hedge-sweep.mjs CAPTURE_DIR REMOTE');
   const identity = sourceIdentity(ROOT); assert.equal(identity.source, process.env.GITHUB_SHA);
-  const expected = { identity, plan: loadHedgeSweep(ROOT), distHash: hashDir(path.join(ROOT, 'dist')) };
+  const expected = { identity, plan: mode === '--middepth' ? loadMiddepthSweep(ROOT) : loadHedgeSweep(ROOT),
+    ...(mode === '--middepth' ? { mode: 'middepth' } : {}), distHash: hashDir(path.join(ROOT, 'dist')) };
   console.log(JSON.stringify(await publishEnvironmentHedgeSweep({ captureDir, remote, expected })));
 }

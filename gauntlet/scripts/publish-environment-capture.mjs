@@ -37,7 +37,7 @@ function indexReadme(directory) {
     'These are supplemental art-direction comparisons, not gauntlet takes or quality-gate approvals. Both variants within a checkpoint use one built source and fixed cameras/time; geometry and fog remain identical within each pair.', '',
     '| Captured UTC | Source | Comparison |', '| --- | --- | --- |'];
   if (fs.existsSync(path.join(directory, 'details', 'README.md'))) lines.splice(4, 0, '[Four closeup world detail views per checkpoint](details/)', '');
-  if (fs.existsSync(path.join(directory, 'motion', 'README.md'))) lines.splice(4, 0, '[Original bank-hedge camera sweeps](motion/)', '');
+  if (fs.existsSync(path.join(directory, 'motion', 'README.md'))) lines.splice(4, 0, '[Original environment camera samples](motion/)', '');
   for (const folder of folders) {
     assert.match(folder, /^\d{4}-\d{2}-\d{2}_\d{9}-[a-f0-9]{7}$/);
     const r = readJson(path.join(directory, 'progress', folder, 'environment.json'));

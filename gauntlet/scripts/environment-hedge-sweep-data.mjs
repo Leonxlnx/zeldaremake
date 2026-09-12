@@ -34,20 +34,23 @@ export function loadHedgeSweep(root) {
     assert.equal(anchors.length, 2, 'This bounded sweep requires the two authored bank hedges; review a changed layout');
     const [near, far] = anchors, centre = near.root.map((v, i) => (v + far.root[i]) / 2);
     const threshold = hedge.opts.lodDistances[0]; assert.equal(threshold, 26);
-    // A straight west/east track at fixed z and eye height, with 10 cm samples across each
-    // actual threshold. Circle/line intersections use the original instance roots, not rounding.
-    const crossingX = a => a.root[0] - Math.sqrt(threshold * threshold - (centre[2] - a.root[2]) ** 2);
+    // Shift the west/east track 1 m south of the hedge centre: the original centreline
+    // looked through a foreground birch. Keep the target on the actual hedge roots.
+    // Source tree rays clear this blocker; full-world visibility still needs actual captures.
+    const trackZ = centre[2] + 1;
+    // Recompute both actual 26 m crossings for this track; retain 10 cm brackets.
+    const crossingX = a => a.root[0] - Math.sqrt(threshold * threshold - (trackZ - a.root[2]) ** 2);
     const crossings = anchors.map(crossingX).sort((a, b) => a - b);
     assert(crossings[1] - crossings[0] > .2, 'Thresholds need distinct bracketing samples');
     const forwardX = [crossings[0] - .4, crossings[0] - .05, crossings[0] + .05,
       crossings[1] - .05, crossings[1] + .05, crossings[1] + .4];
     const xs = [...forwardX, ...forwardX.slice(0, -1).reverse()];
-    const eyeY = Math.max(...xs.map(x => terrain.height(x, centre[2]))) + 1.8;
+    const eyeY = Math.max(...xs.map(x => terrain.height(x, trackZ))) + 1.8;
     const target = [centre[0], centre[1] + 1, centre[2]];
     const frames = xs.map((x, index) => {
-      const position = [x, eyeY, centre[2]], direction = index < forwardX.length ? 'in' : 'out';
+      const position = [x, eyeY, trackZ], direction = index < forwardX.length ? 'in' : 'out';
       return { id: `H${String(index + 1).padStart(2, '0')}-${direction}`, position, target, fov: 46,
-        expectedLods: anchors.map(a => { const distance = Math.hypot(x - a.root[0], centre[2] - a.root[2]);
+        expectedLods: anchors.map(a => { const distance = Math.hypot(x - a.root[0], trackZ - a.root[2]);
           return { item: a.item, distance, lod: distance < threshold ? 0 : 1 }; }) };
     });
     for (const a of anchors) assert.deepEqual([...new Set(frames.map(f => f.expectedLods.find(e => e.item === a.item).lod))].sort(), [0, 1]);
