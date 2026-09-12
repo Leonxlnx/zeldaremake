@@ -53,3 +53,22 @@ instead of boosting its light. The actual source archive and verdict follow publ
 
 Applied four props files match the frozen proposal bytes exactly. Existing geometry test,
 typecheck/build112 and diff whitespace checks pass on the actual working source.
+
+## Actual718 result — rejected and reverted
+
+Source71843a28538f00bdbbd0005a65a1b588315753b5. Root personally compared originalD before/after
+andB, and the independent reviewer inspected the unchanged production views. B's improvement
+is effectively imperceptible; D has at most faint added grain. S01/S02 show small grain variation
+on a partly hidden crate without obvious seams/nail ghosts/noisy repetition, but this does not
+supply a meaningful gameplay-view gain. The predeclared weak-result gate rejects this trial.
+No light boost, new close camera or crate/root relocation is used to justify it.
+
+All16source/byte/depth/control/audit/budget checks pass, with exactly+1material/program,
+textures70unchanged and0extra draws/triangles. All16have0retries/errors/warnings. Full-image
+B maxchannel difference6/MAE.00121, D10/.00743 in8bit values are measurements, not quality scores.
+[12 original world images](https://github.com/Leonxlnx/zeldaremake/tree/60d2bd364862af8f909b89abb28badd8fd175ddd/progress/2026-09-12_183836071-71843a2)
+and [four original details](https://github.com/Leonxlnx/zeldaremake/tree/60d2bd364862af8f909b89abb28badd8fd175ddd/details/2026-09-12_184047388-71843a2)
+remain archived. The four props files return exactly to660, removing the extra owned material/
+program and31104static attribute bytes. The existing general geometry/contact test stays inCI;
+cap-bounds and near-stone trials remain independent. The frozen proposal remains reproducible
+as source718 if a future real asset/camera requirement merits revisiting it.

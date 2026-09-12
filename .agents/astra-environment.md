@@ -7,38 +7,32 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Starting one bounded near-stone shoulder-facet trial on published8714d2af9556105fe867f9e36a1a44c4a99629f0,
-tree26aae8993b76c47402843031f2f01a386f6cbe42. Cap-bounds source is published and accepted for
-Fable adoption; its actual capture queues behind718. 8714's correct environment run34711620329 is now actually in progress, so this separate
-source can queue without replacing it. Typecheck/build112 and full reproduced frozen
-evidence (all619stones/ground samples) pass; exact candidate and crate/tuft/cap hashes pass.
-Fresh partner fetch remains74918cd, no production overlaps. Root read the complete frozen
-proposal and both diffs, and revisited boards02/06 and actualF. Fable handoff5647820443 plus
-exact two-file announcement5647902527 cover flagstones.ts and additive geometry.ts topRelief.
+Rejecting and reverting the isolated718 crate grain trial after actual12+4 review. Root
+compared originalD before/after andB; the independent reviewer agrees B is effectively
+imperceptible andD at most faint. All contracts passed, but the promised gameplay-view gain
+was too weak. Exact pretrial props files return from660; original geometry/contact test and typecheck/build111 pass,
+with an exact four-file boundary and unchanged stone/cap/tuft hashes. the extra material/program and31104
+attribute bytes disappear. Keep the useful existing props geometry/contact test in CI under
+an accurate general label. Do not increase light or relocate the crate to justify the trial.
+Preserve all named images/source history and the frozen proposal, with explicit rejection.
 
-196of619 near non-disc stones receive at most9mm directional shoulder relief, with low crown,
-local outlines, walls/bottom, metadata and existing placement/RNG preserved. No new triangles,
-draws, attributes, materials, programs or textures. Stairs/eight discs exact. All619caps pass
-winding/area/inside checks; repaired kernel/fan/fallback and emitStone dry-run/breakCell remain
-source-exact. The real terrain/character surface sampler is checked:177more admitted shoulder
-triangles,+5cells, sampled heights−9mm to+.051mm, no blocking/stair changes. This is a modest
-facet-normal trial, not a major silhouette claim. ActualA/F decides; B/D are controls. Reject
-barely visible or repetitive results rather than increasing crown/exposure.
+Current publishede7069a456e6bb3e58f4354983446cdb10f4b35fd holds the separate near-stone shoulder
+trial; cap source8714 is rendering before it. Hold the rollback push until e706's correct
+environment run actually starts, so its isolated geometry comparison remains preserved.
+Stone candidate remains unchanged:196of619 near non-discs,<=9mm shoulder cuts; exact619-cap
+winding/coverage, RNG, stairs/discs and source/build112 gates pass. ActualA/F verdict pending.
 
-660 actual16accepted JPEG/depth/resources/audits/budgets are exact1e; E candidate had one
-permitted same-state blank retry,other15zero,noerrors. The early zero-retry helper report is
-corrected in this checkpoint without changing archived evidence.718 crate actual is pending.
-Take69 W25 existingfail retained after rootB/reference and helperfive-view review; no new
-formal score mutation. Fable owns structures17 and then distant opening/host details. Original
-PNG upload is blocked; exactZIP/previews exist. Character stays paused for localBlender.
+718 actual16 has0retry/error/warning; depths/audits/resources except+1material/program exact660.
+Source/avatar/world inputs remain controlled.660actual16 is exact1e; its singleE retry is
+correctly documented ine706. Fable received our published8714 cap correction for deliberate adoption
+and was told to wait for the optionale706 actualartverdict. He owns structures17 and received
+our exact take69 acknowledgement. Character remains paused for localBlender; no schedules.
 
 ## Files / systems being touched
-- Root: hardscape/flagstones.ts and additive geometry.ts topRelief hook only; own log/claim,
-  pinned reproduction/review, actual660 correction and take69 visual acknowledgement.
-- Published cap fix: structures/index.ts consolidation block; awaits actualcapture/Fableadoption.
-- Published crate trial: props/index.ts+crateWood.ts; actualimage verdict pending.
-- Capture helper: pinned718 then8714 actual images/ZIP/history, no LIVE writes.
-- Source helpers completed bounded proposals and partnerreview; no competing production edits.
+- Root: revert only four props files to660, rename existing props CI check; ownlog/review.
+- Published stone trial: flagstones.ts+geometry.ts unchanged while actual images render.
+- Published cap fix: structures/index.ts unchanged; actualcontinuity/budget verification active.
+- Capture helper: finishes718 receipts,8714 and thene706 originals; no production writes.
 
 ## Partner state / coordination
 Fresh targeted fetch confirms74918cd/take69 after0bd5235/2f4415b/d7f5e98. PR2 comments5647666994 and5647704949
@@ -57,7 +51,7 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
-| 71843a2 | Isolated cached-CC0 crate grain trial; source geometry/type/build112 pass, actual pending. |
+| 71843a2 | Actual12+4 contracts pass,0retry/error; B imperceptible/D faint. REJECTED under declared weak-result gate; revert four props files to660 next. |
 | 660dcac | All16 actual JPEG/depth/audits/resources/budgets exact1e; one safe E candidate retry,other15zero,noerrors. Corrects the early helper zero-retry report. |
 | 1e97463 | Exact871 distant houses; actual12+4 pass. Inhabited height visible; flat glow panels and C/L02 hidden budget cost need follow-up. |
 | 711758d | Tuft-only normal correction retained from actual12+4; B/L02 blades improve, all geometry/depth/resources exact. One L02 retry. |
@@ -143,4 +137,4 @@ Astra: finish published cleanup integration, then the independent crate material
 Capture helper: review the next pinned source after publication. Character waits for Blender.
 
 ## Last updated
-2026-09-12T18:42:27.909582+00:00
+2026-09-12T18:47:55.682848+00:00

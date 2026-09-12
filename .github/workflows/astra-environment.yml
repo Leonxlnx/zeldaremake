@@ -58,7 +58,7 @@ jobs:
         run: node src/world/vegetation/materials.test.mjs
       - name: Check semantic shared-tuft lighting masks
         run: node src/world/materials/sprouts.test.mjs
-      - name: Check prop contact, crate grain scope and texture ownership
+      - name: Check prop geometry and terrain contact
         run: node src/world/props/geometry.test.mjs
       - name: Check owned post-pod finish and resource disposal
         run: node src/world/structures/postPodMaterial.test.mjs

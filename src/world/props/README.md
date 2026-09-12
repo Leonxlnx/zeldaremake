@@ -1,15 +1,13 @@
 # Village props integration
 
 Owned leaf module: `src/world/props/**`. No shared layout, assembler, terrain, vegetation,
-structures, assets or renderer changes. All meshes and pigments are original procedural work. Only the two crate wood batches borrow
-the existing credited CC0 `weathered_planks/color.jpg`, unchanged; no new raster assets are added.
+structures, assets or renderer changes. All meshes and pigments are original procedural work;
+there are no downloaded, Nintendo or generated-image assets.
 
 Fable should add `import * as props from './props';` in `src/world/index.ts` and register
 `{ name: 'props', create: props.create }` in the existing `SYSTEMS` list.
-The asynchronous `create(ctx)` awaits the cached wood map and returns a standard `WorldSystem`;
-no animation update is required.
-Its `dispose()` releases owned geometries/materials and detaches meshes. The borrowed texture
-remains owned by the shared texture library and is never modified or disposed by props.
+The synchronous `create(ctx)` returns a standard `WorldSystem`; no animation update is required.
+Its `dispose()` releases owned geometries/materials and detaches meshes.
 
 `layout.ts` contains small authored domestic details, with a bounded 1.05 m placement search.
 Footprint probes reject path, stair, structure and cliff masks, giant trunks, and close existing
@@ -43,10 +41,3 @@ Iteration2 legal cluster: small pot(6.75,-11.6), crate(7.7,-11.7), bucket(7.6,-7
 Current B_house projected centers are approximately(.559,.551),(.589,.540),(.665,.570).
 Projection tests do not establish occlusion or final visual quality. Recheck after Fable camera/terrain changes.
 Clay uses dusty brown#8d6a55 with soil/moss at contact; wood darkens near ground.
-
-Crate grain trial: each plank and diagonal brace uses lengthwise UVs into four board interiors
-of the existing weathered wood color map. A bounded scalar modulation uses its linear luminance
-to retain the existing vertex pigments, per-board values and darker end cuts. End cuts receive
-no added pattern. Mipmap/derivative filtering fades unresolved detail; there is no procedural
-cosine grain, extra normal/roughness map, lighting change, new geometry or additional draw call.
-Actual B/D comparison is required before claiming useful visual improvement.
