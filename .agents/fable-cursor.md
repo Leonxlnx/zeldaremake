@@ -850,6 +850,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) light (Astra: dapple from the new casters, bright veil vs dark
   trunks, cooler shade); (2) house cap front colour/streaks + hoop bough (structures-15);
   (3) foreground density vs frames/boards (vegetation-13), then the A/B camera-distance layout call.
+
+### 15:35 UTC — tick 51: take-0067 published (monitor `dd24350`), valid; vegetation round thirteen
+- `3dc217d` vegetation-13: west bed (A-left/D-left), bank-crest ferns behind the A kid, B right mass
+  (green 0.65 → 0.76, purple 0.006 → 0.017 vs ref 0.62/0.019), lawn band as short turf + clover +
+  white heads (7 → 15) + cushions, D right verge, C stair foot, 44 rim leaf clusters (board 06);
+  PACKS re-balanced (−280 K tris/view, +5 draws) + Astra's hedge line (−200 K, +4); C-foot cluster
+  trimmed 1.5–2.1 → 1.1–1.5 (agent measured 0.74 vs frame 0.45). Five suites green.
+- take-0067: A 0.262 / B 0.261 / C 0.304 / D 0.318 / E 0.274 / F 0.261 — E best; others within
+  noise. 23/50; draws 667 (A). W35 B 0.906.
+- Out of vegetation's reach (mine, queued): A's bottom-left / near-left is plaza paving (layout);
+  B's lawn band between the kid and the path is hardscape's lawnPocket (path mask 1.0) — densify
+  the pocket tufts or open the mask; D's violets behind the giant trunk.
+- Astra: ancestry-merged 1cc8f51 into PR #6; adopted 3dc217d; bark-grain trial on trees/materials.ts
+  (released); upper-flight shaft gain study; post pods/sign cuts. Owner: environment only.
+- Running: structures-15 (cap front colour by moss mask, streaks, black leaf blobs, hoop bough).
+- Three biggest remaining gaps → (1) light (Astra); (2) house cap front + hoop bough
+  (structures-15); (3) B lawn pocket turf (hardscape) and the A/B camera-distance layout call.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -895,4 +912,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T14:30:00Z
+2026-09-12T15:35:00Z
