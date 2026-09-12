@@ -62,7 +62,7 @@ export function readCompletedDetails(directory, expectedSource) {
   assert.match(report.tree, /^[a-f0-9]{40}$/); assert.match(report.sourceHash, /^[a-f0-9]{64}$/);
   for (const key of ['source', 'tree', 'sourceHash', 'sourceHashFileCount']) assert.equal(report[key], report.sourceBefore[key]);
   assert.deepEqual(report.sourceAfter, report.sourceBefore);
-  assert.match(report.distHash, /^[a-f0-9]{64}$/); assert.equal(report.distHashAfter, report.distHash);
+  assert.match(report.distHash, /^sha256:[a-f0-9]{64}$/); assert.equal(report.distHashAfter, report.distHash);
   assert(Number.isFinite(Date.parse(report.capturedAt)));
   assert.deepEqual(report.errors, []); assert.equal(report.restored, true);
   assert.equal(report.width, 1280); assert.equal(report.height, 720); assert.equal(report.time, 12.5);

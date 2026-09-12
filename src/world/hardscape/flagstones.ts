@@ -1,15 +1,19 @@
 /**
- * Flagstone paving (W03). The reference plaza/path is a hand-laid field of worn, rounded stones
- * 0.7–1.6 m across (smaller at the paved rim, the odd 2 m slab on the path centre), each a
- * distinct slightly domed cushion with rounded, chipped corners, sitting proud of moss and grass
- * joints — 5–15 cm on the plaza, 15–45 cm of turf where the path leaves it northward (the lawn
- * paving, `zones.ts`). Seeds come from a hex lattice with heavy jitter (half the spacing) and a
- * slow domain warp, thinned/densified by the distance to the paved edge, so the Voronoi cells are
- * strongly irregular (no hexagonal tiling). Each cell — clipped to the paved boundary, inset by
- * half the joint, corners filleted, edges eroded — IS the stone outline; a second inset ring
- * gives the rolled shoulder and the top domes 2–4 cm. Stones are seated on the terrain (≈ 20
- * samples), tilted gently to the local normal, and merged into ONE geometry (vertex colour =
- * per-stone tint + shoulder dirt + moss film, aMoss = joint moss) → a single draw call.
+ * Flagstone paving (W03). The owner's boards (02 paths, 07 path texture, 06 steps & paths) show
+ * a field of flat, BROKEN stones 0.4–0.9 m across (the odd 1.0–1.2 m; smaller at the paved rim),
+ * cracked straight edges and chipped corners, set in 5–10 cm dark dirt/moss seams with grass
+ * bridging the joints along the path edges. Camera B/E's foreground keeps the 1.0–1.6 m slabs in
+ * 15–45 cm of turf measured from reference frame 14 s (the lawn paving, `zones.ts`), and camera
+ * A's near foreground its ~1 m slabs (frame 1 s), both with the same flat profile. Seeds come
+ * from hex lattices with heavy jitter (half the spacing) and a slow domain warp, thinned/densified
+ * by the distance to the paved edge, so the Voronoi cells are strongly irregular (no hexagonal
+ * tiling); cells over their target size are then BROKEN along off-centre straight chords into
+ * two or three pieces, like a slab cracked in place. Each piece — clipped to the paved boundary,
+ * inset by half the joint, corners filleted (small) or chamfered (chipped), edges notched and
+ * eroded — IS the stone outline; a second inset ring gives the narrow shoulder and the top rises
+ * 0.3–1.3 cm (half the round-10 crown). Stones are seated on the terrain (≈ 20 samples), tilted
+ * gently to the local normal, and merged into ONE geometry (vertex colour = per-stone tint +
+ * shoulder dirt + moss film, aMoss = joint moss) → a single draw call.
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { surfaceMask, type Terrain } from '../terrain/heightfield';
@@ -18,7 +22,7 @@ import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
-import { B_FOREGROUND_SLABS, dForeground, dampBand, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
+import { B_FOREGROUND_SLABS, aForeground, dForeground, dampBand, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
 import type { SteppingStone } from '../layout';
 
 export interface PlacedStone {
@@ -37,6 +41,15 @@ export interface PlacedStone {
   moss: number;
   /** elongation of the final outline (major / minor extent) */
   aspect: number;
+  /** profile (m) for the audit: crown rise of the top, shoulder roll height, shoulder width, corner fillet radius, geometric joint */
+  crown: number;
+  bevel: number;
+  shoulder: number;
+  fillet: number;
+  joint: number;
+  /** broken-edge features on this stone: V-notches in the edges, corners chamfered straight instead of filleted */
+  notches: number;
+  chips: number;
 }
 
 // --- geometry helpers ----------------------------------------------------------------------
@@ -102,6 +115,43 @@ function splitElongated(poly: P2[], maxAspect: number, gap: number, depth = 0): 
   const left = clipHalfPlane(poly, a.c.x, a.c.z, a.ax, a.az, -gap / 2);
   const right = clipHalfPlane(poly, a.c.x, a.c.z, -a.ax, -a.az, -gap / 2);
   return [...splitElongated(left, maxAspect, gap, depth + 1), ...splitElongated(right, maxAspect, gap, depth + 1)];
+}
+
+/** equivalent-area diameter of a cell (m) — the "across" size the size audits use */
+function acrossOf(poly: P2[]) {
+  return 2 * Math.sqrt(Math.abs(polygonArea(poly)) / Math.PI);
+}
+
+/**
+ * Break a cell that is bigger than `target` across into pieces along straight chords, the way a
+ * slab cracks in place (boards 02/06/07: flat stones with straight broken edges). The crack runs
+ * roughly across the cell's long axis (± 35°) and off-centre by up to a quarter of its length, so
+ * the pieces come out unequal and the cracks never line up with the Voronoi edges; both pieces
+ * must stay ≥ `minAcross` or the cut is retried elsewhere (and given up after three tries).
+ * Recurses until every piece is under the target or three cracks deep.
+ */
+function breakCell(poly: P2[], target: number, gap: number, minAcross: number, rng: Rng, depth = 0): P2[][] {
+  if (poly.length < 3) return [];
+  const size = acrossOf(poly);
+  if (size <= target || depth >= 3) return [poly];
+  const a = cellAspect(poly);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    // a cell far over its target is cut nearer its middle so the halves can each be cut again
+    const ang = Math.atan2(a.az, a.ax) + rng.range(-0.6, 0.6);
+    const nx = Math.cos(ang);
+    const nz = Math.sin(ang);
+    const off = rng.range(-0.25, 0.25) * a.major * (size > 1.6 * target ? 0.5 : 1);
+    const px = a.c.x + nx * off;
+    const pz = a.c.z + nz * off;
+    const left = clipHalfPlane(poly, px, pz, nx, nz, -gap / 2);
+    const right = clipHalfPlane(poly, px, pz, -nx, -nz, -gap / 2);
+    if (left.length < 3 || right.length < 3) continue;
+    if (acrossOf(left) < minAcross || acrossOf(right) < minAcross) continue;
+    // no slivers: each piece must be ≥ 30 cm wide across its narrow axis or the joint inset eats it
+    if (cellAspect(left).minor < 0.3 || cellAspect(right).minor < 0.3) continue;
+    return [...breakCell(left, target, gap, minAcross, rng, depth + 1), ...breakCell(right, target, gap, minAcross, rng, depth + 1)];
+  }
+  return [poly];
 }
 
 /** drop vertices closer than `eps` to their predecessor */
@@ -194,6 +244,15 @@ interface OutlineStyle {
   erosion: number;
   /** big fillets (> 16 cm) get the arc's quarter points too (the lawn slabs; not the discs) */
   roundArcs: boolean;
+  /**
+   * broken-edge profile (boards 02/06/07; everything but the stepping-stone discs): a third of the
+   * corners are chamfered straight instead of filleted (chipped), fillet radii swing ±50 %, and
+   * long edges may take a V-notch — `notchChance` per eligible edge (two per stone at most),
+   * `notchDepth` m deep
+   */
+  broken: boolean;
+  notchChance: number;
+  notchDepth: number;
   /** per-stone noise for the erosion (world-ish coords → 0..1) */
   erodeFn: (x: number, z: number) => number;
 }
@@ -201,6 +260,8 @@ interface OutlineStyle {
 interface Outline {
   outer: P2[];
   inner: P2[];
+  notches: number;
+  chips: number;
 }
 
 /**
@@ -284,7 +345,18 @@ function cellToOutline(cell: P2[], st: OutlineStyle, rng: Rng): Outline | null {
   const angles = cornerAngles(outerCell);
   const radii: number[] = [];
   const mids: number[] = [];
+  let chips = 0;
   for (let i = 0; i < n; i++) {
+    if (st.broken) {
+      // chipped corners: a straight chamfer (no arc point) on a third of the corners, and the
+      // fillet radius swinging ±50 % so no two corners of a stone are cut alike
+      const r = st.fillet * rng.range(0.5, 1.5);
+      radii.push(r);
+      const chip = rng.chance(0.35);
+      if (chip) chips++;
+      mids.push(chip ? 0 : st.roundArcs && r > 0.16 ? 3 : angles[i] < 2.0 || r > 0.09 ? 1 : 0);
+      continue;
+    }
     const r = st.fillet * rng.range(0.7, 1.3);
     radii.push(r);
     // sharp corners need the arc midpoint to read as round; obtuse ones are fine with two
@@ -316,6 +388,47 @@ function cellToOutline(cell: P2[], st: OutlineStyle, rng: Rng): Outline | null {
   }
   outer = o2;
   inner = i2;
+
+  // V-notches (broken edges): a 10–22 cm wide bite out of a long edge, 2.5–6 cm deep, cut into
+  // both rings together (the shoulder follows the notch, so the rings cannot cross and the top
+  // face stays star-shaped around its centroid)
+  let notches = 0;
+  if (st.broken && st.notchChance > 0) {
+    const o3: P2[] = [];
+    const i3: P2[] = [];
+    const m2 = outer.length;
+    for (let k = 0; k < m2; k++) {
+      const a = outer[k];
+      const b = outer[(k + 1) % m2];
+      const ai = inner[k];
+      const bi = inner[(k + 1) % m2];
+      o3.push(a);
+      i3.push(ai);
+      const len = Math.hypot(b.x - a.x, b.z - a.z);
+      if (notches >= 2 || len < 0.3 || !rng.chance(st.notchChance)) continue;
+      const t = rng.range(0.3, 0.7);
+      const hw = rng.range(0.05, 0.11) / len;
+      const depth = st.notchDepth * rng.range(0.6, 1.0);
+      const t0 = clamp(t - hw, 0.1, 0.9);
+      const t1 = clamp(t + hw, 0.1, 0.9);
+      if (t1 - t0 < 0.08) continue;
+      // inward = from the outer edge's midpoint toward the shoulder ring's
+      let dx = (ai.x + bi.x - a.x - b.x) / 2;
+      let dz = (ai.z + bi.z - a.z - b.z) / 2;
+      const dl = Math.hypot(dx, dz);
+      if (dl < 1e-4) continue;
+      dx /= dl;
+      dz /= dl;
+      const at = (p: P2, q: P2, s: number): P2 => ({ x: p.x + (q.x - p.x) * s, z: p.z + (q.z - p.z) * s });
+      const om = at(a, b, t);
+      const im = at(ai, bi, t);
+      o3.push(at(a, b, t0), { x: om.x + dx * depth, z: om.z + dz * depth }, at(a, b, t1));
+      i3.push(at(ai, bi, t0), { x: im.x + dx * depth * 0.85, z: im.z + dz * depth * 0.85 }, at(ai, bi, t1));
+      notches++;
+    }
+    outer = o3;
+    inner = i3;
+  }
 
   // erosion: nibble the outer edge toward its shoulder point (never past 70 % of the shoulder,
   // so the rings can't cross), by a per-stone noise so chips cluster instead of dithering
@@ -353,7 +466,7 @@ function cellToOutline(cell: P2[], st: OutlineStyle, rng: Rng): Outline | null {
   let minR = Infinity;
   for (const p of fo) minR = Math.min(minR, Math.hypot(p.x - cc.x, p.z - cc.z));
   if (minR < 0.06 || Math.abs(polygonArea(fo)) < 0.03) return null;
-  return { outer: fo, inner: fi };
+  return { outer: fo, inner: fi, notches, chips };
 }
 
 function outlineHash(p: P2[]): string {
@@ -442,7 +555,7 @@ export function isPaved(pc: PavingContext, x: number, z: number, threshold = 0.5
  * steps; capped at 2.1 m. Drives the stone size (small stones at the rim, big ones mid-path).
  */
 const RIM_STEPS = [0.3, 0.6, 0.9, 1.2, 1.5, 1.8];
-function rimDistance(pc: PavingContext, x: number, z: number): number {
+export function rimDistance(pc: PavingContext, x: number, z: number): number {
   let best = 2.1;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2;
@@ -470,7 +583,9 @@ export interface PavingResult {
   edgeGap(x: number, z: number): number;
   /** the house branch's stepping stones that got their own round slab */
   steppingStones: IsolatedDisc[];
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number };
+  /** the Voronoi seeds (for the offline paving audit): position, lawn weight, whether the seed kept its cell */
+  seeds: { x: number; z: number; lawn: number; active: boolean; phantom: boolean }[];
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number };
 }
 
 interface Seed {
@@ -485,18 +600,26 @@ interface Seed {
   disc?: boolean;
   /** clips its neighbours' cells but places no stone (the lawn pocket's edge) */
   phantom?: boolean;
+  /** phantom: the ground within this many metres of it stays slab-free; neighbours' cells reach up to it */
+  reach?: number;
 }
 
-// Round 10: every lattice is 1.2–1.3× coarser than before (the reference B/E foreground has 2–3
-// slabs across the 5.7 m frame bottom and C/D's are the same big rounded slabs; ours had 6–7)
-/** lattice spacing (m) in the damp band: stones come out 1.2–1.7 m across after jitter and joints */
-const SPACING = 1.6;
-/** coarse lattice for the north path (camera D's foreground): 1.2–1.8 m slabs */
-const OPEN_SPACING = 1.5;
-/** lattice for the open plaza south of the spawn (reference A/F foregrounds): 1.0–1.5 m slabs */
-const SOUTH_SPACING = 1.2;
-/** rim lattice spacing (m): 0.4–0.6 m stones along the paved edge */
-const RIM_SPACING = 0.56;
+// Round 11: the lattices outside the lawn paving are back to ~1 m (cells 0.7–1.4 m across after
+// the jitter) and every cell over its target — 0.68–1.0 m, the odd 1.25 m — is broken along
+// straight chords (`breakCell`), so the stones run 0.4–0.9 m, p50 0.6–0.7, p90 ≈ 1.0 (boards
+// 02/07); camera B/E's lawn slabs (frame 14 s) and camera A's ~1 m foreground (frame 1 s) keep
+// their sizes
+/** lattice spacing (m) in the damp band */
+const SPACING = 1.2;
+/** lattice for the north path (camera D's foreground) */
+const OPEN_SPACING = 1.15;
+/** lattice for the open plaza south of the spawn (reference A/F foregrounds) */
+const SOUTH_SPACING = 1.15;
+/** rim lattice spacing (m): 0.35–0.55 m stones along the paved edge */
+const RIM_SPACING = 0.5;
+/** the pieces of a broken cell: target across size (m) before the per-region factors, and the smallest piece allowed */
+const BREAK_TARGET: [number, number] = [0.88, 1.28];
+const BREAK_MIN_ACROSS = 0.42;
 /**
  * lawn-paving lattice (zones.ts `lawnZone`): 1.0–1.6 m slabs (the odd 2 m) in 15–45 cm turf
  * joints, so the cells run 1.4–2.1 m; low jitter (0.3 of the spacing) keeps them round-ish
@@ -524,7 +647,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pad = 1.0;
   let row = 0;
   const bigCandidates: number[] = [];
-  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0 };
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0 };
   // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
   // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
   // the disc as bare grass) and the plaza's rim cells are clipped back from them
@@ -568,11 +691,13 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     stats.authored++;
   }
   // the lawn pocket's edge: phantom seeds 0.75 m into the pocket clip the authored and lattice
-  // cells at the reference's path edge (the bisector), and place no stone themselves
+  // cells at the reference's path edge, and place no stone themselves. A cell reaches to within
+  // 0.7 m of the phantom (5 cm inside the edge) however far its seed is; where the pocket fades
+  // out at its north end the reach shrinks with it, so camera D's foreground keeps its stones
   for (let z = -3.2; z >= -6.4; z -= 0.8) {
     const x = lawnPocketEdgeX(z) - 0.75;
     grid.add(x, z, seeds.length);
-    seeds.push({ x, z, rim: 2, big: false, lawn: 1, phantom: true });
+    seeds.push({ x, z, rim: 2, big: false, lawn: 1, phantom: true, reach: 0.7 * lawnPocket(x, z) });
   }
   // the lawn paving next (its seeds win the later min-distance tests): a coarse, lightly
   // jittered lattice whose cells become the 1.0–1.6 m slabs set in turf of reference B/E's
@@ -610,8 +735,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         const open = (1 - dampBand(wz)) * regionW(wz) * (1 - lawnZone(wx, wz));
         // thin the lattice on D's foreground path so the remaining cells grow to 1.4–1.9 m
         const dz = dForeground(wz);
-        const id = tryAdd(wx, wz, 0.36, (rim) => rim >= 0.45 && u <= open * (1 - 0.3 * dz * smoothstep(0.8, 1.4, rim)));
-        // a few 1.8–2.2 m slabs down the path centre (reference D foreground)
+        const id = tryAdd(wx, wz, 0.33, (rim) => rim >= 0.45 && u <= open * (1 - 0.3 * dz * smoothstep(0.8, 1.4, rim)));
+        // a few larger slabs down the path centre (the odd 1.0–1.25 m stone of the boards)
         if (id >= 0 && big && seeds[id].rim >= 1.4) bigCandidates.push(id);
       }
     }
@@ -629,7 +754,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // thin the base lattice where the rim lattice takes over, where the coarse lattice rules
       // (none at all on D's foreground path so its slabs stay big) and where the lawn does
       const lawn = lawnZone(wx, wz);
-      const id = tryAdd(wx, wz, 0.36, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= Math.max(0.8 * open + 0.2 * dForeground(wz) * smoothstep(0.8, 1.4, rim), lawn));
+      const id = tryAdd(wx, wz, 0.33, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= Math.max(0.8 * open + 0.2 * dForeground(wz) * smoothstep(0.8, 1.4, rim), lawn));
       if (id < 0) continue;
       if (seeds[id].rim >= 1.25 && big && open < 0.5 && lawn < 0.5) bigCandidates.push(id);
     }
@@ -647,7 +772,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // the open paving's edge keeps its big slabs: only a thin fringe of small stones there;
       // the lawn paving's slabs meet the grass without a fringe at all
       const keep = (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz));
-      if (tryAdd(wx, wz, 0.38, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep) >= 0) stats.rim++;
+      if (tryAdd(wx, wz, 0.34, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep) >= 0) stats.rim++;
     }
   }
   // big stones: the candidate eats up to two neighbours within ~0.75 spacing
@@ -709,8 +834,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       const l = Math.hypot(dx, dz);
       if (l < 1e-6 || l > 2.8) return;
       // plain bisector: the irregular seeding does the size mixing; the shared plane keeps the
-      // tessellation hole-free where three cells meet
-      cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, clamp(l / 2, 0.08, l - 0.08));
+      // tessellation hole-free where three cells meet. A phantom (no stone) only keeps its reach.
+      const d = o.phantom ? Math.max(l / 2, l - (o.reach ?? 0.7)) : l / 2;
+      cell = clipHalfPlane(cell, s.x, s.z, dx / l, dz / l, clamp(d, 0.08, l - 0.08));
     });
     // keep a joint's width clear of the round stepping stones at the plaza rim
     for (const d of discs) {
@@ -770,12 +896,42 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (!active[si] || seeds[si].phantom) continue;
     const cell = cellFor(si);
     if (cell.length < 3) continue;
-    // sliver fringe cells (aspect > 2.6) become two or more stones with a joint between them;
-    // the merged path-centre slabs are allowed to be oblong (reference D has 1.3 × 0.6 m stones)
     const sd = seeds[si];
-    const pieces = splitElongated(cell, sd.big ? 3.6 : 2.6, rng.range(0.06, 0.09) * (1 + 2.5 * sd.lawn));
-    if (pieces.length > 1) stats.split += pieces.length - 1;
-    for (const piece of pieces) emitStone(piece, seeds[si]);
+    // break the cell into the boards' 0.4–0.9 m stones (the odd 1.0–1.25 m where the big-slab
+    // candidate or camera A's foreground raises the target); the lawn paving's cells keep the
+    // frame-measured slab size (target lifted out of reach as the lawn weight comes in). The
+    // stream is keyed on the seed so a lattice change elsewhere does not re-crack this cell.
+    const brng = rng.fork(`break/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`);
+    const base = brng.range(BREAK_TARGET[0], BREAK_TARGET[1]) * (sd.big ? 1.25 : 1) * (1 + 0.32 * aForeground(sd.x, sd.z));
+    const target = base + (2.6 - base) * smoothstep(0.15, 0.6, sd.lawn);
+    // the crack is a joint like any other (each piece is inset by half the seam), plus 0–2 cm
+    const parts = breakCell(cell, target, brng.range(0, 0.02), BREAK_MIN_ACROSS, brng);
+    if (parts.length > 1) stats.broken += parts.length - 1;
+    if (parts.length === 1) {
+      // sliver fringe cells (aspect > 2.6) become two or more stones with a joint between them;
+      // the merged path-centre slabs are allowed to be oblong (reference D has 1.3 × 0.6 m stones)
+      const pieces = splitElongated(cell, sd.big ? 3.6 : 2.6, rng.range(0.06, 0.09) * (1 + 2.5 * sd.lawn));
+      if (pieces.length > 1) stats.split += pieces.length - 1;
+      for (const piece of pieces) emitStone(piece, sd);
+      continue;
+    }
+    // the halves of a cracked slab are oblong by nature; only a real sliver (aspect > 3.4) is cut again
+    const pieces: P2[][] = [];
+    for (const part of parts) {
+      const sub = splitElongated(part, 3.4, rng.range(0.03, 0.06));
+      if (sub.length > 1) stats.split += sub.length - 1;
+      pieces.push(...sub);
+    }
+    // a piece that would not survive the outline gate or the seating (a step under it) would
+    // leave a hole where the whole cell had a stone: try every piece first, and lay the cell
+    // unbroken if any fails (the per-stone streams are keyed on position, so the dry run and the
+    // real one agree)
+    if (pieces.every((piece) => emitStone(piece, sd, true))) {
+      for (const piece of pieces) emitStone(piece, sd);
+    } else {
+      stats.broken -= parts.length - 1;
+      emitStone(cell, sd);
+    }
   }
 
   // the stepping stones up to Saria's door (reference B/E): one round slab per disc, filling the
@@ -799,8 +955,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (stones.length > before) stats.steppingStones++;
   }
 
-  function emitStone(cell: P2[], seed: Seed) {
-    if (cell.length < 3) return;
+  /** cut, seat and build one stone from a cell; with `dryRun` it only reports whether the stone would be laid */
+  function emitStone(cell: P2[], seed: Seed, dryRun = false): boolean {
+    if (cell.length < 3) return false;
     const sc = centroid(cell);
     const s = { x: sc.x, z: sc.z };
     // every per-stone draw comes from a stream keyed on the stone's position (2 cm cells), so a
@@ -816,37 +973,47 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // the lawn paving (zones.ts): slabs set in 15–45 cm of turf, corners rounded off at a third
     // of the slab (reference B/E foreground: big rounded slabs in lawn, no straight seams)
     const lawn = seed.lawn;
-    // shoulder and fillet scale with the stone (a 40 cm stone has a 3 cm roll, an 80 cm one 5 cm)
+    // the stepping-stone discs on Saria's ramp keep their round-9/10 profile and outline (the
+    // reference B frame shows them domed): every draw below is shared with them, only the
+    // mapping differs, so their stream — and every other stone's — stays in step
+    const disc = !!seed.disc;
+    // shoulder and fillet scale with the stone
     const size = Math.sqrt(Math.abs(polygonArea(cell)));
-    // the geometric gap is 4–8 cm (3–6 cm between the big open-paving slabs); the rolled
-    // shoulders and the sunk side walls add ~2 cm of visual joint on each side, so the rendered
-    // seam reads 5–10 cm like the reference
-    const seamJoint = (0.035 + 0.03 * jointN + srng.range(0, 0.01)) * (1 - 0.35 * open) + 0.015 * dampBand(s.z);
-    // (no draw for the stones outside the lawn, so their streams — and the stepping-stone
-    // discs' outlines — stay exactly as before)
+    // the geometric gap is 4.5–9 cm (4–8.3 cm between the open-paving slabs); the shoulders
+    // and the sunk side walls add ~1 cm of visual joint on each side, so the rendered seam
+    // reads 5–10 cm of dark dirt/moss like boards 02/07
+    const uJoint = srng();
+    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * dampBand(s.z) : (0.045 + 0.035 * jointN + 0.012 * uJoint) * (1 - 0.1 * open) + 0.015 * dampBand(s.z);
+    // (no draw for the stones outside the lawn, so their streams stay exactly as before)
     // (14–36 cm: the reference's bottom-row seams are 15–25 cm, its 40 cm gaps are dirt patches)
     const lawnJoint = 0.14 + 0.16 * jointN + (lawn > 0 ? srng.range(0, 0.06) : 0);
-    // corners: a fifth of the slab everywhere (reference C/D: rounded slabs, no straight-edged
-    // polygons), a third on the lawn paving; the stepping-stone discs keep their round-9 outline
-    const seamFillet = seed.disc ? clamp(0.15 * size, 0.055, 0.12) : clamp(0.2 * size, 0.06, 0.22);
-    const lawnFillet = clamp(0.3 * size, 0.12, 0.4);
+    // corners: small — 12 % of the slab (3.5–13 cm), 40 % under round 10's fifth; the lawn
+    // slabs' 18 % (7–24 cm, was 30 %). Flat slabs with cracked edges, not cushions (boards
+    // 02/06/07; the reviewer's read of round 10: "oversized rounded slabs")
+    const seamFillet = disc ? clamp(0.15 * size, 0.055, 0.12) : clamp(0.12 * size, 0.035, 0.13);
+    const lawnFillet = clamp(0.18 * size, 0.07, 0.24);
     const style: OutlineStyle = {
       // the damp band's seams are the widest (reference B/E foreground: 8–12 cm of soil and moss
       // between the stones — its plaza box has the same dark and bright tones as ours but more
       // of its area is joint)
       joint: seamJoint + (lawnJoint - seamJoint) * lawn,
-      shoulder: clamp(0.055 * size, 0.022, 0.042) * srng.range(0.85, 1.15),
+      // a narrow shoulder (1.6–3 cm, was 2.2–4.2): the edge reads as a break, not a roll
+      shoulder: (disc ? clamp(0.055 * size, 0.022, 0.042) : clamp(0.04 * size, 0.016, 0.03)) * srng.range(0.85, 1.15),
       fillet: (seamFillet + (lawnFillet - seamFillet) * lawn) * srng.range(0.8, 1.2),
-      erosion: ea * (1 + lawn),
-      roundArcs: !seed.disc,
+      erosion: disc ? ea * (1 + lawn) : ea * 1.3 * (1 + 0.5 * lawn),
+      roundArcs: !disc,
+      broken: !disc,
+      // two thirds of the stones carry notches (a quarter of their long edges, two at most)
+      notchChance: disc ? 0 : srng.chance(0.65) ? 0.25 : 0,
+      notchDepth: clamp(0.07 * size, 0.025, 0.06),
       erodeFn: (x, z) => wearN.fbm((x + s.x) * 5.5 + 21, (z + s.z) * 5.5 - 9, 2) * 0.5 + 0.5,
     };
     // work in seed-local coordinates (the stone is built around its centroid, then placed)
     const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
     const outline = cellToOutline(local, style, srng);
     if (!outline) {
-      stats.skippedSmall++;
-      return;
+      if (!dryRun) stats.skippedSmall++;
+      return false;
     }
     const c = centroid(outline.outer);
     let radius = 0;
@@ -877,10 +1044,15 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     nAcc.normalize();
     // gentle tilt only: blend the terrain normal toward up so stones never look like ramps
     nAcc.lerp(up, 0.5).normalize();
-    // the shoulder rolls down 1.2–2 cm to the outer edge; the top domes another 0.5–2.6 cm above
-    // the shoulder — some stones nearly flat, some clearly cushioned (2–4.5 cm crown in all)
-    const bevel = srng.range(0.012, 0.02);
-    const crown = (srng.chance(0.35) ? srng.range(0.005, 0.012) : srng.range(0.012, 0.026)) * (1 - 0.45 * open);
+    // flat slabs (boards 02/06/07): the shoulder rolls down 0.7–1.2 cm to the outer edge (was
+    // 1.2–2) and the top rises only 0.25–1.3 cm above it (half of round 10's 0.5–2.6) — the
+    // stepping-stone discs keep the round-10 cushion
+    const uBevel = srng();
+    const bevel = disc ? 0.012 + 0.008 * uBevel : 0.007 + 0.005 * uBevel;
+    const lowCrown = srng.chance(0.35);
+    const uCrown = srng();
+    const crownFull = (lowCrown ? 0.005 + 0.007 * uCrown : 0.012 + 0.014 * uCrown) * (1 - 0.45 * open);
+    const crown = disc ? crownFull : 0.5 * crownFull;
     let thickness = srng.range(0.09, 0.12);
     // the outer edge stands 2–3.2 cm proud of the mean ground (joint fill is at +0.8 cm) so the
     // joints read as sunk soil channels 1.5–2.5 cm deep between the stones; from the low cameras
@@ -890,9 +1062,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const exposed = srng.range(0.016, 0.026) * (1 - 0.35 * open);
     if (hMax - hMin > 0.28) {
       // a slab cannot sit across a step this high (terrace lips, bank feet): leave soil here
-      stats.skippedSteep++;
-      return;
+      if (!dryRun) stats.skippedSteep++;
+      return false;
     }
+    if (dryRun) return true;
     let rimY = Math.min(hMean + exposed, hCentre + 0.06);
     // never float more than 3 cm over the lowest ground under the edge — sink instead, but keep
     // the edge at least 1.6 cm clear of the joint fill at the centre; a deeper stone absorbs the rest
@@ -1016,6 +1189,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       thickness,
       bevel,
       topRing: outline.inner,
+      notchedTop: outline.notches > 0,
       softBevel: true,
       dip: -crown,
       color: tint,
@@ -1049,10 +1223,31 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     all.transform(one, from);
 
     const poly = outline.outer.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
-    const stone: PlacedStone = { x: s.x, z: s.z, polygon: poly, shape: outlineHash(outline.outer), radius, thickness, bottomY, topY, moss, aspect: cellAspect(outline.outer).aspect };
+    const stone: PlacedStone = {
+      x: s.x,
+      z: s.z,
+      polygon: poly,
+      shape: outlineHash(outline.outer),
+      radius,
+      thickness,
+      bottomY,
+      topY,
+      moss,
+      aspect: cellAspect(outline.outer).aspect,
+      crown,
+      bevel,
+      shoulder: style.shoulder,
+      fillet: style.fillet,
+      joint: style.joint,
+      notches: outline.notches,
+      chips: outline.chips,
+    };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
+    stats.notches += outline.notches;
+    stats.chips += outline.chips;
     if (edgeMoss > 0) stats.edgeMossStones++;
+    return true;
   }
 
   const geometry = all.build();
@@ -1082,5 +1277,6 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     return best;
   };
 
-  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, edgeGap, steppingStones: discs, stats };
+  const seedAudit = seeds.map((s, i) => ({ x: s.x, z: s.z, lawn: s.lawn, active: active[i] === 1, phantom: !!s.phantom }));
+  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, edgeGap, steppingStones: discs, seeds: seedAudit, stats };
 }

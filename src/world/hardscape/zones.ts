@@ -55,6 +55,15 @@ export function lawnZone(x: number, z: number) {
 }
 
 /**
+ * Camera A's near foreground (reference frame 1 s: five or six ~1 m slabs with cracked edges and
+ * dark seams across the 5.7 m frame bottom, z ≈ 4 → 7): the cell breaking leaves the stones here
+ * at the top of the boards' range instead of the 0.6–0.7 m median. Fades over 1.2 m.
+ */
+export function aForeground(x: number, z: number) {
+  return softBox(x, z, -1.5, 4.5, 3.4, 8.5, 1.2);
+}
+
+/**
  * Camera B/E's foreground slabs, authored to the reference composition (W37 scores B_house):
  * the centres of the slabs readable in reference frame B (640 × 358) unprojected through
  * camera B onto the terrain — the bottom row (px y ≈ 330: x 60, 200, 360, 450, 570), the pair
@@ -136,12 +145,13 @@ export function troddenStrip(x: number, z: number) {
 
 /**
  * How much of the joint fill is bare soil (0 = turf / moss, 1 = packed dirt): the dry plaza core
- * south of the spawn (camera A's foreground — reference A's plaza joints are dark green-brown)
+ * south of the spawn (camera A's foreground — reference A's plaza joints are dark green-brown,
+ * board 02's seams dark dirt with moss, so the core is a 55 % blend rather than round 10's 80 %)
  * and the trodden strip; the lawn zone overrides both toward turf.
  */
 export function jointSoil(x: number, z: number) {
   // the strip is half soil: reference D's centre joints are a browner shade of the same dark
   // olive as its edge joints, not bare dirt
-  const soil = Math.max(0.8 * southPlaza(z), 0.5 * troddenStrip(x, z));
+  const soil = Math.max(0.55 * southPlaza(z), 0.5 * troddenStrip(x, z));
   return soil * (1 - 0.85 * lawnZone(x, z)) * (1 - lawnPocket(x, z));
 }

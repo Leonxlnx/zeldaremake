@@ -1,0 +1,310 @@
+{
+  "fallback": {
+    "shape": "U-shaped cap with empty visibility kernel",
+    "positiveTopArea": 7,
+    "nonPositiveTriangles": 0
+  },
+  "steppingStoneMeshesIdentical": 8,
+  "source": "bb11762b1b3d8545e9692234e8120d66533b63e3",
+  "scope": "CPU source geometry; no textures/GPU appearance claim",
+  "counts": {
+    "before": 619,
+    "after": 619,
+    "changedCaps": 19,
+    "unchangedCaps": 600,
+    "trianglesBefore": 86321,
+    "trianglesAfter": 86321
+  },
+  "checks": {
+    "beforeDownward": 95,
+    "afterDownward": 0,
+    "beforeOutside": 61,
+    "afterOutside": 0,
+    "afterZeroArea": 0,
+    "afterWorldDownward": 0,
+    "afterWorldZeroArea": 0,
+    "maxAreaError": 1.7763568394002505e-15,
+    "minInteriorClearance": -0.07115826075596487,
+    "worstInteriorClearanceDelta": 0
+  },
+  "allStoneMetadataIdentical": true,
+  "stairsIdentical": true,
+  "deterministic": true,
+  "meshHashes": {
+    "before": "a7efb902864cd37dcdb05a69a9a5181781c4429e737ac7bfb6d171e616904be1",
+    "after": "954e8b34ccea7203776c21864b691eebcbc470ac11f0d7ed64fe370b658aa07f"
+  },
+  "changed": [
+    {
+      "ordinal": 109,
+      "position": [
+        1.621590808656196,
+        12.520214722540086
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.008665517164589262,
+      "beforeMinTopClearance": 0.021790452232732127,
+      "afterMinTopClearance": 0.021790452232732127
+    },
+    {
+      "ordinal": 113,
+      "position": [
+        0.5367384340628175,
+        12.825972528670405
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.005237885753369843,
+      "beforeMinTopClearance": 0.020696476960231358,
+      "afterMinTopClearance": 0.020696476960231358
+    },
+    {
+      "ordinal": 125,
+      "position": [
+        2.6927073963722377,
+        15.499346885445544
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.01594426522027721,
+      "beforeMinTopClearance": 0.02503823684483919,
+      "afterMinTopClearance": 0.02503823684483919
+    },
+    {
+      "ordinal": 144,
+      "position": [
+        4.288170666805956,
+        -58.16946779120603
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.02650197834180511,
+      "beforeMinTopClearance": 0.021987243616877095,
+      "afterMinTopClearance": 0.021987243616877095
+    },
+    {
+      "ordinal": 154,
+      "position": [
+        3.577738754947783,
+        -56.538185167170994
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.006020209760333582,
+      "beforeMinTopClearance": 0.023611581668205872,
+      "afterMinTopClearance": 0.023611581668205872
+    },
+    {
+      "ordinal": 158,
+      "position": [
+        6.063861937154772,
+        -56.317690196157336
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.007779732455665074,
+      "beforeMinTopClearance": 0.020552288715862232,
+      "afterMinTopClearance": 0.020552288715862232
+    },
+    {
+      "ordinal": 182,
+      "position": [
+        5.268082165312305,
+        -45.48525934946369
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.008165252057213848,
+      "beforeMinTopClearance": -0.00505411138647105,
+      "afterMinTopClearance": -0.00505411138647105
+    },
+    {
+      "ordinal": 191,
+      "position": [
+        6.110728924999195,
+        -43.915523679763126
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.015231501944531161,
+      "beforeMinTopClearance": -0.006246470557471184,
+      "afterMinTopClearance": -0.006246470557471184
+    },
+    {
+      "ordinal": 270,
+      "position": [
+        2.274181665995595,
+        -31.533980454146718
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.015438563050929381,
+      "beforeMinTopClearance": -0.0019126203366681693,
+      "afterMinTopClearance": -0.0019126203366681693
+    },
+    {
+      "ordinal": 302,
+      "position": [
+        2.6240591093328165,
+        -22.830000126063418
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.006487240366902939,
+      "beforeMinTopClearance": 0.017576683817750904,
+      "afterMinTopClearance": 0.017576683817750904
+    },
+    {
+      "ordinal": 307,
+      "position": [
+        3.9310339858736896,
+        -22.10638074743836
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.10204639235450726,
+      "beforeMinTopClearance": -0.00100925543830499,
+      "afterMinTopClearance": -0.00100925543830499
+    },
+    {
+      "ordinal": 350,
+      "position": [
+        2.1321465006103466,
+        -14.483691145522252
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.03220165656380828,
+      "beforeMinTopClearance": 0.017853872499505652,
+      "afterMinTopClearance": 0.017853872499505652
+    },
+    {
+      "ordinal": 351,
+      "position": [
+        2.7282387397788743,
+        -14.577577620155873
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.017049923993814504,
+      "beforeMinTopClearance": 0.014028326106132027,
+      "afterMinTopClearance": 0.014028326106132027
+    },
+    {
+      "ordinal": 374,
+      "position": [
+        1.5468884766875501,
+        -10.453680452442239
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.011682628605869612,
+      "beforeMinTopClearance": 0.029399086743415515,
+      "afterMinTopClearance": 0.029399086743415515
+    },
+    {
+      "ordinal": 397,
+      "position": [
+        1.8978442127467978,
+        -7.858488338077416
+      ],
+      "notches": 1,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.01841284606887618,
+      "beforeMinTopClearance": 0.026245624323829736,
+      "afterMinTopClearance": 0.026245624323829736
+    },
+    {
+      "ordinal": 424,
+      "position": [
+        3.586150248408164,
+        -18.402192177524178
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.029408704935975763,
+      "beforeMinTopClearance": 0.02097306191018511,
+      "afterMinTopClearance": 0.02097306191018511
+    },
+    {
+      "ordinal": 509,
+      "position": [
+        4.802587245193745,
+        -31.922903237781696
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.03209687723636173,
+      "beforeMinTopClearance": -0.012609723061359546,
+      "afterMinTopClearance": -0.012609723061359546
+    },
+    {
+      "ordinal": 536,
+      "position": [
+        3.8890623701176743,
+        -16.62109060482932
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.03000802391824852,
+      "beforeMinTopClearance": 0.02299950277260976,
+      "afterMinTopClearance": 0.02299950277260976
+    },
+    {
+      "ordinal": 577,
+      "position": [
+        5.153696023317874,
+        3.3842443812572234
+      ],
+      "notches": 2,
+      "beforeDownward": 5,
+      "afterDownward": 0,
+      "centreShift": 0.004917545704174713,
+      "beforeMinTopClearance": 0.017103921619222362,
+      "afterMinTopClearance": 0.017103921619222362
+    }
+  ],
+  "stairs": [
+    {
+      "id": "main",
+      "hash": "bb7560ba8cd7666901b5e3e287fe5526d4d4d4b20e59a37a5601aff20c2ce287",
+      "triangles": 10986
+    },
+    {
+      "id": "north",
+      "hash": "ca7a59a0d7d0513b510d8885950961a2f022fe79d8b89df691fb2f2bce08fb81",
+      "triangles": 3991
+    }
+  ],
+  "status": "proposed; not integrated; no GPU verdict",
+  "hashes": {
+    "geometry": {
+      "baseline": "792d2093f6f5171a6cf682d930ee61fa2d3368e51e9c1992cb45e6fdf94aee39",
+      "candidate": "1de36e8eb2ee8d324de65e07ce75b8dc1ea2d432840fa29d2968d3d5eee2b086"
+    },
+    "flagstones": {
+      "baseline": "f0eab65e99a5db299603d29d03d5501b1218680be497a57fbba21f20a29d9224",
+      "candidate": "1531e7eb2cdda4153b29bb60f1259d9b98e1ae01c7685801e412ebed49b7ae84"
+    },
+    "patch": "36fc803e79a9de00cfac74cc95d1aebb547746437c8eeea326712422c3dc2f90"
+  }
+}

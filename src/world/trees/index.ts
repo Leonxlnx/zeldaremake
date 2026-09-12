@@ -6,6 +6,7 @@
  *
  * Structure
  *   whitebark.ts  — seeded white-bark variants (3 LODs each: high / medium / low leaf subsets)
+ *   column.ts     — dark-boled column trees: the mid-distance forest wall (authored seats)
  *   giant.ts      — unique giants at LAYOUT.giantTrees, roots conformed to the terrain
  *   distant.ts    — 2-LOD distant trees for the 60–220 m band
  *   placement.ts  — seeded, layout-aware white-bark placement
@@ -18,15 +19,16 @@
  * (aRoot.xyz = each tree's origin keeps per-tree wind/height context). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferGeometry, Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type BufferAttribute, type Camera } from 'three';
+import { BufferGeometry, Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { createTreeMaterials } from './materials';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
-import { placeWhiteBark, type WhiteBarkPlacement } from './placement';
+import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
+import { columnParams, createColumnTree, emergentParams, type ColumnParams } from './column';
 import { createGiantTree, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import type { GiantTreeDef } from '../layout';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
-import { mergeParts, type Detail } from './writer';
+import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 import { SHAFT_COLUMNS } from './corridors';
 import { tubePathFromRings } from './tubePath';
@@ -557,19 +559,104 @@ const DEPTH_BANDS: DepthBand[] = [
   { xMin: -34, xMax: 48, zMin: -61, zMax: -55, spacing: 5.0, scale: [1.1, 1.3], shade: 0.72, maxVariantHeight: 23 },
   { xMin: -58, xMax: 68, zMin: -98, zMax: -84, spacing: 7, scale: [1.1, 1.4], shade: 0.78, maxVariantHeight: 23 },
 ];
+/**
+ * Column trees (column.ts) — the dark boles of the mid-distance forest wall (round 13).
+ *
+ * The reference frames' far wall is a few bold dark trunks standing in bright haze — measured as
+ * 8-px column profiles of the background band (A y 0.05–0.45, B/F 0–0.45, D 0.1–0.5): trunks are
+ * columns 0.03–0.19 under their neighbours, ≈ 1–1.4 m thick at 20–35 m, bare to 10 m; between
+ * them the haze (0.41–0.55). Ours read as a grey wash (column stdev B 0.026 / D 0.054 / F 0.039
+ * against the reference's 0.050 / 0.096 / 0.087) because nothing dark stands in that band: the
+ * white-barks there are pale (their boles match the haze's luminance) and the 12–45 m ground
+ * north of the plaza holds only the north-west and north-west-near giants at the frames' edges.
+ *
+ * Seats are authored world positions (a screen column of one hero frame at a chosen depth,
+ * inverted to the ground and checked in all four frames), each with its own PRNG stream so the
+ * white-barks, giants and distant layer are untouched. The screen columns they give, base → crown:
+ *   (−3.5, −24.7)  A 0.11 @ 29 m, B 0.16 @ 24 m, D 0.32 @ 21 m — the west bank above the mist pool
+ *   (−5.7, −31.9)  A 0.08 @ 34 m, B 0.13 @ 30 m, D 0.30 @ 28 m — with the north-west giant behind
+ *   (−1.0, −35.5)  A 0.20 @ 40 m, B 0.27 @ 35 m, D 0.42 @ 32 m — west verge of the far path
+ *   (8.8, −26.9)   A 0.38 @ 36 m, B 0.47 @ 30 m, D 0.65 @ 25 m — the plateau under the upper house:
+ *                  reference A's hazed trunk left of the stairs (x 0.36–0.42) and D's dark right
+ *   (21.2, 6.8)    F 0.74 @ 22 m; (24.2, 11.0) F 0.85 @ 24 m — the east plateau between the east
+ *                  giant's bole (F 0.68) and the stair-bank giant (F 0.9–1.0), where the reference
+ *                  is a hazed dark 0.35–0.45 and ours read 0.47–0.50 of open haze
+ *   (15.7, 5.2)    F 0.70 @ 17 m (w 0.063) — the east bank in front of the east giant's hazed bole:
+ *                  reference F's dark trunk at x 0.65–0.71 (0.29), which with the two seats behind
+ *                  it makes the frame's dark right mass 0.67–0.88; its crown starts above F's top
+ *   (−2.7, −7.9)   B 0.04 @ 8.4 m (w 0.12), A 0.05 @ 14 m, D 0.01 @ 4.4 m — the emergent (28 m,
+ *                  column.ts) on the verge west of the north path, where reference B's left 13 %
+ *                  is one near dark bole (0.33) from the ground out of the top of the frame (ours
+ *                  read 0.40 of lamp cords and far stairs; with it 0.33) and A's left edge is dark
+ *                  behind the lamp. The verge strip between the path's edge and the north-west-near
+ *                  giant's clearance is the only ground on B's left-edge ray, so its probe ring is
+ *                  1.0 m (the bole stays 0.9 m off the pavement; its short roots reach the edge and
+ *                  no further). The same ray is D's left edge: there the bole covers x 0–0.12 from
+ *                  the bottom of the frame to the top (the reference's left edge is a dark tree
+ *                  too, but a soft mid-distance one), in front of the giant's roots and the west
+ *                  end of the lit verge — the emergent is kept slim (R 0.62, flare 0.3) for that.
+ * Every seat is off the paths, stairs and structures, ≥ 4 m from a giant's bole and ≥ 2.5 m from
+ * a white-bark; none stands in the plaza / house / stair sight lines or the F view gap. Their
+ * crown shadows (a caster at height Y shades (x + 1.008 Y, z + 0.787 Y)) fall on the plateau slope
+ * and east of it — off the plaza and the D path's lit run (only the bare boles of the two west-bank
+ * seats lay a thin band across the path at z ≈ −20 and −29, dapple the reference path also has).
+ * The emergent's crown (18–28 m up) shades (15–26, 6–14): the east bank past the F bank sun
+ * points; its bare bole lays one 0.9 m stripe from the path fork across the plaza's east edge
+ * (3.5 m outside the second plaza core's ring) onto the F bank — a bold shadow of the kind the
+ * reference bank has (measured: F bank box unchanged, A plaza box unchanged, B foreground
+ * 0.401 → 0.395 against the reference's 0.399). Behind camera F for the north seats, behind
+ * A/B/D for the east ones.
+ *
+ * Swap rule: a MATURE white-bark whose bole stands in a hero frame's far wall (18–45 m out,
+ * x 0.05–0.95, base below y 0.25) is built as a column instead — its pale bole is exactly the
+ * wash the frames must not show (white #18 at (11.1, −25) was a pale stripe at B 0.53 / D 0.73
+ * where the reference is a dark wall). Applied after the placement (like the view-gap reseat) so
+ * no other tree moves.
+ */
+/** regular column variants (columnParams); the emergent (emergentParams) is variant index COLUMN_VARIANTS */
+const COLUMN_VARIANTS = 4;
+const COLUMN_EMERGENT = COLUMN_VARIANTS;
+/** radius of the pavement / stairs / structure probe ring around a seat (m) */
+const COLUMN_SEAT_RING = 1.6;
+const COLUMN_SEATS: { x: number; z: number; variant: number; ring?: number }[] = [
+  { x: -3.5, z: -24.7, variant: 3 },
+  { x: -5.7, z: -31.9, variant: 1 },
+  { x: -1.0, z: -35.5, variant: 2 },
+  { x: 8.8, z: -26.9, variant: 3 },
+  { x: 21.2, z: 6.8, variant: 0 },
+  { x: 24.2, z: 11.0, variant: 2 },
+  { x: 15.7, z: 5.2, variant: 3 },
+  { x: -2.7, z: -7.9, variant: COLUMN_EMERGENT, ring: 1.0 },
+];
+const COLUMN_VIEWS = ['A_stairs', 'B_house', 'D_log', 'F_canopy'];
+const COLUMN_SWAP = { minDistance: 18, maxDistance: 45, xMin: 0.05, xMax: 0.95, minBaseY: 0.25 };
+/** minimum clearance of a column seat from a white-bark / a giant's bark / a house's trunk (m) */
+const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
 const _v = new Vector3();
 const _q = new Quaternion();
 const _s = new Vector3();
 const _p = new Vector3();
 
-interface WhiteVariant {
-  params: WhiteBarkParams;
+/** an instanced tree family variant: 3 LOD assets, one InstancedMesh per LOD, its placements */
+interface FamilyVariant<P, T extends { x: number; z: number; scale: number }> {
+  params: P;
   lods: TreeAsset[];
   meshes: InstancedMesh[];
-  placements: WhiteBarkPlacement[];
+  placements: T[];
   matrices: Matrix4[];
   counts: number[];
 }
+type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
+interface ColumnPlacement {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  scale: number;
+  /** 'seat' = authored COLUMN_SEATS entry, 'swap' = a mature white-bark built as a column */
+  source: 'seat' | 'swap';
+}
+type ColumnVariant = FamilyVariant<ColumnParams, ColumnPlacement>;
 
 interface DistantSet {
   variant: DistantVariant;
@@ -720,35 +807,123 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     viewGaps,
     EXTRA_GIANTS,
   );
-  const whitePlacements = whitePlaced.placements;
-  for (const p of whitePlacements) {
-    const w = whites[p.variant];
+  // mature white-barks standing in a hero frame's far wall are built as dark columns instead
+  // (see COLUMN_SWAP); the rest of the placement is exactly the drawn one
+  const heroProjectors = COLUMN_VIEWS.map((id) => ctx.layout.viewpoints.find((v) => v.id === id))
+    .filter((v): v is NonNullable<typeof v> => !!v)
+    .map((v) => viewProjector(new Vector3(v.position[0], v.position[1], v.position[2]), new Vector3(v.target[0], v.target[1], v.target[2]), v.fov, 16 / 9));
+  const inFarWall = (x: number, y: number, z: number): boolean => {
+    for (const project of heroProjectors) {
+      const s = project(_p.set(x, y, z));
+      if (!s) continue;
+      if (s[2] >= COLUMN_SWAP.minDistance && s[2] <= COLUMN_SWAP.maxDistance && s[0] >= COLUMN_SWAP.xMin && s[0] <= COLUMN_SWAP.xMax && s[1] >= COLUMN_SWAP.minBaseY) return true;
+    }
+    return false;
+  };
+  const swappedWhites = whitePlaced.placements.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
+  const whitePlacements = whitePlaced.placements.filter((p) => !swappedWhites.includes(p));
+  const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number) => {
+    const w = variants[variant];
     w.placements.push(p);
     _q.setFromAxisAngle(_v.set(0, 1, 0), p.yaw);
     _s.setScalar(p.scale);
     _p.set(p.x, p.y, p.z);
     w.matrices.push(new Matrix4().compose(_p, _q, _s));
-  }
+  };
+  for (const p of whitePlacements) seatFamily(whites, p, p.variant);
+  const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
+    for (const w of variants) {
+      const n = Math.max(1, w.placements.length);
+      for (let l = 0; l < DETAILS.length; l++) {
+        const mesh = new InstancedMesh(w.lods[l].geometry, material, n);
+        mesh.name = `${label}-${(w.params as { seed: string }).seed}-${DETAILS[l]}`;
+        mesh.customDepthMaterial = depth;
+        // near and mid LODs cast shadows (dappled light on the paths); the far LOD only receives
+        mesh.castShadow = l < 2 && ctx.quality.shadows;
+        mesh.receiveShadow = true;
+        mesh.count = 0;
+        mesh.visible = false;
+        mesh.userData.kind = label;
+        mesh.userData.lodLevel = l;
+        w.meshes.push(mesh);
+        parent.add(mesh);
+      }
+    }
+  };
   const whiteGroup = new Group();
   whiteGroup.name = 'white-bark';
-  for (const w of whites) {
-    const n = Math.max(1, w.placements.length);
-    for (let l = 0; l < DETAILS.length; l++) {
-      const mesh = new InstancedMesh(w.lods[l].geometry, mats.whiteTree, n);
-      mesh.name = `whitebark-${w.params.seed}-${DETAILS[l]}`;
-      mesh.customDepthMaterial = mats.whiteTreeDepth;
-      // near and mid LODs cast shadows (dappled light on the paths); the far LOD only receives
-      mesh.castShadow = l < 2 && ctx.quality.shadows;
-      mesh.receiveShadow = true;
-      mesh.count = 0;
-      mesh.visible = false;
-      mesh.userData.kind = 'whitebark';
-      mesh.userData.lodLevel = l;
-      w.meshes.push(mesh);
-      whiteGroup.add(mesh);
-    }
-  }
+  familyMeshes(whites, 'whitebark', mats.whiteTree, mats.whiteTreeDepth, whiteGroup);
   group.add(whiteGroup);
+  ctx.progress('trees', 0.5);
+  await yieldFrame();
+
+  // ------------------------------------------------------------------ column trees
+  const giantDefsAll: GiantTreeDef[] = [...ctx.layout.giantTrees, ...EXTRA_GIANTS];
+  const columnRng = rng.fork('columns');
+  const columns: ColumnVariant[] = [];
+  const columnParamSets = [...Array.from({ length: COLUMN_VARIANTS }, (_, i) => columnParams(columnRng, i, COLUMN_VARIANTS)), emergentParams(columnRng)];
+  // Finalize deterministic placements before creating terrain-dependent root geometry.
+  for (const params of columnParamSets) {
+    columns.push({ params, lods: [], meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
+  }
+  const seatRng = columnRng.fork('seats');
+  const columnSeatsSkipped: { x: number; z: number; reason: string }[] = [];
+  const seatBlocked = (x: number, z: number, ring: number): string | null => {
+    const probes: [number, number][] = [[x, z]];
+    for (let i = 0; i < 6; i++) probes.push([x + Math.cos((i / 6) * TAU) * ring, z + Math.sin((i / 6) * TAU) * ring]);
+    for (const [px, pz] of probes) {
+      const m = terrain.mask(px, pz);
+      if (m.path > 0.3) return 'path';
+      if (m.stairs > 0.3) return 'stairs';
+      if (m.structure > 0.3) return 'structure';
+    }
+    if (!terrain.vegetationAllowed(x, z)) return 'no-vegetation';
+    if (terrain.slope(x, z) > 0.6) return 'slope';
+    for (const h of ctx.layout.houses) if (Math.hypot(x - h.position[0], z - h.position[2]) < h.trunkRadius + COLUMN_CLEARANCE.house) return `house:${h.id}`;
+    for (const g of giantDefsAll) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + COLUMN_CLEARANCE.giant) return `giant:${g.id}`;
+    for (const p of whitePlacements) if (Math.hypot(x - p.x, z - p.z) < COLUMN_CLEARANCE.whiteBark) return 'white-bark';
+    return null;
+  };
+  // the swapped white-barks first (their seats are already clear), then the authored seats
+  for (const p of swappedWhites) {
+    const variant = seatRng.int(0, COLUMN_VARIANTS);
+    seatFamily(columns, { x: p.x, y: p.y, z: p.z, yaw: seatRng() * TAU, scale: seatRng.range(0.95, 1.05), source: 'swap' }, variant);
+  }
+  for (const seat of COLUMN_SEATS) {
+    // one yaw and one scale draw per seat whether or not it is built, so a skipped seat never
+    // re-rolls the ones after it
+    const yaw = seatRng() * TAU;
+    const scale = seatRng.range(0.95, 1.05);
+    const reason = seatBlocked(seat.x, seat.z, seat.ring ?? COLUMN_SEAT_RING);
+    if (reason) {
+      columnSeatsSkipped.push({ x: seat.x, z: seat.z, reason });
+      continue;
+    }
+    seatFamily(columns, { x: seat.x, y: terrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat' }, seat.variant);
+  }
+  const columnPlacements = columns.flatMap((c) => c.placements);
+  // A variant's flat roots cannot be shared between differently sloped seats. These ten
+  // authored/swapped columns get one family per seat; the existing LOD/shadow rules stay intact.
+  // Reusing the architecture seed preserves every bole/crown and all downstream random draws.
+  const seatedColumns: ColumnVariant[] = [];
+  for (const c of columns) for (let i = 0; i < c.placements.length; i++) {
+    const p = c.placements[i];
+    const cos = Math.cos(p.yaw), sin = Math.sin(p.yaw);
+    const groundAt = (lx: number, lz: number) => (
+      terrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
+    ) / p.scale;
+    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, groundAt));
+    seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0] });
+    await yieldFrame();
+  }
+  const columnGroup = new Group();
+  columnGroup.name = 'columns';
+  familyMeshes(seatedColumns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
+  for (const c of seatedColumns) for (const m of c.meshes) {
+    const p = c.placements[0];
+    m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
+  }
+  group.add(columnGroup);
   ctx.progress('trees', 0.55);
   await yieldFrame();
 
@@ -757,7 +932,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   giantGroup.name = 'giants';
   const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
-  const giantDefs: GiantTreeDef[] = [...ctx.layout.giantTrees, ...EXTRA_GIANTS];
+  const giantDefs = giantDefsAll;
   /** what was published as ctx.shared.lanternLimb (audit) */
   let lanternLimbAudit: { samples: number; range: [number, number]; side: [number, number]; vertical: [number, number]; ends: [number[], number[]]; rings: number[][] } | undefined;
   for (const def of giantDefs) {
@@ -940,8 +1115,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
 
-  const bucketWhite = (cam: Vector3) => {
-    for (const w of whites) {
+  const bucketFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], cam: Vector3) => {
+    for (const w of variants) {
       const buckets: number[][] = [[], [], []];
       for (let i = 0; i < w.placements.length; i++) {
         const p = w.placements[i];
@@ -960,6 +1135,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         w.counts[l] = list.length;
       }
     }
+  };
+  const bucketWhite = (cam: Vector3) => {
+    bucketFamily(whites, cam);
+    bucketFamily(seatedColumns, cam);
   };
 
   const bucketDistant = (cam: Vector3) => {
@@ -998,12 +1177,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // ------------------------------------------------------------------ audit
   const whiteBases: [number, number, number][] = whitePlacements.map((p) => [p.x, p.y, p.z]);
+  const columnBases: [number, number, number][] = columnPlacements.map((p) => [p.x, p.y, p.z]);
   const distantBases: [number, number, number][] = distantPlacements.map((p) => [p.x, p.y, p.z]);
-  const allBases = [...whiteBases, ...contacts, ...distantBases];
+  const allBases = [...whiteBases, ...columnBases, ...contacts, ...distantBases];
   let maxBaseGap = 0;
   for (const [x, y, z] of allBases) maxBaseGap = Math.max(maxBaseGap, Math.abs(y - terrain.height(x, z)));
   const sampleBases = (() => {
-    const pool = [...whiteBases, ...contacts];
+    const pool = [...whiteBases, ...columnBases, ...contacts];
     const stride = Math.max(1, Math.ceil(pool.length / 300));
     return pool.filter((_, i) => i % stride === 0).slice(0, 300);
   })();
@@ -1019,6 +1199,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         woodTriangles += w.counts[l] * w.lods[l].woodTriangles;
         leafTriangles += w.counts[l] * w.lods[l].leafTriangles;
         lodInstances[l] += w.counts[l];
+      }
+    }
+    let columnLeaves = 0;
+    const columnLodInstances = [0, 0, 0];
+    for (const c of seatedColumns) {
+      for (let l = 0; l < 3; l++) {
+        columnLeaves += c.counts[l] * c.lods[l].leafCount;
+        woodTriangles += c.counts[l] * c.lods[l].woodTriangles;
+        leafTriangles += c.counts[l] * c.lods[l].leafTriangles;
+        columnLodInstances[l] += c.counts[l];
       }
     }
     let giantLeaves = 0;
@@ -1058,8 +1248,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       whiteBarkReseated: whitePlaced.reseated,
       whiteBarkAges: whites.map((w) => w.params.age),
       whiteBarkLodInstances: lodInstances,
+      /** mature white-barks built as dark columns because their bole stood in a hero far wall */
+      whiteBarkSwappedToColumns: swappedWhites.length,
+      /** column trees (column.ts): the dark boles of the mid-distance forest wall */
+      columnTrees: columnPlacements.length,
+      columnVariants: columns.length,
+      columnHeights: columns.map((c) => Math.round(c.params.height * 10) / 10),
+      columnTrunkRadii: columns.map((c) => Math.round(c.params.trunkRadius * 100) / 100),
+      columnSeats: columnPlacements.map((p) => [Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10, p.source]),
+      columnSeatsSkipped,
+      columnLodInstances,
+      columnLeafCount: columnLeaves,
       leafGeometry: 'laminae',
-      leafCount: leafCount + giantLeaves,
+      leafCount: leafCount + columnLeaves + giantLeaves,
       whiteBarkLeafCount: leafCount,
       distantTrees: distantPlacements.length,
       distantLod: [distantNearCount, distantFarCount],
@@ -1097,6 +1298,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     dispose() {
       for (const w of whites) for (const l of w.lods) l.geometry.dispose();
+      for (const c of seatedColumns) for (const l of c.lods) l.geometry.dispose();
       for (const g of sectorGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
     },

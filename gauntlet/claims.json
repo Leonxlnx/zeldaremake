@@ -599,6 +599,19 @@
       "at": "2026-09-12T12:10:13.905Z",
       "expiresHours": 3,
       "scope": "Owner environment-only continuation. Fable explicit signpost/lanternPost handoff comment5644903321; root lighting/post/fog. No house/shared-material/hardscape production edits."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W03",
+        "W09",
+        "W12",
+        "W13",
+        "W36"
+      ],
+      "at": "2026-09-12T12:26:19.479Z",
+      "expiresHours": 3,
+      "scope": "Own environment branch only: deliberate integration of published Fable ddd24fd/bb11762 slices with narrowly reviewed root-contact/cap-winding/joint-edge corrections. Announced PR2comment5645869931. Fable branch and ongoing houses/canopy work untouched; use equivalent newer fixes if published."
     }
   ]
 }

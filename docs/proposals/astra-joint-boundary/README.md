@@ -1,6 +1,8 @@
 # Proposed path-mask trim for joint fill
 
-**Proposed, not integrated. No GPU appearance verdict.** This patch removes the six pale
+**Pinned proposal evidence; applied in Astra’s environment integration.** No GPU appearance
+verdict is implied. The adjacent evidence retains the status of its original verification
+snapshot. Current adoption and actual-render review are tracked in `.agents/astra-environment.md`. This patch removes the six pale
 triangular turf teeth identified by CPU rays through the actual `141082b` F capture. It changes
 only `src/world/hardscape/joints.ts`; no terrain, slab, stair, vegetation, material, camera,
 scoring, or locked gauntlet definitions are changed.

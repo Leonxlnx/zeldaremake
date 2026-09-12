@@ -1,0 +1,333 @@
+{
+  "status": "proposed-not-integrated",
+  "baseSlice": {
+    "treeFiles": "ddd24fd0a3a9f71eb9991e3f16311336a4316fd0",
+    "otherFiles": "a600f529d56bc3a63ee31deaf58012d6cb077647"
+  },
+  "passed": true,
+  "seats": 10,
+  "lods": 3,
+  "edgeChecks": 2352,
+  "surfaceChecks": 8232,
+  "collarChecks": 1176,
+  "worstTerrainRiseResidualM": 0.0000018251722567197426,
+  "beforeFloatingEdgeSamplesAllLods": 948,
+  "beforeMaxGapM": 2.674488814188013,
+  "afterFloatingEdgeSamplesAllLods": 0,
+  "nonRootAttributesExact": true,
+  "allWhiteGiantDistantGeometryAndMatricesExact": true,
+  "lanternLimbExact": true,
+  "originalAuditExact": true,
+  "rngNextExact": true,
+  "columnGeometryBytes": {
+    "before": 9736728,
+    "after": 20588616
+  },
+  "activeColumnMeshesAtB": {
+    "before": 7,
+    "after": 10
+  },
+  "evidence": [
+    {
+      "seat": "22.191,-34.941",
+      "detail": "high",
+      "edgeCount": 98,
+      "minGap": -0.0287855659616314,
+      "maxGap": -0.02878543068197459,
+      "triangles": 12712,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "22.191,-34.941",
+      "detail": "medium",
+      "edgeCount": 98,
+      "minGap": -0.0287855659616314,
+      "maxGap": -0.02878543068197459,
+      "triangles": 5558,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "22.191,-34.941",
+      "detail": "low",
+      "edgeCount": 98,
+      "minGap": -0.0287855659616314,
+      "maxGap": -0.02878543068197459,
+      "triangles": 2926,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "21.200,6.800",
+      "detail": "high",
+      "edgeCount": 98,
+      "minGap": -0.03125625987794356,
+      "maxGap": -0.031254076339112924,
+      "triangles": 12712,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "21.200,6.800",
+      "detail": "medium",
+      "edgeCount": 98,
+      "minGap": -0.03125625987794356,
+      "maxGap": -0.031254076339112924,
+      "triangles": 5558,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "21.200,6.800",
+      "detail": "low",
+      "edgeCount": 98,
+      "minGap": -0.03125625987794356,
+      "maxGap": -0.031254076339112924,
+      "triangles": 2926,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-5.700,-31.900",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.029501774720192664,
+      "maxGap": -0.02950144226644369,
+      "triangles": 13072,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-5.700,-31.900",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.029501774720192664,
+      "maxGap": -0.02950144226644369,
+      "triangles": 5582,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-5.700,-31.900",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.029501774720192664,
+      "maxGap": -0.02950144226644369,
+      "triangles": 2824,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "11.097,-25.000",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.030659115888471256,
+      "maxGap": -0.03065866643202142,
+      "triangles": 17318,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "11.097,-25.000",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.030659115888471256,
+      "maxGap": -0.03065866643202142,
+      "triangles": 7235,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "11.097,-25.000",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.030659115888471256,
+      "maxGap": -0.03065866643202142,
+      "triangles": 3557,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-1.000,-35.500",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.029256996384650513,
+      "maxGap": -0.029256921687113913,
+      "triangles": 17318,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-1.000,-35.500",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.029256996384650513,
+      "maxGap": -0.029256921687113913,
+      "triangles": 7235,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-1.000,-35.500",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.029256996384650513,
+      "maxGap": -0.029256921687113913,
+      "triangles": 3557,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "24.200,11.000",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.031246904085803884,
+      "maxGap": -0.031245162798108517,
+      "triangles": 17318,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "24.200,11.000",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.031246904085803884,
+      "maxGap": -0.031245162798108517,
+      "triangles": 7235,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "24.200,11.000",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.031246904085803884,
+      "maxGap": -0.031245162798108517,
+      "triangles": 3557,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-3.500,-24.700",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.030475782364605575,
+      "maxGap": -0.030474971686562213,
+      "triangles": 16646,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-3.500,-24.700",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.030475782364605575,
+      "maxGap": -0.030474971686562213,
+      "triangles": 7011,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-3.500,-24.700",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.030475782364605575,
+      "maxGap": -0.030474971686562213,
+      "triangles": 3501,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "8.800,-26.900",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.02945223398914809,
+      "maxGap": -0.0294515447977286,
+      "triangles": 16646,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "8.800,-26.900",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.02945223398914809,
+      "maxGap": -0.0294515447977286,
+      "triangles": 7011,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "8.800,-26.900",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.02945223398914809,
+      "maxGap": -0.0294515447977286,
+      "triangles": 3501,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "15.700,5.200",
+      "detail": "high",
+      "edgeCount": 70,
+      "minGap": -0.029920018831725015,
+      "maxGap": -0.029919493387977614,
+      "triangles": 16646,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "15.700,5.200",
+      "detail": "medium",
+      "edgeCount": 70,
+      "minGap": -0.029920018831725015,
+      "maxGap": -0.029919493387977614,
+      "triangles": 7011,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "15.700,5.200",
+      "detail": "low",
+      "edgeCount": 70,
+      "minGap": -0.029920018831725015,
+      "maxGap": -0.029919493387977614,
+      "triangles": 3501,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-2.700,-7.900",
+      "detail": "high",
+      "edgeCount": 98,
+      "minGap": -0.03142610580111438,
+      "maxGap": -0.03142600501716042,
+      "triangles": 12716,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-2.700,-7.900",
+      "detail": "medium",
+      "edgeCount": 98,
+      "minGap": -0.03142610580111438,
+      "maxGap": -0.03142600501716042,
+      "triangles": 5687,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    },
+    {
+      "seat": "-2.700,-7.900",
+      "detail": "low",
+      "edgeCount": 98,
+      "minGap": -0.03142610580111438,
+      "maxGap": -0.03142600501716042,
+      "triangles": 3131,
+      "oldDegenerate": 0,
+      "newDegenerate": 0
+    }
+  ],
+  "scope": "Actual generated CPU geometry at all three LODs and each composed instance matrix. No GPU appearance or frame-time claim."
+}

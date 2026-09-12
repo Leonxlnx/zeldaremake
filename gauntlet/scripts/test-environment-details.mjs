@@ -19,7 +19,7 @@ const git = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', st
 try {
   fs.mkdirSync(captureDir);
   const report = { schema: DETAIL_SCHEMA, ...identity, sourceBefore: identity, sourceAfter: identity,
-    distHash: 'd'.repeat(64), distHashAfter: 'd'.repeat(64), status: 'complete',
+    distHash: `sha256:${'d'.repeat(64)}`, distHashAfter: `sha256:${'d'.repeat(64)}`, status: 'complete',
     capturedAt: '2026-09-12T00:00:00.000Z', errors: [], restored: true,
     width: 1280, height: 720, time: 12.5, quality: 'high', hud: false, settleFrames: 2, settleDt: 0,
     controls: DETAIL_CONTROLS, anchors: loadDetailAnchors(root), views: DETAIL_VIEWS, captures: [] };

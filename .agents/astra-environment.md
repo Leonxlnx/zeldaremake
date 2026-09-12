@@ -17,21 +17,53 @@ published slices deliberately, never overwrites the other agent's branch or log.
 
 This branch starts from Fable e17f310. Fable a97302e vegetation is now copied byte-for-byte:
 mask-derived planted plaza/bank rims, edge litter and repaired placement contracts. All five
-vegetation suites pass. Housebb08/91c changes remain held for the announced floor/back-wall/roof
+vegetation suites pass. Housebb08/91c/df3 changes remain held for the announced floor/back-wall/roof
 repair. Latest fetched Fable headdf3cd52: board-directed house detail, smaller paving bb11762,
 column trees ddd24fd. Review found column roots float up to1.156m on authored slopes because
 local rootButtress gets ground=0; final whole-seat review max2.67449m,316/784 samples>3cm.
 Exact witnesses sent PR2 comments5645811141/5645817532. Paving bb11762 has95 inverted top
-triangles on19 stones from non-star V-notches; Fable asked to constrain/triangulate these caps. Hold tree slice
-for contact repair. House floor/back-wall follow-up still pending; hardscape independently checked.
+triangles on19 stones from non-star V-notches; Fable asked to constrain/triangulate these caps. The narrow contact/cap repairs below now allow deliberate own-branch integration.
+House floor/back-wall follow-up remains pending; no house slice is included.
 Fable09:04 handoff (PR2 comment5644903321) explicitly frees props/**, signpost.ts and
 lanternPost.ts. Astra now edits the two standalone structure builders only: root lantern binding/
 wood detail; helper sign plank/peg/joinery. W26/W27 and lighting claims renewed12:10 through15:10UTC. Shared house,
 materials, foliage, structures index, branch, arch and fence remain Fable-owned and untouched.
 
+## Next deliberate integration
+Announced PR2 comment5645869931 after fresh fetch/log/claims review12:25UTC; Fable head stilldf3cd52.
+To produce the next combined world checkpoint, Astra will test Fable's published ddd24fd tree
+slice andbb11762 paving slice with narrowly reviewed root-ground/cap-winding/joint-mask fixes on
+this own branch. This is deliberate reuse and defect repair, not concurrent redesign or a merge
+of Fable's PR. Exact original geometry/RNG outside defects stays intact; equivalent newer Fable
+fixes take priority if published. Overlap is explicitly documented here and on PR2. Houses,
+shared materials, terrain/layout and ongoing canopy-opening work remain untouched. W03/W09/W12/
+W13/W36 claim covers this integration only. Combined actual capture follows CPU contact checks.
+Column correction now applied locally from docs/proposals/astra-column-contact/candidate.patch:
+uses existing rootButtress terrain callback in each seat's rotated/scaled local coordinates.
+2,352 edge +8,232 root surface +1,176 collar checks over10seats/3LODs pass;948 floating edges→0.
+Non-root geometry/UV/colors/wind/indices, white/giant/distant buffers/matrices, lantern limb and
+original audit exact. Column geometry9.74→20.59MB; configured active B column meshes7→10
+(not measured GPU draw calls). No new degenerates; combined typecheck passes.
+Paving cap correction also applied from docs/proposals/astra-paving-caps/paving-caps.patch:
+keeps619slabs/86,321triangles and all notches/footprints, corrects19 invalid fan centres using
+visibility kernels.95 downward toptriangles→0;600 cap buffers,8 stepping meshes and2 stair
+meshes exact. No new degenerates or worsened sampled minimum clearance; largest centre shift
+10.2cm, other18 shifts0.49–3.22cm. Only notched paving opts in; no shared stair redesign.
+Joint-mask trim is applied with its explicit inherited-sliver limitations. Both new proposals
+remain reproducible against pinned originals; docs status distinguishes evidence from adoption.
+Combined typecheck/build105modules, source anti-cheat and all five vegetation suites pass.
+First0590 detail run rendered all4images but final validation rejected the existing
+`hashDir` format (`sha256:` prefix). Original artifact10297672328 is retained; publisher correctly
+skipped the bundle. Narrow validator/test-fixture repair included here; original capture data is
+not rewritten. Actual comparison0590 gallery exists and is production-identical tobc05 except
+minute raw/JPEG variance (mean channel0.00026–0.00195/255), with camera/controls/geometry/depth exact.
+New actual world captures are the next gate; no aesthetic acceptance is inferred from CPU checks.
+
 ## Files / systems touched
 - `src/world/lighting/`, `src/world/postfx/`, `src/world/atmosphere/`, related `config.ts` fields.
 - `reference/owner-concept-previews/`: exact published preview-folder integration from own branch.
+- Planned deliberate integration: `trees/{column,index,placement}.ts`,
+  `hardscape/{flagstones,geometry,index,zones,joints}.ts`, with exact reviewed patch evidence.
 - Four `src/world/vegetation/` files: exact Fablea973 integration only, no Astra geometry rewrite.
 - Isolated `gauntlet/scripts/*environment*` capture/publication tools and own push/manual workflow.
 - `src/world/structures/{signpost,lanternPost}.ts`: board06 detail, placement/rig contracts preserved.
@@ -57,7 +89,8 @@ actual CI run34693234294 in progress. Source ZIP delivered and CRC-verified.
   Focused local Git publication test checks source/camera/time/override/depth/image corruption,
   append-only history, idempotence and rejected historical overwrite. No local browser used.
   All four cameras clear actual terrain by1.61/1.79/2.69/1.71m; framing/occlusion await CI.
-- Joint-boundary proposal under docs/proposals/astra-joint-boundary/ is reviewed, not integrated.
+- Joint-boundary proposal under docs/proposals/astra-joint-boundary/ was reviewed and is now
+  applied to the own-branch combined world checkpoint below.
   All six observed F teeth removed in CPU rays; no new degenerate/downward faces; bank path-outside
   samples100→0; contact stays terrain+8mm. Per-face subset/attribute checks pass. Candidate
   SHA2566cc3bac71e60a71086ca05c07e31848cf0e1b10deba32ce0acc46c24a9ea4beb.
@@ -167,4 +200,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T12:22:20.571770+00:00
+2026-09-12T12:35:26.803358+00:00
