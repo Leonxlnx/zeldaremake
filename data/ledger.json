@@ -7220,6 +7220,115 @@
       },
       "prevHash": "sha256:5860f1526acc27d2be05c6b7a1c5e8b9739e49a3b0524479841d8807c1e2e6b4",
       "hash": "sha256:8f6ef1a9f8b8f44e6d1416d7fff32608c3b6e19f952900f50f6d1c1597ad195a"
+    },
+    {
+      "id": "take-0068",
+      "number": 68,
+      "at": "2026-09-12T16:35:56.138Z",
+      "sha": "612872691c51949655102bf9e60361ec33039fb2",
+      "shortSha": "6128726",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "hardscape: the B/E lawn pocket as dense short lawn (frame 14 s left third) - a jittered 8.2 cm lattice of short tufts and clover (1,293 + the round-10 220; footprints 10-16 cm, heights 8-13 cm; 157/m2), four moss pads, a soft edge of rim clumps overhanging the first slab east of the pocket by 5-8 cm plus band clumps in the soil strip, 14 white flower heads on 10-14 cm stems (hardscape/flowers.ts, one merged mesh, +1 draw), and the pocket's ground fill dimmed and greened (pre-lit sRGB 54,58,32) so parted blades read as shadowed earth, not soil",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W21",
+        "W20"
+      ],
+      "note": "Round fifteen: Saria's cap and the lawn. The cap's yellow vertical streaks had two real causes - round 14's relief noise was 2D in (x, z) and so constant up the vertical face, and the cylindrical texture layout sheared the moss map up to 2.5 m sideways per metre of meridian (a 3.8 px diagonal striation left of the porch) - fixed with 3D noise and a developed-cone map; straw 12 -> 2 %, moss hue now within 3 deg of frame 14 s's cap, texture spread equal; cap plants tinted to the lit moss (black blobs -33 %); the support bough leaves the trunk at the eave and rises off frame as a branch instead of looping back down. Frame 14 s's left third is a low dense lawn with white dots: the B/E lawn pocket now carries a jittered 8 cm lattice of short tufts and clover, moss pads, rim clumps overhanging the first slab, 14 white flower heads, and a dark green ground fill - lawn band green 0.51 -> 0.63 (reference 0.62), soil-visible 0.22 -> 0.18 (0.20). B's metric gives back 0.006 to the resolved tufts against the frame's blur; sharpness 0.978.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:a1f6def533854b2d99ed38bfdfc1b2b58633eb9a53308d1c4e8f364d360fb0ff",
+        "B_house": "sha256:3338ab540a3c838564c6ae7fc1f92e04cb7f5e1fc6cd8e65f0d2dad719ab8241",
+        "C_lookback": "sha256:5bb8f46135f8a9ed553032fea7b6528960a69bd808e828498ab21fb319842e2d",
+        "D_log": "sha256:b5d3723e1eeeadfb0bb539c2c41256270f8cb0a28271997dc96e5f567e4afd2a",
+        "E_ground": "sha256:3338ab540a3c838564c6ae7fc1f92e04cb7f5e1fc6cd8e65f0d2dad719ab8241",
+        "F_canopy": "sha256:be9bc2de4befb7c8a670f063883d1bb2c7749ecfa4f4af4fc45324635f4169e0"
+      },
+      "distHash": "sha256:2a229adc3052449a51e4681c8c5f9a1fde56e47bbbdce532bf1e89a4e4a5febd",
+      "stats": {
+        "drawCalls": 668,
+        "triangles": 8568310,
+        "captureMs": 592252,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W21",
+        "W20"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take68-cap",
+        "importedAt": "2026-09-12T16:37:03.610Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:8f6ef1a9f8b8f44e6d1416d7fff32608c3b6e19f952900f50f6d1c1597ad195a",
+      "hash": "sha256:c642e87984f3dcb7f67acd9b687f605bba312a323eea4a822abf8a8d99b3b525"
     }
   ]
 }
