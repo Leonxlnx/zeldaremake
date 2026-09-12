@@ -58,6 +58,8 @@ export function create(ctx: WorldContext): WorldSystem {
       camera: ctx.camera as PerspectiveCamera,
       sunDirection: sunDir,
       sun: () => ctx.sun,
+      // Trees are constructed later; resolve their actual terrain-anchored axes at render time.
+      canopyOpenings: () => ctx.shared.canopyOpenings ?? [],
       exposure: cfg.renderer.exposure,
       headless: ctx.headless,
       overlay: {

@@ -65,6 +65,19 @@ export interface TubePath {
 export interface SharedGeometry {
   /** the giant's limb that carries LAYOUT.lanternBranch, as actually built (with its wiggle) */
   lanternLimb?: TubePath;
+  /** terrain-anchored sun corridors, published only after the trees have been built */
+  canopyOpenings?: readonly SharedCanopyOpening[];
+}
+
+/** Resolved geometry of a canopy opening; atmosphere owns any scattering treatment. */
+export interface SharedCanopyOpening {
+  readonly id?: string;
+  readonly point: readonly [number, number, number];
+  /** unit world direction toward the sun */
+  readonly axis: readonly [number, number, number];
+  readonly radius: number;
+  /** foliage carve's world height band, not a limit on the air below the opening */
+  readonly band: readonly [number, number];
 }
 
 export interface WorldSystem {

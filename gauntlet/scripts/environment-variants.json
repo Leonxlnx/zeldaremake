@@ -1,20 +1,16 @@
 {
   "schema": "zeldaremake.environment-variants.v1",
-  "baselineSource": "f11517e424cf333468c325885fe121245b54f756",
+  "baselineSource": "d7ddc01bc74151a0f93fa19f7a6e9b37c99fa09f",
   "time": 12.5,
   "baseline": {
-    "label": "Previous f115 production fill and contact contrast; current shared sky and geometry",
-    "light": {
-      "hemiIntensity": 0.6,
-      "environmentIntensity": 0.3
-    },
+    "label": "Current world with the existing six shaft columns; new top-flight mask disabled",
+    "light": null,
     "post": {
-      "contrast": 1.08,
-      "aoStrength": 0.5
+      "beamCanopyOpenings": false
     }
   },
   "candidate": {
-    "label": "Adopted near-shadow refinement, current production without runtime overrides",
+    "label": "Same world with the real top-flight opening admitted by the shadow-tested volumetric mask",
     "light": null,
     "post": null
   }

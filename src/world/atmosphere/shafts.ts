@@ -21,6 +21,8 @@
  * A's faint level (cores ≈ 0.03 after the curve); ×7.5 gives cores ≈ 0.1, i.e. beams of the
  * reference's weight (F's top band 0.38 vs its 0.39 mean luminance). The wide plaza columns keep 1.
  */
+import { Vector3, Vector4 } from 'three';
+import type { SharedCanopyOpening } from '../system';
 import { SHAFT_COLUMNS as TREE_SHAFT_COLUMNS } from '../trees/corridors';
 
 export interface ShaftColumn {
@@ -43,3 +45,47 @@ export const SHAFT_COLUMNS: ShaftColumn[] = TREE_SHAFT_COLUMNS.map((c) => ({
   radius: Math.min(c.radius, BEAM_RADIUS_MAX),
   gain: c.radius < NARROW_RADIUS ? NARROW_GAIN : 1,
 }));
+
+/** Stable uniform capacity; publication and diagnostic toggles never recompile the ray shader. */
+export const CANOPY_BEAM_CAPACITY = 8;
+
+/**
+ * Only the upper flight currently needs a mask opening: its real sun corridor falls in the
+ * noise field's 5% floor. The other published pools keep their existing air treatment. Gain 1
+ * removes that mask suppression without borrowing the legacy narrow shafts' 7.5x gain.
+ */
+export function createCanopyOpeningMask(sunRight: Vector3, sunUp: Vector3) {
+  const gaps = Array.from({ length: CANOPY_BEAM_CAPACITY }, () => new Vector4());
+  const count = { value: 0 };
+  let publishedCount = 0;
+  let active: SharedCanopyOpening | undefined;
+  return {
+    gaps,
+    count,
+    update(openings: readonly SharedCanopyOpening[], enabled: boolean) {
+      publishedCount = openings.length;
+      active = undefined;
+      count.value = 0;
+      for (const gap of gaps) gap.set(0, 0, 0, 0);
+      const opening = enabled ? openings.find((o) => o.id === 'flight-top') : undefined;
+      if (!opening || opening.radius <= 0) return;
+      const p = new Vector3(...opening.point);
+      gaps[0].set(p.dot(sunRight), p.dot(sunUp), Math.min(1, opening.radius), 1);
+      active = opening;
+      count.value = 1;
+    },
+    audit() {
+      return {
+        publishedCount,
+        capacity: CANOPY_BEAM_CAPACITY,
+        activeCount: count.value,
+        shadowGuard: 'inside-raw-shadow-map-and-lit',
+        entries: active ? [{
+          id: active.id, point: [...active.point], axis: [...active.axis],
+          carveRadius: active.radius, carveBand: [...active.band],
+          sunPlane: [gaps[0].x, gaps[0].y], radius: gaps[0].z, gain: gaps[0].w,
+        }] : [],
+      };
+    },
+  };
+}

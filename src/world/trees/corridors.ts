@@ -77,6 +77,8 @@ export const SHAFT_COLUMNS: ShaftColumn[] = [
  * within a world height band and ringed by a dense leaf collar (see CANOPY_OPENINGS).
  */
 export interface CanopyOpening {
+  /** optional semantic name for another system to address the resolved opening */
+  id?: string;
   /** ground centre of the sun pool (world x, z); the ground height is looked up */
   point: [number, number];
   /** cylinder radius (m) in the plane perpendicular to the sun — half the pool's width */
@@ -174,5 +176,5 @@ export const CANOPY_OPENINGS: CanopyOpening[] = [
   // run (through the second 7c lobe)
   { point: [8.3, -0.9], radius: 1.0, band: [10, 30], densify: 0 },
   { point: [12.0, -3.8], radius: 1.0, band: [12, 30], densify: 0 },
-  { point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0 },
+  { id: 'flight-top', point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0 },
 ];

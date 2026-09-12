@@ -157,6 +157,8 @@ uniform float uBeamNoiseMax; // openness of the noise gaps (the fixed columns ar
 uniform vec3 uFarAir;      // (start m, end m, mean openness): past the end the gap pattern is replaced by its mean
 uniform vec2 uGapHollow;   // world z where the canopy closes over the north hollow: gaps start fading / are gone
 uniform vec4 uGaps[ GAPS ]; // fixed open columns: (sun-plane x, sun-plane y, radius m, in-scatter gain); radius 0 = unused
+uniform vec4 uCanopyGaps[ CANOPY_GAPS ]; // deferred terrain-anchored openings, gain 1
+uniform int uCanopyGapCount;
 varying vec2 vUv;
 #define STEPS 24
 float hash21( vec2 p ) {
@@ -187,6 +189,17 @@ vec2 beamMask( vec3 pw ) {
     col = max( col, uGaps[ i ].w * ( 1.0 - smoothstep( r * 0.7, r, length( q - uGaps[ i ].xy ) ) ) );
   }
   return vec2( m, col );
+}
+float canopyOpeningMask( vec3 pw ) {
+  vec2 q = vec2( dot( pw, uSunRight ), dot( pw, uSunUp ) );
+  float open = 0.0;
+  for ( int i = 0; i < CANOPY_GAPS; i ++ ) {
+    if ( i >= uCanopyGapCount ) break;
+    float r = uCanopyGaps[ i ].z;
+    if ( r <= 0.0 ) continue;
+    open = max( open, 1.0 - smoothstep( r * 0.7, r, length( q - uCanopyGaps[ i ].xy ) ) );
+  }
+  return open;
 }
 void main() {
   float d = texture2D( tDepth, vUv ).x;
@@ -220,6 +233,11 @@ void main() {
     float column = bm.y;
     float toMean = max( smoothstep( uFarAir.x, uFarAir.y, t ), 1.0 - smoothstep( uGapHollow.y, uGapHollow.x, pw.z ) );
     float mask = max( mix( bm.x, uFarAir.z, toMean ), column );
+    // Extend only real, sampled lit air. Keep the legacy outside-map fallback unchanged, but do
+    // not let it activate a new opening (including samples behind the shadow camera's near plane).
+    if ( uCanopyGapCount > 0 && lit > 0.0 && sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z >= 0.0 && sc.z < 1.0 ) {
+      mask = max( mask, canopyOpeningMask( pw.xyz ) );
+    }
     lit *= mix( uBeam.w, 1.0, mask );
     float north = 1.0 - smoothstep( uFogParams.w, uFogParams.z, pw.z ); // hollow is at lower z
     float height = exp( -max( pw.y - uFogParams.x, 0.0 ) * uFogParams.y );

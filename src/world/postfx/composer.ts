@@ -53,7 +53,8 @@ import {
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
-import { SHAFT_COLUMNS } from '../atmosphere/shafts';
+import { CANOPY_BEAM_CAPACITY, createCanopyOpeningMask, SHAFT_COLUMNS } from '../atmosphere/shafts';
+import type { SharedCanopyOpening } from '../system';
 import {
   AO_BLUR_FRAG,
   AO_FRAG,
@@ -114,6 +115,8 @@ export interface ComposerOptions {
   sunDirection: Vector3;
   /** the shadow-casting sun; its PCF shadow map is marched for volumetric god rays */
   sun: () => DirectionalLight | null;
+  /** resolved lazily because the trees system is constructed after atmosphere */
+  canopyOpenings?: () => readonly SharedCanopyOpening[];
   exposure: number;
   headless: boolean;
   overlay?: ComposerOverlay;
@@ -163,6 +166,8 @@ export interface ComposerSettings {
   beamColumnScale: number;
   /** multiplier on the columns' own in-scatter gains (tuning aid; 1 = as defined in shafts.ts) */
   beamColumnGain: number;
+  /** open the published upper-flight corridor's mask, still gated by the real sun shadow map */
+  beamCanopyOpenings: boolean;
   /** marched distance (m) over which the gap pattern fades to its mean openness (smooth far air) */
   beamFarStart: number;
   beamFarEnd: number;
@@ -345,6 +350,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     beamNoiseMax: 0.65,
     beamColumnScale: 1.0,
     beamColumnGain: 1.0,
+    beamCanopyOpenings: true,
     // the blobs of the gap field seen through 25–40 m of lit hollow air striped the far arch of
     // shot D; past 25 m the pattern fades to its mean, so the far air is a smooth veil (the fill
     // is the field's mean openness — 65 % gaps covering ≈ 23 % of the sun plane, sampled
@@ -423,6 +429,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     const p = new Vector3(point[0], point[1], point[2]);
     return new Vector4(p.dot(sunRight), p.dot(sunUp), radius, gain);
   });
+  const canopyOpeningMask = createCanopyOpeningMask(sunRight, sunUp);
   const rayMarchMat = mat(
     RAY_MARCH_FRAG,
     {
@@ -442,6 +449,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       uFarAir: { value: new Vector3(settings.beamFarStart, settings.beamFarEnd, settings.beamFarFill) },
       uGapHollow: { value: new Vector2(settings.beamHollowStartZ, settings.beamHollowFullZ) },
       uGaps: { value: gaps },
+      uCanopyGaps: { value: canopyOpeningMask.gaps },
+      uCanopyGapCount: canopyOpeningMask.count,
       uMaxDist: { value: settings.rayMaxDist },
       // the beams' own air profile: a taller, softer layer than the ground mist so shafts keep
       // reading in the upper air of shots A/F even when the mist pool is thin
@@ -462,7 +471,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     },
     'postfx-ray-march',
   );
-  rayMarchMat.defines = { GAPS: String(Math.max(1, gaps.length)) };
+  rayMarchMat.defines = { GAPS: String(Math.max(1, gaps.length)), CANOPY_GAPS: String(CANOPY_BEAM_CAPACITY) };
   const rayBlurMat = mat(
     RAY_BLUR_FRAG,
     {
@@ -753,7 +762,9 @@ export function createComposer(opts: ComposerOptions): Composer {
     pass(aoBlurMat, aoB);
 
     // 4. god rays (volumetric march through the sun's shadow map, then smear along the sun axis)
-    if (rayIntensity.value > 0.001 && bindShadow()) {
+    const marchActive = rayIntensity.value > 0.001 && bindShadow();
+    canopyOpeningMask.update(opts.canopyOpenings?.() ?? [], s.beamCanopyOpenings && marchActive);
+    if (marchActive) {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
@@ -930,6 +941,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayFarAirFill: lastFrameSettings.beamFarFill,
       godRayGapHollowZ: [lastFrameSettings.beamHollowStartZ, lastFrameSettings.beamHollowFullZ],
       godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * lastFrameSettings.beamColumnScale, c.gain]),
+      godRayCanopyOpeningsEnabled: lastFrameSettings.beamCanopyOpenings,
+      godRayCanopyOpeningMask: canopyOpeningMask.audit(),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
       bloom: true,

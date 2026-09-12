@@ -5,6 +5,20 @@ Astra / Codex, ChatGPT Work. Root implements lighting, shadows, atmosphere and p
 Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world branch.
 
 ## Current task
+Current active light study (after published d7ddc01bc74151a0f93fa19f7a6e9b37c99fa09f):
+Fable released trees/index.ts/system.ts in PR2comment5646240291. Helper owns the additive
+SharedGeometry.canopyOpenings contract, optional 'flight-top' semantic metadata, and deferred
+atmosphere/composer mask wiring. Only the top flight is admitted, gain1/radius1; eight stable
+uniform slots, no shader recompilation on publication/toggle; valid actual sun-shadow lookup
+required. Six legacy columns, noise, density, lower-air fade, sun and all geometry/RNG stay intact.
+Root owns the next capture-variants file: baseline only beamCanopyOpenings=false; candidate null
+runtime hooks, production true. Both same source/camera/time/depth/geometry; historical f115
+fill/contrast controls are no longer this study's baseline. Actual d7 prop capture remains pinned
+to its original controls in its own CI checkout (run34697294542), unaffected by this working tree.
+A separate helper prepared optional reuse of the original45ed leaf-wrapped pods for the two
+posts only; patch remains in scratch pending vegetation budget headroom. Root and sign helper
+are also reading near giant-bark flattening against boards01/02/05, no material edit yet.
+
 Owned prop detail checkpoint ready after actual18e193 review: root's coarser physical rope
 strands/neutral fibres and helper's sign-owned textured shade floor, thinner original cut-mark
 atlas and fibre binding. One minimal structures/index.ts disposal registration is coordinated
@@ -252,4 +266,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T13:40:54.452678+00:00
+2026-09-12T13:53:20.152485+00:00
