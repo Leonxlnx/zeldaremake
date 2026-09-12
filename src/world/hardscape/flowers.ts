@@ -5,7 +5,7 @@
  * small hardscape-owned mesh: every head a squashed icosphere on a thin stem, all merged into
  * one geometry — one draw for the lot, no wind, no shadow casting.
  */
-import { BufferGeometry, Color, Float32BufferAttribute, IcosahedronGeometry, Mesh, MeshStandardMaterial } from 'three';
+import { BufferGeometry, Color, Float32BufferAttribute, IcosahedronGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
 import type { WorldConfig } from '../config';
 
@@ -22,11 +22,11 @@ const HEAD_RADIUS: [number, number] = [0.016, 0.024];
  * B/E view sees them over the blades instead of buried among them */
 const STEM_HEIGHT: [number, number] = [0.1, 0.14];
 
-export function buildFlowerHeads(heads: FlowerHead[], rng: Rng, palette: WorldConfig['palette']): { mesh: Mesh; triangles: number } {
+export function buildFlowerHeads(heads: FlowerHead[], rng: Rng, palette: WorldConfig['palette']): { mesh: Mesh; triangles: number; dispose(): void } {
   const pos: number[] = [];
   const nrm: number[] = [];
   const col: number[] = [];
-  const unit = new IcosahedronGeometry(1, 1).toNonIndexed();
+  const unit = new IcosahedronGeometry(1, 1);
   const up = unit.getAttribute('position').array as Float32Array;
   const un = unit.getAttribute('normal').array as Float32Array;
   const stem = new Color(palette.grassDeep);
@@ -48,7 +48,10 @@ export function buildFlowerHeads(heads: FlowerHead[], rng: Rng, palette: WorldCo
       const ny = un[i + 1];
       const nz = un[i + 2];
       pos.push(cx + up[i] * r, cy + up[i + 1] * r * 0.72, cz + up[i + 2] * r);
-      nrm.push(nx, ny, nz);
+      // The head is squashed along Y: normals follow the inverse transpose, not the sphere.
+      const normalY = ny / 0.72;
+      const invNormalLength = 1 / Math.hypot(nx, normalY, nz);
+      nrm.push(nx * invNormalLength, normalY * invNormalLength, nz * invNormalLength);
       const shade = 0.78 + 0.22 * (ny * 0.5 + 0.5);
       col.push(cream.r * shade, cream.g * shade, cream.b * shade);
     }
@@ -63,17 +66,21 @@ export function buildFlowerHeads(heads: FlowerHead[], rng: Rng, palette: WorldCo
       [cx + px, cy - r * 0.5, cz + pz],
       [cx - px, cy - r * 0.5, cz - pz],
     ];
+    // Both triangles share this planar quad's actual winding, including its randomized lean.
+    const stemNormal = new Vector3().fromArray(quad[1]).sub(new Vector3().fromArray(quad[0]));
+    stemNormal.cross(new Vector3().fromArray(quad[2]).sub(new Vector3().fromArray(quad[0]))).normalize();
     for (const [a, b, c] of [
       [0, 1, 2],
       [0, 2, 3],
     ]) {
       for (const q of [quad[a], quad[b], quad[c]]) {
         pos.push(q[0], q[1], q[2]);
-        nrm.push(0, 0.7, 0.7);
+        nrm.push(stemNormal.x, stemNormal.y, stemNormal.z);
         col.push(stem.r, stem.g, stem.b);
       }
     }
   }
+  unit.dispose();
   const g = new BufferGeometry();
   g.setAttribute('position', new Float32BufferAttribute(pos, 3));
   g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
@@ -85,5 +92,15 @@ export function buildFlowerHeads(heads: FlowerHead[], rng: Rng, palette: WorldCo
   mesh.name = 'lawn-flowers';
   mesh.castShadow = false;
   mesh.receiveShadow = true;
-  return { mesh, triangles: pos.length / 9 };
+  let disposed = false;
+  return {
+    mesh,
+    triangles: pos.length / 9,
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      g.dispose();
+      mat.dispose();
+    },
+  };
 }
