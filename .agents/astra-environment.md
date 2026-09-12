@@ -7,7 +7,17 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Deliberately integrate Fable's published structures 17 and take 70 history from partner
+Next isolated art trial: pose the existing high-LOD hedge leaves in vegetation/plantgeo.ts.
+Existing width/twist selects pitch, cupping and tip droop; no extra RNG, geometry or materials.
+Stems, attachments, local crown boxes and authored placements remain exact. All lower hedge
+LODs and ordinary bushes remain exact. Actual A/F form review and a short full-scene camera
+sweep across the 26 m detail transition will decide retention; CPU projection is not a render.
+The sweep will preserve original PNGs and source/camera/time/depth metadata in an append-only
+motion gallery. It runs in existing CI for relevant source changes, with no schedule.
+Tooling helper owns scratch capture/publication patch; source helper owns new portable proof only.
+Root owns production edits and publication. No sleeve shader or global light change in this trial.
+
+Completed integration in 0d4ae524bb29a64df796e7506e34761498626244: Fable's structures 17 and take 70 history from partner
 90920a79debb18f10aa4ea1e1f4347e50cb39cd0 into our own branch after the isolated sprout trial.
 The reviewed house/material work is exact 3ab1222/eadb660: wider arch, irregular crown, clearer window,
 new burls and generated texture ownership. Resolve the structures/index.ts conflict by retaining
@@ -26,11 +36,19 @@ submitted a fresh W25 fail through the CLI. It credits restored window, wider op
 room while identifying remaining smooth wall fins/separate cap construction. No integrated
 lighting appearance verdict yet.
 
-Published sprout trial 7bafeb0dbfadb5fd2d0830ef8fde7a690ca7b9b7 has exact frozen source hashes,
-typecheck/build 111 and existing semantic-mask checks. Expected saving is 120,322 submitted
-triangles for two extra calls, with planting/RNG/bounds retained. Actual capture follows the
-running ef2100e stone rollback. The correct sprout environment run 34713904603 is now in progress, so this next checkpoint
-can queue without replacing it.
+RETAIN sprout optimization 7bafeb0dbfadb5fd2d0830ef8fde7a690ca7b9b7: all sixteen actual JPEGs
+and depth hashes are byte-exact ef2100e. Actor/control/sampler and unrelated audits are exact.
+Every view saves exactly 120,322 submitted triangles for two extra calls, +2 mesh/geometries,
+unchanged programs 75 / textures 70. One B candidate retry; other fifteen zero, no errors/warnings.
+Original archive, ZIPs and history checks pass. This is a submission saving, not an FPS claim.
+Integrated house run 34714700230 has now completed all sixteen captures and full original,
+source/ZIP/history receipts. Root retains actual window/room/crown gains after inspecting
+A/B/F/D and S01. All actors/cameras/unrelated audits/resources match 7b, +4,298 scene triangles,
+unchanged calls, zero retries/errors/warnings. An initially unexpected +3 structure leaves
+is narrowly traced to existing eave-lantern vines following moved soffits; initial failure is
+preserved with exact source evidence. A small dark S01 root/wall crease has unproven cause.
+The next leaf source and all six tooling files match frozen hashes; type/build 111, tooling
+syntax and source integrity pass (41 checks; 30 inherited historical-claim warnings).
 
 The e6 crate rollback now has all 16 actual receipts: depth, actors, other audits and budgets
 exact e706; one material/program removed, textures unchanged. C/F/L01/L02 images are exact,
@@ -43,17 +61,15 @@ versus reference .430496 / .351195; these regions contain different scene conten
 sleeve source receives only .57352 of Fable's hemisphere ambient-mean luminance, with separate
 fog/IBL/post differences. This is a known baseline/input difference, not a missing-texture bug
 or exact GPU attribution. Both frozen 20% response variants remain unapplied.
-Foreground hedge leaf cupping/droop is frozen in scratch for a later isolated actual comparison.
+The frozen hedge geometry source proof passes; its actual comparison is the current work.
 
 ## Files / systems being touched
-- Root: exact partner house.ts/materials.ts/distantHouse.ts; deliberate structures/index.ts merge.
-- Root: additive system.ts contract merge; own log, claims and integration review.
-- Partner log/ledger are imported exactly through ancestry, never hand-edited.
-- Published sprout, stone and crate sources remain untouched during this integration.
-- Source reviewer: sleeve darkness attribution in scratch; frozen 20% patch remains unapplied.
-- Capture helper: ef2100e then 7bafeb0 originals; no production writes.
-- Independent reviewer: actual take 70 W25 draft only, no formal submission before root inspection.
-- Hedge candidate: high-LOD leaf form only, scratch, no lighting/placement changes.
+- Root: vegetation/plantgeo.ts, reviewed supplemental CI capture/publication tooling, own log and claims.
+- Source helper: new docs/reviews/hedge-leaf-form proof directory only.
+- Tooling helper: frozen sweep/publisher patch in scratch; root reviews before applying.
+- Capture helper: actual 0d4ae52 originals, then the leaf trial; no production writes.
+- Fable owns new tree seat publication, distant house attachment/depth and burl seam correction.
+- Sleeve shader and all global lighting remain unchanged during this leaf trial.
 
 ## Partner state / coordination
 Targeted fetch confirms eadb660 after 3ab1222 and 74918cd. The first request returned HTTP 502;
@@ -62,9 +78,10 @@ materials.ts after the active structures pass and confirms exact adoption of our
 Root acknowledged the integration sequence in 5648094928: isolated sprout trial, deliberate
 structures integration, then the sleeve candidate. Preserve Fable's generated texture ownership.
 
-A later sleeve trial must leave HOUSE/RECESS/shared floor/disposal untouched and keep B's
-normalized band x 0.20–0.45, y 0.04–0.12 within 0.03 luminance of reference 0.35. His reported
-bright over-lintel band needs review on integrated actual images before any correction.
+Latest targeted fetch: 1216a48 imports our fresh take-70 W25 fail and original evidence.
+His corrected sleeve guards are recorded above; the previous quoted .35 target for box a
+was wrong and is superseded. His reported bright over-lintel band needs review on integrated
+actual images before any correction.
 The independent sprout scope is announced in 5648048017 under handoff 5647471072.
 Root and helper revisited owner boards 05/08: the right-bank hedge's broad, horizontal leaf
 tiers are the next bounded form candidate. Scratch-only high-LOD leaf cupping/droop study;
@@ -79,8 +96,11 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
-| e6d6ac0 | Reverted rejected crate trial to exact pretrial props source; typecheck/build 111 pass, actual capture queued. |
-| e7069a4 | Actual A/F visual gain too weak: REJECTED. Historical actor-XZ check also fails by millimeters; exact two-file rollback in progress. |
+| 0d4ae52 | RETAIN actual window/room/crown progress; all 16 contracts pass, source-backed +3 vine leaves, +4,298 scene triangles, same calls, zero retries/errors/warnings. |
+| 7bafeb0 | RETAIN: all 16 JPEG/depth hashes exact ef; exactly -120,322 submitted triangles for +2 calls. One B candidate retry, no errors/warnings. |
+| ef2100e | Exact rejected-stone rollback; all 16 actual depth/actors/sampler/camera restored to 8714, e6 resources/program 75 retained, zero retries/errors/warnings. |
+| e6d6ac0 | Exact rejected-crate rollback; all 16 source/depth/audit contracts pass, one material/program removed. One E candidate retry, no errors/warnings. |
+| e7069a4 | Actual A/F visual gain too weak: REJECTED. Historical actor-XZ check also fails by millimeters; exact two-file rollback published in ef. |
 | 8714d2a | All 16 depth/source/resource and predicted cost checks pass; strict JPEG identity fails minutely. Retained after independent visual review, with failure disclosed. One D baseline retry. |
 | 71843a2 | Actual 12+4 contracts pass, zero retries/errors; B imperceptible and D faint. REJECTED and reverted in e6d. |
 | 660dcac | All16 actual JPEG/depth/audits/resources/budgets exact1e; one safe E candidate retry,other15zero,noerrors. Corrects the early helper zero-retry report. |
@@ -162,10 +182,9 @@ The exact original PNG ZIP was delivered; previews do not pretend to be original
 Detailed earlier chronology is preserved in `docs/reviews/astra-environment-history-through-64028c4.md`.
 
 ## Suggested parallel tasks
-Fable: active structures 17, accepted main-window and generated moss-map ownership fixes,
-then distant opening depth and host attachment. Publish the materials SHA before sleeve work.
-Astra: exact rejected-stone rollback, then isolated sprout batching and foreground plant forms.
+Fable: periodic burl seam correction, distant opening depth and published trunk host attachment.
+Astra: foreground plant forms and actual detail-transition check, then a separate lighting trial.
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T19:35:10.039842+00:00
+2026-09-12T20:00:40.892828+00:00

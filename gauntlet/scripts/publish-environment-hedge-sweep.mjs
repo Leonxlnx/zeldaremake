@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Append verified comparison bytes to one dedicated branch with bounded non-force retries. */
+/** Append verified motion originals without replacing comparison/detail/history folders. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,7 +7,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
-import { readCompletedComparison, readJson } from './environment-capture-data.mjs';
+import { readJson, sourceIdentity } from './environment-capture-data.mjs';
+import { ROOT } from './lib/browser.mjs';
+import { hashDir } from './capture.mjs';
+import { loadHedgeSweep } from './environment-hedge-sweep-data.mjs';
+import { readCompletedHedgeSweep } from './environment-hedge-sweep-publication-data.mjs';
 
 const BRANCH = 'captures/astra-environment';
 function git(cwd, args, mayFail = false) {
@@ -30,45 +34,37 @@ function copyImmutable(source, destination) {
   } else { fs.mkdirSync(destination, { recursive: true }); for (const name of names) fs.copyFileSync(path.join(source, name), path.join(destination, name)); }
 }
 function indexReadme(directory) {
-  const folders = fs.readdirSync(path.join(directory, 'progress'), { withFileTypes: true })
+  const folders = fs.readdirSync(path.join(directory, 'motion'), { withFileTypes: true })
     .filter(e => e.isDirectory()).map(e => e.name).sort().reverse();
-  const lines = ['# Astra environment progress', '',
-    'Original game screenshots: twelve matched baseline/candidate images per checkpoint. Open a dated folder for the comparison, requested controls, audits and source identity. Historical checkpoint bytes are preserved.', '',
-    'These are supplemental art-direction comparisons, not gauntlet takes or quality-gate approvals. Both variants within a checkpoint use one built source and fixed cameras/time; geometry and fog remain identical within each pair.', '',
-    '| Captured UTC | Source | Comparison |', '| --- | --- | --- |'];
-  if (fs.existsSync(path.join(directory, 'details', 'README.md'))) lines.splice(4, 0, '[Four closeup world detail views per checkpoint](details/)', '');
-  if (fs.existsSync(path.join(directory, 'motion', 'README.md'))) lines.splice(4, 0, '[Original bank-hedge camera sweeps](motion/)', '');
+  const lines = ['# Bank hedge camera sweeps', '',
+    'Eleven unmodified full-scene PNGs per checkpoint, crossing both bank-hedge LOD thresholds and returning at fixed time 12.5 s. Explicit free-camera poses force rebucketing; this does not measure the interactive 0.6 m movement gate. These are supplemental observations, not quality approvals.', '',
+    '[Environment comparisons](../) · [World details](../details/)', '',
+    '| Captured UTC | Source | Original frames and metadata |', '| --- | --- | --- |'];
   for (const folder of folders) {
     assert.match(folder, /^\d{4}-\d{2}-\d{2}_\d{9}-[a-f0-9]{7}$/);
-    const r = readJson(path.join(directory, 'progress', folder, 'environment.json'));
-    assert.match(r.source, /^[a-f0-9]{40}$/);
-    if (folder === folders[0]) {
-      const preview = (id, label) => `[![${label}](progress/${folder}/${id}-candidate.jpg)](progress/${folder}/${id}-candidate.jpg)`;
-      lines.splice(lines.indexOf('| Captured UTC | Source | Comparison |'), 0,
-        `## Latest rendered candidate — ${r.source.slice(0, 7)}`, '',
-        `Captured ${r.capturedAt}. Open an image for full size, or [compare all six baseline/candidate pairs](progress/${folder}/).`, '',
-        '| Stairway | Tree house |', '| --- | --- |',
-        `| ${preview('A_stairs', 'Stairway')} | ${preview('B_house', 'Tree house')} |`,
-        '| Path through the forest | Canopy and upper flight |',
-        `| ${preview('C_lookback', 'Path through the forest')} | ${preview('F_canopy', 'Canopy and upper flight')} |`, '',
-        '## All checkpoints', '');
-    }
-    lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [12 images](progress/${folder}/) |`);
+    const r = readJson(path.join(directory, 'motion', folder, 'sweep.json')); assert.match(r.source, /^[a-f0-9]{40}$/);
+    lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [11 original frames](${folder}/) |`);
   }
-  fs.writeFileSync(path.join(directory, 'README.md'), lines.join('\n') + '\n');
+  fs.writeFileSync(path.join(directory, 'motion', 'README.md'), lines.join('\n') + '\n');
+  const rootReadme = path.join(directory, 'README.md');
+  let main = fs.existsSync(rootReadme) ? fs.readFileSync(rootReadme, 'utf8') : '# Astra environment progress\n';
+  if (!main.includes('(motion/)')) {
+    main += '\n[Original bank-hedge camera sweeps](motion/)\n'; fs.writeFileSync(rootReadme, main);
+  }
 }
 
-export async function publishEnvironmentCapture({ captureDir, remote, source, temporaryRoot = os.tmpdir(), maxAttempts = 6 }) {
+export async function publishEnvironmentHedgeSweep({ captureDir, remote, expected, temporaryRoot = os.tmpdir(), maxAttempts = 6 }) {
+  const source = expected.identity.source;
   assert(typeof remote === 'string' && remote); assert.match(source, /^[a-f0-9]{40}$/);
   assert(Number.isInteger(maxAttempts) && maxAttempts >= 1 && maxAttempts <= 10);
   captureDir = path.resolve(captureDir);
-  const report = readCompletedComparison(captureDir, source);
+  const report = await readCompletedHedgeSweep(captureDir, expected);
   const stamp = new Date(report.capturedAt).toISOString().replace('T', '_').replace(/[:.]/g, '').replace('Z', '');
-  const folder = `progress/${stamp}-${source.slice(0, 7)}`;
-  const workspace = fs.mkdtempSync(path.join(temporaryRoot, 'astra-environment-publication-'));
+  const folder = `motion/${stamp}-${source.slice(0, 7)}`;
+  const workspace = fs.mkdtempSync(path.join(temporaryRoot, 'astra-environment-motion-publication-'));
   try {
     const frozen = path.join(workspace, 'frozen'); copyImmutable(captureDir, frozen);
-    readCompletedComparison(frozen, source);
+    await readCompletedHedgeSweep(frozen, expected);
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const checkout = fs.mkdtempSync(path.join(workspace, 'attempt-'));
       try {
@@ -82,11 +78,11 @@ export async function publishEnvironmentCapture({ captureDir, remote, source, te
           git(checkout, ['reset', '--hard', 'FETCH_HEAD']); base = git(checkout, ['rev-parse', 'HEAD']).stdout.trim();
         }
         copyImmutable(frozen, path.join(checkout, folder)); indexReadme(checkout);
-        git(checkout, ['add', '--', 'README.md', folder]);
+        git(checkout, ['add', '--', 'README.md', 'motion/README.md', folder]);
         const diff = git(checkout, ['diff', '--cached', '--quiet'], true);
         if (diff.status === 0) return { branch: BRANCH, head: base, folder, source, attempt, changed: false };
         assert.equal(diff.status, 1, diff.stderr);
-        git(checkout, ['commit', '-m', `Environment comparison for ${source} [skip ci]`]);
+        git(checkout, ['commit', '-m', `Bank hedge camera sweep for ${source} [skip ci]`]);
         const head = git(checkout, ['rev-parse', 'HEAD']).stdout.trim();
         const push = git(checkout, ['push', 'origin', `HEAD:refs/heads/${BRANCH}`], true);
         if (push.status === 0 || remoteHead(checkout) === head) return { branch: BRANCH, head, folder, source, attempt, changed: true };
@@ -102,6 +98,8 @@ export async function publishEnvironmentCapture({ captureDir, remote, source, te
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [captureDir, remote] = process.argv.slice(2);
-  assert(captureDir && remote && process.env.GITHUB_SHA, 'Usage: GITHUB_SHA=SOURCE node publish-environment-capture.mjs CAPTURE_DIR REMOTE');
-  console.log(JSON.stringify(await publishEnvironmentCapture({ captureDir, remote, source: process.env.GITHUB_SHA })));
+  assert(captureDir && remote && process.env.GITHUB_SHA, 'Usage: GITHUB_SHA=SOURCE node publish-environment-hedge-sweep.mjs CAPTURE_DIR REMOTE');
+  const identity = sourceIdentity(ROOT); assert.equal(identity.source, process.env.GITHUB_SHA);
+  const expected = { identity, plan: loadHedgeSweep(ROOT), distHash: hashDir(path.join(ROOT, 'dist')) };
+  console.log(JSON.stringify(await publishEnvironmentHedgeSweep({ captureDir, remote, expected })));
 }

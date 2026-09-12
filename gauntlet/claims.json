@@ -769,6 +769,16 @@
       "at": "2026-09-12T19:27:18.155Z",
       "expiresHours": 3,
       "scope": "Integrate published Fable structures17 and take70 history; preserve sign/post/canopy contracts; actual cross-review pending"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W19",
+        "W22"
+      ],
+      "at": "2026-09-12T19:51:39.398Z",
+      "expiresHours": 3,
+      "scope": "High-LOD hedge leaf pitch, cupping and droop in plantgeo.ts; preserve placement, stems, RNG and material; actual full-scene LOD sweep and historical A/F review"
     }
   ]
 }

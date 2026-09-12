@@ -109,4 +109,32 @@ ground surface on both sides, and will check actor state without discarding diff
 Both candidate source hashes match the table. Exactly two production files change; restored
 geometry.ts and flagstones.ts remain byte-exact 8714. Production typecheck/build (111 modules)
 and the existing shared semantic-mask test pass. No extra broad test suite or shader change
-is bundled into this optimization. Actual retention remains pending.
+is bundled into this optimization. The actual gate is now complete below.
+
+## Actual result: retained
+
+Published source `7bafeb0dbfadb5fd2d0830ef8fde7a690ca7b9b7`, tree
+`218fc34cf18e69d67e1e55990e19b1dad43e1e49`, passed the strict gate in environment run
+34713904603. All sixteen actual JPEG bytes and measured depth hashes are exact against
+`ef2100e3d3f885692b10116f89b1a676c83dbdd0`. Actor/control/sampler state and unrelated audits
+are exact. No image tolerance, diagnostic relaxation or duplicate visual review was needed.
+
+Every view removes exactly 120,322 submitted triangles for two additional calls. Scene mesh,
+instanced mesh and unique geometry counts increase by two; total instances are unchanged.
+Programs remain 75 and textures 70. Intended hardscape audit changes match the source proof:
+packs `[[1],[0],[2],[6],[3],[4]]`, joint calls 4 to 6, grit calls 0 to 1 and submitted triangles
+320,396 to 200,074. B/E now reports 656 calls / 8,604,739 triangles; L02 is 546 / 8,281,747.
+
+One B candidate used a same-state blank-buffer retry; the other fifteen used zero. No final
+errors or warnings. Original archive bytes, complete source identity, ZIP entries/CRC,
+historical folders and all eight inline preview targets pass verification. The 202 source
+inputs hash `05eb5c662a11382d24a327fd73e72b27b3537955c17eb599638dd9cefeff0440`.
+
+Actual originals: [twelve world comparisons](https://github.com/Leonxlnx/zeldaremake/tree/403cf381dfcc58bcd4bba09091940f066e26b73b/progress/2026-09-12_194122798-7bafeb0)
+and [four details](https://github.com/Leonxlnx/zeldaremake/tree/eb691093d5c8b2d456ce928ac4a648a9f9ff459e/details/2026-09-12_194416836-7bafeb0).
+These older captures retain JPEG originals; original PNGs and an independently downloaded
+dist build rehash are not claimed. Paired gallery columns are same-source gain 1/3 controls;
+the strict optimization comparison uses matching historical ef variants.
+
+Retained because content is unchanged and the real submission reduction is verified. This
+adds no visual detail itself and establishes no FPS or interactive LOD timing improvement.

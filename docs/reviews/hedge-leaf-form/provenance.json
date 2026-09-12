@@ -1,0 +1,53 @@
+{
+  "status": "Frozen source proposal; application handled separately. Actual candidate visual verdict pending.",
+  "pin": {
+    "source": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+    "file": "src/world/vegetation/plantgeo.ts",
+    "beforeSha256": "0f05517365fc89ffe83bdbe50a5c570e40541fb7db2c37845bb5425f6f853256",
+    "sourceAtCapture": "e7069a456e6bb3e58f4354983446cdb10f4b35fd",
+    "status": "frozen scratch proposal, not integrated; actual visual gate pending",
+    "candidateSha256": "98ccdc110e23283097b1b9366bec39aabf3d7f914e4419deb5f19a35957a02f9",
+    "patchSha256": "fd2a79ca9ce0dd93c380ce648eb465889f4e4c6d2d6ef8df7f92aef173d4f4dc",
+    "receipts": {
+      "fixture.mjs": "01e32e7b568ff4d44509311eb340f24cab6503aff268b741ddae57900493924f",
+      "check.mjs": "5a2a68ea5658bbc1a005c0eb61ffae3e44b3607184900b25d5ebd59f74b88426",
+      "typecheck.mjs": "b11428c15f1684b319c05d0f3ab0995cc911c6a1e00bee899fcfb3c5c8b50359",
+      "projection.mjs": "2ea9163fa6d0291f758b42cab32450f2705fa8285ce6f8d4df677182a7a5e6b4",
+      "evidence.json": "05687e82c883844f0548cd152b2375074012acedf320ef87bf4457b28d86f11a",
+      "typecheck.json": "f9af077f3ec5555e0fa91dec5038a55f9f948de22c1100724ae8e149f8e5baf5",
+      "projection.json": "f4f51a9a074ae9e5f8224895cb9294aa7040a8960949dba021e7381859505c85"
+    }
+  },
+  "portableReproduction": {
+    "source": "Published git objects plus two unique-context edits; no source snapshots or scratch dependencies.",
+    "fixture": "Original geometry/RNG/placement proof, changed only to read reconstructed candidate in memory.",
+    "check": "Original report regenerated and deep-compared with the unchanged frozen evidence. No image/renderer assertion."
+  },
+  "projection": {
+    "status": "Frozen CPU summary, not rerun by portable check. Per-leaf arrays omitted.",
+    "originalProjectionSha256": "f4f51a9a074ae9e5f8224895cb9294aa7040a8960949dba021e7381859505c85",
+    "originalProjectionScriptSha256": "2ea9163fa6d0291f758b42cab32450f2705fa8285ce6f8d4df677182a7a5e6b4",
+    "originalSummarySha256": "32b05c26c946ee6a5f817ad3ae87254e2c556f552612f072f17adccc5e049488",
+    "captureReportSource": "e7069a456e6bb3e58f4354983446cdb10f4b35fd",
+    "captureReportSha256": "b072654fa73c29e1187e266101b360e146f84280bf4b961e034701d69a7b7a4b",
+    "identityReportSha256": "11c7e750b67ddae9f6d3f5ba48569973c821d701653bc092fa4dd849afc24d6d",
+    "time": 12.5,
+    "imageSize": [
+      1280,
+      720
+    ],
+    "cameraProjection": {
+      "near": 0.1,
+      "far": 500
+    },
+    "windSourcePin": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+    "inputs": "Exact A/F camera, selected leaf ids/pixels and ROIs retained in projection-summary.json. Source wind replay used this pinned WorldContext at time12.5; includes hidden leaves, excludes full-world occlusion. No candidate screenshots."
+  },
+  "typecheck": {
+    "pin": "ef2100e3d3f885692b10116f89b1a676c83dbdd0",
+    "candidateSha256": "98ccdc110e23283097b1b9366bec39aabf3d7f914e4419deb5f19a35957a02f9",
+    "diagnosticCount": 0,
+    "passed": true
+  },
+  "typecheckLimit": "Frozen original pinned full-source TypeScript overlay result. Portable geometry check does not repeat typecheck; current integration build is a separate root gate."
+}

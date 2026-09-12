@@ -3,6 +3,11 @@ on:
   push:
     branches: ['agent/astra-environment-lighting']
   workflow_dispatch:
+    inputs:
+      hedge_lod_sweep:
+        description: 'Capture the bounded bank-hedge LOD sweep (11 full-scene frames)'
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -42,6 +47,22 @@ jobs:
           CAPTURE_CHROME="${RUNNER_CHROME:-$FALLBACK_CHROME}"
           echo "CHROME_PATH=$CAPTURE_CHROME" >> "$GITHUB_ENV"
           "$CAPTURE_CHROME" --version
+      - name: Detect a hedge geometry checkpoint
+        id: hedge-sweep
+        env:
+          MANUAL_HEDGE_SWEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.hedge_lod_sweep }}
+        shell: bash
+        run: |
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            HEDGE_CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD^ HEAD -- src/world/vegetation/plantgeo.ts)"
+          else
+            HEDGE_CHANGED="$(git ls-tree --name-only HEAD -- src/world/vegetation/plantgeo.ts)"
+          fi
+          if [ -n "$HEDGE_CHANGED" ] || [ "$MANUAL_HEDGE_SWEEP" = 'true' ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+          fi
       - run: npm run typecheck
       - run: npm run build
       - name: Check source integrity
@@ -99,3 +120,25 @@ jobs:
           node gauntlet/scripts/publish-environment-details.mjs gauntlet/out/astra-environment-details "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-detail-publication.json"
           cat "$RUNNER_TEMP/astra-environment-detail-publication.json"
           node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-detail-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Four production world detail views](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'
+      - name: Capture bank-hedge LOD sweep for geometry changes
+        if: steps.hedge-sweep.outputs.enabled == 'true'
+        timeout-minutes: 12
+        run: node gauntlet/scripts/capture-environment-hedge-sweep.mjs
+      - name: Retain original hedge sweep and partial failure metadata
+        if: always() && steps.hedge-sweep.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: astra-environment-hedge-sweep-${{ github.sha }}-${{ github.run_attempt }}
+          path: gauntlet/out/astra-environment-hedge-sweep
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish verified original hedge sweep
+        if: steps.hedge-sweep.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          node gauntlet/scripts/publish-environment-hedge-sweep.mjs gauntlet/out/astra-environment-hedge-sweep "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/astra-environment-motion-publication.json"
+          cat "$RUNNER_TEMP/astra-environment-motion-publication.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/astra-environment-motion-publication.json","utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`[Eleven original hedge LOD sweep frames](https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${p.head}/${p.folder})\n`);'

@@ -96,3 +96,44 @@ candidate would further darken sampled floor medians, so both versions remain un
 
 Production typecheck/build (111 modules), exact reviewed merged-index hash, partner source and
 ledger bytes, additive-only types and retained sprout/stone/sign/post/leaf-pod hashes pass.
+
+## Integrated actual world result
+
+Published integration `0d4ae524bb29a64df796e7506e34761498626244` now has its own actual
+world originals. Root personally compared B with the exact 7b predecessor and viewed A/F/D,
+then revisited owner board 08. The restored warm round window, wider opening, darker room
+and less even crown carry through our lighting and are retained. Broad smooth wall fins and
+the separate moss cap remain below the references. Distant flat glowing openings also remain
+visible and are Fable's next work; this is no W25 pass.
+
+World source/original-byte/ZIP contracts pass. All twelve cameras, actors and non-structure
+systems match 7b; calls are unchanged, scene triangles grow by exactly 4,298. Submitted triangles
+grow by 8,596 at A/B/D/E/F and 8,282 at C; all remain within the existing budget. Materials,
+textures, geometry count and programs are unchanged (75 programs / 70 renderer textures).
+C JPEG/depth is exact; house-visible views change depth intentionally. All twelve have zero
+retries, errors and warnings. All four details and full archive/source/ZIP/history receipts
+are now complete too, with zero retries/errors/warnings across all sixteen captures.
+The original sign remains legible and its bindings clear. L01/L02 retain exact depth and
+post/pod forms; their small image residuals do not establish a new attachment fault.
+Root also inspected S01: a small dark triangular crease near the widened root/wall join
+around (879, 600) is visible, but its cause is unproven. The known burl seam remains tracked
+with Fable; the image alone does not attribute that crease to the seam or prove a broad crack.
+
+The explicit confirmed-leaf gate passes all sixteen while preserving the initial failure.
+The 202 source inputs hash `3658d73efba66e9f724d22c3d523e51d3eec1182ee63c0d1f7ebba1a92c17749`.
+[Actual four details](https://github.com/Leonxlnx/zeldaremake/tree/75c65be1a227e9bf2c03240b3ccf81d423d0daf8/details/2026-09-12_195628337-0d4ae52).
+Older archives retain JPEG originals; original PNGs and an independently downloaded dist
+build rehash are not claimed. Neither stills nor source accounting establish frame-time gains.
+
+The initial historical audit checker stopped on an unanticipated `leaves: 5763 → 5766` field.
+[The initial finding is preserved](fable-structures17/initial-audit-expectation-failure.json).
+A narrow source trace [accounts for the three leaves](fable-structures17/leaf-count-evidence.json):
+Saria is 1,876 → 1,879 and the upper house remains 1,345 overall. Two existing Saria eave-lantern
+vines change from 15 → 16 and 8 → 10 leaves; changed soffit heights move their hooks by
+42.160 / 71.944 mm while cord lengths preserve pod endpoints. The hanging-vine builder uses
+`cord * .85` and integer leaf spacing. Upper's net zero conceals 6 → 7 and 8 → 7 changes.
+All other traced top-level call counts and foliage.ts source remain exact. This justifies the
+specific dependent-vine audit change, not a broad whitelist or downstream RNG identity claim.
+No original capture metadata was rewritten.
+
+[Actual integrated world gallery](https://github.com/Leonxlnx/zeldaremake/tree/9d5cdd806de14ba78e85f5dac229c1b02c7e9273/progress/2026-09-12_195338310-0d4ae52).

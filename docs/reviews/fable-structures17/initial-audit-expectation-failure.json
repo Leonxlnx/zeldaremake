@@ -1,0 +1,8 @@
+{
+  "file": "A_stairs-baseline.jpg",
+  "assertion": "unexpected structure audit keys",
+  "field": "leaves",
+  "old": 5763,
+  "new": 5766,
+  "note": "Capture/source proof passed; initial historical diagnostic omitted potentially intended dependent roof foliage count. No original metadata rewritten."
+}

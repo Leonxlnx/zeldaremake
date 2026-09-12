@@ -240,6 +240,46 @@ function hedgeLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length:
   mesh.tri(rows[3][1], rows[4][0], rows[3][2]);
 }
 
+/** Vary near hedge leaf profiles without moving their petioles or the authored crown box.
+ * Vertical shears retain each broad lamina's horizontal footprint and triangle winding.
+ * Existing width and twist variation supplies the pose; this consumes no random numbers.
+ */
+function poseHedgeLeaves(mesh: MeshBuilder, ranges: [number, number][]) {
+  const axes = ['x', 'y', 'z'] as const;
+  const minimum = V(Infinity, Infinity, Infinity);
+  const maximum = V(-Infinity, -Infinity, -Infinity);
+  for (let i = 0; i < mesh.p.length; i += 3) {
+    const point = V().fromArray(mesh.p, i);
+    minimum.min(point);
+    maximum.max(point);
+  }
+  for (const [first, end] of ranges) {
+    // Preserve the leaves defining the existing envelope, including the exact maximum y
+    // used by hedgeHeight() to scale every authored instance. Tubes are never in these ranges.
+    const points = Array.from({ length: end - first }, (_, j) => V().fromArray(mesh.p, (first + j) * 3));
+    if (points.some(point => axes.some(axis => point[axis] === minimum[axis] || point[axis] === maximum[axis]))) continue;
+    const length = points[4].distanceTo(points[0]);
+    const width = points[3].distanceTo(points[1]);
+    const form = Math.max(0, Math.min(1, (width / length - 0.55) / 0.25));
+    const pitch = (form - 0.5) * 0.64 + (points[3].y - points[1].y) / width * 0.25;
+    const droop = 0.1 + (1 - form) * 0.1;
+    const shifts = points.map((_, j) => {
+      const u = mesh.uv[(first + j) * 2 + 1];
+      const side = mesh.uv[(first + j) * 2] * 2 - 1;
+      return length * (pitch * u - droop * u * u * u)
+        - width * (0.04 + form * 0.06) * side * side * Math.sin(Math.PI * u);
+    });
+    // One shared amount per leaf keeps the curve coherent; never clamp individual vertices.
+    let amount = 1;
+    for (let j = 0; j < points.length; j++) {
+      const delta = shifts[j];
+      if (delta > 0) amount = Math.min(amount, (maximum.y - points[j].y) / delta);
+      else if (delta < 0) amount = Math.min(amount, (minimum.y - points[j].y) / delta);
+    }
+    for (let j = 1; j < points.length; j++) mesh.p[(first + j) * 3 + 1] += shifts[j] * Math.max(0, amount);
+  }
+}
+
 export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
@@ -301,6 +341,7 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
       leafRanges?.push([leafStart, m.p.length / 3]);
     }
   }
+  if (high && leafRanges) poseHedgeLeaves(m, leafRanges);
   const geometry = m.finish({ groundToZero: true });
   if (leafRanges) {
     const surface = new Uint8Array(geometry.attributes.position.count);

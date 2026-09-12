@@ -157,3 +157,21 @@ experiment, so another agent does not repeat it or mistake it for the accepted g
 remain available with the failed check's unmodified source state.
 
 Exact two-file rollback passes production typecheck/build (111 modules).
+
+## Actual rollback confirmation
+
+Rollback `ef2100e3d3f885692b10116f89b1a676c83dbdd0` completed run 34713459370.
+All sixteen depth hashes, actor X/Y/Z, character sampler/grid, cameras/controls and deterministic
+systems are restored exactly to 8714. The original actor check passes without relaxation;
+the sampler returns to 64,663 admitted triangles / 28,873 covered cells. This confirms the
+static rollback; it is not a dynamic movement test or proof of the earlier drift's cause.
+
+The separately rejected crate effect remains removed: resources and budgets match e6d6ac0,
+with programs 75 / textures 70. C/F/L01/L02 images are exact 8714; other tiny differences are
+the recorded removed crate response. All sixteen captures have zero retries, errors or warnings.
+Source, original bytes, ZIP entries and append-only history verification pass. The clean
+rollback precedes the separately retained sprout optimization.
+
+[Rollback world originals](https://github.com/Leonxlnx/zeldaremake/tree/bf6ee9aa17961ff424090176475654e2c3582c9a/progress/2026-09-12_192829294-ef2100e)
+and [four details](https://github.com/Leonxlnx/zeldaremake/tree/8bb76bfd239e835109dd025984ca43208affee56/details/2026-09-12_193119678-ef2100e)
+preserve the actual results. The rejected candidate and its failed check remain available.
