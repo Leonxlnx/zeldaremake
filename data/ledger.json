@@ -6784,6 +6784,115 @@
       },
       "prevHash": "sha256:6d254a3ce34bb31865bbe72c4c169d94c561cda31f574305c1dd2e9841b77343",
       "hash": "sha256:6765c1ea0ae024f3e44ef5817d2e9c15e47934a158789d663dfedf719d724702"
+    },
+    {
+      "id": "take-0064",
+      "number": 64,
+      "at": "2026-09-12T11:47:35.316Z",
+      "sha": "df3cd5224e62ba4c7b21e1fd486d4ed4480b5fd1",
+      "shortSha": "df3cd52",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "structures: Saria's house to the owner's boards 03/04/06 - house-specific capMoss (procedural 512^2 periodic normal: 3-6 cm clumps over cushions + grain, roughness 0.9; the shared mats.moss with the thatch normal stays on roots/limb/threshold), cap rim x1.15 -> x1.05 (B rim 536 -> 479 px vs reference ~410; best B SSIM of x1.05/1.10/1.15), a 0.88 m round trunk window with a wooden cross frame, moss/vines and an amber glow (bored along B's sightline in a bark boss turned toward the door; B centre (0.653, 0.370)), two curved living-branch pillars flanking the entrance into the rim, plants on the cap (14 grass tufts, 5 ferns, 146 white flowers, 6 trailing vines), 12 house pods (three tuned B pods unchanged; new flank pod at (0.640, 0.426) vs reference lantern (0.659, 0.437)), three interior shelves with 24 props",
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W25",
+        "W26"
+      ],
+      "note": "Round thirteen, slice two: the paving goes to the owner's boards 02/07 outside B's frame-scored foreground - large cells broken by irregular chords into 0.4-0.9 m slabs (across p50 0.92 -> 0.64 m, 321 -> 619 stones), crowns and cushion fillets halved, chipped corners and notches, 5-8 cm seams with planted edge joints; B's frame-measured slabs, the stairs and the paved boundary unchanged. Saria's house takes the boards' construction: a 0.88 m round trunk window with a wooden cross frame and amber glow where frame 14 s and board 04 have it, two living-branch pillars into the cap rim, plants and trailing vines on a narrower cap (rim x1.05, 479 px vs reference ~410), twelve pods (the new flank pod lands within 0.02 of the reference lantern), shelves with props visible through the door, and a house-specific moss material without the thatch stalks. B 0.263, best ever; C/D give back 0.002-0.011 where the frames show ~1 m slabs.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:cadccafd2eebb9660fca07fbae4b8e53f44f4eae2e9b4ba5d4ea43506552937f",
+        "B_house": "sha256:3842af3f73eaa4389593c71a123dbf1fa548208ee6da128728530e4aa9963104",
+        "C_lookback": "sha256:c8c6d7ebcecf4990bc6479483be1c6a6bddff8f5deb7f4aa2d2e420c7f9479ed",
+        "D_log": "sha256:51d0280e3b9f6550045f6cfdf73ee32c9d61e64a1a7cf4fbf7cd41e1da641cde",
+        "E_ground": "sha256:3842af3f73eaa4389593c71a123dbf1fa548208ee6da128728530e4aa9963104",
+        "F_canopy": "sha256:a92027e09a5f9f10c008491d42e87fe12f5f729116abdc1e8862b57a31b87fe2"
+      },
+      "distHash": "sha256:1ec2fb0910e202784a7d501ed0e04ad3903db99ee042c0bf8694f6da3cc5a635",
+      "stats": {
+        "drawCalls": 653,
+        "triangles": 8766769,
+        "captureMs": 1256582,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W03",
+        "W25",
+        "W26"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take64-cap",
+        "importedAt": "2026-09-12T12:55:50.011Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:6765c1ea0ae024f3e44ef5817d2e9c15e47934a158789d663dfedf719d724702",
+      "hash": "sha256:2e5d6871adece38019fb7cddc5ee9bd14a7822364bbadc99a7926d24abace469"
     }
   ]
 }
