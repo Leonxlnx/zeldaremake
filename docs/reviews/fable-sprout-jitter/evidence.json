@@ -1,0 +1,431 @@
+{
+  "refs": {
+    "legacy": "77dd6657a38678c6b09bfe56d027eb0995cf36bc",
+    "preLawn": "0f9426c7267d06f13cc96be4591821fce795cb84",
+    "lawn": "612872691c51949655102bf9e60361ec33039fb2",
+    "jitter": "c4b95781a19fe282f3f3bfbc7d61bd9b93854ec3",
+    "flowers": "cee9888d735dfa957007a13af2bc267e6457d452"
+  },
+  "scope": "Pinned-source CPU review at quality density 1; no GPU appearance verdict; no production writes",
+  "sourceHashes": {
+    "src/world/hardscape/index.ts": "0532e8a19a3324df29b07ccbdfd818315a93a73ce169b35a4b4677d4eb9ff672",
+    "src/world/hardscape/sprout-jitter.ts": "ed18b3d9163d80ddf97d7303127f24b988160b99661bf6eb8c743ee40174084f",
+    "src/world/materials/sprouts.ts": "6a9e028df67a6d80a74ecad7fad2f7a224c40a1dad575c8a7bab2e39916291da",
+    "src/world/hardscape/flowers.ts": "5945e0b6055afd41927001ea17c9d4228e8b4971609f5b32c5abdc7978bf7f93"
+  },
+  "legacy": {
+    "instances": 4275,
+    "missing": 0,
+    "identicalMatrixAndColor": 4225,
+    "changed": 50,
+    "bySource": {
+      "joints": {
+        "count": 1500,
+        "sizeChanged": 0,
+        "matrixSame": 1500,
+        "colorSame": 1500
+      },
+      "pocket-scatter-capped": {
+        "count": 50,
+        "sizeChanged": 50,
+        "matrixSame": 0,
+        "colorSame": 0
+      },
+      "edge-turf": {
+        "count": 190,
+        "sizeChanged": 0,
+        "matrixSame": 190,
+        "colorSame": 190
+      },
+      "stairs": {
+        "count": 220,
+        "sizeChanged": 0,
+        "matrixSame": 220,
+        "colorSame": 220
+      },
+      "lawn-paving": {
+        "count": 150,
+        "sizeChanged": 0,
+        "matrixSame": 150,
+        "colorSame": 150
+      },
+      "pocket-scatter": {
+        "count": 170,
+        "sizeChanged": 8,
+        "matrixSame": 170,
+        "colorSame": 170
+      },
+      "seam-grit": {
+        "count": 1600,
+        "sizeChanged": 0,
+        "matrixSame": 1600,
+        "colorSame": 1600
+      },
+      "stair-grit": {
+        "count": 95,
+        "sizeChanged": 0,
+        "matrixSame": 95,
+        "colorSame": 95
+      },
+      "seam-cushions": {
+        "count": 300,
+        "sizeChanged": 0,
+        "matrixSame": 300,
+        "colorSame": 300
+      }
+    }
+  },
+  "offsets": {
+    "sharedDraws": 118522,
+    "instanceDraws": 31619,
+    "sowingDraws": 86903,
+    "all25BlocksExact": true,
+    "activeLegacyBlocks": 24,
+    "oneTimeReplayDraws": 2457311,
+    "blocks": [
+      {
+        "key": "joints/1",
+        "source": "joints",
+        "variant": 1,
+        "count": 450,
+        "offset": 86903
+      },
+      {
+        "key": "pocket-scatter/1",
+        "source": "pocket-scatter",
+        "variant": 1,
+        "count": 50,
+        "offset": 89603
+      },
+      {
+        "key": "edge-turf/1",
+        "source": "edge-turf",
+        "variant": 1,
+        "count": 13,
+        "offset": 89903
+      },
+      {
+        "key": "stairs/1",
+        "source": "stairs",
+        "variant": 1,
+        "count": 20,
+        "offset": 89981
+      },
+      {
+        "key": "joints/0",
+        "source": "joints",
+        "variant": 0,
+        "count": 418,
+        "offset": 90101
+      },
+      {
+        "key": "lawn-paving/0",
+        "source": "lawn-paving",
+        "variant": 0,
+        "count": 44,
+        "offset": 92609
+      },
+      {
+        "key": "pocket-scatter/0",
+        "source": "pocket-scatter",
+        "variant": 0,
+        "count": 87,
+        "offset": 92873
+      },
+      {
+        "key": "edge-turf/0",
+        "source": "edge-turf",
+        "variant": 0,
+        "count": 77,
+        "offset": 93395
+      },
+      {
+        "key": "stairs/0",
+        "source": "stairs",
+        "variant": 0,
+        "count": 40,
+        "offset": 93857
+      },
+      {
+        "key": "joints/2",
+        "source": "joints",
+        "variant": 2,
+        "count": 343,
+        "offset": 94097
+      },
+      {
+        "key": "lawn-paving/2",
+        "source": "lawn-paving",
+        "variant": 2,
+        "count": 71,
+        "offset": 96155
+      },
+      {
+        "key": "pocket-scatter/2",
+        "source": "pocket-scatter",
+        "variant": 2,
+        "count": 36,
+        "offset": 96581
+      },
+      {
+        "key": "edge-turf/2",
+        "source": "edge-turf",
+        "variant": 2,
+        "count": 42,
+        "offset": 96797
+      },
+      {
+        "key": "stairs/2",
+        "source": "stairs",
+        "variant": 2,
+        "count": 32,
+        "offset": 97049
+      },
+      {
+        "key": "seam-grit/6",
+        "source": "seam-grit",
+        "variant": 6,
+        "count": 1600,
+        "offset": 97241
+      },
+      {
+        "key": "stair-grit/6",
+        "source": "stair-grit",
+        "variant": 6,
+        "count": 95,
+        "offset": 111641
+      },
+      {
+        "key": "joints/3",
+        "source": "joints",
+        "variant": 3,
+        "count": 289,
+        "offset": 112496
+      },
+      {
+        "key": "lawn-paving/3",
+        "source": "lawn-paving",
+        "variant": 3,
+        "count": 17,
+        "offset": 114230
+      },
+      {
+        "key": "pocket-scatter/3",
+        "source": "pocket-scatter",
+        "variant": 3,
+        "count": 47,
+        "offset": 114332
+      },
+      {
+        "key": "edge-turf/3",
+        "source": "edge-turf",
+        "variant": 3,
+        "count": 27,
+        "offset": 114614
+      },
+      {
+        "key": "stairs/3",
+        "source": "stairs",
+        "variant": 3,
+        "count": 35,
+        "offset": 114776
+      },
+      {
+        "key": "seam-cushions/4",
+        "source": "seam-cushions",
+        "variant": 4,
+        "count": 300,
+        "offset": 114986
+      },
+      {
+        "key": "lawn-paving/4",
+        "source": "lawn-paving",
+        "variant": 4,
+        "count": 18,
+        "offset": 117386
+      },
+      {
+        "key": "edge-turf/4",
+        "source": "edge-turf",
+        "variant": 4,
+        "count": 31,
+        "offset": 117530
+      },
+      {
+        "key": "stairs/4",
+        "source": "stairs",
+        "variant": 4,
+        "count": 93,
+        "offset": 117778
+      }
+    ]
+  },
+  "lawnToCandidate": {
+    "all5742SpotsExactExceptSource": true,
+    "allGeometryBuffersExactExceptFlowerNormal": true,
+    "geometry": {
+      "stairs-main": {
+        "attributes": 6,
+        "changed": []
+      },
+      "stairs-north": {
+        "attributes": 6,
+        "changed": []
+      },
+      "flagstones": {
+        "attributes": 6,
+        "changed": []
+      },
+      "flagstone-joints": {
+        "attributes": 7,
+        "changed": []
+      },
+      "lawn-flowers": {
+        "attributes": 3,
+        "changed": [
+          "normal"
+        ]
+      },
+      "joint-sprouts-p0-v1": {
+        "attributes": 7,
+        "changed": []
+      },
+      "joint-sprouts-p1-v0": {
+        "attributes": 7,
+        "changed": []
+      },
+      "joint-sprouts-p2-v26": {
+        "attributes": 7,
+        "changed": []
+      },
+      "joint-sprouts-p3-v34": {
+        "attributes": 7,
+        "changed": []
+      }
+    },
+    "allAuditFieldsExactExceptScheme": true,
+    "steppingExact": true,
+    "deterministicRebuild": true
+  },
+  "isolation": {
+    "sourceRemoval": [
+      {
+        "source": "joints",
+        "retained": 4242
+      },
+      {
+        "source": "seam-cushions",
+        "retained": 5442
+      },
+      {
+        "source": "lawn-paving",
+        "retained": 5592
+      },
+      {
+        "source": "pocket-scatter",
+        "retained": 5572
+      },
+      {
+        "source": "pocket-scatter-capped",
+        "retained": 5692
+      },
+      {
+        "source": "edge-turf",
+        "retained": 5552
+      },
+      {
+        "source": "stairs",
+        "retained": 5522
+      },
+      {
+        "source": "pocket-lawn",
+        "retained": 4449
+      },
+      {
+        "source": "pocket-pads",
+        "retained": 5738
+      },
+      {
+        "source": "pocket-rim",
+        "retained": 5673
+      },
+      {
+        "source": "pocket-band",
+        "retained": 5641
+      },
+      {
+        "source": "seam-grit",
+        "retained": 4142
+      },
+      {
+        "source": "stair-grit",
+        "retained": 5647
+      }
+    ],
+    "appendedPairCount": 32,
+    "appendedPairs": [
+      "joints/0",
+      "joints/3",
+      "joints/2",
+      "joints/1",
+      "seam-cushions/4",
+      "lawn-paving/2",
+      "lawn-paving/0",
+      "lawn-paving/4",
+      "lawn-paving/3",
+      "pocket-scatter/0",
+      "pocket-scatter/3",
+      "pocket-scatter-capped/0",
+      "pocket-scatter/2",
+      "edge-turf/2",
+      "edge-turf/3",
+      "edge-turf/4",
+      "edge-turf/0",
+      "edge-turf/1",
+      "stairs/3",
+      "stairs/2",
+      "stairs/4",
+      "stairs/0",
+      "stairs/1",
+      "pocket-lawn/2",
+      "pocket-lawn/0",
+      "pocket-lawn/3",
+      "pocket-pads/4",
+      "pocket-rim/0",
+      "pocket-band/0",
+      "pocket-band/2",
+      "seam-grit/6",
+      "stair-grit/6"
+    ],
+    "appendingNewSourceBeforeOld": true,
+    "packAndVariantReordering": true,
+    "interiorRemoval": {
+      "samePairShifted": 417,
+      "otherPairShifted": 0
+    }
+  },
+  "noOptionRocks": {
+    "instances": 30,
+    "exactPositionsMatricesColorsPackedBuffers": true
+  },
+  "lifecycle": {
+    "hasSystemDispose": "undefined",
+    "afterSystem": {
+      "geometry": 0,
+      "material": 0,
+      "borrowedTextures": 0
+    },
+    "afterDirectOwnedDisposeTwice": {
+      "geometry": 1,
+      "material": 1,
+      "borrowedTextures": 0
+    }
+  },
+  "limitations": [
+    "The frozen starts restore the exact recorded quality-density-1 seed/layout build; other seeds/densities remain deterministic but do not promise old traversal equality.",
+    "Source/variant isolation is not per-instance identity: removing/reordering inside one pair changes its following members.",
+    "The 50 capped old TUFT_B now TUFT_A and 1467 new lawn instances intentionally use new streams; 8 more size-clamped old TUFT_A retain exact matrices/colors because size selects variant rather than scaling geometry.",
+    "Legacy pairs are separate RNG objects replaying offsets into the same original sequence; enlarged blocks may consume overlapping numeric ranges, so they are isolated in state rather than statistically independent.",
+    "Fable cee9888 still has no hardscape system dispose hook; retain Astra index flowers.dispose hook on integration. Existing older hardscape resource lifecycle is unchanged by these commits."
+  ]
+}

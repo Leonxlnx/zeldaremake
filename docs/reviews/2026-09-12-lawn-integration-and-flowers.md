@@ -52,3 +52,24 @@ edit historical scores, ledger or rubric, nor judge Astra's different lighting.
 
 Source anti-cheat: 11 passes, 28 historical claim warnings, zero failures;
 68-entry ledger chain and locked rubric remain intact.
+
+## Actual9eb outcome — coverage gain, unfinished shading
+
+Source9eb9debc31c3b8dec579d75e9315ec6322c217bd / tree
+6bd9595d5e0e1d5cf1a2ba2adbf26992471aa184 rendered successfully in run34706953750.
+[12 world images](https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment/progress/2026-09-12_171347161-9eb9deb),
+[4 details](https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment/details/2026-09-12_171634744-9eb9deb).
+Root reviewed B/L02 originals; helper reviewed all five distinct world views and four details.
+The pocket is denser and small pale heads are visible, but near-black jagged tufts form a heavy
+band over olive/yellow earth. This remains a significant shading/shape weakness. The separate
+vegetation grass correction does not affect hardscape sprouts. Outside jitter changes are
+also visible and are addressed by Fable's subsequent c4b9578 source, not silently ignored.
+
+All16 source/image/camera/control checks and original ZIP/history receipts pass; no retry,
+console warning or error. All non-hardscape audits and lighting/atmosphere/character/layout
+controls match2c. Scene cost is exactly +74,996 triangles, +1 mesh/material/unique geometry,
++1,468 instances; textures70/programs74 unchanged. Actual submissions add73,848 for packed
+sprouts, plus1,148/one call where flowers are visible (A/B/C/D/E/L02). Maximum B/E is
+8,716,124 submitted triangles/651calls; A has maximum660calls. These are multi-pass counts,
+not hardware FPS. Source reconstruction matches199 Git inputs; original built dist bytes
+were not downloaded for an independent rehash. No separate visible flower-normal verdict.

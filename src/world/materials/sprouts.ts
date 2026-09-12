@@ -44,7 +44,19 @@ export interface SproutSpot {
   scale?: number;
   /** 'grit': albedo multiplier of the fill under the pebble (joints.ts `jointFillLift`); default 1 */
   tint?: [number, number, number];
+  /**
+   * The scatter that sowed this spot (e.g. 'joints', 'seam-grit'). With `buildSproutMeshes`'s
+   * `jitter` option, the instance's rotation / scale / tint randoms come from the stream of
+   * (source, variant), so spots added to or removed from another source leave it byte-identical.
+   */
+  source?: string;
 }
+
+/**
+ * Per-(source, variant) jitter streams for `buildSproutMeshes`: called once for each pair on first
+ * use; the returned stream is drawn in the spots' list order for that pair only.
+ */
+export type SproutJitterStreams = (source: string | undefined, variant: number) => Rng;
 
 /**
  * Moss cushion: a low dome (unit radius, 0.3 high) in deep→bright moss green with a faintly
@@ -427,7 +439,14 @@ function packGeometries(geos: BufferGeometry[]): BufferGeometry {
   return g;
 }
 
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color } = {}): SproutBuild {
+/**
+ * Instance jitter (the per-instance rotation, scale and tint randoms) is drawn from `rng` in pack →
+ * variant → list order, so by default every spot appended to the list shifts the draws of all the
+ * instances after it. `opts.jitter` replaces that with one stream per (spot.source, variant), each
+ * consumed in list order by its own instances only: a scatter can then grow or shrink without
+ * re-rolling any other scatter's instances. Without the option the behaviour is exactly the old one.
+ */
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color; jitter?: SproutJitterStreams } = {}): SproutBuild {
   // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
   // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
   const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
@@ -464,6 +483,17 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
   let triangles = 0;
   let gritTriangles = 0;
   let submittedTriangles = 0;
+  const streams = new Map<string, Rng>();
+  const jitterOf = (s: SproutSpot, v: number): Rng => {
+    if (!opts.jitter) return rng;
+    const key = `${s.source ?? ''}\u0000${v}`;
+    let r = streams.get(key);
+    if (!r) {
+      r = opts.jitter(s.source, v);
+      streams.set(key, r);
+    }
+    return r;
+  };
   packs.forEach((pack, pi) => {
     const n = pack.reduce((a, v) => a + lists[v].length, 0);
     if (!n) return;
@@ -475,32 +505,33 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
       const slot = packOf.get(v)![1];
       const triCount = variants[v].attributes.position.count / 3;
       for (const s of lists[v]) {
-        const k = (0.9 + rng.range(0, 0.2)) * (s.scale ?? 1);
+        const jr = jitterOf(s, v);
+        const k = (0.9 + jr.range(0, 0.2)) * (s.scale ?? 1);
         if (v === GRIT) {
           // the pebble sits in the dirt: its centre a little below the fill so only the crown
           // shows; tumbled about a near-vertical axis, squashed unevenly
           p.set(s.x, s.y - s.size * 0.12, s.z);
-          axis.set(rng.range(-0.25, 0.25), 1, rng.range(-0.25, 0.25)).normalize();
-          q.setFromAxisAngle(axis, rng.range(0, Math.PI * 2));
-          sc.set(s.size * rng.range(0.8, 1.25), s.size * rng.range(0.7, 1.05), s.size * rng.range(0.8, 1.25));
+          axis.set(jr.range(-0.25, 0.25), 1, jr.range(-0.25, 0.25)).normalize();
+          q.setFromAxisAngle(axis, jr.range(0, Math.PI * 2));
+          sc.set(s.size * jr.range(0.8, 1.25), s.size * jr.range(0.7, 1.05), s.size * jr.range(0.8, 1.25));
           // the fill's tone at this spot (vertex colours × the joint-width lift), then within
           // ± 15 % of it with a hint of warm / cool drift — no pale specks
           const t = s.tint ?? NO_TINT;
-          const l = rng.range(0.87, 1.13);
-          const w = rng.range(-0.02, 0.02);
+          const l = jr.range(0.87, 1.13);
+          const w = jr.range(-0.02, 0.02);
           c.setRGB(t[0] * l * (1 + w), t[1] * l, t[2] * l * (1 - w));
         } else {
-          q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
+          q.setFromAxisAngle(up, jr.range(0, Math.PI * 2));
           if (v === CUSHION) {
             // the unit dome becomes a 4–7.5 cm radius, 1.2–2.5 cm high pad, sunk a few mm
             const r = (0.04 + 0.035 * s.size) * (s.scale ?? 1);
             p.set(s.x, s.y - 0.004, s.z);
-            sc.set(r * rng.range(0.85, 1.2), r * rng.range(0.85, 1.15), r * rng.range(0.85, 1.2));
-            c.setRGB(0.85 + rng.range(0, 0.3), 0.85 + rng.range(0, 0.3), 0.8 + rng.range(0, 0.2));
+            sc.set(r * jr.range(0.85, 1.2), r * jr.range(0.85, 1.15), r * jr.range(0.85, 1.2));
+            c.setRGB(0.85 + jr.range(0, 0.3), 0.85 + jr.range(0, 0.3), 0.8 + jr.range(0, 0.2));
           } else {
             p.set(s.x, s.y - 0.01, s.z);
-            sc.set(k, k * rng.range(0.9, 1.1), k);
-            c.setRGB(0.78 + rng.range(0, 0.25), 0.8 + rng.range(0, 0.25), 0.75 + rng.range(0, 0.2));
+            sc.set(k, k * jr.range(0.9, 1.1), k);
+            c.setRGB(0.78 + jr.range(0, 0.25), 0.8 + jr.range(0, 0.25), 0.75 + jr.range(0, 0.2));
           }
         }
         im.setMatrixAt(i, m.compose(p, q, sc));

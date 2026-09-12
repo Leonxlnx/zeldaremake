@@ -54,3 +54,22 @@ Applied source adds only a clarifying historical-footage/current-board comment b
 No visual acceptance or moving-camera stability claim is made before actual review.
 
 Applied corridors SHA256: fc99f3ad328409b70b28e19d5b5cf0d7071e9ca2924551f00d0f0a16c513fd05.
+
+## Actual outcome — rejected
+
+Source09b41437ce443cec7c50949d7c44f8ef8569f8ca, tree
+ddfe25586f032f5d74b460cf8f4612d377e9541e. Original world images are archived in
+[progress/2026-09-12_172422622-09b4143](https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment/progress/2026-09-12_172422622-09b4143).
+Root personally compared original A/F against9eb and inspected C. The restored canopy makes
+broad soft shaded patches along the right/stair-foot paving and noticeably darkens the NPC
+and ground beside Link. His clear foreground pool remains readable; no sharp circle or noisy
+strokes appear. However, the desired fine irregular dapple does not justify the broad lobe.
+The capture helper independently reaches the same appearance finding.
+
+Reject this trial under the predeclared actual gate and restore the complete corridors.ts bytes
+from9eb. No global fill/exposure compensation, unseen casters, or automatic100% escalation.
+Archive the failed study honestly. The initial actual cost confirms +460 scene / +920 submitted
+triangles and unchanged calls/resources. All16 source/image/control/ZIP/history checks now pass, with zero retry/error/warning.
+All observed views add920 submitted triangles; their measured80x45 depth arrays remain exact.
+Textures70/programs74 and all non-tree audits are unchanged. This is a static visual rejection,
+without a moving-camera stability claim.

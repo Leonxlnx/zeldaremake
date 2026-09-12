@@ -686,6 +686,19 @@
       "at": "2026-09-12T17:10:31.269Z",
       "expiresHours": 3,
       "scope": "PR2 5647405366: one central canopy opening survival study in trees/corridors.ts, .35 existing leaves/cards at (2.7,3), unchanged radius/band/collars and other openings. All original geometry/RNG/light controls retained; actual A/F/C decides. Fable structures and shared sprout RNG untouched."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W20",
+        "W21",
+        "W23",
+        "W24",
+        "W36"
+      ],
+      "at": "2026-09-12T17:27:04.065Z",
+      "expiresHours": 3,
+      "scope": "Fable cee9888 ancestry integration and shared tuft-only authored-up fragment normal correction; preserve source jitter, geometry, wind, non-tuft materials and our owned flower cleanup. PR2 release5647471072."
     }
   ]
 }

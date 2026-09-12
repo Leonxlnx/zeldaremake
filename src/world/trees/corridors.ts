@@ -163,9 +163,8 @@ export const CANOPY_OPENINGS: CanopyOpening[] = [
   // the shaft mask its hole. Big enough to hold Link and his 2 m shadow, as the reference does.
   { point: [3.6, 5.6], radius: 1.5, band: [10, 30] },
   // the box's lit middle (x 0.5–4.9, z 0.8–5.2) north-west of Link's pool: the sheet of sun the
-  // footage keeps between the shaded strip west of the box and the shaded path mouth. The
-  // owner-board dapple study retains 35% of real foliage here; Link's separate pool stays clear.
-  { point: [2.7, 3.0], radius: 2.2, band: [10, 30], porosity: 0.35, cardPorosity: 0.35 },
+  // reference keeps between the shaded strip west of the box and the shaded path mouth
+  { point: [2.7, 3.0], radius: 2.2, band: [10, 30] },
   // the stair foot, the bright spot of shot F's paving (its (0.375, 0.667) cell) under the flight's
   // first treads; the paving east of it ((6–7, 1.5–3)) is dark in both A and F and stays unlisted
   { point: [5.7, 0.7], radius: 0.8, band: [10, 30] },

@@ -7,58 +7,53 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Starting the bounded central-canopy survival study after published lawn merge
-9eb9debc31c3b8dec579d75e9315ec6322c217bd, tree6bd9595d5e0e1d5cf1a2ba2adbf26992471aa184,
-parents2c4a8c0 + Fable87d3f31. Its actual environment run34706953750 is active. The exact lawn
-source/flower correction and fresh W25 review are published; Fable has the exact flowers.ts
-patch against612 in PR2 comment5647383775 and will integrate it with broader owned cleanup.
+Integrating Fable cee9888 / c4b9578 after his explicit PR2 release5647471072 at17:21UTC.
+He has completed per-source sprout jitter preservation and adopted our exact flowers.ts patch.
+Only his structures/distant-house pass is still running. Independent review now passes:4225
+old matrix/color pairs,25 offsets,13 source removals,32 pair appends,30 boulder plants.
+Pinned reproducible evidence is in docs/reviews/fable-sprout-jitter/. Root fetched the branch, reread the
+partner log and new commits/PR discussion; the stale log's older running lines are superseded.
 
-Before this tree task root fetched/reviewed latest partner state: cb83faa adopts our W25 review
-with exact monitor evidence. It is review-only; production remains612, with active structures
-(distant houses, window/moss fixes) and shared-sprout RNG preservation work. The all-ref archive
-race was safely resolved with targeted partner fetches. No tree work overlaps. PR2 5647405366
-announces the one-entry trees/corridors.ts trial; W09/W30/W31 are claimed.
+Root will preserve the jitter API/source streams and our current flowers.dispose hook, then
+apply a semantic tuft-only normal correction in materials/sprouts.ts. Scope is3025 hardscape
+and20 boulder tufts; clover/cushion/grit/fern remain excluded. No geometry, RNG, palette, wind,
+packing or lighting parameter changes belong to that correction. An independent helper reviews
+Fable's source-stream preservation while root handles the integration and shader. Review-only
+cb83faa ancestry adopts our take68 W25 verdict; preserve its history and original evidence.
 
-The current (2.7,3) radius2.2 opening creates broad continuous light on A/F paving. Prior larger
-roof/dapple cuts were rejected against footage; we preserve that reasoning and test the owner's
-new board01/02 direction narrowly. Retaining35% of existing leaves/cards by the unchanged
-positional hash restores99 laminae/32 real alpha cards,460 scene triangles and no draws/resources.
-Every original vertex and7,323,342 RNG draws over107 streams stay exact. Radius, band, collars,
-other openings, Link's pool, sun/PCSS/postfx remain fixed. Opaque projected coverage reaches
-interior without a full ring, but one broad connected footprint remains a risk; real alpha and
-actual A/F/C must decide. No fake/invisible caster or new screen shadow mask is introduced.
-Frozen one-line proposal is applied, plus one clarifying comment. Typecheck/build109, real
-opening lifecycle/shaft contracts and exact sole production-file boundary pass; actual pending.
+Published09b4143 / treeddfe25586f032f5d74b460cf8f4612d377e9541e failed its visual gate.
+Root compared original A/F against9eb and inspected C; added shade forms broad soft patches on
+right/stair-foot paving and darkens the NPC beside Link. His pool stays clear, but desired fine
+dapple does not justify the lobe. Capture helper independently agrees. Restore exact9eb
+corridors.ts; no global compensation. Original failed-trial images remain archived.
 
-Grass2c all16 contracts/ZIPs/history now pass. Root viewed A/B/F: visibly fewer black middle-blade
-strokes, retained dark roots/under-hedge shade and no global wash. Retain the correction. Two
-F diagnosis pixels become[113,112,58]/[137,134,65] from[20,22,0]/[32,28,0]. All geometry/depth,
-resources/programs74, lights, budgets and deterministic audits remain exact versus5ea.
-
-Read-only follow-up verifies a similar up-biased normal/DoubleSide interaction in shared tuft
-geometry. Fable is actively editing materials/sprouts.ts for RNG; root waits for that source.
-A semantic tuft tag can exclude clover/cushion/grit/fern. Boulder packs also use TUFT_A/B, so
-that scope is explicit; do not add an unnecessary hardscape-only feature flag or edit yet.
-Fable was informed in5647378848. This is separate from the now-retained vegetation grass fix.
+Lawn9eb actual12+4 are complete. Root inspected original B/L02: denser coverage and small pale
+heads, but a near-black jagged turf band is a significant weakness, consistent with the separate
+shared-tuft normal diagnosis. Outside jitter drift is visible; Fable's new correction addresses
+it. This is not finished lawn. Actual costs and source/control/ZIP/history receipts are in the
+capture review. Grass2c actual remains retained: lit blades improve without a global wash.
 
 ## Files / systems being touched
-- Root: central-opening leaves/cards survival only in trees/corridors.ts; own log/claim/review.
-  Lawn9eb and grass2c remain independently pinned. No structures/shared-sprout source edits.
+- Root: deliberate Fable jitter ancestry integration, then materials/sprouts.ts tuft-only normal
+  correction; own log/claim/reviews. Central canopy waits on actuals, no further tree edits.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
-- World helper: read-only shared tuft-normal evidence and semantic scope, waiting for Fable RNG
-  source before any shared-file patch. Lawn/flower work already integrated; crate study paused.
+- World helper: independent c4b9578 / cee9888 jitter and owned-resource integration review.
+  No production edits. Root alone adapts the prior tuft concept to the fresh source.
 - Prop helper: independent actual atlas review complete; fresh take68 W25 recommendation ready.
 - Shadow helper: frozen central-canopy survival proposal and exact geometry/RNG/footprint proof.
   No evidence warrants another global PCSS/AO/exposure/fill change.
 - Capture helper: pinned actual source/gallery verification and ZIPs, no production edits.
 
 ## Partner state / coordination
-Latest fetched Fable head 87d3f31 seals take68 with 0f9426c roof and 6128726 hardscape lawn.
-Read PR2 comments 5647232830 and 5647244951: lawn completed; active structures follow-up adds
-budget-capped distant houses and fixes the accepted bough/window and owned moss-map defects.
-Our 5ea merge deliberately preserves his roof bytes pending that source. No active vegetation
-overlap; his earlier 5646798877 release and our renewed 5647251867 scope are explicit.
+Latest fetched Fable head cee9888d735dfa957007a13af2bc267e6457d452 adopts our flower correction.
+Its parent c4b95781a19fe282f3f3bfbc7d61bd9b93854ec3 introduces per-source/variant jitter
+streams preserving old instances; cb83faa adopts the take68 W25 evidence. PR2 release5647471072
+supersedes stale running lines in his log: only structures/distant houses remain active.
+The exact merge keeps materials/sprouts.ts, hardscape/sprout-jitter.ts and flowers.ts identical
+to cee; hardscape/index.ts differs only by our already published flowers.dispose system hook.
+No shared-source normal patch is in this baseline checkpoint; its exact candidate is frozen
+for independent verification and a separate next capture.
 
 Fable approved bounded near-tree material work in 5646342247 and handed over signpost/lanternPost
 in 5644903321. Preserve his geometry/roof direction and announce renewed overlap before editing.
@@ -73,6 +68,8 @@ Four supplemental details are fixed full-scene production views, not isolated st
 
 | Source | Change / actual review |
 | --- | --- |
+| 09b4143 | Actual A/F/C rejects central foliage survival: broad soft shade instead of fine dapple. Exact9eb corridor bytes restored next. |
+| 9eb9deb | Actual12+4 contracts pass: denser lawn/white heads, but dark jagged tuft carpet and acknowledged outside jitter drift remain. |
 | 2c4a8c0 | Actual12+4 pass: much clearer lit blades, dark roots/bank shade retained; geometry/depth/audits/resources/budgets exact. Retained. |
 | 5ea5b6d | Actual 12+4 pass: useful mottled moss/less streaking, rising bough; B window obstruction confirmed. Coarse limbs remain. -73,592 submitted triangles per view, draws exact, +1 texture/program. |
 | a350849 | Actual 12+4 pass: faint irregular branches improve L01; L02 mostly smooth, no luminous bindings. Exactly +1 material/texture/program; geometry/depth/budgets exact. |
@@ -146,9 +143,11 @@ The exact original PNG ZIP was delivered; previews do not pretend to be original
 Detailed earlier chronology is preserved in `docs/reviews/astra-environment-history-through-64028c4.md`.
 
 ## Suggested parallel tasks
-Fable: correct lower bough/window occlusion and dispose owned moss maps; publish active hardscape
-lawn work with exact source and overlap. Astra: capture the combined roof checkpoint, then
-independently test the grass-normal correction. Crate grain remains lower priority.
+Fable: finish the active distant-house pass and accepted window/moss-map follow-ups.
+Astra: publish the preserved-jitter baseline, then independently prove/render tuft-only lighting.
+Capture helper: finish original09b trial receipts, then pin the next actual checkpoint.
+Reference helper: publish the ten exact original owner PNGs on a separate branch if supported.
+Crate surface study remains lower priority; character waits for local Blender.
 
 ## Last updated
-2026-09-12T17:15:23.366950+00:00
+2026-09-12T17:34:27.095986+00:00
