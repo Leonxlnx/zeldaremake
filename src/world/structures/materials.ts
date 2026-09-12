@@ -693,7 +693,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // straw-stalk relief on the cap's majority moss; this one takes the procedural mossy normals
   // (clumps + grain) and a slightly lower roughness so the lit tufts keep a soft sheen. Built
   // after the straw and rune canvases so their draws from the shared canvas rng are unchanged.
-  const capMoss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 0.9, normalMap: mossNormalTexture(rng), normalScale: new Vector2(0.85, 0.85) });
+  // Round 14: normal scale 0.85 → 0.55 — under the low sun the full-strength clump normals
+  // streaked the lit front face; the reference dome is a soft, near-uniform mossy olive.
+  const capMoss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 0.9, normalMap: mossNormalTexture(rng), normalScale: new Vector2(0.55, 0.55) });
   const flower = windLeafMaterial(
     new MeshStandardMaterial({
       map: flowerTexture(),

@@ -37,6 +37,19 @@
  * the door, SHELVES of pots, jars and bottles line the back wall under the lamp pools (boards
  * 03 / 06). `CAP_RIM_SCALE` carries the round-13 roof-width A/B.
  *
+ * Round 14 (the reviewer's ray-traced read of B): the room's floor is a LEVEL PAD at
+ * `roomFloorY` cut into the plateau slope — the back wall stands where the slope reaches the pad
+ * (`roomBackD`), a plain vertical face on a level floor, a riser at the threshold — where rounds
+ * 12–13 had let the floor climb the slope as a pale bank seen through the door (and the upper
+ * house's buttress root ran down that slope into the room; roots now keep out of other trunks).
+ * The cap's tone is a near-uniform mossy olive with soft variation: straw ≈ 10 % and olive
+ * (`THATCH_THRESHOLD`, `THATCH_TINT`), broad rounded relief at half the amplitude with no creased
+ * noise (`domeDisp`), the light carried by the slope rather than the relief's crests, darker
+ * leaf clumps as the specks on the lit mound, a softer moss normal map. The support bough is
+ * branched into the house: a burl where it leaves the trunk, two sub-limbs dropping into the cap
+ * under leaf clusters, a leafy up-limb off the span, and a prop root off its far end down the
+ * right flank to the ground.
+ *
  * Every dimension is expressed in terms of `trunkRadius` / `roofHeight`, so the same builder
  * produces Saria's hero house and the small upper house.
  */
@@ -170,6 +183,12 @@ export interface HouseBuild {
   flowers: number;
   /** pots, bottles and bowls on the interior shelves */
   props: number;
+  /**
+   * The room's level floor pad (round 14): floor height above the local floor level, the back
+   * wall's depth from the trunk centre at the left / middle / right of the room (door-space, +
+   * toward the door), and how far the plateau slope pokes up through the pad (≤ 0 = never).
+   */
+  room: { floorY: number; backD: [number, number, number]; floorPoke: number; pokeAt: [number, number] };
 }
 
 /**
@@ -309,12 +328,18 @@ const CAP_RIM_SCALE = 1.05;
  * 11 built the whole cap in the straw material and only tinted it toward moss where the same
  * noise fell under 0.55, so the stalks showed everywhere; the reference cap is olive moss with
  * only patches of lighter thatch. Round 12's probes: 0.55 left 6.5 % straw — too little to read
- * as patches — and 0.12 gave 35 %; 0.23 lands near the brief's quarter (audited as
+ * as patches — and 0.12 gave 35 %; 0.23 landed near round 12's quarter (audited as
  * `thatchFraction`, with round 11's straw-dominant share alongside for the before/after).
+ * Round 14: the reviewer's read of B was "bright yellow straw blobs on dark moss" against a
+ * near-uniform dark mossy olive — the share drops to ≈ 10 % (0.46) and the straw itself is
+ * pulled toward the moss (darker, greener: `THATCH_TINT`), the moss a touch lighter.
  */
-const THATCH_THRESHOLD = 0.23;
+const THATCH_THRESHOLD = 0.46;
 /** straw patch albedo multiplier (round 12: −25 %, the patches read as bright straw) */
 const THATCH_ALBEDO = 0.75;
+/** straw patch vertex tint (linear): round 12's dry yellow straw [0.66, 0.55, 0.26] → an olive
+ *  straw, half-way to the moss's lit tone, so the patches read as thinner moss, not thatch */
+const THATCH_TINT: [number, number, number] = [0.5, 0.47, 0.2];
 
 /** Blend a moss tint into a swept branch's vertex colours on its upward-facing side. */
 function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: number, noise: Noise2D): BufferGeometry {
@@ -487,7 +512,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const door11 = { w0: -0.3 * R, w1: 0.34 * R, h: 2.28 * sk, rc: 0.42 * sk };
   // room behind the doorway
   const roomW0 = doorW0 - 0.8 * k;
-  const roomW1 = doorW1 + 0.3 * k;
+  // (round 14: 0.2 m past the right jamb, was 0.3 — the plateau slope is already 0.3 m over the
+  // floor pad a hand's breadth further right; the wall there is hidden behind the jamb from B)
+  const roomW1 = doorW1 + 0.2 * k;
   const roomFloorY = sill + 0.15 * k;
   const roomCeilY = doorTop + 0.5 * k;
   const roomFront = dBack - wallT;
@@ -512,20 +539,52 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   /**
    * The room's back wall is the hollow's concave inside. Round 12: a deep recess — the reference
    * opening is dark at its centre (lum 0.12–0.18) with the glow local to the lamps, so the wall
-   * the door looks at sits ≈ 3 m behind the doorway, swinging deepest in the middle. The plateau
-   * slope rises inside the trunk toward the back-right, so each column pulls its wall forward
-   * until the ground there stays well under the ceiling.
+   * the door looks at sits ≈ 3 m behind the doorway, swinging deepest in the middle.
+   *
+   * Round 14: the floor is a LEVEL pad at `roomFloorY` cut into the plateau slope (the slope
+   * rises through the trunk toward the back and the right: +0.5 m at 1 m right of the axis on
+   * the centre line, +1.2 m at 0.8 m behind it). Rounds 12–13 let the floor lift to terrain +
+   * 0.05 wherever the slope came through, and only pulled the wall forward where the ground
+   * reached within 0.8 m of the ceiling — so through the door (B looks at the back-left, w ≈
+   * −0.2 … 0) a pale bank of floor climbed 0.9 m up the back wall (the reviewer's rays at
+   * (995,355) / (1002,371) first hit floor faces 1527 / 1559). Now the wall stands where the
+   * slope reaches the pad: each column marches forward from the recess depth until the terrain
+   * along the column (from the wall to the doorway) stays under the floor, so the wall is a plain
+   * vertical face meeting a level floor, deeper on the left, a shallow alcove at the far right.
+   * Sampled once on a fine lateral grid (neighbour-conservative) so the wall has no steps.
    */
   const _bd = new Vector3();
-  const roomBackD = (w: number) => {
+  /** the deepest the hollow could go at lateral w (round 12's concave recess) */
+  const recessD = (w: number) => {
     const t = clamp((w - roomW0) / (roomW1 - roomW0), 0, 1);
-    let d = -0.1 * R - 0.16 * R * Math.sin(Math.PI * t) + 0.06 * R * noise.noise(w * 0.9 + 2, 0.5);
-    for (let i = 0; i < 16 && d < roomFront - 0.8 * k; i++) {
-      frame.door(w, 0, d, _bd);
-      if (terrain.height(_bd.x, _bd.z) - yFloor < roomCeilY - 0.8 * k) break;
-      d += 0.15 * k;
+    return -0.1 * R - 0.16 * R * Math.sin(Math.PI * t) + 0.06 * R * noise.noise(w * 0.9 + 2, 0.5);
+  };
+  /** the terrain (above yFloor) under the column at (w, d) must stay under this to be floor */
+  const padTop = roomFloorY - 0.03 * k;
+  /** shallowest the room gets (a niche): the far right of the pad, where the slope is steepest */
+  const roomDepthMin = 0.5 * k;
+  const padCols = 49;
+  const padTable: number[] = [];
+  for (let i = 0; i < padCols; i++) {
+    const w = lerp(roomW0 - 0.05, roomW1 + 0.05, i / (padCols - 1));
+    // march from the doorway back into the recess while the ground stays under the pad
+    const target = recessD(w);
+    let d = roomFront;
+    const step = 0.04 * k;
+    while (d - step >= target) {
+      frame.door(w, 0, d - step, _bd);
+      if (terrain.height(_bd.x, _bd.z) - yFloor >= padTop) break;
+      d -= step;
     }
-    return d;
+    padTable.push(Math.min(d, roomFront - roomDepthMin));
+  }
+  // neighbour-conservative: a column's wall is never deeper than its neighbours' bound (the
+  // floor grid's samples fall between the table's)
+  const padBound = padTable.map((d, i) => Math.max(d, padTable[Math.max(0, i - 1)], padTable[Math.min(padCols - 1, i + 1)]));
+  const roomBackD = (w: number) => {
+    const f = clamp(((w - (roomW0 - 0.05)) / (roomW1 - roomW0 + 0.1)) * (padCols - 1), 0, padCols - 1);
+    const i = Math.min(padCols - 2, Math.floor(f));
+    return lerp(padBound[i], padBound[i + 1], f - i);
   };
   const roomBackMin = Math.min(roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1));
   /** 0 at the doorway's inner face → 1 at the deepest back wall */
@@ -797,11 +856,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lampPos = frame.door(lampW, lampY, roomBackD(lampW) + 0.3 * k);
   const lamp2W = doorW1 - 0.5 * k;
   const lamp2Pos = frame.door(lamp2W, doorTop - 1.0 * sk, roomBackD(lamp2W) + 0.3 * k);
-  // the hearth sits on the LOCAL floor: the generated floor lifts to terrain + 0.05 where the
-  // plateau slope rises through it (see the floor grid below), and at round 12's deeper hearth
-  // position that lift is ~0.15 m — a fixed sill height buried the kerb and embers (Astra, 08:00)
+  // the hearth sits on the floor pad, 0.55 m in front of the back wall (round 14: the pad is
+  // level, so the kerb's clearance over it is the fixed 0.01 m — rounds 12–13 lifted both with
+  // the terrain where the slope came through the floor)
   const hearthPos = frame.door(doorW1 - 0.3 * k, roomFloorY + 0.2 * k, roomBackD(doorW1 - 0.3 * k) + 0.55 * k);
-  hearthPos.y = Math.max(hearthPos.y, terrain.height(hearthPos.x, hearthPos.z) + 0.05 + 0.2 * k);
   /** the arch's inner top edge: the cut's underside and the jambs just inside the door catch a glow */
   const archPos = frame.door((doorW0 + doorW1) / 2, doorTop - 0.15 * k, roomFront - 0.25 * k);
   const roomParts = [];
@@ -824,7 +882,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const glowOf = (p: Vector3): number => {
     const h = clamp((p.y - (yFloor + roomFloorY)) / (roomCeilY - roomFloorY), 0, 1);
     const deep = depthOf(p);
-    return (0.01 + 0.12 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.3 * k, 0.32 * k, 1.4) + pool(p, lamp2Pos, 0.28 * k, 0.3 * k, 1.15) + pool(p, hearthPos, 0.2 * k, 0.3 * k, 0.5) + pool(p, archPos, 0.15 * k, 0.4 * k, 0.5);
+    // (round 14: the back wall stands ≈ 0.3 m nearer the door, so the lamps' pools cover more
+    // of the opening — their peaks come down a tenth to hold the doorway's p90 under 0.45)
+    return (0.01 + 0.12 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.3 * k, 0.32 * k, 1.25) + pool(p, lamp2Pos, 0.28 * k, 0.3 * k, 1.0) + pool(p, hearthPos, 0.2 * k, 0.3 * k, 0.5) + pool(p, archPos, 0.15 * k, 0.4 * k, 0.5);
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
@@ -889,6 +949,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         ),
       );
     }
+    // floor: the level pad (round 14 — no terrain lift; the back wall stops where the slope
+    // reaches it, see `roomBackD`), ceiling
     for (const y of [roomFloorY, roomCeilY]) {
       roomParts.push(
         gridSurface(
@@ -896,15 +958,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
             frame.door(w, y, d, out.position);
-            let s = (y === roomFloorY ? 0.2 : 0.3) * lerp(1, 0.4, depthOf(out.position));
-            if (y === roomFloorY) {
-              const th = terrain.height(out.position.x, out.position.z) + 0.05;
-              if (th > out.position.y) {
-                // where the plateau slope rises through the floor (rear) it stays in shadow
-                s *= lerp(1, 0.35, clamp((th - out.position.y) / 0.25, 0, 1));
-                out.position.y = th;
-              }
-            }
+            const s = (y === roomFloorY ? 0.2 : 0.3) * lerp(1, 0.4, depthOf(out.position));
             out.uv = [w / 2.2, d / 2.2];
             const g = glowAt(_p.copy(out.position));
             out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
@@ -913,7 +967,37 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         ),
       );
     }
+    // the pad's front edge: a riser from the sill beam's top up to the floor across the doorway
+    // (the pad is 0.15 m above the sill; without it the step's face was open under the floor)
+    roomParts.push(
+      gridSurface(
+        (u, v, out) => {
+          const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
+          const y = lerp(sill - 0.12 * k, roomFloorY, v);
+          frame.door(w, y, roomFront + 0.06, out.position);
+          out.uv = [w / 2.2, y / 2.2];
+          const s = 0.16 - 0.05 * v;
+          out.color = [s * 0.92, s * 0.96, s * 1.05];
+        },
+        // u runs to the viewer's right, v up → dv × du faces into the room; flip to face the door
+        { cols: 12, rows: 2, flip: true },
+      ),
+    );
   }
+  /** how far the plateau slope pokes up through the level floor pad (audit; ≤ 0 = never) */
+  let floorPoke = -Infinity;
+  let pokeAt: [number, number] = [0, 0];
+  for (let i = 0; i <= 32; i++)
+    for (let j = 0; j <= 32; j++) {
+      const w = lerp(roomW0 - 0.02, roomW1 + 0.02, i / 32);
+      const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, j / 32);
+      frame.door(w, roomFloorY, d, _bd);
+      const poke = terrain.height(_bd.x, _bd.z) - _bd.y;
+      if (poke > floorPoke) {
+        floorPoke = poke;
+        pokeAt = [w, d];
+      }
+    }
   const roomGeo = merge(roomParts);
   {
     const pos = roomGeo.attributes.position;
@@ -1304,22 +1388,47 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const bases: [number, number, number][] = [];
   const rootCount = def.id === 'saria' ? 6 : 5;
   const rootRng = rng.fork('roots');
+  /**
+   * The other houses' trunks (centre, keep-out radius: their flared foot plus a margin). The
+   * roots follow the terrain, and the upper house stands on the plateau right behind Saria's —
+   * its root toward her ran down the slope INTO her hollow (round 14: the reviewer's B rays
+   * through the door first hit `roots` of house-upper, a pale limb 0.85 m over her floor, 0.15 m
+   * in front of the back wall). A root whose waypoints would land inside another trunk above
+   * that house's floor is shortened until they stay out; one that starts inside is dropped (its
+   * rng draws are still taken). Roots under another house's floor (Saria's own root climbing
+   * the slope to the upper house's foot) are left alone — nothing shows there.
+   */
+  const keepOut = ctx.layout.houses.filter((h) => h.id !== def.id).map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius * 1.1, yMin: h.position[1] + 0.35 }));
+  const insideOther = (p: Vector3) => keepOut.some((o) => p.y > o.yMin && Math.hypot(p.x - o.x, p.z - o.z) < o.r);
+  let rootsBuilt = 0;
   for (let i = 0; i < rootCount; i++) {
     const a = 0.8 + (i / (rootCount - 1)) * (TAU - 1.6) + (rootRng() - 0.5) * 0.25;
     const y0 = 0.55 + rootRng() * 0.7;
     const r0 = (0.3 + rootRng() * 0.14) * k;
-    const reach = R * (0.55 + rootRng() * 0.4);
+    let reach = R * (0.55 + rootRng() * 0.4);
     const rs0 = rSmooth(a, 0);
     const dir = frame.dir(a);
     const side = new Vector3(dir.z, 0, -dir.x).multiplyScalar((rootRng() - 0.5) * 0.7);
     const p0 = frame.at(a, rSmooth(a, y0) - 0.4, y0);
     const p1 = frame.at(a, rSmooth(a, y0 * 0.65) + 0.1, y0 * 0.66);
-    const p2 = frame.at(a, rs0 + reach * 0.45, 0).addScaledVector(side, 0.5);
-    p2.y = terrain.height(p2.x, p2.z) + 0.28 * k;
-    const p3 = frame.at(a, rs0 + reach, 0).add(side);
-    p3.y = terrain.height(p3.x, p3.z);
-    const p4 = frame.at(a, rs0 + reach + 0.6, 0).addScaledVector(side, 1.3);
-    p4.y = terrain.height(p4.x, p4.z) - 0.4;
+    /** the waypoints on the ground for a given reach: over the terrain, on it, sunk into it */
+    const groundPts = (reachNow: number) => {
+      const p2 = frame.at(a, rs0 + reachNow * 0.45, 0).addScaledVector(side, 0.5);
+      p2.y = terrain.height(p2.x, p2.z) + 0.28 * k;
+      const p3 = frame.at(a, rs0 + reachNow, 0).add(side);
+      p3.y = terrain.height(p3.x, p3.z);
+      const p4 = frame.at(a, rs0 + reachNow + 0.6, 0).addScaledVector(side, 1.3);
+      p4.y = terrain.height(p4.x, p4.z) - 0.4;
+      return [p2, p3, p4];
+    };
+    let ground = groundPts(reach);
+    while (reach > 0.3 * R && ground.some(insideOther)) {
+      reach -= 0.1 * R;
+      ground = groundPts(reach);
+    }
+    if (insideOther(p1) || ground.some(insideOther)) continue;
+    rootsBuilt++;
+    const [p2, p3, p4] = ground;
     const curve = new CatmullRomCurve3([p0, p1, p2, p3, p4], false, 'catmullrom', 0.5);
     const rootN = 4.5 + rootRng() * 3;
     const root = sweepTube(curve, {
@@ -1526,16 +1635,21 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     if (out.dot(frame.dir(a, _db).multiplyScalar(Math.sin(phi)).setY(Math.cos(phi))) < 0) out.negate();
     return out;
   };
+  /**
+   * Cap relief. Round 14: broad rounded relief at about half round 11–13's amplitude and a lower
+   * frequency — the reviewer read the old mix (±0.22 m fbm lumps at 0.5/m, ±0.22 m mounds at
+   * 0.8/m, two `ridged` terms at 1.2 and 2.2/m) as "coarse pale angular clumps" once the
+   * front-face lift brightened their crests; the reference dome is a smooth mound with soft
+   * variation. No ridged (creased) noise: every term is smooth simplex.
+   */
   const domeDisp = (p: Vector3, v: number) => {
     const onCap = smoothstep(1, 0.66, v);
-    const lumps = noise.fbm(p.x * 0.5, p.z * 0.5 + p.y * 0.3, 3) * 0.22 * k * (0.35 + 0.65 * onCap);
-    // Round 11: mid-frequency mounds (≈ ±0.15 m, 2–4 m across) so the crown's silhouette is
-    // lumpy — reference B / sheet 04 show an irregular mossy mound, not a smooth tent
-    const mounds = noise.noise(p.x * 0.8 + 17, p.z * 0.8 - 6) * 0.22 * k * onCap;
-    const cushions = (noise.ridged(p.x * 1.2 + 3, p.z * 1.2, 2) - 0.5) * 0.2 * k * smoothstep(0.85, 0.2, v);
-    // small clumps: the crown is a mass of leaf clusters, so the surface itself is knobbly
-    const clumps = (noise.ridged(p.x * 2.2 + 8, p.z * 2.2 + p.y * 0.5, 2) - 0.5) * 0.12 * k * onCap;
-    const fine = noise.noise(p.x * 2.4, p.z * 2.4 + p.y) * 0.04;
+    const lumps = noise.fbm(p.x * 0.35, p.z * 0.35 + p.y * 0.2, 2) * 0.12 * k * (0.35 + 0.65 * onCap);
+    // mid-frequency mounds (≈ ±0.1 m, 3–5 m across) keep the crown's silhouette gently lumpy
+    const mounds = noise.noise(p.x * 0.55 + 17, p.z * 0.55 - 6) * 0.11 * k * onCap;
+    const cushions = noise.noise(p.x * 0.9 + 3, p.z * 0.9) * 0.07 * k * smoothstep(0.85, 0.2, v);
+    const clumps = noise.noise(p.x * 1.5 + 8, p.z * 1.5 + p.y * 0.4) * 0.035 * k * onCap;
+    const fine = noise.noise(p.x * 2.4, p.z * 2.4 + p.y) * 0.02;
     return lumps + mounds + cushions + clumps + fine;
   };
   const _n = new Vector3();
@@ -1581,16 +1695,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     out.uv = [(a * capR(a)) / 1.6, (v * (capHeight + 4 * lipR)) / 1.6];
     const p = out.position;
     if (straw) {
-      // dry straw showing through the moss (vertex tint × the straw map); round 12: −25 % albedo
+      // thin straw showing through the moss (vertex tint × the straw map); round 12: −25 %
+      // albedo; round 14: an olive straw tint (`THATCH_TINT`) so the patches sit close to the moss
       const strawTone = (0.9 + 0.2 * noise.noise(p.x * 2.5, p.y * 2.5 + 4)) * THATCH_ALBEDO;
-      out.color = [0.66 * strawTone, 0.55 * strawTone, 0.26 * strawTone];
+      out.color = [THATCH_TINT[0] * strawTone, THATCH_TINT[1] * strawTone, THATCH_TINT[2] * strawTone];
       return;
     }
     const patches = noise.fbm(p.x * 0.8 + 11, p.z * 0.8, 2);
     const upness = smoothstep(0.05, 0.9, _n.y);
-    // lit crowns of the clumps vs shaded hollows and flanks: a steep curve so the cap reads
-    // as many small lit/dark tufts rather than a smooth skin
-    const bright = clamp(Math.pow(upness, 1.4) * (0.35 + 0.65 * (0.5 + 0.5 * noise.noise(p.x * 1.3, p.z * 1.3 + 9))) + 0.6 * (disp / (0.25 * k)), 0, 1);
+    // lit tops vs shaded hollows and flanks. Round 14: a soft curve — the relief's crests get a
+    // quarter of the lift they had (0.6 × disp / 0.25 m read as pale angular clumps on the
+    // front face), the modulation is broad (0.7/m, was 1.3/m) and narrower (±0.25, was ±0.33)
+    const bright = clamp(Math.pow(upness, 1.2) * (0.6 + 0.4 * (0.5 + 0.5 * noise.noise(p.x * 0.7, p.z * 0.7 + 9))) + 0.25 * (disp / (0.2 * k)), 0, 1);
     // Round 12: the cap is built in the plain moss material, so the vertex colour IS the albedo
     // (no straw map with its stalks under it — that map is what made round 11's moss read as
     // thatch). The reference moss is a fine grainy mass: a per-vertex grain of lit specks and
@@ -1600,26 +1716,35 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const pit = smoothstep(0.3, 0.8, noise.noise(p.x * 13 + 41, p.z * 13 + p.y * 4));
     const fleck = smoothstep(0.55, 0.9, noise.noise(p.x * 11 + 7, p.z * 11 - p.y * 3));
     const grain = (0.78 + 0.44 * (0.5 + 0.5 * noise.noise(p.x * 9.1, p.z * 9.1 + p.y * 3))) * (1 - 0.6 * pit) * (1 + 0.35 * fleck);
-    const mottle = (0.66 + 0.4 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.14 * noise.noise(p.x * 3.1, p.z * 3.1 + 1)) * (1 - 0.35 * speck) * grain;
+    // (round 14: the broad mottle is halved — ±0.4 at 0.38/m was the largest coarse term left
+    // once the relief's crests stopped carrying the light: moss-face 32 px blotchiness 0.064
+    // against the reference's 0.038)
+    const mottle = (0.74 + 0.2 * noise.fbm(p.x * 0.38 + 5, p.z * 0.38 - 2, 2) + 0.1 * noise.noise(p.x * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
     // olive albedos (linear): deep grey-olive in the hollows and down the flanks, saturated
     // yellow-olive on the lit tufts (reference B pure moss face rgb(131,124,77): lum 0.48, sat
     // 0.42, hue 51° — the round-11 cap rendered at sat 0.34–0.36, a paler, beige read)
     // (the first round-12 probe rendered the lit face at hue 56°, 5° greener than the reference,
     // so the sunlit tone leans a little warmer)
-    const deep: [number, number, number] = [0.06, 0.062, 0.008];
-    const sun: [number, number, number] = [0.88, 0.67, 0.05];
+    // Round 14: the hollows a touch lighter and greener (the reviewer's "dark moss" between the
+    // straw), the lit tone a shade greener (reference lit moss hue 51°; the old [0.88, 0.67]
+    // rendered ≈ 45°)
+    const deep: [number, number, number] = [0.16, 0.165, 0.028];
+    const sun: [number, number, number] = [0.76, 0.63, 0.055];
     // reference B: the cap's shoulder right above the rim is its brightest band (lum 0.45–0.7,
     // sun on the moss; box p90 ≈ 0.55), the crown under the canopy is darker (box p10 ≈ 0.20 —
     // ours 0.32 with the crown at 0.7, so it drops to 0.5); the front face over the porch — the
-    // dome frame B looks at — is sunlit moss (roof-only box p50 ≈ 0.48), so it carries an extra lift
+    // dome frame B looks at — is sunlit moss (roof-only box p50 ≈ 0.48), so it carries an extra
+    // lift (round 14: +75 %, was +85 %, on a shoulder ramp to 1.3 rather than 1.6, and the
+    // whole lift is capped at ×2 — the first round-14 probes' shoulder over the porch rendered
+    // hot yellow (sRGB r > 190) where the ramp and the front lift multiplied)
     const frontFace = smoothstep(1.5, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.15, 0.4, v);
-    const shoulder = lerp(0.5, 1.6, smoothstep(0.2, 0.62, v)) * (1 + 0.85 * frontFace);
+    const shoulder = lerp(0.5, 1.3, smoothstep(0.2, 0.62, v)) * (1 + 0.75 * frontFace);
     const flank = lerp(0.4, 1, smoothstep(-0.2, 0.8, _n.y)) * shoulder;
     // the rim curl darkens toward its underside (the moss edge over a dark shadow band)
     const under = smoothstep(0.8, 0.97, v);
     const rimShade = lerp(1, 0.35, under) * (1 - 0.3 * smoothstep(0.4, 0.7, patches) * smoothstep(0.55, V_CAP, v));
-    const m = flank * rimShade;
-    out.color = [lerp(deep[0], sun[0], bright) * mottle * m, lerp(deep[1], sun[1], bright) * mottle * m, lerp(deep[2], sun[2], bright) * mottle * m];
+    const m = Math.min(2, flank * rimShade * mottle);
+    out.color = [lerp(deep[0], sun[0], bright) * m, lerp(deep[1], sun[1], bright) * m, lerp(deep[2], sun[2], bright) * m];
   };
   const domeMoss = gridSurface((u, v, out) => domeVertex(u * TAU, v, out, false), {
     cols: roofRes,
@@ -1788,6 +1913,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // the front lip above the porch, its ends sinking into the lip roll, and the pod lanterns hang
   // from its underside. Both are half-buried in moss on top.
   const supportParts: BufferGeometry[] = [];
+  /** foliage added after everything else (round 14's sub-limb clusters), so the earlier
+   *  clusters, tufts and vines keep their exact draws from the foliage stream */
+  const lateFoliage: (() => void)[] = [];
   const supportColor = (t: number, ang: number): [number, number, number] => {
     // the trunk's bark, a shade darker than the wall (the boughs are always in the eave's or
     // the canopy's shade), lit along the top
@@ -1832,9 +1960,24 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       frame.at(0.85, capR(0.85) - 0.35 * k, lipTop + 0.45 * k),
     ];
     const arcCurve = new CatmullRomCurve3(arcPts, false, 'catmullrom', 0.5);
+    /** the curve parameter where the bough passes the eave (leaves the trunk's flank) */
+    const tEave = (() => {
+      let best = 0;
+      let bestD = Infinity;
+      for (let i = 0; i <= 200; i++) {
+        const d = arcCurve.getPointAt(i / 200).distanceTo(arcEavePoint);
+        if (d < bestD) {
+          bestD = d;
+          best = i / 200;
+        }
+      }
+      return best;
+    })();
     // thick at the roots (0.46 m), tapering only to 0.36 m where it re-enters the cap, knuckled;
-    // it clears the moss by well over its own diameter, so it can stay a heavy limb
-    const arcR = (t: number) => (0.46 - 0.1 * t) * k * (1 + 0.1 * Math.sin(t * 17 + 1) + 0.06 * Math.sin(t * 41));
+    // it clears the moss by well over its own diameter, so it can stay a heavy limb. Round 14: a
+    // burl where it meets the trunk at the eave (+0.16 m radius over ≈ 1 m of limb — the bough
+    // grows out of the trunk there, it does not lean on it) so the loop reads as anchored.
+    const arcR = (t: number) => (0.46 - 0.1 * t) * k * (1 + 0.1 * Math.sin(t * 17 + 1) + 0.06 * Math.sin(t * 41)) + 0.16 * k * Math.exp(-(((t - tEave) / 0.045) ** 2));
     // sunlit up the leg, shaded by the canopy from the eave upward
     const arcShade = (t: number) => 0.8 * smoothstep(0.28, 0.42, t);
     const arc = sweepTube(arcCurve, {
@@ -1847,14 +1990,127 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       capEnd: true,
     });
     supportParts.push(mossOnTop(arc, mossTint, 0.85, noise));
-    // no leaf sprigs on the arch (their drooping leaves would hang as dark specks in front of the
-    // sunlit moss in B); vines trail only from the leg beside the lip
+    // no leaf sprigs on the arch itself (their drooping leaves would hang as dark specks in
+    // front of the sunlit moss in B); vines trail only from the leg beside the lip
     for (const t of [0.3, 0.38]) {
       const p = arcCurve.getPointAt(t);
       p.y -= arcR(t) * 0.8;
       foliage.addHangingVine(p.add(jit(0.15)), (0.5 + branchRng() * 0.6) * k, { amount: 0.1 });
     }
     bases.push([footL.x, footL.y, footL.z]);
+
+    // ---- round 14: the bough's SUB-LIMBS, so the loop over the house reads as the tree's branch
+    // holding the roof (boards 03 / 04 "curved trunk forms a natural roof", "upper branches with
+    // foliage") rather than a detached hoop: two limbs fork off the span and drop into the cap,
+    // each with a leaf cluster where it enters the moss; one forks upward off the top of the
+    // span into a leafy tip; and one forks DOWN off the far end as a prop root — a pillar to
+    // the ground on the right flank (in B beside the right root, where the reference has its
+    // thick right root mass; it runs behind the HUD box up top). All in the bough's bark, mossy
+    // on top, in the canopy's shade above the eave. Own rng stream: the arc's draws are untouched.
+    const subRng = rng.fork('bough-sublimbs');
+    const sjit = (s: number) => new Vector3((subRng() - 0.5) * s, (subRng() - 0.5) * s * 0.5, (subRng() - 0.5) * s);
+    const _rel = new Vector3();
+    const _cu = new Vector3();
+    /** (angle, cap v) of the dome column under a world point: v from the point's horizontal radius */
+    const capUnder = (p: Vector3): [number, number] => {
+      _rel.copy(p).sub(frame.C);
+      const a = Math.atan2(_rel.dot(Rt), _rel.dot(F));
+      const rp = Math.hypot(_rel.x, _rel.z);
+      let best = 0;
+      let bestD = Infinity;
+      for (let i = 0; i <= 40; i++) {
+        const v = (i / 40) * V_CAP;
+        domeBase(a, v, _cu);
+        const d = Math.abs(Math.hypot(_cu.x - frame.C.x, _cu.z - frame.C.z) - rp);
+        if (d < bestD) {
+          bestD = d;
+          best = v;
+        }
+      }
+      return [a, best];
+    };
+    /** a limb off the span at t, into the moss `aOff` radians round from where it hangs */
+    const capLimb = (t: number, aOff: number, r0: number) => {
+      const from = arcCurve.getPointAt(t);
+      const [a0, v0] = capUnder(from);
+      const a1 = a0 + aOff;
+      const v1 = clamp(v0 + 0.06, 0.05, V_CAP - 0.05);
+      // ends a quarter metre under the moss; the leaf cluster sits on the surface above the end
+      const into = surfacePoint(a1, v1, -0.25 * k);
+      const onMoss = surfacePoint(a1, v1, 0.12 * k);
+      const mid = from.clone().lerp(into, 0.5).add(sjit(0.25)).addScaledVector(frame.dir(a1), 0.15 * k);
+      const limb = sweepTube(new CatmullRomCurve3([from, mid, into], false, 'catmullrom', 0.5), {
+        radius: (s) => r0 * k * (1 - 0.45 * s) * (1 + 0.1 * Math.sin(s * 13 + t * 20)),
+        tubularSegments: 16,
+        radialSegments: 10,
+        uvMetres: 1.4,
+        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 5 + t * 7, pos.y * 1.3 + 4, 2) - 0.5) * 0.05 * k,
+        color: (s, ang) => shadedColor(s, ang, 0.8),
+        capEnd: true,
+      });
+      supportParts.push(mossOnTop(limb, mossTint, 0.7, noise));
+      lateFoliage.push(() => foliage.addLeafCluster(onMoss, 0.5 * k, 36, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 }));
+      return limb;
+    };
+    capLimb(0.5, -0.12, 0.2);
+    capLimb(0.64, 0.14, 0.17);
+    // the up-limb: off the top of the span, up and back into the canopy, leafy at the tip
+    {
+      const from = arcCurve.getPointAt(0.57);
+      const tip = from.clone().add(new Vector3(0, 1.35 * k, 0)).addScaledVector(F, -0.7 * k).add(sjit(0.2));
+      const mid = from.clone().lerp(tip, 0.5).addScaledVector(Rt, -0.25 * k).add(sjit(0.15));
+      const upCurve = new CatmullRomCurve3([from, mid, tip], false, 'catmullrom', 0.5);
+      const upLimb = sweepTube(upCurve, {
+        radius: (s) => (0.17 - 0.1 * s) * k * (1 + 0.1 * Math.sin(s * 11 + 2)),
+        tubularSegments: 14,
+        radialSegments: 9,
+        uvMetres: 1.4,
+        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 5, pos.y * 1.3 + 6, 2) - 0.5) * 0.04 * k,
+        color: (s, ang) => shadedColor(s, ang, 0.8),
+        capEnd: true,
+      });
+      supportParts.push(mossOnTop(upLimb, mossTint, 0.5, noise));
+      lateFoliage.push(() => {
+        foliage.addLeafCluster(tip, 0.55 * k, 40, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
+        foliage.addLeafCluster(upCurve.getPointAt(0.6), 0.35 * k, 18, { size: 0.12, amount: 0.05, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
+      });
+    }
+    // the prop root: off the span's far end, down the right flank to the ground
+    {
+      const aP = 0.88;
+      const from = arcCurve.getPointAt(0.9);
+      const footP = legFoot(aP, 0.4);
+      const pts = [
+        from,
+        frame.at(0.8, capR(0.8) + 0.15 * k, lipTop - 0.2 * k).add(sjit(0.12)),
+        frame.at(0.85, rSmooth(0.85, 0.55 * eaveY) + 0.45 * k, 0.55 * eaveY).add(sjit(0.12)),
+        footP,
+        footP.clone().setY(footP.y - 0.4),
+      ];
+      const propCurve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+      // from the span's thickness (0.3 m) swelling to a root's foot (0.36 m)
+      const propR = (s: number) => (0.28 + 0.08 * smoothstep(0.55, 1, s)) * k * (1 + 0.1 * Math.sin(s * 15 + 3) + 0.05 * Math.sin(s * 37));
+      const prop = sweepTube(propCurve, {
+        radius: propR,
+        tubularSegments: 40,
+        radialSegments: 12,
+        uvMetres: 1.4,
+        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 6 + 3, pos.y * 1.3 + 1, 2) - 0.5) * 0.08 * k,
+        // the right flank never sees the sun (reference: the darkest bark in the frame)
+        color: (s, ang) => shadedColor(s, ang, lerp(0.8, 0.55, smoothstep(0.4, 0.9, s))),
+        capEnd: true,
+      });
+      supportParts.push(mossOnTop(prop, mossTint, 0.6, noise));
+      const vineHooks = [0.25, 0.45].map((s) => {
+        const p = propCurve.getPointAt(s);
+        p.y -= propR(s) * 0.8;
+        return { p: p.add(sjit(0.15)), len: (0.4 + subRng() * 0.5) * k };
+      });
+      lateFoliage.push(() => {
+        for (const h of vineHooks) foliage.addHangingVine(h.p, h.len, { amount: 0.1 });
+      });
+      bases.push([footP.x, footP.y, footP.z]);
+    }
   }
   /**
    * The eave bough (rounds 8–11: a bark limb along the front lip above the porch, the pod cords
@@ -2073,18 +2329,23 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // an irregular mossy mound, its front lumpy with moss clumps, not a smooth sunlit tent).
   const clumpRng = rng.fork('clumps');
   const clumpCount = Math.round(140 * k * k);
-  // olive greens, deeper in the hollows (reference roof hue ≈ 49°, sat ≈ 0.34)
+  // olive greens, deeper in the hollows (reference roof hue ≈ 49°, sat ≈ 0.34). Round 14: the
+  // two lit tints come down (0.66 / 0.92 → 0.5 / 0.64) — reference B's clumps read as DARK
+  // green specks on the lit moss (its moss face: dark specks rgb ≈ (101,92,56) on
+  // (150,144,89)); ours stood out as bright yellow-green leaves above a darker moss
   const tints: [number, number, number][] = [
     [0.2, 0.25, 0.06],
-    [0.4, 0.44, 0.1],
-    [0.66, 0.62, 0.15],
-    [0.92, 0.8, 0.2],
+    [0.36, 0.4, 0.09],
+    [0.5, 0.5, 0.12],
+    [0.64, 0.6, 0.15],
   ];
   for (let i = 0; i < clumpCount; i++) {
     const a = clumpRng() * TAU;
     const v = 0.04 + Math.pow(clumpRng(), 0.8) * 0.74;
     const frontFace = smoothstep(1.3, 0.6, Math.abs(angleDiff(a, 0))) * smoothstep(0.18, 0.32, v);
-    if (clumpRng() < 0.35 * frontFace) continue;
+    // (round 14: the front face keeps two clumps in five, was two in three, and they are smaller
+    // there — reference B's lit mound carries small dark specks, not a mat of leaf clusters)
+    if (clumpRng() < 0.6 * frontFace) continue;
     const p = surfacePoint(a, v, 0.08 * k);
     const n = domeNormal(a, v);
     // lit side (upper faces) gets the yellower clumps, flanks the deep ones; the crown sits
@@ -2093,8 +2354,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const lit = clamp(0.85 * (n.y * 0.75 + 0.3 * clumpRng() + 0.15 * noise.noise(p.x * 1.5, p.z * 1.5)) * lerp(0.55, 1, smoothstep(0.15, 0.5, v)), 0, 0.999);
     const tint = tints[Math.floor(lit * tints.length)];
     // flatter, smaller clumps on the crown so the cap's top silhouette stays low
-    const radius = (0.3 + clumpRng() * 0.26) * k * lerp(0.7, 1, smoothstep(0.1, 0.4, v));
-    foliage.addLeafCluster(p, radius, 34, { size: 0.2 * sk, amount: 0.05, droop: 0.5, tint, tintSpread: 0.25, flatten: lerp(0.3, 0.5, smoothstep(0.1, 0.4, v)) });
+    const radius = (0.3 + clumpRng() * 0.26) * k * lerp(0.7, 1, smoothstep(0.1, 0.4, v)) * lerp(1, 0.7, frontFace);
+    foliage.addLeafCluster(p, radius, 34, { size: 0.2 * sk * lerp(1, 0.8, frontFace), amount: 0.05, droop: 0.5, tint, tintSpread: 0.25, flatten: lerp(0.3, 0.5, smoothstep(0.1, 0.4, v)) });
   }
   // ---- rim fringe (round 11): a drooping skirt of leaf clumps and short vines over the lip, so
   // the cap's edge is a ragged moss fringe hanging past the bark roll (reference B: the moss edge
@@ -2313,9 +2574,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
   }
 
+  for (const late of lateFoliage) late();
   for (const m of foliage.build(mats, `house-${def.id}`)) group.add(m);
 
   // draped limbs + arc bough + broken stub + right limb + chimney
+  // the pad is level (round 14) and the terrain stays under it (`floorPoke` ≤ 0), so this is the
+  // kerb's clearance over the pad; the terrain term only bites if the slope ever came through
   const hearthFloor = Math.max(yFloor + roomFloorY, terrain.height(hearthPos.x, hearthPos.z) + 0.05);
   const hearthClearance = hearthPos.y - 0.14 * k - 0.05 * k - hearthFloor;
   return {
@@ -2324,7 +2588,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     lanterns,
     lights,
     materials,
-    roots: rootCount + 2,
+    roots: rootsBuilt + 2,
     branches: branchDefs.length + 4,
     leaves: foliage.leafCount,
     eave,
@@ -2335,5 +2599,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     pillars: pillarTops.map((p) => ({ foot: p.foot, top: p.top.toArray() as P3 })),
     flowers: flowerCount,
     props: propCount,
+    room: { floorY: roomFloorY, backD: [roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1)], floorPoke, pokeAt },
   };
 }
