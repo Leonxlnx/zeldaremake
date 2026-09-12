@@ -7,64 +7,59 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Published light candidate `e8ccfe6779a8b89bb8fbb1362b58c247598a4b57`, tree
-`46bcb2b952edaa4f512f753f408777dee6bff095`, sole parent `e2ee5f0`. Only production
-change is `heightfog.ts` farShadeStart 22 → 32 m. Typecheck/build 111 passes.
-Its correct environment run 34717576609 has all 16 normal originals verified: exact depth,
-actors, cameras, resources, submitted costs and every normalized audit except the intended
-shade scalar. Zero retries/errors/warnings. Root compared A/D/F pairs and viewed B/C;
-the independent capture reviewer also compared A/C/D/F and all four details. The middle
-path/trunks read modestly more clearly without an obvious pale band or foreground wash.
-All eleven matched path pairs now also pass; the independent reviewer inspected each and root
-compared M05/M09 plus inspected M01/M11. Retain 32 m: modest middle-layer gain, no obvious pale
-band or sampled step. All 27 originals have exact control geometry/depth/actors/costs and zero
-retries/errors/warnings. Archive `9dcc1cffde8b0256699598e46aab9f630658b799`. The known probe
-occlusions remain explicit; continuous playback and FPS are not measured.
+Reject the actual height-only grass trial `5fa3f774c121a78fe8b520540a4b9ff9d2444de9`.
+Root and the independent capture reviewer compared original A/F against e8: lower tips and
+dark wavy interruptions do not make the existing ferns read as coherent groups. F remains a
+fine dense grass carpet; A mainly shows shorter tips. The agreed visual criterion is unmet.
+Restore the exact e8 grass source, SHA256
+`3f30d6804c1abcf72b59e20c90cce52a6ad70670a02de3210ec839655a064745`, in its own source commit.
+No lighting/density/plant-placement compensation. The proof and failed art evidence remain
+in `docs/reviews/east-bank-grass-profile/` and the original capture archive.
 
-The unchanged-world 22 m control `e2ee5f076774ab36d1e751b1f1753781795a417d`, tree
-`6b7d68f5beb2b8201e971d863fe0c46946023840`, parent `9ef903c`, completed all 38 originals
-in successful run 34717456744. All 16 normal JPEG/depth bytes and complete normalized controls
-match 9ef exactly. Corrected hedge and middle-path source/PNG/plan/state/history/ZIP contracts
-also pass, with zero retries/errors/warnings. The corrected hedge view clears the birch and
-supports provisional retention of the visible A/F leaf-form gain, while fine dark overlapping
-leaves limit transition judgment. The middle-path control is useful with explicit probe
-occlusions and coarse-depth ambiguities documented in the light review.
+All twelve 5fa normal contracts pass. Actual draw/triangle costs, actors, resources and other
+audits match e8 exactly; only the supported grass mean/CV changes. Depth differs in 44 A and
+71 F cells within the coarse bank scope; B/C/D/E depth is exact. All four detail original contracts now also pass: S01/S02/L02 image/depth bytes exact e8,
+L01 changes 443 bank-background depth cells with exact costs/other audits. Its partly clearer
+near leaves do not rescue the unmet principal A/F condition; the independent review retains
+rejection. All sixteen originals, ZIPs and archive history are complete. Correct run 34720018706 is successful. Original
+world/detail folders are `progress/2026-09-12_213645259-5fa3f77` and
+`details/2026-09-12_213935027-5fa3f77`, archive `0ce8fa226e5bff72d38c302f9c94692b8d1701c0`.
 
-Next production trial is `grass.ts` only on the elevated east flank. Source/depth-screened F
-probes already include 46 ordinary and 7 hero ferns beside 10,994 grass roots; missing ferns
-alone is not the cause of the dense picket texture. The exact 11-line profile is applied
-for the next isolated source checkpoint. It uses existing shade/cluster/elevation/trim fields to shorten
-irregular patches, keeping tall islands. Full source proof preserves all 499,880 roots,
-479,306 unaffected rows and all 13 other plant sets. Exactly 20,574 grass rows change;
-affected median height is 0.24576 → 0.15637 m, minimum scale 0.38. Existing derived stiffness
-increases; conservative sphere radii and all six distance-LOD inventories remain exact.
-Actual GPU/frustum cost and appearance are pending. W16/W17 claimed at 20:49 until 23:49;
-PR2 coordination 5648602532. The portable proof in `docs/reviews/east-bank-grass-profile/`
-reproduced all 21 substantive frozen fields without ignored inputs; root reviewed it and
-production typecheck/build 111 passes. The isolated light decision is complete; publish this grass-only trial next.
+The prepared Fable integration is safely retained in local unpublished commit
+`6a4338356e0650d57b9bf48d1d3bca2df5186cf6`; do not publish its old grass-containing tree.
+A temporary own local branch `agent/astra-bank-profile-rollback` prepares only the reversal.
+After its remote capture starts, reapply the reviewed Fable integration onto that restored
+source and publish it as a separate checkpoint. Preserve explicit ancestry to partner
+`fc853db87ee56ffd395600cdd41d68ea42393d1b`, all partner history, our canopy contract and
+cap/sign/post work. The first prepared integration already passes exact source checks and
+production typecheck/build 111; its only conflict was adjacent tree audit fields, both retained.
 
-Fable is now at `fc853db` (take 71, tick 55). His `901b65b` connects distant huts to the
-published trunk seats, adds recessed openings and near-style pod shapes, corrects glow tint
-and drops degenerate cap fans. Earlier `7eba56e` tree geometry/RNG was reviewed exact;
-`bb3b7bf` incorporates our crown-leader bareHeight correction using the existing sample.
-Two helpers independently review the new source and actual take before deliberate adoption
-after the grass comparison. Preserve our canopy publication and cap consolidation. Fable
-owns the next periodic burl seam and knotted hero arch/crown work. PR2 handoff 5648763284. Take 71 art review sees useful dark interiors and less spherical pods,
-but continuous glowing opening rims look like graphic outlines in A/B/D; root inspected A/D
-and sent the concrete follow-up in 5648783281. No hero W25 verdict is rewritten.
+Fable's `7eba56e` publishes 22 tree seats with unchanged geometry/RNG; `bb3b7bf` incorporates
+our crown-leader bareHeight correction. `901b65b` uses those seats for the distant huts, adds
+recessed openings and near-style pods, corrects glow tints and removes degenerate caps.
+Independent source checks find no current integration blocker: sampled trunk contacts and 54
+opening rays pass, with nominal-radius and unwelded-back limits explicit. Take 71 A/B/C/D/F
+shows useful dark interiors and less spherical pods, but bright opening rings/arches read as
+graphic symbols. Root inspected original A/D and reported this in PR2 comment 5648783281.
+Fable retains that follow-up, periodic burl seams and the knotted hero arch/crown. W25 stays fail.
 
-A purple flower-head study is scratch-only. The first six-petal high-detail form preserves
-its 52-triangle head budget and every unrelated plant, but its projected 9 m High/Medium
-silhouette agreement is materially worse. Keep that finding, do not ship it as a finished
-LOD family. A coherent purple-only High/Medium refinement is now being prepared within each
-existing budget; yellow flowers, spikes, low forms, instances and unrelated streams stay.
-No LIVE flower change or capture has been made.
+Retain the isolated light change in `e8ccfe6779a8b89bb8fbb1362b58c247598a4b57`: surface
+attenuation starts at 32 m, with 44 m endpoint and other inputs exact. All 27 originals match
+22 m control geometry/depth/actors/resources/costs; zero retries/errors/warnings. Root's A/D/F
+and path samples plus independent all-eleven-pair review show modest middle-layer readability
+without an obvious pale band. Original archive `9dcc1cffde8b0256699598e46aab9f630658b799`.
+Probe occlusions/edge ambiguities remain explicit; fixed samples do not establish playback/FPS.
+The e2 unchanged-world 22 m control completed all 38 originals, including the corrected hedge
+view. That view supports provisional retention of the 9ef high-leaf form with fine-LOD limits.
 
-The read-only stone study declined a blanket roughness 0.92 → 0.72 trial: maps and IBL work,
-and actual near-paving normals are mostly far from the direct reflection half-vector.
-Incomplete CPU GGX components mostly decrease; no GPU brightness or missing-map defect is
-claimed. Owner board 02 is dry while 08 includes damp-looking highlights. No roughness source
-change or extra render was made. Both earlier sleeve shader variants remain held.
+A coherent purple High/Medium petal family is frozen in scratch, with a portable receipt:
+52/26 triangles per head and unchanged unrelated plants/instances. The first high-only form
+was held for worse 9 m continuity; the shared family improves that source silhouette match.
+A separate small Low follow-up investigates the inherited 7→5 rearrangement at 16 m, retaining
+High/Medium bytes and grounded tangents. No flower source is integrated yet.
+The original 20% sleeve-floor angular study is adapted to Fable 901b only in scratch; actual
+appearance remains untested and a modest B underside darkening is possible. No global light
+lift or geometry change is bundled. A blanket stone roughness change remains declined.
 
 The new named middepth mode records eleven original full-scene PNGs over 16 m of the D path;
 its three fixed source-terrain probes traverse the complete 32–44 m candidate shade band.
@@ -144,8 +139,8 @@ or exact GPU attribution. Both frozen 20% response variants remain unapplied.
 The frozen hedge proof and actual form review pass; the corrected e2 LOD view supports provisional retention with the stated visibility limits.
 
 ## Files / systems being touched
-- Root: actual light verdict, isolated `grass.ts` profile, own log/claims/review docs.
-- Capture helper: e8 review complete; next isolated grass normal 16 originals and controls.
+- Root: exact grass rollback, then separately reapply the reviewed Fable huts; own log/docs.
+- Capture helper: failed grass trial complete; next exact rollback normal 16, then integrated huts.
 - Flower helper: scratch-only coherent purple High/Medium head form; no LIVE writes.
 - Two review helpers: published Fable 901b65b source and take 71 originals, read-only.
 - Fable: periodic burl seam, knotted hero arch/crown and tree-cache follow-up.
@@ -267,4 +262,4 @@ Astra: decide the current light trial, then grass profile and coherent flower fo
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T21:26:00.947641+00:00
+2026-09-12T21:43:10.478835+00:00

@@ -74,3 +74,40 @@ Retain the trial only if actual A/F planting reads as a quieter, broken grass la
 existing fern/leaf groups. Reject a scalped or artificial bank, or a merely shorter version of the
 same wall. Do not compensate with lighting changes or added plants. This supplemental evidence
 does not alter gauntlet scores or phase-exit criteria.
+
+
+## Actual decision: reject the height-only trial
+
+The published candidate is `5fa3f774c121a78fe8b520540a4b9ff9d2444de9`, tree
+`4ba0c746496a9a043cdd90eeaac32d5b9a5cd2cd`. Its source proof remains valid, but the
+actual A/F appearance does not satisfy the stated retention condition. Root and the independent
+capture reviewer inspected the original e8/5fa pairs: grass tips are lower and the bank has
+some dark wavy breaks, yet it remains a fine dense carpet. Existing ferns do not become
+convincingly legible plant groups. A mainly shows shorter tips; F adds patchiness rather than
+the intended layered planting. Reject and restore the exact e8 grass source. Do not increase
+light or add plants to disguise this result.
+
+All twelve normal original/publication/source contracts pass. Every actual submitted draw and
+triangle count matches e8. Other audits, resources and actors remain exact; only the source-
+supported rounded grass height mean/CV differ. Depth changes occur in 44 A cells and 71 F cells,
+all inside the coarse source-supported bank region. B/C/D/E depth is exact. These technical
+results do not convert a weak visual result into an approval.
+
+Original world folder `progress/2026-09-12_213645259-5fa3f77`, archive
+`57656c6b4dd25d607623f58291da2e2673bb8139`. The four additional originals are published in
+`details/2026-09-12_213935027-5fa3f77`, archive `0ce8fa226e5bff72d38c302f9c94692b8d1701c0`;
+final detail/history receipts are being completed separately. The successful environment job
+is 34720018706. The failed art trial, its proof and all original images remain preserved.
+
+The rollback restores grass SHA256
+`3f30d6804c1abcf72b59e20c90cce52a6ad70670a02de3210ec839655a064745`.
+It changes no light, fern, flower, tree or house source. Fable's already reviewed hut integration
+will be a later separate commit. These are supplemental decisions, not rubric-score changes.
+
+
+Final 5fa receipt: all sixteen originals, ZIPs and archive history pass. S01/S02/L02 JPEG and
+depth bytes are exact e8. L01 changes 443 background depth cells, all in the coarse bank region,
+with exact actual costs and unrelated audits. The independent reviewer saw all four details
+and compared L01 directly: some near-background leaves are less obstructed, but dark stubbly
+gaps remain and the principal A/F planting criterion is still unmet. The rejection stands.
+The rollback build restores every `src/` file exactly to e8 and passes typecheck/build 111.
