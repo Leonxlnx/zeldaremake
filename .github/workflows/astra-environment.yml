@@ -46,6 +46,8 @@ jobs:
       - run: npm run build
       - name: Check source integrity
         run: node gauntlet/scripts/anti-cheat.mjs --skip-capture-checks
+      - name: Check screenshot state invariants
+        run: node gauntlet/scripts/test-environment-capture-state.mjs
       - name: Render six matched environment comparisons
         run: node gauntlet/scripts/capture-environment.mjs
       - name: Retain actual images and metadata, including partial failures

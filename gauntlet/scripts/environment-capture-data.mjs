@@ -13,6 +13,21 @@ export const digest = bytes => crypto.createHash('sha256').update(bytes).digest(
 export const imageName = (view, variant) => `${view}-${variant}.jpg`;
 export const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 
+/** Renderer allocation/GC counters are observed, not simulation state. All other
+ * stats, camera, controls and the complete world audit remain exact invariants. */
+export function assertStableCaptureState(before, after, label) {
+  const separate = state => {
+    const stats = { ...state.stats }, memory = {};
+    for (const key of ['textures', 'geometries', 'programs']) if (Object.hasOwn(stats, key)) {
+      memory[key] = stats[key]; delete stats[key];
+    }
+    return { stable: { ...state, stats }, memory };
+  };
+  const a = separate(before), b = separate(after);
+  assert.deepEqual(b.stable, a.stable, label);
+  return { before: a.memory, after: b.memory };
+}
+
 export function assertRenderedControls(audit, controls) {
   for (const key of ['sunIntensity', 'hemiIntensity', 'environmentIntensity']) if (controls.light?.[key] !== undefined) assert.equal(audit.systems.lighting[key], controls.light[key]);
   if (controls.light?.shadowRadius !== undefined) assert.equal(audit.systems.lighting.shadowRadiusTexels, controls.light.shadowRadius);

@@ -7,7 +7,7 @@ import sharp from 'sharp';
 import { ROOT, serveStatic, launchBrowser, READY_TIMEOUT_MS } from './lib/browser.mjs';
 import { hashDir } from './capture.mjs';
 import { SCHEMA, VIEWS, CASES, digest, imageName, readJson, validateVariants, sourceIdentity,
-  comparisonReadme, readCompletedComparison, assertRenderedControls } from './environment-capture-data.mjs';
+  comparisonReadme, readCompletedComparison, assertRenderedControls, assertStableCaptureState } from './environment-capture-data.mjs';
 
 const out = path.join(ROOT, 'gauntlet/out/astra-environment');
 const dist = path.join(ROOT, 'dist');
@@ -20,7 +20,10 @@ assert.equal(fs.readdirSync(out).length, 0, 'Use an empty output directory; pres
 const report = { schema: SCHEMA, ...sourceBefore, sourceBefore, sourceAfter: null,
   distHash: hashDir(dist), distHashAfter: null, status: 'running', startedAt: new Date().toISOString(),
   capturedAt: null, width: 1280, height: 720, quality: 'high', hud: false, time: variants.time,
-  settleFrames: 8, settleDt: 0, variants, captures: [], errors: [], warnings: [], restored: false,
+  // ready() waits for world construction; setViewpoint refreshes LODs, and each
+  // step(0) poses the world at setTime. Composer passes have no temporal history.
+  settleFrames: 2, settleDt: 0, variants, captures: [], errors: [], warnings: [], restored: false,
+  rendererMemoryObservations: [],
   auditCaveats: 'Requested hooks are checked against light objects and the composer settings snapshot used by the last render. These are actual source controls, not independent GPU pixel measurements of irradiance or color.',
   comparisonScope: 'Same actual source/camera/time/geometry/fog; baselineSource identifies historical controls only. No gauntlet score, reference-image comparison or production approval is implied.' };
 let server, browser, page, previous, failure;
@@ -39,12 +42,15 @@ async function capture(label) {
     const before = await state();
     const png = Buffer.from(await canvas.screenshot({ type: 'png' }));
     const stats = await sharp(png).stats();
-    const after = await state(); assert.deepEqual(after, before, `${label}: screenshot must not advance state`);
+    const after = await state();
+    const memory = assertStableCaptureState(before, after, `${label}: screenshot must not advance state`);
+    report.rendererMemoryObservations.push({ label, attempt: retries, operation: 'screenshot', ...memory });
     if (Math.max(...stats.channels.slice(0, 3).map(c => c.stdev)) > 2) return { png, retries, state: after };
     assert(retries < 3, `${label}: uniform renderer buffer after three same-state retries`);
     console.log(`${label}: retrying uniform buffer at unchanged state`);
     await page.evaluate(() => window.__ZR__.render(2, 0));
-    assert.deepEqual(await state(), before, `${label}: retry changed state`);
+    const retryMemory = assertStableCaptureState(before, await state(), `${label}: retry changed state`);
+    report.rendererMemoryObservations.push({ label, attempt: retries, operation: 'same-state-retry', ...retryMemory });
   }
 }
 async function measurements(png) {

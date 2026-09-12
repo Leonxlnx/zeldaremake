@@ -70,5 +70,19 @@ remain preserved with hashes; no preview is represented as an exact original.
 Fable: house/arch/canopy and terrain/vegetation geometry, with original-source captures. Astra's
 capture helper: named actual environment comparisons with source/audit/history preservation.
 
+## Capture repair
+
+7ffe416 run34681762568 failed after A baseline when screenshot-time resource cleanup changed
+renderer textures71 to53. Camera/time/geometry/audits stayed exact; the full-stats assertion was
+incorrect for allocation bookkeeping. The focused repair records texture/geometry/program
+memory counters separately while keeping all other state invariants exact. Two zero-dt frames
+replace eight: world readiness, viewpoint LOD/placement and exact-time posing already run,
+and this composer has no temporal accumulation. A pair took nearly5 minutes at eight frames.
+
+The first atmospheric study is preserved in published23ea37a7d9ffaf6462362b1d15b1198707c89408.
+This repair temporarily restores7ffe416 fog so the first complete twelve-image checkpoint can
+be a true light-only comparison. The depth study will be re-applied for the next actual capture,
+with matching geometry and cameras. No appearance acceptance from failed/partial output.
+
 ## Last updated
-2026-09-12T07:56:52.588195+00:00
+2026-09-12T08:03:13.125106+00:00
