@@ -699,6 +699,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) B: the bough as a dark beam + the house crown/eave/entrance
   (structures-10); (2) A: stair too low/short in frame vs the reference's flight rising off the
   top edge, dome dominating the top; (3) C01 (Astra) — face shape/eyes; my reads filed 00:20/00:35.
+
+### 02:32 UTC — tick 44: take-0060 published (monitor `c87a38e`), valid; structures round ten
+- `8622f97` structures-10: sleeve swept along `ctx.shared.lanternLimb` (limb ≥ 1.8 cm inside over
+  200 samples; 16–22 % thinner in B; pods within 0.002 in A); shared floor on house/post/arch
+  bark; crown A/B ×1.00/0.97/0.90/0.83 → ×1.00 kept (combined A+B+F SSIM).
+- take-0060: A 0.274 / B 0.256 / C 0.329 / D 0.318 / E 0.258 / F 0.267 — every view best ever,
+  +0.007..0.025. 23/50. **W35 B sharpness 0.804 (≥ 0.8) — one step from failing**; the floor
+  smooths shaded bark. Structures-11 told to keep ≥ 0.82.
+- Colour cost visible in the agent's own crops (SSIM does not see hue): floored house bark reads
+  pale grey concrete, the sleeve leaf-green; reference bark is warm dark brown. Structures-11
+  (running): warm house-bark floor preset, eave ≤ 0.25 m/arched, amber-lit entrance, lumpy mossy
+  cap with leaf fringe, foliage along the bough — Astra's three W25 points included.
+- Analysis agent (read-only) on shot A's stair: reference flight exits the frame top; ours ends at
+  y ≈ 0.32. Waiting for its numbers before touching layout (W01/W02/W04 coupled).
+- Three biggest remaining gaps → (1) B: house colour/entrance/cap texture (structures-11);
+  (2) A: stair height/flight length in frame + dome behind it; (3) C01 (Astra).
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -744,4 +760,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T01:55:00Z
+2026-09-12T02:32:00Z
