@@ -61,3 +61,28 @@ saved views and details for unintended effects. The existing automatic hedge swe
 a hedge regression capture; it is not evidence of the flower's 9 m or 16 m transition.
 Retain or reject the appearance separately from source-test success. No gauntlet score or
 exit criterion is changed by this supplemental study.
+
+## Actual normal/detail decision: retain the form gain
+
+Published source `9f2e98b27ab6afd177d344e4d9a830ef24efab31`, tree
+`fafe78c7450ee6f1ceb7f978eb92c359d8c99117`, completes all sixteen normal/detail
+source/publication contracts with zero retries, errors or warnings. All unrelated normalized
+audit, actor, camera and resource states pass their strict comparison to f56. Draw calls are
+unchanged; submitted triangles grow by 2,312–7,038 depending on the view. D's +2,312 agrees
+with the independently recorded 68 Low instances times 34 added packed triangles. Other
+view counts inferred from actual inventory are labelled as such. Changed depth samples remain
+preserved, including the substantial L02 background reveal through the changed foreground heads.
+
+Root and the independent reviewer compared original A/D/L01/L02 pairs. L02 now resolves
+separate petals and a small dark centre in place of the solid purple cups. D's bed remains
+a connected planted group while showing more distinct heads and green gaps. L01's distant
+heads become finer; A's gain is small. No obvious floating heads or lost route/bed shape was
+seen in those frames. Retain this modest form improvement. The separate dense purple spikes
+remain unchanged; material nuance and continuous LOD behavior are not approved by these views.
+
+Original archive `7e6b6a66616fba802fd8cf14bf64f3c99aa77a37`, world folder
+`progress/2026-09-12_222435144-9f2e98b`, details
+`details/2026-09-12_222708904-9f2e98b`. Exact source ZIP493 files and207 capture inputs verified.
+The [actual report](actual-appearance.md) and [per-view receipt](actual-flowers-comparison.json)
+preserve the measurements. The automatic eleven-frame hedge regression is still running and
+will be recorded separately. It cannot establish a flower transition result.

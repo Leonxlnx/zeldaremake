@@ -1,0 +1,62 @@
+{
+  "status": "Frozen scratch proposal; not integrated by this helper",
+  "partnerMaterialCommit": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "originalProposalSource": "e6d6ac06dc8706b8b41f13b0518077f7d8c1d242",
+  "priorAdaptationSource": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+  "patchSHA256": "37a1076ff9427977ea5b1add329b1473199c809f79166c76743914fc335b7955",
+  "candidateMaterialSHA256": "e024a03cbb46900c5403d4dea7cbda8f67cde4e48fe84aa40a18aa7abfe4c13e",
+  "helperSHA256": "f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7",
+  "inputs": {
+    "src/world/structures/materials.ts": {
+      "sha256": "a1ff83add8f3c3ef13a8fe1f9da7ce432b23ae6dbd69ffb7ac24473dcc2d7da1"
+    },
+    "src/world/materials/shadeFloor.ts": {
+      "sha256": "b3e2e2f3575780ae1919a4117564a3b05ef1fb8551cd58dc170986c1a8a9fcb5"
+    },
+    "src/world/structures/lanternBranch.ts": {
+      "sha256": "15fe186287de461cbc65b46e6fd777eb975e3a2f842d3f9826da8f94f3548ab2"
+    },
+    "src/world/config.ts": {
+      "sha256": "de823b4861e5fa63de319d01e20fde582477b7dfba16f13b79126c6d1c65a02f"
+    },
+    "src/world/lighting/index.ts": {
+      "sha256": "3a12bf2a6857d4a3b36e22faa6cf175ff995424ef27c386c71bbd0d75cbf5aff"
+    },
+    "src/world/structures/index.ts": {
+      "sha256": "ceaec6e20ffcc3a722d584040857838e68023a4de89b4c3378d0112c500000a6"
+    }
+  },
+  "sourceCommit": "901b65b9ec45a1355cf3169d245e93892d98b7da",
+  "localIntegrationObservation": {
+    "commit": "6a4338356e0650d57b9bf48d1d3bca2df5186cf6",
+    "published": false,
+    "usedForReproduction": false,
+    "materialBytesEqualPublishedSource": true,
+    "inputs": {
+      "src/world/structures/materials.ts": {
+        "sha256": "a1ff83add8f3c3ef13a8fe1f9da7ce432b23ae6dbd69ffb7ac24473dcc2d7da1",
+        "equalsOriginalProposalSource": false
+      },
+      "src/world/materials/shadeFloor.ts": {
+        "sha256": "b3e2e2f3575780ae1919a4117564a3b05ef1fb8551cd58dc170986c1a8a9fcb5",
+        "equalsOriginalProposalSource": true
+      },
+      "src/world/structures/lanternBranch.ts": {
+        "sha256": "15fe186287de461cbc65b46e6fd777eb975e3a2f842d3f9826da8f94f3548ab2",
+        "equalsOriginalProposalSource": true
+      },
+      "src/world/config.ts": {
+        "sha256": "b82d848c53f1770dc21fe50ab36c94fe9a5968ce1a5795c0d40ee3fcb7849c88",
+        "equalsOriginalProposalSource": true
+      },
+      "src/world/lighting/index.ts": {
+        "sha256": "443305d0601e8e17c7c4519cd95caaa76ff42f08966a9a6657fe19529f72703d",
+        "equalsOriginalProposalSource": true
+      },
+      "src/world/structures/index.ts": {
+        "sha256": "18dacf009704de2683b78500fddbc21902eb38b61147db855634868138e92bea",
+        "equalsOriginalProposalSource": false
+      }
+    }
+  }
+}

@@ -828,6 +828,16 @@
       "at": "2026-09-12T22:12:05.429Z",
       "expiresHours": 3,
       "scope": "Ordinary fern pinna-profile study after rejected grass-height trial; preserve frond axes/counts/roots/height/RNG/placements/materials, coherent LODs; scratch preparation only until flower capture, PR2 coordination5649023824"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W30",
+        "W36"
+      ],
+      "at": "2026-09-12T22:18:51.309Z",
+      "expiresHours": 3,
+      "scope": "Isolated0.20 lantern sleeve angular shade-floor response; only structures/materials.ts import/call plus sleeveBark.ts; preserve Fable901b materials, global light and all plant source; PR2 scope5648925496/5649023824"
     }
   ]
 }
