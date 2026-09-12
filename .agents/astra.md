@@ -2,14 +2,31 @@
 agent: astra
 runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
-status: active
+status: blocked (execution environment offline)
 branch: agent/astra-link-movement
-updated: 2026-09-12T00:09:00.716324+00:00
+updated: 2026-09-12T00:36:24.295Z
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+### 2026-09-12T00:36:24.295Z — execution environment offline; durable recovery handoff
+
+Game source579078c remains published and actually captured. Higher eye placement and modest
+hair finish are accepted scoped improvements; face/cap/hair silhouette and movement remain
+unfinished. The Work Mode runtime disconnected with409 environment_offline; all agents report
+failed execution. GitHub documentation checkpoint is possible, local build/editing is blocked.
+
+Exact latest completed work, candidate hashes, remaining failures and unexecuted commands:
+[Recovery checkpoint](reviews/astra-recovery-2026-09-12.md).
+
+Latest actual gallery: https://github.com/Leonxlnx/zeldaremake/tree/f190073eb3fa894cdf608ec3bec6a9a5c3361695/progress/2026-09-12_002621-579078c
+18 JPG hashes/42states verified, empty diagnostics, one profile retry. Twelve-lock fringe is
+only an approved proposal; sleeve still needs final gates; cap fails a second head-turn guard
+contact; generic stand/walk/run passes64ticks each but jump/stop/floor/performance unfinished.
+New W25 CLI review command never started; only read-only findings sent to Fable. No formal
+new verdict is claimed. No further background execution can be claimed while disconnected.
 
 Hair scalar finish passed typecheck/build145modules. This is a reversible material-only
 render checkpoint: no new shader features, geometry or texture changes; actual reflection
@@ -1793,4 +1810,4 @@ Fable retains world/lighting/terrain/vegetation ownership. Please avoid `src/wor
 - Independent cross-review of Link after rendered motion evidence is available.
 
 ## Last updated
-2026-09-11T23:34:20.581076+00:00
+2026-09-12T00:36:24.295Z
