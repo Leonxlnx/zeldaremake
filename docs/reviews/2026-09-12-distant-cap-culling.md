@@ -1,32 +1,56 @@
 # Keep distant caps from submitting invisible hero roofs
 
-Combined source1e97463 adds only1008 cap triangles, but their shared roof bucket expands
-from a7.497m to20.295m bounding sphere. At C/L02 this admits the old129596-triangle roof into
-the color pass despite byte-identical JPEG/depth. Real Three frustum calculations reproduce
-all ten measured source deltas exactly; this is an established cause, not just a hypothesis.
+The distant huts add only 1,008 cap triangles, but their shared roof bucket expands from a
+7.497 m to 20.295 m bounding sphere. At C/L02 this admits the old 129,596-triangle roof into
+the color pass despite unchanged visible content. Actual Three frustum calculations reproduce
+all ten measured source deltas exactly; the expanded bound is the established cause.
 
-The correction changes only the consolidation block in structures/index.ts. Move distant
-capMoss meshes into an identity group, run the unchanged static consolidator on each group,
-then reattach and sum audit counters. All original part data/materials/transforms stay exact;
-the main roof's merged buffers recover711 exactly. No builder/layout/light or shared material
-changes. Fable's take69 history74918cd is integrated deliberately; active structures17 remains
-his work. PR2 comments5647801272/5647841319 document the narrow index overlap and adoption plan. Fable explicitly approved this split
-in5647847074 and will adopt its SHA after structures17, which adds only audit lines here.
+Source `8714d2af9556105fe867f9e36a1a44c4a99629f0` changes only the consolidation block in
+structures/index.ts. Distant capMoss meshes move into an identity group, the unchanged static
+consolidator runs on both groups, and the results are reattached with summed audit counters.
+All original part data, materials and transforms remain exact. The main roof's merged buffers
+recover source 711 exactly. There are no builder, layout, lighting or shared material changes.
+Fable approved this narrow overlap in PR2 comment 5647847074 and plans deliberate adoption
+after structures 17. His take 69 history is integrated without altering his active work.
 
-[The pinned reproduction](distant-cap-bounds/README.md) preserves original source/camera
-provenance and resource behavior. Expected versus1e: C/L02−130604 submitted triangles with
-zero net calls; F−1008/+1call; A/B/D/E and signs+2calls/same triangles; L01+1call/same triangles.
-Unique triangles/materials/textures remain unchanged, mesh/geometry+1, raw geometry buffers
-−6048bytes because the small cap index becomes Uint16. Object overhead and GPU timings are
-unmeasured. Max draw count would be663, B/E triangles8725061 unchanged.
+[The pinned reproduction](distant-cap-bounds/README.md) preserves source, camera and resource
+provenance. Actual-source typecheck/build 112 and the frozen index SHA256 pass. Unique scene
+triangles, materials and textures remain unchanged. One mesh/geometry is added; raw geometry
+buffers shrink by 6,048 bytes because the small cap index becomes Uint16. Object overhead and
+GPU timings are unmeasured. All 56 geometry disposals occur once; existing material/texture
+ownership behavior stays exact, including the cap-moss leak pending Fable's fix.
 
-All final56 unique geometry disposals occur once, including the new bucket;36material events
-and25inspected texture event counts preserve old behavior. Existing cap-moss texture leaks
-remain pending Fable's accepted fix; no new whole-system idempotency claim is made.
+## Actual result: retain, with strict JPEG identity failed
 
-The actual acceptance gate is unchanged JPEG/depth and matching predicted submitted budgets
-against the prior crate718 source, with retained scene audits/resources. Do not infer a new
-visible improvement or FPS gain from fewer submitted triangles. Capture remains pending.
+Environment run 34711620329 completed both galleries. All original publication bytes, source
+and tree provenance, cameras, controls, 16 depth hashes, resource inventories and predicted
+submission changes pass. Historical gallery files remain unchanged.
 
-Actual-source typecheck/build112, exact frozen index SHA256 and self-contained pinned
-reproduction pass. Crate/tuft hashes remain unchanged; partner749 log/ledger bytes are exact.
+| View | Submitted triangle change | Draw-call change |
+| --- | ---: | ---: |
+| C and L02 | -130,604 | 0 |
+| F | -1,008 | +1 |
+| A, B, D, E, S01 and S02 | 0 | +2 |
+| L01 | 0 | +1 |
+
+Actual C is 556 calls / 8,433,793 triangles; L02 is 544 / 8,402,069; F is 625 / 8,533,071.
+Textures remain 70 and programs 76 at this historical source, which still contains the later
+rejected crate shader. These counts measure submissions, not unique scene geometry or FPS.
+
+The original exact-JPEG assertion failed and remains failed. All 12 world JPEGs have tiny
+residuals: worst whole-image channel MAE 0.001518/255, maximum channel difference 5/255,
+at most 14 pixels per image exceeding 3/255. S01 and S02 are byte exact. L01 has maximum 2/255
+and MAE 0.0000716; L02 maximum 4/255 and MAE 0.0008825, with one pixel exceeding 3/255.
+Draw-order or renderer rounding is only an inference; its cause has not been established.
+
+Root personally compared A and viewed both non-identical detail originals. The independent
+reviewer inspected all five distinct world views and those details. No visible roof, path,
+lighting, foliage or prop deterioration was found. Retain on this separate visual and cost
+review, explicitly preserving the failed stricter gate. No appearance or frame-rate improvement
+is claimed. D baseline used one unchanged-state blank-buffer retry; the other 15 used zero.
+Both reports contain zero final errors and warnings.
+
+[World originals](https://github.com/Leonxlnx/zeldaremake/tree/81e465c8055b989cd8b4a9b91ab4bae6fcb6095d/progress/2026-09-12_185057505-8714d2a)
+and [detail originals](https://github.com/Leonxlnx/zeldaremake/tree/fd7a47ef23c277c0abcc18c15c0a064303471c8e/details/2026-09-12_185348674-8714d2a)
+remain immutable. The verified source ZIP contains all 409 tracked files at their original bytes.
+Original canvas PNG bytes and an independently downloaded dist rehash are not claimed.

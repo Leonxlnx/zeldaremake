@@ -1,8 +1,8 @@
 # Near flagstone shoulder-fracture feasibility
 
-**One bounded candidate is ready for an actual world comparison; no retention claim.**
+**REJECTED after actual gameplay-view review. The two production files are restored to their exact pretrial source.**
 Pinned production source: `71843a28538f00bdbbd0005a65a1b588315753b5`.
-The original study was scratch-only. Root applied the exact frozen two-file candidate on8714d2a after Fable handoff5647820443 and exact-scope announcement5647902527. Actual candidate images remain pending.
+The original study was scratch-only. Root applied the exact frozen two-file candidate on8714d2a after Fable handoff5647820443 and exact-scope announcement5647902527. Actual e706 A/F images and B/D controls have now been reviewed; see the decision below.
 
 The preceding actual-image diagnosis found that1e A/B/D/F
 already show useful warm key / cool shade separation. Original owner boards 02/06 show low,
@@ -121,3 +121,39 @@ quality verdict or phase-exit evidence.
 Root applied the frozen hashes exactly and ran production typecheck/build112. The self-contained
 reproduction matches the entire original evidence object, including all619stone rows and the
 character sampler. Only two production files change against8714; cap/crate/tuft bytes stay exact.
+
+
+## Actual e706 decision: reject and restore
+
+Published candidate `e7069a456e6bb3e58f4354983446cdb10f4b35fd` completed environment run
+34712063386. Root compared the original A/F pairs against 8714 and revisited owner board 02;
+two independent reviewers inspected those originals and boards 02/06. The shoulder response
+is slightly different, but the paving still reads as the same broad flat polygon slabs.
+The declared meaningful gameplay-view gain is not met. No obvious holes or scooped pattern
+were seen, but that does not make a barely visible change worth retaining.
+
+The original strict historical actor-XZ assertion also fails. In C, kid 0 moves approximately
++2.942 mm x, +8.901 mm z and -1.688 mm y. In F, Link moves +3.669 mm x, -0.846 mm z and
+-2.471 mm y; the fairy and other NPCs have smaller recorded changes. Ground-dependent pose
+or contact behavior is plausible but not established. Preserve the failed assertion and raw
+reports; do not normalize these fields or claim the earlier CPU sampler study proves runtime
+movement. A/B/D/E actor positions remain exact. Runtime sampler triangles are 64,663 → 64,840
+(+177), with five added covered cells; its absolute baseline differs by one from the CPU fixture.
+
+All world cameras, controls, non-character audits, resources, draw calls and triangle budgets
+remain exact. Source/publication-byte checks pass. All 16 source, original-byte, ZIP and archive-history
+receipts are complete, with zero retries, errors or warnings. Detail actor positions remain
+exact; S01/L01 JPEG and depth are exact 8714, while S02 changes one depth cell and L02 changes
+81. The four detail views reveal no new prop defect or stronger reason to retain the trial.
+The art rejection does not depend on finding a technical defect.
+
+Restore only hardscape/geometry.ts and flagstones.ts to exact source
+`8714d2af9556105fe867f9e36a1a44c4a99629f0`. The prior crate rollback and retained cap/tuft work
+remain unchanged. No crown increase, stronger exposure or unrelated foliage is bundled in.
+The frozen source reconstruction and original proof are retained as an explicitly rejected
+experiment, so another agent does not repeat it or mistake it for the accepted ground surface.
+
+[Actual world originals](https://github.com/Leonxlnx/zeldaremake/tree/37109912ca5da2eb0ce25151588740bc778221d2/progress/2026-09-12_190308413-e7069a4)
+remain available with the failed check's unmodified source state.
+
+Exact two-file rollback passes production typecheck/build (111 modules).

@@ -1203,17 +1203,6 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       }
       return v;
     };
-    // Shallow cleaved shoulder on nearby laid stones. Keep the low crown, original outline,
-    // bottom/wall contact and all seeded draws; the existing grain still handles millimetre wear.
-    // The already sampled terrain envelope bounds the cut without additional sampler calls.
-    const fractureWeight = disc ? 0 : 1 - smoothstep(8, 13, Math.hypot(s.x, s.z));
-    const tiltSin = Math.sqrt(Math.max(0, 1 - nAcc.y * nAcc.y));
-    const fractureClearance = bottomY + (thickness - 0.003) * nAcc.y - radius * tiltSin - hMax - 0.003;
-    const fractureDepth = Math.max(0, Math.min(bevel * 0.82, 0.009, fractureClearance)) * fractureWeight;
-    const fractureAngle = uCrown * Math.PI * 2;
-    const fractureX = Math.cos(fractureAngle), fractureZ = Math.sin(fractureAngle);
-    const fractureStart = radius * (0.18 + 0.15 * uJoint);
-    const fractureWidth = Math.max(0.08, radius * 0.32);
     buildSlab(all, outline.outer, {
       thickness,
       bevel,
@@ -1243,9 +1232,6 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       uvScale: 0.62,
       uvOffset: uvO,
       topNoise: (x, z) => 0.003 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7),
-      topRelief: fractureDepth > 0 ? (x, z, edge) => -fractureDepth
-        * clamp(((x - c.x) * fractureX + (z - c.z) * fractureZ - fractureStart) / fractureWidth, 0, 1)
-        * smoothstep(0.45, 1, edge) : undefined,
       // a second ring gives the edge film somewhere to end (5–15 cm in) on the small rim stones
       rings: radius > 0.42 || edgeMoss > 0 ? 2 : 1,
     });
