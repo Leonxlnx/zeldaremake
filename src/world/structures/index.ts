@@ -167,6 +167,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseDoor: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.door,
     /** Saria's cap silhouette (rim ring, crown top, overhang, straw share), now and at ×1.0 */
     houseCap: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.cap,
+    hearthClearance: houses.map((h) => +h.hearthClearance.toFixed(3)),
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,

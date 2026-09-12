@@ -146,6 +146,8 @@ export interface HouseBuild {
   eave: EaveProfile;
   door: DoorOpening;
   cap: CapProfile;
+  /** hearth kerb underside above the local room floor (m; must be >= 0 or the kerb is buried) */
+  hearthClearance: number;
 }
 
 /**
@@ -728,7 +730,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lampPos = frame.door(lampW, lampY, roomBackD(lampW) + 0.3 * k);
   const lamp2W = doorW1 - 0.5 * k;
   const lamp2Pos = frame.door(lamp2W, doorTop - 1.0 * sk, roomBackD(lamp2W) + 0.3 * k);
-  const hearthPos = frame.door(doorW1 - 0.3 * k, sill + 0.32 * k, roomBackD(doorW1 - 0.3 * k) + 0.55 * k);
+  // the hearth sits on the LOCAL floor: the generated floor lifts to terrain + 0.05 where the
+  // plateau slope rises through it (see the floor grid below), and at round 12's deeper hearth
+  // position that lift is ~0.15 m — a fixed sill height buried the kerb and embers (Astra, 08:00)
+  const hearthPos = frame.door(doorW1 - 0.3 * k, roomFloorY + 0.2 * k, roomBackD(doorW1 - 0.3 * k) + 0.55 * k);
+  hearthPos.y = Math.max(hearthPos.y, terrain.height(hearthPos.x, hearthPos.z) + 0.05 + 0.2 * k);
   /** the arch's inner top edge: the cut's underside and the jambs just inside the door catch a glow */
   const archPos = frame.door((doorW0 + doorW1) / 2, doorTop - 0.15 * k, roomFront - 0.25 * k);
   const roomParts = [];
@@ -1889,5 +1895,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   for (const m of foliage.build(mats, `house-${def.id}`)) group.add(m);
 
   // draped limbs + arc bough + broken stub + right limb + chimney
-  return { group, bases, lanterns, lights, materials, roots: rootCount + 2, branches: branchDefs.length + 4, leaves: foliage.leafCount, eave, door, cap };
+  const hearthFloor = Math.max(yFloor + roomFloorY, terrain.height(hearthPos.x, hearthPos.z) + 0.05);
+  const hearthClearance = hearthPos.y - 0.14 * k - 0.05 * k - hearthFloor;
+  return { group, bases, lanterns, lights, materials, roots: rootCount + 2, branches: branchDefs.length + 4, leaves: foliage.leafCount, eave, door, cap, hearthClearance };
 }
