@@ -7,43 +7,46 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Starting the isolated shared-tuft normal correction on published jitter baseline
-debe215 (full source debe21530c9085bf67ec2b25586a2d13ba61889b), tree
-b3412315d8feb093bc8803b3345d139b04031cbc, parents09b4143 + Fablecee9888. Its correct
-environment run34708734690 is actually in progress. Fable's source preservation review passes;
-our existing flower disposer hook remains. The canopy trial09b was rejected and exact9eb
-corridors restored. PR2 publication/scope comment5647563983 documents this separation.
+Starting deliberate exact Fable distant-house integration871d27b08218f5f10d509e443483f9ad83d0110c
+onto published tuft source711758d8bda00458c0ae7339eb9ec55654a1e23b, tree
+22bb4e3f5038a4c9ab94cb92198914e4016802c5, parentdebe215.711's correct environment run34709127732
+is actually in progress, so its isolated tuft capture will finish before the next source.
+The candidate SHAa7571d03 remained exact before/after semantic test/typecheck/build110.
+Actual tuft appearance remains pending; no global lighting/geometry change accompanies it.
 
-Root reread fresh PR2 and Fable commits/log; his explicit5647471072 handoff releases shared
-sprouts while he continues structures/distant houses. The first targeted re-fetch encountered
-an HTTP502; the retry succeeded at871d27b08218f5f10d509e443483f9ad83d0110c. Its only
-changes are three structure files, so there is no shared-sprout overlap. The world helper
-reviews those distant houses independently while this lighting checkpoint stays separate.
+Fresh targeted partner fetch/PR2/source review confirms only three structure files in871.
+Latest fetched d7f5e98 adds hardscape teardown after it and is reviewed separately; this
+checkpoint deliberately integrates the pinned871 parent. Typecheck/build111 and exact
+three-file boundary pass; frozen tuft hash staysa7571d03.
+Root read the whole distantHouse source and independent report, and revisited original board01.
+Fable's authored direction adds three warm inhabited structures at different depths. Source
+review confirms real hosts/platform attachment,5217 new triangles (3720 casting),one new
+consolidated mesh and no point lights. Current host constants align; shared accepted-host data
+is a future coupling improvement. Existing costs/audits match. No GPU appearance verdict yet.
 
-The frozen tuft candidate a7571d03aea7c4bb0e53cadb4aa0efd8d2a16dd76f922b982890864ac07e14f6
-adds a normalized Uint8 semantic mask to packed TUFT_A/B/C only and transports their authored
-up direction to the fragment. After Three's face flip, only a downward component reflects;
-nonPerturbedNormal follows. This includes20 boulder tufts, excludes clover/cushion/grit/fern,
-and preserves the whole new jitter API/body except the packer's semantic-ID argument.
+Concrete follow-ups sent in PR2 comment5647627605: hollow-column bole protrudes2.695cm through
+its upper wall; proposed local1.59radius is not yet tested. Some post-pod hangers have short
+unsupported offsets;84 collapsed cap-pole triangles are minor overhead. Header peak2.6 is
+stale (real material2.2; lime vertex peak1.584). Main Saria window/bough and owned moss-map
+disposal fixes are still absent. Fable was asked whether those remain in his active follow-up;
+root continues this exact ancestry integration without rewriting his source.
 
-Independent checks pass: all old packed/instance/color/bounds/wind/projection bytes and
-3,179,761 draws in1211 evaluated hardscape+rocks streams remain exact.3025 hardscape plus20
-boulder tufts are selected;2727 other instances excluded. Cost1218 static attribute bytes,
-one attribute location/vec4 varying, zero geometry/draw/material/texture additions. Installed
-Three186 prefix/preprocessing places correction after face flip and before roughness/lighting;
-this is CPU source verification, not GPU compilation. Direct/specular response also changes.
-A focused test rejects missing masks and incorrectly treating pack slot as botanical identity.
+All16 debe actual source/bytes/control/ZIP/history checks now pass with0retry/error/warning.
+Both F JPEGs/depth are exactpre-lawn2c; geometry/resources/budgets match9eb. Root inspected
+B/L02 originals: the stable-jitter source still has the known dark jagged turf; shader711 is
+the separate proposed correction. Independent jitter review proves4225 old transform/color
+pairs and all source-isolation cases; owned flower disposer remains. Failed canopy09b is
+reverted exactly and its actual archive retained.
 
-Frozen source is applied byte-exact, with the focused regression added to CI. The semantic
-test and typecheck/build110 pass; source hash remains a7571d03 before/after both gates.
-The production diff contains only sprouts.ts. Render separately against
-debe. Retain only if B/L02/world tufts become readable without overbright flat grass, sparkle,
-or altered excluded-family behavior. Exact geometry/depth/audits/budgets are the capture gate.
-Character remains paused for local Blender. Owner-original PNG publication is separate.
+Parallel prop helper now investigates real long-axis crate grain using the unchanged cached
+CC0weathered_planks texture, scratch only; no crate/root relocation or generic cosine patch.
+Original PNG upload is blocked by a stalled/cancelled complete-blob connector call; exact blob
+still404, no new branch/commit. No supported smaller/file-stream API was found. Original ZIP
+and published previews are available; local authenticated Git upload can finish later.
 
 ## Files / systems being touched
-- Root: materials/sprouts.ts tuft-only normal correction, focused semantic-mask test/CI and
-  own log/review. Jitter integration is published; rejected canopy is already reverted.
+- Root: exact distantHouse.ts/materials.ts ancestry and careful structures/index.ts merge,
+  retaining own post material/lights/audits/disposal and all711 tuft work. Own log/claim/review.
 - Root lighting ownership: atmosphere/, lighting/, postfx/, related config and supplemental
   captures. Current same-source gain 1-versus-3 controls remain unchanged.
 - World helper: independent c4b9578 / cee9888 jitter and owned-resource integration review.
@@ -158,4 +161,4 @@ Reference helper: publish the ten exact original owner PNGs on a separate branch
 Crate surface study remains lower priority; character waits for local Blender.
 
 ## Last updated
-2026-09-12T17:43:25.513047+00:00
+2026-09-12T17:52:31.308606+00:00

@@ -699,6 +699,17 @@
       "at": "2026-09-12T17:27:04.065Z",
       "expiresHours": 3,
       "scope": "Fable cee9888 ancestry integration and shared tuft-only authored-up fragment normal correction; preserve source jitter, geometry, wind, non-tuft materials and our owned flower cleanup. PR2 release5647471072."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W25",
+        "W32",
+        "W36"
+      ],
+      "at": "2026-09-12T17:50:19.929Z",
+      "expiresHours": 3,
+      "scope": "Exact Fable871 distant-house ancestry integration and actual comparison; preserve own post material/lights/audits/disposal and tuft711. No hero-house/global lighting rewrite; known host/window/moss defects sent PR2 5647627605."
     }
   ]
 }

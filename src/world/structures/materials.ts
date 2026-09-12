@@ -172,6 +172,12 @@ export interface StructureMaterials {
   /** warm window glow disc */
   windowGlow: MeshBasicMaterial;
   /**
+   * Round 16: the distant houses' windows, door glows and pods (one mesh, vertex colours tint the
+   * lime pods). Peak 2.2 linear: above the height fog's far-shade exemption (heightfog.ts, 2.0) so
+   * the lit points 30–47 m out keep their radiance under the veil like the pod lanterns do.
+   */
+  distantGlow: MeshBasicMaterial;
+  /**
    * Pod lantern (body + cap + stem + cord in one draw): emissive gradient texture, brighter at
    * the bottom; UV v ≥ LANTERN_DARK_V is black so caps and cords do not glow. Vertex colours tint.
    */
@@ -821,6 +827,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const hearth = new MeshBasicMaterial({ color: new Color(0xffa040).multiplyScalar(1.4), toneMapped: true });
   const ember = new MeshBasicMaterial({ color: new Color(0x8a4014), map: glowTexture(), transparent: true, depthWrite: false, toneMapped: true });
   const windowGlow = new MeshBasicMaterial({ color: new Color(0xffb04a).multiplyScalar(1.3), toneMapped: true });
+  // deeper orange than the pods' amber, ×2.2: the veil mixes 50–65 % warm grey into it at 30–47 m,
+  // which lifts the blue channel — a paler base read as cream through the haze
+  const distantGlow = new MeshBasicMaterial({ color: new Color(0xff9a2a).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
 
   const lanternBase = {
     color: new Color(0xffffff),
@@ -905,5 +914,5 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets };
 }
