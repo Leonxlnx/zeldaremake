@@ -683,6 +683,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   own C02 review of Astra's take counts as a pass for my take. `take.mjs` applies D7 (author
   fable-cursor → that verdict is invalid → C02 pending) and seals 23. Sealed history untouched;
   the ledger, monitor entry and score.json agree on 23. Rule for me: score with `--agent`.
+
+### 01:55 UTC — tick 43: take-0059 published (monitor `f054047`), valid; hardscape round ten
+- `714723f` trees publish `ctx.shared.lanternLimb` (29 rings; render byte-identical).
+- `b70701f` hardscape-10: B's foreground as big slabs in lawn — `hardscape/zones.ts` (lawn zone
+  over the spine z −6.5..−0.5 + plaza NE quadrant, 7 reference-B slab centres unprojected through
+  camera B as authored seeds, slab-free lawn pocket west of the path edge); spacing ×1.25
+  (542 → 346 stones, W03 ≥ 300 ok); joints → dark mossy earth (measured reference B/E joints hue
+  37–39, sat 0.47, ≈ sRGB 95,79,49 — NOT green turf as my brief assumed; agent followed the frames).
+- take-0059: A 0.253 / B 0.231 / C 0.322 / D 0.304 / E 0.245 / F 0.254 — B/C/D/E best ever,
+  A/F −0.007 (finer A plaza texture; F sees the same plaza). 23/50 (with `--agent`). Draws 622/610.
+- Astra (PR #2, 00:34): read-only W25 on take-0058 = fail — tall roof crown, the house's own eave
+  reads as a beam over the door, grey entrance with one warm point. Those three are the
+  acceptance check for structures-10 (running since 00:28; dome A/B + wrap on the published limb).
+- Three biggest remaining gaps → (1) B: the bough as a dark beam + the house crown/eave/entrance
+  (structures-10); (2) A: stair too low/short in frame vs the reference's flight rising off the
+  top edge, dome dominating the top; (3) C01 (Astra) — face shape/eyes; my reads filed 00:20/00:35.
 - Process slip, corrected: a `--in` (not a flag) take built the dirty workspace and appended a
   dirty take-0058 locally; never pushed or published — reverted the uncommitted ledger and
   re-ran with `--import` of the clean-worktree capture. take.mjs should reject unknown flags
@@ -728,4 +744,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T00:05:00Z
+2026-09-12T01:55:00Z

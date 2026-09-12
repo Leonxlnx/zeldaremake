@@ -6244,6 +6244,112 @@
       },
       "prevHash": "sha256:27e5725830a93eeffb685882ce1cb78f4edcf9f9fb850470475a877e312549d4",
       "hash": "sha256:fc00c2e99a6e3b06fba9122048afbb7b4acf7a11033018f079915c652550464c"
+    },
+    {
+      "id": "take-0059",
+      "number": 59,
+      "at": "2026-09-12T01:49:13.673Z",
+      "sha": "b70701fe48725520c0bce854226bee542fc63a3e",
+      "shortSha": "b70701f",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "hardscape: B's foreground as big slabs in lawn - hardscape/zones.ts (lawnZone over the spine z -6.5..-0.5 and the plaza NE quadrant, 7 reference-B slab centres unprojected through camera B as authored seeds, a slab-free lawn pocket west of the path edge, trodden strip, jointSoil weight); slab spacing x1.25 everywhere (542 -> 346 stones, across p50 0.79 -> 0.92 m, lawn slabs p50 1.40 m), lawn insets 0.14-0.36 m with rounded arcs; joints become dark mossy earth (reference B/E joints measure hue 37-39, sat 0.47, ~sRGB 95,79,49 - not green turf) with soil only in the dry A core and trodden strip; lawn tufts/moss cushions in the wide joints, grass in the pocket",
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W37"
+      ],
+      "note": "Round ten, hardscape: B's foreground rebuilt as the reference's big slabs in lawn. Frame 14 s shows about three 1-1.6 m rounded slabs across the bottom edge with dark mossy-earth joints 0.15-0.45 m wide and a slab-free green pocket left of the path; ours were 0.5-0.9 m cells with pale soil joints. Slab spacing x1.25 everywhere (542 -> 346 stones), a lawn zone over the spine and the plaza's north-east quadrant seeded from the reference slab centres unprojected through camera B, joints turned to dark mossy earth (measured reference joints: hue 37-39, sRGB ~95,79,49; ours now 108,91,52, was 136,118,87). B 0.226 -> 0.231, C/D/E up, A/F -0.007 (finer A plaza texture is the cost). Trees now publish the built limb path for the bough wrap (next take).",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:869348a21fd91ba76f9f5d538533b6ad9ee5c4210e2e3a133cfab9099c882cd1",
+        "B_house": "sha256:08927ec3c0afac0a5ce83b2069fcce0f6ceb29b0e6b009349824114efd14c655",
+        "C_lookback": "sha256:e1acd1654647f832f2e427dc4c31bdbaf84a8eb440f0d0b7447d1ab9c3f47d00",
+        "D_log": "sha256:fc72ee2c326f7b1eced45709d9b049281ba25678ed0f69ddd4991278d998f798",
+        "E_ground": "sha256:08927ec3c0afac0a5ce83b2069fcce0f6ceb29b0e6b009349824114efd14c655",
+        "F_canopy": "sha256:b96cb018b8961000d7871cdf9399c7a14ccdfd4e15bcb362220717f638147123"
+      },
+      "distHash": "sha256:e3bfc1dae75204b8f9fcbfbd2c6bddc843a67be63fdd56d9e3a789c0f0f5e1aa",
+      "stats": {
+        "drawCalls": 622,
+        "triangles": 8143873,
+        "captureMs": 1041841,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W03"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take59-cap",
+        "importedAt": "2026-09-12T01:49:53.050Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:fc00c2e99a6e3b06fba9122048afbb7b4acf7a11033018f079915c652550464c",
+      "hash": "sha256:f5b53d15dc3098370dda9a66448e5bf5636c4465767cf990df45cb1e54d49309"
     }
   ]
 }
