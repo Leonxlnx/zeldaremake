@@ -105,7 +105,8 @@ export function emergentParams(rng: Rng): ColumnParams {
   };
 }
 
-export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail): TreeAsset {
+/** `groundAt` samples terrain in this particular seat's local coordinates; only roots use it. */
+export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAt: (x: number, z: number) => number = () => 0): TreeAsset {
   const rng = createRng(`column/${p.seed}`);
   const bt = (a: number, b: number) => between(rng, a, b);
   const gnarl = new Noise2D(`column-bark/${p.seed}`);
@@ -164,7 +165,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
   // ---------- buttress roots ----------
   const rootColor = barkBase.clone().lerp(barkDeep, 0.5);
   for (let i = 0; i < p.roots; i++) {
-    rootButtress(wood, (i / p.roots) * TAU + bt(-0.25, 0.25), R * bt(p.rootReach[0], p.rootReach[1]), R * bt(0.42, 0.6), R * bt(0.9, 1.3), rootColor, rng);
+    rootButtress(wood, (i / p.roots) * TAU + bt(-0.25, 0.25), R * bt(p.rootReach[0], p.rootReach[1]), R * bt(0.42, 0.6), R * bt(0.9, 1.3), rootColor, rng, groundAt);
   }
 
   // ---------- crown ----------

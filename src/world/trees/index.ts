@@ -948,10 +948,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const columnRng = rng.fork('columns');
   const columns: ColumnVariant[] = [];
   const columnParamSets = [...Array.from({ length: COLUMN_VARIANTS }, (_, i) => columnParams(columnRng, i, COLUMN_VARIANTS)), emergentParams(columnRng)];
+  // Finalize deterministic placements before creating terrain-dependent root geometry.
   for (const params of columnParamSets) {
-    const lods = DETAILS.map((d) => createColumnTree(params, palette, d));
-    columns.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
-    await yieldFrame();
+    columns.push({ params, lods: [], meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
   }
   const seatRng = columnRng.fork('seats');
   const columnSeatsSkipped: { x: number; z: number; reason: string }[] = [];
@@ -989,9 +988,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     seatFamily(columns, { x: seat.x, y: terrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat' }, seat.variant);
   }
   const columnPlacements = columns.flatMap((c) => c.placements);
+  // A variant's flat roots cannot be shared between differently sloped seats. These ten
+  // authored/swapped columns get one family per seat; the existing LOD/shadow rules stay intact.
+  // Reusing the architecture seed preserves every bole/crown and all downstream random draws.
+  const seatedColumns: ColumnVariant[] = [];
+  for (const c of columns) for (let i = 0; i < c.placements.length; i++) {
+    const p = c.placements[i];
+    const cos = Math.cos(p.yaw), sin = Math.sin(p.yaw);
+    const groundAt = (lx: number, lz: number) => (
+      terrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
+    ) / p.scale;
+    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, groundAt));
+    seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0] });
+    await yieldFrame();
+  }
   const columnGroup = new Group();
   columnGroup.name = 'columns';
-  familyMeshes(columns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
+  familyMeshes(seatedColumns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
+  for (const c of seatedColumns) for (const m of c.meshes) {
+    const p = c.placements[0];
+    m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
+  }
   group.add(columnGroup);
   ctx.progress('trees', 0.55);
   await yieldFrame();
@@ -1216,7 +1233,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const bucketWhite = (cam: Vector3) => {
     bucketFamily(whites, cam);
-    bucketFamily(columns, cam);
+    bucketFamily(seatedColumns, cam);
   };
 
   const bucketDistant = (cam: Vector3) => {
@@ -1281,7 +1298,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     let columnLeaves = 0;
     const columnLodInstances = [0, 0, 0];
-    for (const c of columns) {
+    for (const c of seatedColumns) {
       for (let l = 0; l < 3; l++) {
         columnLeaves += c.counts[l] * c.lods[l].leafCount;
         woodTriangles += c.counts[l] * c.lods[l].woodTriangles;
@@ -1376,7 +1393,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     dispose() {
       for (const w of whites) for (const l of w.lods) l.geometry.dispose();
-      for (const c of columns) for (const l of c.lods) l.geometry.dispose();
+      for (const c of seatedColumns) for (const l of c.lods) l.geometry.dispose();
       for (const g of sectorGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
     },
