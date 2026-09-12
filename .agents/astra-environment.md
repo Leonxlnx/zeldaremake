@@ -7,49 +7,56 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Reject and revert the e706 near-stone shoulder trial. Root compared original A/F pairs,
-B/D controls and owner board 02: the gameplay-view gain is too weak under the declared gate.
-The stricter historical actor-XZ check also fails: C kid 0 shifts about 2.9 / 8.9 mm in x/z;
-F Link shifts about 3.7 / -0.85 mm. Ground-dependent behavior is plausible but unproven.
-Preserve the failed check and original reports; restore only geometry.ts and flagstones.ts
-to exact 8714 source. No larger cuts, crown inflation, exposure compensation or character edits.
-The original sampler proof remains valid within its stated CPU scope, not a runtime movement proof.
-All 16 e706 source, byte, ZIP and history receipts are complete, with zero retries/errors/warnings.
-Exact two-file rollback passes production typecheck/build 111; cap/tuft/props bytes are untouched.
+Trial hardscape-only variant batching on published ef2100e, after both weak experiments were
+reverted. The factory preserves original jitter traversal and full pack bounding spheres.
+Frozen proof removes 120,322 submitted triangles for two extra calls in all ten cameras;
+all planting and selected geometry stay exact. No new materials/programs/textures; two extra
+mesh/geometry objects and twenty buffer objects divide the same total attribute bytes.
+The actual image/depth/submission gate remains pending, with no appearance or FPS claim.
+Frozen source hashes, exact two-file boundary, production typecheck/build 111 and the existing
+shared semantic-mask test pass; the portable pinned proof reproduces its original evidence.
 
-Published e6d6ac06dc8706b8b41f13b0518077f7d8c1d242 already reverts the rejected crate grain.
-Its correct environment run 34712642317 has started after the completed e706 run.
-The rejected-stone rollback can now publish without replacing a pending capture.
+The rejected stone rollback is published ef2100e3d3f885692b10116f89b1a676c83dbdd0.
+Geometry.ts and flagstones.ts exactly match pretrial 8714; typecheck/build 111 passes.
+Actual e706 gain was too weak and the historical actor-XZ gate also failed by millimeters.
+Its all-16 original evidence and failed assertion are preserved. Published e6d already reverts
+the rejected crate shader and its extra resources. Its actual run is rendering before ef2100e.
+Do not replace ef2100e's pending capture by pushing this trial before that correct run starts.
 
-The 8714 cap-bound correction is retained after all 16 actual views: predicted submissions,
-depth, source and resource contracts pass. Strict JPEG identity fails by tiny amounts and
-is explicitly preserved as failed. Root reviewed A and both non-identical detail originals;
-helper reviewed all five distinct world views. No visible deterioration was found. This is
-cost preservation, not a new appearance or FPS improvement. One D baseline retry; other 15 zero.
+The 8714 cap correction remains retained after all 16 views on visual/cost grounds, with the
+strict JPEG identity failure explicitly disclosed in its tracked report. No source, depth,
+resource or predicted budget regression was found; one D baseline retry, other fifteen zero.
 
-Next independent implementation: hardscape-only variant batching, preserving the original
-jitter traversal and full pack bounding spheres. Frozen proof removes 120,322 submitted
-triangles for two extra calls; no new materials/programs/textures. All planting and selected
-geometry remain exact. Keep the actual comparison separate from the rejected stone rollback.
+Fable has now published structures 17 (3ab1222) and adopted our cap split (eadb660), releasing
+materials.ts in PR2 comment 5648078602. Independent source/ownership review is running in
+scratch. Integrate his published architecture deliberately after this isolated batching trial;
+then apply the frozen sleeve-only candidate if the new source and B luminance guard permit.
+His take 70 is capturing for cross-review; no new W25 verdict or quality claim yet.
 
 ## Files / systems being touched
-- Root now: revert only hardscape/geometry.ts and flagstones.ts; own log and review results.
-- Next root trial: materials/sprouts.ts opt-in split and hardscape/index.ts opt-in/audit fields.
+- Root now: materials/sprouts.ts opt-in split and hardscape/index.ts opt-in/audit fields.
+- Rejected stone and crate rollback production files remain untouched.
 - Proof helper: new docs/reviews/sprout-variant-batches/ only; no production writes.
 - Capture helper: finishes e706 and then e6d original evidence; no production writes.
-- Sleeve proposal remains frozen in scratch until Fable's active materials commit publishes.
+- Source reviewer: Fable 3ab1222/eadb660 ownership, geometry and narrow sleeve rebase in scratch.
 - Independent visual review: stone verdict and existing foreground broad-leaf plant diagnosis.
 
 ## Partner state / coordination
-Fresh targeted fetch still confirms 74918cd / take 69. Fable's PR2 comment 5647972581 confirms
-structures 17 is actively editing materials.ts for generated moss-map ownership and capMoss.
-He explicitly asks to hold our sleeve edit until that SHA; we acknowledged in 5648048017.
-After his publication, any sleeve trial must leave HOUSE/RECESS/shared floor/disposal untouched
-and keep B's normalized band x 0.20–0.45, y 0.04–0.12 within 0.03 luminance of reference 0.35.
-The same acknowledgement announces the independent sprout split under handoff 5647471072.
-Fable owns the irregular house crown, knotted trunk, wider arch and window clearance.
-Targeted fetch avoids racing the capture helper's archive fetch. No main/Fable PR merge,
-force push, score change or rewriting another agent's log. Character remains paused for Blender.
+Targeted fetch confirms eadb660 after 3ab1222 and 74918cd. The first request returned HTTP 502;
+one normal retry succeeded, with no authentication changes. PR2 comment 5648078602 releases
+materials.ts after the active structures pass and confirms exact adoption of our cap split.
+Root acknowledged the integration sequence in 5648094928: isolated sprout trial, deliberate
+structures integration, then the sleeve candidate. Preserve Fable's generated texture ownership.
+
+A later sleeve trial must leave HOUSE/RECESS/shared floor/disposal untouched and keep B's
+normalized band x 0.20–0.45, y 0.04–0.12 within 0.03 luminance of reference 0.35. His reported
+bright over-lintel band needs review on integrated actual images before any correction.
+The independent sprout scope is announced in 5648048017 under handoff 5647471072.
+Root and helper revisited owner boards 05/08: the right-bank hedge's broad, horizontal leaf
+tiers are the next bounded form candidate. Scratch-only high-LOD leaf cupping/droop study;
+no Fable house/limb foliage overlap or material compensation.
+No main/Fable PR merge, force push, score change or rewriting another agent's log.
+Character remains paused for Blender; no scheduled tasks.
 
 ## Completed checkpoints / actual evidence
 All named images: https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment .
@@ -147,4 +154,4 @@ Astra: exact rejected-stone rollback, then isolated sprout batching and foregrou
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T19:08:07.729958+00:00
+2026-09-12T19:13:46.354946+00:00

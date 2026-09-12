@@ -387,7 +387,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
   // per-(source, variant) jitter streams (sprout-jitter.ts): a scatter can change without re-rolling any other
-  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID), jitter: createSproutJitterStreams(rng) });
+  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { splitVariants: true, gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID), jitter: createSproutJitterStreams(rng) });
   for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 
@@ -483,9 +483,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointSproutsInEdgeSeams: edgeTufts,
     jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
-    // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
+    // actual emitted tufts, clover, moss-cushion and grit batches (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
-    jointSproutPacks: HARDSCAPE_PACKS,
+    jointSproutPacks: sprouts.packs,
     // instance jitter drawn per (source, variant) stream, not from the shared list order (sprout-jitter.ts)
     sproutJitter: SPROUT_JITTER_SCHEME,
     jointSproutHeightCm: [6, 12],
@@ -502,7 +502,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     seamGritAtStairFeet: sprouts.grit - seamGrit,
     seamGritLodFar: SPROUT_LOD_FAR,
     seamGritTriangles: sprouts.gritTriangles,
-    seamGritDrawCalls: 0,
+    seamGritDrawCalls: sprouts.gritDrawCalls,
     jointFillTriangles: joints.triangles,
     // the fill: dark mossy earth, packed soil only in the dry plaza core and the trodden strip;
     // clipped to the paving mask's 0.5 iso (was: whole 0.2 m quads with any corner paved at 0.38)

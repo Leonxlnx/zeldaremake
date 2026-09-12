@@ -1,0 +1,34 @@
+{
+  "publishedSource": "e6d6ac06dc8706b8b41f13b0518077f7d8c1d242",
+  "originalEquivalentLocalStudySource": "c40640f85ed40f05c2ac166c4af35435ec77fd72",
+  "originalFullScratchEvidence": {
+    "path": "gauntlet/tmp/sprout-batch-feasibility/evidence.json",
+    "sha256": "977c4266b82cc1c3a7bdf4e68547a7eb40f60899e2734c39debbad1954f4ed41"
+  },
+  "originalRngStreams": {
+    "path": "gauntlet/tmp/sprout-batch-feasibility/rng-streams.json",
+    "sha256": "b03029e466bc346df526d117e740ea095b971c99a7a3269b10339c75d9700cdb"
+  },
+  "originalPatchSHA256": "fb6780bdc2147653563a27345a3ccca51e07d851d36b97e91671256b0375dafb",
+  "reproduction": {
+    "command": "node docs/reviews/sprout-variant-batches/check.mjs",
+    "passed": true,
+    "fullEvidencePath": "gauntlet/tmp/sprout-variant-batches-reproduction/evidence.json",
+    "fullEvidenceSHA256": "5131d955b6c0d30bddb46ae125d2baa6aaa338c89cdb7d0c336e44ff40c830c0",
+    "fullEvidenceExactlyMatchesOriginalExceptPublishedPin": true,
+    "rngStreamsByteExactToOriginal": true,
+    "candidateHashesUnchanged": true
+  },
+  "packageInputSHA256": {
+    "source.mjs": "8f99941528bf19b80d9921d34a6fbd64e57a65a5d44169d4d922b4ad0e706330",
+    "edits.json": "afe7d23868998ffc7f9b087a08c37c1e1184148207b758bf413d08319b9408c6",
+    "check.mjs": "5080b6dc7d36e972126df94e71278cdca36e7d7a43ce8328d29c407b1271f13f",
+    "captured-cameras.json": "11a87abcf3c8e4a1ec7fc7310716a4120b1f34375d25f159b54d51a3669abe2f",
+    "evidence.json": "f029f7c99f469cf9763533e47c647a93af3edceb7fe353e3382b6afe7b64a7df",
+    "README.md": "84b544168ea8833d2adccf656e8d588d2a1ff5c83207430837e230a041210f59"
+  },
+  "sharedFixture": {
+    "path": "docs/reviews/fable-hardscape-disposal/fixture.mjs",
+    "sha256": "076da71f801958484c09c65ad5ee04a71b22a6902cdd3220fddaca893c2f9d86"
+  }
+}

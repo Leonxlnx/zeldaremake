@@ -1,0 +1,558 @@
+{
+  "source": "e6d6ac06dc8706b8b41f13b0518077f7d8c1d242",
+  "noProductionWrites": true,
+  "scope": "Real pinned hardscape + rocks CPU construction, installed Three frustum admission, existing camera states. No GPU render or FPS claim.",
+  "sourceHashes": {
+    "baselineSprouts": "a7571d03aea7c4bb0e53cadb4aa0efd8d2a16dd76f922b982890864ac07e14f6",
+    "candidateSprouts": "8c9ce23ef725b43c994498ad488e69a3e903e01fc179c0c6c7085186d27ff1a7",
+    "baselineHardscape": "06ec2717848880439c9c98b28c863a2d96ca254e22d7e635a30e0280403b5a04",
+    "candidateHardscape": "33bc3cdca5240301c86a89a25101ebb98f1b67efc32d959ec4d0b2a55df30968"
+  },
+  "rng": {
+    "exact": true,
+    "streams": 1211,
+    "draws": 3179761,
+    "digest": "ade62c2d8ab72eecb59ddb0d3186d8a9f4825b5fd3f40de9809518cea9115841",
+    "rootTail": [
+      0.9828448388725519,
+      0.5871250866912305,
+      0.5269210720434785,
+      0.6630725972354412,
+      0.6312565333209932,
+      0.9881966297980398,
+      0.8984479152131826,
+      0.6297316472046077
+    ]
+  },
+  "packs": [
+    {
+      "family": "hard",
+      "name": "joint-sprouts-p0-v1",
+      "ids": [
+        1
+      ],
+      "instances": 483,
+      "variants": [
+        {
+          "id": 1,
+          "vertices": 162,
+          "triangles": 54,
+          "instances": 483,
+          "selectedTriangles": 26082
+        }
+      ],
+      "oldTriangles": 26082,
+      "newTriangles": 26082,
+      "savedTriangles": 0,
+      "oldCalls": 1,
+      "newCalls": 1,
+      "bound": {
+        "radius": 39.47470519470774,
+        "center": [
+          1.1323502947898632,
+          1.9290199078369155,
+          -21.306916811627197
+        ]
+      },
+      "originalCullBoundExact": true
+    },
+    {
+      "family": "hard",
+      "name": "joint-sprouts-p1-v0",
+      "ids": [
+        0
+      ],
+      "instances": 1445,
+      "variants": [
+        {
+          "id": 0,
+          "vertices": 126,
+          "triangles": 42,
+          "instances": 1445,
+          "selectedTriangles": 60690
+        }
+      ],
+      "oldTriangles": 60690,
+      "newTriangles": 60690,
+      "savedTriangles": 0,
+      "oldCalls": 1,
+      "newCalls": 1,
+      "bound": {
+        "radius": 39.51818138723972,
+        "center": [
+          2.1002268119207024,
+          1.9131890867737669,
+          -21.053305974109435
+        ]
+      },
+      "originalCullBoundExact": true
+    },
+    {
+      "family": "hard",
+      "name": "joint-sprouts-p2-v26",
+      "ids": [
+        2,
+        6
+      ],
+      "instances": 2792,
+      "variants": [
+        {
+          "id": 2,
+          "vertices": 90,
+          "triangles": 30,
+          "instances": 1097,
+          "selectedTriangles": 32910
+        },
+        {
+          "id": 6,
+          "vertices": 60,
+          "triangles": 20,
+          "instances": 1695,
+          "selectedTriangles": 33900
+        }
+      ],
+      "oldTriangles": 139600,
+      "newTriangles": 66810,
+      "savedTriangles": 72790,
+      "oldCalls": 1,
+      "newCalls": 2,
+      "bound": {
+        "radius": 39.9098819030103,
+        "center": [
+          3.332633346585475,
+          2.3896379964794274,
+          -20.89294607636237
+        ]
+      },
+      "originalCullBoundExact": true
+    },
+    {
+      "family": "hard",
+      "name": "joint-sprouts-p3-v34",
+      "ids": [
+        3,
+        4
+      ],
+      "instances": 1022,
+      "variants": [
+        {
+          "id": 3,
+          "vertices": 126,
+          "triangles": 42,
+          "instances": 576,
+          "selectedTriangles": 24192
+        },
+        {
+          "id": 4,
+          "vertices": 150,
+          "triangles": 50,
+          "instances": 446,
+          "selectedTriangles": 22300
+        }
+      ],
+      "oldTriangles": 94024,
+      "newTriangles": 46492,
+      "savedTriangles": 47532,
+      "oldCalls": 1,
+      "newCalls": 2,
+      "bound": {
+        "radius": 39.88507566609391,
+        "center": [
+          2.0555851638834657,
+          2.16690755833119,
+          -20.534692303568118
+        ]
+      },
+      "originalCullBoundExact": true
+    },
+    {
+      "family": "rocks",
+      "name": "boulder-plants-joint-sprouts-p0-v015",
+      "ids": [
+        0,
+        1,
+        5
+      ],
+      "instances": 30,
+      "variants": [
+        {
+          "id": 0,
+          "vertices": 126,
+          "triangles": 42,
+          "instances": 10,
+          "selectedTriangles": 420
+        },
+        {
+          "id": 1,
+          "vertices": 162,
+          "triangles": 54,
+          "instances": 10,
+          "selectedTriangles": 540
+        },
+        {
+          "id": 5,
+          "vertices": 216,
+          "triangles": 72,
+          "instances": 10,
+          "selectedTriangles": 720
+        }
+      ],
+      "oldTriangles": 5040,
+      "newTriangles": 5040,
+      "savedTriangles": 0,
+      "oldCalls": 1,
+      "newCalls": 1,
+      "bound": {
+        "radius": 15.36581869722182,
+        "center": [
+          0.7232390489671987,
+          2.364091368181573,
+          -9.23605503869473
+        ]
+      },
+      "originalCullBoundExact": true
+    }
+  ],
+  "unchangedOtherMeshes": 20,
+  "allSelectedGeometryAttributesExact": true,
+  "allInstanceMatrixColorBytesExact": true,
+  "semanticTuftMaskExact": true,
+  "shaderAndWindLodSourceExact": true,
+  "shaderSourceHash": "83ba780a5f6eb2adc4436a0b371c30e4529b42e76b0e50877767c922dee92c10",
+  "jitterTraversalSourceExact": true,
+  "resourceBefore": {
+    "meshes": 5,
+    "geometries": 5,
+    "materials": 2,
+    "vertexBytes": 69426,
+    "instanceBytes": 461760,
+    "buffers": 50
+  },
+  "resourceAfter": {
+    "meshes": 7,
+    "geometries": 7,
+    "materials": 2,
+    "vertexBytes": 69426,
+    "instanceBytes": 461760,
+    "buffers": 70
+  },
+  "disposals": {
+    "meshes": 6,
+    "geometries": 6,
+    "material": 1,
+    "borrowed": 0
+  },
+  "typecheckDiagnostics": 0,
+  "cameraSourceFiles": [
+    {
+      "path": "gauntlet/tmp/environment-8714d2a-review/progress/2026-09-12_185057505-8714d2a/environment.json",
+      "sha256": "81dfd6c7d666594904a1c44b3a406f5713e67dbc4ef35d2ee8cd44a3309eec5b"
+    },
+    {
+      "path": "gauntlet/tmp/environment-71843a2-review/details/2026-09-12_184047388-71843a2/details.json",
+      "sha256": "88605b95a9befc4fde4d32c8b17806948ecd2a05056e7365cf489f1dfcd83170"
+    }
+  ],
+  "cameras": [
+    {
+      "id": "A_stairs",
+      "actualContextSource": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 663,
+        "triangles": 8715553,
+        "geometries": 447,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 829
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 829
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "B_house",
+      "actualContextSource": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 654,
+        "triangles": 8725061,
+        "geometries": 475,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 503
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 503
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "C_lookback",
+      "actualContextSource": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 556,
+        "triangles": 8433793,
+        "geometries": 528,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 318
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 318
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "D_log",
+      "actualContextSource": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 536,
+        "triangles": 8512732,
+        "geometries": 539,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 383
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 383
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "E_ground",
+      "actualContextSource": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 654,
+        "triangles": 8725061,
+        "geometries": 539,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 503
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 503
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "F_canopy",
+      "actualContextSource": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 625,
+        "triangles": 8533071,
+        "geometries": 549,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 577
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 577
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "S01-sign-front",
+      "actualContextSource": "71843a28538f00bdbbd0005a65a1b588315753b5",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 434,
+        "triangles": 8176242,
+        "geometries": 465,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 332
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 332
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "S02-sign-oblique",
+      "actualContextSource": "71843a28538f00bdbbd0005a65a1b588315753b5",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 443,
+        "triangles": 8296426,
+        "geometries": 471,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 333
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 333
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "L01-stair-foot-bindings",
+      "actualContextSource": "71843a28538f00bdbbd0005a65a1b588315753b5",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 412,
+        "triangles": 8275713,
+        "geometries": 489,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 523
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 523
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    },
+    {
+      "id": "L02-fork-west-lantern",
+      "actualContextSource": "71843a28538f00bdbbd0005a65a1b588315753b5",
+      "actualContextStats": {
+        "simTime": 12.5,
+        "drawCalls": 544,
+        "triangles": 8532673,
+        "geometries": 556,
+        "textures": 70,
+        "programs": 76,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "before": {
+        "calls": 5,
+        "triangles": 325436,
+        "vertices": 976308,
+        "lodCollapsedInstances": 343
+      },
+      "after": {
+        "calls": 7,
+        "triangles": 205114,
+        "vertices": 615342,
+        "lodCollapsedInstances": 343
+      },
+      "savedTriangles": 120322,
+      "savedVertices": 360966,
+      "extraCalls": 2
+    }
+  ]
+}

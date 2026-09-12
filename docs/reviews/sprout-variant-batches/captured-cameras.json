@@ -1,0 +1,352 @@
+{
+  "world": {
+    "archiveCommit": "81e465c8055b989cd8b4a9b91ab4bae6fcb6095d",
+    "archiveReportPath": "progress/2026-09-12_185057505-8714d2a/environment.json",
+    "originalLocalPath": "gauntlet/tmp/environment-8714d2a-review/progress/2026-09-12_185057505-8714d2a/environment.json",
+    "originalReportSHA256": "81dfd6c7d666594904a1c44b3a406f5713e67dbc4ef35d2ee8cd44a3309eec5b",
+    "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+    "tree": "26aae8993b76c47402843031f2f01a386f6cbe42",
+    "sourceHash": "79346d95db0b38a7297a0d518d9eaf40ed14d8965067d600fcba245c681f48f6",
+    "sourceHashFileCount": 203,
+    "width": 1280,
+    "height": 720,
+    "time": 12.5,
+    "captures": [
+      {
+        "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+        "viewpoint": "A_stairs",
+        "file": "A_stairs-candidate.jpg",
+        "sha256": "ae753234b83c39ef3fcc16f52ed3b6fecffa81cd2f805573ab5debfa4c56965b",
+        "state": {
+          "camera": {
+            "position": [
+              0.4,
+              1.8,
+              8.6
+            ],
+            "direction": [
+              0.4001487551488514,
+              -0.05779926463261199,
+              -0.9146257260545179
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 663,
+            "triangles": 8715553,
+            "geometries": 447,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+        "viewpoint": "B_house",
+        "file": "B_house-candidate.jpg",
+        "sha256": "4668b24e51172696fe02c8a3c90d83cfcaf634957695e0f3fdf5ff359024bd36",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 654,
+            "triangles": 8725061,
+            "geometries": 475,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+        "viewpoint": "C_lookback",
+        "file": "C_lookback-candidate.jpg",
+        "sha256": "a230107d2589f3c4c7775c2c2df8963f8dc6ffa750d85f74ca8ee71bbd690a3f",
+        "state": {
+          "camera": {
+            "position": [
+              2.33,
+              1.45,
+              -7.67
+            ],
+            "direction": [
+              0.13040706314611447,
+              -0.06136802971581855,
+              0.9895594791675757
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 556,
+            "triangles": 8433793,
+            "geometries": 528,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+        "viewpoint": "D_log",
+        "file": "D_log-candidate.jpg",
+        "sha256": "d2b18c3fc3f0bcb3d82cf986d8cfa21219a8f2ab0b12de5c0cfa6c4756ef1666",
+        "state": {
+          "camera": {
+            "position": [
+              0.2,
+              1.45,
+              -3
+            ],
+            "direction": [
+              0.10953219056304957,
+              0.03311438319348014,
+              -0.9934314958044038
+            ],
+            "fov": 48
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 536,
+            "triangles": 8512732,
+            "geometries": 539,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+        "viewpoint": "E_ground",
+        "file": "E_ground-candidate.jpg",
+        "sha256": "4668b24e51172696fe02c8a3c90d83cfcaf634957695e0f3fdf5ff359024bd36",
+        "state": {
+          "camera": {
+            "position": [
+              0,
+              1.5,
+              2
+            ],
+            "direction": [
+              0.33630596344635905,
+              0.013452238537854384,
+              -0.9416566976498055
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 654,
+            "triangles": 8725061,
+            "geometries": 539,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "8714d2af9556105fe867f9e36a1a44c4a99629f0",
+        "viewpoint": "F_canopy",
+        "file": "F_canopy-candidate.jpg",
+        "sha256": "e2aa3d01a08ba187e1f16ad2df4e9b715d2dee681adab174e5d8d7a9edf25ca8",
+        "state": {
+          "camera": {
+            "position": [
+              -1.96,
+              1.8,
+              4
+            ],
+            "direction": [
+              0.9721254966661625,
+              -0.06836560096623101,
+              -0.22427252024288002
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 625,
+            "triangles": 8533071,
+            "geometries": 549,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      }
+    ]
+  },
+  "details": {
+    "archiveCommit": "60d2bd364862af8f909b89abb28badd8fd175ddd",
+    "archiveReportPath": "details/2026-09-12_184047388-71843a2/details.json",
+    "originalLocalPath": "gauntlet/tmp/environment-71843a2-review/details/2026-09-12_184047388-71843a2/details.json",
+    "originalReportSHA256": "88605b95a9befc4fde4d32c8b17806948ecd2a05056e7365cf489f1dfcd83170",
+    "source": "71843a28538f00bdbbd0005a65a1b588315753b5",
+    "tree": "a16253e4989cc057a9c67bf2ea22d3a8524b9b68",
+    "sourceHash": "b75c749252deae7358e6d7cc17b2f98eef4592b163e1b56bd34883ab25bd43f3",
+    "sourceHashFileCount": 203,
+    "width": 1280,
+    "height": 720,
+    "time": 12.5,
+    "captures": [
+      {
+        "source": "71843a28538f00bdbbd0005a65a1b588315753b5",
+        "viewpoint": "S01-sign-front",
+        "file": "S01-sign-front.jpg",
+        "sha256": "412f2da86955bfcb2a549cfad8b6ca55a25aa40098c13c48f67919b2508c3113",
+        "state": {
+          "camera": {
+            "position": [
+              5.5600000000000005,
+              1.9656122505664826,
+              -7.380000000000001
+            ],
+            "direction": [
+              0.5973656869449189,
+              -0.09360430992014408,
+              -0.7964875825932246
+            ],
+            "fov": 34
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 434,
+            "triangles": 8176242,
+            "geometries": 465,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "71843a28538f00bdbbd0005a65a1b588315753b5",
+        "viewpoint": "S02-sign-oblique",
+        "file": "S02-sign-oblique.jpg",
+        "sha256": "eb0c18766b4f723b4df15dc357446dba8f80b534624171cd13499f29f03ea2a1",
+        "state": {
+          "camera": {
+            "position": [
+              6.970000000000001,
+              2.0856122505664825,
+              -6.510000000000001
+            ],
+            "direction": [
+              0.010620816572513906,
+              -0.15577197639686927,
+              -0.9877359412437852
+            ],
+            "fov": 40
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 443,
+            "triangles": 8296426,
+            "geometries": 471,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "71843a28538f00bdbbd0005a65a1b588315753b5",
+        "viewpoint": "L01-stair-foot-bindings",
+        "file": "L01-stair-foot-bindings.jpg",
+        "sha256": "33f152b8b6668defa2cfb34420c0cd57fdb5090e883a1b0a8c748301ce242ba1",
+        "state": {
+          "camera": {
+            "position": [
+              7.074885135840954,
+              2.6848085570335387,
+              1.7066013194030314
+            ],
+            "direction": [
+              0.9917073281210746,
+              -0.07117562918288735,
+              -0.1070075004912251
+            ],
+            "fov": 34
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 412,
+            "triangles": 8275713,
+            "geometries": 489,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      },
+      {
+        "source": "71843a28538f00bdbbd0005a65a1b588315753b5",
+        "viewpoint": "L02-fork-west-lantern",
+        "file": "L02-fork-west-lantern.jpg",
+        "sha256": "7c59a0ead43e3bce43d181df2b111405fd01ca0c4d6302663b5aef95a4edd2cc",
+        "state": {
+          "camera": {
+            "position": [
+              -0.6939256924099091,
+              1.7851106721907855,
+              -7.995494181108982
+            ],
+            "direction": [
+              -0.495828366261767,
+              -0.10695454792531445,
+              0.8618091180118013
+            ],
+            "fov": 46
+          },
+          "stats": {
+            "simTime": 12.5,
+            "drawCalls": 544,
+            "triangles": 8532673,
+            "geometries": 556,
+            "textures": 70,
+            "programs": 76,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          }
+        }
+      }
+    ]
+  }
+}
