@@ -1,6 +1,6 @@
 {
-  "source": "fb5355e9467db4ea10df78465f7042313d7f6c82",
-  "capturedAt": "2026-09-11T23:57:06.057Z",
+  "source": "0520d443187cb842c5c4888f7861e6f97fb841ca",
+  "capturedAt": "2026-09-12T00:11:20.286Z",
   "captures": [
     {
       "name": "01-idle",
@@ -206,7 +206,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "3c0cca766af3e6e0e9aa8f23488062bba6254b2b3820d31aa56459f24828fd0e"
+      "sha256": "88fab25a5ee70c861e4aa52d950d86e03fdb3764f1ac0f734548cc5abb48c303"
     },
     {
       "name": "02-walk",
@@ -415,7 +415,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "4ab518c7e21e8ed7102773e10131eeb35131194fb0a418361bff0550c00095a4"
+      "sha256": "ff3bd4f9730dac201ac3eea62a4f9c8436b72b10bf6540e9d54a06489049be6c"
     },
     {
       "name": "03-run",
@@ -633,7 +633,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "6fc2ede048500cf3a48c7d4ffbc14cb35e5c89cc3e11e9cf5f8d093a60d5b4ed"
+      "sha256": "e272eff470ab2ebe8684f064abf07518d8fe4ee0832451d3eaa941c1be746552"
     },
     {
       "name": "04-jump",
@@ -845,7 +845,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "a94abdd92833fbf1315fc4aee2dcd9e81e8cbbc07770e9fdfcbe40692b91374e"
+      "sha256": "c337cc1bec4d085f31dc16277d536e3cee1260b7e5beeb1644fd5f70ce01fee8"
     },
     {
       "name": "05-outfit-back",
@@ -1058,7 +1058,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "4412c8463ba3c2178149bad49c66f4b797048c971a9944a7e58ad2093d2c34bd"
+      "sha256": "3d5ecfcb0b95d9ba09815f1134524408bf7feb4172658d12c470e18d2032df48"
     },
     {
       "name": "06-face-detail",
@@ -1265,7 +1265,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "93c9aa37890a41863f728f0b0457e4961152ce67afbb2235ac3ca4f9ff9121dd"
+      "sha256": "e5196e83a607bb4bdf2d8e4b5d95ff55336977a45722b2e9a0990aceceabaa09"
     },
     {
       "name": "07-leaf-lantern",
@@ -2087,7 +2087,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "11d6a1a35282745fa1f99fa229878d382705d908ca73af9dddf3ab3ec93a21c3"
+      "sha256": "663453b2ec546f754e9dd785cfe1092dff4861c3bfed07b5eb98a344242643b3"
     },
     {
       "name": "11-stone-stairway",
@@ -2513,7 +2513,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "d2e10e88e158b89ad649b34233ec6ff600734c7e31def7920697dab70170e6e8"
+      "sha256": "adf70eb06a83dcc3f91159c517af07d4b687e0e8dad83f4eddb066d212961d7a"
     },
     {
       "name": "13-backpack-detail",
@@ -2726,7 +2726,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "5b76e2ce66fcc470b901ef1040731159b9b50c0286071aaa9e76adecad648e0c"
+      "sha256": "ff5df5b12825c52c54ad56ca10f37b74d26c4724b9222096ddaa9077682273d8"
     },
     {
       "name": "14-belt-detail",
@@ -2933,7 +2933,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "8e1790ba0222fcf5e206b92c70287fa7146d7ab2f90cd6a0ef6db5075805263d"
+      "sha256": "f18d3f2adf100ca9c7db4b535636a0d9ab6994dd44b1550fad15839ab74def08"
     },
     {
       "name": "15-run-rear-quarter",
@@ -3141,7 +3141,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "af9b55b79bf43095bb285501271f652e81042d14ec662a81a8333c1731a3d5df"
+      "sha256": "aba61e36cc37f3533e8e3824ce78ae772a852e22e5ac29263ee4860ca3f2445c"
     },
     {
       "name": "16-run-jump-launch-rear-quarter",
@@ -3550,7 +3550,7 @@
         ]
       },
       "retries": 0,
-      "sha256": "ae065fd1d65291fcf064c7bdbbad285b0004737582368c6ba9730e52b744a537"
+      "sha256": "0cd6737b5e23a78b0b8a73ca0035dd70041df94148164a999c7b45bfb0742662"
     },
     {
       "name": "17-face-blink-transition",
@@ -3758,7 +3758,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "efa678f20dfea1ba561376fca63e28bd73a1c8d265e1aab57918c864b768e87d"
+      "sha256": "646bdcddca367f4f3d95aa98c08257e8b3ef1909762590a2781aba94d9ca113b"
     },
     {
       "name": "18-face-blink-narrow",
@@ -3966,7 +3966,7 @@
         "pixelRatio": 1
       },
       "retries": 0,
-      "sha256": "1e73e72c5aac0a887f9ea3e9aa66082ebfff3e8c666d23d3b56a2b1565fec62f"
+      "sha256": "7c8de65326b8f23a829a702a9d7f1a712f25cc8bc1076bd48199a10e9af04941"
     }
   ],
   "errors": [],
