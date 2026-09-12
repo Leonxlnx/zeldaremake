@@ -12,6 +12,7 @@
 import { BufferGeometry, Float32BufferAttribute, Group, InstancedBufferAttribute, InstancedMesh, Sphere, Uint16BufferAttribute, Vector3, type Material } from 'three';
 import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
+import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
 
 export const GRASS_TYPE_NAMES = ['turf', 'meadow', 'sedge'] as const;
@@ -74,6 +75,14 @@ const DNORM = 1.5;
 const RIM_LEAN = 0.25;
 /** root tilt toward the paving at the rim itself (≈ 24° with the 0.5 normal blend), fading to 0 across the band */
 const RIM_LEAN_TILT = 0.9;
+/**
+ * Frame 14 s' lawn band west of the spine (field.ts `lawnBand`): a second candidate pass at this
+ * share of the tile density thickens it into a closed short turf, from its own stream so the
+ * tile's blades stay where they were; blades in the band are cut to ≈ 70 % height, meadow stalks
+ * are kept out.
+ */
+const LAWN_BAND_EXTRA = 0.55;
+const LAWN_BAND_CUT = 0.3;
 
 export async function buildGrass(ctx: WorldContext, field: VegField, material: Material, parent: Group, onProgress: (f: number) => void): Promise<GrassResult> {
   const T = ctx.terrain;
@@ -117,22 +126,23 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     let yMin = Infinity;
     let yMax = -Infinity;
     let maxH = 0;
-    for (let c = 0; c < candidates && count < maxPerTile; c++) {
-      // mm-quantised so the audited sample position queries the terrain at exactly this point
-      const x = Math.round((x0 + rng() * TILE) * 1000) / 1000;
-      const z = Math.round((z0 + rng() * TILE) * 1000) / 1000;
-      if (Math.hypot(x, z) > R + 1.5) continue;
+    // one candidate: mask / clearing tests, the density draw, then the blade's type, size, tint
+    // and wind from `rng`. `bandPass` blades (the lawn band's second pass) are accepted at the
+    // band weight and skipped elsewhere.
+    const blade = (x: number, z: number, rng: Rng, bandPass: boolean) => {
+      if (Math.hypot(x, z) > R + 1.5) return;
       field.sample(x, z, s);
-      if (!field.allowed(x, z, s)) continue;
-      if (field.insideGiantTrunk(x, z)) continue;
+      if (!field.allowed(x, z, s)) return;
+      if (field.insideGiantTrunk(x, z)) return;
       const clr = field.clearing(x, z);
-      if (clr.insideBoulder) continue;
+      if (clr.insideBoulder) return;
 
       const edge = field.lawnEdgeDistance(x, z);
       const verge = edge < 2.5 ? 1 + 0.9 * (1 - edge / 2.5) : 1;
       const low = field.lowZone(x, z);
       const trim = field.trimZone(x, z);
       const shade = field.shadeZone(x, z);
+      const band = field.lawnBand(x, z);
       // the trodden strip between Saria's stepping stones (frames 14 / 24): half the blades, a
       // few bare dirt patches (the dry noise picks them), nothing above ≈ 40 % of the lawn's height
       const trod = field.troddenZone(x, z);
@@ -146,13 +156,13 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const giant = field.giantProximity(x, z);
       const cluster = field.cluster(x, z);
       // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
-      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare);
-      if (rng() * DNORM > density) continue;
+      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1);
+      if (rng() * DNORM > density) return;
 
-      // type: tall meadow blades are rare in the low verges and the tidy foreground
+      // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
@@ -174,7 +184,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (edge < 0.3) h *= 0.72;
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
-      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod);
+      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band);
       maxH = Math.max(maxH, h);
 
       // colour. The shade zone (frame 8's right embankment) measures ≈ 0.30 luminance in the
@@ -229,6 +239,27 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       yMin = Math.min(yMin, y);
       yMax = Math.max(yMax, y);
       if ((total + count) % sampleEvery === 0) samples.push([x, Math.round(y * 10000) / 10000, z]);
+    };
+    for (let c = 0; c < candidates && count < maxPerTile; c++) {
+      // mm-quantised so the audited sample position queries the terrain at exactly this point
+      const x = Math.round((x0 + rng() * TILE) * 1000) / 1000;
+      const z = Math.round((z0 + rng() * TILE) * 1000) / 1000;
+      blade(x, z, rng, false);
+    }
+    // the lawn band's thickening pass over the part of the band (plus its feather) in this tile
+    const band = field.lawnBandBox(0.5);
+    const bx0 = Math.max(x0, band[0]);
+    const bz0 = Math.max(z0, band[1]);
+    const bx1 = Math.min(x0 + TILE, band[2]);
+    const bz1 = Math.min(z0 + TILE, band[3]);
+    if (bx1 > bx0 && bz1 > bz0) {
+      const bandRng = ctx.rng.fork(`grass/lawn-band/${cx}/${cz}`);
+      const n = Math.round((bx1 - bx0) * (bz1 - bz0) * CANDIDATES_PER_M2 * LAWN_BAND_EXTRA * q.density);
+      for (let c = 0; c < n && count < maxPerTile; c++) {
+        const x = Math.round((bx0 + bandRng() * (bx1 - bx0)) * 1000) / 1000;
+        const z = Math.round((bz0 + bandRng() * (bz1 - bz0)) * 1000) / 1000;
+        blade(x, z, bandRng, true);
+      }
     }
     if (count === 0) continue;
 

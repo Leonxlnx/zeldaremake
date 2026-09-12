@@ -126,17 +126,28 @@ const M = new Float32Array(16);
  * against one draw per variant: this table saves 51 / 49 / 48 draws for +1.1 M submitted
  * triangles, where packing every LOD would save 66 for +2.3 M (ferns alone +2.1 M). Sets without
  * an entry take the default: all variants in one pack at every LOD.
+ *
+ * Round 13 trades five of the ~45 spare draws back for triangles, where the hero views sit
+ * 150–400 K under the 9 M line: the flowers' mid LOD (56–147 instances of 2 593 packed triangles
+ * from B / D) pairs like the near one, and the near weeds (240–300 laminae × 642 packed) and near
+ * fiddleheads (110–140 buds × 1 926 packed) go one draw per variant — ≈ 300 / 340 / 385 / 510 K
+ * fewer submitted triangles from A / B / C / D, room for this round's foreground clusters.
  */
 const SINGLE = (n: number): number[][] => Array.from({ length: n }, (_, v) => [v]);
 const ALL = (n: number): number[][] => [Array.from({ length: n }, (_, v) => v)];
 const PACKS: Record<string, PackLayout> = {
   // 965 clumps of the biggest geometry: near / mid LODs one draw per variant, far LOD in pairs
   ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
-  // the two heads and the two spikes pair up near, everything shares the mid / far draws
-  flowers: [[[0, 1], [2, 3]], ALL(4), ALL(4)],
-  // 3 000+ laminae: only the sparse near LOD packs
-  weeds: [ALL(3), SINGLE(3)],
+  // the two heads and the two spikes pair up near and mid, everything shares the far draw
+  flowers: [[[0, 1], [2, 3]], [[0, 1], [2, 3]], ALL(4)],
+  // 3 000+ laminae: one draw per variant at both LODs (packing the 2 900 far ones would cost 150 K)
+  weeds: [SINGLE(3), SINGLE(3)],
   seedheads: [ALL(3), SINGLE(3)],
+  // 428–856-triangle coils: per variant near, one draw for the 160+ far buds
+  fiddleheads: [SINGLE(3), ALL(3)],
+  // 12 hero hedges, all high-LOD from every camera: packing ALL(3) near submitted 3x the placed
+  // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
+  hedge: [SINGLE(3), ALL(3), ALL(3)],
 };
 
 export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): PlantSets {
@@ -241,6 +252,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // Shot D left-centre: understory fronds on the boulder's path-facing (east) side, between the
   // rock and the flagstones. Kept at undergrowth scale — the reference's big lit clump is the
   // hero crown WEST of the rock below; east of it the footage shows violets over short grass.
+  const fernsBeforeShotD = ferns.count;
   scatter(
     ctx,
     field,
@@ -261,6 +273,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.8 + rng() * 0.25, 0.7, 0.02, greenVar(rng, 0.2)),
   );
+  /** the boulder ring's fronds: frame 56's cluster, kept when the lawn band is cleared of fern clumps below */
+  const shotDRingFerns = new Set(ferns.items.slice(fernsBeforeShotD));
   // Shot-D hero clump (reference 0.05–0.14 × 0.55–0.68: a lit mass of big arching fronds LEFT of
   // the mossy rock, against the dark north-west-near trunk). Three tree-fern crowns on the bank
   // slope west of the boulder, 6–8 m from camera D so the fronds read at pinna scale; the rock's
@@ -1042,6 +1056,401 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(saplings, x, z, s, rng, 0.7 + rng() * 0.6, 0.3, 0.03, greenVar(rng, 0.16)),
   );
+
+  // ======== Round 13: foreground framing and ground detail (owner boards 01 / 02 / 06 / 08,
+  // frames 1 s / 14 s / 46 s / 56 s). Everything below runs after the scatters above from its own
+  // streams, so no earlier plant moves; each cluster is seated where the reference's screen box
+  // unprojects onto OUR ground, through `field.screenPoint`, and keeps every standing rule (the
+  // paving, the shot-A bank face, the kids' spots, camera C's stair-foot wedge, the stones).
+  {
+    const kidSpots: readonly (readonly [number, number])[] = [...ctx.layout.npcSpots.map((n) => [n.position[0], n.position[2]] as const), A_BANK_KID, F_BANK_KID];
+    const nearKid = (x: number, z: number, r: number) => kidSpots.some(([kx, kz]) => Math.hypot(x - kx, z - kz) < r);
+    const nearWhite = (x: number, z: number, r: number) => whiteFlowers.items.some((it) => Math.hypot(it.x - x, it.z - z) < r);
+    /** the plant's root, seated on the ground, projects inside the viewpoint's box [x0, y0, x1, y1] */
+    const inFrame = (viewpointId: string, x: number, z: number, box: readonly [number, number, number, number], minDepth = 0) => {
+      const p = field.screenPoint(viewpointId, x, T.height(x, z), z);
+      return !!p && p.depth >= minDepth && p.sx >= box[0] && p.sx <= box[2] && p.sy >= box[1] && p.sy <= box[3];
+    };
+    /** ground every plant of this round needs: off the stones and the trodden strip, off the bank face, clear of the kids and the rock rings */
+    const clearGround = (x: number, z: number, s: FieldSample) => {
+      if (s.cliff > 0.3 || field.bankFace(x, z) > 0.3 || field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6) return false;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0 || field.boulderDistance(x, z) < 0.3 || field.giantDistance(x, z) < 0.3) return false;
+      return !nearKid(x, z, 1.2);
+    };
+    /** clear ground that also keeps a plant of this `reach` out of camera C's stair-foot wedge and the grass around the camera */
+    const standingGround = (x: number, z: number, s: FieldSample, reach: number) => clearGround(x, z, s) && field.sightlineC(x, z, reach) === 0;
+    /** `per` plants within `radius` of each centre from one stream; `ok` gates each spot, `place` seats it */
+    const clusterAt = (label: string, centres: readonly (readonly [number, number])[], per: number, radius: number, ok: (x: number, z: number, s: FieldSample) => boolean, place: (x: number, z: number, s: FieldSample, rng: Rng) => void) => {
+      const rng = ctx.rng.fork(`plants/${label}`);
+      const s = newSample();
+      for (const [cx, cz] of centres) {
+        let left = per;
+        for (let i = 0; i < per * 5 && left > 0; i++) {
+          const a = rng() * Math.PI * 2;
+          const d = Math.sqrt(rng()) * radius;
+          const x = cx + Math.cos(a) * d;
+          const z = cz + Math.sin(a) * d;
+          field.sample(x, z, s);
+          if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder || !ok(x, z, s)) continue;
+          place(x, z, s, rng);
+          left--;
+        }
+      }
+    };
+    // board 06 "small plants, flowers, rocks and leaves": heart / ovate laminae 15–30 cm across
+    // (variant spans × 1.3–2.2), ≤ 0.33 m tall so they pass under every "grass only" height rule
+    const broadleafPlace = (scaleMin: number, scaleMax: number, dark = 0.9) => (x: number, z: number, s: FieldSample, rng: Rng) => placeInstance(weeds, x, z, s, rng, scaleMin + rng() * (scaleMax - scaleMin), 0.8, 0.012, greenVar(rng, 0.18).multiplyScalar(dark));
+    const broadleafGround = (x: number, z: number, s: FieldSample) => clearGround(x, z, s) && field.lawnEdgeDistance(x, z) >= 0.2 && !nearWhite(x, z, 0.45);
+    const newFerns: { x: number; z: number; scale: number }[] = [];
+
+    // ---- (2) frame 14 s' lawn band (field.ts LAWN_BAND): the fern clumps the general scatter
+    // grew on the near west verge come out — the band is short turf with white dots in the
+    // footage, and the clumps stood between camera B and the far dots. Pruned after the fiddlehead
+    // pass so the buds elsewhere keep their stream; the buds that stood in the removed clumps go
+    // with them. The shot-D boulder ring keeps its fronds (frame 56's cluster beside the rock).
+    {
+      const removed: { x: number; z: number }[] = [];
+      ferns.prune((it) => {
+        if (shotDRingFerns.has(it) || field.lawnBand(it.x, it.z) <= 0.5) return false;
+        removed.push({ x: it.x, z: it.z });
+        return true;
+      });
+      const crownLeft = (x: number, z: number) => ferns.items.concat(heroFerns.items).some((f) => Math.hypot(f.x - x, f.z - z) <= 0.2);
+      fiddleheads.prune((b) => removed.some((f) => Math.hypot(f.x - b.x, f.z - b.z) <= 0.25) && !crownLeft(b.x, b.z));
+    }
+
+    // ---- (1) / (3) the west verge bed: frame 1 s' left edge (A 0–0.12 × 0.45–0.58 is the verge
+    // 14–20 m out; its 0.6–0.75 is the plaza's paving) and frame 56's bottom-left cluster (D 0–0.2
+    // × 0.6–0.72 beyond the near grass strip) are the same ground: the verge and bank slope from the
+    // shot-D boulder north to the mist hollow, x −4.8…−2.3, z −11.2…−16.5, where the six D clumps
+    // already grow. It gets a fern cluster (0.6–0.9 m), three more purple clumps and broad-leaf
+    // clusters. The near strip south of the boulder (D's bottom-left corner) stays grass — it is
+    // frame 14 s' lawn band.
+    const WEST_BED: [number, number, number, number] = [-4.8, -16.5, -2.3, -11.2];
+    const D_BED_BOX: [number, number, number, number] = [-0.02, 0.56, 0.22, 0.74];
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-west-bed',
+        candidates: 1500,
+        box: WEST_BED,
+        minSpacing: 0.7,
+        max: 6,
+        accept: (x, z, s) => (field.edgeDistance(x, z) >= 0.5 && standingGround(x, z, s, 1.0) && !nearWhite(x, z, 0.6) && inFrame('D_log', x, z, D_BED_BOX) ? 0.7 : 0),
+      },
+      (x, z, s, rng) => {
+        const scale = 0.95 + rng() * 0.35;
+        newFerns.push({ x, z, scale });
+        placeInstance(ferns, x, z, s, rng, scale, 0.7, 0.02, greenVar(rng, 0.2));
+      },
+    );
+    clusterAt(
+      'flowers-west-bed',
+      [
+        [-2.75, -11.75],
+        [-3.55, -12.55],
+        [-2.7, -14.35],
+      ],
+      9,
+      0.45,
+      (x, z) => flowerVerge(x, z) > 0 && !nearWhite(x, z, 0.5) && inFrame('D_log', x, z, D_BED_BOX),
+      flowerPlace(1.05, 1.4),
+    );
+    clusterAt(
+      'weeds-west-bed',
+      [
+        [-2.6, -12.4],
+        [-3.3, -14.1],
+        [-3.0, -15.6],
+      ],
+      8,
+      0.45,
+      (x, z, s) => broadleafGround(x, z, s) && inFrame('D_log', x, z, [-0.02, 0.55, 0.24, 0.76]),
+      broadleafPlace(1.7, 2.4, 0.85),
+    );
+
+    // ---- (1) frame 1 s' right bank behind the kid (A 0.8–1.0 × 0.45–0.75): ferns and a hedge, not
+    // grass. The hedge crowns are there (hedge-shotA-bank); the crest between them and the kid takes
+    // 0.5–0.75 m fern clumps and a skirt of broad leaves, on the flat crest only (the bank FACE stays
+    // grass, frame 1's lit tufts), ≥ 1.2 m from both kid spots, 0.4 m off the stair-bank rope
+    // fence, beyond the stair-foot rock from camera C (depth ≥ 12.1 m) and never over the frame-8
+    // kid from F (the hedge's rule).
+    const A_BANK_BOX: [number, number, number, number] = [0.8, 0.45, 1.02, 0.74];
+    const bankCrest = (x: number, z: number, s: FieldSample, reach: number) => {
+      if (s.slope > 0.18 || s.path > 0.02 || s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5 || field.bankFace(x, z) > 0.3) return false;
+      if (nearKid(x, z, 1.2) || field.clearing(x, z).npc > 0 || field.boulderDistance(x, z) < 0.3 || bankFenceDistance(x, z) < 0.4) return false;
+      if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6) return false;
+      const c = field.screenX('C_lookback', x, z);
+      if (c && c.depth < 12.1) return false;
+      if (field.sightlineC(x, z, reach) > 0) return false;
+      const f = field.screenX('F_canopy', x, z);
+      const fEdge = field.screenX('F_canopy', x, z - reach);
+      if (f && fEdge && f.depth < 9.2 && fEdge.sx < 0.62) return false;
+      return true;
+    };
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-a-bank',
+        candidates: 2000,
+        box: [6.0, 3.5, 8.8, 5.6],
+        minSpacing: 0.6,
+        max: 8,
+        accept: (x, z, s) => (bankCrest(x, z, s, 0.75) && !nearWhite(x, z, 0.5) && inFrame('A_stairs', x, z, A_BANK_BOX, 5.5) ? 0.7 : 0),
+      },
+      (x, z, s, rng) => {
+        const scale = 0.8 + rng() * 0.3;
+        newFerns.push({ x, z, scale });
+        placeInstance(ferns, x, z, s, rng, scale, 0.7, 0.02, greenVar(rng, 0.18).multiplyScalar(0.94));
+      },
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'weeds-a-bank',
+        candidates: 2500,
+        box: [6.0, 3.2, 9.0, 5.6],
+        minSpacing: 0.3,
+        max: 16,
+        accept: (x, z, s) => (bankCrest(x, z, s, 0.4) && s.slope <= 0.12 && !nearWhite(x, z, 0.4) && inFrame('A_stairs', x, z, [0.78, 0.5, 1.02, 0.8], 5.0) ? 0.8 : 0),
+      },
+      broadleafPlace(1.6, 2.2, 0.85),
+    );
+
+    // ---- (2) frame 14 s' right foreground (B 0.85–1.0 × 0.55–0.9): a dark leafy mass of fronds,
+    // coils and purple bells. Its lower half is camera C's left third at 4–6 m and Saria's ramp
+    // (grass only, frame 46), so the mass thickens on the stair-flank bank 8–10 m out, x 8–9.6,
+    // z −6.2…−3.4, around the door-side hedge: 0.55–0.8 m fern clumps with buds, purple clumps
+    // and broad-leaf skirts, none of it inside C's wedge.
+    const B_MASS_BOX: [number, number, number, number] = [0.85, 0.52, 1.0, 0.82];
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-shotB-near',
+        candidates: 2000,
+        box: [8.0, -6.2, 9.6, -3.4],
+        minSpacing: 0.55,
+        max: 8,
+        accept: (x, z, s) => (field.edgeDistance(x, z) >= 0.3 && standingGround(x, z, s, 1.0) && field.houseInfo(x, z).dist >= 0.5 && !nearWhite(x, z, 0.5) && inFrame('B_house', x, z, B_MASS_BOX) ? 0.7 : 0),
+      },
+      (x, z, s, rng) => {
+        const scale = 0.9 + rng() * 0.3;
+        newFerns.push({ x, z, scale });
+        placeInstance(ferns, x, z, s, rng, scale, 0.7, 0.02, greenVar(rng, 0.2));
+      },
+    );
+    clusterAt(
+      'flowers-shotB-near',
+      [
+        [8.6, -4.4],
+        [8.3, -5.6],
+        [9.1, -3.9],
+      ],
+      8,
+      0.4,
+      (x, z) => flowerVerge(x, z) > 0 && !nearWhite(x, z, 0.5) && !nearKid(x, z, 1.2) && inFrame('B_house', x, z, B_MASS_BOX),
+      flowerPlace(1.05, 1.35),
+    );
+    clusterAt(
+      'weeds-shotB-near',
+      [
+        [8.3, -4.0],
+        [8.9, -5.9],
+        [8.2, -5.0],
+      ],
+      8,
+      0.45,
+      (x, z, s) => broadleafGround(x, z, s) && inFrame('B_house', x, z, [0.84, 0.52, 1.0, 0.86]),
+      broadleafPlace(1.7, 2.4, 0.85),
+    );
+
+    // fiddleheads for this round's fern clumps (sheet 01: 2–3 buds in a share of the near crowns),
+    // their own stream after every clump above is seated
+    {
+      const rng = ctx.rng.fork('plants/fiddleheads-r13');
+      const s = newSample();
+      for (const f of newFerns) {
+        if (rng() > 0.6) continue;
+        const count = 2 + rng.int(0, 2);
+        for (let i = 0; i < count; i++) {
+          const a = rng() * Math.PI * 2;
+          const d = 0.1 * f.scale * (0.3 + 0.7 * rng());
+          const x = f.x + Math.cos(a) * d;
+          const z = f.z + Math.sin(a) * d;
+          field.sample(x, z, s);
+          if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
+          if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6 || field.sightlineC(x, z, 0.3) > 0) continue;
+          placeInstance(fiddleheads, x, z, s, rng, 0.96 + rng() * 0.14, 0.5, 0.012, greenVar(rng, 0.12));
+        }
+      }
+    }
+
+    // ---- (3) frame 56's right verge (D 0.75–1.0 × 0.55–0.85: the slope right of the north path,
+    // x 4–8, z −8…−14) — purple and leaf clusters among the short grass. The strip is camera C's
+    // grass box, so the violets are the low cluster heads (≤ 0.54 m, the D-right rule) where the
+    // wedge allows them (north of z −12.3 or east of x 7.6) and the leaves stay ≤ 0.33 m.
+    const D_RIGHT_BOX: [number, number, number, number] = [0.74, 0.52, 1.02, 0.86];
+    clusterAt(
+      'flowers-shotD-right',
+      [
+        [5.6, -12.9],
+        [6.7, -13.6],
+        [6.3, -14.4],
+      ],
+      8,
+      0.4,
+      (x, z) => flowerVerge(x, z) > 0 && !nearWhite(x, z, 0.5) && !nearKid(x, z, 1.2) && inFrame('D_log', x, z, D_RIGHT_BOX),
+      flowerPlace(0.95, 1.2, CLUSTER_HEADS),
+    );
+    clusterAt(
+      'weeds-shotD-right',
+      [
+        [3.6, -7.7],
+        [4.6, -9.4],
+        [5.4, -11.0],
+        [7.2, -12.2],
+      ],
+      8,
+      0.45,
+      (x, z, s) => broadleafGround(x, z, s) && inFrame('D_log', x, z, D_RIGHT_BOX),
+      broadleafPlace(1.5, 2.1),
+    );
+    // ---- (4) frame 46's foreground (C 0–0.3 × 0.8–1.0: the grass 3–5 m in front of camera C) —
+    // heart-leaf clusters in the turf, 0.33 m at most so the stair foot stays visible over them
+    clusterAt(
+      'weeds-shotC-foot',
+      [
+        [4.3, -4.4],
+        [5.5, -4.0],
+        [6.2, -4.8],
+        [4.9, -5.2],
+      ],
+      8,
+      0.45,
+      (x, z, s) => broadleafGround(x, z, s) && inFrame('C_lookback', x, z, [-0.02, 0.78, 0.32, 1.02]),
+      // 4-6 m from camera C: at 1.5-2.1 the cluster filled C's bottom-left to green 0.74 vs the
+      // frame's 0.45; 1.1-1.5 keeps it a foreground accent
+      broadleafPlace(1.1, 1.5),
+    );
+
+    // ---- (5) broad-leaf clusters along every path edge within reach of the cameras (board 06):
+    // 5–12 leaves per cluster 0.3–1.3 m outside the paving, ≤ 0.32 m tall, off the bank face, the
+    // kids' spots, the boulder rings, the stones and the near west verge (frame 14 s' lawn band),
+    // never over a white clump. One stream draws the cluster centres and their leaves.
+    {
+      const rng = ctx.rng.fork('plants/weeds-rim-clusters');
+      const s = newSample();
+      const spacing = new Spacing(2.4);
+      const R = ctx.config.detailRadius;
+      const place = broadleafPlace(1.3, 2.1);
+      let clusters = 0;
+      for (let i = 0; i < 6000 && clusters < 44; i++) {
+        const cx = -R + rng() * 2 * R;
+        const cz = -R + rng() * 2 * R;
+        if (!nearCamera(cx, cz, 22)) continue;
+        const edge = field.lawnEdgeDistance(cx, cz);
+        if (edge < 0.3 || edge > 1.3) continue;
+        field.sample(cx, cz, s);
+        if (!field.allowed(cx, cz, s) || field.insideGiantTrunk(cx, cz) || !broadleafGround(cx, cz, s) || field.lawnBand(cx, cz) > 0) continue;
+        if (!spacing.ok(cx, cz, 2.4)) continue;
+        spacing.add(cx, cz);
+        clusters++;
+        let left = 5 + rng.int(0, 8);
+        for (let k = 0; k < 40 && left > 0; k++) {
+          const a = rng() * Math.PI * 2;
+          const d = Math.sqrt(rng()) * 0.5;
+          const x = cx + Math.cos(a) * d;
+          const z = cz + Math.sin(a) * d;
+          field.sample(x, z, s);
+          if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || !broadleafGround(x, z, s) || field.lawnBand(x, z) > 0) continue;
+          place(x, z, s, rng);
+          left--;
+        }
+      }
+    }
+
+    // ---- (2) the lawn band itself: dense short turf is grass.ts' second pass; here the white dots
+    // frame 14 s has (0–0.3 × 0.62–0.9, ≈ 12–20 of them — the paving's lawn pocket is hardscape's,
+    // so ours sit on the verge north of it, 7.5–13.5 m from camera B), clover between them and a
+    // few moss cushions for the footage's mossy stones. The character system stands frame 14 s'
+    // kid at B (0.035, 0.885), 4.6 m out, so he covers sx 0–0.07 up to y ≈ 0.58: the dots keep to
+    // the strip beside the paving that shows past him (sx ≥ 0.075). Placed after every violet and
+    // leaf above, so they cover none and sit under none.
+    const underLeaves = (x: number, z: number) =>
+      weeds.items.some((it) => {
+        const r = (weeds.opts.variants[it.variant][0].boundingBox?.max.x ?? 0.16) * Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]);
+        return r >= 0.25 && Math.hypot(it.x - x, it.z - z) < r;
+      });
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'white-flowers-lawn-band',
+        candidates: 5000,
+        box: field.lawnBandBox(),
+        minSpacing: 0.35,
+        max: 12,
+        accept(x, z, s) {
+          const edge = field.lawnEdgeDistance(x, z);
+          if (edge < 0.2 || edge > 1.5 || field.troddenZone(x, z) > 0 || !whiteGround(x, z, s, 0.2, true) || underLeaves(x, z)) return 0;
+          const b = field.screenPoint('B_house', x, T.height(x, z), z);
+          return b && b.depth <= 13.5 && b.sx >= 0.075 && b.sx <= 0.24 && b.sy >= 0.6 && b.sy <= 0.86 ? 0.8 : 0;
+        },
+      },
+      (x, z, s, rng) => placeInstance(whiteFlowers, x, z, s, rng, 1.0 + rng() * 0.15, 0.6, 0.01, tint.setRGB(0.98 + rng() * 0.06, 0.98 + rng() * 0.06, 0.96 + rng() * 0.06)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'clover-lawn-band',
+        candidates: 1500,
+        box: field.lawnBandBox(),
+        minSpacing: 0.2,
+        low: true,
+        max: 90,
+        accept: (x, z) => (field.lawnEdgeDistance(x, z) >= 0.1 && field.bankFace(x, z) <= 0.3 ? 0.9 * field.lawnBand(x, z) : 0),
+      },
+      (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 0.8 + rng() * 0.5, 0.9, 0.008, greenVar(rng, 0.18)),
+    );
+    {
+      const rng = ctx.rng.fork('plants/moss-lawn-band');
+      const spots: readonly [number, number][] = [
+        [-2.55, -7.35],
+        [-3.05, -8.7],
+        [-2.3, -9.85],
+      ];
+      for (const [cx, cz] of spots) {
+        for (let i = 0; i < 24; i++) {
+          const x = cx + (rng() - 0.5) * 0.7;
+          const z = cz + (rng() - 0.5) * 0.7;
+          if (field.lawnEdgeDistance(x, z) < 0.35 || field.stoneDistance(x, z) < 0.3 || nearWhite(x, z, 0.45) || nearKid(x, z, 1.0)) continue;
+          if (placeMossWith(rng, x, z, 0.28 + rng() * 0.1)) break;
+        }
+      }
+    }
+
+    // ---- (4) frame 46's white clumps on the bank beside the stair foot (C 0.12–0.32 × 0.4–0.58,
+    // beyond the stair-foot rock): a few on the south bank's crest, clear of the kids
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'white-flowers-stair-bank',
+        candidates: 3000,
+        box: [7.2, 3.2, 10.0, 5.2],
+        minSpacing: 0.6,
+        max: 3,
+        accept: (x, z, s) => (s.slope <= 0.2 && s.path <= 0.02 && whiteGround(x, z, s, 0.2) && !nearKid(x, z, 1.0) && bankFenceDistance(x, z) >= 0.3 && inFrame('C_lookback', x, z, [0.12, 0.4, 0.32, 0.58], 12.2) ? 0.8 : 0),
+      },
+      whitePlace,
+    );
+  }
 
   const all = [ferns, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings];
   for (const set of all) parent.add(set.build());

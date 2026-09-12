@@ -98,6 +98,14 @@ const LOW_ZONES: readonly [number, number, number, number][] = [
   [3.0, 4.6, 6.0, 7.2],
 ];
 /**
+ * Frame 14 s' left third (B 0–0.3 × 0.62–0.9): a low green LAWN band with white dots meets the
+ * flagstones at a soft grass edge. The paving's lawn pocket is hardscape's; the turf this side of
+ * it — the spine's west verge from the pocket's north end to the shot-D boulder, also frame 56's
+ * bottom-left grass strip — reads as dense short turf with clover and white clumps, no fern clumps
+ * or tall herbs (in take 65 a dozen 0.6–1.1 m fern clumps stood in it, hiding the far dots).
+ */
+const LAWN_BAND: readonly [number, number, number, number] = [-3.3, -10.5, -1.6, -6.4];
+/**
  * Camera C stands IN the grass at (3.2, −9.5): anything 1–3 m to its left/front is in frame at
  * frond scale, so the ground around the camera is grass only (≤ 0.4 m). The sight line itself
  * (frame 46's left third, where the stair foot shows at (0.12, 0.67) and the stair-foot rock at
@@ -779,6 +787,16 @@ export class VegField {
     let v = 0;
     for (const b of LOW_ZONES) v = Math.max(v, softBox(x, z, b, 0.8));
     return v;
+  }
+
+  /** 0..1 in frame 14 s' lawn band west of the spine (dense short turf, clover and white dots; no fern clumps). */
+  lawnBand(x: number, z: number): number {
+    return softBox(x, z, LAWN_BAND, 0.5);
+  }
+
+  /** the lawn band's world box [x0, z0, x1, z1] grown by `pad` metres (its feather is 0.5 m) */
+  lawnBandBox(pad = 0): [number, number, number, number] {
+    return [LAWN_BAND[0] - pad, LAWN_BAND[1] - pad, LAWN_BAND[2] + pad, LAWN_BAND[3] + pad];
   }
 
   private frame(viewpointId: string): Frame | null {
