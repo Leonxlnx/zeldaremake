@@ -27,8 +27,10 @@ export interface FieldSample {
 
 type P3 = readonly [number, number, number];
 
-function polylineDistance(points: readonly P3[], x: number, z: number): number {
+/** distance to a polyline, and whether the closest point is one of its two end vertices (its round end cap) */
+function polylineClosest(points: readonly P3[], x: number, z: number): { dist: number; cap: boolean } {
   let best = Infinity;
+  let cap = false;
   for (let i = 0; i < points.length - 1; i++) {
     const ax = points[i][0];
     const az = points[i][2];
@@ -40,9 +42,29 @@ function polylineDistance(points: readonly P3[], x: number, z: number): number {
     const px = ax + dx * t;
     const pz = az + dz * t;
     const d2 = (x - px) ** 2 + (z - pz) ** 2;
-    if (d2 < best) best = d2;
+    if (d2 < best) {
+      best = d2;
+      cap = (i === 0 && t === 0) || (i === points.length - 2 && t === 1);
+    }
   }
-  return Math.sqrt(best);
+  return { dist: Math.sqrt(best), cap };
+}
+
+function polylineDistance(points: readonly P3[], x: number, z: number): number {
+  return polylineClosest(points, x, z).dist;
+}
+
+/** parameter 0..1 of the closest point on a→b to (x, z) */
+function segmentT(seg: { ax: number; az: number; bx: number; bz: number }, x: number, z: number): number {
+  const dx = seg.bx - seg.ax;
+  const dz = seg.bz - seg.az;
+  const len2 = dx * dx + dz * dz;
+  return len2 > 0 ? clamp(((x - seg.ax) * dx + (z - seg.az) * dz) / len2, 0, 1) : 0;
+}
+
+function segmentDistance(seg: { ax: number; az: number; bx: number; bz: number }, x: number, z: number): number {
+  const t = segmentT(seg, x, z);
+  return Math.hypot(x - seg.ax - (seg.bx - seg.ax) * t, z - seg.az - (seg.bz - seg.az) * t);
 }
 
 interface StairRect {
@@ -111,6 +133,40 @@ const TRODDEN_HALF_WIDTH = 0.9;
 const TRODDEN_FEATHER = 0.6;
 const STONE_TRODDEN = 1.4;
 
+/**
+ * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
+ * heightfield and the cut where the stair's south bank meets the flagstones. Straight pieces of
+ * the terrain mask's 0.5 path contour, each with its outward (grass-side) unit normal.
+ */
+interface RimSegment {
+  ax: number;
+  az: number;
+  bx: number;
+  bz: number;
+  nx: number;
+  nz: number;
+  len: number;
+  /** the turf climbs steeply straight off this rim (frame 1's bank face beside the kid) */
+  bank: boolean;
+}
+/** the paving mask level hardscape lays slabs to (flagstones.ts `isPaved`) */
+const RIM_ISO = 0.5;
+/**
+ * The polylines put edge 0 at their half-width, 0.1 m outside the slab edge (mask 0.5 sits at
+ * 0.95 × half-width); the mask-derived rim takes the same offset so one band fits every rim.
+ */
+const RIM_OFFSET = 0.1;
+/** mask contour pieces this close to a polyline rim are that rim (already exact) and are dropped */
+const RIM_DUPLICATE = 0.35;
+/** lookup grid (m) and the reach within which segment distances are exact (beyond: no verge anyway) */
+const RIM_GRID = 1;
+const RIM_REACH = 3.5;
+/** ground rise across the half metre outside a rim that marks it as the foot of a turf bank */
+const BANK_RISE = 0.22;
+/** metres of that bank face (from its rim) that stay grass only, and the fade beyond */
+const BANK_FACE = 0.85;
+const BANK_FEATHER = 0.3;
+
 interface Frame {
   px: number;
   pz: number;
@@ -120,6 +176,26 @@ interface Frame {
   rz: number;
   /** tan(fov/2) × aspect: screen-x half extent as a view-space slope */
   halfSlope: number;
+}
+
+/** Full pinhole of a layout viewpoint (vertical fov, 16:9, +Y up): position, forward, right, up. */
+interface View {
+  p: readonly [number, number, number];
+  f: readonly [number, number, number];
+  r: readonly [number, number, number];
+  u: readonly [number, number, number];
+  th: number;
+  aspect: number;
+}
+
+function makeView(vp: { position: readonly number[]; target: readonly number[]; fov: number }, aspect = 16 / 9): View {
+  let f: [number, number, number] = [vp.target[0] - vp.position[0], vp.target[1] - vp.position[1], vp.target[2] - vp.position[2]];
+  const fl = Math.hypot(f[0], f[1], f[2]) || 1;
+  f = [f[0] / fl, f[1] / fl, f[2] / fl];
+  const rl = Math.hypot(f[2], f[0]) || 1;
+  const r: [number, number, number] = [-f[2] / rl, 0, f[0] / rl];
+  const u: [number, number, number] = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  return { p: [vp.position[0], vp.position[1], vp.position[2]], f, r, u, th: Math.tan((vp.fov * Math.PI) / 360), aspect };
 }
 
 /** Horizontal pinhole frame of a layout viewpoint (16:9), the same maths as the gauntlet cameras. */
@@ -151,7 +227,11 @@ export class VegField {
   private readonly dryNoise: Noise2D;
   private readonly flowerNoise: Noise2D;
   private readonly frames = new Map<string, Frame | null>();
+  private readonly views = new Map<string, View | null>();
   private readonly tmpN = new Vector3();
+  /** mask-derived paved rim (plaza discs, bank toe) and its lookup grid: cell key → segment indices */
+  private readonly rim: RimSegment[] = [];
+  private readonly rimCells = new Map<number, number[]>();
 
   constructor(
     private readonly ctx: WorldContext,
@@ -175,6 +255,7 @@ export class VegField {
       return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, halfWidth: s.width / 2 };
     });
     this.fill();
+    this.buildPavedRim();
   }
 
   private fill() {
@@ -203,6 +284,187 @@ export class VegField {
         d[o + 10] = T.height(x, z);
       }
     }
+  }
+
+  /** cached path-mask value at grid node (i, j) */
+  private nodePath(i: number, j: number): number {
+    return this.data[(j * this.n + i) * 11 + 1];
+  }
+
+  /**
+   * The paved rim the polylines miss. The heightfield paves more than the spine and the stair
+   * branch: the plaza discs (the plaza, its eastern lobe, the small disc at the bank's toe) and it
+   * cuts that paving along the stair's south bank. Those rims are taken from the mask itself —
+   * marching squares over the cached 0.5 m path grid at hardscape's slab level, each crossing then
+   * bisected on the exact terrain mask (≈ 2 mm) — so the turf's rim treatment (lean, moss cushions,
+   * seam litter) follows wherever the flagstones really end, the toe line included. Pieces that
+   * the polylines or the stair footprints already describe, and the stepping stones of the house
+   * ramp (a grassy ramp, no rim), are dropped. Each piece keeps its outward normal and whether the
+   * ground climbs steeply straight off it (`bank`), and goes into a coarse lookup grid.
+   */
+  private buildPavedRim() {
+    const T = this.ctx.terrain;
+    const R = this.ctx.config.detailRadius + 2;
+    const L = this.ctx.layout;
+    const hw = L.pathHalfWidth;
+    const n = this.n;
+    const at = (i: number, j: number): [number, number] => [-this.extent + i * this.cell, -this.extent + j * this.cell];
+    const pathAt = (x: number, z: number) => T.mask(x, z).path;
+    // crossing of the iso level on the grid edge (i, j) → (i + di, j + dj): linear in the node
+    // values for the pass that decides which pieces to keep, bisected on the exact mask (8 steps,
+    // ≈ 2 mm) for the kept ones only — the exact mask is the expensive call. Cached per edge.
+    type Edge = { i: number; j: number; horizontal: boolean };
+    const refined = new Map<number, [number, number]>();
+    const edgeKey = (e: Edge) => (e.i * n + e.j) * 2 + (e.horizontal ? 1 : 0);
+    const ends = (e: Edge): [number, number, number, number] => {
+      const [ax, az] = at(e.i, e.j);
+      const [bx, bz] = at(e.horizontal ? e.i + 1 : e.i, e.horizontal ? e.j : e.j + 1);
+      return [ax, az, bx, bz];
+    };
+    const coarse = (e: Edge): [number, number] => {
+      const [ax, az, bx, bz] = ends(e);
+      const pa = this.nodePath(e.i, e.j);
+      const pb = this.nodePath(e.horizontal ? e.i + 1 : e.i, e.horizontal ? e.j : e.j + 1);
+      const t = clamp((RIM_ISO - pa) / (pb - pa || 1e-6), 0, 1);
+      return [ax + (bx - ax) * t, az + (bz - az) * t];
+    };
+    const refine = (e: Edge): [number, number] => {
+      const key = edgeKey(e);
+      let c = refined.get(key);
+      if (c) return c;
+      let [ax, az, bx, bz] = ends(e);
+      const aIn = this.nodePath(e.i, e.j) >= RIM_ISO;
+      for (let k = 0; k < 8; k++) {
+        const mx = (ax + bx) / 2;
+        const mz = (az + bz) / 2;
+        if ((pathAt(mx, mz) >= RIM_ISO) === aIn) {
+          ax = mx;
+          az = mz;
+        } else {
+          bx = mx;
+          bz = mz;
+        }
+      }
+      c = [(ax + bx) / 2, (az + bz) / 2];
+      refined.set(key, c);
+      return c;
+    };
+    // marching squares: corners 0 (i,j) 1 (i+1,j) 2 (i+1,j+1) 3 (i,j+1); edges 0 bottom 1 right 2 top 3 left
+    const EDGES: number[][][] = [[], [[3, 0]], [[0, 1]], [[3, 1]], [[1, 2]], [], [[0, 2]], [[3, 2]], [[2, 3]], [[0, 2]], [], [[1, 2]], [[1, 3]], [[0, 1]], [[3, 0]], []];
+    const edgeOf = (i: number, j: number, e: number): Edge => (e === 0 ? { i, j, horizontal: true } : e === 1 ? { i: i + 1, j, horizontal: false } : e === 2 ? { i, j: j + 1, horizontal: true } : { i, j, horizontal: false });
+    const s = newSample();
+    for (let j = 0; j < n - 1; j++) {
+      for (let i = 0; i < n - 1; i++) {
+        const c0 = this.nodePath(i, j);
+        const c1 = this.nodePath(i + 1, j);
+        const c2 = this.nodePath(i + 1, j + 1);
+        const c3 = this.nodePath(i, j + 1);
+        const idx = (c0 >= RIM_ISO ? 1 : 0) | (c1 >= RIM_ISO ? 2 : 0) | (c2 >= RIM_ISO ? 4 : 0) | (c3 >= RIM_ISO ? 8 : 0);
+        if (idx === 0 || idx === 15) continue;
+        const [cx, cz] = at(i, j);
+        if (Math.hypot(cx + this.cell / 2, cz + this.cell / 2) > R) continue;
+        let pairs = EDGES[idx];
+        if (idx === 5 || idx === 10) {
+          // saddle: the centre decides which diagonal pair of corners is joined
+          const centreIn = (c0 + c1 + c2 + c3) / 4 >= RIM_ISO;
+          pairs = (idx === 5) === centreIn ? [[0, 1], [2, 3]] : [[3, 0], [1, 2]];
+        }
+        for (const [e0, e1] of pairs) {
+          const ea = edgeOf(i, j, e0);
+          const eb = edgeOf(i, j, e1);
+          {
+            const [ax, az] = coarse(ea);
+            const [bx, bz] = coarse(eb);
+            const mx = (ax + bx) / 2;
+            const mz = (az + bz) / 2;
+            if (this.stairDistance(mx, mz) < RIM_DUPLICATE || this.stoneDistance(mx, mz) < 1.0) continue;
+            // the polyline walk offsets perpendicular to its segments, so it never reaches the
+            // round end caps (the stair branch's, north of the foot): pieces there are kept
+            const spine = polylineClosest(L.pathSpine, mx, mz);
+            const branch = polylineClosest(L.pathToStairs, mx, mz);
+            if ((!spine.cap && Math.abs(spine.dist - hw) < RIM_DUPLICATE) || (!branch.cap && Math.abs(branch.dist - hw * 0.8) < RIM_DUPLICATE)) continue;
+          }
+          const [ax, az] = refine(ea);
+          const [bx, bz] = refine(eb);
+          const len = Math.hypot(bx - ax, bz - az);
+          if (len < 1e-3) continue;
+          const mx = (ax + bx) / 2;
+          const mz = (az + bz) / 2;
+          // outward = toward falling path mask (the grass side)
+          let nx = -(bz - az) / len;
+          let nz = (bx - ax) / len;
+          const outer = this.sample(mx + nx * 0.2, mz + nz * 0.2, s).path;
+          const inner = this.sample(mx - nx * 0.2, mz - nz * 0.2, s).path;
+          if (outer > inner) {
+            nx = -nx;
+            nz = -nz;
+          }
+          const rise = T.height(mx + nx * 0.65, mz + nz * 0.65) - T.height(mx + nx * 0.15, mz + nz * 0.15);
+          this.rim.push({ ax, az, bx, bz, nx, nz, len, bank: rise > BANK_RISE });
+        }
+      }
+    }
+    // lookup grid: every cell whose centre lies within reach of the segment lists it
+    const pad = RIM_REACH + RIM_GRID * 0.71;
+    for (let k = 0; k < this.rim.length; k++) {
+      const seg = this.rim[k];
+      const x0 = Math.floor((Math.min(seg.ax, seg.bx) - pad) / RIM_GRID);
+      const x1 = Math.floor((Math.max(seg.ax, seg.bx) + pad) / RIM_GRID);
+      const z0 = Math.floor((Math.min(seg.az, seg.bz) - pad) / RIM_GRID);
+      const z1 = Math.floor((Math.max(seg.az, seg.bz) + pad) / RIM_GRID);
+      for (let gz = z0; gz <= z1; gz++) {
+        for (let gx = x0; gx <= x1; gx++) {
+          if (segmentDistance(seg, (gx + 0.5) * RIM_GRID, (gz + 0.5) * RIM_GRID) > pad) continue;
+          const key = gx * 65536 + gz;
+          let arr = this.rimCells.get(key);
+          if (!arr) this.rimCells.set(key, (arr = []));
+          arr.push(k);
+        }
+      }
+    }
+  }
+
+  /** nearest mask-derived rim piece within reach: signed distance (negative on the paving) and the piece */
+  private nearestRim(x: number, z: number): { dist: number; seg: RimSegment } | null {
+    const arr = this.rimCells.get(Math.floor(x / RIM_GRID) * 65536 + Math.floor(z / RIM_GRID));
+    if (!arr) return null;
+    let best = Infinity;
+    let bestSeg: RimSegment | null = null;
+    for (const k of arr) {
+      const seg = this.rim[k];
+      const d = segmentDistance(seg, x, z);
+      if (d < best) {
+        best = d;
+        bestSeg = seg;
+      }
+    }
+    if (!bestSeg || best > RIM_REACH) return null;
+    // side of the piece: the closest point's offset along the outward normal
+    const t = segmentT(bestSeg, x, z);
+    const px = bestSeg.ax + (bestSeg.bx - bestSeg.ax) * t;
+    const pz = bestSeg.az + (bestSeg.bz - bestSeg.az) * t;
+    const side = (x - px) * bestSeg.nx + (z - pz) * bestSeg.nz;
+    return { dist: side < 0 ? -best : best, seg: bestSeg };
+  }
+
+  /**
+   * Signed distance to the mask-derived paved rim (plaza discs, bank toe; see `buildPavedRim`),
+   * with the polylines' 0.1 m rim offset; +Infinity where no such rim is within reach.
+   */
+  pavedRimDistance(x: number, z: number): number {
+    const near = this.nearestRim(x, z);
+    return near ? near.dist - RIM_OFFSET : Infinity;
+  }
+
+  /**
+   * 0..1 on the turf face that climbs straight off a paved rim (reference frame 1: the Kokiri kid
+   * stands in lit grass tufts on the stair's south bank, no herbs or broad leaves) — the first
+   * `BANK_FACE` metres outside a rim piece flagged `bank`, feathered out beyond.
+   */
+  bankFace(x: number, z: number): number {
+    const near = this.nearestRim(x, z);
+    if (!near || !near.seg.bank || near.dist < -0.05) return 0;
+    return 1 - smoothstep(BANK_FACE, BANK_FACE + BANK_FEATHER, near.dist);
   }
 
   /** Bilinear sample of the cached field. Outside the grid → not allowed. */
@@ -272,16 +534,18 @@ export class VegField {
   }
 
   /**
-   * Hard-edge distance for the turf: flagstone paths and stairs only. Saria's branch is a grassy
-   * ramp with stepping stones, not paving, so it grows ordinary lawn with no verge; the trodden
-   * strip between its stones is `troddenZone` / `stoneDistance`.
+   * Hard-edge distance for the turf: flagstone paving and stairs only — the spine and stair-branch
+   * polylines, the stair footprints, and the mask-derived rim of the plaza discs and the bank toe
+   * (`pavedRimDistance`), since the flagstones end there, not at the branch's half-width. Saria's
+   * branch is a grassy ramp with stepping stones, not paving, so it grows ordinary lawn with no
+   * verge; the trodden strip between its stones is `troddenZone` / `stoneDistance`.
    */
   lawnEdgeDistance(x: number, z: number): number {
     const L = this.ctx.layout;
     const hw = L.pathHalfWidth;
     const a = polylineDistance(L.pathSpine, x, z) - hw;
     const b = polylineDistance(L.pathToStairs, x, z) - hw * 0.8;
-    return Math.min(a, b, this.stairDistance(x, z));
+    return Math.min(a, b, this.stairDistance(x, z), this.pavedRimDistance(x, z));
   }
 
   /** Distance to the centreline of Saria's stepping-stone ramp (`pathToHouse`). */
@@ -290,12 +554,14 @@ export class VegField {
   }
 
   /**
-   * Candidate points in the lawn band just outside the flagstone rim of the spine and the stair
-   * branch (the house branch is a grassy ramp with no rim), for the path-edge softening of concept
-   * sheet 02. Walks the layout polylines within the detail radius, drawing `perMetre` points per
-   * metre of rim per side from `rng` (t, side, offset — three draws each, so callers can keep their
-   * acceptance draws stable), and visits those the terrain mask puts in 0..`band` m of grass beyond
-   * the paving (the mask, not the polyline, says where the plaza, pads and corners really end).
+   * Candidate points in the lawn band just outside the flagstone rim of the spine, the stair
+   * branch and the plaza (the house branch is a grassy ramp with no rim), for the path-edge
+   * softening of concept sheet 02. Walks the layout polylines within the detail radius, drawing
+   * `perMetre` points per metre of rim per side from `rng` (t, side, offset — three draws each, so
+   * callers can keep their acceptance draws stable), then the mask-derived rim pieces of the plaza
+   * discs and the bank toe (`buildPavedRim`; two draws each, one grass side), and visits those the
+   * terrain mask puts in 0..`band` m of grass beyond the paving (the mask, not the polyline, says
+   * where the plaza, pads and corners really end).
    */
   rimCandidates(rng: () => number, perMetre: number, band: number, visit: (x: number, z: number, edge: number) => void) {
     const L = this.ctx.layout;
@@ -304,6 +570,11 @@ export class VegField {
       [L.pathSpine, L.pathHalfWidth],
       [L.pathToStairs, L.pathHalfWidth * 0.8],
     ];
+    const offer = (x: number, z: number) => {
+      const edge = this.lawnEdgeDistance(x, z);
+      if (edge < -0.05 || edge > band || this.stairDistance(x, z) < 0.1) return;
+      visit(x, z, Math.max(0, edge));
+    };
     for (const [line, hw] of rims) {
       for (let i = 0; i < line.length - 1; i++) {
         const [ax, , az] = line[i];
@@ -317,14 +588,34 @@ export class VegField {
           const t = rng();
           const side = rng() < 0.5 ? -1 : 1;
           const off = hw + rng() * band;
-          const x = ax + dx * t * len - dz * side * off;
-          const z = az + dz * t * len + dx * side * off;
-          const edge = this.lawnEdgeDistance(x, z);
-          if (edge < -0.05 || edge > band || this.stairDistance(x, z) < 0.1) continue;
-          visit(x, z, Math.max(0, edge));
+          offer(ax + dx * t * len - dz * side * off, az + dz * t * len + dx * side * off);
         }
       }
     }
+    // the pieces are 0.1–0.7 m long: carry the fractional count so short ones are not starved
+    let carry = 0;
+    for (const seg of this.rim) {
+      if (Math.hypot((seg.ax + seg.bx) / 2, (seg.az + seg.bz) / 2) > R) continue;
+      carry += seg.len * perMetre;
+      const n = Math.floor(carry);
+      carry -= n;
+      for (let k = 0; k < n; k++) {
+        const t = rng();
+        const off = RIM_OFFSET + rng() * band;
+        offer(seg.ax + (seg.bx - seg.ax) * t + seg.nx * off, seg.az + (seg.bz - seg.az) * t + seg.nz * off);
+      }
+    }
+  }
+
+  /** total length (m) of the mask-derived rim pieces and how many are bank feet — for audits and tests */
+  pavedRimStats(): { pieces: number; metres: number; bankMetres: number } {
+    let metres = 0;
+    let bankMetres = 0;
+    for (const seg of this.rim) {
+      metres += seg.len;
+      if (seg.bank) bankMetres += seg.len;
+    }
+    return { pieces: this.rim.length, metres, bankMetres };
   }
 
   /** Distance to the nearest stepping-stone rim of the house branch (negative on the stone). */
@@ -514,6 +805,30 @@ export class VegField {
     const depth = dx * f.fwx + dz * f.fwz;
     if (depth <= 0.05) return null;
     return { sx: 0.5 + (0.5 * ((dx * f.rx + dz * f.rz) / depth)) / f.halfSlope, depth };
+  }
+
+  /**
+   * Full pinhole projection of a world point into a layout viewpoint (0..1, y down; the
+   * gauntlet's camera maths): screen x / y and view depth, null behind the camera. For placements
+   * that must land in a reference frame's box on rising ground, where `screenX` cannot say how
+   * high they sit.
+   */
+  screenPoint(viewpointId: string, x: number, y: number, z: number): { sx: number; sy: number; depth: number } | null {
+    let v = this.views.get(viewpointId);
+    if (v === undefined) {
+      const vp = this.ctx.layout.viewpoints.find((p) => p.id === viewpointId);
+      v = vp ? makeView(vp) : null;
+      this.views.set(viewpointId, v);
+    }
+    if (!v) return null;
+    const dx = x - v.p[0];
+    const dy = y - v.p[1];
+    const dz = z - v.p[2];
+    const depth = dx * v.f[0] + dy * v.f[1] + dz * v.f[2];
+    if (depth <= 0.05) return null;
+    const sx = 0.5 + (0.5 * ((dx * v.r[0] + dy * v.r[1] + dz * v.r[2]) / depth)) / (v.th * v.aspect);
+    const sy = 0.5 - (0.5 * ((dx * v.u[0] + dy * v.u[1] + dz * v.u[2]) / depth)) / v.th;
+    return { sx, sy, depth };
   }
 
   /**

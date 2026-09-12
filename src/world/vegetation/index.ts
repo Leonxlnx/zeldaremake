@@ -102,6 +102,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     hedge: plants.hedge.count,
     clover: plants.clover.count,
     mossPatches: plants.moss.count,
+    /** metres of flagstone rim taken from the terrain mask (plaza discs, bank toe) beyond the layout polylines */
+    pavedRimMetres: Math.round(field.pavedRimStats().metres * 10) / 10,
     saplings: plants.saplings.count,
     litter: litter.count,
     litterKinds: { leaves: litter.leaves.count, twigs: litter.twigs.count, roots: litter.roots.count },
