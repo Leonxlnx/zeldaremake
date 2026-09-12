@@ -1,0 +1,91 @@
+--- original/p3.mjs
++++ publication/p3.mjs
+@@ -1,17 +1,20 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
++import {fileURLToPath} from 'node:url';
+ import assert from 'node:assert/strict';
+ import crypto from 'node:crypto';
+ import ts from 'typescript';
+ import * as THREE from 'three';
+-import {createFrozenForecast} from './forecast-review/forecast.mjs';
++import {createFrozenForecast} from './forecast.mjs';
+ import {projectBridgeAmplitude} from './bridge-domain.mjs';
+-const folder=path.resolve('gauntlet/tmp/paired-support-joint-prototype');
+-const source=path.resolve('gauntlet/tmp/paired-support-early-release/source');
+-const gate=path.resolve('gauntlet/tmp/paired-support-early-release/prefix-gate-result.json');
+-const witness=path.resolve('gauntlet/tmp/paired-support-fresh-apex/review-joint-policy/result.json');
++const folder=path.dirname(fileURLToPath(import.meta.url));
++const outputDirectory=path.resolve(process.env.P3_OUTPUT_DIR??path.join(folder,'generated'));
++fs.mkdirSync(outputDirectory,{recursive:true});
++const source=path.join(folder,'source');
++const fixtureFile=path.join(folder,'fixture.json');
++const fixture=JSON.parse(fs.readFileSync(fixtureFile,'utf8'));
+ const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+-const beforeHashes={gate:sha(gate),witness:sha(witness)},sourceHashes={},cache=new Map();
++const beforeHashes={...fixture.provenance.physicalInputs,fixture:sha(fixtureFile)},sourceHashes={},cache=new Map();
+ function load(file){file=path.resolve(source,file);if(cache.has(file))return cache.get(file).exports;const m={exports:{}};cache.set(file,m);sourceHashes[path.relative(source,file)]=sha(file);new Function('require','module','exports',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(id=>id==='three'?THREE:load(path.resolve(path.dirname(file),id+'.ts')),m,m.exports);return m.exports;}
+ const {advanceConfiguration}=load('src/world/character/air-configuration.ts');
+ const {rebaseConfigurationRates,configurationSoleVelocities}=load('src/world/character/contact-kinematics.ts');
+@@ -19,8 +22,8 @@
+ const {Vector3:V,Quaternion:Q}=THREE;
+ const dims={a:.23,b:.225,hipHalfWidth:.068,sole:new V(0,-.065,.025)};
+ const limits={planar:8,vertical:3,pelvis:3,knee:40.964617361572074,pitch:6,yaw:9,minLength:.015,maxLength:.453,radicand:1e-12};
+-const saved=JSON.parse(fs.readFileSync(gate)).find(x=>x.kind==='running').history.find(x=>x.frame===59);
+-const target=new V().fromArray(JSON.parse(fs.readFileSync(witness)).rows[0].preferredGoal);
++const saved=fixture.accepted;
++const target=new V().fromArray(fixture.preferredGoal);
+ const starts=saved.snapshot.feet.map(f=>new V().fromArray(f.position));
+ const velocities=saved.snapshot.feet.map(f=>new V().fromArray(f.velocity));
+ assert(saved.snapshot.feet.every(f=>f.rotation.every((v,i)=>v===(i===3?1:0))&&f.yawVelocity===0&&f.pitchVelocity===0));
+@@ -92,6 +95,6 @@
+  return row;}
+ let cursor=0;try{if(bridgeFailure)throw bridgeFailure;for(let k=0;k<knots.length-1;k++){const t0=knots[k],t1=knots[k+1],T=t1-t0;cursor=t0;const c0=configAt(body(t0,'right'),heightRef(t0),[footRef(0,t0),footRef(1,t0)]),c1=configAt(body(t1,'left'),heightRef(t1),[footRef(0,t1),footRef(1,t1)]),piece={t0,t1,T,support:supportAt((t0+t1)*.5),c0,c1,certificates:[]};work.piecesBuilt++;for(let i=0;i<2;i++){const coeff=cubic(c0[i].flex,c0[i].flexVelocity,c1[i].flex,c1[i].flexVelocity,T),cert=extrema(coeff,T);piece.certificates.push({side:i,coefficients:coeff,...cert});if(cert.minimum<0||cert.maximum>Math.PI)throw{kind:'analytic-flex-angular-range',piece:k,t0,t1,side:i,certificate:cert};if(cert.maximumRate>limits.knee+1e-6)throw{kind:'analytic-flex-rate',piece:k,t0,t1,side:i,value:cert.maximumRate,limit:limits.knee,certificate:cert};const minL=Math.sqrt(dims.a*dims.a+dims.b*dims.b+2*dims.a*dims.b*Math.cos(cert.maximum)),maxL=Math.sqrt(dims.a*dims.a+dims.b*dims.b+2*dims.a*dims.b*Math.cos(cert.minimum));if(minL<limits.minLength||maxL>limits.maxLength+1e-10)throw{kind:'analytic-flex-reach',piece:k,t0,t1,side:i,minL,maxL,certificate:cert};}pieces.push(piece);const N=Math.ceil(T/.0005);for(let j=0;j<=N;j++){cursor=j===N?t1:t0+T*j/N;sample(piece,cursor);}}}catch(e){failure=e instanceof Error?{kind:'prototype-exception',message:e.message,stack:e.stack}:e;failure.detectedDuringTime=cursor;}
+ work.planningAndChecksMs=performance.now()-planStarted;work.configurationLegCurveEvaluations=work.configurationCalls*2;work.totalNumericalMs=work.forecastMs+work.supportDomainMs+work.bridgeProjectionMs+work.planningAndChecksMs;
+-assert.equal(sha(gate),beforeHashes.gate);assert.equal(sha(witness),beforeHashes.witness);for(const[f,h]of Object.entries(sourceHashes))assert.equal(sha(path.join(source,f)),h);
++assert.equal(sha(fixtureFile),beforeHashes.fixture);for(const[f,h]of Object.entries(sourceHashes))assert.equal(sha(path.join(source,f)),h);
+ const output={status:failure?'refused':'finite-prefix-clear',family:'P3 joint overlap amplitude domain',immutableInputs:beforeHashes,sourceHashes,limits,parameters:{dt,nominal,leadT,rightRelease,leftRelease,rightContact,leftSecondContact,end,halfStride,originalLeftTarget:target.toArray(),rightGoal:rightGoal.toArray(),leftSecondGoal:leftSecondGoal.toArray(),apex:.045,apexFraction:.45},events,supportDomains,bridges,knots,work,maxima,minima,endpointErrors,failure,pieces,samples,scope:'One deterministic family; exact scalar flex certificates, finite ≤0.5 ms world kinematic coverage only. No rig/stage/BVH or actual boot/calf geometry. Future left touchdown beyond horizon is unassessed. No actual contact events or physical state committed.'};
+-fs.writeFileSync(path.join(folder,'p3-final-result.json'),JSON.stringify(output,null,2));console.log(JSON.stringify({status:output.status,parameters:output.parameters,bridges,work,maxima,minima,endpointErrors,failure},null,2));
++fs.writeFileSync(path.join(outputDirectory,'p3-result.json'),JSON.stringify(output,null,2));console.log(JSON.stringify({status:output.status,parameters:output.parameters,bridges,work,maxima,minima,endpointErrors,failure},null,2));
+--- original/forecast-review/forecast.mjs
++++ publication/forecast.mjs
+@@ -80,16 +80,16 @@
+ 
+ /** Convenience fixture entry point. Future history is never an input to prediction. */
+ export function createFrozenForecast({horizon=.35}={}){
+-  const folder=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../paired-support-fresh-apex');
+-  const gate=fs.readFileSync(path.join(folder,'prefix-gate-result.json'));
+-  const run=JSON.parse(gate).find(row=>row.kind==='running');
+-  const accepted=run.history.find(row=>row.frame===59),previous=run.history.find(row=>row.frame===58);
++  const folder=path.dirname(fileURLToPath(import.meta.url));
++  const gate=fs.readFileSync(path.join(folder,'fixture.json'));
++  const fixture=JSON.parse(gate);
++  const accepted=fixture.accepted,previous=fixture.previous;
+   if(!accepted||!previous)return {status:'unavailable',reason:'missing-accepted-58-59'};
+   const result=createHeldIntentBodyForecast({sourceRoot:path.join(folder,'source'),state:accepted.state,
+     previousRequest:previous.snapshot.request,acceptedRequest:accepted.snapshot.request,initialHeight:accepted.snapshot.height,
+     temporal:{remainder:0,jumpHeld:false,buffered:0,coyote:.10},intent:{moveX:0,moveZ:1,run:true,jump:false},
+     upperTransitionComplete:true,surfaceKind:'flat-zero',horizon,hipHalfWidth:.068,soleOffset:[0,-.065,.025]});
+-  if(result.status==='clear')result.fixture={acceptedFrame:59,previousFrame:58,gateSha256:hash(gate),
++  if(result.status==='clear')result.fixture={acceptedFrame:59,previousFrame:58,gateSha256:fixture.provenance.forecastInput,compactFixtureSha256:hash(gate),
+     temporalProvenance:'After completed fixed tick59; original runner has jump=false throughout0–59, grounded/no jump history, zero accumulated remainder; flat fixture and held run intent are explicit runner inputs.'};
+   return result;
+ }
+--- original/p3-boot-floor.mjs
++++ publication/mesh-floor.mjs
+@@ -1,6 +1,7 @@
+ import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import assert from 'node:assert/strict';import ts from 'typescript';import * as T from 'three';import {ConvexHull} from 'three/addons/math/ConvexHull.js';import * as U from 'three/addons/utils/BufferGeometryUtils.js';
+-import {createFrozenForecast} from './forecast-review/forecast.mjs';
+-const root=path.resolve('gauntlet/tmp/paired-support-early-release/source'),folder=path.resolve('gauntlet/tmp/paired-support-joint-prototype'),file=path.join(folder,'p3-result.json'),sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'),inputHash=sha(file),input=JSON.parse(fs.readFileSync(file)),cache=new Map(),hashes={};assert.equal(input.status,'finite-prefix-clear');
++import {createFrozenForecast} from './forecast.mjs';
++import {fileURLToPath} from 'node:url';
++const folder=path.dirname(fileURLToPath(import.meta.url)),root=path.join(folder,'source'),outputDirectory=path.resolve(process.env.P3_OUTPUT_DIR??path.join(folder,'generated')),file=path.join(outputDirectory,'p3-result.json'),sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'),inputHash=sha(file),input=JSON.parse(fs.readFileSync(file)),cache=new Map(),hashes={};assert.equal(input.status,'finite-prefix-clear');
+ const context=new Proxy({}, {get:(_,k)=>k==='createImageData'||k==='getImageData'?(w,h)=>({data:new Uint8ClampedArray(w*h*4),width:w,height:h}):String(k).endsWith('Gradient')?()=>({addColorStop(){}}):()=>{}});globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>context})};
+ function load(file){file=path.resolve(root,file);if(cache.has(file))return cache.get(file).exports;const m={exports:{}};cache.set(file,m);hashes[path.relative(root,file)]=sha(file);new Function('require','module','exports',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(id=>id==='three'?T:id.includes('ConvexHull')?{ConvexHull}:id.includes('BufferGeometryUtils')?U:load(path.resolve(path.dirname(file),id+'.ts')),m,m.exports);return m.exports;}
+ const actor=load('src/world/character/link.ts').createLink(),rig=actor.rig,ik=load('src/world/character/contact-pose.ts').createPairIK(rig),forecast=createFrozenForecast({horizon:.35}),names=['boot','boot-sole','boot-cuff','boot-tongue','boot-laces','boot-buckle'],parts=[];
+@@ -12,4 +13,4 @@
+  const pose=ik.solve(p);if(pose.status!=='clear'){failure={index,t:row.t,kind:'actual-pair-ik',pose};break;}ik.apply(pose);actor.syncGeometry();rig.root.updateMatrixWorld(true);samples++;const bad=[];
+  for(const part of parts){const attr=part.mesh.geometry.attributes.position;let witness=null;for(const vertex of part.vertices){const local=new T.Vector3().fromBufferAttribute(attr,vertex),world=local.clone().applyMatrix4(part.mesh.matrixWorld);vertexSamples++;assert([world.x,world.y,world.z].every(Number.isFinite));if(!witness||world.y<witness.y)witness={sample:index,t:row.t,side:part.side,part:part.name,vertex,...part.triangles.get(vertex),local:local.toArray(),world:world.toArray(),y:world.y};}const key=part.side+':'+part.name;if(!minima[key]||witness.y<minima[key].y)minima[key]=witness;if(!minimum||witness.y<minimum.y)minimum=witness;if(witness.y<0)bad.push(witness);}
+  if(bad.length){firstNegative={sample:index,t:row.t,parts:bad,height:row.height,feet:row.feet,calfLeanDegrees:['L','R'].map(side=>({side,degrees:T.MathUtils.radToDeg(Math.acos(rig['knee'+side].getWorldPosition(new T.Vector3()).sub(rig['ankle'+side].getWorldPosition(new T.Vector3())).normalize().y))}))};break;}}
+-for(const[file,h]of Object.entries(hashes))assert.equal(sha(path.join(root,file)),h);assert.equal(sha(file),inputHash);const result={status:failure||firstNegative?'refused':'sampled-mesh-floor-clear',p3Sha256:inputHash,samples,expectedSamples:input.samples.length,vertexSamples,minimum,minimumByPart:minima,firstNegative,failure,parts:parts.map(p=>({side:p.side,name:p.name,indexedVertices:p.vertices.length})),elapsedMs:performance.now()-start,sourceHashes:hashes,scope:'One reconstruction of every saved P3 sample with unchanged actual createLink geometry and existing pair IK/ordinary straight-heading knee-pole rule, followed by actor.syncGeometry. Every referenced indexed vertex of six boot/calf detail meshes per side tested against raw worldY<0. Flat floor only; no pair BVH, continuous-between-sample clearance, physical controller integration or visual-quality proof. No trajectory fitting or source/asset changes.'};fs.writeFileSync(path.join(folder,'p3-boot-floor-result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({status:result.status,samples,vertexSamples,minimum,firstNegative,failure,elapsedMs:result.elapsedMs},null,2));
++for(const[file,h]of Object.entries(hashes))assert.equal(sha(path.join(root,file)),h);assert.equal(sha(file),inputHash);const result={status:failure||firstNegative?'refused':'sampled-mesh-floor-clear',p3Sha256:inputHash,samples,expectedSamples:input.samples.length,vertexSamples,minimum,minimumByPart:minima,firstNegative,failure,parts:parts.map(p=>({side:p.side,name:p.name,indexedVertices:p.vertices.length})),elapsedMs:performance.now()-start,sourceHashes:hashes,scope:'One reconstruction of every saved P3 sample with unchanged actual createLink geometry and existing pair IK/ordinary straight-heading knee-pole rule, followed by actor.syncGeometry. Every referenced indexed vertex of six boot/calf detail meshes per side tested against raw worldY<0. Flat floor only; no pair BVH, continuous-between-sample clearance, physical controller integration or visual-quality proof. No trajectory fitting or source/asset changes.'};fs.writeFileSync(path.join(outputDirectory,'mesh-floor-result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({status:result.status,samples,vertexSamples,minimum,firstNegative,failure,elapsedMs:result.elapsedMs},null,2));

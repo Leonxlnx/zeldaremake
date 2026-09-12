@@ -1,0 +1,348 @@
+{
+  "originalArtifacts": {
+    "p3.mjs": "03116f49e2ceb05e11802b14a2b48cea8f6f805e94f509be695a0d9ca6981fa9",
+    "bridge-domain.mjs": "93f1b681959f1d7ff4eff74a0f957c128e5891ce43b2b3d2970a888ae6f5be77",
+    "p3-boot-floor.mjs": "5277c6f676984de9e8f3dff2e59bda310645a8584e6e17accaa97157a394c91a",
+    "p3-result.json": "32de396a2bd8821c21320a58837d10beab194382ceea3b835a096b667d08be61",
+    "p3-final-result.json": "3637b76931dae722b9b7d3feb65872e16c78cdd53e98f06f92ab22209e7a3d3e",
+    "p3-final-verification.json": "6d45c418d4491f3ea26a10939d34b25bd233b60f78bcabae803f33cd3872f3c6",
+    "p3-verification.json": "6ac60111ea97c91aebcb815cb8c7a406acbf92a61436d8d388512f1f4ef99ae9",
+    "p3-boot-floor-result.json": "ed295ade40113a6c1e208e7bd4511d933785c2900a25fe5adb89f2fcbdf7ab69",
+    "forecast-review/forecast.mjs": "144812193c4b1232494275e646eef45f7fb40edbd7824081422b39e128250920"
+  },
+  "sourceFiles": {
+    "src/world/character/air-configuration.ts": {
+      "sha256": "c31b169c00077082b16b0b601942bdf3cd39aec18927a90c05fdd867b290fd72",
+      "bytes": 12829,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/air-configuration.ts",
+      "usedBy": [
+        "physical"
+      ]
+    },
+    "src/world/character/contact-pose.ts": {
+      "sha256": "e9d631e3d3123e462ca6f9cf59eaa0360f58a161a350f3886deea0a1aa070329",
+      "bytes": 8656,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/contact-pose.ts",
+      "usedBy": [
+        "physical",
+        "forecast",
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/contact-kinematics.ts": {
+      "sha256": "e311d7d62dba15d54ccaee08500098d9be3257637cbd5db7f1eb4640d4934f7a",
+      "bytes": 5833,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/contact-kinematics.ts",
+      "usedBy": [
+        "physical"
+      ]
+    },
+    "src/world/character/locomotion.ts": {
+      "sha256": "975611ba8c69b308a56a9a2a794a143d3ca0a041872cade15bd28a623c2afaa9",
+      "bytes": 7456,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/locomotion.ts",
+      "usedBy": [
+        "physical",
+        "forecast"
+      ]
+    },
+    "src/world/character/ordinary-body-curve.ts": {
+      "sha256": "e93f1fc8d3184bb834e08e757699da08123d11f6e9723644648e4794944e90bb",
+      "bytes": 4392,
+      "copiedFrom": "gauntlet/tmp/paired-support-fresh-apex/source/src/world/character/ordinary-body-curve.ts",
+      "usedBy": [
+        "forecast"
+      ]
+    },
+    "src/world/character/play-pose.ts": {
+      "sha256": "b4350b7fa240962b8f78bfdb277e08ecfeb72ca571681b01cbe8ae9119979cbe",
+      "bytes": 5799,
+      "copiedFrom": "gauntlet/tmp/paired-support-fresh-apex/source/src/world/character/play-pose.ts",
+      "usedBy": [
+        "forecast"
+      ]
+    },
+    "src/world/character/animation.ts": {
+      "sha256": "c57d41e9a6c80294ba757a82635446124665a684506c3cd36ba05792569b8f67",
+      "bytes": 7269,
+      "copiedFrom": "gauntlet/tmp/paired-support-fresh-apex/source/src/world/character/animation.ts",
+      "usedBy": [
+        "forecast"
+      ]
+    },
+    "src/world/character/link.ts": {
+      "sha256": "a0523569da41522c44b58058d9141f0369221dac74a922d65a7ca075932e13ce",
+      "bytes": 31013,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/link.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/geometry.ts": {
+      "sha256": "9a16798da918f811c6e90494a09d360bcef96740e3bef92080234835714dffcc",
+      "bytes": 10326,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/util/prng.ts": {
+      "sha256": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "bytes": 2023,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/util/prng.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/palette.ts": {
+      "sha256": "426cdc2fd52f60a2071d1a33bfc874cae42497dc6030e6312d1b555ee2e1f633",
+      "bytes": 12847,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/palette.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/cloth-surface.ts": {
+      "sha256": "923e41dd47ce0a622d9d483a3fb2c48d549c6b6b295d3b61bbf919c03705187e",
+      "bytes": 3654,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/cloth-surface.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/hair-surface.ts": {
+      "sha256": "7ec822450456a46501b766cb5af6f6867370beac2df00cfb766379c7ac8db899",
+      "bytes": 3901,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/hair-surface.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/rig.ts": {
+      "sha256": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86",
+      "bytes": 4744,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/rig.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/face-geometry.ts": {
+      "sha256": "45f3725c6fdecc63a44c66c35adfccf9b448c0a4fa053b6249bb0e3bffe9ffcc",
+      "bytes": 4598,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/face-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/ear-geometry.ts": {
+      "sha256": "159555dafa3689ba2573d3e98d1e35ab166608b225dd3d8d7a1d8a8788708700",
+      "bytes": 5297,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/ear-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/outfit-details.ts": {
+      "sha256": "880e82cb14c93acd9b3a8a83d2e6b103490c72b9ae51fb62cb3d6926c5c63277",
+      "bytes": 5857,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/outfit-details.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/leather-material.ts": {
+      "sha256": "d9994f5bcc6582f767cea9e7e0ec56118bc66d2814d29ede477f544a83367ebf",
+      "bytes": 5507,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/leather-material.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/cap-tail-stitches.ts": {
+      "sha256": "499946daf356ef42ba97591f4c15f2ab5d0faeac86ff76261a68b5c2b7569d2a",
+      "bytes": 6677,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/cap-tail-stitches.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/gear.ts": {
+      "sha256": "4ceb87a167d8368c1d3b80eb61be1e998670113ab935870f7eed610196b6209e",
+      "bytes": 4912,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/gear.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/gear-geometry.ts": {
+      "sha256": "8ae301f5545be5f666dde986a321ed31149bce00d5102516b4826c0b38681bb4",
+      "bytes": 6920,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/gear-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/eye-geometry.ts": {
+      "sha256": "cbde33aafbf85f703791cb3e1dbbdbb25bc23b67a87db6a8194980cba1179828",
+      "bytes": 2845,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/eye-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/eye-aperture.ts": {
+      "sha256": "a760445834e7c09653102c112d9e7b65f79aa0be881c5192af71c408c4c85af6",
+      "bytes": 3863,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/eye-aperture.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/boot-geometry.ts": {
+      "sha256": "49a0d801ab5873b9f7a70e1950f5b7af2e7d6b0c1f45199e559ab5496d1ab2a0",
+      "bytes": 5617,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/boot-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/hair-geometry.ts": {
+      "sha256": "4ed09ba0cc45650aad036b03449fd4f482237878e913eb8a970cf6db5ab0fd9c",
+      "bytes": 5586,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/hair-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/fringe-geometry.ts": {
+      "sha256": "1edc7798bb51e810cb9dc486ecc83213b997dacea546d8ff747629d60fc53286",
+      "bytes": 6120,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/fringe-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/sideburn-geometry.ts": {
+      "sha256": "7e1f8279be2e06c2db5fcdb0b43a9b82b2908b51ae229e08c5347d74cd03c5e8",
+      "bytes": 5528,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/sideburn-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/scalp-geometry.ts": {
+      "sha256": "5d3c06921390a6eeec021ea201b5f865a9338211146c73308728986e986c165e",
+      "bytes": 7999,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/scalp-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/boot-articulation.ts": {
+      "sha256": "359f1f61ad63a0a47751111cb5ae47b52fbea354ae7acfd02de3367cc10a2d2f",
+      "bytes": 8623,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/boot-articulation.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/boot-uv.ts": {
+      "sha256": "440d51056ea4989a8e4910b64d539d27e8c4da5f62583052f6e0dd4e413a50d2",
+      "bytes": 4496,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/boot-uv.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/sleeve-geometry.ts": {
+      "sha256": "79a0f375ec0ecc8ee4db557172cc142d5dec6f03d24b02e99f76f9a5815ec64a",
+      "bytes": 2854,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/sleeve-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/neckline-geometry.ts": {
+      "sha256": "5fe17887eadccc68012ac659c5baf6ed738e20a09e62025fa3ed39c92f00ced1",
+      "bytes": 10934,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/neckline-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/static-batching.ts": {
+      "sha256": "2d2c239b1a4e2ee31c7eb3e034f625cabef23587f71af0e7c7ec4842d59ebab5",
+      "bytes": 4909,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/static-batching.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/cloth-uv.ts": {
+      "sha256": "1cdc6f41b5334ae039932bbebba12d541082ba03a647a474713eb965da7dbc88",
+      "bytes": 5577,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/cloth-uv.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/hair-uv.ts": {
+      "sha256": "0bbdf5c6945eea661117b4a6f5f89d9a92dde3a8d80a643b9f1b08d2ccfaf8fa",
+      "bytes": 4292,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/hair-uv.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/cap-geometry.ts": {
+      "sha256": "b9360d276f2a4cf0acadb012c2757f7ca481a3b773adb50cd1a050b9737e8d60",
+      "bytes": 3234,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/cap-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/cap-tail-geometry.ts": {
+      "sha256": "4681beb2a4f534e194546e3f5ae76698f79e2ac28aa2f691c302aedca69f4813",
+      "bytes": 5422,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/cap-tail-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/hand-geometry.ts": {
+      "sha256": "ab1f97f14c27907034344598506784a50ff25326a53da749e66c9d0e20bf4f77",
+      "bytes": 11449,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/hand-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/strap-buckle-geometry.ts": {
+      "sha256": "5b5fd13efef1d1672713bc831845d551df2bbb42323fb5d10f65336ed1bbf772",
+      "bytes": 4273,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/strap-buckle-geometry.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    },
+    "src/world/character/strap-surface.ts": {
+      "sha256": "5f27aedfc46ef4dc76f69aed8b563ec74101c318d868005af13b1b195204c838",
+      "bytes": 3415,
+      "copiedFrom": "gauntlet/tmp/paired-support-early-release/source/src/world/character/strap-surface.ts",
+      "usedBy": [
+        "mesh-floor"
+      ]
+    }
+  },
+  "fixtureInputs": {
+    "physicalInputs": {
+      "gate": "22188650e63843cd1d6cf3f6d51b9ac6d46b2cb9571667c334b80aa0fd5f42c2",
+      "witness": "00c9a3ab7e89212fc72625f920dd9eeb7f7fe664cc1a6a5b517572c930486bbb"
+    },
+    "forecastInput": "67a0678ec2984faacc540da853763effdb27f5aa73d87342b52ccc0ddbd77246",
+    "extraction": "Only frames58 and59 state/request/height/feet plus the first saved original preferredGoal. These fields agree exactly across both original prefix records."
+  },
+  "adaptations": "Only paths, compact fixture selection/provenance, and generated output destination change. p3.mjs core math and bridge-domain.mjs exact bytes retain final P3 corrections. Forecast kernel is byte-identical; only convenience fixture wrapper adapts. Mesh runner only imports/paths adapt.",
+  "originalP3": "First passing P3 is preserved by original result hash and semantic content hashes in evidence/original-p3-summary.json. Final guard/counter correction equality is supplied separately."
+}

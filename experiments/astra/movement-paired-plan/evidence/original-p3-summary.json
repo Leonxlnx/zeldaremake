@@ -1,0 +1,383 @@
+{
+  "status": "finite-prefix-clear",
+  "family": "P3 joint overlap amplitude domain",
+  "immutableInputs": {
+    "gate": "22188650e63843cd1d6cf3f6d51b9ac6d46b2cb9571667c334b80aa0fd5f42c2",
+    "witness": "00c9a3ab7e89212fc72625f920dd9eeb7f7fe664cc1a6a5b517572c930486bbb"
+  },
+  "sourceHashes": {
+    "src/world/character/air-configuration.ts": "c31b169c00077082b16b0b601942bdf3cd39aec18927a90c05fdd867b290fd72",
+    "src/world/character/contact-pose.ts": "e9d631e3d3123e462ca6f9cf59eaa0360f58a161a350f3886deea0a1aa070329",
+    "src/world/character/contact-kinematics.ts": "e311d7d62dba15d54ccaee08500098d9be3257637cbd5db7f1eb4640d4934f7a",
+    "src/world/character/locomotion.ts": "975611ba8c69b308a56a9a2a794a143d3ca0a041872cade15bd28a623c2afaa9"
+  },
+  "limits": {
+    "planar": 8,
+    "vertical": 3,
+    "pelvis": 3,
+    "knee": 40.964617361572074,
+    "pitch": 6,
+    "yaw": 9,
+    "minLength": 0.015,
+    "maxLength": 0.453,
+    "radicand": 1e-12
+  },
+  "parameters": {
+    "dt": 0.008333333333333333,
+    "nominal": 0.43543960383273583,
+    "leadT": 0.11814455036692907,
+    "rightRelease": 0.041666666666666664,
+    "leftRelease": 0.15,
+    "rightContact": 0.2681445503669291,
+    "leftSecondContact": 0.4181445503669291,
+    "end": 0.2881445503669291,
+    "halfStride": 0.6659474060962943,
+    "originalLeftTarget": [
+      0.08600000000000001,
+      0,
+      2.0344512628342493
+    ],
+    "rightGoal": [
+      -0.08600000000000001,
+      0,
+      2.7003986689305437
+    ],
+    "leftSecondGoal": [
+      0.08600000000000001,
+      0,
+      3.366346075026838
+    ],
+    "apex": 0.045,
+    "apexFraction": 0.45
+  },
+  "events": [
+    {
+      "t": 0,
+      "kind": "left-liftoff"
+    },
+    {
+      "t": 0.041666666666666664,
+      "kind": "right-liftoff"
+    },
+    {
+      "t": 0.11814455036692907,
+      "kind": "left-touchdown"
+    },
+    {
+      "t": 0.15,
+      "kind": "left-second-liftoff"
+    },
+    {
+      "t": 0.2681445503669291,
+      "kind": "right-touchdown"
+    }
+  ],
+  "supportDomains": [
+    {
+      "side": 1,
+      "start": 0,
+      "nominalEnd": 0.0503775,
+      "departure": 0.041666666666666664,
+      "firstRefusal": {
+        "t0": 0.041666666666666664,
+        "t1": 0.05,
+        "kind": "support-flex-rate",
+        "certificate": {
+          "maximumRate": 74.20832937055395,
+          "minimum": 0.261734558049205,
+          "maximum": 0.617302176512358,
+          "rates": [
+            {
+              "time": 0,
+              "p": 0.617302176512358,
+              "v": -29.041046418818233
+            },
+            {
+              "time": 0.008333333333333338,
+              "p": 0.261734558049205,
+              "v": -74.20832937055395
+            },
+            {
+              "time": 0.0006646390118673382,
+              "p": 0.5981518324597502,
+              "v": -28.699202936676972
+            }
+          ],
+          "points": [
+            {
+              "time": 0,
+              "p": 0.617302176512358,
+              "v": -29.041046418818233
+            },
+            {
+              "time": 0.008333333333333338,
+              "p": 0.261734558049205,
+              "v": -74.20832937055395
+            }
+          ]
+        },
+        "coefficients": [
+          0.617302176512358,
+          -0.24200872015681876,
+          0.03571732967879515,
+          -0.1492762279851294
+        ]
+      },
+      "admitted": [
+        {
+          "t0": 0,
+          "t1": 0.008333333333333333,
+          "maximumRate": 5.9928413646495216
+        },
+        {
+          "t0": 0.008333333333333333,
+          "t1": 0.016666666666666666,
+          "maximumRate": 6.762445245866416
+        },
+        {
+          "t0": 0.016666666666666666,
+          "t1": 0.025,
+          "maximumRate": 12.484241960899219
+        },
+        {
+          "t0": 0.025,
+          "t1": 0.03333333333333333,
+          "maximumRate": 18.96378694182723
+        },
+        {
+          "t0": 0.03333333333333333,
+          "t1": 0.041666666666666664,
+          "maximumRate": 29.02588286674223
+        }
+      ]
+    },
+    {
+      "side": 0,
+      "start": 0.11814455036692907,
+      "nominalEnd": 0.15814455036692907,
+      "departure": 0.15,
+      "firstRefusal": {
+        "t0": 0.15,
+        "t1": 0.15814455036692907,
+        "kind": "support-flex-rate",
+        "certificate": {
+          "maximumRate": 47.97439802493712,
+          "minimum": 0.39620315594789135,
+          "maximum": 0.6741213843557003,
+          "rates": [
+            {
+              "time": 0,
+              "p": 0.6741213843557003,
+              "v": -25.917917919607667
+            },
+            {
+              "time": 0.00814455036692907,
+              "p": 0.39620315594789135,
+              "v": -47.97439802493712
+            }
+          ],
+          "points": [
+            {
+              "time": 0,
+              "p": 0.6741213843557003,
+              "v": -25.917917919607667
+            },
+            {
+              "time": 0.00814455036692907,
+              "p": 0.39620315594789135,
+              "v": -47.97439802493712
+            }
+          ]
+        },
+        "coefficients": [
+          0.6741213843557003,
+          -0.21108978790217817,
+          -0.020845208381867764,
+          -0.045983232123763096
+        ]
+      },
+      "admitted": [
+        {
+          "t0": 0.11814455036692907,
+          "t1": 0.125,
+          "maximumRate": 10.208490715683418
+        },
+        {
+          "t0": 0.125,
+          "t1": 0.13333333333333333,
+          "maximumRate": 13.676256270528581
+        },
+        {
+          "t0": 0.13333333333333333,
+          "t1": 0.14166666666666666,
+          "maximumRate": 18.278493442220476
+        },
+        {
+          "t0": 0.14166666666666666,
+          "t1": 0.15,
+          "maximumRate": 25.91262019868449
+        }
+      ]
+    }
+  ],
+  "bridges": [
+    {
+      "start": 0.041666666666666664,
+      "end": 0.11814455036692907,
+      "peak": 0.060786137591732264,
+      "minimumCeiling": 0.4338407276312588,
+      "amplitude": 0.020070871908762663,
+      "projection": {
+        "status": "clear",
+        "amplitude": 0.020070871908762663,
+        "domain": [
+          [
+            0.0015988762014770364,
+            0.03854286761604829
+          ]
+        ],
+        "work": {
+          "sampleStates": 43,
+          "constraints": 516,
+          "polynomialEvaluations": 731,
+          "rootBisections": 192,
+          "bernsteinWholePasses": 508
+        },
+        "selection": "midpoint of feasible interval nearest zero; strict positive-width numerical interior",
+        "coverage": "polynomial amplitude constraints at listed finite times only; no temporal interval certificate"
+      }
+    },
+    {
+      "start": 0.15,
+      "end": 0.2681445503669291,
+      "peak": 0.17362891007338582,
+      "minimumCeiling": 0.43471123601864675,
+      "amplitude": 0.023993093980430372,
+      "projection": {
+        "status": "clear",
+        "amplitude": 0.023993093980430372,
+        "domain": [
+          [
+            0.0007283678140890966,
+            0.04725782014677165
+          ]
+        ],
+        "work": {
+          "sampleStates": 61,
+          "constraints": 732,
+          "polynomialEvaluations": 790,
+          "rootBisections": 48,
+          "bernsteinWholePasses": 728
+        },
+        "selection": "midpoint of feasible interval nearest zero; strict positive-width numerical interior",
+        "coverage": "polynomial amplitude constraints at listed finite times only; no temporal interval certificate"
+      }
+    }
+  ],
+  "knots": [
+    0,
+    0.008333333333333333,
+    0.016666666666666666,
+    0.01772168255503936,
+    0.025,
+    0.03333333333333333,
+    0.041666666666666664,
+    0.05,
+    0.0503775,
+    0.053165047665118086,
+    0.058333333333333334,
+    0.060786137591732264,
+    0.06666666666666667,
+    0.075,
+    0.07563834922170604,
+    0.08333333333333333,
+    0.09166666666666666,
+    0.1,
+    0.10042286781188971,
+    0.10833333333333334,
+    0.11666666666666667,
+    0.11814455036692907,
+    0.125,
+    0.13333333333333333,
+    0.14166666666666666,
+    0.14358171433178477,
+    0.15,
+    0.15833333333333333,
+    0.16666666666666666,
+    0.17362891007338582,
+    0.175,
+    0.18333333333333332,
+    0.19022168255503935,
+    0.19166666666666665,
+    0.2,
+    0.20833333333333334,
+    0.21666666666666667,
+    0.225,
+    0.23333333333333334,
+    0.2341728678118897,
+    0.24166666666666667,
+    0.25,
+    0.2583333333333333,
+    0.26666666666666666,
+    0.2681445503669291,
+    0.27066504766511806,
+    0.275,
+    0.2833333333333333,
+    0.2881445503669291
+  ],
+  "work": {
+    "forecastMs": 64.56816399999997,
+    "planningAndChecksMs": 22.45512700000006,
+    "supportDomainMs": 2.6826729999999657,
+    "bridgeProjectionMs": 14.839717999999948,
+    "supportDomainPieces": 11,
+    "supportDomainEndpointInversions": 22,
+    "piecesBuilt": 48,
+    "knotConfigurations": 608,
+    "configurationCalls": 1280,
+    "scalarCriticalEvaluations": 447,
+    "pairedSamples": 640,
+    "candidateCount": 1,
+    "projectionIterations": 0,
+    "stageCalls": 0,
+    "bvhCalls": 0,
+    "totalNumericalMs": 104.54568199999994
+  },
+  "maxima": {
+    "planar": 5.844000457521397,
+    "vertical": 1.2698177680201903,
+    "pelvis": 1.5745302163219022,
+    "knee": 34.24753944183923
+  },
+  "minima": {
+    "soleY": -1.1102230246251565e-16,
+    "radicand": 0.13671779659331035,
+    "length": 0.3192328557888205
+  },
+  "endpointErrors": {
+    "position": 1.4224732503009818e-16,
+    "velocity": 1.102001435341862e-15,
+    "height": 1.1102230246251565e-16,
+    "heightVelocity": 4.163336342344337e-16
+  },
+  "failure": null,
+  "scope": "One deterministic family; exact scalar flex certificates, finite ≤0.5 ms world kinematic coverage only. No rig/stage/BVH or actual boot/calf geometry. Future left touchdown beyond horizon is unassessed. No actual contact events or physical state committed.",
+  "originalResultSha256": "32de396a2bd8821c21320a58837d10beab194382ceea3b835a096b667d08be61",
+  "piecesCount": 48,
+  "samplesCount": 640,
+  "semanticHashFormat": "SHA256(JSON.stringify(parsed subtree)); bridge projection work omitted; other subtree property/array order preserved",
+  "semanticHashes": {
+    "status": "7b6b22ca35264bc4f1eddebf2812e3c1b063a340a5a24e3e949b1deb580a9ae5",
+    "parameters": "bf888bed85feba41cf506728030fe2b21b992effdd15d95cb2eb257f429d6fa3",
+    "events": "9db112df0b68c9aeac934f1620d9b485123224758910b98328bc13835234e57f",
+    "supportDomains": "6ca4cd6e67314dbec4a3c5ffffd785b006e102a2b74cd491da4668f22a8c6dfe",
+    "knots": "b5e81a21ea0a6a7d2795c22aea2b29f7bb8231e1fed486873236479461b0e72a",
+    "maxima": "4959686a0ae23e57f10967534f25e01fe9a869668c3c6e750916beaa5499081d",
+    "minima": "55f3d76e9a7fcab91ad737e33c9ac095624fc27d6991def31be6eba5e51bd626",
+    "endpointErrors": "ee86e63cbae9078752ab16206e769d5b278eb085716c49de865b9dd3e2bdf7ee",
+    "failure": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+    "pieces": "f5bbcd819ee5d7138d3c6e9f1965c43df2406a2e7f3babe91c0fb06db3f2defa",
+    "samples": "e34cde0cd67626214c96911be025d738043f1af2555c159af5a9dc9ea743ad64",
+    "bridges": "036d5f7485e28a394779177df2c18077e30615711a891e5dd33b314ad5d0e28b"
+  }
+}

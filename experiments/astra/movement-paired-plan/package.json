@@ -1,0 +1,17 @@
+{
+  "name": "astra-p3-movement-checkpoint",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "replay": "node replay.mjs",
+    "replay:mesh": "node replay.mjs --mesh-floor"
+  },
+  "dependencies": {
+    "three": "0.186.0",
+    "typescript": "5.9.3"
+  }
+}

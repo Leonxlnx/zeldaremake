@@ -1,0 +1,423 @@
+{
+  "status": "sampled-mesh-floor-clear",
+  "p3Sha256": "32de396a2bd8821c21320a58837d10beab194382ceea3b835a096b667d08be61",
+  "samples": 640,
+  "expectedSamples": 640,
+  "vertexSamples": 4135680,
+  "minimum": {
+    "sample": 312,
+    "t": 0.14019607843137255,
+    "side": "L",
+    "part": "boot-sole",
+    "vertex": 0,
+    "triangle": 0,
+    "indices": [
+      0,
+      1,
+      32
+    ],
+    "local": [
+      0,
+      -0.06499999761581421,
+      0.11169999837875366
+    ],
+    "world": [
+      0.086,
+      2.384185571191466e-9,
+      2.1211512612130035
+    ],
+    "y": 2.384185571191466e-9
+  },
+  "minimumByPart": {
+    "L:boot": {
+      "sample": 312,
+      "t": 0.14019607843137255,
+      "side": "L",
+      "part": "boot",
+      "vertex": 2237,
+      "triangle": 3488,
+      "indices": [
+        2204,
+        2203,
+        2237
+      ],
+      "local": [
+        0,
+        -0.06400000303983688,
+        0
+      ],
+      "world": [
+        0.086,
+        0.0009999969601629244,
+        2.00945126283425
+      ],
+      "y": 0.0009999969601629244
+    },
+    "L:boot-sole": {
+      "sample": 312,
+      "t": 0.14019607843137255,
+      "side": "L",
+      "part": "boot-sole",
+      "vertex": 0,
+      "triangle": 0,
+      "indices": [
+        0,
+        1,
+        32
+      ],
+      "local": [
+        0,
+        -0.06499999761581421,
+        0.11169999837875366
+      ],
+      "world": [
+        0.086,
+        2.384185571191466e-9,
+        2.1211512612130035
+      ],
+      "y": 2.384185571191466e-9
+    },
+    "L:boot-cuff": {
+      "sample": 382,
+      "t": 0.172137000771946,
+      "side": "L",
+      "part": "boot-cuff",
+      "vertex": 32,
+      "triangle": 0,
+      "indices": [
+        0,
+        1,
+        32
+      ],
+      "local": [
+        -0.0007512596785090864,
+        -0.005860347766429186,
+        0.09808050841093063
+      ],
+      "world": [
+        0.08524873012210095,
+        0.06312793763559739,
+        2.1431302051139474
+      ],
+      "y": 0.06312793763559739
+    },
+    "L:boot-tongue": {
+      "sample": 310,
+      "t": 0.1392156862745098,
+      "side": "L",
+      "part": "boot-tongue",
+      "vertex": 3,
+      "triangle": 4,
+      "indices": [
+        2,
+        3,
+        9
+      ],
+      "local": [
+        0.0004981695674359798,
+        -0.0442914143204689,
+        0.04861092567443848
+      ],
+      "world": [
+        0.08649816956743599,
+        0.020708585679531155,
+        2.058062188508688
+      ],
+      "y": 0.020708585679531155
+    },
+    "L:boot-laces": {
+      "sample": 378,
+      "t": 0.17014778837002625,
+      "side": "L",
+      "part": "boot-laces",
+      "vertex": 76,
+      "triangle": 113,
+      "indices": [
+        75,
+        70,
+        76
+      ],
+      "local": [
+        0.007197402883321047,
+        -0.0408160574734211,
+        0.060871902853250504
+      ],
+      "world": [
+        0.09319741277471336,
+        0.02752907320649675,
+        2.099810924427071
+      ],
+      "y": 0.02752907320649675
+    },
+    "L:boot-buckle": {
+      "sample": 311,
+      "t": 0.13970588235294118,
+      "side": "L",
+      "part": "boot-buckle",
+      "vertex": 7,
+      "triangle": 3,
+      "indices": [
+        6,
+        7,
+        5
+      ],
+      "local": [
+        0.04997669905424118,
+        0.0218515507876873,
+        0.046859778463840485
+      ],
+      "world": [
+        0.13597669905424117,
+        0.08685155078768725,
+        2.0563110412980894
+      ],
+      "y": 0.08685155078768725
+    },
+    "R:boot": {
+      "sample": 14,
+      "t": 0.006862745098039216,
+      "side": "R",
+      "part": "boot",
+      "vertex": 2237,
+      "triangle": 3488,
+      "indices": [
+        2204,
+        2203,
+        2237
+      ],
+      "local": [
+        0,
+        -0.06400000303983688,
+        0
+      ],
+      "world": [
+        -0.08600000000000001,
+        0.0009999969601629383,
+        1.5787397079620733
+      ],
+      "y": 0.0009999969601629383
+    },
+    "R:boot-sole": {
+      "sample": 14,
+      "t": 0.006862745098039216,
+      "side": "R",
+      "part": "boot-sole",
+      "vertex": 13,
+      "triangle": 24,
+      "indices": [
+        12,
+        13,
+        44
+      ],
+      "local": [
+        0.02564709447324276,
+        -0.06499999761581421,
+        -0.03793106600642204
+      ],
+      "world": [
+        -0.06035290552675725,
+        2.3841855989470417e-9,
+        1.5408086419556513
+      ],
+      "y": 2.3841855989470417e-9
+    },
+    "R:boot-cuff": {
+      "sample": 133,
+      "t": 0.05931445503669291,
+      "side": "R",
+      "part": "boot-cuff",
+      "vertex": 32,
+      "triangle": 0,
+      "indices": [
+        0,
+        1,
+        32
+      ],
+      "local": [
+        0.0008058110252022743,
+        -0.0024043929297477007,
+        0.09822557121515274
+      ],
+      "world": [
+        -0.08519418351127243,
+        0.06617636354938743,
+        1.7030785808901525
+      ],
+      "y": 0.06617636354938743
+    },
+    "R:boot-tongue": {
+      "sample": 68,
+      "t": 0.030882352941176472,
+      "side": "R",
+      "part": "boot-tongue",
+      "vertex": 3,
+      "triangle": 4,
+      "indices": [
+        2,
+        3,
+        9
+      ],
+      "local": [
+        -0.00020791098359040916,
+        -0.04387051984667778,
+        0.04899320378899574
+      ],
+      "world": [
+        -0.08620791098359042,
+        0.021129480153322167,
+        1.627732911751069
+      ],
+      "y": 0.021129480153322167
+    },
+    "R:boot-laces": {
+      "sample": 68,
+      "t": 0.030882352941176472,
+      "side": "R",
+      "part": "boot-laces",
+      "vertex": 76,
+      "triangle": 113,
+      "indices": [
+        75,
+        70,
+        76
+      ],
+      "local": [
+        0.006964381784200668,
+        -0.03673899546265602,
+        0.06344198435544968
+      ],
+      "world": [
+        -0.07903561821579934,
+        0.02826100453734391,
+        1.642181692317523
+      ],
+      "y": 0.02826100453734391
+    },
+    "R:boot-buckle": {
+      "sample": 67,
+      "t": 0.030392156862745098,
+      "side": "R",
+      "part": "boot-buckle",
+      "vertex": 2,
+      "triangle": 0,
+      "indices": [
+        0,
+        2,
+        1
+      ],
+      "local": [
+        -0.05057218670845032,
+        0.021570922806859016,
+        0.04634812846779823
+      ],
+      "world": [
+        -0.13657218670845028,
+        0.086570922806859,
+        1.6250878364298715
+      ],
+      "y": 0.086570922806859
+    }
+  },
+  "firstNegative": null,
+  "failure": null,
+  "parts": [
+    {
+      "side": "L",
+      "name": "boot",
+      "indexedVertices": 2137
+    },
+    {
+      "side": "L",
+      "name": "boot-sole",
+      "indexedVertices": 130
+    },
+    {
+      "side": "L",
+      "name": "boot-cuff",
+      "indexedVertices": 429
+    },
+    {
+      "side": "L",
+      "name": "boot-tongue",
+      "indexedVertices": 63
+    },
+    {
+      "side": "L",
+      "name": "boot-laces",
+      "indexedVertices": 448
+    },
+    {
+      "side": "L",
+      "name": "boot-buckle",
+      "indexedVertices": 24
+    },
+    {
+      "side": "R",
+      "name": "boot",
+      "indexedVertices": 2137
+    },
+    {
+      "side": "R",
+      "name": "boot-sole",
+      "indexedVertices": 130
+    },
+    {
+      "side": "R",
+      "name": "boot-cuff",
+      "indexedVertices": 429
+    },
+    {
+      "side": "R",
+      "name": "boot-tongue",
+      "indexedVertices": 63
+    },
+    {
+      "side": "R",
+      "name": "boot-laces",
+      "indexedVertices": 448
+    },
+    {
+      "side": "R",
+      "name": "boot-buckle",
+      "indexedVertices": 24
+    }
+  ],
+  "elapsedMs": 478.958028,
+  "sourceHashes": {
+    "src/world/character/link.ts": "a0523569da41522c44b58058d9141f0369221dac74a922d65a7ca075932e13ce",
+    "src/world/character/geometry.ts": "9a16798da918f811c6e90494a09d360bcef96740e3bef92080234835714dffcc",
+    "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+    "src/world/character/palette.ts": "426cdc2fd52f60a2071d1a33bfc874cae42497dc6030e6312d1b555ee2e1f633",
+    "src/world/character/cloth-surface.ts": "923e41dd47ce0a622d9d483a3fb2c48d549c6b6b295d3b61bbf919c03705187e",
+    "src/world/character/hair-surface.ts": "7ec822450456a46501b766cb5af6f6867370beac2df00cfb766379c7ac8db899",
+    "src/world/character/rig.ts": "f6f277abb53b9fb3e0090bc65380e2dce367f07d5c467747ca7e6f9025c65c86",
+    "src/world/character/face-geometry.ts": "45f3725c6fdecc63a44c66c35adfccf9b448c0a4fa053b6249bb0e3bffe9ffcc",
+    "src/world/character/ear-geometry.ts": "159555dafa3689ba2573d3e98d1e35ab166608b225dd3d8d7a1d8a8788708700",
+    "src/world/character/outfit-details.ts": "880e82cb14c93acd9b3a8a83d2e6b103490c72b9ae51fb62cb3d6926c5c63277",
+    "src/world/character/leather-material.ts": "d9994f5bcc6582f767cea9e7e0ec56118bc66d2814d29ede477f544a83367ebf",
+    "src/world/character/cap-tail-stitches.ts": "499946daf356ef42ba97591f4c15f2ab5d0faeac86ff76261a68b5c2b7569d2a",
+    "src/world/character/gear.ts": "4ceb87a167d8368c1d3b80eb61be1e998670113ab935870f7eed610196b6209e",
+    "src/world/character/gear-geometry.ts": "8ae301f5545be5f666dde986a321ed31149bce00d5102516b4826c0b38681bb4",
+    "src/world/character/eye-geometry.ts": "cbde33aafbf85f703791cb3e1dbbdbb25bc23b67a87db6a8194980cba1179828",
+    "src/world/character/eye-aperture.ts": "a760445834e7c09653102c112d9e7b65f79aa0be881c5192af71c408c4c85af6",
+    "src/world/character/boot-geometry.ts": "49a0d801ab5873b9f7a70e1950f5b7af2e7d6b0c1f45199e559ab5496d1ab2a0",
+    "src/world/character/hair-geometry.ts": "4ed09ba0cc45650aad036b03449fd4f482237878e913eb8a970cf6db5ab0fd9c",
+    "src/world/character/fringe-geometry.ts": "1edc7798bb51e810cb9dc486ecc83213b997dacea546d8ff747629d60fc53286",
+    "src/world/character/sideburn-geometry.ts": "7e1f8279be2e06c2db5fcdb0b43a9b82b2908b51ae229e08c5347d74cd03c5e8",
+    "src/world/character/scalp-geometry.ts": "5d3c06921390a6eeec021ea201b5f865a9338211146c73308728986e986c165e",
+    "src/world/character/boot-articulation.ts": "359f1f61ad63a0a47751111cb5ae47b52fbea354ae7acfd02de3367cc10a2d2f",
+    "src/world/character/boot-uv.ts": "440d51056ea4989a8e4910b64d539d27e8c4da5f62583052f6e0dd4e413a50d2",
+    "src/world/character/sleeve-geometry.ts": "79a0f375ec0ecc8ee4db557172cc142d5dec6f03d24b02e99f76f9a5815ec64a",
+    "src/world/character/neckline-geometry.ts": "5fe17887eadccc68012ac659c5baf6ed738e20a09e62025fa3ed39c92f00ced1",
+    "src/world/character/static-batching.ts": "2d2c239b1a4e2ee31c7eb3e034f625cabef23587f71af0e7c7ec4842d59ebab5",
+    "src/world/character/cloth-uv.ts": "1cdc6f41b5334ae039932bbebba12d541082ba03a647a474713eb965da7dbc88",
+    "src/world/character/hair-uv.ts": "0bbdf5c6945eea661117b4a6f5f89d9a92dde3a8d80a643b9f1b08d2ccfaf8fa",
+    "src/world/character/cap-geometry.ts": "b9360d276f2a4cf0acadb012c2757f7ca481a3b773adb50cd1a050b9737e8d60",
+    "src/world/character/cap-tail-geometry.ts": "4681beb2a4f534e194546e3f5ae76698f79e2ac28aa2f691c302aedca69f4813",
+    "src/world/character/hand-geometry.ts": "ab1f97f14c27907034344598506784a50ff25326a53da749e66c9d0e20bf4f77",
+    "src/world/character/strap-buckle-geometry.ts": "5b5fd13efef1d1672713bc831845d551df2bbb42323fb5d10f65336ed1bbf772",
+    "src/world/character/strap-surface.ts": "5f27aedfc46ef4dc76f69aed8b563ec74101c318d868005af13b1b195204c838",
+    "src/world/character/contact-pose.ts": "e9d631e3d3123e462ca6f9cf59eaa0360f58a161a350f3886deea0a1aa070329"
+  },
+  "scope": "One reconstruction of every saved P3 sample with unchanged actual createLink geometry and existing pair IK/ordinary straight-heading knee-pole rule, followed by actor.syncGeometry. Every referenced indexed vertex of six boot/calf detail meshes per side tested against raw worldY<0. Flat floor only; no pair BVH, continuous-between-sample clearance, physical controller integration or visual-quality proof. No trajectory fitting or source/asset changes."
+}

@@ -7,3 +7,5 @@ Recovery checkpoints for work that has not passed integration gates. Production 
 The playable character work and actual screenshots remain on `agent/astra-link-movement` / PR #5 and `captures/astra-progress`. This checkpoint is not a movement release or rendered evidence.
 
 [`movement-timing/`](movement-timing/README.md) preserves the later contact-timing checkpoint. Its pinned replay passes standing 204 and walking 240 samples, then refuses running 60 with atomic rollback. Run `node experiments/astra/movement-timing/replay.mjs` from the repository root; the earlier viability experiment remains intact.
+
+[`movement-paired-plan/`](movement-paired-plan/README.md) preserves the first passing paired-plan numerical prefix from frozen running frame59. Its self-contained replay checks48 stored pieces and640 samples through288ms, with original sampled boot-floor evidence. It is not installed in the controller; the next left touchdown, actual path-clearance and input changes are outside this checkpoint. Run `node experiments/astra/movement-paired-plan/replay.mjs` from the repository root. Earlier failed checkpoints remain intact.

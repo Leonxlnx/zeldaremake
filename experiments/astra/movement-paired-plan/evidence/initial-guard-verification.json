@@ -1,0 +1,39 @@
+{
+  "originalSha256": "32de396a2bd8821c21320a58837d10beab194382ceea3b835a096b667d08be61",
+  "verifiedSha256": "91762b5a01e8723f1d31468cb203760e28b1c9db5421f19951a5ebdab3ae04a7",
+  "exact": {
+    "status": true,
+    "parameters": true,
+    "events": true,
+    "supportDomains": true,
+    "bridges": true,
+    "knots": true,
+    "maxima": true,
+    "minima": true,
+    "endpointErrors": true,
+    "failure": true,
+    "pieces": true,
+    "samples": true
+  },
+  "work": {
+    "forecastMs": 82.62034599999993,
+    "planningAndChecksMs": 37.29228999999998,
+    "supportDomainMs": 2.446393999999941,
+    "bridgeProjectionMs": 24.196810000000028,
+    "supportDomainPieces": 11,
+    "supportDomainEndpointInversions": 22,
+    "piecesBuilt": 48,
+    "configurationLegReconstructions": 608,
+    "endpointLegInversions": 192,
+    "supportSampleLegInversions": 416,
+    "configurationCalls": 1280,
+    "scalarCriticalEvaluations": 447,
+    "pairedSamples": 640,
+    "candidateCount": 1,
+    "projectionIterations": 0,
+    "stageCalls": 0,
+    "bvhCalls": 0,
+    "totalNumericalMs": 146.55583999999988
+  },
+  "scope": "One verification run after explicit flex extrema [0,pi] guard and diagnostic inversion counter correction; same family, no trajectory/parameter change or search."
+}

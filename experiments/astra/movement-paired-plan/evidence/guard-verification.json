@@ -1,0 +1,59 @@
+{
+  "originalSha256": "32de396a2bd8821c21320a58837d10beab194382ceea3b835a096b667d08be61",
+  "finalSha256": "3637b76931dae722b9b7d3feb65872e16c78cdd53e98f06f92ab22209e7a3d3e",
+  "exact": {
+    "status": true,
+    "parameters": true,
+    "events": true,
+    "supportDomains": true,
+    "knots": true,
+    "maxima": true,
+    "minima": true,
+    "endpointErrors": true,
+    "failure": true,
+    "pieces": true,
+    "samples": true,
+    "bridgeCoefficientsAndDomains": true
+  },
+  "work": {
+    "forecastMs": 55.322648000000015,
+    "planningAndChecksMs": 20.667328999999995,
+    "supportDomainMs": 2.234060999999997,
+    "bridgeProjectionMs": 13.382145999999977,
+    "peakSelectionQueries": 48,
+    "supportDomainPieces": 11,
+    "supportDomainEndpointInversions": 22,
+    "piecesBuilt": 48,
+    "configurationLegReconstructions": 608,
+    "endpointLegInversions": 192,
+    "supportSampleLegInversions": 416,
+    "configurationCalls": 1280,
+    "scalarCriticalEvaluations": 447,
+    "pairedSamples": 640,
+    "candidateCount": 1,
+    "projectionIterations": 0,
+    "stageCalls": 0,
+    "bvhCalls": 0,
+    "configurationLegCurveEvaluations": 2560,
+    "totalNumericalMs": 91.60618399999998
+  },
+  "projectionWork": [
+    {
+      "sampleStates": 43,
+      "constraints": 516,
+      "polynomialEvaluations": 731,
+      "rootBisections": 192,
+      "bernsteinWholePasses": 508,
+      "bernsteinConversions": 516
+    },
+    {
+      "sampleStates": 61,
+      "constraints": 732,
+      "polynomialEvaluations": 790,
+      "rootBisections": 48,
+      "bernsteinWholePasses": 728,
+      "bernsteinConversions": 732
+    }
+  ],
+  "scope": "Final P3 verification after cap/count and nonfinite/strict-positive guard corrections. Same coefficients, events, domains and every actual sample as frozen first P3. No new trajectory candidate."
+}

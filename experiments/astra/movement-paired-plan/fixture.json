@@ -1,0 +1,368 @@
+{
+  "schema": 1,
+  "previous": {
+    "frame": 58,
+    "state": {
+      "x": 0,
+      "y": 0,
+      "z": 1.6093257571919517,
+      "yaw": 0,
+      "vx": 0,
+      "vy": 0,
+      "vz": 3.8893161652068033,
+      "speed": 3.889316165206793,
+      "grounded": true,
+      "phase": 1.621888393183228,
+      "moveWeight": 0.9989530540146061,
+      "runWeight": 0.9566350399974436,
+      "stairWeight": 0,
+      "landing": 0,
+      "jumps": 0,
+      "time": 0.49166666666666736
+    },
+    "snapshot": {
+      "request": {
+        "root": {
+          "x": 0,
+          "y": 0,
+          "z": 1.6093257571919517
+        },
+        "visualYaw": 0,
+        "hipsLocal": {
+          "x": 2.7570190661530563e-06,
+          "y": 0.45972936680770937,
+          "z": 0
+        },
+        "hipsRotation": [
+          0.00011865760240500557,
+          -0.015578420360038136,
+          -0.007615647683769119,
+          0.9998496390206961
+        ],
+        "soles": [
+          {
+            "position": {
+              "x": 0.08600000000000001,
+              "y": 0,
+              "z": 1.448791438655072
+            },
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "position": {
+              "x": -0.08600000000000001,
+              "y": 0.0003762182887390997,
+              "z": 1.599129174133325
+            },
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "poles": [
+          {
+            "x": -0.03115396325598342,
+            "y": 2.710505431213761e-20,
+            "z": 0.9995145974789187
+          },
+          {
+            "x": -0.03115396325598342,
+            "y": 2.710505431213761e-20,
+            "z": 0.9995145974789187
+          }
+        ]
+      },
+      "height": {
+        "height": 0.45972936680770937,
+        "velocity": 0.017899151570450744
+      },
+      "feet": [
+        {
+          "side": 1,
+          "mode": "planted",
+          "position": [
+            0.08600000000000001,
+            0,
+            1.448791438655072
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorPosition": [
+            0.08600000000000001,
+            0,
+            1.448791438655072
+          ],
+          "anchorRotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "completing": false,
+          "remaining": 0.005199046085203298,
+          "releases": 2,
+          "commits": 2,
+          "yawVelocity": 0,
+          "pitchVelocity": 0,
+          "poleYaw": 0,
+          "fromPoleYaw": 0,
+          "landingYaw": 0,
+          "recovery": false,
+          "landingFlex": 0.18760301109892802,
+          "plantedPhase": 1.4661703160709358,
+          "endPhase": 1.862281676307382
+        },
+        {
+          "side": -1,
+          "mode": "swing",
+          "position": [
+            -0.08600000000000001,
+            0.0003762182887390997,
+            1.599129174133325
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorPosition": [
+            -0.08600000000000001,
+            0,
+            1.2299684809232945
+          ],
+          "anchorRotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "velocity": [
+            0,
+            -0.5732160624967046,
+            7.148744388186292
+          ],
+          "completing": true,
+          "remaining": 0.009623219662565503,
+          "releases": 3,
+          "commits": 2,
+          "yawVelocity": 0,
+          "pitchVelocity": 0,
+          "poleYaw": 0,
+          "fromPoleYaw": 0,
+          "landingYaw": 0,
+          "recovery": false,
+          "landingFlex": 0.18760301109892802,
+          "plantedPhase": 1.211479523257676,
+          "endPhase": 2.211479523257676
+        }
+      ]
+    }
+  },
+  "accepted": {
+    "frame": 59,
+    "state": {
+      "x": 0,
+      "y": 0,
+      "z": 1.64174519774621,
+      "yaw": 0,
+      "vx": 0,
+      "vy": 0,
+      "vz": 3.890332866511001,
+      "speed": 3.890332866511006,
+      "grounded": true,
+      "phase": 1.6462292347102618,
+      "moveWeight": 0.9990683418523889,
+      "runWeight": 0.9597662493168635,
+      "stairWeight": 0,
+      "landing": 0,
+      "jumps": 0,
+      "time": 0.5000000000000007
+    },
+    "snapshot": {
+      "request": {
+        "root": {
+          "x": 0,
+          "y": 0,
+          "z": 1.64174519774621
+        },
+        "visualYaw": 0,
+        "hipsLocal": {
+          "x": 2.4943063207669405e-06,
+          "y": 0.4542655985876104,
+          "z": 0
+        },
+        "hipsRotation": [
+          0.00015607161472758476,
+          -0.017866172196556514,
+          -0.008733865677338238,
+          0.9998022280046313
+        ],
+        "soles": [
+          {
+            "position": {
+              "x": 0.08600000000000001,
+              "y": 0,
+              "z": 1.448791438655072
+            },
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "position": {
+              "x": -0.08600000000000001,
+              "y": 0,
+              "z": 1.6037397079620732
+            },
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "poles": [
+          {
+            "x": -0.03572800375310135,
+            "y": 0,
+            "z": 0.999361551065388
+          },
+          {
+            "x": -0.03572800375310135,
+            "y": 0,
+            "z": 0.999361551065388
+          }
+        ]
+      },
+      "height": {
+        "height": 0.4542655985876104,
+        "velocity": -1.2965370273231347
+      },
+      "feet": [
+        {
+          "side": 1,
+          "mode": "planted",
+          "position": [
+            0.08600000000000001,
+            0,
+            1.448791438655072
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorPosition": [
+            0.08600000000000001,
+            0,
+            1.448791438655072
+          ],
+          "anchorRotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "completing": false,
+          "remaining": 0.005199046085203298,
+          "releases": 2,
+          "commits": 2,
+          "yawVelocity": 0,
+          "pitchVelocity": 0,
+          "poleYaw": 0,
+          "fromPoleYaw": 0,
+          "landingYaw": 0,
+          "recovery": false,
+          "landingFlex": 0.18760301109892802,
+          "plantedPhase": 1.4661703160709358,
+          "endPhase": 1.862281676307382
+        },
+        {
+          "side": -1,
+          "mode": "planted",
+          "position": [
+            -0.08600000000000001,
+            0,
+            1.6037397079620732
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorPosition": [
+            -0.08600000000000001,
+            0,
+            1.6037397079620732
+          ],
+          "anchorRotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "completing": false,
+          "remaining": 0.0012898863292321698,
+          "releases": 3,
+          "commits": 3,
+          "yawVelocity": 0,
+          "pitchVelocity": 0,
+          "poleYaw": 0,
+          "fromPoleYaw": 0,
+          "landingYaw": 0,
+          "recovery": false,
+          "landingFlex": 0.18760301109892802,
+          "plantedPhase": 1.6256560234305553,
+          "endPhase": 2.211479523257676
+        }
+      ]
+    }
+  },
+  "preferredGoal": [
+    0.08600000000000001,
+    0,
+    2.0344512628342493
+  ],
+  "provenance": {
+    "physicalInputs": {
+      "gate": "22188650e63843cd1d6cf3f6d51b9ac6d46b2cb9571667c334b80aa0fd5f42c2",
+      "witness": "00c9a3ab7e89212fc72625f920dd9eeb7f7fe664cc1a6a5b517572c930486bbb"
+    },
+    "forecastInput": "67a0678ec2984faacc540da853763effdb27f5aa73d87342b52ccc0ddbd77246",
+    "extraction": "Only frames58 and59 state/request/height/feet plus the first saved original preferredGoal. These fields agree exactly across both original prefix records."
+  }
+}
