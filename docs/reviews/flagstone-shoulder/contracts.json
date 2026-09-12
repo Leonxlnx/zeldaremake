@@ -1,0 +1,26 @@
+{
+  "sourceOnly": true,
+  "noLiveWrites": true,
+  "noEmit": true,
+  "dryRunContractExact": {
+    "sha256": "3d0e63934ee2dc7ea514e9825d577bdd3adbc36459b5b53beb96e7f341a72022"
+  },
+  "breakCellExact": {
+    "sha256": "e8a23fd507d5ff83f167954697c71a5b0c1565371bf0256caf4f779155f3c19c"
+  },
+  "notchedKernelExact": {
+    "sha256": "f149002253444d1e1746fd80c1daf4aadb55c8b1132af00705cfd0e41152fa16"
+  },
+  "fanAndFallbackEmissionExact": {
+    "sha256": "204c1666cba451f697317227000d8000100bb0aaac93a2394bddd9084274f944"
+  },
+  "onlyDeclaredFlagstoneChanges": true,
+  "typecheck": {
+    "overlayFiles": [
+      "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/src/world/hardscape/geometry.ts",
+      "/workspace/scratch/0dfc487f788e/zeldaremake-environment-live/src/world/hardscape/flagstones.ts"
+    ],
+    "diagnostics": 0
+  },
+  "note": "TypeScript checked candidate in an in-memory compiler host against current workspace dependencies; no source file was copied/restored and no output was emitted."
+}

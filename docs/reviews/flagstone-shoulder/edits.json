@@ -1,0 +1,30 @@
+{
+  "geometry": {
+    "beforeSHA256": "1de36e8eb2ee8d324de65e07ce75b8dc1ea2d432840fa29d2968d3d5eee2b086",
+    "afterSHA256": "3ec4614c68033d90f6d63d46cc4dda4e0b50f6158844c276dbf49a4d13db08d9",
+    "edits": [
+      {
+        "before": "  bottom?: boolean;\n  /** extra height noise on top vertices (m) */\n  topNoise?: (x: number, z: number) => number;\n  /** number of interior rings on the top face (\u22651); more = smoother dish */\n  rings?: number;\n  /**\n",
+        "after": "  bottom?: boolean;\n  /** extra height noise on top vertices (m) */\n  topNoise?: (x: number, z: number) => number;\n  /** bounded fracture relief on the top/inner shoulder only; outer walls and contact stay exact */\n  topRelief?: (x: number, z: number, edge: number) => number;\n  /** number of interior rings on the top face (\u22651); more = smoother dish */\n  rings?: number;\n  /**\n"
+      },
+      {
+        "before": "  const fanCentre = o.notchedTop ? slabFanCentre(top) : centroid(top);\n  const c = fanCentre ?? centroid(top);\n  const topUv = (p: P2) => _ua.set(p.x * uvS + uvO[0], p.z * uvS + uvO[1]).clone();\n  const topY = (p: P2, ringScale: number) => t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));\n\n  // --- side walls (flat) ---\n  for (let i = 0; i < n; i++) {\n",
+        "after": "  const fanCentre = o.notchedTop ? slabFanCentre(top) : centroid(top);\n  const c = fanCentre ?? centroid(top);\n  const topUv = (p: P2) => _ua.set(p.x * uvS + uvO[0], p.z * uvS + uvO[1]).clone();\n  const topY = (p: P2, ringScale: number) => {\n    const y = t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));\n    return o.topRelief ? y + o.topRelief(p.x, p.z, ringScale) : y;\n  };\n\n  // --- side walls (flat) ---\n  for (let i = 0; i < n; i++) {\n"
+      }
+    ]
+  },
+  "flagstones": {
+    "beforeSHA256": "178c61f6297024a8ce5a7076e630fd2aef34da1e7d71f1db5374b217698da3bd",
+    "afterSHA256": "aa3f608d6876adcf22e1e6b7daba4e096e637b989a16739b5656e632cda6b7f1",
+    "edits": [
+      {
+        "before": "      }\n      return v;\n    };\n    buildSlab(all, outline.outer, {\n      thickness,\n      bevel,\n",
+        "after": "      }\n      return v;\n    };\n    // Shallow cleaved shoulder on nearby laid stones. Keep the low crown, original outline,\n    // bottom/wall contact and all seeded draws; the existing grain still handles millimetre wear.\n    // The already sampled terrain envelope bounds the cut without additional sampler calls.\n    const fractureWeight = disc ? 0 : 1 - smoothstep(8, 13, Math.hypot(s.x, s.z));\n    const tiltSin = Math.sqrt(Math.max(0, 1 - nAcc.y * nAcc.y));\n    const fractureClearance = bottomY + (thickness - 0.003) * nAcc.y - radius * tiltSin - hMax - 0.003;\n    const fractureDepth = Math.max(0, Math.min(bevel * 0.82, 0.009, fractureClearance)) * fractureWeight;\n    const fractureAngle = uCrown * Math.PI * 2;\n    const fractureX = Math.cos(fractureAngle), fractureZ = Math.sin(fractureAngle);\n    const fractureStart = radius * (0.18 + 0.15 * uJoint);\n    const fractureWidth = Math.max(0.08, radius * 0.32);\n    buildSlab(all, outline.outer, {\n      thickness,\n      bevel,\n"
+      },
+      {
+        "before": "      uvScale: 0.62,\n      uvOffset: uvO,\n      topNoise: (x, z) => 0.003 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7),\n      // a second ring gives the edge film somewhere to end (5\u201315 cm in) on the small rim stones\n      rings: radius > 0.42 || edgeMoss > 0 ? 2 : 1,\n    });\n",
+        "after": "      uvScale: 0.62,\n      uvOffset: uvO,\n      topNoise: (x, z) => 0.003 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7),\n      topRelief: fractureDepth > 0 ? (x, z, edge) => -fractureDepth\n        * clamp(((x - c.x) * fractureX + (z - c.z) * fractureZ - fractureStart) / fractureWidth, 0, 1)\n        * smoothstep(0.45, 1, edge) : undefined,\n      // a second ring gives the edge film somewhere to end (5\u201315 cm in) on the small rim stones\n      rings: radius > 0.42 || edgeMoss > 0 ? 2 : 1,\n    });\n"
+      }
+    ]
+  }
+}

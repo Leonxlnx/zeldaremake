@@ -18,3 +18,15 @@ calls and unchanged rendering inputs on actual published source. Astra's alterna
 patch was not applied. This is maintenance needed for rebuilds and later local iteration,
 not a claimed visible improvement. Typecheck/build and exact source/hash boundaries are the
 integration gate; actual archive continuity is checked separately on the published source.
+
+## Actual660 result
+
+Source660dcac756f9095fa6b3b9c08ccd646d2bf5f499; successful environment34710805539.
+[12 world originals](https://github.com/Leonxlnx/zeldaremake/tree/a00abe5e482fe23e2a4c712a296ef6c5d351b991/progress/2026-09-12_182839773-660dcac)
+and [four details](https://github.com/Leonxlnx/zeldaremake/tree/a9b5e6c5a0da1554e3ba3fee43a763ee58cbd2ec/details/2026-09-12_183130537-660dcac).
+All16 accepted JPEG/depth bytes, geometry, resources, audits, controls and submitted budgets
+are exactly1e. Source identity, archive history, eight previews and ZIP bytes pass. There is
+no new visual result to rejudge; prior1e findings remain. One permitted unchanged-state
+blank-buffer retry occurred at E candidate; other15zero, with no final errors/warnings.
+This corrects an early helper report that incorrectly counted zero world retries. Original
+reports/images are retained unchanged. The cleanup introduces no visible regression.

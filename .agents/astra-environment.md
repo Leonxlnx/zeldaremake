@@ -7,44 +7,38 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Starting the cap-only consolidation correction on published71843a28538f00bdbbd0005a65a1b588315753b5,
-treea16253e4989cc057a9c67bf2ea22d3a8524b9b68. That isolated crate finish passed actual-source
-geometry/typecheck/build112 and frozen proposal hashes; visual verdict is pending its queued
-capture. Do not push a third source until its correct environment run actually starts.
+Starting one bounded near-stone shoulder-facet trial on published8714d2af9556105fe867f9e36a1a44c4a99629f0,
+tree26aae8993b76c47402843031f2f01a386f6cbe42. Cap-bounds source is published and accepted for
+Fable adoption; its actual capture queues behind718. 8714's correct environment run34711620329 is now actually in progress, so this separate
+source can queue without replacing it. Typecheck/build112 and full reproduced frozen
+evidence (all619stones/ground samples) pass; exact candidate and crate/tuft/cap hashes pass.
+Fresh partner fetch remains74918cd, no production overlaps. Root read the complete frozen
+proposal and both diffs, and revisited boards02/06 and actualF. Fable handoff5647820443 plus
+exact two-file announcement5647902527 cover flagstones.ts and additive geometry.ts topRelief.
 
-Fresh partner fetch confirms74918cd56025eb60c3bd71b13d727e59f26656e7, only Fable's own log and
-append-only take69 ledger after0bd. Deliberately integrate this history before the cap fix.
-Root read tick53 and the actual take record: source0bd,23/50 overall,20/42phase,local/unclaimed;
-these numbers are not a phase-exit claim. Fable actively owns structures17/window/moss/crown.
-Fable explicitly accepted this cap split in PR2comment5647847074 and will adopt our SHA
-after structures17; only his new audit lines overlap. PR2comments5647801272/5647841319
-record the source proof and one-block scope; preserve his
-builder/material/disposal work and adopt any equivalent published correction.
+196of619 near non-disc stones receive at most9mm directional shoulder relief, with low crown,
+local outlines, walls/bottom, metadata and existing placement/RNG preserved. No new triangles,
+draws, attributes, materials, programs or textures. Stairs/eight discs exact. All619caps pass
+winding/area/inside checks; repaired kernel/fan/fallback and emitStone dry-run/breakCell remain
+source-exact. The real terrain/character surface sampler is checked:177more admitted shoulder
+triangles,+5cells, sampled heights−9mm to+.051mm, no blocking/stair changes. This is a modest
+facet-normal trial, not a major silhouette claim. ActualA/F decides; B/D are controls. Reject
+barely visible or repetitive results rather than increasing crown/exposure.
 
-Source frustum proof explains the actual1e C/L02 excess: distant caps inflate the merged roof
-sphere7.497→20.295m, submitting the old129596-triangle roof. A cap-only identity group restores
-original hero roof buffers/bounds and separates just the distant caps. Applied candidate hash75927a8f; actual-source typecheck/build112 and the self-contained
-pinned reproduction pass. Crate/tuft hashes remain exact. Expected C/L02 savings
-130604 submitted triangles with0netcalls; A/B/D/E add2calls with same triangles. No geometry,
-material, lighting, placement or texture changes; actual images must preserve appearance.
-
-Next geometry study is explicitly released by Fable in5647820443: near flagstone edge/form,
-with low crown/footprints/contacts/placements/seeds/RNG, stairs/discs and repaired kernel fan
-preserved. emitStone dry-run/breakCell and inverted-top-face gates remain required. Source
-helper explores shallow local fracture facets, scratch only. No production paving change yet.
-
-711 tuft actual retained;1e distant height useful but flat yellow openings and simple pods
-remain with Fable. Original PNG upload is blocked; exact ZIP and published previews exist.
-Character remains paused for local Blender, no scheduled tasks or automatic main/PR merges.
+660 actual16accepted JPEG/depth/resources/audits/budgets are exact1e; E candidate had one
+permitted same-state blank retry,other15zero,noerrors. The early zero-retry helper report is
+corrected in this checkpoint without changing archived evidence.718 crate actual is pending.
+Take69 W25 existingfail retained after rootB/reference and helperfive-view review; no new
+formal score mutation. Fable owns structures17 and then distant opening/host details. Original
+PNG upload is blocked; exactZIP/previews exist. Character stays paused for localBlender.
 
 ## Files / systems being touched
-- Root: structures/index.ts consolidation block only, own log/claim/review and exact749 history.
-  No distant builder, material, hero-house, geometry helper or light changes.
-- Published crate trial: props/index.ts +crateWood.ts; existing contact/resource test in CI.
-- World helper: frozen cap-only bounds/buffer/lifecycle proof, scratch only.
-- Shadow helper: independent near flagstone edge study under explicit partner handoff.
-- Prop helper: exact take69 W25 partner review, no production changes.
-- Capture helper: pinned660 then718 actual images/ZIP/history, no LIVE writes.
+- Root: hardscape/flagstones.ts and additive geometry.ts topRelief hook only; own log/claim,
+  pinned reproduction/review, actual660 correction and take69 visual acknowledgement.
+- Published cap fix: structures/index.ts consolidation block; awaits actualcapture/Fableadoption.
+- Published crate trial: props/index.ts+crateWood.ts; actualimage verdict pending.
+- Capture helper: pinned718 then8714 actual images/ZIP/history, no LIVE writes.
+- Source helpers completed bounded proposals and partnerreview; no competing production edits.
 
 ## Partner state / coordination
 Fresh targeted fetch confirms74918cd/take69 after0bd5235/2f4415b/d7f5e98. PR2 comments5647666994 and5647704949
@@ -64,7 +58,7 @@ Four supplemental details are fixed full-scene production views, not isolated st
 | Source | Change / actual review |
 | --- | --- |
 | 71843a2 | Isolated cached-CC0 crate grain trial; source geometry/type/build112 pass, actual pending. |
-| 660dcac | Exact Fable hardscape cleanup; actual12 world JPEGs/depth/audits/resources/budgets byte-exact1e,0retries/errors; details pending. |
+| 660dcac | All16 actual JPEG/depth/audits/resources/budgets exact1e; one safe E candidate retry,other15zero,noerrors. Corrects the early helper zero-retry report. |
 | 1e97463 | Exact871 distant houses; actual12+4 pass. Inhabited height visible; flat glow panels and C/L02 hidden budget cost need follow-up. |
 | 711758d | Tuft-only normal correction retained from actual12+4; B/L02 blades improve, all geometry/depth/resources exact. One L02 retry. |
 | debe215 | Exact stable jitter and rejected-canopy revert retained; F images/depth restored byte-exact pre-lawn2c. Actual12+4 pass,0retry/error. |
@@ -149,4 +143,4 @@ Astra: finish published cleanup integration, then the independent crate material
 Capture helper: review the next pinned source after publication. Character waits for Blender.
 
 ## Last updated
-2026-09-12T18:31:58.926874+00:00
+2026-09-12T18:42:27.909582+00:00

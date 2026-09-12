@@ -372,6 +372,8 @@ export interface SlabOptions {
   bottom?: boolean;
   /** extra height noise on top vertices (m) */
   topNoise?: (x: number, z: number) => number;
+  /** bounded fracture relief on the top/inner shoulder only; outer walls and contact stay exact */
+  topRelief?: (x: number, z: number, edge: number) => number;
   /** number of interior rings on the top face (≥1); more = smoother dish */
   rings?: number;
   /**
@@ -485,7 +487,10 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const fanCentre = o.notchedTop ? slabFanCentre(top) : centroid(top);
   const c = fanCentre ?? centroid(top);
   const topUv = (p: P2) => _ua.set(p.x * uvS + uvO[0], p.z * uvS + uvO[1]).clone();
-  const topY = (p: P2, ringScale: number) => t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));
+  const topY = (p: P2, ringScale: number) => {
+    const y = t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));
+    return o.topRelief ? y + o.topRelief(p.x, p.z, ringScale) : y;
+  };
 
   // --- side walls (flat) ---
   for (let i = 0; i < n; i++) {
