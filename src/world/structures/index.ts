@@ -115,7 +115,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
   // unique-material parts; everything else — bark, roof, boughs, fence posts and ropes, lantern
   // posts, door frames, the sign's wood, leaves, vines, tufts — renders as one draw per material.
+  // Distant caps need their own bounds: merging them into the hero roofs' large mesh
+  // makes the old roof bucket intersect look-back cameras even when every roof is offscreen.
+  // Keep material/geometry data shared; only the static draw grouping changes.
+  const distantCaps = new Group();
+  distantCaps.name = 'distant-house-caps';
+  const distantCapMeshes: Mesh[] = [];
+  distant.group.traverse((object) => {
+    const mesh = object as Mesh;
+    if (mesh.isMesh && mesh.material === mats.capMoss) distantCapMeshes.push(mesh);
+  });
+  for (const mesh of distantCapMeshes) distantCaps.attach(mesh);
   const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
+  const capDraws = consolidateStaticMeshes(distantCaps);
+  group.add(distantCaps);
+  draws.before += capDraws.before;
+  draws.after += capDraws.after;
+  draws.merged += capDraws.merged;
   ctx.progress('structures', 1);
 
   // count real scene facts for the audit (cross-checked against the scene graph)
