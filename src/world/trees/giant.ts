@@ -44,8 +44,15 @@ export interface GiantAsset {
   roots: number;
   /** local-space ground contact points (trunk origin + root tips), y exactly on the terrain */
   contacts: Vector3[];
-  /** the authored limb centreline in local space (lantern tree only) */
+  /** the authored limb centreline in local space (lantern tree only): the sweep's ring centres */
   limbPath?: Vector3[];
+  /**
+   * per `limbPath` ring: its nominal (pre-wiggle) advance along the authored `from → to` axis in
+   * units of |to − from| — 0 at `from`, 1 at `to`, negative over the reach back to the trunk
+   * axis, > 1 over the short tail beyond `to` — and its radius before the bark relief
+   */
+  limbS?: number[];
+  limbRadii?: number[];
   crownRadius: number;
 }
 
@@ -595,6 +602,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // ---------- big near-horizontal limbs ----------
   let limbs = 0;
   let limbPath: Vector3[] | undefined;
+  let limbS: number[] | undefined;
+  let limbRadii: number[] | undefined;
   const limbLobes = (path: Vector3[], baseRadius: number, positions: number[], hR: number, vR: number, upOffset: number, mult = 0.4, cardMult = 1) => {
     for (const s of positions) {
       const origin = sample(path, s);
@@ -620,6 +629,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const r1 = o.limbSpec.tipRadius ?? 0.25;
     const path: Vector3[] = [new Vector3(0, from.y, 0)];
     const radii: number[] = [r0 * 1.3];
+    // nominal advance of each ring along from → to in units of `len` (see GiantAsset.limbS);
+    // bookkeeping only — it draws nothing and moves nothing
+    const sAlong: number[] = [];
     const n = 16;
     const wigglePhase = r() * TAU;
     // trunk → `from`: the authored waypoint may sit well out along the limb (it marks where the
@@ -628,6 +640,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const reach = from.clone();
     reach.y = 0;
     const reachLen = reach.length();
+    sAlong.push(-reachLen / len);
     if (reachLen > 1.2) {
       const rn = Math.max(2, Math.ceil(reachLen / 0.9));
       const rside = new Vector3(-reach.z, 0, reach.x).normalize();
@@ -638,6 +651,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         p.y += (0.25 * Math.sin(s * Math.PI) - 0.12 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI)) * Math.min(1, reachLen / 6);
         path.push(p);
         radii.push(r0 * 1.3 + (r0 - r0 * 1.3) * Math.pow(s, 0.7));
+        sAlong.push(-((1 - s) * reachLen) / len);
       }
     }
     for (let k = 0; k <= n; k++) {
@@ -647,6 +661,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       p.y -= 0.16 * Math.sin(s * Math.PI) + 0.05 * Math.sin(s * 13 + wigglePhase) * Math.sin(s * Math.PI);
       path.push(p);
       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
+      sAlong.push(s);
     }
     // short continuation beyond `to`: thinner, barely lifting, so the tip and its cluster stay at
     // the bough's own height (the reference bough ends in a small leaf cluster just past the last
@@ -657,9 +672,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const p = to.clone().addScaledVector(dir, 1.8 * s).addScaledVector(UP, 0.25 * s * s).addScaledVector(side, 0.4 * s);
       path.push(p);
       radii.push(r1 * (1 - 0.72 * s));
+      sAlong.push(1 + (1.8 * s) / len);
     }
     tube(wood, path, radii, 14, r, { color: barkColor, roughness: 0.05, bump: gnarlBump(1.8, 0.1), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
     limbPath = path;
+    limbS = sAlong;
+    limbRadii = radii.slice();
     limbs++;
     // foliage rides on top of the limb (lanterns hang below it) as separate small clusters —
     // the bough itself stays readable between them, with haze showing through. The outer cluster
@@ -893,6 +911,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     roots: rootCount,
     contacts,
     limbPath,
+    limbS,
+    limbRadii,
     crownRadius,
   };
 }

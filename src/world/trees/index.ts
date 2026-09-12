@@ -29,6 +29,7 @@ import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantP
 import { mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 import { SHAFT_COLUMNS } from './corridors';
+import { tubePathFromRings } from './tubePath';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
@@ -757,6 +758,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
   const giantDefs: GiantTreeDef[] = [...ctx.layout.giantTrees, ...EXTRA_GIANTS];
+  /** what was published as ctx.shared.lanternLimb (audit) */
+  let lanternLimbAudit: { samples: number; range: [number, number]; side: [number, number]; vertical: [number, number]; ends: [number[], number[]]; rings: number[][] } | undefined;
   for (const def of giantDefs) {
     const [px, , pz] = def.position;
     const gy = terrain.height(px, pz);
@@ -827,6 +830,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       g.translate(px, gy, pz);
       const root = g.getAttribute('aRoot') as BufferAttribute;
       for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
+    }
+    // the lantern tree publishes its built limb — the sweep's own ring centres and nominal radii,
+    // wiggle included, in world space (the tree is only translated) — so structures can wrap the
+    // axis the bark actually follows instead of the whole wiggle box; s = 0 at LAYOUT from, 1 at to
+    if (def.id === 'lantern-tree' && asset.limbPath && asset.limbS && asset.limbRadii) {
+      const centres = asset.limbPath.map((p) => p.clone().add(origin));
+      const ringS = asset.limbS;
+      const ringRadii = asset.limbRadii;
+      const tube = tubePathFromRings(centres, ringS, ringRadii);
+      ctx.shared.lanternLimb = tube;
+      // realised offsets of the from → to rings against the straight authored axis (m)
+      const lb = ctx.layout.lanternBranch;
+      const from = new Vector3(lb.from[0], lb.from[1], lb.from[2]);
+      const axis = new Vector3(lb.to[0], lb.to[1], lb.to[2]).sub(from);
+      const sideUnit = new Vector3(-axis.z, 0, axis.x).normalize();
+      const side: [number, number] = [Infinity, -Infinity];
+      const vertical: [number, number] = [Infinity, -Infinity];
+      ringS.forEach((s, i) => {
+        if (s < 0 || s > 1) return;
+        const off = centres[i].clone().sub(from).addScaledVector(axis, -s);
+        const sd = off.dot(sideUnit);
+        side[0] = Math.min(side[0], sd);
+        side[1] = Math.max(side[1], sd);
+        vertical[0] = Math.min(vertical[0], off.y);
+        vertical[1] = Math.max(vertical[1], off.y);
+      });
+      const mm = (v: Vector3) => v.toArray().map((c) => Math.round(c * 1e3) / 1e3);
+      const rings = centres.map((c, i) => [Math.round(ringS[i] * 1e4) / 1e4, ...mm(c), Math.round(ringRadii[i] * 1e3) / 1e3]);
+      lanternLimbAudit = { samples: centres.length, range: [tube.range[0], tube.range[1]], side, vertical, ends: [mm(tube.centre(0)), mm(tube.centre(1))], rings };
     }
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
     for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
@@ -1036,6 +1068,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       barkTextures: mats.barkTextureSets,
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
+      /** ctx.shared.lanternLimb: the lantern tree's built limb path for structures to wrap */
+      lanternLimbPublished: lanternLimbAudit !== undefined,
+      lanternLimbSamples: lanternLimbAudit?.samples ?? 0,
+      lanternLimbRange: lanternLimbAudit ? lanternLimbAudit.range.map((v) => Math.round(v * 1e4) / 1e4) : null,
+      /** world centre(0) and centre(1): LAYOUT.lanternBranch from / to by contract (mm) */
+      lanternLimbEnds: lanternLimbAudit?.ends ?? null,
+      /** realised from→to ring offsets vs the straight authored axis, metres: [min, max] */
+      lanternLimbOffsets: lanternLimbAudit
+        ? { side: lanternLimbAudit.side.map((v) => Math.round(v * 1e4) / 1e4), vertical: lanternLimbAudit.vertical.map((v) => Math.round(v * 1e4) / 1e4) }
+        : null,
+      /** every published ring as [s, x, y, z, radius] (world, mm) — project them to check the wrap */
+      lanternLimbRings: lanternLimbAudit?.rings ?? null,
       triangles: { wood: woodTriangles, leaves: leafTriangles, canopyCards: giantCards * 2, distant: distantTriangles },
       samplePositions: { bases: sampleBases },
     };
