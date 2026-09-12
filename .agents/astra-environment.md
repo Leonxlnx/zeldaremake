@@ -1,198 +1,128 @@
 # Astra — environment priority
 
-Agent: Astra, Codex / ChatGPT Work. Root is implementing environment lighting and art direction.
-Branch: `agent/astra-environment-lighting`, based deliberately on Fable `e17f310`.
+## Agent
+Astra / Codex, ChatGPT Work. Root implements lighting, shadows, atmosphere and post-processing.
+Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world branch.
 
 ## Current task
+Owner explicitly paused character/model work. Improve the whole environment against the ten
+new owner concepts, prioritize light/shadows/depth, collaborate through the repo, publish named
+actual screenshots regularly. No schedules. No main/other-agent PR merge or force push.
+Character work remains parked in its separate worktree/branch and is not represented as finished.
 
-Owner explicitly paused character/model work and requests full environment, light, shadows and
-detail. Publish the ten exact owner references, then capture controlled light/color variants
-before adopting production settings. Character attempts remain parked in the separate character
-worktree; relaxed-hand thumb crossings and unverified garment fit are not released.
+## Ownership and current integration
+Fable explicitly agreed (PR2 comment5644519204): Astra owns lighting/postfx/atmosphere and related
+config; Fable retains terrain/hardscape/structures/vegetation/placement. Root integrates useful
+published slices deliberately, never overwrites the other agent's branch or log.
 
-## Files / systems
+This branch starts from Fable e17f310. Fable a97302e vegetation is now copied byte-for-byte:
+mask-derived planted plaza/bank rims, edge litter and repaired placement contracts. All five
+vegetation suites pass. Housebb08/91c changes remain held for the announced floor/back-wall/roof
+repair. Latest fetched Fable heada97302e; status/safe-props-scope requested in PR2 comment5644897947.
 
-`reference/owner-concepts/`, `src/world/lighting/`, `src/world/postfx/`, initially read-only
-`src/world/atmosphere/`. A separate helper is preparing environment-only capture/publication files.
-No Astra geometry rewrite. Upstream e17f310 is deliberately applied byte-for-byte: Fable south bank, terrain material blend, vegetation hedge and KID placement. Astra does not edit their geometry beyond that integration.
+## Files / systems touched
+- `src/world/lighting/`, `src/world/postfx/`, `src/world/atmosphere/`, related `config.ts` fields.
+- `reference/owner-concept-previews/`: exact published preview-folder integration from own branch.
+- Four `src/world/vegetation/` files: exact Fablea973 integration only, no Astra geometry rewrite.
+- Isolated `gauntlet/scripts/*environment*` capture/publication tools and own push/manual workflow.
+- Own log and PR2/PR6 coordination. Locked rubric/ledger/scoring definitions unchanged.
 
-## Coordination
+## Production decisions
+- Golden key3.6 at existing azimuth−128/elevation38; cool hemisphere0.68, IBL0.34,
+  sky0xb8c8d2/ground0x6d715a authored directly, without the old hidden warm-white blend.
+- Contact AO0.45, contrast1.04, lift0, greenWarm0.08/greenDesat0.02, satSlope0.75,
+  bloom0.18; old video-softening disabled, FXAA retained.
+- Thin/cool close-middle air: density0.016 after6m; extra far density0.045 after60m.
+  Existing height/mist/openness/scatter model retained. Do not hide coarse geometry in haze.
+- Shared visible sky/IBL gives closed-direction upper gaps0.30 zenith contribution; horizon/fog
+  unchanged. Actual141 review supports a modest improvement, especially C; not a complete bright-air target.
+- Shafts follow actual key intensity. Setting1.55 × sun/3.1 gives reviewed gain1.8 at default3.6;
+  zero key gives zero sun shafts. World-space key/shafts remain coherent in gameplay; do not rotate
+  the sun with the camera or paint screen-space canopy shadows to match footage.
+- New owner boards guide style/detail. The old footage rubric remains an honest independent
+  diagnostic; no self-awarded pass or95% claim.
 
-Fable explicitly agreed in PR2 comment5644519204: Astra owns lighting/postfx/atmosphere and related config; Fable retains environment geometry, with structures and vegetation editors active. Hardscape proposal is held until both agents review all ten owner boards.
-PR2 comment5644445067 announces this before edits. Fresh source and claims inspected; latest
-published Fable head remains501b350, all their published lighting claims are expired. This does
-not establish whether their external process is currently running. Reply received at07:40 UTC; no Fable lighting/postfx editor is active. Stop overlapping work if a new active file/branch is identified. Never overwrite Fable's branch,
-merge their PR, rewrite their logs or change the locked rubric/history. This independent branch
-uses their newer world as its starting point; it does not replace the character branch.
+## Published checkpoints and actual evidence
+All galleries are under https://github.com/Leonxlnx/zeldaremake/tree/captures/astra-environment .
+Each contains12 named JPEGs and raw metadata. B/E share a saved camera/time, hence10 distinct images.
 
-## Decisions
+| Source | Work / actual gallery |
+| --- | --- |
+| 7ffe416 | Environment audit/hooks/capture infrastructure. First run failed on texture GC bookkeeping. |
+| 23ea37a | New fog plus historical/light candidate controls; actual gallery `progress/2026-09-12_082225685-23ea37a`, archive d5c37b0. |
+| f6a33ea | Narrow capture-state repair + old-fog control; actual gallery `progress/2026-09-12_082955432-f6a33ea`, archive8a3decc. |
+| b9b818f | Deliberate merge of owner-preview branch plus sun/shaft coupling. |
+| f11517e | Adopted23ea lighting/fog; compared modest near-shadow refinement. Actual gallery `progress/2026-09-12_084515200-f11517e`, archive5f45234. |
+| c869c365 | Exact Fablea973 planted-rim integration. |
+| 141082b | Adopted near-shadow refinement + shared upper-gap sky study. Actual gallery `progress/2026-09-12_090056345-141082b`, archive2d4f6b4. |
+| a57309c | Light-camera texel snapping + focused matrix regression check. Actual capture running since09:01:31UTC; stills will not establish GPU motion quality. |
 
-Owner's latest request explicitly authorizes reference publication, superseding the earlier
-private-reference restriction. Original images stay byte-exact and comparison-only. The newer
-concepts guide the desired warm/cool and form contrast; maintain the footage rubric honestly,
-without treating a score or guessed parameter as visual acceptance. No schedules.
+Root/helper personally reviewed all five distinct23ea/f115/141 views; actual byte/source checks pass.
+23ea vsf6: camera/time/controls/scene/layout/character/depth match; only productionheightfog differs.
+23ea improves trunk/arch layering, contact readability, cooler depth and localized warm lights.
+f115 refinement raises displayP10 about0.017–0.022, withP90 only0.002–0.009 higher; near detail
+improves without the old haze wall. It also coherently rebuilds sky ground bounce, so adoption is
+not pixel-identical to23ea runtime controls (mean absolute channel difference0.70–0.84/255).
+141 preserves null-hook production controls/ray gain, adds brighter upper gaps and16,905 scene
+triangles froma973 vegetation. Its26–77 changed depth samples per view are real geometry changes,
+not an allegedly light-only comparison. F's longer pale triangular turf edge needs geometry review.
 
-## Completed
+## Shadow stability correction
+Old target snapping used worldX/Z1m increments, fractional texels in the rotated4096 shadow map.
+New `shadowframe.ts` snaps desired target in the real shadow-camera right/up axes at92/mapSize m.
+Window extent, sun direction, depth centering, bias, filter and caster geometry stay the same.
+The actual Three.js LightShadow matrix regression checks7,680 coordinates across two bearings,
+two map sizes and walking/turning/terrain paths: old fractional drift0.499texel; new residual
+2.96e-12. Target moves at most half a texel per light axis. This is not a GPU shimmer verdict.
 
-Ten unique original PNGs recovered (duplicate reuploads have identical SHA256). Root personally
-reviewed all ten. Source baseline and latest Fable comments/claims read. W30/W31/W32/W34/W35/W36
-claimed through the unchanged CLI. Reference checkpoint195371c passes typecheck/build; The first5 MB base64 GitData blob upload hung and returned no object (expected blob404); no approval rejection. Exact reference publication is decoupled to a temporary transport branch and verified CI reconstruction. The final reference-only branch will be deliberately integrated once available; source/capture work continues now.
+Independent review confirmed basis, aliasing and render order, but found a device-clamp edge:
+Three may clamp requested4096 to a device's2048 limit. Current follow-up resolves the effective
+map size before creating the snapper AND installs physical PCSS with that same size. Lighting is
+first in SYSTEMS, so this still precedes environment/world material compilation.4096 appearance
+should remain unchanged. Typecheck/build104modules and focused shadow test pass.
+Technique: https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps#moving-the-light-in-texel-sized-increments
 
-## Known issues
+## References / downloads
+All ten960px JPEG previews published and verified at branch `agent/astra-owner-reference-previews`,
+commitf5ef8bad071ace0c0426c70848619f6504f93797, tree da58bac7893b439f6a89851b060aa5d83dfbd212;
+PR7. These are clearly labeled compressed comparisons, never game scenery or original PNG bytes.
+Original PNG upload stalled on large payloads; no rejected approval or successful-original-upload
+claim. Exact originals were delivered as a verified36,516,933-byte ZIP, SHA256
+0c0dd850b99727cea5d350c48d83f6fa47a0cf52fd9dabf77680eadcb26949fc. Owner authorized publication.
+Verified screenshot ZIPs for23ea/f6/f115 have been delivered;141 packaging follows verification.
+Source ZIPf115 was delivered with CRC verification; newer source remains available on the branch.
 
-World still reads olive/beige and flat against the concepts. Current generous fill and grade,
-close haze and distant uniform veil need controlled actual-render review. First six-view comparison is prepared: baseline Fable controls versus golden key3.6, hemi0.60, IBL0.30, cool fill, less green warming and no video softness. It is an unaccepted hypothesis. No new environment appearance claim yet. Local preview access was rejected earlier; use real CI game renders.
+## Capture integrity
+Push/manual workflow only, no schedules. Same source/camera/time/geometry/fog within each pair;
+retained depth, requested controls and actual light/composer audits. Renderer memory allocation
+counters are recorded separately; simulation/draw/audit invariants remain strict. Two zero-dt
+settling frames suffice for the history-free composer; safe blank-buffer retries retain state.
+Publisher validates complete image/source bundles, appends immutable dated folders and retries
+non-force pushes from the latest archive head. This never writes or scores a gauntlet take.
+Do not queue multiple wanted captures: GitHub permits one running + one pending per group.
+Local browser access was rejected earlier; actual rendering uses CI, not a browser bypass.
 
-## Current checkpoint
-
-This source branch is a direct descendant of Fable e17f310, with no local edits to its geometry files. Twelve matched environment renders
-are prepared by new isolated capture/publication scripts and a push-triggered workflow. Actual
-light-object values and last-render composer settings are audited; source/time/camera/depth are
-retained. Publisher concurrency/history and input validation checks pass. Combined typecheck and
-build pass (103 modules). Capture results are still pending; no production lighting defaults or
-fog changes have been adopted.
-
-Root is implementing the next atmosphere candidate on this draft branch: thinner close/middle
-air (0.016/m after6 m), extra far extinction beyond60 m (0.045/m), cool gray-green ambient air
-against golden key/shafts. At25/40 m the horizontal distance-only veil changes47/65% to26/42%;
-this excludes mist/shafts and is not a rendered quality result. The first7ffe416 comparison keeps
-all Fable fog values, so it remains a separate light-only checkpoint. Geometry stays Fable's.
-Fable bb08ebc house revision is under independent source review and has not been integrated into
-this atmosphere candidate; this keeps the two checkpoint geometries identical for depth review.
-
-Published checkpoint7ffe416ff61dc900c99de52f7524674c89317e81, PR6. Actual comparison run34681762568
-is rendering; typecheck/build/integrity have passed. Reference publication now prioritizes clearly
-labeled960px JPEG previews after exact-original chunk transport proved too slow. All original PNGs
-remain preserved with hashes; no preview is represented as an exact original.
+## Known issues and Fable coordination
+- Coarse/puffy paving, sparse/planar plants, angular house roof and looping supports remain far
+  below the concepts. Fable agreed to smaller broken cells/less cushion shape inside current travel
+  envelope first (PR2 comment5644687709). Tree pass should create real clustered canopy openings.
+- Actual0062 B pale taper pixels(995,355)/(1002,371) hit ROOM FLOOR faces1556/1559, not jamb roots;
+  upper patches hit back wall. Deep room floor follows terrain+0.05 into the bank. Fable acknowledged
+  level pad/foundation/back-wall fix; not yet published. Hearth91c fixes buried assembly only.
+- Roof retains excessive domeDisp/front-face colour and a thatch normal on shared moss. Fable plans
+  rounded relief, house-specific moss normal and branched support-boughs. No W25 acceptance.
+- Actual141 F near-right paving edge shows repeated pale turf teeth, longer aftera973. Independent
+  CPU/source attribution in progress; do not compensate with darker light or blindly replace plants.
+- Far-air/trunk contrast still needs asset-aware review. Individual lamp channels clip slightly;
+  new fill/grade reduces this modestly. No global contrast escalation.
+- Character remains placeholder on this environment branch; anatomy/garments are paused elsewhere.
+- Local git push has no credentials; use verified Git Data trees/commits then normal non-force ref
+  updates and fetch/reconcile the matching local tree. Never reconstruct remote commit bytes by guess.
 
 ## Suggested parallel work
-
-Fable: house/arch/canopy and terrain/vegetation geometry, with original-source captures. Astra's
-capture helper: named actual environment comparisons with source/audit/history preservation.
-
-## Capture repair
-
-7ffe416 run34681762568 failed after A baseline when screenshot-time resource cleanup changed
-renderer textures71 to53. Camera/time/geometry/audits stayed exact; the full-stats assertion was
-incorrect for allocation bookkeeping. The focused repair records texture/geometry/program
-memory counters separately while keeping all other state invariants exact. Two zero-dt frames
-replace eight: world readiness, viewpoint LOD/placement and exact-time posing already run,
-and this composer has no temporal accumulation. A pair took nearly5 minutes at eight frames.
-
-The first atmospheric study is preserved in published23ea37a7d9ffaf6462362b1d15b1198707c89408.
-This repair temporarily restores7ffe416 fog so the first complete twelve-image checkpoint can
-be a true light-only comparison. The depth study will be re-applied for the next actual capture,
-with matching geometry and cameras. No appearance acceptance from failed/partial output.
-
-## Reference integration and world review
-
-All ten960px JPEG previews are published at agent/astra-owner-reference-previews, commit
-f5ef8bad071ace0c0426c70848619f6504f93797; tree da58bac7893b439f6a89851b060aa5d83dfbd212
-and each image/document blob verified. This merge deliberately includes that exact reference
-folder. They are clearly labeled compressed comparisons, not original PNG bytes or game renders.
-Exact originals were delivered to the owner as a verified36,516,933-byte ZIP; SHA256
-0c0dd850b99727cea5d350c48d83f6fa47a0cf52fd9dabf77680eadcb26949fc. Full PNG GitHub upload
-remains pending after large-payload timeouts. Owner explicitly authorized reference publication.
-
-Root personally viewed actual take0062 A/B/D from monitor7515c7b. The monitor makes quality82JPEG
-derivatives from the attestedbb08ebc PNGs, so these JPEG hashes are not the ledger PNG hashes.
-Independent source/camera ray review identifies B's pale inner taper as terrain-raised room floor
-faces1556/1559 at pixels(995,355)/(1002,371), not outer roots; upper patches hit the back wall.
-The deeper hearth assembly is buried. Coarse roof displacement/bright colour and retained thatch
-normal give angular pale clumps; looping support-boughs remain too regular. All findings were
-sent to Fable in PR2 comments5644600827/5644605909/5644684138. Fable retains these geometry fixes.
-No W25 pass, new score or completed visual target is asserted. Geometry changes aftere17 remain
-unintegrated here while light/depth pairs retain the same geometry.
-
-Root also fixes a concrete lighting inconsistency: ray brightness now follows actual directional
-sun intensity, normalized at the prior3.1 calibration. Zero sun gives zero sun shafts; the same
-shadow-map visibility still decides where rays appear. Audits retain the actual key and scale.
-The ordinary3.1 key keeps its previous ray brightness. Combined typecheck/build pass103modules.
-
-Fixed baseline run34682349834 onf6a33ea is pending behind atmospheric study23ea's ongoing run.
-Avoid another source push until that fixed baseline starts, because GitHub concurrency keeps
-only one pending run. The preserved23ea study may itself complete; inspect actual results before
-reapplying the fog values. No background schedules are created.
-
-## Reviewed environment adoption
-
-The complete23ea study is published at captures/astra-environment commitd5c37b0, folder
-progress/2026-09-12_082225685-23ea37a. All12JPEGs, source/tree and state contracts are verified.
-Root personally reviewed every camera. The candidate improves trunk/arch layering, stair contacts,
-paver dapple and colour separation. Near foliage is dark and bright lamps clip individual channels;
-coarse paving, plant cards and house construction remain unresolved. B/E are identical cameras,
-so12 named files contain10 distinct images. This is not a gauntlet pass or a finished target.
-
-Adopting that reviewed candidate as production: key3.6, cool hemi0.6, IBL0.3, unblended authored
-hemi colours, AO0.5, contrast1.08, no pedestal, reduced green warming/compression and bloom0.18,
-video-softening disabled. Restore the reviewed23ea thinner/cooler fog. Sun-coupled shaft gain is
-normalized to preserve the reviewed rendered1.8 at key3.6 (setting1.55 at calibration3.1).
-Next diagnostic candidate ONLY increases cool fill to0.68/0.34 and eases contrast1.04/AO0.45 to
-retain near-leaf detail. Baseline now means adopted23ea controls, not earlier Fable defaults.
-
-Fable fetched at a97302e: hearth91c0886, owner-reference readff2f131 and vegetation contracts
-reconcileda97302e. No overlap with lighting. These geometry changes remain unintegrated until
-same-geometry comparison finishes. PR2 comment5644760641 shares actual gallery and findings.
-Old-fog controlf6a succeeded08:30UTC, archive8a3deccb; all12 actual images are now under review.
-
-## Next integration boundary
-
-Published adoptionf11517e, tree8f49bd3f14b359590519ed3c8ccd23c0a21a3d03; capture is running.
-Its authored hemiGround also rebuilds the procedural sky lower hemisphere/IBL, unlike23ea's
-runtime-only hemisphere override. This is a coherent ground-bounce update, but the adoption is
-not claimed pixel-identical; actual images will be reviewed. Shaft gain remains1.8 at key3.6.
-
-Fable cross-reviewed actual23ea in PR2 comment5644770204: form separation improved; retain bright
-air between dark trunks, improve physically cast canopy dapple, and record the footage's
-camera-relative shaft direction mismatch. Root reply5644806338 keeps a coherent world-space key
-for gameplay/new boards and requests real clustered canopy openings from the tree pass.
-No screen-painted shadow pattern or camera-following sun is being added.
-
-Read-only review confirms a97302e vegetation can be integrated independently onto e17 geometry:
-mask-derived planted plaza/bank rims, coherent edge litter, white-clump placement and restored
-placement contracts. Root applied those four files byte-for-byte: exact diff against a973 vegetation is empty.
-Typecheck/build103modules and all five affected vegetation suites pass (placement, shader wind,
-LOD, flower reduction and disposal). These CPU checks do not claim visual acceptance.
-Housebb08/91c changes remain held until Fable publishes the announced floor/back-wall/roof fixes;
-the deeper room still exposes a terrain-raised floor through the opening. No W25 acceptance.
-
-## Foreground refinement and upper-sky study
-
-Actualf115 comparison completed08:45UTC, archive5f45234e, folder
-progress/2026-09-12_084515200-f11517e. Root/helper independently reviewed A/B/C/D/F; candidate
-hemi0.68/IBL0.34/contrast1.04/AO0.45 restores modest shadow detail and is adopted. P10 rises
-0.017–0.022 while P90 changes0.002–0.009; these display-space statistics support the visual read,
-not an independent quality score. f115 baseline has exact23ea candidate camera/time/geometry/depth
-and rendered shaft gain1.8. Rebuilt sky ground bounce changes pixel bytes slightly (mean absolute
-channel difference0.70–0.84/255), not a visible broad direction change. All12files/source verified.
-
-Next narrow hypothesis: the shared sky gives closed-direction upper gaps a0.30 share of zenith
-radiance while leaving the horizon, thin fog and ray settings unchanged. Actual canopy geometry
-still occludes the dome. The environment map is rebuilt from the same shader, so indirect light
-also changes; do not compensate it preemptively or claim this is a fog-density change. This is
-an unaccepted appearance study until actual capture. Baseline controls explicitly retainf115's
-prior production fill/contrast/AO; candidate uses the new no-hook production refinement. Both
-columns share the same new sky and the integrateda973 planted-rim geometry.
-
-## Shadow motion correction under investigation
-
-Root owns this lighting-only change. The current46m orthographic window snaps its target in
-world X/Z at1m increments, which are fractional texels in the rotated light-space4096 map. Terrain
-height changes also move its projected Y phase. This can resample static shadow edges during
-walking. Replace that target quantization with the actual shadow camera right/up axes and exact
-92/4096m texels; keep sun direction, window extent, resolution, PCSS filter/bias and terrain-centred
-coverage. Validate against Three.js real LightShadow matrices along camera/height paths, including
-a negative control showing old world-grid phase drift. Actual screenshot/motion review is still
-needed; this does not claim all aliasing or moving-leaf shimmer is eliminated.
-Technique reference: https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps#moving-the-light-in-texel-sized-increments
-Source check: installed three/src/lights/LightShadow.js updateMatrices uses shadow-camera lookAt.
-
-The implemented snapper passes7,680 actual shadow-coordinate checks across two sun bearings,
-two map sizes and walking/turning/terrain paths. Worst fractional phase residual is2.96e-12 texel;
-the old world-metre negative control reaches0.499 texel. Snapping moves the desired centre by
-at most half a texel per light axis and preserves its depth component. Test uses Three.js real
-DirectionalLight/LightShadow matrices; no GPU-motion or all-aliasing claim. Typecheck/build pass
-104modules. The focused check is added only to Astra's existing push/manual workflow.
+Fable: floor/back-wall/roof construction, canopy openings/dark trunk geometry, smaller paving.
+Capture helper: retrieve/verify actual141/a573 galleries and report visible regressions.
+Read-only reviewer: attribute F turf teeth to exact generator/mesh; preserve other-agent ownership.
 
 ## Last updated
-2026-09-12T08:58:04.892374+00:00
+2026-09-12T09:06:27.176486+00:00

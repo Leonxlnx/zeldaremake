@@ -19,7 +19,6 @@ import { createSkyDome, SKY_ENV_TINT } from '../atmosphere/sky';
 import { buildSkyEnvironment } from './environment';
 import { installShadowFilter, SHADOW_FILTER_DEFAULTS } from './shadowfilter';
 import { createShadowTargetSnapper } from './shadowframe';
-import { WORLD } from '../config';
 
 export { sunDirection } from './sun';
 
@@ -28,14 +27,6 @@ const SHADOW_AHEAD_M = 18;
 const SUN_DISTANCE_M = 140;
 const SHADOW_NEAR_M = 40;
 const SHADOW_FAR_M = 250;
-
-// Must run before any material compiles: replaces the BASIC shadow lookup with the PCSS filter.
-const SHADOW_FILTER = {
-  ...SHADOW_FILTER_DEFAULTS,
-  depthRangeM: SHADOW_FAR_M - SHADOW_NEAR_M,
-  texelM: (2 * SHADOW_RADIUS_M) / WORLD.sun.shadowMapSize,
-};
-const shadowFilterInstalled = installShadowFilter(SHADOW_FILTER);
 
 /**
  * Tuning aid (unset in production): `globalThis.__ATMO_LIGHT__ = { sunIntensity, hemiIntensity,
@@ -58,6 +49,17 @@ export function create(ctx: WorldContext): WorldSystem {
   group.name = 'lighting';
   const s = ctx.config.sun;
   const dir = sunDirection(s.azimuthDeg, s.elevationDeg);
+  // Three clamps oversized maps on first render. Resolve that size now so the actual
+  // map, stable target lattice and metre-based PCSS filter all use the same texels.
+  const shadowMapSize = Math.min(s.shadowMapSize, ctx.renderer.capabilities.maxTextureSize);
+  const shadowTexelM = (2 * SHADOW_RADIUS_M) / shadowMapSize;
+  const SHADOW_FILTER = {
+    ...SHADOW_FILTER_DEFAULTS,
+    depthRangeM: SHADOW_FAR_M - SHADOW_NEAR_M,
+    texelM: shadowTexelM,
+  };
+  // Lighting is constructed first, before the environment or any world material compiles.
+  const shadowFilterInstalled = installShadowFilter(SHADOW_FILTER);
 
   // BASIC keeps the sun's depth map readable (raw depth, no compare sampler); the lookup itself is
   // the PCSS filter in shadowfilter.ts, which needs the occluder depth for its distance-dependent
@@ -71,7 +73,7 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.name = 'sun';
   sun.position.copy(dir).multiplyScalar(SUN_DISTANCE_M);
   sun.castShadow = ctx.quality.shadows;
-  sun.shadow.mapSize.set(s.shadowMapSize, s.shadowMapSize);
+  sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
   sun.shadow.camera.near = SHADOW_NEAR_M;
   sun.shadow.camera.far = SHADOW_FAR_M;
   sun.shadow.camera.left = -SHADOW_RADIUS_M;
@@ -79,7 +81,6 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.shadow.camera.top = SHADOW_RADIUS_M;
   sun.shadow.camera.bottom = -SHADOW_RADIUS_M;
   sun.shadow.camera.updateProjectionMatrix();
-  const shadowTexelM = (2 * SHADOW_RADIUS_M) / s.shadowMapSize;
   const snapShadowTarget = createShadowTargetSnapper(dir, sun.shadow.camera.up, shadowTexelM);
   sun.shadow.bias = -0.00012;
   sun.shadow.normalBias = 0.028;
@@ -126,6 +127,7 @@ export function create(ctx: WorldContext): WorldSystem {
     sunColor: `#${sunColor.getHexString()}`,
     shadows: sun.castShadow,
     shadowMapSize: sun.shadow.mapSize.x,
+    shadowMapRequestedSize: s.shadowMapSize,
     shadowType: shadowFilterInstalled ? 'pcss-vogel+canopy-transmission' : 'basic',
     shadowWindowRadiusM: SHADOW_RADIUS_M,
     shadowSnapSpace: 'light-camera-texel',
