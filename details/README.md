@@ -4,20 +4,21 @@ Four actual production closeups per checkpoint: sign front, sign oblique, stair-
 
 [Environment comparisons](../)
 
-## Latest rendered details — e8ccfe6
+## Latest rendered details — 5fa3f77
 
-Captured 2026-09-12T21:11:21.078Z. [Open the full checkpoint and source metadata](2026-09-12_211121078-e8ccfe6/).
+Captured 2026-09-12T21:39:35.027Z. [Open the full checkpoint and source metadata](2026-09-12_213935027-5fa3f77/).
 
 | Sign from the front | Sign from the path |
 | --- | --- |
-| [![Sign from the front](2026-09-12_211121078-e8ccfe6/S01-sign-front.jpg)](2026-09-12_211121078-e8ccfe6/S01-sign-front.jpg) | [![Sign from the path](2026-09-12_211121078-e8ccfe6/S02-sign-oblique.jpg)](2026-09-12_211121078-e8ccfe6/S02-sign-oblique.jpg) |
+| [![Sign from the front](2026-09-12_213935027-5fa3f77/S01-sign-front.jpg)](2026-09-12_213935027-5fa3f77/S01-sign-front.jpg) | [![Sign from the path](2026-09-12_213935027-5fa3f77/S02-sign-oblique.jpg)](2026-09-12_213935027-5fa3f77/S02-sign-oblique.jpg) |
 | Stair-foot leaf lantern | Fork-west lantern post |
-| [![Stair-foot leaf lantern](2026-09-12_211121078-e8ccfe6/L01-stair-foot-bindings.jpg)](2026-09-12_211121078-e8ccfe6/L01-stair-foot-bindings.jpg) | [![Fork-west lantern post](2026-09-12_211121078-e8ccfe6/L02-fork-west-lantern.jpg)](2026-09-12_211121078-e8ccfe6/L02-fork-west-lantern.jpg) |
+| [![Stair-foot leaf lantern](2026-09-12_213935027-5fa3f77/L01-stair-foot-bindings.jpg)](2026-09-12_213935027-5fa3f77/L01-stair-foot-bindings.jpg) | [![Fork-west lantern post](2026-09-12_213935027-5fa3f77/L02-fork-west-lantern.jpg)](2026-09-12_213935027-5fa3f77/L02-fork-west-lantern.jpg) |
 
 ## All checkpoints
 
 | Captured UTC | Source | Detail views |
 | --- | --- | --- |
+| 2026-09-12T21:39:35.027Z | [5fa3f77](https://github.com/Leonxlnx/zeldaremake/commit/5fa3f774c121a78fe8b520540a4b9ff9d2444de9) | [4 images](2026-09-12_213935027-5fa3f77/) |
 | 2026-09-12T21:11:21.078Z | [e8ccfe6](https://github.com/Leonxlnx/zeldaremake/commit/e8ccfe6779a8b89bb8fbb1362b58c247598a4b57) | [4 images](2026-09-12_211121078-e8ccfe6/) |
 | 2026-09-12T20:44:25.389Z | [e2ee5f0](https://github.com/Leonxlnx/zeldaremake/commit/e2ee5f076774ab36d1e751b1f1753781795a417d) | [4 images](2026-09-12_204425389-e2ee5f0/) |
 | 2026-09-12T20:09:03.738Z | [9ef903c](https://github.com/Leonxlnx/zeldaremake/commit/9ef903c58c3ee70eccaf919d565a1eb19cd1bef1) | [4 images](2026-09-12_200903738-9ef903c/) |
