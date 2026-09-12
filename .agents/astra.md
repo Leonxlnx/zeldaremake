@@ -4,12 +4,44 @@ runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
 status: active
 branch: agent/astra-link-movement
-updated: 2026-09-11T23:54:20.961917+00:00
+updated: 2026-09-12T00:05:39.424226+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Composed eye-anchor change passed typecheck/build145modules and static-batching invariants:
+73→67 meshes,173,564 triangles,1,508,256 sampled positions/normals exact; UV/material/
+shadow/disposal/boot/NPC checks passed. Publishing for actual face/profile/blink review.
+
+### 2026-09-12 — eye placement and motion checkpoint
+
+Integrating one initial eye-anchor change0576ce53 over shoulder0520d44: Link-soft X.046,
+Y.009. Root read authorf0e3b4b3 and independent0478c942. Fresh orbital/lid reconstruction,
+unchanged eye curvature/pigment/timing and brows/hair. Nine blinks and actual complete
+triangle checks pass: hair gap.747032mm, brow.985708mm, white/skull.669868mm. All66
+nonocular meshes and three NPC variants exact;40 retained original skull positions move
+inside the union of old/new support;6474 original positions/normals and all6514 original
+colors exact. Rebuilt ocular cap refits to the new surface; cloth cap is unaffected.
+Adds4326 skull triangles, predicted actor173564. Actual06/12/17/18 will judge placement.
+
+Cap-motion fb5355e actual verified and sent: archive918b4b72, folder
+progress/2026-09-11_235706-fb5355e, captured23:57:06.057UTC;18 JPGs/42 video states,
+all same source/lighting/cameras/inputs as9c, empty diagnostics/zero retries. No obvious
+new attachment break in12/15/16; distant clip occludes root, so not a universal proof.
+Static shelf/blade remains. Cap remesh first±15mm guide-fit bound failed pommel clearance;
+corrected stored constraints require46.876mm local shift, deepest paired rear−304.817mm.
+Authorized one±50mm art correction fit with same−305mm rear envelope and unchanged
+2mm gaps/1mm coveredroot. No physical gate relaxation or production remesh yet.
+
+Published reproducible P3 numerical checkpoint22cea13526bf001ecd6d139c0c4663e98843038d
+on recovery branch: tree d9905ae88bfca3659cc1de290a7aa063de08ee88 exact. Manifest57 files
+plus manifest0c695ec5; relocated replay matches all48 pieces/640 samples and12 semantic
+hashes. Prior experiments/src/public subtrees exact. Typecheck/build140modules passed.
+New isolated P4 covers nextleft touchdown and53 consumed live fixed intervals with actual
+path gate; stop atframe80 invalidates atomically. Stopping replacement trajectory and
+startup/walk/jump/restart integration remain, so no production movement release.
 
 Shoulder composition passed typecheck/build (145 modules) and the existing static-batching
 invariants:73→67 meshes,169,238 triangles,1,508,256 sampled vertices/normals exact,

@@ -189,7 +189,9 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     eye.name = 'eye';
     const k = r / 0.125;
     const soft = !!opts.softFeatures;
-    eye.position.set(side * 0.05 * k, -0.002 * k, r * (soft ? 0.94 : 0.84));
+    // Link's sockets and lid fit are constructed from this shared initial frame.
+    eye.position.set(side * (soft ? 0.046 : 0.05) * k,
+      (soft ? 0.009 : -0.002) * k, r * (soft ? 0.94 : 0.84));
     if (soft) {
       eye.rotation.y = side * 0.4;
       // Recess the whole aperture along its own normal. The rim's outer depth
