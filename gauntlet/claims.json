@@ -573,6 +573,32 @@
       "at": "2026-09-12T07:25:30.044Z",
       "expiresHours": 3,
       "scope": "Owner changed priority to environment. Astra separate lighting/postfx/shadow/depth comparison branch based on Fable501b350; Fable retains geometry. PR2 coordination5644445067."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W26",
+        "W27"
+      ],
+      "at": "2026-09-12T09:11:41.971Z",
+      "expiresHours": 3,
+      "scope": "Fable explicitly handed off signpost.ts and lanternPost.ts at PR2 comment5644903321. Owner environment detail, board06; no house/shared-material/branch/arch/fence edits."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W26",
+        "W27",
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W36"
+      ],
+      "at": "2026-09-12T12:10:13.905Z",
+      "expiresHours": 3,
+      "scope": "Owner environment-only continuation. Fable explicit signpost/lanternPost handoff comment5644903321; root lighting/post/fog. No house/shared-material/hardscape production edits."
     }
   ]
 }

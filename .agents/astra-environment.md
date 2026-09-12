@@ -18,14 +18,38 @@ published slices deliberately, never overwrites the other agent's branch or log.
 This branch starts from Fable e17f310. Fable a97302e vegetation is now copied byte-for-byte:
 mask-derived planted plaza/bank rims, edge litter and repaired placement contracts. All five
 vegetation suites pass. Housebb08/91c changes remain held for the announced floor/back-wall/roof
-repair. Latest fetched Fable heada97302e; status/safe-props-scope requested in PR2 comment5644897947.
+repair. Latest fetched Fable headdf3cd52: board-directed house detail, smaller paving bb11762,
+column trees ddd24fd. Review found column roots float up to1.156m on authored slopes because
+local rootButtress gets ground=0; final whole-seat review max2.67449m,316/784 samples>3cm.
+Exact witnesses sent PR2 comments5645811141/5645817532. Paving bb11762 has95 inverted top
+triangles on19 stones from non-star V-notches; Fable asked to constrain/triangulate these caps. Hold tree slice
+for contact repair. House floor/back-wall follow-up still pending; hardscape independently checked.
+Fable09:04 handoff (PR2 comment5644903321) explicitly frees props/**, signpost.ts and
+lanternPost.ts. Astra now edits the two standalone structure builders only: root lantern binding/
+wood detail; helper sign plank/peg/joinery. W26/W27 and lighting claims renewed12:10 through15:10UTC. Shared house,
+materials, foliage, structures index, branch, arch and fence remain Fable-owned and untouched.
 
 ## Files / systems touched
 - `src/world/lighting/`, `src/world/postfx/`, `src/world/atmosphere/`, related `config.ts` fields.
 - `reference/owner-concept-previews/`: exact published preview-folder integration from own branch.
 - Four `src/world/vegetation/` files: exact Fablea973 integration only, no Astra geometry rewrite.
 - Isolated `gauntlet/scripts/*environment*` capture/publication tools and own push/manual workflow.
+- `src/world/structures/{signpost,lanternPost}.ts`: board06 detail, placement/rig contracts preserved.
 - Own log and PR2/PR6 coordination. Locked rubric/ledger/scoring definitions unchanged.
+
+## Current prop checkpoint
+- Owner reaffirmed environment-only cooperation12:07; character work is postponed for Blender MCP
+  on the owner's local PC later. No promised unattended15h execution or schedules.
+- Lantern posts: continuous4-turn binding, tied return,2-turn suspension at unchanged swing pivot,
+  subtle rope fibre ridges and two pruned branch scars/cut faces. Existing original materials only.
+- CPU before/after checks on both authored posts: pod/light/phase/amp/speed/foliage/base/next RNG
+  exact;2,598 added triangles per post, no new degenerate triangles (28 existing pod-pole tris).
+- Sign: deliberately reuses earlier Astra5c179b4 beveled-face/binding work, extends it to two boards
+  with a real10mm joint, rear cleats and through-pegs. Split rune surfaces preserve atlas placement.
+ 64actual ray checks put runes0.9997–1.0002mm above wood;4peg tails4mm inside cleats, heads
+ 3.5mm above rune plane; joint ray-tested open. Base/post vertices/roll/determinism exact;
+ +987triangles, still2 meshes. Typecheck/build104modules and source anti-cheat pass.
+- Actual closeup capture support is a separate follow-up. Build/source checks are not visual acceptance.
 
 ## Production decisions
 - Golden key3.6 at existing azimuth−128/elevation38; cool hemisphere0.68, IBL0.34,
@@ -55,7 +79,7 @@ Each contains12 named JPEGs and raw metadata. B/E share a saved camera/time, hen
 | f11517e | Adopted23ea lighting/fog; compared modest near-shadow refinement. Actual gallery `progress/2026-09-12_084515200-f11517e`, archive5f45234. |
 | c869c365 | Exact Fablea973 planted-rim integration. |
 | 141082b | Adopted near-shadow refinement + shared upper-gap sky study. Actual gallery `progress/2026-09-12_090056345-141082b`, archive2d4f6b4. |
-| a57309c | Light-camera texel snapping + focused matrix regression check. Actual capture running since09:01:31UTC; stills will not establish GPU motion quality. |
+| a57309c | Light-camera texel snapping + focused matrix regression check. Actual gallery `progress/2026-09-12_090949115-a57309c`, archive1f7d985; static contact regression passes, no GPU motion verdict. |
 
 Root/helper personally reviewed all five distinct23ea/f115/141 views; actual byte/source checks pass.
 23ea vsf6: camera/time/controls/scene/layout/character/depth match; only productionheightfog differs.
@@ -89,7 +113,9 @@ PR7. These are clearly labeled compressed comparisons, never game scenery or ori
 Original PNG upload stalled on large payloads; no rejected approval or successful-original-upload
 claim. Exact originals were delivered as a verified36,516,933-byte ZIP, SHA256
 0c0dd850b99727cea5d350c48d83f6fa47a0cf52fd9dabf77680eadcb26949fc. Owner authorized publication.
-Verified screenshot ZIPs for23ea/f6/f115 have been delivered;141 packaging follows verification.
+Verified screenshot ZIPs for23ea/f6/f115/141/a573 are available. a600 gallery
+`progress/2026-09-12_091904465-a600f52` verified against archive1d1d0a8: all12 JPEGs byte-identical
+toa573 at actual4096. This does not exercise a real lower-limit GPU or moving-camera rendering.
 Source ZIPf115 was delivered with CRC verification; newer source remains available on the branch.
 
 ## Capture integrity
@@ -111,8 +137,9 @@ Local browser access was rejected earlier; actual rendering uses CI, not a brows
   level pad/foundation/back-wall fix; not yet published. Hearth91c fixes buried assembly only.
 - Roof retains excessive domeDisp/front-face colour and a thatch normal on shared moss. Fable plans
   rounded relief, house-specific moss normal and branched support-boughs. No W25 acceptance.
-- Actual141 F near-right paving edge shows repeated pale turf teeth, longer aftera973. Independent
-  CPU/source attribution in progress; do not compensate with darker light or blindly replace plants.
+- Actual141 F near-right paving edge shows repeated pale turf teeth, longer aftera973. CPU rays identify hardscape flagstone-joints: whole20cm quads kept by any paved corner climb
+  the bank. Six named tips hit that mesh, at terrain+8mm; not floating plants. Scratch clipping
+  proposal for Fable preserves terrain triangles and current exclusions; no production hardscape edit.
 - Far-air/trunk contrast still needs asset-aware review. Individual lamp channels clip slightly;
   new fill/grade reduces this modestly. No global contrast escalation.
 - Character remains placeholder on this environment branch; anatomy/garments are paused elsewhere.
@@ -121,8 +148,9 @@ Local browser access was rejected earlier; actual rendering uses CI, not a brows
 
 ## Suggested parallel work
 Fable: floor/back-wall/roof construction, canopy openings/dark trunk geometry, smaller paving.
-Capture helper: retrieve/verify actual141/a573 galleries and report visible regressions.
-Read-only reviewer: attribute F turf teeth to exact generator/mesh; preserve other-agent ownership.
+Capture helper: verify a600 device-limit follow-up against a573; skip duplicate visual review if exact.
+Geometry helper: scratch-only joint boundary proposal for Fable, no production hardscape edits.
+Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T09:06:27.176486+00:00
+2026-09-12T12:15:26.341606+00:00
