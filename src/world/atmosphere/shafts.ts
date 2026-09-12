@@ -51,8 +51,8 @@ export const CANOPY_BEAM_CAPACITY = 8;
 
 /**
  * Only the upper flight currently needs a mask opening: its real sun corridor falls in the
- * noise field's 5% floor. The other published pools keep their existing air treatment. Gain 1
- * removes that mask suppression without borrowing the legacy narrow shafts' 7.5x gain.
+ * noise field's 5% floor. The other published pools keep their existing air treatment. Gain is
+ * local to this mask: it never enters the legacy column term that bypasses the lower-air fade.
  */
 export function createCanopyOpeningMask(sunRight: Vector3, sunUp: Vector3) {
   const gaps = Array.from({ length: CANOPY_BEAM_CAPACITY }, () => new Vector4());
@@ -62,15 +62,15 @@ export function createCanopyOpeningMask(sunRight: Vector3, sunUp: Vector3) {
   return {
     gaps,
     count,
-    update(openings: readonly SharedCanopyOpening[], enabled: boolean) {
+    update(openings: readonly SharedCanopyOpening[], enabled: boolean, gain: number) {
       publishedCount = openings.length;
       active = undefined;
       count.value = 0;
       for (const gap of gaps) gap.set(0, 0, 0, 0);
       const opening = enabled ? openings.find((o) => o.id === 'flight-top') : undefined;
-      if (!opening || opening.radius <= 0) return;
+      if (!opening || opening.radius <= 0 || !Number.isFinite(gain) || gain <= 0) return;
       const p = new Vector3(...opening.point);
-      gaps[0].set(p.dot(sunRight), p.dot(sunUp), Math.min(1, opening.radius), 1);
+      gaps[0].set(p.dot(sunRight), p.dot(sunUp), Math.min(1, opening.radius), gain);
       active = opening;
       count.value = 1;
     },

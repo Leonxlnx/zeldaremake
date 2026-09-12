@@ -6,6 +6,16 @@ Own branch `agent/astra-environment-lighting`, draft PR6 against Fable's world b
 
 ## Current task
 
+Published leaf/PACKS checkpoint: 561345b03d1e12c0552921678f63fbe14054abd4, tree
+2afa21cb79f94af763225053226a3bf171dd0164. PR2 comment 5646502912 reports the exact scope and
+our next light study. Root now applies the reviewed four-file beamCanopyGain patch and changes
+the isolated comparison to gain 1 versus production gain 3. The default gain is a candidate for
+actual review, not an accepted improvement. No change to geometry, ray radius, occlusion, global
+sun/fog/density, lower-air fade or legacy columns. Capture helper verifies the pinned leaf/PACKS
+source while the sign helper makes a scratch-only chisel-response proposal. Fable retains
+vegetation-13 and structures-15. f630's final 12+4 images passed; root reviewed F/S01/S02 and agrees
+that bark grain and sign legibility improve, while glyph relief remains too shallow.
+
 The next checkpoint applies the reviewed hedge PACKS line and reuses original leaf-wrapped pods
 for the two freestanding lantern posts. Typecheck, build (107 modules), source anti-cheat,
 plant/LOD contracts and the applied f630 geometry replay pass. This removes an estimated 202,648
@@ -324,4 +334,4 @@ Geometry helper: scratch-only joint boundary proposal for Fable, no production h
 Sign helper: signpost.ts only; root lanternPost.ts; preserve shared material/placement ownership.
 
 ## Last updated
-2026-09-12T14:25:24.267919+00:00
+2026-09-12T14:28:44.968177+00:00

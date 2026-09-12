@@ -1,5 +1,7 @@
 # Top-flight canopy light study
 
+Historical implementation note for ccc7e7f. Its actual images show only a subtle improvement; the subsequent controlled gain study is documented in [2026-09-12-top-flight-gain.md](2026-09-12-top-flight-gain.md).
+
 The existing top-flight canopy opening is real geometry from Fable a05ffb0. Its air axis falls in the volumetric mask's5% noise floor because that mask only knows six older shaft columns. This pass admits that one opening to the mask while keeping the real sun-shadow lookup decisive. It does not brighten the sun, change fog density or carve more foliage.
 
 Fable released the additive shared contract in PR2comment5646240291. Trees now publish all seven resolved openings through `ctx.shared.canopyOpenings`, after construction. Their existing terrain-anchored points and sun axes are copied without extra terrain samples or RNG draws. Only the top entry receives the semantic id `flight-top`. Atmosphere reads through a deferred callback because it is constructed before trees.

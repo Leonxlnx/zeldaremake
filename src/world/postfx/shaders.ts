@@ -157,7 +157,7 @@ uniform float uBeamNoiseMax; // openness of the noise gaps (the fixed columns ar
 uniform vec3 uFarAir;      // (start m, end m, mean openness): past the end the gap pattern is replaced by its mean
 uniform vec2 uGapHollow;   // world z where the canopy closes over the north hollow: gaps start fading / are gone
 uniform vec4 uGaps[ GAPS ]; // fixed open columns: (sun-plane x, sun-plane y, radius m, in-scatter gain); radius 0 = unused
-uniform vec4 uCanopyGaps[ CANOPY_GAPS ]; // deferred terrain-anchored openings, gain 1
+uniform vec4 uCanopyGaps[ CANOPY_GAPS ]; // deferred terrain-anchored openings, xy sun plane / z radius / w local gain
 uniform int uCanopyGapCount;
 varying vec2 vUv;
 #define STEPS 24
@@ -197,7 +197,7 @@ float canopyOpeningMask( vec3 pw ) {
     if ( i >= uCanopyGapCount ) break;
     float r = uCanopyGaps[ i ].z;
     if ( r <= 0.0 ) continue;
-    open = max( open, 1.0 - smoothstep( r * 0.7, r, length( q - uCanopyGaps[ i ].xy ) ) );
+    open = max( open, uCanopyGaps[ i ].w * ( 1.0 - smoothstep( r * 0.7, r, length( q - uCanopyGaps[ i ].xy ) ) ) );
   }
   return open;
 }

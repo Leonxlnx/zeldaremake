@@ -1,16 +1,16 @@
 {
   "schema": "zeldaremake.environment-variants.v1",
-  "baselineSource": "d7ddc01bc74151a0f93fa19f7a6e9b37c99fa09f",
+  "baselineSource": "561345b03d1e12c0552921678f63fbe14054abd4",
   "time": 12.5,
   "baseline": {
-    "label": "Current world with the existing six shaft columns; new top-flight mask disabled",
+    "label": "Current world with the real shadow-tested top-flight opening at local gain 1",
     "light": null,
     "post": {
-      "beamCanopyOpenings": false
+      "beamCanopyGain": 1
     }
   },
   "candidate": {
-    "label": "Same world with the real top-flight opening admitted by the shadow-tested volumetric mask",
+    "label": "Same world and 1 m opening with local gain 3; global light, fog and legacy shafts unchanged",
     "light": null,
     "post": null
   }

@@ -76,7 +76,7 @@ assert.equal(counter.value, 1);
 assert.equal(composer.audit().godRayCanopyOpeningMask.publishedCount, 7);
 assert.equal(composer.audit().godRayCanopyOpeningMask.entries[0].id, 'flight-top');
 assert.deepEqual(composer.audit().godRayCanopyOpeningMask.entries[0].point, top.point);
-const point = new T.Vector3(...top.point), expected = [point.dot(right), point.dot(up), 1, 1];
+const point = new T.Vector3(...top.point), expected = [point.dot(right), point.dot(up), 1, 3];
 assert.deepEqual(array[0].toArray(), expected);
 for (const distance of [-20, -1, 0, 5, 40]) {
   const along = point.clone().addScaledVector(sunDir, distance);
@@ -89,6 +89,30 @@ assert.ok(wrongAxisOffset > 3.61 && wrongAxisOffset < 3.62);
 const legacyBefore = material.uniforms.uGaps.value.map(v => v.toArray());
 const densityBefore = material.uniforms.uDensity.value.toArray();
 const fadeBefore = material.uniforms.uAirFade.value.toArray();
+assert.equal(composer.audit().effectiveSettings.beamCanopyGain, 3);
+assert.equal(composer.audit().godRayCanopyGain, 3);
+assert.equal(composer.audit().godRayCanopyOpeningMask.entries[0].gain, 3);
+for (const gain of [1, 3, 0, 1, 3]) {
+  globalThis.__ATMO_SETTINGS__ = { beamCanopyGain: gain };
+  composer.render(0);
+  assert.equal(counter.value, gain > 0 ? 1 : 0);
+  assert.equal(composer.audit().godRayCanopyGain, gain);
+  if (gain > 0) {
+    assert.deepEqual(array[0].toArray(), [...expected.slice(0, 3), gain]);
+    assert.equal(composer.audit().godRayCanopyOpeningMask.entries[0].gain, gain);
+  } else {
+    assert.ok(array.every(v => v.toArray().every(n => n === 0)), 'Zero gain adds no mask');
+    assert.deepEqual(composer.audit().godRayCanopyOpeningMask.entries, []);
+  }
+  assert.equal(material.uniforms.uCanopyGaps.value, array);
+  for (let i = 0; i < 8; i++) assert.equal(array[i], vectors[i]);
+  assert.equal(material.uniforms.uCanopyGapCount, counter);
+  assert.equal(material.version, version, 'Runtime gain does not request a shader recompile');
+  assert.deepEqual(material.defines, defines);
+  assert.deepEqual(material.uniforms.uGaps.value.map(v => v.toArray()), legacyBefore);
+  assert.deepEqual(material.uniforms.uDensity.value.toArray(), densityBefore);
+  assert.deepEqual(material.uniforms.uAirFade.value.toArray(), fadeBefore);
+}
 globalThis.__ATMO_SETTINGS__ = { beamCanopyOpenings: false };
 composer.render(0);
 assert.equal(counter.value, 0);
@@ -135,9 +159,25 @@ for (const axis of ['x', 'y', 'z']) for (const outside of [-.001, 1.001]) {
 }
 assert.equal(permits(1, 1, { x: .5, y: .5, z: 0 }), true, 'Near-plane depth is valid');
 assert.equal(permits(1, 1, { x: 0, y: .5, z: .5 }), false, 'Unsampled map edge stays excluded');
+// Evaluate the production mask expression, retaining its actual gain and edge arithmetic.
+const maskBody = shader.split('float canopyOpeningMask( vec3 pw ) {')[1].split('return open;')[0];
+const maskExpression = maskBody.match(/open = (max\( open, .*?);/)[1]
+  .replace('length( q - uCanopyGaps[ i ].xy )', 'distance');
+const sampleMask = new Function('uCanopyGaps', 'i', 'r', 'distance', 'open', 'max', 'smoothstep',
+  `return ${maskExpression};`);
+const smoothstep = (lo, hi, value) => {
+  const t = Math.max(0, Math.min(1, (value - lo) / (hi - lo)));
+  return t * t * (3 - 2 * t);
+};
+for (const gain of [0, 1, 3]) for (const [distance, edge] of [[0, 1], [.7, 1], [.85, .5], [1, 0], [1.1, 0]]) {
+  const actual = sampleMask([{ w: gain }], 0, 1, distance, 0, Math.max, smoothstep);
+  assert.ok(Math.abs(actual - gain * edge) < 1e-12, 'Local gain scales the same 1 m feathered mask');
+  assert.equal(sampleMask([{ w: gain }], 0, 1, distance, 4, Math.max, smoothstep), 4,
+    'The local opening cannot reduce an inherited stronger mask');
+}
 composer.dispose(); shadowMap.depthTexture.dispose();
 console.log(JSON.stringify({ passed: true, scope: 'CPU lifecycle/uniform/axis/guard checks; no GPU render',
-  published: 7, active: 1, groundAnchor: top.point, sunPlane: expected.slice(0, 2), radius: 1, gain: 1,
+  published: 7, active: 1, groundAnchor: top.point, sunPlane: expected.slice(0, 2), radius: 1, defaultGain: 3, testedRuntimeGains: [1, 3, 0],
   wrongZeroHeightAxisOffsetM: wrongAxisOffset, legacyColumnsPreserved: 6, stableUniformSlots: 8,
   shaderRecompileRequests: 0,
 }));
