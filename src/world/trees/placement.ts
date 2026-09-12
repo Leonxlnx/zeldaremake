@@ -39,19 +39,27 @@ export interface WhiteBarkResult {
   reseated: number;
 }
 
-/** pinhole projection matching three.js PerspectiveCamera (vertical fov, lookAt with +Y up) */
-function gapCamera(g: ViewGap) {
-  const forward = g.target.clone().sub(g.position).normalize();
+/**
+ * Pinhole projection matching three.js PerspectiveCamera (vertical fov, lookAt with +Y up):
+ * world point → [screen x (0..1 left→right), screen y (0..1 top→bottom), forward depth m], or
+ * null behind the camera.
+ */
+export function viewProjector(position: Vector3, target: Vector3, fov: number, aspect: number) {
+  const forward = target.clone().sub(position).normalize();
   const right = new Vector3(-forward.z, 0, forward.x).normalize();
   const up = new Vector3().crossVectors(right, forward);
-  const th = Math.tan((g.fov * Math.PI) / 360);
+  const th = Math.tan((fov * Math.PI) / 360);
   const d = new Vector3();
   return (p: Vector3): [number, number, number] | null => {
-    d.subVectors(p, g.position);
+    d.subVectors(p, position);
     const z = d.dot(forward);
     if (z <= 0.05) return null;
-    return [0.5 + (0.5 * (d.dot(right) / z)) / (th * g.aspect), 0.5 - (0.5 * (d.dot(up) / z)) / th, z];
+    return [0.5 + (0.5 * (d.dot(right) / z)) / (th * aspect), 0.5 - (0.5 * (d.dot(up) / z)) / th, z];
   };
+}
+
+function gapCamera(g: ViewGap) {
+  return viewProjector(g.position, g.target, g.fov, g.aspect);
 }
 
 export interface WhiteBarkPlacement {
