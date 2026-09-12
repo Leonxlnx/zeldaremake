@@ -377,14 +377,22 @@ export function createComposer(opts: ComposerOptions): Composer {
     // by ≈ 0.05 (A 1.10 → 1.16, B 0.97 → 1.03: harder leaf/gap edges in the canopy band) and cost
     // SSIM there; a little more uniform band-limit and a haze blur from 30 m take the ratios back
     // (A 1.08, B 0.94, D 1.18, F 1.31 at 0.1 / 28 / 50, E ≈ 0.9 — the binding hero view) and
-    // recover ≈ 40 % of that SSIM
+    // recover ≈ 40 % of that SSIM.
+    // Round 12: the haze fitted per depth bin (heightfog.ts hazeDensity 0.02 → 0.028) takes the
+    // mid-distance detail the softening used to remove, so the softening gives the sharpness back:
+    // with the old settings A/B read 0.76/0.75 (W35 gate 0.8). Measured on the same build with
+    // runtime overrides: detail floor 0.68 → 0.85 / uniform 0.1 → 0.05 / haze 36–56 m gave
+    // A 0.80, B 0.80 (SSIM −0.003); the floor at 1.0 changed nothing more (the gate is now a small
+    // band-limit on the busiest cells); uniform 0 → A 0.84, B 0.83; the whole stage off → 0.90/0.89
+    // but −0.012/−0.010 SSIM. The haze blur is the SSIM-efficient part (+0.008 A for −0.06 sharp);
+    // its start moved 36 → 40 m (+0.004 sharp, −0.001 SSIM)
     softening: true,
-    softDetail: 0.68,
+    softDetail: 0.85,
     softActivityK: 0.08,
     softActivityPower: 4,
-    softUniform: 0.1,
-    softFarStart: 30,
-    softFarFull: 52,
+    softUniform: 0.0,
+    softFarStart: 40,
+    softFarFull: 60,
     softBlurSigma: 1.2,
     softFarSigma: 1.0,
     softActivitySigma: 2.5,

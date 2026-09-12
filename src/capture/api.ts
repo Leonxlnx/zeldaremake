@@ -14,11 +14,16 @@ import {
   RGBADepthPacking,
   WebGLRenderTarget,
   NearestFilter,
+  FloatType,
+  RGBAFormat,
+  ShaderMaterial,
+  PlaneGeometry,
+  OrthographicCamera,
+  Mesh,
   type Camera,
   type Scene,
   type WebGLRenderer,
   type Object3D,
-  type Mesh,
   type InstancedMesh,
   type Material,
   type Texture,
@@ -76,6 +81,16 @@ export interface ZRApi {
    * `buckets` are fractions of non-sky pixels per 1 % slice of [0, maxDepth]; sky = depth ≥ maxDepth.
    */
   depthHistogram(maxDepth?: number): { buckets: number[]; skyFraction: number; farLayerCount: number; maxBucketBeyond20m: number };
+  /**
+   * Per-pixel linear depth of the current frame: the Euclidean view distance (m, what the haze
+   * model integrates over) of the surface under each pixel, `width × height` samples row-major
+   * from the top-left (nearest sample of the full-resolution scene depth), `Infinity` for sky.
+   * Reads the post-fx chain's scene depth when it is available (alpha-tested foliage already
+   * discarded, i.e. the depth of what the screenshot shows); otherwise a depth-material pass of
+   * the scene like `depthHistogram`. With `viewpoint` set the camera moves there and one frame is
+   * rendered first (at the current simulation time); otherwise the last rendered frame is read.
+   */
+  depthImage(viewpoint?: string | null, width?: number, height?: number): { width: number; height: number; data: Float32Array };
   /** project world points to normalised screen coords for the current camera ([x,y] in 0..1, y down; null if behind) */
   project(points: [number, number, number][]): ([number, number] | null)[];
   /**
@@ -359,6 +374,127 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
         inRun = occupied;
       }
       return { buckets: frac, skyFraction: sky / (W * H), farLayerCount, maxBucketBeyond20m };
+    },
+    depthImage: (viewpoint = null, width = 320, height = 180) => {
+      if (viewpoint) {
+        if (!hooks.setViewpoint(viewpoint)) throw new Error(`viewpoint ${viewpoint} not found`);
+        hooks.step(0);
+      }
+      const W = Math.max(1, Math.floor(width));
+      const H = Math.max(1, Math.floor(height));
+      const cam = hooks.camera as PerspectiveCamera;
+      const renderer = hooks.renderer;
+      const scene = hooks.scene;
+      const sceneDepth = (scene.userData.composer as { depthTexture?: Texture } | undefined)?.depthTexture ?? null;
+      const data = new Float32Array(W * H);
+      const prevTarget = renderer.getRenderTarget();
+      const prevClear = renderer.getClearColor(new Color());
+      const prevClearAlpha = renderer.getClearAlpha();
+      const prevAutoClear = renderer.autoClear;
+      if (sceneDepth) {
+        // the frame's own depth (post-fx chain) → Euclidean view distance in a float target
+        const rt = new WebGLRenderTarget(W, H, { type: FloatType, format: RGBAFormat, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false, stencilBuffer: false });
+        const mat = new ShaderMaterial({
+          uniforms: { tDepth: { value: sceneDepth }, uProjInv: { value: cam.projectionMatrixInverse } },
+          vertexShader: /* glsl */ `
+varying vec2 vUv;
+void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }`,
+          fragmentShader: /* glsl */ `
+uniform sampler2D tDepth;
+uniform mat4 uProjInv;
+varying vec2 vUv;
+void main() {
+	float d = texture2D( tDepth, vUv ).x;
+	if ( d >= 0.999999 ) { gl_FragColor = vec4( -1.0, 0.0, 0.0, 1.0 ); return; }
+	vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+	gl_FragColor = vec4( length( p.xyz / p.w ), 0.0, 0.0, 1.0 );
+}`,
+          depthTest: false,
+          depthWrite: false,
+        });
+        const quad = new Mesh(new PlaneGeometry(2, 2), mat);
+        quad.frustumCulled = false;
+        const quadCam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const px = new Float32Array(W * H * 4);
+        try {
+          renderer.setRenderTarget(rt);
+          renderer.autoClear = true;
+          renderer.render(quad, quadCam);
+          renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+        } finally {
+          renderer.setRenderTarget(prevTarget);
+          renderer.setClearColor(prevClear, prevClearAlpha);
+          renderer.autoClear = prevAutoClear;
+          rt.dispose();
+          mat.dispose();
+          quad.geometry.dispose();
+        }
+        // GL rows are bottom-up; the image is top-left row-major
+        for (let y = 0; y < H; y++) {
+          const src = (H - 1 - y) * W;
+          for (let x = 0; x < W; x++) {
+            const v = px[(src + x) * 4];
+            data[y * W + x] = v < 0 ? Infinity : v;
+          }
+        }
+        return { width: W, height: H, data };
+      }
+      // fallback: depth-material pass of the scene (see depthHistogram), view z → Euclidean distance
+      const rt = new WebGLRenderTarget(W, H, { minFilter: NearestFilter, magFilter: NearestFilter });
+      const depthMat = new MeshDepthMaterial({ depthPacking: RGBADepthPacking });
+      const prevOverride = scene.overrideMaterial;
+      const prevBg = scene.background;
+      const prevFog = scene.fog;
+      const near = cam.near;
+      const far = cam.far;
+      const px = new Uint8Array(W * H * 4);
+      const hidden: Object3D[] = [];
+      scene.traverse((o) => {
+        if (o.userData?.depthAudit === false && o.visible) {
+          o.visible = false;
+          hidden.push(o);
+        }
+      });
+      try {
+        scene.overrideMaterial = depthMat;
+        scene.background = null;
+        scene.fog = null;
+        renderer.setRenderTarget(rt);
+        renderer.setClearColor(0xffffff, 1);
+        renderer.clear();
+        renderer.render(scene, cam);
+        renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+      } finally {
+        for (const o of hidden) o.visible = true;
+        renderer.setRenderTarget(prevTarget);
+        renderer.setClearColor(prevClear, prevClearAlpha);
+        scene.overrideMaterial = prevOverride;
+        scene.background = prevBg;
+        scene.fog = prevFog;
+        rt.dispose();
+        depthMat.dispose();
+      }
+      const tanHalfFov = Math.tan((cam.fov * Math.PI) / 360);
+      for (let y = 0; y < H; y++) {
+        const src = (H - 1 - y) * W;
+        for (let x = 0; x < W; x++) {
+          const i = (src + x) * 4;
+          if (px[i] === 255 && px[i + 1] === 255 && px[i + 2] === 255 && px[i + 3] === 255) {
+            data[y * W + x] = Infinity;
+            continue;
+          }
+          const d = px[i] / 256 + px[i + 1] / 65536 + px[i + 2] / 16777216 + px[i + 3] / 4278190080;
+          const zNdc = d * 2 - 1;
+          const viewZ = (2 * near * far) / (far + near - zNdc * (far - near));
+          // ray through the pixel centre: view z → Euclidean distance
+          const nx = ((x + 0.5) / W) * 2 - 1;
+          const ny = 1 - ((y + 0.5) / H) * 2;
+          const rx = nx * tanHalfFov * cam.aspect;
+          const ry = ny * tanHalfFov;
+          data[y * W + x] = viewZ * Math.sqrt(1 + rx * rx + ry * ry);
+        }
+      }
+      return { width: W, height: H, data };
     },
     isolate: (systemName) => {
       const scene = hooks.scene;

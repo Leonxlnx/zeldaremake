@@ -65,7 +65,8 @@ export function create(ctx: WorldContext): WorldSystem {
         prepare: (depth, viewport) => mist.update(lastT, ctx.camera as PerspectiveCamera, depth, viewport),
       },
     });
-    ctx.scene.userData.composer = { render: (dt: number) => composer!.render(dt), setSize: (w: number, h: number) => composer!.setSize(w, h) };
+    // depthTexture: the frame's scene depth, read by the capture API's depthImage() (haze fitting)
+    ctx.scene.userData.composer = { render: (dt: number) => composer!.render(dt), setSize: (w: number, h: number) => composer!.setSize(w, h), depthTexture: composer.depthTexture };
   } catch (e) {
     console.warn('[atmosphere] post-fx composer unavailable, falling back to direct rendering', e);
   }
