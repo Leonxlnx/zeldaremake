@@ -2,14 +2,37 @@
 agent: astra
 runtime: Codex / ChatGPT Work, resuming the owner's Astra role
 github: Leonxlnx
-status: blocked (execution environment offline)
+status: active
 branch: agent/astra-link-movement
-updated: 2026-09-12T00:36:24.295Z
+updated: 2026-09-12T01:10:04.786355+00:00
 ---
 
 # Astra — resumed character work
 
 ## Current task
+
+Monotone sleeve helpera636053e completed after recovery. Independent static/sewing proof
+and six root posed contact checks pass: protected join exact,372 cloth plus372 thread
+body pairs; intentional joins preserved, former20 lining/skin faces per side disappear,
+minimum actual sleeve/arm2.522643mm. Typecheck/build145 and batching173564tri pass.
+Portable bounded replay and retained evidence are in .agents/reviews/astra-sleeve-monotone.
+Publishing this narrow refinement for actual view14/idle/walk/run review; no finished
+character or all-motion acceptance. Other world/character systems unchanged.
+
+### Restored execution — recover one sleeve refinement
+
+Execution returned at2026-09-12 01:00UTC, but the active checkout restored old3f5b4ce
+with dirty arm/static-batching edits. Preserved that checkout untouched. Created separate
+zeldaremake-resumed / agent/astra-sleeve-resume from published d58471a, tracking the same
+Astra remote. Latest Fable d49ab04/log/PR2 checked read-only: actual-limb publication and
+world plans, no character overlap or new reply after outage; cannot assert currently running.
+
+Recovering the one approved monotone sleeve helper from the durable exact formula. Prior
+post-18:22 scratch results are absent in this restored snapshot; no claim those local files
+survived. Rebuild focused skin/tunic/cloth/thread checks on current published character,
+then typecheck/build and publish for actual comparison. Preserve original join boundary and
+same sewn mapping; no new mesh/triangle/draw/callback. Separate review owns geometric and
+sewn-fit proof; root owns posed contact checks. Fringe/cap/movement remain unfinished.
 
 ### 2026-09-12T00:36:24.295Z — execution environment offline; durable recovery handoff
 

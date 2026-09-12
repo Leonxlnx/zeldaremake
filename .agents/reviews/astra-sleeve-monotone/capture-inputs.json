@@ -1,0 +1,86 @@
+{
+  "source": "579078ca77b7af846f4805c27fbfecf21c784d72",
+  "originalMotionSha256": "0c0c65d249e6b8e07bf8ad9caaaa9fbb6e944eb6e0ccdbfc653d3cfc56474697",
+  "archive": "f190073eb3fa894cdf608ec3bec6a9a5c3361695",
+  "path": "progress/2026-09-12_002621-579078c/motion.json",
+  "captures": [
+    {
+      "name": "01-idle",
+      "seconds": 0.5,
+      "move": 0,
+      "run": false,
+      "character": {
+        "locomotion": {
+          "x": 0,
+          "y": 0.03977188095450401,
+          "z": 0.5,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "speed": 0,
+          "grounded": true,
+          "phase": 0.25,
+          "moveWeight": 0,
+          "runWeight": 0,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 0.5000000000000007
+        }
+      }
+    },
+    {
+      "name": "02-walk",
+      "seconds": 0.9,
+      "move": 1,
+      "run": false,
+      "character": {
+        "locomotion": {
+          "x": 0,
+          "y": 0.05356645584106445,
+          "z": -0.8132248269396655,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": -1.5999673607945422,
+          "speed": 1.5999673607945386,
+          "grounded": true,
+          "phase": 1.7091386965996282,
+          "moveWeight": 0.9999961438662228,
+          "runWeight": 0,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 0.8999999999999992
+        }
+      }
+    },
+    {
+      "name": "03-run",
+      "seconds": 0.7,
+      "move": 1,
+      "run": true,
+      "character": {
+        "locomotion": {
+          "x": 0,
+          "y": 0.06695794314146042,
+          "z": -1.9210487004725696,
+          "yaw": 3.141592653589793,
+          "vx": 0,
+          "vy": 0,
+          "vz": -3.8991230174357026,
+          "speed": 3.899123017435695,
+          "grounded": true,
+          "phase": 2.2269344712953396,
+          "moveWeight": 0.9999433458096985,
+          "runWeight": 0.9936627803577721,
+          "stairWeight": 0,
+          "landing": 0,
+          "jumps": 0,
+          "time": 0.7
+        }
+      }
+    }
+  ]
+}

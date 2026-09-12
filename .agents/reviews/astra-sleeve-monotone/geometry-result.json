@@ -1,0 +1,151 @@
+{
+  "base": "d58471a0b223e75ba262a0ab5ceaa6c7da1117e3",
+  "sides": [
+    {
+      "side": 1,
+      "cloth": {
+        "vertices": 596,
+        "triangles": 1152,
+        "protectedVertices": 361,
+        "maxPositionError": 3.574394266681047e-9,
+        "maxNormalError": 4.025692511460589e-8,
+        "maxNormalUnitError": 3.929779812672507e-8,
+        "maxDisplacement": 0.009605785715393722,
+        "minDeterminant": 0.6821337572665847,
+        "continuousDeterminantLowerBound": 0.6371776560055358,
+        "minArea": 0.000010443235778298532,
+        "volume": 0.0001252055913878537,
+        "minTransportedFaceDot": 0.9968431424991107,
+        "weldedVertices": 578,
+        "badEdges": 0
+      },
+      "thread": {
+        "vertices": 1350,
+        "triangles": 2000,
+        "protectedVertices": 761,
+        "maxPositionError": 3.7198489288847725e-9,
+        "maxNormalError": 4.838869216332256e-8,
+        "maxNormalUnitError": 4.338156411876071e-8,
+        "maxDisplacement": 0.00880362093448639,
+        "minDeterminant": 1,
+        "continuousDeterminantLowerBound": 0.6415667557822806,
+        "minArea": 3.124919086710534e-8,
+        "volume": 2.9595853386291786e-8,
+        "minTransportedFaceDot": 0.999990237809781,
+        "weldedVertices": 1100,
+        "badEdges": 0
+      },
+      "finish": {
+        "changedNormals": 25,
+        "minIncidentDot": 0.0029105297045199513
+      },
+      "baselineSewing": {
+        "stitches": 50,
+        "endpointCentres": 100,
+        "middleCentres": 50,
+        "rays": 450,
+        "minimumEndpointInnerMargin": 0.0018932878552459509,
+        "minimumEndpointOuterMargin": 0.00010494563908983179,
+        "minimumMiddleOuterGap": 0.00025366842917218246
+      },
+      "sewing": {
+        "stitches": 50,
+        "endpointCentres": 100,
+        "middleCentres": 50,
+        "rays": 450,
+        "minimumEndpointInnerMargin": 0.0018932878552459509,
+        "minimumEndpointOuterMargin": 0.00011844733896712589,
+        "minimumMiddleOuterGap": 0.00029172162990612205
+      }
+    },
+    {
+      "side": -1,
+      "cloth": {
+        "vertices": 596,
+        "triangles": 1152,
+        "protectedVertices": 364,
+        "maxPositionError": 3.6166913491841868e-9,
+        "maxNormalError": 4.025692511460589e-8,
+        "maxNormalUnitError": 3.740861509449189e-8,
+        "maxDisplacement": 0.009605785715393722,
+        "minDeterminant": 0.6813868931637035,
+        "continuousDeterminantLowerBound": 0.631734318366008,
+        "minArea": 0.000010409409982974072,
+        "volume": 0.00012519384302768635,
+        "minTransportedFaceDot": 0.9968431424991107,
+        "weldedVertices": 578,
+        "badEdges": 0
+      },
+      "thread": {
+        "vertices": 1350,
+        "triangles": 2000,
+        "protectedVertices": 761,
+        "maxPositionError": 3.721230990016977e-9,
+        "maxNormalError": 4.2842844410191254e-8,
+        "maxNormalUnitError": 4.0164980452672694e-8,
+        "maxDisplacement": 0.008913606405258179,
+        "minDeterminant": 1,
+        "continuousDeterminantLowerBound": 0.637088889655258,
+        "minArea": 3.124919086710534e-8,
+        "volume": 2.9595815570495334e-8,
+        "minTransportedFaceDot": 0.9999903059949318,
+        "weldedVertices": 1100,
+        "badEdges": 0
+      },
+      "finish": {
+        "changedNormals": 26,
+        "minIncidentDot": 0.00024852182594864436
+      },
+      "baselineSewing": {
+        "stitches": 50,
+        "endpointCentres": 100,
+        "middleCentres": 50,
+        "rays": 450,
+        "minimumEndpointInnerMargin": 0.0018932878552459509,
+        "minimumEndpointOuterMargin": 0.00011319251942959463,
+        "minimumMiddleOuterGap": 0.00027159311231611527
+      },
+      "sewing": {
+        "stitches": 50,
+        "endpointCentres": 100,
+        "middleCentres": 50,
+        "rays": 450,
+        "minimumEndpointInnerMargin": 0.0018932878552459509,
+        "minimumEndpointOuterMargin": 0.00011791941257230376,
+        "minimumMiddleOuterGap": 0.0002950315838441131
+      }
+    }
+  ],
+  "limitations": [
+    "Static sleeve and sewing geometry only; root separately checks actual posed arm/tunic contacts.",
+    "Sewn containment tests use all 100 actual endpoint centres and 50 middle-ring centres per side, in three ray directions; this is not a uniform proof over every thread surface point.",
+    "Smooth-field positivity and outward normals do not certify subjective appearance; an actual renderer comparison remains necessary."
+  ],
+  "status": "passed",
+  "sources": [
+    {
+      "path": "/workspace/scratch/0dfc487f788e/zeldaremake-resumed/src/world/character/sleeve-geometry.ts",
+      "sha256": "440050f35e6abf1bfc7448b338ff6621003663740f3b9450ac8fdb5a311a241f"
+    },
+    {
+      "path": "/workspace/scratch/0dfc487f788e/zeldaremake-resumed/src/world/character/sleeve-stitches.ts",
+      "sha256": "bc9fb97a7f776f8f537435876fd1b82e3a332415d1bad27240b2602d1626c176"
+    },
+    {
+      "path": "/workspace/scratch/0dfc487f788e/zeldaremake-resumed/src/world/character/geometry.ts",
+      "sha256": "9a16798da918f811c6e90494a09d360bcef96740e3bef92080234835714dffcc"
+    },
+    {
+      "path": "/workspace/scratch/0dfc487f788e/zeldaremake-resumed/src/world/util/prng.ts",
+      "sha256": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c"
+    },
+    {
+      "path": "/workspace/scratch/0dfc487f788e/zeldaremake-resumed/src/world/character/sleeve-drape.ts",
+      "sha256": "a636053e4e8deadcef93a4918482955a3c69df38b225dd36e94cdfe584c889d0"
+    },
+    {
+      "path": "/workspace/scratch/0dfc487f788e/zeldaremake-resumed/src/world/character/sleeve-drape.ts:baseline",
+      "sha256": "89a97314eeeebdb34284c30abf4eb42d40733a63386c5f31105c1d71b6879872"
+    }
+  ]
+}

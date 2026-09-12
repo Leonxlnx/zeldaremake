@@ -6,6 +6,7 @@ const JOIN_OUTWARD = .011418040841817856;
 
 const smooth = (t: number): number => t * t * t * (10 + t * (-15 + 6 * t));
 const slope = (t: number): number => 30 * t * t * (1 - t) * (1 - t);
+const integrated = (t: number): number => t * t * t * t * (2.5 - 3 * t + t * t);
 
 export function shapeLinkSleeveDrape(geometry: BufferGeometry, side: 1 | -1): void {
   const positions = geometry.getAttribute('position'), normals = geometry.getAttribute('normal');
@@ -14,8 +15,9 @@ export function shapeLinkSleeveDrape(geometry: BufferGeometry, side: 1 | -1): vo
     // The complete original join remains seated exactly against the upper tunic.
     if (outward <= JOIN_OUTWARD) continue;
     const u = Math.min(1, (outward - JOIN_OUTWARD) / .025);
-    const q = outward * smooth(u);
-    const qx = side * (smooth(u) + (u < 1 ? outward * slope(u) / .025 : 0));
+    // Integrate the slope ramp so the hem never steepens beyond its final slope.
+    const q = u < 1 ? .025 * integrated(u) : outward - JOIN_OUTWARD - .0125;
+    const qx = side * smooth(u);
     const t = Math.max(0, Math.min(1, (y + .09) / .105));
     const f = .25 - .57 * smooth(t);
     const fy = t > 0 && t < 1 ? -.57 * slope(t) / .105 : 0;

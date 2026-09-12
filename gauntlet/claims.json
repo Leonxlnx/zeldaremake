@@ -512,6 +512,16 @@
       "at": "2026-09-11T22:09:46.326Z",
       "expiresHours": 3,
       "scope": "Link model, basic movement, outfit contacts and follow camera; collaborating via PR5 and PR2"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-12T01:02:28.276Z",
+      "expiresHours": 3
     }
   ]
 }

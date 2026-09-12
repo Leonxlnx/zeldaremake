@@ -1,0 +1,721 @@
+{
+  "pin": "579078ca77b7af846f4805c27fbfecf21c784d72",
+  "candidateHelper": "a636053e4e8deadcef93a4918482955a3c69df38b225dd36e94cdfe584c889d0",
+  "exactMeshes": 69,
+  "exactArrays": 274,
+  "checkedGarmentPairs": 372,
+  "checkedThreadPairs": 372,
+  "minThreadGarmentGap": 0,
+  "failure": null,
+  "limitations": [
+    "Six configurations only, no swept or all-pose proof.",
+    "Actual01/02/03 upper-body inputs match recorded source; ground height and leg IK are excluded by shoulder-local frame.",
+    "Triangle helper excludes only exactly zero-area inherited faces; no nonzero-area cutoff.",
+    "Contact face identity protects the whole measured join; positive neighbour distance is exact static triangle-pair search with floating-point tolerances."
+  ],
+  "fullResultSha256": "8a335e9fab2d64d4b5de14f46e7bd7f13dc8d394ae5f93578c08822018a29a4d",
+  "reports": [
+    {
+      "name": "construction",
+      "pairs": [
+        {
+          "side": "L",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 951,
+              "b": 2076
+            },
+            "tested": 8116
+          },
+          "candidate": {
+            "distance": 0.002522643027746061,
+            "witness": {
+              "a": 948,
+              "b": 2077
+            },
+            "tested": 8960
+          },
+          "threadGap": {
+            "distance": 0.014001285275583909,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 10639
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "b44095810e969313ccf1ef0cd0fdcb08540fc9089f5a69e37f04d78b4e9dbf86",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "L",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 515,
+              "b": 117
+            },
+            "tested": 90
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 515,
+              "b": 117
+            },
+            "tested": 90
+          },
+          "oldContactCount": 112,
+          "oldContactIdsSha256": "e581a1b4cf242719e7325b8821464ff3ff74fbc285bdc3aac73a41d733180f0b",
+          "newContactCount": 112,
+          "newContactIdsSha256": "e581a1b4cf242719e7325b8821464ff3ff74fbc285bdc3aac73a41d733180f0b"
+        },
+        {
+          "side": "R",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 971,
+              "b": 36
+            },
+            "tested": 6831
+          },
+          "candidate": {
+            "distance": 0.002522643027746061,
+            "witness": {
+              "a": 980,
+              "b": 28
+            },
+            "tested": 8778
+          },
+          "threadGap": {
+            "distance": 0.014001285275583909,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 10770
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "94b84aa891faa6bfe4881f2bf43e5014b62a9a80b3c358ea21a98750e91f6432",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "R",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 701,
+              "b": 207
+            },
+            "tested": 222
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 701,
+              "b": 207
+            },
+            "tested": 235
+          },
+          "oldContactCount": 112,
+          "oldContactIdsSha256": "8b3c3a0fc3fc8c9bd89e8a5705c1884a5b257ccb5c0a7b5d9681e0ed909f144f",
+          "newContactCount": 112,
+          "newContactIdsSha256": "8b3c3a0fc3fc8c9bd89e8a5705c1884a5b257ccb5c0a7b5d9681e0ed909f144f"
+        }
+      ]
+    },
+    {
+      "name": "01-idle",
+      "pairs": [
+        {
+          "side": "L",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 951,
+              "b": 2076
+            },
+            "tested": 7972
+          },
+          "candidate": {
+            "distance": 0.0025226430277460444,
+            "witness": {
+              "a": 948,
+              "b": 2077
+            },
+            "tested": 8816
+          },
+          "threadGap": {
+            "distance": 0.013701516157541768,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 8954
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "b44095810e969313ccf1ef0cd0fdcb08540fc9089f5a69e37f04d78b4e9dbf86",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "L",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 517,
+              "b": 106
+            },
+            "tested": 102
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 517,
+              "b": 106
+            },
+            "tested": 102
+          },
+          "oldContactCount": 120,
+          "oldContactIdsSha256": "073577b9ae3a00ac8267944b54dc0e2474f81e239e5784e75379518883ebd38d",
+          "newContactCount": 120,
+          "newContactIdsSha256": "073577b9ae3a00ac8267944b54dc0e2474f81e239e5784e75379518883ebd38d"
+        },
+        {
+          "side": "R",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 971,
+              "b": 36
+            },
+            "tested": 6762
+          },
+          "candidate": {
+            "distance": 0.0025226430277460058,
+            "witness": {
+              "a": 980,
+              "b": 28
+            },
+            "tested": 8685
+          },
+          "threadGap": {
+            "distance": 0.013701516157541775,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 9050
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "94b84aa891faa6bfe4881f2bf43e5014b62a9a80b3c358ea21a98750e91f6432",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "R",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 699,
+              "b": 216
+            },
+            "tested": 233
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 699,
+              "b": 216
+            },
+            "tested": 289
+          },
+          "oldContactCount": 118,
+          "oldContactIdsSha256": "64d009e8a805f2239d1375ebec75af50db132ee5c8414dbf7e4e77aaa246d2b3",
+          "newContactCount": 118,
+          "newContactIdsSha256": "64d009e8a805f2239d1375ebec75af50db132ee5c8414dbf7e4e77aaa246d2b3"
+        }
+      ]
+    },
+    {
+      "name": "02-walk",
+      "pairs": [
+        {
+          "side": "L",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 951,
+              "b": 2076
+            },
+            "tested": 7897
+          },
+          "candidate": {
+            "distance": 0.002522643027746094,
+            "witness": {
+              "a": 948,
+              "b": 2077
+            },
+            "tested": 8742
+          },
+          "threadGap": {
+            "distance": 0.013475250196158566,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 7887
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "b44095810e969313ccf1ef0cd0fdcb08540fc9089f5a69e37f04d78b4e9dbf86",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "L",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 580,
+              "b": 106
+            },
+            "tested": 126
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 580,
+              "b": 106
+            },
+            "tested": 126
+          },
+          "oldContactCount": 116,
+          "oldContactIdsSha256": "11dd61d713a9ff6df297f452944971a71368eaa23f82155ab01c0dd5c09751b2",
+          "newContactCount": 116,
+          "newContactIdsSha256": "11dd61d713a9ff6df297f452944971a71368eaa23f82155ab01c0dd5c09751b2"
+        },
+        {
+          "side": "R",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 971,
+              "b": 36
+            },
+            "tested": 6687
+          },
+          "candidate": {
+            "distance": 0.0025226430277461454,
+            "witness": {
+              "a": 980,
+              "b": 27
+            },
+            "tested": 8573
+          },
+          "threadGap": {
+            "distance": 0.013475250196158462,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 7946
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "94b84aa891faa6bfe4881f2bf43e5014b62a9a80b3c358ea21a98750e91f6432",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "R",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 699,
+              "b": 207
+            },
+            "tested": 352
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 699,
+              "b": 207
+            },
+            "tested": 399
+          },
+          "oldContactCount": 118,
+          "oldContactIdsSha256": "735c8e7399f768b0f0a727e64f88fa9ea1f340f86a9b9fbf057cc56a49ec004b",
+          "newContactCount": 118,
+          "newContactIdsSha256": "735c8e7399f768b0f0a727e64f88fa9ea1f340f86a9b9fbf057cc56a49ec004b"
+        }
+      ]
+    },
+    {
+      "name": "03-run",
+      "pairs": [
+        {
+          "side": "L",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 951,
+              "b": 2076
+            },
+            "tested": 7355
+          },
+          "candidate": {
+            "distance": 0.002522643027746031,
+            "witness": {
+              "a": 948,
+              "b": 2077
+            },
+            "tested": 8159
+          },
+          "threadGap": {
+            "distance": 0.013155759127078155,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 6069
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "b44095810e969313ccf1ef0cd0fdcb08540fc9089f5a69e37f04d78b4e9dbf86",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "L",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 515,
+              "b": 96
+            },
+            "tested": 259
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 515,
+              "b": 96
+            },
+            "tested": 259
+          },
+          "oldContactCount": 114,
+          "oldContactIdsSha256": "f61ccb04bf6c142c6465ee44eb667074460efecb26da967aed4f586b50fdf7ce",
+          "newContactCount": 114,
+          "newContactIdsSha256": "f61ccb04bf6c142c6465ee44eb667074460efecb26da967aed4f586b50fdf7ce"
+        },
+        {
+          "side": "R",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 971,
+              "b": 36
+            },
+            "tested": 6119
+          },
+          "candidate": {
+            "distance": 0.002522643027746061,
+            "witness": {
+              "a": 980,
+              "b": 28
+            },
+            "tested": 8048
+          },
+          "threadGap": {
+            "distance": 0.013155759127078155,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 6170
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "94b84aa891faa6bfe4881f2bf43e5014b62a9a80b3c358ea21a98750e91f6432",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "R",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 697,
+              "b": 207
+            },
+            "tested": 419
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 697,
+              "b": 207
+            },
+            "tested": 464
+          },
+          "oldContactCount": 114,
+          "oldContactIdsSha256": "62c315ad9a5acefbdb220ba438fe619fcf43bb4e8f07271beabfb38628804bd8",
+          "newContactCount": 114,
+          "newContactIdsSha256": "62c315ad9a5acefbdb220ba438fe619fcf43bb4e8f07271beabfb38628804bd8"
+        }
+      ]
+    },
+    {
+      "name": "reference-run-1.5707963267948966",
+      "pairs": [
+        {
+          "side": "L",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 951,
+              "b": 2076
+            },
+            "tested": 7350
+          },
+          "candidate": {
+            "distance": 0.0025226430277462196,
+            "witness": {
+              "a": 948,
+              "b": 2077
+            },
+            "tested": 8155
+          },
+          "threadGap": {
+            "distance": 0.013130701479301631,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 6086
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "b44095810e969313ccf1ef0cd0fdcb08540fc9089f5a69e37f04d78b4e9dbf86",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "L",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 652,
+              "b": 128
+            },
+            "tested": 159
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 652,
+              "b": 128
+            },
+            "tested": 159
+          },
+          "oldContactCount": 130,
+          "oldContactIdsSha256": "930e2f019c93eed2050a36c7e26f176ecc1852c777bd6527a46494b8e34782e9",
+          "newContactCount": 130,
+          "newContactIdsSha256": "930e2f019c93eed2050a36c7e26f176ecc1852c777bd6527a46494b8e34782e9"
+        },
+        {
+          "side": "R",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 971,
+              "b": 36
+            },
+            "tested": 6194
+          },
+          "candidate": {
+            "distance": 0.0025226430277461094,
+            "witness": {
+              "a": 980,
+              "b": 28
+            },
+            "tested": 8103
+          },
+          "threadGap": {
+            "distance": 0.013210817795087364,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 5998
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "94b84aa891faa6bfe4881f2bf43e5014b62a9a80b3c358ea21a98750e91f6432",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "R",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 320,
+              "b": 237
+            },
+            "tested": 63
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 320,
+              "b": 237
+            },
+            "tested": 74
+          },
+          "oldContactCount": 132,
+          "oldContactIdsSha256": "9182621f39506aa2e284eb3ba195b0c2a0dd708a1c7b76fc2bb48dd9716a6203",
+          "newContactCount": 132,
+          "newContactIdsSha256": "9182621f39506aa2e284eb3ba195b0c2a0dd708a1c7b76fc2bb48dd9716a6203"
+        }
+      ]
+    },
+    {
+      "name": "reference-run-4.71238898038469",
+      "pairs": [
+        {
+          "side": "L",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 951,
+              "b": 2076
+            },
+            "tested": 7221
+          },
+          "candidate": {
+            "distance": 0.00252264302774608,
+            "witness": {
+              "a": 948,
+              "b": 2077
+            },
+            "tested": 8061
+          },
+          "threadGap": {
+            "distance": 0.013210817795087348,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 5943
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "b44095810e969313ccf1ef0cd0fdcb08540fc9089f5a69e37f04d78b4e9dbf86",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "L",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 578,
+              "b": 75
+            },
+            "tested": 102
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 578,
+              "b": 75
+            },
+            "tested": 102
+          },
+          "oldContactCount": 128,
+          "oldContactIdsSha256": "b22ac8a82b05bea587adc0903a6fba08dd876b6785e06dfdd91ca1d9360da326",
+          "newContactCount": 128,
+          "newContactIdsSha256": "b22ac8a82b05bea587adc0903a6fba08dd876b6785e06dfdd91ca1d9360da326"
+        },
+        {
+          "side": "R",
+          "target": "arm-skin",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 971,
+              "b": 36
+            },
+            "tested": 6136
+          },
+          "candidate": {
+            "distance": 0.002522643027746268,
+            "witness": {
+              "a": 980,
+              "b": 28
+            },
+            "tested": 8065
+          },
+          "threadGap": {
+            "distance": 0.013130701479301645,
+            "witness": {
+              "a": 1043,
+              "b": 686
+            },
+            "tested": 6187
+          },
+          "oldContactCount": 20,
+          "oldContactIdsSha256": "94b84aa891faa6bfe4881f2bf43e5014b62a9a80b3c358ea21a98750e91f6432",
+          "newContactCount": 0,
+          "newContactIdsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "side": "R",
+          "target": "hips:0/chest:0/tunic-upper:0",
+          "baseline": {
+            "distance": 0,
+            "witness": {
+              "a": 351,
+              "b": 248
+            },
+            "tested": 400
+          },
+          "candidate": {
+            "distance": 0,
+            "witness": {
+              "a": 351,
+              "b": 248
+            },
+            "tested": 603
+          },
+          "oldContactCount": 130,
+          "oldContactIdsSha256": "121fe4a273ed5407ba4f7c5646819b1b197f5556a283e44d478ed2419098d3da",
+          "newContactCount": 130,
+          "newContactIdsSha256": "121fe4a273ed5407ba4f7c5646819b1b197f5556a283e44d478ed2419098d3da"
+        }
+      ]
+    }
+  ]
+}
