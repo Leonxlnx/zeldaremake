@@ -41,6 +41,17 @@ function indexReadme(directory) {
     assert.match(folder, /^\d{4}-\d{2}-\d{2}_\d{9}-[a-f0-9]{7}$/);
     const r = readJson(path.join(directory, 'progress', folder, 'environment.json'));
     assert.match(r.source, /^[a-f0-9]{40}$/);
+    if (folder === folders[0]) {
+      const preview = (id, label) => `[![${label}](progress/${folder}/${id}-candidate.jpg)](progress/${folder}/${id}-candidate.jpg)`;
+      lines.splice(lines.indexOf('| Captured UTC | Source | Comparison |'), 0,
+        `## Latest rendered candidate — ${r.source.slice(0, 7)}`, '',
+        `Captured ${r.capturedAt}. Open an image for full size, or [compare all six baseline/candidate pairs](progress/${folder}/).`, '',
+        '| Stairway | Tree house |', '| --- | --- |',
+        `| ${preview('A_stairs', 'Stairway')} | ${preview('B_house', 'Tree house')} |`,
+        '| Path through the forest | Canopy and upper flight |',
+        `| ${preview('C_lookback', 'Path through the forest')} | ${preview('F_canopy', 'Canopy and upper flight')} |`, '',
+        '## All checkpoints', '');
+    }
     lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [12 images](progress/${folder}/) |`);
   }
   fs.writeFileSync(path.join(directory, 'README.md'), lines.join('\n') + '\n');

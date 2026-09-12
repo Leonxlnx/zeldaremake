@@ -159,6 +159,20 @@ export class LodInstancedSet {
     this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c });
   }
 
+  /**
+   * Drop the items `drop` selects (before `build`). Placement passes that walk this set's items
+   * afterwards see the pruned list, so a caller that wants the earlier passes' streams untouched
+   * prunes after they have run.
+   */
+  prune(drop: (item: Item) => boolean): number {
+    if (this.built) throw new Error(`${this.opts.name}: prune before build`);
+    const kept = this.items.filter((it) => !drop(it));
+    const removed = this.items.length - kept.length;
+    this.items.length = 0;
+    this.items.push(...kept);
+    return removed;
+  }
+
   /** Allocate meshes (capacity = items per pack) once all items were added. */
   build(): Group {
     if (this.built) return this.group;

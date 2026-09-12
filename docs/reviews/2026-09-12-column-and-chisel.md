@@ -2,9 +2,47 @@
 
 The actual f630/561 images expose two local material weaknesses: A's left emergent trunk is almost uniformly olive despite existing bark detail, and the sign's readable markings still look like ink. This checkpoint tests two small material changes after reconciling Fable's published 1cc8f51 ancestry. It adds no geometry or texture resources.
 
-## Column bark
+## Actual d755 review — column activation failed
 
-The emergent trunk at `(-2.7, -7.9)` is instanced, so f630's non-instanced giant improvement did not affect it. Its displaced bole, normals and metre-scaled bark UVs already contain detail. At the sampled A surface the old shaded floor is about 94% flat albedo; a larger normal scale cannot restore contrast cancelled by that floor.
+The immutable d755 world images at `progress/2026-09-12_150032336-d7552ee` do **not** show
+column improvement: fixed A/B column regions and F/D trunk controls are pixel-identical to 640.
+Installed Three 0.186.0 defines `USE_INSTANCING` only in the vertex prefix. The fragment `#if`
+therefore removed the new grain path, and the older fragment `#ifndef` also applied the near
+floor treatment to instanced columns. The intended scope and old CPU proxy below did not account
+for this. They are historical design evidence, not evidence of the deployed shader behavior.
+
+PR2 comment 5646701325 reports the defect. The follow-up explicitly distinguishes instanced
+objects using the real installed program parameters and verifies both fragment gates. Its
+actual image result will be recorded separately. No historical capture metadata is rewritten.
+
+## Corrected tree program distinction
+
+The follow-up takes the real per-object `shader.instancing` parameter passed to onBeforeCompile
+and emits `TREE_BARK_INSTANCED` as 0/1 only for the giant bark fragment. Both bark gates use it.
+The installed renderer already includes instancing in its program cache key; the material's
+custom key also becomes `trees-giant-bark-instancing-v4`. No varying, uniform, map, geometry or
+per-frame mutation is added. The original grain strength and distance fade are retained.
+
+A scratch check runs installed WebGLPrograms.getParameters and cache-key generation on real
+Mesh/InstancedMesh objects sharing the hooked material, then the installed WebGLProgram into a
+no-op GL source sink and cpp preprocessing. It reproduces both old failures and verifies the
+corrected mapped/unmapped branches, independent cache keys and stable column→giant→column order.
+The ordinary-giant preprocessed fragment remains exact; white/depth expanded programs, vertex
+shaders and uniforms remain exact. This is a real generated-source check, **not GPU compilation**.
+
+Correcting the earlier 728-ray floor calculation matters: actual-old median is .059433,
+corrected base .064292 and base plus grain .064622. Thus the full correction raises the A floor
+proxy median **8.73%**, not the isolated-grain +0.51% below. For columns within 12 m, the same
+dark albedos used only as a hypothetical envelope give a **49–57%** neutral floor lift when the
+mistaken .60 texture weight returns to .25. B/D therefore need explicit actual brightness review;
+no automatic retuning masks the old defect. These are CPU albedo proxies, not image predictions.
+
+Patch SHA256: `743a71e9c42f562a33642cd69ddf9f46321e21025b25dfcc833bb2c18f41300e`.
+Corrected material SHA256: `d36d899af7d0c70555731676990b80b71cbb0763dec7663255739daa3d790a0e`.
+
+## Column bark — intended trial, superseded activation assumption
+
+The emergent trunk at `(-2.7, -7.9)` is instanced; the trial incorrectly assumed f630's fragment gate excluded it. Its displaced bole, normals and metre-scaled bark UVs already contain detail. At the sampled A surface the old shaded floor is about 94% flat albedo; a larger normal scale cannot restore contrast cancelled by that floor.
 
 Only near instanced bark now multiplies its floor albedo by a bounded neutral grain response from the existing filtered map sample. The stable linear map median is 0.2581; the sample ratio is clamped to 0.65–1.35 and mixed at 0.60 strength. The resulting factor stays within 0.79–1.21, with full effect through 18 m and a smooth return to the original response by 24 m. Both `USE_INSTANCING` and `USE_MAP` are required. No extra texture lookup, sampler, uniform or draw is introduced; the program key identifies the changed shader.
 
@@ -24,4 +62,4 @@ A conditional Lambert/hemi/floor calculation using the real sign tangent basis f
 
 The ancestry merge imports Fable's log, 66-entry append-only ledger, concept notes and adopted W25 evidence intact. Two equivalent conflicts take his normal-encoding explanation and semantic-id arrangement; all other source files merge to the current Astra implementation. This is an own-branch merge, not a PR2/main merge. PR2 comment 5646560839 records coordination; Fable keeps his active roof and foreground work.
 
-Typecheck/build (107 modules), source anti-cheat (37 checks; historical claim warnings retained), and prepared material/geometry contracts pass. All sign geometry/RNG, 64 decal contacts, four peg seats, alpha and encoded normal-map bytes remain exact; owned resources still dispose once. Actual image acceptance is pending. The 64028c gain comparison remains pinned to its own source and controls; this later checkpoint does not rewrite that evidence.
+Typecheck/build (107 modules), source anti-cheat (37 checks; historical claim warnings retained), and prepared material/geometry contracts pass. All sign geometry/RNG, 64 decal contacts, four peg seats, alpha and encoded normal-map bytes remain exact; owned resources still dispose once. Actual d755 S01/S02 retain readability, but the chisel improvement is small and the cuts still look mostly ink-like. L01/L02 are byte-identical to 640. All 16 source/image/control contracts pass with zero retries and final errors/warnings; geometry/depth and renderer budgets remain exact. Root reviewed A/F and S01/S02. The 64028c gain comparison remains pinned to its own source and controls; this later checkpoint does not rewrite that evidence.

@@ -130,15 +130,16 @@ for(const it of whites.items){const h=top(whites,it)-it.y,r=reach(whites,it);
   assert.ok(h<=0.3,`white clump ${h.toFixed(2)} m tall`);assert.ok(r>=0.1&&r<=0.27,`white clump reach ${r.toFixed(2)} m (0.3–0.5 m across)`);
   assert.equal(a.field.troddenZone(it.x,it.z),0,'white clumps stay off the trodden strip');
   assert.ok(!a.plants.flowers.items.some(f=>Math.hypot(f.x-it.x,f.z-it.z)<0.45),'white clumps do not cover the violets');
+  // round 13: the corner is frame 14 s' lawn band, so its white dots are the rim-side strip that shows past the kid at B (0.035, 0.885)
   if(it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3){const p=camB([it.x,it.y,it.z]);
-    assert.ok(it.x>-2.5&&it.z<-7.0&&a.field.lawnEdgeDistance(it.x,it.z)<=0.8&&p&&p.sx>=0.07&&p.sx<=0.15&&p.sy>=0.6&&p.sy<=0.85,`D's near west verge keeps grass and litter only, bar the B-rim cluster (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
+    assert.ok(it.x>-2.5&&it.z<-6.7&&a.field.lawnEdgeDistance(it.x,it.z)<=0.9&&p&&p.sx>=0.07&&p.sx<=0.16&&p.sy>=0.6&&p.sy<=0.85,`D's near west verge keeps grass and litter only, bar the B-rim / lawn-band dots (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
     // and those clumps are not buried under the boulder cluster's paddle leaves
     assert.ok(!a.plants.weeds.items.some(w=>{const r=reach(a.plants.weeds,w);return r>=0.25&&Math.hypot(w.x-it.x,w.z-it.z)<r-0.02;}),`B-rim white clump at (${it.x.toFixed(2)},${it.z.toFixed(2)}) sits under a big weed`);}}
 const camA=camera('A_stairs'),inFrame=(cam,set,it,b)=>{const p=cam([it.x,it.y,it.z]);return p&&p.depth<30&&p.sx>=b[0]&&p.sx<=b[2]&&p.sy>=b[1]&&p.sy<=b[3];};
 assert.ok(whites.items.filter(it=>inFrame(camB,whites,it,[0,0.6,0.4,0.85])).length>=6,'white dots on B/E\'s left lawn edge (frame 14 s)');
 // the far west-verge clumps hide behind nearer ferns from B; the rim cluster 8–10 m out is the one that reads
 assert.ok(whites.items.filter(it=>{const p=camB([it.x,it.y,it.z]);return p&&p.depth<10.5&&inFrame(camB,whites,it,[0.07,0.6,0.15,0.85]);}).length>=3,'unoccluded white clumps on B\'s west rim within 10.5 m');
-assert.ok(whites.items.filter(it=>it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3).length<=4,'the B-rim cluster stays sparse in D\'s bottom-left corner');
+assert.ok(whites.items.filter(it=>it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3).length<=12,'the lawn-band dots stay a strip in D\'s bottom-left corner');
 assert.ok(whites.items.filter(it=>inFrame(camA,whites,it,[0.8,0.3,1,0.6])).length>=4,'white clumps on A\'s right bank near the kid');
 assert.ok(whites.items.filter(it=>inFrame(camD,whites,it,[0,0.5,0.25,0.8])).length>=3,'a few white clumps among the D verge ferns');
 assert.ok(whites.items.filter(it=>a.field.rampDistance(it.x,it.z)<3.2&&it.x>1&&it.z>-10.5&&it.z<-1.5).length>=6,'white clumps on the ramp\'s outer lawn');
@@ -187,10 +188,63 @@ assert.ok(rimStats.metres>=20&&rimStats.bankMetres>=6,`mask-derived paved rim: $
 assert.ok(rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length>=15,`rim moss along the plaza discs' own rim: ${rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length}`);
 {const bs=newSample();for(const set of a.plants.all)for(const it of set.items){if(a.field.bankFace(it.x,it.z)<=0.3)continue;a.field.sample(it.x,it.z,bs);
   assert.ok(bs.slope<=0.2,`${set.opts.name} on the shot-A bank face at (${it.x.toFixed(2)},${it.z.toFixed(2)}), slope ${bs.slope.toFixed(2)}`);}}
+// Round 13 — foreground framing (owner boards 01 / 02 / 06 / 08; frames 1 s / 14 s / 46 s / 56 s).
+const scaleOf=it=>Math.hypot(it.matrix[0],it.matrix[1],it.matrix[2]),kidSpots=[...LAYOUT.npcSpots.map(n=>[n.position[0],n.position[2]]),[4.96,5.29],[6.21,3.2]];
+const kidClear=(it,r)=>kidSpots.every(([x,z])=>Math.hypot(it.x-x,it.z-z)>=r);
+// (2) frame 14 s' lawn band (field.ts LAWN_BAND, the near west verge): no fern clumps but the shot-D
+// boulder ring's, clover, three moss cushions for the mossy stones, and ≥ 8 white dots that read past
+// the kid in B's band box (sx ≥ 0.075, 0.6–0.86); every dot still keeps its clearances (checked above)
+const dBoulder=LAYOUT.heroBoulders.find(b=>b.id==='shot-d-boulder'),bandBox=a.field.lawnBandBox();
+for(const it of a.plants.ferns.items)if(a.field.lawnBand(it.x,it.z)>0.5)assert.ok(Math.hypot(it.x-dBoulder.position[0],it.z-dBoulder.position[2])-dBoulder.radius<=1.15,`fern clump in the lawn band at (${it.x.toFixed(2)},${it.z.toFixed(2)}) is not the boulder ring's`);
+assert.ok(a.plants.clover.items.filter(it=>inBox(it,bandBox)).length>=60,'clover through the lawn band');
+const bandMoss=a.plants.moss.items.filter(it=>inBox(it,bandBox)&&reach(a.plants.moss,it)>=0.25);
+assert.ok(bandMoss.length>=3&&bandMoss.every(it=>top(a.plants.moss,it)-it.y<=0.2&&a.field.lawnEdgeDistance(it.x,it.z)>=0.3),`mossy "stones" in the lawn band: ${bandMoss.length}`);
+assert.ok(whites.items.filter(it=>{const p=camB([it.x,it.y,it.z]);return p&&p.depth<14&&p.sx>=0.075&&p.sx<=0.3&&p.sy>=0.6&&p.sy<=0.86;}).length>=8,'white dots past the kid in B\'s lawn band');
+// (1)/(3) the west verge bed: frame 1 s' left edge and frame 56's bottom-left cluster on the verge
+// north of the boulder — ferns, purple clumps and broad leaves that project into D's 0–0.22 × 0.56–0.74
+const westBed=[-4.8,-16.5,-2.3,-11.2],inD=(set,it,b)=>inFrame(camD,set,it,b);
+const bedFerns=a.plants.ferns.items.filter(it=>inBox(it,westBed));
+assert.ok(bedFerns.length>=12&&bedFerns.filter(it=>inD(a.plants.ferns,it,[-0.02,0.5,0.24,0.74])).length>=8,`fern cluster on the west verge bed: ${bedFerns.length}`);
+assert.ok(a.plants.flowers.items.filter(it=>inBox(it,westBed)&&inD(a.plants.flowers,it,[-0.02,0.5,0.28,0.76])).length>=40,'purple clumps through the west verge bed (frame 56 / frame 1 left edge)');
+assert.ok(a.plants.weeds.items.filter(it=>inBox(it,westBed)&&scaleOf(it)>=1.5).length>=12,'broad-leaf clusters in the west verge bed');
+assert.ok(a.plants.ferns.items.concat(a.plants.flowers.items).filter(it=>inFrame(camA,a.plants.ferns,it,[-0.02,0.45,0.12,0.6])).length>=20,'the bed fills frame 1 s\' left edge (A 0–0.12 × 0.45–0.6)');
+// (1) frame 1 s' right bank: 0.4–0.8 m fern clumps and a broad-leaf skirt on the crest behind the
+// kid (A 0.8–1.05 × 0.5–0.75), on flat ground off the bank face, ≥ 1.2 m from both kid spots
+const crestFerns=a.plants.ferns.items.filter(it=>inBox(it,[6.0,3.5,8.8,5.6]));
+assert.ok(crestFerns.length>=3,`fern clumps on the south bank's crest: ${crestFerns.length}`);
+{const cs=newSample();for(const it of crestFerns){a.field.sample(it.x,it.z,cs);const p=camA([it.x,it.y,it.z]),h=top(a.plants.ferns,it)-it.y;
+  assert.ok(p&&p.sx>=0.8&&p.sx<=1.05&&p.sy>=0.5&&p.sy<=0.75&&h>=0.38&&h<=0.85&&cs.slope<=0.2&&a.field.bankFace(it.x,it.z)<=0.3&&kidClear(it,1.2),`crest fern at (${it.x.toFixed(2)},${it.z.toFixed(2)}) A(${p?.sx.toFixed(2)},${p?.sy.toFixed(2)}) h${h.toFixed(2)} slope${cs.slope.toFixed(2)}`);}}
+assert.ok(a.plants.weeds.items.filter(it=>inBox(it,[6.0,3.2,9.0,5.6])&&scaleOf(it)>=1.5&&top(a.plants.weeds,it)-it.y<=0.35).length>=8,'broad leaves on the crest behind the shot-A kid');
+// (2) frame 14 s' right foreground mass on the stair-flank bank 8–10 m out (B 0.85–1.0 × 0.52–0.86):
+// fern clumps with buds, purple clumps and broad leaves, none in camera C's wedge (checked above)
+const bMass=[8.0,-6.2,9.6,-3.4],bMassFrame=[0.84,0.5,1.02,0.86];
+assert.ok(a.plants.ferns.items.filter(it=>inBox(it,bMass)&&inFrame(camB,a.plants.ferns,it,bMassFrame)).length>=12,'fern clumps in B\'s right foreground mass');
+assert.ok(a.plants.fiddleheads.items.filter(it=>inBox(it,bMass)).length>=6,'fiddleheads among B\'s right-edge clumps');
+assert.ok(a.plants.flowers.items.filter(it=>inBox(it,bMass)&&inFrame(camB,a.plants.flowers,it,bMassFrame)).length>=16,'purple clumps in B\'s right foreground mass');
+assert.ok(a.plants.weeds.items.filter(it=>inBox(it,bMass)&&scaleOf(it)>=1.5).length>=12,'broad leaves in B\'s right foreground mass');
+// (3) frame 56's right verge: low purple heads (≤ 0.55 m, camera C's grass box) and leaf clusters in D's 0.74–1.0 × 0.52–0.86
+assert.ok(a.plants.flowers.items.filter(it=>inBox(it,[4,-15,9,-8])&&inD(a.plants.flowers,it,[0.72,0.5,1.02,0.86])).length>=16,'purple clumps on D\'s right verge');
+assert.ok(a.plants.weeds.items.filter(it=>inBox(it,[3,-13,8,-7])&&scaleOf(it)>=1.4&&inD(a.plants.weeds,it,[0.72,0.5,1.02,0.9])).length>=20,'broad-leaf clusters on D\'s right verge');
+// (4) frame 46: heart-leaf clusters in the grass 3–5 m before camera C (≤ 0.35 m, the stair-foot rule above) and white clumps on the bank beside the stair foot
+assert.ok(a.plants.weeds.items.filter(it=>inBox(it,[3.6,-5.8,6.8,-3.4])&&scaleOf(it)>=1.05&&inFrame(camC,a.plants.weeds,it,[-0.02,0.76,0.34,1.02])).length>=16,'broad-leaf clusters in C\'s foreground');
+assert.ok(whites.items.filter(it=>{const p=camC([it.x,it.y,it.z]);return p&&p.depth>=12.2&&p.sx>=0.12&&p.sx<=0.32&&p.sy>=0.4&&p.sy<=0.58&&kidClear(it,1.0);}).length>=2,'white clumps on the bank beside C\'s stair foot');
+// (5) board 06: broad-leaf weeds along the path edges in clusters of 5–12 (≥ 40 clusters of 15–30 cm leaves within 22 m of a camera)
+{const big=a.plants.weeds.items.filter(it=>scaleOf(it)>=1.3&&nearCam(it,22)&&a.field.lawnEdgeDistance(it.x,it.z)>=0.2&&a.field.lawnEdgeDistance(it.x,it.z)<=1.8);
+  assert.ok(big.length>=250,`broad leaves along the rims: ${big.length}`);
+  const clustered=big.filter(it=>big.filter(o=>o!==it&&Math.hypot(o.x-it.x,o.z-it.z)<=0.6).length>=4).length;
+  assert.ok(clustered/big.length>=0.6,`${(clustered/big.length*100).toFixed(0)} % of the rim leaves grow in clusters`);
+  // the boulder cluster's paddle leaves (scale up to 3.3) are the one taller broad-leaf plant
+  for(const it of big){if(Math.hypot(it.x-dBoulder.position[0],it.z-dBoulder.position[2])<=2.2)continue;
+    assert.ok(top(a.plants.weeds,it)-it.y<=0.4,`rim leaf ${(top(a.plants.weeds,it)-it.y).toFixed(2)} m tall at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
+    assert.ok(a.field.bankFace(it.x,it.z)<=0.3,'rim leaves stay off the bank face');}}
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
   for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}
 }
+// the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
+assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
+assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');
+assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0,1,2]]],'fiddleheads: per variant near, one far draw');
 // the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0)
 const grassMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'grass');
 const grass=await read('vegetation/grass').buildGrass(a.ctx,a.field,grassMaterial,new THREE.Group(),()=>{});
@@ -216,6 +270,13 @@ assert.ok(rimBlades>=300,`rim blades sampled: ${rimBlades}`);
 assert.ok(rimToward/rimBlades>=0.85,`${(rimToward/rimBlades*100).toFixed(0)} % of the rim blades bend toward the slabs`);
 assert.ok(rimLean/rimBlades>=0.6,`${(rimLean/rimBlades*100).toFixed(0)} % of the rim blades lean over the paving`);
 assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random yaw (${(lawnToward/lawnBlades*100).toFixed(0)} % toward)`);
+// Round 13: frame 14 s' lawn band (field.ts LAWN_BAND) is dense short turf — its interior south of
+// the boulder carries ≥ 150 blades / m² at ≤ 0.27 m (p95), shorter than the verge north of the boulder
+{const turf=box=>{const hs=[];for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<box[0]||x>box[2]||z<box[1]||z>box[3])continue;hs.push(Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]));}}
+    return{perM2:hs.length/((box[2]-box[0])*(box[3]-box[1])),p50:q(hs,0.5),p95:q(hs,0.95)};};
+  const band=turf([-3.1,-8.4,-1.9,-6.6]),north=turf([-2.2,-13.5,-1.6,-11.0]);
+  assert.ok(band.perM2>=150,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
+  assert.ok(band.p95<=0.27&&band.p50<=0.8*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
 grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g of t.lods)g.dispose();}
 // dirt-seam litter along the rim (sheet 02 “Path boundary”), none of it on the slabs
 {const litterMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'litter'),litter=read('vegetation/litter').buildLitter(a.ctx,a.field,litterMaterial,new THREE.Group());

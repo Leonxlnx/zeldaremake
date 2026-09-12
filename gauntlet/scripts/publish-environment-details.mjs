@@ -40,6 +40,17 @@ function indexReadme(directory) {
     assert.match(folder, /^\d{4}-\d{2}-\d{2}_\d{9}-[a-f0-9]{7}$/);
     const r = readJson(path.join(directory, 'details', folder, 'details.json'));
     assert.match(r.source, /^[a-f0-9]{40}$/);
+    if (folder === folders[0]) {
+      const preview = (id, label) => `[![${label}](${folder}/${id}.jpg)](${folder}/${id}.jpg)`;
+      lines.splice(lines.indexOf('| Captured UTC | Source | Detail views |'), 0,
+        `## Latest rendered details — ${r.source.slice(0, 7)}`, '',
+        `Captured ${r.capturedAt}. [Open the full checkpoint and source metadata](${folder}/).`, '',
+        '| Sign from the front | Sign from the path |', '| --- | --- |',
+        `| ${preview('S01-sign-front', 'Sign from the front')} | ${preview('S02-sign-oblique', 'Sign from the path')} |`,
+        '| Stair-foot leaf lantern | Fork-west lantern post |',
+        `| ${preview('L01-stair-foot-bindings', 'Stair-foot leaf lantern')} | ${preview('L02-fork-west-lantern', 'Fork-west lantern post')} |`, '',
+        '## All checkpoints', '');
+    }
     lines.push(`| ${r.capturedAt} | [${r.source.slice(0, 7)}](https://github.com/Leonxlnx/zeldaremake/commit/${r.source}) | [4 images](${folder}/) |`);
   }
   fs.writeFileSync(path.join(directory, 'details', 'README.md'), lines.join('\n') + '\n');

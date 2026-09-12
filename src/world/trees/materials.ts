@@ -268,7 +268,7 @@ const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0
 function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, nearGiantBark = false) {
   let barkFloorBlock = shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL);
   if (nearGiantBark) barkFloorBlock = barkFloorBlock.replace('    vec3 floorLight =', /* glsl */ `
-    #if defined(USE_INSTANCING) && defined(USE_MAP)
+    #if TREE_BARK_INSTANCED == 1 && defined(USE_MAP)
       // The dark columns' flat floor hides the existing bark. Center a bounded neutral grain
       // response on this map's linear median, retaining the floor's tint and broad brightness.
       float columnNear = 1.0 - smoothstep(18.0, 24.0, length(vViewPosition));
@@ -281,7 +281,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   // This non-instanced treatment is independent of the column grain above; far response is retained.
   const barkShade = nearGiantBark ? /* glsl */ `
     float nearBarkTexture = uBarkFloorTexture;
-    #ifndef USE_INSTANCING
+    #if TREE_BARK_INSTANCED == 0
       nearBarkTexture = mix(uBarkFloorTexture, 0.60, 1.0 - smoothstep(12.0, 18.0, length(vViewPosition)));
     #endif
     ${barkFloorBlock.replace(/\buBarkFloorTexture\b/g, 'nearBarkTexture')}
@@ -291,7 +291,10 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
   bindShadeFloor(shader, 'uBarkFloor', barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
-  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars('uBarkFloor', TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
+  // Three defines USE_INSTANCING only in the vertex prefix. Its per-object program parameter
+  // is available here and already participates in the renderer's program cache key.
+  const barkInstancing = nearGiantBark ? `#define TREE_BARK_INSTANCED ${shader.instancing ? 1 : 0}\n` : '';
+  shader.fragmentShader = barkInstancing + TREE_FRAGMENT_PARS + shadeFloorPars('uBarkFloor', TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -392,7 +395,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR, true), 'giant-near-bark-column-grain');
+  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR, true), 'giant-bark-instancing');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
 

@@ -84,17 +84,20 @@ function darkTube(points: Vector3[], radius: number, tint: [number, number, numb
   return geo;
 }
 
-/** A cupped sepal surface in unscaled pod coordinates. Six leaves form two overlapping whorls. */
+/** Six narrow, cupped sepals; the unchanged calyx closes the gaps between their seated roots. */
 function sepalPoint(t: number, u: number, angle: number, length: number, outer: boolean, offset = 0): Vector3 {
   const bend = Math.sin(Math.PI * t);
-  const halfAngle = 0.09 * (1 - t) + 0.65 * Math.pow(bend, 0.9) + 0.003 * t;
+  // About 50 degrees at mid-blade against 60-degree leaf spacing: distinct living leaves,
+  // with the original narrow attachment and pointed tip rather than a continuous hood.
+  const halfAngle = 0.09 * (1 - t) + 0.39 * Math.pow(bend, 0.9) + 0.003 * t;
   const theta = angle + 0.025 * bend + u * halfAngle;
-  const y = 0.406 - length * t - 0.009 * bend + 0.006 * u * u * bend;
+  const tip = Math.max(0, Math.min(1, (t - 0.62) / 0.38));
+  const curl = tip * tip * (3 - 2 * tip);
+  const y = 0.406 - length * t - 0.009 * bend + 0.006 * u * u * bend + 0.006 * curl;
   let radius = 0.023 + 0.136 * Math.sin(Math.PI * t / 2) + 0.003 * (1 - u * u) * bend;
   if (y <= 0.315) radius = Math.max(radius, bodyRadius(y) + 0.007);
-  // Keep the attachment seated while the tip curls away from the glowing shell.
-  const tip = Math.max(0, Math.min(1, (t - 0.62) / 0.38));
-  radius += (outer ? 0.014 : 0.006) * tip * tip * (3 - 2 * tip);
+  // Keep the attachment exact; only the last 38% curls gently out and upward from the shell.
+  radius += (outer ? 0.020 : 0.010) * curl;
   radius += (outer ? 0.008 * bend : 0) + offset;
   return new Vector3(Math.cos(theta) * radius, y, Math.sin(theta) * radius);
 }
