@@ -7,8 +7,13 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
-Prepare the tooling-only 22 m control checkpoint on top of published
-9ef903c58c3ee70eccaf919d565a1eb19cd1bef1. All production src/world bytes remain exact9ef.
+Published tooling-only22 m control e2ee5f076774ab36d1e751b1f1753781795a417d,
+tree6b7d68f5beb2b8201e971d863fe0c46946023840, soleparent9ef. Correct environment
+run34717456744 is actually running, so the separate32 m source may queue safely.
+Production geometry/materials/lights stay exact22 control; only heightfog.ts farShadeStart
+changes22→32 m. Candidate source SHA c856c68c57ba215a3564e8fba40ca8b77edab12bdeb5befded3cc915fe382506.
+Do not integrate Fable trees until these matched controls finish. His narrow bareHeight issue
+is reported in PR2 comment5648515843; no competing rewrite.
 The new named middepth mode records eleven original full-scene PNGs over 16 m of the D path;
 its three fixed source-terrain probes traverse the complete 32–44 m candidate shade band.
 The hedge mode moves its track 1 m south to clear the actual foreground birch obstruction.
@@ -32,7 +37,7 @@ not a fixed-view budget or FPS approval.
 
 The separate lighting hypothesis changes only heightfog.ts farShadeStart22 to32 m, retaining
 full44/minimum.3 and every other light/fog/post setting. The local trial passed type/build and
-was restored to exact22 for the first matched control. Publish32 only after that control starts.
+was restored to exact22 for the first matched control. That run has started; the isolated32 candidate is now applied.
 This delays extra surface attenuation; it is not a diagnosed bug or promised improvement.
 Compare actual A/D and the matched longer approach, then retain provisionally or revert if pale,
 weak or distracting. Continuous playback remains unmeasured. Both sleeve variants stay held.
@@ -86,8 +91,8 @@ or exact GPU attribution. Both frozen 20% response variants remain unapplied.
 The frozen hedge geometry proof and normal actual form review pass; corrected LOD visibility is pending.
 
 ## Files / systems being touched
-- Root: capture tooling/data and workflow, own log/claims/review docs; production unchanged for22 control.
-- Next isolated production scope: heightfog.ts one scalar, after22 control starts.
+- Root: heightfog.ts one scalar32 m candidate, own log/review docs.
+- Published22 control: unchanged9ef production; capture helper reads original38 frames.
 - Tooling helper: frozen patch complete, no active LIVE writes.
 - Capture helper: next exact source normal16 plus hedge11 plus middepth11 original review.
 - Fable owns trunk seat publication, distant house attachment/depth and burl seam correction.
@@ -210,4 +215,4 @@ Astra: foreground plant forms and actual detail-transition check, then a separat
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T20:31:58.184585+00:00
+2026-09-12T20:34:48.643875+00:00

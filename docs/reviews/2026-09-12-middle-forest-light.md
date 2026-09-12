@@ -71,3 +71,8 @@ Hedge and middepth triggers are independent; corrected hedge data also starts it
 Frozen seven-file patch SHA256: `b1b310550ab47e73c8d53b461f88cea12c0ffb4b4f28432fdfe0936e72e9f348`.
 Portable22/32 plans, malformed-contract rejection, mixed-mode immutable archive/idempotence and
 actual workflow-detector checks pass in the scratch proof. No synthetic image is game evidence.
+
+Control source `e2ee5f076774ab36d1e751b1f1753781795a417d` is published with exact9ef
+production; environment run34717456744 is running. The separate frozen32 m scalar is now
+applied for the candidate checkpoint. All camera/data/geometry bytes stay exact control;
+only the source shade audit should differ. No result or retention is claimed before images.

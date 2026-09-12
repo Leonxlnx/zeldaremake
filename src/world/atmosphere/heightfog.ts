@@ -167,7 +167,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   backScatterFullDeg: 135,
   backScatterTint: [1.08, 1.0, 0.93],
   rayBackScatterMin: 0.35,
-  farShadeStart: 22,
+  farShadeStart: 32,
   farShadeFull: 44,
   farShadeMin: 0.3,
 };
