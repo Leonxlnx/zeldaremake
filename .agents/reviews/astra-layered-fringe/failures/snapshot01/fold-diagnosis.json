@@ -1,0 +1,76 @@
+[
+  {
+    "candidate": false,
+    "findings": [
+      {
+        "chart": 6,
+        "witness": null
+      },
+      {
+        "chart": 8,
+        "witness": null
+      },
+      {
+        "chart": 9,
+        "witness": null
+      },
+      {
+        "chart": 10,
+        "witness": null
+      },
+      {
+        "chart": 11,
+        "witness": null
+      },
+      {
+        "chart": 12,
+        "witness": null
+      },
+      {
+        "chart": 13,
+        "witness": null
+      }
+    ]
+  },
+  {
+    "candidate": true,
+    "findings": [
+      {
+        "chart": 6,
+        "witness": null
+      },
+      {
+        "chart": 8,
+        "witness": null
+      },
+      {
+        "chart": 9,
+        "witness": null
+      },
+      {
+        "chart": 10,
+        "witness": {
+          "face": 107,
+          "other": 153,
+          "distance": 0
+        }
+      },
+      {
+        "chart": 11,
+        "witness": {
+          "face": 72,
+          "other": 24,
+          "distance": 0
+        }
+      },
+      {
+        "chart": 12,
+        "witness": null
+      },
+      {
+        "chart": 13,
+        "witness": null
+      }
+    ]
+  }
+]

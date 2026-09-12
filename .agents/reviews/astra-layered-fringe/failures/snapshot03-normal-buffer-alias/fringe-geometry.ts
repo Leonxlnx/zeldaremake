@@ -165,7 +165,7 @@ function finishFringeNormals(geometry: BufferGeometry, preserveTemple: boolean):
   for (let f = 0; f < index.count; f += 3) {
     const ia = index.getX(f), ib = index.getX(f + 1), ic = index.getX(f + 2);
     a.fromBufferAttribute(position, ia); b.fromBufferAttribute(position, ib); c.fromBufferAttribute(position, ic);
-    const n = b.sub(a).cross(c.sub(a)).normalize().clone();
+    const n = b.sub(a).cross(c.sub(a)).normalize();
     incident[ia].push(n); incident[ib].push(n); incident[ic].push(n);
   }
   for (let i = 0; i < position.count; i++) {

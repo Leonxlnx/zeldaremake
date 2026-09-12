@@ -1,0 +1,145 @@
+{
+  "charts": [
+    22,
+    26
+  ],
+  "vertices": [
+    8912,
+    10264
+  ],
+  "triangles": [
+    17736,
+    20424
+  ],
+  "protectedMeshes": 72,
+  "protectedArrays": 286,
+  "protectedCharts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+  ],
+  "protectedRootVertices": 200,
+  "protectedTempleVertices": 98,
+  "topology": [
+    {
+      "chart": 6,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 5.03823660405229e-7,
+      "volume": 0.0000048407899522326675,
+      "cornerMin": -0.5679817197947512,
+      "negativeCorners": 46
+    },
+    {
+      "chart": 7,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 3.187505753206225e-7,
+      "volume": 0.000004417102246149474,
+      "cornerMin": -0.1947766961239712,
+      "negativeCorners": 6
+    },
+    {
+      "chart": 8,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 1.1355868033713007e-7,
+      "volume": 0.0000037107940192178333,
+      "cornerMin": -0.978864007280379,
+      "negativeCorners": 36
+    },
+    {
+      "chart": 9,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 2.1815530735937878e-7,
+      "volume": 0.0000034380691219339596,
+      "cornerMin": -0.6697757318465198,
+      "negativeCorners": 29
+    },
+    {
+      "chart": 10,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 1.102318595693607e-7,
+      "volume": 0.0000026593718665361732,
+      "cornerMin": -0.9771472396792296,
+      "negativeCorners": 38
+    },
+    {
+      "chart": 11,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 1.4397028728473388e-7,
+      "volume": 0.0000016508167274441512,
+      "cornerMin": -0.9993178087881014,
+      "negativeCorners": 60
+    },
+    {
+      "chart": 12,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 0.000001072242219421066,
+      "volume": 0.000013395741770189581,
+      "cornerMin": -0.3488022830139731,
+      "negativeCorners": 9
+    },
+    {
+      "chart": 13,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 1.0912867242023943e-7,
+      "volume": 0.000011519073510042611,
+      "cornerMin": -0.7025857545352401,
+      "negativeCorners": 18
+    },
+    {
+      "chart": 22,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 4.9525479029493024e-8,
+      "volume": 8.369547970151394e-7,
+      "cornerMin": -0.01447118276876136,
+      "negativeCorners": 2
+    },
+    {
+      "chart": 23,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 6.411425042931449e-8,
+      "volume": 6.313722643402312e-7,
+      "cornerMin": 0.10483182312246425,
+      "negativeCorners": 0
+    },
+    {
+      "chart": 24,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 7.825152019475513e-8,
+      "volume": 0.0000012189043900559543,
+      "cornerMin": -0.031460613557913464,
+      "negativeCorners": 2
+    },
+    {
+      "chart": 25,
+      "vertices": 338,
+      "faces": 672,
+      "areaMin": 7.531666763534874e-8,
+      "volume": 9.303316852218474e-7,
+      "cornerMin": -0.0354304776500689,
+      "negativeCorners": 4
+    }
+  ],
+  "failure": null
+}

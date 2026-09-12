@@ -1,0 +1,716 @@
+{
+  "failure": null,
+  "static": [
+    {
+      "target": "skull",
+      "distance": 0.00021662189037834214,
+      "witness": {
+        "a": 185,
+        "b": 1628
+      },
+      "tested": 19161
+    }
+  ],
+  "blink": [
+    {
+      "scale": 1,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.027449617244516545,
+          "witness": {
+            "a": 3300,
+            "b": 279
+          },
+          "tested": 1674
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139041638421338,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1816
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.02590968594168209,
+          "witness": {
+            "a": 3323,
+            "b": 127
+          },
+          "tested": 3873
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.021277508045504944,
+          "witness": {
+            "a": 7343,
+            "b": 166
+          },
+          "tested": 354
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061457735644012,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 767
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.019614171435539982,
+          "witness": {
+            "a": 7319,
+            "b": 68
+          },
+          "tested": 1064
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.85,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.029063167161884604,
+          "witness": {
+            "a": 6624,
+            "b": 70
+          },
+          "tested": 1988
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139042048555258,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1816
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.028717973538809755,
+          "witness": {
+            "a": 3323,
+            "b": 127
+          },
+          "tested": 6149
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.023973460194154313,
+          "witness": {
+            "a": 7367,
+            "b": 166
+          },
+          "tested": 296
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061458222144982,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 766
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.02265441570117962,
+          "witness": {
+            "a": 7319,
+            "b": 68
+          },
+          "tested": 1050
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.7,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.029840083671453643,
+          "witness": {
+            "a": 6671,
+            "b": 71
+          },
+          "tested": 1790
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139041310314196,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1815
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.030441813295666375,
+          "witness": {
+            "a": 6624,
+            "b": 18
+          },
+          "tested": 7259
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.026654879937780197,
+          "witness": {
+            "a": 7367,
+            "b": 166
+          },
+          "tested": 250
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.01206145769151849,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 796
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.02561488873701888,
+          "witness": {
+            "a": 7380,
+            "b": 56
+          },
+          "tested": 950
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.5838095,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.030199924945773126,
+          "witness": {
+            "a": 6695,
+            "b": 39
+          },
+          "tested": 1819
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139042151170768,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1815
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.030732119237219878,
+          "witness": {
+            "a": 6695,
+            "b": 8
+          },
+          "tested": 6406
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.028705337624856633,
+          "witness": {
+            "a": 7380,
+            "b": 151
+          },
+          "tested": 242
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061458321974007,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 793
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.027745534986597698,
+          "witness": {
+            "a": 7380,
+            "b": 55
+          },
+          "tested": 791
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.5,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.030417842340427968,
+          "witness": {
+            "a": 6695,
+            "b": 23
+          },
+          "tested": 2128
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139041638421338,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1821
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.03075621928354264,
+          "witness": {
+            "a": 6695,
+            "b": 6
+          },
+          "tested": 5790
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.030148164183048293,
+          "witness": {
+            "a": 7380,
+            "b": 151
+          },
+          "tested": 219
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061457735644012,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 778
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.029264635718553447,
+          "witness": {
+            "a": 7380,
+            "b": 47
+          },
+          "tested": 932
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.35,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.030810364266802334,
+          "witness": {
+            "a": 6695,
+            "b": 23
+          },
+          "tested": 2816
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139041310314196,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1766
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.030790654383167478,
+          "witness": {
+            "a": 6695,
+            "b": 6
+          },
+          "tested": 4265
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.03253989592517315,
+          "witness": {
+            "a": 6046,
+            "b": 407
+          },
+          "tested": 827
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.01206145769151849,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 779
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.031918525711630966,
+          "witness": {
+            "a": 7367,
+            "b": 45
+          },
+          "tested": 1108
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.2,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.03117639436061561,
+          "witness": {
+            "a": 6695,
+            "b": 6
+          },
+          "tested": 3035
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139041966528473,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1687
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.03081939552367637,
+          "witness": {
+            "a": 6695,
+            "b": 6
+          },
+          "tested": 2403
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.0330460946476519,
+          "witness": {
+            "a": 6046,
+            "b": 423
+          },
+          "tested": 1812
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061458287233187,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 783
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.03277542445595848,
+          "witness": {
+            "a": 6715,
+            "b": 177
+          },
+          "tested": 1240
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.12,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.03117639436061561,
+          "witness": {
+            "a": 6695,
+            "b": 1
+          },
+          "tested": 2406
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139041441557056,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1687
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.03083072292267787,
+          "witness": {
+            "a": 6695,
+            "b": 6
+          },
+          "tested": 879
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.03315442177365191,
+          "witness": {
+            "a": 6715,
+            "b": 424
+          },
+          "tested": 1664
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061457567078954,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 793
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.03278594049798402,
+          "witness": {
+            "a": 6715,
+            "b": 176
+          },
+          "tested": 589
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    },
+    {
+      "scale": 0.08,
+      "targets": [
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+          "distance": 0.03117639436061561,
+          "witness": {
+            "a": 6695,
+            "b": 1
+          },
+          "tested": 2298
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+          "distance": 0.018139040916585632,
+          "witness": {
+            "a": 3300,
+            "b": 1028
+          },
+          "tested": 1751
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+          "distance": 0.030836386968561377,
+          "witness": {
+            "a": 6695,
+            "b": 6
+          },
+          "tested": 757
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:0",
+          "distance": 0.012255211064288151,
+          "witness": {
+            "a": 3323,
+            "b": 271
+          },
+          "tested": 5065
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+          "distance": 0.03315442177365191,
+          "witness": {
+            "a": 6715,
+            "b": 424
+          },
+          "tested": 1624
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+          "distance": 0.012061457334089618,
+          "witness": {
+            "a": 7367,
+            "b": 1043
+          },
+          "tested": 797
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+          "distance": 0.032791090381290224,
+          "witness": {
+            "a": 6715,
+            "b": 176
+          },
+          "tested": 469
+        },
+        {
+          "target": "hips:0/chest:0/neck:0/head:0/brow:1",
+          "distance": 0.0063623845139771625,
+          "witness": {
+            "a": 7380,
+            "b": 128
+          },
+          "tested": 1289
+        }
+      ]
+    }
+  ],
+  "roots": [],
+  "overlaps": [],
+  "limitations": [
+    "Nine discrete blink states only; no swept/all-pose proof.",
+    "Floating point triangle separation with all nonzero-area faces retained.",
+    "Intentional connected hair-layer intersections are separate from protected skin/eye clearance."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "baseline": "9a317b873eae4a036e0ad179027201fdfdb217c1",
+  "hairExact": [
+    "position",
+    "uv",
+    "normal",
+    "index"
+  ],
+  "ocularMeshesExact": [
+    "hips:0/chest:0/neck:0/head:0/eye:0/eye-white:0",
+    "hips:0/chest:0/neck:0/head:0/eye:0/eyelid:0",
+    "hips:0/chest:0/neck:0/head:0/eye:0/lashes:0",
+    "hips:0/chest:0/neck:0/head:0/brow:0",
+    "hips:0/chest:0/neck:0/head:0/eye:1/eye-white:0",
+    "hips:0/chest:0/neck:0/head:0/eye:1/eyelid:0",
+    "hips:0/chest:0/neck:0/head:0/eye:1/lashes:0",
+    "hips:0/chest:0/neck:0/head:0/brow:1"
+  ],
+  "skullGap": {
+    "distance": 0.00021662189037834214,
+    "witness": {
+      "a": 185,
+      "b": 1628
+    },
+    "tested": 19162
+  },
+  "failure": null,
+  "source": {
+    "fringe-geometry.ts": "7bfb8e8f806a6de51162436a5e7e87908625a5b378a5e1ac14db733a2b9d9b6c",
+    "face-geometry.ts": "10d2619af2efc384f18cfe9be6b954ca754544d2ee59ca75cd80c86a584a76db",
+    "lower-face-geometry.ts": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+    "link.ts": "527e402ac575fef6a200941bfeed44d6ddce40a4e67839b0c3eed47aab460210"
+  }
+}

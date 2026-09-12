@@ -1,0 +1,210 @@
+{
+  "baseline": "9a317b873eae4a036e0ad179027201fdfdb217c1",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3246,
+      "sha256": "b7a76e2a89ac6ea64f676ab09c4892df4aaf5484274bd9ddeb6204fdcaa908af"
+    },
+    {
+      "path": "attachment-review.mjs",
+      "bytes": 2688,
+      "sha256": "cd74c3e350db00b60e9dd1235f77ec83384f9b3626f1c389e331d5f4cf3b3792"
+    },
+    {
+      "path": "candidate/src/world/character/fringe-geometry.ts",
+      "bytes": 11569,
+      "sha256": "7bfb8e8f806a6de51162436a5e7e87908625a5b378a5e1ac14db733a2b9d9b6c"
+    },
+    {
+      "path": "candidate/src/world/character/link.ts",
+      "bytes": 33225,
+      "sha256": "48fb091094b98b0b98635ec83db8b65fdea7317b24a17bec0b68a1ad01f42afc"
+    },
+    {
+      "path": "cap-contact-review.mjs",
+      "bytes": 1085,
+      "sha256": "dd178fa665d4d5a6529e2f009fc993396728c4edd16cec613ee2a87586813cec"
+    },
+    {
+      "path": "composed/src/world/character/face-geometry.ts",
+      "bytes": 11485,
+      "sha256": "10d2619af2efc384f18cfe9be6b954ca754544d2ee59ca75cd80c86a584a76db"
+    },
+    {
+      "path": "composed/src/world/character/fringe-geometry.ts",
+      "bytes": 11569,
+      "sha256": "7bfb8e8f806a6de51162436a5e7e87908625a5b378a5e1ac14db733a2b9d9b6c"
+    },
+    {
+      "path": "composed/src/world/character/link.ts",
+      "bytes": 33231,
+      "sha256": "527e402ac575fef6a200941bfeed44d6ddce40a4e67839b0c3eed47aab460210"
+    },
+    {
+      "path": "composed/src/world/character/lower-face-geometry.ts",
+      "bytes": 1038,
+      "sha256": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7"
+    },
+    {
+      "path": "composed-review.mjs",
+      "bytes": 2394,
+      "sha256": "4141d0afc7f4b8857cb522e3063166616678b5dffa9370ffd6aa2b2c8751d476"
+    },
+    {
+      "path": "contact-review.mjs",
+      "bytes": 1998,
+      "sha256": "94184f0219a47bdec7ba18761fe6385ea0594c6577104ec46ca145edd7a039b4"
+    },
+    {
+      "path": "failures/normal-unit-weight-failure.json",
+      "bytes": 89,
+      "sha256": "191395bfd44c68934c1097466a1f2f38f06973cb21675d4992665890e2fcdd08"
+    },
+    {
+      "path": "failures/snapshot01/failure.md",
+      "bytes": 518,
+      "sha256": "2e2533985e67f2c9671c6e8dddf38e3f16274d12c8edd55041f332c1b995d372"
+    },
+    {
+      "path": "failures/snapshot01/fold-diagnosis.json",
+      "bytes": 1130,
+      "sha256": "16b55c8aa5098c267a196652a3baf68364c354c615fe35cc0322d81943c6cfe2"
+    },
+    {
+      "path": "failures/snapshot01/geometry-result.json",
+      "bytes": 3081,
+      "sha256": "6ee8dfcb1e222353a93bd131d053d94508daef2883d7bb6d15ea61cadcbf23c4"
+    },
+    {
+      "path": "failures/snapshot01/normal-diagnosis.json",
+      "bytes": 35315,
+      "sha256": "0eb70e47c829a3d6752a25611860f69e90352cd755c8dcdf99f42faed0c4926d"
+    },
+    {
+      "path": "failures/snapshot01/path-diagnosis.json",
+      "bytes": 2087,
+      "sha256": "6503f2fc5152dd6695a1f12c6ce56e0acb7f90bdd91ce8da00ca16c94c574a65"
+    },
+    {
+      "path": "failures/snapshot01/src/world/character/fringe-geometry.ts",
+      "bytes": 9018,
+      "sha256": "67884dec26c7ac722703f8d46039830af48d1220083da80e822b30443f6b2a6a"
+    },
+    {
+      "path": "failures/snapshot01/src/world/character/link.ts",
+      "bytes": 33225,
+      "sha256": "48fb091094b98b0b98635ec83db8b65fdea7317b24a17bec0b68a1ad01f42afc"
+    },
+    {
+      "path": "failures/snapshot03-normal-buffer-alias/failure.md",
+      "bytes": 425,
+      "sha256": "8361bda53cf64b64f9dfd5a51a9746862ae155a9f2e96422f6e5a4a091f4a02d"
+    },
+    {
+      "path": "failures/snapshot03-normal-buffer-alias/fringe-geometry.ts",
+      "bytes": 11561,
+      "sha256": "bf8929bd11a7213a3f83f38e5d244083f21c2bb722727ce4cdb63ac755ad9c32"
+    },
+    {
+      "path": "failures/snapshot03-normal-buffer-alias/normal-finish-result.json",
+      "bytes": 188,
+      "sha256": "c8252453a92508585e92f70fd3bb3d0fafa03e96b0d15d7f58a3f1491669690a"
+    },
+    {
+      "path": "fringe.patch",
+      "bytes": 10408,
+      "sha256": "3f2710ee81bc81b18f028384c2c6d4bc6eef02fbe34ba70d8977f6166571ed64"
+    },
+    {
+      "path": "geometry-review.mjs",
+      "bytes": 3905,
+      "sha256": "5d660ac78a9a537147570bf04eedff4d8d5e785f4392273951e3af0edc000e57"
+    },
+    {
+      "path": "handoff.md",
+      "bytes": 6725,
+      "sha256": "0bc6a37a527b97c2e217a80ea34c6027ce0209a721060f3fd97104ad707e4f23"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 2862,
+      "sha256": "79624d05d1bedebf1bc5bebd8e2aafa57fa6f42497854c9ef09e08198beff0a0"
+    },
+    {
+      "path": "normal-finish-review.mjs",
+      "bytes": 1888,
+      "sha256": "53509e561ace5aa4cffc96ce506cb4ed7628d75ac19d49b7c4a69f48143a9ac5"
+    },
+    {
+      "path": "replay.mjs",
+      "bytes": 932,
+      "sha256": "10d0bcd240de54a2bd86f83715d8219fb2435c87ff285dc2587ce111df62b1b6"
+    },
+    {
+      "path": "reports/attachment-result.json",
+      "bytes": 9819,
+      "sha256": "4f2550812c587778be219936bda9bef232ced80f9fe6276f49eb22c3d622fd51"
+    },
+    {
+      "path": "reports/cap-contact-result.json",
+      "bytes": 1071,
+      "sha256": "3e1a466e07f7cf5784cef84df8f1cf9e64fd0a6baf4363d9661e757221b70a3e"
+    },
+    {
+      "path": "reports/composed-result.json",
+      "bytes": 1103,
+      "sha256": "90eb8f46212f474dcfb929133d7171b59557abb034b15f89bb13aa0e66954dff"
+    },
+    {
+      "path": "reports/contact-result.json",
+      "bytes": 17996,
+      "sha256": "b7cc77455e5cee7351eddb2857a311a9eaa77a32d6b30d0e9a11fab7c3928191"
+    },
+    {
+      "path": "reports/geometry-result.json",
+      "bytes": 3069,
+      "sha256": "9a54dc5f14bf5b7dff3e53258c6b3a5e97d34d6f684ecea04653ee0b195493ea"
+    },
+    {
+      "path": "reports/normal-cone-result.json",
+      "bytes": 11185,
+      "sha256": "71cc7dd1a9a96bfcfb09aef010f71c9b35d4b49f834ff9cd1c361eae1983b391"
+    },
+    {
+      "path": "reports/normal-finish-result.json",
+      "bytes": 612,
+      "sha256": "c144848b06fd3f75a0b0be3b57d5b15676288730dd4a17fb63aa924189264424"
+    },
+    {
+      "path": "reports/self-crossing-result.json",
+      "bytes": 939,
+      "sha256": "ad528a235855467865c45783019b8b1ca068eb339081d85061a0fdb1024da22f"
+    },
+    {
+      "path": "reports/typecheck-result.json",
+      "bytes": 18,
+      "sha256": "796a6b7aa0ecaade67d84fdad59016d416bce9633eb51cdd9ab929f40b0e9602"
+    },
+    {
+      "path": "self-crossing-review.mjs",
+      "bytes": 1241,
+      "sha256": "ed72afc74586b9de641a234c2393a404ed9a22437b9879a70a83b4dbe2257a6c"
+    },
+    {
+      "path": "snapshot02/src/world/character/fringe-geometry.ts",
+      "bytes": 9132,
+      "sha256": "470c6c9c823ee06cd76f7fe44be084aba1abafdc79a70d1fdb172d8daf887e55"
+    },
+    {
+      "path": "snapshot02/src/world/character/link.ts",
+      "bytes": 33225,
+      "sha256": "48fb091094b98b0b98635ec83db8b65fdea7317b24a17bec0b68a1ad01f42afc"
+    },
+    {
+      "path": "triangle-distance.mjs",
+      "bytes": 3007,
+      "sha256": "44a178de9f9f7271f53aa034d941d171ea120739c52027b62cf49ffbe7b4e6e5"
+    }
+  ]
+}

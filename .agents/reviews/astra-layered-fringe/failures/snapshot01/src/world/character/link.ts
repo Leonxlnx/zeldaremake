@@ -174,7 +174,7 @@ export function buildFace(rig: Rig, opts: FaceOptions): void {
     const c = base.addScaledVector(dir, opts.earLength * 0.42);
     return place(cone, c.x, c.y, c.z, [0, side * 0.5, 0]);
   };
-  const skull = opts.softFeatures ? createLinkFaceGeometry(r, true) : merge([
+  const skull = opts.softFeatures ? createLinkFaceGeometry(r) : merge([
     place(new SphereGeometry(r, 24, 18), 0, 0, 0, undefined, [1, 1.04, 0.98]),
     // nose
     place(new SphereGeometry(0.013, 8, 6), 0, -0.02 * (r / 0.125), r * 0.98),

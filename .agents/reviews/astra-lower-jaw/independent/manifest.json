@@ -1,0 +1,54 @@
+{
+  "README.md": {
+    "sha256": "f570c3999a6c3528caf8023ff87187d45bd9b67c3f62914bc23d56147245b44b",
+    "bytes": 1396
+  },
+  "lower-face-geometry.ts": {
+    "sha256": "b650d79c681689cf1a4c351a8d2cea0bfc36a7f912f44ac2977c371acfb757d7",
+    "bytes": 1038
+  },
+  "jaw-distance.mjs": {
+    "sha256": "df7c74c0e2eb1e0f0f4bd517b98bb27a23f411a516f39be0b7041f8f1dc869c2",
+    "bytes": 3008
+  },
+  "face-geometry.ts": {
+    "sha256": "10d2619af2efc384f18cfe9be6b954ca754544d2ee59ca75cd80c86a584a76db",
+    "bytes": 11485
+  },
+  "independent-pinned-loader.mjs": {
+    "sha256": "ddfefc07da8371b38207c760abbb4e166a07007e09360340a40a1fb436e9d92c",
+    "bytes": 1435
+  },
+  "independent-contact-review.mjs": {
+    "sha256": "c18cb9917b4e0ffdb75a426c76d88006815b6a9080dd876eb2e1e19a88727a29",
+    "bytes": 5923
+  },
+  "independent-handoff.md": {
+    "sha256": "c646744cb375668b711274cbf171206a0b531a1a855aad8e7da7b8a535595562",
+    "bytes": 3546
+  },
+  "independent-contact-result.json": {
+    "sha256": "bd748abad4ce1cb1b2a266ebf08347df287848094b278adb9fd6c3a004099407",
+    "bytes": 7880
+  },
+  "link.ts": {
+    "sha256": "576b7ceb3019dc260175aeaa8d657fb602008dec61adf740dd7f1881d0d72cbf",
+    "bytes": 33099
+  },
+  "hair-crossing-condensed.json": {
+    "sha256": "275d84280e8accec33edaa44a47b271d4cfa0a48ef16f726cfa270ff3e7151b1",
+    "bytes": 4085
+  },
+  "hair-crossing-review.mjs": {
+    "sha256": "1396b55352de0758d637f5fc59d197b3f051bc561082f4c3d5c09c8954ceb5c8",
+    "bytes": 2907
+  },
+  "baseline/face-geometry.ts": {
+    "sha256": "ab15449556a51bdc288141f24f89d4af664b18c74e4da5792e2df6e7791291d4",
+    "bytes": 11252
+  },
+  "baseline/link.ts": {
+    "sha256": "efcca7c9db1112fb827fd66f9b938dbf7dc95edc28d5010450222a250bcb24ef",
+    "bytes": 33093
+  }
+}

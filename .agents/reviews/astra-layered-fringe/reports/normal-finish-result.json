@@ -1,0 +1,36 @@
+{
+  "arraysExact": [
+    "position",
+    "uv",
+    "index"
+  ],
+  "changedNormals": 39,
+  "minimumChangedCorner": 0.05353445176711247,
+  "remainingInherited": [
+    {
+      "chart": 12,
+      "vertex": 337,
+      "face": 668,
+      "dot": -0.017098467489208402
+    },
+    {
+      "chart": 12,
+      "vertex": 337,
+      "face": 669,
+      "dot": -0.011089646992262059
+    },
+    {
+      "chart": 13,
+      "vertex": 337,
+      "face": 668,
+      "dot": -0.020923324003087357
+    },
+    {
+      "chart": 13,
+      "vertex": 337,
+      "face": 669,
+      "dot": -0.02528596477729053
+    }
+  ],
+  "failure": null
+}

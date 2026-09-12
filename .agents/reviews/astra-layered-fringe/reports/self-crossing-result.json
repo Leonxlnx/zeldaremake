@@ -1,0 +1,65 @@
+{
+  "charts": [
+    {
+      "chart": 6,
+      "tested": 1615,
+      "witness": null
+    },
+    {
+      "chart": 7,
+      "tested": 1017,
+      "witness": null
+    },
+    {
+      "chart": 8,
+      "tested": 597,
+      "witness": null
+    },
+    {
+      "chart": 9,
+      "tested": 1309,
+      "witness": null
+    },
+    {
+      "chart": 10,
+      "tested": 940,
+      "witness": null
+    },
+    {
+      "chart": 11,
+      "tested": 408,
+      "witness": null
+    },
+    {
+      "chart": 12,
+      "tested": 649,
+      "witness": null
+    },
+    {
+      "chart": 13,
+      "tested": 668,
+      "witness": null
+    },
+    {
+      "chart": 22,
+      "tested": 350,
+      "witness": null
+    },
+    {
+      "chart": 23,
+      "tested": 460,
+      "witness": null
+    },
+    {
+      "chart": 24,
+      "tested": 564,
+      "witness": null
+    },
+    {
+      "chart": 25,
+      "tested": 814,
+      "witness": null
+    }
+  ],
+  "failure": null
+}

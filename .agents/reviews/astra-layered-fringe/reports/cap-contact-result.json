@@ -1,0 +1,50 @@
+{
+  "targets": [
+    {
+      "target": "hips:0/chest:0/neck:0/head:0/cap:0/cap-dome:0",
+      "distance": 0.015775098175362788,
+      "witness": {
+        "a": 1350,
+        "b": 2354
+      },
+      "tested": 11235
+    },
+    {
+      "target": "hips:0/chest:0/neck:0/head:0/cap:0/cap-brim:0",
+      "distance": 0.012203340771318589,
+      "witness": {
+        "a": 4134,
+        "b": 26
+      },
+      "tested": 19958
+    },
+    {
+      "target": "hips:0/chest:0/neck:0/head:0/cap:0/cap-brim-stitches:0",
+      "distance": 0.016962156819942106,
+      "witness": {
+        "a": 4183,
+        "b": 1292
+      },
+      "tested": 18740
+    },
+    {
+      "target": "hips:0/chest:0/neck:0/head:0/cap:0/cap-tail:0",
+      "distance": 0.1377198644912093,
+      "witness": {
+        "a": 4358,
+        "b": 1775
+      },
+      "tested": 2543
+    },
+    {
+      "target": "hips:0/chest:0/neck:0/head:0/cap:0/cap-tail-stitches:0",
+      "distance": 0.239600386967209,
+      "witness": {
+        "a": 154,
+        "b": 6
+      },
+      "tested": 1362
+    }
+  ],
+  "failure": null
+}

@@ -11,6 +11,21 @@ updated: 2026-09-12T05:55:03.397369+00:00
 
 ## Current task
 
+### Integrating twelve layered fringe locks
+
+Fetched Fable again:38532ae at05:52 adds depth-fitted haze and capture depthImage, no
+character overlap. Preserve that world branch. Jaw source ec3ff5c is published; CI running.
+
+Integrating final fringe helper7bfb8e8f plus one Link interleave append after under-ear hair.
+Eight shallow unequal sweeps and four fine locks preserve14 other hair charts, original
+root centres and temple terminal joins. First root-blend fold was held and replaced by
+direct fitted sections. Final twelve closed locks pass complete self-crossing/attachment,
+nine-blink and cap checks;39 bad corner normals repaired from actual face normals only
+once shape checks passed. Composed newer jaw keeps exact hair and ocular buffers and
+fringe/skull gap .216622mm. Typecheck/build146 and static batching pass:73→67 meshes,176252 triangles;1,508,256
+posed vertices/normals exact, UV/material/shadow/disposal and boot/NPC checks pass.
+Three planned layer pairs remain separated; render must judge layering and forehead coverage. No reference-level appearance claim before actual capture.
+
 ### Lower jaw ready for actual capture
 
 Visible Link lower-jaw pass b650d79c is built and independently checked. Hair carrier stays
@@ -23,8 +38,8 @@ Typecheck/build146 pass. Publishing for front/profile review, not completed like
 Latest9a317 actual18-image/42-frame gallery reviewed: smoother sleeve hem with no obvious
 new seam break. Both CI workflows passed. Owner received four images plus verified ZIP.
 Fringe agent completed12 shallower unequal locks, now checking composition with this jaw;
-movement agent has a small stored-foot-curve candidate, held while correcting two short
-landing/stop curves despite existing tests passing. No movement integration claimed.
+movement agent has a small stored-foot-curve candidate under independent transition
+review; no live integration yet. No movement integration claimed.
 
 Fable4e977c0/take0061 checked; formal W25 fail appended via unchanged CLI with all5 prior
 records preserved. Warmer bark/interior improve; broad canopy/arch/recess proportions

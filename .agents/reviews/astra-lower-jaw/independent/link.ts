@@ -270,8 +270,6 @@ export function buildHair(rig: Rig, hair: MeshStandardMaterial, style: 'link' | 
       // Unequal rounded temple locks replace the old broad side strips.
       createLinkSideburnLocks(r),
       createLinkUnderEarHair(r),
-      // Append fine fringe charts after the unchanged scalp, temple and ear charts.
-      createLinkFringeLocks(r, 'interleaves'),
     ];
     const geometry = merge(parts);
     normalizeLinkHairUVs(geometry);

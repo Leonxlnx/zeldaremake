@@ -1,0 +1,11 @@
+{
+  "arraysExact": [
+    "position",
+    "uv",
+    "index"
+  ],
+  "changedNormals": 1947,
+  "minimumChangedCorner": 1,
+  "remainingInherited": [],
+  "failure": "new opposing corner 6/0"
+}

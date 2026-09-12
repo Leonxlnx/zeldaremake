@@ -45,7 +45,7 @@ const smooth = (x: number): number => {
 
 /**
  * Eight broad sweeps and four finer interleaves, front +Z, in local head coordinates.
- * The root anchors and original temple end rings retain their fitted joins. Fine locks
+ * The original root rings and temple end rings retain their fitted joins. Fine locks
  * are requested separately so protected scalp/temple/ear chart offsets never change.
  */
 export function createLinkFringeLocks(radius: number, layer: 'sweeps' | 'interleaves' = 'sweeps'): BufferGeometry {
@@ -79,10 +79,8 @@ export function createLinkFringeLocks(radius: number, layer: 'sweeps' | 'interle
       const lock = LOCKS[lockIndex], old = ROOT_LOCKS[lockIndex];
       const curve = new CatmullRomCurve3(lock.path.map(([s, y]) => new Vector3(s, y, 0)), false, 'centripetal', .5);
       const oldCurve = old ? new CatmullRomCurve3(old.path.map(([s, y]) => new Vector3(s, y, 0)), false, 'centripetal', .5) : null;
-      // Refitted root sections follow each new sweep directly. Retaining the old
-      // root tangent while shortening these sweeps creates a folded transition.
-      const blendAt = (t: number): number => old && lockIndex >= 6
-        ? 1 - smooth((t - .64) / (23 / steps - .64)) : 1;
+      const blendAt = (t: number): number => old ? smooth((t - 2 / steps) / (.25 - 2 / steps))
+        * (lockIndex >= 6 ? 1 - smooth((t - .64) / (23 / steps - .64)) : 1) : 1;
       const pointAt = (t: number): Vector3 => {
         const point = curve.getPoint(t), blend = blendAt(t);
         return oldCurve && blend < 1 ? oldCurve.getPoint(t).lerp(point, blend) : point;
@@ -139,7 +137,6 @@ export function createLinkFringeLocks(radius: number, layer: 'sweeps' | 'interle
       geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
       geometry.setIndex(indices);
       geometry.computeVertexNormals();
-      finishFringeNormals(geometry, lockIndex === 6 || lockIndex === 7);
       parts.push(geometry);
     }
     const result = merge(parts);
@@ -149,48 +146,4 @@ export function createLinkFringeLocks(radius: number, layer: 'sweeps' | 'interle
   } finally {
     skull.dispose(); material.dispose();
   }
-}
-
-/**
- * A very shallow closed lens has skinny return triangles beside larger outer faces.
- * Area-weighted smoothing can point through one of those returns. Replace only an
- * invalid vertex normal by the angular centre of its actual incident face normals.
- * The finite maximum-margin centre is supported by one, two, or three face normals.
- * A nonpositive margin is a geometric failure, never a reason to hide the surface.
- */
-function finishFringeNormals(geometry: BufferGeometry, preserveTemple: boolean): void {
-  const position = geometry.attributes.position, normal = geometry.attributes.normal, index = geometry.index!;
-  const incident: Vector3[][] = Array.from({ length: position.count }, () => []);
-  const a = new Vector3(), b = new Vector3(), c = new Vector3();
-  for (let f = 0; f < index.count; f += 3) {
-    const ia = index.getX(f), ib = index.getX(f + 1), ic = index.getX(f + 2);
-    a.fromBufferAttribute(position, ia); b.fromBufferAttribute(position, ib); c.fromBufferAttribute(position, ic);
-    const n = b.sub(a).cross(c.sub(a)).normalize().clone();
-    incident[ia].push(n); incident[ib].push(n); incident[ic].push(n);
-  }
-  for (let i = 0; i < position.count; i++) {
-    // These existing temple end rings and their fan keep their exact shared join.
-    if (preserveTemple && ((i >= 288 && i <= 335) || i === 337)) continue;
-    const faces = incident[i], current = new Vector3().fromBufferAttribute(normal, i);
-    if (faces.every(n => current.dot(n) > 0)) continue;
-    let margin = -Infinity;
-    const best = new Vector3();
-    const consider = (n: Vector3): void => {
-      if (n.lengthSq() < 1e-20) return;
-      n.normalize();
-      const score = Math.min(...faces.map(face => n.dot(face)));
-      if (score > margin) { margin = score; best.copy(n); }
-    };
-    for (const n of faces) consider(n.clone());
-    for (let a = 0; a < faces.length; a++) for (let b = a + 1; b < faces.length; b++) {
-      consider(faces[a].clone().add(faces[b]));
-      for (let c = b + 1; c < faces.length; c++) {
-        const n = faces[a].clone().sub(faces[b]).cross(faces[a].clone().sub(faces[c]));
-        consider(n.clone()); consider(n.negate());
-      }
-    }
-    if (!(margin > 0)) throw new Error('Link fringe needs an outward normal at every changed corner');
-    normal.setXYZ(i, best.x, best.y, best.z);
-  }
-  normal.needsUpdate = true;
 }
