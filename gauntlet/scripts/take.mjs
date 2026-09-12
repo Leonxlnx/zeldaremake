@@ -137,7 +137,10 @@ export function generateAutoNote({ git: g, at, agent, score, compare, prevEntry,
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2), { multi: ['callout'] });
+  const args = parseArgs(process.argv.slice(2), {
+    multi: ['callout'],
+    known: ['agent', 'items', 'ledger', 'out', 'publish', 'import', 'no-build', 'auto-note', 'strict', 'callouts', 'note', 'sha', 'at', 'force', 'settle', 'quality', 'previous', 'dist'],
+  });
   const agent = typeof args.agent === 'string' ? args.agent : null;
   if (!agent) fail('--agent <id> is required');
   const rubric = loadRubric();
