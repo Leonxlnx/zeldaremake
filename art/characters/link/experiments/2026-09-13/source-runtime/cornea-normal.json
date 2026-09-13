@@ -1,0 +1,11 @@
+{
+  "method": "Native smooth ellipsoid baked into the flattened iris tangent frame, connected only to Principled Coat Normal",
+  "sha256": "0004520505ea84f3005bcd44419124d9335ae719721feecae92e3145131152b0",
+  "size": [
+    1024,
+    1024
+  ],
+  "cage": 0.014,
+  "ray": 0.035,
+  "status": "GLB clearcoat-normal export and visual review required"
+}

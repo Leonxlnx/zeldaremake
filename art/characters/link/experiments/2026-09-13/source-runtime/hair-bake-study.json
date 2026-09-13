@@ -1,0 +1,17 @@
+{
+  "status": "Unaccepted baked hair detail; runtime export pending",
+  "hair_triangles": 4334,
+  "body_triangles_before": 52386,
+  "body_triangles_after": 52386,
+  "bakes": {
+    "color": "e6e52f19f1f5bdaffd3f1ba238d062854b753e818a2501c9ced24fe9f03c9c64",
+    "base-normal": "3b56244f88f4ae636d29a790ad2f562e8e71c0c62c98ba9f749a8fdbd588bed5",
+    "strand-normal": "e836241dcbc7ca713471f5de82e8bcd41a51f129c70118e93f37dc6bc464702a",
+    "roughness": "b54cd4610553ef5f9c506860978cde10d2e885df27a229106f5a2795d9fa8add",
+    "normal": "bb275ae907ab2db2ed69798a59cbaa863b70c52d98ff2cf0e95bec6a854f6b7e"
+  },
+  "size": 4096,
+  "fibre_normal_mix": 0.15,
+  "normal_strength": 1,
+  "roughness": 0.55
+}

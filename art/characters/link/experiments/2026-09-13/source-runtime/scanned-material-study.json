@@ -1,0 +1,17 @@
+{
+  "status": "Unaccepted native material study; unbaked, not exported",
+  "sources": {
+    "cloth": {
+      "source": "E:\\zeldaremake\\art\\characters\\link\\textures\\cloth-roughness.jpg",
+      "sha256": "e48d14e87a5493bc4ef9bea61e85b4397ec41f93d1c3fd1ac17494475781610e",
+      "tiles_per_metre": 4,
+      "bump_distance": 0.0007
+    },
+    "leather": {
+      "source": "E:\\zeldaremake\\art\\characters\\link\\textures\\leather-height.png",
+      "sha256": "ccf961ad6bede5333086fc97fbfaf0658898e915bb3fdaaf54a877e0c1370a44",
+      "tiles_per_metre": 10,
+      "bump_distance": 0.0004
+    }
+  }
+}

@@ -5,11 +5,15 @@ from pathlib import Path
 job=globals().get('JOB',{})
 folder=job.get('folder','generated-runtime');assert folder in {'generated-runtime','lid-runtime','source-runtime'}
 root=Path(__file__).resolve().parent/folder
+stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate'}
 scene=bpy.data.scenes[job.get('scene','Link | generated eye study')];bpy.context.window.scene=scene
 rig=next(o for o in scene.collection.objects if o.type=='ARMATURE')
-body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name)
+body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name and not o.name.startswith('Link_hair_detail'))
 body.name='Link_skin_eye_study_body'
 eyes=[o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' in o.name]
+detail=[o for o in scene.collection.objects if o.type=='MESH' and o.name.startswith('Link_hair_detail')]
+assert len(detail)==(1 if stem=='hair-candidate' else 0)
+meshes=[body,*eyes,*detail]
 assert len(eyes)==2 and len(rig.data.bones)==19
 scene.render.fps=60;rig.data.pose_position='REST';bpy.context.view_layer.update()
 bpy.ops.object.select_all(action='DESELECT');body.select_set(True);bpy.context.view_layer.objects.active=body
@@ -46,7 +50,7 @@ def bake_colour(ob,name,size):
     assert tuple(image.size)==(size,size)
     return hashlib.sha256(Path(image.filepath_raw).read_bytes()).hexdigest()
 
-bakes={'body_color':bake_colour(body,'body-eye-edit-color',4096),'eye_color':bake_colour(eyes[0],'anatomical-eye-color',1024)}
+bakes={'body_color':bake_colour(body,'body-eye-edit-color',4096),'eye_color':bake_colour(eyes[0],'iris-material-color' if stem in {'iris-material-candidate','hair-candidate'} else 'anatomical-eye-color',1024)}
 for eye in eyes:
     bpy.ops.object.select_all(action='DESELECT');eye.select_set(True);bpy.context.view_layer.objects.active=eye
     bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -69,13 +73,13 @@ for group in body.vertex_groups:group.remove(face)
 head.add(face,1,'REPLACE')
 assert all(len(body.data.vertices[i].groups)==1 and body.data.vertices[i].groups[0].group==head.index for i in face)
 bpy.ops.object.vertex_group_limit_total(limit=4);bpy.ops.object.vertex_group_normalize_all(lock_active=False)
-error=max(abs(sum(g.weight for g in v.groups)-1) for ob in [body,*eyes] for v in ob.data.vertices)
+error=max(abs(sum(g.weight for g in v.groups)-1) for ob in meshes for v in ob.data.vertices)
 assert error<1e-5,error
 rig.data.pose_position='POSE';rig.animation_data.action=None
 for track in rig.animation_data.nla_tracks:track.mute=True
 scene.frame_set(0)
 # Saved studies need only the live shader graph, not every previous bake image.
-for material in {m for ob in [body,*eyes] for m in ob.data.materials}:
+for material in {m for ob in meshes for m in ob.data.materials}:
     nodes=material.node_tree.nodes
     keep={n for n in nodes if n.type=='OUTPUT_MATERIAL'};pending=list(keep)
     while pending:
@@ -85,11 +89,11 @@ for material in {m for ob in [body,*eyes] for m in ob.data.materials}:
     for node in list(nodes):
         if node not in keep:nodes.remove(node)
     assert any(n.type=='BSDF_PRINCIPLED' for n in nodes)
-bpy.data.libraries.write(str(root/'eye-candidate.blend'),{scene},fake_user=True,compress=True)
+bpy.data.libraries.write(str(root/(stem+'.blend')),{scene},fake_user=True,compress=True)
 bpy.ops.object.select_all(action='DESELECT')
-for ob in [rig,body,*eyes]:ob.select_set(True)
+for ob in [rig,*meshes]:ob.select_set(True)
 bpy.context.view_layer.objects.active=rig
-target=root/'eye-candidate.glb'
+target=root/(stem+'.glb')
 bpy.ops.export_scene.gltf(filepath=str(target),export_format='GLB',use_selection=True,use_active_scene=True,
     export_cameras=False,export_lights=False,export_tangents=True,export_animations=True,export_animation_mode='NLA_TRACKS',
     export_force_sampling=True,export_frame_step=1,export_frame_range=False,export_rest_position_armature=True,
@@ -111,6 +115,8 @@ assert set(durations)==set(expected)
 triangles=sum(gltf['accessors'][p['indices']]['count']//3 for m in gltf['meshes'] for p in m['primitives'])
 assert triangles<(55000 if folder=='source-runtime' else 27000) and len(gltf['materials'])<=4
 assert all('TANGENT' in p['attributes'] for mesh in gltf['meshes'] for p in mesh['primitives'])
+if any(next(n for n in eye.data.materials[0].node_tree.nodes if n.type=='BSDF_PRINCIPLED').inputs['Coat Normal'].is_linked for eye in eyes):
+    assert any('clearcoatNormalTexture' in m.get('extensions',{}).get('KHR_materials_clearcoat',{}) for m in gltf['materials'])
 assert all(len(skin['joints'])==19 for skin in gltf['skins'])
 record={'status':'Baked anatomical eye candidate; actual GLB review required, not adopted',
     'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'triangles':triangles,
@@ -118,4 +124,4 @@ record={'status':'Baked anatomical eye candidate; actual GLB review required, no
     'weight_sum_error':error,'new_socket_vertices_bound':len(missing),'wrong_face_weights_corrected':wrong_face,'rigid_face_vertices':len(face),'bakes':bakes,
     'source_candidate_sha256':json.loads((root.parent/('source-runtime' if folder=='source-runtime' else 'generated-runtime')/'validation.json').read_text())['sha256'],
     'provenance':'Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips.'}
-(root/'eye-validation.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8');print(json.dumps(record))
+(root/(stem.replace('-candidate','-validation')+'.json')).write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8');print(json.dumps(record))
