@@ -112,7 +112,10 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // tread-to-tread swing so the flight reads as one stone with lit nosings, not a patchwork
     const tint = 0.7 + rng.range(0, 0.12);
     const hue = rng.range(-0.025, 0.025);
-    const color: [number, number, number] = [tint * (1 + hue) * 0.98, tint, tint * (1 - hue * 0.6) * 1.14];
+    // (round 22: cooler still - the flight in frame 1 s (x 0.60-0.80, y 0.27-0.60) reads sat 0.118 /
+    // hue 50 deg on its lit stone against our 0.150 / 48 deg, i.e. a greyer, cooler stone than the
+    // plaza's, where the plaza itself matches the frame; red 0.98 -> 0.90, blue 1.14 -> 1.34 - the post chain passes ~1/4 of an albedo shift)
+    const color: [number, number, number] = [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.34];
 
     // split the tread into two stones sometimes
     const split = rng.chance(0.36);
@@ -203,8 +206,8 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
-        color: [rc * 1.04, rc, rc * 0.9],
-        sideColor: [rc * 0.94, rc * 0.9, rc * 0.82],
+        color: [rc * 1.0, rc, rc * 0.98],
+        sideColor: [rc * 0.92, rc * 0.9, rc * 0.88],
         // mossy risers (sheet 01 / 04): a moss skin creeps up the face from the tread below —
         // strongest toward the flanks — broken into patches by the noise so it reads as
         // cushions of moss between bare dark stone, not a green wash
