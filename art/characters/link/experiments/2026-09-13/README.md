@@ -41,6 +41,12 @@ with prepare/refine, then `restore_source_normals.py`, then bake with
 The separate lid-runtime folder contains unaccepted ring/normal-bake experiments;
 the fitted-cage image is visibly rejected despite a better normal-pixel metric.
 
+At20:50 UTC the source candidate adds0.9mm rounded orbital edges: SHA256
+`4e0b3a217495e7db98ff842a71e701eb5f6e6c535120449889da52971712c400`,52,946triangles.
+Both studio and the full Fable a98e9ea world comparison pass their technical checks.
+Latest world gallery: `progress/2026-09-13T20-45-58-203Z-integrated`.
+The separate eye-depth study is still unaccepted; the exported candidate is unchanged by it.
+
 The historical pause checkpoint follows. The owner requested an immediate pause and push before restarting the PC. No further
 modelling or external generation should start until the owner resumes the task.
 

@@ -49,7 +49,7 @@ try{
       const png=await page.screenshot({path:path.join(output,name+'.png')});
       const state=await page.evaluate(()=>({stats:__ZR__.stats(),character:__ZR__.audit().systems.character}));
       report.images[name]={sha256:hash(png),...state};console.log('Captured',name);
-      if(faceOnly){
+      if(view.id==='C_lookback'&&(faceOnly||process.argv.includes('--face'))){
         const pose=await page.evaluate(async()=>{
           const camera=__ZR__.cameraPose();const root=__ZR__.audit().systems.character.world.linkRoot;
           __ZR__.setPose(camera.position,[root[0],root[1]+.98,root[2]],13);await __ZR__.render(2,0);

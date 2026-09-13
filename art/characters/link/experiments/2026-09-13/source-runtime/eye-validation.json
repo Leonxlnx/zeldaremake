@@ -1,8 +1,8 @@
 {
   "status": "Baked anatomical eye candidate; actual GLB review required, not adopted",
-  "sha256": "00989528b44019ba9340e6da2c0c6f0b4c79d133a472c4cec31db5e238a41a45",
-  "bytes": 43717724,
-  "triangles": 51440,
+  "sha256": "4e0b3a217495e7db98ff842a71e701eb5f6e6c535120449889da52971712c400",
+  "bytes": 43903084,
+  "triangles": 52946,
   "meshes": 3,
   "materials": 3,
   "bones": 19,
@@ -12,10 +12,10 @@
     "run": 0.5666666626930237,
     "stairs": 0.7333333492279053
   },
-  "weight_sum_error": 1.043081283569336e-07,
+  "weight_sum_error": 1.2665987014770508e-07,
   "new_socket_vertices_bound": 0,
   "wrong_face_weights_corrected": 0,
-  "rigid_face_vertices": 4663,
+  "rigid_face_vertices": 5416,
   "bakes": {
     "body_color": "ed37bcf13e2f5a7b41d50f4be259d1e3c1b654ac25a16e103d11df285c5dc4f2",
     "eye_color": "0b62783c61a3fbb3329385439a5cc9221ebc5866e3ee9840a5cb84cf5dc73142"
