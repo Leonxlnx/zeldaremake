@@ -15,6 +15,18 @@ studio and six-view actual-world checks. Hard socket joins remain visible, so ne
 replaces the preferred iris handoff. `eye-seating-study` is visibly rejected and
 not exported. Exact hashes/results are in their validation files and Astra's log.
 
+At23:17 UTC, `connected-lid-candidate.glb` (968ec082...) completes studio23:01:15
+and actual-world23:04:37 at58,282triangles/4materials. The connected topology removes
+folded lid quads, but the resulting lids are too full and skin joins remain visible.
+It also stays unaccepted. The79e3343b wrong-UV export is explicitly rejected: preserve
+UV names across edit-mode changes, then assert the exported lid texture uses UV1.
+
+The official Microsoft TRELLIS.2 head test is running against unchanged reference06.
+Use E:/Tools/trellis-client/Scripts/python.exe for trellis_head_trial.py. Its private
+on-disk guard prevents duplicate submissions; inspect the existing job before doing
+anything further. No private HF token, paid endpoint or background-editing service is
+used. Check trellis-head-request.json for the recorded current status, not this note.
+
 **Resumed 18:08 UTC with the owner's explicit instruction.** The pause notes below
 describe the saved restart checkpoint. New Rodin studies and native material/eye
 experiments are listed in `rodin-provenance.json` and `rodin-files.json`; all remain

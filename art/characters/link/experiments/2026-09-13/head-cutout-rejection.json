@@ -1,0 +1,9 @@
+{
+  "status": "No image produced; output moderation rejection",
+  "tool": "built-in imagegen",
+  "source": "reference/generated-link-studies/2026-09-13/06-head-front.png",
+  "request_id": "f533320b-643c-48e8-942e-24d411b2634b",
+  "category": "other",
+  "prompt": "Edit this exact character reference only to isolate the existing bust for 3D reconstruction. Preserve the same young Link identity, face proportions, large teal eyes, pointed ears, blonde hair, green cap, fabric and leather details, facial expression, frontal camera and lighting. Remove the gray studio background and produce a genuinely transparent alpha background, not a checkerboard pattern. Keep the entire cap, both ear tips, all hair, neck and clothed shoulders; add a little transparent padding around the silhouette. Do not invent a pedestal, add objects, change clothing or redraw the face. This is an isolated head-and-shoulders modelling reference, not game scenery.",
+  "follow_up": "No alternate image editor or background-removal service used. Separate 3D trial conditions on unchanged reference06."
+}
