@@ -641,8 +641,13 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
   let stairs = 0;
   for (const f of stairFrames) {
     const { u, v } = stairLocal(f, x, z);
-    // treads plus the two rows of landing slabs past the top step (see hardscape/stairs.ts)
-    if (u > -0.3 && u < f.run + 1.7 && Math.abs(v) < f.halfWidth + 0.25) stairs = 1;
+    // treads plus the two rows of landing slabs past the top step (see hardscape/stairs.ts). On the
+    // main run's south-east side (v > 0, the flank cameras A and F look along) the mask stops 5 cm
+    // past the tread ends instead of 25: round 23 raised that bank to lap the step ends, and the
+    // 25 cm band was painting a bare-soil strip there that no grass could grow on (frame 1 s has
+    // turf and leaves over the ends). The north-west side keeps its 25 cm for the kerb stones.
+    const margin = f === stairFrames[0] && v > 0 ? 0.05 : 0.25;
+    if (u > -0.3 && u < f.run + 1.7 && Math.abs(v) < f.halfWidth + margin) stairs = 1;
   }
   let structure = 0;
   for (const hs of LAYOUT.houses) {
