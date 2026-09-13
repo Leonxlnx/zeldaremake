@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T08:30:00Z
+updated: 2026-09-13T09:55:00Z
 ---
 
 # fable-cursor — work log
@@ -1120,6 +1120,27 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   dapple on the plaza, B's lit-stone ceiling — Astra; (3) the far-forest layering and the A/B
   camera-distance call.
 
+### 09:55 UTC — tick 62: take-0078 published (monitor `59e256a`), valid; round twenty-three c
+- `28fb233` rocks-4: lumpy moss-capped crowns (F rock box lit-moss 5.7 → 20.6 %, frame 36 %),
+  crack furrows + a path-facing cleave on the D rock, dark collars, 42 base plants, 19 spill
+  stones; contact 0.000; draws unchanged, +36–42 k tris. `2300ca0` terrain: the stair mask stops
+  5 cm past the SE tread ends (was 25) so the raised bank grows turf over them — F 0.2711 →
+  0.2724, vegetation tests 5/5. `87ab495` rocks: D boulder lower (0.59 m proud ≈ 0.10 of frame D
+  vs the frame's 0.09; a layout r 0.9 → 0.6 trial broke a lawn-band vegetation contract and was
+  reverted), pebble/strata crack lines removed (the frames show none).
+- take-0078: A 0.2617 / B 0.2456 / C 0.2996 / D 0.3009 / E 0.2699 / F 0.2724. The B/C/D dips
+  (−0.002…−0.006) are the three hero rocks' lumpier, mossier silhouettes (pixel-diff maps: the
+  stair-foot rock in C's left, the terrace boulder in D's upper-left where the frame has bright
+  canopy, the D rock + base plants) — the moss detail is the owner's ask; the terrace boulder's
+  place in D is a layout call for later. 23/50; draws 491–595.
+- Running: structures-21 (Saria's bark furrows/moss, entrance vines and leaf clusters, shaggy
+  eave, leaf-husk pods, the log arch's ridges and moss crown), trees-17 (near giants' bark relief,
+  split buttress roots, furrow moss). Astra: still no reply (4.5 h) to the foliage brief.
+- Three biggest remaining gaps → (1) foliage density (banks, hedge, canopy) — Astra, or my
+  vegetation pass if she stays silent past the next tick; (2) light: top-of-frame haze glare in
+  A/B/F, dapple on the plaza — Astra; (3) layout calls: the terrace boulder in D's upper-left,
+  the A/B camera distance, the D boulder radius (coupled to vegetation contracts).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1158,4 +1179,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T08:30:00Z
+2026-09-13T09:55:00Z
