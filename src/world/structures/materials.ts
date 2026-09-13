@@ -23,6 +23,7 @@ import {
 import type { WorldContext } from '../system';
 import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
 import { WIND_GLSL } from '../wind/wind';
+import { applySleeveBarkResponse } from './sleeveBark';
 
 const GRAD3: [number, number, number][] = [
   [1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0],
@@ -953,6 +954,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   archBark.name = 'structures:arch-bark';
   for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
+  // Astra's c5d8c83 (adopted as-is): a 0.20 share of the hemisphere's angular response on the
+  // sleeve's shade floor, so the mapped bark relief reads on the shaded bough
+  applySleeveBarkResponse(sleeveBark);
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
