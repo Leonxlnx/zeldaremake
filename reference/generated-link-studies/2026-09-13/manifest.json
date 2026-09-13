@@ -1,0 +1,26 @@
+{
+  "kind": "generated modelling references",
+  "images": [
+    {
+      "file": "01-head-hair-materials.png",
+      "sha256": "fdefcfbe8d293ecb15815b4f4c74c79d78107c8eb9445ea9fbd4536101e7710c",
+      "width": 1774,
+      "height": 887,
+      "bytes": 2734384
+    },
+    {
+      "file": "02-boots.png",
+      "sha256": "b95942b31edff6f774b18cea04bab30104a64e4f1376b17150fccd35fe839989",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2231660
+    },
+    {
+      "file": "03-clothing-equipment.png",
+      "sha256": "2f4c1055077de6fd23cc229962298837cbde1be44099a9f427b8f635e650a339",
+      "width": 1312,
+      "height": 1199,
+      "bytes": 2615085
+    }
+  ]
+}
