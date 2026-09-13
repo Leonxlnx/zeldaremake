@@ -3,7 +3,7 @@
  * detail from a Poly Haven rock set and an `aMoss` blend toward the palette moss greens.
  * Works for plain meshes and InstancedMesh (instance matrices are folded into the world position).
  */
-import { Color, MeshStandardMaterial, Vector2, type WebGLProgramParametersWithUniforms } from 'three';
+import { Color, MeshStandardMaterial, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 
@@ -33,13 +33,23 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
   });
   mat.name = shade === 1 ? 'rock-triplanar' : `rock-triplanar-shade${shade}`;
   // the boulder caps in the reference are an olive-brown moss (#70683b, R > G), not the yellow-green
-  // of the ground moss: pull both palette greens toward it
+  // of the ground moss: pull both palette greens toward it. Round 4 (frames 1 s / 56 s, measured
+  // in the rock boxes): the sunlit cushion reads lum 0.45–0.47 at HSL sat 0.27–0.30 where ours
+  // rendered 0.36 / 0.25, and the shaded moss 0.21–0.22 at sat 0.33–0.36 — so the bright end is
+  // lifted 1.3× and kept greener, and a damp, darker, more saturated green takes over on the
+  // faces turned away from the sun (uSunDir below), on top of the lighting's own falloff
   const cap = new Color(0x70683b);
-  const mossDeep = new Color(P.mossDeep).lerp(cap, 0.6);
-  const mossBright = new Color(P.mossBright).lerp(cap, 0.7);
+  const mossDeep = new Color(P.mossDeep).lerp(cap, 0.5);
+  const mossBright = new Color(P.mossBright).lerp(cap, 0.4).multiplyScalar(1.8);
+  const mossDamp = new Color(P.mossDeep).lerp(new Color(0x2f3a1e), 0.45);
+  const az = (config.sun.azimuthDeg * Math.PI) / 180;
+  const el = (config.sun.elevationDeg * Math.PI) / 180;
+  const sunDir = new Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uMossDeep = { value: mossDeep };
     shader.uniforms.uMossBright = { value: mossBright };
+    shader.uniforms.uMossDamp = { value: mossDamp };
+    shader.uniforms.uSunDir = { value: sunDir };
     shader.uniforms.uRockTile = { value: 1 / tile };
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float aMoss; varying float vMossR; varying vec3 vWPosR; varying vec3 vWNrmR;')
@@ -60,7 +70,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform float uRockTile;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossDamp; uniform vec3 uSunDir; uniform float uRockTile;
         varying float vMossR; varying vec3 vWPosR; varying vec3 vWNrmR;
         vec3 triW(vec3 n) { vec3 w = pow(abs(n), vec3(4.0)); return w / (w.x + w.y + w.z); }
         float rockHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -91,18 +101,25 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           {
             vec3 bwl = bw * bw;
             vec2 lp = vWPosR.zy * bwl.x + vWPosR.xz * bwl.y + vWPosR.xy * bwl.z;
-            float cluster = smoothstep(0.5, 0.72, rockVNoise(lp * 3.1 + 11.0));
-            float fleck = smoothstep(0.58, 0.7, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);
+            float cluster = smoothstep(0.46, 0.7, rockVNoise(lp * 3.1 + 11.0));
+            float fleck = smoothstep(0.56, 0.68, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);
             float lichen = cluster * fleck * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y);
             vec3 lichenCol = mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)) * diffuse;
-            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), 0.7 * lichen);
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), 0.75 * lichen);
           }
           // moss: the texture luminance (mean ≈ 0.3) picks between deep and bright green so the
           // moss keeps the rock's pitting; blend is near-opaque where the coverage is full. The
           // reference caps are a muted olive (#70683b), so the lift stays modest.
           float ln = clamp(l / 0.3, 0.0, 1.8);
-          // the material colour is the per-rock shade and applies to the moss cap as well
-          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.45, 1.4, ln)) * (0.74 + 0.34 * ln) * diffuse;
+          // the material colour is the per-rock shade and applies to the moss cap as well; only
+          // the thick cushion (coverage → 1) reaches the bright end — thin skins on the small
+          // stones and the cushion's edges stay the deeper green
+          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.3, 1.25, ln) * smoothstep(0.3, 0.95, vMossR)) * (0.74 + 0.34 * ln);
+          // sun side vs shade side: the cushion facing the sun is the bright yellow-green of the
+          // frames' lit caps; turned away it is a dark, damp, saturated green (the A rock's
+          // shaded face, D's north side) — a stylised term the lighting alone leaves too flat
+          float sunSide = smoothstep(-0.35, 0.5, dot(normalize(vWNrmR), uSunDir));
+          moss = mix(uMossDamp * (0.75 + 0.3 * ln), moss, sunSide) * diffuse;
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, mossCov);
         }`,
       )
@@ -133,6 +150,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'rock-triplanar-v7-lichen';
+  mat.customProgramCacheKey = () => 'rock-triplanar-v8-sunside-moss';
   return mat;
 }

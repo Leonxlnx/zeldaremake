@@ -67,7 +67,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // beside): the reference reads it at lum ≈ 0.26 (box (0.82,0.60)-(0.98,0.70)) where the shared
   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
   // moving it
-  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.78);
+  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9);
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
@@ -79,38 +79,107 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // --- hero boulders -----------------------------------------------------------------------
   const contact: [number, number, number][] = [];
-  const boulderInfo: { id: string; radius: number; triangles: number; sink: number; contacts: number }[] = [];
+  const boulderInfo: { id: string; radius: number; triangles: number; sink: number; contacts: number; baseGap: number; crackShare: number; mossShare: number; facetShare: number; topAboveGround: number }[] = [];
   const rubble: Instance[] = [];
   const pebbles: Instance[] = [];
   const boulderPlants: SproutSpot[] = [];
+  let basePlants = 0;
+  let spillStones = 0;
   const bRng = rng.fork('boulders');
+  // the shaded side of every rock: horizontal direction away from the sun (config.sun, azimuth
+  // from +Z toward +X) — the moss blanket in the frames hangs on the faces the sun never reaches
+  const sunAz = (ctx.config.sun.azimuthDeg * Math.PI) / 180;
+  const shadeDir: [number, number] = [-Math.sin(sunAz), -Math.cos(sunAz)];
+  const pathPtsAll = [...ctx.layout.pathSpine, ...ctx.layout.pathToStairs, ...ctx.layout.pathToHouse];
+  /** unit xz direction from (x, z) to the nearest path spine point */
+  const towardPath = (x: number, z: number): [number, number] => {
+    let best = pathPtsAll[0];
+    let bd = Infinity;
+    for (const p of pathPtsAll) {
+      const d = Math.hypot(p[0] - x, p[2] - z);
+      if (d < bd) {
+        bd = d;
+        best = p;
+      }
+    }
+    const l = Math.max(1e-6, bd);
+    return [(best[0] - x) / l, (best[2] - z) / l];
+  };
+  /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
+  const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
   for (const b of ctx.layout.heroBoulders) {
     const r = b.radius;
+    const collar = new Color(0.13, 0.135, 0.09);
+    // the mesh yaw is drawn first (same bRng draw as before — the geometry stream is a fork) so
+    // the sun-shade and path directions can be baked into the geometry in its local frame
+    const yaw = bRng.range(0, Math.PI * 2);
+    // frame 56 s reads the D boulder as a low loaf ≈ 1.3 m wide standing 0.6 m proud of the plants
+    // (0.09 of the frame height at 7 m) where a 0.74 squash stood 1.13 m: squashed lower and sunk
+    // deeper (0.94 m proud) — but still a dome, since the low camera only sees its lit top as a
+    // curve; the A/terrace rocks keep the rounded 0.74 profile
+    const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0.18 : 0.15;
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
       radius: r,
-      // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 8.8k for the small ones
-      detail: r > 1.5 ? 28 : 20,
+      // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
+      // ones (detail 26: the crack furrows are 5 cm wide and need ~4 cm edges to read as lines)
+      detail: r > 1.5 ? 28 : 26,
       // rounded, weathered boulders (reference A/C/D): low ridging, soft lumps, and only shallow
       // sideways cleaves so the crown stays a dome under its moss cap instead of a faceted wedge
       ridge: 0.12,
       lump: 0.3,
-      cuts: r > 1.5 ? 4 : 2,
+      // round 4 (frames 1 s / 8 s / 56 s): the crown is a lumpy, soft mass — big swells on the
+      // upper hemisphere (+0.45·crown mean, ±0.9·crown in lumps) under a thick lumpy cushion
+      crown: 0.2,
+      // the big terrace rock: two shallow cleaves only (four deep ones read as a stack of cut
+      // slabs with a flat front) — it is a rounded mossy mass in frame 14 s
+      cuts: 2,
       cutUp: [-0.35, 0.3],
-      cutDepth: [0.68, 0.84],
-      squashY: 0.74,
+      // D keeps a deep fracture face; the A rock's cleaves are shallow chips (frame 1 s: rounded)
+      cutDepth: r > 1.5 ? [0.9, 1.02] : b.id === 'shot-d-boulder' ? [0.68, 0.84] : [0.82, 0.94],
+      // the D boulder's fresh fracture face stands toward the path (frame 56 s: a dark cleaved
+      // face on the path side under a bright moss top)
+      cutToward: b.id === 'shot-d-boulder' ? toLocal(towardPath(b.position[0], b.position[2]), yaw) : undefined,
+      cutDark: b.id === 'shot-d-boulder' ? 0.4 : 0.3,
+      facetBare: b.id === 'shot-d-boulder' ? 0.9 : 0.5,
+      squashY: squash,
       creaseDeg: 24,
       // a few dark cracks, not a crazed surface: the reference boulders (C stair-foot loaf, A
-      // terrace boulder) are smooth mid-grey with two or three dark partings
+      // terrace boulder) are smooth mid-grey with two or three dark partings — cut as furrows
+      // 2.5 % of the radius deep so they read as dark lines under any light
       cracks: 0.55,
-      moss: 1.0,
+      crackDepth: 0.025,
+      // frame 56 s: the D rock is half bare stone (moss 35 % of its box, bare 54 %); at 1.0 the
+      // cushion took 51 % of ours
+      moss: b.id === 'shot-d-boulder' ? 0.85 : 1.0,
       // faint bedding (dark partings, only a hint of a ledge) under a thick moss cap, sitting in
       // a dark collar of soil — the reference boulders are rounded first, layered second.
-      // Sheet 01 'Mossy root' / sheet 04: the caps are thick pads (cushion 8.5 % of the radius)
-      // over grey — not warm-brown — rock faces
-      strata: 0.06,
-      mossThickness: 0.085,
-      dirt: 0.75,
-      tint: new Color(0.55, 0.555, 0.55),
+      // Sheet 01 'Mossy root' / sheet 04: the caps are thick pads over grey — not warm-brown —
+      // rock faces; round 4 thickens the cushion (8.5 → 13 % of the radius, ±50 % lumpy) and
+      // hangs a moss blanket down the shaded side (frames 1 s / 8 s: the A rock's face toward the
+      // camera is moss from shoulder to collar)
+      // bedding (ledges + dark partings) on D only (frame 56 s: layered); on the A rock the
+      // partings drew dark rings round the whole boulder (frame 1 s: smooth) and the moss
+      // blanket over the ledges read as stacked pancakes
+      strata: b.id === 'shot-d-boulder' ? 0.06 : 0,
+      // 12 cm cushion whatever the radius (13 % of a 1 m rock; the 2.2 m rock would otherwise
+      // wear a 30 cm pad and crumple at its edge)
+      mossThickness: Math.min(0.13, 0.12 / r),
+      mossLumpy: 1.0,
+      // D's frame face is bare lit stone under the moss top with the fracture in shade, so its
+      // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
+      mossSide: b.id === 'shot-d-boulder' ? 0.45 : 0.9,
+      mossShade: toLocal(shadeDir, yaw),
+      // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
+      // visible face of the small boulders
+      dirt: 0.8,
+      collar,
+      collarBand: [0.12, 0.6],
+      // frame 56 s reads the D rock's sunlit face at lum 0.42 (flagstone-bright grey-tan) where a
+      // 0.55 tint rendered 0.24: mid-grey stone, the collar and the fracture faces carry the dark.
+      // The D rock's bare stone is warm and pale in the frame (hue 46, sat 0.34) where the A/terrace
+      // rocks are cool grey under their moss, so it gets a tan tint of its own
+      tint: b.id === 'shot-d-boulder' ? new Color(0.82, 0.77, 0.68) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     });
     // seat: base sinks ~15 % of the rock height into the ground under the footprint
@@ -122,13 +191,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       gn++;
     }
     const ground = gSum / gn;
-    const squash = 0.74;
     const height = 2 * r * squash;
-    const sink = 0.15 * height;
+    const sink = sinkFrac * height;
     const cy = ground + r * squash * 0.62 - sink; // flat-ish bottom is at -0.62·r·squash
     const mesh = new Mesh(geo, b.id === 'stair-foot' ? stairFootMaterial : material);
     mesh.position.set(b.position[0], cy, b.position[2]);
-    mesh.rotation.y = bRng.range(0, Math.PI * 2);
+    mesh.rotation.y = yaw;
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.name = `boulder-${b.id}`;
@@ -162,7 +230,37 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (keep.length >= 12) break;
     }
     contact.push(...keep);
-    boulderInfo.push({ id: b.id, radius: r, triangles: pos.count / 3, sink: Math.round(sink * 1000) / 1000, contacts: keep.length });
+    // base gap: per azimuth bin, does the rock's outer body (outside the buried centre column)
+    // enter the ground? The bin's gap is the smallest height of its vertices above the terrain
+    // under them, clamped at 0 — positive only where no vertex reaches the ground, i.e. the
+    // silhouette floats on the downhill side of a bank. 0 all round = the rock sits IN the ground.
+    let baseGap = 0;
+    let top = -Infinity;
+    {
+      const GB = 24;
+      const wide = new Float32Array(GB);
+      const wpos: number[] = [];
+      for (let i = 0; i < pos.count; i++) {
+        va.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+        top = Math.max(top, va.y);
+        const dx = va.x - b.position[0];
+        const dz = va.z - b.position[2];
+        const hr = Math.hypot(dx, dz);
+        const bin = ((Math.round((Math.atan2(dz, dx) / (Math.PI * 2)) * GB) % GB) + GB) % GB;
+        wide[bin] = Math.max(wide[bin], hr);
+        wpos.push(va.x, va.y, va.z, hr, bin);
+      }
+      const low = new Float32Array(GB).fill(Infinity);
+      for (let i = 0; i < wpos.length; i += 5) {
+        const bin = wpos[i + 4];
+        if (wpos[i + 3] < 0.35 * wide[bin]) continue;
+        low[bin] = Math.min(low[bin], wpos[i + 1] - T.height(wpos[i], wpos[i + 2]));
+      }
+      for (let k = 0; k < GB; k++) if (Number.isFinite(low[k])) baseGap = Math.max(baseGap, low[k]);
+    }
+    const st = (geo.userData.rockStats ?? { crackShare: 0, mossShare: 0, facetShare: 0 }) as { crackShare: number; mossShare: number; facetShare: number };
+    const r3 = (v: number) => Math.round(v * 1000) / 1000;
+    boulderInfo.push({ id: b.id, radius: r, triangles: pos.count / 3, sink: r3(sink), contacts: keep.length, baseGap: r3(baseGap), crackShare: r3(st.crackShare), mossShare: r3(st.mossShare), facetShare: r3(st.facetShare), topAboveGround: r3(top - ground) });
 
     // small plants in the cap (sheet 01 'Roots' / 'Mossy root', sheet 04): grass tufts and a
     // fern or two rooted where a dark parting crosses the mossy upper faces — one candidate per
@@ -197,6 +295,78 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
 
+    // the rock's rim at ground level, per azimuth bin (world frame): where the ground plants and
+    // the spill stones start
+    const BINS = 24;
+    const rim = new Float32Array(BINS).fill(r * 0.6);
+    for (let i = 0; i < pos.count; i++) {
+      va.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+      if (va.y > ground + 0.35 || va.y < ground - 0.3) continue;
+      const dx = va.x - b.position[0];
+      const dz = va.z - b.position[2];
+      const bin = ((Math.round((Math.atan2(dz, dx) / (Math.PI * 2)) * BINS) % BINS) + BINS) % BINS;
+      rim[bin] = Math.max(rim[bin], Math.hypot(dx, dz));
+    }
+    const rimAt = (a: number) => rim[((Math.round((a / (Math.PI * 2)) * BINS) % BINS) + BINS) % BINS];
+
+    // ground plants at the foot (frames 1 s / 56 s: ferns and grass sprigs lap the rock's base
+    // and spill onto the paving edge) — sown around the rim, denser on the shaded side and the
+    // path side, so the rock sits in the ground rather than on it. Own stream: nothing below moves.
+    {
+      const gRng = bRng.fork(`base-plants-${b.id}`);
+      const want = r > 1.5 ? 18 : 12;
+      const toPath = towardPath(b.position[0], b.position[2]);
+      let placed = 0;
+      for (let k = 0; k < want * 4 && placed < want; k++) {
+        const a = gRng.range(0, Math.PI * 2);
+        const ca = Math.cos(a);
+        const sa = Math.sin(a);
+        // acceptance: 0.35 anywhere, up to 1 where the rim faces the shade or the path
+        const favour = Math.max(ca * shadeDir[0] + sa * shadeDir[1], ca * toPath[0] + sa * toPath[1]);
+        if (!gRng.chance(0.35 + 0.65 * smoothstep(0.0, 0.8, favour))) continue;
+        const d = rimAt(a) * gRng.range(0.98, 1.22) + 0.04;
+        const x = b.position[0] + ca * d;
+        const z = b.position[2] + sa * d;
+        if (!notPaved(x, z)) continue;
+        const fern = gRng.chance(0.45);
+        boulderPlants.push({ x, y: T.height(x, z) - 0.004, z, size: fern ? 0.5 : gRng.range(0.5, 0.95), kind: fern ? 'fern' : 'tuft', scale: fern ? gRng.range(1.5, 2.3) : gRng.range(1.5, 2.1) });
+        placed++;
+        basePlants++;
+      }
+    }
+
+    // spill stones: fist-sized mossy stones at the foot, spilling from the rim toward the paving
+    // edge (frame 1 s: the A rock's foot sheds a few stones onto the flagstone verge)
+    {
+      const sRng = bRng.fork(`spill-${b.id}`);
+      const toPath = towardPath(b.position[0], b.position[2]);
+      const a0 = Math.atan2(toPath[1], toPath[0]);
+      // march toward the path to find the paved edge (the spill stops there)
+      let edge = rimAt(a0) + 1.2;
+      for (let d = rimAt(a0); d < rimAt(a0) + 3; d += 0.1) {
+        const m = T.mask(b.position[0] + toPath[0] * d, b.position[2] + toPath[1] * d);
+        if (m.path > 0.3 || m.stairs > 0.5 || m.structure > 0.5) {
+          edge = d;
+          break;
+        }
+      }
+      const n = r > 1.5 ? 6 : 8;
+      let placed = 0;
+      for (let k = 0; k < n * 3 && placed < n; k++) {
+        const a = a0 + sRng.range(-0.65, 0.65);
+        const t = sRng.range(0, 1) ** 0.7; // biased toward the rim
+        const d = rimAt(a) * 1.02 + t * Math.max(0.2, edge - rimAt(a) * 1.02 - 0.05);
+        const x = b.position[0] + Math.cos(a) * d;
+        const z = b.position[2] + Math.sin(a) * d;
+        if (!notPaved(x, z)) continue;
+        const sc = sRng.range(0.07, 0.13);
+        T.normal(x, z, _n);
+        rubble.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: sRng.range(0, Math.PI * 2), tiltTo: _n.clone().lerp(_up, 0.5).normalize(), variant: sRng.int(0, 4) });
+        spillStones++;
+        placed++;
+      }
+    }
+
     // rubble skirt + pebbles at the base
     const nRub = Math.round(rng.range(9, 16) * (0.6 + 0.4 * r) * density);
     for (let k = 0; k < nRub; k++) {
@@ -224,8 +394,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // --- shared small-rock geometry variants -------------------------------------------------
   const vRng = rng.fork('variants');
+  // the skirt and spill stones are mossy (frame 1 s: the stones at the A rock's foot are green
+  // pads with a grey underside), with a thin cushion so the moss has a silhouette
   const rubbleGeos = [0, 1, 2, 3].map((i) =>
-    buildRock(vRng.fork(`rubble-${i}`), `${seed}/rubble-${i}`, { radius: 1, detail: 3, ridge: 0.2, lump: 0.22, cuts: 3, squashY: 0.75, creaseDeg: 40, cracks: 0.4, moss: 0.5, dirt: 0.4, tint: new Color(0.68, 0.67, 0.64), freq: 1 }),
+    buildRock(vRng.fork(`rubble-${i}`), `${seed}/rubble-${i}`, { radius: 1, detail: 3, ridge: 0.2, lump: 0.22, cuts: 3, squashY: 0.75, creaseDeg: 40, cracks: 0.4, moss: 0.65, mossThickness: 0.06, dirt: 0.4, tint: new Color(0.68, 0.67, 0.64), freq: 1 }),
   );
   const strataGeos = [0, 1, 2, 3].map((i) =>
     buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0.5, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1, strata: 0.1 }),
@@ -265,7 +437,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (m.path > 0.55 || m.path < 0.01) return r() < 0.04 && m.path < 0.01;
     return r() < 0.9;
   };
-  const pathPts = [...ctx.layout.pathSpine, ...ctx.layout.pathToStairs, ...ctx.layout.pathToHouse];
+  const pathPts = pathPtsAll;
   const target = Math.round(2600 * density);
   let tries = 0;
   while (pebbles.length < target && tries < target * 30) {
@@ -313,11 +485,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.audit('rocks', () => ({
     heroBoulders: boulderInfo.length,
     boulders: boulderInfo,
-    geometry: 'procedural-v2-strata',
-    features: ['ridged-displacement', 'bedding-strata', 'cleave-cuts', 'moss-cushion', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'triplanar-texture', 'lichen-flecks', 'cap-plants'],
+    /** the highest any hero boulder's underside stands above the terrain (m); 0 = fully seated */
+    maxBaseGap: Math.max(0, ...boulderInfo.map((b) => b.baseGap)),
+    geometry: 'procedural-v3-crown',
+    features: ['ridged-displacement', 'crown-lumps', 'bedding-strata', 'cleave-cuts', 'crack-furrows', 'moss-cushion', 'moss-shade-blanket', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'spill-stones', 'triplanar-texture', 'lichen-flecks', 'sun-side-moss', 'cap-plants', 'base-plants'],
     mossCoverage: true,
     boulderPlants: plants.count,
     boulderFerns: plants.ferns,
+    basePlants,
+    spillStones,
     boulderPlantDrawCalls: plants.meshes.length,
     rubble: rubble.length,
     strata: strata.length,
