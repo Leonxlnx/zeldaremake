@@ -7967,6 +7967,115 @@
       },
       "prevHash": "sha256:1d4f1586f132e6762fd83b42ba60b332a7081427d4a643ecf9a2e404a4733ae1",
       "hash": "sha256:8cad54e820ab7e906d351428a92e5871b18c19e8dcceea69fbca128f77c5011d"
+    },
+    {
+      "id": "take-0075",
+      "number": 75,
+      "at": "2026-09-13T04:10:20.113Z",
+      "sha": "aebbf22ec27e5b564c382470e1540c96d5336654",
+      "shortSha": "aebbf22",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "hardscape: the damp band's darkening and greying cut to a third (lum -16 % -> -6 %, hue shift -0.22 -> -0.08, blue lift +0.55 -> +0.18 at full dampness) - B's stone was rendering grey, not damp",
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W34",
+        "W26"
+      ],
+      "note": "Round twenty-two, single-threaded. (1) Astra's sleeve angular-floor hook adopted as-is after her retained verdict: the lantern limb's shade floor takes a 0.20 share of the hemisphere's angular response so the mapped bark relief reads on the shaded bough (B top band p50 0.324 -> 0.327 vs the frame's 0.351; the top-left box stays 0.11 under the frame - the veil, not the sleeve). (2) The damp band on B's path was rendering grey, not damp: against frame 14 s our lit stone there had half the frame's saturation (0.096 vs 0.188) and a yellower hue (47 vs 40 deg) while the A plaza outside the band matched on all three; its darkening and greying are cut to a third, and B's stone now reads sat 0.151 / hue 41 (mid-ground 0.153 / 46 vs 0.183 / 43), whole-frame hue delta 0.70 -> 0.07 deg. Honest cost: grey-structure SSIM dips 0.001-0.003 in A/B/C/E/F (A 0.262 -> 0.260, B 0.253 -> 0.250, E 0.275 -> 0.273) because the stone-to-joint contrast changed; the frame's tonal statistics moved closer, the structure metric did not. Measured and dropped this round: three canopy openings over B's path - 2-degree sun probes read 86-99 % open there already and the white-Lambert shadow view shows the slabs lit, so B's dark mid-ground is its surfaces (35 % of the band in 0.25-0.35 luminance vs the frame's 16 %: joint turf and soil area, shoulders), not shade. Draws 490-592, triangles 7.7-8.0 M.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "fail",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:ba683ff6e6bcf435263686bf8f693a226604b7adf641509d3ace80653f45bc53",
+        "B_house": "sha256:31009b675c181d3ed223f9406e308e799cc99dced132b334e4fa0b8fca2a1c63",
+        "C_lookback": "sha256:15d8551f0de60a0b60ec530274258232e8840d6315683a0b45b045c6186a62b0",
+        "D_log": "sha256:d223cb0c0b57d5b339f23ace7c1c21c91e1976da4ece2e037983d0524d640f61",
+        "E_ground": "sha256:31009b675c181d3ed223f9406e308e799cc99dced132b334e4fa0b8fca2a1c63",
+        "F_canopy": "sha256:9052be75845c6acc05dbea91c8210c421a4dbd85ff3f03b6f4931184f49a4583"
+      },
+      "distHash": "sha256:e3ce1d40e24e0fc0d48d44ef38af5322ed28979017a449a30f551bc016f8d2e4",
+      "stats": {
+        "drawCalls": 592,
+        "triangles": 7969716,
+        "captureMs": 618408,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W03",
+        "W34",
+        "W26"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take75-cap",
+        "importedAt": "2026-09-13T04:11:00.872Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:8cad54e820ab7e906d351428a92e5871b18c19e8dcceea69fbca128f77c5011d",
+      "hash": "sha256:74f185811a2b2b915037d72eec678abb67bba80dfc7acbc576058f8dc3d4904b"
     }
   ]
 }
