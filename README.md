@@ -8,20 +8,21 @@ Original game screenshots: twelve matched baseline/candidate images per checkpoi
 
 These are supplemental art-direction comparisons, not gauntlet takes or quality-gate approvals. Both variants within a checkpoint use one built source and fixed cameras/time; geometry and fog remain identical within each pair.
 
-## Latest rendered candidate — c5d8c83
+## Latest rendered candidate — 087b232
 
-Captured 2026-09-12T22:43:28.290Z. Open an image for full size, or [compare all six baseline/candidate pairs](progress/2026-09-12_224328290-c5d8c83/).
+Captured 2026-09-13T03:26:25.755Z. Open an image for full size, or [compare all six baseline/candidate pairs](progress/2026-09-13_032625755-087b232/).
 
 | Stairway | Tree house |
 | --- | --- |
-| [![Stairway](progress/2026-09-12_224328290-c5d8c83/A_stairs-candidate.jpg)](progress/2026-09-12_224328290-c5d8c83/A_stairs-candidate.jpg) | [![Tree house](progress/2026-09-12_224328290-c5d8c83/B_house-candidate.jpg)](progress/2026-09-12_224328290-c5d8c83/B_house-candidate.jpg) |
+| [![Stairway](progress/2026-09-13_032625755-087b232/A_stairs-candidate.jpg)](progress/2026-09-13_032625755-087b232/A_stairs-candidate.jpg) | [![Tree house](progress/2026-09-13_032625755-087b232/B_house-candidate.jpg)](progress/2026-09-13_032625755-087b232/B_house-candidate.jpg) |
 | Path through the forest | Canopy and upper flight |
-| [![Path through the forest](progress/2026-09-12_224328290-c5d8c83/C_lookback-candidate.jpg)](progress/2026-09-12_224328290-c5d8c83/C_lookback-candidate.jpg) | [![Canopy and upper flight](progress/2026-09-12_224328290-c5d8c83/F_canopy-candidate.jpg)](progress/2026-09-12_224328290-c5d8c83/F_canopy-candidate.jpg) |
+| [![Path through the forest](progress/2026-09-13_032625755-087b232/C_lookback-candidate.jpg)](progress/2026-09-13_032625755-087b232/C_lookback-candidate.jpg) | [![Canopy and upper flight](progress/2026-09-13_032625755-087b232/F_canopy-candidate.jpg)](progress/2026-09-13_032625755-087b232/F_canopy-candidate.jpg) |
 
 ## All checkpoints
 
 | Captured UTC | Source | Comparison |
 | --- | --- | --- |
+| 2026-09-13T03:26:25.755Z | [087b232](https://github.com/Leonxlnx/zeldaremake/commit/087b232df3be643ed868a83c03f94c5c306c55be) | [12 images](progress/2026-09-13_032625755-087b232/) |
 | 2026-09-12T22:43:28.290Z | [c5d8c83](https://github.com/Leonxlnx/zeldaremake/commit/c5d8c834a53f73edef8d3f7a2dcc67b752bce558) | [12 images](progress/2026-09-12_224328290-c5d8c83/) |
 | 2026-09-12T22:24:35.144Z | [9f2e98b](https://github.com/Leonxlnx/zeldaremake/commit/9f2e98b27ab6afd177d344e4d9a830ef24efab31) | [12 images](progress/2026-09-12_222435144-9f2e98b/) |
 | 2026-09-12T22:06:11.885Z | [f56d0d2](https://github.com/Leonxlnx/zeldaremake/commit/f56d0d22548a85ef776e9cc8c36644c3af8fb56f) | [12 images](progress/2026-09-12_220611885-f56d0d2/) |
