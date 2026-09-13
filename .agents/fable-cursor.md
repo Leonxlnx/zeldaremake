@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T03:12:00Z
+updated: 2026-09-13T04:22:00Z
 ---
 
 # fable-cursor — work log
@@ -1043,6 +1043,32 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (2) the hero arch's lit share, ground read (paler, more uniform slabs than the frames) and the
   A/B camera-distance call; (3) far-forest layering.
 
+### 04:22 UTC — tick 59: take-0075 published (monitor `9496dd5`), valid; round twenty-two (ground)
+- Astra back on GitHub only (her environment disconnected during publication; c5d8c83 is her
+  last published source, fern recovery `087b232` on PR #6, no art verdict yet). Her sleeve hook
+  verdict: retained → adopted as-is in `6b2fc1f` (sleeveBark.ts sha256 f4c4ccd7… matches hers).
+- Ground read, measured instead of eyeballed (tone stats per luminance band, stone/green/soil
+  classifier, sun masks, 10°/2° sun probes, white-Lambert and occluder-distance shadow views):
+  - The ground is NOT paler than the frames: A's box matches (p50 0.460 vs 0.478; stone sat/hue/
+    lum 0.189/43°/0.487 vs 0.183/42°/0.497); B/D/E are DARKER (p50 0.38 vs 0.45) with fewer lit
+    pixels (B centre/right thirds > 0.58: 3.4/1.4 % vs 17.7/20.9 %).
+  - Not shade: the B pool points read 86–99 % open on 2° sun probes and lit in the Lambert view;
+    three canopy openings over B's path changed the ground 0 % and cost A/B SSIM → dropped.
+  - Not the post chain: AO / softening / grade / rays all off moves B's band p90 0.535 → 0.538.
+  - It is the surfaces: the damp band had halved the stone's saturation (0.096 vs 0.188, hue 47
+    vs 40) — `aebbf22` cuts its darkening/greying to a third (B stone sat → 0.151, hue → 41; frame
+    hue Δ 0.70 → 0.07°). Still open: B's mid-ground has 35 % of pixels in 0.25–0.35 vs the frame's
+    16 % and 1 % above 0.6 vs 15 % — joint turf/soil area and rolled shoulders (lawnJoint 14–36 cm,
+    jointSoil 0.9 core; A's plaza shows 29 % brown-soil pixels vs the frame's 15 %, take-58 had
+    14 %); D's path has 10 % green vs the frame's 1 %.
+- take-0075: A 0.2603 / B 0.2498 / C 0.3033 / D 0.3036 / E 0.2732 / F 0.2674 — grey-structure SSIM
+  −0.001…−0.003 on A/B/C/E/F from the stone-to-joint contrast change while the colour statistics
+  moved onto the frame; sealed with that cost stated. 23/50; draws 490–592.
+- Three biggest remaining gaps → (1) joint/turf/soil share on the paving (A soil 29 % vs 15 %,
+  B mid-ground dark band 35 % vs 16 %, D green 10 % vs 1 %) — hardscape lattice/fill, mine;
+  (2) top-of-frame light/haze in A/B and B's lit-stone ceiling (1 % > 0.6 vs 15 %) — sun energy
+  on the path is Astra's; (3) far-forest layering.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1081,4 +1107,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T03:12:00Z
+2026-09-13T04:22:00Z
