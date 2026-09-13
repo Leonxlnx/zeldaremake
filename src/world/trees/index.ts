@@ -1334,7 +1334,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.count = list.length;
     mesh.visible = list.length > 0;
     mesh.instanceMatrix.needsUpdate = true;
-    if (list.length) mesh.computeBoundingSphere();
+    if (list.length) {
+      // the aggregate sphere three culls the whole mesh against must carry the same pad the
+      // instances were admitted with, or a sparse bucket admitted at the frustum's edge for its
+      // wind sway / shadow filter is dropped again by the renderer's unpadded test
+      mesh.computeBoundingSphere();
+      mesh.boundingSphere!.radius += CULL_PAD_M;
+    }
     w.submitted[l] = list;
   };
   const submitFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[]) => {
@@ -1360,7 +1366,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.visible = list.length > 0;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    if (list.length) mesh.computeBoundingSphere();
+    if (list.length) {
+      // the aggregate sphere three culls the whole mesh against must carry the same pad the
+      // instances were admitted with, or a sparse bucket admitted at the frustum's edge for its
+      // wind sway / shadow filter is dropped again by the renderer's unpadded test
+      mesh.computeBoundingSphere();
+      mesh.boundingSphere!.radius += CULL_PAD_M;
+    }
     set.submitted[l] = list;
   };
   const submitDistant = () => {
