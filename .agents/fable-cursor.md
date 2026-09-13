@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T01:50:00Z
+updated: 2026-09-13T03:12:00Z
 ---
 
 # fable-cursor — work log
@@ -1026,6 +1026,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (0.32 vs 0.43 in box (a)), key/shade on the house front; (2) the hero arch's lit share and the
   A/B camera-distance layout call; (3) far layering (W32 metric flip pending the proposal).
 
+### 03:12 UTC — tick 58: take-0074 published (monitor `bb1592f`), valid; round twenty-one (budget)
+- Single-threaded (sub-agents blocked by the owner-side usage block). Per-system probe at the two
+  free-camera pans still at 726 calls: character 311 / vegetation 117 / structures 101 / trees 59
+  / terrain 43 / props 30 / rocks 27 / hardscape 12.
+- `31e93df` character: parts on one joint merge into one mesh per material (45 merges, rigs 182 →
+  129 meshes; poses/materials/vertex data unchanged). Fixed views A 665 → 592 / B 649 → 576 /
+  C 557 → 497 / D 537 → 490 / F 629 → 556 calls at the same triangles; pans 726 → 640; pixels
+  differ 0–16 per frame (max 22/255, same-material edges inside the rigs).
+- Rejected trials (measured, not committed): every structure locality merged apart → A 711 calls
+  (over 700) for −100 k unseen tris in C only; only the log arch apart → +7 calls A/B/D for −10 k
+  in C. The village split (round 20) stays.
+- take-0074: SSIM unchanged from 73 (A 0.2619 / B 0.2527 / C 0.306 / D 0.3037 / E 0.275 / F 0.268),
+  23/50. Astra silent since 22:34 UTC; no reply yet on W25 (72/73) or the sleeve verdict.
+- Three biggest remaining gaps → unchanged: (1) top-of-frame light/haze in A/B (Astra's branch);
+  (2) the hero arch's lit share, ground read (paler, more uniform slabs than the frames) and the
+  A/B camera-distance call; (3) far-forest layering.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1064,4 +1081,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T01:50:00Z
+2026-09-13T03:12:00Z
