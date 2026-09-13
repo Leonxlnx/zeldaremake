@@ -25,6 +25,7 @@ import { GIANT_BARK_FLOOR, LEAF_FLOOR, bindShadeFloor, shadeFloorGlsl, shadeFloo
 import type { WorldContext } from '../system';
 import { createWhiteBarkTextures } from './bark-texture';
 import { createLeafClusterTexture } from './leaf-cluster-texture';
+import { BARK_AO_LIFT } from './bole';
 
 export interface TreeMaterials {
   whiteTree: MeshStandardMaterial;
@@ -70,6 +71,7 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms) {
 }
 
 const WIND_VERTEX_PARS = /* glsl */ `
+#define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}
 attribute vec3 aWind;
 attribute vec4 aRoot;
 uniform float uTreeStiff;
@@ -78,6 +80,7 @@ varying vec3 vTreeWorld;
 varying vec2 vTreeUv;
 varying float vTreeLocalY;
 varying float vIsLeaf;
+varying float vBarkAO;
 `;
 
 const WIND_VERTEX_BODY = /* glsl */ `
@@ -97,8 +100,13 @@ const WIND_VERTEX_BODY = /* glsl */ `
     // layer 2: branches flex by their own stiffness with a per-branch phase offset
     vec3 flexP = treeP.xyz + vec3(aWind.y * 41.0, aWind.y * 7.0, aWind.y * 23.0);
     disp += windBranch(flexP, hAbove * 0.5, aWind.x) * uFlex;
-    // layer 3: leaf flutter (amount is zero on wood and at the petiole so laminae stay attached)
-    disp += windLeaf(treeP.xyz, aWind.y, aWind.z);
+    // layer 3: leaf flutter (amount is zero on wood and at the petiole so laminae stay attached);
+    // a NEGATIVE amount is the near-bole bark's furrow occlusion (bole.ts packOcclusion:
+    // −(0.25 + 0.75 (1 − ao))), not a flutter — decoded here, per vertex, to the bark AO factor:
+    // 1.0 on every plain-sweep vertex, BARK_AO_LIFT on the relief's crests, ≈ 0.65 in its furrows
+    disp += windLeaf(treeP.xyz, aWind.y, max(aWind.z, 0.0));
+    float occ = -min(aWind.z, 0.0);
+    vBarkAO = occ > 0.0 ? (1.0 - (occ - 0.25) / 0.75) * BARK_AO_LIFT : 1.0;
     // world-space displacement back into object space (instances are yaw + uniform scale)
     #ifdef USE_INSTANCING
       mat3 im = mat3(instanceMatrix);
@@ -124,7 +132,7 @@ function injectWind(material: Material, wind: Wind, o: WindOpts, extra?: (shader
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', WIND_VERTEX_BODY);
     extra?.(shader);
   };
-  material.customProgramCacheKey = () => `trees-${key}-v4`;
+  material.customProgramCacheKey = () => `trees-${key}-v5`;
   wind.bind(material);
 }
 
@@ -133,6 +141,7 @@ varying vec3 vTreeWorld;
 varying vec2 vTreeUv;
 varying float vTreeLocalY;
 varying float vIsLeaf;
+varying float vBarkAO;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -322,6 +331,12 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       ${shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL)}
     } else {
       ${shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL)}
+      // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
+      // furrow to the same flat grey as its crest, so the occlusion is applied after it — the
+      // ambient and the floor fully, the sun by half (a 10 cm furrow's floor is part-shadowed).
+      // 1.0 on every vertex the plain sweeps write, so nothing else moves.
+      reflectedLight.indirectDiffuse *= vBarkAO;
+      reflectedLight.directDiffuse *= mix(1.0, vBarkAO, 0.5);
     }
     `,
   );

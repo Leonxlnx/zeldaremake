@@ -16,6 +16,7 @@ import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail } from './writer';
 import type { Palette, TreeAsset } from './whitebark';
+import { consumeTubeDraws, reliefBole } from './bole';
 
 /** A column tree plus the bole its `tube()` sweep was built from, for `ctx.shared.trunkSeats`. */
 export interface ColumnAsset extends TreeAsset {
@@ -25,6 +26,8 @@ export interface ColumnAsset extends TreeAsset {
   trunkRadii: number[];
   /** local height where the lowest bough leaves the bole (the crown begins here; ≤ the fork) */
   bareHeight: number;
+  /** the near-bole bark as built (bole.ts; `ColumnParams.relief`), or null for the plain sweep */
+  bark: { relief: number; rings: number; sides: number; mossShare: number; triangles: number } | null;
 }
 
 export interface ColumnParams {
@@ -53,6 +56,11 @@ export interface ColumnParams {
   barkTile: number;
   /** amplitude of the bole's gnarl (radius displacement, fraction) — also its crevice shading */
   gnarl: number;
+  /**
+   * near-bole bark (bole.ts): relief amplitude scale for a bole a hero camera sees from a few
+   * metres (1 = the default for its radius). Unset = the plain sweep (the far columns, the hut hosts).
+   */
+  relief?: number;
 }
 
 /** Deterministic architecture for variant `index` of `total`. */
@@ -112,6 +120,9 @@ export function emergentParams(rng: Rng): ColumnParams {
     flare: 0.3,
     barkTile: 1.0,
     gnarl: 0.14,
+    // 4.4 m from camera D, 8.4 m from B: the near-bole cords and furrows (bole.ts) are OFF (round 17
+    // integration: the frame shows a near-smooth hazed column; the relief cost B -0.001 / D -0.004 SSIM)
+    relief: 0,
   };
 }
 
@@ -159,18 +170,58 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const radius = forkRadius + (R - forkRadius) * Math.pow(1 - t, 0.85);
     return radius * (1 + p.flare * Math.exp(-above * 9));
   });
-  tube(wood, trunk, trunkRadii, 16, rng, {
-    color: barkColor,
-    roughness: 0.05,
-    bump: gnarlBump,
-    // crevice shading scaled with the gnarl so a deeper gnarl also reads darker in its folds
-    creviceShade: 1.8 * (p.gnarl / 0.1),
-    barkTile: p.barkTile,
-    flatBase: true,
-    isTrunk: true,
-    structural: true,
-    stiffness: stiff,
-  });
+  let bark: ColumnAsset['bark'] = null;
+  if (p.relief) {
+    // the near-bole bark (bole.ts): the plain sweep's draws are consumed so the roots and crown
+    // below draw the same stream; medium / low details keep the plain sweep's side reduction
+    const draws = consumeTubeDraws(rng, 16);
+    const refRadius = (() => {
+      let best = trunkRadii[0];
+      let bestD = Infinity;
+      trunk.forEach((pt, i) => {
+        const dd = Math.abs(pt.y - 2);
+        if (dd < bestD) {
+          bestD = dd;
+          best = trunkRadii[i];
+        }
+      });
+      return best;
+    })();
+    const sideScale = detail === 'high' ? 1 : detail === 'medium' ? 0.72 : 0.5;
+    const built = reliefBole(wood, trunk, trunkRadii, {
+      color: barkColor,
+      bump: gnarlBump,
+      creviceShade: 1.8 * (p.gnarl / 0.1),
+      barkTile: p.barkTile,
+      sides: Math.max(24, Math.min(120, Math.round(((TAU * refRadius) / 0.075) * sideScale))),
+      spacing: detail === 'high' ? 0.2 : 0.4,
+      denseUntilY: 14,
+      amplitude: Math.max(0.06, Math.min(0.15, 0.11 * Math.sqrt(refRadius / 1.2))) * p.relief,
+      fadeY: [12, 18],
+      farShare: 0.35,
+      refRadius,
+      noise: new Noise2D(`column-relief/${p.seed}`),
+      draws,
+      stiffness: stiff,
+      flatBase: true,
+      mossBand: [2, 6],
+      mossStrength: 0.8,
+    });
+    bark = { relief: built.amplitude, rings: built.rings, sides: built.sides, mossShare: built.mossShare, triangles: built.triangles };
+  } else {
+    tube(wood, trunk, trunkRadii, 16, rng, {
+      color: barkColor,
+      roughness: 0.05,
+      bump: gnarlBump,
+      // crevice shading scaled with the gnarl so a deeper gnarl also reads darker in its folds
+      creviceShade: 1.8 * (p.gnarl / 0.1),
+      barkTile: p.barkTile,
+      flatBase: true,
+      isTrunk: true,
+      structural: true,
+      stiffness: stiff,
+    });
+  }
 
   // ---------- buttress roots ----------
   const rootColor = barkBase.clone().lerp(barkDeep, 0.5);
@@ -272,5 +323,6 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     trunkPath: trunk,
     trunkRadii,
     bareHeight,
+    bark,
   };
 }

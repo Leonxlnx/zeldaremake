@@ -113,7 +113,8 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
   // the bole leans. The lantern limb leaves the tree's axis 2 m up, where the sheared bole is
   // displaced 1.2 m — inside its 1.9 m radius — so the limb, its pods and its lobes are exactly
   // where they were.
-  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 } },
+  // relief 0: the near-bole bark (bole.ts) is off for the hero views - see giant.ts NEAR_BOLE_M
+  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 }, relief: 0 },
   // reference C's centre tree: a fat column at x 0.50–0.62 forking at y≈0.26 into two near-horizontal
   // limbs (east = screen-left, west = screen-right) whose clusters form the hazed band across the
   // top of the frame. Girth up / flare down: thicker bole without a ballooning foot at 30 m.
@@ -150,6 +151,10 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
     rootReach: 0.3,
     rootGirth: 0.8,
     wildLimbs: 0,
+    // near-bole bark (bole.ts) off: the reference shows this bole as a near-smooth hazed column at
+    // 13.6 m (F) and 18.7 m (C); even the zero-amplitude bole path cost C -0.003 / F -0.003 SSIM
+    // (see giant.ts NEAR_BOLE_M)
+    relief: 0,
     barkTint: [3.2, 3.6, 4.2],
     barkTintFade: [7, 12],
     spread: [{ azimuthDeg: 60, height: 11, length: 7, rise: 0.25, radius: 0.42, foliage: 0.9, density: 1.1 }, { azimuthDeg: 120, height: 12.5, length: 6.5, rise: 0.2, radius: 0.4, foliage: 1.0, density: 1.0 }],
@@ -1143,6 +1148,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
       profile: GIANT_PROFILES[def.id],
       canopyBoughs,
+      // the near-bole bark (bole.ts) goes on the giants within NEAR_BOLE_M of a hero camera and
+      // within 60° of its axis (the frames' horizontal half-angle is 37–38°: in shot or just past
+      // its edge). The south giants stand 13–23 m from cameras A and F but 65–120° off their axes,
+      // and are only ever seen as hazed columns 28–35 m into shot C, where the relief measured
+      // −0.013 SSIM. GIANT_PROFILES.relief overrides this (the lantern tree).
+      heroDistance: Math.min(
+        ...ctx.layout.viewpoints.map((v) => {
+          const fx = v.target[0] - v.position[0];
+          const fz = v.target[2] - v.position[2];
+          const dx = px - v.position[0];
+          const dz = pz - v.position[2];
+          const d = Math.hypot(dx, dz);
+          return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
+        }),
+      ),
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     for (const g of [asset.geometry, asset.cards]) {
@@ -1567,6 +1587,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantCanopyCards: giantCards,
       giantMeshes: sectorGeometries.length,
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
+      /**
+       * near-bole bark (bole.ts) per giant within NEAR_BOLE_M of a hero camera:
+       * [id, relief amplitude (m), rings, sides, moss share of the bole's moss band, buttress toes, wood triangles]
+       */
+      giantNearBark: giants
+        .filter((g) => g.asset.bark)
+        .map((g) => {
+          const b = g.asset.bark!;
+          return [g.def.id, Math.round(b.relief * 1e3) / 1e3, b.rings, b.sides, Math.round(b.mossShare * 1e3) / 1e3, b.rootToes, b.triangles];
+        }),
+      /** the same for the column seats built with the near-bole bark (the emergent): [seat id, relief, rings, sides, moss share, wood triangles] */
+      columnNearBark: seatedColumns
+        .filter((c) => c.lods[0].bark)
+        .map((c) => {
+          const b = c.lods[0].bark!;
+          return [c.placements[0].id, Math.round(b.relief * 1e3) / 1e3, b.rings, b.sides, Math.round(b.mossShare * 1e3) / 1e3, b.triangles];
+        }),
       whiteBarkVariants: whites.length,
       whiteBarkInstances: whitePlacements.length,
       /** white-barks moved out of the hero-camera view gaps (VIEW_GAPS) */

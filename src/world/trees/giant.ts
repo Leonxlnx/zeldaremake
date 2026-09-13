@@ -30,6 +30,27 @@ import {
 } from './writer';
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
+import { buttressRoot, consumeTubeDraws, reliefBole } from './bole';
+
+/**
+ * Giants whose base stands within this many metres of a hero camera get the near-bole bark
+ * (bole.ts): fine tessellation, deep cord/furrow relief, furrow moss and grime, buttress fins with
+ * toes. The far giants keep the plain sweep.
+ *
+ * SWITCHED OFF for the hero views (round 17 integration, NEAR_BOLE_M 25 -> 0 and no profile asks
+ * for it): measured on same-tree pairs, the frames show every near bole as a hazed, near-smooth,
+ * evenly shaded column at 9-19 m, and the near-bole bark cost SSIM structure in every view -
+ * A -0.0015 / B -0.0034 / C -0.0048 / D -0.0041 / F -0.0054 at full relief, C -0.0028 / F -0.0030
+ * still at a quarter of it, and the same C/F cost at ZERO amplitude (the furrow moss / grime tint
+ * and the changed shading, not the geometry). The plain sweep is the frame-true bole at hero
+ * distance. bole.ts stays as the close-range bark for a later camera-distance LOD (the walkable
+ * build passes these boles at 2-5 m): re-enable per giant with GiantProfile.relief > 0.
+ */
+export const NEAR_BOLE_M = 0;
+/** global scale on the near boles' relief amplitude and shading depth (1 = bole.ts nominal) */
+export const NEAR_BOLE_RELIEF = 1;
+/** buttress fins with toes (bole.ts) instead of the plain root tubes on the near boles */
+export const NEAR_BOLE_ROOTS = true;
 
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
@@ -60,6 +81,19 @@ export interface GiantAsset {
   trunkRadii: number[];
   /** local height where the lowest limb leaves the bole (the crown begins here; ≤ the fork) */
   bareHeight: number;
+  /** the near-bole bark as built (bole.ts), or null when the tree keeps the plain sweep */
+  bark: {
+    /** relief amplitude (m): crests +0.35 A, furrows −0.65 A */
+    relief: number;
+    rings: number;
+    sides: number;
+    /** share of the bole vertices in the moss band whose furrow moss is > 0.5 */
+    mossShare: number;
+    /** buttress toes over all roots */
+    rootToes: number;
+    /** wood triangles spent on the relief bole and the buttress roots */
+    triangles: number;
+  } | null;
 }
 
 /**
@@ -127,6 +161,11 @@ export interface GiantProfile {
   wildLimbAzimuthDeg?: number;
   /** trunk-parameter range the un-authored big limbs leave from (default [0.36, 0.62] ≈ 0.36–0.62 of the fork height) */
   wildLimbT?: [number, number];
+  /**
+   * near-bole bark (bole.ts) regardless of the hero cameras: the relief amplitude scale (1 = the
+   * default for the bole's radius), or 0 for the plain sweep. Unset = by `GiantOptions.heroDistance`.
+   */
+  relief?: number;
 }
 
 /**
@@ -228,6 +267,12 @@ export interface GiantOptions {
   eyeDetail?: number;
   /** authored canopy boughs (see CanopyBough), built after everything else */
   canopyBoughs?: CanopyBough[];
+  /**
+   * distance (m) from the trunk base to the nearest hero camera that faces it; within NEAR_BOLE_M
+   * the bole and roots are built with the near-bole bark (bole.ts) unless `GiantProfile.relief`
+   * says otherwise. Undefined = far.
+   */
+  heroDistance?: number;
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -333,17 +378,65 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const radius = R * (0.42 + 0.58 * girth * Math.pow(1 - t, 0.75));
     return radius * (1 + flare * Math.exp(-above * 7));
   });
-  tube(wood, trunk, trunkRadii, 30, r, {
-    color: barkColor,
-    roughness: 0.06,
-    bump: gnarlBump(1.0, 0.16),
-    creviceShade: 2.2,
-    barkTile: 1.6,
-    flatBase: true,
-    isTrunk: true,
-    structural: true,
-    stiffness: stiff,
-  });
+  // near-bole bark (bole.ts) for the giants a hero camera sees from a few metres: the plain
+  // sweep's draws are consumed so every later draw (limbs, crown) is where it was
+  // NEAR_BOLE_RELIEF (round 17 integration): the frames show every near bole as a hazed, near-smooth
+  // column at 9-19 m - the full relief cost 0.0015-0.0054 SSIM in every hero view (structure, not
+  // tone: the bole boxes' means held within 0.006) - so the hero-view amplitude runs at half while
+  // the close-range read (the walkable build passes these boles at 2-5 m) keeps the cords and furrows
+  const reliefScale = (profile.relief ?? 1) * NEAR_BOLE_RELIEF;
+  const nearBole = profile.relief !== undefined ? profile.relief > 0 : o.heroDistance !== undefined && o.heroDistance <= NEAR_BOLE_M;
+  const reliefNoise = nearBole ? new Noise2D(`giant-relief/${def.id}`) : null;
+  /** nominal bole radius ≈ 2 m up: sets the cord count, the tessellation and the amplitude */
+  const refRadius = (() => {
+    let best = trunkRadii[0];
+    let bestD = Infinity;
+    trunk.forEach((pt, i) => {
+      const dd = Math.abs(pt.y - 2);
+      if (dd < bestD) {
+        bestD = dd;
+        best = trunkRadii[i];
+      }
+    });
+    return best;
+  })();
+  let barkAudit: GiantAsset['bark'] = null;
+  if (nearBole && reliefNoise) {
+    const draws = consumeTubeDraws(r, 30);
+    const built = reliefBole(wood, trunk, trunkRadii, {
+      color: barkColor,
+      bump: gnarlBump(1.0, 0.16),
+      creviceShade: 2.2,
+      barkTile: 1.6,
+      // ≈ 7.5 cm around: 5–6 vertices across each 0.42 m cord
+      sides: Math.max(40, Math.min(120, Math.round((TAU * refRadius) / 0.075))),
+      spacing: 0.22,
+      denseUntilY: 15,
+      // 8–15 cm on the r 1.1–1.7 boles: 0.09 m at r 1.0, 0.11 at 1.5, capped at the lantern tree's 2.4
+      amplitude: Math.max(0.07, Math.min(0.14, 0.09 * Math.sqrt(refRadius))) * reliefScale,
+      fadeY: [14, 19],
+      farShare: 0.35,
+      refRadius,
+      noise: reliefNoise,
+      draws,
+      stiffness: stiff,
+      flatBase: true,
+      mossBand: [2.5, 7],
+    });
+    barkAudit = { relief: built.amplitude, rings: built.rings, sides: built.sides, mossShare: built.mossShare, rootToes: 0, triangles: built.triangles };
+  } else {
+    tube(wood, trunk, trunkRadii, 30, r, {
+      color: barkColor,
+      roughness: 0.06,
+      bump: gnarlBump(1.0, 0.16),
+      creviceShade: 2.2,
+      barkTile: 1.6,
+      flatBase: true,
+      isTrunk: true,
+      structural: true,
+      stiffness: stiff,
+    });
+  }
 
   // ---------- buttress roots ----------
   const rootCount = r.int(6, 9);
@@ -373,7 +466,24 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
       radii.push(radius);
     }
-    tube(wood, path, radii, 10, r, { color: barkColor, roughness: 0.08, bump: gnarlBump(1.4, 0.16), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    if (nearBole && reliefNoise && barkAudit && NEAR_BOLE_ROOTS) {
+      // the buttress fin with toes (bole.ts) along the same centreline, its toes from a fork
+      const draws = consumeTubeDraws(r, 10);
+      const built = buttressRoot(wood, path, radii, {
+        groundAt: o.groundAt,
+        color: barkColor,
+        draws,
+        rng: r.fork(`root-toes/${i}`),
+        flare: 1.7,
+        maxReach: length + 0.15,
+        stiffness: stiff,
+        noise: reliefNoise,
+      });
+      barkAudit.rootToes += built.toes;
+      barkAudit.triangles += built.triangles;
+    } else {
+      tube(wood, path, radii, 10, r, { color: barkColor, roughness: 0.08, bump: gnarlBump(1.4, 0.16), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    }
     const tip = path[path.length - 1];
     contacts.push(new Vector3(tip.x, o.groundAt(tip.x, tip.z), tip.z));
     // small side roots
@@ -981,5 +1091,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     trunkPath: trunk,
     trunkRadii,
     bareHeight,
+    bark: barkAudit,
   };
 }
