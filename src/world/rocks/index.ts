@@ -117,8 +117,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // (0.09 of the frame height at 7 m) where a 0.74 squash stood 1.13 m: squashed lower and sunk
     // deeper (0.94 m proud) — but still a dome, since the low camera only sees its lit top as a
     // curve; the A/terrace rocks keep the rounded 0.74 profile
-    const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
-    const sinkFrac = b.id === 'shot-d-boulder' ? 0.18 : 0.15;
+    // (round 24: 0.64 / 0.18 still stood 0.88 m proud = 0.159 of frame D against the frame's 0.09;
+    // the layout radius cannot move without shifting the vegetation's boulder exclusions, so the
+    // loaf goes lower: squash 0.42, sink 0.22 -> ~0.55 m proud)
+    const squash = b.id === 'shot-d-boulder' ? 0.42 : 0.74;
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0.22 : 0.15;
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
@@ -393,6 +396,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.progress('rocks', 0.4);
 
   // --- shared small-rock geometry variants -------------------------------------------------
+  // (round 24: the strata and pebble variants take cracks 0 - before rockgen normalised its ridged
+  // noise their 0.2-0.5 never reached the crack threshold, so the 2 730 pebbles and 159 scree had
+  // no crack lines; with it they grew crazed dark lines everywhere on the plaza verges and cost
+  // B/C 0.002-0.003 SSIM against take-77 for nothing the frames show. The rubble keeps 0.4.)
   const vRng = rng.fork('variants');
   // the skirt and spill stones are mossy (frame 1 s: the stones at the A rock's foot are green
   // pads with a grey underside), with a thin cushion so the moss has a silhouette
@@ -400,10 +407,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     buildRock(vRng.fork(`rubble-${i}`), `${seed}/rubble-${i}`, { radius: 1, detail: 3, ridge: 0.2, lump: 0.22, cuts: 3, squashY: 0.75, creaseDeg: 40, cracks: 0.4, moss: 0.65, mossThickness: 0.06, dirt: 0.4, tint: new Color(0.68, 0.67, 0.64), freq: 1 }),
   );
   const strataGeos = [0, 1, 2, 3].map((i) =>
-    buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0.5, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1, strata: 0.1 }),
+    buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1, strata: 0.1 }),
   );
   const pebbleGeos = [0, 1, 2, 3].map((i) =>
-    buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.12, lump: 0.25, cuts: 1, squashY: 0.7, creaseDeg: 50, cracks: 0.2, moss: 0.25, dirt: 0.3, tint: new Color(0.7, 0.69, 0.66), freq: 1 }),
+    buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.12, lump: 0.25, cuts: 1, squashY: 0.7, creaseDeg: 50, cracks: 0, moss: 0.25, dirt: 0.3, tint: new Color(0.7, 0.69, 0.66), freq: 1 }),
   );
 
   // --- embankment strata on steep faces ----------------------------------------------------
