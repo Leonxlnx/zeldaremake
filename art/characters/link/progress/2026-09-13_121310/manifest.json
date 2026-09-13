@@ -1,0 +1,78 @@
+{
+  "at": "2026-09-13T12:13:10.852327+00:00",
+  "kind": "actual Blender renders, not game captures",
+  "blend": "E:\\zeldaremake\\art\\characters\\link\\link-study.blend",
+  "blend_sha256": "cdaf860912224c80730c87f6bc5b8ca13e3f99e49c94c75162ee5d87c63a91a5",
+  "views": {
+    "01-three-quarter": {
+      "position": [
+        1.7,
+        -3.7,
+        1.53
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "b5fbb2886e5b4c4185448b904ca090dca1fcb58183379782b3fcd3b041d803e8"
+    },
+    "02-front": {
+      "position": [
+        0,
+        -4,
+        1.25
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "33daa44cf8c96052427e215ac7515022de9d1305854357c1670279942d9f04d5"
+    },
+    "03-side": {
+      "position": [
+        4,
+        -0.1,
+        1.25
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "c0265b0fcbbcfac0fc67181244d490a00b2eae3cc29dfa9af6d2a5570bd38171"
+    },
+    "04-back": {
+      "position": [
+        1.4,
+        4,
+        1.5
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "89843f6b4c7d8c48481bf37a9808974c2a1f8655e1426575a511a15054ffcba9"
+    },
+    "05-face": {
+      "position": [
+        0.6,
+        -3,
+        1.25
+      ],
+      "target": [
+        0,
+        0,
+        0.995
+      ],
+      "ortho_scale": 0.4699999988079071,
+      "sha256": "b33e41ba6120fdab4f4c1f886e71f7b2a87d2c944d371ef752699c9f96ffae30"
+    }
+  }
+}

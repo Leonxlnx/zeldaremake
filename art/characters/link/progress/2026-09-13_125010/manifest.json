@@ -1,0 +1,93 @@
+{
+  "at": "2026-09-13T12:50:10.148758+00:00",
+  "kind": "actual Blender renders, not game captures",
+  "blend": "E:\\zeldaremake\\art\\characters\\link\\link-study.blend",
+  "blend_sha256": "ea8e82c27f0fc5fbc5d48c98897e6d9ecf9fac979cba6b44d086681a6d61f6b9",
+  "generator_sha256": "fd149b1c4b5217b8c8f87fe8b4ed8c1006c090a63ac4afbeee51b2406b2d0f18",
+  "views": {
+    "01-three-quarter": {
+      "position": [
+        1.7,
+        -3.7,
+        1.53
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "6b80c51ca3f2249a3b8053cf3da5087a11b8b30e4b1f7caf95a0795ccfc936e9"
+    },
+    "02-front": {
+      "position": [
+        0,
+        -4,
+        1.25
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "00b185ab1e7feab5018d6302197fd87ee39fb02346a2a7f149150afd9201d5df"
+    },
+    "03-side": {
+      "position": [
+        4,
+        -0.1,
+        1.25
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "fd4aad564c3ca1e40fb56a901b86d81f2acc6deb1cc60ef3efc821d3c2a59ec6"
+    },
+    "04-back": {
+      "position": [
+        1.4,
+        4,
+        1.5
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "80b6fb06dbbfb99fde271fff7a1b6816fcc3bbb27e474ddf883d6801cbdbd50c"
+    },
+    "05-face": {
+      "position": [
+        0.6,
+        -3,
+        1.25
+      ],
+      "target": [
+        0,
+        0,
+        0.995
+      ],
+      "ortho_scale": 0.4699999988079071,
+      "sha256": "c948a0061eb4bf45a961fc8eab8eb1b57c77e1491a40f2d016cc4ebe93fac00c"
+    },
+    "06-boots": {
+      "position": [
+        0.7,
+        -2,
+        0.55
+      ],
+      "target": [
+        0,
+        -0.02,
+        0.18
+      ],
+      "ortho_scale": 0.4300000071525574,
+      "sha256": "988677a4e1f4e430fe1b8b22f2bce1dc0c2e934c66ecc0adc6c339563e16cccb"
+    }
+  }
+}

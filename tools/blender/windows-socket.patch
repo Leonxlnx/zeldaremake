@@ -1,0 +1,9 @@
+--- a/src/blender_mcp/server.py
++++ b/src/blender_mcp/server.py
+@@ -168,2 +168,6 @@
+             response = json.loads(response_data.decode('utf-8'))
++            # ponytail: one localhost connection per command on Windows; persistent
++            # sockets here lose replies after request one. Remove after upstream fix.
++            if sys.platform == "win32":
++                self.disconnect()
+             logger.info(f"Response parsed, status: {response.get('status', 'unknown')}")

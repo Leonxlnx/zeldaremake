@@ -1,0 +1,31 @@
+{
+  "pass": true,
+  "objects": 672,
+  "evaluated_triangles": 415484,
+  "exported_triangles": 415484,
+  "bounds_metres": {
+    "min": [
+      -0.27179616689682007,
+      -0.16954877972602844,
+      0.0061925919726490974
+    ],
+    "max": [
+      0.2717213034629822,
+      0.273294597864151,
+      1.1472499370574951
+    ],
+    "size": [
+      0.5435174703598022,
+      0.44284337759017944,
+      1.1410573720932007
+    ]
+  },
+  "glb_bytes": 12328676,
+  "glb_meshes": 1,
+  "glb_materials": 26,
+  "glb_images": 0,
+  "runtime_ready": false,
+  "runtime_target_triangles": 25000,
+  "runtime_target_materials": 4,
+  "status": "Static flat-colour art study, unrigged; Blender material detail awaits UV baking."
+}

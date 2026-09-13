@@ -1,0 +1,3 @@
+# Keep captured source/manifest hashes stable on Windows and Linux checkouts.
+*.py text eol=lf
+*.json text eol=lf
