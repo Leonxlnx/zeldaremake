@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T17:50:00Z
+updated: 2026-09-13T19:25:00Z
 ---
 
 # fable-cursor — work log
@@ -1229,6 +1229,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (2) Link's art (Astra) and the tread IK; (3) budget + layout calls (terrace boulder in D, log
   arch size in D, A/B camera distance, D boulder radius).
 
+### 19:25 UTC — tick 67: take-0083 published (monitor `b36bcc3`), valid; round twenty-eight
+- `bd319f1` trees-18: attribution by hiding casters one lobe at a time — B's centre-third caster is
+  the lantern tree's three wild-limb lobes at 12 m stacked over its lantern-limb lobe at 5 m
+  (either alone opens nothing → why the round-22 openings moved 0 %); the right third is blocked
+  by frozen structure (limb wood/pods band, emergent bole stripe, Link's shadow, the minimap).
+  Two openings on the west half (band 3–30 m, no collar): B centre lit 5.5 → 13.9 % (frame 17.8),
+  p90 0.565 → 0.596 (0.610); sunlit slab p97 there 0.641 vs the frame's 0.628 — the slabs ARE at
+  the frame's brightness when lit. F's dark edge held (east-half pools light F's edge column),
+  A/D unchanged, −1,425 giant leaves, no tris added. Cost: C 0.3097 → 0.3028 (the pools sit 4–6 m
+  before C's camera), B −0.0017, E −0.0032; D/F +0.
+- take-0083: A 0.2675 / B 0.2439 / C 0.3028 / D 0.3023 / E 0.2696 / F 0.2737. 23/50; draws 423–526.
+- Astra (local): owner rejected the current Link's face/hair; she is revising on new generated
+  boards; `409b603` stays the runtime asset; her review of `94a73c1` agrees determinismDiff 0 in
+  both loader modes (her native-GPU hash check was the false alarm).
+- Next: the near-veil terms (neutral in e591006) now that the west-path crowns are open — measure
+  again; per-foot IK on treads; the triangle budget (8.3–8.9 M); the layout calls.
+- Three biggest remaining gaps → (1) the dark floor / mid veil (re-measure the wired terms);
+  (2) Link's art (Astra) + tread IK; (3) budget + layout calls (terrace boulder in D, log arch
+  size in D, A/B camera distance, D boulder radius).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1267,4 +1287,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T17:50:00Z
+2026-09-13T19:25:00Z
