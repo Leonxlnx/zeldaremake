@@ -41,8 +41,16 @@ export const WORLD = {
      * ground bounce: a warm khaki rather than dark olive — the clearing floor is sunlit beige
      * flagstone and khaki grass, so limb and leaf undersides (the lantern limb at 10 m in shot A)
      * receive a visible fill from below instead of reading near-black.
+     * Round 8: 2× in linear light (0x7d7860 → 0xaba687). The surfaces that only this term lights
+     * (downward faces: the limb underside at 4–7 m filling B's top band, the canopy undersides at
+     * 10–18 m in A's top-left) measured 0.31 / 0.36 against the reference's 0.43 / 0.49 with the
+     * sun contributing nothing there (sun off = unchanged), and a sunlit khaki floor radiates
+     * ≈ 0.4 albedo × 3.1 × sin 38° ≈ 0.75 linear where the old bounce stood for 0.2. Measured on
+     * A/B/D: SSIM +0.001 / +0.004 / 0, luminance error down in all three, B box (a) 0.308 → 0.346,
+     * A top-left 0.434 → 0.442; 3× reached 0.381 / 0.448 but lifted B's forest-band darkest decile
+     * to 0.361 against the reference's 0.289 (2×: 0.336), so the bounce stays at the floor's value.
      */
-    hemiGround: 0x7d7860,
+    hemiGround: 0xaba687,
     /**
      * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
      * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs

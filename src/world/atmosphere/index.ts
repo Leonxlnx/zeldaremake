@@ -12,7 +12,7 @@
 import { Color, Fog, Group, Vector3, type PerspectiveCamera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { WORLD } from '../config';
-import { installHeightFog, HEIGHT_FOG_DEFAULTS, displayHex } from './heightfog';
+import { installHeightFog, HEIGHT_FOG_DEFAULTS, displayHex, catchUpDensity } from './heightfog';
 import { sunDirection } from '../lighting/sun';
 import { createSkyDome, SKY_GAP_GLARE } from './sky';
 import { createMistVolume } from './mist';
@@ -87,6 +87,16 @@ export function create(ctx: WorldContext): WorldSystem {
     hazeDensityPerM: HEIGHT_FOG_DEFAULTS.hazeDensity,
     hazeStartM: HEIGHT_FOG_DEFAULTS.hazeStart,
     hazeAt30m: Math.round((1 - Math.exp(-HEIGHT_FOG_DEFAULTS.hazeDensity * (30 - HEIGHT_FOG_DEFAULTS.hazeStart))) * 100) / 100,
+    // thin mid air (round 8): the 8–15 m band wears less veil, caught up by 22 m so the far field is unchanged
+    hazeThinMidStartM: HEIGHT_FOG_DEFAULTS.hazeNearStart,
+    hazeThinMidDensityPerM: HEIGHT_FOG_DEFAULTS.hazeNearDensity,
+    hazeThinMidEndM: HEIGHT_FOG_DEFAULTS.hazeNearEnd,
+    hazeCatchUpEndM: HEIGHT_FOG_DEFAULTS.hazeCatchUpEnd,
+    hazeCatchUpDensityPerM: Math.round(catchUpDensity(HEIGHT_FOG_DEFAULTS) * 1e4) / 1e4,
+    // dim under-canopy air between the lit foreground and the gap-lit far hollow (multiplier, ramps in / out in m)
+    midAirDim: HEIGHT_FOG_DEFAULTS.nearDim,
+    midAirDimInM: HEIGHT_FOG_DEFAULTS.nearDimIn,
+    midAirDimOutM: HEIGHT_FOG_DEFAULTS.nearDimOut,
     // thin air in the hollow, a near-complete veil past the log arch (the far tree rows)
     hazeFarStartM: HEIGHT_FOG_DEFAULTS.hazeFarStart,
     hazeFarDensityPerM: HEIGHT_FOG_DEFAULTS.hazeFarDensity,

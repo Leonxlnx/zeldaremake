@@ -92,6 +92,7 @@ uniform float uGlareRamp;
 // dome takes toward the north hollow / west stand
 uniform vec2 uOpenDir;
 uniform vec2 uOpenEdges;
+uniform vec2 uOpenUpEdges;
 uniform vec3 uClosed;
 // forward lobe hook (gain at mu = 1, tint at mu = 1; off by default like heightfog's sunLobeGain)
 uniform float uSunLobeGain;
@@ -147,7 +148,7 @@ void main() {
   // the gaps between them converge on one tone (the reference's B forest band and A left quadrant)
   float len = length( d.xz );
   float e = len > 1e-4 ? dot( d.xz / len, uOpenDir ) : 1.0;
-  float open = max( smoothstep( uOpenEdges.x, uOpenEdges.y, e ), smoothstep( 0.42, 0.7, h ) );
+  float open = max( smoothstep( uOpenEdges.x, uOpenEdges.y, e ), smoothstep( uOpenUpEdges.x, uOpenUpEdges.y, h ) );
   vec3 zenith = mix( uClosed, uZenith, open );
   vec3 horizon = mix( uClosed, uHorizon, open );
   vec3 sky = mix( horizon, zenith, smoothstep( 0.0, uGlareRamp, up ) );
@@ -185,20 +186,35 @@ void main() {
 }
 `;
 
+/**
+ * Tuning aid (unset in production): `globalThis.__ATMO_SKY__ = { gapGlare: [r, g, b], glareRamp,
+ * haloGain }` set before the page scripts run overrides the dome's own constants (the veil colours it
+ * shares with heightfog.ts are overridden there, see `__ATMO_FOG__`).
+ */
+interface SkyOverride {
+  gapGlare?: [number, number, number];
+  glareRamp?: number;
+  /** multiplier on the sun halo + glare term */
+  haloGain?: number;
+}
+const skyOverride = (): SkyOverride | null => (globalThis as { __ATMO_SKY__?: SkyOverride | null }).__ATMO_SKY__ ?? null;
+
 export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
+  const o = skyOverride();
   const uniforms = {
     // measured reference values (see reference/ANALYSIS.md §8) rather than config's display
     // colours, which are still cool-grey; the horizon is exactly the far-haze colour
-    uZenith: { value: new Color(...SKY_GAP_GLARE) },
+    uZenith: { value: new Color(...(o?.gapGlare ?? SKY_GAP_GLARE)) },
     uHorizon: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFar) },
     uGround: { value: new Color(cfg.sky.hemiGround).multiplyScalar(0.5) },
     uSunDir: { value: sunDir.clone() },
-    uSunColor: { value: new Color(cfg.sun.color) },
+    uSunColor: { value: new Color(cfg.sun.color).multiplyScalar(o?.haloGain ?? 1) },
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
-    uGlareRamp: { value: SKY_GLARE_RAMP },
+    uGlareRamp: { value: o?.glareRamp ?? SKY_GLARE_RAMP },
     uOpenDir: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.openDir) },
     uOpenEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi) },
+    uOpenUpEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openUpLo, HEIGHT_FOG_DEFAULTS.openUpHi) },
     uClosed: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeClosed) },
     uSunLobeGain: { value: SKY_SUN_LOBE_GAIN },
     uSunLobeTint: { value: new Color(...SKY_SUN_LOBE_TINT) },

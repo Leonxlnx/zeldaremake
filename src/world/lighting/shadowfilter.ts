@@ -218,6 +218,15 @@ export function shadowDepthProbeGlsl(p: ShadowFilterParams): string {
  */
 export function installShadowFilter(params: ShadowFilterParams = SHADOW_FILTER_DEFAULTS): boolean {
   if (installed) return true;
+  // tuning aid (unset in production): `globalThis.__ATMO_SHADOWFILTER__ = { leak: 0.2 }` set before
+  // the page scripts run overrides any filter parameter for the session
+  const override = (globalThis as { __ATMO_SHADOWFILTER__?: Partial<ShadowFilterParams> | null }).__ATMO_SHADOWFILTER__;
+  if (override) {
+    for (const k of Object.keys(override) as (keyof ShadowFilterParams)[]) {
+      const v = override[k];
+      if (typeof v === 'number') params[k] = v;
+    }
+  }
   const src = ShaderChunk.shadowmap_pars_fragment;
   // The bundled module strips GLSL comments, so the `// SHADOWMAP_TYPE_BASIC` marker is not
   // available: the BASIC variant is the last `getShadow` of the PCF / VSM / BASIC selector and

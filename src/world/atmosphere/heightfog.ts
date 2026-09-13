@@ -69,6 +69,17 @@ export interface HeightFogParams {
    */
   hazeFarStart: number;
   hazeFarDensity: number;
+  /**
+   * Thin mid air: from `hazeNearStart` (m) the extinction runs at `hazeNearDensity` (1/m) out to
+   * `hazeNearEnd` (m), then catches up linearly so that from `hazeCatchUpEnd` (m) on the optical
+   * depth equals the plain `hazeDensity` profile — the foreground (to `hazeNearStart`) and the far
+   * field (the 25–45 m veil, the arch, the far rows) keep their calibration while the band between
+   * wears less veil. `hazeNearDensity = hazeDensity` disables it.
+   */
+  hazeNearStart: number;
+  hazeNearDensity: number;
+  hazeNearEnd: number;
+  hazeCatchUpEnd: number;
   /** height (m) up to which the aerosol density is uniform (the air under the canopy) */
   hazeUniformHeight: number;
   /** scale height (m) of the exponential density decay above `hazeUniformHeight` */
@@ -111,7 +122,22 @@ export interface HeightFogParams {
   openDir: [number, number];
   openLo: number;
   openHi: number;
+  /** smoothstep edges on the ray's sin(elevation) above which a direction counts as open (the gaps overhead) */
+  openUpLo: number;
+  openUpHi: number;
   hazeClosed: [number, number, number];
+  /**
+   * Shaded mid air: multiplier on the veil radiance for fragments whose view distance falls in the
+   * window that ramps in over `nearDimIn` (m) and out over `nearDimOut` (m). The air a hero camera
+   * stands in is lit by its open surroundings and the far hollow's air is gap-lit (both keep the
+   * calibrated veil), but the segment under the closed canopy between them — the 10–24 m band where
+   * Saria's trunk, the room interior and the shaded limbs sit — is dim air, so a shaded surface there
+   * keeps its dark tone instead of being floored by the veil (with zero fill our 14–18 m floor was
+   * 0.253 display against the reference's darkest decile of 0.218: the veil alone exceeded it).
+   */
+  nearDim: number;
+  nearDimIn: [number, number];
+  nearDimOut: [number, number];
   /**
    * Forward lobe of the airlight: gain at mu = 1 (pow 4 in mu) and the tint at mu = 1 (pow 3). The
    * reference shows its dimmest, greyest air in the most sunward directions (B's forest band, 36–60°
@@ -184,6 +210,20 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // wall, the way the reference's far field reads (measured: arch body 0.89× the band above it)
   hazeFarStart: 49,
   hazeFarDensity: 0.11,
+  // Round 8, fitted per depth bin against the reference sampled at our own pixels: in every hero
+  // view the 10–18 m bins' darkest decile sat 0.03–0.06 over the reference's (B 0.269/0.290 vs
+  // 0.214/0.229, A 0.259/0.283 vs 0.256/0.263, D 0.264/0.283 vs 0.189/0.244) while the 18–24 m
+  // bins already matched (B 0.293 vs 0.276) and the 4–7 m bins sat under it — and with the fill
+  // off entirely our 14–18 m floor was still 0.253: the veil alone exceeded the reference's darks.
+  // So the 8–15 m band is thin (0.010/m: 18 % veil at 12 m instead of 23 %, 20 % at 15 m instead
+  // of 30 %) and the air catches up over 15–22 m (0.046/m) so nothing from 22 m out changes (the
+  // 25–45 m veil, the arch, the far rows, W32's layering). Thinning from 2.5 m instead (0.014/m
+  // to 14 m) hit the same trunk darks but took B's ground-band p10 0.269 → 0.248 and A's plaza
+  // 0.276 → 0.259; starting at 8 m leaves them at 0.264 / 0.274.
+  hazeNearStart: 8,
+  hazeNearDensity: 0.028,
+  hazeNearEnd: 15,
+  hazeCatchUpEnd: 22,
   hazeUniformHeight: 8.0,
   hazeScaleHeight: 7.0,
   // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
@@ -237,6 +277,19 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   openDir: [0.9659, -0.2588],
   openLo: 0.25,
   openHi: 0.7,
+  // rays steeper than ≈ 25° up count as open (the gaps overhead are the glare); the eye-level
+  // shots' top rows reach ≈ 20–24°, so they keep the closed veil toward the north/west
+  openUpLo: 0.42,
+  openUpHi: 0.7,
+  // with the thin band above, Saria's trunk band in B (x 0.66–0.98, y 0.10–0.50; 80 % of it at
+  // 10–18 m) measured p10 0.212 against the reference's 0.209 (was 0.282), its 0–0.2 share 6.8 %
+  // (reference 5.9 %) and its < 0.25 share 20 % (reference 25 %); the 0.2–0.3 share reaches 24 %
+  // of the reference's 41 % — the rest of that band is shaded bark our fill leaves darker than
+  // 0.2, not veil. 0.6–0.65 over a wider window (9–13 → 20–27 m) overshot: 0–0.2 share 13 %, and
+  // the 18–24 m bins (matched before) fell 0.07 under the reference.
+  nearDim: 1.0,
+  nearDimIn: [9, 13],
+  nearDimOut: [16, 21],
   // the closed-roof veil: a dim grey-green (display ≈ 0.51, hue ≈ 60°, B/R 0.93 — the reference's
   // B forest bank is 0.434 median / 0.51 p90 with the god rays' wash on top) at every distance, so
   // the far rows and the dome behind them converge on it instead of the 0.58–0.68 lit air. A hair
@@ -289,9 +342,37 @@ export function displayHex(lin: readonly [number, number, number]): string {
   return '#' + lin.map((c) => Math.round(srgb(aces(c)) * 255).toString(16).padStart(2, '0')).join('');
 }
 
+/**
+ * Density (1/m) of the catch-up segment `hazeNearEnd..hazeCatchUpEnd` that brings the thin-near
+ * profile back onto the plain `hazeDensity` optical depth at `hazeCatchUpEnd` (see hazeNearDensity).
+ */
+export function catchUpDensity(p: Pick<HeightFogParams, 'hazeDensity' | 'hazeStart' | 'hazeNearStart' | 'hazeNearDensity' | 'hazeNearEnd' | 'hazeCatchUpEnd'>): number {
+  const s = Math.max(p.hazeNearStart, p.hazeStart);
+  const foreRun = Math.max(s - p.hazeStart, 0);
+  const thinRun = Math.max(p.hazeNearEnd - s, 0);
+  const catchRun = p.hazeCatchUpEnd - p.hazeNearEnd;
+  if (catchRun <= 0) return p.hazeDensity;
+  return (p.hazeDensity * Math.max(p.hazeCatchUpEnd - p.hazeStart, 0) - p.hazeDensity * foreRun - p.hazeNearDensity * thinRun) / catchRun;
+}
+
+/**
+ * Tuning aid (unset in production): `globalThis.__ATMO_FOG__ = { hazeDensity: 0.02, hazeNear: [...] }`
+ * set before the page scripts run (a probe's evaluateOnNewDocument) overrides any `HeightFogParams`
+ * field. The override is written into `HEIGHT_FOG_DEFAULTS` itself so the sky dome, the mist and the
+ * god-ray march — which read the shared veil colours from it — stay consistent with the fog chunks.
+ */
+const fogOverride = (): Partial<HeightFogParams> | null => (globalThis as { __ATMO_FOG__?: Partial<HeightFogParams> | null }).__ATMO_FOG__ ?? null;
+
 export function installHeightFog(config: WorldConfig, params: HeightFogParams = HEIGHT_FOG_DEFAULTS): void {
   if (installed) return;
   installed = true;
+  const override = fogOverride();
+  if (override) {
+    for (const k of Object.keys(override) as (keyof HeightFogParams)[]) {
+      const v = override[k];
+      if (v !== undefined && typeof v === typeof params[k]) (params as unknown as Record<string, unknown>)[k] = v;
+    }
+  }
   const sun = sunDirection(config.sun.azimuthDeg, config.sun.elevationDeg);
 
   ShaderChunk.fog_pars_vertex = /* glsl */ `
@@ -333,6 +414,11 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_HAZE_START = ${f(params.hazeStart)};
 	const float KF_HAZE_FAR_START = ${f(params.hazeFarStart)};
 	const float KF_HAZE_K_FAR = ${f(params.hazeFarDensity)};
+	const float KF_HAZE_K_NEAR = ${f(params.hazeNearDensity)};
+	const float KF_THIN_START = ${f(Math.max(params.hazeNearStart, params.hazeStart))};
+	const float KF_THIN_END = ${f(params.hazeNearEnd)};
+	const float KF_CATCHUP_END = ${f(params.hazeCatchUpEnd)};
+	const float KF_HAZE_K_CATCHUP = ${f(catchUpDensity(params))};
 	const float KF_HAZE_H0 = ${f(params.hazeUniformHeight)};
 	const float KF_HAZE_HS = ${f(params.hazeScaleHeight)};
 	const float KF_HAZE_UP_CUT = ${f(params.hazeUpwardCut)};
@@ -346,7 +432,12 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const vec2 KF_OPEN_DIR = vec2( ${params.openDir.map(f).join(', ')} );
 	const float KF_OPEN_LO = ${f(params.openLo)};
 	const float KF_OPEN_HI = ${f(params.openHi)};
+	const float KF_OPEN_UP_LO = ${f(params.openUpLo)};
+	const float KF_OPEN_UP_HI = ${f(params.openUpHi)};
 	const vec3 KF_HAZE_CLOSED = vec3( ${params.hazeClosed.map(f).join(', ')} );
+	const float KF_NEAR_DIM = ${f(params.nearDim)};
+	const vec2 KF_NEAR_DIM_IN = vec2( ${params.nearDimIn.map(f).join(', ')} );
+	const vec2 KF_NEAR_DIM_OUT = vec2( ${params.nearDimOut.map(f).join(', ')} );
 	const float KF_SUN_GAIN = ${f(params.sunLobeGain)};
 	const vec3 KF_SUN_TINT = vec3( ${params.sunLobeTint.map(f).join(', ')} );
 	const float KF_BACK_MIN = ${f(params.backScatterMin)};
@@ -393,6 +484,18 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		return ( below + above ) / span;
 	}
 
+	// optical depth of the base extinction: the plain KF_HAZE_K foreground to KF_THIN_START, thin air
+	// to KF_THIN_END, a catch-up segment to KF_CATCHUP_END, then the plain profile again (see
+	// hazeNearDensity) — continuous throughout
+	float kfBaseOpticalDepth( float dist ) {
+		float d = max( dist - KF_HAZE_START, 0.0 );
+		if ( dist >= KF_CATCHUP_END ) return KF_HAZE_K * d;
+		float foreRun = min( d, KF_THIN_START - KF_HAZE_START );
+		float thinRun = clamp( d - foreRun, 0.0, max( KF_THIN_END - KF_THIN_START, 0.0 ) );
+		float catchRun = max( d - foreRun - thinRun, 0.0 );
+		return KF_HAZE_K * foreRun + KF_HAZE_K_NEAR * thinRun + KF_HAZE_K_CATCHUP * catchRun;
+	}
+
 	// returns (total fog, distance-haze share, mist share, cos of the ray–sun angle) for this fragment
 	vec4 kfFog( vec3 worldPos, out vec3 rayDir ) {
 		vec3 v = worldPos - cameraPosition;
@@ -407,7 +510,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		//    thin-air hollow, see hazeFarDensity).
 		float altitude = kfAltitudeMean( cameraPosition.y, worldPos.y );
 		float upward = 1.0 - KF_HAZE_UP_CUT * smoothstep( 0.38, 0.62, rayDir.y );
-		float opticalDepth = KF_HAZE_K * max( dist - KF_HAZE_START, 0.0 ) + KF_HAZE_K_FAR * max( dist - KF_HAZE_FAR_START, 0.0 );
+		float opticalDepth = kfBaseOpticalDepth( dist ) + KF_HAZE_K_FAR * max( dist - KF_HAZE_FAR_START, 0.0 );
 		float distFog = 1.0 - exp( -altitude * upward * opticalDepth );
 		// 2) height fog (ground mist), denser toward the north hollow (−Z) of the fragment. The hollow
 		//    is at lower z, so the ramp is written with ascending edges (smoothstep(a > b) is undefined)
@@ -425,7 +528,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	float kfOpenness( vec3 rayDir ) {
 		float len = length( rayDir.xz );
 		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_OPEN_DIR ) : 1.0;
-		return max( smoothstep( KF_OPEN_LO, KF_OPEN_HI, e ), smoothstep( 0.42, 0.7, rayDir.y ) );
+		return max( smoothstep( KF_OPEN_LO, KF_OPEN_HI, e ), smoothstep( KF_OPEN_UP_LO, KF_OPEN_UP_HI, rayDir.y ) );
 	}
 
 	// depth-graded haze colour: dark warm grey near → lighter warm grey far, ground mist in the layer,
@@ -440,6 +543,10 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		haze = mix( KF_HAZE_CLOSED, haze, open );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
+		// shaded mid air: the segment under the closed canopy (see nearDim) is dimmer than the lit
+		// air the camera stands in and the gap-lit far air
+		float dimWindow = smoothstep( KF_NEAR_DIM_IN.x, KF_NEAR_DIM_IN.y, dist ) * ( 1.0 - smoothstep( KF_NEAR_DIM_OUT.x, KF_NEAR_DIM_OUT.y, dist ) );
+		col *= mix( 1.0, KF_NEAR_DIM, dimWindow );
 		// forward lobe hook (off by default, see sunLobeGain): brightness at mu^4, tint at mu^3
 		float sunAmt = pow( max( mu, 0.0 ), 4.0 );
 		float sunTint = pow( max( mu, 0.0 ), 3.0 );

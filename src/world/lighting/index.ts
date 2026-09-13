@@ -152,6 +152,7 @@ export function create(ctx: WorldContext): WorldSystem {
     cascades: 1,
     hemiIntensity: hemi.intensity,
     hemiSkyLinear: hemiSky.toArray().map((v) => Math.round(v * 1000) / 1000),
+    hemiGroundLinear: hemiGroundColor.toArray().map((v) => Math.round(v * 1000) / 1000),
     environmentMap: environment,
     environmentIntensity: environment ? environmentIntensity : 0,
     environmentTint: SKY_ENV_TINT,
