@@ -49,6 +49,8 @@ if out is None:
     (out/'build_link.py').write_bytes((root/'build_link.py').read_bytes())
     (out/'render_review.py').write_bytes(Path(__file__).read_bytes())
 for name, location in views.items():
+    if JOB.get('view') and name != JOB['view']:
+        continue
     if name in manifest['views']:
         continue
     target = (0,0,.995) if name == '05-face' else ((0,-.02,.18) if name == '06-boots' else (0,0,.585))

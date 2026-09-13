@@ -12,7 +12,7 @@ and motion/contact review under the actual world lighting and terrain sampler.
 ## Runtime contents
 
 - Four skinned meshes and four opaque PBR materials: skin, hair, eyes, outfit/equipment.
-- 24,133 triangles; 1K hair/eye maps and 2K skin/outfit maps. Base colour,
+- 24,332 triangles; 1K hair/eye maps and 2K skin/outfit maps. Base colour,
   tangent normal and roughness; outfit metalness is packed with roughness during export.
 - Nineteen bones, including `hips`, `chest`, `neck`, `head`, `shoulderL/R`, `elbowL/R`,
   `handL/R`, `thighL/R`, `kneeL/R`, `ankleL/R`, `toeL/R`, and `cap`.
@@ -28,17 +28,18 @@ texture dimensions, finite normalized weights, bounds, and animation loop errors
 
 ## Review
 
-Latest complete candidate: [18 actual runtime views](progress/2026-09-13T14-48-18-787Z-runtime/manifest.json).
+Latest complete candidate: [18 actual runtime views](progress/2026-09-13T15-09-15-055Z-runtime/manifest.json).
 
-![Actual Three.js candidate](progress/2026-09-13T14-48-18-787Z-runtime/01-body.png)
+![Actual Three.js candidate](progress/2026-09-13T15-09-15-055Z-runtime/01-body.png)
 
-Known visible defects: round eyes, blocky hair, limited cloth folds, and excessive knee/hem
+Known visible defects: eyelid shading and stylized face, blocky hair, limited cloth folds, and excessive knee/hem
 interaction in the run. This candidate is ready for diagnostic integration, not art acceptance.
 
 `review.html` loads the actual GLB with Three.js. It offers orbit, front/back/face views,
 and the four animations. Serve the repository root; its import map uses the installed
 Three.js package. `capture_runtime.mjs` creates eighteen dated body/detail/gait images
-with GLB and image hashes, deformed sole heights, and render counts.
+with GLB and image hashes, deformed sole heights, and render counts. It also checks the
+actual skinned soles at 121 poses per locomotion clip; the current minimum is +3.66 mm.
 
 The folders ending in `-runtime` are actual Three.js asset reviews, not official game
 captures or gauntlet evidence. The other dated folders contain actual Cycles studio
@@ -69,7 +70,8 @@ node art/characters/link/capture_runtime.mjs
 `prepare_runtime.py --args '{"group":"skin"}'` through the MCP bridge rebuilds just the
 skin atlas meshes and invalidates those three bakes. This preserves the other completed
 maps during facial revisions. The same option accepts the other material group names.
-`refine_runtime.py` applies the nape and iris rest-mesh adjustments once; their UVs remain.
+`refine_runtime.py` applies the nape adjustment once, preserving its UVs. The iris aperture
+is authored with the continuous eyelids in the source; it is not expanded after baking.
 `rig_runtime.py` retains its deformation-region groups so the rig can be rebuilt repeatedly.
 
 The scalp and garment begin as authored surfaces. Per-component reduction reserves

@@ -123,7 +123,7 @@ def orient_bone(name,start,end):
     pb.matrix=matrix
     bpy.context.view_layer.update()
 
-def solve_leg(s,target):
+def solve_leg(s,target,pitch=0):
     thigh=data.bones['thigh'+s];shin=data.bones['knee'+s]
     hip=rig.pose.bones['hips'].matrix@data.bones['hips'].matrix_local.inverted()@thigh.head_local
     delta=target-hip;distance=delta.length;l1=thigh.length;l2=shin.length
@@ -134,7 +134,7 @@ def solve_leg(s,target):
     knee=hip+direction*along+bend*math.sqrt(max(0,l1*l1-along*along))
     orient_bone('thigh'+s,hip,knee);orient_bone('knee'+s,knee,target)
     ankle=rig.pose.bones['ankle'+s]
-    matrix=data.bones['ankle'+s].matrix_local.copy();matrix.translation=target
+    matrix=Matrix.Rotation(pitch,4,'X')@data.bones['ankle'+s].matrix_local;matrix.translation=target
     ankle.matrix=matrix
     bpy.context.view_layer.update()
     assert (ankle.head-target).length<1e-5,('Unplanted ankle',s,list(ankle.head),list(target))
@@ -175,7 +175,12 @@ for gait,g in gaits.items():
             rig.pose.bones['shoulder'+s].rotation_quaternion=Quaternion((1,0,0),side*g['arm']*math.cos(angle))
             rig.pose.bones['elbow'+s].rotation_quaternion=Quaternion((1,0,0),-.65 if gait=='run' else -.12)
         bpy.context.view_layer.update()
-        for s in ['L','R']:max_bone_error=max(max_bone_error,solve_leg(s,targets[s]))
+        for s in ['L','R']:
+            q=(phase+(0 if s=='L' else .5))%1
+            swing=(q-g['duty'])/(1-g['duty']) if not is_contact[s] else 0
+            # Swing pitch eases to zero before contact; planted soles retain their flat path.
+            pitch=(.45 if gait=='run' else .25)*math.sin(math.tau*swing)*math.sin(math.pi*swing)**2
+            max_bone_error=max(max_bone_error,solve_leg(s,targets[s],pitch))
         pose={pb.name:[list(row) for row in pb.matrix] for pb in rig.pose.bones}
         if frame==0:first_pose=pose
         if frame==g['frames']:last_pose=pose

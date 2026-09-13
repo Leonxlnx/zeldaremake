@@ -1,8 +1,8 @@
 {
   "pass": true,
-  "sha256": "8d1965fa7c32a660995f5f7c95b31d7918dcb4aba450889eb96456d53e142dc8",
-  "bytes": 16543140,
-  "triangles": 24133,
+  "sha256": "f3a87d45f33d891c2694d18011621f69c09065cec757d76c6cb97eabed91a402",
+  "bytes": 16375932,
+  "triangles": 24332,
   "meshes": 4,
   "materials": 4,
   "textures": [

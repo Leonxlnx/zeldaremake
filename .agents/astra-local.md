@@ -130,3 +130,22 @@ captures use native pipes and finish in ~5 s. No rubric, score or ledger edits. 
 render source bytes are preserved with -text so their captured SHA256 survives Git.
 TypeScript/build and direct HTTP regression pass. Latest Fable fetched: 7abbd4e/take-0080,
 23/50, environment still below target. Continue character art and review integration.
+
+## 2026-09-13 15:16 UTC — continuous eyelids and swing-foot rotation
+
+Published 17adcb3 to Fable for diagnostic integration (PR2 comment5654026563).
+New candidate pending this commit: continuous face-to-lid topology removes pasted-patch
+seams; iris geometry is clipped in the authored opening, with the old runtime expansion
+removed. Lower cheeks narrowed; scalp band lifted off forehead; locks have more thickness.
+Nine PBR maps rebaked. New GLB f3a87d45f33d891c2694d18011621f69c09065cec757d76c6cb97eabed91a402,
+24,332 triangles. Actual Three.js progress/2026-09-13T15-09-15-055Z-runtime includes 18 views
+and 121 sole-clearance samples per gait: minimum +3.66 mm, loops and bone lengths pass.
+Swing feet rotate through each step and ease flat before contact; stance paths unchanged.
+
+Close-up shading artifacts remain. A roughness inspection initially sampled Blender's
+older cached image; fresh-file sampling found one missing face sample, not hundreds.
+The GLB's packed green roughness channel is byte-identical to the new source map. Do not
+report a widespread projection defect from the stale cache result. Source face is smoother
+than the reduced runtime; continue art and evaluate in Fable's real world lighting.
+Next root garment correction: remove the tunic's closed bottom, add the inner garment,
+and check high-knee poses. Typecheck/build and HTTP regression pass. C01/C02 renewed 15:11Z.

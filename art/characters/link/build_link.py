@@ -113,7 +113,7 @@ def material(name, color, roughness=.6, metallic=0, texture=None):
 
 skin = material('Skin | warm peach', (.64, .38, .25), .46)
 earskin = material('Ear | rose inner fold', (.40, .17, .105), .67)
-lip = material('Lips | muted warm rose', (.47, .24, .17), .52)
+lip = material('Lips | muted warm rose', (.56, .31, .22), .52)
 mouth = material('Mouth | fine shadow', (.085, .024, .017), .7)
 cloth = material('Tunic | forest woven linen', (.033, .079, .016), .89, texture='cloth')
 cloth_light = material('Collar | lighter green linen', (.068, .123, .03), .86, texture='cloth')
@@ -391,7 +391,7 @@ curve('Strap buckle',[(.004,-.113,.770),(.03,-.113,.792),(.012,-.113,.812),(-.01
 
 # Continuous facial surface: cheek planes, eye sockets, nasal wings and a soft chin.
 head_before=set(hero.objects)
-profile=[(.907,.009,.025,.025),(.919,.038,.071,.045),(.937,.073,.099,.080),(.963,.108,.116,.112),(1.005,.136,.132,.133),(1.046,.146,.135,.143),(1.088,.152,.130,.145),(1.131,.149,.126,.142),(1.174,.135,.109,.13),(1.208,.102,.075,.10),(1.235,.055,.036,.051),(1.246,.006,.005,.005)]
+profile=[(.907,.009,.025,.025),(.919,.038,.071,.045),(.937,.073,.099,.080),(.963,.100,.110,.112),(1.005,.129,.127,.133),(1.046,.146,.135,.143),(1.088,.152,.130,.145),(1.131,.149,.126,.142),(1.174,.135,.109,.13),(1.208,.102,.075,.10),(1.235,.055,.036,.051),(1.246,.006,.005,.005)]
 def face_profile(z):
     i=next((i for i in range(len(profile)-1) if z<=profile[i+1][0]),len(profile)-2)
     t=max(0,min(1,(z-profile[i][0])/(profile[i+1][0]-profile[i][0])))
@@ -431,6 +431,45 @@ def inside_socket(face):
     return y<0 and any(((x-side*.056)/.040)**2+((z-1.068-side*(x-side*.056)*.085)/.026)**2<1 for side in [-1,1])
 faces=[f for f in faces if not inside_socket(f)]
 faces += [tuple(reversed(range(N))),tuple((rows-1)*N+j for j in range(N))]
+# Continue the face's socket boundary into the lids using shared vertices.
+# Separate pasted lid patches left cracks and a visible shading step at the corners.
+edge_uses={}
+for face in faces:
+    for a,b in zip(face,face[1:]+face[:1]):
+        edge_uses.setdefault(tuple(sorted((a,b))),[]).append((a,b))
+boundary=[edges[0] for edges in edge_uses.values() if len(edges)==1]
+next_vertex=dict(boundary)
+assert len(next_vertex)==len(boundary), 'Socket boundary must be simple manifold loops'
+loops=[]
+while next_vertex:
+    first=next(iter(next_vertex));loop=[first];following=next_vertex.pop(first)
+    while following!=first:
+        loop.append(following);following=next_vertex.pop(following)
+    loops.append(loop)
+assert len(loops)==2, ('Expected only two open eye sockets',len(loops))
+for loop in loops:
+    side=1 if sum(verts[i][0] for i in loop)>0 else -1
+    eye_x=side*.056;eye_z=1.068;cy=face_y(eye_x,eye_z)+.033
+    targets=[]
+    for i in loop:
+        dx,_,dz=verts[i][0]-eye_x,verts[i][1],verts[i][2]-eye_z
+        angle=math.atan2((dz-side*dx*.085)/.026,dx/.040)
+        xx=.037*math.cos(angle)
+        zz=(.018 if math.sin(angle)>=0 else .021)*math.sin(angle)*(.82+.18*abs(math.sin(angle)))+side*xx*.085
+        targets.append((xx,zz))
+    previous=loop
+    for row in range(1,7):
+        t=row/6;current=[]
+        for original,(inner_x,inner_z) in zip(loop,targets):
+            bx,by,bz=verts[original]
+            xx=(bx-eye_x)*(1-t)+inner_x*t;zz=(bz-eye_z)*(1-t)+inner_z*t
+            spherical=cy-math.sqrt(max(.00005,.046**2-xx*xx-zz*zz))
+            y=face_y(eye_x+xx,eye_z+zz)*(1-t)+spherical*t-.0008*math.sin(math.pi*t/2)
+            current.append(len(verts));verts.append((eye_x+xx,y,eye_z+zz))
+        for j in range(len(loop)):
+            k=(j+1)%len(loop)
+            faces.append((previous[j],current[j],current[k],previous[k]))
+        previous=current
 head=mesh('Face | continuous cheek socket nose sculpt',verts,faces,skin,1)
 face_mat=skin.copy();face_mat.name='Skin | painted cheek and nose warmth'
 head.data.materials[0]=face_mat
@@ -462,22 +501,22 @@ for upper in [True,False]:
             x=-.023+.046*j/32;envelope=max(0,1-(x/.023)**2)
             centre=.981+.0015*math.exp(-((abs(x)-.006)/.004)**2)
             z=centre+(1 if upper else -1)*(.004 if upper else .005)*envelope*t
-            bulge=.0025*math.sin(math.pi*t)*envelope
+            bulge=.0012*math.sin(math.pi*t)*envelope
             vs.append((x,face_y(x,z)-.0005-bulge,z))
     for row in range(4):
         for j in range(32):
             n=row*33+j;fs.append((n,n+1,n+34,n+33))
     mesh(('Upper' if upper else 'Lower')+' lip sculpt',vs,fs if upper else [tuple(reversed(f)) for f in fs],lip,1)
-curve('Mouth crease',[(x,face_y(x,.981)-.0014,.981+.001*math.exp(-((abs(x)-.006)/.004)**2)) for x in [-.022,-.015,-.008,0,.008,.015,.022]],.00065,mouth)
+curve('Mouth crease',[(x,face_y(x,.981)-.0014,.981+.001*math.exp(-((abs(x)-.006)/.004)**2)) for x in [-.022,-.015,-.008,0,.008,.015,.022]],.00045,mouth)
 
 # Spherical eye surfaces under overlapping lids, with a calmer upper lid line.
 for side in [-1,1]:
-    x=side*.056;z=1.068;cy=face_y(x,z)+.024
+    x=side*.056;z=1.068;cy=face_y(x,z)+.033
     def eye_surface(xx,zz):
         return cy-math.sqrt(max(.00005,.046**2-xx*xx-zz*zz))
     def aperture(a,r=1):
         xx=.037*math.cos(a)*r
-        zz=(.020 if math.sin(a)>=0 else .022)*math.sin(a)*(.82+.18*abs(math.sin(a)))*r+side*xx*.085
+        zz=(.018 if math.sin(a)>=0 else .021)*math.sin(a)*(.82+.18*abs(math.sin(a)))*r+side*xx*.085
         return xx,zz
     ev=[(x,eye_surface(0,0),z)];ef=[];steps=64
     for k in range(1,9):
@@ -488,40 +527,33 @@ for side in [-1,1]:
     for k in range(7):
         a=1+k*steps;b=a+steps
         ef.extend((a+j,b+j,b+(j+1)%steps,a+(j+1)%steps) for j in range(steps))
-    mesh('Eye white '+str(side),ev,ef,white,1)
+    eye=mesh('Eye white '+str(side),ev,ef,white,1)
+    eye['authored_almond']=True
     def eye_disc(name,radius,mat,offset):
         v=[(x,eye_surface(0,0)-offset,z)];f=[]
         for k in range(1,7):
             for j in range(steps):
                 a=math.tau*j/steps;xx=radius*k/6*math.cos(a);zz=radius*k/6*math.sin(a)
+                # Clip the iris to the same almond opening as the sclera.
+                # A hidden full disc otherwise protrudes through the eyelid during reduction.
+                limit=(.018 if zz>=0 else .021)*math.sqrt(max(0,1-(xx/.037)**2))
+                zz=max(-limit,min(limit,zz))+side*xx*.085
                 v.append((x+xx,eye_surface(xx,zz)-offset,z+zz))
         f += [(0,1+j,1+(j+1)%steps) for j in range(steps)]
         for k in range(5):
             a=1+k*steps;b=a+steps
             f.extend((a+j,b+j,b+(j+1)%steps,a+(j+1)%steps) for j in range(steps))
         return mesh(name+str(side),v,f,mat,1)
-    eye_disc('Iris rim ',.0204,irisrim,.00035)
-    eye_disc('Iris teal ',.0194,iris,.0006)
-    eye_disc('Pupil ',.0095,pupil,.00085)
+    eye_disc('Iris rim ',.023,irisrim,.00035)
+    eye_disc('Iris teal ',.022,iris,.0006)
+    eye_disc('Pupil ',.010,pupil,.00085)
     for dx,dz,rad in [(-.0035,.0045,.0018),(.004,-.005,.0006)]:
         ellipsoid('Eye catchlight',(x+dx,eye_surface(dx,dz)-.0012,z+dz),(rad,.0005,rad),shine,16,8)
-    for upper in [True,False]:
-        vs=[];fs=[];inner=[]
-        for row in range(5):
-            t=row/4
-            for j in range(33):
-                a=math.pi*j/32+(0 if upper else math.pi)
-                xx,zz=aperture(a)
-                xx+=.009*t*math.cos(a);zz+=.012*t*math.sin(a)
-                y=eye_surface(xx,zz)*(1-t)+face_y(x+xx,z+zz)*t-.0010*(1-t)
-                point=(x+xx,y,z+zz);vs.append(point)
-                if row==0:inner.append(point)
-        for row in range(4):
-            for j in range(32):
-                n=row*33+j;fs.append((n,n+1,n+34,n+33))
-        mesh(('Upper' if upper else 'Lower')+' eyelid surface '+str(side),vs,[tuple(reversed(f)) for f in fs],skin,1)
-        if upper:
-            curve('Upper lash edge '+str(side),[(a,b-.0004,c) for a,b,c in inner],.0006,hairmats[0])
+    inner=[]
+    for j in range(33):
+        xx,zz=aperture(math.pi*j/32)
+        inner.append((x+xx,eye_surface(xx,zz)-.0011,z+zz))
+    curve('Upper lash edge '+str(side),inner,.00065,hairmats[0])
     for j in range(25):
         xx=x+side*(-.023+.05*j/24);zz=1.105+.007*j/24+.002*math.sin(math.pi*j/24)
         curve('Eyebrow hair',[(xx,face_y(xx,zz)-.001,zz),(xx+side*.003,face_y(xx,zz)-.0015,zz+.0035)],.0005,hairmats[0])
@@ -530,7 +562,7 @@ for side in [-1,1]:
 hv=[];hf=[];cols=64;rows=20
 for k in range(rows):
     for j in range(cols):
-        a=math.tau*j/cols;end=1.70+.62*max(0,math.sin(a))+.06*math.sin(3*a+.4)
+        a=math.tau*j/cols;end=1.28+1.04*max(0,math.sin(a))+.06*math.sin(3*a+.4)
         phi=.015+(end-.015)*k/(rows-1)
         hv.append((.158*math.sin(phi)*math.cos(a),.005+.148*math.sin(phi)*math.sin(a),1.15+.107*math.cos(phi)))
 for k in range(rows-1):
@@ -565,13 +597,13 @@ def hair_lock(name,points,width,mat):
         t=j/32
         centres.append((1-t)**3*p[0]+3*(1-t)**2*t*p[1]+3*(1-t)*t*t*p[2]+t**3*p[3])
         radii.append(width*(.32*(1-t)+.90*math.sin(math.pi*t)**.7)+.0003)
-    return sweep(name,centres,radii,mat,aspect=.20,sides=16,subdiv=1)
+    return sweep(name,centres,radii,mat,aspect=.38,sides=16,subdiv=1)
 for i,pts in enumerate(locks):
     rad=[.026,.027,.030,.022,.025,.025][i] if i<6 else .020
     hair_lock('Hair | swept layered clump %02d'%i,pts,rad,hairmats[1+i%3])
     if i<6:
-        overlay=[(x+.008,y-.004,z-.006) for x,y,z in pts]
-        hair_lock('Hair | overlapping fringe layer %02d'%i,overlay,rad*.52,hairmats[1+(i+1)%3])
+        overlay=[(x+.006,y-.008,z-.003) for x,y,z in pts]
+        hair_lock('Hair | overlapping fringe layer %02d'%i,overlay,rad*.29,hairmats[1+(i+1)%3])
 for i in [1,3]:
     pts=[Vector(p) for p in locks[i]]
     for k,p in enumerate(pts):
@@ -743,5 +775,5 @@ for screen in bpy.data.screens:
             a.spaces.active.overlay.show_overlays=False
 bpy.ops.object.select_all(action='DESELECT')
 bpy.ops.file.pack_all()
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'link-study.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'link-study.blend'),compress=True)
 print(json.dumps({'saved':str(ROOT/'link-study.blend'),'objects':len(hero.objects),'status':'original unrigged art study'}))

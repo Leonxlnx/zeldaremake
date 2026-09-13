@@ -35,6 +35,17 @@ try{
     const sole_heights=await page.evaluate(()=>REVIEW.soleHeights());
     report.views[name]={gait,t,view,sole_heights,sha256:crypto.createHash('sha256').update(png).digest('hex')};
   }
+  report.motion_clearance=await page.evaluate(()=>Object.fromEntries(['walk','run','stairs'].map(gait=>{
+    const minimum={L:Infinity,R:Infinity};
+    for(let i=0;i<=120;i++){
+      REVIEW.pose(gait,REVIEW.durations[gait]*i/120);
+      const heights=REVIEW.soleHeights();
+      for(const side of ['L','R'])minimum[side]=Math.min(minimum[side],heights[side]);
+    }
+    return [gait,{samples:121,minimum_sole_y:minimum}];
+  })));
+  for(const [gait,check] of Object.entries(report.motion_clearance))
+    for(const height of Object.values(check.minimum_sole_y))assert.ok(height>=-.002,gait+' sole penetrates the review ground');
   report.render=await page.evaluate(()=>REVIEW.stats());
   assert.deepEqual(report.errors,[]);
 }catch(error){report.errors.push(error.message);throw error;}

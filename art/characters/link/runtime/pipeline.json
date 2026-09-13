@@ -1,6 +1,6 @@
 {
-  "source_sha256": "ac1eb696d96d9032404ec60c1390e64ce507ac85cb15a523e90520a86a7f3e9e",
-  "generator_sha256": "ac5d82a7f354cbc945da26d564659822e847509589648583bab56656c9a5f219",
+  "source_sha256": "7910f7263c437d3fd914e87aac30279a3182cf79f37f7f4a8df1ba99245244fa",
+  "generator_sha256": "4d98ba325429abbb689479c25e98d9bfbcde15e61320e011ffc1189a70dd5993",
   "groups": {
     "skin": {
       "object": "Link_skin",
@@ -21,14 +21,10 @@
         "Nostril recess 1",
         "Upper lip sculpt",
         "Lower lip sculpt",
-        "Mouth crease",
-        "Upper eyelid surface -1",
-        "Lower eyelid surface -1",
-        "Upper eyelid surface 1",
-        "Lower eyelid surface 1"
+        "Mouth crease"
       ],
-      "source_triangles": 9324,
-      "triangles": 9324
+      "source_triangles": 9123,
+      "triangles": 9123
     },
     "hair": {
       "object": "Link_hair",
@@ -125,7 +121,7 @@
         "Eye catchlight.003"
       ],
       "source_triangles": 26496,
-      "triangles": 970
+      "triangles": 1370
     },
     "outfit": {
       "object": "Link_outfit",
@@ -387,24 +383,24 @@
     }
   },
   "bakes": [
-    "hair/color",
-    "hair/roughness",
-    "hair/normal",
-    "eyes/color",
-    "eyes/roughness",
-    "eyes/normal",
     "outfit/color",
     "outfit/roughness",
     "outfit/normal",
     "outfit/metallic",
     "skin/color",
     "skin/roughness",
-    "skin/normal"
+    "skin/normal",
+    "hair/color",
+    "hair/roughness",
+    "hair/normal",
+    "eyes/color",
+    "eyes/roughness",
+    "eyes/normal"
   ],
   "stage": "Rigged candidate; export and visual motion review pending",
   "rest_mesh_refinements": [
     "Nape coverage extended to the collar",
-    "Iris and pupil surfaces enlarged 25% on the eyeball curvature"
+    "Iris aperture authored with the continuous eyelids; no runtime iris expansion"
   ],
   "rig": {
     "bones": [

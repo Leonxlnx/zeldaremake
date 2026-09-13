@@ -72,7 +72,7 @@ runtime.cycles.samples=8
 runtime.render.threads_mode='FIXED';runtime.render.threads=4
 runtime.view_settings.view_transform=source.view_settings.view_transform
 runtime.unit_settings.system='METRIC'
-budgets={'skin':9500,'hair':2700,'eyes':1000,'outfit':11200}
+budgets={'skin':9500,'hair':2700,'eyes':1400,'outfit':11200}
 record['stage']='prepared, requires updated bakes and rig'
 record['source_sha256']=hashlib.sha256((ROOT/'link-study.blend').read_bytes()).hexdigest()
 record['generator_sha256']=hashlib.sha256((ROOT/'build_link.py').read_bytes()).hexdigest()
@@ -97,7 +97,7 @@ for bucket,budget in budgets.items():
             # A shared collapse pass erased small eyelid and lip boundaries.
             # Reserve topology for each facial part before joining the skin atlas.
             limit=24
-            for prefix,value in [('Face |',4500),('Arm wrist',850),('Bare leg',550),('Neck',150),
+            for prefix,value in [('Face |',5500),('Arm wrist',850),('Bare leg',550),('Neck',150),
                                  ('Upper eyelid',300),('Lower eyelid',300),('Pointed ear',80),
                                  ('Ear inner',40),('Ear helix',70),('Upper lip',120),('Lower lip',120)]:
                 if ob.name.startswith(prefix):limit=value;break
@@ -130,6 +130,8 @@ for bucket,budget in budgets.items():
     low.data.materials.clear();low.data.materials.append(mat)
     for poly in low.data.polygons:poly.material_index=0
     record['groups'][bucket]={'object':low.name,'source_objects':originals,'source_triangles':before,'triangles':count}
+    if bucket=='eyes' and all(bpy.data.objects[n].get('authored_almond') for n in originals if n.startswith('Eye white')):
+        low['iris_refined']=True;low['iris_occlusion_refined']=True
     low.select_set(False)
 if partial:
     # Existing atlases remain valid when the native collapse preserves their UV seams.
