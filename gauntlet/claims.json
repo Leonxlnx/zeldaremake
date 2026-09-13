@@ -559,6 +559,18 @@
       "at": "2026-09-11T23:33:22.692Z",
       "expiresHours": 6,
       "note": "Trees round ten: shade floor on giant bark and leaves"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W38",
+        "W09",
+        "W13"
+      ],
+      "at": "2026-09-13T00:18:26.679Z",
+      "expiresHours": 3,
+      "scope": "round 19-20: Saria's entrance arch (W25), distant huts' reveals + consolidation bucket bounds (W25/W38), trees forced rebucket + free-camera draw budget (W09/W13/W38)"
     }
   ]
 }

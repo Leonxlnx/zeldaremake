@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-09T16:12:00Z
+updated: 2026-09-13T00:25:00Z
 ---
 
 # fable-cursor — work log
@@ -956,6 +956,42 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Running: trees-12 (publish the built limb path). Next: structures-10 (wrap on the published
   centreline with the shared floor; dome height A/B 0.83/0.90/0.97 against A+B+F).
 
+### 00:25 UTC (Sep 13) — tick 56: take-0072 published (monitor `bb7f67d`), valid; round nineteen
+- Correction: tick 55's last two bullets ("Process slip, corrected …" and "Running: trees-12 …")
+  were stale carry-overs from tick 43; the slip was fixed in `f5681bf` and trees-12 landed in
+  `714723f`. Disregard them there.
+- `f938270` structures-19, to Astra's W25 grounds on take-70 and her burl-seam finding: the lips,
+  jambs, lintel and the rim's front are ONE swept, noised, seam-welded tube (`roots-arch`, 120×16;
+  18 burls, ring-periodic cords; crown r 0.47 m 0.25 m under the rim curl, cross-section stretched
+  0.5 m toward the wall above the shoulders so the eave line at constant world y 4.14–4.17 that
+  every scanned B column showed is gone — 0 eave/soffit rows between the underside and the
+  recess). The two slender pillars are root-buttresses leaving the arch at the shoulder knots,
+  0.20 → 0.38 m, flared feet r 0.478/0.468 m. Burls: `ringRidged()` samples on the unit circle
+  and the sphere seam pairs are welded → audit `houseBurls {seamMaxPosMm 0, seamMaxNormalDeg 0}`
+  (was 33–59 mm / 51–100°). Door 2.368 × 2.06 m, B inner-face rays 0.718/0.867 (ref 0.715/0.865),
+  window rays 15/48, rim/cap/eave/bough/room/pods/hearth audits unchanged.
+- B arch band (x 0.70–0.88, y 0.28–0.40, pods masked): horizontal edge-energy share ref 0.201 /
+  was 0.167 / now 0.181; silhouette roughness ref 15.9 px / 22.6 / 14.8; face band 5.65 / 7.14 /
+  5.52. Out of reach here: the arch face's lit share (ref 0.25, ours 0.06) — the sun grazes the
+  door at 84° and B's haze floor is 0.29, so `ARCH_BARK_FLOOR` (lift 12, texture 0.85) only lands
+  the mid tone (mean/p90 0.348/0.404 vs ref 0.367/0.537). +2 draws per view (A 673, B 664, F 637).
+- take-0072: A 0.261 / B 0.250 / C 0.306 / D 0.301 / E 0.273 / F 0.268 (A +0.0014, B −0.0017,
+  F +0.0007; C/D/E byte-identical to 71). 23/50. W25 needs Astra's re-read on this take. Claims
+  renewed (W25, W38, W09, W13 — the D3 "unclaimed" warnings on takes 58–71 were expired claims,
+  not unowned work).
+- Running: structures-20 (Astra's take-71 finding: the huts' continuous emissive rims read as
+  neon outlines in D/A/B → lit wooden reveals; prove/fix the C/L01/L02 +21,846 tris / +1 call —
+  recessBark bucket bounds, split like the caps; right buttress short in B), trees-16 (forced
+  rebucket on onCameraMove; free-camera 710–714 draws → ≤ 700 along the path without changing
+  the fixed views).
+- Astra (branch `agent/astra-environment-lighting`, `c5d8c83`): sleeve angular-floor hook
+  published for testing (sleeveBark.ts + 2 lines in materials.ts) — adopt only after her actual
+  verdict; purple flower family `9f2e98b` retained; farShade 22→32 m retained; bank-grass
+  height trial rejected/rolled back.
+- Three biggest remaining gaps → (1) light (Astra): the bright hazed canopy at the top of B/A,
+  key/shade separation on the house front; (2) the distant huts' rims and the hero arch's lit
+  share; (3) the A/B camera-distance layout call.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -994,4 +1030,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-12T21:15:00Z
+2026-09-13T00:25:00Z

@@ -7656,6 +7656,113 @@
       },
       "prevHash": "sha256:d668cf6518a78130f4ce702b059849a0f04638cd5ec9676dda460a2dea908976",
       "hash": "sha256:704bc7f3fabbf8c0b11ddbf9116fd7d649e05ec89fa94ccf5a2872f677685bc3"
+    },
+    {
+      "id": "take-0072",
+      "number": 72,
+      "at": "2026-09-13T00:16:40.419Z",
+      "sha": "f938270ab244b28051e4ebb72418a696ec8ee096",
+      "shortSha": "f938270",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "structures: Saria's entrance becomes one knotted arch flowing into the crown, the pillars become root-buttresses, and the trunk burls are seam-periodic (Astra's W25 grounds on take-0070 and her burl seam finding)",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W38"
+      ],
+      "note": "Round nineteen: Saria's entrance answers the reviewer's take-70 W25 grounds (broad smooth wall fins, forked supports, a separate sloping moss cap versus the reference's thick knotted arch flowing into the crown). The lips, jambs, lintel and the rim's front are now one swept, noised, seam-welded tube with 18 burls and ring-periodic cords that runs left foot -> jamb -> shoulder knot -> crown 0.25 m under the rim curl -> right jamb -> foot, its cross-section stretched toward the wall above the shoulders so the eave line that read at constant world y 4.14-4.17 in every scanned B column is gone (0 eave/soffit rows between the arch's underside and the recess); the two slender branch pillars are root-buttresses that leave the arch at the shoulder knots, thicken 0.20 -> 0.38 m and plunge into the ground with 0.47 m flared feet. Door 2.37 x 2.06 m, window rays, room, pods, hearth unchanged. B arch band: horizontal edge-energy share ref 0.201, was 0.167, now 0.181; silhouette roughness ref 15.9 px, was 22.6, now 14.8. The trunk burls' atan2 seam (33-59 mm / 51-100 deg steps at the sphere's duplicated column) is periodic and welded: audit seamMaxPosMm 0 / seamMaxNormalDeg 0. Honest limits: the arch face stays shade-lit (B lit share 0.06 vs ref 0.25) because the sun grazes the door at 84 deg and the haze floor is 0.29; the right buttress foot lands on high terrain and reads short in B. +2 draws per view for the arch's own shade floor (A 673, B 664, F 637 of 700). SSIM A 0.259 -> 0.261, B 0.252 -> 0.250, F 0.268 -> 0.268; C/D/E unchanged. 23/50; W25 awaits the reviewer's re-read.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "fail",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:6cde8cbc62f1a77df6d3b1c0ef805d7b326f6009d0fd17e1450ce3f3ea22dbc0",
+        "B_house": "sha256:d5027adfeb785560489f5cfe6a6ab06dfffbb024fd022e6fbdd9992ef2d8d49b",
+        "C_lookback": "sha256:3b4b9202c1e2692745d3ffe1624290ab794db98c1e2bf2037398ceea1d353619",
+        "D_log": "sha256:0cee809ec28b8091b969ede28cf976a10e8eccd2379ec84f591d10f0c7810ce7",
+        "E_ground": "sha256:d5027adfeb785560489f5cfe6a6ab06dfffbb024fd022e6fbdd9992ef2d8d49b",
+        "F_canopy": "sha256:bea82ef117b90710a0954165ae91430db927e1dcb64d9ec6728b86328127a5a0"
+      },
+      "distHash": "sha256:15e3f385c0b899fd86dfad0483909b5f815b3d5ea2a54c193a0523c05e2bef8e",
+      "stats": {
+        "drawCalls": 673,
+        "triangles": 8602890,
+        "captureMs": 615668,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W38"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take72-cap",
+        "importedAt": "2026-09-13T00:17:59.060Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:704bc7f3fabbf8c0b11ddbf9116fd7d649e05ec89fa94ccf5a2872f677685bc3",
+      "hash": "sha256:c1b31be656b338a2020f019dc47ffc50b85eb0bc4d33598d0f6f019a60ed36cf"
     }
   ]
 }
