@@ -96,9 +96,26 @@ export function fernGeometry(seed: string, pal: PlantPalette, detail: Detail): B
           .add(V(0, 0.12 - t * 0.28 + (rng() - 0.5) * 0.15, 0));
         const color = tone(pal.fern, frondTone * (0.9 + rng() * 0.2));
         const opts = { curl: 0.05 + rng() * 0.12, twist: sign * (0.05 + rng() * 0.2), ridge: 0.15, serration: 0.05 };
+        const first = m.p.length / 3;
         if (high) lanceLeaf(m, origin, dir, length * (0.92 + rng() * 0.16), length * (0.26 + rng() * 0.06), color, { ...opts, sections: 3 });
         else if (low) foldedLeaf(m, origin, dir, length, length * 0.3, color, opts);
         else curvedLeaf(m, origin, dir, length, length * 0.28, color, opts);
+        if (high) continue;
+        // A narrow inner lamina and broader outer shoulders keep paired pinnae distinct.
+        // Reuse the same base, tip and vertical fold; only existing x/z positions change,
+        // so crown height, wind normalization, frond paths and random draws stay exact.
+        const rows = [[first + 1, low ? -1 : first + 2, first + 3, 0.5, 0.86, 1 + 0.4 * envelope]];
+        for (const [left, middle, right, station, outerStation, spread] of rows) {
+          const advance = 1 + (outerStation / station - 1) * envelope;
+          for (const axis of [0, 2]) {
+            const base = m.p[first * 3 + axis];
+            const centre = (m.p[left * 3 + axis] + m.p[right * 3 + axis]) * 0.5;
+            const advanced = base + (centre - base) * advance;
+            m.p[left * 3 + axis] = advanced + (m.p[left * 3 + axis] - centre) * spread;
+            m.p[right * 3 + axis] = advanced + (m.p[right * 3 + axis] - centre) * spread;
+            if (middle >= 0) m.p[middle * 3 + axis] += advanced - centre;
+          }
+        }
       }
     }
     const tipDir = radial.clone().add(V(0, -0.35, 0));

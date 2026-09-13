@@ -7,6 +7,35 @@ character work is paused for a later local Blender MCP session on their PC. No s
 
 ## Current task
 
+Recovery checkpoint 2026-09-13T03:16:20.181Z: the execution environment is disconnected. The original local
+28-file fern commit7cc0793/tree522e6865a0c1eabc0e24e0cb197b1d95b263d415 did not finish
+publication. Exact production plantgeo source d0a4d93989686a40dead764f84deb6503225f974c53f64841d95272df942b82d
+was reconstructed from pinned c5 and the visible local diff; both baseline/candidate SHA256
+match. Its local typecheck/build112 had passed before disconnection. This smaller recovery
+commit publishes that same isolated ordinary Medium/Low candidate for existing CI, with
+explicitly incomplete recovery of the original local proof package. High/hero/other plants,
+roots/RNG/height/materials/wind are unchanged. Actual A/F paired-frond review remains open.
+Do not apply the held all-LOD widening, overwrite local failure receipts or claim a new local run.
+See docs/reviews/ordinary-fern-profile/README.md and recovery.json.
+
+c5 sleeve is RETAINED after all16 actual checks, modest B surface gain, much weaker A;
+geometry/depth/full normalized state/actors/cost/resources exact9f2 except programs75→76.
+Broad smooth shape remains. D/S01/S02 JPEGs exact; tiny L01/L02 residuals remain unassigned.
+Archive647534af1dd44abf2b7dfb61a5b27e0f0eeee7ae. Summary is in the sleeve review directory;
+full local numerical receipts were in the interrupted publication. Flower9f2 all27 retained.
+
+Fable handoffs now read through e490425a/tick58 and takes72–74. He completed house19's unified
+knotted arch/root buttresses and seam weld, house20's non-emissive reveals and village bucket
+split, trees16's forced return rebucket/frustum-shadow submission, then character joint batching.
+His source/appearance claims are not yet independently integrated here. W25 re-read requested.
+The unrelated character batching is performance-only in his log; owner still pauses final
+character art for Blender. His sub-agent usage block is his reported limitation, separate from
+this environment disconnect. PR2 recovery/retention reply5650627060. No automatic partner merge.
+Next: verify recovered source CI, recover original local receipts if connection returns, review
+Fable's current changes before integration, and only then consider the separate hero fern pack.
+
+### Previous checkpoint, superseded by the recovery status above
+
 Current published source is `9f2e98b27ab6afd177d344e4d9a830ef24efab31`, tree
 `fafe78c7450ee6f1ceb7f978eb92c359d8c99117`, sole parent f56. Local/remote tree equality
 is verified. Retain the coherent purple flower form after actual A/D/L01/L02 comparison by
@@ -321,7 +350,7 @@ Astra: capture/review the coherent flower family, then ordinary fern profile and
 Capture helper: finish each pinned original gallery and verify rollback continuity.
 
 ## Last updated
-2026-09-12T22:31:57.665251+00:00
+2026-09-13T03:16:20.181Z
 
 
 ### Continuation checkpoint — 2026-09-12T22:12:05.428542+00:00

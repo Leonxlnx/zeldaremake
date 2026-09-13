@@ -16,15 +16,15 @@ The only production edits are one import and call in `structures/materials.ts`, 
 material file. The helper chains the existing shader hook and cache key, requires one unique
 floor insertion anchor and uses the already mapped normal. Its strength is exactly 0.20.
 There are no new material objects, geometry, textures, uniforms, attributes or owned resources.
-One extra sleeve color-program variant is expected; actual resource counts remain unmeasured.
+Actual sixteen-view checks confirm programs75→76; all other resources and costs match9f2.
 
 Candidate material SHA256 is
 `e024a03cbb46900c5403d4dea7cbda8f67cde4e48fe84aa40a18aa7abfe4c13e`;
 helper SHA256 is `f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7`.
 The patch matches the previously reviewed 0.20 proposal exactly. Production typecheck/build
 passes with 112 modules; the two-line inverse and published flower source hashes are exact.
-This source is prepared for isolated publication after the retained flower comparison.
-The sleeve itself has not been rendered or visually retained yet.
+The published c5 source is retained for a modest actual B ridge/curvature gain. A gains less.
+See actual-recovery-summary.md for the original-image verdict and evidence availability.
 
 ## Existing proof and its limits
 
@@ -44,7 +44,7 @@ current displayed-pixel predictions; they omit real shadows, specular, AO, fog a
 The change is not brightness-neutral. Fable's top-band brightness measurement is from another
 composition and is not a target for this material.
 
-## Actual decision remains pending
+## Actual acceptance criteria (completed; see recovered summary)
 
 Compare original A/B pairs against the immediately preceding source. Require useful fissure
 and curved-surface response without an unacceptable darker underside. Houses, recesses, trunks,
