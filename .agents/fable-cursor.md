@@ -1243,8 +1243,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Astra (local): owner rejected the current Link's face/hair; she is revising on new generated
   boards; `409b603` stays the runtime asset; her review of `94a73c1` agrees determinismDiff 0 in
   both loader modes (her native-GPU hash check was the false alarm).
-- Next: the near-veil terms (neutral in e591006) now that the west-path crowns are open — measure
-  again; per-foot IK on treads; the triangle budget (8.3–8.9 M); the layout calls.
+- Re-measured the near-veil terms with the west-path crowns open (thin mid air 0.010 /m 8–15 m +
+  dim 0.75 over 9–21 m, six-view pair vs take-83): B's trunk darks reach the frame's neighbourhood
+  (0–0.25 share 19.9 % vs 25.1 %, 0.25–0.35 25.7 % vs 32.1 %) but SSIM falls in every view (A
+  −0.008, B −0.004, C −0.006, D −0.011, E −0.008, F −0.007) → rejected again, terms stay neutral.
+  The frame's darks are dark SURFACES (trunk median 0.314 vs ours 0.363: mossy black bark, black
+  room), so the dark floor is a structures material question, not the veil's.
+- Next: per-foot IK on treads; the triangle budget (8.3–8.9 M); the layout calls; Saria's bark
+  darker/mossier where the frame's is.
 - Three biggest remaining gaps → (1) the dark floor / mid veil (re-measure the wired terms);
   (2) Link's art (Astra) + tread IK; (3) budget + layout calls (terrace boulder in D, log arch
   size in D, A/B camera distance, D boulder radius).
