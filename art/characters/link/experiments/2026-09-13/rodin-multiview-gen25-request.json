@@ -1,0 +1,38 @@
+{
+  "sources": [
+    {
+      "file": "E:\\zeldaremake\\reference\\generated-link-studies\\2026-09-13\\04-full-body.png",
+      "sha256": "615441513e56b0194839a62678cc4606825d2daf84157bf108342f4b505d9ca6"
+    },
+    {
+      "file": "E:\\zeldaremake\\reference\\generated-link-studies\\2026-09-13\\05-back.png",
+      "sha256": "f291f8aa1d3d9eac72a2d20f2876ec6008d191de6122b420f014efcaf0cf7a14"
+    }
+  ],
+  "parameters": {
+    "prompt": "Two consistent views of the SAME single character: image 1 FRONT, image 2 BACK. Faithfully preserve the compact body, natural face, round dark pupils within teal irises, layered hair, soft cap tail hanging behind the head and separate leather backpack with wooden spiral shield. Complete round anatomy, clean eyelids and fingers. Preserve fine woven fabric, seams, buckles and leather ankle boots. Relaxed A-pose.",
+    "tier": "Gen-2.5-Medium",
+    "mesh_mode": "Raw",
+    "quality_override": "50000",
+    "quad_normal": "true",
+    "material": "PBR",
+    "geometry_file_format": "glb",
+    "TAPose": "true",
+    "is_symmetric": "balanced",
+    "detail_level": "3",
+    "image_label": [
+      "F",
+      "B"
+    ],
+    "geometry_instruct_mode": "faithful",
+    "texture_delight": "true",
+    "addons": [
+      "HighPack"
+    ]
+  },
+  "uuid": "03f2d679-4d9f-412a-a855-25630f526349",
+  "status_code": 201,
+  "error": null,
+  "credential": "Bundled public Blender MCP free trial; no private key",
+  "message": "Submitted. Please check progress via /api/v2/status and get download link via /api/v2/download"
+}

@@ -6,6 +6,21 @@ experiments are listed in `rodin-provenance.json` and `rodin-files.json`; all re
 unaccepted. The delivered game GLB is unchanged. The newer integration capture uses
 the existing W41 image metric; exact native-GPU screenshot hashes remain unequal.
 
+At19:33 UTC, all Rodin jobs are complete. The newest isolated `generated-runtime/candidate.glb`
+uses the two-view Gen-2.5 geometry, reduced to24K triangles, and the validated409b603
+rig/clips. Its actual18-view WebGL review and363 sampled locomotion poses pass; face,
+eye and material quality remain unaccepted. This file is separate from the delivered
+runtime. See `.agents/astra-local.md` for exact hashes, failed trials and current state.
+
+To reproduce that candidate, load the `rodin-text-multiview-gen25/review.blend` scene
+in the hidden Blender session. `prepare_generated_runtime.py` also needs the exact
+409b603 `art/characters/link/link-runtime.blend` cached as
+`E:/Tools/blender-mcp/link-runtime-409b603.blend` (its hash is asserted). Run prepare,
+then `rebake_generated_normals.py`, then
+`node art/characters/link/capture_runtime.mjs --asset experiments/2026-09-13/generated-runtime/candidate.glb --studio`.
+The scripts intentionally reject overwriting an existing in-memory candidate; preserve
+manual edits before clearing that generated scene. Original studies remain separate.
+
 The owner requested an immediate pause and push before restarting the PC. No further
 modelling or external generation should start until the owner resumes the task.
 

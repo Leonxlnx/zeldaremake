@@ -41,6 +41,27 @@
       "tier": "Gen-2",
       "request": "rodin-sheet-gen2-request.json",
       "result": "60000 triangles, 84255 vertices, 2K maps. The generator interpreted the complete sheet as multiple separate figures and detached equipment; single-character prompt was insufficient. Front render is clipped by the shared single-character camera. Not adopted."
+    },
+    {
+      "directory": "rodin-text-single-gen2",
+      "uuid": "79fd16be-3d75-4722-9de1-8637b52f1db8",
+      "tier": "Gen-2",
+      "request": "rodin-single-gen2-request.json",
+      "result": "50000 triangles, 59747 vertices, 2K maps. Single reference improves proportions, outfit and boots substantially. Eyes retain warped baked reflections; back view invents a round cap and a large undetailed pack instead of the reference's tapered tail and shield. Metallic map median0.196 and roughness median0.392 explain part of the excessive shine. Not adopted."
+    },
+    {
+      "directory": "rodin-text-single-gen25",
+      "uuid": "0285a636-1444-410a-a6ee-c15e5f6a7b57",
+      "tier": "Gen-2.5-Medium",
+      "request": "rodin-single-gen25-request.json",
+      "result": "50000 triangles, 74102 vertices. Same single front reference as Gen-2; cleaner face and hair forms, less baked shading corruption. Eyes still have distorted narrow pupils and materials lack fine detail. Front/face reviewed, back captured for comparison. Unaccepted working basis."
+    },
+    {
+      "directory": "rodin-text-multiview-gen25",
+      "uuid": "03f2d679-4d9f-412a-a855-25630f526349",
+      "tier": "Gen-2.5-Medium",
+      "request": "rodin-multiview-gen25-request.json",
+      "result": "50000 triangles, 4K diffuse/ORM/normal maps. Two separate front/back references produce the intended cap tail and separate pack/shield. Face still has malformed pupils and red eyelid strips; surface detail is below reference. This is the source of the isolated 24K generated-runtime candidate, not the delivered game asset."
     }
   ]
 }

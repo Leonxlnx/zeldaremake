@@ -7,10 +7,16 @@ import puppeteer from 'puppeteer-core';
 import {ROOT,serveStatic,findChrome} from '../../../gauntlet/scripts/lib/browser.mjs';
 const root=path.join(ROOT,'art/characters/link');
 const studio=process.argv.includes('--studio');
+const assetFlag=process.argv.indexOf('--asset');
+const asset=assetFlag<0?'link-runtime.glb':process.argv[assetFlag+1];
+assert.ok(asset && asset.endsWith('.glb'),'--asset needs a local GLB path relative to art/characters/link');
+const assetFile=path.resolve(root,asset);
+assert.ok(assetFile.startsWith(root+path.sep),'Review asset must stay under art/characters/link');
 const stamp=new Date().toISOString().replace(/[:.]/g,'-');
 const output=path.join(root,'progress',stamp+(studio?'-runtime-studio':'-runtime'));await fs.mkdir(output,{recursive:true});
 const report={at:new Date().toISOString(),kind:'Actual Three.js runtime GLB review; not a world gauntlet capture',
-  glb_sha256:crypto.createHash('sha256').update(await fs.readFile(path.join(root,'link-runtime.glb'))).digest('hex'),views:{},errors:[]};
+  asset:path.relative(root,assetFile).replaceAll('\\','/'),
+  glb_sha256:crypto.createHash('sha256').update(await fs.readFile(assetFile)).digest('hex'),views:{},errors:[]};
 const server=await serveStatic(ROOT);let browser;
 console.log('Review server',server.url);
 try{
@@ -22,7 +28,7 @@ try{
   await page.setViewport({width:720,height:820});
   page.on('pageerror',e=>{report.errors.push(e.message);console.error(e.message);});
   page.on('requestfailed',r=>console.error('Request failed',r.url(),r.failure()?.errorText));
-  await page.goto(server.url+'/art/characters/link/review.html?capture=1'+(studio?'&studio=1':''),{waitUntil:'domcontentloaded',timeout:60000});
+  await page.goto(server.url+'/art/characters/link/review.html?capture=1&asset='+encodeURIComponent(report.asset)+(studio?'&studio=1':''),{waitUntil:'domcontentloaded',timeout:60000});
   await page.waitForFunction(()=>window.REVIEW?.ready,{timeout:90000});
   const durations=await page.evaluate(()=>REVIEW.durations);
   report.sole_local=await page.evaluate(()=>REVIEW.soleLocal);
@@ -40,13 +46,13 @@ try{
     report.views[name]={gait,t,view,sole_heights,sha256:crypto.createHash('sha256').update(png).digest('hex')};
   }
   report.motion_clearance=await page.evaluate(()=>Object.fromEntries(['walk','run','stairs'].map(gait=>{
-    const minimum={L:Infinity,R:Infinity};
+    const minimum={L:Infinity,R:Infinity},worstPhase={L:0,R:0};
     for(let i=0;i<=120;i++){
       REVIEW.pose(gait,REVIEW.durations[gait]*i/120);
       const heights=REVIEW.soleHeights();
-      for(const side of ['L','R'])minimum[side]=Math.min(minimum[side],heights[side]);
+      for(const side of ['L','R'])if(heights[side]<minimum[side]){minimum[side]=heights[side];worstPhase[side]=i/120;}
     }
-    return [gait,{samples:121,minimum_sole_y:minimum}];
+    return [gait,{samples:121,minimum_sole_y:minimum,worst_phase:worstPhase}];
   })));
   for(const [gait,check] of Object.entries(report.motion_clearance))
     for(const height of Object.values(check.minimum_sole_y))assert.ok(height>=-.002,gait+' sole penetrates the review ground');

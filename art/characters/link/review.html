@@ -43,7 +43,9 @@ if(lighting==='studio'){
 }
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x727c68,roughness:1}));
 floor.rotation.x=-Math.PI/2;floor.position.y=-.003;floor.receiveShadow=true;scene.add(floor);
-const gltf=await new GLTFLoader().loadAsync('./link-runtime.glb');scene.add(gltf.scene);
+const asset=new URL(new URLSearchParams(location.search).get('asset')||'./link-runtime.glb',location.href);
+if(asset.origin!==location.origin || !asset.pathname.startsWith('/art/characters/link/'))throw new Error('Review asset must be local to the character workspace');
+const gltf=await new GLTFLoader().loadAsync(asset.href);scene.add(gltf.scene);
 gltf.scene.traverse(ob=>{if(ob.isMesh){ob.castShadow=true;ob.receiveShadow=true;}});
 gltf.scene.updateMatrixWorld(true);
 const soleLocal=Object.fromEntries(['L','R'].map(s=>[s,gltf.scene.getObjectByName('ankle'+s).worldToLocal(new THREE.Vector3(s==='L'?.077:-.077,.006,0)).toArray()]));

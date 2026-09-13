@@ -1,0 +1,33 @@
+{
+  "status": "Unaccepted reduced/skinned candidate; actual GLB motion review required",
+  "source_job": "03f2d679-4d9f-412a-a855-25630f526349",
+  "rig_source_commit": "409b603",
+  "rig_source_blend_sha256": "4b93f2fdb2578640aef04f4fa3a65663178b1711ed00d9ff0db9ca91c6dedc3d",
+  "sha256": "493c1c1e62090275c22eff9e3a7c7700da63a7abb0dd300a8d3a49e7cd89e004",
+  "bytes": 27760628,
+  "triangles": 24000,
+  "anatomical_root_offset_y": 0.10853753128647804,
+  "anatomical_height_scale": 0.9940355229233245,
+  "anatomical_root_offset_z": 0.006968902889639139,
+  "meshes": 1,
+  "materials": 1,
+  "bones": 19,
+  "clips": [
+    "idle",
+    "run",
+    "stairs",
+    "walk"
+  ],
+  "weight_sum_error": 1.1920928955078125e-07,
+  "weighting": "Native nearest-surface transfer from validated409b603, then explicit head/pack overrides",
+  "terrain_ik": "Unchanged production sampler; per-foot IK remains Fable work",
+  "limitations": "Transferred weights with spatial head/pack overrides are an initial skinning study. Eyes, material detail, equipment and deformation are not accepted.",
+  "normal_bake": {
+    "size": [
+      2048,
+      2048
+    ],
+    "source": "Gen25 multiview surface plus original generated normal map",
+    "sha256": "9a0f5266668f117cdbe119c5369a27d060ed7d2d1215fb2cbc843fce35875e30"
+  }
+}

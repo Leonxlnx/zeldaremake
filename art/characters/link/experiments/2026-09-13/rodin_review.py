@@ -9,6 +9,9 @@ scene_name,object_name,task_uuid={
     'v2':('Rodin | second trial','Link | Rodin second trial','61ba180a-9ccf-4951-8708-d7fb1532af9c'),
     'gen2':('Rodin | Gen2 trial','Link | Rodin Gen2 trial','eba5339e-8faf-474d-8547-0b1e58148777'),
     'sheet-gen2':('Rodin | original sheet trial','Link | Rodin original sheet trial','e1103326-b72d-46e5-a8db-d729c6335481'),
+    'single-gen2':('Rodin | single reference trial','Link | Rodin single reference trial','79fd16be-3d75-4722-9de1-8637b52f1db8'),
+    'single-gen25':('Rodin | Gen25 single reference trial','Link | Rodin Gen25 single reference trial','0285a636-1444-410a-a6ee-c15e5f6a7b57'),
+    'multiview-gen25':('Rodin | Gen25 multiview trial','Link | Rodin Gen25 multiview trial','03f2d679-4d9f-412a-a855-25630f526349'),
 }[variant]
 root=Path(__file__).resolve().parent/('rodin-text-'+variant)
 root.mkdir(exist_ok=True)

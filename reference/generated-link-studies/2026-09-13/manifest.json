@@ -28,6 +28,13 @@
       "width": 1024,
       "height": 1536,
       "bytes": 2231618
+    },
+    {
+      "file": "05-back.png",
+      "sha256": "f291f8aa1d3d9eac72a2d20f2876ec6008d191de6122b420f014efcaf0cf7a14",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 2172087
     }
   ]
 }

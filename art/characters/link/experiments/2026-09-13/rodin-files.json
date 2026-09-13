@@ -19,6 +19,22 @@
     "bytes": 27346616,
     "sha256": "f4fee783d50c29a18556f3fb348d293ad32cfabf1820347a94e8a7c0bd8131f7"
   },
+  "rodin-text-multiview-gen25/back.png": {
+    "bytes": 735987,
+    "sha256": "5d97fd7ba4680f8660d875658b0ae3d40602e71cbf341d75c44e9c670e436467"
+  },
+  "rodin-text-multiview-gen25/face.png": {
+    "bytes": 827856,
+    "sha256": "07467c7989dbf52b1b7e64f9a06588ce3029c12eda0f1e10648ac8233d8efca7"
+  },
+  "rodin-text-multiview-gen25/review.blend": {
+    "bytes": 38382103,
+    "sha256": "d7705643070bfd825b2a7d74f32f65d54fc218c3555b451e34121dff7418cb0d"
+  },
+  "rodin-text-multiview-gen25/rodin-original.glb": {
+    "bytes": 39280944,
+    "sha256": "59f38718f1527bd21dbe5a1afe29c4e00f9e5bc1f549872960a6e3d88ccee372"
+  },
   "rodin-text-sheet-gen2/front.png": {
     "bytes": 844522,
     "sha256": "c0d843eb09d491fe579d8ff39f71da6115e2521bb6c8785ed72163f03f348268"
@@ -30,6 +46,46 @@
   "rodin-text-sheet-gen2/rodin-original.glb": {
     "bytes": 16122304,
     "sha256": "b6a52035637cd9abbe8fcef1784ddf6cb29542a06b6161bac32bea8f1f0fbfa2"
+  },
+  "rodin-text-single-gen2/back.png": {
+    "bytes": 711385,
+    "sha256": "666f204f6f5279a6eeff83835e43e2dcf157df153ad758aa201e0d77634f8cb1"
+  },
+  "rodin-text-single-gen2/face.png": {
+    "bytes": 868216,
+    "sha256": "199131443851962bacc6acd31d3f8c23b251d2d83306b819f48691520e624ed7"
+  },
+  "rodin-text-single-gen2/front.png": {
+    "bytes": 776969,
+    "sha256": "b85f2c947836fb9db28d257f89cb7f5ed1ee97800d479ddc52918fb3f7c71556"
+  },
+  "rodin-text-single-gen2/review.blend": {
+    "bytes": 13838300,
+    "sha256": "621f98da52b897d9e3212a90ee8fbab67297d1b04709e7fd707b388fbc7fc3ec"
+  },
+  "rodin-text-single-gen2/rodin-original.glb": {
+    "bytes": 13980252,
+    "sha256": "98c1a6fb83964e52ce09b1ae96126f333c94b6ea7ac5edec3abbe02b8e52bf42"
+  },
+  "rodin-text-single-gen25/back.png": {
+    "bytes": 722611,
+    "sha256": "b4bb893c4c3e93431a65c7e28385afcf2165e4d90c7d77b7b9a3cf2f7c695efe"
+  },
+  "rodin-text-single-gen25/face.png": {
+    "bytes": 858433,
+    "sha256": "c2ac40d378eb93981517ea4e2ec6e4d85b3cb2dee73d0f34a6584fc63a2c3185"
+  },
+  "rodin-text-single-gen25/front.png": {
+    "bytes": 776099,
+    "sha256": "5dd38886e551c313a804f876ca9520f4946e9c35ffd150fc4f8aa78812c60d7a"
+  },
+  "rodin-text-single-gen25/review.blend": {
+    "bytes": 14196127,
+    "sha256": "206e28c18455b929d3c9c88318f22e8cf5af259b3d22339427d97fd942c204ad"
+  },
+  "rodin-text-single-gen25/rodin-original.glb": {
+    "bytes": 14992164,
+    "sha256": "ceb8a9c542ab56a343a2d0fb1b81d853b421856f31c5165711d724492df4600c"
   },
   "rodin-text-v1/back-incorrect-up.png": {
     "bytes": 623942,
