@@ -21,7 +21,17 @@ then `rebake_generated_normals.py`, then
 The scripts intentionally reject overwriting an existing in-memory candidate; preserve
 manual edits before clearing that generated scene. Original studies remain separate.
 
-The owner requested an immediate pause and push before restarting the PC. No further
+At20:10 UTC, `generated-runtime/eye-candidate.glb` adds native eyes and repaired orbital
+weights. SHA256 `86d5c68e66d1118aea9f81d4c940d1485fdea28f3692fdd5b02a0288f7af252c`.
+The25,464-triangle candidate passes18 studio views,363 sampled poses and a full actual
+production-loader comparison on Fable a98e9ea. Reference quality is not achieved.
+Open `eye-candidate.blend` for the current scene; `refine_generated_eyes.py` constructs
+the study from the base scene, then `bake_generated_eyes.py` prepares/exports it.
+The latter also repairs Boolean face weights, checks head-only binding and prevents
+socket UVs from overwriting the body colour atlas. Exact history and failed evidence
+are recorded in `.agents/astra-local.md`.
+
+The historical pause checkpoint follows. The owner requested an immediate pause and push before restarting the PC. No further
 modelling or external generation should start until the owner resumes the task.
 
 - Last validated runtime: commit 409b603, GLB SHA256
