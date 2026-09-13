@@ -111,8 +111,15 @@ export class Noise3D {
  * band under the moss to 0.36 against the reference's 0.31 — the darker `texture` share is what
  * keeps the bough and roll dark under the floor. The shaded right pillar is lit by the ambient,
  * not the floor, so its warmth comes from its vertex tint in house.ts).
+ *
+ * Round 21: `texture` 0.6 at lift 7.2. The reference trunk band in B (x 0.60–0.72 × y 0.30–0.50)
+ * runs p10 0.275 / p50 0.387 / p90 0.528 where ours ran 0.286 / 0.381 / 0.441 — the same level,
+ * a third of the range: under the 60 % flat term only a fifth of the vertex relief (cord crests,
+ * furrows, the round-21 fissures and grime) reached the pixel. At 0.6 textured the surface
+ * carries 36 % of the floor; the lift is raised by the ratio that kept the lips' level (the
+ * round-11 probe at 4 / 0.6 read 0.09 too dark, i.e. ×1.8 linear → 7.2).
  */
-export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 6.3, texture: 0.4, canopy: 1, albedo: 0.08, chroma: 1 };
+export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1, albedo: 0.08, chroma: 1 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -141,7 +148,7 @@ export const LIMB_BARK_TINT = 0x6c6e48;
  * the leaf-filtered light under the open roof, so the recess takes the same warm, textured floor
  * at a fifth of the lift.
  */
-export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2 };
+export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2, texture: 0.4 };
 /**
  * The entrance arch and its root-buttresses (round 19): one knotted bark mass standing a metre
  * in front of the wall under the cap's front rim. Reference B's arch face (x 0.72–0.86 ×

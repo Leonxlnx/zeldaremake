@@ -69,6 +69,17 @@
  * leafy tip beyond the right rim, the two cap sub-limbs and the up-limb kept; the ground leg
  * and the prop root are gone.
  *
+ * Round 21 (owner: one-to-one with the reference, much more detail; B at 2×): the trunk bark
+ * gains FISSURES (sharp near-black valleys between the cord bundles) and a finer second cord
+ * octave, with dark damp grime in the furrows and fissures (`furrowMoss`); the entrance arch
+ * and its buttresses are more densely corded (≈ 14 bundles round the body at 32 radial
+ * segments), cut by fissures and knuckled with six large knots (`knots21`); big-leaf ENTRANCE
+ * VINES lie along the arch crown's top-front edge and drop strands down its face, clumps hang
+ * over both shoulders and strands with clumps run down the wall sides; the eave is SHAGGY —
+ * moss / grass beards every 0.3 m off the rim's outer face and the arch's top edge, leaf clumps
+ * drooping off and standing on the rim (`foliage21`, its own builder after the first, so every
+ * earlier plant keeps its draws). The pods' leaf husks are lantern.ts's.
+ *
  * Every dimension is expressed in terms of `trunkRadius` / `roofHeight`, so the same builder
  * produces Saria's hero house and the small upper house.
  */
@@ -804,12 +815,24 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const arc = a * R;
     return noise.ridged(arc * 1.9 + noise.noise(y * 0.15, arc * 0.1) * 1.6 + y * 0.12, y * 0.14, 3) - 0.5;
   };
+  /**
+   * Round 21: FISSURES — sharp valleys where a slow field crosses zero, running up the trunk
+   * with the cords' twist (the reference trunk in B, x 0.60–0.72, is cut by deep near-black
+   * fissures between the cord bundles; ours had cords but no cuts) — and a finer second cord
+   * octave, so the bundles themselves are corded. Both enter the relief and the vertex shade.
+   */
+  const fissure = (a: number, y: number) => {
+    const arc = a * R;
+    const tw = noise.noise(y * 0.15, arc * 0.1) * 1.6;
+    return Math.pow(1 - Math.abs(noise.noise(arc * 0.75 + 31 + tw * 0.5, y * 0.08)), 8);
+  };
+  const cords2 = (a: number, y: number) => noise.ridged(a * R * 4.2 + y * 0.2 + 3, y * 0.3, 2) - 0.5;
   const detail = (a: number, y: number) => {
     const arc = a * R;
     const furrow = Math.pow(Math.max(0, noise.noise(arc * 0.7 + 21, y * 0.12)), 2);
     const lumps = noise.fbm(arc * 0.35, y * 0.4, 3);
     const fine = noise.noise(arc * 3.5, y * 3.5);
-    return cords(a, y) * 0.36 * k - furrow * 0.16 * k + lumps * 0.12 * k + fine * 0.015;
+    return cords(a, y) * 0.36 * k - furrow * 0.16 * k + lumps * 0.12 * k + fine * 0.015 + cords2(a, y) * 0.08 * k - fissure(a, y) * 0.14 * k;
   };
   const winW = (a: number, r: number) => angleDiff(a, winA) * r;
 
@@ -840,7 +863,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const mossy = smoothstep(0.3, 0.8, noise.fbm(a * R * 0.5, y * 0.5, 2)) * smoothstep(2.6, 0.2, y);
       const vari = 0.9 + 0.2 * noise.noise(a * R * 0.8 + 5, y * 0.8);
       const crest = clamp(cords(a, y) * 2.2, -1, 1) * fade;
-      const ao = 1 + 0.55 * crest;
+      // round 21: the fissures are near-black cuts, the fine cords add a second-order grain
+      const fis = fissure(a, y) * fade;
+      const crest2 = clamp(cords2(a, y) * 2, -1, 1) * fade;
+      const ao = Math.max(0.1, 1 + 0.75 * crest + 0.2 * crest2) * (1 - 0.65 * fis);
+      // grime and moss in the furrows and fissures (round 21): patchy, on the mid band of the
+      // trunk (0.3–3.4 m), where the reference's cords stand out of a damp dark green-brown
+      const furrowMoss = clamp(0.7 * smoothstep(-0.1, -0.7, crest) + 0.6 * fis, 0, 1) * smoothstep(0.2, 0.8, noise.fbm(a * R * 0.6 + 13, y * 0.6 + 7, 2)) * smoothstep(0.3, 1.0, y) * smoothstep(3.4, 2.6, y);
       // the wall band under the soffit sits in the eave's shadow; the pillars' flanks (where the
       // bulge falls off) carry an occlusion tint so they read as columns standing off the wall
       const eaveShade = 1 - 0.45 * smoothstep(porchTop - 0.8, wallTop, y);
@@ -865,7 +894,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const rr = lerp(0.96 * vari, 0.6, base * 0.7) * ao * (1 + 0.08 * Math.max(0, crest)) * shade;
       const gg = lerp(0.97 * vari, 0.62, base * 0.6) * ao * shade * warm;
       const bb = lerp(1.0 * vari, 0.64, base * 0.6) * ao * (1 - 0.1 * Math.max(0, crest)) * shade * warmB;
-      out.color = [lerp(rr, 0.55, mossy * 0.6), lerp(gg, 0.72, mossy * 0.6), lerp(bb, 0.4, mossy * 0.6)];
+      const cr = lerp(rr, 0.55, mossy * 0.6);
+      const cg = lerp(gg, 0.72, mossy * 0.6);
+      const cb = lerp(bb, 0.4, mossy * 0.6);
+      // the furrow grime is a DARK damp green-brown (in the eave's shade with the wall), not the base moss
+      const gw = furrowMoss * 0.7;
+      out.color = [lerp(cr, 0.3 * shade, gw), lerp(cg, 0.42 * shade, gw), lerp(cb, 0.2 * shade, gw)];
   };
   const shellHole = (u: number, v: number) => {
     const a = u * TAU;
@@ -1783,6 +1817,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     c.addScaledVector(side, Math.cos(phi) * r * 0.85).addScaledVector(up, Math.sin(phi) * r * 0.85);
     archKnots.push({ c, s: (0.24 + lipRng() * 0.22) * k, h: (0.12 + lipRng() * 0.13) * k });
   }
+  /**
+   * Round 21: six LARGE knots (0.4–0.6 m wide, 0.2–0.32 m tall) on the crown's front and the
+   * upper legs — the reference arch is knuckled with fist-to-head-sized burls, ours had only the
+   * dozen-and-a-half small ones. Kept off the underside (φ with an up-component ≥ −0.2) so the
+   * opening's crown and the pods' cords are untouched. Own fork.
+   */
+  const knotRng = rng.fork('knots21');
+  for (let i = 0; i < 6; i++) {
+    const t = i < 4 ? 0.36 + knotRng() * 0.28 : knotRng() < 0.5 ? 0.16 + knotRng() * 0.14 : 0.7 + knotRng() * 0.14;
+    const phi = knotRng() * TAU;
+    const c = archCurve.getPointAt(t);
+    const r = archRadius(t);
+    const T = archCurve.getTangentAt(t);
+    const side = new Vector3(T.z, 0, -T.x).normalize();
+    const up = new Vector3().crossVectors(T, side).normalize();
+    // fold a downward φ onto the upper half
+    const sy = Math.sin(phi) < -0.2 ? -0.2 - (Math.sin(phi) + 0.2) : Math.sin(phi);
+    c.addScaledVector(side, Math.cos(phi) * r * 0.9).addScaledVector(up, sy * r * 0.9);
+    archKnots.push({ c, s: (0.4 + knotRng() * 0.2) * k, h: (0.2 + knotRng() * 0.12) * k });
+  }
   const knotsAt = (p: Vector3) => {
     let d = 0;
     for (const kn of archKnots) {
@@ -1792,17 +1846,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     return d;
   };
   // the relief of the vertex being placed (sweepTube colours a vertex right after displacing it):
-  // cord crest ∈ ±0.5 and the hollow / bump term in metres
+  // cord crest ∈ ±0.5, the hollow / bump term in metres, and (round 21) the fissure ∈ [0, 1]
   let archCrest = 0;
   let archRelief = 0;
-  const archDisplace = (seed: number, cordAmp: number, lumpAmp: number, along: number) => (t: number, ang: number, pos: Vector3) => {
-    archCrest = ringRidged(noise, ang, t * along + pos.y * 0.3, 1.4, seed);
+  let archFis = 0;
+  /**
+   * Round 21: the cords are denser round the body (ring scale 2.2, ≈ 14 bundles, was 1.4 / 9) and
+   * deeper (`cordAmp`), and FISSURES — ring-periodic sharp valleys running along the body — cut
+   * between them (`fisAmp`), so the arch reads as knotted rope-bark and not a smooth tube. The
+   * reference arch face in B runs p10 0.24 → p90 0.54 (local 8 px contrast 0.038) where ours ran
+   * 0.34 → 0.45 (0.020).
+   */
+  const archDisplace = (seed: number, cordAmp: number, lumpAmp: number, along: number, fisAmp = 0.1) => (t: number, ang: number, pos: Vector3) => {
+    archCrest = ringRidged(noise, ang, t * along + pos.y * 0.3, 2.2, seed);
     const lump = noise.fbm(pos.x * 1.3 + 5, pos.z * 1.3 + pos.y * 0.7, 2) - 0.5;
+    archFis = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.7 + seed * 1.3, Math.sin(ang) * 1.7 + t * along * 0.35 + seed)), 5);
     archRelief = lump * lumpAmp * k + knotsAt(pos);
-    return archCrest * cordAmp * k + archRelief;
+    return archCrest * cordAmp * k + archRelief - archFis * fisAmp * k;
   };
   /** the relief terms only; the shade comes from the welded normals in `shadeArch` */
-  const reliefColor = (): [number, number, number] => [clamp(archCrest * 2.4, -1, 1), archRelief / k, 0];
+  const reliefColor = (): [number, number, number] => [clamp(archCrest * 2.4, -1, 1), archRelief / k, archFis];
   /**
    * The crown is deeper than it is tall: from the shoulders up, its back stretches 0.5 m toward
    * the wall (a torus pulled along −F, the legs stay round), so it fills the soffit under the
@@ -1810,7 +1873,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * the eave's underside or the wall's eave band 1–1.5 m behind it (round 19's second probe
    * still showed 2–7 rows of those between the crown and the porch at x 0.73–0.85).
    */
-  const archCrownDisplace = archDisplace(2.3, 0.14, 0.2, 16);
+  const archCrownDisplace = archDisplace(2.3, 0.16, 0.2, 16, 0.1);
   const archBody = (t: number, ang: number, pos: Vector3) => {
     const d = archCrownDisplace(t, ang, pos);
     archCurve.getPointAt(t, _ap);
@@ -1820,16 +1883,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const back = Math.max(0, -(rx * F.x + rz * F.z) / rl);
     return d + back * back * 0.5 * k * smoothstep(2.45 * k, 2.7 * k, heightOf(_ap));
   };
+  // (round 21: 32 radial segments, was 16 — the denser cords (≈ 14 bundles round the body) and
+  // the fissures need two-plus vertices a bundle to show; +3.8 k triangles)
   const arch = sweepTube(archCurve, {
     radius: archRadius,
     tubularSegments: 120,
-    radialSegments: 16,
+    radialSegments: 32,
     uvMetres: 1.4,
     displace: archBody,
     color: reliefColor,
   });
   weldNormals(arch);
-  weldTubeSeam(arch, 120, 16);
+  weldTubeSeam(arch, 120, 32);
   /**
    * Bark shade from the real normal and the relief: lit on top, a touch on the front; cord
    * crests and bumps light, furrows and hollows dark (the reference's arch face in B, x 0.72–0.86
@@ -1853,9 +1918,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const front = nrm.getX(i) * F.x + nrm.getZ(i) * F.z;
       const crest = col.getX(i);
       const relief = clamp(col.getY(i) * 6, -1, 1);
-      // ×1.8 over the roots' tints: ARCH_BARK_FLOOR takes 85 % of its albedo from the surface
-      const base = 1.8 * lerp(0.72, 0.6, smoothstep(yDark0, yDark1, y));
-      const d = base * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * (1 + 0.6 * crest) * (1 + 0.45 * relief);
+      // round 21: the fissures (col z ∈ [0, 1]) are near-black cuts between the cord bundles
+      const fis = col.getZ(i);
+      // ×1.8 over the roots' tints: ARCH_BARK_FLOOR takes 85 % of its albedo from the surface.
+      // Round 21: the crest swing is ×0.9 (was 0.6) and the base ×1.15 — the face rendered p10
+      // 0.344 / p90 0.453 against the reference's 0.242 / 0.537 (the haze floors p10 at ≈ 0.295;
+      // the crests are where the range can come from), fissures ×0.3.
+      const base = 2.07 * lerp(0.72, 0.6, smoothstep(yDark0, yDark1, y));
+      const d = base * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * Math.max(0.08, 1 + 0.9 * crest) * (1 + 0.45 * relief) * (1 - 0.7 * fis);
       const patch = 0.45 + 0.55 * noise.fbm(_ap.x * 1.7 + 3, _ap.z * 1.7 + y * 0.6, 2);
       let w = smoothstep(0.25, 0.85, up) * patch * mossAmount;
       if (creep) {
@@ -1950,16 +2020,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         }
       }
     }
+    // (round 21: 24 radial segments, was 14, deeper cords 0.11, fissures 0.07)
     const buttress = sweepTube(curve, {
       radius: buttressR,
       tubularSegments: 32,
-      radialSegments: 14,
+      radialSegments: 24,
       uvMetres: 1.4,
-      displace: archDisplace(4.1 + side, 0.08, 0.12, 8),
+      displace: archDisplace(4.1 + side, 0.11, 0.12, 8, 0.07),
       color: reliefColor,
     });
     weldNormals(buttress);
-    weldTubeSeam(buttress, 32, 14);
+    weldTubeSeam(buttress, 32, 24);
     archParts.push(shadeArch(buttress, 1.0 * k, 2.9 * k, 0.5, false));
     pillarTops.push({ top: curve.getPointAt(0.1), foot: [foot.x, foot.y, foot.z], side, footRadius: buttressR(tFoot) });
     bases.push([foot.x, foot.y, foot.z]);
@@ -3076,6 +3147,135 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   for (const late of lateFoliage) late();
   for (const m of foliage.build(mats, `house-${def.id}`)) group.add(m);
 
+  // ---- round 21: ENTRANCE VINES, WALL VINES and a SHAGGY EAVE, on a second foliage builder
+  // (own rng forks, own noise seed) built after the first, so every existing leaf, tuft, vine,
+  // flower and pod keeps its draws; its meshes fold into the same leaf / vine / tuft buckets in
+  // `consolidateStaticMeshes` (no new draw). Reference B at 2×: a vine of big heart leaves
+  // (0.15–0.25 m) runs along the arch crown's top-front edge from the left shoulder past the
+  // centre and drops strands down the body's face to the pods' height (frame x 0.70–0.81,
+  // y 0.22–0.33); more big leaves hang over both shoulders and down the wall sides; the eave is
+  // a broken fringe of hanging moss and grass every 0.2–0.4 m with leaf clumps standing on the
+  // rim. Ours had 20 short rim strands of 7.5 cm leaves, 26 fringe clumps and a clean rim. ----
+  const foliage21 = new FoliageBuilder(rng.fork('foliage21'), `${ctx.config.seed}/house21/${def.id}`);
+  /** the arch body's top-front edge at t (where a vine lies over the crown) */
+  const archTopFront = (t: number, out = new Vector3()) => {
+    archCurve.getPointAt(t, out);
+    const r = archRadius(t);
+    out.y += r * 0.72;
+    out.addScaledVector(F, r * 0.62);
+    return out;
+  };
+  /** the curve parameter nearest a world point */
+  const archTOf = (p: Vector3) => {
+    let best = Infinity;
+    let bt = 0.5;
+    for (let i = 0; i <= 200; i++) {
+      const d = archCurve.getPointAt(i / 200, _ap).distanceToSquared(p);
+      if (d < best) {
+        best = d;
+        bt = i / 200;
+      }
+    }
+    return bt;
+  };
+  const tShoulderL = archTOf(archShoulder(-1));
+  const tShoulderR = archTOf(archShoulder(1));
+  const vine21 = rng.fork('vines21');
+  {
+    // (a) the arch-crown vine, along the top-front edge from the left shoulder to just past the
+    // centre, with big leaves every 11 cm
+    const pts: Vector3[] = [];
+    const nrms: Vector3[] = [];
+    const t0 = tShoulderL + 0.01;
+    const t1 = lerp(tShoulderL, tShoulderR, 0.56);
+    for (let i = 0; i <= 8; i++) {
+      const p = archTopFront(lerp(t0, t1, i / 8));
+      p.x += (vine21() - 0.5) * 0.06;
+      p.z += (vine21() - 0.5) * 0.06;
+      pts.push(p);
+      nrms.push(F.clone().setY(0.8).normalize());
+    }
+    // (leaf sizes 0.2–0.25 m: the reference's entrance leaves span 20–25 px of the 1280 frame at
+    // 14 m — ≈ 0.22 m; a first pass at 0.14–0.15 m rendered as specks along the vine)
+    foliage21.addSurfaceVine(pts, nrms, { leafSize: 0.24 * sk, leafEvery: 0.1, amount: 0.05, thickness: 0.022 });
+    // strands off it hanging down the body's face in front of it, 0.4–0.9 m (their ends stay
+    // above the pods, whose caps hang from the body's underside), big leaves every 9 cm
+    for (let i = 0; i < 9; i++) {
+      const hook = archTopFront(lerp(t0, t1, (i + 0.3 + vine21() * 0.4) / 9));
+      hook.addScaledVector(F, 0.05);
+      const len = (0.4 + vine21() * 0.5) * k;
+      foliage21.addHangingVine(hook, len, { drift: F.clone().multiplyScalar(0.25 + vine21() * 0.2), leafSize: 0.22 * sk, leafEvery: 0.09, amount: 0.1, thickness: 0.016 });
+    }
+    // (b) the shoulders: a big drooping clump over each shoulder knot's top-front spilling leaves
+    // down the leg's outer face, and two strands off it
+    for (const side of [-1, 1] as const) {
+      const c = archShoulder(side).addScaledVector(F, 0.35 * k).addScaledVector(Rt, side * 0.15 * k);
+      c.y += 0.3 * k;
+      foliage21.addLeafCluster(c, 0.6 * k, 56, { size: 0.22 * sk, amount: 0.06, droop: 0.85, tint: leafTint, tintSpread: 0.3, flatten: 0.6 });
+      for (let i = 0; i < 2; i++) {
+        const hook = c.clone().addScaledVector(Rt, side * (0.15 + i * 0.25) * k);
+        hook.y -= 0.2 * k;
+        foliage21.addHangingVine(hook, (0.6 + vine21() * 0.5) * k, { leafSize: 0.2 * sk, leafEvery: 0.09, amount: 0.1 });
+      }
+    }
+    // (c) down the wall sides: strands off the wall's eave band either side of the arch with a
+    // clump at each hook — kept off the window (a −1.25 … −0.9) and the door span
+    const wallVines: number[] = def.id === 'saria' ? [-0.82, -0.68, -0.56, 0.55, 0.66, 0.78, 0.9] : [-0.7, 0.7];
+    for (const a0 of wallVines) {
+      const a = a0 + (vine21() - 0.5) * 0.06;
+      const y = wallTop - 0.05 * k;
+      const hook = frame.at(a, rSmooth(a, y) + 0.08 * k, y);
+      foliage21.addLeafCluster(hook.clone().addScaledVector(frame.dir(a), 0.08 * k), 0.34 * k, 26, { size: 0.2 * sk, amount: 0.06, droop: 0.8, tint: leafTint, tintSpread: 0.3, flatten: 0.5 });
+      foliage21.addHangingVine(hook, (0.8 + vine21() * 0.7) * k, { drift: frame.dir(a).multiplyScalar(0.15), leafSize: 0.2 * sk, leafEvery: 0.09, amount: 0.1 });
+    }
+  }
+  // the SHAGGY EAVE: hanging moss / grass beards off the rim's outer-lower face (v 0.86–0.92)
+  // every ≈ 0.3 m of arc over the front 300°, a leaf clump drooping off every fourth, and leaf
+  // clumps standing on the rim's shoulder breaking the eave's upper line; over the door
+  // (|a| < 0.55), where the arch crown is the eave, the beards hang from the body's top-front
+  // edge. Tints: the beards hang in the rim's shade as dark damp olive (the reference eave's
+  // fringe is near the haze floor, not lit grass — a first pass at a quarter of the moss-lit
+  // grass tint rendered bright green brushes), the standing clumps a third of the moss-lit leaf.
+  const beard21 = rng.fork('beards21');
+  const beardShade: [number, number, number] = [0.8, 0.95, 0.5];
+  const beardLeaf: [number, number, number] = [1.2, 0.8, 0.9];
+  const standTint: [number, number, number] = [1.3, 0.8, 0.9];
+  {
+    let a = -2.6;
+    let i = 0;
+    while (a < 2.6) {
+      a += (0.3 * (0.8 + beard21() * 0.5)) / (capR(a) + lipR);
+      if (Math.abs(a) < 0.55) continue;
+      const v = 0.86 + beard21() * 0.06;
+      const p = surfacePoint(a, v, 0);
+      const dir = frame.dir(a).multiplyScalar(0.45);
+      dir.y -= 1;
+      dir.normalize();
+      foliage21.addTuft(p, dir, (0.3 + beard21() * 0.25) * sk, 0, 0.06, beardShade);
+      if (i % 4 === 0) foliage21.addLeafCluster(p.clone().addScaledVector(dir, 0.12 * k), 0.2 * k, 10, { size: 0.16 * sk, amount: 0.06, droop: 0.95, tint: beardLeaf, tintSpread: 0.3, flatten: 0.6 });
+      i++;
+    }
+    for (let j = 0; j < 9; j++) {
+      const p = archTopFront(lerp(tShoulderL + 0.02, tShoulderR - 0.02, (j + beard21()) / 9));
+      p.addScaledVector(F, 0.04);
+      const dir = F.clone().multiplyScalar(0.35);
+      dir.y -= 1;
+      dir.normalize();
+      foliage21.addTuft(p, dir, (0.3 + beard21() * 0.15) * sk, 0, 0.06, beardShade);
+    }
+    const standing = def.id === 'saria' ? 12 : 6;
+    for (let j = 0; j < standing; j++) {
+      const a = -1.9 + (j / (standing - 1)) * 3.8 + (beard21() - 0.5) * 0.25;
+      const v = 0.62 + beard21() * 0.08;
+      const p = surfacePoint(a, v, 0.02);
+      const n = domeNormal(a, v);
+      n.y += 0.5;
+      n.normalize();
+      foliage21.addLeafCluster(p.addScaledVector(n, 0.12 * k), (0.24 + beard21() * 0.1) * k, 16, { size: 0.18 * sk, amount: 0.06, droop: 0.35, tint: standTint, tintSpread: 0.25, flatten: 0.5 });
+    }
+  }
+  for (const m of foliage21.build(mats, `house21-${def.id}`)) group.add(m);
+
   // draped limbs + arc bough + broken stub + right limb + chimney
   // the pad is level (round 14) and the terrain stays under it (`floorPoke` ≤ 0), so this is the
   // kerb's clearance over the pad; the terrain term only bites if the slope ever came through
@@ -3089,7 +3289,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     materials,
     roots: rootsBuilt + 2,
     branches: branchDefs.length + 4,
-    leaves: foliage.leafCount,
+    leaves: foliage.leafCount + foliage21.leafCount,
     eave,
     door,
     cap,

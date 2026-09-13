@@ -4,6 +4,14 @@
  * the hollow interior; bark ridges run along the length; moss cushions and draped moss sheets,
  * grass tufts, ferns and heart-leaf vines grow on top and hang from the flanks and underside;
  * two pod lanterns hang under the arch and three more under the near (west) end (sheet 01).
+ *
+ * Round 21 (reference D at 2×: a huge fallen trunk with deep bark ridges, a thick lumpy moss
+ * crown hanging unevenly down the flanks, roots and ferns at its feet): the bark relief is
+ * deeper (ridges ±0.37 m, 0.6 m fissures, raised plates) with wider baked occlusion and grime in
+ * the fissures, the body ×0.78 darker so it reads as a mass under the haze; the moss cap is
+ * thicker and lumpier with a wandering edge, fringed with hanging moss beards and leaf clumps;
+ * root flares run from the sunk ends out over the ground among fern beds. New detail on new rng
+ * forks only — the stubs', vegetation's, sheets' and lanterns' streams keep their draws.
  */
 import { CatmullRomCurve3, Group, Mesh, PointLight, Vector3 } from 'three';
 import type { WorldContext } from '../system';
@@ -114,14 +122,26 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     return R * taper * bulge;
   };
   const upness = (psi: number) => Math.sin(psi);
-  /** thickness of the moss cap (metres) — a real cushion on the upper third, feathering out on the flanks */
+  /**
+   * Round 21: the moss crown's edge wanders (±0.22 in upness, ≈ ±0.7 m of arc) so the cap's
+   * boundary on the flanks is a ragged, shaggy line, not a level one — reference D's crown
+   * hangs unevenly down the flanks. Shared by the relief and the colour mask so they agree.
+   */
+  const mossEdge = (psi: number, s: number) => 0.22 * noise.noise(s * 1.1 + 3, psi * R * 0.9);
+  /** thickness of the moss cap (metres) — a real cushion on the upper third, feathering out on the flanks
+   *  (round 21: thicker and lumpier — 0.22 + 0.42 cushions + 0.18 clumps, was 0.16 / 0.3 / 0.12) */
   const mossCap = (psi: number, s: number, up: number) => {
     const arc = psi * R;
     const cushions = 0.5 + 0.5 * noise.fbm(arc * 0.7 + 4, s * 0.7, 2);
     const clumps = noise.ridged(arc * 1.4 + 2, s * 1.1, 2);
-    return smoothstep(0.1, 0.8, up) * (0.16 + 0.3 * cushions + 0.12 * clumps);
+    return smoothstep(0.08, 0.75, up + mossEdge(psi, s)) * (0.22 + 0.42 * cushions + 0.18 * clumps);
   };
-  /** bark relief only (no moss): broad longitudinal ridges, deep narrow fissures, lumps, grain */
+  /**
+   * bark relief only (no moss): broad longitudinal ridges, deep narrow fissures, lumps, grain.
+   * Round 21: deeper — the ridges' swing ×1.5 (±0.37 m), the fissures 0.6 m (was 0.4), a second
+   * finer ridge set at ×0.2, and raised bark PLATES (0.12 m) between the fissures, so the trunk
+   * body reads as a corrugated mass in D rather than a hazed cylinder.
+   */
   const bark = (psi: number, s: number) => {
     const arc = psi * R;
     const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
@@ -132,7 +152,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const fissure = Math.pow(1 - Math.abs(noise.noise(arc * 0.8 + 31 + twist * 0.5, s * 0.07)), 9);
     const lumps = noise.fbm(arc * 0.32, s * 0.28, 3);
     const fine = noise.noise(arc * 2.6, s * 2.6);
-    return (ridge - 0.5) * 0.5 + (ridge2 - 0.5) * 0.12 - furrow * 0.3 - fissure * 0.4 + lumps * 0.2 + fine * 0.03;
+    const plates = smoothstep(0.1, 0.5, noise.noise(arc * 0.9 + 51, s * 0.45));
+    return (ridge - 0.5) * 0.75 + (ridge2 - 0.5) * 0.2 - furrow * 0.4 - fissure * 0.6 + lumps * 0.25 + fine * 0.03 + plates * 0.12;
   };
   const detail = (psi: number, s: number, up: number) => bark(psi, s) + mossCap(psi, s, up);
   const outerColor = (psi: number, s: number, disp: number): [number, number, number] => {
@@ -141,18 +162,22 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const patches = noise.fbm(arc * 0.5 + 9, s * 0.5, 2);
     const relief = bark(psi, s);
     // moss covers the cap and creeps down the flanks in patches (more on the shaded north side)
-    const m = clamp(smoothstep(0.05, 0.6, up) * (0.8 + 0.5 * patches) + 0.25 * smoothstep(0.35, 0.75, noise.noise(arc * 1.1, s * 1.1 + 2)) * smoothstep(-0.5, 0.4, up), 0, 1);
+    const m = clamp(smoothstep(0.05, 0.6, up + mossEdge(psi, s)) * (0.8 + 0.5 * patches) + 0.25 * smoothstep(0.35, 0.75, noise.noise(arc * 1.1, s * 1.1 + 2)) * smoothstep(-0.5, 0.4, up), 0, 1);
     // strong occlusion in furrows and fissures, lit crests: this is what makes the ridges read
-    // at 30 m through the haze where the normal map alone would be lost
-    const ao = clamp(0.62 + 1.7 * relief, 0.18, 1.3);
+    // at 30 m through the haze where the normal map alone would be lost (round 21: the swing is
+    // wider with the deeper relief — floor 0.12, crests 1.4 — and grime sits in the fissures)
+    const ao = clamp(0.55 + 1.8 * relief, 0.12, 1.4);
     const vari = 0.85 + 0.3 * noise.noise(arc * 0.9, s * 0.9 + 7);
     // the underside and the shaded lower flanks get no sky: bake the occlusion so the belly of
     // the arch stays dark in the flat ambient light of the hollow (reference: the mass under
     // the crown reads ≈ 0.63 of the haze luminance)
     const belly = lerp(0.42, 1, smoothstep(-0.95, 0.35, up));
     const shade = ao * vari * belly;
-    // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest)
-    const barkC = [1.0 * shade, 0.96 * shade, 0.9 * shade];
+    // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest).
+    // Round 21: ×0.78 — D's arch mass rendered p50 0.481 against the reference's 0.404 with the
+    // surrounding haze at ≈ 0.5: the body has to be darker under the veil to read as a mass
+    const grime = smoothstep(-0.15, -0.4, relief);
+    const barkC = [0.78 * shade * (1 - 0.25 * grime), 0.75 * shade * (1 - 0.15 * grime), 0.7 * shade * (1 - 0.3 * grime)];
     // olive moss: yellow-green on the lit cushions, deep green in the hollows; the bark map
     // underneath is brown, so the green has to be pushed hard through the vertex tint
     const mossC = [1.3 + 0.8 * shade, 2.4 + 1.4 * shade, 0.5 + 0.3 * shade];
@@ -248,7 +273,57 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     stubParts.push(stub);
     if (i !== 3) foliage.addLeafCluster(tip, 0.9, 64, { size: 0.15, amount: 0.06, droop: 0.5, tint: [0.62, 0.7, 0.36], tintSpread: 0.3 });
   }
-  const outerMesh = new Mesh(merge([outer, ...stubParts]), mats.logBark);
+  // ---- round 21: ROOT FLARES at the feet. Reference D's west mass stands on a spread of roots
+  // running out over the ground among ferns; ours ended in a bare sunk cylinder. Each sunk end
+  // throws three or four roots from its lower flanks (alternating sides) out 2.2–4.4 m along the
+  // terrain and under it, knuckled and ridged, in the log's own bark (they fold into its draw).
+  // Own fork — the stubs', the vegetation's and the lanterns' streams keep their draws. ----
+  const rootRng = rng.fork('roots21');
+  const rootParts = [];
+  const rootFeet: [number, number, number][] = [];
+  for (const end of [0, 1] as const) {
+    const n = end === 0 ? 4 : 3;
+    for (let i = 0; i < n; i++) {
+      const south = i % 2 === 0;
+      const psi0 = south ? -0.3 - rootRng() * 0.45 : Math.PI + 0.3 + rootRng() * 0.45;
+      const s0 = end === 0 ? -L / 2 + 1.0 + rootRng() * 3.6 : L / 2 - 1.0 - rootRng() * 3.0;
+      if (end === 0 && s0 < sEndW(psi0) + 0.6) continue;
+      const r0 = rBase(psi0, s0);
+      const start = surfacePoint(psi0, s0, r0 - 0.4);
+      const mouth = surfacePoint(psi0, s0, r0 + 0.3);
+      const out = radialDir(psi0, s0);
+      out.y = 0;
+      out.normalize();
+      const reach = 2.2 + rootRng() * 2.2;
+      const along = (rootRng() - 0.5) * 1.6;
+      const mid = mouth.clone().addScaledVector(out, reach * 0.45).addScaledVector(A, along * 0.5);
+      mid.y = Math.max(mid.y - 0.6, terrain.height(mid.x, mid.z) + 0.28);
+      const foot = mouth.clone().addScaledVector(out, reach).addScaledVector(A, along);
+      foot.y = terrain.height(foot.x, foot.z);
+      const buried = foot.clone().addScaledVector(out, 0.7).addScaledVector(A, along * 0.3);
+      buried.y = terrain.height(buried.x, buried.z) - 0.4;
+      const knuckle = 4 + rootRng() * 3;
+      const rr = 0.3 + rootRng() * 0.12;
+      const root = sweepTube(new CatmullRomCurve3([start, mouth, mid, foot, buried], false, 'catmullrom', 0.5), {
+        radius: (t) => rr * (1 - 0.65 * t) * (0.9 + 0.2 * Math.abs(Math.sin(t * knuckle + i))),
+        tubularSegments: 16,
+        radialSegments: 9,
+        uvMetres: 1.6,
+        displace: (t, ang) => (noise.ridged(ang * 1.4 + i * 2.7 + end * 5, t * 6, 2) - 0.5) * 0.08 * (1 - 0.4 * t),
+        color: (t, ang) => {
+          const lit = 0.8 + 0.3 * Math.max(0, Math.sin(ang));
+          const d = 0.72 * lit * (1 - 0.25 * t);
+          // moss on top, thinning toward the buried tip
+          const mossy = Math.max(0, Math.sin(ang)) * 0.45 * (1 - t);
+          return [lerp(d, 0.9, mossy), lerp(d * 0.96, 1.6, mossy), lerp(d * 0.9, 0.4, mossy)];
+        },
+        capEnd: true,
+      });
+      rootParts.push(root);
+      rootFeet.push([foot.x, foot.y, foot.z]);
+    }
+  }
+  const outerMesh = new Mesh(merge([outer, ...stubParts, ...rootParts]), mats.logBark);
   outerMesh.name = 'log-bark';
   outerMesh.castShadow = outerMesh.receiveShadow = true;
   group.add(outerMesh);
@@ -363,6 +438,60 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   group.add(sheetMesh);
   for (const m of foliage.build(mats, 'log')) group.add(m);
 
+  // ---- round 21: a SHAGGY crown edge and FERNS at the feet, on a second foliage builder (own
+  // rng, own noise seed) built after the first, so every existing tuft, vine and cluster keeps
+  // its draws; its meshes fold into the same leaf / tuft buckets (no new draw). ----
+  const foliage21 = new FoliageBuilder(rng.fork('foliage21'), `${ctx.config.seed}/log21`);
+  // hanging moss beards and small leaf clumps along the moss cap's lower edge on both flanks,
+  // every ≈ 0.6 m along the length: grass cards growing DOWN from the edge in a dark damp tint,
+  // so the crown's boundary in D is a broken fringe rather than a line
+  const beardShade: [number, number, number] = [0.42, 0.48, 0.3];
+  const beardLeaf: [number, number, number] = [0.5, 0.62, 0.3];
+  const beardRng = rng.fork('beards21');
+  for (let i = 0; i < 72; i++) {
+    const s = lerp(-L / 2 + 0.8, L / 2 - 1.0, (i + beardRng()) / 72);
+    const north = i % 2 === 1;
+    // the edge of the moss mask (up + mossEdge ≈ 0.3): two fixed-point steps from the level line
+    let psi = north ? Math.PI - 0.3 : 0.3;
+    for (let it = 0; it < 3; it++) {
+      const up = clamp(0.3 - mossEdge(psi, s), -0.3, 0.8);
+      psi = north ? Math.PI - Math.asin(up) : Math.asin(up);
+    }
+    if (s < sEndW(psi) + 0.5) continue;
+    const r = rBase(psi, s) + detail(psi, s, upness(psi)) + 0.02;
+    const p = surfacePoint(psi, s, r);
+    const dir = radialDir(psi, s).multiplyScalar(0.55);
+    dir.y -= 1;
+    dir.normalize();
+    foliage21.addTuft(p, dir, 0.32 + beardRng() * 0.25, 0, 0.06, beardShade);
+    if (i % 3 === 0) foliage21.addLeafCluster(p.clone().addScaledVector(dir, 0.12), 0.22 + beardRng() * 0.1, 8, { size: 0.14, amount: 0.06, droop: 0.9, tint: beardLeaf, tintSpread: 0.3, flatten: 0.6 });
+  }
+  // ferns and coarse grass round the feet: on the terrain about each sunk end and each root foot
+  // (the west end, the broken mass shot D looks at, gets the denser bed)
+  const fernRng = rng.fork('ferns21');
+  const groundTuft = (x: number, z: number, big: boolean) => {
+    const p = new Vector3(x, terrain.height(x, z), z);
+    const n = new Vector3((fernRng() - 0.5) * 0.4, 1, (fernRng() - 0.5) * 0.4).normalize();
+    const fern = fernRng() < (big ? 0.7 : 0.5);
+    foliage21.addTuft(p, n, (fern ? 0.85 : 0.5) * (big ? 1.15 : 0.9) * (0.8 + fernRng() * 0.5), fern ? 1 : 0, 0.06, topShade);
+  };
+  for (const end of [0, 1] as const) {
+    const sEnd = end === 0 ? -L / 2 + 1.5 : L / 2 - 1.5;
+    const count = end === 0 ? 16 : 9;
+    for (let i = 0; i < count; i++) {
+      const side = fernRng() < 0.5 ? -1 : 1;
+      const lateral = side * (R + 0.4 + fernRng() * 2.6);
+      const along = sEnd + (fernRng() - 0.5) * 5;
+      const c = axisAt(along);
+      const f = frameAt(along);
+      groundTuft(c.x + f.r.x * lateral, c.z + f.r.z * lateral, end === 0);
+    }
+  }
+  for (const [fx, , fz] of rootFeet) {
+    for (let i = 0; i < 2; i++) groundTuft(fx + (fernRng() - 0.5) * 1.2, fz + (fernRng() - 0.5) * 1.2, false);
+  }
+  for (const m of foliage21.build(mats, 'log21')) group.add(m);
+
   // ---- lanterns under the arch opening + a cluster under the near (west) end ----
   const lanterns: LanternRig[] = [];
   const lanternRng = rng.fork('lanterns');
@@ -432,5 +561,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
   }
 
-  return { group, bases, lanterns, lights, leaves: foliage.leafCount, tufts: foliage.tuftCount };
+  // round 21: the root flares' feet are terrain contacts too
+  bases.push(...rootFeet);
+
+  return { group, bases, lanterns, lights, leaves: foliage.leafCount + foliage21.leafCount, tufts: foliage.tuftCount + foliage21.tuftCount };
 }
