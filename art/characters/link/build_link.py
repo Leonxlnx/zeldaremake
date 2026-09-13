@@ -226,18 +226,28 @@ def curve(name, pts, radius, mat, cyclic=False):
     return ob
 
 
-def rings(name, sections, mat, count=48, folds=0, subdiv=1):
+def rings(name, sections, mat, count=48, folds=0, subdiv=1, caps=True):
     # Sections: z, half width, front/back radius, centre Y.
+    if name=='Tunic | tailored body':
+        dense=[]
+        for a,b in zip(sections,sections[1:]):
+            steps=max(1,math.ceil((b[0]-a[0])/.012))
+            dense.extend(tuple(x+(y-x)*j/steps for x,y in zip(a,b)) for j in range(steps))
+        sections=dense+[sections[-1]]
     verts = []
     for k,(z,rx,ry,cy) in enumerate(sections):
         for j in range(count):
             a = 2*math.pi*j/count
             wobble = folds*(math.sin(a*9+k*.7)+.4*math.sin(a*17-k))
-            hem = (.007*(.5+.5*math.sin(a*23))+.003*math.sin(a*11)) if name=='Tunic | tailored body' and k<2 else 0
+            if name=='Tunic | tailored body':
+                drape=max(0,min(1,(.66-z)/.13))
+                gather=math.exp(-((z-.745)/.08)**2)
+                wobble=.007*drape*(math.sin(a*9)+.25*math.sin(a*17))+.0045*gather*math.sin(a*7+(z-.7)*32)
+            hem = (.007*(.5+.5*math.sin(a*23))+.003*math.sin(a*11)) if name=='Tunic | tailored body' and z<.54 else 0
             verts.append(((rx+wobble)*math.cos(a), cy+(ry+wobble*.55)*math.sin(a), z-hem))
     faces = [(k*count+j,k*count+(j+1)%count,(k+1)*count+(j+1)%count,(k+1)*count+j)
              for k in range(len(sections)-1) for j in range(count)]
-    faces += [tuple(reversed(range(count))),tuple((len(sections)-1)*count+j for j in range(count))]
+    if caps:faces += [tuple(reversed(range(count))),tuple((len(sections)-1)*count+j for j in range(count))]
     return mesh(name,verts,faces,mat,subdiv)
 
 
@@ -301,8 +311,10 @@ def sculpt_union(parts, name, voxel=.002):
 # Legs, anatomically tapered arms and fingers.
 for side in [-1,1]:
     s='L' if side==1 else 'R'
-    leg = rings('Bare leg '+s,[(.16,.039,.038,.005),(.23,.043,.042,.003),(.28,.051,.047,.005),(.32,.052,.049,0),(.37,.048,.050,-.004),(.40,.053,.052,0),(.48,.066,.062,0),(.58,.072,.07,0)],skin,32,subdiv=2)
+    leg = rings('Bare leg '+s,[(.16,.039,.038,.005),(.23,.043,.042,.003),(.28,.051,.047,.005),(.32,.052,.049,0),(.37,.048,.050,-.004),(.40,.053,.052,0),(.48,.066,.062,0),(.58,.064,.062,0),(.63,.043,.053,0)],skin,32,subdiv=2)
     leg.location.x=side*.080
+    shorts=rings('Under shorts '+s,[(.505,.070,.067,0),(.52,.073,.069,0),(.55,.073,.069,0),(.585,.064,.067,0),(.625,.048,.057,0)],cloth_dark,32,subdiv=1)
+    shorts.location.x=side*.080
     before=set(hero.objects)
     sweep('Arm '+s,[(side*.162,0,.855),(side*.189,-.001,.792),(side*.217,-.007,.688),(side*.231,-.014,.632),(side*.240,-.027,.573)], [.058,.052,.037,.037,.028],skin,subdiv=2)
     ellipsoid('Wrist '+s,(side*.239,-.023,.580),(.028,.025,.036),skin)
@@ -338,8 +350,9 @@ for side in [-1,1]:
     shaft=rings('Boot shaft '+s,[(.043,.053,.067,-.007),(.078,.054,.071,-.006),(.112,.047,.056,.002),(.14,.043,.047,.005),(.17,.048,.045,.006),(.205,.054,.05,.006),(.219,.056,.052,.006)],leather,40,folds=.002)
     shaft.location.x=x
     sculpt_union([toe,shaft],'Boot | continuous instep and ankle '+s,.0017)
-    cuff=rings('Folded boot cuff '+s,[(.185,.064,.058,.007),(.19,.066,.060,.007),(.221,.063,.057,.007),(.228,.060,.054,.007)],edge,32,folds=.001)
+    cuff=rings('Folded boot cuff '+s,[(.185,.064,.058,.007),(.19,.066,.060,.007),(.221,.063,.057,.007),(.228,.060,.054,.007)],edge,32,folds=.001,caps=False)
     cuff.location.x=x
+    rim=cuff.modifiers.new('Cuff leather thickness','SOLIDIFY');rim.thickness=.004
     rounded_box('Boot tongue '+s,(x,-.055,.151),(.041,.014,.106),leather,.008)
     curve('Toe cap seam '+s,[(x-.049,-.070,.064),(x-.032,-.083,.083),(x,-.088,.087),(x+.032,-.083,.083),(x+.049,-.070,.064)],.0008,edge)
     for n in range(4):
@@ -352,7 +365,8 @@ for side in [-1,1]:
         curve('Boot bow '+s+str(k),[(x,-.061,.195),(x+k*.027,-.069,.209),(x+k*.020,-.071,.189),(x,-.061,.195)],.0022,edge)
 
 # Garment panels and overlapping collar.
-rings('Tunic | tailored body',[(.525,.150,.094,0),(.534,.158,.10,0),(.57,.152,.103,0),(.64,.123,.084,0),(.70,.123,.082,0),(.77,.141,.092,0),(.84,.168,.089,0),(.874,.144,.078,0),(.895,.075,.065,0)],cloth,64,folds=.003,subdiv=2)
+tunic=rings('Tunic | tailored body',[(.525,.150,.094,0),(.534,.158,.10,0),(.57,.152,.103,0),(.64,.123,.084,0),(.70,.123,.082,0),(.77,.141,.092,0),(.84,.168,.089,0),(.874,.144,.078,0),(.895,.075,.065,0)],cloth,64,folds=.003,subdiv=2,caps=False)
+lining=tunic.modifiers.new('Open garment thickness','SOLIDIFY');lining.thickness=.0025
 for side in [-1,1]:
     sleeve=sweep('Short sleeve '+str(side),[(side*.082,0,.838),(side*.146,0,.835),(side*.193,0,.791),(side*.209,0,.760)], [.025,.061,.070,.076],cloth,aspect=.95,sides=32,subdiv=2,caps=False)
     so=sleeve.modifiers.new('Woven sleeve thickness','SOLIDIFY');so.thickness=.0025
@@ -366,6 +380,10 @@ for side in [-1,1]:
     curve('Pocket opening '+str(side),[(side*.081-.041,-.109,.615),(side*.081,-.111,.612),(side*.081+.041,-.109,.615)],.002,cloth_dark)
     stitches('Pocket stitches',[(side*.081-.038,-.109,.608),(side*.081-.038,-.109,.55),(side*.081+.038,-.109,.55),(side*.081+.038,-.109,.608)])
 curve('Tunic lower binding',[(.158*math.cos(a),.102*math.sin(a),.535+.002*math.sin(9*a)) for a in [math.tau*i/64 for i in range(64)]],.0025,cloth_light,True)
+for row in range(3):
+    z=.863-row*.013;y=-.088-row*.0025
+    curve('Collar lacing '+str(row),[(-.015,y,z),(.015,y-.001,z-.011)],.0015,thread)
+    curve('Collar lacing return '+str(row),[(.015,y,z),(-.015,y-.001,z-.011)],.0015,thread)
 ellipsoid('Neck',(0,0,.895),(.056,.055,.062),skin)
 
 # Belt and diagonal equipment strap.

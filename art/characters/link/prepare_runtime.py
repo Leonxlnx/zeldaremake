@@ -27,7 +27,7 @@ def group_for(ob):
 def region_for(ob):
     n=ob.name
     if n.startswith('Arm wrist'):return 'armL' if n.endswith('L') else 'armR'
-    if n.startswith('Bare leg'):return 'legL' if n.endswith('L') else 'legR'
+    if n.startswith(('Bare leg','Under shorts')):return 'legL' if n.endswith('L') else 'legR'
     if n.startswith(('Boot','Folded boot','Lace eyelet','Cross lace','Toe cap')):
         return 'bootL' if ob.location.x>0 or ' L' in n else 'bootR'
     if n.startswith(('Waist belt','Belt ','Pouch','Tunic pocket','Pocket')):return 'hips'

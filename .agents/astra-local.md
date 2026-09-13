@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-13T14:53:00Z
+updated: 2026-09-13T15:44:00Z
 ---
 
 # Astra local â€” Blender character continuation
@@ -106,7 +106,7 @@ in-place clips, export validation, and actual Three.js review. These new pipelin
 are not yet fully executed/validated, so this source checkpoint leaves them uncommitted.
 Typecheck and build passed; local server patch passes git apply --check against upstream.
 
-## 2026-09-13 14:53 UTC — textured, skinned diagnostic candidate
+## 2026-09-13 14:53 UTC â€” textured, skinned diagnostic candidate
 
 The runtime pipeline is now executed: four skinned meshes/materials, 24,133 triangles,
 19 named bones, 12 embedded PBR maps at 1K/2K, idle/walk/run/stairs. GLB SHA256
@@ -131,7 +131,7 @@ render source bytes are preserved with -text so their captured SHA256 survives G
 TypeScript/build and direct HTTP regression pass. Latest Fable fetched: 7abbd4e/take-0080,
 23/50, environment still below target. Continue character art and review integration.
 
-## 2026-09-13 15:16 UTC — continuous eyelids and swing-foot rotation
+## 2026-09-13 15:16 UTC â€” continuous eyelids and swing-foot rotation
 
 Published 17adcb3 to Fable for diagnostic integration (PR2 comment5654026563).
 New candidate pending this commit: continuous face-to-lid topology removes pasted-patch
@@ -150,7 +150,7 @@ than the reduced runtime; continue art and evaluate in Fable's real world lighti
 Next root garment correction: remove the tunic's closed bottom, add the inner garment,
 and check high-knee poses. Typecheck/build and HTTP regression pass. C01/C02 renewed 15:11Z.
 
-## 2026-09-13 15:29 UTC — first actual world comparison
+## 2026-09-13 15:29 UTC â€” first actual world comparison
 
 Created detached E:/zeldaremake-world-review at Fable e591006, shared installed node_modules
 through a junction, and built a diagnostic overlay using the published 41b9cdf GLB. Only
@@ -167,3 +167,22 @@ Current garment work remains uncommitted and baking: open tunic hem/neck, inner 
 extended upper legs, cloth folds/lacing and open boot cuffs. Source render 151956 exists.
 Finish the seven new skin/outfit bakes, rerig/export/capture and inspect the high-knee pose.
 No stop or goal-complete claim.
+
+## 2026-09-13 15:44 UTC â€” garment and boot revision validated
+
+Opened tunic hem/neck and boot cuffs; added inner shorts, upper-leg continuity, more cloth
+fold geometry and collar lacing. Seven skin/outfit maps rebaked. A close-up caught a gap
+between leather upper and welt: refine_runtime now seats each continuous upper into the
+sole while retaining its UVs. Actual 18-view/121-pose review passes at
+progress/2026-09-13T15-42-41-167Z-runtime; minimum sole Y +4.00 mm. New GLB SHA256
+9f6f0987e074bee3b775419ded86589daff4bd312c4b48985932ddef3eeb2be7, 24,332 triangles,
+four materials, unchanged bones/clip durations/strides/ankle-local sole markers.
+The run remains a high-knee stylized motion; hair and facial/material detail still need work.
+
+Fable f92a384/take-0081 now explicitly says character-3 integration is running, alongside
+crown lighting: deterministic mixer, speed-scaled clips, grounding, look-at and fallback.
+Do not replace that production work. Need review the real integrated movement when it lands.
+Live local appearance preview: http://127.0.0.1:54075/?dev=0&hud=0 (scratch e591006);
+asset studio: http://127.0.0.1:52996/art/characters/link/review.html. Both use background
+servers; no desktop control. Preview defaults to candidate and has a native existing/candidate
+toggle. Fixed three invalid CP1252 dash bytes in this log; use explicit UTF-8 when writing text.

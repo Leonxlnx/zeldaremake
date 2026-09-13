@@ -28,9 +28,9 @@ texture dimensions, finite normalized weights, bounds, and animation loop errors
 
 ## Review
 
-Latest complete candidate: [18 actual runtime views](progress/2026-09-13T15-09-15-055Z-runtime/manifest.json).
+Latest complete candidate: [18 actual runtime views](progress/2026-09-13T15-42-41-167Z-runtime/manifest.json).
 
-![Actual Three.js candidate](progress/2026-09-13T15-09-15-055Z-runtime/01-body.png)
+![Actual Three.js candidate](progress/2026-09-13T15-42-41-167Z-runtime/01-body.png)
 
 Known visible defects: eyelid shading and stylized face, blocky hair, limited cloth folds, and excessive knee/hem
 interaction in the run. This candidate is ready for diagnostic integration, not art acceptance.
@@ -39,7 +39,7 @@ interaction in the run. This candidate is ready for diagnostic integration, not 
 and the four animations. Serve the repository root; its import map uses the installed
 Three.js package. `capture_runtime.mjs` creates eighteen dated body/detail/gait images
 with GLB and image hashes, deformed sole heights, and render counts. It also checks the
-actual skinned soles at 121 poses per locomotion clip; the current minimum is +3.66 mm.
+actual skinned soles at 121 poses per locomotion clip; the current minimum is +4.00 mm.
 
 The folders ending in `-runtime` are actual Three.js asset reviews, not official game
 captures or gauntlet evidence. The other dated folders contain actual Cycles studio
@@ -86,12 +86,14 @@ node art/characters/link/capture_runtime.mjs
 `prepare_runtime.py --args '{"group":"skin"}'` through the MCP bridge rebuilds just the
 skin atlas meshes and invalidates those three bakes. This preserves the other completed
 maps during facial revisions. The same option accepts the other material group names.
-`refine_runtime.py` applies the nape adjustment once, preserving its UVs. The iris aperture
+`refine_runtime.py` seats the leather uppers into their soles and adjusts the nape once,
+preserving the UVs. The iris aperture
 is authored with the continuous eyelids in the source; it is not expanded after baking.
 `rig_runtime.py` retains its deformation-region groups so the rig can be rebuilt repeatedly.
 
 The scalp and garment begin as authored surfaces. Per-component reduction reserves
 geometry for lids and lips; UVs and maps are then baked from the separate source parts.
+The garment has open hem/neck boundaries, an inner garment and lacing; boot cuffs are open.
 The runtime is a reduced art candidate, not a claim of finished deformation topology.
 
 Save manual edits under a separate filename before regenerating. The scripts replace their

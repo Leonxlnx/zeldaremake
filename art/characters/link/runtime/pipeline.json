@@ -1,6 +1,6 @@
 {
-  "source_sha256": "7910f7263c437d3fd914e87aac30279a3182cf79f37f7f4a8df1ba99245244fa",
-  "generator_sha256": "4d98ba325429abbb689479c25e98d9bfbcde15e61320e011ffc1189a70dd5993",
+  "source_sha256": "23469fe0aef786344385a8b1db8aaed556ae94df3c4d9edac965dec8327b6ed5",
+  "generator_sha256": "5d24e5ee9c5ba4d60b3642231e9ea10f3c6a49783bb1d445b69cc1e7a482951a",
   "groups": {
     "skin": {
       "object": "Link_skin",
@@ -126,6 +126,8 @@
     "outfit": {
       "object": "Link_outfit",
       "source_objects": [
+        "Under shorts R",
+        "Under shorts L",
         "Boot sole | shaped heel and forefoot R",
         "Boot | continuous instep and ankle R",
         "Folded boot cuff R",
@@ -212,6 +214,12 @@
         "Pocket stitches.026",
         "Pocket stitches.027",
         "Tunic lower binding",
+        "Collar lacing 0",
+        "Collar lacing return 0",
+        "Collar lacing 1",
+        "Collar lacing return 1",
+        "Collar lacing 2",
+        "Collar lacing return 2",
         "Waist belt",
         "Belt stitched border",
         "Belt stitched border.001",
@@ -378,29 +386,30 @@
         "Sword | grip winding.006",
         "Sword | pommel"
       ],
-      "source_triangles": 157822,
+      "source_triangles": 276990,
       "triangles": 11169
     }
   },
   "bakes": [
-    "outfit/color",
-    "outfit/roughness",
-    "outfit/normal",
-    "outfit/metallic",
-    "skin/color",
-    "skin/roughness",
-    "skin/normal",
     "hair/color",
     "hair/roughness",
     "hair/normal",
     "eyes/color",
     "eyes/roughness",
-    "eyes/normal"
+    "eyes/normal",
+    "skin/color",
+    "skin/roughness",
+    "skin/normal",
+    "outfit/color",
+    "outfit/roughness",
+    "outfit/normal",
+    "outfit/metallic"
   ],
   "stage": "Rigged candidate; export and visual motion review pending",
   "rest_mesh_refinements": [
     "Nape coverage extended to the collar",
-    "Iris aperture authored with the continuous eyelids; no runtime iris expansion"
+    "Iris aperture authored with the continuous eyelids; no runtime iris expansion",
+    "Leather uppers seated into the sole welt without an open gap"
   ],
   "rig": {
     "bones": [
