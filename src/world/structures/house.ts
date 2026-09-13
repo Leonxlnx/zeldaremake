@@ -201,8 +201,12 @@ export interface HouseBuild {
   hearthClearance: number;
   /** the round window (round 13): centre on the wall surface (world), clear radius, height above the floor */
   window: { centre: P3; radius: number; height: number };
-  /** the branch pillars' feet (world, on the terrain) and the pillars' rim ends */
-  pillars: { foot: P3; top: P3 }[];
+  /** the root-buttresses' feet (world, on the terrain), where each leaves the arch body, and the foot's radius (round 19; the branch pillars' feet / rim ends before) */
+  pillars: { foot: P3; top: P3; footRadius: number }[];
+  /** round 19: the trunk burls' seam check — max position (mm) / normal (deg) delta across each knot's duplicated seam column (expect 0 / 0) */
+  burls: { count: number; seamMaxPosMm: number; seamMaxNormalDeg: number };
+  /** round 19: the entrance arch's crown on the door axis — axis point (world), radius, underside / top heights above the floor, angular span (rad) */
+  arch: { crownAxis: P3; crownRadius: number; underside: number; top: number; span: number };
   /** small white flower heads on the cap */
   flowers: number;
   /** pots, bottles and bowls on the interior shelves */
@@ -388,6 +392,97 @@ function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: 
   return geo;
 }
 
+/**
+ * Ridged bark noise sampled round a ring: the angle enters as (cos, sin) on a circle of radius
+ * `scale` in noise space (its circumference ≈ the run `angle * scale` used to cover), so the
+ * value is periodic in the angle. Round 19: a SphereGeometry / sweepTube ring duplicates its
+ * seam vertex (u = 0 and u = 1), and noise fed `atan2` directly gave the two copies different
+ * displacements (3–6 cm apart, normals 50–100° apart on the burls).
+ */
+function ringRidged(noise: Noise2D, angle: number, along: number, scale: number, seed: number): number {
+  return noise.ridged(Math.cos(angle) * scale + seed, Math.sin(angle) * scale + along + seed * 0.3, 2) - 0.5;
+}
+
+/**
+ * Average the normals of coincident vertices (a sphere's duplicated seam column and its pole
+ * fans, a swept tube's ring seam) after `computeVertexNormals`, which only sums the faces that
+ * share an INDEX: a displaced surface otherwise shades with a crease along the seam.
+ */
+function weldNormals(geo: BufferGeometry, tol = 1e-4): void {
+  const pos = geo.attributes.position;
+  const nrm = geo.attributes.normal;
+  const groups = new Map<string, number[]>();
+  const q = 1 / tol;
+  for (let i = 0; i < pos.count; i++) {
+    const key = `${Math.round(pos.getX(i) * q)},${Math.round(pos.getY(i) * q)},${Math.round(pos.getZ(i) * q)}`;
+    const g = groups.get(key);
+    if (g) g.push(i);
+    else groups.set(key, [i]);
+  }
+  const sum = new Vector3();
+  for (const g of groups.values()) {
+    if (g.length < 2) continue;
+    sum.set(0, 0, 0);
+    for (const i of g) sum.add(_wn.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i)));
+    if (sum.lengthSq() < 1e-12) continue;
+    sum.normalize();
+    for (const i of g) nrm.setXYZ(i, sum.x, sum.y, sum.z);
+  }
+}
+const _wn = new Vector3();
+
+/**
+ * The same for a SphereGeometry(…, W, H) by index — its seam column (ix = 0 / ix = W on every
+ * row) and its pole rows (W + 1 copies of each pole) — so the pairs are exact whatever the
+ * position quantisation.
+ */
+function weldSphereSeam(geo: BufferGeometry, W: number, H: number): void {
+  const nrm = geo.attributes.normal;
+  const avg = (ids: number[]) => {
+    _wn.set(0, 0, 0);
+    for (const i of ids) _wn.x += nrm.getX(i), (_wn.y += nrm.getY(i)), (_wn.z += nrm.getZ(i));
+    if (_wn.lengthSq() < 1e-12) return;
+    _wn.normalize();
+    for (const i of ids) nrm.setXYZ(i, _wn.x, _wn.y, _wn.z);
+  };
+  for (let iy = 0; iy <= H; iy++) avg([iy * (W + 1), iy * (W + 1) + W]);
+  for (const iy of [0, H]) avg(Array.from({ length: W + 1 }, (_, ix) => iy * (W + 1) + ix));
+}
+
+/** The same for a `sweepTube(…, { tubularSegments: ts, radialSegments: rs })` ring seam (j = 0 / j = rs on every ring). */
+function weldTubeSeam(geo: BufferGeometry, ts: number, rs: number): void {
+  const nrm = geo.attributes.normal;
+  for (let i = 0; i <= ts; i++) {
+    const a = i * (rs + 1);
+    const b = a + rs;
+    _wn.set(nrm.getX(a) + nrm.getX(b), nrm.getY(a) + nrm.getY(b), nrm.getZ(a) + nrm.getZ(b));
+    if (_wn.lengthSq() < 1e-12) continue;
+    _wn.normalize();
+    nrm.setXYZ(a, _wn.x, _wn.y, _wn.z);
+    nrm.setXYZ(b, _wn.x, _wn.y, _wn.z);
+  }
+}
+
+/** Position (mm) and normal (deg) deltas across a SphereGeometry(…, W, H)'s duplicated seam column. */
+function sphereSeamDeltas(geo: BufferGeometry, W: number, H: number): { maxPosMm: number; maxNormalDeg: number } {
+  const pos = geo.attributes.position;
+  const nrm = geo.attributes.normal;
+  let maxPos = 0;
+  let maxDeg = 0;
+  const n0 = new Vector3();
+  const n1 = new Vector3();
+  for (let iy = 0; iy <= H; iy++) {
+    const i0 = iy * (W + 1);
+    const i1 = i0 + W;
+    maxPos = Math.max(maxPos, Math.hypot(pos.getX(i0) - pos.getX(i1), pos.getY(i0) - pos.getY(i1), pos.getZ(i0) - pos.getZ(i1)));
+    n0.set(nrm.getX(i0), nrm.getY(i0), nrm.getZ(i0));
+    n1.set(nrm.getX(i1), nrm.getY(i1), nrm.getZ(i1));
+    // atan2 of the cross / dot: exact at 0 where acos(dot) is float-noisy
+    maxDeg = Math.max(maxDeg, (Math.atan2(_wn.crossVectors(n0, n1).length(), n0.dot(n1)) * 180) / Math.PI);
+  }
+  return { maxPosMm: maxPos * 1000, maxNormalDeg: maxDeg };
+}
+
 // Clamps the fog sample position to the doorway plane along the view ray, so the haze that fills
 // the world does not also fill the room: seen from outside, an interior behind the door picks up
 // only the airlight between the camera and the door, exactly like the wall around it. Inside the
@@ -550,7 +645,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // 0.716 / 0.867 — 0.151 of the frame, within 1 % of the reference (HEAD: 0.725 / 0.839).
   const porchW0 = -0.63 * R;
   const porchW1 = 0.55 * R;
-  const porchTop = eaveY - 0.2 * k;
+  /** round 19: the cut rises (was eaveY − 0.2 m) to just above the entrance arch's underside
+   *  (2.8–3.0 m on the door axis), so the opening's crown is the arch body itself — the reference's
+   *  cavity reaches the arch at B y ≈ 0.30 — and no wall edge shows between the two */
+  const porchTop = eaveY + 0.06 * k;
   const porchRc = 0.22 * R;
   /** porch back wall depth from the centre */
   const dBack = 0.75 * R;
@@ -1462,7 +1560,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // of the right post above the east root's, one high on the right silhouette. Clear of the
   // window's boss (≥ 0.95 m from its skirt), the pillars and the bough's root. As built the B
   // left-silhouette edge std is 3.0 px (HEAD 2.2; the reference's 13.7 is its sign's moss slope,
-  // not a trunk edge). ----
+  // not a trunk edge).
+  // Round 19: the cords' noise took atan2's angle straight, so the sphere's duplicated seam
+  // column (u = 0 / u = 1) was displaced twice differently — paired seam vertices 3–6 cm apart,
+  // normals 50–100° apart, a crease down the front of every knot. The cords are now sampled
+  // round a ring (`ringRidged`, periodic in the angle) and the seam's and the poles' normals
+  // are welded; the residual deltas are audited (`burls`: expect 0 mm / 0°). ----
   const burlRng = rng.fork('burls');
   const burls: { a: number; y: number; bump: number }[] = [
     { a: -1.5, y: 1.8, bump: 0.36 },
@@ -1471,6 +1574,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     { a: 1.02, y: 1.5, bump: 0.32 },
     { a: 1.4, y: 2.0, bump: 0.3 },
   ];
+  const burlSeam = { count: 0, seamMaxPosMm: 0, seamMaxNormalDeg: 0 };
   for (const b of burls) {
     const rb = (b.bump + 0.15) * k;
     const yb = b.y * k;
@@ -1491,13 +1595,19 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         _q.set(pos.getX(i), pos.getY(i), pos.getZ(i));
         const dir = _q.clone().normalize();
         const ang = Math.atan2(dir.z, dir.x);
-        const crest = noise.ridged(ang * 1.6 + seed, dir.y * 2.2 + seed * 0.3, 2) - 0.5;
+        const crest = ringRidged(noise, ang, dir.y * 2.2, 1.6, seed);
         const lump = noise.noise(dir.x * 1.8 + seed, dir.y * 1.8 - seed) * 0.08;
         crests.push(crest);
         _q.addScaledVector(dir, (crest * 0.1 + lump) * k);
         pos.setXYZ(i, _q.x, _q.y, _q.z);
       }
       knot.computeVertexNormals();
+      weldNormals(knot);
+      weldSphereSeam(knot, 20, 14);
+      const seam = sphereSeamDeltas(knot, 20, 14);
+      burlSeam.count++;
+      burlSeam.seamMaxPosMm = Math.max(burlSeam.seamMaxPosMm, seam.maxPosMm);
+      burlSeam.seamMaxNormalDeg = Math.max(burlSeam.seamMaxNormalDeg, seam.maxNormalDeg);
       setColorAttribute(knot, (i) => {
         const c = clamp(crests[i] * 2.4, -1, 1);
         const d = 0.62 * (1 + 0.45 * c) * (0.85 + 0.15 * Math.max(0, knot.attributes.normal.getY(i)));
@@ -1575,22 +1685,36 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     rootParts.push(mossOnTop(root, [0.5, 0.64, 0.3], 0.55, noise));
     bases.push([p3.x, p3.y, p3.z]);
   }
-  // ---- root lips (round 12): two thick buttress roots frame the doorway. Reference B's opening
-  // is framed by root-like bark lips — thick, curving, flaring outward at the ground and curving
-  // up and inward into the moss cap; nothing horizontal sits over the door. They hug the JAMBS:
-  // at door height each lip's axis sits 0.34 m outside the jamb line, just in front of the
-  // porch's back wall, so its inner face overlaps the cut (no wall band shows between root and
-  // opening — the first round-12 probe, with the lips out at the porch edges, left the opening
-  // reading as a smooth-rimmed rounded rectangle). From there each root leans forward and
-  // outward to a foot `lipFlare` outside the jamb line on the terrain in front of the trunk, and
-  // its top curves in over the arch's shoulder into the moss rim, so the arch rounds into the
-  // roots and the door reads as an opening between two roots under an overhanging moss cap. ----
+  // ---- the entrance arch (round 19). Rounds 12–17 framed the door with two root lips (thick
+  // buttress roots hugging the jambs, their tops sunk into the cap), two slender branch pillars
+  // forked into the rim, and over all of it the cap's moss rim curl with the dark soffit under
+  // it — W25 on take 70: "broad smooth wall fins / forked supports and a separate sloping moss
+  // cap versus the reference's thick knotted arch flowing into the crown". Reference frame 14 s
+  // and boards 03 / 04: the entrance is ONE thick knotted mass — root lips, jambs, lintel and
+  // the cap's front rim are a continuous gnarled bark form with moss creeping over its top; the
+  // cap does not sit on the wall like a hat with an eave line, and the 'pillars' are living
+  // roots that grow out of the arch. So one swept tube runs from the left foot up the left jamb
+  // — round 17's axis, waypoints and jitter there, so the opening's inner faces in B stay at
+  // x 0.716 / 0.867 — leans forward over the left shoulder, arches over the door along the
+  // rim curl's own line (its axis 0.25 m under the curl's centre and 5 cm outside it, 0.94 m
+  // tall and 1.5 m deep: the curl's bottom and the soffit behind it are inside the body over
+  // the front third, so the eave line ends where the arch begins), and comes down the right
+  // jamb to the right foot. Its crown stands in the cap's front slope (top ≈ 3.2 m, the cap's
+  // moss surface at its back) and the moss runs down over its front rim in tongues. Ring-periodic cords and world-space lumps
+  // knot it (no seam), the normals are welded, the shading follows the real normal (lit on
+  // top, darker up under the cap). The porch cut rises to meet its underside (`porchTop`), so
+  // the opening's crown is the arch's underside, not a wall edge behind it. ----
   const lipFlare = 0.55 * k;
   const lipRng = rng.fork('lips');
-  /** each lip's axis outside its jamb line (round 12: 0.34 m both; round 17: the arch widens —
+  /** each jamb leg's axis outside its jamb line (round 12: 0.34 m both; round 17: the arch widens —
    *  see `porchW0` — 0.54 m left, 0.84 m right) */
   const lipOut = (side: -1 | 1) => (side < 0 ? 0.54 : 0.84) * k;
-  for (const side of [-1, 1] as const) {
+  /** door-space height of a world point */
+  const heightOf = (p: Vector3) => p.y - frame.C.y;
+  /** door-space lateral coordinate of a world point */
+  const lateralOf = (p: Vector3) => (p.x - frame.C.x) * Rt.x + (p.z - frame.C.z) * Rt.z;
+  /** one jamb leg's waypoints, foot → jamb top (round 17's lip axis; the jitter draws in the same order) */
+  const archLeg = (side: -1 | 1) => {
     const jamb = side < 0 ? doorW0 : doorW1;
     const wAxis = jamb + side * lipOut(side);
     const jit8 = () => (lipRng() - 0.5) * 0.08 * k;
@@ -1604,118 +1728,241 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       frame.door(wAxis + side * 0.3 * k + jit8(), 0.8 * k, dBack + 0.45 * k + jit8()),
       frame.door(wAxis + jit8(), 1.7 * k, dBack + 0.3 * k + jit8()),
       frame.door(wAxis - side * 0.18 * k + jit8(), doorTop + 0.4 * k, dBack + 0.24 * k),
-      frame.door(wAxis - side * 0.6 * k, lipTop + 0.25 * k, dBack + 0.1 * k),
     ];
-    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-    const lipR = (t: number) => (0.5 - 0.2 * t) * k * (1 + 0.1 * Math.sin(t * 11 + side) + 0.05 * Math.sin(t * 27 + 2 * side));
-    // the cord relief of the vertex being placed (sweepTube colours a vertex right after displacing it)
-    let lipCrest = 0;
-    const lip = sweepTube(curve, {
-      radius: lipR,
-      tubularSegments: 30,
-      radialSegments: 13,
-      uvMetres: 1.4,
-      // deep longitudinal cords, softening toward the foot
-      displace: (t, ang, pos) => {
-        lipCrest = noise.ridged(ang * 1.4 + side * 2.3, t * 5 + pos.y * 0.3, 2) - 0.5;
-        return lipCrest * 0.09 * k * (0.6 + 0.4 * t);
-      },
-      color: (t, ang) => {
-        // bark in the porch's shade (reference lips: lum 0.36–0.38, hue 27–34°, sat ≈ 0.32–0.40,
-        // p10 0.22–0.28 / p90 0.47): cord crests lit, furrows dark — the first probe's flat
-        // 0.74 tint rendered p10 0.34 / p90 0.37, a smooth pale column — darker where the lip
-        // sinks under the rim
-        const crest = clamp(lipCrest * 2.4, -1, 1);
-        const d = lerp(0.56, 0.38, smoothstep(0.5, 1, t)) * (0.76 + 0.3 * Math.max(0, Math.sin(ang))) * (1 + 0.5 * crest);
-        return [d, d * 0.95, d * 0.88];
-      },
-      capEnd: true,
-    });
-    rootParts.push(mossOnTop(lip, [0.5, 0.64, 0.3], 0.35, noise));
-    bases.push([foot.x, foot.y, foot.z]);
+    return { foot, pts };
+  };
+  /** the crown's axis: along the rim curl, 5 cm outside it and 0.25 m under its centre, lifted a
+   *  little at the door's centre so it arches. (Probes 0.13 and 0.25 m higher left the curl's
+   *  bottom, the soffit and the wall's eave band peeking out under the crown in B — a moss / dark
+   *  line at y 0.27–0.30 — where the cords and knuckles thin the body and where B's sight-lines
+   *  pass under it and rise 0.18 m per metre; the axis sits so its underside, 2.3–2.5 m, is the
+   *  lowest thing over the door, and its back reaches under the eave — `archBody`.) */
+  const ARCH_HALF = 0.42;
+  const archAxis = (a: number) => {
+    const rc = capR(a) - capInset + 0.05 * k;
+    const lift = 0.05 * k * Math.cos((a / ARCH_HALF) * (Math.PI / 2));
+    return frame.at(a, rc, rollBottom + lipR - sagAt(a) - rimWave(a) - 0.07 * k + lift);
+  };
+  /** the shoulder knots where the crown turns down and back to the jamb legs (the buttresses grow
+   *  from here); 0.1 m under the crown's axis so the body arches over the door */
+  const archShoulder = (side: -1 | 1) => frame.door(side < 0 ? -1.8 * k : 2.05 * k, 2.65 * k, 3.45 * k);
+  const legL = archLeg(-1);
+  const legR = archLeg(1);
+  const archPts = [
+    ...legL.pts,
+    archShoulder(-1),
+    ...[-ARCH_HALF, -0.25, -0.08, 0.08, 0.25, ARCH_HALF].map((a) => archAxis(a)),
+    archShoulder(1),
+    ...legR.pts.slice().reverse(),
+  ];
+  const archCurve = new CatmullRomCurve3(archPts, false, 'catmullrom', 0.5);
+  const _ap = new Vector3();
+  /** radius: 0.5 m at the feet tapering to 0.39 m up the jamb legs, 0.47 m over the crown, knuckled */
+  const archRadius = (t: number) => {
+    archCurve.getPointAt(t, _ap);
+    const y = heightOf(_ap);
+    const base = lerp(0.5, 0.39, smoothstep(0, 1.7 * k, y)) + 0.08 * smoothstep(2.3 * k, 2.7 * k, y);
+    return base * k * (1 + 0.1 * Math.sin(t * 23 + 1) + 0.05 * Math.sin(t * 57 + 2));
+  };
+  /** the crown's top, door-space (the cap's moss creeps down from here) */
+  const archTopY = heightOf(archAxis(0)) + 0.47 * k;
+  /**
+   * Knots: a dozen burls scattered over the body — gaussian bumps centred on the surface, in
+   * world space (so the ring seam and the tube frames never show) — on top of the ring-periodic
+   * cords and broad fbm lumps. Drawn from the lips' stream after the legs' jitter.
+   */
+  const archKnots: { c: Vector3; s: number; h: number }[] = [];
+  for (let i = 0; i < 18; i++) {
+    const t = 0.08 + lipRng() * 0.84;
+    const phi = lipRng() * TAU;
+    const c = archCurve.getPointAt(t);
+    const r = archRadius(t);
+    const T = archCurve.getTangentAt(t);
+    const side = new Vector3(T.z, 0, -T.x).normalize();
+    const up = new Vector3().crossVectors(T, side).normalize();
+    c.addScaledVector(side, Math.cos(phi) * r * 0.85).addScaledVector(up, Math.sin(phi) * r * 0.85);
+    archKnots.push({ c, s: (0.24 + lipRng() * 0.22) * k, h: (0.12 + lipRng() * 0.13) * k });
   }
-  // ---- branch pillars (round 13; board 03 "natural wooden supports (branches)", board 04
-  // "wooden branch pillars support the entrance"): two curved living-branch posts stand just
-  // outside the root lips — feet on the ground a step in front of the lips' feet, leaning in a
-  // little as they rise past the lip to the cap's underside, where each sinks into the soffit
-  // and throws a short fork up into the rim. In B the left one stands on the lip's outer edge
-  // (foot (0.685, 0.58) → rim (0.71, 0.34)) and the right one at 0.85–0.88, where the reference
-  // has its thick right root, so they read as more of the root mass rather than as a separate
-  // colonnade. Same bark as the lips, knuckled, ridged, mossy on top. (Feet 0.5 m outside the
-  // jambs: the first probe's 0.84 m put the left post over the round window.) ----
+  const knotsAt = (p: Vector3) => {
+    let d = 0;
+    for (const kn of archKnots) {
+      const q = p.distanceToSquared(kn.c) / (kn.s * kn.s);
+      if (q < 6) d += kn.h * Math.exp(-q);
+    }
+    return d;
+  };
+  // the relief of the vertex being placed (sweepTube colours a vertex right after displacing it):
+  // cord crest ∈ ±0.5 and the hollow / bump term in metres
+  let archCrest = 0;
+  let archRelief = 0;
+  const archDisplace = (seed: number, cordAmp: number, lumpAmp: number, along: number) => (t: number, ang: number, pos: Vector3) => {
+    archCrest = ringRidged(noise, ang, t * along + pos.y * 0.3, 1.4, seed);
+    const lump = noise.fbm(pos.x * 1.3 + 5, pos.z * 1.3 + pos.y * 0.7, 2) - 0.5;
+    archRelief = lump * lumpAmp * k + knotsAt(pos);
+    return archCrest * cordAmp * k + archRelief;
+  };
+  /** the relief terms only; the shade comes from the welded normals in `shadeArch` */
+  const reliefColor = (): [number, number, number] => [clamp(archCrest * 2.4, -1, 1), archRelief / k, 0];
+  /**
+   * The crown is deeper than it is tall: from the shoulders up, its back stretches 0.5 m toward
+   * the wall (a torus pulled along −F, the legs stay round), so it fills the soffit under the
+   * cap's eave and B's sight-lines under the crown end on the arch's own dark underside, not on
+   * the eave's underside or the wall's eave band 1–1.5 m behind it (round 19's second probe
+   * still showed 2–7 rows of those between the crown and the porch at x 0.73–0.85).
+   */
+  const archCrownDisplace = archDisplace(2.3, 0.14, 0.2, 16);
+  const archBody = (t: number, ang: number, pos: Vector3) => {
+    const d = archCrownDisplace(t, ang, pos);
+    archCurve.getPointAt(t, _ap);
+    const rx = pos.x - _ap.x;
+    const rz = pos.z - _ap.z;
+    const rl = Math.hypot(rx, pos.y - _ap.y, rz) || 1;
+    const back = Math.max(0, -(rx * F.x + rz * F.z) / rl);
+    return d + back * back * 0.5 * k * smoothstep(2.45 * k, 2.7 * k, heightOf(_ap));
+  };
+  const arch = sweepTube(archCurve, {
+    radius: archRadius,
+    tubularSegments: 120,
+    radialSegments: 16,
+    uvMetres: 1.4,
+    displace: archBody,
+    color: reliefColor,
+  });
+  weldNormals(arch);
+  weldTubeSeam(arch, 120, 16);
+  /**
+   * Bark shade from the real normal and the relief: lit on top, a touch on the front; cord
+   * crests and bumps light, furrows and hollows dark (the reference's arch face in B, x 0.72–0.86
+   * × y 0.24–0.31, runs p10 0.24 → p90 0.54 — lit crests and moss over deep dark furrows; a flat
+   * tint rendered p10 0.30 / p90 0.38). The tint darkens from the jambs (reference lips lum
+   * 0.36–0.38) up to the crown in the cap's shade. The body is drawn in its own bark
+   * (ARCH_BARK_FLOOR: the house floor's tint at an intermediate lift with most of the albedo
+   * textured) — under the wall's 6.3 floor nothing on it could drop below the wall's shade level
+   * (dark share 0 against the reference's 0.17) and under the recess's 1.2 it was uniformly dark.
+   * Then moss: on every upward face (as on the roots) and, over the crown, creeping down the
+   * front in tongues where the cap's moss runs onto it.
+   */
+  const shadeArch = (geo: BufferGeometry, yDark0: number, yDark1: number, mossAmount: number, creep: boolean) => {
+    const pos = geo.attributes.position;
+    const nrm = geo.attributes.normal;
+    const col = geo.attributes.color;
+    for (let i = 0; i < pos.count; i++) {
+      _ap.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+      const y = heightOf(_ap);
+      const up = nrm.getY(i);
+      const front = nrm.getX(i) * F.x + nrm.getZ(i) * F.z;
+      const crest = col.getX(i);
+      const relief = clamp(col.getY(i) * 6, -1, 1);
+      // ×1.8 over the roots' tints: ARCH_BARK_FLOOR takes 85 % of its albedo from the surface
+      const base = 1.8 * lerp(0.72, 0.6, smoothstep(yDark0, yDark1, y));
+      const d = base * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * (1 + 0.6 * crest) * (1 + 0.45 * relief);
+      const patch = 0.45 + 0.55 * noise.fbm(_ap.x * 1.7 + 3, _ap.z * 1.7 + y * 0.6, 2);
+      let w = smoothstep(0.25, 0.85, up) * patch * mossAmount;
+      if (creep) {
+        // the crown's upper half under the cap: moss over the top and down over the front rim
+        // where the patch noise is dense (tongues), never on the underside
+        const high = smoothstep(archTopY - 0.6 * k, archTopY - 0.1 * k, y);
+        w = Math.max(w, high * smoothstep(0.35, 0.7, patch + 0.5 * up + 0.3 * Math.max(0, front) - 0.3));
+      }
+      w = clamp(w, 0, 1);
+      // olive bark, and a moss tint green enough to read as moss on this warm bark (the material's
+      // 0xdcb086 × the map leave g/r ≈ 0.6 linear; the roots' ×2.4 tint rendered amber here). The
+      // reference's arch face in B runs g/r 0.92–0.94 on its moss tongues, 0.83 on bare bark.
+      col.setXYZ(i, lerp(d, 0.8, w), lerp(d * 1.15, 2.2, w), lerp(d * 0.84, 0.5, w));
+    }
+    return geo;
+  };
+  const archParts: BufferGeometry[] = [shadeArch(arch, 1.2 * k, 3.0 * k, 0.55, true)];
+  bases.push([legL.foot.x, legL.foot.y, legL.foot.z], [legR.foot.x, legR.foot.y, legR.foot.z]);
+  /** the arch body's underside (world y) over door-space lateral w, for the pods' hooks */
+  const archUnderY = (w: number) => {
+    let best = Infinity;
+    let bestY = frame.C.y + rollBottom;
+    for (let i = 0; i <= 200; i++) {
+      const t = i / 200;
+      archCurve.getPointAt(t, _ap);
+      if (heightOf(_ap) < 2.4 * k) continue;
+      const dw = Math.abs(lateralOf(_ap) - w);
+      if (dw < best) {
+        best = dw;
+        bestY = _ap.y - archRadius(t) * 0.92;
+      }
+    }
+    return bestY;
+  };
+  /** the arch body's crown profile on the door axis (audit) */
+  const archCrownAxis = archAxis(0);
+  const archProfile = {
+    crownAxis: archCrownAxis.toArray() as P3,
+    crownRadius: 0.47 * k,
+    underside: heightOf(archCrownAxis) - 0.47 * k,
+    top: heightOf(archCrownAxis) + 0.47 * k,
+    span: ARCH_HALF * 2,
+  };
+  // ---- root-buttresses (round 19; rounds 13–17's two slender branch pillars with forks into
+  // the rim — take 70's "forked supports"). Board 04's "branch pillars support the entrance"
+  // are, in frame 14 s, living roots growing out of the arch: each buttress starts inside the
+  // arch body at its shoulder knot, comes out forward and outward, thickens as it drops and
+  // plunges into the ground with a flared foot (0.42–0.5 m radius on the terrain) where the
+  // pillars' feet stood: B x ≈ 0.70 (in front of the left jamb leg, outside the opening's inner
+  // face and clear of the round window at x 0.64–0.675) and ≈ 0.91, the reference's thick right
+  // root. Knotted like the arch, welded, mossy on top; the cap's vines hang from where each
+  // leaves the arch (`pillarTops`). ----
   const pillarRng = rng.fork('pillars');
-  const pillarTops: { top: Vector3; foot: P3; side: -1 | 1 }[] = [];
+  const pillarTops: { top: Vector3; foot: P3; side: -1 | 1; footRadius: number }[] = [];
   for (const side of [-1, 1] as const) {
-    const jamb = side < 0 ? doorW0 : doorW1;
     const jit6 = () => (pillarRng() - 0.5) * 0.06 * k;
-    // round 17: the right post follows its lip out (+0.5 m, foot at B x ≈ 0.905 — the reference's
-    // thick right root); the left one stays — 0.2 m further left it would stand over the round
-    // window's right edge from B — and now rises in front of the middle of its lip
-    const wBase = jamb + side * (side < 0 ? 0.5 : 1.0) * k;
-    const dBase = dOut(wBase, 0) + 0.6 * k;
-    const foot = frame.door(wBase, 0, dBase);
+    const wFoot = side < 0 ? -2.05 * k : 2.5 * k;
+    const dFoot = side < 0 ? 4.05 * k : 3.7 * k;
+    const foot = frame.door(wFoot, 0, dFoot);
     foot.y = terrain.height(foot.x, foot.z);
-    // meets the cap's underside 0.3 m inside the rim's edge, roughly above the foot
-    const aTop = Math.atan2(wBase - side * 0.25 * k, dBase - 0.3 * k);
-    const rTop = capR(aTop) - capInset - 0.3 * k;
-    // the soffit is flat at rollBottom less the sag; the post's end sits 0.12 m up inside it
-    const top = frame.at(aTop, rTop, rollBottom - sagAt(aTop) - rimWave(aTop) + 0.12 * k);
+    const start = archShoulder(side);
     const pts = [
-      foot.clone().setY(foot.y - 0.3 * k),
+      start,
+      frame.door(lateralOf(start) + side * 0.3 * k + jit6(), 2.25 * k, 3.75 * k + jit6()),
+      frame.door(wFoot - side * 0.12 * k + jit6(), 1.2 * k, dFoot - 0.05 * k + jit6()),
       foot,
-      frame.door(wBase + side * 0.1 * k + jit6(), 0.9 * k, dBase + 0.05 * k + jit6()),
-      frame.door(wBase - side * 0.04 * k + jit6(), 1.9 * k, dBase - 0.05 * k + jit6()),
-      top.clone().lerp(foot, 0.22).add(new Vector3(jit6(), 0, jit6())),
-      top,
+      foot.clone().setY(foot.y - 0.45 * k).add(new Vector3(jit6(), 0, jit6())),
     ];
     const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-    const pillarR = (t: number) => (0.17 - 0.05 * t) * k * (1 + 0.12 * Math.sin(t * 13 + side * 2) + 0.06 * Math.sin(t * 31 + side));
-    let pillarCrest = 0;
-    const post = sweepTube(curve, {
-      radius: pillarR,
-      tubularSegments: 26,
-      radialSegments: 10,
+    /** 0.2 m where it is buried in the arch → 0.38 m at the ground, plus the foot's flare */
+    const buttressR = (t: number) => (0.2 + 0.18 * t + 0.1 * smoothstep(0.6, 0.85, t)) * k * (1 + 0.08 * Math.sin(t * 13 + side * 2) + 0.05 * Math.sin(t * 31 + side));
+    // the foot on the terrain sits at the 4th of 5 waypoints (t ≈ 0.8 of the arc length)
+    let tFoot = 0.8;
+    {
+      let best = Infinity;
+      for (let i = 0; i <= 100; i++) {
+        const d = curve.getPointAt(i / 100, _ap).distanceTo(foot);
+        if (d < best) {
+          best = d;
+          tFoot = i / 100;
+        }
+      }
+    }
+    const buttress = sweepTube(curve, {
+      radius: buttressR,
+      tubularSegments: 32,
+      radialSegments: 14,
       uvMetres: 1.4,
-      displace: (t, ang, pos) => {
-        pillarCrest = noise.ridged(ang * 1.5 + side * 4.1, t * 7 + pos.y * 0.4, 2) - 0.5;
-        return pillarCrest * 0.035 * k;
-      },
-      color: (t, ang) => {
-        // the same shade curve as the lips: lit crests, dark furrows, darker under the rim
-        const crest = clamp(pillarCrest * 2.4, -1, 1);
-        const d = lerp(0.58, 0.4, smoothstep(0.55, 1, t)) * (0.78 + 0.28 * Math.max(0, Math.sin(ang))) * (1 + 0.45 * crest);
-        return [d, d * 0.95, d * 0.88];
-      },
-      capEnd: true,
+      displace: archDisplace(4.1 + side, 0.08, 0.12, 8),
+      color: reliefColor,
     });
-    rootParts.push(mossOnTop(post, [0.5, 0.64, 0.3], 0.45, noise));
-    // the fork: a short branch from the post's upper third, up into the rim — outward on the
-    // right, inward (towards the door) on the left, where an outward fork crossed the round
-    // window's top right in B
-    const forkFrom = curve.getPointAt(0.72);
-    const forkA = aTop + (side < 0 ? 0.08 : 0.12);
-    const forkTo = frame.at(forkA, capR(forkA) - capInset + 0.05 * k, rollBottom - sagAt(forkA) - rimWave(forkA) + 0.1 * k);
-    const forkMid = forkFrom.clone().lerp(forkTo, 0.5).add(new Vector3(jit6(), -0.12 * k, jit6()));
-    const fork = sweepTube(new CatmullRomCurve3([forkFrom, forkMid, forkTo], false, 'catmullrom', 0.5), {
-      radius: (t) => (0.075 - 0.035 * t) * k * (1 + 0.1 * Math.sin(t * 17)),
-      tubularSegments: 10,
-      radialSegments: 8,
-      uvMetres: 1.2,
-      displace: (t, ang) => (noise.ridged(ang * 1.5 + 5, t * 6, 2) - 0.5) * 0.015 * k,
-      color: (t, ang) => {
-        const d = 0.5 * (0.8 + 0.25 * Math.max(0, Math.sin(ang)));
-        return [d, d * 0.95, d * 0.88];
-      },
-      capEnd: true,
-    });
-    rootParts.push(fork);
-    pillarTops.push({ top: curve.getPointAt(0.85), foot: [foot.x, foot.y, foot.z], side });
+    weldNormals(buttress);
+    weldTubeSeam(buttress, 32, 14);
+    archParts.push(shadeArch(buttress, 1.0 * k, 2.9 * k, 0.5, false));
+    pillarTops.push({ top: curve.getPointAt(0.1), foot: [foot.x, foot.y, foot.z], side, footRadius: buttressR(tFoot) });
     bases.push([foot.x, foot.y, foot.z]);
   }
   const rootsMesh = new Mesh(merge(rootParts), mats.bark);
   rootsMesh.name = 'roots';
   rootsMesh.castShadow = rootsMesh.receiveShadow = true;
   group.add(rootsMesh);
+  // the arch and its buttresses: their own bark floor (see `shadeArch` / ARCH_BARK_FLOOR) — one
+  // more draw per house
+  const archMesh = new Mesh(merge(archParts), mats.archBark);
+  archMesh.name = 'roots-arch';
+  archMesh.castShadow = archMesh.receiveShadow = true;
+  group.add(archMesh);
 
   // ---- roof: low broad mushroom cap of moss with a curled rim and a dark soffit ----
   // v ∈ [0, V_CAP] is the cap top (q = v / V_CAP is the normalised radius: flat crown, rounded
@@ -2675,14 +2922,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // Round 12: no eave bough — the cord runs up into the shadow under the moss rim and is tied
       // to the soffit there. The pod itself stays exactly where round 10 tuned it (B: pod centres
       // at frame x ≈ 0.728 / 0.758 / 0.79): the round-11 hook line fixes (x, z) and the knot
-      // height it hung from, and the cord takes up whatever the soffit sits above that.
+      // height it hung from, and the cord takes up whatever the hook sits above that.
+      // Round 19: the entrance arch's body now spans this line (its underside ≈ 3.0 m, the
+      // soffit at 3.1 behind it), so the cord is tied to the arch's underside instead.
       const line = boughAt11(spec.a);
       line.y -= boughR11(spec.a) * 0.9;
       line.addScaledVector(frame.dir(spec.a), -0.04 * k);
       const knotY11 = boughHookYRound10(spec.a);
       const r = Math.hypot(line.x - frame.C.x, line.z - frame.C.z);
       hook = line.clone();
-      hook.y = Math.max(line.y, yFloor + soffitY(spec.a, r) - 0.03);
+      hook.y = Math.max(line.y, Math.min(yFloor + soffitY(spec.a, r), archUnderY(lateralOf(line))) - 0.03);
       cord += hook.y - knotY11;
     } else if (spec.hook === 'eave') {
       // hooked to the soffit a little in from the ×1.0 lip; the cord is a vine. The soffit sits
@@ -2835,7 +3084,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     cap,
     hearthClearance,
     window: { centre: winCentre.toArray() as P3, radius: winR, height: winY },
-    pillars: pillarTops.map((p) => ({ foot: p.foot, top: p.top.toArray() as P3 })),
+    pillars: pillarTops.map((p) => ({ foot: p.foot, top: p.top.toArray() as P3, footRadius: +p.footRadius.toFixed(3) })),
+    burls: { count: burlSeam.count, seamMaxPosMm: +burlSeam.seamMaxPosMm.toFixed(4), seamMaxNormalDeg: +burlSeam.seamMaxNormalDeg.toFixed(4) },
+    arch: archProfile,
     flowers: flowerCount,
     props: propCount,
     room: { floorY: roomFloorY, backD: [roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1)], floorPoke, pokeAt },

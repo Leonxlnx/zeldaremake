@@ -200,8 +200,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     hearthClearance: houses.map((h) => +h.hearthClearance.toFixed(3)),
     /** Saria's round window (round 13): wall-surface centre, clear radius, height above her floor */
     houseWindow: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.window,
-    /** Saria's branch pillars: feet on the terrain and rim ends (world) */
+    /** Saria's root-buttresses (round 19; branch pillars before): feet on the terrain, where they leave the arch (world), foot radius */
     housePillars: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.pillars,
+    /** round 19: Saria's trunk burls' seam check — max paired-seam-vertex position (mm) / normal (deg) delta (expect 0 / 0) */
+    houseBurls: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.burls,
+    /** round 19: Saria's entrance arch — crown axis (world), radius, underside / top above her floor, angular span */
+    houseArch: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.arch,
     /** Saria's room: the level floor pad's height, back-wall depths (left / mid / right) and the
      *  slope's poke through the pad (≤ 0 = the pad is clear; round 14) */
     houseRoom: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.room,

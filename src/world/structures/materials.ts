@@ -141,6 +141,26 @@ export const LIMB_BARK_TINT = 0x6c6e48;
  * at a fifth of the lift.
  */
 export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2 };
+/**
+ * The entrance arch and its root-buttresses (round 19): one knotted bark mass standing a metre
+ * in front of the wall under the cap's front rim. Reference B's arch face (x 0.72–0.86 ×
+ * y 0.24–0.31) is mid-toned but high-contrast — p10 0.24, p50 0.35, p90 0.54: lit crests and
+ * moss over dark furrows. The sun (azimuth −128°) grazes the door's front at 84°, so in B the
+ * face is lit by the floor, and neither existing floor can carry that contrast: under
+ * HOUSE_BARK_FLOOR (lift 6.3, `texture` 0.4) the face rendered p10 0.30 / p90 0.38 — the flat
+ * 60 % of the floor's albedo pins every shaded face to one level — and under RECESS_BARK_FLOOR
+ * it rendered p10 0.29 / p90 0.35, uniformly dark. The bark's diffuse albedo is tiny (map
+ * ≈ 0.12 × the material's tint × the vertex tint ≈ 0.02 linear), so the floor's flat 0.08 term
+ * sets one level at any `texture` up to 0.7, and at `texture` 1 the floor barely lifts at all
+ * (runtime probes on the B frame, arch face x 0.72–0.86 × y 0.24–0.31: lift 7 / texture 1.0
+ * mean 0.320, p90 0.354; lift 0 mean 0.315; lift 30 / 1.0 mean 0.343, p90 0.397; lift 7 / 0.4
+ * mean 0.345, p90 0.384). The haze sets the band's p10 (≈ 0.295 in every variant, the
+ * reference's 0.24 is out of reach without sun on the face), so the floor's job is the mid tone
+ * and whatever tint contrast the textured share can carry: mostly textured (0.85) at a lift that
+ * lands the ×1.8 vertex tints on the wall's level — the arch's mean 0.348 / p90 0.404 against
+ * the reference's 0.367 / 0.537 and the wall floor's 0.345 / 0.384.
+ */
+export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 12, texture: 0.85 };
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -153,6 +173,8 @@ export interface StructureMaterials {
   sleeveBark: MeshStandardMaterial;
   /** the house's porch recess, soffit and the wall band under the overhang: `bark` with RECESS_BARK_FLOOR */
   recessBark: MeshStandardMaterial;
+  /** the house's entrance arch and root-buttresses (round 19): `bark` with ARCH_BARK_FLOOR */
+  archBark: MeshStandardMaterial;
   /** house interiors seen through the door: near-black warm wood so the opening reads dark */
   interior: MeshStandardMaterial;
   /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
@@ -926,10 +948,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // values are uniforms — one more draw per house)
   const recessBark = bark.clone();
   recessBark.name = 'structures:recess-bark';
+  // the entrance arch (round 19): the same bark under the intermediate, mostly textured floor
+  const archBark = bark.clone();
+  archBark.name = 'structures:arch-bark';
   for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }
