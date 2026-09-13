@@ -1,10 +1,14 @@
 # Link: Blender source and runtime candidate
 
-**Paused at the owner's request for a PC restart, 2026-09-13.** This branch now includes
+**Work resumed after the owner's PC restart, 2026-09-13.** This branch includes
 unfinished source changes and rejected experiments. Read [restart notes](experiments/2026-09-13/README.md)
 before rebuilding. `link-study.blend` contains the latest rejected ribbon-hair trial;
 `link-runtime.blend` and `runtime/pipeline.json` contain an earlier unbaked preparation.
 They do **not** reproduce the currently delivered GLB yet.
+
+Isolated generated 3D, material and eye studies are archived under
+`experiments/2026-09-13/rodin-text-v1` and `rodin-text-v2`, with exact source metadata in
+`rodin-provenance.json`. They remain unaccepted and are not the game asset.
 
 `link-runtime.glb` and `runtime/validation.json` remain the validated **409b603** export.
 That commit also preserves its matching editable source and pipeline. Fable integrated this

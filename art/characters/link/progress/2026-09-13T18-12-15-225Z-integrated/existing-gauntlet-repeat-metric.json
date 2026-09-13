@@ -1,0 +1,8 @@
+{
+  "method": "Existing gauntlet/scripts/compare.mjs determinismDiff, unchanged default tol=8",
+  "values": {
+    "glb": 0,
+    "procedural": 0
+  },
+  "claim": "Local image-pair metric only; not a CI-attested take"
+}

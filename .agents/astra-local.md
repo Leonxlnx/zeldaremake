@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-13T16:52:00Z
+updated: 2026-09-13T18:11:00Z
 ---
 
 # Astra local — Blender character continuation
@@ -285,3 +285,19 @@ Loaded basic_short_hair into scene 'CC0 | hair template study' (3506 guide point
 ## 2026-09-13 17:52 UTC - owner pauses for PC restart
 
 Owner requested stop and push all work. Modelling and generation stopped. All pending repository work and historical untracked progress are preserved as an explicitly unfinished checkpoint. art/characters/link/experiments/2026-09-13/README.md is the restart handoff; restart-session.blend saves all five live scenes (15 MB). Current source and prepared runtime are WIP; delivered GLB remains unchanged at 409b603. Latest production integration is Fable94a73c1, captured with the real loader. 17:39 review completed with small nonzero repeat differences; 17:44 review failed the max-two-level tolerance before reaching the procedural control. No determinism pass. Hyper3D only inspected and remains disabled, no generation submitted. Typecheck/build passed for this checkpoint. Do not resume modelling until the owner returns.
+
+
+## 2026-09-13 18:11 UTC - owner resumes
+
+Owner explicitly resumed after the PC restart. Restored all saved scenes in hidden Blender PID7848, renewed C01/C02, and informed Fable on PR2 comment5655106109. Fetched9dc050f/tick66/take0082; production remains94a73c1. Stable GLB still409b603. Native MCP free-trial operator enabled Rodin only in a separate empty scene and reports Key type free_trial. No private key was inspected; no generation submitted yet. A single full-body reference extraction is running through built-in imagegen, using the original Kokiri sheet. Native-GPU integration repeat diagnostic now retains both GLB and procedural controls before applying its unchanged tolerance, so a first failure cannot hide the control. No art acceptance claim.
+
+
+## 2026-09-13 18:42 UTC - real 3D trials and integration repeat controls
+
+Bundled free-trial Rodin Sketch generated two isolated, archived models. V1 used a wrong bbox axis order and was malformed; initial diagnostic renders also used a wrong up axis, then corrected native glTF import was preserved. V2 has coherent character shape but 512px textures, painted eyes and slab hair. Native normal/material repairs and boolean sockets with real eyeballs were tried; both protruding and inset eye versions remain unaccepted. No stable runtime asset changed. Exact prompts, task UUIDs, original GLBs, saved scenes and images are under experiments/2026-09-13 with rodin-provenance.json / rodin-files.json. Do not treat these as upgrades just because they rendered.
+
+The image tool again blocked both a single full-body reference and a pure crop. An explicit request to allow a mechanical script crop is pending; do not do that dependent work without the reply. The user has not authorized a raster API/CLI fallback.
+
+Rodin Gen-2 was then submitted through the same bundled free-trial credential, guarded by equality with the public trial constant. HTTP201 accepted uuid eba5339e-8faf-474d-8547-0b1e58148777. Job/subscription state is stored privately outside Git at E:/Tools/blender-mcp/rodin-gen2-job.json. Current scene Rodin | Gen2 trial. No private paid API key used. Poll this existing job, do not resubmit it.
+
+Production repeats: both controls captured at18:12. Only13 pixels changed in each (one GLB pixel max4); existing unchanged gauntlet determinismDiff=0 for both. My arbitrary max-channel<=2 diagnostic was overstrict. capture_integrated now retains that raw diagnostic and exact hashes but checks the existing W41 metric/threshold. Fresh full run18:31 completed: both W41 pair metrics0, exact hashes unequal, raw max GLB5/proc8 and mean.4097/2.7667. This is local image evidence, not a CI gauntlet take. Typecheck/build passed after the capture change.

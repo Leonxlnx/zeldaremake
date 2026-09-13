@@ -868,6 +868,16 @@
       "at": "2026-09-13T15:11:24.278Z",
       "expiresHours": 3,
       "scope": "Owner-authorized Blender character art: art/characters/link and tools/blender; Fable owns production loader and environment"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-13T18:08:57.294Z",
+      "expiresHours": 3,
+      "scope": "Resumed owner-authorized Blender Link art in art/characters/link and tools/blender; Fable owns production loader/environment"
     }
   ]
 }

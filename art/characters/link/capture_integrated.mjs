@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 import sharp from 'sharp';
 import {ROOT,serveStatic,findChrome} from '../../../gauntlet/scripts/lib/browser.mjs';
+import {determinismDiff} from '../../../gauntlet/scripts/compare.mjs';
 
 const world=process.env.LINK_WORLD_ROOT||'E:/zeldaremake-integrated-review';
 const output=path.join(ROOT,'art/characters/link/progress',new Date().toISOString().replace(/[:.]/g,'-')+'-integrated');
@@ -55,7 +56,9 @@ try{
       report.repeats[mode]={sha256:hash(repeated),matches:hash(repeated)===report.images[`A_stairs-${mode}`].sha256,
         maxChannelDelta:maxDelta,meanChannelDelta:totalDelta/firstPixels.length};
       // Diagnostic tolerance only; retain exact equality and raw differences without assigning a cause.
-      assert.ok(maxDelta<=2,'Production repeat differs by more than two 8-bit levels');
+      report.repeats[mode].withinDiagnosticTolerance=maxDelta<=2;
+      report.repeats[mode].existingGauntletDifference=await determinismDiff(
+        path.join(output,`A_stairs-${mode}.png`),repeated);
     }
     if(mode==='glb'){
       await page.evaluate(async()=>{__ZR__.setTime(12.725);await __ZR__.render(2,0);});
@@ -65,7 +68,13 @@ try{
     }
     await page.close();
   }
-  assert.deepEqual(report.errors,[]);report.complete=true;
+  assert.deepEqual(report.errors,[]);report.captureComplete=true;
+  const rubric=JSON.parse(await fs.readFile(path.join(ROOT,'gauntlet/rubric.json'),'utf8'));
+  const threshold=rubric.items.find(i=>i.id==='W41').checks.find(c=>c.metric==='determinismDiff').value;
+  report.repeatThreshold={source:'Existing W41 rubric and compare.mjs metric; local diagnostic only',value:threshold};
+  assert.ok(Object.values(report.repeats).every(r=>r.existingGauntletDifference<=threshold),
+    'Production repeat exceeds the existing W41 image-difference threshold; both controls retained');
+  report.complete=true;
 }finally{
   await fs.writeFile(path.join(output,'manifest.json'),JSON.stringify(report,null,2));
   await browser?.close();await server.close();

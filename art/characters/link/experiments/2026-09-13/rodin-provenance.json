@@ -1,0 +1,25 @@
+{
+  "source": "Hyper3D Rodin through Blender MCP bundled public free trial; no private API credential used",
+  "status": "Unaccepted experiments; not integrated into the game",
+  "trials": [
+    {
+      "directory": "rodin-text-v1",
+      "uuid": "cf1fab9f-9e7e-4a07-886d-69d64511ad54",
+      "tier": "Sketch",
+      "prompt": "One full-body stylized young Link from Ocarina of Time, high quality cinematic game character, compact four-head-tall proportions. Kind round youthful face, large teal eyes, small nose and chin, pointed elf ears. Golden blond layered parted fringe, soft green cap with broad drooping tail behind head. Worn forest-green woven collared short-sleeve tunic, brown leather waist belt and diagonal strap, green shorts, bare knees, sturdy chestnut leather ankle boots with folded cuffs and laces. Empty relaxed hands, arms slightly out from torso in A-pose, feet apart, fully dressed. Natural facial anatomy, flowing fine hair strands, cloth folds, detailed leather boot ankles. Single coherent character, no base or scenery, no props floating separately.",
+      "bbox_condition": [
+        1,
+        0.65,
+        2
+      ],
+      "result": "Invalid proportions: bounding-box axis order was misunderstood and the height was set smaller than depth; this is not a valid likeness comparison. Incorrect-up renders are preserved as named diagnostics."
+    },
+    {
+      "directory": "rodin-text-v2",
+      "uuid": "61ba180a-9ccf-4951-8708-d7fb1532af9c",
+      "tier": "Sketch",
+      "prompt": "Young Link from Ocarina of Time as a detailed stylized game character. Standing upright in a relaxed A-pose, full body, natural compact child proportions. Friendly face, large blue-green eyes, pointed ears, blond layered hair and a long soft green cap. Green collared tunic, brown belt and shoulder strap, green shorts, bare knees, brown leather boots. Clean isolated character, realistic cloth and leather, neutral studio lighting.",
+      "result": "Coherent character, but blurry 512px maps, painted eyes, slab-like hair and poor materials. Native material/normal and actual eye geometry studies remain below target. Not adopted."
+    }
+  ]
+}

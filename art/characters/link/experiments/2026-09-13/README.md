@@ -1,5 +1,11 @@
 # Restart checkpoint — unfinished and visually rejected work
 
+**Resumed 18:08 UTC with the owner's explicit instruction.** The pause notes below
+describe the saved restart checkpoint. New Rodin studies and native material/eye
+experiments are listed in `rodin-provenance.json` and `rodin-files.json`; all remain
+unaccepted. The delivered game GLB is unchanged. The newer integration capture uses
+the existing W41 image metric; exact native-GPU screenshot hashes remain unequal.
+
 The owner requested an immediate pause and push before restarting the PC. No further
 modelling or external generation should start until the owner resumes the task.
 
