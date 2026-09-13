@@ -467,7 +467,7 @@ for upper in [True,False]:
     for row in range(4):
         for j in range(32):
             n=row*33+j;fs.append((n,n+1,n+34,n+33))
-    mesh(('Upper' if upper else 'Lower')+' lip sculpt',vs,fs,lip,1)
+    mesh(('Upper' if upper else 'Lower')+' lip sculpt',vs,fs if upper else [tuple(reversed(f)) for f in fs],lip,1)
 curve('Mouth crease',[(x,face_y(x,.981)-.0014,.981+.001*math.exp(-((abs(x)-.006)/.004)**2)) for x in [-.022,-.015,-.008,0,.008,.015,.022]],.00065,mouth)
 
 # Spherical eye surfaces under overlapping lids, with a calmer upper lid line.
@@ -519,7 +519,7 @@ for side in [-1,1]:
         for row in range(4):
             for j in range(32):
                 n=row*33+j;fs.append((n,n+1,n+34,n+33))
-        mesh(('Upper' if upper else 'Lower')+' eyelid surface '+str(side),vs,fs,skin,1)
+        mesh(('Upper' if upper else 'Lower')+' eyelid surface '+str(side),vs,[tuple(reversed(f)) for f in fs],skin,1)
         if upper:
             curve('Upper lash edge '+str(side),[(a,b-.0004,c) for a,b,c in inner],.0006,hairmats[0])
     for j in range(25):

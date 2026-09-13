@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-13T13:00:17Z
+updated: 2026-09-13T14:53:00Z
 ---
 
 # Astra local â€” Blender character continuation
@@ -105,3 +105,28 @@ Sent Fable gait reach/stride constraints at PR8 comment5653686917. Preparing nam
 in-place clips, export validation, and actual Three.js review. These new pipeline scripts
 are not yet fully executed/validated, so this source checkpoint leaves them uncommitted.
 Typecheck and build passed; local server patch passes git apply --check against upstream.
+
+## 2026-09-13 14:53 UTC — textured, skinned diagnostic candidate
+
+The runtime pipeline is now executed: four skinned meshes/materials, 24,133 triangles,
+19 named bones, 12 embedded PBR maps at 1K/2K, idle/walk/run/stairs. GLB SHA256
+8d1965fa7c32a660995f5f7c95b31d7918dcb4aba450889eb96456d53e142dc8.
+Actual Three.js review: progress/2026-09-13T14-48-18-787Z-runtime, 18 views, no page errors.
+
+Fixed inward lid/lip winding, reserved facial reduction topology, covered the bald nape,
+recessed hidden iris portions, and retained region weights for repeatable rig rebuilds.
+Loop endpoints and flat stance ankle paths are validated; terrain adaptation remains the
+production sampler's job. Walk stride 0.88 m / 0.55 s, run 2.21 m / 0.566667 s, stairs
+0.806667 m / 0.733333 s. Fable approved the shorter walking cadence in PR8 comment5653925946.
+
+The candidate is STILL BELOW REFERENCE QUALITY. Eyes remain round; lower cheeks doll-like;
+hair clumps helmet-like; cloth needs folds and wear. Running exposes excessive knee/hem
+interaction. Diagnostic world integration is the next comparison, not a quality pass.
+Fable retains production loader/world ownership. No world or movement files changed.
+
+Shared browser helper now sends Content-Length and closes each local HTTP response: this
+Windows host stalled reused sockets. Direct two-request regression passes; actual headless
+captures use native pipes and finish in ~5 s. No rubric, score or ledger edits. Historical
+render source bytes are preserved with -text so their captured SHA256 survives Git.
+TypeScript/build and direct HTTP regression pass. Latest Fable fetched: 7abbd4e/take-0080,
+23/50, environment still below target. Continue character art and review integration.

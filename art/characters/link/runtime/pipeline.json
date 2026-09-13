@@ -1,0 +1,4197 @@
+{
+  "source_sha256": "ac1eb696d96d9032404ec60c1390e64ce507ac85cb15a523e90520a86a7f3e9e",
+  "generator_sha256": "ac5d82a7f354cbc945da26d564659822e847509589648583bab56656c9a5f219",
+  "groups": {
+    "skin": {
+      "object": "Link_skin",
+      "source_objects": [
+        "Bare leg R",
+        "Arm wrist and hand sculpt R",
+        "Bare leg L",
+        "Arm wrist and hand sculpt L",
+        "Neck",
+        "Face | continuous cheek socket nose sculpt",
+        "Pointed ear -1",
+        "Ear inner fold -1",
+        "Ear helix -1",
+        "Nostril recess -1",
+        "Pointed ear 1",
+        "Ear inner fold 1",
+        "Ear helix 1",
+        "Nostril recess 1",
+        "Upper lip sculpt",
+        "Lower lip sculpt",
+        "Mouth crease",
+        "Upper eyelid surface -1",
+        "Lower eyelid surface -1",
+        "Upper eyelid surface 1",
+        "Lower eyelid surface 1"
+      ],
+      "source_triangles": 9324,
+      "triangles": 9324
+    },
+    "hair": {
+      "object": "Link_hair",
+      "source_objects": [
+        "Upper lash edge -1",
+        "Eyebrow hair",
+        "Eyebrow hair.001",
+        "Eyebrow hair.002",
+        "Eyebrow hair.003",
+        "Eyebrow hair.004",
+        "Eyebrow hair.005",
+        "Eyebrow hair.006",
+        "Eyebrow hair.007",
+        "Eyebrow hair.008",
+        "Eyebrow hair.009",
+        "Eyebrow hair.010",
+        "Eyebrow hair.011",
+        "Eyebrow hair.012",
+        "Eyebrow hair.013",
+        "Eyebrow hair.014",
+        "Eyebrow hair.015",
+        "Eyebrow hair.016",
+        "Eyebrow hair.017",
+        "Eyebrow hair.018",
+        "Eyebrow hair.019",
+        "Eyebrow hair.020",
+        "Eyebrow hair.021",
+        "Eyebrow hair.022",
+        "Eyebrow hair.023",
+        "Eyebrow hair.024",
+        "Upper lash edge 1",
+        "Eyebrow hair.025",
+        "Eyebrow hair.026",
+        "Eyebrow hair.027",
+        "Eyebrow hair.028",
+        "Eyebrow hair.029",
+        "Eyebrow hair.030",
+        "Eyebrow hair.031",
+        "Eyebrow hair.032",
+        "Eyebrow hair.033",
+        "Eyebrow hair.034",
+        "Eyebrow hair.035",
+        "Eyebrow hair.036",
+        "Eyebrow hair.037",
+        "Eyebrow hair.038",
+        "Eyebrow hair.039",
+        "Eyebrow hair.040",
+        "Eyebrow hair.041",
+        "Eyebrow hair.042",
+        "Eyebrow hair.043",
+        "Eyebrow hair.044",
+        "Eyebrow hair.045",
+        "Eyebrow hair.046",
+        "Eyebrow hair.047",
+        "Eyebrow hair.048",
+        "Eyebrow hair.049",
+        "Hair | connected fringe and nape mass",
+        "Hair | swept layered clump 00",
+        "Hair | overlapping fringe layer 00",
+        "Hair | swept layered clump 01",
+        "Hair | overlapping fringe layer 01",
+        "Hair | swept layered clump 02",
+        "Hair | overlapping fringe layer 02",
+        "Hair | swept layered clump 03",
+        "Hair | overlapping fringe layer 03",
+        "Hair | swept layered clump 04",
+        "Hair | overlapping fringe layer 04",
+        "Hair | swept layered clump 05",
+        "Hair | overlapping fringe layer 05",
+        "Hair | swept layered clump 06",
+        "Hair | swept layered clump 07",
+        "Hair | swept layered clump 08",
+        "Hair | swept layered clump 09",
+        "Hair | stray swept tip 1",
+        "Hair | stray swept tip 3"
+      ],
+      "source_triangles": 96064,
+      "triangles": 2670
+    },
+    "eyes": {
+      "object": "Link_eyes",
+      "source_objects": [
+        "Eye white -1",
+        "Iris rim -1",
+        "Iris teal -1",
+        "Pupil -1",
+        "Eye catchlight",
+        "Eye catchlight.001",
+        "Eye white 1",
+        "Iris rim 1",
+        "Iris teal 1",
+        "Pupil 1",
+        "Eye catchlight.002",
+        "Eye catchlight.003"
+      ],
+      "source_triangles": 26496,
+      "triangles": 970
+    },
+    "outfit": {
+      "object": "Link_outfit",
+      "source_objects": [
+        "Boot sole | shaped heel and forefoot R",
+        "Boot | continuous instep and ankle R",
+        "Folded boot cuff R",
+        "Boot tongue R",
+        "Toe cap seam R",
+        "Lace eyelet R0-1",
+        "Cross lace R0-1",
+        "Lace eyelet R01",
+        "Cross lace R01",
+        "Lace eyelet R1-1",
+        "Cross lace R1-1",
+        "Lace eyelet R11",
+        "Cross lace R11",
+        "Lace eyelet R2-1",
+        "Cross lace R2-1",
+        "Lace eyelet R21",
+        "Cross lace R21",
+        "Lace eyelet R3-1",
+        "Cross lace R3-1",
+        "Lace eyelet R31",
+        "Cross lace R31",
+        "Boot bow R-1",
+        "Boot bow R1",
+        "Boot sole | shaped heel and forefoot L",
+        "Boot | continuous instep and ankle L",
+        "Folded boot cuff L",
+        "Boot tongue L",
+        "Toe cap seam L",
+        "Lace eyelet L0-1",
+        "Cross lace L0-1",
+        "Lace eyelet L01",
+        "Cross lace L01",
+        "Lace eyelet L1-1",
+        "Cross lace L1-1",
+        "Lace eyelet L11",
+        "Cross lace L11",
+        "Lace eyelet L2-1",
+        "Cross lace L2-1",
+        "Lace eyelet L21",
+        "Cross lace L21",
+        "Lace eyelet L3-1",
+        "Cross lace L3-1",
+        "Lace eyelet L31",
+        "Cross lace L31",
+        "Boot bow L-1",
+        "Boot bow L1",
+        "Tunic | tailored body",
+        "Short sleeve -1",
+        "Folded collar -1",
+        "Collar seam -1",
+        "Tunic pocket -1",
+        "Pocket opening -1",
+        "Pocket stitches",
+        "Pocket stitches.001",
+        "Pocket stitches.002",
+        "Pocket stitches.003",
+        "Pocket stitches.004",
+        "Pocket stitches.005",
+        "Pocket stitches.006",
+        "Pocket stitches.007",
+        "Pocket stitches.008",
+        "Pocket stitches.009",
+        "Pocket stitches.010",
+        "Pocket stitches.011",
+        "Pocket stitches.012",
+        "Pocket stitches.013",
+        "Short sleeve 1",
+        "Folded collar 1",
+        "Collar seam 1",
+        "Tunic pocket 1",
+        "Pocket opening 1",
+        "Pocket stitches.014",
+        "Pocket stitches.015",
+        "Pocket stitches.016",
+        "Pocket stitches.017",
+        "Pocket stitches.018",
+        "Pocket stitches.019",
+        "Pocket stitches.020",
+        "Pocket stitches.021",
+        "Pocket stitches.022",
+        "Pocket stitches.023",
+        "Pocket stitches.024",
+        "Pocket stitches.025",
+        "Pocket stitches.026",
+        "Pocket stitches.027",
+        "Tunic lower binding",
+        "Waist belt",
+        "Belt stitched border",
+        "Belt stitched border.001",
+        "Belt brass buckle",
+        "Belt buckle tongue",
+        "Belt pouch -1",
+        "Pouch flap -1",
+        "Pouch button -1",
+        "Belt pouch 1",
+        "Pouch flap 1",
+        "Pouch button 1",
+        "Diagonal leather sword strap",
+        "Cross strap stitch",
+        "Cross strap stitch.001",
+        "Cross strap stitch.002",
+        "Cross strap stitch.003",
+        "Cross strap stitch.004",
+        "Cross strap stitch.005",
+        "Cross strap stitch.006",
+        "Cross strap stitch.007",
+        "Cross strap stitch.008",
+        "Cross strap stitch.009",
+        "Cross strap stitch.010",
+        "Cross strap stitch.011",
+        "Cross strap stitch.012",
+        "Cross strap stitch.013",
+        "Cross strap stitch.014",
+        "Cross strap stitch.015",
+        "Cross strap stitch.016",
+        "Cross strap stitch.017",
+        "Cross strap stitch.018",
+        "Cross strap stitch.019",
+        "Cross strap stitch.020",
+        "Cross strap stitch.021",
+        "Cross strap stitch.022",
+        "Cross strap stitch.023",
+        "Cross strap stitch.024",
+        "Cross strap stitch.025",
+        "Cross strap stitch.026",
+        "Cross strap stitch.027",
+        "Cross strap stitch.028",
+        "Cross strap stitch.029",
+        "Cross strap stitch.030",
+        "Cross strap stitch.031",
+        "Cross strap stitch.032",
+        "Cross strap stitch.033",
+        "Cross strap stitch.034",
+        "Cross strap stitch.035",
+        "Cross strap stitch.036",
+        "Cross strap stitch.037",
+        "Cross strap stitch.038",
+        "Cross strap stitch.039",
+        "Cross strap stitch.040",
+        "Cross strap stitch.041",
+        "Cross strap stitch.042",
+        "Cross strap stitch.043",
+        "Cross strap stitch.044",
+        "Cross strap stitch.045",
+        "Cross strap stitch.046",
+        "Cross strap stitch.047",
+        "Cross strap stitch.048",
+        "Cross strap stitch.049",
+        "Cross strap stitch.050",
+        "Cross strap stitch.051",
+        "Cross strap stitch.052",
+        "Cross strap stitch.053",
+        "Cross strap stitch.054",
+        "Cross strap stitch.055",
+        "Cross strap stitch.056",
+        "Cross strap stitch.057",
+        "Cross strap stitch.058",
+        "Cross strap stitch.059",
+        "Cross strap stitch.060",
+        "Cross strap stitch.061",
+        "Cross strap stitch.062",
+        "Cross strap stitch.063",
+        "Strap buckle",
+        "Cap | continuous sculpted cloth",
+        "Cap | fitted stitched band",
+        "Cap | centre sewn seam",
+        "Cap | cross stitch",
+        "Cap | cross stitch.001",
+        "Cap | cross stitch.002",
+        "Cap | cross stitch.003",
+        "Cap | cross stitch.004",
+        "Cap | cross stitch.005",
+        "Cap | cross stitch.006",
+        "Cap | cross stitch.007",
+        "Cap | cross stitch.008",
+        "Cap | cross stitch.009",
+        "Cap | cross stitch.010",
+        "Cap | cross stitch.011",
+        "Cap | cross stitch.012",
+        "Cap | cross stitch.013",
+        "Cap | cross stitch.014",
+        "Cap | cross stitch.015",
+        "Cap | cross stitch.016",
+        "Cap | cross stitch.017",
+        "Cap | cross stitch.018",
+        "Cap | cross stitch.019",
+        "Cap | cross stitch.020",
+        "Cap | cross stitch.021",
+        "Cap | cross stitch.022",
+        "Cap | cross stitch.023",
+        "Cap | cross stitch.024",
+        "Cap | cross stitch.025",
+        "Cap | cross stitch.026",
+        "Cap | cross stitch.027",
+        "Cap | cross stitch.028",
+        "Cap | cross stitch.029",
+        "Cap | cross stitch.030",
+        "Cap | cross stitch.031",
+        "Cap | cross stitch.032",
+        "Backpack | leather body",
+        "Backpack | flap",
+        "Backpack binding -1",
+        "Backpack binding 1",
+        "Shield | bowed wooden face",
+        "Shield | raised bound rim",
+        "Shield | plank seam",
+        "Shield | plank seam.001",
+        "Shield | plank seam.002",
+        "Shield | plank seam.003",
+        "Shield | wood grain",
+        "Shield | wood grain.001",
+        "Shield | wood grain.002",
+        "Shield | wood grain.003",
+        "Shield | wood grain.004",
+        "Shield | wood grain.005",
+        "Shield | wood grain.006",
+        "Shield | wood grain.007",
+        "Shield | wood grain.008",
+        "Shield | wood grain.009",
+        "Shield | wood grain.010",
+        "Shield | wood grain.011",
+        "Shield | wood grain.012",
+        "Shield | wood grain.013",
+        "Shield | wood grain.014",
+        "Shield | wood grain.015",
+        "Shield | wood grain.016",
+        "Shield | wood grain.017",
+        "Shield | wood grain.018",
+        "Shield | wood grain.019",
+        "Shield | wood grain.020",
+        "Shield | wood grain.021",
+        "Shield | wood grain.022",
+        "Shield | red Kokiri spiral",
+        "Shield | lower red sweep",
+        "Shield | rim pin",
+        "Shield | rim pin.001",
+        "Shield | rim pin.002",
+        "Shield | rim pin.003",
+        "Shield | rim pin.004",
+        "Sword | leather scabbard",
+        "Sword | scabbard edge",
+        "Sword | crossguard",
+        "Sword | wrapped grip",
+        "Sword | grip winding",
+        "Sword | grip winding.001",
+        "Sword | grip winding.002",
+        "Sword | grip winding.003",
+        "Sword | grip winding.004",
+        "Sword | grip winding.005",
+        "Sword | grip winding.006",
+        "Sword | pommel"
+      ],
+      "source_triangles": 157822,
+      "triangles": 11169
+    }
+  },
+  "bakes": [
+    "hair/color",
+    "hair/roughness",
+    "hair/normal",
+    "eyes/color",
+    "eyes/roughness",
+    "eyes/normal",
+    "outfit/color",
+    "outfit/roughness",
+    "outfit/normal",
+    "outfit/metallic",
+    "skin/color",
+    "skin/roughness",
+    "skin/normal"
+  ],
+  "stage": "Rigged candidate; export and visual motion review pending",
+  "rest_mesh_refinements": [
+    "Nape coverage extended to the collar",
+    "Iris and pupil surfaces enlarged 25% on the eyeball curvature"
+  ],
+  "rig": {
+    "bones": [
+      "hips",
+      "chest",
+      "neck",
+      "head",
+      "cap",
+      "shoulderL",
+      "elbowL",
+      "handL",
+      "shoulderR",
+      "elbowR",
+      "handR",
+      "thighL",
+      "kneeL",
+      "ankleL",
+      "toeL",
+      "thighR",
+      "kneeR",
+      "ankleR",
+      "toeR"
+    ],
+    "weight_sum_error": 2.220446049250313e-16,
+    "leg_length_error": 5.4421558759454314e-08,
+    "clips": {
+      "idle": {
+        "frames": 180,
+        "speed": 0,
+        "duty": 1,
+        "lift": 0,
+        "pelvis": 0.518,
+        "arm": 0.025,
+        "duration_seconds": 3.0,
+        "stride_metres": 0.0,
+        "pelvis_range_metres": [
+          0.517,
+          0.517994732260704
+        ],
+        "loop_matrix_error": 0.0,
+        "flat_stance_residual_metres_per_frame": 0,
+        "contacts": {
+          "L": [
+            {
+              "frame": 0,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 1,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 2,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 3,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 4,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 5,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 6,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 7,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 8,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 9,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 10,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 11,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 12,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 13,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 14,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 15,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 16,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 17,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 18,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 19,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 20,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 21,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 22,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 23,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 24,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 25,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 26,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 27,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 28,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 29,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 30,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 31,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 32,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 33,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 34,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 35,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 36,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 37,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 38,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 39,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 40,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 41,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 42,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 43,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 44,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 45,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 46,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 47,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 48,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 49,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 50,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 51,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 52,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 53,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 54,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 55,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 56,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 57,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 58,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 59,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 60,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 61,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 62,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 63,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 64,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 65,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 66,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 67,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 68,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 69,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 70,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 71,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 72,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 73,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 74,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 75,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 76,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 77,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 78,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 79,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 80,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 81,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 82,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 83,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 84,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 85,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 86,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 87,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 88,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 89,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 90,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 91,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 92,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 93,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 94,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 95,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 96,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 97,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 98,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 99,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 100,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 101,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 102,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 103,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 104,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 105,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 106,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 107,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 108,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 109,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 110,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 111,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 112,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 113,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 114,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 115,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 116,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 117,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 118,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 119,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 120,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 121,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 122,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 123,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 124,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 125,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 126,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 127,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 128,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 129,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 130,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 131,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 132,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 133,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 134,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 135,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 136,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 137,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 138,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 139,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 140,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 141,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 142,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 143,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 144,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 145,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 146,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 147,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 148,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 149,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 150,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 151,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 152,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 153,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 154,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 155,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 156,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 157,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 158,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 159,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 160,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 161,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 162,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 163,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 164,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 165,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 166,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 167,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 168,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 169,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 170,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 171,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 172,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 173,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 174,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 175,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 176,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 177,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 178,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 179,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 180,
+              "ankle": [
+                0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            }
+          ],
+          "R": [
+            {
+              "frame": 0,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 1,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 2,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 3,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 4,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 5,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 6,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 7,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 8,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 9,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 10,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 11,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 12,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 13,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 14,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 15,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 16,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 17,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 18,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 19,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 20,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 21,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 22,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 23,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 24,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 25,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 26,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 27,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 28,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 29,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 30,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 31,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 32,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 33,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 34,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 35,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 36,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 37,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 38,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 39,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 40,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 41,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 42,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 43,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 44,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 45,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 46,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 47,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 48,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 49,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 50,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 51,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 52,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 53,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 54,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 55,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 56,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 57,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 58,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 59,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 60,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 61,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 62,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 63,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 64,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 65,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 66,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 67,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 68,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 69,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 70,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 71,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 72,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 73,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 74,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 75,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 76,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 77,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 78,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 79,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 80,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 81,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 82,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 83,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 84,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 85,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 86,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 87,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 88,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 89,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 90,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 91,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 92,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 93,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 94,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 95,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 96,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 97,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 98,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 99,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 100,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 101,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 102,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 103,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 104,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 105,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 106,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 107,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 108,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 109,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 110,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 111,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 112,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 113,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 114,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 115,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 116,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 117,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 118,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 119,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 120,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 121,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 122,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 123,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 124,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 125,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 126,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 127,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 128,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 129,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 130,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 131,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 132,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 133,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 134,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 135,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 136,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 137,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 138,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 139,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 140,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 141,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 142,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 143,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 144,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 145,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 146,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 147,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 148,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 149,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 150,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 151,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 152,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 153,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 154,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 155,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 156,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 157,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 158,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 159,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 160,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 161,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 162,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 163,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 164,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 165,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 166,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 167,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 168,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 169,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 170,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 171,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 172,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 173,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 174,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 175,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 176,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 177,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 178,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 179,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 180,
+              "ankle": [
+                -0.07699999958276749,
+                0.0,
+                0.10999999940395355
+              ]
+            }
+          ]
+        }
+      },
+      "walk": {
+        "frames": 33,
+        "speed": 1.6,
+        "duty": 0.48,
+        "lift": 0.062,
+        "pelvis": 0.463,
+        "arm": 0.32,
+        "duration_seconds": 0.55,
+        "stride_metres": 0.8800000000000001,
+        "pelvis_range_metres": [
+          0.45603169654198844,
+          0.4688827530095647
+        ],
+        "loop_matrix_error": 0.0,
+        "flat_stance_residual_metres_per_frame": 1.0530153912030604e-08,
+        "contacts": {
+          "L": [
+            {
+              "frame": 0,
+              "ankle": [
+                0.07699999958276749,
+                -0.21119999885559082,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 1,
+              "ankle": [
+                0.07699999958276749,
+                -0.18453332781791687,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 2,
+              "ankle": [
+                0.07699999958276749,
+                -0.1578666716814041,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 3,
+              "ankle": [
+                0.07699999958276749,
+                -0.13120000064373016,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 4,
+              "ankle": [
+                0.07699999958276749,
+                -0.10453333705663681,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 5,
+              "ankle": [
+                0.07699999958276749,
+                -0.07786666601896286,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 6,
+              "ankle": [
+                0.07699999958276749,
+                -0.05119999870657921,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 7,
+              "ankle": [
+                0.07699999958276749,
+                -0.024533333256840706,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 8,
+              "ankle": [
+                0.07699999958276749,
+                0.002133333357051015,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 9,
+              "ankle": [
+                0.07699999958276749,
+                0.02879999950528145,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 10,
+              "ankle": [
+                0.07699999958276749,
+                0.0554666668176651,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 11,
+              "ankle": [
+                0.07699999958276749,
+                0.08213333040475845,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 12,
+              "ankle": [
+                0.07699999958276749,
+                0.1088000014424324,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 13,
+              "ankle": [
+                0.07699999958276749,
+                0.13546666502952576,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 14,
+              "ankle": [
+                0.07699999958276749,
+                0.1621333360671997,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 15,
+              "ankle": [
+                0.07699999958276749,
+                0.18880000710487366,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 33,
+              "ankle": [
+                0.07699999958276749,
+                -0.21119999885559082,
+                0.10999999940395355
+              ]
+            }
+          ],
+          "R": [
+            {
+              "frame": 17,
+              "ankle": [
+                -0.07699999958276749,
+                -0.19786666333675385,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 18,
+              "ankle": [
+                -0.07699999958276749,
+                -0.1712000072002411,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 19,
+              "ankle": [
+                -0.07699999958276749,
+                -0.14453333616256714,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 20,
+              "ankle": [
+                -0.07699999958276749,
+                -0.11786666512489319,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 21,
+              "ankle": [
+                -0.07699999958276749,
+                -0.09120000153779984,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 22,
+              "ankle": [
+                -0.07699999958276749,
+                -0.06453333050012589,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 23,
+              "ankle": [
+                -0.07699999958276749,
+                -0.03786666691303253,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 24,
+              "ankle": [
+                -0.07699999958276749,
+                -0.01119999960064888,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 25,
+              "ankle": [
+                -0.07699999958276749,
+                0.015466666780412197,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 26,
+              "ankle": [
+                -0.07699999958276749,
+                0.04213333502411842,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 27,
+              "ankle": [
+                -0.07699999958276749,
+                0.06880000233650208,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 28,
+              "ankle": [
+                -0.07699999958276749,
+                0.09546666592359543,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 29,
+              "ankle": [
+                -0.07699999958276749,
+                0.12213333696126938,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 30,
+              "ankle": [
+                -0.07699999958276749,
+                0.14880000054836273,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 31,
+              "ankle": [
+                -0.07699999958276749,
+                0.17546667158603668,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 32,
+              "ankle": [
+                -0.07699999958276749,
+                0.20213332772254944,
+                0.10999999940395355
+              ]
+            }
+          ]
+        }
+      },
+      "run": {
+        "frames": 34,
+        "speed": 3.9,
+        "duty": 0.25,
+        "lift": 0.155,
+        "pelvis": 0.47,
+        "arm": 0.65,
+        "duration_seconds": 0.5666666666666667,
+        "stride_metres": 2.21,
+        "pelvis_range_metres": [
+          0.40588280777260005,
+          0.4929001161824117
+        ],
+        "loop_matrix_error": 0.0,
+        "flat_stance_residual_metres_per_frame": 1.2516975400611585e-08,
+        "contacts": {
+          "L": [
+            {
+              "frame": 0,
+              "ankle": [
+                0.07699999958276749,
+                -0.2762500047683716,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 1,
+              "ankle": [
+                0.07699999958276749,
+                -0.21125000715255737,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 2,
+              "ankle": [
+                0.07699999958276749,
+                -0.14624999463558197,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 3,
+              "ankle": [
+                0.07699999958276749,
+                -0.08124999701976776,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 4,
+              "ankle": [
+                0.07699999958276749,
+                -0.016249999403953552,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 5,
+              "ankle": [
+                0.07699999958276749,
+                0.04874999821186066,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 6,
+              "ankle": [
+                0.07699999958276749,
+                0.11375000327825546,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 7,
+              "ankle": [
+                0.07699999958276749,
+                0.17874999344348907,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 8,
+              "ankle": [
+                0.07699999958276749,
+                0.24375000596046448,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 34,
+              "ankle": [
+                0.07699999958276749,
+                -0.2762500047683716,
+                0.10999999940395355
+              ]
+            }
+          ],
+          "R": [
+            {
+              "frame": 17,
+              "ankle": [
+                -0.07699999958276749,
+                -0.2762500047683716,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 18,
+              "ankle": [
+                -0.07699999958276749,
+                -0.21125000715255737,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 19,
+              "ankle": [
+                -0.07699999958276749,
+                -0.14624999463558197,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 20,
+              "ankle": [
+                -0.07699999958276749,
+                -0.08124999701976776,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 21,
+              "ankle": [
+                -0.07699999958276749,
+                -0.016249999403953552,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 22,
+              "ankle": [
+                -0.07699999958276749,
+                0.04874999821186066,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 23,
+              "ankle": [
+                -0.07699999958276749,
+                0.11375000327825546,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 24,
+              "ankle": [
+                -0.07699999958276749,
+                0.17874999344348907,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 25,
+              "ankle": [
+                -0.07699999958276749,
+                0.24375000596046448,
+                0.10999999940395355
+              ]
+            }
+          ]
+        }
+      },
+      "stairs": {
+        "frames": 44,
+        "speed": 1.1,
+        "duty": 0.48,
+        "lift": 0.145,
+        "pelvis": 0.46,
+        "arm": 0.27,
+        "duration_seconds": 0.7333333333333333,
+        "stride_metres": 0.8066666666666668,
+        "pelvis_range_metres": [
+          0.453,
+          0.467
+        ],
+        "loop_matrix_error": 0.0,
+        "flat_stance_residual_metres_per_frame": 1.231829325348821e-08,
+        "contacts": {
+          "L": [
+            {
+              "frame": 0,
+              "ankle": [
+                0.07699999958276749,
+                -0.19359999895095825,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 1,
+              "ankle": [
+                0.07699999958276749,
+                -0.17526666820049286,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 2,
+              "ankle": [
+                0.07699999958276749,
+                -0.15693333745002747,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 3,
+              "ankle": [
+                0.07699999958276749,
+                -0.13860000669956207,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 4,
+              "ankle": [
+                0.07699999958276749,
+                -0.12026666849851608,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 5,
+              "ankle": [
+                0.07699999958276749,
+                -0.10193333029747009,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 6,
+              "ankle": [
+                0.07699999958276749,
+                -0.0835999995470047,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 7,
+              "ankle": [
+                0.07699999958276749,
+                -0.0652666687965393,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 8,
+              "ankle": [
+                0.07699999958276749,
+                -0.046933334320783615,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 9,
+              "ankle": [
+                0.07699999958276749,
+                -0.028599999845027924,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 10,
+              "ankle": [
+                0.07699999958276749,
+                -0.010266666300594807,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 11,
+              "ankle": [
+                0.07699999958276749,
+                0.008066666312515736,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 12,
+              "ankle": [
+                0.07699999958276749,
+                0.026399999856948853,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 13,
+              "ankle": [
+                0.07699999958276749,
+                0.044733334332704544,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 14,
+              "ankle": [
+                0.07699999958276749,
+                0.06306666880846024,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 15,
+              "ankle": [
+                0.07699999958276749,
+                0.08139999955892563,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 16,
+              "ankle": [
+                0.07699999958276749,
+                0.09973333030939102,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 17,
+              "ankle": [
+                0.07699999958276749,
+                0.11806666851043701,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 18,
+              "ankle": [
+                0.07699999958276749,
+                0.1363999992609024,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 19,
+              "ankle": [
+                0.07699999958276749,
+                0.1547333300113678,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 20,
+              "ankle": [
+                0.07699999958276749,
+                0.1730666607618332,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 21,
+              "ankle": [
+                0.07699999958276749,
+                0.19140000641345978,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 44,
+              "ankle": [
+                0.07699999958276749,
+                -0.19359999895095825,
+                0.10999999940395355
+              ]
+            }
+          ],
+          "R": [
+            {
+              "frame": 22,
+              "ankle": [
+                -0.07699999958276749,
+                -0.19359999895095825,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 23,
+              "ankle": [
+                -0.07699999958276749,
+                -0.17526666820049286,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 24,
+              "ankle": [
+                -0.07699999958276749,
+                -0.15693333745002747,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 25,
+              "ankle": [
+                -0.07699999958276749,
+                -0.13860000669956207,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 26,
+              "ankle": [
+                -0.07699999958276749,
+                -0.12026666849851608,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 27,
+              "ankle": [
+                -0.07699999958276749,
+                -0.10193333029747009,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 28,
+              "ankle": [
+                -0.07699999958276749,
+                -0.0835999995470047,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 29,
+              "ankle": [
+                -0.07699999958276749,
+                -0.0652666687965393,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 30,
+              "ankle": [
+                -0.07699999958276749,
+                -0.046933334320783615,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 31,
+              "ankle": [
+                -0.07699999958276749,
+                -0.028599999845027924,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 32,
+              "ankle": [
+                -0.07699999958276749,
+                -0.010266666300594807,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 33,
+              "ankle": [
+                -0.07699999958276749,
+                0.008066666312515736,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 34,
+              "ankle": [
+                -0.07699999958276749,
+                0.026399999856948853,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 35,
+              "ankle": [
+                -0.07699999958276749,
+                0.044733334332704544,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 36,
+              "ankle": [
+                -0.07699999958276749,
+                0.06306666880846024,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 37,
+              "ankle": [
+                -0.07699999958276749,
+                0.08139999955892563,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 38,
+              "ankle": [
+                -0.07699999958276749,
+                0.09973333030939102,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 39,
+              "ankle": [
+                -0.07699999958276749,
+                0.11806666851043701,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 40,
+              "ankle": [
+                -0.07699999958276749,
+                0.1363999992609024,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 41,
+              "ankle": [
+                -0.07699999958276749,
+                0.1547333300113678,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 42,
+              "ankle": [
+                -0.07699999958276749,
+                0.1730666607618332,
+                0.10999999940395355
+              ]
+            },
+            {
+              "frame": 43,
+              "ankle": [
+                -0.07699999958276749,
+                0.19140000641345978,
+                0.10999999940395355
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "terrain_ik": "Runtime ground sampler required; source clips use a flat plane."
+  }
+}

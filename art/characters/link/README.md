@@ -1,80 +1,94 @@
-# Link: local Blender art checkpoint
+# Link: Blender source and runtime candidate
 
-Editable source: `link-study.blend`. Rebuild with `build_link.py` through the installed
-Blender MCP; see `../../../tools/blender/README.md`. The Blender file packs its used images.
-The static, flat-colour `link-study.glb` is for shape review only. It is not a game-ready replacement.
+`link-runtime.blend` is the editable, textured, skinned candidate. `link-runtime.glb` is its
+self-contained game export. The original sculpt and studio remain in `link-study.blend`;
+`build_link.py` creates that sculpt through Blender MCP. See `../../../tools/blender/README.md`.
 
-Current sculpt: **2026-09-13 13:48 UTC** —
-[three-quarter render](progress/2026-09-13_134859/01-three-quarter.png).
-This pass changes the sockets/lids, jaw, hair ribbons, sleeve openings and cloth UVs.
-The static GLB and its validation still describe the earlier **12:55 UTC** study:
-[front](progress/2026-09-13_125545/02-front.png),
-[side](progress/2026-09-13_125545/03-side.png),
-[back](progress/2026-09-13_125545/04-back.png),
-[face](progress/2026-09-13_125545/05-face.png),
-[boots](progress/2026-09-13_125545/06-boots.png).
+The candidate is under visual review and has not yet been integrated into Fable's world.
+It is still below the owner's reference quality. Technical export checks do not award an
+art pass. The remaining work includes facial surface continuity, more natural hair/clothing,
+and motion/contact review under the actual world lighting and terrain sampler.
 
-![Actual Blender three-quarter render](progress/2026-09-13_134859/01-three-quarter.png)
+## Runtime contents
 
-## What is here
+- Four skinned meshes and four opaque PBR materials: skin, hair, eyes, outfit/equipment.
+- 24,133 triangles; 1K hair/eye maps and 2K skin/outfit maps. Base colour,
+  tangent normal and roughness; outfit metalness is packed with roughness during export.
+- Nineteen bones, including `hips`, `chest`, `neck`, `head`, `shoulderL/R`, `elbowL/R`,
+  `handL/R`, `thighL/R`, `kneeL/R`, `ankleL/R`, `toeL/R`, and `cap`.
+- In-place `idle`, `walk`, `run`, and `stairs` clips. Flat-plane stance paths cancel the
+  agreed travel speed; the game still needs terrain adaptation. Walk is a shorter,
+  quicker child stride: 0.88 m / 0.55 s at 1.6 m/s. Run is 2.21 m / 0.567 s at 3.9 m/s.
+- Metres, +Y up / +Z forward in glTF, unit root transform. The sole geometry begins about
+  6.6 mm above zero; the exact rest-space sole offsets are in the browser capture manifest.
 
-- Original child character geometry: facial planes, pointed ears, layered hair, a fitted
-  green cap, tunic, belt, backpack, wooden shield, sheathed sword, fingers and laced boots.
-- Separate editable model parts, procedural skin colour, and CC0 leather/cloth/wood maps.
-- Dated real Cycles renders under `progress/`: body, face and boot views. Manifests record
-  camera values, blend/source hashes and image hashes. These are not game captures or
-  gauntlet score evidence. Later checkpoints include a copy of the generator.
-- `export_check.py` validates evaluated geometry, ground bounds and GLB structure. It
-  evaluates curves before export so stitches and hair fibres are not silently lost.
-  The resulting `validation.json` reports actual triangle/material counts.
+`runtime/validation.json` records the actual GLB hash, mesh/material/triangle counts,
+texture dimensions, finite normalized weights, bounds, and animation loop errors.
+`runtime/pipeline.json` records the source, bake stages, rig and measured contact paths.
 
-## Visual review and remaining work
+## Review
 
-This is an early sculpt, below the owner's stylised-realistic reference quality. The face
-still needs a stronger sculpt and expression pass; the hair masses are too rigid, and the
-clothing needs authored folds, hems, wear and a proper weave bake. Surface detail alone
-cannot make the current anatomy match the reference.
+Latest complete candidate: [18 actual runtime views](progress/2026-09-13T14-48-18-787Z-runtime/manifest.json).
 
-The Blender sculpt is deliberately much denser than the runtime budget. It has no skeleton
-or animation clips. The GLB keeps basic material values and skin vertex colour; it does not
-reproduce Blender's procedural/triplanar material detail. Do not integrate it as final art.
-The next delivery needs retopology, UVs, baked PBR maps, skinning and motion validation.
+![Actual Three.js candidate](progress/2026-09-13T14-48-18-787Z-runtime/01-body.png)
 
-Fable acknowledged character ownership in PR2 on 2026-09-13 at 12:02 UTC and supplied this
-runtime contract (Fable continues all environment work):
+Known visible defects: round eyes, blocky hair, limited cloth folds, and excessive knee/hem
+interaction in the run. This candidate is ready for diagnostic integration, not art acceptance.
 
-- Metres, +Y up, +Z forward, origin at the feet, unit scale; approximately 1.18 m to crown.
-- At most 25,000 triangles, four materials and 2K maps; opaque PBR surfaces.
-- Bones: `hips`, `spine`/`chest`, `neck`, `head`, `shoulderL/R`, `elbowL/R`, `handL/R`,
-  `thighL/R`, `kneeL/R`, `ankleL/R`, `toeL/R`; optional `cap`.
-- Seamless in-place `idle`, `walk`, `run`, `stairs`; travel speeds 0 / 1.6 / 3.9 / 1.1 m/s.
-  Approximate cycle strides: walk 1.2 m, run 2.2 m. Fable translates the root and plants feet.
-- Fable will add a loader with the existing procedural character as fallback when a candidate
-  meets the contract. This first static art export has not reached that point.
+`review.html` loads the actual GLB with Three.js. It offers orbit, front/back/face views,
+and the four animations. Serve the repository root; its import map uses the installed
+Three.js package. `capture_runtime.mjs` creates eighteen dated body/detail/gait images
+with GLB and image hashes, deformed sole heights, and render counts.
 
-The working Blender coordinates are Z-up / -Y forward; the exporter converts to the agreed
-Y-up / +Z-forward convention. The existing movement branch and runtime are untouched.
+The folders ending in `-runtime` are actual Three.js asset reviews, not official game
+captures or gauntlet evidence. The other dated folders contain actual Cycles studio
+renders. None uses a reference picture as scenery or a runtime texture.
 
-## Reference and provenance
+The older `link-study.glb` / `validation.json` pair remains a static, flat-colour **12:55 UTC**
+shape review. It is not the textured runtime candidate. Historical render/source hashes
+are preserved byte for byte, including the Windows source line endings used at capture time.
 
-Compare against `reference/concepts/03_kokiri_hero_link_sheet.jpg` and owner previews 09/10.
-The ten owner previews were recovered from Astra's reference branch. They are never used as
-runtime textures. See `textures/CREDITS.md` for the CC0 material sources.
+## Reproduce on this PC
 
-## Reproduce the checks on this PC
-
-From the repository root, with the hidden Blender session running:
+With the hidden Blender MCP session running, from the repository root:
 
 ```powershell
-& 'E:/Tools/blender-mcp/.venv/Scripts/python.exe' tools/blender/check_connection.py
-& 'E:/Tools/blender-mcp/.venv/Scripts/python.exe' tools/blender/mcp_call.py --script art/characters/link/build_link.py
-1..6 | ForEach-Object {
-  & 'E:/Tools/blender-mcp/.venv/Scripts/python.exe' tools/blender/mcp_call.py --script art/characters/link/render_review.py
-  if ($LASTEXITCODE -ne 0) { throw 'Render failed' }
+$python = 'E:/Tools/blender-mcp/.venv/Scripts/python.exe'
+& $python tools/blender/mcp_call.py --script art/characters/link/build_link.py
+& $python tools/blender/mcp_call.py --script art/characters/link/prepare_runtime.py
+1..13 | ForEach-Object {
+  & $python tools/blender/mcp_call.py --timeout 600 --script art/characters/link/bake_runtime.py
+  if ($LASTEXITCODE -ne 0) { throw 'Bake failed; inspect pipeline.json before retrying' }
 }
-& 'E:/Tools/blender-mcp/.venv/Scripts/python.exe' tools/blender/mcp_call.py --script art/characters/link/export_check.py
+& $python tools/blender/mcp_call.py --script art/characters/link/refine_runtime.py
+& $python tools/blender/mcp_call.py --timeout 600 --script art/characters/link/rig_runtime.py
+& $python tools/blender/mcp_call.py --timeout 600 --script art/characters/link/export_runtime.py
+node art/characters/link/capture_runtime.mjs
 ```
 
-Save any manual edits under another filename before rebuilding: the generator replaces its
-own scene and `link-study.blend`. Other Blender scenes are preserved. No desktop mouse or
-keyboard automation is needed; renders use four CPU threads.
+`prepare_runtime.py --args '{"group":"skin"}'` through the MCP bridge rebuilds just the
+skin atlas meshes and invalidates those three bakes. This preserves the other completed
+maps during facial revisions. The same option accepts the other material group names.
+`refine_runtime.py` applies the nape and iris rest-mesh adjustments once; their UVs remain.
+`rig_runtime.py` retains its deformation-region groups so the rig can be rebuilt repeatedly.
+
+The scalp and garment begin as authored surfaces. Per-component reduction reserves
+geometry for lids and lips; UVs and maps are then baked from the separate source parts.
+The runtime is a reduced art candidate, not a claim of finished deformation topology.
+
+Save manual edits under a separate filename before regenerating. The scripts replace their
+own generated scenes/files. Blender uses four CPU threads and BelowNormal priority;
+no desktop mouse or keyboard automation is involved.
+
+## Ownership and provenance
+
+Astra owns character art; Fable owns the environment and the production loader. The
+runtime contract is in [Fable's PR2 handoff](https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5653137489).
+Fable will review a candidate behind a loader with the procedural Link as fallback.
+The existing movement branch, NPCs and Navi are preserved.
+
+Compare against `reference/concepts/03_kokiri_hero_link_sheet.jpg` and owner previews 09/10.
+All ten published previews are in `reference/owner-concept-previews/`; their manifest hashes
+were verified. The original higher-resolution owner PNGs were not present in Git history.
+Geometry, skin tint and shader patterns are original; scanned material inputs are credited
+CC0 sources in `textures/CREDITS.md`. No Nintendo model or reference-image texture is used.
