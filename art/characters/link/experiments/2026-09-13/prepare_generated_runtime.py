@@ -6,17 +6,20 @@ import bpy, bmesh, json, hashlib, math, struct
 from pathlib import Path
 from mathutils import Matrix
 
-root=Path(__file__).resolve().parent/'generated-runtime'
+job=globals().get('JOB',{});preserve=bool(job.get('preserve_source',False))
+root=Path(__file__).resolve().parent/('source-runtime' if preserve else 'generated-runtime')
 root.mkdir(exist_ok=True)
 assert hashlib.sha256(Path('E:/Tools/blender-mcp/link-runtime-409b603.blend').read_bytes()).hexdigest()=='4b93f2fdb2578640aef04f4fa3a65663178b1711ed00d9ff0db9ca91c6dedc3d'
 source=bpy.data.objects['Link | Rodin Gen25 multiview trial']
-scene=bpy.data.scenes.get('Link | generated runtime')
+scene_name='Link | source runtime' if preserve else 'Link | generated runtime'
+rig_name='Link | source stable rig' if preserve else 'Link | reused stable rig'
+scene=bpy.data.scenes.get(scene_name)
 if scene is None:
-    scene=bpy.data.scenes.new('Link | generated runtime')
+    scene=bpy.data.scenes.new(scene_name)
     with bpy.data.libraries.load('E:/Tools/blender-mcp/link-runtime-409b603.blend',link=False) as (available,loaded):loaded.objects=['LinkRig']
-    rig=loaded.objects[0];rig.name='Link | reused stable rig';scene.collection.objects.link(rig)
+    rig=loaded.objects[0];rig.name=rig_name;scene.collection.objects.link(rig)
 bpy.context.window.scene=scene
-rig=scene.objects['Link | reused stable rig']
+rig=scene.objects[rig_name]
 assert len(rig.data.bones)==19
 assert {t.name for t in rig.animation_data.nla_tracks}=={'idle','walk','run','stairs'}
 assert not any(ob.type=='MESH' for ob in scene.objects), 'Candidate already prepared; inspect before rebuilding'
@@ -26,7 +29,7 @@ for bone in rig.pose.bones:bone.matrix_basis=Matrix.Identity(4)
 rig.data.pose_position='REST'
 scene.render.fps=60;scene.frame_set(0)
 
-model=source.copy();model.data=source.data.copy();model.name='Link | generated candidate'
+model=source.copy();model.data=source.data.copy();model.name='Link | source candidate' if preserve else 'Link | generated candidate'
 scene.collection.objects.link(model)
 # The generator centres the whole backpack/body volume, not the anatomical root.
 knee=[v.co for v in model.data.vertices if .31<=v.co.z<=.36 and v.co.x>.025]
@@ -41,18 +44,20 @@ height_scale=(high-low)/(source_high-source_low);root_offset_z=low-source_low*he
 for vertex in model.data.vertices:
     vertex.co.y+=root_offset_y;vertex.co.z=vertex.co.z*height_scale+root_offset_z
 assert abs(min(v.co.z for v in model.data.vertices)-low)<1e-6
-mesh=bmesh.new();mesh.from_mesh(model.data)
-bmesh.ops.remove_doubles(mesh,verts=list(mesh.verts),dist=1e-7)
-mesh.to_mesh(model.data);mesh.free()
-for polygon in model.data.polygons:polygon.use_smooth=True
+if not preserve:
+    mesh=bmesh.new();mesh.from_mesh(model.data)
+    bmesh.ops.remove_doubles(mesh,verts=list(mesh.verts),dist=1e-7)
+    mesh.to_mesh(model.data);mesh.free()
+    for polygon in model.data.polygons:polygon.use_smooth=True
 bpy.ops.object.select_all(action='DESELECT');model.select_set(True)
 bpy.context.view_layer.objects.active=model
 before=sum(len(p.vertices)-2 for p in model.data.polygons)
-reduce=model.modifiers.new('Runtime reduction','DECIMATE')
-reduce.ratio=min(1,24000/before);reduce.use_collapse_triangulate=True
-bpy.ops.object.modifier_apply(modifier=reduce.name)
+if not preserve:
+    reduce=model.modifiers.new('Runtime reduction','DECIMATE')
+    reduce.ratio=min(1,24000/before);reduce.use_collapse_triangulate=True
+    bpy.ops.object.modifier_apply(modifier=reduce.name)
 triangles=sum(len(p.vertices)-2 for p in model.data.polygons)
-assert 20000<=triangles<=25000,triangles
+assert (triangles==before and triangles<=60000) if preserve else 20000<=triangles<=25000,triangles
 
 # Generated disconnected/nonmanifold details make heat weighting unstable. Reuse the known skin.
 with bpy.data.libraries.load('E:/Tools/blender-mcp/link-runtime-409b603.blend',link=False) as (available,loaded):
@@ -126,6 +131,7 @@ assert len(gltf['skins'])==1 and len(gltf['skins'][0]['joints'])==19
 exported_triangles=sum(gltf['accessors'][p['indices']]['count']//3 for m in gltf['meshes'] for p in m['primitives'])
 assert exported_triangles==triangles
 report={'status':'Unaccepted reduced/skinned candidate; actual GLB motion review required',
+    'source_geometry_preserved':preserve,
     'source_job':'03f2d679-4d9f-412a-a855-25630f526349','rig_source_commit':'409b603',
     'rig_source_blend_sha256':'4b93f2fdb2578640aef04f4fa3a65663178b1711ed00d9ff0db9ca91c6dedc3d',
     'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'triangles':triangles,

@@ -2,20 +2,22 @@
 import bpy,json,hashlib,struct
 from pathlib import Path
 
-root=Path(__file__).resolve().parent/'generated-runtime'
-scene=bpy.data.scenes['Link | generated eye study'];bpy.context.window.scene=scene
+job=globals().get('JOB',{})
+folder=job.get('folder','generated-runtime');assert folder in {'generated-runtime','lid-runtime','source-runtime'}
+root=Path(__file__).resolve().parent/folder
+scene=bpy.data.scenes[job.get('scene','Link | generated eye study')];bpy.context.window.scene=scene
 rig=next(o for o in scene.collection.objects if o.type=='ARMATURE')
 body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name)
 body.name='Link_skin_eye_study_body'
 eyes=[o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' in o.name]
 assert len(eyes)==2 and len(rig.data.bones)==19
+scene.render.fps=60;rig.data.pose_position='REST';bpy.context.view_layer.update()
 bpy.ops.object.select_all(action='DESELECT');body.select_set(True);bpy.context.view_layer.objects.active=body
 if any(len(p.vertices)>3 for p in body.data.polygons):
     triangulate=body.modifiers.new('Triangulate orbital cuts for tangent export','TRIANGULATE')
     triangulate.keep_custom_normals=True
     bpy.ops.object.modifier_apply(modifier=triangulate.name)
 body.data.calc_tangents(uvmap=body.data.uv_layers.active.name)
-scene.render.fps=60;rig.data.pose_position='REST'
 scene.render.engine='CYCLES';scene.cycles.samples=1
 scene.render.threads_mode='FIXED';scene.render.threads=4
 scene.render.bake.use_selected_to_active=False;scene.render.bake.margin=12;scene.render.bake.use_clear=True
@@ -72,6 +74,17 @@ assert error<1e-5,error
 rig.data.pose_position='POSE';rig.animation_data.action=None
 for track in rig.animation_data.nla_tracks:track.mute=True
 scene.frame_set(0)
+# Saved studies need only the live shader graph, not every previous bake image.
+for material in {m for ob in [body,*eyes] for m in ob.data.materials}:
+    nodes=material.node_tree.nodes
+    keep={n for n in nodes if n.type=='OUTPUT_MATERIAL'};pending=list(keep)
+    while pending:
+        for socket in pending.pop().inputs:
+            for link in socket.links:
+                if link.from_node not in keep:keep.add(link.from_node);pending.append(link.from_node)
+    for node in list(nodes):
+        if node not in keep:nodes.remove(node)
+    assert any(n.type=='BSDF_PRINCIPLED' for n in nodes)
 bpy.data.libraries.write(str(root/'eye-candidate.blend'),{scene},fake_user=True,compress=True)
 bpy.ops.object.select_all(action='DESELECT')
 for ob in [rig,body,*eyes]:ob.select_set(True)
@@ -96,12 +109,13 @@ for animation in gltf['animations']:
     durations[animation['name']]=duration
 assert set(durations)==set(expected)
 triangles=sum(gltf['accessors'][p['indices']]['count']//3 for m in gltf['meshes'] for p in m['primitives'])
-assert triangles<27000 and len(gltf['materials'])<=4
+assert triangles<(55000 if folder=='source-runtime' else 27000) and len(gltf['materials'])<=4
 assert all('TANGENT' in p['attributes'] for mesh in gltf['meshes'] for p in mesh['primitives'])
 assert all(len(skin['joints'])==19 for skin in gltf['skins'])
 record={'status':'Baked anatomical eye candidate; actual GLB review required, not adopted',
     'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'triangles':triangles,
     'meshes':len(gltf['meshes']),'materials':len(gltf['materials']),'bones':19,'clip_durations':durations,
-    'weight_sum_error':error,'new_socket_vertices_bound':len(missing),'wrong_face_weights_corrected':wrong_face,'rigid_face_vertices':len(face),'bakes':bakes,'source_candidate_sha256':'493c1c1e62090275c22eff9e3a7c7700da63a7abb0dd300a8d3a49e7cd89e004',
+    'weight_sum_error':error,'new_socket_vertices_bound':len(missing),'wrong_face_weights_corrected':wrong_face,'rigid_face_vertices':len(face),'bakes':bakes,
+    'source_candidate_sha256':json.loads((root.parent/('source-runtime' if folder=='source-runtime' else 'generated-runtime')/'validation.json').read_text())['sha256'],
     'provenance':'Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips.'}
 (root/'eye-validation.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8');print(json.dumps(record))

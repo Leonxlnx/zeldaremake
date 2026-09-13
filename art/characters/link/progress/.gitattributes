@@ -1,0 +1,2 @@
+# Preserve hashed source snapshots; blank diff context lines deliberately contain one space.
+*.diff -text -whitespace

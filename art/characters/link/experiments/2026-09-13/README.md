@@ -31,6 +31,16 @@ The latter also repairs Boolean face weights, checks head-only binding and preve
 socket UVs from overwriting the body colour atlas. Exact history and failed evidence
 are recorded in `.agents/astra-local.md`.
 
+At20:41 UTC, `source-runtime/eye-candidate.glb` preserves the original50K geometry
+(51,440 triangles with native eyes). It avoids reduction and restores original
+triangle-corner normals after the Boolean cuts. Current SHA256
+`00989528b44019ba9340e6da2c0c6f0b4c79d133a472c4cec31db5e238a41a45`.
+Studio18views/363poses pass; world comparison is pending. Use `preserve_source:true`
+with prepare/refine, then `restore_source_normals.py`, then bake with
+`scene:"Link | source eye study",folder:"source-runtime"`.
+The separate lid-runtime folder contains unaccepted ring/normal-bake experiments;
+the fitted-cage image is visibly rejected despite a better normal-pixel metric.
+
 The historical pause checkpoint follows. The owner requested an immediate pause and push before restarting the PC. No further
 modelling or external generation should start until the owner resumes the task.
 

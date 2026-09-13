@@ -4,21 +4,26 @@ from pathlib import Path
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-root=Path(__file__).resolve().parent/'generated-runtime'
-source=bpy.data.scenes['Link | generated runtime']
-assert 'Link | generated eye study' not in bpy.data.scenes
-scene=bpy.data.scenes.new('Link | generated eye study');bpy.context.window.scene=scene
+job=globals().get('JOB',{});preserve=bool(job.get('preserve_source',False))
+root=Path(__file__).resolve().parent/('source-runtime' if preserve else 'generated-runtime')
+source=bpy.data.scenes['Link | source runtime' if preserve else 'Link | generated runtime']
+scene_name='Link | source eye study' if preserve else 'Link | generated eye study'
+assert scene_name not in bpy.data.scenes
+scene=bpy.data.scenes.new(scene_name);bpy.context.window.scene=scene
 scene.world=source.world
 for collection in source.collection.children:scene.collection.children.link(collection)
 copies={}
 for original in source.collection.objects:
     ob=original.copy();ob.data=original.data.copy();scene.collection.objects.link(ob);copies[original.name]=ob
-rig=copies['Link | reused stable rig'];rig.name='Link | eye study rig';rig.data.pose_position='REST'
-model=copies['Link | generated candidate'];model.name='Link | eye study body';model.parent=rig
+rig=copies['Link | source stable rig' if preserve else 'Link | reused stable rig'];rig.name='Link | source eye rig' if preserve else 'Link | eye study rig';rig.data.pose_position='REST'
+model=copies['Link | source candidate' if preserve else 'Link | generated candidate'];model.name='Link | source eye body' if preserve else 'Link | eye study body';model.parent=rig
 for modifier in model.modifiers:
     if modifier.type=='ARMATURE':modifier.object=rig
 scene.camera=copies[source.camera.name]
-points=[Vector(e['point']) for e in json.loads((root/'eye-placement.json').read_text())['eyes']]
+scene.camera.data.type='ORTHO';scene.camera.data.ortho_scale=.46
+scene.camera.location=(.5,-3,1.13)
+scene.camera.rotation_euler=(Vector((0,0,1.015))-scene.camera.location).to_track_quat('-Z','Y').to_euler()
+points=[Vector(e['point']) for e in json.loads((root.parent/'generated-runtime/eye-placement.json').read_text())['eyes']]
 assert points[0].x<0<points[1].x and abs(points[0].z-points[1].z)<.002
 
 material=model.data.materials[0].copy();model.data.materials[0]=material
@@ -33,6 +38,10 @@ tree=BVHTree.FromObject(model,bpy.context.evaluated_depsgraph_get())
 _,_,face_index,_=tree.find_nearest(Vector((-.067,-.10,.938)))
 polygon=model.data.polygons[face_index];uv=model.data.uv_layers.active.data
 skin_uv=sum((uv[i].uv for i in polygon.loop_indices),Vector((0,0)))/len(polygon.loop_indices)
+skin_image=original_colour.node.image
+pixel=(min(int(skin_uv.y*skin_image.size[1]),skin_image.size[1]-1)*skin_image.size[0]+min(int(skin_uv.x*skin_image.size[0]),skin_image.size[0]-1))*4
+colour=[c/12.92 if c<=.04045 else ((c+.055)/1.055)**2.4 for c in skin_image.pixels[pixel:pixel+3]]
+socket.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=(*colour,1)
 skin=nodes.new('ShaderNodeTexImage');skin.image=original_colour.node.image
 sample_uv=nodes.new('ShaderNodeCombineXYZ');sample_uv.inputs['X'].default_value=skin_uv.x;sample_uv.inputs['Y'].default_value=skin_uv.y
 links.new(sample_uv.outputs[0],skin.inputs['Vector'])
@@ -88,7 +97,7 @@ for i,point in enumerate(points):
     for p in globe.data.polygons:p.use_smooth=True
     globe.data.materials.append(eye);eyes.append(globe)
 triangles=sum(len(p.vertices)-2 for ob in [model,*eyes] for p in ob.data.polygons)
-assert before<=triangles<27000,triangles
+assert before<=triangles<(55000 if preserve else 27000),triangles
 scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=True
 scene.render.threads_mode='FIXED';scene.render.threads=4
 scene.render.resolution_x=720;scene.render.resolution_y=820;scene.render.resolution_percentage=100
