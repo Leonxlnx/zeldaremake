@@ -7866,6 +7866,107 @@
       },
       "prevHash": "sha256:c1b31be656b338a2020f019dc47ffc50b85eb0bc4d33598d0f6f019a60ed36cf",
       "hash": "sha256:1d4f1586f132e6762fd83b42ba60b332a7081427d4a643ecf9a2e404a4733ae1"
+    },
+    {
+      "id": "take-0074",
+      "number": 74,
+      "at": "2026-09-13T03:06:40.636Z",
+      "sha": "31e93dff26c468b3f6a3c51d3e671a62f05651bf",
+      "shortSha": "31e93df",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "character: the parts riding on one joint merge into one mesh per material (consolidate.ts) - the rigs drop 182 -> 129 meshes, the character system 269 -> 196 draws in A/B and 311 -> 225 at the free-camera pans; every measured pose is now under the W38 envelope (worst 726 -> 640 calls)",
+      "agent": "fable-cursor",
+      "items": [
+        "W38"
+      ],
+      "note": "Round twenty-one is a budget pass with the images held: a per-system probe at the two free-camera pan poses that still read 726 draw calls (the plaza, and the hedge-sweep start at 1.6 m eye height) put the character system first at 311 calls for 0.05 M triangles - every procedural part was its own shadow-casting mesh under a joint - ahead of vegetation 117, structures 101 and trees 59. The parts riding on one joint now merge into one mesh per material (45 merges over Link and the three kids; joints, materials, vertex data and poses unchanged), so the character system costs 196 calls in A/B (was 269) and the fixed views drop to A 592 / B 576 / C 497 / D 490 / F 556 (from 665 / 649 / 557 / 537 / 629) at the same 7.7-8.0 M triangles; the worst free-camera pose is 640 (was 726), inside the 700 envelope everywhere measured. Pixel differences versus take-0073 are 0-16 per frame (max 22/255, same-material edges inside the merged rigs). Two grouping trials were measured and rejected: merging every structure locality apart pushed A to 711 calls for -100 k unseen triangles in C only; merging only the far log arch apart cost +7 calls in A/B/D for -10 k in C. SSIM is unchanged (A 0.262 / B 0.253 / C 0.306 / D 0.304 / E 0.275 / F 0.268). Still open: the top-of-frame haze and light in A/B against the frames, the hero arch's lit share, and the far-forest layering.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "fail",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:b13c099fd783a42fac98784a356bd9739242069a127bc2b2d1bbd449c0d46275",
+        "B_house": "sha256:039b636d47ea0dfe444f534ee58c8b06b9769dedb17c4fb2ba443a641ae05556",
+        "C_lookback": "sha256:19663217add7f114f49971e195435f46aa94c0fd5778042d56ed60d6cdc1c2ca",
+        "D_log": "sha256:a7ceaa5830990bbf9e0662ccdd484595a5b8c82c70f37e6dd0440d24bd0f4729",
+        "E_ground": "sha256:039b636d47ea0dfe444f534ee58c8b06b9769dedb17c4fb2ba443a641ae05556",
+        "F_canopy": "sha256:969ffe9e7335dbc99c968982a281e0efde8081bcfb79f68e9468cf872ef2ea74"
+      },
+      "distHash": "sha256:0527bc51072e632be0fd165c0e58b713ae35ab9fbd44bcce4368c7ef758e9874",
+      "stats": {
+        "drawCalls": 592,
+        "triangles": 7969716,
+        "captureMs": 611514,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "imported": {
+        "from": "gauntlet/out/take74-cap",
+        "importedAt": "2026-09-13T03:06:59.819Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:1d4f1586f132e6762fd83b42ba60b332a7081427d4a643ecf9a2e404a4733ae1",
+      "hash": "sha256:8cad54e820ab7e906d351428a92e5871b18c19e8dcceea69fbca128f77c5011d"
     }
   ]
 }
