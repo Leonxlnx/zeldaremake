@@ -1,0 +1,20 @@
+{
+  "source": "E:\\zeldaremake\\reference\\generated-link-studies\\2026-09-13\\04-full-body.png",
+  "source_sha256": "615441513e56b0194839a62678cc4606825d2daf84157bf108342f4b505d9ca6",
+  "parameters": {
+    "prompt": "Single coherent character matching this reference exactly. Preserve the compact proportions, natural symmetrical face and eyes, layered hair, cloth cap hanging behind the head, woven garment seams and brown leather ankle boots. Fully model the backpack behind the torso. Neutral symmetric relaxed A-pose suitable for skeletal animation. Separate fingers. Preserve fine surface details.",
+    "tier": "Gen-2",
+    "mesh_mode": "Raw",
+    "quality_override": "50000",
+    "quad_normal": "true",
+    "material": "PBR",
+    "geometry_file_format": "glb",
+    "TAPose": "true",
+    "is_symmetric": "balanced",
+    "detail_level": "3"
+  },
+  "uuid": "79fd16be-3d75-4722-9de1-8637b52f1db8",
+  "status_code": 201,
+  "error": null,
+  "credential": "Bundled public Blender MCP free trial; no private key"
+}

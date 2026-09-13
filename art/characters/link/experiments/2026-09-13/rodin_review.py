@@ -7,6 +7,8 @@ variant=JOB.get('variant','v1')
 scene_name,object_name,task_uuid={
     'v1':('Rodin | isolated trial','Link | Rodin trial','cf1fab9f-9e7e-4a07-886d-69d64511ad54'),
     'v2':('Rodin | second trial','Link | Rodin second trial','61ba180a-9ccf-4951-8708-d7fb1532af9c'),
+    'gen2':('Rodin | Gen2 trial','Link | Rodin Gen2 trial','eba5339e-8faf-474d-8547-0b1e58148777'),
+    'sheet-gen2':('Rodin | original sheet trial','Link | Rodin original sheet trial','e1103326-b72d-46e5-a8db-d729c6335481'),
 }[variant]
 root=Path(__file__).resolve().parent/('rodin-text-'+variant)
 root.mkdir(exist_ok=True)

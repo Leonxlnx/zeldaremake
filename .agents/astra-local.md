@@ -301,3 +301,19 @@ The image tool again blocked both a single full-body reference and a pure crop. 
 Rodin Gen-2 was then submitted through the same bundled free-trial credential, guarded by equality with the public trial constant. HTTP201 accepted uuid eba5339e-8faf-474d-8547-0b1e58148777. Job/subscription state is stored privately outside Git at E:/Tools/blender-mcp/rodin-gen2-job.json. Current scene Rodin | Gen2 trial. No private paid API key used. Poll this existing job, do not resubmit it.
 
 Production repeats: both controls captured at18:12. Only13 pixels changed in each (one GLB pixel max4); existing unchanged gauntlet determinismDiff=0 for both. My arbitrary max-channel<=2 diagnostic was overstrict. capture_integrated now retains that raw diagnostic and exact hashes but checks the existing W41 metric/threshold. Fresh full run18:31 completed: both W41 pair metrics0, exact hashes unequal, raw max GLB5/proc8 and mean.4097/2.7667. This is local image evidence, not a CI gauntlet take. Typecheck/build passed after the capture change.
+
+
+## 2026-09-13 18:57 UTC - Gen-2 review and original-sheet conditioning
+
+8b6e99c pushed the earlier studies and repeat controls. Fable received corrected repeat findings on PR2 comment5655368651; PR8 is updated from paused to resumed. Production preview is restored at http://127.0.0.1:61017/?dev=0&hud=0 using the unmodified94a73c1 checkout. Stable runtime remains409b603.
+
+Text Gen-2 job eba5339e-8faf-474d-8547-0b1e58148777 completed. Actual front, face and back Cycles renders plus raw GLB and scene are preserved in rodin-text-gen2. 500000 triangles / 2K maps improve folds and boots, but close review shows asymmetric eyes, mature proportions, slab hair, rigid brim-like cap and no backpack. Not accepted. There is no ready low-poly download; reduction/baking would be required before runtime use.
+
+The optional script-crop question remains unanswered. Instead, submitted the original complete Kokiri hero sheet byte-for-byte, without any image editing, as Gen-2 image conditioning. Job e1103326-b72d-46e5-a8db-d729c6335481 accepted through the bundled public trial. Its request, original-image SHA256 and exact parameters are in rodin-sheet-gen2-request.json; private subscription state stays E:/Tools/blender-mcp/rodin-sheet-gen2-job.json. Poll that job, do not resubmit. The prompt requests one coherent character using the first front view; the whole-sheet layout may still confuse the generator, so inspect before adopting. No private API credentials or desktop input automation.
+
+
+## 2026-09-13 19:02 UTC - single full-body reference succeeds
+
+The original-sheet 3D job completed but generated every figure and detached equipment. Not usable as one character. It is archived with its exact input/request and a render. A subsequent built-in imagegen request for one fully clothed stylized adventurer succeeded: reference/generated-link-studies/2026-09-13/04-full-body.png (1024x1536). It is generated from the first figure in the original Kokiri sheet, preserves compact proportions, and gives much clearer face/hair/fabric/ankle guidance. Exact prompt and hashes are archived. This resolves the need for the pending script-crop question: no script crop or raster API fallback was performed.
+
+Submitted that single image to Rodin Gen-2, uuid79fd16be-3d75-4722-9de1-8637b52f1db8, targeting50000 triangles with PBR/normal detail and A-pose conditioning. Request provenance is rodin-single-gen2-request.json; private job state E:/Tools/blender-mcp/rodin-single-gen2-job.json. Currently generating; poll this job. Source image quality is not evidence of the generated model's quality. Runtime409b603 remains unchanged. Fresh typecheck/build and review-helper compilation passed.

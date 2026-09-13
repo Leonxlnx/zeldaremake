@@ -20,6 +20,27 @@
       "tier": "Sketch",
       "prompt": "Young Link from Ocarina of Time as a detailed stylized game character. Standing upright in a relaxed A-pose, full body, natural compact child proportions. Friendly face, large blue-green eyes, pointed ears, blond layered hair and a long soft green cap. Green collared tunic, brown belt and shoulder strap, green shorts, bare knees, brown leather boots. Clean isolated character, realistic cloth and leather, neutral studio lighting.",
       "result": "Coherent character, but blurry 512px maps, painted eyes, slab-like hair and poor materials. Native material/normal and actual eye geometry studies remain below target. Not adopted."
+    },
+    {
+      "directory": "rodin-text-gen2",
+      "uuid": "eba5339e-8faf-474d-8547-0b1e58148777",
+      "tier": "Gen-2",
+      "prompt": "Young Link from Ocarina of Time. One fully dressed, compact four-head-tall forest adventurer standing in a relaxed A-pose. Appealing youthful face, blue-green eyes with natural eyelids, small nose, pointed ears, detailed golden layered hair. Soft green cloth cap drooping behind head, worn green collared tunic, leather belt and shoulder strap, green shorts, bare knees, laced brown leather boots. High quality stylized realistic anatomy and fabric, neutral studio light.",
+      "parameters": {
+        "mesh_mode": "Raw",
+        "quality": "medium",
+        "material": "PBR",
+        "geometry_file_format": "glb",
+        "TAPose": "true"
+      },
+      "result": "500000 triangles, 380651 vertices, one material with 2048px diffuse/ORM/normal maps. Cloth and boot detail improve on Sketch, but asymmetric malformed eyes, slab hair, mature proportions and a rigid cap remain unacceptable. Back view confirms the cap resembles a broad rigid brim and the backpack is absent. Not adopted."
+    },
+    {
+      "directory": "rodin-text-sheet-gen2",
+      "uuid": "e1103326-b72d-46e5-a8db-d729c6335481",
+      "tier": "Gen-2",
+      "request": "rodin-sheet-gen2-request.json",
+      "result": "60000 triangles, 84255 vertices, 2K maps. The generator interpreted the complete sheet as multiple separate figures and detached equipment; single-character prompt was insufficient. Front render is clipped by the shared single-character camera. Not adopted."
     }
   ]
 }
