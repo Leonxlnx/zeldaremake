@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Mesh, type PointLight } from 'three';
+import { Group, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildFence, createRopeMaterial } from './fence';
@@ -115,23 +115,50 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
   // unique-material parts; everything else — bark, roof, boughs, fence posts and ropes, lantern
   // posts, door frames, the sign's wood, leaves, vines, tufts — renders as one draw per material.
-  // Distant caps need their own bounds: merging them into the hero roofs' large mesh
-  // makes the old roof bucket intersect look-back cameras even when every roof is offscreen.
-  // Keep material/geometry data shared; only the static draw grouping changes.
-  const distantCaps = new Group();
-  distantCaps.name = 'distant-house-caps';
-  const distantCapMeshes: Mesh[] = [];
-  distant.group.traverse((object) => {
-    const mesh = object as Mesh;
-    if (mesh.isMesh && mesh.material === mats.capMoss) distantCapMeshes.push(mesh);
-  });
-  for (const mesh of distantCapMeshes) distantCaps.attach(mesh);
+  // The distant village is consolidated APART from the hero structures (round 20; round 17 did
+  // this for the caps alone): a hut part merged into a hero bucket stretches that bucket's
+  // bounding sphere from Saria's house out to the 30–47 m huts, and a look-back camera that sees
+  // no hut and no porch then accepts the whole bucket (C_lookback drew Saria's porch recess +
+  // the huts' recesses, +21.8 k triangles / +1 call, through exactly that sphere). So the hero
+  // group is merged with the village detached, the village is merged on its own (one draw per
+  // material: bark, planks, cap moss + the glow singleton), and re-attached. Hero buckets carry
+  // hero data only; material / geometry data stay shared; only the static draw grouping changes.
+  distant.group.removeFromParent();
   const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
-  const capDraws = consolidateStaticMeshes(distantCaps);
-  group.add(distantCaps);
-  draws.before += capDraws.before;
-  draws.after += capDraws.after;
-  draws.merged += capDraws.merged;
+  const distantDraws = consolidateStaticMeshes(distant.group);
+  group.add(distant.group);
+  draws.before += distantDraws.before;
+  draws.after += distantDraws.after;
+  draws.merged += distantDraws.merged;
+  /**
+   * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
+   * draw against — geometry bounding sphere at the identity transform — with its triangle count and
+   * whether it belongs to the hero group or the detached village. A hero bucket whose sphere spans
+   * the village again would show here as a radius ≥ 15 m.
+   */
+  const mergedBuckets = () => {
+    const out: { name: string; group: 'hero' | 'distant'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
+    const visit = (root: Object3D, which: 'hero' | 'distant') => {
+      root.traverse((o) => {
+        const m = o as Mesh;
+        if (!m.isMesh) return;
+        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id))) return;
+        const g = m.geometry;
+        if (!g.boundingSphere) g.computeBoundingSphere();
+        const s = g.boundingSphere!;
+        out.push({
+          name: m.name,
+          group: which,
+          centre: [+s.center.x.toFixed(2), +s.center.y.toFixed(2), +s.center.z.toFixed(2)],
+          radius: +s.radius.toFixed(2),
+          triangles: Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3),
+        });
+      });
+    };
+    visit(group, 'hero');
+    visit(distant.group, 'distant');
+    return out;
+  };
   ctx.progress('structures', 1);
 
   // count real scene facts for the audit (cross-checked against the scene graph)
@@ -223,9 +250,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     distantDegenerateTriangles: distant.degenerateTriangles,
     /** the shared emissive's peak channel (linear); must exceed the height fog's 2.0 far-shade exemption */
     distantGlowPeak: +distantGlowPeak(mats).toFixed(2),
-    /** peak linear channel of each glow tint as rendered (lamps / pods ≥ 2.0 are fog-exempt; the rims are not meant to be) */
+    /** peak linear channel of each glow tint as rendered (lamps / pods ≥ 2.0 are fog-exempt; the reveals and backs are not meant to be) */
     distantGlowTints: distant.glowTintPeaks,
+    /** round 20: the openings' reveals — no emissive rim; lamp-response tints (peak, mouth-row peak and lit share), splay, lamp offsets */
+    distantReveal: distant.reveal,
     distantHouseDetail: distant.audit,
+    /** round 20: every static bucket's culling sphere (centre, radius) + triangles, hero vs the detached village */
+    mergedBuckets: mergedBuckets(),
+    distantDraws: distantDraws.after,
     leaves,
     pointLights: lights.length,
     textureSets: mats.texturedSets,

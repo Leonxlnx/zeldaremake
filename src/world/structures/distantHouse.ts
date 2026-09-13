@@ -11,25 +11,43 @@
  * 55–70 % haze, so what counts is silhouette plus warm emissive points, not bark texture:
  *
  *   - one merged geometry per material per house, in the SAME materials (and shadow flags /
- *     vertex layout) as Saria's house, so `consolidateStaticMeshes` folds them into the bark and
- *     plank draws that already exist (+0 draws; the caps get their own bucket in index.ts so their
- *     bounds stay apart from the hero roofs');
- *   - every window lamp, door lamp, rim and pod of every house in ONE emissive mesh
- *     (`distant-glow`, +1 draw) on `mats.distantGlow` — white × 2.2 linear, the hue in the vertex
- *     tints, so every lamp / pod tint peaks at 2.2 and clears the height fog's far-shade exemption
- *     (heightfog.ts: emissives above 2.0 keep their radiance) and the points still read through the
- *     veil the way the reference's far lantern does. Only the openings' rims are tinted lower
- *     (peak 1.76): warm and lit, not lamps. No point lights.
+ *     vertex layout) as Saria's house — bark (walls, soffit, collars), planks, cap moss — so
+ *     `consolidateStaticMeshes` folds each material into one draw. Round 20: index.ts consolidates
+ *     the whole village apart from the hero structures (its own buckets, its own bounds), because
+ *     a hut part merged into a hero bucket stretched that bucket's bounding sphere over 30–47 m
+ *     and look-back cameras that see no hut drew the whole bucket;
+ *   - every window lamp, door lamp, reveal, recess back and pod of every house in ONE emissive
+ *     mesh (`distant-glow`, +1 draw) on `mats.distantGlow` — white × 2.2 linear, the hue in the
+ *     vertex tints, so every lamp / pod tint peaks at 2.2 and clears the height fog's far-shade
+ *     exemption (heightfog.ts: emissives above 2.0 keep their radiance) and the points still read
+ *     through the veil the way the reference's far lantern does. The reveals are tinted by the
+ *     lamp's fall-off (peak 0.99, see below) and the backs are near-black: lit wood and dark
+ *     recesses, not lamps. No point lights.
  *
  * Openings (round 18): the boards (03 / 04 / 06) and frame 14 s show openings WITH DEPTH — a dark
  * recess behind a warm rim, a lamp inside — where round 16 pasted flat glowing discs on the wall.
  * The wall is now cut (gridSurface cell holes, fine cells around the openings) and each opening is
- * a 0.30 / 0.35 m recess: dark tunnel and back wall on the house's recess bark (`mats.recessBark`
- * — under the wall bark's shade floor a dark tint is lifted to the wall's level), a small lamp
- * disc at 65 % depth, a warm emissive rim conforming to the wall over the cut's edge. Pods are the
- * near lanterns' pod at distant LOD — their teardrop lit body and dark cap profiles (lantern.ts),
- * four dark sepal fins, a stem — hung from a cord that is bracketed to its post (round 16's cords
- * hung 0.12 m off the post tops).
+ * a 0.30 / 0.35 m recess with a small lamp disc at 65 % depth. Pods are the near lanterns' pod at
+ * distant LOD — their teardrop lit body and dark cap profiles (lantern.ts), four dark sepal fins,
+ * a stem — hung from a cord that is bracketed to its post (round 16's cords hung 0.12 m off the
+ * post tops).
+ *
+ * Reveals (round 20). Round 18 ringed each opening with a continuous emissive band (0.14 m, peak
+ * 1.76 linear on the glow material); in the takes those read as luminous graphic outlines — neon
+ * circles and arches — not as wood lit from inside (Astra's review of take 71 / f56). The band is
+ * gone. The reveal is now the recess itself, drawn on the glow material as WOOD RESPONDING TO THE
+ * LAMP: each vertex of the tunnel (and the door's threshold) takes the lamp's irradiance on it —
+ * cos / d² from the lamp disc's centre against the reveal's inward normal — through a tone curve
+ * (`revealTint`: unlit wood 0.044 linear → lit wood 0.99 linear at a 0.2 m reference distance,
+ * always under the fog's 2.0 exemption), times an angular grain (three lobes of hewn end-grain,
+ * finer ripples, two or three dark knots) so no closed circle of one intensity exists. The lamp
+ * hangs HIGH in the recess and a little to one side, so the head and the near jamb are bright and
+ * the sill is dark; the tunnels are SPLAYED (hewn wider outside than in: the window's back radius
+ * is 0.7 × the mouth's, the door's jambs and head step in 8 cm) — seen from the cameras 12–22°
+ * below, a splayed head faces down and out and shows its lit inside, where a straight tunnel
+ * showed only its sill at a grazing angle. The recess backs stay dark (behind the lamp disc); the
+ * cut's ragged cell edge is covered by a bark collar in the wall's own shade (`mats.bark`, +0
+ * draws), not by light. The lamp discs remain the only strongly emissive points (2.2 linear).
  *
  * Hosts: `ctx.shared.trunkSeats` when the trees system has published its column seats (matched
  * by the nearest base to the authored constants below; the hut wall then grows past its authored
@@ -155,10 +173,36 @@ const WINDOW_DEPTH = 0.3;
 const DOOR_DEPTH = 0.35;
 /** the lamp disc's depth into a recess (fraction) */
 const LAMP_DEPTH = 0.65;
-/** the emissive rim's width outside the opening (m) — it also covers the cut's cell edge */
-const RIM_WIDTH = 0.14;
-/** the rim's stand-off from the wall surface (m) */
-const RIM_OUT = 0.015;
+/**
+ * The reveals are hewn wider outside than in (round 20): the window tunnel's radius at the back
+ * over its mouth's, and the door reveal's inset at the back (m, each jamb and over the head).
+ */
+const WINDOW_SPLAY = 0.7;
+const DOOR_SPLAY = 0.08;
+/** the window lamp hangs high in its recess, a little toward the door: offset across / up (fractions of the window radius) */
+const WINDOW_LAMP_OFFSET: [number, number] = [0.12, 0.3];
+/** the door lamp: height (fraction of the door's height) and its lateral offset toward the window (m) */
+const DOOR_LAMP_H = 0.76;
+const DOOR_LAMP_X = 0.1;
+/** the bark collar's width outside the opening (m) — it covers the cut's cell edge (was the emissive rim's width) */
+const COLLAR_WIDTH = 0.14;
+/** the collar's stand-off from the wall surface (m) */
+const COLLAR_OUT = 0.015;
+/**
+ * The reveal's tone curve: irradiance from the lamp (1 / d² at `REVEAL_REF_DIST` m, normal-on) maps
+ * to the lit-wood tint, compressed by `REVEAL_GAMMA`; the unlit wood is `REVEAL_DARK`.
+ */
+const REVEAL_REF_DIST = 0.2;
+const REVEAL_GAMMA = 0.75;
+/** the reveal's peak tint on the × 2.2 material (0.45 → 0.99 linear, under the fog's 1.3–2.0 exemption ramp) */
+const REVEAL_PEAK = 0.45;
+/** a reveal vertex above this (linear, on the material) counts as lit in the audit's mouth-row share (a 0.3 tint) */
+const REVEAL_LIT_LINEAR = 0.66;
+/** the reveal's angular grain: end-grain lobes and knots (fractions of the lit tint) */
+const GRAIN_LOBES = 0.28;
+const GRAIN_RIPPLE = 0.14;
+const KNOT_DEPTH = 0.55;
+const KNOT_WIDTH = 0.22;
 /** wall cells whose centre is within this of an opening are cut (≥ the fine cells' half diagonal) */
 const HOLE_MARGIN = 0.06;
 /** fine / coarse wall cell sizes (m): around the openings / elsewhere */
@@ -178,6 +222,23 @@ export interface DistantHouseBuild {
   hostSource: HostSource | 'mixed';
   /** peak linear channel of each vertex tint on the 2.2 glow material (lamps / pods ≥ 2.0 = fog-exempt) */
   glowTintPeaks: Record<string, number>;
+  /** round 20: how the openings' reveals are drawn (no emissive rim; lamp-response tints, their peaks, the mouth rows' lit share) */
+  reveal: {
+    material: string;
+    /** peak of any emissive band on the wall face outside the openings (linear; 0 — the rims are gone) */
+    emissiveRimPeak: number;
+    /** the reveal tints' peak as built (linear; must stay under the fog's 2.0 exemption) */
+    peakLinear: number;
+    /** the tunnels' mouth rows' peak (linear) — the outer edge of the reveal, meant to be dark */
+    mouthPeakLinear: number;
+    /** mean share of mouth-row vertices lit above `litThresholdLinear` (a closed ring would be 1) */
+    mouthLitShare: number;
+    litThresholdLinear: number;
+    darkLinear: number;
+    splay: { window: number; door: number };
+    lampOffset: { window: [number, number]; door: [number, number] };
+    collar: string;
+  };
   audit: {
     id: string;
     host: string;
@@ -205,6 +266,10 @@ export interface DistantHouseBuild {
     pods: [number, number, number][];
     /** every emissive element (window lamp, door lamp, pods): world centres */
     litPoints: [number, number, number][];
+    /** round 20: this hut's reveal tints — peak, mouth-row peak (linear) and the mouth rows' lit share */
+    revealPeak: number;
+    revealMouthPeak: number;
+    revealMouthLitShare: number;
   }[];
 }
 
@@ -217,8 +282,6 @@ const PLANK: RGB = [0.42, 0.35, 0.27];
 const PLANK_DARK: RGB = [0.26, 0.21, 0.16];
 const WALL: RGB = [0.66, 0.62, 0.55];
 const SOFFIT: RGB = [0.3, 0.27, 0.22];
-/** the recesses' interior: near-black bark, so the opening reads dark behind its rim */
-const RECESS: RGB = [0.1, 0.085, 0.07];
 /** an sRGB hex as a linear tint scaled so its peak channel is `peak` (the glow material is white × 2.2) */
 const tint = (hex: number, peak = 1): RGB => {
   const c = new Color(hex);
@@ -231,8 +294,10 @@ const GLOW_AMBER = tint(0xff9a2a);
 const GLOW_DOOR = tint(0xffb45a);
 /** the lime pods (the near lanterns' 0xd2ee48) */
 const GLOW_LIME = tint(0xd2ee48);
-/** the openings' rims: lit warm, below the lamps and the fog exemption (peak 1.76 on the material) */
-const GLOW_RIM = tint(0xff9a2a, 0.8);
+/** the reveal's lit wood (round 20): the lamp's orange on warm wood, peak REVEAL_PEAK on the material */
+const REVEAL_WOOD = tint(0xffa244, REVEAL_PEAK);
+/** the reveal's unlit wood and the recess backs: near-black warm (0.044 linear on the material) */
+const REVEAL_DARK: RGB = [0.02, 0.016, 0.012];
 /** dark, unlit parts riding in the glow mesh: pod caps and fins, stems */
 const POD_CAP: RGB = [0.05, 0.075, 0.025];
 const POD_STEM: RGB = [0.06, 0.045, 0.03];
@@ -399,6 +464,45 @@ function countDegenerate(geo: BufferGeometry): number {
 
 function triangles(g: BufferGeometry): number {
   return Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+}
+
+/** irradiance from a point lamp at `lamp` on a surface at `p` with inward normal `n`: cos / d² (0 when facing away) */
+function lampIrradiance(lamp: Vector3, p: Vector3, n: Vector3): number {
+  const dx = lamp.x - p.x;
+  const dy = lamp.y - p.y;
+  const dz = lamp.z - p.z;
+  const d2 = Math.max(dx * dx + dy * dy + dz * dz, 1e-4);
+  const cos = (dx * n.x + dy * n.y + dz * n.z) / Math.sqrt(d2);
+  return Math.max(0, cos) / d2;
+}
+
+/**
+ * The reveal's wood under the lamp (round 20): irradiance → lit share through the tone curve, times
+ * the local grain, between the unlit wood and the lit-wood tint. Never above REVEAL_WOOD.
+ */
+function revealTint(irradiance: number, grain: number): RGB {
+  const lit = clamp(Math.pow(Math.min(1, irradiance * REVEAL_REF_DIST * REVEAL_REF_DIST), REVEAL_GAMMA) * grain, 0, 1);
+  return mix(REVEAL_DARK, REVEAL_WOOD, lit);
+}
+
+/**
+ * Angular grain of a hewn reveal, a function of the angle round the opening (or of the position
+ * along the door's edge mapped onto 2π): three end-grain lobes, finer ripples, two or three dark
+ * knots — so the lit band is uneven and broken, never one intensity all round. Draws from `rng`.
+ */
+function revealGrain(rng: Rng): (theta: number) => number {
+  const phase = rng.range(0, TAU);
+  const knots: number[] = [];
+  const n = rng.int(2, 4);
+  for (let i = 0; i < n; i++) knots.push(rng.range(0, TAU));
+  return (theta) => {
+    let g = 0.78 + GRAIN_LOBES * Math.sin(3 * theta + phase) + GRAIN_RIPPLE * Math.sin(7 * theta - 2 * phase) + 0.08 * Math.sin(13 * theta + phase);
+    for (const k of knots) {
+      const d = dAngle(theta, k) / KNOT_WIDTH;
+      g *= 1 - KNOT_DEPTH * Math.exp(-d * d);
+    }
+    return clamp(g, 0.3, 1.2);
+  };
 }
 
 /**
@@ -606,7 +710,12 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
 
     // ---- bark: the wall in two patches — fine cells around the openings (cut where a cell's
     // centre is within HOLE_MARGIN of an opening), coarse cells round the rest — plus the eave
-    // soffit and the recesses' dark tunnels and backs ----
+    // soffit and the collars that cover the cuts' ragged cell edges in the wall's own shade ----
+    /** the wall's vertex shade at angle a and height fraction v (floor → eave) */
+    const wallColor = (a: number, v: number): RGB => {
+      const shade = lerp(0.72, 1, v) * (1 - 0.22 * Math.max(0, Math.sin(2 * a + wobble)));
+      return [WALL[0] * shade, WALL[1] * shade, WALL[2] * shade];
+    };
     const wallPatch = (a0: number, a1: number, cell: { around: number; up: number }, hole?: (a: number, y: number) => boolean) => {
       const cols = Math.max(2, Math.ceil(((a1 - a0) * R) / cell.around));
       const rows = Math.max(2, Math.round(def.wall / cell.up) + 1);
@@ -616,14 +725,13 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           const y = lerp(floorY, eaveY, v);
           wallSurface(a, y, out.position);
           out.uv = [(a * R) / 1.6, (v * def.wall) / 1.6];
-          const shade = lerp(0.72, 1, v) * (1 - 0.22 * Math.max(0, Math.sin(2 * a + wobble)));
-          out.color = [WALL[0] * shade, WALL[1] * shade, WALL[2] * shade];
+          out.color = wallColor(a, v);
         },
         { cols, rows, hole: hole ? (u, v) => hole(lerp(a0, a1, u), lerp(floorY, eaveY, v)) : undefined },
       );
     };
-    const spanWin = (winR + RIM_WIDTH + 0.1) / R;
-    const spanDoor = (doorW / 2 + RIM_WIDTH + 0.1) / R;
+    const spanWin = (winR + COLLAR_WIDTH + 0.1) / R;
+    const spanDoor = (doorW / 2 + COLLAR_WIDTH + 0.1) / R;
     const aFine0 = Math.min(aWin - spanWin, aDoor - spanDoor);
     const aFine1 = Math.max(aWin + spanWin, aDoor + spanDoor);
     const walls = [
@@ -633,24 +741,63 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const eaveR = R + 0.45;
     const soffit = ring(c, R * 0.95, eaveR, eaveY, false, () => SOFFIT, 28, 2);
 
-    // window recess: a dark tunnel from the cut's edge WINDOW_DEPTH in, a dark back disc
+    // ---- the openings' reveals (round 20, see the header): splayed tunnels on the glow material,
+    // each vertex tinted by the lamp's irradiance on it through `revealTint` and the hewn grain;
+    // dark backs; bark collars over the cuts. The grain draws from its own stream so the hut's
+    // wobble / cap / pod draws are unchanged. ----
+    const winGrain = revealGrain(r.fork('reveal/window'));
+    const doorGrain = revealGrain(r.fork('reveal/door'));
+    const _n = new Vector3();
+    const _rad = new Vector3();
+    /** direction of increasing wall angle at the window / door (the reveals' lateral axes) */
+    const winTangent = new Vector3(-Math.sin(aWin), 0, Math.cos(aWin));
+    const doorTangent = new Vector3(-Math.sin(aDoor), 0, Math.cos(aDoor));
+    /** +1 when the door lies at increasing wall angle from the window */
+    const toDoor = Math.sign(dAngle(aDoor, aWin)) || 1;
+
+    // window: the lamp hangs high and toward the door; the tunnel narrows to WINDOW_SPLAY at the back
     const winC = wallSurface(aWin, winY, new Vector3());
+    const winLamp = winC
+      .clone()
+      .addScaledVector(winTangent, toDoor * WINDOW_LAMP_OFFSET[0] * winR)
+      .addScaledVector(facing, -LAMP_DEPTH * WINDOW_DEPTH);
+    winLamp.y += WINDOW_LAMP_OFFSET[1] * winR;
+    const winRadius = (v: number) => winR * lerp(1, WINDOW_SPLAY, v);
+    const winSplaySlope = ((1 - WINDOW_SPLAY) * winR) / WINDOW_DEPTH;
+    const winTunnel = gridSurface(
+      (u, v, out) => {
+        const th = u * TAU;
+        const rr = winRadius(v);
+        wallSurface(aWin + (Math.cos(th) * rr) / R, winY + Math.sin(th) * rr, out.position, COLLAR_OUT * (1 - v)).addScaledVector(facing, -v * WINDOW_DEPTH);
+        out.uv = [(th * winR) / 1.6, (v * WINDOW_DEPTH) / 1.6];
+        // the splayed tunnel's inward normal: toward the axis, tilted out toward the mouth
+        _rad.copy(winTangent).multiplyScalar(Math.cos(th));
+        _rad.y += Math.sin(th);
+        _n.copy(_rad).multiplyScalar(-1).addScaledVector(facing, winSplaySlope).normalize();
+        out.color = revealTint(lampIrradiance(winLamp, out.position, _n), winGrain(th));
+      },
+      { cols: 20, rows: 4, closedU: true },
+    );
     const winBack = winC.clone().addScaledVector(facing, -WINDOW_DEPTH);
-    const winTunnel = faceToward(
+    const winBackDisc = facingDisc(winBack, facing, winRadius(1) + 0.01, REVEAL_DARK, 16);
+    const winCollar = faceToward(
       gridSurface(
         (u, v, out) => {
           const th = u * TAU;
-          wallSurface(aWin + (Math.cos(th) * winR) / R, winY + Math.sin(th) * winR, out.position).addScaledVector(facing, -v * WINDOW_DEPTH);
-          out.uv = [(th * winR) / 1.6, (v * WINDOW_DEPTH) / 1.6];
-          out.color = RECESS;
+          const rr = lerp(winR - 0.01, winR + COLLAR_WIDTH, v);
+          const a = aWin + (Math.cos(th) * rr) / R;
+          const y = winY + Math.sin(th) * rr;
+          wallSurface(a, y, out.position, COLLAR_OUT);
+          out.uv = [(a * R) / 1.6, (y - floorY) / 1.6];
+          out.color = wallColor(a, clamp((y - floorY) / def.wall, 0, 1));
         },
-        { cols: 16, rows: 2, closedU: true },
+        { cols: 20, rows: 2, closedU: true },
       ),
-      winC.clone().addScaledVector(facing, -WINDOW_DEPTH / 2),
+      winC.clone().addScaledVector(facing, 1),
     );
-    const winBackDisc = facingDisc(winBack, facing, winR + 0.01, RECESS, 16);
 
-    // door recess: jambs + arch ceiling as one tunnel, a dark floor, a dark back wall
+    // door: jambs + arch head as one splayed tunnel, a threshold, a dark back; the lamp high under
+    // the head, toward the window
     /** the door outline at s ∈ [0, 1] (left jamb up, over the arch, right jamb down) → local (x, y) and its outward normal */
     const doorEdge = (s: number): { x: number; y: number; nx: number; ny: number } => {
       if (s < 1 / 3) return { x: -doorW / 2, y: (s * 3) * doorHs, nx: -1, ny: 0 };
@@ -660,51 +807,65 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       }
       return { x: doorW / 2, y: (1 - (s * 3 - 2)) * doorHs, nx: 1, ny: 0 };
     };
+    const doorEdgeLen = 2 * doorHs + (Math.PI * doorW) / 2;
     const doorBase = wallSurface(aDoor, floorY + 0.02, new Vector3());
-    const doorAxisMid = wallSurface(aDoor, floorY + doorH / 2, new Vector3()).addScaledVector(doorDir, -DOOR_DEPTH / 2);
-    const doorTunnel = faceToward(
+    const doorLamp = wallSurface(aDoor + (-toDoor * DOOR_LAMP_X) / R, floorY + DOOR_LAMP_H * doorH, new Vector3()).addScaledVector(doorDir, -LAMP_DEPTH * DOOR_DEPTH);
+    const doorSplaySlope = DOOR_SPLAY / DOOR_DEPTH;
+    const doorTunnel = gridSurface(
+      (u, v, out) => {
+        const e = doorEdge(u);
+        const inset = DOOR_SPLAY * v;
+        wallSurface(aDoor + (e.x - e.nx * inset) / R, floorY + Math.max(0, e.y - e.ny * inset), out.position, COLLAR_OUT * (1 - v)).addScaledVector(doorDir, -v * DOOR_DEPTH);
+        out.uv = [(u * doorEdgeLen) / 1.6, (v * DOOR_DEPTH) / 1.6];
+        _n.copy(doorTangent).multiplyScalar(-e.nx);
+        _n.y -= e.ny;
+        _n.addScaledVector(doorDir, doorSplaySlope).normalize();
+        out.color = revealTint(lampIrradiance(doorLamp, out.position, _n), doorGrain(u * TAU));
+      },
+      { cols: 24, rows: 4 },
+    );
+    const doorFloor = gridSurface(
+      (u, v, out) => {
+        const half = doorW / 2 - DOOR_SPLAY * v;
+        wallSurface(aDoor + lerp(-half, half, u) / R, floorY + 0.015, out.position).addScaledVector(doorDir, -v * DOOR_DEPTH);
+        out.uv = [u * doorW, (v * DOOR_DEPTH) / 1.6];
+        _n.set(0, 1, 0);
+        out.color = revealTint(lampIrradiance(doorLamp, out.position, _n), 0.8);
+      },
+      { cols: 2, rows: 2 },
+    );
+    const doorBackW = doorW + 0.02 - 2 * DOOR_SPLAY;
+    const doorBack = archFan(doorBase.clone().addScaledVector(doorDir, -DOOR_DEPTH), doorDir, doorBackW, doorHs + doorBackW / 2, REVEAL_DARK);
+    const doorCollar = faceToward(
       gridSurface(
         (u, v, out) => {
           const e = doorEdge(u);
-          wallSurface(aDoor + e.x / R, floorY + e.y, out.position).addScaledVector(doorDir, -v * DOOR_DEPTH);
-          out.uv = [(u * (2 * doorHs + (Math.PI * doorW) / 2)) / 1.6, (v * DOOR_DEPTH) / 1.6];
-          out.color = RECESS;
+          const t = lerp(-0.01, COLLAR_WIDTH, v);
+          const a = aDoor + (e.x + e.nx * t) / R;
+          const y = floorY + Math.max(0, e.y + e.ny * t);
+          wallSurface(a, y, out.position, COLLAR_OUT);
+          out.uv = [(a * R) / 1.6, (y - floorY) / 1.6];
+          out.color = wallColor(a, clamp((y - floorY) / def.wall, 0, 1));
         },
         { cols: 24, rows: 2 },
       ),
-      doorAxisMid,
+      doorBase.clone().setY(floorY + doorH / 2).addScaledVector(doorDir, 1),
     );
-    const doorFloor = faceToward(
-      gridSurface(
-        (u, v, out) => {
-          wallSurface(aDoor + (lerp(-doorW / 2, doorW / 2, u) - 0.03 * (u - 0.5) * 2) / R, floorY + 0.015, out.position).addScaledVector(doorDir, -v * DOOR_DEPTH);
-          out.uv = [u * doorW, (v * DOOR_DEPTH) / 1.6];
-          out.color = RECESS;
-        },
-        { cols: 2, rows: 2 },
-      ),
-      doorAxisMid,
-    );
-    const doorBack = archFan(doorBase.clone().addScaledVector(doorDir, -DOOR_DEPTH), doorDir, doorW + 0.02, doorH - 0.01, RECESS);
+    // the reveal's tints as built (audit): its peak, the mouth row's peak and the share of the mouth
+    // row that is lit above REVEAL_LIT_LINEAR — the in-scene proxy for a closed ring
+    const glowPeak = distantGlowPeak(mats);
+    const revealPeak = Math.max(tintPeak(winTunnel, glowPeak), tintPeak(doorTunnel, glowPeak));
+    const mouthPeak = Math.max(tintPeak(winTunnel, glowPeak, 21), tintPeak(doorTunnel, glowPeak, 24));
+    const mouthLit = (tintLitShare(winTunnel, glowPeak, 21, REVEAL_LIT_LINEAR) + tintLitShare(doorTunnel, glowPeak, 24, REVEAL_LIT_LINEAR)) / 2;
+    glowParts.push(winTunnel, winBackDisc, doorTunnel, doorFloor, doorBack);
 
-    const barkGeo = merge([...walls, soffit]);
+    const barkGeo = merge([...walls, soffit, winCollar, doorCollar]);
     const barkMesh = new Mesh(barkGeo, mats.bark);
     barkMesh.name = `distant-house-bark:${def.id}`;
     barkMesh.castShadow = barkMesh.receiveShadow = true;
     group.add(barkMesh);
     tris += triangles(barkGeo);
     degenerate += countDegenerate(barkGeo);
-    // the recesses on the house's recess bark (RECESS_BARK_FLOOR, a fifth of the wall's shade
-    // floor): on `bark` the floor pinned the dark tunnels to the wall's own level (probe: interior
-    // L64 against the wall's L72 — the openings read as uncut wall); the porch's bucket folds
-    // these in (+0 draws)
-    const recessGeo = merge([winTunnel, winBackDisc, doorTunnel, doorFloor, doorBack]);
-    const recessMesh = new Mesh(recessGeo, mats.recessBark);
-    recessMesh.name = `distant-house-recess:${def.id}`;
-    recessMesh.castShadow = recessMesh.receiveShadow = true;
-    group.add(recessMesh);
-    tris += triangles(recessGeo);
-    degenerate += countDegenerate(recessGeo);
 
     // ---- cap moss: a low dome curling down at the rim, the trunk rising through its crown; the
     // pole row's collapsed triangles are dropped (round 18: 28 zero-area fans per cap before) ----
@@ -793,36 +954,9 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const winFront = wallAt(facing, winY, 0.06);
     plankParts.push(bar(winFront.clone().addScaledVector(winRight, -winR), winFront.clone().addScaledVector(winRight, winR), 0.06, PLANK_DARK));
     plankParts.push(bar(winFront.clone().setY(winY - winR), winFront.clone().setY(winY + winR), 0.06, PLANK_DARK));
-    const winLamp = winC.clone().addScaledVector(facing, -LAMP_DEPTH * WINDOW_DEPTH);
+    // the lamp discs — the only strongly emissive points of the openings (2.2 linear, fog-exempt)
     glowParts.push(facingDisc(winLamp, facing, winR * 0.3, GLOW_AMBER, 12));
-    glowParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const th = u * TAU;
-          const rr = lerp(winR - 0.02, winR + RIM_WIDTH, v);
-          wallSurface(aWin + (Math.cos(th) * rr) / R, winY + Math.sin(th) * rr, out.position, RIM_OUT);
-          out.uv = [Math.cos(th) * rr, Math.sin(th) * rr];
-          out.color = GLOW_RIM;
-        },
-        { cols: 20, rows: 2, closedU: true },
-      ),
-    );
-
-    // door: the lamp disc 65 % in under the arch, the warm rim band round the cut
-    const doorLamp = wallSurface(aDoor, floorY + 0.72 * doorH, new Vector3()).addScaledVector(doorDir, -LAMP_DEPTH * DOOR_DEPTH);
     glowParts.push(facingDisc(doorLamp, doorDir, 0.09, GLOW_DOOR, 10));
-    glowParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const e = doorEdge(u);
-          const t = lerp(-0.02, RIM_WIDTH, v);
-          wallSurface(aDoor + (e.x + e.nx * t) / R, floorY + Math.max(0, e.y + e.ny * t), out.position, RIM_OUT);
-          out.uv = [u * 4, v];
-          out.color = GLOW_RIM;
-        },
-        { cols: 24, rows: 2 },
-      ),
-    );
 
     // pods: on the walkway's end post, under the eave between window and door, on the mid post;
     // each cord is bracketed to its post top (round 16 hung them 0.12 m off the posts)
@@ -878,6 +1012,9 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       lamps: [p3(winLamp), p3(doorLamp)],
       pods: pods.map(p3),
       litPoints: [winLamp, doorLamp, ...pods].map(p3),
+      revealPeak: +revealPeak.toFixed(2),
+      revealMouthPeak: +mouthPeak.toFixed(2),
+      revealMouthLitShare: +mouthLit.toFixed(2),
     });
   }
 
@@ -891,16 +1028,51 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
 
   const shared = audit.filter((a) => a.hostSource === 'shared').length;
   const peak = distantGlowPeak(mats);
-  const tintPeak = (t: RGB) => +(Math.max(t[0], t[1], t[2]) * peak).toFixed(2);
+  const constPeak = (t: RGB) => +(Math.max(t[0], t[1], t[2]) * peak).toFixed(2);
   return {
     group,
     glow,
     triangles: tris,
     degenerateTriangles: degenerate,
     hostSource: shared === audit.length ? 'shared' : shared === 0 ? 'constants' : 'mixed',
-    glowTintPeaks: { amber: tintPeak(GLOW_AMBER), door: tintPeak(GLOW_DOOR), lime: tintPeak(GLOW_LIME), rim: tintPeak(GLOW_RIM) },
+    glowTintPeaks: { amber: constPeak(GLOW_AMBER), door: constPeak(GLOW_DOOR), lime: constPeak(GLOW_LIME), reveal: constPeak(REVEAL_WOOD), revealDark: constPeak(REVEAL_DARK) },
+    reveal: {
+      material: 'distant-glow (white × 2.2, lamp-response vertex tints)',
+      emissiveRimPeak: 0,
+      peakLinear: +Math.max(...audit.map((a) => a.revealPeak)).toFixed(2),
+      mouthPeakLinear: +Math.max(...audit.map((a) => a.revealMouthPeak)).toFixed(2),
+      mouthLitShare: +(audit.reduce((s, a) => s + a.revealMouthLitShare, 0) / Math.max(1, audit.length)).toFixed(2),
+      litThresholdLinear: REVEAL_LIT_LINEAR,
+      darkLinear: constPeak(REVEAL_DARK),
+      splay: { window: WINDOW_SPLAY, door: DOOR_SPLAY },
+      lampOffset: { window: WINDOW_LAMP_OFFSET, door: [DOOR_LAMP_X, DOOR_LAMP_H] },
+      collar: 'bark (wall shade), +0 draws',
+    },
     audit,
   };
+}
+
+/**
+ * Peak linear channel of a glow part's vertex tints on the × `materialPeak` material, over every
+ * vertex or over the first `count` (a gridSurface's first row: the tunnel's mouth).
+ */
+function tintPeak(geo: BufferGeometry, materialPeak: number, count?: number): number {
+  const col = geo.attributes.color;
+  if (!col) return 0;
+  const n = count === undefined ? col.count : Math.min(count, col.count);
+  let peak = 0;
+  for (let i = 0; i < n; i++) peak = Math.max(peak, col.getX(i), col.getY(i), col.getZ(i));
+  return peak * materialPeak;
+}
+
+/** share of the first `count` vertices whose linear peak exceeds `threshold` (the mouth row's lit share) */
+function tintLitShare(geo: BufferGeometry, materialPeak: number, count: number, threshold: number): number {
+  const col = geo.attributes.color;
+  if (!col) return 0;
+  const n = Math.min(count, col.count);
+  let lit = 0;
+  for (let i = 0; i < n; i++) if (Math.max(col.getX(i), col.getY(i), col.getZ(i)) * materialPeak > threshold) lit++;
+  return n ? lit / n : 0;
 }
 
 /** peak channel of the shared emissive (audit: it must clear the height fog's 2.0 far-shade exemption) */

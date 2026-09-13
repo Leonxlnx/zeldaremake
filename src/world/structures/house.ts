@@ -1907,20 +1907,31 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // pillars' feet stood: B x ≈ 0.70 (in front of the left jamb leg, outside the opening's inner
   // face and clear of the round window at x 0.64–0.675) and ≈ 0.91, the reference's thick right
   // root. Knotted like the arch, welded, mossy on top; the cap's vines hang from where each
-  // leaves the arch (`pillarTops`). ----
+  // leaves the arch (`pillarTops`). Round 20: the right foot moves from door-space (2.5, 3.7),
+  // where the terrain is 2.58 m above the sill and the leg read as a stub in B, out to
+  // (2.35, 5.5), where it is ≈ 1.9 m — the same shoulder knot, a longer visible leg (≥ 1.2 m in
+  // B), still clear of the main stair's edge. The left buttress, the door, arch and window are
+  // untouched. ----
   const pillarRng = rng.fork('pillars');
   const pillarTops: { top: Vector3; foot: P3; side: -1 | 1; footRadius: number }[] = [];
   for (const side of [-1, 1] as const) {
     const jit6 = () => (pillarRng() - 0.5) * 0.06 * k;
-    const wFoot = side < 0 ? -2.05 * k : 2.5 * k;
-    const dFoot = side < 0 ? 4.05 * k : 3.7 * k;
+    const wFoot = side < 0 ? -2.05 * k : 2.35 * k;
+    const dFoot = side < 0 ? 4.05 * k : 5.5 * k;
     const foot = frame.door(wFoot, 0, dFoot);
     foot.y = terrain.height(foot.x, foot.z);
     const start = archShoulder(side);
+    // (the pillarRng draws stay in round 19's order: waypoint 1, waypoint 2, then the buried tip)
+    const shoulderOut = frame.door(lateralOf(start) + side * 0.3 * k + jit6(), 2.25 * k, 3.75 * k + jit6());
+    // the third waypoint: the left one as in round 19; the right one hangs off the (lower,
+    // further) foot so the root arrives at the ground from above instead of through it
+    const knee = side < 0
+      ? frame.door(wFoot - side * 0.12 * k + jit6(), 1.2 * k, dFoot - 0.05 * k + jit6())
+      : frame.door(wFoot - side * 0.12 * k + jit6(), heightOf(foot) + 0.55 * k, dFoot - 0.4 * k + jit6());
     const pts = [
       start,
-      frame.door(lateralOf(start) + side * 0.3 * k + jit6(), 2.25 * k, 3.75 * k + jit6()),
-      frame.door(wFoot - side * 0.12 * k + jit6(), 1.2 * k, dFoot - 0.05 * k + jit6()),
+      shoulderOut,
+      knee,
       foot,
       foot.clone().setY(foot.y - 0.45 * k).add(new Vector3(jit6(), 0, jit6())),
     ];
