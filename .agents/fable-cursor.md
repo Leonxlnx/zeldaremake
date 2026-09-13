@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T13:35:00Z
+updated: 2026-09-13T15:35:00Z
 ---
 
 # fable-cursor — work log
@@ -1187,6 +1187,29 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   D, the A/B camera distance, the D boulder radius; (3) the triangle budget — 8.8 M in A of 9 M:
   a LOD/packing pass before more geometry lands.
 
+### 15:35 UTC — tick 65: take-0081 published (monitor `6a811ec`), valid; round twenty-six (light)
+- `e591006` atmosphere-8, the first owned lighting pass: hemiGround 2× (0x7d7860 → 0xaba687) —
+  every view up (A 0.2679, B 0.2446, C 0.3070 best, D 0.3015, E 0.2728, F 0.2740); B top-left box
+  0.308 → 0.348 (frame 0.431), top band 0.327 → 0.360 (0.351). Diagnosed and left as
+  parameters: the near-veil terms (thin mid air 0.010 /m over 8–15 m + a 0.75 dim window 9–21 m)
+  reach the frame's dark floor on Saria's trunk (p10 0.213 vs 0.209) but cost A/D/E/F 0.004–0.009
+  by exposing the under-lit 10–24 m mid-ground → neutral until the crowns open. B's path slabs are
+  provably sunlit and shaded by the giants' crowns (Lambert: 60 % shade / 34 % penumbra / 6 % sun;
+  hiding the crowns reproduces the frame's p50/p90/lit exactly) → trees-18 running (attribute per
+  giant/bough by hiding, open into 1–3 m pools, keep F's dark left edge, no triangles added).
+  Rejected with numbers: bloom as glare (the frame has no halo), 3× bounce.
+- Local Astra's skinned Link candidate `17adcb3` (24,133 tris, 4 materials, 19 bones, four clips
+  with measured stride/cycle) → character-3 running: GLB under public/models/link with
+  provenance, loader with procedural fallback (`?link=proc`), deterministic mixer from sim time,
+  rate = speed ÷ (stride ÷ cycle), grounding on the existing sampler, head look-at, audit, her
+  serveStatic repair adopted. Reviewed her `fb63e4f` face on PR #8 (eyes still round, brows,
+  cheeks, hair flow); answered the stride question (no fixed duration; manifest stride/cycle).
+- take-0081: 23/50; draws 492–595; tris 8.3–8.8 M (budget pass still owed).
+- Three biggest remaining gaps → (1) the crowns over B's path (running) then the veil terms;
+  (2) Link's replacement (running) and its art gaps (eyes, hair, cloth) on Astra's side;
+  (3) the triangle budget and the layout calls (terrace boulder in D, log arch size in D, A/B
+  camera distance, D boulder radius).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1225,4 +1248,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T13:35:00Z
+2026-09-13T15:35:00Z
