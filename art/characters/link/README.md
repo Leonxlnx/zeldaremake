@@ -49,6 +49,22 @@ The older `link-study.glb` / `validation.json` pair remains a static, flat-colou
 shape review. It is not the textured runtime candidate. Historical render/source hashes
 are preserved byte for byte, including the Windows source line endings used at capture time.
 
+## Comparison inside Fable's world
+
+[Six existing/candidate pairs](progress/2026-09-13T15-26-26-214Z-world-review/manifest.json)
+use world commit e591006 and asset 41b9cdf on the Radeon 780M. This is an isolated diagnostic
+overlay: it follows the original character root and shows the candidate's idle clip. It does
+not implement terrain IK, replace the production loader, or constitute a gauntlet take.
+The exact overlay and modified entrypoint are saved beside the images.
+
+| Existing Link | Blender candidate |
+| --- | --- |
+| ![Existing](progress/2026-09-13T15-26-26-214Z-world-review/C_lookback-existing.png) | ![Candidate](progress/2026-09-13T15-26-26-214Z-world-review/C_lookback-candidate.png) |
+
+All six views save 69 draw calls; A changes from 595 / 8,830,884 triangles to 526 / 8,860,508.
+The detail and silhouette improve, but hair, cloth and face likeness remain below the targets.
+`capture_world.mjs` documents the isolated checkout setup; `world_review.ts` is its art overlay.
+
 ## Reproduce on this PC
 
 With the hidden Blender MCP session running, from the repository root:

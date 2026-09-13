@@ -149,3 +149,21 @@ report a widespread projection defect from the stale cache result. Source face i
 than the reduced runtime; continue art and evaluate in Fable's real world lighting.
 Next root garment correction: remove the tunic's closed bottom, add the inner garment,
 and check high-knee poses. Typecheck/build and HTTP regression pass. C01/C02 renewed 15:11Z.
+
+## 2026-09-13 15:29 UTC — first actual world comparison
+
+Created detached E:/zeldaremake-world-review at Fable e591006, shared installed node_modules
+through a junction, and built a diagnostic overlay using the published 41b9cdf GLB. Only
+that scratch checkout's entrypoint imports/installs the art overlay. Fable's production
+loader is untouched. Captures use real Radeon 780M / D3D11, no desktop input.
+
+Twelve verified existing/candidate images: progress/2026-09-13T15-26-26-214Z-world-review.
+All six views save 69 calls; A 595 / 8,830,884 triangles -> 526 / 8,860,508. Actual source
+entrypoint/overlay saved with the images. The candidate idles and inherits the original
+root placement; this is appearance evidence, not candidate terrain IK or a gauntlet take.
+Clothing/boot anatomy and face improve in context; reference quality is not reached.
+
+Current garment work remains uncommitted and baking: open tunic hem/neck, inner shorts,
+extended upper legs, cloth folds/lacing and open boot cuffs. Source render 151956 exists.
+Finish the seven new skin/outfit bakes, rerig/export/capture and inspect the high-knee pose.
+No stop or goal-complete claim.
