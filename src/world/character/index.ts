@@ -21,6 +21,7 @@ import { createNavi, TRAIL_COUNT } from './navi';
 import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
+import { consolidateRigParts } from './consolidate';
 
 type Mode = 'view' | 'free' | 'play';
 
@@ -69,6 +70,16 @@ export function create(ctx: WorldContext): WorldSystem {
     const shadow = createContactShadow(0.3, 0.6);
     group.add(char.group, shadow);
     kids.push({ char, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
+  }
+
+  // draw-call budget (W38): the parts riding on one joint merge into one mesh per material — the
+  // procedural rigs otherwise cost 269–311 calls with the shadow pass (consolidate.ts)
+  const rigDraws = { before: 0, after: 0, merged: 0 };
+  for (const c of [link.char, ...kids.map((k) => k.char)]) {
+    const r = consolidateRigParts(c.group);
+    rigDraws.before += r.before;
+    rigDraws.after += r.after;
+    rigDraws.merged += r.merged;
   }
 
   const navi = createNavi();
@@ -254,6 +265,10 @@ export function create(ctx: WorldContext): WorldSystem {
       geometry: 'procedural-v1',
       triangles: countTriangles(),
       linkTriangles: link.char.triangles,
+      /** rig meshes before / after the per-joint merge (consolidate.ts), and the merged meshes made */
+      rigMeshesBeforeMerge: rigDraws.before,
+      rigMeshes: rigDraws.after,
+      rigMergedMeshes: rigDraws.merged,
       mode,
       view,
       linkGait: link.gait,
