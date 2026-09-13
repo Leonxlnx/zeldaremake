@@ -85,6 +85,6 @@ record['stage']='PBR baked, awaiting rig' if len(record['bakes'])==len(jobs) els
 scene['pipeline']=json.dumps(record)
 scene['status']=record['stage']
 (ROOT/'runtime/pipeline.json').write_text(json.dumps(record,indent=2))
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'link-runtime.blend'),compress=True)
+bpy.data.libraries.write(str(ROOT/'link-runtime.blend'),{scene},fake_user=True,compress=True)
 assert Path(im.filepath_raw).stat().st_size>1000
 print(json.dumps({'baked':key,'resolution':size,'completed':len(record['bakes']),'total':len(jobs)}))

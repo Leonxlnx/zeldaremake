@@ -239,3 +239,49 @@ are CC0 per its LICENSE.md, code GPLv3. No MPFB asset has entered this delivered
 Study source/runtime files are currently under E:/Tools/blender-mcp only. Fable latest
 pushed log remains f92a384/take0081 with production character integration running. Goal
 remains active; source art and actual integrated world quality are still below target.
+
+
+## 2026-09-13 17:14 UTC - stable handoff and recovered viewport crash
+
+409b603 pushed; PR8 updated and Fable informed on PR2 comment5654705714. Typecheck/
+build passed. Fable remote still f92a384/tick65 at the latest fetch; integration
+commit is not yet published. The delivered GLB remains 281895fe.../24,108 triangles.
+
+New uncommitted pipeline work moves cap/nape/boot rest shaping into build_link
+before reduction and baking. Runtime refinement now only validates/repairs tiny
+collapsed triangles and undefined tangents. Native scene-only .blend writing
+reduced source from 74,514,199 to 7,857,469 bytes. A fresh load verified both
+continuous leather uppers have minimum Z .022 m. Rebuild/bakes are still pending;
+this code change is not yet a new validated runtime candidate.
+
+At approximately 17:10 UTC the long-running hidden Blender PID22288 crashed in
+DEG_iterator_objects_next / DRW_cache_free_old_batches while redrawing its viewport
+after source regeneration. All completed .blend files and the stable GitHub asset
+were preserved. Restarted hidden PID21648 from the new link-study.blend; two MCP
+queries passed. start_session.py now changes unused VIEW_3D areas to CONSOLE to
+avoid that draw path. No mouse/keyboard automation. Source render helpers now
+use explicit paths instead of relying on bpy.data.filepath.
+
+MPFB CC0 anatomy trials v1-v4 remain E:/Tools/blender-mcp/*.blend and matching PNGs.
+They improve anatomical continuity but are still too mature/puffy and are not in
+the delivered model. The v5 experiment corrects a midline discontinuity in my
+symmetric eye-enlargement field (sum both smooth fields; assert centre stays zero).
+V5 is rendering after recovery. No art acceptance claim; goal continues.
+
+
+## 2026-09-13 17:32 UTC - owner rejects current art; generated references
+
+Owner: "bruder kannst du dir selber mal paar bilder genererein von link oder so damit du referenz hast weil deine scheiße sieht echt kacke aus". Acknowledge the gap and do not present tiny mesh edits as reference quality. Used imagegen skill/built-in tool; three successful boards saved and pushed in 7ea68fa, reference/generated-link-studies/2026-09-13. Head is too mature for final proportions (hair/material reference only), plus good boot and clothing/equipment boards. Original Kokiri hero sheet still sets proportions. Exact prompts, SHA256s, dimensions and limitations are committed. Closer child head and full-body generations were blocked by image tool output moderation; do not claim those exist. No fallback API was used.
+
+Fable informed on PR2 comment5654848855. Last validated runtime still 409b603, 24,108 triangles. New local runtime was prepared at 17:14 with zero completed bakes; then source hair was changed again. Therefore current local .blend/pipeline are WORK IN PROGRESS and need preparation/baking before export. Stable GLB and its validation remain unchanged. Do not stage all these files as a finished candidate.
+
+Thin layered mesh-ribbon hair trial rendered progress/2026-09-13_172504/05-face.png. Still reads as solid leaves and is not accepted. MPFB head trials through v6 are under E:/Tools/blender-mcp; v6 uses native eye scale 2.7 and closes the neck cut, but still looks mature/puffy. No MPFB asset has entered delivered Link. Hair/face need a real construction change rather than repeated cosmetic tweaks.
+
+Downloaded native MPFB hair-editor CC0 pack by Tomas Klecer, https://files.makehumancommunity.org/functional/haireditor.zip, SHA256 39420056faba6aaa0726a5168c9c41f2d01e278a12e216c0385e8f13d4d98ab7. Extracted safely to E:/Tools/mpfb-assets/haireditor. Official source https://static.makehumancommunity.org/assets/assetpacks/haireditor.html; pack catalogue declares functional assets CC0. This provides true curve hair and a native hair-card generation operator, so test it before inventing a groom system.
+
+Loaded basic_short_hair into scene 'CC0 | hair template study' (3506 guide points, native modifiers). Current render session tests it with the original face/outfit at E:/Tools/blender-mcp/link-native-hair-trial.png. No adoption yet. Hyper3D status was queried: disabled. No generation service was enabled or called, no API credential accessed. Goal active, no Computer Use; hidden Blender PID21648 remains responsive after disabling unused VIEW_3D redraws.
+
+
+## 2026-09-13 17:52 UTC - owner pauses for PC restart
+
+Owner requested stop and push all work. Modelling and generation stopped. All pending repository work and historical untracked progress are preserved as an explicitly unfinished checkpoint. art/characters/link/experiments/2026-09-13/README.md is the restart handoff; restart-session.blend saves all five live scenes (15 MB). Current source and prepared runtime are WIP; delivered GLB remains unchanged at 409b603. Latest production integration is Fable94a73c1, captured with the real loader. 17:39 review completed with small nonzero repeat differences; 17:44 review failed the max-two-level tolerance before reaching the procedural control. No determinism pass. Hyper3D only inspected and remains disabled, no generation submitted. Typecheck/build passed for this checkpoint. Do not resume modelling until the owner returns.

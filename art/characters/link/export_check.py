@@ -6,7 +6,8 @@ import struct
 from pathlib import Path
 from mathutils import Vector
 
-root=Path(bpy.data.filepath).parent
+root=Path(__file__).resolve().parent
+bpy.context.window.scene=bpy.data.scenes['Link | Blender art study']
 collection=next((c for c in bpy.context.scene.collection.children if c.name.startswith('LINK | original model')),None)
 assert collection and len(collection.objects)>100, 'Missing character parts'
 bpy.context.view_layer.update()

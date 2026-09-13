@@ -1,0 +1,379 @@
+{
+  "guides": 252,
+  "evaluated_curves": 10191,
+  "evaluated_points": 621651,
+  "modifiers": [
+    {
+      "name": "GeometryNodes",
+      "group": "Geometry Nodes.003",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Socket_0",
+          "default": "None"
+        }
+      ]
+    },
+    {
+      "name": "Set Hair Curve Profile",
+      "group": "Set Hair Curve Profile.001",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Input_0",
+          "default": "None"
+        },
+        {
+          "name": "Replace Radius",
+          "id": "Input_6",
+          "default": "True"
+        },
+        {
+          "name": "Radius",
+          "id": "Input_3",
+          "default": "0.009999999776482582"
+        },
+        {
+          "name": "Shape",
+          "id": "Input_2",
+          "default": "0.4999999403953552"
+        },
+        {
+          "name": "Factor Min",
+          "id": "Input_4",
+          "default": "0.0"
+        },
+        {
+          "name": "Factor Max",
+          "id": "Input_5",
+          "default": "1.0"
+        },
+        {
+          "name": "Density",
+          "id": "Socket_0",
+          "default": "0.0"
+        },
+        {
+          "name": "Length",
+          "id": "Socket_1",
+          "default": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "Curl Hair Curves",
+      "group": "Curl Hair Curves.001",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Input_0",
+          "default": "None"
+        },
+        {
+          "name": "Guide Index",
+          "id": "Input_19",
+          "default": "-987654"
+        },
+        {
+          "name": "Guide Distance",
+          "id": "Input_4",
+          "default": "0.10000000149011612"
+        },
+        {
+          "name": "Guide Mask",
+          "id": "Input_18",
+          "default": "1.0"
+        },
+        {
+          "name": "Existing Guide Map",
+          "id": "Input_3",
+          "default": "True"
+        },
+        {
+          "name": "Factor",
+          "id": "Input_2",
+          "default": "1.0"
+        },
+        {
+          "name": "Subdivision",
+          "id": "Input_5",
+          "default": "1"
+        },
+        {
+          "name": "Curl Start",
+          "id": "Input_6",
+          "default": "0.10000000149011612"
+        },
+        {
+          "name": "Radius",
+          "id": "Input_7",
+          "default": "0.10000000149011612"
+        },
+        {
+          "name": "Factor Start",
+          "id": "Input_9",
+          "default": "1.0"
+        },
+        {
+          "name": "Factor End",
+          "id": "Input_10",
+          "default": "1.0"
+        },
+        {
+          "name": "Frequency",
+          "id": "Input_11",
+          "default": "1.0"
+        },
+        {
+          "name": "Random Offset",
+          "id": "Input_16",
+          "default": "0.25"
+        },
+        {
+          "name": "Seed",
+          "id": "Input_15",
+          "default": "0"
+        }
+      ]
+    },
+    {
+      "name": "Hair Curves Noise",
+      "group": "Hair Curves Noise.001",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Input_0",
+          "default": "None"
+        },
+        {
+          "name": "Cumulative Offset",
+          "id": "Input_10",
+          "default": "True"
+        },
+        {
+          "name": "Factor",
+          "id": "Input_3",
+          "default": "1.0"
+        },
+        {
+          "name": "Distance",
+          "id": "Input_14",
+          "default": "0.009999999776482582"
+        },
+        {
+          "name": "Shape",
+          "id": "Input_2",
+          "default": "0.5"
+        },
+        {
+          "name": "Scale",
+          "id": "Input_11",
+          "default": "1.0"
+        },
+        {
+          "name": "Scale along Curve",
+          "id": "Input_12",
+          "default": "1.0"
+        },
+        {
+          "name": "Offset per Curve",
+          "id": "Input_13",
+          "default": "0.0"
+        },
+        {
+          "name": "Seed",
+          "id": "Input_8",
+          "default": "0"
+        },
+        {
+          "name": "Preserve Length",
+          "id": "Input_6",
+          "default": "False"
+        }
+      ]
+    },
+    {
+      "name": "Frizz Hair Curves",
+      "group": "Frizz Hair Curves.001",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Input_0",
+          "default": "None"
+        },
+        {
+          "name": "Cumulative Offset",
+          "id": "Input_10",
+          "default": "True"
+        },
+        {
+          "name": "Factor",
+          "id": "Input_3",
+          "default": "1.0"
+        },
+        {
+          "name": "Distance",
+          "id": "Input_11",
+          "default": "0.009999999776482582"
+        },
+        {
+          "name": "Shape",
+          "id": "Input_2",
+          "default": "0.5"
+        },
+        {
+          "name": "Seed",
+          "id": "Input_8",
+          "default": "0"
+        },
+        {
+          "name": "Preserve Length",
+          "id": "Input_6",
+          "default": "False"
+        }
+      ]
+    },
+    {
+      "name": "Roll Hair Curves",
+      "group": "Roll Hair Curves.001",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Input_0",
+          "default": "None"
+        },
+        {
+          "name": "Factor",
+          "id": "Input_10",
+          "default": "1.0"
+        },
+        {
+          "name": "Subdivision",
+          "id": "Input_13",
+          "default": "1"
+        },
+        {
+          "name": "Variation Level",
+          "id": "Input_11",
+          "default": "10"
+        },
+        {
+          "name": "Roll Length",
+          "id": "Input_2",
+          "default": "0.10000000149011612"
+        },
+        {
+          "name": "Roll Radius",
+          "id": "Input_3",
+          "default": "0.05000000074505806"
+        },
+        {
+          "name": "Roll Depth",
+          "id": "Input_9",
+          "default": "0.0"
+        },
+        {
+          "name": "Roll Taper",
+          "id": "Input_4",
+          "default": "0.0"
+        },
+        {
+          "name": "Retain Overall Shape",
+          "id": "Input_5",
+          "default": "0.0"
+        },
+        {
+          "name": "Roll Direction",
+          "id": "Input_7",
+          "default": "<bpy_float[3], NodeTreeInterfaceSocketVector.default_value>"
+        },
+        {
+          "name": "Random Orientation",
+          "id": "Input_6",
+          "default": "0.5"
+        },
+        {
+          "name": "Seed",
+          "id": "Input_8",
+          "default": "0"
+        },
+        {
+          "name": "Preserve Length",
+          "id": "Input_12",
+          "default": "False"
+        }
+      ]
+    },
+    {
+      "name": "Clump Hair Curves",
+      "group": "Clump Hair Curves.001",
+      "inputs": [
+        {
+          "name": "Geometry",
+          "id": "Input_0",
+          "default": "None"
+        },
+        {
+          "name": "Guide Index",
+          "id": "Input_16",
+          "default": "-987654"
+        },
+        {
+          "name": "Guide Distance",
+          "id": "Input_9",
+          "default": "0.10000000149011612"
+        },
+        {
+          "name": "Guide Mask",
+          "id": "Input_19",
+          "default": "1.0"
+        },
+        {
+          "name": "Existing Guide Map",
+          "id": "Input_8",
+          "default": "True"
+        },
+        {
+          "name": "Factor",
+          "id": "Input_7",
+          "default": "1.0"
+        },
+        {
+          "name": "Shape",
+          "id": "Input_6",
+          "default": "0.5"
+        },
+        {
+          "name": "Tip Spread",
+          "id": "Input_10",
+          "default": "0.0"
+        },
+        {
+          "name": "Clump Offset",
+          "id": "Input_13",
+          "default": "0.0"
+        },
+        {
+          "name": "Distance Falloff",
+          "id": "Input_12",
+          "default": "0.0"
+        },
+        {
+          "name": "Distance Threshold",
+          "id": "Input_11",
+          "default": "0.0"
+        },
+        {
+          "name": "Seed",
+          "id": "Input_14",
+          "default": "0"
+        },
+        {
+          "name": "Preserve Length",
+          "id": "Input_15",
+          "default": "False"
+        }
+      ]
+    }
+  ]
+}

@@ -219,6 +219,6 @@ record['rig']={'bones':list(data.bones.keys()),'weight_sum_error':max_weight_err
 record['stage']='Rigged candidate; export and visual motion review pending'
 scene['pipeline']=json.dumps(record);scene['status']=record['stage']
 (ROOT/'runtime/pipeline.json').write_text(json.dumps(record,indent=2))
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'link-runtime.blend'),compress=True)
+bpy.data.libraries.write(str(ROOT/'link-runtime.blend'),{scene},fake_user=True,compress=True)
 print(json.dumps({'bones':len(data.bones),'weight_error':max_weight_error,'leg_length_error':max_bone_error,
                   'clips':{name:{k:v for k,v in c.items() if k!='contacts'} for name,c in clips.items()}}))

@@ -1,10 +1,17 @@
 # Link: Blender source and runtime candidate
 
-`link-runtime.blend` is the editable, textured, skinned candidate. `link-runtime.glb` is its
-self-contained game export. The original sculpt and studio remain in `link-study.blend`;
-`build_link.py` creates that sculpt through Blender MCP. See `../../../tools/blender/README.md`.
+**Paused at the owner's request for a PC restart, 2026-09-13.** This branch now includes
+unfinished source changes and rejected experiments. Read [restart notes](experiments/2026-09-13/README.md)
+before rebuilding. `link-study.blend` contains the latest rejected ribbon-hair trial;
+`link-runtime.blend` and `runtime/pipeline.json` contain an earlier unbaked preparation.
+They do **not** reproduce the currently delivered GLB yet.
 
-The candidate is under visual review and has not yet been integrated into Fable's world.
+`link-runtime.glb` and `runtime/validation.json` remain the validated **409b603** export.
+That commit also preserves its matching editable source and pipeline. Fable integrated this
+GLB in world commit **94a73c1**. `build_link.py` creates the source through Blender MCP;
+see `../../../tools/blender/README.md`.
+
+The candidate is under visual review.
 It is still below the owner's reference quality. Technical export checks do not award an
 art pass. The remaining work includes facial surface continuity, more natural hair/clothing,
 and motion/contact review under the actual world lighting and terrain sampler.
@@ -25,7 +32,8 @@ and motion/contact review under the actual world lighting and terrain sampler.
 `runtime/validation.json` records the actual GLB hash, mesh/material/triangle counts,
 texture dimensions, finite normalized weights, bounds, animation loop errors, and unit
 normal/tangent bases. Tangents are exported with the baked normal maps.
-`runtime/pipeline.json` records the source, bake stages, rig and measured contact paths.
+The current `runtime/pipeline.json` records unfinished preparation; use its version from
+409b603 for the delivered asset's bake stages, rig and measured contact paths.
 
 ## Review
 

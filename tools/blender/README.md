@@ -73,3 +73,17 @@ consecutive scene queries in one MCP session and fails on missing/malformed resp
 The addon's install command copied the file successfully but failed printing a Unicode
 arrow under Windows cp1252. `PYTHONIOENCODING=utf-8` is persisted in the MCP configuration.
 The installed addon matches the downloaded upstream addon bytes.
+
+## Recovery from the 17:10 UTC viewport crash
+
+The hidden worker stopped with EXCEPTION_ACCESS_VIOLATION in
+DEG_iterator_objects_next / DRW_cache_free_old_batches during a viewport redraw
+following a source-scene rebuild. The saved source opened successfully in a fresh
+process; consecutive MCP queries and evaluated boot geometry checks passed.
+`start_session.py` now replaces unused VIEW_3D areas with consoles in this hidden
+worker. Rendering still uses Cycles through MCP. This avoids the implicated redraw
+path; it is not a claim that every Blender crash is fixed.
+
+Source/runtime saves use native `bpy.data.libraries.write` with the intended scene
+and its referenced data. Experimental scenes and unused data stay outside the
+published files. Source render/export helpers use explicit scene and file paths.

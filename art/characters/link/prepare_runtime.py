@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parent
 source=bpy.data.scenes['Link | Blender art study']
+assert source.get('rest_shapes_authored'), 'Rebuild the source with pre-bake cap/nape/boot shaping'
 source_collection=next(c for c in source.collection.children if c.name.startswith('LINK | original model'))
 studio=next(c for c in source.collection.children if c.name.startswith('STUDIO |'))
 bpy.context.window.scene=source
@@ -76,6 +77,7 @@ budgets={'skin':9500,'hair':2700,'eyes':1400,'outfit':11200}
 record['stage']='prepared, requires updated bakes and rig'
 record['source_sha256']=hashlib.sha256((ROOT/'link-study.blend').read_bytes()).hexdigest()
 record['generator_sha256']=hashlib.sha256((ROOT/'build_link.py').read_bytes()).hexdigest()
+record['source_rest_shapes_authored']=True
 bpy.context.window.scene=runtime
 for bucket,budget in budgets.items():
     if partial and bucket!=partial:continue
@@ -106,6 +108,8 @@ for bucket,budget in budgets.items():
             # Spend geometry on the visible fringe rather than the mostly covered scalp.
             limit=4
             if ob.name.startswith('Hair | connected'):limit=200
+            elif ob.name.startswith('Hair | layered ribbon'):
+                limit=60 if int(ob.name.split()[-2])<6 else 45
             elif ob.name.startswith('Hair | swept layered clump'):
                 limit=230 if int(ob.name.rsplit(' ',1)[-1])<6 else 110
             elif ob.name.startswith('Hair | overlapping'):limit=50
@@ -170,5 +174,5 @@ runtime['pipeline']=json.dumps(record)
 runtime['status']=record['stage']
 (ROOT/'runtime').mkdir(exist_ok=True)
 (ROOT/'runtime/pipeline.json').write_text(json.dumps(record,indent=2))
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'link-runtime.blend'),compress=True)
+bpy.data.libraries.write(str(ROOT/'link-runtime.blend'),{runtime},fake_user=True,compress=True)
 print(json.dumps({k:v['triangles'] for k,v in record['groups'].items()}))
