@@ -5,7 +5,7 @@ from pathlib import Path
 job=globals().get('JOB',{})
 folder=job.get('folder','generated-runtime');assert folder in {'generated-runtime','lid-runtime','source-runtime'}
 root=Path(__file__).resolve().parent/folder
-stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate'}
+stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate','lid-fit-candidate','orbital-uv-candidate'}
 scene=bpy.data.scenes[job.get('scene','Link | generated eye study')];bpy.context.window.scene=scene
 rig=next(o for o in scene.collection.objects if o.type=='ARMATURE')
 body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name and not o.name.startswith('Link_hair_detail'))
@@ -64,7 +64,7 @@ if stem=='material-candidate':
             normal=nodes.new('ShaderNodeNormalMap');links.new(node.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],shader.inputs['Normal'])
         else:links.new(node.outputs['Color'],shader.inputs['Roughness'])
 bakes.update(body_color=bake_colour(body,'scanned-body-color' if stem=='material-candidate' else 'body-eye-edit-color',4096),
-    eye_color=bake_colour(eyes[0],'iris-material-color' if stem in {'iris-material-candidate','hair-candidate','material-candidate'} else 'anatomical-eye-color',1024))
+    eye_color=bake_colour(eyes[0],'anatomical-eye-color' if stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate'} else 'iris-material-color',1024))
 for eye in eyes:
     bpy.ops.object.select_all(action='DESELECT');eye.select_set(True);bpy.context.view_layer.objects.active=eye
     bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)

@@ -8,6 +8,13 @@ from97d0ad0, SHA256 `4e0b3a217495e7db98ff842a71e701eb5f6e6c535120449889da5297171
 Hair-bake, added lid surfaces and scanned-material studies remain unaccepted.
 Do not replace the handoff merely because a newer file exists.
 
+At22:34 UTC, native lattice and neighbouring-skin UV studies are also archived.
+`lid-fit-candidate.glb` (f4b41844...) and `orbital-uv-candidate.glb` (b93852a4...)
+retain54,786 triangles,3materials and the existing rig/clips. Both complete their
+studio and six-view actual-world checks. Hard socket joins remain visible, so neither
+replaces the preferred iris handoff. `eye-seating-study` is visibly rejected and
+not exported. Exact hashes/results are in their validation files and Astra's log.
+
 **Resumed 18:08 UTC with the owner's explicit instruction.** The pause notes below
 describe the saved restart checkpoint. New Rodin studies and native material/eye
 experiments are listed in `rodin-provenance.json` and `rodin-files.json`; all remain

@@ -1,0 +1,10 @@
+{
+  "status": "Unaccepted native lattice study; not exported",
+  "affected_vertices": [
+    829,
+    703
+  ],
+  "max_displacement_metres": 0.0025989413418616844,
+  "vertices_unchanged": 26097,
+  "height_scale": 0.86
+}
