@@ -5167,7 +5167,7 @@ void main() {
 
 			gl_FragColor = ApplyFXAA( tDiffuse, resolution.xy, vUv );
 
-		}`},im=[{point:[1.3,6.6,-9.4],radius:2.6},{point:[-3,8,-14.5],radius:2.6},{point:[5,7,-17],radius:2.6},{point:[13.3,10,-14.6],radius:1.3,carve:1.7},{point:[9.6,6.9,-6.6],radius:1.3,carve:1.7,porosity:.5,cardPorosity:.4},{point:[20.4,11.2,-12.8],radius:1.3,carve:1.7}],am=[{point:[3.6,5.6],radius:1.5,band:[10,30]},{point:[2.7,3],radius:2.2,band:[10,30]},{point:[5.7,.7],radius:.8,band:[10,30]},{point:[2.2,-6.7],radius:1.5,band:[10,30],densify:0},{point:[8.3,-.9],radius:1,band:[10,30],densify:0},{point:[12,-3.8],radius:1,band:[12,30],densify:0},{point:[14.9,-6],radius:1,band:[13,30],densify:0,id:`flight-top`}],om=1.8,sm=1.5,cm=7.5,lm=im.map(e=>({point:[e.point[0],e.point[1],e.point[2]],radius:Math.min(e.radius,om),gain:e.radius<sm?cm:1})),um=`
+		}`},im=[{point:[1.3,6.6,-9.4],radius:2.6},{point:[-3,8,-14.5],radius:2.6},{point:[5,7,-17],radius:2.6},{point:[13.3,10,-14.6],radius:1.3,carve:1.7},{point:[9.6,6.9,-6.6],radius:1.3,carve:1.7,porosity:.5,cardPorosity:.4},{point:[20.4,11.2,-12.8],radius:1.3,carve:1.7}],am=[{point:[3.6,5.6],radius:1.5,band:[10,30]},{point:[2.7,3],radius:2.2,band:[10,30]},{point:[5.7,.7],radius:.8,band:[10,30]},{point:[2.2,-6.7],radius:1.5,band:[10,30],densify:0},{point:[8.3,-.9],radius:1,band:[10,30],densify:0},{point:[12,-3.8],radius:1,band:[12,30],densify:0},{point:[14.9,-6],radius:1,band:[13,30],densify:0,id:`flight-top`},{point:[1.4,-1.6],radius:.8,band:[3,30],densify:0,id:`b-path-near`},{point:[.9,-3.4],radius:.6,band:[3,30],densify:0,id:`b-path-west`}],om=1.8,sm=1.5,cm=7.5,lm=im.map(e=>({point:[e.point[0],e.point[1],e.point[2]],radius:Math.min(e.radius,om),gain:e.radius<sm?cm:1})),um=`
 varying vec2 vUv;
 void main() {
   vUv = uv;

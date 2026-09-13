@@ -8839,6 +8839,115 @@
       },
       "prevHash": "sha256:d4df287433afdefd6b46da0366e8e05ccfb1a0ad4d6222d535f7bf7ebf1711f3",
       "hash": "sha256:c95955e130053a21b967a8351a4c2a36090c03ac077dc465f0d76184374ff48f"
+    },
+    {
+      "id": "take-0083",
+      "number": 83,
+      "at": "2026-09-13T19:20:26.773Z",
+      "sha": "bd319f17683f8ae617e10fb3096d1826a34489f5",
+      "shortSha": "bd319f1",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "trees: two canopy openings over the west half of B's path (b-path-near (1.4, -1.6) r 0.8, b-path-west (0.9, -3.4) r 0.6, band 3-30 m, no collar) - frame 14 s's sun patches return to the paving between Link and Saria's door: B centre third lit 5.5 -> 13.9 % (frame 17.8), p90 0.565 -> 0.596 (frame 0.610); F's dark left edge, A's plaza and D's path unchanged; no triangles added (-1,425 giant leaves)",
+      "agent": "fable-cursor",
+      "items": [
+        "W10",
+        "W30",
+        "W31"
+      ],
+      "note": "Round twenty-eight: the sun returns to the path in frame 14 s. The lighting pass had proved B's slabs were sunlit surfaces shaded by the giants' crowns; the trees pass attributed the casters by hiding them one lobe at a time - the lantern tree's three wild-limb lobes at 12 m stacked over its lantern-limb lobe at 5 m, so cutting either alone opened nothing (the reason the earlier openings moved 0 %). Two canopy openings on the west half of the path with a 3-30 m band and no collar open both: B's centre third lit share 5.5 -> 13.9 % (frame 17.8), p90 0.565 -> 0.596 (frame 0.610), and the brightest sunlit slabs there now sit on the frame's (p97 0.641 vs 0.628). The right third stays dark by structure the frames also have - the lantern limb's wood-and-pod band, the emergent bole's shadow stripe, Link's own shadow and the minimap. F's dark left edge is held (any pool on the east half lights F's edge column; the west half does not), A's plaza and D's path are unchanged, no triangles added (giant leaves -1,425). Honest ledger: B 0.2456 -> 0.2439, C 0.3097 -> 0.3028, E 0.2728 -> 0.2696 - every pool sits 4-6 m in front of C's camera where the frame has its own slab pattern - D +0.0005, F +0.0001; the frame's path dapple was the point. Link is Astra's GLB (take 82); the near-veil terms wait on a broader crowns pass.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:92b28b619fdad286bd60ffcc369f696e395b1da1e8a2570beecb998913297846",
+        "B_house": "sha256:59e9549644040336897e5cfa0a88a8015f970d865769485177cc86d685c6da72",
+        "C_lookback": "sha256:47c916532186d65b4977ec069de1ba41f7fa53408f7b675dc7776a7815a8d386",
+        "D_log": "sha256:6c59d947214fd083e685d1d49afed7806ae88f3617bfd994d3b09ded48733a2d",
+        "E_ground": "sha256:59e9549644040336897e5cfa0a88a8015f970d865769485177cc86d685c6da72",
+        "F_canopy": "sha256:10270fc2a34ab653ec9db8a4aa882755ebab252c2f05e08befeb4df04d0517bb"
+      },
+      "distHash": "sha256:87d8436830d5b2b1792b89e23ee028b87d2c9008212e2e77d09bf892031b192d",
+      "stats": {
+        "drawCalls": 526,
+        "triangles": 8845964,
+        "captureMs": 691911,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W10",
+        "W30",
+        "W31"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take83-cap",
+        "importedAt": "2026-09-13T19:21:13.048Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:c95955e130053a21b967a8351a4c2a36090c03ac077dc465f0d76184374ff48f",
+      "hash": "sha256:f2ef8c38211c023d040f60e3ee365bc45ee91beb0a994a964e54723dea943ca2"
     }
   ]
 }
