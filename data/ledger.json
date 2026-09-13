@@ -8512,6 +8512,115 @@
       },
       "prevHash": "sha256:7af5eed59c5393c50891cbd6132bb49fe8f924ff0b6616ac8d2a8a9ba1cc47e2",
       "hash": "sha256:7ffa4cb9059af4073016438bffccaab003444a8d66b5a02c81c6df9a3426e473"
+    },
+    {
+      "id": "take-0080",
+      "number": 80,
+      "at": "2026-09-13T13:31:19.317Z",
+      "sha": "b2691b80f226550890964700a8ada27fdcd4efa4",
+      "shortSha": "b2691b8",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "vegetation: the banks beside the hero flight and A's right bank fill with broadleaf clumps, clover, moss cushions and ferns to the tread ends; the hedge gets a layered core / shade-shell / lit-shell geometry and two new tiers (12 -> 29 crowns) at the frame's luminance; D's path shoulders lose the verge turf standing in the frame's paving; ferns 1016 -> 1136 - draws unchanged, +0.4-0.5 M tris per view, contracts 5/5",
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W16",
+        "W17"
+      ],
+      "note": "Round twenty-five: foliage density, now mine after the lighting partner's closeout. Frames 1 s / 8 s show the banks beside the hero flight as a solid mass of leaves, ferns and grass to the tread ends; ours showed soil and thin grass. The flank strips get 950 heart/ovate leaf clumps, 510 clover, 219 moss cushions and 139 fern clumps (F flight box broadleaf 145 -> 584, ferns 43 -> 100, blades 131 -> 276 per square metre; A's right bank blades 160 -> 398); the vegetation-owned soil there is under leaves, and the brown share that remains in F's boxes is the paving, the post and the boulder's shade. The hedge is rebuilt as a layered core / shade shell / lit shell with two new tiers (12 -> 29 crowns) at the frame's luminance (crown box p50 0.292 -> 0.245 vs the frame's 0.221) without raising the 1.2 m cap at Saria's door. D's path shoulders lose the verge turf that stood inside the frame's wider paving (green 11.3 -> 8.0 %, 3.5 of it Link and the joint sprouts). Ferns 1016 -> 1136 (W17), hedge 29, weeds 3481 -> 4227, moss patches 728 -> 864; draws unchanged (491-595), +0.4-0.5 M triangles per view; every vegetation contract green. A 0.2625 -> 0.2642, F 0.2713 -> 0.2734, B 0.2435 -> 0.2407 (the denser dark bank at B's left), C/D/E within 0.001. Running: the light gaps every surface pass measured - the near veil dulling sunlit slabs at 6-12 m, the 0.295 dark floor, the missing canopy glare.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:6e21ef930fdfb80e5dab0bbe1bbb995cac685652c2f0e9148aebcadbede84240",
+        "B_house": "sha256:8afed72708371f3a11a4ceb0640323ddf1061ebe4711b4326b1c44b32bddf192",
+        "C_lookback": "sha256:80e573efd09ce78cdef74926b0e939591c0fb26bdc06f0e9afae43fac70e5daf",
+        "D_log": "sha256:a6f1c99d303f494abdc3c8650e0868069699fa40d788f3854e5f193b6402ba01",
+        "E_ground": "sha256:8afed72708371f3a11a4ceb0640323ddf1061ebe4711b4326b1c44b32bddf192",
+        "F_canopy": "sha256:8b78037f9bf7a36045ff6938040b434b2290d49027cc5048af853c7867c4adf8"
+      },
+      "distHash": "sha256:66638431104ed74784acc02d4eef491d0b886981a775b43c74f6356841c1bdad",
+      "stats": {
+        "drawCalls": 595,
+        "triangles": 8830884,
+        "captureMs": 844397,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W15",
+        "W16",
+        "W17"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take80-cap",
+        "importedAt": "2026-09-13T14:34:26.416Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:7ffa4cb9059af4073016438bffccaab003444a8d66b5a02c81c6df9a3426e473",
+      "hash": "sha256:8709c2c61eafc67933c5b3f1d8d61fddf6e08b1f5d7bccddf837fd4268e907de"
     }
   ]
 }
