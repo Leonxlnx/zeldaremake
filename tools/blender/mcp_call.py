@@ -20,12 +20,16 @@ async def main():
     parser.add_argument('--script', type=Path)
     parser.add_argument('--tool', default='get_scene_info')
     parser.add_argument('--args', default='{}')
+    parser.add_argument('--timeout', type=int, default=180, help='Blender command timeout in seconds (bakes may need 600)')
     parser.add_argument('--output', type=Path, help='Save an image tool result to this file')
     parser.add_argument('--prompt', default='Install the Blender MCP and try to make link.')
     args = parser.parse_args()
+    if not 1<=args.timeout<=1800:
+        parser.error('--timeout must be between 1 and 1800 seconds')
     params = StdioServerParameters(command=args.server, env={
         **os.environ, 'BLENDER_HOST': '127.0.0.1', 'BLENDER_PORT': '9876',
         'BLENDER_MCP_DISABLE_TELEMETRY': '1', 'PYTHONIOENCODING': 'utf-8',
+        'BLENDER_MCP_COMMAND_TIMEOUT':str(args.timeout),
         'BLENDERMCP_ADDONS_DIR': 'E:/Apps/Blender/blender-4.5.13-windows-x64/portable/scripts/addons',
     })
     async with stdio_client(params) as (read, write):
@@ -35,7 +39,10 @@ async def main():
                 result = await session.list_tools()
             else:
                 name = 'execute_blender_code' if args.script else args.tool
-                payload = {'code': f'__file__ = {str(args.script.resolve())!r}\n' + args.script.read_text(encoding='utf-8')} if args.script else json.loads(args.args)
+                options=json.loads(args.args)
+                if not isinstance(options,dict):
+                    raise ValueError('--args must be a JSON object')
+                payload = {'code': f'__file__ = {str(args.script.resolve())!r}\nJOB = {options!r}\n' + args.script.read_text(encoding='utf-8')} if args.script else options
                 payload.setdefault('user_prompt', args.prompt)
                 result = await session.call_tool(name, payload)
             if args.output:

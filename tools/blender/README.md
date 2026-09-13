@@ -60,6 +60,12 @@ the socket after each decoded response; the stdio MCP session and request lock s
 This is a measured compatibility workaround, not a proven diagnosis of the underlying
 Windows/addon issue. It affects only the installed server's transport, not modelling code.
 
+The patch also accepts `BLENDER_MCP_COMMAND_TIMEOUT` (default 180 seconds). The outfit
+atlas took longer than three minutes while Blender kept running and saved its result.
+Use `mcp_call.py --timeout 600 --script ...` for the bake/rig/export jobs. If a request
+times out, check `runtime/pipeline.json` and the Blender process before retrying; an
+expired client does not cancel Blender's work.
+
 Upstream server backup: `E:/Tools/blender-mcp/server.upstream.py`. A server upgrade can
 overwrite the local patch; run `check_connection.py` afterward. The check makes two
 consecutive scene queries in one MCP session and fails on missing/malformed responses.

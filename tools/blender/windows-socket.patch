@@ -1,9 +1,30 @@
 --- a/src/blender_mcp/server.py
 +++ b/src/blender_mcp/server.py
-@@ -168,2 +168,6 @@
+@@ -81,7 +81,7 @@
+         """Receive the complete response, potentially in multiple chunks"""
+         chunks = []
+         # Use a consistent timeout value that matches the addon's timeout
+-        sock.settimeout(180.0)  # Match the addon's timeout
++        sock.settimeout(float(os.getenv('BLENDER_MCP_COMMAND_TIMEOUT', '180')))
+         
+         try:
+             while True:
+@@ -159,13 +159,17 @@
+             logger.info(f"Command sent, waiting for response...")
+             
+             # Set a timeout for receiving - use the same timeout as in receive_full_response
+-            self.sock.settimeout(180.0)  # Match the addon's timeout
++            self.sock.settimeout(float(os.getenv('BLENDER_MCP_COMMAND_TIMEOUT', '180')))
+             
+             # Receive the response using the improved receive_full_response method
+             response_data = self.receive_full_response(self.sock)
+             logger.info(f"Received {len(response_data)} bytes of data")
+             
              response = json.loads(response_data.decode('utf-8'))
 +            # ponytail: one localhost connection per command on Windows; persistent
 +            # sockets here lose replies after request one. Remove after upstream fix.
 +            if sys.platform == "win32":
 +                self.disconnect()
              logger.info(f"Response parsed, status: {response.get('status', 'unknown')}")
+             
+             if response.get("status") == "error":

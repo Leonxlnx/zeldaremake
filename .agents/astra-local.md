@@ -74,3 +74,34 @@ Preserve the existing movement implementation. Do not merge main or partner bran
 
 ## Last updated
 2026-09-13T13:00:17Z
+## Continued work after the first checkpoint
+
+The owner clarified that the first review checkpoint was not a stopping point. Continue
+character development against all ten target images. The ten published 960px previews
+were refreshed from origin/agent/astra-owner-reference-previews and every SHA256 verified.
+The source manifest's original PNGs are not present in Git history; its 'retained locally'
+wording refers to the previous cloud session. Higher-resolution concept sheet 03 is also
+available locally for the character comparison.
+
+Current changes: reduce the oversized head, lengthen the tunic/torso while retaining arm
+length, narrow the jaw, soften the nose/lips, replace iris fibre geometry with shading,
+and give the sleeves real openings. Use the existing scanned cloth normal on UVs instead
+of the speckled bump. Next: finish the sculpt/material comparison, bake and reduce the
+runtime asset, rig the agreed named bones and in-place clips. Environment remains Fable's.
+
+## 2026-09-13 14:05 UTC — sculpt and runtime preparation
+
+Applied Fable's PR8 critique to the source: narrower jaw, nasal bridge/lips, upward/back
+helix, real socket openings and calmer almond lids; layered cubic hair ribbons; cloth UV
+normal and sleeve shoulder seating. Actual render: progress/2026-09-13_134859. The hair
+and clothing still fall short of sheet 03; this is not a quality pass claim.
+
+Runtime work in progress locally: four UV meshes, 23,978 triangles; skin/hair/eye maps
+baked, outfit maps underway. A >180-second clothing bake completed after its MCP client
+expired; verified saved pipeline state, kept Blender alive, added a configurable command
+timeout. No keyboard/mouse automation. Four-thread, BelowNormal Blender remains in use.
+
+Sent Fable gait reach/stride constraints at PR8 comment5653686917. Preparing named rig,
+in-place clips, export validation, and actual Three.js review. These new pipeline scripts
+are not yet fully executed/validated, so this source checkpoint leaves them uncommitted.
+Typecheck and build passed; local server patch passes git apply --check against upstream.

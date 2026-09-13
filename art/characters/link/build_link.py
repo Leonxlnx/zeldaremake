@@ -88,19 +88,19 @@ def material(name, color, roughness=.6, metallic=0, texture=None):
             rough = image_map(ROOT/'textures/leather-roughness.jpg', True)
             links.new(rough.outputs[0], bsdf.inputs['Roughness'])
         elif texture == 'cloth':
+            links.new(coord.outputs['UV'],mapping.inputs['Vector'])
+            mapping.inputs['Scale'].default_value=(2,2,2)
             rough = image_map(ROOT/'textures/cloth-roughness.jpg', True)
+            rough.projection='FLAT'
             links.new(rough.outputs[0], bsdf.inputs['Roughness'])
-            # Scanned weave relief: the roughness scan also resolves the raised yarns.
-            links.new(rough.outputs[0], bump.inputs['Height'])
-            # Visible yarn-scale breakup with broader mottling from the scan.
-            tex.inputs['Scale'].default_value=78
+            normal=image_map(ROOT/'textures/cloth-normal.jpg',True);normal.projection='FLAT'
+            tangent=nodes.new('ShaderNodeNormalMap');tangent.inputs['Strength'].default_value=.75
+            links.new(normal.outputs[0],tangent.inputs['Color']);links.new(tangent.outputs[0],bsdf.inputs['Normal'])
+            # Dye varies gently; the scanned normal provides the actual yarn weave.
+            tex.inputs['Scale'].default_value=18
             tex.inputs['Detail'].default_value=3.5
-            ramp.color_ramp.elements[0].position=.27
-            ramp.color_ramp.elements[1].position=.72
-            ramp.color_ramp.elements[0].color=(*[c*.22 for c in color],1)
-            ramp.color_ramp.elements[1].color=(*[min(1,c*2.2) for c in color],1)
-            links.new(tex.outputs['Fac'],bump.inputs['Height'])
-            bump.inputs['Strength'].default_value=.55; bump.inputs['Distance'].default_value=.003
+            ramp.color_ramp.elements[0].color=(*[c*.7 for c in color],1)
+            ramp.color_ramp.elements[1].color=(*[min(1,c*1.15) for c in color],1)
             bsdf.inputs['Sheen Weight'].default_value=.25
         elif texture == 'wood':
             mapping.inputs['Scale'].default_value=(1,1,1)
@@ -111,9 +111,9 @@ def material(name, color, roughness=.6, metallic=0, texture=None):
     return mat
 
 
-skin = material('Skin | warm peach', (.57, .31, .19), .48)
+skin = material('Skin | warm peach', (.64, .38, .25), .46)
 earskin = material('Ear | rose inner fold', (.40, .17, .105), .67)
-lip = material('Lips | muted warm rose', (.36, .13, .085), .55)
+lip = material('Lips | muted warm rose', (.47, .24, .17), .52)
 mouth = material('Mouth | fine shadow', (.085, .024, .017), .7)
 cloth = material('Tunic | forest woven linen', (.033, .079, .016), .89, texture='cloth')
 cloth_light = material('Collar | lighter green linen', (.068, .123, .03), .86, texture='cloth')
@@ -127,9 +127,36 @@ steel = material('Sword | satin steel', (.41, .48, .48), .3, .82)
 hairmats = [material('Hair | golden lock '+str(i), c, .44) for i,c in enumerate([
     (.24,.104,.026), (.39,.205,.061), (.49,.283,.099), (.32,.157,.034)])]
 hairline = material('Hair | fine highlights', (.57,.30,.075), .48)
+for hairmat in hairmats:
+    nodes,links=hairmat.node_tree.nodes,hairmat.node_tree.links
+    bsdf=nodes.get('Principled BSDF');bsdf.inputs['Anisotropic'].default_value=.45
+    coord=nodes.new('ShaderNodeTexCoord');mapping=nodes.new('ShaderNodeMapping')
+    mapping.inputs['Scale'].default_value=(95,5,1);links.new(coord.outputs['UV'],mapping.inputs['Vector'])
+    fibres=nodes.new('ShaderNodeTexNoise');fibres.inputs['Scale'].default_value=1;fibres.inputs['Detail'].default_value=2
+    links.new(mapping.outputs[0],fibres.inputs['Vector'])
+    colors=nodes.new('ShaderNodeValToRGB')
+    for stop,scale in zip(colors.color_ramp.elements,(.65,1.2)):
+        stop.color=(*[c*scale for c in hairmat.diffuse_color[:3]],1)
+    links.new(fibres.outputs['Fac'],colors.inputs[0]);links.new(colors.outputs[0],bsdf.inputs['Base Color'])
+    bump=nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.23;bump.inputs['Distance'].default_value=.00035
+    links.new(fibres.outputs['Fac'],bump.inputs['Height']);links.new(bump.outputs[0],bsdf.inputs['Normal'])
 white = material('Eyes | warm ivory', (.78,.81,.74), .27)
 irisrim = material('Eyes | dark iris rim', (.008,.057,.050), .29)
 iris = material('Eyes | teal iris', (.029,.23,.19), .3)
+nodes,links=iris.node_tree.nodes,iris.node_tree.links
+coord=nodes.new('ShaderNodeTexCoord')
+center=nodes.new('ShaderNodeVectorMath');center.operation='SUBTRACT';center.inputs[1].default_value=(.5,.5,.5)
+links.new(coord.outputs['Generated'],center.inputs[0])
+separate=nodes.new('ShaderNodeSeparateXYZ');links.new(center.outputs[0],separate.inputs[0])
+plane=nodes.new('ShaderNodeCombineXYZ');links.new(separate.outputs['X'],plane.inputs['X']);links.new(separate.outputs['Z'],plane.inputs['Y'])
+radial=nodes.new('ShaderNodeVectorMath');radial.operation='NORMALIZE';links.new(plane.outputs[0],radial.inputs[0])
+noise=nodes.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=22;noise.inputs['Detail'].default_value=4
+links.new(radial.outputs[0],noise.inputs['Vector'])
+colors=nodes.new('ShaderNodeValToRGB')
+colors.color_ramp.elements[0].position=.23;colors.color_ramp.elements[0].color=(.006,.035,.027,1)
+colors.color_ramp.elements[1].position=.76;colors.color_ramp.elements[1].color=(.095,.29,.19,1)
+colors.color_ramp.elements.new(.52).color=(.024,.105,.078,1)
+links.new(noise.outputs['Fac'],colors.inputs[0]);links.new(colors.outputs[0],nodes.get('Principled BSDF').inputs['Base Color'])
 pupil = material('Eyes | pupils', (.004,.009,.007), .19)
 shine = material('Eyes | catchlights', (.95,.97,1), .15)
 wood = [material('Shield | carved plank '+str(i), (.19+.025*i,.093+.012*i,.035+.006*i), .8, texture='wood') for i in range(4)]
@@ -206,14 +233,15 @@ def rings(name, sections, mat, count=48, folds=0, subdiv=1):
         for j in range(count):
             a = 2*math.pi*j/count
             wobble = folds*(math.sin(a*9+k*.7)+.4*math.sin(a*17-k))
-            verts.append(((rx+wobble)*math.cos(a), cy+(ry+wobble*.55)*math.sin(a), z))
+            hem = (.007*(.5+.5*math.sin(a*23))+.003*math.sin(a*11)) if name=='Tunic | tailored body' and k<2 else 0
+            verts.append(((rx+wobble)*math.cos(a), cy+(ry+wobble*.55)*math.sin(a), z-hem))
     faces = [(k*count+j,k*count+(j+1)%count,(k+1)*count+(j+1)%count,(k+1)*count+j)
              for k in range(len(sections)-1) for j in range(count)]
     faces += [tuple(reversed(range(count))),tuple((len(sections)-1)*count+j for j in range(count))]
     return mesh(name,verts,faces,mat,subdiv)
 
 
-def sweep(name, pts, radii, mat, aspect=1, sides=12, subdiv=1):
+def sweep(name, pts, radii, mat, aspect=1, sides=12, subdiv=1, caps=True):
     pts = [Vector(p) for p in pts]
     verts=[]
     for i,(p,r) in enumerate(zip(pts,radii)):
@@ -228,8 +256,18 @@ def sweep(name, pts, radii, mat, aspect=1, sides=12, subdiv=1):
             verts.append(p+r*math.cos(a)*across+r*aspect*math.sin(a)*other)
     faces=[(i*sides+j,i*sides+(j+1)%sides,(i+1)*sides+(j+1)%sides,(i+1)*sides+j)
            for i in range(len(pts)-1) for j in range(sides)]
-    faces += [tuple(reversed(range(sides))),tuple((len(pts)-1)*sides+j for j in range(sides))]
-    return mesh(name,verts,faces,mat,subdiv)
+    if caps:
+        faces += [tuple(reversed(range(sides))),tuple((len(pts)-1)*sides+j for j in range(sides))]
+    ob=mesh(name,verts,faces,mat,subdiv)
+    uv=ob.data.uv_layers.new(name='SurfaceUV')
+    for poly in ob.data.polygons:
+        seam=poly.index%sides==sides-1
+        for loop_index in poly.loop_indices:
+            vertex=ob.data.loops[loop_index].vertex_index
+            u=(vertex%sides)/sides
+            if seam and u==0:u=1
+            uv.data[loop_index].uv=(u,(vertex//sides)/(len(pts)-1))
+    return ob
 
 
 def stitches(name, pts, mat=thread, width=.003):
@@ -316,8 +354,8 @@ for side in [-1,1]:
 # Garment panels and overlapping collar.
 rings('Tunic | tailored body',[(.525,.150,.094,0),(.534,.158,.10,0),(.57,.152,.103,0),(.64,.123,.084,0),(.70,.123,.082,0),(.77,.141,.092,0),(.84,.168,.089,0),(.874,.144,.078,0),(.895,.075,.065,0)],cloth,64,folds=.003,subdiv=2)
 for side in [-1,1]:
-    sweep('Short sleeve '+str(side),[(side*.121,0,.845),(side*.163,0,.838),(side*.193,0,.792),(side*.201,0,.765)], [.062,.071,.068,.066],cloth,aspect=1.06,sides=32,subdiv=2)
-    curve('Sleeve folded hem '+str(side),[(side*(.196+.052*math.cos(a)),.053*math.sin(a),.778+.016*math.cos(a)) for a in [math.tau*i/32 for i in range(32)]],.002,cloth_light,True)
+    sleeve=sweep('Short sleeve '+str(side),[(side*.082,0,.838),(side*.146,0,.835),(side*.193,0,.791),(side*.209,0,.760)], [.025,.061,.070,.076],cloth,aspect=.95,sides=32,subdiv=2,caps=False)
+    so=sleeve.modifiers.new('Woven sleeve thickness','SOLIDIFY');so.thickness=.0025
     verts=[(side*.016,-.066,.896),(side*.08,-.063,.885),(side*.123,-.082,.841),(side*.061,-.104,.816),(side*.042,-.102,.858)]
     collar=mesh('Folded collar '+str(side),verts,[tuple(range(5))],cloth_light)
     sol=collar.modifiers.new('Collar thickness','SOLIDIFY'); sol.thickness=.005
@@ -352,7 +390,8 @@ for side in [-1,1]:
 curve('Strap buckle',[(.004,-.113,.770),(.03,-.113,.792),(.012,-.113,.812),(-.014,-.113,.790)],.003,metal,True)
 
 # Continuous facial surface: cheek planes, eye sockets, nasal wings and a soft chin.
-profile=[(.907,.016,.025,.025),(.919,.061,.081,.045),(.937,.092,.104,.080),(.963,.123,.119,.112),(1.005,.144,.132,.133),(1.046,.154,.135,.143),(1.088,.155,.130,.145),(1.131,.149,.126,.142),(1.174,.135,.109,.13),(1.208,.102,.075,.10),(1.235,.055,.036,.051),(1.246,.006,.005,.005)]
+head_before=set(hero.objects)
+profile=[(.907,.009,.025,.025),(.919,.038,.071,.045),(.937,.073,.099,.080),(.963,.108,.116,.112),(1.005,.136,.132,.133),(1.046,.146,.135,.143),(1.088,.152,.130,.145),(1.131,.149,.126,.142),(1.174,.135,.109,.13),(1.208,.102,.075,.10),(1.235,.055,.036,.051),(1.246,.006,.005,.005)]
 def face_profile(z):
     i=next((i for i in range(len(profile)-1) if z<=profile[i+1][0]),len(profile)-2)
     t=max(0,min(1,(z-profile[i][0])/(profile[i+1][0]-profile[i][0])))
@@ -369,9 +408,9 @@ def face_profile(z):
 def face_y(x,z):
     rx,front,_=face_profile(z)
     y=-front*math.sqrt(max(0,1-(x/rx)**2))
-    nose=.029*math.exp(-(x/.019)**2-((z-1.029)/.015)**2)
-    bridge=.015*math.exp(-(x/.017)**2-((z-1.063)/.036)**2)
-    wings=.008*(math.exp(-((x-.017)/.012)**2)+math.exp(-((x+.017)/.012)**2))*math.exp(-((z-1.022)/.009)**2)
+    nose=.019*math.exp(-(x/.019)**2-((z-1.029)/.015)**2)
+    bridge=.011*math.exp(-(x/.017)**2-((z-1.063)/.036)**2)
+    wings=.004*(math.exp(-((x-.017)/.012)**2)+math.exp(-((x+.017)/.012)**2))*math.exp(-((z-1.022)/.009)**2)
     cheeks=.006*(math.exp(-((x-.083)/.035)**2)+math.exp(-((x+.083)/.035)**2))*math.exp(-((z-1.026)/.025)**2)
     sockets=.008*(math.exp(-((x-.058)/.039)**2)+math.exp(-((x+.058)/.039)**2))*math.exp(-((z-1.074)/.023)**2)
     muzzle=.005*math.exp(-(x/.033)**2-((z-.982)/.015)**2)
@@ -386,6 +425,11 @@ for k in range(rows):
         y=face_y(x,z) if math.sin(a)<0 else back*math.sin(a)
         verts.append((x,y,z))
 faces=[(i*N+j,i*N+(j+1)%N,(i+1)*N+(j+1)%N,(i+1)*N+j) for i in range(rows-1) for j in range(N)]
+# Actual socket openings: a closed facial shell otherwise hides the sclera edges.
+def inside_socket(face):
+    x,y,z=(sum(verts[i][axis] for i in face)/len(face) for axis in range(3))
+    return y<0 and any(((x-side*.056)/.040)**2+((z-1.068-side*(x-side*.056)*.085)/.026)**2<1 for side in [-1,1])
+faces=[f for f in faces if not inside_socket(f)]
 faces += [tuple(reversed(range(N))),tuple((rows-1)*N+j for j in range(N))]
 head=mesh('Face | continuous cheek socket nose sculpt',verts,faces,skin,1)
 face_mat=skin.copy();face_mat.name='Skin | painted cheek and nose warmth'
@@ -396,15 +440,15 @@ for v,col in zip(head.data.vertices,colors.data):
     cheek=math.exp(-((abs(x)-.089)/.026)**2-((z-1.017)/.023)**2)*max(0,-y/.13)
     nose=math.exp(-(x/.025)**2-((z-1.030)/.022)**2)*max(0,-y/.14)
     amount=min(.35,cheek*.23+nose*.17)
-    base=Vector((.57,.31,.19));warm=Vector((.57,.19,.14))
+    base=Vector((.64,.38,.25));warm=Vector((.66,.27,.20))
     col.color=(*base.lerp(warm,amount),1)
 attr=face_mat.node_tree.nodes.new('ShaderNodeVertexColor');attr.layer_name='SkinTint'
 face_mat.node_tree.links.new(attr.outputs['Color'],face_mat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
 for side in [-1,1]:
-    pts=[(side*.136,.002,1.06),(side*.169,-.005,1.062),(side*.214,.005,1.087),(side*.200,.008,1.070),(side*.177,-.002,1.035),(side*.145,-.005,1.028)]
+    pts=[(side*.136,.002,1.06),(side*.169,-.005,1.062),(side*.202,.024,1.096),(side*.194,.016,1.074),(side*.177,-.002,1.035),(side*.145,-.005,1.028)]
     e=mesh('Pointed ear '+str(side),pts,[tuple(range(6))],skin,2)
     so=e.modifiers.new('Ear thickness','SOLIDIFY');so.thickness=.014
-    inner=[(side*.150,-.014,1.057),(side*.179,-.013,1.060),(side*.201,-.006,1.077),(side*.173,-.016,1.041)]
+    inner=[(side*.150,-.014,1.057),(side*.179,-.013,1.060),(side*.193,.010,1.085),(side*.173,-.016,1.041)]
     mesh('Ear inner fold '+str(side),inner,[tuple(range(4))],earskin,2)
     curve('Ear helix '+str(side),[pts[0],pts[1],pts[2],pts[3],pts[4]],.0035,skin)
     x=side*.011;z=1.017
@@ -426,98 +470,113 @@ for upper in [True,False]:
     mesh(('Upper' if upper else 'Lower')+' lip sculpt',vs,fs,lip,1)
 curve('Mouth crease',[(x,face_y(x,.981)-.0014,.981+.001*math.exp(-((abs(x)-.006)/.004)**2)) for x in [-.022,-.015,-.008,0,.008,.015,.022]],.00065,mouth)
 
-# Smaller almond apertures, skin ribbons for lids, irregular iris fibres.
-rng=random.Random(19)
+# Spherical eye surfaces under overlapping lids, with a calmer upper lid line.
 for side in [-1,1]:
-    x=side*.058;z=1.071;ey=face_y(x,z)-.011
-    ev=[(x,ey,z)];ef=[];steps=48
-    for k in range(1,7):
-        r=k/6
+    x=side*.056;z=1.068;cy=face_y(x,z)+.024
+    def eye_surface(xx,zz):
+        return cy-math.sqrt(max(.00005,.046**2-xx*xx-zz*zz))
+    def aperture(a,r=1):
+        xx=.037*math.cos(a)*r
+        zz=(.020 if math.sin(a)>=0 else .022)*math.sin(a)*(.82+.18*abs(math.sin(a)))*r+side*xx*.085
+        return xx,zz
+    ev=[(x,eye_surface(0,0),z)];ef=[];steps=64
+    for k in range(1,9):
         for j in range(steps):
-            a=math.tau*j/steps;xx=.032*math.cos(a)*r
-            zz=.016*math.sin(a)*r*(.7+.3*abs(math.sin(a)))+side*xx*.07
-            ev.append((x+xx,face_y(x+xx,z+zz)-.0015-.0095*(1-r*r),z+zz))
+            xx,zz=aperture(math.tau*j/steps,k/8)
+            ev.append((x+xx,eye_surface(xx,zz),z+zz))
     ef += [(0,1+j,1+(j+1)%steps) for j in range(steps)]
-    for k in range(5):
+    for k in range(7):
         a=1+k*steps;b=a+steps
         ef.extend((a+j,b+j,b+(j+1)%steps,a+(j+1)%steps) for j in range(steps))
     mesh('Eye white '+str(side),ev,ef,white,1)
-    ellipsoid('Iris rim '+str(side),(x,ey-.001,z),(.0148,.0018,.0145),irisrim,48,20)
-    ellipsoid('Iris teal '+str(side),(x,ey-.0026,z),(.0138,.0012,.0135),iris,48,20)
-    for k in range(70):
-        a=math.tau*(k+rng.uniform(-.25,.25))/70
-        r1=rng.uniform(.0072,.010);r2=rng.uniform(.012,.0135)
-        curve('Iris fibre',[(x+r1*math.cos(a),ey-.004,z+r1*math.sin(a)),(x+r2*math.cos(a+.025),ey-.0037,z+r2*math.sin(a+.025))],rng.uniform(.0001,.00025),hairmats[1] if k%9==0 else irisrim)
-    ellipsoid('Pupil '+str(side),(x,ey-.004,z),(.0070,.001,.0074),pupil,32,20)
-    for offset,rad in [((-.003,ey-.006,.004),.0022),((.004,ey-.005,-.005),.0008)]:
-        ellipsoid('Eye catchlight',(x+offset[0],offset[1],z+offset[2]),(rad,.0005,rad),shine,16,8)
+    def eye_disc(name,radius,mat,offset):
+        v=[(x,eye_surface(0,0)-offset,z)];f=[]
+        for k in range(1,7):
+            for j in range(steps):
+                a=math.tau*j/steps;xx=radius*k/6*math.cos(a);zz=radius*k/6*math.sin(a)
+                v.append((x+xx,eye_surface(xx,zz)-offset,z+zz))
+        f += [(0,1+j,1+(j+1)%steps) for j in range(steps)]
+        for k in range(5):
+            a=1+k*steps;b=a+steps
+            f.extend((a+j,b+j,b+(j+1)%steps,a+(j+1)%steps) for j in range(steps))
+        return mesh(name+str(side),v,f,mat,1)
+    eye_disc('Iris rim ',.0204,irisrim,.00035)
+    eye_disc('Iris teal ',.0194,iris,.0006)
+    eye_disc('Pupil ',.0095,pupil,.00085)
+    for dx,dz,rad in [(-.0035,.0045,.0018),(.004,-.005,.0006)]:
+        ellipsoid('Eye catchlight',(x+dx,eye_surface(dx,dz)-.0012,z+dz),(rad,.0005,rad),shine,16,8)
     for upper in [True,False]:
         vs=[];fs=[];inner=[]
-        for row in range(4):
-            t=row/3
+        for row in range(5):
+            t=row/4
             for j in range(33):
                 a=math.pi*j/32+(0 if upper else math.pi)
-                xx=(.032+.006*t)*math.cos(a)
-                zz=(.016+(.009 if upper else .006)*t)*math.sin(a)*(.7+.3*abs(math.sin(a)))+side*xx*.07
-                p=(x+xx,face_y(x+xx,z+zz)-.0015*(1-t)-.0012*math.sin(math.pi*t),z+zz)
-                vs.append(p)
-                if row==0:inner.append(p)
-        for row in range(3):
+                xx,zz=aperture(a)
+                xx+=.009*t*math.cos(a);zz+=.012*t*math.sin(a)
+                y=eye_surface(xx,zz)*(1-t)+face_y(x+xx,z+zz)*t-.0010*(1-t)
+                point=(x+xx,y,z+zz);vs.append(point)
+                if row==0:inner.append(point)
+        for row in range(4):
             for j in range(32):
                 n=row*33+j;fs.append((n,n+1,n+34,n+33))
         mesh(('Upper' if upper else 'Lower')+' eyelid surface '+str(side),vs,fs,skin,1)
         if upper:
-            curve('Upper lash edge '+str(side),[(a,b-.0007,c) for a,b,c in inner],.0005,hairmats[0])
-    for j in range(28):
-        xx=x+side*(-.027+.056*j/27);zz=1.108+.006*math.sin(math.pi*j/27)
-        curve('Eyebrow hair',[(xx,face_y(xx,zz)-.001,zz),(xx+side*.003,face_y(xx,zz)-.0015,zz+.004)],.0005,hairmats[0])
+            curve('Upper lash edge '+str(side),[(a,b-.0004,c) for a,b,c in inner],.0006,hairmats[0])
+    for j in range(25):
+        xx=x+side*(-.023+.05*j/24);zz=1.105+.007*j/24+.002*math.sin(math.pi*j/24)
+        curve('Eyebrow hair',[(xx,face_y(xx,zz)-.001,zz),(xx+side*.003,face_y(xx,zz)-.0015,zz+.0035)],.0005,hairmats[0])
 
 # Hair cap tucked under the green cap, plus layered asymmetric tapered locks.
-ellipsoid('Hair | under-cap volume',(0,.025,1.168),(.148,.117,.093),hairmats[0])
+hv=[];hf=[];cols=64;rows=20
+for k in range(rows):
+    for j in range(cols):
+        a=math.tau*j/cols;end=1.70+.62*max(0,math.sin(a))+.06*math.sin(3*a+.4)
+        phi=.015+(end-.015)*k/(rows-1)
+        hv.append((.158*math.sin(phi)*math.cos(a),.005+.148*math.sin(phi)*math.sin(a),1.15+.107*math.cos(phi)))
+for k in range(rows-1):
+    for j in range(cols):
+        hf.append((k*cols+j,k*cols+(j+1)%cols,(k+1)*cols+(j+1)%cols,(k+1)*cols+j))
+hair_shell=mesh('Hair | connected fringe and nape mass',hv,hf,hairmats[1],1)
+so=hair_shell.modifiers.new('Hair mass thickness','SOLIDIFY');so.thickness=.004
+uv=hair_shell.data.uv_layers.new(name='SurfaceUV')
+for poly in hair_shell.data.polygons:
+    for li in poly.loop_indices:
+        vi=hair_shell.data.loops[li].vertex_index;u=(vi%cols)/cols
+        if poly.index%cols==cols-1 and u==0:u=1
+        uv.data[li].uv=(u,(vi//cols)/(rows-1))
 locks=[
-    [(-.018,-.064,1.245),(-.061,-.143,1.227),(-.100,-.149,1.173),(-.131,-.131,1.122)],
-    [(.011,-.082,1.249),(-.024,-.151,1.227),(-.047,-.162,1.172),(-.074,-.151,1.121)],
-    [(.026,-.077,1.25),(.018,-.153,1.223),(.005,-.164,1.176),(-.024,-.152,1.126)],
-    [(.033,-.074,1.247),(.062,-.146,1.223),(.070,-.156,1.181),(.093,-.137,1.139)],
-    [(.07,-.047,1.235),(.115,-.120,1.205),(.128,-.132,1.154),(.155,-.101,1.121)],
-    [(-.068,-.039,1.222),(-.128,-.113,1.184),(-.146,-.09,1.132),(-.159,-.051,1.102)],
-    [(.10,-.025,1.207),(.143,-.082,1.17),(.151,-.07,1.115),(.158,-.044,1.091)],
+    [(-.065,-.05,1.225),(-.11,-.145,1.194),(-.139,-.154,1.153),(-.133,-.137,1.10)],
+    [(-.055,-.09,1.232),(-.016,-.172,1.210),(.035,-.181,1.165),(.084,-.149,1.111)],
+    [(-.045,-.05,1.239),(.035,-.145,1.229),(.098,-.164,1.18),(.142,-.131,1.12)],
+    [(-.045,-.05,1.233),(-.075,-.155,1.212),(-.11,-.179,1.156),(-.12,-.15,1.111)],
+    [(.08,-.024,1.226),(.142,-.11,1.194),(.165,-.11,1.118),(.151,-.044,1.068)],
+    [(-.10,-.021,1.212),(-.146,-.084,1.171),(-.163,-.073,1.112),(-.147,-.039,1.062)],
 ]
 for side in [-1,1]:
-    for n in range(4):
-        locks.append([(side*(.117+n*.006),.016+n*.02,1.14),
-                      (side*(.151+n*.003),.021+n*.018,1.079),
-                      (side*(.151+n*.001),.015+n*.014,1.026),
-                      (side*(.164-n*.005),-.006+n*.015,1.00+n*.006)])
+    for n in range(2):
+        locks.append([(side*.125,.045+n*.043,1.14),
+                      (side*.15,.055+n*.035,1.087),
+                      (side*.157,.045+n*.023,1.037),
+                      (side*(.16-.017*n),.029+n*.039,1.005)])
+def hair_lock(name,points,width,mat):
+    # Cubic ribbons keep a flowing taper instead of the old four-ring bulb shape.
+    p=[Vector(v) for v in points];centres=[];radii=[]
+    for j in range(33):
+        t=j/32
+        centres.append((1-t)**3*p[0]+3*(1-t)**2*t*p[1]+3*(1-t)*t*t*p[2]+t**3*p[3])
+        radii.append(width*(.32*(1-t)+.90*math.sin(math.pi*t)**.7)+.0003)
+    return sweep(name,centres,radii,mat,aspect=.20,sides=16,subdiv=1)
 for i,pts in enumerate(locks):
-    rad=.022 if i<7 else .014
-    lock=sweep('Hair | tapered lock %02d'%i,pts,[rad*.55,rad,rad*.60,.001],hairmats[1+i%3],aspect=.65,sides=12,subdiv=2)
-    from mathutils.bvhtree import BVHTree
-    bpy.context.view_layer.update()
-    surface=BVHTree.FromObject(lock,bpy.context.evaluated_depsgraph_get())
-    # Project fibres onto each lock so they cannot float in front of its surface.
-    for strand in range(-5,6):
-        line=[]
-        for k in range(19):
-            t=k/18*(len(pts)-1);j=min(int(t),len(pts)-2)
-            p=Vector(pts[j]).lerp(Vector(pts[j+1]),t-j)
-            p.x+=strand*rad*.10*(1-.8*k/18);p.y-=.020
-            point,normal,_,_=surface.find_nearest(p)
-            line.append(point+normal*.00035)
-        fibre=curve('Hair | strand %02d'%i,line,.00032,hairline if strand%3 else hairmats[0])
-        # Dense projected points need bounded interpolation; AUTO can loop past a tip.
-        for p in fibre.data.splines[0].bezier_points:
-            p.handle_left_type=p.handle_right_type='VECTOR'
-for i in range(6):
-    a,b=locks[i],locks[(i+1)%7]
-    pts=[]
-    for k in range(4):
-        p=Vector(a[k]).lerp(Vector(b[k]),.48)
-        p.y-=.008
-        if k==3:
-            p.x+=(-.008 if i%2 else .010);p.z-=.014
-        pts.append(p)
-    sweep('Hair | interleaved fine wisp '+str(i),pts,[.005,.013,.010,.0006],hairmats[2 if i%2 else 1],aspect=.30,sides=10,subdiv=2)
+    rad=[.026,.027,.030,.022,.025,.025][i] if i<6 else .020
+    hair_lock('Hair | swept layered clump %02d'%i,pts,rad,hairmats[1+i%3])
+    if i<6:
+        overlay=[(x+.008,y-.004,z-.006) for x,y,z in pts]
+        hair_lock('Hair | overlapping fringe layer %02d'%i,overlay,rad*.52,hairmats[1+(i+1)%3])
+for i in [1,3]:
+    pts=[Vector(p) for p in locks[i]]
+    for k,p in enumerate(pts):
+        p.x+=.011;p.y-=.007;p.z-=.009*k/3
+    sweep('Hair | stray swept tip '+str(i),pts,[.004,.010,.008,.0005],hairmats[2],aspect=.4,sides=10,subdiv=2)
 
 # A fitted dome and a descending tail are voxel-unioned into one cloth volume.
 # This is a sculpt base; retopology is still needed before deformation rigging.
@@ -525,7 +584,7 @@ cv=[]; cf=[]; cn=64; rows=20
 for k in range(rows):
     for j in range(cn):
         a=math.tau*j/cn
-        edge_phi=1.68+.40*max(0,math.sin(a))
+        edge_phi=1.95+.30*max(0,math.sin(a))
         phi=.01+(edge_phi-.01)*k/(rows-1)
         cv.append((.156*math.sin(phi)*math.cos(a),.023+.145*math.sin(phi)*math.sin(a),1.168+.117*math.cos(phi)))
 for k in range(rows-1):
@@ -533,7 +592,7 @@ for k in range(rows-1):
         cf.append((k*cn+j,(k+1)*cn+j,(k+1)*cn+(j+1)%cn,k*cn+(j+1)%cn))
 cf.extend([tuple(range(cn)),tuple(reversed([(rows-1)*cn+j for j in range(cn)]))])
 cap=mesh('Cap | fitted dome',cv,cf,cloth)
-tail=sweep('Cap | tail sculpt',[(0,.119,1.196),(0,.177,1.183),(0,.219,1.121),(0,.241,1.037),(0,.231,.974),(0,.211,.938)], [.080,.078,.061,.038,.022,.001],cloth,aspect=.85,sides=32,subdiv=2)
+tail=sweep('Cap | tail sculpt',[(0,.10,1.20),(0,.185,1.215),(0,.239,1.155),(0,.255,1.045),(0,.238,.974),(0,.211,.938)], [.080,.096,.074,.045,.024,.001],cloth,aspect=.85,sides=32,subdiv=2)
 bpy.ops.object.select_all(action='DESELECT')
 cap.select_set(True);tail.select_set(True);bpy.context.view_layer.objects.active=tail
 bpy.ops.object.convert(target='MESH')
@@ -561,6 +620,8 @@ for i in range(len(seam)-1):
     for j in range(max(1,int((b-a).length/.018))):
         p=a.lerp(b,(j+.5)/max(1,int((b-a).length/.018)))
         curve('Cap | cross stitch',[on_cap((p.x-.006,p.y+.001,p.z+.004)),on_cap((p.x+.006,p.y+.002,p.z-.004))],.0011,thread)
+
+head_parts=set(hero.objects)-head_before
 
 # Backpack and bowed wooden shield, with hand-carved original spiral.
 rounded_box('Backpack | leather body',(0,.126,.746),(.227,.102,.249),leather,.037)
@@ -603,23 +664,47 @@ for i in range(7):
     curve('Sword | grip winding',[(p.x+.013*math.cos(a),p.y+.012*math.sin(a),p.z-.008*math.cos(a)) for a in [math.tau*j/16 for j in range(16)]],.0016,thread,True)
 ellipsoid('Sword | pommel',(.211,.136,1.047),(.018,.016,.02),metal)
 
-# Short bare shins and a proportionally larger head match the child reference.
-# Apply the same continuous mapping to every part so equipment stays attached.
+# Sheet 09 has a longer tunic and a smaller head than the initial toy proportions.
+# Arm length remains independent of the tunic stretch, with the shoulder fixed.
 def child_z(z):
-    return z if z <= .23 else (.23+(z-.23)*.56 if z < .55 else z-.1408)
+    if z<=.23:return z
+    if z<.55:return .23+(z-.23)*.65
+    if z<.90:return .438+(z-.55)*1.18
+    return .851+(z-.90)*.90
+def proportion(p,ob):
+    if ob.name.startswith('Arm wrist and hand sculpt'):
+        p.z=.798+(p.z-.855)*.95
+    else:
+        p.z=child_z(p.z)
+    if ob in head_parts:
+        p.x*=.86;p.y*=.88
+    else:
+        p.x*=.93
+    return p
 for ob in hero.objects:
     inv=ob.matrix_world.inverted()
     if ob.type=='MESH':
         for v in ob.data.vertices:
-            p=ob.matrix_world@v.co;p.z=child_z(p.z);v.co=inv@p
+            v.co=inv@proportion(ob.matrix_world@v.co,ob)
     elif ob.type=='CURVE':
         for sp in ob.data.splines:
             for p in sp.bezier_points:
                 # AUTO handles follow the control point. Transforming them again
                 # double-shifts them and creates long loops in hair/seam curves.
-                q=ob.matrix_world@p.co;q.z=child_z(q.z);p.co=inv@q
+                p.co=inv@proportion(ob.matrix_world@p.co,ob)
 
 # Studio: neutral floor and soft key/fill/rim. No scenery can hide the model.
+bpy.ops.object.select_all(action='DESELECT')
+fabric_parts=[ob for ob in hero.objects if ob.type=='MESH' and any(m and m.name.startswith(('Tunic |','Collar |')) for m in ob.data.materials)]
+for ob in fabric_parts:
+    ob.select_set(True)
+bpy.context.view_layer.objects.active=fabric_parts[0]
+bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT')
+bpy.ops.uv.smart_project(angle_limit=math.radians(66),island_margin=.02)
+bpy.ops.object.mode_set(mode='OBJECT')
+for ob in fabric_parts:
+    assert ob.data.uv_layers, ('Missing fabric UVs',ob.name)
+
 floor_mat=material('Studio | warm grey',(.15,.17,.155),.95)
 bpy.ops.mesh.primitive_plane_add(size=200, location=(0,0,-.006))
 put(bpy.context.object,'Studio floor',floor_mat,studio)
@@ -640,7 +725,7 @@ camdata.type='ORTHO';camdata.ortho_scale=1.56
 cam.location=(1.65,-3.5,1.63)
 cam.rotation_euler=(Vector((0,0,.66))-cam.location).to_track_quat('-Z','Y').to_euler()
 scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=True
-scene.render.threads_mode='FIXED';scene.render.threads=6
+scene.render.threads_mode='FIXED';scene.render.threads=4
 scene.render.resolution_x=1000;scene.render.resolution_y=1100;scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG'
 scene.view_settings.view_transform='AgX'

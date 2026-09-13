@@ -9,12 +9,14 @@ material only; none is used as a texture. These maps are CC0 according to
   Displacement downloads verified against the API's MD5 records before use.
 - `cloth-roughness.jpg`, `cloth-normal.jpg`: 1K maps from
   [Fabric Pattern 05](https://polyhaven.com/a/fabric_pattern_05), Rob Tuytel.
-  Download hashes verified. The roughness scan controls surface roughness; yarn-scale
-  bump and green mottling are procedural. The normal map is retained for the later
-  UV/bake pass. The plaid
+  Download hashes verified. The roughness and tangent-space normal scans are applied
+  on cloth UVs; the green dye variation is procedural. The plaid
   colour maps are not used: the green base colour is authored locally.
 - Shield wood reuses `public/textures/weathered_planks/color.jpg` and `roughness.jpg`.
   Its original source/credit is in `public/textures/CREDITS.md`.
 
 All used images are packed into `link-study.blend`. Procedural/triplanar shading needs
 baking before a glTF export can reproduce the Blender render.
+
+`../runtime/textures/` contains the original model's baked PBR atlases, derived from
+these credited CC0 maps and locally authored shaders. No reference image is baked.

@@ -4,14 +4,17 @@ Editable source: `link-study.blend`. Rebuild with `build_link.py` through the in
 Blender MCP; see `../../../tools/blender/README.md`. The Blender file packs its used images.
 The static, flat-colour `link-study.glb` is for shape review only. It is not a game-ready replacement.
 
-Current checkpoint: **2026-09-13 12:55 UTC** —
+Current sculpt: **2026-09-13 13:48 UTC** —
+[three-quarter render](progress/2026-09-13_134859/01-three-quarter.png).
+This pass changes the sockets/lids, jaw, hair ribbons, sleeve openings and cloth UVs.
+The static GLB and its validation still describe the earlier **12:55 UTC** study:
 [front](progress/2026-09-13_125545/02-front.png),
 [side](progress/2026-09-13_125545/03-side.png),
 [back](progress/2026-09-13_125545/04-back.png),
 [face](progress/2026-09-13_125545/05-face.png),
 [boots](progress/2026-09-13_125545/06-boots.png).
 
-![Actual Blender three-quarter render](progress/2026-09-13_125545/01-three-quarter.png)
+![Actual Blender three-quarter render](progress/2026-09-13_134859/01-three-quarter.png)
 
 ## What is here
 
