@@ -8621,6 +8621,115 @@
       },
       "prevHash": "sha256:7ffa4cb9059af4073016438bffccaab003444a8d66b5a02c81c6df9a3426e473",
       "hash": "sha256:8709c2c61eafc67933c5b3f1d8d61fddf6e08b1f5d7bccddf837fd4268e907de"
+    },
+    {
+      "id": "take-0081",
+      "number": 81,
+      "at": "2026-09-13T15:29:18.561Z",
+      "sha": "e591006248544d5700a60b03947d776f659c1aac",
+      "shortSha": "e591006",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "atmosphere/lighting: the hemisphere's ground bounce doubles (sky.hemiGround 0x7d7860 -> 0xaba687, the sunlit khaki floor's radiance ~0.75 linear instead of 0.2) - every hero view rises (A 0.2642 -> 0.2679, B 0.2407 -> 0.2446, C 0.2998 -> 0.3070, D +0.0014, E +0.0025, F +0.0006); the near-veil terms (thin mid air, mid-air dim window) are wired but neutral until the crowns over B's path are opened; probe hooks for the fog, sky and shadow filter",
+      "agent": "fable-cursor",
+      "items": [
+        "W30",
+        "W31",
+        "W34"
+      ],
+      "note": "Round twenty-six: the first owned lighting pass, measured against the frames after the lighting partner's closeout. Three gaps were diagnosed: the sunlit slabs on B's path that render 0.42 where the frame's are 0.55-0.65 are casters, not light (in the white-Lambert view B's ground band is 60 % shade / 34 % penumbra / 6 % sun, and hiding the giants' crowns reproduces the frame's p50 0.455 / p90 0.604 exactly - a trees pass is opening them now); the 0.295 dark floor on Saria's shaded trunk is the 10-18 m veil (a thin mid-air segment plus a dim window put the trunk's p10 on the frame's 0.209 but exposed the under-lit mid-ground and cost 0.004-0.009 SSIM in four views, so both terms ship wired but neutral until the crowns open); the bright hazed canopy at the top of A/B is fill-lit limb underside and 10-18 m canopy, and the fill's ground bounce is the lever. Shipped: the hemisphere's ground colour doubles (the sunlit khaki floor's radiance ~0.75 linear instead of 0.2) - B's top-left box 0.308 -> 0.348 (frame 0.431), top band 0.327 -> 0.360 (frame 0.351), A's top-left 0.434 -> 0.442 (frame 0.483) - and every hero view rises: A 0.2642 -> 0.2679, B 0.2407 -> 0.2446, C 0.2998 -> 0.3070, D 0.3001 -> 0.3015, E 0.2703 -> 0.2728, F 0.2734 -> 0.2740, with the sun fixed at -128 / 38, the haze at 0.028 per metre unchanged, far layers D 3 / C 3, sharpness 0.90-1.34, no overexposure. Rejected with numbers: bloom as glare (the frame has no halo round its sky gaps), a 3x bounce (B's forest band darkest decile 0.361 vs the frame's 0.289). The plaza's missing dapple is casters and dark material, not the shadow filter.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:d806c28355acb4515d4cdd519045f7288dcc7ab655ccf2cdf3c1e73842e11506",
+        "B_house": "sha256:6bb86080df7e6604e4502a57bd15a113c00d4bffb571da674e79ba22f0416f9d",
+        "C_lookback": "sha256:f8febfa3327b99e5e6070fd896c91c52f37e6fcd1ebf4d4001d8bed4eefe6941",
+        "D_log": "sha256:5ec97e3e15077df189739bff0a023ec8fd1b76f0e7001cc1a7484e8a09935d77",
+        "E_ground": "sha256:6bb86080df7e6604e4502a57bd15a113c00d4bffb571da674e79ba22f0416f9d",
+        "F_canopy": "sha256:5a73c50362fdc75aa7e2b0a68c0548eb1e6033bc72ca3787c6b147972dc80a2f"
+      },
+      "distHash": "sha256:607d1bbf4941c94b3c4d7120d00c2d2e0a873da4616abc29ff844da2fe7d71bc",
+      "stats": {
+        "drawCalls": 595,
+        "triangles": 8830884,
+        "captureMs": 1165952,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W30",
+        "W31",
+        "W34"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take81-cap",
+        "importedAt": "2026-09-13T15:29:52.924Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:8709c2c61eafc67933c5b3f1d8d61fddf6e08b1f5d7bccddf837fd4268e907de",
+      "hash": "sha256:d4df287433afdefd6b46da0366e8e05ccfb1a0ad4d6222d535f7bf7ebf1711f3"
     }
   ]
 }
