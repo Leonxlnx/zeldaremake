@@ -8,6 +8,7 @@
  *   npm run gauntlet:verify-exit                            can Phase 1 be declared complete? exit 0 only on pass
  *   options: --out <dir> --ledger <path> --claims <path> --reviews <dir> --report <path> --no-build --quality high --settle 90
  */
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -100,7 +101,7 @@ export async function runDefault({ outDir = LAST_DIR, ledgerPath = LEDGER_PATH, 
   return { score, ok: report.ok && takeReport.ok };
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   const agent = typeof args.agent === 'string' ? args.agent : null;
