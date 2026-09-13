@@ -15,11 +15,13 @@
  *
  * Rendering: bark and leaves of a tree share one geometry (leaf vertices flagged in aRoot.w), so a
  * white-bark variant costs ONE InstancedMesh per LOD; `update()` re-buckets instances by camera
- * distance whenever the camera moves > 1.5 m. Giants are merged into three angular sector meshes
- * (aRoot.xyz = each tree's origin keeps per-tree wind/height context). Everything is seated via
+ * distance whenever the camera moves > 1.5 m (an explicit re-pose via `onCameraMove` always
+ * re-buckets). Giants are merged into three angular sector meshes (aRoot.xyz = each tree's origin
+ * keeps per-tree wind/height context). What each bucket hands the GPU is trimmed per frame to the
+ * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferGeometry, Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
+import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { createTreeMaterials } from './materials';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
@@ -704,6 +706,25 @@ const COLUMN_VIEWS = ['A_stairs', 'B_house', 'D_log', 'F_canopy'];
 const COLUMN_SWAP = { minDistance: 18, maxDistance: 45, xMin: 0.05, xMax: 0.95, minBaseY: 0.25 };
 /** minimum clearance of a column seat from a white-bark / a giant's bark / a house's trunk (m) */
 const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
+/**
+ * Submission culling (round 16). The LOD buckets hold every tree of a variant within a distance
+ * band all around the camera, so a bucket's InstancedMesh was never frustum-culled as a whole and
+ * every instance in it — the ring behind the camera included — was rasterised in the colour pass
+ * and, for the shadow-casting LODs, in the sun's depth map. Per frame the buckets are now trimmed
+ * to the instances that can reach the image: an instance is submitted when its bounding sphere
+ * (grown by CULL_PAD_M for wind displacement and the shadow filter's reach) meets the view
+ * frustum, or — on a shadow-casting mesh — when the volume its shadow sweeps along the sun
+ * direction down to SHADOW_FLOOR_Y (a capsule) meets it, since a caster behind the camera whose
+ * shadow falls into the frame must stay in the depth map. Giant sector meshes keep casting only
+ * while their capsule meets the frustum. Both tests are conservative (plane-separation), so the
+ * frame is pixel-identical to the untrimmed one; what changes is the triangle count and the draw
+ * calls of buckets that trim to nothing (hidden). Off the six fixed views this is what keeps the
+ * walkable build inside the W38 envelope (≤ 700 calls, < 9 M triangles): the free-camera poses
+ * measured 710–714 calls / 9.08–9.13 M before.
+ */
+const CULL_PAD_M = 4;
+/** lowest world height a shadow receiver can have (the capsule is swept down to it) */
+const SHADOW_FLOOR_Y = -20;
 const _v = new Vector3();
 const _q = new Quaternion();
 const _s = new Vector3();
@@ -716,7 +737,12 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A 
   meshes: InstancedMesh[];
   placements: T[];
   matrices: Matrix4[];
+  /** LOD bucket sizes (every placement is in exactly one bucket; the audit counts these) */
   counts: number[];
+  /** placement indices per LOD bucket, as bucketed by camera distance */
+  lists: number[][];
+  /** placement indices actually submitted per LOD (the bucket minus the culled instances) */
+  submitted: number[][];
 }
 type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
 interface ColumnPlacement {
@@ -738,7 +764,12 @@ interface DistantSet {
   far: InstancedMesh;
   placements: DistantPlacement[];
   matrices: Matrix4[];
+  /** LOD bucket sizes [near, far] (the audit counts these) */
   counts: [number, number];
+  /** placement indices per LOD bucket */
+  lists: [number[], number[]];
+  /** placement indices actually submitted per LOD */
+  submitted: [number[], number[]];
 }
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
@@ -861,7 +892,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (let i = 0; i < WHITE_VARIANTS; i++) {
     const params = whiteBarkParams(whiteRng, i, WHITE_VARIANTS);
     const lods = DETAILS.map((d) => createWhiteBarkTree(params, palette, d));
-    whites.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
+    whites.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
     ctx.progress('trees', 0.05 + (0.45 * (i + 1)) / WHITE_VARIANTS);
     await yieldFrame();
   }
@@ -952,7 +983,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const columnParamSets = [...Array.from({ length: COLUMN_VARIANTS }, (_, i) => columnParams(columnRng, i, COLUMN_VARIANTS)), emergentParams(columnRng)];
   // Finalize deterministic placements before creating terrain-dependent root geometry.
   for (const params of columnParamSets) {
-    columns.push({ params, lods: [], meshes: [], placements: [], matrices: [], counts: [0, 0, 0] });
+    columns.push({ params, lods: [], meshes: [], placements: [], matrices: [], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
   }
   const seatRng = columnRng.fork('seats');
   const columnSeatsSkipped: { x: number; z: number; reason: string }[] = [];
@@ -1003,7 +1034,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       terrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
     ) / p.scale;
     const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, groundAt));
-    seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0] });
+    seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
     await yieldFrame();
   }
   const columnGroup = new Group();
@@ -1158,6 +1189,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // three angular sectors around the plaza → three meshes, each frustum-culled as a unit
   const byAngle = [...giants].sort((a, b) => a.angle - b.angle);
   const sectorGeometries: BufferGeometry[] = [];
+  const sectorMeshes: Mesh[] = [];
   const perSector = Math.ceil(byAngle.length / GIANT_SECTORS);
   for (let s = 0; s < GIANT_SECTORS; s++) {
     const members = byAngle.slice(s * perSector, (s + 1) * perSector);
@@ -1186,6 +1218,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     canopy.receiveShadow = true;
     canopy.userData.kind = 'giant-canopy-cards';
     giantGroup.add(mesh, canopy);
+    sectorMeshes.push(mesh, canopy);
   }
   group.add(giantGroup);
 
@@ -1219,7 +1252,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       _p.set(p.x, p.y, p.z);
       return new Matrix4().compose(_p, _q, _s);
     });
-    return { variant, near, far, placements, matrices, counts: [0, 0] };
+    return { variant, near, far, placements, matrices, counts: [0, 0], lists: [[], []], submitted: [[], []] };
   });
   group.add(distantGroup);
   ctx.progress('trees', 0.95);
@@ -1230,6 +1263,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
 
+  // LOD buckets: every placement lands in exactly one bucket by camera distance
   const bucketFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], cam: Vector3) => {
     for (const w of variants) {
       const buckets: number[][] = [[], [], []];
@@ -1240,14 +1274,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         buckets[l].push(i);
       }
       for (let l = 0; l < 3; l++) {
-        const mesh = w.meshes[l];
-        const list = buckets[l];
-        for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
-        mesh.count = list.length;
-        mesh.visible = list.length > 0;
-        mesh.instanceMatrix.needsUpdate = true;
-        if (list.length) mesh.computeBoundingSphere();
-        w.counts[l] = list.length;
+        w.lists[l] = buckets[l];
+        w.counts[l] = buckets[l].length;
       }
     }
   };
@@ -1264,31 +1292,134 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const p = set.placements[i];
         (Math.hypot(p.x - cam.x, p.z - cam.z) < distantNear ? nearList : farList).push(i);
       }
-      const fill = (mesh: InstancedMesh, list: number[]) => {
-        for (let k = 0; k < list.length; k++) {
-          mesh.setMatrixAt(k, set.matrices[list[k]]);
-          mesh.setColorAt(k, set.placements[list[k]].tint ?? white);
-        }
-        mesh.count = list.length;
-        mesh.visible = list.length > 0;
-        mesh.instanceMatrix.needsUpdate = true;
-        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-        if (list.length) mesh.computeBoundingSphere();
-      };
-      fill(set.near, nearList);
-      fill(set.far, farList);
+      set.lists = [nearList, farList];
       set.counts = [nearList.length, farList.length];
     }
   };
 
-  const rebucket = (camera: Camera) => {
-    camera.getWorldPosition(_v);
-    if (_v.distanceTo(camPos) < 1.5) return;
-    camPos.copy(_v);
-    bucketWhite(camPos);
-    bucketDistant(camPos);
+  // ------------------------------------------------------------------ submission culling
+  // (see CULL_PAD_M): the view frustum of the frame about to be rendered, the sun direction the
+  // shadows sweep along, and the instance/mesh tests that decide what each bucket hands the GPU
+  const frustum = new Frustum();
+  const viewProj = new Matrix4();
+  const lastViewProj = new Matrix4().makeScale(0, 0, 0);
+  const sunNow = sunDir.clone();
+  const sphere = new Sphere();
+  const shadowEnd = new Vector3();
+  const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+  /** the sphere (already padded) meets the frustum */
+  const inView = (s: Sphere) => frustum.intersectsSphere(s);
+  /**
+   * The volume the sphere's shadow sweeps along the sun direction (from the sphere down to
+   * SHADOW_FLOOR_Y) meets the frustum: a capsule is outside a plane iff both end spheres are.
+   */
+  const shadowReaches = (s: Sphere) => {
+    const span = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / Math.max(0.05, sunNow.y));
+    shadowEnd.copy(s.center).addScaledVector(sunNow, -span);
+    for (const plane of frustum.planes) {
+      if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(shadowEnd) < -s.radius) return false;
+    }
+    return true;
   };
-  rebucket(ctx.camera);
+  /** world bounding sphere of placement `i` of `w` at LOD `l`, padded */
+  const instanceSphere = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number, out: Sphere) => {
+    const bs = w.lods[l].geometry.boundingSphere!;
+    out.center.copy(bs.center).applyMatrix4(w.matrices[i]);
+    out.radius = bs.radius * w.placements[i].scale + CULL_PAD_M;
+    return out;
+  };
+  const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[]) => {
+    const mesh = w.meshes[l];
+    for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
+    mesh.count = list.length;
+    mesh.visible = list.length > 0;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (list.length) mesh.computeBoundingSphere();
+    w.submitted[l] = list;
+  };
+  const submitFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[]) => {
+    for (const w of variants) {
+      for (let l = 0; l < 3; l++) {
+        const casts = w.meshes[l].castShadow;
+        const kept: number[] = [];
+        for (const i of w.lists[l]) {
+          instanceSphere(w, l, i, sphere);
+          if (inView(sphere) || (casts && shadowReaches(sphere))) kept.push(i);
+        }
+        if (!sameList(kept, w.submitted[l])) fillFamily(w, l, kept);
+      }
+    }
+  };
+  const fillDistant = (set: DistantSet, l: 0 | 1, list: number[]) => {
+    const mesh = l === 0 ? set.near : set.far;
+    for (let k = 0; k < list.length; k++) {
+      mesh.setMatrixAt(k, set.matrices[list[k]]);
+      mesh.setColorAt(k, set.placements[list[k]].tint ?? white);
+    }
+    mesh.count = list.length;
+    mesh.visible = list.length > 0;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    if (list.length) mesh.computeBoundingSphere();
+    set.submitted[l] = list;
+  };
+  const submitDistant = () => {
+    for (const set of distantSets) {
+      for (const l of [0, 1] as const) {
+        const bs = (l === 0 ? set.variant.near : set.variant.far).boundingSphere!;
+        const kept: number[] = [];
+        for (const i of set.lists[l]) {
+          sphere.center.copy(bs.center).applyMatrix4(set.matrices[i]);
+          sphere.radius = bs.radius * set.placements[i].scale + CULL_PAD_M;
+          if (inView(sphere)) kept.push(i);
+        }
+        if (!sameList(kept, set.submitted[l])) fillDistant(set, l, kept);
+      }
+    }
+  };
+  // giant sectors: world-space geometry; three culls the colour pass by the same sphere itself
+  const submitGiants = () => {
+    if (!ctx.quality.shadows) return;
+    for (const mesh of sectorMeshes) {
+      sphere.copy(mesh.geometry.boundingSphere!);
+      sphere.radius += CULL_PAD_M;
+      mesh.castShadow = shadowReaches(sphere);
+    }
+  };
+  /** trim every bucket for `camera`; skipped while the view-projection is unchanged (unless forced) */
+  const cull = (camera: Camera, force: boolean) => {
+    camera.updateMatrixWorld();
+    viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!force && viewProj.equals(lastViewProj)) return;
+    lastViewProj.copy(viewProj);
+    frustum.setFromProjectionMatrix(viewProj);
+    if (ctx.sun) {
+      sunNow.subVectors(ctx.sun.position, ctx.sun.target.position);
+      if (sunNow.lengthSq() > 1e-6) sunNow.normalize();
+      else sunNow.copy(sunDir);
+    }
+    submitFamily(whites);
+    submitFamily(seatedColumns);
+    submitDistant();
+    submitGiants();
+  };
+
+  /**
+   * Re-bucket by LOD when the camera has moved ≥ 1.5 m (or when forced: an explicit re-pose from
+   * `onCameraMove` must never render the previous pose's buckets), then trim the buckets for the
+   * frame's frustum.
+   */
+  const rebucket = (camera: Camera, force = false) => {
+    camera.getWorldPosition(_v);
+    const moved = force || _v.distanceTo(camPos) >= 1.5;
+    if (moved) {
+      camPos.copy(_v);
+      bucketWhite(camPos);
+      bucketDistant(camPos);
+    }
+    cull(camera, moved);
+  };
+  rebucket(ctx.camera, true);
 
   // ------------------------------------------------------------------ audit
   const whiteBases: [number, number, number][] = whitePlacements.map((p) => [p.x, p.y, p.z]);
@@ -1302,6 +1433,73 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const stride = Math.max(1, Math.ceil(pool.length / 300));
     return pool.filter((_, i) => i % stride === 0).slice(0, 300);
   })();
+  /**
+   * What the current buckets hand the renderer for the current camera, mesh by mesh, with three's
+   * own culling replayed (mesh sphere against the camera frustum for the colour pass, against the
+   * sun's shadow camera for the depth pass): draw calls and submitted triangles per family / LOD.
+   */
+  interface SubmissionTally {
+    meshes: number;
+    instances: number;
+    calls: number;
+    triangles: number;
+  }
+  const submission = () => {
+    const cam = ctx.camera;
+    cam.updateMatrixWorld();
+    const view = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    let shadow: Frustum | null = null;
+    if (ctx.sun?.castShadow) {
+      const sc = ctx.sun.shadow.camera;
+      shadow = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(sc.projectionMatrix, sc.matrixWorldInverse));
+    }
+    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0 });
+    const s = new Sphere();
+    const add = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
+      const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
+      if (!mesh.visible || inst === 0) return;
+      const bs = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).boundingSphere : mesh.geometry.boundingSphere;
+      if (!bs) return;
+      s.copy(bs).applyMatrix4(mesh.matrixWorld);
+      const g = mesh.geometry;
+      const tris = Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3) * inst;
+      const colour = view.intersectsSphere(s) ? 1 : 0;
+      const depth = mesh.castShadow && shadow && shadow.intersectsSphere(s) ? 1 : 0;
+      into.meshes++;
+      into.instances += inst;
+      into.calls += colour + depth;
+      into.triangles += tris * (colour + depth);
+    };
+    const byFamily: Record<string, SubmissionTally> = {};
+    const family = (key: string) => (byFamily[key] ??= tally());
+    for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
+    for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
+    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : 'giant-cards'), m));
+    for (const d of distantSets) {
+      add(family('distant-near'), d.near);
+      add(family('distant-far'), d.far);
+    }
+    const total = tally();
+    for (const t of Object.values(byFamily)) {
+      total.meshes += t.meshes;
+      total.instances += t.instances;
+      total.calls += t.calls;
+      total.triangles += t.triangles;
+    }
+    return {
+      drawCalls: total.calls,
+      triangles: total.triangles,
+      meshes: total.meshes,
+      instances: total.instances,
+      byFamily,
+      /** bucket sizes → submitted after culling, per LOD */
+      whiteBarkLodSubmitted: [0, 1, 2].map((l) => whites.reduce((n, w) => n + w.submitted[l].length, 0)),
+      columnLodSubmitted: [0, 1, 2].map((l) => seatedColumns.reduce((n, c) => n + c.submitted[l].length, 0)),
+      distantSubmitted: [0, 1].map((l) => distantSets.reduce((n, d) => n + d.submitted[l].length, 0)),
+      giantSectorsCasting: sectorMeshes.filter((m) => m.castShadow).length,
+      cullPadM: CULL_PAD_M,
+    };
+  };
 
   ctx.audit('trees', () => {
     let leafCount = 0;
@@ -1404,6 +1602,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         return [s.id, mm(s.x), mm(s.z), mm(s.y), mm(s.radiusAt(0)), mm(s.radiusAt(s.bareHeight)), mm(s.bareHeight)];
       }),
       triangles: { wood: woodTriangles, leaves: leafTriangles, canopyCards: giantCards * 2, distant: distantTriangles },
+      /** per-frame submission after culling (see CULL_PAD_M): what the current camera actually draws */
+      submission: submission(),
       samplePositions: { bases: sampleBases },
     };
   });
@@ -1416,7 +1616,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       rebucket(c.camera);
     },
     onCameraMove(camera) {
-      rebucket(camera);
+      // an explicit re-pose (capture harness, viewpoint keys) re-buckets whatever the distance moved
+      rebucket(camera, true);
     },
     dispose() {
       for (const w of whites) for (const l of w.lods) l.geometry.dispose();
