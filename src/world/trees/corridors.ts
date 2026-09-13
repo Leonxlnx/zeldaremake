@@ -133,7 +133,9 @@ export const CANOPY_OPENING_DENSIFY = 2.5;
  *   stair-foot pool (5.7, 0.7) at its west edge is the one listed (59 % lit after the cut, the
  *   pool at (7.3, 0.7) 1.9 m).
  * Every band starts at 10 m or higher: the lantern limb's lobes 3–8 m over the plaza (the hero
- * foliage of shots A and F) and the lantern pods are never touched.
+ * foliage of shots A and F) and the lantern pods are never touched — except the two shot-B path
+ * pools (round 18, below), whose r 0.6–0.8 lines pass through lobe A's core; measured against A and
+ * F, the hole is not visible in either frame.
  *
  * Pool geometry. A cylinder of radius r lands as an ellipse 2 r across the sun and 2 r / sin 38°
  * = 3.25 r along it (ground direction (0.788, 0.615)). A lobe card is dropped when its centre is
@@ -155,6 +157,36 @@ export const CANOPY_OPENING_DENSIFY = 2.5;
  * flight: its casters are the sparse dapple
  * lobes, which the collars packed into a dark canopy in the first cut (shot F's flight box
  * 66 → 79 % shade).
+ *
+ * Shot B's path (round 18). The reference's flagstones between Link and Saria's door (B x 0.45–0.95,
+ * y 0.62–1.0) are dappled — 17.8 % / 20.8 % of the band's centre / right thirds above 0.58
+ * luminance, p90 0.61 — where the control renders 5.5 % / 1.7 %, p90 0.56 / 0.48. Hidden one
+ * family / giant / lobe at a time (rendered lit share of the centre third, control 5.2 %): every
+ * giant 20.3 %, the lantern tree alone 19.3 %, its cluster cards alone 10.5 %, its three wild-limb
+ * lobes (hR 3.4 at (−12.5, 12.2, −11.9), (−11.5, 12.2, −15.1), (−8.8, 12.1, −16.0), whose shadows
+ * land on the path at (−0.2, −2.3), (0.8, −5.5), (3.5, −6.4)) 14.3 %, the plaza-roof lobe
+ * (−10.2, 12.5, −10.6) 5.8 %, the lantern limb's own lobes 5.4 %, the house-bough wood 5.2 %, the
+ * columns 7.5 %, the north-west-near giant +3.7 % Lambert sun, white-barks / vegetation / props 0.
+ * The wild-limb lobes stack over the lantern-limb lobe A ((−2.5, 5.2, −5.5): 39 % of a 10° cone
+ * from (2.5, −2.5) at 8–10 m), so either alone opens next to nothing and the bands below start at
+ * 3 m, not 10 (the [10, 30] pools at (4.2, −5.2) / (6.3, −7.2) / (7.5, −5.2) moved the band 0.0 %:
+ * those sun lines end in wood — the emergent's bole at 9–12 m and boughs at 12–24 m). Two pools
+ * (r 0.8 and 0.6: 1.6 × 2.6 and 1.2 × 2 m ellipses, no collar cards) on the west half of the path:
+ * centre third 13.9 % lit, p90 0.596 (frame 17.8 %, 0.610; control 5.5 %, 0.565). A third pool at
+ * (2.9, −2.9) r 0.8 reached 16.0 % / 0.602, but the shadow filter's penumbra merges pools closer
+ * than ≈ 2 m across the sun, so the three read as one soft 4 m sheet behind Link and cost B
+ * 0.0060 SSIM against 0.0017 for these two (C −0.0076 / −0.0069: any pool on this ground sits
+ * 4–6 m in front of C's camera, low right, where the reference has its own slab pattern). The
+ * right third stays at the control's 1.7 %: the frame's minimap covers 40 % of that box, and its
+ * ground lies under the lantern limb's wood-and-pod band ((0.3, −1.7) → (4.8, 0); 60 % of every
+ * cone from (2–3.5, −0.5 … −1.5) is blocked at 4–6 m), the emergent bole's stripe (which runs
+ * exactly through (3.1, −3.4) → (4.8, −1.9)) and Link's own shadow — with every giant hidden that
+ * ground reaches 3.5 %. Shot F's left edge (x 0–0.15, y 0.3–0.8) looks straight down this path
+ * (its x 0.02 column crosses (2.7, −1.3), (3.6, −2.4), (5.0, −3.9)), so pools on the path's east
+ * half light it — one at (3.3, −2.6) put 44 % Lambert sun in F's (0.02, 0.675) cell (lit share
+ * 0.8 → 1.0 % / 0.4 → 1.2 %); these two leave it at the control's 0.8 / 0.4 / 0.0 % (frame 0).
+ * Shot A's plaza thirds 14.9 / 32.6 / 8.4 → 15.5 / 32.6 / 8.4 %, D's path band unchanged; 1425
+ * giant laminae and 158 cluster cards fewer, no draw call moves.
  */
 export const CANOPY_OPENINGS: CanopyOpening[] = [
   // ---- plaza disc (0, 0) r 6 — shot A's plaza box is world (0.3–5.3, 1.5–5.8), the near paving
@@ -177,4 +209,9 @@ export const CANOPY_OPENINGS: CanopyOpening[] = [
   { point: [8.3, -0.9], radius: 1.0, band: [10, 30], densify: 0 },
   { point: [12.0, -3.8], radius: 1.0, band: [12, 30], densify: 0 },
   { point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0, id: 'flight-top' },
+  // ---- shot B's path: the flagstones between Link and Saria's door, west half only (F's left edge
+  // looks down the east half); bands from 3 m so the lantern-limb lobe A and the wild-limb lobes
+  // stacked on the same sun lines both open
+  { point: [1.4, -1.6], radius: 0.8, band: [3, 30], densify: 0, id: 'b-path-near' },
+  { point: [0.9, -3.4], radius: 0.6, band: [3, 30], densify: 0, id: 'b-path-west' },
 ];
