@@ -8,28 +8,37 @@
  *   free  — any other camera: Link idles at `npcSpots.link-spawn`, kids at their layout spots;
  *   play  — the follow camera (src/camera/follow.ts) drives Link through `scene.userData.player`.
  *
- * Animation is a pure function of the simulation time (animation.ts), feet are planted on the
- * heightfield every frame, and the audit reports the planted sole positions (`samplePositions.feet`).
+ * Link is Astra's skinned GLB (glbLink.ts) when it loads and validates — `create()` awaits the
+ * load so `__ZR__.ready()` only resolves with the model in — and the procedural rig (link.ts)
+ * otherwise or with `?link=proc`; the audit says which (`linkSource`). Kids and Navi stay
+ * procedural. Every puppet's pose is a pure function of the simulation time (puppet.ts), feet are
+ * planted on the heightfield every frame, and the audit reports the planted sole positions
+ * (`samplePositions.feet`).
  */
 import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { applyPose, GAIT_SPEED, GAITS, HERO_PHASE, plantFeet, type Gait } from './animation';
+import { GAIT_SPEED, GAITS, HERO_PHASE, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
-import { createLink, type Character } from './link';
+import { createLink } from './link';
 import { createNavi, TRAIL_COUNT } from './navi';
 import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
 import { consolidateRigParts } from './consolidate';
+import { proceduralPuppet, type Puppet } from './puppet';
+import { LINK_GLB_FILE, loadGlbLink, type LinkAssetInfo } from './glbLink';
 
 type Mode = 'view' | 'free' | 'play';
 
 interface Actor {
-  char: Character;
+  puppet: Puppet;
   pos: Vector3;
   yaw: number;
   gait: Gait;
+  /** gait before the last change and the simulation time of the change (−Infinity = hard switch) */
+  gaitFrom: Gait;
+  gaitSwitchT: number;
   phase: number;
   idleTurn: number;
   look: number;
@@ -42,7 +51,25 @@ interface Actor {
 
 const KID_COUNT = 3;
 
-export function create(ctx: WorldContext): WorldSystem {
+type LinkSource = 'glb' | 'procedural';
+
+/** Astra's GLB unless `?link=proc` or the load / validation fails (then the procedural rig, with the reason). */
+async function createLinkPuppet(): Promise<{ puppet: Puppet; source: LinkSource; asset: LinkAssetInfo | null; reason: string | null }> {
+  const forced = new URLSearchParams(location.search).get('link') === 'proc';
+  if (!forced) {
+    try {
+      const glb = await loadGlbLink(`${import.meta.env.BASE_URL}${LINK_GLB_FILE}`);
+      return { puppet: glb, source: 'glb', asset: glb.asset, reason: null };
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : String(e);
+      console.info(`[character] GLB Link unavailable (${reason}) — procedural fallback`);
+      return { puppet: proceduralPuppet(createLink(), GAITS), source: 'procedural', asset: null, reason };
+    }
+  }
+  return { puppet: proceduralPuppet(createLink(), GAITS), source: 'procedural', asset: null, reason: 'forced by ?link=proc' };
+}
+
+export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'character';
   const ground = createGround(ctx.terrain, ctx.layout);
@@ -54,8 +81,9 @@ export function create(ctx: WorldContext): WorldSystem {
   };
   const spawn = spot('link-spawn');
 
-  const link: Actor = { char: createLink(), pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, gait: 'idle', phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
-  group.add(link.char.group, link.shadow);
+  const linkLoad = await createLinkPuppet();
+  const link: Actor = { puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, gait: 'idle', gaitFrom: 'idle', gaitSwitchT: -Infinity, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
+  group.add(link.puppet.group, link.shadow);
 
   // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door
   const house = ctx.layout.houses[0];
@@ -66,17 +94,19 @@ export function create(ctx: WorldContext): WorldSystem {
   const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid];
   const kids: Actor[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
-    const char = createKokiri(i);
+    const puppet = proceduralPuppet(createKokiri(i), GAITS);
     const shadow = createContactShadow(0.3, 0.6);
-    group.add(char.group, shadow);
-    kids.push({ char, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
+    group.add(puppet.group, shadow);
+    kids.push({ puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', gaitFrom: 'idle', gaitSwitchT: -Infinity, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
 
   // draw-call budget (W38): the parts riding on one joint merge into one mesh per material — the
-  // procedural rigs otherwise cost 269–311 calls with the shadow pass (consolidate.ts)
+  // procedural rigs otherwise cost 269–311 calls with the shadow pass (consolidate.ts). Skinned
+  // meshes (the GLB) are never merged.
   const rigDraws = { before: 0, after: 0, merged: 0 };
-  for (const c of [link.char, ...kids.map((k) => k.char)]) {
-    const r = consolidateRigParts(c.group);
+  for (const p of [link.puppet, ...kids.map((k) => k.puppet)]) {
+    if (p.kind !== 'procedural') continue;
+    const r = consolidateRigParts(p.group);
     rigDraws.before += r.before;
     rigDraws.after += r.after;
     rigDraws.merged += r.merged;
@@ -98,6 +128,13 @@ export function create(ctx: WorldContext): WorldSystem {
   const faceToward = (a: Actor, x: number, z: number, extraDeg = 0) => {
     a.yaw = Math.atan2(x - a.pos.x, z - a.pos.z) + MathUtils.degToRad(extraDeg);
   };
+  /** hard gait switch (placement) or, with `t`, a crossfade from the current gait starting at t */
+  const setGait = (a: Actor, gait: Gait, t: number | null = null) => {
+    if (gait === a.gait && t !== null) return;
+    a.gaitFrom = t === null ? gait : a.gait;
+    a.gaitSwitchT = t === null ? -Infinity : t;
+    a.gait = gait;
+  };
 
   const poseOf = (camera: Camera): CamPose => {
     camera.getWorldPosition(tmpV);
@@ -110,7 +147,7 @@ export function create(ctx: WorldContext): WorldSystem {
   const placeFree = () => {
     link.pos.set(spawn[0], 0, spawn[2]);
     link.yaw = Math.PI;
-    link.gait = 'idle';
+    setGait(link, 'idle');
     link.phase = 0;
     link.look = 0.5;
     for (let i = 0; i < kids.length; i++) {
@@ -127,7 +164,7 @@ export function create(ctx: WorldContext): WorldSystem {
     const feet = marchToGround(cam, vp.feet[0], vp.feet[1], ground.height, { maxDist: 30 }) ?? pointAtDepth(cam, vp.feet[0], 0.5, 4.5);
     link.pos.set(feet[0], 0, feet[2]);
     link.yaw = (vp.facing === 'away' ? heading : heading + Math.PI) + MathUtils.degToRad(vp.yawDeg);
-    link.gait = vp.gait;
+    setGait(link, vp.gait);
     link.phase = HERO_PHASE[vp.gait];
     link.look = vp.look;
     // Navi at Link's head depth on the ray through her reference screen spot
@@ -198,7 +235,7 @@ export function create(ctx: WorldContext): WorldSystem {
       let d = target - link.yaw;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       link.yaw += MathUtils.clamp(d, -dt * 9, dt * 9);
-      link.gait = onStairs ? 'stairs' : input.run ? 'run' : 'walk';
+      setGait(link, onStairs ? 'stairs' : input.run ? 'run' : 'walk', t);
       const speed = GAIT_SPEED[link.gait] * mag;
       const nx = link.pos.x + (input.moveX / mag) * speed * dt;
       const nz = link.pos.z + (input.moveZ / mag) * speed * dt;
@@ -209,7 +246,7 @@ export function create(ctx: WorldContext): WorldSystem {
         link.pos.set(nx, 0, nz);
       } else velocity.set(0, 0, 0);
     } else {
-      link.gait = 'idle';
+      setGait(link, 'idle', t);
       velocity.set(0, 0, 0);
     }
     // Navi orbits the head, leading when Link moves
@@ -222,19 +259,16 @@ export function create(ctx: WorldContext): WorldSystem {
   };
 
   const poseActor = (a: Actor, t: number, look: Vector3 | null) => {
-    const r = a.char.rig;
-    r.root.position.set(a.pos.x, ground.height(a.pos.x, a.pos.z), a.pos.z);
-    r.root.rotation.y = a.yaw;
-    applyPose(r, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn });
-    plantFeet(r, ground.height, a.contact);
+    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT }, ground.height, a.contact);
     // contact shadow just above the ground under the body centre
     a.shadow.position.set(a.pos.x, ground.decalHeight(a.pos.x, a.pos.z, a.shadowRadius), a.pos.z);
   };
 
   const feetOf = (a: Actor): V3 => [a.contact.x, a.contact.y, a.contact.z];
+  const rootOf = (a: Actor): V3 => [a.pos.x, ground.height(a.pos.x, a.pos.z), a.pos.z];
   const headOf = (a: Actor): V3 => {
-    a.char.rig.head.getWorldPosition(tmpV);
-    return [tmpV.x, tmpV.y + a.char.rig.props.headRadius * 1.05, tmpV.z];
+    a.puppet.headTop(tmpV);
+    return [tmpV.x, tmpV.y, tmpV.z];
   };
   const countTriangles = () => {
     let tris = 0;
@@ -257,14 +291,19 @@ export function create(ctx: WorldContext): WorldSystem {
     };
     return {
       link: true,
-      animations: GAITS.length,
-      animationNames: [...GAITS],
+      /** 'glb' = Astra's skinned candidate (public/models/link), 'procedural' = link.ts (with the reason) */
+      linkSource: linkLoad.source,
+      linkAsset: linkLoad.asset,
+      linkFallbackReason: linkLoad.reason,
+      animations: link.puppet.animations.length,
+      animationNames: [...link.puppet.animations],
       fairy: true,
       fairyTrail: TRAIL_COUNT,
       npcs: kids.length,
-      geometry: 'procedural-v1',
+      geometry: linkLoad.source === 'glb' ? 'glb-link+procedural-npcs-v1' : 'procedural-v1',
       triangles: countTriangles(),
-      linkTriangles: link.char.triangles,
+      linkTriangles: link.puppet.triangles,
+      linkHeight: link.puppet.height,
       /** rig meshes before / after the per-joint merge (consolidate.ts), and the merged meshes made */
       rigMeshesBeforeMerge: rigDraws.before,
       rigMeshes: rigDraws.after,
@@ -274,9 +313,12 @@ export function create(ctx: WorldContext): WorldSystem {
       linkGait: link.gait,
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
       contactShadows: 1 + kids.length,
-      pavingSurface: ground.surfaceInfo(),      world: { link: feetOf(link), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },
+      pavingSurface: ground.surfaceInfo(),
+      world: { link: feetOf(link), linkRoot: rootOf(link), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },
       screen: {
+        /** planted sole contact (the lower foot) and the feet point the placement marched to */
         linkFeet: proj(feetOf(link)),
+        linkRoot: proj(rootOf(link)),
         linkHead: proj(headOf(link)),
         navi: proj([naviAnchor.x, naviAnchor.y, naviAnchor.z]),
         kids: kids.map((k) => ({ feet: proj(feetOf(k)), head: proj(headOf(k)) })),
