@@ -210,20 +210,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     edgeTufts++;
   }
   // stair joints: foot of each riser + along the cheeks, with moss cushions in the tread/riser
-  // corner (sheet 01 environment inset, sheet 04 path inset: mossy risers, pads in the corners)
+  // corner (sheet 01 environment inset, sheet 04 path inset: mossy risers, pads in the corners).
+  // Round 23 (frames 1 s / 8 s: moss and short grass sit in the corners at the flanks and creep
+  // in from both sides, the centre third where feet go stays bare): the riser-foot tufts are
+  // pushed toward the flanks (the same draw, remapped), the corner cushions favour the flank
+  // band, and a forked stream adds flank tufts and corner pads so nothing sown before or after
+  // moves. `feet` is 1 on the centre third of the run, 0 at the flanks.
+  const xrng = srng.fork('stairs-r23');
   for (const f of frames) {
     const hw = f.def.width / 2;
+    const feet = (a: number) => 1 - smoothstep(0.3 * hw, 0.85 * hw, Math.abs(a));
     for (let i = 0; i < f.def.steps; i++) {
       const n = srng.int(2, 5);
       for (let k = 0; k < n; k++) {
-        const a = srng.range(-hw + 0.1, hw - 0.1);
+        // remap the uniform draw toward the flanks (sqrt), keeping a thin scatter in the centre
+        const t = srng.range(-1, 1);
+        const a = Math.sign(t) * (0.08 + (hw - 0.18) * Math.sqrt(Math.abs(t)));
         const [x, z] = stairToWorld(f, a, i * f.def.tread + 0.035);
-        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.005, z, size: srng() * 0.6, source: 'stairs' });
+        spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.005, z, size: srng() * 0.6 * (0.7 + 0.5 * (1 - feet(a))), source: 'stairs' });
       }
       const nc = srng.int(2, 6);
       for (let k = 0; k < nc; k++) {
         // heavier toward the flanks, where the moss field on the stones is strongest
-        const a = (srng.chance(0.6) ? srng.range(0.35, 0.95) : srng.range(0, 0.35)) * hw * (srng.chance(0.5) ? -1 : 1);
+        const a = (srng.chance(0.75) ? srng.range(0.4, 0.95) : srng.range(0.15, 0.4)) * hw * (srng.chance(0.5) ? -1 : 1);
         const [x, z] = stairToWorld(f, a, i * f.def.tread + 0.05);
         spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.006, z, size: 0.45 + srng() * 0.55, kind: 'cushion', scale: 1.15, source: 'stairs' });
       }
@@ -231,6 +240,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         if (!srng.chance(0.7)) continue;
         const [x, z] = stairToWorld(f, side * (hw - 0.03), i * f.def.tread + srng.range(0.05, f.def.tread - 0.05));
         spots.push({ x, y: f.def.base[1] + (i + 1) * f.def.rise - 0.02, z, size: 0.4 + srng() * 0.6, source: 'stairs' });
+      }
+      // flank corners (own stream): 1–3 short/mid tufts per side in the outer 40 % of the tread
+      // against the riser, plus a larger moss pad at the very end two times in three
+      for (const side of [-1, 1]) {
+        const nt = xrng.int(1, 4);
+        for (let k = 0; k < nt; k++) {
+          const a = side * hw * xrng.range(0.58, 0.96);
+          const [x, z] = stairToWorld(f, a, i * f.def.tread + xrng.range(0.03, 0.12));
+          spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.005, z, size: xrng.range(0.22, 0.75), source: 'stairs-flank' });
+        }
+        if (xrng.chance(0.66)) {
+          const [x, z] = stairToWorld(f, side * hw * xrng.range(0.8, 0.97), i * f.def.tread + xrng.range(0.06, 0.2));
+          spots.push({ x, y: f.def.base[1] + i * f.def.rise + 0.006, z, size: 0.5 + xrng() * 0.5, kind: 'cushion', scale: 1.5, source: 'stairs-flank' });
+        }
       }
     }
   }
@@ -379,7 +402,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const f of frames) {
     const hw = f.def.width / 2;
     for (let k = 0; k < 60; k++) {
-      const [x, z] = stairToWorld(f, grng.range(-hw - 0.3, hw + 0.3), grng.range(-1.1, -0.05));
+      // denser against the first riser (round 23: the foot is a soil bank the step sinks into,
+      // its debris collects at the stone), thinning out over the last metre of the approach
+      const t = grng();
+      const [x, z] = stairToWorld(f, grng.range(-hw - 0.3, hw + 0.3), -0.05 - 1.05 * t * t);
       if (paving.onStone(x, z)) continue;
       const size = grng.chance(0.3) ? grng.range(0.03, 0.045) : grng.range(0.015, 0.028);
       gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit', tint: stairGritTint, source: 'stair-grit' });

@@ -9,7 +9,7 @@
 import { BufferGeometry, Matrix4, Vector3 } from 'three';
 import type { StairDef } from '../layout';
 import type { Terrain } from '../terrain/heightfield';
-import type { Rng } from '../util/prng';
+import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, inset, jitteredRect, type P2 } from './geometry';
 
@@ -64,10 +64,47 @@ function outlineHash(p: P2[]): string {
   return p.map((q) => `${Math.round(q.x * 200)}:${Math.round(q.z * 200)}`).join('|');
 }
 
+/**
+ * Worn nosing: the front edge of a tread is not the straight line `jitteredRect` cuts. The front
+ * segments are subdivided to ~16 cm and the points displaced along the run by a low-frequency
+ * wave (a few cm over ~1 m) plus chips (a point pulled back where the chip field peaks), both
+ * tapered toward the slab ends by `endTaper`, so the lit lip undulates like the frame's. Returns
+ * the new outline and, per point, whether it lies on the front edge (for the shoulder ring and
+ * the highlight).
+ */
+function wornFront(outline: P2[], depth: number, wave: (ax: number) => number, chip: (ax: number) => number, cxl: number, endTaper: (x: number) => number): { outline: P2[]; front: boolean[] } {
+  const isFront = (p: P2) => p.z < -depth / 2 + 0.05;
+  const out: P2[] = [];
+  const front: boolean[] = [];
+  const n = outline.length;
+  for (let k = 0; k < n; k++) {
+    const p = outline[k];
+    const q = outline[(k + 1) % n];
+    const fp = isFront(p);
+    out.push(p);
+    front.push(fp);
+    if (fp && isFront(q)) {
+      const len = Math.hypot(q.x - p.x, q.z - p.z);
+      const sub = clamp(Math.round(len / 0.16), 1, 5);
+      for (let s = 1; s < sub; s++) {
+        const t = s / sub;
+        out.push({ x: p.x + (q.x - p.x) * t, z: p.z + (q.z - p.z) * t });
+        front.push(true);
+      }
+    }
+  }
+  return { outline: out.map((p, k) => (front[k] ? { x: p.x, z: p.z + (wave(p.x + cxl) + chip(p.x + cxl)) * endTaper(p.x) } : p)), front };
+}
+
 export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: string): StairBuild {
   const f = stairFrame(def);
   const noise = new Noise2D(`${seed}/stairs-moss-${def.id}`);
   const wear = new Noise2D(`${seed}/stairs-wear-${def.id}`);
+  // round 23: nosing waviness / chips and the lichen mottling are noise fields (no stream draws),
+  // so every existing draw below — outlines, splits, tints, riser counts, cheeks, landing — keeps
+  // its place and the flight stays the same set of stones
+  const nosing = new Noise2D(`${seed}/stairs-nosing-${def.id}`);
+  const lichen = new Noise2D(`${seed}/stairs-lichen-${def.id}`);
   const all = new MeshBuilder();
   const w = def.width;
   const hw = w / 2;
@@ -76,6 +113,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   let treadSlabs = 0;
   const tmpM = new Matrix4();
   const uvScale = 1 / 1.7;
+  const isMain = def.id === 'main';
 
   // moss field in stair-local coords: stronger toward both flanks and slightly up the run
   const mossAt = (ax: number, al: number) => {
@@ -83,6 +121,8 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     const n = noise.fbm(ax * 1.9 + 3.1, al * 1.9 - 7.7, 3) * 0.5 + 0.5;
     return clamp((0.16 + 0.9 * edge) * (0.45 + 0.95 * n), 0, 1);
   };
+  // where feet go: 1 on the centre third of the run, 0 at the flanks (wear dish, bare corners)
+  const feet = (ax: number) => 1 - smoothstep(0.3 * hw, 0.85 * hw, Math.abs(ax));
 
   const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2]) => {
     const mb = new MeshBuilder();
@@ -131,38 +171,73 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const pw = pc.a1 - pc.a0;
       const cxl = (pc.a0 + pc.a1) / 2;
       const czl = (uFront + uBack) / 2;
-      const outline = jitteredRect(rng, pw, depth, { jitter: 0.014, segs: 5, chip: 0.09, chipChance: 0.5 });
+      const cut = jitteredRect(rng, pw, depth, { jitter: 0.014, segs: 5, chip: 0.09, chipChance: 0.5 });
+      // worn front edge (frame 1 s / 8 s: wavy, chipped lips, no two alike): ±2 cm over ~1 m plus
+      // worn hollows of up to 3 cm where the chip field peaks (only ever pulled back into the
+      // stone). Kept gentle — local slopes ≲ 0.15 and tapered toward the slab ends — so a long
+      // tread stays star-shaped from its centroid and the top keeps its centred dish (a sharper
+      // notch far from the centre made `slabFanCentre` drag the fan centre 0.7–0.9 m off)
+      const endTaper = (x: number) => 1 - 0.6 * smoothstep(0.55, 1, Math.abs(x) / (pw / 2));
+      const chipAt = (ax: number) => Math.max(0, nosing.noise(ax * 4.2 + 11.3, i * 3.9 + 4.2) - 0.5) / 0.5;
+      const { outline, front: isFront } = wornFront(
+        cut,
+        depth,
+        (ax) => 0.02 * nosing.noise(ax * 1.0 + i * 5.1, i * 2.7 + 0.5),
+        (ax) => 0.03 * chipAt(ax),
+        cxl,
+        endTaper,
+      );
       shapeHashes.push(outlineHash(outline));
       const dip = rng.range(0.01, 0.026);
-      // the nose catches the light: brighter still now that the tread body is darker
-      const noseBright = rng.range(1.3, 1.48);
+      // the nose catches the light — softer than round 22 (1.3–1.48): frame 1 s's lip is a thin
+      // highlight over a tread that drops to the riser tone within a hand's width, and the flight
+      // column's light/dark rhythm read 0.165 against the frame's 0.115
+      const noseBright = rng.range(1.2, 1.36);
       const bevel = rng.range(0.022, 0.034);
       // worn, rounded nose (sheet 01 / 04 stairs insets): the shoulder ring is pushed a further
-      // 3–4.5 cm back along the front edge, so the nose bevel is 5–8 cm wide for the same drop
+      // 2–3.5 cm back along the front edge, so the nose bevel is 4–7 cm wide for the same drop
       // and, smoothed as one group with the top (softBevel), rolls over instead of showing a
-      // cut crease; the back and flanks keep the tight bevel
-      const noseRound = rng.range(0.03, 0.045);
+      // cut crease; the back and flanks keep the tight bevel. The roll varies along the edge
+      // (0.6–1.4×, chips widening it) so the lip's highlight is a worn, broken line
+      const noseRound = rng.range(0.02, 0.035);
       const topRing = inset(outline, bevel).map((p, k) => {
-        const front = smoothstep(-depth / 2 + 0.14, -depth / 2 + 0.015, outline[k].z);
-        return { x: p.x, z: p.z + front * noseRound };
+        if (!isFront[k]) return p;
+        const ax = p.x + cxl;
+        const roll = 0.6 + 0.8 * (nosing.noise(ax * 1.6 + 21, i * 1.7) * 0.5 + 0.5) + 0.4 * chipAt(ax);
+        return { x: p.x, z: p.z + noseRound * (1 + (roll - 1) * endTaper(p.x)) };
       });
+      // lichen / wear mottling on the tops (frame: subtle tonal blotches, not one flat grey):
+      // ±3 % luminance at ~0.4–0.6 m, the paler blotches a touch greener (lichen)
+      const mottle = (ax: number, al: number): [number, number, number] => {
+        const m = lichen.fbm(ax * 1.9 + 4.4, al * 1.9 + i * 0.37, 2);
+        const pale = Math.max(0, m);
+        const k = 1 + 0.03 * m;
+        return [k * (1 - 0.012 * pale), k * (1 + 0.008 * pale), k * (1 - 0.02 * pale)];
+      };
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
         bevel,
         topRing,
         softBevel: true,
+        notchedTop: true,
         dip,
         color,
-        sideColor: [color[0] * 0.62, color[1] * 0.62, color[2] * 0.64],
+        // the tread's own front face is the upper band of the riser: closer to the riser stone
+        // than round 22's 0.62 (× 1.34 lit) so a step is nose → one dark face, not a two-tone
+        // riser. (The bevel ring is shaded from this too: the lip is a thin highlight, a touch
+        // cooler — frame 1 s lips sat 0.12 / B/R 0.78 against our 0.15 / 0.74.)
+        sideColor: [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
         mossEdge: 0.85,
         mossInner: 0.05,
         mossFn: (x, z) => mossAt(x + cxl, z + czl),
         // moss pads in the tread/riser corner: the back edge of the tread, where the next riser
-        // stands on it, carries moss in patches that spill a hand's width onto the tread
+        // stands on it, carries moss in patches that spill a hand's width onto the tread — dense
+        // toward the flanks, sparse on the centre third where feet keep the corner bare
         mossAdd: (x, z, edge) => {
           const back = smoothstep(depth / 2 - 0.16, depth / 2 - 0.02, z);
           const patch = smoothstep(0.35, 0.8, noise.fbm((x + cxl) * 3.4 + i * 17.3, (z + czl) * 3.4 - 2.2, 2) * 0.5 + 0.5);
-          return 1.1 * back * patch * (0.3 + 0.7 * smoothstep(0.4, 1, edge)) * (0.55 + 0.45 * mossAt(x + cxl, z + czl));
+          const flankBias = 0.3 + 1.1 * (1 - feet(x + cxl));
+          return 1.1 * flankBias * back * patch * (0.3 + 0.7 * smoothstep(0.4, 1, edge)) * (0.55 + 0.45 * mossAt(x + cxl, z + czl));
         },
         // worn nose: the front bevel and the first ~12 cm of the tread catch the light, the back
         // of the tread (under the next riser) and the flanks pick up grime
@@ -172,13 +247,19 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           const flank = smoothstep(hw - 0.75, hw + 0.05, Math.abs(x + cxl));
           const grime = 1 - 0.16 * flank * (0.6 + 0.4 * (wear.noise((x + cxl) * 2.1 + 7, (z + czl) * 2.1) * 0.5 + 0.5));
           if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime;
-          if (part === 'side') return (z < 0 ? 1.34 : 0.92) * grime; // the nose face is sky-lit, the buried sides stay dark
-          return (1 + 0.16 * front - 0.13 * back) * grime;
+          // the nose face under the lip: a shade lighter and greener than the riser stone below it
+          // (a damp skin under the overhang), the buried sides stay dark
+          if (part === 'side') return z < 0 ? [1.02 * grime, 1.06 * grime, 0.98 * grime] : 0.92 * grime;
+          const m = mottle(x + cxl, z + czl);
+          const k = (1 + 0.09 * front - 0.13 * back) * grime;
+          return [m[0] * k, m[1] * k, m[2] * k];
         },
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
-        topNoise: (x, z) => 0.004 * wear.noise((x + cxl) * 9, (z + czl) * 9),
-        rings: 2,
+        // fine wear grain plus the feet path: a ~1.2 cm deeper dish over the centre third of the
+        // run (the nosing line sags with it at the middle, half as much)
+        topNoise: (x, z) => 0.004 * wear.noise((x + cxl) * 9, (z + czl) * 9) - 0.012 * feet(x + cxl),
+        rings: 3,
       });
       treadSlabs++;
       const [wx, wz] = stairToWorld(f, cxl, uFront + 0.01);
@@ -196,30 +277,50 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
-      // risers read as shadowed warm stone (reference #453e32 under #746d5d treads ≈ 0.35× the
-      // tread in linear light) with a moss skin creeping over them from the joints
-      const rc = 0.27 + rng.range(0, 0.08);
+      // risers read as shadowed warm stone (reference #453e32 under #746d5d treads) with a moss
+      // skin creeping over them from the joints. Round 23: a shade lighter than round 22's
+      // 0.27–0.35 — the frame's riser troughs sit at the same luminance as ours (≈ 0.25), it is
+      // the lip and the tread's own face that were too bright, so the tread face comes down to
+      // meet the riser (above) and the riser comes up a little to meet it
+      const rc = 0.31 + rng.range(0, 0.08);
       // more vertices along the face (segs 7) so the moss patches below can vary every 15–40 cm
       const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
       const ac = a + len / 2;
       const uc = i * def.tread + 0.01 + (def.tread * 0.9) / 2;
+      // the first riser stands in the plaza soil (heightfield: the approach banks up ~9 cm to the
+      // foot): its face carries the soil stain higher, like a stone half sunk into the ground
+      const footStain = i === 0 ? 2.0 : 1.0;
+      // a touch cooler than neutral: frame 8 s reads the risers at sat 0.17 / B/R 0.71 face-on
+      // where ours rendered 0.20 / 0.67 (the post chain passes ~1/4 of an albedo shift)
+      const riserColor: [number, number, number] = [rc * 0.99, rc, rc * 1.1];
       placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
-        color: [rc * 1.0, rc, rc * 0.98],
-        sideColor: [rc * 0.92, rc * 0.9, rc * 0.88],
+        color: riserColor,
+        sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        // soil stain at the foot fading to none under the nosing: the face is not one flat band
+        // but darker and browner where it meets the tread below, lighter under the overhang
+        sideStain: footStain,
         // mossy risers (sheet 01 / 04): a moss skin creeps up the face from the tread below —
         // strongest toward the flanks — broken into patches by the noise so it reads as
-        // cushions of moss between bare dark stone, not a green wash
-        mossEdge: 1.0,
-        mossInner: 0.3,
-        mossFn: (x, z) => 0.45 + 0.7 * mossAt(x + ac, z + uc),
+        // cushions of moss between bare dark stone, not a green wash. Round 23: the general
+        // film is thinner (a thin film renders as dark grime, which made the risers a black
+        // band) and the patches are fuller and flank-heavy, so where there is moss it is green
+        // and the centre third stays bare stone
+        mossEdge: 0.4,
+        mossInner: 0.15,
+        mossFn: (x, z) => 0.3 + 0.8 * mossAt(x + ac, z + uc),
         mossAdd: (x) => {
-          const patch = smoothstep(0.32, 0.7, noise.fbm((x + ac) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
-          return 1.2 * patch * (0.55 + 0.45 * mossAt(x + ac, uc));
+          const patch = smoothstep(0.36, 0.64, noise.fbm((x + ac) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
+          const flankBias = 0.3 + 1.0 * (1 - feet(x + ac));
+          return 1.6 * flankBias * patch * (0.55 + 0.45 * mossAt(x + ac, uc));
         },
-        // riser shadow: darker still toward the flanks and at the foot (splash grime)
-        colorFn: (x) => 1 - 0.22 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac)),
+        // riser shadow: darker toward the flanks; damp patches along the face a shade darker
+        colorFn: (x) => {
+          const k = 1 - 0.2 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac));
+          const damp = smoothstep(0.1, 0.6, noise.fbm((x + ac) * 2.2 + 9.1, i * 7.3 + r, 2));
+          return [k * (1 - 0.06 * damp), k * (1 - 0.05 * damp), k * (1 - 0.02 * damp)];
+        },
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         rings: 1,
@@ -231,7 +332,16 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // cheeks: the grass bank beside the run is flush with the treads (heightfield), so the flanks
   // are only punctuated by sparse, half-buried edging stones — irregular, mossy, sunk into the
   // bank — like the loose kerb stones in the reference rather than a continuous wall
+  // Round 23: on the main run's south-east flank (local −x, the side cameras A and F look along)
+  // frame 1 s shows grass and leaves lapping over the step ends with no kerb line at all — only
+  // the mossy boulder at the foot — while our row of proud stones read as a straight kerb up the
+  // whole flight. That side keeps one stone in three (a stateless hash decides, so the stream and
+  // with it the north-west flank and the landing are byte-identical to before), seated on the
+  // raised bank the heightfield builds there (`SE_BANK_LIFT` in terrain/heightfield.ts) with only
+  // 2–8 cm showing, mossed over: half-buried lumps in the turf. The north-west flank (toward the
+  // house, seen end-on in B) is unchanged.
   for (const side of [-1, 1]) {
+    const southEast = isMain && side < 0;
     let u = rng.range(-0.15, 0.45);
     while (u < f.run + 0.2) {
       const len = rng.range(0.42, 0.78);
@@ -239,25 +349,41 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const uc = u + len / 2;
       const ramp = baseY + clamp(uc / f.run, 0, 1) * def.rise * def.steps;
       // top just proud of the bank (+0.07 over the ramp) so the stones read as embedded
-      const top = ramp + 0.07 + rng.range(0.04, 0.13);
+      const proud = 0.07 + rng.range(0.04, 0.13);
       const th = rng.range(0.28, 0.4);
       const ac = side * (hw + 0.1 + cw / 2 + rng.range(-0.03, 0.06));
       const outline = jitteredRect(rng, cw, len, { jitter: 0.04, segs: 3, chip: 0.12, chipChance: 0.8 });
       const tint = 0.64 + rng.range(0, 0.18);
-      placeSlab(outline, ac, top - th, uc, rng.range(-0.25, 0.25), rng.range(-0.08, 0.08), side * rng.range(-0.04, 0.12), {
-        thickness: th,
-        bevel: rng.range(0.035, 0.06),
-        dip: -0.01,
-        color: [tint, tint, tint * 0.97],
-        sideColor: [tint * 0.7, tint * 0.7, tint * 0.72],
-        mossEdge: 1.0,
-        mossInner: 0.6,
-        mossFn: (x, z) => 0.55 + 0.45 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
-        uvScale,
-        uvOffset: [rng() * 3, rng() * 3],
-        rings: 1,
-      });
-      u += len + rng.range(0.55, 1.5);
+      const yawJ = rng.range(-0.25, 0.25);
+      const tiltXJ = rng.range(-0.08, 0.08);
+      const tiltZJ = side * rng.range(-0.04, 0.12);
+      const bevelJ = rng.range(0.035, 0.06);
+      const uvJ: [number, number] = [rng() * 3, rng() * 3];
+      const advance = rng.range(0.55, 1.5);
+      let top = ramp + proud;
+      let keep = true;
+      if (southEast) {
+        keep = hash2(Math.round(uc * 100), 23, 7) < 0.34;
+        const [wx, wz] = stairToWorld(f, ac, uc);
+        // seated on the bank itself (whatever the heightfield makes of it), 2–8 cm showing
+        top = terrain.height(wx, wz) - def.base[1] + 0.02 + 0.06 * hash2(Math.round(uc * 100), 23, 11);
+      }
+      if (keep) {
+        placeSlab(outline, ac, top - th, uc, yawJ, tiltXJ * (southEast ? 2 : 1), tiltZJ, {
+          thickness: th,
+          bevel: bevelJ,
+          dip: -0.01,
+          color: [tint, tint, tint * 0.97],
+          sideColor: [tint * 0.7, tint * 0.7, tint * 0.72],
+          mossEdge: 1.0,
+          mossInner: southEast ? 0.85 : 0.6,
+          mossFn: (x, z) => 0.55 + 0.45 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
+          uvScale,
+          uvOffset: uvJ,
+          rings: 1,
+        });
+      }
+      u += len + advance;
     }
   }
 

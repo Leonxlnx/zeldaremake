@@ -147,6 +147,29 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
 // (ground <= 0.6 m) vanished; the steeper flank returns that strip to <= 0.6 m over 77 % of its cells.
 const NW_BANK = { lip: 0.35, slope: 1.5 };
 
+/**
+ * The main run's south-east flank (v > 0, the side cameras A and F look along). Round 23: frame
+ * 1 s shows the grass bank lapping over the step ends — no tread end stands clear of the turf —
+ * where our bank at ramp + 0.07 left the ends as a sawtooth wall (bank − tread top −0.13 m on
+ * average 0.2 m off the ends, −0.32 at the noses). The bank there sits `lift` higher (ramp + 0.27:
+ * 0 at the noses, +0.2 over the tread backs, so the turf rises over the ends), tapering back to
+ * the flush lip over the last `taper` m below the top step so the landing stays level. The
+ * trench → bank blend starts `blendIn` m under the slab ends (both sides start 0.02 m outside
+ * them otherwise), so the ground reaches the ramp height at the ends themselves — over the back
+ * corner of each tread, under the nose — rather than 0.2 m out; the 0.2 m terrain lattice then
+ * cuts the turf across the ends' back corners by up to ~0.1 m, which is the lap the frame shows.
+ */
+const SE_BANK_LIFT = { lift: 0.2, taper: 1.6, blendIn: 0.1 };
+
+/**
+ * The main run's foot (round 23): in frames 1 s / 8 s the first riser is half buried — soil and
+ * turf bank up against it — where ours stood its full height on the flat approach. The approach
+ * rises `rise` over the last `reach` m to the first riser (u = 0) and stays flat across the run's
+ * width; a smooth ramp, not a step, so the player controller sees a lower first riser (0.14 m of
+ * the 0.27 shows), nothing more.
+ */
+const FOOT_BANK = { rise: 0.13, reach: 0.7 };
+
 /** Project point into a stair's local frame: u along ascent, v across. */
 function stairLocal(f: StairFrame, x: number, z: number) {
   const rx = x - f.ox;
@@ -447,16 +470,32 @@ function macroHeight(x: number, z: number) {
       // base level and the first riser shows its full 0.30 m.
       const wu = smoothstep(0.04, 0.36, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
       const av = Math.abs(v);
+      const southEast = f === stairFrames[0] && v > 0;
+      // trench → bank blend across the tread ends. On the main run's south-east flank it starts
+      // under the slabs (SE_BANK_LIFT.blendIn) so the turf is at the ramp height right at the
+      // tread ends and laps their back corners, instead of the ends standing 0.18 m clear over a
+      // soil slope; elsewhere it starts just outside the ends
+      const b0 = f.halfWidth + (southEast ? -SE_BANK_LIFT.blendIn : 0.02);
+      const b1 = b0 + (southEast ? 0.28 : 0.32);
+      const wEnd = smoothstep(b0, b1, av);
       // under the treads: keep the ground well below the slabs so nothing pokes through
-      const wUnder = 1 - smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av);
-      h = lerp(h, ramp - 0.18, wu * wUnder);
+      h = lerp(h, ramp - 0.18, wu * (1 - wEnd));
       // beside the treads: a grass bank that meets the tread ends flush (reference: grass creeps
       // onto the step ends, no kerb), falling back to the natural slope further out. On the
       // main run's north-west side the bank target itself falls away like the landform's
       // embankment (NW_BANK), so the blend never has to catch up across a step.
-      const wBank = smoothstep(f.halfWidth + 0.02, f.halfWidth + 0.34, av) * (1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.25, av));
+      const wBank = wEnd * (1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.25, av));
       const nwFall = f === stairFrames[0] && v < 0 ? NW_BANK.slope * Math.max(0, av - f.halfWidth - NW_BANK.lip) : 0;
-      h = lerp(h, ramp + 0.07 - nwFall, wu * wBank);
+      // south-east flank: the turf laps over the tread ends (SE_BANK_LIFT), level again at the top
+      const seLift = southEast ? SE_BANK_LIFT.lift * (1 - smoothstep(f.run - SE_BANK_LIFT.taper, f.run - 0.2, u)) : 0;
+      h = lerp(h, ramp + 0.07 - nwFall + seLift, wu * wBank);
+      // the foot: soil banks up against the first riser (FOOT_BANK), across the run's width and a
+      // little beyond, full height up to the riser face (u ≈ 0.01) and gone under the first tread
+      // as the trench comes in, so the trench keeps its depth
+      if (f === stairFrames[0]) {
+        const wFoot = smoothstep(-FOOT_BANK.reach, -0.05, u) * (1 - smoothstep(0.04, 0.28, u)) * (1 - smoothstep(f.halfWidth + 0.2, f.halfWidth + 0.7, av));
+        h += FOOT_BANK.rise * wFoot;
+      }
       const wv = 1 - smoothstep(f.halfWidth + 0.15, f.halfWidth + 0.9, av);
       // landing: the ground just past the top step meets the last tread flush (as in the reference)
       const lw = smoothstep(f.run - 0.2, f.run + 0.1, u) * smoothstep(f.run + 2.3, f.run + 1.0, u) * wv;
