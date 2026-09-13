@@ -1105,18 +1105,25 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 9: the stone albedo came down 28 % as a whole (material.ts STONE_ALBEDO_SCALE) to
     // put the sunlit A/D paving on the reference; the band's own darkening shrank with it so the
     // B foreground keeps the reference's lit-top ratio to A — B/A 0.89 in sRGB, ours had 0.83)
-    lum *= 1 - 0.16 * damp;
+    // (round 22: the band's darkening and greying are cut to a third. Measured on take-74 against
+    // frame 14 s, B's foreground rows (y > 0.8) had NO stone above 0.6 luminance where the frame
+    // has 15 % of its ground there, 26 % of the band in 0.25–0.35 against 13 %, and its lit stone
+    // (lum > 0.35, sat < 0.22) at saturation 0.096 against the frame's 0.188 with hue 47° vs 40°;
+    // the A plaza, outside the band, matched the frame on all three (0.189 / 0.183, 43° / 42°).
+    // The band still exists — reference B's stones are a touch darker and mossier than A's — but
+    // it was rendering as grey, not damp.)
+    lum *= 1 - 0.06 * damp;
     lum *= 1 - 0.06 * southPlaza(s.z);
     // camera D's foreground is the most trodden stretch of the path: its slab tops are the palest
     // of their own frame, but not paler than the A plaza (reference lit tops D 0.58 / A 0.63 in
     // sRGB, ours rendered 0.67 / 0.69) — no extra lift
-    const hueK = srng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0) - 0.22 * damp;
+    const hueK = srng.range(-0.05, 0.05) + (darkWarm ? 0.035 : 0) - 0.08 * damp;
     // the shaded band renders redder and more saturated than the sunlit plaza under the warm
     // fill light (B lit tops sRGB B/R 0.61, R/G 1.20 against the reference's 0.69 / 1.12, where
     // the A plaza matches at 0.71 / 1.10) and the post chain passes only ~1/4 of an albedo
     // colour change, so its stones' albedo leans grey-green (hueK −0.22, satK +0.55 at full
     // dampness) to render as the reference's khaki grey (B lit tops 0.70 / 1.12, hue 39°)
-    const satK = srng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.55 * damp;
+    const satK = srng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.18 * damp;
     const tint: [number, number, number] = [lum * (1 + hueK), lum * (1 - hueK * 0.3), lum * (1 - hueK * 0.5 + satK)];
     // moss lives in the joints and creeps onto the shoulders; a green film covers the shaded
     // north/west side of ~30 % of the stones (damp side, reference B/E), more on the damp path
