@@ -8403,6 +8403,115 @@
       },
       "prevHash": "sha256:2849b99d08dedf33f92b68656c506195edb87cf1dc517e45edf60237cc079250",
       "hash": "sha256:7af5eed59c5393c50891cbd6132bb49fe8f924ff0b6616ac8d2a8a9ba1cc47e2"
+    },
+    {
+      "id": "take-0079",
+      "number": 79,
+      "at": "2026-09-13T12:20:28.113Z",
+      "sha": "8bdabe83534589e8c10a5554396ba5213eb01699",
+      "shortSha": "8bdabe8",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "trees: near-bole bark (bole.ts: cord/furrow relief with furrow occlusion, moss and grime, buttress fins with toes) built and measured, then SWITCHED OFF for the hero views - the frames show every near bole as a hazed, near-smooth, evenly shaded column, and the bole path cost SSIM structure in every view; renders byte-identical to HEAD",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W26",
+        "W09"
+      ],
+      "note": "Round twenty-four: Saria's house and the log arch to frames 14 s / 56 s at the surface. The trunk gets fissures, a second cord octave, dark furrow grime and six knots on the entrance arch, and the bark floor passes 36 % of the vertex relief instead of 20 % - the arch face's local contrast reaches the frame's (0.0195 -> 0.0379 vs 0.0380) with its hue 37 -> 42 deg (frame 44). Vines with 0.24 m leaves run along the arch crown and down its face, leaf clumps sit on the shoulder knots and the walls, ~70 hanging grass beards break the eave every 0.3 m, and every pod lantern wears five leaf-husk sepals and a calyx. The log arch gets ridges x1.5, fissures, a lumpier moss crown, seven root flares, moss beards and fern tufts at its feet. Zero new draws (+52 k triangles); door, arch, window, cap and eave audits byte-identical. Also measured and declined: the near giants' bark relief with buttress roots - the frames show those boles as hazed, near-smooth columns at 9-19 m and even the zero-amplitude bole path cost C/F 0.003 SSIM, so it stays switched off for the hero views and waits for a close-range LOD. Ledger: A 0.2617 -> 0.2625, B 0.2456 -> 0.2435, C/D/E/F within 0.001. Two limits the passes measured belong to lighting: the frame puts 41 % of Saria's trunk at 0.2-0.3 luminance where our B haze floors bark at 0.295, and the log at 47 m is 70 % haze so its new relief only reads within 30 m.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:3180c122a999b6a33051d196b729be2486b42bef764f9393ab2fb43c4771a225",
+        "B_house": "sha256:57e81d03cff924410e6747f2553f28ebd0019052c0b3f161e960eae7ebd3f74d",
+        "C_lookback": "sha256:f7507824449500b186e3c5ea083620fd1b1ea8e5b27fdbdd1c092dfeb322202a",
+        "D_log": "sha256:ffccf989964bcebab288397474cc5308fd36163125f6b15c98f253c6412cd8e0",
+        "E_ground": "sha256:57e81d03cff924410e6747f2553f28ebd0019052c0b3f161e960eae7ebd3f74d",
+        "F_canopy": "sha256:c773232b710cd2523235bb4a757f18c10eb1ee689d67f14fbd2483077c14598e"
+      },
+      "distHash": "sha256:6d3dda835a1a5432003d0bd6ff4d6631b3a5facf645832e213971f10337be6ea",
+      "stats": {
+        "drawCalls": 595,
+        "triangles": 8372002,
+        "captureMs": 1025038,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W26",
+        "W09"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take79-cap",
+        "importedAt": "2026-09-13T12:20:55.401Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:7af5eed59c5393c50891cbd6132bb49fe8f924ff0b6616ac8d2a8a9ba1cc47e2",
+      "hash": "sha256:7ffa4cb9059af4073016438bffccaab003444a8d66b5a02c81c6df9a3426e473"
     }
   ]
 }
