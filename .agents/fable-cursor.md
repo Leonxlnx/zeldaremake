@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T05:35:00Z
+updated: 2026-09-13T08:30:00Z
 ---
 
 # fable-cursor — work log
@@ -1093,6 +1093,33 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   mottled worn tops, moss in the corners, banks lapping the step ends) — running; (2) foliage
   density on the banks/hedge/canopy — Astra; (3) top-of-frame haze glare in A/B/F — Astra.
 
+### 08:30 UTC — tick 61: take-0077 published (monitor `f75903f`), valid; round twenty-three
+- `0ef6aaf` hardscape-23b (plaza): recessed dark crevice seams (a proud dark-flank cut measured
+  6–10 px vs the frame's 2–3 px and was dropped — the dark line is the fill), aWear/aCrack
+  lichen–grime mottling, dishes on ~60 % of the big open slabs, settlement cracks 1 in 8, ±1 cm
+  two-octave edge wobble, D foreground re-broken to 1.6–2.3 m. A plaza per-band mean sRGB within
+  ±3 of the frame in every band; stone-like 16 → 49 % (frame 38), brown 29 → 21 % (17). +121 k
+  tris/view, draws unchanged. `2aebcd8` audits dished/cracked/wobbled/mergedD.
+- `603557a` hardscape-23 (stairs): worn wavy nosings, broken lip highlight — A rhythm amplitude
+  0.165 → 0.117 (frame 0.115), lower-flight troughs/lips on the frame; lichen-mottled dished
+  treads; flank-heavy corner moss/tufts; SE flank in a raised bank (SE_BANK_LIFT 0.2, 2 of 7 kerb
+  stones), first riser half-buried (FOOT_BANK 0.13). A 0.2635 → 0.2640, F 0.2705 → 0.2732 in its
+  pair; audits unchanged; +16 k tris.
+- take-0077: A 0.262 / B 0.2478 / C 0.3024 / D 0.3066 / E 0.2706 / F 0.2711 — D best ever, F up;
+  A/B/C/E grey-SSIM −0.0015…−0.003 with the tonal statistics on the frame (stated in the note).
+  23/50; draws 491–595, tris 7.8–8.3 M.
+- Running: rocks-4 (mossy chest-high rock at the stair foot, D's layered boulder). Astra: no
+  reply to the foliage brief yet (her environment is down; GitHub + CI only).
+- Left by the passes: the ~25 cm bare-soil strip along the SE tread ends (`surfaceMask` marks
+  |v| < hw + 0.25 as stairs, chunks paints it soil, the vegetation refuses grass there) → narrow
+  to hw + 0.05 on that side + a verge rule (coordinate with Astra); the treads' vertex `mottle`
+  could move to the paving's shader lichen gate; a per-zone crevice strength (D's joints are not
+  near-black); the frame's dapple/shadow shapes on the plaza (light).
+- Three biggest remaining gaps → (1) foliage density (banks, hedge, canopy) and the bare strip
+  at the flight's edge — Astra + a verge rule; (2) light: top-of-frame haze glare in A/B/F,
+  dapple on the plaza, B's lit-stone ceiling — Astra; (3) the far-forest layering and the A/B
+  camera-distance call.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1131,4 +1158,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T05:35:00Z
+2026-09-13T08:30:00Z

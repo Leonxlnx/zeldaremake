@@ -8185,6 +8185,115 @@
       },
       "prevHash": "sha256:74f185811a2b2b915037d72eec678abb67bba80dfc7acbc576058f8dc3d4904b",
       "hash": "sha256:67461775b56d5cfb83385067153f64adba474ebe791392b7ea19c24ca1ff0d9a"
+    },
+    {
+      "id": "take-0077",
+      "number": 77,
+      "at": "2026-09-13T08:23:16.129Z",
+      "sha": "2aebcd850640241178db605999dcc5fd36c39572",
+      "shortSha": "2aebcd8",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "hardscape: audit the round-23b paving surface counts (flagstoneDished / Cracked / Wobbled / MergedD) - the paving pass left them on PavingResult.stats for the orchestrator to wire",
+      "agent": "fable-cursor",
+      "items": [
+        "W02",
+        "W03",
+        "W04"
+      ],
+      "note": "Round twenty-three: the paving and the hero flight to the frames' surfaces, measured. Paving (frame 1 s / 56 s): the joints are recessed dark crevices (a proud dark-flank first cut read as 6-10 px bands from the grazing cameras against the frame's 2-3 px and was dropped; the dark line is the fill), the tops carry two-octave lichen/grime mottling, worn dishes on most big slabs and dirt-filled settlement cracks on one in eight, the outlines wobble on two octaves so seams pinch and open, D's foreground is re-broken to 1.6-2.3 m slabs. A's plaza box now sits on the frame's tonal statistics: per-band mean sRGB within 3 in every luminance band, stone-like share 16 -> 49 % (frame 38), brown soil 29 -> 21 % (frame 17). Flight (frames 1 s / 8 s): worn wavy nosings with a broken lip highlight bring A's step rhythm from 0.165 to 0.117 against the frame's 0.115 with the lower-flight troughs and lips on the frame's values, lichen-mottled dished treads, flank-heavy corner moss and tufts, the right-hand flank sunk into a raised grass bank with two of seven kerb stones left, the first riser half-buried. Honest ledger: grey-structure SSIM A 0.2635 -> 0.262, B 0.2505 -> 0.2478, C 0.3056 -> 0.3024, E 0.2734 -> 0.2706 while D 0.3024 -> 0.3066 and F 0.2705 -> 0.2711 rise - the frames' tonal distribution moved closer, the luminance-structure metric did not follow in the plaza views. Draws unchanged (491-595), +135 k triangles per view. Still open: a 25 cm bare-soil strip along the tread ends where the surface mask forbids grass, the frame's dapple and shadow shapes on the plaza, the boulders (running).,",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:c51440403fa6dc324a7a5a23d232eea449bce951ff6df35c40338bc9176a0cab",
+        "B_house": "sha256:36f2bab401bd3e7be614a2449898993ee62a8c0f7a98a66c71e2bdb4ab66b96a",
+        "C_lookback": "sha256:9c46805eaec87b7affa4256d37b9e1fab8faec1a8960287a81ee8981e1418790",
+        "D_log": "sha256:18758c29eb5d8834959927ef11e24da9b3e4d882d03b0c9c063c21a3a2a2c143",
+        "E_ground": "sha256:36f2bab401bd3e7be614a2449898993ee62a8c0f7a98a66c71e2bdb4ab66b96a",
+        "F_canopy": "sha256:7e94f54b7b741cd4a3f258baefae94a1f9f3c299862fb07ecc00879880e70de7"
+      },
+      "distHash": "sha256:df388eeaa8523df1e809de57590be29ceb03a2df4de73b4f2c162a0b880fd5da",
+      "stats": {
+        "drawCalls": 595,
+        "triangles": 8283179,
+        "captureMs": 674297,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W02",
+        "W03",
+        "W04"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take77-cap",
+        "importedAt": "2026-09-13T08:23:49.145Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:67461775b56d5cfb83385067153f64adba474ebe791392b7ea19c24ca1ff0d9a",
+      "hash": "sha256:2849b99d08dedf33f92b68656c506195edb87cf1dc517e45edf60237cc079250"
     }
   ]
 }
