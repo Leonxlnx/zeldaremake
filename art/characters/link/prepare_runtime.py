@@ -114,9 +114,16 @@ for bucket,budget in budgets.items():
         if limit is not None:
             geo.calc_loop_triangles()
             bpy.ops.object.select_all(action='DESELECT');copy.select_set(True);bpy.context.view_layer.objects.active=copy
-            reduce=copy.modifiers.new('Preserve facial component topology','DECIMATE')
+            reduce=copy.modifiers.new('Preserve component topology','DECIMATE')
             reduce.ratio=min(1,limit/len(geo.loop_triangles));reduce.use_collapse_triangulate=True
             bpy.ops.object.modifier_apply(modifier=reduce.name)
+        if ob.name.startswith('Face |'):
+            # Preserve the sculpt's smooth surface directions after triangle reduction.
+            normals=copy.modifiers.new('Sculpt facial normals','DATA_TRANSFER')
+            normals.object=ob;normals.use_loop_data=True
+            normals.data_types_loops={'CUSTOM_NORMAL'};normals.loop_mapping='POLYINTERP_NEAREST'
+            bpy.ops.object.modifier_apply(modifier=normals.name)
+            assert copy.data.has_custom_normals, 'Facial normal transfer was not applied'
         copies.append(copy);originals.append(ob.name)
     assert copies, bucket
     bpy.ops.object.select_all(action='DESELECT')

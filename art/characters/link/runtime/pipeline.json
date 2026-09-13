@@ -1,6 +1,6 @@
 {
-  "source_sha256": "64a8badb3e553f9cc223bbf31fa18661eac723cf7aaa9a3c60717b7158611ad2",
-  "generator_sha256": "680186042c7acde8c1ed76f64e6b6478dee50e256000ff99319160539f773bfd",
+  "source_sha256": "be3e3c5005411f85055e41e02bfc9b2c675fc0ef42594aac578c36f7e6d1a951",
+  "generator_sha256": "ac1a50d0e79a12d8faa37ed0d16b1d25cabebac9e0a976d9248a562c56fa1f57",
   "groups": {
     "skin": {
       "object": "Link_skin",
@@ -15,12 +15,10 @@
         "Nostril recess -1",
         "Pointed ear 1",
         "Nostril recess 1",
-        "Upper lip sculpt",
-        "Lower lip sculpt",
         "Mouth crease"
       ],
-      "source_triangles": 9279,
-      "triangles": 9279
+      "source_triangles": 9041,
+      "triangles": 9041
     },
     "hair": {
       "object": "Link_hair",
@@ -383,23 +381,23 @@
         "Sword | pommel"
       ],
       "source_triangles": 276990,
-      "triangles": 11169
+      "triangles": 11041
     }
   },
   "bakes": [
-    "eyes/color",
-    "eyes/roughness",
-    "eyes/normal",
     "outfit/color",
     "outfit/roughness",
     "outfit/normal",
     "outfit/metallic",
-    "hair/color",
-    "hair/roughness",
-    "hair/normal",
     "skin/color",
     "skin/roughness",
-    "skin/normal"
+    "skin/normal",
+    "eyes/color",
+    "eyes/roughness",
+    "eyes/normal",
+    "hair/color",
+    "hair/roughness",
+    "hair/normal"
   ],
   "stage": "Rigged candidate; export and visual motion review pending",
   "rest_mesh_refinements": [
@@ -407,7 +405,8 @@
     "Iris aperture authored with the continuous eyelids; no runtime iris expansion",
     "Leather uppers seated into the sole welt without an open gap",
     "Rear cap widened and lowered into a fuller cloth drape",
-    "Front cap edge lifted behind the fringe"
+    "Front cap edge lifted behind the fringe",
+    "Collapsed triangles removed before tangent export"
   ],
   "rig": {
     "bones": [

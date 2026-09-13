@@ -6,8 +6,9 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 import {ROOT,serveStatic,findChrome} from '../../../gauntlet/scripts/lib/browser.mjs';
 const root=path.join(ROOT,'art/characters/link');
+const studio=process.argv.includes('--studio');
 const stamp=new Date().toISOString().replace(/[:.]/g,'-');
-const output=path.join(root,'progress',stamp+'-runtime');await fs.mkdir(output,{recursive:true});
+const output=path.join(root,'progress',stamp+(studio?'-runtime-studio':'-runtime'));await fs.mkdir(output,{recursive:true});
 const report={at:new Date().toISOString(),kind:'Actual Three.js runtime GLB review; not a world gauntlet capture',
   glb_sha256:crypto.createHash('sha256').update(await fs.readFile(path.join(root,'link-runtime.glb'))).digest('hex'),views:{},errors:[]};
 const server=await serveStatic(ROOT);let browser;
@@ -21,11 +22,13 @@ try{
   await page.setViewport({width:720,height:820});
   page.on('pageerror',e=>{report.errors.push(e.message);console.error(e.message);});
   page.on('requestfailed',r=>console.error('Request failed',r.url(),r.failure()?.errorText));
-  await page.goto(server.url+'/art/characters/link/review.html?capture=1',{waitUntil:'domcontentloaded',timeout:60000});
+  await page.goto(server.url+'/art/characters/link/review.html?capture=1'+(studio?'&studio=1':''),{waitUntil:'domcontentloaded',timeout:60000});
   await page.waitForFunction(()=>window.REVIEW?.ready,{timeout:90000});
   const durations=await page.evaluate(()=>REVIEW.durations);
   report.sole_local=await page.evaluate(()=>REVIEW.soleLocal);
   report.gpu=await page.evaluate(()=>REVIEW.gpu);
+  report.lighting=await page.evaluate(()=>REVIEW.lighting);
+  assert.equal(report.lighting,studio?'studio':'directional');
   for(const [name,gait,t,view] of [
     ['01-body','idle',0,'body'],['02-front','idle',0,'front'],['03-side','idle',0,'side'],
     ['04-back','idle',0,'back'],['05-face','idle',0,'face'],['06-boots','idle',0,'boots'],

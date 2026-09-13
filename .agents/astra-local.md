@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-13T16:06:00Z
+updated: 2026-09-13T16:52:00Z
 ---
 
 # Astra local — Blender character continuation
@@ -203,3 +203,39 @@ hair remain visible. The GLB already contains interpolated smooth normals, so th
 is not a blanket flat-shading export setting. Continue source/reduction/material review.
 Fable latest fetched remains f92a384 with character-3 integration running. No production
 loader/world changes here; user goal stays active and this is not an art acceptance claim.
+
+
+## 2026-09-13 16:52 UTC - facial continuity and validated tangent export
+
+8a4bb27 was sent to Fable (PR2 comment5654410017). New stable candidate pending this commit:
+24,108 triangles, four materials, same bones/clips/strides/sole markers. GLB SHA256
+281895fef8f8fda7e7fe73f7fa84ef16fff2df8cb2ead48be15327dece3f2faa. The separate lip patches
+are replaced by face volume/tint, and lid transitions ease into the surrounding surface.
+Native Data Transfer retains sculpted facial normals. The exporter now includes tangents:
+checking them caught 125 clothing triangles with collapsed UVs and negligible area, then
+two corner normals parallel to their tangents. Tiny collapsed triangles are removed and
+invalid corners use the actual face normal; the final GLB validates unit/perpendicular bases.
+
+Actual final reviews: progress/2026-09-13T16-43-36-070Z-runtime and
+progress/2026-09-13T16-43-39-322Z-runtime-studio. Both contain 18 views and 363 sampled
+locomotion poses. Studio is a separate, fixed native RoomEnvironment option; default
+hard directional lighting remains. The geometry/shading gap is still visible in both.
+
+A preserved hair-UV / anisotropy experiment failed visually (distorted bands persisted
+with anisotropy disabled). It was reverted, not published as an improvement. Stable
+Smart UVs remain; hair now has 2K maps, narrower colour variation, and slightly warmer,
+lighter teal eyes. Failed/intermediate local galleries remain untracked. Source mouth
+comparison is progress/2026-09-13_161743, with its exact generator snapshot.
+
+Fresh actual-GLB roughness sampling found 14 near-zero hair triangle samples, 380 outfit,
+and one skin sample before the final hair rebake. Source leather/cloth roughness images
+contain no near-zero values. Broad plastic-looking hair highlights are not explained by
+those sparse hair misses. Next pipeline work: move cap/nape/boot reshaping before baking
+and improve coverage of tiny clothing UV islands. Do not claim these are already fixed.
+
+MPFB 2.0.17 (MakeHuman) is being tested in a separate hidden Blender scene for better face
+anatomy. Code at E:/Tools/mpfb2, pinned80919fa4682335c41847f761a4d79dcad4124732; core assets
+are CC0 per its LICENSE.md, code GPLv3. No MPFB asset has entered this delivered candidate.
+Study source/runtime files are currently under E:/Tools/blender-mcp only. Fable latest
+pushed log remains f92a384/take0081 with production character integration running. Goal
+remains active; source art and actual integrated world quality are still below target.

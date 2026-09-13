@@ -15,7 +15,7 @@ for info in record['groups'].values():bpy.data.objects[info['object']].select_se
 bpy.context.view_layer.objects.active=rig
 target=ROOT/'link-runtime.glb'
 bpy.ops.export_scene.gltf(filepath=str(target),export_format='GLB',use_selection=True,use_active_scene=True,
-    export_cameras=False,export_lights=False,export_animations=True,export_animation_mode='ACTIONS',
+    export_cameras=False,export_lights=False,export_tangents=True,export_animations=True,export_animation_mode='ACTIONS',
     export_force_sampling=True,export_frame_step=1,export_frame_range=False,export_anim_single_armature=False,
     export_rest_position_armature=True,export_yup=True,export_extras=False,
     export_all_influences=False,export_def_bones=True,export_vertex_color='NONE',export_all_vertex_colors=False)
@@ -52,13 +52,17 @@ for mesh in gltf['meshes']:
     assert len(mesh['primitives'])==1
     for primitive in mesh['primitives']:
         attributes=primitive['attributes']
-        assert {'POSITION','NORMAL','TEXCOORD_0','JOINTS_0','WEIGHTS_0'}<=set(attributes)
+        assert {'POSITION','NORMAL','TANGENT','TEXCOORD_0','JOINTS_0','WEIGHTS_0'}<=set(attributes)
         triangles+=len(accessor(primitive['indices']))//3
         vertices.extend(accessor(attributes['POSITION']))
         for weights in accessor(attributes['WEIGHTS_0']):
             error=abs(sum(weights)-1);max_weight_error=max(max_weight_error,error)
             assert error<1e-5 and min(weights)>=0
-        accessor(attributes['TEXCOORD_0']);accessor(attributes['NORMAL'])
+        accessor(attributes['TEXCOORD_0'])
+        for normal,tangent in zip(accessor(attributes['NORMAL']),accessor(attributes['TANGENT'])):
+            assert abs(sum(v*v for v in tangent[:3])-1)<.001, 'Non-unit surface tangent'
+            assert abs(sum(a*b for a,b in zip(normal,tangent)))<.001, 'Tangent must be perpendicular to normal'
+            assert abs(abs(tangent[3])-1)<1e-6, 'Invalid tangent handedness'
 assert triangles==sum(g['triangles'] for g in record['groups'].values()) and triangles<=25000
 dimensions=[]
 for im in gltf['images']:

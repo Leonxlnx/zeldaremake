@@ -113,8 +113,7 @@ def material(name, color, roughness=.6, metallic=0, texture=None):
 
 skin = material('Skin | warm peach', (.64, .38, .25), .46)
 earskin = material('Ear | rose inner fold', (.40, .17, .105), .67)
-lip = material('Lips | muted warm rose', (.56, .31, .22), .52)
-mouth = material('Mouth | fine shadow', (.085, .024, .017), .7)
+mouth = material('Mouth | fine shadow', (.23, .085, .06), .7)
 cloth = material('Tunic | forest woven linen', (.033, .079, .016), .89, texture='cloth')
 cloth_light = material('Collar | lighter green linen', (.068, .123, .03), .86, texture='cloth')
 cloth_dark = material('Cap seams | dark green', (.032, .077, .024), .86)
@@ -124,18 +123,19 @@ edge = material('Leather | worn edges', (.106, .051, .02), .74, texture='leather
 sole = material('Boot soles', (.043, .024, .013), .84)
 metal = material('Buckles | aged brass', (.33, .265, .15), .39, .72)
 steel = material('Sword | satin steel', (.41, .48, .48), .3, .82)
-hairmats = [material('Hair | golden lock '+str(i), c, .44) for i,c in enumerate([
-    (.24,.104,.026), (.39,.205,.061), (.49,.283,.099), (.32,.157,.034)])]
+hairmats = [material('Hair | golden lock '+str(i), c, .48) for i,c in enumerate([
+    (.24,.104,.026), (.39,.205,.061), (.43,.23,.075), (.35,.178,.05)])]
 hairline = material('Hair | fine highlights', (.57,.30,.075), .48)
 for hairmat in hairmats:
     nodes,links=hairmat.node_tree.nodes,hairmat.node_tree.links
     bsdf=nodes.get('Principled BSDF');bsdf.inputs['Anisotropic'].default_value=.45
+    bsdf.inputs['Anisotropic Rotation'].default_value=.25
     coord=nodes.new('ShaderNodeTexCoord');mapping=nodes.new('ShaderNodeMapping')
     mapping.inputs['Scale'].default_value=(95,5,1);links.new(coord.outputs['UV'],mapping.inputs['Vector'])
     fibres=nodes.new('ShaderNodeTexNoise');fibres.inputs['Scale'].default_value=1;fibres.inputs['Detail'].default_value=2
     links.new(mapping.outputs[0],fibres.inputs['Vector'])
     colors=nodes.new('ShaderNodeValToRGB')
-    for stop,scale in zip(colors.color_ramp.elements,(.65,1.2)):
+    for stop,scale in zip(colors.color_ramp.elements,(.82,1.15)):
         stop.color=(*[c*scale for c in hairmat.diffuse_color[:3]],1)
     links.new(fibres.outputs['Fac'],colors.inputs[0]);links.new(colors.outputs[0],bsdf.inputs['Base Color'])
     bump=nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.23;bump.inputs['Distance'].default_value=.00035
@@ -153,9 +153,9 @@ radial=nodes.new('ShaderNodeVectorMath');radial.operation='NORMALIZE';links.new(
 noise=nodes.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=22;noise.inputs['Detail'].default_value=4
 links.new(radial.outputs[0],noise.inputs['Vector'])
 colors=nodes.new('ShaderNodeValToRGB')
-colors.color_ramp.elements[0].position=.23;colors.color_ramp.elements[0].color=(.006,.035,.027,1)
-colors.color_ramp.elements[1].position=.76;colors.color_ramp.elements[1].color=(.095,.29,.19,1)
-colors.color_ramp.elements.new(.52).color=(.024,.105,.078,1)
+colors.color_ramp.elements[0].position=.23;colors.color_ramp.elements[0].color=(.012,.065,.060,1)
+colors.color_ramp.elements[1].position=.76;colors.color_ramp.elements[1].color=(.12,.38,.32,1)
+colors.color_ramp.elements.new(.52).color=(.040,.19,.17,1)
 links.new(noise.outputs['Fac'],colors.inputs[0]);links.new(colors.outputs[0],nodes.get('Principled BSDF').inputs['Base Color'])
 pupil = material('Eyes | pupils', (.004,.009,.007), .19)
 shine = material('Eyes | catchlights', (.95,.97,1), .15)
@@ -432,11 +432,16 @@ def face_y(x,z):
     cheeks=.006*(math.exp(-((x-.083)/.035)**2)+math.exp(-((x+.083)/.035)**2))*math.exp(-((z-1.026)/.025)**2)
     sockets=.008*(math.exp(-((x-.058)/.039)**2)+math.exp(-((x+.058)/.039)**2))*math.exp(-((z-1.074)/.023)**2)
     muzzle=.005*math.exp(-(x/.033)**2-((z-.982)/.015)**2)
-    return y-nose-bridge-wings-cheeks+ sockets-muzzle
+    lip_centre=.981+.0012*math.exp(-((abs(x)-.006)/.004)**2)
+    lip_width=math.exp(-(x/.021)**4)
+    lips=lip_width*(.0015*math.exp(-((z-lip_centre-.002)/.002)**2)+.002*math.exp(-((z-lip_centre+.003)/.0027)**2))
+    return y-nose-bridge-wings-cheeks+sockets-muzzle-lips
 
-verts=[];N=96;rows=128
-for k in range(rows):
-    z=profile[0][0]+(profile[-1][0]-profile[0][0])*k/(rows-1)
+verts=[];N=96
+heights=sorted(set([profile[0][0]+(profile[-1][0]-profile[0][0])*k/127 for k in range(128)]+
+                   [.970+j*.001 for j in range(23)]))
+rows=len(heights)
+for z in heights:
     rx,front,back=face_profile(z)
     for j in range(N):
         a=math.tau*j/N;x=rx*math.cos(a)
@@ -482,7 +487,8 @@ for loop in loops:
             bx,by,bz=verts[original]
             xx=(bx-eye_x)*(1-t)+inner_x*t;zz=(bz-eye_z)*(1-t)+inner_z*t
             spherical=cy-math.sqrt(max(.00005,.046**2-xx*xx-zz*zz))
-            y=face_y(eye_x+xx,eye_z+zz)*(1-t)+spherical*t-.0008*math.sin(math.pi*t/2)
+            blend=t*t*(3-2*t)
+            y=face_y(eye_x+xx,eye_z+zz)*(1-blend)+spherical*blend-.0012*blend*(1-blend)
             current.append(len(verts));verts.append((eye_x+xx,y,eye_z+zz))
         for j in range(len(loop)):
             k=(j+1)%len(loop)
@@ -498,7 +504,9 @@ for v,col in zip(head.data.vertices,colors.data):
     nose=math.exp(-(x/.025)**2-((z-1.030)/.022)**2)*max(0,-y/.14)
     amount=min(.35,cheek*.23+nose*.17)
     base=Vector((.64,.38,.25));warm=Vector((.66,.27,.20))
-    col.color=(*base.lerp(warm,amount),1)
+    tint=base.lerp(warm,amount)
+    lip_tint=math.exp(-(x/.022)**4-((z-.981)/.005)**4)*max(0,-y/.13)
+    col.color=(*tint.lerp(Vector((.55,.28,.21)),min(.8,lip_tint*.8)),1)
 attr=face_mat.node_tree.nodes.new('ShaderNodeVertexColor');attr.layer_name='SkinTint'
 face_mat.node_tree.links.new(attr.outputs['Color'],face_mat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
 for side in [-1,1]:
@@ -537,22 +545,12 @@ for side in [-1,1]:
     assert set(uses.values())=={2}, 'Ear must have no open rim or separate inner patch'
     x=side*.011;z=1.017
     ellipsoid('Nostril recess '+str(side),(x,face_y(x,z)-.001,z),(.003,.001,.0018),earskin,16,8)
-# Lip planes blend into the face; the mouth line remains a recessed fine crease.
-for upper in [True,False]:
-    vs=[];fs=[]
-    for row in range(5):
-        t=row/4
-        for j in range(33):
-            x=-.023+.046*j/32;envelope=max(0,1-(x/.023)**2)
-            centre=.981+.0015*math.exp(-((abs(x)-.006)/.004)**2)
-            z=centre+(1 if upper else -1)*(.004 if upper else .005)*envelope*t
-            bulge=.0012*math.sin(math.pi*t)*envelope
-            vs.append((x,face_y(x,z)-.0005-bulge,z))
-    for row in range(4):
-        for j in range(32):
-            n=row*33+j;fs.append((n,n+1,n+34,n+33))
-    mesh(('Upper' if upper else 'Lower')+' lip sculpt',vs,fs if upper else [tuple(reversed(f)) for f in fs],lip,1)
-curve('Mouth crease',[(x,face_y(x,.981)-.0014,.981+.001*math.exp(-((abs(x)-.006)/.004)**2)) for x in [-.022,-.015,-.008,0,.008,.015,.022]],.00045,mouth)
+# The lips are part of the facial surface; only the narrow mouth opening is separate.
+mouth_points=[]
+for x in [-.021,-.015,-.008,0,.008,.015,.021]:
+    z=.981+.0012*math.exp(-((abs(x)-.006)/.004)**2)
+    mouth_points.append((x,face_y(x,z)-.00035,z))
+curve('Mouth crease',mouth_points,.0003,mouth)
 
 # Spherical eye surfaces under overlapping lids, with a calmer upper lid line.
 for side in [-1,1]:

@@ -29,7 +29,7 @@ bpy.context.view_layer.objects.active=low
 material=low.data.materials[0]
 nodes,links=material.node_tree.nodes,material.node_tree.links
 name=group+'_'+kind
-size=2048 if group in {'skin','outfit'} else 1024
+size=2048 if group in {'skin','hair','outfit'} else 1024
 im=bpy.data.images.new(name,width=size,height=size,alpha=False)
 im.colorspace_settings.name='sRGB' if kind=='color' else 'Non-Color'
 image_node=nodes.new('ShaderNodeTexImage');image_node.image=im

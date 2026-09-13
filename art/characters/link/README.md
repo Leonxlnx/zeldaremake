@@ -12,7 +12,7 @@ and motion/contact review under the actual world lighting and terrain sampler.
 ## Runtime contents
 
 - Four skinned meshes and four opaque PBR materials: skin, hair, eyes, outfit/equipment.
-- 24,474 triangles; 1K hair/eye maps and 2K skin/outfit maps. Base colour,
+- 24,108 triangles; 1K eye maps and 2K skin/hair/outfit maps. Base colour,
   tangent normal and roughness; outfit metalness is packed with roughness during export.
 - Nineteen bones, including `hips`, `chest`, `neck`, `head`, `shoulderL/R`, `elbowL/R`,
   `handL/R`, `thighL/R`, `kneeL/R`, `ankleL/R`, `toeL/R`, and `cap`.
@@ -23,14 +23,19 @@ and motion/contact review under the actual world lighting and terrain sampler.
   6.6 mm above zero; the exact rest-space sole offsets are in the browser capture manifest.
 
 `runtime/validation.json` records the actual GLB hash, mesh/material/triangle counts,
-texture dimensions, finite normalized weights, bounds, and animation loop errors.
+texture dimensions, finite normalized weights, bounds, animation loop errors, and unit
+normal/tangent bases. Tangents are exported with the baked normal maps.
 `runtime/pipeline.json` records the source, bake stages, rig and measured contact paths.
 
 ## Review
 
-Latest complete candidate: [18 actual runtime views](progress/2026-09-13T16-03-24-694Z-runtime/manifest.json).
+Latest complete candidate: [18 actual runtime views](progress/2026-09-13T16-43-36-070Z-runtime/manifest.json).
 
-![Actual Three.js candidate](progress/2026-09-13T16-03-24-694Z-runtime/01-body.png)
+![Actual Three.js candidate](progress/2026-09-13T16-43-36-070Z-runtime/01-body.png)
+
+[The same GLB under fixed soft studio lighting](progress/2026-09-13T16-43-39-322Z-runtime-studio/manifest.json)
+is captured with `node art/characters/link/capture_runtime.mjs --studio`. It uses native
+Three.js RoomEnvironment lighting; the directional review remains the default.
 
 Known visible defects: eyelid shading and stylized face, blocky hair, limited cloth folds, and excessive knee/hem
 interaction in the run. This candidate is ready for diagnostic integration, not art acceptance.
@@ -91,7 +96,10 @@ preserving the UVs. The iris aperture
 is authored with the continuous eyelids in the source; it is not expanded after baking.
 `rig_runtime.py` retains its deformation-region groups so the rig can be rebuilt repeatedly.
 
-The scalp and garment begin as authored surfaces. Per-component reduction reserves
+The mouth volume and colour are now part of the continuous face. Facial normals transfer
+from the sculpt before baking. Collapsed triangles and invalid corner normals are repaired
+before export; all exported tangents are checked. The scalp and garment begin as authored
+surfaces. Per-component reduction reserves
 geometry for lids and lips; UVs and maps are then baked from the separate source parts.
 The garment has open hem/neck boundaries, an inner garment and lacing; boot cuffs are open.
 The ears are closed meshes with continuous rims and inner bowls. Hair reduction reserves more
