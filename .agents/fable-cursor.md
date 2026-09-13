@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T12:25:00Z
+updated: 2026-09-13T13:35:00Z
 ---
 
 # fable-cursor — work log
@@ -1165,6 +1165,28 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   closed out: mine next round, carefully; (3) layout calls: terrace boulder in D's upper-left,
   the log arch's size in D (frame x 0.39–0.73 vs ours 0.43–0.62), the A/B camera distance.
 
+### 13:35 UTC — tick 64: take-0080 published (monitor `a78b6ca`), valid; round twenty-five
+- `b2691b8` vegetation-14 (foliage now mine): flank strips beside the flight and A's right bank
+  under 950 broadleaf clumps, 510 clover, 219 moss cushions, 139 fern clumps (F flight box
+  broadleaf 145 → 584, ferns 43 → 100); hedge rebuilt as core / shade shell / lit shell, 12 → 29
+  crowns at the frame's luminance (crown box p50 0.292 → 0.245, frame 0.221), Saria's door row
+  byte-identical; D path shoulders pruned (green 11.3 → 8.0 %, 3.5 % is Link + joint sprouts);
+  ferns 1016 → 1136; draws unchanged, +0.4–0.5 M tris; tests 5/5.
+- Local Astra's first Blender Link checkpoint (PR #8, `b209853`; 415 k tris, unrigged, shape
+  study): reviewed against sheet 03 on PR #8 — cap rim to the brow and skull lower, cheekbone-
+  wide face to a small chin with a nose bridge, almond eyes at mid-head with heavy lids and
+  angled brows, big overlapping hair locks, ears up/back, folds and warmer skin before retopo;
+  proportions already right. Integration held at her request.
+- take-0080: A 0.2642 (best) / B 0.2407 / C 0.2998 / D 0.3001 / E 0.2703 / F 0.2734 (best); B
+  −0.0028 from the denser dark bank at its left. 23/50; draws 492–595, tris 8.3–8.8 M (W38 line
+  9 M — budget headroom is now ~0.2 M in A; next passes must trade, not add).
+- Running: atmosphere-8 (near veil at 6–12 m, the 0.295 dark floor, canopy glare — under the
+  sun/haze-depth/far-layering/sharpness constraints).
+- Three biggest remaining gaps → (1) light: B's lit-slab ceiling and dark floor, top-of-frame
+  glare (running); (2) layout calls: terrace boulder in D's upper-left, the log arch's size in
+  D, the A/B camera distance, the D boulder radius; (3) the triangle budget — 8.8 M in A of 9 M:
+  a LOD/packing pass before more geometry lands.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1203,4 +1225,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T12:25:00Z
+2026-09-13T13:35:00Z
