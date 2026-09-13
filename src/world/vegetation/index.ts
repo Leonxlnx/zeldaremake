@@ -1,0 +1,157 @@
+/**
+ * Vegetation — owner: vegetation agent.
+ *
+ * GPU-instanced grass (turf / tall meadow / sedge blades + broad-leaf plants), ferns (understory
+ * clumps + big lit hero crowns) with fiddleheads, purple and white flowers, seed-head weeds,
+ * bushes, clover, moss tufts, saplings and ground litter (leaves, twigs, roots). Placement samples deterministic candidates (ctx.rng.fork) against the terrain
+ * mask (never on flagstones / stairs / structure pads / cliffs), the layout (verges, embankments,
+ * trunks, boulders, NPC clearings) and clustering noise; every instance is seated on the exact
+ * terrain height and tilted to the local normal.
+ *
+ * Grass is chunked into 8 m tiles (one InstancedMesh each) with three geometry LODs swapped by
+ * camera distance; other plants live in variant × LOD instanced sets that re-bucket by
+ * distance, with several variants packed into one draw per LOD (lodset.ts). Three wind layers:
+ * windGrass (blades), windBranch + windLeaf (plants / bushes).
+ */
+import { Group, InstancedMesh, Vector3, type BufferGeometry } from 'three';
+import type { WorldContext, WorldSystem } from '../system';
+import { VegField } from './field';
+import { buildGrass, GRASS_TYPE_NAMES, type GrassResult } from './grass';
+import { buildLitter, type LitterResult } from './litter';
+import { createVegMaterial } from './materials';
+import { buildPlants, type PlantSets } from './plants';
+
+export async function create(ctx: WorldContext): Promise<WorldSystem> {
+  const group = new Group();
+  group.name = 'vegetation';
+  const t0 = performance.now();
+
+  ctx.progress('vegetation', 0.02);
+  const field = new VegField(ctx, ctx.config.detailRadius + 6, 0.5);
+  ctx.progress('vegetation', 0.1);
+
+  const grassMaterial = createVegMaterial(ctx, 'grass', { name: 'veg-grass' });
+  const litterMaterial = createVegMaterial(ctx, 'litter', { name: 'veg-litter' });
+
+  const grassGroup = new Group();
+  grassGroup.name = 'grass';
+  group.add(grassGroup);
+  const grass: GrassResult = await buildGrass(ctx, field, grassMaterial, grassGroup, (f) => ctx.progress('vegetation', 0.1 + f * 0.6));
+  ctx.progress('vegetation', 0.72);
+
+  const plants: PlantSets = buildPlants(ctx, field, group);
+  ctx.progress('vegetation', 0.9);
+
+  const litterGroup = new Group();
+  litterGroup.name = 'litter';
+  group.add(litterGroup);
+  const litter: LitterResult = buildLitter(ctx, field, litterMaterial, litterGroup);
+  ctx.progress('vegetation', 1);
+
+  const buildMs = performance.now() - t0;
+  const camPos = new Vector3();
+  const sets = [...plants.all, ...litter.all];
+  let disposed = false;
+
+  const refresh = (force = false, camera = ctx.camera) => {
+    if (disposed) return;
+    camera.getWorldPosition(camPos);
+    grass.update(camPos);
+    for (const s of sets) s.update(camPos, force);
+  };
+  refresh(true);
+
+  const drawable = () => {
+    let drawCalls = grass.visible.drawCalls;
+    let triangles = grass.visible.triangles;
+    for (const s of sets) {
+      const st = s.stats();
+      drawCalls += st.drawCalls;
+      triangles += st.triangles;
+    }
+    return { drawCalls, triangles, grassLodTiles: grass.visible.lodCounts };
+  };
+
+  const weeds = plants.weeds.count;
+  ctx.audit('vegetation', () => ({
+    grassInstances: grass.count + weeds,
+    grassBlades: grass.count,
+    grassTypes: GRASS_TYPE_NAMES.length + 1,
+    grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed'],
+    grassTypeCounts: [...grass.typeCounts, weeds],
+    grassHeightMean: Math.round(grass.heightMean * 1000) / 1000,
+    grassHeightCV: Math.round(grass.heightCV * 1000) / 1000,
+    grassTints: 4,
+    grassDryTipGradient: true,
+    grassClustered: true,
+    grassTiles: grass.tiles.length,
+    grassTileSize: grass.tileSize,
+    chunked: true,
+    lodLevels: 3,
+    lodDistances: grass.lodDistances.map((d) => Math.round(d * 10) / 10),
+    ferns: plants.ferns.count + plants.heroFerns.count,
+    heroFerns: plants.heroFerns.count,
+    fiddleheads: plants.fiddleheads.count,
+    flowers: plants.flowers.count + plants.yellowFlowers.count,
+    yellowFlowers: plants.yellowFlowers.count,
+    whiteFlowers: plants.whiteFlowers.count,
+    weeds,
+    weedLeafShapes: ['heart', 'ovate', 'round'],
+    seedheads: plants.seedheads.count,
+    bushes: plants.bushes.count,
+    hedge: plants.hedge.count,
+    clover: plants.clover.count,
+    mossPatches: plants.moss.count,
+    /** metres of flagstone rim taken from the terrain mask (plaza discs, bank toe) beyond the layout polylines */
+    pavedRimMetres: Math.round(field.pavedRimStats().metres * 10) / 10,
+    saplings: plants.saplings.count,
+    litter: litter.count,
+    litterKinds: { leaves: litter.leaves.count, twigs: litter.twigs.count, roots: litter.roots.count },
+    windLayers: 3,
+    windLayerNames: ['windGrass', 'windLeaf', 'windBranch'],
+    buildMs: Math.round(buildMs),
+    /** upper bound of what the current camera can draw (before frustum culling) */
+    drawableEstimate: drawable(),
+    samplePositions: {
+      grass: grass.samples,
+      litter: litter.samples,
+      ferns: plants.ferns.samples(200),
+      heroFerns: plants.heroFerns.samples(40),
+      bushes: plants.bushes.samples(100),
+      flowers: plants.flowers.samples(200),
+      whiteFlowers: plants.whiteFlowers.samples(60),
+      fiddleheads: plants.fiddleheads.samples(60),
+    },
+  }));
+
+  return {
+    name: 'vegetation',
+    group,
+    update() {
+      refresh();
+    },
+    onCameraMove(camera) {
+      refresh(true, camera);
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      // Grass swaps geometries on one mesh, so traversal alone misses dormant LODs.
+      const geometries = new Set<BufferGeometry>();
+      for (const tile of grass.tiles) for (const geometry of tile.lods) geometries.add(geometry);
+      grassGroup.traverse((object) => {
+        if (object instanceof InstancedMesh) object.dispose();
+      });
+      // the sets own their packed meshes and geometries; the variants they were packed from are ours
+      for (const set of sets) {
+        set.dispose();
+        for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
+      }
+      for (const geometry of geometries) geometry.dispose();
+      grassMaterial.dispose();
+      litterMaterial.dispose();
+      for (const m of plants.materials) m.dispose();
+      group.removeFromParent();
+    },
+  };
+}

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+*.tsbuildinfo
+
+# Local gauntlet output (CI-generated reports are committed under gauntlet/reports by the workflow only)
+gauntlet/out/
+gauntlet/tmp/
+
+# Reference video (download with `npm run ref:extract`; only downscaled frames are committed)
+reference/video/
+
+# Local monitor data checkout used by `npm run take`
+.monitor/

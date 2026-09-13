@@ -1,0 +1,110 @@
+{
+  "item": "W25",
+  "reviewer": "astra",
+  "verdict": "fail",
+  "evidence": "docs/reviews/fable-take-0070/B_house.compare.jpg",
+  "takeId": "take-0070",
+  "author": "fable-cursor",
+  "takeSha": "eadb660cc6757863a4acb332d6d7c334fb76ad06",
+  "at": "2026-09-12T19:33:34.725Z",
+  "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+  "note": "Fresh actual take70 review: restored window, wider opening and localized warm room are real gains. Remaining W25 mismatch is broad smooth wall fins/forked supports and a continuous sloping cap versus the reference thick knotted arch and branching moss crown. Resolved narrow-door/hidden-window grounds are not repeated. Root personally inspected original B/strip/reference and A/F/D plus owner boards03/04/08. Details in docs/reviews/fable-take-0070/W25.md; sourceeadb660, seala8b6c38, monitora8d3fe9. Local attestation and unclaimed W25/W38/W36 remain explicit; no historical score or ledger rewrite.",
+  "history": [
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": "docs/reviews/fable-take-0068/B_house.compare.jpg",
+      "takeId": "take-0068",
+      "author": "fable-cursor",
+      "takeSha": "612872691c51949655102bf9e60361ec33039fb2",
+      "at": "2026-09-12T16:55:58.189Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Fresh take68 review: retain moss-surface and rising-bough gains, warm clear room. Remaining mismatch is regular sloped cap/eave and broad upright walls rather than the irregular moss crown, knotted trunk and wider arched recess in B reference. Known lower-bough window occlusion is separately accepted by Fable. Details/provenance in docs/reviews/fable-take-0068/W25.md; source6128726, seal87d3f31, monitor7c3fb42. Local attestation and unclaimed W25/W21/W20 remain explicit; this is not phase-exit evidence or a verdict on Astra combined lighting."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": "docs/reviews/fable-take-0065/B_house.compare.jpg",
+      "takeId": "take-0065",
+      "author": "fable-cursor",
+      "takeSha": "a05ffb015c9ae8da13b2f9d147c5265d23dbc218",
+      "at": "2026-09-12T13:24:24.411Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Actual0065 B clears the pale room obstruction and adds useful window/shelf detail. W25 remains visually short: cap is taller/steeper with a straight rim and yellow streaking, support still hoop-like versus the lower spreading moss crown and branching eaves in reference B. See docs/reviews/fable-take-0065/W25.md; render corrected normal encoding before further roof tuning."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": ".agents/reviews/astra-W25-take0061.md",
+      "takeId": "take-0061",
+      "author": "fable-cursor",
+      "takeSha": "aff169daa8374d962c81cd1e07221d8f9d574e83",
+      "at": "2026-09-12T05:44:53.170Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Independent actual B_house review of aff169d at monitor5247e1c. Warmer bark, slimmer porch and amber interior improve0060. W25 remains short: steep bright roof mound, narrow upright opening and uniform interior fill differ from the reference proportions, broad organic arch and dark localized warm recess. Exact source and retained JPG hashes are in evidence. This visual verdict does not waive LOCAL attestation or unclaimed W01/W02/W25, and no sealed history is changed."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": ".agents/reviews/astra-W25-take0045.md",
+      "takeId": "take-0045",
+      "author": "fable-cursor",
+      "takeSha": "6f9c4c2b41b31ab5f1d650e5b1e402e3a45d2fde",
+      "at": "2026-09-11T14:59:10.261Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Actual B_house6f9c4c2: warmer ember/doorway and richer roof detail improve0041, but heavy dark cross-dome bough, uniform roof mound and grey interior with isolated light still differ from locked reference proportions/dome/glowing doorway. See linked exact capture and image hashes. Later pod-scale commit is outside this sealed take; no history edits."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": ".agents/reviews/astra-W25-take0041.md",
+      "takeId": "take-0041",
+      "author": "fable-cursor",
+      "takeSha": "dd9e15bb21e2578bdd004f896040aa595400c866",
+      "at": "2026-09-11T09:45:50.936Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Independent actual take0041 B_house review against the authored reference camera: lower dome, wider arch and path-level threshold improve the prior house. Grey interior haze, sparse isolated warm light and roof-rim branch/moss construction remain visibly short of W25. See the pinned source image and hashes in the evidence note. House ownership stays with Fable; sealed invalid status and review history remain unchanged."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": "gauntlet/out/astra-take-0036/B_house.jpg",
+      "takeId": "take-0036",
+      "author": "fable-cursor",
+      "takeSha": "17f92173282a2c368d7af6fb992b55a952abb24d",
+      "at": "2026-09-11T06:25:17.176Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Independent review of Fable source17f9217 against locked reference/frames/B_house.jpg. The dome, bark, vines and interior glow are present, but the doorway is a narrow small arch within a tall wall; the reference has a broad welcoming opening that occupies much more of the visible front. The large upper trunk and steep roof mass also differ from the lower spreading roof/branch silhouette. Proportions and glowing doorway therefore do not yet meet W25. Evidence is also on monitor at data/takes/take-0036/B_house.jpg, commit cf07451. This visual review does not validate the take: its existing local attestation/D3-invalid marker remains unchanged."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": ".agents/reviews/astra-W25-take0032.md",
+      "takeId": "take-0032",
+      "author": "fable-cursor",
+      "takeSha": "2fc09225005fd20d83b9aabf10fca1a2ea06c0f0",
+      "at": "2026-09-11T03:15:14.271Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Rendered B entry is too narrow relative to trunk; roof reads as steep moss bank rather than lower branching overhang. Bark, vines and warm light are present. See evidence for precise captured source and suggested scoped follow-up."
+    },
+    {
+      "item": "W25",
+      "reviewer": "astra",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/astra/take-0032-B_house.jpg",
+      "takeId": "take-0032",
+      "author": "fable-cursor",
+      "takeSha": "2fc09225005fd20d83b9aabf10fca1a2ea06c0f0",
+      "at": "2026-09-11T03:12:01.559Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Reviewed actual monitor take-0032 (source 2fc0922), B_house, against reference/frames/B_house.jpg. The warm arched opening and living roof detail are present, but the right-hand house does not yet match the reference proportions: its roof rises beyond the frame as a tall steep mass, whereas the reference presents a low broad dome and a much wider dark entrance beneath a heavy horizontal overhang. The doorway reads as a small narrow arch on the trunk wall. Prioritize roof silhouette/overhang and entrance width at the fixed camera before adding more vines. Evidence copied byte-for-byte from monitor commit 98d124950a0df19c1afdd085ddfc11dce92bcace:data/takes/take-0032/B_house.jpg. This verdict is scoped to W25 visual match only; it does not dispute the automatic house count."
+    }
+  ]
+}
