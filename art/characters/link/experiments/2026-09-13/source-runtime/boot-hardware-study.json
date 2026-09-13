@@ -1,0 +1,60 @@
+{
+  "status": "Unaccepted hardware material study; no geometry changes",
+  "parts": [
+    {
+      "name": "left cuff medallion",
+      "centre": [
+        -0.12971163,
+        -0.08770794,
+        0.17424518
+      ],
+      "radii": [
+        0.014,
+        0.012,
+        0.014
+      ]
+    },
+    {
+      "name": "right cuff medallion",
+      "centre": [
+        0.13701436,
+        -0.08277637,
+        0.17491716
+      ],
+      "radii": [
+        0.014,
+        0.012,
+        0.014
+      ]
+    },
+    {
+      "name": "left vamp rivet",
+      "centre": [
+        -0.08949721,
+        -0.10546428,
+        0.10922465
+      ],
+      "radii": [
+        0.006,
+        0.008,
+        0.006
+      ]
+    },
+    {
+      "name": "right vamp rivet",
+      "centre": [
+        0.17574307,
+        -0.09974194,
+        0.10954094
+      ],
+      "radii": [
+        0.006,
+        0.008,
+        0.006
+      ]
+    }
+  ],
+  "metallic": 0.88,
+  "roughness": 0.32,
+  "source_metal_sample_max": 0.0274509825
+}

@@ -5,7 +5,7 @@ from pathlib import Path
 job=globals().get('JOB',{})
 folder=job.get('folder','generated-runtime');assert folder in {'generated-runtime','lid-runtime','source-runtime'}
 root=Path(__file__).resolve().parent/folder
-stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate','lid-fit-candidate','orbital-uv-candidate','connected-lid-candidate'}
+stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate','lid-fit-candidate','orbital-uv-candidate','connected-lid-candidate','hardware-candidate','face-smooth-candidate'}
 scene=bpy.data.scenes[job.get('scene','Link | generated eye study')];bpy.context.window.scene=scene
 rig=next(o for o in scene.collection.objects if o.type=='ARMATURE')
 body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name and not o.name.startswith('Link_hair_detail'))
@@ -62,30 +62,33 @@ for material in list(body.data.materials)[1:]:
     node.image=bpy.data.images.new('Unused orbital bake target',width=4,height=4)
     material.node_tree.nodes.active=node
 
-def bake_colour(ob,name,size):
+def bake_input(ob,name,size,socket_name='Base Color',colourspace='sRGB'):
     material=ob.data.materials[0];nodes=material.node_tree.nodes;links=material.node_tree.links
     bsdf=next(n for n in nodes if n.type=='BSDF_PRINCIPLED')
-    colour=bsdf.inputs['Base Color'].links[0].from_socket
+    colour=bsdf.inputs[socket_name].links[0].from_socket
     path=root/(name+'.png')
     if colour.node.type=='TEX_IMAGE' and Path(colour.node.image.filepath_raw)==path and path.is_file():
         return hashlib.sha256(path.read_bytes()).hexdigest()
     output=next(n for n in nodes if n.type=='OUTPUT_MATERIAL')
     emission=nodes.new('ShaderNodeEmission');links.new(colour,emission.inputs['Color']);links.new(emission.outputs[0],output.inputs['Surface'])
-    image=bpy.data.images.new(name,width=size,height=size,alpha=False);image.colorspace_settings.name='sRGB'
+    image=bpy.data.images.new(name,width=size,height=size,alpha=False);image.colorspace_settings.name=colourspace
     node=nodes.new('ShaderNodeTexImage');node.image=image;nodes.active=node
     bpy.ops.object.select_all(action='DESELECT');ob.select_set(True);bpy.context.view_layer.objects.active=ob
     bpy.ops.object.bake(type='EMIT')
-    links.new(node.outputs['Color'],bsdf.inputs['Base Color']);links.new(bsdf.outputs[0],output.inputs['Surface'])
+    links.new(node.outputs['Color'],bsdf.inputs[socket_name]);links.new(bsdf.outputs[0],output.inputs['Surface'])
     nodes.remove(emission)
     image.filepath_raw=str(root/(name+'.png'));image.file_format='PNG';image.save();image.pack()
     assert tuple(image.size)==(size,size)
     return hashlib.sha256(Path(image.filepath_raw).read_bytes()).hexdigest()
 
 bakes={'lid_color':lid_bake} if lid_bake else {}
-if stem in {'material-candidate','connected-lid-candidate'}:
+if stem=='hardware-candidate':
+    bakes['metallic']=bake_input(body,'hardware-body-metallic',2048,'Metallic','Non-Color')
+    bakes['roughness']=bake_input(body,'hardware-body-roughness',2048,'Roughness','Non-Color')
+if stem in {'material-candidate','connected-lid-candidate','face-smooth-candidate'}:
     material=body.data.materials[0];nodes=material.node_tree.nodes;links=material.node_tree.links;shader=nodes['Principled BSDF']
     maps=[('normal','NORMAL',4096)]+([('roughness','ROUGHNESS',2048)] if stem=='material-candidate' else [])
-    prefix='scanned-body-' if stem=='material-candidate' else 'connected-body-'
+    prefix={'material-candidate':'scanned-body-','connected-lid-candidate':'connected-body-','face-smooth-candidate':'face-smooth-body-'}[stem]
     for label,kind,size in maps:
         target_path=root/(prefix+label+'.png')
         socket=shader.inputs['Normal' if kind=='NORMAL' else 'Roughness']
@@ -103,8 +106,9 @@ if stem in {'material-candidate','connected-lid-candidate'}:
         if kind=='NORMAL':
             normal=nodes.new('ShaderNodeNormalMap');links.new(node.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],shader.inputs['Normal'])
         else:links.new(node.outputs['Color'],shader.inputs['Roughness'])
-bakes.update(body_color=bake_colour(body,'scanned-body-color' if stem=='material-candidate' else 'body-eye-edit-color',4096),
-    eye_color=bake_colour(eyes[0],'anatomical-eye-color' if stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate'} else 'iris-material-color',1024))
+body_colour_name={'material-candidate':'scanned-body-color','hardware-candidate':'hardware-body-color','face-smooth-candidate':'hardware-body-color'}.get(stem,'body-eye-edit-color')
+bakes.update(body_color=bake_input(body,body_colour_name,4096),
+    eye_color=bake_input(eyes[0],'anatomical-eye-color' if stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate'} else 'iris-material-color',1024))
 for eye in eyes:
     bpy.ops.object.select_all(action='DESELECT');eye.select_set(True);bpy.context.view_layer.objects.active=eye
     bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -126,7 +130,9 @@ wrong_face=sum(any(g.group!=head.index and g.weight>1e-6 for g in body.data.vert
 for group in body.vertex_groups:group.remove(face)
 head.add(face,1,'REPLACE')
 assert all(len(body.data.vertices[i].groups)==1 and body.data.vertices[i].groups[0].group==head.index for i in face)
-bpy.ops.object.vertex_group_limit_total(limit=4);bpy.ops.object.vertex_group_normalize_all(lock_active=False)
+if any(len(v.groups)>4 for v in body.data.vertices):bpy.ops.object.vertex_group_limit_total(limit=4)
+if max(abs(sum(g.weight for g in v.groups)-1) for v in body.data.vertices)>1e-6:
+    bpy.ops.object.vertex_group_normalize_all(lock_active=False)
 error=max(abs(sum(g.weight for g in v.groups)-1) for ob in meshes for v in ob.data.vertices)
 assert error<1e-5,error
 rig.data.pose_position='POSE';rig.animation_data.action=None
@@ -183,4 +189,13 @@ record={'status':'Baked anatomical eye candidate; actual GLB review required, no
     'source_candidate_sha256':json.loads((root.parent/('source-runtime' if folder=='source-runtime' else 'generated-runtime')/'validation.json').read_text())['sha256'],
     'provenance':'Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips.'}
 if stem=='material-candidate':record['material_detail_sources']=json.loads((root/'scanned-material-study.json').read_text())['sources']
+if stem=='hardware-candidate':
+    body_material=next(m for m in gltf['materials'] if m['name']==body.data.materials[0].name)
+    assert 'metallicRoughnessTexture' in body_material['pbrMetallicRoughness'],'Hardware material bake lost during export'
+    record['status']='Boot hardware material candidate; actual GLB review required, not adopted'
+    record['source_candidate_sha256']=hashlib.sha256((root/'iris-material-candidate.glb').read_bytes()).hexdigest()
+    record['hardware_study']=json.loads((root/'boot-hardware-study-v2.json').read_text())
+if stem=='face-smooth-candidate':
+    record['source_candidate_sha256']=hashlib.sha256((root/'hardware-candidate.glb').read_bytes()).hexdigest()
+    record['normal_study']=json.loads((root/'face-smooth-study.json').read_text())
 (root/(stem.replace('-candidate','-validation')+'.json')).write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8');print(json.dumps(record))

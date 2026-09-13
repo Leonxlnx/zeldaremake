@@ -1,0 +1,49 @@
+{
+  "status": "Baked anatomical eye candidate; actual GLB review required, not adopted",
+  "sha256": "5a9969f13915bfb54a970a3267541a52aee5cfbef7b3c5db08a1e0b56c33a3a6",
+  "bytes": 38248124,
+  "triangles": 54786,
+  "meshes": 3,
+  "materials": 3,
+  "bones": 19,
+  "clip_durations": {
+    "idle": 3.0,
+    "walk": 0.550000011920929,
+    "run": 0.5666666626930237,
+    "stairs": 0.7333333492279053
+  },
+  "weight_sum_error": 1.043081283569336e-07,
+  "new_socket_vertices_bound": 0,
+  "wrong_face_weights_corrected": 0,
+  "rigid_face_vertices": 5416,
+  "bakes": {
+    "normal": "330590938364725eb4f686f6795d6815a5796bfe4759b945c5d7a9678113ac90",
+    "body_color": "ecc9fd078e44bbbb9e9ad055fee9aeb66d292c91949a6941f96f60b22a1332c7",
+    "eye_color": "a6eecd8922739a8122240931b1d70f01abb7e0ee42cec5410d02ca3aaa873cf0"
+  },
+  "source_candidate_sha256": "faefa7211a70c0da647fb869b1cef4af4edba7c52be965ce01bcacfdeb22214b",
+  "provenance": "Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips.",
+  "normal_study": {
+    "status": "Unaccepted local normal transition study; not exported",
+    "changed_corners": 12758,
+    "max_normal_angle_degrees": 177.7296228080874,
+    "fade_normalized_radius": [
+      0.65,
+      1
+    ],
+    "ellipsoid_radii_metres": [
+      0.11900000274181366,
+      0.10499999672174454,
+      0.10899999737739563
+    ],
+    "centres": [
+      [
+        0.0,
+        -0.0949999988079071,
+        0.9599999785423279
+      ]
+    ],
+    "body_triangles": 52386,
+    "method": "Position-keyed angle weighted normals across separate UV/material boundaries; source map faded in the same bounded region"
+  }
+}

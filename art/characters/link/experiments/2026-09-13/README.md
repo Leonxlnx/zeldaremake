@@ -1,9 +1,13 @@
 # Restart checkpoint — unfinished and visually rejected work
 
-Preferred next comparison: `source-runtime/iris-material-candidate.glb`,
-SHA256 `cfc48d365699bd9310b7b10d8584b2248529eca6d69874bdf696859632a567a6`.
-It has54,786 triangles, larger pupils, and completed studio/actual-world comparisons
-at21:25:34 and21:41:53. The previous53K handoff is `source-runtime/eye-candidate.glb`
+Preferred next comparison: `source-runtime/hardware-candidate.glb`,
+SHA256 `faefa7211a70c0da647fb869b1cef4af4edba7c52be965ce01bcacfdeb22214b`.
+It adds baked brass response to six existing boot fittings, retaining the iris candidate's
+54,786 triangles, three materials and existing rig/clips. Studio 23:44:54 and full
+a98e9ea world comparison 23:45:34 complete their local checks. The prior iris handoff is
+`source-runtime/iris-material-candidate.glb`, SHA256
+`cfc48d365699bd9310b7b10d8584b2248529eca6d69874bdf696859632a567a6`.
+The previous53K handoff is `source-runtime/eye-candidate.glb`
 from97d0ad0, SHA256 `4e0b3a217495e7db98ff842a71e701eb5f6e6c535120449889da52971712c400`.
 Hair-bake, added lid surfaces and scanned-material studies remain unaccepted.
 Do not replace the handoff merely because a newer file exists.
@@ -21,11 +25,20 @@ folded lid quads, but the resulting lids are too full and skin joins remain visi
 It also stays unaccepted. The79e3343b wrong-UV export is explicitly rejected: preserve
 UV names across edit-mode changes, then assert the exported lid texture uses UV1.
 
-The official Microsoft TRELLIS.2 head test is running against unchanged reference06.
+The official Microsoft TRELLIS.2 head test generated against unchanged reference06,
+then its GLB export was rejected at the anonymous GPU quota. No head was downloaded.
 Use E:/Tools/trellis-client/Scripts/python.exe for trellis_head_trial.py. Its private
 on-disk guard prevents duplicate submissions; inspect the existing job before doing
 anything further. No private HF token, paid endpoint or background-editing service is
 used. Check trellis-head-request.json for the recorded current status, not this note.
+
+At 23:47 UTC, `face-smooth-candidate.glb` (5a9969f1...) is also unaccepted. A native
+normal-map on/off diagnostic shows that the source map compensates for flat mesh normals.
+The separate local normal smoothing/4K normal bake softens the mouth and still exposes
+angular nose shading in the actual WebGL review; it does not replace the preferred asset.
+Repeated export now skips normalization of already-normalized skin weights, eliminating
+tiny repeated rounding changes. The final hardware export is byte-identical on repetition.
+The earlier ef75d97b export remains `hardware-first-export.glb` for its historical captures.
 
 **Resumed 18:08 UTC with the owner's explicit instruction.** The pause notes below
 describe the saved restart checkpoint. New Rodin studies and native material/eye
