@@ -153,6 +153,7 @@ export function troddenStrip(x: number, z: number) {
 export function jointSoil(x: number, z: number) {
   // the strip is half soil: reference D's centre joints are a browner shade of the same dark
   // olive as its edge joints, not bare dirt
-  const soil = Math.max(0.9 * southPlaza(z), 0.5 * troddenStrip(x, z));
+  // (round 22: 0.9 -> 0.6 - frame 1 s's plaza joints are dark green-brown, ours read bare brown)
+  const soil = Math.max(0.6 * southPlaza(z), 0.5 * troddenStrip(x, z));
   return soil * (1 - 0.85 * lawnZone(x, z)) * (1 - lawnPocket(x, z));
 }

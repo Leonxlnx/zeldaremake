@@ -731,7 +731,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   // open-paving lattices next: a 1.2 m one for the south plaza (A/F foreground) and a coarser
   // 1.5 m one for the north path (D foreground); then the base lattice, thinned to ~15 % where
   // they rule so a few small stones sit among the slabs
-  const openLattice = (spacing: number, forkName: string, regionW: (z: number) => number) => {
+  const openLattice = (spacing: number, forkName: string, regionW: (z: number) => number, bigChance: number) => {
     const rowH = (spacing * Math.sqrt(3)) / 2;
     const slat = rng.fork(forkName);
     let r = 0;
@@ -741,7 +741,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         const ja = slat.range(0, Math.PI * 2);
         const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
         const u = slat();
-        const big = slat.chance(0.04);
+        // round 22: on the south plaza one in ten seeds eats its neighbours (was one in 25) - frame
+        // 1 s mixes 0.4 m pieces with 1.3-1.8 m slabs where our jittered hex lattice read as a
+        // honeycomb of ~0.8 m; D's foreground path keeps its own big-slab thinning (one in 25)
+        const big = slat.chance(bigChance);
         const open = (1 - dampBand(wz)) * regionW(wz) * (1 - lawnZone(wx, wz));
         // thin the lattice on D's foreground path so the remaining cells grow to 1.4–1.9 m
         const dz = dForeground(wz);
@@ -751,8 +754,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       }
     }
   };
-  openLattice(SOUTH_SPACING, 'south-lattice', southPlaza);
-  openLattice(OPEN_SPACING, 'north-lattice', (z) => 1 - southPlaza(z));
+  openLattice(SOUTH_SPACING, 'south-lattice', southPlaza, 0.1);
+  openLattice(OPEN_SPACING, 'north-lattice', (z) => 1 - southPlaza(z), 0.04);
   for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rowH, row++) {
     for (let x = bbox.x0 - pad + (row & 1 ? SPACING / 2 : 0); x <= bbox.x1 + pad; x += SPACING) {
       const jr = 0.5 * SPACING * Math.sqrt(lat());
@@ -993,7 +996,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // and the sunk side walls add ~1 cm of visual joint on each side, so the rendered seam
     // reads 5–10 cm of dark dirt/moss like boards 02/07
     const uJoint = srng();
-    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * dampBand(s.z) : (0.045 + 0.035 * jointN + 0.012 * uJoint) * (1 - 0.1 * open) + 0.015 * dampBand(s.z);
+    // (round 22: the open paving's seams narrow to ~55 % - frame 1 s reads 3-5 cm dark joints on its
+    // ~1 m plaza slabs where ours rendered 8-12 cm of brown; A's plaza box counted 29 % brown-soil
+    // pixels against the frame's 15 % and 24 % stone-like against 40 %)
+    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * dampBand(s.z) : (0.045 + 0.035 * jointN + 0.012 * uJoint) * (1 - 0.45 * open) + 0.015 * dampBand(s.z);
     // (no draw for the stones outside the lawn, so their streams stay exactly as before)
     // (14–36 cm: the reference's bottom-row seams are 15–25 cm, its 40 cm gaps are dirt patches)
     const lawnJoint = 0.14 + 0.16 * jointN + (lawn > 0 ? srng.range(0, 0.06) : 0);
@@ -1098,8 +1104,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (small rim stones) are damper than the path centre too.
     const damp = clamp(0.7 * dampBand(s.z) + 0.3 * smoothstep(1.6, 0.4, seed.rim), 0, 1);
     const grey = srng.chance(0.2 + 0.15 * damp);
-    const darkWarm = !grey && srng.chance(0.13);
-    let lum = 0.9 + 0.14 * tn + srng.range(-0.12, 0.12) + (seed.big ? 0.05 : 0);
+    const darkWarm = !grey && srng.chance(0.2);
+    // (round 22: +-0.17 and one in five a darker warm brown - the frame's plaza stones differ more
+    // stone to stone than ours did at the same mean)
+    let lum = 0.9 + 0.14 * tn + srng.range(-0.17, 0.17) + (seed.big ? 0.05 : 0);
     if (grey) lum *= 0.93;
     if (darkWarm) lum *= 0.78;
     // (round 9: the stone albedo came down 28 % as a whole (material.ts STONE_ALBEDO_SCALE) to
