@@ -12,7 +12,7 @@ and motion/contact review under the actual world lighting and terrain sampler.
 ## Runtime contents
 
 - Four skinned meshes and four opaque PBR materials: skin, hair, eyes, outfit/equipment.
-- 24,332 triangles; 1K hair/eye maps and 2K skin/outfit maps. Base colour,
+- 24,474 triangles; 1K hair/eye maps and 2K skin/outfit maps. Base colour,
   tangent normal and roughness; outfit metalness is packed with roughness during export.
 - Nineteen bones, including `hips`, `chest`, `neck`, `head`, `shoulderL/R`, `elbowL/R`,
   `handL/R`, `thighL/R`, `kneeL/R`, `ankleL/R`, `toeL/R`, and `cap`.
@@ -28,9 +28,9 @@ texture dimensions, finite normalized weights, bounds, and animation loop errors
 
 ## Review
 
-Latest complete candidate: [18 actual runtime views](progress/2026-09-13T15-42-41-167Z-runtime/manifest.json).
+Latest complete candidate: [18 actual runtime views](progress/2026-09-13T16-03-24-694Z-runtime/manifest.json).
 
-![Actual Three.js candidate](progress/2026-09-13T15-42-41-167Z-runtime/01-body.png)
+![Actual Three.js candidate](progress/2026-09-13T16-03-24-694Z-runtime/01-body.png)
 
 Known visible defects: eyelid shading and stylized face, blocky hair, limited cloth folds, and excessive knee/hem
 interaction in the run. This candidate is ready for diagnostic integration, not art acceptance.
@@ -86,7 +86,7 @@ node art/characters/link/capture_runtime.mjs
 `prepare_runtime.py --args '{"group":"skin"}'` through the MCP bridge rebuilds just the
 skin atlas meshes and invalidates those three bakes. This preserves the other completed
 maps during facial revisions. The same option accepts the other material group names.
-`refine_runtime.py` seats the leather uppers into their soles and adjusts the nape once,
+`refine_runtime.py` seats the leather uppers into their soles, adjusts the nape, and reshapes the cap once,
 preserving the UVs. The iris aperture
 is authored with the continuous eyelids in the source; it is not expanded after baking.
 `rig_runtime.py` retains its deformation-region groups so the rig can be rebuilt repeatedly.
@@ -94,6 +94,8 @@ is authored with the continuous eyelids in the source; it is not expanded after 
 The scalp and garment begin as authored surfaces. Per-component reduction reserves
 geometry for lids and lips; UVs and maps are then baked from the separate source parts.
 The garment has open hem/neck boundaries, an inner garment and lacing; boot cuffs are open.
+The ears are closed meshes with continuous rims and inner bowls. Hair reduction reserves more
+geometry for the visible fringe. Captures use native D3D11 on this Windows PC and record the GPU.
 The runtime is a reduced art candidate, not a claim of finished deformation topology.
 
 Save manual edits under a separate filename before regenerating. The scripts replace their

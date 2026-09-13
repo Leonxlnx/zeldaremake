@@ -502,12 +502,39 @@ for v,col in zip(head.data.vertices,colors.data):
 attr=face_mat.node_tree.nodes.new('ShaderNodeVertexColor');attr.layer_name='SkinTint'
 face_mat.node_tree.links.new(attr.outputs['Color'],face_mat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
 for side in [-1,1]:
-    pts=[(side*.136,.002,1.06),(side*.169,-.005,1.062),(side*.202,.024,1.096),(side*.194,.016,1.074),(side*.177,-.002,1.035),(side*.145,-.005,1.028)]
-    e=mesh('Pointed ear '+str(side),pts,[tuple(range(6))],skin,2)
-    so=e.modifiers.new('Ear thickness','SOLIDIFY');so.thickness=.014
-    inner=[(side*.150,-.014,1.057),(side*.179,-.013,1.060),(side*.193,.010,1.085),(side*.173,-.016,1.041)]
-    mesh('Ear inner fold '+str(side),inner,[tuple(range(4))],earskin,2)
-    curve('Ear helix '+str(side),[pts[0],pts[1],pts[2],pts[3],pts[4]],.0035,skin)
+    # One closed pinna: the old subdivided n-gons shrank away from a separate rim.
+    outline=[(.137,1.068),(.172,1.078),(.212,1.097),(.194,1.065),(.178,1.040),(.153,1.029),(.137,1.044)]
+    boundary=[]
+    for i in range(len(outline)):
+        a,b,c,d=[Vector(outline[j%len(outline)]) for j in [i-1,i,i+1,i+2]]
+        for j in range(4):
+            t=j/4
+            boundary.append(.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t**3))
+    centre=Vector((.160,1.054));n=len(boundary);vs=[];fs=[];tints=[]
+    for scale,depth,warmth in [(1,0,0),(.88,-.004,.12),(.62,.003,.55),(.24,.009,.75)]:
+        for p in boundary:
+            x,z=centre+(p-centre)*scale
+            vs.append((side*x,-.025+.20*(x-.15)+depth,z))
+            tints.append(Vector((.64,.38,.25)).lerp(Vector((.65,.29,.22)),warmth))
+    for ring in range(3):
+        for j in range(n):
+            k=(j+1)%n;fs.append((ring*n+j,ring*n+k,(ring+1)*n+k,(ring+1)*n+j))
+    fs.append(tuple(3*n+j for j in range(n)))
+    back=len(vs)
+    for p in boundary:
+        x,z=p;vs.append((side*x,-.011+.20*(x-.15),z));tints.append(Vector((.64,.38,.25)))
+    fs.append(tuple(reversed([back+j for j in range(n)])))
+    for j in range(n):
+        k=(j+1)%n;fs.append((j,back+j,back+k,k))
+    if side>0:fs=[tuple(reversed(f)) for f in fs]
+    e=mesh('Pointed ear '+str(side),vs,fs,face_mat,1)
+    assert sum(p.normal.y*p.area for p in e.data.polygons[:3*n])<0, 'Ear bowl must face forward'
+    colors=e.data.color_attributes.new(name='SkinTint',type='FLOAT_COLOR',domain='POINT')
+    for col,tint in zip(colors.data,tints):col.color=(*tint,1)
+    uses={}
+    for p in e.data.polygons:
+        for ear_edge in p.edge_keys:uses[ear_edge]=uses.get(ear_edge,0)+1
+    assert set(uses.values())=={2}, 'Ear must have no open rim or separate inner patch'
     x=side*.011;z=1.017
     ellipsoid('Nostril recess '+str(side),(x,face_y(x,z)-.001,z),(.003,.001,.0018),earskin,16,8)
 # Lip planes blend into the face; the mouth line remains a recessed fine crease.

@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-13T15:44:00Z
+updated: 2026-09-13T16:06:00Z
 ---
 
 # Astra local — Blender character continuation
@@ -186,3 +186,20 @@ Live local appearance preview: http://127.0.0.1:54075/?dev=0&hud=0 (scratch e591
 asset studio: http://127.0.0.1:52996/art/characters/link/review.html. Both use background
 servers; no desktop control. Preview defaults to candidate and has a native existing/candidate
 toggle. Fixed three invalid CP1252 dash bytes in this log; use explicit UTF-8 when writing text.
+
+
+## 2026-09-13 16:06 UTC - closed ears and cap/fringe revision
+
+Rebuilt each ear as a closed rim/bowl mesh with interpolated warm skin tint. The previous
+subdivided single polygons shrank away from the independent helix, leaving visible holes.
+Source assertions verify forward-facing bowls and two faces per edge. Three skin maps rebaked.
+Hair geometry now prioritizes the visible fringe (2656 triangles); three hair maps rebaked.
+Cap rest geometry has a fuller rear drape and front edge lifted behind the fringe, preserving UVs.
+Actual 18-view review: progress/2026-09-13T16-03-24-694Z-runtime, Radeon 780M / D3D11.
+GLB f3d354643e3200555c2fcb5e53f1a98368fb714472f9211ddb73044516fe470f, 24,474 triangles,
+four materials, same nineteen bones/clips/stride contract. All 363 sampled locomotion poses
+retain positive sole clearance. Ear holes are resolved; facial/lid shading and solid-looking
+hair remain visible. The GLB already contains interpolated smooth normals, so the faceting
+is not a blanket flat-shading export setting. Continue source/reduction/material review.
+Fable latest fetched remains f92a384 with character-3 integration running. No production
+loader/world changes here; user goal stays active and this is not an art acceptance claim.

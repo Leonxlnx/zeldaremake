@@ -93,14 +93,25 @@ for bucket,budget in budgets.items():
             mean_x=sum(v.co.x for v in geo.vertices)/len(geo.vertices)
             region='bootL' if mean_x>0 else 'bootR'
         copy.vertex_groups.new(name='region_'+region).add(list(range(len(geo.vertices))),1,'REPLACE')
+        limit=None
         if bucket=='skin':
             # A shared collapse pass erased small eyelid and lip boundaries.
             # Reserve topology for each facial part before joining the skin atlas.
             limit=24
             for prefix,value in [('Face |',5500),('Arm wrist',850),('Bare leg',550),('Neck',150),
-                                 ('Upper eyelid',300),('Lower eyelid',300),('Pointed ear',80),
+                                 ('Upper eyelid',300),('Lower eyelid',300),('Pointed ear',260),
                                  ('Ear inner',40),('Ear helix',70),('Upper lip',120),('Lower lip',120)]:
                 if ob.name.startswith(prefix):limit=value;break
+        elif bucket=='hair':
+            # Spend geometry on the visible fringe rather than the mostly covered scalp.
+            limit=4
+            if ob.name.startswith('Hair | connected'):limit=200
+            elif ob.name.startswith('Hair | swept layered clump'):
+                limit=230 if int(ob.name.rsplit(' ',1)[-1])<6 else 110
+            elif ob.name.startswith('Hair | overlapping'):limit=50
+            elif ob.name.startswith('Hair | stray'):limit=25
+            elif ob.name.startswith('Upper lash'):limit=45
+        if limit is not None:
             geo.calc_loop_triangles()
             bpy.ops.object.select_all(action='DESELECT');copy.select_set(True);bpy.context.view_layer.objects.active=copy
             reduce=copy.modifiers.new('Preserve facial component topology','DECIMATE')

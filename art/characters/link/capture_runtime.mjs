@@ -15,7 +15,7 @@ console.log('Review server',server.url);
 try{
   // Native pipes avoid this PC's stalled localhost WebSocket handshake.
   browser=await puppeteer.launch({executablePath:findChrome(),headless:true,pipe:true,protocolTimeout:60000,
-    args:['--no-sandbox','--disable-gpu-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader','--hide-scrollbars','--mute-audio','--no-proxy-server'],
+    args:['--no-sandbox','--disable-gpu-sandbox','--use-angle='+(process.platform==='win32'?'d3d11':'swiftshader'),'--enable-unsafe-swiftshader','--hide-scrollbars','--mute-audio','--no-proxy-server'],
     defaultViewport:{width:720,height:820}});
   const page=await browser.newPage();
   await page.setViewport({width:720,height:820});
@@ -25,6 +25,7 @@ try{
   await page.waitForFunction(()=>window.REVIEW?.ready,{timeout:90000});
   const durations=await page.evaluate(()=>REVIEW.durations);
   report.sole_local=await page.evaluate(()=>REVIEW.soleLocal);
+  report.gpu=await page.evaluate(()=>REVIEW.gpu);
   for(const [name,gait,t,view] of [
     ['01-body','idle',0,'body'],['02-front','idle',0,'front'],['03-side','idle',0,'side'],
     ['04-back','idle',0,'back'],['05-face','idle',0,'face'],['06-boots','idle',0,'boots'],

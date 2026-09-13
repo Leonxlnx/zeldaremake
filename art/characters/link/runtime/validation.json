@@ -1,8 +1,8 @@
 {
   "pass": true,
-  "sha256": "9f6f0987e074bee3b775419ded86589daff4bd312c4b48985932ddef3eeb2be7",
-  "bytes": 16558792,
-  "triangles": 24332,
+  "sha256": "f3d354643e3200555c2fcb5e53f1a98368fb714472f9211ddb73044516fe470f",
+  "bytes": 16567948,
+  "triangles": 24474,
   "meshes": 4,
   "materials": 4,
   "textures": [
@@ -71,7 +71,7 @@
     "max": [
       0.25570109486579895,
       1.199811577796936,
-      0.1634301096200943
+      0.16290952265262604
     ]
   },
   "status": "Technical contract passed; art and motion review still required."

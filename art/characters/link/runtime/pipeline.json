@@ -1,6 +1,6 @@
 {
-  "source_sha256": "23469fe0aef786344385a8b1db8aaed556ae94df3c4d9edac965dec8327b6ed5",
-  "generator_sha256": "5d24e5ee9c5ba4d60b3642231e9ea10f3c6a49783bb1d445b69cc1e7a482951a",
+  "source_sha256": "64a8badb3e553f9cc223bbf31fa18661eac723cf7aaa9a3c60717b7158611ad2",
+  "generator_sha256": "680186042c7acde8c1ed76f64e6b6478dee50e256000ff99319160539f773bfd",
   "groups": {
     "skin": {
       "object": "Link_skin",
@@ -12,19 +12,15 @@
         "Neck",
         "Face | continuous cheek socket nose sculpt",
         "Pointed ear -1",
-        "Ear inner fold -1",
-        "Ear helix -1",
         "Nostril recess -1",
         "Pointed ear 1",
-        "Ear inner fold 1",
-        "Ear helix 1",
         "Nostril recess 1",
         "Upper lip sculpt",
         "Lower lip sculpt",
         "Mouth crease"
       ],
-      "source_triangles": 9123,
-      "triangles": 9123
+      "source_triangles": 9279,
+      "triangles": 9279
     },
     "hair": {
       "object": "Link_hair",
@@ -101,8 +97,8 @@
         "Hair | stray swept tip 1",
         "Hair | stray swept tip 3"
       ],
-      "source_triangles": 96064,
-      "triangles": 2670
+      "source_triangles": 2656,
+      "triangles": 2656
     },
     "eyes": {
       "object": "Link_eyes",
@@ -391,25 +387,27 @@
     }
   },
   "bakes": [
-    "hair/color",
-    "hair/roughness",
-    "hair/normal",
     "eyes/color",
     "eyes/roughness",
     "eyes/normal",
-    "skin/color",
-    "skin/roughness",
-    "skin/normal",
     "outfit/color",
     "outfit/roughness",
     "outfit/normal",
-    "outfit/metallic"
+    "outfit/metallic",
+    "hair/color",
+    "hair/roughness",
+    "hair/normal",
+    "skin/color",
+    "skin/roughness",
+    "skin/normal"
   ],
   "stage": "Rigged candidate; export and visual motion review pending",
   "rest_mesh_refinements": [
     "Nape coverage extended to the collar",
     "Iris aperture authored with the continuous eyelids; no runtime iris expansion",
-    "Leather uppers seated into the sole welt without an open gap"
+    "Leather uppers seated into the sole welt without an open gap",
+    "Rear cap widened and lowered into a fuller cloth drape",
+    "Front cap edge lifted behind the fringe"
   ],
   "rig": {
     "bones": [

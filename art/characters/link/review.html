@@ -60,7 +60,8 @@ for(const view of ['front','back','face'])document.querySelector('#'+view).oncli
 controls.addEventListener('change',()=>renderer.render(scene,camera));
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.render(scene,camera);});
 renderer.setAnimationLoop(now=>{if(playing){time+=(now-last)/1000;pose(current,time);}last=now;});
-window.REVIEW={ready:true,pose,model:gltf.scene,camera,durations:Object.fromEntries(gltf.animations.map(c=>[c.name,c.duration])),
+const gl=renderer.getContext(),gpuInfo=gl.getExtension('WEBGL_debug_renderer_info');
+window.REVIEW={gpu:gpuInfo?gl.getParameter(gpuInfo.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),ready:true,pose,model:gltf.scene,camera,durations:Object.fromEntries(gltf.animations.map(c=>[c.name,c.duration])),
   soleLocal,soleHeights(){const p=new THREE.Vector3();return Object.fromEntries(['L','R'].map(s=>[s,Math.min(...soles[s].map(([mesh,i])=>{mesh.getVertexPosition(i,p);return mesh.localToWorld(p).y;}))]));},
   stats(){renderer.render(scene,camera);return {calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};}};
 </script>

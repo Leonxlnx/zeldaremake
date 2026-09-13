@@ -21,6 +21,28 @@ if not hair.get('nape_refined'):
     hair.data.update();hair['nape_refined']=True
 
 outfit=bpy.data.objects[record['groups']['outfit']['object']]
+if not outfit.get('cap_front_lifted'):
+    cap_group=outfit.vertex_groups['region_cap'].index
+    raised=0
+    for vertex in outfit.data.vertices:
+        if not any(g.group==cap_group and g.weight>.5 for g in vertex.groups):continue
+        x,y,z=vertex.co
+        lift=.048*smooth(.025,.11,-y)*(1-smooth(1.085,1.16,z))
+        vertex.co.z+=lift;raised+=lift>.001
+    assert raised>20,('Cap front edge missing',raised)
+    outfit.data.update();outfit['cap_front_lifted']=True
+if not outfit.get('cap_draped'):
+    cap_group=outfit.vertex_groups['region_cap'].index
+    changed=0
+    for vertex in outfit.data.vertices:
+        if not any(g.group==cap_group and g.weight>.5 for g in vertex.groups):continue
+        x,y,z=vertex.co
+        drape=smooth(.08,.18,y)*(1-smooth(1.10,1.20,z))
+        vertex.co.x*=1+.75*drape
+        vertex.co.z-=.025*drape*(1-smooth(.93,1.03,z))
+        changed+=drape>0
+    assert changed>50,('Cap drape region missing',changed)
+    outfit.data.update();outfit['cap_draped']=True
 if not outfit.get('vamp_seated'):
     neighbors=[[] for _ in outfit.data.vertices]
     for edge in outfit.data.edges:
@@ -46,7 +68,9 @@ eyes=bpy.data.objects[record['groups']['eyes']['object']]
 assert eyes.get('iris_occlusion_refined'), 'Rebuild eyes from the authored almond source first'
 record['rest_mesh_refinements']=['Nape coverage extended to the collar',
     'Iris aperture authored with the continuous eyelids; no runtime iris expansion',
-    'Leather uppers seated into the sole welt without an open gap']
+    'Leather uppers seated into the sole welt without an open gap',
+    'Rear cap widened and lowered into a fuller cloth drape',
+    'Front cap edge lifted behind the fringe']
 scene['pipeline']=json.dumps(record)
 (ROOT/'runtime/pipeline.json').write_text(json.dumps(record,indent=2))
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'link-runtime.blend'),compress=True)
