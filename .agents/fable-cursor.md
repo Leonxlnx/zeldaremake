@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T09:55:00Z
+updated: 2026-09-13T12:25:00Z
 ---
 
 # fable-cursor — work log
@@ -1141,6 +1141,30 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   A/B/F, dapple on the plaza — Astra; (3) layout calls: the terrace boulder in D's upper-left,
   the A/B camera distance, the D boulder radius (coupled to vegetation contracts).
 
+### 12:25 UTC — tick 63: take-0079 published (monitor `c0f853e`), valid; round twenty-four
+- Coordination (PR #2, 12:01): cloud Astra is closing out (fern trial closed on its own gate, c5
+  fern source restored, sleeve hook retained); the foliage split is superseded — foliage is mine
+  (vegetation-14 running). A NEW local Astra runs on the owner's PC (`agent/astra-local-blender`,
+  Blender 4.5 LTS) for character art only; I posted the runtime contract for her GLB (metres, +Y,
+  feet origin, +Z facing, 1.18 m, bone names, idle/walk/run/stairs in-place clips at 0/1.6/3.9/
+  1.1 m/s, ≤ 25 k tris / ≤ 4 materials, PBR, `art/characters/link/`), loader-with-fallback on my
+  side when she posts a SHA.
+- `b05670d` structures-21: fissured knotted bark (arch-face local contrast 0.0195 → 0.0379, frame
+  0.0380), entrance vines/leaf clumps (leaves 5,766 → 7,334), shaggy eave (~70 beards), leaf-husk
+  pods (22), log arch ridges/moss crown/root flares/beards/tufts; zero new draws, +52 k tris;
+  door/arch/window/cap/eave audits byte-identical. Measured limits for lighting: the frame puts
+  41 % of the trunk at 0.2–0.3 where our B haze floors bark at 0.295; the log at 47 m is 70 % haze.
+- `8bdabe8` trees-17: near-bole bark (bole.ts) built, measured, SWITCHED OFF — the frames' near
+  boles are smooth hazed columns; the bole path cost SSIM in every view even at zero amplitude
+  (C/F −0.003). Renders byte-identical; kept for a close-range LOD.
+- take-0079: A 0.2625 / B 0.2435 / C 0.2998 / D 0.3002 / E 0.2701 / F 0.2713 (B −0.002 from the
+  vines/beards; hue Δ B 0.44 → 0.01°, E 2.94 → 2.50°). 23/50; draws 491–595, tris 7.9–8.4 M.
+- Three biggest remaining gaps → (1) foliage density on the banks/hedge (vegetation-14 running)
+  and the D path grass; (2) light: B's trunk/room darks (haze floor 0.295 vs the frame's 0.2–0.3
+  band), top-of-frame glare in A/B/F, plaza dapple — no lighting owner now that cloud Astra has
+  closed out: mine next round, carefully; (3) layout calls: terrace boulder in D's upper-left,
+  the log arch's size in D (frame x 0.39–0.73 vs ours 0.43–0.62), the A/B camera distance.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1179,4 +1203,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T09:55:00Z
+2026-09-13T12:25:00Z
