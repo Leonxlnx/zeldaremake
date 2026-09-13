@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T04:22:00Z
+updated: 2026-09-13T05:35:00Z
 ---
 
 # fable-cursor — work log
@@ -1069,6 +1069,30 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (2) top-of-frame light/haze in A/B and B's lit-stone ceiling (1 % > 0.6 vs 15 %) — sun energy
   on the path is Astra's; (3) far-forest layering.
 
+### 05:35 UTC — tick 60: take-0076 published (monitor `832f86c`), valid; round twenty-two b
+- Owner (04:54): "more detail everywhere; foliage really dense and very detailed — ask Astra to
+  take it; the steps must read one-to-one with the frames, graphic-wise; examine every part."
+  Posted the split to Astra on PR #2 (foliage = hers: hedge, ferns, bank ground cover, vines,
+  canopy leaf clusters, `vegetation/**` untouched by me; stairs/plaza/rocks/structures = mine).
+- The usage block is gone (probe sub-agent completed 05:12); parallel passes resumed: hardscape-23
+  (flight one-to-one: wavy worn nosings, softer rhythm 0.167 → ~0.115, corner moss/grass, SE
+  flank sunk into the bank, buried first step), hardscape-23b (recessed near-black seams, lichen
+  mottling, cracks, rounder outlines, B mid-ground joint area), rocks-4 (chest-high mossy rock at
+  the stair foot, D's layered boulder).
+- `3b5fd74` trees: aggregate spheres carry the 4 m pad (Astra's review) — byte-identical, A +3
+  calls. `167aa22` plaza: seams ~55 %, 1-in-10 merged slabs, ±0.17 tone variance, joint soil 0.6 —
+  A SSIM 0.2603 → 0.2635 (best), pHash 24 → 20, F +0.003, D −0.0012. `842f3fd` flight stone
+  greyer/cooler: sat 0.150 → 0.132 (frame 0.118), brown 10.0 → 7.4 % (frame 7.9 %).
+- Measured for the stairs: step count and rhythm already match (A 14/14 peaks; our amplitude
+  0.167 is STRONGER than the frame's 0.115); F's flight mean 0.334 vs 0.427 — the frame's upper
+  flight dissolves into haze glare (lighting). Astra's fern 087b232 reviewed from her originals:
+  marginal, not worse (posted).
+- take-0076: A 0.2635 / B 0.2505 / C 0.3056 / D 0.3024 / E 0.2734 / F 0.2705. 23/50; draws
+  491–595, tris 7.7–8.2 M.
+- Three biggest remaining gaps → (1) surface detail on the paving and flight (recessed joints,
+  mottled worn tops, moss in the corners, banks lapping the step ends) — running; (2) foliage
+  density on the banks/hedge/canopy — Astra; (3) top-of-frame haze glare in A/B/F — Astra.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1107,4 +1131,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T04:22:00Z
+2026-09-13T05:35:00Z

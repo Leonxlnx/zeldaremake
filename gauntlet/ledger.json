@@ -8076,6 +8076,115 @@
       },
       "prevHash": "sha256:8cad54e820ab7e906d351428a92e5871b18c19e8dcceea69fbca128f77c5011d",
       "hash": "sha256:74f185811a2b2b915037d72eec678abb67bba80dfc7acbc576058f8dc3d4904b"
+    },
+    {
+      "id": "take-0076",
+      "number": 76,
+      "at": "2026-09-13T05:30:29.605Z",
+      "sha": "842f3fd4b5ab80be32a9bfea2f6ade576530aba8",
+      "shortSha": "842f3fd",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "hardscape: the hero flight's treads and risers go greyer and cooler (tread red x0.98 -> 0.90, blue x1.14 -> 1.34; risers neutral) - frame 1 s reads the flight's lit stone at sat 0.118 / hue 50 deg against our 0.150 / 48 deg while the plaza matched; after: 0.132 / 49 deg, brown share 10.0 -> 7.4 % (frame 7.9 %), A hue delta 0.33 -> 0.24 deg, SSIM unchanged",
+      "agent": "fable-cursor",
+      "items": [
+        "W02",
+        "W03",
+        "W09"
+      ],
+      "note": "Round twenty-two, second half: the plaza and the flight measured against frame 1 s. The plaza read as a honeycomb of ~0.8 m cells with 8-12 cm brown seams at one tone where the frame mixes 0.4 m pieces with 1.3-1.8 m slabs in 3-5 cm dark green-brown joints; the open paving's seams narrow to ~55 %, one south-plaza seed in ten eats its neighbours, stones differ more stone to stone (+-0.17 luminance, one in five a darker warm brown) and the plaza joints are 60 % soil instead of 90 % - A SSIM 0.2603 -> 0.2635 (its best), pHash 24 -> 20, F 0.2674 -> 0.2705. The flight's lit stone in the frame is greyer and cooler than the plaza's (sat 0.118 / hue 50 vs our 0.150 / 48) with the step count and rhythm already matching (14 peaks / 14); the treads go red x0.90 / blue x1.34 and the risers neutral - sat 0.132, brown share 10.0 -> 7.4 % (frame 7.9 %), A hue delta 0.33 -> 0.24 deg. Trees: the trimmed LOD buckets' aggregate spheres now carry the 4 m admission pad the instances were admitted with (Astra's source review) - views byte-identical, the edge buckets the renderer had been dropping are submitted again (A 592 -> 595 calls). Still open, and running now in parallel passes: the frame's worn wavy nosings and moss-filled tread corners, the flank sunk into the grass bank with no kerb line, recessed near-black joints and lichen-mottled slab tops, the chest-high mossy boulder at the stair foot; the top-of-frame haze glare and the dense bank foliage are the lighting owner's.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:b02fd1543e3fcd4df02b5282f2b59498d976cc91b66509e6fcec84648b98f563",
+        "B_house": "sha256:877fdf9a5d8e4561e12b70beb28c0e262db504a5bdac9d434e284ed5a7271fc6",
+        "C_lookback": "sha256:225eb86961fc05a3848e83b3d22b9592326a606180b78c49899bf3b3bb3ae44c",
+        "D_log": "sha256:3fe48a8777c248d3965856fd447637c2f82adf6c4299a3e7f73b384542989feb",
+        "E_ground": "sha256:877fdf9a5d8e4561e12b70beb28c0e262db504a5bdac9d434e284ed5a7271fc6",
+        "F_canopy": "sha256:6f3ac35458ccd5b439e50fcfe58e20431ade1e5378459ccf6af6f654366171fe"
+      },
+      "distHash": "sha256:664fde5b51e8979d8a06273ff1e9f64ffbab825280a2be8d43f356c10982a99d",
+      "stats": {
+        "drawCalls": 595,
+        "triangles": 8145718,
+        "captureMs": 844401,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W02",
+        "W03",
+        "W09"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take76-cap",
+        "importedAt": "2026-09-13T05:30:57.956Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:74f185811a2b2b915037d72eec678abb67bba80dfc7acbc576058f8dc3d4904b",
+      "hash": "sha256:67461775b56d5cfb83385067153f64adba474ebe791392b7ea19c24ca1ff0d9a"
     }
   ]
 }
