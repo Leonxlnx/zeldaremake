@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T00:25:00Z
+updated: 2026-09-13T01:50:00Z
 ---
 
 # fable-cursor — work log
@@ -992,6 +992,40 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   key/shade separation on the house front; (2) the distant huts' rims and the hero arch's lit
   share; (3) the A/B camera-distance layout call.
 
+### 01:50 UTC — tick 57: take-0073 published (monitor `cb77cda`), valid; round twenty
+- Both round-20 sub-agents were cut off mid-pass by an account usage block (unpaid invoice on the
+  owner's side); their uncommitted work was verified and committed by the orchestrator.
+- `370a696` trees-16: `rebucket` forced from `onCameraMove` (Astra's H01/H06/H11 finding) and
+  per-frame submission culling — every LOD bucket hands the GPU only the instances whose padded
+  sphere (4 m) meets the frustum or whose shadow sweep along the sun (a capsule down to y −20)
+  does; giant sectors cast only while their capsule meets it. Verified on a same-tree pair whose
+  control was byte-identical to take-72: A/B/C/E/F byte-identical, D ONE pixel by 1/255. A 673 →
+  661 calls / 8.58 → 7.97 M tris, B/E 664 → 645 / 8.60 → 7.74 M, C 568 → 557, D 547 → 533, F 637
+  → 627. Free camera (22 poses): trees' share 55–71 → 56–60 calls, 2.6–3.4 → 2.1–2.6 M tris; worst
+  pose 733 / 9.15 M → 722 / 8.25 M — all under 9 M tris; the 22 calls still over 700 at two pan
+  poses are the other systems' (trees 59–60 there). Audit gains `trees.submission`.
+- `a5eae90` structures-20: the huts' emissive rims are gone — the recess is the reveal, wood
+  tinted by the lamp's irradiance (cos/d², tone curve, hewn grain/knots, splayed tunnels, lamps
+  off-centre; only the lamp discs stay at 2.2). Ring coverage (24 sectors > haze + 0.08, warm):
+  D hollow-column window 100 % → 29 %, door 63 % → 13 %; A 100/67 → 13/13 %; B west 83/71 →
+  33/42 %; lamp maxima inside unchanged. Bucket bounds proven: `trunk-eave-band` (recessBark)
+  r 19.07 m, `door-frame` r 19.59 m, `trunk` r 25.68 m were accepted by C's frustum; the village
+  now consolidates apart (hero r 5–9 m; C −18 k tris at the same calls; +4 calls A/B/D/E, +2 F).
+  Right root-buttress foot → door-space (2.35, 5.5) at ~1.9 m so the leg reads in B. Audit gains
+  `distantReveal`, `mergedBuckets`, `distantDraws`.
+- take-0073: A 0.2619 / B 0.2527 / C 0.306 / D 0.3037 / E 0.275 / F 0.268 (A +0.0014, B +0.0026,
+  D +0.0025, E +0.0022); draws A 665 / B 649 / C 557 / D 537 / F 629; tris 7.7–8.0 M. 23/50.
+- Sleeve hook (`c5d8c83`): measured under our light — box (b) top band p50 0.324 → 0.327 (ref
+  0.351, holds), box (a) top-left 0.316 → 0.308 (ref 0.431; already 0.11 under at baseline, the
+  veil question) — adoption held for Astra's actual verdict, as agreed.
+- Left for later rounds: hero buckets that still reach the log arch's vegetation (`house-saria-
+  leaves` r 30.8 m / 23 k tris, `-vines` r 29.8, `lantern-branch-moss` r 27.7, `-tufts` r 29.75,
+  `trunk` r 19.3 accepted in C) → merge the log arch's dressing apart too; the other systems' 20
+  free-camera calls over 700 at the plaza/hedge pans.
+- Three biggest remaining gaps → (1) light (Astra): the bright hazed canopy at the top of B/A
+  (0.32 vs 0.43 in box (a)), key/shade on the house front; (2) the hero arch's lit share and the
+  A/B camera-distance layout call; (3) far layering (W32 metric flip pending the proposal).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1030,4 +1064,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T00:25:00Z
+2026-09-13T01:50:00Z
