@@ -12,6 +12,7 @@
  * hero viewpoint (C3 / W32), terrain probes (W04), placement spot-checks of every system's
  * `samplePositions` (B4), and layout→screen projections (W01).
  */
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -386,7 +387,7 @@ function safeLoadRubric() {
   }
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   const out = path.resolve(ROOT, args.out || 'gauntlet/out/capture');

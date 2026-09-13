@@ -11,6 +11,7 @@
  * audit against the scene graph (anti-cheat B3) and the placement evidence (B4), computes deltas
  * against the previous take and writes <in>/score.json. Prints a pass/fail/pending table.
  */
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, LEDGER_PATH, REVIEWS_DIR, readJson, resolveArg, rel, loadRubric } from './lib/paths.mjs';
@@ -272,7 +273,7 @@ export function findPrevious({ previousDir, previousScore, ledgerPath = LEDGER_P
   return {};
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   const inDir = resolveArg(args.in, 'gauntlet/out/last');

@@ -16,6 +16,7 @@
  *   D1–D3, D8  process integrity                         source (ledger, claims, PROJECT_STATE)
  *   D4–D7, E1–E3  exit conditions                        --verify-exit
  */
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -454,7 +455,7 @@ export async function runAntiCheat({ takeDir = null, skipCapture = false, ledger
   return { report, take, exit };
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   runAntiCheat({
