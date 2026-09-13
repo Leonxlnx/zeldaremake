@@ -80,17 +80,17 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute float aMoss; attribute float aStain; varying float vMoss; varying float vStain; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
       )
       .replace(
         '#include <worldpos_vertex>',
-        '#include <worldpos_vertex>\nvStain = aStain;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; varying float vMoss; varying float vStain; varying vec3 vWPosS;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vWPosS;
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -105,17 +105,56 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           // second, finer sample (rotated 90°, 3.1× tighter) so the 0.55 m close-up shows real grain
           vec3 fine = texture2D(map, vec2(-vMapUv.y, vMapUv.x) * 3.1 + vec2(0.37, 0.61)).rgb;
           float lf = dot(fine, vec3(0.299, 0.587, 0.114));
-          diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.55, 1.5), 0.2);
+          float wear = clamp(vWear, 0.0, 1.0);
+          // (round 23: the flagstone tops - aWear - take the fine grain at 0.1, half the stairs',
+          // and only half of the pit lift below: frame 1 s at 4× shows soft 10–30 cm blotches of
+          // grime and lichen on the slabs and no sand-fine grain - the aWear mottling below is
+          // that; 0.35 rendered as sand in the A foreground)
+          diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.55, 1.5), mix(0.2, 0.1, wear));
           // desaturate the orange-leaning rock texture toward the warm grey-beige of the reference
           float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
           // (reference plaza box sat 0.38 against our 0.44 once the joints widened: a little less
           // blue-starved than before)
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.12, 1.0, 0.74), 0.7);
           // lift the darkest pits so the slab tops stay pale and low-contrast (dusty, not pitted)
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.09, 1.0, 0.76), 0.24);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.09, 1.0, 0.76), 0.24 * (1.0 - 0.5 * wear));
           // fine grain breakup so distant slabs don't read as a single flat tone
           float grain = fract(sin(dot(floor(vWPosS.xz * 40.0), vec2(12.9898, 78.233))) * 43758.5453);
           diffuseColor.rgb *= 0.975 + 0.05 * grain;
+          // weathering on the flagstone tops (aWear, round 23 - frame 1 s / 56 s: the slab tops are
+          // mottled with grime and lichen, not one flat tone; the band masks of take 76 put the
+          // frame's variation WITHIN a slab - pale worn spots over 0.6 beside grime under 0.45):
+          // two octaves of 0.4 m / 0.18 m patches swing the albedo +-12 % and the hue with it
+          // (grime darker and warmer, lichen paler and grey-green); where the patch noise peaks a
+          // grime film takes a further 28 % off, brown; 1-3 cm pale lichen flecks cluster on the
+          // lichen side. Nothing on the stairs (aWear = 0 there). (+-20 % and a 35 % film spread
+          // A's tops both ways - 22 % of the box over 0.6 and 8 % under 0.25 against the frame's
+          // 14 / 6 - where the frame keeps 43 % in 0.45–0.6)
+          if (wear > 0.001) {
+            float p1 = stoneVNoise(vWPosS.xz * 2.4 + vec2(17.3, 5.1));
+            float p2 = stoneVNoise(vWPosS.xz * 5.7 + vec2(-3.7, 29.0));
+            float mot = (p1 - 0.5) * 1.3 + (p2 - 0.5) * 0.7;
+            vec3 tintK = mix(vec3(1.03, 0.995, 0.945), vec3(0.98, 1.005, 1.04), smoothstep(-0.7, 0.7, mot));
+            diffuseColor.rgb *= mix(vec3(1.0), (1.0 + 0.12 * mot) * tintK, wear);
+            float grime = smoothstep(0.5, 0.18, p1 * 0.65 + p2 * 0.35);
+            diffuseColor.rgb *= mix(vec3(1.0), vec3(0.73, 0.69, 0.62), grime * wear);
+            float fl = stoneVNoise(vWPosS.xz * 19.0 + vec2(7.0, -11.0)) * 0.65 + stoneVNoise(vWPosS.xz * 47.0 + vec2(-2.0, 3.0)) * 0.35;
+            float fleck = smoothstep(0.64, 0.8, fl) * smoothstep(0.45, 0.7, p1);
+            diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.14, 1.17, 1.08), fleck * 0.75 * wear);
+          }
+          // a crack across the slab (aCrack: signed distance across the line / position along it in
+          // half-lengths; (9, 9) = none): a 7-13 mm dirt-filled line wandering +-1.2 cm, fading out
+          // over the last quarter of its length, with a hair-paler chipped lip beside it
+          if (vCrack.x < 8.0) {
+            float wob = (stoneVNoise(vWPosS.xz * 11.0 + vec2(3.0, 8.0)) - 0.5) * 0.024;
+            float d = abs(vCrack.x + wob);
+            float hw = 0.0035 + 0.003 * stoneVNoise(vWPosS.xz * 31.0);
+            float ends = 1.0 - smoothstep(0.75, 1.0, abs(vCrack.y));
+            float line = (1.0 - smoothstep(hw * 0.6, hw * 1.6, d)) * ends;
+            float lip = smoothstep(hw * 1.2, hw * 2.2, d) * (1.0 - smoothstep(hw * 2.5, hw * 5.0, d)) * ends;
+            diffuseColor.rgb = mix(diffuseColor.rgb, uMossSoil * 0.55, 0.8 * line);
+            diffuseColor.rgb *= 1.0 + 0.05 * lip;
+          }
           // moss: bright to deep green with the stone's luminance as detail, pulled toward damp
           // soil where the coverage is thin (rim grime) and green only where it is full
           float ln = clamp(l / 0.4, 0.0, 1.6);
@@ -145,7 +184,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v11e-stain-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v15-wear-crack-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

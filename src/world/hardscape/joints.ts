@@ -50,14 +50,34 @@ function segmentDistance(x: number, z: number, ax: number, az: number, bx: numbe
  * the reference's wide B/E joints are one dark tone edge to edge (unchanged since round 10; B/E
  * match).
  */
-const CREVICE_RAMP: [number, number] = [0.015, 0.035];
+const CREVICE_RAMP: [number, number] = [0.02, 0.07];
 const OPEN_RAMP: [number, number] = [0.02, 0.055];
-const SOIL_OPEN_RAMP: [number, number] = [0.05, 0.11];
+/**
+ * (round 23: 5–11 cm → 9–18 cm from a slab. With 19 % fillets the three-way junctions between
+ * rounded slabs are 8–15 cm across, and they dried out to the pale dirt - frame 56 s's path shows
+ * them as dark dirt triangles between touching stones; only the trodden margins, 18 cm and more
+ * from any slab, are the pale open dirt of frame 1 s's lower right)
+ */
+const SOIL_OPEN_RAMP: [number, number] = [0.09, 0.18];
 /** the dry-out only happens in the soil zones: the lift is gated on the fill's soil weight, so the
  *  B/E lawn fill (soil 0.02–0.06 where the plaza's falloff reaches it) keeps its one dark tone */
 const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
-const CREVICE_TINT: [number, number, number] = [1.0, 0.96, 0.84];
-const TURF_CREVICE_TINT: [number, number, number] = [0.92, 0.9, 0.82];
+/**
+ * Round 23: the crevice tint is the recess's shading, not a same-luminance browning. The slabs
+ * stand 1.5–2.5 cm proud of the fill (flagstones.ts `exposed`) and frame 1 s / 56 s read the
+ * seams as near-black lines (their 0–0.25 band: hue 43°, sat 0.43 — a dark saturated brown, sRGB
+ * ≈ 50,40,22) where ours rendered as flat brown bands in the 0.25–0.35 band — the fill is sunlit
+ * and the shadow map cannot resolve a 3 cm wall, so the wall's occlusion is painted: the fill
+ * within 2 cm of a slab drops to 0.3 of its albedo, fading out by 7 cm (so the 8–15 cm junction
+ * triangles stay dark dirt, as in frame 56 s), and keeps the soil's chroma with the blue nearly
+ * gone (× 0.16): the frame's darkest 3 % of the A plaza box is sRGB 46,36,18 (B/R 0.39) where the
+ * first cut's grey-green 0.45/0.49/0.45 rendered ours at 49,39,27 (0.55) and its 0.42/0.45/0.33
+ * still at 58,50,33 for the 0–0.25 band against the frame's 54,45,25. On the mossy earth the
+ * same, a shade lighter and greener; in the lawn's 6–36 cm turf joints it is only the contact
+ * line at each slab's foot.
+ */
+const CREVICE_TINT: [number, number, number] = [0.3, 0.31, 0.16];
+const TURF_CREVICE_TINT: [number, number, number] = [0.4, 0.44, 0.34];
 const TURF_OPEN_TINT: [number, number, number] = [1.06, 1.14, 1.0];
 const glslVec3 = (v: [number, number, number]) => v.map((n) => n.toFixed(4)).join(', ');
 
@@ -525,7 +545,7 @@ export async function buildJointMesh(
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v6-dry-gap${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v9-crevice${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;
