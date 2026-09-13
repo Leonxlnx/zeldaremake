@@ -5,7 +5,7 @@ from pathlib import Path
 job=globals().get('JOB',{})
 folder=job.get('folder','generated-runtime');assert folder in {'generated-runtime','lid-runtime','source-runtime'}
 root=Path(__file__).resolve().parent/folder
-stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate'}
+stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate'}
 scene=bpy.data.scenes[job.get('scene','Link | generated eye study')];bpy.context.window.scene=scene
 rig=next(o for o in scene.collection.objects if o.type=='ARMATURE')
 body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name and not o.name.startswith('Link_hair_detail'))
@@ -50,7 +50,21 @@ def bake_colour(ob,name,size):
     assert tuple(image.size)==(size,size)
     return hashlib.sha256(Path(image.filepath_raw).read_bytes()).hexdigest()
 
-bakes={'body_color':bake_colour(body,'body-eye-edit-color',4096),'eye_color':bake_colour(eyes[0],'iris-material-color' if stem in {'iris-material-candidate','hair-candidate'} else 'anatomical-eye-color',1024)}
+bakes={}
+if stem=='material-candidate':
+    material=body.data.materials[0];nodes=material.node_tree.nodes;links=material.node_tree.links;shader=nodes['Principled BSDF']
+    for label,kind,size in [('normal','NORMAL',4096),('roughness','ROUGHNESS',2048)]:
+        texture=bpy.data.images.new('Scanned body '+label,width=size,height=size,alpha=False);texture.colorspace_settings.name='Non-Color'
+        node=nodes.new('ShaderNodeTexImage');node.image=texture;nodes.active=node
+        bpy.ops.object.select_all(action='DESELECT');body.select_set(True);bpy.context.view_layer.objects.active=body;bpy.ops.object.bake(type=kind)
+        texture.filepath_raw=str(root/('scanned-body-'+label+'.png'));texture.file_format='PNG';texture.save();texture.pack()
+        assert tuple(texture.size)==(size,size)
+        bakes[label]=hashlib.sha256(Path(texture.filepath_raw).read_bytes()).hexdigest()
+        if kind=='NORMAL':
+            normal=nodes.new('ShaderNodeNormalMap');links.new(node.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],shader.inputs['Normal'])
+        else:links.new(node.outputs['Color'],shader.inputs['Roughness'])
+bakes.update(body_color=bake_colour(body,'scanned-body-color' if stem=='material-candidate' else 'body-eye-edit-color',4096),
+    eye_color=bake_colour(eyes[0],'iris-material-color' if stem in {'iris-material-candidate','hair-candidate','material-candidate'} else 'anatomical-eye-color',1024))
 for eye in eyes:
     bpy.ops.object.select_all(action='DESELECT');eye.select_set(True);bpy.context.view_layer.objects.active=eye
     bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -124,4 +138,5 @@ record={'status':'Baked anatomical eye candidate; actual GLB review required, no
     'weight_sum_error':error,'new_socket_vertices_bound':len(missing),'wrong_face_weights_corrected':wrong_face,'rigid_face_vertices':len(face),'bakes':bakes,
     'source_candidate_sha256':json.loads((root.parent/('source-runtime' if folder=='source-runtime' else 'generated-runtime')/'validation.json').read_text())['sha256'],
     'provenance':'Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips.'}
+if stem=='material-candidate':record['material_detail_sources']=json.loads((root/'scanned-material-study.json').read_text())['sources']
 (root/(stem.replace('-candidate','-validation')+'.json')).write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8');print(json.dumps(record))

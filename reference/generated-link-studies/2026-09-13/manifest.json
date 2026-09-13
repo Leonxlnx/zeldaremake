@@ -35,6 +35,13 @@
       "width": 1024,
       "height": 1536,
       "bytes": 2172087
+    },
+    {
+      "bytes": 3044540,
+      "width": 1024,
+      "sha256": "65c01d6934b7224c3e9c7ebc1881b9890f0a16879cd1d4271942902916729450",
+      "file": "06-head-front.png",
+      "height": 1536
     }
   ]
 }

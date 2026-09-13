@@ -1,0 +1,41 @@
+{
+  "status": "Baked anatomical eye candidate; actual GLB review required, not adopted",
+  "sha256": "b0be5039517d38d71181ea8e8003d4169145e1ac4763c25c85871d758e08199b",
+  "bytes": 47769556,
+  "triangles": 54786,
+  "meshes": 3,
+  "materials": 3,
+  "bones": 19,
+  "clip_durations": {
+    "idle": 3.0,
+    "walk": 0.550000011920929,
+    "run": 0.5666666626930237,
+    "stairs": 0.7333333492279053
+  },
+  "weight_sum_error": 1.2665987014770508e-07,
+  "new_socket_vertices_bound": 0,
+  "wrong_face_weights_corrected": 0,
+  "rigid_face_vertices": 5416,
+  "bakes": {
+    "normal": "1f63f8ed68ef9182ef052c53facb7b2ffd146c39e46efd0962669a143dbb7e5b",
+    "roughness": "2ebe5b78ecdcf94159cd4d93a3f6d68cd75edb27f3f950f9ee93e98200c75e93",
+    "body_color": "8724c8b836f32275bfe3e33a3f90bcfaed8df20ce3f02da2c74ac9ee7ec6a8fe",
+    "eye_color": "a6eecd8922739a8122240931b1d70f01abb7e0ee42cec5410d02ca3aaa873cf0"
+  },
+  "source_candidate_sha256": "8bae94d41d1ccddd42028cae78f54ce70f24462ab0ecea52e3aedef125fb20b3",
+  "provenance": "Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips.",
+  "material_detail_sources": {
+    "cloth": {
+      "source": "E:\\zeldaremake\\art\\characters\\link\\textures\\cloth-roughness.jpg",
+      "sha256": "e48d14e87a5493bc4ef9bea61e85b4397ec41f93d1c3fd1ac17494475781610e",
+      "tiles_per_metre": 4,
+      "bump_distance": 0.0007
+    },
+    "leather": {
+      "source": "E:\\zeldaremake\\art\\characters\\link\\textures\\leather-height.png",
+      "sha256": "ccf961ad6bede5333086fc97fbfaf0658898e915bb3fdaaf54a877e0c1370a44",
+      "tiles_per_metre": 10,
+      "bump_distance": 0.0004
+    }
+  }
+}

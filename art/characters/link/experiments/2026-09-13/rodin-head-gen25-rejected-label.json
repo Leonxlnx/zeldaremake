@@ -1,0 +1,35 @@
+{
+  "source": {
+    "file": "E:\\zeldaremake\\reference\\generated-link-studies\\2026-09-13\\06-head-front.png",
+    "sha256": "65c01d6934b7224c3e9c7ebc1881b9890f0a16879cd1d4271942902916729450"
+  },
+  "parameters": {
+    "prompt": "One coherent character HEAD, neck and clothed shoulder bust matching this front reference. Preserve the exact facial proportions, almond eye openings, eyelid thickness, circular pupils within teal irises, small nose, closed lips and long pointed ears. Faithful golden layered hairstyle with fine directional strands and tapered locks, soft green stitched cap continuing behind the head. Smooth continuous facial anatomy with subtle skin texture. Full three-dimensional rounded skull and back of head, no flat relief, no added body or legs. Concentrate geometric and texture detail on the head, eyes, hair and cap.",
+    "tier": "Gen-2.5-Extreme-High",
+    "mesh_mode": "Raw",
+    "quality_override": "150000",
+    "quad_normal": "true",
+    "material": "PBR",
+    "geometry_file_format": "glb",
+    "texture_mode": "high",
+    "detail_level": "3",
+    "is_micro": "true",
+    "is_symmetric": "balanced",
+    "geometry_instruct_mode": "faithful",
+    "texture_delight": "true",
+    "image_label": [
+      "F"
+    ],
+    "addons": [
+      "HighPack"
+    ],
+    "seed": "1309"
+  },
+  "status_code": 500,
+  "uuid": null,
+  "error": "SyntaxError: Unexpected token 'F', \"F\" is not valid JSON",
+  "message": null,
+  "credential": "Bundled public Blender MCP free trial only; private credentials are neither loaded nor used",
+  "documentation": "https://docs.hyper3d.ai/en/api-specification/rodin-gen2-5",
+  "status": "Rejected by service before generation; no UUID"
+}
