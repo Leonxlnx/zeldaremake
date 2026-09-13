@@ -83,6 +83,33 @@ const RIM_LEAN_TILT = 0.9;
  */
 const LAWN_BAND_EXTRA = 0.55;
 const LAWN_BAND_CUT = 0.3;
+/**
+ * Round 14: the main flight's flank banks (field.ts `flankZone`) — the south-east lip lapping the
+ * tread ends and the north-west face falling to Saria's terrace — showed the terrain's soil between
+ * their blades in frames 1 s / 8 s (F flight box brown 16 % against the frame's 3.8 %). A third
+ * candidate pass at this share of the tile density, from its own stream, closes the turf there;
+ * the flank face is 50–60° steep, so the same blades per horizontal metre cover half the surface
+ * a flat lawn's do. Its blades are broader tufts (× FLANK_WIDTH), the cluster noise's gaps are
+ * lifted to FLANK_CLUSTER_FLOOR of full density (the frame's banks have no thin patches), and the
+ * blades hugging the tread ends keep their height (the base pass cuts the last 0.3 m to 72 %).
+ */
+const FLANK_EXTRA = 1.6;
+const FLANK_WIDTH = 1.6;
+const FLANK_CLUSTER_FLOOR = 0.7;
+/**
+ * Round 14: camera D's path shoulders (field.ts `dShoulder`) — frame 56 s shows bare paving to a
+ * ragged soil edge with a few tufts where our verge turf ran to the slabs. This share of the
+ * shoulder's blades is dropped and the rest cut by D_SHOULDER_HEIGHT. The drop is decided by a
+ * position hash AFTER the blade's last draw, so every other blade in the tile keeps its layout.
+ */
+const D_SHOULDER_CUT = 0.92;
+const D_SHOULDER_HEIGHT = 0.5;
+/** 0..1 hash of a mm-quantised position (no rng draw) */
+const hash01 = (x: number, z: number) => {
+  let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
 
 export async function buildGrass(ctx: WorldContext, field: VegField, material: Material, parent: Group, onProgress: (f: number) => void): Promise<GrassResult> {
   const T = ctx.terrain;
@@ -109,7 +136,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     }
   }
 
-  const maxPerTile = Math.ceil(TILE * TILE * CANDIDATES_PER_M2 * Math.max(q.density, 0.1));
+  // capacity for the base pass plus the two extra passes (each ≤ its share of the tile's candidates)
+  const maxPerTile = Math.ceil(TILE * TILE * CANDIDATES_PER_M2 * (1 + LAWN_BAND_EXTRA + FLANK_EXTRA) * Math.max(q.density, 0.1));
   const matrices = new Float32Array(maxPerTile * 16);
   const data = new Float32Array(maxPerTile * 4);
 
@@ -128,14 +156,17 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     let maxH = 0;
     // one candidate: mask / clearing tests, the density draw, then the blade's type, size, tint
     // and wind from `rng`. `bandPass` blades (the lawn band's second pass) are accepted at the
-    // band weight and skipped elsewhere.
-    const blade = (x: number, z: number, rng: Rng, bandPass: boolean) => {
+    // band weight and skipped elsewhere; `flankPass` blades (the stair flanks' third pass) at the
+    // flank weight.
+    const blade = (x: number, z: number, rng: Rng, bandPass: boolean, flankPass = false) => {
       if (Math.hypot(x, z) > R + 1.5) return;
       field.sample(x, z, s);
       if (!field.allowed(x, z, s)) return;
       if (field.insideGiantTrunk(x, z)) return;
       const clr = field.clearing(x, z);
       if (clr.insideBoulder) return;
+      const flank = flankPass ? field.flankZone(x, z) : 0;
+      if (flankPass && flank <= 0) return;
 
       const edge = field.lawnEdgeDistance(x, z);
       const verge = edge < 2.5 ? 1 + 0.9 * (1 - edge / 2.5) : 1;
@@ -156,7 +187,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const giant = field.giantProximity(x, z);
       const cluster = field.cluster(x, z);
       // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
-      const density = cluster * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1);
+      const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : cluster;
+      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1);
       if (rng() * DNORM > density) return;
 
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
@@ -181,7 +213,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         h = (0.11 + 0.2 * Math.pow(rng(), 1.4)) * clusterVar * (edge < 2.5 ? 1.15 : 1);
         w = 0.012 + 0.012 * rng();
       }
-      if (edge < 0.3) h *= 0.72;
+      if (edge < 0.3 && !flankPass) h *= 0.72;
+      if (flankPass) w *= FLANK_WIDTH;
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
       h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band);
@@ -224,6 +257,12 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
           nz += tz * RIM_LEAN_TILT * k;
         }
       }
+      // D's path shoulders (round 14): every draw above is made, so this drop moves nothing else
+      const shoulder = field.dShoulder(x, z);
+      if (shoulder > 0) {
+        if (hash01(x, z) < D_SHOULDER_CUT * shoulder) return;
+        h *= 1 - D_SHOULDER_HEIGHT * shoulder;
+      }
       composeMatrix(matrices, count * 16, x, y, z, nx, s.ny, nz, 0.5, yaw, w, h, h);
       const o = count * 4;
       data[o] = phase;
@@ -259,6 +298,21 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         const x = Math.round((bx0 + bandRng() * (bx1 - bx0)) * 1000) / 1000;
         const z = Math.round((bz0 + bandRng() * (bz1 - bz0)) * 1000) / 1000;
         blade(x, z, bandRng, true);
+      }
+    }
+    // the stair flanks' third pass (round 14) over the part of the flank box in this tile
+    const flank = field.flankBox();
+    const fx0 = Math.max(x0, flank[0]);
+    const fz0 = Math.max(z0, flank[1]);
+    const fx1 = Math.min(x0 + TILE, flank[2]);
+    const fz1 = Math.min(z0 + TILE, flank[3]);
+    if (fx1 > fx0 && fz1 > fz0) {
+      const flankRng = ctx.rng.fork(`grass/flank/${cx}/${cz}`);
+      const n = Math.round((fx1 - fx0) * (fz1 - fz0) * CANDIDATES_PER_M2 * FLANK_EXTRA * q.density);
+      for (let c = 0; c < n && count < maxPerTile; c++) {
+        const x = Math.round((fx0 + flankRng() * (fx1 - fx0)) * 1000) / 1000;
+        const z = Math.round((fz0 + flankRng() * (fz1 - fz0)) * 1000) / 1000;
+        blade(x, z, flankRng, false, true);
       }
     }
     if (count === 0) continue;

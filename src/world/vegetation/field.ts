@@ -140,6 +140,29 @@ const SHADE_ZONES: readonly [number, number, number, number][] = [[12.5, -3, 22,
 const TRODDEN_HALF_WIDTH = 0.9;
 const TRODDEN_FEATHER = 0.6;
 const STONE_TRODDEN = 1.4;
+/**
+ * Round 14: the two flank banks of the main flight (frames 1 s / 8 s: leaves, ferns and turf right
+ * up to the tread ends, no soil). In stair-local metres from the axis: the south-east lip that laps
+ * the step ends (mask allows growth from 5 cm past them) and the north-west face that falls from
+ * the kerb stones toward Saria's terrace; along the run from just before the foot to the landing.
+ * The south-east strip reaches 3.6 m: camera F sees the plateau shelf 3–4 m beyond the upper
+ * tread ends right against the flight's edge (0.50–0.55 × 0.30–0.37 of frame 8 s), and its turf
+ * alone left the cluster gaps as soil there.
+ */
+const FLANK_SE: readonly [number, number] = [0.05, 3.6];
+const FLANK_NW: readonly [number, number] = [0.25, 2.5];
+const FLANK_ALONG: readonly [number, number] = [-0.5, 1.7];
+const FLANK_FEATHER = 0.5;
+/**
+ * Round 14: the north path's shoulders in camera D's lower frame (`dShoulder`): the first
+ * D_SHOULDER_* metres of turf outside the spine's paving are a thinned, trodden edge, feathered
+ * out over D_SHOULDER_FEATHER (frame 56 s: bare paving to a ragged soil edge, a few tufts). The
+ * west shoulder is the narrower: beyond it lies frame 14 s' lawn band (LAWN_BAND — closed short
+ * turf, clover and white dots, a plants.test contract), which keeps its turf.
+ */
+const D_SHOULDER_EAST = 1.0;
+const D_SHOULDER_WEST = 0.6;
+const D_SHOULDER_FEATHER = 0.5;
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
@@ -797,6 +820,78 @@ export class VegField {
   /** the lawn band's world box [x0, z0, x1, z1] grown by `pad` metres (its feather is 0.5 m) */
   lawnBandBox(pad = 0): [number, number, number, number] {
     return [LAWN_BAND[0] - pad, LAWN_BAND[1] - pad, LAWN_BAND[2] + pad, LAWN_BAND[3] + pad];
+  }
+
+  /**
+   * Stair-local coordinates of (x, z) on the main flight (layout stairs[0]): `u` metres along the
+   * run from the bottom riser (negative before the foot), `v` metres across from the axis, positive
+   * on the south-east side (the bank the shot-A kid stands on, cameras A / F's right flank).
+   */
+  mainStairLocal(x: number, z: number): { u: number; v: number; halfWidth: number; run: number } {
+    const f = this.stairs[0];
+    const rx = x - f.ox;
+    const rz = z - f.oz;
+    return { u: rx * f.dx + rz * f.dz, v: -rx * f.dz + rz * f.dx, halfWidth: f.halfWidth, run: f.run };
+  }
+
+  /**
+   * 0..1 on the main flight's two flank banks (round 14; FLANK_SE / FLANK_NW metres beyond the
+   * tread ends, FLANK_ALONG beyond the foot and the top step), feathered out over FLANK_FEATHER.
+   * Zero on the treads themselves.
+   */
+  flankZone(x: number, z: number): number {
+    const { u, v, halfWidth, run } = this.mainStairLocal(x, z);
+    const out = Math.abs(v) - halfWidth;
+    const span = v > 0 ? FLANK_SE : FLANK_NW;
+    if (out < span[0]) return 0;
+    const across = 1 - smoothstep(span[1], span[1] + FLANK_FEATHER, out);
+    const along = smoothstep(FLANK_ALONG[0] - FLANK_FEATHER, FLANK_ALONG[0], u) * (1 - smoothstep(run + FLANK_ALONG[1], run + FLANK_ALONG[1] + FLANK_FEATHER, u));
+    return across * along;
+  }
+
+  /** axis-aligned world box [x0, z0, x1, z1] enclosing both flank strips (plus their feather) */
+  flankBox(): [number, number, number, number] {
+    const f = this.stairs[0];
+    const reach = f.halfWidth + Math.max(FLANK_SE[1], FLANK_NW[1]) + FLANK_FEATHER;
+    const u0 = FLANK_ALONG[0] - FLANK_FEATHER;
+    const u1 = f.run + FLANK_ALONG[1] + FLANK_FEATHER;
+    let x0 = Infinity;
+    let z0 = Infinity;
+    let x1 = -Infinity;
+    let z1 = -Infinity;
+    for (const u of [u0, u1]) {
+      for (const v of [-reach, reach]) {
+        const x = f.ox + f.dx * u - f.dz * v;
+        const z = f.oz + f.dz * u + f.dx * v;
+        x0 = Math.min(x0, x);
+        z0 = Math.min(z0, z);
+        x1 = Math.max(x1, x);
+        z1 = Math.max(z1, z);
+      }
+    }
+    return [x0, z0, x1, z1];
+  }
+
+  /**
+   * Round 14: the north path's shoulders as camera D sees them. In frame 56 s the paving fills
+   * the lower third of the frame (0.15–0.85 × 0.66–1.0 is 0.9 % green) and its verges are a
+   * ragged soil edge with a few tufts; our spine is ≈ 4.3 m wide where the frame's paving spans
+   * ≈ 6 m, so 1–1.5 m of verge turf, herbs and clover stood inside the frame's paving 3–8 m from
+   * the camera and the same box measured 11 % green. 0..1 in the first D_SHOULDER metres of turf
+   * outside the spine's paving (`lawnEdgeDistance`) wherever that ground projects into D's lower
+   * frame, feathered out over D_SHOULDER_FEATHER; zero elsewhere. Frame 14 s (camera B) shows the
+   * same verge edge as soil between the slabs and the turf, so B's lower left agrees.
+   */
+  dShoulder(x: number, z: number): number {
+    if (z > -3.2 || z < -12 || Math.abs(x) > 4.5) return 0;
+    const edge = this.lawnEdgeDistance(x, z);
+    // the spine runs (0, 0) → (0.6, −6) → (1.5, −12) here; west of it lies the lawn band
+    const spineX = z > -6 ? -z * 0.1 : 0.6 + (-6 - z) * 0.15;
+    const width = x < spineX ? D_SHOULDER_WEST : D_SHOULDER_EAST;
+    if (edge < -0.1 || edge > width + D_SHOULDER_FEATHER) return 0;
+    const p = this.screenPoint('D_log', x, this.ctx.terrain.height(x, z), z);
+    if (!p || p.depth > 9 || p.sx < 0.05 || p.sx > 0.95 || p.sy < 0.58) return 0;
+    return (1 - smoothstep(width, width + D_SHOULDER_FEATHER, edge)) * smoothstep(0.58, 0.66, p.sy);
   }
 
   private frame(viewpointId: string): Frame | null {

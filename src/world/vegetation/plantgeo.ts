@@ -236,6 +236,113 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
   return m.finish({ groundToZero: true });
 }
 
+// ---------------------------------------------------------------- hedge crowns
+/**
+ * Hedge crown (round 14, vegetation sub-agent): a clipped shrub that reads as one solid dark
+ * mass of small leaves. Frame 1 s shows no light through the bank hedge behind the kid
+ * (0.78–1.0 × 0.3–0.6) or the door row; the hedge set used bushGeometry at shrub scale — five to
+ * seven open stems with 16–25 cm leaves — and the lit bank showed between its twigs. Here an
+ * opaque ellipsoid core in the deep shade tone carries the mass, an inner shell of shade-toned
+ * leaves fills the gaps, and an outer shell of 7–12 cm ovate leaves — sunlit toward the crown's
+ * top, shaded at the skirt — gives it depth and the bright leaf rim; a few stems show at the
+ * skirt. Proportions match bushGeometry (≈ 1.15–1.45 m tall, ≈ 1.3 m across), so every hedge
+ * scatter's `top / hedgeHeight(variant)` scaling and the plants.test height caps hold unchanged.
+ * Cost ≈ 2.1 K / 0.9 K / 0.25 K triangles (high / mid / low), like the bush variants it replaces.
+ */
+export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
+  const rng = createRng(seed);
+  const m = new MeshBuilder();
+  const high = detail === 'high';
+  const low = detail === 'low';
+  const height = 1.15 + rng() * 0.3;
+  const rx = 0.6 + rng() * 0.12;
+  const rz = 0.6 + rng() * 0.12;
+  // the crown bulges at 45 % of its height and tucks in toward the ground
+  const cy = height * 0.45;
+  const ry = height - cy;
+  const shade = tone(pal.leaf, 0.5);
+  const skirt = tone(pal.leaf, 0.7);
+  const bumps = Array.from({ length: 64 }, () => rng());
+  const bump = (i: number) => bumps[((i % 64) + 64) % 64];
+  // the crown's surface at polar angle `phi` (0 = top) and yaw `ang`, `r` times its radius
+  const surface = (phi: number, ang: number, r: number) => {
+    const sy = Math.cos(phi);
+    const sr = Math.sin(phi);
+    return V(Math.cos(ang) * sr * rx * r, cy + sy * (sy > 0 ? ry : cy * 0.92) * r, Math.sin(ang) * sr * rz * r);
+  };
+
+  // opaque core: an ellipsoid of the shade tone, its top in the leaf tone, at 0.8 of the crown
+  {
+    const seg = high ? 14 : low ? 8 : 10;
+    const rings = high ? 7 : low ? 4 : 5;
+    const top = m.vertex(surface(0, 0, 0.8), 0.5, 1, tone(pal.leaf, 0.8));
+    const levels: number[][] = [];
+    for (let r = 1; r <= rings; r++) {
+      const phi = (r / rings) * Math.PI * 0.94;
+      const level: number[] = [];
+      for (let k = 0; k < seg; k++) {
+        const ang = (k * TAU) / seg + (r % 2) * (Math.PI / seg);
+        const wobble = 0.8 * (0.94 + 0.12 * bump(r * 17 + k * 3));
+        const c = blend(tone(pal.leaf, 0.8), shade, Math.min(1, (r / rings) * 1.4));
+        level.push(m.vertex(surface(phi, ang, wobble), k / seg, 1 - r / rings, c));
+      }
+      levels.push(level);
+    }
+    for (let k = 0; k < seg; k++) m.tri(top, levels[0][(k + 1) % seg], levels[0][k]);
+    for (let r = 0; r < rings - 1; r++) {
+      for (let k = 0; k < seg; k++) {
+        const n = (k + 1) % seg;
+        m.tri(levels[r][k], levels[r][n], levels[r + 1][k]);
+        m.tri(levels[r][n], levels[r + 1][n], levels[r + 1][k]);
+      }
+    }
+  }
+
+  // a few stems from the ground into the crown, visible at the skirt
+  if (!low) {
+    const stems = high ? 5 : 3;
+    for (let s = 0; s < stems; s++) {
+      const ang = (s * TAU) / stems + (rng() - 0.5) * 0.6;
+      const radial = V(Math.cos(ang), 0, Math.sin(ang));
+      const lean = 0.35 + rng() * 0.25;
+      const h = cy * (0.9 + rng() * 0.3);
+      const curve = (t: number) => radial.clone().multiplyScalar(0.06 + lean * t * t).add(V(0, t * h, 0));
+      tube(m, sampleCurve(curve, high ? 4 : 3), 0.014 + rng() * 0.006, 0.004, pal.bark, high ? 4 : 3);
+    }
+  }
+
+  // leaf shells: `place` puts a leaf on the crown surface at radius `r`, facing outward with a
+  // random tilt; the outer shell is lit by its height (leafSun toward the top, the skirt in
+  // shade), the inner shell is all shade so the gaps between outer leaves stay dark
+  const place = (r: number, len: number, inner: boolean) => {
+    // the visible half: more leaves toward the top, fewer under the bulge
+    const phi = Math.acos(1 - rng() * 1.55);
+    const ang = rng() * TAU;
+    const p = surface(phi, ang, r);
+    const outward = V(Math.cos(ang) * Math.sin(phi), Math.cos(phi) * 0.9 + 0.15, Math.sin(ang) * Math.sin(phi)).normalize();
+    // the blade lies on the surface (its plane normal is the outward direction), pointing up the
+    // crown with a random yaw and its tip flaring out
+    const tangent = outward.y > 0.97 ? V(Math.cos(ang), 0, Math.sin(ang)) : V(0, 1, 0).addScaledVector(outward, -outward.y).normalize();
+    const dir = tangent
+      .applyAxisAngle(outward, (rng() - 0.5) * 2.4)
+      .addScaledVector(outward, 0.35 + rng() * 0.4)
+      .normalize();
+    const base = p.clone().addScaledVector(dir, -len * 0.55);
+    const sun = inner ? 0 : Math.min(1, Math.max(0, outward.y * 0.85 + 0.15));
+    const lit = blend(inner ? shade : blend(skirt, pal.leaf, 0.6), pal.leafSun, sun * 0.8);
+    // a wide leaf-to-leaf spread: the frame's mass is dark with lit clusters, not an even speckle
+    const color = tone(lit, inner ? 0.85 + rng() * 0.3 : 0.7 + rng() * 0.6);
+    const opts = { curl: 0.12 + rng() * 0.16, twist: (rng() - 0.5) * 0.7, ridge: 0.1, planeNormal: outward };
+    if (low) foldedLeaf(m, base, dir, len, len * 0.7, color, opts);
+    else curvedLeaf(m, base, dir, len, len * (0.6 + rng() * 0.2), color, opts);
+  };
+  const outer = high ? 400 : low ? 110 : 190;
+  const innerCount = high ? 150 : low ? 0 : 70;
+  for (let l = 0; l < innerCount; l++) place(0.86 + rng() * 0.06, 0.08 + rng() * 0.04, true);
+  for (let l = 0; l < outer; l++) place(0.94 + rng() * 0.1, (0.07 + rng() * 0.05) * (low ? 1.5 : 1), false);
+  return m.finish({ groundToZero: true });
+}
+
 // ---------------------------------------------------------------- purple flowers
 /**
  * Hydrangea / allium-like cluster bloom: a bumpy violet dome of florets with a few petals

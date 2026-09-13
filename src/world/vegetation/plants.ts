@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -176,9 +176,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // west-verge zone lift (materials.ts SHADE_LIFT_ZONE) like the rest of the verge.
   const heroFerns = mk('hero-ferns', variants(3, `${seed}/hero-fern`, pal, heroFernGeometry), 'plant', [16, 32], 1, { sway: 2.0, flutter: 0.014, stiffness: 0.35, transmission: 0.25, ambientBoost: 0.4 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
-  // hero hedge: same bush variants at shrub scale, but it is read from 15 m in shot A so it keeps
-  // the high LOD much further out than the scattered bushes
-  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, bushGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
+  // hero hedge: read from 6 m (the bank crowns) and 15 m (the door row) in shot A so it keeps
+  // the high LOD much further out than the scattered bushes. Round 14: the clipped-crown geometry
+  // (plantgeo.ts hedgeGeometry — an opaque core under two shells of small leaves) replaces the
+  // open bush variants, so the rows read as the frame's solid dark mass; same three variant
+  // seeds, same proportions, so every crown keeps its place, scale and top.
+  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
   const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   // the pale-yellow blooms tucked into the shot-D fern clump: the same cluster-head plant in a
@@ -525,8 +528,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       const sc = top / hedgeHeight(variant);
       const y = T.height(x, z) - 0.05;
       composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.15 + rng() * 0.2), sc, sc * (1.15 + rng() * 0.2));
-      // deep shaded olive (reference #4c5537 shrubs) rather than lit leaf tones
-      hedge.add(M, variant, tint.setRGB(0.5 + rng() * 0.08, 0.56 + rng() * 0.08, 0.46 + rng() * 0.08));
+      // deep shaded olive (reference #4c5537 shrubs) rather than lit leaf tones; round 14 warms it
+      // (red level with green) the way the bank crowns are, see below
+      hedge.add(M, variant, tint.setRGB(0.54 + rng() * 0.08, 0.55 + rng() * 0.08, 0.47 + rng() * 0.08));
     },
   );
 
@@ -591,8 +595,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       const sc = top / hedgeHeight(variant);
       composeMatrix(M, 0, x, ground - 0.05, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.1 + rng() * 0.2), sc, sc * (1.1 + rng() * 0.2));
       // a shade darker than the shot-A hedge: the reference reads these crowns at ≈ 0.22 median
-      // luminance in frame 1 (0.9–1.0 × 0.28–0.45) against the lit bank, a soft near-black mass
-      hedge.add(M, variant, tint.setRGB(0.42 + rng() * 0.07, 0.48 + rng() * 0.07, 0.39 + rng() * 0.07));
+      // luminance in frame 1 (0.9–1.0 × 0.28–0.45) against the lit bank, a soft near-black mass.
+      // Round 14: the frame's mass is a warm, desaturated olive (mean RGB 0.27 / 0.26 / 0.18, two
+      // thirds of its hues in 30–60°) where the old tint rendered a saturated green (0.25 / 0.26 /
+      // 0.17, 90 % of hues in 60–90°): red is lifted over green (the leaf palette is green enough
+      // that red level with green still rendered 0.252 / 0.260), blue a touch, the same draws
+      hedge.add(M, variant, tint.setRGB(0.53 + rng() * 0.07, 0.48 + rng() * 0.07, 0.44 + rng() * 0.07));
     },
   );
 
@@ -1450,6 +1458,294 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       },
       whitePlace,
     );
+
+    // ======== Round 14 (vegetation sub-agent, Astra offline): ground cover on the flight's two
+    // flank banks, the shot-A bank crest, the hedge tiers and more ordinary ferns on the banks
+    // (frames 1 s / 8 s: the banks beside the stairs are a mass of 10–20 cm heart / ovate leaves,
+    // ferns and turf right to the tread ends — no soil; frame 8's flight box measured 16 % brown
+    // soil against the frame's 3.8 %). Every pass below runs after the passes above from its own
+    // stream, joins an existing set (no new draws) and keeps every standing rule: the paving and
+    // the stones, the shot-A bank FACE (grass only, frame 1's lit tufts), the kids' spots, camera
+    // C's stair-foot wedge, the rope fence, the house pad, the rock rings and the hedge caps.
+    {
+      const FLANK_BOX = field.flankBox();
+      const newFerns14: { x: number; z: number; scale: number }[] = [];
+      /** plants.test: nothing above 0.55 m on shot D's right verge / camera C's grass box */
+      const dRight: readonly [number, number, number, number] = [1.5, -16, 7, -4];
+      const inWorldBox = (x: number, z: number, b: readonly [number, number, number, number]) => x >= b[0] && z >= b[1] && x <= b[2] && z <= b[3];
+      const nearFern = (x: number, z: number, r: number) => ferns.items.some((f) => Math.hypot(f.x - x, f.z - z) < r) || heroFerns.items.some((f) => Math.hypot(f.x - x, f.z - z) < r);
+      const nearHedge = (x: number, z: number, r: number) => hedge.items.some((h) => Math.hypot(h.x - x, h.z - z) < r);
+      /**
+       * flank ground for a plant of horizontal `reach`, keeping `kid` metres from the kids' spots: on
+       * the flank strips (field.ts `flankZone`), off the turf face and the cliffs, off the stones and
+       * the trodden strip, clear of the rock rings, the trunks, the house pad and the rope fence, and
+       * out of camera C's stair-foot wedge
+       */
+      const flankGround = (x: number, z: number, s: FieldSample, reach: number, kid: number, lowCarpet = false) => {
+        if (field.flankZone(x, z) < 0.3 || s.cliff > 0.35 || field.bankFace(x, z) > 0.3) return false;
+        if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6) return false;
+        const clr = field.clearing(x, z);
+        if (clr.insideBoulder || clr.npc > 0 || field.boulderDistance(x, z) < 0.3 || field.giantDistance(x, z) < 0.3) return false;
+        if (field.houseInfo(x, z).dist < 0.4 || bankFenceDistance(x, z) < 0.4 || nearKid(x, z, kid)) return false;
+        // frame 46's left third shows the stair foot over a carpet of low round leaves and short
+        // turf: a plant under ≈ 0.12 m may stand in camera C's wedge, nothing taller
+        return lowCarpet || field.sightlineC(x, z, reach) === 0;
+      };
+      const fernPlace14 = (scaleMin: number, scaleMax: number, dark = 1) => (x: number, z: number, s: FieldSample, rng: Rng) => {
+        const scale = scaleMin + rng() * (scaleMax - scaleMin);
+        newFerns14.push({ x, z, scale });
+        placeInstance(ferns, x, z, s, rng, scale, 0.7, 0.02, greenVar(rng, 0.2).multiplyScalar(dark));
+      };
+
+      // ---- (1) the flanks: heart / ovate clumps (15–33 cm, the frame's dominant cover) 0.22 m
+      // apart right to the tread ends — the clumps in the first 0.3 m lean out over the kerb and
+      // the tread ends so the mask's bare strip (5 cm SE, 25 cm NW) is under leaves from cameras A
+      // and F — a fern clump every ≈ 0.5 m where nothing keeps them low, a low carpet (small
+      // laminae + clover, ≤ 0.12 m) where camera C's wedge forbids anything taller (frame 46: the
+      // stair foot over round leaves and turf), and moss cushions in the gaps. The north-west face
+      // is 50–60° steep: the same rules as everywhere, the slope itself is no bar. Camera C's grass
+      // box (the low verge) keeps its ≤ 0.55 m rule.
+      const leanOut = (x: number, z: number, s: FieldSample, rng: Rng, scale: number, dark: number) => {
+        const edge = field.lawnEdgeDistance(x, z);
+        if (edge >= 0.3) return broadleafPlace(scale, scale, dark)(x, z, s, rng);
+        // toward the nearest edge: down the lawnEdgeDistance gradient, the root tilted that way
+        const gx = field.lawnEdgeDistance(x + 0.05, z) - field.lawnEdgeDistance(x - 0.05, z);
+        const gz = field.lawnEdgeDistance(x, z + 0.05) - field.lawnEdgeDistance(x, z - 0.05);
+        const gl = Math.hypot(gx, gz) || 1;
+        const k = 0.45 * (1 - edge / 0.3);
+        const y = T.height(x, z) - 0.012;
+        composeMatrix(M, 0, x, y, z, s.nx - (gx / gl) * k, s.ny, s.nz - (gz / gl) * k, 0.8, rng() * Math.PI * 2, scale, scale, scale);
+        weeds.add(M, rng.int(0, weeds.variantCount), greenVar(rng, 0.18).multiplyScalar(dark));
+      };
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'weeds-flanks',
+          candidates: 20000,
+          box: FLANK_BOX,
+          minSpacing: 0.2,
+          max: 900,
+          accept: (x, z, s) => (field.lawnEdgeDistance(x, z) >= 0.03 && flankGround(x, z, s, 0.4, 0.8) && !nearWhite(x, z, 0.45) ? 0.95 * field.flankZone(x, z) : 0),
+        },
+        // 0.29–0.42 m clumps: at cameras A / F's 10–13 m the frame's leaves span 3–5 px each
+        (x, z, s, rng) => leanOut(x, z, s, rng, 1.8 + rng() * 0.8, 0.85),
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'weeds-flanks-carpet',
+          candidates: 12000,
+          box: FLANK_BOX,
+          minSpacing: 0.2,
+          low: true,
+          max: 420,
+          accept: (x, z, s) => (field.lawnEdgeDistance(x, z) >= 0.03 && field.sightlineC(x, z, 0.35) > 0 && flankGround(x, z, s, 0.35, 0.8, true) && !nearWhite(x, z, 0.4) ? 0.9 * field.flankZone(x, z) : 0),
+        },
+        (x, z, s, rng) => leanOut(x, z, s, rng, 1.0 + rng() * 0.45, 0.9),
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'clover-flanks',
+          candidates: 10000,
+          box: FLANK_BOX,
+          minSpacing: 0.17,
+          low: true,
+          max: 420,
+          accept: (x, z, s) => (field.lawnEdgeDistance(x, z) >= 0.03 && flankGround(x, z, s, 0.2, 0.6, true) ? 0.8 * field.flankZone(x, z) * (0.5 + field.cluster(x, z)) : 0),
+        },
+        (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 0.9 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.2)),
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'ferns-flanks',
+          candidates: 8000,
+          box: FLANK_BOX,
+          minSpacing: 0.5,
+          max: 120,
+          accept: (x, z, s) => (field.edgeDistance(x, z) >= 0.35 && field.lowZone(x, z) < 0.5 && !inWorldBox(x, z, dRight) && flankGround(x, z, s, 0.9, 1.2) && !nearFern(x, z, 0.4) && !nearWhite(x, z, 0.5) ? 0.85 * field.flankZone(x, z) : 0),
+        },
+        fernPlace14(0.6, 1.0, 0.94),
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'moss-flanks',
+          candidates: 6000,
+          box: FLANK_BOX,
+          minSpacing: 0.4,
+          low: true,
+          max: 170,
+          accept: (x, z, s) => (field.lawnEdgeDistance(x, z) >= 0.1 && field.flankZone(x, z) >= 0.3 && s.cliff <= 0.35 && field.bankFace(x, z) <= 0.3 && !nearKid(x, z, 0.6) ? 0.7 * field.flankZone(x, z) * (0.5 + field.cluster(x, z)) : 0),
+        },
+        // ≤ 0.2 m cushions: the rim-moss contract keeps every cushion within 0.25 m of the paving under 0.12 m
+        (x, z, _s, rng) => placeMossWith(rng, x, z, 0.08 + rng() * 0.12),
+      );
+
+      // ---- (1) the shot-A bank crest behind the kid (A 0.8–1.0 × 0.45–0.75): the round-13 clumps
+      // and skirt, thickened — more fern clumps between the hedge crowns and the kid, twice the broad
+      // leaves. Same crest rule (flat ground off the face, clear of both kids, the fence and C).
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'ferns-a-bank-r14',
+          candidates: 3000,
+          box: [6.0, 3.5, 8.8, 5.6],
+          minSpacing: 0.5,
+          max: 12,
+          accept: (x, z, s) => (bankCrest(x, z, s, 0.75) && !nearFern(x, z, 0.45) && !nearWhite(x, z, 0.5) && inFrame('A_stairs', x, z, A_BANK_BOX, 5.5) ? 0.75 : 0),
+        },
+        fernPlace14(0.8, 1.0, 0.94),
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'weeds-a-bank-r14',
+          candidates: 4000,
+          box: [6.0, 3.2, 9.0, 5.6],
+          minSpacing: 0.28,
+          max: 40,
+          accept: (x, z, s) => (bankCrest(x, z, s, 0.4) && !nearWhite(x, z, 0.4) && inFrame('A_stairs', x, z, [0.78, 0.5, 1.02, 0.8], 5.0) ? 0.85 : 0),
+        },
+        broadleafPlace(1.6, 2.2, 0.85),
+      );
+
+      // ---- (2) hedge tiers. The door-side row (frame 1's dark band left of the stairs) keeps its
+      // 1.2 m cap — Saria's door in B — and gets a lower, denser tier of smaller crowns in its gaps
+      // (smaller crowns = smaller leaves: the frame's hedge reads as small dense leaves, ours as a
+      // few 30 cm ones). The bank hedge behind the shot-A kid gets the same second tier at 55–80 %
+      // of the crown height, lit a shade lighter so the mass keeps a bright leaf rim toward the sun
+      // (frame 1's box 0.78–1.0 × 0.3–0.6 measures lum p90 0.48 against ours 0.39).
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'hedge-shotA-r14',
+          candidates: 4000,
+          box: [7.2, -7.0, 10.6, -5.1],
+          minSpacing: 0.3,
+          max: 16,
+          accept(x, z, s) {
+            if (x < bRayX(z) + 1.1 || x > bRayX(z) + 2.4) return 0;
+            if (s.cliff > 0.3 || field.edgeDistance(x, z) < 0.5 || s.h > 0.6) return 0;
+            if (field.houseInfo(x, z).dist < 0.4 || field.sightlineC(x, z, 1.0) > 0) return 0;
+            if (nearHedge(x, z, 0.28)) return 0;
+            return 0.9;
+          },
+        },
+        (x, z, s, rng) => {
+          const top = Math.max(0.4, HEDGE_TOP - T.height(x, z)) * (0.7 + rng() * 0.2);
+          const variant = rng.int(0, hedge.variantCount);
+          const sc = top / hedgeHeight(variant);
+          composeMatrix(M, 0, x, T.height(x, z) - 0.05, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.2 + rng() * 0.25), sc, sc * (1.2 + rng() * 0.25));
+          hedge.add(M, variant, tint.setRGB(0.54 + rng() * 0.08, 0.55 + rng() * 0.08, 0.47 + rng() * 0.08));
+        },
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'hedge-shotA-bank-r14',
+          candidates: 3000,
+          box: [6.0, 3.9, 8.6, 5.6],
+          minSpacing: 0.4,
+          max: 14,
+          accept(x, z, s) {
+            if (s.h < 0.55 || s.slope > 0.2 || s.path > 0.02 || s.cliff > 0.3 || field.edgeDistance(x, z) < 0.6) return 0;
+            if (Math.hypot(x - A_BANK_KID[0], z - A_BANK_KID[1]) < 1.2 || Math.hypot(x - F_BANK_KID[0], z - F_BANK_KID[1]) < 1.5) return 0;
+            const clr = field.clearing(x, z);
+            if (clr.npc > 0 || clr.boulder > 0 || bankFenceDistance(x, z) < 0.7) return 0;
+            const a = field.screenX('A_stairs', x, z);
+            if (!a || a.depth < 5.8 || a.sx < 0.84 || a.sx > 1.1) return 0;
+            const f = field.screenX('F_canopy', x, z);
+            const fEdge = field.screenX('F_canopy', x, z - BANK_CROWN_REACH);
+            if (f && fEdge && f.depth < 9.2 && fEdge.sx < 0.62) return 0;
+            const c = field.screenX('C_lookback', x, z);
+            if (c && c.depth < 12.2) return 0;
+            if (nearHedge(x, z, 0.3)) return 0;
+            return 0.9;
+          },
+        },
+        (x, z, s, rng) => {
+          const depthA = field.screenX('A_stairs', x, z)?.depth ?? 6.5;
+          const ground = T.height(x, z);
+          const top = clamp(1.8 + 0.11 * depthA - ground, 1.4, 2.1) * (0.55 + rng() * 0.25);
+          const variant = rng.int(0, hedge.variantCount);
+          const sc = top / hedgeHeight(variant);
+          // broad crowns (1.35–1.65 × their height) so the tier closes the gaps between the round-4 crowns
+          composeMatrix(M, 0, x, ground - 0.05, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.35 + rng() * 0.3), sc, sc * (1.35 + rng() * 0.3));
+          // the same warm olive as the round-4 crowns, a shade lighter (the lower tier faces the sun)
+          hedge.add(M, variant, tint.setRGB(0.57 + rng() * 0.08, 0.53 + rng() * 0.08, 0.47 + rng() * 0.08));
+        },
+      );
+
+      // ---- (4) ordinary ferns on the east bank (frames 1 / 8: a clump every ≈ 0.5 m on the shaded
+      // bank right of the flight), between the round-4 clumps; the hero crowns stay as they are
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'ferns-east-bank-r14',
+          candidates: 6000,
+          box: EAST_BANK,
+          minSpacing: 0.5,
+          max: 110,
+          accept: (x, z, s) => (eastBank(x, z, s, 1.0) && field.bankFace(x, z) <= 0.3 && field.stoneDistance(x, z) >= STONE_CLEARANCE && !nearFern(x, z, 0.45) && !nearWhite(x, z, 0.5) && !nearKid(x, z, 1.2) ? 0.4 + 0.5 * field.cluster(x, z) : 0),
+        },
+        fernPlace14(0.7, 1.0, 0.94),
+      );
+
+      // fiddleheads for this round's clumps (sheet 01: buds in ≈ 30 % of the near crowns; the
+      // plants.test ratio is over every clump within 15 m of a camera), their own stream
+      {
+        const rng = ctx.rng.fork('plants/fiddleheads-r14');
+        const s = newSample();
+        for (const f of newFerns14) {
+          if (rng() > 0.32) continue;
+          const count = 2 + rng.int(0, 2);
+          for (let i = 0; i < count; i++) {
+            const a = rng() * Math.PI * 2;
+            const d = 0.1 * f.scale * (0.3 + 0.7 * rng());
+            const x = f.x + Math.cos(a) * d;
+            const z = f.z + Math.sin(a) * d;
+            field.sample(x, z, s);
+            if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
+            if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6 || field.sightlineC(x, z, 0.3) > 0) continue;
+            placeInstance(fiddleheads, x, z, s, rng, 0.96 + rng() * 0.14, 0.5, 0.012, greenVar(rng, 0.12));
+          }
+        }
+      }
+
+      // ---- (3) camera D's path shoulders (field.ts `dShoulder`; frame 56 s: the paving runs to a
+      // ragged soil edge with a few tufts, its box 0.15–0.85 × 0.66–1.0 is 0.9 % green against our
+      // 11 %). The herb layer that stood in the first half-metre of verge beside the slabs comes
+      // out — broad leaves (the boulder cluster's paddles included where they lapped the paving),
+      // clover and seed heads; grass.ts thins the turf there the same way. Pruned after every pass
+      // so no stream re-rolls; the violets (W18, D's purple fraction), the white rim dots (frame
+      // 14 s' B-rim cluster, a plants.test contract) and the fern clumps (frame 56's banks) keep
+      // their places.
+      {
+        const onShoulder = (it: { x: number; z: number }, min: number) => field.dShoulder(it.x, it.z) >= min;
+        const weedReach = (it: (typeof weeds.items)[number]) => (weeds.opts.variants[it.variant][0].boundingBox?.max.x ?? 0.16) * Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]);
+        // a leaf that would hang over the slabs goes even at the feather's edge
+        weeds.prune((it) => onShoulder(it, 0.35) || (onShoulder(it, 0.05) && field.lawnEdgeDistance(it.x, it.z) < weedReach(it)));
+        clover.prune((it) => onShoulder(it, 0.35));
+        seedheads.prune((it) => onShoulder(it, 0.2));
+        // the small rim cushions too: frame 56's slabs meet soil, not a moss line (the rim-moss
+        // contract counts the whole paved rim, ≥ 100 cushions; the plaza discs and the stair branch
+        // keep theirs). The lawn band's ≥ 0.25 m "mossy stones" (frame 14 s, a contract) stay.
+        const mossReach = (it: (typeof moss.items)[number]) => (moss.opts.variants[it.variant][0].boundingBox?.max.x ?? 0.1) * Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]);
+        moss.prune((it) => onShoulder(it, 0.5) && mossReach(it) < 0.25);
+      }
+    }
   }
 
   const all = [ferns, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings];
