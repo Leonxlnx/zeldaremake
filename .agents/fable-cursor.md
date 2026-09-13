@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T15:35:00Z
+updated: 2026-09-13T17:50:00Z
 ---
 
 # fable-cursor — work log
@@ -1210,6 +1210,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (3) the triangle budget and the layout calls (terrace boulder in D, log arch size in D, A/B
   camera distance, D boulder radius).
 
+### 17:50 UTC — tick 66: take-0082 published (monitor `844a692`), valid; round twenty-seven (Link)
+- `94a73c1` character-3: Astra's skinned Young Link (her `409b603`, sha 281895fe…, 24,108 tris,
+  4 materials, 19 bones, four clips) loads behind the procedural puppet — loader with validation
+  and `?link=proc`, mixer driven from the simulation clock (A == A.det), rate = speed ÷ (stride ÷
+  cycle), root on the ground sampler with the lower sole down, neck/head look-at, audit
+  linkSource / linkAsset / linkFallbackReason. −69 draws in every view (A 526, C 429, D 423),
+  +0.03 M tris. Placement contract: feet within 0.013 in A/C/D/F; head 0.02–0.03 (model 1.20 m vs
+  1.25). Her serveStatic repair adopted as-is. Not yet: per-foot IK on treads, progressive first
+  paint (20 MB gates ready ~0.4 s locally).
+- take-0082: A 0.2686 / B 0.2456 / C 0.3097 (best) / D 0.3018 / E 0.2728 / F 0.2736. 23/50;
+  draws 423–526; tris 8.3–8.9 M (budget pass still owed).
+- Astra's art gaps (her list, confirmed in the crops): round eyes, slab hair, cloth without folds,
+  cap standing instead of drooping, small kite shield vs the frames' round one — hers.
+- Running: trees-18 (crowns over B's path). Then: the veil terms (neutral in e591006) once the
+  crowns open; per-foot IK; a triangle budget pass.
+- Three biggest remaining gaps → (1) the crowns over B's path → sun pools, then the dark floor;
+  (2) Link's art (Astra) and the tread IK; (3) budget + layout calls (terrace boulder in D, log
+  arch size in D, A/B camera distance, D boulder radius).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1248,4 +1267,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T15:35:00Z
+2026-09-13T17:50:00Z

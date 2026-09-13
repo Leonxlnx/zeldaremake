@@ -8730,6 +8730,115 @@
       },
       "prevHash": "sha256:8709c2c61eafc67933c5b3f1d8d61fddf6e08b1f5d7bccddf837fd4268e907de",
       "hash": "sha256:d4df287433afdefd6b46da0366e8e05ccfb1a0ad4d6222d535f7bf7ebf1711f3"
+    },
+    {
+      "id": "take-0082",
+      "number": 82,
+      "at": "2026-09-13T17:46:23.020Z",
+      "sha": "94a73c109ea3b4d96bc4eeebf6585c7d33c7c295",
+      "shortSha": "94a73c1",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "character: Astra's skinned Young Link (Blender, GLB) replaces the procedural Link behind a fallback - loader with validation, a deterministic mixer driven from simulation time with playback rate = gait speed / (stride / cycle), grounding on the existing sampler, neck/head look-at on the named bones, ?link=proc forcing the procedural puppet; -69 draw calls in every hero view, +0.03 M triangles; the shared browser helper takes her serveStatic repair",
+      "agent": "fable-cursor",
+      "items": [
+        "C01",
+        "C03",
+        "W38"
+      ],
+      "note": "Round twenty-seven: Young Link is Astra's Blender model now. Her skinned GLB (24,108 triangles, four PBR materials, 19 named bones, idle / walk / run / stairs clips with measured 0.88 / 2.21 / 0.81 m strides) loads behind the procedural puppet as a fallback; the mixer is driven from the simulation clock so captures stay deterministic (A equals its re-capture byte for byte), the playback rate is gait speed over stride-per-cycle so no clip can slide, the root stands on the existing ground sampler with the lower sole on the ground, and the neck and head look at the target on the named bones. Against the frames the new Link reads as a modelled character where the procedural one read as a doll: fabric, boots, shield and sword have real surfaces, though Astra's own list of gaps holds - round eyes, slab hair, cloth without folds, the cap standing up where the frames' droops, a small kite shield where the frames' is round. Every hero view sheds 69 draw calls (A 595 -> 526, C 498 -> 429, D 492 -> 423) for +0.03 M triangles; the placement contract holds (feet within 0.013 of the previous Link in A/C/D/F, the head 0.02-0.03 because the model is 1.20 m to the procedural 1.25). SSIM A 0.2679 -> 0.2686, B 0.2446 -> 0.2456, C 0.3070 -> 0.3097 (best), D/E/F within 0.001. Not yet: per-foot IK on the treads, a progressive first paint (the 20 MB file gates ready). The world is unchanged this take; the crowns over B's path are being opened in parallel.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:3c3a986eb4ef7e8826ecef8db3dac0c465d8338d82152f124233a96bc0fbd112",
+        "B_house": "sha256:ff7f40300b3d918a9ed2a503f14157732a6e00026d17cc55cbae56896b73955a",
+        "C_lookback": "sha256:bc8dbe89b1a3320a8550dec6bcc0d001acab277c072a61d4fad4952f03236293",
+        "D_log": "sha256:fdbb1e8bc25b86adb7bfc33e32d43f425e667741c4da64a9db5bda4ebde5a8dc",
+        "E_ground": "sha256:ff7f40300b3d918a9ed2a503f14157732a6e00026d17cc55cbae56896b73955a",
+        "F_canopy": "sha256:248ffe816c0a469b819ca143f30f3d136fc4882a29e75f96e20a2d05728bcb73"
+      },
+      "distHash": "sha256:bc7630596e52a20e2fa4f162a1f2aa4deaf157d05c18e71cb93c3c8e85026fac",
+      "stats": {
+        "drawCalls": 526,
+        "triangles": 8860060,
+        "captureMs": 1015582,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "C01",
+        "C03",
+        "W38"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take82-cap",
+        "importedAt": "2026-09-13T17:47:06.667Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:d4df287433afdefd6b46da0366e8e05ccfb1a0ad4d6222d535f7bf7ebf1711f3",
+      "hash": "sha256:c95955e130053a21b967a8351a4c2a36090c03ac077dc465f0d76184374ff48f"
     }
   ]
 }
