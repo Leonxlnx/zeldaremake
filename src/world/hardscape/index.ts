@@ -460,6 +460,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // broken-edge features: V-notches in the edges, corners chamfered straight (chipped)
     flagstoneNotches: paving.stats.notches,
     flagstoneChippedCorners: paving.stats.chips,
+    // round 23b surface: worn dishes on the big open slabs, dirt-filled settlement cracks (~1 in 8
+    // slabs ≥ 0.45 m), two-octave edge wobble (all non-disc stones), D-foreground cells merged
+    flagstoneDished: paving.stats.dished,
+    flagstoneCracked: paving.stats.cracked,
+    flagstoneWobbled: paving.stats.wobbled,
+    flagstoneMergedD: paving.stats.mergedD,
     flagstoneBigSlabs: paving.stats.big,
     flagstoneRimStones: paving.stats.rim,
     // seeds of the lawn paving (zones.ts): 1.0–1.6 m slabs in 15–45 cm turf joints (B/E foreground)
