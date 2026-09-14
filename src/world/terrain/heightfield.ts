@@ -157,15 +157,15 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
 const HOUSE_WEST = stairFrames.find((f) => f.id === 'house-west') ?? null;
 
 /**
- * The house-west flight's banks (round 32 — the flight now runs ESE from the north path's east
- * verge, 5.2–5.4 m from camera D, off a paved apron one slab (0.15 m) above the path to a 1.5 m
- * landing beside the signpost; see layout.ts).
+ * The house-west flight's banks (round 32 — the flight now runs ESE (bearing 110°) from the
+ * north path's east verge, 5.0–5.3 m from camera D, off a paved apron a full riser (0.27 m)
+ * above the path to a 1.62 m landing beside the signpost; see layout.ts).
  * NORTH flank (v < 0): a SHORT verge — the bank, the landing flatten, the detail halo and the
  * damp splat all stop `northVerge` m beyond the tread ends, because the signpost (7, −9.3)
- * stands 0.77 m beyond them beside the head and frame B fixes its board (round 31's first
+ * stands 1.1 m beyond them beside the top step and frame B fixes its board (round 31's first
  * cut let a flank bank reach the sign's foot and lifted it 0.29 m — 18 px in B). Neither hero
- * camera sees this face (it points 15°, away from both), so it is simply the steep earth face
- * (1.44 m landing → 0.67 m sign pad over 0.77 m) the landing needs, flagged damp out to
+ * camera sees this face (it points 20°, away from both), so it is simply the steep earth face
+ * (1.56 m landing → 0.67 m sign pad over 1.1 m, ≈ 50°) the landing needs, flagged damp out to
  * `dampReach` m.
  * SOUTH flank (v > 0): the face cameras B / E look at from 10–12 m (2° off its normal) and the
  * face camera D sees obliquely under the nosings. Frame 14 s shows a grassy rise there with pale
