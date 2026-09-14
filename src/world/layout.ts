@@ -190,20 +190,24 @@ export const LAYOUT = {
     // Round 31 (frame 56 s, right edge): a short flight of the same worn slabs climbs the WEST face
     // of Saria's terrace from the north path's east verge — a second way onto the terrace beside the
     // grassy stepping-stone ramp (`pathToHouse`), which stays the B/E approach to the door. Frame D
-    // shows it at x 0.85–1.0, y 0.55–0.78 (four to five risers, nosings sloping down to the right,
-    // the run leaving the frame right) 4.5–7 m from camera D at bearing 35–45°. That spot is our
-    // ramp's north verge ((4, −6.5) → (6.6, −8.6) → (9.6, −9.3), stones ≤ 0.75 m off its centre
-    // line), so the flight sits in the only clear ground between the paving (x ≈ 3.5) and the
-    // stones: foot on the paved edge at (4.0, −10.2), rising north-east (bearing 60°, parallel to
-    // the ramp 3 m off its centre — stone-edge clearance 0.33 m with the flank pads) to the terrace
-    // at (6.5, −11.6), where the ground is already 1.02 m; five 0.21 m risers × 0.55 m treads to
-    // the terrace's 1.05. Projections (gauntlet/tmp/proj.mjs): D x 0.68–0.95, y 0.58–0.75 (first
-    // riser (0.87, 0.75) at 6.6 m, top (0.86, 0.59) at 9.2 m, nosings sloping 0.26 → 0.06 down to
-    // the right) — 0.15 left of the frame's flight, the ramp forbids further east; B/E x 0.44–0.60,
-    // y 0.55–0.64 at 12–15 m (Link covers 0.46–0.55); A (0.33–0.44, 0.47–0.54) at 21 m in the
-    // haze; behind C and F. The heightfield gives it a soil/moss bank on the north-west flank
-    // (HOUSE_WEST_BANK) and a paved apron at the foot.
-    { id: 'house-west', base: [4.0, 0, -10.2], dir: [0.866, -0.5], steps: 5, rise: 0.21, tread: 0.55, width: 2.4 },
+    // shows it at x 0.85–1.0, y 0.55–0.78 (four to five risers, nosings sloping 0.36–0.61 down to
+    // the right, the run leaving the frame right) 4.5–7 m from camera D at bearing 35–45°. That
+    // spot is our ramp's north verge ((4, −6.5) → (6.6, −8.6) → (9.6, −9.3), stepping stones
+    // (5.85, −7.78) r 0.43 and (6.67, −8.79) r 0.47 nearest), so the flight sits in the clear
+    // ground between the paving (x ≈ 3.6) and the stones: foot 0.35 m off the paved edge at
+    // (3.95, −10.85), rising east (bearing 82°) to the terrace at (6.67, −11.23), where the ground
+    // is 0.93 m; five 0.21 m risers × 0.55 m treads to the terrace's 1.05, tread ends 0.74 m and
+    // the flank stones 0.24 m clear of the nearest stepping stone, the pot / crate at (6.75, −11.6)
+    // / (7.7, −11.7) standing on its landing slabs. The east bearing (not the ramp's 51–60°) is
+    // what frames B / E allow: their camera sees the risers 60° off face-on, a stepped turf mound
+    // (heightfield HOUSE_WEST_BANK.seLift) rather than a wall of riser faces; a 60° flight showed
+    // five dark risers 2 m wide beside Link. Projections (gauntlet/tmp/proj.mjs): D first riser
+    // (0.67, 0.69)–(0.78, 0.74) at 8.2 m, top nosing (0.80, 0.58)–(0.94, 0.60), nosing slopes
+    // 0.45 → 0.10 down to the right, flight x 0.67–0.94 — 0.15 left of the frame's flight (any
+    // further east is the ramp); B/E x 0.45–0.68, y 0.55–0.66 at 13–15 m (Link covers 0.46–0.55);
+    // A (0.33–0.44, 0.47–0.54) at 21 m in the haze; behind C and F. The heightfield gives it a
+    // soil/moss bank on the north flank (HOUSE_WEST_BANK) and a paved apron at the foot.
+    { id: 'house-west', base: [3.95, 0, -10.85], dir: [0.99, -0.139], steps: 5, rise: 0.21, tread: 0.55, width: 2.4 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
