@@ -86,9 +86,13 @@ const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
 // their joints — the joints are a warm brown-olive at 0.7 of the slab tops (sRGB), i.e. about
 // half the slab albedo. 0.3 → 0.72 (× 2.4) with the seam soil itself lifted × 1.8 (below) puts
 // the crevice at ≈ 4.3× its old albedo; the turf contact line × 1.8.
+// (second cut: the mossy earth's crevice and open tints pushed its hue 14° / 6° toward green
+// (turf albedo 27° → 41° at the slab foot); the frames' dark class in the lit B/D foregrounds
+// sits 63–66 % in the 30–40° bin against our 26–42 %, with our surplus in the 40–70° bins — the
+// contact line stays a recess of the same hue, the open turf a hair greener at most)
 const CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.5];
-const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.76, 0.62];
-const TURF_OPEN_TINT: [number, number, number] = [1.06, 1.14, 1.0];
+const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.54];
+const TURF_OPEN_TINT: [number, number, number] = [1.08, 1.1, 1.0];
 const glslVec3 = (v: [number, number, number]) => v.map((n) => n.toFixed(4)).join(', ');
 
 /**
@@ -290,7 +294,11 @@ export async function buildJointMesh(
   // 56 s read their dark class at hue 38° — soil with grass in it, 86,74,43 – 98,84,56 behind Link
   // in the light — where ours rendered 46° / 44° with the turf, the moss boost and the field's
   // tufts, so the field takes a brown earth (hue 22°, Y 0.14) and a third less moss
-  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.8);
+  // (third cut, on the six-view capture of the second: the patch window's dark class rendered
+  // 64,60,36 against the frame's 81,77,50 and still 59 % in the 40° bin against the frame's 36 %
+  // (46 % in the 50° bin) — the unlifted earth was a fifth too dark in C's shade and its 50°
+  // albedo renders 10° browner; nine tenths to the green, × 1.6 (albedo hue ≈ 62°, Y 0.11))
+  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.9).multiplyScalar(1.6);
   const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.22).multiplyScalar(1.12);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
@@ -344,13 +352,16 @@ export async function buildJointMesh(
     // round 33: the disc field's gaps and camera C's earth patch (zones.ts): dark trodden earth
     const field = discField(x, z);
     const patch = earthPatch(x, z);
-    tmp.lerp(fieldEarth, 0.55 * field);
+    // (0.55 → 0.75 of the field: at 0.55 the field's dark class behind Link moved 3 → 14 % into
+    // the frame's 30° bin, against its 51 %)
+    tmp.lerp(fieldEarth, 0.75 * field);
     tmp.lerp(trodden, 0.85 * patch);
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
-    // a little heavier on the lawn paving where the slabs sit in it, on camera C's trodden
-    // patch, and a third lighter in the disc field's soil gaps)
+    // a little heavier on the lawn paving where the slabs sit in it, a third lighter in the disc
+    // field's soil gaps; camera C's trodden patch takes the moss-green from its earth tone, its
+    // moss patches — the deep moss renders 10° browner than the frame's ground — are the plaza's)
     const lawn = lawnZone(x, z);
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field) * (1 + 0.5 * patch);
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
     tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
     col.push(tmp.r, tmp.g, tmp.b);
@@ -581,7 +592,7 @@ export async function buildJointMesh(
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v10-crevice${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v11-crevice${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;
