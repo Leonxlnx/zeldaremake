@@ -15,7 +15,7 @@ import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { jointSoil, lawnPocket, lawnZone } from './zones';
+import { discField, earthPatch, jointSoil, lawnPocket, lawnZone } from './zones';
 
 /** what the joint fill needs to know about the slabs around it */
 export interface JointPaving {
@@ -264,6 +264,11 @@ export async function buildJointMesh(
   // joints are more olive still). Round 10: mossy earth is the default, soil only where feet
   // keep the moss off (zones.ts `jointSoil`); moss proper takes over in patches.
   const { soil, soilMid, turf, turfMid, lawn: lawnFill } = jointFillTones(P);
+  // round 33: the trodden earth of camera C's plaza patch (zones.ts `earthPatch`) — the mossy
+  // earth a shade darker and greener (frame 46 s's earth: lum p50 0.33, hue 47–51°, sat 0.38;
+  // our joint class there rendered 0.328 at 42.5°, so the earth leans green and 15 % down) —
+  // and the disc field's gap fill, the same mossy earth pulled a tenth toward it
+  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.66).multiplyScalar(0.85);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
   const mossB = new Color(P.mossBright);
@@ -313,10 +318,13 @@ export async function buildJointMesh(
     // turf on it) — the reference's grass west of the path is darker than its joints (lum 0.28
     // vs 0.35); what shows between the tufts is shadowed earth, not pale dirt
     tmp.lerp(lawnFill, 0.9 * lawnPocket(x, z));
+    // round 33: the disc field's gaps and camera C's earth patch (zones.ts): dark trodden earth
+    const field = discField(x, z);
+    tmp.lerp(trodden, Math.max(0.35 * field, 0.85 * earthPatch(x, z)));
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
     // a little heavier on the lawn paving where the slabs sit in it)
     const lawn = lawnZone(x, z);
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn);
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * Math.max(lawn, field));
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
     tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
     col.push(tmp.r, tmp.g, tmp.b);

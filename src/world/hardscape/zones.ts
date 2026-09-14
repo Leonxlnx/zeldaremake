@@ -33,6 +33,40 @@ export function dForeground(z: number) {
   return smoothstep(-5.5, -7.0, z) * smoothstep(-13, -10.5, z);
 }
 
+/**
+ * Round 33: the disc field — the spine north of the plaza as cameras B/E (behind Link, y 0.6–0.8:
+ * z −4 … −12), C (foreground, z −5 … −3) and D (foreground, z −6.5 … −10.5) all show it: rounded,
+ * softly domed 0.8–1.3 m stones (D's 1.5–2.5 m slabs keep their size) set in 9–22 cm gaps of
+ * dark earth and grass, not a lattice in hairline seams. Measured on frame 14 s at 3× (our depth
+ * for the scale): stones 0.85–1.3 m across behind Link with 0.08–0.2 m gaps, wider earth patches
+ * where a stone is missing; frame 56 s: 1–2 m ovals in 0.1–0.3 m grassy gaps. 1 along the spine
+ * from z −1.2 to −13, fading over 1.5 m at the south end (camera B's authored bottom row keeps its
+ * own lawn-slab style) and 2 m at the north (the plain path beyond, 13–20 m from B).
+ */
+export function discField(x: number, z: number) {
+  const along = smoothstep(-0.4, -1.9, z) * smoothstep(-14.5, -12.5, z);
+  // the spine's paved width is ~4.8 m (pathHalfWidth 2.4): fade out beyond ±3 m of its centreline
+  const cx = z > -6 ? 0.6 * smoothstep(0, -6, z) : 0.6 + 0.9 * smoothstep(-6, -12, z);
+  const across = smoothstep(3.6, 2.6, Math.abs(x - cx));
+  return along * across;
+}
+
+/**
+ * Round 33: the plaza's east-centre, between the spine and the stair foot (x 3.5 … 6.5,
+ * z −3 … +2.5), which frame 46 s (camera C, frame x 0.2–0.45 / y 0.6–0.75) shows as dark
+ * trodden earth with a few scattered flat stones — and frame 1 s (camera A, the same ground at
+ * frame (0.54–0.66, 0.62–0.72), right of Link's head) as the darkest part of its plaza (p50 0.42
+ * against 0.48–0.55 around it). Cells here are left as earth by `earthPatch` × the thinning
+ * chance (flagstones.ts); the fill under them is the dark trodden earth (joints.ts). 1 inside,
+ * fading over 1.6 m; nothing over camera B's authored slabs (z > −2.7 at x < 4.1 is the
+ * plaza's north-east lawn paving, kept).
+ */
+export function earthPatch(x: number, z: number) {
+  const box = softBox(x, z, 3.6, 6.6, -3.0, 2.4, 1.6);
+  // keep clear of the pathToStairs branch's east end (the stair apron, x > 6.4)
+  return box * smoothstep(7.2, 6.2, x);
+}
+
 /** 1 inside the box, fading to 0 over `fade` metres straddling each edge (a third inside, two thirds outside) */
 function softBox(x: number, z: number, x0: number, x1: number, z0: number, z1: number, fade: number) {
   const fx = smoothstep(x0 - fade * 0.65, x0 + fade * 0.35, x) * smoothstep(x1 + fade * 0.65, x1 - fade * 0.35, x);
@@ -154,6 +188,9 @@ export function jointSoil(x: number, z: number) {
   // the strip is half soil: reference D's centre joints are a browner shade of the same dark
   // olive as its edge joints, not bare dirt
   // (round 22: 0.9 -> 0.6 - frame 1 s's plaza joints are dark green-brown, ours read bare brown)
-  const soil = Math.max(0.6 * southPlaza(z), 0.5 * troddenStrip(x, z));
-  return soil * (1 - 0.85 * lawnZone(x, z)) * (1 - lawnPocket(x, z));
+  // (round 33: the strip's soil is cut to a fifth inside the disc field - its 9–22 cm gaps would
+  // dry out to the pale open dirt, where frames 14 s / 56 s show dark earth and grass between the
+  // stones; the earth patch of camera C's plaza is the dark trodden earth, not packed soil)
+  const soil = Math.max(0.6 * southPlaza(z), 0.5 * troddenStrip(x, z) * (1 - 0.8 * discField(x, z)));
+  return soil * (1 - 0.85 * lawnZone(x, z)) * (1 - lawnPocket(x, z)) * (1 - earthPatch(x, z));
 }

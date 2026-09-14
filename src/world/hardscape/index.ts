@@ -13,7 +13,7 @@ import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMateria
 import { seamGritTone } from '../materials/grit';
 import { SPROUT_JITTER_SCHEME, createSproutJitterStreams } from './sprout-jitter';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
-import { jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone } from './zones';
+import { discField, jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone } from './zones';
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { Noise2D, smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
@@ -154,6 +154,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       lawnTufts++;
     }
     lawnSprouts++;
+  }
+  // round 33 — the disc field (zones.ts `discField`, frames 14 s / 46 s / 56 s): grass and clover
+  // in the 9–22 cm earth gaps between the rounded stones of the spine north of the plaza — short
+  // and mid tufts (TUFT_C / TUFT_A), one in ten clover, one in twenty a moss pad, sown where a
+  // gap is at least 3 cm from a stone and not further than 35 cm from one, weighted by the field
+  // and the joint-reading cameras. Own stream (nothing sown before or after moves).
+  const drng = rng.fork('disc-turf');
+  const discTarget = Math.round(420 * Math.max(0.7, ctx.quality.density));
+  let discTufts = 0;
+  let discPads = 0;
+  tries = 0;
+  while (discTufts < discTarget && tries < discTarget * 80) {
+    tries++;
+    const x = drng.range(-2.5, 4.5);
+    const z = drng.range(-14.5, -0.5);
+    if (drng() > discField(x, z)) continue;
+    if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap < 0.03 || gap > 0.35) continue;
+    if (drng() > camWeight(x, z)) continue;
+    const r = drng();
+    if (r < 0.05) {
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: drng(), kind: 'cushion', source: 'disc-turf' });
+      discPads++;
+    } else if (r < 0.15) {
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: drng.range(0.05, 0.19), scale: drng.range(1.0, 1.3), source: 'disc-turf' });
+    } else {
+      spots.push({ x, y: T.height(x, z) + 0.015, z, size: r < 0.7 ? drng.range(0.22, 0.42) : drng.range(0.43, 0.69), scale: drng.range(1.0, 1.4), source: 'disc-turf' });
+    }
+    discTufts++;
   }
   // the lawn pocket west of the path (zones.ts `lawnPocket`, reference B/E's left third): the
   // round-10 scatter, 220 tufts on this stream, keeps its places (so every sprout sown after it
@@ -466,6 +496,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneCracked: paving.stats.cracked,
     flagstoneWobbled: paving.stats.wobbled,
     flagstoneMergedD: paving.stats.mergedD,
+    // round 33: cells left as trodden earth in camera C's plaza patch, stones styled as the disc field's rounded domed stones (zones.ts)
+    flagstoneEarthCells: paving.stats.earth,
+    flagstoneDiscField: paving.stats.field,
     flagstoneBigSlabs: paving.stats.big,
     flagstoneRimStones: paving.stats.rim,
     // seeds of the lawn paving (zones.ts): 1.0–1.6 m slabs in 15–45 cm turf joints (B/E foreground)
@@ -484,7 +517,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneDrawCalls: 1,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
-    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass,
+    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass + discTufts - discPads,
+    // round 33: grass, clover and pads in the disc field's earth gaps (zones.ts `discField`; part of jointSprouts)
+    jointSproutsInDiscField: discTufts,
     // short tufts + moss pads sown thick in the lawn paving's turf joints (part of jointSprouts)
     jointSproutsInLawnPaving: lawnSprouts,
     // the lawn pocket west of the path (part of jointSprouts): round 10's scatter + round 13's
@@ -513,7 +548,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     // connected planted joints: tufts, clover and pads in runs along the seams near the paved edge (part of jointSprouts)
     jointSproutsInEdgeSeams: edgeTufts,
-    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - sprouts.cushions,
+    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - (discTufts - discPads) - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
     // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
