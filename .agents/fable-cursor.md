@@ -1295,6 +1295,43 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest remaining gaps → (1) Link's face/hair (Astra) — in progress; (2) the layout calls
   above, now the largest structural differences to the frames; (3) far layering / the veil floor.
 
+### 04:55 UTC — tick 70: take-0086 published (monitor `3c5794d`), valid; round thirty-one opens
+- `8f999a1` layout-6 (frame D's composition): log arch → (9.75, 5.6, −54) r 3.4 L 23 yaw −16, bark
+  spans D x 0.37–0.73 (frame 0.39–0.73; was 0.28–0.66), 2.1–2.2 m under the ridges on the spine,
+  no bark/root on paving (two west roots dropped, cords clamped ≥ 0.7 m); terrace boulder → (−15,
+  2.6, −20), out of every hero view (it filled D's upper-left and A/B/E's left edges where the
+  frames have hazed canopy); D boulder r 0.9 → 0.6 as a 0.64 dome (0.147 of the frame vs 0.16;
+  frame 0.09) behind a layout `clearRadius` 0.9 so the vegetation's exclusions/streams stay.
+- take-0086 (clean worktree of `8f999a1`): A 0.2619 / B 0.2489 / C 0.3030 / D 0.3058 (pHash 32 →
+  26) / E 0.2668 / F 0.2742. **W32 pending → fail**: D farLayerCount 3 → 2 on 0.04 % in the
+  25–27.5 m bucket at the 1.5 % cut with the arch layer stronger (18–21: 1.58/2.26/2.05/1.04 →
+  0.54/3.17/2.75/1.68) — the coin flip the pending proposal describes. 23/50; draws 415–523; tris
+  6.1–7.3 M.
+- Tone measurement (take-85, 320×180 luminance bands, ref vs ours): medians match within ±0.03 in
+  A/B/C/E/F but the spread is compressed everywhere — sd −0.01…−0.06 (D mid 0.131 vs 0.068), p10
+  lifted +0.03…+0.11 (C top 0.253 vs 0.362), p90 lowered −0.03…−0.08 (D whole 0.595 vs 0.525).
+  D left (far clearing) p50 0.505 vs 0.344; D right p50 0.291 vs 0.376 (the upper house shows
+  where the frame has a dark limb); C left 0.281 vs 0.378.
+- Frame D re-read against the capture: the frame's right edge has a 5–6-riser flight (x 0.85–1.0,
+  y 0.55–0.78) under a mossy bank; ours has none there (the main flight is behind-right of camera
+  D; a D camera that shows its foot puts Saria's house in D's centre) → a short flight up the
+  house terrace's west face, hidden behind Link in B/E. D's upper band shows our three distant
+  huts' lamps and the upper house; the frame has only the arch's two lanterns. The
+  north-west-near giant's bole fills D x 0–0.145 as a pale column (frame: a thin dark trunk).
+- Round thirty-one running in worktrees (`/tmp/r31-*`, branches `r31/*`): atmosphere-9 (dynamic
+  range: attribute the compression per component with the probe hooks, restore p10/p90 per band
+  without moving medians), vegetation-16 (owner's ask: dense, detailed foliage — per-box cover /
+  soil / edge-energy targets on nine bank and verge boxes), hardscape-24 (the D right-edge flight +
+  main flight one-to-one against A/F), trees-17 (D's top-right limb occluding the upper house,
+  the left-edge bole, huts out of D, a genuine third far layer).
+- Astra (PR #2, 04:03–04:38): movement review on `beb8d88` — descent heel-corner penetration at
+  the nosings (frame 70: L sole vertex 24 cm through the upper tread while the contact report
+  says 0; 15/478 downhill samples below −2 cm) with a reproduction under `art/.../progress`;
+  PR #10 (`a920d90`, eye-only asset 6f28903d, three files) — she asks it be kept a draft
+  candidate pending an asset-licence review (Rodin-derived meshes; no blanket grant). Not taken:
+  the owner's priority is the environment; queued behind round thirty-one as character-5 (footprint
+  width/heel geometry at the nosings) and the asset swap once her licence note lands.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1333,4 +1370,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T02:25:00Z
+2026-09-14T04:55:00Z
