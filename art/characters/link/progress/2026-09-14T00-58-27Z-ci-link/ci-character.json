@@ -1,0 +1,192 @@
+{
+  "kind": "Unedited character-facing frame and report imported from completed GitHub CI; not a new take or art acceptance",
+  "run": "https://github.com/Leonxlnx/zeldaremake/actions/runs/34793005831",
+  "artifact": {
+    "name": "gauntlet-735-fe4cc938f8212eb40605a45d5c7fed0ea3ab3136",
+    "id": 10329735357
+  },
+  "source": {
+    "source": "workspace",
+    "sha": "fe4cc938f8212eb40605a45d5c7fed0ea3ab3136",
+    "shortSha": "fe4cc93",
+    "branch": "HEAD",
+    "subject": "Merge 742cb267712faf5749762de6e237306236069dc9 into 12a7445e21bf4573c638773e6bf8eb36c807b062",
+    "author": "Leon Lin",
+    "committedAt": "2026-09-14T08:32:16+08:00",
+    "dirty": false
+  },
+  "character": {
+    "link": true,
+    "linkSource": "glb",
+    "linkAsset": {
+      "file": "models/link/link-runtime.glb",
+      "sha256": "9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a",
+      "triangles": 59682,
+      "materials": 4,
+      "bones": 19,
+      "clips": [
+        {
+          "name": "idle",
+          "durationS": 3,
+          "strideM": 0,
+          "rate": 1
+        },
+        {
+          "name": "walk",
+          "durationS": 0.55,
+          "strideM": 0.88,
+          "rate": 1
+        },
+        {
+          "name": "run",
+          "durationS": 0.566667,
+          "strideM": 2.21,
+          "rate": 1
+        },
+        {
+          "name": "stairs",
+          "durationS": 0.733333,
+          "strideM": 0.8066667,
+          "rate": 1
+        }
+      ],
+      "loadMs": 472
+    },
+    "linkFallbackReason": null,
+    "animations": 4,
+    "animationNames": [
+      "idle",
+      "walk",
+      "run",
+      "stairs"
+    ],
+    "fairy": true,
+    "fairyTrail": 16,
+    "npcs": 3,
+    "geometry": "glb-link+procedural-npcs-v1",
+    "triangles": 78728,
+    "linkTriangles": 59682,
+    "linkHeight": 1.1998,
+    "rigMeshesBeforeMerge": 122,
+    "rigMeshes": 83,
+    "rigMergedMeshes": 33,
+    "mode": "view",
+    "view": "D_log",
+    "linkGait": "run",
+    "samplePositions": {
+      "feet": [
+        [
+          0.5836982880313155,
+          0.014894305728375912,
+          -7.182657935870199
+        ],
+        [
+          8.920611531900802,
+          0.8305661100596542,
+          3.6343117449599514
+        ],
+        [
+          -6.539068487825075,
+          0.2105535951698141,
+          -2.076869046620851
+        ],
+        [
+          10.528618754083304,
+          1.0370639712418357,
+          -7.501691824187976
+        ]
+      ]
+    },
+    "contactShadows": 4,
+    "pavingSurface": {
+      "cells": 122295,
+      "covered": 33414,
+      "cellSize": 0.1,
+      "triangles": 115620
+    },
+    "world": {
+      "link": [
+        0.5836982880313155,
+        0.014894305728375912,
+        -7.182657935870199
+      ],
+      "linkRoot": [
+        0.6913018613158002,
+        0.018657874315977097,
+        -7.455993625887493
+      ],
+      "navi": [
+        0.23312290478427697,
+        1.3991558608380124,
+        -7.493827526672284
+      ],
+      "kids": [
+        [
+          8.920611531900802,
+          0.8305661100596542,
+          3.6343117449599514
+        ],
+        [
+          -6.539068487825075,
+          0.2105535951698141,
+          -2.076869046620851
+        ],
+        [
+          10.528618754083304,
+          1.0370639712418357,
+          -7.501691824187976
+        ]
+      ]
+    },
+    "screen": {
+      "linkFeet": [
+        0.488,
+        0.926
+      ],
+      "linkRoot": [
+        0.5,
+        0.9
+      ],
+      "linkHead": [
+        0.5,
+        0.677
+      ],
+      "navi": [
+        0.435,
+        0.55
+      ],
+      "kids": [
+        {
+          "feet": null,
+          "head": null
+        },
+        {
+          "feet": null,
+          "head": null
+        },
+        {
+          "feet": [
+            1.604,
+            0.62
+          ],
+          "head": [
+            1.573,
+            0.407
+          ]
+        }
+      ]
+    }
+  },
+  "determinism": {
+    "viewpoint": "A_stairs",
+    "file": "A_stairs.det.png",
+    "sha256": "sha256:3b617ccf6f6cfef1d6462638263750ac7fb19f755fc96401784785348a053289",
+    "simTime": 12.5,
+    "captureMs": 160492
+  },
+  "image": {
+    "file": "C_lookback.png",
+    "sha256": "fe1b4fed6359d88359a45cd60328eeda7fc3fb8354dd27c4e7ba4fb6f21fc8a0"
+  },
+  "otherPassingRun": "https://github.com/Leonxlnx/zeldaremake/actions/runs/34792971044"
+}
