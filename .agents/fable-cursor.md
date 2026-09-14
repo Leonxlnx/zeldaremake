@@ -1521,6 +1521,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   decile in the trunk / Link's shadow (0.246 vs 0.155) — hemisphere fill / shadow, not vegetation;
   (3) the air above the arch (0.49 vs 0.58): our 20–40 m crowns where the frame has lit air.
 
+### 19:50 UTC — tick 85: take-0094 published (monitor `06309c2`), valid; 23/50 — round thirty-two closed
+- r32/struct-a merged (`d8d928c`): A's −0.0059 was 71 % the arch halos floating in A's haze band
+  (six cells at (0.19–0.375, 0.22–0.44), the west-flank and crossing discs at 60–65 m) and 20 % the
+  house floors; fix = halo alpha fades over 53.5–55.5 m of camera distance (D's pods 48.6–53.4 m
+  keep the full disc, A's 59.5–64.8 m none) + floors 8.5 / 4.75 (B top p10 0.297 vs the frame's
+  0.295). A 0.2611 → 0.2660, E/B/C/F +0.0001…0.0008, D level 0.3392; budgets identical.
+- Round thirty-two (takes 0090–0094): D 0.3219 → 0.3392, C 0.2950 → 0.3108, B 0.2403 → 0.2491,
+  F 0.2748 → 0.2800, E 0.2594 → 0.2627, A 0.2607 → 0.2660 — every view up.
+- The A/B house conflict, measured: from camera B the house sits at bearing 41°, so from camera A
+  it lies at bearing 15–41° for any distance — always inside A at x 0.4–0.75 — while frame A has
+  bright haze there and frame B a 5.8 m-tall house 12 m away vs the ≤ 3.4 m cap A would allow. Not
+  one consistent world; B's fit stays (the door and sign lock it), and A pays for it.
+- Round thirty-three opens on `d8d928c`: hardscape-26 (the paving's tone and pattern against the
+  frames — warmer, darker, dappled stones with wide dark joints; B/E's path as big discs in grass),
+  atmosphere-11 (the shafts and the plaza dapple: frame A's beams and sun patches vs ours),
+  trees-19 (the crowns over D's upper band and A's top band where the frames have lit air).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1559,4 +1576,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T19:12:00Z
+2026-09-14T19:52:00Z

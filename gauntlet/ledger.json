@@ -10052,6 +10052,115 @@
       },
       "prevHash": "sha256:f67a84f3563f5708a34fff0d5c8dc887fa5a3d6c5df22199833e48bb6c12a0b8",
       "hash": "sha256:582d28bf71a691e87259601779734d803a28d6a9800a68c6cd7551e7f36a1289"
+    },
+    {
+      "id": "take-0094",
+      "number": 94,
+      "at": "2026-09-14T19:35:15.751Z",
+      "sha": "d8d928c9155894812d648e42aba52ef7491416fe",
+      "shortSha": "d8d928c",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r32/struct-a' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W26",
+        "W25",
+        "W29"
+      ],
+      "note": "Round thirty-two, structures follow-up: A's loss attributed and repaired. A window-level SSIM map of take-0091 -> take-0092 put 87 % of A's -0.0059 in six cells at (0.19-0.375, 0.22-0.44) - the arch's west-flank and crossing halo discs floating in the haze beside the lantern branch's pods (A's emissive classifier read four lamps there where the frame and take-0091 read two); single-toggle renders gave the halos 71 % of the loss, the house floors 20 %, the pot and the huts' dark lobe nothing in A and +0.0004 / +0.0007 in D if undone. The fix: the halo disc's alpha fades with the pod's camera distance over 53.5-55.5 m - D's pods at 48.6-53.4 m keep the full disc (four lamps in the arch box, the west one at (0.465, 0.435) against the frame's (0.463, 0.442)), A's at 59.5-64.8 m show none, B/E keep only the two small east pegs - and the limb / trunk floors sit at 8.5 / 4.75, the midpoint where B's top decile lands on the frame's 0.295 (0.297; 8 / 4.5 read 0.289, 9 / 5 0.304). Against the frames: A 0.2611 -> 0.2660 (+0.0049, within 0.0014 of its take-0091 peak), E +0.0008, B +0.0006, C +0.0003, F +0.0001, D level at 0.3392 (the ledger's best); pHash identical on all six; draws and triangles identical to take-0093. Round thirty-two closes: takes 0090-0094 took D 0.3219 -> 0.3392, C 0.2950 -> 0.3108, B 0.2403 -> 0.2491, F 0.2748 -> 0.2800, E 0.2594 -> 0.2627, A 0.2607 -> 0.2660.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:d4d6e46739e3d86b7c0c4e5bd6dace5b9c3ad8735e0381bd558b3c6d135f0e2f",
+        "B_house": "sha256:f606fd80419d612970e205c9b7ce9731fef1bbc9fb6269c5d2b1c4db35b7ef23",
+        "C_lookback": "sha256:41e0b2e2f17036ed9b6da5658347a646a1220b5508affd6f604c50e2ca45bba2",
+        "D_log": "sha256:48ecb714325b0386668c53e7eb222025c1dc55dd28116af2d93ecc8d3cc49dd9",
+        "E_ground": "sha256:f606fd80419d612970e205c9b7ce9731fef1bbc9fb6269c5d2b1c4db35b7ef23",
+        "F_canopy": "sha256:1a77ef1b07ab4a528cf2d84a997a8432ff762133133f763f0237a5990fd7cd0e"
+      },
+      "distHash": "sha256:adcf44a7be4b08e3c73341f69b3f3df2b44f0b06bbcdf043fb438c38cf32ca2a",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8606789,
+        "captureMs": 632131,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W26",
+        "W25",
+        "W29"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take94-cap",
+        "importedAt": "2026-09-14T19:35:46.135Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:582d28bf71a691e87259601779734d803a28d6a9800a68c6cd7551e7f36a1289",
+      "hash": "sha256:69743b3d059b014d40d7ecf18d7e98d935c4fa47f17f04bac694830ad9e3c029"
     }
   ]
 }
