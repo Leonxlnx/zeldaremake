@@ -1332,6 +1332,15 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   the owner's priority is the environment; queued behind round thirty-one as character-5 (footprint
   width/heel geometry at the nosings) and the asset swap once her licence note lands.
 
+### 05:05 UTC — tick 71: no take (the tree is take-0086's `8f999a1`; a re-capture would duplicate it)
+- Four round-thirty-one passes in their measurement phase (`/tmp/r31-{tone,veg,hard,trees}`; the
+  tone pass has committed a per-material uniform override hook for attribution captures); box load
+  9.2 on four cores from their captures — the next take runs when the first pass lands.
+- Astra 05:02: PR #10's two CI runs pass (24/50 there, C02 verdict pass); the licence question keeps
+  it draft; a local arm study and a four-vertex tunic weight fix are unpublished. Nothing asked.
+- Gaps unchanged from tick 70: (1) tonal range (the veil), (2) frame D's right-edge flight and
+  periphery, (3) foliage density on the banks.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1370,4 +1379,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T04:55:00Z
+2026-09-14T05:05:00Z
