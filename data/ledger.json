@@ -9503,6 +9503,115 @@
       },
       "prevHash": "sha256:9f828b2441c1502318520ee674fa977a77b62b8bdab1b522051b6e30d5372206",
       "hash": "sha256:19d3d8ac96564b2805ce4f3d1c7e1f68ec505a713d09471bdea654a390cc8940"
+    },
+    {
+      "id": "take-0089",
+      "number": 89,
+      "at": "2026-09-14T14:24:19.301Z",
+      "sha": "ea85fb2a3eeb05272ec1a0c64bd16302be67188d",
+      "shortSha": "ea85fb2",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r32/trees' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W10",
+        "W34"
+      ],
+      "note": "Round thirty-two, trees: the shade floors measured against the frames instead of assumed. A sweep of the giant bark and leaf floors at 0.75 / 0.5 / 0.35 of their lift, flat or textured, with or without a soft knee, lowers the top-band darks toward the frames' but costs SSIM in every view about linearly (C -0.004 per -10 % of lift, D -0.002, F -0.002, B -0.001), and the frames' dark deciles turn out not to be darker bark at all: C's top is a cliff mass and a canopy silhouette we do not have, F's top decile is grass bank and HUD, F's right is a canopy mass the frame has and we do not, and B/E's top is 95 % the structures' floors (all three floors at zero move it -0.176; the trees alone -0.005). Shipped, therefore, only what measured up on every view: the giant bark floor's texture share 0.25 -> 0.1 (the shaded bark reads as a smooth dark like the frames' - C +0.003, D +0.001, F +0.001, A/B level) and a near-bole floor of 13 on the emergent column at D's left edge, whose bark read 0.29 where the frame's edge is hazy foliage at 0.41: now 0.403, D 0.3177 -> 0.3219 and pHash 32 -> 28, at the price of A 0.2645 -> 0.2607 and B/E -0.002..-0.003 where that same column is a dark near trunk in the frames (one constant to revert if the D gain is not worth it). The white-barks' bark-floor uniform got its own name so probes can move the giants alone; the audit lists the three floors. The north-east hut's lamp under A's bough stays as is: with the bough moved the lamp pixels are identical to the byte (the frame's lit point is a soft +0.08 elsewhere) and the longer stem grows F's leaf bucket +0.28 M. Numbers for the other owners: the structures' floors (limb 9 / trunk 5, a sleeve near 7 is the range to test for B/E's left), the vegetation's shade lift (E's left is 0.279 with every floor at zero against the frame's 0.251). Draws and triangles identical to take-0088; every stream untouched.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:9567e9e133bdf10090b0f66a074c6ce2bcb9ee5632d49d66f46c1a49fa8c6f39",
+        "B_house": "sha256:c345ae8131c7113f4e48fc4e0bdbea0e5442e86912268de1d4b3387bd4678268",
+        "C_lookback": "sha256:507226a805cc996843217b3d9cae60dda20d72b9242c188635c2f1d3245a73cb",
+        "D_log": "sha256:c5c4e2a1b8d8d7aac2f9f57782b015d1bf467c68443c724593d1c4115eb3a26c",
+        "E_ground": "sha256:c345ae8131c7113f4e48fc4e0bdbea0e5442e86912268de1d4b3387bd4678268",
+        "F_canopy": "sha256:d8daf7908914246518a372b721bb22587d330ecab3cdd3fbc0983b6e9edab081"
+      },
+      "distHash": "sha256:c6f5553ab678538cea6c83049b360d7bd7d6d796535e6945c5fabd95e9ac50f9",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8546132,
+        "captureMs": 693910,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W09",
+        "W10",
+        "W34"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take89-cap",
+        "importedAt": "2026-09-14T14:24:56.649Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:19d3d8ac96564b2805ce4f3d1c7e1f68ec505a713d09471bdea654a390cc8940",
+      "hash": "sha256:e386a20b91374b1d72fc08ea48fe9d904db2f05c31e85c35ec155141b6967af3"
     }
   ]
 }
