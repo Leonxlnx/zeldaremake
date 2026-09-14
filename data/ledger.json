@@ -9277,6 +9277,123 @@
       },
       "prevHash": "sha256:35d9bd44546b79e7a93f4b952c725416aef8a61234f0c578580548f9266dd1f7",
       "hash": "sha256:41a57842cbd0bc837b58c1f79568f62b97726b74054f2b47536deb519efa68b9"
+    },
+    {
+      "id": "take-0087",
+      "number": 87,
+      "at": "2026-09-14T10:03:23.971Z",
+      "sha": "93f5f07195e3d6719efb164c57de1841d7ff5f2b",
+      "shortSha": "93f5f07",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "props: Saria's small pot and crate move off the house-west flight's landing (stairs mask skipped both) to the terrace's south lip - the pot at the signpost's foot (7.5, -9.5), the crate left of the threshold (8.75, -8.0) - outside camera D's frustum (frame 56 s has no props at its right edge) and inside B at (0.66, 0.56) / (0.76, 0.55); props test green again (skipped [])",
+      "agent": "fable-cursor",
+      "items": [
+        "W02",
+        "W15",
+        "W17",
+        "W09",
+        "W32",
+        "W38"
+      ],
+      "note": "Round thirty-one, merged: five passes against the frames. Hardscape: a five-riser flight of the main run's worn slabs climbs the west face of Saria's terrace from the north path (frame 56 s has a flight at D's right edge; ours stands at 8.2 m and spans x 0.67-0.94 against the frame's 5 m at 0.85-1.0 - the frame's spot is the stepping-stone ramp, being re-planned now), and the main flight is re-cut one-to-one with frames 1 s and 8 s: 13-16 cm slabs with 6.5-9.5 cm rolled noses and lit lips, riser stones, damp blotches - A's centre-line lit peaks 10 -> 18 (frame 16), F 12 -> 19 (frame 19), flight-box lit20 A 0.419 -> 0.489 (frame 0.474). Vegetation, the owner's ask: 4,594 grass tufts of 12-17 bent blades in three height classes leaning over the paved rims, ferns 1,142 -> 1,392 with serrated four-section pinnae and crown fiddleheads, broadleaf rosettes with a vein crease, hedge crowns as clustered leaf bunches shaded to the core, bank passes of ferns / broadleaf / clover / moss - D's right verge green cover 72.7 -> 77.6 % (frame 79.9), B's right verge edge energy 24 -> 29 (frame 25). Atmosphere: the compression of our tonal range attributed per component with the probe hooks - the lifted darks are the leaf and bark shade floors (off: -0.15..-0.21 on the top bands where the frame needs -0.05..-0.11) and the round-27 hemisphere doubling (-0.03), the fog terms <= 0.02 each; shipped the bounce back to its old value, IBL 0.481 -> 0.36 and a far blur from 25 m - top-band p10 D 0.327 -> 0.294 (frame 0.290), B 0.344 -> 0.307 (frame 0.295); a lit far wall is in as a hook at zero because every far-air brightening costs SSIM while our arch sits 0.07 of the frame higher than the frame's. Trees: three leaf curtains from the plateau oak cross D's top-right and occlude the upper house (region p50 0.364 -> 0.300, frame 0.303), the hut lamps leave D's upper band (16 -> 0 warm points; frame 2, the arch's), the near giant moves 1 m west so the boulder shows from x 0.084, and five 26 m poles at 41 m give D a genuine third far layer (2 -> 3). Character: footprint-aware planting - Astra's frame-70 heel corner -243 mm -> -1.5 mm, fixed views unchanged. Against the frames: A 0.2619 -> 0.2643, D 0.3058 -> 0.3168 (pHash 26 -> 32: the dark top-right mass), F 0.2742 -> 0.2736, B 0.2489 -> 0.2432, C 0.3030 -> 0.2922, E 0.2668 -> 0.2622. W38 fails on A: 541 draws / 9.10 M triangles against 9.0 M - the curtains' 51 k leaves are drawn in the main and the shadow pass (+0.84 M per view) on top of the vegetation's +0.97 M; the non-casting split of the authored lobes is running and lands in the next take. Sealed as measured.",
+      "score": {
+        "passed": 22,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "fail",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:e5c6d1955b17235eec96096a9765b13241271b1668f56351b474710de7bcc047",
+        "B_house": "sha256:cb17ef3272021d0804d00787d9fbd2929ba723ae16c165c4f37ac639cbdd9336",
+        "C_lookback": "sha256:8a5ff3664b01e2b18f269f26c8fa249ef3a82a52c28a09f3f7abb9512a1c1f73",
+        "D_log": "sha256:9589067cf95635ea22270e54560b40512757c8720e8087cb2376a7ac7634ea31",
+        "E_ground": "sha256:cb17ef3272021d0804d00787d9fbd2929ba723ae16c165c4f37ac639cbdd9336",
+        "F_canopy": "sha256:4002e088a9eb35665cf4726d94286aee4a1aab6c833983eb3ca6fd002fe7860d"
+      },
+      "distHash": "sha256:8e29b22bba36f912dffc3f5c42c5be0b16620d04fd4d0a9aa745034bdcdbebfe",
+      "stats": {
+        "drawCalls": 541,
+        "triangles": 9104248,
+        "captureMs": 809228,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [
+        "W38"
+      ],
+      "flags": [],
+      "valid": false,
+      "invalid": "D2 regression: W38 (vs take-0086)",
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W02",
+        "W15",
+        "W17",
+        "W09",
+        "W32",
+        "W38"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take87-cap",
+        "importedAt": "2026-09-14T10:11:31.935Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:41a57842cbd0bc837b58c1f79568f62b97726b74054f2b47536deb519efa68b9",
+      "hash": "sha256:9f828b2441c1502318520ee674fa977a77b62b8bdab1b522051b6e30d5372206"
     }
   ]
 }
