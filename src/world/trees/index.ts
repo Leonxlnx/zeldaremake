@@ -91,8 +91,8 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
   // centred on azimuth 60° (SSE, where the ray climbs past the trunk toward Link), so they head
   // SW / WNW / NNE — the reference D shows this trunk's boughs high at the top-left, not a limb
   // crossing the upper-left quarter at y 0.1–0.3 as the random draw gave.
-  // Round 33 (trees): the three wild limbs are ghosted (draws made, no geometry, so the crown is
-  // the same tree's). Measured by ray-casting the sun lines through shot D's air (x 0.35–0.75,
+  // Round 33 (trees): the NNE (335°) and NNW (259°) wild limbs are ghosted (draws made, no
+  // geometry, so the crown is the same tree's); the WSW (168°) limb stays. Measured by ray-casting the sun lines through shot D's air (x 0.35–0.75,
   // y 0.10–0.27: the in-scatter the god rays add there): 74 % of that air's in-scatter weight
   // was in shadow, 26 % of it this giant's wood — not the bole (no hit within 1.2 m of its
   // sheared axis) but the four authored boughs' runs at 12–15 m (≈ 50 %), the crown leaders'
@@ -102,7 +102,11 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
   // ground the ENE limb's wood laid a band across the first D path pool ((0.5, −10) r 2.2, from
   // (−0.75, −10.4) to (7, −10.9)) and the NNW limb's along the verge pool (−4.6, −15.8) — the two
   // places frame 56 s lights. Same-tree A/B, D 640×360: the whole giant's wood hidden lifted the
-  // air box p50 0.473 → 0.552 and the top band's 0.423 → 0.447.
+  // air box p50 0.473 → 0.552 and the top band's 0.423 → 0.447. The WSW limb is off D (x < 0)
+  // and on no D sun line; its wood's shadow is the band across the grass at B / E's bottom-left
+  // ((0.06–0.25, 0.75–0.875): frame 14 s's dark foreground grass, p50 0.30 — with the limb ghosted
+  // the grass read 0.39 and B lost 0.0039 / E 0.0028 of SSIM in the two bottom-left cells), so it
+  // is kept: sector 285° ± 50° takes the nominal 240° and 330° limbs (base 60° + 180° / 270°).
   'north-west-near': {
     flare: 0.12,
     girth: 0.7,
@@ -111,7 +115,7 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
     lean: { azimuthDeg: 245, degrees: 45, fromY: 3.5, blend: 2 },
     wildLimbAzimuthDeg: 60,
     wildLimbT: [0.5, 0.62],
-    wildLimbGhost: true,
+    wildLimbGhost: { azimuthDeg: 285, halfWidthDeg: 50 },
   },
   // Round 33: shot D's air box (x 0.35–0.75, y 0.10–0.27) held this giant's wild-limb lobes and
   // limb wood 28–32 m out (21 % of the box's pixels, y 9–11 m, lum 0.46: textured dark foliage at
