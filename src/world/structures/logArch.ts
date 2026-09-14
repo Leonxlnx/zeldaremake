@@ -294,16 +294,42 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const out = radialDir(psi0, s0);
       out.y = 0;
       out.normalize();
-      const reach = 2.2 + rootRng() * 2.2;
+      const reachDrawn = 2.2 + rootRng() * 2.2;
       const along = (rootRng() - 0.5) * 1.6;
+      const knuckle = 4 + rootRng() * 3;
+      const rr = 0.3 + rootRng() * 0.12;
+      // layout round 6: the north path's west edge now passes ≈ 4 m from the west end's north
+      // flank, so a root is shortened (never below 1.2 m) until neither its foot nor its buried
+      // tip lies on the flagstones — roots over paving read as a modelling error. The test walks
+      // the root's rim (its radius `rr`, ≈ 0.42 m at the mouth, plus the 0.08 m ridge displace)
+      // around the foot and the buried tip, not just their centre lines: with centre-only tests
+      // two west-end feet sat 0.2 m off the paving and their flanks lay on its feathered edge
+      // (path mask 0.3–0.83). Every draw above happens first so the stream is the same whether
+      // or not a root is shortened.
+      const rim = rr + 0.1;
+      const onPaving = (rch: number) => {
+        const f = mouth.clone().addScaledVector(out, rch).addScaledVector(A, along);
+        const b = f.clone().addScaledVector(out, 0.7).addScaledVector(A, along * 0.3);
+        for (const c of [f, b]) {
+          if (terrain.mask(c.x, c.z).path > 0.01) return true;
+          for (const [ao, aa] of [[rim, 0], [-rim, 0], [0, rim], [0, -rim]] as const) {
+            const p = c.clone().addScaledVector(out, ao).addScaledVector(A, aa);
+            if (terrain.mask(p.x, p.z).path > 0.01) return true;
+          }
+        }
+        return false;
+      };
+      let reach = reachDrawn;
+      while (reach > 1.2 && onPaving(reach)) reach -= 0.3;
+      // a root that still lands on the flagstones at its shortest (two south-flank roots of the
+      // west end point straight at the path's west edge) is left out rather than laid over them
+      if (onPaving(reach)) continue;
       const mid = mouth.clone().addScaledVector(out, reach * 0.45).addScaledVector(A, along * 0.5);
       mid.y = Math.max(mid.y - 0.6, terrain.height(mid.x, mid.z) + 0.28);
       const foot = mouth.clone().addScaledVector(out, reach).addScaledVector(A, along);
       foot.y = terrain.height(foot.x, foot.z);
       const buried = foot.clone().addScaledVector(out, 0.7).addScaledVector(A, along * 0.3);
       buried.y = terrain.height(buried.x, buried.z) - 0.4;
-      const knuckle = 4 + rootRng() * 3;
-      const rr = 0.3 + rootRng() * 0.12;
       const root = sweepTube(new CatmullRomCurve3([start, mouth, mid, foot, buried], false, 'catmullrom', 0.5), {
         radius: (t) => rr * (1 - 0.65 * t) * (0.9 + 0.2 * Math.abs(Math.sin(t * knuckle + i))),
         tubularSegments: 16,
@@ -364,7 +390,27 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const p = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + 0.25);
     foliage.addLeafCluster(p, 0.55 + vegRng() * 0.45, 70, { size: 0.15, amount: 0.05, droop: 0.45, tint: [0.55, 0.64, 0.32], tintSpread: 0.3, flatten: 0.55 });
   }
-  const pathS = (2 - cx) / A.x; // where the path spine crosses under the arch (x ≈ 2)
+  // where the path spine crosses under the arch (along-axis s of the spine's crossing of the
+  // axis line). Layout round 6: solved from `layout.pathSpine` instead of the stale "x ≈ 2"
+  // guess, which put the lanterns 8 m west of the crossing once the log moved east; falls back
+  // to the old formula if the spine does not cross the axis.
+  const pathS = (() => {
+    const spine = ctx.layout.pathSpine;
+    for (let i = 0; i < spine.length - 1; i++) {
+      const [ax, , az] = spine[i];
+      const [bx, , bz] = spine[i + 1];
+      // signed across-axis coordinate of both ends: a crossing changes sign
+      const va = -(ax - cx) * A.z + (az - cz) * A.x;
+      const vb = -(bx - cx) * A.z + (bz - cz) * A.x;
+      if ((va > 0 && vb > 0) || (va < 0 && vb < 0) || va === vb) continue;
+      const t = va / (va - vb);
+      const px = ax + (bx - ax) * t;
+      const pz = az + (bz - az) * t;
+      const s = (px - cx) * A.x + (pz - cz) * A.z;
+      if (Math.abs(s) < L / 2 - 1) return s;
+    }
+    return (2 - cx) / A.x;
+  })();
   for (let i = 0; i < 7; i++) {
     const s = pathS + (vegRng() - 0.5) * 7;
     const psi = -Math.PI / 2 + (vegRng() - 0.5) * 1.4;
@@ -517,7 +563,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const psi = -Math.PI / 2 + dpsi;
     if (s < sEndW(psi) + 0.5) continue;
     const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);
-    const rig = buildLantern(hook, cord, mats, lanternRng, 1.15, lanternRng() < 0.4 ? 'lime' : 'orange');
+    // layout round 6: the belly of the sunk west third can be within 1.5 m of the ground (the
+    // pad under the new footing) — the cord is shortened so the pod hangs ≥ 0.7 m clear of it
+    const cordClamped = Math.max(0.4, Math.min(cord, hook.y - terrain.height(hook.x, hook.z) - 0.7));
+    const rig = buildLantern(hook, cordClamped, mats, lanternRng, 1.15, lanternRng() < 0.4 ? 'lime' : 'orange');
     group.add(rig.pivot);
     lanterns.push(rig);
   }

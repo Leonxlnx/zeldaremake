@@ -244,27 +244,60 @@ export const LAYOUT = {
   logArch: {
     /**
      * Giant hollow fallen log lying roughly east-west across the north path, the far landmark of
-     * shot D. In frame 56 s it spans x 0.40–0.75 and y 0.27–0.45 with its feet ≈ 2 m above the
-     * camera: ≈ 47 m away on ground ≈ 5.6 m above the plaza (body ≈ 6 m thick, opening ≈ 4 m).
-     * The east end runs away north (yaw) so the log climbs to the right in the frame.
+     * shot D. In frame 56 s it spans x 0.39–0.73 (luminance edge scan at 2× in the y 0.30–0.42
+     * band) and y 0.27–0.45 with its feet ≈ 2 m above the camera, on ground ≈ 5.6 m above the
+     * plaza (body ≈ 6 m thick, opening ≈ 4 m).
+     * Layout round 6: the previous (5.6, −50) r 3.0 L 22 yaw 20 projected its bark to x 0.28–0.66
+     * in D (visible 0.34–0.63 behind the terrace boulder); the frame's arch is centred right of
+     * the path and its right mass is the big one. Solved by projecting the built bark mesh into
+     * camera D over a grid of centre/length/yaw/radius: centre 4.5 m east of the path spine,
+     * 4 m further, r 3.4 (W29's "radius ≈ 3.4 m"), east end swung toward the camera (yaw −16) so
+     * the right end reads large: bark spans x 0.37–0.73 (0.37 is the splintered west lip; the
+     * left edge cannot reach 0.39 without shortening the log until the path's underside clearance
+     * drops below 1.9 m). Nearest bark 45.7 m (was 37.5), farthest 56.5 m. The path spine crosses
+     * under the west half: centre line at lu −3.4 … −4.8 with 2.1–2.2 m under the bark ridges
+     * (was 2.5–2.9 m at lu ≈ 0); over the paved width (±1.8 m) the lowest bark is 1.76 m at the
+     * west edge and 2.43 m at the east edge, 1.68 m on the west verge (−2.4 m) where the west
+     * third sinks toward its footing; the two west-end roots that pointed at the paving are left
+     * out (logArch.ts). Visible in D the bark reads x 0.37–0.63: 0.63–0.73 is hidden by the
+     * east plateau ramp at 19–22 m and the north-east giant / a white-bark at 25–37 m (terrain
+     * and trees, not the arch).
      */
-    position: [5.6, 5.6, -50] as [number, number, number],
-    radius: 3.0,
-    length: 22,
-    yawDeg: 20,
+    position: [9.75, 5.6, -54] as [number, number, number],
+    radius: 3.4,
+    length: 23,
+    yawDeg: -16,
     lanterns: 2,
   },
 
-  /** Mossy boulders that are compositionally important (many smaller rocks are procedural). */
+  /**
+   * Mossy boulders that are compositionally important (many smaller rocks are procedural).
+   * `radius` is the rock the rocks system builds; `clearRadius` (default `radius`) is the radius
+   * the vegetation's boulder rules read (field.ts `clearing` / `boulderDistance`, plants.ts ring
+   * clusters), kept separate so a rock can be resized without re-drawing every plant scatter that
+   * rejection-samples around it.
+   */
   heroBoulders: [
-    // on the boulder bank, clear of the north steps' landing (top of the 6 steps ≈ (−2.7, 1.8, −18.4))
-    { id: 'terrace-boulder', position: [-5.2, 2.6, -20.2] as [number, number, number], radius: 2.2 },
+    // on the boulder bank, clear of the north steps' landing (top of the 7 steps ≈ (−3.0, 1.8, −18.8)).
+    // Layout round 6: moved 9.8 m west along the bank, from (−5.2, −20.2) where it filled shot D's
+    // upper-left (x 0.09–0.34, y 0.25–0.46 at 13.7 m — frame 56 s has bright hazed canopy and
+    // no rock there) and cut the left edges of A (x 0–0.13) and B/E (x 0–0.18), where the frames
+    // have no rock either. At (−15, −20) its 2.9 m lumped envelope projects to D x ≤ −0.04,
+    // A x ≤ −0.21, B/E x ≤ −0.23, behind C and F: in no hero view. Ground 2.76 m (bank 2.6 +
+    // undulation); 12 m from the north steps' top tread; 11 m from the nearest giant trunk.
+    { id: 'terrace-boulder', position: [-15, 2.6, -20] as [number, number, number], radius: 2.2 },
     // left-centre of shot D (reference 0.10–0.22, 0.66–0.75), just off the paved edge and clear of
-    // the north-west-near giant's roots
-    { id: 'shot-d-boulder', position: [-2.6, 0, -9.6] as [number, number, number], radius: 0.9 },
+    // the north-west-near giant's roots.
+    // Layout round 6: r 0.9 → 0.6 (frame 56 s: a loaf ≈ 1.3 m wide, 0.09 of the frame tall at
+    // 7 m; r 0.9 read 0.159 even squashed to 0.42). The vegetation keeps its 0.9 m exclusion
+    // (`clearRadius`): at 0.6 the 'white-flowers-west-verge' scatter accepted candidates in the
+    // 0.57–1.15 m ring that whiteGround() had rejected, its stream shifted, and a white clump
+    // landed within 0.45 m of the lawn band's second authored "mossy stone" spot (−3.05, −8.7),
+    // which then failed all 24 tries (plants.test.mjs: mossy stones 2 < 3).
+    { id: 'shot-d-boulder', position: [-2.6, 0, -9.6] as [number, number, number], radius: 0.6, clearRadius: 0.9 },
     // right edge of shot A (≈ 0.9, 0.7): the mossy rock the Kokiri kid stands beside
     { id: 'stair-foot', position: [9.1, 0.2, 2.5] as [number, number, number], radius: 1.0 },
-  ],
+  ] as { id: string; position: [number, number, number]; radius: number; clearRadius?: number }[],
 
   /** Giant old trees. Canopies of these form the overhead cover (14–24 m). */
   giantTrees: [

@@ -725,16 +725,20 @@ export class VegField {
     let insideBoulder = false;
     for (const b of this.ctx.layout.heroBoulders) {
       const d = Math.hypot(x - b.position[0], z - b.position[2]);
-      if (d < b.radius * 0.95) insideBoulder = true;
-      boulder = Math.max(boulder, 1 - smoothstep(b.radius + 0.6, b.radius + 0.9, d));
+      const r = b.clearRadius ?? b.radius;
+      if (d < r * 0.95) insideBoulder = true;
+      boulder = Math.max(boulder, 1 - smoothstep(r + 0.6, r + 0.9, d));
     }
     return { npc, boulder, insideBoulder };
   }
 
-  /** Distance to the nearest hero boulder surface. */
+  /**
+   * Distance to the nearest hero boulder's clearance ring (`clearRadius`, the rock's radius by
+   * default — the shot-D rock renders at 0.6 m inside its 0.9 m ring so the scatters' streams hold).
+   */
   boulderDistance(x: number, z: number): number {
     let best = Infinity;
-    for (const b of this.ctx.layout.heroBoulders) best = Math.min(best, Math.hypot(x - b.position[0], z - b.position[2]) - b.radius);
+    for (const b of this.ctx.layout.heroBoulders) best = Math.min(best, Math.hypot(x - b.position[0], z - b.position[2]) - (b.clearRadius ?? b.radius));
     return best;
   }
 
