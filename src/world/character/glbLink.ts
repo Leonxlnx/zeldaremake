@@ -24,7 +24,7 @@ import type { Puppet, PuppetPose } from './puppet';
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '281895fef8f8fda7e7fe73f7fa84ef16fff2df8cb2ead48be15327dece3f2faa';
+export const LINK_GLB_SHA256 = '9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a';
 
 /**
  * Clip contract from Astra's pipeline.json (rig.clips): stride and cycle per gait, plus the clip
