@@ -9723,6 +9723,115 @@
       },
       "prevHash": "sha256:e386a20b91374b1d72fc08ea48fe9d904db2f05c31e85c35ec155141b6967af3",
       "hash": "sha256:1936a08d5de802e459c2f9ffe513b904b00fb7a77aa1eb3125d958fba8faeb86"
+    },
+    {
+      "id": "take-0091",
+      "number": 91,
+      "at": "2026-09-14T17:10:27.642Z",
+      "sha": "9310cfe04ee748efb8d710583c05e79bcd409f66",
+      "shortSha": "9310cfe",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r32/tone' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W32",
+        "W34",
+        "W29"
+      ],
+      "note": "Round thirty-two, atmosphere: the far air behind the log arch, measured on the arch's new rows. The round-31 far wall, re-swept at 0.27 / 0.5 / 0.75 / 1.0 and at two distance ramps, moves the arch's contrast by nothing at any amount - the arch's own 74-86 % veil is the same lit air - and only lights the opening, which the frame keeps at 0.445, at a linear SSIM cost. What the frame actually does is dim at eye level and lit where the ray climbs: the shipped model dims the closed-roof veil (mist share included) by 0.65 past a 42-52 m ramp and lets a 0.5 far wall (52-56 m) through only for rays whose above-canopy share passes 0.1. Along D's centre column the arch body (48-52 m) goes 0.483 -> 0.417 against the frame's 0.398, the opening (70-100 m) 0.495-0.510 -> 0.451 against 0.452, and the arch reads as a dark silhouette for the first time: body vs the air above it -0.005 -> +0.060 (frame +0.170). Two hooks were added at identity first so every term could be attributed (hazeFarLitKnee, hollowDim); the dome takes the same terms; audit fields added, none removed. Against the frames: A 0.2601 -> 0.2674, C 0.3099 -> 0.3121, B 0.2486 -> 0.2493, D 0.3340 -> 0.3346, E 0.2635 -> 0.2630, F unchanged (open direction, untouched); sharpness 0.85-1.36, overexposed 0, skyFraction and fogFar unchanged, farLayerCount 3 on every hero view, draws and triangles identical to take-0090. What did not fit, with numbers: the air above the arch (52-70 m, 13-18 deg up) stays 0.49-0.51 against the frame's 0.55-0.60 because 60 % of those rows are our 20-40 m crowns - tree placement, not air; D's upper-left deficit is 78-90 % geometry (12-30 m trunks at 0.38 where the frame has 0.53 lit air). A measured lead for a later pass: softFarSigma 1.6 -> 3.2 buys D/B +0.0035 / +0.0032 and would fund a 0.6-0.65 wall.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:a6639f50a02f59c8cc06a30b0a3f54f62196c9054cf8ba2b8d57267407a90571",
+        "B_house": "sha256:438d2773c6a881daf159724889a8ddfd5a5a66220f92f7a38da167866102e706",
+        "C_lookback": "sha256:fc01d23f313dcd4166ce7029b97d5546a2cccf358b1581dd33bdc419e1026496",
+        "D_log": "sha256:b131fec09590c7ba61034a3cb1b754b1f5ad3489d3328b4e3ac9adc739e70260",
+        "E_ground": "sha256:438d2773c6a881daf159724889a8ddfd5a5a66220f92f7a38da167866102e706",
+        "F_canopy": "sha256:9058a4b81b6f90a07377b5dc6d68887287e99a66d93c32f28b27fd57526c9f8b"
+      },
+      "distHash": "sha256:084372b6b4429a193267b01ed724e8a68fe2559cbd00312e409f93684b68ebb4",
+      "stats": {
+        "drawCalls": 540,
+        "triangles": 8492475,
+        "captureMs": 888420,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W32",
+        "W34",
+        "W29"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take91-cap",
+        "importedAt": "2026-09-14T17:11:02.365Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:1936a08d5de802e459c2f9ffe513b904b00fb7a77aa1eb3125d958fba8faeb86",
+      "hash": "sha256:27ce82ac0ab151aa6c22ac355c3b20e4b5fba569629019b63a5c3fba81efd0dd"
     }
   ]
 }

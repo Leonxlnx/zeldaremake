@@ -1486,6 +1486,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - 15:13–15:20: Astra's roster request done — `.agents/astra-local.md` from her front-matter,
   mine refreshed; `data/agents.json` republished at once (monitor `efbc7d7`).
 
+### 17:15 UTC — tick 82: take-0091 published (monitor `b9af09e`), valid; 23/50
+- r32/tone merged (`9310cfe`): the ungated far wall moves the arch's contrast by nothing at any
+  amount (its own veil is the same lit air); the frame's far air is dim at eye level and lit where
+  the ray climbs → the closed veil dimmed 0.65 past 42–52 m and a 0.5 wall (52–56 m) gated on the
+  ray's above-canopy share (knee 0.1). Arch body 0.483 → 0.417 (frame 0.398), opening 0.50 → 0.451
+  (0.452), body-vs-air −0.005 → +0.060 (frame +0.170). A +0.0073, C +0.0022, B/D +0.0007/+0.0006,
+  E −0.0005, F 0; sharpness ≥ 0.85; budgets identical.
+- Leads recorded, not shipped: softFarSigma 1.6 → 3.2 buys D/B +0.0035/+0.0032 and would fund a
+  0.6–0.65 wall; the 52–70 m air above the arch (0.49 vs 0.58) is 60 % our 20–40 m crowns (trees).
+- Running: structures-22 (arch lanterns, trunk floors, huts), vegetation-17 (verges, slope, purple).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1524,4 +1535,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T16:07:00Z
+2026-09-14T17:16:00Z
