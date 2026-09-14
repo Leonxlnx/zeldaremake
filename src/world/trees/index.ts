@@ -353,7 +353,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean }[] }[] = [
   {
     giant: 'north-west-near',
     fromY: 11.8,
@@ -439,12 +439,12 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     tipRadius: 0.3,
     lobes: [
       // D (0.86, 0.10) at 10.5 m: the house's west-wall window (0.83, 0.15) and its cap (0.86–0.96, 0–0.07)
-      { t: 0.95, center: [6.0, 4.8, -11.0], hR: 1.7, vR: 1.3, density: 3.5, tone: 0.42, eye: 1, shade: 0.3 },
+      { t: 0.95, center: [6.0, 4.8, -11.0], hR: 1.7, vR: 1.3, density: 3.5, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
       // D (0.97, 0.28) at 10.5 m: the wall (0.85–1.0, 0.13–0.43), and at the frame's right edge Saria's
       // house's west window (0.985, 0.30) and its pod lantern (0.93, 0.36), 13–15 m behind it
-      { t: 0.97, center: [7.4, 3.4, -10.6], hR: 1.8, vR: 1.4, density: 3.5, tone: 0.42, eye: 1, shade: 0.3 },
+      { t: 0.97, center: [7.4, 3.4, -10.6], hR: 1.8, vR: 1.4, density: 3.5, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
       // D (0.74, 0.12) at 12 m: the north-east hut's window / door / eave pod (0.72–0.75, 0.13–0.15)
-      { t: 0.9, center: [5.6, 5.5, -13.3], hR: 1.3, vR: 1.0, density: 3, tone: 0.42, eye: 1, shade: 0.3 },
+      { t: 0.9, center: [5.6, 5.5, -13.3], hR: 1.3, vR: 1.0, density: 3, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
       // D (0.64, 0.08) at 8 m, a 3 m twig west off the tip: the hollow-column hut's window, door,
       // eave pod and (structures distantHouse.ts, its walkway turned onto camera D's bearing) its
       // end-post pod, D (0.62–0.66, 0.07–0.10) at 20–24 m. B sees the clump at (0.42, 0.23) — the
@@ -458,17 +458,24 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       // built as an ordinary lobe the 0.4 m spec came out 2.6 m across (the cards' 0.4 m half-size
       // floor, the twigs' 0.6 m drop, the 0.85 m sprigs, leaves along the whole 3 m twig) — a pale
       // blob over D (0.56–0.75, 0–0.28), 4 % of the frame, in the reference's brightest haze.
-      { t: 1.0, center: [2.68, 4.52, -10.19], hR: 0.4, vR: 0.4, density: 3, eye: 1, corridors: false, compact: true },
+      { t: 1.0, center: [2.68, 4.52, -10.19], hR: 0.4, vR: 0.4, density: 3, eye: 1, corridors: false, compact: true, castShadow: false },
       // three compact plugs in the curtains' cores, each on camera D's ray to a lamp the curtains
       // must hide — the upper house's west window (0.83, 0.15), Saria's west window (0.985, 0.30),
       // the north-east hut's lamps (0.735, 0.14): a curtain's leaves and cards are drawn at random
       // over its ellipsoid, and a re-roll of the tree's stream (any edit upstream of these lobes)
       // opened one 3-pixel pinhole on each of the first two rays (peaks 0.67 / 0.65 — lamps to the
       // classifier). Same tone and shade as their curtains, so they read as more of the same mass.
-      // Last in the list, so the clump above is built as before.
-      { t: 0.96, center: [5.83, 4.54, -11.31], hR: 0.5, vR: 0.5, density: 3, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true },
-      { t: 0.98, center: [7.05, 3.11, -10.1], hR: 0.5, vR: 0.5, density: 3, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true },
-      { t: 0.92, center: [5.35, 5.26, -13.15], hR: 0.5, vR: 0.5, density: 3, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true },
+      // Last in the list, so the clump above is built as before. Density 1 (was 3; the round-31
+      // budget, see the castShadow note on the giants' meshes): a lobe's laminae count does not
+      // scale with its size, so a 0.5 m plug at density 3 carried as many as a 1.8 m curtain
+      // (6.5 k, 17× the leaf area of its own surface); at 1 it keeps ~2.2 k, ~6× its surface,
+      // inside a curtain that already covers the ray. The hollow-column clump above keeps 3: its
+      // hut's end-post pod hangs 0.018 of D's width from the clump's centre, near its edge, and at
+      // 1.5 the ray's peak went 0.42 -> 0.62 (a lamp to the classifier); the lantern tree's clump
+      // (below), whose lamps sit on its centre, keeps 1.5 (peaks 0.46 / 0.44).
+      { t: 0.96, center: [5.83, 4.54, -11.31], hR: 0.5, vR: 0.5, density: 1, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true, castShadow: false },
+      { t: 0.98, center: [7.05, 3.11, -10.1], hR: 0.5, vR: 0.5, density: 1, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true, castShadow: false },
+      { t: 0.92, center: [5.35, 5.26, -13.15], hR: 0.5, vR: 0.5, density: 1, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true, castShadow: false },
     ],
   },
   // shot D's west-column hut (round 31): a thin limb of the lantern tree over the north verge, wood
@@ -489,7 +496,7 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     to: [-2.2, 9.0, -11.9],
     radius: 0.3,
     tipRadius: 0.12,
-    lobes: [{ t: 1.0, center: [-1.92, 4.4, -12.32], hR: 0.35, vR: 0.4, density: 3, eye: 1, corridors: false, compact: true }],
+    lobes: [{ t: 1.0, center: [-1.92, 4.4, -12.32], hR: 0.35, vR: 0.4, density: 1.5, eye: 1, corridors: false, compact: true, castShadow: false }],
   },
 ];
 /**
@@ -1252,7 +1259,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       fromHeight: b.fromY - gy,
       radius: b.radius,
       tipRadius: b.tipRadius,
-      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact })),
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow })),
     }));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
@@ -1303,7 +1310,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
-    for (const g of [asset.geometry, asset.cards]) {
+    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards]) {
       g.translate(px, gy, pz);
       const root = g.getAttribute('aRoot') as BufferAttribute;
       for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
@@ -1377,6 +1384,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     canopy.userData.kind = 'giant-canopy-cards';
     giantGroup.add(mesh, canopy);
     sectorMeshes.push(mesh, canopy);
+  }
+  // The laminae of the authored lobes marked `castShadow: false` (round 31: the plateau-oak's
+  // shot-D curtains, clump and plugs, the lantern tree's clump — 51 k eye-detail laminae, 0.42 M
+  // triangles) in one mesh of their own that never casts (submitGiants skips it). Merged into a
+  // sector they were submitted to the sun's depth pass from every camera (a sector's sphere always
+  // meets the shadow frustum), so each view paid for them twice; here they are drawn only where
+  // their own sphere meets the view — A, B, D and E; behind C, off F's left. Their shadows fell on
+  // the terrace in front of Saria's house ((x + 1.008 (Y − y), z + 0.787 (Y − y)) from 3–5.5 m up:
+  // A (0.55–0.57, 0.48), B (0.75–0.80, 0.56), off D's right) and, the lantern clump's, on the D
+  // path at (2.2, −9.1). The older shade lobes (north-west-near and the others) keep casting: they
+  // exist for their shadows on the plaza and path sun pools.
+  const authoredParts = giants.filter((g) => g.asset.authoredLeaves.getAttribute('position').count > 0);
+  for (const g of giants) if (!authoredParts.includes(g)) g.asset.authoredLeaves.dispose();
+  if (authoredParts.length) {
+    const geometry = mergeParts(
+      'giants-authored-leaves',
+      authoredParts.map((g) => g.asset.authoredLeaves),
+    );
+    sectorGeometries.push(geometry);
+    const mesh = new Mesh(geometry, mats.giantTree);
+    mesh.name = `giants-authored-leaves-${authoredParts.map((g) => g.def.id).join('+')}`;
+    mesh.customDepthMaterial = mats.giantTreeDepth;
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    mesh.userData.kind = 'giant-authored-leaves';
+    mesh.userData.giants = authoredParts.map((g) => g.def.id);
+    giantGroup.add(mesh);
+    sectorMeshes.push(mesh);
   }
   group.add(giantGroup);
 
@@ -1551,6 +1586,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const submitGiants = () => {
     if (!ctx.quality.shadows) return;
     for (const mesh of sectorMeshes) {
+      if (mesh.userData.kind === 'giant-authored-leaves') continue; // never casts
       sphere.copy(mesh.geometry.boundingSphere!);
       sphere.radius += CULL_PAD_M;
       mesh.castShadow = shadowReaches(sphere);
@@ -1644,7 +1680,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const family = (key: string) => (byFamily[key] ??= tally());
     for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
     for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
-    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : 'giant-cards'), m));
+    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' ? 'giant-authored-leaves' : 'giant-cards'), m));
     for (const d of distantSets) {
       add(family('distant-near'), d.near);
       add(family('distant-far'), d.far);
@@ -1695,11 +1731,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
     let giantLeaves = 0;
+    let giantAuthoredLeaves = 0;
     let giantCards = 0;
     let giantLimbsMin = Infinity;
     let giantRootsMin = Infinity;
     for (const g of giants) {
       giantLeaves += g.asset.leafCount;
+      giantAuthoredLeaves += g.asset.authoredLeafCount;
       giantCards += g.asset.cardCount;
       woodTriangles += g.asset.woodTriangles;
       leafTriangles += g.asset.leafTriangles;
@@ -1721,6 +1759,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantRootsMin,
       giantLimbsMin,
       giantLeaves,
+      /** of `giantLeaves`, the authored canopy-bough lobes' laminae, drawn from their own non-casting mesh */
+      giantAuthoredLeaves,
+      giantAuthoredLeavesCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-leaves' && m.castShadow),
+      /** laminae per authored canopy-bough lobe (CANOPY_BOUGHS order within each giant) */
+      giantLobeLeaves: Object.fromEntries(giants.filter((g) => g.asset.lobeLeafCounts.length).map((g) => [g.def.id, g.asset.lobeLeafCounts])),
       /** leaf-cluster alpha cards inside the lobes (in addition to the laminae) */
       giantCanopyCards: giantCards,
       giantMeshes: sectorGeometries.length,
