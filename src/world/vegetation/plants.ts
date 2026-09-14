@@ -1883,21 +1883,27 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
          * reaches (frame 46's stair foot over short grass). The root tilts by (`leanX`, `leanZ`)
          * so a verge tuft leans over the slabs.
          */
-        const tuftAt = (x: number, z: number, s: FieldSample, rng: Rng, mix: readonly [number, number, number], dark = 1, leanX = 0, leanZ = 0) => {
+        const tuftAt = (x: number, z: number, s: FieldSample, rng: Rng, mix: readonly [number, number, number], mul: Color | null = null, leanX = 0, leanZ = 0) => {
           const u = rng() * (mix[0] + mix[1] + mix[2]);
           let cls = u < mix[0] ? 0 : u < mix[0] + mix[1] ? 1 : 2;
-          const shortOnly = field.troddenZone(x, z) > 0 || field.stoneDistance(x, z) < STONE_CLEARANCE || nearKid(x, z, 0.8) || field.lowZone(x, z) > 0.3 || field.trimZone(x, z) > 0.5 || field.lawnBand(x, z) > 0.5;
+          const shortOnly = field.troddenZone(x, z) > 0 || field.stoneDistance(x, z) < STONE_CLEARANCE || nearKid(x, z, 0.8) || field.lawnBand(x, z) > 0.5;
           const wedge = field.sightlineC(x, z, 0.6) > 0;
+          // the low verges and the frames' trimmed foregrounds (grass.ts keeps the turf short there)
+          // take the short and mid classes: frame 1's kid stands in lit tufts to his shins
+          const noTall = shortOnly || wedge || nearKid(x, z, 1.2) || field.lowZone(x, z) > 0.3 || field.trimZone(x, z) > 0.5;
           if (shortOnly) cls = 0;
-          else if ((wedge || nearKid(x, z, 1.2)) && cls === 2) cls = 1;
+          else if (noTall && cls === 2) cls = 1;
           let scale = 0.85 + rng() * 0.3;
           if (wedge) scale = Math.min(scale, 0.34 / tuftTop[cls]);
           const variant = cls + 3 * rng.int(0, 2);
           composeMatrix(M, 0, x, T.height(x, z) - 0.01, z, s.nx + leanX, s.ny, s.nz + leanZ, 0.85, rng() * Math.PI * 2, scale, scale, scale);
-          tufts.add(M, variant, greenVar(rng, 0.22).multiplyScalar(dark));
+          const c = greenVar(rng, 0.22);
+          tufts.add(M, variant, mul ? c.multiply(mul) : c);
         };
-        const tuftGround = (x: number, z: number, s: FieldSample) => {
-          if (field.dShoulder(x, z) > 0 || field.lawnEdgeDistance(x, z) < 0.08 || s.cliff > 0.35 || nearWhite(x, z, 0.3)) return false;
+        /** the sunlit turf face of the shot-A bank (frame 1: lit yellow-green tufts): a warmer, brighter tint */
+        const FACE_TINT = new Color(1.14, 1.1, 0.92);
+        const tuftGround = (x: number, z: number, s: FieldSample, shoulder = false) => {
+          if ((!shoulder && field.dShoulder(x, z) > 0) || field.lawnEdgeDistance(x, z) < 0.08 || s.cliff > 0.35 || nearWhite(x, z, 0.3)) return false;
           const clr = field.clearing(x, z);
           return !clr.insideBoulder && field.boulderDistance(x, z) >= 0.25 && field.giantDistance(x, z) >= 0.25;
         };
@@ -1914,10 +1920,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             max: 3600,
             accept(x, z, s) {
               if (!tuftGround(x, z, s) || !(onBank(x, z) || inWorldBox(x, z, D_RIGHT))) return 0;
-              return field.bankFace(x, z) > 0.3 ? 0.9 : 0.55 + 0.45 * field.cluster(x, z);
+              return field.bankFace(x, z) > 0.3 ? 0.95 : 0.55 + 0.45 * field.cluster(x, z);
             },
           },
-          (x, z, s, rng) => tuftAt(x, z, s, rng, [0.3, 0.4, 0.3]),
+          (x, z, s, rng) => tuftAt(x, z, s, rng, [0.2, 0.4, 0.4], field.bankFace(x, z) > 0.3 ? FACE_TINT : null),
         );
         // the rest of the lawns within reach of the cameras, thinner, so the banks are not islands
         scatter(
@@ -1930,7 +1936,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             max: 2400,
             accept: (x, z, s) => (nearCamera(x, z, 26) && tuftGround(x, z, s) ? 0.3 * field.falloff(x, z) * (0.4 + field.cluster(x, z)) * (1 - 0.5 * field.lawnBand(x, z)) : 0),
           },
-          (x, z, s, rng) => tuftAt(x, z, s, rng, [0.4, 0.4, 0.2]),
+          (x, z, s, rng) => tuftAt(x, z, s, rng, [0.35, 0.4, 0.25]),
         );
         // Saria's ramp and the lawn beside the stepping stones (frames 14 / 24: tufts of several
         // heights along the verge to the door): short tufts in the trodden strip and at the stone
@@ -1956,17 +1962,21 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         // stair branch, the plaza discs, the bank toe), their roots on the turf and the whole tuft
         // leaning over the slabs — the hardscape's sprouts stand IN the joints (materials/sprouts.ts);
         // these break the edge from the verge side. Mid and tall tufts where frame 1's lit tufts
-        // overhang the bank toe, short and mid elsewhere; D's culled shoulders stay soil.
+        // overhang the bank toe, short and mid elsewhere. D's culled shoulders (frame 56: "a
+        // ragged soil edge with a few tufts") keep 40 % of their candidates — the same ground is
+        // frame 1's left verge (A 0–0.25 × 0.55–0.62), where tufts cross the slab edge.
         {
           const rng = ctx.rng.fork('plants/tufts-verges');
           const s = newSample();
           const spacing = new Spacing(0.5);
-          field.rimCandidates(rng, 2.6 * q.density, 0.45, (x, z, edge) => {
-            // the draw first so the stream is the same whatever the gates below decide
-            if (rng() > 0.7 * field.falloff(x, z)) return;
+          field.rimCandidates(rng, 12 * q.density, 0.45, (x, z, edge) => {
+            // the draws first so the stream is the same whatever the gates below decide
+            const draw = rng();
+            const shoulder = field.dShoulder(x, z) > 0.2;
+            if (draw > (shoulder ? 0.4 : 0.85) * field.falloff(x, z)) return;
             field.sample(x, z, s);
-            if (field.dShoulder(x, z) > 0.2 || !field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || !tuftGround(x, z, s)) return;
-            if (!spacing.ok(x, z, 0.22)) return;
+            if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || !tuftGround(x, z, s, true)) return;
+            if (!spacing.ok(x, z, 0.16)) return;
             spacing.add(x, z);
             // toward the nearest paved edge: down the lawnEdgeDistance gradient, the root tilted that way
             const gx = field.lawnEdgeDistance(x + 0.05, z) - field.lawnEdgeDistance(x - 0.05, z);
@@ -1974,7 +1984,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             const gl = Math.hypot(gx, gz) || 1;
             const k = 0.5 * (1 - Math.min(1, edge / 0.45));
             const face = field.bankFace(x, z) > 0.3;
-            tuftAt(x, z, s, rng, face ? [0.2, 0.4, 0.4] : [0.45, 0.45, 0.1], face ? 1.06 : 1, -(gx / gl) * k, -(gz / gl) * k);
+            tuftAt(x, z, s, rng, face ? [0.2, 0.4, 0.4] : [0.4, 0.45, 0.15], face ? FACE_TINT : null, -(gx / gl) * k, -(gz / gl) * k);
           });
         }
 
