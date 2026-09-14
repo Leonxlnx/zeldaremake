@@ -58,7 +58,7 @@ export const WORLD = {
      * the shade floors (materials/shadeFloor.ts: −0.18 / −0.21 on the same bands when off) and is
      * reported to their owner. SSIM −0.002 / −0.004 alone, paid for by the haze blur (postfx).
      */
-    hemiGround: 0x7d7560,
+    hemiGround: 0x7d7860,
     /**
      * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
      * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs
