@@ -168,9 +168,10 @@ export const LAYOUT = {
    */
   pathToHouse: [
     // two verge stones beside the north path's paved edge (frame 14 s: the stones right of Link's
-    // feet); the plaza's paving reaches z ≈ −4 here, the flight's paved apron z ≈ −6.5
-    [4.3, 0, -4.1],
-    [3.5, 0, -5.9],
+    // feet), on the flat strip between the plaza's paving (x ≤ 3.3 at z −4.5) and the toe of the
+    // flight's south bank (x ≥ 3.5 there; a disc needs < 0.28 m of ground span)
+    [3.45, 0, -4.2],
+    [3.0, 0, -5.2],
     // the paved apron in front of the first riser (0.27 m up from the path — a kerb the height of
     // one riser, so the apron is the flight's wide first tread: frame 56 s' pale flat stone at
     // y 0.72–0.80 under the lit nosings), then the flight's foot, head and landing end (layout
