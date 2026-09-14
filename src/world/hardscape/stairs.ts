@@ -163,8 +163,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   const baseY = 0; // local y relative to def.base[1]
   for (let i = 0; i < def.steps; i++) {
     const topY = baseY + (i + 1) * def.rise + rng.range(-0.008, 0.008);
-    const ts = rng.range(0.11, 0.15); // slab thickness
-    const nose = rng.range(0.02, 0.045);
+    // Round 31 (frames 1 s / 8 s, the owner's "one-to-one with Link's steps"): each tread is a
+    // heavy slab whose nose overhangs the riser by a hand's width, so every step reads as a lit
+    // rolled lip over a deep shadow line — the frame's flight (A x 0.60–0.80) has 15 lit lips
+    // 0.45–0.59 over troughs 0.24–0.36, ours read 0.32–0.49 over 0.24–0.27 with a 2–4.5 cm nose
+    const ts = rng.range(0.13, 0.16); // slab thickness
+    const nose = rng.range(0.065, 0.095);
     const uFront = i * def.tread - nose + rng.range(-0.012, 0.012);
     const uBack = (i + 1) * def.tread + 0.03;
     const depth = uBack - uFront;
@@ -179,8 +183,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // plaza's, where the plaza itself matches the frame; red 0.98 -> 0.90, blue 1.14 -> 1.34 - the post chain passes ~1/4 of an albedo shift)
     const color: [number, number, number] = [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.34];
 
-    // split the tread into two stones sometimes
-    const split = rng.chance(0.36);
+    // split the tread into two stones sometimes (round 31: 0.36 → 0.2 — frame 8 s reads the
+    // flight with a third of our vertical joint energy, 0.037 against 0.068 in its box)
+    const split = rng.chance(0.2);
     const pieces: { a0: number; a1: number }[] = [];
     if (split) {
       const s = rng.range(-0.55, 0.55) * hw;
@@ -211,17 +216,20 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       );
       shapeHashes.push(outlineHash(outline));
       const dip = rng.range(0.01, 0.026);
-      // the nose catches the light — softer than round 22 (1.3–1.48): frame 1 s's lip is a thin
-      // highlight over a tread that drops to the riser tone within a hand's width, and the flight
-      // column's light/dark rhythm read 0.165 against the frame's 0.115
-      const noseBright = rng.range(1.2, 1.36);
-      const bevel = rng.range(0.022, 0.034);
+      // the nose catches the light. Round 31: back up from round 23's 1.2–1.36 — measured along
+      // the flight's centre line the frame's lips stand 0.12–0.20 over the riser troughs (A mid
+      // flight 0.45–0.52 over 0.29–0.36; F p90 0.58 over p10 0.31) where ours stood 0.05–0.10
+      // (A 0.32–0.38 over 0.26; F 0.43 over 0.23)
+      const noseBright = rng.range(1.35, 1.5);
+      // the roll's drop (bevel) is 5–7 cm of the 13–16 cm slab, in three bands (bevelRings) on a
+      // quarter-round: a bulging, log-like lip like the frame's rather than a cut chamfer
+      const bevel = rng.range(0.05, 0.07);
       // worn, rounded nose (sheet 01 / 04 stairs insets): the shoulder ring is pushed a further
-      // 2–3.5 cm back along the front edge, so the nose bevel is 4–7 cm wide for the same drop
+      // 4–6 cm back along the front edge, so the nose roll is 9–13 cm wide for the same drop
       // and, smoothed as one group with the top (softBevel), rolls over instead of showing a
-      // cut crease; the back and flanks keep the tight bevel. The roll varies along the edge
+      // cut crease; the back and flanks keep the plain roll. The roll varies along the edge
       // (0.6–1.4×, chips widening it) so the lip's highlight is a worn, broken line
-      const noseRound = rng.range(0.02, 0.035);
+      const noseRound = rng.range(0.04, 0.06);
       const topRing = inset(outline, bevel).map((p, k) => {
         if (!isFront[k]) return p;
         const ax = p.x + cxl;
@@ -239,16 +247,24 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
         bevel,
+        bevelRings: 3,
         topRing,
         softBevel: true,
         notchedTop: true,
+        // the overhang's underside is visible from below the flight (camera F looks up at the
+        // treads above eye level), so the slab is closed
+        bottom: true,
         dip,
         color,
         // the tread's own front face is the upper band of the riser: closer to the riser stone
         // than round 22's 0.62 (× 1.34 lit) so a step is nose → one dark face, not a two-tone
-        // riser. (The bevel ring is shaded from this too: the lip is a thin highlight, a touch
-        // cooler — frame 1 s lips sat 0.12 / B/R 0.78 against our 0.15 / 0.74.)
+        // riser. (Round 31: the roll is shaded from the TOP colour (bevelColor), not this — as the
+        // side colour × 1.2–1.36 the "lit lip" was 0.6–0.68 of the tread top's albedo, darker
+        // than the tread it was meant to crown; the frame's lips are its palest stone.)
         sideColor: [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
+        // a touch cooler than the tread top: the frame's lit lips are its palest and coolest
+        // stone (A lit-20 % B/G 0.84, F 0.87; ours read 0.80 / 0.75 with the lip at the top colour)
+        bevelColor: [color[0] * 0.95, color[1], color[2] * 1.15],
         mossEdge: 0.85,
         mossInner: 0.05,
         mossFn: (x, z) => mossAt(x + cxl, z + czl),
@@ -268,13 +284,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           const back = smoothstep(depth / 2 - 0.2, depth / 2 - 0.02, z); // 1 at the back edge
           const flank = smoothstep(hw - 0.75, hw + 0.05, Math.abs(x + cxl));
           const grime = 1 - 0.16 * flank * (0.6 + 0.4 * (wear.noise((x + cxl) * 2.1 + 7, (z + czl) * 2.1) * 0.5 + 0.5));
-          if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime;
+          // wet / dark patches (frames 1 s / 8 s: the treads carry damp blotches 0.3–0.6 m across,
+          // darkest toward the back of the tread and the flanks, the trodden centre-front stays dry)
+          const wet = smoothstep(0.2, 0.7, wear.fbm((x + cxl) * 1.7 + 31, (z + czl) * 1.7 + i * 0.61, 2)) * (0.45 + 0.55 * Math.max(back, 1 - feet(x + cxl)));
+          const damp = 1 - 0.2 * wet;
+          if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime * (1 - 0.08 * wet);
           // the nose face under the lip: a shade lighter and greener than the riser stone below it
           // (a damp skin under the overhang), the buried sides stay dark
           if (part === 'side') return z < 0 ? [1.02 * grime, 1.06 * grime, 0.98 * grime] : 0.92 * grime;
           const m = mottle(x + cxl, z + czl);
-          const k = (1 + 0.09 * front - 0.13 * back) * grime;
-          return [m[0] * k, m[1] * k, m[2] * k];
+          const k = (1 + 0.09 * front - 0.13 * back) * grime * damp;
+          return [m[0] * k, m[1] * k, m[2] * k * (1 + 0.04 * wet)];
         },
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
@@ -294,7 +314,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // open between it and the joint fill at the stair foot
     const rBottom = i === 0 ? baseY - 0.32 : baseY + i * def.rise - 0.05;
     const rh = rTop - rBottom;
-    const nR = rng.chance(0.55) ? 1 : rng.chance(0.6) ? 2 : 3;
+    // round 31: one stone in most risers, two in a quarter, never three (frame 8 s: the riser
+    // band under each lip is one dark recess, not stacked pieces)
+    const nR = rng.chance(0.75) ? 1 : 2;
     let a = -hw + 0.02;
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
@@ -303,8 +325,11 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // skin creeping over them from the joints. Round 23: a shade lighter than round 22's
       // 0.27–0.35 — the frame's riser troughs sit at the same luminance as ours (≈ 0.25), it is
       // the lip and the tread's own face that were too bright, so the tread face comes down to
-      // meet the riser (above) and the riser comes up a little to meet it
-      const rc = 0.31 + rng.range(0, 0.08);
+      // meet the riser (above) and the riser comes up a little to meet it. Round 31: up again
+      // (0.31–0.39 → 0.38–0.46) — with the deep nose overhang the whole face sits in the tread's
+      // shadow, and frame 8 s reads its riser band at 0.31 (p10 of the flight box) against our
+      // 0.23, frame 1 s' mid-flight troughs at 0.29–0.36 against our 0.26–0.27
+      const rc = 0.38 + rng.range(0, 0.08);
       // more vertices along the face (segs 7) so the moss patches below can vary every 15–40 cm
       const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
       const ac = a + len / 2;

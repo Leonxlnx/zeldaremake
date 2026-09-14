@@ -412,6 +412,12 @@ export interface SlabOptions {
   topRing?: P2[];
   /** Validate the radial cap centre against concave notch edges; other slabs keep their old topology. */
   notchedTop?: boolean;
+  /**
+   * bands in the bevel (default 1, a single chamfer). With 2–3 the bevel follows a convex
+   * quarter-round from the wall (steep) to the top ring (flat) — a worn, rolled nosing whose lit
+   * crown and shadowed underside grade into each other (frame 1 s stair lips).
+   */
+  bevelRings?: number;
   /** weathering gate (`aWear`) written on the top face and shoulder ring: the stone shader's lichen/grime mottling (0 = none) */
   wear?: number;
   /**
@@ -563,24 +569,46 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0]);
   }
 
-  // --- bevel ring (smooth) ---
+  // --- bevel ring (smooth): one chamfer band, or `bevelRings` bands on a quarter-round ---
   mb.beginGroup();
-  for (let i = 0; i < n; i++) {
-    const p = outer[i];
-    const q = outer[(i + 1) % n];
-    const pi = top[i];
-    const qi = top[(i + 1) % n];
-    _a.set(p.x, t - bevel, p.z);
-    _b.set(q.x, t - bevel, q.z);
-    _c.set(qi.x, topY(qi, 1), qi.z);
-    _d.set(pi.x, topY(pi, 1), pi.z);
-    const aP = mossAdd(p.x, p.z, 1);
-    const aQ = mossAdd(q.x, q.z, 1);
-    const mE = mossEdge * mossFn(p.x, p.z) + aP;
-    const mE2 = mossEdge * mossFn(q.x, q.z) + aQ;
-    const bc = shade(bcol, 'bevel', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4);
-    mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mE, mE2, mossEdge * mossFn(q.x, q.z) * 0.7 + aQ], undefined, undefined, wear, crackOf(p, q, qi));
-    mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mE, mossEdge * mossFn(q.x, q.z) * 0.7 + aQ, mossEdge * mossFn(p.x, p.z) * 0.7 + aP], undefined, undefined, wear, crackOf(p, qi, pi));
+  const bands = Math.max(1, Math.round(o.bevelRings ?? 1));
+  // ring j of the roll: horizontal blend outer → top ring by 1 − cos, height by sin (convex)
+  const rollRing = (j: number): { pts: P2[]; ys: number[]; m: number } => {
+    if (j === 0) return { pts: outer, ys: outer.map(() => t - bevel), m: 1 };
+    if (j === bands) return { pts: top, ys: top.map((p) => topY(p, 1)), m: 0.7 };
+    const th = (j / bands) * (Math.PI / 2);
+    const s = 1 - Math.cos(th);
+    const k = Math.sin(th);
+    return {
+      pts: outer.map((p, i) => ({ x: p.x + (top[i].x - p.x) * s, z: p.z + (top[i].z - p.z) * s })),
+      ys: outer.map((_, i) => t - bevel + (topY(top[i], 1) - (t - bevel)) * k),
+      m: 1 - 0.3 * (j / bands),
+    };
+  };
+  for (let j = 0; j < bands; j++) {
+    const lo = rollRing(j);
+    const hi = rollRing(j + 1);
+    for (let i = 0; i < n; i++) {
+      const i1 = (i + 1) % n;
+      const p = lo.pts[i];
+      const q = lo.pts[i1];
+      const pi = hi.pts[i];
+      const qi = hi.pts[i1];
+      _a.set(p.x, lo.ys[i], p.z);
+      _b.set(q.x, lo.ys[i1], q.z);
+      _c.set(qi.x, hi.ys[i1], qi.z);
+      _d.set(pi.x, hi.ys[i], pi.z);
+      // moss / colour keyed to the outline vertex (the rings are homothetic per vertex)
+      const op = outer[i];
+      const oq = outer[i1];
+      const aP = mossAdd(op.x, op.z, 1);
+      const aQ = mossAdd(oq.x, oq.z, 1);
+      const mP = mossEdge * mossFn(op.x, op.z);
+      const mQ = mossEdge * mossFn(oq.x, oq.z);
+      const bc = shade(bcol, 'bevel', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4);
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mP * lo.m + aP, mQ * lo.m + aQ, mQ * hi.m + aQ], undefined, undefined, wear, crackOf(p, q, qi));
+      mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mP * lo.m + aP, mQ * hi.m + aQ, mP * hi.m + aP], undefined, undefined, wear, crackOf(p, qi, pi));
+    }
   }
   if (!o.softBevel) mb.smoothGroup();
 
