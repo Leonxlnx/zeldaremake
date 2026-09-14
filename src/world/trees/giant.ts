@@ -55,10 +55,24 @@ export const NEAR_BOLE_ROOTS = true;
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
   geometry: BufferGeometry;
+  /**
+   * the laminae of the authored canopy-bough lobes (CanopyBough.lobes) alone, local space, same
+   * attributes and material as `geometry` (leaf vertices flagged in aRoot.w) — empty for a tree
+   * without authored boughs. Kept apart so the caller can draw them without a shadow pass: an
+   * eye-detail curtain is 5× the laminae of a roof lobe at 8 triangles each, and a giant's merged
+   * mesh is submitted to the sun's depth pass from every camera (round 31: 51 k such laminae cost
+   * 0.42 M triangles twice per view).
+   */
+  authoredLeaves: BufferGeometry;
   /** leaf-cluster alpha cards filling the lobe interiors (separate material) */
   cards: BufferGeometry;
   cardCount: number;
+  /** all laminae, the authored lobes' included */
   leafCount: number;
+  /** of `leafCount`, the laminae in `authoredLeaves` */
+  authoredLeafCount: number;
+  /** laminae per authored canopy-bough lobe, in build order (every CanopyBough's lobes, casting or not) */
+  lobeLeafCounts: number[];
   woodTriangles: number;
   leafTriangles: number;
   limbs: number;
@@ -194,6 +208,12 @@ export interface CanopyLobe {
   shade?: number;
   corridors?: boolean;
   compact?: boolean;
+  /**
+   * false: the lobe's laminae go to GiantAsset.authoredLeaves, which the caller draws without a
+   * shadow pass (its cards and stem still cast). For lobes that exist to stand on a camera ray,
+   * not to shade anything — a shade lobe over a sun pool keeps the default (true).
+   */
+  castShadow?: boolean;
 }
 
 /**
@@ -292,7 +312,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const bt = (a: number, b: number) => between(r, a, b);
   const gnarl = new Noise2D(`giant-bark/${def.id}`);
   const wood = new GeometryWriter('high');
-  const leaves = new GeometryWriter('high');
+  // `leaves` is rebound to `authoredLeaves` while the authored canopy-bough lobes are foliated
+  // (the leaf helpers read it at call time), so those laminae land in their own geometry
+  let leaves = new GeometryWriter('high');
+  const treeLeaves = leaves;
+  const authoredLeaves = new GeometryWriter('high');
   const cards = new GeometryWriter('high');
   const R = def.trunkRadius;
   const H = def.height;
@@ -1050,6 +1074,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // Built after everything else from their own stream (the lobe foliage draws from the main stream,
   // but nothing is generated after it), so the tree above is identical with or without them.
   const rcb = r.fork('canopy-bough');
+  const lobeLeafCounts: number[] = [];
   for (const spec of o.canopyBoughs ?? []) {
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
@@ -1088,6 +1113,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const stemRadius = Math.max(0.07, r0 * (1 - lobeSpec.t * 0.6) * 0.34);
       tube(wood, stem, taper(stem, stemRadius, 0.02), 6, rcb, { color: barkColor, roughness: 0.04 });
       const d = lobeSpec.density ?? 1;
+      // a non-casting lobe's laminae go to their own writer (the leaf helpers read `leaves` at
+      // call time); the leaf ordinal is one sequence across both writers, so every lamina's
+      // detail pick is what it was when all of them shared one writer
+      leaves = lobeSpec.castShadow === false ? authoredLeaves : treeLeaves;
+      leaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
       eyeOverride = lobeSpec.eye ?? null;
       lobeTone = lobeSpec.tone ?? 1;
       leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
@@ -1097,21 +1127,27 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // so the leaves gather around the authored centre instead of trailing up towards the bough;
       // a compact clump does the same whichever way its stem runs
       const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
+      const leavesBefore = leaves.leafCount;
       foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
+      lobeLeafCounts.push(leaves.leafCount - leavesBefore);
       eyeOverride = null;
       lobeTone = 1;
       leaves.leafShade = cards.leafShade = 1;
       corridorExempt = false;
+      leaves = treeLeaves;
     }
   }
 
   return {
-    geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), leaves.finish('leaves')]),
+    geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), treeLeaves.finish('leaves')]),
+    authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
     cards: cards.finish(`giant-cards-${def.id}`),
     cardCount: cards.triangles / 2,
-    leafCount: leaves.leafCount,
+    leafCount: treeLeaves.leafCount + authoredLeaves.leafCount,
+    authoredLeafCount: authoredLeaves.leafCount,
+    lobeLeafCounts,
     woodTriangles: wood.triangles,
-    leafTriangles: leaves.triangles,
+    leafTriangles: treeLeaves.triangles + authoredLeaves.triangles,
     limbs,
     roots: rootCount,
     contacts,
