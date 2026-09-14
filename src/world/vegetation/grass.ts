@@ -122,9 +122,10 @@ const HOUSE_FLANK_MAX_H = 0.38;
 /**
  * the south flank is camera C's left foreground at 2–4.5 m (frame 46: the stair foot over short
  * turf — cap-final read tall lit blades there, C 0.3099 → 0.3017), so it keeps the C grass-box
- * rule (`sight`) and this lower cap; the north flank stands behind camera C
+ * rule (`sight`) and this lower cap (cap-3 with 0.22: still 0.15–0.18 m blades 2.3 m before C,
+ * C −0.0023, where control had 0.02–0.10 m); the north flank stands behind camera C
  */
-const HOUSE_FLANK_MAX_H_SOUTH = 0.22;
+const HOUSE_FLANK_MAX_H_SOUTH = 0.12;
 const HOUSE_FLANK_NORTH_TINT = -0.6;
 /**
  * the ground before the first riser (stair-local u below HOUSE_FOOT_ALONG m): frame 56 s' dark
@@ -225,8 +226,12 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const bare = trod * smoothstep(0.25, 0.7, field.dry(x, z));
       // camera C's left third (frame 46): the stair foot shows over short turf, no tall blades —
       // the house flight's north flank excepted (it stands behind camera C)
-      const houseLocal = housePass ? field.houseFlightLocal(x, z) : null;
-      const houseNorth = houseLocal !== null && houseLocal.v < 0;
+      const houseZone = housePass ? house : field.houseFlankZone(x, z);
+      const houseLocal = housePass || houseZone > 0 ? field.houseFlightLocal(x, z) : null;
+      const houseNorth = housePass && houseLocal !== null && houseLocal.v < 0;
+      // the south flank's blades of every pass stay under the south cap (cap-3: the lawn pass's
+      // 0.16 m blades 2.3 m before camera C, where frame 46 s has a fine low fringe)
+      const houseSouth = houseLocal !== null && houseLocal.v > 0 ? houseZone : 0;
       const sight = houseNorth ? 0 : field.sightlineC(x, z, 0.5);
       // frame 56 s' hollow (round 32): a low, thinned cover
       const hollow = field.dHollow(x, s.h, z);
@@ -265,7 +270,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       }
       if (edge < 0.3 && !flankPass && !housePass) h *= 0.72;
       if (flankPass) w *= FLANK_WIDTH;
-      const houseFoot = houseLocal !== null && houseLocal.u < HOUSE_FOOT_ALONG;
+      const houseFoot = housePass && houseLocal !== null && houseLocal.u < HOUSE_FOOT_ALONG;
       if (housePass) {
         // bank turf at lawn height, the tread ends lapped (frame 56 s' tufts creep over them);
         // short dusty tufts on the trodden earth before the first riser
@@ -273,6 +278,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         h = Math.min(h * 1.25 + 0.04, houseNorth ? HOUSE_FLANK_MAX_H : HOUSE_FLANK_MAX_H_SOUTH);
         if (houseFoot) h *= HOUSE_FOOT_HEIGHT;
       }
+      if (houseSouth > 0) h = Math.min(h, h + (HOUSE_FLANK_MAX_H_SOUTH - h) * houseSouth);
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
       h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow);
@@ -287,7 +293,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod;
       if (s.slope > 0.35) tn -= 0.15 * (1 - shade);
       // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
-      if (houseLocal !== null && houseLocal.v < 0) tn += HOUSE_FLANK_NORTH_TINT;
+      if (houseNorth) tn += HOUSE_FLANK_NORTH_TINT;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
       const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0)) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);

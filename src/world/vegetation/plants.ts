@@ -2105,8 +2105,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                 accept: (x, z, s) => (houseGround(x, z, s) && field.lawnEdgeDistance(x, z, true) >= 0.06 ? 0.8 * field.houseFlankZone(x, z) * (0.5 + field.cluster(x, z)) * (north(x, z) ? 1 : 0.6) : 0),
               },
               // the frame's bank is cushions to ~0.28 m across between the tufts (≤ 0.12 m: the rim-moss
-              // contract), more on the shaded north side
-              (x, z, _s, rng) => placeMossWith(rng, x, z, 0.1 + rng() * 0.18, true),
+              // contract), more on the shaded north side; the south lip's cushions stay small (they
+              // stand 2.3 m before camera C, where frame 46 s has a fine low fringe, cap-3 C −0.0023)
+              (x, z, _s, rng) => placeMossWith(rng, x, z, north(x, z) ? 0.1 + rng() * 0.18 : 0.06 + rng() * 0.08, true),
             );
             // ---- (3) clover closing the turf between the tufts
             scatter(
