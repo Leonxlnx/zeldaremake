@@ -186,7 +186,8 @@ assert.ok(rimMoss.every(it=>top(a.plants.moss,it)-it.y<=0.12),'rim moss stays a 
 const rimStats=a.field.pavedRimStats();
 assert.ok(rimStats.metres>=20&&rimStats.bankMetres>=6,`mask-derived paved rim: ${rimStats.metres.toFixed(1)} m, ${rimStats.bankMetres.toFixed(1)} m of it the bank toe`);
 assert.ok(rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length>=15,`rim moss along the plaza discs' own rim: ${rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length}`);
-{const bs=newSample();for(const set of a.plants.all)for(const it of set.items){if(a.field.bankFace(it.x,it.z)<=0.3)continue;a.field.sample(it.x,it.z,bs);
+// round 31: the grass tufts (plantgeo.ts tuftGeometry) ARE frame 1's lit tufts on that face — the one plant set the face grows
+{const bs=newSample();for(const set of a.plants.all)for(const it of set.items){if(set===a.plants.tufts||a.field.bankFace(it.x,it.z)<=0.3)continue;a.field.sample(it.x,it.z,bs);
   assert.ok(bs.slope<=0.2,`${set.opts.name} on the shot-A bank face at (${it.x.toFixed(2)},${it.z.toFixed(2)}), slope ${bs.slope.toFixed(2)}`);}}
 // Round 13 — foreground framing (owner boards 01 / 02 / 06 / 08; frames 1 s / 14 s / 46 s / 56 s).
 const scaleOf=it=>Math.hypot(it.matrix[0],it.matrix[1],it.matrix[2]),kidSpots=[...LAYOUT.npcSpots.map(n=>[n.position[0],n.position[2]]),[4.96,5.29],[6.21,3.2]];

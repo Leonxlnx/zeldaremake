@@ -7,7 +7,7 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, bladeStrip, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
 
 export type Detail = 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
@@ -63,12 +63,21 @@ const arch = (radial: Vector3, lateral: Vector3, reach: number, sway: number, h:
     .add(V(0, h * Math.sin(t * Math.PI * rise), 0));
 
 // ---------------------------------------------------------------- ferns
+/**
+ * Understory fern clump. Round 31 (the owner's "really dense and very detailed"): 8–10 fronds
+ * (was 6–8) on a tighter reach so the clump reads as one mass; the near LOD carries 13 pinna
+ * pairs per frond as four-section lances whose rim steps in and out (a pinnule notch on each
+ * side), the pinnae brighten from a dark heart to lit tips, every frond ends in a drooping tip,
+ * and one or two fiddlehead coils rise from the crown centre (the frames' ferns show their buds).
+ * ≈ 3.3 K / 1.0 K / 0.23 K triangles (high / mid / low; was 1.8 K / 0.7 K / 0.23 K). Height
+ * range unchanged (0.5–0.82 m at unit scale) so every scatter's caps hold.
+ */
 export function fernGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const high = detail === 'high';
   const low = detail === 'low';
-  const fronds = low ? 5 : 6 + rng.int(0, 3);
+  const fronds = low ? 5 : 8 + rng.int(0, 3);
   const height = 0.5 + rng() * 0.32;
   const azimuth = rng() * TAU;
   const stemColor = blend(pal.stem, pal.fern, 0.5);
@@ -76,34 +85,59 @@ export function fernGeometry(seed: string, pal: PlantPalette, detail: Detail): B
     const angle = azimuth + (f * TAU) / fronds + (rng() - 0.5) * 0.35;
     const radial = V(Math.cos(angle), 0, Math.sin(angle));
     const lateral = V(-Math.sin(angle), 0, Math.cos(angle));
-    const h = height * (f === 0 ? 1 : 0.68 + rng() * 0.32);
-    const reach = 0.58 + rng() * 0.36 + (1 - h / height) * 0.2;
+    const h = height * (f === 0 ? 1 : 0.62 + rng() * 0.38);
+    const reach = 0.5 + rng() * 0.32 + (1 - h / height) * 0.2;
     const curve = arch(radial, lateral, reach, (rng() - 0.5) * 0.18, h);
-    const segs = high ? 10 : low ? 4 : 6;
-    tube(m, sampleCurve(curve, segs), 0.0075, 0.001, stemColor, high ? 4 : 3);
-    const pairs = high ? 11 : low ? 5 : 8;
-    const frondTone = 0.85 + rng() * 0.3;
+    const segs = high ? 8 : low ? 4 : 6;
+    tube(m, sampleCurve(curve, segs), 0.0075, 0.001, stemColor, 3);
+    const pairs = high ? 13 : low ? 5 : 9;
+    const frondTone = 0.8 + rng() * 0.35;
     for (let p = 0; p < pairs; p++) {
-      const t = 0.15 + (p / (pairs - 1)) * 0.8;
+      const t = 0.12 + (p / (pairs - 1)) * 0.84;
       const envelope = Math.pow(Math.sin(Math.PI * ((t - 0.05) / 0.95)), 0.8);
-      const length = (0.2 + rng() * 0.05) * Math.max(0.1, envelope) * (1 - t * 0.25) * (low ? 1.25 : 1);
+      const length = (0.19 + rng() * 0.05) * Math.max(0.1, envelope) * (1 - t * 0.3) * (low ? 1.25 : 1);
       for (const sign of [-1, 1]) {
         const origin = curve(Math.min(1, Math.max(0, t + sign * 0.005)));
         const dir = lateral
           .clone()
           .multiplyScalar(sign)
           .addScaledVector(radial, 0.25 + t * 0.3)
-          .add(V(0, 0.12 - t * 0.28 + (rng() - 0.5) * 0.15, 0));
-        const color = tone(pal.fern, frondTone * (0.9 + rng() * 0.2));
-        const opts = { curl: 0.05 + rng() * 0.12, twist: sign * (0.05 + rng() * 0.2), ridge: 0.15, serration: 0.05 };
-        if (high) lanceLeaf(m, origin, dir, length * (0.92 + rng() * 0.16), length * (0.26 + rng() * 0.06), color, { ...opts, sections: 3 });
+          .add(V(0, 0.1 - t * 0.32 + (rng() - 0.5) * 0.15, 0));
+        // a dark heart under lit tips: the frame's clumps read as bright frond ends over shade
+        const color = tone(pal.fern, frondTone * (0.82 + t * 0.3 + rng() * 0.12));
+        const opts = { curl: 0.06 + rng() * 0.12, twist: sign * (0.05 + rng() * 0.2), ridge: 0.15, serration: high ? 0.16 : 0.05 };
+        if (high) lanceLeaf(m, origin, dir, length * (0.92 + rng() * 0.16), length * (0.24 + rng() * 0.06), color, { ...opts, sections: 4 });
         else if (low) foldedLeaf(m, origin, dir, length, length * 0.3, color, opts);
         else curvedLeaf(m, origin, dir, length, length * 0.28, color, opts);
       }
     }
-    const tipDir = radial.clone().add(V(0, -0.35, 0));
-    if (low) foldedLeaf(m, curve(0.96), tipDir, 0.07, 0.02, tone(pal.fern, 1.05));
-    else curvedLeaf(m, curve(0.96), tipDir, 0.075, 0.02, tone(pal.fern, 1.05), { curl: 0.2 });
+    const tipDir = radial.clone().add(V(0, -0.5, 0));
+    if (low) foldedLeaf(m, curve(0.96), tipDir, 0.07, 0.02, tone(pal.fern, 1.08));
+    else curvedLeaf(m, curve(0.96), tipDir, 0.075, 0.02, tone(pal.fern, 1.08), { curl: 0.25 });
+  }
+  if (high) {
+    // fiddleheads at the crown centre: a short stalk and a coil curling back over itself
+    const coils = 1 + rng.int(0, 2);
+    const coilColor = tone(blend(pal.fern, pal.leafSun, 0.5), 1.1);
+    for (let k = 0; k < coils; k++) {
+      const a = azimuth + k * 2.4 + rng() * 0.8;
+      const radial = V(Math.cos(a), 0, Math.sin(a));
+      const root = radial.clone().multiplyScalar(0.02 + rng() * 0.03);
+      const stalkH = height * (0.42 + rng() * 0.18);
+      const stalk = (t: number) => root.clone().addScaledVector(radial, 0.05 * t * t).add(V(0, stalkH * t, 0));
+      tube(m, sampleCurve(stalk, 4), 0.006, 0.0045, blend(pal.fern, pal.bark, 0.35), 3);
+      const top = stalk(1);
+      const R = 0.02 + rng() * 0.01;
+      const centre = top.clone().addScaledVector(radial, -R);
+      const spiral: Vector3[] = [];
+      for (let j = 0; j <= 8; j++) {
+        const u = j / 8;
+        const ang = u * 1.3 * TAU;
+        const r = R * (1 - 0.5 * u);
+        spiral.push(centre.clone().addScaledVector(radial, Math.cos(ang) * r).add(V(0, Math.sin(ang) * r, 0)));
+      }
+      tube(m, spiral, 0.007, 0.003, coilColor, 4, true);
+    }
   }
   return m.finish({ groundToZero: true });
 }
@@ -313,11 +347,13 @@ export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): 
 
   // leaf shells: `place` puts a leaf on the crown surface at radius `r`, facing outward with a
   // random tilt; the outer shell is lit by its height (leafSun toward the top, the skirt in
-  // shade), the inner shell is all shade so the gaps between outer leaves stay dark
-  const place = (r: number, len: number, inner: boolean) => {
-    // the visible half: more leaves toward the top, fewer under the bulge
-    const phi = Math.acos(1 - rng() * 1.55);
-    const ang = rng() * TAU;
+  // shade), the inner shell is all shade so the gaps between outer leaves stay dark.
+  // Round 31: the outer shell grows in CLUSTERS — 20–30 leaf bunches on the crown, each a bump
+  // whose core leaves stand proud and lit and whose fringe sinks toward the dark interior — with
+  // a vertex shade gradient toward the core (the leaf base darker than its tip, the sunk fringe
+  // darker than the bump top), like the trees' shade floor: the crown reads as overlapping leaf
+  // clusters over a shaded heart instead of an even speckle on a blob.
+  const place = (phi: number, ang: number, r: number, len: number, inner: boolean, depth: number) => {
     const p = surface(phi, ang, r);
     const outward = V(Math.cos(ang) * Math.sin(phi), Math.cos(phi) * 0.9 + 0.15, Math.sin(ang) * Math.sin(phi)).normalize();
     // the blade lies on the surface (its plane normal is the outward direction), pointing up the
@@ -330,16 +366,36 @@ export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): 
     const base = p.clone().addScaledVector(dir, -len * 0.55);
     const sun = inner ? 0 : Math.min(1, Math.max(0, outward.y * 0.85 + 0.15));
     const lit = blend(inner ? shade : blend(skirt, pal.leaf, 0.6), pal.leafSun, sun * 0.8);
-    // a wide leaf-to-leaf spread: the frame's mass is dark with lit clusters, not an even speckle
-    const color = tone(lit, inner ? 0.85 + rng() * 0.3 : 0.7 + rng() * 0.6);
-    const opts = { curl: 0.12 + rng() * 0.16, twist: (rng() - 0.5) * 0.7, ridge: 0.1, planeNormal: outward };
+    // a wide leaf-to-leaf spread: the frame's mass is dark with lit clusters, not an even speckle;
+    // `depth` (0 = bump top, 1 = sunk into the crown) pulls the fringe toward the shade tone
+    const color = blend(tone(lit, inner ? 0.85 + rng() * 0.3 : 0.7 + rng() * 0.6), shade, inner ? 0 : depth * 0.7);
+    const opts = { curl: 0.12 + rng() * 0.16, twist: (rng() - 0.5) * 0.7, ridge: 0.1, planeNormal: outward, tipColor: inner ? undefined : tone(lit, 1.15) };
     if (low) foldedLeaf(m, base, dir, len, len * 0.7, color, opts);
     else curvedLeaf(m, base, dir, len, len * (0.6 + rng() * 0.2), color, opts);
   };
-  const outer = high ? 400 : low ? 110 : 190;
+  // the visible half: more leaves toward the top, fewer under the bulge
+  const randomPhi = () => Math.acos(1 - rng() * 1.55);
+  const outer = high ? 470 : low ? 110 : 210;
   const innerCount = high ? 150 : low ? 0 : 70;
-  for (let l = 0; l < innerCount; l++) place(0.86 + rng() * 0.06, 0.08 + rng() * 0.04, true);
-  for (let l = 0; l < outer; l++) place(0.94 + rng() * 0.1, (0.07 + rng() * 0.05) * (low ? 1.5 : 1), false);
+  for (let l = 0; l < innerCount; l++) place(randomPhi(), rng() * TAU, 0.86 + rng() * 0.06, 0.08 + rng() * 0.04, true, 0);
+  const clusters = high ? 28 : low ? 12 : 18;
+  const perCluster = Math.round(outer / clusters);
+  for (let c = 0; c < clusters; c++) {
+    const cPhi = randomPhi();
+    const cAng = rng() * TAU;
+    const spread = 0.16 + rng() * 0.1;
+    for (let l = 0; l < perCluster; l++) {
+      // gaussian-ish spread about the bunch centre; the bunch core stands out at r ≈ 1.06, the
+      // fringe sinks to r ≈ 0.92 into the dark gaps between bunches
+      const u = rng() + rng() - 1;
+      const v = rng() + rng() - 1;
+      const d = Math.min(1, Math.hypot(u, v) / 1.2);
+      const phi = Math.min(Math.PI * 0.85, Math.max(0.05, cPhi + u * spread));
+      const ang = cAng + (v * spread) / Math.max(0.3, Math.sin(phi));
+      const r = 1.06 - 0.14 * d;
+      place(phi, ang, r, (0.065 + rng() * 0.05) * (low ? 1.5 : 1), false, d);
+    }
+  }
   return m.finish({ groundToZero: true });
 }
 
@@ -493,7 +549,9 @@ export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, va
   const m = new MeshBuilder();
   const high = detail === 'high';
   const shape = BROADLEAF_SHAPES[variant % BROADLEAF_SHAPES.length];
-  const leaves = high ? 4 + rng.int(0, 3) : 3;
+  // round 31: 5–7 leaves per rosette (was 4–6), the near laminae with a serrated rim and a vein
+  // crease either side of the midrib (the frames' broad leaves are not flat cards)
+  const leaves = high ? 5 + rng.int(0, 3) : 3;
   const phase = rng() * TAU;
   // heart leaves are the fresh mid green, forest leaves the deep glossy green, ground leaves yellower
   const lamina = shape === 'ovate' ? blend(pal.weed, pal.leaf, 0.55) : shape === 'round' ? blend(pal.weed, pal.leafSun, 0.25) : blend(pal.weed, pal.leaf, 0.3);
@@ -513,11 +571,13 @@ export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, va
     const color = tone(lamina, 0.88 + rng() * 0.26);
     shapedLeaf(m, knee, dir, len, len * aspect * (0.9 + rng() * 0.2), color, {
       shape,
-      sections: high ? (shape === 'heart' ? 6 : 5) : 3,
+      sections: high ? 6 : 3,
       across: high ? 5 : 3,
       curl: 0.1 + rng() * 0.14,
       twist: (rng() - 0.5) * 0.35,
       ridge: 0.13,
+      serration: high ? (shape === 'round' ? 0.05 : 0.09) : 0,
+      crease: high ? 0.14 : 0,
     });
   }
   return m.finish({ groundToZero: true });
@@ -663,6 +723,56 @@ export function seedheadGeometry(seed: string, pal: PlantPalette, detail: Detail
     const spike = [top, top.clone().addScaledVector(tipDir, 0.035), top.clone().addScaledVector(tipDir, 0.075)];
     tube(m, spike, 0.006, 0.002, blend(pal.straw, pal.bark, 0.25), 3, true);
     if (high) foldedLeaf(m, curve(0.35), V(-Math.sin(a), 0.55, Math.cos(a)), 0.11, 0.012, tone(pal.weed, 0.95), { curl: 0.2 });
+  }
+  return m.finish({ groundToZero: true });
+}
+
+// ---------------------------------------------------------------- grass tufts
+/** nominal heights of the three tuft classes (short verge tuft / mid / tall bank tuft), metres at unit scale */
+export const TUFT_HEIGHTS: readonly [number, number, number] = [0.2, 0.32, 0.5];
+
+/**
+ * Grass tuft (round 31): 12–17 blades springing from one root, each a ribbon that leans away
+ * from the tuft centre and bends over at the tip, so the clump reads as a fountain of bent
+ * blades rather than the tile grass's straight spikes. Three height classes keyed off the
+ * variant index (`variant % 3`: ≈ 0.2 / 0.32 / 0.5 m at unit scale, TUFT_HEIGHTS), blade heights
+ * spread 0.6–1.05 × the class inside a tuft, a quarter of the blades straw-tipped; the whole
+ * tuft tilts a little off vertical so neighbouring tufts lean different ways. Blade colour runs
+ * from a deep root to a lit tip (the grass shader's gradient) so the tuft has a dark heart. The
+ * far LOD keeps 6 wider blades. ≈ 130 / 30 triangles.
+ */
+export function tuftGeometry(seed: string, pal: PlantPalette, detail: Detail, variant = 0): BufferGeometry {
+  const rng = createRng(seed);
+  const m = new MeshBuilder();
+  const high = detail === 'high';
+  const cls = variant % 3;
+  const H = TUFT_HEIGHTS[cls] * (0.9 + rng() * 0.2);
+  const blades = high ? 12 + rng.int(0, 6) : 6;
+  const rows = high ? 5 : 3;
+  const phase = rng() * TAU;
+  const root: RGB = blend(pal.leaf, pal.mossDeep, 0.35);
+  const lit: RGB = blend(pal.grassLight, pal.leafSun, 0.3);
+  const straw: RGB = blend(pal.straw, pal.grassLight, 0.35);
+  const clumpLean = V((rng() - 0.5) * 0.24, 0, (rng() - 0.5) * 0.24);
+  for (let b = 0; b < blades; b++) {
+    const a = phase + (b * TAU) / blades + (rng() - 0.5) * 0.6;
+    const radial = V(Math.cos(a), 0, Math.sin(a));
+    const start = radial.clone().multiplyScalar(0.008 + rng() * 0.028);
+    const h = H * (0.6 + rng() * 0.45);
+    const lean = 0.2 + rng() * 0.45;
+    const bend = 0.3 + rng() * 0.55;
+    const points: Vector3[] = [];
+    for (let j = 0; j <= rows; j++) {
+      const t = j / rows;
+      // outward lean grows with height, the tip folds over and falls outward
+      const out = h * (lean * t * t + bend * 0.35 * t * t * t);
+      const y = h * (t - bend * 0.3 * t * t * t);
+      points.push(start.clone().addScaledVector(radial, out).addScaledVector(clumpLean, h * t).add(V(0, y, 0)));
+    }
+    const width = (0.011 + rng() * 0.009) * (0.8 + cls * 0.25) * (high ? 1 : 1.6);
+    const color = blend(root, lit, 0.25 + rng() * 0.45);
+    const dry = rng() < 0.25;
+    bladeStrip(m, points, width, radial, color, dry ? blend(lit, straw, 0.7) : tone(lit, 1.0 + rng() * 0.12), 0.3);
   }
   return m.finish({ groundToZero: true });
 }
