@@ -64,11 +64,20 @@ export interface ShadeFloor {
  *   reference's grey-green the two allow without a neutral floor that would leave the hue at 53°.
  * - sunlit wood is untouched by construction: wood pixels the control rendered above 0.5 moved
  *   ≤ +0.006 in every view while the 0.2–0.3 bucket moved +0.12–0.18.
+ * - round 32 (uniform sweeps at the hero poses, SSIM against the frames): the lift is the wrong
+ *   lever for the frames' dark top bands — at 0.75 / 0.5 / 0.35 of lift 7 the shaded columns
+ *   gain contrast the frames' hazed columns do not have, and SSIM falls in every view (D −0.004 /
+ *   −0.010 / −0.015, C −0.013 at 0.5, F −0.005, B −0.002) for top-band p10 moves of −0.012 to
+ *   −0.038 where the frames need −0.06 to −0.09 (their darkness there is a cliff mass in C and a
+ *   canopy mass in F that we do not have, not darker bark). Flatter is right, though: texture
+ *   0.25 → 0.1 at the same lift moves no band's p10 and gains C +0.003, F +0.001, D +0.001,
+ *   B ±0 — the columns lose the last of the fissure modulation the frames' veiled trunks lack.
+ *   Lift 7 stays.
  *
  * The same floor suits other dark bark that stands against the giants (the lantern limb's wrap,
  * the house bark): the reference's shaded wood is the same hazed grey-green everywhere.
  */
-export const GIANT_BARK_FLOOR: ShadeFloor = { lift: 7, texture: 0.25, canopy: 1, albedo: 0.08, chroma: 0.5 };
+export const GIANT_BARK_FLOOR: ShadeFloor = { lift: 7, texture: 0.1, canopy: 1, albedo: 0.08, chroma: 0.5 };
 
 /**
  * leaves (all species and the canopy cards): the floor keeps the leaf's own colour and texture
@@ -89,6 +98,13 @@ export const GIANT_BARK_FLOOR: ShadeFloor = { lift: 7, texture: 0.25, canopy: 1,
  *
  * Also the preset for green surfaces that sit in the roof (moss sheets, vine leaves): it keeps
  * their own colour and only lifts the self-shadowed faces.
+ *
+ * Round 32 (uniform sweeps, SSIM against the frames): at 0.75 / 0.5 / 0.35 of lift 6 the canopy
+ * underside reads texture where the frames read a veil — D −0.004 / −0.008 / −0.009 SSIM for top
+ * p10 −0.011 / −0.022 / −0.027 (D's top p10 already sits on the frame's, 0.289 vs 0.290), B
+ * −0.002 / −0.004 / −0.004 for −0.001 / −0.002 / −0.003, C −0.005 at 0.5 for −0.015, F −0.006
+ * for −0.005; a soft knee onto the floor (compressing instead of clamping) measured the same as
+ * the plain floor at the same lift and was not kept. Lift 6 / texture 0.4 stay.
  */
 export const LEAF_FLOOR: ShadeFloor = { lift: 6, texture: 0.4, canopy: 0.3, albedo: 0.15, chroma: 1 };
 

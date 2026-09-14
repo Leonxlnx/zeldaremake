@@ -32,6 +32,13 @@ export interface TreeMaterials {
   whiteTreeDepth: MeshDepthMaterial;
   giantTree: MeshStandardMaterial;
   giantTreeDepth: MeshDepthMaterial;
+  /**
+   * the giants' bark with the near-bole floor (NEAR_BOLE_FLOOR) for the one column that stands
+   * inside a hero frame's near field (the emergent at D's left edge, 5 m from camera D); same
+   * program text but for the floor's uniform names, so a `__ATMO_UNIFORMS__` sweep of
+   * `uNearBoleFloorLift` moves that bole alone
+   */
+  giantTreeNear: MeshStandardMaterial;
   /** leaf-cluster alpha cards inside the giant lobes */
   giantCanopy: MeshStandardMaterial;
   giantCanopyDepth: MeshDepthMaterial;
@@ -297,14 +304,31 @@ const LEAF_FLOOR_SHADED = /* glsl */ `
 `;
 /** white-barks are pale already; their shaded sides are not among the measured gaps */
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
+/**
+ * The near bole (the emergent column at D's left edge, 5 m from camera D; B sees it at 8 m on
+ * its left edge): frame 56 s has hazy mid-distance foliage at D x 0–0.09 (p50 0.41), ours a
+ * shaded bole pinned at the giants' floor (0.29 — its vertex colour does not reach the pixel,
+ * see index.ts COLUMN_SEATS). The floor level is the only term of a shaded face at 5 m, so the
+ * bole's own floor is the lever. Round-32 sweep of the lift (D x 0–0.09, y 0.1–0.7 p50 / D SSIM
+ * / B SSIM): 7 → 0.292 / 0 / 0; 9 → 0.332 / +0.002 / −0.002; 11 → 0.369 / +0.003 / −0.003;
+ * 13 → 0.403 / +0.003 / −0.003 — the frame's 0.407 at 13, B paying the same at 11 and 13 (its
+ * left edge is a dark near trunk in frame 14 s, our bole a hazed column either way). Texture
+ * 0.25 as measured — the giants' 0.1 was not swept on this bole.
+ */
+export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.25, canopy: 1, albedo: 0.08, chroma: 0.5 };
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor) {
+/**
+ * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
+ * white-barks' `uWhiteBarkFloor` (lift 0) — distinct so a `__ATMO_UNIFORMS__` sweep of
+ * `uBarkFloorLift` moves the giants alone and never gives the white-barks a floor they do not have.
+ */
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor') {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
-  bindShadeFloor(shader, 'uBarkFloor', barkFloor);
+  bindShadeFloor(shader, barkPrefix, barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
-  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars('uBarkFloor', TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
+  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -354,7 +378,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       #endif
       ${LEAF_FLOOR_SHADED}
     } else {
-      ${shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL)}
+      ${shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL)}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
       // furrow to the same flat grey as its crest, so the occlusion is applied after it — the
       // ambient and the floor fully, the sun by half (a 10 cm furrow's floor is part-shadowed).
@@ -384,7 +408,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR), 'white');
+  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(whiteTreeDepth, wind, whiteWind, undefined, 'white-depth');
 
@@ -414,6 +438,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR), 'giant');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
+  // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
+  const giantTreeNear = giantTree.clone();
+  injectWind(giantTreeNear, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor'), 'giant-near');
 
   // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
   const cluster = createLeafClusterTexture(ctx.rng.fork('trees/leaf-cluster'), palette);
@@ -467,6 +494,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     whiteTreeDepth,
     giantTree,
     giantTreeDepth,
+    giantTreeNear,
     giantCanopy,
     giantCanopyDepth,
     distant,
