@@ -118,10 +118,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // deeper (0.94 m proud) — but still a dome, since the low camera only sees its lit top as a
     // curve; the A/terrace rocks keep the rounded 0.74 profile
     // (round 24: 0.64 / 0.18 still stood 0.88 m proud = 0.159 of frame D against the frame's 0.09;
-    // the layout radius cannot move without shifting the vegetation's boulder exclusions, so the
-    // loaf goes lower: squash 0.42, sink 0.22 -> ~0.55 m proud)
-    const squash = b.id === 'shot-d-boulder' ? 0.42 : 0.74;
-    const sinkFrac = b.id === 'shot-d-boulder' ? 0.22 : 0.15;
+    // the loaf went lower as a stopgap: squash 0.42, sink 0.22 -> ~0.55 m proud at r 0.9.
+    // Layout round 6: the layout radius is 0.6 (the vegetation's exclusions read the boulder's
+    // layout `clearRadius`, still 0.9, so its scatter streams do not move) and the loaf is a
+    // rounded 0.64 dome again on the shared 0.15 seat: ≈ 1.2 m wide, ≈ 0.5 m proud)
+    const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
+    const sinkFrac = 0.15;
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small

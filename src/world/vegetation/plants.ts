@@ -213,7 +213,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const dBoulder = ctx.layout.heroBoulders.find((b) => b.id === 'shot-d-boulder');
   const dbx = dBoulder?.position[0] ?? -3.2;
   const dbz = dBoulder?.position[2] ?? -10.2;
-  const dbr = dBoulder?.radius ?? 0.9;
+  // the ring clusters are laid around the rock's clearance radius (layout `clearRadius`), not the
+  // rendered radius, so the rock can be resized without moving the fronds and their streams
+  const dbr = dBoulder?.clearRadius ?? dBoulder?.radius ?? 0.9;
   const cameraXZ = ctx.layout.viewpoints.map((v) => [v.position[0], v.position[2]] as const);
   const nearCamera = (x: number, z: number, r: number) => cameraXZ.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < r);
 
@@ -989,7 +991,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     const n = Math.round(30 * q.density);
     for (let i = 0; i < n; i++) {
       const a = mossRng() * Math.PI * 2;
-      const d = b.radius * 0.75 + Math.pow(mossRng(), 1.4) * 1.1;
+      const d = (b.clearRadius ?? b.radius) * 0.75 + Math.pow(mossRng(), 1.4) * 1.1;
       placeMoss(b.position[0] + Math.cos(a) * d, b.position[2] + Math.sin(a) * d, 0.05 + mossRng() * 0.16);
     }
   }

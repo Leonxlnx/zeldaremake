@@ -194,8 +194,11 @@ const kidClear=(it,r)=>kidSpots.every(([x,z])=>Math.hypot(it.x-x,it.z-z)>=r);
 // (2) frame 14 s' lawn band (field.ts LAWN_BAND, the near west verge): no fern clumps but the shot-D
 // boulder ring's, clover, three moss cushions for the mossy stones, and ≥ 8 white dots that read past
 // the kid in B's band box (sx ≥ 0.075, 0.6–0.86); every dot still keeps its clearances (checked above)
-const dBoulder=LAYOUT.heroBoulders.find(b=>b.id==='shot-d-boulder'),bandBox=a.field.lawnBandBox();
-for(const it of a.plants.ferns.items)if(a.field.lawnBand(it.x,it.z)>0.5)assert.ok(Math.hypot(it.x-dBoulder.position[0],it.z-dBoulder.position[2])-dBoulder.radius<=1.15,`fern clump in the lawn band at (${it.x.toFixed(2)},${it.z.toFixed(2)}) is not the boulder ring's`);
+// the ring is laid around the rock's clearance radius (layout `clearRadius`, 0.9 m; the rock itself
+// renders at 0.6 m since layout round 6), so the ring test measures from that radius
+const dBoulder=LAYOUT.heroBoulders.find(b=>b.id==='shot-d-boulder'),dClear=dBoulder.clearRadius??dBoulder.radius,bandBox=a.field.lawnBandBox();
+assert.ok(dClear>=dBoulder.radius,'the shot-D rock renders inside its vegetation clearance ring');
+for(const it of a.plants.ferns.items)if(a.field.lawnBand(it.x,it.z)>0.5)assert.ok(Math.hypot(it.x-dBoulder.position[0],it.z-dBoulder.position[2])-dClear<=1.15,`fern clump in the lawn band at (${it.x.toFixed(2)},${it.z.toFixed(2)}) is not the boulder ring's`);
 assert.ok(a.plants.clover.items.filter(it=>inBox(it,bandBox)).length>=60,'clover through the lawn band');
 const bandMoss=a.plants.moss.items.filter(it=>inBox(it,bandBox)&&reach(a.plants.moss,it)>=0.25);
 assert.ok(bandMoss.length>=3&&bandMoss.every(it=>top(a.plants.moss,it)-it.y<=0.2&&a.field.lawnEdgeDistance(it.x,it.z)>=0.3),`mossy "stones" in the lawn band: ${bandMoss.length}`);
