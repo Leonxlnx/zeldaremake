@@ -2038,14 +2038,15 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           if (HOUSE_BOX) {
             /** the north flank (frame 56 s' shaded bank, 0.22 luminance) against the lit south lip */
             const north = (x: number, z: number) => (field.houseFlightLocal(x, z)?.v ?? 0) < 0;
-            const NORTH_TINT = new Color(0.82, 0.86, 0.8);
+            // cap-1 measured the north flank at p50 0.290 against the frame's 0.207 with a 0.82 tint
+            const NORTH_TINT = new Color(0.64, 0.7, 0.58);
             /**
              * flank ground for the flight's herb layer: on the flank strips, roots on the turf side of
              * the tread ends (the leaning tufts cross), off the cliffs, the rock rings, the trunks, the
              * house pad, the stepping stones and the kids
              */
             const houseGround = (x: number, z: number, s: FieldSample) => {
-              if (field.houseFlankZone(x, z) < 0.3 || s.cliff > 0.35 || field.lawnEdgeDistance(x, z, true) < 0.03) return false;
+              if (field.houseFlankZone(x, z) < 0.3 || s.cliff > 0.35 || field.lawnEdgeDistance(x, z, true) < 0) return false;
               const clr = field.clearing(x, z);
               if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
               return field.houseInfo(x, z).dist >= 0.4 && field.stoneDistance(x, z) >= 0.15 && !nearKid(x, z, 0.8) && !nearWhite(x, z, 0.3);
@@ -2073,12 +2074,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   const gx = field.lawnEdgeDistance(x + 0.05, z, true) - field.lawnEdgeDistance(x - 0.05, z, true);
                   const gz = field.lawnEdgeDistance(x, z + 0.05, true) - field.lawnEdgeDistance(x, z - 0.05, true);
                   const gl = Math.hypot(gx, gz) || 1;
-                  const k = 0.5 * (1 - edge / 0.3);
+                  const k = 0.75 * (1 - edge / 0.3);
                   lx = -(gx / gl) * k;
                   lz = -(gz / gl) * k;
                 }
                 const n = north(x, z);
-                tuftAt(x, z, s, rng, n ? [0.35, 0.5, 0.15] : [0.45, 0.45, 0.1], n ? NORTH_TINT : null, lx, lz, true);
+                // the mid class at the rim (the tufts that lap the tread ends), short / mid up the bank
+                tuftAt(x, z, s, rng, edge < 0.3 ? [0.2, 0.7, 0.1] : n ? [0.35, 0.5, 0.15] : [0.45, 0.45, 0.1], n ? NORTH_TINT : null, lx, lz, true);
               },
             );
             // ---- (2) moss cushions along the lip and up the bank (≤ 0.22 m; the rim-moss contract
@@ -2088,15 +2090,17 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               field,
               {
                 label: 'moss-r32-house-flanks',
-                candidates: 8000,
+                candidates: 12000,
                 box: HOUSE_BOX,
-                minSpacing: 0.3,
+                minSpacing: 0.26,
                 low: true,
-                max: 160,
+                max: 260,
                 r32: true,
-                accept: (x, z, s) => (houseGround(x, z, s) && field.lawnEdgeDistance(x, z, true) >= 0.06 ? 0.7 * field.houseFlankZone(x, z) * (0.5 + field.cluster(x, z)) : 0),
+                accept: (x, z, s) => (houseGround(x, z, s) && field.lawnEdgeDistance(x, z, true) >= 0.06 ? 0.8 * field.houseFlankZone(x, z) * (0.5 + field.cluster(x, z)) * (north(x, z) ? 1 : 0.6) : 0),
               },
-              (x, z, _s, rng) => placeMossWith(rng, x, z, 0.08 + rng() * 0.14, true),
+              // the frame's bank is cushions to ~0.28 m across between the tufts (≤ 0.12 m: the rim-moss
+              // contract), more on the shaded north side
+              (x, z, _s, rng) => placeMossWith(rng, x, z, 0.1 + rng() * 0.18, true),
             );
             // ---- (3) clover closing the turf between the tufts
             scatter(
@@ -2211,6 +2215,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           bushes.prune((it) => hollowAt(it) > 0.5);
           // the buds of the pruned clumps go with them (every fiddlehead sits in a fern crown)
           fiddleheads.prune((it) => hollowAt(it) > 0.5 && !ferns.items.concat(heroFerns.items).some((f) => Math.hypot(f.x - it.x, f.z - it.z) <= 0.2));
+          // cap-1: with the shrubs gone the slope read as lit broad leaves over dark earth (edge at
+          // 256 × 144 67.7 → 84.7 against the frame's 51.2): the large laminae come out, the small
+          // ones and the clover go a shade darker into the turf
+          const scaleOf = (it: { matrix: ArrayLike<number> }) => Math.hypot(it.matrix[4], it.matrix[5], it.matrix[6]);
+          weeds.prune((it) => hollowAt(it) > 0.5 && scaleOf(it) >= 1.25);
+          for (const set of [weeds, clover]) for (const it of set.items) if (hollowAt(it) > 0.5) it.color = [it.color[0] * 0.82, it.color[1] * 0.82, it.color[2] * 0.82];
 
           // ---- (6) the bed's violets. Frame 56 s grows two small patches — (0.17–0.27, 0.60–0.67)
           // beside the fern clump and (0.05–0.12, 0.55–0.60) — and its bed box (0.10–0.30 ×
@@ -2221,7 +2231,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           const D_BED: readonly [number, number, number, number] = [0.1, 0.55, 0.3, 0.85];
           const D_PATCH_1: readonly [number, number, number, number] = [0.17, 0.6, 0.27, 0.67];
           const D_PATCH_2: readonly [number, number, number, number] = [0.05, 0.55, 0.12, 0.6];
-          const BED_PATCH_KEEP = 0.6;
+          // cap-1 (keep 0.6): bed 2.5 % violet at 256 × 144 / 3.9 % at full res, W18 0.323 %
+          const BED_PATCH_KEEP = 0.45;
           const inScreenBox = (p: { sx: number; sy: number } | null, b: readonly [number, number, number, number]) => !!p && p.sx >= b[0] && p.sx <= b[2] && p.sy >= b[1] && p.sy <= b[3];
           const hash01 = (x: number, z: number) => {
             let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -2242,6 +2253,31 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           const inBed = (it: { x: number; y: number; z: number }) => inScreenBox(field.screenPoint('D_log', it.x, it.y, it.z), D_BED) && (field.screenPoint('D_log', it.x, it.y, it.z)?.depth ?? 99) < 14;
           for (const set of [ferns, heroFerns, fiddleheads]) for (const it of set.items) if (inBed(it)) it.color = [it.color[0] * BED_LIT.r, it.color[1] * BED_LIT.g, it.color[2] * BED_LIT.b];
           for (const set of [weeds, clover]) for (const it of set.items) if (inBed(it)) it.color = [it.color[0] * 0.85, it.color[1] * 0.85, it.color[2] * 0.85];
+          // W18 counts violet at 256 × 144, where a head averaged with the turf around it drops out
+          // of the classifier's saturation floor (cap-1: 6727 px at full res, 119 at 256 × 144, floor
+          // 111). Every remaining bloom camera D sees within 20 m takes a deeper violet (colours only)
+          // and the right verge's clump — the frame's low heads by the pot — grows two more clusters
+          // from a new stream, so the bed can thin without the metric falling through the floor.
+          for (const it of flowers.items) {
+            const p = field.screenPoint('D_log', it.x, it.y, it.z);
+            if (p && p.depth < 20 && p.sx >= 0 && p.sx <= 1 && p.sy >= 0 && p.sy <= 1) it.color = [it.color[0] * 1.02, it.color[1] * 0.8, it.color[2] * 1.12];
+          }
+          const firstNewHead = flowers.items.length;
+          clusterAt(
+            'flowers-r32-shotD-right',
+            [
+              [6.1, -13.35],
+              [5.3, -13.0],
+            ],
+            8,
+            0.4,
+            (x, z) => flowerVerge(x, z) > 0 && !nearWhite(x, z, 0.5) && !nearKid(x, z, 1.2) && inFrame('D_log', x, z, D_RIGHT_BOX),
+            flowerPlace(0.95, 1.2, CLUSTER_HEADS),
+          );
+          for (let i = firstNewHead; i < flowers.items.length; i++) {
+            const it = flowers.items[i];
+            it.color = [it.color[0] * 1.02, it.color[1] * 0.8, it.color[2] * 1.12];
+          }
         }
       }
     }

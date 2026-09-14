@@ -119,15 +119,25 @@ const HOUSE_FLANK_EXTRA = 1.5;
 const HOUSE_FLANK_WIDTH = 1.5;
 const HOUSE_FLANK_CLUSTER_FLOOR = 0.65;
 const HOUSE_FLANK_MAX_H = 0.38;
-const HOUSE_FLANK_NORTH_TINT = -0.35;
+const HOUSE_FLANK_NORTH_TINT = -0.6;
+/**
+ * the ground before the first riser (stair-local u below HOUSE_FOOT_ALONG m): frame 56 s' dark
+ * trodden earth with a few short dusty tufts — the flank pass there keeps HOUSE_FOOT_HEIGHT of
+ * its height and takes HOUSE_FOOT_DRY more straw
+ */
+const HOUSE_FOOT_ALONG = 0.6;
+const HOUSE_FOOT_HEIGHT = 0.6;
+const HOUSE_FOOT_DRY = 0.45;
 /**
  * Round 32: frame 56 s' hollow (field.ts `dHollow`, the open verge where the old north steps
  * stood): a low ground cover with little edge energy — the turf there loses this share of its
  * blades (a position hash after the last draw, so the tile's other blades keep their layout) and
- * the rest is cut by D_HOLLOW_HEIGHT; no meadow stalks.
+ * the rest is cut by D_HOLLOW_HEIGHT; no meadow stalks. Cap-1 (cut 0.4 / height 0.3) opened the
+ * dark earth between the blades and the box's edge energy rose (67.7 → 84.7 at 256 × 144): the
+ * cover stays closed and lies lower instead.
  */
-const D_HOLLOW_CUT = 0.4;
-const D_HOLLOW_HEIGHT = 0.3;
+const D_HOLLOW_CUT = 0.08;
+const D_HOLLOW_HEIGHT = 0.45;
 /** 0..1 hash of a mm-quantised position (no rng draw) */
 const hash01 = (x: number, z: number) => {
   let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -246,10 +256,14 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       }
       if (edge < 0.3 && !flankPass && !housePass) h *= 0.72;
       if (flankPass) w *= FLANK_WIDTH;
+      const houseLocal = housePass ? field.houseFlightLocal(x, z) : null;
+      const houseFoot = houseLocal !== null && houseLocal.u < HOUSE_FOOT_ALONG;
       if (housePass) {
-        // bank turf at lawn height, the tread ends lapped (frame 56 s' tufts creep over them)
+        // bank turf at lawn height, the tread ends lapped (frame 56 s' tufts creep over them);
+        // short dusty tufts on the trodden earth before the first riser
         w *= HOUSE_FLANK_WIDTH;
         h = Math.min(h * 1.25 + 0.04, HOUSE_FLANK_MAX_H);
+        if (houseFoot) h *= HOUSE_FOOT_HEIGHT;
       }
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
@@ -265,9 +279,9 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod;
       if (s.slope > 0.35) tn -= 0.15 * (1 - shade);
       // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
-      if (housePass && (field.houseFlightLocal(x, z)?.v ?? 0) < 0) tn += HOUSE_FLANK_NORTH_TINT;
+      if (houseLocal !== null && houseLocal.v < 0) tn += HOUSE_FLANK_NORTH_TINT;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
-      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade);
+      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0)) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
 
       // wind
