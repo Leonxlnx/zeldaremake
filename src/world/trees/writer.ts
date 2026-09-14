@@ -11,7 +11,11 @@
  * z = leaf flutter amount (0 for wood, scaled along the leaf so the base stays attached).
  * Extra attribute `aRoot` (vec4): xyz = the tree's root in the geometry's own space (0 for instanced
  * variants, the tree origin for trees merged into one mesh), w = 1 for leaf vertices, 0 for wood —
- * so bark and leaves share one material and one draw call per variant/LOD.
+ * so bark and leaves share one material and one draw call per variant/LOD. A leaf vertex's w is
+ * 0.5 + 0.5 × `leafShade` (1 = an ordinary leaf): the tree shaders read w >= 0.5 as "leaf" and
+ * (w − 0.5) × 2 as the share of the shade fill (sky transmission, the flat shade floor) the leaf
+ * gets, so an authored mass can be a dark clump against the haze the way the reference's low
+ * foliage a few metres from the cameras is.
  */
 import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -37,6 +41,8 @@ export class GeometryWriter {
   logicalMaxY = 0;
   /** ring vertex indices of the trunk surface (row-major) for surface sampling */
   trunkRows: number[][] = [];
+  /** shade-fill share written into the leaf vertices' aRoot.w while set (1 = ordinary leaves; see the header) */
+  leafShade = 1;
 
   constructor(public detail: Detail = 'high') {}
 
@@ -46,7 +52,7 @@ export class GeometryWriter {
     this.colors.push(color.r, color.g, color.b);
     this.uvs.push(u, v);
     this.winds.push(stiffness, phase, flutter);
-    this.roots.push(0, 0, 0, leaf);
+    this.roots.push(0, 0, 0, leaf > 0 ? 0.5 + 0.5 * this.leafShade : 0);
     this.normals.push(NaN, NaN, NaN);
     return i;
   }

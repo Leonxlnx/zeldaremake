@@ -126,8 +126,14 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
     capHeight: 1.25,
     facingDeg: -15,
     doorDeg: 38,
-    walkway: { deg: -78, length: 3.2 },
-    pods: 3,
+    // round 31 (trees): the walkway leaves on camera D's bearing (−19° absolute; was −93°, west)
+    // so its end-post pod hangs under the window in shot D, D (0.62, 0.03) with the window at
+    // (0.64, 0.07), inside the trees' one small clump 8 m from D (trees CANOPY_BOUGHS, plateau-oak
+    // t 1.0) — the frame's upper band has no lamps but the arch's. Shots A and B see the pod in
+    // front of the hut, B (0.44, 0.09) / A (0.34, 0.09), above the clump. Two pods, not three:
+    // the mid-post pod would have hung beside the clump in B.
+    walkway: { deg: -4, length: 3.2 },
+    pods: 2,
   },
   {
     id: 'north-east',
@@ -152,7 +158,12 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
     capHeight: 1.3,
     facingDeg: 10,
     doorDeg: -36,
-    walkway: { deg: 80, length: 2.6 },
+    // round 31 (trees): the walkway leaves on camera D's bearing (12° absolute; was 90°, east),
+    // its end-post pod under the window in D — (0.29, 0.17) on the window's (0.28, 0.17) — inside
+    // the lantern tree's hanging clump 9 m from D (trees CANOPY_BOUGHS, lantern-tree round 31);
+    // before, the pod stood alone in the frame's haze at D (0.40, 0.24). B (0.12, 0.16) /
+    // A (0.07, 0.14) see it in front of the hut, beside the clump.
+    walkway: { deg: 2, length: 2.6 },
     pods: 2,
   },
 ];

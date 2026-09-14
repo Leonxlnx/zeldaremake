@@ -341,7 +341,13 @@ export const LAYOUT = {
     { id: 'plaza-south', position: [4.4, 0, 20.5], trunkRadius: 2.2, height: 26 },
     // Reference B/D/A: a big dark trunk cuts the LEFT edge (B 0.0–0.10, D 0.0–0.12, A behind the
     // pods). Between the north path and the boulder bank, 6 m west of the spine.
-    { id: 'north-west-near', position: [-5.0, 0, -12.8], trunkRadius: 1.1, height: 24 },
+    // Trees round 31: 1 m further west (was (−5.0, −12.8)). Camera D framed its bole at x
+    // 0.02–0.12 (9 m) behind the emergent column at the frame's left edge; with the emergent
+    // narrowed to x ≤ 0.09 the bole strip at 0.09–0.12 would have stood where frame 56 s shows
+    // the hazed clearing and the D boulder. At (−6.0, −12.8) the bole projects to D x −0.08…0.07
+    // (hidden behind the emergent), B −0.09, A −0.06; its authored shade lobes (trees
+    // CANOPY_BOUGHS) are world points and do not move.
+    { id: 'north-west-near', position: [-6.0, 0, -12.8], trunkRadius: 1.1, height: 24 },
     // Reference F: a big dark trunk cuts the RIGHT edge (0.9–1.0, top down to the bank at y ≈ 0.7)
     // 8–9 m from the camera at the south foot of the stair-side bank; 6.9 m off the paved east
     // lobe, behind B/D/E, beyond A's right edge, a hazed column at x ≈ 0.32 in C's background
