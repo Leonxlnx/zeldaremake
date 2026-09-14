@@ -386,11 +386,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // with it the north-west flank and the landing are byte-identical to before), seated on the
   // raised bank the heightfield builds there (`SE_BANK_LIFT` in terrain/heightfield.ts) with only
   // 2–8 cm showing, mossed over: half-buried lumps in the turf. The north-west flank (toward the
-  // house, seen end-on in B) is unchanged. Round 31: the house-west flight's south-east flank
-  // (the side B / E look across) gets the same treatment — its turf lip there rises over the
-  // tread ends too (HOUSE_WEST_BANK.seLift).
+  // house, seen end-on in B) is unchanged. Round 32: the house-west flight keeps the proud stones
+  // on both flanks — frame 14 s reads its south flank (face-on to camera B at 10–12 m) as pale
+  // stones climbing a grassy rise, which is the tread ends and these cheeks in the turf
+  // (round 31 had buried them under a 0.3 m turf lip; that flight is gone).
   for (const side of [-1, 1]) {
-    const southEast = (isMain || hasPavedApron(def)) && side < 0;
+    const southEast = isMain && side < 0;
     let u = rng.range(-0.15, 0.45);
     while (u < f.run + 0.2) {
       const len = rng.range(0.42, 0.78);
