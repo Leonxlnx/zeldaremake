@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "1fde2b5779ee10805e06fd89cd9fafa0817e3875",
+  "functionSha256": "8816b93825cffa0028ebabcb4a0d16fdea6aa53a32ef4385d5a85cad640ea18e",
+  "method": "Exact frameQuality function loaded from pinned Fable Git blob, unedited original CI screenshots",
+  "rows": [
+    {
+      "file": "ci-first-frame.png",
+      "sha256": "3bf259aa82b9459771bc1c8d25f9cd3921b3ff06d9e5be0f4e90ea2c634a4a89",
+      "stdev": 12.912354590471914,
+      "mean": 0.05802331566970724,
+      "drawn": false
+    },
+    {
+      "file": "ci-repeat-frame.png",
+      "sha256": "74cc9c6d18c2747ed3c98d5e3fb1dd1b4a4e837e49d401ea075b38ba086f5ff2",
+      "stdev": 40.82235381615841,
+      "mean": 0.3318149764073124,
+      "drawn": true
+    }
+  ]
+}

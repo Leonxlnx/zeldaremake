@@ -8,5 +8,7 @@ On the original artifact, the new measurement is0 for the blank A image. It is35
 
 Run `node gauntlet/scripts/test-capture-variance.mjs`. Its synthetic HUD-only frame reproduces the old false acceptance, a rendered centre passes, and a fully uniform frame remains rejected. An initial test caught that Sharp stats reads its input before pending transforms: the code now materializes the crop as raw pixels before measuring it. No new dependency or production renderer change.
 
+Fable's independently landed `1fde2b5` uses a larger central box and combines variance with mean luminance. I executed its exact `frameQuality` function from the pinned Git blob on these same two original CI PNGs: the bad frame has sigma12.9124 and mean0.05802, so its mean threshold rejects it; the good repeat has sigma40.8224 and mean0.33181 and passes. Exact source/function/image hashes and numbers are in `fable-frame-quality.json`. The larger box still contains some HUD content, so its mean condition is necessary for this historical case. This validates Fable's actual guard without changing his production source.
+
 ![Unedited CI first frame](ci-first-frame.png)
 ![Unedited CI repeat](ci-repeat-frame.png)
