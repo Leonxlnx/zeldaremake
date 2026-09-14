@@ -163,6 +163,33 @@ const FLANK_FEATHER = 0.5;
 const D_SHOULDER_EAST = 1.0;
 const D_SHOULDER_WEST = 0.6;
 const D_SHOULDER_FEATHER = 0.5;
+/**
+ * Round 32: the house-west flight's flanks (hardscape-25 re-laid it to frame 56 s: five risers
+ * from a paved apron beside the spine up to the landing). The frame's right edge shows a mossy
+ * grass bank climbing beside the risers on the north side, tufts creeping over the tread ends,
+ * and trodden earth with a few tufts in front of the first riser; frame 14 s sees the south lip
+ * beside Link. Stair-local metres beyond the tread ends (north / south), along the run from the
+ * apron sliver before the foot to the landing's sides, feathered over HOUSE_FLANK_FEATHER.
+ * The south flank stops 0.8 m out: the ground beyond it (v > 2.1 m, u 1–3.5 m) is camera C's
+ * bottom-left foreground at 2.4–3.5 m (frame 46 s: trodden earth with a low fringe), which the
+ * spine's trodden strip already reads right; D frames the south side only before the foot.
+ */
+const HOUSE_FLIGHT_ID = 'house-west';
+const HOUSE_FLANK_N: readonly [number, number] = [0.05, 2.4];
+const HOUSE_FLANK_S: readonly [number, number] = [0.05, 0.8];
+const HOUSE_FLANK_ALONG: readonly [number, number] = [-1.2, 3.0];
+const HOUSE_FLANK_FEATHER = 0.5;
+/** the flight and its landing (stair-local, from the foot) where Saria's ramp is paving now, not a trodden strip */
+const HOUSE_FLIGHT_TRODDEN_ALONG: readonly [number, number] = [-1.6, 1.9];
+/**
+ * Round 32: frame 56 s' hollow — the open verge where the old north steps stood, D 0.25–0.45 ×
+ * 0.45–0.65 beyond ≈ 9 m: mist, far trunks and a low dark-green ground cover with almost no edge
+ * energy (lum p50 0.47 / edge 0.025 against our 0.38 / 0.044). Screen-space wedge of camera D,
+ * feathered over D_HOLLOW_FEATHER of frame width.
+ */
+const D_HOLLOW_BOX: readonly [number, number, number, number] = [0.24, 0.44, 0.46, 0.66];
+const D_HOLLOW_DEPTH = 9;
+const D_HOLLOW_FEATHER = 0.03;
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
@@ -192,6 +219,9 @@ const RIM_DUPLICATE = 0.35;
 /** lookup grid (m) and the reach within which segment distances are exact (beyond: no verge anyway) */
 const RIM_GRID = 1;
 const RIM_REACH = 3.5;
+/** cached path-mask levels below / above which a point is certainly grass / certainly paving (round 32, `nearestRim`) */
+const RIM_SIDE_GRASS = 0.2;
+const RIM_SIDE_PAVED = 0.8;
 /** ground rise across the half metre outside a rim that marks it as the foot of a turf bank */
 const BANK_RISE = 0.22;
 /** metres of that bank face (from its rim) that stay grass only, and the fade beyond */
@@ -260,6 +290,9 @@ export class VegField {
   private readonly frames = new Map<string, Frame | null>();
   private readonly views = new Map<string, View | null>();
   private readonly tmpN = new Vector3();
+  private readonly tmpS: FieldSample = newSample();
+  /** the house-west flight (round 32), null in a layout without it */
+  private readonly houseFlight: StairRect | null;
   /** mask-derived paved rim (plaza discs, bank toe) and its lookup grid: cell key → segment indices */
   private readonly rim: RimSegment[] = [];
   private readonly rimCells = new Map<number, number[]>();
@@ -285,6 +318,8 @@ export class VegField {
       const l = Math.hypot(s.dir[0], s.dir[1]);
       return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, halfWidth: s.width / 2 };
     });
+    const hf = ctx.layout.stairs.findIndex((s) => s.id === HOUSE_FLIGHT_ID);
+    this.houseFlight = hf >= 0 ? this.stairs[hf] : null;
     this.fill();
     this.buildPavedRim();
   }
@@ -456,7 +491,7 @@ export class VegField {
   }
 
   /** nearest mask-derived rim piece within reach: signed distance (negative on the paving) and the piece */
-  private nearestRim(x: number, z: number): { dist: number; seg: RimSegment } | null {
+  private nearestRim(x: number, z: number, maskSide: boolean): { dist: number; seg: RimSegment } | null {
     const arr = this.rimCells.get(Math.floor(x / RIM_GRID) * 65536 + Math.floor(z / RIM_GRID));
     if (!arr) return null;
     let best = Infinity;
@@ -470,7 +505,20 @@ export class VegField {
       }
     }
     if (!bestSeg || best > RIM_REACH) return null;
-    // side of the piece: the closest point's offset along the outward normal
+    // Side of the piece. Round 32 (`maskSide`): the cached path mask decides wherever it is
+    // unambiguous — a 0.3 m piece's normal, sampled 0.2 m either side, cannot classify ground
+    // 2–3 m away (the pieces of the sliver between the spine and the house flight's apron read
+    // both sides as grass, kept an arbitrary normal, and put the flight's whole south lip "on
+    // the paving": lawnEdgeDistance −1.5 m over turf, so the lip grew no verge, no lean, no
+    // tufts). The normal's half-space only settles the transition band itself. The turf and the
+    // round-32 streams ask for it; the earlier plant streams keep the old answer so their
+    // candidate sequences (and every placed instance) stay where they were.
+    if (maskSide) {
+      const path = this.sample(x, z, this.tmpS).path;
+      if (path <= RIM_SIDE_GRASS) return { dist: best, seg: bestSeg };
+      if (path >= RIM_SIDE_PAVED) return { dist: -best, seg: bestSeg };
+    }
+    // the closest point's offset along the outward normal
     const t = segmentT(bestSeg, x, z);
     const px = bestSeg.ax + (bestSeg.bx - bestSeg.ax) * t;
     const pz = bestSeg.az + (bestSeg.bz - bestSeg.az) * t;
@@ -482,8 +530,8 @@ export class VegField {
    * Signed distance to the mask-derived paved rim (plaza discs, bank toe; see `buildPavedRim`),
    * with the polylines' 0.1 m rim offset; +Infinity where no such rim is within reach.
    */
-  pavedRimDistance(x: number, z: number): number {
-    const near = this.nearestRim(x, z);
+  pavedRimDistance(x: number, z: number, r32 = false): number {
+    const near = this.nearestRim(x, z, r32);
     return near ? near.dist - RIM_OFFSET : Infinity;
   }
 
@@ -493,7 +541,7 @@ export class VegField {
    * `BANK_FACE` metres outside a rim piece flagged `bank`, feathered out beyond.
    */
   bankFace(x: number, z: number): number {
-    const near = this.nearestRim(x, z);
+    const near = this.nearestRim(x, z, false);
     if (!near || !near.seg.bank || near.dist < -0.05) return 0;
     return 1 - smoothstep(BANK_FACE, BANK_FACE + BANK_FEATHER, near.dist);
   }
@@ -544,8 +592,15 @@ export class VegField {
    * True if vegetation may grow at (x, z). Uses the coarse grid where the answer is certain and
    * the exact terrain mask in the transition band around paths, stairs, pads and cliffs.
    */
-  allowed(x: number, z: number, s: FieldSample): boolean {
-    if (s.allow <= 0.02) return false;
+  allowed(x: number, z: number, s: FieldSample, r32 = false): boolean {
+    // Round 32 (`r32`): a cell whose four nodes all sit on paving rejected without the exact
+    // test, which lost every sliver of turf narrower than the 0.5 m grid — the strip between the
+    // house flight's apron and its first riser, the gap between the spine and the apron (frame
+    // 14 s: turf and moss beside Link, frame 56 s: tufts in front of the riser). Only a cell the
+    // cached masks put wholly under one kind of paving is certain; a mixed one goes to the exact
+    // mask. The turf and the round-32 streams ask for it; the earlier streams keep the old test so
+    // their candidate sequences stay as they were.
+    if (s.allow <= 0.02 && (!r32 || s.path >= 0.98 || s.stairs >= 0.98 || s.structure >= 0.98 || s.cliff >= 0.98)) return false;
     if (s.allow >= 0.98 && s.path < 0.05 && s.stairs < 0.05 && s.structure < 0.05 && s.cliff < 0.4) return true;
     return this.ctx.terrain.vegetationAllowed(x, z);
   }
@@ -571,12 +626,12 @@ export class VegField {
    * branch is a grassy ramp with stepping stones, not paving, so it grows ordinary lawn with no
    * verge; the trodden strip between its stones is `troddenZone` / `stoneDistance`.
    */
-  lawnEdgeDistance(x: number, z: number): number {
+  lawnEdgeDistance(x: number, z: number, r32 = false): number {
     const L = this.ctx.layout;
     const hw = L.pathHalfWidth;
     const a = polylineDistance(L.pathSpine, x, z) - hw;
     const b = polylineDistance(L.pathToStairs, x, z) - hw * 0.8;
-    return Math.min(a, b, this.stairDistance(x, z), this.pavedRimDistance(x, z));
+    return Math.min(a, b, this.stairDistance(x, z), this.pavedRimDistance(x, z, r32));
   }
 
   /** Distance to the centreline of Saria's stepping-stone ramp (`pathToHouse`). */
@@ -657,9 +712,17 @@ export class VegField {
   }
 
   /** 0..1 inside the trodden strip between Saria's stepping stones (1 = strip core). */
-  troddenZone(x: number, z: number): number {
+  troddenZone(x: number, z: number, r32 = false): number {
     const along = polylineDistance(this.ctx.layout.pathToHouse, x, z);
     let v = 1 - smoothstep(TRODDEN_HALF_WIDTH, TRODDEN_HALF_WIDTH + TRODDEN_FEATHER, along);
+    // round 32 (`r32`): the ramp's polyline now runs along the house flight and its landing —
+    // paving, not a trodden strip; the flanks beside the risers grow their bank turf at full height
+    if (r32) {
+      const hl = this.houseFlightLocal(x, z);
+      // each flank's own span: the south exemption stops short of the verge stones' strip (x ≈ 3)
+      const span = hl && hl.v < 0 ? HOUSE_FLANK_N : HOUSE_FLANK_S;
+      if (hl && hl.u >= HOUSE_FLIGHT_TRODDEN_ALONG[0] && hl.u <= hl.run + HOUSE_FLIGHT_TRODDEN_ALONG[1] && Math.abs(hl.v) <= hl.halfWidth + span[1] + HOUSE_FLANK_FEATHER) v = 0;
+    }
     for (const s of this.stones) {
       const d = Math.hypot(x - s.x, z - s.z);
       v = Math.max(v, 1 - smoothstep(s.r * STONE_TRODDEN, s.r * STONE_TRODDEN + TRODDEN_FEATHER, d));
@@ -874,6 +937,75 @@ export class VegField {
       }
     }
     return [x0, z0, x1, z1];
+  }
+
+  /**
+   * Stair-local coordinates of (x, z) on the house-west flight (round 32): `u` metres along the
+   * run from the first riser (negative before the foot: the apron), `v` across from the axis,
+   * positive on the south side (the lip beside the spine, camera B's side). Null without the flight.
+   */
+  houseFlightLocal(x: number, z: number): { u: number; v: number; halfWidth: number; run: number } | null {
+    const f = this.houseFlight;
+    if (!f) return null;
+    const rx = x - f.ox;
+    const rz = z - f.oz;
+    return { u: rx * f.dx + rz * f.dz, v: -rx * f.dz + rz * f.dx, halfWidth: f.halfWidth, run: f.run };
+  }
+
+  /**
+   * 0..1 on the house-west flight's two flanks (round 32; HOUSE_FLANK_N / HOUSE_FLANK_S metres
+   * beyond the tread ends, HOUSE_FLANK_ALONG before the foot and past the top step), feathered
+   * out over HOUSE_FLANK_FEATHER; zero on the treads, the apron and the landing themselves (the
+   * masks keep those bare anyway) and without the flight.
+   */
+  houseFlankZone(x: number, z: number): number {
+    const l = this.houseFlightLocal(x, z);
+    if (!l) return 0;
+    const out = Math.abs(l.v) - l.halfWidth;
+    const span = l.v < 0 ? HOUSE_FLANK_N : HOUSE_FLANK_S;
+    if (out < span[0]) return 0;
+    const across = 1 - smoothstep(span[1], span[1] + HOUSE_FLANK_FEATHER, out);
+    const along = smoothstep(HOUSE_FLANK_ALONG[0] - HOUSE_FLANK_FEATHER, HOUSE_FLANK_ALONG[0], l.u) * (1 - smoothstep(l.run + HOUSE_FLANK_ALONG[1], l.run + HOUSE_FLANK_ALONG[1] + HOUSE_FLANK_FEATHER, l.u));
+    return across * along;
+  }
+
+  /** axis-aligned world box [x0, z0, x1, z1] enclosing both house-flight flanks (plus their feather); null without the flight */
+  houseFlankBox(): [number, number, number, number] | null {
+    const f = this.houseFlight;
+    if (!f) return null;
+    const reach = f.halfWidth + Math.max(HOUSE_FLANK_N[1], HOUSE_FLANK_S[1]) + HOUSE_FLANK_FEATHER;
+    const u0 = HOUSE_FLANK_ALONG[0] - HOUSE_FLANK_FEATHER;
+    const u1 = f.run + HOUSE_FLANK_ALONG[1] + HOUSE_FLANK_FEATHER;
+    let x0 = Infinity;
+    let z0 = Infinity;
+    let x1 = -Infinity;
+    let z1 = -Infinity;
+    for (const u of [u0, u1]) {
+      for (const v of [-reach, reach]) {
+        const x = f.ox + f.dx * u - f.dz * v;
+        const z = f.oz + f.dz * u + f.dx * v;
+        x0 = Math.min(x0, x);
+        z0 = Math.min(z0, z);
+        x1 = Math.max(x1, x);
+        z1 = Math.max(z1, z);
+      }
+    }
+    return [x0, z0, x1, z1];
+  }
+
+  /**
+   * 0..1 in frame 56 s' hollow (round 32, D_HOLLOW_BOX beyond D_HOLLOW_DEPTH): the open dark verge
+   * where the old north steps stood, which the footage shows as low ground cover under mist with
+   * far trunks — no tall tufts, seed heads or fronds. `y` is the ground height at (x, z).
+   */
+  dHollow(x: number, y: number, z: number): number {
+    const p = this.screenPoint('D_log', x, y, z);
+    if (!p || p.depth < D_HOLLOW_DEPTH) return 0;
+    const b = D_HOLLOW_BOX;
+    const f = D_HOLLOW_FEATHER;
+    const inX = smoothstep(b[0] - f, b[0], p.sx) * (1 - smoothstep(b[2], b[2] + f, p.sx));
+    const inY = smoothstep(b[1] - f, b[1], p.sy) * (1 - smoothstep(b[3], b[3] + f, p.sy));
+    return inX * inY * smoothstep(D_HOLLOW_DEPTH, D_HOLLOW_DEPTH + 2, p.depth);
   }
 
   /**
