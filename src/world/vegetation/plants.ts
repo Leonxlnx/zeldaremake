@@ -2068,7 +2068,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                 low: true,
                 max: 700,
                 r32: true,
-                accept: (x, z, s) => (houseGround(x, z, s) ? 0.9 * field.houseFlankZone(x, z) * (0.6 + 0.4 * field.cluster(x, z)) : 0),
+                accept: (x, z, s) => (houseGround(x, z, s) ? 0.9 * field.houseFlankZone(x, z) * (0.6 + 0.4 * field.cluster(x, z)) * (north(x, z) ? 1 : 0.6) : 0),
               },
               (x, z, s, rng) => {
                 const edge = field.lawnEdgeDistance(x, z, true);
@@ -2083,8 +2083,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   lz = -(gz / gl) * k;
                 }
                 const n = north(x, z);
-                // the mid class at the rim (the tufts that lap the tread ends), short / mid up the bank
-                tuftAt(x, z, s, rng, edge < 0.3 ? [0.2, 0.7, 0.1] : n ? [0.35, 0.5, 0.15] : [0.45, 0.45, 0.1], n ? NORTH_TINT : null, lx, lz, true);
+                // the mid class at the rim (the tufts that lap the tread ends), short / mid up the
+                // north bank; the south flank is camera C's left foreground (frame 46: short turf at
+                // the stair foot, cap-final C 0.3099 → 0.3017 with mid tufts there) — short class only
+                tuftAt(x, z, s, rng, !n ? [1, 0, 0] : edge < 0.3 ? [0.2, 0.7, 0.1] : [0.35, 0.5, 0.15], n ? NORTH_TINT : null, lx, lz, true);
               },
             );
             // ---- (2) moss cushions along the lip and up the bank (≤ 0.22 m; the rim-moss contract

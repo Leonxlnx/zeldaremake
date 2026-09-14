@@ -119,6 +119,12 @@ const HOUSE_FLANK_EXTRA = 1.5;
 const HOUSE_FLANK_WIDTH = 1.5;
 const HOUSE_FLANK_CLUSTER_FLOOR = 0.65;
 const HOUSE_FLANK_MAX_H = 0.38;
+/**
+ * the south flank is camera C's left foreground at 2–4.5 m (frame 46: the stair foot over short
+ * turf — cap-final read tall lit blades there, C 0.3099 → 0.3017), so it keeps the C grass-box
+ * rule (`sight`) and this lower cap; the north flank stands behind camera C
+ */
+const HOUSE_FLANK_MAX_H_SOUTH = 0.22;
 const HOUSE_FLANK_NORTH_TINT = -0.6;
 /**
  * the ground before the first riser (stair-local u below HOUSE_FOOT_ALONG m): frame 56 s' dark
@@ -217,8 +223,11 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // few bare dirt patches (the dry noise picks them), nothing above ≈ 40 % of the lawn's height
       const trod = field.troddenZone(x, z, true);
       const bare = trod * smoothstep(0.25, 0.7, field.dry(x, z));
-      // camera C's left third (frame 46): the stair foot shows over short turf, no tall blades
-      const sight = housePass ? 0 : field.sightlineC(x, z, 0.5);
+      // camera C's left third (frame 46): the stair foot shows over short turf, no tall blades —
+      // the house flight's north flank excepted (it stands behind camera C)
+      const houseLocal = housePass ? field.houseFlightLocal(x, z) : null;
+      const houseNorth = houseLocal !== null && houseLocal.v < 0;
+      const sight = houseNorth ? 0 : field.sightlineC(x, z, 0.5);
       // frame 56 s' hollow (round 32): a low, thinned cover
       const hollow = field.dHollow(x, s.h, z);
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
@@ -256,13 +265,12 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       }
       if (edge < 0.3 && !flankPass && !housePass) h *= 0.72;
       if (flankPass) w *= FLANK_WIDTH;
-      const houseLocal = housePass ? field.houseFlightLocal(x, z) : null;
       const houseFoot = houseLocal !== null && houseLocal.u < HOUSE_FOOT_ALONG;
       if (housePass) {
         // bank turf at lawn height, the tread ends lapped (frame 56 s' tufts creep over them);
         // short dusty tufts on the trodden earth before the first riser
         w *= HOUSE_FLANK_WIDTH;
-        h = Math.min(h * 1.25 + 0.04, HOUSE_FLANK_MAX_H);
+        h = Math.min(h * 1.25 + 0.04, houseNorth ? HOUSE_FLANK_MAX_H : HOUSE_FLANK_MAX_H_SOUTH);
         if (houseFoot) h *= HOUSE_FOOT_HEIGHT;
       }
       h *= 1 - 0.35 * clr.npc;
