@@ -1419,6 +1419,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   scenario numbers and the two residuals her fixture should probe (start transient, toe-off −6 mm).
 - Running: trees-17b (budget), hardscape-25 (frame D's flight distance, north steps, arch rows).
 
+### 11:55 UTC — tick 76: take-0088 published (monitor `8ecb0ac`), valid; 23/50
+- `40e7f1b` trees-17b merged (`4f8c0fc`): the eight round-31 authored lobes in a non-casting
+  `giants-authored-leaves` mesh (their shadows lay inside the plateau oak's / upper house's shade:
+  A 0.03 %, B 0.15 %, D 0.67 % of pixels moved), plugs 3 → 1 and the lantern clump 3 → 1.5 in
+  density (the compact lobes carried a curtain's laminae at a 0.4 m size); A 9.10 → 8.55 M, F 8.97
+  → 8.13 M; D's occlusion unchanged; SSIM ±0.001 on every view.
+- Owner (10:36) asked for new photos and videos in chat: sent six ref-vs-ours sheets of take-0087,
+  before/after sheets (take-0085 → 0087) for D/A/B, the round's detail crops and a 9 s rendered
+  fly-through (`gauntlet/tmp/flythrough.mjs`: setPose along three moves, 12 fps → 24 with
+  minterpolate; 108 frames at 24 s/frame under load).
+- Running: hardscape-25 (frame D's flight at 5 m, the north steps, the arch's rows), trees-18
+  (shade floors at the frames' strength; the north-east hut's lamp under the bough in A).
+  Queued: vegetation-17 (the bank over the flight), structures-22 (the arch's lanterns),
+  atmosphere-10 (the lit far wall once the arch sits on the frame's rows).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1457,4 +1472,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T10:12:00Z
+2026-09-14T11:56:00Z

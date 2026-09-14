@@ -9394,6 +9394,115 @@
       },
       "prevHash": "sha256:41a57842cbd0bc837b58c1f79568f62b97726b74054f2b47536deb519efa68b9",
       "hash": "sha256:9f828b2441c1502318520ee674fa977a77b62b8bdab1b522051b6e30d5372206"
+    },
+    {
+      "id": "take-0088",
+      "number": 88,
+      "at": "2026-09-14T11:44:44.293Z",
+      "sha": "4f8c0fc274d414d527de30fbc55238fb452d5e5d",
+      "shortSha": "4f8c0fc",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r31/trees-budget' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W38",
+        "W09",
+        "W32"
+      ],
+      "note": "Round thirty-one, budget: the W38 overage of take-0087 is repaired without touching the picture. The eight round-31 authored canopy lobes (the plateau-oak curtains and plugs, the lantern-tree clump, the hut clumps) go to their own giants-authored-leaves mesh that casts no shadow - their shadows fell inside the plateau oak's and upper house's shade already (A box 0.1 % of pixels changed, mean 0.0004) - and the compact plugs no longer carry a 1.8 m curtain's laminae at a 0.4 m size (plugs 3 -> 1, lantern clump 3 -> 1.5; the hollow-column clump stays at 3 because at 1.5 its hut's end-post pod read through at peak 0.62). Authored laminae 52.7 k -> 35.7 k; per view A 541 / 9.10 M -> 542 / 8.55 M, B 8.10 -> 7.54 M, C 8.47 -> 7.92 M, D 7.59 -> 7.03 M, E 7.54 M, F 8.97 -> 8.13 M. D's occlusion holds: limb box (0.80-1, 0-0.30) p50 0.282 (frame 0.303), zero warm points in D's upper band, the upper-house window and every hut lamp below peak 0.46 on their rays, farLayerCount(D) 3 with the buckets beyond 20 m identical. What the dropped shadows changed: the lantern clump's 1 m dapple on D's path at (0.63, 0.74) is gone and the west-column clump lost its self-shadow (D 0.369 -> 0.389 in its box); A 0.03 %, B 0.15 %, D 0.67 % of pixels moved by more than 8/255. Against the frames: A 0.2643 -> 0.2645, B 0.2432 -> 0.2429, C 0.2922 -> 0.2922, D 0.3168 -> 0.3177, E 0.2622 -> 0.2616, F 0.2736 -> 0.2736, pHash identical on all six. Running now: the D flight at the frame's 5 m with the approach re-planned, the north steps, the arch's rows; the shade floors at the frames' strength.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:b57345bdb6a9fc0ab93e63defd14f7735d104d507051d11c032997ef32fe5bdf",
+        "B_house": "sha256:f14e2845f0214ccafcdfd5bf4931d04cb256a074c162d4a659d0caa4d9724bb5",
+        "C_lookback": "sha256:186da3e55bda5a52e91eeabf78cd9a140a96a69befe54815859f8963068af669",
+        "D_log": "sha256:517c48105294801e18e7633fc03ed184519c31c542828a0933d3b3eff743b88e",
+        "E_ground": "sha256:f14e2845f0214ccafcdfd5bf4931d04cb256a074c162d4a659d0caa4d9724bb5",
+        "F_canopy": "sha256:9267f030b1a1ba3363cddc5edf95972d1005b4f252af939eb60d8331cb6874a9"
+      },
+      "distHash": "sha256:e4262aa8a6f3e934e43620bac29576f8681a6ae3de5138c1601d0aee15878d29",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8546132,
+        "captureMs": 961994,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W38",
+        "W09",
+        "W32"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take88-cap",
+        "importedAt": "2026-09-14T11:45:24.407Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:9f828b2441c1502318520ee674fa977a77b62b8bdab1b522051b6e30d5372206",
+      "hash": "sha256:19d3d8ac96564b2805ce4f3d1c7e1f68ec505a713d09471bdea654a390cc8940"
     }
   ]
 }
