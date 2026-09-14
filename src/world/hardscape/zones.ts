@@ -89,12 +89,14 @@ export function lawnZone(x: number, z: number) {
 }
 
 /**
- * Camera A's near foreground (reference frame 1 s: five or six ~1 m slabs with cracked edges and
- * dark seams across the 5.7 m frame bottom, z ≈ 4 → 7): the cell breaking leaves the stones here
- * at the top of the boards' range instead of the 0.6–0.7 m median. Fades over 1.2 m.
+ * Camera A's near foreground (reference frame 1 s: 1.1–1.3 m slabs with cracked edges and soft
+ * moss seams across the frame bottom): the cell breaking leaves the stones here at the top of
+ * the boards' range instead of the 0.6–0.7 m median, and the lattices are thinned (flagstones.ts).
+ * Round 33: z 3.4 → 1.2 — unprojected, camera A's bottom quarter (frame y 0.75–1.0) is z 1.5–6.7
+ * at x −0.5 … 4.3, not z 4–7; the zone used to cover only its last tenth. Fades over 1.2 m.
  */
 export function aForeground(x: number, z: number) {
-  return softBox(x, z, -1.5, 4.5, 3.4, 8.5, 1.2);
+  return softBox(x, z, -1.5, 4.5, 1.2, 8.5, 1.2);
 }
 
 /**

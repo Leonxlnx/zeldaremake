@@ -71,7 +71,9 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
   const mossBright = new Color(P.mossBright);
   // the growth on slab rims is as much damp soil and dead moss as living green (reference joints
   // are dark warm brown with green only in patches), so the moss blend is pulled toward soil
-  const mossSoil = new Color(P.soilDark).lerp(new Color(0x3a2c1c), 0.5).lerp(mossDeep, 0.5);
+  // (round 33: 0.5 → 0.7 toward the moss — the shoulder film rendered as a second dark line
+  // beside the seam; the frames' slab rims carry green-grey grime at the joint's own tone)
+  const mossSoil = new Color(P.soilDark).lerp(new Color(0x3a2c1c), 0.5).lerp(mossDeep, 0.7);
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uMossDeep = { value: mossDeep };
     shader.uniforms.uMossBright = { value: mossBright };

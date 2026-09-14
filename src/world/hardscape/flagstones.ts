@@ -813,7 +813,12 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         // across the path's bottom quarter; the seeds elsewhere are untouched, this lattice's
         // draws are the same and the base lattice never lands here)
         const dz = dForeground(wz);
-        const id = tryAdd(wx, wz, 0.33, (rim) => rim >= 0.45 && u <= open * (1 - 0.6 * dz * smoothstep(0.8, 1.4, rim)));
+        // round 33: camera A's foreground (zones.ts aForeground, z 3.4–8.5) thinned 45 % the same
+        // way — frame 1 s's bottom quarter is 1.1–1.3 m slabs (two across the 2.3 m of ground in
+        // its right-hand 40 %), ours were 0.6–0.75 m (three or four across the same ground); the
+        // south lattice's draws are unchanged, only which seeds are kept there
+        const af = aForeground(wx, wz);
+        const id = tryAdd(wx, wz, 0.33, (rim) => rim >= 0.45 && u <= open * (1 - 0.6 * dz * smoothstep(0.8, 1.4, rim)) * (1 - 0.45 * af * smoothstep(0.8, 1.4, rim)));
         // a few larger slabs down the path centre (the odd 1.0–1.25 m stone of the boards)
         if (id >= 0 && big && seeds[id].rim >= 1.4) bigCandidates.push(id);
       }
@@ -832,7 +837,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // thin the base lattice where the rim lattice takes over, where the coarse lattice rules
       // (none at all on D's foreground path so its slabs stay big) and where the lawn does
       const lawn = lawnZone(wx, wz);
-      const id = tryAdd(wx, wz, 0.33, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= Math.max(0.8 * open + 0.2 * dForeground(wz) * smoothstep(0.8, 1.4, rim), lawn));
+      // (round 33: a quarter as many base seeds in camera A's foreground — its slabs grow with
+      // the south lattice's thinning above)
+      const id = tryAdd(wx, wz, 0.33, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= Math.max(0.8 * open + 0.2 * Math.max(dForeground(wz), 0.75 * aForeground(wx, wz)) * smoothstep(0.8, 1.4, rim), lawn));
       if (id < 0) continue;
       if (seeds[id].rim >= 1.25 && big && open < 0.5 && lawn < 0.5) bigCandidates.push(id);
     }
@@ -853,7 +860,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // run the rounded ~1 m stones right to the grass edge with no 0.35–0.55 m fringe; the rim
       // lattice is the last one sown, so the other lattices' seeds are untouched and the freed
       // edge cells go to their neighbours)
-      const keep = (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz)) * (1 - 0.75 * discField(wx, wz));
+      // (and 60 % of it in camera A's foreground: frame 1 s's bottom row runs its big slabs off the
+      // frame where our plaza rim — 5.5–6.4 m from the origin at the frame's bottom edge — put a
+      // row of 0.35–0.55 m fringe stones)
+      const keep = (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz)) * (1 - 0.75 * discField(wx, wz)) * (1 - 0.6 * aForeground(wx, wz));
       if (tryAdd(wx, wz, 0.34, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep) >= 0) stats.rim++;
     }
   }
@@ -984,7 +994,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // frame-measured slab size (target lifted out of reach as the lawn weight comes in). The
     // stream is keyed on the seed so a lattice change elsewhere does not re-crack this cell.
     const brng = rng.fork(`break/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`);
-    const base = brng.range(BREAK_TARGET[0], BREAK_TARGET[1]) * (sd.big ? 1.25 : 1) * (1 + 0.32 * aForeground(sd.x, sd.z));
+    // (round 33: camera A's foreground target × 1.32 → × 1.6, 1.4–2.05 m: with the lattice thinned
+    // there the grown cells must stay whole to read as frame 1 s's 1.1–1.3 m slabs)
+    const base = brng.range(BREAK_TARGET[0], BREAK_TARGET[1]) * (sd.big ? 1.25 : 1) * (1 + 0.6 * aForeground(sd.x, sd.z));
     const lawnTarget = base + (2.6 - base) * smoothstep(0.15, 0.6, sd.lawn);
     // round 23: camera B's mid-ground (frame 14 s, z < −3.5 behind Link) is ~1 m slabs in narrow
     // seams, not the bottom row's 1.5 m slabs in turf: the lawn cells there are cracked over

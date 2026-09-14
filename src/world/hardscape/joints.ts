@@ -76,8 +76,18 @@ const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
  * same, a shade lighter and greener; in the lawn's 6–36 cm turf joints it is only the contact
  * line at each slab's foot.
  */
-const CREVICE_TINT: [number, number, number] = [0.3, 0.31, 0.16];
-const TURF_CREVICE_TINT: [number, number, number] = [0.4, 0.44, 0.34];
+// Round 33: the crevice is a mild recess again, not a painted black line. Measured in LIT paving
+// windows only (Link, the HUD and the tree shadows outside them), the frames' darkest 2 % of
+// pixels sit at sRGB 84,68,38 – 98,83,54 (lum 0.27–0.33) and their 2–8 % band at 110,94,61 (0.37):
+// frame 1 s's foreground has 1 % of its pixels under 0.30 where ours had 20 %, frame 46 s's
+// plaza 0.3 % against 9 %, frame 56 s's path 4 % against 17 %, frame 14 s's path behind Link 1 %
+// against 9 %. Our seams rendered at 40,36,25 – 54,47,31 (0.14–0.19): the round-23 0.3× on a
+// 0.053 albedo. The near-black quantiles those rounds matched were the frames' shadows, not
+// their joints — the joints are a warm brown-olive at 0.7 of the slab tops (sRGB), i.e. about
+// half the slab albedo. 0.3 → 0.72 (× 2.4) with the seam soil itself lifted × 1.8 (below) puts
+// the crevice at ≈ 4.3× its old albedo; the turf contact line × 1.8.
+const CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.5];
+const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.76, 0.62];
 const TURF_OPEN_TINT: [number, number, number] = [1.06, 1.14, 1.0];
 const glslVec3 = (v: [number, number, number]) => v.map((n) => n.toFixed(4)).join(', ');
 
@@ -114,7 +124,10 @@ export function jointFillLift(gap: number, soil = 1): [number, number, number] {
 export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; soilMid: Color; turf: Color; turfMid: Color; lawn: Color; soilMean: Color; soilMeanR10: Color; turfMean: Color } {
   const soil = new Color(JOINT_SOIL);
   const soilMid = new Color(JOINT_SOIL_MID);
-  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.56);
+  // (round 33: the mossy earth × 1.3 and browner — lerp 0.56 → 0.42 to the deep green, × 1.15:
+  // frame 14 s's gaps behind Link are sRGB 86,74,43 – 98,84,56 (hue 43°, B/R 0.5) where the old
+  // turf rendered 59,56,36 – 67,67,40 (hue 52°, B/R 0.61): too dark and too grey-green)
+  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.42).multiplyScalar(1.15);
   const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.55);
   // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
   // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
@@ -122,7 +135,9 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   // hue ~30° (the deep grass green rendered 79,75,44, hue 53°), so a brighter or browner fill
   // reads as bare dirt wherever the blades part (reference frame 14 s: the pocket's mid tones
   // are 56,56,24, its darkest 37,41,18 — a lawn's shadowed floor, not soil)
-  const lawn = new Color(JOINT_SOIL_MID).lerp(new Color(palette.grassDeep), 0.85).multiplyScalar(0.6);
+  // (round 33: pinned to the round-12 soil mid 0x6c5336 — the seam soil above was lifted for the
+  // lit joints, the pocket's floor is the frame's dark lawn and stays)
+  const lawn = new Color(0x6c5336).lerp(new Color(palette.grassDeep), 0.85).multiplyScalar(0.6);
   return {
     soil,
     soilMid,
@@ -214,8 +229,11 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
  * frame 1 s), so the dry tone stays at round 11's rendered open-dirt colour (0x8a603f × the old
  * 1.35/1.75/1.6 lift) while only the seams took the darkening.
  */
-export const JOINT_SOIL = 0x523d25;
-export const JOINT_SOIL_MID = 0x6c5336;
+// (round 33: × 1.8 / × 1.65 linear — 0x523d25 / 0x6c5336 (lum 0.053 / 0.096) rendered the lit
+// plaza seams at sRGB 51,45,29 under the crevice tint where frame 1 s's lit seams are 110,94,61;
+// see CREVICE_TINT. The dry open dirt keeps its absolute colour: OPEN_TINT is the ratio.)
+export const JOINT_SOIL = 0x6e5232;
+export const JOINT_SOIL_MID = 0x8a6a45;
 export const JOINT_SOIL_DRY = 0x9e7c4e;
 const TURF_BASE = 0x8a603f;
 const TURF_BASE_MID = 0xab8356;
@@ -264,11 +282,12 @@ export async function buildJointMesh(
   // joints are more olive still). Round 10: mossy earth is the default, soil only where feet
   // keep the moss off (zones.ts `jointSoil`); moss proper takes over in patches.
   const { soil, soilMid, turf, turfMid, lawn: lawnFill } = jointFillTones(P);
-  // round 33: the trodden earth of camera C's plaza patch (zones.ts `earthPatch`) — the mossy
-  // earth a shade darker and greener (frame 46 s's earth: lum p50 0.33, hue 47–51°, sat 0.38;
-  // our joint class there rendered 0.328 at 42.5°, so the earth leans green and 15 % down) —
-  // and the disc field's gap fill, the same mossy earth pulled a tenth toward it
-  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.66).multiplyScalar(0.85);
+  // round 33: the trodden earth of camera C's plaza patch (zones.ts `earthPatch`) and the disc
+  // field's gaps — the mossy earth a shade darker (× 0.85) and greener (lerp 0.55 to the deep
+  // green against the turf's 0.42): frame 46 s's earth is lum p50 0.31–0.34 in the stair side's
+  // shade (hue 47–51°), frame 14 s's gaps behind Link 86,74,43 – 98,84,56 in the light, where
+  // the first cut (0.66 / × 0.85 of the old turf) rendered 56,53,34 — the darkest thing on the path
+  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.55).multiplyScalar(0.85 * 1.15);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
   const mossB = new Color(P.mossBright);
@@ -528,10 +547,12 @@ export async function buildJointMesh(
         // the reference's dark quantile), ± 45 % on the mossy earth, whose reference joints are
         // one even dark tone (B p10 fell to 0.27 against the reference's 0.33 at ± 70 %); at the
         // paved rim (aRim → 1) the fill is turf tone and the modulation eases to ± 30 %
+        // (round 33: the soil's ± 70 % → ± 55 % — its pits at 0.3× were half of what kept the lit
+        // seams' darkest 2 % at 0.14 where the frames' lit seams have no pixel under 0.27)
         float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
         float d = clamp(l / 0.10, 0.3, 2.4);
         float rim = clamp(vJointRim, 0.0, 1.0);
-        diffuseColor.rgb = vec3(mix(1.0, d, mix(mix(0.45, 0.7, clamp(vJointSoil, 0.0, 1.0)), 0.3, rim)));
+        diffuseColor.rgb = vec3(mix(1.0, d, mix(mix(0.45, 0.55, clamp(vJointSoil, 0.0, 1.0)), 0.3, rim)));
       }
       #ifdef JOINT_GAP_FIELD
       {
@@ -553,7 +574,7 @@ export async function buildJointMesh(
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v9-crevice${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v10-crevice${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;
