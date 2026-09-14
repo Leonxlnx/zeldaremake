@@ -1,0 +1,67 @@
+{
+  "source": "Hyper3D Rodin through Blender MCP bundled public free trial; no private API credential used",
+  "status": "Historical generation studies. The multiview Gen-2.5 body subsequently became production9189538d through Blender edits (Fable ad01908). Open-source asset redistribution remains under review; see ../../ASSET_LICENSE_REVIEW.md.",
+  "trials": [
+    {
+      "directory": "rodin-text-v1",
+      "uuid": "cf1fab9f-9e7e-4a07-886d-69d64511ad54",
+      "tier": "Sketch",
+      "prompt": "One full-body stylized young Link from Ocarina of Time, high quality cinematic game character, compact four-head-tall proportions. Kind round youthful face, large teal eyes, small nose and chin, pointed elf ears. Golden blond layered parted fringe, soft green cap with broad drooping tail behind head. Worn forest-green woven collared short-sleeve tunic, brown leather waist belt and diagonal strap, green shorts, bare knees, sturdy chestnut leather ankle boots with folded cuffs and laces. Empty relaxed hands, arms slightly out from torso in A-pose, feet apart, fully dressed. Natural facial anatomy, flowing fine hair strands, cloth folds, detailed leather boot ankles. Single coherent character, no base or scenery, no props floating separately.",
+      "bbox_condition": [
+        1,
+        0.65,
+        2
+      ],
+      "result": "Invalid proportions: bounding-box axis order was misunderstood and the height was set smaller than depth; this is not a valid likeness comparison. Incorrect-up renders are preserved as named diagnostics."
+    },
+    {
+      "directory": "rodin-text-v2",
+      "uuid": "61ba180a-9ccf-4951-8708-d7fb1532af9c",
+      "tier": "Sketch",
+      "prompt": "Young Link from Ocarina of Time as a detailed stylized game character. Standing upright in a relaxed A-pose, full body, natural compact child proportions. Friendly face, large blue-green eyes, pointed ears, blond layered hair and a long soft green cap. Green collared tunic, brown belt and shoulder strap, green shorts, bare knees, brown leather boots. Clean isolated character, realistic cloth and leather, neutral studio lighting.",
+      "result": "Coherent character, but blurry 512px maps, painted eyes, slab-like hair and poor materials. Native material/normal and actual eye geometry studies remain below target. Not adopted."
+    },
+    {
+      "directory": "rodin-text-gen2",
+      "uuid": "eba5339e-8faf-474d-8547-0b1e58148777",
+      "tier": "Gen-2",
+      "prompt": "Young Link from Ocarina of Time. One fully dressed, compact four-head-tall forest adventurer standing in a relaxed A-pose. Appealing youthful face, blue-green eyes with natural eyelids, small nose, pointed ears, detailed golden layered hair. Soft green cloth cap drooping behind head, worn green collared tunic, leather belt and shoulder strap, green shorts, bare knees, laced brown leather boots. High quality stylized realistic anatomy and fabric, neutral studio light.",
+      "parameters": {
+        "mesh_mode": "Raw",
+        "quality": "medium",
+        "material": "PBR",
+        "geometry_file_format": "glb",
+        "TAPose": "true"
+      },
+      "result": "500000 triangles, 380651 vertices, one material with 2048px diffuse/ORM/normal maps. Cloth and boot detail improve on Sketch, but asymmetric malformed eyes, slab hair, mature proportions and a rigid cap remain unacceptable. Back view confirms the cap resembles a broad rigid brim and the backpack is absent. Not adopted."
+    },
+    {
+      "directory": "rodin-text-sheet-gen2",
+      "uuid": "e1103326-b72d-46e5-a8db-d729c6335481",
+      "tier": "Gen-2",
+      "request": "rodin-sheet-gen2-request.json",
+      "result": "60000 triangles, 84255 vertices, 2K maps. The generator interpreted the complete sheet as multiple separate figures and detached equipment; single-character prompt was insufficient. Front render is clipped by the shared single-character camera. Not adopted."
+    },
+    {
+      "directory": "rodin-text-single-gen2",
+      "uuid": "79fd16be-3d75-4722-9de1-8637b52f1db8",
+      "tier": "Gen-2",
+      "request": "rodin-single-gen2-request.json",
+      "result": "50000 triangles, 59747 vertices, 2K maps. Single reference improves proportions, outfit and boots substantially. Eyes retain warped baked reflections; back view invents a round cap and a large undetailed pack instead of the reference's tapered tail and shield. Metallic map median0.196 and roughness median0.392 explain part of the excessive shine. Not adopted."
+    },
+    {
+      "directory": "rodin-text-single-gen25",
+      "uuid": "0285a636-1444-410a-a6ee-c15e5f6a7b57",
+      "tier": "Gen-2.5-Medium",
+      "request": "rodin-single-gen25-request.json",
+      "result": "50000 triangles, 74102 vertices. Same single front reference as Gen-2; cleaner face and hair forms, less baked shading corruption. Eyes still have distorted narrow pupils and materials lack fine detail. Front/face reviewed, back captured for comparison. Unaccepted working basis."
+    },
+    {
+      "directory": "rodin-text-multiview-gen25",
+      "uuid": "03f2d679-4d9f-412a-a855-25630f526349",
+      "tier": "Gen-2.5-Medium",
+      "request": "rodin-multiview-gen25-request.json",
+      "result": "50000 triangles, 4K diffuse/ORM/normal maps. Two separate front/back references produce the intended cap tail and separate pack/shield. Original face has malformed pupils and red eyelid strips. This became the source of the 24K study and later unreduced Blender candidates, including production9189538d at Fable ad01908; see the dated agent log. Generation provenance does not establish unrestricted redistribution rights."
+    }
+  ]
+}

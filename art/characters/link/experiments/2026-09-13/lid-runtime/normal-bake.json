@@ -1,0 +1,8 @@
+{
+  "status": "Rebaked lid-study body normals; use bake_generated_eyes to export all meshes",
+  "size": 4096,
+  "cage": 0.0020000000949949026,
+  "ray": 0.006000000052154064,
+  "fit_cage": true,
+  "sha256": "bb3f11dcdd9928709a740bd74c27dbeaf1e46e8c56fbd0614d15e894fbb0eb11"
+}

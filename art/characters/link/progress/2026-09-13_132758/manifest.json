@@ -1,0 +1,23 @@
+{
+  "at": "2026-09-13T13:27:58.381710+00:00",
+  "kind": "actual Blender renders, not game captures",
+  "blend": "E:\\zeldaremake\\art\\characters\\link\\link-study.blend",
+  "blend_sha256": "8ea25e8209fc4dce0027a4ecd46d9611afc33e8255280c08ad9ac56d8c8833f6",
+  "generator_sha256": "4f3a041c24a32b4afef6447f145178d4451f2cfb489a5e24240a7b5e6eba0bbd",
+  "views": {
+    "01-three-quarter": {
+      "position": [
+        1.7,
+        -3.7,
+        1.53
+      ],
+      "target": [
+        0,
+        0,
+        0.585
+      ],
+      "ortho_scale": 1.3799999952316284,
+      "sha256": "ab06f830a41471cf13eda1dbf74c9f43b9cb859c7090794c29dafa29d093ecc7"
+    }
+  }
+}

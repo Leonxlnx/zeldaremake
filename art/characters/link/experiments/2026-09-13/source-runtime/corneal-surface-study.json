@@ -1,0 +1,21 @@
+{
+  "status": "Isolated original-eye corneal study, not exported or accepted",
+  "source": "Reviewed textured-iris-v2-study.blend",
+  "method": "3mm convex front bulge, zero displacement/slope at 80% globe radius; unchanged X/Z iris mapping; geometric coat normals",
+  "eyes": [
+    {
+      "eye": "Link | anatomical eye 0.035",
+      "vertices": 602,
+      "moved_vertices": 87,
+      "max_move_metres": 0.0029999986888139436,
+      "iris_xz_unchanged": true
+    },
+    {
+      "eye": "Link | anatomical eye 1.035",
+      "vertices": 602,
+      "moved_vertices": 87,
+      "max_move_metres": 0.0029999986888139436,
+      "iris_xz_unchanged": true
+    }
+  ]
+}

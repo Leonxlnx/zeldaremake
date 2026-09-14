@@ -1,0 +1,25 @@
+{
+  "status": "Baked anatomical eye candidate; actual GLB review required, not adopted",
+  "sha256": "86d5c68e66d1118aea9f81d4c940d1485fdea28f3692fdd5b02a0288f7af252c",
+  "bytes": 28903892,
+  "triangles": 25464,
+  "meshes": 3,
+  "materials": 3,
+  "bones": 19,
+  "clip_durations": {
+    "idle": 3.0,
+    "walk": 0.550000011920929,
+    "run": 0.5666666626930237,
+    "stairs": 0.7333333492279053
+  },
+  "weight_sum_error": 1.1920928955078125e-07,
+  "new_socket_vertices_bound": 0,
+  "wrong_face_weights_corrected": 318,
+  "rigid_face_vertices": 2459,
+  "bakes": {
+    "body_color": "6df53a6d837dd25d061583c09a89091dff2e022302b9551263ebf0475da77cf9",
+    "eye_color": "0b62783c61a3fbb3329385439a5cc9221ebc5866e3ee9840a5cb84cf5dc73142"
+  },
+  "source_candidate_sha256": "493c1c1e62090275c22eff9e3a7c7700da63a7abb0dd300a8d3a49e7cd89e004",
+  "provenance": "Generated body plus original native eyeballs/iris shader and socket/eyelid corrections. Existing409b603 skeleton/clips."
+}

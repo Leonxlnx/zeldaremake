@@ -1,0 +1,8 @@
+{
+  "status": "Material study only; face exclusion fixes the eye/cloth misclassification",
+  "repairedFaces": 520,
+  "clothFaces": 8247,
+  "vertices": 11666,
+  "triangles": 23332,
+  "imageSha256": "69e0535c4727adba9de54479ed996ab808d028480fb18f5f7736b0ae11bb7cc7"
+}

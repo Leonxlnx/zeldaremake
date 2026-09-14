@@ -1,0 +1,27 @@
+{
+  "status": "Unaccepted iris material study; not exported",
+  "pupil_to_iris_radius": 0.5573770491803279,
+  "samples": 48,
+  "texture_sha256": "a1ad966e42b5c53f04a895e66443e1311dc04f61296b0c72da4c29b37440ed20",
+  "texture_radii": [
+    0.163,
+    0.467
+  ],
+  "native_iris_radii": [
+    0.34,
+    0.61
+  ],
+  "texture_size": [
+    1254,
+    1254
+  ],
+  "albedo_multiplier": [
+    0.7,
+    0.8,
+    0.82
+  ],
+  "limbus_fade": [
+    0.575,
+    0.61
+  ]
+}

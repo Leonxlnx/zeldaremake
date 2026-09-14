@@ -1,0 +1,20 @@
+{
+  "source": "E:\\zeldaremake\\reference\\concepts\\03_kokiri_hero_link_sheet.jpg",
+  "source_sha256": "d710901007ef5d5aec84b3713df7b31d4135fef27948c2db54e62a897d0c638b",
+  "source_edit": "None: original complete design sheet uploaded byte-for-byte",
+  "parameters": {
+    "prompt": "One single character corresponding to the FIRST full-body FRONT view on the left of this character design sheet. The other views depict the SAME character, not additional figures. Preserve this compact youthful face, natural symmetrical blue-green eyes, four-head-tall proportions, messy golden layered hair, drooping soft green cap, textured green tunic, bare knees and brown leather ankle boots. Include the backpack behind the torso. Single isolated character in a relaxed A-pose. No board, text, background, detached props, extra faces or extra figures.",
+    "tier": "Gen-2",
+    "mesh_mode": "Raw",
+    "quality_override": "60000",
+    "quad_normal": "true",
+    "material": "PBR",
+    "geometry_file_format": "glb",
+    "TAPose": "true",
+    "is_symmetric": "balanced"
+  },
+  "uuid": "e1103326-b72d-46e5-a8db-d729c6335481",
+  "status_code": 201,
+  "error": null,
+  "credential": "Bundled public Blender MCP free trial; no private key"
+}

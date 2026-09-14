@@ -50,6 +50,10 @@ export function serveStatic(dir, { spaFallback = true } = {}) {
     }
     res.writeHead(200, {
       'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream',
+      'Content-Length': fs.statSync(file).size,
+      // ponytail: fresh localhost sockets avoid stalled second responses on Windows.
+      // Captures trade keep-alive reuse for reliability until that host issue is fixed.
+      'Connection': 'close',
       'Cache-Control': 'no-store',
     });
     fs.createReadStream(file).pipe(res);

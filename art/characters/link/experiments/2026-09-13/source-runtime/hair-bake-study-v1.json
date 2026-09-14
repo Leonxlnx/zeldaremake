@@ -1,0 +1,15 @@
+{
+  "status": "Unaccepted baked hair detail; runtime export pending",
+  "hair_triangles": 4831,
+  "body_triangles_before": 52386,
+  "body_triangles_after": 52386,
+  "bakes": {
+    "color": "b635fc96c65ca2c61d48940e1bc6b85e1048b13036f88ccd261d5ce919c2da20",
+    "normal": "3f7e9abcd1064a507ef05d8e7de1440b7121e23b73dafb425c0adcf913e12553",
+    "roughness": "2d11095f957a8cde85b80f8b528ea7130eb562f050dd8a88240fb05e526d5509"
+  },
+  "size": 4096,
+  "normal_strength": 0.3,
+  "roughness": 0.55,
+  "reason": "Full-strength fibre normals and per-fibre roughness look coarse; reduced normal strength uses stable roughness."
+}

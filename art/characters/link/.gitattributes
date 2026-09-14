@@ -1,0 +1,4 @@
+# Preserve the exact source bytes used for captured renders (including line endings).
+# Forcing LF at check-in changed hashes of already-rendered Windows source snapshots.
+*.py -text
+*.json text eol=lf

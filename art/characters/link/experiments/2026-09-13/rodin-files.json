@@ -1,0 +1,174 @@
+{
+  "rodin-text-gen2/back.png": {
+    "bytes": 671052,
+    "sha256": "ad0a52956c314662c87fca04ac94ab59459dd77133dcb2d24a4c4a63462e8b96"
+  },
+  "rodin-text-gen2/face.png": {
+    "bytes": 771176,
+    "sha256": "bd75a7ae672fc6c85de4bf621ef74e87e4496d4029e88667a6ffe1e744957ea0"
+  },
+  "rodin-text-gen2/front.png": {
+    "bytes": 718975,
+    "sha256": "c7eb5f4898489dc1d614734adcf71662696f4003ed78d686a28cfe49ab38b14c"
+  },
+  "rodin-text-gen2/review.blend": {
+    "bytes": 28318466,
+    "sha256": "bbf45b3d4edd8d3f5950dd68cc7e9aa3be45e8f252e373646c3c5109725b1497"
+  },
+  "rodin-text-gen2/rodin-original.glb": {
+    "bytes": 27346616,
+    "sha256": "f4fee783d50c29a18556f3fb348d293ad32cfabf1820347a94e8a7c0bd8131f7"
+  },
+  "rodin-text-multiview-gen25/back.png": {
+    "bytes": 735987,
+    "sha256": "5d97fd7ba4680f8660d875658b0ae3d40602e71cbf341d75c44e9c670e436467"
+  },
+  "rodin-text-multiview-gen25/face.png": {
+    "bytes": 827856,
+    "sha256": "07467c7989dbf52b1b7e64f9a06588ce3029c12eda0f1e10648ac8233d8efca7"
+  },
+  "rodin-text-multiview-gen25/review.blend": {
+    "bytes": 38382103,
+    "sha256": "d7705643070bfd825b2a7d74f32f65d54fc218c3555b451e34121dff7418cb0d"
+  },
+  "rodin-text-multiview-gen25/rodin-original.glb": {
+    "bytes": 39280944,
+    "sha256": "59f38718f1527bd21dbe5a1afe29c4e00f9e5bc1f549872960a6e3d88ccee372"
+  },
+  "rodin-text-sheet-gen2/front.png": {
+    "bytes": 844522,
+    "sha256": "c0d843eb09d491fe579d8ff39f71da6115e2521bb6c8785ed72163f03f348268"
+  },
+  "rodin-text-sheet-gen2/review.blend": {
+    "bytes": 15334829,
+    "sha256": "199052dc04c8ee6dc6b73f81ca17c91ebbd8b7ff580bb69c068a8159d153e502"
+  },
+  "rodin-text-sheet-gen2/rodin-original.glb": {
+    "bytes": 16122304,
+    "sha256": "b6a52035637cd9abbe8fcef1784ddf6cb29542a06b6161bac32bea8f1f0fbfa2"
+  },
+  "rodin-text-single-gen2/back.png": {
+    "bytes": 711385,
+    "sha256": "666f204f6f5279a6eeff83835e43e2dcf157df153ad758aa201e0d77634f8cb1"
+  },
+  "rodin-text-single-gen2/face.png": {
+    "bytes": 868216,
+    "sha256": "199131443851962bacc6acd31d3f8c23b251d2d83306b819f48691520e624ed7"
+  },
+  "rodin-text-single-gen2/front.png": {
+    "bytes": 776969,
+    "sha256": "b85f2c947836fb9db28d257f89cb7f5ed1ee97800d479ddc52918fb3f7c71556"
+  },
+  "rodin-text-single-gen2/review.blend": {
+    "bytes": 13838300,
+    "sha256": "621f98da52b897d9e3212a90ee8fbab67297d1b04709e7fd707b388fbc7fc3ec"
+  },
+  "rodin-text-single-gen2/rodin-original.glb": {
+    "bytes": 13980252,
+    "sha256": "98c1a6fb83964e52ce09b1ae96126f333c94b6ea7ac5edec3abbe02b8e52bf42"
+  },
+  "rodin-text-single-gen25/back.png": {
+    "bytes": 722611,
+    "sha256": "b4bb893c4c3e93431a65c7e28385afcf2165e4d90c7d77b7b9a3cf2f7c695efe"
+  },
+  "rodin-text-single-gen25/face.png": {
+    "bytes": 858433,
+    "sha256": "c2ac40d378eb93981517ea4e2ec6e4d85b3cb2dee73d0f34a6584fc63a2c3185"
+  },
+  "rodin-text-single-gen25/front.png": {
+    "bytes": 776099,
+    "sha256": "5dd38886e551c313a804f876ca9520f4946e9c35ffd150fc4f8aa78812c60d7a"
+  },
+  "rodin-text-single-gen25/review.blend": {
+    "bytes": 14196127,
+    "sha256": "206e28c18455b929d3c9c88318f22e8cf5af259b3d22339427d97fd942c204ad"
+  },
+  "rodin-text-single-gen25/rodin-original.glb": {
+    "bytes": 14992164,
+    "sha256": "ceb8a9c542ab56a343a2d0fb1b81d853b421856f31c5165711d724492df4600c"
+  },
+  "rodin-text-v1/back-incorrect-up.png": {
+    "bytes": 623942,
+    "sha256": "c3e2ea2a32e6c53a1dbc89eb5b59dfc1d290a545a67d50e5e1471806f0eab758"
+  },
+  "rodin-text-v1/face-incorrect-up.png": {
+    "bytes": 611988,
+    "sha256": "6d54c3254832cf5bbeb5cd335bcbdf6af25acbf4f92a63e9253e246c12c63e97"
+  },
+  "rodin-text-v1/front-incorrect-up.png": {
+    "bytes": 646546,
+    "sha256": "16f5840b1d71eb2f2fc049f5f07b903fbc709b6d1c8dff64f9d10a3838aa2e8e"
+  },
+  "rodin-text-v1/front-opposite-up.png": {
+    "bytes": 633810,
+    "sha256": "0c647e375dcedef27e60806ffc778bf6c2d3c7da144e19930f674848fa5d5151"
+  },
+  "rodin-text-v1/front.png": {
+    "bytes": 716665,
+    "sha256": "e2116a6efeb410f56d00042b2ac974ff1f1c50b3deefe63121a63ca79d2652c3"
+  },
+  "rodin-text-v1/review.blend": {
+    "bytes": 2911121,
+    "sha256": "c700cd341998b2d211eaf4c2cdae995ef9ac2f5c67f740bdb30518898a5fa5da"
+  },
+  "rodin-text-v1/rodin-original.glb": {
+    "bytes": 1675288,
+    "sha256": "0c0383f3fb5118fe1ef6ca500acbd1a3411cabcf897ae4fcb8812f01a222e9d3"
+  },
+  "rodin-text-v2/eyes-inset.blend": {
+    "bytes": 3231020,
+    "sha256": "92e25b07b7f5b16354ce15e35f3277c9b1419c9934b1fd481da2d8d74e26b4af"
+  },
+  "rodin-text-v2/eyes.blend": {
+    "bytes": 3224191,
+    "sha256": "2cad595d75951699f05ae319a52e8e988d56ca5d7d68b3b55b825ce23e81838f"
+  },
+  "rodin-text-v2/eyes.json": {
+    "bytes": 407,
+    "sha256": "871a341daac7a47c0d1810517195f5e89bc3eefb1c1235754f0ec846396c1e0d"
+  },
+  "rodin-text-v2/face-eyes-inset.png": {
+    "bytes": 776136,
+    "sha256": "ca13f2882c585cf33459bfb65ffa819ccd099e1e19a203c15a2ad4b1986ba929"
+  },
+  "rodin-text-v2/face-eyes.png": {
+    "bytes": 760639,
+    "sha256": "c165c85f39c91c15b5f348f35475a3190cad1c792ee284a58922649bf0359c31"
+  },
+  "rodin-text-v2/face-materials-first-mask.png": {
+    "bytes": 772352,
+    "sha256": "140133879d14e8d4746c0bd0d29f5c380e35502b71265ba4bd15a6de3443f967"
+  },
+  "rodin-text-v2/face-materials.png": {
+    "bytes": 752531,
+    "sha256": "69e0535c4727adba9de54479ed996ab808d028480fb18f5f7736b0ae11bb7cc7"
+  },
+  "rodin-text-v2/face.png": {
+    "bytes": 720312,
+    "sha256": "133e4080ef56a9d86e35370e0ca52d074dbb8b07be4de0469b5deb599efc3824"
+  },
+  "rodin-text-v2/front.png": {
+    "bytes": 685375,
+    "sha256": "7e116e375f33d5240fd72c3149656691980def5b4492879430c06df340c0640a"
+  },
+  "rodin-text-v2/materials-first-mask.json": {
+    "bytes": 243,
+    "sha256": "fadb0bbbf93e0a47e92300641ec001032756a7721427524fab11ca47484c73d9"
+  },
+  "rodin-text-v2/materials.blend": {
+    "bytes": 3007573,
+    "sha256": "fd7f7023adec21d786e7e04734832bd7f1f507ea6c22c4dfe665666fb4175fe5"
+  },
+  "rodin-text-v2/materials.json": {
+    "bytes": 272,
+    "sha256": "e11d8ed835e036d8bec528cf1fb1e4d66c497f3a17eaa00a48c7c4be507abe02"
+  },
+  "rodin-text-v2/review.blend": {
+    "bytes": 1840352,
+    "sha256": "f1ed9d23f6572a5a97c3b1cf24ac22ddfc2e7a4989eed920e7dfefd8e1f0cf8a"
+  },
+  "rodin-text-v2/rodin-original.glb": {
+    "bytes": 1767040,
+    "sha256": "2cae2c8b3ba63cb12d6a712f8c35aa8b893262e9bc21b8b23776f8f26d98f2dc"
+  }
+}

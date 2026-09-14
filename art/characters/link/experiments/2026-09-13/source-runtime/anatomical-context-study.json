@@ -1,0 +1,9 @@
+{
+  "status": "Isolated combined appearance study; head not rigged, not exported or accepted",
+  "removed_old_head_faces": 8700,
+  "retained_hair_cap_ear_faces": 9648,
+  "removed_native_ear_vertices": 626,
+  "lower_outfit_vertices_unchanged": 19291,
+  "head_source": "anatomical-topology-v4-study.blend",
+  "body_source": "Reviewed9189538d native scene; existing UVs/materials"
+}

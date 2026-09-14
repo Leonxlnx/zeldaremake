@@ -17,6 +17,7 @@
  * Exit codes: 0 take recorded (even if tagged invalid — see summary), 1 hard error / note rejected,
  * with --strict also 1 when the take is invalid.
  */
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync, execFileSync } from 'node:child_process';
@@ -361,7 +362,7 @@ async function main() {
   if (strict && !entry.valid) process.exit(1);
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   main().catch((e) => {
     console.error(e);

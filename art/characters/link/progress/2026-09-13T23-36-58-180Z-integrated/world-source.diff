@@ -1,0 +1,75 @@
+diff --git a/public/models/link/SOURCE.md b/public/models/link/SOURCE.md
+index 2108b8a..d803faa 100644
+--- a/public/models/link/SOURCE.md
++++ b/public/models/link/SOURCE.md
+@@ -1,50 +1,11 @@
+-# `link-runtime.glb` — Young Link runtime candidate (Astra)
++# Young Link — local boot hardware comparison
+ 
+-Character art by the partner agent **Astra** (`astra-local`, Blender). This file is a byte-for-byte
+-copy of her runtime export; the runtime loader (`src/world/character/glbLink.ts`) only reads it and
+-falls back to the procedural Link when it is missing or malformed.
++This isolated a98e9ea checkout compares native metal response on six existing boot medallions/rivets. Only the GLB, reported hash and this provenance override the partner checkout.
+ 
+-| | |
+-| --- | --- |
+-| Source branch / commit | `origin/agent/astra-local-blender` @ `409b603` (compatible art revision: continuous lip volume/tint, sculpt normals and baked tangents surviving export, closed ear rims, fuller cap, open hem and boot cuffs; the loader was built and measured against `17adcb3`, whose contract — bones, clips, strides, sole markers — is unchanged) |
+-| Source path | `art/characters/link/link-runtime.glb` (20,517,948 bytes) |
+-| SHA256 | `281895fef8f8fda7e7fe73f7fa84ef16fff2df8cb2ead48be15327dece3f2faa` |
+-| Generator | Khronos glTF Blender I/O v4.5.51, glTF 2.0, no extensions |
+-| Geometry | 24,108 triangles in four skinned meshes (skin, outfit, hair, eyes; per-mesh counts at `17adcb3` were 9,324 / 11,169 / 2,670 / 970) |
+-| Materials | 4 opaque, double-sided PBR: skin, hair, eyes, outfit (base colour + tangent normal + roughness; outfit metalness packed with roughness) |
+-| Maps | 12 embedded PNGs: 2K skin/outfit, 1K hair/eyes |
+-| Rig | 19 bones: hips, chest, neck, head, cap, shoulderL/R, elbowL/R, handL/R, thighL/R, kneeL/R, ankleL/R, toeL/R |
+-| Units / axes | metres, +Y up, +Z forward, unit root transform (`LinkRig`); rest sole geometry minimum y = 0.0066 m, ankle-local sole markers L/R `[∓0.000000016, 0.05900068, 0.08564404]` |
+-| Pelvis | 0.518 m (idle) |
++Source: E:/zeldaremake/art/characters/link/experiments/2026-09-13/source-runtime/hardware-candidate.glb
++SHA256: ef75d97b675f9b001ed7dc82f86e223d9adfce11ed60ccaf53e351a1f9ae864c
++38,831,060B,54,786 triangles,3 meshes/materials,19 bones,same4 clips,strides and sole markers.
+ 
+-## Clips (in place; stance paths cancel the agreed travel speed on a flat plane)
++Based on the cfc48d iris handoff from812c2d4. Original Rodin Gen-2.5 two-view body/maps, native iris/cornea and socket corrections, reused409b603 rig. The boot brass uses native material fields baked to4K colour/2K metallic/roughness maps. No new geometry or external assets.
+ 
+-| clip | duration | stride | speed | frames |
+-| --- | --- | --- | --- | --- |
+-| `idle` | 3.0 s | — | 0 | 180 |
+-| `walk` | 0.55 s | 0.88 m | 1.6 m/s | 33 |
+-| `run` | 0.566667 s | 2.21 m | 3.9 m/s | 34 |
+-| `stairs` | 0.733333 s | 0.806667 m | 1.1 m/s | 44 |
+-
+-Playback rate in the world = `GAIT_SPEED[gait] / (stride / duration)`, i.e. 1.0 for every clip as
+-delivered; the formula stays so a future clip with a different stride does not slide. Per-frame
+-ankle contact paths are in her `art/characters/link/runtime/pipeline.json`.
+-
+-## Provenance / licence
+-
+-Geometry, skin tint and shader patterns are Astra's original work. The embedded maps are her bakes
+-(`art/characters/link/runtime/textures/*.png` at the same commit) of locally authored shaders whose
+-scanned inputs are **CC0** (Poly Haven licence, checked 2026-09-13), credited in her
+-`art/characters/link/textures/CREDITS.md`:
+-
+-- leather colour / roughness / height — [Fabric Leather 01](https://polyhaven.com/a/fabric_leather_01), Poly Haven, CC0;
+-- cloth roughness / normal — [Fabric Pattern 05](https://polyhaven.com/a/fabric_pattern_05), Rob Tuytel / Poly Haven, CC0 (green dye procedural; the plaid colour maps are not used);
+-- shield wood — this repository's `public/textures/weathered_planks` (credited in `public/textures/CREDITS.md`).
+-
+-Her `art/characters/link/README.md` (same commit) documents the build (`build_link.py` →
+-`prepare_runtime.py` → `bake_runtime.py` → `refine_runtime.py` → `rig_runtime.py` →
+-`export_runtime.py`). No Nintendo model and no reference frame is used as a texture (GAUNTLET.md
+-C1/C5; the file name and the embedded metadata carry none of the forbidden names).
+-
+-Known visible defects she listed for this candidate: round eyes, blocky hair, limited cloth folds,
+-excessive knee/hem interaction in the run. Diagnostic integration only — not an art acceptance.
++Studio23:35:19 completes18 views/363 poses. Full world comparison pending. Face/hair remain unfinished; no final art acceptance or phase exit. Fable owns loader logic and terrain IK.
+diff --git a/src/world/character/glbLink.ts b/src/world/character/glbLink.ts
+index ebad7ff..8693694 100644
+--- a/src/world/character/glbLink.ts
++++ b/src/world/character/glbLink.ts
+@@ -24,7 +24,7 @@ import type { Puppet, PuppetPose } from './puppet';
+ /** served by Vite from public/ */
+ export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
+ /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
+-export const LINK_GLB_SHA256 = '281895fef8f8fda7e7fe73f7fa84ef16fff2df8cb2ead48be15327dece3f2faa';
++export const LINK_GLB_SHA256 = 'ef75d97b675f9b001ed7dc82f86e223d9adfce11ed60ccaf53e351a1f9ae864c';
+ 
+ /**
+  * Clip contract from Astra's pipeline.json (rig.clips): stride and cycle per gait, plus the clip

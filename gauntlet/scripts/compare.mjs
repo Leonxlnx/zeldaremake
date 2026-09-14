@@ -16,6 +16,7 @@
  *   motionRegionsMoving  <det>.png vs <det>.motion.png, 4×4 regions with mean |Δ| > 1.5/255
  *   depth              copied from checks.json (skyFraction, farLayerCount, maxBucketBeyond20m)
  */
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -260,7 +261,7 @@ export async function compareDir({ inDir, previousDir = null, previousMetrics = 
   return result;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   const inDir = resolveArg(args.in, 'gauntlet/out/last');

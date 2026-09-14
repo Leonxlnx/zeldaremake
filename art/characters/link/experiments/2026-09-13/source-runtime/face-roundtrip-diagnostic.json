@@ -1,0 +1,11 @@
+{
+  "status": "Native source versus GLB reimport diagnostic only",
+  "glb_sha256": "5a9969f13915bfb54a970a3267541a52aee5cfbef7b3c5db08a1e0b56c33a3a6",
+  "bones": 19,
+  "source_and_reimport_camera_identical": true,
+  "pixel_comparison": {
+    "maxChannelDelta": 10,
+    "meanChannelDelta": 0.027853997289972898,
+    "channelFractionOver8": 0.000001129177958446251
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "status": "Diagnostic only: body hidden temporarily, not a character result",
+  "body_visibility_restored": true,
+  "rays": [
+    {
+      "eye": "Link | anatomical eye 0.035",
+      "front_surface": [
+        -0.05347690358757973,
+        -0.1068495512008667,
+        0.9711989164352417
+      ],
+      "light_centre_rays": [
+        {
+          "light": "Key | warm softbox.053",
+          "body_blocks_centre_ray": true,
+          "hit_distance_metres": 0.03542811796069145
+        },
+        {
+          "light": "Fill | cool softbox.053",
+          "body_blocks_centre_ray": true,
+          "hit_distance_metres": 0.02770087495446205
+        },
+        {
+          "light": "Rim | overhead.053",
+          "body_blocks_centre_ray": true,
+          "hit_distance_metres": 0.022361882030963898
+        }
+      ]
+    },
+    {
+      "eye": "Link | anatomical eye 1.035",
+      "front_surface": [
+        0.05322640761733055,
+        -0.10897266864776611,
+        0.9719414114952087
+      ],
+      "light_centre_rays": [
+        {
+          "light": "Key | warm softbox.053",
+          "body_blocks_centre_ray": true,
+          "hit_distance_metres": 0.024428514763712883
+        },
+        {
+          "light": "Fill | cool softbox.053",
+          "body_blocks_centre_ray": true,
+          "hit_distance_metres": 0.04584469273686409
+        },
+        {
+          "light": "Rim | overhead.053",
+          "body_blocks_centre_ray": true,
+          "hit_distance_metres": 0.02229349873960018
+        }
+      ]
+    }
+  ]
+}

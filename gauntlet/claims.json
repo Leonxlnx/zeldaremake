@@ -848,6 +848,77 @@
       "at": "2026-09-13T03:16:20.181Z",
       "expiresHours": 3,
       "scope": "Recover exact previously built ordinary fern Mid/Low-only source after environment disconnect; existing CI comparison against c5, no Fable systems or near/hero form changes; PR2 coordination5650627060"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-13T12:13:59.709Z",
+      "expiresHours": 3,
+      "scope": "Owner-authorized Blender character art only: art/characters/link and tools/blender; no runtime replacement"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-13T15:11:24.278Z",
+      "expiresHours": 3,
+      "scope": "Owner-authorized Blender character art: art/characters/link and tools/blender; Fable owns production loader and environment"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-13T18:08:57.294Z",
+      "expiresHours": 3,
+      "scope": "Resumed owner-authorized Blender Link art in art/characters/link and tools/blender; Fable owns production loader/environment"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-13T21:00:31.882Z",
+      "expiresHours": 3,
+      "scope": "Owner-authorized Blender character art; art/characters/link and tools/blender. Fable owns production loader and environment."
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-13T23:47:12.979Z",
+      "expiresHours": 3,
+      "scope": "Owner-authorized Blender Link art: art/characters/link and tools/blender; Fable owns production loader and environment."
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02",
+        "W41"
+      ],
+      "at": "2026-09-14T00:56:50.633Z",
+      "expiresHours": 3,
+      "scope": "Blender Link studies plus isolated capture.mjs first-frame guard: detect a uniform world even when HUD is visible; preserve full screenshots and B5 thresholds"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-14T04:04:10.386Z",
+      "expiresHours": 3,
+      "scope": "Blender character art and native clips; review Fable production foot planting without changing his runtime ownership"
     }
   ]
 }

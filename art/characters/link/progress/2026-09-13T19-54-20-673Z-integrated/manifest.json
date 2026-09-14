@@ -1,0 +1,1317 @@
+{
+  "kind": "Actual production integration review on native GPU; not a gauntlet take or art acceptance",
+  "world_commit": "a98e9eacf40638d26fb57c7c0a586c362b4dcaab",
+  "world_status": "M public/models/link/SOURCE.md\n M public/models/link/link-runtime.glb\n M src/world/character/glbLink.ts",
+  "modes": [
+    "glb"
+  ],
+  "world_source_diff_sha256": "208ca4ce7e967c9244d152f301d10cf434bb957ebc4b67220d191793a3bb88ae",
+  "glb_sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+  "images": {
+    "A_stairs-glb": {
+      "sha256": "5dc39a1cd06bb09a8d5db54f2e4645d53c74b815217d1dfb95c280ce60c556e7",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 526,
+        "triangles": 8848676,
+        "geometries": 353,
+        "textures": 78,
+        "programs": 81,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "character": {
+        "link": true,
+        "linkSource": "glb",
+        "linkAsset": {
+          "file": "models/link/link-runtime.glb",
+          "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+          "triangles": 25464,
+          "materials": 3,
+          "bones": 19,
+          "clips": [
+            {
+              "name": "idle",
+              "durationS": 3,
+              "strideM": 0,
+              "rate": 1
+            },
+            {
+              "name": "walk",
+              "durationS": 0.55,
+              "strideM": 0.88,
+              "rate": 1
+            },
+            {
+              "name": "run",
+              "durationS": 0.566667,
+              "strideM": 2.21,
+              "rate": 1
+            },
+            {
+              "name": "stairs",
+              "durationS": 0.733333,
+              "strideM": 0.8066667,
+              "rate": 1
+            }
+          ],
+          "loadMs": 288
+        },
+        "linkFallbackReason": null,
+        "animations": 4,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "glb-link+procedural-npcs-v1",
+        "triangles": 44510,
+        "linkTriangles": 25464,
+        "linkHeight": 1.1998,
+        "rigMeshesBeforeMerge": 122,
+        "rigMeshes": 83,
+        "rigMergedMeshes": 33,
+        "mode": "view",
+        "view": "A_stairs",
+        "linkGait": "walk",
+        "samplePositions": {
+          "feet": [
+            [
+              2.0561489951109673,
+              0.025620486587285995,
+              4.51611735183565
+            ],
+            [
+              5.001370155776693,
+              0.7004543159228043,
+              5.216845940214213
+            ],
+            [
+              -6.553342019916329,
+              0.19018055652159677,
+              -1.9337655016710809
+            ],
+            [
+              10.584248632359138,
+              1.0271864465301634,
+              -7.555495736581977
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33414,
+          "cellSize": 0.1,
+          "triangles": 115620
+        },
+        "world": {
+          "link": [
+            2.0561489951109673,
+            0.025620486587285995,
+            4.51611735183565
+          ],
+          "linkRoot": [
+            2.2428199372967397,
+            0.017317162826657295,
+            4.3878401433217356
+          ],
+          "navi": [
+            1.959974732373373,
+            1.2570968801401738,
+            4.248942620143089
+          ],
+          "kids": [
+            [
+              5.001370155776693,
+              0.7004543159228043,
+              5.216845940214213
+            ],
+            [
+              -6.553342019916329,
+              0.19018055652159677,
+              -1.9337655016710809
+            ],
+            [
+              10.584248632359138,
+              1.0271864465301634,
+              -7.555495736581977
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.482,
+            0.897
+          ],
+          "linkRoot": [
+            0.5,
+            0.88
+          ],
+          "linkHead": [
+            0.5,
+            0.648
+          ],
+          "navi": [
+            0.455,
+            0.57
+          ],
+          "kids": [
+            {
+              "feet": [
+                0.879,
+                0.691
+              ],
+              "head": [
+                0.89,
+                0.44
+              ]
+            },
+            {
+              "feet": [
+                -0.511,
+                0.705
+              ],
+              "head": [
+                -0.504,
+                0.522
+              ]
+            },
+            {
+              "feet": [
+                0.6,
+                0.48
+              ],
+              "head": [
+                0.597,
+                0.413
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "B_house-glb": {
+      "sha256": "90f1971e5bb08a55aa6b04645127b9e760239b7c9f4d9f63f5083aeb91fd218e",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 508,
+        "triangles": 8457285,
+        "geometries": 378,
+        "textures": 78,
+        "programs": 81,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "character": {
+        "link": true,
+        "linkSource": "glb",
+        "linkAsset": {
+          "file": "models/link/link-runtime.glb",
+          "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+          "triangles": 25464,
+          "materials": 3,
+          "bones": 19,
+          "clips": [
+            {
+              "name": "idle",
+              "durationS": 3,
+              "strideM": 0,
+              "rate": 1
+            },
+            {
+              "name": "walk",
+              "durationS": 0.55,
+              "strideM": 0.88,
+              "rate": 1
+            },
+            {
+              "name": "run",
+              "durationS": 0.566667,
+              "strideM": 2.21,
+              "rate": 1
+            },
+            {
+              "name": "stairs",
+              "durationS": 0.733333,
+              "strideM": 0.8066667,
+              "rate": 1
+            }
+          ],
+          "loadMs": 288
+        },
+        "linkFallbackReason": null,
+        "animations": 4,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "glb-link+procedural-npcs-v1",
+        "triangles": 44510,
+        "linkTriangles": 25464,
+        "linkHeight": 1.1998,
+        "rigMeshesBeforeMerge": 122,
+        "rigMeshes": 83,
+        "rigMergedMeshes": 33,
+        "mode": "view",
+        "view": "B_house",
+        "linkGait": "idle",
+        "samplePositions": {
+          "feet": [
+            [
+              1.5549192764367705,
+              0.0325990691781044,
+              -2.124836513357207
+            ],
+            [
+              8.932735992262375,
+              0.8381397939114963,
+              3.6544090446823567
+            ],
+            [
+              -1.5924503851941765,
+              0.03351459423306432,
+              -3.5044421110198174
+            ],
+            [
+              10.566054037005117,
+              1.0327521644592017,
+              -7.524967067848922
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33414,
+          "cellSize": 0.1,
+          "triangles": 115620
+        },
+        "world": {
+          "link": [
+            1.5549192764367705,
+            0.0325990691781044,
+            -2.124836513357207
+          ],
+          "linkRoot": [
+            1.4824050138183982,
+            0.03205212950706482,
+            -2.150734038691515
+          ],
+          "navi": [
+            1.8880286599822633,
+            1.2416636799428313,
+            -2.002874000055339
+          ],
+          "kids": [
+            [
+              8.932735992262375,
+              0.8381397939114963,
+              3.6544090446823567
+            ],
+            [
+              -1.5924503851941765,
+              0.03351459423306432,
+              -3.5044421110198174
+            ],
+            [
+              10.566054037005117,
+              1.0327521644592017,
+              -7.524967067848922
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.512,
+            0.91
+          ],
+          "linkRoot": [
+            0.5,
+            0.91
+          ],
+          "linkHead": [
+            0.5,
+            0.644
+          ],
+          "navi": [
+            0.565,
+            0.585
+          ],
+          "kids": [
+            {
+              "feet": [
+                4.634,
+                1.058
+              ],
+              "head": [
+                4.442,
+                0.198
+              ]
+            },
+            {
+              "feet": [
+                0.02,
+                0.889
+              ],
+              "head": [
+                0.038,
+                0.614
+              ]
+            },
+            {
+              "feet": [
+                0.857,
+                0.56
+              ],
+              "head": [
+                0.85,
+                0.459
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "C_lookback-glb": {
+      "sha256": "455b27c91dc643919c45e684879acf7eccf348a512f2bde918b0027d27472e6f",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 429,
+        "triangles": 8761568,
+        "geometries": 433,
+        "textures": 78,
+        "programs": 81,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "character": {
+        "link": true,
+        "linkSource": "glb",
+        "linkAsset": {
+          "file": "models/link/link-runtime.glb",
+          "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+          "triangles": 25464,
+          "materials": 3,
+          "bones": 19,
+          "clips": [
+            {
+              "name": "idle",
+              "durationS": 3,
+              "strideM": 0,
+              "rate": 1
+            },
+            {
+              "name": "walk",
+              "durationS": 0.55,
+              "strideM": 0.88,
+              "rate": 1
+            },
+            {
+              "name": "run",
+              "durationS": 0.566667,
+              "strideM": 2.21,
+              "rate": 1
+            },
+            {
+              "name": "stairs",
+              "durationS": 0.733333,
+              "strideM": 0.8066667,
+              "rate": 1
+            }
+          ],
+          "loadMs": 288
+        },
+        "linkFallbackReason": null,
+        "animations": 4,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "glb-link+procedural-npcs-v1",
+        "triangles": 44510,
+        "linkTriangles": 25464,
+        "linkHeight": 1.1998,
+        "rigMeshesBeforeMerge": 122,
+        "rigMeshes": 83,
+        "rigMergedMeshes": 33,
+        "mode": "view",
+        "view": "C_lookback",
+        "linkGait": "walk",
+        "samplePositions": {
+          "feet": [
+            [
+              2.711441292437776,
+              0.07351499050855637,
+              -4.186188039367761
+            ],
+            [
+              5.013245884211961,
+              0.02450217865407467,
+              0.7281515776770283
+            ],
+            [
+              -6.506665757399689,
+              0.19724878965175635,
+              -2.085928440887283
+            ],
+            [
+              10.556587117369164,
+              1.0343548661568023,
+              -7.516244072809295
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33414,
+          "cellSize": 0.1,
+          "triangles": 115620
+        },
+        "world": {
+          "link": [
+            2.711441292437776,
+            0.07351499050855637,
+            -4.186188039367761
+          ],
+          "linkRoot": [
+            2.7599511227682862,
+            0.07277746498584747,
+            -4.407429715464177
+          ],
+          "navi": [
+            2.4381781084664005,
+            1.0648294340099398,
+            -4.365518420926776
+          ],
+          "kids": [
+            [
+              5.013245884211961,
+              0.02450217865407467,
+              0.7281515776770283
+            ],
+            [
+              -6.506665757399689,
+              0.19724878965175635,
+              -2.085928440887283
+            ],
+            [
+              10.556587117369164,
+              1.0343548661568023,
+              -7.516244072809295
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.514,
+            0.881
+          ],
+          "linkRoot": [
+            0.5,
+            0.91
+          ],
+          "linkHead": [
+            0.499,
+            0.587
+          ],
+          "navi": [
+            0.565,
+            0.565
+          ],
+          "kids": [
+            {
+              "feet": [
+                0.382,
+                0.62
+              ],
+              "head": [
+                0.375,
+                0.476
+              ]
+            },
+            {
+              "feet": [
+                1.913,
+                0.76
+              ],
+              "head": [
+                1.909,
+                0.474
+              ]
+            },
+            {
+              "feet": [
+                -3.811,
+                0.82
+              ],
+              "head": [
+                -4.393,
+                -0.284
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "D_log-glb": {
+      "sha256": "88f33336b6ae2b65583b641499740db59804fe3483e5619806436baa1b23d3dd",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 423,
+        "triangles": 8302795,
+        "geometries": 444,
+        "textures": 78,
+        "programs": 81,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "character": {
+        "link": true,
+        "linkSource": "glb",
+        "linkAsset": {
+          "file": "models/link/link-runtime.glb",
+          "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+          "triangles": 25464,
+          "materials": 3,
+          "bones": 19,
+          "clips": [
+            {
+              "name": "idle",
+              "durationS": 3,
+              "strideM": 0,
+              "rate": 1
+            },
+            {
+              "name": "walk",
+              "durationS": 0.55,
+              "strideM": 0.88,
+              "rate": 1
+            },
+            {
+              "name": "run",
+              "durationS": 0.566667,
+              "strideM": 2.21,
+              "rate": 1
+            },
+            {
+              "name": "stairs",
+              "durationS": 0.733333,
+              "strideM": 0.8066667,
+              "rate": 1
+            }
+          ],
+          "loadMs": 288
+        },
+        "linkFallbackReason": null,
+        "animations": 4,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "glb-link+procedural-npcs-v1",
+        "triangles": 44510,
+        "linkTriangles": 25464,
+        "linkHeight": 1.1998,
+        "rigMeshesBeforeMerge": 122,
+        "rigMeshes": 83,
+        "rigMergedMeshes": 33,
+        "mode": "view",
+        "view": "D_log",
+        "linkGait": "run",
+        "samplePositions": {
+          "feet": [
+            [
+              0.7990424850847945,
+              0.02075916714966297,
+              -7.730572704139473
+            ],
+            [
+              8.920546356888321,
+              0.8305327710691521,
+              3.634233163401243
+            ],
+            [
+              -6.539194616471134,
+              0.2105917109092677,
+              -2.076758786563569
+            ],
+            [
+              10.528623727912734,
+              1.0370650116501126,
+              -7.501685982653866
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33414,
+          "cellSize": 0.1,
+          "triangles": 115620
+        },
+        "world": {
+          "link": [
+            0.7990424850847945,
+            0.02075916714966297,
+            -7.730572704139473
+          ],
+          "linkRoot": [
+            0.6913018613158002,
+            0.018657874315977097,
+            -7.455993625887493
+          ],
+          "navi": [
+            0.23312290478427697,
+            1.3991558608380124,
+            -7.493827526672284
+          ],
+          "kids": [
+            [
+              8.920546356888321,
+              0.8305327710691521,
+              3.634233163401243
+            ],
+            [
+              -6.539194616471134,
+              0.2105917109092677,
+              -2.076758786563569
+            ],
+            [
+              10.528623727912734,
+              1.0370650116501126,
+              -7.501685982653866
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.51,
+            0.878
+          ],
+          "linkRoot": [
+            0.5,
+            0.9
+          ],
+          "linkHead": [
+            0.5,
+            0.676
+          ],
+          "navi": [
+            0.435,
+            0.55
+          ],
+          "kids": [
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": [
+                1.604,
+                0.62
+              ],
+              "head": [
+                1.573,
+                0.407
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "E_ground-glb": {
+      "sha256": "47f85642752f269256e0fc725da40036b8a1f519b5adea2fdfecab7290fe2616",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 508,
+        "triangles": 8457285,
+        "geometries": 444,
+        "textures": 78,
+        "programs": 81,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "character": {
+        "link": true,
+        "linkSource": "glb",
+        "linkAsset": {
+          "file": "models/link/link-runtime.glb",
+          "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+          "triangles": 25464,
+          "materials": 3,
+          "bones": 19,
+          "clips": [
+            {
+              "name": "idle",
+              "durationS": 3,
+              "strideM": 0,
+              "rate": 1
+            },
+            {
+              "name": "walk",
+              "durationS": 0.55,
+              "strideM": 0.88,
+              "rate": 1
+            },
+            {
+              "name": "run",
+              "durationS": 0.566667,
+              "strideM": 2.21,
+              "rate": 1
+            },
+            {
+              "name": "stairs",
+              "durationS": 0.733333,
+              "strideM": 0.8066667,
+              "rate": 1
+            }
+          ],
+          "loadMs": 288
+        },
+        "linkFallbackReason": null,
+        "animations": 4,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "glb-link+procedural-npcs-v1",
+        "triangles": 44510,
+        "linkTriangles": 25464,
+        "linkHeight": 1.1998,
+        "rigMeshesBeforeMerge": 122,
+        "rigMeshes": 83,
+        "rigMergedMeshes": 33,
+        "mode": "view",
+        "view": "B_house",
+        "linkGait": "idle",
+        "samplePositions": {
+          "feet": [
+            [
+              1.5549192764367705,
+              0.0325990691781044,
+              -2.124836513357207
+            ],
+            [
+              8.932735992262375,
+              0.8381397939114963,
+              3.6544090446823567
+            ],
+            [
+              -1.5924503851941765,
+              0.03351459423306432,
+              -3.5044421110198174
+            ],
+            [
+              10.566054037005117,
+              1.0327521644592017,
+              -7.524967067848922
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33414,
+          "cellSize": 0.1,
+          "triangles": 115620
+        },
+        "world": {
+          "link": [
+            1.5549192764367705,
+            0.0325990691781044,
+            -2.124836513357207
+          ],
+          "linkRoot": [
+            1.4824050138183982,
+            0.03205212950706482,
+            -2.150734038691515
+          ],
+          "navi": [
+            1.8880286599822633,
+            1.2416636799428313,
+            -2.002874000055339
+          ],
+          "kids": [
+            [
+              8.932735992262375,
+              0.8381397939114963,
+              3.6544090446823567
+            ],
+            [
+              -1.5924503851941765,
+              0.03351459423306432,
+              -3.5044421110198174
+            ],
+            [
+              10.566054037005117,
+              1.0327521644592017,
+              -7.524967067848922
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.512,
+            0.91
+          ],
+          "linkRoot": [
+            0.5,
+            0.91
+          ],
+          "linkHead": [
+            0.5,
+            0.644
+          ],
+          "navi": [
+            0.565,
+            0.585
+          ],
+          "kids": [
+            {
+              "feet": [
+                4.634,
+                1.058
+              ],
+              "head": [
+                4.442,
+                0.198
+              ]
+            },
+            {
+              "feet": [
+                0.02,
+                0.889
+              ],
+              "head": [
+                0.038,
+                0.614
+              ]
+            },
+            {
+              "feet": [
+                0.857,
+                0.56
+              ],
+              "head": [
+                0.85,
+                0.459
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "F_canopy-glb": {
+      "sha256": "d3f37fddc6dc799ccee2faf5b2b456ec223d27485d378194fc578c803e9e0119",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 488,
+        "triangles": 8493291,
+        "geometries": 454,
+        "textures": 78,
+        "programs": 81,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "character": {
+        "link": true,
+        "linkSource": "glb",
+        "linkAsset": {
+          "file": "models/link/link-runtime.glb",
+          "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+          "triangles": 25464,
+          "materials": 3,
+          "bones": 19,
+          "clips": [
+            {
+              "name": "idle",
+              "durationS": 3,
+              "strideM": 0,
+              "rate": 1
+            },
+            {
+              "name": "walk",
+              "durationS": 0.55,
+              "strideM": 0.88,
+              "rate": 1
+            },
+            {
+              "name": "run",
+              "durationS": 0.566667,
+              "strideM": 2.21,
+              "rate": 1
+            },
+            {
+              "name": "stairs",
+              "durationS": 0.733333,
+              "strideM": 0.8066667,
+              "rate": 1
+            }
+          ],
+          "loadMs": 288
+        },
+        "linkFallbackReason": null,
+        "animations": 4,
+        "animationNames": [
+          "idle",
+          "walk",
+          "run",
+          "stairs"
+        ],
+        "fairy": true,
+        "fairyTrail": 16,
+        "npcs": 3,
+        "geometry": "glb-link+procedural-npcs-v1",
+        "triangles": 44510,
+        "linkTriangles": 25464,
+        "linkHeight": 1.1998,
+        "rigMeshesBeforeMerge": 122,
+        "rigMeshes": 83,
+        "rigMergedMeshes": 33,
+        "mode": "view",
+        "view": "F_canopy",
+        "linkGait": "walk",
+        "samplePositions": {
+          "feet": [
+            [
+              2.1164158715824803,
+              0.04371988773345947,
+              3.138580091173938
+            ],
+            [
+              6.068914482156935,
+              0.01650912737083686,
+              3.1486751005280578
+            ],
+            [
+              -6.54761801970368,
+              0.18671212269565945,
+              -1.9295379246889677
+            ],
+            [
+              10.582037826380843,
+              1.0282467825091857,
+              -7.549659457127397
+            ]
+          ]
+        },
+        "contactShadows": 4,
+        "pavingSurface": {
+          "cells": 122295,
+          "covered": 33414,
+          "cellSize": 0.1,
+          "triangles": 115620
+        },
+        "world": {
+          "link": [
+            2.1164158715824803,
+            0.04371988773345947,
+            3.138580091173938
+          ],
+          "linkRoot": [
+            1.8888198394999942,
+            0.04347778856754303,
+            3.112064719703688
+          ],
+          "navi": [
+            1.8730225280270765,
+            1.3748939103158329,
+            2.942563652191489
+          ],
+          "kids": [
+            [
+              6.068914482156935,
+              0.01650912737083686,
+              3.1486751005280578
+            ],
+            [
+              -6.54761801970368,
+              0.18671212269565945,
+              -1.9295379246889677
+            ],
+            [
+              10.582037826380843,
+              1.0282467825091857,
+              -7.549659457127397
+            ]
+          ]
+        },
+        "screen": {
+          "linkFeet": [
+            0.512,
+            0.904
+          ],
+          "linkRoot": [
+            0.5,
+            0.93
+          ],
+          "linkHead": [
+            0.501,
+            0.666
+          ],
+          "navi": [
+            0.472,
+            0.545
+          ],
+          "kids": [
+            {
+              "feet": [
+                0.58,
+                0.679
+              ],
+              "head": [
+                0.585,
+                0.525
+              ]
+            },
+            {
+              "feet": null,
+              "head": null
+            },
+            {
+              "feet": [
+                0.123,
+                0.481
+              ],
+              "head": [
+                0.116,
+                0.395
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "errors": [],
+  "gpu": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "repeats": {
+    "glb": {
+      "sha256": "c1182812afffa09047589af35309e6897d7a93a0098abe9801daca471fe5f172",
+      "matches": false,
+      "maxChannelDelta": 3,
+      "meanChannelDelta": 0.9022880497685185,
+      "withinDiagnosticTolerance": false,
+      "existingGauntletDifference": 0
+    }
+  },
+  "motion": {
+    "sha256": "2140668768da7ba92ad8bc8bb8110c4ed02b20a971e6310116b5c24aafa31c37",
+    "character": {
+      "link": true,
+      "linkSource": "glb",
+      "linkAsset": {
+        "file": "models/link/link-runtime.glb",
+        "sha256": "c204ff70a7db1d60647531c88546761d76a71aaec6c826b0025b42feeac5320d",
+        "triangles": 25464,
+        "materials": 3,
+        "bones": 19,
+        "clips": [
+          {
+            "name": "idle",
+            "durationS": 3,
+            "strideM": 0,
+            "rate": 1
+          },
+          {
+            "name": "walk",
+            "durationS": 0.55,
+            "strideM": 0.88,
+            "rate": 1
+          },
+          {
+            "name": "run",
+            "durationS": 0.566667,
+            "strideM": 2.21,
+            "rate": 1
+          },
+          {
+            "name": "stairs",
+            "durationS": 0.733333,
+            "strideM": 0.8066667,
+            "rate": 1
+          }
+        ],
+        "loadMs": 288
+      },
+      "linkFallbackReason": null,
+      "animations": 4,
+      "animationNames": [
+        "idle",
+        "walk",
+        "run",
+        "stairs"
+      ],
+      "fairy": true,
+      "fairyTrail": 16,
+      "npcs": 3,
+      "geometry": "glb-link+procedural-npcs-v1",
+      "triangles": 44510,
+      "linkTriangles": 25464,
+      "linkHeight": 1.1998,
+      "rigMeshesBeforeMerge": 122,
+      "rigMeshes": 83,
+      "rigMergedMeshes": 33,
+      "mode": "view",
+      "view": "A_stairs",
+      "linkGait": "walk",
+      "samplePositions": {
+        "feet": [
+          [
+            2.3196753406844657,
+            0.018143843859434128,
+            4.412788050917418
+          ],
+          [
+            5.001710844717084,
+            0.7004735540685636,
+            5.217086958908327
+          ],
+          [
+            -6.553022575775784,
+            0.18995989318385506,
+            -1.9333909367067603
+          ],
+          [
+            10.58425750897057,
+            1.0271905890583097,
+            -7.555472653547041
+          ]
+        ]
+      },
+      "contactShadows": 4,
+      "pavingSurface": {
+        "cells": 122295,
+        "covered": 33414,
+        "cellSize": 0.1,
+        "triangles": 115620
+      },
+      "world": {
+        "link": [
+          2.3196753406844657,
+          0.018143843859434128,
+          4.412788050917418
+        ],
+        "linkRoot": [
+          2.2428199372967397,
+          0.017317162826657295,
+          4.3878401433217356
+        ],
+        "navi": [
+          1.959974732373373,
+          1.2570968801401738,
+          4.248942620143089
+        ],
+        "kids": [
+          [
+            5.001710844717084,
+            0.7004735540685636,
+            5.217086958908327
+          ],
+          [
+            -6.553022575775784,
+            0.18995989318385506,
+            -1.9333909367067603
+          ],
+          [
+            10.58425750897057,
+            1.0271905890583097,
+            -7.555472653547041
+          ]
+        ]
+      },
+      "screen": {
+        "linkFeet": [
+          0.511,
+          0.879
+        ],
+        "linkRoot": [
+          0.5,
+          0.88
+        ],
+        "linkHead": [
+          0.5,
+          0.65
+        ],
+        "navi": [
+          0.455,
+          0.57
+        ],
+        "kids": [
+          {
+            "feet": [
+              0.879,
+              0.691
+            ],
+            "head": [
+              0.891,
+              0.44
+            ]
+          },
+          {
+            "feet": [
+              -0.511,
+              0.705
+            ],
+            "head": [
+              -0.504,
+              0.522
+            ]
+          },
+          {
+            "feet": [
+              0.6,
+              0.48
+            ],
+            "head": [
+              0.597,
+              0.413
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "captureComplete": true,
+  "repeatThreshold": {
+    "source": "Existing W41 rubric and compare.mjs metric; local diagnostic only",
+    "value": 0.005
+  },
+  "complete": true
+}

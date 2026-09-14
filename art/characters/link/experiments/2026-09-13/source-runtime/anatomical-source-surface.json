@@ -1,0 +1,10 @@
+{
+  "status": "Isolated surface-fit study, unrigged and unexported",
+  "source": "Original 50000-triangle Link source mesh and its material; no portrait projection",
+  "source_skin_triangles": 1399,
+  "moved_vertices": 1716,
+  "coloured_vertices": 1746,
+  "protected_orbital_vertices": 827,
+  "max_move_metres": 0.03352812751968141,
+  "method": "Front-depth transfer at fixed X/Z; 75% blend outside protected eye sockets; barycentric sampling of original mesh UVs"
+}

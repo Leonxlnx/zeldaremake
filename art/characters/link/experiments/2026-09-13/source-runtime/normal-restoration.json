@@ -1,0 +1,6 @@
+{
+  "matched_triangles": 49681,
+  "body_triangles": 49991,
+  "max_unchanged_uv_difference": 0,
+  "method": "Exact source triangle/corner restoration; barycentric interpolation only at cut triangles; geometric cavity normals"
+}

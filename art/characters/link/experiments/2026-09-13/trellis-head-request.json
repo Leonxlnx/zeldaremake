@@ -1,0 +1,14 @@
+{
+  "provider": "Microsoft official TRELLIS.2 public Space",
+  "space_sha": "ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d",
+  "source": "https://raw.githubusercontent.com/Leonxlnx/zeldaremake/becf347/reference/generated-link-studies/2026-09-13/06-head-front.png",
+  "source_sha256": "65c01d6934b7224c3e9c7ebc1881b9890f0a16879cd1d4271942902916729450",
+  "seed": 130926,
+  "resolution": "1024",
+  "decimation_target": 300000,
+  "texture_size": 4096,
+  "input": "Existing reference06 unchanged; no background editing or BRIA call",
+  "status": "failed or unresolved; no automatic retry",
+  "authentication": "anonymous; no credentials or paid fallback",
+  "error": "You have exceeded your ZeroGPU quota (120s requested vs. 79s left). Try again in 23:58:10. Authenticate with a Hugging Face token for more quota - https://huggingface.co/settings/tokens"
+}

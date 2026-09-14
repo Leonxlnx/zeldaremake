@@ -1,0 +1,10 @@
+{
+  "status": "Isolated anatomical proportion study, not exported or accepted",
+  "source": "MPFB 2.0.17 CC0 core head, pinned80919fa4682335c41847f761a4d79dcad4124732",
+  "input_sha256": "f645f14e0cfa937463d3f0e54559789815b2e92e8ae5a28443ca268d1540acc7",
+  "vertices": 4233,
+  "base_faces": 4208,
+  "max_vertex_move_metres": 0.06004090717756258,
+  "eye_y_shift": -0.015,
+  "method": "Symmetric local fields on existing quad anatomy; original mouth and eyelid connectivity retained; reviewed iris material"
+}

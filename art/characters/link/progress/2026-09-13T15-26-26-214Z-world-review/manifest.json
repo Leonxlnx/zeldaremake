@@ -1,0 +1,202 @@
+{
+  "kind": "Isolated world art overlay; original controller/root placement; no candidate terrain IK; not gauntlet evidence",
+  "world_commit": "e591006248544d5700a60b03947d776f659c1aac",
+  "glb_sha256": "f3a87d45f33d891c2694d18011621f69c09065cec757d76c6cb97eabed91a402",
+  "images": {
+    "A_stairs-existing": {
+      "sha256": "5f4ea9adc496e46e5ceb201fad36af1761bc08f9f20ace6252d78aabe4d9d3f8",
+      "candidate": false,
+      "clip": null,
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 595,
+        "triangles": 8830884,
+        "geometries": 399,
+        "textures": 87,
+        "programs": 79,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "A_stairs-candidate": {
+      "sha256": "b352f800fc04cd08a5763ed9d9d138ce3adab1848964446e8899e52def446a31",
+      "candidate": true,
+      "clip": "idle",
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 526,
+        "triangles": 8860508,
+        "geometries": 399,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "B_house-existing": {
+      "sha256": "a1a7f600f0d43f6197af4be53b1c0fd689315f15955bb37bdfe0b8e435dd4991",
+      "candidate": false,
+      "clip": null,
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 577,
+        "triangles": 8439493,
+        "geometries": 424,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "B_house-candidate": {
+      "sha256": "d202d15e9a8a24fd2522cb6e79f0ac8760969449e31807a7ed40529bbaacf38d",
+      "candidate": true,
+      "clip": "idle",
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 508,
+        "triangles": 8469117,
+        "geometries": 424,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "C_lookback-existing": {
+      "sha256": "1dc5802fda51d880fa931567e6c094f51de704c2e4b3daa594217b66fb0453c8",
+      "candidate": false,
+      "clip": null,
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 498,
+        "triangles": 8743776,
+        "geometries": 479,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "C_lookback-candidate": {
+      "sha256": "fa57ea81c3d8a65999d1fccc0d344369c0d9ab8bc02dc195c3b5e4e21159a5b3",
+      "candidate": true,
+      "clip": "idle",
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 429,
+        "triangles": 8773400,
+        "geometries": 479,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "D_log-existing": {
+      "sha256": "9285248b00fc627d5981aa6e5e091c9356e685eab0211fd1024f6d65504ec0d7",
+      "candidate": false,
+      "clip": null,
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 492,
+        "triangles": 8285003,
+        "geometries": 490,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "D_log-candidate": {
+      "sha256": "193fd43c0fd48ab0055a660f80b78448b2b497ab9ac1ee03bab12686f87440c8",
+      "candidate": true,
+      "clip": "idle",
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 423,
+        "triangles": 8314627,
+        "geometries": 490,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "E_ground-existing": {
+      "sha256": "0b0740191c4d58fc1b759541de6a6ed8d3db50374d6c1f791a7fbc13b096bbb8",
+      "candidate": false,
+      "clip": null,
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 577,
+        "triangles": 8439493,
+        "geometries": 490,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "E_ground-candidate": {
+      "sha256": "ab14632623a80d102160a5ca7cc1fef65ca4684229989bc895f30cf43fd63779",
+      "candidate": true,
+      "clip": "idle",
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 508,
+        "triangles": 8469117,
+        "geometries": 490,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "F_canopy-existing": {
+      "sha256": "13deb3de6d9598499baa9931030443e2c2d27c237328c4433998be19925b04c6",
+      "candidate": false,
+      "clip": null,
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 557,
+        "triangles": 8475499,
+        "geometries": 500,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    },
+    "F_canopy-candidate": {
+      "sha256": "bbff59719de68aeedb1b682b6002a2a861931e0a303368cf1d2bcf71aea1c269",
+      "candidate": true,
+      "clip": "idle",
+      "stats": {
+        "simTime": 42,
+        "drawCalls": 488,
+        "triangles": 8505123,
+        "geometries": 500,
+        "textures": 87,
+        "programs": 80,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      }
+    }
+  },
+  "errors": [],
+  "gpu": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "complete": true
+}

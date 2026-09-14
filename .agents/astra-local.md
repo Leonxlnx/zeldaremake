@@ -1,0 +1,534 @@
+---
+agent: astra-local
+runtime: Codex desktop / Astra on the owner's Windows PC
+github: Leonxlnx
+status: active
+branch: agent/astra-local-blender
+updated: 2026-09-14T04:25:00Z
+---
+
+# Astra local — Blender character continuation
+
+## Current task
+
+Latest checkpoint: Fable integrated PR9/9189538d asad01908 and sealed take0085 onbeb8d88. He confirmed active environment work at04:04 UTC; runtime IK remains his. Actual play review found a24.18cm rear-sole-corner penetration on descent, despite the chosen contact audit reporting0; reproduction sent in PR2 comment5658960062. The new6f28903d corneal candidate passes studio and same-world captures with unchanged body/rig/clip bytes; it improves eye reflections but does not finish the face/hair. Local61017 preview uses the new isolated grounding review branch onbeb8d88. See dated entries below; earlier setup/scope notes are historical.
+Owner resumed character work: install Blender on E:, connect Blender MCP, and try an
+original Link model with attention to face, ankle/boot anatomy and material detail. This
+supersedes the old world-only/character-paused wording for this owner's task. The owner
+explicitly rejected Computer Use so the laptop stays available: use the hidden Blender
+process and MCP, with four CPU render threads.
+
+## Scope and recovery
+- This branch starts at Astra environment checkpoint 087b232; main still only has bootstrap.
+- Recovered PR5 movement/character history, PR6 environment work, and PR7's ten owner previews.
+- Read Fable through take-0079 and 04c8d91; cloud Astra's 11:18 closeout said local character
+  art should proceed. The promised cloud handoff document was not published as of last fetch.
+- Final fetch also recovered Fable's b2691b8 vegetation pass: bank broadleaf/clover/moss,
+  denser layered hedge and cleared D path shoulders, unchanged draws, +0.4-0.5 M tris.
+- Scope: art/characters/link, tools/blender, this log, INBOX and an additive C01/C02 claim.
+- No runtime, world, layout, movement, rubric or score changes. Environment belongs to Fable.
+
+## Installed and verified
+- Blender 4.5.13 LTS portable at E:/Apps/Blender/blender-4.5.13-windows-x64.
+  Official archive SHA256 verified; a Start-menu shortcut is installed.
+- Blender MCP 1.9.1 from ahujasid/blender-mcp in E:/Tools/blender-mcp/.venv; addon installed
+  under Blender's portable/scripts/addons. uv 0.12.13 in E:/Tools/uv.
+- Codex global MCP registration: blender, localhost 127.0.0.1:9876, telemetry disabled.
+  Native discovery may need a task/app restart. Current task uses the official MCP SDK
+  stdio bridge to the installed server. It has already built and rendered the actual model.
+- Windows compatibility: close/reconnect the addon socket per command. Two successive
+  get_scene_info calls in one MCP session PASS. Upstream source backup and valid patch kept;
+  see tools/blender/README.md. No mouse/keyboard automation is required.
+- Six-view render calls exceeded the socket response timeout despite completing inside
+  Blender. Renderer now sends one view per call and resumes a matching partial checkpoint.
+
+## Character checkpoint
+- Editable link-study.blend; all used images packed. Original geometry and CC0 material maps.
+- Multiple real dated render checkpoints, including front/side/back, face and boot close-ups.
+- Continuous face/nose/cheek sculpt, smaller almond eye openings, projected hair fibres,
+  continuous wrist/hand and boot/ankle volumes, shaped soles, equipment and stitched cap.
+- Art sculpt: 415,484 evaluated triangles / 26 materials, about 1.14 m tall including cap.
+  It is UNRIGGED and BELOW the reference quality. No claim of finished character art.
+- GLB is a static flat-colour shape-review export, not the final textured runtime asset.
+  Export copies evaluated geometry, includes curves, isolates the active scene, and checks
+  exact triangles. This caught an unwanted 12-triangle startup cube from Blender's other
+  scene; use_active_scene fixed the cause. UV baking and animation remain outstanding.
+- Actual rendered Blender checkpoints are not game captures, gauntlet takes or phase gates.
+
+## Collaboration / next delivery
+Fable acknowledged the split and sent the full runtime contract in PR2:
+https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5653137489
+
+Metres, Y-up, Z-forward, feet origin, ~1.18 m to crown; <=25K tris / <=4 materials / <=2K maps;
+plain named bones including ankleL/R; idle/walk/run/stairs in-place clips. Full details are in
+art/characters/link/README.md. Fable will integrate a ready candidate behind a fallback loader.
+The current high-poly, unrigged study should NOT be integrated as that candidate.
+
+Next art work: stronger facial sculpt/expression and organic hair masses, authored cloth
+folds and worn seams, retopology/UVs, PBR baking, skeleton/weights and gait validation.
+Preserve the existing movement implementation. Do not merge main or partner branches.
+
+## Validation
+- npm ci, npm run typecheck and npm run build passed on this branch.
+- MCP connection regression passed; compatibility patch passes git apply --check upstream.
+- Evaluated geometry and GLB checks are in export_check.py and validation.json.
+- Final six-angle checkpoint: art/characters/link/progress/2026-09-13_125545. No gauntlet visual score claim.
+
+## Last updated
+2026-09-13T13:00:17Z
+## Continued work after the first checkpoint
+
+The owner clarified that the first review checkpoint was not a stopping point. Continue
+character development against all ten target images. The ten published 960px previews
+were refreshed from origin/agent/astra-owner-reference-previews and every SHA256 verified.
+The source manifest's original PNGs are not present in Git history; its 'retained locally'
+wording refers to the previous cloud session. Higher-resolution concept sheet 03 is also
+available locally for the character comparison.
+
+Current changes: reduce the oversized head, lengthen the tunic/torso while retaining arm
+length, narrow the jaw, soften the nose/lips, replace iris fibre geometry with shading,
+and give the sleeves real openings. Use the existing scanned cloth normal on UVs instead
+of the speckled bump. Next: finish the sculpt/material comparison, bake and reduce the
+runtime asset, rig the agreed named bones and in-place clips. Environment remains Fable's.
+
+## 2026-09-13 14:05 UTC — sculpt and runtime preparation
+
+Applied Fable's PR8 critique to the source: narrower jaw, nasal bridge/lips, upward/back
+helix, real socket openings and calmer almond lids; layered cubic hair ribbons; cloth UV
+normal and sleeve shoulder seating. Actual render: progress/2026-09-13_134859. The hair
+and clothing still fall short of sheet 03; this is not a quality pass claim.
+
+Runtime work in progress locally: four UV meshes, 23,978 triangles; skin/hair/eye maps
+baked, outfit maps underway. A >180-second clothing bake completed after its MCP client
+expired; verified saved pipeline state, kept Blender alive, added a configurable command
+timeout. No keyboard/mouse automation. Four-thread, BelowNormal Blender remains in use.
+
+Sent Fable gait reach/stride constraints at PR8 comment5653686917. Preparing named rig,
+in-place clips, export validation, and actual Three.js review. These new pipeline scripts
+are not yet fully executed/validated, so this source checkpoint leaves them uncommitted.
+Typecheck and build passed; local server patch passes git apply --check against upstream.
+
+## 2026-09-13 14:53 UTC — textured, skinned diagnostic candidate
+
+The runtime pipeline is now executed: four skinned meshes/materials, 24,133 triangles,
+19 named bones, 12 embedded PBR maps at 1K/2K, idle/walk/run/stairs. GLB SHA256
+8d1965fa7c32a660995f5f7c95b31d7918dcb4aba450889eb96456d53e142dc8.
+Actual Three.js review: progress/2026-09-13T14-48-18-787Z-runtime, 18 views, no page errors.
+
+Fixed inward lid/lip winding, reserved facial reduction topology, covered the bald nape,
+recessed hidden iris portions, and retained region weights for repeatable rig rebuilds.
+Loop endpoints and flat stance ankle paths are validated; terrain adaptation remains the
+production sampler's job. Walk stride 0.88 m / 0.55 s, run 2.21 m / 0.566667 s, stairs
+0.806667 m / 0.733333 s. Fable approved the shorter walking cadence in PR8 comment5653925946.
+
+The candidate is STILL BELOW REFERENCE QUALITY. Eyes remain round; lower cheeks doll-like;
+hair clumps helmet-like; cloth needs folds and wear. Running exposes excessive knee/hem
+interaction. Diagnostic world integration is the next comparison, not a quality pass.
+Fable retains production loader/world ownership. No world or movement files changed.
+
+Shared browser helper now sends Content-Length and closes each local HTTP response: this
+Windows host stalled reused sockets. Direct two-request regression passes; actual headless
+captures use native pipes and finish in ~5 s. No rubric, score or ledger edits. Historical
+render source bytes are preserved with -text so their captured SHA256 survives Git.
+TypeScript/build and direct HTTP regression pass. Latest Fable fetched: 7abbd4e/take-0080,
+23/50, environment still below target. Continue character art and review integration.
+
+## 2026-09-13 15:16 UTC — continuous eyelids and swing-foot rotation
+
+Published 17adcb3 to Fable for diagnostic integration (PR2 comment5654026563).
+New candidate pending this commit: continuous face-to-lid topology removes pasted-patch
+seams; iris geometry is clipped in the authored opening, with the old runtime expansion
+removed. Lower cheeks narrowed; scalp band lifted off forehead; locks have more thickness.
+Nine PBR maps rebaked. New GLB f3a87d45f33d891c2694d18011621f69c09065cec757d76c6cb97eabed91a402,
+24,332 triangles. Actual Three.js progress/2026-09-13T15-09-15-055Z-runtime includes 18 views
+and 121 sole-clearance samples per gait: minimum +3.66 mm, loops and bone lengths pass.
+Swing feet rotate through each step and ease flat before contact; stance paths unchanged.
+
+Close-up shading artifacts remain. A roughness inspection initially sampled Blender's
+older cached image; fresh-file sampling found one missing face sample, not hundreds.
+The GLB's packed green roughness channel is byte-identical to the new source map. Do not
+report a widespread projection defect from the stale cache result. Source face is smoother
+than the reduced runtime; continue art and evaluate in Fable's real world lighting.
+Next root garment correction: remove the tunic's closed bottom, add the inner garment,
+and check high-knee poses. Typecheck/build and HTTP regression pass. C01/C02 renewed 15:11Z.
+
+## 2026-09-13 15:29 UTC — first actual world comparison
+
+Created detached E:/zeldaremake-world-review at Fable e591006, shared installed node_modules
+through a junction, and built a diagnostic overlay using the published 41b9cdf GLB. Only
+that scratch checkout's entrypoint imports/installs the art overlay. Fable's production
+loader is untouched. Captures use real Radeon 780M / D3D11, no desktop input.
+
+Twelve verified existing/candidate images: progress/2026-09-13T15-26-26-214Z-world-review.
+All six views save 69 calls; A 595 / 8,830,884 triangles -> 526 / 8,860,508. Actual source
+entrypoint/overlay saved with the images. The candidate idles and inherits the original
+root placement; this is appearance evidence, not candidate terrain IK or a gauntlet take.
+Clothing/boot anatomy and face improve in context; reference quality is not reached.
+
+Current garment work remains uncommitted and baking: open tunic hem/neck, inner shorts,
+extended upper legs, cloth folds/lacing and open boot cuffs. Source render 151956 exists.
+Finish the seven new skin/outfit bakes, rerig/export/capture and inspect the high-knee pose.
+No stop or goal-complete claim.
+
+## 2026-09-13 15:44 UTC — garment and boot revision validated
+
+Opened tunic hem/neck and boot cuffs; added inner shorts, upper-leg continuity, more cloth
+fold geometry and collar lacing. Seven skin/outfit maps rebaked. A close-up caught a gap
+between leather upper and welt: refine_runtime now seats each continuous upper into the
+sole while retaining its UVs. Actual 18-view/121-pose review passes at
+progress/2026-09-13T15-42-41-167Z-runtime; minimum sole Y +4.00 mm. New GLB SHA256
+9f6f0987e074bee3b775419ded86589daff4bd312c4b48985932ddef3eeb2be7, 24,332 triangles,
+four materials, unchanged bones/clip durations/strides/ankle-local sole markers.
+The run remains a high-knee stylized motion; hair and facial/material detail still need work.
+
+Fable f92a384/take-0081 now explicitly says character-3 integration is running, alongside
+crown lighting: deterministic mixer, speed-scaled clips, grounding, look-at and fallback.
+Do not replace that production work. Need review the real integrated movement when it lands.
+Live local appearance preview: http://127.0.0.1:54075/?dev=0&hud=0 (scratch e591006);
+asset studio: http://127.0.0.1:52996/art/characters/link/review.html. Both use background
+servers; no desktop control. Preview defaults to candidate and has a native existing/candidate
+toggle. Fixed three invalid CP1252 dash bytes in this log; use explicit UTF-8 when writing text.
+
+
+## 2026-09-13 16:06 UTC - closed ears and cap/fringe revision
+
+Rebuilt each ear as a closed rim/bowl mesh with interpolated warm skin tint. The previous
+subdivided single polygons shrank away from the independent helix, leaving visible holes.
+Source assertions verify forward-facing bowls and two faces per edge. Three skin maps rebaked.
+Hair geometry now prioritizes the visible fringe (2656 triangles); three hair maps rebaked.
+Cap rest geometry has a fuller rear drape and front edge lifted behind the fringe, preserving UVs.
+Actual 18-view review: progress/2026-09-13T16-03-24-694Z-runtime, Radeon 780M / D3D11.
+GLB f3d354643e3200555c2fcb5e53f1a98368fb714472f9211ddb73044516fe470f, 24,474 triangles,
+four materials, same nineteen bones/clips/stride contract. All 363 sampled locomotion poses
+retain positive sole clearance. Ear holes are resolved; facial/lid shading and solid-looking
+hair remain visible. The GLB already contains interpolated smooth normals, so the faceting
+is not a blanket flat-shading export setting. Continue source/reduction/material review.
+Fable latest fetched remains f92a384 with character-3 integration running. No production
+loader/world changes here; user goal stays active and this is not an art acceptance claim.
+
+
+## 2026-09-13 16:52 UTC - facial continuity and validated tangent export
+
+8a4bb27 was sent to Fable (PR2 comment5654410017). New stable candidate pending this commit:
+24,108 triangles, four materials, same bones/clips/strides/sole markers. GLB SHA256
+281895fef8f8fda7e7fe73f7fa84ef16fff2df8cb2ead48be15327dece3f2faa. The separate lip patches
+are replaced by face volume/tint, and lid transitions ease into the surrounding surface.
+Native Data Transfer retains sculpted facial normals. The exporter now includes tangents:
+checking them caught 125 clothing triangles with collapsed UVs and negligible area, then
+two corner normals parallel to their tangents. Tiny collapsed triangles are removed and
+invalid corners use the actual face normal; the final GLB validates unit/perpendicular bases.
+
+Actual final reviews: progress/2026-09-13T16-43-36-070Z-runtime and
+progress/2026-09-13T16-43-39-322Z-runtime-studio. Both contain 18 views and 363 sampled
+locomotion poses. Studio is a separate, fixed native RoomEnvironment option; default
+hard directional lighting remains. The geometry/shading gap is still visible in both.
+
+A preserved hair-UV / anisotropy experiment failed visually (distorted bands persisted
+with anisotropy disabled). It was reverted, not published as an improvement. Stable
+Smart UVs remain; hair now has 2K maps, narrower colour variation, and slightly warmer,
+lighter teal eyes. Failed/intermediate local galleries remain untracked. Source mouth
+comparison is progress/2026-09-13_161743, with its exact generator snapshot.
+
+Fresh actual-GLB roughness sampling found 14 near-zero hair triangle samples, 380 outfit,
+and one skin sample before the final hair rebake. Source leather/cloth roughness images
+contain no near-zero values. Broad plastic-looking hair highlights are not explained by
+those sparse hair misses. Next pipeline work: move cap/nape/boot reshaping before baking
+and improve coverage of tiny clothing UV islands. Do not claim these are already fixed.
+
+MPFB 2.0.17 (MakeHuman) is being tested in a separate hidden Blender scene for better face
+anatomy. Code at E:/Tools/mpfb2, pinned80919fa4682335c41847f761a4d79dcad4124732; core assets
+are CC0 per its LICENSE.md, code GPLv3. No MPFB asset has entered this delivered candidate.
+Study source/runtime files are currently under E:/Tools/blender-mcp only. Fable latest
+pushed log remains f92a384/take0081 with production character integration running. Goal
+remains active; source art and actual integrated world quality are still below target.
+
+
+## 2026-09-13 17:14 UTC - stable handoff and recovered viewport crash
+
+409b603 pushed; PR8 updated and Fable informed on PR2 comment5654705714. Typecheck/
+build passed. Fable remote still f92a384/tick65 at the latest fetch; integration
+commit is not yet published. The delivered GLB remains 281895fe.../24,108 triangles.
+
+New uncommitted pipeline work moves cap/nape/boot rest shaping into build_link
+before reduction and baking. Runtime refinement now only validates/repairs tiny
+collapsed triangles and undefined tangents. Native scene-only .blend writing
+reduced source from 74,514,199 to 7,857,469 bytes. A fresh load verified both
+continuous leather uppers have minimum Z .022 m. Rebuild/bakes are still pending;
+this code change is not yet a new validated runtime candidate.
+
+At approximately 17:10 UTC the long-running hidden Blender PID22288 crashed in
+DEG_iterator_objects_next / DRW_cache_free_old_batches while redrawing its viewport
+after source regeneration. All completed .blend files and the stable GitHub asset
+were preserved. Restarted hidden PID21648 from the new link-study.blend; two MCP
+queries passed. start_session.py now changes unused VIEW_3D areas to CONSOLE to
+avoid that draw path. No mouse/keyboard automation. Source render helpers now
+use explicit paths instead of relying on bpy.data.filepath.
+
+MPFB CC0 anatomy trials v1-v4 remain E:/Tools/blender-mcp/*.blend and matching PNGs.
+They improve anatomical continuity but are still too mature/puffy and are not in
+the delivered model. The v5 experiment corrects a midline discontinuity in my
+symmetric eye-enlargement field (sum both smooth fields; assert centre stays zero).
+V5 is rendering after recovery. No art acceptance claim; goal continues.
+
+
+## 2026-09-13 17:32 UTC - owner rejects current art; generated references
+
+Owner: "bruder kannst du dir selber mal paar bilder genererein von link oder so damit du referenz hast weil deine scheiße sieht echt kacke aus". Acknowledge the gap and do not present tiny mesh edits as reference quality. Used imagegen skill/built-in tool; three successful boards saved and pushed in 7ea68fa, reference/generated-link-studies/2026-09-13. Head is too mature for final proportions (hair/material reference only), plus good boot and clothing/equipment boards. Original Kokiri hero sheet still sets proportions. Exact prompts, SHA256s, dimensions and limitations are committed. Closer child head and full-body generations were blocked by image tool output moderation; do not claim those exist. No fallback API was used.
+
+Fable informed on PR2 comment5654848855. Last validated runtime still 409b603, 24,108 triangles. New local runtime was prepared at 17:14 with zero completed bakes; then source hair was changed again. Therefore current local .blend/pipeline are WORK IN PROGRESS and need preparation/baking before export. Stable GLB and its validation remain unchanged. Do not stage all these files as a finished candidate.
+
+Thin layered mesh-ribbon hair trial rendered progress/2026-09-13_172504/05-face.png. Still reads as solid leaves and is not accepted. MPFB head trials through v6 are under E:/Tools/blender-mcp; v6 uses native eye scale 2.7 and closes the neck cut, but still looks mature/puffy. No MPFB asset has entered delivered Link. Hair/face need a real construction change rather than repeated cosmetic tweaks.
+
+Downloaded native MPFB hair-editor CC0 pack by Tomas Klecer, https://files.makehumancommunity.org/functional/haireditor.zip, SHA256 39420056faba6aaa0726a5168c9c41f2d01e278a12e216c0385e8f13d4d98ab7. Extracted safely to E:/Tools/mpfb-assets/haireditor. Official source https://static.makehumancommunity.org/assets/assetpacks/haireditor.html; pack catalogue declares functional assets CC0. This provides true curve hair and a native hair-card generation operator, so test it before inventing a groom system.
+
+Loaded basic_short_hair into scene 'CC0 | hair template study' (3506 guide points, native modifiers). Current render session tests it with the original face/outfit at E:/Tools/blender-mcp/link-native-hair-trial.png. No adoption yet. Hyper3D status was queried: disabled. No generation service was enabled or called, no API credential accessed. Goal active, no Computer Use; hidden Blender PID21648 remains responsive after disabling unused VIEW_3D redraws.
+
+
+## 2026-09-13 17:52 UTC - owner pauses for PC restart
+
+Owner requested stop and push all work. Modelling and generation stopped. All pending repository work and historical untracked progress are preserved as an explicitly unfinished checkpoint. art/characters/link/experiments/2026-09-13/README.md is the restart handoff; restart-session.blend saves all five live scenes (15 MB). Current source and prepared runtime are WIP; delivered GLB remains unchanged at 409b603. Latest production integration is Fable94a73c1, captured with the real loader. 17:39 review completed with small nonzero repeat differences; 17:44 review failed the max-two-level tolerance before reaching the procedural control. No determinism pass. Hyper3D only inspected and remains disabled, no generation submitted. Typecheck/build passed for this checkpoint. Do not resume modelling until the owner returns.
+
+
+## 2026-09-13 18:11 UTC - owner resumes
+
+Owner explicitly resumed after the PC restart. Restored all saved scenes in hidden Blender PID7848, renewed C01/C02, and informed Fable on PR2 comment5655106109. Fetched9dc050f/tick66/take0082; production remains94a73c1. Stable GLB still409b603. Native MCP free-trial operator enabled Rodin only in a separate empty scene and reports Key type free_trial. No private key was inspected; no generation submitted yet. A single full-body reference extraction is running through built-in imagegen, using the original Kokiri sheet. Native-GPU integration repeat diagnostic now retains both GLB and procedural controls before applying its unchanged tolerance, so a first failure cannot hide the control. No art acceptance claim.
+
+
+## 2026-09-13 18:42 UTC - real 3D trials and integration repeat controls
+
+Bundled free-trial Rodin Sketch generated two isolated, archived models. V1 used a wrong bbox axis order and was malformed; initial diagnostic renders also used a wrong up axis, then corrected native glTF import was preserved. V2 has coherent character shape but 512px textures, painted eyes and slab hair. Native normal/material repairs and boolean sockets with real eyeballs were tried; both protruding and inset eye versions remain unaccepted. No stable runtime asset changed. Exact prompts, task UUIDs, original GLBs, saved scenes and images are under experiments/2026-09-13 with rodin-provenance.json / rodin-files.json. Do not treat these as upgrades just because they rendered.
+
+The image tool again blocked both a single full-body reference and a pure crop. An explicit request to allow a mechanical script crop is pending; do not do that dependent work without the reply. The user has not authorized a raster API/CLI fallback.
+
+Rodin Gen-2 was then submitted through the same bundled free-trial credential, guarded by equality with the public trial constant. HTTP201 accepted uuid eba5339e-8faf-474d-8547-0b1e58148777. Job/subscription state is stored privately outside Git at E:/Tools/blender-mcp/rodin-gen2-job.json. Current scene Rodin | Gen2 trial. No private paid API key used. Poll this existing job, do not resubmit it.
+
+Production repeats: both controls captured at18:12. Only13 pixels changed in each (one GLB pixel max4); existing unchanged gauntlet determinismDiff=0 for both. My arbitrary max-channel<=2 diagnostic was overstrict. capture_integrated now retains that raw diagnostic and exact hashes but checks the existing W41 metric/threshold. Fresh full run18:31 completed: both W41 pair metrics0, exact hashes unequal, raw max GLB5/proc8 and mean.4097/2.7667. This is local image evidence, not a CI gauntlet take. Typecheck/build passed after the capture change.
+
+
+## 2026-09-13 18:57 UTC - Gen-2 review and original-sheet conditioning
+
+8b6e99c pushed the earlier studies and repeat controls. Fable received corrected repeat findings on PR2 comment5655368651; PR8 is updated from paused to resumed. Production preview is restored at http://127.0.0.1:61017/?dev=0&hud=0 using the unmodified94a73c1 checkout. Stable runtime remains409b603.
+
+Text Gen-2 job eba5339e-8faf-474d-8547-0b1e58148777 completed. Actual front, face and back Cycles renders plus raw GLB and scene are preserved in rodin-text-gen2. 500000 triangles / 2K maps improve folds and boots, but close review shows asymmetric eyes, mature proportions, slab hair, rigid brim-like cap and no backpack. Not accepted. There is no ready low-poly download; reduction/baking would be required before runtime use.
+
+The optional script-crop question remains unanswered. Instead, submitted the original complete Kokiri hero sheet byte-for-byte, without any image editing, as Gen-2 image conditioning. Job e1103326-b72d-46e5-a8db-d729c6335481 accepted through the bundled public trial. Its request, original-image SHA256 and exact parameters are in rodin-sheet-gen2-request.json; private subscription state stays E:/Tools/blender-mcp/rodin-sheet-gen2-job.json. Poll that job, do not resubmit. The prompt requests one coherent character using the first front view; the whole-sheet layout may still confuse the generator, so inspect before adopting. No private API credentials or desktop input automation.
+
+
+## 2026-09-13 19:02 UTC - single full-body reference succeeds
+
+The original-sheet 3D job completed but generated every figure and detached equipment. Not usable as one character. It is archived with its exact input/request and a render. A subsequent built-in imagegen request for one fully clothed stylized adventurer succeeded: reference/generated-link-studies/2026-09-13/04-full-body.png (1024x1536). It is generated from the first figure in the original Kokiri sheet, preserves compact proportions, and gives much clearer face/hair/fabric/ankle guidance. Exact prompt and hashes are archived. This resolves the need for the pending script-crop question: no script crop or raster API fallback was performed.
+
+Submitted that single image to Rodin Gen-2, uuid79fd16be-3d75-4722-9de1-8637b52f1db8, targeting50000 triangles with PBR/normal detail and A-pose conditioning. Request provenance is rodin-single-gen2-request.json; private job state E:/Tools/blender-mcp/rodin-single-gen2-job.json. Currently generating; poll this job. Source image quality is not evidence of the generated model's quality. Runtime409b603 remains unchanged. Fresh typecheck/build and review-helper compilation passed.
+
+
+## 2026-09-13 19:33 UTC - image-conditioned geometry and actual animated GLB
+
+1728dae pushed focused front reference and earlier geometry studies. Added generated matching rear reference05-back.png, using the front and original sheet. Prompts/hashes are archived. Gen-2 single image improves shape but invents a round cap/large pack; Gen-2.5 single improves face/hair, still poor pupils. Both are preserved separately. Gen-2.5 two-view job03f2d679-4d9f-412a-a855-25630f526349 completed with50000 triangles and4K PBR maps; its back has a proper cap tail and separate pack/shield. Initial request failed because addons must be repeated multipart values, not JSON-encoded strings; corrected request accepted once. All jobs complete; no private API credential used. Original generated studies stay unaccepted.
+
+prepare_generated_runtime.py reduces the multiview model to24000 triangles and reuses the exact19-bone rig/four clips from the409b603 .blend (local immutable cache hash4b93f2fd...). Native heat failed on the generated topology, so it now uses native nearest-surface weight transfer from the four validated meshes, then broad head/pack overrides. First prototype had misplaced anatomical origin; measured knee plane shiftedY+.1085375. It also incorrectly started soles at0; production uses a6mm sole marker and the stable geometry minimum is.0069689. Candidate now matches the validated asset's rest Z bounds, preserving1.1998116 top height and the existing loader contract. No new animation or loader code was needed.
+
+Polygon reduction broke tangent shading. rebake_generated_normals.py transfers source normals and rebakes a2K tangent map from the original generated surface. Actual WebGL face is smoother but still shows small bake misses and wrong ghostlike eyes/red eyelid strips. Do not accept the face or original generated textures as target quality. Eye placement rays are saved in generated-runtime/eye-placement.json; next is genuine eyeball/pupil geometry/materials.
+
+Isolated generated-runtime/candidate.glb SHA493c1c1e62090275c22eff9e3a7c7700da63a7abb0dd300a8d3a49e7cd89e004,27,760,628B,24000tri,1mesh/material,19bones, idle/walk/run/stairs. All18views and363 sampled locomotion poses passed in progress/2026-09-13T19-30-29-655Z-runtime-studio. Earlier19:23/19:25 runs failed floor clearance and remain archived as failed evidence. capture_runtime now accepts a local --asset and records the actual asset/hash plus worst contact phases. review.html can load that local asset. Native GPU only; no Computer Use. The delivered root link-runtime.glb remains409b603, unchanged.
+
+Fetched Fable a98e9ea/tick67/take0083, monitorb36bcc3: west-path canopy openings improve B sun exposure; C cost stated; world23/50. Read the log delta. Fable next: near veil, tread IK, budgets/layout. Production preview remains94a73c1 at127.0.0.1:61017. No merges.
+
+## 2026-09-13 20:10 UTC - native eyes, actual-world deformation corrected
+
+ca00529 pushed the two-view generated geometry, rig transfer and references. Native eye study now adds two skinned eyeballs with baked iris/pupil textures and orbital sockets. bake_generated_eyes.py bakes standard glTF materials and validates the four exact clip durations, 19 joints, tangents, normalized weights and triangle budget. New Boolean cavity faces need a separate skin material/bake target: their UVs cover0..1 and initially overwrote the body atlas with skin patches. Failed19:47 gallery is retained; fixed atlas at19:49, triangulated n-gons for tangents at19:50.
+
+Actual production C exposed a second defect that the rest/studio and sole checks missed: Boolean-created face vertices inherited right hand/elbow weights. White eye-area shapes during walking were a deformation error, not established overexposure. Rebound318 incorrect vertices in the original rigid face region; all2459 front-head vertices now assert head-only binding. Original eye material restored unchanged to isolate this fix. Eye/body deformation now looks coherent in the same C frame. Body mesh name includes skin so the loader's head measurement does not select an eyeball; the one-piece body includes its cap, so that measurement is approximate and needs acknowledgement by Fable.
+
+Current isolated generated-runtime/eye-candidate.glb: SHA86d5c68e66d1118aea9f81d4c940d1485fdea28f3692fdd5b02a0288f7af252c,28,903,892B,25,464tri,3meshes/materials,19bones,unchanged4clips. Source eye-candidate.blend and helper scripts saved. Local18-view/363-pose capture20:08:06 passes. Matching actual-world galleries: stable409b603 on a98e9ea at19:52:15; broken-eye candidate19:54:20; corrected candidate20:08:42, six views plus repeat/motion, W41 existing metric0, raw max1. Native GPU evidence only, no CI take or art acceptance.
+
+capture_integrated adds --glb-only and --face-only, records actual source diff/hash and checkout dirtiness. Free camera intentionally relocates Link to spawn in Fable's runtime: the face diagnostic measures/reframes that actual location and labels it separately, not as the C pose. The first20:02 diagnostic failed because no A image existed for its repeat; preserved incomplete manifest. Valid spawn face comparisons20:03:54 and20:06:57. Full captures remain the six standard camera poses.
+
+Isolated worktree E:/zeldaremake-integrated-review now pinned a98e9ea with three local diagnostic overrides: GLB, loader hash constant, truthful SOURCE.md. Server127.0.0.1:61017 serves the corrected candidate. No partner source logic or remote production asset changed. Fetched52dcd66, which only logs Fable's rejected near-veil test; world remains23/50. Typecheck/build passed in our branch and the comparison worktree. Character face/lids/hair/material detail remain below reference: next refine the orbital rim and surface detail; do not announce target quality achieved.
+
+## 2026-09-13 20:41 UTC - source geometry and exact normal restoration
+
+822d5d0 pushed the corrected25K eye candidate. Fable received its hash, six-view comparison and approximate head-anchor caveat on PR2 comment5655818695. PR8 description updated. The preview still serves that validated candidate; no51K asset is integrated yet.
+
+Separate lid-runtime studies flatten eye depth and add native orbital rings. They pass technical motion checks but do not yet improve the lid seams enough; not adopted. Skin albedo must be converted from the sampled sRGB atlas to linear shader values. 4K normal bake with2mm cage/6mm ray reduces negative-Z normal pixels from~7% to2.35%; a fitted cage reduces that metric further but produces severe visible patches and is rejected. Directly reusing the original normal texture on the altered low-poly mesh also shows facets. All diagnostic images/maps are preserved; metric improvement alone is not visual acceptance.
+
+At20:21 a test script's SystemExit mistakenly closed hidden Blender after saving normal-study.blend. Removed it immediately and restarted from that saved scene, hidden PID24992,4threads,BelowNormal. MCP verified responsive; no desktop input automation. Later source scenes were reloaded from saved files. Current live scenes include lid study, original multiview review, source runtime, source eye study. The older generated24K scene is in its saved.blend if needed. Export now prunes unreachable shader nodes so intermediate bake images do not bloat saved scenes.
+
+24K was my working target, not a character rubric limit. New source-runtime keeps all50000 source triangles and UVs, reuses the same rig/root alignment, and avoids reduction. After native eyes it has51440 triangles. Boolean cuts alter corner normals; native nearest-face transfer is ambiguous at shared vertices and did not fix the faceting. restore_source_normals.py restores49681 unchanged body triangles by exact source triangle/corner match, with zero UV difference; only310 cut triangles use barycentric interpolation. New cavity faces keep geometric normals. Actual GLB portrait20:39:46 is visibly cleaner than the earlier source-eye20:35/20:37 attempts.
+
+Current source-runtime/eye-candidate.glb SHA00989528b44019ba9340e6da2c0c6f0b4c79d133a472c4cec31db5e238a41a45,43,717,724B,51440tri,3meshes/materials,19bones,unchanged4clips. Eighteen actual WebGL views and363 motion samples pass at20:39:46. It still needs a full actual-world comparison and lid refinement. prepare_generated_runtime/refine_generated_eyes accept preserve_source; bake_generated_eyes accepts source-runtime and records its actual base SHA. Source eye-study's initial face-eye-study.png accidentally shows the rear camera inherited from the saved source; future helper runs set the face camera explicitly. Use the runtime gallery for the valid portrait. No target-quality claim.
+
+## 2026-09-13 20:50 UTC - rounded orbital edges and complete world comparison
+
+81e4d89 pushed all source-normal and lid studies. bevel_orbital_rims.py rounds only251 new socket/skin boundary edges,0.9mm/3segments; original corners are restored after that operation. New source-runtime/eye-candidate.glb SHA4e0b3a217495e7db98ff842a71e701eb5f6e6c535120449889da52971712c400,43,903,084B,52946tri,3meshes/materials,19bones,same4clips. Studio20:44:42 passes18views/363samples. Actual a98e9ea world comparison20:45:58 completes all6 fixed views, a separately labelled spawn portrait, repeat and motion; W41 metric0, raw max1. Draws unchanged vs25K eye candidate (A526,C429); render triangles +54964 including shadow pass, about0.62% of this world frame. Load timings differ between runs and are not a benchmark.
+
+The local61017 preview now serves this53K candidate; asset, constant hash and SOURCE.md are the only three comparison-checkout overrides. Face/hair shading is cleaner, but eyes still look too spherical in the spawn close-up. study_eye_depth.py loads a separate copy of the saved candidate and tests70% globe depth with unchanged X/Z/iris UVs; it does not change the exported/world asset until reviewed. Goal remains active and art acceptance is pending.
+
+## 2026-09-13 21:24 UTC - eye and hair comparisons, no new adoption
+
+97d0ad0/4e0b3a21 remains the preferred53K handoff on PR2 comment5656058147. Separate whole-eye70% depth and flat-iris/coat-normal variants passed studio motion checks but look too flat/doll-like in the real-world portrait; neither is accepted. Their exact GLBs, blends and galleries are preserved. The current isolated preview temporarily serves iris-plane SHA8972a6c2d6f29181d455b3cad81b876016ad855502e45f645ae8639f78fc9948, not the handoff asset. New iris material study increases pupil/iris radius ratio to.557 and darkens the iris against reference04; native lid surface study is in progress.
+
+Native fine-hair studies project authored curves onto actual hair geometry. v1/v2 produced29 strands/4540tri; v3 splits occluded paths and samples more densely, producing77 strands/21012tri. The improvement is too small for that cost: not exported/adopted. Replaced a huge Python pixel tuple with NumPy float32 for the existing atlas sampling. No image edits or scene-matte assets were made.
+
+C01/C02 renewed at21:00:31.882Z through the existing exported claim() function. The Windows gauntlet CLI entry guard compares a resolved filesystem path against URL.pathname (/E:/...), so npm run gauntlet -- --claim silently did nothing. The direct function returned the appended claim. Shared gauntlet source is unchanged; Fable should know this before relying on Windows CLI output. No new Fable reply or code since52dcd66 at the21:20 fetch. Hidden Blender responsive,4threads, no desktop input. Goal remains active and reference quality is not achieved.
+
+## 2026-09-13 21:39 UTC - pupil proportions and baked hair work
+
+Iris material candidate cfc48d365699bd9310b7b10d8584b2248529eca6d69874bdf696859632a567a6 is44,086,488B/54,786tri/3materials, retaining the flat-iris/cornea variant. Larger pupils look closer to reference04 in studio21:25:34 and actual-world C/spawn21:25:57. All363 motion samples pass; no full six-view repeat for this variant yet. New orbital surface/lash trial adds2304tri but has visible skin joins, so it is rejected and not exported. Stable53K handoff remains fixed.
+
+Dense native hair study uses683 strands/187932tri, compared with77/21012tri in v3. bake_hair_detail.py separates4831 colour-selected hair triangles into a dedicated native UV layout and bakes source body plus fibres into4K maps, then discards the high-detail geometry. First runtime f62bd043... has unchanged54,786tri but4meshes/materials,53.7MB. Its studio21:33:18 reveals faceting when the complete normal bake is weakened, plus nose polygons accidentally selected as hair. Full normal strength restores broad shading at21:36:19 but the fine detail is too grainy. Both failed runtime variants and PNGs are preserved. The local preview briefly served f62 and must not be treated as accepted.
+
+Current repair separates base and fibre normal bakes, blends only15% of the added fibre relief through native shader/baking, retains full final normal strength, uses one hair UV map, and explicitly excludes the central lower face from the hair selection. This repair is running; inspect the actual export before adopting. Blender exporter source uses calc_tangents() on the active mesh UV map, so a tangent-UV mismatch is not established as the root cause. No Computer Use or private generation key used.
+
+## 2026-09-13 21:45 UTC - completed iris world comparison
+
+Preferred next integration comparison is now iris-material-candidate.glb SHA cfc48d365699bd9310b7b10d8584b2248529eca6d69874bdf696859632a567a6. Its full a98e9ea gallery21:41:53 completes6 fixed views, separate spawn portrait, motion and repeat; existing W41 metric0, maxchannel1. Studio21:25:34 completes18views/363poses. Local61017 preview restored to this asset. The earlier53K4e0b handoff remains unchanged and available. Eye openings/lids, hair construction and material detail still do not meet the reference.
+
+Repaired hair candidate0356b30e20cf11999deb2959d508ab7ace53c9ba39cfbc29d6d864b355764709,54,016,124B,54,786tri,4meshes/materials, passes studio21:40:04. Source separation now selects4334 polygons and excludes the central lower face. A15% blend between full base and full fibre normal bakes preserves the original shading correction. The result is technically cleaner but the art gain is too small for the extra draw/material and~10MB: not adopted. Raw fibre geometry and all failed variants stay archived. No new full-world capture is warranted for an already rejected art candidate.
+
+Next material study reuses the existing credited Poly Haven cloth-roughness and leather-height maps through native box-projected bump nodes, preserving the original shader normal input. Green cloth and dark boot leather get bounded material masks. This is a separate unbaked scene, not exported. Initial texture path assertion caught an incorrect parent directory before loading; corrected to the existing link/textures directory. Hidden Blender remains responsive.
+
+## 2026-09-13 22:08 UTC - material comparison and focused head reference
+
+812c2d4 pushed all preceding iris/hair/lid work. Fable received the cfc48d iris candidate and full comparison on PR2 comment5656385303, including the Windows CLI-entry issue; PR8 description is current. No reply or integration yet. The preferred handed-off asset is still iris-material-candidate.glb, not a rejected hair study.
+
+Native CC0 material detail was baked into separate4K body colour/normal and2K roughness maps without geometry changes. material-candidate.glb SHA b0be5039517d38d71181ea8e8003d4169145e1ac4763c25c85871d758e08199b is47,769,556B,54,786tri,3meshes/materials,19bones,unchanged clips. Studio21:51:21 passes18views/363poses. Full a98e9ea world gallery21:54:36 completes6views, spawn portrait, motion and repeat; W41 metric0, maxchannel1. Existing credited cloth-roughness and leather-height scans are listed with hashes in material-validation.json. The native box-projected bump is baked; no Three.js shader additions. Art improvement is small and face/hair remain weak. The local61017 preview currently serves this material comparison; remote production and Fable's cfc handoff are unchanged.
+
+Built-in imagegen successfully generated06-head-front.png from04-full-body.png, SHA65c01d6934b7224c3e9c7ebc1881b9890f0a16879cd1d4271942902916729450,1024x1536. It is a much clearer head/hair modelling reference, not a Blender image or directly projected model texture. Prompt, provenance, manifest and original output path are saved. No raster CLI/crop fallback was used.
+
+The new head-only3D trial has NOT generated a model. First request failed before generation because single image_label F was parsed as invalid JSON; omitted that optional field. Subsequent Extreme-High, High and Medium requests all returned API_INSUFFICIENT_FUNDS and no UUID. Each definite rejection is archived, and no uncertain accepted job was resubmitted. The public trial's read-only balance endpoint reported1.5; the discrepancy with current published pricing remains unexplained. All requests were explicitly guarded to the bundled public RODIN_FREE_TRIAL_KEY in a new empty scene. No private credential was loaded or charged. No more generation retries: an optional user question is pending about continuing locally or setting up their own Rodin access with costs checked first. An answer to the latter would not itself authorize a purchase.
+
+submit_head_trial.py contains the concrete150K-head request, exact source hash and an on-disk pre-submit guard; the private E:/Tools/blender-mcp/rodin-head-gen25-job.json currently records the rejected Medium request, not a running job. Do not poll it as if a UUID exists and do not delete the guard to retry blindly. Current API docs are https://docs.hyper3d.ai/en/api-specification/rodin-gen2-5. Higher generation tiers control geometric detail independently of target triangle count; the limited trial prevents testing that route now. Goal remains active, not achieved; neither character nor world has reference-quality acceptance.
+
+## 2026-09-13 22:34 UTC - Fable Windows fix and orbital comparisons
+
+becf347 pushed the scanned material/head-reference checkpoint. Fable fixed the reported Windows CLI entry issue in12a7445; cherry-picked without conflict as2e86f8c, preserving Cursor Agent authorship. All six scripts pass node --check. The actual Windows claim CLI now rejects missing --agent with exit1 instead of silently doing nothing. PR2 comment5656529245 confirms this to Fable. Own-branch typecheck/build pass after cherry-pick. No CI checks are reported for PR8; no CI-green claim.
+
+Native lattice reshaping of existing lids affects829/703 vertices with maximum2.599mm displacement and no body movement belowZ.90. lid-fit-candidate.glb SHA f4b41844d518dc379b6c601b3cefa9d8a45384de2094923099297237432ca705 has54,786tri/3materials and passes studio22:13:15 plus complete world22:15:07. A separate10mm forward eyeball-seating trial visibly exposes too much sclera and is rejected, not exported. Applying a modifier invalidates stored RNA group wrappers: the lattice helper removes the temporary group by fresh name lookup afterward.
+
+orbital-uv-candidate.glb SHA b93852a4ee977da2bba7f46827f6bff800f844ddab5e8172286db6e14738d497 has43,950,380B/54,786tri/3materials/19bones and unchanged clips. Native Data Transfer maps2,395 cut cavity triangles to neighbouring existing skin UVs, removing their flat sampled tint. Studio22:27:12 passes18views/363poses; actual a98e9ea world22:28:46 completes6views, spawn portrait, repeat and motion with no errors and existing W41 metric0 (raw max1). Draws/textures match the iris candidate. Colour joins improve slightly, but the actual world portrait still shows hard socket transitions: not an accepted art improvement. Preferred Fable handoff remains cfc48d3656, not the newest file. Local61017 currently serves the orbital UV comparison in the three-file overridden checkout.
+
+Next work targets the existing socket transition geometry/normals rather than adding more detached lid rings. No new generation request while public-trial rejection remains unresolved; user access/cost preference question is still pending. Hidden Blender remains responsive and desktop input remains untouched. Goal remains active and reference quality is not achieved.
+
+## 2026-09-13 23:10 UTC - connected lid topology and export regression
+
+b20e3b1 is pushed and PR8's description includes the Fable CLI fix and rejected orbital comparisons. Fable's remote still12a7445 at23:09; no new world take or PR2 reply. cfc48d3656 remains the preferred handed-off asset.
+
+study_orbital_normals.py restores angle-weighted normals across the local material/UV join and fades the old generated normal map only at the edited sockets. Its effect alone is small. study_connected_lids.py replaces the socket lining with a patch joined to the face. v1/v2 had stretched UV strips, protruding sclera and folded quads. v3 uses native64-sided cylinder cuts for regular boundaries, retains small disconnected clipped hair caps, and maps those caps back to source UVs. v4 orders the boundary angles monotonically before constructing six rings: zero backward patch quads,53,034 body triangles,49,463 preserved faces. Left boundary moves at most6.422mm, right0.046mm. Eyeballs move12mm forward; this helps the joined surface but creates excessive lid fullness. Both failures and their source blends are preserved; no art acceptance.
+
+detail_connected_lids.py adds78 native lash/brow curves,2,848triangles, bound to the same head bone. The first upper lash sat behind the skin and was moved outward in v2. bake_generated_eyes.py bakes a1K lid colour atlas and4K corrected body normal map, retaining the original body UVs and adding a separate lid UV. The first actual GLB79e3343b rendered black orbital polygons: the UV-layer RNA wrapper became stale after edit mode, so reading its name produced an empty string. Store the name before edit mode and explicitly validate the material UV node and exported texCoord1. The wrong-UV GLB and22:58:47 studio gallery remain rejected evidence. Preparation and normal bakes now safely reuse their completed results on a repeated export.
+
+Corrected connected-lid-candidate.glb SHA968ec082a92dd1f50b3fcedcd71870abc59aa54eb0c388df6f38c73d12c985ce has44,655,428B,58,282tri,3meshes,4materials,19bones and the same four clips. Studio23:01:15 completes18views/363poses. Full a98e9ea world23:04:37 completes6views, spawn portrait, motion and repeat, no errors, existing W41 metric0/raw max1. The world portrait still has puffy lids and visible skin joins; it is not promoted over cfc. The local60K export limit applies only to this character experiment, not any shared gauntlet rubric. Restoring the cfc preview after this recorded comparison.
+
+Researching a free alternative to the rejected public Rodin head request. Hunyuan3D2.1's official demo is running, but its published community license explicitly excludes the EU and also covers hosted outputs; no image uploaded or generation called. Microsoft's official TRELLIS.2 Space is running and its model/code are MIT. Read its public source/config/API schema: session, image preprocessing, image_to_3d, extract_glb; no credentials or account used. Its default preprocessor calls BRIA, so a built-in imagegen transparent version of reference06 is being prepared for direct conditioning. No TRELLIS generation has been submitted yet. Imagegen cell404 is in progress; do not duplicate it. User's optional Rodin access/cost question remains pending. No purchase or private generation key is authorized.
+
+## 2026-09-13 23:17 UTC - public head trial running
+
+Imagegen cell404 ended with output moderation_blocked/category other (requestf533320b-643c-48e8-942e-24d411b2634b); no transparent image was produced. User was told. No substitute background-removal tool was used. The separate3D generation test conditions directly on unchanged reference06; the public Space's BRIA preprocessor is not called.
+
+Direct Gradio HTTP start_session returned a terminal404 before image submission. Saved public rejection plus private head-trial-job.json. Installed only the official gradio_client2.7.0 in an isolated E:/Tools/trellis-client venv, keeping Blender MCP dependencies unchanged. Environment disables implicit HF token lookup and telemetry; Client(token=False) headers are asserted to contain no authorization. First local client wrapper mistakenly used a context manager (unsupported); it failed before any remote call and was corrected to close() in finally.
+
+Official-client start_session completed, and image_to_3d is currently running through exec session38721. trellis_head_trial.py uses explicit guards in private E:/Tools/blender-mcp/trellis-public-review/head-client-job.json and public trellis-head-request.json. Do not rerun while its stage is submitting/complete: no duplicate jobs or paid/private fallback. Parameters: reference06 exacthash65c01d69,seed130926,resolution1024,default12steps per stage; intended extraction300Ktri/4Kmaps. The client carries session state into extraction. No model received yet. Read its terminal result before claiming any success. Best local preview61017 restored to cfc48d3656; typecheck/build and four local Blender helper syntax checks pass. Goal remains active, not achieved.
+
+## 2026-09-13 23:19 UTC - TRELLIS extraction quota; no downloaded head
+
+Session38721 finished: image_to_3d returned successfully, then extract_glb was rejected with ZeroGPU quota120s requested versus79s remaining and retry23:58:10. No GLB was downloaded, so no usable head or quality improvement is claimed. The initial wrapper discarded the returned preview HTML; it now saves that result before extraction for future authorized runs. Do not rerun to recover it: the anonymous generation quota is exhausted for the required export. The client closed normally in finally; private session information/guards are retained and no new provider/replica is being used to evade the quota.
+
+An optional user question now offers setting up their own Hugging Face access and checking its free quota, or continuing with existing Blender work. No token in chat, no private-key lookup and no purchase. The earlier Rodin preference question is also unanswered. Existing cfc preview stays fixed. New head-cutout-rejection.json preserves the failed built-in imagegen edit and exact prompt; no transparent image exists. Next independent work can address body/boots while waiting for access. Goal is active; reference quality remains unfinished.
+
+## 2026-09-13 23:48 UTC — boot hardware handoff and face shading diagnosis
+
+Preferred next comparison is now source-runtime/hardware-candidate.glb, SHA256 faefa7211a70c0da647fb869b1cef4af4edba7c52be965ce01bcacfdeb22214b: 38,831,060 bytes, 54,786 triangles, three meshes/materials, nineteen bones and unchanged four clips. It retains cfc48d iris geometry and changes six existing boot fittings to native brass response (metallic 0.88, roughness 0.32). The source packed metallic map's sampled maximum was only 0.02745. Native ellipsoid masks are centred on actual surfaces (BVH distance below 0.1 mm) and stay within the boots. The first right-vamp mask missed its rivet; v2 corrects that position and adds the crossed-strap studs. No geometry or draw calls are added. Native EMIT baking produces 4K colour and 2K metallic/roughness maps through the existing export helper; exported metallicRoughnessTexture is asserted. Both Blender studies are preserved.
+
+First ef75d97b export passes studio 23:35:19 and world 23:36:58. Re-export exposed float drift from unconditionally normalizing already-normalized weights. The helper now limits influence count only when needed and normalizes only when the sum error exceeds 1e-6, retaining the existing final 1e-5 assertion. Repeating the resulting faefa721 export yields the identical SHA256. The first GLB remains hardware-first-export.glb for those historical captures. Final studio 23:44:54 completes 18 views and 363 locomotion samples. Full a98e9ea world 23:45:34 completes six fixed views, separate spawn portrait, repeat and motion; no errors, W41 existing difference metric 0, raw maximum channel delta 1. These are local checks, not CI takes or art acceptance. The local 61017 preview now serves faefa721 through only the GLB/hash/provenance overrides. Root delivered asset and partner loader logic remain unchanged.
+
+diagnose_face_normals.py renders matching face cameras with and without the source normal map. The map compensates for visibly flat source mesh normals; simply disabling it is a regression. Reused study_orbital_normals.py with face mode applies bounded position-keyed angle-weighted normals and a matching normal-map fade to 12,758 corners, preserving normals outside the field and all geometry/UVs. Its 4K native normal bake exports as face-smooth-candidate.glb, SHA256 5a9969f13915bfb54a970a3267541a52aee5cfbef7b3c5db08a1e0b56c33a3a6, 38,248,124 bytes and unchanged 54,786 triangles/three materials. Studio 23:46:02 passes technical checks, but the mouth loses contour and the nose still shows angular shading. Rejected as an overall improvement; no full world capture is justified for this already rejected art candidate. Native sources and diagnostic PNGs are retained.
+
+Own typecheck/build and four Blender helper syntax checks pass. C01/C02 renewed through the fixed Windows CLI at 23:47:12.979Z, expiring 02:47 UTC. Last fetch at 23:38 still shows Fable 12a7445, no new world take; PR8 still has no reported CI checks. User access questions remain pending and no further public generation job was attempted. Hidden Blender remains responsive with four threads and about 7 GB resident memory; no desktop input used. Goal remains active: face, hair and environment have not met reference quality.
+
+## 2026-09-14 00:26 UTC — iris texture, lashes and production handoff preparation
+
+538c66e was pushed; Fable received the faefa721 boot-hardware handoff in PR2 comment5657159250, and PR8's description was updated. The latest fetched Fable branch remains12a7445 at00:23, with the same a98e9ea world. Re-read its log and claims before preparing a small asset delivery branch; no active character conflict. Own C01/C02 claim remains valid until02:47 UTC.
+
+diagnose_glb_roundtrip.py renders the face-smooth source and its actual GLB reimport in the identical native studio. Mean channel difference0.02785/255, maximum10, fraction above8 only0.000001129: no broad shading loss appears in that roundtrip. WebGL diagnostic galleries23:52:41 and23:53:53 show that disabling received shadows does not remove the angular face shading, and deriving tangents instead of using the exported attribute makes it much worse. capture_runtime.mjs now offers --shading-diagnostic, restores normal material/shadow/tangent state afterward, and leaves the model unchanged. No production shader or shadow workaround was adopted.
+
+Reused detail_connected_lids.py with existing:true on faefa721. Upper-lid roots follow the actual occluding skin rim by ray tests/bisection. The initial assumption that eye and front rim must intersect within3mm failed because the eye is recessed; the corrected roots explicitly contact the skin surface and remain within30mm of the eye. v1/v2 curves were too faint; v3 dark brows were too harsh in WebGL. v4 adds170 original curves/4,896 triangles, tapered warm-brown brows and short outward lashes, all bound to the existing head bone. No existing face shape or eye position changes. The077a dark-brow GLB stays archived. Warmer eyelash-candidate.glb SHA698afa454f37ac12252eb83a96d5b8d1cba0f7dc40d868d6aa44def04c8761eb has39,127,692 bytes,59,682 triangles,three meshes/four materials,nineteen bones and unchanged clips. Studio00:07:01 passes18views/363poses. Full world00:08:14 completes six views, spawn portrait, repeat and motion with no errors. W41 difference0, raw maximum4 (outside the separate2-level diagnostic tolerance). C costs431draws/8,830,004 rendered triangles versus the hardware candidate's429draws. The native60K guard applies only to these character studies, not the shared rubric.
+
+Built-in image_gen produced an original iris albedo, not another head generation request or a retry of the rejected transparent edit. Saved1254x1254 PNG at art/characters/link/textures/original-iris-teal-v1.png, SHAa1ad966e42b5c53f04a895e66443e1311dc04f61296b0c72da4c29b37440ed20,2,215,007 bytes. Exact prompt, built-in tool, source path and hash are in its adjacent JSON; CREDITS and SHA256SUMS updated. Native radial mapping maps texture radii0.163..0.467 onto iris coordinates0.34..0.61, preserving the pupil/iris ratio0.557. The source image is unchanged; albedo tint0.7/0.8/0.82 and the0.575..0.61 limbal fade are Blender nodes. Hornneal/clearcoat reflections remain the existing3D material. The original bright90b6 export is archived separately.
+
+Preferred next comparison is textured-iris-candidate.glb SHA9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a,39,569,100 bytes,59,682 triangles,three meshes/four materials,nineteen bones and the same clips. It includes the boot hardware and v4 lashes/brows. Studio00:19:06 completes18views/363poses. Full a98e9ea world00:22:20 completes six fixed views, spawn portrait, repeat and motion; no errors, existing W41 difference0, maximum channel delta4. Local61017 preview serves this exact file through the three overrides. Face geometry/hair remain visibly below reference quality; this is a reviewed incremental candidate, not final art acceptance.
+
+Typecheck/build, capture helper node syntax and four changed Blender helper syntax checks pass at00:18. CI is now reported for538c66e: runs34790878486 and34790873664 are in progress, last inspected00:06 at the six-view capture stage; no CI-green claim. Hidden Blender remains responsive, four threads,8.13GB resident at00:14. No desktop input, private key, purchase or additional public3D generation attempt. HF/Rodin access questions remain unanswered.
+
+Preparing a small draft asset PR against Fable's current branch: only public/models/link/link-runtime.glb, its SOURCE.md and the reported SHA constant. This makes the actual game integration reviewable without merging the entire study archive or changing partner loader/IK logic. After that, next geometry work should start with the uncut50K source and cut an almond socket once, using current eye materials. Reworking the enlarged circular holes has repeatedly created puffy lids and visible joins. Keep the current9189 candidate fixed while testing. Goal remains active and unfinished.
+
+## 2026-09-14 00:56 UTC — asset PR, rejected almond sockets, CI first-frame diagnosis
+
+bef8e85 is pushed. The actual game asset is committed separately as742cb26 on agent/astra-local-link-asset in E:/zeldaremake-integrated-review, draft PR9 against Fable's branch. Exactly three files change: public GLB, SOURCE.md, and its reported SHA constant. The reviewed9189538d asset and local61017 preview remain fixed. No loader/IK changes. Fable received PR2 comment5657420662 with the complete handoff.
+
+study_almond_sockets.py starts from the uncut50K source, verifies identical coincident skin weights (maxdelta0), then welds72,708 vertices to24,902: boundary edges68,704 to0. Two64-point parabolic cutters create27mm half-width apertures with17mm upper/12mm lower height. Native0.7mm bevel rounds334 rim edges. Exact source-corner restoration matches49,724 of49,858 unchanged body faces, UVdifference0. Total55,120 triangles including eyes. The first render has black lower-lid strips: three ray/UV probes are exactly RGB0 in the reused old cut atlas but contain skin colour in the complete uncut source. restore_almond_colour.py rebuilds only the eye region from that full source and the existing native skin sample; black strips disappear.
+
+The smaller openings still have angular, thick lower rims. Reused study_eye_seating.py with almond:true: moving eyes20mm forward exposes too much sclera. Additional fit:true keeps72/83 outer-eye vertices0.5mm behind the original outer skin, but produces angular visible joins. All three geometry results remain rejected and unexported; no new GLB or runtime promotion. Saved native blends, PNGs and measured JSON records preserve the results. Five changed/new helper syntax checks and own typecheck/build pass. The next facial work needs a cleaner continuous eyelid surface; repeating whole-globe translation or clamping is not a useful next step.
+
+CI run34790878486 (538c66e PR merge6e3b71f) fails only hard checkB5 at96.13% difference. Downloaded its artifact and inspected both frames: A_stairs.png is a dark background plus HUD, while A_stairs.det.png shows the world. The original is27,999B, stdev18.52, retries0. The global variance retry is fooled by HUD pixels; the underlying delayed first frame remains undiagnosed. No rubric or threshold modification. Fable notified in PR2 comment5657511712, PR8 description corrected. PR9 checks still pending at00:50, not green. Latest fetch00:55 discovers Fable3f9fb33, changing only house/materials for darker Saria surfaces; integration branch stays on its previously reviewed12a7445 base.
+
+C01/C02 remain valid until02:47 UTC. No private generation credentials, purchase or extra public generation request. Blender remains responsive without desktop input. Goal remains active and reference quality is not achieved.
+
+## 2026-09-14 01:00 UTC — HUD-aware blank capture retry
+
+0b09b3e is pushed with the rejected almond studies. C01/C02/W41 renewed through03:56 UTC; Fable notified of the isolated capture guard work in PR2 comment5657565466. The current partner commit3f9fb33 changes only house/materials and keeps the same old capture guard.
+
+frameStdDev now measures the image's central half in each dimension so the peripheral HUD cannot falsely prove the 3D world is rendered. The existing threshold2, retry count, deterministic render reset, full PNG output and B5 pixel comparison are unchanged. Every caller is the shared shoot() retry path; no production API or renderer change. node gauntlet/scripts/test-capture-variance.mjs passes HUD-only, normal-centre and uniform-frame cases. The first test caught Sharp stats ignoring pending extract operations; materializing the crop as raw pixels fixes that. Exact historical CI images and measured evidence are in docs/proposals/astra-capture-first-frame/: blank world variance18.52→0, proper A repeat35.14, all other actual CI views27.08–35.96. This addresses the guard, not the underlying delayed first frame; no CI fix claimed without a fresh run.
+
+PR9 now has one passing full CI run34793005831 (26m6s); its sibling34792971044 remains in progress. This is the first completed CI validation of the actual9189 asset delivery. Both are required before calling the PR green. Preview and delivery unchanged. Goal remains active, face/hair/reference quality still unfinished.
+
+Both PR9 CI runs now pass:34792971044 (27m47s) and34793005831 (26m6s). Restored the active native Blender scene to textured iris study v2; delivery and preview are unchanged. No merge or final-art acceptance.
+
+The additional local source anti-cheat exposed Windows CRLF conversion in the hash-locked rubric files. Verified both working files equal their existing Git blobs after CRLF→LF, and the rubric Git blob hashes to the existing lock96467cfa0ee4. Restored exact HEAD blob bytes, then refreshed Git's stat cache; neither locked file has a staged change. Commitbe2de68 adds only two targeted eol=lf attributes plus a comment, preventing recurring conversion. No rubric content, threshold, lock or generated Markdown was regenerated. Existing rubric-lock --check passes; source-only anti-cheat now has11passes,31historical D3warnings,0failures. Typecheck/build and capture regression test also pass. This is separate from the full PR9 CI result.
+
+## 2026-09-14 01:07 UTC — verified CI character identity
+
+498791e andbe2de68 are pushed; Fable received PR2 comment5657608281 with the guard/line-ending handoff and both green PR9 runs. PR8 description is current. Downloaded and inspected actual PR9 CI artifact10329735357 from run34793005831: sourcefe4cc938 is742cb26 merged against12a7445, clean; character audit reports linkSource=glb, exact9189538d hash,59,682 triangles,4materials,19bones,4expected clips, no fallback,472ms load. B5 reports0.000% differing pixels and console is clean. Its unedited C view and compact source/audit/determinism report are archived in progress/2026-09-14T00-58-27Z-ci-link; this is imported CI evidence, not a new take or an art-quality verdict. Texture credits now correctly record its use in PR9.
+
+Working preview remains committed742cb26 on61017. Fable's newer3f9fb33 structures pass has been fetched but not integrated into that fixed comparison. Active Blender scene is the reviewed textured iris study v2;37 native study scenes remain loaded. Current worktree is saved. The failed almond variants remain unexported, and further whole-eye translation/clamping is not a promising geometry approach. Reference quality remains unfinished and the goal stays active. No public generation retry, private account use or desktop automation occurred.
+
+## 2026-09-14 01:25 UTC — continuous anatomical head studies
+
+Previous goal turn made concrete progress: PR9 passed both full CI runs and the HUD-only blank-frame guard was repaired with artifact evidence. This turn returns to character form. Fetched Fable3389ddf: he adopted the canonical line-ending attributes; preceding3f9fb33 remains his latest world geometry/material change. Current delivery remains742cb26/9189 and is untouched.
+
+The existing MPFB v6 CC0 head has4,233 vertices/4,208 base quad faces, continuous eye/mouth surfaces and only a48-vertex open neck boundary. Its previous mature/puffy appearance is preserved as rejected evidence. fit_anatomical_head.py adapts this topology to the current Link with shorter lower-face proportions, lateral eye placement and the existing iris material. Initial v1 used too aggressive a local eye stretch and substituted incompatible globes; it visibly folds the lower eye/cheek region and is rejected. v2 replaces that with a bounded erf field, applies the same deformation to the native head/globes and checks605 numerical Jacobians before mutation (minimum0.3412, positive). Head vertex count/UV topology stay unchanged. Maximum move44.726mm is a deliberate whole-head proportion change, not a tiny surface adjustment. The shape is much more continuous but its subdivided72-vertex helper globes shrink and its automatically normalized iris mapping makes oval irises.
+
+v3 uses64x32 native UV spheres at the original helper bounds, passed through exactly the same deformation as the face. Its reused native iris shader now uses object-space circular coordinates (iris radius17.08mm), independent of the globe's deformed bounding-box ratio. Existing unsupported helper UV normal links are removed in this unbaked study; actual globe normals drive the reflections. v3 remains unaccepted and unexported: the face is still bald in this diagnostic and has deep/puffy orbital folds. The proper nasal/lip/eyelid connectivity is retained; further work should adjust socket depth across both skin and globe rather than translate eyes independently or cut new holes.
+
+Extracted only the unmodified CC0 head and two eye helper meshes from the prior v6 native study into source-runtime/anatomical-input-v6.blend (294,842B, SHA684f6e5a979d8e2a7b9159104f38a95ffeb3add1a13a0d64583d70918d148b38). Adjacent JSON records pinned MPFB80919fa4 provenance, CC0 geometry license and original local input hashf645f14e. This removes the helper's dependency on an untracked E:/Tools input for future runs. Native v1/v2/v3 blends, render PNGs and measured JSON are preserved. No new public generation, private access, purchase or desktop input. Blender remains responsive at about9.35GB, four threads. Goal remains active; reference quality is not achieved.
+
+## 2026-09-14 02:07 UTC — neck continuity, rejected proportion changes, partner guard validated
+
+5737da2 validates Fable's exact1fde2b5 frameQuality function from its pinned Git blob against the original CI34790878486 PNGs. Bad A: sigma12.91235, mean0.0580233, rejected. Proper repeat: sigma40.82235, mean0.331815, accepted. The larger15–85% box still sees HUD pixels, so his mean threshold is necessary for this artifact. Hashes/numbers are in docs/proposals/astra-capture-first-frame/fable-frame-quality.json. PR2 comment5657913449 tells Fable to retain his already integrated guard; no duplicate adoption of498791e is needed. Fetched take0084/e3c4df9, LF adoption3389ddf and vegetation69bd594. PR9/9189 remains unchanged; awaiting Fable's per-foot planting/head-anchor integration and sealed take.
+
+fit_anatomical_head.py shallow:true produces v4: the same depth compression on head and globes, sampled minimum Jacobian0.1952. Native front and side renders remain unaccepted. context_anatomical_head.py combines that head with the reviewed outfit/hair. First context accidentally removed brown cap stitching and overlapped the old neck. v2 preserves the complete crown above1.075 and removes the old neck, exposing the head's short, jagged lower boundary. v3 extends that exact48-vertex boundary with two quad rings atZ0.825/0.800, closing the large visible gap.18,188 lower-outfit positions belowZ0.83 stay exact; source-normal restoration matches48,541/48,543 faces with UV delta0. The remaining chest colour seam and head appearance are not accepted. Head and eyes remain unrigged, so no runtime export exists.
+
+Proportion context v4 widened the cheeks too abruptly and made a visible ledge. v5 broadens the fade and reduces eye height; its final sampled Jacobian minimum0.6485 passes, but its wide nose departs from the portrait and is rejected. An earlier quartic nose-height field failed the pre-mutation Jacobian check at0.0531 and produced no accepted output. Numerical nonfolding is not an art verdict. The script retains default v3 and optional proportions:true v5 for reproduction; rejected native files and PNGs remain comparison evidence.
+
+detail_connected_lids.py now reuses its surface-ray method on contextv3, adding170 curves/4,800 triangles. It skips a globe's outer silhouette when there is no corresponding skin/globe intersection; that silhouette cannot anchor a lash. Anatomy remains unrigged and the brows are still largely hidden by the existing fringe. The anatomical-lid-detail scene is unexported. A subsequent depth transfer from the existing original50K source mesh keeps827 orbital vertices fixed and moves1,716 other vertices, but the first result has an incorrect pale tint and nasal discontinuities. It is rejected. A registered nose/mouth variant using the reviewed body colour is being evaluated separately; no delivery promotion.
+
+Own typecheck/build pass at02:02, and four edited Blender scripts passed syntax earlier. Hidden Blender remains responsive, four threads, BelowNormal, about9.9GB resident. Unloaded only saved, exclusively owned context copies and failed partial scenes; no global orphan purge or desktop automation. Public generation quota/access remains unchanged; no additional provider request, private credentials or purchase. Goal is active and the reference quality remains unfinished.
+
+The registered surface-fit v2 moved protected eye corners by up to2.949mm and sampled sRGB image bytes directly into linear vertex colours. v3 fixes both root causes:827 orbital vertices remain exactly fixed, and sRGB decoding is checked against0.5 ->0.21404114. The corrected face is warm again, but its nasal transitions still visibly fail, so no anatomical variant is promoted. Source v1/v2/v3 and pictures are retained. Returning to the reviewed9189 head for the next focused test: a smooth native corneal bulge, with iris X/Z coordinates and head geometry preserved. All new anatomical work remains unrigged/unexported; the exact game delivery stays unchanged.
+
+## 2026-09-14 04:25 UTC — Fable integration, actual movement review, corneal candidate
+
+Fable confirmed active world work in PR2 comment5658837278,04:04:59 UTC. Current scope is layout-6 / D composition, then far layers, canopy dapple and veil; he retains runtime loader/planting/transitions. Hisad01908 integrates exact9189538d by hand, cce765f provides per-foot IK and the anatomical head constant, beb8d88 seals take0085. The clean review checkout now uses agent/astra-local-link-grounding based onbeb8d88; old delivery742cb26 is unchanged. Fresh typecheck/build passed. C01/C02 renewed04:04 through07:04. User asked about 3D generation: confirmed current body/base maps are Rodin Gen-2.5 from generated front/back references, subsequently edited/rigged in Blender. No new generation or private account access occurred.
+
+Actual clean-world9189 capture04-02-41-755Z completes six views, spawn portrait, repeat and motion, errors[]. W41 difference0, raw max3 /mean0.9013; no byte-equality claim. study_cornea.py tests only the original eye front surface:87 of602 vertices per eye, fixed X/Z, smooth zero boundary at80% globe radius.3mm was weak;12mm shows actual corneal reflections. diagnose_eye_occlusion.py found all six eye-centre/light rays blocked by the body; temporarily hiding only that body restores reflections, and finally restores visibility. Both diagnostic images/native studies are preserved separately from game evidence. The12mm version shares one eye material and removes the previous clearcoat normal texture.
+
+corneal-candidate.glb SHA6f28903df21df73c964a5863d1a84fa79fae79aed1602170bc840336f90eb889,39,451,396bytes,59,682triangles,3meshes,4materials,19bones. All57 channels in each of four clips, timestamps/interpolation, joint order/inverse binds, and every body primitive attribute/index accessor are byte-identical to9189; hashes are in corneal-motion-comparison.json.18-view/363-pose actual WebGL studio04-03-42-643Z completes witherrors[]. The new eye reflections are visible but the lids still have rough joins and hair remains thick slabs. The6f289 same-world capture04-22-07-781Z completes six views,spawn portrait,repeat/motion witherrors[]. W41difference0, rawrepeatmax4/mean1.5201, not byteequal or within separate2-level tolerance. C shows the same scene/character form; spawn comparison shows a darker, wet reflective iris instead of the prior pale flattened response. This is an incremental reflection improvement, not face acceptance or a CI take.
+
+capture_play_motion.mjs drives the actual PlayerHandle in its own headless browser. Three's native inspection hook exposes the real scene without production modifications. Installed Three core supplies Vector3/Raycaster; its hash is recorded. It checks skinned lower-sole extreme vertices against rendered stairs-main geometry.1620frames on cleanbeb8d88/9189:300flat walk/run/idle +660up +660down. Actual-root audit is checked against placement+IKshift; the earlier first run used world.linkRoot (placement), so its root-step numbers do not measure posed body motion. Use04-17-15-044Z for root results. Max actual-root step36.15mm at flat walk->run frame125,26.01mm uphillframe16,17.66mm downhillframe28. Clamping0/1/28frames respectively. Uphill505shoe samples min-18.81mm, nonebelow-2cm; downhill478samples min-241.85mm,15below-2cm. This does not claim the whole shoe sinks24cm: the offending rear corner crosses the upper tread while the reported contact point sits on the lower one. At downhillframe70: actorplacement[14.9077330826,4.86,-6.0340318044], Lvertex57077[15.0144498851,4.8652635511,-5.9730615859], raygap-0.24184624m, Lcontactauditgap0. Persistsframe80. PR2 comment5658960062 supplies this reproduction for Fable's nosing/transition fix.
+
+The first motion cameras were uphill and stair-occluded. The final helper frames from downhill and records exact actual root transforms;04-19-16-236Z captures nine unobstructed descent closeups over90frames and reproduces the same heel penetration. These are play diagnostics, not sealed takes or motion acceptance. Current required next work: deliver reviewed corneal asset/evidence, Fable's nosing/transition response, then native upper-body motion and remaining facial/hair form. Hidden Blender24992 stays responsive, BelowNormal,fourthreads,~10.3GB RSS; no desktop input.
+
+## 2026-09-14 04:39 UTC — open-source asset licensing question
+
+Owner asks whether3D generation is legal for the intended open-source release. Checked current primary Hyper3D terms sections2/5(b)/6.3, Blender MCP README/terms, OSI definition and German UrhG23. Answer: AI generation itself does not preclude open source, but unrestricted redistribution/relicensing of this bundled-trial output is not yet cleared.5(b) broadly permits Rodin output use;6.3 includes transfer restrictions/recipient obligations. No separate public-trial open-asset grant found. Do not conflate ChatAvatar restrictions with Rodin, or label absence of a separate grant as proof all use is forbidden. ASSET_LICENSE_REVIEW.md records the uncertainty and required provider clarification. The user was told I should have checked before pushing the assets. PR2 comment5659094736 tells Fable to retain PR10 as a draft technical candidate and avoid blanket MIT/CC0/rights-cleared claims. Underlying Zelda/Link design rights remain separate; no Nintendo permission or root repository license is recorded. No provider contact, purchase, asset deletion or history rewriting performed.
+
+Technical status before the question:57495fc source/evidence is pushed. Corneal-only deliverya920d90 is draftPR10; bothCIruns34806072649/34806113555 were pending at04:34. PR9 closed as taken-by-handad01908/take0085. Local arm-motion-candidate2106700b013fac310babedb857b0c5592b385d71147a87deb7621215e3146930 changes sagittal shoulder swing and elbow flexion in three moving clips, preserving the entire idle clip and exact hips/legs/head/chest/cap channels. Native19bones/59,682triangles/4materials/clipdurations unchanged.18-view363-pose studio04-30-17 completes. compare_arm_motion.mjs proves exact meshes/binds/non-arm channel bytes; edited-arm chain matrix decomposition introduces at most1.788e-7 float32 changes in otherwise unedited arm/hand channels, bounded separately rather than falsely claiming all other bytes exact. This new native arm study remains LOCAL/unpublished and not in the game. The corneal baseline play video04-35-05 has150verified frames at30fps,1280x720,5seconds walk/run/idle; temporary encoder PNGs removed only after ffprobe verification. New play-video helper and arm-study files remain local work pending review. Current preview stilla920d90/6f289; native Blender scene is Link | arm motion study.

@@ -1,0 +1,18 @@
+{
+  "status": "Unaccepted connected eyelid topology study; not exported",
+  "eyes": [
+    {
+      "removed_triangles": 1518,
+      "boundary_vertices": 38,
+      "added_quads": 228
+    },
+    {
+      "removed_triangles": 1305,
+      "boundary_vertices": 27,
+      "added_quads": 162
+    }
+  ],
+  "body_triangles": 50323,
+  "preserved_faces": 49543,
+  "eye_shift_metres": -0.012
+}

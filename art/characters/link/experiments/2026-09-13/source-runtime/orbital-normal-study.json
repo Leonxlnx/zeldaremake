@@ -1,0 +1,11 @@
+{
+  "status": "Unaccepted local normal transition study; not exported",
+  "changed_corners": 9014,
+  "max_normal_angle_degrees": 176.68400280842852,
+  "fade_metres": [
+    0.032,
+    0.052
+  ],
+  "body_triangles": 52386,
+  "method": "Position-keyed angle weighted normals across separate UV/material boundaries; source map disabled only at edited sockets"
+}

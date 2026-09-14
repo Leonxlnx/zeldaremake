@@ -1,0 +1,9 @@
+{
+  "source": "makehumancommunity/mpfb2 v2.0.17",
+  "source_commit": "80919fa4682335c41847f761a4d79dcad4124732",
+  "geometry_license": "CC0-1.0",
+  "method": "Head and two eye helper meshes extracted from the earlier locally authored v6 proportion study; no body, reference image or hair imported",
+  "original_study_sha256": "f645f14e0cfa937463d3f0e54559789815b2e92e8ae5a28443ca268d1540acc7",
+  "sha256": "684f6e5a979d8e2a7b9159104f38a95ffeb3add1a13a0d64583d70918d148b38",
+  "bytes": 294842
+}

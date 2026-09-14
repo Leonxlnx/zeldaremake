@@ -2,9 +2,14 @@
 
 All ten owner-supplied concepts are available below as **compressed previews**, resized to 960 pixels wide and saved as JPEG at quality 80. These are visual targets, not screenshots of completed game work.
 
-**The exact original PNGs are retained locally; original upload is pending.** The connector stalled on the large original payloads, so these explicitly labeled previews provide a practical gallery now. [manifest.json](manifest.json) records each preview’s dimensions and SHA256 alongside its original PNG dimensions and SHA256.
+**This checkout has all ten published previews.** The previous cloud session reported that
+the original PNG upload stalled; those original files are not present in the repository's
+Git history. [manifest.json](manifest.json) preserves the cloud session's original dimensions
+and hashes alongside the preview hashes. The current local previews have all been verified.
 
-Current priority: environment, lighting, shadows and detail. Character work is paused. Images are comparison-only and must not be used as game scenery, textures or backdrops.
+Current ownership (owner resumed character work on 2026-09-13): Fable continues the environment;
+Astra local develops Link in Blender against images 09 and 10. These ten images remain the
+quality targets. They are comparison-only and must not be used as game scenery, textures or backdrops.
 
 ## Village lighting — preview
 
