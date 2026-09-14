@@ -159,12 +159,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
 
   const weeds = plants.weeds.count;
+  const tufts = plants.tufts.count;
   ctx.audit('vegetation', () => ({
-    grassInstances: grass.count + weeds,
+    grassInstances: grass.count + weeds + tufts,
     grassBlades: grass.count,
-    grassTypes: GRASS_TYPE_NAMES.length + 1,
-    grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed'],
-    grassTypeCounts: [...grass.typeCounts, weeds],
+    grassTypes: GRASS_TYPE_NAMES.length + 2,
+    grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed', 'grass-tuft'],
+    grassTypeCounts: [...grass.typeCounts, weeds, tufts],
+    /** round 31: instanced tufts of bent blades (plantgeo.ts tuftGeometry) — three height classes, on the banks and leaning over the paved rims */
+    tufts,
     grassHeightMean: Math.round(grass.heightMean * 1000) / 1000,
     grassHeightCV: Math.round(grass.heightCV * 1000) / 1000,
     grassTints: 4,
@@ -209,6 +212,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       flowers: plants.flowers.samples(200),
       whiteFlowers: plants.whiteFlowers.samples(60),
       fiddleheads: plants.fiddleheads.samples(60),
+      tufts: plants.tufts.samples(120),
     },
   }));
 

@@ -233,6 +233,12 @@ export interface ShapedLeafOptions extends LeafOptions {
   across?: 3 | 5;
   /** midrib colour (default: a lighter, slightly yellower tone of the lamina) */
   ribColor?: RGB;
+  /**
+   * vein crease (5-across rows only): the half-way columns sink below the lamina by this fraction
+   * of the half-width and darken a little, so the blade reads as two lobes either side of the
+   * midrib with lateral veins (round 31: the frames' broad leaves show a crease, not a flat card)
+   */
+  crease?: number;
 }
 
 /** half-width fraction of a leaf outline at 0 ≤ t ≤ 1 along the axis (base → tip) */
@@ -257,7 +263,7 @@ function leafOutline(shape: LeafShape, t: number): number {
  * front faces are the upper side (`gl_FrontFacing` selects the glossy top in materials.ts).
  */
 export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: ShapedLeafOptions) {
-  const { shape, sections = 5, across = 5, curl = 0.12, twist = 0, ridge = 0.12 } = options;
+  const { shape, sections = 5, across = 5, curl = 0.12, twist = 0, ridge = 0.12, serration = 0, crease = 0 } = options;
   const { axis, side, normal } = leafFrame(direction, options.planeNormal);
   const rib: RGB = options.ribColor ?? [color[0] * 1.2 + 0.03, color[1] * 1.18 + 0.03, color[2] * 1.05];
   const tipColor: RGB = options.tipColor ?? tone(color, 1.06);
@@ -266,7 +272,9 @@ export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
   const rows: number[][] = [];
   for (let j = 0; j <= sections; j++) {
     const t = j / sections;
-    const w = width * 0.5 * leafOutline(shape, t);
+    // a serrated rim: alternate rows step in and out (the base and tip rows keep the outline)
+    const tooth = j > 0 && j < sections ? 1 + serration * (j % 2 ? 1 : -1) : 1;
+    const w = width * 0.5 * leafOutline(shape, t) * tooth;
     const centre = base.clone().addScaledVector(axis, length * t).addScaledVector(normal, length * curl * Math.sin(t * Math.PI * 0.9));
     const rowColor = blend(color, tipColor, t * 0.5);
     if (j === sections || (j === 0 && notch === 0)) {
@@ -277,11 +285,12 @@ export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
     rows.push(
       cols.map((s) => {
         const a = Math.abs(s);
-        // lobes sweep back behind the petiole; edges droop, the midrib stands proud
+        // lobes sweep back behind the petiole; edges droop, the midrib stands proud, the
+        // half-way columns sink into the vein crease
         const back = notch * length * Math.pow(1 - t, 3) * Math.sqrt(a);
-        const lift = s === 0 ? w * ridge : -w * (a < 0.75 ? 0.05 : 0.14);
+        const lift = s === 0 ? w * ridge : a < 0.75 ? -w * (0.05 + crease) : -w * 0.14;
         const p = centre.clone().addScaledVector(sideAt, s * w).addScaledVector(axis, -back).addScaledVector(normal, lift);
-        const c = s === 0 ? blend(rowColor, rib, 0.75) : tone(rowColor, a < 0.75 ? 1.0 : 0.94);
+        const c = s === 0 ? blend(rowColor, rib, 0.75) : tone(rowColor, a < 0.75 ? 1.0 - crease * 0.6 : 0.94);
         return mesh.vertex(p, (s + 1) / 2, t, c);
       }),
     );
@@ -301,6 +310,40 @@ export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
   const last = rows[sections - 1];
   const tip = rows[sections][0];
   for (let k = 0; k < n - 1; k++) mesh.tri(last[k], tip, last[k + 1]);
+}
+
+/**
+ * Grass blade as a ribbon along a polyline (root first): two side vertices per row, the width
+ * tapering from `width` at the root to a point at the tip, a slight fold down the middle (the
+ * sides drop below the spine) so the two faces shade differently. The blade's plane faces the
+ * direction the polyline leans away from the tuft centre (`facing`), like the grass shader's
+ * blades. 2 × (rows − 1) + 1 triangles.
+ */
+export function bladeStrip(mesh: MeshBuilder, points: Vector3[], width: number, facing: Vector3, color: RGB, tipColor: RGB = tone(color, 1.08), fold = 0.25) {
+  const n = points.length;
+  const rows: number[][] = [];
+  for (let j = 0; j < n - 1; j++) {
+    const t = j / (n - 1);
+    const tangent = points[Math.min(j + 1, n - 1)].clone().sub(points[Math.max(j - 1, 0)]).normalize();
+    let sideV = new Vector3().crossVectors(facing, tangent);
+    if (sideV.lengthSq() < 1e-8) sideV = new Vector3().crossVectors(UP, tangent);
+    sideV.normalize();
+    const normal = new Vector3().crossVectors(tangent, sideV).normalize();
+    const w = width * 0.5 * (1 - t * 0.85);
+    const c = blend(color, tipColor, t);
+    const drop = w * fold;
+    rows.push([
+      mesh.vertex(points[j].clone().addScaledVector(sideV, -w).addScaledVector(normal, -drop), 0, t, tone(c, 0.94)),
+      mesh.vertex(points[j].clone().addScaledVector(sideV, w).addScaledVector(normal, -drop), 1, t, tone(c, 0.98)),
+    ]);
+  }
+  const tip = mesh.vertex(points[n - 1], 0.5, 1, tipColor);
+  for (let j = 0; j < rows.length - 1; j++) {
+    mesh.tri(rows[j][0], rows[j][1], rows[j + 1][0]);
+    mesh.tri(rows[j][1], rows[j + 1][1], rows[j + 1][0]);
+  }
+  const last = rows[rows.length - 1];
+  mesh.tri(last[0], last[1], tip);
 }
 
 /** Simple radial fan (flower petal ring, seed head cap). */
