@@ -156,8 +156,13 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
  * bands are where the floors show (the sleeve limb and the trunk's shaded flank): 8 / 4.5 lands
  * B top p10 on the frame (0.289 vs 0.295) and takes B left a third of the way (0.304 vs 0.277)
  * at −0.001 B SSIM and no change to the house box; 7 / 4 overshoots B top (0.272) at −0.002.
+ * Structures-23 (the A repair, single-toggle renders of e328ad7): 8 / 4.5 against 9 / 5 cost
+ * A 0.0012, B 0.0010 and E 0.0007 of SSIM — the shaded flank's contrast, not its level — so
+ * the floors stop at the midpoint 8.5 / 4.75: B top p10 0.297 on the frame's 0.295 (8 / 4.5
+ * 0.289 under it, 9 / 5 0.304 over), B left 0.307, and half the SSIM back (with the halo fade:
+ * A 0.2657 → 0.2665, B 0.2481 → 0.2486; 9 / 5 would give 0.2671 / 0.2491 at B top 0.304).
  */
-export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.5, texture: 1.0 };
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -174,8 +179,9 @@ export const HOUSE_BARK_TINT = 0x70553f;
  *
  * Round 32 (structures-22): lift 9 → 8 with the trunk's 5 → 4.5 — the sweep table under
  * TRUNK_BARK_FLOOR; the sleeve is what moves B's top band (p10 0.304 → 0.289, frame 0.295).
+ * Structures-23: 8 → 8.5 with the trunk's 4.5 → 4.75 (B top p10 0.297; see TRUNK_BARK_FLOOR).
  */
-export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 8, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
+export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 8.5, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
 /** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
  *  reference bough's 52° */
 export const LIMB_BARK_TINT = 0x6c6e48;
@@ -811,6 +817,23 @@ export const FAR_HALO_TINT: [number, number, number] = [1.0, 0.28, 0.05];
  * crossing pods keep the full radius.
  */
 export const FAR_HALO_EAST_SCALE = 0.55;
+/**
+ * The halo's alpha fades to nothing between these two camera distances (m, smoothstep). Structures-23:
+ * the unfogged discs were what cost A — take-0091 → 0092 lost 0.0059 of A's SSIM and a window-level
+ * map puts 0.0052 of it in the six cells x 0.19–0.375 × y 0.22–0.44, where A's stair top sees the
+ * west-flank and crossing pods' discs (272 / 150 px, peak 0.60–0.62) floating in the haze beside
+ * the lantern branch's two pods; frame 1 s has haze there and nothing else. Single-toggle A renders
+ * of e328ad7: halos hidden +0.0042, the floors back to 9 / 5 +0.0012, the huts' darkening off
+ * +0.0002, the pot back 0, the round-31 arch +0.0043 (= the halos). The frames set the rule:
+ * lamps at 48–53 m read (frame 56 s = D, whose pods sit at 48.6–53.4 m), lamps farther off do
+ * not (frame 1 s = A, whose pods sit at 59.5–64.8 m; frame 4 s = B / E, 53.4–58.3 m, where the
+ * west-flank and crossing discs at 55.3–58.3 m floated in open haze over the frame's dark
+ * mossy bank). So the disc holds to 53.5 m and is gone at 55.5 m: every D pod 1.0, every A pod
+ * 0, B / E keep the two east pegs (53.4–53.6 m, the small 0.55 discs) and lose the other three.
+ * Measured with [54, 58]: A 0.2615 → 0.2657 (= halos hidden), D 0.3357 → 0.3357 with the same
+ * four arch lamps; the pod's own emissive core (4 px) is untouched.
+ */
+export const FAR_HALO_FADE: [number, number] = [53.5, 55.5];
 /** the halo quad sits this far toward the camera from the pod's centre, so the pod's body (r 0.17 m) does not cut a darker core out of it */
 export const FAR_HALO_TOWARD_CAMERA = 0.3;
 
@@ -1052,13 +1075,17 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   lanternHalo.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uHaloRadius = { value: FAR_HALO_RADIUS };
     shader.uniforms.uHaloToward = { value: FAR_HALO_TOWARD_CAMERA };
+    shader.uniforms.uHaloFade = { value: new Vector2(FAR_HALO_FADE[0], FAR_HALO_FADE[1]) };
     lanternHalo.userData.uniforms = shader.uniforms;
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec2 aCorner;\nuniform float uHaloRadius;\nuniform float uHaloToward;')
+      .replace('#include <common>', '#include <common>\nattribute vec2 aCorner;\nuniform float uHaloRadius;\nuniform float uHaloToward;\nuniform vec2 uHaloFade;\nvarying float vHaloFade;')
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
         {
+          // the quad's four vertices all sit at the pod's centre: its camera distance sets the fade
+          float podDistance = length( ( modelViewMatrix * vec4( position, 1.0 ) ).xyz );
+          vHaloFade = 1.0 - smoothstep( uHaloFade.x, uHaloFade.y, podDistance );
           // viewMatrix = inverse(camera world): its rows are the camera's axes in world space
           vec3 camRight = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
           vec3 camUp = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
@@ -1066,6 +1093,10 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
           transformed += ( camRight * aCorner.x + camUp * aCorner.y ) * uHaloRadius + camBack * uHaloToward;
         }`,
       );
+    // normal blending: fading the alpha (not the colour) dissolves the disc into the veil behind it
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vHaloFade;')
+      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.a *= vHaloFade;');
   };
   lanternHalo.customProgramCacheKey = () => 'structures-lantern-halo';
 
