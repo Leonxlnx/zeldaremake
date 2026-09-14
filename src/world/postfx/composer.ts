@@ -30,6 +30,7 @@ import {
   FloatType,
   HalfFloatType,
   LinearFilter,
+  type Material,
   Matrix4,
   Mesh,
   MeshLambertMaterial,
@@ -85,6 +86,10 @@ import {
  *   shadow by differencing the frame against the same frame with the caster hidden.
  * - `globalThis.__ATMO_SHADOWMAP_FOCUS__ = { point: [x, y, z], halfSpanM, depthSpanM }` zooms the
  *   'shadowmap' debug view on the depth map around a world point (mid-grey = that point's depth).
+ * - `globalThis.__ATMO_UNIFORMS__ = { uBarkFloorLift: 0, uLeafFloorLift: 0 }` sets the named numeric
+ *   shader uniforms (those a material binds in its onBeforeCompile — the shade floors' lifts, a
+ *   custom shader's fill) on every compiled material for the frame and restores them afterwards, so
+ *   a probe can measure one material term's share of the frame without editing the material's owner.
  */
 const debugView = (): string => (globalThis as { __ATMO_DEBUG__?: string }).__ATMO_DEBUG__ ?? '';
 interface ShadowMapFocus {
@@ -98,6 +103,7 @@ const shadowMapFocus = (): ShadowMapFocus | null => (globalThis as { __ATMO_SHAD
 type SettingsOverride = Partial<Record<keyof ComposerSettings, number | boolean>>;
 const settingsOverride = (): SettingsOverride | null => (globalThis as { __ATMO_SETTINGS__?: SettingsOverride | null }).__ATMO_SETTINGS__ ?? null;
 const hideList = (): string[] => (globalThis as { __ATMO_HIDE__?: string[] | null }).__ATMO_HIDE__ ?? [];
+const uniformOverride = (): Record<string, number> | null => (globalThis as { __ATMO_UNIFORMS__?: Record<string, number> | null }).__ATMO_UNIFORMS__ ?? null;
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -386,15 +392,23 @@ export function createComposer(opts: ComposerOptions): Composer {
     // band-limit on the busiest cells); uniform 0 → A 0.84, B 0.83; the whole stage off → 0.90/0.89
     // but −0.012/−0.010 SSIM. The haze blur is the SSIM-efficient part (+0.008 A for −0.06 sharp);
     // its start moved 36 → 40 m (+0.004 sharp, −0.001 SSIM)
+    // Round 31 (tone): the SSIM the metric charges for restoring tonal range is local variance —
+    // in the veiled bands its windows sit where the regularisation constant dominates (cs ≈
+    // C2 / (σx² + σy² + C2) at σ ≈ 0.02), so every contrast gain is paid there and every
+    // smoothing of the far bands earns there. The haze blur from 25 m at σ 1.6 measured
+    // +0.004 (D) / +0.007 (B) SSIM for −0.012 / −0.028 sharpness (D 0.979, B 0.934 — E, the
+    // binding view at 0.90, keeps ≈ 0.87 against W35's 0.8) with no tonal change (≤ 0.003 in any
+    // band statistic); it pays for the hemisphere bounce revert (config.sky.hemiGround) and the
+    // IBL cut (lighting/index.ts) that take the darkest deciles down.
     softening: true,
     softDetail: 0.85,
     softActivityK: 0.08,
     softActivityPower: 4,
     softUniform: 0.0,
-    softFarStart: 40,
+    softFarStart: 25,
     softFarFull: 60,
     softBlurSigma: 1.2,
-    softFarSigma: 1.0,
+    softFarSigma: 1.6,
     softActivitySigma: 2.5,
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
@@ -656,6 +670,34 @@ export function createComposer(opts: ComposerOptions): Composer {
     return true;
   };
 
+  /** per-material compiled uniforms (three keeps the onBeforeCompile additions there) with the override applied */
+  const applyUniformOverride = (o: Record<string, number>): (() => void)[] => {
+    const restores: (() => void)[] = [];
+    const seen = new Set<Material>();
+    const visit = (obj: Object3D) => {
+      const m = (obj as Mesh).material as Material | Material[] | undefined;
+      if (!m) return;
+      for (const mat of Array.isArray(m) ? m : [m]) {
+        if (seen.has(mat)) continue;
+        seen.add(mat);
+        const uniforms = (renderer.properties.get(mat) as { uniforms?: Record<string, { value: unknown }> }).uniforms;
+        if (!uniforms) continue;
+        for (const [k, v] of Object.entries(o)) {
+          const u = uniforms[k];
+          if (!u || typeof u.value !== 'number') continue;
+          const prev = u.value;
+          u.value = v;
+          restores.push(() => {
+            u.value = prev;
+          });
+        }
+      }
+    };
+    scene.traverse(visit);
+    opts.overlay?.scene.traverse(visit);
+    return restores;
+  };
+
   const render = () => {
     renderer.info.reset();
     const hidden: Object3D[] = [];
@@ -666,10 +708,13 @@ export function createComposer(opts: ComposerOptions): Composer {
         hidden.push(o);
       }
     }
+    const uo = uniformOverride();
+    const restores = uo ? applyUniformOverride(uo) : [];
     try {
       renderFrame();
     } finally {
       for (const o of hidden) o.visible = true;
+      for (const r of restores) r();
     }
   };
 

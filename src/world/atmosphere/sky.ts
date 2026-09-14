@@ -94,6 +94,9 @@ uniform vec2 uOpenDir;
 uniform vec2 uOpenEdges;
 uniform vec2 uOpenUpEdges;
 uniform vec3 uClosed;
+// the lit far wall the distance haze grades to past the far tree rows (heightfog.ts hazeFarLit)
+uniform vec3 uFarLit;
+uniform float uFarLitAmount;
 // forward lobe hook (gain at mu = 1, tint at mu = 1; off by default like heightfog's sunLobeGain)
 uniform float uSunLobeGain;
 uniform vec3 uSunLobeTint;
@@ -151,6 +154,10 @@ void main() {
   float open = max( smoothstep( uOpenEdges.x, uOpenEdges.y, e ), smoothstep( uOpenUpEdges.x, uOpenUpEdges.y, h ) );
   vec3 zenith = mix( uClosed, uZenith, open );
   vec3 horizon = mix( uClosed, uHorizon, open );
+  // the dome stands behind the far tree rows, which the distance haze grades to the lit far wall
+  // in every direction (heightfog.ts hazeFarLit), so the horizon is that wall; the environment
+  // map keeps the side-scatter horizon so the IBL calibration is untouched
+  horizon = mix( horizon, uFarLit, uFarLitAmount * ( 1.0 - uEnvMode ) );
   vec3 sky = mix( horizon, zenith, smoothstep( 0.0, uGlareRamp, up ) );
   float s3 = pow( sd, 3.0 );
   sky *= ( 1.0 + uSunLobeGain * s3 ) * mix( vec3( 1.0 ), uSunLobeTint, s3 );
@@ -216,6 +223,8 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uOpenEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi) },
     uOpenUpEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openUpLo, HEIGHT_FOG_DEFAULTS.openUpHi) },
     uClosed: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeClosed) },
+    uFarLit: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFarLit) },
+    uFarLitAmount: { value: HEIGHT_FOG_DEFAULTS.hazeFarLitAmount },
     uSunLobeGain: { value: SKY_SUN_LOBE_GAIN },
     uSunLobeTint: { value: new Color(...SKY_SUN_LOBE_TINT) },
     uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },

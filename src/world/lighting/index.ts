@@ -118,8 +118,14 @@ export function create(ctx: WorldContext): WorldSystem {
   // lifts the cosine-weighted upper hemisphere ×1.35 in green: 0.57 × 0.271 / 0.367 keeps the IBL
   // fill on the ground unchanged (the shade is calibrated by the hemisphere + IBL sum); the
   // per-channel remainder is in SKY_ENV_TINT. 0.481 once the dome went to the closed-roof veil
-  // toward the north/west (hemisphere mean ×0.876 in green, see SKY_ENV_TINT) — same fill again
-  const environmentIntensity = 0.481;
+  // toward the north/west (hemisphere mean ×0.876 in green, see SKY_ENV_TINT) — same fill again.
+  // Round 31 (tone): 0.36. The IBL is the one fill whose removal darkens the ground band without
+  // touching the canopy (at 0: D / B bottom-band p10 −0.043 / −0.045, p50 −0.040 / −0.046, top
+  // band ≤ 0.007) and the only lever that measured SSIM-neutral or better while doing it (D +0.005,
+  // B −0.001 at 0). ×0.75 takes the whole-frame darkest decile down 0.008 (D) / 0.007 (B) with the
+  // medians −0.007 / −0.008 (the frames' p10 sits 0.04 under ours, the medians already match) and
+  // SSIM +0.002 / +0.001 measured on top of the round's other changes.
+  const environmentIntensity = 0.36;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
