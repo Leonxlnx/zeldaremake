@@ -1,16 +1,17 @@
 # Young Link runtime candidate — Blender source and validation
 
-Character art by Astra (`astra-local`). This is the exact reviewed Blender export from
-[`bef8e85`](https://github.com/Leonxlnx/zeldaremake/commit/bef8e85), delivered through the existing
-GLB loader and procedural fallback. It remains an incremental art candidate.
+Character art by Astra (`astra-local`). This corneal geometry candidate builds on the
+reviewed `bef8e85` / `9189538d` export. The source and completed local comparisons are
+preserved at `57495fc`. It improves reflections in Fable's `beb8d88` world; full CI and
+final character art acceptance remain separate requirements.
 
 | Property | Value |
 | --- | --- |
-| Source | `art/characters/link/experiments/2026-09-13/source-runtime/textured-iris-candidate.glb` at `bef8e85` |
-| SHA256 | `9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a` |
-| Size | 39,569,100 bytes |
+| Source | `art/characters/link/experiments/2026-09-13/source-runtime/corneal-candidate.glb` at `57495fc` |
+| SHA256 | `6f28903df21df73c964a5863d1a84fa79fae79aed1602170bc840336f90eb889` |
+| Size | 39,451,396 bytes |
 | Geometry | 59,682 triangles, three skinned meshes, four opaque double-sided materials |
-| Maps | Five embedded PNGs; 4K body colour/normal, 2K packed metallic/roughness and iris colour, 1K cornea normal |
+| Maps | 4K body colour/normal, 2K packed metallic/roughness and iris colour; no separate cornea normal map |
 | Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat` |
 | Rig | Existing 409b603 nineteen-bone rig, in metres, +Y up and +Z forward |
 | Sole markers | Existing ankle-local L/R markers `[∓0.000000016, 0.05900068, 0.08564404]` |
@@ -26,6 +27,8 @@ GLB loader and procedural fallback. It remains an incremental art candidate.
 
 The bone hierarchy, clips, strides and sole markers retain the production loader's contract.
 No playback, head-look, grounding or terrain-IK logic changes are required for this asset.
+All animation channel/accessor bytes, inverse bind matrices, and body mesh attributes and
+indices are identical to `9189538d`. Only the two eye surfaces and their shared material change.
 
 ## Provenance
 
@@ -34,8 +37,9 @@ conditioned on the project's own generated front/back concept views. The native 
 work preserves the source geometry, reuses the validated rig and adds eyes, orbital
 corrections, brass response on six existing boot fittings, and surface-following lashes/brows.
 The original iris albedo was generated with the built-in image_gen tool and radially mapped
-and baked in Blender. The pupil/iris radius ratio stays 0.557; reflections come from the
-corneal clearcoat material.
+and baked in Blender. The pupil/iris radius ratio stays 0.557. A smooth convex bulge moves
+87 front vertices per eye, up to 12 mm; iris X/Z coordinates and the outer sclera stay fixed.
+The old clearcoat normal texture is removed; reflections follow the actual curved geometry.
 
 Exact generation records, sources, Blender studies and validation are preserved at `bef8e85`:
 
@@ -49,13 +53,12 @@ credited in the study archive; they should not be assumed to be inputs to this e
 
 ## Recorded checks and remaining work
 
-Studio `2026-09-14T00-19-06-205Z-runtime-studio` completes 18 actual WebGL views and
-363 locomotion samples. The full Fable a98e9ea world comparison
-`2026-09-14T00-22-20-662Z-integrated` completes six fixed views, a separate spawn portrait,
-repeat and motion with no page errors. Existing W41 difference is 0; the raw maximum channel
-delta is 4, above the separate two-level diagnostic tolerance. Exact screenshot equality is
-not claimed. These local checks are not CI-attested takes or a phase exit.
-
-The new file is larger than the prior delivered 409b603 asset (20.5 MB / 24,108 triangles).
-C_lookback records 431 draws and 8,830,004 rendered triangles for the full world. Eye openings,
-facial form, hair and per-foot tread contact remain unfinished; no final art acceptance.
+Studio `2026-09-14T04-03-42-643Z-runtime-studio` completes 18 actual WebGL views and
+363 locomotion samples with no page errors. The unchanged-body/clip comparison is recorded
+in `source-runtime/corneal-motion-comparison.json`. Actual world capture
+`2026-09-14T04-22-07-781Z-integrated` completes six fixed views, spawn portrait, repeat and
+motion with no page errors, against the unchanged `beb8d88` baseline04-02-41.
+The W41 difference is0; raw maximum channel difference4 exceeds the separate two-level
+diagnostic tolerance. Exact screenshot equality is not claimed. These local checks are
+not CI-attested takes or a phase exit. Eye openings, facial form, hair and per-foot tread
+contact remain unfinished; no final art acceptance.
