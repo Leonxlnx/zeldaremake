@@ -12,8 +12,9 @@
  * load so `__ZR__.ready()` only resolves with the model in — and the procedural rig (link.ts)
  * otherwise or with `?link=proc`; the audit says which (`linkSource`). Kids and Navi stay
  * procedural. Every puppet's pose is a pure function of the simulation time (puppet.ts), feet are
- * planted on the heightfield every frame, and the audit reports the planted sole positions
- * (`samplePositions.feet`).
+ * planted on the heightfield every frame — per foot with a two-bone leg IK for the GLB (glbLink.ts),
+ * a whole-rig drop for the procedural rigs — and the audit reports the planted sole positions
+ * (`samplePositions.feet`), both soles' gaps (`linkFeetContact`) and the planting (`linkIk`).
  */
 import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
@@ -311,6 +312,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mode,
       view,
       linkGait: link.gait,
+      /** both soles of the current pose: world height, the exact ground under it, signed gap (m), and the support the IK planted it on (differs from groundY only within a few cm of a tread nosing) */
+      linkFeetContact: link.puppet.feetContact().map((f) => ({ foot: f.foot, soleY: Number(f.soleY.toFixed(4)), groundY: Number(f.groundY.toFixed(4)), gapM: Number(f.gapM.toFixed(4)), supportY: Number(f.supportY.toFixed(4)) })),
+      /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural) */
+      linkIk: (() => {
+        const i = link.puppet.plantInfo();
+        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped };
+      })(),
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
       contactShadows: 1 + kids.length,
       pavingSurface: ground.surfaceInfo(),
