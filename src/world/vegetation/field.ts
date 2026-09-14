@@ -170,10 +170,13 @@ const D_SHOULDER_FEATHER = 0.5;
  * and trodden earth with a few tufts in front of the first riser; frame 14 s sees the south lip
  * beside Link. Stair-local metres beyond the tread ends (north / south), along the run from the
  * apron sliver before the foot to the landing's sides, feathered over HOUSE_FLANK_FEATHER.
+ * The south flank stops 0.8 m out: the ground beyond it (v > 2.1 m, u 1–3.5 m) is camera C's
+ * bottom-left foreground at 2.4–3.5 m (frame 46 s: trodden earth with a low fringe), which the
+ * spine's trodden strip already reads right; D frames the south side only before the foot.
  */
 const HOUSE_FLIGHT_ID = 'house-west';
 const HOUSE_FLANK_N: readonly [number, number] = [0.05, 2.4];
-const HOUSE_FLANK_S: readonly [number, number] = [0.05, 1.7];
+const HOUSE_FLANK_S: readonly [number, number] = [0.05, 0.8];
 const HOUSE_FLANK_ALONG: readonly [number, number] = [-1.2, 3.0];
 const HOUSE_FLANK_FEATHER = 0.5;
 /** the flight and its landing (stair-local, from the foot) where Saria's ramp is paving now, not a trodden strip */
