@@ -1062,9 +1062,6 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
       );
   };
   lanternHalo.customProgramCacheKey = () => 'structures-lantern-halo';
-  // TEMP-PROBE (round 32 tuning, removed before merge): expose the far-pod materials to a headless probe
-  const tune = (globalThis as { __STRUCT_TUNE__?: Record<string, unknown> }).__STRUCT_TUNE__;
-  if (tune) Object.assign(tune, { lanternFar, lanternLimeFar, lanternHalo });
 
   const leaf = windLeafMaterial(
     new MeshStandardMaterial({
@@ -1144,18 +1141,6 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applySleeveBarkResponse(sleeveBark);
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
-  // TEMP-PROBE (round 32 floor sweep, removed before merge): keep each floored bark's program uniforms reachable
-  if (tune) {
-    for (const [name, m] of Object.entries({ bark, sleeveBark, barkPale, logBark, recessBark, archBark })) {
-      const prev = m.onBeforeCompile;
-      m.onBeforeCompile = (shader, renderer) => {
-        prev.call(m, shader, renderer);
-        m.userData.uniforms = shader.uniforms;
-      };
-      tune[name] = m;
-    }
-  }
-
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
   return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }
