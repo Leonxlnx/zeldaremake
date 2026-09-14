@@ -1363,6 +1363,19 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   weak read → follow-up for hardscape after the flight lands (remove / relocate / sink; keep a
   ground-level lit feature left of the north path for B).
 
+### 07:05 UTC — tick 73: heartbeat (monitor `e815f66`); the overload and the capture slots
+- 06:41–06:56: five concurrent SwiftShader captures (four passes + character-5's motion harness)
+  drove the 4-core box to load 83 and every sub-agent session dropped mid-capture. Worktrees and
+  uncommitted diffs were intact; all five resumed from disk with a new rule: every Chrome launch
+  goes through `gauntlet/tmp/capslot.sh` (two box-wide `flock` slots; tested). Load 10 since.
+- State at the tick (nothing on the branch yet): hardscape-24 four commits (the house-west flight
+  `0a29f2a`/`c333364`, its head and south verge `d7b94f0`, the main flight one-to-one `9440813`;
+  final capture running); vegetation-16 three (`db64049`, `2a36f4c`, `1361c5c` lit yellow-olive
+  tint on the west bed / B mass, near-LOD tuft shadows); atmosphere-9 two (`8574069` hook,
+  `2e63d91` lit far wall past 55–60 m); trees-17 six files uncommitted; character-5 in the
+  workspace. Integration + take-0087 when the reports land.
+- Gaps: unchanged (tone range, D's flight/periphery, bank foliage — all in flight).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1401,4 +1414,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T06:08:00Z
+2026-09-14T07:07:00Z
