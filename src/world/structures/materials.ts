@@ -143,8 +143,21 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
  * (lift 15 −0.012 in D). Lift 5 — a third of the old level on a typical shaded face — keeps the
  * relief low: the strip right of the door then reads p10 0.258 / p50 0.315 (control 0.315 /
  * 0.369, reference 0.200 / 0.304) and D's loss is the arch's, not the trunk's.
+ *
+ * Round 32 (structures-22, limb / trunk floor sweep at the hero poses, the frames' boxes at 320×180):
+ *   floors 9 / 5 (control): D bank (0.80–1.0 × 0.30–0.55) p50 0.319, B house (0.68–0.88 × 0.25–0.6)
+ *     p50 0.302, B left (0.05–0.35 × 0.08–0.6) p10 0.314, B top p10 0.304, SSIM D 0.333 / B 0.248
+ *   8 / 4.5: D bank 0.317, B house 0.302, B left 0.304, B top 0.289, SSIM 0.333 / 0.247
+ *   7 / 4:   D bank 0.316, B house 0.302, B left 0.297, B top 0.272, SSIM 0.333 / 0.246
+ *   (frames: D bank 0.236, B house 0.290, B left 0.277, B top 0.295)
+ * The D bank barely moves because what camera D sees of the house there is SUNLIT bark (D stands
+ * 10° off the house's facing, like B) and the box is 28 % trunk / roots, 7 % entrance arch, 64 %
+ * terrain and vegetation (material masks) — the floor lifts shaded faces only. B's top and left
+ * bands are where the floors show (the sleeve limb and the trunk's shaded flank): 8 / 4.5 lands
+ * B top p10 on the frame (0.289 vs 0.295) and takes B left a third of the way (0.304 vs 0.277)
+ * at −0.001 B SSIM and no change to the house box; 7 / 4 overshoots B top (0.272) at −0.002.
  */
-export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 5, texture: 1.0 };
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.5, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -158,8 +171,11 @@ export const HOUSE_BARK_TINT = 0x70553f;
  * the dark sleeve bark lands near the giants' limb brightness (probes: lift 3 / texture 0.55 /
  * tint 40° read lum 0.16, hue 35°; lift 6.5 / 0.5 / 54° read 0.23, 42° — the warm bark map
  * pulls the hue ~10° below the tint).
+ *
+ * Round 32 (structures-22): lift 9 → 8 with the trunk's 5 → 4.5 — the sweep table under
+ * TRUNK_BARK_FLOOR; the sleeve is what moves B's top band (p10 0.304 → 0.289, frame 0.295).
  */
-export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 9, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
+export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 8, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
 /** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
  *  reference bough's 52° */
 export const LIMB_BARK_TINT = 0x6c6e48;
