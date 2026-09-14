@@ -18,6 +18,8 @@ from97d0ad0, SHA256 `4e0b3a217495e7db98ff842a71e701eb5f6e6c535120449889da5297171
 Hair-bake, added lid surfaces and scanned-material studies remain unaccepted.
 Do not replace the handoff merely because a newer file exists.
 
+The9189 asset is delivered in draft PR9, commit742cb26. New almond socket and seating studies remain rejected and unexported: restoring missing colour texels works, but the angular lid geometry and protruding/clamped sclera do not improve the face. See almond-*.json and face-almond-*.png. The committed delivery stays unchanged.
+
 At22:34 UTC, native lattice and neighbouring-skin UV studies are also archived.
 `lid-fit-candidate.glb` (f4b41844...) and `orbital-uv-candidate.glb` (b93852a4...)
 retain54,786 triangles,3materials and the existing rig/clips. Both complete their
@@ -159,3 +161,4 @@ through the existing hidden Blender startup script. Blender is installed at
 `E:/Apps/Blender/blender-4.5.13-windows-x64/blender.exe`; MCP/runtime remains under
 `E:/Tools/blender-mcp`. The old browser preview on port 54075 was an appearance overlay,
 not the new production checkout. Restart local preview servers as needed.
+

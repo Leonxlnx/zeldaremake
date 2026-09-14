@@ -5,7 +5,8 @@ from mathutils import Vector
 from mathutils.geometry import barycentric_transform
 from mathutils.bvhtree import BVHTree
 
-scene=bpy.data.scenes['Link | source eye study'];bpy.context.window.scene=scene
+almond=bool(globals().get('JOB',{}).get('almond',False))
+scene=bpy.data.scenes['Link | almond socket study' if almond else 'Link | source eye study'];bpy.context.window.scene=scene
 source=bpy.data.objects['Link | source candidate']
 target=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name)
 for rig in [source.parent,target.parent]:rig.data.pose_position='REST'
@@ -39,5 +40,5 @@ assert matched/total>.95,(matched,total)
 assert max_uv_difference<1e-5,max_uv_difference
 dst.normals_split_custom_set(normals)
 report={'matched_triangles':matched,'body_triangles':total,'max_unchanged_uv_difference':max_uv_difference,'method':'Exact source triangle/corner restoration; barycentric interpolation only at cut triangles; geometric cavity normals'}
-(Path(__file__).resolve().parent/'source-runtime/normal-restoration.json').write_text(json.dumps(report,indent=2)+'\n')
+(Path(__file__).resolve().parent/'source-runtime'/('almond-normal-restoration.json' if almond else 'normal-restoration.json')).write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report))

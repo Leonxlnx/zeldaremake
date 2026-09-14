@@ -1,0 +1,11 @@
+{
+  "status": "Unaccepted seating study; not exported",
+  "eye_y_shift_metres": -0.02,
+  "body_changed": false,
+  "outer_sclera_fit_vertices": [
+    72,
+    83
+  ],
+  "skin_clearance_metres": 0.0005,
+  "reason": "Measured current iris plane y=-.104 versus upper rim-.127 and lower rim-.115; compare reduced socket depth visually."
+}

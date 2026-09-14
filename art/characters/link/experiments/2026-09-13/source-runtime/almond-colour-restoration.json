@@ -1,0 +1,17 @@
+{
+  "status": "Unaccepted colour-restored almond study; not exported",
+  "source_image": "texture_diffuse.001",
+  "skin_sample_uv": [
+    0.45700308680534363,
+    0.19704657793045044
+  ],
+  "paint_fade_metres": [
+    0.04,
+    0.052
+  ],
+  "restore_fade_metres": [
+    0.052,
+    0.065
+  ],
+  "reason": "Three lower-lid probes in the reused atlas were RGB 0,0,0 while the complete source contained skin colour; smaller openings expose previously removed faces."
+}

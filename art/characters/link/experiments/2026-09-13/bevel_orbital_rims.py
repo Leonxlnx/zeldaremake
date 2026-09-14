@@ -2,7 +2,8 @@
 import bpy,json
 from pathlib import Path
 
-scene=bpy.data.scenes['Link | source eye study'];bpy.context.window.scene=scene
+almond=bool(globals().get('JOB',{}).get('almond',False))
+scene=bpy.data.scenes['Link | almond socket study' if almond else 'Link | source eye study'];bpy.context.window.scene=scene
 body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name)
 assert not body.get('orbital_rims_bevelled',False),'Already bevelled; reload the preceding saved study to retry'
 body.parent.data.pose_position='REST';bpy.context.view_layer.update()
@@ -16,12 +17,13 @@ attribute=body.data.attributes.get('bevel_weight_edge') or body.data.attributes.
 for value in attribute.data:value.value=0
 for edge in boundary:attribute.data[edge.index].value=1
 bpy.ops.object.select_all(action='DESELECT');body.select_set(True);bpy.context.view_layer.objects.active=body
-bevel=body.modifiers.new('Soft orbital rim','BEVEL');bevel.limit_method='WEIGHT';bevel.width=.0009
+width=.0007 if almond else .0009
+bevel=body.modifiers.new('Soft orbital rim','BEVEL');bevel.limit_method='WEIGHT';bevel.width=width
 bevel.segments=3;bevel.material=1;bevel.use_clamp_overlap=True
 bpy.ops.object.modifier_apply(modifier=bevel.name)
 body['orbital_rims_bevelled']=True
 triangles=sum(len(p.vertices)-2 for p in body.data.polygons)
 assert triangles<55000,triangles
-record={'boundary_edges':len(boundary),'width_metres':.0009,'segments':3,'body_triangles':triangles,'status':'Native rim study; restore normals and validate export before adoption'}
-(Path(__file__).resolve().parent/'source-runtime/rim-bevel.json').write_text(json.dumps(record,indent=2)+'\n')
+record={'boundary_edges':len(boundary),'width_metres':width,'segments':3,'body_triangles':triangles,'status':'Native rim study; restore normals and validate export before adoption'}
+(Path(__file__).resolve().parent/'source-runtime'/('almond-rim-bevel.json' if almond else 'rim-bevel.json')).write_text(json.dumps(record,indent=2)+'\n')
 print(json.dumps(record))

@@ -1,0 +1,18 @@
+{
+  "status": "Unaccepted almond opening study; not exported",
+  "source_triangles": 50000,
+  "triangles": 55120,
+  "weld_before": {
+    "vertices": 72708,
+    "boundary_edges": 68704
+  },
+  "weld_after": {
+    "vertices": 24902,
+    "boundary_edges": 0
+  },
+  "coincident_weight_max_delta": 0,
+  "half_width": 0.027,
+  "top_height": 0.017,
+  "bottom_height": 0.012,
+  "method": "Weld source vertex seams, cut parabolic upper/lower openings, reuse native bevel and exact corner-normal restoration; reviewed materials and existing eyes/rig"
+}
