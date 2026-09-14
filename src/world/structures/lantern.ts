@@ -116,8 +116,12 @@ function setV(geo: BufferGeometry, v: number) {
 
 export type LanternKind = 'orange' | 'lime';
 
-/** Build one lantern hanging `cordLength` metres below a hook point (world space). */
-export function buildLantern(hook: Vector3, cordLength: number, mats: StructureMaterials, rng: Rng, scale = 1, kind: LanternKind = 'orange'): LanternRig {
+/**
+ * Build one lantern hanging `cordLength` metres below a hook point (world space). `far` (round
+ * 32): the pod takes the far-veil material (materials.ts FAR_LANTERN_INTENSITY) — the log arch's
+ * pods 50 m out; same geometry, same draws.
+ */
+export function buildLantern(hook: Vector3, cordLength: number, mats: StructureMaterials, rng: Rng, scale = 1, kind: LanternKind = 'orange', far = false): LanternRig {
   const body = new LatheGeometry(
     BODY_PROFILE.map(([x, y]) => new Vector2(x * scale, y * scale)),
     28,
@@ -159,7 +163,7 @@ export function buildLantern(hook: Vector3, cordLength: number, mats: StructureM
   const geo = merge([body, cap, stem, cord, knot, ...huskParts]);
   // shift so the hook (top of cord) is at the origin of the pivot
   geo.translate(0, -(podTop + cordLength), 0);
-  const mesh = new Mesh(geo, kind === 'lime' ? mats.lanternLime : mats.lantern);
+  const mesh = new Mesh(geo, kind === 'lime' ? (far ? mats.lanternLimeFar : mats.lanternLime) : far ? mats.lanternFar : mats.lantern);
   mesh.castShadow = true;
   mesh.receiveShadow = false;
   mesh.name = 'pod-lantern';

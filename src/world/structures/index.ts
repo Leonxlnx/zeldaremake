@@ -65,6 +65,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // bark / plank / cap parts fold into the house draws below, their glow is one emissive mesh ----
   const distant = buildDistantHouses(ctx, mats, rng.fork('distant-houses'));
   group.add(distant.group);
+  // TEMP-PROBE (round 32, removed before merge): the village group for a visibility mask in the headless probe
+  const tune = (globalThis as { __STRUCT_TUNE__?: Record<string, unknown> }).__STRUCT_TUNE__;
+  if (tune) tune.distant = distant.group;
   owned.push(mats.distantGlow, distant.glow.geometry);
   ctx.progress('structures', 0.55);
 
@@ -209,6 +212,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** sleeve top / bottom surface points along the bough for projected-thickness checks */
     branchSilhouette: branch.silhouette,
     logLanterns: log.lanterns.length,
+    /** round 32: the arch pods' world centres (D projects the east pair to (0.60, 0.35) / (0.62, 0.36), the west three to (0.44–0.48, 0.42–0.43)) */
+    logLanternPositions: log.podPositions,
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,

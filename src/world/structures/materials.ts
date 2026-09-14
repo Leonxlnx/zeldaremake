@@ -267,6 +267,23 @@ export interface StructureMaterials {
   lantern: MeshStandardMaterial;
   /** the same pod with a lime-yellow glow (reference B: two of Saria's three pods are lime) */
   lanternLime: MeshStandardMaterial;
+  /**
+   * Round 32: the log arch's pods, 50–53 m from camera D under 86 % veil (heightfog.ts maxFog):
+   * the near pods' 2.0 mixes to 0.14 × 2 + 0.86 × haze ≈ the haze itself, so the arch's five
+   * pods registered zero warm blobs in D's arch box in every capture (the reference has three,
+   * peak 0.65–0.76). Same gradient at FAR_LANTERN_INTENSITY, so the body clears the veil.
+   */
+  lanternFar: MeshStandardMaterial;
+  lanternLimeFar: MeshStandardMaterial;
+  /**
+   * Round 32: the far pods' glow halo — a camera-facing soft disc (radial alpha) per pod on one
+   * mesh, `FAR_HALO_RADIUS` m about the pod, at `FAR_HALO_INTENSITY` linear (fog-exempt, veiled
+   * like any surface at its depth). A 0.33 m pod is 5 px at 52 m in D; the reference's arch
+   * lanterns are 7–19 px soft discs at that distance — the glow round a lamp in hazy air, which
+   * the pod's own body cannot carry and the haze blur (postfx, σ 6 px there) would smear to
+   * nothing. Vertex tints carry the hue (orange / lime); billboarded in the vertex shader.
+   */
+  lanternHalo: MeshBasicMaterial;
   /** heart-shaped leaf cards, wind-animated (aPhase/aAmount attributes) */
   leaf: MeshStandardMaterial;
   /** vine stems, wind-animated */
@@ -730,6 +747,51 @@ export function lanternGradientTexture(glow: number, topMul: [number, number, nu
   return tex;
 }
 
+/**
+ * The log arch's far pods (round 32). The pods hang 48–53 m from camera D where the veil is at
+ * its cap (heightfog.ts maxFog 0.86): a surface at radiance E lands at 0.14 E + 0.86 × haze
+ * (haze ≈ 0.17 linear there), so the near pods' 2.0 rendered ≈ 0.43 linear / 0.55 display against
+ * the veil's 0.48 — invisible (zero warm blobs in D's arch box; reference: three at peak
+ * 0.65–0.76, hue 36–38°, sat 0.39–0.47, 9–74 px at 1280). Two parts:
+ * - the body at FAR_LANTERN_INTENSITY: the same gradient at 4.5 reads 0.55–0.57 display, hue
+ *   32–35°, sat 0.27–0.31 through the veil (measured: 0.14 × 4.5 + haze), a warm dot but not
+ *   a lamp — the veil mixes 86 % of its own colour into anything at that depth, and at 8–12 the
+ *   mix goes pale (hue 44–48°, sat 0.2), not warmer;
+ * - the halo disc drawn UNFOGGED (fog: false): the glow a lantern throws into the haze around
+ *   it is in-scattered light on the camera's side of the veil, like the bloom the frame's
+ *   renderer lays over its lamps after its fog — so the disc keeps its own colour and fades into
+ *   the veiled background by alpha only. Its colour is FAR_HALO_TINT × FAR_HALO_INTENSITY
+ *   linear: the composite grade (postfx warmMix + ACES + saturation 1.12 + the 0.4 chroma knee)
+ *   turns a linear 20° orange into the frame's 37–39° display amber — the lantern gradient's own
+ *   (1, 0.66, 0.24) lands at 42–43° / sat 0.2–0.3 at any intensity, and ACES bleaches every hue
+ *   above ≈ 1.5 linear, so the disc is dim-linear and saturated rather than hot and white. The
+ *   postfx haze blur (σ 1.6 texels on the 320 grid ≈ 6 px, 70–80 % mixed at 50 m) then mixes
+ *   the disc's core about half-and-half with the veil, which is what sets the intensity and the
+ *   radius (a 0.5 m disc is 16 px at 50 m in D's 48°; the blur keeps ≈ 55 % of a 16 px disc's
+ *   core and ≈ 75 % of a 22 px one). Measured in D's arch box (0.40–0.68 × 0.28–0.46) with the
+ *   round-31 classifier (warm px: hue 15–65°, sat ≥ 0.35, lum ≥ 0.45; lamp: peak ≥ 0.6, hue
+ *   25–48°): frame 56 s — 3 lamps, 74 / 9 / 14 px, peak 0.76 / 0.65 / 0.74, hue 36–38°, sat
+ *   0.39–0.47; control 8a2dc9c — 0 warm blobs; the fogged disc at any intensity (4–6 white ×
+ *   the gradient's amber) — 0 (hue 44–48°, sat 0.19–0.22); unfogged (1, 0.36, 0.08) × 1.4 at
+ *   0.5 m — 0–1 (peak 0.57–0.61, sat 0.28–0.34); at 0.7 m — 4 lamps, peak 0.62–0.65, hue 35–37°,
+ *   sat 0.35–0.40; (1, 0.30, 0.06) × 1.4 at 0.7 m — 5 lamps, hue 33–35°, sat 0.36–0.42;
+ *   (1, 0.28, 0.05) × 2.0 / 2.5 at 0.7 m — peak 0.64–0.67 / 0.65–0.69 at sat 0.36–0.39 (0.6 m:
+ *   the two crossing pods' discs fall under 0.6). So 2.5 × (1, 0.28, 0.05), 0.7 m: every arch
+ *   pod is a lamp at peak 0.65–0.69, hue 34–37°, sat 0.36–0.39 (the frame's peaks are 0.07
+ *   higher — the blur's share, not the disc's), 44–186 px against the frame's 9–74.
+ * Nothing else in D is at these levels (the bloom threshold is 1.0 linear; the disc's red channel
+ * passes it at intensity ≥ 1.0, so the bloom adds a faint skirt and no more; W38's draws: +1).
+ */
+export const FAR_LANTERN_INTENSITY = 4.5;
+export const FAR_HALO_RADIUS = 0.7;
+export const FAR_HALO_INTENSITY = 2.5;
+/** linear tint of the halo disc (see above: graded to the frame's 36–38° amber) */
+export const FAR_HALO_TINT: [number, number, number] = [1.0, 0.28, 0.05];
+/** the east peg pods' halo radius as a share of FAR_HALO_RADIUS (the frame's east pair are 9–14 px blobs against the west one's 74) */
+export const FAR_HALO_EAST_SCALE = 0.85;
+/** the halo quad sits this far toward the camera from the pod's centre, so the pod's body (r 0.17 m) does not cut a darker core out of it */
+export const FAR_HALO_TOWARD_CAMERA = 0.3;
+
 /** Soft radial glow (opaque centre → transparent edge) for small emissive patches. */
 function glowTexture(): Texture {
   const S = 64;
@@ -941,6 +1003,52 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(P.lanternGlow)) });
   // lime pod: yellow-green bottom, deeper green toward the cap
   const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(0xd2ee48, [0.5, 0.78, 0.3])) });
+  // round 32: the arch's pods under the far veil — the same gradients (shared maps, no new
+  // canvas) at FAR_LANTERN_INTENSITY
+  const lanternFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lantern.emissiveMap });
+  lanternFar.name = 'structures:lantern-far';
+  const lanternLimeFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lanternLime.emissiveMap });
+  lanternLimeFar.name = 'structures:lantern-lime-far';
+  // the far pods' halo discs: the radial glow canvas (shared with the embers) under the
+  // FAR_HALO_TINT × FAR_HALO_INTENSITY colour, a per-pod scale in the vertex colour; each quad is
+  // turned to face the camera in the vertex shader (aCorner: the quad's corner in camera right /
+  // up units, its length the pod's radius scale) and pushed FAR_HALO_TOWARD_CAMERA toward it, so
+  // the pod's body behind it does not cut a darker core out of the disc. Unfogged (see
+  // FAR_HALO_TINT above) with normal blending: the alpha fades the disc's own colour into the
+  // veiled background (additive would add the veil's luminance a second time).
+  const lanternHalo = new MeshBasicMaterial({
+    map: ember.map,
+    color: new Color(...FAR_HALO_TINT).multiplyScalar(FAR_HALO_INTENSITY),
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    toneMapped: true,
+    fog: false,
+  });
+  lanternHalo.name = 'structures:lantern-halo';
+  lanternHalo.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uHaloRadius = { value: FAR_HALO_RADIUS };
+    shader.uniforms.uHaloToward = { value: FAR_HALO_TOWARD_CAMERA };
+    lanternHalo.userData.uniforms = shader.uniforms;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec2 aCorner;\nuniform float uHaloRadius;\nuniform float uHaloToward;')
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+        {
+          // viewMatrix = inverse(camera world): its rows are the camera's axes in world space
+          vec3 camRight = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
+          vec3 camUp = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
+          vec3 camBack = vec3( viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2] );
+          transformed += ( camRight * aCorner.x + camUp * aCorner.y ) * uHaloRadius + camBack * uHaloToward;
+        }`,
+      );
+  };
+  lanternHalo.customProgramCacheKey = () => 'structures-lantern-halo';
+  // TEMP-PROBE (round 32 tuning, removed before merge): expose the far-pod materials to a headless probe
+  const tune = (globalThis as { __STRUCT_TUNE__?: Record<string, unknown> }).__STRUCT_TUNE__;
+  if (tune) Object.assign(tune, { lanternFar, lanternLimeFar, lanternHalo });
 
   const leaf = windLeafMaterial(
     new MeshStandardMaterial({
@@ -1020,7 +1128,18 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applySleeveBarkResponse(sleeveBark);
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  // TEMP-PROBE (round 32 floor sweep, removed before merge): keep each floored bark's program uniforms reachable
+  if (tune) {
+    for (const [name, m] of Object.entries({ bark, sleeveBark, barkPale, logBark, recessBark, archBark })) {
+      const prev = m.onBeforeCompile;
+      m.onBeforeCompile = (shader, renderer) => {
+        prev.call(m, shader, renderer);
+        m.userData.uniforms = shader.uniforms;
+      };
+      tune[name] = m;
+    }
+  }
 
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }
