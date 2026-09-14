@@ -863,8 +863,14 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // (and 60 % of it in camera A's foreground: frame 1 s's bottom row runs its big slabs off the
       // frame where our plaza rim — 5.5–6.4 m from the origin at the frame's bottom edge — put a
       // row of 0.35–0.55 m fringe stones)
-      const keep = (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz)) * (1 - 0.75 * discField(wx, wz)) * (1 - 0.6 * aForeground(wx, wz));
-      if (tryAdd(wx, wz, 0.34, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep) >= 0) stats.rim++;
+      // (the field's thinning is for the outermost ring only, rim < 0.55 m, and not on camera D's
+      // foreground stretch: with every rim seed 75 % thinned there, the interior cells grew out to
+      // the path's east bank at z −7 … −9.5 and were skipped as steep (> 0.28 m across the cell) —
+      // three 1.2 m holes of earth where frame 56 s is paved edge to edge; D's rim ring is the
+      // control's)
+      const field = discField(wx, wz) * (1 - dForeground(wz));
+      const keep = (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz)) * (1 - 0.6 * aForeground(wx, wz));
+      if (tryAdd(wx, wz, 0.34, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep * (1 - 0.75 * field * smoothstep(0.55, 0.25, rim))) >= 0) stats.rim++;
     }
   }
   // big stones: the candidate eats up to two neighbours within ~0.75 spacing
@@ -1003,7 +1009,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // 1.4 m across (the authored frame-seeded slabs stay whole). Cells that break only for this
     // reason take their sliver-split gaps from the cell's own stream and leave the shared one in
     // step, so no other cell's cut moves.
-    const midTarget = sd.authored ? Infinity : 2.6 - 1.2 * smoothstep(-3.2, -4.8, sd.z);
+    // (round 33: 1.4 m at z < −4.8 → 1.15 m at z < −4.6, ramping from z −3.0 — frames 14 s / 24 s
+    // at 2× show 0.8–1.0 m rounded stones from just behind Link (z ≈ −3) on, where our lawn cells
+    // west of the authored slabs were still 1.3–1.7 m flat slabs)
+    const midTarget = sd.authored ? Infinity : 2.6 - 1.45 * smoothstep(-3.0, -4.6, sd.z);
     // the crack is a joint like any other (each piece is inset by half the seam), plus 0–2 cm
     const partsOld = breakCell(cell, lawnTarget, brng.range(0, 0.02), BREAK_MIN_ACROSS, brng);
     // the shared stream's draws, exactly as before the mid-ground cuts existed
@@ -1161,7 +1170,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (lawn slabs at z > −2.6, which keep their 12–28 cm turf joints); the round-23 mid-ground
     // narrowing (lawnMid) is what it replaces — frame 14 s at 3× shows the stones behind Link in
     // 8–20 cm gaps, not 3–8 cm seams
-    const fieldW = field * (1 - lawn * (1 - lawnMid));
+    // (and at half strength on camera D's foreground stretch: frame 56 s's bottom quarter is flat
+    // 1.5–2.5 m slabs with rounded corners in 8–15 cm grass joints, not the discs of 14 s; the
+    // full field there took the stone share of z −8 … −11 from 81 % to 59 % — the frame's is ≈ 75 %)
+    const fieldW = field * (1 - lawn * (1 - lawnMid)) * (1 - 0.5 * dFore);
     // corners: 14 % of the slab (5–16 cm; round 23 - frame 1 s's plaza slabs are irregular with
     // rounded corners; 12 % read as chamfered hexagons and a quarter of the slab as cobbles set
     // in mortar, with 8–15 cm junction triangles); the lawn slabs' 18 % (7–24 cm); round 33: the
