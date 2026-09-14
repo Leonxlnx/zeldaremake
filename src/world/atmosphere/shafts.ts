@@ -43,3 +43,56 @@ export const SHAFT_COLUMNS: ShaftColumn[] = TREE_SHAFT_COLUMNS.map((c) => ({
   radius: Math.min(c.radius, BEAM_RADIUS_MAX),
   gain: c.radius < NARROW_RADIUS ? NARROW_GAIN : 1,
 }));
+
+/**
+ * The screen-anchored shaft fan (reference/ANALYSIS.md § 3 / § 7: the footage's beams enter from
+ * the upper-left with the same screen geometry in every heading — SSW, SW, N, WNW, SE — so they are
+ * a screen-space light-shaft pass, not the shadow sun, whose screen position swings from
+ * (−2.7, −4.1) in shot A to (−0.5, −1.1) in shot D and behind the camera in C/F).
+ *
+ * The composer multiplies this fan into the marched in-scatter (postfx/shaders.ts RAY_BLUR_FRAG):
+ * the march still decides how much lit air a pixel looks through (phase toward the sun, haze
+ * density, the shadow map, the depth of the surface behind it), the fan decides where in that air
+ * the beams are. Between the beams the air keeps `floor` of its in-scatter.
+ *
+ * Geometry measured on frames A (1 s) and D (56 s) at 320×180, luminance averaged along lines
+ * leaning 25° down-right from the top edge (x intercept `u`), ±0.02 of the frame across:
+ *   frame D, y 0–0.15: u 0.26–0.30 → 0.60–0.63 against 0.50–0.53 at u 0.14–0.18 (+0.10, the hero
+ *   beam), a second lit band at u 0.33–0.40 (0.54–0.58) and a faint one at 0.44–0.50 (0.52–0.55);
+ *   frame A, y 0.05–0.15: u 0.24–0.30 → 0.49–0.53 against 0.44–0.47 at u 0.12 and 0.40–0.43 at
+ *   u 0.34–0.40 (+0.05), a soft band at u 0.15–0.22. Both frames read the same lines at the same
+ *   lean (guide overlays at 20 / 25 / 30°: the D hero beam's edges run parallel to 25–27°), so one
+ *   fan serves every heading; the D beams are brighter only because D looks 58° off the sun
+ *   through the hollow's mist where A looks 76° off through thinner air — which is what the march
+ *   already gives them.
+ * Widths are half widths perpendicular to the beam in frame heights: the D hero beam is 0.06 of
+ * the frame wide at the top edge (0.24–0.30) → 0.06 × 1280 × cos 25° ≈ 70 px → 0.049 frame heights
+ * either side of its axis. The beams dissolve by y ≈ 0.5–0.55 in both frames (the surfaces there
+ * are near; the march's short columns already carry little in-scatter), so the fan blends back to
+ * 1 over `fadeY`.
+ */
+export interface FanBeam {
+  /** x (uv) where the beam axis meets the top edge of the frame */
+  u: number;
+  /** extent of the beam's soft bump either side of its axis, in frame heights (half-max at half of it) */
+  halfWidth: number;
+  /** in-scatter multiplier added on the beam's axis (the beam's air reads floor + gain) */
+  gain: number;
+}
+
+export const SCREEN_FAN = {
+  /** lean of the beams from vertical, down-right, in degrees (measured on screen, not in uv) */
+  leanDeg: 26,
+  /** share of the marched in-scatter the air under the fan keeps (the beams are added on top) */
+  floor: 0.75,
+  /** in-scatter added on the hero beam's axis (fully marched column, view 90° from the sun) — see ComposerSettings.fanAmp */
+  amp: 0.06,
+  /** frame y (0 = top) where the fan starts fading out / where it has no effect */
+  fadeY: [0.35, 0.6] as [number, number],
+  beams: [
+    { u: 0.175, halfWidth: 0.08, gain: 0.55 },
+    { u: 0.27, halfWidth: 0.095, gain: 1.0 },
+    { u: 0.365, halfWidth: 0.08, gain: 0.6 },
+    { u: 0.465, halfWidth: 0.07, gain: 0.3 },
+  ] as FanBeam[],
+};

@@ -254,6 +254,11 @@ void main() {
  * columns beside it must not smear across it (the reference's near bark stays dark against bright
  * gaps). When the sun is behind the camera `uSunUv` holds the anti-solar point and the smear runs
  * away from it (uDirSign = -1).
+ *
+ * The last pass also lays the screen-anchored shaft fan (atmosphere/shafts.ts SCREEN_FAN) over the
+ * result: the footage's beams keep one screen geometry in every heading, so the smoothed in-scatter
+ * (how much lit air the pixel looks through) is multiplied by a fixed field of leaning beams —
+ * `floor` between them, `floor + gain` inside, soft-edged, blending back to 1 low in the frame.
  */
 export const RAY_BLUR_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
@@ -263,8 +268,27 @@ uniform float uLength;   // smear length in uv
 uniform float uGamma;    // > 1 on the last pass: contrast curve so beams read as slabs, not glow
 uniform float uDepthK;   // tap weight = exp( -|Δ marched length| * uDepthK ), lengths in units of uMaxDist
 uniform vec2 uTexel;
+uniform vec4 uFan;       // ( sin lean, cos lean, frame aspect W/H, mix: 0 = no fan on this pass )
+uniform vec4 uFanFade;   // ( share of the marched in-scatter kept under the fan, frame y where the fan starts fading, where it is gone, in-scatter added on the hero beam's axis )
+uniform vec4 uFanBeams[ FAN ]; // per beam: ( x intercept at the top edge (uv), extent from the axis in frame heights, gain, unused )
 varying vec2 vUv;
 #define NS 12
+// x = the beams' sum (gain-weighted soft bumps), y = how far the fan has faded out toward the bottom of the frame
+vec2 fanField( vec2 uv ) {
+  // frame coordinates (y down from the top edge, x scaled by the aspect) so the beams' intercepts
+  // are on the top edge and the lean is a true angle on screen
+  vec2 p = vec2( uv.x * uFan.z, 1.0 - uv.y );
+  vec2 n = vec2( uFan.y, -uFan.x ); // normal to the beam direction ( sin, cos )
+  float f = 0.0;
+  for ( int i = 0; i < FAN; i ++ ) {
+    vec4 b = uFanBeams[ i ];
+    if ( b.z <= 0.0 ) continue;
+    float off = abs( dot( p - vec2( b.x * uFan.z, 0.0 ), n ) );
+    // soft bump, half-max at half the extent: the reference's beams have no flat core or hard edge
+    f += b.z * ( 1.0 - smoothstep( 0.0, b.y, off ) );
+  }
+  return vec2( f, smoothstep( uFanFade.y, uFanFade.z, p.y ) );
+}
 void main() {
   vec2 c = texture2D( tSrc, vUv ).xy;
   vec2 toSun = ( uSunUv - vUv ) * uDirSign;
@@ -297,7 +321,15 @@ void main() {
     sideW += w;
   }
   float v = ( sum / max( wsum, 1e-4 ) ) * 0.55 + ( side / max( sideW, 1e-4 ) ) * 0.45;
-  gl_FragColor = vec4( pow( clamp( v, 0.0, 1.0 ), uGamma ), c.y, 0.0, 1.0 );
+  float o = pow( clamp( v, 0.0, 1.0 ), uGamma );
+  // the screen-anchored fan: the marched air keeps uFanFade.x of its glow under the fan and the beams
+  // are added on top, weighted by the pixel's marched length (a beam in front of a near trunk or
+  // the ground is only the short column of air before it — the reference's beams dissolve over the
+  // near surfaces and read against the far haze and the canopy)
+  vec2 fan = fanField( vUv );
+  float under = uFan.w * ( 1.0 - fan.y );
+  o = o * mix( 1.0, uFanFade.x, under ) + uFanFade.w * fan.x * under * c.y;
+  gl_FragColor = vec4( clamp( o, 0.0, 1.0 ), c.y, 0.0, 1.0 );
 }
 `;
 
