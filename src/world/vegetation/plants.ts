@@ -2166,6 +2166,34 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               hedge.add(M, variant, tint.setRGB(0.5 + rng() * 0.07, 0.46 + rng() * 0.07, 0.42 + rng() * 0.07));
             },
           );
+          // cap-final: the crowns showed as two cells (−0.02) in F's box — from F's low angle the
+          // shelf's ground is hidden behind the bank crest except the crest strip itself (z 4.4–6.4,
+          // r32-where), and the box's lit ground is that strip (0.33–0.40 against the frame's 0.27).
+          // Frame 8's mass there is shrub-sized: a few dark shrubs on the crest strip (1.0–1.3 m,
+          // the `bushes` set), off the fence, the kids' spots and camera C's wedge; camera A looks
+          // past them (they project right of its frame)
+          scatter(
+            ctx,
+            field,
+            {
+              label: 'bushes-r32-crest',
+              candidates: 8000,
+              box: [9.0, 4.4, 14.0, 6.4],
+              minSpacing: 1.0,
+              max: 8,
+              r32: true,
+              accept(x, z, s) {
+                if (s.cliff > 0.3 || s.path > 0.02 || s.slope > 0.35 || field.edgeDistance(x, z) < 0.7 || field.bankFace(x, z) > 0.3) return 0;
+                const clr = field.clearing(x, z);
+                if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 0.9) return 0;
+                if (bankFenceDistance(x, z) < 0.8 || nearKid(x, z, 1.6) || field.stoneDistance(x, z) < STONE_CLEARANCE) return 0;
+                if (field.sightlineC(x, z, 0.9) > 0 || nearHedge(x, z, 0.6)) return 0;
+                const f = field.screenPoint('F_canopy', x, s.h + 0.6, z);
+                return f && f.sx >= 0.64 && f.sx <= 0.95 && f.sy >= 0.26 && f.sy <= 0.6 ? 0.9 : 0;
+              },
+            },
+            (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.7 + rng() * 0.2, 0.35, 0.04, tint.setRGB(0.5 + rng() * 0.08, 0.5 + rng() * 0.08, 0.42 + rng() * 0.08)),
+          );
           // dark fern clumps in the crowns' gaps, the same ground past the shot-A crest's fern box
           // (x ≤ 8.8: those must project into frame 1) — the frame's mass is fronds under crowns
           scatter(
