@@ -48,10 +48,12 @@ assert.ok(a.plants.bushes.count>=80,'W19: at least 80 bushes');
 assert.ok(a.plants.bushes.items.filter(it=>it.x>-7.5&&it.x<-2&&it.z>-23&&it.z<-14).length>=4,'Shrub mass on the boulder bank west of the north path (shot D left-centre)');
 // reference-driven composition constraints (see plants.ts / field.ts zones)
 const top=(set,it)=>{const g=set.opts.variants[it.variant][0];return it.y+g.boundingBox.max.y*Math.hypot(it.matrix[4],it.matrix[5],it.matrix[6]);};
-// the hedge set holds two scatters: the door-side row of shot A/B (z <= -5.1) and, since round 12,
+// the hedge set holds three scatters: the door-side row of shot A/B (z <= -5.1), since round 12
 // the crest of the south bank behind the shot-A kid (box (6.0, 3.9)-(8.6, 5.6), crowns up to ~2.4 m
-// with the bank's 1.15 m crest) - only the door-side row is bound by Saria's threshold.
-const doorHedge=a.plants.hedge.items.filter(it=>it.z<=-3),bankHedge=a.plants.hedge.items.filter(it=>it.z>-3);
+// with the bank's 1.15 m crest) and, since round 32, a low clipped tier on the plateau shelf right
+// of the main flight (box (8.7, 3.8)-(13.6, 7.4), crowns <= 0.9 m: frames 8 / 46's dark bank mass)
+// - only the door-side row is bound by Saria's threshold.
+const doorHedge=a.plants.hedge.items.filter(it=>it.z<=-3),bankHedge=a.plants.hedge.items.filter(it=>it.z>-3&&it.x<8.65),shelfHedge=a.plants.hedge.items.filter(it=>it.z>-3&&it.x>=8.65);
 assert.ok(doorHedge.length>=3,'Hedge row present for shot A');
 for(const it of doorHedge){
   assert.ok(top(a.plants.hedge,it)<=1.3,`Hedge crown top ${top(a.plants.hedge,it)} stays below Saria's door threshold as seen from camera B (≤ 1.3 m above plaza level)`);
@@ -61,6 +63,11 @@ assert.ok(bankHedge.length>=2,'Bank hedge present behind the shot-A kid');
 for(const it of bankHedge){
   assert.ok(it.x>=6.0&&it.x<=8.6&&it.z>=3.9&&it.z<=5.6,`Bank hedge stays in its box (${it.x.toFixed(2)}, ${it.z.toFixed(2)})`);
   assert.ok(top(a.plants.hedge,it)<=2.7,`Bank hedge crown top ${top(a.plants.hedge,it)} stays below 2.7 m (reference A hedge top y ≈ 0.30)`);
+}
+assert.ok(shelfHedge.length>=6,`Shelf hedge tier present right of the main flight (frames 8 / 46's dark bank mass): ${shelfHedge.length}`);
+for(const it of shelfHedge){
+  assert.ok(it.x>=8.7&&it.x<=13.6&&it.z>=3.8&&it.z<=7.4,`Shelf hedge stays in its box (${it.x.toFixed(2)}, ${it.z.toFixed(2)})`);
+  assert.ok(top(a.plants.hedge,it)-it.y<=0.95,`Shelf hedge crown ${(top(a.plants.hedge,it)-it.y).toFixed(2)} m stays a low tier (≤ 0.95 m)`);
 }
 const inBox=(it,b)=>it.x>=b[0]&&it.z>=b[1]&&it.x<=b[2]&&it.z<=b[3];
 // pinhole projection of the layout cameras (vertical fov, 16:9, +Y up) — the gauntlet's maths
@@ -110,13 +117,15 @@ for(const spot of LAYOUT.npcSpots)for(const set of a.plants.all)for(const it of 
 assert.ok(a.plants.flowers.count>=150,'W18: at least 150 flower clusters');
 // Frames 14 / 24: Saria's branch is a grassy ramp with stepping stones and a trodden strip between
 // them — nothing standing within 0.5 m of a stone, clover tufts at every rim, and the strip's turf
-// at most 40 % of the lawn's height (grass checked below).
+// at most 40 % of the lawn's height (grass checked below). Round 32: the strip is the field's
+// corrected one (`troddenZone(x, z, true)`): the house flight and its flank banks are paving and
+// bank turf, not a strip, so frame 56 s' tufts stand on the bank beside the risers.
 const {houseSteppingStones}=read('layout'),stones=houseSteppingStones();
 assert.ok(stones.length>=6,'Stepping stones present on the house branch');
 const stoneDist=(x,z)=>Math.min(...stones.map(s=>Math.hypot(x-s.x,z-s.z)-s.r));
 for(const set of a.plants.all)for(const it of set.items){
   if(stoneDist(it.x,it.z)<0.5)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} ${(top(set,it)-it.y).toFixed(2)} m tall within 0.5 m of a stepping stone at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
-  if(a.field.troddenZone(it.x,it.z)>0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} standing in the trodden strip at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}
+  if(a.field.troddenZone(it.x,it.z,true)>0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} standing in the trodden strip at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}
 for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hypot(it.x-s.x,it.z-s.z)-s.r;return d>=0&&d<=0.3;}).length;
   assert.ok(n>=4,`Clover fringe at the stepping stone (${s.x.toFixed(2)},${s.z.toFixed(2)}): ${n} tufts`);}
 // Round 8, concept sheets (reference/CONCEPTS.md): the sheets rule plant shapes, flower kinds and
@@ -209,7 +218,11 @@ assert.ok(whites.items.filter(it=>{const p=camB([it.x,it.y,it.z]);return p&&p.de
 const westBed=[-4.8,-16.5,-2.3,-11.2],inD=(set,it,b)=>inFrame(camD,set,it,b);
 const bedFerns=a.plants.ferns.items.filter(it=>inBox(it,westBed));
 assert.ok(bedFerns.length>=12&&bedFerns.filter(it=>inD(a.plants.ferns,it,[-0.02,0.5,0.24,0.74])).length>=8,`fern cluster on the west verge bed: ${bedFerns.length}`);
-assert.ok(a.plants.flowers.items.filter(it=>inBox(it,westBed)&&inD(a.plants.flowers,it,[-0.02,0.5,0.28,0.76])).length>=40,'purple clumps through the west verge bed (frame 56 / frame 1 left edge)');
+// round 32: frame 56 s' bed is 1 % violet — two small patches at D (0.17–0.27, 0.60–0.67) and
+// (0.05–0.12, 0.55–0.60) beside a lit fern mass, not a field (ours was 9.5 % of the bed box): the
+// heads outside the patches are pruned, the first patch keeps ~60 % of its heads (≈ 26 remain)
+assert.ok(a.plants.flowers.items.filter(it=>inBox(it,westBed)&&inD(a.plants.flowers,it,[-0.02,0.5,0.28,0.76])).length>=16,'purple clumps through the west verge bed (frame 56 / frame 1 left edge)');
+assert.ok(a.plants.flowers.items.filter(it=>{const p=camD([it.x,it.y+(top(a.plants.flowers,it)-it.y)*0.75,it.z]);return p&&p.depth<=20&&p.sx>=0.1&&p.sx<=0.3&&p.sy>=0.55&&p.sy<=0.85&&!(p.sx>=0.17&&p.sx<=0.27&&p.sy>=0.6&&p.sy<=0.67)&&!(p.sx>=0.05&&p.sx<=0.12&&p.sy>=0.55&&p.sy<=0.6);}).length===0,'round 32: no violet heads in D\'s boulder bed outside frame 56 s\' two patches');
 assert.ok(a.plants.weeds.items.filter(it=>inBox(it,westBed)&&scaleOf(it)>=1.5).length>=12,'broad-leaf clusters in the west verge bed');
 assert.ok(a.plants.ferns.items.concat(a.plants.flowers.items).filter(it=>inFrame(camA,a.plants.ferns,it,[-0.02,0.45,0.12,0.6])).length>=20,'the bed fills frame 1 s\' left edge (A 0–0.12 × 0.45–0.6)');
 // (1) frame 1 s' right bank: 0.4–0.8 m fern clumps and a broad-leaf skirt on the crest behind the
@@ -249,13 +262,14 @@ for(const id of['A_stairs','B_house','D_log']){
 assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');
 assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0,1,2]]],'fiddleheads: per variant near, one far draw');
-// the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0)
+// the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0);
+// round 32: the strip the grass pass grows is the corrected one (house flight + flanks exempt)
 const grassMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'grass');
 const grass=await read('vegetation/grass').buildGrass(a.ctx,a.field,grassMaterial,new THREE.Group(),()=>{});
 const strip=[],lawn=[];
 for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;
   for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<1.5||x>10||z<-10.5||z>-3)continue;
-    const h=Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]),tr=a.field.troddenZone(x,z);if(tr>=0.99)strip.push(h);else if(tr===0)lawn.push(h);}}
+    const h=Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]),tr=a.field.troddenZone(x,z,true);if(tr>=0.99)strip.push(h);else if(tr===0)lawn.push(h);}}
 const q=(arr,f)=>{const s=[...arr].sort((p,r)=>p-r);return s[Math.min(s.length-1,Math.floor(f*s.length))];};
 assert.ok(strip.length>=100&&lawn.length>=500,`Turf sampled on the strip (${strip.length}) and the lawn (${lawn.length})`);
 assert.ok(q(strip,1)<=0.4*q(lawn,1),`Tallest strip blade ${q(strip,1).toFixed(3)} ≤ 0.4 × tallest lawn blade ${q(lawn,1).toFixed(3)}`);

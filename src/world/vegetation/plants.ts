@@ -56,6 +56,12 @@ interface ScatterOpts {
   low?: boolean;
   /** stop after this many placements (authored clump counts) */
   max?: number;
+  /**
+   * Round 32 field rules (field.ts `allowed` / `troddenZone` with `r32`): turf slivers narrower
+   * than the field grid grow, the house flight is no trodden strip. Only the round-32 streams
+   * set it, so every earlier stream keeps its candidate sequence.
+   */
+  r32?: boolean;
   /** returns acceptance probability (0 = reject) */
   accept(x: number, z: number, s: FieldSample, rng: Rng): number;
 }
@@ -102,12 +108,12 @@ function scatter(ctx: WorldContext, field: VegField, opts: ScatterOpts, place: (
     const z = box[1] + rng() * (box[3] - box[1]);
     if (!opts.box && Math.hypot(x, z) > R) continue;
     field.sample(x, z, s);
-    if (!field.allowed(x, z, s)) continue;
+    if (!field.allowed(x, z, s, opts.r32)) continue;
     if (field.insideGiantTrunk(x, z)) continue;
     const p = opts.accept(x, z, s, rng);
     if (p <= 0 || rng() > p) continue;
     // after the draw, so the candidate stream stays as it was for every other placement
-    if (!opts.low && (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6)) continue;
+    if (!opts.low && (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z, opts.r32) > 0.6)) continue;
     if (spacing) {
       if (!spacing.ok(x, z, opts.minSpacing!)) continue;
       spacing.add(x, z);
@@ -986,9 +992,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // ---- moss tufts: boulder bases, tree roots, shaded embankments
   const mossRng = ctx.rng.fork('plants/moss');
   const mossSample = newSample();
-  const placeMossWith = (rng: Rng, x: number, z: number, radius: number): boolean => {
+  const placeMossWith = (rng: Rng, x: number, z: number, radius: number, r32 = false): boolean => {
     field.sample(x, z, mossSample);
-    if (!field.allowed(x, z, mossSample) || field.insideGiantTrunk(x, z)) return false;
+    if (!field.allowed(x, z, mossSample, r32) || field.insideGiantTrunk(x, z)) return false;
     const y = T.height(x, z) - 0.012;
     const h = radius * (0.22 + rng() * 0.2);
     composeMatrix(M, 0, x, y, z, mossSample.nx, mossSample.ny, mossSample.nz, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
@@ -1893,10 +1899,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
          * reaches (frame 46's stair foot over short grass). The root tilts by (`leanX`, `leanZ`)
          * so a verge tuft leans over the slabs.
          */
-        const tuftAt = (x: number, z: number, s: FieldSample, rng: Rng, mix: readonly [number, number, number], mul: Color | null = null, leanX = 0, leanZ = 0) => {
+        const tuftAt = (x: number, z: number, s: FieldSample, rng: Rng, mix: readonly [number, number, number], mul: Color | null = null, leanX = 0, leanZ = 0, r32 = false) => {
           const u = rng() * (mix[0] + mix[1] + mix[2]);
           let cls = u < mix[0] ? 0 : u < mix[0] + mix[1] ? 1 : 2;
-          const shortOnly = field.troddenZone(x, z) > 0 || field.stoneDistance(x, z) < STONE_CLEARANCE || nearKid(x, z, 0.8) || field.lawnBand(x, z) > 0.5;
+          const shortOnly = field.troddenZone(x, z, r32) > 0 || field.stoneDistance(x, z) < STONE_CLEARANCE || nearKid(x, z, 0.8) || field.lawnBand(x, z) > 0.5;
           const wedge = field.sightlineC(x, z, 0.6) > 0;
           // the low verges and the frames' trimmed foregrounds (grass.ts keeps the turf short there)
           // take the short and mid classes: frame 1's kid stands in lit tufts to his shins
@@ -2016,6 +2022,226 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               placeInstance(fiddleheads, x, z, s, rng, 0.96 + rng() * 0.14, 0.5, 0.012, greenVar(rng, 0.12));
             }
           }
+        }
+
+        // ======== Round 32 (vegetation-17): dressing hardscape-25's house-west flight (frame
+        // 56 s: a mossy grass bank beside the risers, tufts over the tread ends, trodden earth
+        // with a few tufts before the first riser; frame 14 s: the same bank beside Link), frame
+        // 56 s' hollow (the open verge where the old north steps stood), the bed's violets (the
+        // frame's two small patches, not a field) and the dark bank mass of frames 8 / 46 on the
+        // plateau shelf right of the main flight. Every stream below runs after everything above
+        // from its own stream with the round-32 field rules (`r32`), so no earlier plant moves;
+        // the prunes and re-tints touch listed instances in place.
+        {
+          const HOUSE_BOX = field.houseFlankBox();
+          const topOf = (set: LodInstancedSet, it: (typeof set.items)[number]) => (set.opts.variants[it.variant][0].boundingBox?.max.y ?? 0.5) * Math.hypot(it.matrix[4], it.matrix[5], it.matrix[6]);
+          if (HOUSE_BOX) {
+            /** the north flank (frame 56 s' shaded bank, 0.22 luminance) against the lit south lip */
+            const north = (x: number, z: number) => (field.houseFlightLocal(x, z)?.v ?? 0) < 0;
+            const NORTH_TINT = new Color(0.82, 0.86, 0.8);
+            /**
+             * flank ground for the flight's herb layer: on the flank strips, roots on the turf side of
+             * the tread ends (the leaning tufts cross), off the cliffs, the rock rings, the trunks, the
+             * house pad, the stepping stones and the kids
+             */
+            const houseGround = (x: number, z: number, s: FieldSample) => {
+              if (field.houseFlankZone(x, z) < 0.3 || s.cliff > 0.35 || field.lawnEdgeDistance(x, z, true) < 0.03) return false;
+              const clr = field.clearing(x, z);
+              if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
+              return field.houseInfo(x, z).dist >= 0.4 && field.stoneDistance(x, z) >= 0.15 && !nearKid(x, z, 0.8) && !nearWhite(x, z, 0.3);
+            };
+            // ---- (1) tufts on both flanks: short / mid fountains 0.18 m apart, the first 0.3 m
+            // leaning out over the tread ends (down the edge gradient, as the verge tufts do)
+            scatter(
+              ctx,
+              field,
+              {
+                label: 'tufts-r32-house-flanks',
+                candidates: 24000,
+                box: HOUSE_BOX,
+                minSpacing: 0.18,
+                low: true,
+                max: 700,
+                r32: true,
+                accept: (x, z, s) => (houseGround(x, z, s) ? 0.9 * field.houseFlankZone(x, z) * (0.6 + 0.4 * field.cluster(x, z)) : 0),
+              },
+              (x, z, s, rng) => {
+                const edge = field.lawnEdgeDistance(x, z, true);
+                let lx = 0;
+                let lz = 0;
+                if (edge < 0.3) {
+                  const gx = field.lawnEdgeDistance(x + 0.05, z, true) - field.lawnEdgeDistance(x - 0.05, z, true);
+                  const gz = field.lawnEdgeDistance(x, z + 0.05, true) - field.lawnEdgeDistance(x, z - 0.05, true);
+                  const gl = Math.hypot(gx, gz) || 1;
+                  const k = 0.5 * (1 - edge / 0.3);
+                  lx = -(gx / gl) * k;
+                  lz = -(gz / gl) * k;
+                }
+                const n = north(x, z);
+                tuftAt(x, z, s, rng, n ? [0.35, 0.5, 0.15] : [0.45, 0.45, 0.1], n ? NORTH_TINT : null, lx, lz, true);
+              },
+            );
+            // ---- (2) moss cushions along the lip and up the bank (≤ 0.22 m; the rim-moss contract
+            // keeps every cushion within 0.25 m of the paving under 0.12 m)
+            scatter(
+              ctx,
+              field,
+              {
+                label: 'moss-r32-house-flanks',
+                candidates: 8000,
+                box: HOUSE_BOX,
+                minSpacing: 0.3,
+                low: true,
+                max: 160,
+                r32: true,
+                accept: (x, z, s) => (houseGround(x, z, s) && field.lawnEdgeDistance(x, z, true) >= 0.06 ? 0.7 * field.houseFlankZone(x, z) * (0.5 + field.cluster(x, z)) : 0),
+              },
+              (x, z, _s, rng) => placeMossWith(rng, x, z, 0.08 + rng() * 0.14, true),
+            );
+            // ---- (3) clover closing the turf between the tufts
+            scatter(
+              ctx,
+              field,
+              {
+                label: 'clover-r32-house-flanks',
+                candidates: 10000,
+                box: HOUSE_BOX,
+                minSpacing: 0.16,
+                low: true,
+                max: 500,
+                r32: true,
+                accept: (x, z, s) => (houseGround(x, z, s) ? 0.7 * field.houseFlankZone(x, z) * (0.5 + field.cluster(x, z)) : 0),
+              },
+              (x, z, s, rng) => {
+                const c = greenVar(rng, 0.2);
+                placeInstance(clover, x, z, s, rng, 0.9 + rng() * 0.6, 0.9, 0.008, north(x, z) ? c.multiply(NORTH_TINT) : c);
+              },
+            );
+          }
+
+          // ---- (4) the dark bank mass of frames 8 / 46 (C 0–0.30 × 0.40–0.70 beyond the stair-foot
+          // rock, F 0.65–0.95 × 0.08–0.6 right of the flight): a low tier of clipped hedge crowns on
+          // the plateau shelf right of the main flight (x 8.7–13.6, z 3.8–7.4: the ground both boxes
+          // see, 12.4–16 m from camera C, 10–14 m from F), in the frame's warm near-black olive,
+          // between the east-bank ferns. Off the treads, the shot-A bank face, the rope fence, the
+          // rock rings, the kids' spots and camera C's wedge (behind the rock, never over the foot).
+          scatter(
+            ctx,
+            field,
+            {
+              label: 'hedge-r32-shelf',
+              candidates: 5000,
+              box: [8.7, 3.8, 13.6, 7.4],
+              minSpacing: 0.95,
+              max: 16,
+              r32: true,
+              accept(x, z, s) {
+                if (s.cliff > 0.3 || s.path > 0.02 || s.slope > 0.35 || field.edgeDistance(x, z) < 0.7 || field.bankFace(x, z) > 0.3) return 0;
+                const clr = field.clearing(x, z);
+                if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 0.9) return 0;
+                if (bankFenceDistance(x, z) < 0.7 || nearKid(x, z, 1.6) || field.stoneDistance(x, z) < STONE_CLEARANCE) return 0;
+                if (field.sightlineC(x, z, 0.9) > 0 || nearHedge(x, z, 0.8)) return 0;
+                const c = field.screenPoint('C_lookback', x, s.h, z);
+                const f = field.screenPoint('F_canopy', x, s.h, z);
+                const inC = !!c && c.sx >= 0.02 && c.sx <= 0.34 && c.sy >= 0.4 && c.sy <= 0.7;
+                const inF = !!f && f.sx >= 0.64 && f.sx <= 0.95 && f.sy >= 0.3 && f.sy <= 0.62;
+                return inC || inF ? 0.9 : 0;
+              },
+            },
+            (x, z, s, rng) => {
+              const top = 0.55 + rng() * 0.3;
+              const variant = rng.int(0, hedge.variantCount);
+              const sc = top / hedgeHeight(variant);
+              composeMatrix(M, 0, x, T.height(x, z) - 0.05, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.3 + rng() * 0.3), sc, sc * (1.3 + rng() * 0.3));
+              hedge.add(M, variant, tint.setRGB(0.5 + rng() * 0.07, 0.46 + rng() * 0.07, 0.42 + rng() * 0.07));
+            },
+          );
+          // dark fern clumps in the crowns' gaps, the same ground past the shot-A crest's fern box
+          // (x ≤ 8.8: those must project into frame 1) — the frame's mass is fronds under crowns
+          scatter(
+            ctx,
+            field,
+            {
+              label: 'ferns-r32-shelf',
+              candidates: 6000,
+              box: [8.85, 3.8, 13.6, 7.4],
+              minSpacing: 0.45,
+              max: 40,
+              r32: true,
+              accept(x, z, s) {
+                if (!eastBank(x, z, s, 0.9) || field.bankFace(x, z) > 0.3 || field.stoneDistance(x, z) < STONE_CLEARANCE || nearKid(x, z, 1.4)) return 0;
+                if (nearFern(x, z, 0.3) || nearWhite(x, z, 0.5) || field.sightlineC(x, z, 0.9) > 0) return 0;
+                const c = field.screenPoint('C_lookback', x, s.h, z);
+                const f = field.screenPoint('F_canopy', x, s.h, z);
+                const inC = !!c && c.sx >= 0.02 && c.sx <= 0.34 && c.sy >= 0.4 && c.sy <= 0.7;
+                const inF = !!f && f.sx >= 0.64 && f.sx <= 0.95 && f.sy >= 0.3 && f.sy <= 0.62;
+                return inC || inF ? 0.5 + 0.5 * field.cluster(x, z) : 0;
+              },
+            },
+            (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, 0.7 + rng() * 0.3, 0.7, 0.02, greenVar(rng, 0.2).multiplyScalar(0.8)),
+          );
+          // the shelf's standing plants a shade darker (the frame's mass is a near-black olive with
+          // lit tips, ours a lit bed: C's box p50 0.305 against 0.286, F's 0.34 against 0.27); the
+          // shot-A crest's rosettes too, for the lit-tuft / dark-leaf contrast frame 1 has (lum sd
+          // 0.130 against our 0.111). Colours only — nothing moves.
+          const SHELF: [number, number, number, number] = [8.6, 3.8, 13.6, 7.4];
+          const darken = (set: LodInstancedSet, k: number, box: [number, number, number, number]) => {
+            let n = 0;
+            for (const it of set.items) {
+              if (!inWorldBox(it.x, it.z, box)) continue;
+              it.color = [it.color[0] * k, it.color[1] * k, it.color[2] * k];
+              n++;
+            }
+            return n;
+          };
+          darken(ferns, 0.86, SHELF);
+          darken(weeds, 0.86, SHELF);
+          darken(weeds, 0.9, A_CREST);
+          darken(ferns, 0.92, A_CREST);
+
+          // ---- (5) frame 56 s' hollow (field.ts `dHollow`): the footage shows the open verge where
+          // the old north steps stood as low dark-green cover under mist — nothing standing. The
+          // seed heads, the mid / tall tufts, the taller fern clumps and the shrubs that stood there
+          // come out (pruned after every pass, so no stream re-rolls); the low broad leaves, the
+          // clover and the short tufts stay. The violets are the bed's business below (W18).
+          const hollowAt = (it: { x: number; y: number; z: number }) => field.dHollow(it.x, it.y, it.z);
+          seedheads.prune((it) => hollowAt(it) > 0.5);
+          tufts.prune((it) => hollowAt(it) > 0.5 && topOf(tufts, it) > 0.3);
+          ferns.prune((it) => hollowAt(it) > 0.5 && topOf(ferns, it) > 0.45);
+          bushes.prune((it) => hollowAt(it) > 0.5);
+          // the buds of the pruned clumps go with them (every fiddlehead sits in a fern crown)
+          fiddleheads.prune((it) => hollowAt(it) > 0.5 && !ferns.items.concat(heroFerns.items).some((f) => Math.hypot(f.x - it.x, f.z - it.z) <= 0.2));
+
+          // ---- (6) the bed's violets. Frame 56 s grows two small patches — (0.17–0.27, 0.60–0.67)
+          // beside the fern clump and (0.05–0.12, 0.55–0.60) — and its bed box (0.10–0.30 ×
+          // 0.55–0.85) is 1 % violet where ours was 9.5 %. Every bloom whose head projects into the
+          // bed outside the two patches goes; the first patch keeps BED_PATCH_KEEP of its heads (a
+          // position hash, so the survivors are the same every build). W18 wants ≥ 0.3 % of the
+          // frame purple at 256 × 144: the patches, the right verge's clump and the far slope carry it.
+          const D_BED: readonly [number, number, number, number] = [0.1, 0.55, 0.3, 0.85];
+          const D_PATCH_1: readonly [number, number, number, number] = [0.17, 0.6, 0.27, 0.67];
+          const D_PATCH_2: readonly [number, number, number, number] = [0.05, 0.55, 0.12, 0.6];
+          const BED_PATCH_KEEP = 0.6;
+          const inScreenBox = (p: { sx: number; sy: number } | null, b: readonly [number, number, number, number]) => !!p && p.sx >= b[0] && p.sx <= b[2] && p.sy >= b[1] && p.sy <= b[3];
+          const hash01 = (x: number, z: number) => {
+            let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
+            h = Math.imul(h ^ (h >>> 13), 1274126177);
+            return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+          };
+          flowers.prune((it) => {
+            const p = field.screenPoint('D_log', it.x, it.y + topOf(flowers, it) * 0.75, it.z);
+            if (!p || p.depth > 20) return false;
+            if (inScreenBox(p, D_PATCH_2)) return false;
+            if (inScreenBox(p, D_PATCH_1)) return hash01(it.x, it.z) > BED_PATCH_KEEP;
+            return inScreenBox(p, D_BED);
+          });
+          // the frame's bed is a LIT yellow-olive fern mass over dark ground (lum sd 0.120 against
+          // our 0.078, p50 0.385 against 0.305): the bed's fronds and buds take a warmer, brighter
+          // tint on top of the round-31 LIT_TINT, its rosettes and clover go darker — colours only
+          const BED_LIT = new Color(1.16, 1.12, 0.9);
+          const inBed = (it: { x: number; y: number; z: number }) => inScreenBox(field.screenPoint('D_log', it.x, it.y, it.z), D_BED) && (field.screenPoint('D_log', it.x, it.y, it.z)?.depth ?? 99) < 14;
+          for (const set of [ferns, heroFerns, fiddleheads]) for (const it of set.items) if (inBed(it)) it.color = [it.color[0] * BED_LIT.r, it.color[1] * BED_LIT.g, it.color[2] * BED_LIT.b];
+          for (const set of [weeds, clover]) for (const it of set.items) if (inBed(it)) it.color = [it.color[0] * 0.85, it.color[1] * 0.85, it.color[2] * 0.85];
         }
       }
     }

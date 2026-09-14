@@ -104,6 +104,30 @@ const FLANK_CLUSTER_FLOOR = 0.7;
  */
 const D_SHOULDER_CUT = 0.92;
 const D_SHOULDER_HEIGHT = 0.5;
+/**
+ * Round 32: the house-west flight's flanks (field.ts `houseFlankZone`; frame 56 s' right edge: a
+ * mossy grass bank climbing beside the risers, tufts lapping the tread ends; frame 14 s: the same
+ * bank right of the flight beside Link, which take 90 rendered as a bare olive mound). The base
+ * pass cuts the turf there to ≈ 6 cm — the low verge, camera C's grass box and Saria's trodden
+ * strip all overlap the flight — so a fourth candidate pass at this share of the tile density,
+ * from its own streams, lays bank turf at full lawn height: broader tuft blades, the cluster
+ * gaps lifted to HOUSE_FLANK_CLUSTER_FLOOR, and the north flank a shade darker (the frame's
+ * bank measures 0.22 luminance against the lit lip's 0.33). Nothing on the treads, apron or
+ * landing (the masks), nothing above HOUSE_FLANK_MAX_H (camera C stands 1.5 m from the foot).
+ */
+const HOUSE_FLANK_EXTRA = 1.5;
+const HOUSE_FLANK_WIDTH = 1.5;
+const HOUSE_FLANK_CLUSTER_FLOOR = 0.65;
+const HOUSE_FLANK_MAX_H = 0.38;
+const HOUSE_FLANK_NORTH_TINT = -0.35;
+/**
+ * Round 32: frame 56 s' hollow (field.ts `dHollow`, the open verge where the old north steps
+ * stood): a low ground cover with little edge energy — the turf there loses this share of its
+ * blades (a position hash after the last draw, so the tile's other blades keep their layout) and
+ * the rest is cut by D_HOLLOW_HEIGHT; no meadow stalks.
+ */
+const D_HOLLOW_CUT = 0.4;
+const D_HOLLOW_HEIGHT = 0.3;
 /** 0..1 hash of a mm-quantised position (no rng draw) */
 const hash01 = (x: number, z: number) => {
   let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -136,8 +160,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     }
   }
 
-  // capacity for the base pass plus the two extra passes (each ≤ its share of the tile's candidates)
-  const maxPerTile = Math.ceil(TILE * TILE * CANDIDATES_PER_M2 * (1 + LAWN_BAND_EXTRA + FLANK_EXTRA) * Math.max(q.density, 0.1));
+  // capacity for the base pass plus the three extra passes (each ≤ its share of the tile's candidates)
+  const maxPerTile = Math.ceil(TILE * TILE * CANDIDATES_PER_M2 * (1 + LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA) * Math.max(q.density, 0.1));
   const matrices = new Float32Array(maxPerTile * 16);
   const data = new Float32Array(maxPerTile * 4);
 
@@ -157,29 +181,36 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     // one candidate: mask / clearing tests, the density draw, then the blade's type, size, tint
     // and wind from `rng`. `bandPass` blades (the lawn band's second pass) are accepted at the
     // band weight and skipped elsewhere; `flankPass` blades (the stair flanks' third pass) at the
-    // flank weight.
-    const blade = (x: number, z: number, rng: Rng, bandPass: boolean, flankPass = false) => {
+    // flank weight; `housePass` blades (the house flight's flanks, round 32) at the house-flank
+    // weight and free of the cuts the low verge, camera C's grass box and the trodden strip put
+    // on that ground. Every pass reads the round-32 field rules (turf slivers between two
+    // pavings, the mask-side rim, the flight taken out of the trodden strip).
+    const blade = (x: number, z: number, rng: Rng, bandPass: boolean, flankPass = false, housePass = false) => {
       if (Math.hypot(x, z) > R + 1.5) return;
       field.sample(x, z, s);
-      if (!field.allowed(x, z, s)) return;
+      if (!field.allowed(x, z, s, true)) return;
       if (field.insideGiantTrunk(x, z)) return;
       const clr = field.clearing(x, z);
       if (clr.insideBoulder) return;
       const flank = flankPass ? field.flankZone(x, z) : 0;
       if (flankPass && flank <= 0) return;
+      const house = housePass ? field.houseFlankZone(x, z) : 0;
+      if (housePass && house <= 0) return;
 
-      const edge = field.lawnEdgeDistance(x, z);
+      const edge = field.lawnEdgeDistance(x, z, true);
       const verge = edge < 2.5 ? 1 + 0.9 * (1 - edge / 2.5) : 1;
-      const low = field.lowZone(x, z);
+      const low = housePass ? 0 : field.lowZone(x, z);
       const trim = field.trimZone(x, z);
       const shade = field.shadeZone(x, z);
       const band = field.lawnBand(x, z);
       // the trodden strip between Saria's stepping stones (frames 14 / 24): half the blades, a
       // few bare dirt patches (the dry noise picks them), nothing above ≈ 40 % of the lawn's height
-      const trod = field.troddenZone(x, z);
+      const trod = field.troddenZone(x, z, true);
       const bare = trod * smoothstep(0.25, 0.7, field.dry(x, z));
       // camera C's left third (frame 46): the stair foot shows over short turf, no tall blades
-      const sight = field.sightlineC(x, z, 0.5);
+      const sight = housePass ? 0 : field.sightlineC(x, z, 0.5);
+      // frame 56 s' hollow (round 32): a low, thinned cover
+      const hollow = field.dHollow(x, s.h, z);
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
       // the low verges so the embankments still read dense
       const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
@@ -187,14 +218,14 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const giant = field.giantProximity(x, z);
       const cluster = field.cluster(x, z);
       // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
-      const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : cluster;
-      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1);
+      const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : housePass ? HOUSE_FLANK_CLUSTER_FLOOR + (1 - HOUSE_FLANK_CLUSTER_FLOOR) * cluster : cluster;
+      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1);
       if (rng() * DNORM > density) return;
 
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (housePass ? 0.3 : 1);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
@@ -213,11 +244,16 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         h = (0.11 + 0.2 * Math.pow(rng(), 1.4)) * clusterVar * (edge < 2.5 ? 1.15 : 1);
         w = 0.012 + 0.012 * rng();
       }
-      if (edge < 0.3 && !flankPass) h *= 0.72;
+      if (edge < 0.3 && !flankPass && !housePass) h *= 0.72;
       if (flankPass) w *= FLANK_WIDTH;
+      if (housePass) {
+        // bank turf at lawn height, the tread ends lapped (frame 56 s' tufts creep over them)
+        w *= HOUSE_FLANK_WIDTH;
+        h = Math.min(h * 1.25 + 0.04, HOUSE_FLANK_MAX_H);
+      }
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
-      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band);
+      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow);
       maxH = Math.max(maxH, h);
 
       // colour. The shade zone (frame 8's right embankment) measures ≈ 0.30 luminance in the
@@ -228,6 +264,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // trodden blades are dusty: lighter olive with more straw tips
       let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod;
       if (s.slope > 0.35) tn -= 0.15 * (1 - shade);
+      // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
+      if (housePass && (field.houseFlightLocal(x, z)?.v ?? 0) < 0) tn += HOUSE_FLANK_NORTH_TINT;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
       const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
@@ -245,8 +283,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         // lean out over the slabs. The shader bends every blade along its local +z, so the rim
         // blades are yawed (± jitter, from the same draw) toward the nearest paved edge and their
         // roots tilted the same way. No extra draws: the rest of the tile keeps its layout.
-        const gx = field.lawnEdgeDistance(x + 0.05, z) - field.lawnEdgeDistance(x - 0.05, z);
-        const gz = field.lawnEdgeDistance(x, z + 0.05) - field.lawnEdgeDistance(x, z - 0.05);
+        const gx = field.lawnEdgeDistance(x + 0.05, z, true) - field.lawnEdgeDistance(x - 0.05, z, true);
+        const gz = field.lawnEdgeDistance(x, z + 0.05, true) - field.lawnEdgeDistance(x, z - 0.05, true);
         const gl = Math.hypot(gx, gz);
         if (gl > 1e-6) {
           const k = 1 - edge / RIM_LEAN;
@@ -263,6 +301,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         if (hash01(x, z) < D_SHOULDER_CUT * shoulder) return;
         h *= 1 - D_SHOULDER_HEIGHT * shoulder;
       }
+      // frame 56 s' hollow (round 32): the same kind of drop, after every draw
+      if (hollow > 0 && hash01(x + 0.5, z) < D_HOLLOW_CUT * hollow) return;
       composeMatrix(matrices, count * 16, x, y, z, nx, s.ny, nz, 0.5, yaw, w, h, h);
       const o = count * 4;
       data[o] = phase;
@@ -313,6 +353,23 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         const x = Math.round((fx0 + flankRng() * (fx1 - fx0)) * 1000) / 1000;
         const z = Math.round((fz0 + flankRng() * (fz1 - fz0)) * 1000) / 1000;
         blade(x, z, flankRng, false, true);
+      }
+    }
+    // the house flight's flanks (round 32): a fourth pass over the part of its flank box in this tile
+    const houseBox = field.houseFlankBox();
+    if (houseBox) {
+      const hx0 = Math.max(x0, houseBox[0]);
+      const hz0 = Math.max(z0, houseBox[1]);
+      const hx1 = Math.min(x0 + TILE, houseBox[2]);
+      const hz1 = Math.min(z0 + TILE, houseBox[3]);
+      if (hx1 > hx0 && hz1 > hz0) {
+        const houseRng = ctx.rng.fork(`grass/house-flank/${cx}/${cz}`);
+        const n = Math.round((hx1 - hx0) * (hz1 - hz0) * CANDIDATES_PER_M2 * HOUSE_FLANK_EXTRA * q.density);
+        for (let c = 0; c < n && count < maxPerTile; c++) {
+          const x = Math.round((hx0 + houseRng() * (hx1 - hx0)) * 1000) / 1000;
+          const z = Math.round((hz0 + houseRng() * (hz1 - hz0)) * 1000) / 1000;
+          blade(x, z, houseRng, false, false, true);
+        }
       }
     }
     if (count === 0) continue;
