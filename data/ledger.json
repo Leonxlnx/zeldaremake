@@ -8948,6 +8948,115 @@
       },
       "prevHash": "sha256:c95955e130053a21b967a8351a4c2a36090c03ac077dc465f0d76184374ff48f",
       "hash": "sha256:f2ef8c38211c023d040f60e3ee365bc45ee91beb0a994a964e54723dea943ca2"
+    },
+    {
+      "id": "take-0084",
+      "number": 84,
+      "at": "2026-09-14T01:26:52.278Z",
+      "sha": "3389ddfaf4c1762a32f506ac734ff79ae9a516f9",
+      "shortSha": "3389ddf",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Preserve canonical line endings for byte-verified rubric files",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W41",
+        "W20"
+      ],
+      "note": "Round twenty-nine: Saria's house goes to frame 14 s's dark surfaces. Two veil trials had proved the frame's darks are not haze: the trunk, recess, arch and room are dark SURFACES - near-black furrows under deep green moss with khaki-grey lit crests, a near-black room with two warm lamps. The trunk now has its own fully textured shade floor (no flat 60 % term pinning shaded faces at 0.33) and a moss skin over the shaded right wall and eave band; the recess and arch go directionally darker with the crown's lit band held; the room dims (glow ceiling, lamp pools, props, door and fill lights) while the lamps stay warm points. B's trunk band median 0.390 -> 0.358 against the frame's 0.314 (the last step to its p10 is the veil floor, measured and left), the room's p90 0.480 -> 0.381 against 0.357, the wall left of the door 0.391 -> 0.344 against 0.388; cap and arch face held within 0.02. B 0.2439 -> 0.2492 and F 0.2737 -> 0.2765; A 0.2675 -> 0.2649 and D 0.3023 -> 0.2995 pay in the house's own cells, where both frames show it as one smooth hazed shape. Tooling this hour, from the character partner's Windows and CI findings: the capture's not-drawn-yet guard now measures the world box outside the HUD and requires a mean above 0.12 (a clear-colour + HUD first frame had passed the whole-frame variance test and failed B5 on her branch); the six CLIs' entry guards use fileURLToPath (they silently did nothing from a drive path); eol=lf attributes protect the hash-locked rubric files from autocrlf. Draws 423-526, triangles 8.3-8.9 M, retries 0, world-box means 0.36-0.42.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:de9f882b76f3c2065643e06abc8ab211e70041a3298444fcae07ad885a5bec05",
+        "B_house": "sha256:201deb17aec0aae4a3423fde9c31c6b03b314c971ee1b8856bb3fa64e8fe08a5",
+        "C_lookback": "sha256:7f18471f561b2c01a99758b30d290622fafe996c482720ab9f2f2044b1a3ae1d",
+        "D_log": "sha256:2e9b0924a6558569021ab98a5c08ded1b4ff157346fe3b028e4383b79e65953c",
+        "E_ground": "sha256:201deb17aec0aae4a3423fde9c31c6b03b314c971ee1b8856bb3fa64e8fe08a5",
+        "F_canopy": "sha256:e853103ed745ab4e87a236ea11f8a01389a0d5b12f9cff43bf1aa050f328df89"
+      },
+      "distHash": "sha256:897b0014615adab303265cb5f3848132f6e5d6648a06ca4674925979fe6aa73f",
+      "stats": {
+        "drawCalls": 526,
+        "triangles": 8845964,
+        "captureMs": 1233332,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W41",
+        "W20"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take84-cap",
+        "importedAt": "2026-09-14T01:27:23.798Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:f2ef8c38211c023d040f60e3ee365bc45ee91beb0a994a964e54723dea943ca2",
+      "hash": "sha256:26120ecb86cd354c80f270329e556a8e586195d50d8a838f166eeb2ca8b3d08a"
     }
   ]
 }
