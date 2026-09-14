@@ -120,9 +120,15 @@ export function hashDir(dir) {
   return 'sha256:' + h.digest('hex');
 }
 
-/** Max per-channel standard deviation (0..255) — a (near-)uniform frame means the GPU had not drawn yet. */
+/** World-content variance (0..255), excluding the HUD at the screen edges.
+ * Only the retry probe is cropped; captures and anti-cheat comparisons stay full-frame.
+ */
 export async function frameStdDev(pngBuffer) {
-  const st = await sharp(pngBuffer).stats();
+  const { width, height } = await sharp(pngBuffer).metadata();
+  const left = Math.floor(width / 4), top = Math.floor(height / 4);
+  // sharp.stats() reads its input, so materialize the crop before measuring it.
+  const { data, info } = await sharp(pngBuffer).extract({ left, top, width: width - 2 * left, height: height - 2 * top }).raw().toBuffer({ resolveWithObject: true });
+  const st = await sharp(data, { raw: info }).stats();
   return Math.max(...st.channels.slice(0, 3).map((c) => c.stdev));
 }
 
