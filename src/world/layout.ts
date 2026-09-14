@@ -123,8 +123,12 @@ export const LAYOUT = {
   /** Main flagstone spine: south approach → plaza → north terrace → log arch. */
   // North of the plaza the spine bears slightly EAST (reference B recedes at x ≈ 0.3–0.6, on the
   // D axis), runs level through a misty hollow (reference D: mist pool before the arch) and then
-  // climbs ≈ 3.4 m to the arch, whose feet sit well above camera D (opening centre y ≈ 0.37).
-  // The raised boulder bank (terraces.northTerrace) is WEST of the hollow.
+  // climbs to the arch. Round 32: the rise beyond z −36 flattened — 3.35 → 3.75 → 4.3 m (was
+  // 3.35 → 4.3 → 5.6): frame 56 s keeps the far ground line at a constant y ≈ 0.46–0.47 from 33 m
+  // out to the arch's feet (a ground that climbs exactly as fast as it recedes: 3.4 m at 33 m,
+  // 3.8 at 39, 4.3 at 47), and the arch, which stands on this ground, was 1.3 m too high (its
+  // bark top at y 0.22–0.24 against the frame's 0.27–0.30). The raised boulder bank
+  // (terraces.northTerrace) is WEST of the hollow.
   pathSpine: [
     [1, 0, 16],
     [0, 0, 8],
@@ -135,9 +139,9 @@ export const LAYOUT = {
     [1.8, -0.13, -24],
     [2.5, 1.7, -30],
     [3.5, 3.35, -36],
-    [4.5, 4.3, -42],
-    [5.2, 5.6, -50],
-    [5.8, 5.8, -58],
+    [4.5, 3.75, -42],
+    [5.2, 4.3, -50],
+    [5.8, 4.5, -58],
   ] as [number, number, number][],
   pathHalfWidth: 2.4,
 
@@ -312,8 +316,18 @@ export const LAYOUT = {
      * out (logArch.ts). Visible in D the bark reads x 0.37–0.63: 0.63–0.73 is hidden by the
      * east plateau ramp at 19–22 m and the north-east giant / a white-bark at 25–37 m (terrain
      * and trees, not the arch).
+     * Round 32: the ground under the log lowered 5.6 → 4.3 m (pathSpine z −42…−58 and the
+     * heightfield's north rise; logArch.ts seats the axis on the terrain at its ends, so the
+     * whole log, its roots and its lanterns follow). Pinhole projection into D, axis ± r plus
+     * the moss crown: the body's centre line at the spine crossing moves from y 0.31 to 0.34
+     * (frame 56 s: 0.335), the crown's top from 0.225 to 0.25, the belly from 0.385 to 0.42, the
+     * far ground line stays at 0.47 (frame 0.46). What the ground cannot fix (structures): the
+     * frame's log is a straight tapering trunk — 3.9 m thick at the west body (x 0.47–0.50,
+     * y 0.29–0.375), 1.5 m at the east (x 0.60–0.62, y 0.33–0.35), a level axis at y 0.33–0.34,
+     * a 4 m opening (y 0.375–0.46), the west root mass 3.7 × 8.8 m (x 0.39–0.47, y 0.27–0.46) —
+     * where ours is a 6.8 m cylinder bowed 4.1 m up in the middle.
      */
-    position: [9.75, 5.6, -54] as [number, number, number],
+    position: [9.75, 4.3, -54] as [number, number, number],
     radius: 3.4,
     length: 23,
     yawDeg: -16,

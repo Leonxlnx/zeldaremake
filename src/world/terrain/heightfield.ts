@@ -351,10 +351,13 @@ function landform(x: number, z: number) {
 
   // North: the path dips through a shallow misty hollow (reference D's mist pool before the arch)
   // and then rises gently toward the log arch; the ground beyond climbs a little further.
-  // Reference D puts the arch's feet ≈ 3.5 m above the camera at ≈ 47 m (feet y ≈ 0.45, top 0.27), so
-  // the ground climbs ≈ 5.6 m from the hollow to the arch (z ≈ −50) and levels off beyond.
+  // Round 32: 3.4 m by z −37 and 4.3 m by z −50 (was 5.6). Frame 56 s holds the far ground line
+  // at y ≈ 0.46–0.47 from 33 m to the arch's feet at ≈ 50 m — a ground that climbs as fast as it
+  // recedes (camera D eye 1.45 m, pitch +1.9°: 3.4 m at 33 m, 3.8 at 39, 4.3 at 47) — and the
+  // arch, seated on this ground (logArch.ts), stood 1.3 m too high (crown top y 0.22–0.24 in D
+  // against the frame's 0.27–0.30). Mirrors `layout.pathSpine` (3.35 / 3.75 / 4.3 / 4.5).
   const hollow = -0.2 * smoothstep(-14, -19, z) * smoothstep(-28, -23, z);
-  const northRise = 3.4 * smoothstep(-23, -37, z) + 2.2 * smoothstep(-36, -50, z);
+  const northRise = 3.4 * smoothstep(-23, -37, z) + 0.9 * smoothstep(-36, -50, z);
   // Boulder bank WEST of the north path: a grassy 45° face (the `north` steps that climbed it
   // went in round 32 — frame 56 s has open misty ground there) carrying on up to the terrace
   // boulder; it merges into the west-north ledge.
