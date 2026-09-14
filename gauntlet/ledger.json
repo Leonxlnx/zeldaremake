@@ -9612,6 +9612,117 @@
       },
       "prevHash": "sha256:19d3d8ac96564b2805ce4f3d1c7e1f68ec505a713d09471bdea654a390cc8940",
       "hash": "sha256:e386a20b91374b1d72fc08ea48fe9d904db2f05c31e85c35ec155141b6967af3"
+    },
+    {
+      "id": "take-0090",
+      "number": 90,
+      "at": "2026-09-14T14:44:51.602Z",
+      "sha": "8a2dc9cbf9da9e3262adfd9e783ab0001030c21b",
+      "shortSha": "8a2dc9c",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r32/hard' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W02",
+        "W04",
+        "W29",
+        "W32"
+      ],
+      "note": "Round thirty-two, hardscape and layout: frame D one-to-one in its structure. The house-west flight is re-laid to where frame 56 s has it - base (3.8, 0.27, -8.0) at bearing 110, five 0.27 m risers on 0.40 m treads to a 1.62 m landing, a paved apron a riser above the north path, the door approach re-planned as one route (path -> flight -> landing -> six stepping stones across the lawn): its foot stands 5.3 m from camera D and its four ridge rows at the frame's right edge fall at y 0.513 / 0.563 / 0.634 / 0.694 / 0.782 against the frame's 0.503 / 0.557 / 0.624 / 0.700 / 0.792, every one within 0.010, with four riser faces visible as in the frame. The north steps are removed: frame D has the misty hollow's open dark verge at (0.28-0.40, 0.48-0.62), not a flight, and the B read that justified them (a lantern point and a warm door-like shape at ground level) was not steps; their bank stays as a grassy slope. The north rise is lowered 5.6 -> 4.3 m so the log arch's body sits on the frame's rows in D (depth rows y 0.28-0.43 against the frame's 0.27-0.45; it was 0.24-0.47 with the top 0.07 too high) - in colour it is still a 0.021 silhouette against 0.06 in the frame, which is the atmosphere pass running now. Against the frames: D 0.3219 -> 0.3340, C 0.2950 -> 0.3099, B 0.2403 -> 0.2486, E 0.2594 -> 0.2635, F 0.2748 -> 0.2796, A 0.2607 -> 0.2601 - the best D, C, B and F on the ledger. W04 probes unchanged (5.126 / 2.968 / 0.927 / 0.000); stairways main 20 + house-west 5; stepping stones 6; flagstones 590; structures maxBaseGap 0 (Saria's root #5 is off the flight); farLayerCount 3 on every hero view; draws 429-540, triangles 7.2-8.5 M. Running now: the arch's lanterns and Saria's trunk over the flight (structures), the flight's verges and the old steps' slope (vegetation), the far wall behind the arch (atmosphere).",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:92b95c953530fa01f9f9316db38bbfc5404c2c3afc08a5e86d1be267c9daa0e1",
+        "B_house": "sha256:d35529d3668bd7a5bf3ccf5731bf5f78a6370433370ad42c73fb2bd294b916f5",
+        "C_lookback": "sha256:074e642f073c5b441fb8b395b7910f233623aa9319bdf2b0e2f6fd77b349275a",
+        "D_log": "sha256:a2d0ef539636bc332c1bed7384de2c9fe9b018dcc7e17982ad4fa59360a6efe8",
+        "E_ground": "sha256:d35529d3668bd7a5bf3ccf5731bf5f78a6370433370ad42c73fb2bd294b916f5",
+        "F_canopy": "sha256:9058a4b81b6f90a07377b5dc6d68887287e99a66d93c32f28b27fd57526c9f8b"
+      },
+      "distHash": "sha256:182d446f28a4b91ce9b45cb0675fe901b9e136cce613c3f67beeaa1abc611d4c",
+      "stats": {
+        "drawCalls": 540,
+        "triangles": 8492475,
+        "captureMs": 1094063,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W02",
+        "W04",
+        "W29",
+        "W32"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take90-cap",
+        "importedAt": "2026-09-14T14:45:27.230Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:e386a20b91374b1d72fc08ea48fe9d904db2f05c31e85c35ec155141b6967af3",
+      "hash": "sha256:1936a08d5de802e459c2f9ffe513b904b00fb7a77aa1eb3125d958fba8faeb86"
     }
   ]
 }

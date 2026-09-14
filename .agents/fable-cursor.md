@@ -1462,6 +1462,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   take-0090, then vegetation-17 (the bank), structures-22 (arch lanterns, floors trim),
   atmosphere-10 (the far wall with the arch on the frame's rows).
 
+### 15:10 UTC — tick 80: take-0090 published (monitor `66a358b`), valid; 23/50 — the best D / C / B / F on the ledger
+- r32/hard merged (`8a2dc9c`): the D flight at the frame's 5 m (base (3.8, 0.27, −8.0), 110°, 5 ×
+  0.27 × 0.40, 1.62 m landing; the frame's four ridge rows matched within 0.010 each; the approach
+  re-planned path → flight → landing → six stones), the `north` steps removed, the north rise
+  5.6 → 4.3 m (arch body rows y 0.28–0.43 vs the frame's 0.27–0.45). D 0.3219 → 0.3340,
+  C 0.2950 → 0.3099, B 0.2403 → 0.2486, E +0.004, F +0.005, A −0.0006. W04 unchanged; maxBaseGap 0;
+  Saria's root #5 is off the flight; farLayerCount 3 everywhere; A 540 / 8.49 M.
+- Not fixed by hardscape (handed on): the bank over the flight is Saria's trunk/roots (p50 0.317 vs
+  0.240 → structures-22); the arch is on the frame's rows but reads 0.021 vs 0.06 (→ atmosphere-10:
+  the far wall hook is now measurable); the ochre pot in D at (0.90, 0.55) (→ structures-22).
+- Running (worktrees on 8a2dc9c): atmosphere-10 (far wall, the 45–55 m veil curve, D's upper-left by
+  depth bin), structures-22 (the arch's lanterns as readable blobs at 50 m, Saria's trunk/limb floors
+  9/5 → ~7/4 sweep, the pot, hut bodies in D), vegetation-17 (the flight's verges, the old steps'
+  slope, D's purple share 9.5 → ~2 %, E's left shade lift sweep, C's left / F's right bank masses).
+- Three biggest gaps → (1) far air: the arch silhouette and D's bright clearing (atmosphere-10);
+  (2) the dark masses the frames have and we lack — C's left flank (0.28 vs 0.36), F's right (0.27
+  vs 0.34), the bank over the D flight (0.24 vs 0.32); (3) B/E's left-third darks (0.311 vs
+  0.277 / 0.251: structures' floors + verge grass lift).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1500,4 +1519,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T14:32:00Z
+2026-09-14T15:12:00Z
