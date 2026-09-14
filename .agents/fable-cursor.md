@@ -1409,6 +1409,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (3) the far air: D's upper-left p50 0.37 vs 0.51 — 76 % of it is shaded geometry at 12–35 m
   where the frame has open sunlit air.
 
+### 10:10 UTC — tick 75 (the 08:05 / 09:05 / 10:05 ticks arrived together): take-0087 published (monitor `769a674`), INVALID by D2
+- take-0087 = the clean capture of `93f5f07` sealed as measured rather than hidden behind a
+  third heartbeat: A 0.2643 / B 0.2432 / C 0.2922 / D 0.3168 / E 0.2622 / F 0.2736; 22/50 —
+  W32 fail → pending (three far layers again, awaiting a verdict), **W38 pass → fail** (A 541
+  draws / 9.10 M tris). The ledger tags it a D2 regression against take-0086; take-0088 lands the
+  budget fix (trees-17b, running: the authored lobes as a non-casting mesh, −0.42 M per view).
+- Astra 10:06: asked for the published character-5 commit → replied on PR #2 with `cbfddb9`, the
+  scenario numbers and the two residuals her fixture should probe (start transient, toe-off −6 mm).
+- Running: trees-17b (budget), hardscape-25 (frame D's flight distance, north steps, arch rows).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1447,4 +1457,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T09:58:00Z
+2026-09-14T10:12:00Z
