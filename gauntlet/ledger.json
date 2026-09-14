@@ -9832,6 +9832,115 @@
       },
       "prevHash": "sha256:1936a08d5de802e459c2f9ffe513b904b00fb7a77aa1eb3125d958fba8faeb86",
       "hash": "sha256:27ce82ac0ab151aa6c22ac355c3b20e4b5fba569629019b63a5c3fba81efd0dd"
+    },
+    {
+      "id": "take-0092",
+      "number": 92,
+      "at": "2026-09-14T18:11:50.813Z",
+      "sha": "e328ad742bd2219097684ae2783b75ae96b6600a",
+      "shortSha": "e328ad7",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "structures: the arch's east peg halos at 0.55 of the far-halo radius (were 0.85: 15-16 px cores in D against the frame's 7-8 px east blobs, and the same two discs read through the haze from A's stair top, A -0.0046 in the structures-22 capture)",
+      "agent": "fable-cursor",
+      "items": [
+        "W26",
+        "W29",
+        "W25"
+      ],
+      "note": "Round thirty-two, structures: the log arch's lanterns exist in the picture at last. Frame 56 s has three warm blobs on and under the arch (19, 7 and 8 px across, peak 0.65-0.76, hue 36-38 deg); ours had none at 48-56 m - the pods were swallowed by the veil at any emissive intensity because the fogged disc greys out before it reads. The five arch pods now carry a far-pod material (emissive 4.5) and one shared unfogged billboard halo (in-scattered light on the camera's side of the veil, alpha-faded into the haze, tinted so the grade lands it on the frame's 35 deg amber, no point lights), and the three near-end pods are re-hung onto the frame's blob positions (one west-flank cord, two pegs in the east body): D's arch box holds four warm blobs of 11-19 px at peaks 0.65-0.72, the west one at (0.465, 0.435) against the frame's (0.463, 0.442); the east pegs' halos are cut to 0.55 of the radius at integration because 15-16 px cores were double the frame's east blobs. Saria's limb and trunk shade floors go 9/5 -> 8/4.5 (the last step before B's top decile overshoots the frame), the ochre pot leaves D's bank for (8.0, -10.0) outside camera D's frustum, and the distant huts turn a dark lobe and a deep-moss cap half toward camera D (hut silhouette pixels in D's upper band -10 %, cap-top row -47 %). Against the frames: D 0.3346 -> 0.3357 (the ledger's best), C 0.3121 -> 0.3115, B 0.2493 -> 0.2484, E 0.2630 -> 0.2616, F level, A 0.2674 -> 0.2615: the A cost is being attributed now (the halos seen through the haze from A's stair top, the darker house floors in A's centre, or the pot's new spot at A (0.48, 0.47)) and the cause fixed in the next take. Draws 430-542, triangles 7.15-8.49 M; structures maxBaseGap 0; W26 lanterns 22; logLanterns 5 with positions audited.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:4c750187eba78f07a2b8f1b47471c9f7a6ad09477765e59e34dbc08f068f9877",
+        "B_house": "sha256:abb80be41307110445c2fc09dd0fd0516ff9d30a457dea894b3990fe596def29",
+        "C_lookback": "sha256:920ca3dd4fbbce95baff32061db725c7cc0488182d4d83340c6a222babf950e0",
+        "D_log": "sha256:4be7edaf5c2a5a777c8fd633899c1a078fc96f431859bf00d30e338c2dffc6e8",
+        "E_ground": "sha256:abb80be41307110445c2fc09dd0fd0516ff9d30a457dea894b3990fe596def29",
+        "F_canopy": "sha256:a45028db6d9369af9360a5509f71f56ea8a7b9c6c752599c4a423349a371d045"
+      },
+      "distHash": "sha256:06908642a4efec3fc6768615407e1a0cb38c19b6aee6d99ba2cd56bb20c50655",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8492607,
+        "captureMs": 893866,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W26",
+        "W29",
+        "W25"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take92-cap",
+        "importedAt": "2026-09-14T18:12:48.283Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:27ce82ac0ab151aa6c22ac355c3b20e4b5fba569629019b63a5c3fba81efd0dd",
+      "hash": "sha256:f67a84f3563f5708a34fff0d5c8dc887fa5a3d6c5df22199833e48bb6c12a0b8"
     }
   ]
 }

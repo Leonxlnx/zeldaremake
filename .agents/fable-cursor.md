@@ -1497,6 +1497,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0.6–0.65 wall; the 52–70 m air above the arch (0.49 vs 0.58) is 60 % our 20–40 m crowns (trees).
 - Running: structures-22 (arch lanterns, trunk floors, huts), vegetation-17 (verges, slope, purple).
 
+### 18:15 UTC — tick 83: take-0092 published (monitor `446a828`), valid; 23/50; D 0.3357 (best), A −0.006
+- r32/struct merged (`98febe6`) + the east-halo trim (`e328ad7`): the arch's five pods carry a
+  far-pod material and one unfogged billboard halo — D's arch box goes from 0 warm blobs to four
+  (11–19 px, the west one at (0.465, 0.435) vs the frame's (0.463, 0.442)); Saria's limb/trunk
+  floors 9/5 → 8/4.5; the ochre pot out of D's frustum; the huts' dark lobe toward D. D +0.0011,
+  C/B/F ≈ level, E −0.0014, **A −0.0059** — the trim of the east halos to 0.55 did not recover A,
+  so the cause is elsewhere (the house floors in A's centre, the pot's new A spot, the west halo).
+  structures-22b is attributing it with single-toggle A captures and repairing it.
+- vegetation-17 still running (one commit, field rules for the new flight).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1535,4 +1545,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T17:16:00Z
+2026-09-14T18:16:00Z
