@@ -1538,6 +1538,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   atmosphere-11 (the shafts and the plaza dapple: frame A's beams and sun patches vs ours),
   trees-19 (the crowns over D's upper band and A's top band where the frames have lit air).
 
+### 21:05 UTC — tick 86: heartbeat (`d8d928c` unchanged since take-0094); round thirty-three mid-work
+- hardscape-26 four commits (a disc field on the north spine — rounded domed stones in 9–22 cm
+  earth gaps, joints lit brown-olive as measured in the frames' lit paving windows, the fillet
+  clamp kept in step with the streams, rim thinning outer ring only and off on D's stretch);
+  atmosphere-11 and trees-19 measuring (files dirty, no commits yet). Load 4–6.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1576,4 +1582,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T19:52:00Z
+2026-09-14T21:07:00Z
