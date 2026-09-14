@@ -53,7 +53,9 @@ import type { FootContact, PlantInfo, Puppet, PuppetPose } from './puppet';
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '281895fef8f8fda7e7fe73f7fa84ef16fff2df8cb2ead48be15327dece3f2faa';
+export const LINK_GLB_SHA256 = '9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a';
+/** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
+export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
 /**
  * Clip contract from Astra's pipeline.json (rig.clips): stride and cycle per gait, plus the clip
@@ -269,6 +271,11 @@ export interface LinkAssetInfo {
   bones: number;
   clips: LinkClipInfo[];
   loadMs: number;
+  /** skull top above the `head` bone (m) used for the audit's head projection, and where it came from */
+  headTopOffsetM: number;
+  headAnchor: 'skin-bbox' | 'anatomical-constant';
+  /** the skin-named mesh's box top above the head bone (m), for the record (0.276 on 409b603, 0.112 on 9189538d) */
+  skinTopM: number;
 }
 
 export interface GlbLink extends Puppet {
@@ -587,7 +594,16 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
   const skin = skinned.find((m) => /skin/i.test(m.name)) ?? skinned[0];
   skin.geometry.computeBoundingBox();
   const headRest = head.getWorldPosition(new Vector3());
-  const headTopOffset = (skin.geometry.boundingBox?.max.y ?? headRest.y + 0.28) - headRest.y;
+  // The skull top used to come from the skin mesh's bounding box, which only worked while a mesh
+  // named *skin* stopped at the scalp: in Astra's 9189538d… asset the body is one mesh including
+  // the cap and the skin-named mesh the heuristic finds tops out 0.11 m above the head bone, so the
+  // audit's head point wandered by the asset's mesh naming. Her request, and the fix: an explicit
+  // anatomical anchor. The rig is the same across her assets (the `head` bone sits at the skull
+  // base), so the skull top is HEAD_TOP_ANATOMICAL_M above it — 0.276 m, measured on the 409b603
+  // asset's cap-free skin mesh. The skin box top is still reported for the audit.
+  const skinTop = (skin.geometry.boundingBox?.max.y ?? headRest.y + HEAD_TOP_ANATOMICAL_M) - headRest.y;
+  const headAnchor: LinkAssetInfo['headAnchor'] = 'anatomical-constant';
+  const headTopOffset = HEAD_TOP_ANATOMICAL_M;
   const height = bounds.max.y - Math.min(0, bounds.min.y);
 
   // look and leg pivots (see the header) — inserted before the actions bind so the search stays valid
@@ -695,6 +711,9 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate };
     }),
     loadMs: Math.round(performance.now() - t0),
+    headTopOffsetM: Number(headTopOffset.toFixed(4)),
+    headAnchor,
+    skinTopM: Number(skinTop.toFixed(4)),
   };
 
   const clipTimeOf = (gait: Gait, t: number) => {
