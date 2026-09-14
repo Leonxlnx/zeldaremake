@@ -54,6 +54,23 @@ try{
     }
     return [gait,{samples:121,minimum_sole_y:minimum,worst_phase:worstPhase}];
   })));
+  if(process.argv.includes('--shading-diagnostic')){
+    await page.evaluate(()=>{
+      REVIEW.model.traverse(ob=>{if(ob.isMesh){if(!ob.receiveShadow)throw Error('Unexpected review shadow state');ob.receiveShadow=false;}});
+      REVIEW.pose('idle',0,'face');
+    });
+    const png=await page.screenshot({path:path.join(output,'face-without-received-shadows-diagnostic.png')});
+    report.shadow_diagnostic={kind:'Diagnostic only: character receives no shadows; casting and asset unchanged',sha256:crypto.createHash('sha256').update(png).digest('hex')};
+    await page.evaluate(()=>{REVIEW.model.traverse(ob=>{if(ob.isMesh)ob.receiveShadow=true;});REVIEW.pose('idle',0,'face');});
+    await page.evaluate(()=>{
+      window.__savedTangents=[];
+      REVIEW.model.traverse(ob=>{if(ob.isMesh){const tangent=ob.geometry.getAttribute('tangent');if(!tangent)throw Error('Expected exported tangent');window.__savedTangents.push([ob,tangent]);ob.geometry.deleteAttribute('tangent');ob.material.needsUpdate=true;}});
+      REVIEW.pose('idle',0,'face');
+    });
+    const tangentPng=await page.screenshot({path:path.join(output,'face-derived-tangents-diagnostic.png')});
+    report.tangent_diagnostic={kind:'Diagnostic only: renderer derives tangent frame; file and shadows unchanged',sha256:crypto.createHash('sha256').update(tangentPng).digest('hex')};
+    await page.evaluate(()=>{for(const [ob,tangent] of window.__savedTangents){ob.geometry.setAttribute('tangent',tangent);ob.material.needsUpdate=true;}delete window.__savedTangents;REVIEW.pose('idle',0,'face');});
+  }
   for(const [gait,check] of Object.entries(report.motion_clearance))
     for(const height of Object.values(check.minimum_sole_y))assert.ok(height>=-.002,gait+' sole penetrates the review ground');
   report.render=await page.evaluate(()=>REVIEW.stats());

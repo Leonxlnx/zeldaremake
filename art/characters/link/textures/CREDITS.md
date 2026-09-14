@@ -1,5 +1,10 @@
 # Character material sources
 
+`original-iris-teal-v1.png` is an original iris albedo generated with the built-in
+image_gen tool on 2026-09-14 for the Blender character material. Its exact prompt,
+SHA256 and source path are recorded in `original-iris-teal-v1.json`. It has not yet
+been adopted in the delivered runtime. This texture is separate from the CC0 scans below.
+
 Geometry and skin tint are original. The ten owner reference images are visual comparison
 material only; none is used as a texture. These maps are CC0 according to
 [Poly Haven's asset license](https://polyhaven.com/license), checked 2026-09-13.

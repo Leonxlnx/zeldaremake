@@ -1,10 +1,16 @@
 # Restart checkpoint — unfinished and visually rejected work
 
-Preferred next comparison: `source-runtime/hardware-candidate.glb`,
-SHA256 `faefa7211a70c0da647fb869b1cef4af4edba7c52be965ce01bcacfdeb22214b`.
-It adds baked brass response to six existing boot fittings, retaining the iris candidate's
-54,786 triangles, three materials and existing rig/clips. Studio 23:44:54 and full
-a98e9ea world comparison 23:45:34 complete their local checks. The prior iris handoff is
+Preferred next comparison: `source-runtime/textured-iris-candidate.glb`,
+SHA256 `9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a`.
+It combines boot brass, original surface-following lashes/brows, and an original iris
+albedo baked to2K. It has59,682 triangles, four materials and the existing rig/clips.
+Studio2026-09-14 00:19:06 and full a98e9ea world00:22:20 complete their local checks.
+W41 difference is0; raw repeat maximum4 exceeds the separate2-level diagnostic tolerance.
+This remains unfinished character art, not final acceptance. The prior boot handoff is
+`source-runtime/hardware-candidate.glb`, SHA256
+`faefa7211a70c0da647fb869b1cef4af4edba7c52be965ce01bcacfdeb22214b`.
+It has54,786 triangles/three materials and full comparisons at23:44:54/23:45:34.
+The prior iris handoff is
 `source-runtime/iris-material-candidate.glb`, SHA256
 `cfc48d365699bd9310b7b10d8584b2248529eca6d69874bdf696859632a567a6`.
 The previous53K handoff is `source-runtime/eye-candidate.glb`
@@ -39,6 +45,28 @@ angular nose shading in the actual WebGL review; it does not replace the preferr
 Repeated export now skips normalization of already-normalized skin weights, eliminating
 tiny repeated rounding changes. The final hardware export is byte-identical on repetition.
 The earlier ef75d97b export remains `hardware-first-export.glb` for its historical captures.
+
+At2026-09-14 00:25 UTC, native source/GLB roundtrip renders show essentially the same
+shading (mean channel delta0.028/255). Removing received shadows in WebGL does not
+resolve the face's angular appearance; removing exported tangents makes it worse.
+`capture_runtime.mjs --shading-diagnostic` preserves both diagnostic images and restores
+the ordinary render state. Neither diagnostic changes the asset or production loader.
+
+`detail_connected_lids.py --args '{"existing":true}'` through the MCP bridge reproduces
+the current v4 lash/brow study on the unchanged boot-hardware face. It finds the actual
+occluding skin rim, then adds170 native curves/4,896 triangles on the existing head bone.
+The dark-brow077a export is preserved separately. The warmer698afa export completes
+studio00:07:01 and world00:08:14; it is the base of the textured iris comparison.
+
+The built-in image_gen texture is in `../../textures/original-iris-teal-v1.png`, with its
+exact prompt/hash/source in the adjacent JSON. `study_iris_material.py` with JOB
+`{"texture":true}` maps its annulus radially while preserving the0.557 pupil/iris ratio.
+The brighter90b6 export is preserved as `textured-iris-bright.glb`. The current9189 export
+adds a restrained albedo tint and dark limbal transition. All highlights remain3D shading.
+
+Next geometry experiment: begin with the original, uncut50K source face and make a smaller
+almond-shaped socket once. Filling or reshaping the already enlarged round cuts repeatedly
+produced puffy/patchy lids. Preserve the current validated candidate while testing this.
 
 **Resumed 18:08 UTC with the owner's explicit instruction.** The pause notes below
 describe the saved restart checkpoint. New Rodin studies and native material/eye

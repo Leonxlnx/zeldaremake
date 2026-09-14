@@ -1,0 +1,11 @@
+{
+  "source": "C:/Users/User/.codex/generated_images/01a09a90-a769-7421-a74f-391c6842e3bc/exec-ba0d7d55-3b82-4c11-9106-31481e061987.png",
+  "bytes": 2215007,
+  "sha256": "a1ad966e42b5c53f04a895e66443e1311dc04f61296b0c72da4c29b37440ed20",
+  "destination": "E:/zeldaremake/art/characters/link/textures/original-iris-teal-v1.png",
+  "generated_at": "2026-09-14 00:10 UTC",
+  "tool": "Built-in image_gen",
+  "purpose": "Original UV-mapped iris base-colour texture; no baked lighting or reference-frame scenery",
+  "prompt": "Use case: photorealistic-natural. Asset type: original square iris base-colour texture for a real-time 3D character eye. Create one precisely centred, perfectly circular teal-green human iris viewed straight on orthographically, outer iris diameter 90% of the square image width, surrounded by uniform warm ivory. Black circular pupil centred exactly in the iris, pupil diameter 45% of iris diameter. Intricate natural radial stromal fibres, delicate irregular branching crypts, a restrained olive-gold collarette around the pupil, subtle dark teal limbal ring, mostly muted deep jade and turquoise fibres with believable organic variation. Flat diffuse albedo, evenly exposed everywhere; no lighting gradients, no specular highlights, no catchlights, no glossy reflections, no cast shadow, no eyelids, no eyelashes, no face, no iris perspective or ellipse, no text, no labels, no watermark. Crisp high resolution material texture suitable for UV mapping; restrained realistic saturation.",
+  "status": "Generated texture; Blender fitting and actual GLB comparison pending"
+}
