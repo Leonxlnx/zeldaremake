@@ -80,6 +80,7 @@ varying vec3 vTreeWorld;
 varying vec2 vTreeUv;
 varying float vTreeLocalY;
 varying float vIsLeaf;
+varying float vLeafShade;
 varying float vBarkAO;
 `;
 
@@ -118,7 +119,10 @@ const WIND_VERTEX_BODY = /* glsl */ `
     vTreeWorld = treeP.xyz + disp;
     vTreeUv = uv;
     vTreeLocalY = position.y - aRoot.y;
-    vIsLeaf = aRoot.w;
+    // aRoot.w: 0 wood, 0.5 + 0.5 × shade-fill share for a leaf (writer.ts) — 1.0 for every
+    // ordinary leaf, so both decodes are exact there
+    vIsLeaf = step(0.5, aRoot.w);
+    vLeafShade = clamp((aRoot.w - 0.5) * 2.0, 0.0, 1.0);
   }
 `;
 
@@ -141,6 +145,7 @@ varying vec3 vTreeWorld;
 varying vec2 vTreeUv;
 varying float vTreeLocalY;
 varying float vIsLeaf;
+varying float vLeafShade;
 varying float vBarkAO;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
@@ -229,6 +234,13 @@ const GIANT_BARK_COLOR = /* glsl */ `
  * backlit roof (A top band p10 0.39 against our 0.29 without it). Wood never gets it (gated on
  * vIsLeaf by the callers; the cluster cards are all leaf). The sun's own transmission stays the
  * separate directional term below, so this adds nothing sun-dependent in the shadowed crown.
+ *
+ * Scaled by vLeafShade (1 on every leaf but the authored shade lobes' — see writer.ts aRoot.w):
+ * the fill terms a leaf gets for being thin and under a roof (this transmission, the ambient
+ * fill, the flat shade floor) are what keep a shaded lamina at ≈ 0.36 luminance, so a lobe meant
+ * to read as the reference's dark near clump (D's top-right mass 0.26–0.30 at 10 m, hazed) can
+ * only get there by taking a share of them — and of the sun's transmission through the lamina
+ * (the directional term below); the Lambert sun on the leaf's face is untouched.
  */
 const LEAF_SKY_TRANSMISSION = /* glsl */ `
   {
@@ -248,7 +260,7 @@ const LEAF_SKY_TRANSMISSION = /* glsl */ `
     // read as yellow-green neon (B forest box sat 0.21 against the reference's 0.14)
     vec3 through = mix(diffuseColor.rgb, uLeafSun, 0.25);
     through = mix(through, vec3(dot(through, vec3(0.2126, 0.7152, 0.0722))), 0.4);
-    reflectedLight.indirectDiffuse += skyThrough * BRDF_Lambert(through) * uLeafTransmit;
+    reflectedLight.indirectDiffuse += skyThrough * BRDF_Lambert(through) * (uLeafTransmit * vLeafShade);
   }
 `;
 /**
@@ -271,6 +283,18 @@ const LEAF_TRANSMIT = 1.2;
  * came back as ±1 flips on the roof and limb next to them through the bloom and softness blurs.
  */
 const TREE_FLOOR_GLSL: ShadeFloorGlslOptions = { leafSun: 'uLeafSun' };
+/**
+ * The leaf shade floor scaled by vLeafShade (see LEAF_SKY_TRANSMISSION): the floor block adds to
+ * indirectDiffuse, so its addition is taken back in proportion — mix(before, after, 1.0) is
+ * exactly `after`, so ordinary leaves keep their arithmetic.
+ */
+const LEAF_FLOOR_SHADED = /* glsl */ `
+      {
+        vec3 beforeFloor = reflectedLight.indirectDiffuse;
+        ${shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL)}
+        reflectedLight.indirectDiffuse = mix(beforeFloor, reflectedLight.indirectDiffuse, vLeafShade);
+      }
+`;
 /** white-barks are pale already; their shaded sides are not among the measured gaps */
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
 
@@ -318,17 +342,17 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     /* glsl */ `#include <lights_fragment_end>
     if (vIsLeaf > 0.5) {
       // ambient fill so the underside of the canopy is never black
-      reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.08;
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * (0.08 * vLeafShade);
       ${LEAF_SKY_TRANSMISSION}
       #if NUM_DIR_LIGHTS > 0
       {
         float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
         float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
         vec3 sunTint = mix(diffuseColor.rgb, uLeafSun, 0.5);
-        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * 0.22;
+        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (0.22 * vLeafShade);
       }
       #endif
-      ${shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL)}
+      ${LEAF_FLOOR_SHADED}
     } else {
       ${shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL)}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
@@ -411,20 +435,20 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
       s.uniforms.uLeafSun = { value: leafSun };
       s.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
       bindShadeFloor(s, 'uLeafFloor', LEAF_FLOOR);
-      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\n` + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + s.fragmentShader;
+      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\n` + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + s.fragmentShader;
       s.fragmentShader = s.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
-        reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.1;
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * (0.1 * vLeafShade);
         ${LEAF_SKY_TRANSMISSION}
         #if NUM_DIR_LIGHTS > 0
         {
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
           float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.4 + backlight * 0.6;
-          reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * 0.2;
+          reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * (0.2 * vLeafShade);
         }
         #endif
-        ${shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL)}
+        ${LEAF_FLOOR_SHADED}
         `,
       );
     },

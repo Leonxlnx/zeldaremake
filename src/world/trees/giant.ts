@@ -172,7 +172,16 @@ export interface GiantProfile {
  * An authored lobe hung on a canopy bough (local space): `t` is where its stem leaves the bough,
  * `center` the lobe centre, hR / vR its radii. `density` scales the leaf + card population,
  * `tone` multiplies the leaf colours (< 1 = a shaded mass), `eye` overrides the eye-detail
- * treatment (0 = roof: full-size cards spread through the lobe; 1 = leaf-sized laminae).
+ * treatment (0 = roof: full-size cards spread through the lobe; 1 = leaf-sized laminae), `shade`
+ * is the share of the leaf shaders' shade fill (sky transmission, ambient fill, the flat shade
+ * floor, the sun's transmission through the lamina — writer.ts aRoot.w) its leaves keep: 1 =
+ * ordinary leaves, lower = a dark clump against the haze (the Lambert sun on the leaf's face is
+ * untouched). `corridors: false` keeps every leaf and card of the lobe
+ * whatever corridor crosses it (a lobe authored onto a camera's ray, which the sun and view
+ * corridors along that ray would otherwise thin to their porosity). `compact` builds a small
+ * clump the size it is authored: the cluster cards are capped at 0.6 hR (the ordinary floor is a
+ * 0.4 m half-size, a 1.6 m card on a 0.4 m lobe), the twigs' drop and the sprigs' reach shrink
+ * with hR, and the stem carries no leaves of its own — an ordinary lobe spreads to hR + 1.4 m.
  */
 export interface CanopyLobe {
   t: number;
@@ -182,6 +191,9 @@ export interface CanopyLobe {
   density?: number;
   tone?: number;
   eye?: number;
+  shade?: number;
+  corridors?: boolean;
+  compact?: boolean;
 }
 
 /**
@@ -559,15 +571,22 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     return hit;
   };
+  /**
+   * set while an authored canopy lobe with `corridors: false` is built (CanopyLobe): its foliage
+   * is kept whatever corridor it stands in — the lobe exists to stand on a camera ray, and the
+   * corridors that cross that ray (a hollow-gap view line, a path sun line) would otherwise thin
+   * it to their porosity
+   */
+  let corridorExempt = false;
   /** false when a lamina at p must be dropped for a corridor */
   const leafAllowed = (p: Vector3) => {
-    if (!corridors.length) return true;
+    if (!corridors.length || corridorExempt) return true;
     const c = inCorridor(p);
     return !c || survives(p, c.porosity ?? 0);
   };
   /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
   const cardAllowed = (p: Vector3, s: number) => {
-    if (!corridors.length) return true;
+    if (!corridors.length || corridorExempt) return true;
     const c = inCorridor(p, s * 0.7);
     return !c || survives(p, c.cardPorosity ?? 0);
   };
@@ -616,7 +635,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const cardN = new Vector3();
   const cardU = new Vector3();
   const cardW = new Vector3();
-  function clusterCards(center: Vector3, hR: number, vR: number, boughRadius: number, count: number) {
+  function clusterCards(center: Vector3, hR: number, vR: number, boughRadius: number, count: number, sizeCap = 1.4) {
     // near eye level a card seen obliquely reads as one flat cut-out, so low lobes seen up close
     // keep only half-size cards deep in the lobe core (dark filler behind the laminae)
     const eye = nearEye(center.y);
@@ -650,7 +669,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // fewer, larger clumps (sheet 01: dense soft clumps, not stars): ×1.12 on the card and
       // every fourth card dropped — after its draws, so the main stream is what it was with the
       // smaller, more numerous cards and nothing else in the tree re-rolls
-      const s = Math.min(1.4, Math.max(0.4, gb(0.25, 0.38) * hR)) * sizeF;
+      const s = Math.min(sizeCap, Math.max(0.4, gb(0.25, 0.38) * hR)) * sizeF;
       const heightF = p.y / H;
       const outF = Math.hypot(p.x, p.z) / crownRadius;
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * gb(0.35, 1);
@@ -717,10 +736,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     for (let i = 0; i < attempts; i++) placeCard(rd, false, inCollar);
   }
 
-  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1) {
+  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
     lobe = { center, hR };
-    clusterCards(center, hR, vR, boughRadius, (7 + subCount * 3) * cardMult);
-    leafSpray(bough, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
+    // a compact lobe keeps its twigs' drop and its sprigs inside the authored ellipsoid (they are
+    // sized for the ordinary 1.5 m+ lobe) and gathers the stem's leaf trail onto its last 15 %
+    const reach = compact ? Math.min(1, hR / 1.5) : 1;
+    clusterCards(center, hR, vR, boughRadius, (7 + subCount * 3) * cardMult, compact ? Math.max(0.15, hR * 0.6) : undefined);
+    if (compact) {
+      const [a, b] = [bough[bough.length - 2], bough[bough.length - 1]];
+      const short = [b.clone().lerp(a, 0.15), b];
+      leafSpray(short, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
+    } else leafSpray(bough, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
     const phase = r() * TAU;
     for (let j = 0; j < subCount; j++) {
       const attachment = 0.4 + (j / subCount) * 0.48 + bt(-0.035, 0.035);
@@ -740,7 +766,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const twigElevation = bt(-0.75, 0.82);
         const twigReach = hR * (k === 2 ? bt(0.16, 0.36) : bt(0.57, 1.04));
         const twigTarget = center.clone().add(new Vector3(Math.cos(twigAngle) * twigReach, twigElevation * vR, Math.sin(twigAngle) * twigReach));
-        twigTarget.y -= bt(0.1, 0.6);
+        twigTarget.y -= bt(0.1, 0.6) * reach;
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), r, 4, 0.64);
         const twigRadius = Math.max(0.012, secondaryRadius * (1 - twigT) * 0.4);
         tube(wood, twig, taper(twig, twigRadius, 0.004), 3, r, { color: barkColor, roughness: 0.02 });
@@ -755,7 +781,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
           const direction = u.clone().multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle)).addScaledVector(axis, 0.36).addScaledVector(UP, -0.12).normalize();
           // short sprigs carry dense leaf clusters; the sub-centimetre sprig wood itself is sub-pixel
           // from the ground and is not built
-          const end = start.clone().addScaledVector(direction, bt(0.45, 0.85));
+          const end = start.clone().addScaledVector(direction, bt(0.45, 0.85) * reach);
           leafSpray([start, end], 0.006, 14 * mult, bt(0.9, 1.04), 0.05);
         }
       }
@@ -1064,13 +1090,18 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const d = lobeSpec.density ?? 1;
       eyeOverride = lobeSpec.eye ?? null;
       lobeTone = lobeSpec.tone ?? 1;
+      leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
+      corridorExempt = lobeSpec.corridors === false;
       // a curtain's arms leave the last ~30 % of its long drop (foliateLobe attaches them at
       // 0.4–0.88 of the path it is given: here 0.83–0.97 of the stem, within 0.7 m of the centre),
-      // so the leaves gather around the authored centre instead of trailing up towards the bough
-      const lobePath = hanging ? stem.slice(stem.length - 3) : stem;
-      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d);
+      // so the leaves gather around the authored centre instead of trailing up towards the bough;
+      // a compact clump does the same whichever way its stem runs
+      const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
+      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
       eyeOverride = null;
       lobeTone = 1;
+      leaves.leafShade = cards.leafShade = 1;
+      corridorExempt = false;
     }
   }
 
