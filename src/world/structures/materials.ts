@@ -803,8 +803,14 @@ export const FAR_HALO_RADIUS = 0.7;
 export const FAR_HALO_INTENSITY = 2.5;
 /** linear tint of the halo disc (see above: graded to the frame's 36–38° amber) */
 export const FAR_HALO_TINT: [number, number, number] = [1.0, 0.28, 0.05];
-/** the east peg pods' halo radius as a share of FAR_HALO_RADIUS (the frame's east pair are 9–14 px blobs against the west one's 74) */
-export const FAR_HALO_EAST_SCALE = 0.85;
+/**
+ * the east peg pods' halo radius as a share of FAR_HALO_RADIUS (the frame's east pair are 9–14 px
+ * blobs against the west one's 74). Round 32 integration: 0.85 gave the east pair 15–16 px cores
+ * in D (2× the frame's 7–8 px) and those same two discs are what A sees through the haze from
+ * the stair top (A −0.0046), so the east halos take 0.55 (≈ 0.39 m → ≈ 9 px at 50 m); the west /
+ * crossing pods keep the full radius.
+ */
+export const FAR_HALO_EAST_SCALE = 0.55;
 /** the halo quad sits this far toward the camera from the pod's centre, so the pod's body (r 0.17 m) does not cut a darker core out of it */
 export const FAR_HALO_TOWARD_CAMERA = 0.3;
 
