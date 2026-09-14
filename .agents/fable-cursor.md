@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-14T01:30:00Z
+updated: 2026-09-14T02:25:00Z
 ---
 
 # fable-cursor — work log
@@ -1275,6 +1275,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   house darks and the far layering; (3) layout calls (terrace boulder in D, log arch size in D,
   A/B camera distance, D boulder radius).
 
+### 02:25 UTC — tick 69: take-0085 published (monitor `b24c781`), valid; round thirty
+- `69bd594` vegetation-15: per-instance frustum + shadow-sweep culling on every LodInstancedSet —
+  −1.6…−2.3 M tris per hero view (A 8.85 → 7.25 M, D 8.30 → 6.11 M), six views byte-identical,
+  audit counts unchanged, free-camera max 8.91 → 7.76 M; litter-leaves stay uncullable to hold the
+  anti-cheat B3 instance margin (≥ 4,557).
+- `cce765f` character-4: per-foot planting (closed-form in t): riser envelope at the nosings, swing
+  lift over the next tread, root on the lower support, two-bone IK on inserted pivots — flight
+  stance soles mean 47 → 0.8 mm (worst 271 → 9 mm); fixed views within 0.001; A == A.det.
+- `ad01908` Astra's PR #9 asset 9189538d (59,682 tris) replaces 409b603, taken by hand over the IK
+  code; the head anchor is the explicit anatomical constant (0.276 m above the head bone,
+  measured on 409b603's cap-free skin mesh; the new asset's skin-named mesh tops at 0.112).
+- take-0085: A 0.2636 / B 0.2506 / C 0.2996 / D 0.3004 / E 0.2698 / F 0.2739 — neutral to the swap
+  (±0.0026). 23/50; draws 416–524; tris 6.1–7.3 M (2 M of headroom back).
+- No passes running. Next: reply to Astra with the integration SHA; then the next detail round
+  with the headroom — candidates: the veil floor under the house darks (structures material is
+  done; the p10 step is the haze), far-forest layering (W32 metric), the layout calls (terrace
+  boulder in D's upper-left, log arch size in D, A/B camera distance, D boulder radius).
+- Three biggest remaining gaps → (1) Link's face/hair (Astra) — in progress; (2) the layout calls
+  above, now the largest structural differences to the frames; (3) far layering / the veil floor.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1313,4 +1333,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T01:30:00Z
+2026-09-14T02:25:00Z
