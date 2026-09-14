@@ -23,7 +23,8 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials } from './materials';
+import { createTreeMaterials, NEAR_BOLE_FLOOR } from './materials';
+import { GIANT_BARK_FLOOR, LEAF_FLOOR, type ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
@@ -1192,6 +1193,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const c of seatedColumns) for (const m of c.meshes) {
     const p = c.placements[0];
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
+    // the emergent's bole stands 5 m from camera D: its own bark floor (materials NEAR_BOLE_FLOOR)
+    if (c.params === columnParamSets[COLUMN_EMERGENT]) m.material = mats.giantTreeNear;
   }
   group.add(columnGroup);
   // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
@@ -1810,6 +1813,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       lodLevels: 3,
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
+      /** shade floors as bound (materials/shadeFloor.ts): [lift, texture] — the giants' bark, every leaf, the near bole (the emergent column) */
+      shadeFloors: Object.fromEntries(
+        (
+          [
+            ['giantBark', GIANT_BARK_FLOOR],
+            ['leaf', LEAF_FLOOR],
+            ['nearBole', NEAR_BOLE_FLOOR],
+          ] as [string, ShadeFloor][]
+        ).map(([k, f]) => [k, [f.lift, f.texture]]),
+      ),
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
       /** ctx.shared.lanternLimb: the lantern tree's built limb path for structures to wrap */
