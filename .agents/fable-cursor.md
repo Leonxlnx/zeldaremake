@@ -1507,6 +1507,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   structures-22b is attributing it with single-toggle A captures and repairing it.
 - vegetation-17 still running (one commit, field rules for the new flight).
 
+### 19:10 UTC — tick 84: take-0093 published (monitor `07ac074`), valid; 23/50; D 0.3392 (best)
+- r32/veg merged (`a28bc62`): the D flight's north flank dressed (314 tufts over the tread ends,
+  160 moss, 326 clover, a dark broad-blade pass; p50 0.306 → 0.292, frame 0.207), the south lip
+  turfed in B/E, the old north-steps slope closed low (edge 67.7 → 54.0, frame 51.2), the bed's
+  violets to the frame's two patches (10.4 → 3.2 % of the box; W18 D 0.47 %), a shelf hedge tier +
+  crest bushes for C/F's bank masses; 0 of 19,435 kept instances moved. D 0.3357 → 0.3392, E/F
+  +0.0004…6, B level, A −0.0005, C −0.0009; A 542 / 8.61 M.
+- Running: structures-22b (A's −0.006 attribution). Round thirty-two otherwise landed: takes
+  0090–0093 took D 0.3219 → 0.3392, C 0.2950 → 0.3105, F 0.2748 → 0.2799, B 0.2403 → 0.2485.
+- Three biggest gaps → (1) A: 0.261 vs its 0.2674 peak — the structures round's A cost (in
+  attribution) and the reference's bright hazed top band (ours 0.34 vs 0.47 p50); (2) B/E's dark
+  decile in the trunk / Link's shadow (0.246 vs 0.155) — hemisphere fill / shadow, not vegetation;
+  (3) the air above the arch (0.49 vs 0.58): our 20–40 m crowns where the frame has lit air.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1545,4 +1559,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T18:16:00Z
+2026-09-14T19:12:00Z
