@@ -9941,6 +9941,117 @@
       },
       "prevHash": "sha256:27ce82ac0ab151aa6c22ac355c3b20e4b5fba569629019b63a5c3fba81efd0dd",
       "hash": "sha256:f67a84f3563f5708a34fff0d5c8dc887fa5a3d6c5df22199833e48bb6c12a0b8"
+    },
+    {
+      "id": "take-0093",
+      "number": 93,
+      "at": "2026-09-14T19:01:07.457Z",
+      "sha": "a28bc622f23be4b92ef0cf97abae8e7ae61729c0",
+      "shortSha": "a28bc62",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r32/veg' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W17",
+        "W18",
+        "W02"
+      ],
+      "note": "Round thirty-two, vegetation: the ground around what the hardscape moved. The house-west flight's north flank (frame 56 s: a mossy grassy bank rising beside the risers, p50 0.21) takes 314 flank tufts leaning over the tread ends, 160 moss cushions, 326 clover and a fourth grass pass of broad dark blades, and every plant already standing there its 0.64 tint - p50 0.306 -> 0.292, green 48 -> 55 % (frame 62.5); the flight's south lip beside Link in B/E grows turf at last (the field's transition cell was bare: mask-side rims and sliver turf). The old north-steps slope is closed low where the frame has the hollow's mist and far trunks: tufts over 0.3 m, ferns over 0.45 m, seedheads, bushes and the large laminae pruned, edge energy 67.7 -> 54.0 (frame 51.2), soil share 27 -> 37 %. The D boulder bed's violets return to the frame's two patches - 10.4 -> 3.2 % of the box (frame 1.0 %) with W18's D purple held at 0.47 % of the frame - and the D-visible heads go deeper. A shelf hedge tier, sixteen dark ferns and eight crest bushes stand in for the dark bank masses frames C and F have at the stair's flank; the verge grass's shade lift was swept (0.75x, 0.5x) and kept: the B/E dark decile lives in the trunk and Link's shadow, not the grass. Not one of the 19,435 kept instances moved; 358 pruned, 854 appended in seven new streams. Against the frames: D 0.3357 -> 0.3373 (the ledger's best), E +0.0006, F +0.0004, B level, A -0.0005, C -0.0009 (the crest mass at C's left). Draws 428-540, triangles 7.1-8.6 M, W15 551,703 blades, W17 1,377 ferns, W18 279 flowers, tests 5/5. Still running: structures-22b, attributing A's -0.006 from the arch halos / house floors / pot.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:d98fe095feb741f1e5d69ef67194e9aa4526146a149f43cae921b3fa7be5dbd1",
+        "B_house": "sha256:cdcbdb35ae2cecf0932ea704788bf6877aefa9976d478894af874a272f70ea94",
+        "C_lookback": "sha256:22a065b135cf41b39634c199b68544486844c5fafd250c6401eb40094c2e3f0f",
+        "D_log": "sha256:48f2e57c44ed7c882c35423494a023d539d348bd7ea18f4427af394877b7ad91",
+        "E_ground": "sha256:cdcbdb35ae2cecf0932ea704788bf6877aefa9976d478894af874a272f70ea94",
+        "F_canopy": "sha256:9820b376c77e5786b261888f38d659732caf4d2fe5965d43f856ef47b63240e4"
+      },
+      "distHash": "sha256:78a3eb28a138e1b018960c128a1d8d85888e4a68ef5300fe77542cbfc89f9216",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8606789,
+        "captureMs": 1095859,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W15",
+        "W17",
+        "W18",
+        "W02"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take93-cap",
+        "importedAt": "2026-09-14T19:03:28.211Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:f67a84f3563f5708a34fff0d5c8dc887fa5a3d6c5df22199833e48bb6c12a0b8",
+      "hash": "sha256:582d28bf71a691e87259601779734d803a28d6a9800a68c6cd7551e7f36a1289"
     }
   ]
 }
