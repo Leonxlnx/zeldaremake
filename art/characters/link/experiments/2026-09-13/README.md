@@ -1,5 +1,22 @@
 # Restart checkpoint — unfinished and visually rejected work
 
+Current 2026-09-14 04:25 UTC: Fable integrated `9189538d` as `ad01908`, take0085.
+The new `source-runtime/corneal-candidate.glb`, SHA256
+`6f28903df21df73c964a5863d1a84fa79fae79aed1602170bc840336f90eb889`, improves
+the eye reflections in studio04-03-42 and the actual beb8d88 world04-22-07.
+It preserves every body-geometry/animation/bind accessor byte; only the eyes change.
+Editable source is `corneal-candidate.blend`; `study_cornea.py` and
+`bake_generated_eyes.py` reproduce its preparation/export. Rough lids, facial form and
+slab-like hair remain unfinished. See the dated agent log for exact checks/limits.
+The separate anatomical replacement heads are rejected and must not enter the game.
+
+`../../capture_play_motion.mjs` reviews actual player input/IK and skinned shoe vertices
+against rendered stairs. Full04-17-15 and descent detail04-19-16 reproduce a rear-corner
+penetration of24.18cm while the chosen foot-contact audit says0. Fable has the reproduction
+in PR2 comment5658960062. Those are diagnostics, not sealed takes or accepted motion.
+Earlier04-09-54/04-15-14 captures recorded placement height as root height; their root-step
+numbers must not be interpreted as posed body movement. Later reports use actual scene roots.
+
 Preferred next comparison: `source-runtime/textured-iris-candidate.glb`,
 SHA256 `9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a`.
 It combines boot brass, original surface-following lashes/brows, and an original iris

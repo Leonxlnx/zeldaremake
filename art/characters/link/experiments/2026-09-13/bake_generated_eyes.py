@@ -5,7 +5,7 @@ from pathlib import Path
 job=globals().get('JOB',{})
 folder=job.get('folder','generated-runtime');assert folder in {'generated-runtime','lid-runtime','source-runtime'}
 root=Path(__file__).resolve().parent/folder
-stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate','lid-fit-candidate','orbital-uv-candidate','connected-lid-candidate','hardware-candidate','face-smooth-candidate','eyelash-candidate','textured-iris-candidate'}
+stem=job.get('stem','eye-candidate');assert stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate','iris-material-candidate','hair-candidate','material-candidate','lid-fit-candidate','orbital-uv-candidate','connected-lid-candidate','hardware-candidate','face-smooth-candidate','eyelash-candidate','textured-iris-candidate','corneal-candidate'}
 scene=bpy.data.scenes[job.get('scene','Link | generated eye study')];bpy.context.window.scene=scene
 rig=next(o for o in scene.collection.objects if o.type=='ARMATURE')
 body=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name and not o.name.startswith('Link_hair_detail'))
@@ -106,10 +106,10 @@ if stem in {'material-candidate','connected-lid-candidate','face-smooth-candidat
         if kind=='NORMAL':
             normal=nodes.new('ShaderNodeNormalMap');links.new(node.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],shader.inputs['Normal'])
         else:links.new(node.outputs['Color'],shader.inputs['Roughness'])
-body_colour_name={'material-candidate':'scanned-body-color','hardware-candidate':'hardware-body-color','face-smooth-candidate':'hardware-body-color','eyelash-candidate':'hardware-body-color','textured-iris-candidate':'hardware-body-color'}.get(stem,'body-eye-edit-color')
-eye_colour_name='textured-iris-color' if stem=='textured-iris-candidate' else ('anatomical-eye-color' if stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate'} else 'iris-material-color')
+body_colour_name={'material-candidate':'scanned-body-color','hardware-candidate':'hardware-body-color','face-smooth-candidate':'hardware-body-color','eyelash-candidate':'hardware-body-color','textured-iris-candidate':'hardware-body-color','corneal-candidate':'hardware-body-color'}.get(stem,'body-eye-edit-color')
+eye_colour_name='corneal-eye-color' if stem=='corneal-candidate' else ('textured-iris-color' if stem=='textured-iris-candidate' else ('anatomical-eye-color' if stem in {'eye-candidate','eye-depth-candidate','iris-plane-candidate'} else 'iris-material-color'))
 bakes.update(body_color=bake_input(body,body_colour_name,4096),
-    eye_color=bake_input(eyes[0],eye_colour_name,2048 if stem=='textured-iris-candidate' else 1024))
+    eye_color=bake_input(eyes[0],eye_colour_name,2048 if stem in {'textured-iris-candidate','corneal-candidate'} else 1024))
 for eye in eyes:
     bpy.ops.object.select_all(action='DESELECT');eye.select_set(True);bpy.context.view_layer.objects.active=eye
     bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -174,7 +174,7 @@ for animation in gltf['animations']:
     durations[animation['name']]=duration
 assert set(durations)==set(expected)
 triangles=sum(gltf['accessors'][p['indices']]['count']//3 for m in gltf['meshes'] for p in m['primitives'])
-triangle_limit=60000 if stem in {'connected-lid-candidate','eyelash-candidate','textured-iris-candidate'} else (55000 if folder=='source-runtime' else 27000)
+triangle_limit=60000 if stem in {'connected-lid-candidate','eyelash-candidate','textured-iris-candidate','corneal-candidate'} else (55000 if folder=='source-runtime' else 27000)
 assert triangles<triangle_limit and len(gltf['materials'])<=4
 assert all('TANGENT' in p['attributes'] for mesh in gltf['meshes'] for p in mesh['primitives'])
 if stem=='connected-lid-candidate':
@@ -205,4 +205,8 @@ if stem=='eyelash-candidate':
 if stem=='textured-iris-candidate':
     record['source_candidate_sha256']=hashlib.sha256((root/'eyelash-candidate.glb').read_bytes()).hexdigest()
     record['iris_texture_study']=json.loads((root/'textured-iris-v2-study.json').read_text())
+if stem=='corneal-candidate':
+    assert not any('clearcoatNormalTexture' in m.get('extensions',{}).get('KHR_materials_clearcoat',{}) for m in gltf['materials'])
+    record['source_candidate_sha256']=hashlib.sha256((root/'textured-iris-candidate.glb').read_bytes()).hexdigest()
+    record['corneal_study']=json.loads((root/'corneal-surface-v2-study.json').read_text())
 (root/(stem.replace('-candidate','-validation')+'.json')).write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8');print(json.dumps(record))

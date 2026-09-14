@@ -1,0 +1,1671 @@
+{
+  "kind": "Actual player/IK review, not a gauntlet take or animation acceptance",
+  "world_commit": "beb8d882a3ddafa61b3b2e17e7fcb090389749ae",
+  "world_status": "",
+  "glb_sha256": "9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a",
+  "samples": [
+    {
+      "scenario": "flat-transitions",
+      "frame": 0,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014517487026751041,
+        0.47333333333333333
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0138,
+          "groundY": 0.0132,
+          "gapM": 0.0005,
+          "supportY": 0.0138
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0167,
+          "groundY": 0.0145,
+          "gapM": 0.0022,
+          "supportY": 0.0167
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.003,
+        "rootShiftM": -0.0068,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": null,
+      "shoeSurface": []
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 1,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014517487026751041,
+        0.44666666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0139,
+          "groundY": 0.0132,
+          "gapM": 0.0007,
+          "supportY": 0.0138
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0167,
+          "groundY": 0.0145,
+          "gapM": 0.0022,
+          "supportY": 0.0167
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0029,
+        "rootShiftM": -0.0053,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 2,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014517487026751041,
+        0.42
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0143,
+          "groundY": 0.0132,
+          "gapM": 0.001,
+          "supportY": 0.0138
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0167,
+          "groundY": 0.0145,
+          "gapM": 0.0022,
+          "supportY": 0.0167
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.003,
+        "rootShiftM": -0.0023,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 3,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014771133661270142,
+        0.3933333333333333
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0138,
+          "groundY": 0.0131,
+          "gapM": 0.0007,
+          "supportY": 0.0137
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0167,
+          "groundY": 0.0145,
+          "gapM": 0.0022,
+          "supportY": 0.0167
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0031,
+        "rootShiftM": -0.0009,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.0002536466345191002
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 4,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014771133661270142,
+        0.36666666666666664
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0137,
+          "groundY": 0.0131,
+          "gapM": 0.0006,
+          "supportY": 0.0137
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0252,
+          "groundY": 0.0145,
+          "gapM": 0.0106,
+          "supportY": 0.0226
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.009,
+        "rootShiftM": 0.0008,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 5,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014771133661270142,
+        0.33999999999999997
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0346,
+          "groundY": 0.0145,
+          "gapM": 0.02,
+          "supportY": 0.0259
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0089,
+        "rootShiftM": 0.0051,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 6,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014771133661270142,
+        0.3133333333333333
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0483,
+          "groundY": 0.0167,
+          "gapM": 0.0316,
+          "supportY": 0.0296
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0124,
+        "rootShiftM": 0.005,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 7,
+      "gait": "walk",
+      "root": [
+        0,
+        0.015969540923833847,
+        0.2866666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0643,
+          "groundY": 0.016,
+          "gapM": 0.0483,
+          "supportY": 0.0328
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0158,
+        "rootShiftM": 0.0024,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.0011984072625637054
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 8,
+      "gait": "walk",
+      "root": [
+        0,
+        0.015969540923833847,
+        0.25999999999999995
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.08,
+          "groundY": 0.016,
+          "gapM": 0.0641,
+          "supportY": 0.0356
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0184,
+        "rootShiftM": 0.0003,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 9,
+      "gait": "walk",
+      "root": [
+        0,
+        0.015969540923833847,
+        0.23333333333333328
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0924,
+          "groundY": 0.0175,
+          "gapM": 0.075,
+          "supportY": 0.0379
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0204,
+        "rootShiftM": -0.002,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 10,
+      "gait": "walk",
+      "root": [
+        0,
+        0.015969540923833847,
+        0.2066666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0977,
+          "groundY": 0.0175,
+          "gapM": 0.0803,
+          "supportY": 0.0392
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0217,
+        "rootShiftM": -0.0039,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0,
+      "shoeSurface": []
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 11,
+      "gait": "walk",
+      "root": [
+        0,
+        0.017482848837971687,
+        0.17999999999999994
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0175,
+          "groundY": 0.0137,
+          "gapM": 0.0038,
+          "supportY": 0.0175
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0941,
+          "groundY": 0.0395,
+          "gapM": 0.0546,
+          "supportY": 0.0395
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0221,
+        "rootShiftM": -0.006,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.0015133079141378403
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 0,
+      "gait": "walk",
+      "root": [
+        7.045050921054247,
+        0.11350081079421684,
+        0.09886028157768696
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.119,
+          "groundY": 0.0993,
+          "gapM": 0.0198,
+          "supportY": 0.119
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1451,
+          "groundY": 0.1275,
+          "gapM": 0.0176,
+          "supportY": 0.1451
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0304,
+        "rootShiftM": -0.0047,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": null,
+      "shoeSurface": []
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 1,
+      "gait": "walk",
+      "root": [
+        7.066077649214721,
+        0.12059010145553849,
+        0.0824594336125169
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1323,
+          "groundY": 0.1116,
+          "gapM": 0.0207,
+          "supportY": 0.1323
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1503,
+          "groundY": 0.1315,
+          "gapM": 0.0188,
+          "supportY": 0.1503
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0215,
+        "rootShiftM": 0.0036,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0.007089290661321648
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 2,
+      "gait": "walk",
+      "root": [
+        7.087104377375195,
+        0.12767939211686014,
+        0.06605858564734683
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1455,
+          "groundY": 0.125,
+          "gapM": 0.0205,
+          "supportY": 0.145
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1533,
+          "groundY": 0.1327,
+          "gapM": 0.0206,
+          "supportY": 0.1533
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.01,
+        "rootShiftM": 0.0141,
+        "planted": "R",
+        "reachClamped": true
+      },
+      "rootStepY": 0.007089290661321648
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 3,
+      "gait": "walk",
+      "root": [
+        7.108131105535669,
+        0.13476868277818177,
+        0.04965773768217677
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.158,
+          "groundY": 0.1381,
+          "gapM": 0.0199,
+          "supportY": 0.1579
+        },
+        {
+          "foot": "R",
+          "soleY": 0.154,
+          "groundY": 0.1315,
+          "gapM": 0.0225,
+          "supportY": 0.154
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0039,
+        "rootShiftM": 0.0194,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.0070892906613216344
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 4,
+      "gait": "walk",
+      "root": [
+        7.129157833696143,
+        0.1418579734395034,
+        0.0332568897170067
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1629,
+          "groundY": 0.1505,
+          "gapM": 0.0124,
+          "supportY": 0.1629
+        },
+        {
+          "foot": "R",
+          "soleY": 0.164,
+          "groundY": 0.1527,
+          "gapM": 0.0113,
+          "supportY": 0.1614
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0277,
+        "rootShiftM": -0.0047,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0.0070892906613216344
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 5,
+      "gait": "walk",
+      "root": [
+        7.1501845618566175,
+        0.14894726410082476,
+        0.01685604175183664
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1635,
+          "groundY": 0.1596,
+          "gapM": 0.004,
+          "supportY": 0.1635
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1912,
+          "groundY": 0.1519,
+          "gapM": 0.0393,
+          "supportY": 0.1826
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0531,
+        "rootShiftM": -0.0167,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.007089290661321357
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 6,
+      "gait": "walk",
+      "root": [
+        7.171211290017092,
+        0.15603655476214642,
+        0.00045519378666657867
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27
+        },
+        {
+          "foot": "R",
+          "soleY": 0.2312,
+          "groundY": 0.1563,
+          "gapM": 0.0749,
+          "supportY": 0.2125
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.1272,
+        "rootShiftM": -0.0106,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.007089290661321662
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 7,
+      "gait": "walk",
+      "root": [
+        7.192238018177566,
+        0.16158682714801847,
+        -0.015945654178503483
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27
+        },
+        {
+          "foot": "R",
+          "soleY": 0.2705,
+          "groundY": 0.1631,
+          "gapM": 0.1074,
+          "supportY": 0.239
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.1175,
+        "rootShiftM": -0.0078,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.0055502723858720515
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 8,
+      "gait": "walk",
+      "root": [
+        7.21326474633804,
+        0.15786933269955394,
+        -0.032346502143673544
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27
+        },
+        {
+          "foot": "R",
+          "soleY": 0.297,
+          "groundY": 0.1657,
+          "gapM": 0.1314,
+          "supportY": 0.2526
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.1055,
+        "rootShiftM": 0.0057,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": -0.003717494448464531
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 9,
+      "gait": "walk",
+      "root": [
+        7.234291474498514,
+        0.15062681147890955,
+        -0.04874735010884361
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27
+        },
+        {
+          "foot": "R",
+          "soleY": 0.3245,
+          "groundY": 0.27,
+          "gapM": 0.0545,
+          "supportY": 0.27
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0826,
+        "rootShiftM": 0.0333,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": -0.007242521220644393
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 10,
+      "gait": "walk",
+      "root": [
+        7.255318202658988,
+        0.14338429025826518,
+        -0.06514819807401367
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27
+        },
+        {
+          "foot": "R",
+          "soleY": 0.3286,
+          "groundY": 0.27,
+          "gapM": 0.0586,
+          "supportY": 0.27
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0717,
+        "rootShiftM": 0.0495,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": -0.007242521220644366,
+      "shoeSurface": [
+        {
+          "foot": "R",
+          "vertex": 50291,
+          "point": [
+            7.419557955931703,
+            0.3349129367581659,
+            0.04782909738721573
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.07273919301609533
+        },
+        {
+          "foot": "R",
+          "vertex": 50091,
+          "point": [
+            7.31518624891199,
+            0.32800660317979613,
+            -0.02346800964093431
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.08128793462247308
+        },
+        {
+          "foot": "R",
+          "vertex": 50340,
+          "point": [
+            7.464675099642951,
+            0.33985356538631306,
+            -0.006284130380863465
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.08790679400017298
+        }
+      ]
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 11,
+      "gait": "walk",
+      "root": [
+        7.276344930819462,
+        0.27,
+        -0.08154904603918374
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27
+        },
+        {
+          "foot": "R",
+          "soleY": 0.3246,
+          "groundY": 0.27,
+          "gapM": 0.0546,
+          "supportY": 0.27
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.057,
+        "rootShiftM": -0.063,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": 0.12661570974173483
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 0,
+      "gait": "stairs",
+      "root": [
+        15.919644375284486,
+        5.4,
+        -6.823322612721901
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.006,
+        "planted": "L",
+        "reachClamped": false
+      },
+      "rootStepY": null,
+      "shoeSurface": [
+        {
+          "foot": "L",
+          "vertex": 57232,
+          "point": [
+            15.732598295341335,
+            5.403271292706336,
+            -6.796664832314083
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.007223693403505926
+        },
+        {
+          "foot": "L",
+          "vertex": 57077,
+          "point": [
+            15.818455893205908,
+            5.405264235799313,
+            -6.731932420386564
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.003323762776275885
+        },
+        {
+          "foot": "L",
+          "vertex": 57223,
+          "point": [
+            15.796240013222251,
+            5.402661582598159,
+            -6.82066298899799
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.021570549055120125
+        },
+        {
+          "foot": "R",
+          "vertex": 50291,
+          "point": [
+            16.106857941827666,
+            5.405937810689472,
+            -6.856585125829873
+          ],
+          "stair": "stairs-main",
+          "gapM": -0.014922273436782874
+        },
+        {
+          "foot": "R",
+          "vertex": 50091,
+          "point": [
+            15.99361457196356,
+            5.402561306980822,
+            -6.8001134245454775
+          ],
+          "stair": "stairs-main",
+          "gapM": -0.019202362229656877
+        },
+        {
+          "foot": "R",
+          "vertex": 50306,
+          "point": [
+            16.073380624617055,
+            5.4058466654708335,
+            -6.771613297228069
+          ],
+          "stair": "stairs-main",
+          "gapM": -0.01379127245283307
+        },
+        {
+          "foot": "R",
+          "vertex": 50340,
+          "point": [
+            16.081792247600575,
+            5.404590955784028,
+            -6.922602480655018
+          ],
+          "stair": "stairs-main",
+          "gapM": -0.0019734176083519017
+        }
+      ]
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 1,
+      "gait": "stairs",
+      "root": [
+        15.90518849967416,
+        5.4,
+        -6.812047029745846
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4004,
+          "groundY": 5.4,
+          "gapM": 0.0004,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.0051,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 2,
+      "gait": "stairs",
+      "root": [
+        15.890732624063835,
+        5.4,
+        -6.800771446769792
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4026,
+          "groundY": 5.4,
+          "gapM": 0.0026,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.0028,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 3,
+      "gait": "stairs",
+      "root": [
+        15.87627674845351,
+        5.4,
+        -6.7894958637937375
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4084,
+          "groundY": 5.4,
+          "gapM": 0.0084,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": 0.0001,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 4,
+      "gait": "stairs",
+      "root": [
+        15.861820872843184,
+        5.4,
+        -6.778220280817683
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4198,
+          "groundY": 5.4,
+          "gapM": 0.0198,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": 0.0025,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 5,
+      "gait": "stairs",
+      "root": [
+        15.847364997232859,
+        5.4,
+        -6.7669446978416286
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4374,
+          "groundY": 5.4,
+          "gapM": 0.0374,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": 0.0039,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 6,
+      "gait": "stairs",
+      "root": [
+        15.832909121622533,
+        5.4,
+        -6.755669114865574
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4601,
+          "groundY": 5.4,
+          "gapM": 0.0601,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": 0.0037,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 7,
+      "gait": "stairs",
+      "root": [
+        15.818453246012208,
+        5.4,
+        -6.74439353188952
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4829,
+          "groundY": 5.4,
+          "gapM": 0.0829,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": 0.0021,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 8,
+      "gait": "stairs",
+      "root": [
+        15.803997370401882,
+        5.4,
+        -6.733117948913465
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4992,
+          "groundY": 5.4,
+          "gapM": 0.0992,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.0006,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 9,
+      "gait": "stairs",
+      "root": [
+        15.789541494791557,
+        5.4,
+        -6.721842365937411
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.5041,
+          "groundY": 5.4,
+          "gapM": 0.1041,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.0034,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 10,
+      "gait": "stairs",
+      "root": [
+        15.775085619181231,
+        5.4,
+        -6.710566782961356
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4965,
+          "groundY": 5.4,
+          "gapM": 0.0965,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.0054,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0,
+      "shoeSurface": [
+        {
+          "foot": "L",
+          "vertex": 56515,
+          "point": [
+            15.673604488418757,
+            5.494136073727395,
+            -6.632783625394119
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.11557418589369561
+        },
+        {
+          "foot": "L",
+          "vertex": 57232,
+          "point": [
+            15.650405815189654,
+            5.500014718627394,
+            -6.511141461235286
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.12184669772769041
+        },
+        {
+          "foot": "L",
+          "vertex": 57077,
+          "point": [
+            15.720436407048844,
+            5.490098427810499,
+            -6.592153444170984
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.11022571135328807
+        },
+        {
+          "foot": "L",
+          "vertex": 57223,
+          "point": [
+            15.631048815509448,
+            5.501610768825983,
+            -6.576328134778398
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.1260068956855287
+        },
+        {
+          "foot": "R",
+          "vertex": 50291,
+          "point": [
+            15.835276829645334,
+            5.405938568382873,
+            -6.90603301383162
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.03876952950514134
+        },
+        {
+          "foot": "R",
+          "vertex": 50340,
+          "point": [
+            15.767651866000383,
+            5.404592024214232,
+            -6.8856995677535355
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.03729714449455557
+        }
+      ]
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 11,
+      "gait": "stairs",
+      "root": [
+        15.760629743570906,
+        5.4,
+        -6.699291199985302
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.479,
+          "groundY": 5.4,
+          "gapM": 0.079,
+          "supportY": 5.4
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0,
+        "rootShiftM": -0.006,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "rootStepY": 0
+    }
+  ],
+  "images": [
+    "flat-transitions-12.png",
+    "stairs-up-12.png",
+    "stairs-down-12.png"
+  ],
+  "errors": [],
+  "measurement_core_sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+  "setup": {
+    "markers": {
+      "L": [
+        56515,
+        57232,
+        57077,
+        57223
+      ],
+      "R": [
+        50291,
+        50091,
+        50306,
+        50340
+      ]
+    },
+    "stairMeshes": [
+      "stairs-main",
+      "stairs-north"
+    ],
+    "character": {
+      "link": true,
+      "linkSource": "glb",
+      "linkAsset": {
+        "file": "models/link/link-runtime.glb",
+        "sha256": "9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a",
+        "triangles": 59682,
+        "materials": 4,
+        "bones": 19,
+        "clips": [
+          {
+            "name": "idle",
+            "durationS": 3,
+            "strideM": 0,
+            "rate": 1
+          },
+          {
+            "name": "walk",
+            "durationS": 0.55,
+            "strideM": 0.88,
+            "rate": 1
+          },
+          {
+            "name": "run",
+            "durationS": 0.566667,
+            "strideM": 2.21,
+            "rate": 1
+          },
+          {
+            "name": "stairs",
+            "durationS": 0.733333,
+            "strideM": 0.8066667,
+            "rate": 1
+          }
+        ],
+        "loadMs": 348,
+        "headTopOffsetM": 0.276,
+        "headAnchor": "anatomical-constant",
+        "skinTopM": 0.1122
+      },
+      "linkFallbackReason": null,
+      "animations": 4,
+      "animationNames": [
+        "idle",
+        "walk",
+        "run",
+        "stairs"
+      ],
+      "fairy": true,
+      "fairyTrail": 16,
+      "npcs": 3,
+      "geometry": "glb-link+procedural-npcs-v1",
+      "triangles": 78728,
+      "linkTriangles": 59682,
+      "linkHeight": 1.1998,
+      "rigMeshesBeforeMerge": 122,
+      "rigMeshes": 83,
+      "rigMergedMeshes": 33,
+      "mode": "play",
+      "view": null,
+      "linkGait": "idle",
+      "linkFeetContact": [
+        {
+          "foot": "L",
+          "soleY": 0.0665,
+          "groundY": 0.0256,
+          "gapM": 0.0409,
+          "supportY": 0.0362
+        },
+        {
+          "foot": "R",
+          "soleY": 0.023,
+          "groundY": 0.0177,
+          "gapM": 0.0052,
+          "supportY": 0.023
+        }
+      ],
+      "linkIk": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0133,
+        "rootShiftM": -0.0004,
+        "planted": "R",
+        "reachClamped": false
+      },
+      "samplePositions": {
+        "feet": [
+          [
+            2.374066755718661,
+            0.022955482825636836,
+            4.336894713616866
+          ],
+          [
+            4.95403307828862,
+            0.6959947209711403,
+            5.379410795823784
+          ],
+          [
+            -6.552368066413118,
+            0.18931696819672444,
+            -1.9316473029795502
+          ],
+          [
+            10.557831303230683,
+            1.0342677072747044,
+            -7.516706714767864
+          ]
+        ]
+      },
+      "contactShadows": 4,
+      "pavingSurface": {
+        "cells": 122295,
+        "covered": 33414,
+        "cellSize": 0.1,
+        "triangles": 115620
+      },
+      "world": {
+        "link": [
+          2.374066755718661,
+          0.022955482825636836,
+          4.336894713616866
+        ],
+        "linkRoot": [
+          0,
+          0.016718940809369087,
+          0.5
+        ],
+        "navi": [
+          -0.32621368008852925,
+          1.35,
+          0.3731747859331643
+        ],
+        "kids": [
+          [
+            4.95403307828862,
+            0.6959947209711403,
+            5.379410795823784
+          ],
+          [
+            -6.552368066413118,
+            0.18931696819672444,
+            -1.9316473029795502
+          ],
+          [
+            10.557831303230683,
+            1.0342677072747044,
+            -7.516706714767864
+          ]
+        ]
+      },
+      "screen": {
+        "linkFeet": [
+          0.514,
+          0.869
+        ],
+        "linkRoot": [
+          0.174,
+          0.718
+        ],
+        "linkHead": [
+          0.5,
+          0.607
+        ],
+        "navi": [
+          0.138,
+          0.505
+        ],
+        "kids": [
+          {
+            "feet": [
+              0.895,
+              0.701
+            ],
+            "head": [
+              0.891,
+              0.437
+            ]
+          },
+          {
+            "feet": [
+              -0.511,
+              0.705
+            ],
+            "head": [
+              -0.506,
+              0.523
+            ]
+          },
+          {
+            "feet": [
+              0.6,
+              0.48
+            ],
+            "head": [
+              0.597,
+              0.413
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "summary": {
+    "flat-transitions": {
+      "frames": 12,
+      "maxRootStepM": 0.0015133079141378403,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    },
+    "stairs-up": {
+      "frames": 12,
+      "maxRootStepM": 0.12661570974173483,
+      "reachClampedFrames": 1,
+      "measuredShoePoints": 3,
+      "minRenderedStairGapM": 0.07273919301609533,
+      "shoeSamplesBelowMinus2cm": 0
+    },
+    "stairs-down": {
+      "frames": 12,
+      "maxRootStepM": 0,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 13,
+      "minRenderedStairGapM": -0.019202362229656877,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  },
+  "complete": true
+}

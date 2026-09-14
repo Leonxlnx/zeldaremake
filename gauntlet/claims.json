@@ -909,6 +909,16 @@
       "at": "2026-09-14T00:56:50.633Z",
       "expiresHours": 3,
       "scope": "Blender Link studies plus isolated capture.mjs first-frame guard: detect a uniform world even when HUD is visible; preserve full screenshots and B5 thresholds"
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-14T04:04:10.386Z",
+      "expiresHours": 3,
+      "scope": "Blender character art and native clips; review Fable production foot planting without changing his runtime ownership"
     }
   ]
 }

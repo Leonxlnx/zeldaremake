@@ -1,0 +1,85 @@
+{
+  "status": "Exact exported animation channels, times, interpolation and inverse bind matrices match the production9189 source",
+  "source_sha256": "9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a",
+  "candidate_sha256": "6f28903df21df73c964a5863d1a84fa79fae79aed1602170bc840336f90eb889",
+  "clips": {
+    "idle": {
+      "channels": 57,
+      "sha256": "c62c75d08ef2e851f3fbdd4daa08c0ae7dcfdc351af09bb17d1a490fb616b68a"
+    },
+    "walk": {
+      "channels": 57,
+      "sha256": "719dd24a569c4c23c8290723b0fa4ce705f2a19d23094a369a0e254bb3694702"
+    },
+    "run": {
+      "channels": 57,
+      "sha256": "fc7de3570963ddcffa14b42c2f92242ad0ec3666747d911e5b6ebb5787eceb26"
+    },
+    "stairs": {
+      "channels": 57,
+      "sha256": "586850e31a074beda2cb78fd06f4746179f667bf0315c21294490219f10351cd"
+    }
+  },
+  "binds": [
+    {
+      "joints": [
+        "hips",
+        "chest",
+        "neck",
+        "head",
+        "cap",
+        "shoulderL",
+        "elbowL",
+        "handL",
+        "shoulderR",
+        "elbowR",
+        "handR",
+        "thighL",
+        "kneeL",
+        "ankleL",
+        "toeL",
+        "thighR",
+        "kneeR",
+        "ankleR",
+        "toeR"
+      ],
+      "inverseBindSha256": "db2e69a6440e4af87c83d48516ca18928bfc1c13ec7e439b00a40ccd890b3670"
+    }
+  ],
+  "body_geometry_accessor_bytes_identical": true,
+  "body_primitives": [
+    {
+      "attributes": {
+        "POSITION": "00c068be62605804009a8f60876bb73195d66640d7337e935fa75014663d0b1d",
+        "NORMAL": "daf70078359191b991c20db87652fbd97eba130474c558b647588aec4f1f706f",
+        "TEXCOORD_0": "c1349ec2d2b2ca5a9c8dbd29a0e1c165d167c883b2a62b19608995f1de84db1a",
+        "TANGENT": "751926ac878755223d680166c82c3d597d68bbd891b8c91a0f65612efb4e9a7c",
+        "JOINTS_0": "d47c89488f635483f5a3abf6b6d1281779a054d9127a61383bcf2781c018bc89",
+        "WEIGHTS_0": "67b42d908e72107696c2d66c285f9f9019d03cab1ebae26192db4b6cd952d9b2"
+      },
+      "indices": "7c815cbb666f629f74eb1cc1fd016b5b434014a6de05fe7ced19d771df94360b"
+    },
+    {
+      "attributes": {
+        "POSITION": "0827a0d7d329dbb4eb7b91a1d6f798765a1602739380c5ec5664e58df4eff7d6",
+        "NORMAL": "a6299684418b8ebcaf64363788c1e88dbd80e05545a518364094709f397799d4",
+        "TEXCOORD_0": "1c638597167aca794fbb49b3331aa5f971a05c268de01bf391429f87f021b8dc",
+        "TANGENT": "c56b1c948b395abed5a4ded0ca9d0749968d16b49759363f25ae6a068e7a36fe",
+        "JOINTS_0": "02b7f6fdcbc1ebd92d14f47666c4d146adcfe3bb13976e6652a13f4a887da848",
+        "WEIGHTS_0": "7d76a06738f2d0ec67b40f3820af117b246c4029a38a2080c07f59e919e6e1a0"
+      },
+      "indices": "fbefc13476d6e3f3b661c45df43655d6b792fe0b3f49d129dd68ac4d0672fb64"
+    },
+    {
+      "attributes": {
+        "POSITION": "330305e2c988eb385620f1d229086f5d07283cfff52bdaeff47e911c608ba28a",
+        "NORMAL": "0d16d0cae3216b9259b801f9a2e4e605f141b19ee830aa70e0b74172fe8999b7",
+        "TEXCOORD_0": "bf5910511b5851f943ec6d57ae134a47fa6c10b6b1c752b6cb359bdac77b02bf",
+        "TANGENT": "20781d4b184d470bcf95d91c16685f1a21a817e768441db072ee2f7d0eeefae4",
+        "JOINTS_0": "a2e534c9e11df19e0f25a2953dfde98af859f9cb6953d9ef9b8c5748abebf756",
+        "WEIGHTS_0": "e9f876b02701bfc8ff30076be8216c148a355a57c4cab8fa072184026d46a8ff"
+      },
+      "indices": "f626c0c97b4ce111cbaef4e5bb88ab5cbbebc269f95b4540bc23fe07c48395f3"
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 # Link: Blender source and runtime candidate
 
+Current game asset: `experiments/2026-09-13/source-runtime/textured-iris-candidate.glb`
+(`9189538d`, Fable `ad01908`, take0085). It uses the original Rodin Gen-2.5 two-view body,
+Blender corrections and the existing rig/clips. The new `corneal-candidate.glb` (`6f28903d`)
+is the reviewed reflection improvement awaiting handoff. Follow the experiment README and
+latest `.agents/astra-local.md` entry; the root-level files described below are historical.
+
 **Work resumed after the owner's PC restart, 2026-09-13.** This branch includes
 unfinished source changes and rejected experiments. Read [restart notes](experiments/2026-09-13/README.md)
 before rebuilding. `link-study.blend` contains the latest rejected ribbon-hair trial;
