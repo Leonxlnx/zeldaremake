@@ -124,7 +124,7 @@ export const LAYOUT = {
   // North of the plaza the spine bears slightly EAST (reference B recedes at x ≈ 0.3–0.6, on the
   // D axis), runs level through a misty hollow (reference D: mist pool before the arch) and then
   // climbs ≈ 3.4 m to the arch, whose feet sit well above camera D (opening centre y ≈ 0.37).
-  // The raised bank with the small steps is WEST of the hollow (see stairs.north).
+  // The raised boulder bank (terraces.northTerrace) is WEST of the hollow.
   pathSpine: [
     [1, 0, 16],
     [0, 0, 8],
@@ -201,10 +201,14 @@ export const LAYOUT = {
     // (18, -4) sits 0.1 m past the top tread (run 10.8 m); the reference run is ~12.4 m, which the probe
     // forbids (RUBRIC_PROPOSALS 2026-09-12).
     { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 20, rise: 0.27, tread: 0.54, width: 3.0 },
-    // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
-    // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
-    // The base sits just off the paved edge so the first riser meets flattened ground.
-    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 7, rise: 0.26, tread: 0.5, width: 2.6 },
+    // Round 32: the `north` steps are gone — a 7 × 0.26 × 0.5 m flight at base (−0.9, 0, −16),
+    // bearing 217°, climbing WEST off the north path onto the boulder bank. Its frame-14 s
+    // justification ("steps at (0.20–0.25, 0.33–0.40)") does not survive a 3× crop (a far warm
+    // lantern point and a door-like warm shape 15–20 m away, no risers), and in frame 56 s the
+    // flight stood at D (0.34–0.46, 0.60–0.70) — 13–15 m away, three lit risers — where the frame
+    // has the misty hollow's pale open ground (D (0.28–0.40, 0.48–0.62): frame lum p50 0.464,
+    // edge energy 0.026; ours with the flight 0.310 / 0.046). The boulder bank (terraces
+    // .northTerrace) stays as a grassy slope; its W04 probe (−11, 0) is the west ledge, untouched.
     // The flight of frame 56 s' right edge: worn slabs climbing from the north path's east verge to
     // Saria's lawn. Round 32 re-laid it to the frame (a numeric fit of the four lit nosings the
     // frame shows at x 0.86–1.0, y 0.50–0.69, slopes 0.42–0.58 down to the right, and the pale
@@ -244,7 +248,7 @@ export const LAYOUT = {
     // erosion read ~0.12 below the authored height there (0.9 measured 0.777), so 1.05 keeps the
     // probe at ≈ 0.93 (proposal filed for 0.4)
     houseTerrace: { height: 1.05 },
-    /** the boulder bank west of the north path (top of stairs.north; terrace-boulder sits on it) */
+    /** the boulder bank west of the north path (a grassy slope since round 32; terrace-boulder sits on it) */
     northTerrace: { height: 2.6 },
   },
 

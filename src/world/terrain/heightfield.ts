@@ -355,8 +355,9 @@ function landform(x: number, z: number) {
   // the ground climbs ≈ 5.6 m from the hollow to the arch (z ≈ −50) and levels off beyond.
   const hollow = -0.2 * smoothstep(-14, -19, z) * smoothstep(-28, -23, z);
   const northRise = 3.4 * smoothstep(-23, -37, z) + 2.2 * smoothstep(-36, -50, z);
-  // Boulder bank WEST of the north path: the small `north` steps climb its face (top ≈ 1.5 m at
-  // x ≈ −2.4) and it carries on up to the terrace boulder; it merges into the west-north ledge.
+  // Boulder bank WEST of the north path: a grassy 45° face (the `north` steps that climbed it
+  // went in round 32 — frame 56 s has open misty ground there) carrying on up to the terrace
+  // boulder; it merges into the west-north ledge.
   const northBank = T.northTerrace.height * smoothstep(-1.0, -3.6, x) * smoothstep(-14, -17.5, z) * smoothstep(-33, -25, z);
   const north = Math.max(northRise, northBank);
 
