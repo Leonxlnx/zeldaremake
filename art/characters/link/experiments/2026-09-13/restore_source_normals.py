@@ -6,9 +6,11 @@ from mathutils.geometry import barycentric_transform
 from mathutils.bvhtree import BVHTree
 
 almond=bool(globals().get('JOB',{}).get('almond',False))
-scene=bpy.data.scenes['Link | almond socket study' if almond else 'Link | source eye study'];bpy.context.window.scene=scene
+context=bool(globals().get('JOB',{}).get('anatomical_context',False))
+scene_name=globals().get('JOB',{}).get('scene','Link | anatomical context study' if context else ('Link | almond socket study' if almond else 'Link | source eye study'))
+scene=bpy.data.scenes[scene_name];bpy.context.window.scene=scene
 source=bpy.data.objects['Link | source candidate']
-target=next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name)
+target=next(o for o in scene.collection.objects if o.name.startswith('Link | anatomical outfit context')) if context else next(o for o in scene.collection.objects if o.type=='MESH' and 'anatomical eye' not in o.name)
 for rig in [source.parent,target.parent]:rig.data.pose_position='REST'
 src=source.data;dst=target.data
 key=lambda co:tuple(round(v*1e6) for v in co)
@@ -40,5 +42,7 @@ assert matched/total>.95,(matched,total)
 assert max_uv_difference<1e-5,max_uv_difference
 dst.normals_split_custom_set(normals)
 report={'matched_triangles':matched,'body_triangles':total,'max_unchanged_uv_difference':max_uv_difference,'method':'Exact source triangle/corner restoration; barycentric interpolation only at cut triangles; geometric cavity normals'}
-(Path(__file__).resolve().parent/'source-runtime'/('almond-normal-restoration.json' if almond else 'normal-restoration.json')).write_text(json.dumps(report,indent=2)+'\n')
+record_name=globals().get('JOB',{}).get('record_name','anatomical-context-normal-restoration.json' if context else ('almond-normal-restoration.json' if almond else 'normal-restoration.json'))
+assert Path(record_name).name==record_name and record_name.endswith('.json')
+(Path(__file__).resolve().parent/'source-runtime'/record_name).write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report))

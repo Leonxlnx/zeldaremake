@@ -1,0 +1,33 @@
+{
+  "status": "Isolated combined appearance study; head not rigged, not exported or accepted",
+  "removed_old_head_faces": 8739,
+  "retained_hair_cap_ear_faces": 9993,
+  "removed_native_ear_vertices": 626,
+  "lower_outfit_vertices_unchanged": 18188,
+  "head_source": "anatomical-topology-v4-study.blend",
+  "body_source": "Reviewed9189538d native scene; existing UVs/materials",
+  "lower_outfit_preserved_below_z": 0.83,
+  "crown_preserved_above_z": 1.075,
+  "neck_replaced": true,
+  "face_unchanged_above_z": null,
+  "neck_extension": {
+    "source_boundary_vertices": 48,
+    "new_quad_rings_z": [
+      0.825,
+      0.8
+    ]
+  },
+  "proportion_study": {
+    "cheek_width_scale": 1.18,
+    "cheek_upper_fade_z": [
+      0.92,
+      0.988
+    ],
+    "orbital_height_scale": 0.85,
+    "nose_forward_metres": 0.004,
+    "nose_height_scale": 1.7,
+    "min_sampled_jacobian": 0.6485065817832947,
+    "samples": 529,
+    "max_move_metres": 0.015828110417697477
+  }
+}

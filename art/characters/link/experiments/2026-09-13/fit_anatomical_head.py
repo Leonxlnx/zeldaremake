@@ -4,7 +4,9 @@ from pathlib import Path
 from mathutils import Vector,Matrix
 
 root=Path(__file__).resolve().parent/'source-runtime'
-name='Link | anatomical topology v3 study';assert name not in bpy.data.scenes
+shallow=bool(globals().get('JOB',{}).get('shallow',False))
+version='v4' if shallow else 'v3';prefix='anatomical-topology-'+version+'-study'
+name='Link | anatomical topology '+version+' study';assert name not in bpy.data.scenes
 input_path=root/'anatomical-input-v6.blend'
 assert hashlib.sha256(input_path.read_bytes()).hexdigest()==json.loads((root/'anatomical-input-v6.json').read_text())['sha256']
 with bpy.data.libraries.load(str(input_path),link=False) as (_,loaded):
@@ -12,7 +14,7 @@ with bpy.data.libraries.load(str(input_path),link=False) as (_,loaded):
 head,*helpers=loaded.objects
 scene=bpy.data.scenes.new(name);bpy.context.window.scene=scene
 for ob in loaded.objects:scene.collection.objects.link(ob)
-head.name='Link | anatomical topology v3 head'
+head.name='Link | anatomical topology '+version+' head'
 source=bpy.data.scenes['Link | textured iris study v2']
 before=[v.co.copy() for v in head.data.vertices]
 eyes=[];centres=[]
@@ -45,6 +47,10 @@ def fit(p):
     dz=nz-.971
     nz+=.014*(math.erf(dz/.010)-math.erf(dz/.065))*eye_weight
     ny=y-.015*front
+    if shallow:
+        depth=max(0,ny+.132)
+        orbital=max(math.exp(-((nx-side*.0533)/.037)**4-((nz-.971)/.032)**4) for side in [-1,1])
+        ny-=.75*depth*(1-smooth(.035,.085,depth))*orbital
     return Vector((nx,ny,nz))
 
 assert abs(fit(Vector((0,-.12,1.0))).x)<1e-8
@@ -101,8 +107,14 @@ scene.camera.data.type='ORTHO';scene.camera.data.ortho_scale=.37;scene.camera.lo
 scene.camera.rotation_euler=(Vector((0,0,1.00))-scene.camera.location).to_track_quat('-Z','Y').to_euler()
 scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=True;scene.render.threads_mode='FIXED';scene.render.threads=4
 scene.render.resolution_x=720;scene.render.resolution_y=820;scene.render.resolution_percentage=100;scene.view_settings.view_transform='AgX'
-scene.render.filepath=str(root/'face-anatomical-topology-v3-study.png');bpy.ops.render.render(write_still=True)
-bpy.data.libraries.write(str(root/'anatomical-topology-v3-study.blend'),{scene},fake_user=True,compress=True)
+scene.render.filepath=str(root/('face-'+prefix+'.png'));bpy.ops.render.render(write_still=True)
+if shallow:
+    location=scene.camera.location.copy();rotation=scene.camera.rotation_euler.copy()
+    scene.camera.location=(.65,-.65,1.00);scene.camera.rotation_euler=(Vector((0,0,1.00))-scene.camera.location).to_track_quat('-Z','Y').to_euler()
+    scene.render.filepath=str(root/('side-'+prefix+'.png'));bpy.ops.render.render(write_still=True)
+    scene.camera.location=location;scene.camera.rotation_euler=rotation
+bpy.data.libraries.write(str(root/(prefix+'.blend')),{scene},fake_user=True,compress=True)
 record={'status':'Isolated anatomical proportion study, not exported or accepted','source':'MPFB 2.0.17 CC0 core head, pinned80919fa4682335c41847f761a4d79dcad4124732','input_sha256':hashlib.sha256(input_path.read_bytes()).hexdigest(),'vertices':len(before),'base_faces':len(head.data.polygons),'max_vertex_move_metres':max((v.co-p).length for v,p in zip(head.data.vertices,before)),'min_sampled_jacobian':min(jacobians),'jacobian_samples':len(jacobians),'method':'Bounded symmetric eye-opening field on existing quad anatomy; original globes and lids receive the identical deformation; source iris material'}
 record.update(globe_method='Native 64x32 UV spheres at original helper bounds, same deformation as head',iris_radius_metres=.028*.61,iris_coordinates='Object-space circle, independent of deformed globe aspect ratio')
-(root/'anatomical-topology-v3-study.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record))
+record['orbital_depth_compression']={'strength':.75,'front_plane_y':-.132,'fade_depth_metres':[.035,.085]} if shallow else None
+(root/(prefix+'.json')).write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record))

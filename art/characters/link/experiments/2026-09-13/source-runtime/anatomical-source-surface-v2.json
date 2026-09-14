@@ -1,0 +1,11 @@
+{
+  "status": "Isolated surface-fit study, unrigged and unexported",
+  "source": "Original 50000-triangle Link source mesh; reviewed body colour on preserved original UVs; no portrait projection",
+  "source_skin_triangles": 1489,
+  "moved_vertices": 1756,
+  "coloured_vertices": 1786,
+  "protected_orbital_vertices": 777,
+  "max_move_metres": 0.03328191016029649,
+  "method": "Narrow nose/lower mouth registration, then front-depth transfer at fixed registered X/Z; 75% blend outside eye sockets; barycentric sampling of original mesh UVs",
+  "max_protected_orbital_registration_move_metres": 0.002949116337370266
+}

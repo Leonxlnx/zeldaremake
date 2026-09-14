@@ -1,0 +1,22 @@
+{
+  "status": "Isolated anatomical proportion study, not exported or accepted",
+  "source": "MPFB 2.0.17 CC0 core head, pinned80919fa4682335c41847f761a4d79dcad4124732",
+  "input_sha256": "684f6e5a979d8e2a7b9159104f38a95ffeb3add1a13a0d64583d70918d148b38",
+  "vertices": 4233,
+  "base_faces": 4208,
+  "max_vertex_move_metres": 0.05732163240973798,
+  "min_sampled_jacobian": 0.19520139694213867,
+  "jacobian_samples": 605,
+  "method": "Bounded symmetric eye-opening field on existing quad anatomy; original globes and lids receive the identical deformation; source iris material",
+  "globe_method": "Native 64x32 UV spheres at original helper bounds, same deformation as head",
+  "iris_radius_metres": 0.01708,
+  "iris_coordinates": "Object-space circle, independent of deformed globe aspect ratio",
+  "orbital_depth_compression": {
+    "strength": 0.75,
+    "front_plane_y": -0.132,
+    "fade_depth_metres": [
+      0.035,
+      0.085
+    ]
+  }
+}

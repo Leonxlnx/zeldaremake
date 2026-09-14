@@ -4,12 +4,14 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-13T18:11:00Z
+updated: 2026-09-14T02:07:00Z
 ---
 
 # Astra local — Blender character continuation
 
 ## Current task
+
+Latest checkpoint: PR9/742cb26 still delivers reviewed9189538d, with both full CI runs passing on12a7445. The local preview stays fixed on61017. New continuous-head Blender studies are unrigged, unexported and below the portrait target. Fable owns world/loader/IK and has advanced through take0084 and vegetation69bd594. See the dated entries at the end for current evidence; earlier setup/scope notes below are historical.
 Owner resumed character work: install Blender on E:, connect Blender MCP, and try an
 original Link model with attention to face, ankle/boot anatomy and material detail. This
 supersedes the old world-only/character-paused wording for this owner's task. The owner
@@ -498,3 +500,17 @@ The existing MPFB v6 CC0 head has4,233 vertices/4,208 base quad faces, continuou
 v3 uses64x32 native UV spheres at the original helper bounds, passed through exactly the same deformation as the face. Its reused native iris shader now uses object-space circular coordinates (iris radius17.08mm), independent of the globe's deformed bounding-box ratio. Existing unsupported helper UV normal links are removed in this unbaked study; actual globe normals drive the reflections. v3 remains unaccepted and unexported: the face is still bald in this diagnostic and has deep/puffy orbital folds. The proper nasal/lip/eyelid connectivity is retained; further work should adjust socket depth across both skin and globe rather than translate eyes independently or cut new holes.
 
 Extracted only the unmodified CC0 head and two eye helper meshes from the prior v6 native study into source-runtime/anatomical-input-v6.blend (294,842B, SHA684f6e5a979d8e2a7b9159104f38a95ffeb3add1a13a0d64583d70918d148b38). Adjacent JSON records pinned MPFB80919fa4 provenance, CC0 geometry license and original local input hashf645f14e. This removes the helper's dependency on an untracked E:/Tools input for future runs. Native v1/v2/v3 blends, render PNGs and measured JSON are preserved. No new public generation, private access, purchase or desktop input. Blender remains responsive at about9.35GB, four threads. Goal remains active; reference quality is not achieved.
+
+## 2026-09-14 02:07 UTC — neck continuity, rejected proportion changes, partner guard validated
+
+5737da2 validates Fable's exact1fde2b5 frameQuality function from its pinned Git blob against the original CI34790878486 PNGs. Bad A: sigma12.91235, mean0.0580233, rejected. Proper repeat: sigma40.82235, mean0.331815, accepted. The larger15–85% box still sees HUD pixels, so his mean threshold is necessary for this artifact. Hashes/numbers are in docs/proposals/astra-capture-first-frame/fable-frame-quality.json. PR2 comment5657913449 tells Fable to retain his already integrated guard; no duplicate adoption of498791e is needed. Fetched take0084/e3c4df9, LF adoption3389ddf and vegetation69bd594. PR9/9189 remains unchanged; awaiting Fable's per-foot planting/head-anchor integration and sealed take.
+
+fit_anatomical_head.py shallow:true produces v4: the same depth compression on head and globes, sampled minimum Jacobian0.1952. Native front and side renders remain unaccepted. context_anatomical_head.py combines that head with the reviewed outfit/hair. First context accidentally removed brown cap stitching and overlapped the old neck. v2 preserves the complete crown above1.075 and removes the old neck, exposing the head's short, jagged lower boundary. v3 extends that exact48-vertex boundary with two quad rings atZ0.825/0.800, closing the large visible gap.18,188 lower-outfit positions belowZ0.83 stay exact; source-normal restoration matches48,541/48,543 faces with UV delta0. The remaining chest colour seam and head appearance are not accepted. Head and eyes remain unrigged, so no runtime export exists.
+
+Proportion context v4 widened the cheeks too abruptly and made a visible ledge. v5 broadens the fade and reduces eye height; its final sampled Jacobian minimum0.6485 passes, but its wide nose departs from the portrait and is rejected. An earlier quartic nose-height field failed the pre-mutation Jacobian check at0.0531 and produced no accepted output. Numerical nonfolding is not an art verdict. The script retains default v3 and optional proportions:true v5 for reproduction; rejected native files and PNGs remain comparison evidence.
+
+detail_connected_lids.py now reuses its surface-ray method on contextv3, adding170 curves/4,800 triangles. It skips a globe's outer silhouette when there is no corresponding skin/globe intersection; that silhouette cannot anchor a lash. Anatomy remains unrigged and the brows are still largely hidden by the existing fringe. The anatomical-lid-detail scene is unexported. A subsequent depth transfer from the existing original50K source mesh keeps827 orbital vertices fixed and moves1,716 other vertices, but the first result has an incorrect pale tint and nasal discontinuities. It is rejected. A registered nose/mouth variant using the reviewed body colour is being evaluated separately; no delivery promotion.
+
+Own typecheck/build pass at02:02, and four edited Blender scripts passed syntax earlier. Hidden Blender remains responsive, four threads, BelowNormal, about9.9GB resident. Unloaded only saved, exclusively owned context copies and failed partial scenes; no global orphan purge or desktop automation. Public generation quota/access remains unchanged; no additional provider request, private credentials or purchase. Goal is active and the reference quality remains unfinished.
+
+The registered surface-fit v2 moved protected eye corners by up to2.949mm and sampled sRGB image bytes directly into linear vertex colours. v3 fixes both root causes:827 orbital vertices remain exactly fixed, and sRGB decoding is checked against0.5 ->0.21404114. The corrected face is warm again, but its nasal transitions still visibly fail, so no anatomical variant is promoted. Source v1/v2/v3 and pictures are retained. Returning to the reviewed9189 head for the next focused test: a smooth native corneal bulge, with iris X/Z coordinates and head geometry preserved. All new anatomical work remains unrigged/unexported; the exact game delivery stays unchanged.
