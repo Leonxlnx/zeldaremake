@@ -1,6 +1,6 @@
 {
   "source": "Hyper3D Rodin through Blender MCP bundled public free trial; no private API credential used",
-  "status": "Unaccepted experiments; not integrated into the game",
+  "status": "Historical generation studies. The multiview Gen-2.5 body subsequently became production9189538d through Blender edits (Fable ad01908). Open-source asset redistribution remains under review; see ../../ASSET_LICENSE_REVIEW.md.",
   "trials": [
     {
       "directory": "rodin-text-v1",
@@ -61,7 +61,7 @@
       "uuid": "03f2d679-4d9f-412a-a855-25630f526349",
       "tier": "Gen-2.5-Medium",
       "request": "rodin-multiview-gen25-request.json",
-      "result": "50000 triangles, 4K diffuse/ORM/normal maps. Two separate front/back references produce the intended cap tail and separate pack/shield. Face still has malformed pupils and red eyelid strips; surface detail is below reference. This is the source of the isolated 24K generated-runtime candidate, not the delivered game asset."
+      "result": "50000 triangles, 4K diffuse/ORM/normal maps. Two separate front/back references produce the intended cap tail and separate pack/shield. Original face has malformed pupils and red eyelid strips. This became the source of the 24K study and later unreduced Blender candidates, including production9189538d at Fable ad01908; see the dated agent log. Generation provenance does not establish unrestricted redistribution rights."
     }
   ]
 }

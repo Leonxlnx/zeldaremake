@@ -1,5 +1,9 @@
 # Link: Blender source and runtime candidate
 
+Open-source redistribution of the Rodin-derived assets is **not yet cleared**; see
+[the dated license review](ASSET_LICENSE_REVIEW.md). Generated/authored provenance does
+not mean CC0, an unrestricted asset license, or permission to use the Zelda character.
+
 Current game asset: `experiments/2026-09-13/source-runtime/textured-iris-candidate.glb`
 (`9189538d`, Fable `ad01908`, take0085). It uses the original Rodin Gen-2.5 two-view body,
 Blender corrections and the existing rig/clips. The new `corneal-candidate.glb` (`6f28903d`)
