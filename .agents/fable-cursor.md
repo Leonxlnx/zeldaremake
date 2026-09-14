@@ -1549,6 +1549,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   to lawn cells + disc field, sprout packs' collapsed vertices out of the submitted bill);
   atmosphere-11 (three files dirty) and trees-19 (two) measuring without commits yet. Load 7–8.
 
+### 23:30 UTC — tick 88: take-0095 published (monitor `8d5fa2d`), valid; 23/50 — F 0.2928, D 0.3407 (bests)
+- r33/hard merged (`24deb20`): the paving measured in the frames' lit windows and moved to them — the
+  north spine as a disc field (stone runs 0.49 m / gaps 0.10 m = the frames'), joints as lit
+  brown-olive fill (A's dark-under-0.25 share 0.059 → 0.034 = frame), A's seams 3.5 → 6.4 cm, C's
+  trodden patch 70 → 36 % stone; stone tone within 0.02 / 3° / 0.03 on A/C. F +0.0128, A +0.0037,
+  C/D +0.0015, E +0.0011, B −0.0006. Sharpness ratios fell toward 1.0 (A 1.14 → 0.90, F 1.36 →
+  1.06: fewer hard seam lines; the frames are soft video) — W35 ≥ 0.8 holds. −3.6 k tris per view.
+- Left by hardscape (handed on): the joint tufts' green (60–70° bins 14–20 % vs the frames' 1–4 %)
+  lives in the shared sprouts material; D's slab size (0.79 m vs the frame's 1.5–2.5 m); stone
+  surface mottling (moss/grey on the frames' slabs) is a material-texture item.
+- Running: atmosphere-11 (shafts, dapple), trees-19 (crowns over D's upper band, A's top, F's right).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1587,4 +1599,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T22:07:00Z
+2026-09-14T23:32:00Z

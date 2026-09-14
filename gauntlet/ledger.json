@@ -10161,6 +10161,115 @@
       },
       "prevHash": "sha256:582d28bf71a691e87259601779734d803a28d6a9800a68c6cd7551e7f36a1289",
       "hash": "sha256:69743b3d059b014d40d7ecf18d7e98d935c4fa47f17f04bac694830ad9e3c029"
+    },
+    {
+      "id": "take-0095",
+      "number": 95,
+      "at": "2026-09-14T23:26:45.145Z",
+      "sha": "24deb20d19107f58616f7090abff4c96c15f2a66",
+      "shortSha": "24deb20",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r33/hard' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W21",
+        "W20"
+      ],
+      "note": "Round thirty-three, hardscape: the paving's tone and pattern measured in the frames' lit paving windows (Link, HUD and shadows excluded; stone / joint split by Otsu) and moved to them. The north spine that camera B/E look along becomes a disc field - rounded domed stones (across p50 0.71 m, crown 1.2 cm) in 9-22 cm earth gaps with fillets - so the run reads stone runs 0.49 m and gap runs 0.10 m against the frames' 0.46-0.49 and 0.10 (control 0.53 / 0.12) and the dark share behind Link 25 -> 37 % (frame 38); D's stretch takes the field at half strength so its slabs stay flat and large. The joints are no longer dark lines but the frames' lit brown-olive fill (crevice tint 0.3 -> 0.72, seam soil x1.8): A's foreground dark-under-0.25 share 0.059 -> 0.034 (frame 0.034), joint p50 0.17-0.20 under the stone p50 on every view (frames 0.16-0.19); A's plaza seams open 3.5 -> 6.4 cm. Camera C's trodden patch (x 0.2-0.45, y 0.6-0.75) drops from 70 to 36 % stone with a greener earth of its own. Stone tone is inside 0.02 / 3 deg / 0.03 of the frames' on A/C (B -0.025 in our house shade, D +0.020), the per-stone luminance spread on A/C at the frames' 0.03; the dark class's hue histogram moved 13-17 points into the frames' 30 deg bin on B/D, the remaining 60-70 deg surplus being the joint tufts' green (a shared sprouts material, next pass). Streams kept in step: 294 of 590 stones byte-identical, the changes confined to the intended zones, far-spine slabs untouched after a scoping fix; sprout packs' collapsed vertices dropped from the submitted bill (-3,640 triangles per view). Against the frames: F 0.2800 -> 0.2928, A 0.2660 -> 0.2697, C 0.3108 -> 0.3123, D 0.3392 -> 0.3407, E 0.2627 -> 0.2638, B 0.2491 -> 0.2485 (two cells behind Link). Draws unchanged; flagstones 558, joint sprouts 4,452, moss cushions 498, maxBottomGap 0.141.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:ec69408d11681a5cb88e643fc9456af73f497a263128caea3aaec6905b615992",
+        "B_house": "sha256:915501a9c7f80568bfb62f73ce6b918824afccbecd5537223e58dc295c8f558b",
+        "C_lookback": "sha256:31cf360eafd2e1b2ca53b30c499a654978d29099d8b40e32c0e2dc00ca377b07",
+        "D_log": "sha256:a0c9b59ea252818beae1aa769c5f2019eedd0079b8f32f62f2254398dcc3e6ae",
+        "E_ground": "sha256:915501a9c7f80568bfb62f73ce6b918824afccbecd5537223e58dc295c8f558b",
+        "F_canopy": "sha256:d601c4a4492952716bac366dd87dbbfdcea5dc1a6022b1722aa98e3e2e83cf7a"
+      },
+      "distHash": "sha256:4b401283e846ac279ebf6d4d8bae5f32955678d50814d1a41db6f0ea63477d27",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8603149,
+        "captureMs": 1073203,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W03",
+        "W21",
+        "W20"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take95-cap",
+        "importedAt": "2026-09-14T23:27:29.062Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:69743b3d059b014d40d7ecf18d7e98d935c4fa47f17f04bac694830ad9e3c029",
+      "hash": "sha256:9adce8736da541e9b1c2c0380aca60ef0900020dfb0f230571b5f69ed5ec834e"
     }
   ]
 }
