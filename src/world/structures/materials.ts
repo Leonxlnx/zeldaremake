@@ -156,8 +156,13 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
  * bands are where the floors show (the sleeve limb and the trunk's shaded flank): 8 / 4.5 lands
  * B top p10 on the frame (0.289 vs 0.295) and takes B left a third of the way (0.304 vs 0.277)
  * at −0.001 B SSIM and no change to the house box; 7 / 4 overshoots B top (0.272) at −0.002.
+ * Structures-23 (the A repair, single-toggle renders of e328ad7): 8 / 4.5 against 9 / 5 cost
+ * A 0.0012, B 0.0010 and E 0.0007 of SSIM — the shaded flank's contrast, not its level — so
+ * the floors stop at the midpoint 8.5 / 4.75: B top p10 0.297 on the frame's 0.295 (8 / 4.5
+ * 0.289 under it, 9 / 5 0.304 over), B left 0.307, and half the SSIM back (with the halo fade:
+ * A 0.2657 → 0.2665, B 0.2481 → 0.2486; 9 / 5 would give 0.2671 / 0.2491 at B top 0.304).
  */
-export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.5, texture: 1.0 };
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -174,8 +179,9 @@ export const HOUSE_BARK_TINT = 0x70553f;
  *
  * Round 32 (structures-22): lift 9 → 8 with the trunk's 5 → 4.5 — the sweep table under
  * TRUNK_BARK_FLOOR; the sleeve is what moves B's top band (p10 0.304 → 0.289, frame 0.295).
+ * Structures-23: 8 → 8.5 with the trunk's 4.5 → 4.75 (B top p10 0.297; see TRUNK_BARK_FLOOR).
  */
-export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 8, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
+export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 8.5, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
 /** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
  *  reference bough's 52° */
 export const LIMB_BARK_TINT = 0x6c6e48;
