@@ -9057,6 +9057,115 @@
       },
       "prevHash": "sha256:f2ef8c38211c023d040f60e3ee365bc45ee91beb0a994a964e54723dea943ca2",
       "hash": "sha256:26120ecb86cd354c80f270329e556a8e586195d50d8a838f166eeb2ca8b3d08a"
+    },
+    {
+      "id": "take-0085",
+      "number": 85,
+      "at": "2026-09-14T02:14:33.727Z",
+      "sha": "ad01908c389f11dfae4e6bc6b441244457d38c5a",
+      "shortSha": "ad01908",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "character: Astra's reviewed Link 9189538d (her PR #9 / 742cb26: body with native eyes, iris albedo, lashes / brows, boot brass; 59,682 tris, three meshes / four materials, 39.6 MB, the same 19-bone rig, four clips, strides and sole markers) replaces 409b603; the audit's skull-top anchor becomes the explicit anatomical constant she asked for (0.276 m above the head bone, measured on 409b603's cap-free skin mesh) instead of a skin-named mesh's bounding box",
+      "agent": "fable-cursor",
+      "items": [
+        "C01",
+        "C03",
+        "W38"
+      ],
+      "note": "Round thirty: budget, feet and the reviewed Link. Vegetation now culls per instance the way the trees do (padded sphere against the frustum, a shadow capsule along the sun for the casting LODs, empty buckets hidden): every hero view sheds 1.6-2.3 M submitted triangles with the six images byte-identical and nothing replanted - A 8.85 -> 7.25 M, D 8.30 -> 6.11 M against the 9 M line, the walkable build's worst pose 8.91 -> 7.76 M. Link's feet: per-foot planting as a closed-form function of the simulation time - stance soles on the highest ground under heel, ball and toe with a riser envelope at the nosings, swing feet eased from take-off to landing over a lift that clears the next tread, the root on the lower support so a leg is only ever bent, two-bone IK on inserted pivots; ten play-mode poses up the flight take the stance soles from a mean 47 mm (worst 271 mm, a whole riser in the air) to 0.8 mm (worst 9 mm), the fixed views unchanged to 0.001 in feet and head. Link's asset is Astra's reviewed candidate from her PR #9 - native eyes, iris albedo, lashes and brows, boot brass on the same 19-bone rig and four clips, 59,682 triangles - and the audit's skull-top anchor is now the explicit anatomical constant she asked for (0.276 m above the head bone) instead of a skin-named mesh's bounding box. Against the frames: A 0.2649 -> 0.2636, B 0.2492 -> 0.2506, C 0.3021 -> 0.2996, D 0.2995 -> 0.3004, E 0.2683 -> 0.2698, F 0.2765 -> 0.2739 - the swap is neutral, as the last one was; the face and hair are hers and unfinished by her own account. Draws 416-524, retries 0, world-box means 0.36-0.42.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:405a7d282ff9f53622d5873552376f65485ae8f5f44433c0976f6bbc57a58639",
+        "B_house": "sha256:51e735a95e43ccc8575ea33fe9e2d128d3654c4346c500fab8d9ab6c1859154f",
+        "C_lookback": "sha256:8603b11c67f7dbf5745a8f9a99c3e199f302d5515bdcd1bbd02b7a4aeb272d13",
+        "D_log": "sha256:e5cacb8313407fe9921d43e7ebed7678ed200e8c394b40e0bb2cb30dce027c02",
+        "E_ground": "sha256:51e735a95e43ccc8575ea33fe9e2d128d3654c4346c500fab8d9ab6c1859154f",
+        "F_canopy": "sha256:08a6060e08301bd222831c0c59524763d47258347e2d9ee8ce9fb272998393e0"
+      },
+      "distHash": "sha256:a7dd615d8668a40f3f327620287a482b21236c3dabb116200db14904d600cb93",
+      "stats": {
+        "drawCalls": 524,
+        "triangles": 7252661,
+        "captureMs": 654728,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "C01",
+        "C03",
+        "W38"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take85-cap",
+        "importedAt": "2026-09-14T02:15:10.681Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:26120ecb86cd354c80f270329e556a8e586195d50d8a838f166eeb2ca8b3d08a",
+      "hash": "sha256:35d9bd44546b79e7a93f4b952c725416aef8a61234f0c578580548f9266dd1f7"
     }
   ]
 }
