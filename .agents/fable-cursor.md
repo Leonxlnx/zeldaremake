@@ -1376,6 +1376,39 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   workspace. Integration + take-0087 when the reports land.
 - Gaps: unchanged (tone range, D's flight/periphery, bank foliage — all in flight).
 
+### 09:45 UTC — tick 74: round thirty-one merged (`93f5f07`); W38 over the line on A, budget fix running
+- Merged in ownership order: character-5 `cbfddb9` (footprint planting: Astra's frame-70 −243 mm →
+  −1.5 mm, descent 165 → 0 foot-frames below −2 cm, 26 → 0 reach clamps, walk→run root step 31 →
+  3 mm; fixed views unchanged); r31/hard `9440813` (house-west flight, main flight one-to-one:
+  slabs 13–16 cm with 6.5–9.5 cm noses, lit lips, 18/19 lit peaks vs the frames' 16/19);
+  r31/veg `11ade26` (tufts 4594, ferns 1142 → 1392 with pinnae and fiddleheads, broadleaf veins,
+  clustered hedge crowns, bank passes; +15 draws, +0.6…1.1 M tris); r31/tone `dff1e17`
+  (hemiGround back to 0x7d7860, IBL 0.481 → 0.36, haze blur from 25 m; lit far wall shipped as a
+  hook at 0); r31/trees `789d3bb` (plateau-oak D-limb curtains occluding the upper house, D upper
+  band 16 → 0 lamps, north-west-near 1 m west, 26 m far-trunk poles → farLayerCount(D) 2 → 3).
+  Props `93f5f07`: pot and crate off the flight's landing (stairs mask had skipped them; props
+  test red → green).
+- Clean capture of `93f5f07` (take87-cap): A 0.2643 (+0.0024) / B 0.2432 (−0.0057) / C 0.2922
+  (−0.0108) / D 0.3168 (+0.0110) / E 0.2622 (−0.0046) / F 0.2736 (−0.0006); mean 0.2768 → 0.2754.
+  **W38: A 541 draws / 9.10 M tris (limit 9.0), F 8.97 M** — the curtains' 51 k leaves drawn in
+  the main and the shadow pass (+0.84 M per view) on top of the vegetation's +0.97 M in A. Not
+  sealed; trees-17b is splitting the authored lobes into a non-casting mesh (target A ≤ 8.6 M).
+- Atmosphere-9's attribution (the round's most useful number): the lifted darks are the shade
+  floors — `GIANT_BARK_FLOOR` / `LEAF_FLOOR` off moves top/left p10 −0.15…−0.21 (the frame needs
+  −0.05…−0.11), the fog terms ≤ 0.02 each, the round-27 hemiGround doubling −0.03; every far-air
+  brightening costs SSIM because the far rows mix 48–90 m depths inside one window and our arch
+  sits 0.07 of the frame higher than the frame's. → trees-18: floors at half strength; layout:
+  the arch's rows (hardscape-25, running).
+- Running: trees-17b (budget), hardscape-25 (the D flight at the frame's 5 m with the approach
+  re-planned as flight → landing → stones, the north steps' removal/relocation, the arch's rows via
+  the north rise). Queued: vegetation-17 (the bank over the flight, the south verge, D's purple
+  share 9.5 % vs 1 %), trees-18 (shade floors, the north-east hut's lamp under the bough in A),
+  structures-22 (the arch's lanterns don't register at 48–56 m; Saria's root #5 vs the flight).
+- Three biggest gaps → (1) frame D's right edge and rows (flight distance, arch height, the north
+  steps); (2) the shade-floor lift (top/left p10 +0.05…+0.09 over the frames in every view);
+  (3) the far air: D's upper-left p50 0.37 vs 0.51 — 76 % of it is shaded geometry at 12–35 m
+  where the frame has open sunlit air.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1414,4 +1447,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T07:07:00Z
+2026-09-14T09:58:00Z
