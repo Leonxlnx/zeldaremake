@@ -220,8 +220,8 @@ const bedFerns=a.plants.ferns.items.filter(it=>inBox(it,westBed));
 assert.ok(bedFerns.length>=12&&bedFerns.filter(it=>inD(a.plants.ferns,it,[-0.02,0.5,0.24,0.74])).length>=8,`fern cluster on the west verge bed: ${bedFerns.length}`);
 // round 32: frame 56 s' bed is 1 % violet — two small patches at D (0.17–0.27, 0.60–0.67) and
 // (0.05–0.12, 0.55–0.60) beside a lit fern mass, not a field (ours was 9.5 % of the bed box): the
-// heads outside the patches are pruned, the first patch keeps ~60 % of its heads (≈ 26 remain)
-assert.ok(a.plants.flowers.items.filter(it=>inBox(it,westBed)&&inD(a.plants.flowers,it,[-0.02,0.5,0.28,0.76])).length>=16,'purple clumps through the west verge bed (frame 56 / frame 1 left edge)');
+// heads outside the patches are pruned, the first patch keeps ~40 % of its heads (≈ 15 remain)
+assert.ok(a.plants.flowers.items.filter(it=>inBox(it,westBed)&&inD(a.plants.flowers,it,[-0.02,0.5,0.28,0.76])).length>=12,'purple clumps through the west verge bed (frame 56 / frame 1 left edge)');
 assert.ok(a.plants.flowers.items.filter(it=>{const p=camD([it.x,it.y+(top(a.plants.flowers,it)-it.y)*0.75,it.z]);return p&&p.depth<=20&&p.sx>=0.1&&p.sx<=0.3&&p.sy>=0.55&&p.sy<=0.85&&!(p.sx>=0.17&&p.sx<=0.27&&p.sy>=0.6&&p.sy<=0.67)&&!(p.sx>=0.05&&p.sx<=0.12&&p.sy>=0.55&&p.sy<=0.6);}).length===0,'round 32: no violet heads in D\'s boulder bed outside frame 56 s\' two patches');
 assert.ok(a.plants.weeds.items.filter(it=>inBox(it,westBed)&&scaleOf(it)>=1.5).length>=12,'broad-leaf clusters in the west verge bed');
 assert.ok(a.plants.ferns.items.concat(a.plants.flowers.items).filter(it=>inFrame(camA,a.plants.ferns,it,[-0.02,0.45,0.12,0.6])).length>=20,'the bed fills frame 1 s\' left edge (A 0–0.12 × 0.45–0.6)');

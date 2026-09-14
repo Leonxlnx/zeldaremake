@@ -2040,6 +2040,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             const north = (x: number, z: number) => (field.houseFlightLocal(x, z)?.v ?? 0) < 0;
             // cap-1 measured the north flank at p50 0.290 against the frame's 0.207 with a 0.82 tint
             const NORTH_TINT = new Color(0.64, 0.7, 0.58);
+            // cap-2 (0.64 on the new tufts only): p50 0.295 — the box's tufts are two thirds the
+            // round-31 bank / ramp / scatter streams (117 + 25 + 10 against 67 of ours), so every
+            // standing plant on the north flank takes the tint (colours only; nothing moves)
+            for (const set of [tufts, clover, weeds, moss, seedheads]) for (const it of set.items) if (north(it.x, it.z) && field.houseFlankZone(it.x, it.z) > 0.3) it.color = [it.color[0] * NORTH_TINT.r, it.color[1] * NORTH_TINT.g, it.color[2] * NORTH_TINT.b];
             /**
              * flank ground for the flight's herb layer: on the flank strips, roots on the turf side of
              * the tread ends (the leaning tufts cross), off the cliffs, the rock rings, the trunks, the
@@ -2231,8 +2235,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           const D_BED: readonly [number, number, number, number] = [0.1, 0.55, 0.3, 0.85];
           const D_PATCH_1: readonly [number, number, number, number] = [0.17, 0.6, 0.27, 0.67];
           const D_PATCH_2: readonly [number, number, number, number] = [0.05, 0.55, 0.12, 0.6];
-          // cap-1 (keep 0.6): bed 2.5 % violet at 256 × 144 / 3.9 % at full res, W18 0.323 %
-          const BED_PATCH_KEEP = 0.45;
+          // cap-1 (keep 0.6): bed 2.5 % violet at 256 × 144 / 3.9 % at full res, W18 0.323 %;
+          // cap-2 (keep 0.45, the right verge's two new clusters): 3.55 % at full res, W18 0.532 %
+          const BED_PATCH_KEEP = 0.4;
           const inScreenBox = (p: { sx: number; sy: number } | null, b: readonly [number, number, number, number]) => !!p && p.sx >= b[0] && p.sx <= b[2] && p.sy >= b[1] && p.sy <= b[3];
           const hash01 = (x: number, z: number) => {
             let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -2244,7 +2249,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             if (!p || p.depth > 20) return false;
             if (inScreenBox(p, D_PATCH_2)) return false;
             if (inScreenBox(p, D_PATCH_1)) return hash01(it.x, it.z) > BED_PATCH_KEEP;
-            return inScreenBox(p, D_BED);
+            // the head in the bed, or the far slope's stalks rooted in it with their heads over its top
+            // edge (cap-2: seven at 12 m, x 0.17–0.23, straddling y 0.55)
+            return inScreenBox(p, D_BED) || inScreenBox(field.screenPoint('D_log', it.x, it.y, it.z), D_BED);
           });
           // the frame's bed is a LIT yellow-olive fern mass over dark ground (lum sd 0.120 against
           // our 0.078, p50 0.385 against 0.305): the bed's fronds and buds take a warmer, brighter
