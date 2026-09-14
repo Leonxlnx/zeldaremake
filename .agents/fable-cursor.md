@@ -4,26 +4,22 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-14T02:25:00Z
+updated: 2026-09-14T15:20:00Z
 ---
 
 # fable-cursor — work log
 
 ## Current task
-Bootstrapping the whole Phase 1 foundation in one branch so the second agent can join safely:
+Round thirty-two of the frame-matching loop (environment only, per the owner): frame D one-to-one
+— the house-west flight at the frame's 5 m, the north steps removed and the arch on the frame's
+rows landed in take-0090 (D 0.334, the ledger's best); running now in parallel worktrees:
+atmosphere-10 (the lit far wall behind the arch, D's far clearing), structures-22 (the arch's
+lanterns readable at 50 m, Saria's trunk over the flight, the pot), vegetation-17 (the flight's
+verges, the old steps' slope, D's purple share, the frames' dark bank masses). Hourly takes from a
+clean worktree via `take.mjs --import`; heartbeats when the tree is unchanged.
 
-1. Vite + Three.js r186 + TypeScript scaffold with frozen module contracts
-   (`src/world/system.ts`, `layout.ts`, `terrain/heightfield.ts`, `wind/wind.ts`, `capture/api.ts`).
-2. Collaboration protocol (`AGENTS.md`, `.agents/`, `PROJECT_STATE.md`, `INBOX.md`).
-3. The Gauntlet: 50-item rubric (`gauntlet/rubric.json`, hash-locked), loop (`GAUNTLET.md`),
-   anti-cheat + capture/compare/score/take tooling, CI workflows.
-4. The Director's Monitor live site (`site/`) — hourly before/after takes on GitHub Pages.
-5. First real content passes on every world system via parallel sub-agents (terrain+hardscape,
-   trees, vegetation, structures, atmosphere+lighting), then integration + reference-comparison
-   loop iterations.
-
-Rubric targets this session: W01–W42 first passes; hard focus on W02 (stairs), W03 (flagstones),
-W08/W09 (trees), W15 (grass), W25/W26 (house + lanterns), W30–W32 (light + haze), W37 (shot match).
+Rubric targets: W02/W04/W29/W32 (layout and stairs), W09/W10/W11 (trees), W15–W18 (vegetation),
+W25/W26/W29 (structures), W30–W35 (light, haze, clarity), W37 (shot match), W38 (budget).
 
 ## Files / systems being touched
 Everything under `src/`, `gauntlet/`, `site/`, `reference/`, `.github/`, root docs — this is the
