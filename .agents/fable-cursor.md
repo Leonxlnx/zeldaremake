@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-13T19:25:00Z
+updated: 2026-09-14T01:30:00Z
 ---
 
 # fable-cursor — work log
@@ -1255,6 +1255,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (2) Link's art (Astra) + tread IK; (3) budget + layout calls (terrace boulder in D, log arch
   size in D, A/B camera distance, D boulder radius).
 
+### 01:30 UTC (Sep 14) — tick 68: take-0084 published (monitor `3091194`), valid; round twenty-nine
+- `3f9fb33` structures-22: Saria's trunk on its own fully textured shade floor + a moss skin on
+  the shaded faces, recess/arch directionally darker (crown's lit band held), room dimmed — B
+  trunk band median 0.390 → 0.358 (frame 0.314; the p10 step is the veil floor), room p90
+  0.480 → 0.381 (0.357). B 0.2439 → 0.2492, F +0.0028; A −0.0026 / D −0.0028 in the house's cells.
+- Tooling from Astra's Windows/CI findings: `1fde2b5` capture guard on the world box + dark mean
+  (a clear+HUD first frame had passed σ 18.5 and failed B5 on her branch; her measurement of that
+  frame: world content 0 vs 27–36 good); `12a7445` CLI entry guards via fileURLToPath (the six
+  CLIs did nothing from a Windows drive path); `3389ddf` her eol=lf attributes for the
+  hash-locked rubric files (cherry-pick).
+- Astra: PR #9 (`742cb26`) swaps the production Link to her `9189538d…` (59,682 tris, same
+  contract), CI green twice on my base; adopt when character-4 releases glbLink.ts, with the
+  `head`-bone anchor she asked for. Her fern/hair/eye experiments are not upgrades (her words).
+- take-0084: A 0.2649 / B 0.2492 / C 0.3021 / D 0.2995 / E 0.2683 / F 0.2765. 23/50; draws
+  423–526; tris 8.3–8.9 M; retries 0; world-box means 0.36–0.42.
+- Running: vegetation-15 (triangle budget, images held), character-4 (per-foot planting).
+- Three biggest remaining gaps → (1) budget + Link swap (running); (2) the veil floor under the
+  house darks and the far layering; (3) layout calls (terrace boulder in D, log arch size in D,
+  A/B camera distance, D boulder radius).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1293,4 +1313,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-13T19:25:00Z
+2026-09-14T01:30:00Z
