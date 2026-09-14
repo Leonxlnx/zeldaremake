@@ -666,7 +666,7 @@ export function createComposer(opts: ComposerOptions): Composer {
   const applyUniformOverride = (o: Record<string, number>): (() => void)[] => {
     const restores: (() => void)[] = [];
     const seen = new Set<Material>();
-    scene.traverse((obj) => {
+    const visit = (obj: Object3D) => {
       const m = (obj as Mesh).material as Material | Material[] | undefined;
       if (!m) return;
       for (const mat of Array.isArray(m) ? m : [m]) {
@@ -684,7 +684,9 @@ export function createComposer(opts: ComposerOptions): Composer {
           });
         }
       }
-    });
+    };
+    scene.traverse(visit);
+    opts.overlay?.scene.traverse(visit);
     return restores;
   };
 

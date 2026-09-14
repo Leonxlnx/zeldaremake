@@ -114,6 +114,11 @@ export function create(ctx: WorldContext): WorldSystem {
     canopyOpenBearingDeg: Math.round((Math.atan2(HEIGHT_FOG_DEFAULTS.openDir[0], -HEIGHT_FOG_DEFAULTS.openDir[1]) * 180) / Math.PI),
     canopyOpenEdges: [HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi],
     hazeClosedDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeClosed),
+    // past the far tree rows the wall is lit in every direction (the dome's horizon takes the same
+    // colour): the log arch keeps the hollow veil and reads as a silhouette against it
+    hazeFarLitDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFarLit),
+    hazeFarLitStartM: HEIGHT_FOG_DEFAULTS.hazeFarLitStart,
+    hazeFarLitEndM: HEIGHT_FOG_DEFAULTS.hazeFarLitEnd,
     hazeSunLobeGain: HEIGHT_FOG_DEFAULTS.sunLobeGain,
     // Mie-like airlight lobe: side-scatter is the calibrated colour, the veil dims when the sun is
     // behind the camera (shot C); the display value is the far haze seen straight away from the sun

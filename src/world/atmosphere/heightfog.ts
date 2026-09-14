@@ -127,6 +127,18 @@ export interface HeightFogParams {
   openUpHi: number;
   hazeClosed: [number, number, number];
   /**
+   * Lit far wall: past the far tree rows the stand opens and their light arrives through the rows
+   * whatever the canopy overhead does, so from `hazeFarLitStart` (m) to `hazeFarLitEnd` (m) the veil
+   * colour grades to `hazeFarLit` in EVERY direction — after the closed-roof mix, which otherwise
+   * pins the far air of the north hollow to `hazeClosed`. The log arch of shot D sits just inside
+   * the ramp and keeps the dim hollow veil; the rows behind it wear the lit wall, so its body reads
+   * as a silhouette (measured before: arch 0.495 display against a 0.489 wall — the veil at 48–55 m
+   * was the same air as the wall behind it). The sky dome's horizon takes the same colour (sky.ts).
+   */
+  hazeFarLit: [number, number, number];
+  hazeFarLitStart: number;
+  hazeFarLitEnd: number;
+  /**
    * Shaded mid air: multiplier on the veil radiance for fragments whose view distance falls in the
    * window that ramps in over `nearDimIn` (m) and out over `nearDimOut` (m). The air a hero camera
    * stands in is lit by its open surroundings and the far hollow's air is gap-lit (both keep the
@@ -295,6 +307,18 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // the far rows and the dome behind them converge on it instead of the 0.58–0.68 lit air. A hair
   // greener than hazeNear: the reference's forest haze is grey-green (hue 56–65°), ours read yellow
   hazeClosed: [0.19, 0.192, 0.152],
+  // Round 31 (tone): the D arch (48–55 m, 74–86 % veil, body ×0.3) measured 0.495 display against
+  // 0.489 for the rows behind it — with the closed mix the air behind the arch was the arch's own
+  // veil, and no extinction at 0.028/m can silhouette a 50 m object against its own air. The
+  // reference's wall there reads 0.54–0.58 (D top band 56–100 m by depth bin: 0.539 / 0.567 /
+  // 0.576) with the arch at 0.41. Display ≈ 0.59 at the 0.86 cap; the ramp starts past the arch's
+  // far edge (z ≈ −57 seen from D) so its body keeps the hollow veil. Shot B's far rows (50–65 m,
+  // 3.4 % of its frame) rise ≈ 0.04 over a reference that has them at 0.45–0.49 — the same air
+  // 15 m east; the frames' D camera stands 25 m further north than ours, so its far air is the
+  // clearing beyond the arch, B's the stand: one wall colour cannot fit both and D's arch wins.
+  hazeFarLit: [0.31, 0.306, 0.24],
+  hazeFarLitStart: 55,
+  hazeFarLitEnd: 60,
   // was 0.35 / (1.08, 1.0, 0.84): calibrated when shot F was believed to look toward the sun; with
   // the sun at azimuth −128° the sunward views are B's left and A's left quadrant, where the
   // reference's air is its dimmest and greyest (sat 0.11 against our 0.15)
@@ -435,6 +459,9 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_OPEN_UP_LO = ${f(params.openUpLo)};
 	const float KF_OPEN_UP_HI = ${f(params.openUpHi)};
 	const vec3 KF_HAZE_CLOSED = vec3( ${params.hazeClosed.map(f).join(', ')} );
+	const vec3 KF_HAZE_FAR_LIT = vec3( ${params.hazeFarLit.map(f).join(', ')} );
+	const float KF_FAR_LIT_START = ${f(params.hazeFarLitStart)};
+	const float KF_FAR_LIT_END = ${f(params.hazeFarLitEnd)};
 	const float KF_NEAR_DIM = ${f(params.nearDim)};
 	const vec2 KF_NEAR_DIM_IN = vec2( ${params.nearDimIn.map(f).join(', ')} );
 	const vec2 KF_NEAR_DIM_OUT = vec2( ${params.nearDimOut.map(f).join(', ')} );
@@ -535,12 +562,14 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	// scaled by the airlight phase around the sun direction (mu = cos of the ray–sun angle).
 	// openShare = the ray's above-canopy share (1 − kfAltitudeMean): rays that climb out of the
 	// under-canopy layer see the lit open air instead of the dim veil under the closed roof.
-	// open = the direction's canopy openness: closed directions keep the dim closed-roof veil at
-	// every distance (no far / lit brightening)
+	// open = the direction's canopy openness: closed directions keep the dim closed-roof veil out to
+	// the far rows (no far / lit brightening); past them the wall is lit in every direction (see
+	// hazeFarLit)
 	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open ) {
 		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
 		haze = mix( haze, KF_HAZE_LIT, smoothstep( 0.0, KF_LIT_KNEE, openShare ) );
 		haze = mix( KF_HAZE_CLOSED, haze, open );
+		haze = mix( haze, KF_HAZE_FAR_LIT, smoothstep( KF_FAR_LIT_START, KF_FAR_LIT_END, dist ) );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
 		// shaded mid air: the segment under the closed canopy (see nearDim) is dimmer than the lit
