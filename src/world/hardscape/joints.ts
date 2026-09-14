@@ -282,12 +282,16 @@ export async function buildJointMesh(
   // joints are more olive still). Round 10: mossy earth is the default, soil only where feet
   // keep the moss off (zones.ts `jointSoil`); moss proper takes over in patches.
   const { soil, soilMid, turf, turfMid, lawn: lawnFill } = jointFillTones(P);
-  // round 33: the trodden earth of camera C's plaza patch (zones.ts `earthPatch`) and the disc
-  // field's gaps — the mossy earth a shade darker (× 0.85) and greener (lerp 0.55 to the deep
-  // green against the turf's 0.42): frame 46 s's earth is lum p50 0.31–0.34 in the stair side's
-  // shade (hue 47–51°), frame 14 s's gaps behind Link 86,74,43 – 98,84,56 in the light, where
-  // the first cut (0.66 / × 0.85 of the old turf) rendered 56,53,34 — the darkest thing on the path
-  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.55).multiplyScalar(0.85 * 1.15);
+  // round 33: two earths of their own. The trodden earth of camera C's plaza patch (zones.ts
+  // `earthPatch`): frame 46 s's plaza window reads its dark class at hue 51° / lum 0.31 in the
+  // stair side's shade — moss-grown trodden ground — where the mossy turf rendered 42° / 0.34, so
+  // the patch's earth goes four fifths of the way to the deep green with no lift (albedo hue 50°,
+  // Y 0.075). The disc field's gaps (zones.ts `discField`) are the opposite case: frames 14 s /
+  // 56 s read their dark class at hue 38° — soil with grass in it, 86,74,43 – 98,84,56 behind Link
+  // in the light — where ours rendered 46° / 44° with the turf, the moss boost and the field's
+  // tufts, so the field takes a brown earth (hue 22°, Y 0.14) and a third less moss
+  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.8);
+  const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.22).multiplyScalar(1.12);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
   const mossB = new Color(P.mossBright);
@@ -339,11 +343,14 @@ export async function buildJointMesh(
     tmp.lerp(lawnFill, 0.9 * lawnPocket(x, z));
     // round 33: the disc field's gaps and camera C's earth patch (zones.ts): dark trodden earth
     const field = discField(x, z);
-    tmp.lerp(trodden, Math.max(0.35 * field, 0.85 * earthPatch(x, z)));
+    const patch = earthPatch(x, z);
+    tmp.lerp(fieldEarth, 0.55 * field);
+    tmp.lerp(trodden, 0.85 * patch);
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
-    // a little heavier on the lawn paving where the slabs sit in it)
+    // a little heavier on the lawn paving where the slabs sit in it, on camera C's trodden
+    // patch, and a third lighter in the disc field's soil gaps)
     const lawn = lawnZone(x, z);
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * Math.max(lawn, field));
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field) * (1 + 0.5 * patch);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
     tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
     col.push(tmp.r, tmp.g, tmp.b);
