@@ -40,6 +40,9 @@ interface Actor {
   /** gait before the last change and the simulation time of the change (−Infinity = hard switch) */
   gaitFrom: Gait;
   gaitSwitchT: number;
+  /** clip-time shifts (s) of `gait` / `gaitFrom` chosen at the switch (Puppet.alignClip); 0 for hard switches */
+  clipShift: number;
+  clipShiftFrom: number;
   phase: number;
   idleTurn: number;
   look: number;
@@ -83,7 +86,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const spawn = spot('link-spawn');
 
   const linkLoad = await createLinkPuppet();
-  const link: Actor = { puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, gait: 'idle', gaitFrom: 'idle', gaitSwitchT: -Infinity, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
+  const link: Actor = { puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, gait: 'idle', gaitFrom: 'idle', gaitSwitchT: -Infinity, clipShift: 0, clipShiftFrom: 0, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
   group.add(link.puppet.group, link.shadow);
 
   // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door
@@ -98,7 +101,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const puppet = proceduralPuppet(createKokiri(i), GAITS);
     const shadow = createContactShadow(0.3, 0.6);
     group.add(puppet.group, shadow);
-    kids.push({ puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', gaitFrom: 'idle', gaitSwitchT: -Infinity, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
+    kids.push({ puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, gait: 'idle', gaitFrom: 'idle', gaitSwitchT: -Infinity, clipShift: 0, clipShiftFrom: 0, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
 
   // draw-call budget (W38): the parts riding on one joint merge into one mesh per material — the
@@ -129,11 +132,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const faceToward = (a: Actor, x: number, z: number, extraDeg = 0) => {
     a.yaw = Math.atan2(x - a.pos.x, z - a.pos.z) + MathUtils.degToRad(extraDeg);
   };
-  /** hard gait switch (placement) or, with `t`, a crossfade from the current gait starting at t */
+  /**
+   * Hard gait switch (placement: the clips at their hero alignment) or, with `t`, a crossfade from
+   * the current gait starting at t — the incoming clip shifted to the outgoing one's gait phase
+   * (glbLink.ts `alignClip`) so the planted foot matches across the blend.
+   */
   const setGait = (a: Actor, gait: Gait, t: number | null = null) => {
     if (gait === a.gait && t !== null) return;
-    a.gaitFrom = t === null ? gait : a.gait;
-    a.gaitSwitchT = t === null ? -Infinity : t;
+    if (t === null) {
+      a.gaitFrom = gait;
+      a.gaitSwitchT = -Infinity;
+      a.clipShift = 0;
+      a.clipShiftFrom = 0;
+    } else {
+      a.gaitFrom = a.gait;
+      a.gaitSwitchT = t;
+      a.clipShiftFrom = a.clipShift;
+      a.clipShift = a.puppet.alignClip?.(a.gaitFrom, a.clipShiftFrom, gait, t) ?? 0;
+    }
     a.gait = gait;
   };
 
@@ -260,13 +276,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
 
   const poseActor = (a: Actor, t: number, look: Vector3 | null) => {
-    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT }, ground.height, a.contact);
+    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { gait: a.gait, t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT, clipShift: a.clipShift, clipShiftFrom: a.clipShiftFrom }, ground.height, a.contact, ground.surface);
     // contact shadow just above the ground under the body centre
     a.shadow.position.set(a.pos.x, ground.decalHeight(a.pos.x, a.pos.z, a.shadowRadius), a.pos.z);
   };
 
   const feetOf = (a: Actor): V3 => [a.contact.x, a.contact.y, a.contact.z];
-  const rootOf = (a: Actor): V3 => [a.pos.x, ground.height(a.pos.x, a.pos.z), a.pos.z];
+  /** the POSED root: the placement moved by the planting's root shift (the puppet group's position after `pose`) */
+  const rootOf = (a: Actor): V3 => {
+    const p = a.puppet.group.position;
+    return [p.x, p.y, p.z];
+  };
+  /** the ground height the actor is placed at (the root before the planting's shift) */
+  const placementYOf = (a: Actor): number => ground.height(a.pos.x, a.pos.z);
   const headOf = (a: Actor): V3 => {
     a.puppet.headTop(tmpV);
     return [tmpV.x, tmpV.y, tmpV.z];
@@ -312,19 +334,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mode,
       view,
       linkGait: link.gait,
-      /** both soles of the current pose: world height, the exact ground under it, signed gap (m), and the support the IK planted it on (differs from groundY only within a few cm of a tread nosing) */
-      linkFeetContact: link.puppet.feetContact().map((f) => ({ foot: f.foot, soleY: Number(f.soleY.toFixed(4)), groundY: Number(f.groundY.toFixed(4)), gapM: Number(f.gapM.toFixed(4)), supportY: Number(f.supportY.toFixed(4)) })),
-      /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural) */
+      /**
+       * both soles of the current pose: world height, the exact ground under its contact point, signed gap (m), the support the IK
+       * planted it on (differs from groundY only within a few cm of a tread nosing), and the smallest gap over the boot's real
+       * footprint (heel / toe corners, measured on the mesh at load) to the rendered surface — negative = a shoe point inside the stone
+       */
+      linkFeetContact: link.puppet.feetContact().map((f) => ({ foot: f.foot, soleY: Number(f.soleY.toFixed(4)), groundY: Number(f.groundY.toFixed(4)), gapM: Number(f.gapM.toFixed(4)), supportY: Number(f.supportY.toFixed(4)), minShoeGapM: Number(f.minShoeGapM.toFixed(4)), shiftM: Number(f.shiftM.toFixed(4)), pitchRad: Number(f.pitchRad.toFixed(4)), correctionM: Number(f.correctionM.toFixed(4)) })),
+      /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural); the along-facing shift given a foot to clear a nosing lip; a leg clamped at its reach and by how much */
       linkIk: (() => {
         const i = link.puppet.plantInfo();
-        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped };
+        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)) };
       })(),
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
       contactShadows: 1 + kids.length,
       pavingSurface: ground.surfaceInfo(),
-      world: { link: feetOf(link), linkRoot: rootOf(link), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },
+      /** `linkRoot` is the POSED root (placement + the planting's root shift, i.e. the rendered rig's origin); `linkPlacementY` the ground height it was placed at */
+      world: { link: feetOf(link), linkRoot: rootOf(link), linkPlacementY: Number(placementYOf(link).toFixed(4)), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },
       screen: {
-        /** planted sole contact (the lower foot) and the feet point the placement marched to */
+        /** planted sole contact (the lower foot), the posed root and the skull top */
         linkFeet: proj(feetOf(link)),
         linkRoot: proj(rootOf(link)),
         linkHead: proj(headOf(link)),

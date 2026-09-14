@@ -4,10 +4,15 @@
  * this file is the runtime: load, validate (bones / clips), pose deterministically, plant, look.
  *
  * Determinism (W41): the pose is a pure function of the simulation time `t`. Every clip action is
- * kept active and its `time` is SET each frame (clip time = (t · rate + heroOffset) mod duration),
- * then `mixer.update(0)` evaluates the blend — no wall-clock dt accumulation, so `setTime()` jumps
- * and the determinism re-capture reproduce the frame byte for byte. Gait crossfades (play mode)
- * are weights computed from `t − gaitSwitchT`, hard when that is −Infinity (captures).
+ * kept active and its `time` is SET each frame (clip time = (t · rate + heroOffset + clipShift)
+ * mod duration), then `mixer.update(0)` evaluates the blend — no wall-clock dt accumulation, so
+ * `setTime()` jumps and the determinism re-capture reproduce the frame byte for byte. Gait
+ * crossfades (play mode) are weights computed from `t − gaitSwitchT`, hard when that is −Infinity
+ * (captures). `clipShift` (round 5) is chosen at a play-mode switch by `alignClip` so the incoming
+ * clip starts at the gait phase the outgoing one had — the same foot in the same part of its
+ * swing / stance — and the crossfade blends like with like (a walk mid-swing blended with a run
+ * at the opposite foot's swing lifted BOTH soles and bumped the root 3 cm in a frame); it is 0 for
+ * the captures, whose hero offsets are untouched.
  *
  * Playback rate per gait = GAIT_SPEED / (stride / cycle) from her pipeline.json — 1.0 for every
  * clip as delivered; the formula stays so a future clip with a different stride does not slide.
@@ -17,33 +22,53 @@
  * rotation added to a bone would survive into a frame rendered at the same `t` and double up.
  * The leg IK below uses the same device: six pivots (thigh / knee / ankle, both legs).
  *
- * Foot planting (round 4) — the clips were animated on a flat plane; here every sole meets the
- * ground under IT, so on the stair flight (0.27 m risers) and on slopes the two feet stand on
- * different heights instead of one floating or sinking by the local step:
+ * Foot planting (round 4, footprint-aware since round 5) — the clips were animated on a flat
+ * plane; here every sole meets the ground under IT, so on the stair flight (0.27 m risers) and on
+ * slopes the two feet stand on different heights instead of one floating or sinking by the step:
  *   1. the skeleton is posed for `t` with the root at the placement height; both soles (the
- *      ankle-local markers from Astra's manifest) are read. The lower sole is the planted foot;
- *      the other is in stance too (double support) or in a swing — per the clip's swing table,
- *      sampled from the clip itself at load;
- *   2. each foot gets a SUPPORT: a stance foot the PLANT support — the highest ground under its
- *      heel, ball and toe, made continuous by ramping over the 4.5 cm after the toe crosses a
- *      nosing / before the heel leaves one (see the ENVELOPE comment; a toe past a nosing stands
- *      on the upper tread, heel in the air); a swing foot the PLANT support of its take-off spot
- *      easing to that of its landing spot (the same values the stance rule reads at either end,
- *      so toe-off and heel-strike are seamless), held up by the CLEAR support under its ball and
- *      toe so it climbs before a nosing and comes down after leaving a tread, blended out before
- *      heel-strike so it lands ON its landing support;
- *   3. the root is grounded on the LOWER of the two root supports (a contact foot's own support;
- *      a swing foot's eases from the double-support level at toe-off to the one at heel-strike),
- *      so a leg is only ever bent, never stretched — on flat ground exactly the round-3 whole-root
- *      drop, so the hero views A / C / D do not move;
- *   4. each foot is raised by its support's excess over the root support (clamped to
- *      MAX_CORRECTION) with an analytic two-bone IK: the knee bends about its own bend plane, then
- *      the thigh swings the ankle onto the target; the ankle pivot restores the clip's foot
- *      orientation and, for a foot in contact, tilts the sole onto the local slope (central
- *      differences over two baselines, so a step edge reads as an edge and not as a slope).
+ *      ankle-local markers from Astra's manifest, under the ankle) are read. The lower sole is the
+ *      planted foot; the other is in stance too (double support) or in a swing — per the clip's
+ *      swing table, sampled from the clip itself at load;
+ *   2. each stance foot is PLANNED against the rendered surface (ground.ts `surface`: the tread
+ *      tops as built, including the 2–5.7 cm nosing overhang in front of the analytic riser) with
+ *      the boot's REAL footprint — the sole's heel / toe and width measured on the boot mesh at
+ *      load, projected along the facing at the foot's own yaw. A nosing within the footprint puts
+ *      the foot in one of the stance configurations that keep every sole corner on or above the
+ *      stone under it (see `footConfig`): flat on one tread with the heel 2 cm clear of the lip
+ *      behind and the toe 2 cm clear of the riser ahead, or on the upper tread with its toe hanging
+ *      over the nosing (descending — the foot PITCHES toe-down about the edge) or its heel hanging
+ *      behind it, the ball on the stone (ascending). Where the clip's landing spot allows none of
+ *      these — a heel tucked under the lip of the tread above, a toe under the riser ahead — the
+ *      foot is SHIFTED along the facing to the nearer of the two (≤ 8.5 cm, the upper-tread one
+ *      preferred by UPPER_BIAS: it is the shorter reach for the leg), never left with a corner
+ *      inside the stone (round 4 ramped the sole into the riser over 4.5 cm of travel instead;
+ *      Astra's descent review found a heel 24 cm inside the upper tread for a whole stance);
+ *   3. a swing foot eases from its take-off configuration to its landing one (both predicted
+ *      from the table spots carried along the facing — the same values the stance rule reads at
+ *      either end, so toe-off and heel-strike are seamless): support, shift and pitch, the
+ *      descent in step with the root's (DESC_END). Over that the geometry decides: the CLEAR arc
+ *      lifts the toe over the riser it is about to climb, and the LIP lift holds the heel on the
+ *      tread it steps off until it has cleared the lip and lets it down over HEEL_RUNOUT. Both see
+ *      only the edges within this swing's own travel (the riser beyond the landing spot and the
+ *      lip behind the take-off spot are not theirs), so they are exactly zero at every valid
+ *      toe-off and heel-strike;
+ *   4. the root is grounded on the LOWER of the two root supports: a stance foot's own, a swing
+ *      foot's easing from min(take-off support, the other foot's level) to min(landing support,
+ *      the other foot's level) — one riser per swing at most, whatever the stride covers — so a
+ *      leg is only ever bent, never stretched; on flat ground exactly the round-3 whole-root drop,
+ *      so the hero views A / C / D do not move. A foot planted past its leg's reach (a shifted
+ *      stance) lowers the root by the shortfall, and that drop is released over the first RELEASE
+ *      of the foot's swing (re-evaluated against the toe-off pose from the table), not the frame
+ *      the foot lifts;
+ *   5. each foot is raised by its support's excess over the root support (clamped to
+ *      MAX_CORRECTION) and moved by its shift with an analytic two-bone IK: the knee bends about
+ *      its own bend plane, then the thigh swings the ankle onto the target; the ankle pivot
+ *      restores the clip's foot orientation and, for a foot in contact, tilts the sole onto the
+ *      local slope and adds the nosing pitch.
  * Everything is a closed-form function of `t`, the placement and the ground: no smoothing over
- * time, no state. Every support is continuous in the sole's position and the facing (a nosing
- * is a ramp over a few cm of foot travel, never a pop) — see `envelope`.
+ * time, no state. Every support is continuous in the sole's position and the facing (see
+ * `envelope` and the tie band in `footConfig`); a stance foot of these clips is stationary in the
+ * world, so its configuration holds for the whole stance and changes only through a swing.
  */
 import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -83,20 +108,19 @@ const BLEND_S = 0.18;
 
 const REQUIRED_BONES = ['hips', 'chest', 'neck', 'head', 'shoulderL', 'shoulderR', 'elbowL', 'elbowR', 'thighL', 'thighR', 'kneeL', 'kneeR', 'ankleL', 'ankleR'] as const;
 
-/** ankle-local sole contact markers (three.js axes) from her runtime capture manifest — the ball of the foot */
+/** ankle-local sole contact markers (three.js axes) from her runtime capture manifest — under the ankle, on the sole */
 const SOLE_L = new Vector3(-0.000000016, 0.05900068, 0.08564404);
 const SOLE_R = new Vector3(0.000000016, 0.05900068, 0.08564404);
 /**
- * The sole's footprint along the facing, from the marker: the toe joint 9 cm ahead (measured on
- * the rig), the heel 10 cm behind. A stance foot rests on the HIGHEST support under the three
- * points — a foot whose toe is past a nosing stands on the upper tread on its toe, heel in the
- * air, instead of its toe inside the riser — and a swing foot clears with its toe as well as its
- * ball. On the paving all three read the same ground.
+ * The boot's footprint is measured on the mesh at load (`measureFootprint`): the sole's vertices
+ * — those the ankle bone drives, in the lowest SOLE_BAND of the boot — give the heel / toe reach
+ * behind / ahead of the marker along the rest forward (+Z) and the width either side (Astra's
+ * 9189538d boots: heel 0.079, toe 0.141 / 0.135, 0.154 m wide). These are the fallbacks for an
+ * asset whose sole cannot be found.
  */
-const TOE_AHEAD = 0.09;
-const HEEL_BACK = 0.1;
-const FOOT_POINTS = [-HEEL_BACK, 0, TOE_AHEAD];
-/** the reported contact moves from the ball to the toe / heel only when the ball is off its ground by more than this (m) */
+const SOLE_BAND = 0.012;
+const FALLBACK_FOOTPRINT: Footprint = { heel: 0.08, toe: 0.14, latMin: -0.075, latMax: 0.075 };
+/** the reported contact moves from the marker to the toe / heel only when the marker is off its ground by more than this (m) */
 const CONTACT_OFF = 0.03;
 /** the contact point is reported for the other foot only when its sole is nearer its ground by more than this (m) — no flip-flop on float noise */
 const REPORT_TIE = 0.0005;
@@ -111,23 +135,31 @@ const CONTACT_LIFT1 = 0.06;
 /**
  * Swing-foot support: the take-off support eases to the landing support early in the swing when
  * the foot climbs (by RISE_END — the foot reaches the next nosing after ~¼ of the swing, so the
- * rise has to be mostly done by then) and late when it descends (DESC0..DESC1 — it travels level
- * and drops onto the lower tread); the root's eases over the whole swing.
+ * rise has to be mostly done by then) and over 0..DESC_END of the swing when it descends, in
+ * step with the root's own descent (step 3), so the trailing foot of a two-tread stride is never
+ * held a riser and a half above a root that has already come down (its knee would fold flat —
+ * round 5's first cut eased the foot from 0.3 and clamped the fold on every such swing). Neither
+ * ease knows where the stone is — the geometric hold and LIP lift below do (they keep the heel on
+ * the tread it steps off until it has cleared the lip), and the foot's support is the higher.
  */
-const RISE_END = 0.4;
-const DESC0 = 0.45;
-const DESC1 = 0.9;
+const RISE_END = 0.9;
+const DESC_END = 0.9;
 /**
- * The CLEAR support blends in from its closed state over the first CLEAR_OPEN of a swing and back
- * out over CLEAR_CLOSE0..1 before heel-strike. The closed state is the sink footprint at slope
- * SWING_LAMBDA — never above the stance support (a gentler sink is lower), never below the ground
- * under the ball (its 7.7 cm ramp is shorter than the toe / heel offsets) — so with the predicted
- * support the swing foot reads exactly the stance rule at toe-off and heel-strike.
+ * The forward CLEAR lift blends in from its closed state over the first CLEAR_OPEN of a swing and
+ * back out over CLEAR_CLOSE0..1 before heel-strike. The closed state is the sink footprint at
+ * slope SWING_LAMBDA — never above the stance support (a gentler sink is lower), never below the
+ * ground under the marker (its 7.7 cm ramp is shorter than the toe / heel offsets) — so with the
+ * predicted support the swing foot reads exactly the stance rule at toe-off and heel-strike.
+ * The LIP lift is exactly zero for every valid stance (its run-outs are the stance margins), so it
+ * only fades over the first LIP_OPEN and the last 1 − LIP_CLOSE of a swing to absorb the tie band
+ * and the table's spot resolution.
  */
 const CLEAR_OPEN = 0.3;
 const CLEAR_CLOSE0 = 0.55;
 const CLEAR_CLOSE1 = 0.85;
 const SWING_LAMBDA = 3.5;
+const LIP_OPEN = 0.1;
+const LIP_CLOSE = 0.95;
 /**
  * Clip tables: samples per cycle, the sole lift above the cycle's floor that ends a stance, and
  * the shortest lift that counts as a swing (the run clip's stance sole bobs by 1–3 mm).
@@ -137,9 +169,19 @@ const STANCE_LIFT = 0.001;
 const MIN_SWING_S = 0.1;
 /** largest vertical foot correction (m): a step edge under one foot can never pull a leg apart */
 const MAX_CORRECTION = 0.3;
+/**
+ * Highest a sole may be above the root's floor (m): the clips' swing arcs peak at 0.15, and a
+ * foot whose support is held a riser above the root (the trailing foot of a descent, before its
+ * heel has cleared the lip) would stack that arc on the riser and put its ankle at the hip (the
+ * shin folds flat: the fold limit MIN_REACH). The arc is flattened toward the support instead —
+ * never below it — so the foot skims the tread it steps off. Never binds on flat ground.
+ */
+const FOLD_MAX = 0.24;
 /** leg extension limits as fractions of the straight leg / the fully folded leg */
 const MAX_REACH = 0.995;
 const MIN_REACH = 1.02;
+/** a target this far (m) past a limit is reported as reach-clamped; the root's extra drop puts a leg exactly at full reach by design */
+const REACH_TOL = 0.001;
 /**
  * Foot tilt: the ground gradient is read over two baselines (±NORMAL_NEAR, ±NORMAL_FAR); a slope
  * reads the same both times, a step edge (tread nosing, slab rim, the 10 cm paving grid) does not
@@ -154,6 +196,45 @@ const STEP_RATIO1 = 0.6;
 const MAX_TILT = 0.35;
 
 /**
+ * Stance configurations at a nosing (`footConfig`). Along the facing, e is the edge's distance
+ * ahead of the sole marker (negative = behind). Descending, a foot may rest on the upper tread
+ * with the edge ≥ EDGE_MARGIN ahead of the marker (the marker on the stone, the toe in the air,
+ * pitched toe-down by up to PITCH_MAX as the overhang grows past PITCH_OVERHANG0), or stand on the
+ * lower tread with its heel HEEL_MARGIN clear of the lip behind. Ascending, it may stand on the
+ * upper tread with the marker at most EDGE_HANG behind the edge (the ball and toe on the stone,
+ * the heel in the air — the boot's ball is 6–7 cm ahead of the marker) or on the lower one with
+ * its toe TOE_MARGIN clear of the riser ahead. The margins are the physical clearances (the LIP
+ * lift's ray reach fades over exactly these, so the lift is zero at every valid stance). Between
+ * those the foot is shifted along the facing to the nearer valid configuration, the one on the
+ * upper tread allowed UPPER_BIAS more (a leg reaches a foot on the upper tread more easily:
+ * higher and, for the leading foot of a descent or the trailing foot of an ascent, closer); the
+ * two tie at one e and are blended over TIE_BAND so the shift is a continuous function of the
+ * landing spot.
+ */
+const EDGE_MARGIN = 0.03;
+const EDGE_HANG = 0.03;
+const HEEL_MARGIN = 0.02;
+const TOE_MARGIN = 0.02;
+const UPPER_BIAS = 0.04;
+const TIE_BAND = 0.01;
+const PITCH_MAX = 0.25;
+const PITCH_OVERHANG0 = 0.02;
+/** a swing foot's take-off pitch fades out over this much of the swing, its landing pitch in over the same at the end */
+const PITCH_FADE = 0.5;
+/**
+ * The LIP lift's run-outs: a swing foot descends its riser over HEEL_RUNOUT of heel travel past
+ * the lip it stepped off and climbs one over TOE_RUNOUT of toe travel toward the riser ahead
+ * (4–6 frames at the clips' foot speeds).
+ */
+const HEEL_RUNOUT = 0.12;
+const TOE_RUNOUT = 0.1;
+/** a take-off leg's extra root drop (its planted foot beyond the leg's reach) is released over this fraction of the swing */
+const RELEASE = 0.3;
+/** footprint scan along the facing: sample spacing and the reach past the footprint's margins */
+const SCAN_STEP = 0.02;
+const SCAN_PAD = 0.02;
+
+/**
  * Riser envelopes — a support under a point p that is a CONTINUOUS function of p although the
  * ground itself pops by a riser at a nosing. Along rays from p, a step is a level change
  * ≥ STEP_MIN between two consecutive samples (a slope never is; slab rims of the paving, ≤ 5 cm,
@@ -166,41 +247,76 @@ const MAX_TILT = 0.35;
  *        — mirror image: past a rising edge the support climbs from the lower level at slope λ.
  * Both are continuous through the crossing for ANY λ (λ may vary from frame to frame without a
  * pop) and rays live in the facing frame, so they are continuous in position and in yaw.
- *   PLANT (a foot in stance) = the highest SINK under the sole's heel, ball and toe, isotropic,
- *         λ PLANT_LAMBDA: the foot rests on the highest ground under its footprint, and where that
- *         would jump — the toe crossing a nosing going up, the heel leaving one going down — the
- *         sole ramps over 4.5 cm AFTER the toe crosses / BEFORE the heel leaves, so the leading
- *         or trailing 4.5 cm of the boot dip into the riser instead of the whole foot hovering
- *         over the lower tread. The ball itself is never below its ground (the toe and heel are
- *         farther out than the ramp). A stance slide can never pop it.
- *   CLEAR (a swing foot) = the highest LIFT under its ball and toe: λ 1.2 ahead (the foot starts
- *         rising 22 cm before a nosing), 2 behind (it comes down over 13 cm after stepping off a
- *         tread), 2.5 sideways. Rearward edges farther than the foot's TRAVEL since toe-off keep
- *         PLANT's slope (TRAVEL_BAND blends): the foot comes down off the tread it just left, not
- *         off an edge it stood next to. It blends in from and back out to the PLANT support over
- *         CLEAR_OPEN / CLEAR_CLOSE so toe-off and heel-strike read exactly the stance rule.
+ *   PLANT (a foot in stance) = the highest SINK under the sole's heel, marker and toe, isotropic,
+ *         λ PLANT_LAMBDA (a 3 cm ramp): the foot rests on the highest stone under its footprint.
+ *         `footConfig` keeps the marker ≥ BALL_MARGIN from any edge, so the ramp is only ever
+ *         entered through the tie band — it makes that crossing continuous instead of a pop.
+ *   CLEAR (a swing foot) = the highest LIFT under its heel, marker and toe along forward / sideways
+ *         rays (λ 1.2 ahead — the foot starts rising 22 cm before a nosing — 2.5 sideways), blended
+ *         in over CLEAR_OPEN: the visible arc over a riser ahead.
+ *   LIP   (a swing foot) = the highest LIFT under its heel, marker and toe with a RUN-OUT instead
+ *         of a slope: (rise · (1 − d / runout))⁺, forward rays TOE_RUNOUT, rearward HEEL_RUNOUT,
+ *         no sideways rays. This is the geometry: a point under a nosing reads the upper level
+ *         (the rendered surface includes the overhang), a point that has just passed a lip is held
+ *         at it and released over the run-out, a point approaching a riser is lifted onto it by
+ *         the time it gets there.
+ * Both LIFTs see only the edges within the swing's own travel: a ray's reach along the facing is
+ * the foot's remaining travel to its landing spot (forward rays) or its travel since take-off
+ * (rearward), each faded out over the stance margin beyond (TOE_MARGIN / HEEL_MARGIN). So the
+ * riser a foot climbs and the lip it steps off count; the riser ahead of its landing spot and the
+ * lip behind its take-off spot do not, and at toe-off and heel-strike of every valid stance
+ * (whose margins keep those edges beyond the fade) both lifts are exactly zero — no phase blend
+ * is needed for continuity, and the stance margins can be the physical clearances rather than the
+ * run-outs.
  */
 const STEP_MIN = 0.06;
 /** tallest level difference an envelope cares about (two risers); bounds each ray's reach */
 const ENVELOPE_RISE_MAX = 0.6;
 const BISECT_ITER = 7;
-const PLANT_LAMBDA = 6;
+const PLANT_LAMBDA = 9;
 const ENVELOPE_RAYS = 8;
-const TRAVEL_BAND = 0.03;
 /** ray directions in the facing frame: [forward, sideways] components */
 const RAY_DIRS: [number, number][] = [];
-/** the CLEAR slopes per ray: for edges nearer than the foot's travel, and beyond it (rearward rays fall back to PLANT's) */
-const CLEAR_NEAR = new Float64Array(ENVELOPE_RAYS);
-const CLEAR_FAR = new Float64Array(ENVELOPE_RAYS);
+/** the forward CLEAR slopes per ray (rearward rays disabled) and the LIP run-outs per ray (sideways rays disabled) */
+const CLEAR_FWD = new Float64Array(ENVELOPE_RAYS);
+const LIP_RUNOUT = new Float64Array(ENVELOPE_RAYS);
 for (let k = 0; k < ENVELOPE_RAYS; k++) {
   const a = (k / ENVELOPE_RAYS) * Math.PI * 2;
   const f = Math.cos(a);
   RAY_DIRS.push([f, Math.sin(a)]);
-  CLEAR_NEAR[k] = f >= 0 ? MathUtils.lerp(2.5, 1.2, f) : MathUtils.lerp(2.5, 2, -f);
-  CLEAR_FAR[k] = f < -1e-6 ? PLANT_LAMBDA : CLEAR_NEAR[k];
+  CLEAR_FWD[k] = f >= -1e-6 ? MathUtils.lerp(2.5, 1.2, Math.max(0, f)) : Infinity;
+  LIP_RUNOUT[k] = f > 1e-6 ? TOE_RUNOUT : f < -1e-6 ? HEEL_RUNOUT : Infinity;
 }
-const PLANT_STEP = 0.025;
+/** ray reach along the facing for the LIFT envelopes: ahead / behind (m), Infinity = unlimited */
+interface Reach {
+  fwd: number;
+  back: number;
+}
+const NO_REACH: Reach = { fwd: Infinity, back: Infinity };
+const PLANT_STEP = 0.015;
 const CLEAR_STEP = 0.06;
+const LIP_STEP = 0.02;
+
+/** the sole's reach from its marker: behind / ahead along the rest forward, and either side (m) */
+interface Footprint {
+  heel: number;
+  toe: number;
+  latMin: number;
+  latMax: number;
+}
+
+/** one stance configuration of a foot (see `footConfig`) */
+interface FootConfig {
+  /** shift along the facing (m, + forward) */
+  shift: number;
+  /** support height of the (shifted) marker: the highest stone under the footprint plus the pitch lift */
+  support: number;
+  /** toe-down pitch (rad) about the nosing ahead, and how far ahead of the shifted marker that edge is */
+  pitch: number;
+  /** the footprint's reach behind / ahead of the marker along the facing at this foot yaw */
+  back: number;
+  ahead: number;
+}
 
 interface Leg {
   side: 'L' | 'R';
@@ -211,6 +327,10 @@ interface Leg {
   kneePivot: Object3D;
   anklePivot: Object3D;
   sole: Vector3;
+  fp: Footprint;
+  /** ankle-local direction of the rest forward (+Z) and the six footprint points (corners, heel / toe centres) on the sole */
+  fwdLocal: Vector3;
+  fpLocal: Vector3[];
   // per-frame scratch (world space)
   hip: Vector3;
   kneeP: Vector3;
@@ -225,18 +345,45 @@ interface Leg {
   active: boolean;
   /** 1 = in contact, 0 = swinging */
   contact: number;
-  /** exact ground under the ball, the stance support of the footprint, the support the foot is corrected onto, its root support */
+  /** foot yaw relative to the facing (rad) in the posed clip */
+  yawRel: number;
+  /** the foot's own stance configuration at its clip sole */
+  cfg: FootConfig;
+  /** exact surface under the marker, the support the foot is corrected onto, its shift / pitch, its root support */
   gExact: number;
-  gPlant: number;
   g: number;
+  shift: number;
+  pitch: number;
   gRoot: number;
   delta: number;
+  /**
+   * root-ease inputs (blended over the active clips): the supports at take-off / landing (both the
+   * stance support for a foot in stance), the swing phase and its weight (0 in stance)
+   */
+  rootOff: number;
+  rootLand: number;
+  phase: number;
+  swingW: number;
+  /** the root support this leg's swing eased from (its take-off double-support level) */
+  rootAtOff: number;
+  /**
+   * extra-drop release (see RELEASE): the ankle target of the foot frozen in its take-off
+   * configuration (world), the hip at toe-off (world xz; y above the root floor of that moment)
+   * and the release weight (0 outside the first RELEASE of a swing)
+   */
+  relA: Vector3;
+  relH: Vector3;
+  relW: number;
   /** the footprint point (offset along the facing) the report treats as the contact, and the exact ground there */
   contactOff: number;
   contactGround: number;
 }
 
-/** one swing of one foot in a clip: clip times and root-relative sole spots at toe-off and heel-strike */
+/**
+ * One swing of one foot in a clip: clip times, root-relative sole spots and foot yaws at toe-off
+ * and heel-strike, and the toe-off pose the extra-drop release re-evaluates (see RELEASE): the
+ * root-relative hip, the ankle orientation and the sole's lift above the lower sole.
+ */
 interface Swing {
   tOff: number;
   tLand: number;
@@ -244,13 +391,21 @@ interface Swing {
   offZ: number;
   landX: number;
   landZ: number;
+  offYaw: number;
+  landYaw: number;
+  offHip: Vector3;
+  offQ: Quaternion;
+  offLift: number;
 }
 
-/** root-space sole path of one foot over one clip cycle (TABLE_N samples) */
+/** root-space sole path of one foot over one clip cycle (TABLE_N samples), with the hip and ankle orientation */
 interface FootPath {
   soleX: Float64Array;
   soleY: Float64Array;
   soleZ: Float64Array;
+  yaw: Float64Array;
+  hip: Vector3[];
+  q: Quaternion[];
 }
 
 /** per clip, per foot: the swings (cyclic clip times; tLand may exceed the duration) */
@@ -261,6 +416,8 @@ export interface LinkClipInfo {
   durationS: number;
   strideM: number;
   rate: number;
+  /** each foot's swings as [toe-off, heel-strike] clip times (s) */
+  swings: { L: [number, number][]; R: [number, number][] };
 }
 
 export interface LinkAssetInfo {
@@ -276,6 +433,8 @@ export interface LinkAssetInfo {
   headAnchor: 'skin-bbox' | 'anatomical-constant';
   /** the skin-named mesh's box top above the head bone (m), for the record (0.276 on 409b603, 0.112 on 9189538d) */
   skinTopM: number;
+  /** the boot footprints measured on the mesh (m from the sole marker), and how many sole vertices each came from */
+  footprint: { L: Footprint & { soleVertices: number }; R: Footprint & { soleVertices: number } };
 }
 
 export interface GlbLink extends Puppet {
@@ -307,27 +466,41 @@ const _normal = new Vector3();
 const _qIk = new Quaternion();
 const _qParent = new Quaternion();
 const _qInv = new Quaternion();
+const _qPitch = new Quaternion();
+const _p = new Vector3();
+const _qYaw = new Quaternion();
+const _reach: Reach = { fwd: Infinity, back: Infinity };
 
 /**
  * A riser envelope at world (x, z) for the unit facing (fx, fz) — see the ENVELOPE comment.
  * `sign` +1 lifts toward higher levels (LIFT), −1 sinks toward lower ones (SINK). Rays are
- * sampled every `step`; per ray the slope is `lamNear[k]` for edges nearer than `travel` and
- * `lamFar[k]` beyond travel + TRAVEL_BAND (blended in between).
+ * sampled every `step`; per ray `ramp[k]` is the slope λ (term = change − λ·d), or with `runout`
+ * the run-out distance (term = change · (1 − d / ramp[k])); Infinity disables the ray. `reach`
+ * limits how far along the facing an edge may lie ahead / behind to count, faded out over the
+ * stance margin beyond (TOE_MARGIN ahead, HEEL_MARGIN behind — see the ENVELOPE comment); the
+ * fade keeps the result continuous in the reach as well as in the position.
  */
-function envelope(ground: GroundSampler, x: number, z: number, fx: number, fz: number, sign: 1 | -1, step: number, lamNear: Float64Array, lamFar: Float64Array, travel: number): number {
+function envelope(ground: GroundSampler, x: number, z: number, fx: number, fz: number, sign: 1 | -1, step: number, ramp: Float64Array, runout: boolean, reach: Reach): number {
   const g0 = ground(x, z);
   let best = 0;
   for (let k = 0; k < ENVELOPE_RAYS; k++) {
+    const r = ramp[k];
+    if (r === Infinity) continue;
+    const f = RAY_DIRS[k][0];
+    const limit = f > 1e-6 ? reach.fwd : f < -1e-6 ? reach.back : Infinity;
+    const band = f > 0 ? TOE_MARGIN : HEEL_MARGIN;
+    // the ray's reach: where even a two-riser change has ramped to nothing, or the reach fade ends
+    let n = Math.ceil((runout ? r : ENVELOPE_RISE_MAX / r) / step - 1e-9);
+    if (limit !== Infinity) n = Math.min(n, Math.ceil((limit + band) / (Math.abs(f) * step) + 1));
     const dx = fx * RAY_DIRS[k][0] + fz * RAY_DIRS[k][1];
     const dz = fz * RAY_DIRS[k][0] - fx * RAY_DIRS[k][1];
-    const lamMin = Math.min(lamNear[k], lamFar[k]);
-    const n = Math.ceil(ENVELOPE_RISE_MAX / lamMin / step - 1e-9);
     let prev = g0;
     for (let j = 1; j <= n; j++) {
       let d = j * step;
       const g = ground(x + dx * d, z + dz * d);
       const change = sign * (g - g0);
-      if (change - lamMin * (d - step) <= best) {
+      const lam = runout ? change / r : r;
+      if (change - lam * (d - step) <= best) {
         // even at the near end of this interval the step could not beat the best term so far
         prev = g;
         continue;
@@ -344,8 +517,8 @@ function envelope(ground: GroundSampler, x: number, z: number, fx: number, fz: n
         }
         d = (lo + hi) / 2;
       }
-      const lam = lamNear[k] === lamFar[k] ? lamNear[k] : MathUtils.lerp(lamNear[k], lamFar[k], MathUtils.smoothstep(d - travel, 0, TRAVEL_BAND));
-      const term = change - lam * d;
+      let term = change - lam * d;
+      if (limit !== Infinity) term *= 1 - MathUtils.smoothstep(Math.abs(f) * d - limit, 0, band);
       if (term > best) best = term;
       prev = g;
     }
@@ -355,32 +528,135 @@ function envelope(ground: GroundSampler, x: number, z: number, fx: number, fz: n
 
 const PLANT_LAMBDAS = new Float64Array(ENVELOPE_RAYS).fill(PLANT_LAMBDA);
 const SWING_LAMBDAS = new Float64Array(ENVELOPE_RAYS).fill(SWING_LAMBDA);
-/** the highest SINK envelope at slope `lam` under the heel, ball and toe of a sole whose ball is at (x, z) */
-function sinkFootprint(ground: GroundSampler, x: number, z: number, fx: number, fz: number, lam: Float64Array): number {
+/** the highest SINK envelope at slope `lam` under the heel, marker and toe of a sole whose marker is at (x, z) and reaches `back` / `ahead` along the facing */
+function sinkFootprint(ground: GroundSampler, x: number, z: number, fx: number, fz: number, back: number, ahead: number, lam: Float64Array): number {
   let g = -Infinity;
-  for (const o of FOOT_POINTS) {
-    const v = envelope(ground, x + fx * o, z + fz * o, fx, fz, -1, PLANT_STEP, lam, lam, 0);
+  for (const o of [-back, 0, ahead]) {
+    const v = envelope(ground, x + fx * o, z + fz * o, fx, fz, -1, PLANT_STEP, lam, false, NO_REACH);
     if (v > g) g = v;
   }
   return g;
 }
-/** the stance support of a sole whose ball is at (x, z) */
-function plantSupport(ground: GroundSampler, x: number, z: number, fx: number, fz: number): number {
-  return sinkFootprint(ground, x, z, fx, fz, PLANT_LAMBDAS);
+/**
+ * The highest LIFT envelope under the heel, marker and toe with the given ray ramps (slopes, or
+ * run-outs with `runout`), each point seeing the edges within `reach` of it along the facing —
+ * the foot translates as a whole, so the reach (its travel) is the same for every point: an edge
+ * beyond where the point lands (plus TOE_MARGIN) or behind where it took off (plus HEEL_MARGIN)
+ * is not this swing's business.
+ */
+function liftFootprint(ground: GroundSampler, x: number, z: number, fx: number, fz: number, back: number, ahead: number, ramp: Float64Array, runout: boolean, step: number, reach: Reach): number {
+  let g = -Infinity;
+  for (const o of [-back, 0, ahead]) {
+    const v = envelope(ground, x + fx * o, z + fz * o, fx, fz, 1, step, ramp, runout, reach);
+    if (v > g) g = v;
+  }
+  return g;
 }
-/** the fully open CLEAR support of a swing sole whose ball is at (x, z): the highest LIFT envelope under its ball and toe; `travel` is the ball's distance from its take-off spot */
-function clearSupport(ground: GroundSampler, x: number, z: number, fx: number, fz: number, travel: number): number {
-  const a = envelope(ground, x, z, fx, fz, 1, CLEAR_STEP, CLEAR_NEAR, CLEAR_FAR, travel);
-  const b = envelope(ground, x + fx * TOE_AHEAD, z + fz * TOE_AHEAD, fx, fz, 1, CLEAR_STEP, CLEAR_NEAR, CLEAR_FAR, travel);
-  return Math.max(a, b);
+
+/** the footprint's reach behind / ahead of the marker along the facing for a foot yawed `yawRel` from it */
+function footReach(fp: Footprint, yawRel: number, out: { back: number; ahead: number }): void {
+  const c = Math.cos(yawRel);
+  const s = Math.sin(yawRel);
+  let back = 0;
+  let ahead = 0;
+  for (const lat of [fp.latMin, fp.latMax]) {
+    for (const along of [-fp.heel, fp.toe]) {
+      const proj = along * c - lat * s;
+      if (proj > ahead) ahead = proj;
+      if (-proj > back) back = -proj;
+    }
+  }
+  out.back = back;
+  out.ahead = ahead;
+}
+
+/**
+ * The stance configuration of a foot whose clip sole marker is at world (x, z), facing (fx, fz)
+ * with the foot yawed `yawRel` from it — see the constants above. The footprint's reach along the
+ * facing follows from the boot's corners at that yaw; the rendered surface is scanned along the
+ * facing through the marker for the nearest step edge (≥ STEP_MIN), bisected to a fraction of a
+ * millimetre. Returns the shift, the support of the shifted marker (the PLANT rule at the shifted
+ * footprint, plus the pitch lift) and the pitch.
+ */
+function footConfig(ground: GroundSampler, x: number, z: number, fx: number, fz: number, yawRel: number, fp: Footprint, out: FootConfig): FootConfig {
+  // footprint reach along the facing: corners (lat, along) rotated by the foot yaw
+  footReach(fp, yawRel, out);
+  const back = out.back;
+  const ahead = out.ahead;
+  // nearest step edge along the facing within the footprint and its margins
+  const s0 = -(back + HEEL_MARGIN + SCAN_PAD);
+  const s1 = ahead + TOE_MARGIN + SCAN_PAD;
+  let e = NaN;
+  let rise = 0;
+  let prevS = s0;
+  let prevG = ground(x + fx * s0, z + fz * s0);
+  for (let d = s0 + SCAN_STEP; d < s1 + SCAN_STEP; d += SCAN_STEP) {
+    const sd = Math.min(d, s1);
+    const g = ground(x + fx * sd, z + fz * sd);
+    if (Math.abs(g - prevG) >= STEP_MIN) {
+      const mid = (prevG + g) / 2;
+      const up = g > prevG;
+      let lo = prevS;
+      let hi = sd;
+      for (let it = 0; it < BISECT_ITER; it++) {
+        const m = (lo + hi) / 2;
+        if (ground(x + fx * m, z + fz * m) - mid >= 0 === up) hi = m;
+        else lo = m;
+      }
+      const ed = (lo + hi) / 2;
+      if (Number.isNaN(e) || Math.abs(ed) < Math.abs(e)) {
+        e = ed;
+        rise = g - prevG;
+      }
+    }
+    prevS = sd;
+    prevG = g;
+    if (sd >= s1) break;
+  }
+  let shift = 0;
+  let pitch = 0;
+  if (!Number.isNaN(e)) {
+    // the two ways out of an invalid straddle (shift magnitudes toward the upper / lower tread)
+    // and their blend at the tie, the upper allowed UPPER_BIAS more; `upperBack` tells which way
+    // the upper tread lies
+    const choose = (upper: number, lowerShift: number, upperBack: boolean) => {
+      const wUpper = 1 - MathUtils.smoothstep(upper - UPPER_BIAS - lowerShift, -TIE_BAND / 2, TIE_BAND / 2);
+      const sUpper = upperBack ? -upper : upper;
+      const sLower = upperBack ? lowerShift : -lowerShift;
+      return sUpper * wUpper + sLower * (1 - wUpper);
+    };
+    if (rise < 0) {
+      // the level DROPS ahead (descending): back onto the upper tread with the toe over the edge,
+      // or forward onto the lower tread with the heel clear of the lip
+      if (e < EDGE_MARGIN && e > -(back + HEEL_MARGIN)) shift = choose(EDGE_MARGIN - e, e + back + HEEL_MARGIN, true);
+    } else if (e > EDGE_HANG && e < ahead + TOE_MARGIN) {
+      // the level RISES ahead (ascending): forward onto the upper tread with the heel hanging, or
+      // back with the toe clear of the riser
+      shift = choose(e - EDGE_HANG, ahead + TOE_MARGIN - e, false);
+    }
+    if (rise < 0) {
+      const eShifted = e - shift;
+      const overhang = ahead - eShifted;
+      if (eShifted >= EDGE_MARGIN - 1e-6 && overhang > 0) pitch = PITCH_MAX * MathUtils.smoothstep(overhang, PITCH_OVERHANG0, ahead - EDGE_MARGIN);
+    }
+  }
+  const sx = x + fx * shift;
+  const sz = z + fz * shift;
+  let support = sinkFootprint(ground, sx, sz, fx, fz, back, ahead, PLANT_LAMBDAS);
+  if (pitch > 0) support += (e - shift) * Math.sin(pitch);
+  out.shift = shift;
+  out.support = support;
+  out.pitch = pitch;
+  return out;
 }
 
 /**
  * Cut one foot's sampled clip path into swings: the foot is in stance while its sole is within
  * STANCE_LIFT of the cycle's lowest sole height; a swing runs from the last stance sample
  * (toe-off) to the first stance sample after it (heel-strike), across the loop seam if need be.
+ * `other` is the other foot's path (for the sole's lift above the lower sole at toe-off).
  */
-function tableSwings(path: FootPath, duration: number): Swing[] {
+function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[] {
   const n = path.soleY.length;
   let floor = Infinity;
   for (let i = 0; i < n; i++) if (path.soleY[i] < floor) floor = path.soleY[i];
@@ -407,7 +683,24 @@ function tableSwings(path: FootPath, duration: number): Swing[] {
     const tOff = mod(((i - 1) / n) * duration, duration);
     const tLand = tOff + ((len + 1) / n) * duration;
     // a lift shorter than MIN_SWING_S is the stance sole bobbing, not a swing
-    if (tLand - tOff >= MIN_SWING_S) swings.push({ tOff, tLand, offX: path.soleX[off], offZ: path.soleZ[off], landX: path.soleX[land], landZ: path.soleZ[land] });
+    if (tLand - tOff >= MIN_SWING_S) {
+      // the toe-off pose relative to the root's FLOOR (the lower sole): the hip's height above it
+      // and this sole's lift above it — the root is grounded by that floor, so both carry over
+      const offFloor = Math.min(path.soleY[off], other.soleY[off]);
+      swings.push({
+        tOff,
+        tLand,
+        offX: path.soleX[off],
+        offZ: path.soleZ[off],
+        landX: path.soleX[land],
+        landZ: path.soleZ[land],
+        offYaw: path.yaw[off],
+        landYaw: path.yaw[land],
+        offHip: new Vector3(path.hip[off].x, path.hip[off].y - offFloor, path.hip[off].z),
+        offQ: path.q[off].clone(),
+        offLift: path.soleY[off] - offFloor,
+      });
+    }
     k += len;
   }
   return swings;
@@ -421,6 +714,34 @@ function swingAt(swings: Swing[], tau: number, duration: number): { swing: Swing
     if (dt < len) return { swing: s, phase: dt / len };
   }
   return null;
+}
+/** in stance at clip time τ: the swing that landed the foot most recently and the clip time since its heel-strike (null without swings) */
+function stanceAt(swings: Swing[], tau: number, duration: number): { swing: Swing; since: number } | null {
+  let best: { swing: Swing; since: number } | null = null;
+  for (const s of swings) {
+    const since = mod(tau - s.tLand, duration);
+    if (!best || since < best.since) best = { swing: s, since };
+  }
+  return best;
+}
+
+/**
+ * Gait phase of a clip at clip time τ from its left foot's first swing: 0..1 through the swing,
+ * 1..2 through the stance. NaN for a clip without swings (idle).
+ */
+function gaitPhase(swings: Swing[], tau: number, duration: number): number {
+  if (!swings.length) return NaN;
+  const s = swings[0];
+  const len = s.tLand - s.tOff;
+  const dt = mod(tau - s.tOff, duration);
+  return dt < len ? dt / len : 1 + (dt - len) / (duration - len);
+}
+/** inverse of `gaitPhase` */
+function gaitPhaseTime(swings: Swing[], phase: number, duration: number): number {
+  const s = swings[0];
+  const len = s.tLand - s.tOff;
+  const p = mod(phase, 2);
+  return mod(s.tOff + (p < 1 ? p * len : len + (p - 1) * (duration - len)), duration);
 }
 
 /**
@@ -461,9 +782,10 @@ function groundTilt(ground: GroundSampler, x: number, z: number, weight: number,
 /**
  * Two-bone IK on one leg: bend the knee about its bend plane, then swing the thigh so the ankle
  * lands on `target` (world). Writes the thigh / knee pivots; `qIk` receives the net world
- * rotation the shin received. Returns true when the target had to be clamped to the leg's reach.
+ * rotation the shin received. Returns how far (m) the target lay beyond the leg's reach (0 when
+ * it was reachable).
  */
-function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): boolean {
+function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): number {
   const H = leg.hip;
   const K = leg.kneeP;
   const A = leg.ankleP;
@@ -482,13 +804,13 @@ function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): boolean {
   let d = _aim.subVectors(target, H).length();
   const dMax = (l1 + l2) * MAX_REACH;
   const dMin = Math.abs(l1 - l2) * MIN_REACH;
-  let clamped = false;
+  let excess = 0;
   if (d > dMax) {
+    excess = d - dMax;
     d = dMax;
-    clamped = true;
   } else if (d < dMin) {
+    excess = dMin - d;
     d = dMin;
-    clamped = true;
   }
   const cosBend = MathUtils.clamp((d * d - l1 * l1 - l2 * l2) / (2 * l1 * l2), -1, 1);
   const bendTarget = Math.acos(cosBend);
@@ -505,7 +827,7 @@ function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): boolean {
   leg.thighPivot.quaternion.copy(_qInv).multiply(_q2).multiply(_qParent);
   _qInv.copy(leg.qThigh).invert();
   leg.kneePivot.quaternion.copy(_qInv).multiply(_q).multiply(leg.qThigh);
-  return clamped;
+  return excess;
 }
 
 /**
@@ -527,6 +849,57 @@ function insertPivot(bone: Object3D, name: string): Object3D {
   pivot.add(inner);
   inner.add(bone);
   return pivot;
+}
+
+/**
+ * Measure a boot's footprint on the rest-posed skinned meshes: the vertices the ankle bone
+ * drives (its dominant skin weight) within SOLE_BAND of the lowest such vertex are the sole; its
+ * reach behind / ahead of the sole marker along the rest forward (+Z) and either side (±X) is the
+ * footprint. Call before anything animates (the meshes' world matrices are the bind pose).
+ */
+function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector3): { fp: Footprint; soleVertices: number } {
+  const m0 = ankle.localToWorld(marker.clone());
+  const pts: Vector3[] = [];
+  let yMin = Infinity;
+  for (const mesh of meshes) {
+    const g = mesh.geometry;
+    const pos = g.attributes.position;
+    const si = g.attributes.skinIndex;
+    const sw = g.attributes.skinWeight;
+    if (!pos || !si || !sw) continue;
+    const boneIndex = mesh.skeleton.bones.indexOf(ankle as Bone);
+    if (boneIndex < 0) continue;
+    for (let i = 0; i < pos.count; i++) {
+      let best = -1;
+      let bw = 0;
+      for (let k = 0; k < 4; k++) {
+        const w = sw.getComponent(i, k);
+        if (w > bw) {
+          bw = w;
+          best = si.getComponent(i, k);
+        }
+      }
+      if (best !== boneIndex) continue;
+      const p = new Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+      pts.push(p);
+      if (p.y < yMin) yMin = p.y;
+    }
+  }
+  const sole = pts.filter((p) => p.y <= yMin + SOLE_BAND);
+  if (sole.length < 8) return { fp: { ...FALLBACK_FOOTPRINT }, soleVertices: sole.length };
+  let heel = Infinity;
+  let toe = -Infinity;
+  let latMin = Infinity;
+  let latMax = -Infinity;
+  for (const p of sole) {
+    const along = p.z - m0.z;
+    const lat = p.x - m0.x;
+    if (along < heel) heel = along;
+    if (along > toe) toe = along;
+    if (lat < latMin) latMin = lat;
+    if (lat > latMax) latMax = lat;
+  }
+  return { fp: { heel: -heel, toe, latMin, latMax }, soleVertices: sole.length };
 }
 
 function describe(e: unknown): string {
@@ -589,7 +962,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
   if (noClip.length) throw new Error(`clips missing: ${noClip.join(', ')} (have ${gltf.animations.map((a) => a.name).join(', ') || 'none'})`);
 
   // rest-pose measurements before anything animates: skull top above the head bone (skin mesh only,
-  // no hair / cap) for the audit's head projection, and the total height with the cap
+  // no hair / cap) for the audit's head projection, the total height with the cap, the boot soles
   model.updateMatrixWorld(true);
   const skin = skinned.find((m) => /skin/i.test(m.name)) ?? skinned[0];
   skin.geometry.computeBoundingBox();
@@ -605,6 +978,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
   const headAnchor: LinkAssetInfo['headAnchor'] = 'anatomical-constant';
   const headTopOffset = HEAD_TOP_ANATOMICAL_M;
   const height = bounds.max.y - Math.min(0, bounds.min.y);
+  const footprints = { L: measureFootprint(skinned, bone('ankleL'), SOLE_L), R: measureFootprint(skinned, bone('ankleR'), SOLE_R) };
 
   // look and leg pivots (see the header) — inserted before the actions bind so the search stays valid
   const neckPivot = insertPivot(neck, 'neck-look');
@@ -613,6 +987,20 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
     const thigh = bone(`thigh${side}`);
     const knee = bone(`knee${side}`);
     const ankle = bone(`ankle${side}`);
+    const sole = side === 'L' ? SOLE_L : SOLE_R;
+    const fp = footprints[side].fp;
+    // rest forward and the footprint points in the ankle's frame (the rest world matrices are current)
+    const qRest = ankle.getWorldQuaternion(new Quaternion()).invert();
+    const fwdLocal = new Vector3(0, 0, 1).applyQuaternion(qRest);
+    const m0 = ankle.localToWorld(sole.clone());
+    const fpLocal = [
+      [fp.latMin, -fp.heel],
+      [fp.latMax, -fp.heel],
+      [fp.latMin, fp.toe],
+      [fp.latMax, fp.toe],
+      [(fp.latMin + fp.latMax) / 2, -fp.heel],
+      [(fp.latMin + fp.latMax) / 2, fp.toe],
+    ].map(([lat, along]) => ankle.worldToLocal(new Vector3(m0.x + lat, m0.y, m0.z + along)));
     return {
       side,
       thigh,
@@ -621,7 +1009,10 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       thighPivot: insertPivot(thigh, `thigh${side}-ik`),
       kneePivot: insertPivot(knee, `knee${side}-ik`),
       anklePivot: insertPivot(ankle, `ankle${side}-ik`),
-      sole: side === 'L' ? SOLE_L : SOLE_R,
+      sole,
+      fp,
+      fwdLocal,
+      fpLocal,
       hip: new Vector3(),
       kneeP: new Vector3(),
       ankleP: new Vector3(),
@@ -634,21 +1025,34 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       tiltAngle: 0,
       active: false,
       contact: 1,
+      yawRel: 0,
+      cfg: { shift: 0, support: 0, pitch: 0, back: fp.heel, ahead: fp.toe },
       gExact: 0,
-      gPlant: 0,
       g: 0,
+      shift: 0,
+      pitch: 0,
       gRoot: 0,
       delta: 0,
+      rootOff: 0,
+      rootLand: 0,
+      phase: 0,
+      swingW: 0,
+      rootAtOff: 0,
+      relA: new Vector3(),
+      relH: new Vector3(),
+      relW: 0,
       contactOff: 0,
       contactGround: 0,
     };
   };
   const legs: [Leg, Leg] = [makeLeg('L'), makeLeg('R')];
   const feet: FootContact[] = [
-    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0 },
-    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0 },
+    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0 },
+    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0 },
   ];
-  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false };
+  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0 };
+  const cfgOff: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
+  const cfgLand: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
 
   const root = new Group();
   root.name = 'link';
@@ -676,22 +1080,29 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
   // Sampled once here through the same mixer, so the runtime never guesses a stance.
   const tables = {} as SwingTable;
   {
-    const _p = new Vector3();
+    const _pt = new Vector3();
+    const _f = new Vector3();
+    const _qa = new Quaternion();
     for (const [gait, a] of actions) {
       for (const b of actions.values()) b.action.weight = b === a ? 1 : 0;
-      const paths: FootPath[] = legs.map(() => ({ soleX: new Float64Array(TABLE_N), soleY: new Float64Array(TABLE_N), soleZ: new Float64Array(TABLE_N) }));
+      const paths: FootPath[] = legs.map(() => ({ soleX: new Float64Array(TABLE_N), soleY: new Float64Array(TABLE_N), soleZ: new Float64Array(TABLE_N), yaw: new Float64Array(TABLE_N), hip: [], q: [] }));
       for (let i = 0; i < TABLE_N; i++) {
         a.action.time = (i / TABLE_N) * a.duration;
         mixer.update(0);
         model.updateMatrixWorld(true);
         for (let f = 0; f < 2; f++) {
-          _p.copy(legs[f].sole).applyMatrix4(legs[f].ankle.matrixWorld);
-          paths[f].soleX[i] = _p.x;
-          paths[f].soleY[i] = _p.y;
-          paths[f].soleZ[i] = _p.z;
+          _pt.copy(legs[f].sole).applyMatrix4(legs[f].ankle.matrixWorld);
+          paths[f].soleX[i] = _pt.x;
+          paths[f].soleY[i] = _pt.y;
+          paths[f].soleZ[i] = _pt.z;
+          legs[f].ankle.getWorldQuaternion(_qa);
+          _f.copy(legs[f].fwdLocal).applyQuaternion(_qa);
+          paths[f].yaw[i] = Math.atan2(_f.x, _f.z);
+          paths[f].hip.push(legs[f].thigh.getWorldPosition(new Vector3()));
+          paths[f].q.push(_qa.clone());
         }
       }
-      tables[gait] = [tableSwings(paths[0], a.duration), tableSwings(paths[1], a.duration)];
+      tables[gait] = [tableSwings(paths[0], paths[1], a.duration), tableSwings(paths[1], paths[0], a.duration)];
     }
     for (const [gait, a] of actions) {
       a.action.weight = gait === 'idle' ? 1 : 0;
@@ -708,17 +1119,22 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
     bones: bones.length,
     clips: GAITS.map((g) => {
       const a = actions.get(g)!;
-      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate };
+      const sw = (i: 0 | 1) => tables[g][i].map((s) => [Number(s.tOff.toFixed(4)), Number(s.tLand.toFixed(4))] as [number, number]);
+      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) } };
     }),
     loadMs: Math.round(performance.now() - t0),
     headTopOffsetM: Number(headTopOffset.toFixed(4)),
     headAnchor,
     skinTopM: Number(skinTop.toFixed(4)),
+    footprint: {
+      L: { heel: Number(footprints.L.fp.heel.toFixed(4)), toe: Number(footprints.L.fp.toe.toFixed(4)), latMin: Number(footprints.L.fp.latMin.toFixed(4)), latMax: Number(footprints.L.fp.latMax.toFixed(4)), soleVertices: footprints.L.soleVertices },
+      R: { heel: Number(footprints.R.fp.heel.toFixed(4)), toe: Number(footprints.R.fp.toe.toFixed(4)), latMin: Number(footprints.R.fp.latMin.toFixed(4)), latMax: Number(footprints.R.fp.latMax.toFixed(4)), soleVertices: footprints.R.soleVertices },
+    },
   };
 
-  const clipTimeOf = (gait: Gait, t: number) => {
+  const clipTimeOf = (gait: Gait, t: number, shift = 0) => {
     const a = actions.get(gait)!;
-    return mod(t * a.rate + a.offset, a.duration);
+    return mod(t * a.rate + a.offset + shift, a.duration);
   };
 
   /** 1 = fully in `p.gait`; a smoothstep from the previous gait over BLEND_S after a switch */
@@ -756,7 +1172,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
     height: Number(height.toFixed(4)),
     animations: GAITS.filter((g) => actions.has(g)),
     asset,
-    pose(x, z, yaw, p, ground: GroundSampler, contact) {
+    pose(x, z, yaw, p, ground: GroundSampler, contact, surface: GroundSampler = ground) {
       const placed = ground(x, z);
       root.position.set(x, placed, z);
       root.rotation.y = yaw;
@@ -766,7 +1182,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         if (gait === p.gait) weight += w;
         if (gait === p.gaitFrom && w < 1) weight += 1 - w;
         a.action.weight = weight;
-        a.action.time = clipTimeOf(gait, p.t);
+        a.action.time = clipTimeOf(gait, p.t, gait === p.gait ? p.clipShift : gait === p.gaitFrom ? p.clipShiftFrom : 0);
       }
       mixer.update(0);
       neckPivot.quaternion.identity();
@@ -779,9 +1195,12 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       if (p.look && p.lookWeight > 0) lookAt(p.look, p.lookWeight);
       root.updateMatrixWorld(true);
 
-      // 1. the posed legs: joints and soles (world) with the root at the placement height
+      // 1. the posed legs: joints, soles and foot yaws (world) with the root at the placement
+      // height. The lower clip sole is the one the root drop puts on the ground (on flat ground
+      // the round-3 rule); a foot's contact weight (its slope tilt) fades with its lift above it.
       const fx = Math.sin(yaw);
       const fz = Math.cos(yaw);
+      _qYaw.setFromAxisAngle(_axisY, yaw);
       for (const leg of legs) {
         leg.thigh.getWorldPosition(leg.hip);
         leg.knee.getWorldPosition(leg.kneeP);
@@ -790,81 +1209,184 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         leg.thigh.getWorldQuaternion(leg.qThigh);
         leg.knee.getWorldQuaternion(leg.qKnee);
         leg.ankle.getWorldQuaternion(leg.qAnkle);
-        leg.gExact = ground(leg.soleP.x, leg.soleP.z);
-        leg.gPlant = plantSupport(ground, leg.soleP.x, leg.soleP.z, fx, fz);
+        _v.copy(leg.fwdLocal).applyQuaternion(leg.qAnkle);
+        leg.yawRel = Math.atan2(_v.x * fz - _v.z * fx, _v.x * fx + _v.z * fz);
+        leg.gExact = surface(leg.soleP.x, leg.soleP.z);
       }
-      // the planted foot is the lower sole (on flat ground the round-3 rule: its clip lift is what
-      // the root drop removes); the other foot is in contact or swinging by its lift
-      const planted = legs[0].soleP.y <= legs[1].soleP.y ? legs[0] : legs[1];
-      const swing = planted === legs[0] ? legs[1] : legs[0];
-      const swingIndex = swing === legs[0] ? 0 : 1;
-      planted.contact = 1;
-      planted.g = planted.gPlant;
-      planted.gRoot = planted.gPlant;
-      swing.contact = 1 - MathUtils.smoothstep(swing.soleP.y - planted.soleP.y, CONTACT_LIFT0, CONTACT_LIFT1);
-      {
-        // 2. the other foot, per active clip: in the clip's stance (double support) it reads the
-        // PLANT support under its sole like the planted foot; in a swing the take-off / landing
-        // spots are the root-relative table spots carried along the facing at the gait's ground
-        // speed (the in-place clips' stance paths cancel exactly that speed), and the foot's
-        // support eases from the one's PLANT support to the other's — the same values the stance
-        // rule reads at either end, so toe-off and heel-strike are seamless — while the root's
-        // eases from the double-support level at toe-off to the one at heel-strike. The CLEAR
-        // support under the sole then holds the foot up over a nosing (never below the ground
-        // under its ball); it blends in from the stance support after toe-off and back out
-        // before heel-strike (CLEAR_OPEN / CLEAR_CLOSE).
+      const lower = legs[0].soleP.y <= legs[1].soleP.y ? 0 : 1;
+      const soleMin = legs[lower].soleP.y;
+      for (let i = 0; i < 2; i++) {
+        const leg = legs[i];
+        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleMin, CONTACT_LIFT0, CONTACT_LIFT1);
+
+        // 2. each foot, per active clip, from the clip's swing table — never from which sole
+        // happens to be lower (at double support that flips between frames, and the two feet may
+        // straddle a riser very differently). In STANCE the foot reads the configuration of the
+        // spot its last swing landed on: the root-relative table spot carried along the facing at
+        // the gait's ground speed (the in-place clips' stance paths cancel exactly that speed), so
+        // it is frozen for the whole stance and is the very value the swing predicted for its
+        // landing. In a SWING the take-off and landing spots are carried the same way, each with
+        // its configuration, and the foot eases from the one to the other — support, shift, pitch;
+        // the take-off / landing supports and the phase feed the root ease in step 3.
         let predFoot = 0;
-        let predRoot = 0;
+        let predShift = 0;
+        let predPitch = 0;
         let clearW = 0;
-        let travel = 0;
+        let lipW = 0;
         let wsum = 0;
+        let rootOff = 0;
+        let rootLand = 0;
+        let phase = 0;
+        let swingW = 0;
+        let travelBack = 0;
+        let travelFwd = 0;
+        let relW = 0;
+        leg.relA.set(0, 0, 0);
+        leg.relH.set(0, 0, 0);
         for (const [gait, a] of actions) {
           const weight = a.action.weight;
           if (weight <= 0) continue;
-          const sw = swingAt(tables[gait][swingIndex], a.action.time, a.duration);
-          let foot = swing.gPlant;
-          let rootv = Math.min(swing.gPlant, planted.gPlant);
+          const swings = tables[gait][i];
+          const speed = GAIT_SPEED[gait];
+          const sw = swingAt(swings, a.action.time, a.duration);
+          let foot: number;
+          let sh: number;
+          let pt: number;
           let cw = 0;
-          let tr = 0;
+          let lw = 0;
           if (sw) {
             const s = sw.swing;
             const len = (s.tLand - s.tOff) / a.rate;
-            const back = GAIT_SPEED[gait] * sw.phase * len;
-            const ahead = GAIT_SPEED[gait] * (1 - sw.phase) * len;
-            const offX = x + s.offX * fz + s.offZ * fx - fx * back;
-            const offZ = z - s.offX * fx + s.offZ * fz - fz * back;
-            const gOff = plantSupport(ground, offX, offZ, fx, fz);
-            const gLand = plantSupport(ground, x + s.landX * fz + s.landZ * fx + fx * ahead, z - s.landX * fx + s.landZ * fz + fz * ahead, fx, fz);
-            foot = gOff + (gLand - gOff) * (gLand >= gOff ? MathUtils.smoothstep(sw.phase, 0, RISE_END) : MathUtils.smoothstep(sw.phase, DESC0, DESC1));
-            const r0 = Math.min(gOff, planted.gPlant);
-            rootv = r0 + (Math.min(gLand, planted.gPlant) - r0) * MathUtils.smoothstep(sw.phase, 0, 1);
+            const back = speed * sw.phase * len;
+            const ahead = speed * (1 - sw.phase) * len;
+            const ox = x + s.offX * fz + s.offZ * fx - fx * back;
+            const oz = z - s.offX * fx + s.offZ * fz - fz * back;
+            const lx = x + s.landX * fz + s.landZ * fx + fx * ahead;
+            const lz = z - s.landX * fx + s.landZ * fz + fz * ahead;
+            footConfig(surface, ox, oz, fx, fz, s.offYaw, leg.fp, cfgOff);
+            footConfig(surface, lx, lz, fx, fz, s.landYaw, leg.fp, cfgLand);
+            const gOff = cfgOff.support;
+            const gLand = cfgLand.support;
+            const ease = MathUtils.smoothstep(sw.phase, 0, gLand >= gOff ? RISE_END : DESC_END);
+            foot = gOff + (gLand - gOff) * ease;
+            const blend = MathUtils.smoothstep(sw.phase, 0, 1);
+            sh = cfgOff.shift + (cfgLand.shift - cfgOff.shift) * blend;
+            // the take-off pitch fades out over the first half of the swing and the landing pitch
+            // in over the second: a toe-down landing pitch blended in from toe-off would dip the
+            // toe into the front of the tread the foot is still leaving
+            pt = cfgOff.pitch * (1 - MathUtils.smoothstep(sw.phase, 0, PITCH_FADE)) + cfgLand.pitch * MathUtils.smoothstep(sw.phase, 1 - PITCH_FADE, 1);
             cw = MathUtils.smoothstep(sw.phase, 0, CLEAR_OPEN) * (1 - MathUtils.smoothstep(sw.phase, CLEAR_CLOSE0, CLEAR_CLOSE1));
-            tr = Math.hypot(swing.soleP.x - offX, swing.soleP.z - offZ);
+            lw = MathUtils.smoothstep(sw.phase, 0, LIP_OPEN) * (1 - MathUtils.smoothstep(sw.phase, LIP_CLOSE, 1));
+            // the shifted marker's travel along the facing since take-off and to landing
+            const cur = (leg.soleP.x + fx * sh) * fx + (leg.soleP.z + fz * sh) * fz;
+            travelBack += weight * Math.max(0, cur - ((ox + fx * cfgOff.shift) * fx + (oz + fz * cfgOff.shift) * fz));
+            travelFwd += weight * Math.max(0, (lx + fx * cfgLand.shift) * fx + (lz + fz * cfgLand.shift) * fz - cur);
+            rootOff += weight * gOff;
+            rootLand += weight * gLand;
+            phase += weight * sw.phase;
+            swingW += weight;
+            const rw = weight * (1 - MathUtils.smoothstep(sw.phase, 0, RELEASE));
+            if (rw > 0) {
+              // the foot frozen in its take-off configuration (the shifted spot at its support,
+              // the clip's sole lift and ankle orientation of that moment) and the hip of that
+              // moment, carried to the present like the spots
+              _q.copy(s.offQ).premultiply(_qYaw);
+              _p.copy(leg.sole).applyQuaternion(_q);
+              leg.relA.x += rw * (ox + fx * cfgOff.shift - _p.x);
+              leg.relA.y += rw * (gOff + s.offLift - _p.y);
+              leg.relA.z += rw * (oz + fz * cfgOff.shift - _p.z);
+              leg.relH.x += rw * (x + s.offHip.x * fz + s.offHip.z * fx - fx * back);
+              leg.relH.y += rw * s.offHip.y;
+              leg.relH.z += rw * (z - s.offHip.x * fx + s.offHip.z * fz - fz * back);
+              relW += rw;
+            }
+          } else {
+            const st = stanceAt(swings, a.action.time, a.duration);
+            if (st) {
+              const s = st.swing;
+              const back = (speed * st.since) / a.rate;
+              footConfig(surface, x + s.landX * fz + s.landZ * fx - fx * back, z - s.landX * fx + s.landZ * fz - fz * back, fx, fz, s.landYaw, leg.fp, cfgOff);
+            } else footConfig(surface, leg.soleP.x, leg.soleP.z, fx, fz, leg.yawRel, leg.fp, cfgOff);
+            foot = cfgOff.support;
+            sh = cfgOff.shift;
+            pt = cfgOff.pitch;
+            rootOff += weight * foot;
+            rootLand += weight * foot;
           }
           predFoot += weight * foot;
-          predRoot += weight * rootv;
+          predShift += weight * sh;
+          predPitch += weight * pt;
           clearW += weight * cw;
-          travel += weight * tr;
+          lipW += weight * lw;
           wsum += weight;
         }
         if (wsum > 0) {
           predFoot /= wsum;
-          predRoot /= wsum;
+          predShift /= wsum;
+          predPitch /= wsum;
           clearW /= wsum;
-          travel /= wsum;
+          lipW /= wsum;
+          rootOff /= wsum;
+          rootLand /= wsum;
+          travelBack /= wsum;
+          travelFwd /= wsum;
+          if (swingW > 0) phase /= swingW;
+          if (relW > 0) {
+            leg.relA.divideScalar(relW);
+            leg.relH.divideScalar(relW);
+            relW /= wsum;
+          }
         } else {
-          predFoot = swing.gPlant;
-          predRoot = Math.min(swing.gPlant, planted.gPlant);
+          footConfig(surface, leg.soleP.x, leg.soleP.z, fx, fz, leg.yawRel, leg.fp, cfgOff);
+          predFoot = rootOff = rootLand = cfgOff.support;
+          predShift = cfgOff.shift;
+          predPitch = cfgOff.pitch;
         }
-        let clear = sinkFootprint(ground, swing.soleP.x, swing.soleP.z, fx, fz, SWING_LAMBDAS);
-        if (clearW > 1e-4) clear += (clearSupport(ground, swing.soleP.x, swing.soleP.z, fx, fz, travel) - clear) * clearW;
-        swing.g = Math.max(predFoot, clear);
-        swing.gRoot = predRoot;
+        leg.shift = predShift;
+        leg.pitch = predPitch;
+        leg.rootOff = rootOff;
+        leg.rootLand = rootLand;
+        leg.phase = phase;
+        leg.swingW = swingW;
+        leg.relW = relW;
+        // the geometric lifts on the shifted footprint at the foot's current yaw: the CLEAR arc
+        // over a riser ahead (blended by phase) and the LIP lift (exact at both ends of a swing),
+        // both seeing only the edges within this swing's travel
+        footReach(leg.fp, leg.yawRel, leg.cfg);
+        const sx = leg.soleP.x + fx * predShift;
+        const sz = leg.soleP.z + fz * predShift;
+        const back = leg.cfg.back;
+        const ahead = leg.cfg.ahead;
+        _reach.fwd = travelFwd;
+        _reach.back = travelBack;
+        let clear = sinkFootprint(surface, sx, sz, fx, fz, back, ahead, SWING_LAMBDAS);
+        if (clearW > 1e-4) clear += (liftFootprint(surface, sx, sz, fx, fz, back, ahead, CLEAR_FWD, false, CLEAR_STEP, _reach) - clear) * clearW;
+        if (lipW > 1e-4) {
+          const lip = liftFootprint(surface, sx, sz, fx, fz, back, ahead, LIP_RUNOUT, true, LIP_STEP, _reach);
+          if (lip > clear) clear += (lip - clear) * lipW;
+        }
+        leg.g = Math.max(predFoot, clear);
       }
 
-      // 3. root: the planted sole onto the lower of the two root supports (a leg is only ever bent)
-      const gMin = Math.min(planted.gRoot, swing.gRoot);
-      const shift = gMin - planted.soleP.y;
+      // 3. root: each leg's root support eases over its swing from the double-support level at
+      // take-off to the one at heel-strike — min(take-off support, the OTHER foot's level) to
+      // min(landing support, the other foot's level) — so the root moves by at most one level per
+      // swing however far the foot goes (a two-tread stride moves the foot 0.54 m, the root 0.27),
+      // and descends in step with the foot (by DESC_END) so the landing leg is never asked to
+      // reach a tread the root has not come down to. A foot in stance holds its support. The root
+      // stands on the lower of the two (a leg is only ever bent).
+      for (let i = 0; i < 2; i++) {
+        const leg = legs[i];
+        const other = legs[1 - i];
+        const level = other.rootOff + (other.rootLand - other.rootOff) * MathUtils.smoothstep(other.phase, 0, 1);
+        const r0 = Math.min(leg.rootOff, level);
+        const r1 = Math.min(leg.rootLand, level);
+        const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : 1);
+        leg.gRoot = leg.swingW > 0 ? r0 + (r1 - r0) * ease : leg.rootOff;
+        leg.rootAtOff = r0;
+      }
+      const gMin = Math.min(legs[0].gRoot, legs[1].gRoot);
+      const shift = gMin - soleMin;
       root.position.y += shift;
       for (const leg of legs) {
         leg.hip.y += shift;
@@ -873,26 +1395,59 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         leg.soleP.y += shift;
       }
 
-      // 4. per-foot targets: raise the sole by its support's excess over the root support (its xz
-      // stays where the clip put it), keep the clip's foot orientation, tilt a contact sole onto
-      // the local slope; the ankle target follows from the re-oriented foot
+      // 4. per-foot targets: raise the sole by its support's excess over the root support, move
+      // it by its shift along the facing, keep the clip's foot orientation, tilt a contact sole
+      // onto the local slope and pitch it over a nosing; the ankle target follows from the
+      // re-oriented foot
       let maxCorrection = 0;
+      let maxShift = 0;
       let extraDrop = 0;
       for (const leg of legs) {
-        leg.delta = Math.min(MAX_CORRECTION, Math.max(0, leg.g - gMin));
+        // the sole onto its support plus the clip's lift above the root's floor, the lift
+        // flattened where that would fold the leg (FOLD_MAX), never below the support itself
+        const lift = leg.soleP.y - gMin;
+        const target = Math.min(leg.g + lift, Math.max(leg.g, gMin + FOLD_MAX));
+        leg.delta = MathUtils.clamp(target - leg.soleP.y, -MAX_CORRECTION, MAX_CORRECTION);
         leg.tiltAngle = groundTilt(ground, leg.soleP.x, leg.soleP.z, leg.contact, leg.qTilt);
-        leg.active = leg.delta > 1e-6 || leg.tiltAngle > 1e-5;
+        if (Math.abs(leg.pitch) > 1e-5) {
+          // toe-down about the foot's lateral axis: a positive turn about up × forward takes the
+          // toe (+forward) down and the heel up
+          _v.copy(leg.fwdLocal).applyQuaternion(leg.qAnkle);
+          _v.y = 0;
+          if (_v.lengthSq() > 1e-8) {
+            _v.normalize();
+            _n.crossVectors(_axisY, _v);
+            _qPitch.setFromAxisAngle(_n, leg.pitch);
+            leg.qTilt.premultiply(_qPitch);
+            leg.tiltAngle += Math.abs(leg.pitch);
+          }
+        }
+        leg.active = Math.abs(leg.delta) > 1e-6 || leg.tiltAngle > 1e-5 || Math.abs(leg.shift) > 1e-6;
+        if (Math.abs(leg.shift) > maxShift) maxShift = Math.abs(leg.shift);
+        const reach = (leg.kneeP.distanceTo(leg.hip) + leg.ankleP.distanceTo(leg.kneeP)) * MAX_REACH;
+        if (leg.relW > 1e-4) {
+          // a leg that has just taken off: the drop its planted foot needed at toe-off (the
+          // frozen stance configuration against the hip of that moment, the root on that
+          // moment's floor) is released over RELEASE of the swing rather than vanishing the frame
+          // the foot lifts. Exactly the stance rule's own value, so on flat ground (no clip's leg
+          // reaches MAX_REACH in stance) it is zero like the stance's.
+          _v.set(leg.relA.x - leg.relH.x, leg.relA.y - (leg.rootAtOff + leg.relH.y), leg.relA.z - leg.relH.z);
+          const flat2 = reach * reach - _v.x * _v.x - _v.z * _v.z;
+          if (flat2 > 0) {
+            const drop = (-_v.y - Math.sqrt(flat2)) * leg.relW;
+            if (drop > extraDrop) extraDrop = drop;
+          }
+        }
         if (!leg.active) {
           leg.target.copy(leg.ankleP);
           continue;
         }
         _q.multiplyQuaternions(leg.qTilt, leg.qAnkle);
         leg.target.copy(leg.sole).applyQuaternion(_q);
-        leg.target.set(leg.soleP.x - leg.target.x, leg.soleP.y + leg.delta - leg.target.y, leg.soleP.z - leg.target.z);
+        leg.target.set(leg.soleP.x + fx * leg.shift - leg.target.x, leg.soleP.y + leg.delta - leg.target.y, leg.soleP.z + fz * leg.shift - leg.target.z);
         // a target beyond the straight leg (a tilted foot moves the ankle sideways): the root
         // comes down by the shortfall instead of the leg stretching
         _v.subVectors(leg.target, leg.hip);
-        const reach = (leg.kneeP.distanceTo(leg.hip) + leg.ankleP.distanceTo(leg.kneeP)) * MAX_REACH;
         const flat2 = reach * reach - _v.x * _v.x - _v.z * _v.z;
         if (flat2 > 0) {
           const drop = -_v.y - Math.sqrt(flat2);
@@ -912,49 +1467,69 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       }
 
       // 5. solve: knee bend + thigh swing onto the ankle target, then the ankle pivot undoes the
-      // shin's IK rotation on the foot and adds the slope tilt (both in the knee frame)
-      let reachClamped = false;
+      // shin's IK rotation on the foot and adds the slope tilt / nosing pitch (both in the knee frame)
+      let reachExcess = 0;
+      let reachLeg: 'L' | 'R' | null = null;
       for (const leg of legs) {
         if (!leg.active) continue;
-        if (solveLeg(leg, leg.target, _qIk)) reachClamped = true;
+        const excess = solveLeg(leg, leg.target, _qIk);
+        if (excess > reachExcess) {
+          reachExcess = excess;
+          reachLeg = leg.side;
+        }
         _qInv.copy(_qIk).invert();
         _q2.copy(leg.qKnee).invert().multiply(_qInv).multiply(leg.qTilt).multiply(leg.qKnee);
         leg.anklePivot.quaternion.copy(_q2);
-        const raised = leg.delta + extraDrop;
+        const raised = Math.abs(leg.delta) + extraDrop;
         if (raised > maxCorrection) maxCorrection = raised;
       }
       root.updateMatrixWorld(true);
 
-      // 6. report: both soles as posed against the exact ground under their contact point — the
-      // ball, or when that is off its ground by more than CONTACT_OFF (a toe on a tread edge, a
-      // heel over the one below) the footprint point nearest its ground — and their supports.
-      // The contact point handed out is the sole nearest its ground (the procedural plantFeet's
-      // rule, so samplePositions.feet reads the same foot; ties go to the foot the root stands on)
+      // 6. report: both soles as posed against the exact surface under their contact point — the
+      // marker, or when that is off its ground by more than CONTACT_OFF (a toe on a tread edge, a
+      // heel over the one below) the footprint point nearest its ground — their supports, and the
+      // smallest gap over the boot's footprint (corners, heel / toe centres) to the rendered
+      // surface under each. The contact point handed out is the sole nearest its ground (the
+      // procedural plantFeet's rule, so samplePositions.feet reads the same foot; ties go to the
+      // foot the root stands on)
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
         leg.soleP.copy(leg.sole).applyMatrix4(leg.ankle.matrixWorld);
         leg.contactOff = 0;
-        leg.contactGround = ground(leg.soleP.x, leg.soleP.z);
+        leg.contactGround = surface(leg.soleP.x, leg.soleP.z);
         if (Math.abs(leg.soleP.y - leg.contactGround) > CONTACT_OFF) {
-          for (const o of FOOT_POINTS) {
-            if (o === 0) continue;
-            const gp = ground(leg.soleP.x + fx * o, leg.soleP.z + fz * o);
+          for (const o of [-leg.fp.heel, leg.fp.toe]) {
+            const gp = surface(leg.soleP.x + fx * o, leg.soleP.z + fz * o);
             if (Math.abs(leg.soleP.y - gp) < Math.abs(leg.soleP.y - leg.contactGround)) {
               leg.contactGround = gp;
               leg.contactOff = o;
             }
           }
         }
+        let minShoe = leg.soleP.y - leg.contactGround;
+        for (const c of leg.fpLocal) {
+          _p.copy(c).applyMatrix4(leg.ankle.matrixWorld);
+          const gap = _p.y - surface(_p.x, _p.z);
+          if (gap < minShoe) minShoe = gap;
+        }
         feet[i].soleY = leg.soleP.y;
         feet[i].groundY = leg.contactGround;
         feet[i].gapM = leg.soleP.y - leg.contactGround;
         feet[i].supportY = leg.g;
+        feet[i].minShoeGapM = minShoe;
+        feet[i].shiftM = leg.shift;
+        feet[i].pitchRad = leg.pitch;
+        feet[i].correctionM = leg.delta;
       }
-      const reported = Math.abs(feet[swingIndex].gapM) < Math.abs(feet[1 - swingIndex].gapM) - REPORT_TIE ? swing : planted;
+      const reported = Math.abs(feet[1 - lower].gapM) < Math.abs(feet[lower].gapM) - REPORT_TIE ? legs[1 - lower] : legs[lower];
       plant.maxCorrectionM = maxCorrection;
       plant.rootShiftM = root.position.y - placed;
       plant.planted = reported.side;
-      plant.reachClamped = reachClamped;
+      plant.reachClamped = reachExcess > REACH_TOL;
+      plant.reachClampedLeg = reachLeg;
+      plant.reachExcessM = reachExcess;
+      plant.maxShiftM = maxShift;
+      plant.extraDropM = extraDrop;
       contact.set(reported.soleP.x + fx * reported.contactOff, reported.soleP.y, reported.soleP.z + fz * reported.contactOff);
     },
     headTop(out) {
@@ -962,6 +1537,14 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
     },
     feetContact: () => feet.map((f) => ({ ...f })),
     plantInfo: () => ({ ...plant }),
+    alignClip(from, fromShift, to, t) {
+      const a = actions.get(to);
+      if (!a || !tables[to][0].length) return 0;
+      const phase = actions.has(from) ? gaitPhase(tables[from][0], clipTimeOf(from, t, fromShift), actions.get(from)!.duration) : NaN;
+      // from a clip without phases (idle) start at the left heel-strike: both feet down
+      const target = gaitPhaseTime(tables[to][0], Number.isNaN(phase) ? 1 : phase, a.duration);
+      return mod(target - clipTimeOf(to, t), a.duration);
+    },
   };
   return puppet;
 }
