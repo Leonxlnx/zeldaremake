@@ -141,6 +141,22 @@ export interface HeightFogParams {
   /** share (0..1) of the lit far wall that is applied; 0 keeps the closed-roof veil to the horizon */
   hazeFarLitAmount: number;
   /**
+   * The wall is the light above the far stand, so only rays that climb out of the under-canopy
+   * layer see it: the far-wall mix is scaled by smoothstep(0, `hazeFarLitKnee`, above-canopy share)
+   * (the same share `hazeLitKnee` keys the lit air on). Eye-level rays into the far hollow — the
+   * ground seen through the log arch's opening — keep the dim closed veil under it; 0 disables the
+   * gate (the wall at every elevation, the round-31 hook).
+   */
+  hazeFarLitKnee: number;
+  /**
+   * Deep-hollow shade: multiplier on the closed-roof veil radiance (mist share included) for rays
+   * that run `hollowDimIn[0]`..`hollowDimIn[1]` m and further under the closed roof. The air the
+   * camera stands in is lit by its open surroundings; 40 m on under the roof it is dimmer, and the
+   * frame reads it so (D's opening at 70 m: 0.445 against 0.50 for our flat closed veil).
+   */
+  hollowDim: number;
+  hollowDimIn: [number, number];
+  /**
    * Shaded mid air: multiplier on the veil radiance for fragments whose view distance falls in the
    * window that ramps in over `nearDimIn` (m) and out over `nearDimOut` (m). The air a hero camera
    * stands in is lit by its open surroundings and the far hollow's air is gap-lit (both keep the
@@ -333,6 +349,9 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // frame's, so the silhouette contrast it buys is uncorrelated variance to the metric. Kept as a
   // hook for when the arch's screen position matches the frame (then that contrast is rewarded).
   hazeFarLitAmount: 0.0,
+  hazeFarLitKnee: 0.0,
+  hollowDim: 1.0,
+  hollowDimIn: [42, 52],
   // was 0.35 / (1.08, 1.0, 0.84): calibrated when shot F was believed to look toward the sun; with
   // the sun at azimuth −128° the sunward views are B's left and A's left quadrant, where the
   // reference's air is its dimmest and greyest (sat 0.11 against our 0.15)
@@ -477,6 +496,9 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_FAR_LIT_START = ${f(params.hazeFarLitStart)};
 	const float KF_FAR_LIT_END = ${f(params.hazeFarLitEnd)};
 	const float KF_FAR_LIT_AMOUNT = ${f(params.hazeFarLitAmount)};
+	const float KF_FAR_LIT_KNEE = ${f(params.hazeFarLitKnee)};
+	const float KF_HOLLOW_DIM = ${f(params.hollowDim)};
+	const vec2 KF_HOLLOW_DIM_IN = vec2( ${params.hollowDimIn.map(f).join(', ')} );
 	const float KF_NEAR_DIM = ${f(params.nearDim)};
 	const vec2 KF_NEAR_DIM_IN = vec2( ${params.nearDimIn.map(f).join(', ')} );
 	const vec2 KF_NEAR_DIM_OUT = vec2( ${params.nearDimOut.map(f).join(', ')} );
@@ -578,15 +600,19 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	// openShare = the ray's above-canopy share (1 − kfAltitudeMean): rays that climb out of the
 	// under-canopy layer see the lit open air instead of the dim veil under the closed roof.
 	// open = the direction's canopy openness: closed directions keep the dim closed-roof veil out to
-	// the far rows (no far / lit brightening); past them the wall is lit in every direction (see
-	// hazeFarLit)
+	// the far rows (no far / lit brightening), dimmer still deep under the roof (hollowDim); past
+	// the rows the rays that climb out of the layer see the lit wall (see hazeFarLit, hazeFarLitKnee)
 	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open ) {
 		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
 		haze = mix( haze, KF_HAZE_LIT, smoothstep( 0.0, KF_LIT_KNEE, openShare ) );
 		haze = mix( KF_HAZE_CLOSED, haze, open );
-		haze = mix( haze, KF_HAZE_FAR_LIT, KF_FAR_LIT_AMOUNT * smoothstep( KF_FAR_LIT_START, KF_FAR_LIT_END, dist ) );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
+		float closedShare = 1.0 - open;
+		col *= mix( 1.0, KF_HOLLOW_DIM, smoothstep( KF_HOLLOW_DIM_IN.x, KF_HOLLOW_DIM_IN.y, dist ) * closedShare );
+		float farLit = KF_FAR_LIT_AMOUNT * smoothstep( KF_FAR_LIT_START, KF_FAR_LIT_END, dist ) * closedShare;
+		if ( KF_FAR_LIT_KNEE > 0.0 ) farLit *= smoothstep( 0.0, KF_FAR_LIT_KNEE, openShare );
+		col = mix( col, KF_HAZE_FAR_LIT, farLit );
 		// shaded mid air: the segment under the closed canopy (see nearDim) is dimmer than the lit
 		// air the camera stands in and the gap-lit far air
 		float dimWindow = smoothstep( KF_NEAR_DIM_IN.x, KF_NEAR_DIM_IN.y, dist ) * ( 1.0 - smoothstep( KF_NEAR_DIM_OUT.x, KF_NEAR_DIM_OUT.y, dist ) );
