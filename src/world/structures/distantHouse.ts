@@ -96,6 +96,13 @@ export interface DistantHouseDef {
   wall: number;
   /** cap rise above the eave (m) */
   capHeight: number;
+  /**
+   * the cap's overhang past the wall radius (m; default CAP_OVERHANG). Round 32: the hollow
+   * column's hut is the nearest hut to any hero camera (D 25 m against A 36 / B 30) and in
+   * frame 56 s its place in D's upper band is hazed trunk; a tighter, lower cap shrinks the
+   * D-facing silhouette (see `capHeight`) while the hut's lamps and body keep A/B's far village.
+   */
+  capOverhang?: number;
   /** azimuth (deg, from +Z toward +X) the round window faces — the mean direction to cameras A/B/D */
   facingDeg: number;
   /** door azimuth relative to the window (deg, + toward +X side = screen right) */
@@ -123,7 +130,11 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
     // round 18: 1.55 let the bole poke 2.7 cm through the wall's tightest wobble at y 11.5
     radius: 1.65,
     wall: 2.0,
-    capHeight: 1.25,
+    // round 32 (structures-22): 1.25 / 0.45 → 0.9 / 0.25 — at 25 m in D the sunlit cap was the
+    // hut's brightest, most saturated part (a yellow-green dome at (0.60–0.66, 0.02–0.08) where
+    // frame 56 s has hazed trunk); the lower, tighter cap shows a third less of it
+    capHeight: 0.9,
+    capOverhang: 0.25,
     facingDeg: -15,
     doorDeg: 38,
     // round 31 (trees): the walkway leaves on camera D's bearing (−19° absolute; was −93°, west)
@@ -174,6 +185,20 @@ export const HOST_MATCH_M = 1.5;
 export const BOLE_CLEARANCE = 0.06;
 /** the wall's radius factor at the eave (it tapers in a little) */
 const WALL_TAPER = 0.96;
+/** the cap's overhang past the wall radius when a def does not set `capOverhang` (m) */
+const CAP_OVERHANG = 0.45;
+/**
+ * Round 32 (structures-22): the huts' darkest side faces the hero cameras. A/B/D all see each hut
+ * from within 7° of its `facingDeg` (hut → camera bearings −12 / −16 / −19° for the hollow column,
+ * −19 / −22 / −25° north-east, 9 / 10 / 12° west column) and the sun stands 110° round from
+ * there (azimuth −128°), so the camera-facing wall is floor-lit bark and the camera-facing cap
+ * half is moss the sun only grazes — both were as pale as the rest and read as a lit hut against
+ * frame 56 s's dark hazed trunks. The wall's two-lobe shade (`wallColor`) is now centred on the
+ * facing (it used the random wobble's phase) and deepened; the cap's deep-moss share rises on the
+ * camera half. Both are vertex tints: no new draws, no RNG stream change (the wobble is still drawn).
+ */
+const WALL_DARK_LOBE = 0.4;
+const CAP_FACING_DARKEN = 0.45;
 /** the wall's wobble amplitudes (fractions of the radius): 3 and 7 lobes */
 const WOBBLE_3 = 0.045;
 const WOBBLE_7 = 0.02;
@@ -722,9 +747,11 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // ---- bark: the wall in two patches — fine cells around the openings (cut where a cell's
     // centre is within HOLE_MARGIN of an opening), coarse cells round the rest — plus the eave
     // soffit and the collars that cover the cuts' ragged cell edges in the wall's own shade ----
-    /** the wall's vertex shade at angle a and height fraction v (floor → eave) */
+    /** the wall's vertex shade at angle a and height fraction v (floor → eave): two dark lobes, the deeper one on the camera-facing side (see WALL_DARK_LOBE) */
     const wallColor = (a: number, v: number): RGB => {
-      const shade = lerp(0.72, 1, v) * (1 - 0.22 * Math.max(0, Math.sin(2 * a + wobble)));
+      const toward = Math.cos(a - aWin);
+      const lobe = Math.max(0, Math.cos(2 * (a - aWin))) * lerp(0.55, 1, 0.5 + 0.5 * toward);
+      const shade = lerp(0.72, 1, v) * (1 - WALL_DARK_LOBE * lobe);
       return [WALL[0] * shade, WALL[1] * shade, WALL[2] * shade];
     };
     const wallPatch = (a0: number, a1: number, cell: { around: number; up: number }, hole?: (a: number, y: number) => boolean) => {
@@ -749,7 +776,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       wallPatch(aFine0, aFine1, FINE_CELL, (a, y) => inWindow(a, y, HOLE_MARGIN) || inDoor(a, y, HOLE_MARGIN)),
       wallPatch(aFine1, aFine0 + TAU, COARSE_CELL),
     ];
-    const eaveR = R + 0.45;
+    const eaveR = R + (def.capOverhang ?? CAP_OVERHANG);
     const soffit = ring(c, R * 0.95, eaveR, eaveY, false, () => SOFFIT, 28, 2);
 
     // ---- the openings' reveals (round 20, see the header): splayed tunnels on the glow material,
@@ -891,9 +918,11 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           out.position.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
           out.uv = [(Math.cos(a) * (rr + 0.3)) / 1.6, (Math.sin(a) * (rr + 0.3)) / 1.6];
           const mottle = 0.85 + 0.3 * (0.5 + 0.5 * Math.sin(11 * a + 6 * v + capPhase));
-          const bright = 0.35 + 0.3 * (0.5 + 0.5 * Math.sin(7 * a - 4 * v + capPhase * 0.7));
+          // the camera-facing half keeps the deep moss (CAP_FACING_DARKEN), the far half the sunlit mix
+          const facingHalf = Math.max(0, Math.cos(a - aWin));
+          const bright = (0.35 + 0.3 * (0.5 + 0.5 * Math.sin(7 * a - 4 * v + capPhase * 0.7))) * (1 - CAP_FACING_DARKEN * facingHalf);
           const under = v < 0.06 ? 0.45 : 1;
-          const m = MOSS_ALBEDO_PEAK * lerp(0.9, 0.62, v) * mottle * under;
+          const m = MOSS_ALBEDO_PEAK * lerp(0.9, 0.62, v) * mottle * under * (1 - 0.5 * CAP_FACING_DARKEN * facingHalf);
           out.color = mix(MOSS_DEEP, MOSS_SUN, bright, m);
         },
         { cols: 28, rows: 7, closedU: true },

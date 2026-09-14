@@ -1,6 +1,11 @@
 /** Small domestic details, deliberately outside doors, stairs and the central sightlines. */
 export const PROP_LAYOUT = [
-  { id: 'saria-ochre-pot', kind: 'pot', x: 8.0, z: -12.8, size: 0.72, yaw: 0.3 },
+  // Round 32 (structures-22): at (8.0, −12.8) the big pot stood inside camera D's frustum — D
+  // (0.90, 0.55), on the dark bank under Saria's trunk where frame 56 s has moss and roots only.
+  // Now on the terrace's south-west corner above the house-west flight: bearing 48.1° from
+  // camera D (its frustum ends at 44.6°; the pot's 0.28 m radius at 12 m is 1.3°), camera B sees
+  // it at (0.67, 0.55) beside the small pot; ground 0.83 m, off the flight, the walk and the roots.
+  { id: 'saria-ochre-pot', kind: 'pot', x: 8.0, z: -10.0, size: 0.72, yaw: 0.3 },
   // Bring the small domestic cluster toward the house approach for shots B/D. Footprint
   // masks still reject stairs, paths and house roots, even if an authored point is blocked.
   // Round 31: the house-west flight (layout stairs 'house-west', landing to x ≈ 7.5 at z ≈ −11.4)
