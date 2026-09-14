@@ -187,6 +187,31 @@ export const LAYOUT = {
     // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
     // The base sits just off the paved edge so the first riser meets flattened ground.
     { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 7, rise: 0.26, tread: 0.5, width: 2.6 },
+    // Round 31 (frame 56 s, right edge): a short flight of the same worn slabs climbs the WEST face
+    // of Saria's terrace from the north path's east verge — a second way onto the terrace beside the
+    // grassy stepping-stone ramp (`pathToHouse`), which stays the B/E approach to the door. Frame D
+    // shows it at x 0.85–1.0, y 0.55–0.78 (four to five risers, nosings sloping 0.36–0.61 down to
+    // the right, the run leaving the frame right) 4.5–7 m from camera D at bearing 35–45°. That
+    // spot is our ramp's north verge ((4, −6.5) → (6.6, −8.6) → (9.6, −9.3), stepping stones
+    // (5.85, −7.78) r 0.43 and (6.67, −8.79) r 0.47 nearest), so the flight sits in the clear
+    // ground between the paving (x ≈ 3.6) and the stones: foot 0.35 m off the paved edge at
+    // (3.95, −10.85), rising east (bearing 82°) to the terrace at (6.67, −11.23), where the ground
+    // is 0.93 m; five 0.21 m risers × 0.55 m treads to the terrace's 1.05, tread ends 0.74 m and
+    // the flank stones 0.24 m clear of the nearest stepping stone. Its head (one row of landing
+    // slabs, 0.85 m) covers the props' authored spots for Saria's small pot (6.75, −11.6) and
+    // crate (7.7, −11.7): the props system finds no clear ground within its 1.05 m search and
+    // skips both (frame 14 s has turf there, no crate). The east bearing (not the ramp's 51–60°)
+    // is what frames B / E allow: their camera sees the risers 60° off face-on, a stepped turf
+    // mound (heightfield HOUSE_WEST_BANK.seLift) rather than a wall of riser faces; a 60° flight
+    // showed five dark risers 2 m wide beside Link. The signpost (7, 1.2, −9.3) stands 0.75 m
+    // beyond the flight's south verge, whose bank stops short of it (HOUSE_WEST_BANK.southVerge).
+    // Projections (gauntlet/tmp/proj.mjs): D first riser (0.67, 0.69)–(0.78, 0.74) at 8.2 m, top
+    // nosing (0.80, 0.58)–(0.94, 0.60), nosing slopes 0.45 → 0.10 down to the right, flight
+    // x 0.67–0.94 — 0.15 left of the frame's flight (any further east is the ramp); B/E
+    // x 0.45–0.68, y 0.55–0.66 at 13–15 m (Link covers 0.46–0.55); A (0.33–0.44, 0.47–0.54) at
+    // 21 m in the haze; behind C and F. The heightfield gives it a soil/moss bank on the north
+    // flank (HOUSE_WEST_BANK) and a paved apron at the foot.
+    { id: 'house-west', base: [3.95, 0, -10.85], dir: [0.99, -0.139], steps: 5, rise: 0.21, tread: 0.55, width: 2.4 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
