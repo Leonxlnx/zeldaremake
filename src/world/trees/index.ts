@@ -137,8 +137,8 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
   // leaves 11.9 % of the box's pixels at 0.423, the limb lobes' cards another 1.8 %), and on the
   // sun lines through that air its wood was 11.3 % and its crown's cards 9.2 % of the in-scatter
   // weight in shadow (the box's air 55 % shaded; ray-cast, round-33 probe). Ghosted: the crown is
-  // the same tree's (see D_AIR_SUN_LINES for its flank). The limb lobes' shadows fell 10–14 m
-  // down-sun at (−5…0, −25…−20), across the D path's third and fourth sun pools' corridors.
+  // the same tree's. The limb lobes' shadows fell 10–14 m down-sun at (−5…0, −25…−20), across
+  // the D path's third and fourth sun pools' corridors.
   // Off A (x < −0.03) and B (x < 0.1, the nwnear bole's strip). The tree drew two wild limbs, at
   // 5° (east: the one across the box, D x 0.13 → 0.32 at y 0.2–0.3, its tip lobes at (0.3,
   // 0.15–0.25)) and 242° (north-north-west, off D's left edge); W09 wants two big limbs, so the
@@ -745,41 +745,25 @@ const HOLLOW_GAP_POINTS: { point: [number, number, number]; radius: number }[] =
   { point: [8.0, 11.4, -28.4], radius: 1.6 },
 ];
 const HOLLOW_GAP_POROSITY = 0.15;
-/**
- * Sunlit air over the north path in shot D (round 33). Frame 56 s's upper band is lit air with
- * rays (0.55–0.60 above the arch); ours was 0.49–0.51 there, and ray-casting the sun lines from
- * the god-ray march's air samples in that box (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up, 5–35 m
- * out) found 74 % of the in-scatter weight in shadow: the north-west-near giant's wood (26 %,
- * see GIANT_PROFILES / CANOPY_BOUGHS), the north-west giant's crown cards (17 %; its south-east
- * flank 16–21 m up, 11–24 m along the lines) and wood (6 %), the north-west-near crown (5 %),
- * the mid-distance columns' crowns (12 %, column.ts — not carved) and the north-east lobes (3 %).
- * The ground corridors of D_PATH_SUN_POINTS run 4–10 m below these lines, so they never opened
- * this air. Each entry is a screen point of camera D and the depths along its view ray at which
- * an air point stands; the sun line through each point is a porous corridor from `lift` metres
- * above the point (the near hero foliage on the same line — the round-31 curtains at 4–7 m and
- * the lantern tree's clump — stays), thinning the north-west crown's flank the way the path
- * corridors thin its roof. The flank is above D's frame top (31° up at 28 m) and off A/B (42° off
- * axis). Down-sun the lines land at (8.6 … 15, −12 … −21): the plateau slope under the houses,
- * where frame 56 s shows the lit slab flight at D's right edge and the houses' own shadows.
+/*
+ * No sun-line corridors through the air of shot D's upper band (round 33). Ray-casting the sun
+ * lines from the god-ray march's air samples in the box (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m
+ * up, 5–35 m out) found 74 % of the in-scatter weight in shadow — the north-west-near giant's wood
+ * 26 % (GIANT_PROFILES / CANOPY_BOUGHS), the north-west giant's crown cards 17 % (its south-east
+ * flank 16–21 m up) and wood 6 %, the mid-distance columns' crowns 12 %, the north-east lobes 3 %.
+ * Porous corridors (r 2.6, porosity 0.3 / cards 0.2) up the sun lines from 3 m above five screen
+ * points × 2–4 depths (14–34 m) thinned that flank — and lit the plateau slope under the houses
+ * where the lines land down-sun (8.6 … 15, −12 … −21): D (0.625–0.75, 0.25–0.5) is frame 56 s's
+ * dark hazed foliage. Measured (D-only A/B on 658119b): with the lines the air box p50 0.534 and
+ * D SSIM 0.3324; without them 0.525 and 0.3385 (control 0.3392) — the slope cell −2.1e-3 → 0,
+ * (0.75–0.875, 0.5–0.75) −1.4 → −0.5, the air cell +1.6 → +1.9. The lines' +0.009 of air was
+ * not worth 0.006 of SSIM, so the air is opened by the ghosted limbs and the raised boughs only.
+ * The upper-left's air (x 0.05–0.35, y 0.08–0.6; frame 0.58–0.62 rays, ours 0.43) has no lines
+ * of its own either: its sun lines land on the D path and its west verge at z −16…−24, i.e. they
+ * ARE the D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS corridors' lines; what shaded that air was wood
+ * the corridors do not cut (the north-west-near giant's wild-limb collars 19 %, the north-west
+ * giant's wild limbs and leaders 11 %) — hence the two giants' ghosted limbs.
  */
-const D_AIR_SUN_LINES: { screen: [number, number]; depths: number[] }[] = [
-  { screen: [0.42, 0.18], depths: [14, 20, 27, 34] },
-  { screen: [0.55, 0.18], depths: [14, 20, 27, 34] },
-  { screen: [0.68, 0.18], depths: [14, 20, 27, 34] },
-  { screen: [0.55, 0.12], depths: [17, 26] },
-  { screen: [0.55, 0.25], depths: [17, 26] },
-  // Not the upper-left's air (x 0.05–0.35, y 0.08–0.6; frame 56 s's 0.58–0.62 rays, ours 0.43):
-  // the sun lines through it land on the D path and its west verge at z −16…−24, i.e. they ARE
-  // the D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS corridors' lines. What still shaded that air (55 %
-  // of its in-scatter weight) was wood the corridors do not cut — the north-west-near giant's
-  // wild-limb collars (19 %) and the north-west giant's wild limbs and leaders (11 %) — hence the
-  // two giants' ghosted limbs (GIANT_PROFILES).
-];
-const D_AIR_SUN_RADIUS = 2.6;
-const D_AIR_SUN_POROSITY = 0.3;
-const D_AIR_SUN_CARD_POROSITY = 0.2;
-/** metres above the air point below which its sun line is inactive */
-const D_AIR_SUN_LIFT = 3;
 /**
  * Porous view corridors through screen points of a hero camera (the same rule as the hollow gaps,
  * authored on the screen instead of in the air): the line from the camera's eye through the point
@@ -1131,17 +1115,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       .normalize();
     return { eye, dir };
   };
-  // sun lines through the air of shot D's upper band (see D_AIR_SUN_LINES)
-  const airCorridors: WorldCorridor[] = [];
-  if (dView) {
-    for (const line of D_AIR_SUN_LINES) {
-      const { eye, dir } = screenRay(dView, line.screen);
-      for (const depth of line.depths) {
-        const point = eye.clone().addScaledVector(dir, depth);
-        airCorridors.push({ point, dir: sunDir, radius: D_AIR_SUN_RADIUS, porosity: D_AIR_SUN_POROSITY, cardPorosity: D_AIR_SUN_CARD_POROSITY, yMin: point.y + D_AIR_SUN_LIFT });
-      }
-    }
-  }
   // view corridors through screen points of a hero camera (see VIEW_GAP_RAYS): the ray through the
   // point, active from `minDistance` out — a rising ray is capped from below by the height it has
   // there (a falling one from above), which is the same cut since height is monotonic along it
@@ -1161,7 +1134,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       yMax: dir.y < 0 ? point.y : undefined,
     });
   }
-  const giantCorridors: WorldCorridor[] = [...sunCorridors, ...gapCorridors, ...rayCorridors, ...airCorridors];
+  const giantCorridors: WorldCorridor[] = [...sunCorridors, ...gapCorridors, ...rayCorridors];
 
   // ------------------------------------------------------------------ white-bark variants
   const whiteRng = rng.fork('whitebark');
