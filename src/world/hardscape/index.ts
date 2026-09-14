@@ -404,10 +404,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // tint carries the ratio of the two fills so it still sits within ± 15 % of what it lies on
   const tones = jointFillTones(ctx.config.palette);
   const turfOverSoil: [number, number, number] = [tones.turfMean.r / tones.soilMean.r, tones.turfMean.g / tones.soilMean.g, tones.turfMean.b / tones.soilMean.b];
-  // round 33: capped at 1000 — the count was set by the acceptance rate (1005 at the control's
+  // round 33: capped at 880 — the count was set by the acceptance rate (1005 at the control's
   // 3–4 cm seams), and the wider plaza seams and the disc field's gaps let it run to 1313; the
-  // frames' joints are moss and earth with a faint speckle at most
-  const gritCap = Math.round(1000 * Math.max(0.7, ctx.quality.density));
+  // frames' joints are moss and earth with a faint speckle at most, and a pebble is the dearest
+  // sprout on the GPU (it rides the TUFT_C pack: 50 submitted triangles for 20 shown)
+  const gritCap = Math.round(880 * Math.max(0.7, ctx.quality.density));
   tries = 0;
   while (gritSpots.length < Math.min(gritCap, gritTarget - 120) && tries < gritTarget * 40) {
     tries++;

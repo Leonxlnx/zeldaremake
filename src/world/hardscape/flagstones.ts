@@ -1012,7 +1012,11 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 33: 1.4 m at z < −4.8 → 1.15 m at z < −4.6, ramping from z −3.0 — frames 14 s / 24 s
     // at 2× show 0.8–1.0 m rounded stones from just behind Link (z ≈ −3) on, where our lawn cells
     // west of the authored slabs were still 1.3–1.7 m flat slabs)
-    const midTarget = sd.authored ? Infinity : 2.6 - 1.45 * smoothstep(-3.0, -4.6, sd.z);
+    // (the 1.15 m target is for the lawn cells and the disc field only: over the open path any
+    // cell with a base target above 1.15 m would have taken it too — six far-spine slabs at
+    // z −28 … −60 cracked in the first cut — so the rest of the spine keeps round 23's 1.4 m)
+    const midTight = sd.lawn > 0.15 || discField(sd.x, sd.z) > 0.5;
+    const midTarget = sd.authored ? Infinity : midTight ? 2.6 - 1.45 * smoothstep(-3.0, -4.6, sd.z) : 2.6 - 1.2 * smoothstep(-3.2, -4.8, sd.z);
     // the crack is a joint like any other (each piece is inset by half the seam), plus 0–2 cm
     const partsOld = breakCell(cell, lawnTarget, brng.range(0, 0.02), BREAK_MIN_ACROSS, brng);
     // the shared stream's draws, exactly as before the mid-ground cuts existed
