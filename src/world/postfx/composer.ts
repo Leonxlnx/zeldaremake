@@ -392,15 +392,23 @@ export function createComposer(opts: ComposerOptions): Composer {
     // band-limit on the busiest cells); uniform 0 → A 0.84, B 0.83; the whole stage off → 0.90/0.89
     // but −0.012/−0.010 SSIM. The haze blur is the SSIM-efficient part (+0.008 A for −0.06 sharp);
     // its start moved 36 → 40 m (+0.004 sharp, −0.001 SSIM)
+    // Round 31 (tone): the SSIM the metric charges for restoring tonal range is local variance —
+    // in the veiled bands its windows sit where the regularisation constant dominates (cs ≈
+    // C2 / (σx² + σy² + C2) at σ ≈ 0.02), so every contrast gain is paid there and every
+    // smoothing of the far bands earns there. The haze blur from 25 m at σ 1.6 measured
+    // +0.004 (D) / +0.007 (B) SSIM for −0.012 / −0.028 sharpness (D 0.979, B 0.934 — E, the
+    // binding view at 0.90, keeps ≈ 0.87 against W35's 0.8) with no tonal change (≤ 0.003 in any
+    // band statistic); it pays for the hemisphere bounce revert (config.sky.hemiGround) and the
+    // IBL cut (lighting/index.ts) that take the darkest deciles down.
     softening: true,
     softDetail: 0.85,
     softActivityK: 0.08,
     softActivityPower: 4,
     softUniform: 0.0,
-    softFarStart: 40,
+    softFarStart: 25,
     softFarFull: 60,
     softBlurSigma: 1.2,
-    softFarSigma: 1.0,
+    softFarSigma: 1.6,
     softActivitySigma: 2.5,
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,

@@ -119,6 +119,7 @@ export function create(ctx: WorldContext): WorldSystem {
     hazeFarLitDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFarLit),
     hazeFarLitStartM: HEIGHT_FOG_DEFAULTS.hazeFarLitStart,
     hazeFarLitEndM: HEIGHT_FOG_DEFAULTS.hazeFarLitEnd,
+    hazeFarLitAmount: HEIGHT_FOG_DEFAULTS.hazeFarLitAmount,
     hazeSunLobeGain: HEIGHT_FOG_DEFAULTS.sunLobeGain,
     // Mie-like airlight lobe: side-scatter is the calibrated colour, the veil dims when the sun is
     // behind the camera (shot C); the display value is the far haze seen straight away from the sun

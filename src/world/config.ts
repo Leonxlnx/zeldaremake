@@ -49,8 +49,16 @@ export const WORLD = {
      * A/B/D: SSIM +0.001 / +0.004 / 0, luminance error down in all three, B box (a) 0.308 → 0.346,
      * A top-left 0.434 → 0.442; 3× reached 0.381 / 0.448 but lifted B's forest-band darkest decile
      * to 0.361 against the reference's 0.289 (2×: 0.336), so the bounce stays at the floor's value.
+     * Round 31 (tone attribution, D + B captures with the hemisphere's ground colour alone
+     * overridden): the 2× bounce is what lifts the darkest decile of the canopy / trunk bands —
+     * back at the old value the top band's p10 drops 0.029 (D) / 0.035 (B) and the left forest
+     * band's 0.029 / 0.029, the medians move ≤ 0.008, the bottom band (the plaza it was raised
+     * for) ≤ 0.004: it never carried the plaza. The reference's top bands sit at p10 0.29 / 0.30
+     * against our 0.33 / 0.34, its B forest band at 0.277 against 0.343; the rest of that lift is
+     * the shade floors (materials/shadeFloor.ts: −0.18 / −0.21 on the same bands when off) and is
+     * reported to their owner. SSIM −0.002 / −0.004 alone, paid for by the haze blur (postfx).
      */
-    hemiGround: 0xaba687,
+    hemiGround: 0x7d7560,
     /**
      * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
      * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs
