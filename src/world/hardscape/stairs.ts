@@ -49,13 +49,27 @@ export function hasPavedApron(def: StairDef): boolean {
   return def.id === 'house-west';
 }
 
+/**
+ * rows of landing slabs past the top step: two (1.62 m) on the main and north runs, one on the
+ * house-west flight — its head is Saria's turf yard, and from camera B (14 m, 1.8° down on to
+ * the terrace) a second row showed as a grey band beside Link where frame 14 s has turf
+ */
+export function landingRows(def: StairDef): number {
+  return hasPavedApron(def) ? 1 : 2;
+}
+
+/** length of the landing past the top step (m) — the terrain's stair mask stops here (heightfield StairFrame.landing) */
+export function landingLength(def: StairDef): number {
+  return landingRows(def) === 1 ? 0.85 : 1.75;
+}
+
 /** true if the point lies in the stair footprint incl. cheeks and landing (no flagstones here) */
 export function inStairFootprint(f: StairFrame, x: number, z: number, margin = 0): boolean {
   const [a, u] = worldToStair(f, x, z);
   // 30 cm of soil in front of the first riser (the main run's foot bank), or 5 cm where the
   // paving laps the riser
   const front = hasPavedApron(f.def) ? -0.05 : -0.3;
-  return u > front - margin && u < f.run + 1.75 + margin && Math.abs(a) < f.def.width / 2 + 0.5 + margin;
+  return u > front - margin && u < f.run + landingLength(f.def) + margin && Math.abs(a) < f.def.width / 2 + 0.5 + margin;
 }
 
 export interface StairBuild {
@@ -403,7 +417,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     const rows = [
       [f.run + 0.03, f.run + 0.78],
       [f.run + 0.83, f.run + 1.62],
-    ];
+    ].slice(0, landingRows(def));
     for (const [u0, u1] of rows) {
       const cols = rng.chance(0.5) ? 2 : 3;
       let a = -hw - 0.05;
