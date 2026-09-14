@@ -869,7 +869,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const ao = Math.max(0.1, 1 + 0.75 * crest + 0.2 * crest2) * (1 - 0.65 * fis);
       // grime and moss in the furrows and fissures (round 21): patchy, on the mid band of the
       // trunk (0.3–3.4 m), where the reference's cords stand out of a damp dark green-brown
-      const furrowMoss = clamp(0.7 * smoothstep(-0.1, -0.7, crest) + 0.6 * fis, 0, 1) * smoothstep(0.2, 0.8, noise.fbm(a * R * 0.6 + 13, y * 0.6 + 7, 2)) * smoothstep(0.3, 1.0, y) * smoothstep(3.4, 2.6, y);
+      const mossField = noise.fbm(a * R * 0.6 + 13, y * 0.6 + 7, 2);
+      const furrowMoss = clamp(0.7 * smoothstep(-0.1, -0.7, crest) + 0.6 * fis, 0, 1) * smoothstep(0.2, 0.8, mossField) * smoothstep(0.3, 1.0, y) * smoothstep(3.4, 2.6, y);
       // the wall band under the soffit sits in the eave's shadow; the pillars' flanks (where the
       // bulge falls off) carry an occlusion tint so they read as columns standing off the wall
       const eaveShade = 1 - 0.45 * smoothstep(porchTop - 0.8, wallTop, y);
@@ -884,22 +885,45 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // leaf-filtered ambient alone ours read yellow (round 11 probes: hue 43–55°) and sat above
       // the shade floor, so the floor's warm tint never applied — the band is shaded down hard
       // (×0.5) to drop it under the floor, where the bark floor's brown takes over, and its own
-      // tint is pulled warm for the texture share that still shows
+      // tint is pulled warm for the texture share that still shows. Round 22: ×0.35 — under
+      // TRUNK_BARK_FLOOR (fully textured) the floor is proportional to this tint, so the shaded
+      // wall falls toward the veil instead of the old flat term's 0.33
       const rightSide = front * smoothstep(porchW1 - 0.7, porchW1 + 0.2, w) * smoothstep(wallTop + 0.2, wallTop - 0.8, y);
-      const sideShade = lerp(1, 0.5, rightSide) * lerp(1, 1.4, litPillar);
+      const sideShade = lerp(1, 0.35, rightSide) * lerp(1, 1.4, litPillar);
       const shade = eaveShade * flankAO * sideShade;
+      /**
+       * Round 22: the shaded trunk wears a MOSS SKIN. Reference B's trunk out of the sun — the
+       * wall right of the door (x 0.92–1.0 × y 0.30–0.50) and the eave band — is deep green moss
+       * over most of the bark with only the cord crests showing as khaki-grey (the dark bands of
+       * the trunk box are olive: hue 43–47°, sat 0.16–0.28 — not the orange bark map). Round 21's
+       * furrow grime covered a fifth of the mid band; on the shaded faces (the right wall and the
+       * band under the eave, both front-facing) the skin covers everything off the crests, the
+       * crests are pulled toward grey-olive instead of round 11's warm bias, and the skin's tint
+       * is the deep green rather than the grime's green-brown.
+       */
+      const rightWall = front * smoothstep(porchW1 - 0.7, porchW1 + 0.2, w);
+      const eaveBand = 0.6 * front * smoothstep(porchW0 - 0.6, porchW0 + 0.2, w) * smoothstep(bandY0 - 0.4, bandY0 + 0.1, y);
+      const shaded = clamp(Math.max(rightWall, eaveBand), 0, 1) * smoothstep(0.1, 0.5, y);
+      const skin = shaded * smoothstep(0.45, -0.15, crest) * smoothstep(-0.35, 0.3, mossField) * (1 - 0.5 * fis);
+      const mossCover = clamp(Math.max(furrowMoss, skin), 0, 1);
       // slightly cooler than the material's warm tint: the reference bark is grey-brown, not orange
-      const warm = lerp(1, 0.86, rightSide);
-      const warmB = lerp(1, 0.72, rightSide);
-      const rr = lerp(0.96 * vari, 0.6, base * 0.7) * ao * (1 + 0.08 * Math.max(0, crest)) * shade;
+      // (round 22: the shaded crests go grey-olive — g up, r and b down against the orange map)
+      const warm = lerp(1, 0.86, rightSide) * lerp(1, 1.12, shaded);
+      const warmR = lerp(1, 0.88, shaded);
+      const warmB = lerp(1, 0.72, rightSide) * lerp(1, 0.9, shaded);
+      const rr = lerp(0.96 * vari, 0.6, base * 0.7) * ao * (1 + 0.08 * Math.max(0, crest)) * shade * warmR;
       const gg = lerp(0.97 * vari, 0.62, base * 0.6) * ao * shade * warm;
       const bb = lerp(1.0 * vari, 0.64, base * 0.6) * ao * (1 - 0.1 * Math.max(0, crest)) * shade * warmB;
       const cr = lerp(rr, 0.55, mossy * 0.6);
       const cg = lerp(gg, 0.72, mossy * 0.6);
       const cb = lerp(bb, 0.4, mossy * 0.6);
-      // the furrow grime is a DARK damp green-brown (in the eave's shade with the wall), not the base moss
-      const gw = furrowMoss * 0.7;
-      out.color = [lerp(cr, 0.3 * shade, gw), lerp(cg, 0.42 * shade, gw), lerp(cb, 0.2 * shade, gw)];
+      // the furrow grime is a DARK damp green-brown (in the eave's shade with the wall), not the base
+      // moss; the round-22 skin on the shaded faces is deeper and greener still
+      const gw = lerp(furrowMoss * 0.7, mossCover * 0.85, shaded);
+      const mr = lerp(0.3, 0.14, shaded) * shade;
+      const mg = lerp(0.42, 0.25, shaded) * shade;
+      const mb = lerp(0.2, 0.085, shaded) * shade;
+      out.color = [lerp(cr, mr, gw), lerp(cg, mg, gw), lerp(cb, mb, gw)];
   };
   const shellHole = (u: number, v: number) => {
     const a = u * TAU;
@@ -947,8 +971,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // grey-brown in the recess: the warm bark map is pulled toward neutral (reference porch
         // flanks/frame ≈ (72, 78, 76)). Round 12: the recess is a dark cavity — the reference's
         // band between the moss edge and the arch sits at the haze floor (p50 0.26 in B, ours
-        // rendered 0.38) — so the whole tunnel drops to ⅔ of round 11's tint
-        const dark = lerp(0.4, 0.2, Math.pow(q, 0.7));
+        // rendered 0.38) — so the whole tunnel drops to ⅔ of round 11's tint. Round 22: the
+        // reveal's inner faces are near-black in the reference (the cavity's sides read 0.23–0.27
+        // in B against the door's 0.29 veil floor) — half again
+        const dark = lerp(0.22, 0.11, Math.pow(q, 0.7));
         out.color = [dark * 0.8, dark * 0.92, dark * 1.12];
       },
       { cols: 72, rows: 5 },
@@ -966,8 +992,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const y = lerp(by0, by1, v);
         frame.door(w, y, dBack, out.position);
         out.uv = [w / 2.2, y / 2.2];
-        // the recess is a dark cavity in the reference (lum 0.21–0.27 above the doorway)
-        const shade = 0.2 + 0.06 * noise.noise(w * 1.3 + 4, y * 1.3) - 0.06 * smoothstep(doorTop - 0.3, porchTop, y);
+        // the recess is a dark cavity in the reference (lum 0.21–0.27 above the doorway; round
+        // 22: 0.2 → 0.14 with the pods' light moved off it)
+        const shade = 0.14 + 0.05 * noise.noise(w * 1.3 + 4, y * 1.3) - 0.05 * smoothstep(doorTop - 0.3, porchTop, y);
         out.color = [shade * 0.8, shade * 0.92, shade * 1.12];
       },
       {
@@ -1022,7 +1049,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const d = lerp(dBack + 0.04, roomFront - 0.06, q);
         frame.door(w, y, d, out.position);
         out.uv = [(s * doorOutline.length) / 2.2, d / 2.2];
-        const dark = lerp(0.24, 0.14, q);
+        // (round 22: darker still — the doorway's cut faces are the near-black rim of the opening)
+        const dark = lerp(0.14, 0.08, q);
         out.color = [dark * 0.8, dark * 0.92, dark * 1.12];
       },
       { cols: 40, rows: 3 },
@@ -1086,7 +1114,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // (radius −25 %, peaks −35 %), the arch glow drops to a trace and the ceiling ramp halves
     // (probe 1 at peaks 0.9 / 0.72: p90 0.38, 6.8 % over 0.40; as built, peaks 0.8 / 0.65:
     // p90 0.37, 5.7 % over 0.40 — the left lamp's pool and the right lamp's, nothing between).
-    return (0.01 + 0.06 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.8) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.65) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.4) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.18);
+    // Round 22: the reference doorway (x 0.75–0.83 × y 0.40–0.54) is a featureless dark cavity
+    // with two warm points — p90 0.354 against ours 0.374 with the shelves' pots showing in the
+    // lamps' pools: the pools' peaks come down a third and the ceiling ramp by a third, so the
+    // lamps read as points over dark wood (the pods themselves are emissive and unchanged).
+    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12);
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
@@ -1216,7 +1248,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // room material with a paler base, so the lamp above them shows their glazes, lit by the same
   // `aGlow` pools as the walls: two shelves under the left lamp, one under the right, all in the
   // sightline through the door from B (back wall w −1.15…1.2). ----
-  const propsMat = indoorFog(roomMaterial(mats, 0x9a8878), doorPlanePoint, F);
+  // (round 22: the paler base halves — 0x9a8878 → 0x5e544a — so the pots are shapes in the
+  // lamps' pools, not pale objects filling the reference's dark opening)
+  const propsMat = indoorFog(roomMaterial(mats, 0x5e544a), doorPlanePoint, F);
   materials.push(propsMat);
   let propCount = 0;
   {
@@ -1436,7 +1470,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // draws the same). Round 12: the light stays LOCAL — the lamp light shapes the pool round the
   // upper pod, the short-range fill under the ceiling lights the arch and the near walls; neither
   // reaches the deep back wall, which stays a dark recess (reference: p50 0.30, centre 0.12–0.18).
-  const doorLight = new PointLight(0xffd8a0, 0.28 * k, 1.7 * k, 2);
+  // (round 22: 0.28 → 0.2 and the fill 0.15 → 0.1 with the pools — the opening's p90)
+  const doorLight = new PointLight(0xffd8a0, 0.2 * k, 1.7 * k, 2);
   doorLight.position.copy(lampPos).addScaledVector(F, 0.1);
   doorLight.name = 'door-light';
   group.add(doorLight);
@@ -1445,7 +1480,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // threshold (the reference spills warm light there), not the recess. (At `archPos` itself, a
   // few centimetres under the arch's inner edge, the inverse-square falloff blew that edge out
   // to a pale band in the first round-12 probe.)
-  const fillLight = new PointLight(0xffd8a8, 0.15 * k, 1.6 * k, 2);
+  const fillLight = new PointLight(0xffd8a8, 0.1 * k, 1.6 * k, 2);
   fillLight.position.copy(frame.door((doorW0 + doorW1) / 2, doorTop - 0.55 * k, roomFront - 0.5 * k));
   fillLight.name = 'room-fill';
   group.add(fillLight);
@@ -1916,6 +1951,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const y = heightOf(_ap);
       const up = nrm.getY(i);
       const front = nrm.getX(i) * F.x + nrm.getZ(i) * F.z;
+      const right = nrm.getX(i) * Rt.x + nrm.getZ(i) * Rt.z;
       const crest = col.getX(i);
       const relief = clamp(col.getY(i) * 6, -1, 1);
       // round 21: the fissures (col z ∈ [0, 1]) are near-black cuts between the cord bundles
@@ -1925,7 +1961,72 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // 0.344 / p90 0.453 against the reference's 0.242 / 0.537 (the haze floors p10 at ≈ 0.295;
       // the crests are where the range can come from), fissures ×0.3.
       const base = 2.07 * lerp(0.72, 0.6, smoothstep(yDark0, yDark1, y));
-      const d = base * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * Math.max(0.08, 1 + 0.9 * crest) * (1 + 0.45 * relief) * (1 - 0.7 * fis);
+      /**
+       * Round 22: the arch is lit from the LEFT (sun azimuth −128° stands 0.78 along −Rt of the
+       * door) and from above; in reference B its right leg and shoulder (x 0.84–0.92 × y 0.28–0.50)
+       * are the darkest bark in the frame — p50 0.249, deep green moss over near-black furrows —
+       * its underside over the door (x 0.70–0.80 × y 0.35–0.40) reads p50 0.266 and the left
+       * leg's door-facing side (x 0.66–0.72 × y 0.33–0.50) 0.310, while the crown's front face
+       * keeps 0.377 and the left lip's outer face 0.42–0.47. Ours rendered every face at the
+       * floor's 0.36–0.40 (85 % of ARCH_BARK_FLOOR's albedo is the surface's own, so this is the
+       * tint's to carry): right-facing faces that do not face the door (the left leg's inner
+       * side), downward faces (the crown's underside) and the whole right leg / shoulder below
+       * the crown are shaded, the moss on a shaded face is the deep green of the reference's
+       * right pillar instead of the crown's lit tongues, and the crown's front face is untouched.
+       */
+      const belowCrown = smoothstep(3.0 * k, 2.5 * k, y);
+      const lateral = lateralOf(_ap);
+      const shadowLeg = smoothstep(1.1 * k, 1.9 * k, lateral) * belowCrown;
+      const frontFace = smoothstep(0.1, 0.6, front);
+      /**
+       * The crown's front face by height (fully textured floor, so the tint is the level): in
+       * reference B the lit bark band under the cap's moss is y 0.24–0.29 (p50 0.36–0.41) and
+       * everything under it to the door is the dark cavity (0.22–0.26 — the pods hang against
+       * it), while our crown's front face is a deeper band (y 0.235–0.33) that rendered lit to
+       * its bottom edge. Below the axis the face darkens to the cavity's level at the underside;
+       * the shoulder end on the right (lateral > 0.7 m, where the reference's crown turns down
+       * into its dark right pillar: x 0.86–0.94 × y 0.28–0.34 p50 0.20–0.27) shades with it; the
+       * legs' fronts under the crown's overhang are two thirds of the crown's level (the
+       * reference's left leg reads 0.31 against the crown's 0.377), their outer flanks — the left
+       * lip's lit outer face, 0.42–0.47 — and the flared feet exempt.
+       */
+      const crownAxisY = archTopY - 0.47 * k;
+      const lowerFront = frontFace * smoothstep(crownAxisY - 0.15 * k, crownAxisY - 0.45 * k, y) * smoothstep(2.0 * k, 2.3 * k, y);
+      const shoulder = (1 - belowCrown) * smoothstep(0.7 * k, 1.5 * k, lateral);
+      const legFront = belowCrown * (1 - smoothstep(0.15, 0.6, -right)) * smoothstep(0.5 * k, 1.2 * k, y);
+      /**
+       * The left flank (the faces toward the sun that the cap's rim shadows): it is what A and D
+       * look at — A from the front-left, D from the left — and in both the reference's house is
+       * one smooth hazed shape (D x 0.80–0.86 × y 0.20–0.36: p10 0.288 / p50 0.292 / p90 0.307;
+       * A x 0.46–0.52 × y 0.28–0.48: 0.322 / 0.355 / 0.393). Under the fully textured floor at
+       * lift 17 those faces rendered p50 0.395 with a p10–p90 range of 0.152 in D (control 0.094:
+       * the range is lift × textured share, 10.2 → 17) and cost A and D −0.003 / −0.004 SSIM in
+       * the arch's cells while B gained. The floor drops to lift 13 (range ×1.27 over the control),
+       * the crown's lit band keeps its B level through its own tint (×1.35, below), and the flank
+       * below the crown takes a fifth off — B's left lip (x 0.655–0.685 × y 0.36–0.48) sits at
+       * p50 0.345 against the reference's 0.369, so the lip's outer face is spared most of it.
+       */
+      const leftFlank = smoothstep(0.2, 0.7, -right) * (1 - frontFace) * belowCrown;
+      // (the crown's own front face — front > 0.5 — is exempt from the right / underside terms;
+      // on the legs every right-facing face is shaded whichever way it leans)
+      const dirShade =
+        (1 - 0.6 * Math.max(0, right) * lerp(smoothstep(0.65, 0.15, front), 1, belowCrown)) *
+        (1 - 0.75 * Math.max(0, -up) * smoothstep(0.55, 0.1, front)) *
+        (1 - 0.88 * shadowLeg) *
+        (1 - 0.65 * lowerFront) *
+        (1 - 0.45 * shoulder) *
+        (1 - 0.35 * legFront) *
+        (1 - 0.2 * leftFlank) *
+        // the crown's lit band carries its own level: ×1.35 holds the reference's lit band (B
+        // x 0.72–0.86 × y 0.24–0.31, p50 0.377) at the floor's lift 13 where lift 17 gave it ×1.1
+        // (17 × 1.1 ≈ 13 × 1.35 on a floor-lit face; the pods' light on it is a third less since
+        // round 22 — see `lanternLight`)
+        (1 + 0.35 * (1 - belowCrown) * frontFace);
+      // (round 22: the relief swing is ×0.6 / ×0.3 and the fissures ×0.5 — under the fully textured
+      // floor every unit of tint reaches the pixel, where 85 % of it did before; the old swings
+      // rendered the crown as fine bright/dark speckle in A and D, where the reference's house is a
+      // smooth hazed shape)
+      const d = base * dirShade * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * Math.max(0.08, 1 + 0.6 * crest) * (1 + 0.3 * relief) * (1 - 0.5 * fis);
       const patch = 0.45 + 0.55 * noise.fbm(_ap.x * 1.7 + 3, _ap.z * 1.7 + y * 0.6, 2);
       let w = smoothstep(0.25, 0.85, up) * patch * mossAmount;
       if (creep) {
@@ -1934,11 +2035,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const high = smoothstep(archTopY - 0.6 * k, archTopY - 0.1 * k, y);
         w = Math.max(w, high * smoothstep(0.35, 0.7, patch + 0.5 * up + 0.3 * Math.max(0, front) - 0.3));
       }
+      // round 22: on the shaded right leg the moss is a skin — over most of the surface off the
+      // cord crests, not only the upward faces
+      w = Math.max(w, shadowLeg * smoothstep(0.45, -0.1, crest) * smoothstep(0.3, 0.75, patch) * 0.85);
       w = clamp(w, 0, 1);
       // olive bark, and a moss tint green enough to read as moss on this warm bark (the material's
       // 0xdcb086 × the map leave g/r ≈ 0.6 linear; the roots' ×2.4 tint rendered amber here). The
       // reference's arch face in B runs g/r 0.92–0.94 on its moss tongues, 0.83 on bare bark.
-      col.setXYZ(i, lerp(d, 0.8, w), lerp(d * 1.15, 2.2, w), lerp(d * 0.84, 0.5, w));
+      // Round 22: the moss darkens with the face it sits on (×0.12 at full shade — the
+      // reference's right-pillar moss is as dark as the bark it grows on)
+      const m = lerp(0.1, 1, Math.pow(dirShade, 1.5));
+      col.setXYZ(i, lerp(d, 0.8 * m, w), lerp(d * 1.15, 2.2 * m, w), lerp(d * 0.84, 0.5 * m, w));
     }
     return geo;
   };
@@ -2404,7 +2511,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       frame.at(a, r, soffitY(a, r), out.position);
       out.position.addScaledVector(F, pillarBulge(wOf(a, rs), eaveY) * v);
       out.uv = [(a * rc) / 1.6, v * 2];
-      out.color = [0.3, 0.27, 0.22];
+      // (round 22: darker still — the reference's shadow band under the moss edge is the darkest
+      // strip on the house's front, 0.29–0.33 with a quarter of it under 0.25)
+      out.color = [0.2, 0.19, 0.15];
     },
     { cols: 72, rows: 3, closedU: true },
   );
@@ -3056,10 +3165,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     c.addScaledVector(F, 0.35);
     // sit the shared glow below the pods' bellies (they light downward: the reference spills
     // warm light on the threshold and sign, and the branch they hang from stays dark)
-    c.y -= 0.28 * k;
+    // Round 22: 0.9 m below the pods (was 0.28) at 4 cd (was 6.5). Measured in B: half a metre
+    // from the pods the light put a hot spot on the arch's underside and the porch wall over the
+    // door (x 0.70–0.80 × y 0.35–0.40: p50 0.392, p25 0.337 against the reference's 0.266 /
+    // 0.256 — there the pods hang against dark bark with only a faint halo); with the light off
+    // that band read 0.315 but the threshold's spill (x 0.74–0.86 × y 0.52–0.58) fell 0.299 →
+    // 0.285 under the reference's 0.301. Lower and dimmer: the underside is 2.5× further from the
+    // light (a fifth of the hot spot), the threshold as close as before.
+    c.y -= 0.9 * k;
     // the shared glow takes on the mix of pod colours
     const glow = new Color(ctx.config.palette.lanternGlow).lerp(new Color(0xd2ee48), limeCount / podPositions.length);
-    const lanternLight = new PointLight(glow, 6.5, 6, 2);
+    const lanternLight = new PointLight(glow, 4.0, 6, 2);
     lanternLight.position.copy(c);
     lanternLight.name = 'lantern-light';
     group.add(lanternLight);

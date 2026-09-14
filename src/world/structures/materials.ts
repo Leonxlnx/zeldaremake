@@ -120,6 +120,31 @@ export class Noise3D {
  * round-11 probe at 4 / 0.6 read 0.09 too dark, i.e. ×1.8 linear → 7.2).
  */
 export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1, albedo: 0.08, chroma: 1 };
+/**
+ * Round 22: the house trunk's own floor (`bark` — the trunk shell, roots, support boughs, pegs,
+ * the lantern and rope-fence posts; the pale limbs and the log keep HOUSE_BARK_FLOOR). Reference
+ * B's trunk band (x 0.66–0.98 × y 0.10–0.50) puts a quarter of its pixels under 0.25 and its
+ * median at 0.314; ours ran 4.6 % / 0.363, because the floor's flat 40 % (0.4 × 0.08 at lift
+ * 7.2) pinned every shaded trunk face — the right wall, the band under the eave, the furrows — at
+ * ≈ 0.33 whatever its vertex tint: a probe with the arch's tints at ×0.03 still rendered 0.31,
+ * the veil (≈ 0.27 at the house) plus the flat term. `texture` 1 removes the flat term: the floor
+ * is the surface's own albedo (the bark map, the tint, the vertex shading — the round-22 moss
+ * skin on the shaded faces, the crests' ao, the fissures) and a shaded face can fall to the veil;
+ * the shaded faces (the right wall's ×0.35 tint and the moss skin, house.ts `shellVertex`) then
+ * carry their own darkness — at lift 13 the strip right of the door (x 0.88–0.92 × y 0.30–0.50)
+ * read p10 0.262 / p50 0.327 against the control's 0.315 / 0.369 (reference 0.200 / 0.304).
+ * Lift 15 would put a typical floor-lit trunk face (albedo ≈ 0.02 linear) at the level the old
+ * floor gave it (7.2 × (0.4 × 0.08 + 0.6 × 0.02) ≈ 15 × 0.02); probes at lift 13 / 15 / 18 / 30
+ * rendered the wall left of the door (x 0.60–0.72 × y 0.30–0.50) at p50 0.369 / 0.371 / 0.384 /
+ * 0.424 against the reference's 0.388 — the shortfall is the lit trunk flank in that box's left
+ * column (reference 0.43–0.51, ours 0.38–0.44: sunlit, not the floor's) — while B's SSIM fell
+ * with every step of lift (0.2456 at 13, 0.2443 at 18, 0.2395 at 30: the textured floor's
+ * relief is detail the smooth reference column does not have) and D's trunk cells lost with it
+ * (lift 15 −0.012 in D). Lift 5 — a third of the old level on a typical shaded face — keeps the
+ * relief low: the strip right of the door then reads p10 0.258 / p50 0.315 (control 0.315 /
+ * 0.369, reference 0.200 / 0.304) and D's loss is the arch's, not the trunk's.
+ */
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 5, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -147,8 +172,16 @@ export const LIMB_BARK_TINT = 0x6c6e48;
  * band did not move (p50 0.38 → 0.38). Light inside a cavity under an overhang is a fraction of
  * the leaf-filtered light under the open roof, so the recess takes the same warm, textured floor
  * at a fifth of the lift.
+ *
+ * Round 22: fully textured at lift 2. Even at lift 1.2 the flat 60 % (0.6 × 0.08 × 1.2) was ten
+ * times the porch's own albedo (tints 0.08–0.22 × the dark map), so the porch wall over the door
+ * and the reveal's cut faces could not fall below ≈ 0.30 in B (x 0.70–0.80 × y 0.35–0.40: p50
+ * 0.324 with the pods' light moved off it; reference 0.266) whatever their tint. With the floor
+ * proportional to the surface those faces sit on the veil (the box reads p50 0.311), while the
+ * eave band (the trunk shell's tints, ≈ 0.5–0.9, in the same material) keeps most of its level:
+ * lift 2 × its own albedo is near the floor it had from the flat term.
  */
-export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2, texture: 0.4 };
+export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 2, texture: 1.0 };
 /**
  * The entrance arch and its root-buttresses (round 19): one knotted bark mass standing a metre
  * in front of the wall under the cap's front rim. Reference B's arch face (x 0.72–0.86 ×
@@ -167,8 +200,27 @@ export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 1.2, t
  * and whatever tint contrast the textured share can carry: mostly textured (0.85) at a lift that
  * lands the ×1.8 vertex tints on the wall's level — the arch's mean 0.348 / p90 0.404 against
  * the reference's 0.367 / 0.537 and the wall floor's 0.345 / 0.384.
+ *
+ * Round 22: `texture` 1 at lift 13 — no flat term. The floor's flat 15 % was the level the arch
+ * could not fall below whatever its tint: a probe with the whole arch's vertex colours at ×0.03
+ * still rendered its legs at p50 0.313 (right leg, B x 0.84–0.92 × y 0.28–0.50) and 0.309 (left
+ * leg's inner face) — the veil plus that flat term — where the reference's right leg is 0.249
+ * and its underside over the door 0.266. With the albedo carried entirely by the surface a
+ * shaded face (house.ts `shadeArch`: the right leg, the underside, the crown's lower front, the
+ * legs under the crown) falls to the veil (fully textured at lift 13 the right-leg box read p1
+ * 0.243 / p10 0.270 / p50 0.324 against the control's 0.262 / 0.289 / 0.364), and the flat term
+ * turns out to have been two thirds of the crown's floor: the arch face (x 0.72–0.86 × y
+ * 0.24–0.31) rendered p50 0.375 at lift 13 and 0.462 at lift 30 against the control's 0.400
+ * (reference 0.377) with the crown's tint at ×1.1. The lift also sets the arch's tonal range
+ * on every face (range ∝ lift × textured share, the control's 10.2): at lift 17 the left flank
+ * that A and D look at rendered p10–p90 0.152 in D (x 0.80–0.86 × y 0.20–0.36) against the
+ * control's 0.094 and the reference's 0.019 — a smooth hazed shape — and cost those views
+ * −0.003 / −0.004 SSIM in the arch's cells. So the lift stays at 13 (range ×1.27 over the
+ * control) and the crown's lit band holds its level through its own tint (×1.35 in `shadeArch`,
+ * 13 × 1.35 ≈ 17 × 1.1) while the shaded faces (the right leg, the underside, the crown's lower
+ * front, the left flank under the crown) fall with the lift.
  */
-export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 12, texture: 0.85 };
+export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 13, texture: 1.0 };
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -959,7 +1011,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // the entrance arch (round 19): the same bark under the intermediate, mostly textured floor
   const archBark = bark.clone();
   archBark.name = 'structures:arch-bark';
-  for (const m of [bark, barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  // (round 22: the trunk bark's floor is fully textured — TRUNK_BARK_FLOOR; the limbs and the log stay)
+  applyShadeFloor(bark, TRUNK_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  for (const m of [barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
   // Astra's c5d8c83 (adopted as-is): a 0.20 share of the hemisphere's angular response on the
   // sleeve's shade floor, so the mapped bark relief reads on the shaded bough
