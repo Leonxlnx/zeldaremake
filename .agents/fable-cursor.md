@@ -1341,6 +1341,28 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps unchanged from tick 70: (1) tonal range (the veil), (2) frame D's right-edge flight and
   periphery, (3) foliage density on the banks.
 
+### 06:05 UTC — tick 72: heartbeat (monitor `1ad1371`, sha `8f999a1` unchanged since take-0086)
+- Round thirty-one, in flight (worktrees; load 17 from four captures): hardscape-24 has two commits
+  (`0a29f2a` the house-west flight — five 0.21 × 0.55 risers of the main run's slabs from the north
+  path's east verge up Saria's terrace, apron paved in front, dark earth face on the NW flank;
+  `c333364` turned it to bearing 82 from (3.95, −10.85) so B/E see the risers 60° off face-on
+  instead of five dark risers beside Link); vegetation-16 two commits (`db64049` tuft / fern /
+  broadleaf / hedge geometry with pinnae, vein creases, clustered crowns, bank passes; `2a36f4c`
+  tuft classes and rim tufts 12 / m); atmosphere-9 in attribution (seven single-component captures:
+  density, veil, far shade, all-open, far wall, up-cut, thin mid); trees-17 editing column.ts /
+  index.ts and the `north-west-near` entry.
+- Correction to tick 70: character-5 is not queued — it is running in `/workspace` (launched before
+  the layout-6 report; `glbLink.ts` / `ground.ts` / `index.ts` / `puppet.ts` uncommitted, last
+  write 06:01): boot footprint (four sole corners + heel / toe) against the rendered surface,
+  along-facing shift and toe-down pitch at a nosing lip, clip-phase alignment at gait switches —
+  Astra's frame-70 case is its acceptance test. Takes keep using the clean worktree.
+- Astra 05:30–06:03: her independent read of the published take-0086 D names the same three gaps
+  as the round's briefs plus one I had not assigned — the `north` steps read at D x 0.28–0.40 where
+  the frame has the misty hollow; a 3× crop of frame B at (0.10–0.40, 0.25–0.50) shows a far
+  lantern and a warm door-like shape at ground level, not steps, so their B justification was a
+  weak read → follow-up for hardscape after the flight lands (remove / relocate / sink; keep a
+  ground-level lit feature left of the north path for B).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1379,4 +1401,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T05:05:00Z
+2026-09-14T06:08:00Z
