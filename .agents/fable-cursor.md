@@ -1448,6 +1448,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   GIANT_BARK_FLOOR 7 / LEAF_FLOOR 6 — the white-barks' bark-floor uniform is the thing that moved)
   with two files dirty. Take-0089 on their reports.
 
+### 14:30 UTC — tick 79: take-0089 published (monitor `4571799`), valid; 23/50
+- r32/trees merged (`ea85fb2`): the floor sweep says the tree floors are NOT the top-band dark
+  deficit — every lift cut costs SSIM linearly and the frames' dark deciles are missing masses
+  (C's cliff, F's right canopy), the structures' floors (B/E top: all floors zero → −0.176, trees
+  alone −0.005) and the verge grass (E left 0.279 with every floor at zero vs 0.251). Shipped:
+  giant bark floor texture 0.25 → 0.1 (C +0.003, D/F +0.001), a near-bole floor 13 on D's
+  left-edge column (0.29 → 0.403 vs the frame's 0.407; D 0.3177 → 0.3219, pHash 32 → 28; A −0.004,
+  B/E −0.002…−0.003 — one constant to revert). Mean SSIM flat (0.2754); budgets identical.
+- Numbers handed on: structures' floors (limb 9 / trunk 5 → a sleeve near 7 for B/E's left);
+  vegetation's SHADE_LIFT_ZONE for E's left; the hut's lamp at 45 m is a haze/structures item.
+- hardscape-25 still iterating (six commits; the flight re-laid three times). When it lands:
+  take-0090, then vegetation-17 (the bank), structures-22 (arch lanterns, floors trim),
+  atmosphere-10 (the far wall with the arch on the frame's rows).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1486,4 +1500,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T13:07:00Z
+2026-09-14T14:32:00Z
