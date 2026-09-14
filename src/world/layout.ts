@@ -187,6 +187,23 @@ export const LAYOUT = {
     // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
     // The base sits just off the paved edge so the first riser meets flattened ground.
     { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 7, rise: 0.26, tread: 0.5, width: 2.6 },
+    // Round 31 (frame 56 s, right edge): a short flight of the same worn slabs climbs the WEST face
+    // of Saria's terrace from the north path's east verge — a second way onto the terrace beside the
+    // grassy stepping-stone ramp (`pathToHouse`), which stays the B/E approach to the door. Frame D
+    // shows it at x 0.85–1.0, y 0.55–0.78 (four to five risers, nosings sloping down to the right,
+    // the run leaving the frame right) 4.5–7 m from camera D at bearing 35–45°. That spot is our
+    // ramp's north verge ((4, −6.5) → (6.6, −8.6) → (9.6, −9.3), stones ≤ 0.75 m off its centre
+    // line), so the flight sits in the only clear ground between the paving (x ≈ 3.5) and the
+    // stones: foot on the paved edge at (4.0, −10.2), rising north-east (bearing 60°, parallel to
+    // the ramp 3 m off its centre — stone-edge clearance 0.33 m with the flank pads) to the terrace
+    // at (6.5, −11.6), where the ground is already 1.02 m; five 0.21 m risers × 0.55 m treads to
+    // the terrace's 1.05. Projections (gauntlet/tmp/proj.mjs): D x 0.68–0.95, y 0.58–0.75 (first
+    // riser (0.87, 0.75) at 6.6 m, top (0.86, 0.59) at 9.2 m, nosings sloping 0.26 → 0.06 down to
+    // the right) — 0.15 left of the frame's flight, the ramp forbids further east; B/E x 0.44–0.60,
+    // y 0.55–0.64 at 12–15 m (Link covers 0.46–0.55); A (0.33–0.44, 0.47–0.54) at 21 m in the
+    // haze; behind C and F. The heightfield gives it a soil/moss bank on the north-west flank
+    // (HOUSE_WEST_BANK) and a paved apron at the foot.
+    { id: 'house-west', base: [4.0, 0, -10.2], dir: [0.866, -0.5], steps: 5, rise: 0.21, tread: 0.55, width: 2.4 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */

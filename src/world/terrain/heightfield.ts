@@ -114,6 +114,7 @@ function closestOnPolyline(points: readonly P3[], x: number, z: number) {
 }
 
 interface StairFrame {
+  id: string;
   ox: number;
   oz: number;
   dx: number;
@@ -122,11 +123,16 @@ interface StairFrame {
   rise: number;
   halfWidth: number;
   baseY: number;
+  /** how far the approach banks up against the first riser (m; FOOT_BANK.rise on the main run, 0 = none) */
+  footBank: number;
+  /** a paved apron in front of the first riser (the path's flagstones lap the foot) */
+  apron: boolean;
 }
 
 const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
   const l = Math.hypot(s.dir[0], s.dir[1]);
   return {
+    id: s.id,
     ox: s.base[0],
     oz: s.base[2],
     dx: s.dir[0] / l,
@@ -135,8 +141,28 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
     rise: s.steps * s.rise,
     halfWidth: s.width / 2,
     baseY: s.base[1],
+    footBank: s.id === 'main' ? 0.13 : s.id === 'house-west' ? 0.06 : 0,
+    apron: s.id === 'house-west',
   };
 });
+
+/** the terrace flight of frame D's right edge (layout `stairs.house-west`), if authored */
+const HOUSE_WEST = stairFrames.find((f) => f.id === 'house-west') ?? null;
+
+/**
+ * The house-west flight's banks (round 31). North-west flank: the flight stands on the path verge
+ * with the terrace face only at its top, so the heightfield's flank bank (ramp + 0.07 at the
+ * tread ends, falling to the verge within `fall` m) is a 45–50° earth face up to 1 m tall along
+ * the lower run — frame 56 s shows a dark mossy earth bank over the flight's far ends. The face
+ * is flagged damp (moss + dark soil in the splat) out to `dampReach` m beyond the tread ends.
+ * South-east flank (the side cameras B / E look across, from 12–15 m): the turf rises `seLift`
+ * over the tread ends (like the main run's SE_BANK_LIFT, but higher) so from B the flight reads
+ * as the frame's low mossy mound right of the path, its tread tops behind the lip; level again
+ * over the last 1.6 m so the landing meets the terrace. The apron in front of the first riser
+ * is paved and flattened to the path level `apron` m back so the north path's slabs lap the foot
+ * (the stepping-stone ramp's own flattening, 0.25–0.35 m higher there, yields to it).
+ */
+const HOUSE_WEST_BANK = { fall: 0.85, dampReach: 1.6, apron: 1.3, seLift: 0.3 };
 
 /**
  * The main run's north-west embankment (toward Saria's terrace): a flush grass lip `lip` m
@@ -416,6 +442,29 @@ function pathInfluence(x: number, z: number) {
     weight = plazaWeight;
   }
   surface = Math.max(surface, plazaSurface);
+  // paved apron at the foot of the house-west flight: the strip in front of its first riser, the
+  // flight's width plus a little, is paved and flattened to the path's level (0 here), so the
+  // north path's flagstones run up to the riser instead of leaving a grass wedge between the
+  // paved edge and the flight's oblique foot
+  if (HOUSE_WEST) {
+    const { u, v } = stairLocal(HOUSE_WEST, x, z);
+    const au = -u; // metres in front of the first riser
+    if (au > -0.1 && au < HOUSE_WEST_BANK.apron + 0.6 && Math.abs(v) < HOUSE_WEST.halfWidth + 0.9) {
+      // full from 0.15 m behind the first riser's face (the under-tread trench takes over there)
+      const along = smoothstep(-0.35, -0.15, au) * (1 - smoothstep(HOUSE_WEST_BANK.apron - 0.25, HOUSE_WEST_BANK.apron, au));
+      const acrossS = 1 - smoothstep(HOUSE_WEST.halfWidth + 0.15, HOUSE_WEST.halfWidth + 0.4, Math.abs(v));
+      const acrossW = 1 - smoothstep(HOUSE_WEST.halfWidth + 0.3, HOUSE_WEST.halfWidth + 0.9, Math.abs(v));
+      const apronW = along * acrossW;
+      // the apron is the authority here: the stepping-stone ramp's flattening reaches this far
+      // (weight ≈ 0.8 at 1.9 m off its centre line, 0.25–0.35 m up) and would bury the first
+      // riser's south-east end, so the target height itself goes to the apron level
+      if (apronW > 0) {
+        y = lerp(y, HOUSE_WEST.baseY, apronW);
+        weight = Math.max(weight, apronW);
+      }
+      surface = Math.max(surface, along * acrossS);
+    }
+  }
   // the south bank's toe (S_BANK): nothing is paved or flattened south-east of it — the plaza's
   // east lobe ends at the reference's grass edge (frame 1 s: x ≈ 0.78) and the bank rises there
   const sb = southBankFrame(x, z);
@@ -460,6 +509,8 @@ function macroHeight(x: number, z: number) {
 
   // Stair ramps: keep terrain just under the steps so nothing pokes through.
   let stairW = 0;
+  // the house-west flight's flank banks (0..1 on the earth face beside the treads, for the splat)
+  let hwBank = 0;
   for (const f of stairFrames) {
     const { u, v } = stairLocal(f, x, z);
     if (u > -1.2 && u < f.run + 2.4 && Math.abs(v) < f.halfWidth + 1.3) {
@@ -470,7 +521,7 @@ function macroHeight(x: number, z: number) {
       // base level and the first riser shows its full 0.30 m.
       const wu = smoothstep(0.04, 0.36, u) * smoothstep(f.run + 0.8, f.run + 0.1, u);
       const av = Math.abs(v);
-      const southEast = f === stairFrames[0] && v > 0;
+      const southEast = (f === stairFrames[0] || f === HOUSE_WEST) && v > 0;
       // trench → bank blend across the tread ends. On the main run's south-east flank it starts
       // under the slabs (SE_BANK_LIFT.blendIn) so the turf is at the ramp height right at the
       // tread ends and laps their back corners, instead of the ends standing 0.18 m clear over a
@@ -484,17 +535,28 @@ function macroHeight(x: number, z: number) {
       // onto the step ends, no kerb), falling back to the natural slope further out. On the
       // main run's north-west side the bank target itself falls away like the landform's
       // embankment (NW_BANK), so the blend never has to catch up across a step.
-      const wBank = wEnd * (1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.25, av));
+      // the house-west flight stands on the path verge: its flank bank falls to the verge within
+      // HOUSE_WEST_BANK.fall m of the flush lip (an earth face up to 1 m tall along the lower run)
+      const fall = f === HOUSE_WEST ? HOUSE_WEST_BANK.fall : 0.85;
+      const wBank = wEnd * (1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 0.4 + fall, av));
       const nwFall = f === stairFrames[0] && v < 0 ? NW_BANK.slope * Math.max(0, av - f.halfWidth - NW_BANK.lip) : 0;
       // south-east flank: the turf laps over the tread ends (SE_BANK_LIFT), level again at the top
-      const seLift = southEast ? SE_BANK_LIFT.lift * (1 - smoothstep(f.run - SE_BANK_LIFT.taper, f.run - 0.2, u)) : 0;
+      // (the house-west flight's lift is the taller HOUSE_WEST_BANK.seLift, which hides its
+      // tread tops from cameras B / E behind the turf lip)
+      const seLift = southEast ? (f === HOUSE_WEST ? HOUSE_WEST_BANK.seLift : SE_BANK_LIFT.lift) * (1 - smoothstep(f.run - SE_BANK_LIFT.taper, f.run - 0.2, u)) : 0;
       h = lerp(h, ramp + 0.07 - nwFall + seLift, wu * wBank);
+      if (f === HOUSE_WEST) {
+        // the earth face: 1 where the bank stands above the natural ground beside the run, fading
+        // out `dampReach` m from the tread ends and along the approach / landing
+        const above = smoothstep(0.08, 0.35, ramp + 0.07 - land.h);
+        hwBank = Math.max(hwBank, above * smoothstep(-0.2, 0.3, u) * (1 - smoothstep(f.run + 0.6, f.run + 1.6, u)) * smoothstep(f.halfWidth - 0.1, f.halfWidth + 0.25, av) * (1 - smoothstep(f.halfWidth + 0.4 + fall * 0.7, f.halfWidth + HOUSE_WEST_BANK.dampReach, av)));
+      }
       // the foot: soil banks up against the first riser (FOOT_BANK), across the run's width and a
       // little beyond, full height up to the riser face (u ≈ 0.01) and gone under the first tread
       // as the trench comes in, so the trench keeps its depth
-      if (f === stairFrames[0]) {
+      if (f.footBank > 0) {
         const wFoot = smoothstep(-FOOT_BANK.reach, -0.05, u) * (1 - smoothstep(0.04, 0.28, u)) * (1 - smoothstep(f.halfWidth + 0.2, f.halfWidth + 0.7, av));
-        h += FOOT_BANK.rise * wFoot;
+        h += f.footBank * wFoot;
       }
       const wv = 1 - smoothstep(f.halfWidth + 0.15, f.halfWidth + 0.9, av);
       // landing: the ground just past the top step meets the last tread flush (as in the reference)
@@ -529,7 +591,7 @@ function macroHeight(x: number, z: number) {
   // how much authored flat surface is here (detail passes fade out on it); the south bank's toe
   // strip counts as one so the paving edge and the foot of the bank stay at plaza level
   const suppress = clamp(Math.max(p.surface, stairW, padW, logW, p.toe), 0, 1);
-  return { h, land, p, suppress, logW, embank: land.embank * (1 - suppress) };
+  return { h, land, p, suppress, logW, embank: land.embank * (1 - suppress), hwBank };
 }
 
 /** Direction of steepest descent of the macro landform (finite differences). */
@@ -606,7 +668,8 @@ function detailPasses(x: number, z: number, m: ReturnType<typeof macroHeight>) {
   // damp soil: north hollow + the foot of the embankments (low relative height, shaded)
   const northHollow = smoothstep(-13, -20, z) * smoothstep(-40, -30, z) * smoothstep(9, 4, Math.abs(x - 1.5));
   const foot = smoothstep(0.02, 0.22, m.embank) * (1 - smoothstep(0.5, 0.85, m.land.plateau));
-  const damp = clamp(Math.max(northHollow * 0.9, foot * 0.35, hollow * 0.45) * (0.75 + 0.25 * (medium.fbm(x * 0.3, z * 0.3, 2) * 0.5 + 0.5)), 0, 1);
+  // the house-west flight's earth face reads as dark mossy soil (frame 56 s): damp at 0.85, broken a little by the noise
+  const damp = clamp(Math.max(northHollow * 0.9, foot * 0.35, hollow * 0.45, m.hwBank * 0.85) * (0.75 + 0.25 * (medium.fbm(x * 0.3, z * 0.3, 2) * 0.5 + 0.5)), 0, 1);
 
   return { dh, detail: { embank: m.embank, erosion, terrace, roots, damp, hollow, bank: m.land.bank } as TerrainDetail };
 }
@@ -646,8 +709,13 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
     // past the tread ends instead of 25: round 23 raised that bank to lap the step ends, and the
     // 25 cm band was painting a bare-soil strip there that no grass could grow on (frame 1 s has
     // turf and leaves over the ends). The north-west side keeps its 25 cm for the kerb stones.
-    const margin = f === stairFrames[0] && v > 0 ? 0.05 : 0.25;
-    if (u > -0.3 && u < f.run + 1.7 && Math.abs(v) < f.halfWidth + margin) stairs = 1;
+    // The house-west flight (round 31) has the same turf lap on its south-east side, and its
+    // paved apron runs up to the first riser: the mask starts 5 cm in front of the riser face
+    // there (30 cm elsewhere, the soil strip the main run's foot bank fills).
+    const lapped = (f === stairFrames[0] || f === HOUSE_WEST) && v > 0;
+    const margin = lapped ? 0.05 : 0.25;
+    const front = f.apron ? -0.05 : -0.3;
+    if (u > front && u < f.run + 1.7 && Math.abs(v) < f.halfWidth + margin) stairs = 1;
   }
   let structure = 0;
   for (const hs of LAYOUT.houses) {
