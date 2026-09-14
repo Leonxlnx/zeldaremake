@@ -92,4 +92,65 @@ for(const g of geometry)g.dispose();for(const m of[material,depth,distance])m.di
   set.dispose();assert.equal(released,6,'dispose releases every pack mesh and its packed geometry');
   uniform.dispose();for(const g of[...near,...far,packed])g.dispose();
 }
-console.log('PASS: forced LOD refresh, interactive gate, conserved matrices/colors/counts, shadow bindings, consistent estimates and variant packs (slots, hidden empty LODs, layout validation)');
+// Submission culling (round 15): after cull() a bucket only submits the instances whose padded
+// sphere meets the view frustum, plus — on shadow-casting LODs — those whose shadow sweep along
+// the sun reaches the frame; buckets still account for every plant, kept instances keep their
+// matrices / colours, and a cull with an unchanged view and unchanged buckets is a no-op.
+{
+  const {CULL_PAD_M,SHADOW_FLOOR_Y}=module.exports;
+  assert.ok(CULL_PAD_M>=1&&SHADOW_FLOOR_Y<=-1,'conservative pad and a floor under the terrain');
+  const near=[new THREE.BoxGeometry(0.5,0.5,0.5)],far=[new THREE.PlaneGeometry(0.5,0.5)];
+  const set=new LodInstancedSet({name:'culled',variants:[[near[0],far[0]]],material,shadowMaterials:{depth,distance},lodDistances:[20],castShadowLods:1});
+  const at=(x,y,z)=>Float32Array.from(new THREE.Matrix4().makeTranslation(x,y,z).elements);
+  // near LOD (casts): ahead / behind / behind but shadow lands ahead / just outside the frustum edge (within the pad)
+  set.add(at(0,0,-10),0,[1,0,0]);set.add(at(0,0,8),0,[0,1,0]);set.add(at(0,0,3),0,[0,0,1]);
+  // far LOD (no shadow): ahead / behind
+  set.add(at(0,0,-40),0,[1,1,0]);set.add(at(0,0,40),0,[0,1,1]);
+  set.build();
+  const camera=new THREE.PerspectiveCamera(60,16/9,0.1,100);camera.position.set(0,0,0);camera.lookAt(0,0,-1);camera.updateMatrixWorld();
+  const shadowAhead=new THREE.Vector3(0,0.2,1).normalize(); // low sun behind the camera: long shadows fall into the frame
+  const shadowBehind=new THREE.Vector3(0,0.5,-1).normalize();
+  const [nearMesh,farMesh]=set.group.children;
+  set.update(new THREE.Vector3(0,0,0),true);
+  assert.deepEqual([nearMesh.count,farMesh.count],[3,2],'whole buckets before the first cull');
+  set.cull(camera,shadowBehind,true);
+  assert.deepEqual([nearMesh.count,farMesh.count],[1,1],'behind the camera with the shadow falling behind: culled');
+  assert.deepEqual([...nearMesh.instanceMatrix.array.slice(12,15)],[0,0,-10]);assert.deepEqual([...nearMesh.instanceColor.array.slice(0,3)],[1,0,0]);
+  assert.deepEqual([...farMesh.instanceMatrix.array.slice(12,15)],[0,0,-40]);
+  assert.deepEqual(set.submission().map(m=>[m.lod,m.bucket,m.submitted]),[[0,3,1],[1,2,1]],'buckets keep every plant, submitted is the trimmed count');
+  assert.equal(set.stats().triangles,nearMesh.geometry.index.count/3*2+farMesh.geometry.index.count/3,'stats follow the submitted instances');
+  set.cull(camera,shadowAhead,true);
+  assert.equal(nearMesh.count,3,'casters behind the camera whose shadow sweeps into the frame stay in the depth map');
+  assert.equal(farMesh.count,1,'the non-casting LOD ignores the sun');
+  const versionBefore=nearMesh.instanceMatrix.version;
+  set.cull(camera,shadowAhead);
+  assert.equal(nearMesh.instanceMatrix.version,versionBefore,'unchanged view + buckets: nothing re-uploaded');
+  // the pad: an instance a little outside the frustum's edge is kept, one far outside is not
+  const edge=new LodInstancedSet({name:'edge',variants:[[near[0]]],material,lodDistances:[]});
+  const halfW=10*Math.tan(THREE.MathUtils.degToRad(30))*(16/9);
+  edge.add(at(halfW+CULL_PAD_M*0.5,0,-10),0,[1,1,1]);edge.add(at(halfW+CULL_PAD_M*4,0,-10),0,[1,1,1]);
+  edge.build();edge.update(new THREE.Vector3(0,0,0),true);edge.cull(camera,shadowBehind,true);
+  assert.equal(edge.group.children[0].count,1,'the pad admits the instance at the frustum edge and drops the one well outside');
+  assert.ok(edge.group.children[0].boundingSphere.radius>=CULL_PAD_M,'the aggregate sphere carries the pad');
+  // the sphere's centre is the pack centroid (three's opaque sort key) and never moves with the submission
+  const centre=edge.group.children[0].boundingSphere.center.clone();
+  assert.ok(Math.abs(centre.x-(halfW+CULL_PAD_M*2.25))<1e-6,'centre = mean of every plant of the pack');
+  camera.position.set(0,0,-30);camera.lookAt(0,0,-31);camera.updateMatrixWorld();edge.cull(camera,shadowBehind);
+  assert.equal(edge.group.children[0].count,0);camera.position.set(0,0,0);camera.lookAt(0,0,-1);camera.updateMatrixWorld();edge.cull(camera,shadowBehind);
+  assert.deepEqual(edge.group.children[0].boundingSphere.center.toArray(),centre.toArray(),'the centre is fixed across culls');
+  // cull: false — the set keeps submitting whole buckets (the audit's scene-graph claims rely on it)
+  const whole=new LodInstancedSet({name:'whole',variants:[[near[0]]],material,lodDistances:[],cull:false});
+  whole.add(at(0,0,-10),0,[1,1,1]);whole.add(at(0,0,50),0,[1,1,1]);whole.build();whole.update(new THREE.Vector3(0,0,0),true);
+  whole.cull(camera,shadowBehind,true);
+  assert.equal(whole.group.children[0].count,2,'cull: false leaves the plant behind the camera submitted');
+  whole.dispose();
+  // re-pose: buckets change, cull re-trims from the new buckets
+  set.update(new THREE.Vector3(0,0,-35),true);
+  assert.deepEqual(set.submission().map(m=>m.bucket),[1,4],'re-bucketed by the new distance');
+  camera.position.set(0,0,-35);camera.lookAt(0,0,-36);camera.updateMatrixWorld();
+  set.cull(camera,shadowBehind);
+  assert.deepEqual([nearMesh.count,farMesh.count,farMesh.visible],[1,0,false],'from -35 looking -Z: only the plant ahead (-40) survives, the emptied far bucket is hidden');
+  assert.deepEqual([...nearMesh.instanceMatrix.array.slice(12,15)],[0,0,-40]);
+  set.dispose();edge.dispose();for(const g of[...near,...far])g.dispose();
+}
+console.log('PASS: forced LOD refresh, interactive gate, conserved matrices/colors/counts, shadow bindings, consistent estimates, variant packs (slots, hidden empty LODs, layout validation) and submission culling (frustum, shadow sweep, pad, no-op re-cull)');

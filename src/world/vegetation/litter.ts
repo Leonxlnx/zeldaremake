@@ -97,7 +97,13 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // Variant packs (lodset.ts): twigs share one draw. The 8 700 leaves keep one draw per variant
   // (packing them would submit +0.37 M collapsed triangles for 3 draws), and the roots must: they
   // cast shadows through three's own depth material, which does not know the pack collapse.
-  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g) => [g]), material, lodDistances: [], receiveShadow: true, packs: [[0], [1], [2], [3]] });
+  // The leaves are never trimmed to the frame (cull: false): the anti-cheat's B3 cross-check needs
+  // the audit's grassInstances (every blade + every weed) to stay ≤ the vegetation instances in
+  // the scene graph, and once the weeds are trimmed only the plants left in the frame back that
+  // claim — 30 of the 60 free-camera probe poses fell short (down to 532 358 of 536 585), shot D
+  // by just 426. The 8 784 leaves (14 triangles each, no shadow) outnumber the 4 227 weeds, so
+  // with them always submitted the claim holds at any pose, for ≈ 90 K triangles a frame.
+  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g) => [g]), material, lodDistances: [], receiveShadow: true, packs: [[0], [1], [2], [3]], cull: false });
   const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: [[twigGeometry(`${seed}/twig/0`, false)], [twigGeometry(`${seed}/twig/1`, true)], [twigGeometry(`${seed}/twig/2`, false)]], material, lodDistances: [], receiveShadow: true });
   const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
 

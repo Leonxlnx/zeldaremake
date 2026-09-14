@@ -6,11 +6,37 @@
  * triangles, no fill) — the draw-call trick hardscape's joint sprouts use. Packs are chosen per
  * LOD (`packs`): the far LODs, where most instances live and geometries are tiny, pack every
  * variant into one draw; the near LOD keeps big geometries apart so the collapsed vertices stay
- * cheap. Every plant is always in exactly one LOD mesh, so the sum of instance counts under the
- * group never changes (the audit relies on that); `update()` re-buckets plants by camera distance
- * when the camera has moved.
+ * cheap. Every plant is bucketed into exactly one LOD mesh; `update()` re-buckets plants by camera
+ * distance when the camera has moved.
+ *
+ * Submission culling (round 15, the trees system's round-16 pattern): a LOD bucket is a distance
+ * ring all around the camera, so before this every plant of the ring — the two thirds behind the
+ * camera included — was rasterised in the colour pass and, on the shadow-casting LODs, in the
+ * sun's depth map. `cull()` trims each bucket to the instances that can reach the frame: an
+ * instance is submitted when its bounding sphere (root + the plant's reach at any LOD, grown by
+ * CULL_PAD_M for wind sway and the shadow filter's reach) meets the view frustum, or — on a
+ * shadow-casting mesh — when the volume its shadow sweeps along the sun direction down to
+ * SHADOW_FLOOR_Y (a capsule) meets it, since a caster behind the camera whose shadow falls into
+ * the frame must stay in the depth map. Both tests are conservative (plane separation), so the
+ * frame is pixel-identical to the untrimmed one; what changes is the triangle count and the draw
+ * calls of buckets that trim to nothing (hidden). The bucket sizes (`submission().bucket`) still
+ * sum to the plant count; the scene graph carries the submitted instances (a set built with
+ * `cull: false` keeps submitting whole buckets — litter.ts explains why the leaves do).
  */
-import { BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Group, InstancedBufferAttribute, InstancedMesh, Sphere, Vector3, type Material, type TypedArray } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Sphere, Vector3, type Camera, type Material, type TypedArray } from 'three';
+
+/**
+ * Culling pad (m) on every instance sphere: plants sway ≤ 0.2 m (windBranch at the seed heads'
+ * sway 4.5 / stiffness 0.15), the shadow filter reaches 0.45 m of penumbra + 0.3 m of blocker
+ * search (lighting/shadowfilter.ts), the rest is slack.
+ */
+export const CULL_PAD_M = 1.5;
+/** lowest world height a shadow receiver can have (the terrain floor is −0.85 m); the capsule is swept down to it */
+export const SHADOW_FLOOR_Y = -10;
+const _p = new Vector3();
+const _q = new Vector3();
+const _kept: number[] = [];
+const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 
 /** variant index groups sharing one InstancedMesh, either for every LOD or given per LOD */
 export type PackLayout = number[][] | number[][][];
@@ -31,6 +57,10 @@ export interface LodSetOptions {
   hysteresis?: number;
   /** which variants share a draw (default: all variants in one pack at every LOD) */
   packs?: PackLayout;
+  /** submission-culling pad (m) on every instance sphere (default CULL_PAD_M) */
+  cullPad?: number;
+  /** false: `cull()` submits this set's buckets whole (default true) */
+  cull?: boolean;
 }
 
 interface Item {
@@ -40,12 +70,34 @@ interface Item {
   variant: number;
   matrix: Float32Array;
   color: [number, number, number];
+  /** radius (m) of the sphere about the root that holds the placed plant at every LOD (set by build) */
+  reach: number;
 }
 
 interface PackMesh {
   mesh: InstancedMesh;
   slots: InstancedBufferAttribute;
+  /** triangles one instance submits (every variant of the pack, the collapsed ones included) */
   triangles: number;
+  /** item indices bucketed into this mesh by camera distance (before culling) */
+  list: number[];
+  /** item indices actually submitted: `list` minus the culled instances */
+  submitted: number[];
+}
+
+/** one mesh's share of the submission, for the audit */
+export interface MeshSubmission {
+  name: string;
+  lod: number;
+  pack: number;
+  /** plants bucketed into the mesh by distance */
+  bucket: number;
+  /** plants submitted after culling (the mesh's instance count) */
+  submitted: number;
+  /** triangles per submitted instance */
+  triangles: number;
+  castShadow: boolean;
+  mesh: InstancedMesh;
 }
 
 /** per-vertex variant slot inside a packed geometry */
@@ -111,7 +163,14 @@ export class LodInstancedSet {
   private slotOf: number[][] = [];
   private built = false;
   private lastCam = new Vector3(Infinity, Infinity, Infinity);
-  private lodCounts: number[][] = [];
+  /** set once `cull()` has run: buckets are then trimmed instead of submitted whole */
+  private culling = false;
+  /** buckets changed since the last cull */
+  private bucketsDirty = false;
+  private readonly frustum = new Frustum();
+  private readonly viewProj = new Matrix4();
+  private readonly lastViewProj = new Matrix4().makeScale(0, 0, 0);
+  private readonly sun = new Vector3(0, 1, 0);
 
   constructor(readonly opts: LodSetOptions) {
     this.group.name = opts.name;
@@ -156,7 +215,7 @@ export class LodInstancedSet {
 
   add(matrix: Float32Array, variant: number, color: Color | [number, number, number]) {
     const c: [number, number, number] = Array.isArray(color) ? color : [color.r, color.g, color.b];
-    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c });
+    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, reach: 0 });
   }
 
   /**
@@ -199,25 +258,30 @@ export class LodInstancedSet {
       }
       return r;
     });
+    // the placed plant's reach about its root: geometry extent × the largest axis scale
+    for (const it of this.items) {
+      const scale = Math.max(Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]), Math.hypot(it.matrix[4], it.matrix[5], it.matrix[6]), Math.hypot(it.matrix[8], it.matrix[9], it.matrix[10]));
+      it.reach = scale * geoRadius[it.variant];
+    }
     const centre = new Vector3();
     for (let l = 0; l < lodCount; l++) {
       const row: PackMesh[] = [];
       this.packs[l].forEach((pack, pi) => {
         const inPack = new Set(pack);
         const mine = this.items.filter((it) => inPack.has(it.variant));
+        // The mesh sphere's centre is the pack's centroid, fixed for good: three sorts the opaque
+        // meshes of one material by the depth of this centre, so a centre that followed the
+        // submitted instances would reorder a set's draws between poses and flip the depth ties of
+        // overlapping leaves (measured: 1–7 pixels in shots A / D). Only the radius follows the
+        // submission (`fill`). Summed in item order and scaled like the pre-cull code, so the sort
+        // key is bit-identical to it.
         centre.set(0, 0, 0);
-        let maxReach = 0;
         for (const it of mine) {
           centre.x += it.x;
           centre.y += it.y;
           centre.z += it.z;
-          const scale = Math.max(Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]), Math.hypot(it.matrix[4], it.matrix[5], it.matrix[6]), Math.hypot(it.matrix[8], it.matrix[9], it.matrix[10]));
-          maxReach = Math.max(maxReach, scale * geoRadius[it.variant]);
         }
         if (mine.length) centre.multiplyScalar(1 / mine.length);
-        let radius = 0;
-        for (const it of mine) radius = Math.max(radius, Math.hypot(it.x - centre.x, it.y - centre.y, it.z - centre.z));
-        radius += maxReach + 0.5;
         const capacity = Math.max(1, mine.length);
         const geometry = packGeometries(pack.map((v) => variants[v][l]));
         const slots = new InstancedBufferAttribute(new Float32Array(capacity), 1);
@@ -236,48 +300,80 @@ export class LodInstancedSet {
         }
         mesh.receiveShadow = this.opts.receiveShadow ?? true;
         mesh.matrixAutoUpdate = false;
-        mesh.boundingSphere = new Sphere(centre.clone(), radius);
+        mesh.boundingSphere = new Sphere(centre.clone(), 0);
         mesh.name = `${this.opts.name}-lod${l}-p${pi}-v${pack.join('')}`;
         mesh.visible = false;
         this.group.add(mesh);
-        row.push({ mesh, slots, triangles: geometry.index!.count / 3 });
+        row.push({ mesh, slots, triangles: geometry.index!.count / 3, list: [], submitted: [] });
       });
       this.meshes.push(row);
     }
-    this.lodCounts = this.meshes.map((row) => row.map(() => 0));
     // seed the last LOD with everything so the very first frame draws the plants
     this.bucket(() => lodCount - 1);
     return this.group;
   }
 
+  /** Bucket every plant into one mesh; the buckets are submitted whole until `cull()` has run. */
   private bucket(lodFor: (it: Item) => number) {
-    for (const row of this.lodCounts) row.fill(0);
-    for (const it of this.items) {
+    for (const row of this.meshes) for (const pm of row) pm.list.length = 0;
+    for (let i = 0; i < this.items.length; i++) {
+      const it = this.items[i];
       const lod = lodFor(it);
-      const pi = this.packOf[lod][it.variant];
-      const pm = this.meshes[lod][pi];
-      const slot = this.lodCounts[lod][pi]++;
-      pm.mesh.instanceMatrix.array.set(it.matrix, slot * 16);
-      pm.mesh.instanceColor!.array.set(it.color, slot * 3);
-      pm.slots.array[slot] = this.slotOf[lod][it.variant];
+      this.meshes[lod][this.packOf[lod][it.variant]].list.push(i);
     }
-    this.meshes.forEach((row, l) =>
-      row.forEach((pm, pi) => {
-        pm.mesh.count = this.lodCounts[l][pi];
-        pm.mesh.instanceMatrix.needsUpdate = true;
-        pm.mesh.instanceColor!.needsUpdate = true;
-        pm.slots.needsUpdate = true;
-        // an empty LOD is never submitted (visible=false; three also skips count 0)
-        pm.mesh.visible = pm.mesh.count > 0;
-      }),
-    );
+    if (this.culling) this.bucketsDirty = true;
+    else this.meshes.forEach((row, l) => row.forEach((pm) => this.fill(pm, l, pm.list)));
   }
 
-  /** Re-bucket instances by LOD for the current camera position. */
-  update(camPos: Vector3, force = false) {
+  /**
+   * Hand `list` (item indices, in bucket order) to the mesh: matrices, colours, variant slots, the
+   * count, and the radius of the aggregate bounding sphere (about the pack's fixed centre, see
+   * `build`) over the submitted instances, carrying the same pad they were admitted with — three
+   * culls the whole mesh against it, and an unpadded sphere would drop a sparse bucket admitted at
+   * the frustum's edge for its sway / shadow reach.
+   */
+  private fill(pm: PackMesh, lod: number, list: number[]) {
+    const { mesh, slots } = pm;
+    const matrices = mesh.instanceMatrix.array as Float32Array;
+    const colors = mesh.instanceColor!.array as Float32Array;
+    const slotArr = slots.array as Float32Array;
+    const slotOf = this.slotOf[lod];
+    const centre = mesh.boundingSphere!.center;
+    let radius = 0;
+    for (let k = 0; k < list.length; k++) {
+      const it = this.items[list[k]];
+      matrices.set(it.matrix, k * 16);
+      colors[k * 3] = it.color[0];
+      colors[k * 3 + 1] = it.color[1];
+      colors[k * 3 + 2] = it.color[2];
+      slotArr[k] = slotOf[it.variant];
+      radius = Math.max(radius, Math.hypot(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
+    }
+    mesh.count = list.length;
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.instanceColor!.needsUpdate = true;
+    slots.needsUpdate = true;
+    // an empty bucket is never submitted (visible=false; three also skips count 0)
+    mesh.visible = list.length > 0;
+    if (list.length) mesh.boundingSphere!.radius = radius + this.pad;
+    if (pm.submitted !== list) {
+      pm.submitted.length = 0;
+      for (const i of list) pm.submitted.push(i);
+    }
+  }
+
+  private get pad() {
+    return this.opts.cullPad ?? CULL_PAD_M;
+  }
+
+  /**
+   * Re-bucket instances by LOD for the current camera position (when it moved further than the
+   * hysteresis, or when forced). Returns true when the buckets were rebuilt.
+   */
+  update(camPos: Vector3, force = false): boolean {
     if (!this.built) this.build();
     const hyst = this.opts.hysteresis ?? 0.6;
-    if (!force && camPos.distanceToSquared(this.lastCam) < hyst * hyst) return;
+    if (!force && camPos.distanceToSquared(this.lastCam) < hyst * hyst) return false;
     this.lastCam.copy(camPos);
     const { lodDistances } = this.opts;
     const lodCount = this.lodCount;
@@ -286,12 +382,79 @@ export class LodInstancedSet {
       for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
       return lodCount - 1;
     });
+    return true;
+  }
+
+  /** the padded instance sphere (root, reach + pad) meets the frustum */
+  private inView(it: Item): boolean {
+    const r = it.reach + this.pad;
+    _p.set(it.x, it.y, it.z);
+    for (const plane of this.frustum.planes) if (plane.distanceToPoint(_p) < -r) return false;
+    return true;
   }
 
   /**
-   * Draw calls / triangles before frustum culling, including one sun-shadow pass. Triangles are
-   * what the GPU is handed: a packed instance submits every variant of its pack (the collapsed
-   * ones as zero-area triangles).
+   * The volume the instance's shadow sweeps along the sun direction (from the sphere down to
+   * SHADOW_FLOOR_Y) meets the frustum: a capsule is outside a plane iff both end spheres are.
+   */
+  private shadowReaches(it: Item): boolean {
+    const r = it.reach + this.pad;
+    _p.set(it.x, it.y, it.z);
+    const span = Math.max(0, (it.y + r - SHADOW_FLOOR_Y) / Math.max(0.05, this.sun.y));
+    _q.copy(_p).addScaledVector(this.sun, -span);
+    for (const plane of this.frustum.planes) {
+      if (plane.distanceToPoint(_p) < -r && plane.distanceToPoint(_q) < -r) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Trim every bucket to the instances that can reach `camera`'s frame (see the header): the view
+   * frustum test for every mesh, plus the shadow sweep along `sunDir` (unit vector toward the sun)
+   * for the shadow-casting ones. Skipped while neither the view-projection nor the buckets changed
+   * (unless forced). Once called, `update()` no longer submits whole buckets.
+   */
+  cull(camera: Camera, sunDir: Vector3, force = false) {
+    if (!this.built) this.build();
+    this.culling = true;
+    camera.updateMatrixWorld();
+    this.viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!force && !this.bucketsDirty && this.viewProj.equals(this.lastViewProj)) return;
+    this.lastViewProj.copy(this.viewProj);
+    this.bucketsDirty = false;
+    this.frustum.setFromProjectionMatrix(this.viewProj);
+    if (sunDir.lengthSq() > 1e-6) this.sun.copy(sunDir).normalize();
+    const trim = this.opts.cull !== false;
+    for (let l = 0; l < this.meshes.length; l++) {
+      for (const pm of this.meshes[l]) {
+        let keep = pm.list;
+        if (trim) {
+          const casts = pm.mesh.castShadow;
+          _kept.length = 0;
+          for (const i of pm.list) {
+            const it = this.items[i];
+            if (this.inView(it) || (casts && this.shadowReaches(it))) _kept.push(i);
+          }
+          keep = _kept;
+        }
+        if (!sameList(keep, pm.submitted)) this.fill(pm, l, keep);
+      }
+    }
+  }
+
+  /** every mesh's bucket size, submitted count and per-instance cost (audit) */
+  submission(): MeshSubmission[] {
+    const out: MeshSubmission[] = [];
+    this.meshes.forEach((row, lod) =>
+      row.forEach((pm, pack) => out.push({ name: pm.mesh.name, lod, pack, bucket: pm.list.length, submitted: pm.mesh.count, triangles: pm.triangles, castShadow: pm.mesh.castShadow, mesh: pm.mesh })),
+    );
+    return out;
+  }
+
+  /**
+   * Draw calls / triangles of the submitted instances (after `cull()`, before three's own per-mesh
+   * frustum test), including one sun-shadow pass. Triangles are what the GPU is handed: a packed
+   * instance submits every variant of its pack (the collapsed ones as zero-area triangles).
    */
   stats(): { drawCalls: number; triangles: number } {
     let drawCalls = 0;
