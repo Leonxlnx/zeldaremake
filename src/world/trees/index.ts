@@ -431,7 +431,16 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   },
   // shot D's top-right limb (round 31, see above): the plateau-oak's bough over the upper house,
   // its curtains between camera D and the house's window / cap (t 0.95), its wall (t 0.97) and
-  // the north-east hut (t 0.9)
+  // the north-east hut (t 0.9). The wood at s ≈ 0.9 runs along camera A's ray to the north-east
+  // hut's window (A (0.45, 0.13), 45 m): its centre line 0.009 of the frame height off the window,
+  // its hazed edge on it. Round 32 tried the tip at (6.5, 5, −10) and (7, 5, −10) (centre line
+  // 0.008 the other side / 0.032 clear, wood 0.014 clear) and kept this one: the window is not
+  // in the picture either way — at 45 m the haze leaves the hut's pixels at 0.45 with or without
+  // the wood (identical to the byte), the frame's lit point is a soft +0.08 at (0.455, 0.097)
+  // the hut does not make, the control's two warm pixels beside the wood were its own sunlit rim
+  // — and the moved tip lengthens the tip clump's stem, which grows the merged authored-leaves
+  // mesh's bounding sphere into camera F's left frustum plane: F +1 draw / +0.28 M triangles
+  // (505 / 8.13 M → 506 / 8.41 M) for nothing visible.
   {
     giant: 'plateau-oak',
     fromY: 17.0,
