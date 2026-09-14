@@ -123,8 +123,12 @@ export const LAYOUT = {
   /** Main flagstone spine: south approach → plaza → north terrace → log arch. */
   // North of the plaza the spine bears slightly EAST (reference B recedes at x ≈ 0.3–0.6, on the
   // D axis), runs level through a misty hollow (reference D: mist pool before the arch) and then
-  // climbs ≈ 3.4 m to the arch, whose feet sit well above camera D (opening centre y ≈ 0.37).
-  // The raised bank with the small steps is WEST of the hollow (see stairs.north).
+  // climbs to the arch. Round 32: the rise beyond z −36 flattened — 3.35 → 3.75 → 4.3 m (was
+  // 3.35 → 4.3 → 5.6): frame 56 s keeps the far ground line at a constant y ≈ 0.46–0.47 from 33 m
+  // out to the arch's feet (a ground that climbs exactly as fast as it recedes: 3.4 m at 33 m,
+  // 3.8 at 39, 4.3 at 47), and the arch, which stands on this ground, was 1.3 m too high (its
+  // bark top at y 0.22–0.24 against the frame's 0.27–0.30). The raised boulder bank
+  // (terraces.northTerrace) is WEST of the hollow.
   pathSpine: [
     [1, 0, 16],
     [0, 0, 8],
@@ -135,9 +139,9 @@ export const LAYOUT = {
     [1.8, -0.13, -24],
     [2.5, 1.7, -30],
     [3.5, 3.35, -36],
-    [4.5, 4.3, -42],
-    [5.2, 5.6, -50],
-    [5.8, 5.8, -58],
+    [4.5, 3.75, -42],
+    [5.2, 4.3, -50],
+    [5.8, 4.5, -58],
   ] as [number, number, number][],
   pathHalfWidth: 2.4,
 
@@ -150,23 +154,46 @@ export const LAYOUT = {
   ] as [number, number, number][],
 
   /**
-   * Branch from the plaza north-east up to Saria's door. Reference B/E (frames 14 s / 24 s): this is
-   * NOT continuous paving — isolated round stepping stones climb a grassy slope to a door that sits
-   * only ~0.9 m above the plaza, no stair (the 4-step terrace stair of earlier rounds put a flight
-   * of steps in the centre of B where the footage has lawn). The heightfield flattens the ground
-   * to this polyline's y (a smooth ramp) and paves only the stones in `houseSteppingStones()`.
+   * The walk to Saria's door: ONE route from the north path — the `house-west` flight climbs from
+   * the path's east verge to a landing at 1.62 m, and from the landing's east end this polyline
+   * crosses the terrace lawn to the door (0.7 m short of the threshold), the ground easing from
+   * the landing's 1.56 m to the terrace's 1.05. Isolated round stepping stones on level turf
+   * (`houseSteppingStones()`), no paving. Round 32: until round 31 this was the plaza → door
+   * stepping-stone ramp ((0.5, −2) → (4, −6.5) → (6.6, −8.6) → (9.6, −9.3)); frame 56 s puts the
+   * flight exactly on that ramp's lower half, and the frame-14 s "stones climbing a grassy slope"
+   * right of Link are, at 10–12 m from camera B, the flight's own south flank seen face-on (its
+   * tread ends and cheek stones in the turf) — so the ramp's lower stones go, and the flight is
+   * the rise. The heightfield flattens only a narrow strip (0.4 × pathHalfWidth) to this line:
+   * the signpost (7, −9.3) stands 1.7 m south of it on its own ground.
    */
   pathToHouse: [
-    [0.5, 0, -2],
-    [4.0, 0.08, -6.5],
-    [6.6, 0.55, -8.6],
+    // two verge stones beside the north path's paved edge (frame 14 s: the stones right of Link's
+    // feet), on the flat strip between the plaza's paving (x ≤ 3.3 at z −4.5) and the toe of the
+    // flight's south bank (x ≥ 3.5 there; a disc needs < 0.28 m of ground span)
+    [3.45, 0, -4.2],
+    [3.0, 0, -5.2],
+    // the paved apron in front of the first riser (0.27 m up from the path — a kerb the height of
+    // one riser, so the apron is the flight's wide first tread: frame 56 s' pale flat stone at
+    // y 0.72–0.80 under the lit nosings), then the flight's foot, head and landing end (layout
+    // stairs 'house-west'; no stones over the apron / flight / landing: `skip`)
+    [3.05, 0.22, -8.27],
+    [3.8, 0.27, -8.0],
+    [5.68, 1.62, -7.32],
+    [6.48, 1.56, -7.03],
+    // across the lawn to the door, the ground easing 0.5 m down to the terrace
+    [8.3, 1.3, -7.6],
     [9.6, 1.05, -9.3],
   ] as [number, number, number][],
-  /** stepping stones along `pathToHouse`: first stone `from` metres in (past the plaza rim) */
+  /**
+   * stepping stones along `pathToHouse`: first stone `from` metres in; none over `skip` (metres
+   * along the line: from 1.9 m (a third verge stone would fall on the apron's south-west corner)
+   * over the apron (front edge d 4.4), the flight and its landing slabs to the landing's end
+   * (d 8.0) — the stones resume 0.2 m past the landing; 2 verge + 4 lawn stones)
+   */
   // reference stones read 0.8-1.0 m across and nearly touching, with a trodden strip between
   // (hardscape 7c measured ours at 0.7-1.0 m with 1.3 m of grass between): larger, closer discs.
-  // spacing x min jitter 0.88 = 1.06 m > 2 x 0.52 so neighbours never overlap.
-  steppingStones: { from: 3.2, spacing: 1.2, radius: [0.42, 0.52] as [number, number], wobble: 0.22 },
+  // spacing x min jitter 0.88 = 0.88 m > 2 x 0.44 so neighbours never overlap.
+  steppingStones: { from: 0.15, spacing: 1.0, radius: [0.4, 0.44] as [number, number], wobble: 0.22, skip: [1.9, 8.25] as [number, number] },
 
   stairs: [
     // The hero stairway of shot A — 18 wide, worn, moss-edged steps climbing to the east plateau.
@@ -183,35 +210,53 @@ export const LAYOUT = {
     // (18, -4) sits 0.1 m past the top tread (run 10.8 m); the reference run is ~12.4 m, which the probe
     // forbids (RUBRIC_PROPOSALS 2026-09-12).
     { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 20, rise: 0.27, tread: 0.54, width: 3.0 },
-    // Small steps climbing WEST off the north path onto the mossy boulder bank (reference B: steps
-    // at (0.2–0.25, 0.33–0.40) left of the receding path; reference D: shrubby bank at x 0.15–0.35).
-    // The base sits just off the paved edge so the first riser meets flattened ground.
-    { id: 'north', base: [-0.9, 0, -16], dir: [-0.6, -0.8], steps: 7, rise: 0.26, tread: 0.5, width: 2.6 },
-    // Round 31 (frame 56 s, right edge): a short flight of the same worn slabs climbs the WEST face
-    // of Saria's terrace from the north path's east verge — a second way onto the terrace beside the
-    // grassy stepping-stone ramp (`pathToHouse`), which stays the B/E approach to the door. Frame D
-    // shows it at x 0.85–1.0, y 0.55–0.78 (four to five risers, nosings sloping 0.36–0.61 down to
-    // the right, the run leaving the frame right) 4.5–7 m from camera D at bearing 35–45°. That
-    // spot is our ramp's north verge ((4, −6.5) → (6.6, −8.6) → (9.6, −9.3), stepping stones
-    // (5.85, −7.78) r 0.43 and (6.67, −8.79) r 0.47 nearest), so the flight sits in the clear
-    // ground between the paving (x ≈ 3.6) and the stones: foot 0.35 m off the paved edge at
-    // (3.95, −10.85), rising east (bearing 82°) to the terrace at (6.67, −11.23), where the ground
-    // is 0.93 m; five 0.21 m risers × 0.55 m treads to the terrace's 1.05, tread ends 0.74 m and
-    // the flank stones 0.24 m clear of the nearest stepping stone. Its head (one row of landing
-    // slabs, 0.85 m) covers the props' authored spots for Saria's small pot (6.75, −11.6) and
-    // crate (7.7, −11.7): the props system finds no clear ground within its 1.05 m search and
-    // skips both (frame 14 s has turf there, no crate). The east bearing (not the ramp's 51–60°)
-    // is what frames B / E allow: their camera sees the risers 60° off face-on, a stepped turf
-    // mound (heightfield HOUSE_WEST_BANK.seLift) rather than a wall of riser faces; a 60° flight
-    // showed five dark risers 2 m wide beside Link. The signpost (7, 1.2, −9.3) stands 0.75 m
-    // beyond the flight's south verge, whose bank stops short of it (HOUSE_WEST_BANK.southVerge).
-    // Projections (gauntlet/tmp/proj.mjs): D first riser (0.67, 0.69)–(0.78, 0.74) at 8.2 m, top
-    // nosing (0.80, 0.58)–(0.94, 0.60), nosing slopes 0.45 → 0.10 down to the right, flight
-    // x 0.67–0.94 — 0.15 left of the frame's flight (any further east is the ramp); B/E
-    // x 0.45–0.68, y 0.55–0.66 at 13–15 m (Link covers 0.46–0.55); A (0.33–0.44, 0.47–0.54) at
-    // 21 m in the haze; behind C and F. The heightfield gives it a soil/moss bank on the north
-    // flank (HOUSE_WEST_BANK) and a paved apron at the foot.
-    { id: 'house-west', base: [3.95, 0, -10.85], dir: [0.99, -0.139], steps: 5, rise: 0.21, tread: 0.55, width: 2.4 },
+    // Round 32: the `north` steps are gone — a 7 × 0.26 × 0.5 m flight at base (−0.9, 0, −16),
+    // bearing 217°, climbing WEST off the north path onto the boulder bank. Its frame-14 s
+    // justification ("steps at (0.20–0.25, 0.33–0.40)") does not survive a 3× crop (a far warm
+    // lantern point and a door-like warm shape 15–20 m away, no risers), and in frame 56 s the
+    // flight stood at D (0.34–0.46, 0.60–0.70) — 13–15 m away, three lit risers — where the frame
+    // has the misty hollow's pale open ground (D (0.28–0.40, 0.48–0.62): frame lum p50 0.464,
+    // edge energy 0.026; ours with the flight 0.310 / 0.046). The boulder bank (terraces
+    // .northTerrace) stays as a grassy slope; its W04 probe (−11, 0) is the west ledge, untouched.
+    // The flight of frame 56 s' right edge: worn slabs climbing from the north path's east verge to
+    // Saria's lawn. Round 32 re-laid it to the frame — a numeric fit of the four lit nosing chains
+    // the frame shows (ridge-tracked at 1280 wide: x 0.855–0.995, y 0.50–0.70, slopes 0.60 / 0.43
+    // / 0.39 / 0.10 down to the right, their visible left ends on a 45° line (0.855, 0.62) →
+    // (0.955, 0.50)) and the pale paved apron under them at y 0.70–0.79 (gauntlet/tmp/fit5,
+    // fit12–fit15.mjs). What the fit says: (1) the run climbs ACROSS camera D's view at bearing
+    // 110° — the nosings run within 30° of the view ray, so they recede steeply down to the
+    // right (the frame's 0.60 on the lowest full chain; ours 0.55) and the riser faces look
+    // WNW at the camera; bearings 60–80° run the landing into the signpost (7, −9.3), which
+    // must stay ≥ 0.7 m off the treads, and bearings ≤ 95° flatten the nosings to 0.3 — a
+    // flight whose ridges hit the frame's four y values at x 0.995 within 0.008 but at those
+    // slopes scored 0.22 in D's lower-right 256×144 SSIM cell (8-px windows) against 0.41 for
+    // this orientation with the ridges 0.01 low (gauntlet/tmp/ssimfine.mjs); every nosing's
+    // near end leaves the frame right (k1 at x 0.99, k2 1.06, k3 1.13, k4 1.21); (2) 0.27 m
+    // risers 5.0–5.3 m (z-depth) from the camera (0.21 m risers read 30–40 px against the
+    // frame's 40–53); (3) the frame's lit ridges sit at y 0.703 / 0.626 / 0.560 / 0.504 at
+    // x 0.995 (≈ 0.8 / 1.1 / 1.35 / 1.6 m above the path) and its pale flat apron at y 0.72–0.79
+    // — so the apron is paved a full riser up (base y 0.27: the apron is the flight's wide first
+    // tread, its kerb face at y 0.78–0.85 behind the minimap) and five 0.27 m risers reach a
+    // 1.62 m landing: nosings 0.54 / 0.81 / 1.08 / 1.35 / 1.62 m. Cost: the 1.05 m terrace and
+    // the sign's 0.67 m pad are 0.5–0.9 m below the landing — the lawn falls 0.5 m over 3.7 m to
+    // the door and the north verge is a 50° earth face — and frames B / E get the landing's edge
+    // at eye level (y 0.50). Foot 0.3–0.6 m off the paved edge 6.2 m from camera D at bearing
+    // 36°, running ESE 2.0 m to the head (5.68, −7.32); one row of landing slabs to (6.48,
+    // −7.03), where `pathToHouse` takes over across the lawn. Round-31 position for reference:
+    // base (3.95, −10.85), bearing 82°, 5 × 0.21 × 0.55 — 8.2 m from D at x 0.67–0.94 with 23–32
+    // px risers, and Saria's buttress root #5 (6.03, −11.27) on its fourth tread (now 2.7 m
+    // beyond the north tread ends). Projections (fit15 describe): D nosings k0 (0.82, 0.695)–
+    // (0.92, 0.78) — its lit tread is the frame's pale apron — k1 (0.865, 0.65)–(0.985, 0.71),
+    // k2 (0.91, 0.60)–(1.06, 0.64), k3 (0.95, 0.555)–(1.13, 0.57), k4 (1.00, 0.506)–(1.21, 0.49);
+    // slopes 0.55 / 0.27 / 0.06 / −0.09; far ends on the line (0.865, 0.65) → (1.00, 0.51)
+    // (slope −1.0, frame −1.2). B/E x 0.51–0.71, y 0.50–0.67 at 9.8–12 m — the south flank
+    // face-on, the risers edge-on, the landing's top edge at (0.65, 0.50) behind the signpost
+    // (x 0.64); A (0.36–0.48, 0.46–0.55) at 16–19 m; behind C and F. The signpost stands at the
+    // flight's local u 2.56 / v −2.32: 1.1 m beyond the NORTH tread ends beside the top step, on
+    // the short north verge (heightfield HOUSE_WEST_BANK.northVerge). The paved apron laps the
+    // first riser (frame 56 s: the pale slab under the flight); the south flank above that is
+    // the grassy rise B / E look at.
+    { id: 'house-west', base: [3.8, 0.27, -8.0], dir: [0.9397, 0.342], steps: 5, rise: 0.27, tread: 0.4, width: 2.4 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
@@ -223,7 +268,7 @@ export const LAYOUT = {
     // erosion read ~0.12 below the authored height there (0.9 measured 0.777), so 1.05 keeps the
     // probe at ≈ 0.93 (proposal filed for 0.4)
     houseTerrace: { height: 1.05 },
-    /** the boulder bank west of the north path (top of stairs.north; terrace-boulder sits on it) */
+    /** the boulder bank west of the north path (a grassy slope since round 32; terrace-boulder sits on it) */
     northTerrace: { height: 2.6 },
   },
 
@@ -287,8 +332,18 @@ export const LAYOUT = {
      * out (logArch.ts). Visible in D the bark reads x 0.37–0.63: 0.63–0.73 is hidden by the
      * east plateau ramp at 19–22 m and the north-east giant / a white-bark at 25–37 m (terrain
      * and trees, not the arch).
+     * Round 32: the ground under the log lowered 5.6 → 4.3 m (pathSpine z −42…−58 and the
+     * heightfield's north rise; logArch.ts seats the axis on the terrain at its ends, so the
+     * whole log, its roots and its lanterns follow). Pinhole projection into D, axis ± r plus
+     * the moss crown: the body's centre line at the spine crossing moves from y 0.31 to 0.34
+     * (frame 56 s: 0.335), the crown's top from 0.225 to 0.25, the belly from 0.385 to 0.42, the
+     * far ground line stays at 0.47 (frame 0.46). What the ground cannot fix (structures): the
+     * frame's log is a straight tapering trunk — 3.9 m thick at the west body (x 0.47–0.50,
+     * y 0.29–0.375), 1.5 m at the east (x 0.60–0.62, y 0.33–0.35), a level axis at y 0.33–0.34,
+     * a 4 m opening (y 0.375–0.46), the west root mass 3.7 × 8.8 m (x 0.39–0.47, y 0.27–0.46) —
+     * where ours is a 6.8 m cylinder bowed 4.1 m up in the middle.
      */
-    position: [9.75, 5.6, -54] as [number, number, number],
+    position: [9.75, 4.3, -54] as [number, number, number],
     radius: 3.4,
     length: 23,
     yawDeg: -16,
@@ -420,11 +475,13 @@ export interface SteppingStone {
  * Deterministic stepping stones along `pathToHouse` (terrain paves exactly these discs; hardscape
  * builds a slab per disc; vegetation keeps grass off them). Stones start `from` metres along the
  * polyline, every `spacing` m (±12 %), zig-zagging ±`wobble` m across the line like the footage's
- * loosely laid slabs, and run to the polyline end (0.7 m short of the door).
+ * loosely laid slabs, and run to the polyline end (0.7 m short of the door). No stone falls in
+ * the `skip` interval (the house-west flight and its paved apron / landing): a stone due there
+ * is moved to 0.2 m past the interval's end and the spacing continues from it.
  */
 export function houseSteppingStones(): SteppingStone[] {
   const pts = LAYOUT.pathToHouse;
-  const { from, spacing, radius, wobble } = LAYOUT.steppingStones;
+  const { from, spacing, radius, wobble, skip } = LAYOUT.steppingStones;
   const segs: { ax: number; ay: number; az: number; dx: number; dy: number; dz: number; len: number }[] = [];
   let total = 0;
   for (let i = 0; i < pts.length - 1; i++) {
@@ -443,6 +500,7 @@ export function houseSteppingStones(): SteppingStone[] {
   const out: SteppingStone[] = [];
   let d = from;
   for (let i = 0; d < total - 0.2 && i < 64; i++) {
+    if (d >= skip[0] && d < skip[1]) d = skip[1] + 0.2;
     let rem = d;
     let k = 0;
     while (k < segs.length - 1 && rem > segs[k].len) rem -= segs[k++].len;
