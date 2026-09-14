@@ -1155,7 +1155,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // in mortar, with 8–15 cm junction triangles); the lawn slabs' 18 % (7–24 cm); round 33: the
     // plaza's 17 % (frame 1 s's corners are rounder than round 23 left them), the disc field's
     // 30 % (10–42 cm: the stones read as ovals and rounded discs, frames 14 s / 56 s)
-    const seamFillet = disc ? clamp(0.15 * size, 0.055, 0.12) : clamp((0.14 + 0.03 * south) * size, 0.05, 0.18);
+    const seamFillet = disc ? clamp(0.15 * size, 0.055, 0.12) : clamp((0.14 + 0.03 * south) * size, 0.05, 0.16 + 0.02 * south);
     const lawnFillet = clamp(0.18 * size, 0.07, 0.24);
     const fieldFillet = clamp(0.3 * size, 0.1, 0.42);
     // edge wobble (cellToOutline): ±1 cm on the open paving, ±0.6 cm on the lawn slabs, none on
@@ -1249,9 +1249,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // hollow 0.6–1.8 cm (frame 56 s's path-centre slabs, frame 1 s), the lawn slabs and the
     // discs keep their crown; the dish replaces the crown (crown < 0 in the audit).
     const wrng = rng.fork(`wear/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
-    // (round 33: no dish in the disc field — its stones are domed; the draw stays for the stream)
-    const dishDraw = wrng.chance(0.75);
-    const dished = !disc && size >= 0.7 && lawn < 0.5 && fieldW < 0.5 && dishDraw;
+    // (round 33: no dish in the disc field — its stones are domed; the draw order is unchanged)
+    const dished = !disc && size >= 0.7 && lawn < 0.5 && wrng.chance(0.75) && fieldW < 0.5;
     if (dished) crown = -(0.006 + 0.012 * wrng());
     // a dirt-filled crack across one slab in eight (≥ 0.45 m; frame 1 s shows a few cracked
     // plaza slabs): through a point within a quarter-radius of the centre, at any angle, spanning
