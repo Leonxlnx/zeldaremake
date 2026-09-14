@@ -1434,6 +1434,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   Queued: vegetation-17 (the bank over the flight), structures-22 (the arch's lanterns),
   atmosphere-10 (the lit far wall once the arch sits on the frame's rows).
 
+### 12:05 UTC — tick 77: heartbeat (monitor `6a806f1`; `4f8c0fc` unchanged since take-0088)
+- hardscape-25 has three commits in its worktree, report pending: `9c9648e` the house-west flight
+  re-laid to frame 56 s (base (3.5, 0, −8.5), bearing 110°, 5 × 0.27 × 0.5 m to a 1.35 m landing
+  by the sign), `aad61da` the north steps removed (frame D has the hollow's open ground there),
+  `c65f58b` the north rise lowered 5.6 → 4.3 m so the arch sits on the frame's rows. trees-18 in
+  its floor sweep. Take-0089 when the reports land.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1472,4 +1479,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T11:56:00Z
+2026-09-14T12:07:00Z
