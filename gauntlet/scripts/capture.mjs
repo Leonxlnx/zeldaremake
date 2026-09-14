@@ -126,9 +126,37 @@ export async function frameStdDev(pngBuffer) {
   return Math.max(...st.channels.slice(0, 3).map((c) => c.stdev));
 }
 
+/**
+ * Frame quality for the not-drawn-yet guard, measured on the WORLD region only: the centre box
+ * x 0.15–0.85 × y 0.15–0.85, which excludes the HUD's corners (hearts top-left, item slot
+ * top-right, minimap bottom-right). A first frame that is the clear colour plus the HUD used to
+ * pass the whole-frame σ ≥ 2 test (Astra's CI finding: A_stairs.png dark + HUD at σ 18.5 while
+ * A_stairs.det.png held the forest, B5 failing at 96 % differing pixels), so the guard now also
+ * requires the world box's mean luminance to be above DARK_MEAN — no hero view renders its centre
+ * darker than ~0.35 of full scale (take-83: 0.36–0.42 in every view); a not-yet-drawn frame sits at the
+ * renderer's clear colour (< 0.12).
+ */
+export async function frameQuality(pngBuffer) {
+  const img = sharp(pngBuffer);
+  const meta = await img.metadata();
+  const left = Math.floor(meta.width * 0.15);
+  const top = Math.floor(meta.height * 0.15);
+  const width = Math.floor(meta.width * 0.7);
+  const height = Math.floor(meta.height * 0.7);
+  // (extract, then stats on the cropped buffer: sharp's stats() reads the input image, not the pipeline)
+  const box = await sharp(pngBuffer).extract({ left, top, width, height }).toBuffer();
+  const st = await sharp(box).stats();
+  const ch = st.channels.slice(0, 3);
+  const stdev = Math.max(...ch.map((c) => c.stdev));
+  const mean = (0.2126 * ch[0].mean + 0.7152 * ch[1].mean + 0.0722 * ch[2].mean) / 255;
+  return { stdev, mean };
+}
+
 const DEFAULT_SIM_TIME = 12.5;
 const MOTION_DT = 0.5;
 const UNIFORM_STDDEV = 2; // /255
+/** world-box mean luminance (0..1) below which the frame counts as not drawn (clear colour + HUD) */
+const DARK_MEAN = 0.12;
 
 /** Frames per CDP call — keeps every call well under puppeteer's protocolTimeout on slow SwiftShader boxes. */
 const RENDER_CHUNK = 15;
@@ -159,16 +187,18 @@ async function shoot(page, file, { viewpointId, simTime, frames, retries = 2, lo
   let attempt = 0;
   let buf;
   let stdev = 0;
+  let mean = 0;
   for (;;) {
     buf = Buffer.from(await canvas.screenshot({ type: 'png' }));
-    stdev = await frameStdDev(buf);
-    if (stdev >= UNIFORM_STDDEV || attempt >= retries) break;
+    ({ stdev, mean } = await frameQuality(buf));
+    const drawn = stdev >= UNIFORM_STDDEV && mean >= DARK_MEAN;
+    if (drawn || attempt >= retries) break;
     attempt++;
-    log(`  ${path.basename(file)}: near-uniform frame (σ=${stdev.toFixed(2)}) — re-rendering (retry ${attempt}/${retries})`);
+    log(`  ${path.basename(file)}: frame not drawn yet (world box σ=${stdev.toFixed(2)}, mean=${mean.toFixed(3)}) — re-rendering (retry ${attempt}/${retries})`);
     await renderAt(page, viewpointId, simTime, frames);
   }
   fs.writeFileSync(file, buf);
-  return { sha256: sha256(buf), bytes: buf.length, stdev: Number(stdev.toFixed(2)), retries: attempt, uniform: stdev < UNIFORM_STDDEV };
+  return { sha256: sha256(buf), bytes: buf.length, stdev: Number(stdev.toFixed(2)), worldMean: Number(mean.toFixed(3)), retries: attempt, uniform: stdev < UNIFORM_STDDEV || mean < DARK_MEAN };
 }
 
 function toXYZ(sample) {
@@ -306,7 +336,7 @@ export async function captureAll({
         checksOut.projections[r.key] = { ...r, item: c.item };
       }
       const captureMs = Date.now() - tv;
-      results.push({ id: vp.id, label: vp.label, refSeconds: vp.refSeconds, file: path.basename(file), sha256: shot.sha256, bytes: shot.bytes, stdev: shot.stdev, retries: shot.retries, stats, pose, renderer, captureMs, ms: captureMs });
+      results.push({ id: vp.id, label: vp.label, refSeconds: vp.refSeconds, file: path.basename(file), sha256: shot.sha256, bytes: shot.bytes, stdev: shot.stdev, worldMean: shot.worldMean, retries: shot.retries, stats, pose, renderer, captureMs, ms: captureMs });
       log(`captured ${vp.id} (${vp.label}) in ${(captureMs / 1000).toFixed(1)}s — ${stats.drawCalls} draws, ${(stats.triangles / 1e6).toFixed(2)}M tris${shot.retries ? ` (${shot.retries} retries)` : ''}`);
     }
 
