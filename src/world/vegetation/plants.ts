@@ -172,8 +172,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods, packs: PACKS[label] });
   };
 
-  // round 31: the near LOD's serrated pinnae read out to 14 m (the A crest and the B mass sit 11–14 m from their cameras)
-  const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [14, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
+  // round 31: the near LOD's serrated pinnae read out to 12 m (was 11; 14 m put frame F at +1.51 M
+  // triangles over the control — 57 flank clumps sit 12–14 m from camera F, ≈ 4.8 K each with the shadow pass)
+  const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [12, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
   // Hero crowns are read at frond scale from 6–8 m in shot D: high LOD out to 16 m. The reference
   // clump is sunlit (0.35 mean, 0.49 p90 in frame 56) while our west verge sits under the
   // north-west-near canopy, where fill alone rendered the fronds at 0.24: the crowns get the same
