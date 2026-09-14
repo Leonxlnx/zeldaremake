@@ -1441,6 +1441,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   `c65f58b` the north rise lowered 5.6 → 4.3 m so the arch sits on the frame's rows. trees-18 in
   its floor sweep. Take-0089 when the reports land.
 
+### 13:05 UTC — tick 78: heartbeat (`4f8c0fc` unchanged since take-0088); both passes still iterating
+- hardscape-25 at six commits (the flight re-laid three times against frame 56 s: now bearing 110°
+  at (3.8, 0.27, −8.0), raised one riser to the frame's ridges; the north steps removed; the north
+  rise 5.6 → 4.3 m), four D/B captures; trees-18 at one commit (`32d9427`: the sweep keeps
+  GIANT_BARK_FLOOR 7 / LEAF_FLOOR 6 — the white-barks' bark-floor uniform is the thing that moved)
+  with two files dirty. Take-0089 on their reports.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1479,4 +1486,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T12:07:00Z
+2026-09-14T13:07:00Z
