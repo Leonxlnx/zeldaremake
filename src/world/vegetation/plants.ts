@@ -151,8 +151,8 @@ const PACKS: Record<string, PackLayout> = {
   // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
   hedge: [SINGLE(3), ALL(3), ALL(3)],
   // round 31: 6 tuft variants (two per height class, `variant % 3` the class). Thousands of
-  // instances: one draw per variant near (130 triangles each), the far LOD (30 triangles) pairs
-  // the two variants of a class — 9 draws, no shadow pass
+  // instances: one draw per variant near (130 triangles each, plus its shadow pass), the far LOD
+  // (30 triangles) pairs the two variants of a class — 15 draws
   tufts: [SINGLE(6), [[0, 3], [1, 4], [2, 5]]],
 };
 
@@ -172,7 +172,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods, packs: PACKS[label] });
   };
 
-  const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [11, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
+  // round 31: the near LOD's serrated pinnae read out to 14 m (the A crest and the B mass sit 11–14 m from their cameras)
+  const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [14, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
   // Hero crowns are read at frond scale from 6–8 m in shot D: high LOD out to 16 m. The reference
   // clump is sunlit (0.35 mean, 0.49 p90 in frame 56) while our west verge sits under the
   // north-west-near canopy, where fill alone rendered the fronds at 0.24: the crowns get the same
@@ -207,7 +208,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // grass tufts (round 31): the near LOD's 12–17 bent blades read out to 16 m (the A / F banks
   // sit 10–15 m from their cameras); they take the grass blades' wind (fast sway from the root,
   // little lamina flutter) and the blades' translucency
-  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [16], 0, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 });
+  // the near LOD casts shadows: the frames' banks are lit blade ends over dark hearts, and a
+  // tuft's own shadow on the turf under it is that contrast (the tile grass casts none)
+  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [16], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 });
   const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 });
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 
@@ -1775,6 +1778,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         const B_MASS: [number, number, number, number] = [8.0, -6.2, 9.6, -3.4];
         const D_RIGHT: [number, number, number, number] = [3, -15, 8, -7];
         const BANKS_BOX: [number, number, number, number] = [-6, -18, 17, 8];
+        /** the lit yellow-olive of frame 56's bed clump and frame 14's right mass */
+        const LIT_TINT = new Color(1.22, 1.16, 0.9);
         /** the frames' bank boxes as world ground: the flight's flanks, the east bank, the shot-A crest, the west bed, B's right mass, F's left bank */
         const onBank = (x: number, z: number) =>
           field.flankZone(x, z) >= 0.3 || inWorldBox(x, z, EAST_BANK) || inWorldBox(x, z, A_CREST) || inWorldBox(x, z, WEST_BED) || inWorldBox(x, z, B_MASS) || (inWorldBox(x, z, F_LEFT) && x >= bRayX(z) + 1.1);
@@ -1813,7 +1818,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           (x, z, s, rng) => {
             const scale = 0.72 + rng() * 0.28;
             newFerns31.push({ x, z, scale });
-            placeInstance(ferns, x, z, s, rng, scale, 0.7, 0.02, greenVar(rng, 0.2).multiplyScalar(0.94));
+            // frame 56's bed and frame 14's right mass are lit yellow-olive clumps (the hero crown's
+            // `#69692e`) against dark ground, not the shade green of the east bank
+            const lit = inWorldBox(x, z, WEST_BED) || inWorldBox(x, z, B_MASS);
+            const c = greenVar(rng, 0.2);
+            placeInstance(ferns, x, z, s, rng, scale, 0.7, 0.02, lit ? c.multiply(LIT_TINT) : c.multiplyScalar(0.94));
           },
         );
         // ---- (2) the broad-leaf layer under the fronds (23–36 cm rosettes, ≤ 0.33 m tall)
@@ -1923,7 +1932,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               return field.bankFace(x, z) > 0.3 ? 0.95 : 0.55 + 0.45 * field.cluster(x, z);
             },
           },
-          (x, z, s, rng) => tuftAt(x, z, s, rng, [0.2, 0.4, 0.4], field.bankFace(x, z) > 0.3 ? FACE_TINT : null),
+          (x, z, s, rng) => tuftAt(x, z, s, rng, [0.2, 0.4, 0.4], field.bankFace(x, z) > 0.3 ? FACE_TINT : inWorldBox(x, z, WEST_BED) || inWorldBox(x, z, B_MASS) ? LIT_TINT : null),
         );
         // the rest of the lawns within reach of the cameras, thinner, so the banks are not islands
         scatter(
@@ -1946,14 +1955,14 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           field,
           {
             label: 'tufts-ramp',
-            candidates: 6000,
+            candidates: 12000,
             box: [1.0, -10.5, 10.5, -1.5],
-            minSpacing: 0.3,
+            minSpacing: 0.24,
             low: true,
-            max: 260,
+            max: 520,
             accept(x, z, s) {
               if (field.rampDistance(x, z) > 3.6 || field.stoneDistance(x, z) < 0.08 || field.houseInfo(x, z).dist < 0.5 || !tuftGround(x, z, s)) return 0;
-              return field.troddenZone(x, z) > 0 ? 0.35 : 0.6;
+              return field.troddenZone(x, z) > 0 ? 0.35 : 0.8;
             },
           },
           (x, z, s, rng) => tuftAt(x, z, s, rng, [0.5, 0.4, 0.1]),

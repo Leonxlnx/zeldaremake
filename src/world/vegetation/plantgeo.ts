@@ -770,9 +770,10 @@ export function tuftGeometry(seed: string, pal: PlantPalette, detail: Detail, va
       points.push(start.clone().addScaledVector(radial, out).addScaledVector(clumpLean, h * t).add(V(0, y, 0)));
     }
     const width = (0.011 + rng() * 0.009) * (0.8 + cls * 0.25) * (high ? 1 : 1.6);
-    const color = blend(root, lit, 0.25 + rng() * 0.45);
+    // a deep root under a lit tip: the frames' tufts are bright blade ends over a dark heart
+    const color = blend(root, lit, 0.08 + rng() * 0.32);
     const dry = rng() < 0.25;
-    bladeStrip(m, points, width, radial, color, dry ? blend(lit, straw, 0.7) : tone(lit, 1.0 + rng() * 0.12), 0.3);
+    bladeStrip(m, points, width, radial, color, dry ? blend(lit, straw, 0.7) : tone(lit, 1.08 + rng() * 0.16), 0.3);
   }
   return m.finish({ groundToZero: true });
 }
