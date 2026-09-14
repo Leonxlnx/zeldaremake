@@ -298,13 +298,18 @@ const LEAF_FLOOR_SHADED = /* glsl */ `
 /** white-barks are pale already; their shaded sides are not among the measured gaps */
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor) {
+/**
+ * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
+ * white-barks' `uWhiteBarkFloor` (lift 0) — distinct so a `__ATMO_UNIFORMS__` sweep of
+ * `uBarkFloorLift` moves the giants alone and never gives the white-barks a floor they do not have.
+ */
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor') {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
-  bindShadeFloor(shader, 'uBarkFloor', barkFloor);
+  bindShadeFloor(shader, barkPrefix, barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
-  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars('uBarkFloor', TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
+  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -354,7 +359,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       #endif
       ${LEAF_FLOOR_SHADED}
     } else {
-      ${shadeFloorGlsl('uBarkFloor', TREE_FLOOR_GLSL)}
+      ${shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL)}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
       // furrow to the same flat grey as its crest, so the occlusion is applied after it — the
       // ambient and the floor fully, the sun by half (a 10 cm furrow's floor is part-shadowed).
@@ -384,7 +389,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR), 'white');
+  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(whiteTreeDepth, wind, whiteWind, undefined, 'white-depth');
 
