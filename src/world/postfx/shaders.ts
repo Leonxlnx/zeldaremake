@@ -446,17 +446,23 @@ void main() {
 }
 `;
 
-/** Separable Gaussian with a runtime sigma (texels), 13 taps: sigma ≤ 3 stays inside the kernel. All four channels (the haze blur carries its weight in alpha). */
+/**
+ * Separable Gaussian with a runtime sigma (texels). The kernel reaches `uReach` taps either side
+ * (≥ 6, so sigma ≤ 3 keeps the 13-tap kernel it was tuned with; wider sigmas extend to 2 σ instead
+ * of truncating into a box). All four channels (the haze blur carries its weight in alpha).
+ */
 export const GAUSS_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uDir;    // texel-sized step
 uniform float uSigma; // in texels
+uniform float uReach; // taps either side (6 … 9)
 varying vec2 vUv;
 void main() {
   float k = -0.5 / max( uSigma * uSigma, 1e-4 );
   vec4 c = texture2D( tSrc, vUv );
   float wsum = 1.0;
-  for ( int i = 1; i <= 6; i ++ ) {
+  for ( int i = 1; i <= 9; i ++ ) {
+    if ( float( i ) > uReach ) break;
     float w = exp( k * float( i * i ) );
     vec2 o = uDir * float( i );
     c += ( texture2D( tSrc, vUv + o ) + texture2D( tSrc, vUv - o ) ) * w;

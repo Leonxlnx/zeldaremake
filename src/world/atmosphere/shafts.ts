@@ -80,6 +80,16 @@ export const SHAFT_COLUMNS: ShaftColumn[] = TREE_SHAFT_COLUMNS.map((c) => ({
  * A 0.08, C/F 0). The beams dissolve by y ≈ 0.5–0.55 in both frames (the surfaces there are near;
  * the march's short columns already carry little in-scatter), so the fan blends back to 1 over
  * `fadeY`.
+ *
+ * Round 37 (tone): the same profile (26° lines, y 0.02–0.20, 640×360) read as the hero band
+ * (u 0.22–0.29) minus the mean of the troughs (u 0.13–0.19 / 0.34–0.40): frame A +0.038, B +0.010,
+ * D +0.071; ours at the 85 → 60° gate A +0.042, B +0.023, D +0.044 (with no rays at all A's
+ * geometry alone reads +0.030, B −0.005 — the house and the limb lie along those lines). Per-view
+ * fanAmp trials: A at 0 / 0.077 / 0.28 → +0.035 / +0.037 / +0.043 (SSIM +0.0001 / +0.0001 / 0);
+ * B at 0 / 0.077 / 0.28 → −0.010 / +0.001 / +0.029 (−0.0007 / +0.0001 / +0.0001); D at 0.077 /
+ * 0.28 → −0.001 / +0.056 (−0.0006 / −0.0004: D's beam is 0.027 under the frame's but the metric
+ * pays for the brighter slab). 81 → 61° puts B's gain at 0.234 (≈ +0.012 by interpolation, the
+ * frame's +0.010), A's at 0 (+0.035 vs +0.038) and keeps D's at 0.946 (was 0.94).
  */
 export interface FanBeam {
   /** x (uv) where the beam axis meets the top edge of the frame */
@@ -97,8 +107,8 @@ export const SCREEN_FAN = {
   floor: 0.75,
   /** in-scatter added on the hero beam's axis (≥ 10 m of air, fully sun-facing view) — see ComposerSettings.fanAmp */
   amp: 0.23,
-  /** view-axis angle from the sun (degrees) where the fan starts to appear / is fully on — see ComposerSettings.fanFacingDeg */
-  facingDeg: [85, 60] as [number, number],
+  /** view-axis angle from the sun (degrees) where the fan starts to appear / is fully on — see ComposerSettings.fanFacingDeg (round 37: 85 → 81 trims B to the frame's beam contrast, A to none) */
+  facingDeg: [81, 61] as [number, number],
   /** frame y (0 = top) where the fan starts fading out / where it has no effect */
   fadeY: [0.35, 0.6] as [number, number],
   beams: [

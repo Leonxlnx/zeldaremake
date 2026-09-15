@@ -199,7 +199,7 @@ export interface ComposerSettings {
    * Henyey–Greenstein phase: D (view axis 64° from the sun) carries +0.10 of beam over its haze
    * where A (81°) has only the +0.04 bump the marched columns already give it and C/F (> 125°) show
    * none — the HG term (g 0.6) would give A 61 % of D's fan. 85 → 60° gives D 0.94, B (75°) 0.36,
-   * A 0.08, C/F 0
+   * A 0.08, C/F 0; round 37's 81 → 61° gives D 0.946, B 0.234, A 0 (see shafts.ts SCREEN_FAN)
    */
   fanFacingDeg: [number, number];
   /** lean of the fan's beams from vertical (degrees, down-right, measured on screen) */
@@ -700,7 +700,7 @@ export function createComposer(opts: ComposerOptions): Composer {
   /** diagnostic readback of the raw depth values in the focus window (see __ATMO_SHADOWMAP_FOCUS__.read) */
   let shadowReadTarget: WebGLRenderTarget | null = null;
   const depthDebugMat = mat(DEPTH_DEBUG_FRAG, { tDepth: { value: depthTexture }, uNear: near, uFar: far, uProjInv: projInv }, 'postfx-depth-debug');
-  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 } }, 'postfx-gauss');
+  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 }, uReach: { value: 6 } }, 'postfx-gauss');
   const softFarRange = { value: new Vector2(settings.softFarStart, settings.softFarFull) };
   const softActMat = mat(
     SOFT_ACTIVITY_FRAG,
@@ -1047,6 +1047,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       const dir = gaussMat.uniforms.uDir.value as Vector2;
       const gauss = (src: WebGLRenderTarget, tmp: WebGLRenderTarget, dst: WebGLRenderTarget, texel: Vector2, sigma: number) => {
         gaussMat.uniforms.uSigma.value = sigma;
+        // ≥ 6 taps either side (the tuned 13-tap kernel for σ ≤ 3), 2 σ for wider haze blurs
+        gaussMat.uniforms.uReach.value = Math.min(9, Math.max(6, Math.ceil(2 * sigma)));
         gaussMat.uniforms.tSrc.value = src.texture;
         dir.set(texel.x, 0);
         pass(gaussMat, tmp);
