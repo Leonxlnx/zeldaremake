@@ -6,8 +6,8 @@
       "github": "Leonxlnx",
       "status": "active",
       "branch": "agent/astra-local-blender",
-      "updated": "2026-09-14T15:13:08Z",
-      "currentTask": "Owner paused modelling for open-source release discussion; licensing inquiry sent, awaiting provider clarification. Current retained character remains local 59e16d0b. No new asset publication.",
+      "updated": "2026-09-15T05:39:26Z",
+      "currentTask": "Resumed native Blender Link refinement and actual GPU review of Fable character5; owner retains the current environment and character, open-source pivot cancelled.",
       "file": ".agents/astra-local.md"
     },
     {
