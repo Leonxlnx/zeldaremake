@@ -712,7 +712,10 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // net with the bands' +0.013 on its mid path). Two boughs at 0.4 m: D +0.0024, air p50 0.5498
   // — still short of the guard, and the east cells kept only two thirds of the gain. One bough
   // (the lower, 0.55 m radius: a 1.1 m band from (2.5, −11) to (4.1, −16.2), the strip's west
-  // part where the two-mean map still read (2–3.5, −12…−14) lit) is the trade the guard allows.
+  // part where the two-mean map still read (2–3.5, −12…−14) lit) is the trade the guard allows:
+  // air p50 0.553 → 0.553, p90 0.605 → 0.601, the east cells (0.50–0.75, 0.67–0.83) +0.076 /
+  // +0.076, path-E median 0.397 → 0.381, p90 0.536 → 0.453, D +0.0035 with the D pools at the
+  // control's points (+0.0025 with them moved west, see D_PATH_SUN_POINTS).
   {
     giant: 'north-west-near',
     fromY: 12.0,
@@ -805,21 +808,21 @@ const D_PATH_SUN_POINTS: { point: [number, number, number]; radius: number }[] =
   // 6.7–8.8 m up (36 %: the bole's band across the path at z −8…−10.5, the price of the Link-ray
   // lean, see GIANT_PROFILES) and the north-west giant's crown 16–18 m up (21 %); the far part
   // (z −18…−12, 42 %) the bank and its boulders 2.5–3.6 m up (25 %, not trees) and the same
-  // crown (17 %). A first cut at r 1.1 with porosity 0.1 / 0.05 on the west run moved the west
-  // box's median not at all (0.400 → 0.400): laminae and cards were not what shaded it. The pools
-  // keep the control's radii and porosity (the same in-scatter for D's air box, whose p90 fell
-  // 0.605 → 0.597 with the r 1.1 cut) and move 1–2.3 m WEST, so their ellipses (±1.42 r in x)
-  // reach x −3.6…2.9 instead of −2.6…5.7: the west run and the centre, not the east strip the
-  // frame keeps in shade. The lines also cut the fine wood 12 m up and higher (D_PATH_WOOD_MIN_Y;
-  // GiantOptions.corridors `wood`: crown boughs, secondaries, twigs and lobe stems — never
-  // leaders or limbs), the north-west giant's crown boughs that the sun-eye put over the run; the
-  // cut stands in the crowns 14–22 m up at x −14…−23, z −21…−43, outside every hero frustum.
-  { point: [-0.5, 0, -10.0], radius: 2.2 },
-  { point: [-0.5, 0, -14.0], radius: 2.4 },
-  { point: [-0.4, 0, -18.0], radius: 2.4 },
-  { point: [-0.3, 0, -22.0], radius: 2.4 },
+  // crown (17 %). Measured and NOT taken (D captures, same build otherwise): a cut at r 1.1 with
+  // porosity 0.1 / 0.05 on the west run moved the west box's median not at all (0.400 → 0.400 —
+  // laminae and cards were not what shaded it) and cost D's air box p90 0.605 → 0.597; the pools
+  // moved 1–2.3 m west at the control's radii, with the same lines cutting the fine wood (crown
+  // boughs, twigs, lobe stems) 12 m up and higher, read D −0.0010 against the same build with the
+  // control's points — the shifted corridors' slabs cross D's upper-left air, cells (0.13–0.25,
+  // 0–0.5) −0.013 / −0.019 / −0.015 SSIM, and the west box's median still 0.400 → 0.403. The
+  // east strip is shaded by a bough's wood instead (CANOPY_BOUGHS, north-west-near at 12 m); the
+  // points stay where trees-16 put them.
+  { point: [0.5, 0, -10.0], radius: 2.2 },
+  { point: [1.5, 0, -14.0], radius: 2.6 },
+  { point: [2.0, 0, -18.0], radius: 2.6 },
+  { point: [1.9, 0, -22.0], radius: 2.4 },
   // edge of the mist pool, where the reference's lit run ends
-  { point: [-0.2, 0, -25.5], radius: 2.2 },
+  { point: [2.0, 0, -25.5], radius: 2.2 },
 ];
 const D_PATH_SUN_POROSITY = 0.25;
 /**
@@ -829,8 +832,6 @@ const D_PATH_SUN_POROSITY = 0.25;
  * bare). The slabs outside the corridors keep their natural part-shade.
  */
 const D_PATH_CARD_POROSITY = 0.15;
-/** world height from which the D path lines also cut the fine wood (round 36, see D_PATH_SUN_POINTS) */
-const D_PATH_WOOD_MIN_Y = 12;
 /**
  * Sunlit west verge of shot D: the fern crowns and violets west of the north path (x −5…−3,
  * z −9…−18, the lower left of shot D) sit on ground the reference lights (verge ground 0.46 at
@@ -1264,9 +1265,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: c.porosity ?? 0, cardPorosity: c.cardPorosity ?? 0 })),
     ...openingCorridors,
     ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
-    // the same lines as fine-wood cuts from D_PATH_WOOD_MIN_Y up (porosity 1: the foliage keeps the
-    // entry above, the tightest corridor winning)
-    ...D_PATH_SUN_POINTS.map(({ point, radius }) => ({ ...groundLine(point, radius, 1, 1, D_PATH_WOOD_MIN_Y), wood: true })),
     ...D_VERGE_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_VERGE_SUN_POROSITY, D_VERGE_CARD_POROSITY)),
     ...F_BANK_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, F_BANK_SUN_POROSITY, F_BANK_CARD_POROSITY, F_BANK_MIN_Y)),
     ...linkRays,
