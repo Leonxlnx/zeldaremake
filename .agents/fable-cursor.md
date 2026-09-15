@@ -1733,6 +1733,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   and the house-in-A conflict (inherent); (3) F: frame 8 s lights the slabs A's clumps shade — an
   A/F trade, measured, parked.
 
+### 20:20 UTC — tick 106: round thirty-seven merged (`ddfb652`); take-0105 held for a W35 repair
+- Merged: r37/layout `ecb4d1a` (the lantern bough one-to-one for A: a dark 6 m bough with two low
+  pods, behind camera B — B/E's upper-left pod count 3 → 0 as the frames; W01 3/3), r37/tone
+  `ec8e566` (haze blur σ 3.0 → 4.2, shaft gate 85→81°), r36/char-b `05c045d` (the descent landing:
+  f594 −21.9 → −1.6 mm; whole-run max 19.65), r37/perf `eeac8a6` (perf hook, ground sampler on
+  surfaceMask, vegetation cell culling + prefix uploads + re-bucket budget, warm-up compile before
+  ready(), LOD-set garbage gone: JS update p95 4.30 → 2.40 ms, p99 7.40 → 3.00, spikes 271 → 51).
+- Clean capture of ddfb652: **A 0.3041, B 0.2829, C 0.3275, D 0.3612, E 0.2936** (F 0.2951) — the
+  largest single-round gain since round five — but **W35 fails on B/E (sharpness 0.788 / 0.737)**:
+  the limb's and pods' edges left B/E's frame and σ 4.2 sits on top; each pass alone kept ≥ 0.83.
+  Not sealed; atmosphere-14b is restoring B/E ≥ 0.85 via the near/mid unsharp (SSIM within −0.0005).
+- Astra 16:06–19:40: character-6 confirmed on her fixture (38.1 → 17.7 mm), the f594 regression
+  flagged (fixed above, SHA posted), PR #10 face/eye/brow assets pushed (b92ec21, 68e2a19, ee2fd6b;
+  game d5213ba7) and a blink candidate (11c9a245: morphs blink / blinkHalf, 70/30/120 ms) — replied:
+  blink runtime as character-8, one asset swap for the series on her reviewed SHA.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1771,4 +1787,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T17:06:00Z
+2026-09-15T20:22:00Z
