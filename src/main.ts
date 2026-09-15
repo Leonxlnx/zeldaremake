@@ -1,4 +1,4 @@
-import { Scene, WebGLRenderer, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap } from 'three';
+import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap, type Camera, type DirectionalLight, type Material, type Mesh, type ShaderMaterial, type Texture } from 'three';
 import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
 import { createFollowCam, type FollowCam } from './camera/follow';
@@ -8,6 +8,68 @@ import { installCaptureApi, isHeadlessCapture } from './capture/api';
 import { WORLD } from './world/config';
 import type { Quality } from './world/system';
 import { mountHud } from './ui/hud';
+
+/**
+ * Warm-up before the first frame of the walkable build (round 37): compile every material's
+ * colour program (`renderer.compile` walks hidden LOD buckets and off-screen objects too), upload
+ * every texture, and compile the sun's shadow-depth variants with one shadow pass whose window is
+ * widened to the whole world (rendered into an off-screen 4×4 target, the canvas untouched; the
+ * window is restored to the same numbers, so the next frame's shadow map is what it would have
+ * been). Without this, entering play mode at the spawn compiled 8 programs on the first frame and
+ * every first sight of a caster / LOD ring stalled on a compile. Headless captures skip it by
+ * default (their settle frames absorb compiles; `?warmup=1` forces it, `?warmup=0` disables it).
+ */
+function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: DirectionalLight | null) {
+  const t0 = performance.now();
+  const programsBefore = renderer.info.programs?.length ?? 0;
+  renderer.compile(scene, camera);
+  const tCompile = performance.now();
+  const seen = new Set<Texture>();
+  const init = (v: unknown) => {
+    const t = v as Texture | null;
+    if (t && t.isTexture && !seen.has(t)) {
+      seen.add(t);
+      renderer.initTexture(t);
+    }
+  };
+  scene.traverse((o) => {
+    const mats = (o as Mesh).material as Material | Material[] | undefined;
+    if (!mats) return;
+    for (const m of Array.isArray(mats) ? mats : [mats]) {
+      for (const v of Object.values(m as unknown as Record<string, unknown>)) init(v);
+      const uniforms = (m as ShaderMaterial).uniforms;
+      if (uniforms) for (const k of Object.keys(uniforms)) init(uniforms[k]?.value);
+    }
+  });
+  const tTextures = performance.now();
+  if (sun?.castShadow) {
+    const sc = sun.shadow.camera;
+    const saved = { left: sc.left, right: sc.right, top: sc.top, bottom: sc.bottom, near: sc.near, far: sc.far };
+    sc.left = -500;
+    sc.right = 500;
+    sc.top = 500;
+    sc.bottom = -500;
+    sc.near = 0.1;
+    sc.far = 2000;
+    sc.updateProjectionMatrix();
+    const rt = new WebGLRenderTarget(4, 4);
+    const prevTarget = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(rt);
+      renderer.render(scene, camera);
+    } finally {
+      renderer.setRenderTarget(prevTarget);
+      rt.dispose();
+      Object.assign(sc, saved);
+      sc.updateProjectionMatrix();
+    }
+  }
+  const t1 = performance.now();
+  const programs = (renderer.info.programs?.length ?? 0) - programsBefore;
+  const report = { programs, textures: seen.size, compileMs: Math.round(tCompile - t0), textureMs: Math.round(tTextures - tCompile), shadowPassMs: Math.round(t1 - tTextures), ms: Math.round(t1 - t0) };
+  console.info(`[warmup] ${programs} programs, ${seen.size} textures in ${report.ms} ms (compile ${report.compileMs}, textures ${report.textureMs}, shadow pass ${report.shadowPassMs})`);
+  return report;
+}
 
 async function boot() {
   const host = document.getElementById('app')!;
@@ -51,6 +113,13 @@ async function boot() {
 
   // Post-processing (if the atmosphere system installed one) drives the frame; otherwise plain render.
   const composer = (scene.userData.composer as { render(dt: number): void; setSize(w: number, h: number): void } | undefined) ?? null;
+
+  const warmupParam = params.get('warmup');
+  let warmup: ReturnType<typeof warmUp> | null = null;
+  if (warmupParam === '1' || (warmupParam !== '0' && !headless)) {
+    loading.textContent = 'building kokiri forest… warming up shaders';
+    warmup = warmUp(renderer, scene, cam.camera, world.ctx.sun);
+  }
 
   let lastNow = performance.now();
   const getDelta = () => {
@@ -131,7 +200,7 @@ async function boot() {
     setQuality: () => {
       /* runtime quality switching is a later task */
     },
-    perf: () => ({ ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs } }),
+    perf: () => ({ ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs }, warmup }),
   });
 
   const onResize = () => {
