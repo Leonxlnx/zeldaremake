@@ -316,19 +316,68 @@ const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0
  * 0.25 as measured — the giants' 0.1 was not swept on this bole.
  */
 export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.25, canopy: 1, albedo: 0.08, chroma: 0.5 };
+/**
+ * Round 36: the near bole's floor is the ground's — the low mist and the bounce off the lit
+ * verge and paving that a column standing on the path's edge gets at its foot, not up its length
+ * — so it fades with height above the seat: the full lift below NEAR_BOLE_FLOOR_FADE[0] (local
+ * metres), NEAR_BOLE_FLOOR_TOP (the giants' own lift, less one) from NEAR_BOLE_FLOOR_FADE[1] up,
+ * smoothstep between. What the two cameras frame of this bole (the emergent column at (−3.1,
+ * −7.9), 5.9 m from D, 10.4 m from B, its east face at depth 4.6 / 8.6 m): camera D's strip
+ * (x 0–0.09, y 0.1–0.7) is the bole 0.8–3.2 m up, where frame 56 s has hazy mid-distance foliage
+ * (y 0.35–0.7 = 0.8–2.2 m: 0.455) under a dark near trunk (y 0–0.35 = 2.2–3.65 m: 0.375); camera
+ * B's (x 0–0.06, y 0.08–0.6) is 0.9–4.7 m up, frame 14 s's dark near trunk (y 0–0.3 = 3.1–5.3 m:
+ * 0.291, y 0.3–0.6 = 0.9–3.1 m: 0.241 with the Kokiri kid in front). One flat lift 13 read
+ * 0.41–0.44 in both — over D's top band by 0.07 and over B's whole strip by 0.12–0.17. The two
+ * frames want the same heights differently below 2.2 m (D bright, B dark) and agree above it, so
+ * the fade keeps the foot for D and darkens the part both frames want dark. The two cameras see
+ * the same south-east face of the column (their bearings from it are 17° apart; from the column,
+ * D sees azimuths 45–114°, B 17–101°), so no azimuthal shade share separates them — height does.
+ * Calibration (fade 2.0–3.5 → lift 6, A/B/D capture): B's trunk top band 0.414 → 0.322 for a
+ * mean lift ≈ 6.2, i.e. ≈ 0.0135 per unit of lift with the bare bark at ≈ 0.24; D's top band
+ * 0.441 → 0.426, D's strip 0.432 → 0.428 (frame 0.413). Fade 1.8–3.2 → lift 5 puts B's top band
+ * near 0.30 (frame 0.291) and D's top band near 0.33 (frame 0.375) with D's strip median still at
+ * the foot's lift (its median height, 2.0 m, is under the fade's midpoint).
+ */
+export const NEAR_BOLE_FLOOR_TOP = 5;
+export const NEAR_BOLE_FLOOR_FADE: [number, number] = [1.8, 3.2];
 
 /**
  * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
  * white-barks' `uWhiteBarkFloor` (lift 0) — distinct so a `__ATMO_UNIFORMS__` sweep of
  * `uBarkFloorLift` moves the giants alone and never gives the white-barks a floor they do not have.
  */
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor') {
+/**
+ * The bark floor block with its lift scaled by a height profile (see NEAR_BOLE_FLOOR_FADE): the
+ * shared block reads `${u}Lift` by name, so the profile is spliced onto that one read. Throws if
+ * the shared block's text no longer carries it, rather than silently shipping a flat floor.
+ */
+function heightFadedFloorGlsl(u: string): string {
+  const block = shadeFloorGlsl(u, TREE_FLOOR_GLSL);
+  const read = `${u}Lift * ambientMean`;
+  if (!block.includes(read)) throw new Error(`shadeFloorGlsl: expected '${read}' in the floor block`);
+  return /* glsl */ `
+      {
+        float floorHeightShare = 1.0 - smoothstep(${u}FadeY.x, ${u}FadeY.y, vTreeLocalY);
+        float floorLiftHere = mix(${u}TopLift, ${u}Lift, floorHeightShare);
+        ${block.replace(read, `floorLiftHere * ambientMean`)}
+      }
+`;
+}
+
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
   bindShadeFloor(shader, barkPrefix, barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
-  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
+  let fadePars = '';
+  if (heightFade) {
+    shader.uniforms[`${barkPrefix}TopLift`] = { value: heightFade.top };
+    shader.uniforms[`${barkPrefix}FadeY`] = { value: new Vector2(heightFade.fade[0], heightFade.fade[1]) };
+    fadePars = `uniform float ${barkPrefix}TopLift;\nuniform vec2 ${barkPrefix}FadeY;\n`;
+  }
+  const barkFloorGlsl = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
+  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + fadePars + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -378,7 +427,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       #endif
       ${LEAF_FLOOR_SHADED}
     } else {
-      ${shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL)}
+      ${barkFloorGlsl}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
       // furrow to the same flat grey as its crest, so the occlusion is applied after it — the
       // ambient and the floor fully, the sun by half (a 10 cm furrow's floor is part-shadowed).
@@ -440,7 +489,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
-  injectWind(giantTreeNear, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor'), 'giant-near');
+  injectWind(giantTreeNear, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
 
   // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
   const cluster = createLeafClusterTexture(ctx.rng.fork('trees/leaf-cluster'), palette);

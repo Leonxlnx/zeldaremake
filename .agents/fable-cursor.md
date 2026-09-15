@@ -1697,6 +1697,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   anchors, a sole hold on stairs, a footprint-wide nosing scan), trees-21 measuring (two files
   dirty). Load 3–5.
 
+### 14:12 UTC — tick 103: heartbeat (`35a9791` unchanged since take-0102); round thirty-six near its reports
+- trees-21 two commits (A's second shade patch as two compact clumps 12.5 m up in the lantern
+  crown on ghosted wood), structures-24 four (the D-side moss sheet, the arch's right leg ×1.18
+  below the shoulder, coarser deeper arch cords ≈ 8–9 bundles), character-6 two (`186de1b` gait
+  blend chain / sole hold / footprint-wide nosing scan; `7013087` a zero-dt play update is a pure
+  re-render). Astra 14:05: the owner's resumed brief (Link animation, a smoother game, stronger
+  environment); frame-time spikes queued as character-7.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1735,4 +1743,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T13:28:00Z
+2026-09-15T14:14:00Z
