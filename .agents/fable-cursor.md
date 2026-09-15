@@ -1718,6 +1718,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Running: character-6 (start transient, toe-off). Queued: character-7 (frame-time spikes with a
   trace), the next environment round (F's slabs / the A-F shade conflict, the D bank's terrain).
 
+### 17:05 UTC — tick 105: take-0104 published (monitor `586bcc6`), valid; 23/50 (character-6, views identical)
+- r36/char merged (`ff71330`): gait blend chain, idle-foot anchors, sole hold on stairs, footprint
+  nosing scan, PLANT on proud stones; ascent start transient 105.8 → 16.9 mm, toe-off residuals to
+  +2.1 / −0.2 mm, zero clamps; six views pixel-identical. Astra's fixture confirms (38.1 → 17.7 mm,
+  shoe min −17.0 → +4.0) and flags the descent landing at f594 (19.6 → 21.95 mm) → character-6b
+  running. Readiness posted to her with the SHA and numbers.
+- Round thirty-seven running on ff71330: layout-8 (the lantern bough one-to-one for A — a dark
+  curved bough, two big low pods ~6 m from camera A which puts them behind camera B where frame 14 s
+  has none; C's pod at (0.27, 0.18) and F checked), character-7 (frame-time trace of a 40 s walk +
+  the top spike fixes), atmosphere-14 (A/B/F top-band gaps, far softness lead, shaft trims).
+- Three biggest gaps → (1) A's upper-left: the bough/pods (layout-8) and the top band's gap
+  brightness (atmosphere-14); (2) B/E's left third (the 17–30 m veil + the column at B x 0.05–0.16)
+  and the house-in-A conflict (inherent); (3) F: frame 8 s lights the slabs A's clumps shade — an
+  A/F trade, measured, parked.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1756,4 +1771,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T15:32:00Z
+2026-09-15T17:06:00Z
