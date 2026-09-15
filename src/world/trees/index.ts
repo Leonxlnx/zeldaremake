@@ -54,6 +54,20 @@ const HOUSE_BOUGHS = [
   // with a few leaf clusters and open haze between them. Its height is load-bearing for shot B:
   // the lobes' shadows are the shaded band across B's mid path (z −5…−8); raised to 10.6 m they
   // slid off the path and B's foreground measured 0.58 against the reference's 0.48.
+  // Round 34 (measured, kept as it was): its 0.6 m wood runs 19 m ACROSS the sun at 9.8 m, and the
+  // sun-eye attribution (100 m sun-axis depth image, first hit per 1.25 cm ground cell) put its
+  // 1.5 m shadow band ((−3.6, 3.2) → (15.1, −7.2)) over 9.6 % of shot A's paving pixels — across
+  // the plaza at x −0.5…1, z 0.5–1.5 and the path mouth x 0…2, z −1…0.5, which frame 1 s lights
+  // (luminance 0.48–0.57 against its shade's 0.30–0.39) — and across B's east verge (5.5–7,
+  // −3…−2) and its top edge (the wood's underside at B (0.38–0.47, 0–0.03), where frame 14 s has
+  // dark canopy). Ghosting the whole bough opened the first A/B shaft column ((1.3, 6.6, −9.4)
+  // r 2.6, corridors.ts) — its lobes stand in that column's down-sun air, and the beam ran on to
+  // the ground at ≈ (7.7, 0, −4.4) across shot B's house, (0.45, 0) → (1.0, 0.75) (B −0.0035).
+  // Ghosting the wood alone (giant.ts ghostWood) lit A's plaza band as the frame has it — A's
+  // (0.08–0.40, 0.64–0.75) box 41 → 67 % lit against the frame's 65 % — and measured A −0.0010,
+  // B −0.0016 against the same build with the wood: at 256 × 144 the lit slabs' texture reads as
+  // contrast the frame's soft paving does not have, and the B strip and verge lost their match.
+  // The wood stays; the band is the price of the plaza mouth (see corridors.ts a-path-mouth).
   { giant: 'lantern-tree', to: [3.0, 8.6, -14.0] as [number, number, number], fromHeight: 6.8, radius: 0.6, foliage: 0.5 },
 ];
 /**
@@ -407,7 +421,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean }[] }[] = [
   // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
   // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
   // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
@@ -470,16 +484,34 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // the plaza roof (round 14): the casters that frame shot A's lit plaza box — one bough across
   // the sun, three small dense lobes above it whose shadows land on the strip west of the box
   // ((-1.0, 3.8) and (-1.0, 2.0), the frame's left edge) and on the path mouth north of it
-  // ((2.4, -0.8)); the lit box between them is the CANOPY_OPENINGS pool of corridors.ts
+  // ((2.4, -0.8)); the lit box between them is the CANOPY_OPENINGS pool of corridors.ts.
+  // Round 34: frame 1 s read cell by cell (0.5 m, luminance ×100, world cells projected through
+  // camera A) — the strip west of the box is shade at x −1…−0.5 for z 2–4 (27–41) and lit at
+  // z ≤ 1.5 (46–55), so the second lobe moves 0.4 m north: shadows (−1.0, 3.8) and (−1.0, 2.4),
+  // footprints ≈ 1.6 × 2.4 m over x −1.8…−0.2, z 1.3–5. (A cut 0.4 m west, shadows at x −1.4,
+  // left x −0.5 lit — sun 16–19 against the control's 3–12 — and cost A's (0.13–0.25, 0.67–0.83)
+  // cell 0.0025 SSIM.) The frame's plaza shade box (0.30–0.40, 0.64–0.72) is 4.7 % lit (ours
+  // 14 %): its dark core x 3–4.5, z −1…2 is ours already (this bough's tip lobe with the limb
+  // lobe and the north-west-near crown), its west half x 1.2–3, z −0.5…2.5 (30–39 against lit
+  // 46–62) was not — the two "plaza shade" boughs (last in this list) cast it. The frame's patch, read at 0.5 m: x 1.5–3.5, z −3…1.5 (30–39) with the path mouth
+  // west of it, x −1…1, z −3…0.5, lit (42–59) up to a straight edge at x ≈ 1.5. Two things of
+  // this bough shaded that mouth (sun-eye attribution, 100 m sun-axis depth image): its own wood
+  // — 0.5 m at 10.4–11 m, whose band ((−2.7, 4.4) → (0.7, −2.5)) crossed the mouth at x 0–0.7,
+  // z −2.5…−1 and the plaza at (−0.7, 0.4), (−0.2, −0.6), where the frame is lit 51–55 — and
+  // the tip lobe's footprint (2.4 × 3.6 m along the sun, centred (2.4, −0.8)), whose west edge
+  // stood at x 0.8. The wood is ghosted (its lobes and their stems stay, the draws too; the
+  // bough is above every hero frame: A (−0.37, −0.34), B (−0.52, −0.68), D (−0.49, −0.93) for
+  // its tip) and the tip lobe moves 0.7 m east, footprint x 1.5–4.7: the patch's west edge.
   {
     giant: 'lantern-tree',
     fromY: 11.0,
     to: [-9.75, 10.4, -10.7],
     radius: 0.5,
+    ghostWood: true,
     lobes: [
       { t: 0.25, center: [-13.6, 12.5, -6.0], hR: 0.8, vR: 0.7, density: 3, eye: 0 },
-      { t: 0.54, center: [-13.6, 12.5, -7.8], hR: 0.8, vR: 0.7, density: 3, eye: 0 },
-      { t: 0.97, center: [-10.2, 12.5, -10.6], hR: 1.2, vR: 1.0, density: 3, eye: 0 },
+      { t: 0.54, center: [-13.6, 12.5, -7.4], hR: 0.8, vR: 0.7, density: 3, eye: 0 },
+      { t: 0.97, center: [-9.5, 12.5, -10.6], hR: 1.2, vR: 1.0, density: 3, eye: 0 },
     ],
   },
   // the flight roof (round 14): two small dense lobes whose shadows are the bands between the
@@ -565,6 +597,13 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // the path's east half — a 1 m dapple inside that sun pool's 4.4 × 7.2 m ellipse (the
   // reference's lit run is leaf-dappled) and 1.9 m across the sun from Link's D pool's axis
   // (corridors.ts (2.2, −6.7) r 1.5), outside it.
+  // Round 34 (measured, kept): its 0.3–0.5 m wood at 9–9.5 m lays a band ((−3.8, 2.9) → (6.9,
+  // −4.8), through (0, 0.2), (1, −0.55), (2, −1.3), (3, −2.0), (4, −2.7)) across two frames' lit
+  // paving — 32 % of shot A's path mouth (x 0–1.5, z −1.5…−0.5; frame 1 s 0.46–0.59) and 23 % of
+  // shot B's east path (x 4–5.5, z −3.5…−2; frame 14 s 0.45–0.69), by the sun-eye attribution.
+  // Ghosting the wood (giant.ts ghostWood; the twig and clump stay) measured A −0.0012 and B
+  // −0.0005 against the same build with it, for +1 point of A's lit share: the band's shade is
+  // where the metric reads our lit slabs' texture as contrast the frame's soft paving lacks. Kept.
   {
     giant: 'lantern-tree',
     fromY: 9.5,
@@ -573,6 +612,43 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     tipRadius: 0.12,
     lobes: [{ t: 1.0, center: [-1.92, 4.4, -12.32], hR: 0.35, vR: 0.4, density: 1.5, eye: 1, corridors: false, compact: true, castShadow: false }],
   },
+  // shot A's plaza shade (round 34): frame 1 s has one shade patch on the plaza, its box
+  // (0.30–0.40, 0.64–0.72) 4.7 % lit — world x 1.2–4.5, z −1.5…2.5 read cell by cell (luminance
+  // 15–39 against the lit paving's 46–62). Its dark core x 3–4.5, z −1…2 is ours (the plaza-roof
+  // tip lobe, the limb lobe and the north-west-near crown), its west half x 1.2–3, z −0.5…2.5 was
+  // lit (44–57) between the house bough's band and the lobes'. This lobe casts that half: a compact
+  // hR 1.0 clump 12.5 m up whose shadow ellipse (2 m across, 3 m along the sun) is centred on
+  // (2.9, 0.9) — footprint x 1.55–4.25, z −0.3…2.1, its west edge on the frame's patch edge
+  // (x 1.5; a first cut centred (2.1, 0.9) reached x 0.75 and shaded the lit mouth's x 0.4–1.5,
+  // 29 % of the mouth's shade). The bough that carries it ends 0.4 m short of the clump and its
+  // wood is ghosted (giant.ts ghostWood: the stem, the clump and every draw stay): a first cut
+  // ended 3.2 m west of the clump, and the stem's 3 m of twig at 12–12.5 m laid its own line
+  // across the mouth, (−1.6, −0.3) → (2.1, 0.9). The shade lands on the box's lit-middle pool
+  // (2.7, 3.0) r 2.2 (corridors.ts), which would cull it: corridor-exempt. Last in this list,
+  // so every lobe above — the round-31 hut clump included — keeps its draws and its leaf
+  // ordinals. No hero camera sees it (A (−0.45, −0.68), B/E (−0.68, −1.28), D (−0.78, −1.85);
+  // behind C and F).
+  {
+    giant: 'lantern-tree',
+    fromY: 12.0,
+    to: [-10.1, 12.3, -9.15],
+    radius: 0.35,
+    tipRadius: 0.12,
+    ghostWood: true,
+    lobes: [{ t: 0.97, center: [-9.7, 12.5, -8.95], hR: 1.0, vR: 0.9, density: 3, eye: 0, compact: true, corridors: false }],
+  },
+  // Not listed — the same patch's north end (round 34): frame 1 s keeps x 1.5–3.5 in shade up to
+  // z −3.5 (0.33–0.37 at z −3.5…−2, the mouth west of x 1 lit 0.52–0.59), and ours is lit there
+  // once the plaza-roof bough's band went and its tip lobe moved east (sun 0.08–0.15 at x 1.5–2,
+  // z −3.5…−2). A compact hR 0.8 clump 12.5 m up at (−10.25, 12.5, −12.34), footprint 2.1 × 2.4 m
+  // centred (2.35, −2.5), shaded it — and its shadow column passed 0.94 m from camera D
+  // (0.2, 1.45, −3.0): the sun line of the patch's north end runs through D's own air (the line
+  // through (2.35, 0, −2.5) is at (0.9, 1.45, −3.64) at head height), so the god-ray march's first
+  // steps, which the extinction weights most, went dark for every ray of D's upper left and D
+  // read −0.0014 (0.3474 → 0.3460; its left third −1…−3 luminance, the top-left cell −6/255).
+  // Moved to 1.54 m from the camera (footprint (2.7, −3.0), hR 0.7) it still read −0.0005 with
+  // pHash 28 → 30; without it D is +0.0002. Any caster on that footprint's sun lines has the same
+  // column (the lines pass 1–1.5 m from D at 1.4–3 m up), so the north end stays lit.
 ];
 /**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
@@ -1350,12 +1426,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     // the giant nearest Saria's house sends two boughs over the dome (the reference frames the
     // house between the giant's limbs); targets are world points above the roof
-    const boughs = HOUSE_BOUGHS.filter((b) => b.giant === def.id).map((b: (typeof HOUSE_BOUGHS)[number] & { density?: number }) => ({
+    const boughs = HOUSE_BOUGHS.filter((b) => b.giant === def.id).map((b: (typeof HOUSE_BOUGHS)[number] & { density?: number; ghostWood?: boolean }) => ({
       to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
       fromHeight: b.fromHeight,
       radius: b.radius,
       foliage: b.foliage,
       density: b.density,
+      ghostWood: b.ghostWood,
     }));
     // giants 35–45 m out are seen through the haze at 30+ m: fewer laminae, the cluster cards
     // carry their crowns
@@ -1366,6 +1443,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       fromHeight: b.fromY - gy,
       radius: b.radius,
       tipRadius: b.tipRadius,
+      ghostWood: b.ghostWood,
       lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow })),
     }));
     const asset = createGiantTree(def, rng, {

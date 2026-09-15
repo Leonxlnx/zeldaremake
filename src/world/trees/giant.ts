@@ -242,6 +242,12 @@ export interface CanopyBough {
   radius: number;
   tipRadius?: number;
   lobes: CanopyLobe[];
+  /**
+   * the bough's own wood is drawn but not built (scratch writer, like a ghosted part): its lobes,
+   * their stems and every draw stay, so a bough whose 0.3–0.6 m wood laid a shadow band across a
+   * frame's lit paving keeps its authored foliage where it was, with the band gone
+   */
+  ghostWood?: boolean;
 }
 
 export interface GiantOptions {
@@ -261,8 +267,12 @@ export interface GiantOptions {
    * and carries leaf lobes along its length and at its tip (e.g. the boughs framing Saria's roof).
    * `foliage` scales the lobe size and leaf count (1 = the default roof-lobe treatment); `density`
    * scales the leaf and card population of every lobe on the bough (dense dark masses > 1).
+   * `ghostWood`: the bough's wood (main tube and end bough) is drawn but not built; its lobes, their
+   * stems and every draw stay, so the lobes' shade (and what they block of the god-ray columns) is
+   * kept while the wood's shadow band goes. (Measured in round 34 on the lantern tree's house bough
+   * and not shipped: its band lit shot A's plaza mouth, but A read −0.0010 and B −0.0016 for it.)
    */
-  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number; foliage?: number; density?: number }[];
+  boughs?: { to: Vector3; fromHeight: number; radius: number; tipRadius?: number; foliage?: number; density?: number; ghostWood?: boolean }[];
   /** per-tree shape overrides (see GiantProfile) */
   profile?: GiantProfile;
   /**
@@ -937,10 +947,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- authored boughs (e.g. the pair reaching over Saria's roof) ----------
   for (const spec of o.boughs ?? []) {
+    const woodGhost = spec.ghostWood ?? false;
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
     origin.y = spec.fromHeight;
-    bareHeight = Math.min(bareHeight, origin.y);
+    if (!woodGhost) bareHeight = Math.min(bareHeight, origin.y);
     const to = spec.to;
     const dir = to.clone().sub(origin);
     const len = dir.length();
@@ -968,8 +979,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
       radii.push(r1 * (1 - 0.7 * s));
     }
+    ghost = woodGhost;
     tube(wood, path, radii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    limbs++;
+    ghost = false;
+    if (!woodGhost) limbs++;
     // `foliage` thins only the outer third + tip (the part that reaches into the hero frames); the
     // lobes near the trunk keep their full roof density
     const bf = spec.foliage ?? 1;
@@ -978,7 +991,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     limbLobes(path, r0, [0.84], 2.7 * bf, 1.3 * bf, 1.1 + 0.6 * bf, 0.62 * bf * bd, bf * bd);
     const endCenter = path[path.length - 1].clone().addScaledVector(UP, 1.1 * bf).addScaledVector(horiz, 0.9);
     const endBough = growthPath(path[path.length - 2], endCenter, horiz, r, 5, 0.5);
+    ghost = woodGhost;
     tube(wood, endBough, taper(endBough, r1 * 0.6, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
+    ghost = false;
     foliateLobe(endBough, endCenter, 2.9 * bf, 1.4 * bf, r1 * 0.6, bf < 0.7 ? 2 : 3, 3, bf < 0.7 ? 3 : 4, 0.62 * bf * bd, bf * bd);
   }
 
@@ -1149,8 +1164,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
     }
+    ghost = spec.ghostWood === true;
     tube(wood, path, radii, 12, rcb, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    limbs++;
+    if (!ghost) limbs++;
+    ghost = false;
     for (const lobeSpec of spec.lobes) {
       const at = sample(path, lobeSpec.t);
       const ax = tangent(path, lobeSpec.t);
