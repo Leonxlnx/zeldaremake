@@ -23,7 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials, NEAR_BOLE_FLOOR } from './materials';
+import { createTreeMaterials, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP } from './materials';
 import { GIANT_BARK_FLOOR, LEAF_FLOOR, type ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
@@ -649,6 +649,79 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // Moved to 1.54 m from the camera (footprint (2.7, −3.0), hR 0.7) it still read −0.0005 with
   // pHash 28 → 30; without it D is +0.0002. Any caster on that footprint's sun lines has the same
   // column (the lines pass 1–1.5 m from D at 1.4–3 m up), so the north end stays lit.
+  //
+  // Shot A's second shade patch (round 36): frame 1 s's paving right of Link, box (0.55–0.75,
+  // 0.64–0.75) = the ground x 3.5–8, z −0.4…3.6, read cell by cell (two-mean split, 0.5 m cells
+  // projected through camera A): lit in a diagonal run from (5–6, 0) through (4.5–6, 1.5) to
+  // (3.5–5, 3.5), shade EAST of it — x 6–8.5 at z 0–1.5, x 5.5–7.5 at z 2–2.5, x 4.5–7 at z 3 —
+  // with one lit island at (7.5–8.5, 2–3.5). The control's sun reached 99.8 % of the box (base −
+  // sun-off mask), its casters (sun-eye attribution, 100 m sun-axis depth image) only the lantern
+  // limb's own dapple 3–6 m up and the lantern crown's at 15–20 m. Two compact clumps 12.5 m up
+  // in the lantern tree's crown, off every hero frame (A (−0.26, −0.65), B (−0.44, …), D (−0.7,
+  // …), behind C and F), on ghosted-wood boughs that end 0.4 m short of them (a stem's twig at
+  // 12–12.5 m lays its own line, round 34):
+  // - footprint (7.6, 0.9), hR 0.7: an ellipse 1.4 m across × 2.3 m along the sun, x 6.6–8.5,
+  //   z −0.1…2.0 — the frame's shade beside the stair foot. Its sun line passes camera D 6.5 m
+  //   off at head height (the round-34 lesson: within 1.5 m it darkens the god-ray march's first
+  //   steps), camera B 6.5 m off (the column enters B's frustum 5.7 m out, at B (0.9, 0.21) 3 m
+  //   up, as the plaza-shade clump's does at (0.24, 0.12)), camera A 10.6 m off.
+  // - footprint (6.2, 2.6), hR 0.7: x 5.3–7.3, z 1.7–3.5 — the frame's shade at (5–7.5, 2–3),
+  //   ending short of the lit island at (7.5–8.5, 2–3.5). Its line passes D 6.4 m off, B 4.7 m
+  //   off (outside B's frame), A 8.4 m off.
+  // The first cut had them 0.5 / 0.9 m further west ((7.1, 0.9) and (5.5, 3.0)): read cell by
+  // cell against the frame that shaded (6–6.5, 0.5), (5.5–6, 1.5), (4.5–5, 2.5) and (4.5–5.5, 3)
+  // — the frame's lit run — and the box's lit share (two-mean, own split) fell 35 → 28 % where the
+  // frame has 50 %; the box's median 0.405 → 0.364 (frame 0.417).
+  {
+    giant: 'lantern-tree',
+    fromY: 12.0,
+    to: [-5.45, 12.3, -8.55],
+    radius: 0.35,
+    tipRadius: 0.12,
+    ghostWood: true,
+    lobes: [{ t: 0.97, center: [-5.0, 12.5, -8.94], hR: 0.7, vR: 0.7, density: 2, eye: 0, compact: true, corridors: false }],
+  },
+  {
+    giant: 'lantern-tree',
+    fromY: 12.0,
+    to: [-6.75, 12.3, -7.15],
+    radius: 0.35,
+    tipRadius: 0.12,
+    ghostWood: true,
+    lobes: [{ t: 0.97, center: [-6.4, 12.5, -7.24], hR: 0.7, vR: 0.7, density: 2, eye: 0, compact: true, corridors: false }],
+  },
+  // Shot D's shaded east half (round 36, see D_PATH_SUN_POINTS): two bare boughs of the north-west-
+  // near giant running NORTH off its leaning axis at 12 and 13.6 m, level, 0.8 m thick — their
+  // wood's shadow bands ((x + 1.008 Y, z + 0.787 Y)) run down the path's east half from z −10.5
+  // to −16.5: the lower bough's from (2.6, −10.6) to (4.1, −16.2), the upper's from (3.5, −10.7)
+  // to (5.1, −16.5), a 2 m band together at the near end. Wood, not leaves, so the band has the
+  // frame's straight west edge along the path's axis and no corridor thins it. Above camera D's
+  // top edge (the lower bough's tip at D (0.185, −0.014) at 22 m, its origin (0.05, −0.19)),
+  // above-left of B's top-left corner (−0.03), off A, behind C and F.
+  // Measured at 0.5 m radius (D only, same build otherwise): the east strip's cells
+  // (0.50–0.88, 0.67–0.83) +0.070 / +0.113 / +0.018 SSIM and (0.63–0.75, 0.5) +0.024 — D
+  // +0.0040 in all — with the path-E box's median 0.397 → 0.366 (frame 0.345) and its p90 0.536
+  // → 0.441 (0.427); the cost is the god-ray march, whose rays through D's air box (0.35–0.75,
+  // 0.10–0.27) cross the two shadow slabs 4–6 m up over the path's west edge (any caster of the
+  // east strip puts its slab there: the slab of a footprint (x, z) at height h is at (x − 1.008 h,
+  // z − 0.787 h)), air p50 0.553 → 0.549 against the ≥ 0.55 guard, p90 0.605 → 0.578. Radius
+  // 0.4 / 0.25 (a 0.8 m band, the slabs' section −20 %) is the trade.
+  {
+    giant: 'north-west-near',
+    fromY: 12.0,
+    to: [-8.4, 12.4, -26.0],
+    radius: 0.4,
+    tipRadius: 0.25,
+    lobes: [],
+  },
+  {
+    giant: 'north-west-near',
+    fromY: 13.6,
+    to: [-9.0, 14.0, -27.5],
+    radius: 0.4,
+    tipRadius: 0.25,
+    lobes: [],
+  },
 ];
 /**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
@@ -719,13 +792,35 @@ const PLAZA_SUN_POINTS: { point: [number, number, number]; radius: number }[] = 
  * north-west giants' wild limbs 7–10 m up, which no corridor removes).
  */
 const D_PATH_SUN_POINTS: { point: [number, number, number]; radius: number }[] = [
-  // 2.2 m: this disc's south edge already touches B's shaded band
-  { point: [0.5, 0, -10.0], radius: 2.2 },
-  { point: [1.5, 0, -14.0], radius: 2.6 },
-  { point: [2.0, 0, -18.0], radius: 2.6 },
-  { point: [1.9, 0, -22.0], radius: 2.4 },
+  // Round 36: the lit run is the path's WEST half. Frame 56 s read in the box (0.30–0.70,
+  // 0.50–0.80) with Link's column cut out (two-mean split at 0.432): left of Link (x 0.30–0.44 =
+  // world x −1.4…0.4) the flagstones are lit from 7.6 m out to the far haze (p50 0.475, p10 0.409
+  // — no shade darker than the frame's own floor but one 0.8 m strip along the west edge, x
+  // −1.4…−0.7 at z −11.7…−17.6, the bank's), right of him (x 0.57–0.70 = world x 2.4–4.5) in
+  // shade the whole way (p50 0.345, p10 0.293). The control lit both halves alike (0.400 /
+  // 0.397): these points at x 0.5–2.0 with r 2.2–2.6 land ellipses 3.1 m either side in x (a
+  // cylinder r lands 1.42 r in x, 1.27 r in z), i.e. x −2.6…5.2, and the sun-eye attribution
+  // read the east strip (x 2.2–4.5, z −14…−8.5) 65 % sunlit, the west run (x −1.5…0.5, z −17.5…
+  // −10.5) 62 %. What shades the west run is not the foliage a pool carves: the near part (z −12…
+  // −7, 60 % shaded) is the north-west-near giant's own leaning bole and its WSW limb's collar
+  // 6.7–8.8 m up (36 %: the bole's band across the path at z −8…−10.5, the price of the Link-ray
+  // lean, see GIANT_PROFILES) and the north-west giant's crown 16–18 m up (21 %); the far part
+  // (z −18…−12, 42 %) the bank and its boulders 2.5–3.6 m up (25 %, not trees) and the same
+  // crown (17 %). A first cut at r 1.1 with porosity 0.1 / 0.05 on the west run moved the west
+  // box's median not at all (0.400 → 0.400): laminae and cards were not what shaded it. The pools
+  // keep the control's radii and porosity (the same in-scatter for D's air box, whose p90 fell
+  // 0.605 → 0.597 with the r 1.1 cut) and move 1–2.3 m WEST, so their ellipses (±1.42 r in x)
+  // reach x −3.6…2.9 instead of −2.6…5.7: the west run and the centre, not the east strip the
+  // frame keeps in shade. The lines also cut the fine wood 12 m up and higher (D_PATH_WOOD_MIN_Y;
+  // GiantOptions.corridors `wood`: crown boughs, secondaries, twigs and lobe stems — never
+  // leaders or limbs), the north-west giant's crown boughs that the sun-eye put over the run; the
+  // cut stands in the crowns 14–22 m up at x −14…−23, z −21…−43, outside every hero frustum.
+  { point: [-0.5, 0, -10.0], radius: 2.2 },
+  { point: [-0.5, 0, -14.0], radius: 2.4 },
+  { point: [-0.4, 0, -18.0], radius: 2.4 },
+  { point: [-0.3, 0, -22.0], radius: 2.4 },
   // edge of the mist pool, where the reference's lit run ends
-  { point: [2.0, 0, -25.5], radius: 2.2 },
+  { point: [-0.2, 0, -25.5], radius: 2.2 },
 ];
 const D_PATH_SUN_POROSITY = 0.25;
 /**
@@ -735,6 +830,8 @@ const D_PATH_SUN_POROSITY = 0.25;
  * bare). The slabs outside the corridors keep their natural part-shade.
  */
 const D_PATH_CARD_POROSITY = 0.15;
+/** world height from which the D path lines also cut the fine wood (round 36, see D_PATH_SUN_POINTS) */
+const D_PATH_WOOD_MIN_Y = 12;
 /**
  * Sunlit west verge of shot D: the fern crowns and violets west of the north path (x −5…−3,
  * z −9…−18, the lower left of shot D) sit on ground the reference lights (verge ground 0.46 at
@@ -1168,6 +1265,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ...SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), dir: sunDir, radius: c.carve ?? c.radius, porosity: c.porosity ?? 0, cardPorosity: c.cardPorosity ?? 0 })),
     ...openingCorridors,
     ...D_PATH_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_PATH_SUN_POROSITY, D_PATH_CARD_POROSITY)),
+    // the same lines as fine-wood cuts from D_PATH_WOOD_MIN_Y up (porosity 1: the foliage keeps the
+    // entry above, the tightest corridor winning)
+    ...D_PATH_SUN_POINTS.map(({ point, radius }) => ({ ...groundLine(point, radius, 1, 1, D_PATH_WOOD_MIN_Y), wood: true })),
     ...D_VERGE_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, D_VERGE_SUN_POROSITY, D_VERGE_CARD_POROSITY)),
     ...F_BANK_SUN_POINTS.map(({ point, radius }) => groundLine(point, radius, F_BANK_SUN_POROSITY, F_BANK_CARD_POROSITY, F_BANK_MIN_Y)),
     ...linkRays,
@@ -2007,6 +2107,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           ] as [string, ShadeFloor][]
         ).map(([k, f]) => [k, [f.lift, f.texture]]),
       ),
+      /** the near bole's floor fades with height (materials.ts NEAR_BOLE_FLOOR_FADE): [lift at the foot, lift above the fade, fade from (m), fade to (m)] */
+      nearBoleFloorProfile: [NEAR_BOLE_FLOOR.lift, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_FLOOR_FADE[0], NEAR_BOLE_FLOOR_FADE[1]],
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
       /** ctx.shared.lanternLimb: the lantern tree's built limb path for structures to wrap */
