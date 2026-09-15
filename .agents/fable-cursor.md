@@ -1618,6 +1618,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   B 0.2528, C 0.3163, D 0.3498, E 0.2667, F 0.2951; sharpness E 0.80 → 0.87 (off the floor).
 - Still running: trees-20 (dapple by boughs), hardscape-27 (tuft hue, mottle, D's slabs).
 
+### 05:55 UTC — tick 96: take-0099 published (monitor `8c6c315`), valid; 23/50 — D 0.3529, A 0.2803
+- r34/hard merged (`b3bce25`): joint tufts tinted olive-brown → straw where they stand in joints
+  (the 60–70° green surplus in the paving's dark class gone: B field 37 → 13 %, D fg 18 → 5 %),
+  D's foreground as nine 1.5–2 m slabs (was thirty 0.78 m), within-stone moss/lichen mottle on the
+  large slabs (D spread 0.089 → 0.136, frame 0.125). A +0.0026, B +0.0020, C +0.0019, D +0.0031,
+  E +0.0010, F −0.0009 (the lawn-fringe tint at F's left bank).
+- Round thirty-four so far (takes 0097–0099): D 0.3474 → 0.3529, A 0.2742 → 0.2803, B 0.2518 →
+  0.2548, C 0.3133 → 0.3182, E 0.2652 → 0.2677, F 0.2936 → 0.2942. trees-20 (dapple) still running.
+- Queued for round thirty-five: atmosphere-13 (the 9–17 m airlight floor: 0.29 vs the frames' 0.24
+  darks with a 28° hue), hardscape-28 (B fg's seam-fill hue 30° vs 40°; D's gap runs 0.10 vs 0.19),
+  the F left-bank fringe.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1656,4 +1668,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T05:26:00Z
+2026-09-15T05:56:00Z
