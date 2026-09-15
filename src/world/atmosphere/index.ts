@@ -47,7 +47,10 @@ export function create(ctx: WorldContext): WorldSystem {
   const fairy = createFairy(ctx);
   fairy.group.visible = false;
   group.add(fairy.group);
-  const hasNavi = () => !!ctx.scene.getObjectByName('navi');
+  // found once, then remembered: the lookup walked the whole scene graph (≈ 600 objects, Navi in
+  // the last-added system group) every frame, and Navi is never removed once built
+  let naviSeen = false;
+  const hasNavi = () => naviSeen || (naviSeen = !!ctx.scene.getObjectByName('navi'));
 
   // Post-processing: consumed by main.ts through scene.userData.composer.
   let composer: Composer | null = null;

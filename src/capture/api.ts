@@ -51,6 +51,8 @@ export interface CaptureHooks {
   audits: Map<string, () => Record<string, unknown>>;
   setQuality(tier: string): void;
   terrain: Terrain;
+  /** CPU timing of the last step (ms per phase / per system) and the systems' build times */
+  perf?(): Record<string, unknown>;
 }
 
 export interface ZRApi {
@@ -70,6 +72,12 @@ export interface ZRApi {
   /** set deterministic simulation time (seconds) */
   setTime(t: number): void;
   stats(): Record<string, unknown>;
+  /**
+   * CPU ms of the last `step`: `step` total, `camera`, `update` (world.update), `render` (the
+   * composer's issue time), `systems` per system, and `buildMs` per system from `createWorld`.
+   * Measured on the JS thread only (GPU time is not visible here); read-only, never steers anything.
+   */
+  perf(): Record<string, unknown>;
   audit(): Record<string, unknown>;
   setQuality(tier: string): void;
   /** terrain height + mask at a world xz (used by seating/contact checks) */
@@ -245,6 +253,7 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
       }
     },
     setTime: (t) => hooks.setTime(t),
+    perf: () => hooks.perf?.() ?? {},
     stats: () => {
       const info = hooks.renderer.info;
       return {

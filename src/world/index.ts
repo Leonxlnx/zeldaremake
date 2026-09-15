@@ -50,6 +50,10 @@ export interface World {
   systems: WorldSystem[];
   /** systems whose create() threw. Interactive mode tolerates this; capture mode fails closed. */
   failures: SystemFailure[];
+  /** CPU ms of the last update(), per system (plus `wind`) — read by the capture API's perf() */
+  timings: Record<string, number>;
+  /** build ms per system (create() wall time), for the load-time report */
+  buildMs: Record<string, number>;
   update(dt: number, t: number): void;
   dispose(): void;
 }
@@ -96,6 +100,7 @@ export async function createWorld(opts: {
 
   const systems: WorldSystem[] = [];
   const failures: SystemFailure[] = [];
+  const buildMs: Record<string, number> = {};
   for (const s of SYSTEMS) {
     const t0 = performance.now();
     try {
@@ -106,22 +111,35 @@ export async function createWorld(opts: {
       }
       systems.push(sys);
       ctx.progress(s.name, 1);
-      console.info(`[world] ${s.name} ready in ${(performance.now() - t0).toFixed(0)} ms`);
+      buildMs[s.name] = performance.now() - t0;
+      console.info(`[world] ${s.name} ready in ${buildMs[s.name].toFixed(0)} ms`);
     } catch (e) {
       const error = e instanceof Error ? `${e.message}\n${e.stack ?? ''}` : String(e);
       failures.push({ name: s.name, error });
       console.error(`[world] system "${s.name}" failed to build`, e);
       ctx.progress(s.name, 1);
+      buildMs[s.name] = performance.now() - t0;
     }
   }
 
+  const timings: Record<string, number> = {};
   return {
     ctx,
     systems,
     failures,
+    timings,
+    buildMs,
     update(dt, t) {
+      let a = performance.now();
       ctx.wind.update(dt, t);
-      for (const s of systems) s.update?.(dt, t, ctx);
+      let b = performance.now();
+      timings.wind = b - a;
+      for (const s of systems) {
+        a = b;
+        s.update?.(dt, t, ctx);
+        b = performance.now();
+        timings[s.name] = b - a;
+      }
     },
     dispose() {
       for (const s of systems) s.dispose?.();
