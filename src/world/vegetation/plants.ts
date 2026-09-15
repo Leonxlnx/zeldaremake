@@ -2361,6 +2361,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             // standing plants there go greener and a shade darker (the round-31 lit yellow-olive
             // sits below the classifier's 48° hue floor), and a low cover of clover and cushions
             // closes the turf between them — the verge keeps its 0.55 m cap and its shoulders.
+            // Measured: 459 clover + 155 cushions took the box 69.1 → 71.3 % green; a grass-side
+            // pass (straw out, deep tints, × 0.875) took it back to 69.3 — the deep tints lose
+            // saturation under the verge's haze and fall out of the green class — so the cover
+            // does the work, at twice the first density.
             const D_VERGE_BOX: readonly [number, number, number, number] = [0.53, 0.56, 0.9, 0.75];
             const D_VERGE_WORLD: [number, number, number, number] = [3.0, -20.5, 6.8, -8.8];
             const inDVerge = (x: number, z: number) => inWorldBox(x, z, D_VERGE_WORLD) && inFrame('D_log', x, z, D_VERGE_BOX, 7);
@@ -2376,11 +2380,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               field,
               {
                 label: 'clover-r35-d-verge',
-                candidates: 30000,
+                candidates: 60000,
                 box: D_VERGE_WORLD,
-                minSpacing: 0.17,
+                minSpacing: 0.12,
                 low: true,
-                max: 900,
+                max: 1800,
                 r32: true,
                 accept: (x, z, s) => (dVergeGround(x, z, s) ? 0.8 * (0.5 + field.cluster(x, z)) : 0),
               },
@@ -2391,11 +2395,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               field,
               {
                 label: 'moss-r35-d-verge',
-                candidates: 16000,
+                candidates: 30000,
                 box: D_VERGE_WORLD,
-                minSpacing: 0.3,
+                minSpacing: 0.24,
                 low: true,
-                max: 260,
+                max: 420,
                 r32: true,
                 accept: (x, z, s) => (dVergeGround(x, z, s) && field.lawnEdgeDistance(x, z, true) >= 0.3 ? 0.7 * (0.5 + field.cluster(x, z)) : 0),
               },

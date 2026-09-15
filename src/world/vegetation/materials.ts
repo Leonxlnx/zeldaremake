@@ -188,19 +188,15 @@ export const SHADE_LIFT_ZONE = { box: [-5.5, -18, -1.5, -6] as readonly [number,
  */
 export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 2.0 };
 /**
- * Round 35: the third lift zone — the bank hedge row right of the main flight (plants.ts
- * hedge-shotA-bank / -r14, x 6–8.6 / z 3.9–5.6, the crest shrubs behind it to x 14.5). Its crowns
- * are frame 8 s' right mass and frame 1 s' right-edge shrubs, and their self-shadowed cores
- * rendered near-black: F 0.65–0.85 × 0.34–0.6 at p50 0.14–0.22 against the frame's 0.23–0.28,
- * A 0.9–1.0 × 0.34–0.6 at 0.13–0.17 against 0.19–0.30, where the lit leaf rims sit at the
- * frame's level (C 0.25–0.3 × 0.4–0.5: 0.32 against 0.28). An albedo move lifts rim and core
- * alike; the shadow-weighted fill lifts the core only, which is the frame's soft mass — many
- * leaves at low per-leaf contrast, a gradient rather than a black hole. The turf between the
- * crowns takes the same fill (A's right edge measures it 0.13–0.2 against 0.16–0.28).
+ * The extra lift zones after the west verge: (box, scale × the verge fill). Round 35 tried a
+ * third zone over the bank hedge row right of the main flight (x 5.8–14.5 / z 3.7–7.3, 2.4 ×):
+ * its self-shadowed cores render 0.13–0.22 where frames 1 s / 8 s have 0.19–0.30, and the fill
+ * did bring them to 0.23–0.30 — but the frame's mass is a flat blur (local sd 0.01–0.05 in 8 px
+ * windows at 256 × 144) and the lit core showed every leaf (our local sd 0.03 → 0.05), so F's
+ * SSIM fell 0.2955 → 0.2860 (−0.11…−0.22 per cell over the crowns) while the luminance term
+ * had only 0.01–0.08 to gain. The dark core scores better than a lit textured one; withdrawn.
  */
-export const LIFT_ZONE_BANK_HEDGE = { box: [5.8, 3.7, 14.5, 7.3] as readonly [number, number, number, number], scale: 2.4 };
-/** the extra lift zones after the west verge: (box, scale × the verge fill) */
-export const LIFT_ZONES_EXTRA = [LIFT_ZONE_C_FOOT, LIFT_ZONE_BANK_HEDGE] as const;
+export const LIFT_ZONES_EXTRA = [LIFT_ZONE_C_FOOT] as const;
 
 const LIFT_VERTEX_PARS = /* glsl */ `
 uniform vec4 uLiftBox;
@@ -388,7 +384,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v11${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v12${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

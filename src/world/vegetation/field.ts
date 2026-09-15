@@ -212,31 +212,16 @@ export const C_FOOT_FEATHER = 0.5;
  * x 8–9.6 / z −6.2…−3.4) — but that box is exactly the turf frame 8 s reads darkest (F 0.1–0.25 ×
  * 0.45–0.6: 0.21–0.27 against our 0.31–0.36, unchanged by the cut) and camera B's own right edge
  * measures the same ground brighter than its frame (B 0.84–1.0 × 0.35–0.56: ours 0.29–0.38, frame
- * 0.21–0.32), so the exemption is gone and the ramp starts at the tread ends. (b) The plateau
- * shelf right of the flight (SHELF_DARK, round 32's crest strip and the ground behind it): frame
- * 8 s' right mass (F 0.65–0.95 × 0.3–0.6) is one soft dark blur at p50 0.265 with lum sd 0.052
- * where our crest shrubs stood near-black (p10 0.146) in lit turf (0.35); the frame's mass rises
- * to F's y ≈ 0.12 over the plateau that shows above our hedge row (F 0.65–0.85 × 0.17–0.34:
- * 0.34–0.37 against 0.24–0.31), so the box reaches the plateau turf out to x 26 — camera C sees
- * that ground as the dark shrub band behind the kids (C 0.15–0.35 × 0.3–0.45: 0.26–0.34), A, B,
- * D and E do not see it at all.
+ * 0.21–0.32), so the exemption is gone and the ramp starts at the tread ends. Frame 8 s' left
+ * mass measured after that: F 0.1–0.2 × 0.5 SSIM +0.06…+0.09 per cell. (b) A box over the
+ * plateau shelf right of the flight (frame 8 s' right mass) was tried and dropped: that turf is
+ * the shade zone's (frame 8's right embankment, `shadeZone`), whose flat fill-lit blades are F's
+ * best-scoring cells (SSIM 0.52–0.73), and the darkening replaced their shade encoding — F
+ * 0.65–0.75 × 0.17–0.33 fell 0.726 → 0.698; the crest behind the hedge row F cannot see at all.
  */
 const NW_DARK_OUT: readonly [number, number] = [0.0, 0.7];
 const NW_DARK_FAR: readonly [number, number] = [3.6, 4.8];
 const NW_DARK_ALONG: readonly [number, number] = [-1.0, 7.5];
-const SHELF_DARK: readonly [number, number, number, number] = [9.2, 3.8, 26.0, 8.8];
-const SHELF_DARK_FEATHER = 0.6;
-/**
- * Round 35: frame 56 s' right verge (D 0.55–0.85 × 0.6–0.72) — a closed green slope, 81 % green at
- * p50 0.314 against our 69–71 % at 0.37. Of what the classifier counts as soil there, the paving
- * is the hardscape's; the rest is our turf's straw: the blades 5–12 m from camera D carry a dry
- * fraction of 0.19–0.29 (hue < 48°, so "soil"), and its lit tints. 0..1 on the verge turf as D
- * sees it, beyond D_VERGE_DEPTH; grass.ts takes the straw and the pale tints out and darkens.
- */
-const D_VERGE_WORLD: readonly [number, number, number, number] = [3.0, -20.5, 6.8, -8.8];
-const D_VERGE_BOX: readonly [number, number, number, number] = [0.53, 0.56, 0.9, 0.75];
-const D_VERGE_DEPTH = 7;
-const D_VERGE_FEATHER = 0.03;
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
@@ -1168,40 +1153,21 @@ export class VegField {
   }
 
   /**
-   * 0..1 where the turf beside the main flight reads as the frames' dark bank masses (round 35):
-   * the north-west flank beyond NW_DARK_OUT (frames 8 / 46, frame 14 s' lit right mass excepted)
-   * and the plateau shelf right of the flight (frame 8's right mass). Grass encodes it as the
-   * blade darkening (materials.ts), the standing plants take it as a colour multiplier.
+   * 0..1 where the turf on the main flight's north-west flank reads as frames 8 / 46's dark bank
+   * mass (round 35): from the tread ends out to the terrace slope, along the flight. Grass
+   * encodes it as the blade darkening and a flatter blade-to-blade spread (materials.ts,
+   * grass.ts), the standing plants take it as a colour multiplier.
    */
   bankDark(x: number, z: number): number {
     const { u, v, halfWidth } = this.mainStairLocal(x, z);
-    let nw = 0;
-    if (v < 0) {
-      const out = -v - halfWidth;
-      const across = smoothstep(NW_DARK_OUT[0], NW_DARK_OUT[1], out) * (1 - smoothstep(NW_DARK_FAR[0], NW_DARK_FAR[1], out));
-      const along = smoothstep(NW_DARK_ALONG[0] - 0.8, NW_DARK_ALONG[0], u) * (1 - smoothstep(NW_DARK_ALONG[1], NW_DARK_ALONG[1] + 1.5, u));
-      // camera C's lit foreground slope (cFoot) lies inside the flank's far ramp: frames 14 / 46
-      // both want that ground lit (B 0.55–0.96 × 0.67–0.83: 0.46–0.6 against our 0.24–0.31), so
-      // the C-foot rule wins there
-      nw = across * along * (1 - this.cFoot(x, z));
-    }
-    return Math.max(nw, softBox(x, z, SHELF_DARK, SHELF_DARK_FEATHER));
-  }
-
-  /**
-   * 0..1 on frame 56 s' right verge turf as camera D sees it (round 35, D_VERGE_WORLD projected
-   * into D_VERGE_BOX beyond D_VERGE_DEPTH): the blades there lose their straw and pale tints and
-   * take a mild darkening (grass.ts) so the verge closes as the frame's 81 % green slope.
-   */
-  dVerge(x: number, z: number): number {
-    if (x < D_VERGE_WORLD[0] || x > D_VERGE_WORLD[2] || z < D_VERGE_WORLD[1] || z > D_VERGE_WORLD[3]) return 0;
-    const p = this.screenPoint('D_log', x, this.ctx.terrain.height(x, z), z);
-    if (!p || p.depth < D_VERGE_DEPTH) return 0;
-    const b = D_VERGE_BOX;
-    const f = D_VERGE_FEATHER;
-    const inX = smoothstep(b[0] - f, b[0], p.sx) * (1 - smoothstep(b[2], b[2] + f, p.sx));
-    const inY = smoothstep(b[1] - f, b[1], p.sy) * (1 - smoothstep(b[3], b[3] + f, p.sy));
-    return inX * inY * smoothstep(D_VERGE_DEPTH, D_VERGE_DEPTH + 1.5, p.depth);
+    if (v >= 0) return 0;
+    const out = -v - halfWidth;
+    const across = smoothstep(NW_DARK_OUT[0], NW_DARK_OUT[1], out) * (1 - smoothstep(NW_DARK_FAR[0], NW_DARK_FAR[1], out));
+    const along = smoothstep(NW_DARK_ALONG[0] - 0.8, NW_DARK_ALONG[0], u) * (1 - smoothstep(NW_DARK_ALONG[1], NW_DARK_ALONG[1] + 1.5, u));
+    // camera C's lit foreground slope (cFoot) lies inside the flank's far ramp: frames 14 / 46
+    // both want that ground lit (B 0.55–0.96 × 0.67–0.83: 0.46–0.6 against our 0.24–0.31), so
+    // the C-foot rule wins there
+    return across * along * (1 - this.cFoot(x, z));
   }
 
   /** 0..1 where the foreground tufts of frames 1 / 8 must stay short. */

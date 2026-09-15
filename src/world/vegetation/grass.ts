@@ -172,15 +172,13 @@ const C_FOOT_DRY = 0.55;
  */
 const BANK_DARKEN = 0.6;
 /**
- * Round 35: frame 56 s' right verge (field.ts `dVerge`; D 0.55–0.85 × 0.6–0.72 is 81 % green at
- * p50 0.314 against our 69–71 % at 0.37). The blades 5–12 m from camera D carried a dry fraction
- * of 0.19–0.29 — straw is hue < 48°, "soil" to the classifier — and the lit tints: the straw is
- * cut by D_VERGE_DRY_CUT, the palette biased down by D_VERGE_TINT (index 2/3 → 0/1) and the same
- * darkening slot as the bank masses takes D_VERGE_DARKEN (× 0.875, 7 % desaturated).
+ * Round 35: the same mass, flatter. Frame 8 s' left bank is one blur — local sd 0.01–0.05 in
+ * 8 px windows at 256 × 144 — and SSIM's structure term there is set by our own local variance
+ * (the luminance term already sits at 0.92–0.99): the darkening alone took F 0.1–0.2 × 0.5 up
+ * 0.06–0.09 per cell. In the zone the blade-to-blade tint noise and the straw tips (the two
+ * per-blade contrasts) are cut by BANK_FLAT × zone, so neighbouring blades share a palette entry.
  */
-const D_VERGE_DRY_CUT = 0.85;
-const D_VERGE_TINT = 0.4;
-const D_VERGE_DARKEN = 0.25;
+const BANK_FLAT = 0.7;
 /** 0..1 hash of a mm-quantised position (no rng draw) */
 const hash01 = (x: number, z: number) => {
   let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -328,16 +326,17 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // already supplies the "shaded"), its blades get the flatter fill-lit gradient (shade lift,
       // see materials.ts) and keep a few straw tips for the blade-to-blade texture.
       // trodden blades are dusty: lighter olive with more straw tips
-      // frame 56 s' right verge (round 35): no straw, no pale tints, a shade darker
-      const dVerge = field.dVerge(x, z);
-      let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot - D_VERGE_TINT * dVerge;
+      // the dark bank mass of frames 8 / 46 (round 35): darkened blades in a flat spread — the
+      // blade-to-blade tint noise and the straw tips are what the frame's blur does not have
+      const bank = field.bankDark(x, z);
+      let tn = field.tint(x, z) + rng.gauss() * 0.22 * (1 - BANK_FLAT * bank) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot;
       if (s.slope > 0.35) tn -= 0.15 * (1 - shade) * (1 - foot);
       // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
       if (houseNorth) tn += HOUSE_FLANK_NORTH_TINT;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
-      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0) + C_FOOT_DRY * foot) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade) * (1 - D_VERGE_DRY_CUT * dVerge);
-      // the dark bank masses (round 35): a blade darkening in the tint slot's spare fraction
-      const darken = clamp(BANK_DARKEN * field.bankDark(x, z) + D_VERGE_DARKEN * dVerge, 0, 0.96);
+      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0) + C_FOOT_DRY * foot) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
+      // the dark bank mass (round 35): a blade darkening in the tint slot's spare fraction
+      const darken = clamp(BANK_DARKEN * bank, 0, 0.96);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
 
       // wind
