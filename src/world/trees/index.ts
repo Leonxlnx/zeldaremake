@@ -675,6 +675,12 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // soft shade over the centre and the stacked pair matches it better than a cell-fitted pair,
   // whose dapple re-rolls with every move. The first pair stays, the second clump 0.3 m east of
   // it so less of its ellipse lands on Link's lit slabs.
+  // Six-view cost: shot F (camera (−1.96, 1.8, 4.0) looking east up the stairs) frames the same
+  // slabs — the first clump's footprint at F (0.32–0.53, 0.62–0.66), the second's at (0.44–0.67,
+  // 0.66–0.72) — and frame 8 s has them lit (0.39 / 0.45 median against our control's 0.36 /
+  // 0.33), so F reads −0.0014 (cells (0.25–0.50, 0.5–0.67) −0.011 / −0.022 / −0.015, (0.63–0.75,
+  // 0.5–0.83) −0.006 / −0.011) for A's +0.0035: frame 1 s shades these slabs, frame 8 s does not.
+  // Density 1 instead of 2 (half the leaves, same ellipse): A +0.0034, F −0.0013 — no trade.
   {
     giant: 'lantern-tree',
     fromY: 12.0,
