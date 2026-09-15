@@ -502,8 +502,13 @@ export function createComposer(opts: ComposerOptions): Composer {
     softActivityK: 0.08,
     softActivityPower: 4,
     softUniform: 0.0,
-    softFarStart: 25,
-    softFarFull: 60,
+    // 25 / 60 → 16 / 50 (round 35): pairs with the near-field airlight (heightfog hazeNearField).
+    // Alone the earlier start reads +0.0036 (B) / +0.0027 (D) SSIM at −0.02 sharpness (0.916 →
+    // 0.93 on B; the frames' window std at 17–30 m is 0.045 against our 0.028, so this is the
+    // metric's uncorrelated-structure term, not a match of the frames' softness — see the note
+    // above); 8 / 45 read +0.0088 / +0.0075 at 0.85 sharpness and was not taken
+    softFarStart: 16,
+    softFarFull: 50,
     softBlurSigma: 1.2,
     softFarSigma: 3.0,
     softActivitySigma: 2.5,

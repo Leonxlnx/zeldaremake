@@ -30,7 +30,11 @@
  *      still deep under the roof at eye level (`hollowDim`: the log arch's body and the ground
  *      through its opening), and the lit far wall (`hazeFarLit`) for rays that climb out of the
  *      under-canopy layer past the far rows (`hazeFarLitKnee`). Extinction (the veil share) is
- *      direction-independent; only the veil's radiance changes.
+ *      direction-independent; only the veil's radiance changes; (d) the near field: the air the
+ *      camera stands in (to `hazeNearFieldIn`) is warmer and a hair dimmer than the far veil
+ *      (`hazeNearField`) — measured with every surface black (`veilOnly`), the veil alone floored
+ *      the 9–17 m darks at 0.22–0.26 display in a 58–60° hue where the frames' bark there reads
+ *      0.19–0.25 at 28–37°.
  *
  * Everything is a pure function of the fragment's world position and the camera, so it is
  * deterministic and costs a few ALU per fragment. The vertex chunk needs `mvPosition` (present in
@@ -448,11 +452,19 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   farShadeStart: 22,
   farShadeFull: 44,
   farShadeMin: 0.3,
-  hazeNearField: [0.16, 0.145, 0.12],
+  // [0.2, 0.18, 0.148] reads 0.348 display at a 38° hue through 55 % veil where the control's blend of
+  // hazeNear / hazeClosed read 0.36–0.38 at 58–64°: a warm near air 5–8 % dimmer than the far veil.
+  // B's pillar bark 0.265 → 0.246 (frame 0.247), hue 51 → 42° (frame 28°); D's bank bark 0.310 → 0.293
+  // at 36° (frame 0.239 — the rest of that gap is the bank's moss share, not the air). The dimmer
+  // [0.16, 0.145, 0.12] (0.30 display, −20 %) put the pillar at 0.224 and D's right bank cells at
+  // the frame's mean (0.286 vs 0.288) but cost −0.006 (B) / −0.0045 (D) SSIM: the metric's cs term
+  // pays for every rise in our window variance where the lit pattern does not align with the frame's
+  hazeNearField: [0.2, 0.18, 0.148],
   hazeNearFieldIn: [10, 28],
-  hazeNearFieldAmount: 0,
-  // gate off (edges [-2, -1]: every horizontal dot is past the upper edge) until a directional
-  // trial pays; see the field's note for the candidate (openDir, [-0.5, 0.1])
+  hazeNearFieldAmount: 1,
+  // gate off (edges [-2, -1]: every horizontal dot is past the upper edge): gating the full-strength
+  // term to the east half (openDir, edges [-0.5, 0.1]) moved D by +0.0004 and B by +0.0001 against
+  // the ungated term — D's left-bank rays at 9–17 m sit at a dot of −0.3…0, inside the ramp
   hazeNearFieldDir: [0.9659, -0.2588],
   hazeNearFieldEdges: [-2, -1],
   veilOnly: 0,
