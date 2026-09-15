@@ -1,0 +1,16 @@
+{
+  "status": "Exported local face candidate; runtime review required",
+  "sha256": "428141effd661eb5edc32bd80c03ebb19ace0fb2fc452906822bb876dcbbfadb",
+  "bytes": 40295888,
+  "meshes": 3,
+  "materials": 4,
+  "images": 5,
+  "clips": [
+    "idle",
+    "walk",
+    "run",
+    "stairs"
+  ],
+  "orbital_texture_size": 1024,
+  "outside_uvs_and_positions_weights_preserved": true
+}

@@ -1,0 +1,12 @@
+{
+  "status": "Retained incremental face improvement; reference quality not reached",
+  "asset_sha256": "428141effd661eb5edc32bd80c03ebb19ace0fb2fc452906822bb876dcbbfadb",
+  "baseline_sha256": "d221c8c1f3896d96ccee74ef24e66097dea9130f0416da1929556bfa7438f46b",
+  "world": "e74a53f2e8f38f1410101a11cd6a3ba2123cafca",
+  "movement_records": 1620,
+  "movement_and_shoe_positions_exact_after_vertex_id_normalization": true,
+  "checks": "Typecheck/build and export checks passed; two 18-view studio captures and full movement fixture complete, no page errors.",
+  "remaining": "Eyelid rim anatomy, facial detail, reference quality and existing descent hitch remain unfinished.",
+  "source_blend_local": "E:\\zeldaremake\\art\\characters\\link\\experiments\\2026-09-13\\source-runtime\\face-runtime-study.blend",
+  "source_blend_sha256": "573f28aa9d542dfcc158aec0374cb404b2c92a67a1594887a8ce22e7345b7485"
+}

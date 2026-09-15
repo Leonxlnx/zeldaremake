@@ -1,64 +1,127 @@
-# Young Link runtime candidate — Blender source and validation
+Retained local face improvement, 2026-09-15: 428141effd661eb5edc32bd80c03ebb19ace0fb2fc452906822bb876dcbbfadb
+Source: face-runtime-study.blend. Reconstructed socket collar, matched surface density, interpolated source normals, narrower eyelid openings, baked orbital color and cheek normals. Retained 2059 finger vertices and all four animation clips; exported clip data exact to d221c8c1. Outside-head position/UV/weight/joint states match at 1 micrometre; maximum normal component drift 0.000718. Three meshes, four materials, five images, 40,295,888 bytes. Studio and full 1620-frame world review complete. Movement and shoe positions match the parent after vertex-ID normalization, with no page errors. Evidence: art/characters/link/progress/2026-09-15-face-review. Reference quality and the existing descent hitch remain unfinished. Previous candidate backed up outside the repository.
 
-Character art by Astra (`astra-local`). This corneal geometry candidate builds on the
-reviewed `bef8e85` / `9189538d` export. The source and completed local comparisons are
-preserved at `57495fc`. It improves reflections in Fable's `beb8d88` world; full CI and
-final character art acceptance remain separate requirements.
+Local hand candidate, 2026-09-15: d221c8c1f3896d96ccee74ef24e66097dea9130f0416da1929556bfa7438f46b
+Source: hand-baked-study.blend; individual finger curl and smooth hand normals baked into existing atlas. Clips, joints, weights and binds preserved. Retained after matched runtime close-ups and actual 300-frame walk/run/idle capture; records exact to parent. Build/typecheck pass.
 
-| Property | Value |
-| --- | --- |
-| Source | `art/characters/link/experiments/2026-09-13/source-runtime/corneal-candidate.glb` at `57495fc` |
-| SHA256 | `6f28903df21df73c964a5863d1a84fa79fae79aed1602170bc840336f90eb889` |
-| Size | 39,451,396 bytes |
-| Geometry | 59,682 triangles, three skinned meshes, four opaque double-sided materials |
-| Maps | 4K body colour/normal, 2K packed metallic/roughness and iris colour; no separate cornea normal map |
-| Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat` |
-| Rig | Existing 409b603 nineteen-bone rig, in metres, +Y up and +Z forward |
-| Sole markers | Existing ankle-local L/R markers `[∓0.000000016, 0.05900068, 0.08564404]` |
+# Current local arm follow-through — 2026-09-15 afternoon
 
-## Clip compatibility
+Asset SHA256: 1a59775b07205d2c2865d7a6e564987aa1f9486145985ebaa57ab32d1025d08b.
+Native source: arm-followthrough-study.blend in the primary character source-runtime folder.
+Native SHA256: f2ec284b5723785ad2da51fa72994b0d788ffe5341a871d7e65c96be85aa0316.
+Walk/run elbow rotations gain delayed flexion; all mesh attributes, textures, materials,
+nodes and binds match a93feccf. Lower-body channels exact; arm-chain exporter rounding
+is recorded in arm-followthrough-motion-comparison.json (maximum1.54e-7).
+Native comparisons and actual game still reviewed.300 movement/IK records match parent;
+150-frame video verified, page errors empty. Build/typecheck pass.
+World merged Fable take102/c9d2032 as34c44e5. Evidence: progress/2026-09-15T14-19-resume-review.
+No new public asset upload; face/fabric/atlas studies remain unaccepted.
 
-| Clip | Duration | Stride | Travel speed |
-| --- | --- | --- | --- |
-| `idle` | 3.0 s | — | 0 |
-| `walk` | 0.55 s | 0.88 m | 1.6 m/s |
-| `run` | 0.566667 s | 2.21 m | 3.9 m/s |
-| `stairs` | 0.733333 s | 0.806667 m | 1.1 m/s |
+## Previous checkpoints
 
-The bone hierarchy, clips, strides and sole markers retain the production loader's contract.
-No playback, head-look, grounding or terrain-IK logic changes are required for this asset.
-All animation channel/accessor bytes, inverse bind matrices, and body mesh attributes and
-indices are identical to `9189538d`. Only the two eye surfaces and their shared material change.
+# Latest local hip-seam repair — 2026-09-15
 
-## Provenance
+Asset SHA256: a93feccf17ee922d66b454214d6b64eb6503615f8afd969c6862c9601e32fb95.
+Source: hip-seams-study.blend; SHA256 266d057a6827c925f4b214fc6dfd1039eba95ff4f766dfa7217a1f3919ae7ab3.
+216 vertices reweighted around 20 measured discontinuities. Target stretch37.71x ->2.41x;
+broader region remains25.37x. Geometry, textures, nodes, binds and all four clips exact to d90c7f00.
+Native before/after reviewed; full actual game capture passed with1620 player/IK records exact
+to the earlier reviewed parent. Build/typecheck passed. No new public asset upload.
+Evidence: art/characters/link/progress/2026-09-15T06-17-hip-review/manifest.json in the primary checkout.
 
-The body and its base maps come from the original Rodin Gen-2.5 two-view character study,
-conditioned on the project's own generated front/back concept views. The native Blender
-work preserves the source geometry, reuses the validated rig and adds eyes, orbital
-corrections, brass response on six existing boot fittings, and surface-following lashes/brows.
-The original iris albedo was generated with the built-in image_gen tool and radially mapped
-and baked in Blender. The pupil/iris radius ratio stays 0.557. A smooth convex bulge moves
-87 front vertices per eye, up to 12 mm; iris X/Z coordinates and the outer sclera stay fixed.
-The old clearcoat normal texture is removed; reflections follow the actual curved geometry.
+## Parent history
 
-Exact generation records, sources, Blender studies and validation are preserved at `bef8e85`:
+# Latest local sleeve repair — 2026-09-15 06:08 UTC
 
-- [Character study and provenance](https://github.com/Leonxlnx/zeldaremake/tree/bef8e85/art/characters/link/experiments/2026-09-13)
-- [Iris image prompt, tool and hash](https://github.com/Leonxlnx/zeldaremake/blob/bef8e85/art/characters/link/textures/original-iris-teal-v1.json)
-- [Export validation](https://github.com/Leonxlnx/zeldaremake/blob/bef8e85/art/characters/link/experiments/2026-09-13/source-runtime/textured-iris-validation.json)
+Asset SHA256: d90c7f00f33afd079dc6860eb3d03307cfa0910a6dd4fae63e7adfeb70e5f3c4.
+Source: sleeve-seams-study.blend in the primary checkout's character source-runtime folder.
+Source SHA256: e91096718930d5dd027e914fb02ddc13551c969098a8e2d7767b2955a45ea63b.
+293 vertices reweighted; geometry, all textures and all clips exact to parent 0fb98abb.
+Native before/after and actual game reviewed. All 300 movement/IK samples exact to parent;
+no page errors. Build/typecheck passed. No new public asset upload.
+Evidence: art/characters/link/progress/2026-09-15T06-08-sleeve-review/manifest.json.
+Other cloth defects and face/hair quality remain unfinished.
 
-These are original generated/authored assets, not Nintendo meshes. Reference video frames
-are not used as model textures or scenery. Earlier CC0/MPFB/hair experiments remain separately
-credited in the study archive; they should not be assumed to be inputs to this export.
+## Parent history
 
-## Recorded checks and remaining work
+# Current local review — 2026-09-15
 
-Studio `2026-09-14T04-03-42-643Z-runtime-studio` completes 18 actual WebGL views and
-363 locomotion samples with no page errors. The unchanged-body/clip comparison is recorded
-in `source-runtime/corneal-motion-comparison.json`. Actual world capture
-`2026-09-14T04-22-07-781Z-integrated` completes six fixed views, spawn portrait, repeat and
-motion with no page errors, against the unchanged `beb8d88` baseline04-02-41.
-The W41 difference is0; raw maximum channel difference4 exceeds the separate two-level
-diagnostic tolerance. Exact screenshot equality is not claimed. These local checks are
-not CI-attested takes or a phase exit. Eye openings, facial form, hair and per-foot tread
-contact remain unfinished; no final art acceptance.
+Candidate SHA256: 0fb98abb4c34f2fdc47ed7a682ccd8259dc7a254e2cd52a0cab83ad674ed3a4e.
+Native source: art/characters/link/experiments/2026-09-13/source-runtime/tunic-seams-study.blend
+(source SHA256 2d768eb883e518cb6d9eea5e8783217a817a19afa25c516229916cdcf51d7022).
+Targeted sleeve/back and central tunic weight discontinuities repaired. Native target-edge
+peak stretch44.9049x to3.1990x; other weight defects remain. Geometry, UVs, normals, tangents,
+indices, textures, material parameters, binds, nodes and four clips exact to59e16d0b.
+64,464 triangles;40,529,216 bytes. Native and18-view Three.js studio reviewed; actual game
+review passed with300 flat-movement and90 descent sample records identical to the parent.
+Evidence: progress/2026-09-15T05-55-tunic-review/manifest.json in the primary checkout.
+Provider redistribution permission confirmed by Hyper3D onSeptember15;
+third-party character/design rights are separate. No new public asset upload this session.
+
+## Previous retained source history
+
+# Link hand, tunic, run and hair study — local comparison only
+
+This local override is unpublished and not cleared for unrestricted asset redistribution.
+See the dated asset license review in the primary checkout at
+art/characters/link/ASSET_LICENSE_REVIEW.md (published review88ad6eb).
+
+- Source: art/characters/link/experiments/2026-09-13/source-runtime/socket-fragment-candidate.glb
+  and socket-fragment-study.blend in the primary local checkout.
+- SHA256:59e16d0bfd64f178e42c80f6e625652e75e04de1f0ab4d9000e1001e15327eb7.
+- Size:40,529,212bytes;64,464triangles;three skinned meshes;four materials;19bones.
+- This candidate removes one detached skin-coloured fragment beside the left eye:
+  152 native vertices / 300 triangles. All surviving triangle attributes and winding,
+  nodes, binds, four clips, material settings and texture bytes match hair-parent5b7fc730.
+  Native run-panel samples are also exact. See socket-fragment-motion-comparison.json.
+  Studio07-26-14 completes18views/363poses with11draws/128930render triangles.
+  World07-29-30 completes6views plus spawn-face/repeat/motion, errors[]. Compared with
+  same-world hair-parent07-28-03, all six views lose600render triangles including shadows;
+  draw calls and other resource counts are exact. Raw repeat max3/mean0.9035, W41metric0.
+  Native/studio/world visual review supports retaining this local cleanup. Right outer-lid
+  recession was rejected; facial contour and surface quality remain unfinished.
+- In the hair-parent5b7fc730, a native fine-strand normal bake is filtered16K to4K and blended at20% into the
+  existing body normal atlas. It adds no meshes, materials or triangles. Original
+  geometry, binds, joint order, all four clips, material settings and other textures
+  are byte-identical to the tested run-lift1be2b055 candidate. See
+  hair-atlas-subtle-motion-comparison.json. Full-strength and glossy variants were rejected.
+- Parent: local2106700b arm study, descended from corneal6f28903d / PR10.
+- Four native tunic vertices incorrectly attached to handL now follow neighbouring
+  hips/thighL cloth weights. A further60-vertex panel receives smooth weight interpolation.
+  Peak run-cycle edge stretch in that panel drops16.85x to4.01x; still not final deformation.
+- Both hands gain local subdivision and gentle smoothing, maximum2.739mm surface movement.
+- The hand/cloth changes preserve the four exported clips. The subsequent run-only
+  revision lowers swing lift0.155m to0.105m using the original leg solver. It preserves
+  speed3.9m/s,34frames/.566667s,25% stance duty and stride2.21m. The native knee peak
+  drops4.18cm; bone error2.85e-8m, stance drift1.73e-8m/frame, loop error0.
+- cloth-motion-comparison.json additionally proves unchanged positions, normals, UVs,
+  tangents, indices, binds and all four clips versus hand-surface-candidate20a743fd.
+- run-lift-motion-comparison.json proves all meshes/binds and idle/walk/stairs clips
+  exact versus cloth0cfb123c. Run hips/legs change; toeR matrix-decomposition drift
+  is at most1.788e-7 and recorded separately.
+- The inherited arm study corrects shoulder swing axes and running elbow bend.
+  Clip durations/strides, loader and terrain IK remain unchanged.
+- Native studio05-27-42 completes18views/363poses with no page errors.
+  Actual world05-31-02 completes six views, face, motion and repeat (W41difference0).
+  Play05-31-56 completes300frames/150video frames: no reach clamps, identical travel path
+  to cloth0cfb, reported planted-foot gap0..8.3mm in the compared stable run interval.
+  Technical checks do not establish final art quality.
+- Hair studio06-40-45 completes18views with no page errors and unchanged render cost.
+  The local world now includes Fable's published take86 through3b1ec75 (merge946d59f).
+  Baseline world/face captures06-30-10 and06-42-01 retain1be2b055. Hair world06-44-50
+  and face06-46-56 complete without page errors; all six views have identical draw,
+  triangle, geometry, texture and program counts. Repeat W41metric0, raw maximum3
+  and mean0.9035: the raw images are not byte-exact. Play06-48-04 completes300frames
+  and a five-second30fps clip, with no reach clamps. All300 recorded gait/root/placement/
+  foot/root-step values match the prior-world05-31-56 baseline exactly. One rounded IK
+  maxCorrectionM audit differs at frame217:11.5 ->11.6mm; cause not established. All23
+  exported nodes are also identical apart from names. The subtle texture change
+  is retained locally after visual review.
+
+The body/base maps originate from the Rodin Gen-2.5 two-view job
+03f2d679-4d9f-412a-a855-25630f526349 through Blender MCP's bundled public trial.
+Blender edits add eyes, lashes/brows, material corrections, rig and animation work.
+The iris albedo is separate original image_gen output. No Nintendo mesh was imported;
+this does not grant rights to the underlying Zelda/Link character design.
+
+Face, hair, hand detail, tunic deformation and stair contact remain unfinished.

@@ -1,0 +1,16 @@
+[
+  {
+    "eye": "Link | anatomical eye 0.031",
+    "bvh_overlap_pairs": 0,
+    "centroids": 834,
+    "min_gap_m": 0.0004221424460411072,
+    "penetrating_centroids": 0
+  },
+  {
+    "eye": "Link | anatomical eye 1.031",
+    "bvh_overlap_pairs": 0,
+    "centroids": 824,
+    "min_gap_m": 0.0003748759627342224,
+    "penetrating_centroids": 0
+  }
+]
