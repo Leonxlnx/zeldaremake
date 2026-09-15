@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T15:18:00Z
+updated: 2026-09-15T19:35:01Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Hand candidate d221c8c1 in the local playable preview (relaxed finger curl, smoother surfaces; clips/weights/binds exact); take-0103's world (dc7da4d) merged locally; a cloth-weave atlas candidate under surface/motion review. Next: face/cloth and animation weaknesses. Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.
+Brow positioning d5213ba7 retained locally: corrected fibres crossing hair, thinner cross-sections; 36 game records exactly match parent, build/typecheck and exported-data checks pass. Eyelid/pupil pass68e2a19 passed both CI runs. Native staged blink11c9a245 is available as a separate integration candidate with blink/blinkHalf morphs, 30-frame60fps timing review, zero eye-overlap pairs at five poses, unchanged base geometry/clips/textures. Runtime integration remains with Fable. Details and candidate are under art/characters/link/progress/2026-09-15-brow-blink-review.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),

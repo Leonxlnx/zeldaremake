@@ -1,0 +1,44 @@
+{
+  "status": "Native blink candidate; not exported",
+  "staged": true,
+  "affected_vertices": 1100,
+  "max_displacement_m": 0.014118108772320103,
+  "overlap_checks": [
+    {
+      "phase": 0,
+      "eye_overlap_pairs": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.25,
+      "eye_overlap_pairs": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.5,
+      "eye_overlap_pairs": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.75,
+      "eye_overlap_pairs": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 1,
+      "eye_overlap_pairs": [
+        0,
+        0
+      ]
+    }
+  ],
+  "outside_positions_exact": true
+}

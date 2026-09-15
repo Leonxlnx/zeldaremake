@@ -1,0 +1,21 @@
+{
+  "status": "Brow positioning retained; staged blink is an integration candidate only",
+  "game_asset": "d5213ba789d193ff55300b51fc66ac63a3bd209f6e11838a7fe02bec96927314",
+  "blink_candidate": "11c9a2455bf238941b7eb754e4f53c72095d0bb50380157a7c488e62dc98a9db",
+  "morph_contract": {
+    "phase": "p in [0,1]",
+    "blink": "max(0, 2*p-1)",
+    "blinkHalf": "1-abs(2*p-1)",
+    "targets": "Set both weights on all meshes containing these morph names; reset both to zero when open."
+  },
+  "timing_review": {
+    "closing_ms": 70,
+    "hold_ms": 30,
+    "opening_ms": 120,
+    "frames": 30,
+    "fps": 60
+  },
+  "runtime_owner": "fable-cursor",
+  "requirements": "Use simulation time and preserve zero-dt rerender purity. Keep movement/IK unchanged. Review actual game blink timing before adopting the candidate.",
+  "remaining": "Some closed-lid shading facets remain. No final facial-animation or reference-quality acceptance."
+}

@@ -1,3 +1,6 @@
+Retained local brow positioning improvement: d5213ba789d193ff55300b51fc66ac63a3bd209f6e11838a7fe02bec96927314
+Source: brow-fine-study.blend. Repositions 1808 brow vertices onto repaired skin and reduces fitted cross-sections to 45 percent; 39 outer fibres remain unchanged. Other mesh positions, all UVs/weights/joints, texture bytes and clips match bdcb9ec7. Studio and eye close-up review pass; 36-frame game smoke review passes and exactly matches bdcb9ec7. Evidence: art/characters/link/progress/2026-09-15-brow-blink-review. The remaining regular strand spacing is not final brow-quality acceptance.
+
 Retained pupil proportion improvement: bdcb9ec76c5c5960e74b12f136e0a246615c9b0633632b4bc8b5df792f9c2051
 Source: pupil-balanced-study.blend, including the retained connected eyelid rim. Remaps 188 UV corners per eye to reduce pupil/iris radius ratio from 0.557 toward 0.393. No texture edits. Eye positions/normals/weights, all clips, binds and texture bytes match the rim parent. Three.js studio and close-up review pass; 36-frame in-game smoke review passes and matches the corresponding rim fixture records. The rim passed the full 1620-frame fixture. Evidence: art/characters/link/progress/2026-09-15-eye-detail-review.
 

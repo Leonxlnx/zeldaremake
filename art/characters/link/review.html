@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Link · character review</title>
+<style>
+  body{margin:0;background:#858e80;color:#fff;font:14px system-ui}canvas{display:block;width:100vw;height:100vh}
+  nav{position:fixed;left:20px;top:20px;display:flex;gap:8px;align-items:center}button,select{font:inherit;padding:7px 10px}
+  #status{position:fixed;left:20px;bottom:18px;text-shadow:0 1px 3px #000}body.capture nav,body.capture #status{display:none}
+</style>
+<nav aria-label="Character review controls">
+  <label>Motion <select id="gait"><option>idle</option><option>walk</option><option>run</option><option>stairs</option></select></label>
+  <button id="play">Play</button><button id="front">Front</button><button id="back">Back</button><button id="face">Face</button>
+</nav>
+<div id="status" role="status">Loading Link…</div>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+if(new URLSearchParams(location.search).has('capture'))document.body.classList.add('capture');
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
+document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#858e80');
+const camera=new THREE.PerspectiveCamera(30,innerWidth/innerHeight,.01,30);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.58,0);
+const hemisphere=new THREE.HemisphereLight(0xc2dcec,0x827b4b,1.2);scene.add(hemisphere);
+const sun=new THREE.DirectionalLight(0xffe4bb,3);sun.position.set(-2,4,3);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-1.5;sun.shadow.camera.right=1.5;
+sun.shadow.camera.top=1.8;sun.shadow.camera.bottom=-1.2;sun.shadow.normalBias=.002;
+scene.add(sun);
+const fill=new THREE.DirectionalLight(0xc3dcf5,.8);fill.position.set(2,2,-2);scene.add(fill);
+const lighting=new URLSearchParams(location.search).has('studio')?'studio':'directional';
+if(lighting==='studio'){
+  const room=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer);
+  scene.environment=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();
+  scene.environmentIntensity=.45;
+  hemisphere.intensity=0;fill.intensity=0;sun.intensity=.5;
+}
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x727c68,roughness:1}));
+floor.rotation.x=-Math.PI/2;floor.position.y=-.003;floor.receiveShadow=true;scene.add(floor);
+const asset=new URL(new URLSearchParams(location.search).get('asset')||'./link-runtime.glb',location.href);
+if(asset.origin!==location.origin || !asset.pathname.startsWith('/art/characters/link/'))throw new Error('Review asset must be local to the character workspace');
+const gltf=await new GLTFLoader().loadAsync(asset.href);scene.add(gltf.scene);
+gltf.scene.traverse(ob=>{if(ob.isMesh){ob.castShadow=true;ob.receiveShadow=true;}});
+gltf.scene.updateMatrixWorld(true);
+const soleLocal=Object.fromEntries(['L','R'].map(s=>[s,gltf.scene.getObjectByName('ankle'+s).worldToLocal(new THREE.Vector3(s==='L'?.077:-.077,.006,0)).toArray()]));
+const soles={L:[],R:[]};
+gltf.scene.traverse(ob=>{if(!ob.isSkinnedMesh)return;const p=ob.geometry.attributes.position;
+  for(let i=0;i<p.count;i++)if(p.getY(i)<.035)soles[p.getX(i)>0?'L':'R'].push([ob,i]);});
+const mixer=new THREE.AnimationMixer(gltf.scene);
+const actions=Object.fromEntries(gltf.animations.map(clip=>[clip.name,mixer.clipAction(clip)]));
+let current='idle',playing=false,time=0,last=performance.now();
+const views={body:[1.6,1.25,3.2],front:[0,1.1,3.5],side:[3.5,1.1,0],back:[-1.3,1.25,-3.2],face:[.14,1.03,.84],boots:[.45,.24,.88]};
+function pose(gait,t,view){
+  if(!actions[gait])throw new Error('Unknown gait '+gait);
+  mixer.stopAllAction();actions[gait].reset().play();mixer.setTime(t);current=gait;time=t;
+  if(view){camera.position.set(...views[view]);controls.target.set(0,view==='face'?1.005:view==='boots'?.13:.58,0);controls.update();}
+  gltf.scene.updateMatrixWorld(true);renderer.render(scene,camera);
+}
+pose('idle',0,'body');
+document.querySelector('#status').textContent='Drag to orbit · scroll to zoom · Blender character candidate';
+document.querySelector('#gait').onchange=e=>pose(e.target.value,0);
+document.querySelector('#play').onclick=e=>{playing=!playing;e.target.textContent=playing?'Pause':'Play';};
+for(const view of ['front','back','face'])document.querySelector('#'+view).onclick=()=>pose(current,time,view);
+controls.addEventListener('change',()=>renderer.render(scene,camera));
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.render(scene,camera);});
+renderer.setAnimationLoop(now=>{if(playing){time+=(now-last)/1000;pose(current,time);}last=now;});
+const gl=renderer.getContext(),gpuInfo=gl.getExtension('WEBGL_debug_renderer_info');
+window.REVIEW={lighting,gpu:gpuInfo?gl.getParameter(gpuInfo.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),ready:true,pose,model:gltf.scene,camera,durations:Object.fromEntries(gltf.animations.map(c=>[c.name,c.duration])),
+  soleLocal,soleHeights(){const p=new THREE.Vector3();return Object.fromEntries(['L','R'].map(s=>[s,Math.min(...soles[s].map(([mesh,i])=>{mesh.getVertexPosition(i,p);return mesh.localToWorld(p).y;}))]));},
+  stats(){renderer.render(scene,camera);return {calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};}};
+</script>
+</html>
