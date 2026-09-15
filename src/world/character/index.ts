@@ -332,7 +332,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural); the along-facing shift given a foot to clear a nosing lip; a leg clamped at its reach and by how much; the clips with weight in the gait blend */
       linkIk: (() => {
         const i = link.puppet.plantInfo();
-        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)), maxPinM: Number(i.maxPinM.toFixed(4)), maxHoldM: Number(i.maxHoldM.toFixed(4)), blendClips: i.blendClips };
+        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)), attackDropM: Number(i.attackDropM.toFixed(4)), maxPinM: Number(i.maxPinM.toFixed(4)), maxHoldM: Number(i.maxHoldM.toFixed(4)), blendClips: i.blendClips };
       })(),
       /** the play-mode gait chain: the gait, the one it is fading from and the one before that (puppet.ts PuppetPose) */
       linkGaitChain: [link.gait, link.gaitFrom, link.gaitFrom2],

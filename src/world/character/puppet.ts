@@ -84,6 +84,8 @@ export interface PlantInfo {
   maxShiftM: number;
   /** how far (m) the root was lowered beyond its support because a foot target lay past the straight leg */
   extraDropM: number;
+  /** the part of that asked for by a leg about to land (its landing configuration's shortfall, weighted in over the end of the swing — glbLink ATTACK); 0 for the procedural rig */
+  attackDropM: number;
   /** largest idle-foot pin (m) and sole hold (m) of this pose (see FootContact.pinM / holdM); clips with weight in the gait blend */
   maxPinM: number;
   maxHoldM: number;
@@ -139,7 +141,7 @@ export function proceduralPuppet(char: Character, animations: readonly string[])
     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
   ];
-  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
+  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
   return {
     kind: 'procedural',
     group: char.group,
