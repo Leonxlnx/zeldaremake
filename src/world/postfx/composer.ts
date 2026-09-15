@@ -54,7 +54,7 @@ import {
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
-import { SHAFT_COLUMNS } from '../atmosphere/shafts';
+import { SCREEN_FAN, SHAFT_COLUMNS } from '../atmosphere/shafts';
 import {
   AO_BLUR_FRAG,
   AO_FRAG,
@@ -158,6 +158,8 @@ export interface ComposerSettings {
   rayAirFadeHi: number;
   /** march length (m) */
   rayMaxDist: number;
+  /** Henyey–Greenstein g of the shaft in-scatter: how much the fan brightens toward the sun's side of the frame */
+  rayAnisotropy: number;
   /** canopy-gap mask: frequency (1/m), smoothstep thresholds, floor outside the gaps */
   beamFrequency: number;
   beamLo: number;
@@ -177,6 +179,32 @@ export interface ComposerSettings {
   /** world z where the crowns close over the north hollow: the gap pattern fades to its mean from the first to the second */
   beamHollowStartZ: number;
   beamHollowFullZ: number;
+  /** screen-anchored shaft fan (atmosphere/shafts.ts SCREEN_FAN): strength of the modulation (0 = off, 1 = as defined) */
+  fanMix: number;
+  /** share of the marched in-scatter the air under the fan keeps (the beams are added on top of it) */
+  fanFloor: number;
+  /**
+   * in-scatter (0..1, before uRayIntensity) added on the hero beam's axis over ≥ 10 m of air when
+   * the view axis is fully sun-facing (see fanFacingDeg); the beam is `amp × facing gain`
+   */
+  fanAmp: number;
+  /**
+   * the fan fades in as the angle between the view axis and the sun closes from the first to the
+   * second value (degrees). The frames' beams are a sun-facing effect far steeper than the march's
+   * Henyey–Greenstein phase: D (view axis 64° from the sun) carries +0.10 of beam over its haze
+   * where A (81°) has only the +0.04 bump the marched columns already give it and C/F (> 125°) show
+   * none — the HG term (g 0.6) would give A 61 % of D's fan. 85 → 60° gives D 0.94, B (75°) 0.36,
+   * A 0.08, C/F 0
+   */
+  fanFacingDeg: [number, number];
+  /** lean of the fan's beams from vertical (degrees, down-right, measured on screen) */
+  fanLeanDeg: number;
+  /** multipliers on the beams' half widths and gains (tuning aids; 1 = as defined) */
+  fanWidthScale: number;
+  fanGainScale: number;
+  /** uv.y where the fan starts blending back to 1 / where it has no effect */
+  fanFadeLo: number;
+  fanFadeHi: number;
   /** video softness (final pass, see SOFT_FINAL_FRAG); false = FXAA straight to the screen */
   softening: boolean;
   /**
@@ -303,12 +331,22 @@ export function createComposer(opts: ComposerOptions): Composer {
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
     aoFadeStart: 22,
     aoFadeEnd: 34,
-    // "radiance of a fully lit column": with the sparse gap mask only ≈ 15 % of the under-canopy
-    // air is lit, so the beams need this to read as +0.10–0.15 display luminance over the haze
-    // between them (the reference's shaft core #8f8b7c over #696960). The pow curve on the smeared
-    // buffer keeps the faint multi-gap wash down so the beams read as slabs against the veil
-    rayIntensity: 1.8,
-    rayContrast: 1.5,
+    // Round 33: the march is the ENVELOPE of the lit air (how much of it a pixel looks through:
+    // phase toward the sun, haze density, the shadow map, the depth behind), the screen-anchored
+    // fan below carries the beam structure. Measured on the ray buffer of the previous settings
+    // (1.8 / pow 1.5 / gap floor 0.05 / noise gaps 65 %): the beams it made were the sun-plane gap
+    // field seen along the shadow sun, converging on its screen position ((−2.7, −4.1) in shot A,
+    // (−0.5, −1.1) in D — 48–51° from vertical), where the frames' beams lean 25–27° in every
+    // heading; their in-beam/between contrast read +0.011–0.036 in A against the frame's
+    // +0.03–0.06, +0.03 in D against +0.10, and the frame's fog between the beams was 0.04–0.09
+    // darker than ours in A's top band (p50 −0.042) and 0.07 darker in D's (−0.068). A smooth
+    // envelope (gap floor 0.3, noise gaps fully open, no pow curve, HG g 0.6, mist 0.012) at 0.6
+    // took A's top band to −0.014 and D's to +0.015 (SSIM A +0.008, D +0.003) — but the haze BETWEEN
+    // the beams, read across them (26° lines, y 0.02–0.2, u 0.11–0.19), sat 0.06–0.07 over the
+    // frames' (D 0.58 vs 0.52, A 0.53 vs 0.47); 0.5 under the fan's 0.75 floor puts it at D 0.537,
+    // A 0.496 and hands the beams to the fan
+    rayIntensity: 0.5,
+    rayContrast: 1.0,
     // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
     // (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange, (1.0, 0.975,
     // 0.88) (hue 47°) still left shots B/D 4–5° warm of the reference's far haze (56–60°)
@@ -322,10 +360,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     // the veil thinned to 0.02 so the beams' strength stays as tuned (the shafts are the bright
     // part of the air, the veil between them the dark part)
     rayBaseDensity: 0.032,
-    // the mist pool adds little: at 0.01 the long hollow columns of shot D marched 3× the
-    // in-scatter of shot A's and the far band whited out (0.57 against the reference's 0.44); it is
-    // also the only in-scatter left in front of the plaza, where every hundredth costs edge contrast
-    rayMistDensity: 0.002,
+    // the mist pool's own in-scatter: the frame's hollow glow behind D's left trees (0.60–0.63 at
+    // (0.1–0.3, 0.3–0.45)) sat at 0.42–0.45 with 0.002 (the earlier 0.01 whited the far band only
+    // at the 1.8 intensity); 0.012 with the 0.6–0.75 envelope puts it at 0.55–0.58 (D left band
+    // p90 −0.177 → −0.027)
+    rayMistDensity: 0.012,
     // steeper than the veil's own extinction (0.032): the shafts are a near-field effect — at the
     // haze's rate the 30–50 m columns of shots B/D (into the hollow) integrated to a flat wash
     // (D's far band 0.47–0.50 against the reference's 0.44) while A's 10–25 m beams stayed faint
@@ -334,12 +373,18 @@ export function createComposer(opts: ComposerOptions): Composer {
     // between these heights so eye-level rays to the ground cross unlit air. Measured trade of a
     // higher fade (2.5 / 6): shot B lands on the reference (roof darkest decile 0.236 → 0.214 vs
     // 0.203, forest median 0.492 → 0.457 vs 0.434, frame median 0.403 vs 0.397) but shot D loses
-    // its hollow glow (far band median 0.488 → 0.448 vs 0.550) and both lose SSIM — kept at the
-    // calibrated heights, exposed here for the tuning hook
-    rayAirFadeLo: 1.5,
-    rayAirFadeHi: 4.5,
+    // its hollow glow (far band median 0.488 → 0.448 vs 0.550) and both lose SSIM.
+    // Round 33: with the denser mist term carrying the hollow glow, the base air lifts to 3 / 6.5 so
+    // the plaza and path (eye level, 1.5–4.5 m of air) keep their edge contrast: A's bottom band
+    // p50 stays at −0.018 while the top band gains +0.03
+    rayAirFadeLo: 3,
+    rayAirFadeHi: 6.5,
     // and the march stops where the veil has taken over (75 % fog at 40 m)
     rayMaxDist: 40,
+    // the frames' beams are strongest looking toward the sun: D (58° off) reads +0.10 in-beam,
+    // A (76°) +0.05, C/F (129–135°) only a soft glow; g 0.6 gives phase ratios D 2.6 : A 1.4 :
+    // C/F 0.5 (normalised at 90°), 0.15 was nearly flat (1.2 : 1.1 : 0.9)
+    rayAnisotropy: 0.6,
     // gaps 1.5–3 m wide, sparse enough that a 30 m view ray crosses about one of them (at 0.5/0.6
     // ≈ 35 % of the field was open and every ray averaged several gaps into a wash), leaf masses
     // between them letting ≈ 5 % through
@@ -348,26 +393,37 @@ export function createComposer(opts: ComposerOptions): Composer {
     // crisp edges, not a soft gradient into the veil
     beamLo: 0.595,
     beamHi: 0.645,
-    beamFloor: 0.05,
-    // the noise gaps open to 65 %, the carved columns to 100 %: shot A's three columns are the
-    // reference's few bold beams, the noise gaps a softer wash between them (at 100 % every blob
-    // read as bold as a column and shot D's mid band was a field of equal stripes)
-    beamNoiseMax: 0.65,
+    // Round 33: the gap field is a mild modulation of the envelope (leaf masses let 30 % through,
+    // gaps fully open), no longer the beams themselves — the shadow map and the carved columns
+    // still shape it, the screen fan below draws the beams (at floor 0.05 / 65 % the sun-plane
+    // blobs printed 48–51° stripes across the 26° fan)
+    beamFloor: 0.3,
+    beamNoiseMax: 1.0,
     beamColumnScale: 1.0,
     beamColumnGain: 1.0,
     // the blobs of the gap field seen through 25–40 m of lit hollow air striped the far arch of
-    // shot D; past 25 m the pattern fades to its mean, so the far air is a smooth veil (the fill
-    // is the field's mean openness — 65 % gaps covering ≈ 23 % of the sun plane, sampled
+    // shot D; past 30 m the pattern fades to its mean, so the far air is a smooth veil (the fill is
+    // the field's mean openness — fully open gaps covering ≈ 23 % of the sun plane, sampled
     // numerically — so the far band's luminance is unchanged)
-    beamFarStart: 25,
-    beamFarEnd: 38,
-    beamFarFill: 0.15,
-    // the same fade for the air over the north hollow (mist ramp −4 → −24): the reference's shot D
-    // has a diffuse glow there, not slabs, and the 5–25 m gaps in front of the arch were striping
-    // its body (±0.017 on a +0.08 ray term). Shot A's beams are the plaza columns (exempt) plus the
-    // gap wash south of −8, so they keep their shape
-    beamHollowStartZ: -8,
-    beamHollowFullZ: -24,
+    beamFarStart: 30,
+    beamFarEnd: 45,
+    beamFarFill: 0.23,
+    // the same fade for the air over the north hollow: the reference's shot D has a diffuse glow
+    // there, not slabs. Moved north (−8 / −24 → −24 / −40) with the gap floor at 0.3: the hollow's
+    // front air keeps the mild modulation, the arch body (40–48 m) stays flat
+    beamHollowStartZ: -24,
+    beamHollowFullZ: -40,
+    // the screen-anchored fan carries the beam structure (see shafts.ts SCREEN_FAN for the measured
+    // geometry); the volumetric march is the envelope it modulates
+    fanMix: 1,
+    fanFloor: SCREEN_FAN.floor,
+    fanAmp: SCREEN_FAN.amp,
+    fanFacingDeg: [...SCREEN_FAN.facingDeg] as [number, number],
+    fanLeanDeg: SCREEN_FAN.leanDeg,
+    fanWidthScale: 1,
+    fanGainScale: 1,
+    fanFadeLo: SCREEN_FAN.fadeY[0],
+    fanFadeHi: SCREEN_FAN.fadeY[1],
     // the reference is soft video of a hazy scene (ours measured 1.0–1.5× its sharpness). Per-cell
     // Laplacian maps put the excess in hazed mid-distance foliage and busy near texture, not the
     // flagstones, and an activity gate alone scaled every view by the same factor (it cannot tell
@@ -507,9 +563,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
       // eye-level column, so the sun-facing upper frame is shafts, not a wash over the crowns
       uAltitude: { value: new Vector2(fog.hazeUniformHeight, fog.hazeScaleHeight) },
-      // mild forward scattering: the sun-facing shot F gets ≈ 1.4× the side-lit strength of A/B
-      // (0.3 gave 2.1×, a wash over the crowns rather than shafts through them)
-      uAnisotropy: { value: 0.15 },
+      uAnisotropy: { value: settings.rayAnisotropy },
       // the haze's back-scatter lobe (heightfog.ts): looking away from the sun (shot C) the lit air
       // in-scatters far less — the reference shows no airlight wash from behind the camera
       uBackScatter: { value: new Vector2(fog.rayBackScatterMin, -Math.cos((fog.backScatterFullDeg * Math.PI) / 180)) },
@@ -530,9 +584,15 @@ export function createComposer(opts: ComposerOptions): Composer {
       // → 0.11), while the limb and mid canopy of shot A (10–25 m) still merge into broad slabs
       uDepthK: { value: 3 },
       uTexel: quarterTexel,
+      uFan: { value: new Vector4(0, 1, W / H, 0) },
+      uFanFade: { value: new Vector4(settings.fanFloor, settings.fanFadeLo, settings.fanFadeHi, 0) },
+      uFanBeams: { value: SCREEN_FAN.beams.map((b) => new Vector4(b.u, b.halfWidth, b.gain, 0)) },
     },
     'postfx-ray-blur',
   );
+  rayBlurMat.defines = { FAN: String(Math.max(1, SCREEN_FAN.beams.length)) };
+  const fanBeams = rayBlurMat.uniforms.uFanBeams.value as Vector4[];
+  let fanViewGain = 1;
   const copyMat = mat(COPY_FRAG, { tSrc: { value: null as Texture | null }, uScale: { value: 1 } }, 'postfx-copy');
   const brightMat = mat(BRIGHT_FRAG, { tSrc: { value: hdr.texture }, uThreshold: { value: settings.bloomThreshold }, uKnee: { value: 0.35 } }, 'postfx-bright');
   const blurMat = mat(BLUR_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() } }, 'postfx-blur');
@@ -830,6 +890,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
+      rayMarchMat.uniforms.uAnisotropy.value = s.rayAnisotropy;
       (rayMarchMat.uniforms.uBeam.value as Vector4).set(s.beamFrequency, s.beamLo, s.beamHi, s.beamFloor);
       rayMarchMat.uniforms.uBeamNoiseMax.value = s.beamNoiseMax;
       (rayMarchMat.uniforms.uFarAir.value as Vector3).set(s.beamFarStart, s.beamFarEnd, s.beamFarFill);
@@ -839,15 +900,31 @@ export function createComposer(opts: ComposerOptions): Composer {
         g.w = SHAFT_COLUMNS[i].gain * s.beamColumnGain;
       });
       pass(rayMarchMat, rayA);
+      const fan = rayBlurMat.uniforms.uFan.value as Vector4;
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
       rayBlurMat.uniforms.uLength.value = 0.08;
       rayBlurMat.uniforms.uGamma.value = 1;
+      fan.w = 0;
       pass(rayBlurMat, rayB);
       // second smear shorter than the earlier 0.22: with 24 steps and the gap mask the march is
-      // already smooth, and a longer smear blurred the beams into one broad gradient
+      // already smooth, and a longer smear blurred the beams into one broad gradient; the
+      // screen-anchored fan is laid over this last pass
       rayBlurMat.uniforms.tSrc.value = rayB.texture;
       rayBlurMat.uniforms.uLength.value = 0.14;
       rayBlurMat.uniforms.uGamma.value = s.rayContrast;
+      const lean = (s.fanLeanDeg * Math.PI) / 180;
+      fan.set(Math.sin(lean), Math.cos(lean), W / H, s.fanMix);
+      // the fan's facing gain: smoothstep on the cosine of the angle between the view axis and the
+      // sun (camera looks down −z in view space, so cos = −sunDirView.z) from fanFacingDeg[0] to [1]
+      const cosLo = Math.cos((s.fanFacingDeg[0] * Math.PI) / 180);
+      const cosHi = Math.cos((s.fanFacingDeg[1] * Math.PI) / 180);
+      const ft = Math.min(1, Math.max(0, (-sunDirView.z - cosLo) / Math.max(1e-4, cosHi - cosLo)));
+      fanViewGain = ft * ft * (3 - 2 * ft);
+      (rayBlurMat.uniforms.uFanFade.value as Vector4).set(s.fanFloor, s.fanFadeLo, s.fanFadeHi, s.fanAmp * fanViewGain);
+      fanBeams.forEach((b, i) => {
+        b.y = SCREEN_FAN.beams[i].halfWidth * s.fanWidthScale;
+        b.z = SCREEN_FAN.beams[i].gain * s.fanGainScale;
+      });
       pass(rayBlurMat, rayA);
     } else {
       renderer.setRenderTarget(rayA);
@@ -990,6 +1067,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayBackScatterMin: fog.rayBackScatterMin,
       godRayExtinctionPerM: settings.rayExtinction,
       godRayMaxDistM: settings.rayMaxDist,
+      godRayAnisotropy: settings.rayAnisotropy,
+      godRayContrastPow: settings.rayContrast,
       godRayGapFrequencyPerM: settings.beamFrequency,
       godRayGapFloor: settings.beamFloor,
       godRayGapNoiseMax: settings.beamNoiseMax,
@@ -997,6 +1076,15 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayFarAirFill: settings.beamFarFill,
       godRayGapHollowZ: [settings.beamHollowStartZ, settings.beamHollowFullZ],
       godRayFixedColumns: SHAFT_COLUMNS.map((c) => [...c.point, c.radius * settings.beamColumnScale, c.gain]),
+      godRayScreenFan: settings.fanMix > 0,
+      godRayScreenFanMix: settings.fanMix,
+      godRayScreenFanLeanDeg: settings.fanLeanDeg,
+      godRayScreenFanFloor: settings.fanFloor,
+      godRayScreenFanAmp: settings.fanAmp,
+      godRayScreenFanFacingDeg: [...settings.fanFacingDeg],
+      godRayScreenFanViewGain: Math.round(fanViewGain * 1000) / 1000,
+      godRayScreenFanFadeY: [settings.fanFadeLo, settings.fanFadeHi],
+      godRayScreenFanBeams: SCREEN_FAN.beams.map((b) => [b.u, b.halfWidth * settings.fanWidthScale, b.gain * settings.fanGainScale]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
       bloom: true,
