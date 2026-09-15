@@ -1381,10 +1381,15 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // the joints on two stones in three, grey lichen patches sit anywhere on one in two — both on
     // their own hash fork, so the streams above and below stay in step; nothing on the discs
     // (frame 14 s's stepping stones are pale to their rims). The lawn slabs (B/E's bottom row,
-    // pale to their edges with the moss in the seams) take half the cushions.
+    // pale to their edges with the moss in the seams) take half the cushions. Camera A's plaza
+    // (`south`) is the mossy one: frame 1 s's slabs carry an olive moss film over their shaded
+    // halves (its dark stone pixels sit 31 % in the 50–70° hue bins against our 8 %; B / D's
+    // frames 4–10 %), so nine plaza stones in ten take a cushion and the cushions there are
+    // green (`mottleGreen`, the shader's moss mix) where the path's are khaki.
     const mrng2 = rng.fork(`mottle/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
-    const mottleMoss = disc ? 0 : mrng2.chance(0.66) ? mrng2.range(0.45, 1.0) * (1 - 0.5 * lawn) : 0;
+    const mottleMoss = disc ? 0 : mrng2.chance(0.66 + 0.24 * south) ? mrng2.range(0.45, 1.0) * (1 - 0.5 * lawn) : 0;
     const mottleGrey = disc ? 0 : mrng2.chance(0.5) ? mrng2.range(0.4, 1.0) : 0;
+    const mottleGreen = south;
     const mottleDir = [-0.6 + mrng2.range(-0.3, 0.3), -0.8 + mrng2.range(-0.3, 0.3)];
     const mottleL = Math.hypot(mottleDir[0], mottleDir[1]);
     mottleDir[0] /= mottleL;
@@ -1662,7 +1667,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
           ? (x, z, edge) => {
               const d = ((x - c.x) * mottleDir[0] + (z - c.z) * mottleDir[1]) * invR;
               const side = 0.35 + 0.65 * smoothstep(-0.5, 0.6, d);
-              return [mottleMoss * side * (0.2 + 0.8 * smoothstep(0.1, 0.95, edge)), mottleGrey];
+              return [mottleMoss * side * (0.2 + 0.8 * smoothstep(0.1, 0.95, edge)), mottleGrey, mottleGreen];
             }
           : undefined,
     });

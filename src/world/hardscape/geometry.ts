@@ -233,8 +233,9 @@ export class MeshBuilder {
    */
   crack: number[] = [];
   /**
-   * within-stone mottle weights per vertex (`aMottle`, vec2): moss-cushion weight and grey-lichen
-   * weight for the stone shader's surface patches (round 34); (0, 0) = none
+   * within-stone mottle weights per vertex (`aMottle`, vec3): moss-cushion weight, grey-lichen
+   * weight and the cushions' greenness for the stone shader's surface patches (round 34);
+   * (0, 0, 0) = none
    */
   mottle: number[] = [];
   private groupStart = 0;
@@ -251,7 +252,7 @@ export class MeshBuilder {
    * push one triangle with an explicit normal (or computed from winding if omitted); `stain` is
    * the per-vertex soil-stain amount (`aStain`, clamped 0..1 in the shader after interpolation),
    * `wear` the face's weathering gate, `crack` the three vertices' crack coordinates (6 numbers)
-   * and `mottle` their (moss, grey) mottle weights (6 numbers)
+   * and `mottle` their (moss, grey, green) mottle weights (9 numbers)
    */
   tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb, moss: [number, number, number], n?: Vector3, stain?: [number, number, number], wear = 0, crack?: readonly number[], mottle?: readonly number[]) {
     let nx: number;
@@ -286,8 +287,8 @@ export class MeshBuilder {
     this.wear.push(wear, wear, wear);
     if (crack) this.crack.push(crack[0], crack[1], crack[2], crack[3], crack[4], crack[5]);
     else this.crack.push(9, 9, 9, 9, 9, 9);
-    if (mottle) this.mottle.push(mottle[0], mottle[1], mottle[2], mottle[3], mottle[4], mottle[5]);
-    else this.mottle.push(0, 0, 0, 0, 0, 0);
+    if (mottle) this.mottle.push(mottle[0], mottle[1], mottle[2], mottle[3], mottle[4], mottle[5], mottle[6], mottle[7], mottle[8]);
+    else this.mottle.push(0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
 
   /** average normals of coincident vertices inside the current group (smooth shading) */
@@ -355,7 +356,7 @@ export class MeshBuilder {
     g.setAttribute('aStain', new Float32BufferAttribute(this.stain, 1));
     g.setAttribute('aWear', new Float32BufferAttribute(this.wear, 1));
     g.setAttribute('aCrack', new Float32BufferAttribute(this.crack, 2));
-    g.setAttribute('aMottle', new Float32BufferAttribute(this.mottle, 2));
+    g.setAttribute('aMottle', new Float32BufferAttribute(this.mottle, 3));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
@@ -445,9 +446,10 @@ export interface SlabOptions {
   /**
    * within-stone mottle weights on the top face and shoulder ring (`aMottle`, round 34): local xz
    * and the ring position (`edge`, 1 at the rim, 0 at the centre) → [moss-cushion weight, grey-lichen
-   * weight], both 0..1; the stone shader grows its surface patches where they are > 0
+   * weight, cushion greenness], all 0..1; the stone shader grows its surface patches where the
+   * weights are > 0 and pulls the cushions from khaki toward moss with the greenness
    */
-  mottleFn?: (x: number, z: number, edge: number) => [number, number];
+  mottleFn?: (x: number, z: number, edge: number) => [number, number, number];
 }
 
 const _a = new Vector3();
@@ -545,7 +547,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     const a = mottleFn(p.x, p.z, ep);
     const b = mottleFn(q.x, q.z, eq);
     const c = mottleFn(r.x, r.z, er);
-    return [a[0], a[1], b[0], b[1], c[0], c[1]];
+    return [a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]];
   };
   const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1, edge = 1): [number, number, number] => {
     const m = colorFn ? colorFn(ax, az, part, edge) : 1;
