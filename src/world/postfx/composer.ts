@@ -16,8 +16,9 @@
  *   6. composite: AO·HDR + mist + rays + bloom → ACES → subtle grade → sRGB (LDR)   [1 fullscreen]
  *   7. FXAA → LDR                                                                 [1 fullscreen]
  *   8. video softness: 640-grid Gaussian (detail compression gated by a wide activity blur, plus a
- *      uniform share) and a 320-grid Gaussian blended in by a depth-keyed haze weight → default
- *      framebuffer (the canvas holds the final image for headless captures)
+ *      uniform share; the same detail term sharpens the near ground below ≈ 4–10 m) and a 320-grid
+ *      Gaussian (σ 3, 13 taps) blended in by a depth-keyed haze weight → default framebuffer (the
+ *      canvas holds the final image for headless captures)
  *                                                                        [3 × 640-grid, 6 × 320-grid, 1 fullscreen]
  *
  * All passes are deterministic (no temporal jitter). `renderer.info` is reset once per frame and
@@ -70,6 +71,7 @@ import {
   RAY_MARCH_FRAG,
   SHADOWMAP_DEBUG_FRAG,
   SOFT_ACTIVITY_FRAG,
+  SOFT_FAR_PREMUL_FRAG,
   SOFT_FINAL_FRAG,
 } from './shaders';
 
@@ -223,8 +225,18 @@ export interface ComposerSettings {
   softBlurSigma: number;
   softFarSigma: number;
   softActivitySigma: number;
+  /** near sharpening: unsharp-mask gain on the 640-grid detail (0 = off) and the view distances (m) where it starts fading / is gone */
+  softNearSharp: number;
+  softNearStart: number;
+  softNearEnd: number;
+  /** haze-blur weight source (SOFT_FINAL_FRAG uFarMode): 0 smoothed, 1 per pixel, 2 smoothed gated by the pixel's own */
+  softFarMode: number;
+  /** 1 = the haze blur averages far pixels only (normalised convolution), 0 = plain Gaussian of the frame */
+  softFarPremul: number;
   bloomThreshold: number;
   bloomIntensity: number;
+  /** bloom blur step in quarter-res texels (kernel radius ∝ this; 1.0 ≈ σ 8 px at 1280 wide) */
+  bloomRadius: number;
   saturation: number;
   /** luminance power curve about `contrastPivot` (linear); > 1 deepens the toe more than it lifts highlights */
   contrast: number;
@@ -456,6 +468,29 @@ export function createComposer(opts: ComposerOptions): Composer {
     // binding view at 0.90, keeps ≈ 0.87 against W35's 0.8) with no tonal change (≤ 0.003 in any
     // band statistic); it pays for the hemisphere bounce revert (config.sky.hemiGround) and the
     // IBL cut (lighting/index.ts) that take the darkest deciles down.
+    // Round 34 (tone): edge energy measured per depth band (our depth image binning both frames,
+    // 3×3 Laplacian variance at 256×144, HUD masked) against the six frames. The frames are NOT
+    // uniformly soft: near (< 6 m) ours/ref = A 0.70, D 0.83, E 0.88, F 0.83 (B 1.18, C 1.43 — the
+    // same plaza stones as A; the B/E pair, one held camera 10 s apart, differs 35 % in near-band
+    // energy, so the frames' own compression sets a ±20 % floor on any per-band fit); mid (6–20 m)
+    // 0.85–1.30; far (20–50 m) 0.29–0.97 (F 2.1); very far 0.08–1.0 (F 2.7). The softening stage
+    // was NOT what made B/D/E soft in the mid/far bands (stage off: far 0.44–0.64) — that is the
+    // veil and the missing far structure — and the frames' near ground is crisper than ours (A's
+    // stone chips and joints, Link's silhouette), not softer. A depth-keyed unsharp mask on the
+    // 640-grid detail (gain 0.25 below 4 m, gone by 10 m) puts E's near band at 1.0× the frame
+    // (from 0.88) and A's at 0.80 (from 0.70) — +0.07 whole-frame sharpness on E, +0.10 on D — for
+    // −0.0007 (E) / −0.0004 (A) SSIM; the haze blur's σ 1.6 → 3.0 (13-tap kernel) pays that back
+    // and more (+0.0025 E, +0.0047 A at σ 3.0) at −0.003 sharpness: the far bands' Laplacian
+    // energy hardly moves (E far 2.25 → 2.29e-3), the metric's 8×8 windows at the near/far
+    // silhouettes lose variance where the structures do not align (cs ≈ C2 / (σx² + σy² + C2)).
+    // Measured negatives (kept as settings, all off): keying the haze blur on the pixel's own depth
+    // instead of the 16 px-smoothed weight (softFarMode 1/2, softFarPremul) makes the canopy's
+    // leaf/sky edges crisp and costs −0.003…−0.0045 SSIM in every view; sharpening the mid band
+    // (6–24 m) costs 4× the SSIM per unit of sharpness; the activity gate never engages on the
+    // world (fine-detail amplitude 0.005–0.03 against the 0.08 knee, only the HUD trips it) and
+    // does not separate foliage from the house at any knee; bloom intensity/radius leave the pods'
+    // measured skirt untouched (the tail is the lanterns' own halo) and 0.15 drops D's 40 m pods
+    // under the frame's brightness.
     softening: true,
     softDetail: 0.85,
     softActivityK: 0.08,
@@ -464,10 +499,16 @@ export function createComposer(opts: ComposerOptions): Composer {
     softFarStart: 25,
     softFarFull: 60,
     softBlurSigma: 1.2,
-    softFarSigma: 1.6,
+    softFarSigma: 3.0,
     softActivitySigma: 2.5,
+    softNearSharp: 0.25,
+    softNearStart: 4,
+    softNearEnd: 10,
+    softFarMode: 0,
+    softFarPremul: 0,
     bloomThreshold: 1.0,
     bloomIntensity: 0.25,
+    bloomRadius: 1.4,
     // the reference is 0.03–0.06 more saturated than ours in every view (0.16–0.19 vs 0.10–0.17)
     saturation: 1.12,
     // slightly < 1: the reference's blacks are lifted (shaded plaza stone ≥ 0.32 luminance, nothing
@@ -648,6 +689,7 @@ export function createComposer(opts: ComposerOptions): Composer {
   let shadowReadTarget: WebGLRenderTarget | null = null;
   const depthDebugMat = mat(DEPTH_DEBUG_FRAG, { tDepth: { value: depthTexture }, uNear: near, uFar: far, uProjInv: projInv }, 'postfx-depth-debug');
   const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 } }, 'postfx-gauss');
+  const softFarRange = { value: new Vector2(settings.softFarStart, settings.softFarFull) };
   const softActMat = mat(
     SOFT_ACTIVITY_FRAG,
     {
@@ -658,19 +700,39 @@ export function createComposer(opts: ComposerOptions): Composer {
       tDown: { value: softDown.texture },
       tBlur: { value: softB.texture },
       uTexel: softTexel,
-      uFarRange: { value: new Vector2(settings.softFarStart, settings.softFarFull) },
+      uFarRange: softFarRange,
     },
     'postfx-soft-weights',
+  );
+  const softFarMat = mat(
+    SOFT_FAR_PREMUL_FRAG,
+    {
+      tDepth: { value: depthTexture },
+      uNear: near,
+      uFar: far,
+      uProjInv: projInv,
+      tBlur: { value: softB.texture },
+      uFarRange: softFarRange,
+      uPremul: { value: settings.softFarPremul },
+    },
+    'postfx-soft-far',
   );
   const softFinalMat = mat(
     SOFT_FINAL_FRAG,
     {
+      tDepth: { value: depthTexture },
+      uNear: near,
+      uFar: far,
+      uProjInv: projInv,
+      uFarRange: softFarRange,
       tSrc: { value: aa.texture },
       tBlur: { value: softB.texture },
       tFar: { value: farB.texture },
       tWeights: { value: actA.texture },
       uGate: { value: new Vector3(settings.softDetail, settings.softActivityK, settings.softActivityPower) },
       uUniform: { value: settings.softUniform },
+      uNearSharp: { value: new Vector3(settings.softNearSharp, settings.softNearStart, settings.softNearEnd) },
+      uFarMode: { value: settings.softFarMode },
       uDebug: { value: 0 },
     },
     'postfx-soft-final',
@@ -937,10 +999,10 @@ export function createComposer(opts: ComposerOptions): Composer {
     brightMat.uniforms.uThreshold.value = s.bloomThreshold;
     pass(brightMat, bloomA);
     blurMat.uniforms.tSrc.value = bloomA.texture;
-    blurMat.uniforms.uDir.value.set(quarterTexel.value.x * 1.4, 0);
+    blurMat.uniforms.uDir.value.set(quarterTexel.value.x * s.bloomRadius, 0);
     pass(blurMat, bloomB);
     blurMat.uniforms.tSrc.value = bloomB.texture;
-    blurMat.uniforms.uDir.value.set(0, quarterTexel.value.y * 1.4);
+    blurMat.uniforms.uDir.value.set(0, quarterTexel.value.y * s.bloomRadius);
     pass(blurMat, bloomA);
 
     // 6. composite + tone map + grade → LDR
@@ -983,16 +1045,18 @@ export function createComposer(opts: ComposerOptions): Composer {
       blitMat.uniforms.tSrc.value = aa.texture;
       pass(blitMat, softDown);
       gauss(softDown, softA, softB, softTexel.value, s.softBlurSigma);
-      // b2: 320-grid Gaussian of b1 (the haze blur)
-      blitMat.uniforms.tSrc.value = softB.texture;
-      pass(blitMat, farB);
+      // b2: 320-grid Gaussian of (b1 · farWeight, farWeight) — the haze blur, far pixels only
+      softFarRange.value.set(s.softFarStart, s.softFarFull);
+      softFarMat.uniforms.uPremul.value = s.softFarPremul;
+      pass(softFarMat, farB);
       gauss(farB, farA, farB, actTexel.value, s.softFarSigma);
       // weights (detail amplitude, haze weight from depth), smoothed on the 320 grid
-      (softActMat.uniforms.uFarRange.value as Vector2).set(s.softFarStart, s.softFarFull);
       pass(softActMat, actA);
       gauss(actA, actB, actA, actTexel.value, s.softActivitySigma);
       (softFinalMat.uniforms.uGate.value as Vector3).set(s.softDetail, s.softActivityK, s.softActivityPower);
       softFinalMat.uniforms.uUniform.value = s.softUniform;
+      (softFinalMat.uniforms.uNearSharp.value as Vector3).set(s.softNearSharp, s.softNearStart, s.softNearEnd);
+      softFinalMat.uniforms.uFarMode.value = s.softFarMode;
       softFinalMat.uniforms.uDebug.value = dbg === 'soft' ? 1 : 0;
       pass(softFinalMat, null);
     }
@@ -1089,6 +1153,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       sunInFront: dirSign.value > 0,
       bloom: true,
       bloomThreshold: settings.bloomThreshold,
+      bloomIntensity: settings.bloomIntensity,
+      bloomRadiusTexels: settings.bloomRadius,
       toneMapping: 'aces-fitted',
       contrast: settings.contrast,
       contrastPivot: settings.contrastPivot,
@@ -1104,6 +1170,10 @@ export function createComposer(opts: ComposerOptions): Composer {
       softeningUniform: settings.softUniform,
       softeningHazeRangeM: [settings.softFarStart, settings.softFarFull],
       softeningBlurSigmaGrid: [settings.softBlurSigma, settings.softFarSigma],
+      softeningHazeWeightMode: settings.softFarMode,
+      softeningHazeFarOnly: settings.softFarPremul > 0,
+      softeningNearSharp: settings.softNearSharp,
+      softeningNearSharpRangeM: [settings.softNearStart, settings.softNearEnd],
       // every pass is a pure function of the frame (no temporal jitter/accumulation), headless or not
       deterministic: true,
       headless: opts.headless,
@@ -1112,7 +1182,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       for (const t of [hdr, ldr, aa, mist, aoA, aoB, rayA, rayB, bloomA, bloomB, softDown, softA, softB, actA, actB, farA, farB]) t.dispose();
       depthTexture.dispose();
       shadowReadTarget?.dispose();
-      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat, blitMat, gaussMat, softActMat, softFinalMat, depthDebugMat, shadowDebugMat, shadowMapDebugMat]) m.dispose();
+      for (const m of [aoMat, aoBlurMat, rayMarchMat, rayBlurMat, copyMat, brightMat, blurMat, compositeMat, fxaaMat, blitMat, gaussMat, softActMat, softFarMat, softFinalMat, depthDebugMat, shadowDebugMat, shadowMapDebugMat]) m.dispose();
       quad.geometry.dispose();
       renderer.info.autoReset = true;
     },
