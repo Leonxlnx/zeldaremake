@@ -16,7 +16,9 @@ import { mountHud } from './ui/hud';
  * bucket / grass ring / caster the camera first meets. Here, before `ready()` resolves:
  *   1. every mesh outside the grass tiles is made visible and unculled for the duration (the
  *      hidden LOD buckets have count 0: they upload their geometry and instance buffers and draw
- *      nothing), `renderer.compile` then compiles every material's colour program and
+ *      nothing), `renderer.compileAsync` then compiles every material's colour program (with
+ *      KHR_parallel_shader_compile the driver links them on its own threads while the main thread
+ *      polls every 10 ms; without it the links stall at the warm pass, as `compile` would) and
  *      `initTexture` uploads every texture a material references;
  *   2. one warm pass renders the scene into an off-screen 4×4 target (the canvas untouched) with
  *      the sun's shadow window widened to the whole world, so the depth variants of every caster
@@ -27,7 +29,7 @@ import { mountHud } from './ui/hud';
  * disables it). Grass tiles keep their on-demand LOD geometry uploads (551k blades × 3 LODs would
  * not fit residently); their instance buffers upload when a tile first comes into range.
  */
-function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: DirectionalLight | null) {
+async function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: DirectionalLight | null) {
   const t0 = performance.now();
   const programsBefore = renderer.info.programs?.length ?? 0;
   const geometriesBefore = renderer.info.memory.geometries;
@@ -39,9 +41,11 @@ function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: Dire
     o.frustumCulled = false;
   });
   const seen = new Set<Texture>();
-  const report = { programs: 0, textures: 0, geometries: 0, exposed: exposed.length, compileMs: 0, textureMs: 0, warmPassMs: 0, ms: 0 };
+  const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
+  const report = { programs: 0, textures: 0, geometries: 0, exposed: exposed.length, parallel, compileMs: 0, textureMs: 0, warmPassMs: 0, ms: 0 };
   try {
-    renderer.compile(scene, camera);
+    // nothing renders while this awaits: boot() has not started the frame loop yet
+    await renderer.compileAsync(scene, camera);
     const tCompile = performance.now();
     const init = (v: unknown) => {
       const t = v as Texture | null;
@@ -98,7 +102,7 @@ function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: Dire
   report.programs = (renderer.info.programs?.length ?? 0) - programsBefore;
   report.textures = seen.size;
   report.geometries = renderer.info.memory.geometries - geometriesBefore;
-  console.info(`[warmup] ${report.programs} programs, ${report.textures} textures, ${report.geometries} geometries (${report.exposed} meshes exposed) in ${report.ms} ms (compile ${report.compileMs}, textures ${report.textureMs}, warm pass ${report.warmPassMs})`);
+  console.info(`[warmup] ${report.programs} programs, ${report.textures} textures, ${report.geometries} geometries (${report.exposed} meshes exposed) in ${report.ms} ms (compile ${report.compileMs}${parallel ? ', parallel' : ''}, textures ${report.textureMs}, warm pass ${report.warmPassMs})`);
   return report;
 }
 
@@ -146,10 +150,10 @@ async function boot() {
   const composer = (scene.userData.composer as { render(dt: number): void; setSize(w: number, h: number): void } | undefined) ?? null;
 
   const warmupParam = params.get('warmup');
-  let warmup: ReturnType<typeof warmUp> | null = null;
+  let warmup: Awaited<ReturnType<typeof warmUp>> | null = null;
   if (warmupParam === '1' || (warmupParam !== '0' && !headless)) {
     loading.textContent = 'building kokiri forest… warming up shaders';
-    warmup = warmUp(renderer, scene, cam.camera, world.ctx.sun);
+    warmup = await warmUp(renderer, scene, cam.camera, world.ctx.sun);
   }
 
   let lastNow = performance.now();
