@@ -1569,6 +1569,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   they lit the plateau slope; north-west-near keeps its WSW limb whose shadow is B/E's dark
   foreground grass). Both in their final captures. Load 8.
 
+### 00:45 UTC — tick 90: take-0096 published (monitor `6f6acfa`), valid; 23/50 — every view at its best
+- r33/trees (`3181c8b`) + r33/tone (`779cbc0`) merged: the shaft fan measured across the beams (D
+  hero +0.095 over the haze vs the frame's +0.103, 26° lean, width 0.090 vs 0.085; A +0.055 vs
+  +0.045; B the faint band; C/F none) with a facing gate per camera; D's air above the arch opened
+  (0.474 → 0.525, frame 0.564) by ghosting three wild limbs. A 0.2742 / B 0.2518 / C 0.3133 /
+  D 0.3474 / E 0.2652 / F 0.2936. Round thirty-three (takes 0095–0096): D +0.008, F +0.014,
+  A +0.008, B +0.003, C +0.003, E +0.003.
+- Dapple measured, not fixed: lit/shade ratio on the paving is the frame's (A 1.50 vs 1.61) but the
+  sun reaches 48 % of A's paving vs the frame's 70 % lit and 19 % of B's vs 54 % — the lantern
+  limb's lobes shade the lower-left plaza the frame has lit → trees-20 (bough placement, the
+  frame's shade at world (1.7–2.5, 1–2) and (5.4–5.6, 1.6–2.8)).
+- Sharpness: A 0.88 / B 0.86 / C 1.08 / D 0.89 / **E 0.80** (W35's floor) / F 1.04 — no blanket
+  softening; a per-view match (sharpen B/D/E's mid-ground, soften A/C/F's) is the next postfx item.
+- Round thirty-four opens on `779cbc0`: trees-20 (dapple by bough placement), hardscape-27 (the
+  joint tufts' hue, slab mottling, D's slab size), atmosphere-12 (per-view softness/bloom profile
+  with E's floor), structures-23 (Saria's trunk moss/grime toward the D bank's 0.24).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1607,4 +1624,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T00:08:00Z
+2026-09-15T00:47:00Z
