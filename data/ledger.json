@@ -10813,6 +10813,115 @@
       },
       "prevHash": "sha256:872abecb82ef611a0f61adfc14291bb2b1e705a98f3412d1e8e787d2286ff645",
       "hash": "sha256:fd5e827fb7a5bd71e93b622be2401d434fa3ce26634830549526da2119bad6e3"
+    },
+    {
+      "id": "take-0101",
+      "number": 101,
+      "at": "2026-09-15T11:32:46.616Z",
+      "sha": "8dbcd10a2b536056394bb342e048f4f1b26493bc",
+      "shortSha": "8dbcd10",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r35/veg' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W16",
+        "W19"
+      ],
+      "note": "Round thirty-five, vegetation: the ground camera C looks back across, and the bank masses. Frame 46 s's foreground is dark trodden earth with short sparse grass; ours was lit lawn - the corner turf at 2.5-6 m is now short, thinned and straw-tipped under a zone lift that carries the dark decile (green 66.9 -> 50.1 % against the frame's 35.7, edge energy 218 -> 91 against 103, p10 0.246 -> 0.281 against 0.268), and because camera B's lawn is the same ground B gains 0.0042 and E 0.0029. The frames' bank masses at the stair's flanks are dark and soft: the north-west flank takes a flat dark shade (p50 0.325 -> 0.302 against the frame's 0.254, edge 161 -> 124); a shadow-weighted fill that lit the bank hedge's core to the frame's level showed every leaf (edge 27 -> 103 against 25) and cost F 0.0095, so it was withdrawn and only the hedge's per-leaf spread halved - a lit textured core scores worse than a dark flat one, and a soft mass at the frame's tone cannot be had from leaf geometry. D's right verge closes with 926 clover and 234 moss (the verge proper 88.4 -> 91.6 % green, frame 91.9); the remaining gap is the path's edge at x 0.648 vs the frame's 0.609. No kept instance moved: 175 pruned in place on the C foot, 2,255 re-tinted in place, 1,160 appended in two streams. Against the frames: B 0.2543 -> 0.2585, E 0.2669 -> 0.2698, F 0.2955 -> 0.2963, C 0.3154 -> 0.3157, A -0.0002, D -0.0003; tests 5/5; draws unchanged, triangles +0.04 M on A; W18 D purple 0.33 %. Not fixable here: C's corner median (the terrain's 0.32 vs the frame's 0.38 - ground, not cover), the frame's foreground bushes over what is our paving.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:d66811ae17324a7ad12cce5efbc3fe44c173d1c5adc4b309e4876c54c3dfe846",
+        "B_house": "sha256:8d663d1a3e950b4e4d0e6cfa2b0766999b66630d0f959bf794e8511a5e5d4790",
+        "C_lookback": "sha256:f556191986420ebf2e3646495397284b11a9cb2e6cdded298eb51c7abccce637",
+        "D_log": "sha256:56b124110adf70dc7acb74177776865795ceabd46e30e94064b67373fb147599",
+        "E_ground": "sha256:8d663d1a3e950b4e4d0e6cfa2b0766999b66630d0f959bf794e8511a5e5d4790",
+        "F_canopy": "sha256:cb2515c32192a8af32efff0d6c093cec3e5ca1d28c3b930aef7a217ba308dbe3"
+      },
+      "distHash": "sha256:454cc797c64036a34392a837a143a4d851d6134e1b985c513551ead6cc5eafdb",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8641152,
+        "captureMs": 1172740,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W15",
+        "W16",
+        "W19"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take101-cap",
+        "importedAt": "2026-09-15T11:33:26.525Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:fd5e827fb7a5bd71e93b622be2401d434fa3ce26634830549526da2119bad6e3",
+      "hash": "sha256:ef8db7311fc0d69ff8cf823bd1f63aacf4f832edf8a0cb71057f47da3f3b8823"
     }
   ]
 }
