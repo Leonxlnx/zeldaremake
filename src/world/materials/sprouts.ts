@@ -43,7 +43,12 @@ export interface SproutSpot {
   kind?: 'tuft' | 'cushion' | 'fern' | 'grit';
   /** overall scale multiplier (default 1) */
   scale?: number;
-  /** 'grit': albedo multiplier of the fill under the pebble (joints.ts `jointFillLift`); default 1 */
+  /**
+   * albedo multiplier. 'grit': the fill under the pebble (joints.ts `jointFillLift`); tufts and
+   * clover (round 35): a flat multiplier on the instance colour — the grass standing in camera D's
+   * shaded slab gaps is dimmed into the gap with it (frame 56 s's gap grass is 0.3–0.45 lum, ours
+   * lit straw at 0.55 broke the gaps' dark runs). Default 1 (byte-identical instances).
+   */
   tint?: [number, number, number];
   /**
    * The scatter that sowed this spot (e.g. 'joints', 'seam-grit'). With `buildSproutMeshes`'s
@@ -609,6 +614,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
             p.set(s.x, s.y - 0.01, s.z);
             sc.set(k, k * jr.range(0.9, 1.1), k);
             c.setRGB(0.78 + jr.range(0, 0.25), 0.8 + jr.range(0, 0.25), 0.75 + jr.range(0, 0.2));
+            if (s.tint) c.setRGB(c.r * s.tint[0], c.g * s.tint[1], c.b * s.tint[2]);
           }
         }
         im.setMatrixAt(i, m.compose(p, q, sc));
