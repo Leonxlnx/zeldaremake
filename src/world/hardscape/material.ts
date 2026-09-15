@@ -17,6 +17,25 @@ export const STONE_SET = 'worn_rock_natural_01';
 const STAIN_TINT = new Color(0.97, 0.93, 0.85);
 
 /**
+ * multiplier on the stone's indirect diffuse light (round 34): the bounce onto the paving is off
+ * warm soil and slabs, so the shaded stone leans brown where the near-neutral hemisphere fill
+ * left it yellow-grey (frame 14 s's dark stone class: mean sRGB 122,102,72, hue 36°; ours
+ * 117,103,75, 40°, with the 30° / 40° hue bins 51 / 46 against the frame's 78 / 17). A cut of
+ * green at constant chroma: a red-up / blue-down tint of the same hue effect (1.14 / 0.97 / 0.88)
+ * took every lit window's sat p50 0.03–0.05 over the frames' 0.33–0.35, and at −6° of linear hue
+ * on the shade both it and a 1.07 / 0.965 / 0.985 cut overshot camera D (dark class 74–76 % in the
+ * 30° bin against the frame's 61 %) while B's field window landed; this is 0.6 of that. Unit
+ * luminance so the dark class keeps its level.
+ */
+const INDIRECT_WARM = (() => {
+  // (r, g, r): equal red and blue keep (R − B) / R, the chroma, where the stone is R > G > B; the
+  // green cut alone moves the hue. Solved for unit luminance.
+  const g = 0.985;
+  const k = (1 - 0.7152 * g) / (0.2126 + 0.0722);
+  return new Color(k, g, k);
+})();
+
+/**
  * linear multiplier on the stone albedo. Round 9: with the lighting settled, the sunlit paving
  * measured 0.05–0.09 over the reference in sRGB (A plaza p50 0.625 vs 0.553, D path 0.579 vs
  * 0.490) and the excess was flat across the tonal range (Q-Q ratio p50 1.13, p95 1.06 in A), i.e.
@@ -79,20 +98,21 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     shader.uniforms.uMossBright = { value: mossBright };
     shader.uniforms.uMossSoil = { value: mossSoil };
     shader.uniforms.uStainTint = { value: STAIN_TINT };
+    shader.uniforms.uIndirectWarm = { value: INDIRECT_WARM };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec3 aMottle; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
       )
       .replace(
         '#include <worldpos_vertex>',
-        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vWPosS;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarm; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS;
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -144,6 +164,42 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
             float fleck = smoothstep(0.64, 0.8, fl) * smoothstep(0.45, 0.7, p1);
             diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.14, 1.17, 1.08), fleck * 0.75 * wear);
           }
+          // round 34: within-stone mottle (aMottle = moss-cushion weight, grey-lichen weight, set per
+          // vertex in flagstones.ts). Frames 1 s / 56 s at 2× carry two or three tone regions on a
+          // slab: olive moss cushions creeping in from the shaded side and the joints at 0.6–0.75 of
+          // the top's luminance, grey lichen patches (desaturated, ≈ 0.85), and the pale worn top
+          // between them; ours read one tone with grain (within-stone lum sd 0.033–0.037 against the
+          // frames' 0.037–0.050 in D / A; the px-weighted spread 0.09 / 0.12 against 0.125 / 0.15).
+          // Lobed patches: a 3.6 + 9.5 cycles/m noise thresholded by the weight, so a heavier weight
+          // (the shaded rim) grows bigger cushions and the centre keeps a few spots. The cushion
+          // tone is the slab's own colour at 0.6 pulled a sixth toward the seam moss — frame 56 s's
+          // patches are grey-brown khaki, a step darker than the top (its dark share, > 0.06 under
+          // the slab median, is 12.6 % of the slab pixels; in frame 14 s's dark class the shaded
+          // slab pixels sit under 40° of hue), not green paint; the lichen is the slab's grey at 0.8.
+          // The cushion multiplier is a grey step down, not a khaki one (0.64 / 0.59 / 0.49 took
+          // frame 56 s's window from the control's matched stone hue 40° / sat 0.31 to 37° / 0.36,
+          // and 0.62 / 0.60 / 0.53 still held it at 36° / 0.37 — the cushions sit on the lit tops
+          // too, and the stone's own colour supplies the warmth). Camera A's plaza is the exception (aMottle.z, flagstones.ts
+          // mottleGreen): frame 1 s's slabs wear a low-saturation olive film over their shaded
+          // halves (its dark stone pixels: 31 % in the 50–70° hue bins, yet under 1 % pass the
+          // vegetation's green classifier), so its cushions are 0.7 seam moss at the deep green.
+          if (wear > 0.001 && (vMottle.x > 0.001 || vMottle.y > 0.001)) {
+            float mw = clamp(vMottle.x, 0.0, 1.0);
+            float gw = clamp(vMottle.y, 0.0, 1.0);
+            float green = clamp(vMottle.z, 0.0, 1.0);
+            float c1 = stoneVNoise(vWPosS.xz * 3.6 + vec2(41.0, -7.0));
+            float c2 = stoneVNoise(vWPosS.xz * 9.5 + vec2(-13.0, 23.0));
+            float cushion = smoothstep(0.66 - 0.36 * mw, 0.8 - 0.3 * mw, c1 * 0.65 + c2 * 0.35) * step(0.001, mw);
+            float lc = clamp(l / 0.4, 0.0, 1.6);
+            vec3 mossTone = mix(uMossSoil, uMossDeep, mix(0.55, 1.0, green)) * (0.95 + 0.45 * lc);
+            vec3 cushionTone = mix(diffuseColor.rgb * vec3(0.60, 0.60, 0.585), mossTone, mix(0.15, 0.7, green));
+            diffuseColor.rgb = mix(diffuseColor.rgb, cushionTone, cushion * wear * 0.9);
+            float g1 = stoneVNoise(vWPosS.xz * 2.2 + vec2(-29.0, 61.0));
+            float g2 = stoneVNoise(vWPosS.xz * 6.8 + vec2(7.0, -47.0));
+            float lichen = smoothstep(0.64 - 0.3 * gw, 0.76 - 0.2 * gw, g1 * 0.7 + g2 * 0.3) * step(0.001, gw);
+            vec3 lichenTone = vec3(dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)) * 0.80) * vec3(1.01, 1.0, 0.97);
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenTone, lichen * wear * 0.8);
+          }
           // a crack across the slab (aCrack: signed distance across the line / position along it in
           // half-lengths; (9, 9) = none): a 7-13 mm dirt-filled line wandering +-1.2 cm, fading out
           // over the last quarter of its length, with a hair-paler chipped lip beside it
@@ -180,13 +236,24 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         diffuseColor.rgb *= mix(vec3(1.0), uStainTint, clamp(vStain, 0.0, 1.0));`,
       )
       .replace(
+        '#include <lights_fragment_end>',
+        /* glsl */ `
+        #include <lights_fragment_end>
+        // the bounce onto the stone is off the paving's own soil and slabs, not the sky: the frames'
+        // shaded stone is browner than their sunlit tops (frame 14 s's dark stone class sits 78 %
+        // in the 30° hue bin, its lit class 48 %; ours the other way round, 51 / 62, with the
+        // near-neutral hemisphere fill) — so the stone's indirect light is warmed at constant
+        // luminance; the sunlit tops, direct light, are untouched
+        reflectedLight.indirectDiffuse *= uIndirectWarm;`,
+      )
+      .replace(
         '#include <roughnessmap_fragment>',
         /* glsl */ `
         #include <roughnessmap_fragment>
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v15-wear-crack-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v22-wear-crack-mottle-warm-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);
