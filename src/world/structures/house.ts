@@ -126,7 +126,7 @@ import {
 } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
-import { MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
+import { LIME_POD_GLOW, MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
 
 type P3 = [number, number, number];
 
@@ -443,6 +443,54 @@ function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: 
     const z = pos.getZ(i);
     const patch = 0.45 + 0.55 * noise.fbm(x * 1.7 + 3, z * 1.7 + y * 0.6, 2);
     const w = clamp(smoothstep(0.25 - spread, 0.85 - spread, up) * patch * amount, 0, 1);
+    col.setXYZ(i, lerp(col.getX(i), tint[0], w), lerp(col.getY(i), tint[1], w), lerp(col.getZ(i), tint[2], w));
+  }
+  return geo;
+}
+
+/**
+ * Round 36 (structures-24): the D-SIDE MOSS. Camera D looks at Saria's trunk from 11° left of
+ * the door's axis and 8 m nearer than B, so its right bank (0.80–1.0 × 0.30–0.55) is the trunk's
+ * north-west flank (house angles a ≈ −0.8 … −2.3, i.e. azimuth 180–265°), the roots seated
+ * there, the arc bough's lower run and the burls — 32 % of the box by part mask (roots 21.8 %,
+ * trunk 6.3 %, boughs 3.3 %) rendering p50 0.29 / hue 36° / green share 1–2 % where frame 56 s
+ * has a dark mossy mass (0.239 / 63° / 75 %). B sees the same faces only past its left
+ * silhouette (a < −1.2 is edge-on or hidden from B; the window at −1.08 and its boss stay out).
+ * The live material-colour probe on take-0102 (D, part masks) fixes what a vertex tint can do
+ * there: the veil floors the bank's bark at 0.26–0.28 (bark ×0.01 → roots 0.279 / trunk 0.261,
+ * hue 41.5°), a saturated moss green as the whole material (0.15, 0.45, 0.12) reads 0.289 /
+ * 48.5° (green 22 %) on the roots and 0.276 / 54.5° (54 %) on the trunk, a darker green
+ * (0.06, 0.3, 0.06) 0.285 / 47.5° and 0.270 / 52°, and a still darker one loses the green to
+ * the veil (0.02, 0.12, 0.02 → 44°, 3 %). So the cover is a full sheet (no up-facing gate, the
+ * patch noise only thinning it) in a dark saturated green whose blue is a good half of its green
+ * (a yellow-green sheet mixes with the 40° veil to less hue than a blue-green does).
+ * Iteration 1 — (0.06, 0.36, 0.17) at 92 % × patch, the window's 1.5 m clear — moved D's roots
+ * 36.4° → 44.0° (green share 0.010 → 0.094) and the trunk 38.4° → 44.6° (0.022 → 0.097) at
+ * p50 −0.003; B's house box, left pillar, door and cap boxes ±0.000. Iteration 2 — (0.05, 0.36,
+ * 0.20), full cover, the hole alone spared — roots 48.5° (0.339), trunk 50.3° (0.367), boughs
+ * 49.0° (0.275); the box 41.1° → 45.8°, green 0.102 → 0.212, p50 0.301 → 0.299.
+ */
+const D_MOSS_TINT: [number, number, number] = [0.03, 0.36, 0.24];
+/**
+ * Blend a moss tint over a geometry by the house angle of each vertex (the frame's `a`,
+ * 0 = the door, + = viewer's right) through `weight(a, y)`, all faces alike; `cover` × a patch
+ * noise leaves the cord crests poking through here and there.
+ */
+function mossBySide(geo: BufferGeometry, frame: Frame, tint: [number, number, number], noise: Noise2D, weight: (a: number, y: number) => number, cover = 1): BufferGeometry {
+  const pos = geo.attributes.position;
+  const col = geo.attributes.color;
+  if (!col) return geo;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const rx = x - frame.C.x;
+    const rz = z - frame.C.z;
+    const a = Math.atan2(rx * frame.Rt.x + rz * frame.Rt.z, rx * frame.F.x + rz * frame.F.z);
+    const wa = weight(a, y - frame.C.y);
+    if (wa <= 0) continue;
+    const patch = smoothstep(-0.75, -0.25, noise.fbm(x * 0.9 + 4, z * 0.9 + y * 0.5 + 2, 2));
+    const w = clamp(wa * patch * cover, 0, 1);
     col.setXYZ(i, lerp(col.getX(i), tint[0], w), lerp(col.getY(i), tint[1], w), lerp(col.getZ(i), tint[2], w));
   }
   return geo;
@@ -835,6 +883,21 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    *  by the boss's own funnel wall (at 0 the right third of the glow was hidden behind it) */
   const WIN_STANDOFF = 0.15 * k;
   const winHoleR = winR + 0.34 * k;
+  /**
+   * Round 36: the D-side moss weight (see `D_MOSS_TINT`) — Saria's north-west flank, a −0.95 …
+   * −2.2 (ramps from −0.6 and to −2.55), from the ground to the bough's lower run (fading 4.4–5.2 m),
+   * clear of the round window's hole (the window sits at a −1.08 / 2.6 m — D's frame edge, x 1.00
+   * × y 0.31 — so only the hole and its frame are spared, the boss round it takes the sheet). The
+   * upper house takes none: D sees it 16–18 m out only above Saria's bank.
+   */
+  const dSide: ((a: number, y: number) => number) | null =
+    def.id === 'saria'
+      ? (a, y) => {
+          const wa = smoothstep(-0.6, -0.95, a) * smoothstep(-2.55, -2.2, a) * smoothstep(-0.6, 0.1, y) * smoothstep(5.2, 4.4, y);
+          if (wa <= 0) return 0;
+          return wa * smoothstep(winHoleR, winHoleR + 0.25 * k, Math.hypot(angleDiff(a, winA) * R, y - winY));
+        }
+      : null;
 
   // ---- trunk radius model ----
   const rSmooth = (a: number, y: number) => {
@@ -1018,6 +1081,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     flip: true,
   };
   const outer = gridSurface(shellVertex, { ...shellOpts, hole: (u, v) => shellHole(u, v) || inBand(v) });
+  if (dSide) mossBySide(outer, frame, D_MOSS_TINT, noise, dSide);
   const outerBand = gridSurface(shellVertex, { ...shellOpts, hole: (u, v) => shellHole(u, v) || !inBand(v) });
   const trunk = new Mesh(outer, mats.bark);
   trunk.name = 'trunk';
@@ -1035,6 +1099,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     return Math.sqrt(Math.max(0.01, rs * rs - w * w)) + pillarBulge(w, y);
   };
   const porchParts = [];
+  /**
+   * Round 36 (structures-24): the recess's channel balance. Rounds 11–22 pulled the recess bark
+   * toward neutral (×0.8 / 0.92 / 1.12 — the reference porch flanks read ≈ (72, 78, 76) in the
+   * earlier analysis), and frame B's over-door box (0.70–0.80 × 0.33–0.40) reads hue 35.6° at
+   * sat 0.335 where ours rendered 43.3° / 0.293 with the porch's own pixels (48 % of the box)
+   * at 42.5° / 0.226: the veil supplies most of a pixel there, so the surface's small share
+   * has to be warmer than the target to land it. Warm bark balance, luminance −1 %.
+   */
+  const RECESS_BAL: [number, number, number] = [1.05, 0.88, 0.62];
   {
     const outline = rrectOutline(porchW0, porchW1, yBase - 0.2, porchTop, porchRc);
     // the mouth flares 8 cm outside the cut and sits 10 cm proud of the shell, so the jagged
@@ -1053,7 +1126,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // reveal's inner faces are near-black in the reference (the cavity's sides read 0.23–0.27
         // in B against the door's 0.29 veil floor) — half again
         const dark = lerp(0.22, 0.11, Math.pow(q, 0.7));
-        out.color = [dark * 0.8, dark * 0.92, dark * 1.12];
+        out.color = [dark * RECESS_BAL[0], dark * RECESS_BAL[1], dark * RECESS_BAL[2]];
       },
       { cols: 72, rows: 5 },
     );
@@ -1073,7 +1146,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // the recess is a dark cavity in the reference (lum 0.21–0.27 above the doorway; round
         // 22: 0.2 → 0.14 with the pods' light moved off it)
         const shade = 0.14 + 0.05 * noise.noise(w * 1.3 + 4, y * 1.3) - 0.05 * smoothstep(doorTop - 0.3, porchTop, y);
-        out.color = [shade * 0.8, shade * 0.92, shade * 1.12];
+        out.color = [shade * RECESS_BAL[0], shade * RECESS_BAL[1], shade * RECESS_BAL[2]];
       },
       {
         cols: 44,
@@ -1129,7 +1202,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         out.uv = [(s * doorOutline.length) / 2.2, d / 2.2];
         // (round 22: darker still — the doorway's cut faces are the near-black rim of the opening)
         const dark = lerp(0.14, 0.08, q);
-        out.color = [dark * 0.8, dark * 0.92, dark * 1.12];
+        out.color = [dark * RECESS_BAL[0], dark * RECESS_BAL[1], dark * RECESS_BAL[2]];
       },
       { cols: 40, rows: 3 },
     );
@@ -1767,7 +1840,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     // basisMatrix maps local +z → N and keeps local +y (the poles) up
     knot.applyMatrix4(basisMatrix(centre, N));
-    rootParts.push(mossOnTop(knot, ROOT_MOSS_TINT, 0.75, noise, 0.3));
+    mossOnTop(knot, ROOT_MOSS_TINT, 0.75, noise, 0.3);
+    if (dSide) mossBySide(knot, frame, D_MOSS_TINT, noise, dSide);
+    rootParts.push(knot);
   }
 
   // ---- buttress roots seated on the terrain ----
@@ -1832,7 +1907,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     });
     // moss on the root lips (reference B lower-left root: olive, hue 53°, against the 27–34° bark);
     // round 34: deeper green sheets that wrap down the shoulders (spread 0.45), not only the crown
-    rootParts.push(mossOnTop(root, ROOT_MOSS_TINT, 0.8, noise, 0.45));
+    mossOnTop(root, ROOT_MOSS_TINT, 0.8, noise, 0.45);
+    // round 36: the roots seated on the north-west flank are D's bank — a full dark sheet there
+    if (dSide) mossBySide(root, frame, D_MOSS_TINT, noise, dSide);
+    rootParts.push(root);
     bases.push([p3.x, p3.y, p3.z]);
   }
   // ---- the entrance arch (round 19). Rounds 12–17 framed the door with two root lips (thick
@@ -1912,7 +1990,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     archCurve.getPointAt(t, _ap);
     const y = heightOf(_ap);
     const base = lerp(0.5, 0.39, smoothstep(0, 1.7 * k, y)) + 0.08 * smoothstep(2.3 * k, 2.7 * k, y);
-    return base * k * (1 + 0.1 * Math.sin(t * 23 + 1) + 0.05 * Math.sin(t * 57 + 2));
+    /**
+     * Round 36 (structures-24): the RIGHT leg is a fifth thicker below the shoulder. Frame B's
+     * right pillar (x 0.84–0.92 × y 0.34–0.50) is one thick bark column ≈ 0.06 of the frame wide
+     * (≈ 1.05 m at its 14 m) reading p50 0.250 / hue 28°; ours showed 8–17 px of arch per row
+     * there (part mask, 1280 px) with the porch recess (p50 0.260 / 42°) filling a quarter of the
+     * box between the leg and the door where the frame has the pillar's bark. The left leg,
+     * B's lit lip (0.655–0.72 × 0.36–0.50: ours 0.291 / 35° against 0.323 / 32°), is unchanged.
+     */
+    const rightLeg = smoothstep(0.5 * k, 1.0 * k, lateralOf(_ap)) * smoothstep(2.6 * k, 2.0 * k, y);
+    return base * k * (1 + 0.18 * rightLeg) * (1 + 0.1 * Math.sin(t * 23 + 1) + 0.05 * Math.sin(t * 57 + 2));
   };
   /** the crown's top, door-space (the cap's moss creeps down from here) */
   const archTopY = heightOf(archAxis(0)) + 0.47 * k;
@@ -1972,9 +2059,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * between them (`fisAmp`), so the arch reads as knotted rope-bark and not a smooth tube. The
    * reference arch face in B runs p10 0.24 → p90 0.54 (local 8 px contrast 0.038) where ours ran
    * 0.34 → 0.45 (0.020).
+   *
+   * Round 36 (structures-24): the cords are COARSER again — ring scale 1.35 (≈ 8–9 bundles round
+   * the body, was 2.2 / 14) and a third deeper (`ARCH_CORD_SCALE`, the amplitudes at the call
+   * sites). Measured on frame B's pillars by the detrended column-mean luminance across each
+   * (1280 px; a dark furrow = a minimum under −0.6 sd): the right pillar (0.84–0.92 × 0.36–0.48,
+   * 1.71 m at 14 m) has 4 furrows = 2.3 / m at contrast 1.99 (sd ×100), the left (0.655–0.72 ×
+   * 0.38–0.48, 1.20 m at 12 m) 2 = 1.7 / m at 2.76, the crown front (0.70–0.86 × 0.24–0.30) 10 =
+   * 3.2 / m at 2.19 with its autocorrelation peaking at 36 px; ours ran 9 = 5.3 / m at 0.65, 8 =
+   * 6.7 / m at 1.23 and 13–15 = 4.2–4.9 / m at 1.0–1.6 — the frame's cords are two to three
+   * times as wide and half again as deep as round 21's.
    */
+  const ARCH_CORD_SCALE = 1.35;
   const archDisplace = (seed: number, cordAmp: number, lumpAmp: number, along: number, fisAmp = 0.1) => (t: number, ang: number, pos: Vector3) => {
-    archCrest = ringRidged(noise, ang, t * along + pos.y * 0.3, 2.2, seed);
+    archCrest = ringRidged(noise, ang, t * along * 0.6 + pos.y * 0.2, ARCH_CORD_SCALE, seed);
     const lump = noise.fbm(pos.x * 1.3 + 5, pos.z * 1.3 + pos.y * 0.7, 2) - 0.5;
     archFis = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.7 + seed * 1.3, Math.sin(ang) * 1.7 + t * along * 0.35 + seed)), 5);
     archRelief = lump * lumpAmp * k + knotsAt(pos);
@@ -1989,7 +2087,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * the eave's underside or the wall's eave band 1–1.5 m behind it (round 19's second probe
    * still showed 2–7 rows of those between the crown and the porch at x 0.73–0.85).
    */
-  const archCrownDisplace = archDisplace(2.3, 0.16, 0.2, 16, 0.1);
+  const archCrownDisplace = archDisplace(2.3, 0.21, 0.2, 16, 0.1);
   const archBody = (t: number, ang: number, pos: Vector3) => {
     const d = archCrownDisplace(t, ang, pos);
     archCurve.getPointAt(t, _ap);
@@ -2023,6 +2121,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * Then moss: on every upward face (as on the roots) and, over the crown, creeping down the
    * front in tongues where the cap's moss runs onto it.
    */
+  /** round 36: 1 for the houses that are not Saria's — their arches are hazed shapes in every frame */
+  const farHouse = def.id === 'saria' ? 0 : 1;
   const shadeArch = (geo: BufferGeometry, yDark0: number, yDark1: number, mossAmount: number, creep: boolean, flankSide: -1 | 0 | 1 = 0) => {
     const pos = geo.attributes.position;
     const nrm = geo.attributes.normal;
@@ -2073,7 +2173,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
        */
       const crownAxisY = archTopY - 0.47 * k;
       const lowerFront = frontFace * smoothstep(crownAxisY - 0.15 * k, crownAxisY - 0.45 * k, y) * smoothstep(2.0 * k, 2.3 * k, y);
-      const shoulder = (1 - belowCrown) * smoothstep(0.7 * k, 1.5 * k, lateral);
+      // (round 36: the shoulder's shade is ×0.6, was 0.45 — frame B's shoulder box (0.86–0.94 ×
+      // 0.28–0.34) reads p50 0.235 / p10 0.186 / hue 29°, ours 0.271 / 0.235 / 49.7° with the
+      // arch's own pixels at 0.260 / 37.7° — and it starts nearer the axis, 0.5 m)
+      const shoulder = (1 - belowCrown) * smoothstep(0.5 * k, 1.4 * k, lateral);
       const legFront = belowCrown * (1 - smoothstep(0.15, 0.6, -right)) * smoothstep(0.5 * k, 1.2 * k, y);
       /**
        * The left flank (the faces toward the sun that the cap's rim shadows): it is what A and D
@@ -2105,7 +2208,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         (1 - 0.75 * Math.max(0, -up) * smoothstep(0.55, 0.1, front)) *
         (1 - 0.88 * shadowLeg) *
         (1 - 0.65 * lowerFront) *
-        (1 - 0.45 * shoulder) *
+        (1 - 0.6 * shoulder) *
         (1 - 0.35 * legFront) *
         (1 - 0.2 * leftFlank) *
         (1 - 0.35 * crownFlank) *
@@ -2116,7 +2219,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // (round 34 measured ×1.55: B's crown box 0.349 → 0.360 toward the frame's 0.378, but F —
         // which looks up at the crown from the stair top (0–0.3 × 0.05–0.35) — lost 0.0010 SSIM
         // and A 0.0006 for a brighter orange face the frames' hazier crown does not have; ×1.35 stays)
-        (1 + 0.35 * (1 - belowCrown) * frontFace);
+        // (round 36: ×1.45 with the face's balance turned olive (g ×1.3 / b ×0.95, below) — frame
+        // B's crown front reads p50 0.396 against ours 0.341–0.346, and the cap box (0.55–0.98 ×
+        // 0.05–0.35) gave up 0.003 of its median to the shoulder's shade and the vines' removal)
+        (1 + 0.45 * (1 - belowCrown) * frontFace);
       // (round 22: the relief swing is ×0.6 / ×0.3 and the fissures ×0.5 — under the fully textured
       // floor every unit of tint reaches the pixel, where 85 % of it did before; the old swings
       // rendered the crown as fine bright/dark speckle in A and D, where the reference's house is a
@@ -2125,7 +2231,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // at 0.300 → 0.299, the veil's floor at the house, for −0.004 of the crown's median; ×0.5 stays)
       const d = base * dirShade * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * Math.max(0.08, 1 + 0.6 * crest) * (1 + 0.3 * relief) * (1 - 0.5 * fis);
       const patch = 0.45 + 0.55 * noise.fbm(_ap.x * 1.7 + 3, _ap.z * 1.7 + y * 0.6, 2);
-      let w = smoothstep(0.25, 0.85, up) * patch * mossAmount;
+      // (round 36: the right shoulder — where the crown turns down into the right pillar — carries
+      // no moss: frame B's shoulder box has a green share of 0.000 against our arch pixels' 0.14)
+      let w = smoothstep(0.25, 0.85, up) * patch * mossAmount * (1 - 0.9 * shoulder);
       if (creep) {
         // the crown's upper half under the cap: moss over the top and down over the front rim
         // where the patch noise is dense (tongues), never on the underside
@@ -2167,11 +2275,32 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
        * the floor's leaf-filtered light.
        */
       const shadeAmt = clamp(1 - dirShade, 0, 1);
-      // (the crown flank leans the other way — grey-olive, the frames' hazed side: g up, r down)
-      const gBal = lerp(1.15, 0.92, shadeAmt) * lerp(1, 1.25, crownFlank);
-      const bBal = lerp(0.84, 0.6, shadeAmt) * lerp(1, 1.1, crownFlank);
-      const rBal = lerp(1, 0.85, crownFlank);
-      col.setXYZ(i, lerp(d * rBal, 0.8 * m, w), lerp(d * gBal, 2.2 * m, w), lerp(d * bBal, 0.5 * m, w));
+      /**
+       * (the crown flank leans the other way — grey-olive, the frames' hazed side: g up, r down)
+       * Round 36: the UPPER house's arch, 19–26 m out, takes the same lean on every face. It is
+       * the lit orange blob over Saria's bank in D (0.80–1.0 × 0.30–0.55: 6.2 % of the box, p50
+       * 0.366 / hue 30° / sat 0.39 against frame 56 s' hazed shape 0.292 / 77° / 0.11), and in A
+       * (0.46–0.54 × 0.10–0.20: ours 0.428 / 51° / sat 0.225, frame 0.468 / 57° / 0.084) and B
+       * (0.60–0.68 × 0.10–0.18: 0.354 / 45° / 0.287, frame 0.381 / 54° / 0.312) it is the warmer,
+       * more saturated shape too. The lean is luminance-neutral (×0.9 on the level pays for the
+       * green's weight), so it moves hue and saturation only.
+       */
+      // (iteration 2: the far house's lean is half again the flank's — the first pass moved D's
+      // upper arch only 29.8° → 36.7°, sat 0.394 → 0.371)
+      /**
+       * Round 36: the LIT CROWN's balance — the crown's front face above the legs — goes to g ×1.3 /
+       * b ×0.95 (was 1.15 / 0.84): frame B's crown front (0.70–0.86 × 0.235–0.31) reads hue 44.8°
+       * at p50 0.396, ours 32° / 0.337 on the arch's own pixels — the same saturation (0.45) but
+       * orange where the frame's is olive; the green's weight lifts the face ≈ 10 %, half the gap.
+       */
+      const litCrown = (1 - belowCrown) * frontFace;
+      // (iteration 3: farther still — at ×1.4 / 0.75 / 1.25 D's upper arch read 41.7° / sat 0.358
+      // and A's box 52.3° / 0.220 against the frames' 77° / 0.11 and 57° / 0.08)
+      const gBal = lerp(1.15, 0.92, shadeAmt) * lerp(1, 1.25, crownFlank) * lerp(1, 1.5, farHouse) * lerp(1, 1.13, litCrown);
+      const bBal = lerp(0.84, 0.6, shadeAmt) * lerp(1, 1.1, crownFlank) * lerp(1, 1.45, farHouse) * lerp(1, 1.13, litCrown);
+      const rBal = lerp(1, 0.85, crownFlank) * lerp(1, 0.65, farHouse);
+      const dd = d * lerp(1, 0.9, farHouse);
+      col.setXYZ(i, lerp(dd * rBal, 0.8 * m, w), lerp(dd * gBal, 2.2 * m, w), lerp(dd * bBal, 0.5 * m, w));
     }
     return geo;
   };
@@ -2259,7 +2388,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       tubularSegments: 32,
       radialSegments: 24,
       uvMetres: 1.4,
-      displace: archDisplace(4.1 + side, 0.11, 0.12, 8, 0.07),
+      displace: archDisplace(4.1 + side, 0.15, 0.12, 8, 0.07),
       color: reliefColor,
     });
     weldNormals(buttress);
@@ -2489,7 +2618,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const fleck = smoothstep(0.55, 0.9, n3.noise(p.x * 11 + 7, p.y * 11, p.z * 11));
     // (round 15: the grain's swing is up a fifth — the reference's lit mound has 8×8 tile
     // contrast 0.045 that round 14's leaf blobs, now gone, had been supplying)
-    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.65 * pit) * (1 + 0.4 * fleck);
+    // (round 36: pits ×0.8 deep and flecks ×0.6 bright, were 0.65 / 0.4 — frame B's cap moss by
+    // the roof's own mask (0.62–0.98 × 0.05–0.20) runs p10 0.216 / p90 0.597 round a median of
+    // 0.436; ours 0.338 / 0.510 round 0.430: the same level, half the grain's range)
+    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.8 * pit) * (1 + 0.6 * fleck);
     // (round 14: the broad mottle is halved — ±0.4 at 0.38/m was the largest coarse term left
     // once the relief's crests stopped carrying the light: moss-face 32 px blotchiness 0.064
     // against the reference's 0.038)
@@ -2517,8 +2649,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // reference's 0.38 / 0.49 / 0.61, box mean 0.413 — the mid a step down again; probe 7 at
     // [0.84, 0.83, 0.18] with `canopy`: 0.39 / 0.48 / 0.53, box 0.402 — mid and dark on target,
     // the crests dim, so the map's crest gain goes up and the tones come down another 5 %)
-    const deep: [number, number, number] = [0.266, 0.238, 0.052];
-    const sun: [number, number, number] = [0.8, 0.79, 0.17];
+    // Round 36 (structures-24): both tones turn green at the same luminance (+1.5 %, paying for
+    // the deeper pits above). Frame B's cap moss by the roof's own part mask reads hue 52.5° /
+    // sat 0.424 with 59 % of its pixels past 55° (the green share); ours 48.5° / 0.371 / 8 % —
+    // the ochre the yellow tones (52° / 59°) mix to under the warm sun and the 40° veil. The
+    // deep tone goes to 63°, the lit one to 67°, and both lose a fifth of their blue.
+    // (iteration 2: measured on the roof's own pixels in B's cap-moss box — hue 48.5° → 52.0°,
+    // green share 0.082 → 0.681, p50 0.430 → 0.431 against the frame's 52.5° / 0.586 / 0.436;
+    // saturation stayed at 0.370 against 0.424 and p90 at 0.510 against 0.597, so the lit tone
+    // goes ×1.06 and both lose another third of their blue)
+    const deep: [number, number, number] = [0.24, 0.25, 0.03];
+    const sun: [number, number, number] = [0.78, 0.87, 0.1];
     // Round 15: no angular gradient. Round 14's shoulder ramp (0.5 → 1.3 with v) times a
     // front-face lift (+75 % over the porch) put a smooth luminance ramp across the cap that
     // the vertex grain then modulated — B read it as a flat field with bands. What remains is a
@@ -2827,8 +2968,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       color: (t, ang) => shadedColor(t, ang, arcShade(t)),
       capEnd: true,
     });
-    // (round 34: spread 0.3 — the sheets wrap down the flank D sees)
-    supportParts.push(mossOnTop(arc, mossTint, 0.85, noise, 0.3));
+    // (round 34: spread 0.3 — the sheets wrap down the flank D sees; round 36: the lower run, which
+    // D sees rising out of its bank, takes the D-side sheet in the bank's dark green)
+    mossOnTop(arc, mossTint, 0.85, noise, 0.3);
+    if (dSide) mossBySide(arc, frame, D_MOSS_TINT, noise, dSide);
+    supportParts.push(arc);
     // the leafy tip beyond the rim, in the canopy above frame B
     {
       const tip = arcCurve.getPointAt(1);
@@ -3304,7 +3448,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // light (a fifth of the hot spot), the threshold as close as before.
     c.y -= 0.9 * k;
     // the shared glow takes on the mix of pod colours
-    const glow = new Color(ctx.config.palette.lanternGlow).lerp(new Color(0xd2ee48), limeCount / podPositions.length);
+    const glow = new Color(ctx.config.palette.lanternGlow).lerp(new Color(LIME_POD_GLOW), limeCount / podPositions.length);
     const lanternLight = new PointLight(glow, 4.0, 6, 2);
     lanternLight.position.copy(c);
     lanternLight.name = 'lantern-light';
@@ -3428,12 +3572,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const tShoulderR = archTOf(archShoulder(1));
   const vine21 = rng.fork('vines21');
   {
-    // (a) the arch-crown vine, along the top-front edge from the left shoulder to just past the
-    // centre, with big leaves every 11 cm
+    // (a) the arch-crown vine, along the top-front edge from the left shoulder over the left
+    // third of the crown, with big leaves every 11 cm
+    // (round 36: was to 0.56 of the span with 9 strands of 0.4–0.9 m — frame B's crown front
+    // (0.70–0.86 × 0.235–0.31) has a green share of 0.030 and ours 0.209, its foliage 15 % of the
+    // box by part mask; the frame's entrance leaves sit at the crown's left end and by the pods'
+    // hooks, so the vine stops at 0.36 and four strands of 0.3–0.6 m hang off it)
     const pts: Vector3[] = [];
     const nrms: Vector3[] = [];
     const t0 = tShoulderL + 0.01;
-    const t1 = lerp(tShoulderL, tShoulderR, 0.56);
+    const t1 = lerp(tShoulderL, tShoulderR, 0.36);
     for (let i = 0; i <= 8; i++) {
       const p = archTopFront(lerp(t0, t1, i / 8));
       p.x += (vine21() - 0.5) * 0.06;
@@ -3446,15 +3594,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     foliage21.addSurfaceVine(pts, nrms, { leafSize: 0.24 * sk, leafEvery: 0.1, amount: 0.05, thickness: 0.022 });
     // strands off it hanging down the body's face in front of it, 0.4–0.9 m (their ends stay
     // above the pods, whose caps hang from the body's underside), big leaves every 9 cm
-    for (let i = 0; i < 9; i++) {
-      const hook = archTopFront(lerp(t0, t1, (i + 0.3 + vine21() * 0.4) / 9));
+    for (let i = 0; i < 4; i++) {
+      const hook = archTopFront(lerp(t0, t1, (i + 0.3 + vine21() * 0.4) / 4));
       hook.addScaledVector(F, 0.05);
-      const len = (0.4 + vine21() * 0.5) * k;
+      const len = (0.3 + vine21() * 0.3) * k;
       foliage21.addHangingVine(hook, len, { drift: F.clone().multiplyScalar(0.25 + vine21() * 0.2), leafSize: 0.22 * sk, leafEvery: 0.09, amount: 0.1, thickness: 0.016 });
     }
-    // (b) the shoulders: a big drooping clump over each shoulder knot's top-front spilling leaves
-    // down the leg's outer face, and two strands off it
-    for (const side of [-1, 1] as const) {
+    // (b) the LEFT shoulder: a big drooping clump over the shoulder knot's top-front spilling
+    // leaves down the leg's outer face, and two strands off it
+    // (round 36: the right shoulder's clump and strands are gone — frame B's shoulder box
+    // (0.86–0.94 × 0.28–0.34) is bare dark bark, green share 0.000, where ours was 0.43 with
+    // this clump 19 % of the box and its strands the green on the right pillar below)
+    for (const side of [-1] as const) {
       const c = archShoulder(side).addScaledVector(F, 0.35 * k).addScaledVector(Rt, side * 0.15 * k);
       c.y += 0.3 * k;
       foliage21.addLeafCluster(c, 0.6 * k, 56, { size: 0.22 * sk, amount: 0.06, droop: 0.85, tint: leafTint, tintSpread: 0.3, flatten: 0.6 });
@@ -3466,7 +3617,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     // (c) down the wall sides: strands off the wall's eave band either side of the arch with a
     // clump at each hook — kept off the window (a −1.25 … −0.9) and the door span
-    const wallVines: number[] = def.id === 'saria' ? [-0.82, -0.68, -0.56, 0.55, 0.66, 0.78, 0.9] : [-0.7, 0.7];
+    // (round 36: Saria's right-wall strands (a 0.55–0.9) are gone — they hung exactly in frame B's
+    // shoulder box (a 0.55–0.9 projects to B x 0.86–0.90 at y 0.34), 5.4 % of it after the clump
+    // went, where the frame has bare bark)
+    const wallVines: number[] = def.id === 'saria' ? [-0.82, -0.68, -0.56] : [-0.7, 0.7];
     for (const a0 of wallVines) {
       const a = a0 + (vine21() - 0.5) * 0.06;
       const y = wallTop - 0.05 * k;
