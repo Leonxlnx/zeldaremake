@@ -10486,6 +10486,115 @@
       },
       "prevHash": "sha256:746514c3772988741a58e45225c8e8b5a38d5375d0fe8928ceedffb9c4194ef7",
       "hash": "sha256:fb1c464bfebad0dd9195490c35c9a66ba20b2f85af604dbacbed86334d22b667"
+    },
+    {
+      "id": "take-0098",
+      "number": 98,
+      "at": "2026-09-15T05:12:27.896Z",
+      "sha": "0534c7e167a587b022c6efc1c519be2a9e6cf244",
+      "shortSha": "0534c7e",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r34/tone' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W35",
+        "W36",
+        "W34"
+      ],
+      "note": "Round thirty-four, postfx: the frames' softness measured per depth band instead of assumed. Binning both images by our depth buffer, the frames' NEAR ground (0-6 m) is crisper than ours in A/D/E/F (edge energy 0.70-0.88 of the frame) while their far bands are softer and emptier - so the blanket-blur idea was wrong on the near half. The softening stage now runs an unsharp mask keyed on view distance (gain 0.25 below 4 m, gone by 10 m) and the far haze blur widens from sigma 1.6 to 3.0 with a 13-tap kernel; a per-pixel-depth haze weight and a premultiplied blur were built, measured at -0.003..-0.0045 SSIM on every view (crisp leaf/sky boundaries where the frames are soft) and left off as settings. The bloom pass is unchanged: the frames' lantern skirts fold in 4 px in B, which ours already match, and the 12-16 px skirts of the far A/D pods are the haze's own glow - the wider haze blur alone takes D's arch pods from e-fold 4-8 to 12 px. Shadow edges measured 2-10 px in both (Link's contact shadow at 3 m under a 5-6 cm penumbra) and left. Against the frames every view is up: A 0.2741 -> 0.2777, C 0.3133 -> 0.3163, D 0.3471 -> 0.3498, F 0.2933 -> 0.2951, E 0.2652 -> 0.2667, B 0.2514 -> 0.2528; sharpness ratios A 0.95 / B 0.93 / C 1.23 / D 0.99 / E 0.87 / F 1.12 - E off W35's floor (was 0.80); overexposed 0; pHash identical on all six; draws and triangles identical. What did not fit: B/D/E's mid-band softness is the veil and missing far structure, not blur; the near band's frame-to-frame spread (B vs E, one held camera, differs 35 %) bounds any single gain.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:ee92b443078ddbf81275513f454392c1e770785c0698d66664a4f355ea4baa53",
+        "B_house": "sha256:97e26121c35868c4d509fa21dee189b971b89e42c5e65b8e7010ed3b0f027913",
+        "C_lookback": "sha256:cbd81e378715ceeef39938ec1fd6a7504a9b964c090ca4e4376d7f7da1d15542",
+        "D_log": "sha256:5311e4b2fffa0f87746e80bd9a7a3b7fdf028adf572b8c1a661bd9ab654d49fe",
+        "E_ground": "sha256:97e26121c35868c4d509fa21dee189b971b89e42c5e65b8e7010ed3b0f027913",
+        "F_canopy": "sha256:c3d0177cb554072a5115bcf10bdff615e939ece8fc92ba8bdfccf117805160b5"
+      },
+      "distHash": "sha256:f09eec9038e7d728ddb8d6fdff5658c0e63c68bc0e1e0f9fda91375d17a4704e",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8596289,
+        "captureMs": 735565,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W35",
+        "W36",
+        "W34"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take98-cap",
+        "importedAt": "2026-09-15T05:12:59.859Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:fb1c464bfebad0dd9195490c35c9a66ba20b2f85af604dbacbed86334d22b667",
+      "hash": "sha256:902341dc7d653662ff763ab111fd73baa9a502522e97ff62769b98ba204e8bfd"
     }
   ]
 }
