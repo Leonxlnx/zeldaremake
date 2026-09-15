@@ -73,15 +73,25 @@ async function boot() {
   };
 
   let simTime = 0;
+  // CPU ms of the last step's phases (camera / world.update / render issue), read by __ZR__.perf()
+  const perf = { step: 0, camera: 0, update: 0, render: 0 };
   const step = (dt: number) => {
+    const t0 = performance.now();
     simTime += dt;
     if (!headless) {
       if (follow?.enabled) follow.update(dt);
       else cam.update(dt);
     }
+    const t1 = performance.now();
     world.update(dt, simTime);
+    const t2 = performance.now();
     if (composer) composer.render(dt);
     else renderer.render(scene, cam.camera);
+    const t3 = performance.now();
+    perf.camera = t1 - t0;
+    perf.update = t2 - t1;
+    perf.render = t3 - t2;
+    perf.step = t3 - t0;
   };
 
   let readyResolve!: () => void;
@@ -121,6 +131,7 @@ async function boot() {
     setQuality: () => {
       /* runtime quality switching is a later task */
     },
+    perf: () => ({ ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs } }),
   });
 
   const onResize = () => {
