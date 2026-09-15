@@ -2345,11 +2345,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               const d = darkAt(it);
               if (d > 0.05) mulColor(it, 1 - 0.32 * d, 1 - 0.3 * d, 1 - 0.28 * d);
             }
-            // the door-side hedge row (hedge-shotA, x 7.2–10.6 / z −7…−5.1) is frame 8's left mass
-            // and frame 1's dark band: a shade deeper (A's band measured 0.330 against 0.331, so mild)
-            for (const it of hedge.items) if (it.z <= -5.1 && it.x >= 7.2 && it.x <= 10.6) mulColor(it, 0.86, 0.85, 0.86);
+            // (the door-side hedge row, hedge-shotA at z ≤ −5.1, is camera B's door hedge and stays:
+            // B 0.7–0.95 × 0.45–0.7 already measures 0.26–0.31 against the frame's 0.27–0.39)
             // the crest shrubs (bushes-r32-crest) stood near-black in F (p10 0.146 against the
-            // frame's 0.239): lifted toward the frame's warm grey-olive, colours only
+            // frame's 0.239): lifted toward the frame's warm grey-olive, colours only; their
+            // shadowed cores take the bank-hedge fill as well (materials.ts LIFT_ZONE_BANK_HEDGE)
             const CREST_BOX: [number, number, number, number] = [9.0, 4.4, 14.0, 6.4];
             for (const it of bushes.items) if (inWorldBox(it.x, it.z, CREST_BOX)) mulColor(it, 1.36, 1.3, 1.34);
 

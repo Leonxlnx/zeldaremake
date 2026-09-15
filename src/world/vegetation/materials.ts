@@ -185,16 +185,30 @@ export const SHADE_LIFT_ZONE = { box: [-5.5, -18, -1.5, -6] as readonly [number,
  * the sun's shadow term like it, so dappled sun on the slope is unchanged.
  */
 export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 1.35 };
+/**
+ * Round 35: the third lift zone — the bank hedge row right of the main flight (plants.ts
+ * hedge-shotA-bank / -r14, x 6–8.6 / z 3.9–5.6, the crest shrubs behind it to x 14.5). Its crowns
+ * are frame 8 s' right mass and frame 1 s' right-edge shrubs, and their self-shadowed cores
+ * rendered near-black: F 0.65–0.85 × 0.34–0.6 at p50 0.14–0.22 against the frame's 0.23–0.28,
+ * A 0.9–1.0 × 0.34–0.6 at 0.13–0.17 against 0.19–0.30, where the lit leaf rims sit at the
+ * frame's level (C 0.25–0.3 × 0.4–0.5: 0.32 against 0.28). An albedo move lifts rim and core
+ * alike; the shadow-weighted fill lifts the core only, which is the frame's soft mass — many
+ * leaves at low per-leaf contrast, a gradient rather than a black hole. The turf between the
+ * crowns takes the same fill (A's right edge measures it 0.13–0.2 against 0.16–0.28).
+ */
+export const LIFT_ZONE_BANK_HEDGE = { box: [5.8, 3.7, 14.5, 7.3] as readonly [number, number, number, number], scale: 2.4 };
+/** the extra lift zones after the west verge: (box, scale × the verge fill) */
+export const LIFT_ZONES_EXTRA = [LIFT_ZONE_C_FOOT, LIFT_ZONE_BANK_HEDGE] as const;
 
 const LIFT_VERTEX_PARS = /* glsl */ `
 uniform vec4 uLiftBox;
-uniform vec4 uLiftBox2;
-uniform float uLiftScale2;
+uniform vec4 uLiftBoxes2[${LIFT_ZONES_EXTRA.length}];
+uniform float uLiftScales2[${LIFT_ZONES_EXTRA.length}];
 uniform float uLiftFeather;
 varying float vZoneLift;
 `;
 // evaluated at the instance root so a whole plant gets one lift value (no gradient across fronds);
-// one smoothstep over the nearer of the two boxes, the second box scaled to its own fill
+// one smoothstep over the nearest of the boxes, each extra box scaled to its own fill
 const LIFT_VERTEX = /* glsl */ `
 {
   #ifdef USE_INSTANCING
@@ -203,11 +217,15 @@ const LIFT_VERTEX = /* glsl */ `
     vec2 liftRoot = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xz;
   #endif
   vec2 liftOut = max(max(uLiftBox.xy - liftRoot, liftRoot - uLiftBox.zw), vec2(0.0));
-  vec2 liftOut2 = max(max(uLiftBox2.xy - liftRoot, liftRoot - uLiftBox2.zw), vec2(0.0));
-  float liftD1 = length(liftOut);
-  float liftD2 = length(liftOut2);
-  vZoneLift = 1.0 - smoothstep(0.0, uLiftFeather, min(liftD1, liftD2));
-  vZoneLift *= liftD2 < liftD1 ? uLiftScale2 : 1.0;
+  float liftD = length(liftOut);
+  float liftScale = 1.0;
+  for (int i = 0; i < ${LIFT_ZONES_EXTRA.length}; i++) {
+    vec2 liftOutI = max(max(uLiftBoxes2[i].xy - liftRoot, liftRoot - uLiftBoxes2[i].zw), vec2(0.0));
+    float liftDI = length(liftOutI);
+    if (liftDI < liftD) { liftD = liftDI; liftScale = uLiftScales2[i]; }
+  }
+  vZoneLift = 1.0 - smoothstep(0.0, uLiftFeather, liftD);
+  vZoneLift *= liftScale;
 }
 `;
 const LIFT_FRAGMENT_PARS = /* glsl */ `
@@ -319,8 +337,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     uAmbientBoost: { value: opts.ambientBoost ?? (kind === 'grass' ? 0.02 : kind === 'litter' || kind === 'moss' ? 0.015 : 0.02) },
     uTransmission: { value: opts.transmission ?? (kind === 'grass' ? 0.14 : kind === 'litter' ? 0.05 : kind === 'moss' ? 0 : 0.12) },
     uLiftBox: { value: new Vector4(...SHADE_LIFT_ZONE.box) },
-    uLiftBox2: { value: new Vector4(...LIFT_ZONE_C_FOOT.box) },
-    uLiftScale2: { value: LIFT_ZONE_C_FOOT.scale },
+    uLiftBoxes2: { value: LIFT_ZONES_EXTRA.map((zone) => new Vector4(...zone.box)) },
+    uLiftScales2: { value: LIFT_ZONES_EXTRA.map((zone) => zone.scale) },
     uLiftFeather: { value: SHADE_LIFT_ZONE.feather },
     uLiftFill: { value: opts.shadeLift ?? SHADE_LIFT_ZONE.fill },
   };
@@ -368,7 +386,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v10${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v11${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }
