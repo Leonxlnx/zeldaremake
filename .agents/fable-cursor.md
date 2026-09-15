@@ -1630,6 +1630,73 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   darks with a 28° hue), hardscape-28 (B fg's seam-fill hue 30° vs 40°; D's gap runs 0.10 vs 0.19),
   the F left-bank fringe.
 
+### 06:15 UTC — tick 97: heartbeat (`b3bce25` unchanged since take-0099); trees-20 in its final capture
+- Astra 05:40–06:08: the owner resumed the same environment and Link (open-source pivot cancelled;
+  the aim is a polished AI-made gameplay demo); Hyper3D permits redistribution of the trial output
+  (provider-side only); her actual-GPU review of character-5: no reach clamps, no sole samples
+  below −2 cm (ascent min −17 mm sparse extrema, descent +2.7 mm); her priorities = my queue
+  (near-field airlight, paving/grass contact, tree/house detail; character residuals kept).
+  Roster carried three times (05:39, 05:55, 06:08).
+
+### 07:25 UTC — tick 98: take-0100 published (monitor `8fe5bfd`), valid; 23/50 — round thirty-four closed
+- r34/trees merged (`9479d7b`): the plaza-roof bough's wood ghosted, its lobes moved onto the frame's
+  shade patch, a shade clump, three canopy openings — A's lower-left plaza lit as the frame's
+  (0.464 → 0.531 vs 0.535; sun reach 74 → 94 %), the frame's first shade patch 15 → 0 % lit.
+  A +0.0017, F +0.0013, D 0, B −0.0005, E −0.0008, C −0.0028 (the brighter plaza in C's foreground
+  where the frame's plaza is dark earth). The agent's "minimap moves between C captures" claim
+  checked on takes 99/100: HUD shift 0 px in every view — not reproduced on the clean captures.
+- Round thirty-four (takes 0097–0100): A 0.2742 → 0.2820, B 0.2518 → 0.2543, C 0.3133 → 0.3154,
+  D 0.3474 → 0.3529, E 0.2652 → 0.2669, F 0.2936 → 0.2955.
+- Round thirty-five opens on `9479d7b`: atmosphere-13 (the 9–17 m airlight floor 0.29 vs the frames'
+  0.24 darks at 28°), hardscape-28 (B fg seam-fill hue 30° vs 40°, D gap runs 0.10 vs 0.19, the F
+  left-bank fringe tint), trees-21 (patch2's caster clear of D by 5 m; D's diagonal shade band by a
+  D-only probe series), vegetation-18 (C's foreground: the frame's dark trodden earth vs our lit
+  lawn/dapple; the bank masses' depth).
+
+### 10:15 UTC — tick 99 (the 08:21 / 09:23 ticks arrived together): heartbeat; `9479d7b` unchanged since take-0100
+- 07:45–10:10: the owner asked for a demo video of the character walking → `gauntlet/tmp/walkdemo.mjs`
+  drives the production play mode (player.setInput + 1/60 steps, render only the last sub-step,
+  an eased follow pose 4.3 m behind at the posed root's height) — 108 frames at 12 fps, 21–25 s per
+  frame under load, encoded to 24 fps; a first run followed the placement plane instead of the
+  posed root and buried the camera on the stairs (re-rendered). Sent with two stills.
+- Round thirty-five: atmosphere-13 one commit (a near-field airlight term + a veil-only probe,
+  neutral at defaults, the floor measured with every surface black); hardscape-28 three commits
+  (D's gap runs, B's lawn fringe strip, zoned fill hue; a six-view take running); vegetation-18
+  four (C's trodden foreground closed and lit, the bank masses flatter not lit, the D verge's
+  straw). Load 8.
+
+### 11:35 UTC — tick 100: take-0101 published (monitor `fe3bcd1`), valid; 23/50 — B 0.2585, E 0.2698 (bests)
+- r35/veg merged (`8dbcd10`): C's corner turf trodden (green 67 → 50 %, frame 36; edge 218 → 91),
+  the NW flank a flat dark mass (0.325 → 0.302), D's right verge closed with clover/moss (91.6 %,
+  frame 91.9); no kept instance moved. B +0.0042, E +0.0029, F +0.0008, C +0.0003, A/D −0.0002/3.
+  Measured and withdrawn: a lit hedge core (every leaf showed, F −0.0095) — a soft dark mass cannot
+  come from leaf geometry.
+- hardscape-28 not merged as delivered (D −0.0029, E −0.0025, the B verge's green away from the
+  frame; its premise — the 40° mode is fill — did not hold: it is lit stone); resumed as
+  hardscape-28b for a reduced branch (zoned bounce / fill hue, the fringe scoping, the tint fix)
+  with the D gap zone and the lawn strip dropped, or a no-op.
+- Still running: atmosphere-13 (the near airlight floor), hardscape-28b.
+
+### 12:15 UTC — tick 101: take-0102 published (monitor `71c2731`), valid; 23/50 — round thirty-five closed
+- r35/tone merged (`35a9791`) with the reduced r35/hard-keep (`bdad1d5`): the near-field airlight
+  measured veil-only (a black object at 9–17 m read 0.224 B / 0.260 D at 60° vs the frames' darkest
+  decile 0.211 / 0.214 and bark at 28°) → a warm near-field term [0.2, 0.18, 0.148] graded out
+  10–28 m + softening from 16 m: floor 0.209 / 0.251 at 39–41°, B's pillar bark 0.246 (frame
+  0.247), D's bank bark 0.293. A 0.2860, B 0.2600, C 0.3187, D 0.3538, E 0.2701 (all bests),
+  F 0.2959. Every stronger veil cut lost SSIM (our 8×8 spread at 9–30 m is already under the
+  frames'; the lit patterns do not align, so the metric charges for contrast).
+- Round thirty-five (takes 0101–0102): A +0.0040, B +0.0057, C +0.0033, D +0.0009, E +0.0032, F +0.0004.
+- Round thirty-six opens on `35a9791`: trees-21 (A's second shade patch, B/E's left-third near
+  trunk's lit radiance, D's diagonal shade band), structures-24 (moss share on Saria's lit bark
+  toward the D bank's 0.24; B's house at 2× for coherent detail), character-6 (the descent start
+  transient and the toe-off −6 mm; Astra's fixture as acceptance).
+
+### 13:26 UTC — tick 102: heartbeat (`35a9791` unchanged since take-0102); round thirty-six iterating
+- structures-24 two commits (a D-side moss sheet on Saria's bark, blue-green, azimuth-weighted; the
+  arch right leg / far house's arch lean), character-6 one (`186de1b`: a gait blend chain with idle
+  anchors, a sole hold on stairs, a footprint-wide nosing scan), trees-21 measuring (two files
+  dirty). Load 3–5.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1668,4 +1735,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T05:56:00Z
+2026-09-15T13:28:00Z

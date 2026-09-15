@@ -283,6 +283,12 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
  * scatter's `top / hedgeHeight(variant)` scaling and the plants.test height caps hold unchanged.
  * Cost ≈ 2.1 K / 0.9 K / 0.25 K triangles (high / mid / low), like the bush variants it replaces.
  */
+/** the hedge crown's per-leaf colour spread (round 35; round 31 had ± 0.3, depth 0.7, tip 1.15, sun 0.8) */
+const HEDGE_SPREAD = 0.14;
+const HEDGE_DEPTH = 0.45;
+const HEDGE_TIP = 1.06;
+const HEDGE_SUN = 0.6;
+
 export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
@@ -365,11 +371,15 @@ export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): 
       .normalize();
     const base = p.clone().addScaledVector(dir, -len * 0.55);
     const sun = inner ? 0 : Math.min(1, Math.max(0, outward.y * 0.85 + 0.15));
-    const lit = blend(inner ? shade : blend(skirt, pal.leaf, 0.6), pal.leafSun, sun * 0.8);
-    // a wide leaf-to-leaf spread: the frame's mass is dark with lit clusters, not an even speckle;
-    // `depth` (0 = bump top, 1 = sunk into the crown) pulls the fringe toward the shade tone
-    const color = blend(tone(lit, inner ? 0.85 + rng() * 0.3 : 0.7 + rng() * 0.6), shade, inner ? 0 : depth * 0.7);
-    const opts = { curl: 0.12 + rng() * 0.16, twist: (rng() - 0.5) * 0.7, ridge: 0.1, planeNormal: outward, tipColor: inner ? undefined : tone(lit, 1.15) };
+    const lit = blend(inner ? shade : blend(skirt, pal.leaf, 0.6), pal.leafSun, sun * HEDGE_SUN);
+    // the leaf-to-leaf spread: round 31 gave the outer shell ± 30 % with the bunch fringes sunk
+    // 0.7 toward the shade tone ("dark with lit clusters"); round 35 measured the frames' hedge
+    // masses (frame 1's right edge, frame 8's right, frame 14's door row) as flat blurs — local
+    // sd 0.01–0.05 in 8 px windows at 256 × 144 against our 0.03–0.05 — and SSIM's structure
+    // term there is our own local variance, so the spread narrows to ± HEDGE_SPREAD with the
+    // fringe sunk HEDGE_DEPTH; `depth` (0 = bump top, 1 = sunk into the crown)
+    const color = blend(tone(lit, inner ? 0.85 + rng() * 0.3 : 1 - HEDGE_SPREAD + rng() * 2 * HEDGE_SPREAD), shade, inner ? 0 : depth * HEDGE_DEPTH);
+    const opts = { curl: 0.12 + rng() * 0.16, twist: (rng() - 0.5) * 0.7, ridge: 0.1, planeNormal: outward, tipColor: inner ? undefined : tone(lit, HEDGE_TIP) };
     if (low) foldedLeaf(m, base, dir, len, len * 0.7, color, opts);
     else curvedLeaf(m, base, dir, len, len * (0.6 + rng() * 0.2), color, opts);
   };

@@ -137,6 +137,11 @@ export function create(ctx: WorldContext): WorldSystem {
       HEIGHT_FOG_DEFAULTS.hazeFar.map((c, i) => c * HEIGHT_FOG_DEFAULTS.backScatterMin * HEIGHT_FOG_DEFAULTS.backScatterTint[i]) as [number, number, number],
     ),
     groundMistDisplay: displayHex(HEIGHT_FOG_DEFAULTS.mistColor),
+    // near-field airlight: the warm, slightly dimmer air the camera stands in, graded into the
+    // directional veil over these distances (amount 0 = off)
+    hazeNearFieldDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeNearField),
+    hazeNearFieldInM: HEIGHT_FOG_DEFAULTS.hazeNearFieldIn,
+    hazeNearFieldAmount: HEIGHT_FOG_DEFAULTS.hazeNearFieldAmount,
     // deep-forest shade on far surfaces (before the veil): distant trunks and the log arch stay
     // silhouettes in the haze instead of pale ghosts
     farShadeStartM: HEIGHT_FOG_DEFAULTS.farShadeStart,

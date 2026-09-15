@@ -211,7 +211,59 @@ export const CANOPY_OPENINGS: CanopyOpening[] = [
   { point: [14.9, -6.0], radius: 1.0, band: [13, 30], densify: 0, id: 'flight-top' },
   // ---- shot B's path: the flagstones between Link and Saria's door, west half only (F's left edge
   // looks down the east half); bands from 3 m so the lantern-limb lobe A and the wild-limb lobes
-  // stacked on the same sun lines both open
+  // stacked on the same sun lines both open. (Round 34 measured them idle: with both removed the
+  // sun's reach on B's left box (0.30–0.40, 0.64–0.99) read 66.9 % against 68.0 % with them — no
+  // giant foliage stands on their lines any more; they stay as documented.)
   { point: [1.4, -1.6], radius: 0.8, band: [3, 30], densify: 0, id: 'b-path-near' },
   { point: [0.9, -3.4], radius: 0.6, band: [3, 30], densify: 0, id: 'b-path-west' },
+  // ---- round 34 (trees): the frame's lit paving that the giants' high lobes still shaded, from a
+  // sun-eye attribution (100 m sun-axis depth image; casters named by the lobe/limb record)
+  // shot A's south-west plaza (frame (0.1–0.35, 0.85–0.99); frame 1 s 0.53–0.67 at x 0–2, z 3–5,
+  // ours in the lantern tree's crown lobe (−17.5, 18.9, −8.7) hR 4: 8.3 % of A's paving pixels).
+  // r 1.0 (an ellipse 2 × 3.2 m, x −0.4…2.4, z 3.3…5.9): a first cut at (0.7, 4.3) r 1.3 reached
+  // (−1.0, 3.4) along the sun and lit the strip west of the plaza (x −1.5…−0.5, z 1.5–4), which
+  // the frame keeps in shade (24–41) — that strip is the crown lobe's shade plus the two plaza-
+  // roof lobes' (index.ts CANOPY_BOUGHS), and this pool's sun line now passes 1.9 m from it.
+  { point: [1.0, 4.6], radius: 1.0, band: [10, 30], id: 'plaza-sw' },
+  // the path mouth north of the plaza (x −1…1, z −3…0.5; frame 1 s 0.42–0.59 up to a straight
+  // edge at x ≈ 1.5, ours 0.02–0.09 sun): a cylinder r 1.4 from 8.5 m on the mouth's sun line
+  // (footprint x −1.0…1.3, z −2.5…0.4). What shaded the mouth was mostly wood, which a pool does
+  // not carve — the plaza-roof bough's 0.5 m band ((−2.7, 4.4) → (0.7, −2.5); x 0–0.7 of z
+  // −2.5…−1) and a plaza-shade clump's 3 m stem ((−1.6, −0.3) → (2.1, 0.9)), both gone (trees
+  // index.ts CANOPY_BOUGHS, ghostWood / a short bough); the round-31 hut bough's 0.3–0.5 m band
+  // ((−3.8, 2.9) → (6.9, −4.8), through (0, 0.2), (1, −0.55), (2, −1.3); 32 % of the mouth) and
+  // the house bough's 1.5 m band ((−3.6, 3.2) → (15.1, −7.2), through (0, 1.2), (1, 0.6)), which
+  // stay — ghosting them lit the mouth as the frame has it and measured A −0.0012 / −0.0010, B
+  // −0.0005 / −0.0016; and the lantern limb's own arch, 4–5 m up at x −6…−4, whose band lies
+  // across z −2.5…−1.5 (frame lit 0.50–0.57) and is the limb's. The pool keeps the line clear of
+  // leaves 8.5 m up (the wild-limb lobe (−14.2, 10.8, −12.1) hR 3.2 with vR 1.8 hangs to 9 m;
+  // nothing of the hero foliage, the lantern limb's lobes at 3–8 m, stands on it). The limb lobe
+  // A's west edge (footprint x 0.7–4.8, z −3.2…0.4) is the mouth's other shade.
+  { point: [0.1, -0.9], radius: 1.4, band: [8.5, 30], densify: 0, id: 'a-path-mouth' },
+  // shot B's near path east half (frame 14 s: right of Link (0.60–0.76, 0.74–0.99) 86–95 % lit,
+  // world x 2–3.3 at z −2 to x 3.5–5 at z −5; ours 0–0.08 sun): the north-west-near crown lobe
+  // (−9.7, 14.5, −16.0) hR 3.4 (56 % of that box) and (−10.4, 17.2, −14.3) (8 %). A first cut at
+  // (3.2, −3.0) r 1.8 (ellipse to (5.5, −1.2)) also lit the verge east of the path — B x ≥ 0.88,
+  // y 0.6–1.0, the frame's dark ferns (0.30–0.36 against ours 0.33–0.39) — and opened a god-ray
+  // column at the cylinder's east edge that crossed the house in B: −0.0035 SSIM in that corner.
+  // r 1.0 here: footprint x 2.0–4.4, z −4.9…−2.9, its south-east end (4.4, −2.9) at B (0.76,
+  // 0.83). What stays across it is wood: the emergent column's bole stripe ((−3.1 + 1.008 h,
+  // −7.9 + 0.787 h), 5–7 m up: (2.3, −4) → (4.4, −2.4); 40 % of x 1.5–4, z −4…−1.5) and the limb
+  // lobe A's dapple. Its south end stops at z −2.9: frame 1 s (shot A) has x 2–3.5, z −3…−2.5
+  // in shade (0.34–0.35), and its north end reaches the frame's lit (2–4, −5…−4) (0.43–0.65).
+  // The cylinder stays outside the first A/B shaft column ((1.3, 6.6, −9.4) r 2.6: 3.85 m
+  // between the axes against 3.6 — a pool that overlaps a column's disc carves the column's
+  // leaf ceiling and its beam runs on to the ground; the round-1 cut's 4.29 m against 4.4 did).
+  // The north-west-near crown lobe's shade east of it (x 3.9–5.5, z −5.5…−3.5; frame lit) is
+  // inside that column's disc and stays.
+  { point: [3.2, -3.9], radius: 1.0, band: [10, 30], densify: 0, id: 'b-path-east' },
+  // Not listed — Link's pool at B (feet at B (0.5, 0.91) = (1.6, −2.3)). The frame has his shadow
+  // on lit slabs at his feet ((0.50–0.62, 0.85–0.95), 0.30 in 0.55–0.64); ours stands him in the
+  // limb lobe A's shade (his head's sun line passes 0.2 m from its centre (−2.5, 5.2, −5.5)). A
+  // (1.7, −2.4) r 0.9 pool from 3 m lit him and the slab right of his feet (x 2–3, z −3…−2.5,
+  // sun 0.11–0.15) — but the slabs beyond it stay under the emergent column's bole stripe (its
+  // 1.24 m bole 5–8 m up shades (1.9, −4) → (5, −1.6): 78 % of x 2.5–4, z −3.5…−2, the frame's
+  // brightest paving), so the frame's lit-then-shadow order right of Link came out shadow-then-lit
+  // and the cell (0.63–0.75, 0.83–1.0) lost 0.11 SSIM (−0.0024 of the frame). His own shadow fell
+  // on the bottom edge ((2.9, −1.3) = B (0.77, 0.96)). Dropped; he stays in shade as in the control.
 ];

@@ -484,7 +484,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const base = JOINT_TUFT_TINT[s.source ?? ''] ?? 0;
     s.jointTint = s.kind === 'cushion' ? Math.min(base, 0.7) : base;
     if (s.source?.startsWith('pocket-')) {
-      const fringe = s.source === 'pocket-rim' || s.source === 'pocket-band' ? 1 : 0.85 * smoothstep(lawnPocketEdgeX(s.z) - 0.6, lawnPocketEdgeX(s.z) - 0.2, s.x);
+      // (round 35: the lawn's share of the tint scoped to the last 0.2 m before the rim clumps —
+      // 0.6 m deep it reached onto the bank faces cameras F and B see as lawn: F's left-bank box
+      // 64.9 → 60.9 % green under round 34 against the frame's 91.5, B's left verge 63.7 → 59.0
+      // against 62.3. The rim / band clumps keep the full tint: the frame's strip is theirs.)
+      const fringe = s.source === 'pocket-rim' || s.source === 'pocket-band' ? 1 : 0.85 * smoothstep(lawnPocketEdgeX(s.z) - 0.35, lawnPocketEdgeX(s.z) - 0.15, s.x);
       s.jointTint = 0.6 * fringe * smoothstep(-3.6, -4.6, s.z);
     }
     const plaza = southPlaza(s.z);
