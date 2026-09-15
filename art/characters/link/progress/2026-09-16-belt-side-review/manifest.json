@@ -1,0 +1,11 @@
+{
+  "status": "Retained in local production preview; export, studio, native four-gait and actual300-frame checks pass.",
+  "source": "residual-seams-study.blend / stable game844cb82b",
+  "visual": "Matched run frame26 before/after inspected. Belt-side attachment follows raised leg with less discontinuity; nearby cloth issues remain.",
+  "checks": "18targetbadedges,35runframes,target20.792->1.244.48posesperclip on539incidentedges allfourclips improve. Restpositions/UV/normals and outsideweights unchanged.",
+  "production": "0646f2e99f8f1ff1516258b43557909e36bdd0ecdb6edbbb735bd34e65d00759",
+  "export": "0646f2e99f8f1ff1516258b43557909e36bdd0ecdb6edbbb735bd34e65d00759",
+  "export_checks": "161weightpositionsonly; allrestattributes/images/clips/binds/blinkmorphsexact after2tinyresttangent vectors restored on verifiedmatchingcorners.",
+  "studio": "22views+5blinkphases complete/errorsnone; run0.75viewed.",
+  "movement_records_exact_to": "2026-09-15T21-19-34-711Z-play-motion, all300 records including blink"
+}

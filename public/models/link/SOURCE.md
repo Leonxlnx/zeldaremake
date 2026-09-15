@@ -1,3 +1,6 @@
+Belt-side repair: 0646f2e99f8f1ff1516258b43557909e36bdd0ecdb6edbbb735bd34e65d00759
+161 skin-weight positions corrected around the left belt attachment. All other rest attributes, textures, clips, binds and blink morphs match844cb82b. Native four-gait checks improve the repaired region;300 actual movement/blink records match the preceding build exactly. Evidence: art/characters/link/progress/2026-09-16-belt-side-review. Other cloth and facial issues remain.
+
 Local residual garment + Fable character-8 review: 844cb82bb82786a5c42b1f670c3e209e3d8e4f424b1bf31632867b24a41f6616
 160 additional weight positions repaired relative to9344. All other rest attributes, textures, clips, binds and blink morphs preserved. Native four-gait and runtime studio checks passed; 300 actual movement records match the prior build exactly. All three body primitives follow the blink contract; five in-game close-up phases and zero-dt repeat checks pass. Closed-lid ridges remain visible. Evidence: art/characters/link/progress/2026-09-15-character8-garment.
 

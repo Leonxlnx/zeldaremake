@@ -1,0 +1,48 @@
+{
+  "patched_edges_over_2mm": 539,
+  "before": {
+    "idle": {
+      "peak": 1.5413028881712134,
+      "edge_samples_over_4x": 0,
+      "samples": 48
+    },
+    "walk": {
+      "peak": 14.758818925152331,
+      "edge_samples_over_4x": 671,
+      "samples": 48
+    },
+    "run": {
+      "peak": 20.75826573396311,
+      "edge_samples_over_4x": 1032,
+      "samples": 48
+    },
+    "stairs": {
+      "peak": 19.465421021837265,
+      "edge_samples_over_4x": 823,
+      "samples": 48
+    }
+  },
+  "after": {
+    "idle": {
+      "peak": 1.0603639721755524,
+      "edge_samples_over_4x": 0,
+      "samples": 48
+    },
+    "walk": {
+      "peak": 4.064571678622068,
+      "edge_samples_over_4x": 3,
+      "samples": 48
+    },
+    "run": {
+      "peak": 5.533579607766576,
+      "edge_samples_over_4x": 11,
+      "samples": 48
+    },
+    "stairs": {
+      "peak": 5.217083587653052,
+      "edge_samples_over_4x": 9,
+      "samples": 48
+    }
+  },
+  "scope": "48 native poses per clip, patched incident edges only; not whole-mesh acceptance"
+}
