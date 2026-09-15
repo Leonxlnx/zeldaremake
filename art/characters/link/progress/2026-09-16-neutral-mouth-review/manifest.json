@@ -1,0 +1,11 @@
+{
+  "status": "Incorporated into retained combined face asset0c28cb62; standalone744755b9 was not promoted",
+  "source": "run-low-pitch-study.blend / production75f42cd2",
+  "visual": "Owner09reference compared. Neutral mouthcorners subtly improved in matched native closeup; face still has major eye, cheek and hair quality gaps.",
+  "checks": "391vertices move at most1.785mm inZ only; blink/blinkHalf deltas exactly unchanged. Skinweights/UVs unchanged. Existingcustomnormals transported through deformation Jacobian.",
+  "next": "Prioritize eyelid/nose/cheek visual defects; preserve candidate for a cohesive face update.",
+  "production": "0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707",
+  "candidate": "744755b9efa4f11182233184f04984126d082ad956ea8c2477056c1253c71854",
+  "export": "391positions; clips/images/UV/weights/binds and blinkPOSITION deltas exact. Outside normal/tangent roundtrip drift restored; blinkNORMAL maxcomponentroundoff0.00019634 retained for visual review.",
+  "runtime": "36movement rows exactly match75f42cd2 full-run fixture; fiveblink phases andzero-dt repeat checkspass. Open/closed game images viewed; subtlelessdownturnedmouth, largerfacialdefects remain."
+}

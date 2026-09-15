@@ -1,0 +1,6 @@
+{
+  "positions_topology_uvs_weights_shape_keys_exact": true,
+  "max_outside_nose_normal_error": 0,
+  "inside_corners": 2441,
+  "status": "Native preservation checks pass; GLB and runtime checks pending"
+}

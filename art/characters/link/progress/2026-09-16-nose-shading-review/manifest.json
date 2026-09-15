@@ -1,0 +1,12 @@
+{
+  "status": "Retained after native and game-lighting review",
+  "source": "mouth-neutral-study.blend (unpromoted) based on production75f42cd2",
+  "visual": "Matched closeup inspected: angular nasal highlight reduced while lip contours stay intact. Otherfaceissues remain.",
+  "method": "2441boundedcorner normals smoothed; original normal map faded only inside nose ellipsoid. Outside encoded native custom normals preserved.",
+  "next": "Continue eye/cheek/hair polish; overall reference quality remains unfinished.",
+  "production": "0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707",
+  "bake": "664 faces baked in original atlas. Nose improvement survives, but dark upper-lip edge appears more pronounced than shader-only render. Needs border/UV investigation; no export or promotion.",
+  "candidate": "0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707",
+  "checks": "Native geometry/topology/UV/weights/shape keys exact, outside nose normals0difference. GLB clips/othertextures/binds/positions exact to mouth744; blinkpositiondeltasexact and normalroundoff1.79e-7.",
+  "runtime": "36movement samples exactly match reviewed mouth candidate and75baseline;5blink phases/zero-dt pass. Open/closedimages viewed. Nose shading improves; lip artifact resolved."
+}

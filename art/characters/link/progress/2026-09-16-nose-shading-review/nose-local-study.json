@@ -1,0 +1,23 @@
+{
+  "status": "Unaccepted local normal transition study; not exported",
+  "changed_corners": 2441,
+  "max_normal_angle_degrees": 50.42404571744297,
+  "fade_normalized_radius": [
+    0.65,
+    1
+  ],
+  "ellipsoid_radii_metres": [
+    0.03400000184774399,
+    0.03999999910593033,
+    0.019999999552965164
+  ],
+  "centres": [
+    [
+      0.0,
+      -0.13699999451637268,
+      0.9399999976158142
+    ]
+  ],
+  "body_triangles": 68042,
+  "method": "Position-keyed angle weighted normals across separate UV/material boundaries; source map faded in the same bounded region"
+}

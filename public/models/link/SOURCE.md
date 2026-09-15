@@ -1,3 +1,6 @@
+Retained localized face refinement: 0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707
+Includes lower-run arc and garment repairs. Adds391 small mouth-corner vertex adjustments and bounded nasal shading repair baked into the existing normal atlas with zero padding. Other textures, clips, binds, UVs and skin weights preserved. Blink position deltas preserved; small normal export roundoff recorded. Native and in-game open/closed views inspected;36 movement records exact and five blink phases pass. Facial/eyelid quality remains unfinished. Evidence: art/characters/link/progress/2026-09-16-nose-shading-review and2026-09-16-neutral-mouth-review.
+
 Retained lower run arc: 75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c
 Run swing lift 0.105 to 0.065 m; ankle pitch amplitude 0.45 to 0.25 rad. Cadence, stance speed and stride retained. Rest attributes, morphs, images, binds and other clips exact; only run hip/leg channels change with toe export roundoff below 6e-8. Native clearance checks and 1620-frame gameplay review pass; 1320 staircase records match the earlier round37 baseline. Flat maximum vertical step improves 10.13 to 7.52 mm. Cloth folding remains unresolved. Evidence: art/characters/link/progress/2026-09-16-run-low-arc-review.
 

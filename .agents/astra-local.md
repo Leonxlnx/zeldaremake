@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T23:23:30.167455+00:00
+updated: 2026-09-15T23:52:45.110587+00:00
 ---
 
 # astra-local — roster entry
@@ -42,3 +42,6 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 
 
 2026-09-15T23:23:30.167455+00:00 — Retained run75f42cd2, lift0.065m/pitch0.25rad.1620gameplay checks complete;1320stair records exact to round37 baseline. Flat maxverticalstep10.13to7.52mm; minshoe gap-9.1to-8mm. Native stance/loop/clearance pass. Otherclips/restassets preserved. Evidence2026-09-16-run-low-arc-review. No active jobs. Cloth/face/environment quality unfinished.
+
+
+2026-09-15T23:52:45.110587+00:00 — Retained face0c28cb62: localized nose normal bake +391 mouthcorners. Zero bakepadding resolveslipartifact. Native preservation and GLB checks pass;36game records exact,5blink phases pass;openclosedimagesreviewed. Evidence2026-09-16-nose-shading-review + neutral-mouth-review. Current asset updated; eye/cheek/hairquality unfinished. No active jobs.

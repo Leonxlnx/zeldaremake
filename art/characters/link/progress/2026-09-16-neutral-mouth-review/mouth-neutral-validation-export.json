@@ -1,0 +1,9 @@
+{
+  "sha256": "744755b9efa4f11182233184f04984126d082ad956ea8c2477056c1253c71854",
+  "changed_positions": 391,
+  "restored_outside_normal_tangent_vectors": 0,
+  "clips_images_uvs_weights_binds_exact": true,
+  "blink_position_deltas_exact": true,
+  "max_blink_normal_component_roundoff": 0.00019633769989013672,
+  "status": "Export checked; runtime review pending"
+}
