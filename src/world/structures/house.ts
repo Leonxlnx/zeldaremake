@@ -385,8 +385,33 @@ const THATCH_ALBEDO = 0.75;
  *  straw, half-way to the moss's lit tone, so the patches read as thinner moss, not thatch */
 const THATCH_TINT: [number, number, number] = [0.5, 0.47, 0.2];
 
-/** Blend a moss tint into a swept branch's vertex colours on its upward-facing side. */
-function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: number, noise: Noise2D): BufferGeometry {
+/**
+ * Round 34 (structures-23): the trunk shell's LIT bark albedo as a share of the round-11 tint
+ * (≈ 0.96 × the orange bark map). Camera D sees Saria's north-west flank sunlit at 9–17 m and the
+ * material-masked bark there rendered p50 0.326 (640×360; the veil floors it at 0.25) against
+ * frame 56 s' dark mossy bank (0.239); frame B's lit lip bark is dark brown, rgb(109,94,74). The
+ * roots, burls and support boughs take the same share through their own tints.
+ */
+const TRUNK_LIT_ALBEDO = 0.6;
+/** the furrow grime (round 21): a damp green-brown in the cords' furrows and fissures on the lit trunk */
+const FURROW_MOSS_TINT: [number, number, number] = [0.26, 0.4, 0.17];
+/** the round-22 moss skin on the shaded faces (the right wall, the eave band): deeper and greener */
+const SKIN_MOSS_TINT: [number, number, number] = [0.14, 0.25, 0.085];
+/** round 34: the moss sheets on the lit trunk, roots and boughs — the frames' bank moss (D 0.9–1.0 ×
+ *  0.3–0.55: hue 59°, sat 0.27, lum 0.22) under the orange bark map */
+const SHEET_MOSS_TINT: [number, number, number] = [0.19, 0.36, 0.12];
+/** round 34: pale grey-green lichen on the cord crests (frame B's trunk shows grey patches between the furrows) */
+const LICHEN_TINT: [number, number, number] = [0.5, 0.54, 0.5];
+/** round 34: the roots' and burls' moss (was [0.5, 0.64, 0.3], a lit olive): the sheets' green, a shade lighter on the crowns */
+const ROOT_MOSS_TINT: [number, number, number] = [0.3, 0.5, 0.19];
+
+/**
+ * Blend a moss tint into a swept branch's vertex colours on its upward-facing side. `spread`
+ * (round 34) lets the moss creep down the flanks: the up-facing gate `smoothstep(0.25, 0.85, up)`
+ * is shifted down by it, so at 0.45 the sheets reach faces at up ≥ −0.2 (the root shoulders'
+ * moss sheets of frame B, not only their crowns).
+ */
+function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: number, noise: Noise2D, spread = 0): BufferGeometry {
   const pos = geo.attributes.position;
   const nrm = geo.attributes.normal;
   const col = geo.attributes.color;
@@ -397,7 +422,7 @@ function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: 
     const y = pos.getY(i);
     const z = pos.getZ(i);
     const patch = 0.45 + 0.55 * noise.fbm(x * 1.7 + 3, z * 1.7 + y * 0.6, 2);
-    const w = clamp(smoothstep(0.25, 0.85, up) * patch * amount, 0, 1);
+    const w = clamp(smoothstep(0.25 - spread, 0.85 - spread, up) * patch * amount, 0, 1);
     col.setXYZ(i, lerp(col.getX(i), tint[0], w), lerp(col.getY(i), tint[1], w), lerp(col.getZ(i), tint[2], w));
   }
   return geo;
@@ -905,25 +930,48 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const eaveBand = 0.6 * front * smoothstep(porchW0 - 0.6, porchW0 + 0.2, w) * smoothstep(bandY0 - 0.4, bandY0 + 0.1, y);
       const shaded = clamp(Math.max(rightWall, eaveBand), 0, 1) * smoothstep(0.1, 0.5, y);
       const skin = shaded * smoothstep(0.45, -0.15, crest) * smoothstep(-0.35, 0.3, mossField) * (1 - 0.5 * fis);
-      const mossCover = clamp(Math.max(furrowMoss, skin), 0, 1);
+      /**
+       * Round 34 (structures-23): MOSS SHEETS and WET BARK on the lit trunk. Camera D sees this
+       * trunk's north-west flank sunlit at 9–17 m (D bank x 0.80–1.0 × y 0.30–0.55: bark 32 % of
+       * the box by material mask, p50 0.326 / hue 36° / sat 0.31 / green share 0.02 at 640×360)
+       * where frame 56 s has a dark mossy mass (p50 0.239 / hue 63° / sat 0.25 / green 0.75; the
+       * veil floors our darkest bark there at 0.25). The lit bark's albedo was the round-11 tint
+       * (≈ 0.96 × the orange map): here the whole shell drops to ≈ 0.6 of it (frame B's lit lip
+       * bark is dark brown, rgb(109,94,74)), the lower 1.6 m is damp-dark (×0.55 at the ground),
+       * and patchy moss SHEETS (`sheet`, ≈ 45 % of the mid band off the cord crests, all round the
+       * trunk — the frames' moss sits on the sunlit side too) in a deep green cover the flats and
+       * furrows while the crests poke through; a few pale grey LICHEN patches sit on the crests.
+       * The shaded faces keep their round-22 skin.
+       */
+      const sheetField = noise.fbm(a * R * 0.42 + 17, y * 0.42 + 5, 3);
+      const sheet = smoothstep(0.02, 0.4, sheetField) * smoothstep(0.55, -0.1, crest) * smoothstep(3.3, 2.4, y) * smoothstep(-0.2, 0.4, y) * (1 - 0.35 * fis) * fade;
+      const lichen = smoothstep(0.5, 0.72, noise.noise(a * R * 1.3 + 41, y * 1.3 - 3)) * smoothstep(0.1, 0.6, crest) * (1 - sheet) * smoothstep(0.6, 1.4, y) * fade;
+      const wet = smoothstep(1.6, -0.2, y);
+      const mossCover = clamp(Math.max(furrowMoss, skin, sheet), 0, 1);
       // slightly cooler than the material's warm tint: the reference bark is grey-brown, not orange
       // (round 22: the shaded crests go grey-olive — g up, r and b down against the orange map)
       const warm = lerp(1, 0.86, rightSide) * lerp(1, 1.12, shaded);
       const warmR = lerp(1, 0.88, shaded);
       const warmB = lerp(1, 0.72, rightSide) * lerp(1, 0.9, shaded);
-      const rr = lerp(0.96 * vari, 0.6, base * 0.7) * ao * (1 + 0.08 * Math.max(0, crest)) * shade * warmR;
-      const gg = lerp(0.97 * vari, 0.62, base * 0.6) * ao * shade * warm;
-      const bb = lerp(1.0 * vari, 0.64, base * 0.6) * ao * (1 - 0.1 * Math.max(0, crest)) * shade * warmB;
-      const cr = lerp(rr, 0.55, mossy * 0.6);
-      const cg = lerp(gg, 0.72, mossy * 0.6);
-      const cb = lerp(bb, 0.4, mossy * 0.6);
+      const dark = TRUNK_LIT_ALBEDO * lerp(1, 0.55, wet);
+      const rr = lerp(0.96 * vari, 0.6, base * 0.7) * ao * (1 + 0.08 * Math.max(0, crest)) * shade * warmR * dark;
+      const gg = lerp(0.97 * vari, 0.62, base * 0.6) * ao * shade * warm * dark * 1.03;
+      const bb = lerp(1.0 * vari, 0.64, base * 0.6) * ao * (1 - 0.1 * Math.max(0, crest)) * shade * warmB * dark * 1.06;
+      const cr = lerp(rr, 0.55 * dark, mossy * 0.6);
+      const cg = lerp(gg, 0.72 * dark, mossy * 0.6);
+      const cb = lerp(bb, 0.4 * dark, mossy * 0.6);
       // the furrow grime is a DARK damp green-brown (in the eave's shade with the wall), not the base
-      // moss; the round-22 skin on the shaded faces is deeper and greener still
-      const gw = lerp(furrowMoss * 0.7, mossCover * 0.85, shaded);
-      const mr = lerp(0.3, 0.14, shaded) * shade;
-      const mg = lerp(0.42, 0.25, shaded) * shade;
-      const mb = lerp(0.2, 0.085, shaded) * shade;
-      out.color = [lerp(cr, mr, gw), lerp(cg, mg, gw), lerp(cb, mb, gw)];
+      // moss; the round-22 skin on the shaded faces is deeper and greener still; the round-34
+      // sheets are the deep moss green of the frames' bank (SHEET_MOSS_TINT)
+      const gw = clamp(Math.max(lerp(furrowMoss * 0.7, mossCover * 0.85, shaded), sheet * 0.9), 0, 1);
+      const sheetShare = sheet > 0 ? clamp(sheet / Math.max(1e-4, mossCover), 0, 1) * (1 - shaded) : 0;
+      const mr = lerp(lerp(FURROW_MOSS_TINT[0], SKIN_MOSS_TINT[0], shaded), SHEET_MOSS_TINT[0], sheetShare) * shade;
+      const mg = lerp(lerp(FURROW_MOSS_TINT[1], SKIN_MOSS_TINT[1], shaded), SHEET_MOSS_TINT[1], sheetShare) * shade;
+      const mb = lerp(lerp(FURROW_MOSS_TINT[2], SKIN_MOSS_TINT[2], shaded), SHEET_MOSS_TINT[2], sheetShare) * shade;
+      const lr = lerp(cr, LICHEN_TINT[0] * shade, lichen);
+      const lg = lerp(cg, LICHEN_TINT[1] * shade, lichen);
+      const lb = lerp(cb, LICHEN_TINT[2] * shade, lichen);
+      out.color = [lerp(lr, mr, gw), lerp(lg, mg, gw), lerp(lb, mb, gw)];
   };
   const shellHole = (u: number, v: number) => {
     const a = u * TAU;
@@ -1679,8 +1727,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       burlSeam.seamMaxNormalDeg = Math.max(burlSeam.seamMaxNormalDeg, seam.maxNormalDeg);
       setColorAttribute(knot, (i) => {
         const c = clamp(crests[i] * 2.4, -1, 1);
-        const d = 0.62 * (1 + 0.45 * c) * (0.85 + 0.15 * Math.max(0, knot.attributes.normal.getY(i)));
-        return [d, d * 0.95, d * 0.86];
+        // (round 34: the trunk's lit-albedo share)
+        const d = 0.62 * TRUNK_LIT_ALBEDO * (1 + 0.45 * c) * (0.85 + 0.15 * Math.max(0, knot.attributes.normal.getY(i)));
+        return [d, d * 0.97, d * 0.88];
       });
       // bark map at the trunk's density (metres / 2.2)
       const uv = knot.attributes.uv;
@@ -1688,7 +1737,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     // basisMatrix maps local +z → N and keeps local +y (the poles) up
     knot.applyMatrix4(basisMatrix(centre, N));
-    rootParts.push(mossOnTop(knot, [0.5, 0.64, 0.3], 0.6, noise));
+    rootParts.push(mossOnTop(knot, ROOT_MOSS_TINT, 0.75, noise, 0.3));
   }
 
   // ---- buttress roots seated on the terrain ----
@@ -1745,13 +1794,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       uvMetres: 1.4,
       displace: (t, ang) => (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t),
       color: (t) => {
-        const d = lerp(0.72, 0.58, t);
-        return [d, d * 0.95, d * 0.85];
+        // round 34: the trunk's lit-albedo share, damp toward the tip on the ground
+        const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO;
+        return [d, d * 0.97, d * 0.88];
       },
       capEnd: true,
     });
-    // moss on the root lips (reference B lower-left root: olive, hue 53°, against the 27–34° bark)
-    rootParts.push(mossOnTop(root, [0.5, 0.64, 0.3], 0.55, noise));
+    // moss on the root lips (reference B lower-left root: olive, hue 53°, against the 27–34° bark);
+    // round 34: deeper green sheets that wrap down the shoulders (spread 0.45), not only the crown
+    rootParts.push(mossOnTop(root, ROOT_MOSS_TINT, 0.8, noise, 0.45));
     bases.push([p3.x, p3.y, p3.z]);
   }
   // ---- the entrance arch (round 19). Rounds 12–17 framed the door with two root lips (thick
@@ -1942,7 +1993,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * Then moss: on every upward face (as on the roots) and, over the crown, creeping down the
    * front in tongues where the cap's moss runs onto it.
    */
-  const shadeArch = (geo: BufferGeometry, yDark0: number, yDark1: number, mossAmount: number, creep: boolean) => {
+  const shadeArch = (geo: BufferGeometry, yDark0: number, yDark1: number, mossAmount: number, creep: boolean, flankSide: -1 | 0 | 1 = 0) => {
     const pos = geo.attributes.position;
     const nrm = geo.attributes.normal;
     const col = geo.attributes.color;
@@ -2038,13 +2089,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // round 22: on the shaded right leg the moss is a skin — over most of the surface off the
       // cord crests, not only the upward faces
       w = Math.max(w, shadowLeg * smoothstep(0.45, -0.1, crest) * smoothstep(0.3, 0.75, patch) * 0.85);
+      /**
+       * Round 34 (structures-23): the buttresses' OUTER flanks (the faces turned away from the door,
+       * along `flankSide` × Rt) carry moss sheets off the cord crests — camera D, 11° left of the
+       * door's axis, sees the left buttress's outer flank sunlit as 6 % of its right bank (material
+       * mask, p50 0.375, hue 33°) where frame 56 s' bank is dark moss; B sees that flank edge-on.
+       */
+      let flankMoss = 0;
+      if (flankSide !== 0) {
+        const outer = smoothstep(0.2, 0.7, flankSide * right) * smoothstep(2.5 * k, 2.0 * k, y);
+        flankMoss = outer * smoothstep(0.45, -0.1, crest) * smoothstep(0.25, 0.7, patch) * 0.6;
+        w = Math.max(w, flankMoss);
+      }
       w = clamp(w, 0, 1);
       // olive bark, and a moss tint green enough to read as moss on this warm bark (the material's
       // 0xdcb086 × the map leave g/r ≈ 0.6 linear; the roots' ×2.4 tint rendered amber here). The
       // reference's arch face in B runs g/r 0.92–0.94 on its moss tongues, 0.83 on bare bark.
       // Round 22: the moss darkens with the face it sits on (×0.12 at full shade — the
       // reference's right-pillar moss is as dark as the bark it grows on)
-      const m = lerp(0.1, 1, Math.pow(dirShade, 1.5));
+      // (round 34: the flank sheets are the bank's dark moss, half the crown tongues' level)
+      const m = lerp(0.1, 1, Math.pow(dirShade, 1.5)) * lerp(1, 0.5, clamp(flankMoss / Math.max(w, 1e-4), 0, 1));
       col.setXYZ(i, lerp(d, 0.8 * m, w), lerp(d * 1.15, 2.2 * m, w), lerp(d * 0.84, 0.5 * m, w));
     }
     return geo;
@@ -2138,7 +2202,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     });
     weldNormals(buttress);
     weldTubeSeam(buttress, 32, 24);
-    archParts.push(shadeArch(buttress, 1.0 * k, 2.9 * k, 0.5, false));
+    archParts.push(shadeArch(buttress, 1.0 * k, 2.9 * k, 0.5, false, side));
     pillarTops.push({ top: curve.getPointAt(0.1), foot: [foot.x, foot.y, foot.z], side, footRadius: buttressR(tFoot) });
     bases.push([foot.x, foot.y, foot.z]);
   }
@@ -2617,15 +2681,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lateFoliage: (() => void)[] = [];
   const supportColor = (t: number, ang: number): [number, number, number] => {
     // the trunk's bark, a shade darker than the wall (the boughs are always in the eave's or
-    // the canopy's shade), lit along the top
-    const d = 0.74 * (0.82 + 0.3 * Math.max(0, Math.sin(ang)));
-    return [d, d * 0.95, d * 0.88];
+    // the canopy's shade), lit along the top (round 34: the trunk's lit-albedo share — camera D
+    // sees the arc bough's lower run sunlit against its bank)
+    const d = 0.74 * TRUNK_LIT_ALBEDO * (0.82 + 0.3 * Math.max(0, Math.sin(ang)));
+    return [d, d * 0.97, d * 0.88];
   };
   /** the limbs above the eave sit in the canopy's shade: reference B reads them at lum
    *  0.27–0.35 against the hazed canopy (0.45–0.5), so their bark is held well below the sunlit
    *  legs' — `shade` 0 = sunlit, 1 = fully shaded */
   const shadedColor = (t: number, ang: number, shade: number): [number, number, number] => supportColor(t, ang).map((c) => c * lerp(1, 0.42, shade)) as [number, number, number];
-  const mossTint: [number, number, number] = [0.5, 1.12, 0.34];
+  /** the boughs' moss (round 34: ×0.7 of the round-14 lit green [0.5, 1.12, 0.34] — the sheets on the
+   *  sunlit lower run read as the bank's dark moss in D, the shaded upper run keeps its level) */
+  const mossTint: [number, number, number] = [0.36, 0.8, 0.25];
   const jit = (s: number) => new Vector3((branchRng() - 0.5) * s, (branchRng() - 0.5) * s * 0.5, (branchRng() - 0.5) * s);
   /**
    * Where the bough passes the eave on the left, just outside the rim (its burl sits here).
@@ -2698,7 +2765,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       color: (t, ang) => shadedColor(t, ang, arcShade(t)),
       capEnd: true,
     });
-    supportParts.push(mossOnTop(arc, mossTint, 0.85, noise));
+    // (round 34: spread 0.3 — the sheets wrap down the flank D sees)
+    supportParts.push(mossOnTop(arc, mossTint, 0.85, noise, 0.3));
     // the leafy tip beyond the rim, in the canopy above frame B
     {
       const tip = arcCurve.getPointAt(1);

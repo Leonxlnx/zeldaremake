@@ -161,8 +161,13 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
  * the floors stop at the midpoint 8.5 / 4.75: B top p10 0.297 on the frame's 0.295 (8 / 4.5
  * 0.289 under it, 9 / 5 0.304 over), B left 0.307, and half the SSIM back (with the halo fade:
  * A 0.2657 → 0.2665, B 0.2481 → 0.2486; 9 / 5 would give 0.2671 / 0.2491 at B top 0.304).
+ *
+ * Round 34 (structures-23): the trunk shell, roots and boughs carry 0.6 of their round-11 lit
+ * albedo (house.ts TRUNK_LIT_ALBEDO — camera D's sunlit bank). The floor is fully textured, so the
+ * shaded faces fall with the albedo; lift 4.75 → 6 gives them back ×1.26 (net ×0.76), so B's top
+ * band (the arc bough's shaded run, p10 0.297 on the frame's 0.295) does not fall through the frame.
  */
-export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 6, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
