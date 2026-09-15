@@ -2113,10 +2113,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // x 0.72–0.86 × y 0.24–0.31, p50 0.377) at the floor's lift 13 where lift 17 gave it ×1.1
         // (17 × 1.1 ≈ 13 × 1.35 on a floor-lit face; the pods' light on it is a third less since
         // round 22 — see `lanternLight`)
-        // (round 34: ×1.35 → ×1.55 — B's crown box measured p50 0.343 on the arch's pixels against
-        // the frame's 0.378 at 640×360; the albedo probe reads ×1.6 → 0.389, so ×1.15 relative
-        // lands ≈ 0.365 with the deeper fissures holding the p10)
-        (1 + 0.55 * (1 - belowCrown) * frontFace);
+        // (round 34 measured ×1.55: B's crown box 0.349 → 0.360 toward the frame's 0.378, but F —
+        // which looks up at the crown from the stair top (0–0.3 × 0.05–0.35) — lost 0.0010 SSIM
+        // and A 0.0006 for a brighter orange face the frames' hazier crown does not have; ×1.35 stays)
+        (1 + 0.35 * (1 - belowCrown) * frontFace);
       // (round 22: the relief swing is ×0.6 / ×0.3 and the fissures ×0.5 — under the fully textured
       // floor every unit of tint reaches the pixel, where 85 % of it did before; the old swings
       // rendered the crown as fine bright/dark speckle in A and D, where the reference's house is a

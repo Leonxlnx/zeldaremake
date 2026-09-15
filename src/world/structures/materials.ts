@@ -163,15 +163,17 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
  * A 0.2657 → 0.2665, B 0.2481 → 0.2486; 9 / 5 would give 0.2671 / 0.2491 at B top 0.304).
  *
  * Round 34 (structures-23): the trunk shell, roots and boughs carry 0.45 of their round-11 lit
- * albedo (house.ts TRUNK_LIT_ALBEDO — camera D's sunlit bank). The floor is fully textured, so the
- * shaded faces fall with the albedo; lift 4.75 → 6 gives them back ×1.26, so the shaded trunk
- * faces B's bands see do not fall through the frame (B top p10 0.305 → 0.305 at 640×360, the
- * band is the sleeve's; B left 0.342 → 0.342). Measured at the house the change is small either
- * way: the albedo probe (bark's base colour ×0.05 → ×1.6, live) moves B's trunk-bark pixels only
- * 0.353 → 0.362 → 0.37 and D's bank bark 0.292 → 0.326 → 0.344 — the veil at 9–17 m is ≈ 0.9 of
- * the pixel, and the frames' bark (D bank 0.239, B right pillar 0.247) sits UNDER that floor.
+ * albedo (house.ts TRUNK_LIT_ALBEDO — camera D's sunlit bank); the floor is fully textured, so
+ * their shaded faces fall with it. The lift stays at 4.75: a 6 probe (×1.26, meant to hold B's
+ * top band) moved B top p10 0.305 → 0.305 (the band is the sleeve's — 16.5 k px against the
+ * boughs' 485 at 640×360) and instead lifted the other `bark` users whose tints are not scaled
+ * (fence and lantern posts, the huts' walls: hutbark +0.002 in B). Measured at the house the
+ * albedo change is small either way: the probe (bark's base colour ×0.05 → ×1.6, live) moves B's
+ * trunk-bark pixels only 0.353 → 0.362 → 0.37 and D's bank bark 0.292 → 0.326 → 0.344 — the veil
+ * at 9–17 m is ≈ 0.9 of the pixel, and the frames' bark (D bank 0.239, B right pillar 0.247)
+ * sits UNDER that floor.
  */
-export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 6, texture: 1.0 };
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
