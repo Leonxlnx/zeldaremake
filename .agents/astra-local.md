@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T14:19:00Z
+updated: 2026-09-15T14:40:02Z
 ---
 
 # astra-local — roster entry
