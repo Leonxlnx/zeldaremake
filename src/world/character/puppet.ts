@@ -11,10 +11,17 @@
  */
 import { Object3D, Vector3 } from 'three';
 import { applyPose, plantFeet, type Gait, type GroundSampler } from './animation';
+import type { FootAnchor, GaitChain } from './gaitChain';
 import type { Character } from './link';
 
-export interface PuppetPose {
-  gait: Gait;
+export { BLEND_S, type FootAnchor, type GaitChain } from './gaitChain';
+
+/**
+ * The pose input: the actor's gait chain (gaitChain.ts — the gait, the one it fades from and
+ * the one before that, their switch times, clip shifts and idle sole anchors; a hard switch has
+ * gaitSwitchT −Infinity) plus the simulation time and the look.
+ */
+export interface PuppetPose extends GaitChain {
   t: number;
   /** per-character phase offset (rad) — procedural rigs only; the GLB clips carry their own hero phase */
   phase: number;
@@ -24,16 +31,6 @@ export interface PuppetPose {
   lookWeight: number;
   /** amplitude (rad) of the slow idle body turn (kids look around) */
   idleTurn: number;
-  /** gait before the last change and the simulation time of that change (deterministic crossfade); −Infinity = hard switch */
-  gaitFrom: Gait;
-  gaitSwitchT: number;
-  /**
-   * Clip-time shift (s) of `gait` / `gaitFrom`, chosen at the switch by `Puppet.alignClip` so the
-   * incoming clip starts at the gait phase the outgoing one had (the planted foot matches across
-   * the crossfade). 0 = the clip's own hero alignment (the captures; hard switches).
-   */
-  clipShift: number;
-  clipShiftFrom: number;
 }
 
 /**
@@ -47,7 +44,12 @@ export interface PuppetPose {
  * nosing lip reads the upper tread and goes negative by a riser; the marker alone cannot see it).
  * `shiftM` is the along-facing shift the foot was given so its footprint clears a nosing (+ =
  * forward), `pitchRad` its toe-down pitch over an edge, `correctionM` the vertical IK correction
- * of its sole (+ up); all 0 for the procedural rig.
+ * of its sole (+ up); all 0 for the procedural rig. Round 6: `pinM` is the along-facing offset
+ * that holds a fading idle clip's foot where it stood when the walk began (weighted by that
+ * clip's blend weight; 0 outside an idle → gait crossfade), `holdM` how far the sole marker was
+ * raised so the lowest point of the boot's sole, in the clip's own foot orientation, stays on the
+ * support when the swing arc is flattened toward it (a toe-off from a tread the root has already
+ * left; 0 on flat ground).
  */
 export interface FootContact {
   foot: 'L' | 'R';
@@ -59,6 +61,8 @@ export interface FootContact {
   shiftM: number;
   pitchRad: number;
   correctionM: number;
+  pinM: number;
+  holdM: number;
 }
 
 /** how the last pose was planted (audit `linkIk`) */
@@ -80,6 +84,10 @@ export interface PlantInfo {
   maxShiftM: number;
   /** how far (m) the root was lowered beyond its support because a foot target lay past the straight leg */
   extraDropM: number;
+  /** largest idle-foot pin (m) and sole hold (m) of this pose (see FootContact.pinM / holdM); clips with weight in the gait blend */
+  maxPinM: number;
+  maxHoldM: number;
+  blendClips: number;
 }
 
 export interface Puppet {
@@ -112,6 +120,12 @@ export interface Puppet {
    * left heel-strike, both feet down).
    */
   alignClip?(from: Gait, fromShift: number, to: Gait, t: number): number;
+  /**
+   * Where the clip `gait` (shifted by `clipShift`) has its soles at simulation time `t` with the
+   * root at (x, z) facing `yaw` — its own sole path, not the planted pose, so it needs no earlier
+   * frame (the caller records it when a gait without phases is switched away from; see FootAnchor).
+   */
+  anchor?(x: number, z: number, yaw: number, gait: Gait, clipShift: number, t: number): FootAnchor;
 }
 
 const _head = new Vector3();
@@ -122,10 +136,10 @@ const _soleR = new Vector3();
 export function proceduralPuppet(char: Character, animations: readonly string[]): Puppet {
   const rig = char.rig;
   const feet: FootContact[] = [
-    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0 },
-    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0 },
+    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
   ];
-  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0 };
+  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
   return {
     kind: 'procedural',
     group: char.group,
