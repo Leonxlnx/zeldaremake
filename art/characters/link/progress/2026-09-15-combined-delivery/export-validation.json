@@ -1,0 +1,12 @@
+{
+  "source_sha256": "e5882cc595233cc5f1caab691755085fcf5d819ce75ce15906dcd1098d1beda0",
+  "candidate_sha256": "322c3433542064ffaeed91c5d7c04b95746778c6ddea60a5418b23148e7b7d7d",
+  "changed_weight_positions": 331,
+  "allowed_patch_positions": 331,
+  "outside_weights_exact": true,
+  "all_other_vertex_attributes_exact": true,
+  "all_images_exact": true,
+  "clips_exact": true,
+  "binds_exact": true,
+  "exported_morphs_exact_to_blink_fair": true
+}

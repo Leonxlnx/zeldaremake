@@ -1,3 +1,6 @@
+Retained combined delivery: 322c3433542064ffaeed91c5d7c04b95746778c6ddea60a5418b23148e7b7d7d
+Source: combined-delivery-study.blend. Preserves rear hem repair and adds331 left-sleeve weight fixes (target run stretch24.29x to2.74x), plus reviewed blink/blinkHalf morphs at zero default weight. All geometry/shading/UVs/textures/clips/binds and outside weights match e5882cc5; morph position/normal deltas exactly match1e7074e7. Four tiny recalculated tangent vectors restored after exact rest geometry/UV/normal matching. Typecheck/build,22-view studio and30-frame60fps blink review pass. All1620 actual-player records match e5882cc5 exactly. Blink timing integration remains with Fable. Evidence: art/characters/link/progress/2026-09-15-combined-delivery.
+
 Retained rear hem weight repair: e5882cc595233cc5f1caab691755085fcf5d819ce75ce15906dcd1098d1beda0
 Source: back-hem-study.blend. Corrects 312 weight positions around 35 measured discontinuities. Target run-cycle peak stretch decreases from 19.14x to 1.72x. All other vertex attributes, textures, binds and four clips match d5213ba7 exactly; one recalculated sliver tangent restored after exact geometry/UV/normal matching. Typecheck/build pass; all 1620 actual-player records match the retained parent exactly. Evidence: art/characters/link/progress/2026-09-15-back-hem-review. Other cloth-weight defects remain.
 

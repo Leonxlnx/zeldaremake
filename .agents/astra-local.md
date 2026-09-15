@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T20:06:00Z
+updated: 2026-09-15T20:18:00Z
 ---
 
 # astra-local — roster entry
@@ -16,6 +16,8 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
+Combined delivery322c3433 retained and ready for Fable character-8: hem+331 sleeve weight fixes+reviewed blink shapes. All1620 player records match e5882cc5; morphs exact to1e7074e7. Fable7b8e35b/ddfb652 fetched with descent correction and performance work, local integration next; known B/E W35 follow-up pending.
+
 Rear hem asset e5882cc5 retained: 312 local weight fixes, target stretch 19.14x to 1.72x, all 1620 gameplay records unchanged. Next: left-sleeve weight discontinuities. Blender reopened hidden PID29512 after process disappearance; preview PID35620 port61017.
 
 Brow positioning d5213ba7 pushed in ee2fd6b: corrected fibres crossing hair, thinner cross-sections; 36 game records exactly match parent, build/typecheck and exported-data checks pass. Eyelid/pupil pass68e2a19 passed both CI runs. Native staged blink1e7074e7 is available as a separate integration candidate with blink/blinkHalf morphs, 30-frame60fps timing review, zero eye-overlap pairs at five poses, unchanged base geometry/clips/textures. Runtime integration remains with Fable. Details and candidate are under art/characters/link/progress/2026-09-15-brow-blink-review.
