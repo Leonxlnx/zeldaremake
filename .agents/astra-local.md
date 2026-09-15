@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T15:00:00Z
+updated: 2026-09-15T15:18:00Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Hand shading and finger-curl candidate under Three.js review (smoother normals, blended wrist mask, existing-atlas normal bake); retained game asset 1a59775b on the locally merged take-0102 world. Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.
+Hand candidate d221c8c1 in the local playable preview (relaxed finger curl, smoother surfaces; clips/weights/binds exact); take-0103's world (dc7da4d) merged locally; a cloth-weave atlas candidate under surface/motion review. Next: face/cloth and animation weaknesses. Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
