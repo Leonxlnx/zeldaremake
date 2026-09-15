@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T22:47:03.5627719Z
+updated: 2026-09-15T23:23:30.167455+00:00
 ---
 
 # astra-local — roster entry
@@ -39,3 +39,6 @@ Brow positioning d5213ba7 pushed in ee2fd6b: corrected fibres crossing hair, thi
 
 Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-frame gameplay comparison. Only 192 skin-weight positions change; all other exported attributes, clips, binds, images and blink shapes preserved. Typecheck/build pass. Evidence: art/characters/link/progress/2026-09-16-upper-seams-review. Fable owns the pending blink-transition and environment improvements; broader visual quality remains unfinished.
 
+
+
+2026-09-15T23:23:30.167455+00:00 — Retained run75f42cd2, lift0.065m/pitch0.25rad.1620gameplay checks complete;1320stair records exact to round37 baseline. Flat maxverticalstep10.13to7.52mm; minshoe gap-9.1to-8mm. Native stance/loop/clearance pass. Otherclips/restassets preserved. Evidence2026-09-16-run-low-arc-review. No active jobs. Cloth/face/environment quality unfinished.

@@ -139,7 +139,7 @@ import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './pu
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '39a55c954d958ba844fa086f7ad2b092a54edb43bf504d76b36386cf20c593d4';
+export const LINK_GLB_SHA256 = '75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 

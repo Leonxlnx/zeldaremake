@@ -1,3 +1,6 @@
+Retained lower run arc: 75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c
+Run swing lift 0.105 to 0.065 m; ankle pitch amplitude 0.45 to 0.25 rad. Cadence, stance speed and stride retained. Rest attributes, morphs, images, binds and other clips exact; only run hip/leg channels change with toe export roundoff below 6e-8. Native clearance checks and 1620-frame gameplay review pass; 1320 staircase records match the earlier round37 baseline. Flat maximum vertical step improves 10.13 to 7.52 mm. Cloth folding remains unresolved. Evidence: art/characters/link/progress/2026-09-16-run-low-arc-review.
+
 Shoulder seam repair: 39a55c954d958ba844fa086f7ad2b092a54edb43bf504d76b36386cf20c593d4
 192 skin-weight positions corrected. All other rest attributes, images, clips, binds and blink morphs match the belt-side build. Four-gait checks improve the affected region; all 300 gameplay movement/blink samples match the preceding build. Visual gain is modest; other cloth and face defects remain. Evidence: art/characters/link/progress/2026-09-16-upper-seams-review.
 
