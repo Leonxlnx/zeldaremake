@@ -219,7 +219,9 @@ export interface HeightFogParams {
    * 28–37°), so the veil alone floored the near darks and coloured them yellow-green. The air the
    * hero cameras stand in is lit by the sunlit khaki floor and the warm key, not by the canopy's
    * green gaps, so it is dimmer and browner than the far veil; the far terms (the 25–45 m veil, the
-   * arch, the far rows, the dome) are untouched past `hazeNearFieldIn[1]`.
+   * arch, the far rows, the dome) are untouched past `hazeNearFieldIn[1]`. With the shipped colour
+   * the black object reads 0.209 (B) / 0.251 (D) / 0.213 (A) at 39–41° at 9–17 m; the 30–50 m
+   * floor is unchanged (0.451 / 0.518 / 0.443).
    */
   hazeNearField: [number, number, number];
   hazeNearFieldIn: [number, number];
