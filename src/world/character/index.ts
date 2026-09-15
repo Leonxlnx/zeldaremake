@@ -14,7 +14,8 @@
  * procedural. Every puppet's pose is a pure function of the simulation time (puppet.ts), feet are
  * planted on the heightfield every frame — per foot with a two-bone leg IK for the GLB (glbLink.ts),
  * a whole-rig drop for the procedural rigs — and the audit reports the planted sole positions
- * (`samplePositions.feet`), both soles' gaps (`linkFeetContact`) and the planting (`linkIk`).
+ * (`samplePositions.feet`), both soles' gaps (`linkFeetContact`), the planting (`linkIk`) and the
+ * GLB's blink (`blink*`: blink.ts — inert, `blinkMorphs` 0, on an asset without the morphs).
  */
 import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
