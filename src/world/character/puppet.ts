@@ -92,6 +92,21 @@ export interface PlantInfo {
   blendClips: number;
 }
 
+/**
+ * The blink of the last pose (audit `blink*`, round 8 — blink.ts): how many meshes carry the
+ * contract's morph targets (0 = the drive is inert, the asset has none), the closure phase p and
+ * the weights derived from it, the weights READ BACK from the first morph mesh after the pose
+ * (null without one), the start of the next scheduled blink and the schedule's seed / hash.
+ */
+export interface BlinkInfo {
+  morphMeshes: number;
+  phase: number;
+  weights: { blink: number; blinkHalf: number };
+  applied: { blink: number; blinkHalf: number } | null;
+  nextT: number;
+  schedule: { seed: string; hash: number; slotS: number; jitterS: number; originS: number };
+}
+
 export interface Puppet {
   kind: 'procedural' | 'glb';
   /** root object (added to the system group); its position is the feet point on the ground */
@@ -128,6 +143,8 @@ export interface Puppet {
    * frame (the caller records it when a gait without phases is switched away from; see FootAnchor).
    */
   anchor?(x: number, z: number, yaw: number, gait: Gait, clipShift: number, t: number): FootAnchor;
+  /** the blink of the last pose (puppets with a morph-target face; see BlinkInfo) */
+  blink?(): BlinkInfo;
 }
 
 const _head = new Vector3();

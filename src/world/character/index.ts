@@ -14,7 +14,8 @@
  * procedural. Every puppet's pose is a pure function of the simulation time (puppet.ts), feet are
  * planted on the heightfield every frame — per foot with a two-bone leg IK for the GLB (glbLink.ts),
  * a whole-rig drop for the procedural rigs — and the audit reports the planted sole positions
- * (`samplePositions.feet`), both soles' gaps (`linkFeetContact`) and the planting (`linkIk`).
+ * (`samplePositions.feet`), both soles' gaps (`linkFeetContact`), the planting (`linkIk`) and the
+ * GLB's blink (`blink*`: blink.ts — inert, `blinkMorphs` 0, on an asset without the morphs).
  */
 import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
@@ -52,12 +53,21 @@ const KID_COUNT = 3;
 
 type LinkSource = 'glb' | 'procedural';
 
-/** Astra's GLB unless `?link=proc` or the load / validation fails (then the procedural rig, with the reason). */
-async function createLinkPuppet(): Promise<{ puppet: Puppet; source: LinkSource; asset: LinkAssetInfo | null; reason: string | null }> {
-  const forced = new URLSearchParams(location.search).get('link') === 'proc';
-  if (!forced) {
+/** a `?link=<file>` override names a sibling of the runtime GLB in public/models/link/ (a plain file name, nothing else) */
+const LINK_FILE_OVERRIDE = /^[\w-]+\.glb$/;
+
+/**
+ * Astra's GLB unless `?link=proc` or the load / validation fails (then the procedural rig, with
+ * the reason). `?link=<name>.glb` loads that file from public/models/link/ instead of the runtime
+ * asset — a local review hook for a candidate export (round 8: the blink morphs), never set by
+ * the harness; the audit reports the file it loaded.
+ */
+async function createLinkPuppet(blinkSeed: string): Promise<{ puppet: Puppet; source: LinkSource; asset: LinkAssetInfo | null; reason: string | null }> {
+  const param = new URLSearchParams(location.search).get('link');
+  if (param !== 'proc') {
+    const file = param && LINK_FILE_OVERRIDE.test(param) ? `${LINK_GLB_FILE.slice(0, LINK_GLB_FILE.lastIndexOf('/') + 1)}${param}` : LINK_GLB_FILE;
     try {
-      const glb = await loadGlbLink(`${import.meta.env.BASE_URL}${LINK_GLB_FILE}`);
+      const glb = await loadGlbLink(`${import.meta.env.BASE_URL}${file}`, { file, blinkSeed });
       return { puppet: glb, source: 'glb', asset: glb.asset, reason: null };
     } catch (e) {
       const reason = e instanceof Error ? e.message : String(e);
@@ -80,7 +90,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const spawn = spot('link-spawn');
 
-  const linkLoad = await createLinkPuppet();
+  const linkLoad = await createLinkPuppet(`${ctx.config.seed}/link-blink`);
   const link: Actor = { ...hardChain('idle'), puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
   group.add(link.puppet.group, link.shadow);
 
@@ -336,6 +346,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       })(),
       /** the play-mode gait chain: the gait, the one it is fading from and the one before that (puppet.ts PuppetPose) */
       linkGaitChain: [link.gait, link.gaitFrom, link.gaitFrom2],
+      /**
+       * the blink (blink.ts, Astra's morph contract): meshes carrying the `blink` / `blinkHalf` morphs (0 = inert drive),
+       * the closure phase p of this pose and the weights set from it, the weights read back from the first morph mesh,
+       * the start of the next scheduled blink (sim s) and the schedule's seed / hash / slot parameters
+       */
+      ...(() => {
+        const b = link.puppet.blink?.() ?? null;
+        return {
+          blinkMorphs: b?.morphMeshes ?? 0,
+          blinkPhase: b ? Number(b.phase.toFixed(4)) : 0,
+          blinkWeights: b ? { blink: Number(b.weights.blink.toFixed(4)), blinkHalf: Number(b.weights.blinkHalf.toFixed(4)) } : null,
+          blinkApplied: b?.applied ? { blink: Number(b.applied.blink.toFixed(4)), blinkHalf: Number(b.applied.blinkHalf.toFixed(4)) } : null,
+          blinkNextT: b ? Number(b.nextT.toFixed(4)) : null,
+          blinkSchedule: b ? { ...b.schedule } : null,
+        };
+      })(),
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
       contactShadows: 1 + kids.length,
       pavingSurface: ground.surfaceInfo(),
