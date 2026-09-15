@@ -27,13 +27,28 @@ const STAIN_TINT = new Color(0.97, 0.93, 0.85);
  * 30° bin against the frame's 61 %) while B's field window landed; this is 0.6 of that. Unit
  * luminance so the dark class keeps its level.
  */
-const INDIRECT_WARM = (() => {
-  // (r, g, r): equal red and blue keep (R − B) / R, the chroma, where the stone is R > G > B; the
-  // green cut alone moves the hue. Solved for unit luminance.
-  const g = 0.985;
+// (r, g, r): equal red and blue keep (R − B) / R, the chroma, where the stone is R > G > B; the
+// green cut alone moves the hue. Solved for unit luminance.
+const indirectTint = (g: number) => {
   const k = (1 - 0.7152 * g) / (0.2126 + 0.0722);
   return new Color(k, g, k);
-})();
+};
+/**
+ * Round 35: zoned by world z in the shader (`smoothstep(−1, 1, z)`, zones.ts `southPlaza`).
+ * Attributed by part on the control's captures (hardscape isolate, parts hidden in
+ * turn), the shaded slabs are 63–66 % of the lit windows' dark class in frames 14 s / 56 s and
+ * split 28 / 28 (B) and 31 / 26 (D) between the 30° and 40° hue bins where the frames' dark class
+ * sits 68 / 24 and 61 / 27 — the path's shade wants a fuller cut than round 34's 0.985 (0.965
+ * overshot camera D at 74–76 %). 0.976 landed D's bottom quarter on the frame (61 / 26) but put
+ * 11 % of B's foreground dark class in the 20° bin against the frame's 3 % (the control's 9):
+ * 0.98 splits the difference. Camera A's plaza is the other way: frame 1 s's dark class is 37 %
+ * in the 30° bin and 32 % in the 50–70° (an olive film over the shaded slab halves) against our
+ * 54 / 17 — but a green lift there moves the shade into the 40° bin, not the 50s (1.012: 33 / 43 /
+ * 21; 1.004: 26 / 52 / 14 / 5; 0.993: 33 / 47 / 13 / 4, each with camera A −0.001 SSIM), so the
+ * plaza keeps round 34's 0.985: the zoning only takes the path's shade browner.
+ */
+const INDIRECT_WARM_PATH = indirectTint(0.98);
+const INDIRECT_WARM_PLAZA = indirectTint(0.985);
 
 /**
  * linear multiplier on the stone albedo. Round 9: with the lighting settled, the sunlit paving
@@ -98,7 +113,8 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     shader.uniforms.uMossBright = { value: mossBright };
     shader.uniforms.uMossSoil = { value: mossSoil };
     shader.uniforms.uStainTint = { value: STAIN_TINT };
-    shader.uniforms.uIndirectWarm = { value: INDIRECT_WARM };
+    shader.uniforms.uIndirectWarmPath = { value: INDIRECT_WARM_PATH };
+    shader.uniforms.uIndirectWarmPlaza = { value: INDIRECT_WARM_PLAZA };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -112,7 +128,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarm; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarmPath; uniform vec3 uIndirectWarmPlaza; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS;
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -244,7 +260,9 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         // in the 30° hue bin, its lit class 48 %; ours the other way round, 51 / 62, with the
         // near-neutral hemisphere fill) — so the stone's indirect light is warmed at constant
         // luminance; the sunlit tops, direct light, are untouched
-        reflectedLight.indirectDiffuse *= uIndirectWarm;`,
+        // (round 35: zoned — the path north of the plaza takes the fuller brown cut, the plaza
+        // south of z 1 a slight olive lift; see INDIRECT_WARM_PATH / _PLAZA)
+        reflectedLight.indirectDiffuse *= mix(uIndirectWarmPath, uIndirectWarmPlaza, smoothstep(-1.0, 1.0, vWPosS.z));`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
@@ -253,7 +271,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v22-wear-crack-mottle-warm-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v23-wear-crack-mottle-warm-zoned-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

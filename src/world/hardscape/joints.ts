@@ -15,7 +15,7 @@ import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { discField, earthPatch, jointSoil, lawnPocket, lawnZone } from './zones';
+import { dGapZone, discField, earthPatch, jointSoil, lawnPocket, lawnZone } from './zones';
 
 /** what the joint fill needs to know about the slabs around it */
 export interface JointPaving {
@@ -300,6 +300,12 @@ export async function buildJointMesh(
   // albedo renders 10° browner; nine tenths to the green, × 1.6 (albedo hue ≈ 62°, Y 0.11))
   const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.9).multiplyScalar(1.6);
   const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.22).multiplyScalar(1.12);
+  // round 35: camera D's foreground gaps (zones.ts `dGapZone`) — the field earth a tenth further to
+  // the green and 13 % darker: frame 56 s's gaps read 0.15–0.2 under the slab tops with its dark
+  // class 61 / 27 % in the 30° / 40° hue bins against our 53 / 34 (its joint class p50 0.419 under a
+  // 0.569 stone; ours 0.365 under 0.539). The tone only — the round's seam widening, painted
+  // recess and gap tufts (joint share 0.349 vs the frame's 0.216, D −0.003 SSIM) are not kept.
+  const gapEarth = fieldEarth.clone().lerp(new Color(P.grassDeep), 0.1).multiplyScalar(0.87);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
   const mossB = new Color(P.mossBright);
@@ -356,12 +362,15 @@ export async function buildJointMesh(
     // the frame's 30° bin, against its 51 %)
     tmp.lerp(fieldEarth, 0.75 * field);
     tmp.lerp(trodden, 0.85 * patch);
+    // round 35: camera D's gaps, sown last so the gap earth sits over the field earth
+    const dgap = dGapZone(x, z);
+    tmp.lerp(gapEarth, 0.85 * dgap);
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
     // a little heavier on the lawn paving where the slabs sit in it, a third lighter in the disc
     // field's soil gaps; camera C's trodden patch takes the moss-green from its earth tone, its
     // moss patches — the deep moss renders 10° browner than the frame's ground — are the plaza's)
     const lawn = lawnZone(x, z);
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field);
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field) * (1 - 0.25 * dgap);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
     tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
     col.push(tmp.r, tmp.g, tmp.b);
