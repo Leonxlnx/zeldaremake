@@ -52,6 +52,18 @@
  *   shifted 12 mm further from the wavy lip, so the pre-existing heel-strike extra drop grows);
  *   no reach clamp; the flat scenario identical frame for frame to round 5 but the idle → walk
  *   start, 4.4 → 2.6 mm (walk → run 3.4 mm, run → idle unchanged).
+ *   Round 6b — the landing off the bottom riser (Astra's review of the above): the landing foot,
+ *   shifted 2.6 cm forward off the wavy lip, lay past the straight leg the frame it planted and
+ *   the stance rule dropped the root by the whole shortfall in that frame (21.9 mm, was 13.9
+ *   with round 5's 1.4 cm shift). The shortfall is now taken up over the last ATTACK of the
+ *   swing (`attackDropM`) — the mirror of the take-off RELEASE, evaluated on the landing
+ *   configuration (shifted spot, support, the clip's heel-strike hip and ankle orientation, the
+ *   slope tilt and nosing pitch the stance rule will apply) so it hands over at phase 1 without
+ *   a step. That landing: −6.8 … −1.6 mm over eight frames, then the stance's own +13.0 as the
+ *   hip comes over the foot (was −21.9 / +12.3); the whole-descent maximum is back to the riser
+ *   ease's 19.65 mm/frame (f472 — the same stride is 19.62 in round 5, its tread reading 0.45 mm
+ *   prouder under a boot corner now); every other number of round 6 unchanged, the ascent and the
+ *   flat scenario identical frame for frame.
  *
  * Playback rate per gait = GAIT_SPEED / (stride / cycle) from her pipeline.json — 1.0 for every
  * clip as delivered; the formula stays so a future clip with a different stride does not slide.
@@ -268,6 +280,15 @@ const HEEL_RUNOUT = 0.12;
 const TOE_RUNOUT = 0.1;
 /** a take-off leg's extra root drop (its planted foot beyond the leg's reach) is released over this fraction of the swing */
 const RELEASE = 0.3;
+/**
+ * The mirror image at heel-strike (round 6b): the extra root drop the landing configuration will
+ * need — its shifted spot on its support, against the hip of the clip's heel-strike pose — is
+ * taken up over the last ATTACK of the swing instead of appearing in the frame the foot plants
+ * (a landing foot pushed 2.6 cm forward off the bottom riser's wavy lip dropped the root 21 mm
+ * in one frame). Exactly the stance rule's value at phase 1, so it hands over without a step,
+ * and zero wherever the landing pose is within reach (every flat-ground landing).
+ */
+const ATTACK = 0.35;
 /** footprint scan along the facing: sample spacing and the reach past the footprint's margins */
 const SCAN_STEP = 0.02;
 const SCAN_PAD = 0.02;
@@ -415,6 +436,15 @@ interface Leg {
   relA: Vector3;
   relH: Vector3;
   relW: number;
+  /**
+   * extra-drop attack (see ATTACK): the ankle target of the foot in its landing configuration
+   * (world), the hip of the clip's heel-strike pose at the landing (world xz; y above the root
+   * floor at landing), the attack weight (0 outside the last ATTACK of a swing) and that floor
+   */
+  attA: Vector3;
+  attH: Vector3;
+  attW: number;
+  rootAtLand: number;
   /** the footprint point (offset along the facing) the report treats as the contact, and the exact ground there */
   contactOff: number;
   contactGround: number;
@@ -422,8 +452,9 @@ interface Leg {
 
 /**
  * One swing of one foot in a clip: clip times, root-relative sole spots and foot yaws at toe-off
- * and heel-strike, and the toe-off pose the extra-drop release re-evaluates (see RELEASE): the
- * root-relative hip, the ankle orientation and the sole's lift above the lower sole.
+ * and heel-strike, and the toe-off / heel-strike poses the extra-drop release and attack
+ * re-evaluate (see RELEASE / ATTACK): the root-relative hip, the ankle orientation and the
+ * sole's lift above the lower sole at each.
  */
 interface Swing {
   tOff: number;
@@ -437,6 +468,9 @@ interface Swing {
   offHip: Vector3;
   offQ: Quaternion;
   offLift: number;
+  landHip: Vector3;
+  landQ: Quaternion;
+  landLift: number;
 }
 
 /** root-space sole path of one foot over one clip cycle (TABLE_N samples), with the hip and ankle orientation */
@@ -522,6 +556,7 @@ const _qIk = new Quaternion();
 const _qParent = new Quaternion();
 const _qInv = new Quaternion();
 const _qPitch = new Quaternion();
+const _qLandTilt = new Quaternion();
 const _p = new Vector3();
 const _qYaw = new Quaternion();
 const _reach: Reach = { fwd: Infinity, back: Infinity };
@@ -781,6 +816,7 @@ function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[]
       // the toe-off pose relative to the root's FLOOR (the lower sole): the hip's height above it
       // and this sole's lift above it — the root is grounded by that floor, so both carry over
       const offFloor = Math.min(path.soleY[off], other.soleY[off]);
+      const landFloor = Math.min(path.soleY[land], other.soleY[land]);
       swings.push({
         tOff,
         tLand,
@@ -793,6 +829,9 @@ function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[]
         offHip: new Vector3(path.hip[off].x, path.hip[off].y - offFloor, path.hip[off].z),
         offQ: path.q[off].clone(),
         offLift: path.soleY[off] - offFloor,
+        landHip: new Vector3(path.hip[land].x, path.hip[land].y - landFloor, path.hip[land].z),
+        landQ: path.q[land].clone(),
+        landLift: path.soleY[land] - landFloor,
       });
     }
     k += len;
@@ -1151,6 +1190,10 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       relA: new Vector3(),
       relH: new Vector3(),
       relW: 0,
+      attA: new Vector3(),
+      attH: new Vector3(),
+      attW: 0,
+      rootAtLand: 0,
       contactOff: 0,
       contactGround: 0,
     };
@@ -1160,7 +1203,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
   ];
-  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
+  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
   const cfgOff: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
   const cfgLand: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
   const spotNow = { x: 0, z: 0, yaw: 0 };
@@ -1386,9 +1429,12 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         let travelBack = 0;
         let travelFwd = 0;
         let relW = 0;
+        let attW = 0;
         let predPin = 0;
         leg.relA.set(0, 0, 0);
         leg.relH.set(0, 0, 0);
+        leg.attA.set(0, 0, 0);
+        leg.attH.set(0, 0, 0);
         for (const c of chain) {
           const weight = c.weight;
           if (weight <= 0) continue;
@@ -1448,6 +1494,35 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
               leg.relH.z += rw * (z - s.offHip.x * fx + s.offHip.z * fz - fz * back);
               relW += rw;
             }
+            const aw = weight * MathUtils.smoothstep(sw.phase, 1 - ATTACK, 1);
+            if (aw > 0) {
+              // the foot in its landing configuration (the shifted landing spot at its support,
+              // the clip's heel-strike sole lift and ankle orientation tilted onto the slope
+              // there and pitched over its nosing, as the stance rule will have it — a 7.8°
+              // slope at the flight's foot moves the ankle 14 mm) and the hip of that pose at the
+              // landing (the root `ahead` along the facing), like the spots
+              _q2.copy(s.landQ).premultiply(_qYaw);
+              groundTilt(ground, lx, lz, 1, _qLandTilt);
+              if (Math.abs(cfgLand.pitch) > 1e-5) {
+                _v.copy(leg.fwdLocal).applyQuaternion(_q2);
+                _v.y = 0;
+                if (_v.lengthSq() > 1e-8) {
+                  _v.normalize();
+                  _n.crossVectors(_axisY, _v);
+                  _qPitch.setFromAxisAngle(_n, cfgLand.pitch);
+                  _qLandTilt.premultiply(_qPitch);
+                }
+              }
+              _q.multiplyQuaternions(_qLandTilt, _q2);
+              _p.copy(leg.sole).applyQuaternion(_q);
+              leg.attA.x += aw * (lx + fx * cfgLand.shift - _p.x);
+              leg.attA.y += aw * (gLand + s.landLift - _p.y);
+              leg.attA.z += aw * (lz + fz * cfgLand.shift - _p.z);
+              leg.attH.x += aw * (x + s.landHip.x * fz + s.landHip.z * fx + fx * ahead);
+              leg.attH.y += aw * s.landHip.y;
+              leg.attH.z += aw * (z - s.landHip.x * fx + s.landHip.z * fz + fz * ahead);
+              attW += aw;
+            }
           } else {
             const st = stanceAt(swings, a.action.time, a.duration);
             let pin = 0;
@@ -1498,6 +1573,11 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
             leg.relH.divideScalar(relW);
             relW /= wsum;
           }
+          if (attW > 0) {
+            leg.attA.divideScalar(attW);
+            leg.attH.divideScalar(attW);
+            attW /= wsum;
+          }
         } else {
           footConfig(surface, base, leg.soleP.x, leg.soleP.z, fx, fz, leg.yawRel, leg.fp, cfgOff);
           predFoot = rootOff = rootLand = cfgOff.support;
@@ -1512,6 +1592,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         leg.phase = phase;
         leg.swingW = swingW;
         leg.relW = relW;
+        leg.attW = attW;
         // the geometric lifts on the shifted footprint at the foot's current yaw: the CLEAR arc
         // over a riser ahead (blended by phase) and the LIP lift (exact at both ends of a swing),
         // both seeing only the edges within this swing's travel
@@ -1547,6 +1628,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : 1);
         leg.gRoot = leg.swingW > 0 ? r0 + (r1 - r0) * ease : leg.rootOff;
         leg.rootAtOff = r0;
+        leg.rootAtLand = r1;
       }
       const gMin = Math.min(legs[0].gRoot, legs[1].gRoot);
       const shift = gMin - soleMin;
@@ -1567,6 +1649,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       let maxPin = 0;
       let maxHold = 0;
       let extraDrop = 0;
+      let attackDrop = 0;
       for (const leg of legs) {
         // the sole onto its support plus the clip's lift above the root's floor, the lift
         // flattened where that would fold the leg (FOLD_MAX) — never below the support itself,
@@ -1613,6 +1696,19 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
           const flat2 = reach * reach - _v.x * _v.x - _v.z * _v.z;
           if (flat2 > 0) {
             const drop = (-_v.y - Math.sqrt(flat2)) * leg.relW;
+            if (drop > extraDrop) extraDrop = drop;
+          }
+        }
+        if (leg.attW > 1e-4) {
+          // a leg about to land: the drop its landing configuration will need (the shifted spot
+          // on its support against the hip of the clip's heel-strike pose, the root on the floor
+          // at landing) is taken up over the last ATTACK of the swing rather than appearing in
+          // the frame the foot plants (see ATTACK). The stance rule's own value at phase 1.
+          _v.set(leg.attA.x - leg.attH.x, leg.attA.y - (leg.rootAtLand + leg.attH.y), leg.attA.z - leg.attH.z);
+          const flat2 = reach * reach - _v.x * _v.x - _v.z * _v.z;
+          if (flat2 > 0) {
+            const drop = (-_v.y - Math.sqrt(flat2)) * leg.attW;
+            if (drop > attackDrop) attackDrop = drop;
             if (drop > extraDrop) extraDrop = drop;
           }
         }
@@ -1733,6 +1829,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       plant.reachExcessM = reachExcess;
       plant.maxShiftM = maxShift;
       plant.extraDropM = extraDrop;
+      plant.attackDropM = Math.min(attackDrop, MAX_CORRECTION);
       plant.maxPinM = maxPin;
       plant.maxHoldM = maxHold;
       plant.blendClips = blendClips;
