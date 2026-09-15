@@ -145,6 +145,40 @@ const HOUSE_FOOT_DRY = 0.45;
  */
 const D_HOLLOW_CUT = 0.08;
 const D_HOLLOW_HEIGHT = 0.45;
+/**
+ * Round 35: camera C's bottom-left foreground (field.ts `cFoot`; frame 46 s: trodden earth with
+ * a fine dusty fringe, lum p50 0.43–0.52 and 0–4 % green at x 0.1–0.35, where control carried a
+ * closed lit turf, green 67–85 % at p50 0.29–0.35 with 0.14–0.5 m blades at 3–8 m). The turf
+ * there loses C_FOOT_THIN of its density (a position hash after the last draw, like the shoulder
+ * cut, so the tile's other blades stay put), the rest is cut by C_FOOT_HEIGHT, biased to the pale
+ * palette (+C_FOOT_TINT) with straw tips (+C_FOOT_DRY) and lit by the second zone fill
+ * (materials.ts LIFT_ZONE_C_FOOT); no meadow stalks. The ground under the turf renders 0.32,
+ * darker than the frame's earth: the first cut's 0.3 thinning opened the cover onto it and C's
+ * bottom-left p50 stayed at 0.323 (frame 0.377) while its green share and edge energy came down
+ * (66.9 → 49.3 %, 218 → 94) — so the cover stays closed and short, paler and dustier still, and
+ * the fill does the lighting; the standing plants keep thinning (plants.ts) for the frame's bare
+ * look between the stones.
+ */
+const C_FOOT_THIN = 0.08;
+const C_FOOT_HEIGHT = 0.55;
+const C_FOOT_TINT = 0.7;
+const C_FOOT_DRY = 0.55;
+/**
+ * Round 35: the frames' dark bank masses beside the main flight (field.ts `bankDark`): the blades
+ * there carry a darkening (0..1, materials.ts: × (1 − 0.5 d), 30 % desaturated) in the tint
+ * slot's unused fraction, so blades outside the zones keep their encoding bit for bit. The zone
+ * weight × BANK_DARKEN: the north-west flank (frames 8 / 46 measure it 0.19–0.24 against our
+ * 0.30–0.32) and the plateau shelf (frame 8's right mass 0.265 against the lit strip's 0.35).
+ */
+const BANK_DARKEN = 0.6;
+/**
+ * Round 35: the same mass, flatter. Frame 8 s' left bank is one blur — local sd 0.01–0.05 in
+ * 8 px windows at 256 × 144 — and SSIM's structure term there is set by our own local variance
+ * (the luminance term already sits at 0.92–0.99): the darkening alone took F 0.1–0.2 × 0.5 up
+ * 0.06–0.09 per cell. In the zone the blade-to-blade tint noise and the straw tips (the two
+ * per-blade contrasts) are cut by BANK_FLAT × zone, so neighbouring blades share a palette entry.
+ */
+const BANK_FLAT = 0.7;
 /** 0..1 hash of a mm-quantised position (no rng draw) */
 const hash01 = (x: number, z: number) => {
   let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -235,6 +269,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const sight = houseNorth ? 0 : field.sightlineC(x, z, 0.5);
       // frame 56 s' hollow (round 32): a low, thinned cover
       const hollow = field.dHollow(x, s.h, z);
+      // frame 46 s' trodden foreground before camera C (round 35): short dusty turf
+      const foot = field.cFoot(x, z);
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
       // the low verges so the embankments still read dense
       const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
@@ -249,7 +285,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (housePass ? 0.3 : 1);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (1 - foot) * (housePass ? 0.3 : 1);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
@@ -281,7 +317,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (houseSouth > 0) h = Math.min(h, h + (HOUSE_FLANK_MAX_H_SOUTH - h) * houseSouth);
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
-      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow);
+      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow) * (1 - C_FOOT_HEIGHT * foot);
       maxH = Math.max(maxH, h);
 
       // colour. The shade zone (frame 8's right embankment) measures ≈ 0.30 luminance in the
@@ -290,12 +326,17 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // already supplies the "shaded"), its blades get the flatter fill-lit gradient (shade lift,
       // see materials.ts) and keep a few straw tips for the blade-to-blade texture.
       // trodden blades are dusty: lighter olive with more straw tips
-      let tn = field.tint(x, z) + rng.gauss() * 0.22 - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod;
-      if (s.slope > 0.35) tn -= 0.15 * (1 - shade);
+      // the dark bank mass of frames 8 / 46 (round 35): darkened blades in a flat spread — the
+      // blade-to-blade tint noise and the straw tips are what the frame's blur does not have
+      const bank = field.bankDark(x, z);
+      let tn = field.tint(x, z) + rng.gauss() * 0.22 * (1 - BANK_FLAT * bank) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot;
+      if (s.slope > 0.35) tn -= 0.15 * (1 - shade) * (1 - foot);
       // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
       if (houseNorth) tn += HOUSE_FLANK_NORTH_TINT;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
-      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0)) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade);
+      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0) + C_FOOT_DRY * foot) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
+      // the dark bank mass (round 35): a blade darkening in the tint slot's spare fraction
+      const darken = clamp(BANK_DARKEN * bank, 0, 0.96);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
 
       // wind
@@ -331,12 +372,15 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       }
       // frame 56 s' hollow (round 32): the same kind of drop, after every draw
       if (hollow > 0 && hash01(x + 0.5, z) < D_HOLLOW_CUT * hollow) return;
+      // camera C's trodden foreground (round 35): the same kind of drop, after every draw
+      if (foot > 0 && hash01(x, z + 0.5) < C_FOOT_THIN * foot) return;
       composeMatrix(matrices, count * 16, x, y, z, nx, s.ny, nz, 0.5, yaw, w, h, h);
       const o = count * 4;
       data[o] = phase;
       data[o + 1] = stiffness;
-      // tint slot: integer part = palette index, fraction 0.25..0.75 = shade lift (materials.ts)
-      data[o + 2] = (tintIndex + 0.25 + 0.5 * shade) / 4;
+      // tint slot: integer part = palette index, fraction 0.25..0.75 = shade lift, fraction
+      // below 0.25 = bank darkening (materials.ts; the two never meet on one blade)
+      data[o + 2] = (tintIndex + (darken > 0.01 ? 0.25 - 0.25 * darken : 0.25 + 0.5 * shade)) / 4;
       data[o + 3] = type + dry;
       count++;
       typeCounts[type]++;
