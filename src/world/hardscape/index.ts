@@ -470,18 +470,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // with sparse khaki blades between the lawn and the slab rims (x 0.2–0.3 of the frame at
   // y 0.7–0.78), where ours ran the lawn's green clumps to the stone — measured in camera B's
   // field window that fringe alone was 27 % of the paving's dark class in the 60–70° hue bins
-  // against the frame's 6 %. The rim / band clumps and the lawn within 0.6 m of the edge take
-  // 60 % of the ramp (the geometry, the soft edge over the slabs, is unchanged).
+  // against the frame's 6 %. The rim / band clumps take 60 % of the ramp and the lawn within
+  // 0.2–0.6 m of the edge half of it (the geometry, the soft edge over the slabs, is unchanged) —
+  // north of z −3.6 only (full by −4.6): the strip is frame 14 s's y 0.7–0.78; south of it, at the
+  // frame's bottom-left, the lawn meets the slabs green. The same pixels are the right sixth of
+  // camera B's left-verge box (vegetation-16's, x 0–0.3 × y 0.55–0.85): tinting the whole fringe
+  // 0.85 m deep took that box from a matched 63.7 % green to 54.8 % against the frame's 62.3 %;
+  // this scope holds it near 58 % with B's field window inside 8 points on every hue bin.
   // Camera A's plaza (zones.ts `southPlaza`) is the other way round: frame 1 s's joints are dark
   // green-brown moss (its dark class has 32 % in the 50–70° bins against our 15 % before this
   // round), so the plaza's tufts take a third of the ramp and its moss pads none.
   for (const s of spots) {
     const base = JOINT_TUFT_TINT[s.source ?? ''] ?? 0;
     s.jointTint = s.kind === 'cushion' ? Math.min(base, 0.7) : base;
-    if (s.source === 'pocket-rim' || s.source === 'pocket-band') s.jointTint = 0.6;
-    else if (s.source?.startsWith('pocket-')) s.jointTint = 0.6 * smoothstep(lawnPocketEdgeX(s.z) - 0.85, lawnPocketEdgeX(s.z) - 0.25, s.x);
+    if (s.source?.startsWith('pocket-')) {
+      const fringe = s.source === 'pocket-rim' || s.source === 'pocket-band' ? 1 : 0.85 * smoothstep(lawnPocketEdgeX(s.z) - 0.6, lawnPocketEdgeX(s.z) - 0.2, s.x);
+      s.jointTint = 0.6 * fringe * smoothstep(-3.6, -4.6, s.z);
+    }
     const plaza = southPlaza(s.z);
     if (plaza > 0) s.jointTint *= s.kind === 'cushion' ? 1 - plaza : 1 - 0.65 * plaza;
+    // north of camera D's foreground (z −13 on, frame 56 s's y 0.58–0.72) the frame's joints go
+    // back to moss: its dark class there is 48 % in the 50° bin and 1 % in the 30° against our
+    // 26 / 18 with the full ramp, so the tufts keep half their green from there on
+    s.jointTint *= 1 - 0.5 * smoothstep(-12.5, -14.5, s.z);
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
   // per-(source, variant) jitter streams (sprout-jitter.ts): a scatter can change without re-rolling any other

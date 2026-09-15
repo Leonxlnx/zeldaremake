@@ -66,13 +66,13 @@ export interface SproutSpot {
 }
 
 /**
- * the joint-grass ramp (sRGB): blade base olive-brown (hue 39°), tip straw (39°, paler) — the
+ * the joint-grass ramp (sRGB): blade base olive-brown (hue 37°), tip straw (37°, paler) — the
  * frames' khaki blades over dark soil. Measured on round 34's takes the tufts render within ± 3°
- * of the albedo hue (a 48–51° ramp landed in the 50° bin, 42° in the 40° bin), so the ramp sits
- * where the frames' dark-class mass is: 30–45°.
+ * of the albedo hue (a 48–51° ramp landed in the 50° bin, 42° in the 40° bin, 39° at the 40°
+ * bin's low edge), so the ramp sits where the frames' dark-class mass is: 30–45°.
  */
-export const JOINT_TUFT_DEEP = 0x6a5630;
-export const JOINT_TUFT_TIP = 0xb3945a;
+export const JOINT_TUFT_DEEP = 0x6a5430;
+export const JOINT_TUFT_TIP = 0xb3925a;
 
 /**
  * Per-(source, variant) jitter streams for `buildSproutMeshes`: called once for each pair on first
