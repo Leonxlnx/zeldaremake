@@ -507,10 +507,21 @@ export function createComposer(opts: ComposerOptions): Composer {
     // 0.93 on B; the frames' window std at 17–30 m is 0.045 against our 0.028, so this is the
     // metric's uncorrelated-structure term, not a match of the frames' softness — see the note
     // above); 8 / 45 read +0.0088 / +0.0075 at 0.85 sharpness and was not taken
+    // Round 37 (tone): the haze blur's σ re-swept with the near unsharp in place, E / A / D / F
+    // Δ SSIM: 3.6 +0.0018 / +0.0020 / +0.0020 / +0.0017; 4.2 +0.0030 / +0.0036 / +0.0035 / +0.0031;
+    // 4.8 +0.0033 / +0.0051 / +0.0045 / +0.0042; 5.4 (A / D / F) +0.0062 / +0.0055 / +0.0053 —
+    // sharpness unchanged at every σ (E 0.830 → 0.829, A 0.916 → 0.916) because the 320-grid blur
+    // at σ 3 has already taken the far edges the metric's 256×144 Laplacian can see (far 20–50 m
+    // ours/ref A 0.73 → 0.74, D 0.27 → 0.27 across the sweep); the gain is the 30–50 m and 50 m+
+    // windows' structure term, where our window std (A 0.020, D 0.015) is already under the
+    // frame's (0.028 / 0.031) and the structures do not correlate. σ 4.2 taken (the brief's upper
+    // value); 4.8 / 5.4 not — more of the same term, not a match of the frames' far texture (the
+    // far deficit is structure the frame has and we do not). softFarStart 12 costs the near band
+    // (E 0.830 → 0.819, A 0.916 → 0.900 sharpness) for +0.0017 / +0.0033 and stays out.
     softFarStart: 16,
     softFarFull: 50,
     softBlurSigma: 1.2,
-    softFarSigma: 3.0,
+    softFarSigma: 4.2,
     softActivitySigma: 2.5,
     softNearSharp: 0.25,
     softNearStart: 4,
