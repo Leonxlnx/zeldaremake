@@ -148,6 +148,7 @@ uniform float uMaxDist;
 uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
 uniform vec2 uAirFade;     // world heights (m) between which the base-air in-scatter fades in
+uniform vec2 uMistNear;    // marched distances (m) between which the mist-layer in-scatter ramps in (x >= y disables)
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
 uniform float uAnisotropy;
 uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the angle where it saturates
@@ -232,7 +233,12 @@ void main() {
     // columns keep the fade: shot D's rays to the arch cross their 2.5–4 m air, and lighting it
     // striped the arch body
     float upperAir = max( smoothstep( uAirFade.x, uAirFade.y, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
-    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) + uDensity.y * clear * upperAir;
+    // optional ramp of the mist-layer in-scatter along the ray (see ComposerSettings.rayMistNearStart;
+    // off in production): with every surface black the rays + mist add 0.05 display to D's 9–17 m
+    // floor (0.209 → 0.260) and 0.02 to B's, but ramping the mist in over 6–18 m cost −0.006 SSIM
+    // on both views on top of the veil change it was paired with — the near glow is part of D's look
+    float mistNear = uMistNear.y > uMistNear.x ? smoothstep( uMistNear.x, uMistNear.y, t ) : 1.0;
+    float dens = uDensity.x * height * mix( 0.35, 1.0, north ) * mistNear + uDensity.y * clear * upperAir;
     acc += lit * dens * stepLen * exp( -uExtinction * t );
   }
   // the phase term is normalised to 1 at 90° from the sun so uRayIntensity means "strength of a

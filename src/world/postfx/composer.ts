@@ -158,6 +158,9 @@ export interface ComposerSettings {
   /** world heights (m) between which the base-air in-scatter fades in (the lit air is the upper air) */
   rayAirFadeLo: number;
   rayAirFadeHi: number;
+  /** marched distances (m) between which the mist-layer in-scatter ramps in (start >= end disables the ramp) */
+  rayMistNearStart: number;
+  rayMistNearEnd: number;
   /** march length (m) */
   rayMaxDist: number;
   /** Henyey–Greenstein g of the shaft in-scatter: how much the fan brightens toward the sun's side of the frame */
@@ -391,6 +394,9 @@ export function createComposer(opts: ComposerOptions): Composer {
     // p50 stays at −0.018 while the top band gains +0.03
     rayAirFadeLo: 3,
     rayAirFadeHi: 6.5,
+    // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)
+    rayMistNearStart: 0,
+    rayMistNearEnd: 0,
     // and the march stops where the veil has taken over (75 % fog at 40 m)
     rayMaxDist: 40,
     // the frames' beams are strongest looking toward the sun: D (58° off) reads +0.10 in-beam,
@@ -600,6 +606,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       // (mist-layer density, base air density) in 1/m — see ComposerSettings
       uDensity: { value: new Vector2(settings.rayMistDensity, settings.rayBaseDensity) },
       uAirFade: { value: new Vector2(settings.rayAirFadeLo, settings.rayAirFadeHi) },
+      uMistNear: { value: new Vector2(settings.rayMistNearStart, settings.rayMistNearEnd) },
       // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
       // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
       // eye-level column, so the sun-facing upper frame is shafts, not a wash over the crowns
@@ -824,7 +831,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     renderer.info.reset();
     const hidden: Object3D[] = [];
     for (const name of hideList()) {
-      const o = scene.getObjectByName(name);
+      const o = scene.getObjectByName(name) ?? opts.overlay?.scene.getObjectByName(name);
       if (o && o.visible) {
         o.visible = false;
         hidden.push(o);
@@ -950,6 +957,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     if (rayIntensity.value > 0.001 && bindShadow()) {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
+      (rayMarchMat.uniforms.uMistNear.value as Vector2).set(s.rayMistNearStart, s.rayMistNearEnd);
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
       rayMarchMat.uniforms.uAnisotropy.value = s.rayAnisotropy;
@@ -1131,6 +1139,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayBackScatterMin: fog.rayBackScatterMin,
       godRayExtinctionPerM: settings.rayExtinction,
       godRayMaxDistM: settings.rayMaxDist,
+      godRayAirFadeM: [settings.rayAirFadeLo, settings.rayAirFadeHi],
+      godRayMistNearM: [settings.rayMistNearStart, settings.rayMistNearEnd],
       godRayAnisotropy: settings.rayAnisotropy,
       godRayContrastPow: settings.rayContrast,
       godRayGapFrequencyPerM: settings.beamFrequency,

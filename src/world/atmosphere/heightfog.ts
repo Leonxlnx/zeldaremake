@@ -206,6 +206,36 @@ export interface HeightFogParams {
   farShadeStart: number;
   farShadeFull: number;
   farShadeMin: number;
+  /**
+   * Near-field airlight (round 35): the radiance of the air between the camera and
+   * `hazeNearFieldIn[0]` m, graded into the directional veil (open / closed / mist) by
+   * `hazeNearFieldIn[1]` m; `hazeNearFieldAmount` scales the mix (0 disables the term). Measured
+   * with every surface black (veilOnly): at 9–17 m a black object read 0.224 (B) / 0.260 (D) display
+   * with a 58–60° hue against the frames' darkest decile there of 0.211 / 0.214 (bark 0.19–0.20 at
+   * 28–37°), so the veil alone floored the near darks and coloured them yellow-green. The air the
+   * hero cameras stand in is lit by the sunlit khaki floor and the warm key, not by the canopy's
+   * green gaps, so it is dimmer and browner than the far veil; the far terms (the 25–45 m veil, the
+   * arch, the far rows, the dome) are untouched past `hazeNearFieldIn[1]`.
+   */
+  hazeNearField: [number, number, number];
+  hazeNearFieldIn: [number, number];
+  hazeNearFieldAmount: number;
+  /**
+   * Direction of the dim near air (horizontal unit vector, like `openDir`) and smoothstep edges on
+   * the ray's horizontal dot with it: toward the north-west hollow the frames' near air is the lit
+   * pool's glow (D's left bank reads 0.49 against our 0.39 at 9–17 m), so the near field is not
+   * dimmed there; toward the north-east and east — Saria's trunk bank in D, the house pillar in B —
+   * it is (frames 0.27 / 0.24 against our 0.31 / 0.31).
+   */
+  hazeNearFieldDir: [number, number];
+  hazeNearFieldEdges: [number, number];
+  /**
+   * Probe aid (0 in production; set through `__ATMO_FOG__`): 1 zeroes every fogged surface's own
+   * radiance before the veil is laid over it, so a capture shows the airlight floor alone — what a
+   * black object would read at each pixel's depth (the god rays, the mist sheets and the grade
+   * still apply, as they do to a real surface).
+   */
+  veilOnly: number;
 }
 
 export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
@@ -418,6 +448,14 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   farShadeStart: 22,
   farShadeFull: 44,
   farShadeMin: 0.3,
+  hazeNearField: [0.16, 0.145, 0.12],
+  hazeNearFieldIn: [10, 28],
+  hazeNearFieldAmount: 0,
+  // gate off (edges [-2, -1]: every horizontal dot is past the upper edge) until a directional
+  // trial pays; see the field's note for the candidate (openDir, [-0.5, 0.1])
+  hazeNearFieldDir: [0.9659, -0.2588],
+  hazeNearFieldEdges: [-2, -1],
+  veilOnly: 0,
 };
 
 /** #rrggbb of a scene-linear colour after the composer's ACES (exposure 1) — for audits. */
@@ -541,6 +579,12 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_SHADE_START = ${f(params.farShadeStart)};
 	const float KF_SHADE_FULL = ${f(params.farShadeFull)};
 	const float KF_SHADE_MIN = ${f(params.farShadeMin)};
+	const float KF_VEIL_ONLY = ${f(params.veilOnly)};
+	const vec3 KF_HAZE_NEAR_FIELD = vec3( ${params.hazeNearField.map(f).join(', ')} );
+	const vec2 KF_NEAR_FIELD_IN = vec2( ${params.hazeNearFieldIn.map(f).join(', ')} );
+	const float KF_NEAR_FIELD_AMOUNT = ${f(params.hazeNearFieldAmount)};
+	const vec2 KF_NEAR_FIELD_DIR = vec2( ${params.hazeNearFieldDir.map(f).join(', ')} );
+	const vec2 KF_NEAR_FIELD_EDGES = vec2( ${params.hazeNearFieldEdges.map(f).join(', ')} );
 
 	// back lobe of the airlight phase: 1 at and sunward of 90°, easing to KF_BACK_MIN (with a warm
 	// tint) once the ray points KF_BACK_FULL past the side-scatter direction. mu = dot( ray, sun ).
@@ -626,6 +670,14 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		return max( smoothstep( KF_OPEN_LO, KF_OPEN_HI, e ), smoothstep( KF_OPEN_UP_LO, KF_OPEN_UP_HI, rayDir.y ) );
 	}
 
+	// share of the near-field airlight a view direction gets (see hazeNearFieldDir): 1 toward the
+	// dim side, 0 toward the lit hollow; 1 everywhere while the edges sit below -1
+	float kfNearFieldGate( vec3 rayDir ) {
+		float len = length( rayDir.xz );
+		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_NEAR_FIELD_DIR ) : 1.0;
+		return smoothstep( KF_NEAR_FIELD_EDGES.x, KF_NEAR_FIELD_EDGES.y, e );
+	}
+
 	// depth-graded haze colour: dark warm grey near → lighter warm grey far, ground mist in the layer,
 	// scaled by the airlight phase around the sun direction (mu = cos of the ray–sun angle).
 	// openShare = the ray's above-canopy share (1 − kfAltitudeMean): rays that climb out of the
@@ -633,12 +685,15 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	// open = the direction's canopy openness: closed directions keep the dim closed-roof veil out to
 	// the far rows (no far / lit brightening), dimmer still deep under the roof (hollowDim); past
 	// the rows the rays that climb out of the layer see the lit wall (see hazeFarLit, hazeFarLitKnee)
-	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open ) {
+	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open, float nearGate ) {
 		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
 		haze = mix( haze, KF_HAZE_LIT, smoothstep( 0.0, KF_LIT_KNEE, openShare ) );
 		haze = mix( KF_HAZE_CLOSED, haze, open );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
+		// near-field airlight: the air the camera stands in is dimmer and warmer than the veil the
+		// far world wears (see hazeNearField); graded out before the far terms below begin
+		col = mix( col, KF_HAZE_NEAR_FIELD, KF_NEAR_FIELD_AMOUNT * nearGate * ( 1.0 - smoothstep( KF_NEAR_FIELD_IN.x, KF_NEAR_FIELD_IN.y, dist ) ) );
 		float closedShare = 1.0 - open;
 		col *= mix( 1.0, KF_HOLLOW_DIM, smoothstep( KF_HOLLOW_DIM_IN.x, KF_HOLLOW_DIM_IN.y, dist ) * closedShare );
 		float farLit = KF_FAR_LIT_AMOUNT * smoothstep( KF_FAR_LIT_START, KF_FAR_LIT_END, dist ) * closedShare;
@@ -665,7 +720,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	vec4 kfF = kfFog( vFogWorldPos, kfRay );
 	float kfDist = length( vFogWorldPos - cameraPosition );
 	float kfOpen = 1.0 - kfAltitudeMean( cameraPosition.y, vFogWorldPos.y );
-	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y, kfOpen, kfOpenness( kfRay ) );
+	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y, kfOpen, kfOpenness( kfRay ), kfNearFieldGate( kfRay ) );
 	// deep-forest shade on the surface itself (not the veil): distant trunks, the log arch and the
 	// far ground darken before the haze is laid over them, so they read as silhouettes in it; bright
 	// emissives (lantern glow, 2.0 linear) keep their radiance. The exemption starts above sunlit
@@ -675,6 +730,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	float kfPeak = max( gl_FragColor.r, max( gl_FragColor.g, gl_FragColor.b ) );
 	kfShade = mix( kfShade, 1.0, smoothstep( 1.3, 2.0, kfPeak ) );
 	gl_FragColor.rgb *= kfShade;
+	if ( KF_VEIL_ONLY > 0.5 ) gl_FragColor.rgb = vec3( 0.0 );
 	gl_FragColor.rgb = mix( gl_FragColor.rgb, kfColor, kfF.x );
 #endif
 `;
