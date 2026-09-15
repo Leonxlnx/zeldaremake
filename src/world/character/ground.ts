@@ -12,7 +12,7 @@
  */
 import { Box3, BufferGeometry, Mesh, type Object3D } from 'three';
 import type { Layout } from '../layout';
-import type { Terrain } from '../terrain/heightfield';
+import { surfaceMask, type Terrain } from '../terrain/heightfield';
 
 export interface Ground {
   height(x: number, z: number): number;
@@ -183,6 +183,12 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
   // fallback where the rendered slabs are unknown: flagstone tops sit 2–5 cm above the heightfield
   const PATH_LIFT = 0.03;
   const DECAL_LIFT = 0.012;
+  // `terrain.mask(x, z).path` / `.structure` ARE `surfaceMask(x, z).path` / `.structure` (heightfield.ts
+  // builds the mask from it), but the full mask also evaluates the slope (four height samples, a
+  // Vector3) and the landform for the fields nobody here reads: 2.1–2.9 µs a call against 0.9–1.1 —
+  // and the foot planting (glbLink.ts envelopes and scans) samples this ground several hundred
+  // times a frame off the paving, where neither the stairs nor the slab grid answer first
+  const pathAt = (x: number, z: number) => surfaceMask(x, z).path;
   const walk = (x: number, z: number): number => {
     const h = terrain.height(x, z);
     const s = stairAt(x, z);
@@ -190,7 +196,7 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
     // the foot stands on the slab under it (one cell of slack for the sole's footprint)
     const slab = slabTop(x, z, 0.05);
     if (slab !== null) return Math.max(h, slab);
-    return h + PATH_LIFT * terrain.mask(x, z).path;
+    return h + PATH_LIFT * pathAt(x, z);
   };
   const surface = (x: number, z: number): number => {
     const h = walk(x, z);
@@ -206,13 +212,13 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
       if (s !== null) return h + DECAL_LIFT;
       const slab = slabTop(x, z, radius);
       if (slab !== null) return Math.max(h, slab) + DECAL_LIFT;
-      return h + DECAL_LIFT + PATH_LIFT * terrain.mask(x, z).path;
+      return h + DECAL_LIFT + PATH_LIFT * pathAt(x, z);
     },
     onStairs(x, z) {
       return stairAt(x, z) !== null;
     },
     blocked(x, z) {
-      return terrain.mask(x, z).structure > 0.5;
+      return surfaceMask(x, z).structure > 0.5;
     },
     attachSurface(scene) {
       if (grid) return true;
