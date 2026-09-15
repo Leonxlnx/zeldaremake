@@ -6,7 +6,7 @@
       "github": "Leonxlnx",
       "status": "active",
       "branch": "agent/astra-local-blender",
-      "updated": "2026-09-15T06:08:18Z",
+      "updated": "2026-09-15T06:37:00Z",
       "currentTask": "Resumed Link refinement; tunic seam weights retained locally and Fable character5 reviewed in actual GPU play. Owner retains same map/character, no open-source pivot.",
       "file": ".agents/astra-local.md"
     },

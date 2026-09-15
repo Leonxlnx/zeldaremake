@@ -10704,6 +10704,115 @@
       },
       "prevHash": "sha256:902341dc7d653662ff763ab111fd73baa9a502522e97ff62769b98ba204e8bfd",
       "hash": "sha256:872abecb82ef611a0f61adfc14291bb2b1e705a98f3412d1e8e787d2286ff645"
+    },
+    {
+      "id": "take-0100",
+      "number": 100,
+      "at": "2026-09-15T07:18:12.215Z",
+      "sha": "9479d7b1519f4c68f65229afba07066f5398efcc",
+      "shortSha": "9479d7b",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r34/trees' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W10",
+        "W31",
+        "W09"
+      ],
+      "note": "Round thirty-four, trees: the frames' dapple by bough placement, the hundredth take. Frame 1 s lights the lower-left plaza (0.10-0.35, 0.75-0.99) at 0.535 and puts its shade in two patches at (0.30-0.40, 0.64-0.72) and (0.55-0.75, 0.64-0.75); ours had the plaza-roof bough's 0.5 m wood band and its lobes shading that corner (0.464, sun reach 74 %) and the first patch 15 % lit. The bough's wood is now ghosted (its lobes, stems and draws stay, so nothing re-rolls), its second lobe moves 0.4 m north and its tip lobe 0.7 m east onto the frame's first patch, one new shade clump lands the patch's lit west half, and three canopy openings (plaza-sw, a-path-mouth, b-path-east) let the sun through where the frame has it: the corner reads 0.531 with 94 % sun reach and 83 % lit by the frame's own two-mean split (frame 84), the first patch 0 % lit, B's right-mid path 32 -> 55 % lit (frame 86). A's paving lit share 48 -> 56 % against the frame's 70: the split classes our dark joints as shade where the frame's paving has none, and the house and hut bands that would light the rest cost SSIM at 256x144 (measured -0.001..-0.0016 each, reverted). A second clump for the frame's second patch was built and dropped: every caster on that ground's sun lines passes within 1.5 m of camera D and darkened the god-ray march's first steps (D -0.0014). Against the frames: A 0.2803 -> 0.2820, F 0.2942 -> 0.2955, D level, B -0.0005, E -0.0008, C 0.3182 -> 0.3154 - the brighter plaza reads in C's foreground where the frame's plaza is dark trodden earth. W01 pods unchanged; D's occlusion and far layers unchanged; draws unchanged, +16 k triangles per view.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:7ab7cac5023c5c7069e4b8bf42beafdc8b55a5e78faf0c404db84de243a1a915",
+        "B_house": "sha256:51e21e53aca9e2d20ce4b70a9353ba9d033fedd3a06556883f17f2d2f6b17a9d",
+        "C_lookback": "sha256:728b8608a48adbc612fd0c292c4bad69e154ba29e75f852ae1e6bd94e208b9b1",
+        "D_log": "sha256:9936cb2cdb4add6676482daab7fd4dd76dd270512c6802d8406de800ee6bd275",
+        "E_ground": "sha256:51e21e53aca9e2d20ce4b70a9353ba9d033fedd3a06556883f17f2d2f6b17a9d",
+        "F_canopy": "sha256:f77268064072dc8b90721e4832451641766515122c6b6935cd3ec608e6d77948"
+      },
+      "distHash": "sha256:176f77be7a0a64108df7d016cc1b5d69547fdc34e1079fd7cd26b32fc7650abe",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8603789,
+        "captureMs": 712586,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W10",
+        "W31",
+        "W09"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take100-cap",
+        "importedAt": "2026-09-15T07:27:28.668Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:872abecb82ef611a0f61adfc14291bb2b1e705a98f3412d1e8e787d2286ff645",
+      "hash": "sha256:fd5e827fb7a5bd71e93b622be2401d434fa3ce26634830549526da2119bad6e3"
     }
   ]
 }
