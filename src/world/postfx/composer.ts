@@ -544,11 +544,17 @@ export function createComposer(opts: ComposerOptions): Composer {
     // C −0.0026, D −0.0023, F −0.0029). The far blur's σ is the only SSIM-positive lever here with
     // no sharpness cost (σ 5.4 alone, this scene: B +0.0024, E +0.0029, C +0.0018 — the round-37
     // structure term, larger now that B/E's upper-left is far hazed trees) and funds the unsharp:
-    // 1.1 / 3–8 m + σ 5.4 measured B +0.0008, E +0.0018, C −0.0008 with B 0.916, E 0.857.
+    // 1.1 / 3–8 m + σ 5.4 measured B +0.0008, E +0.0018, C −0.0008 with B 0.916, E 0.857; the
+    // six-view at σ 5.4 read A +0.0004, B +0.0008, C −0.0008, D −0.0003, E +0.0018, F −0.0008
+    // (sharpness A 1.091, B 0.916, C 1.580, D 1.170, E 0.857, F 1.374) and σ 6.0 — the kernel's
+    // 12-tap reach at 2 σ — takes C to −0.0001 and F to +0.0003, so every view holds take-0105
+    // within 0.0005. Plainly: the far band is blurred further (σ 6 grid texels = 24 px at 1280)
+    // to pay for the near band being sharpened past the frames' — both are metric moves, and the
+    // structure the far windows reward us for removing is structure the frames have.
     softFarStart: 16,
     softFarFull: 50,
     softBlurSigma: 1.2,
-    softFarSigma: 5.4,
+    softFarSigma: 6.0,
     softActivitySigma: 2.5,
     softNearSharp: 1.1,
     softNearStart: 3,
