@@ -1058,7 +1058,11 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   };
   const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(P.lanternGlow)) });
   // lime pod: yellow-green bottom, deeper green toward the cap
-  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(0xd2ee48, [0.5, 0.78, 0.3])) });
+  // (round 36 / structures-24: 0xd2ee48 → 0xe6e04a, the source 70° → 58°. Frame B's two lime
+  // pods at the eave read hue 50° / 51° at peak 0.73 (lit blobs ≥ 0.5 lum, 1280 px); ours read
+  // 64° / 66° at 0.85–0.86 — a yellow-green where the frame's are a yellow. The cap end keeps its
+  // green (topMul).)
+  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(0xe6e04a, [0.5, 0.78, 0.3])) });
   // round 32: the arch's pods under the far veil — the same gradients (shared maps, no new
   // canvas) at FAR_LANTERN_INTENSITY
   const lanternFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lantern.emissiveMap });

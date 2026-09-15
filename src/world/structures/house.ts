@@ -466,9 +466,11 @@ function mossOnTop(geo: BufferGeometry, tint: [number, number, number], amount: 
  * (a yellow-green sheet mixes with the 40° veil to less hue than a blue-green does).
  * Iteration 1 — (0.06, 0.36, 0.17) at 92 % × patch, the window's 1.5 m clear — moved D's roots
  * 36.4° → 44.0° (green share 0.010 → 0.094) and the trunk 38.4° → 44.6° (0.022 → 0.097) at
- * p50 −0.003; B's house box, left pillar, door and cap boxes ±0.000.
+ * p50 −0.003; B's house box, left pillar, door and cap boxes ±0.000. Iteration 2 — (0.05, 0.36,
+ * 0.20), full cover, the hole alone spared — roots 48.5° (0.339), trunk 50.3° (0.367), boughs
+ * 49.0° (0.275); the box 41.1° → 45.8°, green 0.102 → 0.212, p50 0.301 → 0.299.
  */
-const D_MOSS_TINT: [number, number, number] = [0.05, 0.36, 0.2];
+const D_MOSS_TINT: [number, number, number] = [0.03, 0.36, 0.24];
 /**
  * Blend a moss tint over a geometry by the house angle of each vertex (the frame's `a`,
  * 0 = the door, + = viewer's right) through `weight(a, y)`, all faces alike; `cover` × a patch
@@ -2260,10 +2262,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
        * more saturated shape too. The lean is luminance-neutral (×0.9 on the level pays for the
        * green's weight), so it moves hue and saturation only.
        */
-      const hazed = Math.max(crownFlank, farHouse);
-      const gBal = lerp(1.15, 0.92, shadeAmt) * lerp(1, 1.25, hazed);
-      const bBal = lerp(0.84, 0.6, shadeAmt) * lerp(1, 1.1, hazed);
-      const rBal = lerp(1, 0.85, hazed);
+      // (iteration 2: the far house's lean is half again the flank's — the first pass moved D's
+      // upper arch only 29.8° → 36.7°, sat 0.394 → 0.371)
+      /**
+       * Round 36: the LIT CROWN's balance — the crown's front face above the legs — goes to g ×1.3 /
+       * b ×0.95 (was 1.15 / 0.84): frame B's crown front (0.70–0.86 × 0.235–0.31) reads hue 44.8°
+       * at p50 0.396, ours 32° / 0.337 on the arch's own pixels — the same saturation (0.45) but
+       * orange where the frame's is olive; the green's weight lifts the face ≈ 10 %, half the gap.
+       */
+      const litCrown = (1 - belowCrown) * frontFace;
+      const gBal = lerp(1.15, 0.92, shadeAmt) * lerp(1, 1.25, crownFlank) * lerp(1, 1.4, farHouse) * lerp(1, 1.13, litCrown);
+      const bBal = lerp(0.84, 0.6, shadeAmt) * lerp(1, 1.1, crownFlank) * lerp(1, 1.25, farHouse) * lerp(1, 1.13, litCrown);
+      const rBal = lerp(1, 0.85, crownFlank) * lerp(1, 0.75, farHouse);
       const dd = d * lerp(1, 0.9, farHouse);
       col.setXYZ(i, lerp(dd * rBal, 0.8 * m, w), lerp(dd * gBal, 2.2 * m, w), lerp(dd * bBal, 0.5 * m, w));
     }
@@ -2619,8 +2629,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // sat 0.424 with 59 % of its pixels past 55° (the green share); ours 48.5° / 0.371 / 8 % —
     // the ochre the yellow tones (52° / 59°) mix to under the warm sun and the 40° veil. The
     // deep tone goes to 63°, the lit one to 67°, and both lose a fifth of their blue.
-    const deep: [number, number, number] = [0.24, 0.25, 0.045];
-    const sun: [number, number, number] = [0.74, 0.82, 0.15];
+    // (iteration 2: measured on the roof's own pixels in B's cap-moss box — hue 48.5° → 52.0°,
+    // green share 0.082 → 0.681, p50 0.430 → 0.431 against the frame's 52.5° / 0.586 / 0.436;
+    // saturation stayed at 0.370 against 0.424 and p90 at 0.510 against 0.597, so the lit tone
+    // goes ×1.06 and both lose another third of their blue)
+    const deep: [number, number, number] = [0.24, 0.25, 0.03];
+    const sun: [number, number, number] = [0.78, 0.87, 0.1];
     // Round 15: no angular gradient. Round 14's shoulder ramp (0.5 → 1.3 with v) times a
     // front-face lift (+75 % over the porch) put a smooth luminance ramp across the cap that
     // the vertex grain then modulated — B read it as a flat field with bands. What remains is a
@@ -3578,7 +3592,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     // (c) down the wall sides: strands off the wall's eave band either side of the arch with a
     // clump at each hook — kept off the window (a −1.25 … −0.9) and the door span
-    const wallVines: number[] = def.id === 'saria' ? [-0.82, -0.68, -0.56, 0.55, 0.66, 0.78, 0.9] : [-0.7, 0.7];
+    // (round 36: Saria's right-wall strands (a 0.55–0.9) are gone — they hung exactly in frame B's
+    // shoulder box (a 0.55–0.9 projects to B x 0.86–0.90 at y 0.34), 5.4 % of it after the clump
+    // went, where the frame has bare bark)
+    const wallVines: number[] = def.id === 'saria' ? [-0.82, -0.68, -0.56] : [-0.7, 0.7];
     for (const a0 of wallVines) {
       const a = a0 + (vine21() - 0.5) * 0.06;
       const y = wallTop - 0.05 * k;
