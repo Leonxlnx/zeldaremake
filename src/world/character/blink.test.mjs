@@ -6,7 +6,8 @@ import path from 'node:path';
 import ts from 'typescript';
 
 // Transpile blink.ts in memory; its only runtime import is the world PRNG (../util/prng.ts),
-// transpiled the same way — anything else is a dependency it must not grow.
+// transpiled the same way — anything else is a dependency it must not grow. gaitChain.ts (the
+// chain that records the run-start event) is loaded the same way and has no runtime imports.
 const here = path.dirname(fileURLToPath(import.meta.url));
 const load = (file) => {
   const source = ts.transpileModule(readFileSync(file, 'utf8'), {
@@ -16,7 +17,7 @@ const load = (file) => {
   new Function('require', 'module', 'exports', source)(
     (spec) => {
       if (spec === '../util/prng') return load(path.join(here, '../util/prng.ts'));
-      throw new Error(`blink.ts must stay dependency-free (imported ${spec})`);
+      throw new Error(`${path.basename(file)} must stay dependency-free (imported ${spec})`);
     },
     mod,
     mod.exports,
