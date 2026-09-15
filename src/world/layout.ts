@@ -301,13 +301,25 @@ export const LAYOUT = {
     // grows the limb from the trunk to it); the midpoint must project inside shot A for W01.
     // The bough itself rides high (y ≈ 0.15–0.3 in A, mostly above shot B's frame); the pods
     // hang on long cords to the reference's y ≈ 0.45.
-    // 0.35 m lower since the cameras dropped to 1.45 m (the limb rode ~0.04 higher in A than the
-    // reference's) and the pods moved to 0.7 m cords: pods now hang at A y ≈ 0.40-0.41 (ref 0.38-0.5)
-    from: [-4.0, 4.25, -5.0] as [number, number, number],
-    to: [1.5, 3.25, -2.6] as [number, number, number],
-    /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
-    radius: 0.42,
-    tipRadius: 0.16,
+    // Round 37 (measured against frame 1 s, column scan of the dark band): the bough's top edge is
+    // at y 0.31 (x 0–0.10) → 0.33 (x 0.22), underside ≈ 0.375, centre ≈ 0.345 → 0.36, ≈ 0.06 of
+    // the frame thick at the left edge, gone by x ≈ 0.27–0.30; luminance 0.27–0.33 (ours read
+    // 0.45–0.55 at 11–12 m). Its two pods are small — glow cores 0.005 wide, whole pods ≈ 0.013
+    // (0.12–0.15 m at 6.5 m) — at (0.208, 0.405) and (0.255, 0.39), right under the bough. Frame
+    // 14 s (shot B) has no pod and no pale limb in its upper-left: a pod on those A rays is inside
+    // B's frame unless it is ≤ 6.7 m from camera A (within 0.8 m of camera B's eye along its axis,
+    // 0.5 m above it), so the run sits on z = 1.5, level at 2.2 m, heading east, 5.8–6.9 m from A:
+    // from → A (0.02, 0.35) (0.1 m inside the frame so W01's first sample is inside by 20 px; the
+    // sleeve itself runs on along the published reach past A's left edge), to → A (0.28, 0.36);
+    // the limb leaves the giant's bole at `limb.height` and droops onto `from` (trees/index.ts
+    // LANTERN_LIMB). Before: (−4, 4.25, −5) → (1.5, 3.25, −2.6) at 11–12 m, A y 0.20–0.27, pods
+    // at (0.07 / 0.16 / 0.25, 0.36–0.38) and in B at (0.03 / 0.21 / 0.40, 0.31–0.35) under the
+    // limb across B's top.
+    from: [-1.15, 2.22, 1.5] as [number, number, number],
+    to: [1.06, 2.21, 1.5] as [number, number, number],
+    /** limb radius at `from` / at `to` (metres): 0.06 × 0.849 × 5.8 m ≈ 0.30 m thick at A's left edge */
+    radius: 0.15,
+    tipRadius: 0.07,
     lanterns: 3,
   },
 
@@ -381,7 +393,10 @@ export const LAYOUT = {
 
   /** Giant old trees. Canopies of these form the overhead cover (14–24 m). */
   giantTrees: [
-    { id: 'lantern-tree', position: [-11.5, 2.6, -7.2], trunkRadius: 1.7, height: 26, limb: { dir: [0.87, 0.49], length: 14.5, height: 5.3 } },
+    // limb: the lantern bough leaves the bole `height` m up (local) and droops onto
+    // `lanternBranch.from`, 13.5 m to the ESE (`dir`/`length` are descriptive here; the run is
+    // authored by `lanternBranch`, see trees/index.ts LANTERN_LIMB)
+    { id: 'lantern-tree', position: [-11.5, 2.6, -7.2], trunkRadius: 1.7, height: 26, limb: { dir: [0.83, 0.56], length: 13.5, height: 2.6 } },
     { id: 'plateau-oak', position: [19, 5.4, -21], trunkRadius: 1.5, height: 24 },
     { id: 'southwest-giant', position: [-23, 2.6, 9], trunkRadius: 1.9, height: 28 },
     { id: 'east-giant', position: [27, 5.4, 5], trunkRadius: 1.4, height: 24 },

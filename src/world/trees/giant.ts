@@ -253,8 +253,18 @@ export interface CanopyBough {
 export interface GiantOptions {
   /** local ground height under local (x, z); 0 at the origin */
   groundAt: (x: number, z: number) => number;
-  /** authored limb (world from → to) for the lantern tree */
-  limbSpec?: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number };
+  /**
+   * authored limb (local from → to) for the lantern tree. `attachHeight` (local m): where the
+   * limb leaves the bole axis — when set, the trunk → `from` reach is a cubic that leaves the bole
+   * level, arches and droops onto `from` arriving along from → to (round 37: `from` sits 0.7 m
+   * BELOW the tree's base, over the plaza, so the old level reach from `from.y` had nowhere to
+   * start); otherwise the reach is the straight wiggled run from `from.y` on the axis. `sag`
+   * (m, default 0.16) is the from → to droop, `tail` (m, default 1.8) the thin run past `to`.
+   * `ghost`: every part of the limb — wood, lobes, end cluster — is drawn but not built (scratch
+   * writer / culled laminae), so nothing of it casts, while the path is still published and every
+   * draw after it is where it was; the structures' sleeve is then the only limb.
+   */
+  limbSpec?: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number; attachHeight?: number; sag?: number; tail?: number; ghost?: boolean };
   palette: Palette;
   /** leaf population multiplier (quality) */
   leafDensity?: number;
@@ -877,9 +887,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const side = new Vector3(-dir.z, 0, dir.x).normalize();
     const r0 = o.limbSpec.radius ?? 0.7;
     const r1 = o.limbSpec.tipRadius ?? 0.25;
-    const path: Vector3[] = [new Vector3(0, from.y, 0)];
+    const curved = o.limbSpec.attachHeight !== undefined;
+    const attachY = o.limbSpec.attachHeight ?? from.y;
+    // the bole's axis where the limb leaves it (the sheared trunk path, like the authored boughs)
+    const attach = curved ? sample(trunk, Math.min(0.98, Math.max(0.05, (attachY + skirt) / (fork + skirt)))) : new Vector3(0, attachY, 0);
+    attach.y = attachY;
+    const path: Vector3[] = [attach.clone()];
     const radii: number[] = [r0 * 1.3];
-    bareHeight = Math.min(bareHeight, from.y);
+    bareHeight = Math.min(bareHeight, attachY);
     // nominal advance of each ring along from → to in units of `len` (see GiantAsset.limbS);
     // bookkeeping only — it draws nothing and moves nothing
     const sAlong: number[] = [];
@@ -888,28 +903,67 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // trunk → `from`: the authored waypoint may sit well out along the limb (it marks where the
     // visible, lantern-bearing part begins), so this first reach gets the same organic wiggle
     // and a gentle sag instead of being one straight rod
-    const reach = from.clone();
-    reach.y = 0;
-    const reachLen = reach.length();
-    sAlong.push(-reachLen / len);
-    if (reachLen > 1.2) {
-      const rn = Math.max(2, Math.ceil(reachLen / 0.9));
-      const rside = new Vector3(-reach.z, 0, reach.x).normalize();
-      for (let k = 1; k < rn; k++) {
-        const s = k / rn;
-        const p = new Vector3(from.x * s, from.y, from.z * s);
-        p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
-        p.y += (0.25 * Math.sin(s * Math.PI) - 0.12 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI)) * Math.min(1, reachLen / 6);
+    const reach = from.clone().sub(attach);
+    const reachH = Math.hypot(reach.x, reach.z);
+    if (reachH > 1.2) {
+      const rn = Math.max(2, Math.ceil(reachH / 0.8));
+      const pts: Vector3[] = [];
+      if (curved) {
+        // cubic: leaves the bole level (a touch upward), arches, droops onto `from` along `dir`
+        const t0 = new Vector3(reach.x, 0, reach.z).normalize();
+        t0.y = 0.12;
+        t0.normalize();
+        const c1 = attach.clone().addScaledVector(t0, reachH * 0.33);
+        const c2 = from.clone().addScaledVector(dir, -Math.min(4, reachH * 0.3));
+        for (let k = 1; k < rn; k++) {
+          const s = k / rn;
+          const u = 1 - s;
+          const p = attach
+            .clone()
+            .multiplyScalar(u * u * u)
+            .addScaledVector(c1, 3 * u * u * s)
+            .addScaledVector(c2, 3 * u * s * s)
+            .addScaledVector(from, s * s * s);
+          const tan = c1.clone().sub(attach).multiplyScalar(3 * u * u).addScaledVector(c2.clone().sub(c1), 6 * u * s).addScaledVector(from.clone().sub(c2), 3 * s * s);
+          const rside = new Vector3(-tan.z, 0, tan.x).normalize();
+          p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
+          p.y -= 0.1 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI);
+          pts.push(p);
+        }
+      } else {
+        const rside = new Vector3(-reach.z, 0, reach.x).normalize();
+        for (let k = 1; k < rn; k++) {
+          const s = k / rn;
+          const p = attach.clone().addScaledVector(reach, s);
+          p.y = from.y;
+          p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
+          p.y += (0.25 * Math.sin(s * Math.PI) - 0.12 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI)) * Math.min(1, reachH / 6);
+          pts.push(p);
+        }
+      }
+      // s along the reach is its remaining arc length (in units of `len`), so the published path
+      // stays metric and monotonic whatever the curve
+      const arcs: number[] = [0];
+      let prev = attach;
+      for (const p of pts) {
+        arcs.push(arcs[arcs.length - 1] + p.distanceTo(prev));
+        prev = p;
+      }
+      const total = arcs[arcs.length - 1] + from.distanceTo(prev);
+      sAlong.push(-total / len);
+      pts.forEach((p, i) => {
+        const s = (i + 1) / rn;
         path.push(p);
         radii.push(r0 * 1.3 + (r0 - r0 * 1.3) * Math.pow(s, 0.7));
-        sAlong.push(-((1 - s) * reachLen) / len);
-      }
-    }
+        sAlong.push(-(total - arcs[i + 1]) / len);
+      });
+    } else sAlong.push(-reach.length() / len);
+    const sag = o.limbSpec.sag ?? 0.16;
     for (let k = 0; k <= n; k++) {
       const s = k / n;
       const p = from.clone().addScaledVector(dir, len * s);
       p.addScaledVector(side, Math.sin(s * 9 + wigglePhase) * 0.12 * Math.sin(s * Math.PI));
-      p.y -= 0.16 * Math.sin(s * Math.PI) + 0.05 * Math.sin(s * 13 + wigglePhase) * Math.sin(s * Math.PI);
+      p.y -= sag * Math.sin(s * Math.PI) + 0.05 * Math.sin(s * 13 + wigglePhase) * Math.sin(s * Math.PI);
       path.push(p);
       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
       sAlong.push(s);
@@ -918,13 +972,19 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // the bough's own height (the reference bough ends in a small leaf cluster just past the last
     // pod, not in a crown that climbs into the upper-left of shot A)
     const tail = 3;
+    const tailLen = o.limbSpec.tail ?? 1.8;
     for (let k = 1; k <= tail; k++) {
       const s = k / tail;
-      const p = to.clone().addScaledVector(dir, 1.8 * s).addScaledVector(UP, 0.25 * s * s).addScaledVector(side, 0.4 * s);
+      const p = to
+        .clone()
+        .addScaledVector(dir, tailLen * s)
+        .addScaledVector(UP, 0.14 * tailLen * s * s)
+        .addScaledVector(side, 0.22 * tailLen * s);
       path.push(p);
       radii.push(r1 * (1 - 0.72 * s));
-      sAlong.push(1 + (1.8 * s) / len);
+      sAlong.push(1 + (tailLen * s) / len);
     }
+    ghost = o.limbSpec.ghost ?? false;
     tube(wood, path, radii, 14, r, { color: barkColor, roughness: 0.05, bump: gnarlBump(1.8, 0.1), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
     limbPath = path;
     limbS = sAlong;
@@ -943,6 +1003,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const endBough = growthPath(path[path.length - 2], endCenter, dir, r, 5, 0.5);
     tube(wood, endBough, taper(endBough, 0.09, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
     foliateLobe(endBough, endCenter, 0.8 + 0.7 * lf, 0.45 + 0.35 * lf, 0.09, lf < 0.7 ? 2 : 3, 3, lf < 0.7 ? 3 : 4, 0.35 * lf, lf);
+    ghost = false;
   }
 
   // ---------- authored boughs (e.g. the pair reaching over Saria's roof) ----------
