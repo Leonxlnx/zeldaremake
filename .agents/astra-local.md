@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T06:37:00Z
+updated: 2026-09-15T14:05:00Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Resumed Link refinement; tunic seam weights retained locally and Fable character5 reviewed in actual GPU play. Owner retains same map/character, no open-source pivot.
+Integrating Fable's take-0102 environment locally with the asset override preserved, then reviewing actual gameplay; Blender restarted hidden from the verified hip-seams source (retained character a93feccf). Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
