@@ -74,13 +74,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * hysteresis — or always when forced: an explicit re-pose must never render the previous pose's
    * buckets), then trim every set's buckets to the frame (lodset.ts `cull`).
    */
+  /**
+   * Re-bucket budget of an unforced refresh, in plants: the sets share the camera, so every set
+   * past its hysteresis used to re-bucket on the same frame — 31k plants re-listed and every
+   * bucket refilled at once, measured as 7–17 ms frames on the walk (round 37). Now the sets past
+   * their gate re-bucket in order until this many plants have been re-listed (always at least one
+   * set), the rest on the following frames; a set kept waiting keeps its previous buckets, culled
+   * for the new frame as usual, and re-buckets at most a few frames (≈ 0.2 m of walking) late.
+   * Forced refreshes (onCameraMove: the captures, an explicit re-pose) re-bucket everything at once.
+   */
+  const REBUCKET_BUDGET = 8000;
   const refresh = (force = false, camera = ctx.camera) => {
     if (disposed) return;
     camera.getWorldPosition(camPos);
     grass.update(camPos);
     const sun = currentSun();
+    let budget = REBUCKET_BUDGET;
     for (const s of sets) {
-      const rebucketed = s.update(camPos, force);
+      let rebucketed = false;
+      if (force || (budget > 0 && s.wantsRebucket(camPos))) {
+        rebucketed = s.update(camPos, force);
+        if (rebucketed) budget -= s.count;
+      }
       s.cull(camera, sun, force || rebucketed);
     }
   };

@@ -33,10 +33,44 @@ import { BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, Grou
 export const CULL_PAD_M = 1.5;
 /** lowest world height a shadow receiver can have (the terrain floor is −0.85 m); the capsule is swept down to it */
 export const SHADOW_FLOOR_Y = -10;
-const _p = new Vector3();
-const _q = new Vector3();
+/**
+ * Cull acceleration (round 37): the items are grouped into ground cells of this size at build,
+ * each with the sphere holding every member's padded sphere. Per cull the cells are classified
+ * against the frustum first — a cell sphere wholly inside a plane set puts every member inside it,
+ * one wholly outside a plane (and, for the shadow sweep, with its swept end outside it too) puts
+ * every member outside — and only the members of the cells the frustum's planes cut through run
+ * the per-item tests. The verdicts are the per-item tests' in exact arithmetic (a member sphere
+ * lies inside the cell sphere), with CULL_CELL_EPS_M of slack on the cell radius so rounding
+ * cannot flip one; the submission (items, order) is identical, measured 31k plant tests a frame
+ * down to the boundary cells' members.
+ */
+const CULL_CELL_M = 8;
+const CULL_CELL_EPS_M = 1e-3;
+const CELL_IN = 1;
+const CELL_PARTIAL = 0;
+/** outside the view frustum; the shadow sweep of a caster may still reach it */
+const CELL_OUT = -1;
+/** outside the view frustum, and its whole shadow sweep too */
+const CELL_OUT_SHADOW = -2;
 const _kept: number[] = [];
-const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+const sameList = (a: number[], b: number[]) => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+};
+
+/**
+ * Flag the first `count` elements of an instance attribute for upload (three sends only the
+ * flagged ranges when any are set). Every fill rewrites the whole prefix it submits, so one range
+ * from 0 — grown, not appended, when a fill has already flagged one since the last upload —
+ * always covers the data written since then.
+ */
+export function markPrefix(attr: BufferAttribute | InstancedBufferAttribute, count: number) {
+  const ranges = attr.updateRanges;
+  if (ranges.length === 1 && ranges[0].start === 0) ranges[0].count = Math.max(ranges[0].count, count);
+  else attr.addUpdateRange(0, count);
+  attr.needsUpdate = true;
+}
 
 /** variant index groups sharing one InstancedMesh, either for every LOD or given per LOD */
 export type PackLayout = number[][] | number[][][];
@@ -72,6 +106,8 @@ interface Item {
   color: [number, number, number];
   /** radius (m) of the sphere about the root that holds the placed plant at every LOD (set by build) */
   reach: number;
+  /** `reach` + the culling pad, the sphere `cull()` tests (set by build) */
+  r: number;
 }
 
 interface PackMesh {
@@ -171,9 +207,20 @@ export class LodInstancedSet {
   private readonly viewProj = new Matrix4();
   private readonly lastViewProj = new Matrix4().makeScale(0, 0, 0);
   private readonly sun = new Vector3(0, 1, 0);
+  /** cull cells (see CULL_CELL_M): every item's cell */
+  private cellOf = new Int32Array(0);
+  /** per cell: centre x, y, z, radius (members' padded spheres + CULL_CELL_EPS_M), top (max y + r) */
+  private cellData = new Float64Array(0);
+  private cellCount = 0;
+  /** per cell, per cull: CELL_IN / CELL_PARTIAL / CELL_OUT / CELL_OUT_SHADOW */
+  private cellClass = new Int8Array(0);
+
+  /** submission-culling pad (m) on every instance sphere (resolved once: `fill` reads it per bucket) */
+  private readonly pad: number;
 
   constructor(readonly opts: LodSetOptions) {
     this.group.name = opts.name;
+    this.pad = opts.cullPad ?? CULL_PAD_M;
   }
 
   get count() {
@@ -215,7 +262,7 @@ export class LodInstancedSet {
 
   add(matrix: Float32Array, variant: number, color: Color | [number, number, number]) {
     const c: [number, number, number] = Array.isArray(color) ? color : [color.r, color.g, color.b];
-    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, reach: 0 });
+    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, reach: 0, r: 0 });
   }
 
   /**
@@ -259,10 +306,13 @@ export class LodInstancedSet {
       return r;
     });
     // the placed plant's reach about its root: geometry extent × the largest axis scale
+    const pad = this.pad;
     for (const it of this.items) {
       const scale = Math.max(Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]), Math.hypot(it.matrix[4], it.matrix[5], it.matrix[6]), Math.hypot(it.matrix[8], it.matrix[9], it.matrix[10]));
       it.reach = scale * geoRadius[it.variant];
+      it.r = it.reach + pad;
     }
+    this.buildCells();
     const centre = new Vector3();
     for (let l = 0; l < lodCount; l++) {
       const row: PackMesh[] = [];
@@ -350,9 +400,13 @@ export class LodInstancedSet {
       radius = Math.max(radius, Math.hypot(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
     }
     mesh.count = list.length;
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.instanceColor!.needsUpdate = true;
-    slots.needsUpdate = true;
+    // upload the submitted prefix only: without a range three re-sends the whole capacity-sized
+    // buffer (a 6k-plant set is 400 KB per LOD mesh per frame while the camera turns); the rest of
+    // the buffer is never read (instances ≥ count are not drawn)
+    const n = Math.max(1, list.length);
+    markPrefix(mesh.instanceMatrix, n * 16);
+    markPrefix(mesh.instanceColor!, n * 3);
+    markPrefix(slots, n);
     // an empty bucket is never submitted (visible=false; three also skips count 0)
     mesh.visible = list.length > 0;
     if (list.length) mesh.boundingSphere!.radius = radius + this.pad;
@@ -362,8 +416,12 @@ export class LodInstancedSet {
     }
   }
 
-  private get pad() {
-    return this.opts.cullPad ?? CULL_PAD_M;
+
+  /** true when an unforced `update()` would re-bucket for this camera position (moved past the hysteresis) */
+  wantsRebucket(camPos: Vector3): boolean {
+    if (!this.built) return true;
+    const hyst = this.opts.hysteresis ?? 0.6;
+    return camPos.distanceToSquared(this.lastCam) >= hyst * hyst;
   }
 
   /**
@@ -372,8 +430,7 @@ export class LodInstancedSet {
    */
   update(camPos: Vector3, force = false): boolean {
     if (!this.built) this.build();
-    const hyst = this.opts.hysteresis ?? 0.6;
-    if (!force && camPos.distanceToSquared(this.lastCam) < hyst * hyst) return false;
+    if (!force && !this.wantsRebucket(camPos)) return false;
     this.lastCam.copy(camPos);
     const { lodDistances } = this.opts;
     const lodCount = this.lodCount;
@@ -385,11 +442,106 @@ export class LodInstancedSet {
     return true;
   }
 
-  /** the padded instance sphere (root, reach + pad) meets the frustum */
+  /** group the items into ground cells (CULL_CELL_M) and take each cell's sphere over its members' padded spheres */
+  private buildCells() {
+    const n = this.items.length;
+    this.cellOf = new Int32Array(n);
+    const cellIndex = new Map<number, number>();
+    // per cell: Σx, Σy, Σz, members
+    const sums: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const it = this.items[i];
+      const key = (Math.floor(it.x / CULL_CELL_M) + 32768) * 65536 + (Math.floor(it.z / CULL_CELL_M) + 32768);
+      let c = cellIndex.get(key);
+      if (c === undefined) {
+        c = cellIndex.size;
+        cellIndex.set(key, c);
+        sums.push(0, 0, 0, 0);
+      }
+      this.cellOf[i] = c;
+      sums[c * 4] += it.x;
+      sums[c * 4 + 1] += it.y;
+      sums[c * 4 + 2] += it.z;
+      sums[c * 4 + 3]++;
+    }
+    const m = cellIndex.size;
+    this.cellCount = m;
+    const D = (this.cellData = new Float64Array(m * 5));
+    this.cellClass = new Int8Array(m);
+    for (let c = 0; c < m; c++) {
+      const k = sums[c * 4 + 3];
+      D[c * 5] = sums[c * 4] / k;
+      D[c * 5 + 1] = sums[c * 4 + 1] / k;
+      D[c * 5 + 2] = sums[c * 4 + 2] / k;
+      D[c * 5 + 3] = 0;
+      D[c * 5 + 4] = -Infinity;
+    }
+    for (let i = 0; i < n; i++) {
+      const it = this.items[i];
+      const o = this.cellOf[i] * 5;
+      const d = Math.hypot(it.x - D[o], it.y - D[o + 1], it.z - D[o + 2]) + it.r;
+      if (d > D[o + 3]) D[o + 3] = d;
+      if (it.y + it.r > D[o + 4]) D[o + 4] = it.y + it.r;
+    }
+    for (let c = 0; c < m; c++) D[c * 5 + 3] += CULL_CELL_EPS_M;
+  }
+
+  /**
+   * Classify every cell against the current frustum and sun: `inView` / `shadowReaches` on the
+   * cell sphere (and its shadow sweep, spanned from the cell's top like every member's), with the
+   * cell radius on both sides of each plane — see CULL_CELL_M.
+   */
+  private classifyCells() {
+    const planes = this.frustum.planes;
+    const sun = this.sun;
+    const sy = Math.max(0.05, sun.y);
+    const D = this.cellData;
+    const cls = this.cellClass;
+    for (let c = 0; c < this.cellCount; c++) {
+      const o = c * 5;
+      const x = D[o];
+      const y = D[o + 1];
+      const z = D[o + 2];
+      const R = D[o + 3];
+      const span = Math.max(0, (D[o + 4] - SHADOW_FLOOR_Y) / sy);
+      const qx = x - sun.x * span;
+      const qy = y - sun.y * span;
+      const qz = z - sun.z * span;
+      let out = false;
+      let partial = false;
+      let verdict = CELL_IN;
+      for (let i = 0; i < 6; i++) {
+        const n = planes[i].normal;
+        const k = planes[i].constant;
+        const d = n.x * x + n.y * y + n.z * z + k;
+        if (d < -R) {
+          out = true;
+          if (n.x * qx + n.y * qy + n.z * qz + k < -R) {
+            verdict = CELL_OUT_SHADOW;
+            break;
+          }
+        } else if (d < R) partial = true;
+      }
+      if (verdict !== CELL_OUT_SHADOW) verdict = out ? CELL_OUT : partial ? CELL_PARTIAL : CELL_IN;
+      cls[c] = verdict;
+    }
+  }
+
+  /**
+   * The padded instance sphere (root, reach + pad) meets the frustum. The plane distance is
+   * `Plane.distanceToPoint` written out (normal · p + constant, same operation order) — this runs
+   * for every plant of every bucket each frame the camera moves.
+   */
   private inView(it: Item): boolean {
-    const r = it.reach + this.pad;
-    _p.set(it.x, it.y, it.z);
-    for (const plane of this.frustum.planes) if (plane.distanceToPoint(_p) < -r) return false;
+    const r = -it.r;
+    const x = it.x;
+    const y = it.y;
+    const z = it.z;
+    const planes = this.frustum.planes;
+    for (let i = 0; i < 6; i++) {
+      const n = planes[i].normal;
+      if (n.x * x + n.y * y + n.z * z + planes[i].constant < r) return false;
+    }
     return true;
   }
 
@@ -398,12 +550,22 @@ export class LodInstancedSet {
    * SHADOW_FLOOR_Y) meets the frustum: a capsule is outside a plane iff both end spheres are.
    */
   private shadowReaches(it: Item): boolean {
-    const r = it.reach + this.pad;
-    _p.set(it.x, it.y, it.z);
-    const span = Math.max(0, (it.y + r - SHADOW_FLOOR_Y) / Math.max(0.05, this.sun.y));
-    _q.copy(_p).addScaledVector(this.sun, -span);
-    for (const plane of this.frustum.planes) {
-      if (plane.distanceToPoint(_p) < -r && plane.distanceToPoint(_q) < -r) return false;
+    const r = it.r;
+    const x = it.x;
+    const y = it.y;
+    const z = it.z;
+    const sun = this.sun;
+    const span = Math.max(0, (y + r - SHADOW_FLOOR_Y) / Math.max(0.05, sun.y));
+    // Vector3.addScaledVector(sun, −span), component by component
+    const s = -span;
+    const qx = x + sun.x * s;
+    const qy = y + sun.y * s;
+    const qz = z + sun.z * s;
+    const planes = this.frustum.planes;
+    for (let i = 0; i < 6; i++) {
+      const n = planes[i].normal;
+      const c = planes[i].constant;
+      if (n.x * x + n.y * y + n.z * z + c < -r && n.x * qx + n.y * qy + n.z * qz + c < -r) return false;
     }
     return true;
   }
@@ -425,6 +587,9 @@ export class LodInstancedSet {
     this.frustum.setFromProjectionMatrix(this.viewProj);
     if (sunDir.lengthSq() > 1e-6) this.sun.copy(sunDir).normalize();
     const trim = this.opts.cull !== false;
+    if (trim) this.classifyCells();
+    const cellOf = this.cellOf;
+    const cellClass = this.cellClass;
     for (let l = 0; l < this.meshes.length; l++) {
       for (const pm of this.meshes[l]) {
         let keep = pm.list;
@@ -432,7 +597,17 @@ export class LodInstancedSet {
           const casts = pm.mesh.castShadow;
           _kept.length = 0;
           for (const i of pm.list) {
+            const cls = cellClass[cellOf[i]];
+            if (cls === CELL_IN) {
+              _kept.push(i);
+              continue;
+            }
+            if (cls === CELL_OUT_SHADOW) continue;
             const it = this.items[i];
+            if (cls === CELL_OUT) {
+              if (casts && this.shadowReaches(it)) _kept.push(i);
+              continue;
+            }
             if (this.inView(it) || (casts && this.shadowReaches(it))) _kept.push(i);
           }
           keep = _kept;
