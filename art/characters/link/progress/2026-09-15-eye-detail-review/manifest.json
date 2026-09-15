@@ -1,0 +1,13 @@
+{
+  "status": "Retained eyelid rim and pupil proportion improvement; reference quality unfinished",
+  "asset": "bdcb9ec76c5c5960e74b12f136e0a246615c9b0633632b4bc8b5df792f9c2051",
+  "rim_full_movement_records": 1620,
+  "pupil_smoke_records": 36,
+  "pupil_smoke_matches_rim_fixture": true,
+  "build_and_typecheck": "pass",
+  "page_errors": [],
+  "clips_and_textures": "byte-identical to respective parent",
+  "native_source": "E:\\zeldaremake\\art\\characters\\link\\experiments\\2026-09-13\\source-runtime\\pupil-balanced-study.blend",
+  "native_sha256": "d2ad7d735e6651cd36238e2af1693abd1818a662feb9a31815ebd1f17c11bd1a",
+  "next": "Eyebrow placement/detail; facial animation. Existing Fable descent hitch unchanged."
+}
