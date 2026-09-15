@@ -1030,7 +1030,8 @@ const LANTERN_LIMB_FOLIAGE = 0.45;
  * −0.1, B behind or off the top-left, off C's right edge until x ≈ −2.5, behind F); what camera
  * C does see is the run itself, 8.6–8.9 m out across its upper right at (0.68–0.93, 0.31–0.34),
  * where frame 46 s has the hazed limb band over the boulder terrace.
- * `sag` 0.05 (the frame's run is level), `tail` 0.6 m (the bough is gone by A x 0.3).
+ * `sag` 0.05 (the frame's run is level), `tail` 0.3 m (the frame's band is gone by A x 0.27–0.30; a
+ * 0.6 m tail reached x 0.34 with a blunt tip).
  * `ghost`: the limb's own wood, lobes and end cluster are drawn but not built — the structures'
  * sleeve (round 37: no shadow) is the limb. A 2.2 m limb over the plaza's south-west would lay
  * its shadow (sun az −128°, el 38°: ground = point + (1.0, 0.79) × height) in a band from
@@ -1045,7 +1046,7 @@ const LANTERN_LIMB_FOLIAGE = 0.45;
  * its limb — wild limbs, crown, canopy lobes — re-rolls its laminae (same counts for the
  * corridor-exempt clumps, same azimuths for the wild limbs: GIANT_PROFILES pins their base).
  */
-const LANTERN_LIMB = { sag: 0.05, tail: 0.6, ghost: true };
+const LANTERN_LIMB = { sag: 0.05, tail: 0.3, ghost: true };
 /**
  * Dense silhouette rows north of the log arch (shot D looks north from z ≈ −1): each fills a
  * narrow depth range so the depth histogram registers a distinct far layer behind the log

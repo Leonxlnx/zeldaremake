@@ -117,7 +117,7 @@ const KNEES = [
  * bark has to be dark itself, so the sleeve carries its own copy of the bark material under a
  * lower floor (`lift` tuned by A captures: the sleeve's dark band p50 against the frame's).
  */
-const SLEEVE_FLOOR: ShadeFloor = { lift: 6.0, texture: 0.3, canopy: 1, albedo: 0.07, chroma: 0.45 };
+const SLEEVE_FLOOR: ShadeFloor = { lift: 6.5, texture: 0.3, canopy: 1, albedo: 0.07, chroma: 0.45 };
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
   const def = ctx.layout.lanternBranch;
@@ -363,7 +363,10 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
 
   // ---- ferns and grass tufts on the moss (shaded olive, under the canopy) ----
   const vegRng = rng.fork('branch-veg');
-  const topShade: [number, number, number] = [0.7, 0.75, 0.55];
+  // (round 37: frame 1 s's tufts on the bough are dark olive silhouettes, 0.28–0.35 luminance, with
+  // one lit speck line along the top edge — the first pass's (0.7, 0.75, 0.55) read as a lit lime
+  // hedge riding the limb at 6 m; pulled to 0.6 ×)
+  const topShade: [number, number, number] = [0.42, 0.46, 0.32];
   for (let i = 0; i < 9; i++) {
     const s = lerp(0.12, 0.92, (i + vegRng()) / 9);
     const psi = (vegRng() - 0.4) * 1.3;
@@ -377,14 +380,17 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // tube. Clumps sit on the moss (psi within ±1.1 of the top), root 5 cm into the sheets, and are
   // shaded olive like the sprigs; the undersides where the pods hang stay clear. ----
   const clumpRng = rng.fork('branch-clumps');
+  // (round 37: the run's clumps are the frame's dark tufts — 0.55 × the reach's tint, eight of
+  // them at 0.12–0.18 m instead of eleven at 0.14–0.23 m, so the bough's dark band stays readable
+  // between them; the reach beyond A's edge keeps the fuller canopy clumps)
   const clumpTint: [number, number, number] = [0.5, 0.58, 0.3];
-  for (let i = 0; i < 11; i++) {
-    const s = lerp(0.12, 0.9, (i + 0.2 + clumpRng() * 0.6) / 11);
+  const runTint: [number, number, number] = [0.27, 0.32, 0.16];
+  for (let i = 0; i < 8; i++) {
+    const s = lerp(0.12, 0.9, (i + 0.2 + clumpRng() * 0.6) / 8);
     const psi = (clumpRng() - 0.5) * 2.2 + 0.2;
-    // (round 37: clump radius follows the limb's — 0.14–0.23 m on the 0.15 m limb)
-    const r = (0.22 + clumpRng() * 0.14) * (0.6 + 0.4 * fk);
+    const r = (0.2 + clumpRng() * 0.1) * (0.6 + 0.4 * fk);
     const centre = surface(s, psi, r * 0.45 - 0.05);
-    foliage.addLeafCluster(centre, r, 14 + Math.floor(clumpRng() * 8), { size: 0.11, amount: 0.06, droop: 0.5, tint: clumpTint, tintSpread: 0.3, flatten: 0.55 });
+    foliage.addLeafCluster(centre, r, 12 + Math.floor(clumpRng() * 6), { size: 0.09, amount: 0.06, droop: 0.5, tint: runTint, tintSpread: 0.3, flatten: 0.55 });
   }
   for (let i = 0; i < 6; i++) {
     const s = lerp(0.15, 0.88, (i + clumpRng()) / 6);
@@ -444,16 +450,14 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     lanterns.push(rig);
   }
 
-  // ---- vines: short strands from the underside and the lower flanks of the visible run (round
-  // 37: the run is 0.7 m above camera B's eye — a strand longer than ≈ 0.35 m would hang into B's
-  // top edge), longer ones back along the reach ----
+  // ---- vines: strands from the underside of the trunk-side reach only (round 37: frame 1 s hangs
+  // nothing but the two pods under the visible run, and the run is 0.7 m above camera B's eye —
+  // a strand longer than ≈ 0.35 m there would hang into B's top edge) ----
   const vineRng = rng.fork('branch-vines');
   const vineSpots: [number, number, number][] = [
     [-0.9, 2.4, 0.8],
     [-0.45, -2.5, 0.6],
-    [0.15, 2.6, 0.3],
-    [0.5, 2.9, 0.3],
-    [0.8, -2.4, 0.25],
+    [-1.4, 2.7, 0.7],
   ];
   for (const [s, psi, l] of vineSpots) {
     const hook = surface(s, psi, -0.03);
