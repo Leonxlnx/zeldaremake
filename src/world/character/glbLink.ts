@@ -120,12 +120,21 @@
  * time, no state. Every support is continuous in the sole's position and the facing (see
  * `envelope` and the tie band in `footConfig`); a stance foot of these clips is stationary in the
  * world, so its configuration holds for the whole stance and changes only through a swing.
+ *
+ * Round 8 — the blink (blink.ts, Astra's morph contract): every mesh of the asset whose
+ * `morphTargetDictionary` has `blink` / `blinkHalf` gets the contract's two weights set after the
+ * mixer has evaluated the pose, from a closure phase that is a closed-form function of `t` (the
+ * seeded slot schedule) and of the chain's switch time into a run. The clips carry no morph
+ * tracks, so the mixer never contends for the influences; an asset without the morphs (the
+ * committed 9189538d) has no such mesh and the drive is inert — the six fixed captures are the
+ * same bytes. Movement and the IK above are untouched by it.
  */
-import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
+import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GAIT_SPEED, GAITS, type Gait, type GroundSampler } from './animation';
+import { BLINK_HALF_MORPH, BLINK_MORPH, blinkPhase, blinkWeights, createBlinkSchedule, nextBlinkStart, type BlinkSchedule, type BlinkWeights } from './blink';
 import { chainWeights, type FootAnchor } from './gaitChain';
-import type { FootContact, PlantInfo, Puppet, PuppetPose } from './puppet';
+import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './puppet';
 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
@@ -524,11 +533,28 @@ export interface LinkAssetInfo {
   skinTopM: number;
   /** the boot footprints measured on the mesh (m from the sole marker), and how many sole vertices each came from */
   footprint: { L: Footprint & { soleVertices: number }; R: Footprint & { soleVertices: number } };
+  /** every morph target name the asset's meshes expose (sorted, deduplicated; empty on 9189538d) */
+  morphTargets: string[];
 }
 
 export interface GlbLink extends Puppet {
   kind: 'glb';
   asset: LinkAssetInfo;
+  blink(): BlinkInfo;
+}
+
+export interface GlbLinkOptions {
+  /** the file the audit reports (default LINK_GLB_FILE); the delivered hash is reported only for that file */
+  file?: string;
+  /** seed of the blink schedule (blink.ts) — the world seed from index.ts; a constant when absent */
+  blinkSeed?: string;
+}
+
+/** one mesh carrying the blink morphs: the influence indices of `blink` / `blinkHalf` (−1 = the mesh lacks that one) */
+interface BlinkMesh {
+  mesh: Mesh;
+  iBlink: number;
+  iHalf: number;
 }
 
 /** playback rate that makes the clip's stride cover GAIT_SPEED on the ground */
@@ -1063,8 +1089,9 @@ function describe(e: unknown): string {
  * Load and validate the GLB. Rejects (with a plain-text reason) on 404, parse errors, missing
  * bones or missing clips — the caller falls back to the procedural Link.
  */
-export async function loadGlbLink(url: string): Promise<GlbLink> {
+export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promise<GlbLink> {
   const t0 = performance.now();
+  const file = opts.file ?? LINK_GLB_FILE;
   const loader = new GLTFLoader();
   let gltf;
   try {
@@ -1077,9 +1104,19 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
   const skinned: SkinnedMesh[] = [];
   const materials = new Set<Material>();
   const bones: Bone[] = [];
+  // the blink morphs (round 8): every mesh whose dictionary names either target, skinned or not
+  const blinkMeshes: BlinkMesh[] = [];
+  const morphNames = new Set<string>();
   model.traverse((o: Object3D) => {
     if ((o as SkinnedMesh).isSkinnedMesh) skinned.push(o as SkinnedMesh);
     if ((o as Bone).isBone) bones.push(o as Bone);
+    const m = o as Mesh;
+    if (m.isMesh && m.morphTargetDictionary && m.morphTargetInfluences) {
+      for (const name of Object.keys(m.morphTargetDictionary)) morphNames.add(name);
+      const iBlink = m.morphTargetDictionary[BLINK_MORPH] ?? -1;
+      const iHalf = m.morphTargetDictionary[BLINK_HALF_MORPH] ?? -1;
+      if (iBlink >= 0 || iHalf >= 0) blinkMeshes.push({ mesh: m, iBlink, iHalf });
+    }
   });
   if (!skinned.length) throw new Error('no skinned meshes in the GLB');
   let triangles = 0;
@@ -1274,8 +1311,8 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
   }
 
   const asset: LinkAssetInfo = {
-    file: LINK_GLB_FILE,
-    sha256: LINK_GLB_SHA256,
+    file,
+    sha256: file === LINK_GLB_FILE ? LINK_GLB_SHA256 : 'unrecorded (override file)',
     triangles,
     materials: materials.size,
     bones: bones.length,
@@ -1292,6 +1329,27 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
       L: { heel: Number(footprints.L.fp.heel.toFixed(4)), toe: Number(footprints.L.fp.toe.toFixed(4)), latMin: Number(footprints.L.fp.latMin.toFixed(4)), latMax: Number(footprints.L.fp.latMax.toFixed(4)), soleVertices: footprints.L.soleVertices },
       R: { heel: Number(footprints.R.fp.heel.toFixed(4)), toe: Number(footprints.R.fp.toe.toFixed(4)), latMin: Number(footprints.R.fp.latMin.toFixed(4)), latMax: Number(footprints.R.fp.latMax.toFixed(4)), soleVertices: footprints.R.soleVertices },
     },
+    morphTargets: [...morphNames].sort(),
+  };
+
+  // the blink (round 8): the schedule and the last pose's closure / weights, for the audit
+  const blinkSchedule: BlinkSchedule = createBlinkSchedule(opts.blinkSeed ?? 'link-blink');
+  const blinkW: BlinkWeights = { blink: 0, blinkHalf: 0 };
+  const blinkState = { phase: 0, t: 0 };
+  /**
+   * Set the contract's weights on every morph mesh for the pose at `t`. After `mixer.update` (the
+   * clips carry no morph tracks, but the order keeps that true whatever a future clip does).
+   */
+  const applyBlink = (p: PuppetPose) => {
+    const phase = blinkPhase(blinkSchedule, p.t, p.gait === 'run' ? p.gaitSwitchT : -Infinity);
+    blinkWeights(phase, blinkW);
+    blinkState.phase = phase;
+    blinkState.t = p.t;
+    for (const b of blinkMeshes) {
+      const inf = b.mesh.morphTargetInfluences!;
+      if (b.iBlink >= 0) inf[b.iBlink] = blinkW.blink;
+      if (b.iHalf >= 0) inf[b.iHalf] = blinkW.blinkHalf;
+    }
   };
 
   const clipTimeOf = (gait: Gait, t: number, shift = 0) => {
@@ -1373,6 +1431,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
         a.action.time = clipTimeOf(gait, p.t, shift);
       }
       mixer.update(0);
+      applyBlink(p);
       neckPivot.quaternion.identity();
       headPivot.quaternion.identity();
       for (const leg of legs) {
@@ -1840,6 +1899,18 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
     },
     feetContact: () => feet.map((f) => ({ ...f })),
     plantInfo: () => ({ ...plant }),
+    blink() {
+      const first = blinkMeshes[0];
+      const inf = first?.mesh.morphTargetInfluences;
+      return {
+        morphMeshes: blinkMeshes.length,
+        phase: blinkState.phase,
+        weights: { ...blinkW },
+        applied: first && inf ? { blink: first.iBlink >= 0 ? inf[first.iBlink] : 0, blinkHalf: first.iHalf >= 0 ? inf[first.iHalf] : 0 } : null,
+        nextT: nextBlinkStart(blinkSchedule, blinkState.t),
+        schedule: { ...blinkSchedule },
+      };
+    },
     anchor(x, z, yaw, gait, clipShift, t) {
       const a = actions.get(gait);
       if (!a) return null;
