@@ -2121,12 +2121,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // floor every unit of tint reaches the pixel, where 85 % of it did before; the old swings
       // rendered the crown as fine bright/dark speckle in A and D, where the reference's house is a
       // smooth hazed shape)
-      /**
-       * Round 34 (structures-23): the fissures cut deeper (×0.5 → ×0.35) — frame B's crown
-       * (0.72–0.86 × 0.24–0.31) runs p10 0.241 / p90 0.539 where ours ran 0.300 / 0.443 at the
-       * same median; the crests keep their swing (A and D want the face smooth).
-       */
-      const d = base * dirShade * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * Math.max(0.08, 1 + 0.6 * crest) * (1 + 0.3 * relief) * (1 - 0.65 * fis);
+      // (round 34 measured deeper fissures — ×0.65 — against frame B's crown p10 0.241: ours held
+      // at 0.300 → 0.299, the veil's floor at the house, for −0.004 of the crown's median; ×0.5 stays)
+      const d = base * dirShade * (0.7 + 0.3 * Math.max(0, up) + 0.06 * Math.max(0, front)) * Math.max(0.08, 1 + 0.6 * crest) * (1 + 0.3 * relief) * (1 - 0.5 * fis);
       const patch = 0.45 + 0.55 * noise.fbm(_ap.x * 1.7 + 3, _ap.z * 1.7 + y * 0.6, 2);
       let w = smoothstep(0.25, 0.85, up) * patch * mossAmount;
       if (creep) {
