@@ -34,20 +34,6 @@ export function dForeground(z: number) {
 }
 
 /**
- * Round 35: camera D's foreground gaps — the spine's stretch frame 56 s shows at y 0.72–1 (spine
- * z −6.3 … −12.5), where the frame's gaps are dark earth with grass, 0.15–0.2 under the slab tops,
- * and its dark class sits 61 / 27 % in the 30° / 40° hue bins against our 53 / 34. Only the fill's
- * tone is gated on this (joints.ts `gapEarth`): the round's wider seams, painted recess and gap
- * tufts put the joint share at 0.349 against the frame's 0.216 and cost the view 0.003 of SSIM.
- * 1 from z −6.9 to −12.4, ±3 m of the spine's centreline.
- */
-export function dGapZone(x: number, z: number) {
-  const along = smoothstep(-5.9, -6.9, z) * smoothstep(-13.8, -12.4, z);
-  const cx = z > -6 ? 0.6 * smoothstep(0, -6, z) : 0.6 + 0.9 * smoothstep(-6, -12, z);
-  return along * smoothstep(3.4, 2.6, Math.abs(x - cx));
-}
-
-/**
  * Round 33: the disc field — the spine north of the plaza as cameras B/E (behind Link, y 0.6–0.8:
  * z −4 … −12), C (foreground, z −5 … −3) and D (foreground, z −6.5 … −10.5) all show it: rounded,
  * softly domed 0.8–1.3 m stones (D's 1.5–2.5 m slabs keep their size) set in 9–22 cm gaps of
