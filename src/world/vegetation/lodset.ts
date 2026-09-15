@@ -52,12 +52,67 @@ const CELL_PARTIAL = 0;
 const CELL_OUT = -1;
 /** outside the view frustum, and its whole shadow sweep too */
 const CELL_OUT_SHADOW = -2;
+/**
+ * Scratch for `cull()`'s kept indices: written by index and read up to a count, never trimmed
+ * (`length = 0` drops V8's backing store, and the pushes then regrow it through every doubling —
+ * 218 MB of the 2.4 GB the r37 walk allocated were this array's regrowth, 515 MB the `submitted`
+ * copies' and 67 MB the buckets').
+ */
 const _kept: number[] = [];
-const sameList = (a: number[], b: number[]) => {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+/** the first `n` of `a` equal the first `n` of `b` (`nb` is b's logical length) */
+const samePrefix = (a: number[], n: number, b: number[], nb: number) => {
+  if (n !== nb) return false;
+  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return false;
   return true;
 };
+
+/**
+ * `Math.hypot` without its allocation: V8's MathHypot builtin (math.tq) collects the arguments into
+ * a FixedDoubleArray on every call (374 MB of the r37 walk's garbage came from hypot alone). Same
+ * algorithm — the arguments scaled by the largest, Kahan-summed, `sqrt × max` — so the results are
+ * bit-identical (0 mismatches over 3 M random triples across six decades); the spec's edge order
+ * too: ±Infinity anywhere → Infinity, then any NaN → NaN, then all zero → 0.
+ */
+export function hypot2(a: number, b: number): number {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  if (a === Infinity || b === Infinity) return Infinity;
+  if (a !== a || b !== b) return NaN;
+  const max = a > b ? a : b;
+  if (max === 0) return 0;
+  // the Kahan compensation is exactly 0 after the first term, so two terms are a plain sum
+  const n0 = a / max;
+  const n1 = b / max;
+  return Math.sqrt(n0 * n0 + n1 * n1) * max;
+}
+
+export function hypot3(a: number, b: number, c: number): number {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  c = Math.abs(c);
+  if (a === Infinity || b === Infinity || c === Infinity) return Infinity;
+  if (a !== a || b !== b || c !== c) return NaN;
+  let max = a > b ? a : b;
+  if (c > max) max = c;
+  if (max === 0) return 0;
+  let sum = 0;
+  let compensation = 0;
+  let n = a / max;
+  let summand = n * n - compensation;
+  let preliminary = sum + summand;
+  compensation = preliminary - sum - summand;
+  sum = preliminary;
+  n = b / max;
+  summand = n * n - compensation;
+  preliminary = sum + summand;
+  compensation = preliminary - sum - summand;
+  sum = preliminary;
+  n = c / max;
+  summand = n * n - compensation;
+  preliminary = sum + summand;
+  sum = preliminary;
+  return Math.sqrt(sum) * max;
+}
 
 /**
  * Flag the first `count` elements of an instance attribute for upload (three sends only the
@@ -115,10 +170,12 @@ interface PackMesh {
   slots: InstancedBufferAttribute;
   /** triangles one instance submits (every variant of the pack, the collapsed ones included) */
   triangles: number;
-  /** item indices bucketed into this mesh by camera distance (before culling) */
+  /** item indices bucketed into this mesh by camera distance (before culling): the first `n` of `list` */
   list: number[];
-  /** item indices actually submitted: `list` minus the culled instances */
+  n: number;
+  /** item indices actually submitted (`list` minus the culled instances): the first `nSubmitted` */
   submitted: number[];
+  nSubmitted: number;
 }
 
 /** one mesh's share of the submission, for the audit */
@@ -354,7 +411,7 @@ export class LodInstancedSet {
         mesh.name = `${this.opts.name}-lod${l}-p${pi}-v${pack.join('')}`;
         mesh.visible = false;
         this.group.add(mesh);
-        row.push({ mesh, slots, triangles: geometry.index!.count / 3, list: [], submitted: [] });
+        row.push({ mesh, slots, triangles: geometry.index!.count / 3, list: [], n: 0, submitted: [], nSubmitted: 0 });
       });
       this.meshes.push(row);
     }
@@ -365,14 +422,15 @@ export class LodInstancedSet {
 
   /** Bucket every plant into one mesh; the buckets are submitted whole until `cull()` has run. */
   private bucket(lodFor: (it: Item) => number) {
-    for (const row of this.meshes) for (const pm of row) pm.list.length = 0;
+    for (const row of this.meshes) for (const pm of row) pm.n = 0;
     for (let i = 0; i < this.items.length; i++) {
       const it = this.items[i];
       const lod = lodFor(it);
-      this.meshes[lod][this.packOf[lod][it.variant]].list.push(i);
+      const pm = this.meshes[lod][this.packOf[lod][it.variant]];
+      pm.list[pm.n++] = i;
     }
     if (this.culling) this.bucketsDirty = true;
-    else this.meshes.forEach((row, l) => row.forEach((pm) => this.fill(pm, l, pm.list)));
+    else this.meshes.forEach((row, l) => row.forEach((pm) => this.fill(pm, l, pm.list, pm.n)));
   }
 
   /**
@@ -382,7 +440,7 @@ export class LodInstancedSet {
    * culls the whole mesh against it, and an unpadded sphere would drop a sparse bucket admitted at
    * the frustum's edge for its sway / shadow reach.
    */
-  private fill(pm: PackMesh, lod: number, list: number[]) {
+  private fill(pm: PackMesh, lod: number, list: number[], count: number) {
     const { mesh, slots } = pm;
     const matrices = mesh.instanceMatrix.array as Float32Array;
     const colors = mesh.instanceColor!.array as Float32Array;
@@ -390,29 +448,30 @@ export class LodInstancedSet {
     const slotOf = this.slotOf[lod];
     const centre = mesh.boundingSphere!.center;
     let radius = 0;
-    for (let k = 0; k < list.length; k++) {
+    for (let k = 0; k < count; k++) {
       const it = this.items[list[k]];
       matrices.set(it.matrix, k * 16);
       colors[k * 3] = it.color[0];
       colors[k * 3 + 1] = it.color[1];
       colors[k * 3 + 2] = it.color[2];
       slotArr[k] = slotOf[it.variant];
-      radius = Math.max(radius, Math.hypot(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
+      radius = Math.max(radius, hypot3(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
     }
-    mesh.count = list.length;
+    mesh.count = count;
     // upload the submitted prefix only: without a range three re-sends the whole capacity-sized
     // buffer (a 6k-plant set is 400 KB per LOD mesh per frame while the camera turns); the rest of
     // the buffer is never read (instances ≥ count are not drawn)
-    const n = Math.max(1, list.length);
+    const n = Math.max(1, count);
     markPrefix(mesh.instanceMatrix, n * 16);
     markPrefix(mesh.instanceColor!, n * 3);
     markPrefix(slots, n);
     // an empty bucket is never submitted (visible=false; three also skips count 0)
-    mesh.visible = list.length > 0;
-    if (list.length) mesh.boundingSphere!.radius = radius + this.pad;
+    mesh.visible = count > 0;
+    if (count) mesh.boundingSphere!.radius = radius + this.pad;
     if (pm.submitted !== list) {
-      pm.submitted.length = 0;
-      for (const i of list) pm.submitted.push(i);
+      const submitted = pm.submitted;
+      for (let k = 0; k < count; k++) submitted[k] = list[k];
+      pm.nSubmitted = count;
     }
   }
 
@@ -435,7 +494,7 @@ export class LodInstancedSet {
     const { lodDistances } = this.opts;
     const lodCount = this.lodCount;
     this.bucket((it) => {
-      const d = Math.hypot(camPos.x - it.x, camPos.z - it.z);
+      const d = hypot2(camPos.x - it.x, camPos.z - it.z);
       for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
       return lodCount - 1;
     });
@@ -593,26 +652,29 @@ export class LodInstancedSet {
     for (let l = 0; l < this.meshes.length; l++) {
       for (const pm of this.meshes[l]) {
         let keep = pm.list;
+        let nKeep = pm.n;
         if (trim) {
           const casts = pm.mesh.castShadow;
-          _kept.length = 0;
-          for (const i of pm.list) {
+          const list = pm.list;
+          nKeep = 0;
+          for (let k = 0; k < pm.n; k++) {
+            const i = list[k];
             const cls = cellClass[cellOf[i]];
             if (cls === CELL_IN) {
-              _kept.push(i);
+              _kept[nKeep++] = i;
               continue;
             }
             if (cls === CELL_OUT_SHADOW) continue;
             const it = this.items[i];
             if (cls === CELL_OUT) {
-              if (casts && this.shadowReaches(it)) _kept.push(i);
+              if (casts && this.shadowReaches(it)) _kept[nKeep++] = i;
               continue;
             }
-            if (this.inView(it) || (casts && this.shadowReaches(it))) _kept.push(i);
+            if (this.inView(it) || (casts && this.shadowReaches(it))) _kept[nKeep++] = i;
           }
           keep = _kept;
         }
-        if (!sameList(keep, pm.submitted)) this.fill(pm, l, keep);
+        if (!samePrefix(keep, nKeep, pm.submitted, pm.nSubmitted)) this.fill(pm, l, keep, nKeep);
       }
     }
   }
@@ -621,7 +683,7 @@ export class LodInstancedSet {
   submission(): MeshSubmission[] {
     const out: MeshSubmission[] = [];
     this.meshes.forEach((row, lod) =>
-      row.forEach((pm, pack) => out.push({ name: pm.mesh.name, lod, pack, bucket: pm.list.length, submitted: pm.mesh.count, triangles: pm.triangles, castShadow: pm.mesh.castShadow, mesh: pm.mesh })),
+      row.forEach((pm, pack) => out.push({ name: pm.mesh.name, lod, pack, bucket: pm.n, submitted: pm.mesh.count, triangles: pm.triangles, castShadow: pm.mesh.castShadow, mesh: pm.mesh })),
     );
     return out;
   }
