@@ -660,66 +660,65 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // in the lantern tree's crown, off every hero frame (A (−0.26, −0.65), B (−0.44, …), D (−0.7,
   // …), behind C and F), on ghosted-wood boughs that end 0.4 m short of them (a stem's twig at
   // 12–12.5 m lays its own line, round 34):
-  // - footprint (7.6, 0.9), hR 0.7: an ellipse 1.4 m across × 2.3 m along the sun, x 6.6–8.5,
-  //   z −0.1…2.0 — the frame's shade beside the stair foot. Its sun line passes camera D 6.5 m
+  // - footprint (7.1, 0.9), hR 0.7: an ellipse 1.4 m across × 2.3 m along the sun, x 5.9–8.3,
+  //   z −0.3…2.1 — the frame's shade beside the stair foot. Its sun line passes camera D 6.1 m
   //   off at head height (the round-34 lesson: within 1.5 m it darkens the god-ray march's first
-  //   steps), camera B 6.5 m off (the column enters B's frustum 5.7 m out, at B (0.9, 0.21) 3 m
-  //   up, as the plaza-shade clump's does at (0.24, 0.12)), camera A 10.6 m off.
-  // - footprint (6.2, 2.6), hR 0.7: x 5.3–7.3, z 1.7–3.5 — the frame's shade at (5–7.5, 2–3),
-  //   ending short of the lit island at (7.5–8.5, 2–3.5). Its line passes D 6.4 m off, B 4.7 m
-  //   off (outside B's frame), A 8.4 m off.
-  // The first cut had them 0.5 / 0.9 m further west ((7.1, 0.9) and (5.5, 3.0)): read cell by
-  // cell against the frame that shaded (6–6.5, 0.5), (5.5–6, 1.5), (4.5–5, 2.5) and (4.5–5.5, 3)
-  // — the frame's lit run — and the box's lit share (two-mean, own split) fell 35 → 28 % where the
-  // frame has 50 %; the box's median 0.405 → 0.364 (frame 0.417).
+  //   steps), camera B 6.0 m off (the column enters B's frustum 4.6 m out, at B (0.88, 0.12) 3 m
+  //   up, as the plaza-shade clump's does at (0.24, 0.12)), camera A 7.7 m off.
+  // - footprint (5.8, 3.0), hR 0.7: x 4.6–7.0, z 1.8–4.2 — the frame's shade at (4.5–7, 2.5–3.5).
+  //   Its line passes D 6.3 m off, B 4.2 m off (outside B's frame), A 8.0 m off.
+  // Measured (A/B/D captures, same build otherwise): at (7.1, 0.9) + (5.5, 3.0) the patch's SSIM
+  // cells (0.63–0.75, 0.5–0.83) +0.024 / +0.059 with (0.50–0.63, 0.67–0.83) −0.026 — the second
+  // clump's west end on the lit slabs right of Link — A +0.0031 in all; 0.5 / 0.9 m further east
+  // ((7.6, 0.9) + (6.2, 2.6), where the frame's two-mean cells put its shade) +0.025 / −0.014 /
+  // +0.005 and (0.75–0.88, 0.67) +0.024, A +0.0026: at 256 × 144 the frame's patch is one broad
+  // soft shade over the centre and the stacked pair matches it better than a cell-fitted pair,
+  // whose dapple re-rolls with every move. The first pair stays, the second clump 0.3 m east of
+  // it so less of its ellipse lands on Link's lit slabs.
   {
     giant: 'lantern-tree',
     fromY: 12.0,
-    to: [-5.45, 12.3, -8.55],
+    to: [-5.95, 12.3, -8.55],
     radius: 0.35,
     tipRadius: 0.12,
     ghostWood: true,
-    lobes: [{ t: 0.97, center: [-5.0, 12.5, -8.94], hR: 0.7, vR: 0.7, density: 2, eye: 0, compact: true, corridors: false }],
+    lobes: [{ t: 0.97, center: [-5.5, 12.5, -8.94], hR: 0.7, vR: 0.7, density: 2, eye: 0, compact: true, corridors: false }],
   },
   {
     giant: 'lantern-tree',
     fromY: 12.0,
-    to: [-6.75, 12.3, -7.15],
+    to: [-7.15, 12.3, -6.75],
     radius: 0.35,
     tipRadius: 0.12,
     ghostWood: true,
-    lobes: [{ t: 0.97, center: [-6.4, 12.5, -7.24], hR: 0.7, vR: 0.7, density: 2, eye: 0, compact: true, corridors: false }],
+    lobes: [{ t: 0.97, center: [-6.8, 12.5, -6.84], hR: 0.7, vR: 0.7, density: 2, eye: 0, compact: true, corridors: false }],
   },
-  // Shot D's shaded east half (round 36, see D_PATH_SUN_POINTS): two bare boughs of the north-west-
-  // near giant running NORTH off its leaning axis at 12 and 13.6 m, level, 0.8 m thick — their
-  // wood's shadow bands ((x + 1.008 Y, z + 0.787 Y)) run down the path's east half from z −10.5
-  // to −16.5: the lower bough's from (2.6, −10.6) to (4.1, −16.2), the upper's from (3.5, −10.7)
-  // to (5.1, −16.5), a 2 m band together at the near end. Wood, not leaves, so the band has the
-  // frame's straight west edge along the path's axis and no corridor thins it. Above camera D's
-  // top edge (the lower bough's tip at D (0.185, −0.014) at 22 m, its origin (0.05, −0.19)),
+  // Shot D's shaded east half (round 36, see D_PATH_SUN_POINTS): a bare bough of the north-west-
+  // near giant running NORTH off its leaning axis at 12 m ((−9.6, 12, −20.5): lean 45° toward
+  // 245° from 3.5 m), level, 1.1 m thick — its wood's shadow band ((x + 1.008 Y, z + 0.787 Y))
+  // runs down the path's east half from (2.5, −11) to (4.1, −16.2). Wood, not leaves, so the band
+  // has the frame's straight west edge along the path's axis and no corridor thins it. Above
+  // camera D's top edge (the tip at D (0.185, −0.014) at 22 m, the origin (0.05, −0.19)),
   // above-left of B's top-left corner (−0.03), off A, behind C and F.
-  // Measured at 0.5 m radius (D only, same build otherwise): the east strip's cells
-  // (0.50–0.88, 0.67–0.83) +0.070 / +0.113 / +0.018 SSIM and (0.63–0.75, 0.5) +0.024 — D
+  // Measured (D captures, same build otherwise). Two boughs at 0.5 m radius: the east strip's
+  // cells (0.50–0.88, 0.67–0.83) +0.070 / +0.113 / +0.018 SSIM and (0.63–0.75, 0.5) +0.024 — D
   // +0.0040 in all — with the path-E box's median 0.397 → 0.366 (frame 0.345) and its p90 0.536
   // → 0.441 (0.427); the cost is the god-ray march, whose rays through D's air box (0.35–0.75,
-  // 0.10–0.27) cross the two shadow slabs 4–6 m up over the path's west edge (any caster of the
-  // east strip puts its slab there: the slab of a footprint (x, z) at height h is at (x − 1.008 h,
-  // z − 0.787 h)), air p50 0.553 → 0.549 against the ≥ 0.55 guard, p90 0.605 → 0.578. Radius
-  // 0.4 / 0.25 (a 0.8 m band, the slabs' section −20 %) is the trade.
+  // 0.10–0.27) cross the shadow slabs 4–6 m up over the path's west edge (any caster of the east
+  // strip puts its slab there: the slab of a footprint (x, z) at height h is at (x − 1.008 h,
+  // z − 0.787 h); the frame lights that air and shades that ground, which one shadow field cannot
+  // do), air p50 0.5526 → 0.5492 against the ≥ 0.55 guard, p90 0.605 → 0.578; B's air at
+  // (0.25–0.38, 0.17–0.33), where the same slabs cross its god rays 19 m out, −0.017 (B −0.0005
+  // net with the bands' +0.013 on its mid path). Two boughs at 0.4 m: D +0.0024, air p50 0.5498
+  // — still short of the guard, and the east cells kept only two thirds of the gain. One bough
+  // (the lower, 0.55 m radius: a 1.1 m band from (2.5, −11) to (4.1, −16.2), the strip's west
+  // part where the two-mean map still read (2–3.5, −12…−14) lit) is the trade the guard allows.
   {
     giant: 'north-west-near',
     fromY: 12.0,
     to: [-8.4, 12.4, -26.0],
-    radius: 0.4,
-    tipRadius: 0.25,
-    lobes: [],
-  },
-  {
-    giant: 'north-west-near',
-    fromY: 13.6,
-    to: [-9.0, 14.0, -27.5],
-    radius: 0.4,
-    tipRadius: 0.25,
+    radius: 0.55,
+    tipRadius: 0.3,
     lobes: [],
   },
 ];
