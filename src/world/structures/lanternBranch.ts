@@ -377,8 +377,10 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // one lit speck line along the top edge — the first pass's (0.7, 0.75, 0.55) read as a lit lime
   // hedge riding the limb at 6 m; pulled to 0.6 ×)
   const topShade: [number, number, number] = [0.4, 0.42, 0.3];
-  for (let i = 0; i < 9; i++) {
-    const s = lerp(0.12, 0.92, (i + vegRng()) / 9);
+  // (round 37: five tufts on the 2.2 m run, not nine — frame 1 s's tufts are sparse, most of them
+  // over the left third of the bough)
+  for (let i = 0; i < 5; i++) {
+    const s = lerp(0.08, 0.85, (i + vegRng()) / 5);
     const psi = (vegRng() - 0.4) * 1.3;
     const pos = surface(s, psi, 0.03);
     const nrm = radial(s, psi).addScaledVector(UP, 0.4).normalize();
@@ -390,20 +392,21 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // tube. Clumps sit on the moss (psi within ±1.1 of the top), root 5 cm into the sheets, and are
   // shaded olive like the sprigs; the undersides where the pods hang stay clear. ----
   const clumpRng = rng.fork('branch-clumps');
-  // (round 37: the run's clumps are the frame's dark tufts — 0.55 × the reach's tint, eight of
-  // them at 0.12–0.18 m instead of eleven at 0.14–0.23 m, so the bough's dark band stays readable
-  // between them; the reach beyond A's edge keeps the fuller canopy clumps)
+  // (round 37: the run's clumps are the frame's dark tufts — 0.55 × the reach's tint, five of
+  // them at 0.12–0.18 m over s 0.05–0.78 instead of eleven at 0.14–0.23 m along the whole run, so
+  // the bough's dark band stays readable between them and its last third is bare as in the frame;
+  // the reach beyond A's edge keeps the fuller canopy clumps)
   const clumpTint: [number, number, number] = [0.5, 0.58, 0.3];
   const runTint: [number, number, number] = [0.28, 0.31, 0.19];
-  for (let i = 0; i < 8; i++) {
-    const s = lerp(0.12, 0.9, (i + 0.2 + clumpRng() * 0.6) / 8);
+  for (let i = 0; i < 5; i++) {
+    const s = lerp(0.05, 0.78, (i + 0.2 + clumpRng() * 0.6) / 5);
     const psi = (clumpRng() - 0.5) * 2.2 + 0.2;
     const r = (0.2 + clumpRng() * 0.1) * (0.6 + 0.4 * fk);
     const centre = surface(s, psi, r * 0.45 - 0.05);
     foliage.addLeafCluster(centre, r, 12 + Math.floor(clumpRng() * 6), { size: 0.09, amount: 0.06, droop: 0.5, tint: runTint, tintSpread: 0.3, flatten: 0.55 });
   }
-  for (let i = 0; i < 6; i++) {
-    const s = lerp(0.15, 0.88, (i + clumpRng()) / 6);
+  for (let i = 0; i < 3; i++) {
+    const s = lerp(0.15, 0.8, (i + clumpRng()) / 3);
     // fern sprigs lean out from the shoulders, alternating sides
     const psi = (i % 2 ? 1 : -1) * (0.9 + clumpRng() * 0.5);
     const pos = surface(s, psi, 0.02);
