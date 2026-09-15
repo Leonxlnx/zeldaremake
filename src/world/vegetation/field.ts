@@ -190,6 +190,35 @@ const HOUSE_FLIGHT_TRODDEN_ALONG: readonly [number, number] = [-1.6, 1.9];
 const D_HOLLOW_BOX: readonly [number, number, number, number] = [0.24, 0.44, 0.46, 0.66];
 const D_HOLLOW_DEPTH = 9;
 const D_HOLLOW_FEATHER = 0.03;
+/**
+ * Round 35: camera C's bottom-left foreground (frame 46 s, C 0.06–0.30 × 0.74–1.0) — the ground
+ * 2.5–6 m before the camera between Saria's flight and the plaza's north-east lobe, the slope
+ * that climbs from the paving (h 0.1) to the terrace (h 0.7). The frame has trodden earth with
+ * pale stones and a fine dusty fringe there: lum p50 0.43–0.52 with 0–4 % green over x 0.1–0.35,
+ * dark leaves only in the very corner; ours carried a closed lit turf (green 67–85 %, p50
+ * 0.29–0.35, blades to 0.5 m at 3–8 m). Camera B sees the same ground at (0.55–0.96, 0.67–0.83)
+ * as frame 14 s' lit lawn (p50 0.46–0.6 against our 0.24–0.31), camera A hazed at 12–15 m
+ * ((0.37–0.53, 0.55–0.61): 0.35 against our 0.40) — every frame wants it lighter and less green.
+ */
+export const C_FOOT: readonly [number, number, number, number] = [3.5, -6.3, 5.7, -2.1];
+export const C_FOOT_FEATHER = 0.5;
+/**
+ * Round 35: the frames' dark bank masses beside the main flight. (a) The north-west flank
+ * (stair-local v < 0) from NW_DARK_OUT metres beyond the tread ends out to the terrace slope:
+ * frame 8 s' left mass (F 0–0.15 × 0.46–0.62: dark green, p50 0.19–0.24 against our 0.30–0.32)
+ * and frame 46 s' dark earth under the stair foot (C 0–0.15 × 0.55–0.72: p50 0.23 against our
+ * 0.32); frame 1 s sees the same ground hazed at 16 m (A 0.45–0.6 × 0.5–0.65: 0.33 against our
+ * 0.33, so the ramp is moderate). Frame 14 s' lit right mass (B_MASS, plants.ts) is left out.
+ * (b) The plateau shelf right of the flight (SHELF_DARK, round 32's crest strip and the ground
+ * behind it): frame 8 s' right mass (F 0.65–0.95 × 0.3–0.6) is one soft dark blur at p50 0.265
+ * with lum sd 0.052 where our crest shrubs stood near-black (p10 0.146) in lit turf (0.35).
+ */
+const NW_DARK_OUT: readonly [number, number] = [0.3, 1.2];
+const NW_DARK_FAR: readonly [number, number] = [3.6, 4.8];
+const NW_DARK_ALONG: readonly [number, number] = [-1.0, 7.5];
+const NW_DARK_B_MASS: readonly [number, number, number, number] = [8.0, -6.2, 9.6, -3.4];
+const SHELF_DARK: readonly [number, number, number, number] = [9.2, 4.2, 14.5, 7.6];
+const SHELF_DARK_FEATHER = 0.6;
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
@@ -1104,6 +1133,38 @@ export class VegField {
     const angular = ang < angMin ? Math.sin(angMin - ang) * d : ang > angMax ? Math.sin(ang - angMax) * d : 0;
     const outside = Math.max(angular, depth - C_FRAME_DEPTH);
     return Math.max(v, 1 - smoothstep(0, Math.max(margin, 0.05), outside));
+  }
+
+  /**
+   * 0..1 on camera C's bottom-left foreground ground (round 35, C_FOOT): frame 46 s' trodden
+   * earth with a fine dusty fringe — short, thinned, straw-tipped turf lit by the zone fill, no
+   * meadow stalks, the standing plants a shade paler (materials.ts LIFT_ZONE_C_FOOT).
+   */
+  cFoot(x: number, z: number): number {
+    return softBox(x, z, C_FOOT, C_FOOT_FEATHER);
+  }
+
+  /** the C-foot world box grown by `pad` metres (its feather is C_FOOT_FEATHER) */
+  cFootBox(pad = 0): [number, number, number, number] {
+    return [C_FOOT[0] - pad, C_FOOT[1] - pad, C_FOOT[2] + pad, C_FOOT[3] + pad];
+  }
+
+  /**
+   * 0..1 where the turf beside the main flight reads as the frames' dark bank masses (round 35):
+   * the north-west flank beyond NW_DARK_OUT (frames 8 / 46, frame 14 s' lit right mass excepted)
+   * and the plateau shelf right of the flight (frame 8's right mass). Grass encodes it as the
+   * blade darkening (materials.ts), the standing plants take it as a colour multiplier.
+   */
+  bankDark(x: number, z: number): number {
+    const { u, v, halfWidth } = this.mainStairLocal(x, z);
+    let nw = 0;
+    if (v < 0) {
+      const out = -v - halfWidth;
+      const across = smoothstep(NW_DARK_OUT[0], NW_DARK_OUT[1], out) * (1 - smoothstep(NW_DARK_FAR[0], NW_DARK_FAR[1], out));
+      const along = smoothstep(NW_DARK_ALONG[0] - 0.8, NW_DARK_ALONG[0], u) * (1 - smoothstep(NW_DARK_ALONG[1], NW_DARK_ALONG[1] + 1.5, u));
+      nw = across * along * (1 - softBox(x, z, NW_DARK_B_MASS, 0.4));
+    }
+    return Math.max(nw, softBox(x, z, SHELF_DARK, SHELF_DARK_FEATHER));
   }
 
   /** 0..1 where the foreground tufts of frames 1 / 8 must stay short. */

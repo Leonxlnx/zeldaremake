@@ -10,6 +10,7 @@
 import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, MeshStandardMaterial, RGBADepthPacking, Vector4, type WebGLProgramParametersWithUniforms } from 'three';
 import type { WorldContext } from '../system';
 import { WIND_GLSL, type Wind } from '../wind/wind';
+import { C_FOOT } from './field';
 import { PACK_INSTANCE_ATTRIBUTE, PACK_VERTEX_ATTRIBUTE } from './lodset';
 
 export type VegKind = 'grass' | 'plant' | 'bush' | 'litter' | 'moss';
@@ -52,6 +53,9 @@ int tintIndex = int(clamp(floor(tintSlot), 0.0, 3.0));
 // right embankment) have no sunlit tuft self-shadowing, so their root→tip gradient is flatter
 float shadeLift = clamp((fract(tintSlot) - 0.25) * 2.0, 0.0, 1.0);
 vShadeLift = shadeLift;
+// a fraction below 0.25 is the round-35 bank darkening (field.ts bankDark: frames 8 / 46's dark
+// flank masses), 0..1 — blades outside those zones keep the 0.25..0.75 encoding untouched
+float bankDark = clamp((0.25 - fract(tintSlot)) * 4.0, 0.0, 1.0);
 vec3 tint = uTints[tintIndex];
 // root → tip gradient: deep, slightly cool root buried in the tuft, warm lit tip (the reference's
 // shaded grass is a dark green-brown ≈ 0.24 luminance, its lit blades an olive ≈ 0.35)
@@ -61,6 +65,9 @@ vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 
 bladeColor *= vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
 // straw-coloured dry tips
 bladeColor = mix(bladeColor, uDryTip, vegDry * smoothstep(0.45, 1.0, bladeT));
+// the dark masses: deeper and a little less saturated (the frames' masses measure sat 0.22–0.32
+// against our lit turf's 0.32–0.39), the tip gradient flattened toward the core
+bladeColor = mix(bladeColor, vec3(dot(bladeColor, vec3(0.30, 0.59, 0.11))), 0.3 * bankDark) * (1.0 - 0.5 * bankDark);
 vColor = vec4(bladeColor, 1.0);
 `;
 
@@ -170,13 +177,24 @@ reflectedLight.indirectDiffuse += diffuseColor.rgb * uShadeFill * vShadeLift;
  * (0–0.4, 0.6–0.85) box's ground), which rises by about a quarter of the D gain.
  */
 export const SHADE_LIFT_ZONE = { box: [-5.5, -18, -1.5, -6] as readonly [number, number, number, number], feather: 1.0, fill: 0.34 };
+/**
+ * Round 35: the second lift zone — camera C's bottom-left foreground (field.ts C_FOOT, the slope
+ * between Saria's flight and the plaza's north-east lobe). The ground faces away from the sun
+ * under the canopy and rendered 0.24–0.35 where frames 46 s (C) and 14 s (B) both have it lit
+ * (0.43–0.6). The same skylight-fill path as the D verge, at `scale` × the D fill, weighted by
+ * the sun's shadow term like it, so dappled sun on the slope is unchanged.
+ */
+export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 1.35 };
 
 const LIFT_VERTEX_PARS = /* glsl */ `
 uniform vec4 uLiftBox;
+uniform vec4 uLiftBox2;
+uniform float uLiftScale2;
 uniform float uLiftFeather;
 varying float vZoneLift;
 `;
-// evaluated at the instance root so a whole plant gets one lift value (no gradient across fronds)
+// evaluated at the instance root so a whole plant gets one lift value (no gradient across fronds);
+// one smoothstep over the nearer of the two boxes, the second box scaled to its own fill
 const LIFT_VERTEX = /* glsl */ `
 {
   #ifdef USE_INSTANCING
@@ -185,7 +203,11 @@ const LIFT_VERTEX = /* glsl */ `
     vec2 liftRoot = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xz;
   #endif
   vec2 liftOut = max(max(uLiftBox.xy - liftRoot, liftRoot - uLiftBox.zw), vec2(0.0));
-  vZoneLift = 1.0 - smoothstep(0.0, uLiftFeather, length(liftOut));
+  vec2 liftOut2 = max(max(uLiftBox2.xy - liftRoot, liftRoot - uLiftBox2.zw), vec2(0.0));
+  float liftD1 = length(liftOut);
+  float liftD2 = length(liftOut2);
+  vZoneLift = 1.0 - smoothstep(0.0, uLiftFeather, min(liftD1, liftD2));
+  vZoneLift *= liftD2 < liftD1 ? uLiftScale2 : 1.0;
 }
 `;
 const LIFT_FRAGMENT_PARS = /* glsl */ `
@@ -297,6 +319,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     uAmbientBoost: { value: opts.ambientBoost ?? (kind === 'grass' ? 0.02 : kind === 'litter' || kind === 'moss' ? 0.015 : 0.02) },
     uTransmission: { value: opts.transmission ?? (kind === 'grass' ? 0.14 : kind === 'litter' ? 0.05 : kind === 'moss' ? 0 : 0.12) },
     uLiftBox: { value: new Vector4(...SHADE_LIFT_ZONE.box) },
+    uLiftBox2: { value: new Vector4(...LIFT_ZONE_C_FOOT.box) },
+    uLiftScale2: { value: LIFT_ZONE_C_FOOT.scale },
     uLiftFeather: { value: SHADE_LIFT_ZONE.feather },
     uLiftFill: { value: opts.shadeLift ?? SHADE_LIFT_ZONE.fill },
   };
@@ -344,7 +368,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v9${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v10${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

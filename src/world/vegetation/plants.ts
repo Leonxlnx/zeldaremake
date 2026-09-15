@@ -2316,6 +2316,120 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             const it = flowers.items[i];
             it.color = [it.color[0] * 1.02, it.color[1] * 0.8, it.color[2] * 1.12];
           }
+
+          // ======== Round 35 (vegetation-18): the three gaps rounds 33–34 measured. Every new
+          // scatter below runs from its own stream after everything above (no earlier plant
+          // moves); the re-tints and prunes touch listed instances in place, colours only.
+          {
+            const mulColor = (it: { color: [number, number, number] }, r: number, g: number, b: number) => {
+              it.color = [it.color[0] * r, it.color[1] * g, it.color[2] * b];
+            };
+            // ---- (1) camera C's bottom-left foreground (field.ts cFoot; frame 46 s: trodden earth
+            // with a dusty fringe, dark leaves only in the corner, nothing standing). The grass
+            // pass lays the short dusty turf; here the standing plants thin out — the mid / tall
+            // tufts go, the clover, cushions and rosettes keep C_FOOT_KEEP of theirs by a position
+            // hash (the frame's fringe is sparse), and what stays reads darker under the zone fill
+            // (the lift lights the turf; the frame's corner leaves measure 0.26–0.28).
+            const C_FOOT_KEEP = 0.45;
+            const footAt = (it: { x: number; z: number }) => field.cFoot(it.x, it.z);
+            tufts.prune((it) => footAt(it) > 0.5 && topOf(tufts, it) > 0.16);
+            // (the rim moss, the stones' clover fringes and the seam stay: those are contracts)
+            for (const set of [clover, moss, weeds]) set.prune((it) => footAt(it) > 0.5 && hash01(it.x + 0.25, it.z) > C_FOOT_KEEP && field.lawnEdgeDistance(it.x, it.z, true) > 0.3 && field.stoneDistance(it.x, it.z) > 0.4);
+            for (const set of [weeds, clover, tufts]) for (const it of set.items) if (footAt(it) > 0.3) mulColor(it, 0.78, 0.8, 0.78);
+
+            // ---- (2) the dark bank masses (field.ts bankDark): the standing plants on the flight's
+            // north-west flank and the plateau shelf take the zone as a colour multiplier, like the
+            // turf's darkening — frames 8 / 46 read those banks 0.19–0.27 against our 0.30–0.35
+            const darkAt = (it: { x: number; z: number }) => field.bankDark(it.x, it.z);
+            for (const set of [tufts, clover, weeds, moss, ferns, seedheads, fiddleheads]) for (const it of set.items) {
+              const d = darkAt(it);
+              if (d > 0.05) mulColor(it, 1 - 0.32 * d, 1 - 0.3 * d, 1 - 0.28 * d);
+            }
+            // the door-side hedge row (hedge-shotA, x 7.2–10.6 / z −7…−5.1) is frame 8's left mass
+            // and frame 1's dark band: a shade deeper (A's band measured 0.330 against 0.331, so mild)
+            for (const it of hedge.items) if (it.z <= -5.1 && it.x >= 7.2 && it.x <= 10.6) mulColor(it, 0.86, 0.85, 0.86);
+            // the crest shrubs (bushes-r32-crest) stood near-black in F (p10 0.146 against the
+            // frame's 0.239): lifted toward the frame's warm grey-olive, colours only
+            const CREST_BOX: [number, number, number, number] = [9.0, 4.4, 14.0, 6.4];
+            for (const it of bushes.items) if (inWorldBox(it.x, it.z, CREST_BOX)) mulColor(it, 1.36, 1.3, 1.34);
+
+            // ---- (3) frame 8's right mass (F 0.65–0.95 × 0.3–0.6: one soft dark blur, p50 0.265,
+            // lum sd 0.052) as more crest shrubs: a second tier of 1.0–1.8 m crowns on the same
+            // strip, overlapping the round-32 ones into a continuous mass whose top reaches F's
+            // y ≈ 0.3, in the frame's tone. Off the treads, the fence, the rock rings, the kids,
+            // camera C's wedge (behind the rock, ≥ 12 m) and right of camera A's frame.
+            const nearBush = (x: number, z: number, r: number) => bushes.items.some((b) => Math.hypot(b.x - x, b.z - z) < r);
+            scatter(
+              ctx,
+              field,
+              {
+                label: 'bushes-r35-crest',
+                candidates: 12000,
+                box: [9.0, 4.2, 14.5, 7.0],
+                minSpacing: 0.75,
+                max: 12,
+                r32: true,
+                accept(x, z, s) {
+                  if (s.cliff > 0.3 || s.path > 0.02 || s.slope > 0.4 || field.edgeDistance(x, z) < 0.7 || field.bankFace(x, z) > 0.3) return 0;
+                  const clr = field.clearing(x, z);
+                  if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 1.0) return 0;
+                  if (bankFenceDistance(x, z) < 0.8 || nearKid(x, z, 1.6) || field.stoneDistance(x, z) < STONE_CLEARANCE) return 0;
+                  if (field.sightlineC(x, z, 1.0) > 0 || nearHedge(x, z, 0.5) || nearBush(x, z, 0.55)) return 0;
+                  const a = field.screenX('A_stairs', x, z);
+                  if (a && a.sx < 1.08) return 0;
+                  const f = field.screenPoint('F_canopy', x, s.h + 0.8, z);
+                  return f && f.sx >= 0.62 && f.sx <= 0.96 && f.sy >= 0.22 && f.sy <= 0.6 ? 0.9 : 0;
+                },
+              },
+              (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 1.0 + rng() * 0.25, 0.3, 0.05, tint.setRGB(0.68 + rng() * 0.08, 0.66 + rng() * 0.08, 0.58 + rng() * 0.08)),
+            );
+
+            // ---- (4) frame 56 s' right verge (D 0.55–0.85 × 0.6–0.72: a closed green slope, 81 %
+            // green at p50 0.314 with edge 33 at 256 × 144, against our 69 % / 0.366 / 84): the
+            // standing plants there go greener and a shade darker (the round-31 lit yellow-olive
+            // sits below the classifier's 48° hue floor), and a low cover of clover and cushions
+            // closes the turf between them — the verge keeps its 0.55 m cap and its shoulders.
+            const D_VERGE_BOX: readonly [number, number, number, number] = [0.53, 0.56, 0.9, 0.75];
+            const D_VERGE_WORLD: [number, number, number, number] = [3.0, -20.5, 6.8, -8.8];
+            const inDVerge = (x: number, z: number) => inWorldBox(x, z, D_VERGE_WORLD) && inFrame('D_log', x, z, D_VERGE_BOX, 7);
+            for (const set of [tufts, weeds, clover, ferns, seedheads, moss]) for (const it of set.items) if (inDVerge(it.x, it.z)) mulColor(it, 0.8, 0.94, 0.86);
+            const dVergeGround = (x: number, z: number, s: FieldSample) => {
+              if (!inDVerge(x, z) || s.cliff > 0.35 || field.dShoulder(x, z) > 0 || field.lawnEdgeDistance(x, z, true) < 0.15) return false;
+              const clr = field.clearing(x, z);
+              if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3 || field.houseInfo(x, z).dist < 0.4) return false;
+              return field.stoneDistance(x, z) >= 0.15 && !nearKid(x, z, 0.8) && !nearWhite(x, z, 0.3);
+            };
+            scatter(
+              ctx,
+              field,
+              {
+                label: 'clover-r35-d-verge',
+                candidates: 30000,
+                box: D_VERGE_WORLD,
+                minSpacing: 0.17,
+                low: true,
+                max: 900,
+                r32: true,
+                accept: (x, z, s) => (dVergeGround(x, z, s) ? 0.8 * (0.5 + field.cluster(x, z)) : 0),
+              },
+              (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.7, 0.9, 0.008, greenVar(rng, 0.2).multiply(new Color(0.82, 0.96, 0.86))),
+            );
+            scatter(
+              ctx,
+              field,
+              {
+                label: 'moss-r35-d-verge',
+                candidates: 16000,
+                box: D_VERGE_WORLD,
+                minSpacing: 0.3,
+                low: true,
+                max: 260,
+                r32: true,
+                accept: (x, z, s) => (dVergeGround(x, z, s) && field.lawnEdgeDistance(x, z, true) >= 0.3 ? 0.7 * (0.5 + field.cluster(x, z)) : 0),
+              },
+              (x, z, _s, rng) => placeMossWith(rng, x, z, 0.12 + rng() * 0.16, true),
+            );
+          }
         }
       }
     }
