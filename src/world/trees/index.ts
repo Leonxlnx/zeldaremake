@@ -1007,6 +1007,30 @@ const EYE_DETAIL: Record<string, number> = { 'lantern-tree': 1, 'plateau-oak': 0
 /** foliage scale of the authored lantern limb (reference: a bare bough with a few clusters) */
 const LANTERN_LIMB_FOLIAGE = 0.45;
 /**
+ * The lantern limb's growth (round 37, layout: `lanternBranch` from (−1.25, 2.22, 1.5) → to
+ * (1.06, 2.21, 1.5)). Frame 1 s: the bough enters shot A at the left edge at y 0.31–0.38 (a dark
+ * mossy limb ≈ 0.06 of the frame thick), runs level to x ≈ 0.27 and thins out; its two pods
+ * hang right under it at (0.208, 0.405) / (0.255, 0.39). A pod camera A sees there lies on a ray
+ * that passes 0.5–1 m in front of camera B at 0.5–0.7 m above its eye: it is inside B's frame
+ * (frame 14 s has none) unless it is within ≈ 0.8 m of B's eye along its axis or behind it, i.e.
+ * ≤ 6.7 m from camera A. So the visible run sits on z = 1.5 (0.5 m north of camera B's eye,
+ * 5.8–6.9 m from A), level at 2.2 m over the plaza's south-west, heading due east, with the pods
+ * at 1.95–2.0 m (bottoms ≥ 1.85, over Link's head) — everything above B's top edge and behind F's
+ * left edge except the last 1.3 m of the run.
+ * From there the limb has to reach the bole (−11.5, −7.2) 13.5 m to the WNW: `attachHeight` is
+ * where it leaves the axis (local; `from` itself is 0.7 m below the tree's base), and the reach
+ * is a cubic that leaves level, arches to ≈ 4 m over the west ledge and droops onto `from`
+ * heading east — off every hero frame (A x < 0, B off the top-left, behind C/D/F).
+ * `sag` 0.05 (the frame's run is level), `tail` 0.6 m (the bough is gone by A x 0.3).
+ * `ghost`: the limb's own wood, lobes and end cluster are drawn but not built — the structures'
+ * sleeve (round 37: no shadow) is the limb. A 2.2 m limb over the plaza's south-west would lay
+ * its shadow (sun az −128°, el 38°: ground = point + (1.0, 0.79) × height) in a band from
+ * (1, 3.3) to (3.5, 3.3), across the lit slabs 1.3 m in front of Link, which frame 1 s lights;
+ * the old limb's lobes at (−2.2…−0.7, 4.8–5.2, −4.3…−3.5) cast the dark core of A's plaza shade
+ * patch (x 3–4.5, z −1…2) — that shade is kept by the crown clump below (CANOPY_BOUGHS, round 37).
+ */
+const LANTERN_LIMB = { sag: 0.05, tail: 0.6, ghost: true };
+/**
  * Dense silhouette rows north of the log arch (shot D looks north from z ≈ −1): each fills a
  * narrow depth range so the depth histogram registers a distinct far layer behind the log
  * (crown faces ≈ 47–57 m and ≈ 80–95 m from the camera, with a clear gap after the log/giant
@@ -1509,7 +1533,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const [px, , pz] = def.position;
     const gy = terrain.height(px, pz);
     const origin = new Vector3(px, gy, pz);
-    let limbSpec: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number } | undefined;
+    let limbSpec: NonNullable<Parameters<typeof createGiantTree>[2]['limbSpec']> | undefined;
     if (def.limb && def.id === 'lantern-tree') {
       const lb = ctx.layout.lanternBranch as typeof ctx.layout.lanternBranch & { radius?: number; tipRadius?: number };
       limbSpec = {
@@ -1517,6 +1541,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         to: new Vector3(lb.to[0], lb.to[1], lb.to[2]).sub(origin),
         radius: lb.radius,
         tipRadius: lb.tipRadius,
+        // round 37: the limb leaves the bole at layout `limb.height` (local) and droops onto
+        // `from` (see LANTERN_LIMB below)
+        attachHeight: def.limb.height,
+        sag: LANTERN_LIMB.sag,
+        tail: LANTERN_LIMB.tail,
+        ghost: LANTERN_LIMB.ghost,
       };
     } else if (def.limb) {
       const l = Math.hypot(def.limb.dir[0], def.limb.dir[1]);
