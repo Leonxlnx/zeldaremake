@@ -1180,7 +1180,10 @@ export class VegField {
       const out = -v - halfWidth;
       const across = smoothstep(NW_DARK_OUT[0], NW_DARK_OUT[1], out) * (1 - smoothstep(NW_DARK_FAR[0], NW_DARK_FAR[1], out));
       const along = smoothstep(NW_DARK_ALONG[0] - 0.8, NW_DARK_ALONG[0], u) * (1 - smoothstep(NW_DARK_ALONG[1], NW_DARK_ALONG[1] + 1.5, u));
-      nw = across * along;
+      // camera C's lit foreground slope (cFoot) lies inside the flank's far ramp: frames 14 / 46
+      // both want that ground lit (B 0.55–0.96 × 0.67–0.83: 0.46–0.6 against our 0.24–0.31), so
+      // the C-foot rule wins there
+      nw = across * along * (1 - this.cFoot(x, z));
     }
     return Math.max(nw, softBox(x, z, SHELF_DARK, SHELF_DARK_FEATHER));
   }

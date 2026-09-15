@@ -182,9 +182,11 @@ export const SHADE_LIFT_ZONE = { box: [-5.5, -18, -1.5, -6] as readonly [number,
  * between Saria's flight and the plaza's north-east lobe). The ground faces away from the sun
  * under the canopy and rendered 0.24–0.35 where frames 46 s (C) and 14 s (B) both have it lit
  * (0.43–0.6). The same skylight-fill path as the D verge, at `scale` × the D fill, weighted by
- * the sun's shadow term like it, so dappled sun on the slope is unchanged.
+ * the sun's shadow term like it, so dappled sun on the slope is unchanged. 1.35 × moved C's
+ * bottom-left p10 0.246 → 0.281 (frame 0.268) but not its p50 (0.323; frame 0.377) with the
+ * cover opened onto the 0.32 ground; with the cover closed again the fill carries the p50.
  */
-export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 1.35 };
+export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 2.0 };
 /**
  * Round 35: the third lift zone — the bank hedge row right of the main flight (plants.ts
  * hedge-shotA-bank / -r14, x 6–8.6 / z 3.9–5.6, the crest shrubs behind it to x 14.5). Its crowns

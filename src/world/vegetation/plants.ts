@@ -2346,45 +2346,17 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               if (d > 0.05) mulColor(it, 1 - 0.32 * d, 1 - 0.3 * d, 1 - 0.28 * d);
             }
             // (the door-side hedge row, hedge-shotA at z ≤ −5.1, is camera B's door hedge and stays:
-            // B 0.7–0.95 × 0.45–0.7 already measures 0.26–0.31 against the frame's 0.27–0.39)
-            // the crest shrubs (bushes-r32-crest) stood near-black in F (p10 0.146 against the
-            // frame's 0.239): lifted toward the frame's warm grey-olive, colours only; their
-            // shadowed cores take the bank-hedge fill as well (materials.ts LIFT_ZONE_BANK_HEDGE)
-            const CREST_BOX: [number, number, number, number] = [9.0, 4.4, 14.0, 6.4];
-            for (const it of bushes.items) if (inWorldBox(it.x, it.z, CREST_BOX)) mulColor(it, 1.36, 1.3, 1.34);
+            // B 0.7–0.95 × 0.45–0.7 already measures 0.26–0.31 against the frame's 0.27–0.39.)
+            // The bank hedge and the crest shrubs behind it (frame 8's right mass, frame 1's
+            // right-edge crowns) keep their colours: their near-black cores (F 0.14–0.22, A
+            // 0.13–0.17 against the frames' 0.23–0.28 / 0.19–0.30) take the shadow-weighted fill
+            // of materials.ts LIFT_ZONE_BANK_HEDGE instead, which leaves the lit rims C sees at the
+            // frame's level. The first cut's × 1.36 on the crest shrubs and its 12 extra crest
+            // crowns are gone: in C they stood behind the stair-foot rock as leaf structure where
+            // frame 46 s has a hazed dark band (C 0–0.3 × 0.25–0.5 SSIM −0.018…−0.031 per cell),
+            // and F could not see them behind the hedge row (F right p10 0.146 → 0.146).
 
-            // ---- (3) frame 8's right mass (F 0.65–0.95 × 0.3–0.6: one soft dark blur, p50 0.265,
-            // lum sd 0.052) as more crest shrubs: a second tier of 1.0–1.8 m crowns on the same
-            // strip, overlapping the round-32 ones into a continuous mass whose top reaches F's
-            // y ≈ 0.3, in the frame's tone. Off the treads, the fence, the rock rings, the kids,
-            // camera C's wedge (behind the rock, ≥ 12 m) and right of camera A's frame.
-            const nearBush = (x: number, z: number, r: number) => bushes.items.some((b) => Math.hypot(b.x - x, b.z - z) < r);
-            scatter(
-              ctx,
-              field,
-              {
-                label: 'bushes-r35-crest',
-                candidates: 12000,
-                box: [9.0, 4.2, 14.5, 7.0],
-                minSpacing: 0.75,
-                max: 12,
-                r32: true,
-                accept(x, z, s) {
-                  if (s.cliff > 0.3 || s.path > 0.02 || s.slope > 0.4 || field.edgeDistance(x, z) < 0.7 || field.bankFace(x, z) > 0.3) return 0;
-                  const clr = field.clearing(x, z);
-                  if (clr.insideBoulder || clr.npc > 0 || clr.boulder > 0 || field.giantDistance(x, z) < 1.0) return 0;
-                  if (bankFenceDistance(x, z) < 0.8 || nearKid(x, z, 1.6) || field.stoneDistance(x, z) < STONE_CLEARANCE) return 0;
-                  if (field.sightlineC(x, z, 1.0) > 0 || nearHedge(x, z, 0.5) || nearBush(x, z, 0.55)) return 0;
-                  const a = field.screenX('A_stairs', x, z);
-                  if (a && a.sx < 1.08) return 0;
-                  const f = field.screenPoint('F_canopy', x, s.h + 0.8, z);
-                  return f && f.sx >= 0.62 && f.sx <= 0.96 && f.sy >= 0.22 && f.sy <= 0.6 ? 0.9 : 0;
-                },
-              },
-              (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 1.0 + rng() * 0.25, 0.3, 0.05, tint.setRGB(0.68 + rng() * 0.08, 0.66 + rng() * 0.08, 0.58 + rng() * 0.08)),
-            );
-
-            // ---- (4) frame 56 s' right verge (D 0.55–0.85 × 0.6–0.72: a closed green slope, 81 %
+            // ---- (3) frame 56 s' right verge (D 0.55–0.85 × 0.6–0.72: a closed green slope, 81 %
             // green at p50 0.314 with edge 33 at 256 × 144, against our 69 % / 0.366 / 84): the
             // standing plants there go greener and a shade darker (the round-31 lit yellow-olive
             // sits below the classifier's 48° hue floor), and a low cover of clover and cushions

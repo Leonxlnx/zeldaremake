@@ -152,13 +152,17 @@ const D_HOLLOW_HEIGHT = 0.45;
  * there loses C_FOOT_THIN of its density (a position hash after the last draw, like the shoulder
  * cut, so the tile's other blades stay put), the rest is cut by C_FOOT_HEIGHT, biased to the pale
  * palette (+C_FOOT_TINT) with straw tips (+C_FOOT_DRY) and lit by the second zone fill
- * (materials.ts LIFT_ZONE_C_FOOT); no meadow stalks. The ground under the turf renders 0.336,
- * darker than the frame's earth, so the cover stays a closed short dusty turf rather than opening.
+ * (materials.ts LIFT_ZONE_C_FOOT); no meadow stalks. The ground under the turf renders 0.32,
+ * darker than the frame's earth: the first cut's 0.3 thinning opened the cover onto it and C's
+ * bottom-left p50 stayed at 0.323 (frame 0.377) while its green share and edge energy came down
+ * (66.9 → 49.3 %, 218 → 94) — so the cover stays closed and short, paler and dustier still, and
+ * the fill does the lighting; the standing plants keep thinning (plants.ts) for the frame's bare
+ * look between the stones.
  */
-const C_FOOT_THIN = 0.3;
+const C_FOOT_THIN = 0.08;
 const C_FOOT_HEIGHT = 0.55;
-const C_FOOT_TINT = 0.55;
-const C_FOOT_DRY = 0.4;
+const C_FOOT_TINT = 0.7;
+const C_FOOT_DRY = 0.55;
 /**
  * Round 35: the frames' dark bank masses beside the main flight (field.ts `bankDark`): the blades
  * there carry a darkening (0..1, materials.ts: × (1 − 0.5 d), 30 % desaturated) in the tint
