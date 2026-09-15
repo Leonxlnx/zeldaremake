@@ -1600,6 +1600,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   to ×0.5); hardscape-27 one commit (tuft hue, within-stone mottle, D's slabs) + two dirty;
   trees-20 and atmosphere-12 with files dirty, no commits. Load 4–7.
 
+### 04:55 UTC — tick 94: take-0097 published (monitor `b3f412d`), valid; 23/50 (structures-23, neutral)
+- r34/struct merged (`41ebae4`): Saria's lit bark 0.45 with moss sheets / lichen, the arch's pillar
+  bare warm bark; SSIM −0.0004…0. The round's finding: the 9–17 m airlight floor is 0.292 in D's
+  bank and 0.257 on B's pillar (a black trunk reads that) while the frames' bark reads 0.239 /
+  0.247 at a 28° hue — the near veil sits above the frames' darks and carries a yellow-green hue
+  → atmosphere-13 (near-field airlight: the 5–20 m veil's floor and hue, against the round-27
+  SSIM lesson; targets: D bank bark ≤ 0.26, B pillar ≤ 0.25, hue toward 30–40°).
+- Still running: trees-20 (three files dirty, two captures), atmosphere-12 (`027b374`: per-depth-band
+  video softness — near-ground unsharp below 4 m, haze blur σ 1.6 → 3.0), hardscape-27 (`9ca73b7`
+  + five dirty, seven captures).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1638,4 +1649,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T03:25:00Z
+2026-09-15T04:56:00Z

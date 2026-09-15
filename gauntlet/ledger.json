@@ -10379,6 +10379,113 @@
       },
       "prevHash": "sha256:9adce8736da541e9b1c2c0380aca60ef0900020dfb0f230571b5f69ed5ec834e",
       "hash": "sha256:746514c3772988741a58e45225c8e8b5a38d5375d0fe8928ceedffb9c4194ef7"
+    },
+    {
+      "id": "take-0097",
+      "number": 97,
+      "at": "2026-09-15T04:50:32.516Z",
+      "sha": "41ebae466564bb60d36f028b0c417d3e7c9d4f13",
+      "shortSha": "41ebae4",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r34/struct' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W29"
+      ],
+      "note": "Round thirty-four, structures: Saria's trunk measured against the frames and the measurement kept. An albedo probe on the control - the bark family's base colour scaled live from 0.05 to 1.6 of itself - showed that a black trunk still reads 0.292 in camera D's bank and 0.257 on camera B's right pillar, while the frames' bark there reads 0.239 and 0.247 with a 28-degree warm hue: at 9-17 m the veil is nine tenths of the pixel, its floor sits above the frames' bark, and its hue is the veil's yellow-green, so darkening the material alone pulls the hue the wrong way; the log arch's body at 45 m has zero albedo response. What material could do is done: the trunk shell, roots, burls and boughs at 0.45 of their lit albedo with the lower 1.6 m damp-dark, moss sheets off the cord crests over three fifths of the mid band and on the root shoulders, grey lichen on the crests, the entrance arch's right leg as bare warm bark (moss skin 0.85 -> 0.2, shaded faces less green) - D's bank bark 0.326 -> 0.307 (hue 36 -> 43 deg toward the frame's), B's pillar arch pixels 46 -> 43 deg, the door and cap boxes identical, B's house box -0.001. Measured and reverted: a higher trunk floor (lifted every unscaled bark user), a brighter crown band (B +0.011 but F/A down), thinner fissures (no effect at the veil's floor). Against the frames: A/C/E level, B -0.0004, D -0.0003, F -0.0003; draws and triangles identical; no stream moved. The lever for the frames' near darks is the 9-17 m airlight floor - handed to the next atmosphere pass with the numbers.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:45261a2369dd211dc502787f8a99a6bbf6409b0a5e9d7d35577a49b0e984ec17",
+        "B_house": "sha256:8fe154002d36f3b892b19dc163e8a90730816afda892f775bdea4f30b49c53cb",
+        "C_lookback": "sha256:508a3e8267d1aa70758306f94b82572066ac935ee567c8908aebe417c9338d0a",
+        "D_log": "sha256:a53102fb2079f7e426756c6db4f8d31df6a08299a1d69f015a8b1a2076fbb1e5",
+        "E_ground": "sha256:8fe154002d36f3b892b19dc163e8a90730816afda892f775bdea4f30b49c53cb",
+        "F_canopy": "sha256:5d9eaba7912129158e348f374b12bbcde9fd9a8f356a9e9bc7007805cae7d833"
+      },
+      "distHash": "sha256:e271548c5d65dabb93f0b9d68d41500fcfb9769ae3bbc4b8cfbbfcf216789da4",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8596289,
+        "captureMs": 1278109,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W25",
+        "W29"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take97-cap",
+        "importedAt": "2026-09-15T04:55:24.483Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:746514c3772988741a58e45225c8e8b5a38d5375d0fe8928ceedffb9c4194ef7",
+      "hash": "sha256:fb1c464bfebad0dd9195490c35c9a66ba20b2f85af604dbacbed86334d22b667"
     }
   ]
 }
