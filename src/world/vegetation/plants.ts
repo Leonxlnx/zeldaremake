@@ -2348,13 +2348,18 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             // (the door-side hedge row, hedge-shotA at z ≤ −5.1, is camera B's door hedge and stays:
             // B 0.7–0.95 × 0.45–0.7 already measures 0.26–0.31 against the frame's 0.27–0.39.)
             // The bank hedge and the crest shrubs behind it (frame 8's right mass, frame 1's
-            // right-edge crowns) keep their colours: their near-black cores (F 0.14–0.22, A
-            // 0.13–0.17 against the frames' 0.23–0.28 / 0.19–0.30) take the shadow-weighted fill
-            // of materials.ts LIFT_ZONE_BANK_HEDGE instead, which leaves the lit rims C sees at the
-            // frame's level. The first cut's × 1.36 on the crest shrubs and its 12 extra crest
-            // crowns are gone: in C they stood behind the stair-foot rock as leaf structure where
-            // frame 46 s has a hazed dark band (C 0–0.3 × 0.25–0.5 SSIM −0.018…−0.031 per cell),
-            // and F could not see them behind the hedge row (F right p10 0.146 → 0.146).
+            // right-edge crowns) keep their colours. Their near-black cores (F 0.14–0.22, A
+            // 0.13–0.17 against the frames' 0.23–0.28 / 0.19–0.30) were tried with a
+            // shadow-weighted fill zone (materials.ts, 2.4 × the verge fill over x 5.8–14.5 /
+            // z 3.7–7.3): the cores came up (C's crown cell 0.192 → 0.257, frame 0.291) but every
+            // leaf showed (edge 27 → 103, frame 25) and F fell 0.2955 → 0.2860, A −0.0014 — the
+            // dark flat core scores better than a lit textured one, so the fill is withdrawn and
+            // the crowns take plantgeo.ts' narrower per-leaf spread instead (edge 27.0 → 25.3 in C,
+            // 25.8 → 24.6 in A, luminance unchanged). The first cut's × 1.36 on the crest shrubs
+            // and its 12 extra crest crowns are gone too: in C they stood behind the stair-foot
+            // rock as leaf structure where frame 46 s has a hazed dark band (C 0–0.3 × 0.25–0.5
+            // SSIM −0.018…−0.031 per cell), and F could not see them behind the hedge row (F
+            // right p10 0.146 → 0.146).
 
             // ---- (3) frame 56 s' right verge (D 0.55–0.85 × 0.6–0.72: a closed green slope, 81 %
             // green at p50 0.314 with edge 33 at 256 × 144, against our 69 % / 0.366 / 84): the
