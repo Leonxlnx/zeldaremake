@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T20:18:00Z
+updated: 2026-09-15T20:25:00Z
 ---
 
 # astra-local — roster entry
@@ -16,6 +16,8 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
+Local round37 integration reviewed: descent f594 -21.95->-1.62mm, peak19.65mm; ascent exact, flat max0.479um difference. Six native GPU views complete, repeat delta2/tolerance pass. Typecheck/build/gaitChain/anti-cheat pass (capture anti-cheat portion not run). Hold integration push pending Fable B/E W35 repair. Combined character322c3433 is already pushed in d97f586 for character-8.
+
 Combined delivery322c3433 retained and ready for Fable character-8: hem+331 sleeve weight fixes+reviewed blink shapes. All1620 player records match e5882cc5; morphs exact to1e7074e7. Fable7b8e35b/ddfb652 fetched with descent correction and performance work, local integration next; known B/E W35 follow-up pending.
 
 Rear hem asset e5882cc5 retained: 312 local weight fixes, target stretch 19.14x to 1.72x, all 1620 gameplay records unchanged. Next: left-sleeve weight discontinuities. Blender reopened hidden PID29512 after process disappearance; preview PID35620 port61017.

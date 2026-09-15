@@ -337,6 +337,23 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // untouched. Display ≈ 0.64 — a step under the dome's 0.67 glare: the reference's hazed crowns at
   // 30–50 m sit at its top band's median 0.49 (a dark crown through ≈ 50 % veil of ≈ 0.31 linear),
   // while a veil at the glare's own value pushed that median to 0.54
+  // Round 37 (tone): the air's share of A's under-bright top band (y 0.08–0.33: frame p50/p90
+  // 0.468/0.612, ours 0.432/0.558), measured with every surface black (veilOnly) and split by the
+  // ray's elevation and openness at ≥ 45 m. A's open far air at 10–15° up (8.5 % of the band) is
+  // where the frame is bright: frame 0.649, ours 0.581, the veil alone 0.573 — 0.608 with the
+  // softening off, so the 320-grid haze blur mixing the far air with the near crowns costs 0.027
+  // and the veil itself sits 0.04 under (its lit share is already 0.5–1.0 there). A's closed far
+  // air reads frame 0.406 / 0.498 / 0.495 at 0–5° / 5–10° / 10–15° against ours 0.404 / 0.420 /
+  // 0.536 — the hollow dim and the half wall are D's calibration and the same air; B's closed far
+  // air at 10–20° reads frame 0.467 against ours 0.54–0.55 (veil 0.52–0.55), but the frame's B band
+  // is dense 20–40 m trunks through ≈ 50 % veil where D's frame shows the same air at 0.54–0.58, so
+  // it is not dimmed; F's open far air at 10–15° matches at the median (0.504 / 0.516 / veil 0.509,
+  // the back-scatter lobe at 109° takes 15 %) and the frame's p90 there (0.675 vs 0.585) is gaps
+  // beside dark crowns. Levers measured (Δ SSIM A / F / B / D): hazeLitKnee 0.1 — A open far
+  // +0.008, +0.0002 / −0.0003 / −0.0008 / −0.0009; hazeFar 0.29 — +0.003 (the lit share dominates
+  // above 10°, and the dome horizon feeds the IBL), −0.0004 / −0.0005 / 0 / −0.0002; hazeLit 0.36 —
+  // A open far 0.577 → 0.597 (p90 0.615 → 0.640, band p90 0.558 → 0.562) for −0.0024 / −0.0053 /
+  // −0.0014 / −0.0002. None taken: the metric charges every radiance rise in the far cells.
   hazeLit: [0.32, 0.316, 0.245],
   hazeLitKnee: 0.2,
   // open side = bearing 75° (ENE: the plateau, the stair corridor, the upper tree-house). Fully open

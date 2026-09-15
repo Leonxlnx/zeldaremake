@@ -199,7 +199,7 @@ export interface ComposerSettings {
    * Henyey–Greenstein phase: D (view axis 64° from the sun) carries +0.10 of beam over its haze
    * where A (81°) has only the +0.04 bump the marched columns already give it and C/F (> 125°) show
    * none — the HG term (g 0.6) would give A 61 % of D's fan. 85 → 60° gives D 0.94, B (75°) 0.36,
-   * A 0.08, C/F 0
+   * A 0.08, C/F 0; round 37's 81 → 61° gives D 0.946, B 0.234, A 0 (see shafts.ts SCREEN_FAN)
    */
   fanFacingDeg: [number, number];
   /** lean of the fan's beams from vertical (degrees, down-right, measured on screen) */
@@ -507,10 +507,26 @@ export function createComposer(opts: ComposerOptions): Composer {
     // 0.93 on B; the frames' window std at 17–30 m is 0.045 against our 0.028, so this is the
     // metric's uncorrelated-structure term, not a match of the frames' softness — see the note
     // above); 8 / 45 read +0.0088 / +0.0075 at 0.85 sharpness and was not taken
+    // Round 37 (tone): the haze blur's σ re-swept with the near unsharp in place, E / A / D / F
+    // Δ SSIM: 3.6 +0.0018 / +0.0020 / +0.0020 / +0.0017; 4.2 +0.0030 / +0.0036 / +0.0035 / +0.0031;
+    // 4.8 +0.0033 / +0.0051 / +0.0045 / +0.0042; 5.4 (A / D / F) +0.0062 / +0.0055 / +0.0053 —
+    // sharpness unchanged at every σ (E 0.830 → 0.829, A 0.916 → 0.916) because the 320-grid blur
+    // at σ 3 has already taken the far edges the metric's 256×144 Laplacian can see (far 20–50 m
+    // ours/ref A 0.73 → 0.74, D 0.27 → 0.27 across the sweep); the gain is the 30–50 m and 50 m+
+    // windows' structure term, where our window std (A 0.020, D 0.015) is already under the
+    // frame's (0.028 / 0.031) and the structures do not correlate. σ 4.2 taken (the brief's upper
+    // value); 4.8 / 5.4 not — more of the same term, not a match of the frames' far texture (the
+    // far deficit is structure the frame has and we do not). softFarStart 12 costs the near band
+    // (E 0.830 → 0.819, A 0.916 → 0.900 sharpness) for +0.0017 / +0.0033 and stays out.
+    // Shipped six-view (with the 81 → 61° fan gate): A 0.2890 → 0.2928, B 0.2622 → 0.2648,
+    // C 0.3197 → 0.3229, D 0.3576 → 0.3611, E 0.2719 → 0.2742, F 0.2951 → 0.2982; sharpness,
+    // pHash, overexposed (0), farLayerCount and skyFraction unchanged. The blur's cost is the top
+    // band's bright tail: A's y 0.08–0.33 p90 0.558 → 0.550 (frame 0.612), B 0.550 → 0.539
+    // (0.516), F 0.512 → 0.508 (0.601) — the far gaps mixed with the crowns beside them.
     softFarStart: 16,
     softFarFull: 50,
     softBlurSigma: 1.2,
-    softFarSigma: 3.0,
+    softFarSigma: 4.2,
     softActivitySigma: 2.5,
     softNearSharp: 0.25,
     softNearStart: 4,
@@ -700,7 +716,7 @@ export function createComposer(opts: ComposerOptions): Composer {
   /** diagnostic readback of the raw depth values in the focus window (see __ATMO_SHADOWMAP_FOCUS__.read) */
   let shadowReadTarget: WebGLRenderTarget | null = null;
   const depthDebugMat = mat(DEPTH_DEBUG_FRAG, { tDepth: { value: depthTexture }, uNear: near, uFar: far, uProjInv: projInv }, 'postfx-depth-debug');
-  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 } }, 'postfx-gauss');
+  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 }, uReach: { value: 6 } }, 'postfx-gauss');
   const softFarRange = { value: new Vector2(settings.softFarStart, settings.softFarFull) };
   const softActMat = mat(
     SOFT_ACTIVITY_FRAG,
@@ -1047,6 +1063,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       const dir = gaussMat.uniforms.uDir.value as Vector2;
       const gauss = (src: WebGLRenderTarget, tmp: WebGLRenderTarget, dst: WebGLRenderTarget, texel: Vector2, sigma: number) => {
         gaussMat.uniforms.uSigma.value = sigma;
+        // ≥ 6 taps either side (the tuned 13-tap kernel for σ ≤ 3), 2 σ for wider haze blurs
+        gaussMat.uniforms.uReach.value = Math.min(9, Math.max(6, Math.ceil(2 * sigma)));
         gaussMat.uniforms.tSrc.value = src.texture;
         dir.set(texel.x, 0);
         pass(gaussMat, tmp);

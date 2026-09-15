@@ -1,0 +1,12 @@
+{
+  "status": "Local integration review; held from pushing pending Fable W35 B/E repair",
+  "world": "7b8e35b / ddfb652",
+  "asset": "322c3433542064ffaeed91c5d7c04b95746778c6ddea60a5418b23148e7b7d7d",
+  "typecheck_build": "pass",
+  "gaitChain_test": "pass",
+  "anti_cheat": "74 checks pass,63 warnings; capture portion skipped because no gauntlet/out/last",
+  "line_endings": "Canonical committed LF bytes restored for rubric.json/RUBRIC.md/RUBRIC.lock; no content/index diff. Original failure was Windows CRLF hash mismatch.",
+  "native_gpu_views": 6,
+  "repeat": "max channel delta2, within diagnostic tolerance, existing gauntlet difference0; not byte identical",
+  "remaining": "B/E W35 sharpness repair, native GPU frame-time benchmark and blink runtime integration."
+}
