@@ -2059,9 +2059,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * between them (`fisAmp`), so the arch reads as knotted rope-bark and not a smooth tube. The
    * reference arch face in B runs p10 0.24 → p90 0.54 (local 8 px contrast 0.038) where ours ran
    * 0.34 → 0.45 (0.020).
+   *
+   * Round 36 (structures-24): the cords are COARSER again — ring scale 1.35 (≈ 8–9 bundles round
+   * the body, was 2.2 / 14) and a third deeper (`ARCH_CORD_SCALE`, the amplitudes at the call
+   * sites). Measured on frame B's pillars by the detrended column-mean luminance across each
+   * (1280 px; a dark furrow = a minimum under −0.6 sd): the right pillar (0.84–0.92 × 0.36–0.48,
+   * 1.71 m at 14 m) has 4 furrows = 2.3 / m at contrast 1.99 (sd ×100), the left (0.655–0.72 ×
+   * 0.38–0.48, 1.20 m at 12 m) 2 = 1.7 / m at 2.76, the crown front (0.70–0.86 × 0.24–0.30) 10 =
+   * 3.2 / m at 2.19 with its autocorrelation peaking at 36 px; ours ran 9 = 5.3 / m at 0.65, 8 =
+   * 6.7 / m at 1.23 and 13–15 = 4.2–4.9 / m at 1.0–1.6 — the frame's cords are two to three
+   * times as wide and half again as deep as round 21's.
    */
+  const ARCH_CORD_SCALE = 1.35;
   const archDisplace = (seed: number, cordAmp: number, lumpAmp: number, along: number, fisAmp = 0.1) => (t: number, ang: number, pos: Vector3) => {
-    archCrest = ringRidged(noise, ang, t * along + pos.y * 0.3, 2.2, seed);
+    archCrest = ringRidged(noise, ang, t * along * 0.6 + pos.y * 0.2, ARCH_CORD_SCALE, seed);
     const lump = noise.fbm(pos.x * 1.3 + 5, pos.z * 1.3 + pos.y * 0.7, 2) - 0.5;
     archFis = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.7 + seed * 1.3, Math.sin(ang) * 1.7 + t * along * 0.35 + seed)), 5);
     archRelief = lump * lumpAmp * k + knotsAt(pos);
@@ -2076,7 +2087,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * the eave's underside or the wall's eave band 1–1.5 m behind it (round 19's second probe
    * still showed 2–7 rows of those between the crown and the porch at x 0.73–0.85).
    */
-  const archCrownDisplace = archDisplace(2.3, 0.16, 0.2, 16, 0.1);
+  const archCrownDisplace = archDisplace(2.3, 0.21, 0.2, 16, 0.1);
   const archBody = (t: number, ang: number, pos: Vector3) => {
     const d = archCrownDisplace(t, ang, pos);
     archCurve.getPointAt(t, _ap);
@@ -2377,7 +2388,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       tubularSegments: 32,
       radialSegments: 24,
       uvMetres: 1.4,
-      displace: archDisplace(4.1 + side, 0.11, 0.12, 8, 0.07),
+      displace: archDisplace(4.1 + side, 0.15, 0.12, 8, 0.07),
       color: reliefColor,
     });
     weldNormals(buttress);
