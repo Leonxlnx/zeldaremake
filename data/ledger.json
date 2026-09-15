@@ -10270,6 +10270,115 @@
       },
       "prevHash": "sha256:69743b3d059b014d40d7ecf18d7e98d935c4fa47f17f04bac694830ad9e3c029",
       "hash": "sha256:9adce8736da541e9b1c2c0380aca60ef0900020dfb0f230571b5f69ed5ec834e"
+    },
+    {
+      "id": "take-0096",
+      "number": 96,
+      "at": "2026-09-15T00:37:10.343Z",
+      "sha": "779cbc0e6f7dad0481a66212891a5e1933499090",
+      "shortSha": "779cbc0",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r33/tone' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W31",
+        "W10",
+        "W09"
+      ],
+      "note": "Round thirty-three, atmosphere and trees: the frames' sun shafts, measured across the beams. In frame 56 s a hero beam leans 26 degrees from the upper-left and stands +0.103 over the haze beside it with a half-max width of 0.085 of the frame; ours was a 0.285-wide plateau +0.079 with no beam. A screen-anchored fan of three beams (hero at u 0.255, a broad second band, a companion) now rides over the marched envelope with a facing gate (85 -> 60 degrees) so each camera gets the fan its frame has - D +0.095 at width 0.090, A +0.055 (frame +0.045), B the faint band its frame has (+0.013 vs +0.009), nothing on C and F whose frames have none - and the beam add is cut by near surfaces so the plaza does not glow; the hero's fade down the frame follows the reference within 0.03 to y 0.4; overexposed 0 % everywhere, colour 0.62-0.64 at the peaks (frame 0.62-0.63). Dapple was measured and left where it belongs: our lit/shade ratio on the paving is the frame's (A 1.50 vs 1.61, D 1.55 vs 1.65) but the sun reaches 48 % of A's paving against the frame's 70 % lit and 19 % of B's against 54 % - the lantern limb's lobes shade the lower-left plaza the frame has lit; that is bough placement, the next trees pass. Trees this round opened D's air above the arch by ghosting three giants' wild limbs and raising the round-31 boughs (the 20-40 m crowns fall from 54 to 34 % of the air box; p50 0.474 -> 0.525, frame 0.564) with no tree moved and no stream re-rolled. Against the frames: D 0.3407 -> 0.3474, A 0.2697 -> 0.2742, B 0.2485 -> 0.2518, E 0.2638 -> 0.2652, C 0.3123 -> 0.3133, F 0.2928 -> 0.2936 - every view up, the ledger's best on all six. Sharpness ratios A 0.88 / B 0.86 / C 1.08 / D 0.89 / E 0.80 / F 1.04 - E sits on W35's floor, so the next softness work sharpens E and softens A/C/F rather than blurring everything. Draws 429-542, triangles 7.1-8.6 M.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:04d32e9c0a4319f92519f88011810ab61d438900dfa2e47da186748f18c5502d",
+        "B_house": "sha256:d5ae4f5ec924ae149fe5d8b52c5cab69164babcef19329123639d2f8feadbdfd",
+        "C_lookback": "sha256:508a3e8267d1aa70758306f94b82572066ac935ee567c8908aebe417c9338d0a",
+        "D_log": "sha256:ddc0c58e94bad6a7ea3c676c9c411a689e4240856e3610d7e230c58d353752e3",
+        "E_ground": "sha256:d5ae4f5ec924ae149fe5d8b52c5cab69164babcef19329123639d2f8feadbdfd",
+        "F_canopy": "sha256:4974b2f995d1f1d536d1088e817811ce5639e13e3a06f3481b7c0dc9d3baa23e"
+      },
+      "distHash": "sha256:cff8e5453d1cc3c0d58b6305975400870e133db85daad829a28d024f750d89ac",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8596289,
+        "captureMs": 710879,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W31",
+        "W10",
+        "W09"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take96-cap",
+        "importedAt": "2026-09-15T00:37:50.758Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:9adce8736da541e9b1c2c0380aca60ef0900020dfb0f230571b5f69ed5ec834e",
+      "hash": "sha256:746514c3772988741a58e45225c8e8b5a38d5375d0fe8928ceedffb9c4194ef7"
     }
   ]
 }
