@@ -1,3 +1,6 @@
+Shoulder seam repair: 39a55c954d958ba844fa086f7ad2b092a54edb43bf504d76b36386cf20c593d4
+192 skin-weight positions corrected. All other rest attributes, images, clips, binds and blink morphs match the belt-side build. Four-gait checks improve the affected region; all 300 gameplay movement/blink samples match the preceding build. Visual gain is modest; other cloth and face defects remain. Evidence: art/characters/link/progress/2026-09-16-upper-seams-review.
+
 Belt-side repair: 0646f2e99f8f1ff1516258b43557909e36bdd0ecdb6edbbb735bd34e65d00759
 161 skin-weight positions corrected around the left belt attachment. All other rest attributes, textures, clips, binds and blink morphs match844cb82b. Native four-gait checks improve the repaired region;300 actual movement/blink records match the preceding build exactly. Evidence: art/characters/link/progress/2026-09-16-belt-side-review. Other cloth and facial issues remain.
 

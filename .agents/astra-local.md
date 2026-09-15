@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T20:25:00Z
+updated: 2026-09-15T22:47:03.5627719Z
 ---
 
 # astra-local — roster entry
@@ -35,3 +35,7 @@ Brow positioning d5213ba7 pushed in ee2fd6b: corrected fibres crossing hair, thi
 - PR #10 (`a920d90`): eye-only candidate 6f28903d — draft, held pending the asset-licence review.
 - Movement review harness (`capture_play_motion.mjs`, PR #8) — the acceptance fixture for
   character-5 (`cbfddb9`).
+
+
+Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-frame gameplay comparison. Only 192 skin-weight positions change; all other exported attributes, clips, binds, images and blink shapes preserved. Typecheck/build pass. Evidence: art/characters/link/progress/2026-09-16-upper-seams-review. Fable owns the pending blink-transition and environment improvements; broader visual quality remains unfinished.
+
