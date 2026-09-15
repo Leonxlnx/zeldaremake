@@ -1,3 +1,6 @@
+Retained rear hem weight repair: e5882cc595233cc5f1caab691755085fcf5d819ce75ce15906dcd1098d1beda0
+Source: back-hem-study.blend. Corrects 312 weight positions around 35 measured discontinuities. Target run-cycle peak stretch decreases from 19.14x to 1.72x. All other vertex attributes, textures, binds and four clips match d5213ba7 exactly; one recalculated sliver tangent restored after exact geometry/UV/normal matching. Typecheck/build pass; all 1620 actual-player records match the retained parent exactly. Evidence: art/characters/link/progress/2026-09-15-back-hem-review. Other cloth-weight defects remain.
+
 Retained local brow positioning improvement: d5213ba789d193ff55300b51fc66ac63a3bd209f6e11838a7fe02bec96927314
 Source: brow-fine-study.blend. Repositions 1808 brow vertices onto repaired skin and reduces fitted cross-sections to 45 percent; 39 outer fibres remain unchanged. Other mesh positions, all UVs/weights/joints, texture bytes and clips match bdcb9ec7. Studio and eye close-up review pass; 36-frame game smoke review passes and exactly matches bdcb9ec7. Evidence: art/characters/link/progress/2026-09-15-brow-blink-review. The remaining regular strand spacing is not final brow-quality acceptance.
 
