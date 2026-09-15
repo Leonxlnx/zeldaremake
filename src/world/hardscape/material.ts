@@ -82,17 +82,17 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec2 aMottle; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec2 vMottle; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
       )
       .replace(
         '#include <worldpos_vertex>',
-        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vWPosS;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec2 vMottle; varying vec3 vWPosS;
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -144,6 +144,34 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
             float fleck = smoothstep(0.64, 0.8, fl) * smoothstep(0.45, 0.7, p1);
             diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.14, 1.17, 1.08), fleck * 0.75 * wear);
           }
+          // round 34: within-stone mottle (aMottle = moss-cushion weight, grey-lichen weight, set per
+          // vertex in flagstones.ts). Frames 1 s / 56 s at 2× carry two or three tone regions on a
+          // slab: olive moss cushions creeping in from the shaded side and the joints at 0.6–0.75 of
+          // the top's luminance, grey lichen patches (desaturated, ≈ 0.85), and the pale worn top
+          // between them; ours read one tone with grain (within-stone lum sd 0.033–0.037 against the
+          // frames' 0.037–0.050 in D / A; the px-weighted spread 0.09 / 0.12 against 0.125 / 0.15).
+          // Lobed patches: a 3.6 + 9.5 cycles/m noise thresholded by the weight, so a heavier weight
+          // (the shaded rim) grows bigger cushions and the centre keeps a few spots. The cushion
+          // tone is the slab's own colour at 0.6 pulled a third toward the seam moss — frame 56 s's
+          // patches are grey-olive khaki, a step darker than the top (its dark share, > 0.06 under
+          // the slab median, is 12.6 % of the slab pixels), not green paint; the lichen is the
+          // slab's grey at 0.8.
+          if (wear > 0.001 && (vMottle.x > 0.001 || vMottle.y > 0.001)) {
+            float mw = clamp(vMottle.x, 0.0, 1.0);
+            float gw = clamp(vMottle.y, 0.0, 1.0);
+            float c1 = stoneVNoise(vWPosS.xz * 3.6 + vec2(41.0, -7.0));
+            float c2 = stoneVNoise(vWPosS.xz * 9.5 + vec2(-13.0, 23.0));
+            float cushion = smoothstep(0.66 - 0.36 * mw, 0.8 - 0.3 * mw, c1 * 0.65 + c2 * 0.35) * step(0.001, mw);
+            float lc = clamp(l / 0.4, 0.0, 1.6);
+            vec3 mossTone = mix(uMossSoil, uMossDeep, 0.55) * (0.95 + 0.45 * lc);
+            vec3 cushionTone = mix(diffuseColor.rgb * vec3(0.62, 0.60, 0.50), mossTone, 0.2);
+            diffuseColor.rgb = mix(diffuseColor.rgb, cushionTone, cushion * wear * 0.9);
+            float g1 = stoneVNoise(vWPosS.xz * 2.2 + vec2(-29.0, 61.0));
+            float g2 = stoneVNoise(vWPosS.xz * 6.8 + vec2(7.0, -47.0));
+            float lichen = smoothstep(0.64 - 0.3 * gw, 0.76 - 0.2 * gw, g1 * 0.7 + g2 * 0.3) * step(0.001, gw);
+            vec3 lichenTone = vec3(dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)) * 0.80) * vec3(1.03, 1.0, 0.93);
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenTone, lichen * wear * 0.8);
+          }
           // a crack across the slab (aCrack: signed distance across the line / position along it in
           // half-lengths; (9, 9) = none): a 7-13 mm dirt-filled line wandering +-1.2 cm, fading out
           // over the last quarter of its length, with a hair-paler chipped lip beside it
@@ -186,7 +214,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v15-wear-crack-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v18-wear-crack-mottle-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

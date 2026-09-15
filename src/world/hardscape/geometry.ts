@@ -232,6 +232,11 @@ export class MeshBuilder {
    * local xz so the interpolated value is exact over every face. (9, 9) = no crack.
    */
   crack: number[] = [];
+  /**
+   * within-stone mottle weights per vertex (`aMottle`, vec2): moss-cushion weight and grey-lichen
+   * weight for the stone shader's surface patches (round 34); (0, 0) = none
+   */
+  mottle: number[] = [];
   private groupStart = 0;
 
   get vertexCount() {
@@ -245,9 +250,10 @@ export class MeshBuilder {
   /**
    * push one triangle with an explicit normal (or computed from winding if omitted); `stain` is
    * the per-vertex soil-stain amount (`aStain`, clamped 0..1 in the shader after interpolation),
-   * `wear` the face's weathering gate and `crack` the three vertices' crack coordinates (6 numbers)
+   * `wear` the face's weathering gate, `crack` the three vertices' crack coordinates (6 numbers)
+   * and `mottle` their (moss, grey) mottle weights (6 numbers)
    */
-  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb, moss: [number, number, number], n?: Vector3, stain?: [number, number, number], wear = 0, crack?: readonly number[]) {
+  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb, moss: [number, number, number], n?: Vector3, stain?: [number, number, number], wear = 0, crack?: readonly number[], mottle?: readonly number[]) {
     let nx: number;
     let ny: number;
     let nz: number;
@@ -280,6 +286,8 @@ export class MeshBuilder {
     this.wear.push(wear, wear, wear);
     if (crack) this.crack.push(crack[0], crack[1], crack[2], crack[3], crack[4], crack[5]);
     else this.crack.push(9, 9, 9, 9, 9, 9);
+    if (mottle) this.mottle.push(mottle[0], mottle[1], mottle[2], mottle[3], mottle[4], mottle[5]);
+    else this.mottle.push(0, 0, 0, 0, 0, 0);
   }
 
   /** average normals of coincident vertices inside the current group (smooth shading) */
@@ -334,6 +342,7 @@ export class MeshBuilder {
     cat(this.stain, other.stain);
     cat(this.wear, other.wear);
     cat(this.crack, other.crack);
+    cat(this.mottle, other.mottle);
   }
 
   build(): BufferGeometry {
@@ -346,6 +355,7 @@ export class MeshBuilder {
     g.setAttribute('aStain', new Float32BufferAttribute(this.stain, 1));
     g.setAttribute('aWear', new Float32BufferAttribute(this.wear, 1));
     g.setAttribute('aCrack', new Float32BufferAttribute(this.crack, 2));
+    g.setAttribute('aMottle', new Float32BufferAttribute(this.mottle, 2));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
@@ -432,6 +442,12 @@ export interface SlabOptions {
    * position along it in half-lengths]; must be affine in x, z. Omit for an uncracked slab.
    */
   crackFn?: (x: number, z: number) => [number, number];
+  /**
+   * within-stone mottle weights on the top face and shoulder ring (`aMottle`, round 34): local xz
+   * and the ring position (`edge`, 1 at the rim, 0 at the centre) → [moss-cushion weight, grey-lichen
+   * weight], both 0..1; the stone shader grows its surface patches where they are > 0
+   */
+  mottleFn?: (x: number, z: number, edge: number) => [number, number];
 }
 
 const _a = new Vector3();
@@ -522,6 +538,15 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     const c = crackFn(r.x, r.z);
     return [a[0], a[1], b[0], b[1], c[0], c[1]];
   };
+  const mottleFn = o.mottleFn;
+  /** the three vertices' mottle weights for one top-face / shoulder triangle (undefined = none) */
+  const mottleOf = (p: P2, q: P2, r: P2, ep: number, eq: number, er: number): readonly number[] | undefined => {
+    if (!mottleFn) return undefined;
+    const a = mottleFn(p.x, p.z, ep);
+    const b = mottleFn(q.x, q.z, eq);
+    const c = mottleFn(r.x, r.z, er);
+    return [a[0], a[1], b[0], b[1], c[0], c[1]];
+  };
   const shade = (base: readonly [number, number, number], part: 'top' | 'bevel' | 'side', ax: number, az: number, k = 1, edge = 1): [number, number, number] => {
     const m = colorFn ? colorFn(ax, az, part, edge) : 1;
     if (typeof m === 'number') return [base[0] * m * k, base[1] * m * k, base[2] * m * k];
@@ -606,8 +631,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       const mP = mossEdge * mossFn(op.x, op.z);
       const mQ = mossEdge * mossFn(oq.x, oq.z);
       const bc = shade(bcol, 'bevel', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4);
-      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mP * lo.m + aP, mQ * lo.m + aQ, mQ * hi.m + aQ], undefined, undefined, wear, crackOf(p, q, qi));
-      mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mP * lo.m + aP, mQ * hi.m + aQ, mP * hi.m + aP], undefined, undefined, wear, crackOf(p, qi, pi));
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), bc, [mP * lo.m + aP, mQ * lo.m + aQ, mQ * hi.m + aQ], undefined, undefined, wear, crackOf(p, q, qi), mottleOf(p, q, qi, 1, 1, 1));
+      mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), bc, [mP * lo.m + aP, mQ * hi.m + aQ, mP * hi.m + aP], undefined, undefined, wear, crackOf(p, qi, pi), mottleOf(p, qi, pi, 1, 1, 1));
     }
   }
   if (!o.softBevel) mb.smoothGroup();
@@ -627,7 +652,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       _c.set(r.x, topY(r, 1), r.z);
       const mossAt = (v: P2) => mossEdge * 0.7 * mossFn(v.x, v.z) + mossAdd(v.x, v.z, 1);
       const tc = colorFn ? shade(col, 'top', (p.x + q.x + r.x) / 3, (p.z + q.z + r.z) / 3, 1, 1) : col;
-      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(r), tc, [mossAt(p), mossAt(q), mossAt(r)], undefined, undefined, wear, crackOf(p, q, r));
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(r), tc, [mossAt(p), mossAt(q), mossAt(r)], undefined, undefined, wear, crackOf(p, q, r), mottleOf(p, q, r, 1, 1, 1));
     }
   } else {
     const ringPts: P2[][] = [];
@@ -657,8 +682,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
         const m3 = mB * mossFn(qi.x, qi.z) + mossAdd(qi.x, qi.z, sB);
         const m4 = mB * mossFn(pi.x, pi.z) + mossAdd(pi.x, pi.z, sB);
         const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4, 1, (sA + sB) / 2) : col;
-        mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3], undefined, undefined, wear, crackOf(p, q, qi));
-        mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4], undefined, undefined, wear, crackOf(p, qi, pi));
+        mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3], undefined, undefined, wear, crackOf(p, q, qi), mottleOf(p, q, qi, sA, sA, sB));
+        mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4], undefined, undefined, wear, crackOf(p, qi, pi), mottleOf(p, qi, pi, sA, sB, sB));
       }
     }
     const last = ringPts[rings];
@@ -673,7 +698,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       const mL = mossInner * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sL);
       const mQ = mossInner * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sL);
       const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2) : col;
-      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mQ, mC], undefined, undefined, wear, crackOf(p, q, c));
+      mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mQ, mC], undefined, undefined, wear, crackOf(p, q, c), mottleOf(p, q, c, sL, sL, 0));
     }
   }
   mb.smoothGroup();
