@@ -58,6 +58,8 @@ export interface PlacedStone {
   /** within-stone mottle weights drawn for this stone (material.ts `aMottle`): moss cushions, grey lichen */
   mottleMoss: number;
   mottleGrey: number;
+  /** the stone's whole-slab luminance factor (the vertex tint's level; 1 = the material's own) */
+  lum: number;
 }
 
 // --- geometry helpers ----------------------------------------------------------------------
@@ -1453,7 +1455,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 34: camera D's thinned stretch spreads its slabs ± 0.14 — frame 56 s's big slabs are
     // a pale one beside a grey one beside a khaki one, between-stone lum sd 0.035 against the
     // 0.022 that eight alike 2 m slabs gave; the same draw, so nothing else re-rolls)
-    let lum = 0.89 + 0.08 * tn + srng.range(-0.08, 0.08) * (1 + 0.7 * dThinW) + (seed.big ? 0.02 : 0);
+    // (the thinned stretch's mean + 0.04: its nine slabs drew an area-weighted 0.915 against the
+    // 0.942 of the 28 they replaced — the two 2 m slabs nearest camera D at 0.84 / 0.81 — and
+    // frame 56 s's stone class rendered p50 0.532 against the frame's 0.557 / the control's 0.584)
+    let lum = 0.89 + 0.08 * tn + srng.range(-0.08, 0.08) * (1 + 0.7 * dThinW) + (seed.big ? 0.02 : 0) + 0.04 * dThinW;
     if (grey) lum *= 0.91;
     if (darkWarm) lum *= 0.87;
     // (round 9: the stone albedo came down 28 % as a whole (material.ts STONE_ALBEDO_SCALE) to
@@ -1484,7 +1489,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 33: the per-stone hue swing ±0.05 → ±0.08 - segmented stone by stone inside the
     // paving mask, the frame's stones spread 8–11° in hue (B 8.2°, D 3.4°) against our 2.9° / 1.4°;
     // the whole-stone luminance spread already matched (sd 0.03–0.04 both) and stays)
-    const hueK = srng.range(-0.05, 0.05) * 1.6 + (darkWarm ? 0.035 : 0) - 0.04 * damp;
+    // (round 34: the thinned stretch leans grey-green like the damp band — with its slabs darker
+    // and the cushions on them, frame 56 s's stone class rendered hue 36° / sat 0.36 against the
+    // frame's 40° / 0.32 that the control matched)
+    const hueK = srng.range(-0.05, 0.05) * 1.6 + (darkWarm ? 0.035 : 0) - 0.04 * damp - 0.06 * dThinW;
     // the shaded band renders redder and more saturated than the sunlit plaza under the warm
     // fill light (B lit tops sRGB B/R 0.61, R/G 1.20 against the reference's 0.69 / 1.12, where
     // the A plaza matches at 0.71 / 1.10) and the post chain passes only ~1/4 of an albedo
@@ -1699,6 +1707,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       cracked,
       mottleMoss,
       mottleGrey,
+      lum,
     };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
