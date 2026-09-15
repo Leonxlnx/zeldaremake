@@ -1594,6 +1594,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - structures-23 one commit (Saria's lit bark toward the frames' dark mossy bank, iteration 1);
   trees-20 / atmosphere-12 / hardscape-27 with files dirty, no commits yet. Load 7–8 (two slots busy).
 
+### 03:23 UTC — tick 93: heartbeat (`779cbc0` unchanged since take-0096); round thirty-four closing in
+- structures-23 three commits (bark iteration 2: trunk lit albedo 0.45 — the D bank's bark floors
+  read 0.292 whatever the albedo, so the bank needs moss share, not darker bark; arch fissures back
+  to ×0.5); hardscape-27 one commit (tuft hue, within-stone mottle, D's slabs) + two dirty;
+  trees-20 and atmosphere-12 with files dirty, no commits. Load 4–7.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1632,4 +1638,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T02:22:00Z
+2026-09-15T03:25:00Z
