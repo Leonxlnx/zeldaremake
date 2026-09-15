@@ -6,8 +6,8 @@
       "github": "Leonxlnx",
       "status": "active",
       "branch": "agent/astra-local-blender",
-      "updated": "2026-09-15T14:05:00Z",
-      "currentTask": "Integrating Fable's take-0102 environment locally with the asset override preserved, then reviewing actual gameplay; Blender restarted hidden from the verified hip-seams source (retained character a93feccf). Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.",
+      "updated": "2026-09-15T15:00:00Z",
+      "currentTask": "Hand shading and finger-curl candidate under Three.js review (smoother normals, blended wrist mask, existing-atlas normal bake); retained game asset 1a59775b on the locally merged take-0102 world. Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.",
       "file": ".agents/astra-local.md"
     },
     {
