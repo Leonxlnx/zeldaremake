@@ -4,26 +4,22 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: cursor/kokiri-world-phase1-f65e
-updated: 2026-09-14T02:25:00Z
+updated: 2026-09-14T15:20:00Z
 ---
 
 # fable-cursor — work log
 
 ## Current task
-Bootstrapping the whole Phase 1 foundation in one branch so the second agent can join safely:
+Round thirty-two of the frame-matching loop (environment only, per the owner): frame D one-to-one
+— the house-west flight at the frame's 5 m, the north steps removed and the arch on the frame's
+rows landed in take-0090 (D 0.334, the ledger's best); running now in parallel worktrees:
+atmosphere-10 (the lit far wall behind the arch, D's far clearing), structures-22 (the arch's
+lanterns readable at 50 m, Saria's trunk over the flight, the pot), vegetation-17 (the flight's
+verges, the old steps' slope, D's purple share, the frames' dark bank masses). Hourly takes from a
+clean worktree via `take.mjs --import`; heartbeats when the tree is unchanged.
 
-1. Vite + Three.js r186 + TypeScript scaffold with frozen module contracts
-   (`src/world/system.ts`, `layout.ts`, `terrain/heightfield.ts`, `wind/wind.ts`, `capture/api.ts`).
-2. Collaboration protocol (`AGENTS.md`, `.agents/`, `PROJECT_STATE.md`, `INBOX.md`).
-3. The Gauntlet: 50-item rubric (`gauntlet/rubric.json`, hash-locked), loop (`GAUNTLET.md`),
-   anti-cheat + capture/compare/score/take tooling, CI workflows.
-4. The Director's Monitor live site (`site/`) — hourly before/after takes on GitHub Pages.
-5. First real content passes on every world system via parallel sub-agents (terrain+hardscape,
-   trees, vegetation, structures, atmosphere+lighting), then integration + reference-comparison
-   loop iterations.
-
-Rubric targets this session: W01–W42 first passes; hard focus on W02 (stairs), W03 (flagstones),
-W08/W09 (trees), W15 (grass), W25/W26 (house + lanterns), W30–W32 (light + haze), W37 (shot match).
+Rubric targets: W02/W04/W29/W32 (layout and stairs), W09/W10/W11 (trees), W15–W18 (vegetation),
+W25/W26/W29 (structures), W30–W35 (light, haze, clarity), W37 (shot match), W38 (budget).
 
 ## Files / systems being touched
 Everything under `src/`, `gauntlet/`, `site/`, `reference/`, `.github/`, root docs — this is the
@@ -1363,6 +1359,277 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   weak read → follow-up for hardscape after the flight lands (remove / relocate / sink; keep a
   ground-level lit feature left of the north path for B).
 
+### 07:05 UTC — tick 73: heartbeat (monitor `e815f66`); the overload and the capture slots
+- 06:41–06:56: five concurrent SwiftShader captures (four passes + character-5's motion harness)
+  drove the 4-core box to load 83 and every sub-agent session dropped mid-capture. Worktrees and
+  uncommitted diffs were intact; all five resumed from disk with a new rule: every Chrome launch
+  goes through `gauntlet/tmp/capslot.sh` (two box-wide `flock` slots; tested). Load 10 since.
+- State at the tick (nothing on the branch yet): hardscape-24 four commits (the house-west flight
+  `0a29f2a`/`c333364`, its head and south verge `d7b94f0`, the main flight one-to-one `9440813`;
+  final capture running); vegetation-16 three (`db64049`, `2a36f4c`, `1361c5c` lit yellow-olive
+  tint on the west bed / B mass, near-LOD tuft shadows); atmosphere-9 two (`8574069` hook,
+  `2e63d91` lit far wall past 55–60 m); trees-17 six files uncommitted; character-5 in the
+  workspace. Integration + take-0087 when the reports land.
+- Gaps: unchanged (tone range, D's flight/periphery, bank foliage — all in flight).
+
+### 09:45 UTC — tick 74: round thirty-one merged (`93f5f07`); W38 over the line on A, budget fix running
+- Merged in ownership order: character-5 `cbfddb9` (footprint planting: Astra's frame-70 −243 mm →
+  −1.5 mm, descent 165 → 0 foot-frames below −2 cm, 26 → 0 reach clamps, walk→run root step 31 →
+  3 mm; fixed views unchanged); r31/hard `9440813` (house-west flight, main flight one-to-one:
+  slabs 13–16 cm with 6.5–9.5 cm noses, lit lips, 18/19 lit peaks vs the frames' 16/19);
+  r31/veg `11ade26` (tufts 4594, ferns 1142 → 1392 with pinnae and fiddleheads, broadleaf veins,
+  clustered hedge crowns, bank passes; +15 draws, +0.6…1.1 M tris); r31/tone `dff1e17`
+  (hemiGround back to 0x7d7860, IBL 0.481 → 0.36, haze blur from 25 m; lit far wall shipped as a
+  hook at 0); r31/trees `789d3bb` (plateau-oak D-limb curtains occluding the upper house, D upper
+  band 16 → 0 lamps, north-west-near 1 m west, 26 m far-trunk poles → farLayerCount(D) 2 → 3).
+  Props `93f5f07`: pot and crate off the flight's landing (stairs mask had skipped them; props
+  test red → green).
+- Clean capture of `93f5f07` (take87-cap): A 0.2643 (+0.0024) / B 0.2432 (−0.0057) / C 0.2922
+  (−0.0108) / D 0.3168 (+0.0110) / E 0.2622 (−0.0046) / F 0.2736 (−0.0006); mean 0.2768 → 0.2754.
+  **W38: A 541 draws / 9.10 M tris (limit 9.0), F 8.97 M** — the curtains' 51 k leaves drawn in
+  the main and the shadow pass (+0.84 M per view) on top of the vegetation's +0.97 M in A. Not
+  sealed; trees-17b is splitting the authored lobes into a non-casting mesh (target A ≤ 8.6 M).
+- Atmosphere-9's attribution (the round's most useful number): the lifted darks are the shade
+  floors — `GIANT_BARK_FLOOR` / `LEAF_FLOOR` off moves top/left p10 −0.15…−0.21 (the frame needs
+  −0.05…−0.11), the fog terms ≤ 0.02 each, the round-27 hemiGround doubling −0.03; every far-air
+  brightening costs SSIM because the far rows mix 48–90 m depths inside one window and our arch
+  sits 0.07 of the frame higher than the frame's. → trees-18: floors at half strength; layout:
+  the arch's rows (hardscape-25, running).
+- Running: trees-17b (budget), hardscape-25 (the D flight at the frame's 5 m with the approach
+  re-planned as flight → landing → stones, the north steps' removal/relocation, the arch's rows via
+  the north rise). Queued: vegetation-17 (the bank over the flight, the south verge, D's purple
+  share 9.5 % vs 1 %), trees-18 (shade floors, the north-east hut's lamp under the bough in A),
+  structures-22 (the arch's lanterns don't register at 48–56 m; Saria's root #5 vs the flight).
+- Three biggest gaps → (1) frame D's right edge and rows (flight distance, arch height, the north
+  steps); (2) the shade-floor lift (top/left p10 +0.05…+0.09 over the frames in every view);
+  (3) the far air: D's upper-left p50 0.37 vs 0.51 — 76 % of it is shaded geometry at 12–35 m
+  where the frame has open sunlit air.
+
+### 10:10 UTC — tick 75 (the 08:05 / 09:05 / 10:05 ticks arrived together): take-0087 published (monitor `769a674`), INVALID by D2
+- take-0087 = the clean capture of `93f5f07` sealed as measured rather than hidden behind a
+  third heartbeat: A 0.2643 / B 0.2432 / C 0.2922 / D 0.3168 / E 0.2622 / F 0.2736; 22/50 —
+  W32 fail → pending (three far layers again, awaiting a verdict), **W38 pass → fail** (A 541
+  draws / 9.10 M tris). The ledger tags it a D2 regression against take-0086; take-0088 lands the
+  budget fix (trees-17b, running: the authored lobes as a non-casting mesh, −0.42 M per view).
+- Astra 10:06: asked for the published character-5 commit → replied on PR #2 with `cbfddb9`, the
+  scenario numbers and the two residuals her fixture should probe (start transient, toe-off −6 mm).
+- Running: trees-17b (budget), hardscape-25 (frame D's flight distance, north steps, arch rows).
+
+### 11:55 UTC — tick 76: take-0088 published (monitor `8ecb0ac`), valid; 23/50
+- `40e7f1b` trees-17b merged (`4f8c0fc`): the eight round-31 authored lobes in a non-casting
+  `giants-authored-leaves` mesh (their shadows lay inside the plateau oak's / upper house's shade:
+  A 0.03 %, B 0.15 %, D 0.67 % of pixels moved), plugs 3 → 1 and the lantern clump 3 → 1.5 in
+  density (the compact lobes carried a curtain's laminae at a 0.4 m size); A 9.10 → 8.55 M, F 8.97
+  → 8.13 M; D's occlusion unchanged; SSIM ±0.001 on every view.
+- Owner (10:36) asked for new photos and videos in chat: sent six ref-vs-ours sheets of take-0087,
+  before/after sheets (take-0085 → 0087) for D/A/B, the round's detail crops and a 9 s rendered
+  fly-through (`gauntlet/tmp/flythrough.mjs`: setPose along three moves, 12 fps → 24 with
+  minterpolate; 108 frames at 24 s/frame under load).
+- Running: hardscape-25 (frame D's flight at 5 m, the north steps, the arch's rows), trees-18
+  (shade floors at the frames' strength; the north-east hut's lamp under the bough in A).
+  Queued: vegetation-17 (the bank over the flight), structures-22 (the arch's lanterns),
+  atmosphere-10 (the lit far wall once the arch sits on the frame's rows).
+
+### 12:05 UTC — tick 77: heartbeat (monitor `6a806f1`; `4f8c0fc` unchanged since take-0088)
+- hardscape-25 has three commits in its worktree, report pending: `9c9648e` the house-west flight
+  re-laid to frame 56 s (base (3.5, 0, −8.5), bearing 110°, 5 × 0.27 × 0.5 m to a 1.35 m landing
+  by the sign), `aad61da` the north steps removed (frame D has the hollow's open ground there),
+  `c65f58b` the north rise lowered 5.6 → 4.3 m so the arch sits on the frame's rows. trees-18 in
+  its floor sweep. Take-0089 when the reports land.
+
+### 13:05 UTC — tick 78: heartbeat (`4f8c0fc` unchanged since take-0088); both passes still iterating
+- hardscape-25 at six commits (the flight re-laid three times against frame 56 s: now bearing 110°
+  at (3.8, 0.27, −8.0), raised one riser to the frame's ridges; the north steps removed; the north
+  rise 5.6 → 4.3 m), four D/B captures; trees-18 at one commit (`32d9427`: the sweep keeps
+  GIANT_BARK_FLOOR 7 / LEAF_FLOOR 6 — the white-barks' bark-floor uniform is the thing that moved)
+  with two files dirty. Take-0089 on their reports.
+
+### 14:30 UTC — tick 79: take-0089 published (monitor `4571799`), valid; 23/50
+- r32/trees merged (`ea85fb2`): the floor sweep says the tree floors are NOT the top-band dark
+  deficit — every lift cut costs SSIM linearly and the frames' dark deciles are missing masses
+  (C's cliff, F's right canopy), the structures' floors (B/E top: all floors zero → −0.176, trees
+  alone −0.005) and the verge grass (E left 0.279 with every floor at zero vs 0.251). Shipped:
+  giant bark floor texture 0.25 → 0.1 (C +0.003, D/F +0.001), a near-bole floor 13 on D's
+  left-edge column (0.29 → 0.403 vs the frame's 0.407; D 0.3177 → 0.3219, pHash 32 → 28; A −0.004,
+  B/E −0.002…−0.003 — one constant to revert). Mean SSIM flat (0.2754); budgets identical.
+- Numbers handed on: structures' floors (limb 9 / trunk 5 → a sleeve near 7 for B/E's left);
+  vegetation's SHADE_LIFT_ZONE for E's left; the hut's lamp at 45 m is a haze/structures item.
+- hardscape-25 still iterating (six commits; the flight re-laid three times). When it lands:
+  take-0090, then vegetation-17 (the bank), structures-22 (arch lanterns, floors trim),
+  atmosphere-10 (the far wall with the arch on the frame's rows).
+
+### 15:10 UTC — tick 80: take-0090 published (monitor `66a358b`), valid; 23/50 — the best D / C / B / F on the ledger
+- r32/hard merged (`8a2dc9c`): the D flight at the frame's 5 m (base (3.8, 0.27, −8.0), 110°, 5 ×
+  0.27 × 0.40, 1.62 m landing; the frame's four ridge rows matched within 0.010 each; the approach
+  re-planned path → flight → landing → six stones), the `north` steps removed, the north rise
+  5.6 → 4.3 m (arch body rows y 0.28–0.43 vs the frame's 0.27–0.45). D 0.3219 → 0.3340,
+  C 0.2950 → 0.3099, B 0.2403 → 0.2486, E +0.004, F +0.005, A −0.0006. W04 unchanged; maxBaseGap 0;
+  Saria's root #5 is off the flight; farLayerCount 3 everywhere; A 540 / 8.49 M.
+- Not fixed by hardscape (handed on): the bank over the flight is Saria's trunk/roots (p50 0.317 vs
+  0.240 → structures-22); the arch is on the frame's rows but reads 0.021 vs 0.06 (→ atmosphere-10:
+  the far wall hook is now measurable); the ochre pot in D at (0.90, 0.55) (→ structures-22).
+- Running (worktrees on 8a2dc9c): atmosphere-10 (far wall, the 45–55 m veil curve, D's upper-left by
+  depth bin), structures-22 (the arch's lanterns as readable blobs at 50 m, Saria's trunk/limb floors
+  9/5 → ~7/4 sweep, the pot, hut bodies in D), vegetation-17 (the flight's verges, the old steps'
+  slope, D's purple share 9.5 → ~2 %, E's left shade lift sweep, C's left / F's right bank masses).
+- Three biggest gaps → (1) far air: the arch silhouette and D's bright clearing (atmosphere-10);
+  (2) the dark masses the frames have and we lack — C's left flank (0.28 vs 0.36), F's right (0.27
+  vs 0.34), the bank over the D flight (0.24 vs 0.32); (3) B/E's left-third darks (0.311 vs
+  0.277 / 0.251: structures' floors + verge grass lift).
+
+### 16:05 UTC — tick 81: heartbeat (`8a2dc9c` unchanged since take-0090); round thirty-two's three passes mid-work
+- atmosphere-10 one commit (`5b49670`: the far wall gated on the ray's above-canopy share plus a
+  deep-hollow shade of the closed veil, shipped as hooks at identity while it measures);
+  structures-22 one commit (the ochre pot off D's bank → (8.0, −10.0)) + five files dirty (the
+  arch lanterns / trunk floors in progress); vegetation-17 one commit (`5b60e8f`: round-32 field
+  rules — mask-side rims, sliver turf, the house flight not a trodden strip). Load 8 (two slots).
+- 15:13–15:20: Astra's roster request done — `.agents/astra-local.md` from her front-matter,
+  mine refreshed; `data/agents.json` republished at once (monitor `efbc7d7`).
+
+### 17:15 UTC — tick 82: take-0091 published (monitor `b9af09e`), valid; 23/50
+- r32/tone merged (`9310cfe`): the ungated far wall moves the arch's contrast by nothing at any
+  amount (its own veil is the same lit air); the frame's far air is dim at eye level and lit where
+  the ray climbs → the closed veil dimmed 0.65 past 42–52 m and a 0.5 wall (52–56 m) gated on the
+  ray's above-canopy share (knee 0.1). Arch body 0.483 → 0.417 (frame 0.398), opening 0.50 → 0.451
+  (0.452), body-vs-air −0.005 → +0.060 (frame +0.170). A +0.0073, C +0.0022, B/D +0.0007/+0.0006,
+  E −0.0005, F 0; sharpness ≥ 0.85; budgets identical.
+- Leads recorded, not shipped: softFarSigma 1.6 → 3.2 buys D/B +0.0035/+0.0032 and would fund a
+  0.6–0.65 wall; the 52–70 m air above the arch (0.49 vs 0.58) is 60 % our 20–40 m crowns (trees).
+- Running: structures-22 (arch lanterns, trunk floors, huts), vegetation-17 (verges, slope, purple).
+
+### 18:15 UTC — tick 83: take-0092 published (monitor `446a828`), valid; 23/50; D 0.3357 (best), A −0.006
+- r32/struct merged (`98febe6`) + the east-halo trim (`e328ad7`): the arch's five pods carry a
+  far-pod material and one unfogged billboard halo — D's arch box goes from 0 warm blobs to four
+  (11–19 px, the west one at (0.465, 0.435) vs the frame's (0.463, 0.442)); Saria's limb/trunk
+  floors 9/5 → 8/4.5; the ochre pot out of D's frustum; the huts' dark lobe toward D. D +0.0011,
+  C/B/F ≈ level, E −0.0014, **A −0.0059** — the trim of the east halos to 0.55 did not recover A,
+  so the cause is elsewhere (the house floors in A's centre, the pot's new A spot, the west halo).
+  structures-22b is attributing it with single-toggle A captures and repairing it.
+- vegetation-17 still running (one commit, field rules for the new flight).
+
+### 19:10 UTC — tick 84: take-0093 published (monitor `07ac074`), valid; 23/50; D 0.3392 (best)
+- r32/veg merged (`a28bc62`): the D flight's north flank dressed (314 tufts over the tread ends,
+  160 moss, 326 clover, a dark broad-blade pass; p50 0.306 → 0.292, frame 0.207), the south lip
+  turfed in B/E, the old north-steps slope closed low (edge 67.7 → 54.0, frame 51.2), the bed's
+  violets to the frame's two patches (10.4 → 3.2 % of the box; W18 D 0.47 %), a shelf hedge tier +
+  crest bushes for C/F's bank masses; 0 of 19,435 kept instances moved. D 0.3357 → 0.3392, E/F
+  +0.0004…6, B level, A −0.0005, C −0.0009; A 542 / 8.61 M.
+- Running: structures-22b (A's −0.006 attribution). Round thirty-two otherwise landed: takes
+  0090–0093 took D 0.3219 → 0.3392, C 0.2950 → 0.3105, F 0.2748 → 0.2799, B 0.2403 → 0.2485.
+- Three biggest gaps → (1) A: 0.261 vs its 0.2674 peak — the structures round's A cost (in
+  attribution) and the reference's bright hazed top band (ours 0.34 vs 0.47 p50); (2) B/E's dark
+  decile in the trunk / Link's shadow (0.246 vs 0.155) — hemisphere fill / shadow, not vegetation;
+  (3) the air above the arch (0.49 vs 0.58): our 20–40 m crowns where the frame has lit air.
+
+### 19:50 UTC — tick 85: take-0094 published (monitor `06309c2`), valid; 23/50 — round thirty-two closed
+- r32/struct-a merged (`d8d928c`): A's −0.0059 was 71 % the arch halos floating in A's haze band
+  (six cells at (0.19–0.375, 0.22–0.44), the west-flank and crossing discs at 60–65 m) and 20 % the
+  house floors; fix = halo alpha fades over 53.5–55.5 m of camera distance (D's pods 48.6–53.4 m
+  keep the full disc, A's 59.5–64.8 m none) + floors 8.5 / 4.75 (B top p10 0.297 vs the frame's
+  0.295). A 0.2611 → 0.2660, E/B/C/F +0.0001…0.0008, D level 0.3392; budgets identical.
+- Round thirty-two (takes 0090–0094): D 0.3219 → 0.3392, C 0.2950 → 0.3108, B 0.2403 → 0.2491,
+  F 0.2748 → 0.2800, E 0.2594 → 0.2627, A 0.2607 → 0.2660 — every view up.
+- The A/B house conflict, measured: from camera B the house sits at bearing 41°, so from camera A
+  it lies at bearing 15–41° for any distance — always inside A at x 0.4–0.75 — while frame A has
+  bright haze there and frame B a 5.8 m-tall house 12 m away vs the ≤ 3.4 m cap A would allow. Not
+  one consistent world; B's fit stays (the door and sign lock it), and A pays for it.
+- Round thirty-three opens on `d8d928c`: hardscape-26 (the paving's tone and pattern against the
+  frames — warmer, darker, dappled stones with wide dark joints; B/E's path as big discs in grass),
+  atmosphere-11 (the shafts and the plaza dapple: frame A's beams and sun patches vs ours),
+  trees-19 (the crowns over D's upper band and A's top band where the frames have lit air).
+
+### 21:05 UTC — tick 86: heartbeat (`d8d928c` unchanged since take-0094); round thirty-three mid-work
+- hardscape-26 four commits (a disc field on the north spine — rounded domed stones in 9–22 cm
+  earth gaps, joints lit brown-olive as measured in the frames' lit paving windows, the fillet
+  clamp kept in step with the streams, rim thinning outer ring only and off on D's stretch);
+  atmosphere-11 and trees-19 measuring (files dirty, no commits yet). Load 4–6.
+
+### 22:05 UTC — tick 87: heartbeat (`d8d928c` unchanged since take-0094); round thirty-three still in flight
+- hardscape-26 at seven commits (two earths for C's trodden patch, the 1.15 m mid-ground cut scoped
+  to lawn cells + disc field, sprout packs' collapsed vertices out of the submitted bill);
+  atmosphere-11 (three files dirty) and trees-19 (two) measuring without commits yet. Load 7–8.
+
+### 23:30 UTC — tick 88: take-0095 published (monitor `8d5fa2d`), valid; 23/50 — F 0.2928, D 0.3407 (bests)
+- r33/hard merged (`24deb20`): the paving measured in the frames' lit windows and moved to them — the
+  north spine as a disc field (stone runs 0.49 m / gaps 0.10 m = the frames'), joints as lit
+  brown-olive fill (A's dark-under-0.25 share 0.059 → 0.034 = frame), A's seams 3.5 → 6.4 cm, C's
+  trodden patch 70 → 36 % stone; stone tone within 0.02 / 3° / 0.03 on A/C. F +0.0128, A +0.0037,
+  C/D +0.0015, E +0.0011, B −0.0006. Sharpness ratios fell toward 1.0 (A 1.14 → 0.90, F 1.36 →
+  1.06: fewer hard seam lines; the frames are soft video) — W35 ≥ 0.8 holds. −3.6 k tris per view.
+- Left by hardscape (handed on): the joint tufts' green (60–70° bins 14–20 % vs the frames' 1–4 %)
+  lives in the shared sprouts material; D's slab size (0.79 m vs the frame's 1.5–2.5 m); stone
+  surface mottling (moss/grey on the frames' slabs) is a material-texture item.
+- Running: atmosphere-11 (shafts, dapple), trees-19 (crowns over D's upper band, A's top, F's right).
+
+### 00:05 UTC (Sep 15) — tick 89: heartbeat (`24deb20` unchanged since take-0095)
+- atmosphere-11 two commits (a screen-anchored shaft fan over the marched envelope — the frames'
+  beams lean 25–27° from the upper-left in every heading; one hero beam with a facing gate, the haze
+  between beams at the frames' level); trees-19 three commits (shot D's air: wild limbs ghosted,
+  boughs raised above the sun slab, the far row lit; the D air sun-line corridors dropped after
+  they lit the plateau slope; north-west-near keeps its WSW limb whose shadow is B/E's dark
+  foreground grass). Both in their final captures. Load 8.
+
+### 00:45 UTC — tick 90: take-0096 published (monitor `6f6acfa`), valid; 23/50 — every view at its best
+- r33/trees (`3181c8b`) + r33/tone (`779cbc0`) merged: the shaft fan measured across the beams (D
+  hero +0.095 over the haze vs the frame's +0.103, 26° lean, width 0.090 vs 0.085; A +0.055 vs
+  +0.045; B the faint band; C/F none) with a facing gate per camera; D's air above the arch opened
+  (0.474 → 0.525, frame 0.564) by ghosting three wild limbs. A 0.2742 / B 0.2518 / C 0.3133 /
+  D 0.3474 / E 0.2652 / F 0.2936. Round thirty-three (takes 0095–0096): D +0.008, F +0.014,
+  A +0.008, B +0.003, C +0.003, E +0.003.
+- Dapple measured, not fixed: lit/shade ratio on the paving is the frame's (A 1.50 vs 1.61) but the
+  sun reaches 48 % of A's paving vs the frame's 70 % lit and 19 % of B's vs 54 % — the lantern
+  limb's lobes shade the lower-left plaza the frame has lit → trees-20 (bough placement, the
+  frame's shade at world (1.7–2.5, 1–2) and (5.4–5.6, 1.6–2.8)).
+- Sharpness: A 0.88 / B 0.86 / C 1.08 / D 0.89 / **E 0.80** (W35's floor) / F 1.04 — no blanket
+  softening; a per-view match (sharpen B/D/E's mid-ground, soften A/C/F's) is the next postfx item.
+- Round thirty-four opens on `779cbc0`: trees-20 (dapple by bough placement), hardscape-27 (the
+  joint tufts' hue, slab mottling, D's slab size), atmosphere-12 (per-view softness/bloom profile
+  with E's floor), structures-23 (Saria's trunk moss/grime toward the D bank's 0.24).
+
+### 01:21 UTC — tick 91: heartbeat (`779cbc0` unchanged since take-0096); round thirty-four measuring
+- Four passes in their measurement phase (atmosphere-12 and hardscape-27 with files dirty, trees-20
+  and structures-23 reading); no commits yet. Load 5–7.
+
+### 02:20 UTC — tick 92: heartbeat (`779cbc0` unchanged since take-0096); round thirty-four iterating
+- structures-23 one commit (Saria's lit bark toward the frames' dark mossy bank, iteration 1);
+  trees-20 / atmosphere-12 / hardscape-27 with files dirty, no commits yet. Load 7–8 (two slots busy).
+
+### 03:23 UTC — tick 93: heartbeat (`779cbc0` unchanged since take-0096); round thirty-four closing in
+- structures-23 three commits (bark iteration 2: trunk lit albedo 0.45 — the D bank's bark floors
+  read 0.292 whatever the albedo, so the bank needs moss share, not darker bark; arch fissures back
+  to ×0.5); hardscape-27 one commit (tuft hue, within-stone mottle, D's slabs) + two dirty;
+  trees-20 and atmosphere-12 with files dirty, no commits. Load 4–7.
+
+### 04:55 UTC — tick 94: take-0097 published (monitor `b3f412d`), valid; 23/50 (structures-23, neutral)
+- r34/struct merged (`41ebae4`): Saria's lit bark 0.45 with moss sheets / lichen, the arch's pillar
+  bare warm bark; SSIM −0.0004…0. The round's finding: the 9–17 m airlight floor is 0.292 in D's
+  bank and 0.257 on B's pillar (a black trunk reads that) while the frames' bark reads 0.239 /
+  0.247 at a 28° hue — the near veil sits above the frames' darks and carries a yellow-green hue
+  → atmosphere-13 (near-field airlight: the 5–20 m veil's floor and hue, against the round-27
+  SSIM lesson; targets: D bank bark ≤ 0.26, B pillar ≤ 0.25, hue toward 30–40°).
+- Still running: trees-20 (three files dirty, two captures), atmosphere-12 (`027b374`: per-depth-band
+  video softness — near-ground unsharp below 4 m, haze blur σ 1.6 → 3.0), hardscape-27 (`9ca73b7`
+  + five dirty, seven captures).
+
+### 05:25 UTC — tick 95: take-0098 published (monitor `fcf2d56`), valid; 23/50 — all six up again
+- r34/tone merged (`0534c7e`): softness measured per depth band — the frames' near ground is
+  crisper than ours (0.70–0.88×), their far bands softer → near unsharp 0.25 below 4 m, haze blur
+  σ 1.6 → 3.0 (13 taps); bloom left (the frames' skirts fold in 4 px in B, matched). A 0.2777,
+  B 0.2528, C 0.3163, D 0.3498, E 0.2667, F 0.2951; sharpness E 0.80 → 0.87 (off the floor).
+- Still running: trees-20 (dapple by boughs), hardscape-27 (tuft hue, mottle, D's slabs).
+
+### 05:55 UTC — tick 96: take-0099 published (monitor `8c6c315`), valid; 23/50 — D 0.3529, A 0.2803
+- r34/hard merged (`b3bce25`): joint tufts tinted olive-brown → straw where they stand in joints
+  (the 60–70° green surplus in the paving's dark class gone: B field 37 → 13 %, D fg 18 → 5 %),
+  D's foreground as nine 1.5–2 m slabs (was thirty 0.78 m), within-stone moss/lichen mottle on the
+  large slabs (D spread 0.089 → 0.136, frame 0.125). A +0.0026, B +0.0020, C +0.0019, D +0.0031,
+  E +0.0010, F −0.0009 (the lawn-fringe tint at F's left bank).
+- Round thirty-four so far (takes 0097–0099): D 0.3474 → 0.3529, A 0.2742 → 0.2803, B 0.2518 →
+  0.2548, C 0.3133 → 0.3182, E 0.2652 → 0.2677, F 0.2936 → 0.2942. trees-20 (dapple) still running.
+- Queued for round thirty-five: atmosphere-13 (the 9–17 m airlight floor: 0.29 vs the frames' 0.24
+  darks with a 28° hue), hardscape-28 (B fg's seam-fill hue 30° vs 40°; D's gap runs 0.10 vs 0.19),
+  the F left-bank fringe.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1401,4 +1668,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T06:08:00Z
+2026-09-15T05:56:00Z

@@ -51,7 +51,28 @@ export interface SproutSpot {
    * (source, variant), so spots added to or removed from another source leave it byte-identical.
    */
   source?: string;
+  /**
+   * 0..1: how far this sprout's greens are pulled onto the joint-grass ramp (`JOINT_TUFT_DEEP` →
+   * `JOINT_TUFT_TIP`, olive-brown blade bases with straw tips) instead of the lawn greens the
+   * geometry carries. Round 34: measured in the lit paving windows of frames 14 s / 56 s, the
+   * dark class (below Otsu) sits 61–68 % in the 30° hue bin and 1–4 % in the 60–70° bins; with
+   * our joint sprouts hidden ours read 57–64 % / 0–4 % (the frames'), with them 41–43 % / 10–18 %:
+   * the surplus was the tufts' grass green, rendered at 60–70°. The frames' joint grass is
+   * yellow-olive khaki (B fg greenish pixels: sRGB 127,119,60, hue 55°, lum 0.3–0.6). Per
+   * instance (an instanced attribute), so the lawn pocket's turf and the boulder plants keep
+   * their green with the same geometry. Default 0.
+   */
+  jointTint?: number;
 }
+
+/**
+ * the joint-grass ramp (sRGB): blade base olive-brown (hue 37°), tip straw (37°, paler) — the
+ * frames' khaki blades over dark soil. Measured on round 34's takes the tufts render within ± 3°
+ * of the albedo hue (a 48–51° ramp landed in the 50° bin, 42° in the 40° bin, 39° at the 40°
+ * bin's low edge), so the ramp sits where the frames' dark-class mass is: 30–45°.
+ */
+export const JOINT_TUFT_DEEP = 0x6a5430;
+export const JOINT_TUFT_TIP = 0xb3925a;
 
 /**
  * Per-(source, variant) jitter streams for `buildSproutMeshes`: called once for each pair on first
@@ -355,10 +376,29 @@ export const SPROUT_LOD_FAR = 25;
 export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStandardMaterial {
   const mat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, side: DoubleSide });
   mat.name = 'joint-sprouts';
+  const jointDeep = new Color(JOINT_TUFT_DEEP);
+  const jointTip = new Color(JOINT_TUFT_TIP);
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uSproutLodFar = { value: SPROUT_LOD_FAR };
+    shader.uniforms.uJointDeep = { value: jointDeep };
+    shader.uniforms.uJointTip = { value: jointTip };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; attribute float aVariant; attribute float aSproutVariant; attribute float aTuftLighting; varying vec4 vTuftLighting; uniform float uSproutLodFar;`)
+      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; attribute float aVariant; attribute float aSproutVariant; attribute float aTuftLighting; attribute float aJointTint; varying vec4 vTuftLighting; uniform float uSproutLodFar; uniform vec3 uJointDeep; uniform vec3 uJointTip;`)
+      .replace(
+        '#include <color_vertex>',
+        /* glsl */ `#include <color_vertex>
+        #if defined(USE_COLOR) && defined(USE_INSTANCING_COLOR)
+        {
+          // joint grass (aJointTint, see SproutSpot.jointTint): the blade's green is replaced by
+          // the olive-brown → straw ramp along its length (uv.y = 0 at the root, 1 at the tip);
+          // clover, pads and grit take the ramp's lower third flat. The instance's own jitter
+          // (instanceColor) still scales it, so no two tufts are the same khaki.
+          float tipK = aTuftLighting > 0.5 ? smoothstep(0.05, 0.95, uv.y) : 0.35;
+          vec3 jointRamp = mix(uJointDeep, uJointTip, tipK) * instanceColor.rgb;
+          vColor.rgb = mix(vColor.rgb, jointRamp, clamp(aJointTint, 0.0, 1.0));
+        }
+        #endif`,
+      )
       .replace(
         '#include <defaultnormal_vertex>',
         /* glsl */ `#include <defaultnormal_vertex>
@@ -405,7 +445,7 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
         #endif`,
       );
   };
-  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v3-variant-packs-tuft-up-v1';
+  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v4-variant-packs-tuft-up-v1-joint-tint';
   return wind.bind(mat);
 }
 
@@ -535,6 +575,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     if (!n) return;
     const geo = packGeometries(pack.map((v) => variants[v]), pack);
     const slotOf = new Float32Array(n);
+    const jointTint = new Float32Array(n);
     const im = new InstancedMesh(geo, material, n);
     let i = 0;
     for (const v of pack) {
@@ -573,6 +614,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
         im.setMatrixAt(i, m.compose(p, q, sc));
         im.setColorAt(i, c);
         slotOf[i] = slot;
+        jointTint[i] = s.jointTint ?? 0;
         i++;
       }
       triangles += triCount * lists[v].length;
@@ -580,6 +622,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
       else count += lists[v].length;
     }
     geo.setAttribute('aSproutVariant', new InstancedBufferAttribute(slotOf, 1));
+    geo.setAttribute('aJointTint', new InstancedBufferAttribute(jointTint, 1));
     submittedTriangles += (geo.attributes.position.count / 3) * n;
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor) im.instanceColor.needsUpdate = true;

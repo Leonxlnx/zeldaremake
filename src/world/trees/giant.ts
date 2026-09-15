@@ -55,13 +55,30 @@ export const NEAR_BOLE_ROOTS = true;
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
   geometry: BufferGeometry;
+  /**
+   * the laminae of the authored canopy-bough lobes (CanopyBough.lobes) alone, local space, same
+   * attributes and material as `geometry` (leaf vertices flagged in aRoot.w) — empty for a tree
+   * without authored boughs. Kept apart so the caller can draw them without a shadow pass: an
+   * eye-detail curtain is 5× the laminae of a roof lobe at 8 triangles each, and a giant's merged
+   * mesh is submitted to the sun's depth pass from every camera (round 31: 51 k such laminae cost
+   * 0.42 M triangles twice per view).
+   */
+  authoredLeaves: BufferGeometry;
   /** leaf-cluster alpha cards filling the lobe interiors (separate material) */
   cards: BufferGeometry;
   cardCount: number;
+  /** all laminae, the authored lobes' included */
   leafCount: number;
+  /** of `leafCount`, the laminae in `authoredLeaves` */
+  authoredLeafCount: number;
+  /** laminae per authored canopy-bough lobe, in build order (every CanopyBough's lobes, casting or not) */
+  lobeLeafCounts: number[];
   woodTriangles: number;
   leafTriangles: number;
+  /** big limbs built (wild + authored), the ghosted wild limbs excluded */
   limbs: number;
+  /** the un-authored big limbs in build order: azimuth (0° = +x, 90° = +z) and whether ghosted */
+  wildLimbs: { azimuthDeg: number; ghost: boolean }[];
   roots: number;
   /** local-space ground contact points (trunk origin + root tips), y exactly on the terrain */
   contacts: Vector3[];
@@ -162,6 +179,17 @@ export interface GiantProfile {
   /** trunk-parameter range the un-authored big limbs leave from (default [0.36, 0.62] ≈ 0.36–0.62 of the fork height) */
   wildLimbT?: [number, number];
   /**
+   * Build the un-authored big limbs' draws but none of their geometry (wood, laminae, cards): the
+   * limbs are gone while the crown, boughs and leaves built after them are exactly the same tree's
+   * (`wildLimbs: 0` would re-roll them). For a giant whose low limbs stand in a hero frame's air
+   * or on the sun lines through it (trees index.ts, round 33). `true` ghosts every wild limb; the
+   * sector form ghosts the limbs whose azimuth (0° = +x, 90° = +z) is within `halfWidthDeg` of
+   * `azimuthDeg`, nearest first. Either way the giant keeps at least two big limbs (W09), the
+   * authored limb, `spread` limbs and canopy boughs counted — a giant with none of those keeps two
+   * wild limbs whatever the spec says (see GiantAsset.wildLimbs in the audit).
+   */
+  wildLimbGhost?: boolean | { azimuthDeg: number; halfWidthDeg: number };
+  /**
    * near-bole bark (bole.ts) regardless of the hero cameras: the relief amplitude scale (1 = the
    * default for the bole's radius), or 0 for the plain sweep. Unset = by `GiantOptions.heroDistance`.
    */
@@ -172,7 +200,16 @@ export interface GiantProfile {
  * An authored lobe hung on a canopy bough (local space): `t` is where its stem leaves the bough,
  * `center` the lobe centre, hR / vR its radii. `density` scales the leaf + card population,
  * `tone` multiplies the leaf colours (< 1 = a shaded mass), `eye` overrides the eye-detail
- * treatment (0 = roof: full-size cards spread through the lobe; 1 = leaf-sized laminae).
+ * treatment (0 = roof: full-size cards spread through the lobe; 1 = leaf-sized laminae), `shade`
+ * is the share of the leaf shaders' shade fill (sky transmission, ambient fill, the flat shade
+ * floor, the sun's transmission through the lamina — writer.ts aRoot.w) its leaves keep: 1 =
+ * ordinary leaves, lower = a dark clump against the haze (the Lambert sun on the leaf's face is
+ * untouched). `corridors: false` keeps every leaf and card of the lobe
+ * whatever corridor crosses it (a lobe authored onto a camera's ray, which the sun and view
+ * corridors along that ray would otherwise thin to their porosity). `compact` builds a small
+ * clump the size it is authored: the cluster cards are capped at 0.6 hR (the ordinary floor is a
+ * 0.4 m half-size, a 1.6 m card on a 0.4 m lobe), the twigs' drop and the sprigs' reach shrink
+ * with hR, and the stem carries no leaves of its own — an ordinary lobe spreads to hR + 1.4 m.
  */
 export interface CanopyLobe {
   t: number;
@@ -182,6 +219,15 @@ export interface CanopyLobe {
   density?: number;
   tone?: number;
   eye?: number;
+  shade?: number;
+  corridors?: boolean;
+  compact?: boolean;
+  /**
+   * false: the lobe's laminae go to GiantAsset.authoredLeaves, which the caller draws without a
+   * shadow pass (its cards and stem still cast). For lobes that exist to stand on a camera ray,
+   * not to shade anything — a shade lobe over a sun pool keeps the default (true).
+   */
+  castShadow?: boolean;
 }
 
 /**
@@ -280,7 +326,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const bt = (a: number, b: number) => between(r, a, b);
   const gnarl = new Noise2D(`giant-bark/${def.id}`);
   const wood = new GeometryWriter('high');
-  const leaves = new GeometryWriter('high');
+  // `leaves` is rebound to `authoredLeaves` while the authored canopy-bough lobes are foliated
+  // (the leaf helpers read it at call time), so those laminae land in their own geometry
+  let leaves = new GeometryWriter('high');
+  const treeLeaves = leaves;
+  const authoredLeaves = new GeometryWriter('high');
   const cards = new GeometryWriter('high');
   const R = def.trunkRadius;
   const H = def.height;
@@ -314,8 +364,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     return false;
   };
+  /**
+   * set while a ghosted part is built (GiantProfile.wildLimbGhost): every draw is made, nothing is
+   * written — the wood goes to a scratch writer and the laminae / cards are culled after their
+   * draws (the same way a corridor culls them), so the tree built after it is unchanged
+   */
+  let ghost = false;
+  const scratch = new GeometryWriter('high');
   const tube: typeof sweep = (writer, points, radii, sides, rngFn, opts) =>
-    sweep(writer, points, radii, sides, rngFn, opts.structural || !woodCorridors.length ? opts : { ...opts, cull: woodCulled });
+    sweep(ghost ? scratch : writer, points, radii, sides, rngFn, opts.structural || !woodCorridors.length ? opts : { ...opts, cull: woodCulled });
 
   const barkColor = (pt: Vector3) => {
     // soil-stained near the ground, lighter with height; ridges shaded by the tube grain
@@ -559,15 +616,24 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     return hit;
   };
+  /**
+   * set while an authored canopy lobe with `corridors: false` is built (CanopyLobe): its foliage
+   * is kept whatever corridor it stands in — the lobe exists to stand on a camera ray, and the
+   * corridors that cross that ray (a hollow-gap view line, a path sun line) would otherwise thin
+   * it to their porosity
+   */
+  let corridorExempt = false;
   /** false when a lamina at p must be dropped for a corridor */
   const leafAllowed = (p: Vector3) => {
-    if (!corridors.length) return true;
+    if (ghost) return false;
+    if (!corridors.length || corridorExempt) return true;
     const c = inCorridor(p);
     return !c || survives(p, c.porosity ?? 0);
   };
   /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
   const cardAllowed = (p: Vector3, s: number) => {
-    if (!corridors.length) return true;
+    if (ghost) return false;
+    if (!corridors.length || corridorExempt) return true;
     const c = inCorridor(p, s * 0.7);
     return !c || survives(p, c.cardPorosity ?? 0);
   };
@@ -616,7 +682,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const cardN = new Vector3();
   const cardU = new Vector3();
   const cardW = new Vector3();
-  function clusterCards(center: Vector3, hR: number, vR: number, boughRadius: number, count: number) {
+  function clusterCards(center: Vector3, hR: number, vR: number, boughRadius: number, count: number, sizeCap = 1.4) {
     // near eye level a card seen obliquely reads as one flat cut-out, so low lobes seen up close
     // keep only half-size cards deep in the lobe core (dark filler behind the laminae)
     const eye = nearEye(center.y);
@@ -650,7 +716,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // fewer, larger clumps (sheet 01: dense soft clumps, not stars): ×1.12 on the card and
       // every fourth card dropped — after its draws, so the main stream is what it was with the
       // smaller, more numerous cards and nothing else in the tree re-rolls
-      const s = Math.min(1.4, Math.max(0.4, gb(0.25, 0.38) * hR)) * sizeF;
+      const s = Math.min(sizeCap, Math.max(0.4, gb(0.25, 0.38) * hR)) * sizeF;
       const heightF = p.y / H;
       const outF = Math.hypot(p.x, p.z) / crownRadius;
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * gb(0.35, 1);
@@ -717,10 +783,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     for (let i = 0; i < attempts; i++) placeCard(rd, false, inCollar);
   }
 
-  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1) {
+  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
     lobe = { center, hR };
-    clusterCards(center, hR, vR, boughRadius, (7 + subCount * 3) * cardMult);
-    leafSpray(bough, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
+    // a compact lobe keeps its twigs' drop and its sprigs inside the authored ellipsoid (they are
+    // sized for the ordinary 1.5 m+ lobe) and gathers the stem's leaf trail onto its last 15 %
+    const reach = compact ? Math.min(1, hR / 1.5) : 1;
+    clusterCards(center, hR, vR, boughRadius, (7 + subCount * 3) * cardMult, compact ? Math.max(0.15, hR * 0.6) : undefined);
+    if (compact) {
+      const [a, b] = [bough[bough.length - 2], bough[bough.length - 1]];
+      const short = [b.clone().lerp(a, 0.15), b];
+      leafSpray(short, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
+    } else leafSpray(bough, boughRadius * 0.4, 6 * mult, 0.94, 0.8);
     const phase = r() * TAU;
     for (let j = 0; j < subCount; j++) {
       const attachment = 0.4 + (j / subCount) * 0.48 + bt(-0.035, 0.035);
@@ -740,7 +813,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const twigElevation = bt(-0.75, 0.82);
         const twigReach = hR * (k === 2 ? bt(0.16, 0.36) : bt(0.57, 1.04));
         const twigTarget = center.clone().add(new Vector3(Math.cos(twigAngle) * twigReach, twigElevation * vR, Math.sin(twigAngle) * twigReach));
-        twigTarget.y -= bt(0.1, 0.6);
+        twigTarget.y -= bt(0.1, 0.6) * reach;
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), r, 4, 0.64);
         const twigRadius = Math.max(0.012, secondaryRadius * (1 - twigT) * 0.4);
         tube(wood, twig, taper(twig, twigRadius, 0.004), 3, r, { color: barkColor, roughness: 0.02 });
@@ -755,7 +828,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
           const direction = u.clone().multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle)).addScaledVector(axis, 0.36).addScaledVector(UP, -0.12).normalize();
           // short sprigs carry dense leaf clusters; the sub-centimetre sprig wood itself is sub-pixel
           // from the ground and is not built
-          const end = start.clone().addScaledVector(direction, bt(0.45, 0.85));
+          const end = start.clone().addScaledVector(direction, bt(0.45, 0.85) * reach);
           leafSpray([start, end], 0.006, 14 * mult, bt(0.9, 1.04), 0.05);
         }
       }
@@ -765,6 +838,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- big near-horizontal limbs ----------
   let limbs = 0;
+  const wildLimbs: { azimuthDeg: number; ghost: boolean }[] = [];
   // where the lowest limb of any kind leaves the bole (the crown leaders start at the fork)
   let bareHeight = fork;
   let limbPath: Vector3[] | undefined;
@@ -911,11 +985,36 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const extraLimbs = profile.wildLimbs ?? (o.limbSpec ? 2 : r.int(2, 4));
   const drawnLimbAngle = o.limbSpec ? Math.atan2(o.limbSpec.to.z - o.limbSpec.from.z, o.limbSpec.to.x - o.limbSpec.from.x) : r() * TAU;
   const limbBaseAngle = profile.wildLimbAzimuthDeg === undefined ? drawnLimbAngle : (profile.wildLimbAzimuthDeg * Math.PI) / 180;
+  // which wild limbs are ghosted: all of them, or (sector form) those whose nominal azimuth (before
+  // the ±20° jitter drawn below) lies in the sector, nearest its centre first, never so many that
+  // the giant ends with fewer than two big limbs (W09) counting the authored limb and boughs
+  // already built and the spread limbs and canopy boughs built after this
+  const ghostSet = new Set<number>();
+  const ghostSpec = profile.wildLimbGhost;
+  const otherLimbs = limbs + (profile.spread?.length ?? 0) + (o.canopyBoughs?.length ?? 0);
+  const keepLimbs = Math.max(0, 2 - otherLimbs);
+  if (ghostSpec === true) for (let i = 0; i < Math.max(0, extraLimbs - keepLimbs); i++) ghostSet.add(i);
+  else if (ghostSpec) {
+    const centre = (ghostSpec.azimuthDeg * Math.PI) / 180;
+    const half = (ghostSpec.halfWidthDeg * Math.PI) / 180;
+    const off = (i: number) => {
+      const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU;
+      let d = (a - centre) % TAU;
+      if (d < 0) d += TAU;
+      return Math.min(d, TAU - d);
+    };
+    const candidates = Array.from({ length: extraLimbs }, (_, i) => i)
+      .filter((i) => off(i) <= half)
+      .sort((i, j) => off(i) - off(j));
+    for (const i of candidates.slice(0, Math.max(0, extraLimbs - keepLimbs))) ghostSet.add(i);
+  }
   for (let i = 0; i < extraLimbs; i++) {
+    ghost = ghostSet.has(i);
     const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU + bt(-0.35, 0.35);
     const t = bt(profile.wildLimbT?.[0] ?? 0.36, profile.wildLimbT?.[1] ?? 0.62);
     const origin = sample(trunk, t);
-    bareHeight = Math.min(bareHeight, origin.y);
+    wildLimbs.push({ azimuthDeg: Math.round((((a * 180) / Math.PI) % 360 + 360) % 360), ghost });
+    if (!ghost) bareHeight = Math.min(bareHeight, origin.y);
     const trunkR = trunkRadii[Math.round(t * (trunkRadii.length - 1))];
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
     const side = new Vector3(-dir.z, 0, dir.x);
@@ -936,9 +1035,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     const r0 = Math.max(0.55, trunkR * bt(0.3, 0.42));
     tube(wood, path, taper(path, r0, 0.1, 0.9), 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    limbs++;
+    if (!ghost) limbs++;
     limbLobes(path, r0, [0.5, 0.78, 1.0], crownRadius * bt(0.2, 0.26), H * 0.07, bt(1.5, 2.5));
   }
+  ghost = false;
 
   // ---------- crown ----------
   const leaders = r.int(4, 6);
@@ -1024,6 +1124,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // Built after everything else from their own stream (the lobe foliage draws from the main stream,
   // but nothing is generated after it), so the tree above is identical with or without them.
   const rcb = r.fork('canopy-bough');
+  const lobeLeafCounts: number[] = [];
   for (const spec of o.canopyBoughs ?? []) {
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
@@ -1062,26 +1163,43 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const stemRadius = Math.max(0.07, r0 * (1 - lobeSpec.t * 0.6) * 0.34);
       tube(wood, stem, taper(stem, stemRadius, 0.02), 6, rcb, { color: barkColor, roughness: 0.04 });
       const d = lobeSpec.density ?? 1;
+      // a non-casting lobe's laminae go to their own writer (the leaf helpers read `leaves` at
+      // call time); the leaf ordinal is one sequence across both writers, so every lamina's
+      // detail pick is what it was when all of them shared one writer
+      leaves = lobeSpec.castShadow === false ? authoredLeaves : treeLeaves;
+      leaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
       eyeOverride = lobeSpec.eye ?? null;
       lobeTone = lobeSpec.tone ?? 1;
+      leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
+      corridorExempt = lobeSpec.corridors === false;
       // a curtain's arms leave the last ~30 % of its long drop (foliateLobe attaches them at
       // 0.4–0.88 of the path it is given: here 0.83–0.97 of the stem, within 0.7 m of the centre),
-      // so the leaves gather around the authored centre instead of trailing up towards the bough
-      const lobePath = hanging ? stem.slice(stem.length - 3) : stem;
-      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d);
+      // so the leaves gather around the authored centre instead of trailing up towards the bough;
+      // a compact clump does the same whichever way its stem runs
+      const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
+      const leavesBefore = leaves.leafCount;
+      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
+      lobeLeafCounts.push(leaves.leafCount - leavesBefore);
       eyeOverride = null;
       lobeTone = 1;
+      leaves.leafShade = cards.leafShade = 1;
+      corridorExempt = false;
+      leaves = treeLeaves;
     }
   }
 
   return {
-    geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), leaves.finish('leaves')]),
+    geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), treeLeaves.finish('leaves')]),
+    authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
     cards: cards.finish(`giant-cards-${def.id}`),
     cardCount: cards.triangles / 2,
-    leafCount: leaves.leafCount,
+    leafCount: treeLeaves.leafCount + authoredLeaves.leafCount,
+    authoredLeafCount: authoredLeaves.leafCount,
+    lobeLeafCounts,
     woodTriangles: wood.triangles,
-    leafTriangles: leaves.triangles,
+    leafTriangles: treeLeaves.triangles + authoredLeaves.triangles,
     limbs,
+    wildLimbs,
     roots: rootCount,
     contacts,
     limbPath,

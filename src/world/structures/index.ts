@@ -209,6 +209,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** sleeve top / bottom surface points along the bough for projected-thickness checks */
     branchSilhouette: branch.silhouette,
     logLanterns: log.lanterns.length,
+    /** round 32: the arch pods' world centres (D projects the east pair to (0.60, 0.35) / (0.62, 0.36), the west three to (0.44–0.48, 0.42–0.43)) */
+    logLanternPositions: log.podPositions,
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,

@@ -13,19 +13,21 @@
  * root flares run from the sunk ends out over the ground among fern beds. New detail on new rng
  * forks only — the stubs', vegetation's, sheets' and lanterns' streams keep their draws.
  */
-import { CatmullRomCurve3, Group, Mesh, PointLight, Vector3 } from 'three';
+import { CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, Mesh, PlaneGeometry, PointLight, Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
-import { TAU, angleDiff, faceTowards, gridSurface, merge, sweepTube } from './geometry';
+import { TAU, angleDiff, basisMatrix, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
-import { buildLantern, type LanternRig } from './lantern';
-import type { StructureMaterials } from './materials';
+import { buildLantern, type LanternKind, type LanternRig } from './lantern';
+import { FAR_HALO_EAST_SCALE, type StructureMaterials } from './materials';
 
 export interface LogArchBuild {
   group: Group;
   bases: [number, number, number][];
   lanterns: LanternRig[];
+  /** world centres of the pods (audit: project into D — the frame's arch lanterns sit at (0.60–0.65, 0.33) and (0.46, 0.44)) */
+  podPositions: [number, number, number][];
   lights: PointLight[];
   leaves: number;
   tufts: number;
@@ -538,38 +540,110 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   }
   for (const m of foliage21.build(mats, 'log21')) group.add(m);
 
-  // ---- lanterns under the arch opening + a cluster under the near (west) end ----
+  // ---- lanterns (round 32: placed and lit for frame 56 s). The frame's arch carries three warm
+  // blobs: two on the thin east body's lower flank at the axis level, (0.602, 0.339) and (0.647,
+  // 0.326), and one under the west root mass at (0.463, 0.442) — all peak 0.65–0.76, hue 36–38°,
+  // 7–19 px soft discs at 1280. Ours registered none: the two crossing pods project at
+  // (0.48, 0.45) / (0.52, 0.44) and the three "near-end" pods, on 1.15–1.5 m cords under the sunk
+  // west third's belly (0.85–1.8 m over the ground there), at (0.44–0.48, 0.47–0.50) — on the far
+  // ground line, under the arch box — and every pod at the near lanterns' 2.0 vanished into the
+  // 86 % veil (materials.ts FAR_LANTERN_INTENSITY). Now every arch pod takes the far material and a
+  // halo disc (one mesh, +1 draw; materials.ts lanternHalo — unfogged, 0.7 m, the frame's amber);
+  // the crossing pods stay (frame 60 s has pods under the arch) and the three near-end pods are
+  // replaced by three placed for the frame's blobs, each hung so its centre projects onto one:
+  // one from the west mass's SOUTH FLANK (ψ −0.5, the camera side, a 1.6 m cord → the pod at
+  // (3.0, 5.9, −53.0), D (0.466, 0.437) against the frame's (0.463, 0.442)), two on pegs driven
+  // into the east body's south flank (ψ +0.25 / +0.27, a 0.85 m peg, 1.2 / 0.55 m cords →
+  // (13.1, 9.5, −49.4) → D (0.602, 0.347) on the frame's (0.602, 0.339), and ≈ (0.62, 0.34)).
+  // The frame's third blob (0.647, 0.326) is NOT reachable: D's depth image puts a 25 m trunk over
+  // x ≥ 0.625 in that row (a pod hung there at (15.6, 10.6, −48.1) → (0.640, 0.317) sat behind
+  // it), so the second peg pod stops at the last visible column. The pegs fold into the bark
+  // draw. Streams: 'lanterns' keeps the crossing pods' draws in order; the flank and peg pods draw
+  // after them on the same stream (the old near-end pods' draws are gone — their cord clamps
+  // depended on the ground — so the peg pods' cord details differ from the round-31 build). ----
   const lanterns: LanternRig[] = [];
   const lanternRng = rng.fork('lanterns');
   const podCentre = new Vector3();
+  const hang = (hook: Vector3, cord: number, scale: number, kind: LanternKind) => {
+    const rig = buildLantern(hook, cord, mats, lanternRng, scale, kind, true);
+    group.add(rig.pivot);
+    lanterns.push(rig);
+    return rig;
+  };
   for (let i = 0; i < def.lanterns; i++) {
     const s = pathS + (i - (def.lanterns - 1) / 2) * 2.6 + 0.4;
     const psi = -Math.PI / 2 + (i % 2 ? 0.28 : -0.22);
     const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);
-    const rig = buildLantern(hook, 0.55 + lanternRng() * 0.25, mats, lanternRng, 1.1);
-    group.add(rig.pivot);
-    lanterns.push(rig);
+    const rig = hang(hook, 0.55 + lanternRng() * 0.25, 1.1, 'orange');
     podCentre.add(rig.pod);
   }
-  // near-end pods (concept sheet 01): three hang on longer cords from the belly of the west
-  // third, where shot D sees the underside at (0.40–0.44, 0.42–0.45) — no extra light, the
-  // shared glow above covers them and at 47 m they read as faint warm dots in the haze
-  const nearEnd: [number, number, number][] = [
-    [-8.6, -0.3, 1.5],
-    [-7.0, 0.22, 1.15],
-    [-5.6, -0.12, 1.35],
-  ];
-  for (const [s, dpsi, cord] of nearEnd) {
-    const psi = -Math.PI / 2 + dpsi;
+  // the west mass's flank pod: ψ −0.5 puts the hook 1.6 m below the axis on the camera side, 3 m
+  // out; the pod (cord + 0.23 m) then hangs 3.4 m below the axis — at the belly's level but 3 m
+  // south of it, where the bark has long curved in under the hook — clear of the ±0.37 m relief
+  // without a peg, 1.7 m over the ground there
+  const westFlank: [number, number, number][] = [[-7.3, -0.5, 1.6]];
+  for (const [s, psi, cord] of westFlank) {
     if (s < sEndW(psi) + 0.5) continue;
     const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);
-    // layout round 6: the belly of the sunk west third can be within 1.5 m of the ground (the
-    // pad under the new footing) — the cord is shortened so the pod hangs ≥ 0.7 m clear of it
-    const cordClamped = Math.max(0.4, Math.min(cord, hook.y - terrain.height(hook.x, hook.z) - 0.7));
-    const rig = buildLantern(hook, cordClamped, mats, lanternRng, 1.15, lanternRng() < 0.4 ? 'lime' : 'orange');
-    group.add(rig.pivot);
-    lanterns.push(rig);
+    // all amber: the frame's three arch blobs are 36–38° (no lime among them)
+    hang(hook, cord, 1.15, 'orange');
   }
+  // the east body's peg pods: at the axis level the flank is vertical, so a straight-down cord
+  // from the surface would bury the pod in the bark — each hangs from a 0.85 m peg standing out
+  // of the flank (a little upward), its foot sunk 0.25 m into the bark
+  const pegParts = [];
+  const eastStart = lanterns.length;
+  const eastPegs: [number, number, number][] = [
+    [4.25, 0.25, 1.2],
+    [5.55, 0.27, 0.55],
+  ];
+  for (const [s, psi, cord] of eastPegs) {
+    const r = rBase(psi, s) + detail(psi, s, upness(psi));
+    const foot = surfacePoint(psi, s, r - 0.25);
+    const out = radialDir(psi, s);
+    out.y += 0.12;
+    out.normalize();
+    const tip = foot.clone().addScaledVector(out, 0.85);
+    const peg = new CylinderGeometry(0.045, 0.07, 0.85, 7);
+    peg.rotateX(Math.PI / 2);
+    peg.applyMatrix4(basisMatrix(foot.clone().lerp(tip, 0.5), out));
+    setColorAttribute(peg, [0.55, 0.5, 0.42]);
+    pegParts.push(peg);
+    const hook = tip.clone();
+    hook.y -= 0.03;
+    hang(hook, cord, 1.15, 'orange');
+  }
+  if (pegParts.length) {
+    const pegMesh = new Mesh(merge(pegParts), mats.logBark);
+    pegMesh.name = 'log-pegs';
+    pegMesh.castShadow = pegMesh.receiveShadow = true;
+    group.add(pegMesh);
+  }
+  // the halo discs: one quad per pod about its centre (the material billboards them; the corner
+  // attribute's length scales the disc — the frame's east pair are the small blobs, 9–14 px
+  // against the west one's 74, so the peg pods take FAR_HALO_EAST_SCALE of the radius); the
+  // colour is the material's (materials.ts FAR_HALO_TINT), the vertex colour stays white
+  const haloParts = [];
+  for (let i = 0; i < lanterns.length; i++) {
+    const p = lanterns[i].pod;
+    const scale = i >= eastStart ? FAR_HALO_EAST_SCALE : 1;
+    const quad = new PlaneGeometry(1, 1);
+    const pos = quad.attributes.position as Float32BufferAttribute;
+    const corner = new Float32Array(pos.count * 2);
+    for (let v = 0; v < pos.count; v++) {
+      corner[v * 2] = (Math.sign(pos.getX(v)) || 1) * scale;
+      corner[v * 2 + 1] = (Math.sign(pos.getY(v)) || 1) * scale;
+      pos.setXYZ(v, p.x, p.y, p.z);
+    }
+    quad.setAttribute('aCorner', new Float32BufferAttribute(corner, 2));
+    setColorAttribute(quad, [1, 1, 1]);
+    haloParts.push(quad);
+  }
+  const halos = new Mesh(merge(haloParts), mats.lanternHalo);
+  halos.name = 'log-lantern-halos';
+  halos.frustumCulled = true;
+  halos.castShadow = halos.receiveShadow = false;
+  group.add(halos);
   const lights: PointLight[] = [];
   if (def.lanterns > 0) {
     podCentre.divideScalar(def.lanterns);
@@ -613,5 +687,13 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // round 21: the root flares' feet are terrain contacts too
   bases.push(...rootFeet);
 
-  return { group, bases, lanterns, lights, leaves: foliage.leafCount + foliage21.leafCount, tufts: foliage.tuftCount + foliage21.tuftCount };
+  return {
+    group,
+    bases,
+    lanterns,
+    podPositions: lanterns.map((l) => [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number]),
+    lights,
+    leaves: foliage.leafCount + foliage21.leafCount,
+    tufts: foliage.tuftCount + foliage21.tuftCount,
+  };
 }

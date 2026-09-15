@@ -254,6 +254,12 @@ void main() {
  * columns beside it must not smear across it (the reference's near bark stays dark against bright
  * gaps). When the sun is behind the camera `uSunUv` holds the anti-solar point and the smear runs
  * away from it (uDirSign = -1).
+ *
+ * The last pass also lays the screen-anchored shaft fan (atmosphere/shafts.ts SCREEN_FAN) over the
+ * result: the footage's beams keep one screen geometry in every heading, so the smoothed in-scatter
+ * (how much lit air the pixel looks through) keeps `floor` of itself under the fan and a fixed field
+ * of soft leaning beams is ADDED on top (amplitude set per frame by the composer from the view's
+ * phase toward the sun), blending back to the plain march low in the frame.
  */
 export const RAY_BLUR_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
@@ -263,8 +269,27 @@ uniform float uLength;   // smear length in uv
 uniform float uGamma;    // > 1 on the last pass: contrast curve so beams read as slabs, not glow
 uniform float uDepthK;   // tap weight = exp( -|Δ marched length| * uDepthK ), lengths in units of uMaxDist
 uniform vec2 uTexel;
+uniform vec4 uFan;       // ( sin lean, cos lean, frame aspect W/H, mix: 0 = no fan on this pass )
+uniform vec4 uFanFade;   // ( share of the marched in-scatter kept under the fan, frame y where the fan starts fading, where it is gone, in-scatter added on the hero beam's axis )
+uniform vec4 uFanBeams[ FAN ]; // per beam: ( x intercept at the top edge (uv), extent from the axis in frame heights, gain, unused )
 varying vec2 vUv;
 #define NS 12
+// x = the beams' sum (gain-weighted soft bumps), y = how far the fan has faded out toward the bottom of the frame
+vec2 fanField( vec2 uv ) {
+  // frame coordinates (y down from the top edge, x scaled by the aspect) so the beams' intercepts
+  // are on the top edge and the lean is a true angle on screen
+  vec2 p = vec2( uv.x * uFan.z, 1.0 - uv.y );
+  vec2 n = vec2( uFan.y, -uFan.x ); // normal to the beam direction ( sin, cos )
+  float f = 0.0;
+  for ( int i = 0; i < FAN; i ++ ) {
+    vec4 b = uFanBeams[ i ];
+    if ( b.z <= 0.0 ) continue;
+    float off = abs( dot( p - vec2( b.x * uFan.z, 0.0 ), n ) );
+    // soft bump, half-max at half the extent: the reference's beams have no flat core or hard edge
+    f += b.z * ( 1.0 - smoothstep( 0.0, b.y, off ) );
+  }
+  return vec2( f, smoothstep( uFanFade.y, uFanFade.z, p.y ) );
+}
 void main() {
   vec2 c = texture2D( tSrc, vUv ).xy;
   vec2 toSun = ( uSunUv - vUv ) * uDirSign;
@@ -297,7 +322,16 @@ void main() {
     sideW += w;
   }
   float v = ( sum / max( wsum, 1e-4 ) ) * 0.55 + ( side / max( sideW, 1e-4 ) ) * 0.45;
-  gl_FragColor = vec4( pow( clamp( v, 0.0, 1.0 ), uGamma ), c.y, 0.0, 1.0 );
+  float o = pow( clamp( v, 0.0, 1.0 ), uGamma );
+  // the screen-anchored fan: the marched air keeps uFanFade.x of its glow under the fan and the beams
+  // are added on top, cut only by NEAR surfaces (frame D's hero beam lies at full strength across
+  // the trunks 10–15 m behind it — marched length 0.33 of the 40 m march — so the weight saturates
+  // at a quarter of the march; Link's head, the hanging leaves and the ground 2–5 m away still cut
+  // the beams, which is where the reference's dissolve)
+  vec2 fan = fanField( vUv );
+  float under = uFan.w * ( 1.0 - fan.y );
+  o = o * mix( 1.0, uFanFade.x, under ) + uFanFade.w * fan.x * under * smoothstep( 0.0, 0.25, c.y );
+  gl_FragColor = vec4( clamp( o, 0.0, 1.0 ), c.y, 0.0, 1.0 );
 }
 `;
 
@@ -406,7 +440,7 @@ void main() {
 }
 `;
 
-/** Separable Gaussian with a runtime sigma (texels), 9 taps: sigma ≤ 2 stays inside the kernel. */
+/** Separable Gaussian with a runtime sigma (texels), 13 taps: sigma ≤ 3 stays inside the kernel. All four channels (the haze blur carries its weight in alpha). */
 export const GAUSS_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uDir;    // texel-sized step
@@ -414,15 +448,15 @@ uniform float uSigma; // in texels
 varying vec2 vUv;
 void main() {
   float k = -0.5 / max( uSigma * uSigma, 1e-4 );
-  vec3 c = texture2D( tSrc, vUv ).rgb;
+  vec4 c = texture2D( tSrc, vUv );
   float wsum = 1.0;
-  for ( int i = 1; i <= 4; i ++ ) {
+  for ( int i = 1; i <= 6; i ++ ) {
     float w = exp( k * float( i * i ) );
     vec2 o = uDir * float( i );
-    c += ( texture2D( tSrc, vUv + o ).rgb + texture2D( tSrc, vUv - o ).rgb ) * w;
+    c += ( texture2D( tSrc, vUv + o ) + texture2D( tSrc, vUv - o ) ) * w;
     wsum += 2.0 * w;
   }
-  gl_FragColor = vec4( c / wsum, 1.0 );
+  gl_FragColor = c / wsum;
 }
 `;
 
@@ -431,48 +465,95 @@ void main() {
  * fine-detail amplitude the activity blur then widens), g = haze-blur weight from the scene depth
  * (view distance ramped over uFarRange, sky = 1). Both are Gaussian-smoothed afterwards.
  */
+const SOFT_FAR_WEIGHT = /* glsl */ `
+uniform mat4 uProjInv;
+uniform vec2 uFarRange; // view distance (m) where the haze blur starts / is full
+float farWeight( vec2 uv ) {
+  float d = texture2D( tDepth, uv ).x;
+  if ( isSky( d ) ) return 1.0;
+  vec4 p = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+  return smoothstep( uFarRange.x, uFarRange.y, length( p.xyz / p.w ) );
+}
+`;
 export const SOFT_ACTIVITY_FRAG = /* glsl */ `
 ${DEPTH_UTILS}
+${SOFT_FAR_WEIGHT}
 uniform sampler2D tDown;
 uniform sampler2D tBlur;
-uniform mat4 uProjInv;
 uniform vec2 uTexel;    // 640-grid texel
-uniform vec2 uFarRange; // view distance (m) where the haze blur starts / is full
 varying vec2 vUv;
 const vec3 LUMA = vec3( 0.2126, 0.7152, 0.0722 );
 float fine( vec2 uv ) { return abs( dot( texture2D( tDown, uv ).rgb - texture2D( tBlur, uv ).rgb, LUMA ) ); }
 void main() {
   vec2 o = uTexel * 0.5;
   float a = 0.25 * ( fine( vUv + o ) + fine( vUv - o ) + fine( vUv + vec2( o.x, -o.y ) ) + fine( vUv - vec2( o.x, -o.y ) ) );
-  float d = texture2D( tDepth, vUv ).x;
-  float far = 1.0;
-  if ( ! isSky( d ) ) {
-    vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
-    far = smoothstep( uFarRange.x, uFarRange.y, length( p.xyz / p.w ) );
-  }
-  gl_FragColor = vec4( a, far, 0.0, 1.0 );
+  gl_FragColor = vec4( a, farWeight( vUv ), 0.0, 1.0 );
+}
+`;
+
+/**
+ * Round 34: the haze blur's source — (b1 · w, w) on the 320 grid, optionally premultiplied by the
+ * far weight (uPremul). Blurring that and dividing by the blurred weight (normalised convolution)
+ * averages far pixels only, so a near silhouette against the veil would no longer smear into the
+ * hazed air beside it and the final pass could key the blur on the pixel's own depth (uFarMode).
+ * MEASURED AND LEFT OFF: the 16 px-smoothed weight does soften every near edge bordering the veil
+ * (shot E's near band kept 0.88 of its Laplacian variance, 1.0 with the stage off), but making
+ * those edges crisp also makes the canopy's leaf/sky edges crisp (E very-far band 1.0 → 1.48× the
+ * frame) and cost −0.003…−0.0045 SSIM in every view (per-band decomposition: all of it in the far
+ * and very-far windows). The near-ground sharpening in SOFT_FINAL_FRAG is what recovered the near
+ * band instead. Plain blur (uPremul 0) + smoothed weight (uFarMode 0) is the shipped path.
+ */
+export const SOFT_FAR_PREMUL_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+${SOFT_FAR_WEIGHT}
+uniform sampler2D tBlur; // the 640-grid Gaussian (b1)
+uniform float uPremul;   // 1 = premultiply by the far weight (far pixels only), 0 = plain blur (weight 1)
+varying vec2 vUv;
+void main() {
+  float w = mix( 1.0, farWeight( vUv ), uPremul );
+  gl_FragColor = vec4( texture2D( tBlur, vUv ).rgb * w, w );
 }
 `;
 
 export const SOFT_FINAL_FRAG = /* glsl */ `
+${DEPTH_UTILS}
+${SOFT_FAR_WEIGHT}
 uniform sampler2D tSrc;      // anti-aliased LDR frame (full resolution)
 uniform sampler2D tBlur;     // its 640-grid Gaussian (bilinear upsample)
-uniform sampler2D tFar;      // its 320-grid Gaussian (the haze blur)
+uniform sampler2D tFar;      // 320-grid Gaussian of (b1 · farWeight, farWeight): the haze blur of the far pixels only
 uniform sampler2D tWeights;  // wide-blurred (detail amplitude, haze-blur weight)
 uniform vec3 uGate;          // detail floor, activity knee, power
 uniform float uUniform;      // share of the 640-grid blur every pixel takes (video band-limit)
+uniform vec3 uNearSharp;     // (gain, view distance where the near sharpening starts fading, where it is gone)
+uniform float uFarMode;      // see wFar below
 uniform float uDebug;        // 1 = show the weights (r = detail gate, g = haze weight)
 varying vec2 vUv;
 void main() {
   vec3 c = texture2D( tSrc, vUv ).rgb;
   vec3 b1 = texture2D( tBlur, vUv ).rgb;
-  vec3 b2 = texture2D( tFar, vUv ).rgb;
+  vec4 far = texture2D( tFar, vUv );
+  // far pixels only (normalised convolution); an isolated far pixel with no far neighbours keeps b1
+  vec3 b2 = mix( b1, far.rgb / max( far.a, 1e-3 ), smoothstep( 0.0, 0.15, far.a ) );
   vec2 w = texture2D( tWeights, vUv ).rg;
   float g = uGate.x + ( 1.0 - uGate.x ) / ( 1.0 + pow( w.x / uGate.y, uGate.z ) );
+  // the pixel's own view distance keys the haze blur (crisp near silhouettes against the veil)
+  float d = texture2D( tDepth, vUv ).x;
+  vec4 p = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+  float dist = isSky( d ) ? 1e4 : length( p.xyz / p.w );
+  float wPix = isSky( d ) ? 1.0 : smoothstep( uFarRange.x, uFarRange.y, dist );
+  // haze-blur weight: 0 = the 320-grid-smoothed weight (softens both sides of a near/far silhouette),
+  // 1 = the pixel's own weight (crisp both sides), 2 = the smoothed weight gated by the pixel's own
+  // (near pixels crisp, the hazed side of the silhouette soft)
+  float wFar = uFarMode < 0.5 ? w.y : ( uFarMode < 1.5 ? wPix : w.y * smoothstep( 0.0, 0.1, wPix ) );
+  // near sharpening: the frames' near ground keeps more edge energy than ours (stone joints, chips,
+  // Link's silhouette: A 0.70×, D 0.83×, E 0.88×, F 0.83× the frame's Laplacian variance below 6 m);
+  // an unsharp mask on the 640-grid detail (σ 1.2 texels ≈ 2.4 px at 1280), fading out with distance
+  // so the mid band (where A/C/D/F already exceed the frames) is left alone
+  g *= 1.0 + uNearSharp.x * ( 1.0 - smoothstep( uNearSharp.y, uNearSharp.z, dist ) );
   vec3 fine = b1 + ( c - b1 ) * g;
   vec3 near = mix( fine, b1, uUniform );
-  vec3 o = mix( near, b2, w.y );
-  gl_FragColor = vec4( mix( o, vec3( g, w.y, 0.0 ), uDebug ), 1.0 );
+  vec3 o = mix( near, b2, wFar );
+  gl_FragColor = vec4( mix( o, vec3( g * 0.5, wFar, 0.0 ), uDebug ), 1.0 );
 }
 `;
 

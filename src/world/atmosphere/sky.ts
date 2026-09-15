@@ -54,6 +54,14 @@ export const SKY_SUN_LOBE_TINT: [number, number, number] = [1.0, 1.0, 1.0];
 export const SKY_GLARE_RAMP = 0.2;
 
 /**
+ * Elevation (sin) edges over which the closed-roof dome grades from the hollow's eye-level veil to
+ * the lit far wall (heightfog.ts hazeFarLit): the dome is the far end of the rays the distance haze
+ * gates on their above-canopy share (`hazeFarLitKnee`), and a 55–60 m ray from eye level reaches
+ * that knee between ≈ 3° and 10° (heights 4–12 m against the 8 m uniform layer).
+ */
+export const SKY_FAR_LIT_UP: [number, number] = [0.05, 0.17];
+
+/**
  * Tint of the environment (IBL) render only. The dome's warm glare is what the camera sees, but as a
  * fill it left the shaded flagstone golden (display B/R 0.63–0.67 against the reference's 0.69–0.70):
  * under a real canopy the sky light reaching the ground is the grey of the gaps, not the glare's
@@ -94,6 +102,13 @@ uniform vec2 uOpenDir;
 uniform vec2 uOpenEdges;
 uniform vec2 uOpenUpEdges;
 uniform vec3 uClosed;
+// the lit far wall the distance haze grades to past the far tree rows (heightfog.ts hazeFarLit),
+// seen by directions that climb out of the under-canopy layer: smoothstep edges on sin(elevation)
+uniform vec3 uFarLit;
+uniform float uFarLitAmount;
+uniform vec2 uFarLitUp;
+// deep-hollow shade of the closed veil (heightfog.ts hollowDim): the dome is the far end of that air
+uniform float uHollowDim;
 // forward lobe hook (gain at mu = 1, tint at mu = 1; off by default like heightfog's sunLobeGain)
 uniform float uSunLobeGain;
 uniform vec3 uSunLobeTint;
@@ -149,8 +164,15 @@ void main() {
   float len = length( d.xz );
   float e = len > 1e-4 ? dot( d.xz / len, uOpenDir ) : 1.0;
   float open = max( smoothstep( uOpenEdges.x, uOpenEdges.y, e ), smoothstep( uOpenUpEdges.x, uOpenUpEdges.y, h ) );
-  vec3 zenith = mix( uClosed, uZenith, open );
-  vec3 horizon = mix( uClosed, uHorizon, open );
+  // the closed-roof dome is the far end of the hollow's air: the deep-hollow shade at eye level and,
+  // for directions that climb out of the under-canopy layer, the lit far wall the distance haze
+  // grades the far rows to (heightfog.ts hollowDim / hazeFarLit); the environment map keeps the
+  // undimmed side-scatter values so the IBL calibration is untouched
+  float visible = 1.0 - uEnvMode;
+  vec3 closed = uClosed * mix( 1.0, uHollowDim, visible );
+  closed = mix( closed, uFarLit, uFarLitAmount * smoothstep( uFarLitUp.x, uFarLitUp.y, h ) * visible );
+  vec3 zenith = mix( closed, uZenith, open );
+  vec3 horizon = mix( closed, uHorizon, open );
   vec3 sky = mix( horizon, zenith, smoothstep( 0.0, uGlareRamp, up ) );
   float s3 = pow( sd, 3.0 );
   sky *= ( 1.0 + uSunLobeGain * s3 ) * mix( vec3( 1.0 ), uSunLobeTint, s3 );
@@ -196,6 +218,7 @@ interface SkyOverride {
   glareRamp?: number;
   /** multiplier on the sun halo + glare term */
   haloGain?: number;
+  farLitUp?: [number, number];
 }
 const skyOverride = (): SkyOverride | null => (globalThis as { __ATMO_SKY__?: SkyOverride | null }).__ATMO_SKY__ ?? null;
 
@@ -216,6 +239,10 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uOpenEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi) },
     uOpenUpEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openUpLo, HEIGHT_FOG_DEFAULTS.openUpHi) },
     uClosed: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeClosed) },
+    uFarLit: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFarLit) },
+    uFarLitAmount: { value: HEIGHT_FOG_DEFAULTS.hazeFarLitAmount },
+    uFarLitUp: { value: new Vector2(...(o?.farLitUp ?? SKY_FAR_LIT_UP)) },
+    uHollowDim: { value: HEIGHT_FOG_DEFAULTS.hollowDim },
     uSunLobeGain: { value: SKY_SUN_LOBE_GAIN },
     uSunLobeTint: { value: new Color(...SKY_SUN_LOBE_TINT) },
     uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },

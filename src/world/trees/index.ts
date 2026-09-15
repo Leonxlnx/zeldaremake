@@ -23,7 +23,8 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials } from './materials';
+import { createTreeMaterials, NEAR_BOLE_FLOOR } from './materials';
+import { GIANT_BARK_FLOOR, LEAF_FLOOR, type ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
@@ -90,6 +91,22 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
   // centred on azimuth 60° (SSE, where the ray climbs past the trunk toward Link), so they head
   // SW / WNW / NNE — the reference D shows this trunk's boughs high at the top-left, not a limb
   // crossing the upper-left quarter at y 0.1–0.3 as the random draw gave.
+  // Round 33 (trees): the NNE (335°) and NNW (259°) wild limbs are ghosted (draws made, no
+  // geometry, so the crown is the same tree's); the WSW (168°) limb stays. Measured by ray-casting the sun lines through shot D's air (x 0.35–0.75,
+  // y 0.10–0.27: the in-scatter the god rays add there): 74 % of that air's in-scatter weight
+  // was in shadow, 26 % of it this giant's wood — not the bole (no hit within 1.2 m of its
+  // sheared axis) but the four authored boughs' runs at 12–15 m (≈ 50 %), the crown leaders'
+  // bases (≈ 30 %) and the ENE wild limb (13 %), whose tip and lobes also stood IN the box at
+  // D (0.40, 0.09), 16–20 m out, where frame 56 s has lit air. For D's upper-left air (x 0.05–0.35)
+  // the limbs' collars 1.3–2.5 m off the axis at 6–8 m were 60 % of the giant's blocking. On the
+  // ground the ENE limb's wood laid a band across the first D path pool ((0.5, −10) r 2.2, from
+  // (−0.75, −10.4) to (7, −10.9)) and the NNW limb's along the verge pool (−4.6, −15.8) — the two
+  // places frame 56 s lights. Same-tree A/B, D 640×360: the whole giant's wood hidden lifted the
+  // air box p50 0.473 → 0.552 and the top band's 0.423 → 0.447. The WSW limb is off D (x < 0)
+  // and on no D sun line; its wood's shadow is the band across the grass at B / E's bottom-left
+  // ((0.06–0.25, 0.75–0.875): frame 14 s's dark foreground grass, p50 0.30 — with the limb ghosted
+  // the grass read 0.39 and B lost 0.0039 / E 0.0028 of SSIM in the two bottom-left cells), so it
+  // is kept: sector 285° ± 50° takes the nominal 240° and 330° limbs (base 60° + 180° / 270°).
   'north-west-near': {
     flare: 0.12,
     girth: 0.7,
@@ -98,6 +115,43 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
     lean: { azimuthDeg: 245, degrees: 45, fromY: 3.5, blend: 2 },
     wildLimbAzimuthDeg: 60,
     wildLimbT: [0.5, 0.62],
+    wildLimbGhost: { azimuthDeg: 285, halfWidthDeg: 50 },
+  },
+  // Round 33: shot D's air box (x 0.35–0.75, y 0.10–0.27) held this giant's wild-limb lobes and
+  // limb wood 28–32 m out (21 % of the box's pixels, y 9–11 m, lum 0.46: textured dark foliage at
+  // D (0.55–0.72, 0.1–0.3) where frame 56 s has 0.55–0.60 lit air between far trunks). Ghosted:
+  // the far row (55–60 m, 0.51) and the lit air show through; the crown (14 m+) is above y 0.16
+  // and its low lobes read as the dark mass at D's top-right, where the frame's limb comes in.
+  // B sees the same lobes hazed at (0.45–0.6, 0.2–0.3), 42 m; A behind the upper house at 48 m.
+  // Their shadows fell at (25, −29), the far plateau. The tree drew two wild limbs, at 145°
+  // (west-south-west: the one in the box, its lobes 8–10 m west of the bole at D x 0.5–0.65) and
+  // 269° (north, behind the bole); W09 wants two big limbs, so the 145° limb is ghosted by
+  // sector and a spread limb (own stream: nothing else re-rolls) takes its place heading
+  // north-north-east — behind the bole at D (0.71, 0.29), 43 m, hazed to the far layer's tone and
+  // covered by the bole's strip (0.68–0.72); off A / B / F, behind C. Its shadow lands on the far
+  // plateau at (27, −33).
+  'north-east': {
+    wildLimbGhost: { azimuthDeg: 135, halfWidthDeg: 75 },
+    spread: [{ azimuthDeg: 300, height: 9.5, length: 8, rise: 0.2, radius: 0.45, foliage: 0.8, density: 1.0 }],
+  },
+  // Round 33: shot D's upper-left (x 0.05–0.35, y 0.08–0.6) is frame 56 s's brightest air — its
+  // (0.2–0.35, 0.08–0.45) half 0.58–0.62 with the rays, hazed trunks 0.06 under it — and ours
+  // read 0.43 there. This giant stands at D x 0.13, 28–32 m out; its random wild limbs left the
+  // bole at 6–11 m heading east, so a hazed limb crossed the whole box at y 0.15–0.25 (its wood +
+  // leaves 11.9 % of the box's pixels at 0.423, the limb lobes' cards another 1.8 %), and on the
+  // sun lines through that air its wood was 11.3 % and its crown's cards 9.2 % of the in-scatter
+  // weight in shadow (the box's air 55 % shaded; ray-cast, round-33 probe). Ghosted: the crown is
+  // the same tree's. The limb lobes' shadows fell 10–14 m down-sun at (−5…0, −25…−20), across
+  // the D path's third and fourth sun pools' corridors.
+  // Off A (x < −0.03) and B (x < 0.1, the nwnear bole's strip). The tree drew two wild limbs, at
+  // 5° (east: the one across the box, D x 0.13 → 0.32 at y 0.2–0.3, its tip lobes at (0.3,
+  // 0.15–0.25)) and 242° (north-north-west, off D's left edge); W09 wants two big limbs, so the
+  // 5° limb is ghosted by sector and a spread limb (own stream) takes its place heading
+  // west-north-west, off D's left edge (x < −0.04 at 30 m), further off B and A. Its shadow lands
+  // on the boulder bank at (−7, −25), north of the D verge pools.
+  'north-west': {
+    wildLimbGhost: { azimuthDeg: 20, halfWidthDeg: 70 },
+    spread: [{ azimuthDeg: 200, height: 9, length: 8, rise: 0.2, radius: 0.45, foliage: 0.8, density: 1.0 }],
   },
   // The lantern tree's bole is outside every hero frame (its limb and crown are the hero parts),
   // but its shadow is not: the bole 8–14 m up shaded a 2 m band diagonally across the plaza's
@@ -313,11 +367,62 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * behind the camera), so they act only through the shadow map and the shaft mask; the lantern
  * limb, built earlier from the main stream, is untouched (audit lanternLimb* identical). The
  * Link A/D sun rays (LINK_SHADOW_RAYS) carve Link's own pools through the lobes as before.
+ *
+ * Shot D's top-right limb (round 31): frame 56 s has a big dark limb with leaf masses coming in
+ * from the right across D's top-right (x 0.75–1.0, y 0–0.12, p10 0.14) over a dark hazed mass
+ * (x 0.85–1.0, y 0.12–0.3: 0.26) — and no house. Ours showed the UPPER HOUSE (layout (13.5, 5.4,
+ * −17.5), 16–21 m from camera D) there as a lit tree-house: its west-wall window at D (0.83,
+ * 0.15), its cap at (0.86–0.96, 0–0.07), its wall at (0.78–0.95, 0.07–0.35), and behind it the
+ * north-east hut's lamps at (0.72, 0.14). Anything hung between camera D and that house at
+ * 8–14 m sits in B's centre-right (0.5–0.66, 0.15–0.35) and A's upper centre (0.4–0.5, 0.17–0.3):
+ * reference B has exactly that — the giant's limb curling down from the top-right onto Saria's
+ * roof (B (0.55–0.75, 0.05–0.27), 0.32–0.38) — and reference A is darker than ours there (0.41
+ * against 0.45). The only giant behind the house on D's right is the plateau-oak (D x 1.02 at
+ * 20 m): its bough leaves at 17 m (just under the fork), passes 2.7 m over the house's mossed cap
+ * (14.4 m at x 13.5; the pow-1.7 droop stays high until the last third) and plunges to (5.5, 5,
+ * −11) — in D the wood comes toward the camera down its right edge and only the plunge shows, so
+ * the dark mass is the lobes: three dense eye-detail leaf curtains 10–13 m from camera D on the
+ * house's window / cap, its wall (and, at the frame's right edge behind it, Saria's house's west
+ * window and pod), and the north-east hut's line. Their leaves are darkened two ways: tone 0.42
+ * on the leaf colours, and `shade` 0.3 — the share of the leaf shaders' shade fill (sky
+ * transmission, ambient fill, the flat LEAF_FLOOR) they keep. The first cut with tone 0.55 alone
+ * measured 0.38–0.42 in D where the reference mass is 0.26–0.31: a shaded lamina sits on the
+ * flat floor (≈ 0.36 whatever its colour) plus 20 % veil at 10 m, so no tone reaches the
+ * reference's dark; the fill share does (tone 0.5 / shade 0.35: the mass 0.31, the top-right
+ * box (0.8–1, 0–0.3) 0.364 → 0.316 against the frame's 0.303), and the direct sun on the lobes'
+ * west faces is left as it is. Their shadows land on the plateau in front of Saria's house and on the upper house's own
+ * shadow (x 8–12, z −9…−7), off the plaza, the D path and every sun point. Off C (behind) and F
+ * (x < −0.1); in B they hang at (0.5–0.66, 0.15–0.4) in front of Saria's roof's west end, where
+ * reference B has the giant's limb and its leaf masses curling onto the roof; in A at (0.4–0.46,
+ * 0.22–0.37), 20 m out, under the upper house's roof line (A's ray to the house passes 4 m east
+ * of them).
+ *
+ * The hollow-column and west-column huts (D (0.64, 0.08) and (0.28, 0.17)) cannot be hidden by
+ * anything near them: cameras A, B and D stand within 12 m of each other on the path's axis and
+ * see each hut under bearings 3–6° apart (hollow-column: D −18.7°, B −16°, A −12.5°; west-column:
+ * 11.7°, 9.7°, 8.7°). But the three rays to a hut's lamps fan out toward the cameras — 8–10 m
+ * from camera D, B's ray passes 1.3 m and A's 2 m from D's — so one clump of hR ≤ 0.55 on D's ray
+ * there covers the lamps for D alone. Two such clumps (plateau-oak t 1.0, lantern-tree round 31,
+ * below) do that, with each hut's walkway turned onto D's bearing so its pods stack under the
+ * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
+ * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean }[] }[] = [
+  // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
+  // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
+  // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
+  // pass x ≈ −1 − 1.008 (Y − 4) … 4 − 1.008 (Y − 4), z ≈ −8 − 0.787 (Y − 4) … −18 − 0.787 (Y − 4).
+  // Leaving the axis at 12–13 m the boughs ran level EAST straight through that slab (x −9 … −4 at
+  // y 12) for 5–6 m each — the ray-cast attribution (round-33 probe) put ≈ 50 % of this giant's
+  // shading of the box's in-scatter on them. At 18.6 m the slab is at x ≤ −10.6, west of the
+  // origin, and the boughs run east away from it; the lobes are the same world points (their
+  // stems now hang 3–4 m instead of rising 3 m). The bough wood's ground bands start at (8.6, −6.8)
+  // instead of (2.4–3.2, −11), i.e. off the D path's first sun pool onto the plateau slope, and
+  // cross the hero flight where they did (treads 14–18; the Saria bough's band, which passed the
+  // top, now crosses tread 18). Above every hero frame's top edge as before (D: 38° up at 21 m).
   {
     giant: 'north-west-near',
-    fromY: 11.8,
+    fromY: 18.6,
     to: [3.6, 15.4, -14.6],
     radius: 0.45,
     lobes: [
@@ -328,7 +433,7 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // Saria's roof: casters on the sun lines of the dome (crown → eaves = east → west along the line)
   {
     giant: 'north-west-near',
-    fromY: 12.4,
+    fromY: 18.6,
     to: [5.5, 15.8, -17.6],
     radius: 0.45,
     lobes: [
@@ -341,7 +446,7 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // the upper house's roof
   {
     giant: 'north-west-near',
-    fromY: 13.2,
+    fromY: 19.0,
     to: [5.6, 18.6, -24.4],
     radius: 0.4,
     lobes: [
@@ -381,13 +486,92 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // hero flight's three sun pools — treads 4 (a ≈ 2.6–5.4 m up the run) and 8 (a ≈ 7.2–9.2 m)
   {
     giant: 'north-west-near',
-    fromY: 12.6,
+    fromY: 18.6,
     to: [0.0, 15.6, -16.0],
     radius: 0.45,
     lobes: [
       { t: 0.75, center: [-3.65, 16.0, -13.6], hR: 1.4, vR: 1.1, density: 3, eye: 0 },
       { t: 0.97, center: [1.8, 16.0, -14.5], hR: 1.1, vR: 1.0, density: 3, eye: 0 },
     ],
+  },
+  // shot D's top-right limb (round 31, see above): the plateau-oak's bough over the upper house,
+  // its curtains between camera D and the house's window / cap (t 0.95), its wall (t 0.97) and
+  // the north-east hut (t 0.9). The wood at s ≈ 0.9 runs along camera A's ray to the north-east
+  // hut's window (A (0.45, 0.13), 45 m): its centre line 0.009 of the frame height off the window,
+  // its hazed edge on it. Round 32 tried the tip at (6.5, 5, −10) and (7, 5, −10) (centre line
+  // 0.008 the other side / 0.032 clear, wood 0.014 clear) and kept this one: the window is not
+  // in the picture either way — at 45 m the haze leaves the hut's pixels at 0.45 with or without
+  // the wood (identical to the byte), the frame's lit point is a soft +0.08 at (0.455, 0.097)
+  // the hut does not make, the control's two warm pixels beside the wood were its own sunlit rim
+  // — and the moved tip lengthens the tip clump's stem, which grows the merged authored-leaves
+  // mesh's bounding sphere into camera F's left frustum plane: F +1 draw / +0.28 M triangles
+  // (505 / 8.13 M → 506 / 8.41 M) for nothing visible.
+  {
+    giant: 'plateau-oak',
+    fromY: 17.0,
+    to: [5.5, 5.0, -11.0],
+    radius: 0.55,
+    tipRadius: 0.3,
+    lobes: [
+      // D (0.86, 0.10) at 10.5 m: the house's west-wall window (0.83, 0.15) and its cap (0.86–0.96, 0–0.07)
+      { t: 0.95, center: [6.0, 4.8, -11.0], hR: 1.7, vR: 1.3, density: 3.5, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
+      // D (0.97, 0.28) at 10.5 m: the wall (0.85–1.0, 0.13–0.43), and at the frame's right edge Saria's
+      // house's west window (0.985, 0.30) and its pod lantern (0.93, 0.36), 13–15 m behind it
+      { t: 0.97, center: [7.4, 3.4, -10.6], hR: 1.8, vR: 1.4, density: 3.5, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
+      // D (0.74, 0.12) at 12 m: the north-east hut's window / door / eave pod (0.72–0.75, 0.13–0.15)
+      { t: 0.9, center: [5.6, 5.5, -13.3], hR: 1.3, vR: 1.0, density: 3, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
+      // D (0.64, 0.08) at 8 m, a 3 m twig west off the tip: the hollow-column hut's window, door,
+      // eave pod and (structures distantHouse.ts, its walkway turned onto camera D's bearing) its
+      // end-post pod, D (0.62–0.66, 0.07–0.10) at 20–24 m. B sees the clump at (0.42, 0.23) — the
+      // hut's lamps there are (0.47, 0.14–0.15), 1.3 m off the ray at 12 m — and A at (0.30,
+      // 0.25) against (0.35–0.38, 0.11–0.12). As small as covers the lamps (0.8 m: ±0.03 of D's
+      // width, the lamps ±0.02 of its centre) and ordinary leaves, not a shade curtain: it stands
+      // in the frame's bright haze (0.56 there), where a 1.1 m tone-0.7 clump read 0.33 over 1 %
+      // of the frame and cost D 0.008 and B 0.007 SSIM. It sits 0.4 m off the axis of the third
+      // HOLLOW_GAP view line (the same ray, 25 m short of the gap), so it is corridor-exempt —
+      // the first cut lost it to the line's 0.15 porosity and the hut's lamps stayed. Compact:
+      // built as an ordinary lobe the 0.4 m spec came out 2.6 m across (the cards' 0.4 m half-size
+      // floor, the twigs' 0.6 m drop, the 0.85 m sprigs, leaves along the whole 3 m twig) — a pale
+      // blob over D (0.56–0.75, 0–0.28), 4 % of the frame, in the reference's brightest haze.
+      { t: 1.0, center: [2.68, 4.52, -10.19], hR: 0.4, vR: 0.4, density: 3, eye: 1, corridors: false, compact: true, castShadow: false },
+      // three compact plugs in the curtains' cores, each on camera D's ray to a lamp the curtains
+      // must hide — the upper house's west window (0.83, 0.15), Saria's west window (0.985, 0.30),
+      // the north-east hut's lamps (0.735, 0.14): a curtain's leaves and cards are drawn at random
+      // over its ellipsoid, and a re-roll of the tree's stream (any edit upstream of these lobes)
+      // opened one 3-pixel pinhole on each of the first two rays (peaks 0.67 / 0.65 — lamps to the
+      // classifier). Same tone and shade as their curtains, so they read as more of the same mass.
+      // Last in the list, so the clump above is built as before. Density 1 (was 3; the round-31
+      // budget, see the castShadow note on the giants' meshes): a lobe's laminae count does not
+      // scale with its size, so a 0.5 m plug at density 3 carried as many as a 1.8 m curtain
+      // (6.5 k, 17× the leaf area of its own surface); at 1 it keeps ~2.2 k, ~6× its surface,
+      // inside a curtain that already covers the ray. The hollow-column clump above keeps 3: its
+      // hut's end-post pod hangs 0.018 of D's width from the clump's centre, near its edge, and at
+      // 1.5 the ray's peak went 0.42 -> 0.62 (a lamp to the classifier); the lantern tree's clump
+      // (below), whose lamps sit on its centre, keeps 1.5 (peaks 0.46 / 0.44).
+      { t: 0.96, center: [5.83, 4.54, -11.31], hR: 0.5, vR: 0.5, density: 1, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true, castShadow: false },
+      { t: 0.98, center: [7.05, 3.11, -10.1], hR: 0.5, vR: 0.5, density: 1, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true, castShadow: false },
+      { t: 0.92, center: [5.35, 5.26, -13.15], hR: 0.5, vR: 0.5, density: 1, tone: 0.42, eye: 1, shade: 0.3, corridors: false, compact: true, castShadow: false },
+    ],
+  },
+  // shot D's west-column hut (round 31): a thin limb of the lantern tree over the north verge, wood
+  // above every frame's top (D y < −0.37, B < −0.16, A < −0.05), whose tip drops a 4.6 m twig to one
+  // small clump on camera D's ray to the hut's lamps — D (0.28, 0.17) at 9 m, covering the window,
+  // door and (walkway turned onto D's bearing) end-post pod at (0.274–0.291, 0.16–0.19), 24–29 m
+  // out. B sees the clump at (0.16, 0.25), its lamps at (0.11–0.13, 0.15–0.17); A at (0.11, 0.26)
+  // against (0.07, 0.155). Sized and toned like the hollow-column clump above. Corridor-exempt: every point of D's ray 8–14 m out lies
+  // 1.5–2.1 m off the axis of the D_PATH_SUN_POINTS (0.5, −10) r 2.2 sun line (the ray and the
+  // sun line run almost parallel there) and 8–10 m out inside the first HOLLOW_GAP view line
+  // too, so the first cut lost the clump to their porosity. Its shadow lands at (2.5, −8.9) on
+  // the path's east half — a 1 m dapple inside that sun pool's 4.4 × 7.2 m ellipse (the
+  // reference's lit run is leaf-dappled) and 1.9 m across the sun from Link's D pool's axis
+  // (corridors.ts (2.2, −6.7) r 1.5), outside it.
+  {
+    giant: 'lantern-tree',
+    fromY: 9.5,
+    to: [-2.2, 9.0, -11.9],
+    radius: 0.3,
+    tipRadius: 0.12,
+    lobes: [{ t: 1.0, center: [-1.92, 4.4, -12.32], hR: 0.35, vR: 0.4, density: 1.5, eye: 1, corridors: false, compact: true, castShadow: false }],
   },
 ];
 /**
@@ -565,6 +749,25 @@ const HOLLOW_GAP_POINTS: { point: [number, number, number]; radius: number }[] =
   { point: [8.0, 11.4, -28.4], radius: 1.6 },
 ];
 const HOLLOW_GAP_POROSITY = 0.15;
+/*
+ * No sun-line corridors through the air of shot D's upper band (round 33). Ray-casting the sun
+ * lines from the god-ray march's air samples in the box (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m
+ * up, 5–35 m out) found 74 % of the in-scatter weight in shadow — the north-west-near giant's wood
+ * 26 % (GIANT_PROFILES / CANOPY_BOUGHS), the north-west giant's crown cards 17 % (its south-east
+ * flank 16–21 m up) and wood 6 %, the mid-distance columns' crowns 12 %, the north-east lobes 3 %.
+ * Porous corridors (r 2.6, porosity 0.3 / cards 0.2) up the sun lines from 3 m above five screen
+ * points × 2–4 depths (14–34 m) thinned that flank — and lit the plateau slope under the houses
+ * where the lines land down-sun (8.6 … 15, −12 … −21): D (0.625–0.75, 0.25–0.5) is frame 56 s's
+ * dark hazed foliage. Measured (D-only A/B on 658119b): with the lines the air box p50 0.534 and
+ * D SSIM 0.3324; without them 0.525 and 0.3385 (control 0.3392) — the slope cell −2.1e-3 → 0,
+ * (0.75–0.875, 0.5–0.75) −1.4 → −0.5, the air cell +1.6 → +1.9. The lines' +0.009 of air was
+ * not worth 0.006 of SSIM, so the air is opened by the ghosted limbs and the raised boughs only.
+ * The upper-left's air (x 0.05–0.35, y 0.08–0.6; frame 0.58–0.62 rays, ours 0.43) has no lines
+ * of its own either: its sun lines land on the D path and its west verge at z −16…−24, i.e. they
+ * ARE the D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS corridors' lines; what shaded that air was wood
+ * the corridors do not cut (the north-west-near giant's wild-limb collars 19 %, the north-west
+ * giant's wild limbs and leaders 11 %) — hence the two giants' ghosted limbs.
+ */
 /**
  * Porous view corridors through screen points of a hero camera (the same rule as the hollow gaps,
  * authored on the screen instead of in the air): the line from the camera's eye through the point
@@ -637,6 +840,30 @@ const LANTERN_LIMB_FOLIAGE = 0.45;
 const DEPTH_BANDS: DepthBand[] = [
   { xMin: -34, xMax: 48, zMin: -61, zMax: -55, spacing: 5.0, scale: [1.1, 1.3], shade: 0.72, maxVariantHeight: 23 },
   { xMin: -58, xMax: 68, zMin: -98, zMax: -84, spacing: 7, scale: [1.1, 1.4], shade: 0.78, maxVariantHeight: 23 },
+  // Round 31 (trees): the far-trunk row. Frame 56 s (D) has pale far trunks in three or more depth
+  // planes between the mid-distance columns and the arch (x 0.10–0.40, y 0.10–0.45), and its
+  // depth image had nothing between the 29–33 m columns and the 50–59 m row (farLayerCount 2, the
+  // 25–27.5 m bucket at 1.52 % being the only third). Five tall bare poles (distant.ts, the
+  // band-only 26 m slender) on the west bank (ground y 5.1–5.4) at z −45.75, 41–42 m of view
+  // depth from camera D (the 40–42.5 m bucket): trunks at D x ≈ 0.16–0.31 from the ground line
+  // (y ≈ 0.44) out of the top, crowns 18 m+ up and above the frame. The window onto that depth is
+  // x 0.15–0.30 — the north-west giant's bole (33 m) closes 0.09–0.15 and the west-column hut and
+  // its column (26–32 m) 0.28–0.34 — so the row stops at x −6.5 (the 0.37 arch lip is 2.5 m
+  // further east; the two eastern poles stand behind the hut's column). Measured in D's
+  // histogram: four 0.7 m poles at 3 m spacing 0.94 % of the frame in the bucket, five 1.4 m
+  // poles ≈ 1.4 %, with three COLUMN_EMERGENT seats on the same line 2.10 % (the seats alone
+  // 0.72 % — an emergent's bole is 1.24 m thick and its top third is behind the hut column —
+  // so they were dropped for the poles); 1.5 % makes a layer, these 1.9 m poles alone 2.32 %. B x
+  // 0.0–0.16 at 38–41 m, A −0.1–0.1 at 42–45 m, behind the north-west giant's crown; off C,
+  // E's copy of B, F. Own stream so the 60–215 m radial layer and the two rows above keep
+  // their exact placements.
+  // Round 33: shade 1.0 → 1.3. Measured in D's depth image the row's poles were the darkest thing
+  // in the upper-left band — lum 0.42 at 46 m (7.6 % of the top band, 14.9 % of the upper-left
+  // box), under the 22–33 m columns in front of them (0.43–0.48) and the 58 m row behind (0.51):
+  // camera D sees their shaded SSE faces. Frame 56 s's far trunks sit ≈ 0.06 under the haze
+  // around them (0.50–0.55 in 0.58 air); ours sat 0.08–0.1 under a 0.50–0.52 haze. ×1.3 on the
+  // instance tint lifts the shaded bark's ambient term to ≈ 0.46 at that depth.
+  { xMin: -17.5, xMax: -6.5, zMin: -46.5, zMax: -45, spacing: 2.2, scale: [1.2, 1.35], shade: 1.3, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-far-trunks-d' },
 ];
 /**
  * Column trees (column.ts) — the dark boles of the mid-distance forest wall (round 13).
@@ -674,6 +901,22 @@ const DEPTH_BANDS: DepthBand[] = [
  *                  the bottom of the frame to the top (the reference's left edge is a dark tree
  *                  too, but a soft mid-distance one), in front of the giant's roots and the west
  *                  end of the lit verge — the emergent is kept slim (R 0.62, flare 0.3) for that.
+ *                  Round 31 (left edge): measured in the depth image the bole filled D x 0–0.145
+ *                  at 4.9–6 m (its axis projects to 0.025, the gnarl and lean carry the east limb
+ *                  to 0.145), hiding the D boulder's west half and the clearing behind, where
+ *                  frame 56 s has a hazed trunk at x 0–0.09 (0.41, a soft mid-distance one) and
+ *                  bright haze / far trunks from 0.09 on (ref (0.08–0.145, 0.1–0.45) 0.45 against
+ *                  ours 0.32). The seat moves 0.4 m west, to (−3.1, −7.9): 1 m of world moved
+ *                  the east limb 0.14 of D's width in the probe (0.145 → 0.075 for 0.5 m), so it
+ *                  lands at ≈ 0.09 and the boulder's rock shows from x 0.09 (was 0.144; frame
+ *                  0.10–0.22). In B (8.4 m) the bole's span goes 0.0–0.10 → −0.03–0.07, so B's
+ *                  left edge keeps a dark bole behind the Kokiri kid (the reference's is 0–0.10
+ *                  to y 0.45) — the trade B pays for D's clearing. Still 0.9 m+ off the
+ *                  pavement's edge (x ≈ −1.5 at z −7.9), 5.5 m from the north-west-near giant's
+ *                  bole and 1.6 m from the D boulder (roots reach ≤ 1.2 m). The bole's own
+ *                  luminance (0.32 at 5.4 m) is under the reference's 0.41 and does not move
+ *                  with its vertex colour: the shaded bark sits on the flat GIANT_BARK_FLOOR
+ *                  (a 0.7× bark multiplier measured 0.317 → 0.319 and was dropped).
  * Every seat is off the paths, stairs and structures, ≥ 4 m from a giant's bole and ≥ 2.5 m from
  * a white-bark; none stands in the plaza / house / stair sight lines or the F view gap. Their
  * crown shadows (a caster at height Y shades (x + 1.008 Y, z + 0.787 Y)) fall on the plateau slope
@@ -705,7 +948,8 @@ const COLUMN_SEATS: { x: number; z: number; variant: number; ring?: number }[] =
   { x: 21.2, z: 6.8, variant: 0 },
   { x: 24.2, z: 11.0, variant: 2 },
   { x: 15.7, z: 5.2, variant: 3 },
-  { x: -2.7, z: -7.9, variant: COLUMN_EMERGENT, ring: 1.0 },
+  // round 31: 0.4 m west of (−2.7, −7.9), see the "left edge" note above
+  { x: -3.1, z: -7.9, variant: COLUMN_EMERGENT, ring: 1.0 },
 ];
 const COLUMN_VIEWS = ['A_stairs', 'B_house', 'D_log', 'F_canopy'];
 const COLUMN_SWAP = { minDistance: 18, maxDistance: 45, xMin: 0.05, xMax: 0.95, minBaseY: 0.25 };
@@ -861,13 +1105,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         return { point, dir, radius, porosity: HOLLOW_GAP_POROSITY, cardPorosity: 0 };
       })
     : [];
-  // view corridors through screen points of a hero camera (see VIEW_GAP_RAYS): the ray through the
-  // point, active from `minDistance` out — a rising ray is capped from below by the height it has
-  // there (a falling one from above), which is the same cut since height is monotonic along it
-  const rayCorridors: WorldCorridor[] = [];
-  for (const gap of VIEW_GAP_RAYS) {
-    const view = ctx.layout.viewpoints.find((v) => v.id === gap.viewpoint);
-    if (!view) continue;
+  // the view ray of a hero camera through a screen point (unit vector from its eye)
+  const screenRay = (view: (typeof ctx.layout.viewpoints)[number], screen: [number, number]) => {
     const eye = new Vector3(view.position[0], view.position[1], view.position[2]);
     const forward = new Vector3(view.target[0], view.target[1], view.target[2]).sub(eye).normalize();
     const right = new Vector3(-forward.z, 0, forward.x).normalize();
@@ -875,9 +1114,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const th = Math.tan((view.fov * Math.PI) / 360);
     const dir = forward
       .clone()
-      .addScaledVector(right, (gap.screen[0] - 0.5) * 2 * th * (16 / 9))
-      .addScaledVector(up, (0.5 - gap.screen[1]) * 2 * th)
+      .addScaledVector(right, (screen[0] - 0.5) * 2 * th * (16 / 9))
+      .addScaledVector(up, (0.5 - screen[1]) * 2 * th)
       .normalize();
+    return { eye, dir };
+  };
+  // view corridors through screen points of a hero camera (see VIEW_GAP_RAYS): the ray through the
+  // point, active from `minDistance` out — a rising ray is capped from below by the height it has
+  // there (a falling one from above), which is the same cut since height is monotonic along it
+  const rayCorridors: WorldCorridor[] = [];
+  for (const gap of VIEW_GAP_RAYS) {
+    const view = ctx.layout.viewpoints.find((v) => v.id === gap.viewpoint);
+    if (!view) continue;
+    const { eye, dir } = screenRay(view, gap.screen);
     const point = eye.clone().addScaledVector(dir, gap.minDistance);
     rayCorridors.push({
       point,
@@ -1048,6 +1297,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const c of seatedColumns) for (const m of c.meshes) {
     const p = c.placements[0];
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
+    // the emergent's bole stands 5 m from camera D: its own bark floor (materials NEAR_BOLE_FLOOR)
+    if (c.params === columnParamSets[COLUMN_EMERGENT]) m.material = mats.giantTreeNear;
   }
   group.add(columnGroup);
   // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
@@ -1114,7 +1365,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
       fromHeight: b.fromY - gy,
       radius: b.radius,
-      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye })),
+      tipRadius: b.tipRadius,
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow })),
     }));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
@@ -1165,7 +1417,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
-    for (const g of [asset.geometry, asset.cards]) {
+    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards]) {
       g.translate(px, gy, pz);
       const root = g.getAttribute('aRoot') as BufferAttribute;
       for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
@@ -1239,6 +1491,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     canopy.userData.kind = 'giant-canopy-cards';
     giantGroup.add(mesh, canopy);
     sectorMeshes.push(mesh, canopy);
+  }
+  // The laminae of the authored lobes marked `castShadow: false` (round 31: the plateau-oak's
+  // shot-D curtains, clump and plugs, the lantern tree's clump — 51 k eye-detail laminae, 0.42 M
+  // triangles) in one mesh of their own that never casts (submitGiants skips it). Merged into a
+  // sector they were submitted to the sun's depth pass from every camera (a sector's sphere always
+  // meets the shadow frustum), so each view paid for them twice; here they are drawn only where
+  // their own sphere meets the view — A, B, D and E; behind C, off F's left. Their shadows fell on
+  // the terrace in front of Saria's house ((x + 1.008 (Y − y), z + 0.787 (Y − y)) from 3–5.5 m up:
+  // A (0.55–0.57, 0.48), B (0.75–0.80, 0.56), off D's right) and, the lantern clump's, on the D
+  // path at (2.2, −9.1). The older shade lobes (north-west-near and the others) keep casting: they
+  // exist for their shadows on the plaza and path sun pools.
+  const authoredParts = giants.filter((g) => g.asset.authoredLeaves.getAttribute('position').count > 0);
+  for (const g of giants) if (!authoredParts.includes(g)) g.asset.authoredLeaves.dispose();
+  if (authoredParts.length) {
+    const geometry = mergeParts(
+      'giants-authored-leaves',
+      authoredParts.map((g) => g.asset.authoredLeaves),
+    );
+    sectorGeometries.push(geometry);
+    const mesh = new Mesh(geometry, mats.giantTree);
+    mesh.name = `giants-authored-leaves-${authoredParts.map((g) => g.def.id).join('+')}`;
+    mesh.customDepthMaterial = mats.giantTreeDepth;
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    mesh.userData.kind = 'giant-authored-leaves';
+    mesh.userData.giants = authoredParts.map((g) => g.def.id);
+    giantGroup.add(mesh);
+    sectorMeshes.push(mesh);
   }
   group.add(giantGroup);
 
@@ -1413,6 +1693,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const submitGiants = () => {
     if (!ctx.quality.shadows) return;
     for (const mesh of sectorMeshes) {
+      if (mesh.userData.kind === 'giant-authored-leaves') continue; // never casts
       sphere.copy(mesh.geometry.boundingSphere!);
       sphere.radius += CULL_PAD_M;
       mesh.castShadow = shadowReaches(sphere);
@@ -1506,7 +1787,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const family = (key: string) => (byFamily[key] ??= tally());
     for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
     for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
-    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : 'giant-cards'), m));
+    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' ? 'giant-authored-leaves' : 'giant-cards'), m));
     for (const d of distantSets) {
       add(family('distant-near'), d.near);
       add(family('distant-far'), d.far);
@@ -1557,11 +1838,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
     let giantLeaves = 0;
+    let giantAuthoredLeaves = 0;
     let giantCards = 0;
     let giantLimbsMin = Infinity;
     let giantRootsMin = Infinity;
     for (const g of giants) {
       giantLeaves += g.asset.leafCount;
+      giantAuthoredLeaves += g.asset.authoredLeafCount;
       giantCards += g.asset.cardCount;
       woodTriangles += g.asset.woodTriangles;
       leafTriangles += g.asset.leafTriangles;
@@ -1582,7 +1865,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantRoots: giantRootsMin >= 5,
       giantRootsMin,
       giantLimbsMin,
+      /** per giant, its un-authored big limbs' azimuths (0° = +x, 90° = +z); 'g' = ghosted (GiantProfile.wildLimbGhost) */
+      giantWildLimbs: Object.fromEntries(giants.map((g) => [g.def.id, g.asset.wildLimbs.map((l) => `${l.azimuthDeg}${l.ghost ? 'g' : ''}`)])),
       giantLeaves,
+      /** of `giantLeaves`, the authored canopy-bough lobes' laminae, drawn from their own non-casting mesh */
+      giantAuthoredLeaves,
+      giantAuthoredLeavesCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-leaves' && m.castShadow),
+      /** laminae per authored canopy-bough lobe (CANOPY_BOUGHS order within each giant) */
+      giantLobeLeaves: Object.fromEntries(giants.filter((g) => g.asset.lobeLeafCounts.length).map((g) => [g.def.id, g.asset.lobeLeafCounts])),
       /** leaf-cluster alpha cards inside the lobes (in addition to the laminae) */
       giantCanopyCards: giantCards,
       giantMeshes: sectorGeometries.length,
@@ -1629,6 +1919,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       lodLevels: 3,
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
+      /** shade floors as bound (materials/shadeFloor.ts): [lift, texture] — the giants' bark, every leaf, the near bole (the emergent column) */
+      shadeFloors: Object.fromEntries(
+        (
+          [
+            ['giantBark', GIANT_BARK_FLOOR],
+            ['leaf', LEAF_FLOOR],
+            ['nearBole', NEAR_BOLE_FLOOR],
+          ] as [string, ShadeFloor][]
+        ).map(([k, f]) => [k, [f.lift, f.texture]]),
+      ),
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
       /** ctx.shared.lanternLimb: the lantern tree's built limb path for structures to wrap */

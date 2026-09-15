@@ -9,14 +9,25 @@ import { createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
-import { HARDSCAPE_PACKS, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
+import { HARDSCAPE_PACKS, JOINT_TUFT_DEEP, JOINT_TUFT_TIP, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
 import { SPROUT_JITTER_SCHEME, createSproutJitterStreams } from './sprout-jitter';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
-import { jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone } from './zones';
+import { discField, jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { Noise2D, smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
+
+/** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
+const JOINT_TUFT_TINT: Record<string, number> = {
+  joints: 1.0,
+  'disc-turf': 1.0,
+  'lawn-paving': 0.9,
+  'edge-turf': 0.7,
+  stairs: 0.8,
+  'stairs-flank': 0.8,
+  'seam-cushions': 0.45,
+};
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
@@ -154,6 +165,38 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       lawnTufts++;
     }
     lawnSprouts++;
+  }
+  // round 33 — the disc field (zones.ts `discField`, frames 14 s / 46 s / 56 s): grass and clover
+  // in the 9–22 cm earth gaps between the rounded stones of the spine north of the plaza — short
+  // and mid tufts (TUFT_C / TUFT_A), one in ten clover, one in twenty a moss pad, sown where a
+  // gap is at least 3 cm from a stone and not further than 35 cm from one, weighted by the field
+  // and the joint-reading cameras. Own stream (nothing sown before or after moves).
+  const drng = rng.fork('disc-turf');
+  // (300: the first cut's 420 with the seam grit's growth put +14 k triangles on every view; the
+  // budget is the control's)
+  const discTarget = Math.round(300 * Math.max(0.7, ctx.quality.density));
+  let discTufts = 0;
+  let discPads = 0;
+  tries = 0;
+  while (discTufts < discTarget && tries < discTarget * 80) {
+    tries++;
+    const x = drng.range(-2.5, 4.5);
+    const z = drng.range(-14.5, -0.5);
+    if (drng() > discField(x, z)) continue;
+    if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap < 0.03 || gap > 0.35) continue;
+    if (drng() > camWeight(x, z)) continue;
+    const r = drng();
+    if (r < 0.05) {
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: drng(), kind: 'cushion', source: 'disc-turf' });
+      discPads++;
+    } else if (r < 0.15) {
+      spots.push({ x, y: T.height(x, z) + 0.012, z, size: drng.range(0.05, 0.19), scale: drng.range(1.0, 1.3), source: 'disc-turf' });
+    } else {
+      spots.push({ x, y: T.height(x, z) + 0.015, z, size: r < 0.7 ? drng.range(0.22, 0.42) : drng.range(0.43, 0.69), scale: drng.range(1.0, 1.4), source: 'disc-turf' });
+    }
+    discTufts++;
   }
   // the lawn pocket west of the path (zones.ts `lawnPocket`, reference B/E's left third): the
   // round-10 scatter, 220 tufts on this stream, keeps its places (so every sprout sown after it
@@ -372,8 +415,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // tint carries the ratio of the two fills so it still sits within ± 15 % of what it lies on
   const tones = jointFillTones(ctx.config.palette);
   const turfOverSoil: [number, number, number] = [tones.turfMean.r / tones.soilMean.r, tones.turfMean.g / tones.soilMean.g, tones.turfMean.b / tones.soilMean.b];
+  // round 33: capped at 880 — the count was set by the acceptance rate (1005 at the control's
+  // 3–4 cm seams), and the wider plaza seams and the disc field's gaps let it run to 1313; the
+  // frames' joints are moss and earth with a faint speckle at most, and a pebble is the dearest
+  // sprout on the GPU (it rides the TUFT_C pack: 50 submitted triangles for 20 shown)
+  const gritCap = Math.round(880 * Math.max(0.7, ctx.quality.density));
   tries = 0;
-  while (gritSpots.length < gritTarget - 120 && tries < gritTarget * 40) {
+  while (gritSpots.length < Math.min(gritCap, gritTarget - 120) && tries < gritTarget * 40) {
     tries++;
     const x = grng.range(bbox.x0, bbox.x1);
     const z = grng.range(bbox.z0, bbox.z1);
@@ -410,6 +458,41 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const size = grng.chance(0.3) ? grng.range(0.03, 0.045) : grng.range(0.015, 0.028);
       gritSpots.push({ x, y: T.height(x, z) + 0.008, z, size, kind: 'grit', tint: stairGritTint, source: 'stair-grit' });
     }
+  }
+  // round 34 — the joint grass is khaki, not lawn green (materials/sprouts.ts `jointTint`): the
+  // tufts in the paving's joints, the disc field's gaps, the lawn paving's turf joints and the
+  // stair joints take the olive-brown → straw ramp; the edge seams (the turf side of the rim,
+  // where the vegetation's green verge begins) 70 % of it; the moss pads take 70 % and keep a
+  // little of their moss (the frames' seam moss is dark olive-brown, frame 14 s's foreground
+  // joints show no lawn-green pads). The lawn pocket west of the path is frame 14 s's dark green
+  // lawn (hue 59°) and keeps its greens.
+  // The pocket's east fringe is the exception: frame 14 s shows 0.4–0.6 m of dark trodden earth
+  // with sparse khaki blades between the lawn and the slab rims (x 0.2–0.3 of the frame at
+  // y 0.7–0.78), where ours ran the lawn's green clumps to the stone — measured in camera B's
+  // field window that fringe alone was 27 % of the paving's dark class in the 60–70° hue bins
+  // against the frame's 6 %. The rim / band clumps take 60 % of the ramp and the lawn within
+  // 0.2–0.6 m of the edge half of it (the geometry, the soft edge over the slabs, is unchanged) —
+  // north of z −3.6 only (full by −4.6): the strip is frame 14 s's y 0.7–0.78; south of it, at the
+  // frame's bottom-left, the lawn meets the slabs green. The same pixels are the right sixth of
+  // camera B's left-verge box (vegetation-16's, x 0–0.3 × y 0.55–0.85): tinting the whole fringe
+  // 0.85 m deep took that box from a matched 63.7 % green to 54.8 % against the frame's 62.3 %;
+  // this scope holds it near 58 % with B's field window inside 8 points on every hue bin.
+  // Camera A's plaza (zones.ts `southPlaza`) is the other way round: frame 1 s's joints are dark
+  // green-brown moss (its dark class has 32 % in the 50–70° bins against our 15 % before this
+  // round), so the plaza's tufts take a third of the ramp and its moss pads none.
+  for (const s of spots) {
+    const base = JOINT_TUFT_TINT[s.source ?? ''] ?? 0;
+    s.jointTint = s.kind === 'cushion' ? Math.min(base, 0.7) : base;
+    if (s.source?.startsWith('pocket-')) {
+      const fringe = s.source === 'pocket-rim' || s.source === 'pocket-band' ? 1 : 0.85 * smoothstep(lawnPocketEdgeX(s.z) - 0.6, lawnPocketEdgeX(s.z) - 0.2, s.x);
+      s.jointTint = 0.6 * fringe * smoothstep(-3.6, -4.6, s.z);
+    }
+    const plaza = southPlaza(s.z);
+    if (plaza > 0) s.jointTint *= s.kind === 'cushion' ? 1 - plaza : 1 - 0.65 * plaza;
+    // north of camera D's foreground (z −13 on, frame 56 s's y 0.58–0.72) the frame's joints go
+    // back to moss: its dark class there is 48 % in the 50° bin and 1 % in the 30° against our
+    // 26 / 18 with the full ramp, so the tufts keep half their green from there on
+    s.jointTint *= 1 - 0.5 * smoothstep(-12.5, -14.5, s.z);
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
   // per-(source, variant) jitter streams (sprout-jitter.ts): a scatter can change without re-rolling any other
@@ -466,6 +549,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneCracked: paving.stats.cracked,
     flagstoneWobbled: paving.stats.wobbled,
     flagstoneMergedD: paving.stats.mergedD,
+    // round 33: cells left as trodden earth in camera C's plaza patch, stones styled as the disc field's rounded domed stones (zones.ts)
+    flagstoneEarthCells: paving.stats.earth,
+    flagstoneDiscField: paving.stats.field,
     flagstoneBigSlabs: paving.stats.big,
     flagstoneRimStones: paving.stats.rim,
     // seeds of the lawn paving (zones.ts): 1.0–1.6 m slabs in 15–45 cm turf joints (B/E foreground)
@@ -484,7 +570,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneDrawCalls: 1,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
-    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass,
+    jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass + discTufts - discPads,
+    // round 33: grass, clover and pads in the disc field's earth gaps (zones.ts `discField`; part of jointSprouts)
+    jointSproutsInDiscField: discTufts,
     // short tufts + moss pads sown thick in the lawn paving's turf joints (part of jointSprouts)
     jointSproutsInLawnPaving: lawnSprouts,
     // the lawn pocket west of the path (part of jointSprouts): round 10's scatter + round 13's
@@ -513,7 +601,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     // connected planted joints: tufts, clover and pads in runs along the seams near the paved edge (part of jointSprouts)
     jointSproutsInEdgeSeams: edgeTufts,
-    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - sprouts.cushions,
+    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - (discTufts - discPads) - sprouts.cushions,
     jointSproutVariants: sprouts.variants,
     // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
     jointSproutDrawCalls: sprouts.meshes.length,
@@ -521,6 +609,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // instance jitter drawn per (source, variant) stream, not from the shared list order (sprout-jitter.ts)
     sproutJitter: SPROUT_JITTER_SCHEME,
     jointSproutHeightCm: [6, 12],
+    // round 34: the joint grass on the khaki ramp (sRGB hex, blade base → straw tip) and the share of each scatter pulled onto it
+    jointTuftRamp: [JOINT_TUFT_DEEP.toString(16), JOINT_TUFT_TIP.toString(16)],
+    jointTuftTint: JOINT_TUFT_TINT,
+    jointTuftsTinted: spots.filter((s) => (s.jointTint ?? 0) > 0.5).length,
     jointSproutLodFar: SPROUT_LOD_FAR,
     // triangles shown / submitted (a packed instance collapses its other variants to zero area)
     jointSproutTriangles: sprouts.triangles - sprouts.gritTriangles,

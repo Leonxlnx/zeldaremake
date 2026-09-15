@@ -7,6 +7,8 @@
  *    and hid the contact-shadow decals inside the stones. The slab tops are learnt once from the
  *    hardscape's merged `flagstones` mesh (up-facing triangles rasterised into a 10 cm max-height
  *    grid) — read-only use of the scene graph, no coupling to hardscape code.
+ * `surface` is the same idea for the stair stones at 1 cm (the `stairs-*` meshes): the rendered
+ * tread tops with their nosing overhangs, for the character's footprint planting (glbLink.ts).
  */
 import { Box3, BufferGeometry, Mesh, type Object3D } from 'three';
 import type { Layout } from '../layout';
@@ -14,6 +16,15 @@ import type { Terrain } from '../terrain/heightfield';
 
 export interface Ground {
   height(x: number, z: number): number;
+  /**
+   * The RENDERED walking surface under (x, z): `height`, raised to the rendered stair stone under
+   * the point where that is higher — the tread tops as built (dish, ±8 mm jitter) including the
+   * 2–5.7 cm nosing overhang in front of the analytic riser plane, the proud landing slabs. A
+   * downward ray onto the stairs mesh, learnt once from the hardscape's `stairs-*` meshes at 1 cm
+   * (attachSurface). The character's footprint planting reads this so a boot corner never sits
+   * under a nosing lip; the root placement and the player's step guard keep `height`.
+   */
+  surface(x: number, z: number): number;
   /** height for a ground decal of the given radius: just above the tallest slab under it */
   decalHeight(x: number, z: number, radius: number): number;
   /** true inside a stair run (for the stair-climb gait) */
@@ -22,8 +33,8 @@ export interface Ground {
   blocked(x: number, z: number): boolean;
   /** learn the paving surface from the rendered hardscape meshes; true once a surface grid exists */
   attachSurface(scene: Object3D): boolean;
-  /** audit numbers for the paving surface grid */
-  surfaceInfo(): { cells: number; covered: number; cellSize: number; triangles: number };
+  /** audit numbers for the paving surface grid and the rendered stair-stone grids */
+  surfaceInfo(): { cells: number; covered: number; cellSize: number; triangles: number; stairs: { flights: number; cells: number; covered: number; cellSize: number; triangles: number } };
 }
 
 interface StairFrame {
@@ -51,9 +62,11 @@ interface SurfaceGrid {
 }
 
 const CELL = 0.1;
+/** the stair stones are rasterised finer: a nosing overhang is 2–5.7 cm */
+const STAIR_CELL = 0.01;
 
-/** rasterise the up-facing triangles of a world-space mesh into a max-height grid */
-function buildSurfaceGrid(geometry: BufferGeometry): SurfaceGrid | null {
+/** rasterise the up-facing triangles of a world-space mesh into a max-height grid of `CELL`-sized cells */
+function buildSurfaceGrid(geometry: BufferGeometry, CELL: number): SurfaceGrid | null {
   const pos = geometry.attributes.position;
   if (!pos) return null;
   geometry.computeBoundingBox();
@@ -138,6 +151,19 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
   };
 
   let grid: SurfaceGrid | null = null;
+  /** the rendered stair stones (one grid per `stairs-*` mesh) */
+  const stairGrids: SurfaceGrid[] = [];
+  /** rendered stair stone top under (x, z), or null off the stairs meshes */
+  const stairTop = (x: number, z: number): number | null => {
+    for (const g of stairGrids) {
+      const cx = Math.floor((x - g.x0) / g.cell);
+      const cz = Math.floor((z - g.z0) / g.cell);
+      if (cx < 0 || cz < 0 || cx >= g.nx || cz >= g.nz) continue;
+      const v = g.top[cz * g.nx + cx];
+      if (v > -Infinity) return v;
+    }
+    return null;
+  };
   /** max slab top within `radius` of (x, z), or null where no slab was rasterised */
   const slabTop = (x: number, z: number, radius: number): number | null => {
     if (!grid) return null;
@@ -166,8 +192,14 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
     if (slab !== null) return Math.max(h, slab);
     return h + PATH_LIFT * terrain.mask(x, z).path;
   };
+  const surface = (x: number, z: number): number => {
+    const h = walk(x, z);
+    const s = stairTop(x, z);
+    return s !== null && s > h ? s : h;
+  };
   return {
     height: walk,
+    surface,
     decalHeight(x, z, radius) {
       const h = walk(x, z);
       const s = stairAt(x, z);
@@ -185,17 +217,30 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
     attachSurface(scene) {
       if (grid) return true;
       const hardscape = scene.getObjectByName('hardscape');
+      // the merged meshes are authored in world space (identity transform); skip one otherwise
+      const worldSpace = (m: Mesh | undefined): m is Mesh => {
+        if (!m || !m.isMesh || !m.geometry) return false;
+        m.updateWorldMatrix(true, false);
+        const e = m.matrixWorld.elements;
+        return Math.abs(e[0] - 1) <= 1e-6 && Math.abs(e[5] - 1) <= 1e-6 && Math.abs(e[10] - 1) <= 1e-6 && Math.abs(e[12]) + Math.abs(e[13]) + Math.abs(e[14]) <= 1e-6;
+      };
+      // the stair stones (rendered tread tops with their nosing overhangs) at 1 cm, one grid per flight
+      if (!stairGrids.length && hardscape) {
+        for (const s of layout.stairs) {
+          const m = hardscape.getObjectByName(`stairs-${s.id}`) as Mesh | undefined;
+          if (!worldSpace(m)) continue;
+          const g = buildSurfaceGrid(m.geometry, STAIR_CELL);
+          if (g) stairGrids.push(g);
+        }
+      }
       const slabs = hardscape?.getObjectByName('flagstones') as Mesh | undefined;
-      if (!slabs || !(slabs as Mesh).isMesh || !slabs.geometry) return false;
-      // the merged mesh is authored in world space (identity transform); bail out otherwise
-      slabs.updateWorldMatrix(true, false);
-      const e = slabs.matrixWorld.elements;
-      if (Math.abs(e[0] - 1) > 1e-6 || Math.abs(e[5] - 1) > 1e-6 || Math.abs(e[10] - 1) > 1e-6 || Math.abs(e[12]) + Math.abs(e[13]) + Math.abs(e[14]) > 1e-6) return false;
-      grid = buildSurfaceGrid(slabs.geometry);
+      if (!worldSpace(slabs)) return false;
+      grid = buildSurfaceGrid(slabs.geometry, CELL);
       return grid !== null;
     },
     surfaceInfo() {
-      return grid ? { cells: grid.nx * grid.nz, covered: grid.covered, cellSize: grid.cell, triangles: grid.triangles } : { cells: 0, covered: 0, cellSize: CELL, triangles: 0 };
+      const stairs = { flights: stairGrids.length, cells: stairGrids.reduce((n, g) => n + g.nx * g.nz, 0), covered: stairGrids.reduce((n, g) => n + g.covered, 0), cellSize: STAIR_CELL, triangles: stairGrids.reduce((n, g) => n + g.triangles, 0) };
+      return grid ? { cells: grid.nx * grid.nz, covered: grid.covered, cellSize: grid.cell, triangles: grid.triangles, stairs } : { cells: 0, covered: 0, cellSize: CELL, triangles: 0, stairs };
     },
   };
 }

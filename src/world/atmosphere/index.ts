@@ -14,7 +14,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { WORLD } from '../config';
 import { installHeightFog, HEIGHT_FOG_DEFAULTS, displayHex, catchUpDensity } from './heightfog';
 import { sunDirection } from '../lighting/sun';
-import { createSkyDome, SKY_GAP_GLARE } from './sky';
+import { createSkyDome, SKY_GAP_GLARE, SKY_FAR_LIT_UP } from './sky';
 import { createMistVolume } from './mist';
 import { createFallingLeaves } from './leaves';
 import { createMotes } from './motes';
@@ -114,6 +114,20 @@ export function create(ctx: WorldContext): WorldSystem {
     canopyOpenBearingDeg: Math.round((Math.atan2(HEIGHT_FOG_DEFAULTS.openDir[0], -HEIGHT_FOG_DEFAULTS.openDir[1]) * 180) / Math.PI),
     canopyOpenEdges: [HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi],
     hazeClosedDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeClosed),
+    // past the far tree rows the wall is lit in every direction (the dome's horizon takes the same
+    // colour): the log arch keeps the hollow veil and reads as a silhouette against it
+    hazeFarLitDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFarLit),
+    hazeFarLitStartM: HEIGHT_FOG_DEFAULTS.hazeFarLitStart,
+    hazeFarLitEndM: HEIGHT_FOG_DEFAULTS.hazeFarLitEnd,
+    hazeFarLitAmount: HEIGHT_FOG_DEFAULTS.hazeFarLitAmount,
+    // the wall is seen by rays that climb out of the under-canopy layer (above-canopy share knee;
+    // 0 = every elevation); the dome grades to it over these sin(elevation) edges
+    hazeFarLitKnee: HEIGHT_FOG_DEFAULTS.hazeFarLitKnee,
+    skyFarLitUpEdges: SKY_FAR_LIT_UP,
+    // deep-hollow shade: the closed veil (mist share included) dims to this multiplier over the ramp (m)
+    hollowDim: HEIGHT_FOG_DEFAULTS.hollowDim,
+    hollowDimInM: HEIGHT_FOG_DEFAULTS.hollowDimIn,
+    hollowVeilDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeClosed.map((c) => c * HEIGHT_FOG_DEFAULTS.hollowDim) as [number, number, number]),
     hazeSunLobeGain: HEIGHT_FOG_DEFAULTS.sunLobeGain,
     // Mie-like airlight lobe: side-scatter is the calibrated colour, the veil dims when the sun is
     // behind the camera (shot C); the display value is the far haze seen straight away from the sun

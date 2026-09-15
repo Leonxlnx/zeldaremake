@@ -15,7 +15,7 @@ import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { jointSoil, lawnPocket, lawnZone } from './zones';
+import { discField, earthPatch, jointSoil, lawnPocket, lawnZone } from './zones';
 
 /** what the joint fill needs to know about the slabs around it */
 export interface JointPaving {
@@ -76,9 +76,23 @@ const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
  * same, a shade lighter and greener; in the lawn's 6–36 cm turf joints it is only the contact
  * line at each slab's foot.
  */
-const CREVICE_TINT: [number, number, number] = [0.3, 0.31, 0.16];
-const TURF_CREVICE_TINT: [number, number, number] = [0.4, 0.44, 0.34];
-const TURF_OPEN_TINT: [number, number, number] = [1.06, 1.14, 1.0];
+// Round 33: the crevice is a mild recess again, not a painted black line. Measured in LIT paving
+// windows only (Link, the HUD and the tree shadows outside them), the frames' darkest 2 % of
+// pixels sit at sRGB 84,68,38 – 98,83,54 (lum 0.27–0.33) and their 2–8 % band at 110,94,61 (0.37):
+// frame 1 s's foreground has 1 % of its pixels under 0.30 where ours had 20 %, frame 46 s's
+// plaza 0.3 % against 9 %, frame 56 s's path 4 % against 17 %, frame 14 s's path behind Link 1 %
+// against 9 %. Our seams rendered at 40,36,25 – 54,47,31 (0.14–0.19): the round-23 0.3× on a
+// 0.053 albedo. The near-black quantiles those rounds matched were the frames' shadows, not
+// their joints — the joints are a warm brown-olive at 0.7 of the slab tops (sRGB), i.e. about
+// half the slab albedo. 0.3 → 0.72 (× 2.4) with the seam soil itself lifted × 1.8 (below) puts
+// the crevice at ≈ 4.3× its old albedo; the turf contact line × 1.8.
+// (second cut: the mossy earth's crevice and open tints pushed its hue 14° / 6° toward green
+// (turf albedo 27° → 41° at the slab foot); the frames' dark class in the lit B/D foregrounds
+// sits 63–66 % in the 30–40° bin against our 26–42 %, with our surplus in the 40–70° bins — the
+// contact line stays a recess of the same hue, the open turf a hair greener at most)
+const CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.5];
+const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.54];
+const TURF_OPEN_TINT: [number, number, number] = [1.08, 1.1, 1.0];
 const glslVec3 = (v: [number, number, number]) => v.map((n) => n.toFixed(4)).join(', ');
 
 /**
@@ -114,7 +128,10 @@ export function jointFillLift(gap: number, soil = 1): [number, number, number] {
 export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; soilMid: Color; turf: Color; turfMid: Color; lawn: Color; soilMean: Color; soilMeanR10: Color; turfMean: Color } {
   const soil = new Color(JOINT_SOIL);
   const soilMid = new Color(JOINT_SOIL_MID);
-  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.56);
+  // (round 33: the mossy earth × 1.3 and browner — lerp 0.56 → 0.42 to the deep green, × 1.15:
+  // frame 14 s's gaps behind Link are sRGB 86,74,43 – 98,84,56 (hue 43°, B/R 0.5) where the old
+  // turf rendered 59,56,36 – 67,67,40 (hue 52°, B/R 0.61): too dark and too grey-green)
+  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.42).multiplyScalar(1.15);
   const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.55);
   // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
   // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
@@ -122,7 +139,9 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   // hue ~30° (the deep grass green rendered 79,75,44, hue 53°), so a brighter or browner fill
   // reads as bare dirt wherever the blades part (reference frame 14 s: the pocket's mid tones
   // are 56,56,24, its darkest 37,41,18 — a lawn's shadowed floor, not soil)
-  const lawn = new Color(JOINT_SOIL_MID).lerp(new Color(palette.grassDeep), 0.85).multiplyScalar(0.6);
+  // (round 33: pinned to the round-12 soil mid 0x6c5336 — the seam soil above was lifted for the
+  // lit joints, the pocket's floor is the frame's dark lawn and stays)
+  const lawn = new Color(0x6c5336).lerp(new Color(palette.grassDeep), 0.85).multiplyScalar(0.6);
   return {
     soil,
     soilMid,
@@ -214,8 +233,11 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
  * frame 1 s), so the dry tone stays at round 11's rendered open-dirt colour (0x8a603f × the old
  * 1.35/1.75/1.6 lift) while only the seams took the darkening.
  */
-export const JOINT_SOIL = 0x523d25;
-export const JOINT_SOIL_MID = 0x6c5336;
+// (round 33: × 1.8 / × 1.65 linear — 0x523d25 / 0x6c5336 (lum 0.053 / 0.096) rendered the lit
+// plaza seams at sRGB 51,45,29 under the crevice tint where frame 1 s's lit seams are 110,94,61;
+// see CREVICE_TINT. The dry open dirt keeps its absolute colour: OPEN_TINT is the ratio.)
+export const JOINT_SOIL = 0x6e5232;
+export const JOINT_SOIL_MID = 0x8a6a45;
 export const JOINT_SOIL_DRY = 0x9e7c4e;
 const TURF_BASE = 0x8a603f;
 const TURF_BASE_MID = 0xab8356;
@@ -264,6 +286,20 @@ export async function buildJointMesh(
   // joints are more olive still). Round 10: mossy earth is the default, soil only where feet
   // keep the moss off (zones.ts `jointSoil`); moss proper takes over in patches.
   const { soil, soilMid, turf, turfMid, lawn: lawnFill } = jointFillTones(P);
+  // round 33: two earths of their own. The trodden earth of camera C's plaza patch (zones.ts
+  // `earthPatch`): frame 46 s's plaza window reads its dark class at hue 51° / lum 0.31 in the
+  // stair side's shade — moss-grown trodden ground — where the mossy turf rendered 42° / 0.34, so
+  // the patch's earth goes four fifths of the way to the deep green with no lift (albedo hue 50°,
+  // Y 0.075). The disc field's gaps (zones.ts `discField`) are the opposite case: frames 14 s /
+  // 56 s read their dark class at hue 38° — soil with grass in it, 86,74,43 – 98,84,56 behind Link
+  // in the light — where ours rendered 46° / 44° with the turf, the moss boost and the field's
+  // tufts, so the field takes a brown earth (hue 22°, Y 0.14) and a third less moss
+  // (third cut, on the six-view capture of the second: the patch window's dark class rendered
+  // 64,60,36 against the frame's 81,77,50 and still 59 % in the 40° bin against the frame's 36 %
+  // (46 % in the 50° bin) — the unlifted earth was a fifth too dark in C's shade and its 50°
+  // albedo renders 10° browner; nine tenths to the green, × 1.6 (albedo hue ≈ 62°, Y 0.11))
+  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.9).multiplyScalar(1.6);
+  const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.22).multiplyScalar(1.12);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
   const mossB = new Color(P.mossBright);
@@ -313,10 +349,19 @@ export async function buildJointMesh(
     // turf on it) — the reference's grass west of the path is darker than its joints (lum 0.28
     // vs 0.35); what shows between the tufts is shadowed earth, not pale dirt
     tmp.lerp(lawnFill, 0.9 * lawnPocket(x, z));
+    // round 33: the disc field's gaps and camera C's earth patch (zones.ts): dark trodden earth
+    const field = discField(x, z);
+    const patch = earthPatch(x, z);
+    // (0.55 → 0.75 of the field: at 0.55 the field's dark class behind Link moved 3 → 14 % into
+    // the frame's 30° bin, against its 51 %)
+    tmp.lerp(fieldEarth, 0.75 * field);
+    tmp.lerp(trodden, 0.85 * patch);
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
-    // a little heavier on the lawn paving where the slabs sit in it)
+    // a little heavier on the lawn paving where the slabs sit in it, a third lighter in the disc
+    // field's soil gaps; camera C's trodden patch takes the moss-green from its earth tone, its
+    // moss patches — the deep moss renders 10° browner than the frame's ground — are the plaza's)
     const lawn = lawnZone(x, z);
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn);
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
     tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
     col.push(tmp.r, tmp.g, tmp.b);
@@ -520,10 +565,12 @@ export async function buildJointMesh(
         // the reference's dark quantile), ± 45 % on the mossy earth, whose reference joints are
         // one even dark tone (B p10 fell to 0.27 against the reference's 0.33 at ± 70 %); at the
         // paved rim (aRim → 1) the fill is turf tone and the modulation eases to ± 30 %
+        // (round 33: the soil's ± 70 % → ± 55 % — its pits at 0.3× were half of what kept the lit
+        // seams' darkest 2 % at 0.14 where the frames' lit seams have no pixel under 0.27)
         float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
         float d = clamp(l / 0.10, 0.3, 2.4);
         float rim = clamp(vJointRim, 0.0, 1.0);
-        diffuseColor.rgb = vec3(mix(1.0, d, mix(mix(0.45, 0.7, clamp(vJointSoil, 0.0, 1.0)), 0.3, rim)));
+        diffuseColor.rgb = vec3(mix(1.0, d, mix(mix(0.45, 0.55, clamp(vJointSoil, 0.0, 1.0)), 0.3, rim)));
       }
       #ifdef JOINT_GAP_FIELD
       {
@@ -545,7 +592,7 @@ export async function buildJointMesh(
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v9-crevice${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v11-crevice${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;

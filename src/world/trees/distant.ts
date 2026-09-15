@@ -23,6 +23,8 @@ export interface DistantVariant {
   height: number;
   nearTriangles: number;
   farTriangles: number;
+  /** authored depth bands only — never drawn from the radial 60–215 m pool */
+  bandOnly: boolean;
 }
 
 export interface DistantPlacement {
@@ -110,12 +112,20 @@ function solidUv(writer: GeometryWriter) {
 
 export function createDistantVariants(rng: Rng, palette: Palette): DistantVariant[] {
   const variants: DistantVariant[] = [];
-  const specs: { kind: DistantKind; height: number }[] = [
+  const specs: { kind: DistantKind; height: number; bandOnly?: boolean; radius?: number; taperTop?: number }[] = [
     { kind: 'broad', height: 19 },
     { kind: 'broad', height: 23 },
     { kind: 'broad', height: 27 },
     { kind: 'slender', height: 11 },
     { kind: 'slender', height: 14 },
+    // round 31: a tall pale pole for the mid-distance "far trunk" row (trees index.ts
+    // DEPTH_BANDS): a 1.9 m bole thinning to 0.65 m — the giants here are 2.2–4.4 m thick, and
+    // frame 56 s's far trunks read 1.5–2 m at 25–40 m — with its small crown 18 m+ up, so at
+    // 35–45 m only the trunk is in frame, the way the reference's far trunks run out of the top
+    // of D and B. Five 1.4 m poles measured ≈ 1.4 % of frame D in their 2.5 m depth bucket
+    // (a layer is 1.5 %); at 1.9 m the row measures 2.3 %. Band-only, so the radial layer's
+    // variant picks (slenderIdx) are unchanged.
+    { kind: 'slender', height: 26, bandOnly: true, radius: 0.95, taperTop: 0.35 },
   ];
   // darker than the near trees: the far layer is silhouette against haze, the fog lightens it
   const canopy = new Color(palette.leafCanopy).multiplyScalar(0.48);
@@ -128,7 +138,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const noise = new Noise2D(`distant-noise-${index}`);
     const H = spec.height;
     const slender = spec.kind === 'slender';
-    const R = slender ? H * 0.014 : H * 0.05;
+    const R = spec.radius ?? (slender ? H * 0.014 : H * 0.05);
     const bark = slender ? new Color(palette.barkWhite).multiplyScalar(0.7) : new Color(palette.barkDark).multiplyScalar(0.85);
     const crownY = slender ? H * 0.68 : H * 0.66;
     const crownR = slender ? H * 0.2 : H * 0.42;
@@ -138,7 +148,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const lean = Math.tan((r.range(1.5, 6) * Math.PI) / 180) * crownY;
     const az = r.range(0, TAU);
     const trunk = growthPath(new Vector3(0, -0.6, 0), new Vector3(Math.cos(az) * lean, crownY + crownR * 0.3, Math.sin(az) * lean), UP, r, 6, 0.3);
-    tube(near, trunk, taper(trunk, R, R * 0.25, 0.9), slender ? 5 : 7, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1 });
+    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), slender ? 5 : 7, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1 });
     const limbs = slender ? 1 : r.int(2, 4);
     for (let i = 0; i < limbs; i++) {
       const t = r.range(0.45, 0.75);
@@ -205,6 +215,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       height: H,
       nearTriangles: near.triangles,
       farTriangles: far.triangles,
+      bandOnly: spec.bandOnly ?? false,
     });
   });
   return variants;
@@ -212,7 +223,8 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
 
 /**
  * A dense row of silhouettes filling a narrow depth range (a "depth layer" behind a landmark):
- * jittered grid over [xMin, xMax] × [zMin, zMax], broad variants only, darker tint.
+ * jittered grid over [xMin, xMax] × [zMin, zMax], broad variants only (unless `kind` says
+ * otherwise), darker tint.
  */
 export interface DepthBand {
   xMin: number;
@@ -225,6 +237,16 @@ export interface DepthBand {
   shade: number;
   /** only broad variants up to this unscaled height are used (keeps a row's skyline low) */
   maxVariantHeight?: number;
+  /** variant kind for the row (default 'broad'); 'slender' rows may use band-only variants */
+  kind?: DistantKind;
+  /** only variants at least this tall (unscaled) */
+  minVariantHeight?: number;
+  /**
+   * own PRNG stream for the row's jitter / picks / tints; without it the row draws from the
+   * shared 'distant-placement' stream and every later placement (the other bands, the radial
+   * layer) moves when the row is added or edited
+   */
+  stream?: string;
 }
 
 export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantVariant[], target: number, inner = 60, outer = 215, bands: DepthBand[] = []): DistantPlacement[] {
@@ -240,28 +262,32 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     if (!grid.has(k)) grid.set(k, []);
     grid.get(k)!.push(p);
   };
-  const broadOnly = variants.map((v, i) => (v.kind === 'broad' ? i : -1)).filter((i) => i >= 0);
+  const broadOnly = variants.map((v, i) => (v.kind === 'broad' && !v.bandOnly ? i : -1)).filter((i) => i >= 0);
   for (const band of bands) {
-    const pool = band.maxVariantHeight === undefined ? broadOnly : broadOnly.filter((i) => variants[i].height <= band.maxVariantHeight!);
+    const kind = band.kind ?? 'broad';
+    const pool = variants
+      .map((v, i) => (v.kind === kind && (band.maxVariantHeight === undefined || v.height <= band.maxVariantHeight) && (band.minVariantHeight === undefined || v.height >= band.minVariantHeight) ? i : -1))
+      .filter((i) => i >= 0);
     const bandPool = pool.length ? pool : broadOnly;
+    const rb = band.stream ? rng.fork(band.stream) : r;
     const nx = Math.max(1, Math.round((band.xMax - band.xMin) / band.spacing));
     const nz = Math.max(1, Math.round((band.zMax - band.zMin) / band.spacing));
     for (let i = 0; i < nx; i++) {
       for (let j = 0; j < nz; j++) {
-        const x = band.xMin + ((i + 0.5 + r.range(-0.4, 0.4)) / nx) * (band.xMax - band.xMin);
-        const z = band.zMin + ((j + 0.5 + r.range(-0.4, 0.4)) / nz) * (band.zMax - band.zMin);
+        const x = band.xMin + ((i + 0.5 + rb.range(-0.4, 0.4)) / nx) * (band.xMax - band.xMin);
+        const z = band.zMin + ((j + 0.5 + rb.range(-0.4, 0.4)) / nz) * (band.zMax - band.zMin);
         const m = terrain.mask(x, z);
         if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72) continue;
         if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
-        const tintShift = r.range(-0.05, 0.05);
-        const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * r.range(0.9, 1.05));
-        push({ variant: bandPool[r.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(band.scale[0], band.scale[1]), tint });
+        const tintShift = rb.range(-0.05, 0.05);
+        const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * rb.range(0.9, 1.05));
+        push({ variant: bandPool[rb.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: rb() * TAU, scale: rb.range(band.scale[0], band.scale[1]), tint });
       }
     }
   }
   const tooClose = (x: number, z: number, minD: number) => tooCloseIn(grid, cell, x, z, minD);
   const broadIdx = broadOnly;
-  const slenderIdx = variants.map((v, i) => (v.kind === 'slender' ? i : -1)).filter((i) => i >= 0);
+  const slenderIdx = variants.map((v, i) => (v.kind === 'slender' && !v.bandOnly ? i : -1)).filter((i) => i >= 0);
   let attempts = 0;
   const bandCount = out.length;
   while (out.length - bandCount < target && attempts < target * 40) {
