@@ -359,8 +359,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       placeForCamera(camera);
     },
     update(dt, t, c) {
-      if (mode === 'play') stepPlayer(dt, t);
-      else {
+      // a zero-dt update is a re-render of the same moment (a capture's determinism pass, a
+      // harness shot): nothing moves and the gait must not be re-decided from the moved position
+      // a frame early — the play state is a function of the positive steps alone
+      if (mode === 'play') {
+        if (dt > 0) stepPlayer(dt, t);
+      } else {
         // the free camera's viewpoint keys bypass onCameraMove: re-place when the camera jumps
         c.camera.getWorldPosition(tmpV);
         c.camera.getWorldDirection(tmpD);
