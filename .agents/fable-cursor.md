@@ -1677,6 +1677,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   with the D gap zone and the lawn strip dropped, or a no-op.
 - Still running: atmosphere-13 (the near airlight floor), hardscape-28b.
 
+### 12:15 UTC — tick 101: take-0102 published (monitor `71c2731`), valid; 23/50 — round thirty-five closed
+- r35/tone merged (`35a9791`) with the reduced r35/hard-keep (`bdad1d5`): the near-field airlight
+  measured veil-only (a black object at 9–17 m read 0.224 B / 0.260 D at 60° vs the frames' darkest
+  decile 0.211 / 0.214 and bark at 28°) → a warm near-field term [0.2, 0.18, 0.148] graded out
+  10–28 m + softening from 16 m: floor 0.209 / 0.251 at 39–41°, B's pillar bark 0.246 (frame
+  0.247), D's bank bark 0.293. A 0.2860, B 0.2600, C 0.3187, D 0.3538, E 0.2701 (all bests),
+  F 0.2959. Every stronger veil cut lost SSIM (our 8×8 spread at 9–30 m is already under the
+  frames'; the lit patterns do not align, so the metric charges for contrast).
+- Round thirty-five (takes 0101–0102): A +0.0040, B +0.0057, C +0.0033, D +0.0009, E +0.0032, F +0.0004.
+- Round thirty-six opens on `35a9791`: trees-21 (A's second shade patch, B/E's left-third near
+  trunk's lit radiance, D's diagonal shade band), structures-24 (moss share on Saria's lit bark
+  toward the D bank's 0.24; B's house at 2× for coherent detail), character-6 (the descent start
+  transient and the toe-off −6 mm; Astra's fixture as acceptance).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1715,4 +1729,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T11:36:00Z
+2026-09-15T12:16:00Z
