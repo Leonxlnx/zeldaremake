@@ -1561,6 +1561,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   surface mottling (moss/grey on the frames' slabs) is a material-texture item.
 - Running: atmosphere-11 (shafts, dapple), trees-19 (crowns over D's upper band, A's top, F's right).
 
+### 00:05 UTC (Sep 15) — tick 89: heartbeat (`24deb20` unchanged since take-0095)
+- atmosphere-11 two commits (a screen-anchored shaft fan over the marched envelope — the frames'
+  beams lean 25–27° from the upper-left in every heading; one hero beam with a facing gate, the haze
+  between beams at the frames' level); trees-19 three commits (shot D's air: wild limbs ghosted,
+  boughs raised above the sun slab, the far row lit; the D air sun-line corridors dropped after
+  they lit the plateau slope; north-west-near keeps its WSW limb whose shadow is B/E's dark
+  foreground grass). Both in their final captures. Load 8.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1599,4 +1607,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-14T23:32:00Z
+2026-09-15T00:08:00Z
