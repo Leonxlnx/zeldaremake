@@ -1611,6 +1611,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   video softness — near-ground unsharp below 4 m, haze blur σ 1.6 → 3.0), hardscape-27 (`9ca73b7`
   + five dirty, seven captures).
 
+### 05:25 UTC — tick 95: take-0098 published (monitor `fcf2d56`), valid; 23/50 — all six up again
+- r34/tone merged (`0534c7e`): softness measured per depth band — the frames' near ground is
+  crisper than ours (0.70–0.88×), their far bands softer → near unsharp 0.25 below 4 m, haze blur
+  σ 1.6 → 3.0 (13 taps); bloom left (the frames' skirts fold in 4 px in B, matched). A 0.2777,
+  B 0.2528, C 0.3163, D 0.3498, E 0.2667, F 0.2951; sharpness E 0.80 → 0.87 (off the floor).
+- Still running: trees-20 (dapple by boughs), hardscape-27 (tuft hue, mottle, D's slabs).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1649,4 +1656,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T04:56:00Z
+2026-09-15T05:26:00Z
