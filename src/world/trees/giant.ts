@@ -75,7 +75,10 @@ export interface GiantAsset {
   lobeLeafCounts: number[];
   woodTriangles: number;
   leafTriangles: number;
+  /** big limbs built (wild + authored), the ghosted wild limbs excluded */
   limbs: number;
+  /** the un-authored big limbs in build order: azimuth (0° = +x, 90° = +z) and whether ghosted */
+  wildLimbs: { azimuthDeg: number; ghost: boolean }[];
   roots: number;
   /** local-space ground contact points (trunk origin + root tips), y exactly on the terrain */
   contacts: Vector3[];
@@ -175,6 +178,17 @@ export interface GiantProfile {
   wildLimbAzimuthDeg?: number;
   /** trunk-parameter range the un-authored big limbs leave from (default [0.36, 0.62] ≈ 0.36–0.62 of the fork height) */
   wildLimbT?: [number, number];
+  /**
+   * Build the un-authored big limbs' draws but none of their geometry (wood, laminae, cards): the
+   * limbs are gone while the crown, boughs and leaves built after them are exactly the same tree's
+   * (`wildLimbs: 0` would re-roll them). For a giant whose low limbs stand in a hero frame's air
+   * or on the sun lines through it (trees index.ts, round 33). `true` ghosts every wild limb; the
+   * sector form ghosts the limbs whose azimuth (0° = +x, 90° = +z) is within `halfWidthDeg` of
+   * `azimuthDeg`, nearest first. Either way the giant keeps at least two big limbs (W09), the
+   * authored limb, `spread` limbs and canopy boughs counted — a giant with none of those keeps two
+   * wild limbs whatever the spec says (see GiantAsset.wildLimbs in the audit).
+   */
+  wildLimbGhost?: boolean | { azimuthDeg: number; halfWidthDeg: number };
   /**
    * near-bole bark (bole.ts) regardless of the hero cameras: the relief amplitude scale (1 = the
    * default for the bole's radius), or 0 for the plain sweep. Unset = by `GiantOptions.heroDistance`.
@@ -350,8 +364,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     return false;
   };
+  /**
+   * set while a ghosted part is built (GiantProfile.wildLimbGhost): every draw is made, nothing is
+   * written — the wood goes to a scratch writer and the laminae / cards are culled after their
+   * draws (the same way a corridor culls them), so the tree built after it is unchanged
+   */
+  let ghost = false;
+  const scratch = new GeometryWriter('high');
   const tube: typeof sweep = (writer, points, radii, sides, rngFn, opts) =>
-    sweep(writer, points, radii, sides, rngFn, opts.structural || !woodCorridors.length ? opts : { ...opts, cull: woodCulled });
+    sweep(ghost ? scratch : writer, points, radii, sides, rngFn, opts.structural || !woodCorridors.length ? opts : { ...opts, cull: woodCulled });
 
   const barkColor = (pt: Vector3) => {
     // soil-stained near the ground, lighter with height; ridges shaded by the tube grain
@@ -604,12 +625,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   let corridorExempt = false;
   /** false when a lamina at p must be dropped for a corridor */
   const leafAllowed = (p: Vector3) => {
+    if (ghost) return false;
     if (!corridors.length || corridorExempt) return true;
     const c = inCorridor(p);
     return !c || survives(p, c.porosity ?? 0);
   };
   /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
   const cardAllowed = (p: Vector3, s: number) => {
+    if (ghost) return false;
     if (!corridors.length || corridorExempt) return true;
     const c = inCorridor(p, s * 0.7);
     return !c || survives(p, c.cardPorosity ?? 0);
@@ -815,6 +838,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- big near-horizontal limbs ----------
   let limbs = 0;
+  const wildLimbs: { azimuthDeg: number; ghost: boolean }[] = [];
   // where the lowest limb of any kind leaves the bole (the crown leaders start at the fork)
   let bareHeight = fork;
   let limbPath: Vector3[] | undefined;
@@ -961,11 +985,36 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const extraLimbs = profile.wildLimbs ?? (o.limbSpec ? 2 : r.int(2, 4));
   const drawnLimbAngle = o.limbSpec ? Math.atan2(o.limbSpec.to.z - o.limbSpec.from.z, o.limbSpec.to.x - o.limbSpec.from.x) : r() * TAU;
   const limbBaseAngle = profile.wildLimbAzimuthDeg === undefined ? drawnLimbAngle : (profile.wildLimbAzimuthDeg * Math.PI) / 180;
+  // which wild limbs are ghosted: all of them, or (sector form) those whose nominal azimuth (before
+  // the ±20° jitter drawn below) lies in the sector, nearest its centre first, never so many that
+  // the giant ends with fewer than two big limbs (W09) counting the authored limb and boughs
+  // already built and the spread limbs and canopy boughs built after this
+  const ghostSet = new Set<number>();
+  const ghostSpec = profile.wildLimbGhost;
+  const otherLimbs = limbs + (profile.spread?.length ?? 0) + (o.canopyBoughs?.length ?? 0);
+  const keepLimbs = Math.max(0, 2 - otherLimbs);
+  if (ghostSpec === true) for (let i = 0; i < Math.max(0, extraLimbs - keepLimbs); i++) ghostSet.add(i);
+  else if (ghostSpec) {
+    const centre = (ghostSpec.azimuthDeg * Math.PI) / 180;
+    const half = (ghostSpec.halfWidthDeg * Math.PI) / 180;
+    const off = (i: number) => {
+      const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU;
+      let d = (a - centre) % TAU;
+      if (d < 0) d += TAU;
+      return Math.min(d, TAU - d);
+    };
+    const candidates = Array.from({ length: extraLimbs }, (_, i) => i)
+      .filter((i) => off(i) <= half)
+      .sort((i, j) => off(i) - off(j));
+    for (const i of candidates.slice(0, Math.max(0, extraLimbs - keepLimbs))) ghostSet.add(i);
+  }
   for (let i = 0; i < extraLimbs; i++) {
+    ghost = ghostSet.has(i);
     const a = limbBaseAngle + ((i + 1) / (extraLimbs + 1)) * TAU + bt(-0.35, 0.35);
     const t = bt(profile.wildLimbT?.[0] ?? 0.36, profile.wildLimbT?.[1] ?? 0.62);
     const origin = sample(trunk, t);
-    bareHeight = Math.min(bareHeight, origin.y);
+    wildLimbs.push({ azimuthDeg: Math.round((((a * 180) / Math.PI) % 360 + 360) % 360), ghost });
+    if (!ghost) bareHeight = Math.min(bareHeight, origin.y);
     const trunkR = trunkRadii[Math.round(t * (trunkRadii.length - 1))];
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
     const side = new Vector3(-dir.z, 0, dir.x);
@@ -986,9 +1035,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     const r0 = Math.max(0.55, trunkR * bt(0.3, 0.42));
     tube(wood, path, taper(path, r0, 0.1, 0.9), 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    limbs++;
+    if (!ghost) limbs++;
     limbLobes(path, r0, [0.5, 0.78, 1.0], crownRadius * bt(0.2, 0.26), H * 0.07, bt(1.5, 2.5));
   }
+  ghost = false;
 
   // ---------- crown ----------
   const leaders = r.int(4, 6);
@@ -1149,6 +1199,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     woodTriangles: wood.triangles,
     leafTriangles: treeLeaves.triangles + authoredLeaves.triangles,
     limbs,
+    wildLimbs,
     roots: rootCount,
     contacts,
     limbPath,
