@@ -1,8 +1,8 @@
 {
-  "at": "2026-09-15T19:33:28.925Z",
+  "at": "2026-09-15T19:49:09.999Z",
   "kind": "Actual Three.js runtime GLB review; not a world gauntlet capture",
-  "asset": "experiments/2026-09-13/source-runtime/blink-staged-candidate.glb",
-  "glb_sha256": "11c9a2455bf238941b7eb754e4f53c72095d0bb50380157a7c488e62dc98a9db",
+  "asset": "experiments/2026-09-13/source-runtime/blink-fair-candidate.glb",
+  "glb_sha256": "1e7074e7bb3087da13199a186a27314c95ef9b5f593621659696c340b331beca",
   "views": {
     "01-body": {
       "gait": "idle",
@@ -274,67 +274,67 @@
     "blink-frame-0007": {
       "weight": 0.14307310225677564,
       "meshes": 3,
-      "sha256": "d1ba50c3ed6039bfcf0fd95baa25275bf9bdf59e150d0992598de59e627b513e"
+      "sha256": "ba174b0ed20317817b0fa44ea783e94246c1451f2e4e1e9b61d7e4229b8839ab"
     },
     "blink-frame-0008": {
       "weight": 0.4643127092106682,
       "meshes": 3,
-      "sha256": "5a8a1a2c93d94e2ca7e9dae7a408c18a230640ab879e41661055ca137a6b4607"
+      "sha256": "e7d9eae632a95577e068c1b9413225590f4b3db04d9ea0f116932d2fa123e94a"
     },
     "blink-frame-0009": {
       "weight": 0.801749271137026,
       "meshes": 3,
-      "sha256": "2893ec47c707d11d4b1830c750d05b8e9ef9709fcea7843e4879592de39793e2"
+      "sha256": "1a1c246f762ff601f3af560e8d5868422c053211fce1c5554092dc933839dba3"
     },
     "blink-frame-0010": {
       "weight": 0.9934132383111974,
       "meshes": 3,
-      "sha256": "1d2781ea2ea9dd853d10276aebbe5e6ff4d00b236fab35903856c1ba065b28af"
+      "sha256": "7ac8e0790dc90bd5e5df8d3b01dcff52b3553ccf58bfbefe3a1b64c45f6a6ed1"
     },
     "blink-frame-0011": {
       "weight": 1,
       "meshes": 3,
-      "sha256": "b60ad40aeea9273adbd088f7311c17fffbc94255a9e98b26049753a5801f1147"
+      "sha256": "f612750ce6ae635ae27f0e1dc4f65717bfc851b572a936b95886218fa1a29118"
     },
     "blink-frame-0012": {
       "weight": 1,
       "meshes": 3,
-      "sha256": "b60ad40aeea9273adbd088f7311c17fffbc94255a9e98b26049753a5801f1147"
+      "sha256": "f612750ce6ae635ae27f0e1dc4f65717bfc851b572a936b95886218fa1a29118"
     },
     "blink-frame-0013": {
       "weight": 0.9474879972565158,
       "meshes": 3,
-      "sha256": "52be168b03d7818a9840d6551513c61471011e39fed1983a3e5f6638ed686bef"
+      "sha256": "4be858084d7e0caed1b2d96d8c82777a478936a08a7b246510679c9c5d9a35ad"
     },
     "blink-frame-0014": {
       "weight": 0.8113854595336077,
       "meshes": 3,
-      "sha256": "b13f59c7b56bd66280cccb8d347273950fd38411d14ba14e7f54cbd6cb9b4e93"
+      "sha256": "1216a4d83246d63d764b3ed0d79f980e8708b4366ef2e7db37c00edfc8e938a4"
     },
     "blink-frame-0015": {
       "weight": 0.6238425925925928,
       "meshes": 3,
-      "sha256": "6610724eb0181965fbf7bfa70cf7ca76babe646e76ca72421a694cbf2298baf6"
+      "sha256": "f6e4f22f0602953fa33a8e8b2e81845549832f29156de92b479bf49baf7b7016"
     },
     "blink-frame-0016": {
       "weight": 0.41700960219478744,
       "meshes": 3,
-      "sha256": "265de180d35e6ed9465f6c33104557aa9d7400417b88da1232b6b6abaa73e133"
+      "sha256": "c588cd0588e8772f181df39626b23b7beef3095b8d5b3916aadd4aca69fbe3d3"
     },
     "blink-frame-0017": {
       "weight": 0.22303669410150906,
       "meshes": 3,
-      "sha256": "f2e1c24bc9ccec465dc4af2f07dd1fa1c5a3d6cfa98446b023aebf0174005bc2"
+      "sha256": "16fa3853b27ee4209c682ff45b6c20bfe9c92b2e957ff64501ed65b0e7620db9"
     },
     "blink-frame-0018": {
       "weight": 0.07407407407407429,
       "meshes": 3,
-      "sha256": "2364a97d5cb0bb148785f6b6eb60712aeab756400e1980a4f53f9f7a6fd0e3d4"
+      "sha256": "eb77b1c53eae64e84685e4f105500b7130bd50d00a2fff518ea24af17fbd8ee8"
     },
     "blink-frame-0019": {
       "weight": 0.0022719478737996956,
       "meshes": 3,
-      "sha256": "3211dc77c41ff5ae2624e12e2b96827b7716a1e4c960177d71e6e48f66257c97"
+      "sha256": "5d07d22e0544872340e4a3206e5b42a131c3d040ff941e1c7c31cfbeeeaec2f4"
     },
     "blink-frame-0020": {
       "weight": 0,

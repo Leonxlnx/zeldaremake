@@ -1,7 +1,7 @@
 {
   "status": "Brow positioning retained; staged blink is an integration candidate only",
   "game_asset": "d5213ba789d193ff55300b51fc66ac63a3bd209f6e11838a7fe02bec96927314",
-  "blink_candidate": "11c9a2455bf238941b7eb754e4f53c72095d0bb50380157a7c488e62dc98a9db",
+  "blink_candidate": "1e7074e7bb3087da13199a186a27314c95ef9b5f593621659696c340b331beca",
   "morph_contract": {
     "phase": "p in [0,1]",
     "blink": "max(0, 2*p-1)",
@@ -17,5 +17,6 @@
   },
   "runtime_owner": "fable-cursor",
   "requirements": "Use simulation time and preserve zero-dt rerender purity. Keep movement/IK unchanged. Review actual game blink timing before adopting the candidate.",
-  "remaining": "Some closed-lid shading facets remain. No final facial-animation or reference-quality acceptance."
+  "remaining": "Closed-lid ridges reduced, but natural facial animation and gameplay timing still require review. No reference-quality acceptance.",
+  "refinement": "12 local depth-fairing iterations; max morph-target adjustment 5.587 mm, base unchanged. Native source blink-fair-study.blend. Previous staged study records describe the unfared precursor."
 }
