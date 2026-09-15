@@ -1705,6 +1705,19 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   re-render). Astra 14:05: the owner's resumed brief (Link animation, a smoother game, stronger
   environment); frame-time spikes queued as character-7.
 
+### 15:30 UTC — tick 104: take-0103 published (monitor `c55798b`), valid; 23/50 — D 0.3576, A 0.2890, B 0.2622, E 0.2719 (bests)
+- r36/struct (`84e0ab4`) + r36/trees (`dc7da4d`) merged: A's second shade patch (two compact clumps
+  12.5 m up in the lantern crown, sun reach 96 → 66 %), a height-faded near-bole floor for B/E's
+  near trunk (top band 0.414 → 0.311, frame 0.291) with D's foot kept, a bare bough shading D's
+  east path (0.397 → 0.381, frame 0.345); the B house at 2× (furrows 5.3 → 4.1 / m, cap moss 0.08 →
+  0.69, bare warm shoulder / over-door, coarser cords), D-facing roots mossed. D +0.0038, A +0.0030,
+  B +0.0022, E +0.0018, C +0.0010, F −0.0008 (frame 8 s lights the slabs A's clumps shade).
+- Limits measured this round: the D bank's remaining excess is the veil floor + 58 % terrain
+  (roots below a black object's reading); D's band angle cannot rotate without shading D's air;
+  B/E's left-third p10 stays 0.09 over (the 17–30 m veil + the column at B x 0.05–0.16).
+- Running: character-6 (start transient, toe-off). Queued: character-7 (frame-time spikes with a
+  trace), the next environment round (F's slabs / the A-F shade conflict, the D bank's terrain).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1743,4 +1756,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T14:14:00Z
+2026-09-15T15:32:00Z
