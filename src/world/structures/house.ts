@@ -126,7 +126,7 @@ import {
 } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
-import { MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
+import { LIME_POD_GLOW, MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
 
 type P3 = [number, number, number];
 
@@ -1990,7 +1990,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     archCurve.getPointAt(t, _ap);
     const y = heightOf(_ap);
     const base = lerp(0.5, 0.39, smoothstep(0, 1.7 * k, y)) + 0.08 * smoothstep(2.3 * k, 2.7 * k, y);
-    return base * k * (1 + 0.1 * Math.sin(t * 23 + 1) + 0.05 * Math.sin(t * 57 + 2));
+    /**
+     * Round 36 (structures-24): the RIGHT leg is a fifth thicker below the shoulder. Frame B's
+     * right pillar (x 0.84–0.92 × y 0.34–0.50) is one thick bark column ≈ 0.06 of the frame wide
+     * (≈ 1.05 m at its 14 m) reading p50 0.250 / hue 28°; ours showed 8–17 px of arch per row
+     * there (part mask, 1280 px) with the porch recess (p50 0.260 / 42°) filling a quarter of the
+     * box between the leg and the door where the frame has the pillar's bark. The left leg,
+     * B's lit lip (0.655–0.72 × 0.36–0.50: ours 0.291 / 35° against 0.323 / 32°), is unchanged.
+     */
+    const rightLeg = smoothstep(0.5 * k, 1.0 * k, lateralOf(_ap)) * smoothstep(2.6 * k, 2.0 * k, y);
+    return base * k * (1 + 0.18 * rightLeg) * (1 + 0.1 * Math.sin(t * 23 + 1) + 0.05 * Math.sin(t * 57 + 2));
   };
   /** the crown's top, door-space (the cap's moss creeps down from here) */
   const archTopY = heightOf(archAxis(0)) + 0.47 * k;
@@ -2199,7 +2208,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // (round 34 measured ×1.55: B's crown box 0.349 → 0.360 toward the frame's 0.378, but F —
         // which looks up at the crown from the stair top (0–0.3 × 0.05–0.35) — lost 0.0010 SSIM
         // and A 0.0006 for a brighter orange face the frames' hazier crown does not have; ×1.35 stays)
-        (1 + 0.35 * (1 - belowCrown) * frontFace);
+        // (round 36: ×1.45 with the face's balance turned olive (g ×1.3 / b ×0.95, below) — frame
+        // B's crown front reads p50 0.396 against ours 0.341–0.346, and the cap box (0.55–0.98 ×
+        // 0.05–0.35) gave up 0.003 of its median to the shoulder's shade and the vines' removal)
+        (1 + 0.45 * (1 - belowCrown) * frontFace);
       // (round 22: the relief swing is ×0.6 / ×0.3 and the fissures ×0.5 — under the fully textured
       // floor every unit of tint reaches the pixel, where 85 % of it did before; the old swings
       // rendered the crown as fine bright/dark speckle in A and D, where the reference's house is a
@@ -2271,9 +2283,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
        * orange where the frame's is olive; the green's weight lifts the face ≈ 10 %, half the gap.
        */
       const litCrown = (1 - belowCrown) * frontFace;
-      const gBal = lerp(1.15, 0.92, shadeAmt) * lerp(1, 1.25, crownFlank) * lerp(1, 1.4, farHouse) * lerp(1, 1.13, litCrown);
-      const bBal = lerp(0.84, 0.6, shadeAmt) * lerp(1, 1.1, crownFlank) * lerp(1, 1.25, farHouse) * lerp(1, 1.13, litCrown);
-      const rBal = lerp(1, 0.85, crownFlank) * lerp(1, 0.75, farHouse);
+      // (iteration 3: farther still — at ×1.4 / 0.75 / 1.25 D's upper arch read 41.7° / sat 0.358
+      // and A's box 52.3° / 0.220 against the frames' 77° / 0.11 and 57° / 0.08)
+      const gBal = lerp(1.15, 0.92, shadeAmt) * lerp(1, 1.25, crownFlank) * lerp(1, 1.5, farHouse) * lerp(1, 1.13, litCrown);
+      const bBal = lerp(0.84, 0.6, shadeAmt) * lerp(1, 1.1, crownFlank) * lerp(1, 1.45, farHouse) * lerp(1, 1.13, litCrown);
+      const rBal = lerp(1, 0.85, crownFlank) * lerp(1, 0.65, farHouse);
       const dd = d * lerp(1, 0.9, farHouse);
       col.setXYZ(i, lerp(dd * rBal, 0.8 * m, w), lerp(dd * gBal, 2.2 * m, w), lerp(dd * bBal, 0.5 * m, w));
     }
@@ -3423,7 +3437,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // light (a fifth of the hot spot), the threshold as close as before.
     c.y -= 0.9 * k;
     // the shared glow takes on the mix of pod colours
-    const glow = new Color(ctx.config.palette.lanternGlow).lerp(new Color(0xd2ee48), limeCount / podPositions.length);
+    const glow = new Color(ctx.config.palette.lanternGlow).lerp(new Color(LIME_POD_GLOW), limeCount / podPositions.length);
     const lanternLight = new PointLight(glow, 4.0, 6, 2);
     lanternLight.position.copy(c);
     lanternLight.name = 'lantern-light';
