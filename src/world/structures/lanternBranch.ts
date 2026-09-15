@@ -89,13 +89,13 @@ const TANGENT_H = 0.02;
 
 // Reference frame 1 s (round 37, see layout.ts lanternBranch): two small pods right under the
 // bough at A (0.208, 0.405) and (0.255, 0.39) — on the z = 1.5 run that is world x 0.39 and 0.82,
-// s 0.71 and 0.90 of from → to. W14 counts ≥ 3 branch lanterns and the frame shows two, so the
-// third hangs on the trunk-side reach 1.3 m past `from` (x ≈ −2.5): off A's left edge (x < 0),
-// at camera B's and F's own planes (B forward 0.1 m, F 0.15 m), behind C and D.
-const LANTERN_T = [0.71, 0.9, -0.55];
+// s 0.70 and 0.89 of from (x −1.15) → to (x 1.06). W14 counts ≥ 3 branch lanterns and the frame
+// shows two, so the third hangs on the trunk-side reach 1.2 m past `from` (x ≈ −2.5): off A's
+// left edge (x < 0), at camera B's and F's own planes (B forward 0.1 m, F 0.15 m), behind C and D.
+const LANTERN_T = [0.7, 0.89, -0.55];
 /** pod scale: the frame's bough pods are ≈ 0.013 of the frame wide at 6.5 m ≈ 0.13 m; the
  *  scale-1 body is 0.30 m wide, 0.48 m tall with the stem, so 0.5 gives a 0.15 m body */
-const BRANCH_POD_SCALE = 0.5;
+const BRANCH_POD_SCALE = 0.42;
 /**
  * Cord lengths (m) per LANTERN_T entry. Frame 1 s hangs both pods within 0.02–0.03 of the frame
  * below the bough's underside (0.1–0.16 m at 6.5 m): the pod's stem and cap take 0.14 m at scale
@@ -106,9 +106,9 @@ const CORDS = [0.03, 0.03, 0.45];
  *  multiple of the local sleeve radius so they scale with the limb's taper, and half-width in s);
  *  the two pods hang from the second and third */
 const KNEES = [
-  { s: 0.3, sag: 0.3, w: 0.1 },
-  { s: 0.71, sag: 0.3, w: 0.07 },
-  { s: 0.9, sag: 0.25, w: 0.06 },
+  { s: 0.3, sag: 0.15, w: 0.1 },
+  { s: 0.7, sag: 0.25, w: 0.07 },
+  { s: 0.89, sag: 0.2, w: 0.06 },
 ];
 /**
  * The sleeve's shade floor (round 37). Frame 1 s reads the bough at 0.27–0.33 luminance at ≈ 6 m
@@ -117,7 +117,7 @@ const KNEES = [
  * bark has to be dark itself, so the sleeve carries its own copy of the bark material under a
  * lower floor (`lift` tuned by A captures: the sleeve's dark band p50 against the frame's).
  */
-const SLEEVE_FLOOR: ShadeFloor = { lift: 4.0, texture: 0.3, canopy: 1, albedo: 0.07, chroma: 0.6 };
+const SLEEVE_FLOOR: ShadeFloor = { lift: 6.0, texture: 0.3, canopy: 1, albedo: 0.07, chroma: 0.45 };
 
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
   const def = ctx.layout.lanternBranch;
@@ -247,7 +247,9 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // ---- fork stub and side twigs (bark), each tipped with a shaded leaf sprig ----
   const twigRng = rng.fork('branch-twigs');
   const foliage = new FoliageBuilder(rng.fork('branch-foliage'), `${ctx.config.seed}/lantern-branch`);
-  const sprigTint: [number, number, number] = [0.6, 0.66, 0.36];
+  // (round 37: the bough is 6 m from camera A, in the shade under the roof — its tufts read as
+  // dark olive silhouettes in frame 1 s, not lit lime; the tints are pulled to half)
+  const sprigTint: [number, number, number] = [0.3, 0.34, 0.18];
   const barkParts = [sleeve];
   const jit = (a: number) => new Vector3((twigRng() - 0.5) * a, (twigRng() - 0.5) * a * 0.5, (twigRng() - 0.5) * a);
   // the fork: a broken-off second limb leaving the thick end upward and away from the cameras,
@@ -278,7 +280,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       capEnd: true,
     });
     barkParts.push(fork);
-    foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.2 * fk), 0.34 * Math.sqrt(fk), 22, { size: 0.11, amount: 0.06, droop: 0.55, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
+    foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.2 * fk), 0.14, 14, { size: 0.08, amount: 0.06, droop: 0.55, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
   }
   for (const [s0, psi0] of [
     [0.42, 0.9],

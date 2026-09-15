@@ -182,7 +182,12 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
   // displaced 1.2 m — inside its 1.9 m radius — so the limb, its pods and its lobes are exactly
   // where they were.
   // relief 0: the near-bole bark (bole.ts) is off for the hero views - see giant.ts NEAR_BOLE_M
-  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 }, relief: 0 },
+  // wildLimbAzimuthDeg 23.6: the wild limbs spread from the authored limb's heading by default,
+  // and round 37 turned that heading from 23.6° (the old (−4, −5) → (1.5, −2.6) run) to 0° (the
+  // z = 1.5 run, LANTERN_LIMB), which would have swung both limbs 24° (136° / 262° → 112° / 234°,
+  // measured); pinned to the old base so they, their lobes and their shadows stay where rounds
+  // 33–36 measured them (the jitter draws are the same either way).
+  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 }, relief: 0, wildLimbAzimuthDeg: 23.6 },
   // reference C's centre tree: a fat column at x 0.50–0.62 forking at y≈0.26 into two near-horizontal
   // limbs (east = screen-left, west = screen-right) whose clusters form the hazed band across the
   // top of the frame. Girth up / flare down: thicker bole without a ballooning foot at 30 m.
@@ -1007,7 +1012,7 @@ const EYE_DETAIL: Record<string, number> = { 'lantern-tree': 1, 'plateau-oak': 0
 /** foliage scale of the authored lantern limb (reference: a bare bough with a few clusters) */
 const LANTERN_LIMB_FOLIAGE = 0.45;
 /**
- * The lantern limb's growth (round 37, layout: `lanternBranch` from (−1.25, 2.22, 1.5) → to
+ * The lantern limb's growth (round 37, layout: `lanternBranch` from (−1.15, 2.22, 1.5) → to
  * (1.06, 2.21, 1.5)). Frame 1 s: the bough enters shot A at the left edge at y 0.31–0.38 (a dark
  * mossy limb ≈ 0.06 of the frame thick), runs level to x ≈ 0.27 and thins out; its two pods
  * hang right under it at (0.208, 0.405) / (0.255, 0.39). A pod camera A sees there lies on a ray
@@ -1018,16 +1023,27 @@ const LANTERN_LIMB_FOLIAGE = 0.45;
  * at 1.95–2.0 m (bottoms ≥ 1.85, over Link's head) — everything above B's top edge and behind F's
  * left edge except the last 1.3 m of the run.
  * From there the limb has to reach the bole (−11.5, −7.2) 13.5 m to the WNW: `attachHeight` is
- * where it leaves the axis (local; `from` itself is 0.7 m below the tree's base), and the reach
- * is a cubic that leaves level, arches to ≈ 4 m over the west ledge and droops onto `from`
- * heading east — off every hero frame (A x < 0, B off the top-left, behind C/D/F).
+ * where it leaves the axis (local 2.6 m — world ≈ 5.6 m, the tree's foot standing at ≈ 3 m;
+ * `from` itself is below the tree's base), and the reach is a cubic that leaves the bole level,
+ * descends over the west ledge (published rings: 5.4 m at x −9.8, 4.2 m at x −7.2, 3.1 m at
+ * x −4.7, 2.4 m at x −2.7) and droops onto `from` heading east — off every hero frame (A x ≤
+ * −0.1, B behind or off the top-left, off C's right edge until x ≈ −2.5, behind F); what camera
+ * C does see is the run itself, 8.6–8.9 m out across its upper right at (0.68–0.93, 0.31–0.34),
+ * where frame 46 s has the hazed limb band over the boulder terrace.
  * `sag` 0.05 (the frame's run is level), `tail` 0.6 m (the bough is gone by A x 0.3).
  * `ghost`: the limb's own wood, lobes and end cluster are drawn but not built — the structures'
  * sleeve (round 37: no shadow) is the limb. A 2.2 m limb over the plaza's south-west would lay
  * its shadow (sun az −128°, el 38°: ground = point + (1.0, 0.79) × height) in a band from
- * (1, 3.3) to (3.5, 3.3), across the lit slabs 1.3 m in front of Link, which frame 1 s lights;
- * the old limb's lobes at (−2.2…−0.7, 4.8–5.2, −4.3…−3.5) cast the dark core of A's plaza shade
- * patch (x 3–4.5, z −1…2) — that shade is kept by the crown clump below (CANOPY_BOUGHS, round 37).
+ * (1, 3.3) to (3.5, 3.3), across the lit slabs 1.3 m in front of Link, which frame 1 s lights.
+ * The old limb's lobes at (−2.2…−0.7, 4.8–5.2, −4.3…−3.5) cast part of A's plaza shade patch
+ * (box (0.30–0.40, 0.64–0.72)); with them gone the round-34 plaza-shade clump and the
+ * north-west-near crown still hold it (measured: patch p50 0.352 → 0.361, frame 1 s 0.355; lit
+ * share 4.5 → 9.4 %, frame 7.3 %) while the path mouth west of it, which the old limb's wood also
+ * shaded, lights up (lit share 46 → 69 %, frame 92 %).
+ * The limb's ghosted lobes and end cluster still draw from the giant's main stream, and their
+ * lamina counts follow the limb's height (nearEye), so everything the lantern tree builds after
+ * its limb — wild limbs, crown, canopy lobes — re-rolls its laminae (same counts for the
+ * corridor-exempt clumps, same azimuths for the wild limbs: GIANT_PROFILES pins their base).
  */
 const LANTERN_LIMB = { sag: 0.05, tail: 0.6, ghost: true };
 /**

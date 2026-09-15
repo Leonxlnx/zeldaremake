@@ -309,11 +309,13 @@ export const LAYOUT = {
     // 14 s (shot B) has no pod and no pale limb in its upper-left: a pod on those A rays is inside
     // B's frame unless it is ≤ 6.7 m from camera A (within 0.8 m of camera B's eye along its axis,
     // 0.5 m above it), so the run sits on z = 1.5, level at 2.2 m, heading east, 5.8–6.9 m from A:
-    // from → A (0.01, 0.345), to → A (0.28, 0.36); the limb leaves the giant's bole at
-    // `limb.height` and droops onto `from` (trees/index.ts LANTERN_LIMB). Before: (−4, 4.25, −5) →
-    // (1.5, 3.25, −2.6) at 11–12 m, A y 0.20–0.27, pods at (0.07 / 0.16 / 0.25, 0.36–0.38) and in
-    // B at (0.03 / 0.21 / 0.40, 0.31–0.35) under the limb across B's top.
-    from: [-1.25, 2.22, 1.5] as [number, number, number],
+    // from → A (0.02, 0.35) (0.1 m inside the frame so W01's first sample is inside by 20 px; the
+    // sleeve itself runs on along the published reach past A's left edge), to → A (0.28, 0.36);
+    // the limb leaves the giant's bole at `limb.height` and droops onto `from` (trees/index.ts
+    // LANTERN_LIMB). Before: (−4, 4.25, −5) → (1.5, 3.25, −2.6) at 11–12 m, A y 0.20–0.27, pods
+    // at (0.07 / 0.16 / 0.25, 0.36–0.38) and in B at (0.03 / 0.21 / 0.40, 0.31–0.35) under the
+    // limb across B's top.
+    from: [-1.15, 2.22, 1.5] as [number, number, number],
     to: [1.06, 2.21, 1.5] as [number, number, number],
     /** limb radius at `from` / at `to` (metres): 0.06 × 0.849 × 5.8 m ≈ 0.30 m thick at A's left edge */
     radius: 0.15,
