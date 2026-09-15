@@ -184,12 +184,19 @@ export interface ComposerSettings {
   /** share of the marched in-scatter the air under the fan keeps (the beams are added on top of it) */
   fanFloor: number;
   /**
-   * in-scatter (0..1, before uRayIntensity) added on the hero beam's axis for a fully marched column
-   * when the view axis is 90° from the sun; scaled per frame by the same Henyey–Greenstein phase as
-   * the march (rayAnisotropy), so the fan is strongest looking toward the sun (shot D), weaker at
-   * shot A's 76° and faint looking away (shots C/F)
+   * in-scatter (0..1, before uRayIntensity) added on the hero beam's axis over ≥ 10 m of air when
+   * the view axis is fully sun-facing (see fanFacingDeg); the beam is `amp × facing gain`
    */
   fanAmp: number;
+  /**
+   * the fan fades in as the angle between the view axis and the sun closes from the first to the
+   * second value (degrees). The frames' beams are a sun-facing effect far steeper than the march's
+   * Henyey–Greenstein phase: D (view axis 64° from the sun) carries +0.10 of beam over its haze
+   * where A (81°) has only the +0.04 bump the marched columns already give it and C/F (> 125°) show
+   * none — the HG term (g 0.6) would give A 61 % of D's fan. 85 → 60° gives D 0.94, B (75°) 0.36,
+   * A 0.08, C/F 0
+   */
+  fanFacingDeg: [number, number];
   /** lean of the fan's beams from vertical (degrees, down-right, measured on screen) */
   fanLeanDeg: number;
   /** multipliers on the beams' half widths and gains (tuning aids; 1 = as defined) */
@@ -334,9 +341,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     // +0.03–0.06, +0.03 in D against +0.10, and the frame's fog between the beams was 0.04–0.09
     // darker than ours in A's top band (p50 −0.042) and 0.07 darker in D's (−0.068). A smooth
     // envelope (gap floor 0.3, noise gaps fully open, no pow curve, HG g 0.6, mist 0.012) at 0.6
-    // took A's top band to −0.014 and D's to +0.015 (SSIM A +0.008, D +0.003); 0.75 here because
-    // the fan keeps only 75 % of the envelope under itself (measured 0.75 · 0.75 ≈ the 0.6 level)
-    rayIntensity: 0.75,
+    // took A's top band to −0.014 and D's to +0.015 (SSIM A +0.008, D +0.003) — but the haze BETWEEN
+    // the beams, read across them (26° lines, y 0.02–0.2, u 0.11–0.19), sat 0.06–0.07 over the
+    // frames' (D 0.58 vs 0.52, A 0.53 vs 0.47); 0.5 under the fan's 0.75 floor puts it at D 0.537,
+    // A 0.496 and hands the beams to the fan
+    rayIntensity: 0.5,
     rayContrast: 1.0,
     // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
     // (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange, (1.0, 0.975,
@@ -409,6 +418,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     fanMix: 1,
     fanFloor: SCREEN_FAN.floor,
     fanAmp: SCREEN_FAN.amp,
+    fanFacingDeg: [...SCREEN_FAN.facingDeg] as [number, number],
     fanLeanDeg: SCREEN_FAN.leanDeg,
     fanWidthScale: 1,
     fanGainScale: 1,
@@ -582,7 +592,7 @@ export function createComposer(opts: ComposerOptions): Composer {
   );
   rayBlurMat.defines = { FAN: String(Math.max(1, SCREEN_FAN.beams.length)) };
   const fanBeams = rayBlurMat.uniforms.uFanBeams.value as Vector4[];
-  let fanViewPhase = 1;
+  let fanViewGain = 1;
   const copyMat = mat(COPY_FRAG, { tSrc: { value: null as Texture | null }, uScale: { value: 1 } }, 'postfx-copy');
   const brightMat = mat(BRIGHT_FRAG, { tSrc: { value: hdr.texture }, uThreshold: { value: settings.bloomThreshold }, uKnee: { value: 0.35 } }, 'postfx-bright');
   const blurMat = mat(BLUR_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() } }, 'postfx-blur');
@@ -904,11 +914,13 @@ export function createComposer(opts: ComposerOptions): Composer {
       rayBlurMat.uniforms.uGamma.value = s.rayContrast;
       const lean = (s.fanLeanDeg * Math.PI) / 180;
       fan.set(Math.sin(lean), Math.cos(lean), W / H, s.fanMix);
-      // the fan's view phase: the march's HG term at the view axis, normalised to 1 at 90° from the
-      // sun (camera looks down −z in view space, so cos = −sunDirView.z)
-      const g = s.rayAnisotropy;
-      fanViewPhase = Math.pow((1 + g * g) / Math.max(1e-3, 1 + g * g + 2 * g * sunDirView.z), 1.5);
-      (rayBlurMat.uniforms.uFanFade.value as Vector4).set(s.fanFloor, s.fanFadeLo, s.fanFadeHi, s.fanAmp * fanViewPhase);
+      // the fan's facing gain: smoothstep on the cosine of the angle between the view axis and the
+      // sun (camera looks down −z in view space, so cos = −sunDirView.z) from fanFacingDeg[0] to [1]
+      const cosLo = Math.cos((s.fanFacingDeg[0] * Math.PI) / 180);
+      const cosHi = Math.cos((s.fanFacingDeg[1] * Math.PI) / 180);
+      const ft = Math.min(1, Math.max(0, (-sunDirView.z - cosLo) / Math.max(1e-4, cosHi - cosLo)));
+      fanViewGain = ft * ft * (3 - 2 * ft);
+      (rayBlurMat.uniforms.uFanFade.value as Vector4).set(s.fanFloor, s.fanFadeLo, s.fanFadeHi, s.fanAmp * fanViewGain);
       fanBeams.forEach((b, i) => {
         b.y = SCREEN_FAN.beams[i].halfWidth * s.fanWidthScale;
         b.z = SCREEN_FAN.beams[i].gain * s.fanGainScale;
@@ -1069,7 +1081,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayScreenFanLeanDeg: settings.fanLeanDeg,
       godRayScreenFanFloor: settings.fanFloor,
       godRayScreenFanAmp: settings.fanAmp,
-      godRayScreenFanViewPhase: Math.round(fanViewPhase * 1000) / 1000,
+      godRayScreenFanFacingDeg: [...settings.fanFacingDeg],
+      godRayScreenFanViewGain: Math.round(fanViewGain * 1000) / 1000,
       godRayScreenFanFadeY: [settings.fanFadeLo, settings.fanFadeHi],
       godRayScreenFanBeams: SCREEN_FAN.beams.map((b) => [b.u, b.halfWidth * settings.fanWidthScale, b.gain * settings.fanGainScale]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],

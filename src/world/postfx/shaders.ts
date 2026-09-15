@@ -257,8 +257,9 @@ void main() {
  *
  * The last pass also lays the screen-anchored shaft fan (atmosphere/shafts.ts SCREEN_FAN) over the
  * result: the footage's beams keep one screen geometry in every heading, so the smoothed in-scatter
- * (how much lit air the pixel looks through) is multiplied by a fixed field of leaning beams —
- * `floor` between them, `floor + gain` inside, soft-edged, blending back to 1 low in the frame.
+ * (how much lit air the pixel looks through) keeps `floor` of itself under the fan and a fixed field
+ * of soft leaning beams is ADDED on top (amplitude set per frame by the composer from the view's
+ * phase toward the sun), blending back to the plain march low in the frame.
  */
 export const RAY_BLUR_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
@@ -323,12 +324,13 @@ void main() {
   float v = ( sum / max( wsum, 1e-4 ) ) * 0.55 + ( side / max( sideW, 1e-4 ) ) * 0.45;
   float o = pow( clamp( v, 0.0, 1.0 ), uGamma );
   // the screen-anchored fan: the marched air keeps uFanFade.x of its glow under the fan and the beams
-  // are added on top, weighted by the pixel's marched length (a beam in front of a near trunk or
-  // the ground is only the short column of air before it — the reference's beams dissolve over the
-  // near surfaces and read against the far haze and the canopy)
+  // are added on top, cut only by NEAR surfaces (frame D's hero beam lies at full strength across
+  // the trunks 10–15 m behind it — marched length 0.33 of the 40 m march — so the weight saturates
+  // at a quarter of the march; Link's head, the hanging leaves and the ground 2–5 m away still cut
+  // the beams, which is where the reference's dissolve)
   vec2 fan = fanField( vUv );
   float under = uFan.w * ( 1.0 - fan.y );
-  o = o * mix( 1.0, uFanFade.x, under ) + uFanFade.w * fan.x * under * c.y;
+  o = o * mix( 1.0, uFanFade.x, under ) + uFanFade.w * fan.x * under * smoothstep( 0.0, 0.25, c.y );
   gl_FragColor = vec4( clamp( o, 0.0, 1.0 ), c.y, 0.0, 1.0 );
 }
 `;
