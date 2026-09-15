@@ -1665,6 +1665,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   four (C's trodden foreground closed and lit, the bank masses flatter not lit, the D verge's
   straw). Load 8.
 
+### 11:35 UTC — tick 100: take-0101 published (monitor `fe3bcd1`), valid; 23/50 — B 0.2585, E 0.2698 (bests)
+- r35/veg merged (`8dbcd10`): C's corner turf trodden (green 67 → 50 %, frame 36; edge 218 → 91),
+  the NW flank a flat dark mass (0.325 → 0.302), D's right verge closed with clover/moss (91.6 %,
+  frame 91.9); no kept instance moved. B +0.0042, E +0.0029, F +0.0008, C +0.0003, A/D −0.0002/3.
+  Measured and withdrawn: a lit hedge core (every leaf showed, F −0.0095) — a soft dark mass cannot
+  come from leaf geometry.
+- hardscape-28 not merged as delivered (D −0.0029, E −0.0025, the B verge's green away from the
+  frame; its premise — the 40° mode is fill — did not hold: it is lit stone); resumed as
+  hardscape-28b for a reduced branch (zoned bounce / fill hue, the fringe scoping, the tint fix)
+  with the D gap zone and the lawn strip dropped, or a no-op.
+- Still running: atmosphere-13 (the near airlight floor), hardscape-28b.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1703,4 +1715,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T10:16:00Z
+2026-09-15T11:36:00Z
