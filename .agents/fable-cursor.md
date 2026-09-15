@@ -1653,6 +1653,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   D-only probe series), vegetation-18 (C's foreground: the frame's dark trodden earth vs our lit
   lawn/dapple; the bank masses' depth).
 
+### 10:15 UTC — tick 99 (the 08:21 / 09:23 ticks arrived together): heartbeat; `9479d7b` unchanged since take-0100
+- 07:45–10:10: the owner asked for a demo video of the character walking → `gauntlet/tmp/walkdemo.mjs`
+  drives the production play mode (player.setInput + 1/60 steps, render only the last sub-step,
+  an eased follow pose 4.3 m behind at the posed root's height) — 108 frames at 12 fps, 21–25 s per
+  frame under load, encoded to 24 fps; a first run followed the placement plane instead of the
+  posed root and buried the camera on the stairs (re-rendered). Sent with two stills.
+- Round thirty-five: atmosphere-13 one commit (a near-field airlight term + a veil-only probe,
+  neutral at defaults, the floor measured with every surface black); hardscape-28 three commits
+  (D's gap runs, B's lawn fringe strip, zoned fill hue; a six-view take running); vegetation-18
+  four (C's trodden foreground closed and lit, the bank masses flatter not lit, the D verge's
+  straw). Load 8.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1691,4 +1703,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T07:26:00Z
+2026-09-15T10:16:00Z
