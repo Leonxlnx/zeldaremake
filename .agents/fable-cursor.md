@@ -1638,6 +1638,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (near-field airlight, paving/grass contact, tree/house detail; character residuals kept).
   Roster carried three times (05:39, 05:55, 06:08).
 
+### 07:25 UTC — tick 98: take-0100 published (monitor `8fe5bfd`), valid; 23/50 — round thirty-four closed
+- r34/trees merged (`9479d7b`): the plaza-roof bough's wood ghosted, its lobes moved onto the frame's
+  shade patch, a shade clump, three canopy openings — A's lower-left plaza lit as the frame's
+  (0.464 → 0.531 vs 0.535; sun reach 74 → 94 %), the frame's first shade patch 15 → 0 % lit.
+  A +0.0017, F +0.0013, D 0, B −0.0005, E −0.0008, C −0.0028 (the brighter plaza in C's foreground
+  where the frame's plaza is dark earth). The agent's "minimap moves between C captures" claim
+  checked on takes 99/100: HUD shift 0 px in every view — not reproduced on the clean captures.
+- Round thirty-four (takes 0097–0100): A 0.2742 → 0.2820, B 0.2518 → 0.2543, C 0.3133 → 0.3154,
+  D 0.3474 → 0.3529, E 0.2652 → 0.2669, F 0.2936 → 0.2955.
+- Round thirty-five opens on `9479d7b`: atmosphere-13 (the 9–17 m airlight floor 0.29 vs the frames'
+  0.24 darks at 28°), hardscape-28 (B fg seam-fill hue 30° vs 40°, D gap runs 0.10 vs 0.19, the F
+  left-bank fringe tint), trees-21 (patch2's caster clear of D by 5 m; D's diagonal shade band by a
+  D-only probe series), vegetation-18 (C's foreground: the frame's dark trodden earth vs our lit
+  lawn/dapple; the bank masses' depth).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1676,4 +1691,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T06:16:00Z
+2026-09-15T07:26:00Z
