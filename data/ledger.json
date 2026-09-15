@@ -10595,6 +10595,115 @@
       },
       "prevHash": "sha256:fb1c464bfebad0dd9195490c35c9a66ba20b2f85af604dbacbed86334d22b667",
       "hash": "sha256:902341dc7d653662ff763ab111fd73baa9a502522e97ff62769b98ba204e8bfd"
+    },
+    {
+      "id": "take-0099",
+      "number": 99,
+      "at": "2026-09-15T05:27:39.317Z",
+      "sha": "b3bce25d4fd272889618dbf790ead3ce88b4181f",
+      "shortSha": "b3bce25",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r34/hard' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W21",
+        "W20"
+      ],
+      "note": "Round thirty-four, hardscape: the three things round thirty-three left. The joint tufts take a per-instance tint on the shared sprout material - an olive-brown to straw ramp at 37 degrees where they stand in the paving's joints - and the lawn green that filled the joints' dark class is gone: the 60-70 degree bins fall from 37 to 13 % in B's field behind Link (frame 7), 18 to 5 % in D's foreground (frame 4) and 10 to 2 % in B's foreground (frame 1), with B's field and D's foreground inside eight points of the frames on every bin; the vegetation's bank boxes keep their green within a point on the two named ones (the lawn fringe at B's left verge gives up 4.7). Camera D's foreground becomes the frame's slabs: nine stones of 0.64 / 1.86 / 2.05 m across (p10 / p50 / p90) where thirty of 0.78 m stood, seven of them over 1.5 m, the stone class 45 -> 56 % of the path (frame 51), joint share 0.314 -> 0.251 (frame 0.220), with the disc field north of the stretch untouched. Within a stone, moss cushions and grey lichen steps with a greenness weight give the large slabs the frames' two or three tone regions - D's pixel-weighted within-stone spread 0.089 -> 0.136 (frame 0.125) - and the stone's indirect light loses its green cast; stone tone stays within the round-33 tolerances (D 38 deg / 0.333 against the frame's 40 / 0.318). Lattice seeds byte-identical; 479 of 530 stones unchanged, the rest re-cut inside D's stretch or moved under 2 cm bar six Voronoi neighbours at its border. Against the frames: D 0.3498 -> 0.3529, A 0.2777 -> 0.2803, B 0.2528 -> 0.2548, C 0.3163 -> 0.3182, E 0.2667 -> 0.2677, F 0.2951 -> 0.2942 (the fringe tint at F's left bank); draws unchanged, -8.5 k triangles per view, joint sprouts 4,497, moss cushions 506, maxBottomGap 0.126.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:31cc5b87ec209e7c8e840b152a6c91b630e2b760c87fbdcff96d22ac29831924",
+        "B_house": "sha256:5941c9433f898ea5656e8b853c9f45386e86d1cea09e9016095951b7397494d1",
+        "C_lookback": "sha256:fb063bc184da96450ef2abc4fed432e8523604f48ca305ab44a8ec3d2eb5534c",
+        "D_log": "sha256:d4bd68fe6bf6e930a074a6589609a238a4863986841b6b69888502b1dd9f2667",
+        "E_ground": "sha256:5941c9433f898ea5656e8b853c9f45386e86d1cea09e9016095951b7397494d1",
+        "F_canopy": "sha256:1bf760dd56b67990898225860df548f6fd6411435fd3d0251d5030385e2420ea"
+      },
+      "distHash": "sha256:0bd4116ac12fcd7306a8cc4474b9257aff834a095189cfaf989f4411c553c881",
+      "stats": {
+        "drawCalls": 542,
+        "triangles": 8587835,
+        "captureMs": 782235,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W03",
+        "W21",
+        "W20"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take99-cap",
+        "importedAt": "2026-09-15T05:28:13.314Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:902341dc7d653662ff763ab111fd73baa9a502522e97ff62769b98ba204e8bfd",
+      "hash": "sha256:872abecb82ef611a0f61adfc14291bb2b1e705a98f3412d1e8e787d2286ff645"
     }
   ]
 }
