@@ -518,6 +518,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     // value); 4.8 / 5.4 not — more of the same term, not a match of the frames' far texture (the
     // far deficit is structure the frame has and we do not). softFarStart 12 costs the near band
     // (E 0.830 → 0.819, A 0.916 → 0.900 sharpness) for +0.0017 / +0.0033 and stays out.
+    // Shipped six-view (with the 81 → 61° fan gate): A 0.2890 → 0.2928, B 0.2622 → 0.2648,
+    // C 0.3197 → 0.3229, D 0.3576 → 0.3611, E 0.2719 → 0.2742, F 0.2951 → 0.2982; sharpness,
+    // pHash, overexposed (0), farLayerCount and skyFraction unchanged. The blur's cost is the top
+    // band's bright tail: A's y 0.08–0.33 p90 0.558 → 0.550 (frame 0.612), B 0.550 → 0.539
+    // (0.516), F 0.512 → 0.508 (0.601) — the far gaps mixed with the crowns beside them.
     softFarStart: 16,
     softFarFull: 50,
     softBlurSigma: 1.2,

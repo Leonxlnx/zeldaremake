@@ -89,7 +89,9 @@ export const SHAFT_COLUMNS: ShaftColumn[] = TREE_SHAFT_COLUMNS.map((c) => ({
  * B at 0 / 0.077 / 0.28 → −0.010 / +0.001 / +0.029 (−0.0007 / +0.0001 / +0.0001); D at 0.077 /
  * 0.28 → −0.001 / +0.056 (−0.0006 / −0.0004: D's beam is 0.027 under the frame's but the metric
  * pays for the brighter slab). 81 → 61° puts B's gain at 0.234 (≈ +0.012 by interpolation, the
- * frame's +0.010), A's at 0 (+0.035 vs +0.038) and keeps D's at 0.946 (was 0.94).
+ * frame's +0.010), A's at 0 (+0.035 vs +0.038) and keeps D's at 0.946 (was 0.94). Measured on the
+ * shipped build (with the σ 4.2 haze blur): A +0.036, B +0.011, D +0.044 (frame +0.038 / +0.010 /
+ * +0.071) — A and B within 0.002 of the frame; the audit's view gain 0.932 → 0.936.
  */
 export interface FanBeam {
   /** x (uv) where the beam axis meets the top edge of the frame */
