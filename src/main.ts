@@ -1,4 +1,4 @@
-import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap, type Camera, type DirectionalLight, type Material, type Mesh, type ShaderMaterial, type Texture } from 'three';
+import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap, type Camera, type DirectionalLight, type Material, type Mesh, type Object3D, type ShaderMaterial, type Texture } from 'three';
 import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
 import { createFollowCam, type FollowCam } from './camera/follow';
@@ -10,48 +10,67 @@ import type { Quality } from './world/system';
 import { mountHud } from './ui/hud';
 
 /**
- * Warm-up before the first frame of the walkable build (round 37): compile every material's
- * colour program (`renderer.compile` walks hidden LOD buckets and off-screen objects too), upload
- * every texture, and compile the sun's shadow-depth variants with one shadow pass whose window is
- * widened to the whole world (rendered into an off-screen 4×4 target, the canvas untouched; the
- * window is restored to the same numbers, so the next frame's shadow map is what it would have
- * been). Without this, entering play mode at the spawn compiled 8 programs on the first frame and
- * every first sight of a caster / LOD ring stalled on a compile. Headless captures skip it by
- * default (their settle frames absorb compiles; `?warmup=1` forces it, `?warmup=0` disables it).
+ * Warm-up before the first frame of the walkable build (round 37). Measured on the r37 trace
+ * without it: entering play mode compiled 8 programs on the first rendered frame (104 ms) and
+ * 206 geometries were first uploaded during the 45 s walk (42 of 90 sampled frames) — every LOD
+ * bucket / grass ring / caster the camera first meets. Here, before `ready()` resolves:
+ *   1. every mesh outside the grass tiles is made visible and unculled for the duration (the
+ *      hidden LOD buckets have count 0: they upload their geometry and instance buffers and draw
+ *      nothing), `renderer.compile` then compiles every material's colour program and
+ *      `initTexture` uploads every texture a material references;
+ *   2. one warm pass renders the scene into an off-screen 4×4 target (the canvas untouched) with
+ *      the sun's shadow window widened to the whole world, so the depth variants of every caster
+ *      compile too; the window is restored to the same numbers (the shadow map is redrawn every
+ *      frame anyway), and every mesh gets its `visible` / `frustumCulled` back exactly.
+ * The scene state after it is the state before it; only the GL side is warm. Headless captures
+ * skip it by default (their settle frames absorb compiles; `?warmup=1` forces it, `?warmup=0`
+ * disables it). Grass tiles keep their on-demand LOD geometry uploads (551k blades × 3 LODs would
+ * not fit residently); their instance buffers upload when a tile first comes into range.
  */
 function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: DirectionalLight | null) {
   const t0 = performance.now();
   const programsBefore = renderer.info.programs?.length ?? 0;
-  renderer.compile(scene, camera);
-  const tCompile = performance.now();
-  const seen = new Set<Texture>();
-  const init = (v: unknown) => {
-    const t = v as Texture | null;
-    if (t && t.isTexture && !seen.has(t)) {
-      seen.add(t);
-      renderer.initTexture(t);
-    }
-  };
+  const geometriesBefore = renderer.info.memory.geometries;
+  const exposed: { o: Object3D; visible: boolean; frustumCulled: boolean }[] = [];
   scene.traverse((o) => {
-    const mats = (o as Mesh).material as Material | Material[] | undefined;
-    if (!mats) return;
-    for (const m of Array.isArray(mats) ? mats : [mats]) {
-      for (const v of Object.values(m as unknown as Record<string, unknown>)) init(v);
-      const uniforms = (m as ShaderMaterial).uniforms;
-      if (uniforms) for (const k of Object.keys(uniforms)) init(uniforms[k]?.value);
-    }
+    if (!(o as Mesh).isMesh || o.name.startsWith('grass-tile-')) return;
+    exposed.push({ o, visible: o.visible, frustumCulled: o.frustumCulled });
+    o.visible = true;
+    o.frustumCulled = false;
   });
-  const tTextures = performance.now();
-  if (sun?.castShadow) {
-    const sc = sun.shadow.camera;
-    const saved = { left: sc.left, right: sc.right, top: sc.top, bottom: sc.bottom, near: sc.near, far: sc.far };
-    sc.left = -500;
-    sc.right = 500;
-    sc.top = 500;
-    sc.bottom = -500;
-    sc.near = 0.1;
-    sc.far = 2000;
-    sc.updateProjectionMatrix();
+  const seen = new Set<Texture>();
+  const report = { programs: 0, textures: 0, geometries: 0, exposed: exposed.length, compileMs: 0, textureMs: 0, warmPassMs: 0, ms: 0 };
+  try {
+    renderer.compile(scene, camera);
+    const tCompile = performance.now();
+    const init = (v: unknown) => {
+      const t = v as Texture | null;
+      if (t && t.isTexture && !seen.has(t)) {
+        seen.add(t);
+        renderer.initTexture(t);
+      }
+    };
+    scene.traverse((o) => {
+      const mats = (o as Mesh).material as Material | Material[] | undefined;
+      if (!mats) return;
+      for (const m of Array.isArray(mats) ? mats : [mats]) {
+        for (const v of Object.values(m as unknown as Record<string, unknown>)) init(v);
+        const uniforms = (m as ShaderMaterial).uniforms;
+        if (uniforms) for (const k of Object.keys(uniforms)) init(uniforms[k]?.value);
+      }
+    });
+    const tTextures = performance.now();
+    const sc = sun?.castShadow ? sun.shadow.camera : null;
+    const saved = sc ? { left: sc.left, right: sc.right, top: sc.top, bottom: sc.bottom, near: sc.near, far: sc.far } : null;
+    if (sc) {
+      sc.left = -500;
+      sc.right = 500;
+      sc.top = 500;
+      sc.bottom = -500;
+      sc.near = 0.1;
+      sc.far = 2000;
+      sc.updateProjectionMatrix();
+    }
     const rt = new WebGLRenderTarget(4, 4);
     const prevTarget = renderer.getRenderTarget();
     try {
@@ -60,14 +79,26 @@ function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: Dire
     } finally {
       renderer.setRenderTarget(prevTarget);
       rt.dispose();
-      Object.assign(sc, saved);
-      sc.updateProjectionMatrix();
+      if (sc && saved) {
+        Object.assign(sc, saved);
+        sc.updateProjectionMatrix();
+      }
+    }
+    const t1 = performance.now();
+    report.compileMs = Math.round(tCompile - t0);
+    report.textureMs = Math.round(tTextures - tCompile);
+    report.warmPassMs = Math.round(t1 - tTextures);
+  } finally {
+    for (const e of exposed) {
+      e.o.visible = e.visible;
+      e.o.frustumCulled = e.frustumCulled;
     }
   }
-  const t1 = performance.now();
-  const programs = (renderer.info.programs?.length ?? 0) - programsBefore;
-  const report = { programs, textures: seen.size, compileMs: Math.round(tCompile - t0), textureMs: Math.round(tTextures - tCompile), shadowPassMs: Math.round(t1 - tTextures), ms: Math.round(t1 - t0) };
-  console.info(`[warmup] ${programs} programs, ${seen.size} textures in ${report.ms} ms (compile ${report.compileMs}, textures ${report.textureMs}, shadow pass ${report.shadowPassMs})`);
+  report.ms = Math.round(performance.now() - t0);
+  report.programs = (renderer.info.programs?.length ?? 0) - programsBefore;
+  report.textures = seen.size;
+  report.geometries = renderer.info.memory.geometries - geometriesBefore;
+  console.info(`[warmup] ${report.programs} programs, ${report.textures} textures, ${report.geometries} geometries (${report.exposed} meshes exposed) in ${report.ms} ms (compile ${report.compileMs}, textures ${report.textureMs}, warm pass ${report.warmPassMs})`);
   return report;
 }
 
