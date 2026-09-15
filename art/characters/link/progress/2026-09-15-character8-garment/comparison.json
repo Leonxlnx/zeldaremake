@@ -1,0 +1,16 @@
+{
+  "baseline": "2026-09-15T20-54-31-643Z-play-motion",
+  "candidate": "2026-09-15T21-19-34-711Z-play-motion",
+  "movement_records_exact_excluding_new_blink_data": 300,
+  "blink_active_frames": 35,
+  "fully_closed_frames": [
+    9,
+    10,
+    125,
+    126,
+    295,
+    296
+  ],
+  "actual_morph_meshes_checked_per_frame": 3,
+  "status": "Local close-up and zero-dt checks passed. Closed-lid ridges remain visible; no final facial or animation acceptance."
+}
