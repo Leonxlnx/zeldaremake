@@ -16,7 +16,9 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Local round37 integration reviewed: descent f594 -21.95->-1.62mm, peak19.65mm; ascent exact, flat max0.479um difference. Six native GPU views complete, repeat delta2/tolerance pass. Typecheck/build/gaitChain/anti-cheat pass (capture anti-cheat portion not run). Hold integration push pending Fable B/E W35 repair. Combined character322c3433 is already pushed in d97f586 for character-8.
+Native780M trace complete,2700steps1280x720: rendered step median69.5ms/p95100.2, render submission56.4ms, triangles median7.89M. CPU-only median2.6ms/p957.0. Shared script --native adds D3D11 pipes and actual GPU identity; no route changes. Full traces in2026-09-15-native-performance. Fable owns render-budget/W35/blink fixes; continuing native side-hem repair.
+
+Local round37 integration reviewed: descent f594 -21.95->-1.62mm, peak19.65mm; ascent exact, flat max0.479um difference. Six native GPU views complete, repeat delta2/tolerance pass. Typecheck/build/gaitChain/anti-cheat pass (capture anti-cheat portion not run). Integration published as draft review evidence; B/E W35 repair still required for acceptance. Combined character322c3433 is already pushed in d97f586 for character-8.
 
 Combined delivery322c3433 retained and ready for Fable character-8: hem+331 sleeve weight fixes+reviewed blink shapes. All1620 player records match e5882cc5; morphs exact to1e7074e7. Fable7b8e35b/ddfb652 fetched with descent correction and performance work, local integration next; known B/E W35 follow-up pending.
 
