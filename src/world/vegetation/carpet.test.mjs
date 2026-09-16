@@ -114,7 +114,7 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(bankClumps<=0.4*lawnClumps,`bank clumps ${bankClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(footMats<=0.2*lawnMats,`foot mats ${footMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}`);
   // v10: the shade embankment keeps its mats (closed) but half its fans (frame 8's right bank is a blur)
-  const shadePick=it=>a.field.shadeZone(it.x,it.z)>0.9&&a.field.lowZone(it.x,it.z)<0.1&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
+  const shadePick=it=>a.field.shadeZone(it.x,it.z)>0.9&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
   const shadeClumps=core(a.carpet.clumps,shadePick)/cells(shadePick,CLUMP_CELL),shadeMats=core(a.carpet.mats,shadePick)/cells(shadePick,MAT_CELL);
   assert.ok(shadeClumps>=0.35*lawnClumps&&shadeClumps<=0.65*lawnClumps,`shade clumps ${shadeClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(shadeMats>=0.85*lawnMats,`shade mats ${shadeMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}: the bank stays closed`);
@@ -129,7 +129,10 @@ for(const it of a.carpet.clumps.items){a.field.sample(it.x,it.z,s);assert.ok(s.s
 for(const set of a.carpet.all){set.update(new THREE.Vector3(0,1.5,0),true);
   for(const m of set.group.children){assert.equal(m.castShadow,false);assert.equal(m.receiveShadow,true);assert.ok(m.geometry.attributes.aData.isInstancedBufferAttribute,'aData rides the pack mesh');}
   assert.equal(set.group.children.length,set.lodCount,'one draw per LOD');
-  assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count,'every card bucketed');
+  // v11: the fans end at 16 m with the blade tiles' last LOD (the mats alone carry the far turf); a mat is never left out
+  const eye=new THREE.Vector3(0,1.5,0),inRange=set.items.filter(it=>set.opts.maxDistance===undefined||Math.hypot(it.x-eye.x,it.z-eye.z)<set.opts.maxDistance).length;
+  if(set===a.carpet.clumps){assert.equal(set.opts.maxDistance,16);assert.ok(inRange<set.count*0.5&&inRange>1500,`${inRange} of ${set.count} fans inside 16 m`);}else assert.equal(set.opts.maxDistance,undefined);
+  assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),inRange,'every card in range bucketed');
   const cam=new THREE.PerspectiveCamera(50,16/9,0.1,200);cam.position.set(0,1.5,0);cam.lookAt(0,1,-10);cam.updateMatrixWorld();
   set.cull(cam,new THREE.Vector3(0.5,0.6,0.5).normalize(),true);
   const submitted=set.group.children.reduce((n,m)=>n+m.count,0);assert.ok(submitted<set.count*0.6,`${set.opts.name}: ${submitted} of ${set.count} submitted to a 50° frame`);

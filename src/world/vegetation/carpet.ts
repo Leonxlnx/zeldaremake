@@ -53,6 +53,14 @@ const MAT_LIFT = 0.018;
 /** LOD ranges (m): near clump cards (two rows, three planes) out to this, the far card beyond */
 const CLUMP_LOD_NEAR = 12;
 /**
+ * The standing turf ends here (v11) — the blade tiles' last LOD ends at 16 m too (grass.ts) — and
+ * the mats alone carry the ground beyond: a 0.5 × 0.3 m fan is ≈ 14 × 9 px at 16 m in a 1280 × 720
+ * frame, and past that the fans were contrast on ground the frames render as a blur (the far
+ * cells of B, C and F lost 0.0007–0.0021 each with them). ≈ 90 % of a fixed camera's in-frustum
+ * fans stand past 20 m: a −20 K-triangle, −1-draw saving a frame as well.
+ */
+const CLUMP_MAX_DISTANCE = 16;
+/**
  * cards steeper than this (slope = 1 − ny: 0.45 ≈ 57°) lose density — a fan of upright planes on
  * a 60° face reads as cards; the mats, which lie on the face like decals, hold until the cliffs
  * (0.5–0.75 ≈ 60–75°), so the stair flanks' blade turf (grass.ts FLANK_EXTRA) sits on turf too
@@ -68,7 +76,6 @@ const HOUSE_SOUTH_MAX_H = 0.12;
 const CLUMP_BANK_CUT = 0.7;
 const CLUMP_FOOT_CUT = 0.8;
 const MAT_FOOT_CUT = 0.9;
-const CLUMP_LOW_CUT = 0.35;
 const CLUMP_SHADE_CUT = 0.5;
 /** the share of the blades' shade-zone palette bias (grass.ts: +0.35) a mat does not take */
 const MAT_SHADE_BIAS_CUT = 0.175;
@@ -184,6 +191,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     variants: [[clumpCardGeometry(3, 2, 0.2), clumpCardGeometry(3, 1, 0.2)]],
     material: clumpMaterial,
     lodDistances: [CLUMP_LOD_NEAR * q.distance],
+    maxDistance: CLUMP_MAX_DISTANCE * q.distance,
     castShadowLods: 0,
     receiveShadow: true,
     instanceData: { attribute: 'aData', size: 4 },
@@ -264,13 +272,15 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // frames 8 / 46 s: flat blurs, where lit fans put structure the frame has not: F's left-middle
     // cell −0.0010, B's bottom-right −0.0006 in v8) and camera C's trodden foreground (cFoot —
     // frame 46 s' bare earth with a dusty fringe: C's bottom-left cell −0.0029 in v8, the whole
-    // of C's loss, with the fans and mats 3 m before the camera). The fans also thin where the
-    // blades thin in the low verges (grass.ts: × (1 − 0.35 low)) and by half on the shade
-    // embankment (frame 8's right bank, F's right-middle at 15 m: a hazy blur of window σ 0.027
-    // against our 0.033 before the carpet and 0.036 with it — the lit fans over the shaded mats
-    // are the contrast the frame has not; the mats and the +60 % blades keep the bank closed)
+    // of C's loss, with the fans and mats 3 m before the camera). The fans also thin by half on
+    // the shade embankment (frame 8's right bank, F's right-middle at 15 m: a hazy blur of window
+    // σ 0.027 against our 0.033 before the carpet and 0.036 with it — the lit fans over the
+    // shaded mats are the contrast the frame has not; the mats and the +60 % blades keep the bank
+    // closed). Not in the low verges (v10 tried the blades' × (1 − 0.35 low)): the fans at the
+    // stair foot 5 m before camera A are the frame's tufts (A's bottom-right −0.0010 without
+    // them) — where they hurt is far, and that is the LOD's business (CLUMP_MAX_DISTANCE)
     const slopeK = 1 - smoothstep(SLOPE_THIN[0], SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_LOW_CUT * t.low) * (1 - CLUMP_SHADE_CUT * t.shade) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_SHADE_CUT * t.shade) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     const clusterVar = 0.85 + 0.3 * t.cluster;
     let w = (CLUMP_WIDTH[0] + (CLUMP_WIDTH[1] - CLUMP_WIDTH[0]) * rng()) * clusterVar;
