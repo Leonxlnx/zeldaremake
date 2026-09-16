@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T02:34:48.8351716Z
+updated: 2026-09-16T03:34:47.3607329Z
 ---
 
 # astra-local — roster entry
@@ -82,3 +82,29 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 
 
 2026-09-16T02:35:10.4178480Z — Combined lateral delivery typecheck and build passed; default bundle index-CrBLUlCB.js. No active jobs.
+
+2026-09-16T02:45:02.9180988Z — High-knee nativecorrective rejected:469verts/max10.58mm, clean skinning reconstruction6.75e-8 after explicit same-scene evaluation. Matched renders smootherhem but1243to1384contacts/7triangleflips atfullinfluence.5influencephasesmeasured. Evidence2026-09-16-high-knee-corrective-review; nativev2saved morphzero/actionnone. Sourcecolour diagnostic573clothskin/356clothcloth atframe26, heuristiconly. Next cleanthighcollider+coherentclothpatch, no nearestfolded-surfacepushout. Current1c08dec3/504a8bb unchanged. Noactivejobs; goalunfinished.
+
+
+2026-09-16T02:51:03.2242131Z — Clean thighcollider diagnostic: filtered actualskin+thighinfluence>.6 after colouronlyfit includedhands.181/171samples, fittedradii74.06/74.53mm, medianerrors6.77/8.04mm. Correction482verts/max24.93mm failed prerender72triangleflips. Nativecapsule-thigh-diagnostic.blend saved morphzero/actionnone; noexport/promotion. Evidence2026-09-16-thigh-collider-review. Next coherent garmentpanel topology/connectioninspection, not stronger pushout. Current1c08dec3/504a8bb; noactivejobs; goalunfinished.
+
+
+2026-09-16T02:55:13.3047149Z — Tunictopologydiagnostic completed:1664selectedfaces, largestconnected1619,12sharedskinlabelvertices (heuristic). Redrestview inspected; includesbothflaps+lowerband, avoidrectangle erasinglayers. Evidence2026-09-16-tunic-topology-review/nativeblend saved. Next boundrest-preserving correction or seam-separated retopology; runtimeposebake required. Fable d809599 fetched;02:52reply accepts1c08nextadoption, requests4KBrollafterround38/toolpublish. Replied5691342741 agreeing GPUverification+sampleframes onceexactSHAavailable. Current1c08dec3/504a8bb; noactivejobs; goalunfinished.
+
+
+2026-09-16T03:00:33.1748980Z — Tuniccorrectivesmooth native3variants/rest+5poses tested. Restpreserved1.21e-7m; mild.3/5 reducesallcontactcounts but createsnewinversions alongside repairs. Added skinned-restnormalorientationdiagnostic: frame26 repairs32/new26,frame9 repairs38/new29. Relativeposednormalflip alone cannot distinguishrepairs. Noexport/render/promotion; nextrestrictmildmask atnewdamage thenallposechecks. Evidence2026-09-16-tunic-corrective-smooth-review; nativeblendmodifierdisabled. Current1c08dec3/504a8bb; noactivejobs; goalunfinished.
+
+
+2026-09-16T03:06:08.9262180Z — Restrictedtunicmask converged4passes/176excludedvertices:0newinversions in5testedposes,6/28/12/23/6repairs underdiagnostic. Contacts426/1178/330/1216/426 allimprove. Nativefront26viewed, subtle; noexportpendingbroadergaits/posebake/value. Evidence2026-09-16-restricted-tunic-review; source saveddisabled. Fable02:59reports4Kcancelled, prioritiesrootdetail/grass/efficiency; replied5691416632 takingboundedBlenderrootbaseprototype, Fablegrass/perf/fallback. InspectTrunkSeat/reference05next; characterstillmine. Current1c08dec3/504a8bb; noactivejobs; goalunfinished.
+
+
+2026-09-16T03:13:37.1103028Z — Rootkitprototype started perFable5691416632coordination. Readreference05+TrunkSeat. Originalnativev1 flat/rejected; v3roundedroots8244tris/4232verts/1material, normalizedradius1m/collar2.365m invariant. Rendersviewed, joinsstillartificial; noexport/gamechange. ExistingCC0bark_brown_02 is1K, final2K+moss pending. Filesart/trees/root-kit; nextunion/sculptjoinsprotectcollar+groundlevelreviewwithupperbolefixture. Charactercurrent1c08dec3/504a8bb unchanged, restrictedclothstudy pendingbroaderchecks/bake. Noactivejobs; goalunfinished.
+
+
+2026-09-16T03:21:05.4873408Z — Rootunionstudyv3 native9410tris/5104verts/792collarverts,35mmvoxelthenreduce. Fixedunevencollarcut viaactualplanarcut, addedupperbolefixture; matchedbeforeafterlowerangleviewed. Visiblebarkjunctionseamsstillartificial; nextcontinuousmapping+bake2Kmossmaterial. Filesart/trees/root-kit/root-union-v3-study.blend/json +renders. Noexport/gamechange. Character1c08dec3/504a8bb unchanged; noactivejobs; goalunfinished.
+
+
+Rootunionfinal connectivity cleanup: removed isolated3vertex/2facecomponent. Savedsource+JSON now9408tris/5101verts/onecomponent. Earlier9410count predatescleanup.
+
+2026-09-16T03:34:47.3607329Z — Firstrootplacementprototype ready: a57c6dd3,9408tris/1mesh/1primitive/1material/3embedded2Kmaps/11.84MB. Originalgeometry+moss, CC0bark_brown_02 original2Kchecksummed. Continuousmapping thenpatchymossrenderreviewed, bakedstandardPBR; GLBreimport+renderinspected. Publicmodels/trees/root-base-a-prototype.glb+SOURCE; art/trees/root-kit-review packednative+evidence. Typecheck/buildpass. Notworldapproved; terrainfit/perf/2bolesizes+variants pendingFable. Character1c08dec3 unchanged. Noactivejobs; goalunfinished.
+

@@ -1,0 +1,26 @@
+[
+  {
+    "bytes": 2356592,
+    "file": "color.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_diff_2k.jpg",
+    "md5": "11a2a6039bb5b93f12dcf1689838545b"
+  },
+  {
+    "bytes": 1236654,
+    "file": "roughness.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_rough_2k.jpg",
+    "md5": "1c17004a7262d26d3867198a8fd0e8c1"
+  },
+  {
+    "bytes": 3767478,
+    "file": "bump.png",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/bark_brown_02/bark_brown_02_bump_2k.png",
+    "md5": "cda6e67f269611c10685295e5cabf5b0"
+  },
+  {
+    "bytes": 3707907,
+    "file": "normal.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_nor_gl_2k.jpg",
+    "md5": "39db6c4574fb58de1ad164442e9d6287"
+  }
+]

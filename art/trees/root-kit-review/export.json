@@ -1,0 +1,13 @@
+{
+  "status": "Placement-test GLB, not approved world replacement",
+  "sha256": "a57c6dd30307b51926e3ef4ce0ef0ffefe02acecdf97114be5715fd524861f41",
+  "bytes": 11841308,
+  "triangles": 9408,
+  "meshes": 1,
+  "primitives": 1,
+  "materials": 1,
+  "images": 3,
+  "gltf_up_axis": "Y",
+  "nominal_radius_m": 1,
+  "collar_height_m": 2.365
+}
