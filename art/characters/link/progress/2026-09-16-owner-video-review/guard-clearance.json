@@ -1,0 +1,278 @@
+{
+  "resolved": true,
+  "history": [
+    {
+      "upper_radial_increase_m": 0,
+      "checks": [
+        {
+          "angle": 0,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.4,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.6,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.8,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 2,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 7,
+            "Link | fitted forearm guard R": 9,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        }
+      ]
+    },
+    {
+      "upper_radial_increase_m": 0.0005,
+      "checks": [
+        {
+          "angle": 0,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.4,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.6,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.8,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 3,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        }
+      ]
+    },
+    {
+      "upper_radial_increase_m": 0.001,
+      "checks": [
+        {
+          "angle": 0,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.4,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.6,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.8,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 2,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        }
+      ]
+    },
+    {
+      "upper_radial_increase_m": 0.0015,
+      "checks": [
+        {
+          "angle": 0,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.4,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.6,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 0.8,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        },
+        {
+          "angle": 1.2,
+          "contacts": {
+            "Link | fitted forearm guard L": 0,
+            "Link | fitted forearm guard R": 0,
+            "Link | guard stitching L": 0,
+            "Link | guard stitching R": 0
+          }
+        }
+      ]
+    }
+  ],
+  "scope": "Evaluated leather and thread against body, seven isolated elbow-flexion poses; game clips not yet checked"
+}

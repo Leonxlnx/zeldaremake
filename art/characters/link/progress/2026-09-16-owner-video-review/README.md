@@ -91,3 +91,11 @@ Evaluated geometry, including thickness/bevel:1536triangles per shell. At0,.4,.8
 | Plain guard | Surface-following stitches and lacing |
 | --- | --- |
 | ![Plain](guard-detail-plain.png) | ![Sewn](guard-detail-sewn.png) |
+
+## Guard clearance and standalone skinned export
+
+The high-flexion contacts lie on skin influenced by elbow/shoulder weights, not the hand. A bounded radial increase on the upper three guard rings (fading out over the fourth) moves the attached thread by the same interpolated displacement. At1.5mm additional upper clearance, all four evaluated objects—two leather shells and two thread meshes—have zero body intersections in seven isolated elbow-X poses from0 to1.2radians. `guard-clearance.json` preserves every attempted offset and pose. This is not yet proof for the actual clips, wrist rotation or cord/leather self-contact.
+
+`guard-addition.glb` is a standalone613236-byte review asset with4meshes,3materials and1skin. Existing body weights are retained through evaluated thickness/bevel. An initial exporter warning was traced to two tiny negative weights produced by bevel interpolation (vertices741/742, group10); the exporter clamps only negative roundoff within1e-6 and normalizes those vertices. Native mesh validation then reports no repairs and the export completes without the warning. Positions/normals/joints/weights are present for all primitives; no animations or images are embedded. Procedural leather bump is not baked, so this does not yet reproduce the full native material in game. The original runtime character is unchanged.
+
+Next: integrate the four addition meshes using the existing runtime skeleton and unchanged clips, bake/review leather detail, then capture real game animation and fit. Local packed source: forearm-guards-clearance-study.blend.
