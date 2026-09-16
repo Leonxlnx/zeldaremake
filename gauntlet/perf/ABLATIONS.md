@@ -101,7 +101,20 @@ The triangle saving is modest because the heavy casters (the giant trees, the he
 
 Shadows stay on at every rung: a light losing its shadow recompiles every material (a multi-second hitch mid-play). The map size and the tap count change at run time without a recompile — under `auto` the filter is compiled in its dynamic variant (`shadowfilter.ts`: the texel size follows the live `shadowMapSize` uniform and the tap count rides in the thousands of `shadow.radius`); the fixed tiers keep the shipped shader byte for byte.
 
-AUTO_TRACE
+### The `--auto` trace (`evidence/trace-auto.json`)
+
+`perftrace.mjs --dist dist --frames 48 --width 320 --height 180 --auto --params "gov=8"` on 2d7d9a0 (SwiftShader; every frame is seconds, so the window is shortened to 8 to fit a trace — natively the default 60-frame window is one second of play). The governor stepped the whole ladder, one rung per refilled window, each change recorded with its frame index and the median that triggered it (`__ZR__.perf().governor.changes`; the harness's row numbers start two frames later, at its first recorded step):
+
+| governor frame | change | window median (ms) | frames on the rung | synced frame ms (median) | draws | triangles |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| — | start `auto:0 high` | — | 6 | 9,676 | 441 | 7,577,498 |
+| 8 | 0 → 1 `shadow-2k` | 9,675 | 8 | 8,315 | 441 | 7,577,498 |
+| 16 | 1 → 2 `no-ao scale-0.85` | 8,315 | 8 | 7,625 | 439 | 7,577,494 |
+| 24 | 2 → 3 `no-rays scale-0.75 veg-0.75` | 7,625 | 8 | 6,583 | 427 | 6,941,743 |
+| 32 | 3 → 4 `shadow-1k no-soft scale-0.6 veg-0.5` | 6,583 | 8 | 5,319 | 391 | 6,619,481 |
+| 40 | 4 → 5 `floor scale-0.5 veg-0.5/0.5` | 5,319 | 10 | 4,904 | 388 | 6,580,284 |
+
+Every rung was cheaper than the one above it (9.7 s → 4.9 s, −49 % at the floor on this rasteriser; draws 441 → 388, triangles 7.58 M → 6.58 M), the map size, tap count, render scale, stages and vegetation ranges all changed at run time without recompiling a world material (`newPrograms` is empty on every row but one: the first frame of rung 4 compiles `postfx-fxaa` once, the FXAA quad now writing to the canvas instead of the softening's target — a fullscreen shader, the same one `softening: false` has always compiled), and no change came closer than the window to the previous one. A native run (`--auto` without `gov=`) shows the same mechanism on the real thresholds: 20 ms sustained steps down, 11 ms for 3 s steps up.
 
 ## Commands for Astra (native, Windows; from the repo root after `npx vite build`)
 
