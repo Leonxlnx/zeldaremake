@@ -1930,6 +1930,30 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   warmth back toward the trailer (hue Δ ≤ 4°) — the frames' light is golden, not cool.
 - Round 39 still running (vegetation-20 carpet v6+, trees-23 near bases); they land on `1495591`.
 
+### 19:05 UTC — tick 115: round 39 + Astra's lighting follow-up sealed — take-0109 `0820f92`
+- Owner's new direction arrived through Astra (18:0x): a NEW 46.5 s reference recording +
+  marked screenshot of OUR frame (`art/environment/owner-video-review/` on PR #11): smooth pale
+  left bole, beam-like lantern limb with isolated flat leaves, smooth diagonal trunk over the
+  house, coarse roof moss, sparse wide grass right foreground; "Verdant Forest quality especially
+  when looking up"; lighting target "local sun patches against deep readable cool shade, warm
+  lamps, blue-grey distant air without near haze flattening bark". Astra owns lighting (her
+  follow-up `9e52630f`: sun 4.4, hemi 0.55, IBL 0.22, haze start 5 m, near density 0.008).
+- Merged: r39/trees `1692967` (trees-23: near-base LOD 10/13 m — relief bole, gnarled buttress
+  fins, moss cushions, lichen, base plants; near-leaf detail factor; Astra's root-kit prototype
+  behind VITE_ROOT_KIT=1; fixed views ±0.0002), r39/veg `f359b23` (vegetation-20: clump-card +
+  turf-mat carpet over a seeded 2048 atlas, blades thinner; veg tris −35 %, draws −20/view; mean
+  +0.0009 vs its baseline), astra-pr11 `9e52630f`.
+- **take-0109**: A 0.2376, B 0.2141, C 0.2382, D 0.2933, E 0.2293, F 0.2725 (mean 0.2475; −0.019 vs
+  take-0108, almost all of it the lighting follow-up — trees/veg were neutral at the fixed cams).
+  Sharpness 1.1–1.6× the old frames; W35 passes everywhere; 23/50. Draws 568, 5.98 M tris on A.
+  Monitor `cae6be7`. The old-frame SSIM now measures distance from a target the owner left →
+  **rubric proposal filed**: re-reference W34/W35/W37 to the new recording (owner decision).
+- Round 40 dispatched on the owner's markup: trees-24 (bole taper/forks/bark for the left column
+  and the diagonal trunk, the lantern limb with forks and layered cupped leaves, far crowns readable
+  from the landing, the lantern-tree SE corridor), structures-25 (roof moss into tufts with a torn
+  edge + plants), vegetation-21 (thin rooted grass clusters, verge transitions, near fern fronds
+  with pinnae). Baseline for all three: 0820f92.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1968,4 +1992,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T14:15:00Z
+2026-09-16T19:05:00Z

@@ -80,3 +80,24 @@ not change — bucket 10 (25–27.5 m) rose 0.0140 → 0.0155 and bucket 18 (45�
 depth layers under haze) is unchanged. Evidence: `gauntlet/out/take70-cap/checks.json` vs
 `take71-cap/checks.json` (`depth.D_log.buckets`).
 Owner decision: pending
+
+## 2026-09-16 — fable-cursor — reference set (W34 / W35 / W37 / W41 comparisons)
+Current: every image comparison (SSIM W37, palette W34, sharpness W35, hue/sat/lum stats, pHash)
+runs against `reference/frames/{A..F}.jpg`, six frames of the first-look clip (1280×716, heavy
+compression, warm hazy grade), hash-recorded in `reference/manifest.json`.
+Proposed: add the owner's 2026-09-16 recording (46.5 s; comparison copy at
+`art/environment/owner-video-review/reference-review.mp4` on PR #11) as a second reference set —
+the shaded forest lane (~18–24 s) sampled at the poses that correspond to our A/B/D/F framings — and
+score W34/W35/W37 against the NEW set, keeping the old six for W01 composition and the layout
+probes. Alternatively re-extract A..F from the new recording where the shots exist, and record the
+new hashes in `reference/manifest.json` + `reference/phash.json` (anti-cheat C1/C2 follow).
+Why: on 2026-09-16 the owner redirected the target ("more visible sky, realistic daylight", then
+"Verdant Forest quality, local sun patches against deep readable cool shade, blue-grey distant air",
+with the new recording as the reference). Astra's lighting pass (PR #11, integrated in takes 0108–
+0109) follows that direction and is visibly closer to the new recording, yet every view lost 0.05–
+0.09 SSIM against the OLD soft warm frames (mean 0.3189 → 0.2475) and sharpness now reads 1.1–1.6×
+theirs. The score is now measuring distance from a target the owner has moved away from; W37's
+0.42 was never reachable against a compressed 1280 clip and is meaningless against the wrong clip.
+Evidence: take-0107 vs take-0108/0109 compare tables (`gauntlet/ledger.json`), the owner's markup and
+README in `art/environment/owner-video-review/` (PR #11 `0d76e902`).
+Owner decision: pending
