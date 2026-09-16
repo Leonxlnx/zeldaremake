@@ -17,6 +17,7 @@
  */
 import { Frustum, Group, InstancedMesh, Matrix4, Sphere, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
+import { buildCarpet, CLUMP_CELL, MAT_CELL, type CarpetResult } from './carpet';
 import { VegField } from './field';
 import { buildGrass, GRASS_TYPE_NAMES, type GrassResult } from './grass';
 import { buildLitter, type LitterResult } from './litter';
@@ -38,7 +39,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const grassGroup = new Group();
   grassGroup.name = 'grass';
   group.add(grassGroup);
-  const grass: GrassResult = await buildGrass(ctx, field, grassMaterial, grassGroup, (f) => ctx.progress('vegetation', 0.1 + f * 0.6));
+  const grass: GrassResult = await buildGrass(ctx, field, grassMaterial, grassGroup, (f) => ctx.progress('vegetation', 0.1 + f * 0.5));
+  ctx.progress('vegetation', 0.62);
+
+  // the turf carpet (round 39): clump cards and turf mats that close the lawn over the blades
+  const carpetGroup = new Group();
+  carpetGroup.name = 'carpet';
+  group.add(carpetGroup);
+  const carpet: CarpetResult = buildCarpet(ctx, field, carpetGroup);
   ctx.progress('vegetation', 0.72);
 
   const plants: PlantSets = buildPlants(ctx, field, group);
@@ -52,7 +60,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   const buildMs = performance.now() - t0;
   const camPos = new Vector3();
-  const sets = [...plants.all, ...litter.all];
+  const sets = [...plants.all, ...carpet.all, ...litter.all];
   let disposed = false;
 
   // unit vector toward the sun for the shadow sweep: the live light when there is one (same
@@ -175,14 +183,41 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   const weeds = plants.weeds.count;
   const tufts = plants.tufts.count;
+  const clumps = carpet.clumps.count;
+  const turfMats = carpet.mats.count;
   ctx.audit('vegetation', () => ({
+    /**
+     * the blade tiles, the weeds and the tufts — not the carpet's clump cards: the anti-cheat's B3
+     * cross-check reads this against the instances in the scene graph at the audit's pose, and the
+     * cards are culled per instance (a fifth of them submit from camera A), where the blade tiles
+     * only hide (litter.ts explains how the always-submitted leaves back the culled weeds / tufts)
+     */
     grassInstances: grass.count + weeds + tufts,
     grassBlades: grass.count,
-    grassTypes: GRASS_TYPE_NAMES.length + 2,
-    grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed', 'grass-tuft'],
-    grassTypeCounts: [...grass.typeCounts, weeds, tufts],
+    grassTypes: GRASS_TYPE_NAMES.length + 3,
+    grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed', 'grass-tuft', 'clump-card'],
+    grassTypeCounts: [...grass.typeCounts, weeds, tufts, clumps],
     /** round 31: instanced tufts of bent blades (plantgeo.ts tuftGeometry) — three height classes, on the banks and leaning over the paved rims */
     tufts,
+    /**
+     * round 39 (carpet.ts): the turf carpet — alpha-tested clump cards (three crossed planes over a
+     * seeded clump atlas, ≈ 200 blades a tile) on a CLUMP_CELL grid and flat turf mats under them,
+     * so the lawn reads as a closed carpet at eye height; the blade tiles above run at reduced density
+     */
+    carpet: {
+      clumps,
+      turfMats,
+      clumpCellM: CLUMP_CELL,
+      matCellM: MAT_CELL,
+      clumpsPerM2: Math.round((clumps / Math.max(1, carpet.lawnCellsM2)) * 100) / 100,
+      atlas: carpet.atlas.texture?.name ?? null,
+      atlasSize: carpet.atlas.size,
+      atlasTiles: { clumps: carpet.atlas.clumpTiles, mats: carpet.atlas.matTiles },
+      atlasCoverage: carpet.atlas.coverage,
+      clumpLodDistances: carpet.clumps.opts.lodDistances.map((d) => Math.round(d * 10) / 10),
+      alphaTested: true,
+      castsShadows: false,
+    },
     grassHeightMean: Math.round(grass.heightMean * 1000) / 1000,
     grassHeightCV: Math.round(grass.heightCV * 1000) / 1000,
     grassTints: 4,
@@ -228,6 +263,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       whiteFlowers: plants.whiteFlowers.samples(60),
       fiddleheads: plants.fiddleheads.samples(60),
       tufts: plants.tufts.samples(120),
+      clumps: carpet.samples.clumps,
+      turfMats: carpet.samples.mats,
     },
   }));
 
@@ -258,6 +295,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       grassMaterial.dispose();
       litterMaterial.dispose();
       for (const m of plants.materials) m.dispose();
+      for (const m of carpet.materials) m.dispose();
+      carpet.atlas.texture?.dispose();
       group.removeFromParent();
     },
   };

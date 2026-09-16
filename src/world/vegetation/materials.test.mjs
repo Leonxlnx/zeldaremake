@@ -109,6 +109,17 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.throws(() => createVegShadowMaterials(source), /plant or bush/);
   if (kind === 'grass') {
     assert.doesNotMatch(shader.vertexShader, /aPlantVariant/, 'grass tiles are not packed');
+    // the blade normal (round 39): the facing flips on a blade seen from behind, its 55 % terrain
+    // up never does — three's whole-normal flip pointed half the blades into the ground
+    assert.doesNotMatch(shader.fragmentShader, /#include <normal_fragment_begin>/);
+    assert.match(shader.fragmentShader, /normalize\(vBladeFace\) \* faceDirection, normalize\(vBladeUp\), 0\.55/, 'facing-only flip');
+    assert.match(shader.vertexShader, /vBladeFace = normalMatrix \* n;\s*vBladeUp = normalMatrix \* bladeUp;/);
+    assert.doesNotMatch(shader.vertexShader, /FLIP_SIDED/, 'no whole-normal flip in the vertex stage either');
+    // the near-eye share (round 39): a blade rooted inside 1.2 m of the viewing eye shrinks to a quarter,
+    // whole again by 3.0 m — the fixed cameras' frames cut the ground off past 3.2 m (3D), so only the
+    // walking eye sees it; the shrink scales the whole shaped blade about its root, after the bend
+    assert.match(shader.vertexShader, /vec3 bladeRoot = \(modelMatrix \* instanceMatrix \* vec4\(0\.0, 0\.0, 0\.0, 1\.0\)\)\.xyz;\s*transformed \*= mix\(0\.25, 1\.0, smoothstep\(1\.2, 3\.0, distance\(cameraPosition, bladeRoot\)\)\);\s*}/, 'near-eye shrink closes the shape stage');
+    for (const [, chunk] of shader.fragmentShader.matchAll(/#include <([\w_]+)>/g)) assert.ok(THREE.ShaderChunk[chunk] !== undefined, `known chunk ${chunk}`);
   } else {
     // static moss / litter packs collapse the same way and keep Three's own projection
     assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);

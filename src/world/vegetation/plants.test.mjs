@@ -308,12 +308,21 @@ assert.ok(whites.items.filter(it=>{const p=camC([it.x,it.y,it.z]);return p&&p.de
     assert.ok(a.field.bankFace(it.x,it.z)<=0.3,'rim leaves stay off the bank face');}}
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
-  for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}
+  // every instance bucketed — bar the ones past a set's far cut (round 39: clover 16 m, tufts 22 m, fiddleheads / moss 24 m), which no bucket carries
+  for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);
+    const far=set.opts.maxDistance??Infinity,inRange=set.items.filter(it=>Math.hypot(it.x-p[0],it.z-p[2])<far).length;
+    assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),inRange,`${set.opts.name} bucketed from ${id}`);
+    if(far<Infinity&&id==='A_stairs')assert.ok(inRange<set.count,`${set.opts.name}: the ${far} m cut drops something from ${id}`);}
 }
+// the round-39 far cuts: the herb layer and the tufts / cushions the carpet's cards stand for past 22–24 m; the hero sets have none
+assert.deepEqual([a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss].map(s=>s.opts.maxDistance),[16,24,22,24]);
+for(const set of a.plants.all)if(![a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss].includes(set))assert.equal(set.opts.maxDistance,undefined,`${set.opts.name} has no far cut`);
+assert.deepEqual(a.plants.tufts.opts.lodDistances,[10]);assert.deepEqual(a.plants.ferns.opts.lodDistances,[12,20]);
 // the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
 assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');
-assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0,1,2]]],'fiddleheads: per variant near, one far draw');
+assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0],[1],[2]]],'fiddleheads: per variant at both LODs (round 39)');
+assert.deepEqual(a.plants.flowers.packLayout[2],[[0,1],[2,3]],'flower far LOD in pairs too (round 39)');
 // the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0);
 // round 32: the strip the grass pass grows is the corrected one (house flight + flanks exempt)
 const grassMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'grass');
@@ -345,8 +354,14 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
 {const turf=box=>{const hs=[];for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<box[0]||x>box[2]||z<box[1]||z>box[3])continue;hs.push(Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]));}}
     return{perM2:hs.length/((box[2]-box[0])*(box[3]-box[1])),p50:q(hs,0.5),p95:q(hs,0.95)};};
   const band=turf([-3.1,-8.4,-1.9,-6.6]),north=turf([-2.2,-13.5,-1.6,-11.0]);
-  assert.ok(band.perM2>=150,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
+  // round 39: the base pass runs at ≈ 0.7 × density under the turf carpet (carpet.test: ≥ 3 clump cards / m² here, ≈ 200 atlas blades each), the band pass unchanged
+  assert.ok(band.perM2>=110,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
   assert.ok(band.p95<=0.27&&band.p50<=0.8*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
+// Round 39: the rubric's W15 floor (≥ 400 000 grass instances) rests on the blade tiles, the weeds and the
+// tufts alone — the always-in-the-scene-graph sets (index.ts grassInstances; the culled clump cards are not
+// counted) — with a margin over the reduced base density; the blade LODs end at 16 m under the carpet
+assert.ok(grass.count+a.plants.weeds.count+a.plants.tufts.count>=405000,`W15: blades ${grass.count} + weeds ${a.plants.weeds.count} + tufts ${a.plants.tufts.count} ≥ 405 000`);
+assert.deepEqual(grass.lodDistances,[6,16,16],'blade LOD ranges (round 39)');
 grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g of t.lods)g.dispose();}
 // dirt-seam litter along the rim (sheet 02 “Path boundary”), none of it on the slabs
 {const litterMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'litter'),litter=read('vegetation/litter').buildLitter(a.ctx,a.field,litterMaterial,new THREE.Group());
@@ -356,6 +371,16 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
   assert.ok(seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length>=10,`seam litter at the bank toe: ${seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length}`);
   const sample=newSample();for(const it of litter.twigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'twigs never lie on the paving');}
   for(const it of seam){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample)||it.y-a.ctx.terrain.height(it.x,it.z)>0.03,'seam litter is grass-seated; only the lifted sprinkle lies on slabs');}
+  // round 39: the leaves keep every instance submitted (cull: false, the B3 claim) but switch to a four-triangle
+  // lamina past LEAF_FAR_M; the far lamina keeps the near one's footprint (same length / heading from one stream)
+  assert.equal(litter.leaves.opts.cull,false,'leaves are never trimmed to the frame');
+  assert.deepEqual(litter.leaves.opts.lodDistances,[read('vegetation/litter').LEAF_FAR_M],'leaf far LOD at LEAF_FAR_M');
+  for(const [near,far] of litter.leaves.opts.variants){assert.equal(near.index.count/3,14);assert.equal(far.index.count/3,4);
+    near.computeBoundingBox();far.computeBoundingBox();const nb=near.boundingBox,fb=far.boundingBox;
+    assert.ok(Math.abs((nb.max.x-nb.min.x)-(fb.max.x-fb.min.x))<0.03&&Math.abs((nb.max.z-nb.min.z)-(fb.max.z-fb.min.z))<0.03,'far leaf keeps the near footprint');}
+  const camA=new THREE.Vector3(0.4,1.8,8.6);litter.leaves.update(camA,true);
+  const sub=litter.leaves.submission();assert.equal(sub.reduce((n,m)=>n+m.mesh.count,0),litter.leaves.count,'every leaf submitted from camera A');
+  assert.ok(sub.filter(m=>m.lod===1).reduce((n,m)=>n+m.mesh.count,0)>=0.9*litter.leaves.count,'≥ 90 % of the leaves are past LEAF_FAR_M from camera A');
   litterMaterial.dispose();for(const set of litter.all)for(const v of set.opts.variants)for(const g of v)g.dispose();}
 for(const fixture of[a,b]){const geos=new Set();fixture.group.traverse(o=>{if(o.isMesh){geos.add(o.geometry);o.dispose();}});for(const g of geos)g.dispose();for(const m of fixture.plants.materials)m.dispose();}
 console.log(JSON.stringify({passed:true,checkedVertices,checkedBases,shadowMeshes,bushes:a.plants.bushes.count,stripBlades:strip.length,stripHeightRatio:Math.round(q(strip,0.95)/q(lawn,0.95)*1000)/1000,note:'CPU geometry/placement contracts only; GPU capture and foliage appearance still require review.'}));
