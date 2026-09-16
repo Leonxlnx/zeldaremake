@@ -23,7 +23,16 @@
  * capture time and its ±0.3 s band (blink.test.mjs proves it over a seed sweep).
  *
  * A run starts with a blink too (her review videos show one): the same envelope from the time
- * the actor's gait chain switched to `run` (−Infinity for a hard switch, so never in a capture).
+ * the actor's gait chain recorded the run-start EVENT (`GaitChain.runBlinkT`, gaitChain.ts —
+ * −Infinity for a hard switch, so never in a capture). Round 8b: the event is one-shot and
+ * anchored at its start — once begun the envelope runs to completion as a function of
+ * (t − runBlinkT) whatever the gait does afterwards; the chain only starts a new one when the
+ * previous has finished, so a release two frames in, a second run start inside the envelope or
+ * toggles every few frames never truncate, restart or stutter the lids (Astra's PR #10
+ * reproduction: a release at full closure snapped the lids open in one frame because the
+ * closure was read only while the gait was run). Hard resets clear the event: a hard switch and
+ * a simulation-time jump (`isTimeJump`: backwards, or more than BLINK_RESET_JUMP_S forward — a
+ * `setTime` from the harness), so a rewound clock never replays a stale blink.
  * The two are combined by the larger closure — continuous in t, since each is.
  */
 import { hash2, hashString } from '../util/prng';
@@ -43,6 +52,8 @@ export const BLINK_GAP_MAX_S = BLINK_SLOT_S + 2 * BLINK_JITTER_S;
 /** the morph target names of the contract */
 export const BLINK_MORPH = 'blink';
 export const BLINK_HALF_MORPH = 'blinkHalf';
+/** a simulation clock that moves back, or forward by more than this (s) in one update, is a hard reset for the run-start event */
+export const BLINK_RESET_JUMP_S = 1;
 
 export interface BlinkSchedule {
   seed: string;
@@ -100,14 +111,25 @@ export function nextBlinkStart(s: BlinkSchedule, t: number): number {
 }
 
 /**
- * The closure phase at t: the scheduled blink and the run-start blink (`runSwitchT` — the time
- * the gait chain switched to run, −Infinity when it did not or the switch was hard), whichever
- * has the lids further down.
+ * The closure phase at t: the scheduled blink and the run-start event (`runBlinkT` — the time
+ * the gait chain recorded it, −Infinity when there is none), whichever has the lids further
+ * down. The event's envelope depends on t − runBlinkT alone, not on the current gait.
  */
-export function blinkPhase(s: BlinkSchedule, t: number, runSwitchT = -Infinity): number {
+export function blinkPhase(s: BlinkSchedule, t: number, runBlinkT = -Infinity): number {
   const p = scheduledBlinkPhase(s, t);
-  const r = Number.isFinite(runSwitchT) ? blinkEnvelope(t - runSwitchT) : 0;
+  const r = Number.isFinite(runBlinkT) ? blinkEnvelope(t - runBlinkT) : 0;
   return r > p ? r : p;
+}
+
+/**
+ * True when the simulation clock jumped between two updates — backwards, or forward by more than
+ * BLINK_RESET_JUMP_S — i.e. a `setTime` rather than a step; the run-start event is cleared then.
+ * A zero-dt update (t === lastT) and any ordinary step are not jumps; nor is the first update.
+ */
+export function isTimeJump(lastT: number, t: number): boolean {
+  if (!Number.isFinite(lastT)) return false;
+  const advance = t - lastT;
+  return advance < 0 || advance > BLINK_RESET_JUMP_S;
 }
 
 /** the contract's morph weights for the closure phase p (clamped to [0, 1]) */

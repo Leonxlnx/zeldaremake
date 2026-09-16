@@ -31,6 +31,7 @@ import { consolidateRigParts } from './consolidate';
 import { proceduralPuppet, type Puppet } from './puppet';
 import { hardChain, switchGait, type GaitChain, type SwitchHooks } from './gaitChain';
 import { LINK_GLB_FILE, loadGlbLink, type LinkAssetInfo } from './glbLink';
+import { BLINK_S, isTimeJump } from './blink';
 
 type Mode = 'view' | 'free' | 'play';
 
@@ -129,6 +130,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   let mode: Mode = 'free';
   let view: string | null = null;
   let camPose: CamPose | null = null;
+  /** simulation time of the previous update — only compared against the next one to recognise a clock jump */
+  let lastT = NaN;
   const lastCamPos = new Vector3(NaN, NaN, NaN);
   const lastCamDir = new Vector3();
   const tmpV = new Vector3();
@@ -142,12 +145,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * the current gait starting at t (gaitChain.ts `switchGait`): the incoming clip shifted to the
    * outgoing one's gait phase (glbLink.ts `alignClip`) so the planted foot matches across the
    * blend, the gait being left kept fading if its own crossfade is still running, an idle being
-   * left anchored where its soles are now (Puppet.anchor at this actor's position and facing).
+   * left anchored where its soles are now (Puppet.anchor at this actor's position and facing),
+   * and a crossfade into run recording the run-start blink event (blink.ts BLINK_S envelope).
    */
   const hooksOf = (a: Actor): SwitchHooks => ({
     align: (from, fromShift, to, t) => a.puppet.alignClip?.(from, fromShift, to, t) ?? 0,
     anchor: (gait, clipShift, t) => a.puppet.anchor?.(a.pos.x, a.pos.z, a.yaw, gait, clipShift, t) ?? null,
     hasPhase: (gait) => GAIT_SPEED[gait] > 0,
+    blinkS: BLINK_S,
   });
   const setGait = (a: Actor, gait: Gait, t: number | null = null) => switchGait(a, gait, t, hooksOf(a));
 
@@ -274,7 +279,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
 
   const poseActor = (a: Actor, t: number, look: Vector3 | null) => {
-    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gait: a.gait, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT, clipShift: a.clipShift, clipShiftFrom: a.clipShiftFrom, gaitFrom2: a.gaitFrom2, gaitSwitchT2: a.gaitSwitchT2, clipShiftFrom2: a.clipShiftFrom2, anchorFrom: a.anchorFrom, anchorFrom2: a.anchorFrom2 }, ground.height, a.contact, ground.surface);
+    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gait: a.gait, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT, clipShift: a.clipShift, clipShiftFrom: a.clipShiftFrom, gaitFrom2: a.gaitFrom2, gaitSwitchT2: a.gaitSwitchT2, clipShiftFrom2: a.clipShiftFrom2, anchorFrom: a.anchorFrom, anchorFrom2: a.anchorFrom2, runBlinkT: a.runBlinkT }, ground.height, a.contact, ground.surface);
     // contact shadow just above the ground under the body centre
     a.shadow.position.set(a.pos.x, ground.decalHeight(a.pos.x, a.pos.z, a.shadowRadius), a.pos.z);
   };
@@ -349,7 +354,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /**
        * the blink (blink.ts, Astra's morph contract): meshes carrying the `blink` / `blinkHalf` morphs (0 = inert drive),
        * the closure phase p of this pose and the weights set from it, the weights read back from the first morph mesh,
-       * the start of the next scheduled blink (sim s) and the schedule's seed / hash / slot parameters
+       * the start of the next scheduled blink (sim s), the run-start event's start the pose read (null = none; gaitChain.ts
+       * `runBlinkT`, one-shot, outlives the run) and the schedule's seed / hash / slot parameters
        */
       ...(() => {
         const b = link.puppet.blink?.() ?? null;
@@ -359,6 +365,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           blinkWeights: b ? { blink: Number(b.weights.blink.toFixed(4)), blinkHalf: Number(b.weights.blinkHalf.toFixed(4)) } : null,
           blinkApplied: b?.applied ? { blink: Number(b.applied.blink.toFixed(4)), blinkHalf: Number(b.applied.blinkHalf.toFixed(4)) } : null,
           blinkNextT: b ? Number(b.nextT.toFixed(4)) : null,
+          blinkRunT: b && Number.isFinite(b.runT) ? Number(b.runT.toFixed(4)) : null,
           blinkSchedule: b ? { ...b.schedule } : null,
         };
       })(),
@@ -387,7 +394,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     update(dt, t, c) {
       // a zero-dt update is a re-render of the same moment (a capture's determinism pass, a
       // harness shot): nothing moves and the gait must not be re-decided from the moved position
-      // a frame early — the play state is a function of the positive steps alone
+      // a frame early — the play state is a function of the positive steps alone.
+      // A simulation clock that JUMPED since the last update (a `setTime`: backwards, or more
+      // than a second forward — never a step, never a zero-dt re-render) is a hard reset for the
+      // run-start blink event: its envelope is anchored at a switch time and a rewound clock
+      // must not replay it (blink.ts `isTimeJump`; the chain's other times are left alone — a
+      // finished crossfade reads as finished at any later t, and the placement hard-switches).
+      if (isTimeJump(lastT, t)) for (const a of [link, ...kids]) a.runBlinkT = -Infinity;
+      lastT = t;
       if (mode === 'play') {
         if (dt > 0) stepPlayer(dt, t);
       } else {

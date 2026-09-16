@@ -1749,6 +1749,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   game d5213ba7) and a blink candidate (11c9a245: morphs blink / blinkHalf, 70/30/120 ms) — replied:
   blink runtime as character-8, one asset swap for the series on her reviewed SHA.
 
+### 22:05 UTC — tick 107: heartbeat (monitor `8c44c1a`); the owner's teaser; character-8 + the asset
+- 21:28 the owner asked for a teaser within the hour: `gauntlet/tmp/teaser.mjs` (aerial over the
+  plaza, the lantern bough's pods, the house, the stairs; character group hidden, HUD hidden; 49
+  frames at 6 fps → 24 fps) + ffmpeg title cards ("there is no wall." / "game development will be
+  democratized." / "next week :)") + an ORIGINAL synthesized ocarina-style melody (Nintendo's theme
+  cannot be embedded; the swap command was given). Delivered 22:00 as
+  /opt/cursor/artifacts/kokiri-teaser.mp4 (14.8 s).
+- character-8 merged (`c1bf59d`: the blink drive — one deterministic sim-time schedule, 70/30/120
+  ms, the phase constant keeps 12.6 / 14.0 s open-eyed, inert on the morph-less asset, six views
+  identical). Astra tested it with her morph asset and found the run-start envelope snaps open on
+  a rapid release → character-8b running (one-shot event anchored at the switch time).
+- Asset: the one swap is Astra's 844cb82b (`60364f5`, reviewed with the drive) — files swapped in
+  the workspace, uncommitted until 8b lands and the A audit confirms the loader (the 322c build
+  loaded: glb, 70,442 tris, 19 bones, 4 clips, morphTargets blink/blinkHalf).
+- atmosphere-14b (W35 on B/E) still running; take-0105 waits for it and the asset commit.
+- Astra's native perf numbers (780M: step 69.5 ms median, render-issue 56, ready 51.8 s) → perf-2
+  brief: ablations first, then the high path, then an explicit Auto mode.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1787,4 +1805,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T20:22:00Z
+2026-09-15T22:06:00Z

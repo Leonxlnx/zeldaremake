@@ -17,6 +17,15 @@
  * ground speed (idle) has no stance spots of its own to freeze, so where its soles are at the
  * switch is recorded (`anchorFrom`; the caller's `anchor`) and the puppet keeps them planted
  * there while it fades.
+ *
+ * Round 8b — the run-start blink is a one-shot EVENT the chain records (`runBlinkT`): a
+ * crossfade into `run` starts one at the switch time unless the previous one is still running
+ * (`hooks.blinkS`, the envelope length), and nothing else the gait does afterwards touches it —
+ * a release to idle two frames later, a second run start inside the envelope, toggles every few
+ * frames all leave the one envelope running to completion as a function of (t − runBlinkT).
+ * Astra's reproduction (PR #10): the closure was read only while the gait WAS run, so a release
+ * at full closure snapped the lids open in one frame. A hard switch (t null: placement, the
+ * captures) clears it; the character system also clears it on a simulation-time jump.
  */
 import type { Gait } from './animation';
 
@@ -49,10 +58,16 @@ export interface GaitChain {
    */
   anchorFrom: FootAnchor;
   anchorFrom2: FootAnchor;
+  /**
+   * Simulation time the current run-start blink event began (blink.ts: its envelope runs from
+   * here to completion whatever the gait does next); −Infinity = none. Set by a crossfade into
+   * run when no event is running, cleared by a hard switch or a time jump.
+   */
+  runBlinkT: number;
 }
 
 export function hardChain(gait: Gait): GaitChain {
-  return { gait, gaitFrom: gait, gaitSwitchT: -Infinity, clipShift: 0, clipShiftFrom: 0, gaitFrom2: gait, gaitSwitchT2: -Infinity, clipShiftFrom2: 0, anchorFrom: null, anchorFrom2: null };
+  return { gait, gaitFrom: gait, gaitSwitchT: -Infinity, clipShift: 0, clipShiftFrom: 0, gaitFrom2: gait, gaitSwitchT2: -Infinity, clipShiftFrom2: 0, anchorFrom: null, anchorFrom2: null, runBlinkT: -Infinity };
 }
 
 const smoothstep = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
@@ -87,6 +102,8 @@ export interface SwitchHooks {
   anchor?: (gait: Gait, clipShift: number, t: number) => FootAnchor;
   /** true for a gait with ground speed (a swing table and a gait phase) */
   hasPhase: (gait: Gait) => boolean;
+  /** length (s) of the run-start blink envelope: a crossfade into run starts an event at t unless one began less than this ago; absent = no run-start blinks */
+  blinkS?: number;
 }
 
 /**
@@ -105,9 +122,12 @@ export function switchGait(c: GaitChain, gait: Gait, t: number | null, hooks: Sw
     c.clipShiftFrom2 = 0;
     c.anchorFrom = null;
     c.anchorFrom2 = null;
+    c.runBlinkT = -Infinity;
     c.gait = gait;
     return;
   }
+  // a run starts with a blink — one event, never restarted while the previous one still runs
+  if (gait === 'run' && hooks.blinkS !== undefined && !(t - c.runBlinkT < hooks.blinkS)) c.runBlinkT = t;
   // the crossfade into the gait being left is still running: its own source keeps fading
   const chained = t - c.gaitSwitchT < BLEND_S;
   c.gaitFrom2 = c.gaitFrom;

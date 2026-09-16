@@ -1,3 +1,5 @@
+Integration note: Fable adopted parent 0c28cb62 in af5ede8. This branch retains the newer reviewed 3f6cb6f3 asset while integrating his character-8b blink event. Tone-b post-processing is under visual review and is not retained here.
+
 Retained alert eyelid opening: 3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf
 774 orbital vertices adjusted; aperture height19.93 to23.23mm. Fully closed positions retained and half-blink correctly rebased. Native21phase checks show no eye overlaps or triangle reversals relative to baseline. Clips, textures, UVs, weights and binds preserved.36 actual movement/blink records match prior build; five game blink phases inspected. Closed-lid ridges remain. Evidence: art/characters/link/progress/2026-09-16-alert-eyelid-review.
 
