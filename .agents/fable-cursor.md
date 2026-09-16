@@ -1835,6 +1835,37 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   F has 0 % sun-gap highlights vs 3.1 %); D mid band dissolves (sd 0.086 vs 0.128); F foreground
   under-lit (0.380 vs 0.471) and its mid band 22 % near-black vs 0.3 %.
 
+### 11:50 UTC — tick 111: round 38 sealed — take-0107 `78a0ca1` (mean 0.3106 → 0.3189, every view a series best)
+- (No tick notifications reached me 04:05–10:05; the six round-38 agents ran on through the gap.
+  Their worktrees were integrated from their branches — reports pending — at 10:40–11:20.)
+- Merged: r38/hard `0fc0d68` (main landing slab tops within 8 mm of the analytic terrace; D paving
+  stretch and house-west apron measured, then withdrawn), r38/veg `9abc879` (house understory:
+  terrace crowns, trunk-base tiers, verge flowers; carpet on C's bank withdrawn), r38/perf `30ccd30`
+  (perfFlags.ts: fx/shadow/veg/scale/quality=auto/gov; shadow-caster sweep cull image-identical,
+  draws −0.7…−17 %/view; ablation matrix: shadow pass 35 % of draws / 33 % of tris, composer 22
+  draws, vegetation 120 draws / 3.2 M tris; gauntlet/perf/ABLATIONS.md with native commands for
+  Astra), r38/tex `d354eed` (2K tier of all 34 Poly Haven maps, hero sets on high, ≈435 MB est.,
+  max anisotropy), r38/tone `55dc4bc` (extinction altitude profile, open-side density cap,
+  depth-banded AO 0.4→0.2, hemisphere ground bounce; **its 1.2 near-unsharp refused at the merge —
+  0.25 stays**), r38/trees `f421764` (flat bank-canopy lobes over the stair bank for F/C with
+  clumped outlines: F +0.020).
+- **take-0107**: A 0.3083, B 0.2885, C 0.3318, D 0.3686, E 0.3010, F 0.3152. vs take-0105:
+  +0.0027 / +0.0044 / +0.0051 / +0.0075 / +0.0043 / +0.0196. Draws 536, 6.51 M tris on A. W35 B/E
+  0.774 / 0.724 (no unsharp) → D2 marks the take invalid against take-0105 until detail earns it.
+  Monitor `06475c0`. Loader: 24591126 glb, 70,442 tris, blinkMorphs 3.
+- Owner 02:57: (1) tree bases "super highly detailed like the game", (2) grass dense — no
+  individual blades, (3) efficient "byte for byte, same quality". Close-up audit of the bases
+  (/opt/cursor/artifacts/treebase-audit-a9ef29f.jpg) confirms flat grey-green cylinders
+  (NEAR_BOLE_M = 0 since round 30) and flat single-colour leaf polygons within 4 m. Launched
+  vegetation-20 (r39/veg: clump cards over turf, −30 % vegetation tris) and trees-23 (r39/trees:
+  near-bole LOD by camera distance — relief, buttress roots, moss, lichen, base plants; Astra's
+  root-base kit a57c6dd3 on two test boles; 1024/2048 leaf clusters near). Astra: takes a bounded
+  Blender tree-base kit (prototype `9b125af`), declines grass textures; 24591126 adopted with its
+  paired run CLIP_SPEC (`14a3f42`); broll.mjs committed (`b35f3b2`) — she renders 4K natively if
+  the owner asks again (video dropped for now).
+- Biggest gaps: W35 on B/E (needs detail, not filters); tree bases + near leaf geometry (owner's
+  #1); grass carpet; far veil still flat in C/D's mid band (sd 0.086 vs 0.128 pre-round — remeasure).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1873,4 +1904,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T02:45:00Z
+2026-09-16T11:50:00Z

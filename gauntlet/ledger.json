@@ -11471,6 +11471,121 @@
       },
       "prevHash": "sha256:e508c0be705940cbd0fe875138a80e7bcf01e51fd04ff431cf48723e7efe17f8",
       "hash": "sha256:09658d6b5bc627dcaf558690367baf64c3af0aeec9f1b15d36bc9ca5bef01891"
+    },
+    {
+      "id": "take-0107",
+      "number": 107,
+      "at": "2026-09-16T11:16:56.946Z",
+      "sha": "78a0ca15b8698f6dec6e3cebfbc1fa41fe5061b2",
+      "shortSha": "78a0ca1",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'r38/trees' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W06",
+        "W10",
+        "W38",
+        "C01"
+      ],
+      "note": "Round 38 sealed on 78a0ca1, the largest round gain since round five: A 0.3083 B 0.2885 C 0.3318 D 0.3686 E 0.3010 F 0.3152 (mean 0.3106 -> 0.3189), every view a series best. What landed: trees-22 flat bank-canopy lobes over the stair bank with clumped outlines (F +0.020, C +0.005 - the frames' dark canopy structure where ours was a veil), atmosphere-15 haze extinction altitude profile + open-side density cap + depth-banded AO (0.4 near -> 0.2 far) + hemisphere ground bounce (D +0.007, E +0.006, B +0.005; its 1.2 near-unsharp proposal refused - 0.25 stays), textures-2k (a 2K tier of all 34 Poly Haven maps, hero sets on high, max anisotropy), perf-2 (ablation flags fx/shadow/veg/scale, quality=auto governor, shadow-caster sweep cull image-identical: draws -0.7..-17 % per view; ABLATIONS.md with native commands), hardscape-29 (main landing slab tops within 8 mm of the analytic terrace; D paving and house-west apron experiments measured and withdrawn), vegetation-19 (house understory: terrace crowns, trunk-base tiers, verge flowers). Astra's 24591126 Link with its paired run CLIP_SPEC (stride 1.82 m, 28/60 s). W35 still fails on B/E (0.774 / 0.724) without the rejected sharpen-and-blur; it is to be earned by the running grass-carpet and tree-base detail passes. Draws 536, 6.51 M tris on A.",
+      "score": {
+        "passed": 22,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "fail",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:3bbc9f5204d6d397a8edd5fc8d830185c1a2cd42263b0d32081d4c978c790819",
+        "B_house": "sha256:1368c194d318ffe7cb4ed54c8a3ffff90785771d3bf5053d5bf76d98fc93e85c",
+        "C_lookback": "sha256:8a024a7009787d3e0eb89306326554b9d34587b95ce98587ae86975e2ca4ec36",
+        "D_log": "sha256:83a2b08967ff375b8ddcf4287ab45f3cff9c64088a8d67f28cc9ea2aa81b0ae2",
+        "E_ground": "sha256:1368c194d318ffe7cb4ed54c8a3ffff90785771d3bf5053d5bf76d98fc93e85c",
+        "F_canopy": "sha256:69c113bdd3365fbacbf5504103fb416bb8113a9fb4d5c15d5fa35cb6c68044e9"
+      },
+      "distHash": "sha256:ce503295b4ba7cbf15d0dbb0d9a270f715cfb4ea133d03e051353fb5fde80f8f",
+      "stats": {
+        "drawCalls": 539,
+        "triangles": 8637165,
+        "captureMs": 1641516,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [
+        "W35"
+      ],
+      "flags": [],
+      "valid": false,
+      "invalid": "D2 regression: W35 (vs take-0105)",
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W04",
+        "W06",
+        "W10",
+        "W38",
+        "C01"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take108-cap",
+        "importedAt": "2026-09-16T11:20:54.485Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:09658d6b5bc627dcaf558690367baf64c3af0aeec9f1b15d36bc9ca5bef01891",
+      "hash": "sha256:7c9f11ee56501e5aad9ba4f8bb06819dbf73caef6eef39b2079e31e768c93f7b"
     }
   ]
 }
