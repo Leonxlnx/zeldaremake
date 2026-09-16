@@ -91,12 +91,13 @@ export async function createWorld(opts: {
     layout: LAYOUT,
     config: WORLD,
     rng: createRng(WORLD.seed),
-    textures: createTextureLibrary(opts.renderer.capabilities.getMaxAnisotropy()),
+    textures: createTextureLibrary(opts.renderer.capabilities.getMaxAnisotropy(), opts.quality.tier),
     headless: opts.headless,
     shared: {},
     audit: (name, fn) => opts.audits.set(name, fn),
     progress: (name, value) => opts.onProgress?.(name, value),
   };
+  ctx.audit('textures', () => ({ ...ctx.textures.report() }));
 
   const systems: WorldSystem[] = [];
   const failures: SystemFailure[] = [];
