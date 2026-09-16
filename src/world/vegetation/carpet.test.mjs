@@ -53,9 +53,9 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
 // determinism: a fresh seed and terrain reproduce every card
 for(const k of['clumps','mats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
   for(let i=0;i<first.count;i++)assert.deepEqual(first.items[i],second.items[i],`${k} ${i} reproduced`);}
-// counts and density: a closed carpet over the lawns (≈ 4 clumps / m², ≈ 2.5 mats / m²)
+// counts and density: a closed carpet over the lawns (≈ 4 clumps / m², ≈ 4 mats / m²)
 assert.ok(a.carpet.clumps.count>=12000&&a.carpet.clumps.count<=30000,`clumps: ${a.carpet.clumps.count}`);
-assert.ok(a.carpet.mats.count>=8000&&a.carpet.mats.count<=20000,`mats: ${a.carpet.mats.count}`);
+assert.ok(a.carpet.mats.count>=12000&&a.carpet.mats.count<=28000,`mats: ${a.carpet.mats.count}`);
 assert.ok(CLUMP_CELL<=0.45&&MAT_CELL<=0.6);
 const perM2=(set,b)=>set.items.filter(it=>inBox(it,b)).length/((b[2]-b[0])*(b[3]-b[1]));
 // (the north verge lies in shot D's soil shoulder — frame 56 s' ragged earth edge — where the mats thin like the blades)
@@ -110,8 +110,8 @@ assert.equal(clumpMat.alphaTest,0.5);assert.equal(matMat.alphaTest,0.5);assert.e
     assert.equal(sh.uniforms.uCardMode.value,mode);assert.deepEqual(sh.uniforms.uTileGrid.value.toArray(),[...(mode?MAT_GRID:CLUMP_GRID)]);
     assert.match(sh.vertexShader,/attribute vec4 aData;/);assert.match(sh.vertexShader,/windGrass\(vegWorld\.xyz, uv\.y, aData\.x, aData\.y\)/,'the blades\' wind layer');
     assert.match(sh.vertexShader,/uniform float uTime;/);assert.match(sh.fragmentShader,/texture2D\(uAtlas, vAtlasUv\)/);
-    // the clumps keep three's double-sided flip (the blades' dark back faces); the mats are FrontSide, so no DOUBLE_SIDED define reaches it
-    assert.match(sh.fragmentShader,/#include <normal_fragment_begin>/,'three\'s normal block, flip and all');
+    // the card normal: the facing flips on the back planes, the up part never does (three's whole-normal flip is replaced)
+    assert.doesNotMatch(sh.fragmentShader,/#include <normal_fragment_begin>/);assert.match(sh.fragmentShader,/normalize\(vCardFace\) \* faceDirection, normalize\(vCardUp\), uUpMix/,'facing-only flip');
     assert.equal(sh.uniforms.uUpMix.value,mode?1:0.55,'the blades\' 0.55 terrain-up blend on the clumps, ground-flat mats');
     assert.match(sh.fragmentShader,/#include <alphatest_fragment>/);assert.match(sh.fragmentShader,/uTransmission \* vegAtlasT/,'translucency from the atlas');
     assert.match(sh.fragmentShader,/uShadeFill \* vShadeLift/,'the blades\' shade fill');

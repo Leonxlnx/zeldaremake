@@ -146,13 +146,16 @@ const ALL = (n: number): number[][] => [Array.from({ length: n }, (_, v) => v)];
 const PACKS: Record<string, PackLayout> = {
   // 965 clumps of the biggest geometry: near / mid LODs one draw per variant, far LOD in pairs
   ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
-  // the two heads and the two spikes pair up near and mid, everything shares the far draw
-  flowers: [[[0, 1], [2, 3]], [[0, 1], [2, 3]], ALL(4)],
+  // the two heads and the two spikes pair up at every LOD (round 39: the far draw packed all four,
+  // 834 triangles an instance for 117 far violets from camera A — 98 K; in pairs 49 K, one draw more)
+  flowers: [[[0, 1], [2, 3]], [[0, 1], [2, 3]], [[0, 1], [2, 3]]],
   // 3 000+ laminae: one draw per variant at both LODs (packing the 2 900 far ones would cost 150 K)
   weeds: [SINGLE(3), SINGLE(3)],
   seedheads: [ALL(3), SINGLE(3)],
-  // 428–856-triangle coils: per variant near, one draw for the 160+ far buds
-  fiddleheads: [SINGLE(3), ALL(3)],
+  // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
+  // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
+  // more — paid for by the grass tiles' far draws, see grass.ts)
+  fiddleheads: [SINGLE(3), SINGLE(3)],
   // 12 hero hedges, all high-LOD from every camera: packing ALL(3) near submitted 3x the placed
   // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
   hedge: [SINGLE(3), ALL(3), ALL(3)],
@@ -180,7 +183,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
 
   // round 31: the near LOD's serrated pinnae read out to 12 m (was 11; 14 m put frame F at +1.51 M
   // triangles over the control — 57 flank clumps sit 12–14 m from camera F, ≈ 4.8 K each with the shadow pass)
-  const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [12, 26], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
+  // round 39: the mid LOD (≈ 1 000 triangles) hands over to the far one (≈ 460) at 20 m instead of
+  // 26 — a 0.6 m clump is 28–36 px tall there, the same silhouette either way; placement,
+  // geometry and the near range are untouched (the mid LOD was 409 K triangles from camera A)
+  const ferns = mk('ferns', variants(4, `${seed}/fern`, pal, fernGeometry), 'plant', [12, 20], 1, { sway: 2.6, flutter: 0.012, stiffness: 0.3 });
   // Hero crowns are read at frond scale from 6–8 m in shot D: high LOD out to 16 m. The reference
   // clump is sunlit (0.35 mean, 0.49 p90 in frame 56) while our west verge sits under the
   // north-west-near canopy, where fill alone rendered the fronds at 0.24: the crowns get the same
@@ -221,7 +227,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // little lamina flutter) and the blades' translucency
   // the near LOD casts shadows: the frames' banks are lit blade ends over dark hearts, and a
   // tuft's own shadow on the turf under it is that contrast (the tile grass casts none)
-  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [16], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 });
+  // round 39: the near LOD to 10 m — the turf carpet's clump cards (carpet.ts) now stand between
+  // the tufts everywhere, so a tuft 10–16 m out is one clump among many and its 30-triangle far
+  // LOD reads the same; the near tufts' 130 triangles and shadow pass were 240–340 K from A / B
+  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 });
   const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 });
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 

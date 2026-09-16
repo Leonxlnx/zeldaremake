@@ -319,7 +319,8 @@ for(const set of a.plants.all)if(set!==a.plants.clover&&set!==a.plants.fiddlehea
 // the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
 assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');
-assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0,1,2]]],'fiddleheads: per variant near, one far draw');
+assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0],[1],[2]]],'fiddleheads: per variant at both LODs (round 39)');
+assert.deepEqual(a.plants.flowers.packLayout[2],[[0,1],[2,3]],'flower far LOD in pairs too (round 39)');
 // the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0);
 // round 32: the strip the grass pass grows is the corrected one (house flight + flanks exempt)
 const grassMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'grass');

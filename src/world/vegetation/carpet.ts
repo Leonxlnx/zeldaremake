@@ -34,7 +34,8 @@ import { createVegMaterial } from './materials';
 
 /** jittered grid pitch (m) of the clump cards and of the mats */
 export const CLUMP_CELL = 0.42;
-export const MAT_CELL = 0.48;
+/** the mats overlap (≈ 5 / m² of 0.35 m² each): one continuous turf layer, not blobs on soil */
+export const MAT_CELL = 0.42;
 /** clump card footprint (m): width range, height range; the atlas tile is 2 : 1 so a card keeps ≈ that aspect */
 const CLUMP_WIDTH: readonly [number, number] = [0.42, 0.62];
 const CLUMP_HEIGHT: readonly [number, number] = [0.19, 0.32];
@@ -139,18 +140,20 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
   const atlas = createClumpAtlas(ctx.rng);
   const materials: Material[] = [];
 
-  // the clumps take the blades' normal blend (0.55 toward the terrain up) and their double-sided
-  // flip, so a fan's back planes go dark under its lit front ones; the atlas lightness runs the
-  // root mass at ≈ 0.55 × the blade colour up to the lit tips at ≈ 1.0 ×
+  // the clumps take the blades' normal blend (0.55 toward the terrain up); a fan's back planes
+  // flip their facing only (materials.ts CARD_NORMAL_FRAGMENT_BEGIN), half-lit under the front
+  // ones; the atlas lightness runs the root mass at ≈ 0.65 × the blade colour to lit tips ≈ 1.05 ×
   const clumpMaterial = createVegMaterial(ctx, 'card', {
     name: 'veg-grass-clumps',
-    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.55, lum: [0.35, 0.75], alphaBoost: 0.22 },
+    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.55, lum: [0.5, 0.6], alphaBoost: 0.22 },
   });
+  // the mats are the turf's mid tone under the clumps — not a feature: the blade colour at mid
+  // height, ≈ 0.65–0.95 × it over the dabs, so a mat and the blades over it are one surface
   const matMaterial = createVegMaterial(ctx, 'card', {
     name: 'veg-turf-mats',
     singleSided: true,
     transmission: 0,
-    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: MAT_GRID, mode: 1, upMix: 1, lum: [0.7, 0.5], alphaBoost: 0.12 },
+    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: MAT_GRID, mode: 1, upMix: 1, lum: [0.5, 0.45], alphaBoost: 0.12 },
   });
   materials.push(clumpMaterial, matMaterial);
 
@@ -280,9 +283,11 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // never over the paving or a stepping stone
     w = Math.min(w, (t.edge - 0.02) * 2, (t.stone + 0.04) * 2);
     if (w < 0.25) return;
-    const tint = t.tn + rng.gauss() * 0.12 * (1 - BANK_FLAT * t.bank);
+    // little mat-to-mat tint noise (the blades' 0.18): neighbouring mats share a palette entry
+    // and read as one turf, the zone drift alone varies it
+    const tint = t.tn + rng.gauss() * 0.06 * (1 - BANK_FLAT * t.bank);
     const tintIndex = tint < -0.28 ? 0 : tint < 0.12 ? 1 : tint < 0.48 ? 2 : 3;
-    const dry = clamp(t.dryP * (0.3 + 0.7 * rng()), 0, 0.95);
+    const dry = clamp(t.dryP * (0.3 + 0.7 * rng()), 0, 0.95) * 0.6;
     const tile = rng.int(0, atlas.matTiles);
     const yaw = rng() * Math.PI * 2;
     const y = T.height(x, z) + MAT_LIFT;

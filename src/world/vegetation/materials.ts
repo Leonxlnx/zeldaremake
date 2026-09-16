@@ -141,11 +141,16 @@ uniform float uUpMix;
 varying float vBladeT;
 varying float vShadeLift;
 varying vec2 vAtlasUv;
+varying vec3 vCardFace;
+varying vec3 vCardUp;
 `;
 
 const CARD_COLOR_VERTEX = /* glsl */ `
-// a mat is one mid-blade tone (the turf seen from above is blade sides, not roots or tips)
-float bladeT = uCardMode > 0.5 ? 0.62 : uv.y;
+// a mat is one mid-blade tone (the turf seen from above is blade sides, not roots or tips); a
+// clump runs the blades' root → tip gradient over its height, but from a third of the way up:
+// the atlas root mass is a broad area where a blade's root is a sliver, and the frames' tufts
+// are dark-hearted, not black-footed
+float bladeT = uCardMode > 0.5 ? 0.5 : 0.3 + 0.7 * uv.y;
 vBladeT = bladeT;
 float vegDry = fract(aData.w);
 float atlasTile = floor(aData.w + 0.001);
@@ -166,16 +171,27 @@ vColor = vec4(bladeColor, 1.0);
 #endif
 `;
 
-// the lighting normal: the card's facing pulled toward the terrain up (uUpMix), so a carpet of
-// crossed cards shades like one ground surface instead of a field of bright and dark planes
+// the lighting normal: the card's facing pulled toward the terrain up (uUpMix), the blades'
+// blend (0.55). The two parts go to the fragment separately (CARD_NORMAL_FRAGMENT_BEGIN): a plane
+// seen from behind flips its facing but keeps its up, so the back planes of a fan sit in
+// half-light under the lit front ones — the frames' dark-hearted tufts — where three's whole-normal
+// flip would turn them toward the ground and black
 const CARD_NORMAL_VERTEX = /* glsl */ `
 vec3 transformedNormal;
 {
   mat3 im = mat3(instanceMatrix);
   vec3 cardUp = normalize(im[1]);
   vec3 cardFace = normalize(im * normal);
+  vCardFace = normalMatrix * cardFace;
+  vCardUp = normalMatrix * cardUp;
   transformedNormal = normalMatrix * normalize(mix(cardFace, cardUp, uUpMix));
 }
+`;
+
+const CARD_NORMAL_FRAGMENT_BEGIN = /* glsl */ `
+float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;
+vec3 normal = normalize(mix(normalize(vCardFace) * faceDirection, normalize(vCardUp), uUpMix));
+vec3 nonPerturbedNormal = normal;
 `;
 
 const CARD_PROJECT_VERTEX = /* glsl */ `
@@ -192,7 +208,10 @@ uniform sampler2D uAtlas;
 uniform vec2 uAtlasSize;
 uniform vec2 uAtlasLum;
 uniform float uAlphaBoost;
+uniform float uUpMix;
 varying vec2 vAtlasUv;
+varying vec3 vCardFace;
+varying vec3 vCardUp;
 `;
 
 /**
@@ -515,9 +534,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
     const lights = (grassLike ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '')).replace('//VEG_TRANSMISSION//', card ? ' * vegAtlasT' : '');
     fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
-    // the clump cards keep three's double-sided normal flip like the blades: the planes seen
-    // from behind go dark, the frames' "lit blade ends over dark hearts"; the mats are front-only
-    if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT);
+    if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT).replace('#include <normal_fragment_begin>', CARD_NORMAL_FRAGMENT_BEGIN);
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
