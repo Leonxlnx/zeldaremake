@@ -4,7 +4,7 @@
  * - Sun: DirectionalLight from `config.sun` (azimuth −128°, elevation 38° → shadows on the plaza
  *   fall toward camera-right/front in shot A, light enters from the upper-left). One 4096²
  *   PCF shadow map whose orthographic window is fitted ahead of the camera (radius 46 m, centre
- *   18 m along the view direction, snapped to 1 m) so texels serve visible content: ~2.2 cm/texel
+ *   18 m along the view direction, aligned to the light-camera texel grid) so texels serve visible content: ~2.2 cm/texel
  *   with a 4-texel Vogel-disk penumbra → soft, crisp contact shadows.
  * - Hemisphere sky/ground bounce.
  * - Environment PMREM rendered from the procedural sky (see ../atmosphere/sky.ts) for matching
@@ -20,12 +20,12 @@ import { buildSkyEnvironment } from './environment';
 import { encodeShadowRadius, installShadowFilter, searchTapsFor, SHADOW_FILTER_DEFAULTS } from './shadowfilter';
 import { WORLD } from '../config';
 import { perfFlags, perfRuntime } from '../../perfFlags';
+import { createShadowTargetSnapper } from './shadowframe';
 
 export { sunDirection } from './sun';
 
 const SHADOW_RADIUS_M = 46;
 const SHADOW_AHEAD_M = 18;
-const SHADOW_SNAP_M = 1;
 const SUN_DISTANCE_M = 140;
 const SHADOW_NEAR_M = 40;
 const SHADOW_FAR_M = 250;
@@ -90,6 +90,8 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.shadow.camera.top = SHADOW_RADIUS_M;
   sun.shadow.camera.bottom = -SHADOW_RADIUS_M;
   sun.shadow.camera.updateProjectionMatrix();
+  let shadowTexelM = (2 * SHADOW_RADIUS_M) / sun.shadow.mapSize.x;
+  let snapShadowTarget = createShadowTargetSnapper(dir, sun.shadow.camera.up, shadowTexelM);
   sun.shadow.bias = -0.00012;
   sun.shadow.normalBias = 0.028;
   // the filter's minimum blur in texels (contact shadows): the PCSS penumbra grows from here with
@@ -162,6 +164,8 @@ export function create(ctx: WorldContext): WorldSystem {
     shadowSearchTaps: SHADOW_DYNAMIC ? searchTapsFor(perfRuntime().shadowTaps) : SHADOW_FILTER.searchTaps ?? 8,
     shadowFilterDynamic: SHADOW_DYNAMIC,
     shadowWindowRadiusM: SHADOW_RADIUS_M,
+    shadowSnapSpace: 'light-camera-texel',
+    shadowSnapMetres: shadowTexelM,
     shadowTexelCm: Math.round(((2 * SHADOW_RADIUS_M) / sun.shadow.mapSize.x) * 1000) / 10,
     shadowBias: sun.shadow.bias,
     shadowNormalBias: sun.shadow.normalBias,
@@ -194,6 +198,8 @@ export function create(ctx: WorldContext): WorldSystem {
     const size = perf.shadowMapSize > 0 ? perf.shadowMapSize : SHADOW_MAP_SIZE;
     if (sun.shadow.mapSize.x !== size) {
       sun.shadow.mapSize.set(size, size);
+      shadowTexelM = (2 * SHADOW_RADIUS_M) / size;
+      snapShadowTarget = createShadowTargetSnapper(dir, sun.shadow.camera.up, shadowTexelM);
       const map = sun.shadow.map;
       if (map) {
         map.depthTexture?.dispose();
@@ -219,15 +225,17 @@ export function create(ctx: WorldContext): WorldSystem {
         applyPerf();
         sun.shadow.radius = encodeShadowRadius(sun.shadow.radius, perfRuntime().shadowTaps);
       }
-      // shadow window fitted ahead of the camera, snapped to metre steps to avoid shimmering
+      // Fit ahead on terrain, then keep the light camera on its own texel lattice.
+      // World-metre rounding shifts fractional shadow texels as the player walks.
       c.camera.getWorldPosition(camPos);
       c.camera.getWorldDirection(camDir);
       camDir.y = 0;
       if (camDir.lengthSq() < 1e-6) camDir.set(0, 0, -1);
       camDir.normalize();
-      const cx = Math.round((camPos.x + camDir.x * SHADOW_AHEAD_M) / SHADOW_SNAP_M) * SHADOW_SNAP_M;
-      const cz = Math.round((camPos.z + camDir.z * SHADOW_AHEAD_M) / SHADOW_SNAP_M) * SHADOW_SNAP_M;
+      const cx = camPos.x + camDir.x * SHADOW_AHEAD_M;
+      const cz = camPos.z + camDir.z * SHADOW_AHEAD_M;
       target.position.set(cx, c.terrain.height(cx, cz), cz);
+      snapShadowTarget(target.position, target.position);
       sun.position.copy(target.position).addScaledVector(dir, SUN_DISTANCE_M);
     },
   };

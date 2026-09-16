@@ -1,0 +1,1 @@
+{"passed":true,"projections":11520,"worstStableTexelPhase":2.9558577807620168e-12,"worstLegacyTexelPhase":0.499086680633809,"scope":"Real Three.js shadow matrices under camera/terrain motion; GPU appearance and moving vegetation still need review."}
