@@ -90,8 +90,12 @@ export function sampleCurve(fn: (t: number) => Vector3, segments: number): Vecto
   return Array.from({ length: segments + 1 }, (_, j) => fn(j / segments));
 }
 
-/** Tapered tube along a polyline with parallel-transported frames (no twist flips on arches). */
-export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, tipRadius: number, color: RGB, sides = 4, caps = false) {
+/**
+ * Tapered tube along a polyline with parallel-transported frames (no twist flips on arches).
+ * `colorAt(t)` (round 40) replaces the default faint root → tip lift with a caller's lengthwise
+ * gradient — a stem that crosses the lens needs a darker foot and a lit tip to read as a stem.
+ */
+export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, tipRadius: number, color: RGB, sides = 4, caps = false, colorAt?: (t: number) => RGB) {
   const rings: number[][] = [];
   let previousA: Vector3 | undefined;
   for (let j = 0; j < points.length; j++) {
@@ -104,10 +108,11 @@ export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, t
     const t = j / (points.length - 1);
     const radius = rootRadius + (tipRadius - rootRadius) * t;
     const ring: number[] = [];
+    const ringColor = colorAt ? colorAt(t) : tone(color, 0.92 + t * 0.12);
     for (let k = 0; k < sides; k++) {
       const angle = (k * TAU) / sides;
       const point = points[j].clone().addScaledVector(a, Math.cos(angle) * radius).addScaledVector(b, Math.sin(angle) * radius);
-      ring.push(mesh.vertex(point, NOT_LAMINA + k / sides, t, tone(color, 0.92 + t * 0.12)));
+      ring.push(mesh.vertex(point, NOT_LAMINA + k / sides, t, ringColor));
     }
     rings.push(ring);
   }

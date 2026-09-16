@@ -21,6 +21,8 @@ export const HERO_FERN_DETAILS: Detail[] = ['ultra', 'high', 'mid', 'low'];
  * budgets are untouched and only the walking eye pays for it.
  */
 export const HERO_FERN_ULTRA_M = 5;
+/** the ultra rachis' sides (the high LOD's 5 read as a flat wedge from 10 cm) */
+export const HERO_RACHIS_SIDES = 8;
 
 export interface PlantPalette {
   fern: RGB;
@@ -159,6 +161,19 @@ export function fernGeometry(seed: string, pal: PlantPalette, detail: Detail): B
  * yellow-olive (`#69692e` in the footage) rather than the deep shade green of the understory
  * ferns, so the clump reads as the bright mass the reference box measures (lum ≈ 0.36).
  */
+/**
+ * The ultra rachis gradient (round 40): a darker, slightly warmer foot (toward the bark, a touch
+ * of red) rising to a lit green tip (toward the sunlit frond); the other LODs keep the flat stem tone.
+ */
+export function heroRachisTones(pal: PlantPalette): { foot: RGB; tip: RGB } {
+  const frondColor = blend(pal.fern, pal.leafSun, 0.5);
+  const stemColor = blend(pal.stem, frondColor, 0.4);
+  return {
+    foot: tone(blend(blend(stemColor, pal.bark, 0.45), [0.42, 0.3, 0.16], 0.18), 0.78),
+    tip: tone(blend(stemColor, blend(frondColor, pal.leafSun, 0.4), 0.55), 1.1),
+  };
+}
+
 export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
@@ -177,6 +192,7 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
   // understory fern green, and stay legible as separate arches against the dark bank
   const frondColor = blend(pal.fern, pal.leafSun, 0.5);
   const stemColor = blend(pal.stem, frondColor, 0.4);
+  const { foot: rachisFoot, tip: rachisTip } = heroRachisTones(pal);
   // rootstock: a stubby fibrous trunk the fronds spring from
   tube(m, [V(0, -0.02, 0), V(0.01, 0.06, 0), V(0, 0.13, 0.01)], 0.055, 0.035, tone(pal.bark, 0.9), high ? 6 : 4, true);
   for (let f = 0; f < fronds; f++) {
@@ -190,7 +206,12 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
     const rise = inner ? 0.62 : 0.7 + rng() * 0.1;
     const curve = arch(radial, lateral, reach, (rng() - 0.5) * 0.14, h, rise);
     const segs = high ? 12 : low ? 5 : 7;
-    tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, high ? 5 : 3);
+    // round 40: at the ultra LOD the rachis is what crosses the lens when the camera stands inside
+    // the fern (the tree-base audit's "flat wedge" in northwest-base: a 5-sided 12 mm tube at 10 cm):
+    // 8 sides and a lengthwise gradient — a darker, warmer foot rising to the frond's lit green —
+    // so it reads as a stem; the other LODs keep their 5 / 3 sides and flat tone (+72 triangles a frond)
+    if (ultra) tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, HERO_RACHIS_SIDES, false, (t) => blend(rachisFoot, rachisTip, Math.pow(t, 0.8)));
+    else tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, high ? 5 : 3);
     const pairs = high ? 12 : low ? 6 : 8;
     const frondTone = 0.86 + rng() * 0.34;
     for (let p = 0; p < pairs; p++) {

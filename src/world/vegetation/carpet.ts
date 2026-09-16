@@ -26,7 +26,7 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Sphere, Uint16BufferAttribute, Vector3, type Material } from 'three';
 import type { WorldContext } from '../system';
 import { clamp, smoothstep } from '../util/noise';
-import type { Rng } from '../util/prng';
+import { hash2, type Rng } from '../util/prng';
 import { CLUMP_GRID, MAT_GRID, createClumpAtlas, type ClumpAtlas } from './clump-atlas';
 import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
 import { LodInstancedSet } from './lodset';
@@ -89,6 +89,24 @@ const MAT_BANK_CUT = 1;
 const CLUMP_SHADE_CUT = 0.5;
 /** the share of the blades' shade-zone palette bias (grass.ts: +0.35) a mat does not take */
 const MAT_SHADE_BIAS_CUT = 0.175;
+/**
+ * Per-card variation (round 40, Astra's review of the round-39 carpet: "conspicuous repeated
+ * fan-shaped clumps"). On top of the tile draw and the full-circle yaw every card takes, from
+ * position hashes (no stream draw — every card keeps its round-39 seat): a 50 % mirror (the
+ * shader flips the tile's u), a non-uniform scale — width CLUMP_VAR_WIDTH, height CLUMP_VAR_HEIGHT
+ * — and a hue / lightness jitter carried in the instance colour (materials.ts multiplies the
+ * vertex colour by it): a slide between a cooler blue-green and a warmer yellow-green of
+ * CLUMP_HUE_JITTER and a lightness of 1 ± CLUMP_LIGHT_JITTER. The tint slot, the dryness and the
+ * zone rules are untouched, so the lawns' palette and heights hold (carpet.test).
+ */
+const CLUMP_VAR_WIDTH: readonly [number, number] = [0.8, 1.25];
+const CLUMP_VAR_HEIGHT: readonly [number, number] = [0.7, 1.3];
+const CLUMP_HUE_JITTER = 0.07;
+const CLUMP_LIGHT_JITTER = 0.09;
+/** the dryness steps the card's type-slot fraction is quantised to; the mirror flag sits in the sub-step */
+const CLUMP_DRY_STEPS = 16;
+/** 0..1 position hash (mm-quantised seats), one stream per `salt` */
+const hashAt = (x: number, z: number, salt: number) => hash2(Math.round(x * 1000), Math.round(z * 1000), salt);
 
 export interface CarpetResult {
   clumps: LodInstancedSet;
@@ -298,15 +316,30 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     let w = (CLUMP_WIDTH[0] + (CLUMP_WIDTH[1] - CLUMP_WIDTH[0]) * rng()) * clusterVar;
     let h = (CLUMP_HEIGHT[0] + (CLUMP_HEIGHT[1] - CLUMP_HEIGHT[0]) * Math.pow(rng(), 1.3)) * clusterVar * (t.edge < 2.5 ? 1.08 : 1);
     h = Math.min(h, CLUMP_MAX_H) * t.hk;
-    if (t.houseSouth > 0) h = Math.min(h, h + (HOUSE_SOUTH_MAX_H - h) * t.houseSouth);
+    // the caps below, tracked for the round-40 scale jitter (applied after the seating test, so
+    // every card seats exactly where round 39 seated it, then re-capped)
+    let hCap = CLUMP_MAX_H * t.hk;
+    if (t.houseSouth > 0) {
+      h = Math.min(h, h + (HOUSE_SOUTH_MAX_H - h) * t.houseSouth);
+      hCap = Math.min(hCap, hCap + (HOUSE_SOUTH_MAX_H - hCap) * t.houseSouth);
+    }
     // the stones' walk corridor and the NPC spots: nothing over the herb layer
-    if (t.stone < 0.5) h = Math.min(h, 0.2);
-    if (t.npc > 0) h = Math.min(h, 0.26);
+    if (t.stone < 0.5) {
+      h = Math.min(h, 0.2);
+      hCap = Math.min(hCap, 0.2);
+    }
+    if (t.npc > 0) {
+      h = Math.min(h, 0.26);
+      hCap = Math.min(hCap, 0.26);
+    }
     // a cut card keeps its blade proportions: the width follows the height cut (softly)
     w *= 0.55 + 0.45 * Math.sqrt(h / (CLUMP_HEIGHT[1] * clusterVar));
     // the card must not overhang the paving
     w = Math.min(w, (t.edge - 0.02) * 2);
     if (w < 0.2 || h < 0.06) return;
+    // round 40: the non-uniform per-card scale, inside the same caps
+    h = Math.min(h * (CLUMP_VAR_HEIGHT[0] + (CLUMP_VAR_HEIGHT[1] - CLUMP_VAR_HEIGHT[0]) * hashAt(x, z, 2)), hCap);
+    w = Math.min(w * (CLUMP_VAR_WIDTH[0] + (CLUMP_VAR_WIDTH[1] - CLUMP_VAR_WIDTH[0]) * hashAt(x, z, 1)), (t.edge - 0.02) * 2);
     const tint = t.tn + rng.gauss() * 0.18 * (1 - BANK_FLAT * t.bank);
     const tintIndex = tint < -0.28 ? 0 : tint < 0.12 ? 1 : tint < 0.48 ? 2 : 3;
     const dry = clamp(t.dryP * (0.3 + 0.7 * rng()), 0, 0.95);
@@ -317,8 +350,15 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     data[0] = rng();
     data[1] = clamp(1 - h * (0.75 + 0.35 * rng()), 0.05, 0.95);
     data[2] = tintSlot(tintIndex, t.shade, t.darken);
-    data[3] = tile + dry;
-    clumps.add(M, 0, white, data);
+    // type slot (round 40): the tile in the integer part, the dryness in CLUMP_DRY_STEPS steps, the
+    // mirror flag in the sub-step (0.25 = as drawn, 0.75 = flipped; materials.ts CARD_COLOR_VERTEX)
+    const mirror = hashAt(x, z, 3) < 0.5;
+    data[3] = tile + (Math.floor(dry * CLUMP_DRY_STEPS) + (mirror ? 0.75 : 0.25)) / CLUMP_DRY_STEPS;
+    // hue / lightness jitter in the instance colour: cool ↔ warm, dark ↔ light
+    // (a fresh array per card: the set keeps the reference)
+    const hue = hashAt(x, z, 4) * 2 - 1;
+    const light = 1 + (hashAt(x, z, 5) * 2 - 1) * CLUMP_LIGHT_JITTER;
+    clumps.add(M, 0, [light * (1 + CLUMP_HUE_JITTER * hue), light * (1 + CLUMP_HUE_JITTER * 0.25 * Math.abs(hue)), light * (1 - CLUMP_HUE_JITTER * 1.2 * hue)], data);
     if (clumps.count % 61 === 0) clumpSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
   };
 

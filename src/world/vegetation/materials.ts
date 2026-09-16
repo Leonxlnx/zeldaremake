@@ -74,6 +74,12 @@ vec3 tint = uTints[tintIndex];
 // root → tip gradient: deep, slightly cool root buried in the tuft, warm lit tip (the reference's
 // shaded grass is a dark green-brown ≈ 0.24 luminance, its lit blades an olive ≈ 0.35)
 vec3 rootTone = mix(vec3(0.36, 0.38, 0.40), vec3(0.66, 0.72, 0.64), shadeLift);
+// the tall types' root lift (round 40, Astra's "tall dark spikes"): a meadow stalk or a sedge
+// blade standing over the carpet starts no darker than the clump cards' root mass — a card's
+// gradient begins at bladeT 0.4 over an atlas lightness of ≈ 0.7–0.8 (carpet.ts), ≈ 0.5 × the
+// tint — so their root tone is pulled that far toward the tip tone; the turf blades keep the
+// deep root buried in the tuft
+if (vegType > 0.5) rootTone = mix(rootTone, vec3(1.0, 1.0, 0.92), 0.22);
 vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
 // sedge blades are a touch cooler/deeper, meadow blades a touch warmer
 bladeColor *= vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
@@ -173,7 +179,8 @@ gl_Position = projectionMatrix * mvPosition;
  * (wind, root→tip gradient along the card's v), 1 a flat turf mat (static, one mid-blade tone).
  */
 const CARD_VERTEX_PARS = /* glsl */ `
-// clump: phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, atlas tile + dryness
+// clump: phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, atlas tile + (dryness
+//        step + mirror flag) / 16 (round 40); the hue / lightness jitter rides in instanceColor
 // mat:   palette position 0..3 (continuous), 1, (0.25 + 0.5 × shade lift) / 4 — the index is
 //        unused —, atlas tile + dryness
 attribute vec4 aData;
@@ -196,9 +203,14 @@ const CARD_COLOR_VERTEX = /* glsl */ `
 // are dark-hearted, not black-footed (v3 started at 0.3: still darker than the soil in the shade)
 float bladeT = uCardMode > 0.5 ? 0.5 : 0.4 + 0.6 * uv.y;
 vBladeT = bladeT;
-float vegDry = fract(aData.w);
+// a clump's type-slot fraction (round 40, carpet.ts): dryness in 1/16 steps, the mirror flag in
+// the sub-step (> 0.5 flips the tile's u); a mat keeps its continuous dryness and never mirrors
+float cardSlot = fract(aData.w) * 16.0;
+float vegDry = uCardMode > 0.5 ? fract(aData.w) : floor(cardSlot) / 16.0;
+float cardMirror = uCardMode < 0.5 && fract(cardSlot) > 0.5 ? 1.0 : 0.0;
 float atlasTile = floor(aData.w + 0.001);
-vAtlasUv = vec2((mod(atlasTile, uTileGrid.z) + uv.x) * uTileGrid.x, uTileGrid.w - uTileGrid.y * (floor(atlasTile / uTileGrid.z) + 1.0 - uv.y));
+float atlasU = mix(uv.x, 1.0 - uv.x, cardMirror);
+vAtlasUv = vec2((mod(atlasTile, uTileGrid.z) + atlasU) * uTileGrid.x, uTileGrid.w - uTileGrid.y * (floor(atlasTile / uTileGrid.z) + 1.0 - uv.y));
 float tintSlot = aData.z * 4.0;
 int tintIndex = int(clamp(floor(tintSlot), 0.0, 3.0));
 float shadeLift = clamp((fract(tintSlot) - 0.25) * 2.0, 0.0, 1.0);
@@ -643,7 +655,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v15${glossyTop ? '-glossy' : ''}${leafDetail ? '-leaf' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v16${glossyTop ? '-glossy' : ''}${leafDetail ? '-leaf' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

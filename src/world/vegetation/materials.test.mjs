@@ -127,6 +127,9 @@ for (const kind of ['grass', 'moss', 'litter']) {
     assert.match(shader.vertexShader, /float vegTip = clamp\(\(fract\(vegSlot\) - 0\.02\) \/ 0\.96, 0\.0, 1\.0\);/, 'tip tone decoded from the type slot');
     assert.match(shader.vertexShader, /bladeColor \*= mix\(vec3\(1\.0\), tipTone, smoothstep\(0\.3, 1\.0, bladeT\)\);/, 'tip tone applied toward the tip');
     assert.doesNotMatch(shader.vertexShader, /vLeafUv/, 'the lamina detail is the plants\', not the blades\'');
+    // round 40 (Astra's "tall dark spikes"): the meadow and sedge types' root tone is lifted toward the tip tone so
+    // they start no darker than the clump cards' root mass; the turf blades keep the deep root
+    assert.match(shader.vertexShader, /if \(vegType > 0\.5\) rootTone = mix\(rootTone, vec3\(1\.0, 1\.0, 0\.92\), 0\.22\);\s*vec3 bladeColor = mix\(tint \* rootTone/, 'tall types\' root lift ahead of the gradient');
   } else {
     // static moss / litter packs collapse the same way and keep Three's own projection
     assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);
@@ -194,6 +197,17 @@ for (const kind of ['grass', 'moss', 'litter']) {
     assert.equal(s.uniforms.uLeafDetail, undefined, `${kind} takes no lamina detail`);
     assert.doesNotMatch(s.fragmentShader, /vegLeafTrans/);
   }
+}
+{
+  // round 40 (Astra's "repeated fans"): a clump card decodes its dryness in 1/16 steps and a mirror flag from the
+  // sub-step, flipping the tile's u; a mat keeps its continuous dryness and never mirrors; the per-card hue /
+  // lightness jitter rides in instanceColor (three's USE_INSTANCING_COLOR path multiplies the vertex colour)
+  const clump = createVegMaterial(ctx, 'card', { card: { atlas: null, atlasSize: 2048, grid: [0.5, 0.25, 2, 1], mode: 0, upMix: 0.55, lum: [0.6, 0.5], alphaBoost: 0.22 } });
+  owned.push(clump);
+  const cs = prepare(clump, 'standard');
+  assert.match(cs.vertexShader, /float cardSlot = fract\(aData\.w\) \* 16\.0;\s*float vegDry = uCardMode > 0\.5 \? fract\(aData\.w\) : floor\(cardSlot\) \/ 16\.0;\s*float cardMirror = uCardMode < 0\.5 && fract\(cardSlot\) > 0\.5 \? 1\.0 : 0\.0;/, 'clump dryness steps and mirror flag, mats continuous');
+  assert.match(cs.vertexShader, /float atlasU = mix\(uv\.x, 1\.0 - uv\.x, cardMirror\);\s*vAtlasUv = vec2\(\(mod\(atlasTile, uTileGrid\.z\) \+ atlasU\) \* uTileGrid\.x/, 'the mirror flips the tile\'s u');
+  assert.match(cs.vertexShader, /#ifdef USE_INSTANCING_COLOR\s*vColor\.rgb \*= instanceColor\.rgb;\s*#endif/, 'the instance colour multiplies the card colour');
 }
 const unrelated = new THREE.MeshStandardMaterial();
 owned.push(unrelated);

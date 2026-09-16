@@ -17,7 +17,13 @@ function load(file){file=path.resolve(file);if(modules.has(file))return modules.
 }
 const read=name=>load(path.join(root,name+'.ts'));
 const {WORLD}=read('config'),{LAYOUT,houseSteppingStones}=read('layout'),{VegField,newSample}=read('vegetation/field');
-const {CLUMP_GRID,MAT_GRID,CLUMP_TILES,MAT_TILES}=read('vegetation/clump-atlas');
+const {CLUMP_GRID,MAT_GRID,CLUMP_TILES,MAT_TILES,CLUMP_CHARACTERS}=read('vegetation/clump-atlas');
+// round 40: six distinct tile characters (Astra's "repeated fans") — one per tile, no two alike, a slant each way
+assert.equal(CLUMP_CHARACTERS.length,CLUMP_TILES,'one character per clump tile');
+assert.equal(new Set(CLUMP_CHARACTERS.map(c=>JSON.stringify(c))).size,CLUMP_TILES,'no two clump tiles share a character');
+assert.ok(CLUMP_CHARACTERS.some(c=>c.leanBias<-0.2)&&CLUMP_CHARACTERS.some(c=>c.leanBias>0.2),'a wind-swept tile each way');
+assert.ok(Math.max(...CLUMP_CHARACTERS.map(c=>c.spread))/Math.min(...CLUMP_CHARACTERS.map(c=>c.spread))>=1.8,'spreads from upright to open');
+assert.ok(Math.max(...CLUMP_CHARACTERS.map(c=>c.blades[0]))/Math.min(...CLUMP_CHARACTERS.map(c=>c.blades[0]))>=1.6,'blade counts from sparse to dense');
 const {clumpCardGeometry,turfMatGeometry,CLUMP_CELL,MAT_CELL}=read('vegetation/carpet');
 function make(){const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5}};
   const group=new THREE.Group(),field=new VegField(ctx,WORLD.detailRadius+6,.5);return{ctx,group,field,carpet:read('vegetation/carpet').buildCarpet(ctx,field,group)};}
@@ -52,7 +58,20 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
     if(set===a.carpet.mats){assert.ok(it.data[0]>=0&&it.data[0]<=3&&it.data[1]===1,'mats: palette position 0..3, full stiffness');assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
     else assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
     const slot=it.data[2]*4,idx=Math.floor(slot);assert.ok(idx>=0&&idx<=3,'palette index 0..3');assert.ok(slot-idx>=0&&slot-idx<=0.75+1e-6,'slot fraction is a shade lift or a bank darkening');
-    const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);assert.ok(it.data[3]-tile<=0.95+1e-6,'dryness ≤ 0.95');}}
+    const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);
+    // round 40: a clump's fraction is (dryness step 0..15 + mirror flag 0.25 / 0.75) / 16 (materials.ts CARD_COLOR_VERTEX); a mat keeps its continuous dryness ≤ 0.95
+    if(set===a.carpet.clumps){const slot=(it.data[3]-tile)*16,step=Math.floor(slot),sub=slot-step;assert.ok(step>=0&&step<=15,`dryness step ${step}`);assert.ok(Math.abs(sub-0.25)<1e-4||Math.abs(sub-0.75)<1e-4,`mirror flag in the sub-step: ${sub.toFixed(4)}`);}
+    else assert.ok(it.data[3]-tile<=0.95+1e-6,'dryness ≤ 0.95');}}
+// round 40 (Astra's "repeated fans"): per-card variation without a stream draw — all six tiles in use, ≈ half the cards
+// mirrored, the width / height jitter (0.8–1.25 × / 0.7–1.3 ×) shows as a spread of aspect ratios, and the instance
+// colour carries a hue / lightness jitter (no card is plain white)
+{const cl=a.carpet.clumps.items;const tilesUsed=new Set(cl.map(it=>Math.floor(it.data[3]+1e-3)));assert.equal(tilesUsed.size,CLUMP_TILES,`all ${CLUMP_TILES} clump tiles in use`);
+  const mirrored=cl.filter(it=>{const slot=(it.data[3]-Math.floor(it.data[3]+1e-3))*16;return slot-Math.floor(slot)>0.5;}).length/cl.length;assert.ok(mirrored>0.42&&mirrored<0.58,`${(mirrored*100).toFixed(0)} % of the cards mirrored`);
+  const aspects=cl.map(it=>scaleX(it)/scaleY(it)).sort((p,r)=>p-r);const qa=f=>aspects[Math.min(aspects.length-1,Math.floor(f*aspects.length))];
+  assert.ok(qa(0.9)/qa(0.1)>=1.6,`card aspect spread p90 / p10 = ${(qa(0.9)/qa(0.1)).toFixed(2)} (≥ 1.6)`);
+  let cool=0,warm=0,plain=0;for(const it of cl){const [r,g,b]=it.color;if(Math.abs(r-1)<1e-6&&Math.abs(g-1)<1e-6&&Math.abs(b-1)<1e-6)plain++;if(b>r)cool++;else warm++;assert.ok(r>0.8&&r<1.2&&g>0.85&&g<1.15&&b>0.8&&b<1.2,`card colour jitter in range: ${r.toFixed(3)} ${g.toFixed(3)} ${b.toFixed(3)}`);}
+  assert.equal(plain,0,'no card is plain white');assert.ok(cool/cl.length>0.4&&warm/cl.length>0.4,`hue jitter both ways: ${(cool/cl.length*100).toFixed(0)} % cool, ${(warm/cl.length*100).toFixed(0)} % warm`);
+  for(const it of a.carpet.mats.items)assert.deepEqual(it.color,[1,1,1],'mats stay white');}
 // neighbouring mats never step hard in tone (the blades' drift at half strength, continuous): of every pair of
 // mats within 0.8 m, the median differs by < 0.35 entries, the 99th percentile by < 0.75, the steepest (the
 // giants' litter-floor offset meeting the tint mottle) by < 1.25

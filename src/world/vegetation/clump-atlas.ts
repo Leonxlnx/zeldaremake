@@ -1,6 +1,7 @@
 /**
  * Procedural grass-clump atlas for the turf carpet (round 39): one 2048² canvas, seeded, holding
- * six clump tiles (1024 × 512, a fan of 200-odd fine blades rising from a dense root mass) and
+ * six clump tiles (1024 × 512, a fan of 130–290 fine blades rising from a dense root mass, each
+ * tile its own silhouette — CLUMP_CHARACTERS, round 40) and
  * four turf-mat tiles (512², a flat blob of short blade dabs with a ragged rim). The cards that
  * carry it (carpet.ts) are alpha-tested, so the atlas stores coverage in alpha and *data* in the
  * colour channels rather than a colour: R is the blade lightness (per-blade brightness × root→tip
@@ -64,26 +65,59 @@ function blade(c: Ctx2D, rx: number, ry: number, cx: number, cy: number, tx: num
   c.fill();
 }
 
+/**
+ * A clump tile's character (round 40, Astra's review of the round-39 carpet: "conspicuous repeated
+ * fan-shaped clumps" — the six tiles were six draws of one distribution, one symmetric fan). Each
+ * tile now has its own blade count, spread, lean bias, length range and root width, so the six
+ * silhouettes and alpha edges differ: an upright dense tuft, an open floppy fan, two wind-swept
+ * clumps (left / right), a sparse tall one and a low bushy one.
+ */
+export interface ClumpCharacter {
+  /** blade count range */
+  blades: readonly [number, number];
+  /** lean sd (rad) about `leanBias` — the fan's spread */
+  spread: number;
+  /** mean lean (rad), the wind-swept tiles' slant */
+  leanBias: number;
+  /** share of blades that fall right over */
+  fallover: number;
+  /** blade length range as a share of the tile height */
+  length: readonly [number, number];
+  /** root scatter as a share of the tile width (the fan's foot) */
+  rootSpread: number;
+  /** blade width multiplier */
+  width: number;
+}
+
+export const CLUMP_CHARACTERS: readonly ClumpCharacter[] = [
+  { blades: [250, 290], spread: 0.27, leanBias: 0, fallover: 0.03, length: [0.44, 0.98], rootSpread: 0.035, width: 0.85 },
+  { blades: [190, 230], spread: 0.56, leanBias: 0, fallover: 0.13, length: [0.3, 0.96], rootSpread: 0.05, width: 1.0 },
+  { blades: [200, 240], spread: 0.34, leanBias: -0.38, fallover: 0.07, length: [0.36, 0.94], rootSpread: 0.045, width: 0.95 },
+  { blades: [200, 240], spread: 0.34, leanBias: 0.38, fallover: 0.07, length: [0.36, 0.94], rootSpread: 0.045, width: 0.95 },
+  { blades: [130, 160], spread: 0.4, leanBias: 0, fallover: 0.05, length: [0.55, 1.0], rootSpread: 0.04, width: 0.8 },
+  { blades: [230, 270], spread: 0.52, leanBias: 0, fallover: 0.1, length: [0.24, 0.7], rootSpread: 0.075, width: 1.15 },
+];
+
 /** a clump tile: `w × h` px at canvas (x0, y0); the root mass sits on the tile's bottom edge, centred */
-function drawClump(c: Ctx2D, rng: Rng, x0: number, y0: number, w: number, h: number) {
+function drawClump(c: Ctx2D, rng: Rng, x0: number, y0: number, w: number, h: number, ch: ClumpCharacter) {
   const bottom = y0 + h;
   const cx = x0 + w * 0.5;
   const gauss = () => Math.max(-2.4, Math.min(2.4, rng.gauss()));
   // the fan: back blades first (darker, more translucent tips lit through), front blades last
-  const blades = 190 + rng.int(0, 50);
+  const blades = ch.blades[0] + rng.int(0, ch.blades[1] - ch.blades[0]);
   for (let i = 0; i < blades; i++) {
     const depth = i / blades;
-    const rootX = cx + gauss() * w * 0.045;
+    const rootX = cx + gauss() * w * ch.rootSpread;
     const rootY = bottom + 4 - rng() * h * 0.06;
-    const length = h * (0.32 + 0.66 * Math.pow(rng(), 0.8));
-    // lean: the fan opens with height; a few blades fall right over
-    const lean = gauss() * 0.42 + (rng() < 0.08 ? (rng() < 0.5 ? -1 : 1) * 0.9 : 0);
+    const length = h * (ch.length[0] + (ch.length[1] - ch.length[0]) * Math.pow(rng(), 0.8));
+    // lean: the fan opens with height about the tile's slant; a few blades fall right over
+    const lean = ch.leanBias + gauss() * ch.spread + (rng() < ch.fallover ? (rng() < 0.5 ? -1 : 1) * 0.9 : 0);
     const bendSide = (rng() - 0.5) * 0.7;
     const tx = rootX + Math.sin(lean) * length;
     const ty = rootY - Math.cos(lean) * length;
     const mx = (rootX + tx) * 0.5 + Math.cos(lean) * bendSide * length * 0.35;
     const my = (rootY + ty) * 0.5 + Math.sin(lean) * bendSide * length * 0.35;
-    const w0 = (2.6 + rng() * 4.2) * (0.75 + 0.25 * (length / h));
+    const w0 = (2.6 + rng() * 4.2) * (0.75 + 0.25 * (length / h)) * ch.width;
     const bright = (0.5 + 0.5 * depth) * (0.72 + rng() * 0.36);
     const lightRoot = 0.22 + 0.2 * depth;
     const lightTip = clamp01(0.55 + 0.5 * bright);
@@ -92,10 +126,11 @@ function drawClump(c: Ctx2D, rng: Rng, x0: number, y0: number, w: number, h: num
   // the root mass: short broad blades packed at the base so the card's foot is closed
   const roots = 110 + rng.int(0, 30);
   for (let i = 0; i < roots; i++) {
-    const rootX = cx + gauss() * w * 0.11;
+    // the foot follows the fan's root scatter (0.11 of the width at the round-39 scatter of 0.045)
+    const rootX = cx + gauss() * w * (0.065 + ch.rootSpread);
     const rootY = bottom + 3;
     const length = h * (0.08 + 0.2 * rng());
-    const lean = gauss() * 0.75;
+    const lean = ch.leanBias * 0.5 + gauss() * 0.75;
     const tx = rootX + Math.sin(lean) * length;
     const ty = rootY - Math.cos(lean) * length;
     const w0 = 3.5 + rng() * 5;
@@ -176,7 +211,7 @@ export function createClumpAtlas(rng: Rng, size = ATLAS_SIZE): ClumpAtlas {
     c.beginPath();
     c.rect(x0, y0, tileW, tileH);
     c.clip();
-    drawClump(c, r.fork(`clump/${i}`), x0, y0, tileW, tileH);
+    drawClump(c, r.fork(`clump/${i}`), x0, y0, tileW, tileH, CLUMP_CHARACTERS[i % CLUMP_CHARACTERS.length]);
     c.restore();
   }
   const matSize = size * MAT_GRID[0];

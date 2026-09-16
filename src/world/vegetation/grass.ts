@@ -109,6 +109,18 @@ const DRY_STEPS = 16;
 const A_FACE_DENSITY = 1.1;
 const A_FACE_EXTRA = 1.2;
 const A_FACE_SEDGE_CUT = 0.7;
+/**
+ * Round 40 — Astra's review of the carpet at the west ledge ("tall dark spikes amid the fans"): the
+ * blade tiles' meadow stalks (0.28–0.6 m) and broad sedge (0.2–0.5 m), and the turf blades of a
+ * 1.4 × tuft, stood 0.5–0.9 m over 0.19–0.32 m clump cards on the open lawns (the hide-one-set
+ * probe at the eye pose: every spike was a blade-tile blade). On the lawn — the ground the cards
+ * close, slope under the carpet's SLOPE_THIN (carpet.ts) — no blade of the base, band and face
+ * passes stands over LAWN_SPIKE_CAP × its tuft's height factor (the cards' tallest, 0.32 m, × the
+ * 0.6–1.4 × cluster draw: 0.19–0.45 m), so a tuft still rises over its neighbours but never as
+ * a lone stalk. The flank and house-flank passes keep their own caps (steep ground, no cards).
+ */
+const LAWN_SPIKE_CAP = 0.32;
+const LAWN_SLOPE: readonly [number, number] = [0.45, 0.7];
 
 interface Cluster {
   height: number;
@@ -421,7 +433,14 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // the tuft's height (round 40): 0.6–1.4 × shared by its blades, damped to 1 where a frame
       // fixed the turf's height — the trodden strip, the lawn band, D's hollow, C's foreground
       const flat = Math.max(trod, band, hollow, foot);
-      h *= 1 + (tuft.height - 1) * (1 - flat);
+      const tuftK = 1 + (tuft.height - 1) * (1 - flat);
+      h *= tuftK;
+      // the lawn's spike cap (round 40): the excess over LAWN_SPIKE_CAP × the tuft's factor comes
+      // off in full on the flat lawn, fading out across the carpet's slope band
+      if (!flankPass && !housePass) {
+        const cap = LAWN_SPIKE_CAP * tuftK;
+        if (h > cap) h -= (h - cap) * (1 - smoothstep(LAWN_SLOPE[0], LAWN_SLOPE[1], s.slope));
+      }
       if (edge < 0.3 && !flankPass && !housePass) h *= 0.72;
       if (flankPass) w *= FLANK_WIDTH;
       const houseFoot = housePass && houseLocal !== null && houseLocal.u < HOUSE_FOOT_ALONG;
