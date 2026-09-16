@@ -11249,6 +11249,117 @@
       },
       "prevHash": "sha256:c0f2034823be05747f543433371a91d5aa7dce8011aed1715da975bc9469118e",
       "hash": "sha256:96ac547ad51718acdfc9db262df810327d8b83ba7e49d3c663ae4db8f9b1431f"
+    },
+    {
+      "id": "take-0105",
+      "number": 105,
+      "at": "2026-09-16T00:35:47.096Z",
+      "sha": "af5ede8956a54fc9129006baa23f31621e919021",
+      "shortSha": "af5ede8",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "character: adopt Astra's 0c28cb62 Link build (PR #10 1c06b00) — blink morphs, garment weight repairs, lower run arc, face refinements; SOURCE.md records the adoption chain",
+      "agent": "fable-cursor",
+      "items": [
+        "W35",
+        "C01",
+        "C03",
+        "W41"
+      ],
+      "note": "Round 37 sealed on af5ede8: layout-8 (the lantern bough one-to-one for A, pods behind camera B), tone (haze blur sigma 6.0), character-6b (descent landing), character-7 (frame-time: ground sampler on surfaceMask, vegetation cell culling, warm-up compile), atmosphere-14b (W35 repair on B/E after the bough left their frames: near unsharp 1.1 over 3-8 m, sharpness B 0.788 -> 0.911, E 0.737 -> 0.853, every view within 0.003 SSIM of the unsealed ddfb652 capture), character-8 + 8b (blink drive: 70/30/120 ms sim-time schedule; the run-start blink a one-shot event recorded by the gait chain so a rapid release no longer snaps the lid open), and the ONE asset swap of the series: Astra's 0c28cb62 Link (PR #10 1c06b00; blink/blinkHalf morphs on the body's three primitives, garment weight repairs, lower run arc, neutral mouth, nose shading; 70,442 tris, loader contract unchanged; A audit: glb, blinkMorphs 3, weights 0 in the captured open phase). SSIM A 0.3056 B 0.2841 C 0.3267 D 0.3611 E 0.2967 F 0.2956 - A/B/E/F at series bests; C/D within 0.001 of theirs.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:dc634daffe2915bc061bda4e66e8783bf3837e10f3760e52a634b0c0a2c5caed",
+        "B_house": "sha256:5012c25cf44191cbd203b572423c32fb931226f79ee030d318ca8b3a79a597ca",
+        "C_lookback": "sha256:80b76826467400e40eeae239ad0e9f58d78e7143dcf9667705346383c6f5e466",
+        "D_log": "sha256:3d099845304226ab9ccc2de6d8eb6951d5f0ddcd48912112e4af8a6d3371f7b8",
+        "E_ground": "sha256:5012c25cf44191cbd203b572423c32fb931226f79ee030d318ca8b3a79a597ca",
+        "F_canopy": "sha256:1bf030ec354e6158a7741503b8b0f654e21b3a2cfcc2d218f4e42e82cf66f15f"
+      },
+      "distHash": "sha256:4b9e0508fef52b901eb91216aed8d7079c3da5a3f83d3a758bbe414f7988a604",
+      "stats": {
+        "drawCalls": 539,
+        "triangles": 8655399,
+        "captureMs": 898996,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W35",
+        "C01",
+        "C03",
+        "W41"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take106-cap",
+        "importedAt": "2026-09-16T00:37:58.335Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:96ac547ad51718acdfc9db262df810327d8b83ba7e49d3c663ae4db8f9b1431f",
+      "hash": "sha256:e508c0be705940cbd0fe875138a80e7bcf01e51fd04ff431cf48723e7efe17f8"
     }
   ]
 }
