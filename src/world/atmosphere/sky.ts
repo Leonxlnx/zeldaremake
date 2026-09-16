@@ -118,6 +118,14 @@ uniform vec2 uBackScatter;
 uniform vec3 uBackTint;
 // environment-map only: tint of the IBL fill (the visible dome keeps its own colour)
 uniform vec3 uEnvTint;
+// plateau-glare lobe shared with heightfog.ts (hazeHot*): colour, horizontal direction, smoothstep
+// edges on the horizontal dot, sin(elevation) rise / fall edges, amount (0 = off)
+uniform vec3 uHot;
+uniform vec2 uHotDir;
+uniform vec2 uHotCos;
+uniform vec2 uHotUpIn;
+uniform vec2 uHotUpOut;
+uniform float uHotAmount;
 varying vec3 vDir;
 
 float hash21( vec2 p ) {
@@ -178,6 +186,10 @@ void main() {
   sky *= ( 1.0 + uSunLobeGain * s3 ) * mix( vec3( 1.0 ), uSunLobeTint, s3 );
   float back = smoothstep( 0.0, uBackScatter.y, -mu ) * ( 1.0 - uEnvMode );
   sky *= mix( vec3( 1.0 ), uBackTint * uBackScatter.x, back );
+  // the plateau glare (heightfog.ts kfHot): the far end of the rays the distance haze grades to it
+  float hotE = len > 1e-4 ? dot( d.xz / len, uHotDir ) : 0.0;
+  float hot = uHotAmount * smoothstep( uHotCos.x, uHotCos.y, hotE ) * smoothstep( uHotUpIn.x, uHotUpIn.y, h ) * ( 1.0 - smoothstep( uHotUpOut.x, uHotUpOut.y, h ) );
+  sky = mix( sky, uHot, hot * visible );
   // below the horizon: haze darkening toward ground bounce (only matters for the env map)
   float down = clamp( -h, 0.0, 1.0 );
   vec3 below = mix( uHorizon * 0.8, uGround, smoothstep( 0.0, 0.35, down ) );
@@ -248,6 +260,12 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uBackScatter: { value: new Vector2(HEIGHT_FOG_DEFAULTS.backScatterMin, -Math.cos((HEIGHT_FOG_DEFAULTS.backScatterFullDeg * Math.PI) / 180)) },
     uBackTint: { value: new Color(...HEIGHT_FOG_DEFAULTS.backScatterTint) },
     uEnvTint: { value: new Color(...SKY_ENV_TINT) },
+    uHot: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeHot) },
+    uHotDir: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.hazeHotDir) },
+    uHotCos: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.hazeHotCos) },
+    uHotUpIn: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.hazeHotUpIn) },
+    uHotUpOut: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.hazeHotUpOut) },
+    uHotAmount: { value: HEIGHT_FOG_DEFAULTS.hazeHotAmount },
   };
   const material = new ShaderMaterial({
     name: 'kokiri-sky',

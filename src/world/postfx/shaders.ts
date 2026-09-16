@@ -581,6 +581,7 @@ uniform sampler2D tRays;
 uniform sampler2D tBloom;
 uniform float uAoStrength;
 uniform vec2 uAoFade;  // view distance (m) where the AO term starts fading / is gone
+uniform vec3 uAoNear;  // near-field AO strength, and the view distances (m) it eases to uAoStrength over
 uniform float uHasMist;
 uniform vec3 uRayColor;
 uniform float uRayIntensity;
@@ -623,7 +624,8 @@ void main() {
   // Sub-metre crevice shading is not resolvable through 30+ m of haze, so the term fades out
   float aoDist = -viewZFromDepth( d );
   float aoFade = 1.0 - smoothstep( uAoFade.x, uAoFade.y, aoDist );
-  hdr *= mix( 1.0, ao, uAoStrength * ( 1.0 - sky ) * aoFade );
+  float aoStrength = mix( uAoNear.x, uAoStrength, smoothstep( uAoNear.y, uAoNear.z, aoDist ) );
+  hdr *= mix( 1.0, ao, aoStrength * ( 1.0 - sky ) * aoFade );
   if ( uHasMist > 0.5 ) {
     vec4 mist = texture2D( tMist, vUv );
     hdr = hdr * ( 1.0 - mist.a ) + mist.rgb;

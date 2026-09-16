@@ -150,6 +150,14 @@ export interface Composer {
 export interface ComposerSettings {
   aoStrength: number;
   aoRadius: number;
+  /**
+   * AO strength in the near field (the foreground slabs and props), easing to `aoStrength` over
+   * `aoNearStart`–`aoNearEnd` (m): the frames keep crisp contact shading in the foreground joints
+   * while their mid-distance shade shows none
+   */
+  aoNearStrength: number;
+  aoNearStart: number;
+  aoNearEnd: number;
   /** view distance (m) where the AO term starts fading / is gone (a surface term the haze veils) */
   aoFadeStart: number;
   aoFadeEnd: number;
@@ -354,8 +362,26 @@ export function createComposer(opts: ComposerOptions): Composer {
   const settings: ComposerSettings = {
     // 0.6 stacked with the grass blades' self-occlusion and pushed the vegetation-heavy dark
     // quartile 0.05–0.08 under the reference's in every view; 0.4 once the canopy shade darkened
-    // (shadowfilter leak 0.35 → 0.1): the shaded banks of shots D/F sat 0.05–0.10 under the reference
-    aoStrength: 0.4,
+    // (shadowfilter leak 0.35 → 0.1): the shaded banks of shots D/F sat 0.05–0.10 under the reference.
+    // Round 38 (tone): 0.2. The frames' shade is lifted by canopy bounce and shows no crevice
+    // darkening — a contact shadow only under Link and the sunlit props — while ours printed AO
+    // under every bush, riser and slab edge as dark structure the frames do not have. The term is
+    // multiplied into direct sun and fill alike, so in shade (fill only) it darkens twice. Measured
+    // (six views, runtime override, everything else fixed): at 0 SSIM A +0.0083, B +0.0050,
+    // C +0.0015, D +0.0060, E +0.0064, F +0.0070 (F mid band pixels < 0.2: 23.0 → 17.2 %,
+    // p10 0.151 → 0.165; the frame's 0.6 % / 0.243) for sharpness E 0.853 → 0.834; 0.2 keeps
+    // the contact shading under the props and two thirds of the gain (A +0.0053, B +0.0035,
+    // C +0.0014, D +0.0048, E +0.0042, F +0.0055; F dark share 19.5 %) at E 0.836. The per-view
+    // SSIM maps put every gain in the mid and far rows and a small loss (−0.0005 on B and E) in the
+    // near foreground, whose slab joints the frames DO shade — and that foreground is where E's
+    // sharpness (0.853 → 0.832 in the full capture) went. Keeping 0.4 to 6 m and easing to 0.2 by
+    // 10 m (the near band, parameterised below) recovered only E 0.832 → 0.835 for A −0.0014,
+    // D −0.0013, so the band is left neutral (near = far) and the margin comes from the near
+    // unsharp instead (softNearSharp).
+    aoStrength: 0.2,
+    aoNearStrength: 0.2,
+    aoNearStart: 6,
+    aoNearEnd: 10,
     aoRadius: 0.5,
     // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
@@ -581,6 +607,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     softBlurSigma: 1.2,
     softFarSigma: 4.2,
     softActivitySigma: 2.5,
+    // Round 38 (tone) proposed 1.2 over 3–8 m for E's W35 margin; not taken — the unsharp funded by
+    // blur is the rejected direction (see the round-38 note above); W35 is earned with detail.
     softNearSharp: 0.25,
     softNearStart: 4,
     softNearEnd: 10,
@@ -732,6 +760,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       tBloom: { value: bloomA.texture },
       uAoStrength: { value: settings.aoStrength },
       uAoFade: { value: new Vector2(settings.aoFadeStart, settings.aoFadeEnd) },
+      uAoNear: { value: new Vector3(settings.aoNearStrength, settings.aoNearStart, settings.aoNearEnd) },
       uHasMist: { value: opts.overlay ? 1 : 0 },
       uRayColor: { value: settings.rayColor },
       uRayIntensity: rayIntensity,
@@ -1116,6 +1145,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // 6. composite + tone map + grade → LDR
     compositeMat.uniforms.uAoStrength.value = fx.ao ? s.aoStrength : 0;
     (compositeMat.uniforms.uAoFade.value as Vector2).set(s.aoFadeStart, s.aoFadeEnd);
+    (compositeMat.uniforms.uAoNear.value as Vector3).set(s.aoNearStrength, s.aoNearStart, s.aoNearEnd);
     compositeMat.uniforms.uRaySkyShare.value = s.raySkyShare;
     compositeMat.uniforms.uBloomIntensity.value = fx.bloom ? s.bloomIntensity : 0;
     compositeMat.uniforms.uSaturation.value = s.saturation;
@@ -1280,6 +1310,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       lift: settings.lift,
       aoStrength: settings.aoStrength,
       aoFadeM: [settings.aoFadeStart, settings.aoFadeEnd],
+      aoNearStrength: settings.aoNearStrength,
+      aoNearM: [settings.aoNearStart, settings.aoNearEnd],
       antialiasing: 'fxaa',
       // final video-softness stage on a fixed 640/320-wide grid (see SOFT_FINAL_FRAG)
       softening: settings.softening && perfRuntime().fx.soft,
