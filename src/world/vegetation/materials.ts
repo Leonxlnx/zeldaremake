@@ -40,7 +40,10 @@ if (!vegKeep) transformed = vec3(0.0);
 `;
 
 const GRASS_VERTEX_PARS = /* glsl */ `
-attribute vec4 aData; // phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, type + dryness
+// phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, type + (dryness step + tip tone) / 16
+attribute vec4 aData;
+// 1 on the two near-tile LOD geometries, 0 on the far one (grass.ts bladeGeometry, round 40)
+attribute float aNear;
 uniform vec3 uTints[4];
 uniform vec3 uDryTip;
 uniform float uSeedTip;
@@ -54,7 +57,10 @@ const GRASS_COLOR_VERTEX = /* glsl */ `
 float bladeT = uv.y;
 vBladeT = bladeT;
 float vegType = floor(aData.w + 0.001);
-float vegDry = fract(aData.w);
+// the type slot's fraction (round 40, grass.ts): dryness in 1/16 steps, the tuft's tip tone in the sub-step
+float vegSlot = fract(aData.w) * 16.0;
+float vegDry = floor(vegSlot) / 16.0;
+float vegTip = clamp((fract(vegSlot) - 0.02) / 0.96, 0.0, 1.0);
 float tintSlot = aData.z * 4.0;
 int tintIndex = int(clamp(floor(tintSlot), 0.0, 3.0));
 // the slot's fraction (0.25..0.75) carries the shade lift: banks lit by fill alone (frame 8's
@@ -71,6 +77,13 @@ vec3 rootTone = mix(vec3(0.36, 0.38, 0.40), vec3(0.66, 0.72, 0.64), shadeLift);
 vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
 // sedge blades are a touch cooler/deeper, meadow blades a touch warmer
 bladeColor *= vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
+// the tuft's tip tone (round 40, the owner's "tip colour variation"): each rooted cluster leans
+// its upper blade toward one of three tones — sun-bleached yellow-green below 0.5, a fresh
+// cooler green above it, a faint russet at the top of the range — neutral at 0.5 (grass.ts
+// parks the flat bank masses there)
+vec3 tipTone = vegTip < 0.5 ? mix(vec3(1.10, 1.05, 0.78), vec3(1.0), vegTip * 2.0) : mix(vec3(1.0), vec3(0.90, 1.04, 0.96), (vegTip - 0.5) * 2.0);
+tipTone = mix(tipTone, vec3(1.06, 0.92, 0.74), smoothstep(0.88, 1.0, vegTip));
+bladeColor *= mix(vec3(1.0), tipTone, smoothstep(0.3, 1.0, bladeT));
 // straw-coloured dry tips
 bladeColor = mix(bladeColor, uDryTip, vegDry * smoothstep(0.45, 1.0, bladeT));
 // the dark masses: deeper and a little less saturated (the frames' masses measure sat 0.22–0.32
@@ -91,6 +104,10 @@ vec3 transformed = vec3(position);
   float wMeadow = 1.0 - t * 0.72;
   float wSedge = (1.0 - smoothstep(0.55, 1.0, t)) * (0.8 + 0.2 * sin(t * 3.1416));
   float w = vegType < 0.5 ? wTurf : vegType < 1.5 ? wMeadow : wSedge;
+  // round 40 (the owner's video review: frame A's right-foreground turf read as sparse wide
+  // blades): the broad sedge is halved on the near-tile geometries (aNear, grass.ts) — a 6–10 px
+  // blade at 8 m becomes 3–5 — and keeps its width on the far one, where it closes the turf
+  if (vegType > 1.5) w *= 1.0 - 0.5 * aNear;
   // forward bend (in the blade's own facing direction), stronger for turf; meadow tips droop
   float bend = (vegType < 0.5 ? 0.5 : vegType < 1.5 ? 0.18 : 0.32) * (0.7 + 0.6 * v);
   transformed.x = position.x * w;
@@ -321,6 +338,50 @@ vec4 worldPosition = vegWorld;
 `;
 
 /**
+ * Near-camera lamina detail (round 40; the tree-base audit: standing inside a fern or a bush the
+ * fronds and broad leaves were single-colour flat polygons). Every lamina geometry.ts builds
+ * carries u across the blade (0..1, midrib at 0.5) and v root → tip; stems, discs, domes and
+ * blade strips sit at u ≥ 2 and take none of this. Inside LEAF_DETAIL_NEAR metres of the eye the
+ * fragment gets a raised midrib, slanted lateral veins, a darker cupped margin, a root → tip
+ * gradient and extra translucency toward the tip; the whole term fades out by LEAF_DETAIL_FAR, so
+ * a plant past that — every far LOD, every fixed camera's mid-ground — renders as it did. Colour
+ * pass only: the shadow passes keep the shared projection block.
+ */
+export const LEAF_DETAIL_NEAR = 3.5;
+export const LEAF_DETAIL_FAR = 6.0;
+const LEAF_DETAIL_VERTEX_PARS = /* glsl */ `
+varying vec2 vLeafUv;
+`;
+const LEAF_DETAIL_VERTEX = /* glsl */ `
+vLeafUv = uv;
+`;
+const LEAF_DETAIL_FRAGMENT_PARS = /* glsl */ `
+varying vec2 vLeafUv;
+uniform float uLeafDetail;
+`;
+const LEAF_DETAIL_FRAGMENT = /* glsl */ `
+float vegLeafTrans = 0.0;
+{
+  float leafFade = (1.0 - smoothstep(${LEAF_DETAIL_NEAR.toFixed(1)}, ${LEAF_DETAIL_FAR.toFixed(1)}, length(vViewPosition))) * uLeafDetail;
+  if (leafFade > 0.0 && vLeafUv.x < 1.5) {
+    float au = abs(vLeafUv.x - 0.5);
+    float v = vLeafUv.y;
+    // midrib: widest at the root, a hair at the tip
+    float rib = 1.0 - smoothstep(0.0, 0.075 - 0.055 * v, au);
+    // lateral veins leave the midrib at ≈ 50°, nine pairs along the blade, gone before the margin
+    float lat = abs(fract((v - au * 0.6) * 9.0) - 0.5) * 2.0;
+    float vein = smoothstep(0.8, 1.0, lat) * (1.0 - smoothstep(0.3, 0.48, au)) * (1.0 - rib);
+    // the lamina darkens toward its cupped margin and lightens from the root to the tip
+    float margin = smoothstep(0.28, 0.5, au);
+    vec3 grad = mix(vec3(0.80, 0.84, 0.78), vec3(1.05, 1.06, 0.96), pow(v, 0.85));
+    vec3 detail = grad * (1.0 + 0.22 * rib + 0.10 * vein - 0.08 * margin);
+    diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
+    vegLeafTrans = leafFade * (0.35 + 0.65 * v);
+  }
+}
+`;
+
+/**
  * Grass only: shade-lifted blades (frame 8's right embankment, see grass.ts) sit under the canopy
  * shadow but face the open sky over the plaza, so they receive more skylight than the hemisphere
  * term alone delivers — the reference's shaded bank reads ≈ 0.30 luminance, ours ≈ 0.23 without it.
@@ -446,6 +507,8 @@ export interface VegMaterialOptions {
   ambientBoost?: number;
   /** full-shade fill inside SHADE_LIFT_ZONE, × albedo (default SHADE_LIFT_ZONE.fill; 0 opts out) */
   shadeLift?: number;
+  /** near-camera lamina detail (midrib, veins, root → tip gradient; plant / bush kinds, default on) */
+  leafDetail?: boolean;
   singleSided?: boolean;
   name?: string;
   /** required for kind `card` */
@@ -516,6 +579,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
   };
   const glossyTop = opts.topRoughness !== undefined;
   if (glossyTop) uniforms.uTopRoughness = { value: opts.topRoughness };
+  const leafDetail = (kind === 'plant' || kind === 'bush') && opts.leafDetail !== false;
+  if (leafDetail) uniforms.uLeafDetail = { value: 1 };
   if (grassLike) {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
@@ -562,20 +627,23 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
       // moss / litter: static geometry, three's own projection, packed variants collapse the same way
       vs = `${PACK_VERTEX_PARS}\n${vs}`.replace('#include <begin_vertex>', PACK_BEGIN_VERTEX);
     }
-    // zone lift after the (shared) projection block, so the shadow passes keep an identical block
-    vs = `${LIFT_VERTEX_PARS}\n${vs}`;
+    // zone lift (and the leaf detail's uv, colour pass only) after the (shared) projection block,
+    // so the shadow passes keep an identical block
+    const afterProjection = leafDetail ? `${LIFT_VERTEX}\n${LEAF_DETAIL_VERTEX}` : LIFT_VERTEX;
+    vs = `${LIFT_VERTEX_PARS}\n${leafDetail ? LEAF_DETAIL_VERTEX_PARS : ''}${vs}`;
     vs = vs.includes('#include <project_vertex>')
-      ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${LIFT_VERTEX}`)
-      : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
-    const lights = (grassLike ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '')).replace('//VEG_TRANSMISSION//', card ? ' * vegAtlasT' : '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+      ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${afterProjection}`)
+      : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${afterProjection}`);
+    const lights = (grassLike ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '')).replace('//VEG_TRANSMISSION//', card ? ' * vegAtlasT' : leafDetail ? ' * (1.0 + vegLeafTrans)' : '');
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${leafDetail ? LEAF_DETAIL_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
     if (kind === 'grass') fs = fs.replace('#include <normal_fragment_begin>', GRASS_NORMAL_FRAGMENT_BEGIN);
     if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT).replace('#include <normal_fragment_begin>', CARD_NORMAL_FRAGMENT_BEGIN);
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
+    if (leafDetail) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${LEAF_DETAIL_FRAGMENT}`);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v14${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v15${glossyTop ? '-glossy' : ''}${leafDetail ? '-leaf' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

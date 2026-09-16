@@ -41,8 +41,12 @@ export interface GrassResult {
   update(camPos: Vector3): void;
 }
 
-/** Unit blade: width 1 (x ∈ ±0.5·widthMul), height 1, `segments` rows + tip. */
-function bladeGeometry(segments: number, widthMul: number): { position: Float32BufferAttribute; uv: Float32BufferAttribute; normal: Float32BufferAttribute; index: Uint16BufferAttribute } {
+/**
+ * Unit blade: width 1 (x ∈ ±0.5·widthMul), height 1, `segments` rows + tip. `near` (round 40) is
+ * a per-vertex flag the shader reads as "this is a near-tile geometry": the broad sedge blades
+ * are halved on the near LODs (materials.ts GRASS_SHAPE_VERTEX) and keep their width on the far one.
+ */
+function bladeGeometry(segments: number, widthMul: number, near: 0 | 1): { position: Float32BufferAttribute; uv: Float32BufferAttribute; normal: Float32BufferAttribute; near: Float32BufferAttribute; index: Uint16BufferAttribute } {
   const pos: number[] = [];
   const uv: number[] = [];
   const nrm: number[] = [];
@@ -65,7 +69,63 @@ function bladeGeometry(segments: number, widthMul: number): { position: Float32B
     idx.push(a, b, c, b, d, c);
   }
   idx.push((segments - 1) * 2, (segments - 1) * 2 + 1, tip);
-  return { position: new Float32BufferAttribute(pos, 3), uv: new Float32BufferAttribute(uv, 2), normal: new Float32BufferAttribute(nrm, 3), index: new Uint16BufferAttribute(idx, 1) };
+  const nearFlags = new Float32Array(tip + 1).fill(near);
+  return { position: new Float32BufferAttribute(pos, 3), uv: new Float32BufferAttribute(uv, 2), normal: new Float32BufferAttribute(nrm, 3), near: new Float32BufferAttribute(nearFlags, 1), index: new Uint16BufferAttribute(idx, 1) };
+}
+
+/**
+ * Round 40 — the owner's video review ("Grass needs thinner blades, rooted clusters, varied
+ * heights"): a candidate is no longer one blade at a uniform point but a root point with
+ * CLUSTER_MIN..CLUSTER_MAX blades inside CLUSTER_RADIUS of it — a tuft. The tuft shares a height
+ * multiplier (CLUSTER_HEIGHT, damped to 1 in the frame-matched cut zones: the trodden strip, the
+ * lawn band, D's hollow and C's foreground keep their measured heights), a palette shift and a tip
+ * tone (CLUSTER_TIP_*: sun-bleached, fresh or russet upper blades, materials.ts). Every blade
+ * still runs the mask, density and zone tests at its own position, so the paved rims, the trodden
+ * strip and the clearings cut a tuft blade by blade exactly as they cut the old scatter; the blade
+ * count per pass is the same in expectation (roots = candidates / the mean tuft size).
+ */
+const CLUSTER_MIN = 5;
+const CLUSTER_MAX = 9;
+const CLUSTER_RADIUS = 0.075;
+const CLUSTER_HEIGHT: readonly [number, number] = [0.6, 1.4];
+const CLUSTER_MEAN = (CLUSTER_MIN + CLUSTER_MAX) / 2;
+/** the tuft-level share of the blade-to-blade palette noise (sd; round 39 drew 0.22 per blade) */
+const CLUSTER_TINT_SD = 0.2;
+const BLADE_TINT_SD = 0.09;
+/** the tip tone is packed into the type slot's fraction below the dryness step (1/16), kept off its ends */
+const CLUSTER_TIP_LO = 0.02;
+const CLUSTER_TIP_SPAN = 0.96;
+const DRY_STEPS = 16;
+
+interface Cluster {
+  height: number;
+  tint: number;
+  tip: number;
+}
+
+/**
+ * `n` blade candidates over the box as `n / CLUSTER_MEAN` tufts: the root and the tuft's draws
+ * come first, then each blade's polar offset (uniform over the disc), mm-quantised so the
+ * audited sample position queries the terrain at exactly this point.
+ */
+function scatterClusters(rng: Rng, x0: number, z0: number, w: number, d: number, n: number, visit: (x: number, z: number, cluster: Cluster) => boolean) {
+  const roots = Math.round(n / CLUSTER_MEAN);
+  const cluster: Cluster = { height: 1, tint: 0, tip: 0.5 };
+  for (let r = 0; r < roots; r++) {
+    const rx = x0 + rng() * w;
+    const rz = z0 + rng() * d;
+    const size = rng.int(CLUSTER_MIN, CLUSTER_MAX + 1);
+    cluster.height = CLUSTER_HEIGHT[0] + (CLUSTER_HEIGHT[1] - CLUSTER_HEIGHT[0]) * rng();
+    cluster.tint = rng.gauss() * CLUSTER_TINT_SD;
+    cluster.tip = rng();
+    for (let i = 0; i < size; i++) {
+      const a = rng() * Math.PI * 2;
+      const rad = CLUSTER_RADIUS * Math.sqrt(rng());
+      const x = Math.round((rx + Math.cos(a) * rad) * 1000) / 1000;
+      const z = Math.round((rz + Math.sin(a) * rad) * 1000) / 1000;
+      if (!visit(x, z, cluster)) return;
+    }
+  }
 }
 
 const TILE = 8;
@@ -225,7 +285,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const T = ctx.terrain;
   const R = ctx.config.detailRadius;
   const q = ctx.quality;
-  const bases = [bladeGeometry(4, 1), bladeGeometry(2, 1.3), bladeGeometry(1, 1.9)];
+  // the two near LODs carry the near flag (sedge halved), the far one keeps its width
+  const bases = [bladeGeometry(4, 1, 1), bladeGeometry(2, 1.3, 1), bladeGeometry(1, 1.9, 0)];
   const s = newSample();
   const tiles: GrassTile[] = [];
   const typeCounts = [0, 0, 0];
@@ -270,8 +331,9 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     // flank weight; `housePass` blades (the house flight's flanks, round 32) at the house-flank
     // weight and free of the cuts the low verge, camera C's grass box and the trodden strip put
     // on that ground. Every pass reads the round-32 field rules (turf slivers between two
-    // pavings, the mask-side rim, the flight taken out of the trodden strip).
-    const blade = (x: number, z: number, rng: Rng, bandPass: boolean, flankPass = false, housePass = false) => {
+    // pavings, the mask-side rim, the flight taken out of the trodden strip). `tuft` is the rooted
+    // cluster the blade belongs to (round 40): its height multiplier, palette shift and tip tone.
+    const blade = (x: number, z: number, rng: Rng, tuft: Cluster, bandPass: boolean, flankPass = false, housePass = false) => {
       if (Math.hypot(x, z) > R + 1.5) return;
       field.sample(x, z, s);
       if (!field.allowed(x, z, s, true)) return;
@@ -339,6 +401,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         h = (0.11 + 0.2 * Math.pow(rng(), 1.4)) * clusterVar * (edge < 2.5 ? 1.15 : 1);
         w = 0.012 + 0.012 * rng();
       }
+      // the tuft's height (round 40): 0.6–1.4 × shared by its blades, damped to 1 where a frame
+      // fixed the turf's height — the trodden strip, the lawn band, D's hollow, C's foreground
+      const flat = Math.max(trod, band, hollow, foot);
+      h *= 1 + (tuft.height - 1) * (1 - flat);
       if (edge < 0.3 && !flankPass && !housePass) h *= 0.72;
       if (flankPass) w *= FLANK_WIDTH;
       const houseFoot = housePass && houseLocal !== null && houseLocal.u < HOUSE_FOOT_ALONG;
@@ -363,8 +429,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // trodden blades are dusty: lighter olive with more straw tips
       // the dark bank mass of frames 8 / 46 (round 35): darkened blades in a flat spread — the
       // blade-to-blade tint noise and the straw tips are what the frame's blur does not have
+      // round 40: the palette noise is the tuft's (CLUSTER_TINT_SD) with a little blade-to-blade
+      // spread on top, so a rooted cluster reads as one plant
       const bank = field.bankDark(x, z);
-      let tn = field.tint(x, z) + rng.gauss() * 0.22 * (1 - BANK_FLAT * bank) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot;
+      let tn = field.tint(x, z) + (tuft.tint + rng.gauss() * BLADE_TINT_SD) * (1 - BANK_FLAT * bank) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot;
       if (s.slope > 0.35) tn -= 0.15 * (1 - shade) * (1 - foot);
       // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
       if (houseNorth) tn += HOUSE_FLANK_NORTH_TINT;
@@ -416,7 +484,11 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // tint slot: integer part = palette index, fraction 0.25..0.75 = shade lift, fraction
       // below 0.25 = bank darkening (materials.ts; the two never meet on one blade)
       data[o + 2] = (tintIndex + (darken > 0.01 ? 0.25 - 0.25 * darken : 0.25 + 0.5 * shade)) / 4;
-      data[o + 3] = type + dry;
+      // type slot: integer part = blade type, fraction = dryness in DRY_STEPS steps with the tuft's
+      // tip tone in the sub-step (round 40, materials.ts); the tone sits at its neutral 0.5 in the
+      // flat bank masses (round 35's rule: no blade-to-blade contrasts there)
+      const tip = 0.5 + (tuft.tip - 0.5) * (1 - BANK_FLAT * bank);
+      data[o + 3] = type + (Math.floor(dry * DRY_STEPS) + CLUSTER_TIP_LO + CLUSTER_TIP_SPAN * tip) / DRY_STEPS;
       count++;
       typeCounts[type]++;
       hSum += h;
@@ -426,12 +498,11 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       yMax = Math.max(yMax, y);
       if ((total + count) % sampleEvery === 0) samples.push([x, Math.round(y * 10000) / 10000, z]);
     };
-    for (let c = 0; c < candidates && count < maxPerTile; c++) {
-      // mm-quantised so the audited sample position queries the terrain at exactly this point
-      const x = Math.round((x0 + rng() * TILE) * 1000) / 1000;
-      const z = Math.round((z0 + rng() * TILE) * 1000) / 1000;
-      blade(x, z, rng, false);
-    }
+    // the base pass: `candidates` blades as rooted tufts over the tile (round 40)
+    scatterClusters(rng, x0, z0, TILE, TILE, candidates, (x, z, tuft) => {
+      blade(x, z, rng, tuft, false);
+      return count < maxPerTile;
+    });
     // the lawn band's thickening pass over the part of the band (plus its feather) in this tile
     const band = field.lawnBandBox(0.5);
     const bx0 = Math.max(x0, band[0]);
@@ -441,11 +512,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     if (bx1 > bx0 && bz1 > bz0) {
       const bandRng = ctx.rng.fork(`grass/lawn-band/${cx}/${cz}`);
       const n = Math.round((bx1 - bx0) * (bz1 - bz0) * CANDIDATES_PER_M2 * LAWN_BAND_EXTRA * q.density);
-      for (let c = 0; c < n && count < maxPerTile; c++) {
-        const x = Math.round((bx0 + bandRng() * (bx1 - bx0)) * 1000) / 1000;
-        const z = Math.round((bz0 + bandRng() * (bz1 - bz0)) * 1000) / 1000;
-        blade(x, z, bandRng, true);
-      }
+      scatterClusters(bandRng, bx0, bz0, bx1 - bx0, bz1 - bz0, n, (x, z, tuft) => {
+        blade(x, z, bandRng, tuft, true);
+        return count < maxPerTile;
+      });
     }
     // the stair flanks' third pass (round 14) over the part of the flank box in this tile
     const flank = field.flankBox();
@@ -456,11 +526,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     if (fx1 > fx0 && fz1 > fz0) {
       const flankRng = ctx.rng.fork(`grass/flank/${cx}/${cz}`);
       const n = Math.round((fx1 - fx0) * (fz1 - fz0) * CANDIDATES_PER_M2 * FLANK_EXTRA * q.density);
-      for (let c = 0; c < n && count < maxPerTile; c++) {
-        const x = Math.round((fx0 + flankRng() * (fx1 - fx0)) * 1000) / 1000;
-        const z = Math.round((fz0 + flankRng() * (fz1 - fz0)) * 1000) / 1000;
-        blade(x, z, flankRng, false, true);
-      }
+      scatterClusters(flankRng, fx0, fz0, fx1 - fx0, fz1 - fz0, n, (x, z, tuft) => {
+        blade(x, z, flankRng, tuft, false, true);
+        return count < maxPerTile;
+      });
     }
     // the house flight's flanks (round 32): a fourth pass over the part of its flank box in this tile
     const houseBox = field.houseFlankBox();
@@ -472,11 +541,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (hx1 > hx0 && hz1 > hz0) {
         const houseRng = ctx.rng.fork(`grass/house-flank/${cx}/${cz}`);
         const n = Math.round((hx1 - hx0) * (hz1 - hz0) * CANDIDATES_PER_M2 * HOUSE_FLANK_EXTRA * q.density);
-        for (let c = 0; c < n && count < maxPerTile; c++) {
-          const x = Math.round((hx0 + houseRng() * (hx1 - hx0)) * 1000) / 1000;
-          const z = Math.round((hz0 + houseRng() * (hz1 - hz0)) * 1000) / 1000;
-          blade(x, z, houseRng, false, false, true);
-        }
+        scatterClusters(houseRng, hx0, hz0, hx1 - hx0, hz1 - hz0, n, (x, z, tuft) => {
+          blade(x, z, houseRng, tuft, false, false, true);
+          return count < maxPerTile;
+        });
       }
     }
     if (count === 0) continue;
@@ -495,6 +563,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       g.setAttribute('position', b.position);
       g.setAttribute('uv', b.uv);
       g.setAttribute('normal', b.normal);
+      g.setAttribute('aNear', b.near);
       g.setAttribute('aData', aData);
       g.setIndex(b.index);
       // instance-independent bounds; the mesh carries the real bounding sphere

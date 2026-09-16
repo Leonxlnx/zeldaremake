@@ -7,7 +7,7 @@
 import { Color, Group, type BufferGeometry, type Material } from 'three';
 import type { WorldContext } from '../system';
 import { smoothstep } from '../util/noise';
-import { createRng } from '../util/prng';
+import { createRng, type Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
 import { MeshBuilder, TAU, V, blend, curvedLeaf, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
 import { LodInstancedSet } from './lodset';
@@ -97,6 +97,10 @@ const M = new Float32Array(16);
 /** lawn band outside the flagstone rim that collects the dirt-seam litter (concept sheet 02) */
 const RIM_BAND = 0.3;
 const RIM_LITTER_PER_M = 3.0;
+/** round 40: the verge band beyond the seam where the litter thins into the lawn (m) */
+const VERGE_BAND = 1.3;
+const VERGE_LITTER_PER_M = 4.0;
+const VERGE_BANK_PER_M2 = 3.0;
 /** mm-quantise so the audited sample position queries the terrain at exactly the seated point */
 const mm = (v: number) => Math.round(v * 1000) / 1000;
 const rec = (samples: number[][], x: number, y: number, z: number) => samples.push([x, Math.round(y * 10000) / 10000, z]);
@@ -219,6 +223,56 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
       count++;
       if (count % 29 === 0 && samples.length < 400) rec(samples, x, y, z);
     });
+  }
+
+  // Round 40 — the verge band (the owner's video review: "fern/leaf-litter transitions at the
+  // verge"): beyond the 0.3 m dirt seam the leaves keep collecting through the lawn's first
+  // VERGE_BAND m, thinning with distance from the paving, so the turf-to-slab edge dissolves into
+  // litter, ferns and broad leaves (plants.ts' verge pass) instead of stopping at a line. The same
+  // drift gathers where the lawn meets the main flight's and the house flight's flank banks (the
+  // feathered foot of each flank zone). Own streams after the scatters above; nothing on paving,
+  // stepping stones or the trodden strip (frames 14 / 24: that strip has its own litter above).
+  {
+    const rng = ctx.rng.fork('litter/verge-r40');
+    const bankRng = ctx.rng.fork('litter/verge-bank-r40');
+    const drop = (x: number, z: number, w: number, r: Rng) => {
+      field.sample(x, z, s);
+      if (!field.allowed(x, z, s, true) || field.insideGiantTrunk(x, z) || s.cliff > 0.5) return;
+      if (field.stoneDistance(x, z) < 0.3 || field.troddenZone(x, z, true) > 0.6) return;
+      const p = w * (0.55 + 0.6 * field.cluster(x, z)) * field.falloff(x, z);
+      if (r() > p) return;
+      const y = T.height(x, z) + 0.004;
+      if (r() < 0.9) {
+        const scale = 0.65 + r() * 0.6;
+        composeMatrix(M, 0, x, y, z, s.nx + r.gauss() * 0.08, s.ny, s.nz + r.gauss() * 0.08, 1, r() * TAU, scale, scale, scale);
+        tint.copy(LEAF_TINTS[r.int(0, LEAF_TINTS.length)]).multiplyScalar(0.75 + r() * 0.4);
+        leaves.add(M, r.int(0, leafGeos.length), tint);
+      } else {
+        const scale = 0.7 + r() * 0.5;
+        composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, r() * TAU, scale, scale, scale);
+        twigs.add(M, r.int(0, 3), tint.setRGB(0.85 + r() * 0.3, 0.85 + r() * 0.3, 0.85 + r() * 0.3));
+      }
+      count++;
+      if (count % 31 === 0 && samples.length < 400) rec(samples, x, y, z);
+    };
+    field.rimCandidates(rng, VERGE_LITTER_PER_M * q.density, VERGE_BAND, (px, pz, edge) => {
+      if (edge < RIM_BAND) return; // the seam above already holds this strip
+      drop(mm(px), mm(pz), 0.5 * (1 - smoothstep(RIM_BAND, VERGE_BAND, edge)), rng);
+    });
+    const bankFoot = (box: readonly [number, number, number, number] | null, zone: (x: number, z: number) => number) => {
+      if (!box) return;
+      const n = Math.round((box[2] - box[0]) * (box[3] - box[1]) * VERGE_BANK_PER_M2 * q.density);
+      for (let i = 0; i < n; i++) {
+        const x = mm(box[0] + bankRng() * (box[2] - box[0]));
+        const z = mm(box[1] + bankRng() * (box[3] - box[1]));
+        const k = zone(x, z);
+        const w = smoothstep(0.02, 0.2, k) * (1 - smoothstep(0.5, 0.85, k));
+        if (w <= 0 || field.lawnEdgeDistance(x, z, true) < RIM_BAND) continue;
+        drop(x, z, 0.45 * w, bankRng);
+      }
+    };
+    bankFoot(field.flankBox(), (x, z) => field.flankZone(x, z));
+    bankFoot(field.houseFlankBox(), (x, z) => field.houseFlankZone(x, z));
   }
 
   // surface roots radiating from giant trunks

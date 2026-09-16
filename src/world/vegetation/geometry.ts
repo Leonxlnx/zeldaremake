@@ -13,6 +13,14 @@ export type RGB = [number, number, number];
 
 export const TAU = Math.PI * 2;
 const UP = new Vector3(0, 1, 0);
+/**
+ * uv contract (round 40): a lamina's u runs 0..1 across the blade with the midrib at 0.5 and v
+ * root → tip — the near-camera leaf detail (materials.ts LEAF_DETAIL_FRAGMENT) draws its midrib,
+ * veins and gradient from them. Anything that is not a leaf blade (stems, caps, discs, domes,
+ * grass blade strips) offsets u by this so the shader leaves it alone; the plant shaders read
+ * only v otherwise (windLeaf's flutter grows toward v = 1).
+ */
+export const NOT_LAMINA = 2;
 
 export const rgb = (hex: number): RGB => {
   const c = new Color(hex);
@@ -99,7 +107,7 @@ export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, t
     for (let k = 0; k < sides; k++) {
       const angle = (k * TAU) / sides;
       const point = points[j].clone().addScaledVector(a, Math.cos(angle) * radius).addScaledVector(b, Math.sin(angle) * radius);
-      ring.push(mesh.vertex(point, k / sides, t, tone(color, 0.92 + t * 0.12)));
+      ring.push(mesh.vertex(point, NOT_LAMINA + k / sides, t, tone(color, 0.92 + t * 0.12)));
     }
     rings.push(ring);
   }
@@ -112,7 +120,7 @@ export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, t
   }
   if (caps) {
     for (const end of [0, rings.length - 1]) {
-      const center = mesh.vertex(points[end], 0.5, end ? 1 : 0, color);
+      const center = mesh.vertex(points[end], NOT_LAMINA + 0.5, end ? 1 : 0, color);
       const ring = rings[end];
       for (let k = 0; k < sides; k++) {
         const next = (k + 1) % sides;
@@ -225,6 +233,57 @@ export function lanceLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, 
   mesh.tri(last[1], tip, last[2]);
 }
 
+/**
+ * Bipinnate pinna (round 40, the hero crown's near LOD): the lance pinna's outline — same base,
+ * direction, length, width, curl and twist, so a LOD switch keeps the frond's silhouette — filled
+ * with a lighter midrib strip and `pairs` cupped pinnules either side of it (curvedLeaf: raised
+ * centre, drooping edges, curled tip), each pinnule reaching the lance's half-width at its station
+ * and swept a little toward the tip. 4 triangles a pinnule + 5 for the strip.
+ */
+export function pinnateLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions & { pairs?: number; rng: () => number }) {
+  const { curl = 0.15, twist = 0.0, ridge = 0.08, pairs = 7, rng } = options;
+  const { axis, side, normal } = leafFrame(direction, options.planeNormal);
+  const fresh: RGB = options.tipColor ?? tone(color, 1.12);
+  const centre = (t: number) => base.clone().addScaledVector(axis, length * t).addScaledVector(normal, length * curl * Math.sin(t * Math.PI * 0.9));
+  const sideAt = (t: number) => side.clone().applyAxisAngle(axis, twist * t);
+  // the midrib: a narrow strip standing proud of the pinnules by the ridge, lighter than the lamina
+  const ribColor = tone(color, 1.14);
+  const ribRows: number[][] = [];
+  for (let j = 0; j < 3; j++) {
+    const t = j / 3;
+    const hw = width * 0.035 * (1 - 0.55 * t);
+    const c = centre(t).addScaledVector(normal, width * ridge * 0.5);
+    const s = sideAt(t);
+    ribRows.push([mesh.vertex(c.clone().addScaledVector(s, -hw), NOT_LAMINA, t, ribColor), mesh.vertex(c.clone().addScaledVector(s, hw), NOT_LAMINA + 1, t, ribColor)]);
+  }
+  const ribTip = mesh.vertex(centre(1), NOT_LAMINA + 0.5, 1, blend(ribColor, fresh, 0.3));
+  for (let j = 0; j < 2; j++) {
+    mesh.tri(ribRows[j][0], ribRows[j][1], ribRows[j + 1][0]);
+    mesh.tri(ribRows[j][1], ribRows[j + 1][1], ribRows[j + 1][0]);
+  }
+  mesh.tri(ribRows[2][0], ribRows[2][1], ribTip);
+  // the pinnules: pairs along the rib from just above the base to the tip, their length the
+  // lance outline's half-width at the station, their width the station spacing (they nearly touch)
+  const spacing = (length * 0.9) / pairs;
+  for (let p = 0; p < pairs; p++) {
+    const t = 0.07 + (p / (pairs - 1)) * 0.86;
+    const reach = width * 0.5 * Math.pow(Math.sin(t * Math.PI), 0.77) * 1.05;
+    const stationColor = blend(color, fresh, t * 0.18);
+    const s = sideAt(t);
+    const c = centre(t);
+    for (const sign of [-1, 1]) {
+      const origin = c.clone().addScaledVector(s, sign * width * 0.03);
+      const dir = s
+        .clone()
+        .multiplyScalar(sign)
+        .addScaledVector(axis, 0.3 + rng() * 0.15)
+        .addScaledVector(normal, 0.05 + rng() * 0.1);
+      const len = reach * (0.92 + rng() * 0.14);
+      curvedLeaf(mesh, origin, dir, len, spacing * (0.8 + rng() * 0.2), tone(stationColor, 0.94 + rng() * 0.12), { curl: 0.3 + rng() * 0.2, ridge: 0.28, twist: sign * (0.1 + rng() * 0.2), planeNormal: normal });
+    }
+  }
+}
+
 export type LeafShape = 'heart' | 'ovate' | 'round';
 
 export interface ShapedLeafOptions extends LeafOptions {
@@ -333,11 +392,11 @@ export function bladeStrip(mesh: MeshBuilder, points: Vector3[], width: number, 
     const c = blend(color, tipColor, t);
     const drop = w * fold;
     rows.push([
-      mesh.vertex(points[j].clone().addScaledVector(sideV, -w).addScaledVector(normal, -drop), 0, t, tone(c, 0.94)),
-      mesh.vertex(points[j].clone().addScaledVector(sideV, w).addScaledVector(normal, -drop), 1, t, tone(c, 0.98)),
+      mesh.vertex(points[j].clone().addScaledVector(sideV, -w).addScaledVector(normal, -drop), NOT_LAMINA, t, tone(c, 0.94)),
+      mesh.vertex(points[j].clone().addScaledVector(sideV, w).addScaledVector(normal, -drop), NOT_LAMINA + 1, t, tone(c, 0.98)),
     ]);
   }
-  const tip = mesh.vertex(points[n - 1], 0.5, 1, tipColor);
+  const tip = mesh.vertex(points[n - 1], NOT_LAMINA + 0.5, 1, tipColor);
   for (let j = 0; j < rows.length - 1; j++) {
     mesh.tri(rows[j][0], rows[j][1], rows[j + 1][0]);
     mesh.tri(rows[j][1], rows[j + 1][1], rows[j + 1][0]);
@@ -349,18 +408,18 @@ export function bladeStrip(mesh: MeshBuilder, points: Vector3[], width: number, 
 /** Simple radial fan (flower petal ring, seed head cap). */
 export function disc(mesh: MeshBuilder, center: Vector3, normal: Vector3, radius: number, segments: number, color: RGB, edgeColor = color, lift = 0) {
   const [a, b] = frame(normal);
-  const c = mesh.vertex(center.clone().addScaledVector(normal, lift), 0.5, 0.5, color);
+  const c = mesh.vertex(center.clone().addScaledVector(normal, lift), NOT_LAMINA + 0.5, 0.5, color);
   const ring: number[] = [];
   for (let k = 0; k < segments; k++) {
     const ang = (k * TAU) / segments;
-    ring.push(mesh.vertex(center.clone().addScaledVector(a, Math.cos(ang) * radius).addScaledVector(b, Math.sin(ang) * radius), 0.5 + Math.cos(ang) * 0.5, 0.5 + Math.sin(ang) * 0.5, edgeColor));
+    ring.push(mesh.vertex(center.clone().addScaledVector(a, Math.cos(ang) * radius).addScaledVector(b, Math.sin(ang) * radius), NOT_LAMINA + 0.5 + Math.cos(ang) * 0.5, 0.5 + Math.sin(ang) * 0.5, edgeColor));
   }
   for (let k = 0; k < segments; k++) mesh.tri(c, ring[(k + 1) % segments], ring[k]);
 }
 
 /** Bumpy low dome (moss tuft). rings × segments, y ∈ [0, height]. */
 export function dome(mesh: MeshBuilder, radius: number, height: number, segments: number, rings: number, color: RGB, topColor: RGB, jitter: (i: number) => number) {
-  const top = mesh.vertex(V(0, height, 0), 0.5, 1, topColor);
+  const top = mesh.vertex(V(0, height, 0), NOT_LAMINA + 0.5, 1, topColor);
   const levels: number[][] = [];
   for (let r = 1; r <= rings; r++) {
     const t = r / rings;
@@ -371,7 +430,7 @@ export function dome(mesh: MeshBuilder, radius: number, height: number, segments
       const j = 0.82 + 0.36 * jitter(r * 131 + k);
       const rr = radius * Math.sin(phi) * j;
       const y = height * Math.cos(phi) * (0.9 + 0.2 * jitter(r * 17 + k * 3));
-      level.push(mesh.vertex(V(Math.cos(ang) * rr, Math.max(0, y), Math.sin(ang) * rr), k / segments, 1 - t, blend(topColor, color, t * t)));
+      level.push(mesh.vertex(V(Math.cos(ang) * rr, Math.max(0, y), Math.sin(ang) * rr), NOT_LAMINA + k / segments, 1 - t, blend(topColor, color, t * t)));
     }
     levels.push(level);
   }
