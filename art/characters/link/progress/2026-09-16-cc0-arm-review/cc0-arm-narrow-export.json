@@ -1,0 +1,84 @@
+{
+  "sha256": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
+  "original_binary_preserved": true,
+  "other_clips_and_assets_unchanged": true,
+  "run_duration_s": 0.4666666666666667,
+  "run_stride_m": 1.82,
+  "status": "Arm timing candidate; gameplay review pending",
+  "nonleg_timing_preserved": true,
+  "changed_arm_channels": [
+    [
+      "shoulderL",
+      "translation"
+    ],
+    [
+      "shoulderL",
+      "rotation"
+    ],
+    [
+      "shoulderL",
+      "scale"
+    ],
+    [
+      "elbowL",
+      "translation"
+    ],
+    [
+      "elbowL",
+      "rotation"
+    ],
+    [
+      "elbowL",
+      "scale"
+    ],
+    [
+      "handL",
+      "translation"
+    ],
+    [
+      "handL",
+      "rotation"
+    ],
+    [
+      "handL",
+      "scale"
+    ],
+    [
+      "shoulderR",
+      "translation"
+    ],
+    [
+      "shoulderR",
+      "rotation"
+    ],
+    [
+      "shoulderR",
+      "scale"
+    ],
+    [
+      "elbowR",
+      "translation"
+    ],
+    [
+      "elbowR",
+      "rotation"
+    ],
+    [
+      "elbowR",
+      "scale"
+    ],
+    [
+      "handR",
+      "translation"
+    ],
+    [
+      "handR",
+      "rotation"
+    ],
+    [
+      "handR",
+      "scale"
+    ]
+  ],
+  "nonarm_values_and_timing_preserved": true
+}

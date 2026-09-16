@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T04:54:09.2124467Z
+updated: 2026-09-16T05:35:41.5810127Z
 ---
 
 # astra-local — roster entry
@@ -114,3 +114,5 @@ Rootunionfinal connectivity cleanup: removed isolated3vertex/2facecomponent. Sav
 
 
 2026-09-16T04:54:09.2124467Z — Retained611c4425 short-contact run: duty.20, flightbounce.012,120fps56frames, unchanged1.82m/.466667s/3.9m/s. Nativeclearance137phasespasses;57phasecontact total27253to24286/peak1325to750 with30worsephases. Actual300frames04-44-05 plusvideo04-47-35 completed, noerrors/reachclamps. Runninghipmaxstep31.59to9.59mm; stop15.65to18.56 butsecond-difference21.91to12.50. Groundshoe auditmin-6.4to-7.0mm tradeoff recorded. Matchednativeframe21+game152viewed. Evidence/nativeaction/video integrated2026-09-16-short-contact-review. Otherclips/assets exact; previous1320stairrecordproof retained, not rerun. Blender gracefully reloaded savedtwo-scene checkpoint E:/Tools/blender-mcp/current-character-session.blend; PID22600/MCP9876 healthy, BelowNormal4threads, workingmemory13.6GBto.57GB. Only scenes shortercontact120fps and shortstridev2 60fps loaded now. Logs character-reloaded-session/error.log. Default611c asset/hash promoted; buildfinishing. Envelope4e6 unpromoted and integratedreviewfolder remainsuntracked. Fable no newreply, remote d809599. Goalunfinished.
+
+2026-09-16T05:35:41.5810127Z — Retained authored run arms candidate24591126 after native/game comparison. Quaternius free Standard CC0 Jog_Fwd_Loop phase5/64; upper-arm lateral direction60percent preserves elbow timing. Native57phase contacts899to378/peak96to23,34phases worse; cyclic hand loop passes, Rsecond-difference4.369to4.405mm slight regression. Actual300frames05-31-07 matches all non-arm gameplay fields against05-29-32; run hand peak35.75/35.77to17.71/18.15mm, stopR33.86to34.50mm regression documented. No stair sweep repeated. All non-arm run/otherclips/mesh/blink bytes preserved by selective export. Evidence2026-09-16-cc0-arm-review includes matchedviews,150frame30fpsvideo,baseline/candidate manifests,runnable comparison,source license/pinnedhashes,nativeaction. Mixed60percentall-arm candidate18918de6 rejected for1095contacts. Fullbodyretargets remain studies. Default asset/hash updated24591126; typecheck passed, build session8129. Backup E:/Tools/blender-mcp/pre-cc0-arms-2459. Blender22600 healthy/MCP9876/4threads. Fable no new response, worldd809599. Goal unfinished.

@@ -1,0 +1,17 @@
+{
+  "status": "Native-only arm timing diagnostic, collision/visual review pending",
+  "source": "Quaternius CC0 Jog_Fwd_Loop",
+  "provenance": "reference/animations/quaternius-standard/SOURCE.json",
+  "phase_offset": 0.078125,
+  "phase_correlation": 0.9293145032999311,
+  "nonarm_channels_exact": true,
+  "loop_matrix_error": 0.0,
+  "mapping": {
+    "shoulderL": "DEF-upper_arm.L",
+    "elbowL": "DEF-forearm.L",
+    "handL": "DEF-hand.L",
+    "shoulderR": "DEF-upper_arm.R",
+    "elbowR": "DEF-forearm.R",
+    "handR": "DEF-hand.R"
+  }
+}

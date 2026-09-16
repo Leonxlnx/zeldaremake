@@ -1,0 +1,104 @@
+{
+  "scope": "300 actual game frames at 60Hz; hands relative to hips. Lower step size alone does not establish natural motion.",
+  "nonarm_gameplay_exact": true,
+  "before": {
+    "walk": {
+      "L": {
+        "max_step_mm": 18.86974138674616,
+        "p95_step_mm": 18.04226995764207,
+        "max_second_difference_mm": 5.4963828228146685
+      },
+      "R": {
+        "max_step_mm": 18.16134401967598,
+        "p95_step_mm": 18.061558191794003,
+        "max_second_difference_mm": 5.823416039383443
+      }
+    },
+    "start_run": {
+      "L": {
+        "max_step_mm": 31.33262775206601,
+        "p95_step_mm": 29.95594228774293,
+        "max_second_difference_mm": 9.50745675848571
+      },
+      "R": {
+        "max_step_mm": 35.712564277190694,
+        "p95_step_mm": 33.469648567141604,
+        "max_second_difference_mm": 7.838383889785862
+      }
+    },
+    "run": {
+      "L": {
+        "max_step_mm": 35.75499726476705,
+        "p95_step_mm": 35.26426176750275,
+        "max_second_difference_mm": 8.777047621002954
+      },
+      "R": {
+        "max_step_mm": 35.77061028552853,
+        "p95_step_mm": 35.22359329326173,
+        "max_second_difference_mm": 8.788830361778171
+      }
+    },
+    "stop": {
+      "L": {
+        "max_step_mm": 37.92001213849393,
+        "p95_step_mm": 34.41147560880481,
+        "max_second_difference_mm": 10.378300051004771
+      },
+      "R": {
+        "max_step_mm": 33.860465497205475,
+        "p95_step_mm": 31.436430330743747,
+        "max_second_difference_mm": 14.053398663451379
+      }
+    }
+  },
+  "after": {
+    "walk": {
+      "L": {
+        "max_step_mm": 18.86974138674616,
+        "p95_step_mm": 18.04226995764207,
+        "max_second_difference_mm": 5.4963828228146685
+      },
+      "R": {
+        "max_step_mm": 18.16134401967598,
+        "p95_step_mm": 18.061558191794003,
+        "max_second_difference_mm": 5.823416039383443
+      }
+    },
+    "start_run": {
+      "L": {
+        "max_step_mm": 13.432409056110261,
+        "p95_step_mm": 13.140392728003556,
+        "max_second_difference_mm": 5.5667773239776475
+      },
+      "R": {
+        "max_step_mm": 27.658177873314102,
+        "p95_step_mm": 27.352394610517713,
+        "max_second_difference_mm": 8.324305023077795
+      }
+    },
+    "run": {
+      "L": {
+        "max_step_mm": 17.71130745879626,
+        "p95_step_mm": 17.011140737733292,
+        "max_second_difference_mm": 7.706141054095411
+      },
+      "R": {
+        "max_step_mm": 18.15333946882438,
+        "p95_step_mm": 17.242472086955594,
+        "max_second_difference_mm": 8.324306374001884
+      }
+    },
+    "stop": {
+      "L": {
+        "max_step_mm": 17.04556907018114,
+        "p95_step_mm": 15.346554739137163,
+        "max_second_difference_mm": 4.644268799496387
+      },
+      "R": {
+        "max_step_mm": 34.4963926411278,
+        "p95_step_mm": 30.523249613318768,
+        "max_second_difference_mm": 10.46060895779644
+      }
+    }
+  }
+}
