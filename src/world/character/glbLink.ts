@@ -141,7 +141,7 @@ import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './pu
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '1c08dec3c7970bf4876e199c6495cf3d80b2eb46fe23b2bab56092a20e174a4b';
+export const LINK_GLB_SHA256 = 'ace15addbd2478864f5e46d34e2ef12d18e1ddea60c598bf333d642bf3941e06';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -161,7 +161,7 @@ interface ClipSpec {
 export const CLIP_SPEC: Record<Gait, ClipSpec> = {
   idle: { strideM: 0, cycleS: 3.0, heroClipTime: 0 },
   walk: { strideM: 0.88, cycleS: 0.55, heroClipTime: 16 / 60 },
-  run: { strideM: 2.21, cycleS: 0.5666667, heroClipTime: 15 / 60 },
+  run: { strideM: 1.82, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
   stairs: { strideM: 0.8066667, cycleS: 0.7333333, heroClipTime: 22 / 60 },
 };
 /** simulation time of the hero captures (capture.mjs DEFAULT_SIM_TIME 12.5 + 6 settle frames) */

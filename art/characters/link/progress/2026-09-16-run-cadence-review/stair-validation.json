@@ -1,0 +1,48 @@
+{
+  "compared_stair_records": 1320,
+  "exact_match": true,
+  "candidate_complete": true,
+  "errors": [],
+  "summary": {
+    "flat-transitions": {
+      "frames": 300,
+      "gaits": [
+        "walk",
+        "run",
+        "idle"
+      ],
+      "distanceXZ": 10.973333333333338,
+      "maxRootStepM": 0.013060688970891143,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    },
+    "stairs-up": {
+      "frames": 660,
+      "gaits": [
+        "walk",
+        "stairs"
+      ],
+      "distanceXZ": 12.173333333333089,
+      "maxRootStepM": 0.017661187321463823,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 501,
+      "minRenderedStairGapM": 0.004046271699863269,
+      "shoeSamplesBelowMinus2cm": 0
+    },
+    "stairs-down": {
+      "frames": 660,
+      "gaits": [
+        "stairs",
+        "walk"
+      ],
+      "distanceXZ": 12.57333333333304,
+      "maxRootStepM": 0.01965174399930758,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 478,
+      "minRenderedStairGapM": 0.0032289174321382674,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  }
+}

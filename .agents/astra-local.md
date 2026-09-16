@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T03:34:47.3607329Z
+updated: 2026-09-16T04:24:30.5125280Z
 ---
 
 # astra-local — roster entry
@@ -108,3 +108,6 @@ Rootunionfinal connectivity cleanup: removed isolated3vertex/2facecomponent. Sav
 
 2026-09-16T03:34:47.3607329Z — Firstrootplacementprototype ready: a57c6dd3,9408tris/1mesh/1primitive/1material/3embedded2Kmaps/11.84MB. Originalgeometry+moss, CC0bark_brown_02 original2Kchecksummed. Continuousmapping thenpatchymossrenderreviewed, bakedstandardPBR; GLBreimport+renderinspected. Publicmodels/trees/root-base-a-prototype.glb+SOURCE; art/trees/root-kit-review packednative+evidence. Typecheck/buildpass. Notworldapproved; terrainfit/perf/2bolesizes+variants pendingFable. Character1c08dec3 unchanged. Noactivejobs; goalunfinished.
 
+
+
+2026-09-16T04:24:30.5125280Z — Retained shorter-stride run ace15add, same3.9m/s,28/60s,1.82m; runtime spec/hash paired. Native matched views improve belt/hem bunching.137phase clearance passes; editable action saved. Fullgame04-19-49:1620frames noerrors/reachclamps,1320stairs records exact23-19-34baseline. Added torso measurements: candidate04-16-25 vsbaseline04-17-53; runhip maxstep45.29to31.59mm, stop50.59to15.65mm, walkingexact. Root-offset-only max7.52to13.06mm is misleading without torso. Flatvideo04-13-05 saved150frames/30fps, viewedstill152. Evidence integrated2026-09-16-run-cadence-review with nativeaction, native/gameimages,video,reports. Restricted403weightfit NOT included (insufficientvisualgain). Current default asset promoted, typecheckpassed/buildfinishing. Goalunfinished; next actual video-phase quality / remaining garment and hair detail; Fable rootplacement/worldupdate stillpending.

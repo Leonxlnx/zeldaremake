@@ -1,0 +1,109 @@
+{
+  "scope": "Actual bone origins, 60 Hz; vertical steps and second differences, not a perceptual quality score",
+  "before": {
+    "walk": {
+      "hips": {
+        "max_step_mm": 10.852198345674802,
+        "max_second_difference_mm": 12.552911576804215,
+        "p95_step_mm": 9.253649307060074
+      },
+      "chest": {
+        "max_step_mm": 10.852198345674747,
+        "max_second_difference_mm": 12.55291157680427,
+        "p95_step_mm": 9.253649307060074
+      },
+      "head": {
+        "max_step_mm": 10.853614685749413,
+        "max_second_difference_mm": 12.553555165346065,
+        "p95_step_mm": 9.256500379322684
+      }
+    },
+    "run": {
+      "hips": {
+        "max_step_mm": 45.28934521293115,
+        "max_second_difference_mm": 31.40824369033823,
+        "p95_step_mm": 43.81511255361864
+      },
+      "chest": {
+        "max_step_mm": 45.289345212931266,
+        "max_second_difference_mm": 31.40824369033823,
+        "p95_step_mm": 43.8151125536187
+      },
+      "head": {
+        "max_step_mm": 45.249293528733524,
+        "max_second_difference_mm": 31.40745726727068,
+        "p95_step_mm": 43.854404082069195
+      }
+    },
+    "stop": {
+      "hips": {
+        "max_step_mm": 50.59088970412279,
+        "max_second_difference_mm": 32.03481111001055,
+        "p95_step_mm": 18.556078594112236
+      },
+      "chest": {
+        "max_step_mm": 50.590889704122844,
+        "max_second_difference_mm": 32.03481111001061,
+        "p95_step_mm": 18.556078594112236
+      },
+      "head": {
+        "max_step_mm": 50.75175482216976,
+        "max_second_difference_mm": 31.949466022085705,
+        "p95_step_mm": 18.802288800084057
+      }
+    }
+  },
+  "after": {
+    "walk": {
+      "hips": {
+        "max_step_mm": 10.852198345674802,
+        "max_second_difference_mm": 12.552911576804215,
+        "p95_step_mm": 9.253649307060074
+      },
+      "chest": {
+        "max_step_mm": 10.852198345674747,
+        "max_second_difference_mm": 12.55291157680427,
+        "p95_step_mm": 9.253649307060074
+      },
+      "head": {
+        "max_step_mm": 10.853614685749413,
+        "max_second_difference_mm": 12.553555165346065,
+        "p95_step_mm": 9.256500379322684
+      }
+    },
+    "run": {
+      "hips": {
+        "max_step_mm": 31.585304860352103,
+        "max_second_difference_mm": 26.25186320302797,
+        "p95_step_mm": 29.581925134619603
+      },
+      "chest": {
+        "max_step_mm": 31.585304860352046,
+        "max_second_difference_mm": 26.25186320302797,
+        "p95_step_mm": 29.58192513461966
+      },
+      "head": {
+        "max_step_mm": 31.593637361328252,
+        "max_second_difference_mm": 26.262672054330082,
+        "p95_step_mm": 29.575229216338485
+      }
+    },
+    "stop": {
+      "hips": {
+        "max_step_mm": 15.65454656987708,
+        "max_second_difference_mm": 21.91469740962848,
+        "p95_step_mm": 13.063486324704332
+      },
+      "chest": {
+        "max_step_mm": 15.65454656987708,
+        "max_second_difference_mm": 21.91469740962848,
+        "p95_step_mm": 13.063486324704332
+      },
+      "head": {
+        "max_step_mm": 15.871643526417456,
+        "max_second_difference_mm": 22.01081863984222,
+        "p95_step_mm": 13.002319973024811
+      }
+    }
+  }
+}
