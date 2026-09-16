@@ -549,11 +549,15 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         bevel: 0.03,
         dip: 0.008,
         color: [tint, tint, tint * 0.97],
-        // the kerb face: the tread's grey-brown, soil-stained at the path
-        sideColor: [tint * 0.62, tint * 0.62, tint * 0.64],
-        sideStain: 1.2,
-        mossEdge: 0.5,
-        mossInner: 0.1,
+        // the kerb face: pale stone like its top, a little soil at the path line and a thin moss
+        // film — the first cut's grey-brown (× 0.62, stain 1.2, moss 0.5) rendered as a dark
+        // block beside Link's head in camera B (frame 14 s has pale path there: one SSIM window
+        // at B (0.44–0.47, 0.64–0.69) swung from +0.5 to −0.5, −0.001 on B and E), and frame 56 s
+        // shows the foot of these steps as a pale slab, not a dark kerb
+        sideColor: [tint * 0.9, tint * 0.9, tint * 0.9],
+        sideStain: 0.4,
+        mossEdge: 0.25,
+        mossInner: 0.05,
         mossFn: (x, z) => 0.4 + 0.6 * (noise.fbm((x + ac) * 2.1 + 17, (z + uc) * 2.1 + 3, 2) * 0.5 + 0.5),
         uvScale,
         uvOffset: [arng() * 3, arng() * 3],

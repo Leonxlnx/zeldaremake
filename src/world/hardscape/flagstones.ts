@@ -784,11 +784,6 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   // cells at the reference's path edge, and place no stone themselves. A cell reaches to within
   // 0.7 m of the phantom (5 cm inside the edge) however far its seed is; where the pocket fades
   // out at its north end the reach shrinks with it, so camera D's foreground keeps its stones
-  // (round 38, tried and dropped: taking the reach from the pocket's weight 0.4 m north of the
-  // phantom filled D's frame bottom (z −6.5 … −7.05, x −0.8 … 0.4, D (0.3–0.47, 0.9–1.0)) with
-  // stone, as frame 56 s has under Link's cast shadow — but that shadow is the frame's darkest
-  // ground and our Link's falls at his feet, so the pale slab there cost D 0.005 of SSIM and
-  // camera B/E's pocket end 0.001 each; the bare soil stays until the shadow direction agrees)
   for (let z = -3.2; z >= -6.4; z -= 0.8) {
     const x = lawnPocketEdgeX(z) - 0.75;
     grid.add(x, z, seeds.length);
@@ -1131,11 +1126,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const dFore = Math.max(dForeground(sd.z), dThin(sd.z));
     if (dFore > 0.05 && !sd.authored && sd.lawn < 0.5) {
       const drng = rng.fork(`break-d/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`);
-      // (round 38: no piece under 1.45 m across at full weight — the 0.42 m floor let a 2.3 m cell
-      // at the frame's bottom edge shed a 0.96 m sliver that the stretch's 13–26 cm seams and 30 %
-      // fillets cut down to a 0.3 m² chip in a pale soil gap, D (0.44, 0.91), where frame 56 s has
-      // the slab under Link's shadow; the crack is retried elsewhere or given up, as any other)
-      const dParts = breakCell(cell, base * (1 + 1.3 * dFore), drng.range(0, 0.02), Math.max(BREAK_MIN_ACROSS, 1.45 * dFore), drng);
+      const dParts = breakCell(cell, base * (1 + 1.3 * dFore), drng.range(0, 0.02), BREAK_MIN_ACROSS, drng);
       parts = dParts;
       partGaps = dParts.map(() => (dParts.length > 1 ? drng.range(0.03, 0.06) : 0));
       if (dParts.length < partsOld.length) stats.mergedD += partsOld.length - dParts.length;
@@ -1274,16 +1265,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // at 2× sets them in 0.15–0.3 m of shadowed grass and earth (gap runs p50 0.22 m in its bottom
     // quarter against our 0.16 m, 0.10 m once the slabs merged at 9–20 cm seams): 13–26 cm
     // geometric seams there, on `uJoint` (no new draw); 0 elsewhere leaves the seam as is
-    // (round 38: 13–26 → 9–19 cm north of z −7.8. Classified through the paving in camera D's
-    // paved band (frame y 0.55–1.0, Link and the HUD out), stone was 60 % of the band and the
-    // joint fill 40 % at a median 0.39 against the stones' 0.51, where frame 56 s at the same
-    // pixels has 88 % above the fill's tone: its slabs meet in 8–11 cm dark seams (15–20 px
-    // across at y 0.9, 0.55 cm/px), and the wide mid-tone bands read as runs of missing stone,
-    // not as its seams. The one 0.3 m gap the frame does have is its bottom row's (y ≈ 0.84,
-    // z −7.0 … −7.8 under Link's shadow), so that row keeps the 13–26 cm)
     const dThinW = disc ? 0 : dThin(s.z);
-    const dNarrow = smoothstep(-7.4, -8.2, s.z);
-    const dJoint = 0.13 + 0.08 * jointN + 0.05 * uJoint - (0.04 + 0.02 * jointN + 0.01 * uJoint) * dNarrow;
+    const dJoint = 0.13 + 0.08 * jointN + 0.05 * uJoint;
     // corners: 14 % of the slab (5–16 cm; round 23 - frame 1 s's plaza slabs are irregular with
     // rounded corners; 12 % read as chamfered hexagons and a quarter of the slab as cobbles set
     // in mortar, with 8–15 cm junction triangles); the lawn slabs' 18 % (7–24 cm); round 33: the
@@ -1314,10 +1297,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       joint: Math.max(0.012, baseJoint + (fieldJoint - baseJoint) * fieldW + (dJoint - baseJoint - (fieldJoint - baseJoint) * fieldW) * dThinW - 1.5 * wobble),
       // a narrow shoulder (1.6–3 cm, was 2.2–4.2): the edge reads as a break, not a roll
       shoulder: (baseShoulder + (fieldShoulder - baseShoulder) * fieldW) * uShoulder,
-      // (round 38: 30 % less corner on camera D's stretch — at fieldW 0.5 the 2 m slabs carried
-      // 0.23–0.35 m fillets, and with the seams those made 0.4–0.6 m earth triangles at every
-      // three-way junction; frame 56 s's junctions are 0.2–0.3 m)
-      fillet: (seamFillet + (lawnFillet - seamFillet) * lawn + (fieldFillet - seamFillet - (lawnFillet - seamFillet) * lawn) * fieldW) * uFillet * (1 - 0.3 * dThinW * dNarrow),
+      fillet: (seamFillet + (lawnFillet - seamFillet) * lawn + (fieldFillet - seamFillet - (lawnFillet - seamFillet) * lawn) * fieldW) * uFillet,
       erosion: disc ? ea * (1 + lawn) : ea * 1.3 * (1 + 0.5 * lawn) * (1 - 0.5 * fieldW),
       roundArcs: !disc,
       broken: !disc,
