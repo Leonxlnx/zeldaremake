@@ -1966,6 +1966,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   posted (collar exact after warp; roots reach 4.9 R and float up to 85 cm on the 2.2 m bole; unique
   2K set stretched/heavy; procedural closer to concept 05; hybrid path recommended).
 
+### 20:18 UTC — tick 117: heartbeat; round 40 mid-flight
+- Tree unchanged → heartbeat. trees-24 3 commits (leaf-cluster rims on the cored lobes and distant
+  crowns — task 3 first), structures-25 4 commits (cap tufts gathering into 0.3–0.6 m cushion
+  colonies), vegetation-21 4 commits (frame A's circled bank face, paid for inside round-39's
+  budget). Astra reviewed the round-39 evidence: near leaves still broad flat polygons, bright fern
+  clusters hide the roots, carpet shows dark blade spikes and repeated fan clumps — on the
+  round-40 integration checklist.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2004,4 +2012,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T19:12:00Z
+2026-09-16T20:18:00Z
