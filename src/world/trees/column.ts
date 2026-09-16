@@ -16,7 +16,9 @@ import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail } from './writer';
 import type { Palette, TreeAsset } from './whitebark';
-import { consumeTubeDraws, reliefBole } from './bole';
+import { buttressRoot, consumeTubeDraws, reliefBole } from './bole';
+import { basePlants, type BasePlantResult } from './base-plants';
+import { NEAR_BASE_CUT_Y, NEAR_BASE_PITCH, nearBaseAmplitude } from './giant';
 
 /** A column tree plus the bole its `tube()` sweep was built from, for `ctx.shared.trunkSeats`. */
 export interface ColumnAsset extends TreeAsset {
@@ -28,6 +30,21 @@ export interface ColumnAsset extends TreeAsset {
   bareHeight: number;
   /** the near-bole bark as built (bole.ts; `ColumnParams.relief`), or null for the plain sweep */
   bark: { relief: number; rings: number; sides: number; mossShare: number; triangles: number } | null;
+  /** the near base (giant.ts NEAR_BASE_CUT_Y), local space — built for the high detail only */
+  nearBase: BufferGeometry | null;
+  nearBaseAudit: { relief: number; rings: number; sides: number; cutY: number; mossShare: number; fins: number; toes: number; woodTriangles: number; plants: BasePlantResult; triangles: number } | null;
+}
+
+export interface ColumnBuildOptions {
+  /** local ground height under local (x, z); only roots and the near base use it */
+  groundAt?: (x: number, z: number) => number;
+  /** build the near base for the high detail (default false: the far-wall columns never get close) */
+  nearBase?: boolean;
+  /** unit vector toward the sun in the tree's LOCAL frame (yaw undone): the shaded foot wears moss */
+  sunDir?: Vector3;
+  /** 0–1 path / paving mask under local (x, z) */
+  pathAt?: (x: number, z: number) => number;
+  basePalette?: Parameters<typeof basePlants>[2]['palette'];
 }
 
 export interface ColumnParams {
@@ -127,7 +144,9 @@ export function emergentParams(rng: Rng): ColumnParams {
 }
 
 /** `groundAt` samples terrain in this particular seat's local coordinates; only roots use it. */
-export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAt: (x: number, z: number) => number = () => 0): ColumnAsset {
+export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAtIn: ((x: number, z: number) => number) | ColumnBuildOptions = () => 0): ColumnAsset {
+  const o: ColumnBuildOptions = typeof groundAtIn === 'function' ? { groundAt: groundAtIn } : groundAtIn;
+  const groundAt = o.groundAt ?? (() => 0);
   const rng = createRng(`column/${p.seed}`);
   const bt = (a: number, b: number) => between(rng, a, b);
   const gnarl = new Noise2D(`column-bark/${p.seed}`);
@@ -171,22 +190,27 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     return radius * (1 + p.flare * Math.exp(-above * 9));
   });
   let bark: ColumnAsset['bark'] = null;
+  // the plain sweep's up-front draws are taken here whichever bole is built, so the near base
+  // (below) can end on exactly the plain sweep's cut ring; the rings under the cut are collapsible
+  const draws = consumeTubeDraws(rng, 16);
+  const buildNearBase = o.nearBase === true && detail === 'high';
+  const cutIndex = Math.max(1, trunk.findIndex((pt) => pt.y >= NEAR_BASE_CUT_Y));
+  const cutY = trunk[cutIndex].y;
+  const refRadius = (() => {
+    let best = trunkRadii[0];
+    let bestD = Infinity;
+    trunk.forEach((pt, i) => {
+      const dd = Math.abs(pt.y - 2);
+      if (dd < bestD) {
+        bestD = dd;
+        best = trunkRadii[i];
+      }
+    });
+    return best;
+  })();
   if (p.relief) {
     // the near-bole bark (bole.ts): the plain sweep's draws are consumed so the roots and crown
     // below draw the same stream; medium / low details keep the plain sweep's side reduction
-    const draws = consumeTubeDraws(rng, 16);
-    const refRadius = (() => {
-      let best = trunkRadii[0];
-      let bestD = Infinity;
-      trunk.forEach((pt, i) => {
-        const dd = Math.abs(pt.y - 2);
-        if (dd < bestD) {
-          bestD = dd;
-          best = trunkRadii[i];
-        }
-      });
-      return best;
-    })();
     const sideScale = detail === 'high' ? 1 : detail === 'medium' ? 0.72 : 0.5;
     const built = reliefBole(wood, trunk, trunkRadii, {
       color: barkColor,
@@ -220,13 +244,140 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       isTrunk: true,
       structural: true,
       stiffness: stiff,
+      draws,
+      collapsible: (pt) => buildNearBase && pt.y < cutY - 1e-6,
     });
   }
 
   // ---------- buttress roots ----------
   const rootColor = barkBase.clone().lerp(barkDeep, 0.5);
+  /** the plain roots' architecture (angle, reach), for the near base's fins */
+  const plainRoots: { angle: number; length: number; width: number }[] = [];
+  wood.woodCollapsible = buildNearBase;
+  wood.woodIsRoot = true;
   for (let i = 0; i < p.roots; i++) {
-    rootButtress(wood, (i / p.roots) * TAU + bt(-0.25, 0.25), R * bt(p.rootReach[0], p.rootReach[1]), R * bt(0.42, 0.6), R * bt(0.9, 1.3), rootColor, rng, groundAt);
+    const angle = (i / p.roots) * TAU + bt(-0.25, 0.25);
+    const length = R * bt(p.rootReach[0], p.rootReach[1]);
+    const width = R * bt(0.42, 0.6);
+    const height = R * bt(0.9, 1.3);
+    plainRoots.push({ angle, length, width });
+    rootButtress(wood, angle, length, width, height, rootColor, rng, groundAt);
+  }
+  wood.woodCollapsible = false;
+  wood.woodIsRoot = false;
+
+  // ---------- near base (giant.ts NEAR_BASE_CUT_Y) ----------
+  let nearBase: BufferGeometry | null = null;
+  let nearBaseAudit: ColumnAsset['nearBaseAudit'] = null;
+  if (buildNearBase) {
+    const nb = new GeometryWriter('high');
+    const nrng = rng.fork('near-base');
+    const nNoise = new Noise2D(`column-near-relief/${p.seed}`);
+    const shadeDir = o.sunDir ? new Vector3(-o.sunDir.x, 0, -o.sunDir.z).normalize() : undefined;
+    const bole = reliefBole(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
+      color: barkColor,
+      bump: gnarlBump,
+      creviceShade: 1.8 * (p.gnarl / 0.1),
+      barkTile: p.barkTile,
+      roughness: 0.05,
+      sides: Math.max(40, Math.min(120, Math.round((TAU * refRadius) / 0.05))),
+      spacing: 0.14,
+      denseUntilY: cutY + 1,
+      amplitude: nearBaseAmplitude(refRadius),
+      pitch: NEAR_BASE_PITCH,
+      fadeY: [cutY + 10, cutY + 20],
+      farShare: 1,
+      endFade: [cutY - 1.8, cutY],
+      cap: false,
+      refRadius,
+      noise: nNoise,
+      draws,
+      stiffness: stiff,
+      flatBase: true,
+      mossBand: [0.6, 3.5],
+      mossStrength: 0.9,
+      shadeDir,
+      sheetBand: [0.8, 2.0],
+    });
+    // fins along the plain buttresses' directions: a centreline from the collar out to the reach,
+    // riding the ground, then split toes (bole.ts)
+    let toes = 0;
+    const finFoot: { path: Vector3[]; halfWidth: number }[] = [];
+    const flareR = trunkRadii[Math.max(0, trunk.findIndex((pt) => pt.y >= 0))];
+    plainRoots.forEach((root, i) => {
+      const dir = new Vector3(Math.cos(root.angle), 0, Math.sin(root.angle));
+      const side = new Vector3(-dir.z, 0, dir.x);
+      const segments = 9;
+      const path: Vector3[] = [];
+      const radii: number[] = [];
+      const r0 = root.width * 0.55;
+      const wiggle = nrng.range(0.1, 0.25);
+      const wPhase = nrng() * TAU;
+      for (let k = 0; k <= segments; k++) {
+        const t = k / segments;
+        const d = flareR * 0.5 + (root.length - flareR * 0.5) * t;
+        const q = dir.clone().multiplyScalar(d).addScaledVector(side, Math.sin(t * 4 + wPhase) * wiggle * t);
+        const g = groundAt(q.x, q.z);
+        const radius = 0.05 + (r0 - 0.05) * Math.pow(1 - t, 0.9);
+        const dive = smoothstep(0, 0.4, t);
+        q.y = (1 - dive) * (flareR * 0.55 * (1 - t) + g) + dive * (g + radius * 0.35);
+        if (k === segments) q.y = g - 0.2;
+        path.push(q);
+        radii.push(radius);
+      }
+      const big = i % 2 === 0;
+      const built = buttressRoot(nb, path, radii, {
+        groundAt,
+        pathAt: o.pathAt,
+        color: barkColor,
+        draws: consumeTubeDraws(nrng, 10),
+        rng: nrng.fork(`root-toes/${i}`),
+        flare: big ? 2.2 : 1.5,
+        finHeight: big ? 1.9 : 1.3,
+        maxReach: root.length + 0.1,
+        stiffness: stiff,
+        noise: nNoise,
+        mossStrength: 0.9,
+      });
+      toes += built.toes;
+      finFoot.push({ path, halfWidth: r0 * (big ? 2.2 : 1.5) });
+    });
+    const woodTriangles = nb.triangles;
+    const clear = (x: number, z: number) => {
+      for (const f of finFoot) {
+        for (let i = 0; i < Math.ceil(f.path.length * 0.6); i++) {
+          const a = f.path[i];
+          const b = f.path[Math.min(f.path.length - 1, i + 1)];
+          const abx = b.x - a.x;
+          const abz = b.z - a.z;
+          const len2 = abx * abx + abz * abz || 1;
+          const t = Math.max(0, Math.min(1, ((x - a.x) * abx + (z - a.z) * abz) / len2));
+          const dx = x - (a.x + abx * t);
+          const dz = z - (a.z + abz * t);
+          if (dx * dx + dz * dz < f.halfWidth * f.halfWidth * 0.8) return false;
+        }
+      }
+      return true;
+    };
+    const plants = basePlants(nb, nrng.fork('plants'), {
+      groundAt,
+      pathAt: o.pathAt,
+      clear,
+      footRadius: flareR * 1.05,
+      reach: flareR + 1.4,
+      density: 0.6,
+      shadeDir,
+      palette: o.basePalette ?? {
+        fern: new Color(0x5b6838),
+        fernDeep: new Color(0x3c4927),
+        tuft: new Color(0x5e764a),
+        tuftSun: new Color(0x8a9a4c),
+        litter: new Color(0x69613c),
+        litterDark: new Color(0x423b26),
+      },
+    });
+    nearBase = nb.finish(`column-near-base-${p.seed}`);
+    nearBaseAudit = { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, woodTriangles, plants, triangles: nb.triangles };
   }
 
   // ---------- crown ----------
@@ -324,5 +475,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     trunkRadii,
     bareHeight,
     bark,
+    nearBase,
+    nearBaseAudit,
   };
 }

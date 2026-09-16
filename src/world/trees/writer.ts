@@ -49,6 +49,26 @@ export class GeometryWriter {
   leafShade = 1;
   /** while set, leaf vertices are written as "flat" leaves (aRoot.w = 1.5 + 0.5 × leafShade; see the header) */
   leafFlat = false;
+  /**
+   * while set, wood vertices are written with aRoot.w = −1: the far lower bole and roots that the
+   * near-bole LOD replaces (materials.ts `uNearBole`): the tree shader collapses them to a point
+   * while the tree's near base is drawn, so the plain sweep and the relief bole never overlap.
+   * Every decode of aRoot.w (leaf ≥ 0.5, flat ≥ 1.25) still reads −1 as wood.
+   */
+  woodCollapsible = false;
+  /**
+   * while set (with `woodCollapsible`), the wood is written with aRoot.w = −2 instead: the plain
+   * roots, which a slot in "roots only" mode (uNearBole w < 0, the root-kit test) collapses while
+   * the trunk rings (−1) stay. Every other reader treats −2 as −1.
+   */
+  woodIsRoot = false;
+  /**
+   * 0–1 moss cover written into a wood vertex's aRoot.w as −0.45 × cover (only when the vertex is
+   * not collapsible): the tree shader (materials.ts vBarkMoss) lays real moss over the bark there
+   * — the vertex colour alone cannot, the dark bark map and the material tint swallow a tint.
+   * Every decode still reads it as wood (leaf ≥ 0.5, collapsible < −0.5).
+   */
+  woodMoss = 0;
 
   constructor(public detail: Detail = 'high') {}
 
@@ -58,7 +78,7 @@ export class GeometryWriter {
     this.colors.push(color.r, color.g, color.b);
     this.uvs.push(u, v);
     this.winds.push(stiffness, phase, flutter);
-    this.roots.push(0, 0, 0, leaf > 0 ? (this.leafFlat ? 1.5 : 0.5) + 0.5 * this.leafShade : 0);
+    this.roots.push(0, 0, 0, leaf > 0 ? (this.leafFlat ? 1.5 : 0.5) + 0.5 * this.leafShade : this.woodCollapsible ? (this.woodIsRoot ? -2 : -1) : -0.45 * Math.min(1, Math.max(0, this.woodMoss)));
     this.normals.push(NaN, NaN, NaN);
     return i;
   }
@@ -169,7 +189,32 @@ export interface TubeOptions {
    * draw where it was.
    */
   cull?: (point: Vector3, radius: number) => boolean;
+  /**
+   * rings this accepts are written collapsible (GeometryWriter.woodCollapsible: the near-bole LOD
+   * replaces them at close range). Bookkeeping only — no draw, no vertex moves.
+   */
+  collapsible?: (point: Vector3, t: number) => boolean;
+  /**
+   * the up-front random draws (ridge phase, wind phase, per-side grain) already taken from the
+   * stream by `consumeTubeDraws` — the sweep then draws nothing itself. Lets a caller know the
+   * ridge phase of a sweep whose ring a near-bole relief has to end on exactly.
+   */
+  draws?: TubeDraws;
 }
+
+/** the draws `tube()` makes up front, in stream order (see bole.ts consumeTubeDraws) */
+export interface TubeDraws {
+  phase: number;
+  windPhase: number;
+  grain: number[];
+}
+
+/**
+ * The cross-section ridge `tube()` writes at ring `k` (its `roughness` fluting): exported so the
+ * near-bole relief (bole.ts) can end on exactly the ring the plain sweep continues from.
+ */
+export const tubeRidge = (roughness: number, angle: number, phase: number, k: number) =>
+  1 + roughness * (0.6 * Math.sin(angle * 5 + phase) + 0.28 * Math.sin(angle * 9 - phase) + 0.12 * Math.sin(k * 1.3 + angle * 3));
 
 /** Sweep a tapered ring mesh along `points`. Frame is transported to avoid angular seams. */
 export function tube(writer: GeometryWriter, points: Vector3[], radii: number[], sidesIn: number, rng: RandomFn, opts: TubeOptions): number[][] {
@@ -178,12 +223,12 @@ export function tube(writer: GeometryWriter, points: Vector3[], radii: number[],
   let u: Vector3 | undefined;
   let distance = 0;
   const rows: number[][] = [];
-  const phase = rng() * TAU;
-  const windPhase = opts.phase ?? rng();
+  const phase = opts.draws ? opts.draws.phase : rng() * TAU;
+  const windPhase = opts.phase ?? (opts.draws ? opts.draws.windPhase : rng());
   const originalSides = sidesIn;
   let sides = sidesIn;
   // Draw the same random values at every LOD so branch/leaf placement is stable.
-  const grain = Array.from({ length: originalSides }, () => 0.9 + rng() * 0.2);
+  const grain = opts.draws ? opts.draws.grain : Array.from({ length: originalSides }, () => 0.9 + rng() * 0.2);
   if (!opts.structural) {
     // sub-pixel twigs do not merit wood triangles at the distance LODs (leaves on them are kept)
     if (writer.detail === 'low' && radii[0] < 0.012) return [];
@@ -219,9 +264,11 @@ export function tube(writer: GeometryWriter, points: Vector3[], radii: number[],
     const row: number[] = [];
     const ringColor = typeof opts.color === 'function' ? opts.color(points[k], t) : opts.color;
     const stiffness = opts.stiffness ? opts.stiffness(radii[k], t) : stiffnessFor(radii[k]);
+    const wasCollapsible = writer.woodCollapsible;
+    if (opts.collapsible) writer.woodCollapsible = opts.collapsible(points[k], t);
     for (let j = 0; j <= sides; j++) {
       const angle = ((j % sides) / sides) * TAU;
-      let ridge = 1 + roughness * (0.6 * Math.sin(angle * 5 + phase) + 0.28 * Math.sin(angle * 9 - phase) + 0.12 * Math.sin(k * 1.3 + angle * 3));
+      let ridge = tubeRidge(roughness, angle, phase, k);
       let crevice = 1;
       if (opts.bump) {
         const b = opts.bump(angle, distance, t);
@@ -234,6 +281,7 @@ export function tube(writer: GeometryWriter, points: Vector3[], radii: number[],
       const shade = crevice * grain[Math.floor(((j % sides) / sides) * originalSides)] * (0.96 + 0.045 * Math.sin(k * 1.14 + phase));
       row.push(writer.vertex(p, ringColor.clone().multiplyScalar(shade), (j / sides) * uTiles, distance / tile, stiffness, windPhase, 0));
     }
+    writer.woodCollapsible = wasCollapsible;
     writer.seams.push([row[0], row[sides]]);
     if (previousRow) {
       for (let j = 0; j < sides; j++) {
