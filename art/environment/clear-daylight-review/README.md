@@ -12,3 +12,15 @@ This deliberately revisits the earlier softening hold because the new elevated v
 - The prior clear-air commit8341d8cd independently passed GitHub run35096795493, merge test9fca23788ca1960d74e53862dc86fb22bb18102e: D purple .00347,0console/determinism,84 anti-cheat checks. Its reports are explicitly under ci-clear-air; this is not CI approval of the newer clarity revision.
 
 The before/after landing files are direct native screenshots at the same camera and simulation time. The ascent uses the existing main-stair layout, 120 camera positions, fixed simulation time12.6, and a smooth camera-height ramp. It is a camera diagnostic, not player foot-placement or FPS evidence. Raw frame hashes and poses remain in the manifests; local timestamped directories retain every raw frame.
+
+## Complete pass: matched native views
+
+Baseline f3314dc2 at11:43 UTC and final production2132882a at13:31 UTC: same camera,1280x720,HUD off,time12.6,seed and two settling frames; no tuning overrides and empty source diffs in both manifests. These images compare the whole session, rather than only the last clarity change. Full per-view metrics and provenance are included.
+
+| Initial plaza | Final plaza |
+| --- | --- |
+| ![Initial plaza](whole-pass-before.png) | ![Final plaza](whole-pass-after.png) |
+
+| Initial sky | Final sky |
+| --- | --- |
+| ![Initial sky](sky-before.png) | ![Final sky](sky-after.png) |

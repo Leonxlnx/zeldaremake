@@ -139,7 +139,8 @@ export function create(ctx: WorldContext): WorldSystem {
   // B −0.001 at 0). ×0.75 takes the whole-frame darkest decile down 0.008 (D) / 0.007 (B) with the
   // medians −0.007 / −0.008 (the frames' p10 sits 0.04 under ours, the medians already match) and
   // SSIM +0.002 / +0.001 measured on top of the round's other changes.
-  const environmentIntensity = 0.3;
+  // Owner video: preserve readable cool shade beneath distinct direct-sun patches.
+  const environmentIntensity = 0.22;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

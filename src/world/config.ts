@@ -30,7 +30,7 @@ export const WORLD = {
     azimuthDeg: -128, // measured from +Z toward +X; negative = light coming from the west-north-west
     elevationDeg: 38,
     color: 0xffe9c4,
-    intensity: 3.7,
+    intensity: 4.4,
     shadowMapSize: 4096,
     shadowRadius: 60,
   },
@@ -79,7 +79,7 @@ export const WORLD = {
      * IBL at 0.57) once the canopy shade darkened: shots B/D's paths measured 0.05 over the reference
      * at 1.0 / 0.6 with the sun at 3.0 — see sun.intensity for the balance.
      */
-    hemiIntensity: 0.82,
+    hemiIntensity: 0.55,
   },
 
   fog: {
