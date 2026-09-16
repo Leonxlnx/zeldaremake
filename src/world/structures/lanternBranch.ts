@@ -359,7 +359,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // Owner markup 2 ("beam-like", isolated flat leaves) and frame 03's bough: connected twig
   // forks leave the sleeve along its whole length, each forking once or twice, thinning by 0.62
   // to its tip, curling up toward the light and drooping again under the leaves; every twiglet
-  // carries a spray of OVERLAPPING cupped laminae along its outer part (one every 4.5 cm, a
+  // carries a spray of OVERLAPPING cupped laminae along its outer part (one every 3.4 cm, a
   // 9–12 cm leaf each, golden-angle phyllotaxis — verdant-forest trees.js leafSpray) and a
   // rosette at its tip, so the leaves are layered clusters hanging off wood, never stems stuck
   // on the beam. The run's twigs are authored (s, ψ); the reach takes one per ≈ 0.75 m.
@@ -382,9 +382,9 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // (round 37: the bough is 6 m from camera A in the shade under the roof — its leaves read as
   // dark olive in frame 1 s; the laminae's base tint keeps that but the lit/backlit ones lift
   // through the material's transmission)
-  const leafBase = new Color().setRGB(0.4, 0.46, 0.24);
+  const leafBase = new Color().setRGB(0.36, 0.42, 0.21);
   const tintFor = (): Color => {
-    const k = 0.82 + twigRng() * 0.36;
+    const k = 0.72 + twigRng() * 0.56;
     const warm = (twigRng() - 0.5) * 0.08;
     return new Color().setRGB(Math.max(0, leafBase.r * k + warm), leafBase.g * k, Math.max(0, leafBase.b * k - warm * 0.5));
   };
@@ -463,8 +463,8 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       }
     }
     const share = depth > 0 ? 0.55 : 0.7;
-    leafSpray(curve, rad, Math.max(3, Math.round((length * share) / 0.045)), 1 - share, phase, size, fine, tint);
-    rosette(pts[pts.length - 1], h, phase, size, fine, tint, 5 + Math.floor(twigRng() * 3));
+    leafSpray(curve, rad, Math.max(3, Math.round((length * share) / 0.034)), 1 - share, phase, size, fine, tint);
+    rosette(pts[pts.length - 1], h, phase, size, fine, tint, 6 + Math.floor(twigRng() * 3));
   };
   /** a primary twig off the sleeve at (s, ψ): heading = radial × out + up + along the limb */
   const primaryTwig = (s: number, psi: number, out: number, up: number, along: number, length: number, radius: number, depth: number, fine: boolean, curl = 0.35) => {
