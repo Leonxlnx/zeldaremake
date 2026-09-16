@@ -1,0 +1,13 @@
+{
+  "asset": "e5882cc595233cc5f1caab691755085fcf5d819ce75ce15906dcd1098d1beda0",
+  "native_source": "back-hem-study.blend",
+  "native_sha256": "3ae38697ff20a4403a3459aa8d8b333b97e775c697c86ba1466f2eca346f0e8c",
+  "status": "Retained rear hem weight repair; other weight defects remain",
+  "changed_weight_positions": 312,
+  "target_peak_stretch_before": 19.1397055196469,
+  "target_peak_stretch_after": 1.7207673381606763,
+  "game_frames": 1620,
+  "game_records_exact_to": "2026-09-15T18-58-24-306Z-play-motion",
+  "game_errors": [],
+  "remaining": "Other cloth-weight discontinuities and Fable descent support hitch remain. No complete animation/reference-quality acceptance."
+}

@@ -1,0 +1,10 @@
+{
+  "status": "Retained after export, native four-gait, studio and gameplay checks.",
+  "source": "belt-side-study.blend / current0646f2e9",
+  "checks": "24detectedbadedges,target18.327->1.688; all4gaits48poses/671incidentedges improve. Restmesh/UV/normals/outsideweights unchanged.",
+  "visual": "Before/after frame17 viewed; modest visible improvement, needs game review. Other cloth deformation remains.",
+  "production": "39a55c954d958ba844fa086f7ad2b092a54edb43bf504d76b36386cf20c593d4",
+  "candidate": "39a55c954d958ba844fa086f7ad2b092a54edb43bf504d76b36386cf20c593d4",
+  "export": "192weightpositionsonly; allotherrestattributes/images/clips/binds/blinkmorphsexact.22studio+5blinkposespass;run0.5viewed.",
+  "movement_records_exact_to": "2026-09-15T22-24-21-566Z-play-motion; all 300 samples including blink"
+}

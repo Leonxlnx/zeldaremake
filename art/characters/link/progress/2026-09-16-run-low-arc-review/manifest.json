@@ -1,0 +1,12 @@
+{
+  "status": "Retained after native and actual gameplay review",
+  "production": "75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c",
+  "parameters": "Swing lift0.105to0.065m; ankle pitch amplitude0.45to0.25rad.34frames60fps,speed3.9,stride2.21,stance duty0.25unchanged.",
+  "checks": "Loop seam0; bone length and stance-speed checks pass.137 native samples: minimum shoez unchanged0.003818m; swing minimum0.006545m; maximum stance difference0.000039m. Knee maximum relative hip lowered0.02759m. Other native channels preserved.",
+  "visual": "Native front frame26 reviewed. Lower knee, but hem folding remains; contact count mixed, not accepted as a cloth fix.",
+  "failed_trial": "Original ankle pitch with lower arc caused shoez -0.003703m. First pitch variant failed loop due initial pose evaluation; explicit frame-1 evaluation fixes stale first sample, v2 passes. Failed trial retained only in memory; saved candidate is v2.",
+  "next": "Continue face/cloth polish and Fable coordination; overall reference quality unfinished.",
+  "export": "75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c; only run hip/leg channels changed, toe export roundoff <=5.97e-8. All rest attributes/morphs/images/binds and other clips exact after2verifiedtinyresttangents restored.",
+  "runtime": "300 flat transition samples complete/errorsnone. Horizontal path/gait exact; max vertical step10.13to7.52mm, min reported shoe gap-9.1to-8.0mm, no reach clamp. Movie150frames30fps verified. Running frame152 visually inspected.",
+  "terrain": "1620 samples complete/errorsnone. All1320 staircase records match all corresponding old-schema fields in20-19-36round37 baseline. No reach clamps; same stair shoe samples/gaps. Blink telemetry is newer and not part of that old-schema comparison."
+}

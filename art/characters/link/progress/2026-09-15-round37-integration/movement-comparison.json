@@ -1,0 +1,12 @@
+{
+  "asset": "322c3433542064ffaeed91c5d7c04b95746778c6ddea60a5418b23148e7b7d7d",
+  "runtime_integration": "7b8e35b / ddfb652 / character fix05c045d",
+  "frames": 1620,
+  "errors": [],
+  "f594_before_m": -0.021949629635987455,
+  "f594_after_m": -0.0016214281308056522,
+  "descent_max_before_m": 0.021949629635987455,
+  "descent_max_after_m": 0.01965174399930758,
+  "ascent_records_exact_ignoring_added_audit_field": true,
+  "flat_root_max_difference_m": 4.791015780561403e-07
+}

@@ -1,0 +1,13 @@
+{
+  "sha256": "844cb82bb82786a5c42b1f670c3e209e3d8e4f424b1bf31632867b24a41f6616",
+  "bytes": 40957932,
+  "clips": [
+    "idle",
+    "walk",
+    "run",
+    "stairs"
+  ],
+  "images": 5,
+  "status": "Local face detail candidate; runtime review pending",
+  "rest_tangents_preserved": 2
+}

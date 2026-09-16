@@ -1,0 +1,14 @@
+{
+  "sha256": "75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c",
+  "bytes": 40957936,
+  "clips": [
+    "idle",
+    "walk",
+    "run",
+    "stairs"
+  ],
+  "images": 5,
+  "status": "Local face detail candidate; runtime review pending",
+  "restored_verified_rest_tangents": 2,
+  "maximum_tangent_delta": 0.00010001659393310547
+}

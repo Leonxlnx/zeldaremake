@@ -1,0 +1,8 @@
+{
+  "status": "Blink8b retained; tone-b graphics revision rejected locally after matched visual comparison",
+  "asset": "3f6cb6f3",
+  "source_branch": "af5ede8",
+  "checks": "blink.test.mjs, gaitChain.test.mjs, typecheck and build pass. Both captures complete with no errors. 36 movement and 24 rapid-run records match exactly. Frame6 idle phase1; frame7 .8611; frame14 zero. All three morph meshes follow the envelope. Five scheduled phases and zero-dt checks pass.",
+  "visual": "Tone-b gain1.1 exaggerates face seams, hair edges and cloth detail in matched close-ups. Retain prior postfx values pending Fable revision. W35 remains unresolved on retained settings.",
+  "limitations": "Smoke is not full movement/performance or six-view gauntlet acceptance. Face, hair and garment quality remain unfinished."
+}

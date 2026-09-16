@@ -1,0 +1,11 @@
+{
+  "source_sha256": "d5213ba789d193ff55300b51fc66ac63a3bd209f6e11838a7fe02bec96927314",
+  "candidate_sha256": "e5882cc595233cc5f1caab691755085fcf5d819ce75ce15906dcd1098d1beda0",
+  "changed_weight_positions": 312,
+  "allowed_patch_positions": 312,
+  "outside_weights_exact": true,
+  "all_other_vertex_attributes_exact": true,
+  "all_images_exact": true,
+  "clips_exact": true,
+  "binds_exact": true
+}

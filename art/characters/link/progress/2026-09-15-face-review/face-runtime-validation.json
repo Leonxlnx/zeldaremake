@@ -1,0 +1,10 @@
+{
+  "source_sha256": "d221c8c1f3896d96ccee74ef24e66097dea9130f0416da1929556bfa7438f46b",
+  "candidate_sha256": "428141effd661eb5edc32bd80c03ebb19ace0fb2fc452906822bb876dcbbfadb",
+  "clip_max_error": 0,
+  "outside_head_states": 22968,
+  "outside_head_normal_max_error": 0.0007171928882598877,
+  "outside_head_positions_uvs_weights_joints_match_at_1um": true,
+  "binds_preserved": true,
+  "non_normal_source_images_byte_exact": true
+}

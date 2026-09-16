@@ -1,0 +1,21 @@
+{
+  "asset": "322c3433542064ffaeed91c5d7c04b95746778c6ddea60a5418b23148e7b7d7d",
+  "native_source": "combined-delivery-study.blend",
+  "native_sha256": "a7983bd4e79eba762e55d8bf6d2ed2f5a166e390b5f798e1efd498f74d0804e8",
+  "status": "Retained combined character; blink runtime hookup belongs to Fable",
+  "morph_contract": {
+    "phase": "p in [0,1]",
+    "blink": "max(0,2*p-1)",
+    "blinkHalf": "1-abs(2*p-1)",
+    "scope": "All meshes exposing names. Default both zero. Simulation time; zero-dt rerender must not advance blink."
+  },
+  "timing_ms": {
+    "closing": 70,
+    "closed": 30,
+    "opening": 120
+  },
+  "remaining": "Other cloth weight discontinuities, natural facial animation and reference quality remain unfinished.",
+  "game_records": 1620,
+  "game_records_exact_to": "e5882cc5",
+  "game_errors": []
+}

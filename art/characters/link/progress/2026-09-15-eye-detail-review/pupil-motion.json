@@ -1,0 +1,2642 @@
+{
+  "kind": "Actual player/IK review, not a gauntlet take or animation acceptance",
+  "world_commit": "b92ec21ac89b2f29372f0ab746f6ece1fa9e960b",
+  "world_status": "M public/models/link/SOURCE.md\n M public/models/link/link-runtime.glb\n M src/world/character/glbLink.ts",
+  "glb_sha256": "bdcb9ec76c5c5960e74b12f136e0a246615c9b0633632b4bc8b5df792f9c2051",
+  "capture_script_sha256": "8649c160380e80227cc5058e7ad4b2f90a082a5860884f94205060233bcf4455",
+  "samples": [
+    {
+      "scenario": "flat-transitions",
+      "frame": 0,
+      "gait": "walk",
+      "root": [
+        0,
+        0.01116006924090876,
+        0.47333333333333333
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.47333333333333333
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0172,
+          "groundY": 0.0151,
+          "gapM": 0.002,
+          "supportY": 0.0172,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0267,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0195,
+          "groundY": 0.0183,
+          "gapM": 0.0013,
+          "supportY": 0.0195,
+          "minShoeGapM": -0.0043,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0024,
+          "pinM": -0.0267,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0024,
+        "rootShiftM": -0.0071,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0267,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "rootStepY": null,
+      "shoeSurface": []
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 1,
+      "gait": "walk",
+      "root": [
+        0,
+        0.012572401688667505,
+        0.44666666666666666
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.44666666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0174,
+          "groundY": 0.0156,
+          "gapM": 0.0018,
+          "supportY": 0.0173,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0388,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0196,
+          "groundY": 0.0183,
+          "gapM": 0.0013,
+          "supportY": 0.0196,
+          "minShoeGapM": -0.0043,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0023,
+          "pinM": -0.0483,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0023,
+        "rootShiftM": -0.0057,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0483,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0014123324477587455
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 2,
+      "gait": "walk",
+      "root": [
+        0,
+        0.015051009011511827,
+        0.42
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.42
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0178,
+          "groundY": 0.0156,
+          "gapM": 0.0021,
+          "supportY": 0.0176,
+          "minShoeGapM": 0.0006,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0599,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0197,
+          "groundY": 0.0183,
+          "gapM": 0.0014,
+          "supportY": 0.0197,
+          "minShoeGapM": -0.0047,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0021,
+          "pinM": -0.0401,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0021,
+        "rootShiftM": -0.0032,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0599,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0024786073228443214
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 3,
+      "gait": "walk",
+      "root": [
+        0,
+        0.017724145409779245,
+        0.3933333333333333
+      ],
+      "placement": [
+        0,
+        0.0195,
+        0.3933333333333333
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.018,
+          "groundY": 0.0156,
+          "gapM": 0.0023,
+          "supportY": 0.018,
+          "minShoeGapM": 0.0008,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0865,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0208,
+          "groundY": 0.0183,
+          "gapM": 0.0026,
+          "supportY": 0.0199,
+          "minShoeGapM": -0.0053,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0019,
+          "pinM": -0.0431,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0019,
+        "rootShiftM": -0.0018,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0865,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0026731363982674186
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 4,
+      "gait": "walk",
+      "root": [
+        0,
+        0.020286604156559696,
+        0.36666666666666664
+      ],
+      "placement": [
+        0,
+        0.0195,
+        0.36666666666666664
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0196,
+          "groundY": 0.0156,
+          "gapM": 0.004,
+          "supportY": 0.0196,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0011,
+          "pinM": -0.092,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0249,
+          "groundY": 0.0183,
+          "gapM": 0.0066,
+          "supportY": 0.0203,
+          "minShoeGapM": -0.0047,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0018,
+          "pinM": -0.061,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0018,
+        "rootShiftM": 0.0007,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.092,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.00256245874678045
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 5,
+      "gait": "walk",
+      "root": [
+        0,
+        0.02191833839587915,
+        0.33999999999999997
+      ],
+      "placement": [
+        0,
+        0.0195,
+        0.33999999999999997
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0196,
+          "groundY": 0.0172,
+          "gapM": 0.0024,
+          "supportY": 0.0196,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0006,
+          "pinM": -0.0889,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0331,
+          "groundY": 0.0183,
+          "gapM": 0.0148,
+          "supportY": 0.0214,
+          "minShoeGapM": -0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0023,
+          "pinM": -0.0889,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0023,
+        "rootShiftM": 0.0024,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0889,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0016317342393194559
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 6,
+      "gait": "walk",
+      "root": [
+        0,
+        0.021933062568027593,
+        0.3133333333333333
+      ],
+      "placement": [
+        0,
+        0.0195,
+        0.3133333333333333
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0197,
+          "groundY": 0.0172,
+          "gapM": 0.0025,
+          "supportY": 0.0197,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0006,
+          "pinM": -0.0778,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0451,
+          "groundY": 0.0183,
+          "gapM": 0.0268,
+          "supportY": 0.0229,
+          "minShoeGapM": 0.0105,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0038,
+          "pinM": -0.0778,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0038,
+        "rootShiftM": 0.0024,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0778,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.000014724172148442016
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 7,
+      "gait": "walk",
+      "root": [
+        0,
+        0.020813951802804664,
+        0.2866666666666666
+      ],
+      "placement": [
+        0,
+        0.0221,
+        0.2866666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0215,
+          "groundY": 0.0172,
+          "gapM": 0.0044,
+          "supportY": 0.0215,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0022,
+          "pinM": -0.0606,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0593,
+          "groundY": 0.0221,
+          "gapM": 0.0372,
+          "supportY": 0.025,
+          "minShoeGapM": 0.028,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0057,
+          "pinM": -0.0606,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0057,
+        "rootShiftM": -0.0013,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0606,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.0011191107652229297
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 8,
+      "gait": "walk",
+      "root": [
+        0,
+        0.01882774005085684,
+        0.25999999999999995
+      ],
+      "placement": [
+        0,
+        0.0221,
+        0.25999999999999995
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0215,
+          "groundY": 0.0172,
+          "gapM": 0.0044,
+          "supportY": 0.0215,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0019,
+          "pinM": -0.04,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0731,
+          "groundY": 0.0233,
+          "gapM": 0.0498,
+          "supportY": 0.0274,
+          "minShoeGapM": 0.0489,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0078,
+          "pinM": -0.04,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0078,
+        "rootShiftM": -0.0033,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.04,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.001986211751947825
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 9,
+      "gait": "walk",
+      "root": [
+        0,
+        0.01661156476961917,
+        0.23333333333333328
+      ],
+      "placement": [
+        0,
+        0.0221,
+        0.23333333333333328
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0215,
+          "groundY": 0.0196,
+          "gapM": 0.0019,
+          "supportY": 0.0215,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0015,
+          "pinM": -0.0198,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0854,
+          "groundY": 0.0233,
+          "gapM": 0.062,
+          "supportY": 0.0323,
+          "minShoeGapM": 0.0548,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0123,
+          "pinM": -0.0198,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0123,
+        "rootShiftM": -0.0055,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0198,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.0022161752812376694
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 10,
+      "gait": "walk",
+      "root": [
+        0,
+        0.015026630255696408,
+        0.2066666666666666
+      ],
+      "placement": [
+        0,
+        0.0221,
+        0.2066666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0215,
+          "groundY": 0.0196,
+          "gapM": 0.0019,
+          "supportY": 0.0215,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0011,
+          "pinM": -0.0046,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0861,
+          "groundY": 0.0233,
+          "gapM": 0.0628,
+          "supportY": 0.0329,
+          "minShoeGapM": 0.0508,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0124,
+          "pinM": -0.0046,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0124,
+        "rootShiftM": -0.0071,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0046,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.0015849345139227616,
+      "shoeSurface": []
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 11,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014767057179237777,
+        0.17999999999999994
+      ],
+      "placement": [
+        0,
+        0.0233,
+        0.17999999999999994
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0215,
+          "groundY": 0.0196,
+          "gapM": 0.0019,
+          "supportY": 0.0215,
+          "minShoeGapM": 0.0003,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0008,
+          "pinM": 0,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0794,
+          "groundY": 0.0233,
+          "gapM": 0.0561,
+          "supportY": 0.0338,
+          "minShoeGapM": 0.0434,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.013,
+          "pinM": 0,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.013,
+        "rootShiftM": -0.0086,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "rootStepY": -0.00025957307645863015
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 0,
+      "gait": "walk",
+      "root": [
+        7.045050921054247,
+        0.11444893179498664,
+        0.09886028157768696
+      ],
+      "placement": [
+        7.045050921054247,
+        0.1135,
+        0.09886028157768696
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1247,
+          "groundY": 0.0993,
+          "gapM": 0.0255,
+          "supportY": 0.1247,
+          "minShoeGapM": 0.0231,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0041,
+          "pinM": 0,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1503,
+          "groundY": 0.1241,
+          "gapM": 0.0262,
+          "supportY": 0.1503,
+          "minShoeGapM": 0.0243,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0297,
+          "pinM": -0.0194,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0299,
+        "rootShiftM": 0.0009,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0.0002,
+        "maxPinM": 0.0194,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "rootStepY": null,
+      "shoeSurface": []
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 1,
+      "gait": "walk",
+      "root": [
+        7.066077649214721,
+        0.12074180604214144,
+        0.0824594336125169
+      ],
+      "placement": [
+        7.066077649214721,
+        0.1206,
+        0.0824594336125169
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1311,
+          "groundY": 0.1056,
+          "gapM": 0.0255,
+          "supportY": 0.1309,
+          "minShoeGapM": 0.0255,
+          "shiftM": -0.0004,
+          "pitchRad": 0,
+          "correctionM": 0.0052,
+          "pinM": -0.023,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1535,
+          "groundY": 0.1251,
+          "gapM": 0.0284,
+          "supportY": 0.1535,
+          "minShoeGapM": 0.0273,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0278,
+          "pinM": -0.0315,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.028,
+        "rootShiftM": 0.0002,
+        "maxShiftM": 0.0004,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0.0003,
+        "maxPinM": 0.0315,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0062928742471548005
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 2,
+      "gait": "walk",
+      "root": [
+        7.087104377375195,
+        0.13692107029365835,
+        0.06605858564734683
+      ],
+      "placement": [
+        7.087104377375195,
+        0.1277,
+        0.06605858564734683
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1413,
+          "groundY": 0.1244,
+          "gapM": 0.0169,
+          "supportY": 0.1411,
+          "minShoeGapM": 0.0169,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1539,
+          "groundY": 0.1534,
+          "gapM": 0.0005,
+          "supportY": 0.1539,
+          "minShoeGapM": 0.0005,
+          "shiftM": -0.0002,
+          "pitchRad": 0,
+          "correctionM": 0.0128,
+          "pinM": -0.0446,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0145,
+        "rootShiftM": 0.0092,
+        "maxShiftM": 0.0002,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0.0016,
+        "maxPinM": 0.0446,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.016179264251516917
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 3,
+      "gait": "walk",
+      "root": [
+        7.108131105535669,
+        0.14287666336600172,
+        0.04965773768217677
+      ],
+      "placement": [
+        7.108131105535669,
+        0.1348,
+        0.04965773768217677
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1566,
+          "groundY": 0.1459,
+          "gapM": 0.0107,
+          "supportY": 0.1566,
+          "minShoeGapM": 0.0107,
+          "shiftM": 0.0077,
+          "pitchRad": 0,
+          "correctionM": 0.0115,
+          "pinM": -0.1096,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1535,
+          "groundY": 0.1244,
+          "gapM": 0.0291,
+          "supportY": 0.1526,
+          "minShoeGapM": 0.0261,
+          "shiftM": -0.0008,
+          "pitchRad": 0,
+          "correctionM": 0.0075,
+          "pinM": -0.0294,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0135,
+        "rootShiftM": 0.0081,
+        "maxShiftM": 0.0077,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0.0019,
+        "maxPinM": 0.1096,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0059555930723433625
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 4,
+      "gait": "walk",
+      "root": [
+        7.129157833696143,
+        0.14430084438070323,
+        0.0332568897170067
+      ],
+      "placement": [
+        7.129157833696143,
+        0.1419,
+        0.0332568897170067
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.1744,
+          "groundY": 0.1549,
+          "gapM": 0.0195,
+          "supportY": 0.1744,
+          "minShoeGapM": 0.0195,
+          "shiftM": 0.007,
+          "pitchRad": 0,
+          "correctionM": 0.0314,
+          "pinM": -0.1209,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.156,
+          "groundY": 0.1531,
+          "gapM": 0.0028,
+          "supportY": 0.1514,
+          "minShoeGapM": 0.0028,
+          "shiftM": -0.0015,
+          "pitchRad": 0,
+          "correctionM": 0.0083,
+          "pinM": -0.0467,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0319,
+        "rootShiftM": 0.0024,
+        "maxShiftM": 0.007,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0.0005,
+        "maxPinM": 0.1209,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0014241810147015144
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 5,
+      "gait": "walk",
+      "root": [
+        7.1501845618566175,
+        0.14601441275534843,
+        0.01685604175183664
+      ],
+      "placement": [
+        7.1501845618566175,
+        0.1489,
+        0.01685604175183664
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.193,
+          "groundY": 0.1607,
+          "gapM": 0.0323,
+          "supportY": 0.193,
+          "minShoeGapM": 0.0323,
+          "shiftM": 0.0026,
+          "pitchRad": 0,
+          "correctionM": 0.0499,
+          "pinM": -0.118,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1655,
+          "groundY": 0.1515,
+          "gapM": 0.014,
+          "supportY": 0.1537,
+          "minShoeGapM": 0.014,
+          "shiftM": -0.0011,
+          "pitchRad": 0,
+          "correctionM": 0.0106,
+          "pinM": -0.0597,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0499,
+        "rootShiftM": -0.0029,
+        "maxShiftM": 0.0026,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.118,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0017135683746452024
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 6,
+      "gait": "walk",
+      "root": [
+        7.171211290017092,
+        0.15147353111429163,
+        0.00045519378666657867
+      ],
+      "placement": [
+        7.171211290017092,
+        0.156,
+        0.00045519378666657867
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.2122,
+          "groundY": 0.1642,
+          "gapM": 0.048,
+          "supportY": 0.2122,
+          "minShoeGapM": 0.0477,
+          "shiftM": 0.0027,
+          "pitchRad": 0,
+          "correctionM": 0.0635,
+          "pinM": -0.0999,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.1947,
+          "groundY": 0.1593,
+          "gapM": 0.0354,
+          "supportY": 0.1726,
+          "minShoeGapM": 0.0354,
+          "shiftM": -0.0006,
+          "pitchRad": 0,
+          "correctionM": 0.0239,
+          "pinM": -0.0558,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0635,
+        "rootShiftM": -0.0046,
+        "maxShiftM": 0.0027,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0999,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0054591183589431935
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 7,
+      "gait": "walk",
+      "root": [
+        7.192238018177566,
+        0.16099403494994455,
+        -0.015945654178503483
+      ],
+      "placement": [
+        7.192238018177566,
+        0.1616,
+        -0.015945654178503483
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.2306,
+          "groundY": 0.27,
+          "gapM": -0.0394,
+          "supportY": 0.2306,
+          "minShoeGapM": -0.0394,
+          "shiftM": 0.0033,
+          "pitchRad": 0,
+          "correctionM": 0.0711,
+          "pinM": -0.0757,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.2733,
+          "groundY": 0.165,
+          "gapM": 0.1083,
+          "supportY": 0.239,
+          "minShoeGapM": 0.0558,
+          "shiftM": -0.001,
+          "pitchRad": 0,
+          "correctionM": 0.0795,
+          "pinM": -0.0456,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0795,
+        "rootShiftM": -0.0006,
+        "maxShiftM": 0.0033,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0757,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.009520503835652921
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 8,
+      "gait": "walk",
+      "root": [
+        7.21326474633804,
+        0.1741407174690103,
+        -0.032346502143673544
+      ],
+      "placement": [
+        7.21326474633804,
+        0.1579,
+        -0.032346502143673544
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27,
+          "minShoeGapM": 0,
+          "shiftM": 0.0039,
+          "pitchRad": 0,
+          "correctionM": 0.095,
+          "pinM": -0.0489,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.3157,
+          "groundY": 0.27,
+          "gapM": 0.0457,
+          "supportY": 0.27,
+          "minShoeGapM": 0.0457,
+          "shiftM": -0.0014,
+          "pitchRad": 0,
+          "correctionM": 0.095,
+          "pinM": -0.0312,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.095,
+        "rootShiftM": 0.0163,
+        "maxShiftM": 0.0039,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0489,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.013146682519065755
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 9,
+      "gait": "walk",
+      "root": [
+        7.234291474498514,
+        0.18993851477019105,
+        -0.04874735010884361
+      ],
+      "placement": [
+        7.234291474498514,
+        0.1506,
+        -0.04874735010884361
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27,
+          "minShoeGapM": 0,
+          "shiftM": 0.0043,
+          "pitchRad": 0,
+          "correctionM": 0.0766,
+          "pinM": -0.0237,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.323,
+          "groundY": 0.27,
+          "gapM": 0.053,
+          "supportY": 0.27,
+          "minShoeGapM": 0.053,
+          "shiftM": -0.0018,
+          "pitchRad": 0,
+          "correctionM": 0.0766,
+          "pinM": -0.0158,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0766,
+        "rootShiftM": 0.0393,
+        "maxShiftM": 0.0043,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0237,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.01579779730118075
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 10,
+      "gait": "walk",
+      "root": [
+        7.255318202658988,
+        0.20673922952408214,
+        -0.06514819807401367
+      ],
+      "placement": [
+        7.255318202658988,
+        0.1434,
+        -0.06514819807401367
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27,
+          "minShoeGapM": 0,
+          "shiftM": 0.0046,
+          "pitchRad": 0,
+          "correctionM": 0.0578,
+          "pinM": -0.0054,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.3233,
+          "groundY": 0.27,
+          "gapM": 0.0533,
+          "supportY": 0.27,
+          "minShoeGapM": 0.0417,
+          "shiftM": -0.0022,
+          "pitchRad": 0,
+          "correctionM": 0.0578,
+          "pinM": -0.0038,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0578,
+        "rootShiftM": 0.0634,
+        "maxShiftM": 0.0046,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0054,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.016800714753891083,
+      "shoeSurface": [
+        {
+          "foot": "R",
+          "vertex": 49727,
+          "point": [
+            7.451197285744096,
+            0.32984813371668,
+            0.02314367743490986
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.07010664900969099
+        },
+        {
+          "foot": "R",
+          "vertex": 49527,
+          "point": [
+            7.347172352643037,
+            0.32083111626357996,
+            -0.048424053375940725
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.057439795181753794
+        },
+        {
+          "foot": "R",
+          "vertex": 49742,
+          "point": [
+            7.361403749170572,
+            0.3182336560984923,
+            0.03510027851114647
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.06025476917950334
+        },
+        {
+          "foot": "R",
+          "vertex": 49776,
+          "point": [
+            7.496016809132538,
+            0.3385820105333883,
+            -0.030737230186881404
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.08759439288450555
+        }
+      ]
+    },
+    {
+      "scenario": "stairs-up",
+      "frame": 11,
+      "gait": "walk",
+      "root": [
+        7.276344930819462,
+        0.22211010138884751,
+        -0.08154904603918374
+      ],
+      "placement": [
+        7.276344930819462,
+        0.27,
+        -0.08154904603918374
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.27,
+          "groundY": 0.27,
+          "gapM": 0,
+          "supportY": 0.27,
+          "minShoeGapM": 0,
+          "shiftM": 0.0046,
+          "pitchRad": 0,
+          "correctionM": 0.0419,
+          "pinM": 0,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.3156,
+          "groundY": 0.27,
+          "gapM": 0.0456,
+          "supportY": 0.27,
+          "minShoeGapM": 0.0329,
+          "shiftM": -0.0025,
+          "pitchRad": 0,
+          "correctionM": 0.0419,
+          "pinM": 0,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0419,
+        "rootShiftM": -0.0479,
+        "maxShiftM": 0.0046,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "rootStepY": 0.015370871864765379
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 0,
+      "gait": "stairs",
+      "root": [
+        15.919644375284486,
+        5.394000156505686,
+        -6.823322612721901
+      ],
+      "placement": [
+        15.919644375284486,
+        5.4,
+        -6.823322612721901
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0.009,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4232,
+          "groundY": 5.4232,
+          "gapM": 0,
+          "supportY": 5.4232,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0232,
+          "pinM": 0.009,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0232,
+        "rootShiftM": -0.006,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.009,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "rootStepY": null,
+      "shoeSurface": [
+        {
+          "foot": "L",
+          "vertex": 56668,
+          "point": [
+            15.731255082383372,
+            5.403271236619435,
+            -6.805552372012878
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.009829721791200008
+        },
+        {
+          "foot": "L",
+          "vertex": 56513,
+          "point": [
+            15.81711267933334,
+            5.405264157304758,
+            -6.7408199682823025
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.02396349389079422
+        },
+        {
+          "foot": "R",
+          "vertex": 49727,
+          "point": [
+            16.1055149891679,
+            5.429101940191641,
+            -6.865471012858323
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.007156033827185659
+        },
+        {
+          "foot": "R",
+          "vertex": 49527,
+          "point": [
+            15.992271605109181,
+            5.425725285507179,
+            -6.8089994009925725
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.0032289174321382674
+        },
+        {
+          "foot": "R",
+          "vertex": 49742,
+          "point": [
+            16.072037641658984,
+            5.429010505403362,
+            -6.780499374289779
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.008246819639816216
+        },
+        {
+          "foot": "R",
+          "vertex": 49776,
+          "point": [
+            16.080449321563385,
+            5.42775533453008,
+            -6.93148820091746
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.004140936881865898
+        }
+      ]
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 1,
+      "gait": "stairs",
+      "root": [
+        15.90518849967416,
+        5.395067841832547,
+        -6.812047029745846
+      ],
+      "placement": [
+        15.90518849967416,
+        5.4,
+        -6.812047029745846
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0.0239,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4233,
+          "groundY": 5.4233,
+          "gapM": 0,
+          "supportY": 5.4233,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0233,
+          "pinM": 0.0015,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0233,
+        "rootShiftM": -0.0049,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0239,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0010676853268609676
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 2,
+      "gait": "stairs",
+      "root": [
+        15.890732624063835,
+        5.397386123726396,
+        -6.800771446769792
+      ],
+      "placement": [
+        15.890732624063835,
+        5.4,
+        -6.800771446769792
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0.0302,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4231,
+          "groundY": 5.4227,
+          "gapM": 0.0004,
+          "supportY": 5.4228,
+          "minShoeGapM": 0.0004,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0228,
+          "pinM": -0.0102,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0228,
+        "rootShiftM": -0.0026,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": "L",
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0302,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.0023182818938494165
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 3,
+      "gait": "stairs",
+      "root": [
+        15.87627674845351,
+        5.410197715643047,
+        -6.7894958637937375
+      ],
+      "placement": [
+        15.87627674845351,
+        5.4,
+        -6.7894958637937375
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4102,
+          "groundY": 5.4,
+          "gapM": 0.0102,
+          "supportY": 5.4102,
+          "minShoeGapM": 0.0102,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0.0309,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4245,
+          "groundY": 5.4223,
+          "gapM": 0.0023,
+          "supportY": 5.4224,
+          "minShoeGapM": 0.0023,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0122,
+          "pinM": -0.0235,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0122,
+        "rootShiftM": 0.0102,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0309,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.012811591916650933
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 4,
+      "gait": "stairs",
+      "root": [
+        15.861820872843184,
+        5.418317506537769,
+        -6.778220280817683
+      ],
+      "placement": [
+        15.861820872843184,
+        5.4,
+        -6.778220280817683
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4163,
+          "groundY": 5.4,
+          "gapM": 0.0163,
+          "supportY": 5.4163,
+          "minShoeGapM": 0.0163,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0001,
+          "pinM": 0.0245,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4296,
+          "groundY": 5.4216,
+          "gapM": 0.008,
+          "supportY": 5.4219,
+          "minShoeGapM": 0.008,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0057,
+          "pinM": -0.0355,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0057,
+        "rootShiftM": 0.0183,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0355,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": 0.008119790894721923
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 5,
+      "gait": "stairs",
+      "root": [
+        15.847364997232859,
+        5.416208035834567,
+        -6.7669446978416286
+      ],
+      "placement": [
+        15.847364997232859,
+        5.4,
+        -6.7669446978416286
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4131,
+          "groundY": 5.4,
+          "gapM": 0.0131,
+          "supportY": 5.4131,
+          "minShoeGapM": 0.0131,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0001,
+          "pinM": 0.0148,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4414,
+          "groundY": 5.4214,
+          "gapM": 0.02,
+          "supportY": 5.4219,
+          "minShoeGapM": 0.02,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0089,
+          "pinM": -0.0435,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0089,
+        "rootShiftM": 0.0162,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0435,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.002109470703202554
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 6,
+      "gait": "stairs",
+      "root": [
+        15.832909121622533,
+        5.412647519402404,
+        -6.755669114865574
+      ],
+      "placement": [
+        15.832909121622533,
+        5.4,
+        -6.755669114865574
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4097,
+          "groundY": 5.4,
+          "gapM": 0.0097,
+          "supportY": 5.4097,
+          "minShoeGapM": 0.0097,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0.0049,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4611,
+          "groundY": 5.4214,
+          "gapM": 0.0397,
+          "supportY": 5.422,
+          "minShoeGapM": 0.0397,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0123,
+          "pinM": -0.0454,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0123,
+        "rootShiftM": 0.0126,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0454,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.003560516432162153
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 7,
+      "gait": "stairs",
+      "root": [
+        15.818453246012208,
+        5.408126147171972,
+        -6.74439353188952
+      ],
+      "placement": [
+        15.818453246012208,
+        5.4,
+        -6.74439353188952
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4066,
+          "groundY": 5.4,
+          "gapM": 0.0066,
+          "supportY": 5.4066,
+          "minShoeGapM": 0.0066,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0024,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.4883,
+          "groundY": 5.4219,
+          "gapM": 0.0665,
+          "supportY": 5.4228,
+          "minShoeGapM": 0.0665,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0162,
+          "pinM": -0.0403,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0162,
+        "rootShiftM": 0.0081,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0403,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.004521372230432696
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 8,
+      "gait": "stairs",
+      "root": [
+        15.803997370401882,
+        5.403108173084041,
+        -6.733117948913465
+      ],
+      "placement": [
+        15.803997370401882,
+        5.4,
+        -6.733117948913465
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4039,
+          "groundY": 5.4,
+          "gapM": 0.0039,
+          "supportY": 5.4039,
+          "minShoeGapM": 0.0039,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0055,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.5188,
+          "groundY": 5.4233,
+          "gapM": 0.0955,
+          "supportY": 5.4236,
+          "minShoeGapM": 0.0955,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0197,
+          "pinM": -0.0294,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0197,
+        "rootShiftM": 0.0031,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0294,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.00501797408793081
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 9,
+      "gait": "stairs",
+      "root": [
+        15.789541494791557,
+        5.398320266037926,
+        -6.721842365937411
+      ],
+      "placement": [
+        15.789541494791557,
+        5.4,
+        -6.721842365937411
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4017,
+          "groundY": 5.4,
+          "gapM": 0.0017,
+          "supportY": 5.4017,
+          "minShoeGapM": 0.0017,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0045,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.5457,
+          "groundY": 5.4227,
+          "gapM": 0.123,
+          "supportY": 5.4233,
+          "minShoeGapM": 0.123,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0216,
+          "pinM": -0.0157,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0216,
+        "rootShiftM": -0.0017,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0157,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.004787907046114981
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 10,
+      "gait": "stairs",
+      "root": [
+        15.775085619181231,
+        5.394959291007219,
+        -6.710566782961356
+      ],
+      "placement": [
+        15.775085619181231,
+        5.4,
+        -6.710566782961356
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4004,
+          "groundY": 5.4,
+          "gapM": 0.0004,
+          "supportY": 5.4004,
+          "minShoeGapM": 0.0004,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0014,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.556,
+          "groundY": 5.4,
+          "gapM": 0.156,
+          "supportY": 5.4154,
+          "minShoeGapM": 0.1509,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.015,
+          "pinM": -0.0038,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.015,
+        "rootShiftM": -0.005,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0.0038,
+        "maxHoldM": 0,
+        "blendClips": 2
+      },
+      "rootStepY": -0.0033609750307066477,
+      "shoeSurface": [
+        {
+          "foot": "L",
+          "vertex": 55951,
+          "point": [
+            15.803389193651345,
+            5.402899291029949,
+            -6.643083456202702
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.012322449031227478
+        },
+        {
+          "foot": "L",
+          "vertex": 56668,
+          "point": [
+            15.77968024556595,
+            5.403642445749232,
+            -6.521399779005373
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.022774136908561005
+        },
+        {
+          "foot": "L",
+          "vertex": 56513,
+          "point": [
+            15.850323943222326,
+            5.40563386315397,
+            -6.60246278065566
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.013509863975133207
+        },
+        {
+          "foot": "L",
+          "vertex": 56659,
+          "point": [
+            15.760244596316166,
+            5.403032206987572,
+            -6.586579772956797
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.019852454386705354
+        },
+        {
+          "foot": "R",
+          "vertex": 49727,
+          "point": [
+            15.778446950703989,
+            5.56172883504392,
+            -6.901554504144214
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.19423116980357324
+        },
+        {
+          "foot": "R",
+          "vertex": 49776,
+          "point": [
+            15.710922844527035,
+            5.5577966871937035,
+            -6.881225587866804
+          ],
+          "stair": "stairs-main",
+          "gapM": 0.17814284965729854
+        }
+      ]
+    },
+    {
+      "scenario": "stairs-down",
+      "frame": 11,
+      "gait": "stairs",
+      "root": [
+        15.760629743570906,
+        5.394003005689422,
+        -6.699291199985302
+      ],
+      "placement": [
+        15.760629743570906,
+        5.4,
+        -6.699291199985302
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 5.4,
+          "groundY": 5.4,
+          "gapM": 0,
+          "supportY": 5.4,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": 0,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 5.5532,
+          "groundY": 5.4,
+          "gapM": 0.1532,
+          "supportY": 5.4087,
+          "minShoeGapM": 0.1509,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0087,
+          "pinM": 0,
+          "holdM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0087,
+        "rootShiftM": -0.006,
+        "maxShiftM": 0,
+        "planted": "L",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "rootStepY": -0.0009562853177973452
+    }
+  ],
+  "images": [
+    "flat-transitions-12.png",
+    "stairs-up-12.png",
+    "stairs-down-12.png"
+  ],
+  "errors": [],
+  "measurement_core_sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+  "setup": {
+    "markers": {
+      "L": [
+        55951,
+        56668,
+        56513,
+        56659
+      ],
+      "R": [
+        49727,
+        49527,
+        49742,
+        49776
+      ]
+    },
+    "stairMeshes": [
+      "stairs-main",
+      "stairs-house-west"
+    ],
+    "character": {
+      "link": true,
+      "linkSource": "glb",
+      "linkAsset": {
+        "file": "models/link/link-runtime.glb",
+        "sha256": "bdcb9ec76c5c5960e74b12f136e0a246615c9b0633632b4bc8b5df792f9c2051",
+        "triangles": 70442,
+        "materials": 4,
+        "bones": 19,
+        "clips": [
+          {
+            "name": "idle",
+            "durationS": 3,
+            "strideM": 0,
+            "rate": 1,
+            "swings": {
+              "L": [],
+              "R": []
+            }
+          },
+          {
+            "name": "walk",
+            "durationS": 0.55,
+            "strideM": 0.88,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.2635,
+                  0.55
+                ]
+              ],
+              "R": [
+                [
+                  0.5443,
+                  0.8193
+                ]
+              ]
+            }
+          },
+          {
+            "name": "run",
+            "durationS": 0.566667,
+            "strideM": 2.21,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.1062,
+                  0.5903
+                ]
+              ],
+              "R": [
+                [
+                  0.3896,
+                  0.8736
+                ]
+              ]
+            }
+          },
+          {
+            "name": "stairs",
+            "durationS": 0.733333,
+            "strideM": 0.8066667,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.3514,
+                  0.7333
+                ]
+              ],
+              "R": [
+                [
+                  0.7181,
+                  1.1
+                ]
+              ]
+            }
+          }
+        ],
+        "loadMs": 371,
+        "headTopOffsetM": 0.276,
+        "headAnchor": "anatomical-constant",
+        "skinTopM": 0.1122,
+        "footprint": {
+          "L": {
+            "heel": 0.0793,
+            "toe": 0.1407,
+            "latMin": -0.0138,
+            "latMax": 0.1396,
+            "soleVertices": 163
+          },
+          "R": {
+            "heel": 0.079,
+            "toe": 0.1346,
+            "latMin": -0.1392,
+            "latMax": 0.0154,
+            "soleVertices": 164
+          }
+        }
+      },
+      "linkFallbackReason": null,
+      "animations": 4,
+      "animationNames": [
+        "idle",
+        "walk",
+        "run",
+        "stairs"
+      ],
+      "fairy": true,
+      "fairyTrail": 16,
+      "npcs": 3,
+      "geometry": "glb-link+procedural-npcs-v1",
+      "triangles": 89488,
+      "linkTriangles": 70442,
+      "linkHeight": 1.1998,
+      "rigMeshesBeforeMerge": 122,
+      "rigMeshes": 83,
+      "rigMergedMeshes": 33,
+      "mode": "play",
+      "view": null,
+      "linkGait": "idle",
+      "linkFeetContact": [
+        {
+          "foot": "L",
+          "soleY": 0.0675,
+          "groundY": 0.037,
+          "gapM": 0.0305,
+          "supportY": 0.0372,
+          "minShoeGapM": 0.0138,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.004,
+          "pinM": 0,
+          "holdM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0387,
+          "groundY": 0.0387,
+          "gapM": 0,
+          "supportY": 0.0387,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0054,
+          "pinM": 0,
+          "holdM": 0
+        }
+      ],
+      "linkIk": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0054,
+        "rootShiftM": -0.0098,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "maxPinM": 0,
+        "maxHoldM": 0,
+        "blendClips": 1
+      },
+      "linkGaitChain": [
+        "idle",
+        "idle",
+        "idle"
+      ],
+      "samplePositions": {
+        "feet": [
+          [
+            2.3536913407937394,
+            0.03865353268885899,
+            4.383466233511634
+          ],
+          [
+            4.955557001158937,
+            0.6961761497134047,
+            5.3795827076963505
+          ],
+          [
+            -6.552680448236505,
+            0.18950816051334585,
+            -1.9318877695019523
+          ],
+          [
+            10.557874896690695,
+            0.9904780066721989,
+            -7.516742208638908
+          ]
+        ]
+      },
+      "contactShadows": 4,
+      "pavingSurface": {
+        "cells": 123873,
+        "covered": 31546,
+        "cellSize": 0.1,
+        "triangles": 103855,
+        "stairs": {
+          "flights": 2,
+          "cells": 1335558,
+          "covered": 466146,
+          "cellSize": 0.01,
+          "triangles": 12665
+        }
+      },
+      "world": {
+        "link": [
+          2.3536913407937394,
+          0.03865353268885899,
+          4.383466233511634
+        ],
+        "linkRoot": [
+          2.2224454721998947,
+          0.02726215046830309,
+          4.434410349257381
+        ],
+        "linkPlacementY": 0.0183,
+        "navi": [
+          -0.32621368008852925,
+          1.35,
+          0.3731747859331643
+        ],
+        "kids": [
+          [
+            4.955557001158937,
+            0.6961761497134047,
+            5.3795827076963505
+          ],
+          [
+            -6.552680448236505,
+            0.18950816051334585,
+            -1.9318877695019523
+          ],
+          [
+            10.557874896690695,
+            0.9904780066721989,
+            -7.516742208638908
+          ]
+        ]
+      },
+      "screen": {
+        "linkFeet": [
+          0.514,
+          0.87
+        ],
+        "linkRoot": [
+          0.5,
+          0.882
+        ],
+        "linkHead": [
+          0.5,
+          0.606
+        ],
+        "navi": [
+          0.138,
+          0.505
+        ],
+        "kids": [
+          {
+            "feet": [
+              0.895,
+              0.701
+            ],
+            "head": [
+              0.891,
+              0.437
+            ]
+          },
+          {
+            "feet": [
+              -0.511,
+              0.705
+            ],
+            "head": [
+              -0.506,
+              0.523
+            ]
+          },
+          {
+            "feet": [
+              0.6,
+              0.482
+            ],
+            "head": [
+              0.597,
+              0.416
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "summary": {
+    "flat-transitions": {
+      "frames": 12,
+      "gaits": [
+        "walk"
+      ],
+      "distanceXZ": 0.2933333333333334,
+      "maxRootStepM": 0.0026731363982674186,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    },
+    "stairs-up": {
+      "frames": 12,
+      "gaits": [
+        "walk"
+      ],
+      "distanceXZ": 0.2933333333333308,
+      "maxRootStepM": 0.016800714753891083,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 4,
+      "minRenderedStairGapM": 0.057439795181753794,
+      "shoeSamplesBelowMinus2cm": 0
+    },
+    "stairs-down": {
+      "frames": 12,
+      "gaits": [
+        "stairs"
+      ],
+      "distanceXZ": 0.2016666666666609,
+      "maxRootStepM": 0.012811591916650933,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 12,
+      "minRenderedStairGapM": 0.0032289174321382674,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  },
+  "complete": true
+}

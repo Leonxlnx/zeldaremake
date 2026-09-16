@@ -1,0 +1,13 @@
+{
+  "base_and_morph_coordinates_exact": true,
+  "weights_unchanged_by_composition": true,
+  "morphs": [
+    "Basis",
+    "blink",
+    "blinkHalf"
+  ],
+  "sources": {
+    "left-sleeve-study.blend": "527b60c73b0ae964726ae567e45c6eea46c08f1ce7d132f0ea9516b5c40adf23",
+    "blink-fair-study.blend": "d87343509e3b49ad76b38088ae65d8163c98671caef8c8d66ccda722da8058b5"
+  }
+}

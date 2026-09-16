@@ -1,0 +1,73 @@
+{
+  "sha256": "75f42cd2731dd99143dadaf533e1d6a2b7c4b50106d1e9d305537df8d947c78c",
+  "rest_attributes_morphs_images_binds_exact": true,
+  "other_clips_exact": true,
+  "changed_run_channels": [
+    {
+      "bone": "hips",
+      "path": "translation"
+    },
+    {
+      "bone": "thighL",
+      "path": "rotation"
+    },
+    {
+      "bone": "kneeL",
+      "path": "rotation"
+    },
+    {
+      "bone": "ankleL",
+      "path": "rotation"
+    },
+    {
+      "bone": "thighR",
+      "path": "rotation"
+    },
+    {
+      "bone": "thighR",
+      "path": "scale"
+    },
+    {
+      "bone": "kneeR",
+      "path": "translation"
+    },
+    {
+      "bone": "kneeR",
+      "path": "rotation"
+    },
+    {
+      "bone": "kneeR",
+      "path": "scale"
+    },
+    {
+      "bone": "ankleR",
+      "path": "translation"
+    },
+    {
+      "bone": "ankleR",
+      "path": "rotation"
+    },
+    {
+      "bone": "ankleR",
+      "path": "scale"
+    }
+  ],
+  "toe_export_roundoff": [
+    {
+      "bone": "toeR",
+      "path": "translation",
+      "delta": 2.2351741790771484e-08
+    },
+    {
+      "bone": "toeR",
+      "path": "rotation",
+      "delta": 5.960464477539063e-08
+    },
+    {
+      "bone": "toeR",
+      "path": "scale",
+      "delta": 5.960464477539063e-08
+    }
+  ],
+  "status": "Export validated; runtime motion review required"
+}

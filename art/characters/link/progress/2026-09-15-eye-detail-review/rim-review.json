@@ -1,0 +1,17 @@
+{
+  "status": "Rim retained locally after matched close-up and game review",
+  "asset": "7d4ad423b0c4111d9e2b54125defc49f7520a727774470026370f7578138e6f6",
+  "baseline": "428141effd661eb5edc32bd80c03ebb19ace0fb2fc452906822bb876dcbbfadb",
+  "movement_records_match_after_vertex_id_normalization": 1620,
+  "added_vertices": 256,
+  "added_triangles": 512,
+  "draw_calls_unchanged": true,
+  "texture_bytes_and_clips_exact": true,
+  "native_source": "art/characters/link/experiments/2026-09-13/source-runtime/lid-rim-study.blend",
+  "candidate_studio": "2026-09-15T18-54-24-544Z-runtime-studio",
+  "parent_studio": "2026-09-15T18-56-01-211Z-runtime-studio",
+  "candidate_closeups": "2026-09-15T18-56-39-207Z-runtime-studio",
+  "parent_closeups": "2026-09-15T18-56-59-618Z-runtime-studio",
+  "game_capture": "2026-09-15T18-58-24-306Z-play-motion",
+  "remaining": "Pupil proportion and eyebrow detail still need work; existing descent hitch unchanged."
+}

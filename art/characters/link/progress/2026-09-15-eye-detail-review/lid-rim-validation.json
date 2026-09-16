@@ -1,0 +1,15 @@
+{
+  "rim_triangles": 512,
+  "eye_checks": [
+    {
+      "eye": "Link | anatomical eye 0.032",
+      "overlap_pairs": 0
+    },
+    {
+      "eye": "Link | anatomical eye 1.032",
+      "overlap_pairs": 0
+    }
+  ],
+  "unweighted_rim_vertices": 0,
+  "minimum_triangle_area": 1.8977648608142772e-07
+}

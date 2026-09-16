@@ -1,0 +1,1918 @@
+diff --git a/src/capture/api.ts b/src/capture/api.ts
+index c70685e..64887c3 100644
+--- a/src/capture/api.ts
++++ b/src/capture/api.ts
+@@ -51,6 +51,8 @@ export interface CaptureHooks {
+   audits: Map<string, () => Record<string, unknown>>;
+   setQuality(tier: string): void;
+   terrain: Terrain;
++  /** CPU timing of the last step (ms per phase / per system) and the systems' build times */
++  perf?(): Record<string, unknown>;
+ }
+ 
+ export interface ZRApi {
+@@ -70,6 +72,12 @@ export interface ZRApi {
+   /** set deterministic simulation time (seconds) */
+   setTime(t: number): void;
+   stats(): Record<string, unknown>;
++  /**
++   * CPU ms of the last `step`: `step` total, `camera`, `update` (world.update), `render` (the
++   * composer's issue time), `systems` per system, and `buildMs` per system from `createWorld`.
++   * Measured on the JS thread only (GPU time is not visible here); read-only, never steers anything.
++   */
++  perf(): Record<string, unknown>;
+   audit(): Record<string, unknown>;
+   setQuality(tier: string): void;
+   /** terrain height + mask at a world xz (used by seating/contact checks) */
+@@ -245,6 +253,7 @@ export function installCaptureApi(hooks: CaptureHooks): ZRApi {
+       }
+     },
+     setTime: (t) => hooks.setTime(t),
++    perf: () => hooks.perf?.() ?? {},
+     stats: () => {
+       const info = hooks.renderer.info;
+       return {
+diff --git a/src/main.ts b/src/main.ts
+index 799c05a..18d1faa 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,4 +1,4 @@
+-import { Scene, WebGLRenderer, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap } from 'three';
++import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap, type Camera, type DirectionalLight, type Material, type Mesh, type Object3D, type ShaderMaterial, type Texture } from 'three';
+ import { createWorld, qualityFor } from './world';
+ import { createFreeCam } from './camera/freecam';
+ import { createFollowCam, type FollowCam } from './camera/follow';
+@@ -9,6 +9,103 @@ import { WORLD } from './world/config';
+ import type { Quality } from './world/system';
+ import { mountHud } from './ui/hud';
+ 
++/**
++ * Warm-up before the first frame of the walkable build (round 37). Measured on the r37 trace
++ * without it: entering play mode compiled 8 programs on the first rendered frame (104 ms) and
++ * 206 geometries were first uploaded during the 45 s walk (42 of 90 sampled frames) — every LOD
++ * bucket / grass ring / caster the camera first meets. Here, before `ready()` resolves:
++ *   1. every mesh outside the grass tiles is made visible and unculled for the duration (the
++ *      hidden LOD buckets have count 0: they upload their geometry and instance buffers and draw
++ *      nothing), `renderer.compileAsync` then compiles every material's colour program (with
++ *      KHR_parallel_shader_compile the driver links them on its own threads while the main thread
++ *      polls every 10 ms; without it the links stall at the warm pass, as `compile` would) and
++ *      `initTexture` uploads every texture a material references;
++ *   2. one warm pass renders the scene into an off-screen 4×4 target (the canvas untouched) with
++ *      the sun's shadow window widened to the whole world, so the depth variants of every caster
++ *      compile too; the window is restored to the same numbers (the shadow map is redrawn every
++ *      frame anyway), and every mesh gets its `visible` / `frustumCulled` back exactly.
++ * The scene state after it is the state before it; only the GL side is warm. Headless captures
++ * skip it by default (their settle frames absorb compiles; `?warmup=1` forces it, `?warmup=0`
++ * disables it). Grass tiles keep their on-demand LOD geometry uploads (551k blades × 3 LODs would
++ * not fit residently); their instance buffers upload when a tile first comes into range.
++ */
++async function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun: DirectionalLight | null) {
++  const t0 = performance.now();
++  const programsBefore = renderer.info.programs?.length ?? 0;
++  const geometriesBefore = renderer.info.memory.geometries;
++  const exposed: { o: Object3D; visible: boolean; frustumCulled: boolean }[] = [];
++  scene.traverse((o) => {
++    if (!(o as Mesh).isMesh || o.name.startsWith('grass-tile-')) return;
++    exposed.push({ o, visible: o.visible, frustumCulled: o.frustumCulled });
++    o.visible = true;
++    o.frustumCulled = false;
++  });
++  const seen = new Set<Texture>();
++  const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
++  const report = { programs: 0, textures: 0, geometries: 0, exposed: exposed.length, parallel, compileMs: 0, textureMs: 0, warmPassMs: 0, ms: 0 };
++  try {
++    // nothing renders while this awaits: boot() has not started the frame loop yet
++    await renderer.compileAsync(scene, camera);
++    const tCompile = performance.now();
++    const init = (v: unknown) => {
++      const t = v as Texture | null;
++      if (t && t.isTexture && !seen.has(t)) {
++        seen.add(t);
++        renderer.initTexture(t);
++      }
++    };
++    scene.traverse((o) => {
++      const mats = (o as Mesh).material as Material | Material[] | undefined;
++      if (!mats) return;
++      for (const m of Array.isArray(mats) ? mats : [mats]) {
++        for (const v of Object.values(m as unknown as Record<string, unknown>)) init(v);
++        const uniforms = (m as ShaderMaterial).uniforms;
++        if (uniforms) for (const k of Object.keys(uniforms)) init(uniforms[k]?.value);
++      }
++    });
++    const tTextures = performance.now();
++    const sc = sun?.castShadow ? sun.shadow.camera : null;
++    const saved = sc ? { left: sc.left, right: sc.right, top: sc.top, bottom: sc.bottom, near: sc.near, far: sc.far } : null;
++    if (sc) {
++      sc.left = -500;
++      sc.right = 500;
++      sc.top = 500;
++      sc.bottom = -500;
++      sc.near = 0.1;
++      sc.far = 2000;
++      sc.updateProjectionMatrix();
++    }
++    const rt = new WebGLRenderTarget(4, 4);
++    const prevTarget = renderer.getRenderTarget();
++    try {
++      renderer.setRenderTarget(rt);
++      renderer.render(scene, camera);
++    } finally {
++      renderer.setRenderTarget(prevTarget);
++      rt.dispose();
++      if (sc && saved) {
++        Object.assign(sc, saved);
++        sc.updateProjectionMatrix();
++      }
++    }
++    const t1 = performance.now();
++    report.compileMs = Math.round(tCompile - t0);
++    report.textureMs = Math.round(tTextures - tCompile);
++    report.warmPassMs = Math.round(t1 - tTextures);
++  } finally {
++    for (const e of exposed) {
++      e.o.visible = e.visible;
++      e.o.frustumCulled = e.frustumCulled;
++    }
++  }
++  report.ms = Math.round(performance.now() - t0);
++  report.programs = (renderer.info.programs?.length ?? 0) - programsBefore;
++  report.textures = seen.size;
++  report.geometries = renderer.info.memory.geometries - geometriesBefore;
++  console.info(`[warmup] ${report.programs} programs, ${report.textures} textures, ${report.geometries} geometries (${report.exposed} meshes exposed) in ${report.ms} ms (compile ${report.compileMs}${parallel ? ', parallel' : ''}, textures ${report.textureMs}, warm pass ${report.warmPassMs})`);
++  return report;
++}
++
+ async function boot() {
+   const host = document.getElementById('app')!;
+   const dev = document.getElementById('dev')!;
+@@ -52,6 +149,13 @@ async function boot() {
+   // Post-processing (if the atmosphere system installed one) drives the frame; otherwise plain render.
+   const composer = (scene.userData.composer as { render(dt: number): void; setSize(w: number, h: number): void } | undefined) ?? null;
+ 
++  const warmupParam = params.get('warmup');
++  let warmup: Awaited<ReturnType<typeof warmUp>> | null = null;
++  if (warmupParam === '1' || (warmupParam !== '0' && !headless)) {
++    loading.textContent = 'building kokiri forest… warming up shaders';
++    warmup = await warmUp(renderer, scene, cam.camera, world.ctx.sun);
++  }
++
+   let lastNow = performance.now();
+   const getDelta = () => {
+     const now = performance.now();
+@@ -73,15 +177,25 @@ async function boot() {
+   };
+ 
+   let simTime = 0;
++  // CPU ms of the last step's phases (camera / world.update / render issue), read by __ZR__.perf()
++  const perf = { step: 0, camera: 0, update: 0, render: 0 };
+   const step = (dt: number) => {
++    const t0 = performance.now();
+     simTime += dt;
+     if (!headless) {
+       if (follow?.enabled) follow.update(dt);
+       else cam.update(dt);
+     }
++    const t1 = performance.now();
+     world.update(dt, simTime);
++    const t2 = performance.now();
+     if (composer) composer.render(dt);
+     else renderer.render(scene, cam.camera);
++    const t3 = performance.now();
++    perf.camera = t1 - t0;
++    perf.update = t2 - t1;
++    perf.render = t3 - t2;
++    perf.step = t3 - t0;
+   };
+ 
+   let readyResolve!: () => void;
+@@ -121,6 +235,7 @@ async function boot() {
+     setQuality: () => {
+       /* runtime quality switching is a later task */
+     },
++    perf: () => ({ ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs }, warmup }),
+   });
+ 
+   const onResize = () => {
+diff --git a/src/world/atmosphere/heightfog.ts b/src/world/atmosphere/heightfog.ts
+index 02c0d6a..b91fbbb 100644
+--- a/src/world/atmosphere/heightfog.ts
++++ b/src/world/atmosphere/heightfog.ts
+@@ -337,6 +337,23 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
+   // untouched. Display ≈ 0.64 — a step under the dome's 0.67 glare: the reference's hazed crowns at
+   // 30–50 m sit at its top band's median 0.49 (a dark crown through ≈ 50 % veil of ≈ 0.31 linear),
+   // while a veil at the glare's own value pushed that median to 0.54
++  // Round 37 (tone): the air's share of A's under-bright top band (y 0.08–0.33: frame p50/p90
++  // 0.468/0.612, ours 0.432/0.558), measured with every surface black (veilOnly) and split by the
++  // ray's elevation and openness at ≥ 45 m. A's open far air at 10–15° up (8.5 % of the band) is
++  // where the frame is bright: frame 0.649, ours 0.581, the veil alone 0.573 — 0.608 with the
++  // softening off, so the 320-grid haze blur mixing the far air with the near crowns costs 0.027
++  // and the veil itself sits 0.04 under (its lit share is already 0.5–1.0 there). A's closed far
++  // air reads frame 0.406 / 0.498 / 0.495 at 0–5° / 5–10° / 10–15° against ours 0.404 / 0.420 /
++  // 0.536 — the hollow dim and the half wall are D's calibration and the same air; B's closed far
++  // air at 10–20° reads frame 0.467 against ours 0.54–0.55 (veil 0.52–0.55), but the frame's B band
++  // is dense 20–40 m trunks through ≈ 50 % veil where D's frame shows the same air at 0.54–0.58, so
++  // it is not dimmed; F's open far air at 10–15° matches at the median (0.504 / 0.516 / veil 0.509,
++  // the back-scatter lobe at 109° takes 15 %) and the frame's p90 there (0.675 vs 0.585) is gaps
++  // beside dark crowns. Levers measured (Δ SSIM A / F / B / D): hazeLitKnee 0.1 — A open far
++  // +0.008, +0.0002 / −0.0003 / −0.0008 / −0.0009; hazeFar 0.29 — +0.003 (the lit share dominates
++  // above 10°, and the dome horizon feeds the IBL), −0.0004 / −0.0005 / 0 / −0.0002; hazeLit 0.36 —
++  // A open far 0.577 → 0.597 (p90 0.615 → 0.640, band p90 0.558 → 0.562) for −0.0024 / −0.0053 /
++  // −0.0014 / −0.0002. None taken: the metric charges every radiance rise in the far cells.
+   hazeLit: [0.32, 0.316, 0.245],
+   hazeLitKnee: 0.2,
+   // open side = bearing 75° (ENE: the plateau, the stair corridor, the upper tree-house). Fully open
+diff --git a/src/world/atmosphere/index.ts b/src/world/atmosphere/index.ts
+index 04e44f6..c8cd35f 100644
+--- a/src/world/atmosphere/index.ts
++++ b/src/world/atmosphere/index.ts
+@@ -47,7 +47,10 @@ export function create(ctx: WorldContext): WorldSystem {
+   const fairy = createFairy(ctx);
+   fairy.group.visible = false;
+   group.add(fairy.group);
+-  const hasNavi = () => !!ctx.scene.getObjectByName('navi');
++  // found once, then remembered: the lookup walked the whole scene graph (≈ 600 objects, Navi in
++  // the last-added system group) every frame, and Navi is never removed once built
++  let naviSeen = false;
++  const hasNavi = () => naviSeen || (naviSeen = !!ctx.scene.getObjectByName('navi'));
+ 
+   // Post-processing: consumed by main.ts through scene.userData.composer.
+   let composer: Composer | null = null;
+diff --git a/src/world/atmosphere/shafts.ts b/src/world/atmosphere/shafts.ts
+index d64e04f..1893631 100644
+--- a/src/world/atmosphere/shafts.ts
++++ b/src/world/atmosphere/shafts.ts
+@@ -80,6 +80,18 @@ export const SHAFT_COLUMNS: ShaftColumn[] = TREE_SHAFT_COLUMNS.map((c) => ({
+  * A 0.08, C/F 0). The beams dissolve by y ≈ 0.5–0.55 in both frames (the surfaces there are near;
+  * the march's short columns already carry little in-scatter), so the fan blends back to 1 over
+  * `fadeY`.
++ *
++ * Round 37 (tone): the same profile (26° lines, y 0.02–0.20, 640×360) read as the hero band
++ * (u 0.22–0.29) minus the mean of the troughs (u 0.13–0.19 / 0.34–0.40): frame A +0.038, B +0.010,
++ * D +0.071; ours at the 85 → 60° gate A +0.042, B +0.023, D +0.044 (with no rays at all A's
++ * geometry alone reads +0.030, B −0.005 — the house and the limb lie along those lines). Per-view
++ * fanAmp trials: A at 0 / 0.077 / 0.28 → +0.035 / +0.037 / +0.043 (SSIM +0.0001 / +0.0001 / 0);
++ * B at 0 / 0.077 / 0.28 → −0.010 / +0.001 / +0.029 (−0.0007 / +0.0001 / +0.0001); D at 0.077 /
++ * 0.28 → −0.001 / +0.056 (−0.0006 / −0.0004: D's beam is 0.027 under the frame's but the metric
++ * pays for the brighter slab). 81 → 61° puts B's gain at 0.234 (≈ +0.012 by interpolation, the
++ * frame's +0.010), A's at 0 (+0.035 vs +0.038) and keeps D's at 0.946 (was 0.94). Measured on the
++ * shipped build (with the σ 4.2 haze blur): A +0.036, B +0.011, D +0.044 (frame +0.038 / +0.010 /
++ * +0.071) — A and B within 0.002 of the frame; the audit's view gain 0.932 → 0.936.
+  */
+ export interface FanBeam {
+   /** x (uv) where the beam axis meets the top edge of the frame */
+@@ -97,8 +109,8 @@ export const SCREEN_FAN = {
+   floor: 0.75,
+   /** in-scatter added on the hero beam's axis (≥ 10 m of air, fully sun-facing view) — see ComposerSettings.fanAmp */
+   amp: 0.23,
+-  /** view-axis angle from the sun (degrees) where the fan starts to appear / is fully on — see ComposerSettings.fanFacingDeg */
+-  facingDeg: [85, 60] as [number, number],
++  /** view-axis angle from the sun (degrees) where the fan starts to appear / is fully on — see ComposerSettings.fanFacingDeg (round 37: 85 → 81 trims B to the frame's beam contrast, A to none) */
++  facingDeg: [81, 61] as [number, number],
+   /** frame y (0 = top) where the fan starts fading out / where it has no effect */
+   fadeY: [0.35, 0.6] as [number, number],
+   beams: [
+diff --git a/src/world/character/glbLink.ts b/src/world/character/glbLink.ts
+index 3fa4b20..f0dff1f 100644
+--- a/src/world/character/glbLink.ts
++++ b/src/world/character/glbLink.ts
+@@ -52,6 +52,18 @@
+  *   shifted 12 mm further from the wavy lip, so the pre-existing heel-strike extra drop grows);
+  *   no reach clamp; the flat scenario identical frame for frame to round 5 but the idle → walk
+  *   start, 4.4 → 2.6 mm (walk → run 3.4 mm, run → idle unchanged).
++ *   Round 6b — the landing off the bottom riser (Astra's review of the above): the landing foot,
++ *   shifted 2.6 cm forward off the wavy lip, lay past the straight leg the frame it planted and
++ *   the stance rule dropped the root by the whole shortfall in that frame (21.9 mm, was 13.9
++ *   with round 5's 1.4 cm shift). The shortfall is now taken up over the last ATTACK of the
++ *   swing (`attackDropM`) — the mirror of the take-off RELEASE, evaluated on the landing
++ *   configuration (shifted spot, support, the clip's heel-strike hip and ankle orientation, the
++ *   slope tilt and nosing pitch the stance rule will apply) so it hands over at phase 1 without
++ *   a step. That landing: −6.8 … −1.6 mm over eight frames, then the stance's own +13.0 as the
++ *   hip comes over the foot (was −21.9 / +12.3); the whole-descent maximum is back to the riser
++ *   ease's 19.65 mm/frame (f472 — the same stride is 19.62 in round 5, its tread reading 0.45 mm
++ *   prouder under a boot corner now); every other number of round 6 unchanged, the ascent and the
++ *   flat scenario identical frame for frame.
+  *
+  * Playback rate per gait = GAIT_SPEED / (stride / cycle) from her pipeline.json — 1.0 for every
+  * clip as delivered; the formula stays so a future clip with a different stride does not slide.
+@@ -268,6 +280,15 @@ const HEEL_RUNOUT = 0.12;
+ const TOE_RUNOUT = 0.1;
+ /** a take-off leg's extra root drop (its planted foot beyond the leg's reach) is released over this fraction of the swing */
+ const RELEASE = 0.3;
++/**
++ * The mirror image at heel-strike (round 6b): the extra root drop the landing configuration will
++ * need — its shifted spot on its support, against the hip of the clip's heel-strike pose — is
++ * taken up over the last ATTACK of the swing instead of appearing in the frame the foot plants
++ * (a landing foot pushed 2.6 cm forward off the bottom riser's wavy lip dropped the root 21 mm
++ * in one frame). Exactly the stance rule's value at phase 1, so it hands over without a step,
++ * and zero wherever the landing pose is within reach (every flat-ground landing).
++ */
++const ATTACK = 0.35;
+ /** footprint scan along the facing: sample spacing and the reach past the footprint's margins */
+ const SCAN_STEP = 0.02;
+ const SCAN_PAD = 0.02;
+@@ -415,6 +436,15 @@ interface Leg {
+   relA: Vector3;
+   relH: Vector3;
+   relW: number;
++  /**
++   * extra-drop attack (see ATTACK): the ankle target of the foot in its landing configuration
++   * (world), the hip of the clip's heel-strike pose at the landing (world xz; y above the root
++   * floor at landing), the attack weight (0 outside the last ATTACK of a swing) and that floor
++   */
++  attA: Vector3;
++  attH: Vector3;
++  attW: number;
++  rootAtLand: number;
+   /** the footprint point (offset along the facing) the report treats as the contact, and the exact ground there */
+   contactOff: number;
+   contactGround: number;
+@@ -422,8 +452,9 @@ interface Leg {
+ 
+ /**
+  * One swing of one foot in a clip: clip times, root-relative sole spots and foot yaws at toe-off
+- * and heel-strike, and the toe-off pose the extra-drop release re-evaluates (see RELEASE): the
+- * root-relative hip, the ankle orientation and the sole's lift above the lower sole.
++ * and heel-strike, and the toe-off / heel-strike poses the extra-drop release and attack
++ * re-evaluate (see RELEASE / ATTACK): the root-relative hip, the ankle orientation and the
++ * sole's lift above the lower sole at each.
+  */
+ interface Swing {
+   tOff: number;
+@@ -437,6 +468,9 @@ interface Swing {
+   offHip: Vector3;
+   offQ: Quaternion;
+   offLift: number;
++  landHip: Vector3;
++  landQ: Quaternion;
++  landLift: number;
+ }
+ 
+ /** root-space sole path of one foot over one clip cycle (TABLE_N samples), with the hip and ankle orientation */
+@@ -522,6 +556,7 @@ const _qIk = new Quaternion();
+ const _qParent = new Quaternion();
+ const _qInv = new Quaternion();
+ const _qPitch = new Quaternion();
++const _qLandTilt = new Quaternion();
+ const _p = new Vector3();
+ const _qYaw = new Quaternion();
+ const _reach: Reach = { fwd: Infinity, back: Infinity };
+@@ -781,6 +816,7 @@ function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[]
+       // the toe-off pose relative to the root's FLOOR (the lower sole): the hip's height above it
+       // and this sole's lift above it — the root is grounded by that floor, so both carry over
+       const offFloor = Math.min(path.soleY[off], other.soleY[off]);
++      const landFloor = Math.min(path.soleY[land], other.soleY[land]);
+       swings.push({
+         tOff,
+         tLand,
+@@ -793,6 +829,9 @@ function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[]
+         offHip: new Vector3(path.hip[off].x, path.hip[off].y - offFloor, path.hip[off].z),
+         offQ: path.q[off].clone(),
+         offLift: path.soleY[off] - offFloor,
++        landHip: new Vector3(path.hip[land].x, path.hip[land].y - landFloor, path.hip[land].z),
++        landQ: path.q[land].clone(),
++        landLift: path.soleY[land] - landFloor,
+       });
+     }
+     k += len;
+@@ -1151,6 +1190,10 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+       relA: new Vector3(),
+       relH: new Vector3(),
+       relW: 0,
++      attA: new Vector3(),
++      attH: new Vector3(),
++      attW: 0,
++      rootAtLand: 0,
+       contactOff: 0,
+       contactGround: 0,
+     };
+@@ -1160,7 +1203,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+   ];
+-  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
++  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
+   const cfgOff: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
+   const cfgLand: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
+   const spotNow = { x: 0, z: 0, yaw: 0 };
+@@ -1386,9 +1429,12 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+         let travelBack = 0;
+         let travelFwd = 0;
+         let relW = 0;
++        let attW = 0;
+         let predPin = 0;
+         leg.relA.set(0, 0, 0);
+         leg.relH.set(0, 0, 0);
++        leg.attA.set(0, 0, 0);
++        leg.attH.set(0, 0, 0);
+         for (const c of chain) {
+           const weight = c.weight;
+           if (weight <= 0) continue;
+@@ -1448,6 +1494,35 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+               leg.relH.z += rw * (z - s.offHip.x * fx + s.offHip.z * fz - fz * back);
+               relW += rw;
+             }
++            const aw = weight * MathUtils.smoothstep(sw.phase, 1 - ATTACK, 1);
++            if (aw > 0) {
++              // the foot in its landing configuration (the shifted landing spot at its support,
++              // the clip's heel-strike sole lift and ankle orientation tilted onto the slope
++              // there and pitched over its nosing, as the stance rule will have it — a 7.8°
++              // slope at the flight's foot moves the ankle 14 mm) and the hip of that pose at the
++              // landing (the root `ahead` along the facing), like the spots
++              _q2.copy(s.landQ).premultiply(_qYaw);
++              groundTilt(ground, lx, lz, 1, _qLandTilt);
++              if (Math.abs(cfgLand.pitch) > 1e-5) {
++                _v.copy(leg.fwdLocal).applyQuaternion(_q2);
++                _v.y = 0;
++                if (_v.lengthSq() > 1e-8) {
++                  _v.normalize();
++                  _n.crossVectors(_axisY, _v);
++                  _qPitch.setFromAxisAngle(_n, cfgLand.pitch);
++                  _qLandTilt.premultiply(_qPitch);
++                }
++              }
++              _q.multiplyQuaternions(_qLandTilt, _q2);
++              _p.copy(leg.sole).applyQuaternion(_q);
++              leg.attA.x += aw * (lx + fx * cfgLand.shift - _p.x);
++              leg.attA.y += aw * (gLand + s.landLift - _p.y);
++              leg.attA.z += aw * (lz + fz * cfgLand.shift - _p.z);
++              leg.attH.x += aw * (x + s.landHip.x * fz + s.landHip.z * fx + fx * ahead);
++              leg.attH.y += aw * s.landHip.y;
++              leg.attH.z += aw * (z - s.landHip.x * fx + s.landHip.z * fz + fz * ahead);
++              attW += aw;
++            }
+           } else {
+             const st = stanceAt(swings, a.action.time, a.duration);
+             let pin = 0;
+@@ -1498,6 +1573,11 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+             leg.relH.divideScalar(relW);
+             relW /= wsum;
+           }
++          if (attW > 0) {
++            leg.attA.divideScalar(attW);
++            leg.attH.divideScalar(attW);
++            attW /= wsum;
++          }
+         } else {
+           footConfig(surface, base, leg.soleP.x, leg.soleP.z, fx, fz, leg.yawRel, leg.fp, cfgOff);
+           predFoot = rootOff = rootLand = cfgOff.support;
+@@ -1512,6 +1592,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+         leg.phase = phase;
+         leg.swingW = swingW;
+         leg.relW = relW;
++        leg.attW = attW;
+         // the geometric lifts on the shifted footprint at the foot's current yaw: the CLEAR arc
+         // over a riser ahead (blended by phase) and the LIP lift (exact at both ends of a swing),
+         // both seeing only the edges within this swing's travel
+@@ -1547,6 +1628,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+         const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : 1);
+         leg.gRoot = leg.swingW > 0 ? r0 + (r1 - r0) * ease : leg.rootOff;
+         leg.rootAtOff = r0;
++        leg.rootAtLand = r1;
+       }
+       const gMin = Math.min(legs[0].gRoot, legs[1].gRoot);
+       const shift = gMin - soleMin;
+@@ -1567,6 +1649,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+       let maxPin = 0;
+       let maxHold = 0;
+       let extraDrop = 0;
++      let attackDrop = 0;
+       for (const leg of legs) {
+         // the sole onto its support plus the clip's lift above the root's floor, the lift
+         // flattened where that would fold the leg (FOLD_MAX) — never below the support itself,
+@@ -1616,6 +1699,19 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+             if (drop > extraDrop) extraDrop = drop;
+           }
+         }
++        if (leg.attW > 1e-4) {
++          // a leg about to land: the drop its landing configuration will need (the shifted spot
++          // on its support against the hip of the clip's heel-strike pose, the root on the floor
++          // at landing) is taken up over the last ATTACK of the swing rather than appearing in
++          // the frame the foot plants (see ATTACK). The stance rule's own value at phase 1.
++          _v.set(leg.attA.x - leg.attH.x, leg.attA.y - (leg.rootAtLand + leg.attH.y), leg.attA.z - leg.attH.z);
++          const flat2 = reach * reach - _v.x * _v.x - _v.z * _v.z;
++          if (flat2 > 0) {
++            const drop = (-_v.y - Math.sqrt(flat2)) * leg.attW;
++            if (drop > attackDrop) attackDrop = drop;
++            if (drop > extraDrop) extraDrop = drop;
++          }
++        }
+         if (!leg.active) {
+           leg.target.copy(leg.ankleP);
+           continue;
+@@ -1733,6 +1829,7 @@ export async function loadGlbLink(url: string): Promise<GlbLink> {
+       plant.reachExcessM = reachExcess;
+       plant.maxShiftM = maxShift;
+       plant.extraDropM = extraDrop;
++      plant.attackDropM = Math.min(attackDrop, MAX_CORRECTION);
+       plant.maxPinM = maxPin;
+       plant.maxHoldM = maxHold;
+       plant.blendClips = blendClips;
+diff --git a/src/world/character/ground.ts b/src/world/character/ground.ts
+index a790d61..42876ca 100644
+--- a/src/world/character/ground.ts
++++ b/src/world/character/ground.ts
+@@ -12,7 +12,7 @@
+  */
+ import { Box3, BufferGeometry, Mesh, type Object3D } from 'three';
+ import type { Layout } from '../layout';
+-import type { Terrain } from '../terrain/heightfield';
++import { surfaceMask, type Terrain } from '../terrain/heightfield';
+ 
+ export interface Ground {
+   height(x: number, z: number): number;
+@@ -183,6 +183,12 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
+   // fallback where the rendered slabs are unknown: flagstone tops sit 2–5 cm above the heightfield
+   const PATH_LIFT = 0.03;
+   const DECAL_LIFT = 0.012;
++  // `terrain.mask(x, z).path` / `.structure` ARE `surfaceMask(x, z).path` / `.structure` (heightfield.ts
++  // builds the mask from it), but the full mask also evaluates the slope (four height samples, a
++  // Vector3) and the landform for the fields nobody here reads: 2.1–2.9 µs a call against 0.9–1.1 —
++  // and the foot planting (glbLink.ts envelopes and scans) samples this ground several hundred
++  // times a frame off the paving, where neither the stairs nor the slab grid answer first
++  const pathAt = (x: number, z: number) => surfaceMask(x, z).path;
+   const walk = (x: number, z: number): number => {
+     const h = terrain.height(x, z);
+     const s = stairAt(x, z);
+@@ -190,7 +196,7 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
+     // the foot stands on the slab under it (one cell of slack for the sole's footprint)
+     const slab = slabTop(x, z, 0.05);
+     if (slab !== null) return Math.max(h, slab);
+-    return h + PATH_LIFT * terrain.mask(x, z).path;
++    return h + PATH_LIFT * pathAt(x, z);
+   };
+   const surface = (x: number, z: number): number => {
+     const h = walk(x, z);
+@@ -206,13 +212,13 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
+       if (s !== null) return h + DECAL_LIFT;
+       const slab = slabTop(x, z, radius);
+       if (slab !== null) return Math.max(h, slab) + DECAL_LIFT;
+-      return h + DECAL_LIFT + PATH_LIFT * terrain.mask(x, z).path;
++      return h + DECAL_LIFT + PATH_LIFT * pathAt(x, z);
+     },
+     onStairs(x, z) {
+       return stairAt(x, z) !== null;
+     },
+     blocked(x, z) {
+-      return terrain.mask(x, z).structure > 0.5;
++      return surfaceMask(x, z).structure > 0.5;
+     },
+     attachSurface(scene) {
+       if (grid) return true;
+diff --git a/src/world/character/index.ts b/src/world/character/index.ts
+index 3a6d6fb..602f32a 100644
+--- a/src/world/character/index.ts
++++ b/src/world/character/index.ts
+@@ -332,7 +332,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+       /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural); the along-facing shift given a foot to clear a nosing lip; a leg clamped at its reach and by how much; the clips with weight in the gait blend */
+       linkIk: (() => {
+         const i = link.puppet.plantInfo();
+-        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)), maxPinM: Number(i.maxPinM.toFixed(4)), maxHoldM: Number(i.maxHoldM.toFixed(4)), blendClips: i.blendClips };
++        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)), attackDropM: Number(i.attackDropM.toFixed(4)), maxPinM: Number(i.maxPinM.toFixed(4)), maxHoldM: Number(i.maxHoldM.toFixed(4)), blendClips: i.blendClips };
+       })(),
+       /** the play-mode gait chain: the gait, the one it is fading from and the one before that (puppet.ts PuppetPose) */
+       linkGaitChain: [link.gait, link.gaitFrom, link.gaitFrom2],
+diff --git a/src/world/character/puppet.ts b/src/world/character/puppet.ts
+index c2f5cf3..05a3385 100644
+--- a/src/world/character/puppet.ts
++++ b/src/world/character/puppet.ts
+@@ -84,6 +84,8 @@ export interface PlantInfo {
+   maxShiftM: number;
+   /** how far (m) the root was lowered beyond its support because a foot target lay past the straight leg */
+   extraDropM: number;
++  /** the part of that asked for by a leg about to land (its landing configuration's shortfall, weighted in over the end of the swing — glbLink ATTACK); 0 for the procedural rig */
++  attackDropM: number;
+   /** largest idle-foot pin (m) and sole hold (m) of this pose (see FootContact.pinM / holdM); clips with weight in the gait blend */
+   maxPinM: number;
+   maxHoldM: number;
+@@ -139,7 +141,7 @@ export function proceduralPuppet(char: Character, animations: readonly string[])
+     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+   ];
+-  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
++  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
+   return {
+     kind: 'procedural',
+     group: char.group,
+diff --git a/src/world/index.ts b/src/world/index.ts
+index a563735..022853d 100644
+--- a/src/world/index.ts
++++ b/src/world/index.ts
+@@ -50,6 +50,10 @@ export interface World {
+   systems: WorldSystem[];
+   /** systems whose create() threw. Interactive mode tolerates this; capture mode fails closed. */
+   failures: SystemFailure[];
++  /** CPU ms of the last update(), per system (plus `wind`) — read by the capture API's perf() */
++  timings: Record<string, number>;
++  /** build ms per system (create() wall time), for the load-time report */
++  buildMs: Record<string, number>;
+   update(dt: number, t: number): void;
+   dispose(): void;
+ }
+@@ -96,6 +100,7 @@ export async function createWorld(opts: {
+ 
+   const systems: WorldSystem[] = [];
+   const failures: SystemFailure[] = [];
++  const buildMs: Record<string, number> = {};
+   for (const s of SYSTEMS) {
+     const t0 = performance.now();
+     try {
+@@ -106,22 +111,35 @@ export async function createWorld(opts: {
+       }
+       systems.push(sys);
+       ctx.progress(s.name, 1);
+-      console.info(`[world] ${s.name} ready in ${(performance.now() - t0).toFixed(0)} ms`);
++      buildMs[s.name] = performance.now() - t0;
++      console.info(`[world] ${s.name} ready in ${buildMs[s.name].toFixed(0)} ms`);
+     } catch (e) {
+       const error = e instanceof Error ? `${e.message}\n${e.stack ?? ''}` : String(e);
+       failures.push({ name: s.name, error });
+       console.error(`[world] system "${s.name}" failed to build`, e);
+       ctx.progress(s.name, 1);
++      buildMs[s.name] = performance.now() - t0;
+     }
+   }
+ 
++  const timings: Record<string, number> = {};
+   return {
+     ctx,
+     systems,
+     failures,
++    timings,
++    buildMs,
+     update(dt, t) {
++      let a = performance.now();
+       ctx.wind.update(dt, t);
+-      for (const s of systems) s.update?.(dt, t, ctx);
++      let b = performance.now();
++      timings.wind = b - a;
++      for (const s of systems) {
++        a = b;
++        s.update?.(dt, t, ctx);
++        b = performance.now();
++        timings[s.name] = b - a;
++      }
+     },
+     dispose() {
+       for (const s of systems) s.dispose?.();
+diff --git a/src/world/layout.ts b/src/world/layout.ts
+index 3b69d09..320312f 100644
+--- a/src/world/layout.ts
++++ b/src/world/layout.ts
+@@ -301,13 +301,25 @@ export const LAYOUT = {
+     // grows the limb from the trunk to it); the midpoint must project inside shot A for W01.
+     // The bough itself rides high (y ≈ 0.15–0.3 in A, mostly above shot B's frame); the pods
+     // hang on long cords to the reference's y ≈ 0.45.
+-    // 0.35 m lower since the cameras dropped to 1.45 m (the limb rode ~0.04 higher in A than the
+-    // reference's) and the pods moved to 0.7 m cords: pods now hang at A y ≈ 0.40-0.41 (ref 0.38-0.5)
+-    from: [-4.0, 4.25, -5.0] as [number, number, number],
+-    to: [1.5, 3.25, -2.6] as [number, number, number],
+-    /** limb radius at `from` / at `to` (metres); the reference bough is ~0.4 m thick, not a log */
+-    radius: 0.42,
+-    tipRadius: 0.16,
++    // Round 37 (measured against frame 1 s, column scan of the dark band): the bough's top edge is
++    // at y 0.31 (x 0–0.10) → 0.33 (x 0.22), underside ≈ 0.375, centre ≈ 0.345 → 0.36, ≈ 0.06 of
++    // the frame thick at the left edge, gone by x ≈ 0.27–0.30; luminance 0.27–0.33 (ours read
++    // 0.45–0.55 at 11–12 m). Its two pods are small — glow cores 0.005 wide, whole pods ≈ 0.013
++    // (0.12–0.15 m at 6.5 m) — at (0.208, 0.405) and (0.255, 0.39), right under the bough. Frame
++    // 14 s (shot B) has no pod and no pale limb in its upper-left: a pod on those A rays is inside
++    // B's frame unless it is ≤ 6.7 m from camera A (within 0.8 m of camera B's eye along its axis,
++    // 0.5 m above it), so the run sits on z = 1.5, level at 2.2 m, heading east, 5.8–6.9 m from A:
++    // from → A (0.02, 0.35) (0.1 m inside the frame so W01's first sample is inside by 20 px; the
++    // sleeve itself runs on along the published reach past A's left edge), to → A (0.28, 0.36);
++    // the limb leaves the giant's bole at `limb.height` and droops onto `from` (trees/index.ts
++    // LANTERN_LIMB). Before: (−4, 4.25, −5) → (1.5, 3.25, −2.6) at 11–12 m, A y 0.20–0.27, pods
++    // at (0.07 / 0.16 / 0.25, 0.36–0.38) and in B at (0.03 / 0.21 / 0.40, 0.31–0.35) under the
++    // limb across B's top.
++    from: [-1.15, 2.22, 1.5] as [number, number, number],
++    to: [1.06, 2.21, 1.5] as [number, number, number],
++    /** limb radius at `from` / at `to` (metres): 0.06 × 0.849 × 5.8 m ≈ 0.30 m thick at A's left edge */
++    radius: 0.15,
++    tipRadius: 0.07,
+     lanterns: 3,
+   },
+ 
+@@ -381,7 +393,10 @@ export const LAYOUT = {
+ 
+   /** Giant old trees. Canopies of these form the overhead cover (14–24 m). */
+   giantTrees: [
+-    { id: 'lantern-tree', position: [-11.5, 2.6, -7.2], trunkRadius: 1.7, height: 26, limb: { dir: [0.87, 0.49], length: 14.5, height: 5.3 } },
++    // limb: the lantern bough leaves the bole `height` m up (local) and droops onto
++    // `lanternBranch.from`, 13.5 m to the ESE (`dir`/`length` are descriptive here; the run is
++    // authored by `lanternBranch`, see trees/index.ts LANTERN_LIMB)
++    { id: 'lantern-tree', position: [-11.5, 2.6, -7.2], trunkRadius: 1.7, height: 26, limb: { dir: [0.83, 0.56], length: 13.5, height: 2.6 } },
+     { id: 'plateau-oak', position: [19, 5.4, -21], trunkRadius: 1.5, height: 24 },
+     { id: 'southwest-giant', position: [-23, 2.6, 9], trunkRadius: 1.9, height: 28 },
+     { id: 'east-giant', position: [27, 5.4, 5], trunkRadius: 1.4, height: 24 },
+diff --git a/src/world/postfx/composer.ts b/src/world/postfx/composer.ts
+index c9aa056..7f9ab65 100644
+--- a/src/world/postfx/composer.ts
++++ b/src/world/postfx/composer.ts
+@@ -199,7 +199,7 @@ export interface ComposerSettings {
+    * Henyey–Greenstein phase: D (view axis 64° from the sun) carries +0.10 of beam over its haze
+    * where A (81°) has only the +0.04 bump the marched columns already give it and C/F (> 125°) show
+    * none — the HG term (g 0.6) would give A 61 % of D's fan. 85 → 60° gives D 0.94, B (75°) 0.36,
+-   * A 0.08, C/F 0
++   * A 0.08, C/F 0; round 37's 81 → 61° gives D 0.946, B 0.234, A 0 (see shafts.ts SCREEN_FAN)
+    */
+   fanFacingDeg: [number, number];
+   /** lean of the fan's beams from vertical (degrees, down-right, measured on screen) */
+@@ -507,10 +507,26 @@ export function createComposer(opts: ComposerOptions): Composer {
+     // 0.93 on B; the frames' window std at 17–30 m is 0.045 against our 0.028, so this is the
+     // metric's uncorrelated-structure term, not a match of the frames' softness — see the note
+     // above); 8 / 45 read +0.0088 / +0.0075 at 0.85 sharpness and was not taken
++    // Round 37 (tone): the haze blur's σ re-swept with the near unsharp in place, E / A / D / F
++    // Δ SSIM: 3.6 +0.0018 / +0.0020 / +0.0020 / +0.0017; 4.2 +0.0030 / +0.0036 / +0.0035 / +0.0031;
++    // 4.8 +0.0033 / +0.0051 / +0.0045 / +0.0042; 5.4 (A / D / F) +0.0062 / +0.0055 / +0.0053 —
++    // sharpness unchanged at every σ (E 0.830 → 0.829, A 0.916 → 0.916) because the 320-grid blur
++    // at σ 3 has already taken the far edges the metric's 256×144 Laplacian can see (far 20–50 m
++    // ours/ref A 0.73 → 0.74, D 0.27 → 0.27 across the sweep); the gain is the 30–50 m and 50 m+
++    // windows' structure term, where our window std (A 0.020, D 0.015) is already under the
++    // frame's (0.028 / 0.031) and the structures do not correlate. σ 4.2 taken (the brief's upper
++    // value); 4.8 / 5.4 not — more of the same term, not a match of the frames' far texture (the
++    // far deficit is structure the frame has and we do not). softFarStart 12 costs the near band
++    // (E 0.830 → 0.819, A 0.916 → 0.900 sharpness) for +0.0017 / +0.0033 and stays out.
++    // Shipped six-view (with the 81 → 61° fan gate): A 0.2890 → 0.2928, B 0.2622 → 0.2648,
++    // C 0.3197 → 0.3229, D 0.3576 → 0.3611, E 0.2719 → 0.2742, F 0.2951 → 0.2982; sharpness,
++    // pHash, overexposed (0), farLayerCount and skyFraction unchanged. The blur's cost is the top
++    // band's bright tail: A's y 0.08–0.33 p90 0.558 → 0.550 (frame 0.612), B 0.550 → 0.539
++    // (0.516), F 0.512 → 0.508 (0.601) — the far gaps mixed with the crowns beside them.
+     softFarStart: 16,
+     softFarFull: 50,
+     softBlurSigma: 1.2,
+-    softFarSigma: 3.0,
++    softFarSigma: 4.2,
+     softActivitySigma: 2.5,
+     softNearSharp: 0.25,
+     softNearStart: 4,
+@@ -700,7 +716,7 @@ export function createComposer(opts: ComposerOptions): Composer {
+   /** diagnostic readback of the raw depth values in the focus window (see __ATMO_SHADOWMAP_FOCUS__.read) */
+   let shadowReadTarget: WebGLRenderTarget | null = null;
+   const depthDebugMat = mat(DEPTH_DEBUG_FRAG, { tDepth: { value: depthTexture }, uNear: near, uFar: far, uProjInv: projInv }, 'postfx-depth-debug');
+-  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 } }, 'postfx-gauss');
++  const gaussMat = mat(GAUSS_FRAG, { tSrc: { value: null as Texture | null }, uDir: { value: new Vector2() }, uSigma: { value: 1.5 }, uReach: { value: 6 } }, 'postfx-gauss');
+   const softFarRange = { value: new Vector2(settings.softFarStart, settings.softFarFull) };
+   const softActMat = mat(
+     SOFT_ACTIVITY_FRAG,
+@@ -1047,6 +1063,8 @@ export function createComposer(opts: ComposerOptions): Composer {
+       const dir = gaussMat.uniforms.uDir.value as Vector2;
+       const gauss = (src: WebGLRenderTarget, tmp: WebGLRenderTarget, dst: WebGLRenderTarget, texel: Vector2, sigma: number) => {
+         gaussMat.uniforms.uSigma.value = sigma;
++        // ≥ 6 taps either side (the tuned 13-tap kernel for σ ≤ 3), 2 σ for wider haze blurs
++        gaussMat.uniforms.uReach.value = Math.min(9, Math.max(6, Math.ceil(2 * sigma)));
+         gaussMat.uniforms.tSrc.value = src.texture;
+         dir.set(texel.x, 0);
+         pass(gaussMat, tmp);
+diff --git a/src/world/postfx/shaders.ts b/src/world/postfx/shaders.ts
+index 1aaac83..2c22cbe 100644
+--- a/src/world/postfx/shaders.ts
++++ b/src/world/postfx/shaders.ts
+@@ -446,17 +446,23 @@ void main() {
+ }
+ `;
+ 
+-/** Separable Gaussian with a runtime sigma (texels), 13 taps: sigma ≤ 3 stays inside the kernel. All four channels (the haze blur carries its weight in alpha). */
++/**
++ * Separable Gaussian with a runtime sigma (texels). The kernel reaches `uReach` taps either side
++ * (≥ 6, so sigma ≤ 3 keeps the 13-tap kernel it was tuned with; wider sigmas extend to 2 σ instead
++ * of truncating into a box). All four channels (the haze blur carries its weight in alpha).
++ */
+ export const GAUSS_FRAG = /* glsl */ `
+ uniform sampler2D tSrc;
+ uniform vec2 uDir;    // texel-sized step
+ uniform float uSigma; // in texels
++uniform float uReach; // taps either side (6 … 9)
+ varying vec2 vUv;
+ void main() {
+   float k = -0.5 / max( uSigma * uSigma, 1e-4 );
+   vec4 c = texture2D( tSrc, vUv );
+   float wsum = 1.0;
+-  for ( int i = 1; i <= 6; i ++ ) {
++  for ( int i = 1; i <= 9; i ++ ) {
++    if ( float( i ) > uReach ) break;
+     float w = exp( k * float( i * i ) );
+     vec2 o = uDir * float( i );
+     c += ( texture2D( tSrc, vUv + o ) + texture2D( tSrc, vUv - o ) ) * w;
+diff --git a/src/world/structures/lanternBranch.ts b/src/world/structures/lanternBranch.ts
+index 0fa5a9a..4dee9f9 100644
+--- a/src/world/structures/lanternBranch.ts
++++ b/src/world/structures/lanternBranch.ts
+@@ -27,18 +27,25 @@
+  *   - textured moss sheets draped over the top, fraying down the flank that faces the cameras;
+  *   - a fork stub and three side twigs tipped with shaded leaf sprigs;
+  *   - ferns and grass tufts on the moss, vines hanging from the underside;
+- *   - the three pod lanterns on cords from the knees' actual undersides, cord lengths set so the
+- *     pods keep their tuned shot-A screen heights (y ≈ 0.40–0.41; reference 0.38–0.50).
++ *   - the pod lanterns on cords from the knees' actual undersides: two right under the visible
++ *     run at the frame's A (0.208, 0.405) / (0.255, 0.39), a third on the trunk-side reach.
+  * The endpoints and radii are the layout's, so the W01 projection is unchanged.
++ *
++ * Round 37: the limb moved from 11–12 m to 5.8–6.9 m from camera A (layout.ts lanternBranch,
++ * trees/index.ts LANTERN_LIMB): the giant's own limb is ghosted and the sleeve is the whole bough,
++ * casting no shadow (its band would cross the lit slabs in front of Link), under its own darker
++ * shade floor (SLEEVE_FLOOR), with the fork, twigs, sheets and tufts scaled to the 0.15 m limb.
+  */
+ import { CatmullRomCurve3, Group, Mesh, PointLight, Vector3 } from 'three';
+ import type { TubePath, WorldContext } from '../system';
+ import type { Rng } from '../util/prng';
+ import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
++import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
+ import { TAU, faceTowards, gridSurface, merge, sweepTube } from './geometry';
+ import { FoliageBuilder } from './foliage';
+ import { buildLantern, type LanternRig } from './lantern';
+ import type { StructureMaterials } from './materials';
++import { applySleeveBarkResponse } from './sleeveBark';
+ 
+ export interface LanternBranchBuild {
+   group: Group;
+@@ -80,30 +87,42 @@ const RELIEF = 0.015;
+  *  ring spacing, so the frame is a running average over the published polyline's kinks */
+ const TANGENT_H = 0.02;
+ 
+-// Reference frame 1 s: the pods hang grouped over the plaza's west edge at screen x 0.08–0.26;
+-// at t 0.1 the outer pod fell off A's left edge (x −0.05) and the row read widely spaced (W14
+-// review). The third sits toward the trunk end, outside B, C and D.
+-const LANTERN_T = [0.68, 0.9, 0.45];
+-const BRANCH_POD_SCALE = 0.62;
++// Reference frame 1 s (round 37, see layout.ts lanternBranch): two small pods right under the
++// bough at A (0.208, 0.405) and (0.255, 0.39) — on the z = 1.5 run that is world x 0.39 and 0.82,
++// s 0.70 and 0.89 of from (x −1.15) → to (x 1.06). W14 counts ≥ 3 branch lanterns and the frame
++// shows two, so the third hangs on the trunk-side reach 2 m past `from` (x ≈ −3.1, 2.6 m up):
++// off A's left edge (x −0.3), behind cameras B and F, off camera C's right edge (a first cut at
++// s −0.55 hung at C (0.97, 0.39), 8.4 m out, where frame 46 s has no pod; the reach leaves C's
++// frame at s ≈ −0.65), off D.
++const LANTERN_T = [0.7, 0.89, -0.9];
++/** pod scale: the frame's bough pods are ≈ 0.013 of the frame wide at 6.5 m ≈ 0.13 m; the
++ *  scale-1 body is 0.30 m wide, 0.48 m tall with the stem, so 0.5 gives a 0.15 m body */
++const BRANCH_POD_SCALE = 0.42;
+ /**
+- * Cord lengths (m) per LANTERN_T entry. The pods' tuned shot-A screen heights (y ≈ 0.40–0.41,
+- * reference 0.38–0.50) were set with the straight sleeve on 0.59–0.66 m cords; its underside hung
+- * 0.05–0.12 m below the limb's, so with the knees hanging from the limb's actual underside the
+- * cords are longer by that much and the pods stay put — round 10 A/B on one tree: control pod
+- * glows at A (0.159, 0.414) / (0.247, 0.412) / (0.069, 0.398), wrapped sleeve on 0.72 / 0.70 /
+- * 0.71 m cords at (0.158, 0.409) / (0.248, 0.414) / (0.071, 0.403); the residual ±0.005 of frame
+- * is ±5 cm of cord at 12 m, corrected here.
++ * Cord lengths (m) per LANTERN_T entry. Frame 1 s hangs both pods within 0.02–0.03 of the frame
++ * below the bough's underside (0.1–0.16 m at 6.5 m): the pod's stem and cap take 0.14 m at scale
++ * 0.5, the cords the rest. The trunk-side pod hangs 0.45 m under the reach.
+  */
+-const CORDS = [0.77, 0.68, 0.66];
++const CORDS = [0.03, 0.03, 0.45];
+ /** knees: where the sleeve's underside sags below the giant's limb (s along from→to, sag as a
+- *  multiple of the local sleeve radius so they scale with the limb's taper — 0.17 / 0.14 / 0.11 m
+- *  on the old 0.46 / 0.39 / 0.32 m envelope — and half-width in s); the two outer pods hang from
+- *  the second and third */
++ *  multiple of the local sleeve radius so they scale with the limb's taper, and half-width in s);
++ *  the two pods hang from the second and third */
+ const KNEES = [
+-  { s: 0.22, sag: 0.37, w: 0.11 },
+-  { s: 0.46, sag: 0.36, w: 0.09 },
+-  { s: 0.69, sag: 0.34, w: 0.08 },
++  { s: 0.3, sag: 0.15, w: 0.1 },
++  { s: 0.7, sag: 0.25, w: 0.07 },
++  { s: 0.89, sag: 0.2, w: 0.06 },
+ ];
++/**
++ * The sleeve's shade floor (round 37). Frame 1 s reads the bough at 0.27–0.33 luminance at ≈ 6 m
++ * (hazed columns further off read 0.43–0.50, which the shared LIMB_BARK_FLOOR's lift 8.5 was
++ * calibrated for when the limb stood 11–12 m from camera A); at 6 m the veil is thinner and the
++ * bark has to be dark itself, so the sleeve carries its own copy of the bark material under a
++ * lower floor (`lift` tuned by A captures: the sleeve's dark band p50 against the frame's).
++ */
++// (lift 4 read the underside band (A 0.06–0.20, 0.355–0.375) at p50 0.226, 6.5 at 0.273 — linear
++// in linear light: 0.042 + 0.0076 / unit — so 10.5 for the frame's 0.338; chroma 0.45 read sat
++// 0.27 against the frame's 0.17 at hue 53° = 52°)
++const SLEEVE_FLOOR: ShadeFloor = { lift: 10.5, texture: 0.3, canopy: 1, albedo: 0.07, chroma: 0.25 };
+ 
+ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
+   const def = ctx.layout.lanternBranch;
+@@ -210,7 +229,9 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+     // cover it (round 11: the lime (0.3, 0.72, 0.34) of round 10 read as a green tube under the
+     // shade floor — the reference bough's moss line is hazed grey-olive, hue 53°, sat 0.16)
+     const moss = 0.8 * smoothstep(0.15, 0.7, mossFringe(s, psi));
+-    return [lerp(d * 0.33, 0.3, moss), lerp(d * 0.32, 0.46, moss), lerp(d * 0.28, 0.2, moss)];
++    // round 37: darker bark and a duller moss cap (the frame's bough is a dark band, 0.27–0.33,
++    // with a lighter moss line only along its top edge)
++    return [lerp(d * 0.24, 0.22, moss), lerp(d * 0.23, 0.34, moss), lerp(d * 0.2, 0.15, moss)];
+   };
+   const sleeve = gridSurface(
+     (u, v, out) => {
+@@ -231,46 +252,52 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+   // ---- fork stub and side twigs (bark), each tipped with a shaded leaf sprig ----
+   const twigRng = rng.fork('branch-twigs');
+   const foliage = new FoliageBuilder(rng.fork('branch-foliage'), `${ctx.config.seed}/lantern-branch`);
+-  const sprigTint: [number, number, number] = [0.6, 0.66, 0.36];
++  // (round 37: the bough is 6 m from camera A, in the shade under the roof — its tufts read as
++  // dark olive silhouettes in frame 1 s, not lit lime; the tints are pulled to half)
++  const sprigTint: [number, number, number] = [0.3, 0.34, 0.18];
+   const barkParts = [sleeve];
+   const jit = (a: number) => new Vector3((twigRng() - 0.5) * a, (twigRng() - 0.5) * a * 0.5, (twigRng() - 0.5) * a);
+   // the fork: a broken-off second limb leaving the thick end upward and away from the cameras,
+   // so in A it stands above the bough's line near the left edge
++  // (round 37: the limb is 0.15 m in radius, not 0.42 — the fork and twigs are scaled to it, and
++  // the fork leans back along the limb rather than up, so nothing of it climbs above the bough's
++  // line in shot A where the frame has only haze)
++  const fk = Math.min(1, r0 / 0.42);
+   {
+     const s0 = 0.3;
+-    const base = surface(s0, -0.5, -0.12);
+-    const heading = dir.clone().multiplyScalar(0.45).addScaledVector(UP, 0.8).addScaledVector(side, -0.5).normalize();
++    const base = surface(s0, -0.5, -0.05);
++    const heading = dir.clone().multiplyScalar(0.7).addScaledVector(UP, 0.45).addScaledVector(side, -0.55).normalize();
+     const pts = [
+       spine(s0),
+       base,
+-      base.clone().addScaledVector(heading, 0.7).add(jit(0.15)),
+-      base.clone().addScaledVector(heading, 1.3).addScaledVector(UP, 0.15).add(jit(0.15)),
+-      base.clone().addScaledVector(heading, 1.75).addScaledVector(UP, 0.35).addScaledVector(dir, 0.2),
++      base.clone().addScaledVector(heading, 0.7 * fk).add(jit(0.15 * fk)),
++      base.clone().addScaledVector(heading, 1.3 * fk).addScaledVector(UP, 0.1 * fk).add(jit(0.15 * fk)),
++      base.clone().addScaledVector(heading, 1.75 * fk).addScaledVector(UP, 0.2 * fk).addScaledVector(dir, 0.2 * fk),
+     ];
+     const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+     const fork = sweepTube(curve, {
+-      radius: (t) => (0.17 - 0.12 * t) * (1 + 0.12 * Math.sin(t * 13 + 1)),
++      radius: (t) => (0.17 - 0.12 * t) * fk * (1 + 0.12 * Math.sin(t * 13 + 1)),
+       tubularSegments: 16,
+       radialSegments: 9,
+       uvMetres: 1.4,
+-      displace: (t, ang) => (noise.ridged(ang * 1.5 + 3, t * 6, 2) - 0.5) * 0.03,
++      displace: (t, ang) => (noise.ridged(ang * 1.5 + 3, t * 6, 2) - 0.5) * 0.03 * fk,
+       color: (t, ang) => barkColor(s0 + t * 0.1, ang - 1),
+       capEnd: true,
+     });
+     barkParts.push(fork);
+-    foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.2), 0.34, 22, { size: 0.12, amount: 0.06, droop: 0.55, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
++    foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.2 * fk), 0.14, 14, { size: 0.08, amount: 0.06, droop: 0.55, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
+   }
+   for (const [s0, psi0] of [
+     [0.42, 0.9],
+     [0.6, -0.7],
+     [0.84, 0.5],
+   ]) {
+-    const base = surface(s0, psi0, -0.05);
++    const base = surface(s0, psi0, -0.03);
+     const heading = radial(s0, psi0).multiplyScalar(0.6).addScaledVector(UP, 0.75).addScaledVector(dir, (twigRng() - 0.5) * 0.6).normalize();
+-    const l = 0.55 + twigRng() * 0.3;
++    const l = (0.55 + twigRng() * 0.3) * (0.5 + 0.5 * fk);
+     const pts = [base.clone().addScaledVector(heading, -0.1), base, base.clone().addScaledVector(heading, l * 0.55).add(jit(0.1)), base.clone().addScaledVector(heading, l).addScaledVector(UP, 0.08)];
+     const twig = sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
+-      radius: (t) => 0.048 - 0.032 * t,
++      radius: (t) => (0.048 - 0.032 * t) * (0.5 + 0.5 * fk),
+       tubularSegments: 8,
+       radialSegments: 6,
+       uvMetres: 0.8,
+@@ -280,23 +307,39 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+     barkParts.push(twig);
+     foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.12), 0.2, 12, { size: 0.11, amount: 0.06, droop: 0.6, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
+   }
+-  const barkMesh = new Mesh(merge(barkParts), mats.sleeveBark);
++  // the sleeve's own copy of the bark material under SLEEVE_FLOOR (a clone carries the maps but
++  // no compile hooks, so it gets its floor and the sleeve's hemisphere response afresh)
++  const sleeveMat = mats.sleeveBark.clone();
++  sleeveMat.name = 'structures:sleeve-bark-r37';
++  applyShadeFloor(sleeveMat, SLEEVE_FLOOR, ctx.config.palette.leafSun);
++  applySleeveBarkResponse(sleeveMat);
++  const barkMesh = new Mesh(merge(barkParts), sleeveMat);
+   barkMesh.name = 'lantern-branch-bark';
+-  barkMesh.castShadow = barkMesh.receiveShadow = true;
++  // round 37: the whole bough casts nothing (see trees/index.ts LANTERN_LIMB — at 2.2 m over the
++  // plaza's south-west its band would cross the lit slabs in front of Link, which frame 1 s lights)
++  barkMesh.castShadow = false;
++  barkMesh.receiveShadow = true;
+   group.add(barkMesh);
+ 
+   // ---- moss sheets: ragged cushions over the top, fraying down the camera-side flank ----
+   const sheetRng = rng.fork('branch-moss');
+   const sheetParts = [];
+-  for (let i = 0; i < 7; i++) {
+-    const place = (i + 0.5 + (sheetRng() - 0.5) * 0.5) / 7;
++  // (round 37: five sheets, not seven, hanging 1.4–1.9 rad down the flank instead of 2.1–2.9, at
++  // 0.45 × the tone — at 6 m the seven lime cushions were the brightest thing on the bough (the
++  // top-edge box A (0.04–0.20, 0.31–0.34) read sat 0.34 against the frame's 0.16), where frame
++  // 1 s has one thin lighter moss line along the top and dark tufts)
++  const SHEETS = 5;
++  for (let i = 0; i < SHEETS; i++) {
++    const place = (i + 0.5 + (sheetRng() - 0.5) * 0.5) / SHEETS;
+     // the sheets (with their ±20 % s-wander) stay on the full sleeve, s 0.1–0.93: where it tapers
+     // into the limb a sheet would sit inside the giant's bark (round 9c measurement, −0.10 m at
+     // s 0.01); widths scaled by the same 0.85 so seven sheets cover that span as loosely as before
+-    const width = (0.85 + sheetRng() * 0.6) / len;
++    // (round 37: sheet widths follow the limb's radius — 0.3–0.5 m on the 0.15 m limb, so seven
++    // still spread along the 2.3 m run instead of stacking on its middle)
++    const width = ((0.85 + sheetRng() * 0.6) * (0.4 + 0.6 * fk)) / len;
+     const s0 = lerp(0.1 + width * 0.6, 0.93 - width * 0.6, place);
+     const psiTop = -0.7 - sheetRng() * 0.4;
+-    const drop = 2.1 + sheetRng() * 0.8;
++    const drop = 1.4 + sheetRng() * 0.5;
+     const sheet = gridSurface(
+       (u, v, out) => {
+         const s = s0 + (u - 0.5) * width * (1 + 0.2 * noise.noise(v * 3 + i, u * 2 + 5));
+@@ -314,8 +357,8 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+         // 0.7 — a first cut at (0.3, 0.42, 0.13) × up to 1.0 read as a lime cap against the limb's
+         // shader moss; the drooping fringe gets a mild shade gain
+         const lit = (0.55 + 0.3 * smoothstep(-0.3, 0.9, up) * (0.7 + 0.3 * noise.noise(s * 6, psi * 2 + 5))) * (1 + 0.6 * smoothstep(0.3, -0.5, up));
+-        const mossy = 0.85 + 0.3 * noise.noise(s * 8 + 2, psi * 4);
+-        out.color = [0.23 * lit * mossy, 0.33 * lit * mossy, 0.09 * lit * mossy];
++        const mossy = (0.85 + 0.3 * noise.noise(s * 8 + 2, psi * 4)) * 0.45;
++        out.color = [0.23 * lit * mossy, 0.31 * lit * mossy, 0.11 * lit * mossy];
+       },
+       { cols: 12, rows: 9 },
+     );
+@@ -324,18 +367,24 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+   }
+   const sheetMesh = new Mesh(merge(sheetParts), mats.moss);
+   sheetMesh.name = 'lantern-branch-moss';
+-  sheetMesh.castShadow = sheetMesh.receiveShadow = true;
++  sheetMesh.castShadow = false;
++  sheetMesh.receiveShadow = true;
+   group.add(sheetMesh);
+ 
+   // ---- ferns and grass tufts on the moss (shaded olive, under the canopy) ----
+   const vegRng = rng.fork('branch-veg');
+-  const topShade: [number, number, number] = [0.7, 0.75, 0.55];
+-  for (let i = 0; i < 9; i++) {
+-    const s = lerp(0.12, 0.92, (i + vegRng()) / 9);
++  // (round 37: frame 1 s's tufts on the bough are dark olive silhouettes, 0.28–0.35 luminance, with
++  // one lit speck line along the top edge — the first pass's (0.7, 0.75, 0.55) read as a lit lime
++  // hedge riding the limb at 6 m; pulled to 0.6 ×)
++  const topShade: [number, number, number] = [0.4, 0.42, 0.3];
++  // (round 37: five tufts on the 2.2 m run, not nine — frame 1 s's tufts are sparse, most of them
++  // over the left third of the bough)
++  for (let i = 0; i < 5; i++) {
++    const s = lerp(0.08, 0.85, (i + vegRng()) / 5);
+     const psi = (vegRng() - 0.4) * 1.3;
+     const pos = surface(s, psi, 0.03);
+     const nrm = radial(s, psi).addScaledVector(UP, 0.4).normalize();
+-    foliage.addTuft(pos, nrm, 0.22 + vegRng() * 0.12, i % 3 === 2 ? 0 : 1, 0.06, topShade);
++    foliage.addTuft(pos, nrm, (0.22 + vegRng() * 0.12) * (0.6 + 0.4 * fk), i % 3 === 2 ? 0 : 1, 0.06, topShade);
+   }
+   // ---- canopy-limb foliage (round 11): leaf clumps riding the top and shoulders of the sleeve
+   // and fern sprigs standing off its flanks, so the limb reads as part of the roof (reference A
+@@ -343,28 +392,45 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+   // tube. Clumps sit on the moss (psi within ±1.1 of the top), root 5 cm into the sheets, and are
+   // shaded olive like the sprigs; the undersides where the pods hang stay clear. ----
+   const clumpRng = rng.fork('branch-clumps');
++  // (round 37: the run's clumps are the frame's dark tufts — 0.55 × the reach's tint, five of
++  // them at 0.12–0.18 m over s 0.05–0.78 instead of eleven at 0.14–0.23 m along the whole run, so
++  // the bough's dark band stays readable between them and its last third is bare as in the frame;
++  // the reach beyond A's edge keeps the fuller canopy clumps)
+   const clumpTint: [number, number, number] = [0.5, 0.58, 0.3];
+-  for (let i = 0; i < 11; i++) {
+-    const s = lerp(0.12, 0.9, (i + 0.2 + clumpRng() * 0.6) / 11);
++  const runTint: [number, number, number] = [0.28, 0.31, 0.19];
++  for (let i = 0; i < 5; i++) {
++    const s = lerp(0.05, 0.78, (i + 0.2 + clumpRng() * 0.6) / 5);
+     const psi = (clumpRng() - 0.5) * 2.2 + 0.2;
+-    const r = 0.22 + clumpRng() * 0.14;
++    const r = (0.2 + clumpRng() * 0.1) * (0.6 + 0.4 * fk);
+     const centre = surface(s, psi, r * 0.45 - 0.05);
+-    foliage.addLeafCluster(centre, r, 14 + Math.floor(clumpRng() * 8), { size: 0.11, amount: 0.06, droop: 0.5, tint: clumpTint, tintSpread: 0.3, flatten: 0.55 });
++    foliage.addLeafCluster(centre, r, 12 + Math.floor(clumpRng() * 6), { size: 0.09, amount: 0.06, droop: 0.5, tint: runTint, tintSpread: 0.3, flatten: 0.55 });
+   }
+-  for (let i = 0; i < 6; i++) {
+-    const s = lerp(0.15, 0.88, (i + clumpRng()) / 6);
++  for (let i = 0; i < 3; i++) {
++    const s = lerp(0.15, 0.8, (i + clumpRng()) / 3);
+     // fern sprigs lean out from the shoulders, alternating sides
+     const psi = (i % 2 ? 1 : -1) * (0.9 + clumpRng() * 0.5);
+     const pos = surface(s, psi, 0.02);
+     const nrm = radial(s, psi).addScaledVector(UP, 0.9).normalize();
+-    foliage.addTuft(pos, nrm, 0.3 + clumpRng() * 0.14, 1, 0.07, topShade);
++    foliage.addTuft(pos, nrm, (0.3 + clumpRng() * 0.14) * (0.6 + 0.4 * fk), 1, 0.07, topShade);
++  }
++  // frame 1 s: a line of small lit specks along the bough's top edge (y 0.32–0.33, x 0.02–0.22) —
++  // leaf tips and moss catching the light from above. Small warm-pale cards standing on the moss
++  // at the top (ψ within ±0.35), one every ≈ 0.16 m of the visible run.
++  for (let i = 0; i < 18; i++) {
++    const s = lerp(0.02, 0.98, (i + 0.3 + clumpRng() * 0.4) / 18);
++    const psi = (clumpRng() - 0.5) * 0.7 + 0.1;
++    // standing 5 cm off the bark so the moss sheets do not cover them
++    const pos = surface(s, psi, 0.05);
++    const nrm = radial(s, psi).addScaledVector(UP, 0.6).normalize();
++    foliage.addFlower(pos, nrm, 0.06 + clumpRng() * 0.03, 0.03, 0.05, [0.95, 0.9, 0.5]);
+   }
+   // the trunk-side stretch of the limb (s < 0, the giant's own bark until round 11) gets the same
+   // clumps and sprigs, thinning toward the trunk, so the whole limb reads as one canopy bough
++  // (round 37: the reach is 13.5 m — one clump per ≈ 0.9 m of it, none within 0.4 m of the bole)
+   if (sMin < -0.4) {
+-    const n = Math.round((0 - sMin) * 5);
++    const n = Math.round(((0 - sMin) * len) / 0.9);
+     for (let i = 0; i < n; i++) {
+-      const s = lerp(sMin + 0.15, 0.05, (i + 0.5 + (clumpRng() - 0.5) * 0.6) / n);
++      const s = lerp(sMin + 0.4 / len, 0.02, (i + 0.5 + (clumpRng() - 0.5) * 0.6) / n);
+       const psi = (clumpRng() - 0.5) * 2.0 + 0.2;
+       const r = 0.24 + clumpRng() * 0.16;
+       const centre = surface(s, psi, r * 0.45 - 0.05);
+@@ -386,41 +452,50 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials,
+     const t = LANTERN_T[i % LANTERN_T.length];
+     const hook = surface(t, Math.PI, -0.04);
+     // slight offset to the side of the limb so cords don't all hang from the centreline
+-    hook.x += (lanternRng() - 0.5) * 0.15;
+-    hook.z += (lanternRng() - 0.5) * 0.15;
+-    // Reference frame 1 s: the bough pods span ~0.03 of the frame height at 10.7 m (≈ 0.27 m);
+-    // at scale 1.0 ours read ~0.45 m and dominate frame 14 s, where the footage shows them small.
++    hook.x += (lanternRng() - 0.5) * 0.1;
++    hook.z += (lanternRng() - 0.5) * 0.1;
+     const rig = buildLantern(hook, CORDS[i % CORDS.length], mats, lanternRng, BRANCH_POD_SCALE);
++    // the pods cast nothing either: a 0.15 m pod 2 m over the lit slabs is a 20 px shadow spot
++    // in shot A that frame 1 s has not
++    rig.pivot.traverse((o) => {
++      if ((o as Mesh).isMesh) (o as Mesh).castShadow = false;
++    });
+     group.add(rig.pivot);
+     lanterns.push(rig);
+   }
+ 
+-  // ---- vines: from the underside and the lower flanks, the longest mid-span; short toward the
+-  // tip, which hangs almost over camera D, and none past it ----
++  // ---- vines: strands from the underside of the trunk-side reach only (round 37: frame 1 s hangs
++  // nothing but the two pods under the visible run, and the run is 0.7 m above camera B's eye —
++  // a strand longer than ≈ 0.35 m there would hang into B's top edge) ----
+   const vineRng = rng.fork('branch-vines');
++  // (all at s ≤ −0.9: the reach is off camera C's right edge from s ≈ −0.65 back)
+   const vineSpots: [number, number, number][] = [
+-    [0.15, 2.4, 0.8],
+-    [0.33, -2.5, 1.1],
+-    [0.52, 2.6, 1.2],
+-    [0.62, 2.9, 0.9],
+-    [0.76, -2.4, 0.5],
++    [-0.9, 2.4, 0.8],
++    [-1.15, -2.5, 0.6],
++    [-1.4, 2.7, 0.7],
+   ];
+   for (const [s, psi, l] of vineSpots) {
+     const hook = surface(s, psi, -0.03);
+     hook.x += (vineRng() - 0.5) * 0.2;
+     hook.z += (vineRng() - 0.5) * 0.2;
+-    foliage.addHangingVine(hook, l * (0.85 + vineRng() * 0.3), { amount: 0.11, thickness: 0.014 });
++    foliage.addHangingVine(hook, l * (0.85 + vineRng() * 0.3), { amount: 0.11, thickness: 0.012 });
++  }
++  for (const m of foliage.build(mats, 'lantern-branch')) {
++    m.castShadow = false;
++    group.add(m);
+   }
+-  for (const m of foliage.build(mats, 'lantern-branch')) group.add(m);
+ 
+   const lights: PointLight[] = [];
+   const c = new Vector3();
+-  for (const r of lanterns.slice(1)) c.add(r.pod);
+-  c.divideScalar(Math.max(1, lanterns.length - 1));
+-  // 0.9 m below the pod mean: at −0.2 the point sat against the middle pod's leaf shell and
+-  // painted a gold streak on it (Astra's matched renders, 2026-09-11); light falls from the pods.
+-  c.y -= 0.9;
+-  const light = new PointLight(ctx.config.palette.lanternGlow, 4.25, 6, 2);
++  for (const r of lanterns.slice(0, 2)) c.add(r.pod);
++  c.divideScalar(Math.min(2, Math.max(1, lanterns.length)));
++  // round 37: the pods are 0.15 m and 2 m up over the plaza's south-west, 0.8 m from camera B's
++  // eye — a 4.25 / 6 m light there pooled warm light over B's whole foreground and the slabs
++  // under the pods, which frame 1 s keeps in the plaza's cool shade; a small glow 0.3 m under
++  // the pair lights the pods' husks and the bough's underside only
++  c.y -= 0.3;
++  // (1.2 / 2.5 m still turned the bark under the pods orange in shot A, which frame 1 s has not)
++  const light = new PointLight(ctx.config.palette.lanternGlow, 0.5, 1.5, 2);
+   light.position.copy(c);
+   light.name = 'branch-lantern-light';
+   group.add(light);
+diff --git a/src/world/trees/giant.ts b/src/world/trees/giant.ts
+index e7e5097..0d6973a 100644
+--- a/src/world/trees/giant.ts
++++ b/src/world/trees/giant.ts
+@@ -253,8 +253,18 @@ export interface CanopyBough {
+ export interface GiantOptions {
+   /** local ground height under local (x, z); 0 at the origin */
+   groundAt: (x: number, z: number) => number;
+-  /** authored limb (world from → to) for the lantern tree */
+-  limbSpec?: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number };
++  /**
++   * authored limb (local from → to) for the lantern tree. `attachHeight` (local m): where the
++   * limb leaves the bole axis — when set, the trunk → `from` reach is a cubic that leaves the bole
++   * level, arches and droops onto `from` arriving along from → to (round 37: `from` sits 0.7 m
++   * BELOW the tree's base, over the plaza, so the old level reach from `from.y` had nowhere to
++   * start); otherwise the reach is the straight wiggled run from `from.y` on the axis. `sag`
++   * (m, default 0.16) is the from → to droop, `tail` (m, default 1.8) the thin run past `to`.
++   * `ghost`: every part of the limb — wood, lobes, end cluster — is drawn but not built (scratch
++   * writer / culled laminae), so nothing of it casts, while the path is still published and every
++   * draw after it is where it was; the structures' sleeve is then the only limb.
++   */
++  limbSpec?: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number; attachHeight?: number; sag?: number; tail?: number; ghost?: boolean };
+   palette: Palette;
+   /** leaf population multiplier (quality) */
+   leafDensity?: number;
+@@ -877,9 +887,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+     const side = new Vector3(-dir.z, 0, dir.x).normalize();
+     const r0 = o.limbSpec.radius ?? 0.7;
+     const r1 = o.limbSpec.tipRadius ?? 0.25;
+-    const path: Vector3[] = [new Vector3(0, from.y, 0)];
++    const curved = o.limbSpec.attachHeight !== undefined;
++    const attachY = o.limbSpec.attachHeight ?? from.y;
++    // the bole's axis where the limb leaves it (the sheared trunk path, like the authored boughs)
++    const attach = curved ? sample(trunk, Math.min(0.98, Math.max(0.05, (attachY + skirt) / (fork + skirt)))) : new Vector3(0, attachY, 0);
++    attach.y = attachY;
++    const path: Vector3[] = [attach.clone()];
+     const radii: number[] = [r0 * 1.3];
+-    bareHeight = Math.min(bareHeight, from.y);
++    bareHeight = Math.min(bareHeight, attachY);
+     // nominal advance of each ring along from → to in units of `len` (see GiantAsset.limbS);
+     // bookkeeping only — it draws nothing and moves nothing
+     const sAlong: number[] = [];
+@@ -888,28 +903,67 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+     // trunk → `from`: the authored waypoint may sit well out along the limb (it marks where the
+     // visible, lantern-bearing part begins), so this first reach gets the same organic wiggle
+     // and a gentle sag instead of being one straight rod
+-    const reach = from.clone();
+-    reach.y = 0;
+-    const reachLen = reach.length();
+-    sAlong.push(-reachLen / len);
+-    if (reachLen > 1.2) {
+-      const rn = Math.max(2, Math.ceil(reachLen / 0.9));
+-      const rside = new Vector3(-reach.z, 0, reach.x).normalize();
+-      for (let k = 1; k < rn; k++) {
+-        const s = k / rn;
+-        const p = new Vector3(from.x * s, from.y, from.z * s);
+-        p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
+-        p.y += (0.25 * Math.sin(s * Math.PI) - 0.12 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI)) * Math.min(1, reachLen / 6);
++    const reach = from.clone().sub(attach);
++    const reachH = Math.hypot(reach.x, reach.z);
++    if (reachH > 1.2) {
++      const rn = Math.max(2, Math.ceil(reachH / 0.8));
++      const pts: Vector3[] = [];
++      if (curved) {
++        // cubic: leaves the bole level (a touch upward), arches, droops onto `from` along `dir`
++        const t0 = new Vector3(reach.x, 0, reach.z).normalize();
++        t0.y = 0.12;
++        t0.normalize();
++        const c1 = attach.clone().addScaledVector(t0, reachH * 0.33);
++        const c2 = from.clone().addScaledVector(dir, -Math.min(4, reachH * 0.3));
++        for (let k = 1; k < rn; k++) {
++          const s = k / rn;
++          const u = 1 - s;
++          const p = attach
++            .clone()
++            .multiplyScalar(u * u * u)
++            .addScaledVector(c1, 3 * u * u * s)
++            .addScaledVector(c2, 3 * u * s * s)
++            .addScaledVector(from, s * s * s);
++          const tan = c1.clone().sub(attach).multiplyScalar(3 * u * u).addScaledVector(c2.clone().sub(c1), 6 * u * s).addScaledVector(from.clone().sub(c2), 3 * s * s);
++          const rside = new Vector3(-tan.z, 0, tan.x).normalize();
++          p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
++          p.y -= 0.1 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI);
++          pts.push(p);
++        }
++      } else {
++        const rside = new Vector3(-reach.z, 0, reach.x).normalize();
++        for (let k = 1; k < rn; k++) {
++          const s = k / rn;
++          const p = attach.clone().addScaledVector(reach, s);
++          p.y = from.y;
++          p.addScaledVector(rside, Math.sin(s * 7 + wigglePhase * 0.7) * 0.14 * Math.sin(s * Math.PI));
++          p.y += (0.25 * Math.sin(s * Math.PI) - 0.12 * Math.sin(s * 11 + wigglePhase) * Math.sin(s * Math.PI)) * Math.min(1, reachH / 6);
++          pts.push(p);
++        }
++      }
++      // s along the reach is its remaining arc length (in units of `len`), so the published path
++      // stays metric and monotonic whatever the curve
++      const arcs: number[] = [0];
++      let prev = attach;
++      for (const p of pts) {
++        arcs.push(arcs[arcs.length - 1] + p.distanceTo(prev));
++        prev = p;
++      }
++      const total = arcs[arcs.length - 1] + from.distanceTo(prev);
++      sAlong.push(-total / len);
++      pts.forEach((p, i) => {
++        const s = (i + 1) / rn;
+         path.push(p);
+         radii.push(r0 * 1.3 + (r0 - r0 * 1.3) * Math.pow(s, 0.7));
+-        sAlong.push(-((1 - s) * reachLen) / len);
+-      }
+-    }
++        sAlong.push(-(total - arcs[i + 1]) / len);
++      });
++    } else sAlong.push(-reach.length() / len);
++    const sag = o.limbSpec.sag ?? 0.16;
+     for (let k = 0; k <= n; k++) {
+       const s = k / n;
+       const p = from.clone().addScaledVector(dir, len * s);
+       p.addScaledVector(side, Math.sin(s * 9 + wigglePhase) * 0.12 * Math.sin(s * Math.PI));
+-      p.y -= 0.16 * Math.sin(s * Math.PI) + 0.05 * Math.sin(s * 13 + wigglePhase) * Math.sin(s * Math.PI);
++      p.y -= sag * Math.sin(s * Math.PI) + 0.05 * Math.sin(s * 13 + wigglePhase) * Math.sin(s * Math.PI);
+       path.push(p);
+       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
+       sAlong.push(s);
+@@ -918,13 +972,19 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+     // the bough's own height (the reference bough ends in a small leaf cluster just past the last
+     // pod, not in a crown that climbs into the upper-left of shot A)
+     const tail = 3;
++    const tailLen = o.limbSpec.tail ?? 1.8;
+     for (let k = 1; k <= tail; k++) {
+       const s = k / tail;
+-      const p = to.clone().addScaledVector(dir, 1.8 * s).addScaledVector(UP, 0.25 * s * s).addScaledVector(side, 0.4 * s);
++      const p = to
++        .clone()
++        .addScaledVector(dir, tailLen * s)
++        .addScaledVector(UP, 0.14 * tailLen * s * s)
++        .addScaledVector(side, 0.22 * tailLen * s);
+       path.push(p);
+       radii.push(r1 * (1 - 0.72 * s));
+-      sAlong.push(1 + (1.8 * s) / len);
++      sAlong.push(1 + (tailLen * s) / len);
+     }
++    ghost = o.limbSpec.ghost ?? false;
+     tube(wood, path, radii, 14, r, { color: barkColor, roughness: 0.05, bump: gnarlBump(1.8, 0.1), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+     limbPath = path;
+     limbS = sAlong;
+@@ -943,6 +1003,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+     const endBough = growthPath(path[path.length - 2], endCenter, dir, r, 5, 0.5);
+     tube(wood, endBough, taper(endBough, 0.09, 0.02), 5, r, { color: barkColor, roughness: 0.03 });
+     foliateLobe(endBough, endCenter, 0.8 + 0.7 * lf, 0.45 + 0.35 * lf, 0.09, lf < 0.7 ? 2 : 3, 3, lf < 0.7 ? 3 : 4, 0.35 * lf, lf);
++    ghost = false;
+   }
+ 
+   // ---------- authored boughs (e.g. the pair reaching over Saria's roof) ----------
+diff --git a/src/world/trees/index.ts b/src/world/trees/index.ts
+index 1acc830..e9c56a5 100644
+--- a/src/world/trees/index.ts
++++ b/src/world/trees/index.ts
+@@ -182,7 +182,12 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
+   // displaced 1.2 m — inside its 1.9 m radius — so the limb, its pods and its lobes are exactly
+   // where they were.
+   // relief 0: the near-bole bark (bole.ts) is off for the hero views - see giant.ts NEAR_BOLE_M
+-  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 }, relief: 0 },
++  // wildLimbAzimuthDeg 23.6: the wild limbs spread from the authored limb's heading by default,
++  // and round 37 turned that heading from 23.6° (the old (−4, −5) → (1.5, −2.6) run) to 0° (the
++  // z = 1.5 run, LANTERN_LIMB), which would have swung both limbs 24° (136° / 262° → 112° / 234°,
++  // measured); pinned to the old base so they, their lobes and their shadows stay where rounds
++  // 33–36 measured them (the jitter draws are the same either way).
++  'lantern-tree': { lean: { azimuthDeg: 128, degrees: 20 }, relief: 0, wildLimbAzimuthDeg: 23.6 },
+   // reference C's centre tree: a fat column at x 0.50–0.62 forking at y≈0.26 into two near-horizontal
+   // limbs (east = screen-left, west = screen-right) whose clusters form the hazed band across the
+   // top of the frame. Girth up / flare down: thicker bole without a ballooning foot at 30 m.
+@@ -1006,6 +1011,42 @@ const VIEW_GAP_RAY_CARD_POROSITY = 0.1;
+ const EYE_DETAIL: Record<string, number> = { 'lantern-tree': 1, 'plateau-oak': 0.6 };
+ /** foliage scale of the authored lantern limb (reference: a bare bough with a few clusters) */
+ const LANTERN_LIMB_FOLIAGE = 0.45;
++/**
++ * The lantern limb's growth (round 37, layout: `lanternBranch` from (−1.15, 2.22, 1.5) → to
++ * (1.06, 2.21, 1.5)). Frame 1 s: the bough enters shot A at the left edge at y 0.31–0.38 (a dark
++ * mossy limb ≈ 0.06 of the frame thick), runs level to x ≈ 0.27 and thins out; its two pods
++ * hang right under it at (0.208, 0.405) / (0.255, 0.39). A pod camera A sees there lies on a ray
++ * that passes 0.5–1 m in front of camera B at 0.5–0.7 m above its eye: it is inside B's frame
++ * (frame 14 s has none) unless it is within ≈ 0.8 m of B's eye along its axis or behind it, i.e.
++ * ≤ 6.7 m from camera A. So the visible run sits on z = 1.5 (0.5 m north of camera B's eye,
++ * 5.8–6.9 m from A), level at 2.2 m over the plaza's south-west, heading due east, with the pods
++ * at 1.95–2.0 m (bottoms ≥ 1.85, over Link's head) — everything above B's top edge and behind F's
++ * left edge except the last 1.3 m of the run.
++ * From there the limb has to reach the bole (−11.5, −7.2) 13.5 m to the WNW: `attachHeight` is
++ * where it leaves the axis (local 2.6 m — world ≈ 5.6 m, the tree's foot standing at ≈ 3 m;
++ * `from` itself is below the tree's base), and the reach is a cubic that leaves the bole level,
++ * descends over the west ledge (published rings: 5.4 m at x −9.8, 4.2 m at x −7.2, 3.1 m at
++ * x −4.7, 2.4 m at x −2.7) and droops onto `from` heading east — off every hero frame (A x ≤
++ * −0.1, B behind or off the top-left, off C's right edge until x ≈ −2.5, behind F); what camera
++ * C does see is the run itself, 8.6–8.9 m out across its upper right at (0.68–0.93, 0.31–0.34),
++ * where frame 46 s has the hazed limb band over the boulder terrace.
++ * `sag` 0.05 (the frame's run is level), `tail` 0.3 m (the frame's band is gone by A x 0.27–0.30; a
++ * 0.6 m tail reached x 0.34 with a blunt tip).
++ * `ghost`: the limb's own wood, lobes and end cluster are drawn but not built — the structures'
++ * sleeve (round 37: no shadow) is the limb. A 2.2 m limb over the plaza's south-west would lay
++ * its shadow (sun az −128°, el 38°: ground = point + (1.0, 0.79) × height) in a band from
++ * (1, 3.3) to (3.5, 3.3), across the lit slabs 1.3 m in front of Link, which frame 1 s lights.
++ * The old limb's lobes at (−2.2…−0.7, 4.8–5.2, −4.3…−3.5) cast part of A's plaza shade patch
++ * (box (0.30–0.40, 0.64–0.72)); with them gone the round-34 plaza-shade clump and the
++ * north-west-near crown still hold it (measured: patch p50 0.352 → 0.361, frame 1 s 0.355; lit
++ * share 4.5 → 9.4 %, frame 7.3 %) while the path mouth west of it, which the old limb's wood also
++ * shaded, lights up (lit share 46 → 69 %, frame 92 %).
++ * The limb's ghosted lobes and end cluster still draw from the giant's main stream, and their
++ * lamina counts follow the limb's height (nearEye), so everything the lantern tree builds after
++ * its limb — wild limbs, crown, canopy lobes — re-rolls its laminae (same counts for the
++ * corridor-exempt clumps, same azimuths for the wild limbs: GIANT_PROFILES pins their base).
++ */
++const LANTERN_LIMB = { sag: 0.05, tail: 0.3, ghost: true };
+ /**
+  * Dense silhouette rows north of the log arch (shot D looks north from z ≈ −1): each fills a
+  * narrow depth range so the depth histogram registers a distinct far layer behind the log
+@@ -1509,7 +1550,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+     const [px, , pz] = def.position;
+     const gy = terrain.height(px, pz);
+     const origin = new Vector3(px, gy, pz);
+-    let limbSpec: { from: Vector3; to: Vector3; radius?: number; tipRadius?: number } | undefined;
++    let limbSpec: NonNullable<Parameters<typeof createGiantTree>[2]['limbSpec']> | undefined;
+     if (def.limb && def.id === 'lantern-tree') {
+       const lb = ctx.layout.lanternBranch as typeof ctx.layout.lanternBranch & { radius?: number; tipRadius?: number };
+       limbSpec = {
+@@ -1517,6 +1558,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+         to: new Vector3(lb.to[0], lb.to[1], lb.to[2]).sub(origin),
+         radius: lb.radius,
+         tipRadius: lb.tipRadius,
++        // round 37: the limb leaves the bole at layout `limb.height` (local) and droops onto
++        // `from` (see LANTERN_LIMB below)
++        attachHeight: def.limb.height,
++        sag: LANTERN_LIMB.sag,
++        tail: LANTERN_LIMB.tail,
++        ghost: LANTERN_LIMB.ghost,
+       };
+     } else if (def.limb) {
+       const l = Math.hypot(def.limb.dir[0], def.limb.dir[1]);
+diff --git a/src/world/vegetation/index.ts b/src/world/vegetation/index.ts
+index de796d3..7aba10c 100644
+--- a/src/world/vegetation/index.ts
++++ b/src/world/vegetation/index.ts
+@@ -74,13 +74,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+    * hysteresis — or always when forced: an explicit re-pose must never render the previous pose's
+    * buckets), then trim every set's buckets to the frame (lodset.ts `cull`).
+    */
++  /**
++   * Re-bucket budget of an unforced refresh, in plants: the sets share the camera, so every set
++   * past its hysteresis used to re-bucket on the same frame — 31k plants re-listed and every
++   * bucket refilled at once, measured as 7–17 ms frames on the walk (round 37). Now the sets past
++   * their gate re-bucket in order until this many plants have been re-listed (always at least one
++   * set), the rest on the following frames; a set kept waiting keeps its previous buckets, culled
++   * for the new frame as usual, and re-buckets at most a few frames (≈ 0.2 m of walking) late.
++   * Forced refreshes (onCameraMove: the captures, an explicit re-pose) re-bucket everything at once.
++   */
++  const REBUCKET_BUDGET = 8000;
+   const refresh = (force = false, camera = ctx.camera) => {
+     if (disposed) return;
+     camera.getWorldPosition(camPos);
+     grass.update(camPos);
+     const sun = currentSun();
++    let budget = REBUCKET_BUDGET;
+     for (const s of sets) {
+-      const rebucketed = s.update(camPos, force);
++      let rebucketed = false;
++      if (force || (budget > 0 && s.wantsRebucket(camPos))) {
++        rebucketed = s.update(camPos, force);
++        if (rebucketed) budget -= s.count;
++      }
+       s.cull(camera, sun, force || rebucketed);
+     }
+   };
+diff --git a/src/world/vegetation/lodset.ts b/src/world/vegetation/lodset.ts
+index eb0377f..49e20fa 100644
+--- a/src/world/vegetation/lodset.ts
++++ b/src/world/vegetation/lodset.ts
+@@ -33,10 +33,99 @@ import { BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, Grou
+ export const CULL_PAD_M = 1.5;
+ /** lowest world height a shadow receiver can have (the terrain floor is −0.85 m); the capsule is swept down to it */
+ export const SHADOW_FLOOR_Y = -10;
+-const _p = new Vector3();
+-const _q = new Vector3();
++/**
++ * Cull acceleration (round 37): the items are grouped into ground cells of this size at build,
++ * each with the sphere holding every member's padded sphere. Per cull the cells are classified
++ * against the frustum first — a cell sphere wholly inside a plane set puts every member inside it,
++ * one wholly outside a plane (and, for the shadow sweep, with its swept end outside it too) puts
++ * every member outside — and only the members of the cells the frustum's planes cut through run
++ * the per-item tests. The verdicts are the per-item tests' in exact arithmetic (a member sphere
++ * lies inside the cell sphere), with CULL_CELL_EPS_M of slack on the cell radius so rounding
++ * cannot flip one; the submission (items, order) is identical, measured 31k plant tests a frame
++ * down to the boundary cells' members.
++ */
++const CULL_CELL_M = 8;
++const CULL_CELL_EPS_M = 1e-3;
++const CELL_IN = 1;
++const CELL_PARTIAL = 0;
++/** outside the view frustum; the shadow sweep of a caster may still reach it */
++const CELL_OUT = -1;
++/** outside the view frustum, and its whole shadow sweep too */
++const CELL_OUT_SHADOW = -2;
++/**
++ * Scratch for `cull()`'s kept indices: written by index and read up to a count, never trimmed
++ * (`length = 0` drops V8's backing store, and the pushes then regrow it through every doubling —
++ * 218 MB of the 2.4 GB the r37 walk allocated were this array's regrowth, 515 MB the `submitted`
++ * copies' and 67 MB the buckets').
++ */
+ const _kept: number[] = [];
+-const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
++/** the first `n` of `a` equal the first `n` of `b` (`nb` is b's logical length) */
++const samePrefix = (a: number[], n: number, b: number[], nb: number) => {
++  if (n !== nb) return false;
++  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return false;
++  return true;
++};
++
++/**
++ * `Math.hypot` without its allocation: V8's MathHypot builtin (math.tq) collects the arguments into
++ * a FixedDoubleArray on every call (374 MB of the r37 walk's garbage came from hypot alone). Same
++ * algorithm — the arguments scaled by the largest, Kahan-summed, `sqrt × max` — so the results are
++ * bit-identical (0 mismatches over 3 M random triples across six decades); the spec's edge order
++ * too: ±Infinity anywhere → Infinity, then any NaN → NaN, then all zero → 0.
++ */
++export function hypot2(a: number, b: number): number {
++  a = Math.abs(a);
++  b = Math.abs(b);
++  if (a === Infinity || b === Infinity) return Infinity;
++  if (a !== a || b !== b) return NaN;
++  const max = a > b ? a : b;
++  if (max === 0) return 0;
++  // the Kahan compensation is exactly 0 after the first term, so two terms are a plain sum
++  const n0 = a / max;
++  const n1 = b / max;
++  return Math.sqrt(n0 * n0 + n1 * n1) * max;
++}
++
++export function hypot3(a: number, b: number, c: number): number {
++  a = Math.abs(a);
++  b = Math.abs(b);
++  c = Math.abs(c);
++  if (a === Infinity || b === Infinity || c === Infinity) return Infinity;
++  if (a !== a || b !== b || c !== c) return NaN;
++  let max = a > b ? a : b;
++  if (c > max) max = c;
++  if (max === 0) return 0;
++  let sum = 0;
++  let compensation = 0;
++  let n = a / max;
++  let summand = n * n - compensation;
++  let preliminary = sum + summand;
++  compensation = preliminary - sum - summand;
++  sum = preliminary;
++  n = b / max;
++  summand = n * n - compensation;
++  preliminary = sum + summand;
++  compensation = preliminary - sum - summand;
++  sum = preliminary;
++  n = c / max;
++  summand = n * n - compensation;
++  preliminary = sum + summand;
++  sum = preliminary;
++  return Math.sqrt(sum) * max;
++}
++
++/**
++ * Flag the first `count` elements of an instance attribute for upload (three sends only the
++ * flagged ranges when any are set). Every fill rewrites the whole prefix it submits, so one range
++ * from 0 — grown, not appended, when a fill has already flagged one since the last upload —
++ * always covers the data written since then.
++ */
++export function markPrefix(attr: BufferAttribute | InstancedBufferAttribute, count: number) {
++  const ranges = attr.updateRanges;
++  if (ranges.length === 1 && ranges[0].start === 0) ranges[0].count = Math.max(ranges[0].count, count);
++  else attr.addUpdateRange(0, count);
++  attr.needsUpdate = true;
++}
+ 
+ /** variant index groups sharing one InstancedMesh, either for every LOD or given per LOD */
+ export type PackLayout = number[][] | number[][][];
+@@ -72,6 +161,8 @@ interface Item {
+   color: [number, number, number];
+   /** radius (m) of the sphere about the root that holds the placed plant at every LOD (set by build) */
+   reach: number;
++  /** `reach` + the culling pad, the sphere `cull()` tests (set by build) */
++  r: number;
+ }
+ 
+ interface PackMesh {
+@@ -79,10 +170,12 @@ interface PackMesh {
+   slots: InstancedBufferAttribute;
+   /** triangles one instance submits (every variant of the pack, the collapsed ones included) */
+   triangles: number;
+-  /** item indices bucketed into this mesh by camera distance (before culling) */
++  /** item indices bucketed into this mesh by camera distance (before culling): the first `n` of `list` */
+   list: number[];
+-  /** item indices actually submitted: `list` minus the culled instances */
++  n: number;
++  /** item indices actually submitted (`list` minus the culled instances): the first `nSubmitted` */
+   submitted: number[];
++  nSubmitted: number;
+ }
+ 
+ /** one mesh's share of the submission, for the audit */
+@@ -171,9 +264,20 @@ export class LodInstancedSet {
+   private readonly viewProj = new Matrix4();
+   private readonly lastViewProj = new Matrix4().makeScale(0, 0, 0);
+   private readonly sun = new Vector3(0, 1, 0);
++  /** cull cells (see CULL_CELL_M): every item's cell */
++  private cellOf = new Int32Array(0);
++  /** per cell: centre x, y, z, radius (members' padded spheres + CULL_CELL_EPS_M), top (max y + r) */
++  private cellData = new Float64Array(0);
++  private cellCount = 0;
++  /** per cell, per cull: CELL_IN / CELL_PARTIAL / CELL_OUT / CELL_OUT_SHADOW */
++  private cellClass = new Int8Array(0);
++
++  /** submission-culling pad (m) on every instance sphere (resolved once: `fill` reads it per bucket) */
++  private readonly pad: number;
+ 
+   constructor(readonly opts: LodSetOptions) {
+     this.group.name = opts.name;
++    this.pad = opts.cullPad ?? CULL_PAD_M;
+   }
+ 
+   get count() {
+@@ -215,7 +319,7 @@ export class LodInstancedSet {
+ 
+   add(matrix: Float32Array, variant: number, color: Color | [number, number, number]) {
+     const c: [number, number, number] = Array.isArray(color) ? color : [color.r, color.g, color.b];
+-    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, reach: 0 });
++    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, reach: 0, r: 0 });
+   }
+ 
+   /**
+@@ -259,10 +363,13 @@ export class LodInstancedSet {
+       return r;
+     });
+     // the placed plant's reach about its root: geometry extent × the largest axis scale
++    const pad = this.pad;
+     for (const it of this.items) {
+       const scale = Math.max(Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]), Math.hypot(it.matrix[4], it.matrix[5], it.matrix[6]), Math.hypot(it.matrix[8], it.matrix[9], it.matrix[10]));
+       it.reach = scale * geoRadius[it.variant];
++      it.r = it.reach + pad;
+     }
++    this.buildCells();
+     const centre = new Vector3();
+     for (let l = 0; l < lodCount; l++) {
+       const row: PackMesh[] = [];
+@@ -304,7 +411,7 @@ export class LodInstancedSet {
+         mesh.name = `${this.opts.name}-lod${l}-p${pi}-v${pack.join('')}`;
+         mesh.visible = false;
+         this.group.add(mesh);
+-        row.push({ mesh, slots, triangles: geometry.index!.count / 3, list: [], submitted: [] });
++        row.push({ mesh, slots, triangles: geometry.index!.count / 3, list: [], n: 0, submitted: [], nSubmitted: 0 });
+       });
+       this.meshes.push(row);
+     }
+@@ -315,14 +422,15 @@ export class LodInstancedSet {
+ 
+   /** Bucket every plant into one mesh; the buckets are submitted whole until `cull()` has run. */
+   private bucket(lodFor: (it: Item) => number) {
+-    for (const row of this.meshes) for (const pm of row) pm.list.length = 0;
++    for (const row of this.meshes) for (const pm of row) pm.n = 0;
+     for (let i = 0; i < this.items.length; i++) {
+       const it = this.items[i];
+       const lod = lodFor(it);
+-      this.meshes[lod][this.packOf[lod][it.variant]].list.push(i);
++      const pm = this.meshes[lod][this.packOf[lod][it.variant]];
++      pm.list[pm.n++] = i;
+     }
+     if (this.culling) this.bucketsDirty = true;
+-    else this.meshes.forEach((row, l) => row.forEach((pm) => this.fill(pm, l, pm.list)));
++    else this.meshes.forEach((row, l) => row.forEach((pm) => this.fill(pm, l, pm.list, pm.n)));
+   }
+ 
+   /**
+@@ -332,7 +440,7 @@ export class LodInstancedSet {
+    * culls the whole mesh against it, and an unpadded sphere would drop a sparse bucket admitted at
+    * the frustum's edge for its sway / shadow reach.
+    */
+-  private fill(pm: PackMesh, lod: number, list: number[]) {
++  private fill(pm: PackMesh, lod: number, list: number[], count: number) {
+     const { mesh, slots } = pm;
+     const matrices = mesh.instanceMatrix.array as Float32Array;
+     const colors = mesh.instanceColor!.array as Float32Array;
+@@ -340,30 +448,39 @@ export class LodInstancedSet {
+     const slotOf = this.slotOf[lod];
+     const centre = mesh.boundingSphere!.center;
+     let radius = 0;
+-    for (let k = 0; k < list.length; k++) {
++    for (let k = 0; k < count; k++) {
+       const it = this.items[list[k]];
+       matrices.set(it.matrix, k * 16);
+       colors[k * 3] = it.color[0];
+       colors[k * 3 + 1] = it.color[1];
+       colors[k * 3 + 2] = it.color[2];
+       slotArr[k] = slotOf[it.variant];
+-      radius = Math.max(radius, Math.hypot(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
++      radius = Math.max(radius, hypot3(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
+     }
+-    mesh.count = list.length;
+-    mesh.instanceMatrix.needsUpdate = true;
+-    mesh.instanceColor!.needsUpdate = true;
+-    slots.needsUpdate = true;
++    mesh.count = count;
++    // upload the submitted prefix only: without a range three re-sends the whole capacity-sized
++    // buffer (a 6k-plant set is 400 KB per LOD mesh per frame while the camera turns); the rest of
++    // the buffer is never read (instances ≥ count are not drawn)
++    const n = Math.max(1, count);
++    markPrefix(mesh.instanceMatrix, n * 16);
++    markPrefix(mesh.instanceColor!, n * 3);
++    markPrefix(slots, n);
+     // an empty bucket is never submitted (visible=false; three also skips count 0)
+-    mesh.visible = list.length > 0;
+-    if (list.length) mesh.boundingSphere!.radius = radius + this.pad;
++    mesh.visible = count > 0;
++    if (count) mesh.boundingSphere!.radius = radius + this.pad;
+     if (pm.submitted !== list) {
+-      pm.submitted.length = 0;
+-      for (const i of list) pm.submitted.push(i);
++      const submitted = pm.submitted;
++      for (let k = 0; k < count; k++) submitted[k] = list[k];
++      pm.nSubmitted = count;
+     }
+   }
+ 
+-  private get pad() {
+-    return this.opts.cullPad ?? CULL_PAD_M;
++
++  /** true when an unforced `update()` would re-bucket for this camera position (moved past the hysteresis) */
++  wantsRebucket(camPos: Vector3): boolean {
++    if (!this.built) return true;
++    const hyst = this.opts.hysteresis ?? 0.6;
++    return camPos.distanceToSquared(this.lastCam) >= hyst * hyst;
+   }
+ 
+   /**
+@@ -372,24 +489,118 @@ export class LodInstancedSet {
+    */
+   update(camPos: Vector3, force = false): boolean {
+     if (!this.built) this.build();
+-    const hyst = this.opts.hysteresis ?? 0.6;
+-    if (!force && camPos.distanceToSquared(this.lastCam) < hyst * hyst) return false;
++    if (!force && !this.wantsRebucket(camPos)) return false;
+     this.lastCam.copy(camPos);
+     const { lodDistances } = this.opts;
+     const lodCount = this.lodCount;
+     this.bucket((it) => {
+-      const d = Math.hypot(camPos.x - it.x, camPos.z - it.z);
++      const d = hypot2(camPos.x - it.x, camPos.z - it.z);
+       for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
+       return lodCount - 1;
+     });
+     return true;
+   }
+ 
+-  /** the padded instance sphere (root, reach + pad) meets the frustum */
++  /** group the items into ground cells (CULL_CELL_M) and take each cell's sphere over its members' padded spheres */
++  private buildCells() {
++    const n = this.items.length;
++    this.cellOf = new Int32Array(n);
++    const cellIndex = new Map<number, number>();
++    // per cell: Σx, Σy, Σz, members
++    const sums: number[] = [];
++    for (let i = 0; i < n; i++) {
++      const it = this.items[i];
++      const key = (Math.floor(it.x / CULL_CELL_M) + 32768) * 65536 + (Math.floor(it.z / CULL_CELL_M) + 32768);
++      let c = cellIndex.get(key);
++      if (c === undefined) {
++        c = cellIndex.size;
++        cellIndex.set(key, c);
++        sums.push(0, 0, 0, 0);
++      }
++      this.cellOf[i] = c;
++      sums[c * 4] += it.x;
++      sums[c * 4 + 1] += it.y;
++      sums[c * 4 + 2] += it.z;
++      sums[c * 4 + 3]++;
++    }
++    const m = cellIndex.size;
++    this.cellCount = m;
++    const D = (this.cellData = new Float64Array(m * 5));
++    this.cellClass = new Int8Array(m);
++    for (let c = 0; c < m; c++) {
++      const k = sums[c * 4 + 3];
++      D[c * 5] = sums[c * 4] / k;
++      D[c * 5 + 1] = sums[c * 4 + 1] / k;
++      D[c * 5 + 2] = sums[c * 4 + 2] / k;
++      D[c * 5 + 3] = 0;
++      D[c * 5 + 4] = -Infinity;
++    }
++    for (let i = 0; i < n; i++) {
++      const it = this.items[i];
++      const o = this.cellOf[i] * 5;
++      const d = Math.hypot(it.x - D[o], it.y - D[o + 1], it.z - D[o + 2]) + it.r;
++      if (d > D[o + 3]) D[o + 3] = d;
++      if (it.y + it.r > D[o + 4]) D[o + 4] = it.y + it.r;
++    }
++    for (let c = 0; c < m; c++) D[c * 5 + 3] += CULL_CELL_EPS_M;
++  }
++
++  /**
++   * Classify every cell against the current frustum and sun: `inView` / `shadowReaches` on the
++   * cell sphere (and its shadow sweep, spanned from the cell's top like every member's), with the
++   * cell radius on both sides of each plane — see CULL_CELL_M.
++   */
++  private classifyCells() {
++    const planes = this.frustum.planes;
++    const sun = this.sun;
++    const sy = Math.max(0.05, sun.y);
++    const D = this.cellData;
++    const cls = this.cellClass;
++    for (let c = 0; c < this.cellCount; c++) {
++      const o = c * 5;
++      const x = D[o];
++      const y = D[o + 1];
++      const z = D[o + 2];
++      const R = D[o + 3];
++      const span = Math.max(0, (D[o + 4] - SHADOW_FLOOR_Y) / sy);
++      const qx = x - sun.x * span;
++      const qy = y - sun.y * span;
++      const qz = z - sun.z * span;
++      let out = false;
++      let partial = false;
++      let verdict = CELL_IN;
++      for (let i = 0; i < 6; i++) {
++        const n = planes[i].normal;
++        const k = planes[i].constant;
++        const d = n.x * x + n.y * y + n.z * z + k;
++        if (d < -R) {
++          out = true;
++          if (n.x * qx + n.y * qy + n.z * qz + k < -R) {
++            verdict = CELL_OUT_SHADOW;
++            break;
++          }
++        } else if (d < R) partial = true;
++      }
++      if (verdict !== CELL_OUT_SHADOW) verdict = out ? CELL_OUT : partial ? CELL_PARTIAL : CELL_IN;
++      cls[c] = verdict;
++    }
++  }
++
++  /**
++   * The padded instance sphere (root, reach + pad) meets the frustum. The plane distance is
++   * `Plane.distanceToPoint` written out (normal · p + constant, same operation order) — this runs
++   * for every plant of every bucket each frame the camera moves.
++   */
+   private inView(it: Item): boolean {
+-    const r = it.reach + this.pad;
+-    _p.set(it.x, it.y, it.z);
+-    for (const plane of this.frustum.planes) if (plane.distanceToPoint(_p) < -r) return false;
++    const r = -it.r;
++    const x = it.x;
++    const y = it.y;
++    const z = it.z;
++    const planes = this.frustum.planes;
++    for (let i = 0; i < 6; i++) {
++      const n = planes[i].normal;
++      if (n.x * x + n.y * y + n.z * z + planes[i].constant < r) return false;
++    }
+     return true;
+   }
+ 
+@@ -398,12 +609,22 @@ export class LodInstancedSet {
+    * SHADOW_FLOOR_Y) meets the frustum: a capsule is outside a plane iff both end spheres are.
+    */
+   private shadowReaches(it: Item): boolean {
+-    const r = it.reach + this.pad;
+-    _p.set(it.x, it.y, it.z);
+-    const span = Math.max(0, (it.y + r - SHADOW_FLOOR_Y) / Math.max(0.05, this.sun.y));
+-    _q.copy(_p).addScaledVector(this.sun, -span);
+-    for (const plane of this.frustum.planes) {
+-      if (plane.distanceToPoint(_p) < -r && plane.distanceToPoint(_q) < -r) return false;
++    const r = it.r;
++    const x = it.x;
++    const y = it.y;
++    const z = it.z;
++    const sun = this.sun;
++    const span = Math.max(0, (y + r - SHADOW_FLOOR_Y) / Math.max(0.05, sun.y));
++    // Vector3.addScaledVector(sun, −span), component by component
++    const s = -span;
++    const qx = x + sun.x * s;
++    const qy = y + sun.y * s;
++    const qz = z + sun.z * s;
++    const planes = this.frustum.planes;
++    for (let i = 0; i < 6; i++) {
++      const n = planes[i].normal;
++      const c = planes[i].constant;
++      if (n.x * x + n.y * y + n.z * z + c < -r && n.x * qx + n.y * qy + n.z * qz + c < -r) return false;
+     }
+     return true;
+   }
+@@ -425,19 +646,35 @@ export class LodInstancedSet {
+     this.frustum.setFromProjectionMatrix(this.viewProj);
+     if (sunDir.lengthSq() > 1e-6) this.sun.copy(sunDir).normalize();
+     const trim = this.opts.cull !== false;
++    if (trim) this.classifyCells();
++    const cellOf = this.cellOf;
++    const cellClass = this.cellClass;
+     for (let l = 0; l < this.meshes.length; l++) {
+       for (const pm of this.meshes[l]) {
+         let keep = pm.list;
++        let nKeep = pm.n;
+         if (trim) {
+           const casts = pm.mesh.castShadow;
+-          _kept.length = 0;
+-          for (const i of pm.list) {
++          const list = pm.list;
++          nKeep = 0;
++          for (let k = 0; k < pm.n; k++) {
++            const i = list[k];
++            const cls = cellClass[cellOf[i]];
++            if (cls === CELL_IN) {
++              _kept[nKeep++] = i;
++              continue;
++            }
++            if (cls === CELL_OUT_SHADOW) continue;
+             const it = this.items[i];
+-            if (this.inView(it) || (casts && this.shadowReaches(it))) _kept.push(i);
++            if (cls === CELL_OUT) {
++              if (casts && this.shadowReaches(it)) _kept[nKeep++] = i;
++              continue;
++            }
++            if (this.inView(it) || (casts && this.shadowReaches(it))) _kept[nKeep++] = i;
+           }
+           keep = _kept;
+         }
+-        if (!sameList(keep, pm.submitted)) this.fill(pm, l, keep);
++        if (!samePrefix(keep, nKeep, pm.submitted, pm.nSubmitted)) this.fill(pm, l, keep, nKeep);
+       }
+     }
+   }
+@@ -446,7 +683,7 @@ export class LodInstancedSet {
+   submission(): MeshSubmission[] {
+     const out: MeshSubmission[] = [];
+     this.meshes.forEach((row, lod) =>
+-      row.forEach((pm, pack) => out.push({ name: pm.mesh.name, lod, pack, bucket: pm.list.length, submitted: pm.mesh.count, triangles: pm.triangles, castShadow: pm.mesh.castShadow, mesh: pm.mesh })),
++      row.forEach((pm, pack) => out.push({ name: pm.mesh.name, lod, pack, bucket: pm.n, submitted: pm.mesh.count, triangles: pm.triangles, castShadow: pm.mesh.castShadow, mesh: pm.mesh })),
+     );
+     return out;
+   }

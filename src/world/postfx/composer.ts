@@ -523,42 +523,14 @@ export function createComposer(opts: ComposerOptions): Composer {
     // pHash, overexposed (0), farLayerCount and skyFraction unchanged. The blur's cost is the top
     // band's bright tail: A's y 0.08–0.33 p90 0.558 → 0.550 (frame 0.612), B 0.550 → 0.539
     // (0.516), F 0.512 → 0.508 (0.601) — the far gaps mixed with the crowns beside them.
-    // Round 37b (tone, on ddfb652): layout-8 moved the lantern bough out of B/E's upper-left and
-    // W35 failed there (sharpness B 0.788, E 0.737; the limb and its pods had carried 0.49e-3 of
-    // B/E's 10.0e-3 Laplacian variance — a region that over-contributed against the frame's 0.27 —
-    // and the top-right cell lost 0.31e-3, Link's cell 0.19e-3). The stage is not the cause: with
-    // the softening off B reads 0.789. Per depth band (256×144 Laplacian, ours/ref) B/E sit at
-    // near 1.04 / 0.79, mid 6–20 m 0.77 (49 % of the pixels, untouched by the stage), far 0.38 /
-    // 0.33. Levers measured on B (Δ sharpness, Δ SSIM B / E vs take-0105): near gain 0.25 → 0.40
-    // +0.038 (−0.0006 / −0.0005); end 10 → 16 m +0.028 (−0.0007 / −0.0009); end 22 +0.052
-    // (−0.0014 / −0.0014); 0.40 + end 16 +0.086 (−0.0016 / −0.0018); the unsharp band widened
-    // (softBlurSigma 2.0 / 3.0 with end 16) +0.065 / +0.076 at the same cost per unit; far σ 3.6
-    // +0.000 (−0.0015 / −0.0017); far start 22 +0.008 (−0.0023); AO 0.6 +0.035 (−0.0053 / −0.0064);
-    // AO radius 0.8 +0.000; bloom 0.15 +0.003 (0); PCSS penumbra 0.009 / m +0.019 (−0.0011 /
-    // −0.0018). The cost per unit of sharpness is set by the band the gain lands in, not its
-    // shape: 4–10 m −0.016 SSIM per +1.0, 10–22 m −0.025…−0.03, 3–8 m −0.010 (1.1: +0.128 /
-    // +0.120 for −0.0016 / −0.0012), 3–6 m −0.002 on E (1.4: +0.059 for −0.0001) but that band
-    // is C's plaza stones (2.0 / 2.4 over 3–6 m: C −0.0042 / −0.0052 at 1.98 / 2.21× the frame's
-    // sharpness, D −0.0018 / −0.0024, F −0.0037), so the six-view totals are ≈ −0.012…−0.0145
-    // for every profile that reaches E 0.85 and 1.1 over 3 → 8 m is the most even (A −0.0017,
-    // C −0.0026, D −0.0023, F −0.0029). The far blur's σ is the only SSIM-positive lever here with
-    // no sharpness cost (σ 5.4 alone, this scene: B +0.0024, E +0.0029, C +0.0018 — the round-37
-    // structure term, larger now that B/E's upper-left is far hazed trees) and funds the unsharp:
-    // 1.1 / 3–8 m + σ 5.4 measured B +0.0008, E +0.0018, C −0.0008 with B 0.916, E 0.857; the
-    // six-view at σ 5.4 read A +0.0004, B +0.0008, C −0.0008, D −0.0003, E +0.0018, F −0.0008
-    // (sharpness A 1.091, B 0.916, C 1.580, D 1.170, E 0.857, F 1.374) and σ 6.0 — the kernel's
-    // 12-tap reach at 2 σ — takes C to −0.0001 and F to +0.0003, so every view holds take-0105
-    // within 0.0005. Plainly: the far band is blurred further (σ 6 grid texels = 24 px at 1280)
-    // to pay for the near band being sharpened past the frames' — both are metric moves, and the
-    // structure the far windows reward us for removing is structure the frames have.
     softFarStart: 16,
     softFarFull: 50,
     softBlurSigma: 1.2,
-    softFarSigma: 6.0,
+    softFarSigma: 4.2,
     softActivitySigma: 2.5,
-    softNearSharp: 1.1,
-    softNearStart: 3,
-    softNearEnd: 8,
+    softNearSharp: 0.25,
+    softNearStart: 4,
+    softNearEnd: 10,
     softFarMode: 0,
     softFarPremul: 0,
     bloomThreshold: 1.0,
@@ -1092,7 +1064,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       const gauss = (src: WebGLRenderTarget, tmp: WebGLRenderTarget, dst: WebGLRenderTarget, texel: Vector2, sigma: number) => {
         gaussMat.uniforms.uSigma.value = sigma;
         // ≥ 6 taps either side (the tuned 13-tap kernel for σ ≤ 3), 2 σ for wider haze blurs
-        gaussMat.uniforms.uReach.value = Math.min(12, Math.max(6, Math.ceil(2 * sigma)));
+        gaussMat.uniforms.uReach.value = Math.min(9, Math.max(6, Math.ceil(2 * sigma)));
         gaussMat.uniforms.tSrc.value = src.texture;
         dir.set(texel.x, 0);
         pass(gaussMat, tmp);

@@ -1,0 +1,96 @@
+{
+  "world_source": "ddfb652 /7b8e35b",
+  "trace_source": "508dfe7 + local --native launcher/renderer identity recording",
+  "asset": "322c3433542064ffaeed91c5d7c04b95746778c6ddea60a5418b23148e7b7d7d",
+  "gpu": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "viewport": [
+    1280,
+    720
+  ],
+  "quality": "high",
+  "frames": 2700,
+  "simulated_seconds": 45,
+  "step": {
+    "median": 69.5,
+    "p95": 100.2,
+    "p99": 148.6,
+    "max": 1056.6,
+    "mean": 68.93
+  },
+  "update": {
+    "median": 13.5,
+    "p95": 25.4,
+    "p99": 30.2,
+    "max": 43.1,
+    "mean": 13.79
+  },
+  "render_submission": {
+    "median": 56.4,
+    "p95": 85.7,
+    "p99": 127.9,
+    "max": 1039.3,
+    "mean": 55.12
+  },
+  "triangles": {
+    "median": 7889036,
+    "p95": 11064245,
+    "p99": 11181262,
+    "max": 11231565,
+    "mean": 7982027.03
+  },
+  "calls": {
+    "median": 453,
+    "p95": 499,
+    "p99": 502,
+    "max": 509,
+    "mean": 438.04
+  },
+  "vegetation": {
+    "median": 8.2,
+    "p95": 20.1,
+    "p99": 23.3,
+    "max": 29.1,
+    "mean": 9.27
+  },
+  "character": {
+    "median": 3.3,
+    "p95": 8.9,
+    "p99": 13.2,
+    "max": 23.8,
+    "mean": 3.83
+  },
+  "events": {
+    "newPrograms": 0,
+    "newGeometries": 147,
+    "newTextures": 0,
+    "framesWithNewPrograms": 0,
+    "framesWithNewGeometries": 121
+  },
+  "warmup": {
+    "programs": 122,
+    "textures": 48,
+    "geometries": 446,
+    "exposed": 402,
+    "parallel": true,
+    "compileMs": 4469,
+    "textureMs": 523,
+    "warmPassMs": 23762,
+    "ms": 28755
+  },
+  "ready_ms": 51785,
+  "limitations": "One desktop run with other applications left available; not exclusive GPU timing, not a before/after performance claim. Render values are JS submission/back-pressure time, not GPU timer-query duration. CPU-only pass uses the same route with drawing stubbed, without warm-up; this isolates update cost but is not an identical interactive workload.",
+  "cpu_only_step": {
+    "median": 2.6,
+    "p95": 7,
+    "p99": 9,
+    "max": 11.9,
+    "mean": 3.11
+  },
+  "cpu_only_vegetation": {
+    "median": 1.6,
+    "p95": 5.3,
+    "p99": 7.4,
+    "max": 10,
+    "mean": 2.03
+  }
+}

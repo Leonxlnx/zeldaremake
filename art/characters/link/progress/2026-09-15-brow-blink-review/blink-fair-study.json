@@ -1,0 +1,42 @@
+{
+  "max_target_adjustment_m": 0.00558704122000391,
+  "affected": 1099,
+  "checks": [
+    {
+      "phase": 0,
+      "overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.25,
+      "overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.5,
+      "overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.75,
+      "overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 1,
+      "overlaps": [
+        0,
+        0
+      ]
+    }
+  ],
+  "status": "Native candidate only"
+}

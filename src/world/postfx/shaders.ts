@@ -455,13 +455,13 @@ export const GAUSS_FRAG = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uDir;    // texel-sized step
 uniform float uSigma; // in texels
-uniform float uReach; // taps either side (6 … 12)
+uniform float uReach; // taps either side (6 … 9)
 varying vec2 vUv;
 void main() {
   float k = -0.5 / max( uSigma * uSigma, 1e-4 );
   vec4 c = texture2D( tSrc, vUv );
   float wsum = 1.0;
-  for ( int i = 1; i <= 12; i ++ ) {
+  for ( int i = 1; i <= 9; i ++ ) {
     if ( float( i ) > uReach ) break;
     float w = exp( k * float( i * i ) );
     vec2 o = uDir * float( i );
@@ -560,9 +560,7 @@ void main() {
   // near sharpening: the frames' near ground keeps more edge energy than ours (stone joints, chips,
   // Link's silhouette: A 0.70×, D 0.83×, E 0.88×, F 0.83× the frame's Laplacian variance below 6 m);
   // an unsharp mask on the 640-grid detail (σ 1.2 texels ≈ 2.4 px at 1280), fading out with distance
-  // so the mid band (where A/C/D/F already exceed the frames) is left alone. Round 37b: gain 1.1
-  // full below 3 m, gone by 8 m — W35 on B/E after the lantern bough left their frame; the SSIM
-  // cost per unit of sharpness is lowest in this band (see composer.ts softNearSharp)
+  // so the mid band (where A/C/D/F already exceed the frames) is left alone
   g *= 1.0 + uNearSharp.x * ( 1.0 - smoothstep( uNearSharp.y, uNearSharp.z, dist ) );
   vec3 fine = b1 + ( c - b1 ) * g;
   vec3 near = mix( fine, b1, uUniform );

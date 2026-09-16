@@ -1,0 +1,19 @@
+{
+  "source_sha256": "d5213ba789d193ff55300b51fc66ac63a3bd209f6e11838a7fe02bec96927314",
+  "candidate_sha256": "1e7074e7bb3087da13199a186a27314c95ef9b5f593621659696c340b331beca",
+  "clip_max_error": 0,
+  "outside_head_states": 22968,
+  "outside_head_normal_max_error": 0.0,
+  "outside_head_positions_uvs_weights_joints_match_at_1um": true,
+  "binds_preserved": true,
+  "non_normal_source_images_byte_exact": true,
+  "all_source_images_byte_exact": true,
+  "eye_geometry_normals_weights_exact": true,
+  "non_brow_positions_and_all_uvs_weights_joints_exact": true,
+  "all_base_positions_uvs_weights_joints_exact": true,
+  "morph_targets": [
+    "blink",
+    "blinkHalf"
+  ],
+  "default_weights_zero": true
+}

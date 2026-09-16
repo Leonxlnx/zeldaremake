@@ -1,0 +1,9 @@
+{
+  "status": "Retained after native and actual game review",
+  "production": "3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf",
+  "source": "nose-zero-margin-study.blend",
+  "visual": "Open/half/closed native renders viewed. Open expression more alert; full closure retained.",
+  "checks": "774vertices changed; aperture19.9299to23.2300mm.21blinkphases zero globe overlaps and zero triangle reversals relative to baseline across5302triangles. Closedendpointpositions exact.",
+  "next": "Continue closed-lid surface, hair and cloth quality; overall reference quality remains unfinished.",
+  "runtime": "36movement/blink samples exact to previous face0c28. Fivephase/zero-dt checks pass. Open/half/closedgameimages viewed."
+}

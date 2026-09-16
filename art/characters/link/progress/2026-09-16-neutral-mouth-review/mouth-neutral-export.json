@@ -1,0 +1,15 @@
+{
+  "sha256": "744755b9efa4f11182233184f04984126d082ad956ea8c2477056c1253c71854",
+  "bytes": 40956396,
+  "clips": [
+    "idle",
+    "walk",
+    "run",
+    "stairs"
+  ],
+  "images": 5,
+  "status": "Local face detail candidate; runtime review pending",
+  "raw_export_sha256": "0d02c2f21b493eca0fade260785ad80d0e63edffbbc32a3aee7d4653eae541e9",
+  "restored_outside_normal_tangent_vectors_on_initial_pass": 11432,
+  "restoration": "Ordered triangle-corner matches verified; outside vectors differ by less than0.001. Tangents on triangles adjacent to moved vertices remain recomputed."
+}

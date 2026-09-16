@@ -1,0 +1,9 @@
+{
+  "status": "Native brow fit candidate; not exported",
+  "fitted_sections": 452,
+  "fitted_vertices": 1808,
+  "unchanged_outer_fibres": 39,
+  "max_displacement_m": 0.04194654908928385,
+  "other_geometry_weights_exact": true,
+  "cross_section_scale": 0.45
+}

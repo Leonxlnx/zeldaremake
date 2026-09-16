@@ -15,6 +15,7 @@
  *        [--quality high] [--norender] [--render-every N] [--label name] [--phase2 N] [--warmup]
  *        [--profile trace.cpuprofile] [--profile-load load.cpuprofile] [--alloc trace.heapprofile]
  *
+ * --native       : Windows D3D11 headless browser over pipes; records actual GPU identity
  * --norender     : the render call is stubbed (pure world.update JS; no first-use events happen)
  * --render-every : render only every Nth step (the others advance the simulation without a frame)
  * --phase2 N     : a second pass afterwards that draws every Nth frame (gl.finish outside the timing)
@@ -28,7 +29,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { serveStatic, launchBrowser } from './lib/browser.mjs';
+import puppeteer from 'puppeteer-core';
+import { serveStatic, launchBrowser, findChrome } from './lib/browser.mjs';
 
 const args = {};
 for (let i = 2; i < process.argv.length; i++) {
@@ -49,6 +51,8 @@ const width = Number(args.width ?? 160);
 const height = Number(args.height ?? 90);
 const quality = args.quality ?? 'high';
 const norender = !!args.norender;
+const native = !!args.native;
+if (native && process.platform !== 'win32') throw new Error('--native currently supports Windows D3D11 only');
 const renderEvery = Math.max(1, Number(args['render-every'] ?? 1));
 /** --phase2 K: after the main pass, reset to the spawn and run a second, RENDERED pass drawing every Kth step (first-use events, render-issue ms) */
 const phase2Every = args.phase2 ? Math.max(1, Number(args.phase2)) : 0;
@@ -451,12 +455,21 @@ async function openWorldProfiled(browser, baseUrl, { width, height, quality, log
 
 async function main() {
   const server = await serveStatic(dist);
-  const browser = await launchBrowser({ width, height });
+  const browser = native ? await puppeteer.launch({
+    executablePath: findChrome(), headless: true, pipe: true, protocolTimeout: 600_000,
+    args: ['--no-sandbox','--disable-gpu-sandbox','--use-angle=d3d11','--no-proxy-server','--hide-scrollbars','--mute-audio'],
+    defaultViewport: { width, height, deviceScaleFactor: 1 },
+  }) : await launchBrowser({ width, height });
   try {
     const tLoad = Date.now();
     const { page, loadProfileTop } = await openWorldProfiled(browser, server.url, { width, height, quality, log, profileOut: profileLoadOut, warmup });
     const readyMs = Date.now() - tLoad;
     if (!(await grabHooks(page))) throw new Error('could not find the capture hooks');
+    const gpu = await page.evaluate(() => {
+      const gl = window.__H.renderer.getContext(), info = gl.getExtension('WEBGL_debug_renderer_info');
+      return info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+    });
+    if (native && /swiftshader|llvmpipe/i.test(gpu)) throw new Error('Native GPU trace fell back to software: ' + gpu);
     const dt = 1 / 60;
     const CHUNK = 30;
     /** one pass along the path from the spawn */
@@ -518,7 +531,7 @@ async function main() {
       // three's CPU work + call issue only
       pass2 = await runPass({ norender: false, renderEvery: phase2Every, frames: phase2Frames, profileOut: profileOut ? profileOut.replace(/\.cpuprofile$/, '') + '.render.cpuprofile' : null, tag: 'render', finishAfter: true });
     }
-    const result = { label, dist, width, height, quality, readyMs, loadProfileTop: loadProfileTop ?? null, pass1, pass2 };
+    const result = { label, dist, width, height, quality, native, gpu, readyMs, loadProfileTop: loadProfileTop ?? null, pass1, pass2 };
     if (out) {
       fs.mkdirSync(path.dirname(out), { recursive: true });
       fs.writeFileSync(out, JSON.stringify(result));
