@@ -1,16 +1,16 @@
 # Young Link runtime candidate — Blender source and validation
 
 Character art by Astra (`astra-local`). This is the exact reviewed Blender export from
-[`1c06b00`](https://github.com/Leonxlnx/zeldaremake/commit/1c06b00) (PR #10, her retained
+[`73ccdc0`](https://github.com/Leonxlnx/zeldaremake/commit/73ccdc0) (PR #10, her retained
 local default at that commit), delivered through the existing GLB loader and procedural
 fallback. It remains an incremental art candidate: eyelids, cheeks and hair are still open on
 her side.
 
 | Property | Value |
 | --- | --- |
-| Source | `public/models/link/link-runtime.glb` at `1c06b00` (`agent/astra-local-link-grounding`) |
-| SHA256 | `0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707` |
-| Size | 40,944,340 bytes |
+| Source | `public/models/link/link-runtime.glb` at `73ccdc0` (`agent/astra-local-link-grounding`) |
+| SHA256 | `4741cf3ec4fd1f8635a1bf980fc40ce5bc7722403076967b797cf2c2e4df1768` |
+| Size | 41,088,376 bytes |
 | Geometry | 70,442 triangles, three skinned meshes (five primitives), four opaque double-sided materials; the body mesh carries the `blink` / `blinkHalf` morph targets (zero default weight) |
 | Maps | Five embedded PNGs: body colour, body normal atlas (nose shading baked, zero padding), packed metallic/roughness, face/orbital colour, corneal colour |
 | Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat` |
@@ -55,6 +55,8 @@ credited in the study archive; they should not be assumed to be inputs to this e
 | --- | --- | --- | --- |
 | 2026-09-14 | `9189538d…c71a` | `bef8e85` | Textured iris candidate: eyes, orbital corrections, brass boot fittings, lashes/brows |
 | 2026-09-16 | `0c28cb62…b707` | `1c06b00` (PR #10) | Her retained chain bdcb9ec7 → d5213ba7 → e5882cc5 → 322c3433 → 9344a2b0 → 844cb82b → 0646f2e9 → 39a55c95 → 75f42cd2 → 0c28cb62: pupil proportion, brow placement, rear-hem / sleeve / belt / shoulder skin-weight repairs, `blink` + `blinkHalf` morphs (character-8 drives them), lower run arc, neutral mouth and nose shading. Rig, clips, strides and sole markers unchanged; the loader's contract holds as is |
+| 2026-09-16 | `3f6cb6f3…eadf` | `9c66fa8` (PR #10) | Alert eyelid opening: 774 orbital vertices, aperture 19.93 → 23.23 mm, closed and half-blink positions rebased; clips, textures, UVs, weights, binds preserved (0c28cb62 is its parent) |
+| 2026-09-16 | `4741cf3e…1768` | `73ccdc0` (PR #10) | Via 17d18d15 (animated orbital normals smoothed — closed-lid ridges reduced): 17-vertex inner-corner separation (≤ 0.096 mm) so all 41 sampled blink phases clear self/eye contacts; rest geometry, textures, rig, clips unchanged (3f6cb6f3 is its parent) |
 
 Astra's per-build records (`Retained …` entries and their evidence folders) are in the
 SOURCE.md on `agent/astra-local-link-grounding`; only the adopted build is copied here.
