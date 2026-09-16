@@ -96,6 +96,14 @@ vec3 transformed = vec3(position);
   transformed.x = position.x * w;
   transformed.z = bend * t * t;
   transformed.y = position.y - (vegType > 0.5 && vegType < 1.5 ? 0.16 * t * t * t : 0.05 * t * t) * bend;
+  // the near-eye share (round 39): under the carpet a blade rooted within arm's reach of the eye
+  // is the one thing that still reads as a single blade — a 0.3 m spike 1.5 m from a 1.45 m eye
+  // is 90 px tall over the clump cards. Blades shrink toward a quarter inside 1.2 m of the eye
+  // and are whole again by 3.0 m; the six fixed cameras' frames cut the ground off at ≥ 3.2 m
+  // (3D, at 1.45–1.8 m eye height and ≤ 4° pitch), so their captures are untouched; the blade
+  // tiles cast no shadow, so cameraPosition is always the viewing eye
+  vec3 bladeRoot = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  transformed *= mix(0.25, 1.0, smoothstep(1.2, 3.0, distance(cameraPosition, bladeRoot)));
 }
 `;
 
@@ -567,7 +575,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v13${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v14${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }
