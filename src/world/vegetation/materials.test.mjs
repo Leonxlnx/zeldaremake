@@ -120,6 +120,13 @@ for (const kind of ['grass', 'moss', 'litter']) {
     // walking eye sees it; the shrink scales the whole shaped blade about its root, after the bend
     assert.match(shader.vertexShader, /vec3 bladeRoot = \(modelMatrix \* instanceMatrix \* vec4\(0\.0, 0\.0, 0\.0, 1\.0\)\)\.xyz;\s*transformed \*= mix\(0\.25, 1\.0, smoothstep\(1\.2, 3\.0, distance\(cameraPosition, bladeRoot\)\)\);\s*}/, 'near-eye shrink closes the shape stage');
     for (const [, chunk] of shader.fragmentShader.matchAll(/#include <([\w_]+)>/g)) assert.ok(THREE.ShaderChunk[chunk] !== undefined, `known chunk ${chunk}`);
+    // round 40 (the owner's video review): the broad sedge is halved on the near-tile geometries (grass.ts aNear)
+    // and keeps its width on the far tile; the tuft's tip tone rides in the type slot below the dryness step
+    assert.equal((shader.vertexShader.match(/attribute float aNear;/g) || []).length, 1, 'near flag declared once');
+    assert.match(shader.vertexShader, /if \(vegType > 1\.5\) w \*= 1\.0 - 0\.5 \* aNear;/, 'sedge halved on the near tiles only');
+    assert.match(shader.vertexShader, /float vegTip = clamp\(\(fract\(vegSlot\) - 0\.02\) \/ 0\.96, 0\.0, 1\.0\);/, 'tip tone decoded from the type slot');
+    assert.match(shader.vertexShader, /bladeColor \*= mix\(vec3\(1\.0\), tipTone, smoothstep\(0\.3, 1\.0, bladeT\)\);/, 'tip tone applied toward the tip');
+    assert.doesNotMatch(shader.vertexShader, /vLeafUv/, 'the lamina detail is the plants\', not the blades\'');
   } else {
     // static moss / litter packs collapse the same way and keep Three's own projection
     assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);
@@ -149,6 +156,44 @@ for (const kind of ['grass', 'moss', 'litter']) {
   const { depth, distance } = createVegShadowMaterials(glossy);
   owned.push(depth, distance);
   assert.equal(projection(prepare(depth, 'depth')), projection(gs), 'the glossy option leaves the shared projection block alone');
+}
+{
+  // round 40 — near-camera lamina detail (materials.ts LEAF_DETAIL_*): plants and bushes take a midrib, lateral veins,
+  // a cupped margin, a root → tip gradient and extra translucency inside LEAF_DETAIL_NEAR..FAR m of the eye, in the
+  // colour pass only (the shadow passes keep the shared projection block); `leafDetail: false` opts a set out
+  const { LEAF_DETAIL_NEAR, LEAF_DETAIL_FAR } = loadTs(path.join(here, 'materials.ts'));
+  assert.ok(LEAF_DETAIL_NEAR >= 3 && LEAF_DETAIL_NEAR <= 4.5 && LEAF_DETAIL_FAR > LEAF_DETAIL_NEAR && LEAF_DETAIL_FAR <= 8, 'the detail lives within ~4 m and fades out by 8');
+  for (const kind of ['plant', 'bush']) {
+    const detailed = createVegMaterial(ctx, kind);
+    const plain = createVegMaterial(ctx, kind, { leafDetail: false });
+    owned.push(detailed, plain);
+    const ds = prepare(detailed, 'standard');
+    const ps = prepare(plain, 'standard');
+    assert.equal(ds.uniforms.uLeafDetail.value, 1, `${kind} carries the detail uniform`);
+    assert.equal(ps.uniforms.uLeafDetail, undefined, `${kind} opted out has none`);
+    assert.equal((ds.vertexShader.match(/varying vec2 vLeafUv;/g) || []).length, 1);
+    assert.match(ds.vertexShader, /gl_Position = projectionMatrix \* mvPosition;[\s\S]*vLeafUv = uv;/, 'the lamina uv is passed after the shared projection');
+    assert.match(ds.fragmentShader, new RegExp(`#include <color_fragment>\\s*float vegLeafTrans = 0\\.0;\\s*\\{\\s*float leafFade = \\(1\\.0 - smoothstep\\(${LEAF_DETAIL_NEAR.toFixed(1)}, ${LEAF_DETAIL_FAR.toFixed(1)}, length\\(vViewPosition\\)\\)\\) \\* uLeafDetail;`), 'the detail fades with view distance after the base colour');
+    assert.match(ds.fragmentShader, /if \(leafFade > 0\.0 && vLeafUv\.x < 1\.5\) \{/, 'only laminae (u < 1.5; geometry.ts NOT_LAMINA puts stems at u ≥ 2) take it');
+    for (const term of ['float rib = ', 'float vein = ', 'float margin = ', 'vec3 grad = mix(', 'diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);', 'vegLeafTrans = leafFade * (0.35 + 0.65 * v);']) assert.ok(ds.fragmentShader.includes(term), `${kind} detail term: ${term}`);
+    assert.match(ds.fragmentShader, /uTransmission \* \(1\.0 \+ vegLeafTrans\)/, 'the translucency term takes the detail\'s extra');
+    assert.doesNotMatch(ps.fragmentShader, /vegLeafTrans|vLeafUv|uLeafDetail/);
+    assert.doesNotMatch(ps.vertexShader, /vLeafUv/);
+    assert.notEqual(detailed.customProgramCacheKey(), plain.customProgramCacheKey(), 'detailed and plain compile separate programs');
+    const { depth, distance } = createVegShadowMaterials(detailed);
+    owned.push(depth, distance);
+    for (const shadow of [prepare(depth, 'depth'), prepare(distance, 'distance')]) {
+      assert.equal(projection(shadow), projection(ds), 'the detail leaves the shared projection block alone');
+      assert.doesNotMatch(shadow.vertexShader, /vLeafUv/);
+    }
+  }
+  for (const kind of ['grass', 'moss', 'litter']) {
+    const m = createVegMaterial(ctx, kind);
+    owned.push(m);
+    const s = prepare(m, 'standard');
+    assert.equal(s.uniforms.uLeafDetail, undefined, `${kind} takes no lamina detail`);
+    assert.doesNotMatch(s.fragmentShader, /vegLeafTrans/);
+  }
 }
 const unrelated = new THREE.MeshStandardMaterial();
 owned.push(unrelated);

@@ -364,13 +364,56 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
 // counted) — with a margin over the reduced base density; the blade LODs end at 16 m under the carpet
 assert.ok(grass.count+a.plants.weeds.count+a.plants.tufts.count>=405000,`W15: blades ${grass.count} + weeds ${a.plants.weeds.count} + tufts ${a.plants.tufts.count} ≥ 405 000`);
 assert.deepEqual(grass.lodDistances,[6,16,16],'blade LOD ranges (round 39)');
+// Round 40 — the owner's video review ("thinner blades, rooted clusters, varied heights"): the blades
+// grow as tufts of 5–9 about a root inside 0.075 m (grass.ts scatterClusters), so a blade's mean
+// neighbour count inside that radius runs well over the uniform expectation (density × π r²) — the
+// round-39 scatter measured 1.1–1.4 × over the cluster noise, the tufts 1.6–2.9 ×; the per-tuft
+// 0.6–1.4 × height multiplier widens the height spread (heightCV 0.516 → 0.574); the near LOD
+// geometries carry aNear = 1 (the shader halves the broad sedge there), the far tile 0.
+{const pc=(box,r)=>{const pts=[];for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<box[0]||x>box[2]||z<box[1]||z>box[3])continue;pts.push([x,z]);}}
+    const grid=new Map(),key=(x,z)=>`${Math.floor(x/r)},${Math.floor(z/r)}`;for(const p of pts){const k=key(p[0],p[1]);(grid.get(k)??grid.set(k,[]).get(k)).push(p);}
+    let nb=0;for(const p of pts){const cx=Math.floor(p[0]/r),cz=Math.floor(p[1]/r);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(const q of grid.get(`${cx+dx},${cz+dz}`)??[]){if(q!==p&&Math.hypot(q[0]-p[0],q[1]-p[1])<=r)nb++;}}
+    const dens=pts.length/((box[2]-box[0])*(box[3]-box[1]));return{n:pts.length,ratio:nb/pts.length/(dens*Math.PI*r*r)};};
+  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],2.2],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.4]]){const r=pc(box,0.075);
+    assert.ok(r.n>=100&&r.ratio>=floor,`${name}: ${r.n} blades, ${r.ratio.toFixed(2)} × the uniform neighbour count inside 0.075 m (≥ ${floor})`);}
+  assert.ok(grass.heightCV>=0.55,`tuft heights widen the blade height spread: CV ${grass.heightCV.toFixed(3)}`);
+  for(const t of grass.tiles){assert.equal(t.lods.length,3);for(let l=0;l<3;l++){const n=t.lods[l].getAttribute('aNear');assert.ok(n&&n.array.every(v=>v===(l<2?1:0)),`LOD ${l} carries aNear = ${l<2?1:0}`);}}
+  // frame 1's circled right foreground (field.ts aFace: the south bank's face 3–7 m before camera A, A 0.75–0.95 × 0.66–0.95)
+  // is fine dense turf: ≥ 3 × the round-39 blades on the face (649), ≤ 6 % of them the broad sedge (11 %), median height ≥ 0.14 m (0.105)
+  {const hs=[];let sedge=0;for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array,d=t.mesh.geometry.getAttribute('aData').array;for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<3.5||x>7||z<3.5||z>6.5||a.field.bankFace(x,z)<0.5)continue;if(Math.floor(d[i*4+3])===2)sedge++;hs.push(Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]));}}
+    assert.ok(hs.length>=1800,`blades on the shot-A bank face: ${hs.length} (round 39: 649)`);
+    assert.ok(sedge/hs.length<=0.06,`broad sedge share on the face: ${(sedge/hs.length*100).toFixed(1)} % (round 39: 11 %)`);
+    assert.ok(q(hs,0.5)>=0.14&&q(hs,0.95)<=0.4,`face blade heights p50 ${q(hs,0.5).toFixed(3)} / p95 ${q(hs,0.95).toFixed(3)} (round 39: 0.105 / 0.223)`);
+    // the face keeps its round-31 rule: nothing but tufts stands on it (the ferns' slope boost is what the low zone holds off)
+    for(const set of a.plants.all){if(set===a.plants.tufts)continue;for(const it of set.items)if(a.field.aFace(it.x,it.z)>0.3)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} ${(top(set,it)-it.y).toFixed(2)} m on the shot-A face at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}}}
 grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g of t.lods)g.dispose();}
+// Round 40 — verge transitions (plants.ts / litter.ts round-40 passes): where the lawn meets the paving
+// the 0.25–1.3 m outside the rim carries small ferns (≤ 0.5 m), broad leaves, short tufts and clover,
+// where it meets the main flight's flank banks the same at the feet (flankZone 0.05–0.6); the paths
+// stay clear (every root passed `allowed` above, the stones' 0.5 m and the trodden strip hold ≤ 0.25 m)
+{const band=(set,pred=()=>true)=>set.items.filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z,true);return e>=0.25&&e<=1.3&&pred(it);}).length;
+  assert.ok(band(a.plants.ferns,it=>top(a.plants.ferns,it)-it.y<=0.5)>=70,`small ferns in the verge band: ${band(a.plants.ferns,it=>top(a.plants.ferns,it)-it.y<=0.5)} (round 39: 61)`);
+  assert.ok(band(a.plants.weeds)>=880&&band(a.plants.tufts)>=1050&&band(a.plants.clover)>=1440,`broad leaves ${band(a.plants.weeds)} / tufts ${band(a.plants.tufts)} / clover ${band(a.plants.clover)} in the verge band (round 39: 862 / 984 / 1401)`);
+  const fb=a.field.flankBox(),foot=set=>set.items.filter(it=>inBox(it,fb)&&a.field.flankZone(it.x,it.z)>0.05&&a.field.flankZone(it.x,it.z)<0.6).length;
+  assert.ok(foot(a.plants.ferns)>=15&&foot(a.plants.weeds)>=42&&foot(a.plants.tufts)>=60&&foot(a.plants.clover)>=62,`ferns ${foot(a.plants.ferns)} / leaves ${foot(a.plants.weeds)} / tufts ${foot(a.plants.tufts)} / clover ${foot(a.plants.clover)} at the flank feet (round 39: 13 / 40 / 58 / 58)`);}
+// Round 40 — the hero ferns' near-camera detail (plantgeo.ts 'ultra': bipinnate pinnae with cupped
+// pinnules and a midrib, inside HERO_FERN_ULTRA_M; the tree-base audit saw flat single-colour fronds
+// 2 m from the eye): a fourth LOD ahead of the round-39 three, drawn per variant (no pack collapse
+// multiplies its triangles), ≥ 3 × the high LOD's triangles and the same footprint
+{const {HERO_FERN_ULTRA_M}=read('vegetation/plantgeo');assert.deepEqual(a.plants.heroFerns.opts.lodDistances,[HERO_FERN_ULTRA_M,16,32]);assert.ok(HERO_FERN_ULTRA_M>=4&&HERO_FERN_ULTRA_M<=8);
+  assert.deepEqual(a.plants.heroFerns.packLayout[0],[[0],[1],[2]],'ultra hero ferns draw per variant');
+  for(const lods of a.plants.heroFerns.opts.variants){assert.equal(lods.length,4);const [ultra,high]=lods;assert.ok(ultra.index.count>=3*high.index.count,`ultra ${ultra.index.count/3} vs high ${high.index.count/3} triangles`);
+    const ub=ultra.boundingBox,hb=high.boundingBox;assert.ok(Math.abs(ub.max.y-hb.max.y)<0.12&&Math.abs((ub.max.x-ub.min.x)-(hb.max.x-hb.min.x))<0.25,'the ultra frond keeps the high LOD\'s silhouette');}}
 // dirt-seam litter along the rim (sheet 02 “Path boundary”), none of it on the slabs
 {const litterMaterial=read('vegetation/materials').createVegMaterial(a.ctx,'litter'),litter=read('vegetation/litter').buildLitter(a.ctx,a.field,litterMaterial,new THREE.Group());
   const seam=litter.leaves.items.concat(litter.twigs.items).filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z);return e>=0&&e<=0.3&&a.field.stairDistance(it.x,it.z)>0.1;});
   assert.ok(seam.length>=250,`litter in the rim seam: ${seam.length}`);
   // the seam runs along the plaza discs and collects at the bank toe as well (the rim there is grass, not moss)
   assert.ok(seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length>=10,`seam litter at the bank toe: ${seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length}`);
+  // round 40: the leaf drift keeps collecting through the lawn's first 1.3 m beyond the seam (the verge transition), thinning into the lawn
+  const drift=(lo,hi)=>litter.leaves.items.concat(litter.twigs.items).filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z,true);return e>=lo&&e<=hi&&a.field.stairDistance(it.x,it.z)>0.1;}).length;
+  assert.ok(drift(0.3,1.3)>=640,`litter in the verge band beyond the seam: ${drift(0.3,1.3)} (round 39: 554)`);
+  assert.ok(drift(0.3,0.8)>drift(0.8,1.3),`the drift thins into the lawn: ${drift(0.3,0.8)} in 0.3–0.8 m against ${drift(0.8,1.3)} in 0.8–1.3 m`);
   const sample=newSample();for(const it of litter.twigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'twigs never lie on the paving');}
   for(const it of seam){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample)||it.y-a.ctx.terrain.height(it.x,it.z)>0.03,'seam litter is grass-seated; only the lifted sprinkle lies on slabs');}
   // round 39: the leaves keep every instance submitted (cull: false, the B3 claim) but switch to a four-triangle

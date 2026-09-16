@@ -28,7 +28,7 @@ import type { WorldContext } from '../system';
 import { clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { CLUMP_GRID, MAT_GRID, createClumpAtlas, type ClumpAtlas } from './clump-atlas';
-import { VegField, composeMatrix, newSample } from './field';
+import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
 import { LodInstancedSet } from './lodset';
 import { createVegMaterial } from './materials';
 
@@ -260,6 +260,8 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     const stone = field.stoneDistance(x, z);
     // height factor: every cut the blades take
     let hk = (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - 0.3 * band) * (1 - 0.45 * hollow) * (1 - 0.55 * foot) * (1 - 0.35 * clr.npc) * (1 - 0.3 * giant) * (1 - 0.5 * shoulder);
+    // round 40: the blades on frame 1's circled bank face stand taller (grass.ts A_FACE_*)
+    hk *= 1 + A_FACE_HEIGHT * field.aFace(x, z);
     if (edge < 0.3) hk *= 0.72;
     // palette: the blades' tint drift and zone biases
     let tn = field.tint(x, z) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + 0.7 * foot;

@@ -13,7 +13,7 @@ import { BufferGeometry, Float32BufferAttribute, Group, InstancedBufferAttribute
 import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { VegField, composeMatrix, newSample } from './field';
+import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
 import { perfFlags, perfRuntime } from '../../perfFlags';
 
 export const GRASS_TYPE_NAMES = ['turf', 'meadow', 'sedge'] as const;
@@ -96,6 +96,19 @@ const BLADE_TINT_SD = 0.09;
 const CLUSTER_TIP_LO = 0.02;
 const CLUSTER_TIP_SPAN = 0.96;
 const DRY_STEPS = 16;
+/**
+ * Round 40 — frame 1's circled right foreground (field.ts `aFace`: the south bank's face 3–7 m
+ * before camera A): the low zone took 35 % of its blades and 40 % of their height and the sedge
+ * noise peaks on its top, so it read as a few broad blades over bare cards (≈ 110 / m² against
+ * the flank banks' 500). The base pass accepts A_FACE_DENSITY more of its candidates there, a
+ * fifth pass at A_FACE_EXTRA of the tile density (own streams, accepted at the face weight)
+ * closes the turf the way the flank passes close theirs, A_FACE_SEDGE_CUT fewer blades are the
+ * broad type, and the face gets A_FACE_HEIGHT (field.ts) of its height back; the zone's real job
+ * — no fronds on the face — is untouched. Frame A's vegetation budget: ≈ +2 000 blades.
+ */
+const A_FACE_DENSITY = 1.1;
+const A_FACE_EXTRA = 1.2;
+const A_FACE_SEDGE_CUT = 0.7;
 
 interface Cluster {
   height: number;
@@ -308,7 +321,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   }
 
   // capacity for the base pass plus the three extra passes (each ≤ its share of the tile's candidates)
-  const maxPerTile = Math.ceil(TILE * TILE * (BASE_PER_M2 + CANDIDATES_PER_M2 * (LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA)) * Math.max(q.density, 0.1));
+  const maxPerTile = Math.ceil(TILE * TILE * (BASE_PER_M2 + CANDIDATES_PER_M2 * (LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA + A_FACE_EXTRA)) * Math.max(q.density, 0.1));
   const matrices = new Float32Array(maxPerTile * 16);
   const data = new Float32Array(maxPerTile * 4);
 
@@ -332,8 +345,9 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     // weight and free of the cuts the low verge, camera C's grass box and the trodden strip put
     // on that ground. Every pass reads the round-32 field rules (turf slivers between two
     // pavings, the mask-side rim, the flight taken out of the trodden strip). `tuft` is the rooted
-    // cluster the blade belongs to (round 40): its height multiplier, palette shift and tip tone.
-    const blade = (x: number, z: number, rng: Rng, tuft: Cluster, bandPass: boolean, flankPass = false, housePass = false) => {
+    // cluster the blade belongs to (round 40): its height multiplier, palette shift and tip tone;
+    // `facePass` blades (frame 1's circled bank face, round 40) are accepted at the face weight.
+    const blade = (x: number, z: number, rng: Rng, tuft: Cluster, bandPass: boolean, flankPass = false, housePass = false, facePass = false) => {
       if (Math.hypot(x, z) > R + 1.5) return;
       field.sample(x, z, s);
       if (!field.allowed(x, z, s, true)) return;
@@ -344,6 +358,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (flankPass && flank <= 0) return;
       const house = housePass ? field.houseFlankZone(x, z) : 0;
       if (housePass && house <= 0) return;
+      const face = flankPass || housePass || bandPass ? 0 : field.aFace(x, z);
+      if (facePass && face <= 0) return;
 
       const edge = field.lawnEdgeDistance(x, z, true);
       const verge = edge < 2.5 ? 1 + 0.9 * (1 - edge / 2.5) : 1;
@@ -376,14 +392,15 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const cluster = field.cluster(x, z);
       // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
       const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : housePass ? HOUSE_FLANK_CLUSTER_FLOOR + (1 - HOUSE_FLANK_CLUSTER_FLOOR) * cluster : cluster;
-      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1);
+      // frame 1's circled right foreground (round 40): the south bank's face fills in
+      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (facePass ? face : 1 + A_FACE_DENSITY * face) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1);
       if (rng() * DNORM > density) return;
 
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
       const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (1 - foot) * (housePass ? 0.3 : 1);
-      const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc);
+      const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc) * (1 - A_FACE_SEDGE_CUT * face);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
 
@@ -419,6 +436,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
       h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow) * (1 - C_FOOT_HEIGHT * foot);
+      h *= 1 + A_FACE_HEIGHT * face;
       maxH = Math.max(maxH, h);
 
       // colour. The shade zone (frame 8's right embankment) measures ≈ 0.30 luminance in the
@@ -546,6 +564,20 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
           return count < maxPerTile;
         });
       }
+    }
+    // frame 1's circled bank face (round 40): a fifth pass over the part of the face box in this tile
+    const faceBox = field.aFaceBox();
+    const ax0 = Math.max(x0, faceBox[0]);
+    const az0 = Math.max(z0, faceBox[1]);
+    const ax1 = Math.min(x0 + TILE, faceBox[2]);
+    const az1 = Math.min(z0 + TILE, faceBox[3]);
+    if (ax1 > ax0 && az1 > az0) {
+      const faceRng = ctx.rng.fork(`grass/a-face/${cx}/${cz}`);
+      const n = Math.round((ax1 - ax0) * (az1 - az0) * CANDIDATES_PER_M2 * A_FACE_EXTRA * q.density);
+      scatterClusters(faceRng, ax0, az0, ax1 - ax0, az1 - az0, n, (x, z, tuft) => {
+        blade(x, z, faceRng, tuft, false, false, false, true);
+        return count < maxPerTile;
+      });
     }
     if (count === 0) continue;
 

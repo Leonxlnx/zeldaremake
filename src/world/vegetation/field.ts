@@ -126,6 +126,17 @@ const TRIM_ZONES: readonly [number, number, number, number][] = [
   [6.0, 4.6, 12, 8],
 ];
 /**
+ * Round 40 — the owner's video review circled frame 1's right foreground (A 0.75–0.95 ×
+ * 0.66–0.95: the plaza end of the south bank's face, 3–7 m before camera A, LOW_ZONES[1] with the
+ * trim zone's feather over it) as sparse wide blades. The face is `bankFace` inside this box; the
+ * blade tiles thicken it, drop the broad sedge there and give back part of the low zone's height
+ * cut (A_FACE_HEIGHT, the carpet's cards follow), while the zone keeps the fronds off it.
+ */
+const A_FACE_BOX: readonly [number, number, number, number] = [3.0, 1.8, 8.4, 7.0];
+const A_FACE_FEATHER = 0.6;
+/** the face's blades stand this much taller than the low / trim zones' cut leaves them (fraction) */
+export const A_FACE_HEIGHT = 0.6;
+/**
  * The plateau flank right of the stairs in frame 8 (0.55–1 × 0.3–0.6, world x ≳ 11): shaded
  * olive moss/grass. The reference box measures ≈ 0.30 luminance with visible blade texture, so it
  * is a tint bias, not a blackout; its 2 m feather starts past the shot-A right foreground (x ≤ 10.5).
@@ -902,6 +913,17 @@ export class VegField {
   /** 0..1 patches where flowers/weeds like to grow. */
   flowerPatch(x: number, z: number): number {
     return smoothstep(0.05, 0.55, this.flowerNoise.fbm(x * 0.27 - 4, z * 0.27 + 8, 2));
+  }
+
+  /** 0..1 on the shot-A south bank's face (A_FACE_BOX ∩ bankFace): frame 1's circled right foreground turf. */
+  aFace(x: number, z: number): number {
+    const box = softBox(x, z, A_FACE_BOX, A_FACE_FEATHER);
+    return box > 0 ? box * this.bankFace(x, z) : 0;
+  }
+
+  /** world box [x0, z0, x1, z1] outside which `aFace` is 0 (the face pass's candidate box, grass.ts) */
+  aFaceBox(): [number, number, number, number] {
+    return [A_FACE_BOX[0] - A_FACE_FEATHER, A_FACE_BOX[1] - A_FACE_FEATHER, A_FACE_BOX[2] + A_FACE_FEATHER, A_FACE_BOX[3] + A_FACE_FEATHER];
   }
 
   /** 0..1 inside the reference's low-verge areas (short grass, no tall plants). */
