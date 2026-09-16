@@ -1,3 +1,6 @@
+Retained remaining shoulder transition repair: 55cc8ef31f78b76f21e592d4771b085f3c0659bfd4bd2530af98a9737c4f69d9
+202 native weight positions corrected at three shoulder/chest boundaries. Only JOINTS_0/WEIGHTS_0 bytes change from4741cf3e; reviewed blink geometry/normals, rest attributes, textures and clips remain exact. Native four-gait checks improve deformation; matched rear views and actual run frame reviewed. All300 gameplay movement/blink records match the prior run baseline. Visual gain is modest and other cloth defects remain. Evidence: art/characters/link/progress/2026-09-16-remaining-shoulders-review.
+
 Retained inner-eyelid corner correction: 4741cf3ec4fd1f8635a1bf980fc40ce5bc7722403076967b797cf2c2e4df1768
 Seventeen native vertices receive at most 0.096 mm of closed-pose separation and half that at the halfway key. All 41 sampled phases have zero nonadjacent eyelid self-intersections and zero eyeball intersections; 21 phase triangle-orientation checks pass. Rest geometry, reviewed animated normals, texture, rig and clip bytes remain unchanged. In-game blink views retain the smooth shading and 36 movement samples match the parent. Evidence: art/characters/link/progress/2026-09-16-corner-separation-review.
 

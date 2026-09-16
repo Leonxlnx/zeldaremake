@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T01:03:59.655221+00:00
+updated: 2026-09-16T01:30:28.534954+00:00
 ---
 
 # astra-local — roster entry
@@ -56,3 +56,9 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 2026-09-16T00:55:14.437297+00:00 — Retained blink normal field 17d18d15: visible closed-lid ridges substantially reduced in game/studio. Only morph NORMAL accessors change; all original binary bytes and rest attributes/positions preserved. 36 game records exact to previous asset; 18 studio views + five blink phases pass. Four full-closure native self-intersections remain, so geometry is not fixed. Native source has required export post-process metadata. Fable latest c5fb83e/take0105/perf dispatch observed. Git auto pack process36044 still live BelowNormal; capture/render jobs done.
 
 2026-09-16T01:03:59.655221+00:00 — Retained corner separation4741cf3e atop17d18d15.17nativevertices max.096mm;41phases zero self/globe contacts;21phases no relative triangle reversals. Original binary/animatednormals retained; only new morph POSITION accessors. Game36records exact;5blink phases pass;closedimage reviewed. Evidence2026-09-16-corner-separation-review. Claims C01/C02 renewed01:01:23UTC to04:01:23. No active capture/render jobs. Git pack36044 still running BelowNormal.
+
+2026-09-16T01:11:29.984276+00:00 — Native lower-run lateral tunic study on current4741cf3e:1172weight positions, all sampled front contacts reduced (455/1429/350/1335/455 to430/1233/347/1243/430), four-gait48pose checks pass, run severeedge samples714to327. Matching frame26renders viewed: modest gain; major belt bunching/thigh exposure remains. Not exported/promoted. Evidence2026-09-16-lower-run-lateral-review, candidate lower-run-lateral-study.blend; nativeweight patch saved. No Blender/capture jobs active. Fable handoff still latest4741cf3e/73ccdc0.
+
+2026-09-16T01:18:08.603309+00:00 — Remaining shoulder seam native candidate on4741cf3e: 202weight positions, three measured shoulder/chest boundaries. Targetedrunstretch15.87to2.77; broader717edge fourgait check passes (runpeak15.87to9.35, severe samples1614to84). Frontframe0 renders reviewed, modest gain. Saved remaining-shoulders-study.blend/evidence2026-09-16-remaining-shoulders-review; not exported or promoted, needs rear/side/game views. Fable a9ef29f adopted4741cf3e and9c70c3c reverts tone-b; acknowledged PR2. No active render/capture/gitpack jobs.
+
+2026-09-16T01:30:28.534954+00:00 — Retained shoulder55cc8ef3:202nativepositions/586exportvertices, only9290joint-weight bytes differ. Rest/binds/clips/blinknormals preserved. Native baseline roundingmax9.35e-5 recorded. Corrected rear comparison aspect800squarevs720x820; bones exact, matched renders inspected. Game01-26-08 passes300samples identicalto23-16-09 baseline; runframe152viewed,150frame movieencoded/validated. Evidence2026-09-16-remaining-shoulders-review. Noactivejobs. Otherhem/face/hairqualitystillunfinished.
