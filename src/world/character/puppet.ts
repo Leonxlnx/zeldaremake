@@ -18,8 +18,9 @@ export { BLEND_S, type FootAnchor, type GaitChain } from './gaitChain';
 
 /**
  * The pose input: the actor's gait chain (gaitChain.ts — the gait, the one it fades from and
- * the one before that, their switch times, clip shifts and idle sole anchors; a hard switch has
- * gaitSwitchT −Infinity) plus the simulation time and the look.
+ * the one before that, their switch times, clip shifts, idle sole anchors and the run-start blink
+ * event's start `runBlinkT`; a hard switch has gaitSwitchT −Infinity) plus the simulation time
+ * and the look.
  */
 export interface PuppetPose extends GaitChain {
   t: number;
@@ -96,7 +97,8 @@ export interface PlantInfo {
  * The blink of the last pose (audit `blink*`, round 8 — blink.ts): how many meshes carry the
  * contract's morph targets (0 = the drive is inert, the asset has none), the closure phase p and
  * the weights derived from it, the weights READ BACK from the first morph mesh after the pose
- * (null without one), the start of the next scheduled blink and the schedule's seed / hash.
+ * (null without one), the start of the next scheduled blink, the run-start event the pose read
+ * (PuppetPose.runBlinkT; −Infinity = none) and the schedule's seed / hash.
  */
 export interface BlinkInfo {
   morphMeshes: number;
@@ -104,6 +106,7 @@ export interface BlinkInfo {
   weights: { blink: number; blinkHalf: number };
   applied: { blink: number; blinkHalf: number } | null;
   nextT: number;
+  runT: number;
   schedule: { seed: string; hash: number; slotS: number; jitterS: number; originS: number };
 }
 

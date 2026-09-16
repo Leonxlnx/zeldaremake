@@ -182,4 +182,32 @@ const weightsOf = (c, t) => {
   assert.deepEqual(out, [1, 0, 0]);
 }
 
+// 10. the run-start blink event (round 8b): recorded by a crossfade into run at the switch time,
+// kept while it runs (no restart from a second run start inside `blinkS`), a new one after, never
+// without the hook, cleared by a hard switch — and untouched by the gait leaving run
+{
+  const withBlink = { ...hooks, blinkS: 0.22 };
+  const c = hardChain('idle');
+  assert.equal(c.runBlinkT, -Infinity);
+  switchGait(c, 'run', 80, withBlink);
+  assert.equal(c.runBlinkT, 80, 'recorded at the run start');
+  switchGait(c, 'idle', 80.05, withBlink);
+  assert.equal(c.runBlinkT, 80, 'the release leaves the event alone');
+  switchGait(c, 'run', 80.1, withBlink);
+  assert.equal(c.runBlinkT, 80, 'a second run start inside the envelope keeps it');
+  switchGait(c, 'walk', 80.15, withBlink);
+  switchGait(c, 'run', 80.2, withBlink);
+  assert.equal(c.runBlinkT, 80, 'still inside (0.2 < 0.22)');
+  switchGait(c, 'idle', 80.25, withBlink);
+  switchGait(c, 'run', 80.3, withBlink);
+  assert.equal(c.runBlinkT, 80.3, 'after the envelope a new event starts');
+  switchGait(c, 'walk', 81, withBlink);
+  assert.equal(c.runBlinkT, 80.3, 'a switch to walk does not record');
+  switchGait(c, 'idle', null, withBlink);
+  assert.equal(c.runBlinkT, -Infinity, 'a hard switch clears it');
+  const d = hardChain('idle');
+  switchGait(d, 'run', 90, hooks);
+  assert.equal(d.runBlinkT, -Infinity, 'no event without the hook');
+}
+
 console.log('gaitChain.test.mjs: ok');

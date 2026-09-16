@@ -124,7 +124,8 @@
  * Round 8 — the blink (blink.ts, Astra's morph contract): every mesh of the asset whose
  * `morphTargetDictionary` has `blink` / `blinkHalf` gets the contract's two weights set after the
  * mixer has evaluated the pose, from a closure phase that is a closed-form function of `t` (the
- * seeded slot schedule) and of the chain's switch time into a run. The clips carry no morph
+ * seeded slot schedule) and of the run-start event the chain recorded (`runBlinkT`, one-shot:
+ * its envelope outlives the run — round 8b, Astra's PR #10). The clips carry no morph
  * tracks, so the mixer never contends for the influences; an asset without the morphs (the
  * committed 9189538d) has no such mesh and the drive is inert — the six fixed captures are the
  * same bytes. Movement and the IK above are untouched by it.
@@ -1335,16 +1336,18 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
   // the blink (round 8): the schedule and the last pose's closure / weights, for the audit
   const blinkSchedule: BlinkSchedule = createBlinkSchedule(opts.blinkSeed ?? 'link-blink');
   const blinkW: BlinkWeights = { blink: 0, blinkHalf: 0 };
-  const blinkState = { phase: 0, t: 0 };
+  const blinkState = { phase: 0, t: 0, runT: -Infinity };
   /**
    * Set the contract's weights on every morph mesh for the pose at `t`. After `mixer.update` (the
-   * clips carry no morph tracks, but the order keeps that true whatever a future clip does).
+   * clips carry no morph tracks, but the order keeps that true whatever a future clip does). The
+   * run-start event is the chain's `runBlinkT` (round 8b) — its envelope outlives the run.
    */
   const applyBlink = (p: PuppetPose) => {
-    const phase = blinkPhase(blinkSchedule, p.t, p.gait === 'run' ? p.gaitSwitchT : -Infinity);
+    const phase = blinkPhase(blinkSchedule, p.t, p.runBlinkT);
     blinkWeights(phase, blinkW);
     blinkState.phase = phase;
     blinkState.t = p.t;
+    blinkState.runT = p.runBlinkT;
     for (const b of blinkMeshes) {
       const inf = b.mesh.morphTargetInfluences!;
       if (b.iBlink >= 0) inf[b.iBlink] = blinkW.blink;
@@ -1908,6 +1911,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         weights: { ...blinkW },
         applied: first && inf ? { blink: first.iBlink >= 0 ? inf[first.iBlink] : 0, blinkHalf: first.iHalf >= 0 ? inf[first.iHalf] : 0 } : null,
         nextT: nextBlinkStart(blinkSchedule, blinkState.t),
+        runT: blinkState.runT,
         schedule: { ...blinkSchedule },
       };
     },
