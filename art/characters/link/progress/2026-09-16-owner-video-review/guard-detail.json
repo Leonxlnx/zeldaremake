@@ -1,0 +1,66 @@
+{
+  "status": "Native stitched guard candidate; game motion/export pending",
+  "stress_poses": [
+    {
+      "elbow_x_radians": 0,
+      "guards": [
+        {
+          "side": "L",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 0
+        },
+        {
+          "side": "R",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 0
+        }
+      ]
+    },
+    {
+      "elbow_x_radians": 0.4,
+      "guards": [
+        {
+          "side": "L",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 0
+        },
+        {
+          "side": "R",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 0
+        }
+      ]
+    },
+    {
+      "elbow_x_radians": 0.8,
+      "guards": [
+        {
+          "side": "L",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 0
+        },
+        {
+          "side": "R",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 0
+        }
+      ]
+    },
+    {
+      "elbow_x_radians": 1.2,
+      "guards": [
+        {
+          "side": "L",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 7
+        },
+        {
+          "side": "R",
+          "evaluated_triangles": 1536,
+          "intersecting_triangles": 9
+        }
+      ]
+    }
+  ],
+  "stitch_objects": 2
+}

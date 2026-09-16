@@ -54,3 +54,13 @@ Fresh remote head0820f92a includes trees merge885788d9 and vegetation merge44c21
 
 Image originals and SHA-256 hashes: [provenance.json](provenance.json). Environment source manifests: PR11 art/environment/clear-daylight-review and video-light-review. Character source manifests are included alongside this README.
 
+
+## Fable evidence received and independently inspected
+
+Commit935c807c now publishes the previously cloud-local round39 captures; verified on branch4421864c. The following are Fable's unaltered comparison boards, copied from art/environment/round39-review. His manifest describes SwiftShader1280×720, high quality, time12.5, HUD and character hidden; before36ac68a/78a0ca1, after0820f92.
+
+![Fable's tree-base overview after round39](fable-round39-trees.jpg)
+
+![Fable's matched west-ledge grass comparison](fable-round39-grass.jpg)
+
+My visual review: denser grass coverage and stronger tree-base relief are visible. Near foliage still has broad angular silhouettes, bright fern clusters obscure roots, and conspicuous repeated grass fans/tall dark spikes remain. This is progress, not reference-quality acceptance. [Concrete feedback returned to Fable](https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5703324476). Round40 still needs its own matched delivery.

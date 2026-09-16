@@ -79,3 +79,15 @@ The reference character's leather forearm guards are a larger missing feature. N
 | Current character | Original fitted guard blockout |
 | --- | --- |
 | ![Before](forearm-guards-before.png) | ![Guard blockout](forearm-guards-after.png) |
+
+## Fitted stitches, lacing and evaluated guard contact
+
+Added original waxed-thread edge stitches and crossed lacing. Straight chords initially cut through the convex leather; the final paths are subdivided and projected onto the guard surface, offset2.4mm above its base shell. Native plain/sewn closeups show the correction. The plain/sewn pair compares detail only, not a finished material bake.
+
+Rigid elbow-only weights caused skin contact in bent poses. Replaced them with barycentrically interpolated nearest-body weights for both shells and thread meshes. The stress harness now resets the whole rig to identity before each elbow-X pose and restores rotation modes as well as matrices. The earlier stress results mixed a stored pose with the tested elbow angle and must not be presented as a clean before/after numeric comparison. A missing Python collections import was fixed after a terminal error; weights were regenerated on retry.
+
+Evaluated geometry, including thickness/bevel:1536triangles per shell. At0,.4,.8radians elbow flexion, both shells have0 intersecting triangles against the body. At1.2radians,7left/9right remain. This test covers evaluated guard shells; it is not a full cloth/cord self-collision test or a game animation pass. Need correct these high-flexion contacts, validate native stitch topology, then export/bake and inspect actual game clips. Native scene forearm-guards-detailed-study.blend stays local; default runtime unchanged.
+
+| Plain guard | Surface-following stitches and lacing |
+| --- | --- |
+| ![Plain](guard-detail-plain.png) | ![Sewn](guard-detail-sewn.png) |
