@@ -917,7 +917,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const capPhase = r.range(0, TAU);
     const capRim = (a: number) => 1 + 0.035 * Math.sin(5 * a + capPhase) + 0.02 * Math.sin(9 * a - capPhase);
     /** the moss sheet's lower edge on the curl (v), lobed */
-    const edgeV = (a: number) => 0.06 + 0.055 * Math.sin(5 * a + 1.3 + capPhase) + 0.035 * Math.sin(9 * a - 0.7 - capPhase * 1.3) + 0.02 * Math.sin(17 * a + capPhase);
+    const edgeV = (a: number) => clamp(0.07 + 0.04 * Math.sin(5 * a + 1.3 + capPhase) + 0.02 * Math.sin(9 * a - 0.7 - capPhase * 1.3) + 0.01 * Math.sin(17 * a + capPhase), 0.002, 0.14);
     const capPoint = (a: number, v: number, out: Vector3) => {
       const rr = eaveR * capRim(a) * Math.pow(Math.cos((v * Math.PI) / 2), 0.9);
       const y = eaveY - 0.14 + (def.capHeight + 0.14) * Math.pow(Math.sin((v * Math.PI) / 2), 1.15);

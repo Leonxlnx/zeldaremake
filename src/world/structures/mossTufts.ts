@@ -58,10 +58,10 @@ export interface MossTuftOptions {
 
 export const DEFAULT_TUFT_OPTIONS: MossTuftOptions = {
   segments: [8, 6],
-  rings: [3, 2],
+  rings: [2, 2],
   fineRadius: 0.035,
-  topGain: 1.22,
-  rimGain: 0.52,
+  topGain: 1.35,
+  rimGain: 0.62,
   topTint: [1.0, 1.04, 0.86],
   toneSpread: 0.12,
   ruffle: 0.2,

@@ -2534,9 +2534,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const cellArea = (u: number, v: number) => {
     const du = 0.5 / roofRes;
     const dv = 0.5 / (roofRows - 1);
-    domeBase(u * TAU, v, _c0);
-    domeBase((u + du) * TAU, v, _c1).sub(_c0);
-    domeBase(u * TAU, Math.min(1, v + dv), _c2).sub(_c0);
+    // (round 40: on the sheet's own parameter, `vMoss`)
+    const a = u * TAU;
+    domeBase(a, vMoss(a, v), _c0);
+    domeBase((u + du) * TAU, vMoss((u + du) * TAU, v), _c1).sub(_c0);
+    domeBase(a, vMoss(a, Math.min(1, v + dv)), _c2).sub(_c0);
     return _c1.cross(_c2).length() * 4;
   };
   /**
@@ -2599,39 +2601,42 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * the soffit and the pods' hooks all stand where they did; only what covers the surface
    * changes (the audit's `cap` samples the shell, not the sheet).
    *
-   * `mossEdgeV(a)`: the cap parameter where the moss ends at angle a. Metric noise along the
-   * rim's arc: 0.5–1 m lobes (±0.05 in v ≈ ±7 cm down the curl), narrow fingers hanging a
-   * further 0.07 (≈ 9 cm) every 0.3–0.5 m, and gaps where the edge retreats up to 0.02 above
-   * the rim's top (≈ 10 cm up the shoulder) so bark shows on the crest. Over the door
-   * (|a| < 0.55, where the entrance arch is the eave and the pods hang) the edge is tamer.
+   * `mossEdgeV(a)`: the cap parameter where the moss ends at angle a — about the rim's crest
+   * (V_CAP), so the curl's outer face is bark with the moss hanging over it. Metric noise along
+   * the rim's arc: 0.5–1 m lobes ±5 cm, narrow fingers hanging a further 12 cm down the curl
+   * every 0.3–0.5 m, and gaps where the edge retreats up to ≈ 10 cm onto the shoulder so bark
+   * shows on the crest itself. The curl runs 1.35 cm per 0.01 of v, the shoulder ≈ 11 cm — the
+   * two scales are converted separately. Over the door (|a| < 0.55, where the entrance arch is
+   * the eave and the pods hang) the edge is tamer.
    */
-  const EDGE_V0 = 0.6;
   const mossEdgeV = (a: number) => {
     const s = a * (capR(a) + lipR);
     const tame = lerp(0.55, 1, smoothstep(0.35, 0.8, Math.abs(angleDiff(a, 0))));
     const lobes = noise.noise(s * 1.3 + 40, 2.5);
     const fingers = Math.pow(Math.max(0, noise.noise(s * 4.5 + 11, 6.1)), 1.5);
     const gaps = smoothstep(0.42, 0.72, noise.noise(s * 2.2 + 77, 9.4));
-    return clamp(V_CAP + 0.06 + (0.05 * lobes + 0.07 * fingers - 0.09 * gaps) * tame, V_CAP - 0.025, 0.94);
+    // metres along the meridian past the crest (+ down the curl, − up the shoulder)
+    const m = (0.05 * lobes + 0.12 * fingers - 0.1 * gaps) * tame;
+    return clamp(V_CAP + (m >= 0 ? m / (Math.PI * lipR / (1 - V_CAP)) : m / 11), V_CAP - 0.012, 0.94);
   };
-  /** grid v → the sheet's cap parameter: rows past `EDGE_V0` compress into [EDGE_V0, mossEdgeV(a)] */
-  const vMoss = (a: number, v: number) => (v <= EDGE_V0 ? v : EDGE_V0 + ((v - EDGE_V0) / (1 - EDGE_V0)) * (mossEdgeV(a) - EDGE_V0));
+  /** grid v → the sheet's cap parameter: the grid's rows run uniformly from the crown to the edge */
+  const vMoss = (a: number, v: number) => v * mossEdgeV(a);
   /** the moss sheet's thickness over the bark eave (m): the edge rounds down through it */
   const MOSS_THICK = 0.035 * k;
-  /** the edge's rounding width in v (≈ 4 cm on the curl) */
-  const EDGE_ROUND = 0.03;
+  /** the edge's rounding width along the meridian (m) */
+  const EDGE_ROUND = 0.045 * k;
   /** the bark eave's depth under the moss shell at v (fades to 0 where the curl meets the soffit) */
   const barkInset = (v: number) => MOSS_THICK * smoothstep(1, 0.92, v);
   const domeVertex = (a: number, v: number, out: SurfaceSample, straw: boolean) => {
     domeBase(a, v, out.position);
     domeNormal(a, v, _n);
     let disp = domeDisp(out.position, v);
-    // round 40: the last ≈ 4 cm of the sheet round down onto the bark (a quarter-round profile),
+    // round 40: the last ≈ 4.5 cm of the sheet round down onto the bark (a quarter-round profile),
     // so the torn edge has the thickness of a moss cushion, not a paper edge (the straw cells
     // share the sheet, so they round with it)
-    if (v > EDGE_V0) {
+    if (v > 0.6) {
       const edge = mossEdgeV(a);
-      const t = clamp((edge - v) / EDGE_ROUND, 0, 1);
+      const t = clamp((meridian(a, edge) - meridian(a, v)) / EDGE_ROUND, 0, 1);
       disp -= MOSS_THICK * (1 - Math.sqrt(1 - (1 - t) * (1 - t)));
       // and the very edge sits a hair under the bark's shell so the bark reads as carrying it
       disp -= 0.004 * k * (1 - t);
@@ -2754,12 +2759,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     closedU: true,
     hole: (u, v) => {
       const straw = isThatchCell(u, v);
-      // (v ≤ EDGE_V0 is the identity under `vMoss`, so the cap-top area accounting is unchanged)
-      if (v <= V_CAP) {
+      // (the area accounting runs on the sheet's own parameter — round 40's `vMoss`)
+      const vm = vMoss(u * TAU, v);
+      if (vm <= V_CAP) {
         const area = cellArea(u, v);
         if (straw) thatchArea += area;
         else mossArea += area;
-        if (smoothstep(0.35, 0.75, patchNoise(_tc)) * smoothstep(1, 0.7, v) > 0.5) thatch11Area += area;
+        if (smoothstep(0.35, 0.75, patchNoise(_tc)) * smoothstep(1, 0.7, vm) > 0.5) thatch11Area += area;
       }
       return straw;
     },
