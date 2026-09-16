@@ -67,3 +67,15 @@ Reused the existing textured iris shader in Blender at pupil/iris radius0.557(co
 No runtime change. Further eye edits need to start from the actual baked material or establish a matched reconstruction first, rather than mistaking an older shader's differences for an improvement.
 
 Fable explicitly confirmed Verdant reuse at18:41 UTC in PR2 comment5702697973. Fresh remote a728d9cb seals round39 take109 on0820f92. Source reuse includes tree primitives, birch, shaped leaf laminae, leaf shading and understory geometry. Round40 details are his stated work plan, not independently verified completion. Requested accessible copies of his cloud-local closeup captures in comment5702804346. The five-comparison README now records this confirmation.
+
+## Current eye provenance, brow fit, and forearm guards
+
+The pupil mismatch is now explained by the retained UV remap in study_pupil_uv.py and public/models/link/SOURCE.md (retained assetbdcb9ec7):188UV corners per eye already reduce the pupil/iris radius toward0.393 without changing the baked texture. Reapplying the old Generated-coordinate shader bypassed that change. Preserve the current UVs; do not redo the same pupil adjustment.
+
+Current-brow local fit moved396vertices by at most2.987mm, skipping113ring sections without a reliable bounded match. Matched native images show little perceptual gain, so this remains rejected. Original body restored after rendering.
+
+The reference character's leather forearm guards are a larger missing feature. New original guard shells follow skin cross sections weighted to elbowL/R, with3mm radial clearance, dark leather bindings, physical thickness and rounded edges. A first attempt centered on the bone exceeded the radius bound; corrected to centers measured from skin cross sections. Both448-triangle base shells have zero rest-pose body intersections. That check covers the base shells, not every evaluated modifier or animation pose. Native before/after images show the first blockout; straps, seams, evaluated contacts and game export are still pending. Geometry is bound to the existing forearm bones; packed native source is local forearm-guards-study.blend. No default game asset changed.
+
+| Current character | Original fitted guard blockout |
+| --- | --- |
+| ![Before](forearm-guards-before.png) | ![Guard blockout](forearm-guards-after.png) |

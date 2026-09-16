@@ -1,0 +1,25 @@
+{
+  "status": "Native first guard-shell study; seams/straps and animated fit pending",
+  "guards": [
+    {
+      "side": "L",
+      "shell_triangles": 448,
+      "body_intersecting_shell_triangles": 0,
+      "radial_clearance_m": 0.003,
+      "forearm_radius_range_m": [
+        0.02513087273264888,
+        0.04412079747935586
+      ]
+    },
+    {
+      "side": "R",
+      "shell_triangles": 448,
+      "body_intersecting_shell_triangles": 0,
+      "radial_clearance_m": 0.003,
+      "forearm_radius_range_m": [
+        0.026909413060573862,
+        0.04608943710541588
+      ]
+    }
+  ]
+}
