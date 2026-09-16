@@ -1974,6 +1974,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   clusters hide the roots, carpet shows dark blade spikes and repeated fan clumps — on the
   round-40 integration checklist.
 
+### 21:15 UTC — tick 118: heartbeat; round 40 finishing; interim evidence published for the owner
+- Tree unchanged → heartbeat. trees-24 at 6 commits (bole silhouettes + corridor, lantern limb twig
+  forks/laminae, leaf rims on cored lobes and distant crowns, ragged column moss, a-f-stones
+  corridor pools closed) capturing cap-e; structures-25 at 4 commits capturing its final cap-2;
+  vegetation-21 done at `4c56f88` (cap-1), report pending.
+- Owner check-in (via Astra): posted the commit identities per lane and committed interim
+  before/after sheets at `art/environment/round40-review/interim/` (`cc82695`) with an honest read:
+  right-foreground grass visibly finer/denser; lantern limb more layered leaves but still a beam
+  between clusters; far-crown paddles from the landing barely moved — follow-up if the final
+  capture does not move it. Astra: forearm-guard candidate + hair studies native-only; default
+  character 24591126.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2012,4 +2024,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T20:18:00Z
+2026-09-16T21:15:00Z
