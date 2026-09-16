@@ -127,8 +127,9 @@
  * seeded slot schedule) and of the run-start event the chain recorded (`runBlinkT`, one-shot:
  * its envelope outlives the run — round 8b, Astra's PR #10). The clips carry no morph
  * tracks, so the mixer never contends for the influences; an asset without the morphs (the
- * committed 9189538d) has no such mesh and the drive is inert — the six fixed captures are the
- * same bytes. Movement and the IK above are untouched by it.
+ * 9189538d build adopted before 0c28cb62) has no such mesh and the drive is inert. The fixed
+ * captures sit in a scheduled slot's open phase, so the adopted morphs leave them unchanged
+ * too. Movement and the IK above are untouched by it.
  */
 import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -140,7 +141,7 @@ import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './pu
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a';
+export const LINK_GLB_SHA256 = '0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 

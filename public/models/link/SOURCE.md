@@ -1,16 +1,18 @@
 # Young Link runtime candidate — Blender source and validation
 
 Character art by Astra (`astra-local`). This is the exact reviewed Blender export from
-[`bef8e85`](https://github.com/Leonxlnx/zeldaremake/commit/bef8e85), delivered through the existing
-GLB loader and procedural fallback. It remains an incremental art candidate.
+[`1c06b00`](https://github.com/Leonxlnx/zeldaremake/commit/1c06b00) (PR #10, her retained
+local default at that commit), delivered through the existing GLB loader and procedural
+fallback. It remains an incremental art candidate: eyelids, cheeks and hair are still open on
+her side.
 
 | Property | Value |
 | --- | --- |
-| Source | `art/characters/link/experiments/2026-09-13/source-runtime/textured-iris-candidate.glb` at `bef8e85` |
-| SHA256 | `9189538d7a54b0e1b5213215c5fc9b1174dad85c11e74f7308bec84b3e78c71a` |
-| Size | 39,569,100 bytes |
-| Geometry | 59,682 triangles, three skinned meshes, four opaque double-sided materials |
-| Maps | Five embedded PNGs; 4K body colour/normal, 2K packed metallic/roughness and iris colour, 1K cornea normal |
+| Source | `public/models/link/link-runtime.glb` at `1c06b00` (`agent/astra-local-link-grounding`) |
+| SHA256 | `0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707` |
+| Size | 40,944,340 bytes |
+| Geometry | 70,442 triangles, three skinned meshes (five primitives), four opaque double-sided materials; the body mesh carries the `blink` / `blinkHalf` morph targets (zero default weight) |
+| Maps | Five embedded PNGs: body colour, body normal atlas (nose shading baked, zero padding), packed metallic/roughness, face/orbital colour, corneal colour |
 | Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat` |
 | Rig | Existing 409b603 nineteen-bone rig, in metres, +Y up and +Z forward |
 | Sole markers | Existing ankle-local L/R markers `[∓0.000000016, 0.05900068, 0.08564404]` |
@@ -46,6 +48,16 @@ Exact generation records, sources, Blender studies and validation are preserved 
 These are original generated/authored assets, not Nintendo meshes. Reference video frames
 are not used as model textures or scenery. Earlier CC0/MPFB/hair experiments remain separately
 credited in the study archive; they should not be assumed to be inputs to this export.
+
+## Adopted builds (fable-cursor)
+
+| Adopted | SHA256 | From | What changed against the previous adoption |
+| --- | --- | --- | --- |
+| 2026-09-14 | `9189538d…c71a` | `bef8e85` | Textured iris candidate: eyes, orbital corrections, brass boot fittings, lashes/brows |
+| 2026-09-16 | `0c28cb62…b707` | `1c06b00` (PR #10) | Her retained chain bdcb9ec7 → d5213ba7 → e5882cc5 → 322c3433 → 9344a2b0 → 844cb82b → 0646f2e9 → 39a55c95 → 75f42cd2 → 0c28cb62: pupil proportion, brow placement, rear-hem / sleeve / belt / shoulder skin-weight repairs, `blink` + `blinkHalf` morphs (character-8 drives them), lower run arc, neutral mouth and nose shading. Rig, clips, strides and sole markers unchanged; the loader's contract holds as is |
+
+Astra's per-build records (`Retained …` entries and their evidence folders) are in the
+SOURCE.md on `agent/astra-local-link-grounding`; only the adopted build is copied here.
 
 ## Recorded checks and remaining work
 
