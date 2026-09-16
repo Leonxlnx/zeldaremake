@@ -11,7 +11,7 @@ import type { StairDef } from '../layout';
 import type { Terrain } from '../terrain/heightfield';
 import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, inset, jitteredRect, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, ccw, inset, jitteredRect, type P2 } from './geometry';
 
 export interface StairFrame {
   def: StairDef;
@@ -491,6 +491,74 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         });
         a += len + 0.04;
       }
+    }
+  }
+
+  // apron: the paved shelf in front of the first riser of a flight whose foot stands on the
+  // paving (the house-west flight; terrain/heightfield.ts flattens it a full riser above the
+  // path). Round 38: frame 56 s reads it as the flight's wide first tread — a pale flat slab at
+  // the path's edge with its kerb face standing over the path's stones (D x 0.72–0.95, y 0.72–0.85)
+  // — where ours was flattened but stoneless, and its bare joint-fill soil was the brightest
+  // thing in D's lower right. Two slabs across the flight's width, each as deep as the flat shelf
+  // under it (the west edge follows the line where the ground falls 0.2 m off the shelf toward
+  // the path) and as thick as it needs to sit 4 cm into the ground at its lowest corner, so the
+  // kerb is a stone face down to the path. Confined to the flight's width (the cheeks stand on
+  // the flanks from u −0.15) and to u < −0.03 (the first riser's face is at u ≈ 0.01, the tread
+  // nose overhangs to −0.08). Own stream fork, laid last: every draw above keeps its place.
+  if (hasPavedApron(def)) {
+    const arng = rng.fork('apron');
+    const localH = (a: number, u: number) => {
+      const [wx, wz] = stairToWorld(f, a, u);
+      return terrain.height(wx, wz) - def.base[1];
+    };
+    /** metres in front of the riser face where the ground has fallen 0.2 m off the shelf (the kerb's foot) */
+    const shelfDepth = (a: number) => {
+      let au = 0.15;
+      while (au < 1.6 && localH(a, -au) > -0.2) au += 0.05;
+      return au;
+    };
+    const top = baseY + 0.035;
+    const aS = -hw - 0.05;
+    const aN = hw + 0.05;
+    const split = (aS + aN) / 2 + arng.range(-0.2, 0.2);
+    for (const [a0, a1] of [
+      [aS, split - 0.02],
+      [split + 0.02, aN],
+    ]) {
+      const ac = (a0 + a1) / 2;
+      // west edge: five points on the kerb's foot line, plus 3 cm so the face stands on the path
+      const west: [number, number][] = [];
+      for (let k = 0; k <= 4; k++) {
+        const ak = a0 + ((a1 - a0) * k) / 4;
+        west.push([ak, -(shelfDepth(ak) + 0.03) + arng.range(-0.015, 0.015)]);
+      }
+      const uW = Math.min(...west.map((p) => p[1]));
+      const uc = (uW - 0.03) / 2;
+      const outline: P2[] = [
+        { x: a0 - ac, z: -0.03 - uc },
+        { x: (a0 + a1) / 2 - ac + arng.range(-0.02, 0.02), z: -0.03 - uc + arng.range(-0.012, 0.012) },
+        { x: a1 - ac, z: -0.03 - uc },
+        ...west.reverse().map(([ak, uk], k) => ({ x: ak - ac + (k === 0 || k === 4 ? 0 : arng.range(-0.02, 0.02)), z: uk - uc })),
+      ];
+      let groundMin = localH(ac, uc);
+      for (const p of outline) groundMin = Math.min(groundMin, localH(ac + p.x, uc + p.z));
+      const th = top - groundMin + 0.04;
+      const tint = 0.82 + arng.range(0, 0.12);
+      placeSlab(ccw(outline), ac, top - th, uc, 0, 0, 0, {
+        thickness: th,
+        bevel: 0.03,
+        dip: 0.008,
+        color: [tint, tint, tint * 0.97],
+        // the kerb face: the tread's grey-brown, soil-stained at the path
+        sideColor: [tint * 0.62, tint * 0.62, tint * 0.64],
+        sideStain: 1.2,
+        mossEdge: 0.5,
+        mossInner: 0.1,
+        mossFn: (x, z) => 0.4 + 0.6 * (noise.fbm((x + ac) * 2.1 + 17, (z + uc) * 2.1 + 3, 2) * 0.5 + 0.5),
+        uvScale,
+        uvOffset: [arng() * 3, arng() * 3],
+        rings: 2,
+      });
     }
   }
 

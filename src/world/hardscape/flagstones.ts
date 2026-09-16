@@ -784,10 +784,15 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   // cells at the reference's path edge, and place no stone themselves. A cell reaches to within
   // 0.7 m of the phantom (5 cm inside the edge) however far its seed is; where the pocket fades
   // out at its north end the reach shrinks with it, so camera D's foreground keeps its stones
+  // (round 38: the reach is the pocket's weight 0.4 m NORTH of the phantom — what a phantom keeps
+  // slab-free is the ground on its far side, and the last one, at z −6.4 where the pocket has
+  // faded to 0.9, still held its neighbours 0.64 m off and left D's frame bottom (z −6.5 … −7.05,
+  // x −0.8 … 0.4, D (0.3–0.47, 0.9–1.0)) as bare soil where frame 56 s has stone; the four
+  // phantoms south of it sit where the pocket is 1 either way, so their reach is unchanged)
   for (let z = -3.2; z >= -6.4; z -= 0.8) {
     const x = lawnPocketEdgeX(z) - 0.75;
     grid.add(x, z, seeds.length);
-    seeds.push({ x, z, rim: 2, big: false, lawn: 1, phantom: true, reach: 0.7 * lawnPocket(x, z) });
+    seeds.push({ x, z, rim: 2, big: false, lawn: 1, phantom: true, reach: 0.7 * lawnPocket(x, z - 0.4) });
   }
   // the lawn paving next (its seeds win the later min-distance tests): a coarse, lightly
   // jittered lattice whose cells become the 1.0–1.6 m slabs set in turf of reference B/E's
@@ -1126,7 +1131,11 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const dFore = Math.max(dForeground(sd.z), dThin(sd.z));
     if (dFore > 0.05 && !sd.authored && sd.lawn < 0.5) {
       const drng = rng.fork(`break-d/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`);
-      const dParts = breakCell(cell, base * (1 + 1.3 * dFore), drng.range(0, 0.02), BREAK_MIN_ACROSS, drng);
+      // (round 38: no piece under 1.45 m across at full weight — the 0.42 m floor let a 2.3 m cell
+      // at the frame's bottom edge shed a 0.96 m sliver that the stretch's 13–26 cm seams and 30 %
+      // fillets cut down to a 0.3 m² chip in a pale soil gap, D (0.44, 0.91), where frame 56 s has
+      // the slab under Link's shadow; the crack is retried elsewhere or given up, as any other)
+      const dParts = breakCell(cell, base * (1 + 1.3 * dFore), drng.range(0, 0.02), Math.max(BREAK_MIN_ACROSS, 1.45 * dFore), drng);
       parts = dParts;
       partGaps = dParts.map(() => (dParts.length > 1 ? drng.range(0.03, 0.06) : 0));
       if (dParts.length < partsOld.length) stats.mergedD += partsOld.length - dParts.length;
