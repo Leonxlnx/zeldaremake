@@ -127,7 +127,7 @@
  * seeded slot schedule) and of the run-start event the chain recorded (`runBlinkT`, one-shot:
  * its envelope outlives the run — round 8b, Astra's PR #10). The clips carry no morph
  * tracks, so the mixer never contends for the influences; an asset without the morphs (the
- * 9189538d build adopted before 0c28cb62 / 3f6cb6f3) has no such mesh and the drive is inert. The fixed
+ * 9189538d build adopted before the 0c28cb62 → 4741cf3e series) has no such mesh and the drive is inert. The fixed
  * captures sit in a scheduled slot's open phase, so the adopted morphs leave them unchanged
  * too. Movement and the IK above are untouched by it.
  */
@@ -141,7 +141,7 @@ import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './pu
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf';
+export const LINK_GLB_SHA256 = '4741cf3ec4fd1f8635a1bf980fc40ce5bc7722403076967b797cf2c2e4df1768';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
