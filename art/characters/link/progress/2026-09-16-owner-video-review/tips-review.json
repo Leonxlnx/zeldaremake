@@ -1,0 +1,8 @@
+{
+  "status": "Native geometry candidate; visual review pending",
+  "strands": 36,
+  "triangles": 4032,
+  "maximum_root_gap_m": 0.00018019610433839262,
+  "rooted_to_existing_head": true,
+  "new_materials": 1
+}

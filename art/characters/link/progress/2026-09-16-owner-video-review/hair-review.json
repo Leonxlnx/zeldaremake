@@ -1,0 +1,9 @@
+{
+  "status": "Native candidate, requires visual and game review",
+  "changed_pixels": 228431,
+  "unchanged_pixels_exact_before_png": true,
+  "mesh_positions_exact": true,
+  "donor_delta_fraction": 0.375,
+  "approx_total_relief": 0.5,
+  "normal_sha256": "4fb2f89dbf59a0eba6534efee9c6b67b1fca5a5403ef2d6a400be41f4c9b16b9"
+}

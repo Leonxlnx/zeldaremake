@@ -1,0 +1,13 @@
+{
+  "source": "cc0-arm-narrow-study.blend",
+  "review_scene": "Link | owner video close-up review",
+  "reference_image": "Owner video | character reference | comparison only",
+  "geometry_modified": false,
+  "runtime_asset_modified": false,
+  "findings": [
+    "Existing hair reads as thick sculpted clumps; reference has finer separation and directional fibres.",
+    "Existing face has larger rounder eyes and softer jaw; reference has stronger lids and a narrower chin.",
+    "Cloth and strap surface relief needs comparison under matched neutral lighting before changing any atlas."
+  ],
+  "blender_mcp_port": 9876
+}
