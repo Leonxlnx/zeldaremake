@@ -1,0 +1,8 @@
+{
+  "status": "Native colour transfer candidate",
+  "attribute": "HairAlbedo",
+  "domain": "CORNER",
+  "source_image": "hardware-body-color.008",
+  "interpolates_colours_not_atlas_coordinates": true,
+  "game_export_pending": true
+}

@@ -1,0 +1,22 @@
+{
+  "status": "Native ridge-clearance study",
+  "intersections_per_iteration": [
+    262,
+    143,
+    98,
+    64,
+    53,
+    48,
+    36,
+    25,
+    21,
+    16,
+    16,
+    9,
+    3,
+    0
+  ],
+  "max_displacement_m": 0.006499923674684028,
+  "triangles": 27984,
+  "resolved": true
+}
