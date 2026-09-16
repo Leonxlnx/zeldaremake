@@ -7,10 +7,22 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, TAU, V, bladeStrip, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
+import { MeshBuilder, NOT_LAMINA, TAU, V, bladeStrip, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
 
-export type Detail = 'high' | 'mid' | 'low';
+/** `ultra` (round 40) is an extra near LOD a builder may offer above `high`; the default LOD list has none */
+export type Detail = 'ultra' | 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
+/** the hero crown's four LODs (plants.ts): bipinnate fronds inside HERO_FERN_ULTRA_M, then the round-31 lances */
+export const HERO_FERN_DETAILS: Detail[] = ['ultra', 'high', 'mid', 'low'];
+/**
+ * Camera distance (m) inside which a hero crown draws its bipinnate LOD. The tree-base audit
+ * stood inside the shot-D crowns (their pinnae were 0.2 m single-colour lances filling the frame);
+ * the six fixed cameras have no hero crown inside this range (plants.test), so their frames and
+ * budgets are untouched and only the walking eye pays for it.
+ */
+export const HERO_FERN_ULTRA_M = 5;
+/** the ultra rachis' sides (the high LOD's 5 read as a flat wedge from 10 cm) */
+export const HERO_RACHIS_SIDES = 8;
 
 export interface PlantPalette {
   fern: RGB;
@@ -149,11 +161,30 @@ export function fernGeometry(seed: string, pal: PlantPalette, detail: Detail): B
  * yellow-olive (`#69692e` in the footage) rather than the deep shade green of the understory
  * ferns, so the clump reads as the bright mass the reference box measures (lum ≈ 0.36).
  */
+/**
+ * The ultra rachis gradient (round 40): a darker, slightly warmer foot (toward the bark, a touch
+ * of red) rising to a lit green tip (toward the sunlit frond); the other LODs keep the flat stem tone.
+ */
+export function heroRachisTones(pal: PlantPalette): { foot: RGB; tip: RGB } {
+  const frondColor = blend(pal.fern, pal.leafSun, 0.5);
+  const stemColor = blend(pal.stem, frondColor, 0.4);
+  return {
+    foot: tone(blend(blend(stemColor, pal.bark, 0.45), [0.42, 0.3, 0.16], 0.18), 0.78),
+    tip: tone(blend(stemColor, blend(frondColor, pal.leafSun, 0.4), 0.55), 1.1),
+  };
+}
+
 export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
+  // round 40: `ultra` is the high LOD's frond layout — the same draws from the same stream, so the
+  // arches, stems and fiddleheads coincide and a LOD switch at HERO_FERN_ULTRA_M does not pop —
+  // with every lance pinna rebuilt as a bipinnate one (geometry.ts pinnateLeaf: midrib strip and
+  // cupped pinnules) from its own forked stream; ≈ 7 × the high LOD's triangles
+  const ultra = detail === 'ultra';
+  const high = detail === 'high' || ultra;
   const low = detail === 'low';
+  const pinnules = ultra ? createRng(`${seed}/pinnules`) : null;
   const fronds = low ? 6 : 8 + rng.int(0, 4);
   const height = 0.7 + rng() * 0.2;
   const azimuth = rng() * TAU;
@@ -161,6 +192,7 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
   // understory fern green, and stay legible as separate arches against the dark bank
   const frondColor = blend(pal.fern, pal.leafSun, 0.5);
   const stemColor = blend(pal.stem, frondColor, 0.4);
+  const { foot: rachisFoot, tip: rachisTip } = heroRachisTones(pal);
   // rootstock: a stubby fibrous trunk the fronds spring from
   tube(m, [V(0, -0.02, 0), V(0.01, 0.06, 0), V(0, 0.13, 0.01)], 0.055, 0.035, tone(pal.bark, 0.9), high ? 6 : 4, true);
   for (let f = 0; f < fronds; f++) {
@@ -174,7 +206,12 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
     const rise = inner ? 0.62 : 0.7 + rng() * 0.1;
     const curve = arch(radial, lateral, reach, (rng() - 0.5) * 0.14, h, rise);
     const segs = high ? 12 : low ? 5 : 7;
-    tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, high ? 5 : 3);
+    // round 40: at the ultra LOD the rachis is what crosses the lens when the camera stands inside
+    // the fern (the tree-base audit's "flat wedge" in northwest-base: a 5-sided 12 mm tube at 10 cm):
+    // 8 sides and a lengthwise gradient — a darker, warmer foot rising to the frond's lit green —
+    // so it reads as a stem; the other LODs keep their 5 / 3 sides and flat tone (+72 triangles a frond)
+    if (ultra) tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, HERO_RACHIS_SIDES, false, (t) => blend(rachisFoot, rachisTip, Math.pow(t, 0.8)));
+    else tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, high ? 5 : 3);
     const pairs = high ? 12 : low ? 6 : 8;
     const frondTone = 0.86 + rng() * 0.34;
     for (let p = 0; p < pairs; p++) {
@@ -191,7 +228,8 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
         // pinnae brighten toward the sunlit tip of the frond
         const color = tone(frondColor, frondTone * (0.86 + t * 0.24 + rng() * 0.1));
         const opts = { curl: 0.08 + rng() * 0.1, twist: sign * (0.05 + rng() * 0.15), ridge: 0.18, serration: 0.04 };
-        if (high) lanceLeaf(m, origin, dir, length * (0.94 + rng() * 0.12), length * (0.27 + rng() * 0.07), color, { ...opts, sections: 3 });
+        if (pinnules) pinnateLeaf(m, origin, dir, length * (0.94 + rng() * 0.12), length * (0.27 + rng() * 0.07), color, { ...opts, pairs: 7, rng: pinnules });
+        else if (high) lanceLeaf(m, origin, dir, length * (0.94 + rng() * 0.12), length * (0.27 + rng() * 0.07), color, { ...opts, sections: 3 });
         else if (low) foldedLeaf(m, origin, dir, length, length * 0.32, color, opts);
         else curvedLeaf(m, origin, dir, length, length * 0.3, color, opts);
       }
@@ -315,7 +353,7 @@ export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): 
   {
     const seg = high ? 14 : low ? 8 : 10;
     const rings = high ? 7 : low ? 4 : 5;
-    const top = m.vertex(surface(0, 0, 0.8), 0.5, 1, tone(pal.leaf, 0.8));
+    const top = m.vertex(surface(0, 0, 0.8), NOT_LAMINA + 0.5, 1, tone(pal.leaf, 0.8));
     const levels: number[][] = [];
     for (let r = 1; r <= rings; r++) {
       const phi = (r / rings) * Math.PI * 0.94;
@@ -324,7 +362,7 @@ export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): 
         const ang = (k * TAU) / seg + (r % 2) * (Math.PI / seg);
         const wobble = 0.8 * (0.94 + 0.12 * bump(r * 17 + k * 3));
         const c = blend(tone(pal.leaf, 0.8), shade, Math.min(1, (r / rings) * 1.4));
-        level.push(m.vertex(surface(phi, ang, wobble), k / seg, 1 - r / rings, c));
+        level.push(m.vertex(surface(phi, ang, wobble), NOT_LAMINA + k / seg, 1 - r / rings, c));
       }
       levels.push(level);
     }
@@ -424,7 +462,7 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   const segments = low ? 5 : high ? 8 : 6;
   const floret = () => blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
   const at = (u: number, v: number, h: number) => center.clone().addScaledVector(side, u).addScaledVector(fwd, v).addScaledVector(n, h);
-  const top = m.vertex(at(0, 0, radius * 0.8), 0.5, 1, blend(pal.purple, pal.purpleLight, 0.3));
+  const top = m.vertex(at(0, 0, radius * 0.8), NOT_LAMINA + 0.5, 1, blend(pal.purple, pal.purpleLight, 0.3));
   const levels: number[][] = [];
   for (let r = 1; r <= rings; r++) {
     const t = r / rings;
@@ -434,7 +472,7 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
       const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
       const rr = radius * Math.sin(phi) * (0.85 + rng() * 0.3);
       const h = radius * 0.8 * Math.cos(phi) * (0.85 + rng() * 0.3);
-      level.push(m.vertex(at(Math.cos(ang) * rr, Math.sin(ang) * rr, h), k / segments, 1 - t, floret()));
+      level.push(m.vertex(at(Math.cos(ang) * rr, Math.sin(ang) * rr, h), NOT_LAMINA + k / segments, 1 - t, floret()));
     }
     levels.push(level);
   }

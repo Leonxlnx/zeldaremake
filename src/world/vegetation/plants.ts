@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -156,12 +156,18 @@ const PACKS: Record<string, PackLayout> = {
   // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
   // more — paid for by the grass tiles' far draws, see grass.ts)
   fiddleheads: [SINGLE(3), SINGLE(3)],
+  // round 40: the bipinnate near LOD (≈ 18 K triangles a crown) and the lance high LOD draw per
+  // variant — packed, every crown 5–16 m from a camera submitted all three variants collapsed
+  // (10 908 triangles, 21.8 K with its shadow; 3 636 / 7.3 K per variant: −73 K from camera A,
+  // −131 K from F, +4 draws paid by the tufts' shadow pass below); the two far lance LODs keep
+  // the single pack (no fixed camera has a crown inside the near range)
+  'hero-ferns': [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // 12 hero hedges, all high-LOD from every camera: packing ALL(3) near submitted 3x the placed
   // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
   hedge: [SINGLE(3), ALL(3), ALL(3)],
   // round 31: 6 tuft variants (two per height class, `variant % 3` the class). Thousands of
-  // instances: one draw per variant near (130 triangles each, plus its shadow pass), the far LOD
-  // (30 triangles) pairs the two variants of a class — 15 draws
+  // instances: one draw per variant near (130 triangles each), the far LOD (30 triangles) pairs
+  // the two variants of a class — 9 draws (round 40: the near tufts no longer cast, see `mk`)
   tufts: [SINGLE(6), [[0, 3], [1, 4], [2, 5]]],
 };
 
@@ -194,7 +200,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // Under the round-4 lighting the clump (D 0.03–0.14 × 0.58–0.70) still measures 0.27 against
   // the reference's 0.32 even with this boost and the +30 % fern palette, so the crowns take the
   // west-verge zone lift (materials.ts SHADE_LIFT_ZONE) like the rest of the verge.
-  const heroFerns = mk('hero-ferns', variants(3, `${seed}/hero-fern`, pal, heroFernGeometry), 'plant', [16, 32], 1, { sway: 2.0, flutter: 0.014, stiffness: 0.35, transmission: 0.25, ambientBoost: 0.4 });
+  // round 40: a bipinnate near LOD inside HERO_FERN_ULTRA_M (plantgeo.ts; the tree-base audit stood
+  // inside these crowns), casting shadows like the lance LOD it hands over to
+  const heroFerns = mk('hero-ferns', variants(3, `${seed}/hero-fern`, pal, heroFernGeometry, HERO_FERN_DETAILS), 'plant', [HERO_FERN_ULTRA_M, 16, 32], 2, { sway: 2.0, flutter: 0.014, stiffness: 0.35, transmission: 0.25, ambientBoost: 0.4 });
   const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
   // hero hedge: read from 6 m (the bank crowns) and 15 m (the door row) in shot A so it keeps
   // the high LOD much further out than the scattered bushes. Round 14: the clipped-crown geometry
@@ -203,15 +211,15 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // seeds, same proportions, so every crown keeps its place, scale and top.
   const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
-  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { leafDetail: false, sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   // the pale-yellow blooms tucked into the shot-D fern clump: the same cluster-head plant in a
   // straw-yellow palette (reference frame 56: small pale flowers at the base of the fronds)
   const yellowPal = { ...pal, purple: rgb(0xd6c15c), purpleLight: rgb(0xefe094), purpleDeep: rgb(0xa8933a) };
-  const yellowFlowers = mk('flowers-yellow', variants(2, `${seed}/flower-yellow`, yellowPal, flowerGeometry), 'plant', [9, 16], 0, { sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  const yellowFlowers = mk('flowers-yellow', variants(2, `${seed}/flower-yellow`, yellowPal, flowerGeometry), 'plant', [9, 16], 0, { leafDetail: false, sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
   // white forest flowers (concept sheet 01): matte petals like the violets; the far LOD keeps every
   // bloom as an enlarged four-petal fold so the white dots survive at 12–25 m, and the petals get
   // a little skylight fill so they still read white under the verge canopy (frame 14 s dots ≈ 0.6)
-  const whiteFlowers = mk('flowers-white', variants(3, `${seed}/flower-white`, pal, whiteFlowerGeometry, ['high', 'low']), 'plant', [12], 0, { sway: 2.0, flutter: 0.01, stiffness: 0.45, roughness: 1, ambientBoost: 0.36, transmission: 0.06 });
+  const whiteFlowers = mk('flowers-white', variants(3, `${seed}/flower-white`, pal, whiteFlowerGeometry, ['high', 'low']), 'plant', [12], 0, { leafDetail: false, sway: 2.0, flutter: 0.01, stiffness: 0.45, roughness: 1, ambientBoost: 0.36, transmission: 0.06 });
   // the three sheet laminae (heart / ovate / round) with a waxy upper face and a matte underside
   const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55, roughness: 0.9, topRoughness: 0.55 });
   // stout buds barely move in the wind
@@ -231,7 +239,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // the tufts everywhere, so a tuft 10–16 m out is one clump among many and its 30-triangle far
   // LOD reads the same; the near tufts' 130 triangles and shadow pass were 240–340 K from A / B.
   // Past 22 m (a 0.3 m tuft is 7 px) the clump cards alone stand for them.
-  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
+  // round 40: the tufts cast no shadow. They stand in the blade turf and the carpet's cards, neither of
+  // which casts (grass.ts / carpet.ts), so a 0.15–0.35 m tuft's own shadow map was the one shadow in
+  // the turf layer — six depth draws and 123 triangles a near tuft (33–66 K a frame) for shadow-map
+  // acne at blade scale; the budget goes to the verge band and the face turf instead.
+  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 0, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
   // round 39: the cushions stop at 24 m (≤ 0.12 m high — 3 px there; 97 K triangles in one draw from A)
   const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 }, 24);
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
@@ -2800,6 +2812,125 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         }
       }
     }
+  }
+
+  // ======== Round 40 — verge transitions (the owner's video review: "fern/leaf-litter transitions
+  // at the verge. Keep the paths clear."). Where the lawn meets the paving (field.ts rimCandidates:
+  // the spine, the stair branch, the plaza discs and the bank toe, VERGE_IN..VERGE_BAND m outside
+  // the rim — the rim's own 0.25 m keeps its moss cushions and litter seam) and where it meets the
+  // main flight's and the house flight's flank banks (the feathered foot of each `flankZone` /
+  // `houseFlankZone`), a band of small ferns, broad leaves and short tufts with clover breaks the
+  // hard line between turf and slab. The band runs from its own streams after every scatter above,
+  // so no earlier plant moves. Every seat keeps the standing rules: nothing on the paving, within
+  // STONE_CLEARANCE of a stepping stone or in the trodden strip (frames 14 / 24), off the shot-A
+  // bank face (frame 1's tufts), off camera C's stair-foot wedge and its foreground (frame 46),
+  // off D's bare shoulders and hollow (frame 56), out of frame 8 s' dark mass (F 0–0.17 ×
+  // 0.44–0.665) and frame 14 s' lawn band, clear of the kids' spots, and out of the round-38
+  // boxes whose crown heights are contracts of their own (the terrace, the lobe corner, the crest).
+  // Budget (the round-39 isolation, both passes): a fern inside 12 m costs ≈ 6 800 triangles, a
+  // broad leaf ≈ 570, a tuft ≈ 250, a clover ≈ 360 — so the band is tufts, leaves and clover with
+  // a fern every metre or two (own spacing grid), ≈ 1 000 plants over the rims and the bank feet.
+  {
+    const VERGE_IN = 0.25;
+    const VERGE_BAND = 1.3;
+    const VERGE_PER_M = 22;
+    const BANK_PER_M2 = 12;
+    const rng = ctx.rng.fork('plants/verge-r40');
+    const bankRng = ctx.rng.fork('plants/verge-bank-r40');
+    const s = newSample();
+    const kidSpots: readonly (readonly [number, number])[] = [...ctx.layout.npcSpots.map((n) => [n.position[0], n.position[2]] as const), A_BANK_KID, F_BANK_KID];
+    const fov = (id: string) => Math.tan(((ctx.layout.viewpoints.find((v) => v.id === id)?.fov ?? 46) * Math.PI) / 360) * (16 / 9);
+    const fTan = fov('F_canopy');
+    const cTan = fov('C_lookback');
+    const cFootBox = field.cFootBox();
+    const inBox = (x: number, z: number, b: readonly [number, number, number, number]) => x >= b[0] && z >= b[1] && x <= b[2] && z <= b[3];
+    const R38_BOXES: readonly (readonly [number, number, number, number])[] = [
+      [6.3, -11, 8.8, -8.4],
+      [6.7, -4.9, 8.5, -2.4],
+      [6.0, 3.5, 8.8, 5.6],
+    ];
+    /** frame 8 s' dark left mass (plants.test: its population is capped) — a plant of horizontal `reach` within 14 m that projects into it */
+    const inFMass = (x: number, z: number, reach: number) => {
+      const p = field.screenPoint('F_canopy', x, T.height(x, z), z);
+      if (!p || p.depth > 14) return false;
+      const hw = (reach * 0.5) / (p.depth * fTan);
+      return p.sx + hw >= 0 && p.sx - hw <= 0.17 && p.sy >= 0.44 && p.sy <= 0.665;
+    };
+    /** camera C's foreground within 8 m (frame 46 s: trodden earth, nothing new stands in it) */
+    const inCNear = (x: number, z: number, reach: number) => {
+      const p = field.screenPoint('C_lookback', x, T.height(x, z), z);
+      if (!p || p.depth >= 8) return false;
+      const hw = (reach * 0.5) / (p.depth * cTan);
+      return !(p.sx + hw < -0.02 || p.sx - hw > 1.02 || p.sy < -0.02);
+    };
+    const nearWhite = (x: number, z: number, r: number) => whiteFlowers.items.some((it) => Math.hypot(it.x - x, it.z - z) < r);
+    /** the ground every verge plant shares (samples `s`) */
+    const vergeGround = (x: number, z: number) => {
+      field.sample(x, z, s);
+      if (!field.allowed(x, z, s, true) || field.insideGiantTrunk(x, z) || s.cliff > 0.35) return false;
+      if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z, true) > 0.6 || field.bankFace(x, z) > 0.3) return false;
+      if (field.dShoulder(x, z) > 0 || field.dHollow(x, s.h, z) > 0 || inBox(x, z, cFootBox) || field.lawnBand(x, z) > 0.5) return false;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0 || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
+      return !kidSpots.some(([kx, kz]) => Math.hypot(x - kx, z - kz) < 1.0);
+    };
+    /** a plant over 0.12 m of horizontal `reach`: the frame contracts on standing plants */
+    const standing = (x: number, z: number, reach: number) => !inFMass(x, z, reach) && !inCNear(x, z, reach) && field.sightlineC(x, z, reach) === 0;
+    // one spacing grid per kind: a clover does not keep a fern away, only another fern does
+    const fernSpacing = new Spacing(1.2);
+    const leafSpacing = new Spacing(0.4);
+    const tuftSpacing = new Spacing(0.25);
+    const cloverSpacing = new Spacing(0.25);
+    /** one seat of the band at weight `w` (0..1 across the band's profile), from stream `r` */
+    const seat = (x: number, z: number, w: number, r: Rng) => {
+      const roll = r();
+      const draw = r();
+      if (draw > w * field.falloff(x, z)) return;
+      if (!vergeGround(x, z)) return;
+      if (roll < 0.06) {
+        // small understory fern, 0.21–0.5 m — one every metre or two of rim
+        if (!standing(x, z, 0.6) || R38_BOXES.some((b) => inBox(x, z, b)) || !fernSpacing.ok(x, z, 1.1) || !leafSpacing.ok(x, z, 0.2)) return;
+        placeInstance(ferns, x, z, s, r, 0.42 + r() * 0.2, 0.7, 0.02, greenVar(r, 0.2));
+        fernSpacing.add(x, z);
+      } else if (roll < 0.36) {
+        // broad leaves (heart / ovate / round), ≤ 0.39 m, never over a white clump
+        if (!standing(x, z, 0.35) || nearWhite(x, z, 0.45) || !leafSpacing.ok(x, z, 0.28) || !fernSpacing.ok(x, z, 0.2)) return;
+        placeInstance(weeds, x, z, s, r, 0.9 + r() * 0.4, 0.8, 0.012, greenVar(r, 0.18).multiplyScalar(0.92));
+        leafSpacing.add(x, z);
+      } else if (roll < 0.76) {
+        // a short or mid tuft (TUFT_HEIGHTS classes 0 / 1: ≤ 0.35 m)
+        if (!standing(x, z, 0.3) || !tuftSpacing.ok(x, z, 0.15)) return;
+        const cls = r() < 0.6 ? 0 : 1;
+        const variant = cls + (r() < 0.5 ? 0 : 3);
+        const sc = 0.8 + r() * 0.3;
+        placeInstance(tufts, x, z, s, r, sc, 0.5, 0.01, greenVar(r, 0.16), sc, [variant, variant + 1]);
+        tuftSpacing.add(x, z);
+      } else {
+        if (!cloverSpacing.ok(x, z, 0.14)) return;
+        placeInstance(clover, x, z, s, r, 1.0 + r() * 0.5, 0.9, 0.008, greenVar(r, 0.18));
+        cloverSpacing.add(x, z);
+      }
+    };
+    // the paved rims
+    field.rimCandidates(rng, VERGE_PER_M * q.density, VERGE_BAND, (px, pz, edge) => {
+      const w = smoothstep(VERGE_IN, VERGE_IN + 0.2, edge) * (1 - smoothstep(0.85, VERGE_BAND, edge));
+      seat(px, pz, w, rng);
+    });
+    // the flank banks' feet: candidates over each flank box, kept where the zone feathers in
+    const bankFoot = (box: readonly [number, number, number, number] | null, zone: (x: number, z: number) => number) => {
+      if (!box) return;
+      const n = Math.round((box[2] - box[0]) * (box[3] - box[1]) * BANK_PER_M2 * q.density);
+      for (let i = 0; i < n; i++) {
+        const x = box[0] + bankRng() * (box[2] - box[0]);
+        const z = box[1] + bankRng() * (box[3] - box[1]);
+        const k = zone(x, z);
+        const w = smoothstep(0.02, 0.2, k) * (1 - smoothstep(0.55, 0.85, k));
+        if (w <= 0 || field.lawnEdgeDistance(x, z, true) < VERGE_IN) continue;
+        seat(x, z, w, bankRng);
+      }
+    };
+    bankFoot(field.flankBox(), (x, z) => field.flankZone(x, z));
+    bankFoot(field.houseFlankBox(), (x, z) => field.houseFlankZone(x, z));
   }
 
   const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings];
