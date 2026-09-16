@@ -1794,6 +1794,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   scene state (matrices, uniforms, buffers, 85 programs all bit-identical). Within W41's 0.5 %,
   but a determinism check that reads 0.00 % is not proof of a scene-side no-op; compare twice.
 
+### 01:20 UTC — tick 109: the owner asks for "4K" detail; tone-b reverted; 3f6cb6f3 adopted; round 38 widened
+- 00:49 the owner: "make the video look sharper … the tree branch more detailed … like 4K … maybe ask
+  Astra for help". Same minute Astra (PR #2): she did NOT retain round-37b's postfx after matched
+  laptop captures — the 1.1 near unsharp crunches face seams / hair facets / cloth edges and far
+  σ 6 removes structure; "pursue geometry/material/lighting for clarity, not compensating
+  sharpening with distance blur". Her crops confirm it. **Reverted** (`9c70c3c`): near unsharp
+  1.1/3–8 m → 0.25/4–10 m, far σ 6.0 → 4.2 (ddfb652's values). W35 on B/E is an honest fail again
+  (0.788 / 0.737) to be met with detail, not filters; the far softening itself goes to a clarity
+  review (the frames' far windows have MORE structure than ours).
+- **3f6cb6f3 adopted** (`9f3b1f3`, her `9c66fa8`: alert eyelid opening over 0c28cb62; contract
+  re-checked on the file). Two adoptions in one series after all — she asked, the swap is data-only.
+- Direction for "4K" (posted to Astra with three concrete asks — native 4K captures + 1:1 crops,
+  Blender-baked original 4K material sets, a 2K leaf atlas): render-scale flag (perf-2), 2K
+  texture tier for hero sets (textures-2k launched, r38/tex — Poly Haven 2K of the SAME assets),
+  MSAA instead of FXAA-only (clarity pass, after atmosphere-15 frees postfx), branch detail
+  (secondary/tertiary twigs, bark relief, near-camera leaf geometry — trees-23 after trees-22),
+  leaf-cluster atlas 512 → real leaf atlas. A 3840×2160 still of A/B is rendering
+  (gauntlet/tmp/still4k.mjs, waiting on a capslot) as the where-detail-runs-out evidence.
+- Round 38 now six agents: perf-2, hardscape-29, trees-22, vegetation-19, atmosphere-15, textures-2k.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1832,4 +1852,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T00:40:00Z
+2026-09-16T01:20:00Z
