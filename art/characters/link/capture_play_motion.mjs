@@ -39,7 +39,7 @@ try{
     const scene=__reviewScenes.find(s=>s.userData.player);if(!scene)throw Error('Player scene missing');
     const player=scene.userData.player;player.setPlayMode(true);
     const hero=scene.getObjectByName('link');if(!hero)throw Error('GLB hero missing');
-    const bodies=[];hero.traverse(o=>{if(o.isSkinnedMesh&&o.geometry.attributes.position.count>10000)bodies.push(o);});
+    const bodies=[];hero.traverse(o=>{if(o.isSkinnedMesh&&o.geometry.attributes.position.count>10000&&o.morphTargetDictionary?.blink!==undefined)bodies.push(o);});
     if(bodies.length!==1)throw Error('Expected one skinned body, got '+bodies.length);
     const body=bodies[0],a=body.geometry.attributes,markers={};
     for(const side of ['L','R']){

@@ -1,0 +1,243 @@
+{
+  "at": "2026-09-16T18:27:32.688Z",
+  "kind": "Actual Three.js runtime GLB review; not a world gauntlet capture",
+  "asset": "progress/2026-09-16-owner-video-review/surface-locks-candidate.glb",
+  "glb_sha256": "bdd64784ebc2d2e2048f23d054ff6975319f17f5f8689f0f9d8b62aeddcb4e43",
+  "views": {
+    "01-body": {
+      "gait": "idle",
+      "t": 0,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.006968603557204141,
+        "R": 0.0069686122661450755
+      },
+      "sha256": "e953f2e871c34308dba452fe57616f46e67fbed12cae410fce5fef11d3133466"
+    },
+    "02-front": {
+      "gait": "idle",
+      "t": 0,
+      "view": "front",
+      "sole_heights": {
+        "L": 0.006968603557204141,
+        "R": 0.0069686122661450755
+      },
+      "sha256": "611110955fa375f1e11fea95ae2201263a20e6af5aae797f0df8fd97f8a3c185"
+    },
+    "03-side": {
+      "gait": "idle",
+      "t": 0,
+      "view": "side",
+      "sole_heights": {
+        "L": 0.006968603557204141,
+        "R": 0.0069686122661450755
+      },
+      "sha256": "07b738b029a62880eb3ddaf5ccc111c304e405608508c54a3ecae90a7fa41cc6"
+    },
+    "04-back": {
+      "gait": "idle",
+      "t": 0,
+      "view": "back",
+      "sole_heights": {
+        "L": 0.006968603557204141,
+        "R": 0.0069686122661450755
+      },
+      "sha256": "db2ecaec8acc11b6badea560b350c8d9853d8cced10e0514ce7003043433ee35"
+    },
+    "05-face": {
+      "gait": "idle",
+      "t": 0,
+      "view": "face",
+      "sole_heights": {
+        "L": 0.006968603557204141,
+        "R": 0.0069686122661450755
+      },
+      "sha256": "3681dc1f827caabde6ec4772ef9dcac1d1f3352eb4f91c058e43840902176980"
+    },
+    "06-boots": {
+      "gait": "idle",
+      "t": 0,
+      "view": "boots",
+      "sole_heights": {
+        "L": 0.006968603557204141,
+        "R": 0.0069686122661450755
+      },
+      "sha256": "b53dd38837ca95f5b1babbf9c743afced92ad908b6e0037164662d247f4862a1"
+    },
+    "walk-0": {
+      "gait": "walk",
+      "t": 0,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.006967069109343061,
+        "R": 0.007893966594731119
+      },
+      "sha256": "1cf2400e2d7f7ab459e21abf4ae3a33be681f7b3e637ac0356248ec919b4c467"
+    },
+    "walk-0.25": {
+      "gait": "walk",
+      "t": 0.13750000298023224,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.006771678690603814,
+        "R": 0.06656808193350827
+      },
+      "sha256": "2416ef953b060a4bede257ab5535e3af7f9770ce24dc6962a8137d6b2bd8d6ff"
+    },
+    "walk-0.5": {
+      "gait": "walk",
+      "t": 0.2750000059604645,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.008426753184817828,
+        "R": 0.006660138043689419
+      },
+      "sha256": "bb3f5bd626a9feed874b7f6f623245add3614cd5f394fcf127e31d3b05599b3b"
+    },
+    "walk-0.75": {
+      "gait": "walk",
+      "t": 0.4125000089406967,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.06655108183259209,
+        "R": 0.0067743211664632475
+      },
+      "sha256": "4df0dd943d850ef34ba3f9012dcf6e30476fcb9b0a3f79511d78a9b020148edf"
+    },
+    "run-0": {
+      "gait": "run",
+      "t": 0,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.00696766303595117,
+        "R": 0.03434143572757695
+      },
+      "sha256": "34b80ad42a8c3ea719cb90c6e0176eef2a2a71c324ca24db3ff6c5f79e0669fa"
+    },
+    "run-0.25": {
+      "gait": "run",
+      "t": 0.11666666716337204,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.009456375316440052,
+        "R": 0.04384541940676434
+      },
+      "sha256": "ae4a2b7ce34c35559b10852b69337cfc38f164ef098c750a769d17f47c6ee7f0"
+    },
+    "run-0.5": {
+      "gait": "run",
+      "t": 0.23333333432674408,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.03412906170276315,
+        "R": 0.006971882257603107
+      },
+      "sha256": "0931412ffbf306cf17cc81c5ec8f68ba901e34195e5406c57903bc84556e0e51"
+    },
+    "run-0.75": {
+      "gait": "run",
+      "t": 0.3500000014901161,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.04379395914157268,
+        "R": 0.009291478287621027
+      },
+      "sha256": "5603f965fe24bacaee06162b2cbdbf82ef87dc6020bf5525f6fd379371885d68"
+    },
+    "stairs-0": {
+      "gait": "stairs",
+      "t": 0,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.00696730526093604,
+        "R": 0.009099906254697549
+      },
+      "sha256": "2f0278b2439f7aab495e2e8e61ed198d19d88f32f4d21cec8d2b6d3da5d5bbba"
+    },
+    "stairs-0.25": {
+      "gait": "stairs",
+      "t": 0.18333333730697632,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.006965437333057688,
+        "R": 0.15019437804153066
+      },
+      "sha256": "9980c9159db058671c62700c1faf3e41f813b1e27fde5c6efea97b46cc598d73"
+    },
+    "stairs-0.5": {
+      "gait": "stairs",
+      "t": 0.36666667461395264,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.009107511208896019,
+        "R": 0.00697014301343923
+      },
+      "sha256": "e4ee3bfe763d5b6b028ed91c724f2468c2a40b820b3359442d87c7f39ecc0621"
+    },
+    "stairs-0.75": {
+      "gait": "stairs",
+      "t": 0.550000011920929,
+      "view": "body",
+      "sole_heights": {
+        "L": 0.1502253366263517,
+        "R": 0.0069667750308012874
+      },
+      "sha256": "5383b9745d6ee75bbb18f0e34ccaa6e4976a816908f83c8609719fb54c8e4dc6"
+    }
+  },
+  "errors": [],
+  "sole_local": {
+    "L": [
+      -1.6030785518483803e-8,
+      0.05900067647838477,
+      0.08564404089537336
+    ],
+    "R": [
+      1.6030785518483803e-8,
+      0.05900067647838477,
+      0.08564404089537336
+    ]
+  },
+  "gpu": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "lighting": "studio",
+  "motion_clearance": {
+    "walk": {
+      "samples": 121,
+      "minimum_sole_y": {
+        "L": 0.006308244036265436,
+        "R": 0.006317829800726745
+      },
+      "worst_phase": {
+        "L": 0.4666666666666667,
+        "R": 0.5583333333333333
+      }
+    },
+    "run": {
+      "samples": 121,
+      "minimum_sole_y": {
+        "L": 0.0056677949521641985,
+        "R": 0.005671911280871307
+      },
+      "worst_phase": {
+        "L": 0.008333333333333333,
+        "R": 0.5083333333333333
+      }
+    },
+    "stairs": {
+      "samples": 121,
+      "minimum_sole_y": {
+        "L": 0.006418866843774742,
+        "R": 0.006416309942194192
+      },
+      "worst_phase": {
+        "L": 0.4666666666666667,
+        "R": 0.9666666666666667
+      }
+    }
+  },
+  "render": {
+    "calls": 13,
+    "triangles": 152144
+  },
+  "complete": true
+}

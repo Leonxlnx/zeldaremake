@@ -46,8 +46,27 @@ function world(index){
 }
 const bind=world(head),inverse=bind.clone().invert();
 assert.ok(bind.clone().multiply(inverse).elements.every((v,i)=>Math.abs(v-(i%5===0?1:0))<1e-10));
-(doc.nodes[head].children??=[]).push(doc.nodes.length);
-doc.nodes.push({name:'Link secondary hair locks',mesh:doc.meshes.length,matrix:inverse.toArray()});
+const skin=doc.skins.findIndex(s=>s.joints.includes(head));assert.ok(skin>=0);
+const joint=doc.skins[skin].joints.indexOf(head);
+const ibm=doc.accessors[doc.skins[skin].inverseBindMatrices],iv=doc.bufferViews[ibm.bufferView];
+assert.equal(ibm.componentType,5126);assert.equal(ibm.type,'MAT4');
+const start=(iv.byteOffset??0)+(ibm.byteOffset??0)+joint*(iv.byteStride??64);
+assert.ok(inverse.elements.every((v,i)=>Math.abs(v-original.bin.readFloatLE(start+4*i))<1e-5));
+function appendAttribute(bytes,count,componentType){
+  const pad=Buffer.alloc((4-size%4)%4);parts.push(pad);size+=pad.length;
+  const bufferView=doc.bufferViews.length;doc.bufferViews.push({buffer:0,byteOffset:size,byteLength:bytes.length});parts.push(bytes);size+=bytes.length;
+  const index=doc.accessors.length;doc.accessors.push({bufferView,componentType,count,type:'VEC4'});return index;
+}
+for(const p of mesh.primitives){
+  const count=doc.accessors[p.attributes.POSITION].count,joints=Buffer.alloc(count*8),weights=Buffer.alloc(count*16);
+  for(let i=0;i<count;i++){joints.writeUInt16LE(joint,i*8);weights.writeFloatLE(1,i*16);}
+  p.attributes.JOINTS_0=appendAttribute(joints,count,5123);p.attributes.WEIGHTS_0=appendAttribute(weights,count,5126);
+}
+const bodyNode=doc.nodes.findIndex(n=>n.mesh===2 && n.skin===skin);
+const parent=doc.nodes.findIndex(n=>n.children?.includes(bodyNode));assert.ok(parent>=0);
+assert.deepEqual(world(parent).elements,new Matrix4().elements);
+doc.nodes[parent].children.push(doc.nodes.length);
+doc.nodes.push({name:'Link secondary hair locks',mesh:doc.meshes.length,skin});
 doc.meshes.push(mesh);doc.buffers[0].byteLength=size;
 const json=Buffer.from(JSON.stringify(doc)),jp=Buffer.alloc((4-json.length%4)%4,32),bp=Buffer.alloc((4-size%4)%4);
 const header=Buffer.alloc(20);header.write('glTF');header.writeUInt32LE(2,4);header.writeUInt32LE(28+json.length+jp.length+size+bp.length,8);header.writeUInt32LE(json.length+jp.length,12);header.write('JSON',16);
@@ -58,5 +77,5 @@ const check=read(output);
 assert.ok(check.bin.subarray(0,original.bin.length).equals(original.bin));
 for(const key of ['animations','skins','images','textures'])assert.deepEqual(check.doc[key],original.doc[key]);
 assert.deepEqual(check.doc.meshes.slice(0,original.doc.meshes.length),original.doc.meshes);
-const report={original_binary_exact:true,original_meshes_rig_clips_textures_exact:true,added_bytes:size-original.bin.length,added_meshes:1,added_materials:1,head_bind_identity:true,status:'Pending actual renderer review'};
+const report={original_binary_exact:true,original_meshes_rig_clips_textures_exact:true,added_bytes:size-original.bin.length,added_meshes:1,added_materials:1,head_bind_identity:true,head_skin_joint:joint,status:'Pending actual renderer review'};
 fs.writeFileSync(new URL('surface-locks-export.json',dir),JSON.stringify(report,null,2));console.log(report);
