@@ -431,7 +431,7 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
       const mossN = 0.5 + 0.5 * o.noise.noise(q.x * 1.8 + 3.1, q.z * 1.8 - 7.7);
       // moss on the top faces: cushions where the fin's back faces up AND the moss noise favours
       // it, ragged toward the toes — the flanks and the grooves between cushions stay bark
-      const moss = smoothstep(0.55, 0.9, upness * 0.6 + mossN * 0.55 - 0.15 * t) * (1 - smoothstep(0.65, 1, t)) * mossStrength;
+      const moss = smoothstep(0.68, 1.0, upness * 0.55 + mossN * 0.6 - 0.15 * t) * (1 - smoothstep(0.65, 1, t)) * mossStrength;
       const soil = smoothstep(-0.2, -0.75, sa);
       _c.copy(ringColor).multiplyScalar(0.9 + 0.1 * sa).lerp(ROOT_MOSS, moss * 0.85).lerp(ROOT_SOIL, soil * 0.5);
       // the fin's flanks are occluded toward the ground, its cord grooves a little more; its top

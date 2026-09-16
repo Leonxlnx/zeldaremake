@@ -397,11 +397,14 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // it also flattens the bark normal and roughens the surface (see the normal and roughness
   // blocks). Zero on every plain vertex.
   if (vBarkMoss > 0.0) {
-    float mossFine = treeNoise(vTreeWorld * 38.0) * 0.6 + treeNoise(vTreeWorld * 110.0 + 11.0) * 0.4;
+    // cushions 3–8 cm across (38 / 110 cycles per m read as static from 1 m)
+    float mossFine = treeNoise(vTreeWorld * 13.0) * 0.55 + treeNoise(vTreeWorld * 41.0 + 11.0) * 0.45;
     // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
     // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
     barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
-    vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine);
+    // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
+    float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
+    vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
     diffuseColor.rgb = mix(diffuseColor.rgb, mossCushion, barkMossCover * 0.92);
   }
 `;
