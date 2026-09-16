@@ -539,7 +539,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     // does not separate foliage from the house at any knee; bloom intensity/radius leave the pods'
     // measured skirt untouched (the tail is the lanterns' own halo) and 0.15 drops D's 40 m pods
     // under the frame's brightness.
-    softening: true,
+    // Daylight: keep the FXAA image; video-matching defocus obscures crowns from the stair landing.
+    softening: false,
     shadowCasterCull: true,
     softDetail: 0.85,
     softActivityK: 0.08,
@@ -1268,7 +1269,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       shadowCastersCulled: shadowCull.culled,
       shadowCullMarginM: SHADOW_CULL_MARGIN_M,
       /** stages switched off by the performance flags / auto quality (perfFlags.ts); all on as shipped */
-      stagesEnabled: { ...perfRuntime().fx },
+      stagesEnabled: { ...perfRuntime().fx, soft: settings.softening && perfRuntime().fx.soft },
       ambientOcclusion: perfRuntime().fx.ao,
       aoResolution: [hw, hh],
       godRays: perfRuntime().fx.rays,

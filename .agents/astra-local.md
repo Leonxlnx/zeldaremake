@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-daylight
-updated: 2026-09-16T13:00:36.3497848Z
+updated: 2026-09-16T13:24:39.5865185Z
 ---
 
 # astra-local — roster entry
@@ -48,3 +48,6 @@ Owner-directed daylight, sky and shadow refinement until 13:35 UTC (15:35 Berlin
 
 
 2026-09-16T13:00:36.3497848Z — Sun penumbra .0093 retained after seven default views and native take0111 (24/50,0console/determinism,84anti-cheat,D purple .00336). Native2048/8 A,F,contact also reviewed, no page errors, no quality-default reduction. Matrix/cull tests green. Camera-translation evidence included; bias and stronger AO attempts not retained. Active preview61018 index-Dl54IzFQ.js. All capture sessions terminal; next inspect a camera ascent toward the open sky and coordinate hand-back with Fable. Direct window through13:35UTC, automation PAUSED.
+
+
+2026-09-16T13:24:39.5865185Z — Final daylight clarity: actual default optional softening=false, FXAA/AO/rays/bloom/shadows retained; stage audit honest. Elevated stair view exposed severe defocus; sigma2.2/.8 insufficient, no-soft6view followedbydefaulttake0112 passedsame24/50,zeroerrors/determinism,84anticheat,Dpurple.00345,no rubric status regressions. Reference SSIM cost significant and disclosed. Existing same-page15pairsofttiming onparent e6de41e0:40.6ms on,39.1 off,paired−1.6ms,10draws saved; no FPSguarantee. Actualdefault120frameascent13-21-32 complete, landingbeforeafter/video/evidenceart/environment/clear-daylight-review. CI clear-air8341 independentlygreen run35096795493,Dpurple.00347; newerpenumbra/clarityCIpending. Allnativejobs terminal. Preview61018 buildindex-IzzzAXTz.js. Fable informed of rationale5698101928. AutomationPAUSED, directtwo-hourwindowuntil13:35UTC.

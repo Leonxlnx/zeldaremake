@@ -32,13 +32,20 @@ try {
  }
  if(settings.walkFrames) {
   assert(Number.isInteger(settings.walkFrames)&&settings.walkFrames>=2&&settings.walkFrames<=180);
+  assert(['plaza','stairs'].includes(settings.walkPath??'plaza'));
+  const stair=settings.walkPath==='stairs'?await page.evaluate(()=>__ZR__.audit().layout.stairs.find(s=>s.id==='main')):null;
+  if(settings.walkPath==='stairs')assert(stair,'Main stair layout missing');
   report.walk=[];
   for(let i=0;i<settings.walkFrames;i++) {
-   const x=0.4+1.2*i/(settings.walkFrames-1);
-   await page.evaluate(async x=>{__ZR__.setPose([x,1.8,8.6],[x+6.3,.89,-5.8],46);__ZR__.setTime(12.6);await __ZR__.render(1,0);},x);
+   const t=i/(settings.walkFrames-1),x=0.4+1.2*t;
+   const camera=await page.evaluate(async({x,t,stair})=>{
+    if(stair){const u=-.05+1.1*t,dx=stair.top[0]-stair.base[0],dz=stair.top[2]-stair.base[2];const p=[stair.base[0]+dx*u,stair.base[1]+(stair.top[1]-stair.base[1])*Math.max(0,Math.min(1,u))+1.8,stair.base[2]+dz*u];__ZR__.setPose(p,[p[0]+dx*.2,p[1]+1.2,p[2]+dz*.2],72);}
+    else __ZR__.setPose([x,1.8,8.6],[x+6.3,.89,-5.8],46);
+    __ZR__.setTime(12.6);await __ZR__.render(1,0);return __ZR__.cameraPose();
+   },{x,t,stair});
    const file=`walk-${String(i).padStart(3,'0')}.png`;
    const png=await page.screenshot({path:path.join(out,file)});
-   report.walk.push({file,x,sha256:crypto.createHash('sha256').update(png).digest('hex')});
+   report.walk.push({file,camera,sha256:crypto.createHash('sha256').update(png).digest('hex')});
   }
   console.log('Captured camera translation',report.walk.length,'frames at fixed simulation time');
  }
