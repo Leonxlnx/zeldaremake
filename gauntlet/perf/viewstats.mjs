@@ -9,11 +9,14 @@
  * fields — and writes the canvas as a PNG so two flag sets can be diffed (`cmp`) or scored.
  *
  *   node gauntlet/perf/viewstats.mjs --dist dist --viewpoint A_stairs --params "fx=noao" --out /tmp/a.png
- *        [--width 1280 --height 720] [--settle 8] [--time 12.5] [--timed 5] [--isolate] [--json out.json]
+ *        [--width 1280 --height 720] [--settle 8] [--time 12.5] [--timed 5] [--ab 5] [--isolate] [--json out.json]
  *
  * --timed K : after the settle frames, step K more frames each followed by a GPU sync and report the
  *             per-frame wall ms (median / min / max) — the frame's GPU (or SwiftShader) cost for this
  *             exact view, the matched-ablation number when a walk is too slow to trace
+ * --ab K    : after that, K interleaved on/off pairs per live switch (the shadow-caster cull, each
+ *             composer stage, all four, the vegetation LOD scale at 0.5) on the SAME page — both arms see the same
+ *             box load, so the delta survives the contention noise of one-config-per-page timing
  * --isolate : also render each top-level system alone (`__ZR__.isolate`) for its share of the draws
  *             and triangles (no post chain: the colour pass with the lighting group only)
  *
@@ -61,7 +64,10 @@ async function grabHooks(page) {
  * Load the world in a new page with `params`, render `viewpoint` at `simTime` (+ `settle` frames) and
  * measure it. Returns the report (and writes the PNG when `out` is given). The page is closed.
  */
-export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, isolate = false, out = null, init = null, log = console.error } = {}) {
+/** the live switches `--ab` toggles: the shadow-caster cull, the four composer stages, all four, the vegetation LOD scale at 0.5 */
+const AB_STAGES = ['cull', 'ao', 'rays', 'bloom', 'soft', 'all', 'veg0.5'];
+
+export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, abPairs = 0, isolate = false, out = null, init = null, log = console.error } = {}) {
   const page = await browser.newPage();
   try {
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
@@ -142,8 +148,10 @@ export async function measureView(browser, baseUrl, { params = '', viewpoint = '
     // natively). Chromium's WebGL `finish()` is only a flush, so the completion sync is a one-pixel
     // readPixels of the canvas: it cannot return before the GPU process has drawn the frame.
     let timing = null;
+    let hooksReady = false;
     if (timed > 0) {
       if (!(await grabHooks(page))) throw new Error('could not find the capture hooks');
+      hooksReady = true;
       const ms = [];
       for (let k = 0; k < timed; k++) {
         const t = await page.evaluate(() => {
@@ -171,7 +179,79 @@ export async function measureView(browser, baseUrl, { params = '', viewpoint = '
       report.isolate = {};
       for (const s of SYSTEMS) report.isolate[s] = await page.evaluate((name) => window.__ZR__.isolate(name), s);
     }
-    return { viewpoint, params, width, height, settle, simTime, readyMs, renderMs, timing, png, ...report };
+
+    // --ab K: interleaved on/off pairs of the live switches on this same page — the composer reads
+    // `__KF_PERF__.fx` and the vegetation `__KF_PERF__.vegLodScale` every frame, so an arm's frame
+    // is timed under the same box load as its partner's and the delta survives the contention that
+    // swamps a one-config-per-page comparison. Restores the switches afterwards.
+    let ab = null;
+    if (abPairs > 0) {
+      if (!hooksReady) {
+        if (!(await grabHooks(page))) throw new Error('could not find the capture hooks');
+        hooksReady = true;
+      }
+      ab = {};
+      for (const stage of AB_STAGES) {
+        const r = await page.evaluate(
+          ({ stage, pairs }) => {
+            const H = window.__H;
+            const gl = H.renderer.getContext();
+            const px = new Uint8Array(4);
+            const P = globalThis.__KF_PERF__;
+            const saved = { fx: { ...P.fx }, veg: P.vegLodScale, atmo: globalThis.__ATMO_SETTINGS__ ?? null };
+            const set = (off) => {
+              if (stage === 'cull') globalThis.__ATMO_SETTINGS__ = off ? { ...(saved.atmo ?? {}), shadowCasterCull: false } : saved.atmo;
+              else if (stage === 'veg0.5') P.vegLodScale = off ? 0.5 : saved.veg;
+              else if (stage === 'all') P.fx.ao = P.fx.rays = P.fx.bloom = P.fx.soft = !off;
+              else P.fx[stage] = !off;
+            };
+            const frame = () => {
+              gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+              const t0 = performance.now();
+              H.step(1 / 60);
+              gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+              return performance.now() - t0;
+            };
+            const on = [];
+            const off = [];
+            let offCalls = 0;
+            let offTris = 0;
+            for (let k = 0; k < pairs; k++) {
+              // alternate the order so a drifting load does not favour one arm
+              const offFirst = k % 2 === 1;
+              set(offFirst);
+              // the first frame after a switch pays any one-off (a re-bucket, a first-use compile): step it untimed
+              if (stage === 'veg0.5') H.step(1 / 60);
+              const a = frame();
+              set(!offFirst);
+              if (stage === 'veg0.5') H.step(1 / 60);
+              const b = frame();
+              (offFirst ? off : on).push(a);
+              (offFirst ? on : off).push(b);
+              if (!offFirst) {
+                offCalls = H.renderer.info.render.calls;
+                offTris = H.renderer.info.render.triangles;
+              }
+            }
+            P.fx.ao = saved.fx.ao;
+            P.fx.rays = saved.fx.rays;
+            P.fx.bloom = saved.fx.bloom;
+            P.fx.soft = saved.fx.soft;
+            P.vegLodScale = saved.veg;
+            globalThis.__ATMO_SETTINGS__ = saved.atmo;
+            if (stage === 'veg0.5') H.step(1 / 60);
+            const med = (a) => [...a].sort((x, y) => x - y)[a.length >> 1];
+            const pairDeltas = on.map((v, i) => off[i] - v);
+            return { pairs, onMedianMs: +med(on).toFixed(1), offMedianMs: +med(off).toFixed(1), pairDeltaMedianMs: +med(pairDeltas).toFixed(1), on: on.map((v) => +v.toFixed(0)), off: off.map((v) => +v.toFixed(0)), offDrawCalls: offCalls, offTriangles: offTris };
+          },
+          { stage, pairs: abPairs },
+        );
+        r.deltaPct = r.onMedianMs > 0 ? +(((r.offMedianMs - r.onMedianMs) / r.onMedianMs) * 100).toFixed(1) : null;
+        ab[stage] = r;
+        log(`  A/B ${stage.padEnd(6)}: on ${r.onMedianMs.toFixed(0)} ms, off ${r.offMedianMs.toFixed(0)} ms → ${r.deltaPct}% (pair-wise median ${r.pairDeltaMedianMs.toFixed(0)} ms; off = ${r.offDrawCalls} draws, ${r.offTriangles} tris)`);
+      }
+    }
+    return { viewpoint, params, width, height, settle, simTime, readyMs, renderMs, timing, ab, png, ...report };
   } finally {
     await page.close();
   }
@@ -199,6 +279,7 @@ if (isMain) {
     settle: Number(args.settle ?? 8),
     simTime: Number(args.time ?? 12.5),
     timed: Number(args.timed ?? 0),
+    abPairs: Number(args.ab ?? 0),
     isolate: !!args.isolate,
     out: args.out ? path.resolve(args.out) : null,
   };
