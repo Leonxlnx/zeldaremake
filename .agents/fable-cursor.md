@@ -1865,6 +1865,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   the owner asks again (video dropped for now).
 - Biggest gaps: W35 on B/E (needs detail, not filters); tree bases + near leaf geometry (owner's
   #1); grass carpet; far veil still flat in C/D's mid band (sd 0.086 vs 0.128 pre-round — remeasure).
+- Round-38 reports (arrived 11:23, after the merge) — follow-ups they hand over:
+  · trees-22's own note: the F/C "cored lobes" are matte grey-olive masses that SSIM rewards at
+    256×144 but do not read as leaves at full size → they must be dressed with real leaf
+    clusters (trees-23 follow-up); placement is right (the frame has mass there), texture is not.
+  · hardscape-29's caster test: F's dark foreground (0.401 vs 0.459) AND A's (0.420 vs 0.454)
+    are the **lantern-tree's crown shadow** (bole (−11.5, 2.6, −7.2); the SE side at 9–16 m);
+    with it not casting F 0.442 / A 0.452 — stone albedo is right. Trees task: cut that corridor.
+    (atmosphere-15 had guessed slab tone; the hide-caster measurement settles it.)
+  · hardscape-29: D's gap runs are under frame 56 s's Link shadow — filling them costs D; the
+    SSIM-positive path is the house-west apron with the house-west stair base lowered ~0.08–0.10 m
+    (layout call; apron patch at /tmp/r38-probe/apron-v3.patch).
+  · vegetation-19: B/E's ceiling is the mound in front of Saria's terrace occluding the flat lit
+    lawn the frame shows (terrain/layout look).
+  · textures-2k: 1K texels are already 0.7–1.6 mm at our UV tiles, so 2K only pays in the nearest
+    2 m; to make it visible the near tiles must grow (stone ≈ 3 m, bark ≈ 1.5 m) and stone
+    normalScale 0.55 is low — material owners' call (trees-23 for bark).
+  · perf-2 + textures-2k + atmosphere-15: capslot.sh starved queued jobs (blocked on slot 1 while
+    newcomers took slot 2) → rewritten to alternate 15 s waits on both slots.
 
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
