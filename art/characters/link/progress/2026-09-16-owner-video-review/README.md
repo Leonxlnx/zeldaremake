@@ -55,3 +55,15 @@ Actual world capture18:32:07 completes300frames across walk/run/idle and5blink c
 | ![Existing character](world-hair-before.png) | ![Reduced hair candidate](reduced-clearance-world.png) |
 
 Native source: local hair-locks-reduced-study.blend plus preserved dense hair-locks-clean-crown-study.blend. Reproducible correction/export scripts and reports are adjacent. No default game asset changed in this follow-up.
+
+## Native pupil-proportion study and baseline mismatch
+
+Reused the existing textured iris shader in Blender at pupil/iris radius0.557(control) and0.393(daylight), keeping geometry/lids/rig untouched. Three matched16-sample native renders compare the current baked material, old procedural control and smaller-pupil variant. The old procedural control does not reproduce the current baked eyes: the smaller-pupil variant is already closer to the existing model. This is not an accepted improvement. The eye-crop numeric difference is recorded in pupil-baseline-comparison.json; materials/rig pose are restored after the study. An initial Python variable collision with the reused shader's `radius` socket caused a terminal error after the control render; corrected to `pupil_radius` and rerun successfully.
+
+| Current baked eyes | Old procedural control | Smaller-pupil experiment |
+| --- | --- | --- |
+| ![Current](pupil-existing.png) | ![Control](pupil-control.png) | ![Experiment](pupil-daylight.png) |
+
+No runtime change. Further eye edits need to start from the actual baked material or establish a matched reconstruction first, rather than mistaking an older shader's differences for an improvement.
+
+Fable explicitly confirmed Verdant reuse at18:41 UTC in PR2 comment5702697973. Fresh remote a728d9cb seals round39 take109 on0820f92. Source reuse includes tree primitives, birch, shaped leaf laminae, leaf shading and understory geometry. Round40 details are his stated work plan, not independently verified completion. Requested accessible copies of his cloud-local closeup captures in comment5702804346. The five-comparison README now records this confirmation.

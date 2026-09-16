@@ -1,0 +1,15 @@
+{
+  "status": "Native comparison only; original materials restored",
+  "variants": [
+    {
+      "label": "control",
+      "pupil_to_iris_radius": 0.5573770491803279,
+      "geometry_changed": false
+    },
+    {
+      "label": "daylight",
+      "pupil_to_iris_radius": 0.39344262295081966,
+      "geometry_changed": false
+    }
+  ]
+}

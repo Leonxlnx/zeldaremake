@@ -1,0 +1,7 @@
+{
+  "mean_absolute_linear_rgb_eye_crop": {
+    "control": 0.01206949446350336,
+    "daylight": 0.003259924240410328
+  },
+  "conclusion": "Old procedural control does not exactly reproduce current baked eyes; no promotion"
+}
