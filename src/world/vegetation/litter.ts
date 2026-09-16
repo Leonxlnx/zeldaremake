@@ -9,10 +9,16 @@ import type { WorldContext } from '../system';
 import { smoothstep } from '../util/noise';
 import { createRng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
-import { MeshBuilder, TAU, V, blend, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, curvedLeaf, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
 import { LodInstancedSet } from './lodset';
 
-function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad'): BufferGeometry {
+/**
+ * A fallen leaf: the near LOD is a three-section lance lamina on a petiole (14 triangles); the
+ * far LOD (round 39) the same lamina — same length, heading, curl and twist, drawn from the same
+ * stream — as the four-triangle `curvedLeaf` without the petiole, which is a 2.5 mm stalk no
+ * pixel resolves past a couple of metres. At LEAF_FAR_M a 0.1 m leaf is ≈ 12 px long.
+ */
+function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', far = false): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const len = 0.09 + rng() * 0.04;
@@ -21,17 +27,24 @@ function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad'): BufferGe
   // petiole
   const a = rng() * TAU;
   const dir = V(Math.cos(a), 0.02, Math.sin(a)).normalize();
-  tube(m, [V(-dir.x * len * 0.18, 0.004, -dir.z * len * 0.18), V(0, 0.004, 0)], 0.0025, 0.0018, tone(base, 0.75), 3);
-  lanceLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, {
-    sections: 3,
-    curl: 0.28 + rng() * 0.3,
-    twist: (rng() - 0.5) * 0.8,
-    ridge: 0.22,
-    serration: shape === 'broad' ? 0.08 : 0.03,
-    tipColor: tone(base, 0.8),
-  });
+  if (!far) tube(m, [V(-dir.x * len * 0.18, 0.004, -dir.z * len * 0.18), V(0, 0.004, 0)], 0.0025, 0.0018, tone(base, 0.75), 3);
+  const curl = 0.28 + rng() * 0.3;
+  const twist = (rng() - 0.5) * 0.8;
+  if (far) curvedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, { curl, twist, ridge: 0.22, tipColor: tone(base, 0.8) });
+  else
+    lanceLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, {
+      sections: 3,
+      curl,
+      twist,
+      ridge: 0.22,
+      serration: shape === 'broad' ? 0.08 : 0.03,
+      tipColor: tone(base, 0.8),
+    });
   return m.finish();
 }
+
+/** the leaves switch to the four-triangle lamina beyond this camera distance (m) */
+export const LEAF_FAR_M = 7;
 
 function twigGeometry(seed: string, long: boolean): BufferGeometry {
   const rng = createRng(seed);
@@ -93,7 +106,9 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   const q = ctx.quality;
   const R = ctx.config.detailRadius;
   const seed = ctx.config.seed;
-  const leafGeos = [leafGeometry(`${seed}/leaf/0`, 'oval'), leafGeometry(`${seed}/leaf/1`, 'lance'), leafGeometry(`${seed}/leaf/2`, 'broad'), leafGeometry(`${seed}/leaf/3`, 'oval')];
+  const leafShapes = ['oval', 'lance', 'broad', 'oval'] as const;
+  const leafGeos = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape));
+  const leafGeosFar = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, true));
   // Variant packs (lodset.ts): twigs share one draw. The 8 700 leaves keep one draw per variant
   // (packing them would submit +0.37 M collapsed triangles for 3 draws), and the roots must: they
   // cast shadows through three's own depth material, which does not know the pack collapse.
@@ -102,8 +117,10 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // the scene graph, and once the weeds are trimmed only the plants left in the frame back that
   // claim — 30 of the 60 free-camera probe poses fell short (down to 532 358 of 536 585), shot D
   // by just 426. The 8 784 leaves (14 triangles each, no shadow) outnumber the 4 227 weeds, so
-  // with them always submitted the claim holds at any pose, for ≈ 90 K triangles a frame.
-  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g) => [g]), material, lodDistances: [], receiveShadow: true, packs: [[0], [1], [2], [3]], cull: false });
+  // with them always submitted the claim holds at any pose. Round 39: the leaves past LEAF_FAR_M
+  // take the four-triangle lamina (the LOD split leaves every instance submitted, so the claim
+  // still holds), ≈ 123 K → ≈ 45 K triangles a frame.
+  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g, i) => [g, leafGeosFar[i]]), material, lodDistances: [LEAF_FAR_M * q.distance], receiveShadow: true, packs: [[0], [1], [2], [3]], cull: false });
   const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: [[twigGeometry(`${seed}/twig/0`, false)], [twigGeometry(`${seed}/twig/1`, true)], [twigGeometry(`${seed}/twig/2`, false)]], material, lodDistances: [], receiveShadow: true });
   const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
 

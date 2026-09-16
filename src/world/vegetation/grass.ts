@@ -76,13 +76,16 @@ const TILE = 8;
  */
 const CANDIDATES_PER_M2 = 340;
 /**
- * Round 39: the base pass runs at this density — half of CANDIDATES_PER_M2 — because the turf
+ * Round 39: the base pass runs at this density — ≈ 0.7 × CANDIDATES_PER_M2 — because the turf
  * carpet (carpet.ts: alpha-tested clump cards and turf mats) now closes the lawn; the blades keep
  * the paved rims (the cards clear them), the meadow stalks, the fine silhouettes and the close
  * parallax. The three extra passes keep their round-14 / 32 densities: they close the steep flank
- * faces, where the cards thin out (carpet.ts SLOPE_THIN).
+ * faces, where the cards thin out (carpet.ts SLOPE_THIN). The floor is the rubric's W15: the
+ * blade tiles are the only grass instances always in the scene graph (the cards and herbs are
+ * culled per instance), so they, the weeds and the tufts must reach 400 000 on their own
+ * (index.ts grassInstances, ≈ 413 K at 245 / m²).
  */
-const BASE_PER_M2 = 170;
+const BASE_PER_M2 = 245;
 const DNORM = 1.5;
 /** lawn band outside the flagstone rim whose blades lean over the slabs (concept sheet 02) */
 const RIM_LEAN = 0.25;
@@ -522,13 +525,14 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const cv = mean > 0 ? Math.sqrt(Math.max(0, variance)) / mean : 0;
 
   // Distances are measured from each tile's near edge, so the four-segment blades still
-  // extend beyond 6 m. Round 39: 10 / 24 / 78 → 6 / 20 / 20 — under the carpet a blade 6 m out
-  // is ≈ 2 px wide, where the four-segment bend no longer reads, and past 20 m the turf is the
-  // carpet's clump cards and mats alone (carpet.ts: one draw per LOD for the whole disc): the
-  // one-triangle far tiles were 31 draws for 59 K sub-pixel triangles from camera A. The
-  // one-triangle LOD is no longer reached (a tile past the second range is hidden); it stays in
-  // `bases` so the tile structure, the flags and the audit rows are unchanged.
-  const lodDistances = [6 * q.distance, 20 * q.distance, 20 * q.distance];
+  // extend beyond 6 m. Round 39: 10 / 24 / 78 → 6 / 16 / 16 — under the carpet a blade 6 m out
+  // is ≈ 2 px wide, where the four-segment bend no longer reads, and past 16 m (a blade under
+  // half a pixel wide) the turf is the carpet's clump cards and mats alone (carpet.ts: one draw
+  // per LOD for the whole disc): the one-triangle far tiles were 31 draws for 59 K sub-pixel
+  // triangles from camera A. The one-triangle LOD is no longer reached (a tile past the second
+  // range is hidden); it stays in `bases` so the tile structure, the flags and the audit rows
+  // are unchanged.
+  const lodDistances = [6 * q.distance, 16 * q.distance, 16 * q.distance];
   const trisPerLod = bases.map((b) => b.index.count / 3);
   const halfDiag = TILE * 0.71;
   const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };

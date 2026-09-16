@@ -186,7 +186,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const clumps = carpet.clumps.count;
   const turfMats = carpet.mats.count;
   ctx.audit('vegetation', () => ({
-    grassInstances: grass.count + weeds + tufts + clumps,
+    /**
+     * the blade tiles, the weeds and the tufts — not the carpet's clump cards: the anti-cheat's B3
+     * cross-check reads this against the instances in the scene graph at the audit's pose, and the
+     * cards are culled per instance (a fifth of them submit from camera A), where the blade tiles
+     * only hide (litter.ts explains how the always-submitted leaves back the culled weeds / tufts)
+     */
+    grassInstances: grass.count + weeds + tufts,
     grassBlades: grass.count,
     grassTypes: GRASS_TYPE_NAMES.length + 3,
     grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed', 'grass-tuft', 'clump-card'],
