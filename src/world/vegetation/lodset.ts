@@ -159,6 +159,11 @@ export interface LodSetOptions {
   cullPad?: number;
   /** false: `cull()` submits this set's buckets whole (default true) */
   cull?: boolean;
+  /**
+   * An extra per-instance attribute of `size` floats carried through the buckets like the matrix
+   * and colour (`add(..., data)`), e.g. the grass carpet's blade data (round 39). Absent by default.
+   */
+  instanceData?: { attribute: string; size: number };
 }
 
 interface Item {
@@ -168,6 +173,8 @@ interface Item {
   variant: number;
   matrix: Float32Array;
   color: [number, number, number];
+  /** the `instanceData` floats of this instance (null when the set carries none) */
+  data: Float32Array | null;
   /** radius (m) of the sphere about the root that holds the placed plant at every LOD (set by build) */
   reach: number;
   /** `reach` + the culling pad, the sphere `cull()` tests (set by build) */
@@ -177,6 +184,8 @@ interface Item {
 interface PackMesh {
   mesh: InstancedMesh;
   slots: InstancedBufferAttribute;
+  /** the set's `instanceData` attribute of this mesh (null when the set carries none) */
+  data: InstancedBufferAttribute | null;
   /** triangles one instance submits (every variant of the pack, the collapsed ones included) */
   triangles: number;
   /** item indices bucketed into this mesh by camera distance (before culling): the first `n` of `list` */
@@ -326,9 +335,15 @@ export class LodInstancedSet {
     return perLod;
   }
 
-  add(matrix: Float32Array, variant: number, color: Color | [number, number, number]) {
+  add(matrix: Float32Array, variant: number, color: Color | [number, number, number], data?: ArrayLike<number>) {
     const c: [number, number, number] = Array.isArray(color) ? color : [color.r, color.g, color.b];
-    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, reach: 0, r: 0 });
+    const spec = this.opts.instanceData;
+    let d: Float32Array | null = null;
+    if (spec) {
+      if (!data || data.length < spec.size) throw new Error(`${this.opts.name}: every instance needs ${spec.size} floats of ${spec.attribute}`);
+      d = Float32Array.from({ length: spec.size }, (_, i) => data[i]);
+    }
+    this.items.push({ x: matrix[12], y: matrix[13], z: matrix[14], variant, matrix: Float32Array.from(matrix), color: c, data: d, reach: 0, r: 0 });
   }
 
   /**
@@ -403,6 +418,12 @@ export class LodInstancedSet {
         const slots = new InstancedBufferAttribute(new Float32Array(capacity), 1);
         slots.setUsage(DynamicDrawUsage);
         geometry.setAttribute(PACK_INSTANCE_ATTRIBUTE, slots);
+        let data: InstancedBufferAttribute | null = null;
+        if (this.opts.instanceData) {
+          data = new InstancedBufferAttribute(new Float32Array(capacity * this.opts.instanceData.size), this.opts.instanceData.size);
+          data.setUsage(DynamicDrawUsage);
+          geometry.setAttribute(this.opts.instanceData.attribute, data);
+        }
         const mesh = new InstancedMesh(geometry, material, capacity);
         mesh.count = 0;
         mesh.instanceMatrix.setUsage(DynamicDrawUsage);
@@ -420,7 +441,7 @@ export class LodInstancedSet {
         mesh.name = `${this.opts.name}-lod${l}-p${pi}-v${pack.join('')}`;
         mesh.visible = false;
         this.group.add(mesh);
-        row.push({ mesh, slots, triangles: geometry.index!.count / 3, list: [], n: 0, submitted: [], nSubmitted: 0 });
+        row.push({ mesh, slots, data, triangles: geometry.index!.count / 3, list: [], n: 0, submitted: [], nSubmitted: 0 });
       });
       this.meshes.push(row);
     }
@@ -450,10 +471,12 @@ export class LodInstancedSet {
    * the frustum's edge for its sway / shadow reach.
    */
   private fill(pm: PackMesh, lod: number, list: number[], count: number) {
-    const { mesh, slots } = pm;
+    const { mesh, slots, data } = pm;
     const matrices = mesh.instanceMatrix.array as Float32Array;
     const colors = mesh.instanceColor!.array as Float32Array;
     const slotArr = slots.array as Float32Array;
+    const dataArr = data ? (data.array as Float32Array) : null;
+    const dataSize = data ? data.itemSize : 0;
     const slotOf = this.slotOf[lod];
     const centre = mesh.boundingSphere!.center;
     let radius = 0;
@@ -464,6 +487,7 @@ export class LodInstancedSet {
       colors[k * 3 + 1] = it.color[1];
       colors[k * 3 + 2] = it.color[2];
       slotArr[k] = slotOf[it.variant];
+      if (dataArr && it.data) dataArr.set(it.data, k * dataSize);
       radius = Math.max(radius, hypot3(it.x - centre.x, it.y - centre.y, it.z - centre.z) + it.reach);
     }
     mesh.count = count;
@@ -474,6 +498,7 @@ export class LodInstancedSet {
     markPrefix(mesh.instanceMatrix, n * 16);
     markPrefix(mesh.instanceColor!, n * 3);
     markPrefix(slots, n);
+    if (data) markPrefix(data, n * dataSize);
     // an empty bucket is never submitted (visible=false; three also skips count 0)
     mesh.visible = count > 0;
     if (count) mesh.boundingSphere!.radius = radius + this.pad;
