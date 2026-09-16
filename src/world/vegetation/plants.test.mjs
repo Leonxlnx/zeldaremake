@@ -321,7 +321,7 @@ assert.deepEqual(a.plants.tufts.opts.lodDistances,[10]);assert.deepEqual(a.plant
 // the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
 assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');
-assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0],[1],[2]]],'fiddleheads: per variant at both LODs (round 39)');
+assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0],[1],[2]],[[0],[1],[2]]],'fiddleheads: per variant at all three LODs (round 39 / 40)');
 assert.deepEqual(a.plants.flowers.packLayout[2],[[0,1],[2,3]],'flower far LOD in pairs too (round 39)');
 // the trodden strip's turf (blades with trodden ≥ 0.99) against the ramp lawn beside it (trodden 0);
 // round 32: the strip the grass pass grows is the corrected one (house flight + flanks exempt)
@@ -408,12 +408,12 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
 // pinnules and a midrib, inside HERO_FERN_ULTRA_M; the tree-base audit saw flat single-colour fronds
 // 2 m from the eye): a fourth LOD ahead of the round-39 three, drawn per variant (no pack collapse
 // multiplies its triangles), ≥ 3 × the high LOD's triangles and the same footprint
-{const {HERO_FERN_ULTRA_M,HERO_RACHIS_SIDES,heroFernGeometry,heroRachisTones,makePalette}=read('vegetation/plantgeo');assert.deepEqual(a.plants.heroFerns.opts.lodDistances,[HERO_FERN_ULTRA_M,16,32]);assert.ok(HERO_FERN_ULTRA_M>=4&&HERO_FERN_ULTRA_M<=8);
+{const {HERO_FERN_ULTRA_M,ULTRA_STEM_SIDES,heroFernGeometry,heroRachisTones,makePalette}=read('vegetation/plantgeo');assert.deepEqual(a.plants.heroFerns.opts.lodDistances,[HERO_FERN_ULTRA_M,16,32]);assert.ok(HERO_FERN_ULTRA_M>=4&&HERO_FERN_ULTRA_M<=8);
   // round 40 follow-up (the tree-base audit's flat wedge = the rachis at 10 cm): the ultra rachis has 7–8 sides and a
   // lengthwise gradient (plantgeo.ts heroRachisTones) — darker and warmer (higher r/g) at the foot, lit green at the
   // tip — the other LODs keep the 5 / 3-sided flat-toned tube. The gradient's end colours appear as vertex colours in
-  // the ultra geometry (its rachis rings: HERO_RACHIS_SIDES vertices at v = 0 and v = 1) and nowhere in the high LOD
-  assert.ok(HERO_RACHIS_SIDES>=7&&HERO_RACHIS_SIDES<=8,`ultra rachis sides ${HERO_RACHIS_SIDES}`);
+  // the ultra geometry (its rachis rings: ULTRA_STEM_SIDES vertices at v = 0 and v = 1) and nowhere in the high LOD
+  assert.ok(ULTRA_STEM_SIDES>=7&&ULTRA_STEM_SIDES<=8,`ultra rachis sides ${ULTRA_STEM_SIDES}`);
   {const pal=makePalette(WORLD.palette),{foot,tip}=heroRachisTones(pal),lum=c=>0.3*c[0]+0.59*c[1]+0.11*c[2];
     assert.ok(lum(foot)<0.8*lum(tip),`rachis foot ${lum(foot).toFixed(3)} darker than the tip ${lum(tip).toFixed(3)}`);
     assert.ok(foot[0]/foot[1]>tip[0]/tip[1]+0.05,`rachis foot warmer (r/g ${(foot[0]/foot[1]).toFixed(2)}) than the tip (${(tip[0]/tip[1]).toFixed(2)})`);
@@ -421,9 +421,22 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
     const count=(g,c)=>{const col=g.getAttribute('color').array;let n=0;for(let i=0;i<col.length;i+=3)if(Math.abs(col[i]-c[0])<1e-5&&Math.abs(col[i+1]-c[1])<1e-5&&Math.abs(col[i+2]-c[2])<1e-5)n++;return n;};
     for(const v of [0,1,2]){const ultra=heroFernGeometry(`${WORLD.seed}/hero-fern/${v}`,pal,'ultra'),high=heroFernGeometry(`${WORLD.seed}/hero-fern/${v}`,pal,'high');
       const nf=count(ultra,foot),nt=count(ultra,tip);
-      assert.ok(nf>=6*HERO_RACHIS_SIDES&&nf%HERO_RACHIS_SIDES===0,`ultra ${v}: ${nf} foot-tone vertices, whole ${HERO_RACHIS_SIDES}-sided rings`);
-      assert.ok(nt>=6*HERO_RACHIS_SIDES&&nt%HERO_RACHIS_SIDES===0,`ultra ${v}: ${nt} tip-tone vertices`);
+      assert.ok(nf>=6*ULTRA_STEM_SIDES&&nf%ULTRA_STEM_SIDES===0,`ultra ${v}: ${nf} foot-tone vertices, whole ${ULTRA_STEM_SIDES}-sided rings`);
+      assert.ok(nt>=6*ULTRA_STEM_SIDES&&nt%ULTRA_STEM_SIDES===0,`ultra ${v}: ${nt} tip-tone vertices`);
       assert.equal(count(high,foot)+count(high,tip),0,`high ${v}: flat stem tone`);
+      ultra.dispose();high.dispose();}
+    // the same for the fiddlehead stalk (the wedge in the northwest-base tile was shot D's thumb-thick bud stalk, not a
+    // rachis): an ultra LOD inside FIDDLEHEAD_ULTRA_M with ULTRA_STEM_SIDES-sided graded stalks, the high LOD's layout
+    const {FIDDLEHEAD_ULTRA_M,FIDDLEHEAD_DETAILS,fiddleheadGeometry,fiddleheadStalkTones}=read('vegetation/plantgeo');
+    assert.deepEqual([...FIDDLEHEAD_DETAILS],['ultra','high','low']);assert.deepEqual(a.plants.fiddleheads.opts.lodDistances,[FIDDLEHEAD_ULTRA_M,14]);assert.ok(FIDDLEHEAD_ULTRA_M>=3&&FIDDLEHEAD_ULTRA_M<=8);
+    for(const vp of LAYOUT.viewpoints){const [cx,cy,cz]=vp.position;assert.equal(a.plants.fiddleheads.items.filter(it=>Math.hypot(it.x-cx,it.y-cy,it.z-cz)<=FIDDLEHEAD_ULTRA_M).length,0,`${vp.id}: no fiddlehead inside the ultra range (the six views' budgets untouched)`);}
+    const st=fiddleheadStalkTones(pal);assert.ok(lum(st.foot)<0.8*lum(st.tip)&&st.foot[0]/st.foot[1]>st.tip[0]/st.tip[1]+0.05,`stalk foot ${lum(st.foot).toFixed(3)} darker and warmer than its tip ${lum(st.tip).toFixed(3)}`);
+    for(const v of [0,1,2]){const ultra=fiddleheadGeometry(`${WORLD.seed}/fiddlehead/${v}`,pal,'ultra'),high=fiddleheadGeometry(`${WORLD.seed}/fiddlehead/${v}`,pal,'high');
+      const nf=count(ultra,st.foot),nt=count(ultra,st.tip);
+      assert.ok(nf>=2*ULTRA_STEM_SIDES&&nf%ULTRA_STEM_SIDES===0&&nt>=2*ULTRA_STEM_SIDES&&nt%ULTRA_STEM_SIDES===0,`ultra fiddlehead ${v}: ${nf} foot / ${nt} tip stalk vertices in ${ULTRA_STEM_SIDES}-sided rings`);
+      assert.equal(count(high,st.foot)+count(high,st.tip),0,`high fiddlehead ${v}: flat stalk tone`);
+      const ub=ultra.boundingBox,hb=high.boundingBox;assert.ok(Math.abs(ub.max.y-hb.max.y)<0.01,'the ultra bud keeps the high LOD\'s height');
+      assert.ok(ultra.index.count>high.index.count&&ultra.index.count<high.index.count+400*3,`ultra bud ${ultra.index.count/3} vs high ${high.index.count/3} triangles`);
       ultra.dispose();high.dispose();}}
   assert.deepEqual(a.plants.heroFerns.packLayout.slice(0,2),[[[0],[1],[2]],[[0],[1],[2]]],'ultra and high hero ferns draw per variant');assert.equal(a.plants.tufts.opts.castShadowLods,0,'tufts cast no shadow (round 40)');
   for(const lods of a.plants.heroFerns.opts.variants){assert.equal(lods.length,4);const [ultra,high]=lods;assert.ok(ultra.index.count>=3*high.index.count,`ultra ${ultra.index.count/3} vs high ${high.index.count/3} triangles`);

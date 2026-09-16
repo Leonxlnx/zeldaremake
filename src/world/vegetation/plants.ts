@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -155,7 +155,8 @@ const PACKS: Record<string, PackLayout> = {
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
   // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
   // more — paid for by the grass tiles' far draws, see grass.ts)
-  fiddleheads: [SINGLE(3), SINGLE(3)],
+  // round 40 follow-up: the ultra LOD (8-sided graded stalks inside FIDDLEHEAD_ULTRA_M) per variant too
+  fiddleheads: [SINGLE(3), SINGLE(3), SINGLE(3)],
   // round 40: the bipinnate near LOD (≈ 18 K triangles a crown) and the lance high LOD draw per
   // variant — packed, every crown 5–16 m from a camera submitted all three variants collapsed
   // (10 908 triangles, 21.8 K with its shadow; 3 636 / 7.3 K per variant: −73 K from camera A,
@@ -225,7 +226,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // stout buds barely move in the wind
   // round 39: the buds stop at 24 m — a 0.15 m coil is 5 px tall there, one more dark dab in the
   // far herb layer, and its 360-triangle far LOD was 130 K triangles from camera A
-  const fiddleheads = mk('fiddleheads', variants(3, `${seed}/fiddlehead`, pal, fiddleheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 0.9, flutter: 0.003, stiffness: 0.75, transmission: 0.05 }, 24);
+  // round 40 follow-up: an ultra LOD inside FIDDLEHEAD_ULTRA_M (plantgeo.ts: the tree-base audit's
+  // flat wedge was one of shot D's thumb-thick bud stalks crossing the lens) — the same layout from
+  // the same stream, so the switch does not pop; the fixed cameras stand outside the range
+  const fiddleheads = mk('fiddleheads', variants(3, `${seed}/fiddlehead`, pal, fiddleheadGeometry, [...FIDDLEHEAD_DETAILS]), 'plant', [FIDDLEHEAD_ULTRA_M, 14], 0, { sway: 0.9, flutter: 0.003, stiffness: 0.75, transmission: 0.05 }, 24);
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
   // round 39: the herb layer stops at 16 m — a clover leaf is 2 px across there, under the turf
   // carpet's mats and clumps (carpet.ts); its far LOD was 4 000 instances / 210 K triangles from camera A
