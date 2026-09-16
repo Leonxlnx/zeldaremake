@@ -107,6 +107,18 @@ export function create(ctx: WorldContext): WorldSystem {
     hazeUniformHeightM: HEIGHT_FOG_DEFAULTS.hazeUniformHeight,
     hazeScaleHeightM: HEIGHT_FOG_DEFAULTS.hazeScaleHeight,
     hazeUpwardCut: HEIGHT_FOG_DEFAULTS.hazeUpwardCut,
+    // round 38: the extinction's own (lower) aerosol profile, the thinner open-side air and its cap,
+    // the shaded-air veil (multiplier on the veil over a black surface, 1 = off) and the plateau glare
+    hazeDensityUniformHeightM: HEIGHT_FOG_DEFAULTS.hazeDensityUniformHeight,
+    hazeDensityScaleHeightM: HEIGHT_FOG_DEFAULTS.hazeDensityScaleHeight,
+    hazeOpenDensity: HEIGHT_FOG_DEFAULTS.hazeOpenDensity,
+    distanceFogMaxOpen: HEIGHT_FOG_DEFAULTS.maxFogOpen,
+    hazeShadeVeil: HEIGHT_FOG_DEFAULTS.hazeShadeVeil,
+    hazeShadeVeilKnee: HEIGHT_FOG_DEFAULTS.hazeShadeVeilKnee,
+    hazeShadeVeilOutM: HEIGHT_FOG_DEFAULTS.hazeShadeVeilOut,
+    plateauGlareDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeHot),
+    plateauGlareBearingDeg: Math.round((Math.atan2(HEIGHT_FOG_DEFAULTS.hazeHotDir[0], -HEIGHT_FOG_DEFAULTS.hazeHotDir[1]) * 180) / Math.PI),
+    plateauGlareAmount: HEIGHT_FOG_DEFAULTS.hazeHotAmount,
     hazeNearDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeNear),
     hazeFarDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFar),
     // rays climbing out of the under-canopy layer see the lit open air (the reference's upper-frame haze)

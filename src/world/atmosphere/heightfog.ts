@@ -92,6 +92,51 @@ export interface HeightFogParams {
   hazeUniformHeight: number;
   /** scale height (m) of the exponential density decay above `hazeUniformHeight` */
   hazeScaleHeight: number;
+  /**
+   * Round 38 (tone): the EXTINCTION's own aerosol profile — uniform to `hazeDensityUniformHeight`
+   * (m), decaying with scale height `hazeDensityScaleHeight` (m) above it — applied to the base
+   * optical depth (`hazeDensity` / the thin-near profile) in place of the profile above, which keeps
+   * gating the airlight colours (lit air, far wall) and the far knee's extinction. Lower than the
+   * colour profile it lets the mist pool low: rays along the ground keep the calibrated veil while
+   * rays to the boughs and trunks 4–10 m up wear thinner air, so the mid-distance canopy stays a
+   * readable dark shape through it (frame D's mid band: crisp dark boughs over a low mist).
+   */
+  hazeDensityUniformHeight: number;
+  hazeDensityScaleHeight: number;
+  /**
+   * Multiplier on the base extinction toward the open side (`kfOpenness` = 1: the east plateau and
+   * the overhead gaps); closed directions keep 1. The open air is thinner as well as brighter.
+   */
+  hazeOpenDensity: number;
+  /** total-fog cap toward the open side (`maxFog` toward the closed side): the open far air can veil completely */
+  maxFogOpen: number;
+  /**
+   * Shaded-air veil (round 38): multiplier on the veil radiance laid over a fragment whose own
+   * (pre-shade) radiance is zero, easing to 1 at `hazeShadeVeilKnee` (scene-linear luminance) and
+   * gated out over `hazeShadeVeilOut` (m). A dark surface under the closed roof stands in air that
+   * is itself unlit — the canopy that shades the trunk shades the air in front of it — so the veil
+   * lifts it less than it lifts a sunlit gap beside it: the frames' mid-distance trunks and boughs
+   * stay dark through thin luminous air instead of dissolving into one grey. 1 disables.
+   */
+  hazeShadeVeil: number;
+  hazeShadeVeilKnee: number;
+  hazeShadeVeilOut: [number, number];
+  /**
+   * Plateau glare (round 38): the brightest open air of the frames — the sky seen up the stair
+   * corridor to the raised east plateau (F's upper left, 0.7–0.85 display with a soft halo) — is a
+   * lobe around the horizontal direction `hazeHotDir`: smoothstep(`hazeHotCos`) on the ray's
+   * horizontal dot with it, rising over the elevations `hazeHotUpIn` (sin) and gone past
+   * `hazeHotUpOut`. Far rays in the lobe (ramp `hazeHotDist`, m) wear `hazeHot` as their veil and
+   * veil completely, so the far rows there read as the glare; the dome takes the same colour
+   * (sky.ts). `hazeHotAmount` scales the lobe (0 disables).
+   */
+  hazeHot: [number, number, number];
+  hazeHotDir: [number, number];
+  hazeHotCos: [number, number];
+  hazeHotUpIn: [number, number];
+  hazeHotUpOut: [number, number];
+  hazeHotDist: [number, number];
+  hazeHotAmount: number;
   /** extra attenuation (0..1) of the distance haze for rays that climb steeply toward the crowns */
   hazeUpwardCut: number;
   /**
@@ -297,6 +342,22 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   hazeCatchUpEnd: 22,
   hazeUniformHeight: 8.0,
   hazeScaleHeight: 7.0,
+  hazeDensityUniformHeight: 8.0,
+  hazeDensityScaleHeight: 7.0,
+  hazeOpenDensity: 1.0,
+  maxFogOpen: 0.86,
+  hazeShadeVeil: 1.0,
+  hazeShadeVeilKnee: 0.3,
+  hazeShadeVeilOut: [40, 50],
+  // bearing 58° (the top of the stair corridor as frame F sees it, 19° left of its axis), a
+  // ±12° lobe between ≈ 6° and 20° up; display ≈ 0.8 at the core
+  hazeHot: [0.55, 0.54, 0.44],
+  hazeHotDir: [0.848, -0.53],
+  hazeHotCos: [0.94, 0.985],
+  hazeHotUpIn: [0.08, 0.16],
+  hazeHotUpOut: [0.3, 0.4],
+  hazeHotDist: [35, 55],
+  hazeHotAmount: 0,
   // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
   // the haze; eye-level shots (A/D top rows reach ≈ 23–25°) lose ≤ 10 % on their very top row
   hazeUpwardCut: 0.9,
@@ -578,6 +639,20 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_HAZE_K_CATCHUP = ${f(catchUpDensity(params))};
 	const float KF_HAZE_H0 = ${f(params.hazeUniformHeight)};
 	const float KF_HAZE_HS = ${f(params.hazeScaleHeight)};
+	const float KF_DENS_H0 = ${f(params.hazeDensityUniformHeight)};
+	const float KF_DENS_HS = ${f(params.hazeDensityScaleHeight)};
+	const float KF_OPEN_DENSITY = ${f(params.hazeOpenDensity)};
+	const float KF_MAX_FOG_OPEN = ${f(params.maxFogOpen)};
+	const float KF_SHADE_VEIL = ${f(params.hazeShadeVeil)};
+	const float KF_SHADE_VEIL_KNEE = ${f(params.hazeShadeVeilKnee)};
+	const vec2 KF_SHADE_VEIL_OUT = vec2( ${params.hazeShadeVeilOut.map(f).join(', ')} );
+	const vec3 KF_HAZE_HOT = vec3( ${params.hazeHot.map(f).join(', ')} );
+	const vec2 KF_HOT_DIR = vec2( ${params.hazeHotDir.map(f).join(', ')} );
+	const vec2 KF_HOT_COS = vec2( ${params.hazeHotCos.map(f).join(', ')} );
+	const vec2 KF_HOT_UP_IN = vec2( ${params.hazeHotUpIn.map(f).join(', ')} );
+	const vec2 KF_HOT_UP_OUT = vec2( ${params.hazeHotUpOut.map(f).join(', ')} );
+	const vec2 KF_HOT_DIST = vec2( ${params.hazeHotDist.map(f).join(', ')} );
+	const float KF_HOT_AMOUNT = ${f(params.hazeHotAmount)};
 	const float KF_HAZE_UP_CUT = ${f(params.hazeUpwardCut)};
 	const vec3 KF_HAZE_NEAR = vec3( ${params.hazeNear.map(f).join(', ')} );
 	const vec3 KF_HAZE_FAR = vec3( ${params.hazeFar.map(f).join(', ')} );
@@ -639,19 +714,29 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		return D * ( e0 - e1 ) / ( k * ry );
 	}
 
-	// mean of the aerosol profile f(y) = exp( -max( y - H0, 0 ) / Hs ) over the heights a ray spans:
+	// mean of an aerosol profile f(y) = exp( -max( y - H0, 0 ) / Hs ) over the heights a ray spans:
 	// 1 for rays that stay under the canopy, falling toward 0 for rays that climb far above it.
 	// Closed form (uniform run below H0 + the exponential tail above), symmetric in ray direction.
-	float kfAltitudeMean( float ya, float yb ) {
+	float kfAltitudeMeanP( float ya, float yb, float H0, float Hs ) {
 		float lo = min( ya, yb );
 		float hi = max( ya, yb );
 		float span = hi - lo;
-		if ( span < 1e-3 ) return exp( -max( lo - KF_HAZE_H0, 0.0 ) / KF_HAZE_HS );
-		float below = clamp( KF_HAZE_H0 - lo, 0.0, span );
-		float a = max( lo - KF_HAZE_H0, 0.0 );
-		float b = hi - KF_HAZE_H0;
-		float above = b > 0.0 ? ( exp( -a / KF_HAZE_HS ) - exp( -b / KF_HAZE_HS ) ) * KF_HAZE_HS : 0.0;
+		if ( span < 1e-3 ) return exp( -max( lo - H0, 0.0 ) / Hs );
+		float below = clamp( H0 - lo, 0.0, span );
+		float a = max( lo - H0, 0.0 );
+		float b = hi - H0;
+		float above = b > 0.0 ? ( exp( -a / Hs ) - exp( -b / Hs ) ) * Hs : 0.0;
 		return ( below + above ) / span;
+	}
+	// the colour-gating profile (lit air, far wall) — also the far knee's extinction profile
+	float kfAltitudeMean( float ya, float yb ) { return kfAltitudeMeanP( ya, yb, KF_HAZE_H0, KF_HAZE_HS ); }
+
+	// canopy openness of a view direction: 1 toward the open east plateau (and overhead), 0 toward
+	// the closed north hollow / west stand — see openDir
+	float kfOpenness( vec3 rayDir ) {
+		float len = length( rayDir.xz );
+		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_OPEN_DIR ) : 1.0;
+		return max( smoothstep( KF_OPEN_LO, KF_OPEN_HI, e ), smoothstep( KF_OPEN_UP_LO, KF_OPEN_UP_HI, rayDir.y ) );
 	}
 
 	// optical depth of the base extinction: the plain KF_HAZE_K foreground to KF_THIN_START, thin air
@@ -678,27 +763,35 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		//    overhead stay dark silhouettes against the luminous gaps instead of washing pale.
 		//    Past KF_HAZE_FAR_START the air thickens (the far rows are a luminous wall behind the
 		//    thin-air hollow, see hazeFarDensity).
+		//    The base extinction follows its own, lower aerosol profile (hazeDensityUniformHeight)
+		//    and is thinner toward the open side (hazeOpenDensity); the far knee keeps the colour
+		//    profile so the far wall is unchanged.
 		float altitude = kfAltitudeMean( cameraPosition.y, worldPos.y );
+		float altDens = kfAltitudeMeanP( cameraPosition.y, worldPos.y, KF_DENS_H0, KF_DENS_HS );
+		float open = kfOpenness( rayDir );
 		float upward = 1.0 - KF_HAZE_UP_CUT * smoothstep( 0.38, 0.62, rayDir.y );
-		float opticalDepth = kfBaseOpticalDepth( dist ) + KF_HAZE_K_FAR * max( dist - KF_HAZE_FAR_START, 0.0 );
-		float distFog = 1.0 - exp( -altitude * upward * opticalDepth );
+		float opticalDepth = altDens * mix( 1.0, KF_OPEN_DENSITY, open ) * kfBaseOpticalDepth( dist ) + altitude * KF_HAZE_K_FAR * max( dist - KF_HAZE_FAR_START, 0.0 );
+		float distFog = 1.0 - exp( -upward * opticalDepth );
 		// 2) height fog (ground mist), denser toward the north hollow (−Z) of the fragment. The hollow
 		//    is at lower z, so the ramp is written with ascending edges (smoothstep(a > b) is undefined)
 		float north = 1.0 - smoothstep( KF_NORTH_FULL, KF_NORTH_START, worldPos.z );
 		float weight = mix( KF_BASE_W, 1.0, north );
 		float hAmount = kfHeightFogAmount( cameraPosition, rayDir, dist, weight );
 		float heightFog = min( 1.0 - exp( -hAmount ), 0.7 );
-		float fog = min( 1.0 - ( 1.0 - distFog ) * ( 1.0 - heightFog ), KF_MAX_FOG );
+		//    in the plateau-glare lobe the far air veils completely (the glare is the sky itself)
+		float hotFar = kfHot( rayDir ) * smoothstep( KF_HOT_DIST.x, KF_HOT_DIST.y, dist );
+		float fog = min( 1.0 - ( 1.0 - distFog ) * ( 1.0 - heightFog ), mix( mix( KF_MAX_FOG, KF_MAX_FOG_OPEN, open ), 1.0, hotFar ) );
 		// 3) the ray–sun angle drives the airlight phase (forward lobe + back-scatter dimming)
 		return vec4( fog, distFog, heightFog, dot( rayDir, KF_SUN_DIR ) );
 	}
 
-	// canopy openness of a view direction: 1 toward the open east plateau (and overhead), 0 toward
-	// the closed north hollow / west stand — see openDir
-	float kfOpenness( vec3 rayDir ) {
+	// plateau-glare lobe of a view direction (see hazeHot): 0 outside it, KF_HOT_AMOUNT at its core
+	float kfHot( vec3 rayDir ) {
 		float len = length( rayDir.xz );
-		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_OPEN_DIR ) : 1.0;
-		return max( smoothstep( KF_OPEN_LO, KF_OPEN_HI, e ), smoothstep( KF_OPEN_UP_LO, KF_OPEN_UP_HI, rayDir.y ) );
+		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_HOT_DIR ) : 0.0;
+		float lobe = smoothstep( KF_HOT_COS.x, KF_HOT_COS.y, e );
+		float up = smoothstep( KF_HOT_UP_IN.x, KF_HOT_UP_IN.y, rayDir.y ) * ( 1.0 - smoothstep( KF_HOT_UP_OUT.x, KF_HOT_UP_OUT.y, rayDir.y ) );
+		return KF_HOT_AMOUNT * lobe * up;
 	}
 
 	// share of the near-field airlight a view direction gets (see hazeNearFieldDir): 1 toward the
@@ -716,7 +809,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	// open = the direction's canopy openness: closed directions keep the dim closed-roof veil out to
 	// the far rows (no far / lit brightening), dimmer still deep under the roof (hollowDim); past
 	// the rows the rays that climb out of the layer see the lit wall (see hazeFarLit, hazeFarLitKnee)
-	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open, float nearGate ) {
+	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open, float nearGate, float hotFar ) {
 		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
 		haze = mix( haze, KF_HAZE_LIT, smoothstep( 0.0, KF_LIT_KNEE, openShare ) );
 		haze = mix( KF_HAZE_CLOSED, haze, open );
@@ -740,7 +833,9 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		col *= ( 1.0 + sunAmt * KF_SUN_GAIN ) * mix( vec3( 1.0 ), KF_SUN_TINT, sunTint );
 		col *= kfBackScatter( mu );
 		// a hair darker when looking down into the ground layer
-		return col * mix( 1.0, 0.94, clamp( -rayY * 2.0, 0.0, 1.0 ) );
+		col *= mix( 1.0, 0.94, clamp( -rayY * 2.0, 0.0, 1.0 ) );
+		// the plateau glare is the sky itself, not scattered air: laid over every phase term
+		return mix( col, KF_HAZE_HOT, hotFar );
 	}
 #endif
 `;
@@ -751,7 +846,8 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	vec4 kfF = kfFog( vFogWorldPos, kfRay );
 	float kfDist = length( vFogWorldPos - cameraPosition );
 	float kfOpen = 1.0 - kfAltitudeMean( cameraPosition.y, vFogWorldPos.y );
-	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y, kfOpen, kfOpenness( kfRay ), kfNearFieldGate( kfRay ) );
+	float kfHotFar = kfHot( kfRay ) * smoothstep( KF_HOT_DIST.x, KF_HOT_DIST.y, kfDist );
+	vec3 kfColor = kfHazeColor( kfDist, kfF.y, kfF.z, kfF.w, kfRay.y, kfOpen, kfOpenness( kfRay ), kfNearFieldGate( kfRay ), kfHotFar );
 	// deep-forest shade on the surface itself (not the veil): distant trunks, the log arch and the
 	// far ground darken before the haze is laid over them, so they read as silhouettes in it; bright
 	// emissives (lantern glow, 2.0 linear) keep their radiance. The exemption starts above sunlit
@@ -760,9 +856,15 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	float kfShade = mix( 1.0, KF_SHADE_MIN, smoothstep( KF_SHADE_START, KF_SHADE_FULL, kfDist ) );
 	float kfPeak = max( gl_FragColor.r, max( gl_FragColor.g, gl_FragColor.b ) );
 	kfShade = mix( kfShade, 1.0, smoothstep( 1.3, 2.0, kfPeak ) );
+	// shaded-air veil (see hazeShadeVeil): keyed on the surface's own radiance before the deep-forest
+	// shade, so a shaded trunk at 35 m and a sunlit one read differently, and gated out before the
+	// far wall (where every surface is shaded ×0.3 and the wall must stay whole)
+	float kfSurfLum = dot( gl_FragColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+	float kfShadeVeil = mix( KF_SHADE_VEIL, 1.0, smoothstep( 0.0, KF_SHADE_VEIL_KNEE, kfSurfLum ) );
+	kfShadeVeil = mix( kfShadeVeil, 1.0, smoothstep( KF_SHADE_VEIL_OUT.x, KF_SHADE_VEIL_OUT.y, kfDist ) );
 	gl_FragColor.rgb *= kfShade;
 	if ( KF_VEIL_ONLY > 0.5 ) gl_FragColor.rgb = vec3( 0.0 );
-	gl_FragColor.rgb = mix( gl_FragColor.rgb, kfColor, kfF.x );
+	gl_FragColor.rgb = mix( gl_FragColor.rgb, kfColor * kfShadeVeil, kfF.x );
 #endif
 `;
 }
