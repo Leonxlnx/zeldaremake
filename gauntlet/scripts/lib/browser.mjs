@@ -84,6 +84,8 @@ export function findChrome() {
 }
 
 export async function launchBrowser({ width = 1280, height = 720, deviceScaleFactor = 1 } = {}) {
+  // Opt-in native Windows GPU for owner-machine captures; CI keeps SwiftShader.
+  const nativeGpu = process.platform === 'win32' && process.env.ZR_NATIVE_GPU === '1';
   const browser = await puppeteer.launch({
     executablePath: findChrome(),
     headless: true,
@@ -94,8 +96,8 @@ export async function launchBrowser({ width = 1280, height = 720, deviceScaleFac
       '--disable-dev-shm-usage',
       '--disable-gpu-sandbox',
       '--use-gl=angle',
-      '--use-angle=swiftshader',
-      '--enable-unsafe-swiftshader',
+      `--use-angle=${nativeGpu ? 'd3d11' : 'swiftshader'}`,
+      ...(nativeGpu ? [] : ['--enable-unsafe-swiftshader']),
       '--ignore-gpu-blocklist',
       '--enable-webgl',
       '--enable-webgl2-compute-context',
@@ -148,6 +150,12 @@ export async function openWorld(browser, baseUrl, { width = 1280, height = 720, 
   }
   const state = await page.evaluate(() => window.__zrReadyState);
   if (state !== 'ready') throw new Error(`__ZR__.ready() rejected: ${state}`);
+  // Rendering can become ready before the loading overlay's CSS fade finishes.
+  // Wait for the actual UI state so the first capture matches later re-captures.
+  await page.waitForFunction(() => {
+    const loading = document.getElementById('loading');
+    return !loading || getComputedStyle(loading).opacity === '0';
+  }, { timeout: timeoutMs });
   log(`world: ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return { page, consoleLines, url };
 }

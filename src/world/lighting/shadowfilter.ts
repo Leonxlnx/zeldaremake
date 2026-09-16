@@ -69,7 +69,8 @@ export const SHADOW_FILTER_DEFAULTS: ShadowFilterParams = {
   // from anywhere inside his shadow, small enough that a boulder 1 m away does not soften a
   // slab's own contact shadow
   searchRadiusM: 0.3,
-  penumbraPerM: 0.016,
+  // Daylight: use the sun's angular diameter instead of the wider reference-matching dapple.
+  penumbraPerM: 0.0093,
   penumbraMinM: 0.04,
   penumbraMaxM: 0.45,
   // Measured against the reference in linear light: its canopy-shaded path keeps ≈ 0.35 of a lit

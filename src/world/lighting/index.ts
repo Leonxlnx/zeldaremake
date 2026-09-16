@@ -4,7 +4,7 @@
  * - Sun: DirectionalLight from `config.sun` (azimuth −128°, elevation 38° → shadows on the plaza
  *   fall toward camera-right/front in shot A, light enters from the upper-left). One 4096²
  *   PCF shadow map whose orthographic window is fitted ahead of the camera (radius 46 m, centre
- *   18 m along the view direction, snapped to 1 m) so texels serve visible content: ~2.2 cm/texel
+ *   18 m along the view direction, aligned to the light-camera texel grid) so texels serve visible content: ~2.2 cm/texel
  *   with a 4-texel Vogel-disk penumbra → soft, crisp contact shadows.
  * - Hemisphere sky/ground bounce.
  * - Environment PMREM rendered from the procedural sky (see ../atmosphere/sky.ts) for matching
@@ -20,12 +20,12 @@ import { buildSkyEnvironment } from './environment';
 import { encodeShadowRadius, installShadowFilter, searchTapsFor, SHADOW_FILTER_DEFAULTS } from './shadowfilter';
 import { WORLD } from '../config';
 import { perfFlags, perfRuntime } from '../../perfFlags';
+import { createShadowTargetSnapper } from './shadowframe';
 
 export { sunDirection } from './sun';
 
 const SHADOW_RADIUS_M = 46;
 const SHADOW_AHEAD_M = 18;
-const SHADOW_SNAP_M = 1;
 const SUN_DISTANCE_M = 140;
 const SHADOW_NEAR_M = 40;
 const SHADOW_FAR_M = 250;
@@ -90,6 +90,8 @@ export function create(ctx: WorldContext): WorldSystem {
   sun.shadow.camera.top = SHADOW_RADIUS_M;
   sun.shadow.camera.bottom = -SHADOW_RADIUS_M;
   sun.shadow.camera.updateProjectionMatrix();
+  let shadowTexelM = (2 * SHADOW_RADIUS_M) / sun.shadow.mapSize.x;
+  let snapShadowTarget = createShadowTargetSnapper(dir, sun.shadow.camera.up, shadowTexelM);
   sun.shadow.bias = -0.00012;
   sun.shadow.normalBias = 0.028;
   // the filter's minimum blur in texels (contact shadows): the PCSS penumbra grows from here with
@@ -115,7 +117,8 @@ export function create(ctx: WorldContext): WorldSystem {
   // 0.63–0.67 — its shade is lit by a greyer sky than its golden key. Still no blue: a (0.96, 0.98,
   // 1.0) target (B/R 0.90) with the IBL at 0.81 overshot the lit stone by 0.025 and the shaded
   // stairs of shot A by 0.03.
-  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(0.98, 0.975, 0.95), 0.35);
+  // Let the configured daylight colour reach shaded surfaces without the old warm-grey mix.
+  const hemiSky = new Color(ctx.config.sky.hemiSky);
   const hemiGroundColor = new Color(ctx.config.sky.hemiGround);
   const hemi = new HemisphereLight(hemiSky, hemiGroundColor, hemiIntensity);
   hemi.name = 'sky-hemisphere';
@@ -136,7 +139,7 @@ export function create(ctx: WorldContext): WorldSystem {
   // B −0.001 at 0). ×0.75 takes the whole-frame darkest decile down 0.008 (D) / 0.007 (B) with the
   // medians −0.007 / −0.008 (the frames' p10 sits 0.04 under ours, the medians already match) and
   // SSIM +0.002 / +0.001 measured on top of the round's other changes.
-  const environmentIntensity = 0.36;
+  const environmentIntensity = 0.3;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
@@ -161,6 +164,8 @@ export function create(ctx: WorldContext): WorldSystem {
     shadowSearchTaps: SHADOW_DYNAMIC ? searchTapsFor(perfRuntime().shadowTaps) : SHADOW_FILTER.searchTaps ?? 8,
     shadowFilterDynamic: SHADOW_DYNAMIC,
     shadowWindowRadiusM: SHADOW_RADIUS_M,
+    shadowSnapSpace: 'light-camera-texel',
+    shadowSnapMetres: shadowTexelM,
     shadowTexelCm: Math.round(((2 * SHADOW_RADIUS_M) / sun.shadow.mapSize.x) * 1000) / 10,
     shadowBias: sun.shadow.bias,
     shadowNormalBias: sun.shadow.normalBias,
@@ -171,10 +176,10 @@ export function create(ctx: WorldContext): WorldSystem {
     shadowCanopyLeakRangeM: [SHADOW_FILTER.leakStartM, SHADOW_FILTER.leakFullM],
     cascades: 1,
     hemiIntensity: hemi.intensity,
-    hemiSkyLinear: hemiSky.toArray().map((v) => Math.round(v * 1000) / 1000),
-    hemiGroundLinear: hemiGroundColor.toArray().map((v) => Math.round(v * 1000) / 1000),
+    hemiSkyLinear: hemi.color.toArray().map((v) => Math.round(v * 1000) / 1000),
+    hemiGroundLinear: hemi.groundColor.toArray().map((v) => Math.round(v * 1000) / 1000),
     environmentMap: environment,
-    environmentIntensity: environment ? environmentIntensity : 0,
+    environmentIntensity: environment ? ctx.scene.environmentIntensity : 0,
     environmentTint: SKY_ENV_TINT,
   }));
 
@@ -193,6 +198,8 @@ export function create(ctx: WorldContext): WorldSystem {
     const size = perf.shadowMapSize > 0 ? perf.shadowMapSize : SHADOW_MAP_SIZE;
     if (sun.shadow.mapSize.x !== size) {
       sun.shadow.mapSize.set(size, size);
+      shadowTexelM = (2 * SHADOW_RADIUS_M) / size;
+      snapShadowTarget = createShadowTargetSnapper(dir, sun.shadow.camera.up, shadowTexelM);
       const map = sun.shadow.map;
       if (map) {
         map.depthTexture?.dispose();
@@ -218,15 +225,17 @@ export function create(ctx: WorldContext): WorldSystem {
         applyPerf();
         sun.shadow.radius = encodeShadowRadius(sun.shadow.radius, perfRuntime().shadowTaps);
       }
-      // shadow window fitted ahead of the camera, snapped to metre steps to avoid shimmering
+      // Fit ahead on terrain, then keep the light camera on its own texel lattice.
+      // World-metre rounding shifts fractional shadow texels as the player walks.
       c.camera.getWorldPosition(camPos);
       c.camera.getWorldDirection(camDir);
       camDir.y = 0;
       if (camDir.lengthSq() < 1e-6) camDir.set(0, 0, -1);
       camDir.normalize();
-      const cx = Math.round((camPos.x + camDir.x * SHADOW_AHEAD_M) / SHADOW_SNAP_M) * SHADOW_SNAP_M;
-      const cz = Math.round((camPos.z + camDir.z * SHADOW_AHEAD_M) / SHADOW_SNAP_M) * SHADOW_SNAP_M;
+      const cx = camPos.x + camDir.x * SHADOW_AHEAD_M;
+      const cz = camPos.z + camDir.z * SHADOW_AHEAD_M;
       target.position.set(cx, c.terrain.height(cx, cz), cz);
+      snapShadowTarget(target.position, target.position);
       sun.position.copy(target.position).addScaledVector(dir, SUN_DISTANCE_M);
     },
   };
