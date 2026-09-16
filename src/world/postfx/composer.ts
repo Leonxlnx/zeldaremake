@@ -359,10 +359,12 @@ export function createComposer(opts: ComposerOptions): Composer {
     // C +0.0014, D +0.0048, E +0.0042, F +0.0055; F dark share 19.5 %) at E 0.836. The per-view
     // SSIM maps put every gain in the mid and far rows and a small loss (−0.0005 on B and E) in the
     // near foreground, whose slab joints the frames DO shade — and that foreground is where E's
-    // sharpness (0.853 → 0.832 in the full capture) went. So the near field keeps 0.4 to 6 m and
-    // eases to 0.2 by 10 m (the near unsharp band is 3–8 m).
+    // sharpness (0.853 → 0.832 in the full capture) went. Keeping 0.4 to 6 m and easing to 0.2 by
+    // 10 m (the near band, parameterised below) recovered only E 0.832 → 0.835 for A −0.0014,
+    // D −0.0013, so the band is left neutral (near = far) and the margin comes from the near
+    // unsharp instead (softNearSharp).
     aoStrength: 0.2,
-    aoNearStrength: 0.4,
+    aoNearStrength: 0.2,
     aoNearStart: 6,
     aoNearEnd: 10,
     aoRadius: 0.5,
@@ -580,7 +582,10 @@ export function createComposer(opts: ComposerOptions): Composer {
     softBlurSigma: 1.2,
     softFarSigma: 6.0,
     softActivitySigma: 2.5,
-    softNearSharp: 1.1,
+    // Round 38 (tone): 1.2. The AO at 0.2 flattened E's foreground joints (sharpness 0.853 → 0.832
+    // in the full capture, on the W35 line); round 37 measured this band the cheapest sharpness
+    // per SSIM on E (1.4 over 3–6 m: +0.059 for −0.0001), so a tenth more here buys the margin back.
+    softNearSharp: 1.2,
     softNearStart: 3,
     softNearEnd: 8,
     softFarMode: 0,
