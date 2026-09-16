@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-daylight
-updated: 2026-09-16T13:34:48.1390366Z
+updated: 2026-09-16T14:28:36.6836394Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Owner-directed daylight, sky and shadow refinement until 13:35 UTC (15:35 Berlin). Active workspace E:/zeldaremake-daylight, PR 11; character asset work paused. Scheduled heartbeat is paused at the owner's request; work continues directly in this task.
+Owner video analysis and lighting/shadow refinement, followed by Blender Link. Fable continues trees/grass/structures. Direct work; scheduled automation stays paused.
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
 `art/characters/link/**` on her branches; runtime character code stays with fable-cursor.
@@ -54,3 +54,4 @@ Owner-directed daylight, sky and shadow refinement until 13:35 UTC (15:35 Berlin
 
 
 2026-09-16T13:34:48.1390366Z — Two-hour daylight pass handed back. Production2132882a pushed; final matched7view capture13-31-09 has empty source diff, no overrides, identical cameras/time/resolution tobaselinef3314dc2. Comparison images/provenance added toclear-daylight-review. All native jobs terminal; preview61018 HTTP200 servesindex-IzzzAXTz.js. Fable notified5698222685; latest world84ef58b6 only, round39 not integrated. Current clarity CI confirmation remains outstanding; clear-air8341 CIgreen only. Standing broad goal was read at13:29 and is PAUSED (not active as an earlier checkpoint assumed); its state was not changed. Heartbeat remains PAUSED at owner's instruction, no scheduled follow-up. Character assets untouched during this window; project quality goal unfinished. Local generatedledger108–112 and rejected experiments remain uncommitted, never edited or discarded.
+
