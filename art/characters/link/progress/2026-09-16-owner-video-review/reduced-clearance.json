@@ -1,0 +1,11 @@
+{
+  "triangles": 5629,
+  "ratio": 0.25,
+  "method": "Blender collapse decimation on copy, bounded local clearance correction",
+  "contact_history": [
+    10,
+    0
+  ],
+  "max_clearance_displacement_m": 0.00025000027679591904,
+  "status": "Contact resolved; visual review pending"
+}

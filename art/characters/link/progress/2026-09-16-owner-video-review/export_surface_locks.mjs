@@ -11,7 +11,8 @@ function read(file){
 const original=read('E:/zeldaremake-daylight/public/models/link/link-runtime.glb');
 const addition=read(new URL('hair-addition.glb',dir));
 const doc=structuredClone(original.doc),parts=[original.bin];let size=original.bin.length;
-const node=addition.doc.nodes.find(n=>n.name==='Review hair addition');
+const candidates=addition.doc.nodes.filter(n=>n.name?.startsWith('Review hair addition')&&n.mesh!==undefined);
+assert.equal(candidates.length,1);const node=candidates[0];
 assert.ok(node && !node.matrix && !node.translation && !node.rotation && !node.scale);
 const mesh=structuredClone(addition.doc.meshes[node.mesh]);
 const views=new Map(),accessors=new Map();

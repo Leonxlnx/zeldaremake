@@ -43,3 +43,15 @@ The head-child mesh exported earlier bypassed the runtime's skinned-mesh shadow 
 The corrected dense candidate b32f2d70 completed300 actual-game walk/run/idle frames and five blink close-ups. Matched baseline and candidate motion samples are exactly equal, no page errors or reach clamps. The live audit counts92962 versus70442 triangles and five materials. `world-hair-before.png` / `world-hair-after.png` show the actual forest close-up. Existing harsh face shadows appear in both. This is a flat-ground review, not new stair validation.
 
 A subsequent Blender decimation study lowers the addition from22520 to5629 triangles and its exported size to342496bytes including skin attributes. Its18-view Three.js studio review completes. However, native BVH checking finds10 body-intersecting triangles after simplification; fine lines also become less even. `reduced-hair-face.png` and the contact report preserve this result. Do not promote this reduced candidate until contact and shading are corrected. The dense source remains in the local packed crown study. The five-comparison README's hair panel is the earlier dense studio candidate and remains accurately labelled.
+
+## Reduced strand clearance corrected
+
+The10 native body intersections after decimation are resolved in one local0.25mm correction; no additional triangles. Final candidate74a853bb17d62d93aa16872ed24654735583b8f19c684efe9dd5c0c16d14b9a8 adds5629triangles and342496bytes, with existing head skin binding and exact original rig/clips/images/geometry. The exporter accepts Blender's numeric object-name suffix while requiring exactly one matching mesh; the first attempt failed that name assertion and its subsequent stale studio capture18:30:42 is excluded. Correct current studio capture is18:31:29.
+
+Actual world capture18:32:07 completes300frames across walk/run/idle and5blink closeups, with no page errors or reach clamps. All300 motion records match the current24591126 baseline exactly. Live character audit counts76071triangles. This does not extend to untested stairs or prove all-angle/self-collision clearance. The fine strands remain more visible in studio than in the darker forest. Candidate remains separate, pending a stronger visual-quality decision and remaining face/garment work.
+
+| Existing game character | Reduced hair candidate in the same game lighting |
+| --- | --- |
+| ![Existing character](world-hair-before.png) | ![Reduced hair candidate](reduced-clearance-world.png) |
+
+Native source: local hair-locks-reduced-study.blend plus preserved dense hair-locks-clean-crown-study.blend. Reproducible correction/export scripts and reports are adjacent. No default game asset changed in this follow-up.
