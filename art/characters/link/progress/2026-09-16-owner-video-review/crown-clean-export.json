@@ -1,0 +1,9 @@
+{
+  "original_binary_exact": true,
+  "original_meshes_rig_clips_textures_exact": true,
+  "added_bytes": 765420,
+  "added_meshes": 1,
+  "added_materials": 1,
+  "head_bind_identity": true,
+  "status": "Pending actual renderer review"
+}

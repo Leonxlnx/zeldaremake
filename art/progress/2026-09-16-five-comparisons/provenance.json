@@ -1,0 +1,52 @@
+[
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/clear-daylight-review/whole-pass-before.png",
+    "file": "01-plaza-before.png",
+    "sha256": "C7A3EB959DBF00101EC45B4C6BE22EEC966D64D918EAD6EA82A6324B7D773D5A"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/clear-daylight-review/whole-pass-after.png",
+    "file": "01-plaza-after.png",
+    "sha256": "1FB53FB82470F37DCF7B16112FA688F5358B373CF026CECCD9301BB22883F476"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/clear-daylight-review/sky-before.png",
+    "file": "02-sky-before.png",
+    "sha256": "C75BB55F8D558915F3F3569F5A407FDA52483AB6C6CF8EB5DEAB06513658219B"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/clear-daylight-review/sky-after.png",
+    "file": "02-sky-after.png",
+    "sha256": "ECE0F3ACD6898DBEB7C06BC25C01FBD3DB9D5A946B3B9EDC040561DC333EE79E"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/clear-daylight-review/landing-before.png",
+    "file": "03-landing-before.png",
+    "sha256": "7262E751EB5230841CFBB0FCCF065854EC9733C1DE58BF11C552B7A211BA8B1F"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/clear-daylight-review/landing-after.png",
+    "file": "03-landing-after.png",
+    "sha256": "27D31217BB5ED99AB356385A17AB86F1374F65AC69D09FE93FEB567BA9C47471"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/video-light-review/before.png",
+    "file": "04-sunlight-before.png",
+    "sha256": "1FB53FB82470F37DCF7B16112FA688F5358B373CF026CECCD9301BB22883F476"
+  },
+  {
+    "source": "E:/zeldaremake-daylight/art/environment/video-light-review/after.png",
+    "file": "04-sunlight-after.png",
+    "sha256": "D4FDBA0FC16A7B41505332D4B4BD9B706A6F124C1E0AA788EDFCDB94AE9172DA"
+  },
+  {
+    "source": "E:/zeldaremake/art/characters/link/progress/2026-09-16T16-50-21-873Z-runtime-studio/05-face.png",
+    "file": "05-link-before.png",
+    "sha256": "175813F3C836DDF45D9BF6061A5BC61D161F76D865E9CFCC14D6AB2F41B3D760"
+  },
+  {
+    "source": "E:/zeldaremake/art/characters/link/progress/2026-09-16T18-13-17-798Z-runtime-studio/05-face.png",
+    "file": "05-link-after.png",
+    "sha256": "0A57519849E918A24CCFB3FDDA6C2EFB5CDB2A9706CFB6C3B57441ECFE6733CF"
+  }
+]
