@@ -113,7 +113,7 @@ function drawMat(c: Ctx2D, rng: Rng, x0: number, y0: number, size: number) {
   const k2 = 5 + rng.int(0, 3);
   const p1 = rng() * Math.PI * 2;
   const p2 = rng() * Math.PI * 2;
-  const rim = (a: number) => R * (0.8 + 0.09 * Math.sin(a * k1 + p1) + 0.06 * Math.sin(a * k2 + p2));
+  const rim = (a: number) => R * (0.86 + 0.08 * Math.sin(a * k1 + p1) + 0.05 * Math.sin(a * k2 + p2));
   c.beginPath();
   for (let i = 0; i <= 96; i++) {
     const a = (i / 96) * Math.PI * 2;

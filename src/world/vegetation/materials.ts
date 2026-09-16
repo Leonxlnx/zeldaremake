@@ -149,8 +149,8 @@ const CARD_COLOR_VERTEX = /* glsl */ `
 // a mat is one mid-blade tone (the turf seen from above is blade sides, not roots or tips); a
 // clump runs the blades' root → tip gradient over its height, but from a third of the way up:
 // the atlas root mass is a broad area where a blade's root is a sliver, and the frames' tufts
-// are dark-hearted, not black-footed
-float bladeT = uCardMode > 0.5 ? 0.5 : 0.3 + 0.7 * uv.y;
+// are dark-hearted, not black-footed (v3 started at 0.3: still darker than the soil in the shade)
+float bladeT = uCardMode > 0.5 ? 0.5 : 0.4 + 0.6 * uv.y;
 vBladeT = bladeT;
 float vegDry = fract(aData.w);
 float atlasTile = floor(aData.w + 0.001);

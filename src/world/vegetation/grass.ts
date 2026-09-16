@@ -522,13 +522,13 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const cv = mean > 0 ? Math.sqrt(Math.max(0, variance)) / mean : 0;
 
   // Distances are measured from each tile's near edge, so the four-segment blades still
-  // extend beyond 8 m. Round 39: 10 / 24 / 78 → 8 / 20 / 20 — under the carpet a blade 8 m out
-  // is 2–3 px wide, where the four-segment bend no longer reads, and past 20 m the turf is the
+  // extend beyond 6 m. Round 39: 10 / 24 / 78 → 6 / 20 / 20 — under the carpet a blade 6 m out
+  // is ≈ 2 px wide, where the four-segment bend no longer reads, and past 20 m the turf is the
   // carpet's clump cards and mats alone (carpet.ts: one draw per LOD for the whole disc): the
   // one-triangle far tiles were 31 draws for 59 K sub-pixel triangles from camera A. The
   // one-triangle LOD is no longer reached (a tile past the second range is hidden); it stays in
   // `bases` so the tile structure, the flags and the audit rows are unchanged.
-  const lodDistances = [8 * q.distance, 20 * q.distance, 20 * q.distance];
+  const lodDistances = [6 * q.distance, 20 * q.distance, 20 * q.distance];
   const trisPerLod = bases.map((b) => b.index.count / 3);
   const halfDiag = TILE * 0.71;
   const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };

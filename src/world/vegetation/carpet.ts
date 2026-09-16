@@ -46,8 +46,8 @@ const CLUMP_SINK = 0.03;
 /** the lawn band along the paving (m) that keeps real blades only (frames: single blades at the slab edge) */
 const CLUMP_RIM_CLEAR = 0.14;
 const MAT_RIM_CLEAR = 0.1;
-/** mat footprint (m): the disc's alpha rim sits at ≈ 0.8 of the tile, so a 0.8 m mat covers ≈ 0.35 m² */
-const MAT_WIDTH: readonly [number, number] = [0.7, 0.95];
+/** mat footprint (m): the disc's alpha rim sits at ≈ 0.86 of the tile, so a 1 m mat covers ≈ 0.55 m² — ≈ 5 / m² leave ≈ 5 % of the lawn uncovered */
+const MAT_WIDTH: readonly [number, number] = [0.9, 1.2];
 /** mats float this far above the terrain (the alpha rim hides the seam; the blades stand through it) */
 const MAT_LIFT = 0.018;
 /** LOD ranges (m): near clump cards (two rows, three planes) out to this, the far card beyond */
@@ -142,10 +142,11 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
 
   // the clumps take the blades' normal blend (0.55 toward the terrain up); a fan's back planes
   // flip their facing only (materials.ts CARD_NORMAL_FRAGMENT_BEGIN), half-lit under the front
-  // ones; the atlas lightness runs the root mass at ≈ 0.65 × the blade colour to lit tips ≈ 1.05 ×
+  // ones; the atlas lightness runs the root mass at ≈ 0.7 × the blade colour to lit tips ≈ 1.05 ×
+  // (v3's 0.65 floor left the shaded fans darker than the soil they stand on)
   const clumpMaterial = createVegMaterial(ctx, 'card', {
     name: 'veg-grass-clumps',
-    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.55, lum: [0.5, 0.6], alphaBoost: 0.22 },
+    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.55, lum: [0.6, 0.5], alphaBoost: 0.22 },
   });
   // the mats are the turf's mid tone under the clumps — not a feature: the blade colour at mid
   // height, ≈ 0.65–0.95 × it over the dabs, so a mat and the blades over it are one surface

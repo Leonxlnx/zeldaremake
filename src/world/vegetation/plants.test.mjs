@@ -308,14 +308,16 @@ assert.ok(whites.items.filter(it=>{const p=camC([it.x,it.y,it.z]);return p&&p.de
     assert.ok(a.field.bankFace(it.x,it.z)<=0.3,'rim leaves stay off the bank face');}}
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
-  // every instance bucketed — bar the ones past a set's far cut (round 39: clover 16 m, fiddleheads 24 m), which no bucket carries
+  // every instance bucketed — bar the ones past a set's far cut (round 39: clover 16 m, tufts 22 m, fiddleheads / moss 24 m), which no bucket carries
   for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);
     const far=set.opts.maxDistance??Infinity,inRange=set.items.filter(it=>Math.hypot(it.x-p[0],it.z-p[2])<far).length;
     assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),inRange,`${set.opts.name} bucketed from ${id}`);
     if(far<Infinity&&id==='A_stairs')assert.ok(inRange<set.count,`${set.opts.name}: the ${far} m cut drops something from ${id}`);}
 }
-assert.equal(a.plants.clover.opts.maxDistance,16);assert.equal(a.plants.fiddleheads.opts.maxDistance,24);
-for(const set of a.plants.all)if(set!==a.plants.clover&&set!==a.plants.fiddleheads)assert.equal(set.opts.maxDistance,undefined,`${set.opts.name} has no far cut`);
+// the round-39 far cuts: the herb layer and the tufts / cushions the carpet's cards stand for past 22–24 m; the hero sets have none
+assert.deepEqual([a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss].map(s=>s.opts.maxDistance),[16,24,22,24]);
+for(const set of a.plants.all)if(![a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss].includes(set))assert.equal(set.opts.maxDistance,undefined,`${set.opts.name} has no far cut`);
+assert.deepEqual(a.plants.tufts.opts.lodDistances,[10]);assert.deepEqual(a.plants.ferns.opts.lodDistances,[12,20]);
 // the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
 assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');

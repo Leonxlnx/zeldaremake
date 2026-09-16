@@ -229,9 +229,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // tuft's own shadow on the turf under it is that contrast (the tile grass casts none)
   // round 39: the near LOD to 10 m — the turf carpet's clump cards (carpet.ts) now stand between
   // the tufts everywhere, so a tuft 10–16 m out is one clump among many and its 30-triangle far
-  // LOD reads the same; the near tufts' 130 triangles and shadow pass were 240–340 K from A / B
-  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 });
-  const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 });
+  // LOD reads the same; the near tufts' 130 triangles and shadow pass were 240–340 K from A / B.
+  // Past 22 m (a 0.3 m tuft is 7 px) the clump cards alone stand for them.
+  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
+  // round 39: the cushions stop at 24 m (≤ 0.12 m high — 3 px there; 97 K triangles in one draw from A)
+  const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 }, 24);
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 
   const tint = new Color();
