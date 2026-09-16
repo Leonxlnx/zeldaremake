@@ -1,0 +1,111 @@
+{
+  "triangles": 5302,
+  "checks": [
+    {
+      "phase": 0.0,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9816575299542495
+    },
+    {
+      "phase": 0.05,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9825112345499951
+    },
+    {
+      "phase": 0.1,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9835930451118118
+    },
+    {
+      "phase": 0.15,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9848800351737246
+    },
+    {
+      "phase": 0.2,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.986335303446687
+    },
+    {
+      "phase": 0.25,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9879098388474216
+    },
+    {
+      "phase": 0.3,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9895461488041513
+    },
+    {
+      "phase": 0.35,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9911832339344069
+    },
+    {
+      "phase": 0.4,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9923338085266192
+    },
+    {
+      "phase": 0.45,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9934559589400113
+    },
+    {
+      "phase": 0.5,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.994566490058442
+    },
+    {
+      "phase": 0.55,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9955038217963317
+    },
+    {
+      "phase": 0.6,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9963799850640791
+    },
+    {
+      "phase": 0.65,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9971835312314858
+    },
+    {
+      "phase": 0.7,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9979034071547882
+    },
+    {
+      "phase": 0.75,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.99852937239435
+    },
+    {
+      "phase": 0.8,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9990415148467465
+    },
+    {
+      "phase": 0.85,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9994496776557227
+    },
+    {
+      "phase": 0.9,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9997464739787217
+    },
+    {
+      "phase": 0.95,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9999347592267456
+    },
+    {
+      "phase": 1.0,
+      "reversed_relative_to_baseline": 0,
+      "min_cosine": 0.9999999999999998
+    }
+  ],
+  "closed_positions_exact": true
+}

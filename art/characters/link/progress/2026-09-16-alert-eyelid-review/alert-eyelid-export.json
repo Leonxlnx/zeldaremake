@@ -1,0 +1,14 @@
+{
+  "sha256": "3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf",
+  "bytes": 40944624,
+  "clips": [
+    "idle",
+    "walk",
+    "run",
+    "stairs"
+  ],
+  "images": 5,
+  "status": "Local face detail candidate; runtime review pending",
+  "raw_export_sha256": "7d2e37981d38041cee912020359a1f3d7264022865c2489d3b96d6dbd3790708",
+  "restored_outside_normal_tangent_vectors": 14718
+}

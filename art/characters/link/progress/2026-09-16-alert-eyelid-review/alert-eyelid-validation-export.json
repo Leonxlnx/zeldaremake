@@ -1,0 +1,10 @@
+{
+  "sha256": "3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf",
+  "changed_positions": 774,
+  "restored_outside_normal_tangent_vectors": 14718,
+  "clips_images_uvs_weights_binds_exact": true,
+  "closed_blink_positions_preserved": true,
+  "half_blink_rebased_correctly": true,
+  "max_blink_normal_component_change": 0.2073999047279358,
+  "status": "Export checked; runtime review pending"
+}

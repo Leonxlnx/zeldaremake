@@ -1,3 +1,6 @@
+Retained alert eyelid opening: 3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf
+774 orbital vertices adjusted; aperture height19.93 to23.23mm. Fully closed positions retained and half-blink correctly rebased. Native21phase checks show no eye overlaps or triangle reversals relative to baseline. Clips, textures, UVs, weights and binds preserved.36 actual movement/blink records match prior build; five game blink phases inspected. Closed-lid ridges remain. Evidence: art/characters/link/progress/2026-09-16-alert-eyelid-review.
+
 Retained localized face refinement: 0c28cb623640ea81f446b172ea04d36ce0d43aa00db1bddf5eec6b3e77f1b707
 Includes lower-run arc and garment repairs. Adds391 small mouth-corner vertex adjustments and bounded nasal shading repair baked into the existing normal atlas with zero padding. Other textures, clips, binds, UVs and skin weights preserved. Blink position deltas preserved; small normal export roundoff recorded. Native and in-game open/closed views inspected;36 movement records exact and five blink phases pass. Facial/eyelid quality remains unfinished. Evidence: art/characters/link/progress/2026-09-16-nose-shading-review and2026-09-16-neutral-mouth-review.
 

@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-15T23:52:45.110587+00:00
+updated: 2026-09-16T00:24:17.130970+00:00
 ---
 
 # astra-local — roster entry
@@ -45,3 +45,6 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 
 
 2026-09-15T23:52:45.110587+00:00 — Retained face0c28cb62: localized nose normal bake +391 mouthcorners. Zero bakepadding resolveslipartifact. Native preservation and GLB checks pass;36game records exact,5blink phases pass;openclosedimagesreviewed. Evidence2026-09-16-nose-shading-review + neutral-mouth-review. Current asset updated; eye/cheek/hairquality unfinished. No active jobs.
+
+
+2026-09-16T00:24:17.130970+00:00 — Retained alert eyelid3f6cb6f3:774positions,aperture19.93to23.23mm,closedendpointpreserved.21nativephases noeyeoverlap/triangleflip.36gamerecordsexactto0c28;5blinkphases/zerodtpass;openhalfclosedimagesviewed. Evidence2026-09-16-alert-eyelid-review. Otherface/hair/clothqualityunfinished. Noactivejobs.
