@@ -156,16 +156,18 @@ const PACKS: Record<string, PackLayout> = {
   // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
   // more — paid for by the grass tiles' far draws, see grass.ts)
   fiddleheads: [SINGLE(3), SINGLE(3)],
-  // round 40: the bipinnate near LOD (≈ 20 K triangles a crown) draws per variant so the walking
-  // eye's one or two crowns inside 5 m do not submit the other variants collapsed; the three lance
-  // LODs keep the default single pack (no fixed camera has a crown inside the near range)
-  'hero-ferns': [SINGLE(3), ALL(3), ALL(3), ALL(3)],
+  // round 40: the bipinnate near LOD (≈ 18 K triangles a crown) and the lance high LOD draw per
+  // variant — packed, every crown 5–16 m from a camera submitted all three variants collapsed
+  // (10 908 triangles, 21.8 K with its shadow; 3 636 / 7.3 K per variant: −73 K from camera A,
+  // −131 K from F, +4 draws paid by the tufts' shadow pass below); the two far lance LODs keep
+  // the single pack (no fixed camera has a crown inside the near range)
+  'hero-ferns': [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // 12 hero hedges, all high-LOD from every camera: packing ALL(3) near submitted 3x the placed
   // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
   hedge: [SINGLE(3), ALL(3), ALL(3)],
   // round 31: 6 tuft variants (two per height class, `variant % 3` the class). Thousands of
-  // instances: one draw per variant near (130 triangles each, plus its shadow pass), the far LOD
-  // (30 triangles) pairs the two variants of a class — 15 draws
+  // instances: one draw per variant near (130 triangles each), the far LOD (30 triangles) pairs
+  // the two variants of a class — 9 draws (round 40: the near tufts no longer cast, see `mk`)
   tufts: [SINGLE(6), [[0, 3], [1, 4], [2, 5]]],
 };
 
@@ -237,7 +239,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // the tufts everywhere, so a tuft 10–16 m out is one clump among many and its 30-triangle far
   // LOD reads the same; the near tufts' 130 triangles and shadow pass were 240–340 K from A / B.
   // Past 22 m (a 0.3 m tuft is 7 px) the clump cards alone stand for them.
-  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 1, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
+  // round 40: the tufts cast no shadow. They stand in the blade turf and the carpet's cards, neither of
+  // which casts (grass.ts / carpet.ts), so a 0.15–0.35 m tuft's own shadow map was the one shadow in
+  // the turf layer — six depth draws and 123 triangles a near tuft (33–66 K a frame) for shadow-map
+  // acne at blade scale; the budget goes to the verge band and the face turf instead.
+  const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 0, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
   // round 39: the cushions stop at 24 m (≤ 0.12 m high — 3 px there; 97 K triangles in one draw from A)
   const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 }, 24);
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });

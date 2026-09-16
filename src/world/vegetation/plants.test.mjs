@@ -401,7 +401,7 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
 // 2 m from the eye): a fourth LOD ahead of the round-39 three, drawn per variant (no pack collapse
 // multiplies its triangles), ≥ 3 × the high LOD's triangles and the same footprint
 {const {HERO_FERN_ULTRA_M}=read('vegetation/plantgeo');assert.deepEqual(a.plants.heroFerns.opts.lodDistances,[HERO_FERN_ULTRA_M,16,32]);assert.ok(HERO_FERN_ULTRA_M>=4&&HERO_FERN_ULTRA_M<=8);
-  assert.deepEqual(a.plants.heroFerns.packLayout[0],[[0],[1],[2]],'ultra hero ferns draw per variant');
+  assert.deepEqual(a.plants.heroFerns.packLayout.slice(0,2),[[[0],[1],[2]],[[0],[1],[2]]],'ultra and high hero ferns draw per variant');assert.equal(a.plants.tufts.opts.castShadowLods,0,'tufts cast no shadow (round 40)');
   for(const lods of a.plants.heroFerns.opts.variants){assert.equal(lods.length,4);const [ultra,high]=lods;assert.ok(ultra.index.count>=3*high.index.count,`ultra ${ultra.index.count/3} vs high ${high.index.count/3} triangles`);
     const ub=ultra.boundingBox,hb=high.boundingBox;assert.ok(Math.abs(ub.max.y-hb.max.y)<0.12&&Math.abs((ub.max.x-ub.min.x)-(hb.max.x-hb.min.x))<0.25,'the ultra frond keeps the high LOD\'s silhouette');}}
 // dirt-seam litter along the rim (sheet 02 “Path boundary”), none of it on the slabs
