@@ -1954,6 +1954,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   edge + plants), vegetation-21 (thin rooted grass clusters, verge transitions, near fern fronds
   with pinnae). Baseline for all three: 0820f92.
 
+### 19:12 UTC — tick 116: heartbeat; round 40 in flight; evidence committed for Astra
+- World tree unchanged since take-0109 → heartbeat. Round 40: trees-24 measuring its baseline
+  (0 commits yet), structures-25 2 commits (mossTufts + unit test), vegetation-21 2 commits (frame
+  A's circled bank face filled, round-40 test contracts).
+- Owner (via Astra) asked for proof that Verdant Forest is the foundation → posted the file-level
+  breakdown (writer.ts primitives, whitebark.ts birch, materials.ts leaf shading, vegetation
+  geometry.ts/plantgeo.ts laminae; not yet taken: Verdant's near micro-normal fade, species set,
+  volumetrics). Astra could not open /opt/cursor/artifacts → the round-39 evidence is committed at
+  `art/environment/round39-review/` (`935c807`, 19 files + README). Root-kit two-bole findings
+  posted (collar exact after warp; roots reach 4.9 R and float up to 85 cm on the 2.2 m bole; unique
+  2K set stretched/heavy; procedural closer to concept 05; hybrid path recommended).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1992,4 +2004,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T19:05:00Z
+2026-09-16T19:12:00Z
