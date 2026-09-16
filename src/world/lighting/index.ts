@@ -17,8 +17,9 @@ import type { WorldContext, WorldSystem } from '../system';
 import { sunDirection } from './sun';
 import { createSkyDome, SKY_ENV_TINT } from '../atmosphere/sky';
 import { buildSkyEnvironment } from './environment';
-import { installShadowFilter, SHADOW_FILTER_DEFAULTS } from './shadowfilter';
+import { encodeShadowRadius, installShadowFilter, searchTapsFor, SHADOW_FILTER_DEFAULTS } from './shadowfilter';
 import { WORLD } from '../config';
+import { perfFlags, perfRuntime } from '../../perfFlags';
 
 export { sunDirection } from './sun';
 
@@ -29,11 +30,20 @@ const SUN_DISTANCE_M = 140;
 const SHADOW_NEAR_M = 40;
 const SHADOW_FAR_M = 250;
 
+// Performance flags (perfFlags.ts): `?shadow=<size>[,<taps>]` bakes another map size / tap count
+// into the filter; `?quality=auto` (with the governor running) takes the dynamic variant whose
+// texel and taps follow the light at run time. Without either the filter is the shipped one.
+const PERF = perfFlags();
+const SHADOW_MAP_SIZE = PERF.shadowMapSize > 0 ? PERF.shadowMapSize : WORLD.sun.shadowMapSize;
+const SHADOW_DYNAMIC = PERF.governor;
+
 // Must run before any material compiles: replaces the BASIC shadow lookup with the PCSS filter.
 const SHADOW_FILTER = {
   ...SHADOW_FILTER_DEFAULTS,
   depthRangeM: SHADOW_FAR_M - SHADOW_NEAR_M,
-  texelM: (2 * SHADOW_RADIUS_M) / WORLD.sun.shadowMapSize,
+  texelM: (2 * SHADOW_RADIUS_M) / SHADOW_MAP_SIZE,
+  ...(PERF.shadowTaps !== 12 ? { filterTaps: PERF.shadowTaps, searchTaps: searchTapsFor(PERF.shadowTaps) } : {}),
+  ...(SHADOW_DYNAMIC ? { dynamic: true, mapSize: SHADOW_MAP_SIZE } : {}),
 };
 const shadowFilterInstalled = installShadowFilter(SHADOW_FILTER);
 
@@ -70,8 +80,9 @@ export function create(ctx: WorldContext): WorldSystem {
   const sun = new DirectionalLight(sunColor, s.intensity);
   sun.name = 'sun';
   sun.position.copy(dir).multiplyScalar(SUN_DISTANCE_M);
-  sun.castShadow = ctx.quality.shadows;
-  sun.shadow.mapSize.set(s.shadowMapSize, s.shadowMapSize);
+  // `?shadow=0` switches the sun's shadow map off (the receivers' materials then compile without it)
+  sun.castShadow = ctx.quality.shadows && PERF.shadowMapSize > 0;
+  sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
   sun.shadow.camera.near = SHADOW_NEAR_M;
   sun.shadow.camera.far = SHADOW_FAR_M;
   sun.shadow.camera.left = -SHADOW_RADIUS_M;
@@ -146,11 +157,14 @@ export function create(ctx: WorldContext): WorldSystem {
     shadows: sun.castShadow,
     shadowMapSize: sun.shadow.mapSize.x,
     shadowType: shadowFilterInstalled ? 'pcss-vogel+canopy-transmission' : 'basic',
+    shadowFilterTaps: SHADOW_DYNAMIC ? perfRuntime().shadowTaps : SHADOW_FILTER.filterTaps ?? 12,
+    shadowSearchTaps: SHADOW_DYNAMIC ? searchTapsFor(perfRuntime().shadowTaps) : SHADOW_FILTER.searchTaps ?? 8,
+    shadowFilterDynamic: SHADOW_DYNAMIC,
     shadowWindowRadiusM: SHADOW_RADIUS_M,
     shadowTexelCm: Math.round(((2 * SHADOW_RADIUS_M) / sun.shadow.mapSize.x) * 1000) / 10,
     shadowBias: sun.shadow.bias,
     shadowNormalBias: sun.shadow.normalBias,
-    shadowRadiusTexels: sun.shadow.radius,
+    shadowRadiusTexels: SHADOW_DYNAMIC ? sun.shadow.radius % 1000 : sun.shadow.radius,
     shadowPenumbraPerM: SHADOW_FILTER.penumbraPerM,
     shadowPenumbraRangeM: [SHADOW_FILTER.penumbraMinM, SHADOW_FILTER.penumbraMaxM],
     shadowCanopyLeak: SHADOW_FILTER.leak,
@@ -166,6 +180,27 @@ export function create(ctx: WorldContext): WorldSystem {
 
   const camPos = new Vector3();
   const camDir = new Vector3();
+  /**
+   * Auto quality (dynamic filter variant only): follow the governor's map size and tap count. A
+   * new size drops the allocated map so three reallocates it at the next shadow pass (the filter
+   * reads the size from its `shadowMapSize` uniform); the taps ride in shadow.radius's thousands.
+   */
+  let perfSeen = -1;
+  const applyPerf = () => {
+    const perf = perfRuntime();
+    if (perf.version === perfSeen) return;
+    perfSeen = perf.version;
+    const size = perf.shadowMapSize > 0 ? perf.shadowMapSize : SHADOW_MAP_SIZE;
+    if (sun.shadow.mapSize.x !== size) {
+      sun.shadow.mapSize.set(size, size);
+      const map = sun.shadow.map;
+      if (map) {
+        map.depthTexture?.dispose();
+        map.dispose();
+        sun.shadow.map = null;
+      }
+    }
+  };
   return {
     name: 'lighting',
     group,
@@ -179,6 +214,10 @@ export function create(ctx: WorldContext): WorldSystem {
       else hemi.groundColor.copy(hemiGroundColor);
       if (environment) c.scene.environmentIntensity = o?.environmentIntensity ?? environmentIntensity;
       sun.shadow.radius = o?.shadowRadius ?? shadowRadius;
+      if (SHADOW_DYNAMIC) {
+        applyPerf();
+        sun.shadow.radius = encodeShadowRadius(sun.shadow.radius, perfRuntime().shadowTaps);
+      }
       // shadow window fitted ahead of the camera, snapped to metre steps to avoid shimmering
       c.camera.getWorldPosition(camPos);
       c.camera.getWorldDirection(camDir);

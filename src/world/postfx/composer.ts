@@ -54,6 +54,7 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { perfRuntime } from '../../perfFlags';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { SCREEN_FAN, SHAFT_COLUMNS } from '../atmosphere/shafts';
 import {
@@ -997,13 +998,20 @@ export function createComposer(opts: ComposerOptions): Composer {
 
     renderer.autoClear = false;
 
+    // performance flags / auto quality (perfFlags.ts): stages switched off skip their passes; the
+    // composite then reads a neutral term (AO strength 0, black rays, bloom intensity 0). All on by
+    // default, so the shipped frame is untouched.
+    const fx = perfRuntime().fx;
+
     // 3. AO
-    aoMat.uniforms.uRadius.value = s.aoRadius;
-    pass(aoMat, aoA);
-    pass(aoBlurMat, aoB);
+    if (fx.ao) {
+      aoMat.uniforms.uRadius.value = s.aoRadius;
+      pass(aoMat, aoA);
+      pass(aoBlurMat, aoB);
+    }
 
     // 4. god rays (volumetric march through the sun's shadow map, then smear along the sun axis)
-    if (rayIntensity.value > 0.001 && bindShadow()) {
+    if (fx.rays && rayIntensity.value > 0.001 && bindShadow()) {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       (rayMarchMat.uniforms.uMistNear.value as Vector2).set(s.rayMistNearStart, s.rayMistNearEnd);
@@ -1053,20 +1061,22 @@ export function createComposer(opts: ComposerOptions): Composer {
     }
 
     // 5. bloom
-    brightMat.uniforms.uThreshold.value = s.bloomThreshold;
-    pass(brightMat, bloomA);
-    blurMat.uniforms.tSrc.value = bloomA.texture;
-    blurMat.uniforms.uDir.value.set(quarterTexel.value.x * s.bloomRadius, 0);
-    pass(blurMat, bloomB);
-    blurMat.uniforms.tSrc.value = bloomB.texture;
-    blurMat.uniforms.uDir.value.set(0, quarterTexel.value.y * s.bloomRadius);
-    pass(blurMat, bloomA);
+    if (fx.bloom) {
+      brightMat.uniforms.uThreshold.value = s.bloomThreshold;
+      pass(brightMat, bloomA);
+      blurMat.uniforms.tSrc.value = bloomA.texture;
+      blurMat.uniforms.uDir.value.set(quarterTexel.value.x * s.bloomRadius, 0);
+      pass(blurMat, bloomB);
+      blurMat.uniforms.tSrc.value = bloomB.texture;
+      blurMat.uniforms.uDir.value.set(0, quarterTexel.value.y * s.bloomRadius);
+      pass(blurMat, bloomA);
+    }
 
     // 6. composite + tone map + grade → LDR
-    compositeMat.uniforms.uAoStrength.value = s.aoStrength;
+    compositeMat.uniforms.uAoStrength.value = fx.ao ? s.aoStrength : 0;
     (compositeMat.uniforms.uAoFade.value as Vector2).set(s.aoFadeStart, s.aoFadeEnd);
     compositeMat.uniforms.uRaySkyShare.value = s.raySkyShare;
-    compositeMat.uniforms.uBloomIntensity.value = s.bloomIntensity;
+    compositeMat.uniforms.uBloomIntensity.value = fx.bloom ? s.bloomIntensity : 0;
     compositeMat.uniforms.uSaturation.value = s.saturation;
     compositeMat.uniforms.uContrast.value = s.contrast;
     compositeMat.uniforms.uContrastPivot.value = s.contrastPivot;
@@ -1084,7 +1094,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       pass(copyMat, null);
     } else if (dbg === 'depth') {
       pass(depthDebugMat, null);
-    } else if (!s.softening && dbg !== 'soft') {
+    } else if ((!s.softening || !fx.soft) && dbg !== 'soft') {
       pass(fxaaMat, null);
     } else {
       pass(fxaaMat, aa);
@@ -1180,9 +1190,11 @@ export function createComposer(opts: ComposerOptions): Composer {
       ],
       hdr: true,
       resolution: [W, H],
-      ambientOcclusion: true,
+      /** stages switched off by the performance flags / auto quality (perfFlags.ts); all on as shipped */
+      stagesEnabled: { ...perfRuntime().fx },
+      ambientOcclusion: perfRuntime().fx.ao,
       aoResolution: [hw, hh],
-      godRays: true,
+      godRays: perfRuntime().fx.rays,
       godRayMethod: 'volumetric-shadow-march+gap-mask',
       godRaySteps: 24,
       godRayResolution: [qw, qh],
@@ -1212,7 +1224,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayScreenFanBeams: SCREEN_FAN.beams.map((b) => [b.u, b.halfWidth * settings.fanWidthScale, b.gain * settings.fanGainScale]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
-      bloom: true,
+      bloom: perfRuntime().fx.bloom,
       bloomThreshold: settings.bloomThreshold,
       bloomIntensity: settings.bloomIntensity,
       bloomRadiusTexels: settings.bloomRadius,
@@ -1224,7 +1236,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       aoFadeM: [settings.aoFadeStart, settings.aoFadeEnd],
       antialiasing: 'fxaa',
       // final video-softness stage on a fixed 640/320-wide grid (see SOFT_FINAL_FRAG)
-      softening: settings.softening,
+      softening: settings.softening && perfRuntime().fx.soft,
       softeningGrid: [sw, sh],
       softeningDetailFloor: settings.softDetail,
       softeningActivityKnee: settings.softActivityK,
