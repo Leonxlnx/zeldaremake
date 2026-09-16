@@ -34,7 +34,7 @@ import { createVegMaterial } from './materials';
 
 /** jittered grid pitch (m) of the clump cards and of the mats */
 export const CLUMP_CELL = 0.42;
-export const MAT_CELL = 0.55;
+export const MAT_CELL = 0.48;
 /** clump card footprint (m): width range, height range; the atlas tile is 2 : 1 so a card keeps ≈ that aspect */
 const CLUMP_WIDTH: readonly [number, number] = [0.42, 0.62];
 const CLUMP_HEIGHT: readonly [number, number] = [0.19, 0.32];
@@ -45,15 +45,19 @@ const CLUMP_SINK = 0.03;
 /** the lawn band along the paving (m) that keeps real blades only (frames: single blades at the slab edge) */
 const CLUMP_RIM_CLEAR = 0.14;
 const MAT_RIM_CLEAR = 0.1;
-/** mat footprint (m) */
-const MAT_WIDTH: readonly [number, number] = [0.62, 0.86];
+/** mat footprint (m): the disc's alpha rim sits at ≈ 0.8 of the tile, so a 0.8 m mat covers ≈ 0.35 m² */
+const MAT_WIDTH: readonly [number, number] = [0.7, 0.95];
 /** mats float this far above the terrain (the alpha rim hides the seam; the blades stand through it) */
 const MAT_LIFT = 0.018;
 /** LOD ranges (m): near clump cards (two rows, three planes) out to this, the far card beyond */
 const CLUMP_LOD_NEAR = 12;
-/** cards / mats steeper than this lose density (the flanks keep their blade turf, which follows the face) */
-const SLOPE_THIN: readonly [number, number] = [0.42, 0.68];
-const MAT_SLOPE_THIN: readonly [number, number] = [0.3, 0.5];
+/**
+ * cards steeper than this (slope = 1 − ny: 0.45 ≈ 57°) lose density — a fan of upright planes on
+ * a 60° face reads as cards; the mats, which lie on the face like decals, hold until the cliffs
+ * (0.5–0.75 ≈ 60–75°), so the stair flanks' blade turf (grass.ts FLANK_EXTRA) sits on turf too
+ */
+const SLOPE_THIN: readonly [number, number] = [0.45, 0.7];
+const MAT_SLOPE_THIN: readonly [number, number] = [0.5, 0.75];
 /** bank darkening and its flattening of the blade-to-blade contrasts — the blades' constants (grass.ts) */
 const BANK_DARKEN = 0.6;
 const BANK_FLAT = 0.7;
@@ -135,15 +139,18 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
   const atlas = createClumpAtlas(ctx.rng);
   const materials: Material[] = [];
 
+  // the clumps take the blades' normal blend (0.55 toward the terrain up) and their double-sided
+  // flip, so a fan's back planes go dark under its lit front ones; the atlas lightness runs the
+  // root mass at ≈ 0.55 × the blade colour up to the lit tips at ≈ 1.0 ×
   const clumpMaterial = createVegMaterial(ctx, 'card', {
     name: 'veg-grass-clumps',
-    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.8, lum: [0.5, 0.65], alphaBoost: 0.22 },
+    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.55, lum: [0.35, 0.75], alphaBoost: 0.22 },
   });
   const matMaterial = createVegMaterial(ctx, 'card', {
     name: 'veg-turf-mats',
     singleSided: true,
     transmission: 0,
-    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: MAT_GRID, mode: 1, upMix: 1, lum: [0.62, 0.55], alphaBoost: 0.12 },
+    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: MAT_GRID, mode: 1, upMix: 1, lum: [0.7, 0.5], alphaBoost: 0.12 },
   });
   materials.push(clumpMaterial, matMaterial);
 

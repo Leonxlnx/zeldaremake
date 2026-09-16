@@ -87,9 +87,10 @@ for(const spot of LAYOUT.npcSpots)for(const it of a.carpet.clumps.items)if(Math.
 // shot D's right verge (plants.test: ≤ 0.55 m) and the house flight's south flank (≤ 0.12 m + the lawn's feather)
 for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(scaleY(it)<=0.55);
   const hl=a.field.houseFlightLocal(it.x,it.z);if(hl&&hl.v>0&&a.field.houseFlankZone(it.x,it.z)>0.99)assert.ok(scaleY(it)<=0.1201,`south flank clump ${scaleY(it).toFixed(3)} m`);}
-// steep faces keep their blade turf: no clump where the slope exceeds the thin band's end, no mat past its own
-for(const it of a.carpet.clumps.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.68,`clump on a ${s.slope.toFixed(2)} slope`);}
-for(const it of a.carpet.mats.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.5,`mat on a ${s.slope.toFixed(2)} slope`);}
+// steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats lie on the face like decals and hold to the cliffs (75°)
+for(const it of a.carpet.clumps.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.7,`clump on a ${s.slope.toFixed(2)} slope`);}
+{let steep=0;for(const it of a.carpet.mats.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.75,`mat on a ${s.slope.toFixed(2)} slope`);if(s.slope>0.4)steep++;}
+  assert.ok(steep>=80,`${steep} mats on the steep banks (the stair flanks' turf sits on mats too)`);}
 // the sets: no shadow casting (the blade tiles never cast), receive on, one draw per LOD, culled per instance
 for(const set of a.carpet.all){set.update(new THREE.Vector3(0,1.5,0),true);
   for(const m of set.group.children){assert.equal(m.castShadow,false);assert.equal(m.receiveShadow,true);assert.ok(m.geometry.attributes.aData.isInstancedBufferAttribute,'aData rides the pack mesh');}
@@ -109,7 +110,9 @@ assert.equal(clumpMat.alphaTest,0.5);assert.equal(matMat.alphaTest,0.5);assert.e
     assert.equal(sh.uniforms.uCardMode.value,mode);assert.deepEqual(sh.uniforms.uTileGrid.value.toArray(),[...(mode?MAT_GRID:CLUMP_GRID)]);
     assert.match(sh.vertexShader,/attribute vec4 aData;/);assert.match(sh.vertexShader,/windGrass\(vegWorld\.xyz, uv\.y, aData\.x, aData\.y\)/,'the blades\' wind layer');
     assert.match(sh.vertexShader,/uniform float uTime;/);assert.match(sh.fragmentShader,/texture2D\(uAtlas, vAtlasUv\)/);
-    assert.doesNotMatch(sh.fragmentShader,/normal \*= faceDirection;/,'no double-sided flip of the terrain-up normal');
+    // the clumps keep three's double-sided flip (the blades' dark back faces); the mats are FrontSide, so no DOUBLE_SIDED define reaches it
+    assert.match(sh.fragmentShader,/#include <normal_fragment_begin>/,'three\'s normal block, flip and all');
+    assert.equal(sh.uniforms.uUpMix.value,mode?1:0.55,'the blades\' 0.55 terrain-up blend on the clumps, ground-flat mats');
     assert.match(sh.fragmentShader,/#include <alphatest_fragment>/);assert.match(sh.fragmentShader,/uTransmission \* vegAtlasT/,'translucency from the atlas');
     assert.match(sh.fragmentShader,/uShadeFill \* vShadeLift/,'the blades\' shade fill');
     for(const[,chunk]of sh.vertexShader.matchAll(/#include <([\w_]+)>/g))assert.ok(THREE.ShaderChunk[chunk]!==undefined,`known chunk ${chunk}`);

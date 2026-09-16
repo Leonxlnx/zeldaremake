@@ -308,8 +308,14 @@ assert.ok(whites.items.filter(it=>{const p=camC([it.x,it.y,it.z]);return p&&p.de
     assert.ok(a.field.bankFace(it.x,it.z)<=0.3,'rim leaves stay off the bank face');}}
 for(const id of['A_stairs','B_house','D_log']){
   const p=LAYOUT.viewpoints.find(v=>v.id===id).position;
-  for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),set.count);}
+  // every instance bucketed — bar the ones past a set's far cut (round 39: clover 16 m, fiddleheads 24 m), which no bucket carries
+  for(const set of a.plants.all){set.update(new THREE.Vector3().fromArray(p),true);
+    const far=set.opts.maxDistance??Infinity,inRange=set.items.filter(it=>Math.hypot(it.x-p[0],it.z-p[2])<far).length;
+    assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),inRange,`${set.opts.name} bucketed from ${id}`);
+    if(far<Infinity&&id==='A_stairs')assert.ok(inRange<set.count,`${set.opts.name}: the ${far} m cut drops something from ${id}`);}
 }
+assert.equal(a.plants.clover.opts.maxDistance,16);assert.equal(a.plants.fiddleheads.opts.maxDistance,24);
+for(const set of a.plants.all)if(set!==a.plants.clover&&set!==a.plants.fiddleheads)assert.equal(set.opts.maxDistance,undefined,`${set.opts.name} has no far cut`);
 // the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
 assert.deepEqual(a.plants.flowers.packLayout[1],[[0,1],[2,3]],'flower mid LOD pairs the heads and the spikes');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0],[1],[2]],'near weeds draw per variant');
@@ -345,7 +351,8 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
 {const turf=box=>{const hs=[];for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<box[0]||x>box[2]||z<box[1]||z>box[3])continue;hs.push(Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]));}}
     return{perM2:hs.length/((box[2]-box[0])*(box[3]-box[1])),p50:q(hs,0.5),p95:q(hs,0.95)};};
   const band=turf([-3.1,-8.4,-1.9,-6.6]),north=turf([-2.2,-13.5,-1.6,-11.0]);
-  assert.ok(band.perM2>=150,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
+  // round 39: the base pass runs at half density under the turf carpet (carpet.test: ≥ 3 clump cards / m² here, ≈ 200 atlas blades each), the band pass unchanged
+  assert.ok(band.perM2>=90,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
   assert.ok(band.p95<=0.27&&band.p50<=0.8*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
 grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g of t.lods)g.dispose();}
 // dirt-seam litter along the rim (sheet 02 “Path boundary”), none of it on the slabs

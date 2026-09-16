@@ -148,6 +148,12 @@ export interface LodSetOptions {
   shadowMaterials?: { depth: Material; distance: Material };
   /** distance thresholds: lod i is used while distance < lodDistances[i]; the last lod has no limit */
   lodDistances: number[];
+  /**
+   * Beyond this camera distance (m, scaled like the LOD ranges) an instance is bucketed nowhere
+   * and never submitted (round 39: the ground herbs — clover, fiddleheads — whose leaves fall
+   * under a pixel long before the far LOD stops paying for them). Unlimited by default.
+   */
+  maxDistance?: number;
   /** lods with index < castShadowLods cast shadows */
   castShadowLods?: number;
   receiveShadow?: boolean;
@@ -456,6 +462,8 @@ export class LodInstancedSet {
     for (let i = 0; i < this.items.length; i++) {
       const it = this.items[i];
       const lod = lodFor(it);
+      // a negative LOD (past `maxDistance`) leaves the instance out of every bucket
+      if (lod < 0) continue;
       const pm = this.meshes[lod][this.packOf[lod][it.variant]];
       pm.list[pm.n++] = i;
     }
@@ -533,7 +541,8 @@ export class LodInstancedSet {
     const lodCount = this.lodCount;
     const scale = lodDistanceScale();
     this.lastLodScale = scale;
-    if (scale === 1) {
+    const far = this.opts.maxDistance === undefined ? Infinity : this.opts.maxDistance * scale;
+    if (scale === 1 && far === Infinity) {
       this.bucket((it) => {
         const d = hypot2(camPos.x - it.x, camPos.z - it.z);
         for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
@@ -542,6 +551,7 @@ export class LodInstancedSet {
     } else {
       this.bucket((it) => {
         const d = hypot2(camPos.x - it.x, camPos.z - it.z);
+        if (d >= far) return -1;
         for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l] * scale) return l;
         return lodCount - 1;
       });

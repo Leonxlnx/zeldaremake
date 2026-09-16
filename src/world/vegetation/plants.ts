@@ -170,12 +170,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const seed = ctx.config.seed;
   const materials: Material[] = [];
 
-  const mk = (label: string, geos: ReturnType<typeof variants>, kind: 'plant' | 'bush' | 'moss', lodDistances: number[], castShadowLods: number, matOpts: VegMaterialOptions = {}) => {
+  const mk = (label: string, geos: ReturnType<typeof variants>, kind: 'plant' | 'bush' | 'moss', lodDistances: number[], castShadowLods: number, matOpts: VegMaterialOptions = {}, maxDistance?: number) => {
     const material = createVegMaterial(ctx, kind, { plantHeight: maxHeight(geos), name: `veg-${label}`, ...matOpts });
     materials.push(material);
     const shadowMaterials = castShadowLods > 0 ? createVegShadowMaterials(material) : undefined;
     if (shadowMaterials) materials.push(shadowMaterials.depth, shadowMaterials.distance);
-    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), castShadowLods, packs: PACKS[label] });
+    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), maxDistance: maxDistance === undefined ? undefined : maxDistance * q.distance, castShadowLods, packs: PACKS[label] });
   };
 
   // round 31: the near LOD's serrated pinnae read out to 12 m (was 11; 14 m put frame F at +1.51 M
@@ -209,9 +209,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // the three sheet laminae (heart / ovate / round) with a waxy upper face and a matte underside
   const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55, roughness: 0.9, topRoughness: 0.55 });
   // stout buds barely move in the wind
-  const fiddleheads = mk('fiddleheads', variants(3, `${seed}/fiddlehead`, pal, fiddleheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 0.9, flutter: 0.003, stiffness: 0.75, transmission: 0.05 });
+  // round 39: the buds stop at 24 m — a 0.15 m coil is 5 px tall there, one more dark dab in the
+  // far herb layer, and its 360-triangle far LOD was 130 K triangles from camera A
+  const fiddleheads = mk('fiddleheads', variants(3, `${seed}/fiddlehead`, pal, fiddleheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 0.9, flutter: 0.003, stiffness: 0.75, transmission: 0.05 }, 24);
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
-  const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 });
+  // round 39: the herb layer stops at 16 m — a clover leaf is 2 px across there, under the turf
+  // carpet's mats and clumps (carpet.ts); its far LOD was 4 000 instances / 210 K triangles from camera A
+  const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 }, 16);
   // grass tufts (round 31): the near LOD's 12–17 bent blades read out to 16 m (the A / F banks
   // sit 10–15 m from their cameras); they take the grass blades' wind (fast sway from the root,
   // little lamina flutter) and the blades' translucency

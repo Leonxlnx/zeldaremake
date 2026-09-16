@@ -69,8 +69,20 @@ function bladeGeometry(segments: number, widthMul: number): { position: Float32B
 }
 
 const TILE = 8;
-/** candidate blades per m² at full density before mask/cluster rejection */
+/**
+ * candidate blades per m² at full density before mask/cluster rejection — the reference figure
+ * the extra passes (lawn band, flanks, house flanks) scale from, and the base pass's density up to
+ * round 38
+ */
 const CANDIDATES_PER_M2 = 340;
+/**
+ * Round 39: the base pass runs at this density — half of CANDIDATES_PER_M2 — because the turf
+ * carpet (carpet.ts: alpha-tested clump cards and turf mats) now closes the lawn; the blades keep
+ * the paved rims (the cards clear them), the meadow stalks, the fine silhouettes and the close
+ * parallax. The three extra passes keep their round-14 / 32 densities: they close the steep flank
+ * faces, where the cards thin out (carpet.ts SLOPE_THIN).
+ */
+const BASE_PER_M2 = 170;
 const DNORM = 1.5;
 /** lawn band outside the flagstone rim whose blades lean over the slabs (concept sheet 02) */
 const RIM_LEAN = 0.25;
@@ -232,7 +244,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   }
 
   // capacity for the base pass plus the three extra passes (each ≤ its share of the tile's candidates)
-  const maxPerTile = Math.ceil(TILE * TILE * CANDIDATES_PER_M2 * (1 + LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA) * Math.max(q.density, 0.1));
+  const maxPerTile = Math.ceil(TILE * TILE * (BASE_PER_M2 + CANDIDATES_PER_M2 * (LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA)) * Math.max(q.density, 0.1));
   const matrices = new Float32Array(maxPerTile * 16);
   const data = new Float32Array(maxPerTile * 4);
 
@@ -243,7 +255,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     const mx = x0 + TILE / 2;
     const mz = z0 + TILE / 2;
     const rng = ctx.rng.fork(`grass/${cx}/${cz}`);
-    const candidates = Math.round(TILE * TILE * CANDIDATES_PER_M2 * field.falloff(mx, mz) * q.density);
+    const candidates = Math.round(TILE * TILE * BASE_PER_M2 * field.falloff(mx, mz) * q.density);
     let count = 0;
     let ySum = 0;
     let yMin = Infinity;
@@ -510,8 +522,9 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const cv = mean > 0 ? Math.sqrt(Math.max(0, variance)) / mean : 0;
 
   // Distances are measured from each tile's near edge, so the four-segment blades still
-  // extend beyond 10 m. Preserve foreground detail/counts while budgeting for leafy shrubs.
-  const lodDistances = [10 * q.distance, 24 * q.distance, 78 * q.distance];
+  // extend beyond 8 m. Round 39: 10 / 24 → 8 / 20 — under the carpet a blade 8 m out is 2–3 px
+  // wide, where the four-segment bend no longer reads; the far range keeps its reach.
+  const lodDistances = [8 * q.distance, 20 * q.distance, 78 * q.distance];
   const trisPerLod = bases.map((b) => b.index.count / 3);
   const halfDiag = TILE * 0.71;
   const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };
