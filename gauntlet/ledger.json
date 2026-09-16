@@ -11360,6 +11360,117 @@
       },
       "prevHash": "sha256:96ac547ad51718acdfc9db262df810327d8b83ba7e49d3c663ae4db8f9b1431f",
       "hash": "sha256:e508c0be705940cbd0fe875138a80e7bcf01e51fd04ff431cf48723e7efe17f8"
+    },
+    {
+      "id": "take-0106",
+      "number": 106,
+      "at": "2026-09-16T02:22:56.144Z",
+      "sha": "a9ef29f69099169221dc9c05a3793d584b8f9d09",
+      "shortSha": "a9ef29f",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "character: adopt Astra's 4741cf3e Link build (PR #10 73ccdc0) — smoothed blink normals + inner-corner separation over 3f6cb6f3; SOURCE.md adoption table updated",
+      "agent": "fable-cursor",
+      "items": [
+        "W35",
+        "C01",
+        "W41"
+      ],
+      "note": "Direction take on a9ef29f, not a gain: the round-37b postfx compensation (near unsharp 1.1 over 3-8 m funded by a far Gaussian sigma 6) is REVERTED to 0.25/4-10 m and sigma 4.2 after Astra's matched laptop captures showed it crunching Link's hair facets, face seams and cloth edges while the far blur removed canopy structure the reference frames have; the owner asked for real 4K-grade detail. Consequence recorded honestly: W35 fails again on B/E (sharpness 0.911 -> 0.784, 0.853 -> 0.734) and the six views give back about 0.001 SSIM each (A 0.3045 B 0.2822 C 0.3270 D 0.3606 E 0.2939 F 0.2954); the fix is geometry, materials and light in those frames (round 38: dense close canopy, house understory, 2K hero textures, contrast-preserving haze), not filters. Also in this take: Astra's 4741cf3e Link (alert eyelids, smoothed blink normals, inner-corner separation; loader audit glb, 70,442 tris, blinkMorphs 3, no fallback). Draws 533, 6.34 M tris on A.",
+      "score": {
+        "passed": 22,
+        "total": 50,
+        "phasePassed": 19,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "fail",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:f1060751ac41ef817161bedcff8123c7eebacdb320005435ae42d80bf4b8d4e9",
+        "B_house": "sha256:76b2f631f3c173330b5c3c0a1b13b3978a0c651833868669456a5709504c3392",
+        "C_lookback": "sha256:bd32714ccd9dba2f6ce438b8b291a9ad44c6792539890802fca3333d9e776e1f",
+        "D_log": "sha256:304275e899b793bb32cb1f264565edc1c12de5ff58bcb2a8cfa1d178d328a93b",
+        "E_ground": "sha256:76b2f631f3c173330b5c3c0a1b13b3978a0c651833868669456a5709504c3392",
+        "F_canopy": "sha256:c9a9d46128b663ee550edbe2e1872c4321ca8d0280dc752c9e4d23faad8b0e72"
+      },
+      "distHash": "sha256:de0bdbb2632c9c658289d28a9c9e31c1e661ae41a2f6710d8473c465b365d357",
+      "stats": {
+        "drawCalls": 539,
+        "triangles": 8655399,
+        "captureMs": 1597305,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [
+        "W35"
+      ],
+      "flags": [],
+      "valid": false,
+      "invalid": "D2 regression: W35 (vs take-0105)",
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W35",
+        "C01",
+        "W41"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take107-cap",
+        "importedAt": "2026-09-16T02:25:03.653Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:e508c0be705940cbd0fe875138a80e7bcf01e51fd04ff431cf48723e7efe17f8",
+      "hash": "sha256:09658d6b5bc627dcaf558690367baf64c3af0aeec9f1b15d36bc9ca5bef01891"
     }
   ]
 }

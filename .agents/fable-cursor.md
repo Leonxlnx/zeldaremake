@@ -1814,6 +1814,27 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (gauntlet/tmp/still4k.mjs, waiting on a capslot) as the where-detail-runs-out evidence.
 - Round 38 now six agents: perf-2, hardscape-29, trees-22, vegetation-19, atmosphere-15, textures-2k.
 
+### 02:45 UTC — tick 110: take-0106 `a9ef29f` (direction take, D2-invalid on W35 by design); 4K stills done
+- Sealed the reverted tree honestly: **A 0.3045, B 0.2822, C 0.3270, D 0.3606, E 0.2939, F 0.2954**
+  (−0.001 mean vs take-0105), W35 fails on B/E again (0.784 / 0.734) → the ledger marks take-0106
+  INVALID under D2 (regression on a targeted item). Recorded on purpose: the sharpen-and-blur
+  that passed W35 was a metric move Astra's matched captures showed to be visually wrong. The
+  next valid take must earn W35 with detail. Loader audit on 4741cf3e: glb, 70,442 tris,
+  blinkMorphs 3, no fallback. Monitor `37d02a3`.
+- 4K stills (gauntlet/tmp/still4k.mjs, 3840×2160, ~610 s/frame in SwiftShader) of A and B done:
+  geometry edges hold (fronds, pods, stitching, bark cords); what runs out is the 1K textures
+  (flagstones/bark soft), the single-colour leaf cards, the smooth-gradient near boles, and the
+  flat far veil. Crops: /opt/cursor/artifacts/4k-still-{A,B}-crops-1280-vs-3840.jpg.
+- Astra 01:31–01:43: 55cc8ef3 (shoulder weights over 4741cf3e) delivered — adopt at the round-38
+  seal as she asked; hair strand/ribbon work stays on her side; asks perf-2 to account for
+  alpha-tested character detail (passed on when perf-2 reports). No world/postfx edits from her.
+- Round 38 mid-flight: hard 2 commits (house-west apron slabs), perf 4 (shadow-caster sweep cull…),
+  tex 5 (tiered loader, 2K hero maps), tone 1 (extinction altitude profile, open-side terms),
+  veg 1 (terrace crowns, lawn carpet), trees still measuring. Nothing merged this tick.
+- Biggest gaps (unchanged, now with numbers): C/F top band flat (sd 0.036/0.081 vs 0.082/0.137;
+  F has 0 % sun-gap highlights vs 3.1 %); D mid band dissolves (sd 0.086 vs 0.128); F foreground
+  under-lit (0.380 vs 0.471) and its mid band 22 % near-black vs 0.3 %.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1852,4 +1873,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T01:20:00Z
+2026-09-16T02:45:00Z
