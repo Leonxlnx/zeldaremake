@@ -283,12 +283,16 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
       const shade = crevice * grain * (0.96 + 0.045 * Math.sin(distance * 2.1 + o.draws.phase));
       _tint.copy(grime).lerp(CREST_TINT, Math.pow(cord, 0.7));
       _tint.multiplyScalar(1 + 0.16 * tintVar * Math.pow(cord, 0.7));
-      let moss = mossBand * smoothstep(0.42, 0.78, (1 - cord) * 0.72 + 0.28 * (0.5 + 0.5 * mossN));
-      // moss sheets on the shaded side of the foot: a soft-edged cover following the moss noise,
-      // strongest where the surface faces away from the sun and lowest on the bole
+      // furrow moss: packed at the bottom of the furrows where the moss noise favours it — the
+      // crests and the flanks stay bare bark (a first cut at 0.42–0.78 with the cord weighted
+      // 0.72 read as a green-felted bole from 1–3 m: concept 05 keeps 40–50 % bark showing)
+      let moss = mossBand * smoothstep(0.58, 0.88, (1 - cord) * 0.6 + 0.4 * (0.5 + 0.5 * mossN));
+      // moss sheets on the shaded side of the foot: ragged patches following the moss noise,
+      // strongest where the surface faces away from the sun and lowest on the bole, with bare
+      // bark between them
       if (o.shadeDir && sheetBand > 0) {
         const away = 0.5 + 0.5 * (nrm.x * o.shadeDir.x + nrm.z * o.shadeDir.z);
-        const sheet = sheetBand * smoothstep(0.45, 0.8, away * 0.6 + 0.4 * (0.5 + 0.5 * mossN) + 0.15 * (1 - cord));
+        const sheet = sheetBand * smoothstep(0.62, 0.9, away * 0.45 + 0.5 * (0.5 + 0.5 * mossN) + 0.12 * (1 - cord));
         moss = Math.max(moss, sheet);
       }
       if (o.mossExtra) moss = Math.max(moss, o.mossExtra(p, Math.max(0, nrm.y)));
@@ -425,8 +429,9 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
       if (paved > 0) q.y = Math.min(q.y, g - 0.03 + (1 - paved) * (q.y - g + 0.03));
       const upness = Math.max(0, sa);
       const mossN = 0.5 + 0.5 * o.noise.noise(q.x * 1.8 + 3.1, q.z * 1.8 - 7.7);
-      // moss sheets on the top faces (continuous over the collar half, ragged toward the toes)
-      const moss = smoothstep(0.3, 0.7, upness * 0.8 + mossN * 0.4 - 0.15 * t) * (1 - smoothstep(0.65, 1, t)) * mossStrength;
+      // moss on the top faces: cushions where the fin's back faces up AND the moss noise favours
+      // it, ragged toward the toes — the flanks and the grooves between cushions stay bark
+      const moss = smoothstep(0.55, 0.9, upness * 0.6 + mossN * 0.55 - 0.15 * t) * (1 - smoothstep(0.65, 1, t)) * mossStrength;
       const soil = smoothstep(-0.2, -0.75, sa);
       _c.copy(ringColor).multiplyScalar(0.9 + 0.1 * sa).lerp(ROOT_MOSS, moss * 0.85).lerp(ROOT_SOIL, soil * 0.5);
       // the fin's flanks are occluded toward the ground, its cord grooves a little more; its top
@@ -490,7 +495,7 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
         q.copy(pt).addScaledVector(su, Math.cos(th) * rad).addScaledVector(sv, Math.sin(th) * rad);
         const upness = Math.max(0, (q.y - pt.y) / Math.max(1e-3, rad));
         const mossN = 0.5 + 0.5 * o.noise.noise(q.x * 2.3 - 5.5, q.z * 2.3 + 2.2);
-        const moss = smoothstep(0.4, 0.8, upness * 0.7 + mossN * 0.4) * (1 - smoothstep(0.6, 1, t)) * mossStrength;
+        const moss = smoothstep(0.58, 0.92, upness * 0.6 + mossN * 0.5) * (1 - smoothstep(0.6, 1, t)) * mossStrength;
         _c.copy(ringColor).multiplyScalar(0.88 + 0.12 * upness).lerp(ROOT_MOSS, moss * 0.75);
         const ao = 0.6 + 0.3 * upness;
         writer.woodMoss = moss * 0.85;

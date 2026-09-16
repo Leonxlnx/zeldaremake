@@ -271,14 +271,16 @@ const LEAF_COLOR = /* glsl */ `
     leafEdge = clamp(abs(ux) / max(halfW, 1e-3), 0.0, 1.0);
     leafMidrib = exp(-pow(ux * 44.0, 2.0)) * (1.0 - smoothstep(0.85, 1.0, vTreeUv.y));
     leafVein = pow(0.5 + 0.5 * cos((vTreeUv.y * 9.0 - abs(ux) * 3.2) * 6.28318), 9.0) * (1.0 - leafMidrib) * (1.0 - smoothstep(0.8, 1.0, leafEdge));
-    float margin = smoothstep(0.72, 1.0, leafEdge);
+    float margin = smoothstep(0.7, 1.0, leafEdge);
     float rim = smoothstep(0.9, 0.985, leafEdge) - smoothstep(0.985, 1.0, leafEdge);
     float cells = treeNoise(vTreeWorld * 90.0) * 0.6 + treeNoise(vTreeWorld * 260.0) * 0.4;
-    vec3 nearRgb = diffuseColor.rgb;
-    nearRgb *= 1.0 + 0.1 * (1.0 - leafEdge) - 0.22 * margin + (cells - 0.5) * 0.12;
-    nearRgb = mix(nearRgb, nearRgb * vec3(1.22, 1.18, 0.9), leafVein * 0.55 + leafMidrib * 0.5);
-    nearRgb = mix(nearRgb, nearRgb * 1.35 + vec3(0.02), rim * 0.7);
-    diffuseColor.rgb = mix(diffuseColor.rgb, nearRgb, leafNear);
+    // the detail as a factor on the leaf's light, applied after the shade floor (LEAF_NEAR_MUL):
+    // in the canopy's shade the floor sets a leaf's level and keeps only 0.4 of its albedo's
+    // variation (LEAF_FLOOR texture), which left the margin and the veins at 1–2 sRGB levels
+    vec3 detail = vec3(1.0 + 0.12 * (1.0 - leafEdge) - 0.3 * margin + (cells - 0.5) * 0.16);
+    detail = mix(detail, detail * vec3(1.3, 1.26, 0.9), leafVein * 0.6 + leafMidrib * 0.55);
+    detail = mix(detail, detail * 1.5 + vec3(0.04), rim * 0.75);
+    leafNearMul = mix(vec3(1.0), detail, leafNear);
   }
 `;
 /** declared by both tree programs before their leaf blocks; zero / 1.0 on the far path */
@@ -289,6 +291,15 @@ float leafEdge = 0.0;
 float leafMidrib = 0.0;
 float leafVein = 0.0;
 float leafThin = 1.0;
+vec3 leafNearMul = vec3(1.0);
+`;
+/**
+ * The near detail on the leaf's outgoing light, after every floor: a factor of 1.0 on the far
+ * path (leafNearMul is only written on `leafNear > 0.0`), so the far arithmetic is unchanged.
+ */
+const LEAF_NEAR_MUL = /* glsl */ `
+      reflectedLight.directDiffuse *= leafNearMul;
+      reflectedLight.indirectDiffuse *= leafNearMul;
 `;
 /**
  * The lamina's normal near the camera: cupped across the blade (the tilt grows with |u − 0.5|),
@@ -387,8 +398,10 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // blocks). Zero on every plain vertex.
   if (vBarkMoss > 0.0) {
     float mossFine = treeNoise(vTreeWorld * 38.0) * 0.6 + treeNoise(vTreeWorld * 110.0 + 11.0) * 0.4;
-    barkMossCover = smoothstep(0.12, 0.7, vBarkMoss * (0.7 + 0.6 * mossFine));
-    vec3 mossCushion = mix(vec3(0.10, 0.17, 0.045), vec3(0.25, 0.37, 0.10), mossFine);
+    // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
+    // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
+    barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
+    vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine);
     diffuseColor.rgb = mix(diffuseColor.rgb, mossCushion, barkMossCover * 0.92);
   }
 `;
@@ -647,6 +660,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       ${LEAF_FLAT_SUNLESS}
       ${LEAF_FLOOR_SHADED}
       ${LEAF_FLAT_LEVEL}
+      ${LEAF_NEAR_MUL}
     } else {
       ${barkFloorGlsl}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
@@ -749,9 +763,13 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         LEAF_FRAME_GLSL +
         shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
         s.fragmentShader;
-      // the 512 map as before; within LEAF_NEAR_M the near pair blends over it (colour and
-      // coverage, so a card's leaves grow their margins and veins as the camera comes in). Flat
-      // cards (vLeafFlat) keep the map as alpha only, as they do at every distance.
+      // the 512 map as before; within LEAF_NEAR_M the near pair takes over: its coverage blends
+      // into the alpha (a card's leaves grow their margins as the camera comes in) and its
+      // colour becomes a factor on the card's light after the shade floor (LEAF_NEAR_MUL) —
+      // relative to the 512 map's mean, so a lit card keeps its level and a shaded card, whose
+      // level the floor sets, still shows the leaves, veins and lit rims the floor would have
+      // flattened to 0.4 of their contrast. Flat cards (vLeafFlat) keep the map as alpha only
+      // at distance; near, they show the same leaves through the factor.
       s.fragmentShader = s.fragmentShader.replace(
         '#include <map_fragment>',
         /* glsl */ `
@@ -761,7 +779,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
           if (leafNear > 0.0) {
             vec4 nearColor = texture2D(uClusterNear, vMapUv, ${CARD_MIP_BIAS.toFixed(2)});
             cardNearN = texture2D(uClusterNearN, vMapUv, ${CARD_MIP_BIAS.toFixed(2)});
-            sampledDiffuseColor = mix(sampledDiffuseColor, nearColor, leafNear);
+            vec3 nearDetail = clamp(nearColor.rgb / vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), 0.45, 1.9);
+            leafNearMul = mix(vec3(1.0), nearDetail, leafNear);
+            // the albedo goes to the map's mean as the factor takes the detail over (a lit card
+            // at leafNear 1 is colour × near map exactly, as the albedo path would be)
+            sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), leafNear);
+            sampledDiffuseColor.a = mix(sampledDiffuseColor.a, nearColor.a, leafNear);
           }
           diffuseColor *= vec4(mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), vLeafFlat), sampledDiffuseColor.a);
         #endif
@@ -796,6 +819,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         ${LEAF_FLAT_SUNLESS}
         ${LEAF_FLOOR_SHADED}
         ${LEAF_FLAT_LEVEL}
+        ${LEAF_NEAR_MUL}
         `,
       );
     },
