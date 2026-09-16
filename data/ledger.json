@@ -11586,6 +11586,117 @@
       },
       "prevHash": "sha256:09658d6b5bc627dcaf558690367baf64c3af0aeec9f1b15d36bc9ca5bef01891",
       "hash": "sha256:7c9f11ee56501e5aad9ba4f8bb06819dbf73caef6eef39b2079e31e768c93f7b"
+    },
+    {
+      "id": "take-0108",
+      "number": 108,
+      "at": "2026-09-16T18:01:57.408Z",
+      "sha": "1495591b7e30f90fa567d9ebbf473f49b3076633",
+      "shortSha": "1495591",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge branch 'astra-pr11' into cursor/kokiri-world-phase1-f65e",
+      "agent": "fable-cursor",
+      "items": [
+        "W35",
+        "W31",
+        "W30",
+        "W10"
+      ],
+      "note": "Owner-directed daylight pass by Astra (PR #11, 2132882) integrated on 1495591: blue upper sky, cooler shared fog with lower extinction, thinner near-air (0.028 -> 0.012 over 8-15 m), ray intensity 0.5 -> 0.32, warm 3.7 key / cool 0.82 hemisphere / 0.3 IBL, texel-snapped light camera, penumbra growth 0.016 -> 0.0093, and the video-softening stage OFF (her stair-landing diagnostic: the far Gaussian turned distant crowns into defocused blobs against the now-visible sky; with it off they read as leaf layers and trunks). The clarity the owner asked for is real: sharpness A 0.88 -> 1.19, B 0.77 -> 1.01, E 0.72 -> 0.94 (W35 passes on all six for the first time without a sharpen), sky 1.2-2.8 %, over-exposure 0. The cost is stated plainly: SSIM to the warm hazy trailer frames falls on every view, A 0.3083 -> 0.2492, B 0.2885 -> 0.2362, C 0.3318 -> 0.2643, D 0.3686 -> 0.3157, E 0.3010 -> 0.2486, F 0.3152 -> 0.2859 (mean 0.3189 -> 0.2666), hue error 2 -> 7-10 degrees (cooler than the trailer's golden air), and the distant band cards now show as flat silhouettes. Direction confirmation is with the owner; the trees lane takes the exposed far crowns.",
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phasePassed": 20,
+        "phaseRequired": 42,
+        "items": {
+          "W01": "pending",
+          "W02": "pending",
+          "W03": "pending",
+          "W04": "pass",
+          "W05": "pending",
+          "W06": "pending",
+          "W07": "pass",
+          "W08": "pending",
+          "W09": "pending",
+          "W10": "pending",
+          "W11": "pending",
+          "W12": "pass",
+          "W13": "pass",
+          "W14": "pending",
+          "W15": "pending",
+          "W16": "pass",
+          "W17": "pass",
+          "W18": "pending",
+          "W19": "pass",
+          "W20": "pending",
+          "W21": "pass",
+          "W22": "pending",
+          "W23": "pending",
+          "W24": "pass",
+          "W25": "fail",
+          "W26": "pass",
+          "W27": "pass",
+          "W28": "pass",
+          "W29": "pending",
+          "W30": "pending",
+          "W31": "pending",
+          "W32": "pending",
+          "W33": "pass",
+          "W34": "pass",
+          "W35": "pass",
+          "W36": "pending",
+          "W37": "fail",
+          "W38": "pass",
+          "W39": "pass",
+          "W40": "pass",
+          "W41": "pass",
+          "W42": "pass",
+          "C01": "pending",
+          "C02": "pending",
+          "C03": "pass",
+          "C04": "pass",
+          "C05": "pass",
+          "U01": "pending",
+          "U02": "pending",
+          "U03": "pending"
+        }
+      },
+      "images": {
+        "A_stairs": "sha256:66bba4ac942065a869e2435dd748c9c01211c3bc3cd45a6e79e63337f6581c4f",
+        "B_house": "sha256:390f97cd783e54ac19ff79e21dd0dad2687a7e750e27ecb40a587abed992f4dd",
+        "C_lookback": "sha256:5f6fd900bed865022077af35b9ef1aa14fafd7529a18a8649a67c43ac2e0719d",
+        "D_log": "sha256:5d0802151653fcdd31d2bcf3c1d6c2017bceab18c1442039d18e294205531cda",
+        "E_ground": "sha256:390f97cd783e54ac19ff79e21dd0dad2687a7e750e27ecb40a587abed992f4dd",
+        "F_canopy": "sha256:dea069ef840fcaaad28cd17ca40a9b5ad42d90d495b382da633db7d32a4e050c"
+      },
+      "distHash": "sha256:c5db2009563906dec5dfb083abb3ab78830a5c7db3707ae7c917cec4c7d64799",
+      "stats": {
+        "drawCalls": 529,
+        "triangles": 8637145,
+        "captureMs": 830535,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "regressed": [],
+      "flags": [],
+      "valid": true,
+      "invalid": null,
+      "unclaimed": true,
+      "unclaimedItems": [
+        "W35",
+        "W31",
+        "W30",
+        "W10"
+      ],
+      "imported": {
+        "from": "gauntlet/out/take109-cap",
+        "importedAt": "2026-09-16T18:05:02.035Z",
+        "by": "fable-cursor"
+      },
+      "prevHash": "sha256:7c9f11ee56501e5aad9ba4f8bb06819dbf73caef6eef39b2079e31e768c93f7b",
+      "hash": "sha256:4a094c1bca709a3f9295247ee756a50f031bc299c1deec2057930db23a182ee8"
     }
   ]
 }
