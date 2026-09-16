@@ -119,12 +119,15 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(shadeClumps>=0.35*lawnClumps&&shadeClumps<=0.65*lawnClumps,`shade clumps ${shadeClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(shadeMats>=0.85*lawnMats,`shade mats ${shadeMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}: the bank stays closed`);
   assert.ok(inBox({x:(C_FOOT[0]+C_FOOT[2])/2,z:(C_FOOT[1]+C_FOOT[3])/2},C_FOOT));
-  let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.02)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
+  let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.01)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
   assert.ok(shaded>=100,`${shaded} mats in the shade zone core`);}
-// steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats lie on the face like decals and hold to the cliffs (75°)
+// steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats (v12) are gone by 0.6 (≈ 66°) —
+// on the main flight's 60° north bank they ran as a flat lit band — and the bank's mats carry a darkening past the blades' 0.6
 for(const it of a.carpet.clumps.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.7,`clump on a ${s.slope.toFixed(2)} slope`);}
-{let steep=0;for(const it of a.carpet.mats.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.75,`mat on a ${s.slope.toFixed(2)} slope`);if(s.slope>0.4)steep++;}
-  assert.ok(steep>=80,`${steep} mats on the steep banks (the stair flanks' turf sits on mats too)`);}
+{let steep=0,bankDark=0,bankMats=0;for(const it of a.carpet.mats.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.6,`mat on a ${s.slope.toFixed(2)} slope`);if(s.slope>0.4)steep++;
+    const bank=a.field.bankDark(it.x,it.z);if(bank>0.9){bankMats++;const d=(0.25-(it.data[2]*4-Math.floor(it.data[2]*4)))*4;if(d>0.9)bankDark++;}}
+  assert.ok(steep>=30&&steep<=400,`${steep} mats on the 0.4–0.6 slopes (the fade band)`);
+  assert.ok(bankMats>=60&&bankDark>=0.95*bankMats,`${bankDark} of ${bankMats} bank mats carry a ≥ 0.9 darkening`);}
 // the sets: no shadow casting (the blade tiles never cast), receive on, one draw per LOD, culled per instance
 for(const set of a.carpet.all){set.update(new THREE.Vector3(0,1.5,0),true);
   for(const m of set.group.children){assert.equal(m.castShadow,false);assert.equal(m.receiveShadow,true);assert.ok(m.geometry.attributes.aData.isInstancedBufferAttribute,'aData rides the pack mesh');}

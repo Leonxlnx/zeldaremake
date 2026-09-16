@@ -62,14 +62,24 @@ const CLUMP_LOD_NEAR = 12;
 const CLUMP_MAX_DISTANCE = 16;
 /**
  * cards steeper than this (slope = 1 − ny: 0.45 ≈ 57°) lose density — a fan of upright planes on
- * a 60° face reads as cards; the mats, which lie on the face like decals, hold until the cliffs
- * (0.5–0.75 ≈ 60–75°), so the stair flanks' blade turf (grass.ts FLANK_EXTRA) sits on turf too
+ * a 60° face reads as cards; the mats, which lie on the face like decals, held until the cliffs
+ * (0.5–0.75 ≈ 60–75°) through v11, so the stair flanks' blade turf (grass.ts FLANK_EXTRA) sat on
+ * turf too — but on the main flight's 60° north bank (bankDark 1, slope 0.46–0.54, 21–36 mats
+ * within 1.5 m, 2–4 fans, the blades short and darkened) the lit mats ran as one flat bright
+ * band down a face frames 8 / 46 s render as a dark mass (B's mound crop). v12: the mats fade
+ * with the fans, a little earlier, and are gone by 0.6 (≈ 66°); the flank blades hold the faces.
  */
 const SLOPE_THIN: readonly [number, number] = [0.45, 0.7];
-const MAT_SLOPE_THIN: readonly [number, number] = [0.5, 0.75];
+const MAT_SLOPE_THIN: readonly [number, number] = [0.42, 0.6];
 /** bank darkening and its flattening of the blade-to-blade contrasts — the blades' constants (grass.ts) */
 const BANK_DARKEN = 0.6;
 const BANK_FLAT = 0.7;
+/**
+ * a mat's bank darkening over the blades' (v12): a blade in the dark mass is a sliver shaded by
+ * its neighbours, a mat is a lit plane — at the blades' × 0.7 it stayed the brightest thing on the
+ * bank; the mats' slot carries up to 0.96 (materials.ts: × (1 − 0.5 d), 30 % × d desaturated)
+ */
+const MAT_BANK_DARKEN = 1.6;
 /** the house flight's south flank cap (grass.ts HOUSE_FLANK_MAX_H_SOUTH) */
 const HOUSE_SOUTH_MAX_H = 0.12;
 /** density cuts (v9, see seatClump / seatMat): the frames' bank masses and trodden foot are not tufted turf */
@@ -349,7 +359,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, yaw, w, 1, w);
     data[0] = matPalettePosition(tint);
     data[1] = 1;
-    data[2] = tintSlot(0, 0, t.darken);
+    data[2] = tintSlot(0, 0, clamp(t.darken * MAT_BANK_DARKEN, 0, 0.96));
     data[3] = tile + dry;
     mats.add(M, 0, white, data);
     if (mats.count % 53 === 0) matSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
