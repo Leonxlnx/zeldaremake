@@ -1788,6 +1788,11 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (B 0.911, E 0.853). Score 23/50 (unchanged; W25 holds Astra's fail verdict, C01/C02 pending a
   non-author reviewer). Draws 533 / 6.34 M tris on A.
 - Round 38 dispatch: perf-2 (unblocked now that atmosphere-14b + character-8 landed), hardscape-29.
+- Tooling note (character-8b): one of its three six-view runs of the SAME dist differed from the
+  others by ±1 LSB (a few up to 6) on 30–530 canopy/foliage-edge pixels per view, the two drifted
+  runs byte-identical to each other — a second stable SwiftShader outcome picked by timing, not
+  scene state (matrices, uniforms, buffers, 85 programs all bit-identical). Within W41's 0.5 %,
+  but a determinism check that reads 0.00 % is not proof of a scene-side no-op; compare twice.
 
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
