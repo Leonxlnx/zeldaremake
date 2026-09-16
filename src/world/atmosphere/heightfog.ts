@@ -295,6 +295,8 @@ export interface HeightFogParams {
 }
 
 export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
+  // 2026-09-16: clearer daylight with cooler air and less extinction, requested by the
+  // owner. Earlier reference-fit notes below are retained as calibration history.
   // a thin pool: a shallow eye-level ray into the hollow picks up ≈ 20 % mist at the log arch
   // (30 m) on top of the ≈ 50 % distance haze — the arch stays a dark silhouette, not grey mush
   baseHeight: 0.4,
@@ -322,7 +324,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // already matched (±0.01). 0.028 (≈ 21 % veil at 12.5 m, 47 % at 25 m, 65 % at 40 m) puts the
   // 10–50 m medians within ±0.03 of the reference in A/B/C and halves the saturation excess;
   // 0.03 fitted a hair better but cost the W35 sharpness margin. Verified by A/B capture.
-  hazeDensity: 0.028,
+  hazeDensity: 0.018,
   hazeStart: 2.5,
   // the thin air alone left the far tree rows (52–58 m, 80–95 m) at 67–75 % veil: the arch at 61 %
   // stood against a background only a notch brighter than itself (body 0.99× the band above it).
@@ -330,7 +332,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 0.032/m to 60 m before): the arch and the 30–40 m trunks are silhouettes against a luminous
   // wall, the way the reference's far field reads (measured: arch body 0.89× the band above it)
   hazeFarStart: 49,
-  hazeFarDensity: 0.11,
+  hazeFarDensity: 0.055,
   // Round 8, fitted per depth bin against the reference sampled at our own pixels: in every hero
   // view the 10–18 m bins' darkest decile sat 0.03–0.06 over the reference's (B 0.269/0.290 vs
   // 0.214/0.229, A 0.259/0.283 vs 0.256/0.263, D 0.264/0.283 vs 0.189/0.244) while the 18–24 m
@@ -382,7 +384,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // through the lantern limb's crown in F and the stair-bank crowns at A's right edge, and the
   // leaf-against-glare speckle costs the structure term F −0.0021, A −0.0024 (0.0 outside those
   // two cells); a full lobe (1.0) read 0.75 against the frame's 0.55–0.65 and cost F −0.0076
-  hazeHotAmount: 0.65,
+  hazeHotAmount: 0.25,
   // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
   // the haze; eye-level shots (A/D top rows reach ≈ 23–25°) lose ≤ 10 % on their very top row
   hazeUpwardCut: 0.9,
@@ -396,7 +398,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // Round 12: every veil colour drops ≈ 6 % blue (B/R 0.84–0.88 → 0.78–0.82 linear). In the
   // veil-dominated 30 m+ bins the reference's HSV saturation is 0.12–0.15 where ours read
   // 0.08–0.11 — the display saturation of the closed veil goes 0.09 → 0.13 (hue stays 57–63°)
-  hazeNear: [0.215, 0.213, 0.168],
+  hazeNear: [0.19, 0.215, 0.235],
   // far veil well under the old #a09f95 (→ #87867f display): the reference's far bands are a
   // mid grey (median 0.435 in B's left half, D's far band and C's mid band) with the god rays
   // carrying the bright part of the air, so the veil between the shafts has to sit under them —
@@ -405,7 +407,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // deep-forest shade: the far background the 47 m arch and the 30–40 m trunks stand against —
   // the reference's haze right above the arch reads 0.51–0.57. 0.25 (display ≈ 0.55 at the far
   // cap) for the wall of veiled tree rows behind the arch
-  hazeFar: [0.25, 0.248, 0.198],
+  hazeFar: [0.26, 0.32, 0.37],
   mistColor: [0.205, 0.203, 0.168],
   // the grade used to run 20 → 55 m, so the 47 m arch already wore 87 % of the far colour and the
   // far rows behind it nothing brighter. The whole hollow (to the arch) now keeps the dark near
@@ -440,7 +442,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // above 10°, and the dome horizon feeds the IBL), −0.0004 / −0.0005 / 0 / −0.0002; hazeLit 0.36 —
   // A open far 0.577 → 0.597 (p90 0.615 → 0.640, band p90 0.558 → 0.562) for −0.0024 / −0.0053 /
   // −0.0014 / −0.0002. None taken: the metric charges every radiance rise in the far cells.
-  hazeLit: [0.32, 0.316, 0.245],
+  hazeLit: [0.34, 0.38, 0.42],
   hazeLitKnee: 0.2,
   // open side = bearing 75° (ENE: the plateau, the stair corridor, the upper tree-house). Fully open
   // within ≈ 45° of it (A's far column at 47°, F's whole upper frame at 23–97°), closed beyond 75°
@@ -453,8 +455,8 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   openHi: 0.7,
   // rays steeper than ≈ 25° up count as open (the gaps overhead are the glare); the eye-level
   // shots' top rows reach ≈ 20–24°, so they keep the closed veil toward the north/west
-  openUpLo: 0.42,
-  openUpHi: 0.7,
+  openUpLo: 0.12,
+  openUpHi: 0.4,
   // with the thin band above, Saria's trunk band in B (x 0.66–0.98, y 0.10–0.50; 80 % of it at
   // 10–18 m) measured p10 0.212 against the reference's 0.209 (was 0.282), its 0–0.2 share 6.8 %
   // (reference 5.9 %) and its < 0.25 share 20 % (reference 25 %); the 0.2–0.3 share reaches 24 %
@@ -468,7 +470,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // B forest bank is 0.434 median / 0.51 p90 with the god rays' wash on top) at every distance, so
   // the far rows and the dome behind them converge on it instead of the 0.58–0.68 lit air. A hair
   // greener than hazeNear: the reference's forest haze is grey-green (hue 56–65°), ours read yellow
-  hazeClosed: [0.19, 0.192, 0.152],
+  hazeClosed: [0.18, 0.21, 0.23],
   // Round 31 (tone): the D arch (48–55 m, 74–86 % veil, body ×0.3) measured 0.495 display against
   // 0.489 for the rows behind it — with the closed mix the air behind the arch was the arch's own
   // veil, and no extinction at 0.028/m can silhouette a 50 m object against its own air. The
@@ -483,7 +485,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // rise over a reference that has them at 0.45–0.49 — the same air 15 m east; the frames' D
   // camera stands 25 m further north than ours, so its far air is the clearing beyond the arch,
   // B's the stand: one wall colour cannot fit both and D's arch wins.
-  hazeFarLit: [0.27, 0.266, 0.209],
+  hazeFarLit: [0.30, 0.35, 0.39],
   // Round 32 (tone), with the arch on the frame's rows (hardscape-25): the ramp sits between the
   // arch's body (48–52 m from camera D, its curved top 52.8 m) and the far rows behind it (55–60 m)
   // so the body keeps the hollow veil and the rows wear the wall. The round-31 55–62 m ramp lit the

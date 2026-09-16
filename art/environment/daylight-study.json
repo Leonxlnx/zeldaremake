@@ -1,0 +1,5 @@
+{
+  "sky": {"gapGlare": [0.17, 0.36, 0.65], "glareRamp": 0.55, "haloGain": 0.65},
+  "fog": {"hazeDensity": 0.018, "hazeFarDensity": 0.055, "hazeNear": [0.19, 0.215, 0.235], "hazeFar": [0.26, 0.32, 0.37], "hazeClosed": [0.18, 0.21, 0.23], "hazeLit": [0.34, 0.38, 0.42], "hazeFarLit": [0.30, 0.35, 0.39], "hazeHotAmount": 0.25, "openUpLo": 0.12, "openUpHi": 0.4},
+  "light": {"sunIntensity": 3.7, "hemiIntensity": 0.82, "environmentIntensity": 0.3, "hemiSky": 12112352}
+}

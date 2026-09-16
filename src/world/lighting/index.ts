@@ -115,7 +115,8 @@ export function create(ctx: WorldContext): WorldSystem {
   // 0.63–0.67 — its shade is lit by a greyer sky than its golden key. Still no blue: a (0.96, 0.98,
   // 1.0) target (B/R 0.90) with the IBL at 0.81 overshot the lit stone by 0.025 and the shaded
   // stairs of shot A by 0.03.
-  const hemiSky = new Color(ctx.config.sky.hemiSky).lerp(new Color(0.98, 0.975, 0.95), 0.35);
+  // Let the configured daylight colour reach shaded surfaces without the old warm-grey mix.
+  const hemiSky = new Color(ctx.config.sky.hemiSky);
   const hemiGroundColor = new Color(ctx.config.sky.hemiGround);
   const hemi = new HemisphereLight(hemiSky, hemiGroundColor, hemiIntensity);
   hemi.name = 'sky-hemisphere';
@@ -136,7 +137,7 @@ export function create(ctx: WorldContext): WorldSystem {
   // B −0.001 at 0). ×0.75 takes the whole-frame darkest decile down 0.008 (D) / 0.007 (B) with the
   // medians −0.007 / −0.008 (the frames' p10 sits 0.04 under ours, the medians already match) and
   // SSIM +0.002 / +0.001 measured on top of the round's other changes.
-  const environmentIntensity = 0.36;
+  const environmentIntensity = 0.3;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());
@@ -171,10 +172,10 @@ export function create(ctx: WorldContext): WorldSystem {
     shadowCanopyLeakRangeM: [SHADOW_FILTER.leakStartM, SHADOW_FILTER.leakFullM],
     cascades: 1,
     hemiIntensity: hemi.intensity,
-    hemiSkyLinear: hemiSky.toArray().map((v) => Math.round(v * 1000) / 1000),
-    hemiGroundLinear: hemiGroundColor.toArray().map((v) => Math.round(v * 1000) / 1000),
+    hemiSkyLinear: hemi.color.toArray().map((v) => Math.round(v * 1000) / 1000),
+    hemiGroundLinear: hemi.groundColor.toArray().map((v) => Math.round(v * 1000) / 1000),
     environmentMap: environment,
-    environmentIntensity: environment ? environmentIntensity : 0,
+    environmentIntensity: environment ? ctx.scene.environmentIntensity : 0,
     environmentTint: SKY_ENV_TINT,
   }));
 

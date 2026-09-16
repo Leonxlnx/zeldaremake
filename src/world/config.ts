@@ -5,6 +5,8 @@
  * Units: metres. +Y up. Link (child) is ~1.25 m tall; camera eye height ~1.6–1.9 m.
  */
 export const WORLD = {
+  // 2026-09-16 owner-directed clearer daylight: sun/sky values below supersede the
+  // historical foggy-reference calibration comments. Geometry and exposure stay fixed.
   seed: 'kokiri-forest-phase1',
 
   /** Radius of the fully detailed, explorable area around the plaza. */
@@ -28,7 +30,7 @@ export const WORLD = {
     azimuthDeg: -128, // measured from +Z toward +X; negative = light coming from the west-north-west
     elevationDeg: 38,
     color: 0xffe9c4,
-    intensity: 3.1,
+    intensity: 3.7,
     shadowMapSize: 4096,
     shadowRadius: 60,
   },
@@ -36,7 +38,7 @@ export const WORLD = {
   sky: {
     zenith: 0xcfd3c8,
     horizon: 0xe2dfd0,
-    hemiSky: 0xc9c8b4,
+    hemiSky: 0xb8d1e0,
     /**
      * ground bounce: a warm khaki rather than dark olive — the clearing floor is sunlit beige
      * flagstone and khaki grass, so limb and leaf undersides (the lantern limb at 10 m in shot A)
@@ -77,7 +79,7 @@ export const WORLD = {
      * IBL at 0.57) once the canopy shade darkened: shots B/D's paths measured 0.05 over the reference
      * at 1.0 / 0.6 with the sun at 3.0 — see sun.intensity for the balance.
      */
-    hemiIntensity: 0.95,
+    hemiIntensity: 0.82,
   },
 
   fog: {

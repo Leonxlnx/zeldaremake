@@ -36,7 +36,9 @@ export interface SkyDome {
  * is heightfog's `hazeClosed` (see `openDir` there) — the reference's B forest band and A left
  * quadrant are a dim closed roof with no bright gaps (p90 0.49–0.54).
  */
-export const SKY_GAP_GLARE: [number, number, number] = [0.372, 0.368, 0.285];
+// Owner-directed daylight pass (2026-09-16): the earlier warm-grey calibration above is
+// historical. Visible openings now reveal blue upper sky, also used by the environment map.
+export const SKY_GAP_GLARE: [number, number, number] = [0.17, 0.36, 0.65];
 
 /**
  * Forward lobe hook of the dome (gain at mu = 1, tint at mu = 1, both at mu³). Was 0.12 /
@@ -51,7 +53,7 @@ export const SKY_SUN_LOBE_TINT: [number, number, number] = [1.0, 1.0, 1.0];
  * brightness from ≈ 12° up (the top bands of the eye-level shots, 14–23°, are already open haze);
  * a ramp to 0.45 (27°) left them on the horizon grey.
  */
-export const SKY_GLARE_RAMP = 0.2;
+export const SKY_GLARE_RAMP = 0.55;
 
 /**
  * Elevation (sin) edges over which the closed-roof dome grades from the hollow's eye-level veil to
@@ -243,7 +245,7 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uHorizon: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFar) },
     uGround: { value: new Color(cfg.sky.hemiGround).multiplyScalar(0.5) },
     uSunDir: { value: sunDir.clone() },
-    uSunColor: { value: new Color(cfg.sun.color).multiplyScalar(o?.haloGain ?? 1) },
+    uSunColor: { value: new Color(cfg.sun.color).multiplyScalar(o?.haloGain ?? 0.65) },
     uTime: { value: 0 },
     uEnvMode: { value: 0 },
     uGlareRamp: { value: o?.glareRamp ?? SKY_GLARE_RAMP },
