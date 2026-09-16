@@ -150,6 +150,12 @@ export async function openWorld(browser, baseUrl, { width = 1280, height = 720, 
   }
   const state = await page.evaluate(() => window.__zrReadyState);
   if (state !== 'ready') throw new Error(`__ZR__.ready() rejected: ${state}`);
+  // Rendering can become ready before the loading overlay's CSS fade finishes.
+  // Wait for the actual UI state so the first capture matches later re-captures.
+  await page.waitForFunction(() => {
+    const loading = document.getElementById('loading');
+    return !loading || getComputedStyle(loading).opacity === '0';
+  }, { timeout: timeoutMs });
   log(`world: ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return { page, consoleLines, url };
 }
