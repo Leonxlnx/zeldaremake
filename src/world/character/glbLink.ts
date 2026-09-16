@@ -127,7 +127,7 @@
  * seeded slot schedule) and of the run-start event the chain recorded (`runBlinkT`, one-shot:
  * its envelope outlives the run — round 8b, Astra's PR #10). The clips carry no morph
  * tracks, so the mixer never contends for the influences; an asset without the morphs (the
- * 9189538d build adopted before the 0c28cb62 → 4741cf3e series) has no such mesh and the drive is inert. The fixed
+ * 9189538d build adopted before the 0c28cb62 → 24591126 series) has no such mesh and the drive is inert. The fixed
  * captures sit in a scheduled slot's open phase, so the adopted morphs leave them unchanged
  * too. Movement and the IK above are untouched by it.
  */
@@ -141,7 +141,7 @@ import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './pu
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '4741cf3ec4fd1f8635a1bf980fc40ce5bc7722403076967b797cf2c2e4df1768';
+export const LINK_GLB_SHA256 = '2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -161,7 +161,7 @@ interface ClipSpec {
 export const CLIP_SPEC: Record<Gait, ClipSpec> = {
   idle: { strideM: 0, cycleS: 3.0, heroClipTime: 0 },
   walk: { strideM: 0.88, cycleS: 0.55, heroClipTime: 16 / 60 },
-  run: { strideM: 2.21, cycleS: 0.5666667, heroClipTime: 15 / 60 },
+  run: { strideM: 1.82, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
   stairs: { strideM: 0.8066667, cycleS: 0.7333333, heroClipTime: 22 / 60 },
 };
 /** simulation time of the hero captures (capture.mjs DEFAULT_SIM_TIME 12.5 + 6 settle frames) */
