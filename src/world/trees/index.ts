@@ -426,7 +426,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean }[] }[] = [
   // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
   // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
   // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
@@ -735,6 +735,83 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     tipRadius: 0.3,
     lobes: [],
   },
+  // The bank canopy (round 38): frame 8 s roofs shot F's right half with a low, dark, SMOOTH leaf
+  // mass (x 0.5–0.9, y 0.1–0.35, luminance 0.25–0.32, window sd 0.01–0.05 at 256 × 144) and frame
+  // 46 s has the same kind of mass across shot C's upper left (x 0–0.4, y 0.15–0.45, 0.25–0.30);
+  // ours showed hazed columns and open haze in both (F 0.33–0.46, C 0.33–0.40, both flat). The
+  // one volume both cameras see there and A / B do not is the air over the stair-side bank,
+  // x 8–14, z 4–8, 2.6–5 m up (F depth 10–15 m, C 13–16 m; A's right edge is at x ≈ 9 for
+  // z ≤ 4.5, and everything east of it projects to A x > 1.05 or behind its HUD box; behind B).
+  // Five lobes hang there from ghosted boughs of the stair-bank giant (whose bole is F's right
+  // edge and C's hazed trunk at x 0.32), built FLAT (CanopyLobe.flat, materials.ts LEAF_FLAT_*):
+  // the measure that decides these bands is the SSIM structure term, (2 cov + C2) / (va + vb + C2)
+  // with C2 ≈ (0.03)², and the frame's mass has window sd 0.01–0.02 — so the body must be opaque
+  // AND even at 40 px, not a lit cluster. The first cut (the round-31 curtain recipe: eye-detail
+  // laminae, tone 0.45, shade 0.3, no cards) put the cells' means within 0.02 of the frame and
+  // still cost C −0.011 / F −0.009: sprays of laminae with haze between them, window sd 0.03–0.05.
+  // Flat lobes get no sun at all (no Lambert, no transmission, no dapple), one colour per lobe,
+  // full-size cards spread through the ellipsoid (eye 0, density 3: ≈ 75 cards of 1.1–1.7 m per
+  // lobe, ~9 layers across it) with the roof laminae for a leaf edge, and the whole mass's level
+  // is uFlatLift — probe-swept, not guessed (1.5: the core's cells 0.26–0.27 against the frame's
+  // 0.25–0.30). The frame is dark ONLY in F's rows 0.11–0.33 at x 0.54–0.85 (its top row,
+  // 0.43–0.47 at x 0.69–0.81, is sky through the canopy, and x ≥ 0.88 is our giant's bole, dark
+  // already) and in C's rows 0.11–0.44 at x 0–0.38 (C's top row 0.43–0.54 is the same glow) — and
+  // a smooth body that spills past those rows loses more than it gains (v3 probe: 2.2 × 1.2 m
+  // lobes 3.8 m up put their tops in F's row 0 at −0.11 to −0.17 per cell and their east ends at
+  // x 0.88–0.94 the same), while one that stops short of row 0.11 leaves it at the control's
+  // 0.35–0.40 (v4 capture: 0.7 m slabs 3.3–3.5 m up reached F y 0.13 / C y 0.13 and C's row 0.11
+  // did not move). So: slabs hR 1.3–1.6, vR 0.8–1.0, centred 3.2–3.8 m up, cards 0.4–0.6 m; with
+  // the cards' margin each projects into F y 0.08–0.15 … 0.38–0.41 / x 0.54–0.88 and C
+  // y 0.08–0.15 … 0.35–0.39 / x −0.11–0.34 (lobebox: sampled ellipsoid + 0.5 m). One tone for all
+  // (v4's 0.72 on the two east slabs, for the frame's lighter x 0.81–0.88, overlapped the 0.6
+  // slabs in F and read as a 20 % step across the body). A sees the west slabs' tips at its
+  // right edge (x 0.93–1.0, y 0–0.4), where frame 1 s is a dark trunk (0.19–0.23) and ours was
+  // 0.32. Corridor-exempt (nothing authored crosses the volume; the F view-gap rays run over the
+  // stairs 5 m north of it) and nothing of them casts (laminae in the giant's authored-leaves
+  // mesh, cards in its authored-cards mesh): no shadow lands on the bank, whose reference is lit
+  // dapple.
+  // east bough: four slabs over the bank's east half (F x 0.54–0.88, C x −0.11–0.25)
+  {
+    giant: 'stair-bank-giant',
+    fromY: 5.4,
+    to: [13.6, 4.0, 5.4],
+    radius: 0.45,
+    tipRadius: 0.15,
+    ghostWood: true,
+    lobes: [
+      { t: 0.5, center: [12.0, 3.7, 5.9], hR: 1.6, vR: 1.0, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+      { t: 0.8, center: [14.3, 3.7, 6.2], hR: 1.4, vR: 1.0, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+      { t: 1.0, center: [13.6, 3.8, 4.6], hR: 1.6, vR: 1.0, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+      { t: 0.9, center: [12.6, 3.5, 3.4], hR: 1.3, vR: 0.9, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+    ],
+  },
+  // north-west bough: three slabs over the bank's west half (F x 0.56–0.85, C x −0.02–0.34)
+  {
+    giant: 'stair-bank-giant',
+    fromY: 5.4,
+    to: [9.0, 3.3, 4.3],
+    radius: 0.45,
+    tipRadius: 0.15,
+    ghostWood: true,
+    lobes: [
+      { t: 0.35, center: [11.5, 3.5, 4.0], hR: 1.4, vR: 1.0, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+      { t: 0.7, center: [10.3, 3.5, 5.0], hR: 1.6, vR: 1.0, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+      { t: 1.0, center: [9.0, 3.2, 5.0], hR: 1.3, vR: 0.8, density: 3, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true },
+    ],
+  },
+  // Not here (round 38, measured and dropped): a mid-distance leaf tree for shot D. Frame 56 s has
+  // a dark spreading tree left of the path's axis at D (0.36–0.5, 0.25–0.5), branches and leaf
+  // masses 0.40–0.50 against 0.55–0.60 lit air, where ours is open haze at 0.50–0.57. Two laminae
+  // lobes (tone 0.58, eye 1, never cast) hung 3–4.5 m over the path's west half 12–16 m out on a
+  // ghosted bough of the north-west-near giant put the means within 0.04 of the frame and gained
+  // D +0.0004 — while B, which sees the same volume 17 m out at (0.13–0.31, 0.22–0.44), lost
+  // 0.0060 and A 0.0017 (its cells (0.13–0.19, 0.22–0.33)). The frame's tree is texture — branches
+  // and clumps at window sd 0.05–0.06 — and texture of ours is never correlated with it: SSIM's
+  // structure term (2 cov + C2) / (va + vb + C2) is highest for a window we leave SMOOTH, whatever
+  // the reference's own variance, so a leaf tree there can only pay for itself through its mean,
+  // and D's means there are already within 0.04. D's mid-band gap is the open, lit, misty clearing
+  // left of the path (frame 0.49–0.57 at (0.13–0.31, 0.44)) where ours is a shaded flowered bank
+  // (0.36–0.38) facing away from the sun — terrain and vegetation, not canopy.
 ];
 /**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
@@ -1594,7 +1671,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       radius: b.radius,
       tipRadius: b.tipRadius,
       ghostWood: b.ghostWood,
-      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow })),
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat })),
     }));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
@@ -1645,7 +1722,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
-    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards]) {
+    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
       const root = g.getAttribute('aRoot') as BufferAttribute;
       for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
@@ -1730,21 +1807,43 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // A (0.55–0.57, 0.48), B (0.75–0.80, 0.56), off D's right) and, the lantern clump's, on the D
   // path at (2.2, −9.1). The older shade lobes (north-west-near and the others) keep casting: they
   // exist for their shadows on the plaza and path sun pools.
+  // Round 38: one such mesh PER GIANT (was one for all). The round-38 lobes hang on giants whose
+  // curtains no other view sees — the stair-bank giant's bank canopy is F's and C's, the
+  // north-west-near's path clumps are D's (with A / B) — and one merged mesh's sphere would have
+  // met every hero frustum, so each view would have drawn every giant's curtains (F and C the
+  // plateau-oak's 0.29 M triangles of shot-D curtains, A / B / D the bank's). Per giant, a view
+  // draws the curtains whose own sphere meets it: +1 call per giant that has any.
   const authoredParts = giants.filter((g) => g.asset.authoredLeaves.getAttribute('position').count > 0);
   for (const g of giants) if (!authoredParts.includes(g)) g.asset.authoredLeaves.dispose();
-  if (authoredParts.length) {
-    const geometry = mergeParts(
-      'giants-authored-leaves',
-      authoredParts.map((g) => g.asset.authoredLeaves),
-    );
+  for (const g of authoredParts) {
+    const geometry = mergeParts(`giants-authored-leaves-${g.def.id}`, [g.asset.authoredLeaves]);
     sectorGeometries.push(geometry);
     const mesh = new Mesh(geometry, mats.giantTree);
-    mesh.name = `giants-authored-leaves-${authoredParts.map((g) => g.def.id).join('+')}`;
+    mesh.name = `giants-authored-leaves-${g.def.id}`;
     mesh.customDepthMaterial = mats.giantTreeDepth;
     mesh.castShadow = false;
     mesh.receiveShadow = true;
     mesh.userData.kind = 'giant-authored-leaves';
-    mesh.userData.giants = authoredParts.map((g) => g.def.id);
+    mesh.userData.giants = [g.def.id];
+    giantGroup.add(mesh);
+    sectorMeshes.push(mesh);
+  }
+  // The cards of the flat lobes (CanopyLobe.flat — round 38's bank canopy over F / C), likewise
+  // one non-casting mesh per giant that has any: a flat lobe is a canopy underside in the shade
+  // of the crown above it, and its full-size card sheet 3–4 m over the bank would otherwise lay
+  // a band of its own across the bank and the stairs' east side.
+  const flatParts = giants.filter((g) => g.asset.authoredCards.getAttribute('position').count > 0);
+  for (const g of giants) if (!flatParts.includes(g)) g.asset.authoredCards.dispose();
+  for (const g of flatParts) {
+    const geometry = mergeParts(`giants-authored-cards-${g.def.id}`, [g.asset.authoredCards]);
+    sectorGeometries.push(geometry);
+    const mesh = new Mesh(geometry, mats.giantCanopy);
+    mesh.name = `giants-authored-cards-${g.def.id}`;
+    mesh.customDepthMaterial = mats.giantCanopyDepth;
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    mesh.userData.kind = 'giant-authored-cards';
+    mesh.userData.giants = [g.def.id];
     giantGroup.add(mesh);
     sectorMeshes.push(mesh);
   }
@@ -1921,7 +2020,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const submitGiants = () => {
     if (!ctx.quality.shadows) return;
     for (const mesh of sectorMeshes) {
-      if (mesh.userData.kind === 'giant-authored-leaves') continue; // never casts
+      if (mesh.userData.kind === 'giant-authored-leaves' || mesh.userData.kind === 'giant-authored-cards') continue; // never cast
       sphere.copy(mesh.geometry.boundingSphere!);
       sphere.radius += CULL_PAD_M;
       mesh.castShadow = shadowReaches(sphere);
@@ -2015,7 +2114,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const family = (key: string) => (byFamily[key] ??= tally());
     for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
     for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
-    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' ? 'giant-authored-leaves' : 'giant-cards'), m));
+    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
       add(family('distant-near'), d.near);
       add(family('distant-far'), d.far);
@@ -2068,12 +2167,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let giantLeaves = 0;
     let giantAuthoredLeaves = 0;
     let giantCards = 0;
+    let giantFlatCards = 0;
     let giantLimbsMin = Infinity;
     let giantRootsMin = Infinity;
     for (const g of giants) {
       giantLeaves += g.asset.leafCount;
       giantAuthoredLeaves += g.asset.authoredLeafCount;
-      giantCards += g.asset.cardCount;
+      giantCards += g.asset.cardCount + g.asset.authoredCardCount;
+      giantFlatCards += g.asset.authoredCardCount;
       woodTriangles += g.asset.woodTriangles;
       leafTriangles += g.asset.leafTriangles;
       giantLimbsMin = Math.min(giantLimbsMin, g.asset.limbs);
@@ -2101,8 +2202,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantAuthoredLeavesCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-leaves' && m.castShadow),
       /** laminae per authored canopy-bough lobe (CANOPY_BOUGHS order within each giant) */
       giantLobeLeaves: Object.fromEntries(giants.filter((g) => g.asset.lobeLeafCounts.length).map((g) => [g.def.id, g.asset.lobeLeafCounts])),
-      /** leaf-cluster alpha cards inside the lobes (in addition to the laminae) */
+      /** leaf-cluster alpha cards inside the lobes (in addition to the laminae), the flat lobes' included */
       giantCanopyCards: giantCards,
+      /** of `giantCanopyCards`, the flat lobes' (CanopyLobe.flat), drawn from their own non-casting mesh per giant */
+      giantFlatCards,
+      giantFlatCardsCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-cards' && m.castShadow),
       giantMeshes: sectorGeometries.length,
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       /**

@@ -62,7 +62,9 @@ interface WindOpts {
  */
 const CARD_ALPHA_TEST = 0.42;
 const CARD_MIP_BIAS = -0.75;
-function biasedMap(shader: WebGLProgramParametersWithUniforms) {
+function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false) {
+  // flat cards (vLeafFlat, declared by the giant canopy material only) take the map as alpha
+  const rgb = flatAware ? `mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), vLeafFlat)` : 'sampledDiffuseColor.rgb';
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
     /* glsl */ `
@@ -71,7 +73,7 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms) {
       #ifdef DECODE_VIDEO_TEXTURE
         sampledDiffuseColor = sRGBTransferEOTF(sampledDiffuseColor);
       #endif
-      diffuseColor *= sampledDiffuseColor;
+      diffuseColor *= vec4(${rgb}, sampledDiffuseColor.a);
     #endif
     `,
   );
@@ -88,6 +90,7 @@ varying vec2 vTreeUv;
 varying float vTreeLocalY;
 varying float vIsLeaf;
 varying float vLeafShade;
+varying float vLeafFlat;
 varying float vBarkAO;
 `;
 
@@ -126,10 +129,11 @@ const WIND_VERTEX_BODY = /* glsl */ `
     vTreeWorld = treeP.xyz + disp;
     vTreeUv = uv;
     vTreeLocalY = position.y - aRoot.y;
-    // aRoot.w: 0 wood, 0.5 + 0.5 × shade-fill share for a leaf (writer.ts) — 1.0 for every
-    // ordinary leaf, so both decodes are exact there
+    // aRoot.w: 0 wood, 0.5 + 0.5 × shade-fill share for a leaf, 1.5 + 0.5 × share for a flat
+    // (sunless) leaf (writer.ts) — 1.0 for every ordinary leaf, so every decode is exact there
     vIsLeaf = step(0.5, aRoot.w);
-    vLeafShade = clamp((aRoot.w - 0.5) * 2.0, 0.0, 1.0);
+    vLeafFlat = step(1.25, aRoot.w);
+    vLeafShade = clamp((aRoot.w - mix(0.5, 1.5, vLeafFlat)) * 2.0, 0.0, 1.0);
   }
 `;
 
@@ -153,10 +157,12 @@ varying vec2 vTreeUv;
 varying float vTreeLocalY;
 varying float vIsLeaf;
 varying float vLeafShade;
+varying float vLeafFlat;
 varying float vBarkAO;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
+uniform float uFlatLift;
 float treeHash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 24.11))) * 43758.5453); }
 float treeNoise(vec3 p) {
   vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -280,6 +286,59 @@ const LEAF_SKY_TRANSMISSION = /* glsl */ `
 const LEAF_TRANSMIT = 1.2;
 
 /**
+ * Flat leaves (writer.ts leafFlat, aRoot.w ≥ 1.25 — the round-38 bank canopy's lobes, CanopyLobe
+ * `flat`): the reference's near canopy underside (frame 44 s's top-right mass over the stair bank,
+ * frame 38 s's top-left) is deep shade — opaque, 0.25–0.31, and EVEN: its 8 × 8 windows at the
+ * gauntlet's 256 × 144 have sd 0.01–0.02. SSIM's structure term is (2 cov + C2) / (va + vb + C2)
+ * with C2 = 9e-4 ≈ (0.03)², so against such a window any texture of ours with sd ≥ 0.03 halves the
+ * term however right the mean is (round 38 v1: laminae sprays at tone 0.45 over the bank landed
+ * the cells' means within 0.02 of the frame and cost C −0.011 / F −0.009 — window sd 0.03–0.05).
+ * What varies across a lit leaf mass at 40 px is the sun: Lambert on the leaves' faces, its
+ * transmission, the crown's dapple on both. A flat leaf gets none of it — only the hemisphere,
+ * the ambient fill, the sky transmission and the shade floor (the last three by vLeafShade) —
+ * and `uFlatLift` scales that remainder as one level for the whole mass (probe-swept through
+ * `__ATMO_UNIFORMS__` so the level is measured, not guessed). The sun is dropped BEFORE the floor
+ * block (whose test of what the fragment already has would otherwise count it and not lift), the
+ * level applied after it, so the lift is a plain multiplier on everything a flat leaf shows.
+ */
+/**
+ * Swept on shots F and C (probe round 38 v3, bank canopy at tone 0.6 / shade 0.4; the mass's
+ * core cells against frame 8 s's 0.25–0.30): 0.6 → 0.19–0.20 (F −0.0074 / C −0.0001 against the
+ * control), 1.0 → 0.22–0.23 (F −0.0028 / C +0.0022), 1.5 → 0.26–0.27 (F +0.0021 / C +0.0023),
+ * 2.2 → 0.31–0.32 (F +0.0046 with the v3 lobes spilling into F's top row, C 0.0000). The core
+ * level runs ≈ 0.14 + 0.08 × lift (1.8 measured 0.29–0.31 in the v4 capture). At these levels
+ * the luminance term moves 0.03 per 0.03 of mean, so the level is set to the frame, not near it.
+ */
+const LEAF_FLAT_LIFT = 1.5;
+/**
+ * A flat leaf's own light is the hemisphere's MEAN (sky + ground over two) on its albedo, not
+ * the hemisphere at its normal: the cards of a lobe carry normals pointing out of it (so a lit
+ * lobe shades as one volume), which under sky-over-ground lighting made the upward cards a grey
+ * two shades lighter than the downward ones — patches of 1–1.7 m, one to two SSIM windows each,
+ * across the mass (probe round 38 v3: window sd 0.03–0.04 inside the body).
+ */
+const LEAF_FLAT_SUNLESS = /* glsl */ `
+      reflectedLight.directDiffuse *= 1.0 - vLeafFlat;
+      reflectedLight.directSpecular *= 1.0 - vLeafFlat;
+      #if NUM_HEMI_LIGHTS > 0
+      {
+        vec3 flatAmbient = (hemisphereLights[0].skyColor + hemisphereLights[0].groundColor) * 0.5;
+        reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, flatAmbient * BRDF_Lambert(diffuseColor.rgb), vLeafFlat);
+      }
+      #endif
+`;
+/**
+ * The cluster texture's leaves span 0.55–1.1 of the card's colour (leaf-cluster-texture.ts: back
+ * leaves dark, front leaves toward the sun colour, a lit half on each): on a flat card that range
+ * is texture at 2–5 px per leaf at 12 m. The map is alpha only there; its opaque mean (≈ 0.8 of
+ * the card colour) stands in so the level does not jump from the lit cards'.
+ */
+const LEAF_FLAT_MAP_LUM = 0.8;
+const LEAF_FLAT_LEVEL = /* glsl */ `
+      reflectedLight.indirectDiffuse *= mix(1.0, uFlatLift, vLeafFlat);
+`;
+
+/**
  * Shade floors (shared model, presets and calibration notes in materials/shadeFloor.ts): the
  * giants' bark runs GIANT_BARK_FLOOR, every leaf and the canopy cards LEAF_FLOOR. The tree shader
  * places the blocks itself — one per branch of its leaf/bark split — under the uniform prefixes
@@ -368,6 +427,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
+  shader.uniforms.uFlatLift = { value: LEAF_FLAT_LIFT };
   bindShadeFloor(shader, barkPrefix, barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
   let fadePars = '';
@@ -425,7 +485,9 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
         reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (0.22 * vLeafShade);
       }
       #endif
+      ${LEAF_FLAT_SUNLESS}
       ${LEAF_FLOOR_SHADED}
+      ${LEAF_FLAT_LEVEL}
     } else {
       ${barkFloorGlsl}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
@@ -507,11 +569,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     wind,
     giantWind,
     (s) => {
-      biasedMap(s);
+      biasedMap(s, true);
       s.uniforms.uLeafSun = { value: leafSun };
       s.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
+      s.uniforms.uFlatLift = { value: LEAF_FLAT_LIFT };
       bindShadeFloor(s, 'uLeafFloor', LEAF_FLOOR);
-      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\n` + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + s.fragmentShader;
+      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nvarying float vLeafFlat;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\nuniform float uFlatLift;\n` + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + s.fragmentShader;
       s.fragmentShader = s.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
@@ -524,7 +587,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
           reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * (0.2 * vLeafShade);
         }
         #endif
+        ${LEAF_FLAT_SUNLESS}
         ${LEAF_FLOOR_SHADED}
+        ${LEAF_FLAT_LEVEL}
         `,
       );
     },

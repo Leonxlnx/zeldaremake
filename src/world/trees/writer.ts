@@ -15,7 +15,11 @@
  * 0.5 + 0.5 × `leafShade` (1 = an ordinary leaf): the tree shaders read w >= 0.5 as "leaf" and
  * (w − 0.5) × 2 as the share of the shade fill (sky transmission, the flat shade floor) the leaf
  * gets, so an authored mass can be a dark clump against the haze the way the reference's low
- * foliage a few metres from the cameras is.
+ * foliage a few metres from the cameras is. While `leafFlat` is set the leaf's w is 1.5 + 0.5 ×
+ * `leafShade` instead (w ≥ 1.25 = a "flat" leaf): the shaders drop the sun from it altogether —
+ * the Lambert on its face, the transmission, the specular — and scale what is left by `uFlatLift`,
+ * so a lobe of them reads as the reference's deep-shade canopy underside: opaque, dark, and even
+ * at the 40 px scale the gauntlet's SSIM windows measure (round 38, materials.ts).
  */
 import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -43,6 +47,8 @@ export class GeometryWriter {
   trunkRows: number[][] = [];
   /** shade-fill share written into the leaf vertices' aRoot.w while set (1 = ordinary leaves; see the header) */
   leafShade = 1;
+  /** while set, leaf vertices are written as "flat" leaves (aRoot.w = 1.5 + 0.5 × leafShade; see the header) */
+  leafFlat = false;
 
   constructor(public detail: Detail = 'high') {}
 
@@ -52,7 +58,7 @@ export class GeometryWriter {
     this.colors.push(color.r, color.g, color.b);
     this.uvs.push(u, v);
     this.winds.push(stiffness, phase, flutter);
-    this.roots.push(0, 0, 0, leaf > 0 ? 0.5 + 0.5 * this.leafShade : 0);
+    this.roots.push(0, 0, 0, leaf > 0 ? (this.leafFlat ? 1.5 : 0.5) + 0.5 * this.leafShade : 0);
     this.normals.push(NaN, NaN, NaN);
     return i;
   }

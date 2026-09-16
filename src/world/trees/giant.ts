@@ -66,7 +66,18 @@ export interface GiantAsset {
   authoredLeaves: BufferGeometry;
   /** leaf-cluster alpha cards filling the lobe interiors (separate material) */
   cards: BufferGeometry;
+  /**
+   * the cards of the authored `flat` lobes (CanopyLobe.flat), local space, same material as
+   * `cards` — empty for a tree without any. A flat lobe is the deep-shade underside of a canopy
+   * whose shadow is the crown's above it, so the caller draws these without a shadow pass: a
+   * full-size card sheet 3–4 m over the stair bank would otherwise lay its own band across the
+   * stairs and bank that shots A / E / F measure.
+   */
+  authoredCards: BufferGeometry;
+  /** cards in `cards` */
   cardCount: number;
+  /** cards in `authoredCards` */
+  authoredCardCount: number;
   /** all laminae, the authored lobes' included */
   leafCount: number;
   /** of `leafCount`, the laminae in `authoredLeaves` */
@@ -228,6 +239,18 @@ export interface CanopyLobe {
    * not to shade anything — a shade lobe over a sun pool keeps the default (true).
    */
   castShadow?: boolean;
+  /**
+   * A deep-shade canopy underside (round 38, the bank canopy over F / C): every leaf and card of
+   * the lobe is written "flat" (writer.ts leafFlat — the shaders drop the sun from it and level
+   * what is left by uFlatLift, materials.ts LEAF_FLAT_*), every leaf and card of it carries ONE
+   * colour (no sun-side lerp, no per-card jitter, no interior gradient, no per-spray vigour: the
+   * frame's mass has window sd 0.01 and a 25 % step between overlapping cards read as 0.02 — the
+   * round-38 v4 capture lost 0.29 on one cell for that alone), and the cards go to
+   * GiantAsset.authoredCards, drawn without a shadow pass.
+   * Author with `eye: 0` so the cards are full-size and spread through the lobe (the mass has to
+   * be opaque; eye-detail laminae are for edges the camera is within a few metres of).
+   */
+  flat?: boolean;
 }
 
 /**
@@ -351,7 +374,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   let leaves = new GeometryWriter('high');
   const treeLeaves = leaves;
   const authoredLeaves = new GeometryWriter('high');
-  const cards = new GeometryWriter('high');
+  // likewise `cards` is rebound to `authoredCards` while a flat lobe is foliated
+  let cards = new GeometryWriter('high');
+  const treeCards = cards;
+  const authoredCards = new GeometryWriter('high');
+  /** set while a flat lobe (CanopyLobe.flat) is foliated: one colour per lobe, no sun-side lerp */
+  let lobeFlat = false;
   const R = def.trunkRadius;
   const H = def.height;
   const density = o.leafDensity ?? 1;
@@ -680,12 +708,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * bt(0.3, 1);
       // leaves deep inside a lobe are self-shadowed: darker and cooler
       const interior = lobe ? smoothstep(0.85, 0.3, base.distanceTo(lobe.center) / Math.max(0.5, lobe.hR)) : 0;
-      const color = canopy
-        .clone()
-        .multiplyScalar(0.92)
-        .lerp(sunny, sun * (1 - interior * 0.7))
-        .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.3))
-        .multiplyScalar(vigor * (1 - interior * 0.32) * lobeTone);
+      // every draw is made either way, so a flat lobe's leaves leave the stream where lit ones would
+      const coolWarm = bt(0, 1) < 0.5 ? cool : warm;
+      const tint = bt(0, 0.3);
+      const color = lobeFlat
+        ? canopy.clone().multiplyScalar(0.92 * lobeTone)
+        : canopy
+            .clone()
+            .multiplyScalar(0.92)
+            .lerp(sunny, sun * (1 - interior * 0.7))
+            .lerp(coolWarm, tint)
+            .multiplyScalar(vigor * (1 - interior * 0.32) * lobeTone);
       // leaves near eye level (low limbs) stay believable; the high roof uses big stylised laminae
       const roofSize = 0.17 + 0.22 * smoothstep(4, 15, base.y);
       const eyeSize = 0.13 + 0.24 * smoothstep(6, 16, base.y);
@@ -741,12 +774,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const outF = Math.hypot(p.x, p.z) / crownRadius;
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * gb(0.35, 1);
       const interior = 1 - rr;
-      const color = canopy
-        .clone()
-        .multiplyScalar(0.9)
-        .lerp(sunny, sun * (1 - interior * 0.7))
-        .lerp(gb(0, 1) < 0.5 ? cool : warm, gb(0, 0.25))
-        .multiplyScalar(gb(0.85, 1.05) * (1 - interior * 0.4) * lobeTone);
+      const coolWarm = gb(0, 1) < 0.5 ? cool : warm;
+      const tint = gb(0, 0.25);
+      const jitter = gb(0.85, 1.05);
+      const color = lobeFlat
+        ? canopy.clone().multiplyScalar(0.9 * lobeTone)
+        : canopy
+            .clone()
+            .multiplyScalar(0.9)
+            .lerp(sunny, sun * (1 - interior * 0.7))
+            .lerp(coolWarm, tint)
+            .multiplyScalar(jitter * (1 - interior * 0.4) * lobeTone);
       if (drop) return;
       if (keep && !keep(p)) return;
       if (!cardAllowed(p, s)) return;
@@ -1246,6 +1284,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // detail pick is what it was when all of them shared one writer
       leaves = lobeSpec.castShadow === false ? authoredLeaves : treeLeaves;
       leaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
+      // a flat lobe's cards go to their own (non-casting) writer, and every leaf and card of it
+      // is written flat (writer.ts leafFlat)
+      lobeFlat = lobeSpec.flat === true;
+      cards = lobeFlat ? authoredCards : treeCards;
+      leaves.leafFlat = cards.leafFlat = lobeFlat;
       eyeOverride = lobeSpec.eye ?? null;
       lobeTone = lobeSpec.tone ?? 1;
       leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
@@ -1261,16 +1304,21 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       eyeOverride = null;
       lobeTone = 1;
       leaves.leafShade = cards.leafShade = 1;
+      leaves.leafFlat = cards.leafFlat = false;
+      lobeFlat = false;
       corridorExempt = false;
       leaves = treeLeaves;
+      cards = treeCards;
     }
   }
 
   return {
     geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), treeLeaves.finish('leaves')]),
     authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
-    cards: cards.finish(`giant-cards-${def.id}`),
-    cardCount: cards.triangles / 2,
+    cards: treeCards.finish(`giant-cards-${def.id}`),
+    authoredCards: authoredCards.finish(`giant-authored-cards-${def.id}`),
+    cardCount: treeCards.triangles / 2,
+    authoredCardCount: authoredCards.triangles / 2,
     leafCount: treeLeaves.leafCount + authoredLeaves.leafCount,
     authoredLeafCount: authoredLeaves.leafCount,
     lobeLeafCounts,
