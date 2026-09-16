@@ -2412,50 +2412,39 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
             );
 
             // ======== Round 38 (vegetation-19): the house frames' understory. Frames 14 s / 24 s
-            // (cameras B / E) show the ground around Saria's terrace as a lush layered understory —
-            // fern crowns with lit tips, hosta-like clumps, moss on the roots, verge flowers, tufts
-            // catching the sun — where take 105 renders the terrace lip and the lawn before it as
-            // flat turf: B 0.6–0.75 × 0.5–0.68 measures 0.29–0.34 against the frame's 0.39–0.44, and
-            // the lawn below (0.6–0.9 × 0.7–0.86) 0.29–0.46 against 0.46–0.57. Both grounds are hemmed
-            // in by the other frames, so each takes its own rules; every set draws its own streams
-            // after everything above (no earlier plant moves):
-            //  (T) the terrace lawn between the landing and the door (TERRACE_BOX, B 0.61–0.75 ×
-            //      0.50–0.56 at 10–12 m): standing crowns 0.36–0.55 m (D's right-verge cap west of
-            //      x 7), hostas, cushions on the roots, tufts, buds. Camera F's left edge crosses this
-            //      lawn at x ≈ 8.5 (F.sx 0), and frame 8 s reads everything east of it as its dark
-            //      left mass (F 0–0.15 × 0.46–0.62 — the round-35 bankDark ramp, F's best cells,
-            //      SSIM 0.45–0.65), so the lit plants keep to the ground that projects OFF F's frame,
-            //      fronds included; camera C stands beside the lip (depth < 2.6 m: `offCEdge` keeps
-            //      the fronds off its stair-foot box), camera D looks the other way, camera A sees
-            //      the lawn hazed at 14 m in its centre (A 0.45–0.5 × 0.45: 0.33 against 0.35).
-            //  (L) the lawn below the terrace bank — camera C's foreground slope (C_FOOT) and the
-            //      plaza's north-east lobe (LAWN_BOX, B 0.6–0.9 × 0.7–0.86 at 7–9 m). Frame 46 s
-            //      wants the slope pale and trodden (round 35: lit, less green) and its corner as lit
-            //      clover and round leaves, frame 8 s sees the lobe at F 0.03–0.2 × 0.6–0.7: its rows
-            //      below 0.665 are F's strong cells (the bank foot, hands off), its rows past 0.665
-            //      score ≈ 0 and are free. So: a LOW carpet (≤ 0.34 m — camera C's stair-foot
-            //      contract; ≤ 0.25 m in the walk corridor) of hostas, clover, cushions, short / mid
-            //      tufts, small crowns and verge flowers, dense enough that the turf does not show
-            //      between the plants (SSIM at 256 × 144 rewards a lit, even ground over sparse
-            //      texture on dark turf), gated off every F row above 0.665.
-            //  (H) two low clipped tiers (hedgeGeometry, ≤ 0.85 m) at the trunk base beside the door
-            //      path — frame 14 s' low bushes hugging the house; dark, so frame 8 s' left mass
-            //      (which sees the trunk base at F.sx 0–0.05) only gains mass.
-            // Verge flowers: small white / straw-yellow clumps along the stones' lawn and the lobe —
-            // ≥ 0.5 m off every stone, off the strip (the whites' contract: `troddenZone` 0), never
-            // on a violet. Frame 14 s' violets right of the lawn are the round-13 B_MASS clumps
-            // already there; the lobe's own edge lies in camera C's stair-foot box, so it gets none.
+            // (cameras B / E — one camera) show the ground around Saria's terrace as a lush layered
+            // understory: fern crowns with lit tips, hosta-like clumps, moss on the roots, verge
+            // flowers, tufts catching the sun, a crown group at the frame's right edge. Take 105
+            // renders the same ground as turf. Every metre of it is also another frame's ground,
+            // and take r38/cap-a (e15337b: a lit carpet over the whole lawn) measured what each
+            // frame tolerates, per 8 px cell at 256 × 144:
+            //  - the bank at camera C's feet (field.ts C_FOOT, x 3.5–5.7 / z −6.3…−2.1) is frame
+            //    46 s' bottom-left — stair foot and paving, 2–5 m from the lens, where a 0.3 m hosta
+            //    fills a whole cell (C −0.0072); the same bank is the mound in frame 1 s' centre,
+            //    hazed at 15 m (A −0.003 over its four best cells). Nothing new roots there.
+            //  - the lobe's west and middle (x 6–7.5, z −5.8…−3.5) is frame 8 s' dark left mass
+            //    (F 0–0.17 × 0.44–0.67, the round-35 bankDark ramp, the frame's best cells) and
+            //    frame 8 s reads a flat blur there: even a luminance-neutral carpet costs F.
+            //  - the terrace (TERRACE_BOX) shows in B as the strip between the mound's top and the
+            //    door (B 0.6–0.85 × 0.47–0.56) and in A hazed at 17–22 m (A 0.42–0.6 × 0.44–0.51,
+            //    A's 0.5-SSIM cells: the frame is a flat 0.33 there). Lit tints (× 1.1–1.24) pushed
+            //    through the haze (A +0.05, −0.25 per cell), so the terrace sets keep the turf's
+            //    tone: the plants read as plants in B, not as a brighter ground in A.
+            //  - the lobe's south-east corner (LOBE_SE_BOX) is frame 14 s' right-edge crown group
+            //    (B 0.85–1.0 × 0.55–0.8: fronds and lit lawn, 0.44–0.53, ours 0.23–0.35) and the
+            //    one ground where cap-a gained in B and E alike (+0.5 per cell at B (0.93, 0.78));
+            //    from F it is the cells east of the mass (F 0.17–0.24 × 0.45–0.66, SSIM ≈ 0.1–0.3);
+            //    camera C's left edge cuts it at x ≈ 7.3 (5–6 m: `offCNear`).
+            // So: (T) the terrace, turf-toned; (SE) the lobe's corner, lit; (H) two low clipped
+            // tiers at the trunk base; verge flowers along the stones' lawn. Every set draws its own
+            // streams after everything above (no earlier plant moves).
             {
               const TERRACE_BOX: [number, number, number, number] = [6.2, -11.0, 10.6, -6.3];
-              const LAWN_BOX: [number, number, number, number] = [3.6, -6.6, 8.8, -2.5];
-              /**
-               * frame 8 s' dark left mass is F 0–0.155 × 0.44–0.665 (take 105's per-cell SSIM 0.4–0.65
-               * there, the frame's best cells): the lawn's ground that projects into it — the bank foot
-               * — stays as round 35 left it; the lobe's east side (F.sx 0.16–0.2) and the rows below
-               * 0.665 score ≈ 0 and are free
-               */
-              const F_FREE_SY = 0.665;
+              const LOBE_SE_BOX: [number, number, number, number] = [6.7, -4.9, 8.5, -2.4];
+              /** frame 8 s' dark left mass ends at F.sx 0.17 (plants.test `fMass`) */
               const F_MASS_SX = 0.17;
+              /** the corner keeps clear of F's good cells right of the mass (F 0.15–0.2 × 0.44–0.56, SSIM 0.4–0.5): roots east of 0.19 */
+              const F_CORNER_SX = 0.19;
               const fTan = Math.tan(((ctx.layout.viewpoints.find((v) => v.id === 'F_canopy')?.fov ?? 46) * Math.PI) / 360) * (16 / 9);
               const cTan = Math.tan(((ctx.layout.viewpoints.find((v) => v.id === 'C_lookback')?.fov ?? 46) * Math.PI) / 360) * (16 / 9);
               /** frame 8 s' left edge: a plant of horizontal `reach` whose crown projects left of F.sx 0 is off camera F */
@@ -2463,12 +2452,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                 const p = field.screenPoint('F_canopy', x, T.height(x, z), z);
                 return !p || p.sx + (reach * 0.5) / (p.depth * fTan) < 0;
               };
-              /** the lawn's F rule for a plant of horizontal `reach`: ground F cannot see, or ground whose plant stays outside the dark left mass */
-              const fFree = (x: number, z: number, reach: number) => {
+              /** the lobe corner's F rule: the whole plant east of the dark mass */
+              const eastOfFMass = (x: number, z: number, reach: number) => {
                 const p = field.screenPoint('F_canopy', x, T.height(x, z), z);
-                if (!p) return true;
-                const halfW = (reach * 0.5) / (p.depth * fTan);
-                return p.sx + halfW < 0 || p.sx - halfW >= F_MASS_SX || p.sy >= F_FREE_SY;
+                return !p || p.sx - (reach * 0.5) / (p.depth * fTan) >= F_CORNER_SX;
               };
               const offD = (x: number, z: number) => {
                 const p = field.screenPoint('D_log', x, T.height(x, z), z);
@@ -2477,8 +2464,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               /**
                * frame 46 s' stair-foot contract (plants.test): a plant over 0.35 m whose root is within
                * 12 m of camera C may not project into C 0–0.32 × 0.48–0.92, its horizontal `reach`
-               * included. Camera C stands beside the terrace lip, so the lip's west end is at its left
-               * edge 2.5 m away; the standing plants keep their fronds off it.
+               * included.
                */
               const offCEdge = (x: number, z: number, reach: number) => {
                 const p = field.screenPoint('C_lookback', x, T.height(x, z), z);
@@ -2486,22 +2472,20 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                 const halfW = (reach * 0.5) / (p.depth * cTan);
                 return p.sx + halfW < -0.03 || p.sx - halfW > 0.33 || p.sy < 0.45;
               };
-              /** the lit yellow-green of frame 14 s' foliage tops (the crowns and tufts in the sun) */
-              const R38_LIT = new Color(1.24, 1.17, 0.88);
-              /** a milder lift for the lobe's carpet: frame 46 s' corner leaves are lit, not bleached */
-              const R38_CARPET = new Color(1.12, 1.1, 0.94);
-              /** frame 46 s' pale trodden slope (C_FOOT): straw over green */
-              const R38_PALE = new Color(1.2, 1.16, 0.98);
-              const R38_LEAF = new Color(1.1, 1.08, 0.94);
-              /** the lawn carpet's tint: paler on camera C's slope, lit elsewhere */
-              const carpetTint = (x: number, z: number, rng: Rng, amount: number) => {
-                const c = greenVar(rng, amount);
-                const pale = field.cFoot(x, z);
-                return pale > 0.5 ? c.multiply(R38_PALE) : c.multiply(R38_CARPET);
+              /** camera C's foreground: nothing new roots where frame 46 s sees the ground within 8 m */
+              const offCNear = (x: number, z: number, reach: number) => {
+                const p = field.screenPoint('C_lookback', x, T.height(x, z), z);
+                if (!p || p.depth >= 8) return true;
+                const halfW = (reach * 0.5) / (p.depth * cTan);
+                return p.sx + halfW < -0.02 || p.sx - halfW > 1.02 || p.sy < -0.02;
               };
-              /** ground every round-38 set shares: off the paving, the rock rings, the trunks, the kids' spots and the shot-A bank face */
+              /** the lit yellow-green of frame 14 s' foliage tops, for the lobe corner's crowns and tufts */
+              const R38_LIT = new Color(1.16, 1.12, 0.9);
+              /** the corner's carpet: frame 14 s' lawn beside the crowns is lit, not bleached */
+              const R38_CARPET = new Color(1.12, 1.1, 0.94);
+              /** ground every round-38 set shares: off the paving, the rock rings, the trunks, the kids' spots, the shot-A bank face and camera C's bank */
               const openGround = (x: number, z: number, s: FieldSample, edge: number) => {
-                if (s.cliff > 0.35 || field.bankFace(x, z) > 0.3 || field.lawnEdgeDistance(x, z, true) < edge) return false;
+                if (s.cliff > 0.35 || field.bankFace(x, z) > 0.3 || field.lawnEdgeDistance(x, z, true) < edge || field.cFoot(x, z) > 0.02) return false;
                 const clr = field.clearing(x, z);
                 if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
                 return !nearKid(x, z, 0.8) && offD(x, z);
@@ -2519,10 +2503,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                 if (!openGround(x, z, s, 0.1) || field.stoneDistance(x, z) < 0.12 || field.houseInfo(x, z).dist < 0.2) return false;
                 return offF(x, z, 0.25);
               };
-              /** lawn ground (zone L) for a plant of horizontal `reach`: out of F's dark mass; every plant here is ≤ 0.34 m */
-              const lawnGround = (x: number, z: number, s: FieldSample, edge: number, reach: number) => {
-                if (!openGround(x, z, s, edge) || field.stoneDistance(x, z) < 0.12 || field.houseInfo(x, z).dist < 0.2) return false;
-                return fFree(x, z, reach);
+              /** the lobe corner for a plant of horizontal `reach`: east of F's mass, off camera C's foreground, off the flagstones' rim */
+              const cornerGround = (x: number, z: number, s: FieldSample, edge: number, reach: number) => {
+                if (!openGround(x, z, s, edge) || field.stoneDistance(x, z) < 0.12) return false;
+                return eastOfFMass(x, z, reach) && offCNear(x, z, reach);
               };
               const fernTop = (v: number) => ferns.opts.variants[v][0].boundingBox?.max.y ?? 0.65;
               /** the widest crown's fronds per metre of height (variant 2: reach 0.85 m at 0.56 m) */
@@ -2532,21 +2516,26 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   return b ? Math.max(-b.min.x, b.max.x, -b.min.z, b.max.z) / b.max.y : 1.55;
                 }),
               );
-              /** a fern crown scaled to `top` metres (the frames' 30–60 cm understory crowns), lit */
-              const crownAt = (x: number, z: number, s: FieldSample, rng: Rng, top: number, lit: Color) => {
+              /** a fern crown scaled to `top` metres (the frames' 30–50 cm understory crowns) */
+              const crownAt = (x: number, z: number, s: FieldSample, rng: Rng, top: number, lit: Color | null) => {
                 const variant = rng.int(0, ferns.variantCount);
                 const sc = top / fernTop(variant);
                 composeMatrix(M, 0, x, T.height(x, z) - 0.02, z, s.nx, s.ny, s.nz, 0.7, rng() * Math.PI * 2, sc, sc, sc);
-                ferns.add(M, variant, greenVar(rng, 0.18).multiply(lit));
+                const c = greenVar(rng, 0.18);
+                ferns.add(M, variant, lit ? c.multiply(lit) : c);
                 return { x, z, scale: sc, low: top <= 0.35 };
               };
               const newFerns38: { x: number; z: number; scale: number; low: boolean }[] = [];
-              /** hosta clumps: 1.7–2.3 × the sheet laminae (25–34 cm across, ≤ 0.34 m tall — camera C's contract is 0.35) */
-              const hostaAt = (x: number, z: number, s: FieldSample, rng: Rng, lit: Color) => placeInstance(weeds, x, z, s, rng, 1.7 + rng() * 0.6, 0.8, 0.012, greenVar(rng, 0.16).multiply(lit));
+              /** hosta clumps: 1.6–2.3 × the sheet laminae (24–34 cm across, ≤ 0.34 m tall — camera C's contract is 0.35) */
+              const hostaAt = (x: number, z: number, s: FieldSample, rng: Rng, lit: Color | null) => {
+                const c = greenVar(rng, 0.16);
+                placeInstance(weeds, x, z, s, rng, 1.6 + rng() * 0.7, 0.8, 0.012, lit ? c.multiply(lit) : c);
+              };
 
-              // ---- (T) the terrace lawn: overlapping crowns 0.36–0.55 m either side of the stones'
-              // strip (roots out of the strip's feather too: the widest fronds reach 0.85 m), hostas
-              // under and between them, cushions thickest at the trunk base, tufts everywhere, buds
+              // ---- (T) the terrace lawn between the landing and the door, turf-toned: crowns
+              // 0.36–0.48 m either side of the stones' strip (roots out of the strip's feather: the
+              // widest fronds reach 0.75 m), hostas between them, cushions thickest at the trunk
+              // base, tufts, buds
               scatter(
                 ctx,
                 field,
@@ -2554,12 +2543,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   label: 'ferns-r38-terrace',
                   candidates: 16000,
                   box: TERRACE_BOX,
-                  minSpacing: 0.34,
-                  max: 60,
+                  minSpacing: 0.36,
+                  max: 22,
                   r32: true,
-                  accept: (x, z, s) => (terraceGround(x, z, s, 0.55 * fernReachPerTop) && field.troddenZone(x, z, true) <= 0.3 && !nearFern(x, z, 0.28) ? 0.7 + 0.3 * field.cluster(x, z) : 0),
+                  accept: (x, z, s) => (terraceGround(x, z, s, 0.48 * fernReachPerTop) && field.troddenZone(x, z, true) <= 0.3 && !nearFern(x, z, 0.3) ? 0.7 + 0.3 * field.cluster(x, z) : 0),
                 },
-                (x, z, s, rng) => newFerns38.push(crownAt(x, z, s, rng, 0.36 + rng() * 0.18, R38_LIT)),
+                (x, z, s, rng) => newFerns38.push(crownAt(x, z, s, rng, 0.36 + rng() * 0.12, null)),
               );
               scatter(
                 ctx,
@@ -2568,12 +2557,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   label: 'weeds-r38-terrace',
                   candidates: 20000,
                   box: TERRACE_BOX,
-                  minSpacing: 0.18,
-                  max: 200,
+                  minSpacing: 0.22,
+                  max: 64,
                   r32: true,
                   accept: (x, z, s) => (terraceGround(x, z, s, 0.4) && field.lawnEdgeDistance(x, z, true) >= 0.2 ? 0.85 * (0.5 + field.cluster(x, z)) : 0),
                 },
-                (x, z, s, rng) => hostaAt(x, z, s, rng, R38_LEAF),
+                (x, z, s, rng) => hostaAt(x, z, s, rng, null),
               );
               scatter(
                 ctx,
@@ -2584,7 +2573,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   box: TERRACE_BOX,
                   minSpacing: 0.26,
                   low: true,
-                  max: 120,
+                  max: 80,
                   r32: true,
                   // thickest at the trunk base (the frames' moss on the roots)
                   accept: (x, z, s) => (terraceCover(x, z, s) ? 0.45 + 0.55 * (1 - smoothstep(0.2, 1.8, field.houseInfo(x, z).dist)) + 0.3 * field.cluster(x, z) : 0),
@@ -2599,13 +2588,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   label: 'clover-r38-terrace',
                   candidates: 16000,
                   box: TERRACE_BOX,
-                  minSpacing: 0.13,
+                  minSpacing: 0.14,
                   low: true,
-                  max: 500,
+                  max: 300,
                   r32: true,
                   accept: (x, z, s) => (terraceCover(x, z, s) ? 0.8 * (0.5 + field.cluster(x, z)) : 0),
                 },
-                (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.18).multiply(R38_CARPET)),
+                (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.18)),
               );
               scatter(
                 ctx,
@@ -2614,59 +2603,74 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                   label: 'tufts-r38-terrace',
                   candidates: 20000,
                   box: TERRACE_BOX,
-                  minSpacing: 0.18,
+                  minSpacing: 0.22,
                   low: true,
-                  max: 320,
+                  max: 150,
                   r32: true,
                   accept: (x, z, s) => (terraceCover(x, z, s) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
                 },
                 // short at the stones and in the strip (tuftAt's rules), short / mid / tall on the open lawn
-                (x, z, s, rng) => tuftAt(x, z, s, rng, [0.25, 0.5, 0.25], R38_LIT, 0, 0, true),
+                (x, z, s, rng) => tuftAt(x, z, s, rng, [0.3, 0.5, 0.2], greenVar(rng, 0.12), 0, 0, true),
               );
 
-              // ---- (L) the lawn below: the carpet
+              // ---- (SE) the lobe's south-east corner — frame 14 s' right-edge crown group: lit
+              // crowns 0.3–0.45 m in a group, hostas and a lit carpet under them
               scatter(
                 ctx,
                 field,
                 {
-                  label: 'weeds-r38-lawn',
-                  candidates: 30000,
-                  box: LAWN_BOX,
-                  minSpacing: 0.17,
-                  max: 420,
+                  label: 'ferns-r38-corner',
+                  candidates: 16000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.3,
+                  max: 12,
                   r32: true,
-                  // roots 0.5 m off the stones and out of the strip's core (scatter's standing rule)
-                  accept: (x, z, s) => (lawnGround(x, z, s, 0.2, 0.4) && !nearWhite(x, z, 0.35) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
+                  // the gate takes the mid variants' reach (1.2 × the height): the widest crown's tips may cross F.sx 0.17–0.19, still off the mass
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.25, 0.42 * 1.2) && field.troddenZone(x, z, true) <= 0.3 && !nearFern(x, z, 0.3) && !nearWhite(x, z, 0.4) ? 0.75 : 0),
                 },
-                (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 1.6 + rng() * 0.7, 0.8, 0.012, carpetTint(x, z, rng, 0.16)),
+                (x, z, s, rng) => newFerns38.push(crownAt(x, z, s, rng, 0.3 + rng() * 0.12, R38_LIT)),
               );
               scatter(
                 ctx,
                 field,
                 {
-                  label: 'clover-r38-lawn',
-                  candidates: 40000,
-                  box: LAWN_BOX,
+                  label: 'weeds-r38-corner',
+                  candidates: 16000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.18,
+                  max: 70,
+                  r32: true,
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.2, 0.4) && !nearWhite(x, z, 0.35) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                (x, z, s, rng) => hostaAt(x, z, s, rng, R38_CARPET),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'clover-r38-corner',
+                  candidates: 20000,
+                  box: LOBE_SE_BOX,
                   minSpacing: 0.12,
                   low: true,
-                  max: 900,
+                  max: 260,
                   r32: true,
-                  accept: (x, z, s) => (lawnGround(x, z, s, 0.1, 0.2) ? 0.85 * (0.5 + field.cluster(x, z)) : 0),
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.1, 0.2) ? 0.85 * (0.5 + field.cluster(x, z)) : 0),
                 },
-                (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.7, 0.9, 0.008, carpetTint(x, z, rng, 0.18)),
+                (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.7, 0.9, 0.008, greenVar(rng, 0.18).multiply(R38_CARPET)),
               );
               scatter(
                 ctx,
                 field,
                 {
-                  label: 'moss-r38-lawn',
-                  candidates: 14000,
-                  box: LAWN_BOX,
+                  label: 'moss-r38-corner',
+                  candidates: 10000,
+                  box: LOBE_SE_BOX,
                   minSpacing: 0.28,
                   low: true,
-                  max: 150,
+                  max: 50,
                   r32: true,
-                  accept: (x, z, s) => (lawnGround(x, z, s, 0.15, 0.3) ? 0.7 * (0.5 + field.cluster(x, z)) : 0),
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.15, 0.3) ? 0.7 * (0.5 + field.cluster(x, z)) : 0),
                 },
                 (x, z, _s, rng) => placeMossWith(rng, x, z, 0.1 + rng() * 0.17, true),
               );
@@ -2674,33 +2678,17 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                 ctx,
                 field,
                 {
-                  label: 'tufts-r38-lawn',
-                  candidates: 36000,
-                  box: LAWN_BOX,
+                  label: 'tufts-r38-corner',
+                  candidates: 20000,
+                  box: LOBE_SE_BOX,
                   minSpacing: 0.17,
                   low: true,
-                  max: 600,
+                  max: 160,
                   r32: true,
-                  accept: (x, z, s) => (lawnGround(x, z, s, 0.1, 0.35) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.1, 0.35) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
                 },
-                // short / mid classes only: the carpet stays under camera C's 0.35 m (tuftAt caps the wedge at 0.34 m)
-                (x, z, s, rng) => tuftAt(x, z, s, rng, [0.4, 0.6, 0], field.cFoot(x, z) > 0.5 ? R38_PALE : R38_CARPET, 0, 0, true),
-              );
-              // small crowns (0.26–0.34 m) at the lawn's edges — the bank foot's free rows and the
-              // lobe's east side — never on the trodden slope
-              scatter(
-                ctx,
-                field,
-                {
-                  label: 'ferns-r38-lawn',
-                  candidates: 30000,
-                  box: LAWN_BOX,
-                  minSpacing: 0.3,
-                  max: 40,
-                  r32: true,
-                  accept: (x, z, s) => (lawnGround(x, z, s, 0.25, 0.34 * fernReachPerTop) && field.cFoot(x, z) < 0.3 && field.troddenZone(x, z, true) <= 0.3 && !nearFern(x, z, 0.28) && !nearWhite(x, z, 0.4) ? 0.7 : 0),
-                },
-                (x, z, s, rng) => newFerns38.push(crownAt(x, z, s, rng, 0.26 + rng() * 0.08, R38_LIT)),
+                // short / mid classes only: the corner stays under camera C's 0.35 m (tuftAt caps the wedge at 0.34 m)
+                (x, z, s, rng) => tuftAt(x, z, s, rng, [0.4, 0.6, 0], R38_LIT, 0, 0, true),
               );
 
               // fiddleheads (0.27–0.43 m) in about a third of the new crowns (2–3 each), their own stream
@@ -2718,8 +2706,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
                     field.sample(x, z, s);
                     if (!field.allowed(x, z, s, true) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
                     if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z, true) > 0.6) continue;
-                    // buds are 0.295–0.41 m at scale 1; the lawn's low crowns (≤ 0.34 m, camera C's box) take the short variant only
-                    placeInstance(fiddleheads, x, z, s, rng, 0.92 + rng() * 0.12, 0.5, 0.012, greenVar(rng, 0.12).multiply(R38_LIT), undefined, f.low ? [0, 1] : [0, fiddleheads.variantCount]);
+                    // buds are 0.295–0.41 m at scale 1; the low crowns (≤ 0.35 m) take the short variant only
+                    placeInstance(fiddleheads, x, z, s, rng, 0.92 + rng() * 0.12, 0.5, 0.012, greenVar(rng, 0.12), undefined, f.low ? [0, 1] : [0, fiddleheads.variantCount]);
                   }
                 }
               }
@@ -2756,7 +2744,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               }
 
               // ---- verge flowers (frames 14 / 24: small pale dots in the lawn beside the stones and
-              // across the lobe, a few violets). ≤ 0.25 m, ≥ 0.5 m off every stone, off the strip
+              // in the corner, a few violets). ≤ 0.25 m, ≥ 0.5 m off every stone, off the strip
               // (`troddenZone` 0: the whites' contract), ≥ 0.45 m from every violet, never in a
               // kid's spot.
               const vergeGround = (x: number, z: number, s: FieldSample) => {
@@ -2783,13 +2771,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               scatter(
                 ctx,
                 field,
-                { label: 'flowers-white-r38-lawn', candidates: 12000, box: LAWN_BOX, minSpacing: 0.6, max: 18, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && lawnGround(x, z, s, 0.2, 0.25) && !nearWhite(x, z, 0.6) ? 0.7 : 0) },
+                { label: 'flowers-white-r38-corner', candidates: 8000, box: LOBE_SE_BOX, minSpacing: 0.6, max: 8, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && cornerGround(x, z, s, 0.2, 0.25) && !nearWhite(x, z, 0.6) ? 0.7 : 0) },
                 vergeWhite,
               );
               scatter(
                 ctx,
                 field,
-                { label: 'flowers-yellow-r38-lawn', candidates: 12000, box: LAWN_BOX, minSpacing: 0.6, max: 14, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && lawnGround(x, z, s, 0.2, 0.3) && !nearWhite(x, z, 0.35) ? 0.7 : 0) },
+                { label: 'flowers-yellow-r38-corner', candidates: 8000, box: LOBE_SE_BOX, minSpacing: 0.6, max: 6, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && cornerGround(x, z, s, 0.2, 0.3) && !nearWhite(x, z, 0.35) ? 0.7 : 0) },
                 vergeYellow,
               );
             }
