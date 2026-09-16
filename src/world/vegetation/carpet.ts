@@ -132,6 +132,18 @@ export function turfMatGeometry(): BufferGeometry {
 
 /** the blades' tint-slot encoding (grass.ts): integer palette index, fraction = shade lift or bank darkening */
 const tintSlot = (tintIndex: number, shade: number, darken: number) => (tintIndex + (darken > 0.01 ? 0.25 - 0.25 * darken : 0.25 + 0.5 * shade)) / 4;
+/**
+ * A mat's palette position, 0..3 continuous (materials.ts CARD_COLOR_VERTEX blends the two
+ * neighbouring entries): the blades' tint drift `tn` through the same bins the blades' integer
+ * index uses (−0.28 / 0.12 / 0.48 are the bin midpoints, so a mat and the blades over it agree on
+ * the entry), piecewise linear between the bin centres, so neighbouring mats never step an entry.
+ */
+export const matPalettePosition = (tn: number) => {
+  const centres = [-0.48, -0.08, 0.3, 0.66];
+  if (tn <= centres[0]) return 0;
+  for (let i = 0; i < 3; i++) if (tn <= centres[i + 1]) return i + (tn - centres[i]) / (centres[i + 1] - centres[i]);
+  return 3;
+};
 
 export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): CarpetResult {
   const T = ctx.terrain;
@@ -149,12 +161,13 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     card: { atlas: atlas.texture, atlasSize: atlas.size, grid: CLUMP_GRID, mode: 0, upMix: 0.55, lum: [0.6, 0.5], alphaBoost: 0.22 },
   });
   // the mats are the turf's mid tone under the clumps — not a feature: the blade colour at mid
-  // height, ≈ 0.65–0.95 × it over the dabs, so a mat and the blades over it are one surface
+  // height, ≈ 0.62–0.92 × it over the dabs, so a mat and the blades over it are one surface (v4's
+  // 0.5 floor left the lawns ≈ 4 % brighter than the blade field they replaced on shots B / F)
   const matMaterial = createVegMaterial(ctx, 'card', {
     name: 'veg-turf-mats',
     singleSided: true,
     transmission: 0,
-    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: MAT_GRID, mode: 1, upMix: 1, lum: [0.5, 0.45], alphaBoost: 0.12 },
+    card: { atlas: atlas.texture, atlasSize: atlas.size, grid: MAT_GRID, mode: 1, upMix: 1, lum: [0.47, 0.45], alphaBoost: 0.12 },
   });
   materials.push(clumpMaterial, matMaterial);
 
@@ -228,7 +241,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     if (houseNorth > 0) tn -= 0.6 * houseNorth;
     const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + 0.55 * foot) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
     const darken = clamp(BANK_DARKEN * bank, 0, 0.96);
-    return { edge, low, trim, shade, band, trod, bare, houseSouth, sight, hollow, foot, shoulder, giant, cluster, bank, stone, npc: clr.npc, hk, tn, dryP, darken };
+    return { edge, low, trim, shade, band, trod, bare, houseNorth, houseSouth, sight, hollow, foot, shoulder, giant, cluster, bank, stone, npc: clr.npc, hk, tn, dryP, darken };
   };
 
   const half = Math.ceil((R + 2) / 8);
@@ -281,21 +294,29 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     const density = field.falloff(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - 0.6 * t.foot) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     let w = (MAT_WIDTH[0] + (MAT_WIDTH[1] - MAT_WIDTH[0]) * rng()) * (1 - 0.4 * smoothstep(MAT_SLOPE_THIN[0] * 0.6, MAT_SLOPE_THIN[1], s.slope));
+    // across the house flight's north-flank feather (a 0.6-entry step in the palette the blades
+    // take per blade) the mats shrink toward half, so the zone edge stays an edge, not a saw of
+    // metre tiles
+    if (t.houseNorth > 0 && t.houseNorth < 1) w *= 1 - 0.45 * (1 - Math.abs(2 * t.houseNorth - 1));
     // never over the paving or a stepping stone
     w = Math.min(w, (t.edge - 0.02) * 2, (t.stone + 0.04) * 2);
     if (w < 0.25) return;
-    // little mat-to-mat tint noise (the blades' 0.18): neighbouring mats share a palette entry
-    // and read as one turf, the zone drift alone varies it
-    const tint = t.tn + rng.gauss() * 0.06 * (1 - BANK_FLAT * t.bank);
-    const tintIndex = tint < -0.28 ? 0 : tint < 0.12 ? 1 : tint < 0.48 ? 2 : 3;
-    const dry = clamp(t.dryP * (0.3 + 0.7 * rng()), 0, 0.95) * 0.6;
+    // a continuous palette position at half the blades' drift — mottle and zone offsets alike —,
+    // the zone's dryness without the blades' per-instance draw, little mat-to-mat noise: a
+    // metre-wide filled surface next to another must not step in tone (v4's four discrete
+    // entries at the full drift — ± an entry and a half within a metre, a two-entry step along
+    // the house flight's north-flank feather — tiled B's terrace in blotches, where the same steps
+    // between thin blades over soil read as a gentle shift); the clumps and the blades over the
+    // mats carry the zones and the per-plant variation at full strength
+    const tint = 0.5 * t.tn + rng.gauss() * 0.04 * (1 - BANK_FLAT * t.bank);
+    const dry = clamp(t.dryP * 0.65, 0, 0.95) * 0.6;
     const tile = rng.int(0, atlas.matTiles);
     const yaw = rng() * Math.PI * 2;
     const y = T.height(x, z) + MAT_LIFT;
     composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, yaw, w, 1, w);
-    data[0] = 0;
+    data[0] = matPalettePosition(tint);
     data[1] = 1;
-    data[2] = tintSlot(tintIndex, t.shade, t.darken);
+    data[2] = tintSlot(0, t.shade, t.darken);
     data[3] = tile + dry;
     mats.add(M, 0, white, data);
     if (mats.count % 53 === 0) matSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);

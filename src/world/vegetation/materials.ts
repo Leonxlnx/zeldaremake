@@ -132,7 +132,10 @@ gl_Position = projectionMatrix * mvPosition;
  * (wind, root→tip gradient along the card's v), 1 a flat turf mat (static, one mid-blade tone).
  */
 const CARD_VERTEX_PARS = /* glsl */ `
-attribute vec4 aData; // phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, atlas tile + dryness
+// clump: phase, stiffness, (tint index + 0.25 + 0.5 × shade lift) / 4, atlas tile + dryness
+// mat:   palette position 0..3 (continuous), 1, (0.25 + 0.5 × shade lift) / 4 — the index is
+//        unused —, atlas tile + dryness
+attribute vec4 aData;
 uniform vec3 uTints[4];
 uniform vec3 uDryTip;
 uniform vec4 uTileGrid;
@@ -161,6 +164,14 @@ float shadeLift = clamp((fract(tintSlot) - 0.25) * 2.0, 0.0, 1.0);
 vShadeLift = shadeLift;
 float bankDark = clamp((0.25 - fract(tintSlot)) * 4.0, 0.0, 1.0);
 vec3 tint = uTints[tintIndex];
+// a mat is a metre wide: the blades' four-entry palette (≈ 1.5 × luminance steps) would tile the
+// lawn in blotches wherever the zone drift crosses an entry, so a mat blends between the entries
+// at a continuous position (aData.x, carpet.ts matPalettePosition)
+if (uCardMode > 0.5) {
+  float pos = clamp(aData.x, 0.0, 3.0);
+  int lo = int(min(floor(pos), 2.0));
+  tint = mix(uTints[lo], uTints[lo + 1], pos - float(lo));
+}
 vec3 rootTone = mix(vec3(0.36, 0.38, 0.40), vec3(0.66, 0.72, 0.64), shadeLift);
 vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
 bladeColor = mix(bladeColor, uDryTip, vegDry * smoothstep(0.45, 1.0, bladeT));

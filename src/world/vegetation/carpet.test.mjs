@@ -42,14 +42,23 @@ assert.equal(CLUMP_TILES,6);assert.equal(MAT_TILES,4);
 assert.deepEqual([...CLUMP_GRID],[0.5,0.25,2,1]);assert.deepEqual([...MAT_GRID],[0.25,0.25,4,0.25]);
 assert.ok(CLUMP_GRID[3]-CLUMP_GRID[1]*Math.ceil(CLUMP_TILES/CLUMP_GRID[2])>=MAT_GRID[3]-1e-9,'clump block ends where the mat block starts');
 assert.equal(a.carpet.atlas.texture,null,'no DOM canvas under node: the atlas is skipped, the streams untouched');
-// every card carries the blades' aData encoding: phase, stiffness, tint slot, atlas tile + dryness
+// every card carries the blades' aData encoding: phase, stiffness, tint slot, atlas tile + dryness —
+// a mat's first float is its continuous palette position instead (materials.ts blends the entries)
+const {matPalettePosition}=read('vegetation/carpet');
+assert.deepEqual([-1,-0.48,-0.28,-0.08,0.12,0.3,0.48,0.66,1].map(t=>Math.round(matPalettePosition(t)*1000)/1000),[0,0,0.5,1,1.526,2,2.5,3,3],'palette position: piecewise linear, the blades\' bin midpoints land near the half entries');
 for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute:'aData',size:4});
   const tiles=set===a.carpet.clumps?CLUMP_TILES:MAT_TILES;
   for(const it of set.items){assert.equal(it.data.length,4);
-    assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
-    if(set===a.carpet.mats)assert.deepEqual([it.data[0],it.data[1]],[0,1],'mats are static: no phase, full stiffness');
+    if(set===a.carpet.mats){assert.ok(it.data[0]>=0&&it.data[0]<=3&&it.data[1]===1,'mats: palette position 0..3, full stiffness');assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
+    else assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
     const slot=it.data[2]*4,idx=Math.floor(slot);assert.ok(idx>=0&&idx<=3,'palette index 0..3');assert.ok(slot-idx>=0&&slot-idx<=0.75+1e-6,'slot fraction is a shade lift or a bank darkening');
     const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);assert.ok(it.data[3]-tile<=0.95+1e-6,'dryness ≤ 0.95');}}
+// neighbouring mats never step hard in tone (the blades' drift at half strength, continuous): two mats within
+// 0.8 m differ by < 1.2 entries at the steepest of the tint mottle, by < 0.35 at the median pair
+{const ms=a.carpet.mats.items.filter(it=>Math.hypot(it.x,it.z)<14);const steps=[];
+  for(let i=0;i<ms.length;i+=3)for(let j=i+1;j<Math.min(ms.length,i+400);j++){const p=ms[i],r=ms[j];if(Math.hypot(p.x-r.x,p.z-r.z)>0.8)continue;steps.push(Math.abs(p.data[0]-r.data[0]));}
+  steps.sort((p,r)=>p-r);const median=steps[Math.floor(steps.length/2)],maxStep=steps[steps.length-1];
+  assert.ok(steps.length>=1500&&maxStep<1.2&&median<0.35,`${steps.length} mat pairs within 0.8 m, median palette step ${median.toFixed(3)}, largest ${maxStep.toFixed(3)}`);}
 // determinism: a fresh seed and terrain reproduce every card
 for(const k of['clumps','mats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
   for(let i=0;i<first.count;i++)assert.deepEqual(first.items[i],second.items[i],`${k} ${i} reproduced`);}
