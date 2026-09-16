@@ -339,8 +339,17 @@ export function createComposer(opts: ComposerOptions): Composer {
   const settings: ComposerSettings = {
     // 0.6 stacked with the grass blades' self-occlusion and pushed the vegetation-heavy dark
     // quartile 0.05–0.08 under the reference's in every view; 0.4 once the canopy shade darkened
-    // (shadowfilter leak 0.35 → 0.1): the shaded banks of shots D/F sat 0.05–0.10 under the reference
-    aoStrength: 0.4,
+    // (shadowfilter leak 0.35 → 0.1): the shaded banks of shots D/F sat 0.05–0.10 under the reference.
+    // Round 38 (tone): 0.2. The frames' shade is lifted by canopy bounce and shows no crevice
+    // darkening — a contact shadow only under Link and the sunlit props — while ours printed AO
+    // under every bush, riser and slab edge as dark structure the frames do not have. The term is
+    // multiplied into direct sun and fill alike, so in shade (fill only) it darkens twice. Measured
+    // (six views, runtime override, everything else fixed): at 0 SSIM A +0.0083, B +0.0050,
+    // C +0.0015, D +0.0060, E +0.0064, F +0.0070 (F mid band pixels < 0.2: 23.0 → 17.2 %,
+    // p10 0.151 → 0.165; the frame's 0.6 % / 0.243) for sharpness E 0.853 → 0.834; 0.2 keeps
+    // the contact shading under the props and two thirds of the gain (A +0.0053, B +0.0035,
+    // C +0.0014, D +0.0048, E +0.0042, F +0.0055; F dark share 19.5 %) at E 0.836.
+    aoStrength: 0.2,
     aoRadius: 0.5,
     // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs

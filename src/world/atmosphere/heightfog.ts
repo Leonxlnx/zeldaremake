@@ -347,8 +347,18 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   hazeCatchUpEnd: 22,
   hazeUniformHeight: 8.0,
   hazeScaleHeight: 7.0,
-  hazeDensityUniformHeight: 8.0,
-  hazeDensityScaleHeight: 7.0,
+  // Round 38 (tone): toward the closed directions (the north hollow of shot D, the west stand,
+  // the south of shot C) the extinction's aerosol is uniform only to 3 m and falls off with a 5 m
+  // scale height — the mist pools low and the air the boughs and trunks stand in, 4–12 m up, is
+  // 15–40 % thinner (a ray from eye height to a bough at 6 m wears 0.84 of the ground-level
+  // optical depth, to 10 m 0.62); the open side keeps the colour profile (8 / 7 m), because the
+  // upper frame up the stair corridor is the frames' brightest air and thinning it darkened F
+  // (−0.0027 at 3 / 5 m for every direction). Measured (six views, on top of the AO / bounce
+  // changes): D +0.0020 (top band mean 0.500 → 0.489 against the frame's 0.484), E +0.0013,
+  // B +0.0005, C −0.0015, A −0.0005, F ±0; 2 / 3 m for every direction was D +0.0021 but
+  // C −0.0055, F −0.0080.
+  hazeDensityUniformHeight: 3.0,
+  hazeDensityScaleHeight: 5.0,
   hazeDensityProfileOpen: 1.0,
   hazeOpenDensity: 1.0,
   maxFogOpen: 0.86,
@@ -366,7 +376,13 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   hazeHotUpIn: [0.08, 0.16],
   hazeHotUpOut: [0.3, 0.4],
   hazeHotDist: [35, 55],
-  hazeHotAmount: 0,
+  // 0.65: F's top band gains the frame's bright share (pixels > 0.7: 0 → 1.3 %, the frame 3.1 %;
+  // sd 0.075 → 0.091, the frame 0.136; p90 0.512 → 0.525 / 0.615) and the far rows at the top of
+  // the stair become the luminous plateau air the frame shows behind its fence. The lobe is seen
+  // through the lantern limb's crown in F and the stair-bank crowns at A's right edge, and the
+  // leaf-against-glare speckle costs the structure term F −0.0021, A −0.0024 (0.0 outside those
+  // two cells); a full lobe (1.0) read 0.75 against the frame's 0.55–0.65 and cost F −0.0076
+  hazeHotAmount: 0.65,
   // rays steeper than ≈ 22° up (shot F's crowns and the far canopy behind them) lose up to 90 % of
   // the haze; eye-level shots (A/D top rows reach ≈ 23–25°) lose ≤ 10 % on their very top row
   hazeUpwardCut: 0.9,

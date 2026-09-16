@@ -57,8 +57,17 @@ export const WORLD = {
      * against our 0.33 / 0.34, its B forest band at 0.277 against 0.343; the rest of that lift is
      * the shade floors (materials/shadeFloor.ts: −0.18 / −0.21 on the same bands when off) and is
      * reported to their owner. SSIM −0.002 / −0.004 alone, paid for by the haze blur (postfx).
+     * Round 38 (tone): back to the 2× khaki (0xaba687) as the coloured shade floor of F's mid band
+     * — the shaded bank right of the stairs and the risers' shaded faces read 0.12–0.18 where the
+     * frame's shade is a lifted grey-green 0.3–0.4, and the hemisphere's ground half is the fill
+     * that reaches those faces. Measured with the AO at 0.2 (six views, runtime override): the
+     * 2× bounce adds A +0.0001, B +0.0015, C +0.0018, D +0.0005, E +0.0004, F +0.0010 on top of
+     * the AO change (F mid band pixels < 0.2: 19.5 → 18.1 %, mean 0.289 → 0.293); a greener
+     * 0x8f9a72 measured the same within 0.0007 per view, so the khaki (the sunlit floor's own
+     * colour) stays. The IBL's lower half follows (sky.ts uGround), so vertical faces gain a hair
+     * of fill from below as well.
      */
-    hemiGround: 0x7d7860,
+    hemiGround: 0xaba687,
     /**
      * hemisphere fill (near-neutral tint, see lighting/index.ts). Generous but no longer carrying
      * the plaza alone: since the lantern crown lets dappled sun onto the plaza, its shaded slabs
