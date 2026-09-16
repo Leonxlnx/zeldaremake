@@ -16,11 +16,16 @@
  *             exact view, the matched-ablation number when a walk is too slow to trace
  * --isolate : also render each top-level system alone (`__ZR__.isolate`) for its share of the draws
  *             and triangles (no post chain: the colour pass with the lighting group only)
+ *
+ * `measureView` is exported for ablate.mjs (one browser, many flag sets).
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serveStatic, launchBrowser } from '../scripts/lib/browser.mjs';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const SYSTEMS = ['terrain', 'hardscape', 'rocks', 'trees', 'structures', 'vegetation', 'props', 'character', 'atmosphere'];
 
 /** find the capture hooks (step, renderer) through the closure scopes of __ZR__.render (as perftrace.mjs does) */
 async function grabHooks(page) {
@@ -52,46 +57,20 @@ async function grabHooks(page) {
   return false;
 }
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const args = {};
-for (let i = 2; i < process.argv.length; i++) {
-  const a = process.argv[i];
-  if (!a.startsWith('--')) continue;
-  const n = process.argv[i + 1];
-  if (n === undefined || n.startsWith('--')) args[a.slice(2)] = true;
-  else {
-    args[a.slice(2)] = n;
-    i++;
-  }
-}
-const dist = path.resolve(ROOT, args.dist ?? 'dist');
-const viewpoint = args.viewpoint ?? 'A_stairs';
-const params = typeof args.params === 'string' ? args.params.replace(/^[?&]+/, '') : '';
-const width = Number(args.width ?? 1280);
-const height = Number(args.height ?? 720);
-const settle = Number(args.settle ?? 8);
-const simTime = Number(args.time ?? 12.5);
-const out = args.out ? path.resolve(args.out) : null;
-const jsonOut = args.json ? path.resolve(args.json) : null;
-const isolate = !!args.isolate;
-const timed = Number(args.timed ?? 0);
-const log = (...a) => console.error(...a);
-
-const SYSTEMS = ['terrain', 'hardscape', 'rocks', 'trees', 'structures', 'vegetation', 'props', 'character', 'atmosphere'];
-
-async function main() {
-  const server = await serveStatic(dist);
-  const browser = await launchBrowser({ width, height });
+/**
+ * Load the world in a new page with `params`, render `viewpoint` at `simTime` (+ `settle` frames) and
+ * measure it. Returns the report (and writes the PNG when `out` is given). The page is closed.
+ */
+export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, isolate = false, out = null, log = console.error } = {}) {
+  const page = await browser.newPage();
   try {
-    // the same URL capture.mjs opens (lib/browser.mjs openWorld), plus the flags
-    const base = server.url;
-    const page = await browser.newPage();
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
     page.on('pageerror', (e) => log(`[pageerror] ${e.message}`));
     page.on('console', (m) => {
       if (m.type() === 'error' || m.type() === 'warning') log(`[page:${m.type()}] ${m.text()}`);
     });
-    const url = `${base}/?capture=1&dev=0&quality=high${params ? `&${params}` : ''}`;
+    // the same URL capture.mjs opens (lib/browser.mjs openWorld), plus the flags
+    const url = `${baseUrl}/?capture=1&dev=0&quality=high${params ? `&${params}` : ''}`;
     log(`url: ${url}`);
     const t0 = Date.now();
     await page.goto(url, { waitUntil: 'load', timeout: 900_000 });
@@ -173,19 +152,54 @@ async function main() {
       report.isolate = {};
       for (const s of SYSTEMS) report.isolate[s] = await page.evaluate((name) => window.__ZR__.isolate(name), s);
     }
-    const result = { dist, viewpoint, params, width, height, settle, simTime, readyMs, renderMs, timing, png, ...report };
-    if (jsonOut) {
-      fs.mkdirSync(path.dirname(jsonOut), { recursive: true });
-      fs.writeFileSync(jsonOut, JSON.stringify(result, null, 2));
-    }
-    console.log(JSON.stringify(result, null, 2));
+    return { viewpoint, params, width, height, settle, simTime, readyMs, renderMs, timing, png, ...report };
   } finally {
-    await browser.close();
-    await server.close();
+    await page.close();
   }
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  const args = {};
+  for (let i = 2; i < process.argv.length; i++) {
+    const a = process.argv[i];
+    if (!a.startsWith('--')) continue;
+    const n = process.argv[i + 1];
+    if (n === undefined || n.startsWith('--')) args[a.slice(2)] = true;
+    else {
+      args[a.slice(2)] = n;
+      i++;
+    }
+  }
+  const dist = path.resolve(ROOT, args.dist ?? 'dist');
+  const opts = {
+    viewpoint: args.viewpoint ?? 'A_stairs',
+    params: typeof args.params === 'string' ? args.params.replace(/^[?&]+/, '') : '',
+    width: Number(args.width ?? 1280),
+    height: Number(args.height ?? 720),
+    settle: Number(args.settle ?? 8),
+    simTime: Number(args.time ?? 12.5),
+    timed: Number(args.timed ?? 0),
+    isolate: !!args.isolate,
+    out: args.out ? path.resolve(args.out) : null,
+  };
+  const jsonOut = args.json ? path.resolve(args.json) : null;
+  (async () => {
+    const server = await serveStatic(dist);
+    const browser = await launchBrowser({ width: opts.width, height: opts.height });
+    try {
+      const result = { dist, ...(await measureView(browser, server.url, opts)) };
+      if (jsonOut) {
+        fs.mkdirSync(path.dirname(jsonOut), { recursive: true });
+        fs.writeFileSync(jsonOut, JSON.stringify(result, null, 2));
+      }
+      console.log(JSON.stringify(result, null, 2));
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  })().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

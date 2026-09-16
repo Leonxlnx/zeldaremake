@@ -29,7 +29,9 @@
  *                  recorded per frame); without it `ms` is the JS issue time only
  * --auto         : open with quality=auto&governor=1 (main.ts runs the frame-time governor under the
  *                  harness, finishing each step itself); every row carries the tier and the summary
- *                  lists the governor's changes with frame indices
+ *                  lists the governor's changes with frame indices. Tune it through --params
+ *                  "gov=<window>,<slowMs>,<fastMs>,<fastForS>,<minIntervalS>" (a software rasteriser
+ *                  at seconds per frame needs a short window to step within a trace)
  * --profile      : V8 CPU profile of the first pass (GC pauses show as "(garbage collector)")
  * --alloc        : sampled allocation profile of the first pass (who allocates per frame → GC pressure)
  *

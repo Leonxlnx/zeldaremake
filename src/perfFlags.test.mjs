@@ -66,6 +66,11 @@ const { parsePerfFlags, isDefaultPerf, defaultPerfSettings, applyPerfSettings, Q
   assert.equal(parsePerfFlags('quality=auto', { headless: true }).governor, false, 'auto under a headless capture is fixed high');
   assert.equal(parsePerfFlags('quality=auto&governor=1', { headless: true }).governor, true, 'the trace harness opts in explicitly');
   assert.equal(parsePerfFlags('quality=high&governor=1', { headless: true }).governor, false, 'governor=1 alone does nothing');
+  assert.deepEqual(parsePerfFlags('quality=auto').governorOpts, {}, 'no gov= keeps the governor defaults');
+  const g = parsePerfFlags('quality=auto&gov=16,30,12');
+  assert.deepEqual(g.governorOpts, { window: 16, slowMs: 30, fastMs: 12 }, 'gov= sets window / slow / fast; the rest stay default');
+  assert.equal(g.active.gov, '16,30,12');
+  assert.deepEqual(parsePerfFlags('gov=4,,,1,0.5').governorOpts, { window: 8, fastForS: 1, minIntervalS: 0.5 }, 'window floor 8; skipped fields stay default');
 }
 
 // --- runtime state ------------------------------------------------------------------------------------

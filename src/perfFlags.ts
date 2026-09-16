@@ -12,6 +12,8 @@
  *   scale=<renderScale>                 0.5..1 multiplier on the renderer's pixel ratio (every
  *                                       composer target follows the drawing buffer)
  *   quality=auto                        the governor below steps a tier ladder from the frame time
+ *   gov=<window>[,<slowMs>[,<fastMs>[,<fastForS>[,<minIntervalS>]]]]
+ *                                       the governor's tuning (harness / native experiments only)
  *
  * Every flag defaults to the current behaviour: with no parameters the runtime state below is the
  * one the systems already had, and the six fixed captures stay byte-identical (W41). Under a
@@ -50,6 +52,12 @@ export interface PerfFlags extends PerfSettings {
   auto: boolean;
   /** the governor may run: auto, and not a headless capture unless `governor=1` */
   governor: boolean;
+  /**
+   * `gov=<window>[,<slowMs>[,<fastMs>[,<fastForS>[,<minIntervalS>]]]]` — the governor's tuning, for
+   * the trace harness (a software rasteriser needs a short window to step within a trace) and for
+   * trying thresholds natively without a rebuild; unset fields keep the defaults in GovernorOptions
+   */
+  governorOpts: GovernorOptions;
   /** the flags given on the URL, as given (empty when everything is at its default) */
   active: Record<string, string>;
 }
@@ -127,7 +135,18 @@ export function parsePerfFlags(search: string, opts: { headless?: boolean } = {}
   const headless = opts.headless ?? false;
   const governor = auto && (!headless || q.get('governor') === '1');
   if (auto) active.quality = 'auto';
-  return { fx, shadowMapSize, shadowTaps, vegLodScale, grassDensity, renderScale, auto, governor, active };
+  const governorOpts: GovernorOptions = {};
+  const govParam = q.get('gov');
+  if (govParam) {
+    active.gov = govParam;
+    const [win, slow, fast, fastFor, minInterval] = govParam.split(',');
+    if (win) governorOpts.window = Math.round(clamp(num(win, 60), 8, 600));
+    if (slow) governorOpts.slowMs = clamp(num(slow, 20), 1, 10_000);
+    if (fast) governorOpts.fastMs = clamp(num(fast, 11), 0.5, 10_000);
+    if (fastFor) governorOpts.fastForS = clamp(num(fastFor, 3), 0, 600);
+    if (minInterval) governorOpts.minIntervalS = clamp(num(minInterval, 2), 0, 600);
+  }
+  return { fx, shadowMapSize, shadowTaps, vegLodScale, grassDensity, renderScale, auto, governor, governorOpts, active };
 }
 
 /** true when nothing on the URL changes the shipped behaviour (the byte-identical path) */

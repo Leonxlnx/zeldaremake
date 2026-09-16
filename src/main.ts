@@ -198,7 +198,7 @@ async function boot() {
   // rAF interval in play (what the GPU actually lets through) and, under the trace harness, the
   // finished step's wall time through `__ZR__` (see perftrace.mjs --auto). Its render-scale
   // changes resize the renderer here; the other rungs' settings are read by the systems themselves.
-  const governor = flags.governor ? new QualityGovernor(perfState) : null;
+  const governor = flags.governor ? new QualityGovernor(perfState, flags.governorOpts) : null;
   let perfApplied = perfState.version;
   const applyPerfState = () => {
     if (perfState.version === perfApplied) return;
