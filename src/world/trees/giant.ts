@@ -30,6 +30,7 @@ import {
 } from './writer';
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
+import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, reliefBole } from './bole';
 
 /**
@@ -248,9 +249,21 @@ export interface CanopyLobe {
    * round-38 v4 capture lost 0.29 on one cell for that alone), and the cards go to
    * GiantAsset.authoredCards, drawn without a shadow pass.
    * Author with `eye: 0` so the cards are full-size and spread through the lobe (the mass has to
-   * be opaque; eye-detail laminae are for edges the camera is within a few metres of).
+   * be opaque; eye-detail laminae are for edges the camera is within a few metres of) — and with
+   * a `core`, without which no card population closes evenly enough (below).
    */
   flat?: boolean;
+  /**
+   * Opaque smooth core of a flat lobe: the fraction of hR / vR filled by one closed ellipsoid
+   * (0.85 = the cards are a leaf fringe around it). Cards alone never close: the cluster map's
+   * holes and edges between them read as window sd 0.02–0.05 through nine layers (round 38 v5
+   * capture: C's mass cells at sd 0.02 against the frame's 0.01 lost 0.1–0.24 each while their
+   * means landed within 0.03 of the frame — SSIM's structure term, (2 cov + C2) / (va + vb + C2),
+   * C2 = 9e-4, halves between sd 0.01 and 0.03). The core is written to the same flat writer as
+   * the lobe's laminae (one colour, no sun, levelled by uFlatLift), so the body is EVEN — sd 0 but
+   * for the haze across its depth — and only the fringe carries leaf silhouettes.
+   */
+  core?: number;
 }
 
 /**
@@ -841,6 +854,41 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     for (let i = 0; i < attempts; i++) placeCard(rd, false, inCollar);
   }
 
+  /**
+   * The opaque core of a flat lobe (CanopyLobe.core): one closed ellipsoid of `k` × the lobe's
+   * radii written to the flat leaves writer as leaf vertices (rigid, no flutter), in the colour the
+   * lobe's cards render — their vertex colour × the flat map level (materials.ts LEAF_FLAT_MAP_LUM
+   * stands in for the cluster map on a flat card), so the body and its fringe are one level.
+   */
+  function lobeCore(center: Vector3, hR: number, vR: number, k: number) {
+    const color = canopy.clone().multiplyScalar(0.9 * LEAF_FLAT_MAP_LUM * lobeTone);
+    const segs = 20;
+    const rings = 12;
+    const base = leaves.positions.length / 3;
+    const p = new Vector3();
+    const n = new Vector3();
+    for (let i = 0; i <= rings; i++) {
+      const ph = (i / rings) * Math.PI;
+      for (let j = 0; j <= segs; j++) {
+        const th = (j / segs) * TAU;
+        const sx = Math.sin(ph) * Math.cos(th);
+        const sy = Math.cos(ph);
+        const sz = Math.sin(ph) * Math.sin(th);
+        p.set(center.x + sx * hR * k, center.y + sy * vR * k, center.z + sz * hR * k);
+        n.set(sx / hR, sy / vR, sz / hR).normalize();
+        leaves.vertexN(p, n, color, 0, 0, 1, 0, 0, 1);
+      }
+    }
+    for (let i = 0; i < rings; i++) {
+      for (let j = 0; j < segs; j++) {
+        const a = base + i * (segs + 1) + j;
+        const b = a + segs + 1;
+        leaves.triangle(a, b, a + 1);
+        leaves.triangle(b, b + 1, a + 1);
+      }
+    }
+  }
+
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
     lobe = { center, hR };
     // a compact lobe keeps its twigs' drop and its sprigs inside the authored ellipsoid (they are
@@ -1301,6 +1349,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const leavesBefore = leaves.leafCount;
       foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
       lobeLeafCounts.push(leaves.leafCount - leavesBefore);
+      if (lobeFlat && lobeSpec.core) lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
       eyeOverride = null;
       lobeTone = 1;
       leaves.leafShade = cards.leafShade = 1;

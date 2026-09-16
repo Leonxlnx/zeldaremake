@@ -308,6 +308,8 @@ const LEAF_TRANSMIT = 1.2;
  * 2.2 → 0.31–0.32 (F +0.0046 with the v3 lobes spilling into F's top row, C 0.0000). The core
  * level runs ≈ 0.14 + 0.08 × lift (1.8 measured 0.29–0.31 in the v4 capture). At these levels
  * the luminance term moves 0.03 per 0.03 of mean, so the level is set to the frame, not near it.
+ * Re-swept on the cored lobes that shipped (giant.ts lobeCore, v7d): 1.2 → F +0.0159 / C +0.0026,
+ * 1.5 → F +0.0158 / C +0.0033, 2.0 (v7a) → F −0.0017 / C −0.0006 against 1.5.
  */
 const LEAF_FLAT_LIFT = 1.5;
 /**
@@ -333,7 +335,7 @@ const LEAF_FLAT_SUNLESS = /* glsl */ `
  * is texture at 2–5 px per leaf at 12 m. The map is alpha only there; its opaque mean (≈ 0.8 of
  * the card colour) stands in so the level does not jump from the lit cards'.
  */
-const LEAF_FLAT_MAP_LUM = 0.8;
+export const LEAF_FLAT_MAP_LUM = 0.8;
 const LEAF_FLAT_LEVEL = /* glsl */ `
       reflectedLight.indirectDiffuse *= mix(1.0, uFlatLift, vLeafFlat);
 `;
