@@ -325,7 +325,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 10–50 m medians within ±0.03 of the reference in A/B/C and halves the saturation excess;
   // 0.03 fitted a hair better but cost the W35 sharpness margin. Verified by A/B capture.
   hazeDensity: 0.018,
-  hazeStart: 2.5,
+  hazeStart: 5,
   // the thin air alone left the far tree rows (52–58 m, 80–95 m) at 67–75 % veil: the arch at 61 %
   // stood against a background only a notch brighter than itself (body 0.99× the band above it).
   // Past the arch the extinction jumps so the 55 m row reaches the 0.86 cap within ~7 m (it took
@@ -345,7 +345,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 0.276 → 0.259; starting at 8 m leaves them at 0.264 / 0.274.
   hazeNearStart: 8,
   // Keep the 8–15 m air thinner than the daylight base density; catch-up preserves the far veil.
-  hazeNearDensity: 0.012,
+  hazeNearDensity: 0.008,
   hazeNearEnd: 15,
   hazeCatchUpEnd: 22,
   hazeUniformHeight: 8.0,
