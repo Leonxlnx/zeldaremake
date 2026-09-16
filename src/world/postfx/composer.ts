@@ -551,14 +551,23 @@ export function createComposer(opts: ComposerOptions): Composer {
     // within 0.0005. Plainly: the far band is blurred further (σ 6 grid texels = 24 px at 1280)
     // to pay for the near band being sharpened past the frames' — both are metric moves, and the
     // structure the far windows reward us for removing is structure the frames have.
+    // Round 38 (direction, not measurement): both 37b moves REVERTED to the ddfb652 values. Astra's
+    // matched laptop captures (PR #10 2026-09-16-blink8b-review, tone-b-open vs retained-tone-open)
+    // show the 1.1 unsharp crunching face seams, hair facets and cloth edges, and the owner asked
+    // for the world to read sharper and more detailed ("like 4K"), which a wider far blur is the
+    // opposite of. W35 on B/E (0.788 / 0.737) is to be met with real detail in those frames —
+    // geometry, materials, lighting (round-38 trees / vegetation passes) — not with sharpening
+    // funded by blur. The far softening itself is under review (clarity pass): the frames' far
+    // windows have MORE structure than ours (std 0.031–0.046 vs 0.013–0.020), so the softness
+    // that remains should come from haze colour mixing at the right depth, not a Gaussian.
     softFarStart: 16,
     softFarFull: 50,
     softBlurSigma: 1.2,
-    softFarSigma: 6.0,
+    softFarSigma: 4.2,
     softActivitySigma: 2.5,
-    softNearSharp: 1.1,
-    softNearStart: 3,
-    softNearEnd: 8,
+    softNearSharp: 0.25,
+    softNearStart: 4,
+    softNearEnd: 10,
     softFarMode: 0,
     softFarPremul: 0,
     bloomThreshold: 1.0,
