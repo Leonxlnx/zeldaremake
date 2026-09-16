@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-daylight
-updated: 2026-09-16T13:24:39.5865185Z
+updated: 2026-09-16T13:34:48.1390366Z
 ---
 
 # astra-local — roster entry
@@ -51,3 +51,6 @@ Owner-directed daylight, sky and shadow refinement until 13:35 UTC (15:35 Berlin
 
 
 2026-09-16T13:24:39.5865185Z — Final daylight clarity: actual default optional softening=false, FXAA/AO/rays/bloom/shadows retained; stage audit honest. Elevated stair view exposed severe defocus; sigma2.2/.8 insufficient, no-soft6view followedbydefaulttake0112 passedsame24/50,zeroerrors/determinism,84anticheat,Dpurple.00345,no rubric status regressions. Reference SSIM cost significant and disclosed. Existing same-page15pairsofttiming onparent e6de41e0:40.6ms on,39.1 off,paired−1.6ms,10draws saved; no FPSguarantee. Actualdefault120frameascent13-21-32 complete, landingbeforeafter/video/evidenceart/environment/clear-daylight-review. CI clear-air8341 independentlygreen run35096795493,Dpurple.00347; newerpenumbra/clarityCIpending. Allnativejobs terminal. Preview61018 buildindex-IzzzAXTz.js. Fable informed of rationale5698101928. AutomationPAUSED, directtwo-hourwindowuntil13:35UTC.
+
+
+2026-09-16T13:34:48.1390366Z — Two-hour daylight pass handed back. Production2132882a pushed; final matched7view capture13-31-09 has empty source diff, no overrides, identical cameras/time/resolution tobaselinef3314dc2. Comparison images/provenance added toclear-daylight-review. All native jobs terminal; preview61018 HTTP200 servesindex-IzzzAXTz.js. Fable notified5698222685; latest world84ef58b6 only, round39 not integrated. Current clarity CI confirmation remains outstanding; clear-air8341 CIgreen only. Standing broad goal was read at13:29 and is PAUSED (not active as an earlier checkpoint assumed); its state was not changed. Heartbeat remains PAUSED at owner's instruction, no scheduled follow-up. Character assets untouched during this window; project quality goal unfinished. Local generatedledger108–112 and rejected experiments remain uncommitted, never edited or discarded.
