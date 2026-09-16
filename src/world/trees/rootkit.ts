@@ -124,6 +124,33 @@ function ringRadius(rings: Vector3[][], y: number, a: number): { r: number; nomi
   return { r: A.r + (B.r - A.r) * t, nominalCentre: A.c.lerp(B.c, t) };
 }
 
+/**
+ * The GLB splits its vertices along the UV seams; computeVertexNormals then gives the two copies
+ * of a seam vertex the normals of their own side only, and the warp's fresh normals show the
+ * seam as a shading crack up the bole. Summing across coincident positions restores the fan.
+ */
+function weldNormals(g: BufferGeometry) {
+  const pos = g.getAttribute('position');
+  const nrm = g.getAttribute('normal');
+  const groups = new Map<string, number[]>();
+  for (let i = 0; i < pos.count; i++) {
+    const key = `${Math.round(pos.getX(i) * 1e4)},${Math.round(pos.getY(i) * 1e4)},${Math.round(pos.getZ(i) * 1e4)}`;
+    const list = groups.get(key);
+    if (list) list.push(i);
+    else groups.set(key, [i]);
+  }
+  const sum = new Vector3();
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    sum.set(0, 0, 0);
+    for (const i of list) sum.add(new Vector3(nrm.getX(i), nrm.getY(i), nrm.getZ(i)));
+    if (sum.lengthSq() < 1e-8) continue;
+    sum.normalize();
+    for (const i of list) nrm.setXYZ(i, sum.x, sum.y, sum.z);
+  }
+  nrm.needsUpdate = true;
+}
+
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -185,6 +212,7 @@ export function fitRootKit(src: RootKitSource, bole: RootKitBole): RootKitFit {
   }
   pos.needsUpdate = true;
   g.computeVertexNormals();
+  weldNormals(g);
   g.computeBoundingBox();
   g.computeBoundingSphere();
   const mesh = new Mesh(g, src.material);
