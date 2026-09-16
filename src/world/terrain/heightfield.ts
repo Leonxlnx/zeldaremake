@@ -147,9 +147,7 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
     rise: s.steps * s.rise,
     halfWidth: s.width / 2,
     baseY: s.base[1],
-    // (round 38: no foot bank on the house-west flight — its apron carries slabs now
-    // (hardscape/stairs.ts), and the 6 cm bank lifted the shelf to 0.30–0.34 under them)
-    footBank: s.id === 'main' ? 0.13 : 0,
+    footBank: s.id === 'main' ? 0.13 : s.id === 'house-west' ? 0.06 : 0,
     apron: s.id === 'house-west',
     landing: s.id === 'house-west' ? 0.85 : 1.7,
   };
