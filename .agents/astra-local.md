@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T00:45:54.509415+00:00
+updated: 2026-09-16T00:55:14.437297+00:00
 ---
 
 # astra-local — roster entry
@@ -52,3 +52,5 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 2026-09-16T00:36:00Z — Pushed alert eyelid 3f6cb6f3 as 9c66fa8 / PR10 after typecheck/build. Fable handoff comment 5690201680; remote adeaa71 is a heartbeat, 8b/W35/perf still pending. Blender healthy. Native curved closure candidate created from alert eyelids: 687 vertices, 1.5 mm arc, unchanged neutral face, 21 phases zero eye overlaps or relative triangle reversals. Half/closed renders viewed; subtle improvement only, vertical ridges unresolved. Not exported/promoted. Evidence: progress/2026-09-16-curved-closure-review. No running render/capture jobs. Next compare curvature in-game before considering retention; continue larger hair/face/cloth gaps.
 
 2026-09-16T00:45:54.509415+00:00 — Integrated Fable character8b from af5ede8 with latest 3f6cb6f3 asset. Native tests/typecheck/build pass; actual quick-release blink fixed (frame6 idle phase1, then smooth opening to0 byframe14). Matched tone-b A/B has identical36movement/24rapid records. Rejected tone-b sharpening/blur locally: exaggerated face seams/hair edges. Retained previous postfx, W35 still pending. Evidence2026-09-16-blink8b-review. Curved lid candidate9332ca34 tested in-game, not promoted: ridges remain. No active jobs.
+
+2026-09-16T00:55:14.437297+00:00 — Retained blink normal field 17d18d15: visible closed-lid ridges substantially reduced in game/studio. Only morph NORMAL accessors change; all original binary bytes and rest attributes/positions preserved. 36 game records exact to previous asset; 18 studio views + five blink phases pass. Four full-closure native self-intersections remain, so geometry is not fixed. Native source has required export post-process metadata. Fable latest c5fb83e/take0105/perf dispatch observed. Git auto pack process36044 still live BelowNormal; capture/render jobs done.

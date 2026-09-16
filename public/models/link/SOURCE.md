@@ -1,3 +1,6 @@
+Retained blink shading refinement: 17d18d157127d290b0aab5f72acbf5e397628034d6058626ae36409d5907583d
+Only animated orbital NORMAL accessors change. Rest shading, mesh positions, morph positions, textures, rig and animation bytes remain unchanged. Twelve adjacency-smoothing iterations remove most visible closed-lid ridges. Native geometry remains alert-eyelid-study; study_blink_normal_field.py is a required export post-process, recorded in blink-normal-field-study.blend. Four small full-closure self-intersection pairs remain; shape/topology is not claimed fixed. Evidence: art/characters/link/progress/2026-09-16-blink-normal-field-review.
+
 Integration note: Fable adopted parent 0c28cb62 in af5ede8. This branch retains the newer reviewed 3f6cb6f3 asset while integrating his character-8b blink event. Tone-b post-processing is under visual review and is not retained here.
 
 Retained alert eyelid opening: 3f6cb6f3d018d5929e452b3c04138aef346051a9e0a1a518bee4369bae3feadf

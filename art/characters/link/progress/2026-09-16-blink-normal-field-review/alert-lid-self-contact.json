@@ -1,0 +1,68 @@
+[
+  {
+    "phase": 0,
+    "nonadjacent_overlaps": 0,
+    "degenerate_below_1e_10": 0,
+    "pairs": [],
+    "min_area": 1.2831407886170307e-07
+  },
+  {
+    "phase": 0.25,
+    "nonadjacent_overlaps": 0,
+    "degenerate_below_1e_10": 0,
+    "pairs": [],
+    "min_area": 1.1547322718975749e-07
+  },
+  {
+    "phase": 0.5,
+    "nonadjacent_overlaps": 0,
+    "degenerate_below_1e_10": 0,
+    "pairs": [],
+    "min_area": 9.685864892985034e-08
+  },
+  {
+    "phase": 0.75,
+    "nonadjacent_overlaps": 0,
+    "degenerate_below_1e_10": 0,
+    "pairs": [],
+    "min_area": 4.452773879107175e-08
+  },
+  {
+    "phase": 0.9,
+    "nonadjacent_overlaps": 0,
+    "degenerate_below_1e_10": 0,
+    "pairs": [],
+    "min_area": 1.6942995401353575e-08
+  },
+  {
+    "phase": 0.95,
+    "nonadjacent_overlaps": 0,
+    "degenerate_below_1e_10": 0,
+    "pairs": [],
+    "min_area": 8.552404103150593e-09
+  },
+  {
+    "phase": 1,
+    "nonadjacent_overlaps": 4,
+    "degenerate_below_1e_10": 0,
+    "pairs": [
+      [
+        1097,
+        4949
+      ],
+      [
+        1096,
+        1097
+      ],
+      [
+        1096,
+        1098
+      ],
+      [
+        1098,
+        4949
+      ]
+    ],
+    "min_area": 8.760722734025714e-10
+  }
+]

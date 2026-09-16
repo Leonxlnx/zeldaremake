@@ -1,0 +1,17 @@
+{
+  "sha256": "17d18d157127d290b0aab5f72acbf5e397628034d6058626ae36409d5907583d",
+  "targets": [
+    {
+      "vertices": 1227,
+      "maximum_normal_rotation_degrees": 152.0079024431488
+    },
+    {
+      "vertices": 1227,
+      "maximum_normal_rotation_degrees": 169.84201705764778
+    }
+  ],
+  "status": "Normal-only diagnostic; not promoted",
+  "rest_attributes_and_morph_positions_exact": true,
+  "original_binary_preserved": true,
+  "only_morph_normal_accessors_changed": true
+}
