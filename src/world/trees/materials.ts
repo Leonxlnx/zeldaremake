@@ -16,6 +16,8 @@ import {
   MeshStandardMaterial,
   RGBADepthPacking,
   Vector2,
+  Vector4,
+  type IUniform,
   type Material,
   type Texture,
   type WebGLProgramParametersWithUniforms,
@@ -24,7 +26,7 @@ import { WIND_GLSL, type Wind } from '../wind/wind';
 import { GIANT_BARK_FLOOR, LEAF_FLOOR, bindShadeFloor, shadeFloorGlsl, shadeFloorPars, type ShadeFloor, type ShadeFloorGlslOptions } from '../materials/shadeFloor';
 import type { WorldContext } from '../system';
 import { createWhiteBarkTextures } from './bark-texture';
-import { createLeafClusterTexture } from './leaf-cluster-texture';
+import { createLeafClusterDetail, createLeafClusterTexture } from './leaf-cluster-texture';
 import { BARK_AO_LIFT } from './bole';
 
 export interface TreeMaterials {
@@ -39,6 +41,12 @@ export interface TreeMaterials {
    * `uNearBoleFloorLift` moves that bole alone
    */
   giantTreeNear: MeshStandardMaterial;
+  /**
+   * the near bases (giant.ts NEAR_BASE_CUT_Y): the giants' bark and leaf shading with the bark
+   * floor at NEAR_BASE_FLOOR — the relief's furrows carry real occlusion, so the floor no longer
+   * has to lift a shaded bole to the frames' hazed grey (it stands 2–12 m from the camera, not 10–20)
+   */
+  giantTreeNearBase: MeshStandardMaterial;
   /** leaf-cluster alpha cards inside the giant lobes */
   giantCanopy: MeshStandardMaterial;
   giantCanopyDepth: MeshDepthMaterial;
@@ -46,7 +54,26 @@ export interface TreeMaterials {
   /** number of distinct wind responses implemented (trunk sway, branch flex, leaf flutter) */
   windLayers: number;
   barkTextureSets: string[];
+  /**
+   * the near-bole LOD slots every tree program reads (see NEAR_BOLE_SLOTS): xyz = a tree's root in
+   * world space, w = the local height its collapsible wood folds to (0 = slot empty). Shared by
+   * every material here, so the trees system sets it once per frame.
+   */
+  nearBole: IUniform<Vector4[]>;
 }
+
+/** how many trees may show their near base at once (the collapse test costs one loop per vertex) */
+export const NEAR_BOLE_SLOTS = 6;
+
+/**
+ * The near bases' bark floor. GIANT_BARK_FLOOR (lift 7, texture 0.1) is what makes a shaded bole
+ * at 10–20 m the frames' flat hazed grey-green; at 2–12 m the same floor is what the owner sees
+ * as "soft grey / soft green": every furrow lifted to its crest's level, the bark texture at a
+ * tenth. The near base's furrows carry their own occlusion (bole.ts packOcclusion, applied after
+ * the floor), so the floor drops to a third and keeps two thirds of the bark's own colour and
+ * fissures: the cords read as bark, the furrows dark, the moss its own green.
+ */
+export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.65, canopy: 1, albedo: 0.08, chroma: 0.6 };
 
 interface WindOpts {
   /** stiffness of the whole-tree sway layer (1 = does not move) */
@@ -81,10 +108,12 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false
 
 const WIND_VERTEX_PARS = /* glsl */ `
 #define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}
+#define NEAR_BOLE_SLOTS ${NEAR_BOLE_SLOTS}
 attribute vec3 aWind;
 attribute vec4 aRoot;
 uniform float uTreeStiff;
 uniform float uFlex;
+uniform vec4 uNearBole[NEAR_BOLE_SLOTS];
 varying vec3 vTreeWorld;
 varying vec2 vTreeUv;
 varying float vTreeLocalY;
@@ -92,18 +121,32 @@ varying float vIsLeaf;
 varying float vLeafShade;
 varying float vLeafFlat;
 varying float vBarkAO;
+varying float vBarkMoss;
 `;
 
 const WIND_VERTEX_BODY = /* glsl */ `
   #include <begin_vertex>
   {
     vec4 treeRoot = vec4(aRoot.xyz, 1.0);
-    vec4 treeP = vec4(transformed, 1.0);
     #ifdef USE_INSTANCING
       treeRoot = instanceMatrix * treeRoot;
-      treeP = instanceMatrix * treeP;
     #endif
     treeRoot = modelMatrix * treeRoot;
+    // near-bole LOD (giant.ts NEAR_BASE_CUT_Y): the plain sweep's lower rings (aRoot.w = −1) and
+    // roots (−2) fold onto one point of the axis at the cut height while their tree holds a slot
+    // (its root within 5 cm of the slot's), so the near base drawn in their place never overlaps
+    // them. A slot with w < 0 (the root-kit test, rootkit.ts) folds the roots only; the trunk
+    // rings stay. Every other vertex is untouched.
+    if (aRoot.w < -0.5) {
+      for (int i = 0; i < NEAR_BOLE_SLOTS; i++) {
+        float slotCut = uNearBole[i].w;
+        if (abs(slotCut) > 0.5 && (slotCut > 0.0 || aRoot.w < -1.5) && distance(uNearBole[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz + vec3(0.0, abs(slotCut), 0.0);
+      }
+    }
+    vec4 treeP = vec4(transformed, 1.0);
+    #ifdef USE_INSTANCING
+      treeP = instanceMatrix * treeP;
+    #endif
     treeP = modelMatrix * treeP;
     float hAbove = max(0.0, treeP.y - treeRoot.y);
     // layer 1: whole tree sways coherently from its root (evaluated at the root so the trunk bends as one)
@@ -134,20 +177,23 @@ const WIND_VERTEX_BODY = /* glsl */ `
     vIsLeaf = step(0.5, aRoot.w);
     vLeafFlat = step(1.25, aRoot.w);
     vLeafShade = clamp((aRoot.w - mix(0.5, 1.5, vLeafFlat)) * 2.0, 0.0, 1.0);
+    // −0.45 × moss cover on the near bases' wood (writer.ts woodMoss); 0 on every plain vertex
+    vBarkMoss = (aRoot.w < 0.0 && aRoot.w > -0.5) ? -aRoot.w / 0.45 : 0.0;
   }
 `;
 
-function injectWind(material: Material, wind: Wind, o: WindOpts, extra?: (shader: WebGLProgramParametersWithUniforms) => void, key = '') {
+function injectWind(material: Material, wind: Wind, o: WindOpts, nearBole: IUniform<Vector4[]>, extra?: (shader: WebGLProgramParametersWithUniforms) => void, key = '') {
   const uTreeStiff = { value: o.treeStiffness };
   const uFlex = { value: o.flex };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTreeStiff = uTreeStiff;
     shader.uniforms.uFlex = uFlex;
+    shader.uniforms.uNearBole = nearBole;
     shader.vertexShader = WIND_GLSL + WIND_VERTEX_PARS + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', WIND_VERTEX_BODY);
     extra?.(shader);
   };
-  material.customProgramCacheKey = () => `trees-${key}-v5`;
+  material.customProgramCacheKey = () => `trees-${key}-v6`;
   wind.bind(material);
 }
 
@@ -159,6 +205,8 @@ varying float vIsLeaf;
 varying float vLeafShade;
 varying float vLeafFlat;
 varying float vBarkAO;
+varying float vBarkMoss;
+float barkMossCover = 0.0;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -171,12 +219,102 @@ float treeNoise(vec3 p) {
 }
 `;
 
-/** midrib + veins + translucency; the geometry is already a curved lamina so this is only surface detail */
+/**
+ * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
+ * or a cluster card within LEAF_NEAR_M[0] of the live camera shows a leaf's surface — margin,
+ * veins, a cupped normal, thinner blade than veins — and by LEAF_NEAR_M[1] none of it, so the
+ * six fixed cameras (nearest foliage: the lantern bough at 5.8 m from A, everything else 10 m+)
+ * render the far path unchanged. The near path is a branch on `leafNear > 0.0`, not a mix:
+ * outside it every far term is the same expression it was.
+ */
+export const LEAF_NEAR_M: [number, number] = [2.5, 6];
+
+/**
+ * A tangent frame from screen-space derivatives (three's getTangentFrame, which the leaf and
+ * canopy programs do not compile — no normalMap): T runs with +u (across a lamina, across a
+ * card), B with +v. The derivatives are taken unconditionally so they are defined; only the
+ * frame's use is gated.
+ */
+const LEAF_FRAME_GLSL = /* glsl */ `
+mat3 leafTangentFrame(vec3 eyePos, vec3 surfNorm, vec2 uv) {
+  vec3 q0 = dFdx(eyePos);
+  vec3 q1 = dFdy(eyePos);
+  vec2 st0 = dFdx(uv);
+  vec2 st1 = dFdy(uv);
+  vec3 q1perp = cross(q1, surfNorm);
+  vec3 q0perp = cross(surfNorm, q0);
+  vec3 T = q1perp * st0.x + q0perp * st1.x;
+  vec3 B = q1perp * st0.y + q0perp * st1.y;
+  float det = max(dot(T, T), dot(B, B));
+  float scale = (det == 0.0) ? 0.0 : inversesqrt(det);
+  return mat3(T * scale, B * scale, surfNorm);
+}
+`;
+
+/**
+ * midrib + veins + translucency; the geometry is already a curved lamina so this is only surface
+ * detail. Near the camera (LEAF_NEAR_M) the lamina reads as a leaf: the polygon's edge (writer.ts
+ * addLeaf — widest at v 0.43, |u − 0.5| = 0.5 there, 0 at the base and tip) gets a darker margin
+ * with a thin lit rim, the blade a centre-to-margin tone gradient and a fine cell mottle, the
+ * secondary veins a stronger, paler line; `leafNear`, `leafEdge`, `leafMidrib`, `leafVein` feed
+ * the normal cupping and the thickness (translucency) below.
+ */
 const LEAF_COLOR = /* glsl */ `
   float midrib = exp(-pow((vTreeUv.x - 0.5) * 70.0, 2.0));
   float vein = pow(0.5 + 0.5 * cos((vTreeUv.y * 11.0 - abs(vTreeUv.x - 0.5) * 4.0) * 6.28318), 14.0);
   float speck = sin(vTreeUv.x * 143.0 + sin(vTreeUv.y * 91.0) * 2.0) * sin(vTreeUv.y * 177.0);
   diffuseColor.rgb *= (0.92 + speck * 0.03 + midrib * 0.16 + vein * 0.05);
+  leafNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
+  if (leafNear > 0.0) {
+    float ux = vTreeUv.x - 0.5;
+    float halfW = vTreeUv.y < 0.43 ? vTreeUv.y / 0.86 : (1.0 - vTreeUv.y) / 1.14;
+    leafEdge = clamp(abs(ux) / max(halfW, 1e-3), 0.0, 1.0);
+    leafMidrib = exp(-pow(ux * 44.0, 2.0)) * (1.0 - smoothstep(0.85, 1.0, vTreeUv.y));
+    leafVein = pow(0.5 + 0.5 * cos((vTreeUv.y * 9.0 - abs(ux) * 3.2) * 6.28318), 9.0) * (1.0 - leafMidrib) * (1.0 - smoothstep(0.8, 1.0, leafEdge));
+    float margin = smoothstep(0.7, 1.0, leafEdge);
+    float rim = smoothstep(0.9, 0.985, leafEdge) - smoothstep(0.985, 1.0, leafEdge);
+    float cells = treeNoise(vTreeWorld * 90.0) * 0.6 + treeNoise(vTreeWorld * 260.0) * 0.4;
+    // the detail as a factor on the leaf's light, applied after the shade floor (LEAF_NEAR_MUL):
+    // in the canopy's shade the floor sets a leaf's level and keeps only 0.4 of its albedo's
+    // variation (LEAF_FLOOR texture), which left the margin and the veins at 1–2 sRGB levels
+    vec3 detail = vec3(1.0 + 0.12 * (1.0 - leafEdge) - 0.3 * margin + (cells - 0.5) * 0.16);
+    detail = mix(detail, detail * vec3(1.3, 1.26, 0.9), leafVein * 0.6 + leafMidrib * 0.55);
+    detail = mix(detail, detail * 1.5 + vec3(0.04), rim * 0.75);
+    leafNearMul = mix(vec3(1.0), detail, leafNear);
+  }
+`;
+/** declared by both tree programs before their leaf blocks; zero / 1.0 on the far path */
+const LEAF_NEAR_PARS = /* glsl */ `
+uniform vec2 uLeafNear;
+float leafNear = 0.0;
+float leafEdge = 0.0;
+float leafMidrib = 0.0;
+float leafVein = 0.0;
+float leafThin = 1.0;
+vec3 leafNearMul = vec3(1.0);
+`;
+/**
+ * The near detail on the leaf's outgoing light, after every floor: a factor of 1.0 on the far
+ * path (leafNearMul is only written on `leafNear > 0.0`), so the far arithmetic is unchanged.
+ */
+const LEAF_NEAR_MUL = /* glsl */ `
+      reflectedLight.directDiffuse *= leafNearMul;
+      reflectedLight.indirectDiffuse *= leafNearMul;
+`;
+/**
+ * The lamina's normal near the camera: cupped across the blade (the tilt grows with |u − 0.5|),
+ * a groove along the midrib, a ripple over the veins — in the frame from the screen derivatives,
+ * blended by `leafNear` (an exact no-op at 0).
+ */
+const LEAF_NEAR_NORMAL = /* glsl */ `
+    if (vIsLeaf > 0.5 && leafNear > 0.0) {
+      mat3 leafTbn = leafTangentFrame(-vViewPosition, normal, vTreeUv);
+      float ux = vTreeUv.x - 0.5;
+      vec3 bent = normal + leafTbn[0] * (ux * 0.9 - sign(ux) * leafMidrib * 0.45) + leafTbn[1] * (leafVein * 0.18 - leafMidrib * 0.12);
+      normal = normalize(mix(normal, normalize(bent), leafNear));
+      // thickness: the blade thin, the midrib and veins and the margin thick
+      leafThin = mix(1.0, 0.7 + 0.75 * (1.0 - leafMidrib * 0.7 - leafVein * 0.45 - smoothstep(0.8, 1.0, leafEdge) * 0.5), leafNear);
+    }
 `;
 
 /** white bark: procedural tile × vertex colour, with a soft moss/soil ring at the very base */
@@ -211,7 +349,14 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // root sheets: the upward faces of the roots and the foot of the bole, under a soft-edged
   // cover that follows the coarse noise so the sheets still have ragged margins
   float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.18, 0.5, coarse);
+  #ifdef NEAR_BASE_DETAIL
+  // the near base's moss is the vertex cover (bole.ts) with its cushions below; these far
+  // sheets, which green a whole flare's upper skirt from 10 m, are thinned to a tint here so
+  // the cords and the bark between the cushions show (the owner's "soft green")
+  moss = max(moss * 0.45, sheet * 0.35);
+  #else
   moss = max(moss, sheet);
+  #endif
   mossColor = mix(mossColor, vec3(0.33, 0.47, 0.13), sheet * 0.65);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.8);
   // close-range detail only: past 4–10 m the flecks are 1–3 px of speckle on boles the reference
@@ -221,7 +366,13 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // small, sparse and only a little paler than the bark: a first cut at 10–20 cm and 0.75 blend
   // read as a plane tree's blotches from 8 m
   float lichenCluster = smoothstep(0.55, 0.75, treeNoise(vTreeWorld * 1.7 + 5.0));
+  #ifdef NEAR_BASE_DETAIL
+  // 1–3 m (the near bases' own program): smaller crusts with a soft edge, not the 4–10 m flecks
+  // whose cluster contours read as scribbles at that range
+  float lichenFleck = smoothstep(0.56, 0.7, treeNoise(vTreeWorld * 34.0) * 0.55 + treeNoise(vTreeWorld * 95.0 + 3.0) * 0.45);
+  #else
   float lichenFleck = smoothstep(0.6, 0.7, treeNoise(vTreeWorld * 22.0) * 0.7 + treeNoise(vTreeWorld * 55.0 + 3.0) * 0.3);
+  #endif
   float lichen = lichenCluster * lichenFleck * foot * (1.0 - moss);
   vec3 lichenColor = mix(vec3(0.46, 0.5, 0.38), vec3(0.55, 0.56, 0.48), treeNoise(vTreeWorld * 4.0 + 9.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, lichenColor, lichen * 0.6);
@@ -230,13 +381,39 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // 40 cm in a yellow-green with a hard dark outline read as leaves stuck to the trunk
   float tuftN = treeNoise(vTreeWorld * 7.5 + 17.0) * 0.7 + treeNoise(vTreeWorld * 21.0 + 2.0) * 0.3;
   float tuftSide = foot * (1.0 - smoothstep(0.55, 0.9, up)) * (1.0 - sheet);
+  #ifdef NEAR_BASE_DETAIL
+  // 1–3 m: the tufts are moss cushions — soft-edged, textured, the darker greens of the concept's
+  // mossy trunk — where the 4–10 m version's hard bright discs read as leaves stuck to the bark
+  float tuftFine = treeNoise(vTreeWorld * 48.0 + 7.0) * 0.6 + treeNoise(vTreeWorld * 140.0) * 0.4;
+  float tuftCore = smoothstep(0.7, 0.82, tuftN + (tuftFine - 0.5) * 0.08) * tuftSide;
+  float tuftRim = (smoothstep(0.66, 0.7, tuftN) - smoothstep(0.7, 0.82, tuftN)) * tuftSide;
+  vec3 tuftColor = mix(vec3(0.13, 0.22, 0.06), vec3(0.26, 0.38, 0.11), tuftFine);
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.7, tuftRim * 0.6);
+  diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.9);
+  #else
   float tuftCore = smoothstep(0.74, 0.8, tuftN) * tuftSide;
   float tuftRim = (smoothstep(0.7, 0.74, tuftN) - smoothstep(0.74, 0.8, tuftN)) * tuftSide;
   vec3 tuftColor = mix(vec3(0.27, 0.4, 0.12), vec3(0.36, 0.5, 0.15), treeNoise(vTreeWorld * 13.0 + 31.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.6, tuftRim * 0.7);
   diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.85);
+  #endif
   float tone = treeNoise(vec3(vTreeWorld.x * 0.08, vTreeWorld.y * 0.15, vTreeWorld.z * 0.08));
   diffuseColor.rgb *= 0.86 + tone * 0.28;
+  // the near bases' moss (bole.ts, per vertex in vBarkMoss): sheets on the shaded foot, in the
+  // furrows and over the root tops — laid over the bark as moss, with its own fine texture;
+  // it also flattens the bark normal and roughens the surface (see the normal and roughness
+  // blocks). Zero on every plain vertex.
+  if (vBarkMoss > 0.0) {
+    // cushions 3–8 cm across (38 / 110 cycles per m read as static from 1 m)
+    float mossFine = treeNoise(vTreeWorld * 13.0) * 0.55 + treeNoise(vTreeWorld * 41.0 + 11.0) * 0.45;
+    // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
+    // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
+    barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
+    // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
+    float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
+    vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
+    diffuseColor.rgb = mix(diffuseColor.rgb, mossCushion, barkMossCover * 0.92);
+  }
 `;
 
 /**
@@ -273,7 +450,7 @@ const LEAF_SKY_TRANSMISSION = /* glsl */ `
     // read as yellow-green neon (B forest box sat 0.21 against the reference's 0.14)
     vec3 through = mix(diffuseColor.rgb, uLeafSun, 0.25);
     through = mix(through, vec3(dot(through, vec3(0.2126, 0.7152, 0.0722))), 0.4);
-    reflectedLight.indirectDiffuse += skyThrough * BRDF_Lambert(through) * (uLeafTransmit * vLeafShade);
+    reflectedLight.indirectDiffuse += skyThrough * BRDF_Lambert(through) * (uLeafTransmit * vLeafShade * leafThin);
   }
 `;
 /**
@@ -425,11 +602,12 @@ function heightFadedFloorGlsl(u: string): string {
 `;
 }
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }) {
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail = false) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
   shader.uniforms.uFlatLift = { value: LEAF_FLAT_LIFT };
+  shader.uniforms.uLeafNear = { value: new Vector2(LEAF_NEAR_M[0], LEAF_NEAR_M[1]) };
   bindShadeFloor(shader, barkPrefix, barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
   let fadePars = '';
@@ -438,8 +616,18 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     shader.uniforms[`${barkPrefix}FadeY`] = { value: new Vector2(heightFade.fade[0], heightFade.fade[1]) };
     fadePars = `uniform float ${barkPrefix}TopLift;\nuniform vec2 ${barkPrefix}FadeY;\n`;
   }
-  const barkFloorGlsl = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
-  shader.fragmentShader = TREE_FRAGMENT_PARS + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + fadePars + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
+  // near wood (the lobe stems and twigs the owner stands among, within LEAF_NEAR_M): the floor
+  // keeps at least half of the bark's own texture instead of the far tenth, so a shaded stem at
+  // 1–3 m shows its grain along its length rather than one flat tone; the level (the floor's
+  // mean albedo) does not move. `woodNear` is 0 past LEAF_NEAR_M[1] — mix(a, b, 0.0) is exactly a.
+  const textureRead = `${barkPrefix}Texture)`;
+  const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
+  if (!floorBlock.includes(textureRead)) throw new Error(`shadeFloorGlsl: expected '${textureRead}' in the floor block`);
+  const barkFloorGlsl = /* glsl */ `
+      float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
+      ${floorBlock.replace(textureRead, `mix(${barkPrefix}Texture, max(${barkPrefix}Texture, 0.5), woodNear))`)}
+`;
+  shader.fragmentShader = (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') + TREE_FRAGMENT_PARS + LEAF_NEAR_PARS + LEAF_FRAME_GLSL + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + fadePars + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -454,12 +642,14 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     '#include <roughnessmap_fragment>',
     /* glsl */ `#include <roughnessmap_fragment>
     roughnessFactor = mix(roughnessFactor, uLeafRough, vIsLeaf);
+    roughnessFactor = mix(roughnessFactor, 1.0, barkMossCover);
     `,
   );
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <normal_fragment_maps>',
     /* glsl */ `#include <normal_fragment_maps>
-    normal = normalize(mix(normal, nonPerturbedNormal, vIsLeaf));
+    normal = normalize(mix(normal, nonPerturbedNormal, max(vIsLeaf, barkMossCover * 0.8)));
+    ${LEAF_NEAR_NORMAL}
     `,
   );
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -484,12 +674,13 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
         float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
         float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
         vec3 sunTint = mix(diffuseColor.rgb, uLeafSun, 0.5);
-        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (0.22 * vLeafShade);
+        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (0.22 * vLeafShade * leafThin);
       }
       #endif
       ${LEAF_FLAT_SUNLESS}
       ${LEAF_FLOOR_SHADED}
       ${LEAF_FLAT_LEVEL}
+      ${LEAF_NEAR_MUL}
     } else {
       ${barkFloorGlsl}
       // near-bole furrow occlusion (bole.ts, carried in aWind.z): the floor lifts a shaded
@@ -507,6 +698,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   const wind = ctx.wind;
   const palette = ctx.config.palette;
   const leafSun = new Color(palette.leafSun);
+  const nearBole: IUniform<Vector4[]> = { value: Array.from({ length: NEAR_BOLE_SLOTS }, () => new Vector4(0, 0, 0, 0)) };
 
   // --- white-bark trees (procedural canvas bark set + leaves) ---
   const wb = createWhiteBarkTextures(ctx.rng.fork('trees/bark-texture'));
@@ -521,9 +713,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
+  injectWind(whiteTree, wind, whiteWind, nearBole, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
-  injectWind(whiteTreeDepth, wind, whiteWind, undefined, 'white-depth');
+  injectWind(whiteTreeDepth, wind, whiteWind, nearBole, undefined, 'white-depth');
 
   // --- giants (Poly Haven tree_bark_03, CC0 + leaves) ---
   const barkSet = 'tree_bark_03';
@@ -548,15 +740,21 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR), 'giant');
+  injectWind(giantTree, wind, giantWind, nearBole, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR), 'giant');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
-  injectWind(giantTreeDepth, wind, giantWind, undefined, 'giant-depth');
+  injectWind(giantTreeDepth, wind, giantWind, nearBole, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
-  injectWind(giantTreeNear, wind, giantWind, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  injectWind(giantTreeNear, wind, giantWind, nearBole, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
+  const giantTreeNearBase = giantTree.clone();
+  giantTreeNearBase.normalScale.set(2.0, 2.0);
+  injectWind(giantTreeNearBase, wind, giantWind, nearBole, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BASE_FLOOR, 'uNearBaseFloor', undefined, true), 'giant-near-base');
 
   // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
   const cluster = createLeafClusterTexture(ctx.rng.fork('trees/leaf-cluster'), palette);
+  // the near pair (same fork → same 110 leaves; see createLeafClusterDetail), 1024 on high, 512 below
+  const clusterNear = createLeafClusterDetail(ctx.rng.fork('trees/leaf-cluster'), palette, ctx.quality.tier === 'high' || ctx.quality.tier === 'ultra' ? 1024 : 512);
   const giantCanopy = new MeshStandardMaterial({
     map: cluster,
     alphaTest: CARD_ALPHA_TEST,
@@ -570,13 +768,62 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantCanopy,
     wind,
     giantWind,
+    nearBole,
     (s) => {
-      biasedMap(s, true);
       s.uniforms.uLeafSun = { value: leafSun };
       s.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
       s.uniforms.uFlatLift = { value: LEAF_FLAT_LIFT };
+      s.uniforms.uLeafNear = { value: new Vector2(LEAF_NEAR_M[0], LEAF_NEAR_M[1]) };
+      s.uniforms.uClusterNear = { value: clusterNear.color };
+      s.uniforms.uClusterNearN = { value: clusterNear.normal };
       bindShadeFloor(s, 'uLeafFloor', LEAF_FLOOR);
-      s.fragmentShader = `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nvarying float vLeafFlat;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\nuniform float uFlatLift;\n` + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + s.fragmentShader;
+      s.fragmentShader =
+        `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nvarying float vLeafFlat;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\nuniform float uFlatLift;\nuniform sampler2D uClusterNear;\nuniform sampler2D uClusterNearN;\nvec4 cardNearN = vec4(0.5, 0.5, 1.0, 0.0);\n` +
+        LEAF_NEAR_PARS +
+        LEAF_FRAME_GLSL +
+        shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
+        s.fragmentShader;
+      // the 512 map as before; within LEAF_NEAR_M the near pair takes over: its coverage blends
+      // into the alpha (a card's leaves grow their margins as the camera comes in) and its
+      // colour becomes a factor on the card's light after the shade floor (LEAF_NEAR_MUL) —
+      // relative to the 512 map's mean, so a lit card keeps its level and a shaded card, whose
+      // level the floor sets, still shows the leaves, veins and lit rims the floor would have
+      // flattened to 0.4 of their contrast. Flat cards (vLeafFlat) keep the map as alpha only
+      // at distance; near, they show the same leaves through the factor.
+      s.fragmentShader = s.fragmentShader.replace(
+        '#include <map_fragment>',
+        /* glsl */ `
+        #ifdef USE_MAP
+          vec4 sampledDiffuseColor = texture2D(map, vMapUv, ${CARD_MIP_BIAS.toFixed(2)});
+          leafNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
+          if (leafNear > 0.0) {
+            vec4 nearColor = texture2D(uClusterNear, vMapUv, ${CARD_MIP_BIAS.toFixed(2)});
+            cardNearN = texture2D(uClusterNearN, vMapUv, ${CARD_MIP_BIAS.toFixed(2)});
+            vec3 nearDetail = clamp(nearColor.rgb / vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), 0.45, 1.9);
+            leafNearMul = mix(vec3(1.0), nearDetail, leafNear);
+            // the albedo goes to the map's mean as the factor takes the detail over (a lit card
+            // at leafNear 1 is colour × near map exactly, as the albedo path would be)
+            sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), leafNear);
+            sampledDiffuseColor.a = mix(sampledDiffuseColor.a, nearColor.a, leafNear);
+          }
+          diffuseColor *= vec4(mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), vLeafFlat), sampledDiffuseColor.a);
+        #endif
+        `,
+      );
+      // per-leaf normals from the near map (RG: tangent-space xy, the blade cupped and tilted per
+      // leaf) and its thickness (B) as the translucency term, both by leafNear
+      s.fragmentShader = s.fragmentShader.replace(
+        '#include <normal_fragment_maps>',
+        /* glsl */ `#include <normal_fragment_maps>
+        if (leafNear > 0.0) {
+          mat3 cardTbn = leafTangentFrame(-vViewPosition, normal, vMapUv);
+          vec3 mapN = vec3(cardNearN.xy * 2.0 - 1.0, 0.0);
+          mapN.z = sqrt(max(0.0, 1.0 - dot(mapN.xy, mapN.xy)));
+          normal = normalize(mix(normal, normalize(cardTbn * mapN), leafNear * (1.0 - vLeafFlat)));
+          leafThin = mix(1.0, 0.55 + 0.9 * cardNearN.b, leafNear);
+        }
+        `,
+      );
       s.fragmentShader = s.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
@@ -586,19 +833,20 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         {
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
           float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.4 + backlight * 0.6;
-          reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * (0.2 * vLeafShade);
+          reflectedLight.directDiffuse += mix(diffuseColor.rgb, uLeafSun, 0.5) * directLight.color * transmission * (0.2 * vLeafShade * leafThin);
         }
         #endif
         ${LEAF_FLAT_SUNLESS}
         ${LEAF_FLOOR_SHADED}
         ${LEAF_FLAT_LEVEL}
+        ${LEAF_NEAR_MUL}
         `,
       );
     },
     'giant-canopy',
   );
   const giantCanopyDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide, map: cluster, alphaTest: CARD_ALPHA_TEST });
-  injectWind(giantCanopyDepth, wind, giantWind, biasedMap, 'giant-canopy-depth');
+  injectWind(giantCanopyDepth, wind, giantWind, nearBole, biasedMap, 'giant-canopy-depth');
 
   // --- distant trees: leaf-cluster cards + solid trunks/cores (uv on the opaque patch); fog tints ---
   const distant = new MeshStandardMaterial({ map: cluster, alphaTest: CARD_ALPHA_TEST, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
@@ -611,10 +859,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantTree,
     giantTreeDepth,
     giantTreeNear,
+    giantTreeNearBase,
     giantCanopy,
     giantCanopyDepth,
     distant,
     windLayers: 3,
-    barkTextureSets: [barkSet, 'procedural:whitebark', 'procedural:leaf-cluster'],
+    barkTextureSets: [barkSet, 'procedural:whitebark', 'procedural:leaf-cluster', 'procedural:leaf-cluster-near'],
+    nearBole,
   };
 }

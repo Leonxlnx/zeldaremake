@@ -31,14 +31,9 @@ import { Color, Vector3 } from 'three';
 import type { Noise2D } from '../util/noise';
 import { smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { GeometryWriter, TAU, frame, stiffnessFor, type RandomFn } from './writer';
+import { GeometryWriter, TAU, frame, stiffnessFor, tubeRidge, type RandomFn, type TubeDraws } from './writer';
 
-/** the draws `tube()` makes up front, taken from the stream in the same order */
-export interface TubeDraws {
-  phase: number;
-  windPhase: number;
-  grain: number[];
-}
+export type { TubeDraws } from './writer';
 
 export function consumeTubeDraws(rng: RandomFn, sides: number): TubeDraws {
   const phase = rng() * TAU;
@@ -81,6 +76,28 @@ export interface BoleReliefOptions {
   mossStrength?: number;
   /** cord pitch (m) at `refRadius` */
   pitch?: number;
+  /**
+   * the plain sweep's cross-section roughness (writer.ts tube `roughness`): its fluting is kept
+   * under the cords, and it is what makes the relief's end ring coincide with the plain ring the
+   * far bole continues from (the ridge phase comes from `draws.phase`)
+   */
+  roughness?: number;
+  /**
+   * local heights over which the relief amplitude fades to ZERO toward the top of the sweep, so
+   * the last ring is exactly the plain sweep's ring (a near-bole LOD that ends where the far bole
+   * goes on). Applied after `fadeY`.
+   */
+  endFade?: [number, number];
+  /** cap the last ring (default true; false when the far bole continues above it) */
+  cap?: boolean;
+  /**
+   * local horizontal unit vector pointing away from the sun: the bole's shaded side wears moss
+   * sheets low down (concept 05's mossy trunk), fading out over `sheetBand` local heights
+   */
+  shadeDir?: Vector3;
+  sheetBand?: [number, number];
+  /** a per-vertex moss addition (0–1, blended with the furrow moss): the caller's own sheet mask */
+  mossExtra?: (p: Vector3, upness: number) => number;
 }
 
 export interface BoleReliefResult {
@@ -125,6 +142,7 @@ export const BARK_AO_LIFT = 1.45;
 export const packOcclusion = (ao: number) => -(0.25 + 0.75 * (1 - Math.min(1, Math.max(0, ao))));
 const _c = new Color();
 const _tint = new Color();
+const _plain = new Color();
 
 /**
  * The cord field at (angle, distance) on a bole of reference radius ρ: cord height 0 (furrow
@@ -169,9 +187,41 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
   const aoFloor = 1 - (1 - FURROW_AO) * depth;
   const crest = (1 + (BARK_AO_LIFT - 1) * Math.min(1, depth)) / BARK_AO_LIFT;
   const grime = FURROW_GRIME.clone().lerp(new Color(1, 1, 1), 1 - Math.min(1, depth));
+  // The plain sweep's own frames at the coarse rings (writer.ts tube: the axis through the
+  // neighbours, u parallel-transported ring to ring, the distance along the chords) are replayed
+  // here and interpolated between rings, so at every coarse ring the relief's centre, frame,
+  // distance and ridge are exactly the plain sweep's: with the amplitude faded to zero there the
+  // two surfaces coincide, and a near-bole LOD can end on the ring the far bole continues from.
+  const coarse: { axis: Vector3; u: Vector3; distance: number }[] = [];
+  {
+    let u: Vector3 | undefined;
+    let distance = 0;
+    for (let k = 0; k < points.length; k++) {
+      if (k) distance += points[k].distanceTo(points[k - 1]);
+      const axis = points[Math.min(points.length - 1, k + 1)].clone().sub(points[Math.max(0, k - 1)]).normalize();
+      if (!u) u = frame(axis)[0];
+      else {
+        u = u.clone();
+        u.addScaledVector(axis, -u.dot(axis));
+        if (u.lengthSq() < 0.01) u = frame(axis)[0];
+        u.normalize();
+      }
+      coarse.push({ axis, u: u.clone(), distance });
+    }
+  }
   // dense resampling of the coarse path: linear in the ring parameter, so the axis and nominal
   // radius between the published rings are exactly the seat's
-  const dense: { p: Vector3; r: number; t: number }[] = [];
+  const dense: { p: Vector3; r: number; t: number; k: number; axis: Vector3; u: Vector3; distance: number }[] = [];
+  const at = (i: number, f: number) => {
+    const a = coarse[i];
+    const b = coarse[Math.min(coarse.length - 1, i + 1)];
+    const axis = a.axis.clone().lerp(b.axis, f).normalize();
+    const u = a.u.clone().lerp(b.u, f);
+    u.addScaledVector(axis, -u.dot(axis));
+    if (u.lengthSq() < 0.01) u.copy(frame(axis)[0]);
+    u.normalize();
+    return { axis, u, distance: a.distance + (b.distance - a.distance) * f };
+  };
   for (let i = 0; i < points.length - 1; i++) {
     const a = points[i];
     const b = points[i + 1];
@@ -179,44 +229,41 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
     const n = a.y < o.denseUntilY ? Math.max(1, Math.ceil(len / o.spacing)) : 1;
     for (let k = 0; k < n; k++) {
       const f = k / n;
-      dense.push({ p: a.clone().lerp(b, f), r: radii[i] + (radii[i + 1] - radii[i]) * f, t: (i + f) / (points.length - 1) });
+      dense.push({ p: a.clone().lerp(b, f), r: radii[i] + (radii[i + 1] - radii[i]) * f, t: (i + f) / (points.length - 1), k: i + f, ...at(i, f) });
     }
   }
-  dense.push({ p: points[points.length - 1].clone(), r: radii[radii.length - 1], t: 1 });
+  dense.push({ p: points[points.length - 1].clone(), r: radii[radii.length - 1], t: 1, k: points.length - 1, ...at(points.length - 1, 0) });
   for (const d of dense) writer.logicalMaxY = Math.max(writer.logicalMaxY, d.p.y + d.r * 1.25);
 
   const circumference = TAU * radii[0];
   const uTiles = Math.max(1, Math.round(circumference / o.barkTile));
   const rows: number[][] = [];
-  let u: Vector3 | undefined;
   const v = new Vector3();
   const p = new Vector3();
-  let distance = 0;
+  const nrm = new Vector3();
   let previous: number[] | null = null;
   let mossHits = 0;
   let mossCount = 0;
+  const roughness = o.roughness ?? 0;
   const trisBefore = writer.triangles;
   for (let k = 0; k < dense.length; k++) {
     const d = dense[k];
-    if (k) distance += d.p.distanceTo(dense[k - 1].p);
-    const axis = dense[Math.min(dense.length - 1, k + 1)].p.clone().sub(dense[Math.max(0, k - 1)].p).normalize();
-    if (!u) u = frame(axis)[0];
-    else {
-      u.addScaledVector(axis, -u.dot(axis));
-      if (u.lengthSq() < 0.01) u = frame(axis)[0];
-      u.normalize();
-    }
+    const { axis, u, distance } = d;
     v.crossVectors(axis, u).normalize();
     const ringColor = o.color(d.p, d.t);
     const stiffness = o.stiffness ? o.stiffness(d.r, d.t) : stiffnessFor(d.r);
-    // relief amplitude: full over the hero band, `farShare` above the fade
-    const amp = o.amplitude * (1 - (1 - o.farShare) * smoothstep(o.fadeY[0], o.fadeY[1], d.p.y));
+    // relief amplitude: full over the hero band, `farShare` above the fade, zero at the end ring
+    let amp = o.amplitude * (1 - (1 - o.farShare) * smoothstep(o.fadeY[0], o.fadeY[1], d.p.y));
+    const endShare = o.endFade ? 1 - smoothstep(o.endFade[0], o.endFade[1], d.p.y) : 1;
+    amp *= endShare;
+    if (o.endFade && k === dense.length - 1) amp = 0;
     const mossBand = (1 - smoothstep(o.mossBand[0], o.mossBand[1], d.p.y)) * mossStrength;
+    const sheetBand = o.shadeDir ? (1 - smoothstep(o.sheetBand?.[0] ?? 1.2, o.sheetBand?.[1] ?? 2.6, d.p.y)) * mossStrength : 0;
     const inBand = d.p.y >= 0 && d.p.y < o.mossBand[1];
     const row: number[] = [];
     for (let j = 0; j <= sides; j++) {
       const angle = ((j % sides) / sides) * TAU;
-      let ridge = 1;
+      let ridge = roughness ? tubeRidge(roughness, angle, o.draws.phase, d.k) : 1;
       let crevice = 1;
       if (o.bump) {
         const b = o.bump(angle, distance, d.t);
@@ -225,24 +272,42 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
       }
       const { cord, tintVar, mossN } = cordField(o.noise, angle, distance, o.refRadius, cords);
       const r = d.r * ridge + amp * (cord - 0.65);
-      p.copy(d.p).addScaledVector(u, Math.cos(angle) * r).addScaledVector(v, Math.sin(angle) * r);
+      nrm.copy(u).multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle));
+      p.copy(d.p).addScaledVector(nrm, r);
       if (k === 0 && o.flatBase) p.y = dense[0].p.y;
       // furrow occlusion (`crest` on the crests, aoFloor × it at the furrow bottoms, following the
-      // cord's rounded flank) rides in aWind.z, negative
-      const ao = crest * (aoFloor + (1 - aoFloor) * smoothstep(0, 1, cord));
+      // cord's rounded flank) rides in aWind.z, negative; it follows the amplitude out at the end
+      const ao = 1 + (crest * (aoFloor + (1 - aoFloor) * smoothstep(0, 1, cord)) - 1) * endShare;
       // colour: ring colour × the sweep's grain × the gnarl's crevice shade × cord tint × moss
       const grain = o.draws.grain[Math.floor(((j % sides) / sides) * grainN)];
       const shade = crevice * grain * (0.96 + 0.045 * Math.sin(distance * 2.1 + o.draws.phase));
       _tint.copy(grime).lerp(CREST_TINT, Math.pow(cord, 0.7));
       _tint.multiplyScalar(1 + 0.16 * tintVar * Math.pow(cord, 0.7));
-      const moss = mossBand * smoothstep(0.42, 0.78, (1 - cord) * 0.72 + 0.28 * (0.5 + 0.5 * mossN));
-      _tint.lerp(FURROW_MOSS, moss * 0.85);
+      // furrow moss: packed at the bottom of the furrows where the moss noise favours it — the
+      // crests and the flanks stay bare bark (a first cut at 0.42–0.78 with the cord weighted
+      // 0.72 read as a green-felted bole from 1–3 m: concept 05 keeps 40–50 % bark showing)
+      let moss = mossBand * smoothstep(0.58, 0.88, (1 - cord) * 0.6 + 0.4 * (0.5 + 0.5 * mossN));
+      // moss sheets on the shaded side of the foot: ragged patches following the moss noise,
+      // strongest where the surface faces away from the sun and lowest on the bole, with bare
+      // bark between them
+      if (o.shadeDir && sheetBand > 0) {
+        const away = 0.5 + 0.5 * (nrm.x * o.shadeDir.x + nrm.z * o.shadeDir.z);
+        const sheet = sheetBand * smoothstep(0.62, 0.9, away * 0.45 + 0.5 * (0.5 + 0.5 * mossN) + 0.12 * (1 - cord));
+        moss = Math.max(moss, sheet);
+      }
+      if (o.mossExtra) moss = Math.max(moss, o.mossExtra(p, Math.max(0, nrm.y)));
+      _tint.lerp(FURROW_MOSS, Math.min(1, moss) * 0.85 * (0.4 + 0.6 * endShare));
       if (inBand) {
         mossCount++;
         if (moss > 0.5) mossHits++;
       }
       _c.copy(ringColor).multiplyScalar(shade).multiply(_tint);
+      // the end ring keeps the plain sweep's own colour so the seam does not show as a tint step
+      if (o.endFade) _c.lerp(_plain.copy(ringColor).multiplyScalar(shade), 1 - endShare);
+      // the moss cover itself goes to the shader (writer.ts woodMoss), out by the end ring
+      writer.woodMoss = Math.min(1, moss) * endShare;
       row.push(writer.vertex(p, _c, (j / sides) * uTiles, distance / o.barkTile, stiffness, o.draws.windPhase, packOcclusion(ao), 0));
+      writer.woodMoss = 0;
     }
     writer.seams.push([row[0], row[sides]]);
     if (previous) {
@@ -254,11 +319,13 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
     rows.push(row);
     previous = row;
   }
-  // the fork cap, inside the leaders as the plain sweep's was
-  const end = rows[rows.length - 1];
-  const last = dense[dense.length - 1];
-  const cap = writer.vertex(last.p, o.color(last.p, 1), 0.5, distance / o.barkTile, o.stiffness ? o.stiffness(last.r, 1) : stiffnessFor(last.r), o.draws.windPhase, 0, 0);
-  for (let j = 0; j < sides; j++) writer.triangle(cap, end[j], end[j + 1]);
+  if (o.cap !== false) {
+    // the fork cap, inside the leaders as the plain sweep's was
+    const end = rows[rows.length - 1];
+    const last = dense[dense.length - 1];
+    const cap = writer.vertex(last.p, o.color(last.p, 1), 0.5, last.distance / o.barkTile, o.stiffness ? o.stiffness(last.r, 1) : stiffnessFor(last.r), o.draws.windPhase, 0, 0);
+    for (let j = 0; j < sides; j++) writer.triangle(cap, end[j], end[j + 1]);
+  }
   return { rows, rings: dense.length, sides, mossShare: mossCount ? mossHits / mossCount : 0, amplitude: o.amplitude, triangles: writer.triangles - trisBefore };
 }
 
@@ -276,6 +343,16 @@ export interface ButtressRootOptions {
   maxReach: number;
   stiffness?: (radius: number, t: number) => number;
   noise: Noise2D;
+  /** fin height at the collar as a multiple of the plain root's radius (default 1.5) */
+  finHeight?: number;
+  /**
+   * path mask (0–1) under a local (x, z): where a ring's centre stands on paving the fin shrinks
+   * to the plain root's section and is pressed under the surface, so no near root ever stands
+   * proud of a walk corridor the far root only skimmed
+   */
+  pathAt?: (x: number, z: number) => number;
+  /** 0–1 moss strength on the top faces (default 1) */
+  mossStrength?: number;
 }
 
 export interface ButtressRootResult {
@@ -297,7 +374,7 @@ const ROOT_SOIL = new Color(0.55, 0.5, 0.42);
 export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: number[], o: ButtressRootOptions): ButtressRootResult {
   const trisBefore = writer.triangles;
   const rr = o.rng;
-  const sides = 14;
+  const sides = 22;
   const split = 0.58 + rr() * 0.14;
   const toeCount = rr() < 0.45 ? 3 : 2;
   const toeSpread = 0.32 + rr() * 0.28;
@@ -312,7 +389,9 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
   const tangentAt = (t: number) => sampleAt(Math.min(1, t + 0.03)).p.sub(sampleAt(Math.max(0, t - 0.03)).p).normalize();
   // ---- the fin: collar → split + a short taper into the toes ----
   const finEnd = Math.min(0.97, split + 0.12);
-  const finRings = 12;
+  const finRings = 14;
+  const finH = o.finHeight ?? 1.5;
+  const mossStrength = o.mossStrength ?? 1;
   let previous: number[] | null = null;
   const q = new Vector3();
   for (let k = 0; k <= finRings; k++) {
@@ -322,11 +401,13 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
     const side = new Vector3(-ax.z, 0, ax.x).normalize();
     const up = new Vector3().crossVectors(side, ax).normalize();
     if (up.y < 0) up.negate();
-    // the fin: tall at the collar, round by the split; taper into the toes after it
-    const fin = 1 - smoothstep(0.2, split, t);
+    // the fin: tall at the collar, round by the split; taper into the toes after it; on paving
+    // it shrinks back to the plain root's section
+    const paved = o.pathAt ? smoothstep(0.2, 0.6, o.pathAt(p.x, p.z)) : 0;
+    const fin = (1 - smoothstep(0.2, split, t)) * (1 - paved);
     const taperOut = 1 - 0.55 * smoothstep(split, finEnd, t);
     const halfWidth = r * (1 + (o.flare - 1) * fin) * taperOut;
-    const height = r * (1 + 0.5 * fin) * taperOut;
+    const height = r * (1 + (finH - 1) * fin) * taperOut;
     const ringColor = o.color(p, t);
     const stiffness = o.stiffness ? o.stiffness(r, t) : stiffnessFor(r);
     const row: number[] = [];
@@ -334,20 +415,31 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
       const a = ((j % sides) / sides) * TAU;
       const ca = Math.cos(a);
       const sa = Math.sin(a);
-      // ridged top: two or three cords run along the root's top
-      const ridge = 1 + 0.08 * Math.cos(a * 3 + t * 4 + toePhase) * Math.max(0, sa);
+      // gnarled: five cords run the root's length around the whole section (deepest on top,
+      // where they read against the sky), knuckles swell along it, and a finer grain rides both
+      const cordP = 0.5 + 0.5 * Math.cos(a * 5 + t * 6 + toePhase + 1.2 * o.noise.noise(a * 0.8 + toePhase, t * 3.0));
+      const cordH = Math.pow(cordP, 0.7);
+      const knuckle = o.noise.noise(t * 7.5 + toePhase * 2.0, a * 0.5);
+      const ridge = 1 + (0.13 * (0.55 + 0.45 * Math.max(0, sa))) * (cordH - 0.5) + 0.06 * knuckle + 0.03 * o.noise.noise(a * 1.9 + toePhase, t * 9.0);
       q.copy(p).addScaledVector(side, ca * halfWidth * ridge).addScaledVector(up, sa * height * ridge);
       const g = o.groundAt(q.x, q.z);
-      // the underside is buried: everything below the ground is pushed 4 cm under it
+      // the underside is buried: everything below the ground is pushed 4 cm under it; on paving
+      // the whole section is pressed down so nothing stands proud of the slabs
       if (q.y < g + 0.02) q.y = Math.min(q.y, g - 0.04);
+      if (paved > 0) q.y = Math.min(q.y, g - 0.03 + (1 - paved) * (q.y - g + 0.03));
       const upness = Math.max(0, sa);
       const mossN = 0.5 + 0.5 * o.noise.noise(q.x * 1.8 + 3.1, q.z * 1.8 - 7.7);
-      const moss = smoothstep(0.35, 0.75, upness * 0.75 + mossN * 0.35) * (1 - smoothstep(0.7, 1, t));
+      // moss on the top faces: cushions where the fin's back faces up AND the moss noise favours
+      // it, ragged toward the toes — the flanks and the grooves between cushions stay bark
+      const moss = smoothstep(0.68, 1.0, upness * 0.55 + mossN * 0.6 - 0.15 * t) * (1 - smoothstep(0.65, 1, t)) * mossStrength;
       const soil = smoothstep(-0.2, -0.75, sa);
-      _c.copy(ringColor).multiplyScalar(0.9 + 0.1 * sa).lerp(ROOT_MOSS, moss * 0.8).lerp(ROOT_SOIL, soil * 0.5);
-      // the fin's flanks are occluded toward the ground; its top stays under the crests' lift
-      const ao = 0.55 + 0.35 * smoothstep(-0.6, 0.5, sa);
+      _c.copy(ringColor).multiplyScalar(0.9 + 0.1 * sa).lerp(ROOT_MOSS, moss * 0.85).lerp(ROOT_SOIL, soil * 0.5);
+      // the fin's flanks are occluded toward the ground, its cord grooves a little more; its top
+      // stays under the crests' lift
+      const ao = (0.55 + 0.35 * smoothstep(-0.6, 0.5, sa)) * (0.82 + 0.18 * cordH);
+      writer.woodMoss = moss;
       row.push(writer.vertex(q, _c, j / sides, t * 3, stiffness, o.draws.windPhase, packOcclusion(ao), 0));
+      writer.woodMoss = 0;
     }
     writer.seams.push([row[0], row[sides]]);
     if (previous) {
@@ -387,8 +479,10 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
       pt.addScaledVector(new Vector3(-dir.z, 0, dir.x), Math.sin(t * 5 + toePhase + k) * 0.08 * len * t * (1 - t));
       const rad = 0.05 + (r0 - 0.05) * Math.pow(1 - t, 0.85);
       const g = o.groundAt(pt.x, pt.z);
-      // rides down from the fin's centre onto the ground and dives under it at the tip
-      pt.y = g + Math.max(0, startAbove) * Math.pow(1 - t, 1.6) + rad * 0.35 * (1 - t) - 0.22 * t * t;
+      // rides down from the fin's centre onto the ground and dives under it at the tip; on paving
+      // it is pressed under the slabs
+      const paved = o.pathAt ? smoothstep(0.2, 0.6, o.pathAt(pt.x, pt.z)) : 0;
+      pt.y = g + (Math.max(0, startAbove) * Math.pow(1 - t, 1.6) + rad * 0.35 * (1 - t)) * (1 - paved) - 0.22 * t * t - paved * rad * 1.1;
       if (s === segs) pt.y = g - 0.22;
       const axT = s === 0 ? dir.clone() : pt.clone().sub(tip).normalize();
       if (axT.lengthSq() < 0.5) axT.copy(dir);
@@ -401,10 +495,12 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
         q.copy(pt).addScaledVector(su, Math.cos(th) * rad).addScaledVector(sv, Math.sin(th) * rad);
         const upness = Math.max(0, (q.y - pt.y) / Math.max(1e-3, rad));
         const mossN = 0.5 + 0.5 * o.noise.noise(q.x * 2.3 - 5.5, q.z * 2.3 + 2.2);
-        const moss = smoothstep(0.4, 0.8, upness * 0.7 + mossN * 0.4) * (1 - smoothstep(0.6, 1, t));
+        const moss = smoothstep(0.58, 0.92, upness * 0.6 + mossN * 0.5) * (1 - smoothstep(0.6, 1, t)) * mossStrength;
         _c.copy(ringColor).multiplyScalar(0.88 + 0.12 * upness).lerp(ROOT_MOSS, moss * 0.75);
         const ao = 0.6 + 0.3 * upness;
+        writer.woodMoss = moss * 0.85;
         row.push(writer.vertex(q, _c, j / toeSides, t * 2, stiffness, o.draws.windPhase, packOcclusion(ao), 0));
+        writer.woodMoss = 0;
       }
       writer.seams.push([row[0], row[toeSides]]);
       if (prevRow) {

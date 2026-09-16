@@ -31,7 +31,36 @@ import {
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
-import { buttressRoot, consumeTubeDraws, reliefBole } from './bole';
+import { buttressRoot, consumeTubeDraws, reliefBole, type TubeDraws } from './bole';
+import { basePlants, type BasePlantResult } from './base-plants';
+
+/**
+ * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
+ * highly detailed"). Every giant and column builds, besides its plain sweep, a NEAR BASE: the
+ * bole's lower NEAR_BASE_CUT_Y metres as a relief bole (bole.ts — cords and furrows, furrow
+ * grime and occlusion, moss sheets on the shaded foot), buttress fins with toes along the plain
+ * roots' own centrelines, and a ring of ferns, broad-leaf tufts and leaf litter at the foot
+ * (base-plants.ts). The trees system draws it only while the live camera is within
+ * NEAR_BASE_IN_M of the bole (out again past NEAR_BASE_OUT_M — hysteresis, so it never pops while
+ * one stands still), and the tree shader collapses the plain sweep's lower rings and roots
+ * (written with aRoot.w = −1, writer.ts woodCollapsible) for exactly that tree meanwhile, so the
+ * six fixed hero cameras keep the far look the frames were matched against: at 10 m no fixed
+ * camera stands within NEAR_BASE_IN_M of a bole it frames (A: stair-bank-giant 10.2 m off-frame;
+ * D: north-west-near 11.6 m at its left edge; C: north-west-near 9.8 m behind it) — except the
+ * emergent column at 5.4 / 5.9 m from C / D, whose shade floor is calibrated to D's and B's
+ * frames (materials.ts NEAR_BOLE_FLOOR) and whose relief alone cost D −0.004 in round 17: it
+ * has its own band (NEAR_BASE_RADIUS_OVERRIDE), in at 5 m, so D and C never see it swapped and
+ * a walker on the path beside it still does.
+ */
+export const NEAR_BASE_CUT_Y = 5;
+export const NEAR_BASE_IN_M = 10;
+export const NEAR_BASE_OUT_M = 13;
+/** per-bole [in, out] bands (m) where the default would put a fixed camera inside; key = NearBole id */
+export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = { 'seat-7': [5, 7] };
+/** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */
+export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));
+/** cord pitch (m around the bole) of the near bases' relief: concept 05's fissures every 25–35 cm */
+export const NEAR_BASE_PITCH = 0.3;
 
 /**
  * Giants whose base stands within this many metres of a hero camera get the near-bole bark
@@ -123,6 +152,34 @@ export interface GiantAsset {
     /** wood triangles spent on the relief bole and the buttress roots */
     triangles: number;
   } | null;
+  /**
+   * the near base (see NEAR_BASE_CUT_Y): relief bole to the cut ring, buttress fins with toes,
+   * the plant ring — local space, same attributes and material family as `geometry` (leaf
+   * vertices flagged), drawn by the caller only within NEAR_BASE_IN_M of the camera
+   */
+  nearBase: BufferGeometry | null;
+  nearBaseAudit: {
+    /** relief amplitude (m) */
+    relief: number;
+    rings: number;
+    sides: number;
+    /** local height of the ring the near base ends on (the far bole continues from it) */
+    cutY: number;
+    mossShare: number;
+    /** buttress fins (one per plain root) and the big flares among them */
+    fins: number;
+    bigFins: number;
+    toes: number;
+    woodTriangles: number;
+    plants: BasePlantResult;
+    triangles: number;
+  } | null;
+  /**
+   * the plain sweep's bole surface below 8 m as built — one ring of local-space points per trunk
+   * ring (gnarl and fluting included), for anything that has to meet the bole exactly (the
+   * root-kit adapter, rootkit.ts, measures its collar against these)
+   */
+  boleRings: Vector3[][];
 }
 
 /**
@@ -375,6 +432,14 @@ export interface GiantOptions {
    * says otherwise. Undefined = far.
    */
   heroDistance?: number;
+  /** build the near base (default true; see NEAR_BASE_CUT_Y) */
+  nearBase?: boolean;
+  /** unit vector toward the sun (local = world for a giant): the shaded foot wears the moss sheets */
+  sunDir?: Vector3;
+  /** 0–1 path / paving mask under local (x, z): near fins shrink and sink there, nothing grows on it */
+  pathAt?: (x: number, z: number) => number;
+  /** near-base plant colours (the palette's ferns / ground leaves / litter) */
+  basePalette?: Parameters<typeof basePlants>[2]['palette'];
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -519,8 +584,16 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     return best;
   })();
   let barkAudit: GiantAsset['bark'] = null;
+  // the near base (see NEAR_BASE_CUT_Y) ends on the first trunk ring at or above the cut: the
+  // plain sweep's rings below it are written collapsible, and its up-front draws are taken here
+  // so the relief bole can end on exactly that ring (writer.ts tubeRidge with the same phase)
+  const buildNearBase = o.nearBase !== false;
+  const cutIndex = Math.max(1, trunk.findIndex((pt) => pt.y >= NEAR_BASE_CUT_Y));
+  const cutY = trunk[cutIndex].y;
+  const trunkDraws: TubeDraws = consumeTubeDraws(r, 30);
+  const belowCut = (pt: Vector3) => buildNearBase && pt.y < cutY - 1e-6;
   if (nearBole && reliefNoise) {
-    const draws = consumeTubeDraws(r, 30);
+    const draws = trunkDraws;
     const built = reliefBole(wood, trunk, trunkRadii, {
       color: barkColor,
       bump: gnarlBump(1.0, 0.16),
@@ -553,11 +626,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       isTrunk: true,
       structural: true,
       stiffness: stiff,
+      draws: trunkDraws,
+      collapsible: belowCut,
     });
   }
 
   // ---------- buttress roots ----------
   const rootCount = r.int(6, 9);
+  /** the plain roots as built (centreline, radii, draws), for the near base's fins */
+  const plainRoots: { path: Vector3[]; radii: number[]; draws: TubeDraws; length: number; index: number }[] = [];
   for (let i = 0; i < rootCount; i++) {
     const angle = (i / rootCount) * TAU + bt(-0.22, 0.22);
     const dir = new Vector3(Math.cos(angle), 0, Math.sin(angle));
@@ -584,13 +661,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
       radii.push(radius);
     }
+    const rootDraws = consumeTubeDraws(r, 10);
+    plainRoots.push({ path, radii, draws: rootDraws, length, index: i });
     if (nearBole && reliefNoise && barkAudit && NEAR_BOLE_ROOTS) {
       // the buttress fin with toes (bole.ts) along the same centreline, its toes from a fork
-      const draws = consumeTubeDraws(r, 10);
       const built = buttressRoot(wood, path, radii, {
         groundAt: o.groundAt,
         color: barkColor,
-        draws,
+        draws: rootDraws,
         rng: r.fork(`root-toes/${i}`),
         flare: 1.7,
         maxReach: length + 0.15,
@@ -600,7 +678,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       barkAudit.rootToes += built.toes;
       barkAudit.triangles += built.triangles;
     } else {
-      tube(wood, path, radii, 10, r, { color: barkColor, roughness: 0.08, bump: gnarlBump(1.4, 0.16), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+      // the plain root is replaced by the near base's fin at close range: collapsible
+      wood.woodCollapsible = buildNearBase;
+      wood.woodIsRoot = true;
+      tube(wood, path, radii, 10, r, { color: barkColor, roughness: 0.08, bump: gnarlBump(1.4, 0.16), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: rootDraws });
+      wood.woodCollapsible = false;
+      wood.woodIsRoot = false;
     }
     const tip = path[path.length - 1];
     contacts.push(new Vector3(tip.x, o.groundAt(tip.x, tip.z), tip.z));
@@ -628,6 +711,121 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const tip2 = sp[sp.length - 1];
       contacts.push(new Vector3(tip2.x, o.groundAt(tip2.x, tip2.z), tip2.z));
     }
+  }
+
+  // ---------- near base (see NEAR_BASE_CUT_Y) ----------
+  // Built from its own forked streams and a separate writer, so nothing above or below re-rolls:
+  // the plain tree is exactly what it was with the near base off.
+  let nearBase: BufferGeometry | null = null;
+  let nearBaseAudit: GiantAsset['nearBaseAudit'] = null;
+  if (buildNearBase) {
+    const nb = new GeometryWriter('high');
+    const nrng = r.fork('near-base');
+    const nNoise = new Noise2D(`giant-near-relief/${def.id}`);
+    const shadeDir = o.sunDir ? new Vector3(-o.sunDir.x, 0, -o.sunDir.z).normalize() : undefined;
+    const amplitude = nearBaseAmplitude(refRadius);
+    const bole = reliefBole(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
+      color: barkColor,
+      bump: gnarlBump(1.0, 0.16),
+      creviceShade: 2.2,
+      barkTile: 1.6,
+      roughness: 0.06,
+      // ≈ 5 cm around: 6 vertices across each 0.3 m cord
+      sides: Math.max(56, Math.min(200, Math.round((TAU * refRadius) / 0.05))),
+      spacing: 0.16,
+      denseUntilY: cutY + 1,
+      amplitude,
+      pitch: NEAR_BASE_PITCH,
+      fadeY: [cutY + 10, cutY + 20],
+      farShare: 1,
+      endFade: [cutY - 1.8, cutY],
+      cap: false,
+      refRadius,
+      noise: nNoise,
+      draws: trunkDraws,
+      stiffness: stiff,
+      flatBase: true,
+      mossBand: [0.8, 4.2],
+      mossStrength: 1,
+      shadeDir,
+      sheetBand: [1.0, 2.6],
+    });
+    // fins: one per plain root along its own centreline; 3–6 of them are the big flares
+    const bigCount = nrng.int(3, Math.min(6, rootCount));
+    const bigStart = nrng.int(0, rootCount);
+    const bigSet = new Set<number>();
+    for (let k = 0; k < bigCount; k++) bigSet.add((bigStart + Math.round((k * rootCount) / bigCount)) % rootCount);
+    let toes = 0;
+    /** fin footprints for the plant ring: [path, half-width] */
+    const finFoot: { path: Vector3[]; halfWidth: number }[] = [];
+    for (const root of plainRoots) {
+      const big = bigSet.has(root.index);
+      const built = buttressRoot(nb, root.path, root.radii, {
+        groundAt: o.groundAt,
+        pathAt: o.pathAt,
+        color: barkColor,
+        draws: root.draws,
+        rng: r.fork(`root-toes/${root.index}`),
+        flare: big ? 2.4 : 1.5,
+        finHeight: big ? 2.1 : 1.35,
+        maxReach: root.length + 0.15,
+        stiffness: stiff,
+        noise: nNoise,
+      });
+      toes += built.toes;
+      finFoot.push({ path: root.path, halfWidth: root.radii[0] * (big ? 2.4 : 1.5) });
+    }
+    const woodTriangles = nb.triangles;
+    // the plant ring: outside the foot, off the paving, clear of the fins' collars
+    const footRadius = trunkRadii[Math.max(0, trunk.findIndex((pt) => pt.y >= 0))] * 1.05;
+    const clear = (x: number, z: number) => {
+      for (const f of finFoot) {
+        // only the collar half of a fin is wide enough to matter
+        for (let i = 0; i < Math.ceil(f.path.length * 0.6); i++) {
+          const a = f.path[i];
+          const b = f.path[Math.min(f.path.length - 1, i + 1)];
+          const abx = b.x - a.x;
+          const abz = b.z - a.z;
+          const len2 = abx * abx + abz * abz || 1;
+          const t = Math.max(0, Math.min(1, ((x - a.x) * abx + (z - a.z) * abz) / len2));
+          const dx = x - (a.x + abx * t);
+          const dz = z - (a.z + abz * t);
+          if (dx * dx + dz * dz < f.halfWidth * f.halfWidth * 0.8) return false;
+        }
+      }
+      return true;
+    };
+    const plants = basePlants(nb, nrng.fork('plants'), {
+      groundAt: o.groundAt,
+      pathAt: o.pathAt,
+      clear,
+      footRadius,
+      reach: footRadius + 1.6 + 0.6 * refRadius,
+      density: Math.min(1.3, 0.7 + 0.3 * refRadius),
+      shadeDir,
+      palette: o.basePalette ?? {
+        fern: new Color(0x5b6838),
+        fernDeep: new Color(0x3c4927),
+        tuft: new Color(0x5e764a),
+        tuftSun: new Color(0x8a9a4c),
+        litter: new Color(0x69613c),
+        litterDark: new Color(0x423b26),
+      },
+    });
+    nearBase = nb.finish(`giant-near-base-${def.id}`);
+    nearBaseAudit = {
+      relief: bole.amplitude,
+      rings: bole.rings,
+      sides: bole.sides,
+      cutY,
+      mossShare: bole.mossShare,
+      fins: plainRoots.length,
+      bigFins: bigSet.size,
+      toes,
+      woodTriangles,
+      plants,
+      triangles: nb.triangles,
+    };
   }
 
   // ---------- leaves ----------
@@ -1397,5 +1595,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     trunkRadii,
     bareHeight,
     bark: barkAudit,
+    nearBase,
+    nearBaseAudit,
+    boleRings: wood.trunkRows
+      .map((row) => row.map((i) => new Vector3(wood.positions[i * 3], wood.positions[i * 3 + 1], wood.positions[i * 3 + 2])))
+      .filter((ring) => ring.length && ring[0].y < 8),
   };
 }

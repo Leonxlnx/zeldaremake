@@ -23,16 +23,24 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP } from './materials';
+import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS } from './materials';
 import { GIANT_BARK_FLOOR, LEAF_FLOOR, type ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
-import { createGiantTree, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import type { GiantTreeDef } from '../layout';
+import type { RootKitFit } from './rootkit';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
+
+/**
+ * Astra's root-base kit test (rootkit.ts): built only from a bundle made with `VITE_ROOT_KIT=1`,
+ * on one 1.1 m bole and one 2.2 m bole. The default bundle never loads the 11.8 MB GLB.
+ */
+const ROOT_KIT = import.meta.env.VITE_ROOT_KIT === '1';
+const ROOT_KIT_BOLES = ['stair-bank-giant', 'plaza-south'];
 import { CANOPY_OPENINGS, CANOPY_OPENING_COLLAR, CANOPY_OPENING_DENSIFY, SHAFT_COLUMNS } from './corridors';
 import { trunkSeatFromRings, tubePathFromRings } from './tubePath';
 
@@ -1328,6 +1336,37 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
+  /**
+   * Near-bole LOD (giant.ts NEAR_BASE_CUT_Y): every giant and seated column has a near-base mesh
+   * (relief bole, buttress fins, plant ring) that is shown — and its plain lower bole collapsed
+   * through `mats.nearBole` — only while the live camera stands within NEAR_BASE_IN_M of the
+   * bole (out again past NEAR_BASE_OUT_M). `nearBoleUpdate` runs every frame.
+   */
+  interface NearBole {
+    id: string;
+    /** world root (what the tree shader compares aRoot against) */
+    origin: Vector3;
+    /** local height the plain sweep folds to (the near base's end ring) */
+    cutY: number;
+    mesh: Mesh;
+    triangles: number;
+    active: boolean;
+    dist: number;
+    /** this bole's [in, out] band (NEAR_BASE_IN_M / OUT_M unless NEAR_BASE_RADIUS_OVERRIDE names it) */
+    band: [number, number];
+    /** the root-kit test (rootkit.ts): always shown, and its slot folds the plain roots only */
+    kit?: boolean;
+  }
+  const nearBoles: NearBole[] = [];
+  const nearBand = (id: string): [number, number] => NEAR_BASE_RADIUS_OVERRIDE[id] ?? [NEAR_BASE_IN_M, NEAR_BASE_OUT_M];
+  const basePalette = {
+    fern: new Color(palette.grassMid),
+    fernDeep: new Color(palette.grassDeep),
+    tuft: new Color(palette.leafCanopy),
+    tuftSun: new Color(palette.leafSun).lerp(new Color(palette.leafCanopy), 0.4),
+    litter: new Color(palette.soil),
+    litterDark: new Color(palette.soilDark),
+  };
   // world-space sun corridors (see SHAFT_COLUMNS / PLAZA_SUN_POINTS / D_PATH_SUN_POINTS / D_VERGE_SUN_POINTS / F_BANK_SUN_POINTS / LINK_SHADOW_RAYS)
   interface WorldCorridor {
     point: Vector3;
@@ -1579,7 +1618,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const groundAt = (lx: number, lz: number) => (
       terrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
     ) / p.scale;
-    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, groundAt));
+    const pathAt = (lx: number, lz: number) => terrain.mask(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)).path;
+    // the sun in the seat's local frame (the yaw undone) for the near base's shaded-side moss
+    const localSun = new Vector3(cos * sunDir.x - sin * sunDir.z, sunDir.y, sin * sunDir.x + cos * sunDir.z);
+    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette }));
     seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
     await yieldFrame();
   }
@@ -1591,6 +1633,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
     // the emergent's bole stands 5 m from camera D: its own bark floor (materials NEAR_BOLE_FLOOR)
     if (c.params === columnParamSets[COLUMN_EMERGENT]) m.material = mats.giantTreeNear;
+  }
+  // the seated columns' near bases: one hidden mesh per seat, posed like its instance
+  for (const c of seatedColumns) {
+    const asset = c.lods[0];
+    if (!asset.nearBase || !asset.nearBaseAudit) continue;
+    const p = c.placements[0];
+    const mesh = new Mesh(asset.nearBase, mats.giantTreeNearBase);
+    mesh.name = `column-near-base-${p.id}`;
+    mesh.position.set(p.x, p.y, p.z);
+    mesh.rotation.y = p.yaw;
+    mesh.scale.setScalar(p.scale);
+    mesh.customDepthMaterial = mats.giantTreeDepth;
+    mesh.castShadow = ctx.quality.shadows;
+    mesh.receiveShadow = true;
+    mesh.visible = false;
+    mesh.userData.kind = 'column-near-base';
+    columnGroup.add(mesh);
+    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id) });
   }
   group.add(columnGroup);
   // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
@@ -1700,6 +1760,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
       profile: GIANT_PROFILES[def.id],
       canopyBoughs,
+      sunDir,
+      pathAt: (lx, lz) => terrain.mask(px + lx, pz + lz).path,
+      basePalette,
       // the near-bole bark (bole.ts) goes on the giants within NEAR_BOLE_M of a hero camera and
       // within 60° of its axis (the frames' horizontal half-angle is 37–38°: in shot or just past
       // its edge). The south giants stand 13–23 m from cameras A and F but 65–120° off their axes,
@@ -1717,7 +1780,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
-    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
+    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards, ...(asset.nearBase ? [asset.nearBase] : [])]) {
       g.translate(px, gy, pz);
       const root = g.getAttribute('aRoot') as BufferAttribute;
       for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
@@ -1841,6 +1904,77 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.giants = [g.def.id];
     giantGroup.add(mesh);
     sectorMeshes.push(mesh);
+  }
+  // the giants' near bases: one hidden mesh per giant (world-space geometry, like the sectors)
+  for (const g of giants) {
+    const nb = g.asset.nearBase;
+    const audit = g.asset.nearBaseAudit;
+    if (!nb || !audit) continue;
+    nb.computeBoundingBox();
+    nb.computeBoundingSphere();
+    sectorGeometries.push(nb);
+    const mesh = new Mesh(nb, mats.giantTreeNearBase);
+    mesh.name = `giant-near-base-${g.def.id}`;
+    mesh.customDepthMaterial = mats.giantTreeDepth;
+    mesh.castShadow = ctx.quality.shadows;
+    mesh.receiveShadow = true;
+    mesh.visible = false;
+    mesh.userData.kind = 'giant-near-base';
+    mesh.userData.giants = [g.def.id];
+    giantGroup.add(mesh);
+    nearBoles.push({ id: g.def.id, origin: g.origin.clone(), cutY: audit.cutY, mesh, triangles: audit.triangles, active: false, dist: Infinity, band: nearBand(g.def.id) });
+  }
+  // the root-kit test (rootkit.ts; `VITE_ROOT_KIT=1` builds only): Astra's kit on the two boles
+  // in ROOT_KIT_BOLES in place of their near bases, the plain roots folded, the trunk kept
+  const rootKitAudit: { source: { triangles: number; vertices: number; textures: { slot: string; size: string }[]; bytes: number } | null; fits: RootKitFit['audit'][] } = { source: null, fits: [] };
+  if (ROOT_KIT) {
+    const { loadRootKit, fitRootKit, ROOT_KIT_URL } = await import('./rootkit');
+    const url = `${import.meta.env.BASE_URL}${ROOT_KIT_URL}`;
+    const src = await loadRootKit(url);
+    let bytes = 0;
+    try {
+      const head = await fetch(url, { method: 'HEAD' });
+      bytes = Number(head.headers.get('content-length') ?? 0);
+    } catch {
+      bytes = 0;
+    }
+    rootKitAudit.source = { triangles: src.triangles, vertices: src.vertices, textures: src.textures, bytes };
+    for (const g of giants) {
+      if (!ROOT_KIT_BOLES.includes(g.def.id)) continue;
+      const nb = nearBoles.find((n) => n.id === g.def.id);
+      if (!nb) continue;
+      const path = g.asset.trunkPath;
+      const radii = g.asset.trunkRadii;
+      const at = (h: number) => {
+        let k = 0;
+        while (k < path.length - 2 && path[k + 1].y < h) k++;
+        const span = path[k + 1].y - path[k].y;
+        const t = span > 1e-6 ? Math.min(1, Math.max(0, (h - path[k].y) / span)) : 0;
+        return { k, t };
+      };
+      const fit = fitRootKit(src, {
+        id: g.def.id,
+        R: g.def.trunkRadius,
+        origin: g.origin.clone(),
+        radiusAt: (h) => {
+          const { k, t } = at(h);
+          return radii[k] + (radii[k + 1] - radii[k]) * t;
+        },
+        axisAt: (h, out) => {
+          const { k, t } = at(h);
+          return out.copy(path[k]).lerp(path[k + 1], t);
+        },
+        groundAt: (x, z) => terrain.height(x, z),
+        boleRings: g.asset.boleRings,
+      });
+      giantGroup.remove(nb.mesh);
+      nb.mesh.visible = false;
+      nb.mesh = fit.mesh;
+      nb.kit = true;
+      nb.triangles = src.triangles;
+      giantGroup.add(fit.mesh);
+      rootKitAudit.fits.push(fit.audit);
+    }
   }
   group.add(giantGroup);
 
@@ -2044,6 +2178,32 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * `onCameraMove` must never render the previous pose's buckets), then trim the buckets for the
    * frame's frustum.
    */
+  /**
+   * The near-bole LOD for the camera at `cam` (see NearBole). With `reset` (an explicit re-pose)
+   * the state is recomputed from the distances alone — in within NEAR_BASE_IN_M — so a capture's
+   * frame never depends on where the camera was before; per frame the hysteresis holds a base in
+   * until NEAR_BASE_OUT_M. The nearest NEAR_BOLE_SLOTS active bases are shown and their plain
+   * boles collapsed (`mats.nearBole`); a shown base that lost its slot is hidden and restored.
+   */
+  const nearBoleUpdate = (cam: Vector3, reset: boolean) => {
+    for (const nb of nearBoles) {
+      nb.dist = Math.hypot(nb.origin.x - cam.x, nb.origin.z - cam.z);
+      if (reset) nb.active = nb.dist < nb.band[0];
+      else if (nb.active) nb.active = nb.dist <= nb.band[1];
+      else nb.active = nb.dist < nb.band[0];
+    }
+    const shown = nearBoles
+      .filter((nb) => nb.active || nb.kit)
+      .sort((a, b) => Number(!!b.kit) - Number(!!a.kit) || a.dist - b.dist)
+      .slice(0, NEAR_BOLE_SLOTS);
+    for (const nb of nearBoles) nb.mesh.visible = shown.includes(nb);
+    const slots = mats.nearBole.value;
+    for (let i = 0; i < NEAR_BOLE_SLOTS; i++) {
+      const nb = shown[i];
+      if (nb) slots[i].set(nb.origin.x, nb.origin.y, nb.origin.z, nb.kit ? -nb.cutY : nb.cutY);
+      else slots[i].set(0, 0, 0, 0);
+    }
+  };
   const rebucket = (camera: Camera, force = false) => {
     camera.getWorldPosition(_v);
     const moved = force || _v.distanceTo(camPos) >= 1.5;
@@ -2052,6 +2212,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       bucketWhite(camPos);
       bucketDistant(camPos);
     }
+    nearBoleUpdate(_v, force);
     cull(camera, moved);
   };
   rebucket(ctx.camera, true);
@@ -2114,6 +2275,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       add(family('distant-near'), d.near);
       add(family('distant-far'), d.far);
     }
+    for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
     const total = tally();
     for (const t of Object.values(byFamily)) {
       total.meshes += t.meshes;
@@ -2260,6 +2422,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
       /** the near bole's floor fades with height (materials.ts NEAR_BOLE_FLOOR_FADE): [lift at the foot, lift above the fade, fade from (m), fade to (m)] */
       nearBoleFloorProfile: [NEAR_BOLE_FLOOR.lift, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_FLOOR_FADE[0], NEAR_BOLE_FLOOR_FADE[1]],
+      /**
+       * near-bole LOD (giant.ts NEAR_BASE_CUT_Y): radii (m), the cut height, the slot cap, the
+       * near bases' floor [lift, texture], one row per base [id, triangles, camera distance (m),
+       * shown for the current camera], and the ids shown now
+       */
+      nearBase: {
+        inM: NEAR_BASE_IN_M,
+        outM: NEAR_BASE_OUT_M,
+        bands: NEAR_BASE_RADIUS_OVERRIDE,
+        cutY: NEAR_BASE_CUT_Y,
+        slots: NEAR_BOLE_SLOTS,
+        floor: [NEAR_BASE_FLOOR.lift, NEAR_BASE_FLOOR.texture],
+        boles: nearBoles.map((nb) => [nb.id, nb.triangles, Math.round(nb.dist * 10) / 10, nb.mesh.visible]),
+        shown: nearBoles.filter((nb) => nb.mesh.visible).map((nb) => nb.id),
+        rootKit: ROOT_KIT ? rootKitAudit : null,
+        /** per giant: [id, relief (m), rings, sides, moss share, fins, big fins, toes, wood triangles, fern clumps, tufts, litter leaves, plant triangles] */
+        giants: giants
+          .filter((g) => g.asset.nearBaseAudit)
+          .map((g) => {
+            const a = g.asset.nearBaseAudit!;
+            return [g.def.id, Math.round(a.relief * 1e3) / 1e3, a.rings, a.sides, Math.round(a.mossShare * 1e3) / 1e3, a.fins, a.bigFins, a.toes, a.woodTriangles, a.plants.ferns, a.plants.tufts, a.plants.litter, a.plants.triangles];
+          }),
+        /** per seated column: [seat id, relief (m), rings, sides, moss share, fins, toes, wood triangles, plant triangles] */
+        columns: seatedColumns
+          .filter((c) => c.lods[0].nearBaseAudit)
+          .map((c) => {
+            const a = c.lods[0].nearBaseAudit!;
+            return [c.placements[0].id, Math.round(a.relief * 1e3) / 1e3, a.rings, a.sides, Math.round(a.mossShare * 1e3) / 1e3, a.fins, a.toes, a.woodTriangles, a.plants.triangles];
+          }),
+      },
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
       /** ctx.shared.lanternLimb: the lantern tree's built limb path for structures to wrap */
@@ -2301,7 +2493,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     dispose() {
       for (const w of whites) for (const l of w.lods) l.geometry.dispose();
-      for (const c of seatedColumns) for (const l of c.lods) l.geometry.dispose();
+      for (const c of seatedColumns)
+        for (const l of c.lods) {
+          l.geometry.dispose();
+          l.nearBase?.dispose();
+        }
       for (const g of sectorGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
     },
