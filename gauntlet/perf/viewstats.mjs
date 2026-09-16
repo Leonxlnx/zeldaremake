@@ -9,7 +9,7 @@
  * fields — and writes the canvas as a PNG so two flag sets can be diffed (`cmp`) or scored.
  *
  *   node gauntlet/perf/viewstats.mjs --dist dist --viewpoint A_stairs --params "fx=noao" --out /tmp/a.png
- *        [--width 1280 --height 720] [--settle 8] [--time 12.5] [--timed 5] [--ab 5] [--isolate] [--json out.json]
+ *        [--width 1280 --height 720] [--settle 8] [--time 12.5] [--timed 5] [--ab 5 [--ab-stages cull,all]] [--isolate] [--json out.json]
  *
  * --timed K : after the settle frames, step K more frames each followed by a GPU sync and report the
  *             per-frame wall ms (median / min / max) — the frame's GPU (or SwiftShader) cost for this
@@ -67,7 +67,7 @@ async function grabHooks(page) {
 /** the live switches `--ab` toggles: the shadow-caster cull, the four composer stages, all four, the vegetation LOD scale at 0.5 */
 const AB_STAGES = ['cull', 'ao', 'rays', 'bloom', 'soft', 'all', 'veg0.5'];
 
-export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, abPairs = 0, isolate = false, out = null, init = null, log = console.error } = {}) {
+export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, abPairs = 0, abStages = AB_STAGES, isolate = false, out = null, init = null, log = console.error } = {}) {
   const page = await browser.newPage();
   try {
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
@@ -191,7 +191,7 @@ export async function measureView(browser, baseUrl, { params = '', viewpoint = '
         hooksReady = true;
       }
       ab = {};
-      for (const stage of AB_STAGES) {
+      for (const stage of abStages) {
         const r = await page.evaluate(
           ({ stage, pairs }) => {
             const H = window.__H;
@@ -280,6 +280,7 @@ if (isMain) {
     simTime: Number(args.time ?? 12.5),
     timed: Number(args.timed ?? 0),
     abPairs: Number(args.ab ?? 0),
+    abStages: typeof args['ab-stages'] === 'string' ? args['ab-stages'].split(',').filter((x) => AB_STAGES.includes(x)) : AB_STAGES,
     isolate: !!args.isolate,
     out: args.out ? path.resolve(args.out) : null,
   };
