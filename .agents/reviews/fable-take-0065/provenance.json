@@ -1,0 +1,25 @@
+{
+  "monitorCommit": "e8359221d5042d588c1040bdd6937d53a4f39b59",
+  "files": {
+    "B_house.jpg": {
+      "gitBlob": "76045c2486b20cb0833220878d0cf6c29a0eee3f",
+      "sha256": "688fcb5b6919641c4ab25ecf6ff74a9fb551bdfd0327bce2b05527e42a88e838"
+    },
+    "B_house.compare.jpg": {
+      "gitBlob": "ad492d815c19f1fa4488721ff79fe474702ede58",
+      "sha256": "d7a9b6ea3b5d4bed92c3ae920068e748afdcea6c99ed7ca02cd8aacf11a09672"
+    },
+    "stats.json": {
+      "gitBlob": "e0f9ee513ed909f05362962dfcb66788a0ebfbea",
+      "sha256": "2006e27c8ef4b1ae6b0783a2caa33a044ac4ac338a07b55eea22c1ec17fcfbd6"
+    },
+    "audit.json": {
+      "gitBlob": "099416fde39033181391ffb2e4cc9a87a65b97c6",
+      "sha256": "01cdbb6c067f553115d437348e1b00e5ced19af9f024ab9839f26e1c1e9789bf"
+    },
+    "checks.json": {
+      "gitBlob": "c3b8d6451ad60a6bed0096606df3bde202b5c3c8",
+      "sha256": "a3ff283733d7af7f33337c439826df8a3c155fe756e9fb3527a81912bd95cc68"
+    }
+  }
+}

@@ -1,0 +1,576 @@
+{
+  "note": "Claim rubric items before working on them: npm run gauntlet -- --claim W02,W03 --agent <id>. Claims expire 3 h after `at`. Do not edit another agent's claims by hand.",
+  "claims": [
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09",
+        "W10",
+        "W11",
+        "W12",
+        "W14",
+        "W20",
+        "W21",
+        "W25",
+        "W26",
+        "W27",
+        "W28",
+        "W29",
+        "W30",
+        "W31",
+        "W32",
+        "W33",
+        "W34",
+        "W37",
+        "W38",
+        "W39",
+        "W40",
+        "W41",
+        "W42"
+      ],
+      "at": "2026-09-09T09:10:00Z",
+      "scope": "bootstrap: first pass on every system via parallel sub-agents (vegetation released to codex 11:55 UTC)",
+      "expiresHours": 12
+    },
+    {
+      "agent": "codex",
+      "items": [
+        "W07",
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W19",
+        "W22"
+      ],
+      "at": "2026-09-09T11:55:00Z",
+      "scope": "vegetation maintenance: depth-material wind parity, forced LOD refresh on onCameraMove, bigger leafy ledge bushes; src/world/vegetation/**",
+      "expiresHours": 12
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09",
+        "W10",
+        "W11",
+        "W12",
+        "W13",
+        "W14",
+        "W20",
+        "W21",
+        "W23",
+        "W24",
+        "W25",
+        "W26",
+        "W27",
+        "W28",
+        "W29",
+        "W30",
+        "W31",
+        "W32",
+        "W33",
+        "W34",
+        "W35",
+        "W36",
+        "W37",
+        "W38",
+        "W39",
+        "W40",
+        "W41",
+        "W42"
+      ],
+      "at": "2026-09-09T13:48:58.092Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W02",
+        "W03",
+        "W06",
+        "W14",
+        "W19",
+        "W20",
+        "W27",
+        "W36"
+      ],
+      "at": "2026-09-09T19:14:43.397Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W10",
+        "W11",
+        "W12",
+        "W31",
+        "W32",
+        "W34",
+        "W35"
+      ],
+      "at": "2026-09-09T20:06:06.039Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W30",
+        "W37"
+      ],
+      "at": "2026-09-09T21:05:48.369Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W13",
+        "W32",
+        "W33",
+        "W37"
+      ],
+      "at": "2026-09-10T00:05:37.664Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W35",
+        "W37"
+      ],
+      "at": "2026-09-10T03:11:39.427Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W04",
+        "W29",
+        "W32",
+        "W37",
+        "W20",
+        "W23",
+        "W25",
+        "W31"
+      ],
+      "at": "2026-09-10T07:34:08.642Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W01",
+        "W33",
+        "W37",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "U01",
+        "U02",
+        "U03"
+      ],
+      "at": "2026-09-10T16:06:28.358Z",
+      "expiresHours": 6,
+      "note": "Phase 2/3 integration: Link/Navi/kids and the HUD land in every frame; cameras at the reference eye height"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W37"
+      ],
+      "at": "2026-09-10T18:44:57.934Z",
+      "expiresHours": 6,
+      "note": "Round seven vegetation: hero ferns on D, east-bank cover for F, W18 floor"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W10",
+        "W12",
+        "W37"
+      ],
+      "at": "2026-09-10T19:14:39.898Z",
+      "expiresHours": 6,
+      "note": "Round seven trees: stair-bank giant for F right edge / C background"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W05",
+        "W06",
+        "W07",
+        "W36",
+        "W37",
+        "C01",
+        "C02"
+      ],
+      "at": "2026-09-10T19:41:37.021Z",
+      "expiresHours": 6,
+      "note": "Round seven hardscape (irregular slabs, stairs, boulders) and character fidelity"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W31",
+        "W37"
+      ],
+      "at": "2026-09-10T21:23:40.232Z",
+      "expiresHours": 6,
+      "note": "Round seven trees follow-up: bank/verge sun lines, deterministic corridors"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W05",
+        "W07",
+        "W36",
+        "W37"
+      ],
+      "at": "2026-09-10T22:13:15.293Z",
+      "expiresHours": 6,
+      "note": "Round seven hardscape follow-up: foreground slab scale, joint tufts, stair-foot rock"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W30",
+        "W31",
+        "W32",
+        "W34",
+        "W37"
+      ],
+      "at": "2026-09-11T00:00:48.770Z",
+      "expiresHours": 6,
+      "note": "Atmosphere round four (PCSS shadows, sun/fill split) and the stepping-stone house branch"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W05",
+        "W15",
+        "W18",
+        "W34",
+        "W37"
+      ],
+      "at": "2026-09-11T02:22:39.159Z",
+      "expiresHours": 6,
+      "note": "Stepping-stone slabs, larger stones, shaded-foliage palette"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T02:38:18.466Z",
+      "expiresHours": 3,
+      "scope": "Link model and locomotion; src/world/character, src/camera/follow.ts; owner resumed Astra"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03",
+        "W26"
+      ],
+      "at": "2026-09-11T04:53:25.075Z",
+      "expiresHours": 3,
+      "scope": "Owner reference pass: Link outfit/movement; isolated leaf pod lantern detail in structures/lantern.ts; Fable paused"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W22"
+      ],
+      "at": "2026-09-11T05:00:03.338Z",
+      "expiresHours": 3,
+      "scope": "Structural ivy/leaf wind-shadow parity only; structures/materials.ts, foliage.ts and disposal in index.ts; no global sun/filter changes"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W27"
+      ],
+      "at": "2026-09-11T05:33:50.146Z",
+      "expiresHours": 3,
+      "scope": "Owner object reference: signpost.ts hand-carved plank edges, bindings and seated rune face; retain placement/height/wording/material and world layout"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W30"
+      ],
+      "at": "2026-09-11T06:02:46.678Z",
+      "expiresHours": 3,
+      "scope": "Owner lighting reference: diagnostic sun/fill comparison via existing __ATMO_LIGHT__ hook; production defaults and Fable sun direction/filter retained pending rendered comparison"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W15",
+        "W16",
+        "W31",
+        "W37"
+      ],
+      "at": "2026-09-11T06:05:28.708Z",
+      "expiresHours": 6,
+      "note": "Trees 7c (Link shadow rays) + vegetation 7b (verge lift, trodden strip) capture"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W29",
+        "W10",
+        "W37"
+      ],
+      "at": "2026-09-11T06:06:28.708Z",
+      "expiresHours": 6,
+      "note": "Round eight: Saria house per the W25 review (low broad dome, wide opening, shaded), canopy over the house and A top band; log arch"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03",
+        "W22",
+        "W26",
+        "W27"
+      ],
+      "at": "2026-09-11T07:30:31.163Z",
+      "expiresHours": 3,
+      "scope": "Link model, outfit and live walk/run/jump; structure foliage shadow parity, lantern and sign details. Fable f472323 grants only lanternBranch.ts local point block until captured; world/house/global lighting remain Fable."
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03",
+        "W22",
+        "W26",
+        "W27"
+      ],
+      "at": "2026-09-11T10:16:31.987Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "W38"
+      ],
+      "at": "2026-09-11T10:29:19.305Z",
+      "expiresHours": 3,
+      "scope": "Recover character draw-call budget through exact same-parent/material static batching; no world detail reduction or rubric change"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W03",
+        "W06",
+        "W09",
+        "W10",
+        "W21",
+        "W23",
+        "W24",
+        "W37"
+      ],
+      "at": "2026-09-11T13:00:34.722Z",
+      "expiresHours": 6,
+      "note": "Round eight trees (house shade, canopy gaps) + hardscape (dirt seams, moss edges, stairs, boulders)"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W15",
+        "W17",
+        "W18",
+        "W20",
+        "W25",
+        "W26",
+        "W28",
+        "W29",
+        "W37",
+        "W38"
+      ],
+      "at": "2026-09-11T14:06:10.742Z",
+      "expiresHours": 6,
+      "note": "Round eight: concept-sheet vegetation, house boughs/fences/posts/arch, draw-call packs and merges"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T14:43:30.634Z",
+      "expiresHours": 3,
+      "scope": "Resume Link-only cap, outfit materials and walk/run/jump; Fable retains world, structures and global performance work"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W14",
+        "W26",
+        "W37"
+      ],
+      "at": "2026-09-11T15:28:32.216Z",
+      "expiresHours": 6,
+      "note": "Bough pods scaled to the reference size"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W04",
+        "W14",
+        "W26",
+        "W37"
+      ],
+      "at": "2026-09-11T16:30:48.197Z",
+      "expiresHours": 6,
+      "note": "Stair approach trench, bough pods grouped, lantern light, structures convergence"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T16:57:36.450Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W02",
+        "W04",
+        "W25",
+        "W30",
+        "W32",
+        "W37",
+        "W38"
+      ],
+      "at": "2026-09-11T17:27:10.157Z",
+      "expiresHours": 6,
+      "note": "Round nine: lit far air, house bough above the dome, 20-step stair, shared sprouts"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W10",
+        "W11",
+        "W37"
+      ],
+      "at": "2026-09-11T19:16:12.147Z",
+      "expiresHours": 6,
+      "note": "Trees round nine: larger cluster cards, leaf transmission, F lip lobes, moss/lichen bark"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T19:41:50.274Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W14",
+        "W30",
+        "W32",
+        "W34",
+        "W37"
+      ],
+      "at": "2026-09-11T20:51:30.077Z",
+      "expiresHours": 6,
+      "note": "Atmosphere round six (closed-roof veil by direction) and the mossy lantern limb"
+    },
+    {
+      "agent": "astra",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-11T22:09:46.326Z",
+      "expiresHours": 3,
+      "scope": "Link model, basic movement, outfit contacts and follow camera; collaborating via PR5 and PR2"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W14",
+        "W36",
+        "W37"
+      ],
+      "at": "2026-09-11T22:29:42.088Z",
+      "expiresHours": 6,
+      "note": "Lantern limb sleeve contains the giant limb; cords retuned"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W09",
+        "W11",
+        "W37"
+      ],
+      "at": "2026-09-11T23:33:22.692Z",
+      "expiresHours": 6,
+      "note": "Trees round ten: shade floor on giant bark and leaves"
+    },
+    {
+      "agent": "fable-cursor",
+      "items": [
+        "W25",
+        "W38",
+        "W09",
+        "W13"
+      ],
+      "at": "2026-09-13T00:18:26.679Z",
+      "expiresHours": 3,
+      "scope": "round 19-20: Saria's entrance arch (W25), distant huts' reveals + consolidation bucket bounds (W25/W38), trees forced rebucket + free-camera draw budget (W09/W13/W38)"
+    }
+  ]
+}

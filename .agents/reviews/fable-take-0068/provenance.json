@@ -1,0 +1,231 @@
+{
+  "monitor": "7c3fb42fa84f1083beea5f669351e70ccef38d9b",
+  "sealedBy": "87d3f310639834815c590b78380dc30dc188d3d3",
+  "actualSource": "612872691c51949655102bf9e60361ec33039fb2",
+  "sourceSealProductionBytesEqual": true,
+  "capturedAt": "2026-09-12T16:35:56.138Z",
+  "dirtyReported": false,
+  "attestation": {
+    "source": "local"
+  },
+  "unclaimed": true,
+  "unclaimedItems": [
+    "W25",
+    "W21",
+    "W20"
+  ],
+  "recordedPngDigestsAgree": true,
+  "recordedDistHashesAgree": true,
+  "originalPngBytesRetained": false,
+  "independentBuildHashVerification": false,
+  "imagesAndJsonAreExactPinnedGitBlobs": true,
+  "artifacts": [
+    {
+      "gitPath": "data/takes/take-0068/A_stairs.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-A_stairs.jpg",
+      "blob": "06853dad4a19d57f1d23e0e48c72d88b11b38ce8",
+      "sha256": "ccff19f4cb3f5b727d8954f49bd079e173bca3059982e486f8ec5105a62d46ce",
+      "bytes": 109794
+    },
+    {
+      "gitPath": "data/takes/take-0068/B_house.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-B_house.jpg",
+      "blob": "35956779c51a94e4c4f092436c2853bfd0acbda0",
+      "sha256": "dbdb3f69918c5b4026f323a50c2fb82402fae3dd0019f979f20682a18310af83",
+      "bytes": 107367
+    },
+    {
+      "gitPath": "data/takes/take-0068/C_lookback.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-C_lookback.jpg",
+      "blob": "aeacd6af4ac0bd1dee343743327033041e560bbb",
+      "sha256": "98108de51a9b03316e8de39e407984a488610b4770461e49b2b949fd5ecba2fc",
+      "bytes": 97511
+    },
+    {
+      "gitPath": "data/takes/take-0068/D_log.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-D_log.jpg",
+      "blob": "d37c0d8b2d4007e70e0dbd548890fcdf82cc8b7f",
+      "sha256": "a7b840be546e3f2fae74ac610553ecff4cacd041f7ded44d4b9ca765da074937",
+      "bytes": 91670
+    },
+    {
+      "gitPath": "data/takes/take-0068/E_ground.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-E_ground.jpg",
+      "blob": "35956779c51a94e4c4f092436c2853bfd0acbda0",
+      "sha256": "dbdb3f69918c5b4026f323a50c2fb82402fae3dd0019f979f20682a18310af83",
+      "bytes": 107367
+    },
+    {
+      "gitPath": "data/takes/take-0068/F_canopy.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-F_canopy.jpg",
+      "blob": "3b2f7107d862453f19f4494cb4f070af4b55566a",
+      "sha256": "a35dfdc1f50a8164a2d305361d744b544854dcdca089e19f97250751e793baad",
+      "bytes": 112112
+    },
+    {
+      "gitPath": "data/takes/take-0068/B_house.compare.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-B_house.compare.jpg",
+      "blob": "c965524fe35460be49908fa3c068a79e42ca27ca",
+      "sha256": "3335f524bc23ce0aa28b5d067fb220d405b11eb25f22a01202759a9c52a1c21d",
+      "bytes": 111013
+    },
+    {
+      "gitPath": "data/takes/take-0068/stats.json",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-stats.json",
+      "blob": "9ac1980aea4f3cd22595a20b90ee2f433054aaf2",
+      "sha256": "02ffc3878e2a07f49d79deecede20f253f0e2dc490894b9b45c0feec7b17016b",
+      "bytes": 6978
+    },
+    {
+      "gitPath": "data/takes/take-0068/audit.json",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-audit.json",
+      "blob": "946d5a615cd83ff7d3341b16c23c59d667600205",
+      "sha256": "129a583c802b4a3ca20010d07e663211737dd76e4d399c3bef0e93d9e769cb9e",
+      "bytes": 300842
+    },
+    {
+      "gitPath": "data/takes/take-0068/checks.json",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-checks.json",
+      "blob": "1bbcae5c442143210127501c8265b2da1aee4243",
+      "sha256": "96c1c7ecdf842faa784314442c3fb9d27954929dcdb016792f546c49876ac622",
+      "bytes": 13873
+    },
+    {
+      "gitPath": "data/takes/take-0068/score.json",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-score.json",
+      "blob": "5158bce04e422b8d7e2cd412277cea1c862f8803",
+      "sha256": "7d80b2ea9aa7de198eb018d407bacea1d0f39b2e95fe5fa65045c6cbdf152ed9",
+      "bytes": 52101
+    },
+    {
+      "gitPath": "data/takes/take-0068/compare.json",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/68-compare.json",
+      "blob": "25aa330d0658db4da72900147d38a7903f869a82",
+      "sha256": "0c51e0294b515bb6bef8d245c59604301167880c55430fe5043cf18ace04e414",
+      "bytes": 7949
+    },
+    {
+      "gitPath": "data/takes/take-0067/A_stairs.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/67-A_stairs.jpg",
+      "blob": "e8acceb05dd80005f159d44506f7c2b0dedb0106",
+      "sha256": "52b404908190d444603b555f37d2054df72c8a3274c87c260d6cac36234e8f36",
+      "bytes": 109229
+    },
+    {
+      "gitPath": "data/takes/take-0067/B_house.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/67-B_house.jpg",
+      "blob": "03ef59a353f870d3ba8b4516ac8421161289859f",
+      "sha256": "e1a58a8ab25bc58fc653445951f031b209635e34c5291389211669d88ef2e065",
+      "bytes": 103258
+    },
+    {
+      "gitPath": "data/takes/take-0067/F_canopy.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/67-F_canopy.jpg",
+      "blob": "c49f321548b7c1d944d5c0d8002ae9acb70d8796",
+      "sha256": "0d08b68ac6eacd751981f834d44aeca15e2ad4cbf6892a354a33acf1385c8a45",
+      "bytes": 111925
+    },
+    {
+      "gitPath": "data/reference/frames/A_stairs.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/reference-A_stairs.jpg",
+      "blob": "c81af0725851f15abaf88b0fd38372467fdbec06",
+      "sha256": "e907a532b5521d044fc1539e6826aedcbb0d8e7995b9851d6240d8e29ead9dbe",
+      "bytes": 38044
+    },
+    {
+      "gitPath": "data/reference/frames/B_house.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/reference-B_house.jpg",
+      "blob": "927fc0a7d4900414e6f4b676ec295b0424e6ac74",
+      "sha256": "54aae888ca401482105ee783b28a37a48f9560410504e91a99709c67fa4a8eec",
+      "bytes": 36636
+    },
+    {
+      "gitPath": "data/reference/frames/F_canopy.jpg",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/reference-F_canopy.jpg",
+      "blob": "7c62bc75cdb7bac35e4cf341a915f9c48b3ee49f",
+      "sha256": "a9d08c8577025050cd11b079fb3a4b6143ac41a0e717e04ecbbde4b61963180a",
+      "bytes": 30126
+    },
+    {
+      "gitPath": "data/takes/take-0067/stats.json",
+      "local": "gauntlet/tmp/fable-take0068-w25-review/67-stats.json",
+      "blob": "a14b8809d657d8fff12cb164b29cd89c0ecf420e",
+      "sha256": "5803d851c3f8223b32c22f96bf0dc31c1103efe86d6f1087256c04fac8128f3f",
+      "bytes": 7412
+    }
+  ],
+  "scope": "Scratch evidence and draft review only; no formal review submission, ledger/rubric/score change or production edit.",
+  "previousActualSource": "3dc217d1b687fe04c47a0c7055250f74bb536e54",
+  "allSixPosesMatchPrevious": true,
+  "lightingChangesVsPrevious": [],
+  "allSixRetriesZero": true,
+  "BEImageBytesIdentical": true,
+  "W25AutoStatus": "pass",
+  "W25AutoChecks": [
+    {
+      "type": "audit",
+      "path": "systems.structures.houses",
+      "op": ">=",
+      "value": 2,
+      "threshold": "\u2265 2",
+      "ok": true
+    },
+    {
+      "type": "audit",
+      "path": "systems.structures.geometry",
+      "op": "!=",
+      "value": "procedural-v1",
+      "threshold": "\u2260 \"placeholder-massing\"",
+      "ok": true
+    },
+    {
+      "type": "audit",
+      "path": "systems.structures.mossRoof",
+      "op": "truthy",
+      "threshold": "truthy",
+      "value": true,
+      "ok": true
+    },
+    {
+      "type": "audit",
+      "path": "systems.structures.doorLight",
+      "op": "truthy",
+      "threshold": "truthy",
+      "value": true,
+      "ok": true
+    }
+  ],
+  "historicalReviewInSealedScore": {
+    "reviewer": "astra",
+    "verdict": "fail",
+    "takeId": "take-0065",
+    "at": "2026-09-12T13:24:24.411Z",
+    "evidence": "docs/reviews/fable-take-0065/B_house.compare.jpg",
+    "valid": true,
+    "reason": null
+  },
+  "recordedCleanSignals": {
+    "consoleErrors": 0,
+    "flags": [],
+    "regressions": [],
+    "systemFailures": []
+  },
+  "originalOwnerBoardsViewed": [
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/01-village-lighting.png",
+      "sha256": "afa7664c8d1605e70ce8b08d94f240a01bd27e1a5ba992c629a3b5c0ea7526c7"
+    },
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/03-tree-house-front.png",
+      "sha256": "0924e0f056830d89c801c3c0b0c08ac7d75c4c9c67a0b77009576afeb8c87f34"
+    },
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/04-tree-house-structure.png",
+      "sha256": "573596c8c386a6d7f974b46e828ed557b6ef38a7963140fa816fc5fbbd4492d7"
+    },
+    {
+      "file": "/workspace/scratch/0dfc487f788e/zeldaremake-environment/reference/owner-concepts/08-gameplay-composition.png",
+      "sha256": "9a06911b78eb14aabce09a949020021e0fbc4aae8911307b73b9017d8ae10e02"
+    }
+  ]
+}
