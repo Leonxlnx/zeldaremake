@@ -1,0 +1,108 @@
+{
+  "capA": {
+    "sha": "2d7d9a0",
+    "distHash": "sha256:8aa18b9864b18ec5f7edd851e31020121d52a318e29a43f3057e6493f69de893"
+  },
+  "take106": {
+    "sha": "af5ede8",
+    "distHash": "sha256:4b9e0508fef52b901eb91216aed8d7079c3da5a3f83d3a758bbe414f7988a604"
+  },
+  "views": [
+    {
+      "id": "A_stairs",
+      "draws": [
+        539,
+        535
+      ],
+      "tris": [
+        8655399,
+        8540199
+      ],
+      "sha": [
+        "dc634daffe29",
+        "dc634daffe29"
+      ],
+      "identical": true
+    },
+    {
+      "id": "B_house",
+      "draws": [
+        520,
+        496
+      ],
+      "tris": [
+        7580570,
+        7445896
+      ],
+      "sha": [
+        "5012c25cf441",
+        "5012c25cf441"
+      ],
+      "identical": true
+    },
+    {
+      "id": "C_lookback",
+      "draws": [
+        442,
+        381
+      ],
+      "tris": [
+        8072774,
+        7680613
+      ],
+      "sha": [
+        "80b768264674",
+        "80b768264674"
+      ],
+      "identical": true
+    },
+    {
+      "id": "D_log",
+      "draws": [
+        426,
+        354
+      ],
+      "tris": [
+        7194081,
+        6979533
+      ],
+      "sha": [
+        "3d0998453042",
+        "3d0998453042"
+      ],
+      "identical": true
+    },
+    {
+      "id": "E_ground",
+      "draws": [
+        520,
+        496
+      ],
+      "tris": [
+        7580570,
+        7445896
+      ],
+      "sha": [
+        "5012c25cf441",
+        "5012c25cf441"
+      ],
+      "identical": true
+    },
+    {
+      "id": "F_canopy",
+      "draws": [
+        501,
+        480
+      ],
+      "tris": [
+        8236234,
+        8117172
+      ],
+      "sha": [
+        "1bf030ec354e",
+        "1bf030ec354e"
+      ],
+      "identical": true
+    }
+  ]
+}
