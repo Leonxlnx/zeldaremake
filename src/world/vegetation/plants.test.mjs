@@ -392,10 +392,10 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
 // where it meets the main flight's flank banks the same at the feet (flankZone 0.05–0.6); the paths
 // stay clear (every root passed `allowed` above, the stones' 0.5 m and the trodden strip hold ≤ 0.25 m)
 {const band=(set,pred=()=>true)=>set.items.filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z,true);return e>=0.25&&e<=1.3&&pred(it);}).length;
-  assert.ok(band(a.plants.ferns,it=>top(a.plants.ferns,it)-it.y<=0.5)>=70,`small ferns in the verge band: ${band(a.plants.ferns,it=>top(a.plants.ferns,it)-it.y<=0.5)} (round 39: 61)`);
-  assert.ok(band(a.plants.weeds)>=880&&band(a.plants.tufts)>=1050&&band(a.plants.clover)>=1440,`broad leaves ${band(a.plants.weeds)} / tufts ${band(a.plants.tufts)} / clover ${band(a.plants.clover)} in the verge band (round 39: 862 / 984 / 1401)`);
+  assert.ok(band(a.plants.ferns,it=>top(a.plants.ferns,it)-it.y<=0.5)>=76,`small ferns in the verge band: ${band(a.plants.ferns,it=>top(a.plants.ferns,it)-it.y<=0.5)} (round 39: 61)`);
+  assert.ok(band(a.plants.weeds)>=980&&band(a.plants.tufts)>=1200&&band(a.plants.clover)>=1520,`broad leaves ${band(a.plants.weeds)} / tufts ${band(a.plants.tufts)} / clover ${band(a.plants.clover)} in the verge band (round 39: 862 / 984 / 1401)`);
   const fb=a.field.flankBox(),foot=set=>set.items.filter(it=>inBox(it,fb)&&a.field.flankZone(it.x,it.z)>0.05&&a.field.flankZone(it.x,it.z)<0.6).length;
-  assert.ok(foot(a.plants.ferns)>=15&&foot(a.plants.weeds)>=42&&foot(a.plants.tufts)>=60&&foot(a.plants.clover)>=62,`ferns ${foot(a.plants.ferns)} / leaves ${foot(a.plants.weeds)} / tufts ${foot(a.plants.tufts)} / clover ${foot(a.plants.clover)} at the flank feet (round 39: 13 / 40 / 58 / 58)`);}
+  assert.ok(foot(a.plants.ferns)>=15&&foot(a.plants.weeds)>=46&&foot(a.plants.tufts)>=66&&foot(a.plants.clover)>=68,`ferns ${foot(a.plants.ferns)} / leaves ${foot(a.plants.weeds)} / tufts ${foot(a.plants.tufts)} / clover ${foot(a.plants.clover)} at the flank feet (round 39: 13 / 40 / 58 / 58)`);}
 // Round 40 — the hero ferns' near-camera detail (plantgeo.ts 'ultra': bipinnate pinnae with cupped
 // pinnules and a midrib, inside HERO_FERN_ULTRA_M; the tree-base audit saw flat single-colour fronds
 // 2 m from the eye): a fourth LOD ahead of the round-39 three, drawn per variant (no pack collapse

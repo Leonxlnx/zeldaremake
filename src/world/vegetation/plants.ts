@@ -2821,11 +2821,14 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // off D's bare shoulders and hollow (frame 56), out of frame 8 s' dark mass (F 0–0.17 ×
   // 0.44–0.665) and frame 14 s' lawn band, clear of the kids' spots, and out of the round-38
   // boxes whose crown heights are contracts of their own (the terrace, the lobe corner, the crest).
+  // Budget (the round-39 isolation, both passes): a fern inside 12 m costs ≈ 6 800 triangles, a
+  // broad leaf ≈ 570, a tuft ≈ 250, a clover ≈ 360 — so the band is tufts, leaves and clover with
+  // a fern every metre or two (own spacing grid), ≈ 1 000 plants over the rims and the bank feet.
   {
     const VERGE_IN = 0.25;
     const VERGE_BAND = 1.3;
-    const VERGE_PER_M = 7;
-    const BANK_PER_M2 = 5;
+    const VERGE_PER_M = 22;
+    const BANK_PER_M2 = 12;
     const rng = ctx.rng.fork('plants/verge-r40');
     const bankRng = ctx.rng.fork('plants/verge-bank-r40');
     const s = newSample();
@@ -2867,35 +2870,39 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     };
     /** a plant over 0.12 m of horizontal `reach`: the frame contracts on standing plants */
     const standing = (x: number, z: number, reach: number) => !inFMass(x, z, reach) && !inCNear(x, z, reach) && field.sightlineC(x, z, reach) === 0;
-    const spacing = new Spacing(0.5);
+    // one spacing grid per kind: a clover does not keep a fern away, only another fern does
+    const fernSpacing = new Spacing(1.2);
+    const leafSpacing = new Spacing(0.4);
+    const tuftSpacing = new Spacing(0.25);
+    const cloverSpacing = new Spacing(0.25);
     /** one seat of the band at weight `w` (0..1 across the band's profile), from stream `r` */
     const seat = (x: number, z: number, w: number, r: Rng) => {
       const roll = r();
       const draw = r();
       if (draw > w * field.falloff(x, z)) return;
       if (!vergeGround(x, z)) return;
-      if (roll < 0.14) {
-        // small understory fern, 0.21–0.5 m
-        if (!standing(x, z, 0.6) || R38_BOXES.some((b) => inBox(x, z, b)) || !spacing.ok(x, z, 0.45)) return;
+      if (roll < 0.06) {
+        // small understory fern, 0.21–0.5 m — one every metre or two of rim
+        if (!standing(x, z, 0.6) || R38_BOXES.some((b) => inBox(x, z, b)) || !fernSpacing.ok(x, z, 1.1) || !leafSpacing.ok(x, z, 0.2)) return;
         placeInstance(ferns, x, z, s, r, 0.42 + r() * 0.2, 0.7, 0.02, greenVar(r, 0.2));
-        spacing.add(x, z);
-      } else if (roll < 0.42) {
+        fernSpacing.add(x, z);
+      } else if (roll < 0.36) {
         // broad leaves (heart / ovate / round), ≤ 0.39 m, never over a white clump
-        if (!standing(x, z, 0.35) || nearWhite(x, z, 0.45) || !spacing.ok(x, z, 0.3)) return;
+        if (!standing(x, z, 0.35) || nearWhite(x, z, 0.45) || !leafSpacing.ok(x, z, 0.28) || !fernSpacing.ok(x, z, 0.2)) return;
         placeInstance(weeds, x, z, s, r, 0.9 + r() * 0.4, 0.8, 0.012, greenVar(r, 0.18).multiplyScalar(0.92));
-        spacing.add(x, z);
-      } else if (roll < 0.8) {
+        leafSpacing.add(x, z);
+      } else if (roll < 0.76) {
         // a short or mid tuft (TUFT_HEIGHTS classes 0 / 1: ≤ 0.35 m)
-        if (!standing(x, z, 0.3) || !spacing.ok(x, z, 0.16)) return;
+        if (!standing(x, z, 0.3) || !tuftSpacing.ok(x, z, 0.15)) return;
         const cls = r() < 0.6 ? 0 : 1;
         const variant = cls + (r() < 0.5 ? 0 : 3);
         const sc = 0.8 + r() * 0.3;
         placeInstance(tufts, x, z, s, r, sc, 0.5, 0.01, greenVar(r, 0.16), sc, [variant, variant + 1]);
-        spacing.add(x, z);
+        tuftSpacing.add(x, z);
       } else {
-        if (!spacing.ok(x, z, 0.12)) return;
+        if (!cloverSpacing.ok(x, z, 0.14)) return;
         placeInstance(clover, x, z, s, r, 1.0 + r() * 0.5, 0.9, 0.008, greenVar(r, 0.18));
-        spacing.add(x, z);
+        cloverSpacing.add(x, z);
       }
     };
     // the paved rims
