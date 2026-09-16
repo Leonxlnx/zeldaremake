@@ -30,6 +30,7 @@ import {
 } from './writer';
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
+import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, reliefBole } from './bole';
 
 /**
@@ -66,7 +67,18 @@ export interface GiantAsset {
   authoredLeaves: BufferGeometry;
   /** leaf-cluster alpha cards filling the lobe interiors (separate material) */
   cards: BufferGeometry;
+  /**
+   * the cards of the authored `flat` lobes (CanopyLobe.flat), local space, same material as
+   * `cards` — empty for a tree without any. A flat lobe is the deep-shade underside of a canopy
+   * whose shadow is the crown's above it, so the caller draws these without a shadow pass: a
+   * full-size card sheet 3–4 m over the stair bank would otherwise lay its own band across the
+   * stairs and bank that shots A / E / F measure.
+   */
+  authoredCards: BufferGeometry;
+  /** cards in `cards` */
   cardCount: number;
+  /** cards in `authoredCards` */
+  authoredCardCount: number;
   /** all laminae, the authored lobes' included */
   leafCount: number;
   /** of `leafCount`, the laminae in `authoredLeaves` */
@@ -228,6 +240,30 @@ export interface CanopyLobe {
    * not to shade anything — a shade lobe over a sun pool keeps the default (true).
    */
   castShadow?: boolean;
+  /**
+   * A deep-shade canopy underside (round 38, the bank canopy over F / C): every leaf and card of
+   * the lobe is written "flat" (writer.ts leafFlat — the shaders drop the sun from it and level
+   * what is left by uFlatLift, materials.ts LEAF_FLAT_*), every leaf and card of it carries ONE
+   * colour (no sun-side lerp, no per-card jitter, no interior gradient, no per-spray vigour: the
+   * frame's mass has window sd 0.01 and a 25 % step between overlapping cards read as 0.02 — the
+   * round-38 v4 capture lost 0.29 on one cell for that alone), and the cards go to
+   * GiantAsset.authoredCards, drawn without a shadow pass.
+   * Author with `eye: 0` so the cards are full-size and spread through the lobe (the mass has to
+   * be opaque; eye-detail laminae are for edges the camera is within a few metres of) — and with
+   * a `core`, without which no card population closes evenly enough (below).
+   */
+  flat?: boolean;
+  /**
+   * Opaque smooth core of a flat lobe: the fraction of hR / vR filled by one closed ellipsoid
+   * (0.85 = the cards are a leaf fringe around it). Cards alone never close: the cluster map's
+   * holes and edges between them read as window sd 0.02–0.05 through nine layers (round 38 v5
+   * capture: C's mass cells at sd 0.02 against the frame's 0.01 lost 0.1–0.24 each while their
+   * means landed within 0.03 of the frame — SSIM's structure term, (2 cov + C2) / (va + vb + C2),
+   * C2 = 9e-4, halves between sd 0.01 and 0.03). The core is written to the same flat writer as
+   * the lobe's laminae (one colour, no sun, levelled by uFlatLift), so the body is EVEN — sd 0 but
+   * for the haze across its depth — and only the fringe carries leaf silhouettes.
+   */
+  core?: number;
 }
 
 /**
@@ -351,7 +387,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   let leaves = new GeometryWriter('high');
   const treeLeaves = leaves;
   const authoredLeaves = new GeometryWriter('high');
-  const cards = new GeometryWriter('high');
+  // likewise `cards` is rebound to `authoredCards` while a flat lobe is foliated
+  let cards = new GeometryWriter('high');
+  const treeCards = cards;
+  const authoredCards = new GeometryWriter('high');
+  /** set while a flat lobe (CanopyLobe.flat) is foliated: one colour per lobe, no sun-side lerp */
+  let lobeFlat = false;
   const R = def.trunkRadius;
   const H = def.height;
   const density = o.leafDensity ?? 1;
@@ -680,12 +721,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * bt(0.3, 1);
       // leaves deep inside a lobe are self-shadowed: darker and cooler
       const interior = lobe ? smoothstep(0.85, 0.3, base.distanceTo(lobe.center) / Math.max(0.5, lobe.hR)) : 0;
-      const color = canopy
-        .clone()
-        .multiplyScalar(0.92)
-        .lerp(sunny, sun * (1 - interior * 0.7))
-        .lerp(bt(0, 1) < 0.5 ? cool : warm, bt(0, 0.3))
-        .multiplyScalar(vigor * (1 - interior * 0.32) * lobeTone);
+      // every draw is made either way, so a flat lobe's leaves leave the stream where lit ones would
+      const coolWarm = bt(0, 1) < 0.5 ? cool : warm;
+      const tint = bt(0, 0.3);
+      const color = lobeFlat
+        ? canopy.clone().multiplyScalar(0.92 * lobeTone)
+        : canopy
+            .clone()
+            .multiplyScalar(0.92)
+            .lerp(sunny, sun * (1 - interior * 0.7))
+            .lerp(coolWarm, tint)
+            .multiplyScalar(vigor * (1 - interior * 0.32) * lobeTone);
       // leaves near eye level (low limbs) stay believable; the high roof uses big stylised laminae
       const roofSize = 0.17 + 0.22 * smoothstep(4, 15, base.y);
       const eyeSize = 0.13 + 0.24 * smoothstep(6, 16, base.y);
@@ -741,12 +787,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const outF = Math.hypot(p.x, p.z) / crownRadius;
       const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * gb(0.35, 1);
       const interior = 1 - rr;
-      const color = canopy
-        .clone()
-        .multiplyScalar(0.9)
-        .lerp(sunny, sun * (1 - interior * 0.7))
-        .lerp(gb(0, 1) < 0.5 ? cool : warm, gb(0, 0.25))
-        .multiplyScalar(gb(0.85, 1.05) * (1 - interior * 0.4) * lobeTone);
+      const coolWarm = gb(0, 1) < 0.5 ? cool : warm;
+      const tint = gb(0, 0.25);
+      const jitter = gb(0.85, 1.05);
+      const color = lobeFlat
+        ? canopy.clone().multiplyScalar(0.9 * lobeTone)
+        : canopy
+            .clone()
+            .multiplyScalar(0.9)
+            .lerp(sunny, sun * (1 - interior * 0.7))
+            .lerp(coolWarm, tint)
+            .multiplyScalar(jitter * (1 - interior * 0.4) * lobeTone);
       if (drop) return;
       if (keep && !keep(p)) return;
       if (!cardAllowed(p, s)) return;
@@ -801,6 +852,53 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     };
     const attempts = Math.round(count * factor);
     for (let i = 0; i < attempts; i++) placeCard(rd, false, inCollar);
+  }
+
+  /**
+   * The opaque core of a flat lobe (CanopyLobe.core): one closed ellipsoid of `k` × the lobe's
+   * radii written to the flat leaves writer as leaf vertices (rigid, no flutter), in the colour the
+   * lobe's cards render — their vertex colour × the flat map level (materials.ts LEAF_FLAT_MAP_LUM
+   * stands in for the cluster map on a flat card), so the body and its fringe are one level.
+   */
+  function lobeCore(center: Vector3, hR: number, vR: number, k: number) {
+    const color = canopy.clone().multiplyScalar(0.9 * LEAF_FLAT_MAP_LUM * lobeTone);
+    const segs = 28;
+    const rings = 16;
+    const base = leaves.positions.length / 3;
+    const p = new Vector3();
+    const n = new Vector3();
+    // clumped outline: the radius swells and dips by ±12 % in three sinusoidal lobes of 0.6–1.2 m
+    // around the ellipsoid (own stream, so nothing else in the tree re-rolls) — a canopy mass's
+    // silhouette against the haze, not a balloon's; the body stays one even colour either way
+    const rl = r.fork(`lobe-core/${center.x.toFixed(2)},${center.y.toFixed(2)},${center.z.toFixed(2)}`);
+    const waves = [3, 5, 2].map((f, i) => ({ f, g: [1, 2, 3][i], w: [0.55, 0.3, 0.4][i], p: rl() * TAU, q: rl() * TAU }));
+    const swell = (th: number, ph: number) => 1 + 0.12 * waves.reduce((s, w) => s + w.w * Math.sin(w.f * th + w.p) * Math.cos(w.g * ph + w.q), 0);
+    // The body stays one even colour: a clump-shading pass over it (round 38 probes p9/p10 — a
+    // top-to-underside gradient, the swells lighter than the dips, a finer mottle; as vertex colour
+    // and as a per-vertex shade share) either did not reach the pixel (colour: the leaf floor and
+    // the haze at 12–15 m pass ~17 % of an albedo swing) or read as a lit sphere, not foliage, for
+    // C −0.001 / F −0.001. The frames' mass at this distance is matte; the outline is the detail.
+    for (let i = 0; i <= rings; i++) {
+      const ph = (i / rings) * Math.PI;
+      for (let j = 0; j <= segs; j++) {
+        const th = (j / segs) * TAU;
+        const sx = Math.sin(ph) * Math.cos(th);
+        const sy = Math.cos(ph);
+        const sz = Math.sin(ph) * Math.sin(th);
+        const s = k * (i === 0 || i === rings ? 1 : swell(th, ph));
+        p.set(center.x + sx * hR * s, center.y + sy * vR * s, center.z + sz * hR * s);
+        n.set(sx / hR, sy / vR, sz / hR).normalize();
+        leaves.vertexN(p, n, color, 0, 0, 1, 0, 0, 1);
+      }
+    }
+    for (let i = 0; i < rings; i++) {
+      for (let j = 0; j < segs; j++) {
+        const a = base + i * (segs + 1) + j;
+        const b = a + segs + 1;
+        leaves.triangle(a, b, a + 1);
+        leaves.triangle(b, b + 1, a + 1);
+      }
+    }
   }
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
@@ -1246,6 +1344,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // detail pick is what it was when all of them shared one writer
       leaves = lobeSpec.castShadow === false ? authoredLeaves : treeLeaves;
       leaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
+      // a flat lobe's cards go to their own (non-casting) writer, and every leaf and card of it
+      // is written flat (writer.ts leafFlat)
+      lobeFlat = lobeSpec.flat === true;
+      cards = lobeFlat ? authoredCards : treeCards;
+      leaves.leafFlat = cards.leafFlat = lobeFlat;
       eyeOverride = lobeSpec.eye ?? null;
       lobeTone = lobeSpec.tone ?? 1;
       leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
@@ -1258,19 +1361,25 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const leavesBefore = leaves.leafCount;
       foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
       lobeLeafCounts.push(leaves.leafCount - leavesBefore);
+      if (lobeFlat && lobeSpec.core) lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
       eyeOverride = null;
       lobeTone = 1;
       leaves.leafShade = cards.leafShade = 1;
+      leaves.leafFlat = cards.leafFlat = false;
+      lobeFlat = false;
       corridorExempt = false;
       leaves = treeLeaves;
+      cards = treeCards;
     }
   }
 
   return {
     geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), treeLeaves.finish('leaves')]),
     authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
-    cards: cards.finish(`giant-cards-${def.id}`),
-    cardCount: cards.triangles / 2,
+    cards: treeCards.finish(`giant-cards-${def.id}`),
+    authoredCards: authoredCards.finish(`giant-authored-cards-${def.id}`),
+    cardCount: treeCards.triangles / 2,
+    authoredCardCount: authoredCards.triangles / 2,
     leafCount: treeLeaves.leafCount + authoredLeaves.leafCount,
     authoredLeafCount: authoredLeaves.leafCount,
     lobeLeafCounts,
