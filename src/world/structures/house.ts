@@ -127,6 +127,7 @@ import {
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
 import { LIME_POD_GLOW, MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
+import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
 type P3 = [number, number, number];
 
@@ -230,6 +231,21 @@ export interface HouseBuild {
   room: { floorY: number; backD: [number, number, number]; floorPoke: number; pokeAt: [number, number] };
   /** the support bough's centre line (33 world points, t = 0 at the trunk) and radii (round 15) */
   bough: { pts: P3[]; radii: number[] };
+  /**
+   * Round 40: the cap moss's close-scale structure — cushion tufts (count, triangles, diameter
+   * range), the torn moss edge's range on the rim curl (v; the curl's top is `rimTop`), the
+   * share of the rim where the moss has retreated and bark shows on the crest, the sheet's
+   * thickness over the bark, and the small plants (sorrel, ferns, grass) growing out of it.
+   */
+  mossDetail: {
+    tufts: number;
+    tuftTriangles: number;
+    tuftDiameterM: { min: number; max: number; mean: number } | null;
+    edgeV: { min: number; max: number; rimTop: number };
+    barkOnCrestShare: number;
+    mossThicknessM: number;
+    plants: { sorrel: number; ferns: number; grass: number };
+  };
 }
 
 /**
@@ -2500,9 +2516,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const patchNoise = (p: Vector3) => noise.noise(p.x * 0.9 + 23, p.z * 0.9 + 5);
   const thatchAt = (p: Vector3, v: number) => smoothstep(THATCH_THRESHOLD, THATCH_THRESHOLD + 0.25, patchNoise(p)) * smoothstep(0.95, 0.7, v);
   const _tc = new Vector3();
+  /** (grid u, v) → straw cell? Decided on the sheet's own parameter (round 40: `vMoss`) */
   const isThatchCell = (u: number, v: number) => {
-    domeBase(u * TAU, v, _tc);
-    return thatchAt(_tc, v) > 0.5;
+    const a = u * TAU;
+    const vm = vMoss(a, v);
+    domeBase(a, vm, _tc);
+    return thatchAt(_tc, vm) > 0.5;
   };
   /** area-weighted straw share of the cap top (accumulated while the moss mesh's cells are decided) */
   let thatchArea = 0;
@@ -2515,9 +2534,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const cellArea = (u: number, v: number) => {
     const du = 0.5 / roofRes;
     const dv = 0.5 / (roofRows - 1);
-    domeBase(u * TAU, v, _c0);
-    domeBase((u + du) * TAU, v, _c1).sub(_c0);
-    domeBase(u * TAU, Math.min(1, v + dv), _c2).sub(_c0);
+    // (round 40: on the sheet's own parameter, `vMoss`)
+    const a = u * TAU;
+    domeBase(a, vMoss(a, v), _c0);
+    domeBase((u + du) * TAU, vMoss((u + du) * TAU, v), _c1).sub(_c0);
+    domeBase(a, vMoss(a, Math.min(1, v + dv)), _c2).sub(_c0);
     return _c1.cross(_c2).length() * 4;
   };
   /**
@@ -2569,10 +2590,82 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const at = (i: number, j: number) => merTable[(i % (MER_A + 1)) * (MER_V + 1) + j];
     return lerp(lerp(at(ia, iv), at(ia, iv + 1), tv), lerp(at(ia + 1, iv), at(ia + 1, iv + 1), tv), ta);
   };
+  /**
+   * Round 40 (structures-25; owner video review 16 Sept, "an irregular edge over the bark"):
+   * the moss sheet no longer wraps the whole rim curl — it ENDS in a torn edge of lobes and
+   * fingers part-way round the curl, and the curl itself is BARK (`eaveBark`, the eave's cords
+   * in the recess bark, 3.5 cm under the moss shell) that shows below the edge and through the
+   * gaps where the sheet has retreated onto the shoulder. Frame-03 of the review (the mossy
+   * bough) and board 05 "Moss on Branch": moss cushions end ragged over the bark with the cords
+   * poking through. The shell's SHAPE is unchanged — the curl's silhouette, the rim's reach,
+   * the soffit and the pods' hooks all stand where they did; only what covers the surface
+   * changes (the audit's `cap` samples the shell, not the sheet).
+   *
+   * `mossEdgeV(a)`: the cap parameter where the moss ends at angle a — about the rim's crest
+   * (V_CAP), so the curl's outer face is bark with the moss hanging over it. Metric noise along
+   * the rim's arc: 0.5–1 m lobes ±5 cm, narrow fingers hanging a further 12 cm down the curl
+   * every 0.3–0.5 m, and gaps where the edge retreats up to ≈ 10 cm onto the shoulder so bark
+   * shows on the crest itself. The curl runs 1.35 cm per 0.01 of v, the shoulder ≈ 11 cm — the
+   * two scales are converted separately. Over the door (|a| < 0.55, where the entrance arch is
+   * the eave and the pods hang) the edge is tamer.
+   */
+  const mossEdgeV = (a: number) => {
+    const s = a * (capR(a) + lipR);
+    const tame = lerp(0.55, 1, smoothstep(0.35, 0.8, Math.abs(angleDiff(a, 0))));
+    const lobes = noise.noise(s * 1.3 + 40, 2.5);
+    const fingers = Math.pow(Math.max(0, noise.noise(s * 4.5 + 11, 6.1)), 1.5);
+    const gaps = smoothstep(0.42, 0.72, noise.noise(s * 2.2 + 77, 9.4));
+    // metres along the meridian past the crest (+ down the curl, − up the shoulder)
+    const m = (0.05 * lobes + 0.12 * fingers - 0.1 * gaps) * tame;
+    return clamp(V_CAP + (m >= 0 ? m / (Math.PI * lipR / (1 - V_CAP)) : m / 11), V_CAP - 0.012, 0.94);
+  };
+  /** grid v → the sheet's cap parameter: the grid's rows run uniformly from the crown to the edge */
+  const vMoss = (a: number, v: number) => v * mossEdgeV(a);
+  /** the moss sheet's thickness over the bark eave (m): the edge rounds down through it */
+  const MOSS_THICK = 0.035 * k;
+  /** the edge's rounding width along the meridian (m) */
+  const EDGE_ROUND = 0.045 * k;
+  /** the bark eave's depth under the moss shell at v (fades to 0 where the curl meets the soffit) */
+  const barkInset = (v: number) => MOSS_THICK * smoothstep(1, 0.92, v);
+  /**
+   * Round 40b: the cushion COLONIES — one field for the tuft placement and for the sheet between
+   * them. 0.3–0.6 m colonies on the cap's own 3D noise (field mean 0.5, sd 0.16, mean slope
+   * 1.37 /m over the cap); `colony(p)` is the membership, 0 in the gaps … 1 in a colony's heart.
+   * The band 0.416–0.486 puts ≈ 30 % of the sheet in the gaps, ≈ 54 % in the hearts, with a
+   * ≈ 5 cm transition (the sheet's grid is ≈ 4 × 9 cm, so the vertex colour carries it as about
+   * one cell). The gaps are a SHADED FLOOR (`FLOOR`, × 0.43–0.46 — the shadow between cushions,
+   * with the grain's pits and flecks faded there) and the hearts are lifted (`HEART`, the lit
+   * tops), so at B's 10–14 m the crown reads as lit cushions on a dark bed rather than as grain —
+   * the reference bough's moss has that dark-gap structure — while the cap's mean tone (frame-B
+   * calibrated, rounds 14–36) holds to within a few per cent (0.3 × 0.45 + 0.54 × 1.12 + the
+   * transition ≈ 0.86 of the sheet's mean, and the tufts stand on the hearts). Measured on the
+   * way here: a × 0.66–0.72 floor over half the sheet moved B's cap mean −1 % and its 8–16 px
+   * block contrast 0 % — the veil at 18 m and the existing ±30 % mottle swallow a cut that
+   * shallow. The floor is a touch cooler than a plain luminance cut so the shade does not drift
+   * yellow; floor and lift fade out where the tufts end (v 0.655–0.705), so the rim and curl
+   * keep their tones.
+   */
+  const colonyField = (p: Vector3) => 0.5 + 0.5 * n3.noise(p.x * 2.6 + 3.1, p.y * 2.6, p.z * 2.6 - 7.7);
+  const colony = (p: Vector3) => smoothstep(0.416, 0.486, colonyField(p));
+  /** the floor's multipliers, and the colony hearts' lift (the lit tops; the cap's mean tone holds) */
+  const FLOOR: [number, number, number] = [0.43, 0.46, 0.46];
+  const HEART = 1.12;
+  /** where the tufts stand (full on the crown and shoulder, none past v 0.705 — the edge rounds from 0.71) */
+  const tuftZone = (v: number) => smoothstep(0.705, 0.655, v);
   const domeVertex = (a: number, v: number, out: SurfaceSample, straw: boolean) => {
     domeBase(a, v, out.position);
     domeNormal(a, v, _n);
-    const disp = domeDisp(out.position, v);
+    let disp = domeDisp(out.position, v);
+    // round 40: the last ≈ 4.5 cm of the sheet round down onto the bark (a quarter-round profile),
+    // so the torn edge has the thickness of a moss cushion, not a paper edge (the straw cells
+    // share the sheet, so they round with it)
+    if (v > 0.6) {
+      const edge = mossEdgeV(a);
+      const t = clamp((meridian(a, edge) - meridian(a, v)) / EDGE_ROUND, 0, 1);
+      disp -= MOSS_THICK * (1 - Math.sqrt(1 - (1 - t) * (1 - t)));
+      // and the very edge sits a hair under the bark's shell so the bark reads as carrying it
+      disp -= 0.004 * k * (1 - t);
+    }
     out.position.addScaledVector(_n, disp);
     // uneven droop of the rim
     const lip = smoothstep(V_CAP, 1, v);
@@ -2616,19 +2709,29 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // pits at the vertex pitch: near-uncorrelated between neighbours, so they read as dark dots
     const pit = smoothstep(0.3, 0.8, n3.noise(p.x * 13 + 41, p.y * 13, p.z * 13));
     const fleck = smoothstep(0.55, 0.9, n3.noise(p.x * 11 + 7, p.y * 11, p.z * 11));
+    // round 40b: the colony membership here (1 = colony heart, or off the tuft zone; 0 = the
+    // shaded floor between colonies); the grain's pits and flecks fade on the floor, so the gaps
+    // read as smooth shadow rather than as darker grain
+    const zone = tuftZone(v);
+    const heart = lerp(1, colony(p), zone);
+    const grainK = lerp(0.3, 1, heart);
     // (round 15: the grain's swing is up a fifth — the reference's lit mound has 8×8 tile
     // contrast 0.045 that round 14's leaf blobs, now gone, had been supplying)
     // (round 36: pits ×0.8 deep and flecks ×0.6 bright, were 0.65 / 0.4 — frame B's cap moss by
     // the roof's own mask (0.62–0.98 × 0.05–0.20) runs p10 0.216 / p90 0.597 round a median of
     // 0.436; ours 0.338 / 0.510 round 0.430: the same level, half the grain's range)
-    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.8 * pit) * (1 + 0.6 * fleck);
+    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.8 * pit * grainK) * (1 + 0.6 * fleck * grainK);
     // (round 14: the broad mottle is halved — ±0.4 at 0.38/m was the largest coarse term left
     // once the relief's crests stopped carrying the light: moss-face 32 px blotchiness 0.064
     // against the reference's 0.038)
     // (round 15: the broad term is back up to ±0.32 at 0.45/m — the reference mound's
     // luminance tertiles run 0.37 / 0.49 / 0.62, a wide soft shading that the first round-15
     // probe, at ±0.2, rendered as a flat 0.55–0.68 field)
-    const mottle = (0.7 + 0.32 * n3.fbm(p.x * 0.45 + 5, p.y * 0.45, p.z * 0.45 - 2, 2) + 0.1 * n3.noise(p.x * 3.1, p.y * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
+    // (round 40b: in the tuft zone the cushion colonies carry the coarse variation — the random
+    // mottle's swing halves there so the clumps, not the mottle, are what B reads at 8–16 px;
+    // the mean is untouched, and the rim and curl keep the full calibrated mottle)
+    const mottleAmp = lerp(1, 0.5, zone);
+    const mottle = (0.7 + 0.32 * mottleAmp * n3.fbm(p.x * 0.45 + 5, p.y * 0.45, p.z * 0.45 - 2, 2) + 0.1 * mottleAmp * n3.noise(p.x * 3.1, p.y * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
     // Albedos (linear), lit tufts vs hollows. Round 15 retargets them to the reference's lit
     // mound measured by luminance tertile (B, 0.66–0.86 × 0.12–0.25): light rgb(168,162,101) —
     // hue 55°, sat 0.40 —, mid (134,128,77), dark (102,95,58), a warm olive; take-0065 rendered
@@ -2683,29 +2786,66 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // into the canopy, the less light it gets
     const canopy = lerp(1, 0.65, smoothstep(0.35, 0.95, _n.y));
     const m = Math.min(2, flank * rimShade * mottle * canopy) * MOSS_ALBEDO_PEAK;
-    out.color = [lerp(deep[0], sun[0], bright) * m, lerp(deep[1], sun[1], bright) * m, lerp(deep[2], sun[2], bright) * m];
+    // round 40b: the shaded floor between the cushion colonies, the hearts lifted
+    const lift = lerp(1, HEART, zone);
+    out.color = [lerp(deep[0], sun[0], bright) * m * lerp(FLOOR[0], lift, heart), lerp(deep[1], sun[1], bright) * m * lerp(FLOOR[1], lift, heart), lerp(deep[2], sun[2], bright) * m * lerp(FLOOR[2], lift, heart)];
   };
-  const domeMoss = gridSurface((u, v, out) => domeVertex(u * TAU, v, out, false), {
+  const domeMoss = gridSurface((u, v, out) => domeVertex(u * TAU, vMoss(u * TAU, v), out, false), {
     cols: roofRes,
     rows: roofRows,
     closedU: true,
     hole: (u, v) => {
       const straw = isThatchCell(u, v);
-      if (v <= V_CAP) {
+      // (the area accounting runs on the sheet's own parameter — round 40's `vMoss`)
+      const vm = vMoss(u * TAU, v);
+      if (vm <= V_CAP) {
         const area = cellArea(u, v);
         if (straw) thatchArea += area;
         else mossArea += area;
-        if (smoothstep(0.35, 0.75, patchNoise(_tc)) * smoothstep(1, 0.7, v) > 0.5) thatch11Area += area;
+        if (smoothstep(0.35, 0.75, patchNoise(_tc)) * smoothstep(1, 0.7, vm) > 0.5) thatch11Area += area;
       }
       return straw;
     },
   });
-  const domeStraw = gridSurface((u, v, out) => domeVertex(u * TAU, v, out, true), {
+  const domeStraw = gridSurface((u, v, out) => domeVertex(u * TAU, vMoss(u * TAU, v), out, true), {
     cols: roofRes,
     rows: roofRows,
     closedU: true,
     hole: (u, v) => !isThatchCell(u, v),
   });
+  /**
+   * Round 40: the BARK EAVE under the torn moss edge — the rim curl from the shoulder (v 0.62,
+   * under the moss) round to the soffit, `MOSS_THICK` inside the shell (fading to the shell at
+   * the soffit so the two meet flush), in the recess bark with cords running down over the curl
+   * like the trunk's bundles continuing up into the eave, cut by fissures; darkening toward the
+   * soffit's tone at the bottom. Where the moss covers it, it is hidden 3.5 cm under the sheet;
+   * below the edge and in the gaps it is what the owner asked to see: bark through the moss.
+   * Same material and flags as the soffit, so it folds into the soffit's draw.
+   */
+  const eaveBark = gridSurface(
+    (u, v, out) => {
+      const a = u * TAU;
+      const vc = lerp(0.62, 1, v);
+      domeBase(a, vc, out.position);
+      domeNormal(a, vc, _n);
+      out.position.addScaledVector(_n, domeDisp(out.position, vc) - barkInset(vc));
+      const lip = smoothstep(V_CAP, 1, vc);
+      out.position.y -= lip * (0.06 + 0.1 * noise.noise(a * R * 1.1, 3.3) + 0.05 * noise.noise(a * R * 4, 7)) * k;
+      const s = meridian(a, vc);
+      out.uv = [(a * capR(a)) / 2.2, s / 2.2];
+      // cords down the curl (ridged along the arc), fissures between bundles, a lit crest tint
+      const arc = a * (capR(a) + lipR);
+      const cord = noise.ridged(arc * 3.2 + 3, s * 0.8, 2) - 0.5;
+      const fis = smoothstep(0.56, 0.72, noise.noise(arc * 2.4 + 21, s * 1.5 + 4));
+      const crest = clamp(cord * 2.2, -1, 1);
+      const ao = Math.max(0.15, 1 + 0.6 * crest) * (1 - 0.6 * fis);
+      // the eave band's tone (recess bark under the trunk's eave shade), darkening to the soffit
+      const down = smoothstep(0.8, 1, vc);
+      const d = lerp(0.42, 0.24, down) * ao;
+      out.color = [d, d * 0.86, d * 0.68];
+    },
+    { cols: Math.round(roofRes * 0.6), rows: 18, closedU: true },
+  );
   const thatchFraction = thatchArea / Math.max(1e-6, thatchArea + mossArea);
   const thatchFraction11 = thatch11Area / Math.max(1e-6, thatchArea + mossArea);
   // cap silhouette for the audit (projected rim width / crown height in B), as built and at ×1.0
@@ -2799,6 +2939,90 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   eaveMesh.name = 'roof-eave';
   eaveMesh.castShadow = eaveMesh.receiveShadow = true;
   group.add(eaveMesh);
+  const eaveBarkMesh = new Mesh(eaveBark, mats.recessBark);
+  eaveBarkMesh.name = 'roof-eave-bark';
+  eaveBarkMesh.castShadow = eaveBarkMesh.receiveShadow = true;
+  group.add(eaveBarkMesh);
+
+  // ---- round 40: MOSS CUSHION TUFTS — the close-scale structure the owner's review asked for
+  // ("distinct close-scale tufts … not another broad smooth green layer"). Squat lumps 4–12 cm
+  // across (most 4–7) standing on the sheet, area-uniform over the cap top, densest on the crown
+  // and thinning over the shoulder to nothing at the moss edge (`tuftKeep`); each takes the
+  // sheet's own vertex colour and uv where it stands (the mottle, canopy shade and albedo map run
+  // over it), a lit top and a dark rim (mossTufts.ts), a lobed outline from the cap's own 3D
+  // noise. Merged into ONE geometry on the cap-moss material with the sheet's attribute layout;
+  // castShadow off (4 cm lumps are below the shadow map's texel, and a shadow pass over 150 k
+  // triangles would double their cost) so they form their own bucket — both houses' tuft meshes
+  // fold into one draw. Own rng fork after every earlier stream, so nothing else moves. ----
+  const tuftRng = rng.fork('moss-tufts');
+  const tuftSpecs: MossTuftSpec[] = [];
+  {
+    const attempts = def.id === 'saria' ? 9000 : 2800;
+    const _ts = { position: new Vector3() } as SurfaceSample;
+    /** acceptance by cap parameter: full on the crown, ≈ 0.6 over the shoulder, 0 past the edge */
+    const tuftKeep = (v: number) => lerp(1, 0.6, smoothstep(0.32, 0.58, v)) * tuftZone(v);
+    /**
+     * cushion clumping: the tufts gather into the 0.3–0.6 m colonies (`colony`, shared with the
+     * sheet's shaded floor) with a few stragglers on the floor between — the reference bough's
+     * moss reads as clumped cushions with dark gaps at 8–15 m; a uniform scatter of 5 cm lumps
+     * averages back to a smooth field at that distance
+     */
+    const clump = (p: Vector3) => lerp(0.12, 1, colony(p));
+    for (let i = 0; i < attempts; i++) {
+      const a = tuftRng() * TAU;
+      // area-uniform on the cap top (r ∝ q on the plateau)
+      const v = Math.sqrt(tuftRng()) * 0.72;
+      if (tuftRng() > tuftKeep(v)) continue;
+      // radius 2.2–6 cm, skewed small; footprint aspect 0.75–1.3; height 0.6–1.0 of the radius
+      const r = (0.022 + 0.038 * Math.pow(tuftRng(), 1.3)) * sk;
+      const aspect = 0.75 + tuftRng() * 0.55;
+      domeVertex(a, v, _ts, false);
+      if (tuftRng() > clump(_ts.position)) continue;
+      // the sheet's normal at (a, v) is left in `_n` by domeVertex
+      tuftSpecs.push({
+        position: _ts.position.clone(),
+        normal: _n.clone(),
+        rx: r * aspect,
+        rz: r / aspect,
+        h: r * (0.6 + tuftRng() * 0.4),
+        yaw: tuftRng() * TAU,
+        color: _ts.color ?? [0.5, 0.5, 0.1],
+        uv: _ts.uv ?? [0, 0],
+        sink: r * 0.3,
+        seed: 1 + Math.floor(tuftRng() * 1e6),
+      });
+    }
+  }
+  const tufts = buildMossTufts(tuftSpecs, n3);
+  const tuftMesh = new Mesh(tufts.geometry, mats.capMoss);
+  tuftMesh.name = 'roof-tufts';
+  tuftMesh.castShadow = false;
+  tuftMesh.receiveShadow = true;
+  group.add(tuftMesh);
+  /** round 40 audit: the tufts and the torn edge, as built */
+  const mossDetail = (() => {
+    const radii = tuftSpecs.map((t) => (t.rx + t.rz) * 0.5);
+    const r3 = (x: number) => Math.round(x * 1000) / 1000;
+    let edgeMin = Infinity;
+    let edgeMax = -Infinity;
+    let barkAbove = 0;
+    const N = 96;
+    for (let i = 0; i < N; i++) {
+      const e = mossEdgeV((i / N) * TAU);
+      edgeMin = Math.min(edgeMin, e);
+      edgeMax = Math.max(edgeMax, e);
+      if (e < V_CAP) barkAbove++;
+    }
+    return {
+      tufts: tufts.count,
+      tuftTriangles: tufts.triangles,
+      tuftDiameterM: radii.length ? { min: r3(2 * Math.min(...radii)), max: r3(2 * Math.max(...radii)), mean: r3((2 * radii.reduce((s, r) => s + r, 0)) / radii.length) } : null,
+      /** the moss edge's range on the curl (v; the curl runs V_CAP..1) and the share of the rim where bark shows on the crest */
+      edgeV: { min: r3(edgeMin), max: r3(edgeMax), rimTop: V_CAP },
+      barkOnCrestShare: r3(barkAbove / N),
+      mossThicknessM: r3(MOSS_THICK),
+    };
+  })();
 
   // ---- living branches curling over the cap (pale bark) + limbs + chimney branch ----
   const branchRng = rng.fork('branches');
@@ -3676,6 +3900,89 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   }
   for (const m of foliage21.build(mats, `house21-${def.id}`)) group.add(m);
 
+  // ---- round 40 (structures-25): SMALL PLANTS GROWING OUT OF THE MOSS — the owner's frame-03
+  // bough and board 05 ("Lichen / Small Plants", "Moss on Branch") show moss cushions with little
+  // plants rooted in them: trefoil sorrel / clover leaves, small fern fronds and a few grass tufts.
+  // On the crown and shoulders (v 0.05–0.62; the rim and the doorway stay clear), standing on the
+  // sheet's true displaced surface. Tints are set against the moss they grow in: the leaves a
+  // fresher, less yellow green than the moss-lit tone (a plant, not a moss patch, but not the
+  // round-15 "dark disconnected blobs" — the coverage stays a few per cent), the ferns a mid
+  // green, the grass a little under the moss-lit grass. Third foliage builder, own rng forks, so
+  // every earlier plant keeps its draws; the meshes fold into the leaf / tuft buckets. ----
+  const foliage40 = new FoliageBuilder(rng.fork('foliage40'), `${ctx.config.seed}/house40/${def.id}`);
+  const plant40 = rng.fork('plants40');
+  const plants40 = { sorrel: 0, ferns: 0, grass: 0 };
+  {
+    const SORREL_TINT: [number, number, number] = [1.7, 1.6, 1.5];
+    const FERN40_TINT: [number, number, number] = [2.3, 2.1, 2.2];
+    const GRASS40_TINT: [number, number, number] = [MOSS_LIT_GRASS[0] * 0.72, MOSS_LIT_GRASS[1] * 0.78, MOSS_LIT_GRASS[2] * 0.72];
+    /** the sheet's true surface point and normal at (a, v) — displaced in full, unlike `surfacePoint` */
+    const onSheet = (a: number, v: number) => {
+      const p = domeBase(a, v);
+      const n = domeNormal(a, v);
+      p.addScaledVector(n, domeDisp(p, v));
+      return { p, n };
+    };
+    /** keep the doorway's sight-line and the front lip clear: thin the front face's lower shoulder */
+    const keep = (a: number, v: number) => plant40() > 0.5 * smoothstep(1.1, 0.4, Math.abs(angleDiff(a, 0))) * smoothstep(0.4, 0.55, v);
+    // sorrel / clover: trefoils of 5–9 cm heart leaves on a 2–4 cm stem, in loose colonies
+    const colonies = def.id === 'saria' ? 16 : 8;
+    for (let c = 0; c < colonies; c++) {
+      const a0 = plant40() * TAU;
+      const v0 = 0.06 + Math.pow(plant40(), 0.7) * 0.55;
+      const members = 2 + Math.floor(plant40() * 3);
+      for (let m = 0; m < members; m++) {
+        const a = a0 + ((plant40() - 0.5) * 0.5) / Math.max(0.6, capR(a0) * (v0 / V_CAP));
+        const v = clamp(v0 + (plant40() - 0.5) * 0.05, 0.05, 0.62);
+        if (!keep(a, v)) continue;
+        const { p, n } = onSheet(a, v);
+        const stem = (0.02 + plant40() * 0.02) * sk;
+        const size = (0.05 + plant40() * 0.04) * sk;
+        const yaw0 = plant40() * TAU;
+        const leaflets = plant40() < 0.25 ? 4 : 3;
+        const tintK = 0.85 + plant40() * 0.35;
+        const tint: [number, number, number] = [SORREL_TINT[0] * tintK, SORREL_TINT[1] * tintK, SORREL_TINT[2] * tintK];
+        const base = p.clone().addScaledVector(n, stem);
+        // tangent frame on the sheet
+        const T = new Vector3(-n.z, 0, n.x);
+        if (T.lengthSq() < 1e-6) T.set(1, 0, 0);
+        T.normalize();
+        const B = new Vector3().crossVectors(n, T);
+        for (let j = 0; j < leaflets; j++) {
+          const yaw = yaw0 + (j / leaflets) * TAU + (plant40() - 0.5) * 0.4;
+          const dir = new Vector3().addScaledVector(T, Math.cos(yaw)).addScaledVector(B, Math.sin(yaw)).multiplyScalar(0.8).addScaledVector(n, 0.45 + plant40() * 0.3).normalize();
+          foliage40.addLeaf(base, dir, size * (0.85 + plant40() * 0.3), plant40() * TAU, 0.05, tint);
+        }
+        plants40.sorrel++;
+      }
+    }
+    // small ferns rooted in the cushions, leaning outward like the moss-bank ferns
+    const ferns = def.id === 'saria' ? 12 : 6;
+    for (let i = 0; i < ferns; i++) {
+      const a = plant40() * TAU;
+      const v = 0.1 + plant40() * 0.5;
+      if (!keep(a, v)) continue;
+      const { p, n } = onSheet(a, v);
+      n.y += 0.5;
+      n.normalize();
+      foliage40.addTuft(p.addScaledVector(n, -0.03 * sk), n, (0.28 + plant40() * 0.14) * sk, 1, 0.06, FERN40_TINT);
+      plants40.ferns++;
+    }
+    // a few grass tufts, small and rooted (not the round-13 rim brushes)
+    const grass = def.id === 'saria' ? 16 : 8;
+    for (let i = 0; i < grass; i++) {
+      const a = plant40() * TAU;
+      const v = 0.08 + plant40() * 0.52;
+      if (!keep(a, v)) continue;
+      const { p, n } = onSheet(a, v);
+      n.y += 0.35;
+      n.normalize();
+      foliage40.addTuft(p.addScaledVector(n, -0.02 * sk), n, (0.16 + plant40() * 0.1) * sk, 0, 0.05, GRASS40_TINT);
+      plants40.grass++;
+    }
+  }
+  for (const m of foliage40.build(mats, `house40-${def.id}`)) group.add(m);
+
   // draped limbs + arc bough + broken stub + right limb + chimney
   // the pad is level (round 14) and the terrain stays under it (`floorPoke` ≤ 0), so this is the
   // kerb's clearance over the pad; the terrain term only bites if the slope ever came through
@@ -3689,7 +3996,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     materials,
     roots: rootsBuilt + 2,
     branches: branchDefs.length + 4,
-    leaves: foliage.leafCount + foliage21.leafCount,
+    leaves: foliage.leafCount + foliage21.leafCount + foliage40.leafCount,
     eave,
     door,
     cap,
@@ -3702,5 +4009,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     props: propCount,
     room: { floorY: roomFloorY, backD: [roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1)], floorPoke, pokeAt },
     bough: boughSamples,
+    mossDetail: { ...mossDetail, plants: plants40 },
   };
 }

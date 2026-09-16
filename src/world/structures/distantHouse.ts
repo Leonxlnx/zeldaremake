@@ -76,7 +76,8 @@ import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttr
 import type { TrunkSeat, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { basisMatrix, gridSurface, merge, setColorAttribute, TAU } from './geometry';
-import { MOSS_ALBEDO_PEAK, type StructureMaterials } from './materials';
+import { MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
+import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
 export interface DistantHouseDef {
   id: string;
@@ -340,6 +341,10 @@ const POD_STEM: RGB = [0.06, 0.045, 0.03];
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
 const mix = (a: RGB, b: RGB, t: number, m = 1): RGB => [lerp(a[0], b[0], t) * m, lerp(a[1], b[1], t) * m, lerp(a[2], b[2], t) * m];
 const scaleRGB = (c: RGB, m: number): RGB => [c[0] * m, c[1] * m, c[2] * m];
 const az = (deg: number) => new Vector3(Math.sin(deg * DEG), 0, Math.cos(deg * DEG));
@@ -682,6 +687,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   let tris = 0;
   let degenerate = 0;
   const _axis = new Vector3();
+  /** round 40: the cushion lumps' outline noise (one field for the village) */
+  const tuftNoise = new Noise3D(rng.fork('moss-tuft-noise'));
 
   for (const def of defs) {
     const r = rng.fork(def.id);
@@ -906,34 +913,116 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     degenerate += countDegenerate(barkGeo);
 
     // ---- cap moss: a low dome curling down at the rim, the trunk rising through its crown; the
-    // pole row's collapsed triangles are dropped (round 18: 28 zero-area fans per cap before) ----
+    // pole row's collapsed triangles are dropped (round 18: 28 zero-area fans per cap before).
+    // Round 40 (structures-25): the lighter version of Saria's close-scale moss — the sheet's
+    // bottom edge is LOBED (`edgeV`: the moss ends 0–15 cm up the curl in five-and-nine-lobe
+    // waves) over a BARK SKIRT that shows between the lobes, and ≈ 100 cushion lumps 10–18 cm
+    // across stand on the sheet (mossTufts.ts), merged into the cap's own geometry. ----
     const capPhase = r.range(0, TAU);
-    const cap = dropDegenerate(
-      gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          const rim = 1 + 0.035 * Math.sin(5 * a + capPhase) + 0.02 * Math.sin(9 * a - capPhase);
-          const rr = eaveR * rim * Math.pow(Math.cos((v * Math.PI) / 2), 0.9);
-          const y = eaveY - 0.14 + (def.capHeight + 0.14) * Math.pow(Math.sin((v * Math.PI) / 2), 1.15);
-          out.position.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
-          out.uv = [(Math.cos(a) * (rr + 0.3)) / 1.6, (Math.sin(a) * (rr + 0.3)) / 1.6];
-          const mottle = 0.85 + 0.3 * (0.5 + 0.5 * Math.sin(11 * a + 6 * v + capPhase));
-          // the camera-facing half keeps the deep moss (CAP_FACING_DARKEN), the far half the sunlit mix
-          const facingHalf = Math.max(0, Math.cos(a - aWin));
-          const bright = (0.35 + 0.3 * (0.5 + 0.5 * Math.sin(7 * a - 4 * v + capPhase * 0.7))) * (1 - CAP_FACING_DARKEN * facingHalf);
-          const under = v < 0.06 ? 0.45 : 1;
-          const m = MOSS_ALBEDO_PEAK * lerp(0.9, 0.62, v) * mottle * under * (1 - 0.5 * CAP_FACING_DARKEN * facingHalf);
-          out.color = mix(MOSS_DEEP, MOSS_SUN, bright, m);
-        },
-        { cols: 28, rows: 7, closedU: true },
-      ),
+    const capRim = (a: number) => 1 + 0.035 * Math.sin(5 * a + capPhase) + 0.02 * Math.sin(9 * a - capPhase);
+    /** the moss sheet's lower edge on the curl (v), lobed */
+    const edgeV = (a: number) => clamp(0.07 + 0.04 * Math.sin(5 * a + 1.3 + capPhase) + 0.02 * Math.sin(9 * a - 0.7 - capPhase * 1.3) + 0.01 * Math.sin(17 * a + capPhase), 0.002, 0.14);
+    const capPoint = (a: number, v: number, out: Vector3) => {
+      const rr = eaveR * capRim(a) * Math.pow(Math.cos((v * Math.PI) / 2), 0.9);
+      const y = eaveY - 0.14 + (def.capHeight + 0.14) * Math.pow(Math.sin((v * Math.PI) / 2), 1.15);
+      return out.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
+    };
+    /**
+     * round 40b: the cushion colonies (as on Saria's cap) — the tufts gather where it is high
+     * and the sheet between them is a shaded floor (× 0.45 in the gaps, ≈ 30 % of the sheet; the
+     * hearts × 1.08); on this 28 × 7 sheet the floor is a soft mottle at the huts' 24 m, which is
+     * the lighter treatment
+     */
+    const colony = (p: Vector3) => smoothstep(0.416, 0.5, 0.5 + 0.5 * tuftNoise.noise(p.x * 2.2 + 1.7, p.y * 2.2, p.z * 2.2 + 4.1));
+    const capColor = (a: number, v: number, p: Vector3): RGB => {
+      const mottle = 0.85 + 0.3 * (0.5 + 0.5 * Math.sin(11 * a + 6 * v + capPhase));
+      // the camera-facing half keeps the deep moss (CAP_FACING_DARKEN), the far half the sunlit mix
+      const facingHalf = Math.max(0, Math.cos(a - aWin));
+      const bright = (0.35 + 0.3 * (0.5 + 0.5 * Math.sin(7 * a - 4 * v + capPhase * 0.7))) * (1 - CAP_FACING_DARKEN * facingHalf);
+      const m = MOSS_ALBEDO_PEAK * lerp(0.9, 0.62, v) * mottle * (1 - 0.5 * CAP_FACING_DARKEN * facingHalf);
+      // the floor fades out on the under-curl (v < 0.12, no tufts there)
+      const z = smoothstep(0.04, 0.14, v);
+      const floor = lerp(lerp(1, 0.45, z), lerp(1, 1.08, z), colony(p));
+      return mix(MOSS_DEEP, MOSS_SUN, bright, m * floor);
+    };
+    const _cp = new Vector3();
+    const _cq = new Vector3();
+    const capSheet = gridSurface(
+      (u, v, out) => {
+        const a = u * TAU;
+        // the grid's v = 0 row is the lobed edge; the sheet's last 2 cm round under toward the bark
+        const e = edgeV(a);
+        const vm = e + v * (1 - e);
+        capPoint(a, vm, out.position);
+        const tuck = Math.max(0, 1 - v * 12);
+        out.position.addScaledVector(_cq.set(out.position.x - c.x, 0, out.position.z - c.z).normalize(), -0.025 * tuck);
+        const rr = Math.hypot(out.position.x - c.x, out.position.z - c.z);
+        out.uv = [(Math.cos(a) * (rr + 0.3)) / 1.6, (Math.sin(a) * (rr + 0.3)) / 1.6];
+        const under = lerp(0.45, 1, Math.min(1, v * 8));
+        const col = capColor(a, vm, out.position);
+        out.color = [col[0] * under, col[1] * under, col[2] * under];
+      },
+      { cols: 28, rows: 7, closedU: true },
     );
+    // the bark skirt under the lobed edge: from the eave soffit's edge down and round the curl to
+    // the moss edge's lowest reach, 2 cm inside the sheet (the huts' bark, merged into `barkGeo`)
+    const capSkirt = gridSurface(
+      (u, v, out) => {
+        const a = u * TAU;
+        const vm = v * 0.17;
+        capPoint(a, vm, out.position);
+        out.position.addScaledVector(_cq.set(out.position.x - c.x, 0, out.position.z - c.z).normalize(), -0.02);
+        out.uv = [(a * eaveR) / 1.6, vm * 2];
+        const cord = 0.8 + 0.3 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2)) * (0.5 + 0.5 * Math.sin(41 * a - capPhase));
+        const d = lerp(0.9, 1.15, v) * cord;
+        out.color = [SOFFIT[0] * d, SOFFIT[1] * d, SOFFIT[2] * d];
+      },
+      { cols: 28, rows: 3, closedU: true },
+    );
+    // cushion lumps on the sheet: 10–18 cm, area-uniform over the dome, none on the under-curl
+    const tuftRng = r.fork('moss-tufts');
+    const tuftSpecs: MossTuftSpec[] = [];
+    const _tn = new Vector3();
+    for (let i = 0; i < 200; i++) {
+      const a = tuftRng() * TAU;
+      const v = 0.12 + Math.sqrt(tuftRng()) * 0.8;
+      const rad = 0.05 + tuftRng() * 0.04;
+      capPoint(a, v, _cp);
+      // round 40b: into the colonies, a few stragglers on the floor (≈ 130 of 200 land)
+      if (tuftRng() > lerp(0.12, 1, colony(_cp))) continue;
+      // the dome's outward normal from the meridian and ring tangents
+      _tn.subVectors(capPoint(a, Math.min(0.999, v + 0.01), _cq), _cp);
+      _cq.set(-Math.sin(a), 0, Math.cos(a));
+      _tn.cross(_cq).normalize();
+      if (_tn.y < 0) _tn.negate();
+      const col = capColor(a, v, _cp);
+      tuftSpecs.push({
+        position: _cp.clone(),
+        normal: _tn.clone(),
+        rx: rad * (0.8 + tuftRng() * 0.4),
+        rz: rad * (0.8 + tuftRng() * 0.4),
+        h: rad * (0.5 + tuftRng() * 0.35),
+        yaw: tuftRng() * TAU,
+        color: col,
+        uv: [(Math.cos(a) * (Math.hypot(_cp.x - c.x, _cp.z - c.z) + 0.3)) / 1.6, (Math.sin(a) * (Math.hypot(_cp.x - c.x, _cp.z - c.z) + 0.3)) / 1.6],
+        sink: rad * 0.35,
+        seed: 1 + Math.floor(tuftRng() * 1e6),
+      });
+    }
+    const capTufts = buildMossTufts(tuftSpecs, tuftNoise, { segments: [6, 6], rings: [2, 2], topGain: 1.18, rimGain: 0.55 });
+    const cap = dropDegenerate(merge([capSheet, capTufts.geometry]));
     const capMesh = new Mesh(cap, mats.capMoss);
     capMesh.name = `distant-house-cap:${def.id}`;
     capMesh.castShadow = capMesh.receiveShadow = true;
     group.add(capMesh);
     tris += triangles(cap);
     degenerate += countDegenerate(cap);
+    const skirtMesh = new Mesh(capSkirt, mats.bark);
+    skirtMesh.name = `distant-house-cap-skirt:${def.id}`;
+    skirtMesh.castShadow = skirtMesh.receiveShadow = true;
+    group.add(skirtMesh);
+    tris += triangles(capSkirt);
+    degenerate += countDegenerate(capSkirt);
 
     // ---- planks: platform, walkway stub, window bars, pod hangers ----
     const plankParts: BufferGeometry[] = [];
