@@ -53,12 +53,15 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
     else assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
     const slot=it.data[2]*4,idx=Math.floor(slot);assert.ok(idx>=0&&idx<=3,'palette index 0..3');assert.ok(slot-idx>=0&&slot-idx<=0.75+1e-6,'slot fraction is a shade lift or a bank darkening');
     const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);assert.ok(it.data[3]-tile<=0.95+1e-6,'dryness ≤ 0.95');}}
-// neighbouring mats never step hard in tone (the blades' drift at half strength, continuous): two mats within
-// 0.8 m differ by < 1.2 entries at the steepest of the tint mottle, by < 0.35 at the median pair
+// neighbouring mats never step hard in tone (the blades' drift at half strength, continuous): of every pair of
+// mats within 0.8 m, the median differs by < 0.35 entries, the 99th percentile by < 0.75, the steepest (the
+// giants' litter-floor offset meeting the tint mottle) by < 1.25
 {const ms=a.carpet.mats.items.filter(it=>Math.hypot(it.x,it.z)<14);const steps=[];
-  for(let i=0;i<ms.length;i+=3)for(let j=i+1;j<Math.min(ms.length,i+400);j++){const p=ms[i],r=ms[j];if(Math.hypot(p.x-r.x,p.z-r.z)>0.8)continue;steps.push(Math.abs(p.data[0]-r.data[0]));}
-  steps.sort((p,r)=>p-r);const median=steps[Math.floor(steps.length/2)],maxStep=steps[steps.length-1];
-  assert.ok(steps.length>=1500&&maxStep<1.2&&median<0.35,`${steps.length} mat pairs within 0.8 m, median palette step ${median.toFixed(3)}, largest ${maxStep.toFixed(3)}`);}
+  const g=new Map(),key=(x,z)=>`${Math.floor(x/0.8)},${Math.floor(z/0.8)}`;for(const it of ms){const k=key(it.x,it.z);(g.get(k)||g.set(k,[]).get(k)).push(it);}
+  for(const p of ms){const cx=Math.floor(p.x/0.8),cz=Math.floor(p.z/0.8);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const arr=g.get(`${cx+dx},${cz+dz}`);if(!arr)continue;
+    for(const r of arr){if(r===p||r.x<p.x||(r.x===p.x&&r.z<=p.z))continue;if(Math.hypot(p.x-r.x,p.z-r.z)>0.8)continue;steps.push(Math.abs(p.data[0]-r.data[0]));}}}
+  steps.sort((p,r)=>p-r);const q=f=>steps[Math.min(steps.length-1,Math.floor(f*steps.length))];
+  assert.ok(steps.length>=5000&&q(1)<1.25&&q(0.99)<0.75&&q(0.5)<0.35,`${steps.length} mat pairs within 0.8 m, median palette step ${q(0.5).toFixed(3)}, p99 ${q(0.99).toFixed(3)}, largest ${q(1).toFixed(3)}`);}
 // determinism: a fresh seed and terrain reproduce every card
 for(const k of['clumps','mats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
   for(let i=0;i<first.count;i++)assert.deepEqual(first.items[i],second.items[i],`${k} ${i} reproduced`);}
@@ -96,10 +99,11 @@ for(const spot of LAYOUT.npcSpots)for(const it of a.carpet.clumps.items)if(Math.
 // shot D's right verge (plants.test: ≤ 0.55 m) and the house flight's south flank (≤ 0.12 m + the lawn's feather)
 for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(scaleY(it)<=0.55);
   const hl=a.field.houseFlightLocal(it.x,it.z);if(hl&&hl.v>0&&a.field.houseFlankZone(it.x,it.z)>0.99)assert.ok(scaleY(it)<=0.1201,`south flank clump ${scaleY(it).toFixed(3)} m`);}
-// v9: the frames' bank masses and camera C's trodden foot are not tufted turf — the fans thin to ≤ 40 % of the
-// lawn's density in the bank cores and ≤ 30 % in the foot core, the mats to ≤ 20 % in the foot core (the
-// blades' dusty fringe and the ground do frame 46 s there); a mat never takes the shade lift (slot fraction
-// 0.25 exactly where it is not bank-darkened) — it faces the sky the lifted blades under-collect
+// v9 / v13: the frames' bank masses and camera C's trodden foot are not tufted turf — the fans thin to ≤ 40 % of
+// the lawn's density in the bank cores and ≤ 30 % in the foot core, and no mat seats in either core (v13: a
+// metre-wide lit plane there is a single bright decal on frames 14 / 24 / 46 s' dark ground; the blades' dusty
+// fringe and the soil do those cells); a mat never takes the shade lift (slot fraction 0.25 exactly where it is
+// not bank-darkened) — it faces the sky the lifted blades under-collect
 {const {C_FOOT}=read('vegetation/field');const lawn=[-3.1,-8.4,-1.9,-6.6];
   const core=(set,pick)=>{const n=set.items.filter(pick).length;return n;};
   const footPick=it=>a.field.cFoot(it.x,it.z)>0.95&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
@@ -109,10 +113,15 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   const footCells=cells(footPick,CLUMP_CELL),bankCells=cells(bankPick,CLUMP_CELL);
   assert.ok(footCells>20&&bankCells>20,`foot ${footCells} / bank ${bankCells} cells sampled`);
   const lawnClumps=perM2(a.carpet.clumps,lawn)*CLUMP_CELL*CLUMP_CELL,lawnMats=perM2(a.carpet.mats,lawn)*MAT_CELL*MAT_CELL;
-  const footClumps=core(a.carpet.clumps,footPick)/footCells,bankClumps=core(a.carpet.clumps,bankPick)/bankCells,footMats=core(a.carpet.mats,footPick)/cells(footPick,MAT_CELL);
+  const footClumps=core(a.carpet.clumps,footPick)/footCells,bankClumps=core(a.carpet.clumps,bankPick)/bankCells;
   assert.ok(footClumps<=0.3*lawnClumps,`foot clumps ${footClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(bankClumps<=0.4*lawnClumps,`bank clumps ${bankClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
-  assert.ok(footMats<=0.2*lawnMats,`foot mats ${footMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}`);
+  assert.ok(lawnMats>0.5,`lawn mats ${lawnMats.toFixed(2)} / cell`);
+  for(const it of a.carpet.mats.items){assert.ok(a.field.cFoot(it.x,it.z)<1,`mat in the C-foot core at ${it.x.toFixed(1)},${it.z.toFixed(1)}`);assert.ok(a.field.bankDark(it.x,it.z)<1,`mat in the bank core at ${it.x.toFixed(1)},${it.z.toFixed(1)}`);}
+  // the feathers still thin: within the half-zones the mats run under half the lawn's density
+  const footHalf=it=>a.field.cFoot(it.x,it.z)>0.5&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5,bankHalf=it=>a.field.bankDark(it.x,it.z)>0.5&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
+  const footMats=core(a.carpet.mats,footHalf)/cells(footHalf,MAT_CELL),bankMatsD=core(a.carpet.mats,bankHalf)/cells(bankHalf,MAT_CELL);
+  assert.ok(footMats<=0.5*lawnMats&&bankMatsD<=0.5*lawnMats,`foot ${footMats.toFixed(2)} / bank ${bankMatsD.toFixed(2)} mats per cell over the half-zones vs lawn ${lawnMats.toFixed(2)}`);
   // v10: the shade embankment keeps its mats (closed) but half its fans (frame 8's right bank is a blur)
   const shadePick=it=>a.field.shadeZone(it.x,it.z)>0.9&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
   const shadeClumps=core(a.carpet.clumps,shadePick)/cells(shadePick,CLUMP_CELL),shadeMats=core(a.carpet.mats,shadePick)/cells(shadePick,MAT_CELL);
@@ -121,13 +130,13 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(inBox({x:(C_FOOT[0]+C_FOOT[2])/2,z:(C_FOOT[1]+C_FOOT[3])/2},C_FOOT));
   let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.01)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
   assert.ok(shaded>=100,`${shaded} mats in the shade zone core`);}
-// steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats (v12) are gone by 0.6 (≈ 66°) —
-// on the main flight's 60° north bank they ran as a flat lit band — and the bank's mats carry a darkening past the blades' 0.6
+// steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats, which lie on the face, hold
+// to the cliffs (0.5–0.75 ≈ 60–75°) so the stair flanks' blade turf sits on turf, and shrink across the band
 for(const it of a.carpet.clumps.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.7,`clump on a ${s.slope.toFixed(2)} slope`);}
-{let steep=0,bankDark=0,bankMats=0;for(const it of a.carpet.mats.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.6,`mat on a ${s.slope.toFixed(2)} slope`);if(s.slope>0.4)steep++;
-    const bank=a.field.bankDark(it.x,it.z);if(bank>0.9){bankMats++;const d=(0.25-(it.data[2]*4-Math.floor(it.data[2]*4)))*4;if(d>0.9)bankDark++;}}
-  assert.ok(steep>=30&&steep<=400,`${steep} mats on the 0.4–0.6 slopes (the fade band)`);
-  assert.ok(bankMats>=60&&bankDark>=0.95*bankMats,`${bankDark} of ${bankMats} bank mats carry a ≥ 0.9 darkening`);}
+{let steep=0,flat=0,steepW=0,flatW=0;for(const it of a.carpet.mats.items){a.field.sample(it.x,it.z,s);assert.ok(s.slope<0.75,`mat on a ${s.slope.toFixed(2)} slope`);
+    const w=scaleX(it);if(s.slope>0.5){steep++;steepW+=w;}else if(s.slope<0.2){flat++;flatW+=w;}}
+  assert.ok(steep>=30&&steep<=400,`${steep} mats on the 0.5–0.75 slopes (the fade band)`);
+  assert.ok(steepW/steep<0.9*(flatW/flat),`steep mats ${(steepW/steep).toFixed(2)} m wide vs flat ${(flatW/flat).toFixed(2)} m`);}
 // the sets: no shadow casting (the blade tiles never cast), receive on, one draw per LOD, culled per instance
 for(const set of a.carpet.all){set.update(new THREE.Vector3(0,1.5,0),true);
   for(const m of set.group.children){assert.equal(m.castShadow,false);assert.equal(m.receiveShadow,true);assert.ok(m.geometry.attributes.aData.isInstancedBufferAttribute,'aData rides the pack mesh');}

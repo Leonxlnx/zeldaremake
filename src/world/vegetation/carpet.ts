@@ -62,30 +62,30 @@ const CLUMP_LOD_NEAR = 12;
 const CLUMP_MAX_DISTANCE = 16;
 /**
  * cards steeper than this (slope = 1 − ny: 0.45 ≈ 57°) lose density — a fan of upright planes on
- * a 60° face reads as cards; the mats, which lie on the face like decals, held until the cliffs
- * (0.5–0.75 ≈ 60–75°) through v11, so the stair flanks' blade turf (grass.ts FLANK_EXTRA) sat on
- * turf too — but on the main flight's 60° north bank (bankDark 1, slope 0.46–0.54, 21–36 mats
- * within 1.5 m, 2–4 fans, the blades short and darkened) the lit mats ran as one flat bright
- * band down a face frames 8 / 46 s render as a dark mass (B's mound crop). v12: the mats fade
- * with the fans, a little earlier, and are gone by 0.6 (≈ 66°); the flank blades hold the faces.
+ * a 60° face reads as cards; the mats, which lie on the face like decals, hold until the cliffs
+ * (0.5–0.75 ≈ 60–75°), so the stair flanks' blade turf (grass.ts FLANK_EXTRA) sits on turf too
+ * (v12 faded them with the fans and lost D's flank cells: the mats there are 15–30 m off and a
+ * few pixels wide; what read as decals was the bank's and the foot's mats — see MAT_BANK_CUT)
  */
 const SLOPE_THIN: readonly [number, number] = [0.45, 0.7];
-const MAT_SLOPE_THIN: readonly [number, number] = [0.42, 0.6];
+const MAT_SLOPE_THIN: readonly [number, number] = [0.5, 0.75];
 /** bank darkening and its flattening of the blade-to-blade contrasts — the blades' constants (grass.ts) */
 const BANK_DARKEN = 0.6;
 const BANK_FLAT = 0.7;
-/**
- * a mat's bank darkening over the blades' (v12): a blade in the dark mass is a sliver shaded by
- * its neighbours, a mat is a lit plane — at the blades' × 0.7 it stayed the brightest thing on the
- * bank; the mats' slot carries up to 0.96 (materials.ts: × (1 − 0.5 d), 30 % × d desaturated)
- */
-const MAT_BANK_DARKEN = 1.6;
 /** the house flight's south flank cap (grass.ts HOUSE_FLANK_MAX_H_SOUTH) */
 const HOUSE_SOUTH_MAX_H = 0.12;
-/** density cuts (v9, see seatClump / seatMat): the frames' bank masses and trodden foot are not tufted turf */
+/**
+ * density cuts (v9 / v13, see seatClump / seatMat): the frames' bank masses and trodden foot are
+ * not tufted turf. The fans thin there; the mats are gone (v13): a mat is a lit metre-wide plane
+ * — 180 px across at 9 m — and the few that seated in the C-foot core (10 % of the cells) and on
+ * the mound's bank face stood as single bright decals over the dark soil frames 14 / 24 s render
+ * as one lit slope (B's mound crop: E's whole loss, −0.0014, in that one 16 × 9 cell; v12's
+ * darkening the bank's mats 1.6 × left the foot's as the blob and cost A's and C's bank cells)
+ */
 const CLUMP_BANK_CUT = 0.7;
 const CLUMP_FOOT_CUT = 0.8;
-const MAT_FOOT_CUT = 0.9;
+const MAT_FOOT_CUT = 1;
+const MAT_BANK_CUT = 1;
 const CLUMP_SHADE_CUT = 0.5;
 /** the share of the blades' shade-zone palette bias (grass.ts: +0.35) a mat does not take */
 const MAT_SHADE_BIAS_CUT = 0.175;
@@ -326,9 +326,10 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     if (t.stone < 0.12) return;
     // the mats close the ground everywhere the turf grows, bar the frames' bare earth: the
     // trodden strip's dirt patches, D's soil shoulders, camera C's trodden foreground, the
-    // litter under the giants; steep faces take smaller mats and none past the thin band
+    // litter under the giants, the dark bank masses (none in the last two — the fans thin there,
+    // the blades hold them); steep faces take smaller mats and none past the thin band
     const slopeK = 1 - smoothstep(MAT_SLOPE_THIN[0], MAT_SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloff(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * (1 - MAT_BANK_CUT * t.bank) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     let w = (MAT_WIDTH[0] + (MAT_WIDTH[1] - MAT_WIDTH[0]) * rng()) * (1 - 0.4 * smoothstep(MAT_SLOPE_THIN[0] * 0.6, MAT_SLOPE_THIN[1], s.slope));
     // across the house flight's north-flank feather (a 0.6-entry step in the palette the blades
@@ -359,7 +360,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, yaw, w, 1, w);
     data[0] = matPalettePosition(tint);
     data[1] = 1;
-    data[2] = tintSlot(0, 0, clamp(t.darken * MAT_BANK_DARKEN, 0, 0.96));
+    data[2] = tintSlot(0, 0, t.darken);
     data[3] = tile + dry;
     mats.add(M, 0, white, data);
     if (mats.count % 53 === 0) matSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
