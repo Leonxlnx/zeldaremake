@@ -99,3 +99,17 @@ The high-flexion contacts lie on skin influenced by elbow/shoulder weights, not 
 `guard-addition.glb` is a standalone613236-byte review asset with4meshes,3materials and1skin. Existing body weights are retained through evaluated thickness/bevel. An initial exporter warning was traced to two tiny negative weights produced by bevel interpolation (vertices741/742, group10); the exporter clamps only negative roundoff within1e-6 and normalizes those vertices. Native mesh validation then reports no repairs and the export completes without the warning. Positions/normals/joints/weights are present for all primitives; no animations or images are embedded. Procedural leather bump is not baked, so this does not yet reproduce the full native material in game. The original runtime character is unchanged.
 
 Next: integrate the four addition meshes using the existing runtime skeleton and unchanged clips, bake/review leather detail, then capture real game animation and fit. Local packed source: forearm-guards-clearance-study.blend.
+
+## Runtime integration and initial leather normal bake
+
+`merge_guard_runtime.mjs` appends the four evaluated additions to the original runtime's skeleton, verifies all19 inverse-bind matrices, remaps joint indices by bone name, and asserts that original binary/meshes/rig/clips/images remain unchanged. The first schema check assumed16-bit joint indices; Blender used the legal8-bit form, now explicitly supported with range checks.
+
+Unbaked candidateb2da5c64 passes18studio views and300actual-world walk/run/idle frames; motion samples exactly match baseline24591126, no page errors or reach clamps. World audit87338triangles versus70442baseline. `guard-world-run.png` is actual game evidence. This is not a per-triangle animated collision measurement.
+
+Original procedural leather grain is now baked into two512-square normal maps using native Cycles. UVs are unwrapped, guard positions asserted unchanged, grain scale240, no source character texture edits. The first bake failed because study objects were hidden; retry enables/restores their render visibility. Updated addon carries the two normal maps. Candidate62b023364ec0e0b579badf75662766b63aab9355da68859eb0ba7abdef9c8027 passes18studio views plus8guard closeups; it has not yet repeated the world test after this material/UV change. The capture helper checks material-split children through their named parent. The first closeup attempt failed its narrower mesh-name selector and is excluded.
+
+The leather still looks too uniform in the runtime closeup. The running closeup is partly occluded by the hand and is not enough to accept the whole fit. Neither variant is promoted. Next improve the leather response and use unobstructed animated guard views before deciding on delivery.
+
+| Runtime idle detail | Runtime run detail (hand occludes guard) |
+| --- | --- |
+| ![Idle](guard-L-idle.png) | ![Run](guard-L-run.png) |

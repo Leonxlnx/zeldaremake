@@ -55,6 +55,23 @@ try{
     }
     return [gait,{samples:121,minimum_sole_y:minimum,worst_phase:worstPhase}];
   })));
+  if(process.argv.includes('--guards')){
+    report.guard_views={};
+    for(const side of ['L','R'])for(const gait of ['idle','walk','run','stairs']){
+      const name=`guard-${side}-${gait}`;
+      const info=await page.evaluate(({side,gait})=>{
+        REVIEW.pose(gait,REVIEW.durations[gait]*.25);
+        const a=REVIEW.camera.position.clone(),b=a.clone();
+        REVIEW.model.getObjectByName('elbow'+side).getWorldPosition(a);
+        REVIEW.model.getObjectByName('hand'+side).getWorldPosition(b);
+        a.lerp(b,.55);REVIEW.camera.position.copy(a);REVIEW.camera.position.x+=side==='L'?.08:-.08;REVIEW.camera.position.y+=.04;REVIEW.camera.position.z+=.34;REVIEW.camera.lookAt(a);REVIEW.stats();
+        const guards=[];REVIEW.model.traverse(o=>{if(o.isMesh&&/forearm.*guard/i.test(o.name+' '+o.parent?.name))guards.push({name:o.name,normalMap:!!o.material.normalMap});});
+        return {guards,camera:REVIEW.camera.position.toArray(),target:a.toArray()};
+      },{side,gait});
+      assert.ok(info.guards.length>0,'Guard meshes missing');
+      await page.screenshot({path:path.join(output,name+'.png')});report.guard_views[name]=info;
+    }
+  }
   if(process.argv.includes('--blink')||process.argv.includes('--blink-motion')){
     const motion=process.argv.includes('--blink-motion');
     const ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};

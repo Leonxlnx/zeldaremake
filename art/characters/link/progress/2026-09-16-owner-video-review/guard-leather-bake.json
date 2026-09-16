@@ -1,0 +1,17 @@
+{
+  "status": "Baked candidate; inspect runtime normal response",
+  "maps": [
+    {
+      "side": "L",
+      "size": 512,
+      "sha256": "3227aaf4d0a7703675c3d7a7380be45aede748680a2463d2dce5a4e948f9f7c8",
+      "positions_exact": true
+    },
+    {
+      "side": "R",
+      "size": 512,
+      "sha256": "02355ab710f70127c66379a9e74ca88d0b250653834af7edfd6c2d43aaa16154",
+      "positions_exact": true
+    }
+  ]
+}
