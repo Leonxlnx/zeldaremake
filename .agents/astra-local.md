@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-daylight
-updated: 2026-09-16T12:35:00Z
+updated: 2026-09-16T13:00:36.3497848Z
 ---
 
 # astra-local — roster entry
@@ -43,3 +43,8 @@ Owner-directed daylight, sky and shadow refinement until 13:35 UTC (15:35 Berlin
 
 
 2026-09-16T12:35:00Z — Clear-air defaults validated by native take0110: D purple .00334, 24/50, phase1 20/42, zero console errors and determinism diff,84 anticheat green. Build/typecheck pass. Existing shaft structure retained; fanMix0 experiment rejected. Evidence art/environment/clear-air-review. All captures terminal; preview61018 now index-0Rbob-4s.js. Automation remains PAUSED, direct work continues through13:35 UTC.
+
+2026-09-16T12:54:00Z — Direct work ongoing, heartbeat remains PAUSED. Bias -.00006 / normal .012 experiment rejected; tighter stronger near AO (.25 radius/.45 near) rejected, defaults preserved. Native60-frame camera translation 12-43-47 captured (fixedtime12.6), raw hashes retained; MP4 omits first reference-placement frame. Evidence art/environment/shadow-camera-review, no FPS/no-flicker guarantee. Trial sun penumbra .0093/m (documented physical diameter) looks cleaner on A/C/F; default source now changed, build index-Dl54IzFQ.js; full7view default capture running94817, do not rebuild during it. Projection11520 and shadowcull tests pass. Clear-air8341d8cd CI still capturing.
+
+
+2026-09-16T13:00:36.3497848Z — Sun penumbra .0093 retained after seven default views and native take0111 (24/50,0console/determinism,84anti-cheat,D purple .00336). Native2048/8 A,F,contact also reviewed, no page errors, no quality-default reduction. Matrix/cull tests green. Camera-translation evidence included; bias and stronger AO attempts not retained. Active preview61018 index-Dl54IzFQ.js. All capture sessions terminal; next inspect a camera ascent toward the open sky and coordinate hand-back with Fable. Direct window through13:35UTC, automation PAUSED.

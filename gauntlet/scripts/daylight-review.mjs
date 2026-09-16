@@ -30,6 +30,18 @@ try {
   report.images[id]={sha256:crypto.createHash('sha256').update(png).digest('hex'),...await page.evaluate(()=>({stats:__ZR__.stats(),camera:__ZR__.cameraPose(),lighting:__ZR__.audit().systems.lighting}))};
   console.log('Captured',id);
  }
+ if(settings.walkFrames) {
+  assert(Number.isInteger(settings.walkFrames)&&settings.walkFrames>=2&&settings.walkFrames<=180);
+  report.walk=[];
+  for(let i=0;i<settings.walkFrames;i++) {
+   const x=0.4+1.2*i/(settings.walkFrames-1);
+   await page.evaluate(async x=>{__ZR__.setPose([x,1.8,8.6],[x+6.3,.89,-5.8],46);__ZR__.setTime(12.6);await __ZR__.render(1,0);},x);
+   const file=`walk-${String(i).padStart(3,'0')}.png`;
+   const png=await page.screenshot({path:path.join(out,file)});
+   report.walk.push({file,x,sha256:crypto.createHash('sha256').update(png).digest('hex')});
+  }
+  console.log('Captured camera translation',report.walk.length,'frames at fixed simulation time');
+ }
  assert.deepEqual(report.errors,[]);report.complete=true;
 } finally {await fs.writeFile(path.join(out,'manifest.json'),JSON.stringify(report,null,2));await browser?.close();await server.close();}
 console.log(out);
