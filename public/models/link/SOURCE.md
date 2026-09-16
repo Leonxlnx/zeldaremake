@@ -1,3 +1,6 @@
+Retained inner-eyelid corner correction: 4741cf3ec4fd1f8635a1bf980fc40ce5bc7722403076967b797cf2c2e4df1768
+Seventeen native vertices receive at most 0.096 mm of closed-pose separation and half that at the halfway key. All 41 sampled phases have zero nonadjacent eyelid self-intersections and zero eyeball intersections; 21 phase triangle-orientation checks pass. Rest geometry, reviewed animated normals, texture, rig and clip bytes remain unchanged. In-game blink views retain the smooth shading and 36 movement samples match the parent. Evidence: art/characters/link/progress/2026-09-16-corner-separation-review.
+
 Retained blink shading refinement: 17d18d157127d290b0aab5f72acbf5e397628034d6058626ae36409d5907583d
 Only animated orbital NORMAL accessors change. Rest shading, mesh positions, morph positions, textures, rig and animation bytes remain unchanged. Twelve adjacency-smoothing iterations remove most visible closed-lid ridges. Native geometry remains alert-eyelid-study; study_blink_normal_field.py is a required export post-process, recorded in blink-normal-field-study.blend. Four small full-closure self-intersection pairs remain; shape/topology is not claimed fixed. Evidence: art/characters/link/progress/2026-09-16-blink-normal-field-review.
 

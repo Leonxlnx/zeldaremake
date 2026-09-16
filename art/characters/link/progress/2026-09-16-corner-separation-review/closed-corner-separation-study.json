@@ -1,0 +1,488 @@
+{
+  "patch": [
+    {
+      "vertex": 25180,
+      "base": [
+        0.029583711177110672,
+        0.9743548035621643,
+        0.10918904095888138
+      ],
+      "delta": 2.5911839672123823e-05
+    },
+    {
+      "vertex": 25181,
+      "base": [
+        0.03107360005378723,
+        0.9729294180870056,
+        0.10239480435848236
+      ],
+      "delta": 9.573719344233113e-05
+    },
+    {
+      "vertex": 25221,
+      "base": [
+        0.031076524406671524,
+        0.9759230613708496,
+        0.1082206517457962
+      ],
+      "delta": 1.3970910079151652e-07
+    },
+    {
+      "vertex": 25222,
+      "base": [
+        0.03192491829395294,
+        0.9749353528022766,
+        0.10322593152523041
+      ],
+      "delta": 1.6270262266068348e-05
+    },
+    {
+      "vertex": 25223,
+      "base": [
+        0.03139413148164749,
+        0.9739079475402832,
+        0.10266374051570892
+      ],
+      "delta": 6.222840516904484e-05
+    },
+    {
+      "vertex": 25237,
+      "base": [
+        0.029535148292779922,
+        0.9729084372520447,
+        0.10852296650409698
+      ],
+      "delta": 5.976975399555417e-05
+    },
+    {
+      "vertex": 25239,
+      "base": [
+        0.030966410413384438,
+        0.9719414114952087,
+        0.10245184600353241
+      ],
+      "delta": 6.90613468435312e-05
+    },
+    {
+      "vertex": 25285,
+      "base": [
+        0.02822725661098957,
+        0.9746253490447998,
+        0.11304401606321335
+      ],
+      "delta": 1.0030661105459383e-09
+    },
+    {
+      "vertex": 25288,
+      "base": [
+        0.028262527659535408,
+        0.9727875590324402,
+        0.11250387132167816
+      ],
+      "delta": 1.1734523014095467e-05
+    },
+    {
+      "vertex": 34507,
+      "base": [
+        0.0314551405608654,
+        0.9729022979736328,
+        0.10329864919185638
+      ],
+      "delta": 9.200893393610107e-05
+    },
+    {
+      "vertex": 34510,
+      "base": [
+        0.03230232745409012,
+        0.9749593734741211,
+        0.10410736501216888
+      ],
+      "delta": 1.0873089775854154e-05
+    },
+    {
+      "vertex": 34511,
+      "base": [
+        0.031774044036865234,
+        0.97389817237854,
+        0.1035480946302414
+      ],
+      "delta": 5.6492232622356254e-05
+    },
+    {
+      "vertex": 34514,
+      "base": [
+        0.031348779797554016,
+        0.9719313383102417,
+        0.10335664451122284
+      ],
+      "delta": 6.617610372383602e-05
+    },
+    {
+      "vertex": 34571,
+      "base": [
+        0.03192146494984627,
+        0.9729359149932861,
+        0.1033848226070404
+      ],
+      "delta": 7.949328014970818e-05
+    },
+    {
+      "vertex": 34574,
+      "base": [
+        0.03276360034942627,
+        0.9749861359596252,
+        0.10419502854347229
+      ],
+      "delta": 4.569896362227756e-06
+    },
+    {
+      "vertex": 34575,
+      "base": [
+        0.03223838657140732,
+        0.9739496111869812,
+        0.10363611578941345
+      ],
+      "delta": 4.330815445557556e-05
+    },
+    {
+      "vertex": 34578,
+      "base": [
+        0.03181611746549606,
+        0.9719491600990295,
+        0.10343471169471741
+      ],
+      "delta": 6.046514439733227e-05
+    }
+  ],
+  "checks": [
+    {
+      "phase": 0.0,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.025,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.05,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.075,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.1,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.125,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.15,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.175,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.2,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.225,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.25,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.275,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.3,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.325,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.35,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.375,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.4,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.425,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.45,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.475,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.5,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.525,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.55,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.575,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.6,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.625,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.65,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.675,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.7,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.725,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.75,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.775,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.8,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.825,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.85,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.875,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.9,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.925,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.95,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 0.975,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    },
+    {
+      "phase": 1.0,
+      "self_overlaps": 0,
+      "eye_overlaps": [
+        0,
+        0
+      ]
+    }
+  ],
+  "status": "Native candidate only"
+}

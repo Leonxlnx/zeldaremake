@@ -1,0 +1,9 @@
+{
+  "sha256": "4741cf3ec4fd1f8635a1bf980fc40ce5bc7722403076967b797cf2c2e4df1768",
+  "vertices": 17,
+  "exported_target_updates": 42,
+  "original_binary_exact": true,
+  "only_morph_position_accessors_changed": true,
+  "maximum_native_delta_m": 9.573719344233113e-05,
+  "status": "Runtime visual review pending"
+}
