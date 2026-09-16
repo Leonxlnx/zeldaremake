@@ -2627,6 +2627,31 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const EDGE_ROUND = 0.045 * k;
   /** the bark eave's depth under the moss shell at v (fades to 0 where the curl meets the soffit) */
   const barkInset = (v: number) => MOSS_THICK * smoothstep(1, 0.92, v);
+  /**
+   * Round 40b: the cushion COLONIES — one field for the tuft placement and for the sheet between
+   * them. 0.3–0.6 m colonies on the cap's own 3D noise (field mean 0.5, sd 0.16, mean slope
+   * 1.37 /m over the cap); `colony(p)` is the membership, 0 in the gaps … 1 in a colony's heart.
+   * The band 0.416–0.486 puts ≈ 30 % of the sheet in the gaps, ≈ 54 % in the hearts, with a
+   * ≈ 5 cm transition (the sheet's grid is ≈ 4 × 9 cm, so the vertex colour carries it as about
+   * one cell). The gaps are a SHADED FLOOR (`FLOOR`, × 0.43–0.46 — the shadow between cushions,
+   * with the grain's pits and flecks faded there) and the hearts are lifted (`HEART`, the lit
+   * tops), so at B's 10–14 m the crown reads as lit cushions on a dark bed rather than as grain —
+   * the reference bough's moss has that dark-gap structure — while the cap's mean tone (frame-B
+   * calibrated, rounds 14–36) holds to within a few per cent (0.3 × 0.45 + 0.54 × 1.12 + the
+   * transition ≈ 0.86 of the sheet's mean, and the tufts stand on the hearts). Measured on the
+   * way here: a × 0.66–0.72 floor over half the sheet moved B's cap mean −1 % and its 8–16 px
+   * block contrast 0 % — the veil at 18 m and the existing ±30 % mottle swallow a cut that
+   * shallow. The floor is a touch cooler than a plain luminance cut so the shade does not drift
+   * yellow; floor and lift fade out where the tufts end (v 0.655–0.705), so the rim and curl
+   * keep their tones.
+   */
+  const colonyField = (p: Vector3) => 0.5 + 0.5 * n3.noise(p.x * 2.6 + 3.1, p.y * 2.6, p.z * 2.6 - 7.7);
+  const colony = (p: Vector3) => smoothstep(0.416, 0.486, colonyField(p));
+  /** the floor's multipliers, and the colony hearts' lift (the lit tops; the cap's mean tone holds) */
+  const FLOOR: [number, number, number] = [0.43, 0.46, 0.46];
+  const HEART = 1.12;
+  /** where the tufts stand (full on the crown and shoulder, none past v 0.705 — the edge rounds from 0.71) */
+  const tuftZone = (v: number) => smoothstep(0.705, 0.655, v);
   const domeVertex = (a: number, v: number, out: SurfaceSample, straw: boolean) => {
     domeBase(a, v, out.position);
     domeNormal(a, v, _n);
@@ -2684,19 +2709,29 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // pits at the vertex pitch: near-uncorrelated between neighbours, so they read as dark dots
     const pit = smoothstep(0.3, 0.8, n3.noise(p.x * 13 + 41, p.y * 13, p.z * 13));
     const fleck = smoothstep(0.55, 0.9, n3.noise(p.x * 11 + 7, p.y * 11, p.z * 11));
+    // round 40b: the colony membership here (1 = colony heart, or off the tuft zone; 0 = the
+    // shaded floor between colonies); the grain's pits and flecks fade on the floor, so the gaps
+    // read as smooth shadow rather than as darker grain
+    const zone = tuftZone(v);
+    const heart = lerp(1, colony(p), zone);
+    const grainK = lerp(0.3, 1, heart);
     // (round 15: the grain's swing is up a fifth — the reference's lit mound has 8×8 tile
     // contrast 0.045 that round 14's leaf blobs, now gone, had been supplying)
     // (round 36: pits ×0.8 deep and flecks ×0.6 bright, were 0.65 / 0.4 — frame B's cap moss by
     // the roof's own mask (0.62–0.98 × 0.05–0.20) runs p10 0.216 / p90 0.597 round a median of
     // 0.436; ours 0.338 / 0.510 round 0.430: the same level, half the grain's range)
-    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.8 * pit) * (1 + 0.6 * fleck);
+    const grain = (0.74 + 0.52 * (0.5 + 0.5 * n3.noise(p.x * 9.1, p.y * 9.1, p.z * 9.1))) * (1 - 0.8 * pit * grainK) * (1 + 0.6 * fleck * grainK);
     // (round 14: the broad mottle is halved — ±0.4 at 0.38/m was the largest coarse term left
     // once the relief's crests stopped carrying the light: moss-face 32 px blotchiness 0.064
     // against the reference's 0.038)
     // (round 15: the broad term is back up to ±0.32 at 0.45/m — the reference mound's
     // luminance tertiles run 0.37 / 0.49 / 0.62, a wide soft shading that the first round-15
     // probe, at ±0.2, rendered as a flat 0.55–0.68 field)
-    const mottle = (0.7 + 0.32 * n3.fbm(p.x * 0.45 + 5, p.y * 0.45, p.z * 0.45 - 2, 2) + 0.1 * n3.noise(p.x * 3.1, p.y * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
+    // (round 40b: in the tuft zone the cushion colonies carry the coarse variation — the random
+    // mottle's swing halves there so the clumps, not the mottle, are what B reads at 8–16 px;
+    // the mean is untouched, and the rim and curl keep the full calibrated mottle)
+    const mottleAmp = lerp(1, 0.5, zone);
+    const mottle = (0.7 + 0.32 * mottleAmp * n3.fbm(p.x * 0.45 + 5, p.y * 0.45, p.z * 0.45 - 2, 2) + 0.1 * mottleAmp * n3.noise(p.x * 3.1, p.y * 3.1, p.z * 3.1 + 1)) * (1 - 0.3 * speck) * grain;
     // Albedos (linear), lit tufts vs hollows. Round 15 retargets them to the reference's lit
     // mound measured by luminance tertile (B, 0.66–0.86 × 0.12–0.25): light rgb(168,162,101) —
     // hue 55°, sat 0.40 —, mid (134,128,77), dark (102,95,58), a warm olive; take-0065 rendered
@@ -2751,7 +2786,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // into the canopy, the less light it gets
     const canopy = lerp(1, 0.65, smoothstep(0.35, 0.95, _n.y));
     const m = Math.min(2, flank * rimShade * mottle * canopy) * MOSS_ALBEDO_PEAK;
-    out.color = [lerp(deep[0], sun[0], bright) * m, lerp(deep[1], sun[1], bright) * m, lerp(deep[2], sun[2], bright) * m];
+    // round 40b: the shaded floor between the cushion colonies, the hearts lifted
+    const lift = lerp(1, HEART, zone);
+    out.color = [lerp(deep[0], sun[0], bright) * m * lerp(FLOOR[0], lift, heart), lerp(deep[1], sun[1], bright) * m * lerp(FLOOR[1], lift, heart), lerp(deep[2], sun[2], bright) * m * lerp(FLOOR[2], lift, heart)];
   };
   const domeMoss = gridSurface((u, v, out) => domeVertex(u * TAU, vMoss(u * TAU, v), out, false), {
     cols: roofRes,
@@ -2920,16 +2957,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const tuftRng = rng.fork('moss-tufts');
   const tuftSpecs: MossTuftSpec[] = [];
   {
-    const attempts = def.id === 'saria' ? 11500 : 3600;
+    const attempts = def.id === 'saria' ? 9000 : 2800;
     const _ts = { position: new Vector3() } as SurfaceSample;
     /** acceptance by cap parameter: full on the crown, ≈ 0.6 over the shoulder, 0 past the edge */
-    const tuftKeep = (v: number) => lerp(1, 0.6, smoothstep(0.32, 0.58, v)) * smoothstep(0.71, 0.62, v);
+    const tuftKeep = (v: number) => lerp(1, 0.6, smoothstep(0.32, 0.58, v)) * tuftZone(v);
     /**
-     * cushion clumping: the tufts gather into 0.3–0.6 m colonies with thinner sheet between
-     * (the reference bough's moss reads as clumped cushions with dark gaps at 8–15 m — a uniform
-     * scatter of 5 cm lumps averages back to a smooth field at that distance)
+     * cushion clumping: the tufts gather into the 0.3–0.6 m colonies (`colony`, shared with the
+     * sheet's shaded floor) with a few stragglers on the floor between — the reference bough's
+     * moss reads as clumped cushions with dark gaps at 8–15 m; a uniform scatter of 5 cm lumps
+     * averages back to a smooth field at that distance
      */
-    const clump = (p: Vector3) => lerp(0.22, 1, smoothstep(0.38, 0.72, 0.5 + 0.5 * n3.noise(p.x * 2.6 + 3.1, p.y * 2.6, p.z * 2.6 - 7.7)));
+    const clump = (p: Vector3) => lerp(0.12, 1, colony(p));
     for (let i = 0; i < attempts; i++) {
       const a = tuftRng() * TAU;
       // area-uniform on the cap top (r ∝ q on the plateau)

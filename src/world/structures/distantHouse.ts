@@ -341,6 +341,10 @@ const POD_STEM: RGB = [0.06, 0.045, 0.03];
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
 const mix = (a: RGB, b: RGB, t: number, m = 1): RGB => [lerp(a[0], b[0], t) * m, lerp(a[1], b[1], t) * m, lerp(a[2], b[2], t) * m];
 const scaleRGB = (c: RGB, m: number): RGB => [c[0] * m, c[1] * m, c[2] * m];
 const az = (deg: number) => new Vector3(Math.sin(deg * DEG), 0, Math.cos(deg * DEG));
@@ -923,13 +927,23 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       const y = eaveY - 0.14 + (def.capHeight + 0.14) * Math.pow(Math.sin((v * Math.PI) / 2), 1.15);
       return out.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
     };
-    const capColor = (a: number, v: number): RGB => {
+    /**
+     * round 40b: the cushion colonies (as on Saria's cap) — the tufts gather where it is high
+     * and the sheet between them is a shaded floor (× 0.45 in the gaps, ≈ 30 % of the sheet; the
+     * hearts × 1.08); on this 28 × 7 sheet the floor is a soft mottle at the huts' 24 m, which is
+     * the lighter treatment
+     */
+    const colony = (p: Vector3) => smoothstep(0.416, 0.5, 0.5 + 0.5 * tuftNoise.noise(p.x * 2.2 + 1.7, p.y * 2.2, p.z * 2.2 + 4.1));
+    const capColor = (a: number, v: number, p: Vector3): RGB => {
       const mottle = 0.85 + 0.3 * (0.5 + 0.5 * Math.sin(11 * a + 6 * v + capPhase));
       // the camera-facing half keeps the deep moss (CAP_FACING_DARKEN), the far half the sunlit mix
       const facingHalf = Math.max(0, Math.cos(a - aWin));
       const bright = (0.35 + 0.3 * (0.5 + 0.5 * Math.sin(7 * a - 4 * v + capPhase * 0.7))) * (1 - CAP_FACING_DARKEN * facingHalf);
       const m = MOSS_ALBEDO_PEAK * lerp(0.9, 0.62, v) * mottle * (1 - 0.5 * CAP_FACING_DARKEN * facingHalf);
-      return mix(MOSS_DEEP, MOSS_SUN, bright, m);
+      // the floor fades out on the under-curl (v < 0.12, no tufts there)
+      const z = smoothstep(0.04, 0.14, v);
+      const floor = lerp(lerp(1, 0.45, z), lerp(1, 1.08, z), colony(p));
+      return mix(MOSS_DEEP, MOSS_SUN, bright, m * floor);
     };
     const _cp = new Vector3();
     const _cq = new Vector3();
@@ -945,7 +959,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         const rr = Math.hypot(out.position.x - c.x, out.position.z - c.z);
         out.uv = [(Math.cos(a) * (rr + 0.3)) / 1.6, (Math.sin(a) * (rr + 0.3)) / 1.6];
         const under = lerp(0.45, 1, Math.min(1, v * 8));
-        const col = capColor(a, vm);
+        const col = capColor(a, vm, out.position);
         out.color = [col[0] * under, col[1] * under, col[2] * under];
       },
       { cols: 28, rows: 7, closedU: true },
@@ -969,17 +983,19 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const tuftRng = r.fork('moss-tufts');
     const tuftSpecs: MossTuftSpec[] = [];
     const _tn = new Vector3();
-    for (let i = 0; i < 110; i++) {
+    for (let i = 0; i < 200; i++) {
       const a = tuftRng() * TAU;
       const v = 0.12 + Math.sqrt(tuftRng()) * 0.8;
       const rad = 0.05 + tuftRng() * 0.04;
       capPoint(a, v, _cp);
+      // round 40b: into the colonies, a few stragglers on the floor (≈ 130 of 200 land)
+      if (tuftRng() > lerp(0.12, 1, colony(_cp))) continue;
       // the dome's outward normal from the meridian and ring tangents
       _tn.subVectors(capPoint(a, Math.min(0.999, v + 0.01), _cq), _cp);
       _cq.set(-Math.sin(a), 0, Math.cos(a));
       _tn.cross(_cq).normalize();
       if (_tn.y < 0) _tn.negate();
-      const col = capColor(a, v);
+      const col = capColor(a, v, _cp);
       tuftSpecs.push({
         position: _cp.clone(),
         normal: _tn.clone(),
