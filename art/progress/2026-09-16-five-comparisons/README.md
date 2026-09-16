@@ -64,3 +64,12 @@ Commit935c807c now publishes the previously cloud-local round39 captures; verifi
 ![Fable's matched west-ledge grass comparison](fable-round39-grass.jpg)
 
 My visual review: denser grass coverage and stronger tree-base relief are visible. Near foliage still has broad angular silhouettes, bright fern clusters obscure roots, and conspicuous repeated grass fans/tall dark spikes remain. This is progress, not reference-quality acceptance. [Concrete feedback returned to Fable](https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5703324476). Round40 still needs its own matched delivery.
+
+
+### Active follow-up and character progress
+
+Fresh Fable branch `b2fdd6df` (20:17 UTC) reports round40 still in progress; no round40 comparison delivery is verified yet. [Astra requested concrete progress and matched captures again](https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5704340140). This is a published status report, not direct access to his running process.
+
+[Latest character before/after: original baked leather guards, studio and actual-game evidence](../../characters/link/progress/2026-09-16-owner-video-review/README.md#baked-leather-pbr-and-unobstructed-motion-review). Candidate remains separate because rim shape and fit still need work.
+
+Fable tick117 explicitly places the reviewed flat leaves, obscured roots and repeated grass clumps on his round40 integration checklist. His log reports3 tree,4 structure and4 vegetation commits in its worktrees; those counts are his report, not an accepted integrated result.

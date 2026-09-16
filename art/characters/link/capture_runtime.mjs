@@ -64,7 +64,8 @@ try{
         const a=REVIEW.camera.position.clone(),b=a.clone();
         REVIEW.model.getObjectByName('elbow'+side).getWorldPosition(a);
         REVIEW.model.getObjectByName('hand'+side).getWorldPosition(b);
-        a.lerp(b,.55);REVIEW.camera.position.copy(a);REVIEW.camera.position.x+=side==='L'?.08:-.08;REVIEW.camera.position.y+=.04;REVIEW.camera.position.z+=.34;REVIEW.camera.lookAt(a);REVIEW.stats();
+        const axis=b.clone().sub(a).normalize(),radial=a.clone().set(side==='L'?1:-1,.15,.7);radial.addScaledVector(axis,-radial.dot(axis)).normalize();
+        a.lerp(b,.55);REVIEW.camera.position.copy(a).addScaledVector(radial,.38);REVIEW.camera.lookAt(a);REVIEW.stats();
         const guards=[];REVIEW.model.traverse(o=>{if(o.isMesh&&/forearm.*guard/i.test(o.name+' '+o.parent?.name))guards.push({name:o.name,normalMap:!!o.material.normalMap});});
         return {guards,camera:REVIEW.camera.position.toArray(),target:a.toArray()};
       },{side,gait});

@@ -3,8 +3,8 @@ agent: astra-local
 runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
-branch: agent/astra-local-blender
-updated: 2026-09-16T05:35:41.5810127Z
+branch: agent/astra-local-link-grounding
+updated: 2026-09-16T20:55:00Z
 ---
 
 # astra-local — roster entry
@@ -140,3 +140,7 @@ Rootunionfinal connectivity cleanup: removed isolated3vertex/2facecomponent. Sav
 2026-09-16T19:45Z — Guard high-flexion contacts identified at elbow/shoulder skin blend. Added bounded upper-ring radial clearance and matching interpolated thread displacement:1.5mm gives zero body intersections for all4 evaluated meshes in7isolated elbow-X poses0–1.2rad. Native source saved. Standalone guard-addition.glb613236bytes/4meshes/3materials/1skin exported with existing weights. Initial warning traced to two tiny bevel-negative weights, clamped within1e-6 and renormalized only affected vertices; native validation clean and re-export warning-free. GLB attribute checks pass; no images/animations. Procedural bump not baked; actual game clip integration pending. Default runtime unchanged. Goal incomplete; next merge addition into actual game skeleton then inspect moving fit/material, not more isolated rest tests.
 
 2026-09-16T20:20Z — Guard addon integrated as candidate using verified19joint inverse binds and original runtime rig/clips/binary. Unbakedb2da5c64:18studio+300worldframes, samplesexactbaseline,0errors/clamps,87338tris. Native512normal maps baked; hidden-object bake error corrected, positions unchanged. Baked62b02336:18studio+8closeups, normal maps loaded, but leather still uniform and runcloseup hand-occluded. No promotion; actual-world test covers unbaked candidate only. Added reusable --guards capture selector handling material-split parent names. Next material quality/unoccluded motion; source runtime remains24591126. Fable fetch still4421864c. Goal incomplete.
+
+
+### 2026-09-16 20:55 UTC — guard PBR review and Fable check-in
+Original six-map leather bake e2e20a28 completes18 studio views,8 arm-relative guard closeups and300 actual-world frames without page errors/reach clamps. Clearer grain, but flexed rim faceting/lacing separation remain; default24591126 unchanged. Published reproducible bake/merge scripts, standalone addon and matched material comparison. Fable fresh b2fdd6df reports round40 mid-flight; requested actual progress and matching images in PR2 comment5704340140. Five-comparison README includes this status and links the new character evidence. No environment geometry edits.

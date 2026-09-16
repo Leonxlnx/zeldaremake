@@ -40,8 +40,7 @@ doc.samplers.push(...(a.samplers??[]));
 for(const tex of a.textures??[])doc.textures.push({...tex,source:tex.source+ii,...(tex.sampler===undefined?{}:{sampler:tex.sampler+si})});
 for(const mat of a.materials){
  const m=structuredClone(mat);
- assert.ok(!m.pbrMetallicRoughness?.baseColorTexture&&!m.pbrMetallicRoughness?.metallicRoughnessTexture&&!m.occlusionTexture&&!m.emissiveTexture);
- if(m.normalTexture)m.normalTexture.index+=ti;
+ for(const tex of [m.normalTexture,m.occlusionTexture,m.emissiveTexture,m.pbrMetallicRoughness?.baseColorTexture,m.pbrMetallicRoughness?.metallicRoughnessTexture])if(tex)tex.index+=ti;
  doc.materials.push(m);
 }
 if(a.extensionsUsed)doc.extensionsUsed=[...new Set([...(doc.extensionsUsed??[]),...a.extensionsUsed])];

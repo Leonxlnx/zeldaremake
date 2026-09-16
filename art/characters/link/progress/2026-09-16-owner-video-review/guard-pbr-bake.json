@@ -1,0 +1,36 @@
+{
+  "status": "PBR candidate; runtime visual check pending",
+  "maps": [
+    {
+      "side": "L",
+      "kind": "color",
+      "sha256": "646b2930386efc859a06b79b2c717ef0a95cf5efb904605bd095db2110813b42"
+    },
+    {
+      "side": "L",
+      "kind": "roughness",
+      "sha256": "f2a93f35288a432a020c9f6ba9e286c806089a06bf237c144c6f8aee755ae159"
+    },
+    {
+      "side": "L",
+      "kind": "normal",
+      "sha256": "d63e08d6055ef31bcda1a96627f763791405b864e6fdd3554c01c6ec3c64fefd"
+    },
+    {
+      "side": "R",
+      "kind": "color",
+      "sha256": "f4ea2f28f52d73090ff98261be95d7a1b046b3e1b9cb66388c373ac3f56dbeb4"
+    },
+    {
+      "side": "R",
+      "kind": "roughness",
+      "sha256": "41fba22a3edade4942047829be9aad278d748be8c9caea052d9915843b045631"
+    },
+    {
+      "side": "R",
+      "kind": "normal",
+      "sha256": "80ea718d1b5ad40127a93ecd51d3b18319b689561be5e0180a1ffe49d52311bc"
+    }
+  ],
+  "geometry_unchanged": true
+}

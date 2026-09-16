@@ -113,3 +113,20 @@ The leather still looks too uniform in the runtime closeup. The running closeup 
 | Runtime idle detail | Runtime run detail (hand occludes guard) |
 | --- | --- |
 | ![Idle](guard-L-idle.png) | ![Run](guard-L-run.png) |
+
+
+## Baked leather PBR and unobstructed motion review
+
+Candidate `e2e20a28e7348670b0c2b637d029398fb9dd0b01538d1216f2c5f0c75d0df478` adds original colour and roughness variation and stronger grain, baked in Blender to six 512-square maps. The merger remaps all standard PBR texture slots and verifies original binary, rig, meshes and clips remain intact. Geometry is unchanged from the clearance candidate.
+
+Both comparisons below use the same new arm-relative camera. Normal-only baseline: 20:46:58 capture, candidate62b02336; PBR: 20:47:05 capture. Each completes 18 standard views and eight guard details with no errors. Adjacent manifests preserve image hashes. Grain is visibly clearer, but guard rim faceting in flexion and floating-looking lacing in this angle still need refinement. This is not final character acceptance.
+
+| Normal-only baseline | Baked colour / roughness / grain |
+| --- | --- |
+| ![Before](guard-pbr-before.png) | ![After](guard-pbr-after.png) |
+
+![Running guard, unobstructed](guard-pbr-run.png)
+
+Actual-world capture20:51:50 tests this exact PBR hash over300 walk/run/idle frames with no errors or reach clamps. It does not measure triangle collisions or test stairs. Material detail is subtle at normal gameplay distance. Default character24591126 is unchanged.
+
+![PBR guard in game](guard-pbr-world.png)

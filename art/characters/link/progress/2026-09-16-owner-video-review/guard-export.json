@@ -3,5 +3,5 @@
   "evaluated_vertices": 9312,
   "weights_normalized": true,
   "bevel_roundoff_vertices_corrected": 2,
-  "status": "Addon export only; procedural leather bump not baked; original runtime not changed"
+  "status": "Historical geometry export validation; current addon includes six PBR images from guard-pbr-bake.json; default runtime unchanged"
 }
