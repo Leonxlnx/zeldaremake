@@ -1,0 +1,8 @@
+{
+  "status": "Native geometry candidate only",
+  "vertices": 2261,
+  "max_displacement_m": 0.003050259197975213,
+  "boundary_unchanged": true,
+  "triangle_reversals": 0,
+  "outside_normal_roundtrip_error": 0.0005807395987758961
+}

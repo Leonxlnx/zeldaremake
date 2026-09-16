@@ -19,3 +19,11 @@ The first normal check found six corners at one unchanged-position vertex33146 b
 `fringe-smooth-before.png` / `fringe-smooth-after.png`: eight iterations smoothing the displacement and a global scale bound prevent local triangle-area ratios outside.5–2.1277vertices move up to3.359mm; boundary fixed,0 reversed triangles, outside normal error.000581. The angular crease is avoided, but the visual change is too small to replace the thick lock structure. Also not promoted. Strong deformation of the old bounded patch is not the route to a substantially different hair silhouette; the next substantial hair pass needs complete lock surfaces and their attachments handled together.
 
 Native sources fringe-shape-study.blend and fringe-smooth-study.blend stay local. Their scripts reuse study_hair_surface.py from the existing experiment directory. No runtime GLB or animation was changed in this follow-up.
+
+## Current full-hair selection and profiles
+
+The hair region was reselected on the current model using the existing hair albedo/height criteria:5531faces,3168vertices.96vertices on the old selection boundary lie inside the new region;135old selected vertices do not meet the current criteria. `full-hair-mask.json` records the new selection. It is an editing mask, not proof of anatomical segmentation.
+
+Full-region smooth warp:2261vertices,max3.050mm,0reversed triangles. A stronger experimental area allowance(.1–10 instead of.5–2) permits2269vertices,max5.958mm,still0reversed triangles. Both preserve boundary positions and have outside-normal roundtrip error.000581. The stronger candidate was checked in matched front and oblique-profile renders (`fringe-strong-*`, `profile-*`). Neither materially replaces the broad lock structure; no candidate promoted. Future work should use the current mask to work on complete lock surfaces/attachments, not repeat these small whole-region warps.
+
+Lighting coordination: PR11 exact head9e52630ff0f6f67a1490d102811f621938a7d606 passed CI runs35110957054(push) and35110965324(PR). Fable was notified via PR2 comment5700430168. This is CI confirmation of lighting, not character art acceptance.
