@@ -1,0 +1,159 @@
+{
+  "scope": "Regional triangle-contact heuristic, 57 matching phases, not signed penetration depth",
+  "before_total": 27253,
+  "after_total": 24286,
+  "before_peak": 1325,
+  "after_peak": 750,
+  "worse_phases": [
+    {
+      "phase": 0.017857142857142856,
+      "before": 180,
+      "after": 247
+    },
+    {
+      "phase": 0.03571428571428571,
+      "before": 170,
+      "after": 312
+    },
+    {
+      "phase": 0.05357142857142857,
+      "before": 227,
+      "after": 340
+    },
+    {
+      "phase": 0.07142857142857142,
+      "before": 302,
+      "after": 392
+    },
+    {
+      "phase": 0.08928571428571429,
+      "before": 335,
+      "after": 441
+    },
+    {
+      "phase": 0.10714285714285714,
+      "before": 417,
+      "after": 489
+    },
+    {
+      "phase": 0.125,
+      "before": 393,
+      "after": 606
+    },
+    {
+      "phase": 0.14285714285714285,
+      "before": 485,
+      "after": 567
+    },
+    {
+      "phase": 0.16071428571428573,
+      "before": 433,
+      "after": 585
+    },
+    {
+      "phase": 0.17857142857142858,
+      "before": 421,
+      "after": 660
+    },
+    {
+      "phase": 0.19642857142857142,
+      "before": 537,
+      "after": 672
+    },
+    {
+      "phase": 0.21428571428571427,
+      "before": 591,
+      "after": 711
+    },
+    {
+      "phase": 0.375,
+      "before": 208,
+      "after": 279
+    },
+    {
+      "phase": 0.39285714285714285,
+      "before": 117,
+      "after": 195
+    },
+    {
+      "phase": 0.4107142857142857,
+      "before": 125,
+      "after": 132
+    },
+    {
+      "phase": 0.5178571428571429,
+      "before": 177,
+      "after": 248
+    },
+    {
+      "phase": 0.5357142857142857,
+      "before": 170,
+      "after": 302
+    },
+    {
+      "phase": 0.5535714285714286,
+      "before": 220,
+      "after": 355
+    },
+    {
+      "phase": 0.5714285714285714,
+      "before": 298,
+      "after": 410
+    },
+    {
+      "phase": 0.5892857142857143,
+      "before": 366,
+      "after": 455
+    },
+    {
+      "phase": 0.6071428571428571,
+      "before": 413,
+      "after": 502
+    },
+    {
+      "phase": 0.625,
+      "before": 442,
+      "after": 596
+    },
+    {
+      "phase": 0.6428571428571429,
+      "before": 487,
+      "after": 667
+    },
+    {
+      "phase": 0.6607142857142857,
+      "before": 460,
+      "after": 697
+    },
+    {
+      "phase": 0.6785714285714286,
+      "before": 449,
+      "after": 710
+    },
+    {
+      "phase": 0.6964285714285714,
+      "before": 587,
+      "after": 732
+    },
+    {
+      "phase": 0.7142857142857143,
+      "before": 685,
+      "after": 749
+    },
+    {
+      "phase": 0.875,
+      "before": 264,
+      "after": 358
+    },
+    {
+      "phase": 0.8928571428571429,
+      "before": 161,
+      "after": 273
+    },
+    {
+      "phase": 0.9107142857142857,
+      "before": 184,
+      "after": 212
+    }
+  ]
+}

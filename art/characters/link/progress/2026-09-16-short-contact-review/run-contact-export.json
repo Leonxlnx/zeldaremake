@@ -1,0 +1,88 @@
+{
+  "sha256": "611c44253d6ae4fcd182adf5c15a98f94c3bfa20305bcd4202546173be9c1719",
+  "original_binary_preserved": true,
+  "other_clips_and_assets_unchanged": true,
+  "run_duration_s": 0.4666666666666667,
+  "run_stride_m": 1.82,
+  "changed_leg_channels": [
+    [
+      "hips",
+      "translation"
+    ],
+    [
+      "thighL",
+      "translation"
+    ],
+    [
+      "thighL",
+      "rotation"
+    ],
+    [
+      "thighL",
+      "scale"
+    ],
+    [
+      "kneeL",
+      "translation"
+    ],
+    [
+      "kneeL",
+      "rotation"
+    ],
+    [
+      "kneeL",
+      "scale"
+    ],
+    [
+      "ankleL",
+      "translation"
+    ],
+    [
+      "ankleL",
+      "rotation"
+    ],
+    [
+      "ankleL",
+      "scale"
+    ],
+    [
+      "thighR",
+      "translation"
+    ],
+    [
+      "thighR",
+      "rotation"
+    ],
+    [
+      "thighR",
+      "scale"
+    ],
+    [
+      "kneeR",
+      "translation"
+    ],
+    [
+      "kneeR",
+      "rotation"
+    ],
+    [
+      "kneeR",
+      "scale"
+    ],
+    [
+      "ankleR",
+      "translation"
+    ],
+    [
+      "ankleR",
+      "rotation"
+    ],
+    [
+      "ankleR",
+      "scale"
+    ]
+  ],
+  "nonleg_output_values_preserved_with_retimed_inputs": true,
+  "status": "Runtime stride specification and visual review pending",
+  "nonleg_timing_preserved": true
+}

@@ -1,3 +1,5 @@
+Retained shorter-contact run:611c44253d6ae4fcd182adf5c15a98f94c3bfa20305bcd4202546173be9c1719
+Stance fraction0.25to0.20, flight bounce45to12mm,120fps native bake over56frames; speed3.9m/s, stride1.82m and cycle28/60s unchanged. Only run hip/leg channels change; all other clip/asset data remain exact. Actual300frame review passes. Peak vertical hip step during run31.59to9.59mm, stopping15.65to18.56mm with lower second difference. Regional contact total27253to24286/peak1325to750 across57phases, but30phases worsen. Cloth/foot contact remain unfinished. Evidence, tradeoffs and editable action:art/characters/link/progress/2026-09-16-short-contact-review.
 Retained shorter-stride run: ace15addbd2478864f5e46d34e2ef12d18e1ddea60c598bf333d642bf3941e06
 Run cycle 28/60 s, stride 1.82 m, speed 3.9 m/s; pair with the matching glbLink.ts CLIP_SPEC. The native leg solver reduces pelvis compression and high-knee tunic bunching. Only run motion/timing changes; all other clips and asset data remain exact. Actual world-space hip peak steps improve from45.29 to31.59mm running and50.59 to15.65mm stopping. Root-offset steps alone worsen7.52 to13.06mm; they do not describe the total torso motion. Full1620frame gameplay review passes;1320stair records match prior baseline exactly. Evidence and editable action: art/characters/link/progress/2026-09-16-run-cadence-review. Character detail and cloth remain unfinished.
 Retained lower-tunic lateral weight repair: 1c08dec3c7970bf4876e199c6495cf3d80b2eb46fe23b2bab56092a20e174a4b
@@ -176,4 +178,5 @@ The iris albedo is separate original image_gen output. No Nintendo mesh was impo
 this does not grant rights to the underlying Zelda/Link character design.
 
 Face, hair, hand detail, tunic deformation and stair contact remain unfinished.
+
 

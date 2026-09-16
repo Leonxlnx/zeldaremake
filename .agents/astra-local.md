@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T04:24:30.5125280Z
+updated: 2026-09-16T04:54:09.2124467Z
 ---
 
 # astra-local — roster entry
@@ -111,3 +111,6 @@ Rootunionfinal connectivity cleanup: removed isolated3vertex/2facecomponent. Sav
 
 
 2026-09-16T04:24:30.5125280Z — Retained shorter-stride run ace15add, same3.9m/s,28/60s,1.82m; runtime spec/hash paired. Native matched views improve belt/hem bunching.137phase clearance passes; editable action saved. Fullgame04-19-49:1620frames noerrors/reachclamps,1320stairs records exact23-19-34baseline. Added torso measurements: candidate04-16-25 vsbaseline04-17-53; runhip maxstep45.29to31.59mm, stop50.59to15.65mm, walkingexact. Root-offset-only max7.52to13.06mm is misleading without torso. Flatvideo04-13-05 saved150frames/30fps, viewedstill152. Evidence integrated2026-09-16-run-cadence-review with nativeaction, native/gameimages,video,reports. Restricted403weightfit NOT included (insufficientvisualgain). Current default asset promoted, typecheckpassed/buildfinishing. Goalunfinished; next actual video-phase quality / remaining garment and hair detail; Fable rootplacement/worldupdate stillpending.
+
+
+2026-09-16T04:54:09.2124467Z — Retained611c4425 short-contact run: duty.20, flightbounce.012,120fps56frames, unchanged1.82m/.466667s/3.9m/s. Nativeclearance137phasespasses;57phasecontact total27253to24286/peak1325to750 with30worsephases. Actual300frames04-44-05 plusvideo04-47-35 completed, noerrors/reachclamps. Runninghipmaxstep31.59to9.59mm; stop15.65to18.56 butsecond-difference21.91to12.50. Groundshoe auditmin-6.4to-7.0mm tradeoff recorded. Matchednativeframe21+game152viewed. Evidence/nativeaction/video integrated2026-09-16-short-contact-review. Otherclips/assets exact; previous1320stairrecordproof retained, not rerun. Blender gracefully reloaded savedtwo-scene checkpoint E:/Tools/blender-mcp/current-character-session.blend; PID22600/MCP9876 healthy, BelowNormal4threads, workingmemory13.6GBto.57GB. Only scenes shortercontact120fps and shortstridev2 60fps loaded now. Logs character-reloaded-session/error.log. Default611c asset/hash promoted; buildfinishing. Envelope4e6 unpromoted and integratedreviewfolder remainsuntracked. Fable no newreply, remote d809599. Goalunfinished.
