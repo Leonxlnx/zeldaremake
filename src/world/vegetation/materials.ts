@@ -46,6 +46,8 @@ uniform vec3 uDryTip;
 uniform float uSeedTip;
 varying float vBladeT;
 varying float vShadeLift;
+varying vec3 vBladeFace;
+varying vec3 vBladeUp;
 `;
 
 const GRASS_COLOR_VERTEX = /* glsl */ `
@@ -97,7 +99,12 @@ vec3 transformed = vec3(position);
 }
 `;
 
-// normal: blade facing mixed with terrain up, with a fake fold so the two edges shade differently
+// normal: blade facing mixed with terrain up, with a fake fold so the two edges shade differently.
+// The two parts go to the fragment separately (GRASS_NORMAL_FRAGMENT_BEGIN, round 39): a blade
+// seen from behind flips its facing but keeps its up. Three's double-sided flip negated the whole
+// normal — 55 % terrain up included — so half the blades (random yaw) pointed into the ground,
+// took neither sun nor sky and stood as black spikes over the turf; under the carpet's lit mats
+// and clump cards those spikes were the only thing that still read as single blades.
 const GRASS_NORMAL_VERTEX = /* glsl */ `
 vec3 transformedNormal;
 {
@@ -107,12 +114,21 @@ vec3 transformedNormal;
   vec3 bladeFace = normalize(im[2]);
   vec3 bladeSide = normalize(im[0]);
   vec3 n = normalize(bladeFace * 0.8 + bladeSide * side * 0.6);
-  n = normalize(mix(n, bladeUp, 0.55));
-  transformedNormal = normalMatrix * n;
+  vBladeFace = normalMatrix * n;
+  vBladeUp = normalMatrix * bladeUp;
+  transformedNormal = normalMatrix * normalize(mix(n, bladeUp, 0.55));
 }
-#ifdef FLIP_SIDED
-  transformedNormal = - transformedNormal;
-#endif
+`;
+
+const GRASS_NORMAL_FRAGMENT_PARS = /* glsl */ `
+varying vec3 vBladeFace;
+varying vec3 vBladeUp;
+`;
+
+const GRASS_NORMAL_FRAGMENT_BEGIN = /* glsl */ `
+float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;
+vec3 normal = normalize(mix(normalize(vBladeFace) * faceDirection, normalize(vBladeUp), 0.55));
+vec3 nonPerturbedNormal = normal;
 `;
 
 const GRASS_PROJECT_VERTEX = /* glsl */ `
@@ -544,13 +560,14 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
       ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${LIFT_VERTEX}`)
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${LIFT_VERTEX}`);
     const lights = (grassLike ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '')).replace('//VEG_TRANSMISSION//', card ? ' * vegAtlasT' : '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    if (kind === 'grass') fs = fs.replace('#include <normal_fragment_begin>', GRASS_NORMAL_FRAGMENT_BEGIN);
     if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT).replace('#include <normal_fragment_begin>', CARD_NORMAL_FRAGMENT_BEGIN);
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v12${glossyTop ? '-glossy' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v13${glossyTop ? '-glossy' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

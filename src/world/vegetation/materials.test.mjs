@@ -109,6 +109,13 @@ for (const kind of ['grass', 'moss', 'litter']) {
   assert.throws(() => createVegShadowMaterials(source), /plant or bush/);
   if (kind === 'grass') {
     assert.doesNotMatch(shader.vertexShader, /aPlantVariant/, 'grass tiles are not packed');
+    // the blade normal (round 39): the facing flips on a blade seen from behind, its 55 % terrain
+    // up never does — three's whole-normal flip pointed half the blades into the ground
+    assert.doesNotMatch(shader.fragmentShader, /#include <normal_fragment_begin>/);
+    assert.match(shader.fragmentShader, /normalize\(vBladeFace\) \* faceDirection, normalize\(vBladeUp\), 0\.55/, 'facing-only flip');
+    assert.match(shader.vertexShader, /vBladeFace = normalMatrix \* n;\s*vBladeUp = normalMatrix \* bladeUp;/);
+    assert.doesNotMatch(shader.vertexShader, /FLIP_SIDED/, 'no whole-normal flip in the vertex stage either');
+    for (const [, chunk] of shader.fragmentShader.matchAll(/#include <([\w_]+)>/g)) assert.ok(THREE.ShaderChunk[chunk] !== undefined, `known chunk ${chunk}`);
   } else {
     // static moss / litter packs collapse the same way and keep Three's own projection
     assert.equal((shader.vertexShader.match(/attribute float aPlantVariant;/g) || []).length, 1, `${kind} declares the per-instance slot once`);
