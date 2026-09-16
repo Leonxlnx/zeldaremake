@@ -52,8 +52,12 @@ const top=(set,it)=>{const g=set.opts.variants[it.variant][0];return it.y+g.boun
 // the crest of the south bank behind the shot-A kid (box (6.0, 3.9)-(8.6, 5.6), crowns up to ~2.4 m
 // with the bank's 1.15 m crest) and, since round 32, a low clipped tier on the plateau shelf right
 // of the main flight (box (8.7, 3.8)-(13.6, 7.4), crowns <= 0.9 m: frames 8 / 46's dark bank mass)
-// - only the door-side row is bound by Saria's threshold.
-const doorHedge=a.plants.hedge.items.filter(it=>it.z<=-3),bankHedge=a.plants.hedge.items.filter(it=>it.z>-3&&it.x<8.65),shelfHedge=a.plants.hedge.items.filter(it=>it.z>-3&&it.x>=8.65);
+// - only the door-side row is bound by Saria's threshold. Round 38 adds two low tiers at the
+// trunk base beside the door path (box (8.2, −11.2)-(10.9, −6.9), crowns ≤ 0.9 m): they stand at
+// the doorway's dark posts, never over frame 14 s' lit threshold (B 0.71–0.80 × 0.35–0.56).
+const doorTierBox=[8.2,-11.2,10.9,-6.9],inBox0=(it,b)=>it.x>=b[0]&&it.z>=b[1]&&it.x<=b[2]&&it.z<=b[3];
+const doorTier=a.plants.hedge.items.filter(it=>inBox0(it,doorTierBox));
+const doorHedge=a.plants.hedge.items.filter(it=>it.z<=-3&&!inBox0(it,doorTierBox)),bankHedge=a.plants.hedge.items.filter(it=>it.z>-3&&it.x<8.65),shelfHedge=a.plants.hedge.items.filter(it=>it.z>-3&&it.x>=8.65);
 assert.ok(doorHedge.length>=3,'Hedge row present for shot A');
 for(const it of doorHedge){
   assert.ok(top(a.plants.hedge,it)<=1.3,`Hedge crown top ${top(a.plants.hedge,it)} stays below Saria's door threshold as seen from camera B (≤ 1.3 m above plaza level)`);
@@ -123,11 +127,59 @@ assert.ok(a.plants.flowers.count>=150,'W18: at least 150 flower clusters');
 const {houseSteppingStones}=read('layout'),stones=houseSteppingStones();
 assert.ok(stones.length>=6,'Stepping stones present on the house branch');
 const stoneDist=(x,z)=>Math.min(...stones.map(s=>Math.hypot(x-s.x,z-s.z)-s.r));
+// round 38: the walk corridor (the strip's core and the stones' 0.5 m) carries nothing over 0.25 m
 for(const set of a.plants.all)for(const it of set.items){
-  if(stoneDist(it.x,it.z)<0.5)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} ${(top(set,it)-it.y).toFixed(2)} m tall within 0.5 m of a stepping stone at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
-  if(a.field.troddenZone(it.x,it.z,true)>0.6)assert.ok(top(set,it)-it.y<=0.3,`${set.opts.name} standing in the trodden strip at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}
+  if(stoneDist(it.x,it.z)<0.5)assert.ok(top(set,it)-it.y<=0.25,`${set.opts.name} ${(top(set,it)-it.y).toFixed(2)} m tall within 0.5 m of a stepping stone at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);
+  if(a.field.troddenZone(it.x,it.z,true)>0.6)assert.ok(top(set,it)-it.y<=0.25,`${set.opts.name} ${(top(set,it)-it.y).toFixed(2)} m tall in the trodden strip at (${it.x.toFixed(2)},${it.z.toFixed(2)})`);}
 for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hypot(it.x-s.x,it.z-s.z)-s.r;return d>=0&&d<=0.3;}).length;
   assert.ok(n>=4,`Clover fringe at the stepping stone (${s.x.toFixed(2)},${s.z.toFixed(2)}): ${n} tufts`);}
+// Round 38 — frames 14 / 24 s' understory around Saria's terrace (plants.ts round 38), hemmed in
+// by the other frames' contracts above (camera C's stair-foot box, D's right verge, the corridor)
+// and by what take r38/cap-a measured per frame: camera C's bank and frame 8 s' dark mass take
+// nothing new, the terrace keeps the turf's tone, the lobe's south-east corner is the one lit ground.
+{const scale=it=>Math.hypot(it.matrix[0],it.matrix[1],it.matrix[2]),camF=camera('F_canopy'),camC=camera('C_lookback');
+  // (T) the terrace lawn north of the stones: 0.36–0.5 m crowns in groups, hostas, cushions, tufts, clover
+  const TN=[6.3,-11,8.8,-8.4],tFerns=a.plants.ferns.items.filter(it=>inBox(it,TN));
+  assert.ok(tFerns.length>=16&&tFerns.every(it=>{const h=top(a.plants.ferns,it)-it.y;return h>=0.36&&h<=0.5;}),`terrace crowns 0.36–0.5 m north of the stones: ${tFerns.length}`);
+  assert.ok(a.plants.weeds.items.filter(it=>inBox(it,TN)&&scale(it)>=1.5).length>=45,'hosta clumps on the terrace lawn');
+  assert.ok(a.plants.moss.items.filter(it=>inBox(it,TN)).length>=75,'moss cushions on the terrace lawn (thickest at the trunk base)');
+  assert.ok(a.plants.tufts.items.filter(it=>inBox(it,TN)).length>=240&&a.plants.clover.items.filter(it=>inBox(it,TN)).length>=200,'tufts and clover carpet the terrace lawn');
+  // every terrace crown keeps its fronds off camera F's frame (frame 8 s' dark left mass starts at its edge)
+  for(const it of tFerns){const p=camF([it.x,it.y,it.z]);if(p)assert.ok(p.sx+reach(a.plants.ferns,it)*p.perM<0.02,`terrace crown at (${it.x.toFixed(2)},${it.z.toFixed(2)}) shows at F.sx ${p.sx.toFixed(3)}`);}
+  // camera C's bank (field.ts C_FOOT, frame 46 s' bottom-left at 2–5 m and frame 1 s' hazed mound):
+  // the round-35 population only — 46 plants over 0.12 m at take 105
+  const CF=a.field.cFootBox();
+  let cf=0;for(const set of a.plants.all)for(const it of set.items)if(inBox(it,CF)&&top(set,it)-it.y>0.12)cf++;
+  assert.ok(cf<=46,`plants over 0.12 m on camera C's bank: ${cf} (take 105: 46)`);
+  // (SE) the lobe's south-east corner — frame 14 s' right-edge crown group: lit crowns 0.3–0.45 m,
+  // hostas, clover, tufts over the round-35 population (6 / 43 / 102 / 98), every new plant east of
+  // frame 8 s' mass (F.sx − reach ≥ 0.17) and out of camera C's foreground (no new root inside its
+  // frame within 8 m: 35 over 0.12 m at take 105)
+  const SE=[6.7,-4.9,8.5,-2.4],seFerns=a.plants.ferns.items.filter(it=>inBox(it,SE));
+  assert.ok(seFerns.length>=7&&seFerns.filter(it=>{const h=top(a.plants.ferns,it)-it.y;return h>=0.3&&h<=0.45;}).length>=2,`corner crowns: ${seFerns.length}`);
+  assert.ok(a.plants.weeds.items.filter(it=>inBox(it,SE)&&scale(it)>=1.5).length>=52,'hosta clumps in the lobe corner');
+  assert.ok(a.plants.clover.items.filter(it=>inBox(it,SE)).length>=130&&a.plants.tufts.items.filter(it=>inBox(it,SE)).length>=108,'clover and tufts through the lobe corner');
+  let seF=0,cNear=0;for(const set of a.plants.all)for(const it of set.items){if(!inBox(it,SE)||top(set,it)-it.y<=0.12)continue;
+    const pf=camF([it.x,it.y,it.z]);if(pf){const hw=reach(set,it)*pf.perM;if(pf.sx-hw<0.17&&pf.sx+hw>=0)seF++;}
+    const pc=camC([it.x,it.y,it.z]);if(pc&&pc.depth<8){const hw=reach(set,it)*pc.perM;if(!(pc.sx+hw<-0.02||pc.sx-hw>1.02||pc.sy<-0.02))cNear++;}}
+  assert.ok(seF<=139,`corner plants over 0.12 m reaching frame 8 s' mass: ${seF} (take 105: 139)`);
+  assert.ok(cNear<=35,`corner plants over 0.12 m in camera C's foreground: ${cNear} (take 105: 35)`);
+  // (H) the trunk-base tiers: two clipped crowns ≤ 0.9 m at the doorway's dark posts, never over frame 14 s' lit threshold (B 0.71–0.80 × 0.35–0.56)
+  assert.equal(doorTier.length,2,'two trunk-base hedge tiers beside the door path');
+  for(const it of doorTier){const h=top(a.plants.hedge,it)-it.y,p=camB([it.x,top(a.plants.hedge,it),it.z]),hw=reach(a.plants.hedge,it)*p.perM;
+    assert.ok(h<=0.9,`trunk-base tier ${h.toFixed(2)} m stays a low crown`);
+    assert.ok(p.sx+hw<0.71||p.sx-hw>0.80||p.sy>0.56,`trunk-base tier at (${it.x.toFixed(2)},${it.z.toFixed(2)}) covers the doorway at B (${p.sx.toFixed(2)},${p.sy.toFixed(2)})`);}
+  // verge flowers: white and straw-yellow clumps (≤ 0.26 m) along the stones' lawn and in the corner
+  const TB=[6.2,-11,10.6,-6.3],verge=it=>inBox(it,TB)||inBox(it,SE);
+  assert.ok(a.plants.whiteFlowers.items.filter(verge).length>=10,'white verge clumps around the terrace');
+  const yv=a.plants.yellowFlowers.items.filter(verge);
+  assert.ok(yv.length>=7&&yv.every(it=>top(a.plants.yellowFlowers,it)-it.y<=0.26),`straw-yellow verge clumps around the terrace: ${yv.length}`);
+  // frame 8 s' dark left mass (F 0–0.17 × 0.44–0.665 within 14 m) keeps its round-35 population: the
+  // round-38 sets are gated out of it. 575 plants over 0.12 m at take 105; re-baseline only with a
+  // frame-F comparison that shows the mass unchanged.
+  let fMass=0;for(const set of a.plants.all)for(const it of set.items){const p=camF([it.x,it.y,it.z]);if(!p||p.depth>14||top(set,it)-it.y<=0.12)continue;const hw=reach(set,it)*p.perM;
+    if(p.sx+hw>=0&&p.sx-hw<=0.17&&p.sy>=0.44&&p.sy<=0.665)fMass++;}
+  assert.ok(fMass<=590,`plants in frame 8 s' dark left mass: ${fMass} (take 105: 575)`);}
 // Round 8, concept sheets (reference/CONCEPTS.md): the sheets rule plant shapes, flower kinds and
 // the path-edge treatment; the video frames still rule the scored compositions.
 const cams=LAYOUT.viewpoints.map(v=>[v.position[0],v.position[2]]),nearCam=(it,r)=>cams.some(([x,z])=>Math.hypot(it.x-x,it.z-z)<r);

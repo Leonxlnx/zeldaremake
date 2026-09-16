@@ -2410,6 +2410,377 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
               },
               (x, z, _s, rng) => placeMossWith(rng, x, z, 0.12 + rng() * 0.16, true),
             );
+
+            // ======== Round 38 (vegetation-19): the house frames' understory. Frames 14 s / 24 s
+            // (cameras B / E — one camera) show the ground around Saria's terrace as a lush layered
+            // understory: fern crowns with lit tips, hosta-like clumps, moss on the roots, verge
+            // flowers, tufts catching the sun, a crown group at the frame's right edge. Take 105
+            // renders the same ground as turf. Every metre of it is also another frame's ground,
+            // and take r38/cap-a (e15337b: a lit carpet over the whole lawn) measured what each
+            // frame tolerates, per 8 px cell at 256 × 144:
+            //  - the bank at camera C's feet (field.ts C_FOOT, x 3.5–5.7 / z −6.3…−2.1) is frame
+            //    46 s' bottom-left — stair foot and paving, 2–5 m from the lens, where a 0.3 m hosta
+            //    fills a whole cell (C −0.0072); the same bank is the mound in frame 1 s' centre,
+            //    hazed at 15 m (A −0.003 over its four best cells). Nothing new roots there.
+            //  - the lobe's west and middle (x 6–7.5, z −5.8…−3.5) is frame 8 s' dark left mass
+            //    (F 0–0.17 × 0.44–0.67, the round-35 bankDark ramp, the frame's best cells) and
+            //    frame 8 s reads a flat blur there: even a luminance-neutral carpet costs F.
+            //  - the terrace (TERRACE_BOX) shows in B as the strip between the mound's top and the
+            //    door (B 0.6–0.85 × 0.47–0.56) and in A hazed at 17–22 m (A 0.42–0.6 × 0.44–0.51,
+            //    A's 0.5-SSIM cells: the frame is a flat 0.33 there). Lit tints (× 1.1–1.24) pushed
+            //    through the haze (A +0.05, −0.25 per cell), so the terrace sets keep the turf's
+            //    tone: the plants read as plants in B, not as a brighter ground in A.
+            //  - the lobe's south-east corner (LOBE_SE_BOX) is frame 14 s' right-edge crown group
+            //    (B 0.85–1.0 × 0.55–0.8: fronds and lit lawn, 0.44–0.53, ours 0.23–0.35) and the
+            //    one ground where cap-a gained in B and E alike (+0.5 per cell at B (0.93, 0.78));
+            //    from F it is the cells east of the mass (F 0.17–0.24 × 0.45–0.66, SSIM ≈ 0.1–0.3);
+            //    camera C's left edge cuts it at x ≈ 7.3 (5–6 m: `offCNear`).
+            // So: (T) the terrace, turf-toned; (SE) the lobe's corner, lit; (H) two low clipped
+            // tiers at the trunk base; verge flowers along the stones' lawn. Every set draws its own
+            // streams after everything above (no earlier plant moves).
+            {
+              const TERRACE_BOX: [number, number, number, number] = [6.2, -11.0, 10.6, -6.3];
+              const LOBE_SE_BOX: [number, number, number, number] = [6.7, -4.9, 8.5, -2.4];
+              /** frame 8 s' dark left mass ends at F.sx 0.17 (plants.test `fMass`) */
+              const F_MASS_SX = 0.17;
+              /** the corner keeps clear of F's good cells right of the mass (F 0.15–0.2 × 0.44–0.56, SSIM 0.4–0.5): roots east of 0.19 */
+              const F_CORNER_SX = 0.19;
+              const fTan = Math.tan(((ctx.layout.viewpoints.find((v) => v.id === 'F_canopy')?.fov ?? 46) * Math.PI) / 360) * (16 / 9);
+              const cTan = Math.tan(((ctx.layout.viewpoints.find((v) => v.id === 'C_lookback')?.fov ?? 46) * Math.PI) / 360) * (16 / 9);
+              /** frame 8 s' left edge: a plant of horizontal `reach` whose crown projects left of F.sx 0 is off camera F */
+              const offF = (x: number, z: number, reach: number) => {
+                const p = field.screenPoint('F_canopy', x, T.height(x, z), z);
+                return !p || p.sx + (reach * 0.5) / (p.depth * fTan) < 0;
+              };
+              /** the lobe corner's F rule: the whole plant east of the dark mass */
+              const eastOfFMass = (x: number, z: number, reach: number) => {
+                const p = field.screenPoint('F_canopy', x, T.height(x, z), z);
+                return !p || p.sx - (reach * 0.5) / (p.depth * fTan) >= F_CORNER_SX;
+              };
+              const offD = (x: number, z: number) => {
+                const p = field.screenPoint('D_log', x, T.height(x, z), z);
+                return !p || p.sx > 1.01;
+              };
+              /**
+               * frame 46 s' stair-foot contract (plants.test): a plant over 0.35 m whose root is within
+               * 12 m of camera C may not project into C 0–0.32 × 0.48–0.92, its horizontal `reach`
+               * included.
+               */
+              const offCEdge = (x: number, z: number, reach: number) => {
+                const p = field.screenPoint('C_lookback', x, T.height(x, z), z);
+                if (!p || p.depth >= 12) return true;
+                const halfW = (reach * 0.5) / (p.depth * cTan);
+                return p.sx + halfW < -0.03 || p.sx - halfW > 0.33 || p.sy < 0.45;
+              };
+              /** camera C's foreground: nothing new roots where frame 46 s sees the ground within 8 m */
+              const offCNear = (x: number, z: number, reach: number) => {
+                const p = field.screenPoint('C_lookback', x, T.height(x, z), z);
+                if (!p || p.depth >= 8) return true;
+                const halfW = (reach * 0.5) / (p.depth * cTan);
+                return p.sx + halfW < -0.02 || p.sx - halfW > 1.02 || p.sy < -0.02;
+              };
+              /** the lit yellow-green of frame 14 s' foliage tops, for the lobe corner's crowns and tufts */
+              const R38_LIT = new Color(1.16, 1.12, 0.9);
+              /** the corner's carpet: frame 14 s' lawn beside the crowns is lit, not bleached */
+              const R38_CARPET = new Color(1.12, 1.1, 0.94);
+              /** ground every round-38 set shares: off the paving, the rock rings, the trunks, the kids' spots, the shot-A bank face and camera C's bank */
+              const openGround = (x: number, z: number, s: FieldSample, edge: number) => {
+                if (s.cliff > 0.35 || field.bankFace(x, z) > 0.3 || field.lawnEdgeDistance(x, z, true) < edge || field.cFoot(x, z) > 0.02) return false;
+                const clr = field.clearing(x, z);
+                if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
+                return !nearKid(x, z, 0.8) && offD(x, z);
+              };
+              /**
+               * terrace ground for a standing plant of horizontal `reach`: off the house pad, root and
+               * crown off camera F, fronds off camera C's box
+               */
+              const terraceGround = (x: number, z: number, s: FieldSample, reach: number) => {
+                if (!openGround(x, z, s, 0.15) || field.houseInfo(x, z).dist < 0.35 || nearKid(x, z, 1.0)) return false;
+                return offF(x, z, reach) && offCEdge(x, z, reach);
+              };
+              /** the terrace's herb layer (clover, cushions, short tufts): the stones' 0.5 m and the strip allowed */
+              const terraceCover = (x: number, z: number, s: FieldSample) => {
+                if (!openGround(x, z, s, 0.1) || field.stoneDistance(x, z) < 0.12 || field.houseInfo(x, z).dist < 0.2) return false;
+                return offF(x, z, 0.25);
+              };
+              /** the lobe corner for a plant of horizontal `reach`: east of F's mass, off camera C's foreground, off the flagstones' rim */
+              const cornerGround = (x: number, z: number, s: FieldSample, edge: number, reach: number) => {
+                if (!openGround(x, z, s, edge) || field.stoneDistance(x, z) < 0.12) return false;
+                return eastOfFMass(x, z, reach) && offCNear(x, z, reach);
+              };
+              const fernTop = (v: number) => ferns.opts.variants[v][0].boundingBox?.max.y ?? 0.65;
+              /** the widest crown's fronds per metre of height (variant 2: reach 0.85 m at 0.56 m) */
+              const fernReachPerTop = Math.max(
+                ...ferns.opts.variants.map((v) => {
+                  const b = v[0].boundingBox;
+                  return b ? Math.max(-b.min.x, b.max.x, -b.min.z, b.max.z) / b.max.y : 1.55;
+                }),
+              );
+              /** a fern crown scaled to `top` metres (the frames' 30–50 cm understory crowns) */
+              const crownAt = (x: number, z: number, s: FieldSample, rng: Rng, top: number, lit: Color | null) => {
+                const variant = rng.int(0, ferns.variantCount);
+                const sc = top / fernTop(variant);
+                composeMatrix(M, 0, x, T.height(x, z) - 0.02, z, s.nx, s.ny, s.nz, 0.7, rng() * Math.PI * 2, sc, sc, sc);
+                const c = greenVar(rng, 0.18);
+                ferns.add(M, variant, lit ? c.multiply(lit) : c);
+                return { x, z, scale: sc, low: top <= 0.35 };
+              };
+              const newFerns38: { x: number; z: number; scale: number; low: boolean }[] = [];
+              /** hosta clumps: 1.6–2.3 × the sheet laminae (24–34 cm across, ≤ 0.34 m tall — camera C's contract is 0.35) */
+              const hostaAt = (x: number, z: number, s: FieldSample, rng: Rng, lit: Color | null) => {
+                const c = greenVar(rng, 0.16);
+                placeInstance(weeds, x, z, s, rng, 1.6 + rng() * 0.7, 0.8, 0.012, lit ? c.multiply(lit) : c);
+              };
+
+              // ---- (T) the terrace lawn between the landing and the door, turf-toned: crowns
+              // 0.36–0.48 m either side of the stones' strip (roots out of the strip's feather: the
+              // widest fronds reach 0.75 m), hostas between them, cushions thickest at the trunk
+              // base, tufts, buds
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'ferns-r38-terrace',
+                  candidates: 16000,
+                  box: TERRACE_BOX,
+                  minSpacing: 0.36,
+                  max: 22,
+                  r32: true,
+                  accept: (x, z, s) => (terraceGround(x, z, s, 0.48 * fernReachPerTop) && field.troddenZone(x, z, true) <= 0.3 && !nearFern(x, z, 0.3) ? 0.7 + 0.3 * field.cluster(x, z) : 0),
+                },
+                (x, z, s, rng) => newFerns38.push(crownAt(x, z, s, rng, 0.36 + rng() * 0.12, null)),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'weeds-r38-terrace',
+                  candidates: 20000,
+                  box: TERRACE_BOX,
+                  minSpacing: 0.22,
+                  max: 64,
+                  r32: true,
+                  accept: (x, z, s) => (terraceGround(x, z, s, 0.4) && field.lawnEdgeDistance(x, z, true) >= 0.2 ? 0.85 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                (x, z, s, rng) => hostaAt(x, z, s, rng, null),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'moss-r38-terrace',
+                  candidates: 12000,
+                  box: TERRACE_BOX,
+                  minSpacing: 0.26,
+                  low: true,
+                  max: 80,
+                  r32: true,
+                  // thickest at the trunk base (the frames' moss on the roots)
+                  accept: (x, z, s) => (terraceCover(x, z, s) ? 0.45 + 0.55 * (1 - smoothstep(0.2, 1.8, field.houseInfo(x, z).dist)) + 0.3 * field.cluster(x, z) : 0),
+                },
+                // ≤ 0.27 m across (the rim-moss contract: cushions by the paving stay under 0.12 m)
+                (x, z, _s, rng) => placeMossWith(rng, x, z, 0.1 + rng() * 0.17, true),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'clover-r38-terrace',
+                  candidates: 16000,
+                  box: TERRACE_BOX,
+                  minSpacing: 0.14,
+                  low: true,
+                  max: 300,
+                  r32: true,
+                  accept: (x, z, s) => (terraceCover(x, z, s) ? 0.8 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.18)),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'tufts-r38-terrace',
+                  candidates: 20000,
+                  box: TERRACE_BOX,
+                  minSpacing: 0.22,
+                  low: true,
+                  max: 150,
+                  r32: true,
+                  accept: (x, z, s) => (terraceCover(x, z, s) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                // short at the stones and in the strip (tuftAt's rules), short / mid / tall on the open lawn
+                (x, z, s, rng) => tuftAt(x, z, s, rng, [0.3, 0.5, 0.2], greenVar(rng, 0.12), 0, 0, true),
+              );
+
+              // ---- (SE) the lobe's south-east corner — frame 14 s' right-edge crown group: lit
+              // crowns 0.3–0.45 m in a group, hostas and a lit carpet under them
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'ferns-r38-corner',
+                  candidates: 16000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.3,
+                  max: 12,
+                  r32: true,
+                  // the gate takes the mid variants' reach (1.2 × the height): the widest crown's tips may cross F.sx 0.17–0.19, still off the mass
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.25, 0.42 * 1.2) && field.troddenZone(x, z, true) <= 0.3 && !nearFern(x, z, 0.3) && !nearWhite(x, z, 0.4) ? 0.75 : 0),
+                },
+                (x, z, s, rng) => newFerns38.push(crownAt(x, z, s, rng, 0.3 + rng() * 0.12, R38_LIT)),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'weeds-r38-corner',
+                  candidates: 16000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.18,
+                  max: 70,
+                  r32: true,
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.2, 0.4) && !nearWhite(x, z, 0.35) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                (x, z, s, rng) => hostaAt(x, z, s, rng, R38_CARPET),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'clover-r38-corner',
+                  candidates: 20000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.12,
+                  low: true,
+                  max: 260,
+                  r32: true,
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.1, 0.2) ? 0.85 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 1.0 + rng() * 0.7, 0.9, 0.008, greenVar(rng, 0.18).multiply(R38_CARPET)),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'moss-r38-corner',
+                  candidates: 10000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.28,
+                  low: true,
+                  max: 50,
+                  r32: true,
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.15, 0.3) ? 0.7 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                (x, z, _s, rng) => placeMossWith(rng, x, z, 0.1 + rng() * 0.17, true),
+              );
+              scatter(
+                ctx,
+                field,
+                {
+                  label: 'tufts-r38-corner',
+                  candidates: 20000,
+                  box: LOBE_SE_BOX,
+                  minSpacing: 0.17,
+                  low: true,
+                  max: 160,
+                  r32: true,
+                  accept: (x, z, s) => (cornerGround(x, z, s, 0.1, 0.35) ? 0.9 * (0.5 + field.cluster(x, z)) : 0),
+                },
+                // short / mid classes only: the corner stays under camera C's 0.35 m (tuftAt caps the wedge at 0.34 m)
+                (x, z, s, rng) => tuftAt(x, z, s, rng, [0.4, 0.6, 0], R38_LIT, 0, 0, true),
+              );
+
+              // fiddleheads (0.27–0.43 m) in about a third of the new crowns (2–3 each), their own stream
+              {
+                const rng = ctx.rng.fork('plants/fiddleheads-r38');
+                const s = newSample();
+                for (const f of newFerns38) {
+                  if (rng() > 0.35) continue;
+                  const count = 2 + rng.int(0, 2);
+                  for (let i = 0; i < count; i++) {
+                    const a = rng() * Math.PI * 2;
+                    const d = 0.1 * f.scale * (0.3 + 0.7 * rng());
+                    const x = f.x + Math.cos(a) * d;
+                    const z = f.z + Math.sin(a) * d;
+                    field.sample(x, z, s);
+                    if (!field.allowed(x, z, s, true) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
+                    if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z, true) > 0.6) continue;
+                    // buds are 0.295–0.41 m at scale 1; the low crowns (≤ 0.35 m) take the short variant only
+                    placeInstance(fiddleheads, x, z, s, rng, 0.92 + rng() * 0.12, 0.5, 0.012, greenVar(rng, 0.12), undefined, f.low ? [0, 1] : [0, fiddleheads.variantCount]);
+                  }
+                }
+              }
+
+              // ---- (H) the trunk-base tiers: two clipped crowns 0.6–0.85 m beside the door path —
+              // north-west of the door and south of it — 0.35 m off the house pad, 0.5 m off the
+              // stones, out of the strip; dark like the door row. Frame 14 s' doorway is the dark
+              // opening B 0.65–0.81 × 0.35–0.57 with its lit floor and threshold at 0.71–0.80: the
+              // crowns stand at the opening's dark posts (B 0.67 and 0.83), never over the lit
+              // threshold (plants.test).
+              {
+                const rng = ctx.rng.fork('plants/hedge-r38-door');
+                const s = newSample();
+                const spots: readonly (readonly [number, number])[] = [
+                  [8.75, -10.75],
+                  [10.4, -7.4],
+                ];
+                for (const [cx, cz] of spots) {
+                  for (let attempt = 0; attempt < 40; attempt++) {
+                    const x = cx + (rng() - 0.5) * 0.5;
+                    const z = cz + (rng() - 0.5) * 0.5;
+                    field.sample(x, z, s);
+                    if (!field.allowed(x, z, s, true) || field.insideGiantTrunk(x, z) || !openGround(x, z, s, 0.3)) continue;
+                    if (field.houseInfo(x, z).dist < 0.35 || field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z, true) > 0.3 || nearKid(x, z, 1.2)) continue;
+                    if (!offCEdge(x, z, 0.5) || nearHedge(x, z, 0.8)) continue;
+                    const top = 0.6 + rng() * 0.25;
+                    const variant = rng.int(0, hedge.variantCount);
+                    const sc = top / hedgeHeight(variant);
+                    composeMatrix(M, 0, x, T.height(x, z) - 0.05, z, s.nx, s.ny, s.nz, 0.12, rng() * Math.PI * 2, sc * (1.2 + rng() * 0.3), sc, sc * (1.2 + rng() * 0.3));
+                    hedge.add(M, variant, tint.setRGB(0.54 + rng() * 0.08, 0.55 + rng() * 0.08, 0.47 + rng() * 0.08));
+                    break;
+                  }
+                }
+              }
+
+              // ---- verge flowers (frames 14 / 24: small pale dots in the lawn beside the stones and
+              // in the corner, a few violets). ≤ 0.25 m, ≥ 0.5 m off every stone, off the strip
+              // (`troddenZone` 0: the whites' contract), ≥ 0.45 m from every violet, never in a
+              // kid's spot.
+              const vergeGround = (x: number, z: number, s: FieldSample) => {
+                if (!openGround(x, z, s, 0.2) || field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0 || field.houseInfo(x, z).dist < 0.3) return false;
+                return !nearKid(x, z, 1.0) && !nearViolet(x, z, 0.5);
+              };
+              const vergeWhite = (x: number, z: number, s: FieldSample, rng: Rng) =>
+                placeInstance(whiteFlowers, x, z, s, rng, 0.75 + rng() * 0.35, 0.6, 0.01, tint.setRGB(0.97 + rng() * 0.06, 0.97 + rng() * 0.06, 0.95 + rng() * 0.06));
+              // straw-yellow cluster heads at 0.48–0.55 of their size: 0.21–0.25 m
+              const vergeYellow = (x: number, z: number, s: FieldSample, rng: Rng) =>
+                placeInstance(yellowFlowers, x, z, s, rng, 0.48 + rng() * 0.07, 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1));
+              scatter(
+                ctx,
+                field,
+                { label: 'flowers-white-r38-terrace', candidates: 12000, box: TERRACE_BOX, minSpacing: 0.6, max: 16, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && offF(x, z, 0.3) && !nearWhite(x, z, 0.6) ? 0.7 : 0) },
+                vergeWhite,
+              );
+              scatter(
+                ctx,
+                field,
+                { label: 'flowers-yellow-r38-terrace', candidates: 12000, box: TERRACE_BOX, minSpacing: 0.6, max: 14, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && offF(x, z, 0.3) && !nearWhite(x, z, 0.35) ? 0.7 : 0) },
+                vergeYellow,
+              );
+              scatter(
+                ctx,
+                field,
+                { label: 'flowers-white-r38-corner', candidates: 8000, box: LOBE_SE_BOX, minSpacing: 0.6, max: 8, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && cornerGround(x, z, s, 0.2, 0.25) && !nearWhite(x, z, 0.6) ? 0.7 : 0) },
+                vergeWhite,
+              );
+              scatter(
+                ctx,
+                field,
+                { label: 'flowers-yellow-r38-corner', candidates: 8000, box: LOBE_SE_BOX, minSpacing: 0.6, max: 6, r32: true, accept: (x, z, s) => (vergeGround(x, z, s) && cornerGround(x, z, s, 0.2, 0.3) && !nearWhite(x, z, 0.35) ? 0.7 : 0) },
+                vergeYellow,
+              );
+            }
           }
         }
       }
