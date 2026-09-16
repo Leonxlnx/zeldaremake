@@ -100,9 +100,14 @@ export interface HeightFogParams {
    * colour profile it lets the mist pool low: rays along the ground keep the calibrated veil while
    * rays to the boughs and trunks 4–10 m up wear thinner air, so the mid-distance canopy stays a
    * readable dark shape through it (frame D's mid band: crisp dark boughs over a low mist).
+   * `hazeDensityProfileOpen` is the share of the colour profile the OPEN-side rays keep (1: only
+   * the closed directions — the north hollow, the west stand — get the lower profile; the rays up
+   * the stair corridor to the east plateau, whose upper frame is the frames' brightest air, keep
+   * the calibrated veil; 0: every direction gets it).
    */
   hazeDensityUniformHeight: number;
   hazeDensityScaleHeight: number;
+  hazeDensityProfileOpen: number;
   /**
    * Multiplier on the base extinction toward the open side (`kfOpenness` = 1: the east plateau and
    * the overhead gaps); closed directions keep 1. The open air is thinner as well as brighter.
@@ -344,16 +349,20 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   hazeScaleHeight: 7.0,
   hazeDensityUniformHeight: 8.0,
   hazeDensityScaleHeight: 7.0,
+  hazeDensityProfileOpen: 1.0,
   hazeOpenDensity: 1.0,
   maxFogOpen: 0.86,
   hazeShadeVeil: 1.0,
   hazeShadeVeilKnee: 0.3,
   hazeShadeVeilOut: [40, 50],
-  // bearing 58° (the top of the stair corridor as frame F sees it, 19° left of its axis), a
-  // ±12° lobe between ≈ 6° and 20° up; display ≈ 0.8 at the core
+  // bearing 57° (the air over the plateau lip north of the stair top as frame F sees it, 20° left
+  // of its axis — frame F's glare spans u 0.17–0.34, bearings 51–64°), a ±5° core fading out by
+  // ±9°, between ≈ 6° and 20° up. hazeHot is display ≈ 0.8; hazeHotAmount mixes the dome / far
+  // veil toward it, so 0.65 lands the core near the frame's 0.65–0.7 (a full lobe measured 0.75
+  // against the frame's 0.55–0.65 in the part of it our lantern limb leaves visible, F −0.0076)
   hazeHot: [0.55, 0.54, 0.44],
-  hazeHotDir: [0.848, -0.53],
-  hazeHotCos: [0.94, 0.985],
+  hazeHotDir: [0.8387, -0.5446],
+  hazeHotCos: [0.9877, 0.9962],
   hazeHotUpIn: [0.08, 0.16],
   hazeHotUpOut: [0.3, 0.4],
   hazeHotDist: [35, 55],
@@ -641,6 +650,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_HAZE_HS = ${f(params.hazeScaleHeight)};
 	const float KF_DENS_H0 = ${f(params.hazeDensityUniformHeight)};
 	const float KF_DENS_HS = ${f(params.hazeDensityScaleHeight)};
+	const float KF_DENS_PROFILE_OPEN = ${f(params.hazeDensityProfileOpen)};
 	const float KF_OPEN_DENSITY = ${f(params.hazeOpenDensity)};
 	const float KF_MAX_FOG_OPEN = ${f(params.maxFogOpen)};
 	const float KF_SHADE_VEIL = ${f(params.hazeShadeVeil)};
@@ -776,8 +786,8 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		//    and is thinner toward the open side (hazeOpenDensity); the far knee keeps the colour
 		//    profile so the far wall is unchanged.
 		float altitude = kfAltitudeMean( cameraPosition.y, worldPos.y );
-		float altDens = kfAltitudeMeanP( cameraPosition.y, worldPos.y, KF_DENS_H0, KF_DENS_HS );
 		float open = kfOpenness( rayDir );
+		float altDens = mix( kfAltitudeMeanP( cameraPosition.y, worldPos.y, KF_DENS_H0, KF_DENS_HS ), altitude, open * KF_DENS_PROFILE_OPEN );
 		float upward = 1.0 - KF_HAZE_UP_CUT * smoothstep( 0.38, 0.62, rayDir.y );
 		float opticalDepth = altDens * mix( 1.0, KF_OPEN_DENSITY, open ) * kfBaseOpticalDepth( dist ) + altitude * KF_HAZE_K_FAR * max( dist - KF_HAZE_FAR_START, 0.0 );
 		float distFog = 1.0 - exp( -upward * opticalDepth );

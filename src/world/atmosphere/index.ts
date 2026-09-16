@@ -111,6 +111,7 @@ export function create(ctx: WorldContext): WorldSystem {
     // the shaded-air veil (multiplier on the veil over a black surface, 1 = off) and the plateau glare
     hazeDensityUniformHeightM: HEIGHT_FOG_DEFAULTS.hazeDensityUniformHeight,
     hazeDensityScaleHeightM: HEIGHT_FOG_DEFAULTS.hazeDensityScaleHeight,
+    hazeDensityProfileOpen: HEIGHT_FOG_DEFAULTS.hazeDensityProfileOpen,
     hazeOpenDensity: HEIGHT_FOG_DEFAULTS.hazeOpenDensity,
     distanceFogMaxOpen: HEIGHT_FOG_DEFAULTS.maxFogOpen,
     hazeShadeVeil: HEIGHT_FOG_DEFAULTS.hazeShadeVeil,
