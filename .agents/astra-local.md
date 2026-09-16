@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-blender
-updated: 2026-09-16T01:30:28.534954+00:00
+updated: 2026-09-16T02:34:48.8351716Z
 ---
 
 # astra-local — roster entry
@@ -62,3 +62,23 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 2026-09-16T01:18:08.603309+00:00 — Remaining shoulder seam native candidate on4741cf3e: 202weight positions, three measured shoulder/chest boundaries. Targetedrunstretch15.87to2.77; broader717edge fourgait check passes (runpeak15.87to9.35, severe samples1614to84). Frontframe0 renders reviewed, modest gain. Saved remaining-shoulders-study.blend/evidence2026-09-16-remaining-shoulders-review; not exported or promoted, needs rear/side/game views. Fable a9ef29f adopted4741cf3e and9c70c3c reverts tone-b; acknowledged PR2. No active render/capture/gitpack jobs.
 
 2026-09-16T01:30:28.534954+00:00 — Retained shoulder55cc8ef3:202nativepositions/586exportvertices, only9290joint-weight bytes differ. Rest/binds/clips/blinknormals preserved. Native baseline roundingmax9.35e-5 recorded. Corrected rear comparison aspect800squarevs720x820; bones exact, matched renders inspected. Game01-26-08 passes300samples identicalto23-16-09 baseline; runframe152viewed,150frame movieencoded/validated. Evidence2026-09-16-remaining-shoulders-review. Noactivejobs. Otherhem/face/hairqualitystillunfinished.
+
+2026-09-16T01:39:05.108265+00:00 — Front hair diagnostic: cleaned texture/positionmask1628vertices/3014faces, removed tiny cap-stitch components. Native boundednormal trial6481corners/max20degrees, geometry exact, outside normalroundtrip.000581. Before/after views negligible visible gain; NOT exported/promoted. Evidence2026-09-16-hair-normal-review; hair-normal-study.blend saved. Next surface/texture rather than repeat same shading pass. Current55cc8ef3/c0347d4. Noactivejobs.
+
+2026-09-16T01:43:06.774453+00:00 — Native hair surface trial1380vertices/max.750055mm, boundary fixed, zero triangle flips. Matched views negligible visible benefit, NOT exported/promoted. Evidence2026-09-16-hair-surface-review. Both smallnormal and geometry approaches now rejected; next investigate authored hair ribbons/cards with silhouette benefit and bounded render cost rather than repeat smoothing. Current55cc8ef3 unchanged; noactivejobs.
+
+2026-09-16T01:52:32.088886+00:00 — Native hair ribbons48/2738tris built from old authored guides, one material/proceduralalpha texture. Renders show unacceptable painted/broken streaks; source-material UV diagnostic did not fix.717ribbon triangles intersect base, viewoffset2mm reduces69,6mm still26. Needs surface-conforming segmentation, notblindoffset. Evidence2026-09-16-hair-ribbons-review; nativefiles saved, noexport/promotion. Current55cc8ef3. Fablelatestvisiblea9ef29f; noactivejobs.
+
+2026-09-16T02:07:14.1947412Z — Hair ribbon fit diagnostic completed. Corrected stale loaded-camera matrix via asserted authored XYZ rotation, misses2808to59; corrected inward polygon winding and SourceHairUV tangent basis. Dark streaks reduced, but10834tris/316intersectingtriangles and weak visual gain: NOTexported/promoted. Evidence2026-09-16-hair-ribbon-fit-review; nativev5 saved. Current55cc8ef3/c0347d4 unchanged. NoactiveBlender/capturejobs. Goalunfinished.
+
+
+2026-09-16T02:15:25.1246046Z — Fringe reshape rejected after matched native views. Initial53flips; local damping yields0flips/1037vertices/max9.841mm but outside-normalerror.0025002 fails. Diagnostic rendered without relaxing check; notexported/promoted. Evidence2026-09-16-fringe-shape-review/nativev2 saved. Reference09reviewed; next replace a complete frontlock rather than more coarse-mesh perturbations. Fablefetched stilla9ef29f. Current55cc8ef3/c0347d4; noactivejobs; goalunfinished.
+
+
+2026-09-16T02:25:48.1385177Z — Two authored frontlock replacement studies rejected. Nine thickstrands8784tris comb-like; core+80finefibres21588tris has edgeholes/insufficient silhouettegain. Portrait+sideviewed;5centerdepthprobes clear, correcting initial occlusion suspicion.119sourcefaces transparentlyhidden diagnostic only. Nativefiles saved/evidence2026-09-16-authored-lock-review. Original500ktriGen2render worse; no usable denser source found. Current55cc8ef3/c0347d4 unchanged. Noactivejobs; goalunfinished. Need coherent root-to-tip topology, do not expand failing patch or add more stranddensity.
+
+
+2026-09-16T02:34:48.8351716Z — Retained combined lateral1c08dec3 over55cc8ef3:1172native/4313exportverts, only20423joint-weightbytes. No shoulderpatch overlap; fourgait48posechecks and all5runcontact phases improve. Nativefront26/game152views inspected, modestgain; majorclothfoldsremain. Game02-29-53:300records exact55cc,150framevideo encoded/ffprobechecked. Evidence2026-09-16-combined-lateral-review. Typecheckpassed/buildpending session23576. Noactivecapture/Blenderjobs. Goalunfinished.
+
+
+2026-09-16T02:35:10.4178480Z — Combined lateral delivery typecheck and build passed; default bundle index-CrBLUlCB.js. No active jobs.

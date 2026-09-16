@@ -1,0 +1,9 @@
+{
+  "sha256": "1c08dec3c7970bf4876e199c6495cf3d80b2eb46fe23b2bab56092a20e174a4b",
+  "native_vertices": 1172,
+  "exported_vertices": 4313,
+  "changed_bytes": 20423,
+  "only_joint_weight_bytes_changed": true,
+  "maximum_native_baseline_weight_roundoff": 9.984047210309654e-05,
+  "status": "Actual game visual review pending"
+}
