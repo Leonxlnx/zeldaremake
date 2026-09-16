@@ -2920,26 +2920,33 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const tuftRng = rng.fork('moss-tufts');
   const tuftSpecs: MossTuftSpec[] = [];
   {
-    const attempts = def.id === 'saria' ? 8200 : 2600;
+    const attempts = def.id === 'saria' ? 11500 : 3600;
     const _ts = { position: new Vector3() } as SurfaceSample;
     /** acceptance by cap parameter: full on the crown, ≈ 0.6 over the shoulder, 0 past the edge */
     const tuftKeep = (v: number) => lerp(1, 0.6, smoothstep(0.32, 0.58, v)) * smoothstep(0.71, 0.62, v);
+    /**
+     * cushion clumping: the tufts gather into 0.3–0.6 m colonies with thinner sheet between
+     * (the reference bough's moss reads as clumped cushions with dark gaps at 8–15 m — a uniform
+     * scatter of 5 cm lumps averages back to a smooth field at that distance)
+     */
+    const clump = (p: Vector3) => lerp(0.22, 1, smoothstep(0.38, 0.72, 0.5 + 0.5 * n3.noise(p.x * 2.6 + 3.1, p.y * 2.6, p.z * 2.6 - 7.7)));
     for (let i = 0; i < attempts; i++) {
       const a = tuftRng() * TAU;
       // area-uniform on the cap top (r ∝ q on the plateau)
       const v = Math.sqrt(tuftRng()) * 0.72;
       if (tuftRng() > tuftKeep(v)) continue;
-      // radius 2–6 cm, skewed small; footprint aspect 0.75–1.3; height 0.55–0.95 of the radius
-      const r = (0.02 + 0.04 * Math.pow(tuftRng(), 1.6)) * sk;
+      // radius 2.2–6 cm, skewed small; footprint aspect 0.75–1.3; height 0.6–1.0 of the radius
+      const r = (0.022 + 0.038 * Math.pow(tuftRng(), 1.3)) * sk;
       const aspect = 0.75 + tuftRng() * 0.55;
       domeVertex(a, v, _ts, false);
+      if (tuftRng() > clump(_ts.position)) continue;
       // the sheet's normal at (a, v) is left in `_n` by domeVertex
       tuftSpecs.push({
         position: _ts.position.clone(),
         normal: _n.clone(),
         rx: r * aspect,
         rz: r / aspect,
-        h: r * (0.55 + tuftRng() * 0.4),
+        h: r * (0.6 + tuftRng() * 0.4),
         yaw: tuftRng() * TAU,
         color: _ts.color ?? [0.5, 0.5, 0.1],
         uv: _ts.uv ?? [0, 0],
@@ -3868,7 +3875,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const plant40 = rng.fork('plants40');
   const plants40 = { sorrel: 0, ferns: 0, grass: 0 };
   {
-    const SORREL_TINT: [number, number, number] = [2.2, 1.75, 2.0];
+    const SORREL_TINT: [number, number, number] = [1.7, 1.6, 1.5];
     const FERN40_TINT: [number, number, number] = [2.3, 2.1, 2.2];
     const GRASS40_TINT: [number, number, number] = [MOSS_LIT_GRASS[0] * 0.72, MOSS_LIT_GRASS[1] * 0.78, MOSS_LIT_GRASS[2] * 0.72];
     /** the sheet's true surface point and normal at (a, v) — displaced in full, unlike `surfacePoint` */
