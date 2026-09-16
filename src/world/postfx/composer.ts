@@ -54,6 +54,8 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { perfRuntime } from '../../perfFlags';
+import { cullShadowCasters, type ShadowCullStats } from './shadowcull';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { SCREEN_FAN, SHAFT_COLUMNS } from '../atmosphere/shafts';
 import {
@@ -106,6 +108,14 @@ type SettingsOverride = Partial<Record<keyof ComposerSettings, number | boolean>
 const settingsOverride = (): SettingsOverride | null => (globalThis as { __ATMO_SETTINGS__?: SettingsOverride | null }).__ATMO_SETTINGS__ ?? null;
 const hideList = (): string[] => (globalThis as { __ATMO_HIDE__?: string[] | null }).__ATMO_HIDE__ ?? [];
 const uniformOverride = (): Record<string, number> | null => (globalThis as { __ATMO_UNIFORMS__?: Record<string, number> | null }).__ATMO_UNIFORMS__ ?? null;
+
+/**
+ * Slack added to every caster's bounding sphere before the swept-frustum test (shadowcull.ts):
+ * the shadow filter reads up to 0.45 m (penumbra) + 0.3 m (blocker search) beside a visible
+ * receiver and the god-ray march samples the air on the frame's edge, so an occluder that only
+ * shades those neighbouring texels must still be drawn. 1 m is twice the widest tap.
+ */
+const SHADOW_CULL_MARGIN_M = 1.0;
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -212,6 +222,11 @@ export interface ComposerSettings {
   fanFadeHi: number;
   /** video softness (final pass, see SOFT_FINAL_FRAG); false = FXAA straight to the screen */
   softening: boolean;
+  /**
+   * shadow pass: skip the casters whose sun-swept bounds cannot reach the view frustum
+   * (shadowcull.ts; image-identical, so a probe switches it off only to measure its saving)
+   */
+  shadowCasterCull: boolean;
   /**
    * activity gate: share of fine detail a busy region keeps; activity knee (luma amplitude of the
    * fine detail, wide-averaged) above which a region is "busy" and drops to that share; steepness
@@ -498,6 +513,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // measured skirt untouched (the tail is the lanterns' own halo) and 0.15 drops D's 40 m pods
     // under the frame's brightness.
     softening: true,
+    shadowCasterCull: true,
     softDetail: 0.85,
     softActivityK: 0.08,
     softActivityPower: 4,
@@ -804,6 +820,8 @@ export function createComposer(opts: ComposerOptions): Composer {
   );
 
   const overlayViewport = new Vector2(hw, hh);
+  /** last frame's shadow-caster cull (shadowcull.ts): casters tested / switched off */
+  const shadowCull: ShadowCullStats = { tested: 0, culled: 0 };
   const camPos = new Vector3();
   const camDir = new Vector3();
   const sunWorld = new Vector3();
@@ -986,10 +1004,25 @@ export function createComposer(opts: ComposerOptions): Composer {
     const prevAlpha = renderer.getClearAlpha();
     renderer.getClearColor(prevClear);
 
-    // 1. opaque scene (+ shadow maps) into HDR
+    // 1. opaque scene (+ shadow maps) into HDR. The shadow pass inside it draws only the casters
+    // whose shadows can land in frame (shadowcull.ts): three runs scene.onBeforeRender after the
+    // world matrices are updated and before the shadow pass, so the test sees this frame's poses;
+    // the casters it switched off are restored once the render returns.
+    const casters: { restore: (() => void) | null } = { restore: null };
+    const prevOnBeforeRender = scene.onBeforeRender;
+    if (s.shadowCasterCull && renderer.shadowMap.enabled) {
+      scene.onBeforeRender = () => {
+        casters.restore = cullShadowCasters(scene, camera, opts.sunDirection, SHADOW_CULL_MARGIN_M, shadowCull);
+      };
+    } else shadowCull.tested = shadowCull.culled = 0;
     renderer.setRenderTarget(hdr);
     renderer.autoClear = true;
-    renderer.render(scene, camera);
+    try {
+      renderer.render(scene, camera);
+    } finally {
+      scene.onBeforeRender = prevOnBeforeRender;
+      casters.restore?.();
+    }
 
     updateSun(s);
 
@@ -1006,13 +1039,20 @@ export function createComposer(opts: ComposerOptions): Composer {
 
     renderer.autoClear = false;
 
+    // performance flags / auto quality (perfFlags.ts): stages switched off skip their passes; the
+    // composite then reads a neutral term (AO strength 0, black rays, bloom intensity 0). All on by
+    // default, so the shipped frame is untouched.
+    const fx = perfRuntime().fx;
+
     // 3. AO
-    aoMat.uniforms.uRadius.value = s.aoRadius;
-    pass(aoMat, aoA);
-    pass(aoBlurMat, aoB);
+    if (fx.ao) {
+      aoMat.uniforms.uRadius.value = s.aoRadius;
+      pass(aoMat, aoA);
+      pass(aoBlurMat, aoB);
+    }
 
     // 4. god rays (volumetric march through the sun's shadow map, then smear along the sun axis)
-    if (rayIntensity.value > 0.001 && bindShadow()) {
+    if (fx.rays && rayIntensity.value > 0.001 && bindShadow()) {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       (rayMarchMat.uniforms.uMistNear.value as Vector2).set(s.rayMistNearStart, s.rayMistNearEnd);
@@ -1062,20 +1102,22 @@ export function createComposer(opts: ComposerOptions): Composer {
     }
 
     // 5. bloom
-    brightMat.uniforms.uThreshold.value = s.bloomThreshold;
-    pass(brightMat, bloomA);
-    blurMat.uniforms.tSrc.value = bloomA.texture;
-    blurMat.uniforms.uDir.value.set(quarterTexel.value.x * s.bloomRadius, 0);
-    pass(blurMat, bloomB);
-    blurMat.uniforms.tSrc.value = bloomB.texture;
-    blurMat.uniforms.uDir.value.set(0, quarterTexel.value.y * s.bloomRadius);
-    pass(blurMat, bloomA);
+    if (fx.bloom) {
+      brightMat.uniforms.uThreshold.value = s.bloomThreshold;
+      pass(brightMat, bloomA);
+      blurMat.uniforms.tSrc.value = bloomA.texture;
+      blurMat.uniforms.uDir.value.set(quarterTexel.value.x * s.bloomRadius, 0);
+      pass(blurMat, bloomB);
+      blurMat.uniforms.tSrc.value = bloomB.texture;
+      blurMat.uniforms.uDir.value.set(0, quarterTexel.value.y * s.bloomRadius);
+      pass(blurMat, bloomA);
+    }
 
     // 6. composite + tone map + grade → LDR
-    compositeMat.uniforms.uAoStrength.value = s.aoStrength;
+    compositeMat.uniforms.uAoStrength.value = fx.ao ? s.aoStrength : 0;
     (compositeMat.uniforms.uAoFade.value as Vector2).set(s.aoFadeStart, s.aoFadeEnd);
     compositeMat.uniforms.uRaySkyShare.value = s.raySkyShare;
-    compositeMat.uniforms.uBloomIntensity.value = s.bloomIntensity;
+    compositeMat.uniforms.uBloomIntensity.value = fx.bloom ? s.bloomIntensity : 0;
     compositeMat.uniforms.uSaturation.value = s.saturation;
     compositeMat.uniforms.uContrast.value = s.contrast;
     compositeMat.uniforms.uContrastPivot.value = s.contrastPivot;
@@ -1093,7 +1135,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       pass(copyMat, null);
     } else if (dbg === 'depth') {
       pass(depthDebugMat, null);
-    } else if (!s.softening && dbg !== 'soft') {
+    } else if ((!s.softening || !fx.soft) && dbg !== 'soft') {
       pass(fxaaMat, null);
     } else {
       pass(fxaaMat, aa);
@@ -1189,9 +1231,16 @@ export function createComposer(opts: ComposerOptions): Composer {
       ],
       hdr: true,
       resolution: [W, H],
-      ambientOcclusion: true,
+      // shadow pass: casters whose sun-swept bounds miss the view frustum are not drawn (shadowcull.ts)
+      shadowCasterCull: settings.shadowCasterCull,
+      shadowCastersTested: shadowCull.tested,
+      shadowCastersCulled: shadowCull.culled,
+      shadowCullMarginM: SHADOW_CULL_MARGIN_M,
+      /** stages switched off by the performance flags / auto quality (perfFlags.ts); all on as shipped */
+      stagesEnabled: { ...perfRuntime().fx },
+      ambientOcclusion: perfRuntime().fx.ao,
       aoResolution: [hw, hh],
-      godRays: true,
+      godRays: perfRuntime().fx.rays,
       godRayMethod: 'volumetric-shadow-march+gap-mask',
       godRaySteps: 24,
       godRayResolution: [qw, qh],
@@ -1221,7 +1270,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayScreenFanBeams: SCREEN_FAN.beams.map((b) => [b.u, b.halfWidth * settings.fanWidthScale, b.gain * settings.fanGainScale]),
       sunScreenUv: [Math.round(sunUv.x * 1000) / 1000, Math.round(sunUv.y * 1000) / 1000],
       sunInFront: dirSign.value > 0,
-      bloom: true,
+      bloom: perfRuntime().fx.bloom,
       bloomThreshold: settings.bloomThreshold,
       bloomIntensity: settings.bloomIntensity,
       bloomRadiusTexels: settings.bloomRadius,
@@ -1233,7 +1282,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       aoFadeM: [settings.aoFadeStart, settings.aoFadeEnd],
       antialiasing: 'fxaa',
       // final video-softness stage on a fixed 640/320-wide grid (see SOFT_FINAL_FRAG)
-      softening: settings.softening,
+      softening: settings.softening && perfRuntime().fx.soft,
       softeningGrid: [sw, sh],
       softeningDetailFloor: settings.softDetail,
       softeningActivityKnee: settings.softActivityK,

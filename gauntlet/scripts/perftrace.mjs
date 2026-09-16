@@ -13,13 +13,25 @@
  *
  *   node gauntlet/scripts/perftrace.mjs --dist <dist> --out <json> [--frames 2400] [--width 160 --height 90]
  *        [--quality high] [--norender] [--render-every N] [--label name] [--phase2 N] [--warmup]
+ *        [--params "fx=noao&shadow=1024"] [--finish] [--auto]
  *        [--profile trace.cpuprofile] [--profile-load load.cpuprofile] [--alloc trace.heapprofile]
  *
  * --norender     : the render call is stubbed (pure world.update JS; no first-use events happen)
  * --render-every : render only every Nth step (the others advance the simulation without a frame)
- * --phase2 N     : a second pass afterwards that draws every Nth frame (gl.finish outside the timing)
+ * --phase2 N     : a second pass afterwards that draws every Nth frame (GPU sync outside the timing)
  *                  to count first-use events (programs / geometries / textures) along the walk
  * --warmup       : open with ?warmup=1 (main.ts's warm-up before the first frame; headless default off)
+ * --params       : extra URL parameters appended as given — the performance flags of src/perfFlags.ts
+ *                  (fx=off|noao|norays|nobloom|nosoft, shadow=<size>[,<taps>], veg=<lod>[,<grass>],
+ *                  scale=<s>); the page's parsed flags / live state are echoed in the output (`perf`)
+ * --finish       : GPU completion sync INSIDE the timed step, so `ms` carries the GPU's (or SwiftShader's)
+ *                  completion of the frame — the matched-ablation measurement (`finish` ms is also
+ *                  recorded per frame); without it `ms` is the JS issue time only
+ * --auto         : open with quality=auto&governor=1 (main.ts runs the frame-time governor under the
+ *                  harness, finishing each step itself); every row carries the tier and the summary
+ *                  lists the governor's changes with frame indices. Tune it through --params
+ *                  "gov=<window>,<slowMs>,<fastMs>,<fastForS>,<minIntervalS>" (a software rasteriser
+ *                  at seconds per frame needs a short window to step within a trace)
  * --profile      : V8 CPU profile of the first pass (GC pauses show as "(garbage collector)")
  * --alloc        : sampled allocation profile of the first pass (who allocates per frame → GC pressure)
  *
@@ -61,6 +73,12 @@ const profileLoadOut = args['profile-load'] ? path.resolve(args['profile-load'])
 const warmup = !!args.warmup;
 /** --alloc <file>: sampled allocation profile (HeapProfiler) of the first pass — who allocates per frame */
 const allocOut = args.alloc ? path.resolve(args.alloc) : null;
+/** --params "a=b&c=d": performance flags (src/perfFlags.ts) appended to the page URL */
+const extraParams = typeof args.params === 'string' ? args.params.replace(/^[?&]+/, '') : '';
+/** --finish: GPU completion sync inside the timed step (the frame's completion counts in `ms`) */
+const finishInside = !!args.finish;
+/** --auto: quality=auto with the governor enabled under the harness */
+const auto = !!args.auto;
 let allocDone = false;
 const log = (...a) => console.error(...a);
 
@@ -175,7 +193,7 @@ const PATH = [
 const IDLE_FRAMES = 60;
 
 /** in-page: enter play mode at the spawn, install the follow-camera emulation and the recorder */
-function pageSetup({ norender, path, idleFrames, finishAfter }) {
+function pageSetup({ norender, path, idleFrames, finishAfter, finishInside }) {
   const H = window.__H;
   const scene = H.scene;
   const player = scene.userData.player;
@@ -225,9 +243,28 @@ function pageSetup({ norender, path, idleFrames, finishAfter }) {
   gates.veg.copy(gates.trees);
   const info = H.renderer.info;
   const knownPrograms = new Set(info.programs.map((p) => p.id));
-  window.__T = { H, player, link, camera, terrain, st, place, F, on, off, norender, finishAfter: !!finishAfter, gl: H.renderer.getContext(), path, idleFrames, gates, knownPrograms, lastGeom: info.memory.geometries, lastTex: info.memory.textures, camPrev: new V().copy(gates.trees), V };
+  const gl = H.renderer.getContext();
+  const px = new Uint8Array(4);
+  /** wait for the GPU to have drawn the canvas (finish() is a flush in Chromium; readPixels is not) */
+  const sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  window.__T = { H, player, link, camera, terrain, st, place, F, on, off, norender, finishAfter: !!finishAfter, finishInside: !!finishInside, gl, sync, path, idleFrames, gates, knownPrograms, lastGeom: info.memory.geometries, lastTex: info.memory.textures, camPrev: new V().copy(gates.trees), V };
   const perf0 = window.__ZR__.perf();
-  return { start: [player.position.x, player.position.z], heading: st.yaw, programs: info.programs.length, geometries: info.memory.geometries, textures: info.memory.textures, buildMs: perf0.buildMs, warmup: perf0.warmup ?? null };
+  const stats0 = window.__ZR__.stats();
+  return {
+    start: [player.position.x, player.position.z],
+    heading: st.yaw,
+    programs: info.programs.length,
+    geometries: info.memory.geometries,
+    textures: info.memory.textures,
+    buildMs: perf0.buildMs,
+    warmup: perf0.warmup ?? null,
+    // the page's performance flags and live state (src/perfFlags.ts), so the trace carries its config
+    perf: perf0.perfState ?? null,
+    flags: perf0.flags ?? {},
+    tier: perf0.tier ?? null,
+    drawingBuffer: [stats0.width, stats0.height],
+    pixelRatio: stats0.pixelRatio,
+  };
 }
 
 /** in-page: run `n` fixed steps from frame index `k0`, returning one row per step */
@@ -289,9 +326,14 @@ function pageRun({ k0, n, dt, renderEvery }) {
     if (!T.norender && !rendered) T.off();
     const tA = performance.now();
     H.step(dt);
+    const tB0 = performance.now();
+    // --finish: the frame's GPU completion counts in `ms` (the matched-ablation measurement).
+    // Chromium's WebGL finish() is only a flush; a one-pixel readPixels of the canvas is the
+    // synchronous round-trip that waits for the GPU process to have drawn the frame.
+    if (rendered && T.finishInside) T.sync();
     const tB = performance.now();
     if (!T.norender && !rendered) T.on();
-    if (rendered && T.finishAfter) T.gl.finish();
+    if (rendered && T.finishAfter) T.sync();
     const perf = window.__ZR__.perf();
     // ---- first-use events since the previous frame
     const newPrograms = [];
@@ -318,6 +360,10 @@ function pageRun({ k0, n, dt, renderEvery }) {
       ms: +(tB - tA).toFixed(3),
       update: +perf.update.toFixed(3),
       render: +perf.render.toFixed(3),
+      // --finish: ms spent waiting for the GPU (the frame's completion beyond the issue)
+      finish: T.finishInside ? +(tB - tB0).toFixed(3) : undefined,
+      // --auto: the governor's current rung (main.ts finishes its own steps under the harness)
+      tier: perf.tier ?? undefined,
       sys: Object.fromEntries(Object.entries(perf.systems).map(([k2, v]) => [k2, +v.toFixed(3)])),
       calls: info.render.calls,
       tris: info.render.triangles,
@@ -385,11 +431,33 @@ export function summarise(rows, { renderedOnly = false } = {}) {
   }
   const perTag = Object.fromEntries(Object.entries(byTag).map(([t, v]) => [t, { n: v.length, median: +percentile([...v].sort((a, b) => a - b), 0.5).toFixed(2), max: +Math.max(...v).toFixed(2) }]));
   const treesRebucketMs = stat((r) => (r.treesRebucket ? r.sys.trees ?? 0 : NaN));
+  const hasFinish = use.some((r) => typeof r.finish === 'number');
+  // --auto: the rungs seen and every change, with the frame it took effect on
+  const tierChanges = [];
+  let lastTier;
+  for (const r of use) {
+    if (r.tier === undefined) continue;
+    if (lastTier !== undefined && r.tier !== lastTier) tierChanges.push({ frame: r.k, t: +r.t.toFixed(2), tag: r.tag, from: lastTier, to: r.tier });
+    lastTier = r.tier;
+  }
+  const tiers = [...new Set(use.map((r) => r.tier).filter((t) => t !== undefined))];
+  const perTier = tiers.length
+    ? Object.fromEntries(
+        tiers.map((t) => {
+          const v = use.filter((r) => r.tier === t).map((r) => r.ms).sort((a, b) => a - b);
+          return [t, { frames: v.length, medianMs: +percentile(v, 0.5).toFixed(2), p95Ms: +percentile(v, 0.95).toFixed(2) }];
+        }),
+      )
+    : null;
   return {
     frames: use.length,
     step: stat('ms'),
     update: stat('update'),
     render: stat('render'),
+    finish: hasFinish ? stat((r) => r.finish ?? 0) : null,
+    tiers: tiers.length ? tiers : null,
+    tierChanges: tiers.length ? tierChanges : null,
+    perTier,
     calls: stat('calls'),
     tris: stat('tris'),
     systems,
@@ -407,7 +475,7 @@ export function summarise(rows, { renderedOnly = false } = {}) {
 }
 
 /** like browser.mjs openWorld, with a V8 CPU profile running from before the navigation until ready */
-async function openWorldProfiled(browser, baseUrl, { width, height, quality, log, profileOut, warmup }) {
+async function openWorldProfiled(browser, baseUrl, { width, height, quality, log, profileOut, warmup, params = '', auto = false }) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
   page.on('console', (m) => {
@@ -422,7 +490,10 @@ async function openWorldProfiled(browser, baseUrl, { width, height, quality, log
     await cdp.send('Profiler.setSamplingInterval', { interval: 200 });
     await cdp.send('Profiler.start');
   }
-  const url = `${baseUrl}/?capture=1&dev=0&quality=${encodeURIComponent(quality)}${warmup ? '&warmup=1' : ''}`;
+  // --auto: quality=auto plus governor=1 (a headless page otherwise pins auto to the fixed high tier)
+  const qualityParam = auto ? 'quality=auto&governor=1' : `quality=${encodeURIComponent(quality)}`;
+  const url = `${baseUrl}/?capture=1&dev=0&${qualityParam}${warmup ? '&warmup=1' : ''}${params ? `&${params}` : ''}`;
+  log(`url: ${url}`);
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: 900_000 });
   await page.waitForFunction(() => !!window.__ZR__, { timeout: 900_000, polling: 250 });
@@ -454,14 +525,14 @@ async function main() {
   const browser = await launchBrowser({ width, height });
   try {
     const tLoad = Date.now();
-    const { page, loadProfileTop } = await openWorldProfiled(browser, server.url, { width, height, quality, log, profileOut: profileLoadOut, warmup });
+    const { page, loadProfileTop } = await openWorldProfiled(browser, server.url, { width, height, quality, log, profileOut: profileLoadOut, warmup, params: extraParams, auto });
     const readyMs = Date.now() - tLoad;
     if (!(await grabHooks(page))) throw new Error('could not find the capture hooks');
     const dt = 1 / 60;
     const CHUNK = 30;
     /** one pass along the path from the spawn */
     const runPass = async ({ norender, renderEvery, frames, profileOut, tag, finishAfter = false }) => {
-      const setup = await page.evaluate(pageSetup, { norender, path: PATH, idleFrames: IDLE_FRAMES, finishAfter });
+      const setup = await page.evaluate(pageSetup, { norender, path: PATH, idleFrames: IDLE_FRAMES, finishAfter, finishInside: finishInside && !norender });
       log(`[${tag}] setup`, JSON.stringify(setup));
       const rows = [];
       const t0 = Date.now();
@@ -484,7 +555,10 @@ async function main() {
         const part = await page.evaluate(pageRun, { k0: k, n, dt, renderEvery });
         rows.push(...part);
         const last = part[part.length - 1];
-        if ((k / CHUNK) % 4 === 0) log(`[${tag}] frame ${last.k} t=${last.t.toFixed(2)} ${last.tag} pos=${last.pos} gait=${last.gait} ms=${last.ms} upd=${last.update} rend=${last.render} calls=${last.calls} prog=${last.programs} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
+        if ((k / CHUNK) % 4 === 0)
+          log(
+            `[${tag}] frame ${last.k} t=${last.t.toFixed(2)} ${last.tag} pos=${last.pos} gait=${last.gait} ms=${last.ms} upd=${last.update} rend=${last.render}${last.finish !== undefined ? ` fin=${last.finish}` : ''}${last.tier ? ` tier=${last.tier}` : ''} calls=${last.calls} tris=${last.tris} prog=${last.programs} (${((Date.now() - t0) / 1000).toFixed(0)} s)`,
+          );
       }
       let profileTop = null;
       if (cdp) {
@@ -513,12 +587,15 @@ async function main() {
     const pass1 = await runPass({ norender, renderEvery, frames, profileOut, tag: norender ? 'norender' : 'render' });
     let pass2 = null;
     if (phase2Every) {
-      // the rendered pass: gl.finish() after each drawn frame (outside the timed step) so the
+      // the rendered pass: a GPU sync after each drawn frame (outside the timed step) so the
       // software GPU's backlog never blocks the next frame's JS — the render-issue ms then measure
       // three's CPU work + call issue only
       pass2 = await runPass({ norender: false, renderEvery: phase2Every, frames: phase2Frames, profileOut: profileOut ? profileOut.replace(/\.cpuprofile$/, '') + '.render.cpuprofile' : null, tag: 'render', finishAfter: true });
     }
-    const result = { label, dist, width, height, quality, readyMs, loadProfileTop: loadProfileTop ?? null, pass1, pass2 };
+    // the governor's own record (rungs, changes with frame indices and the median that triggered each)
+    const governor = auto ? await page.evaluate(() => window.__ZR__.perf().governor ?? null) : null;
+    const config = { params: extraParams, finish: finishInside, auto, flags: pass1.setup.flags, perf: pass1.setup.perf, drawingBuffer: pass1.setup.drawingBuffer };
+    const result = { label, dist, width, height, quality: auto ? 'auto' : quality, config, readyMs, loadProfileTop: loadProfileTop ?? null, pass1, pass2, governor };
     if (out) {
       fs.mkdirSync(path.dirname(out), { recursive: true });
       fs.writeFileSync(out, JSON.stringify(result));
@@ -530,7 +607,7 @@ async function main() {
       const { spikeList, ...s } = summary;
       return { ...rest, summary: s, spikeList: spikeList.slice(0, 40) };
     };
-    console.log(JSON.stringify({ label, dist, width, height, quality, readyMs, pass1: brief(pass1), pass2: brief(pass2) }, null, 1));
+    console.log(JSON.stringify({ label, dist, width, height, quality: result.quality, config, readyMs, pass1: brief(pass1), pass2: brief(pass2), governor }, null, 1));
   } finally {
     await browser.close();
     await server.close();

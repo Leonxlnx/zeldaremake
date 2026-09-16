@@ -14,6 +14,7 @@ import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
+import { perfFlags, perfRuntime } from '../../perfFlags';
 
 export const GRASS_TYPE_NAMES = ['turf', 'meadow', 'sedge'] as const;
 
@@ -179,6 +180,25 @@ const BANK_DARKEN = 0.6;
  * per-blade contrasts) are cut by BANK_FLAT × zone, so neighbouring blades share a palette entry.
  */
 const BANK_FLAT = 0.7;
+/** the drawn share of a tile can fall below 1: an explicit density flag, or the governor's ladder */
+const THIN_ENABLED = perfFlags().grassDensity < 1 || perfFlags().governor;
+
+/** Fisher–Yates over the first `count` instances of the matrix (16 floats) and data (4 floats) streams */
+function shuffleInstances(matrices: Float32Array, data: Float32Array, count: number, rng: Rng) {
+  const m = new Float32Array(16);
+  const d = new Float32Array(4);
+  for (let i = count - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    if (j === i) continue;
+    m.set(matrices.subarray(i * 16, i * 16 + 16));
+    matrices.copyWithin(i * 16, j * 16, j * 16 + 16);
+    matrices.set(m, j * 16);
+    d.set(data.subarray(i * 4, i * 4 + 4));
+    data.copyWithin(i * 4, j * 4, j * 4 + 4);
+    data.set(d, j * 4);
+  }
+}
+
 /** 0..1 hash of a mm-quantised position (no rng draw) */
 const hash01 = (x: number, z: number) => {
   let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
@@ -446,6 +466,14 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     }
     if (count === 0) continue;
 
+    // Performance flags (perfFlags.ts): when the drawn share of a tile may drop below 1 (`?veg=
+    // <lod>,<density>` or the auto-quality governor), `update()` draws a prefix of the instance
+    // stream, so the stream is shuffled here (its own rng fork; nothing above draws from it) to
+    // make every prefix a uniform thinning — as built, the extra passes (lawn band, flanks) sit at
+    // the end and a prefix would take them first. Never on the shipped path: the order there is
+    // the one the captures were sealed with.
+    if (THIN_ENABLED) shuffleInstances(matrices, data, count, ctx.rng.fork(`grass/thin/${cx}/${cz}`));
+
     const aData = new InstancedBufferAttribute(data.slice(0, count * 4), 4);
     const lods = bases.map((b) => {
       const g = new BufferGeometry();
@@ -491,17 +519,27 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     visible.drawCalls = 0;
     visible.triangles = 0;
     visible.lodCounts = [0, 0, 0];
+    // performance flags / auto quality (perfFlags.ts): the LOD ranges scale, and a tile draws the
+    // first `density` share of its (shuffled, see build) instance stream. Both 1 as shipped.
+    const perf = perfRuntime();
+    const scale = perf.vegLodScale;
+    const density = THIN_ENABLED ? perf.grassDensity : 1;
+    const d0 = lodDistances[0] * scale;
+    const d1 = lodDistances[1] * scale;
+    const d2 = lodDistances[2] * scale;
     for (const t of tiles) {
       const d = Math.hypot(camPos.x - (t.cx * TILE + TILE / 2), camPos.z - (t.cz * TILE + TILE / 2)) - halfDiag;
-      const lod = d < lodDistances[0] ? 0 : d < lodDistances[1] ? 1 : 2;
+      const lod = d < d0 ? 0 : d < d1 ? 1 : 2;
       if (lod !== t.lod) {
         t.lod = lod;
         t.mesh.geometry = t.lods[lod];
       }
-      t.mesh.visible = d < lodDistances[2];
+      const drawn = density < 1 ? Math.round(t.count * density) : t.count;
+      if (t.mesh.count !== drawn) t.mesh.count = drawn;
+      t.mesh.visible = d < d2 && drawn > 0;
       if (t.mesh.visible) {
         visible.drawCalls++;
-        visible.triangles += t.count * trisPerLod[lod];
+        visible.triangles += drawn * trisPerLod[lod];
         visible.lodCounts[lod]++;
       }
     }

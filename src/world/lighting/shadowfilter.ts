@@ -42,7 +42,25 @@ export interface ShadowFilterParams {
   leak: number;
   leakStartM: number;
   leakFullM: number;
+  /** PCF filter taps / blocker-search taps (12 / 8 as shipped; `?shadow=<size>,<taps>` lowers them) */
+  filterTaps?: number;
+  searchTaps?: number;
+  /** the map size `texelM` was computed for (the dynamic variant recovers the window's metres from it) */
+  mapSize?: number;
+  /**
+   * Auto-quality variant (perfFlags.ts governor): the texel size follows the live `shadowMapSize`
+   * uniform instead of a baked constant, and the tap counts ride in the thousands of the light's
+   * `shadow.radius` (lighting/index.ts encodes `radius + 1000 × filterTaps`; 0 = the baked counts),
+   * so the governor can change the map size and the taps without recompiling a material. Never
+   * used by the fixed tiers: their shader stays the shipped one, byte for byte.
+   */
+  dynamic?: boolean;
 }
+
+/** blocker-search taps for a filter tap count: two thirds of it, at least 4 (12 → 8, 8 → 5, 6 → 4, 4 → 4) */
+export const searchTapsFor = (filterTaps: number): number => Math.max(4, Math.round((filterTaps * 2) / 3));
+/** the thousands of `shadow.radius` carry the filter tap count in the dynamic variant */
+export const encodeShadowRadius = (radius: number, filterTaps: number): number => radius + 1000 * Math.max(1, Math.round(filterTaps));
 
 export const SHADOW_FILTER_DEFAULTS: ShadowFilterParams = {
   depthRangeM: 210,
@@ -68,19 +86,40 @@ const f = (n: number) => n.toFixed(6);
 /** GLSL for the replaced BASIC getShadow (exported for the audit / tests). */
 export function shadowFilterGlsl(p: ShadowFilterParams): string {
   const searchTexels = p.searchRadiusM / p.texelM;
+  const filterTaps = p.filterTaps ?? 12;
+  const searchTaps = p.searchTaps ?? 8;
+  // the dynamic variant: texel and search radius in texels from the live map size, the tap counts
+  // decoded from shadow.radius at the top of getShadow (see ShadowFilterParams.dynamic)
+  const texelDefs = p.dynamic
+    ? `	const float KF_SH_WINDOW_M = ${f(p.texelM * (p.mapSize ?? 4096))};
+	const float KF_SH_SEARCH_M = ${f(p.searchRadiusM)};
+	#define KF_SH_TEXEL_M ( KF_SH_WINDOW_M / shadowMapSize.x )
+	#define KF_SH_SEARCH_TEXELS ( KF_SH_SEARCH_M / KF_SH_TEXEL_M )`
+    : `	const float KF_SH_TEXEL_M = ${f(p.texelM)};
+	const float KF_SH_SEARCH_TEXELS = ${f(searchTexels)};`;
+  const tapDefs = p.dynamic
+    ? `	#define KF_SH_SEARCH_TAPS kfSearchTaps
+	#define KF_SH_FILTER_TAPS kfFilterTaps`
+    : `	#define KF_SH_SEARCH_TAPS ${searchTaps}
+	#define KF_SH_FILTER_TAPS ${filterTaps}`;
+  const decodeTaps = p.dynamic
+    ? `		float kfTapCode = floor( shadowRadius / 1000.0 );
+		shadowRadius -= kfTapCode * 1000.0;
+		int kfFilterTaps = kfTapCode > 0.5 ? int( kfTapCode ) : ${filterTaps};
+		int kfSearchTaps = max( 4, int( floor( float( kfFilterTaps ) * 2.0 / 3.0 + 0.5 ) ) );
+`
+    : '';
   return /* glsl */ `
 	// --- kokiri PCSS + canopy transmission (src/world/lighting/shadowfilter.ts) ---
 	const float KF_SH_RANGE_M = ${f(p.depthRangeM)};
-	const float KF_SH_TEXEL_M = ${f(p.texelM)};
-	const float KF_SH_SEARCH_TEXELS = ${f(searchTexels)};
+${texelDefs}
 	const float KF_SH_PEN_PER_M = ${f(p.penumbraPerM)};
 	const float KF_SH_PEN_MIN_M = ${f(p.penumbraMinM)};
 	const float KF_SH_PEN_MAX_M = ${f(p.penumbraMaxM)};
 	const float KF_SH_LEAK = ${f(p.leak)};
 	const float KF_SH_LEAK_START_M = ${f(p.leakStartM)};
 	const float KF_SH_LEAK_FULL_M = ${f(p.leakFullM)};
-	#define KF_SH_SEARCH_TAPS 8
-	#define KF_SH_FILTER_TAPS 12
+${tapDefs}
 
 	float kfShIgn( vec2 p ) { return fract( 52.9829189 * fract( dot( p, vec2( 0.06711056, 0.00583715 ) ) ) ); }
 	vec2 kfShVogel( int i, int n, float phi ) {
@@ -101,7 +140,7 @@ export function shadowFilterGlsl(p: ShadowFilterParams): string {
 		// screen-space derivatives first (uniform control flow), for the receiver-plane bias below
 		vec3 dx = dFdx( shadowCoord.xyz );
 		vec3 dy = dFdy( shadowCoord.xyz );
-		// diagnostic modes (tuning aid; a probe drives them through the light's shadow radius, which
+${decodeTaps}		// diagnostic modes (tuning aid; a probe drives them through the light's shadow radius, which
 		// production never sets above a few texels): 1xx = occluder distance in front of the receiver
 		// (raw texel), 3xx = blocker fraction, 4xx = filtered visibility without canopy transmission,
 		// 8xx = blocker-search occluder distance / 20 m
@@ -224,7 +263,7 @@ export function installShadowFilter(params: ShadowFilterParams = SHADOW_FILTER_D
   if (override) {
     for (const k of Object.keys(override) as (keyof ShadowFilterParams)[]) {
       const v = override[k];
-      if (typeof v === 'number') params[k] = v;
+      if (typeof v === 'number') (params as unknown as Record<string, number>)[k] = v;
     }
   }
   const src = ShaderChunk.shadowmap_pars_fragment;

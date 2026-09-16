@@ -1,0 +1,249 @@
+{
+  "dist": "/tmp/r38-perf/dist-r2",
+  "viewpoint": "A_stairs",
+  "params": "",
+  "width": 640,
+  "height": 360,
+  "settle": 8,
+  "simTime": 12.5,
+  "readyMs": 37768,
+  "renderMs": 88637,
+  "timing": null,
+  "ab": {
+    "cull": {
+      "pairs": 5,
+      "onMedianMs": 13046.3,
+      "offMedianMs": 13859.9,
+      "pairDeltaMedianMs": 313.3,
+      "on": [
+        15425,
+        12970,
+        13046,
+        9409,
+        13547
+      ],
+      "off": [
+        14738,
+        14062,
+        12635,
+        13535,
+        13860
+      ],
+      "offDrawCalls": 539,
+      "offTriangles": 8655399,
+      "deltaPct": 6.2
+    },
+    "ao": {
+      "pairs": 5,
+      "onMedianMs": 12410.6,
+      "offMedianMs": 13327.8,
+      "pairDeltaMedianMs": 1499.5,
+      "on": [
+        10909,
+        12411,
+        12970,
+        14591,
+        11760
+      ],
+      "off": [
+        12904,
+        13910,
+        13328,
+        16102,
+        13235
+      ],
+      "offDrawCalls": 533,
+      "offTriangles": 8540195,
+      "deltaPct": 7.4
+    },
+    "rays": {
+      "pairs": 5,
+      "onMedianMs": 14153.7,
+      "offMedianMs": 13685.5,
+      "pairDeltaMedianMs": 534.9,
+      "on": [
+        14427,
+        9323,
+        14154,
+        11700,
+        17396
+      ],
+      "off": [
+        13686,
+        14766,
+        14860,
+        12235,
+        13474
+      ],
+      "offDrawCalls": 532,
+      "offTriangles": 8540193,
+      "deltaPct": -3.3
+    },
+    "bloom": {
+      "pairs": 5,
+      "onMedianMs": 13025.8,
+      "offMedianMs": 14467.5,
+      "pairDeltaMedianMs": 2254.3,
+      "on": [
+        16383,
+        14539,
+        13026,
+        11532,
+        12877
+      ],
+      "off": [
+        12422,
+        12435,
+        15280,
+        14468,
+        15606
+      ],
+      "offDrawCalls": 532,
+      "offTriangles": 8540193,
+      "deltaPct": 11.1
+    },
+    "soft": {
+      "pairs": 5,
+      "onMedianMs": 14828,
+      "offMedianMs": 13673.9,
+      "pairDeltaMedianMs": -1154.1,
+      "on": [
+        14621,
+        14828,
+        16146,
+        13730,
+        15905
+      ],
+      "off": [
+        14849,
+        13674,
+        11794,
+        12381,
+        15634
+      ],
+      "offDrawCalls": 525,
+      "offTriangles": 8540179,
+      "deltaPct": -7.8
+    },
+    "all": {
+      "pairs": 5,
+      "onMedianMs": 13614.2,
+      "offMedianMs": 14406.1,
+      "pairDeltaMedianMs": 256.9,
+      "on": [
+        13614,
+        13048,
+        14074,
+        12280,
+        19731
+      ],
+      "off": [
+        13871,
+        14406,
+        13962,
+        14999,
+        14561
+      ],
+      "offDrawCalls": 517,
+      "offTriangles": 8540163,
+      "deltaPct": 5.8
+    },
+    "veg0.5": {
+      "pairs": 5,
+      "onMedianMs": 15469.1,
+      "offMedianMs": 13535.1,
+      "pairDeltaMedianMs": -1437.4,
+      "on": [
+        15657,
+        14983,
+        15469,
+        16025,
+        9704
+      ],
+      "off": [
+        14219,
+        13679,
+        11133,
+        13164,
+        13535
+      ],
+      "offDrawCalls": 506,
+      "offTriangles": 7264364,
+      "deltaPct": -12.5
+    }
+  },
+  "png": null,
+  "stats": {
+    "simTime": 12.63333333333334,
+    "drawCalls": 535,
+    "triangles": 8540199,
+    "geometries": 360,
+    "textures": 82,
+    "programs": 88,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+  },
+  "flags": {},
+  "tier": "high",
+  "perfState": {
+    "flags": {},
+    "tier": "high",
+    "version": 0,
+    "fx": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "shadowMapSize": 4096,
+    "shadowTaps": 12,
+    "vegLodScale": 1,
+    "grassDensity": 1,
+    "renderScale": 1
+  },
+  "stepMs": {
+    "step": 10.100000023841858,
+    "update": 2.899999976158142,
+    "render": 7.200000047683716
+  },
+  "lighting": {
+    "shadows": true,
+    "shadowMapSize": 4096,
+    "filterTaps": 12,
+    "searchTaps": 8,
+    "dynamic": false
+  },
+  "postfx": {
+    "resolution": [
+      640,
+      360
+    ],
+    "stagesEnabled": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "aoResolution": [
+      320,
+      180
+    ],
+    "godRayResolution": [
+      160,
+      90
+    ],
+    "softeningGrid": [
+      640,
+      360
+    ],
+    "shadowCasterCull": true,
+    "shadowCastersTested": 181,
+    "shadowCastersCulled": 4
+  },
+  "vegetation": {
+    "drawCalls": 120,
+    "triangles": 3205730
+  },
+  "sceneTriangles": 7087934
+}

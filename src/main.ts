@@ -8,6 +8,7 @@ import { installCaptureApi, isHeadlessCapture } from './capture/api';
 import { WORLD } from './world/config';
 import type { Quality } from './world/system';
 import { mountHud } from './ui/hud';
+import { perfFlags, perfReport, perfRuntime, QualityGovernor } from './perfFlags';
 
 /**
  * Warm-up before the first frame of the walkable build (round 37). Measured on the r37 trace
@@ -112,11 +113,24 @@ async function boot() {
   const loading = document.getElementById('loading')!;
   const params = new URLSearchParams(location.search);
   const headless = isHeadlessCapture();
-  const tier = (params.get('quality') as Quality['tier']) || 'high';
+  // performance flags (perfFlags.ts): `?quality=auto` runs the governor over the high tier's
+  // world; under a headless capture it stays fixed high unless the trace harness says `governor=1`
+  const flags = perfFlags();
+  const perfState = perfRuntime();
+  const tierParam = params.get('quality');
+  const tier = (tierParam === 'auto' ? 'high' : (tierParam as Quality['tier'])) || 'high';
   const quality = qualityFor(tier);
 
-  const renderer = new WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false, preserveDrawingBuffer: headless });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, quality.pixelRatio, WORLD.renderer.maxPixelRatio));
+  // The composer draws the frame into its own targets and blits the final image, so the canvas
+  // itself is never rasterised with anything but a fullscreen quad: a multisampled default
+  // framebuffer (`antialias: true`) only added a 4× colour buffer and a resolve per frame for an
+  // identical image (FXAA is the anti-aliasing; measured byte-identical on the six fixed captures).
+  const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false, preserveDrawingBuffer: headless });
+  const basePixelRatio = Math.min(devicePixelRatio, quality.pixelRatio, WORLD.renderer.maxPixelRatio);
+  // `?scale=` / the governor's render scale multiply the pixel ratio (every composer target follows
+  // the drawing buffer); 1 as shipped, so the product is the ratio itself
+  const applyRenderScale = () => renderer.setPixelRatio(perfState.renderScale === 1 ? basePixelRatio : basePixelRatio * perfState.renderScale);
+  applyRenderScale();
   renderer.setSize(host.clientWidth, host.clientHeight);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
@@ -179,6 +193,21 @@ async function boot() {
   let simTime = 0;
   // CPU ms of the last step's phases (camera / world.update / render issue), read by __ZR__.perf()
   const perf = { step: 0, camera: 0, update: 0, render: 0 };
+
+  // Auto quality: the governor steps the ladder in perfFlags.ts from the frame time. It is fed the
+  // rAF interval in play (what the GPU actually lets through) and, under the trace harness, the
+  // finished step's wall time through `__ZR__` (see perftrace.mjs --auto). Its render-scale
+  // changes resize the renderer here; the other rungs' settings are read by the systems themselves.
+  const governor = flags.governor ? new QualityGovernor(perfState, flags.governorOpts) : null;
+  const syncPixel = new Uint8Array(4);
+  let perfApplied = perfState.version;
+  const applyPerfState = () => {
+    if (perfState.version === perfApplied) return;
+    perfApplied = perfState.version;
+    applyRenderScale();
+    composer?.setSize(host.clientWidth, host.clientHeight);
+  };
+
   const step = (dt: number) => {
     const t0 = performance.now();
     simTime += dt;
@@ -186,6 +215,7 @@ async function boot() {
       if (follow?.enabled) follow.update(dt);
       else cam.update(dt);
     }
+    if (governor) applyPerfState();
     const t1 = performance.now();
     world.update(dt, simTime);
     const t2 = performance.now();
@@ -196,6 +226,17 @@ async function boot() {
     perf.update = t2 - t1;
     perf.render = t3 - t2;
     perf.step = t3 - t0;
+    if (governor && headless) {
+      // the trace harness steps the frame itself (no frame interval to read): wait for the GPU so
+      // the step's wall time carries the render cost, then feed that to the governor. Chromium's
+      // WebGL finish() is only a flush; a one-pixel readPixels of the canvas is the synchronous
+      // round-trip that returns once the frame is drawn.
+      const gl = renderer.getContext();
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, syncPixel);
+      const t4 = performance.now();
+      perf.step = t4 - t0;
+      governor.observe(perf.step, t4);
+    }
   };
 
   let readyResolve!: () => void;
@@ -235,7 +276,10 @@ async function boot() {
     setQuality: () => {
       /* runtime quality switching is a later task */
     },
-    perf: () => ({ ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs }, warmup }),
+    perf: () => {
+      const report = perfReport();
+      return { ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs }, warmup, flags: report.flags, tier: report.tier, perfState: report, governor: governor?.report() ?? null };
+    },
   });
 
   const onResize = () => {
@@ -266,7 +310,11 @@ async function boot() {
 
   const loop = () => {
     if (!headless) {
-      const dt = Math.min(getDelta(), 0.1);
+      const rawDt = getDelta();
+      const dt = Math.min(rawDt, 0.1);
+      // the frame interval is the GPU-side proxy the governor steps on (the JS step alone never
+      // sees a GPU-bound frame: the driver throttles the next requestAnimationFrame instead)
+      if (governor) governor.observe(rawDt * 1000, lastNow);
       step(dt);
       frames++;
       fpsAcc += dt;
@@ -277,9 +325,11 @@ async function boot() {
         if (devVisible) {
           const p = cam.camera.position;
           const info = renderer.info.render;
+          const tierHint = governor ? `auto → ${governor.ladder[governor.rung].name}${perfState.renderScale !== 1 ? ` · scale ${perfState.renderScale}` : ''}` : quality.tier;
+          const flagHint = Object.keys(flags.active).length ? ` · flags ${Object.entries(flags.active).map(([k, v]) => `${k}=${v}`).join(' ')}` : '';
           dev.textContent =
             `${fps.toFixed(0)} fps · ${info.calls} draws · ${(info.triangles / 1e6).toFixed(2)}M tris\n` +
-            `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${quality.tier}\n` +
+            `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${tierHint}${flagHint}\n` +
             (follow?.enabled
               ? `PLAY: WASD / arrows walk · Shift run · drag to look · Tab equipment · P free camera · H hide`
               : `FREE CAM: WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play as Link · H hide`);

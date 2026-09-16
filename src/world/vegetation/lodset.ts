@@ -24,6 +24,15 @@
  * `cull: false` keeps submitting whole buckets — litter.ts explains why the leaves do).
  */
 import { BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Sphere, Vector3, type Camera, type Material, type TypedArray } from 'three';
+import type { PerfRuntime } from '../../perfFlags';
+
+/**
+ * Live multiplier on the LOD distances (perfFlags.ts `?veg=<lodScale>` / the auto-quality
+ * governor). Read from the published runtime object rather than imported: this module has no
+ * dependencies beyond three (its node test loads it alone), and the object is the same one every
+ * other system reads. 1 when unset — the shipped ranges.
+ */
+const lodDistanceScale = (): number => (globalThis as { __KF_PERF__?: PerfRuntime }).__KF_PERF__?.vegLodScale ?? 1;
 
 /**
  * Culling pad (m) on every instance sphere: plants sway ≤ 0.2 m (windBranch at the seed heads'
@@ -476,9 +485,13 @@ export class LodInstancedSet {
   }
 
 
-  /** true when an unforced `update()` would re-bucket for this camera position (moved past the hysteresis) */
+  /** the LOD distance scale the buckets were last built with (a change re-buckets at the next update) */
+  private lastLodScale = 1;
+
+  /** true when an unforced `update()` would re-bucket for this camera position (moved past the hysteresis, or the LOD scale changed) */
   wantsRebucket(camPos: Vector3): boolean {
     if (!this.built) return true;
+    if (lodDistanceScale() !== this.lastLodScale) return true;
     const hyst = this.opts.hysteresis ?? 0.6;
     return camPos.distanceToSquared(this.lastCam) >= hyst * hyst;
   }
@@ -493,11 +506,21 @@ export class LodInstancedSet {
     this.lastCam.copy(camPos);
     const { lodDistances } = this.opts;
     const lodCount = this.lodCount;
-    this.bucket((it) => {
-      const d = hypot2(camPos.x - it.x, camPos.z - it.z);
-      for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
-      return lodCount - 1;
-    });
+    const scale = lodDistanceScale();
+    this.lastLodScale = scale;
+    if (scale === 1) {
+      this.bucket((it) => {
+        const d = hypot2(camPos.x - it.x, camPos.z - it.z);
+        for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
+        return lodCount - 1;
+      });
+    } else {
+      this.bucket((it) => {
+        const d = hypot2(camPos.x - it.x, camPos.z - it.z);
+        for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l] * scale) return l;
+        return lodCount - 1;
+      });
+    }
     return true;
   }
 
