@@ -512,11 +512,12 @@ export function shadedSheetMask(shadeDir: Vector3, noise: Noise2D, band: [number
     const edgeN = noise.fbm(nx * 1.4 + 9.3, p.y * 0.55 + nz * 1.4, 3);
     const top = band[1] + 2.2 * edgeN;
     const heightBand = (1 - smoothstep(top - 1.5, top, p.y)) * smoothstep(band[0] - 0.5, band[0] + 0.5, p.y);
-    // ragged sheets, not a felt: on the fully shaded side the patch noise leaves ≈ 45 % of the
+    // ragged sheets, not a felt: on the fully shaded side the patch noise leaves ≈ 50 % of the
     // bark bare between the sheets (a first cut at smoothstep(0.55, 0.9, 0.7 away + 0.45 patch)
-    // read as one green column from the plaza), on the flanks only the odd patch survives
+    // read as one green column from the plaza, 0.68–0.82 on 0.5/0.5 still ≈ 70 % covered), on the
+    // flanks only the odd patch survives
     const patch = 0.5 + 0.5 * noise.noise(nx * 2.0 + p.y * 0.7 + 41.1, nz * 2.0 - p.y * 0.35 + 17.3);
-    return smoothstep(0.68, 0.82, away * 0.5 + patch * 0.5) * heightBand * strength;
+    return smoothstep(0.74, 0.86, away * 0.5 + patch * 0.5) * heightBand * strength;
   };
 }
 

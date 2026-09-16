@@ -381,8 +381,9 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   };
   // (round 37: the bough is 6 m from camera A in the shade under the roof — its leaves read as
   // dark olive in frame 1 s; the laminae's base tint keeps that but the lit/backlit ones lift
-  // through the material's transmission)
-  const leafBase = new Color().setRGB(0.36, 0.42, 0.21);
+  // through the material's transmission. Round 40: 0.36/0.42/0.21 still rendered the sun-side
+  // clusters as lime rosettes from 3 m against frame-03's heavy dark bough — a darker olive base)
+  const leafBase = new Color().setRGB(0.27, 0.33, 0.16);
   const tintFor = (): Color => {
     const k = 0.72 + twigRng() * 0.56;
     const warm = (twigRng() - 0.5) * 0.08;
@@ -683,7 +684,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
         {
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
           float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
-          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.35;
+          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.28;
         }
         #endif`,
       );

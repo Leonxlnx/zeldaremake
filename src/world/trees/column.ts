@@ -303,11 +303,11 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       draws,
       stiffness: stiff,
       flatBase: true,
-      mossBand: [1.5, 6],
-      mossStrength: 0.85,
+      mossBand: [1.5, 5],
+      mossStrength: 0.7,
       shadeDir,
       sheetBand: [0.8, 2.4],
-      mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 6.5], 0.9, centreAt) : undefined,
+      mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 5.5], 0.9, centreAt) : undefined,
       lichen: { band: [3, 12], strength: 0.8 },
     });
     bark = { relief: built.amplitude, rings: built.rings, sides: built.sides, mossShare: built.mossShare, triangles: built.triangles };
