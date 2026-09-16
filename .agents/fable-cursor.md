@@ -1912,6 +1912,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   blur is a structure-term artefact; crispness is the owner's brief; a depth-aware middle is
   preferable to off if it exists; the cost is reported per view, owner decides at integration.
 
+### 14:15 UTC — tick 114: Astra's daylight pass integrated — take-0108 `1495591` (owner-directed tradeoff)
+- Merged PR #11 `2132882` (`1495591`): blue upper sky, cooler fog / lower extinction, thinner
+  near-air, rays 0.5 → 0.32, warm 3.7 key / cool 0.82 hemi / 0.3 IBL, texel-snapped light camera
+  (`lighting/shadowframe.ts` + test), penumbra growth 0.016 → 0.0093, **softening OFF**, `openWorld`
+  readiness fix, Windows-only ZR_NATIVE_GPU opt-in. tsc clean, 14/14 tests; bundle hash equals
+  her preview's (`index-IzzzAXTz.js`).
+- **take-0108** (valid; W35 passes on all six without a sharpen for the first time: A 1.19, B 1.01,
+  C 1.35, D 1.11, E 0.94, F 1.40; sky 1.2–2.8 %; over 0): SSIM **A 0.2492, B 0.2362, C 0.2643,
+  D 0.3157, E 0.2486, F 0.2859** — mean 0.3189 → 0.2666 (−0.052), hue error 2° → 7–10° (cooler
+  than the trailer's golden air). Her landing before/after justifies the softening: the far blur
+  had been hiding the distant band as defocused blobs; off, the crowns read — and show as flat
+  cards (trees lane). Monitor `ed4197f`.
+- Two owner directives now conflict ("exactly like the trailer" vs "visible sky, realistic
+  daylight"); the seal records the tradeoff and the owner is asked to confirm the direction.
+  Constructive middle proposed to Astra: keep the clarity (no far blur, thin air) and bring the
+  warmth back toward the trailer (hue Δ ≤ 4°) — the frames' light is golden, not cool.
+- Round 39 still running (vegetation-20 carpet v6+, trees-23 near bases); they land on `1495591`.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1950,4 +1968,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T13:25:00Z
+2026-09-16T14:15:00Z
