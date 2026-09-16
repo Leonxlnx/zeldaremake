@@ -515,7 +515,15 @@ export function strawTexture(seedRng: () => number): Texture {
   return finishTexture(new CanvasTexture(c), true, 'structures:straw');
 }
 
-const MOSS_S = 512;
+/**
+ * Round 40 (structures-25, owner video review "roof moss needs distinct close-scale tufts"):
+ * 512 → 1024 texels over the same 1.6 m tile (1.56 mm per texel, was 3.1), so the field can
+ * hold a second, finer cushion scale that the owner's 4 m close-ups resolve (a pixel there is
+ * ≈ 2.7 mm on the cap).
+ */
+const MOSS_S = 1024;
+/** texels per metre of cap surface (one tile is 1.6 m on the cap; see house.ts `meridian`) */
+const MOSS_TPM = MOSS_S / 1.6;
 /**
  * The moss albedo map's peak (linear): the map is stored divided by it — an 8-bit colour map
  * clips at 1.0, so a map whose mid tone is 1.0 can only darken (probes 3–4: the lit crests
@@ -523,6 +531,14 @@ const MOSS_S = 512;
  * renders the same and the crests carry the light.
  */
 export const MOSS_ALBEDO_PEAK = 2.0;
+/**
+ * The cap moss's translucent lift (round 40): the share of the (shadowed) sun that comes back
+ * through a tuft's thin tips as a warm yellow-green glow, strongest where the sun grazes the
+ * tuft (the terminator wraps past N·L = 0 by ≈ 35°) and fading on the fully lit crests, which
+ * the Lambert term already carries. Small: frame B's cap tertiles were calibrated on the
+ * Lambert response alone (house.ts `domeVertex`, round 36).
+ */
+export const MOSS_TRANSLUCENCY = 0.22;
 
 /**
  * The house cap's moss maps. The tangent-space normal map (round 13): the cap had been sharing
@@ -550,13 +566,16 @@ export const MOSS_ALBEDO_PEAK = 2.0;
  */
 export function mossTextures(seedRng: () => number): { normal: Texture; albedo: Texture } {
   const S = MOSS_S;
-  const { h, coarse } = mossField(seedRng);
+  const { h, coarse, mid } = mossField(seedRng);
   const wrap = (i: number) => ((i % S) + S) % S;
   // central differences → tangent-space normal (+u right, +v up: canvas rows run downward and
   // the CanvasTexture is flipped on upload, so canvas −y is +v)
   const { c, g } = canvas(S, S);
   const img = g.createImageData(S, S);
-  const K = 2.6;
+  // (round 40: the slope gain scales with the texel density — the same cushion spans twice the
+  // texels at 1024, so each texel's height step halves; 2.6 at 512 → 5.2 keeps the cushions'
+  // slopes, and the new 1–2.5 cm tufts, steeper per texel, carry the fine relief)
+  const K = 2.6 * (S / 512);
   for (let y = 0; y < S; y++) {
     for (let x = 0; x < S; x++) {
       const dx = (h[y * S + wrap(x + 1)] - h[y * S + wrap(x - 1)]) * K;
@@ -589,14 +608,17 @@ export function mossTextures(seedRng: () => number): { normal: Texture; albedo: 
     return (i: number) => Math.max(-2, Math.min(2, (f[i] - mean) * inv));
   };
   const tCoarse = normalise(coarse);
+  const tMid = normalise(mid);
   const tFine = normalise(h);
   // dark specks: sparse, small and crisp (the reference's dots are 3–4 px wide at 1280 = 4 cm;
-  // 200 of radius 2–3.5 cm cover ≈ 27 % of the tile), overlaps saturate through the exp below
+  // 200 per 512² of radius 2–3.5 cm cover ≈ 27 % of the tile), overlaps saturate through the
+  // exp below (round 40: the count and radii follow the texel density, so the coverage holds)
   const speck = new Float32Array(S * S);
-  for (let n = 0; n < 200; n++) {
+  const texelScale = S / 512;
+  for (let n = 0; n < 200 * texelScale * texelScale; n++) {
     const cx = Math.floor(seedRng() * S);
     const cy = Math.floor(seedRng() * S);
-    const r = 6 + seedRng() * 5;
+    const r = (6 + seedRng() * 5) * texelScale;
     const amp = 0.8 + seedRng() * 0.5;
     const ri = Math.ceil(r * 1.4);
     const invR = 1 / (r * r);
@@ -619,8 +641,10 @@ export function mossTextures(seedRng: () => number): { normal: Texture; albedo: 
     const tc = tCoarse(i);
     // crests carry the light (up to ×2), hollows fall (×0.7): the reference mound's light
     // tertile is 1.6× its mid in linear light, ours (vertex grain alone) 1.25×; at ×1.64
-    // (probe 7) the light tertile stopped at 0.53 on the reference's 0.61 with the mid matched
-    const relief = (tc > 0 ? 1 + 0.5 * tc : 1 + 0.15 * tc) * (1 + 0.06 * tFine(i));
+    // (probe 7) the light tertile stopped at 0.53 on the reference's 0.61 with the mid matched.
+    // Round 40: the 2.5–5 cm clumps add their own lit-top / dark-rim term (±12 %) — at B's mip
+    // level it averages out like the fine grain, at 4 m it draws each clump as a cushion.
+    const relief = (tc > 0 ? 1 + 0.5 * tc : 1 + 0.15 * tc) * (1 + 0.12 * tMid(i)) * (1 + 0.06 * tFine(i));
     // speck darkening saturates at ×0.4, near-neutral (the reference's dark tertile keeps the
     // mound's own hue: rgb(104,97,59) under (166,160,99)); a touch less blue so the dots read
     // as moss shadow, not soil
@@ -643,12 +667,19 @@ export function mossTextures(seedRng: () => number): { normal: Texture; albedo: 
 
 /**
  * The moss relief as a periodic height field (see `mossTextures`): `h` the full field, `coarse`
- * its cushion component alone (the albedo map's lit crests)
+ * its cushion component alone (the albedo map's lit crests), `mid` the 2.5–5 cm clumps.
+ *
+ * Round 40: a TWO-SCALE cushion pattern. Real moss (the owner's frame-03 bough, board 05 "Moss
+ * Texture") is cushions of cushions — 10–25 cm pillows made of 2–5 cm clumps, each clump a
+ * brush of 1–2.5 cm tufts. Sizes are given in metres and converted at the tile's texel density
+ * (`MOSS_TPM`), so the same field builds at 512 or 1024 with the same physical relief; the
+ * counts scale with the tile area they tile.
  */
-function mossField(seedRng: () => number): { h: Float32Array; coarse: Float32Array } {
+function mossField(seedRng: () => number): { h: Float32Array; coarse: Float32Array; mid: Float32Array } {
   const S = MOSS_S;
   const h = new Float32Array(S * S);
   const coarse = new Float32Array(S * S);
+  const mid = new Float32Array(S * S);
   const wrap = (i: number) => ((i % S) + S) % S;
   const bump = (cx: number, cy: number, r: number, amp: number, into: Float32Array[]) => {
     const ri = Math.ceil(r * 1.6);
@@ -663,11 +694,16 @@ function mossField(seedRng: () => number): { h: Float32Array; coarse: Float32Arr
       }
     }
   };
-  // cushions: 10–25 cm across, gentle
-  for (let i = 0; i < 140; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), 16 + seedRng() * 24, 0.5 + seedRng() * 0.5, [h, coarse]);
-  // clumps: 3–6 cm across (radius 5–10 texels), dense enough to tile the surface
-  for (let i = 0; i < 3400; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), 5 + seedRng() * 5, 0.55 + seedRng() * 0.45, [h]);
-  // fine grain: two octaves of periodic value noise (2.5 cm and 1.2 cm lattices)
+  /** a radius in metres → texels */
+  const tx = (m: number) => m * MOSS_TPM;
+  // cushions: 10–25 cm across, gentle (the pillows; the albedo crests follow these alone)
+  for (let i = 0; i < 140; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), tx(0.05 + seedRng() * 0.075), 0.5 + seedRng() * 0.5, [h, coarse]);
+  // clumps: 2.5–5 cm across, dense enough to tile the surface (was 3–6 cm at 3400)
+  for (let i = 0; i < 4200; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), tx(0.0125 + seedRng() * 0.0125), 0.5 + seedRng() * 0.4, [h, mid]);
+  // tufts: 1–2.5 cm across, the brush over the clumps (new; below the 512 tile's resolution)
+  for (let i = 0; i < 11000; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), tx(0.005 + seedRng() * 0.0075), 0.3 + seedRng() * 0.3, [h]);
+  // fine grain: two octaves of periodic value noise (2.5 cm and 1.2 cm lattices; a third at
+  // 0.6 cm for the 1024 tile)
   const lattice = (cells: number, amp: number) => {
     const g = new Float32Array(cells * cells);
     for (let i = 0; i < g.length; i++) g[i] = seedRng();
@@ -694,7 +730,8 @@ function mossField(seedRng: () => number): { h: Float32Array; coarse: Float32Arr
   };
   lattice(64, 0.45);
   lattice(128, 0.25);
-  return { h, coarse };
+  if (S >= 1024) lattice(256, 0.12);
+  return { h, coarse, mid };
 }
 
 /**
@@ -917,6 +954,36 @@ export function runeTexture(seedRng: () => number): Texture {
 }
 
 /** Inject the shared wind model into a MeshStandardMaterial; uses aPhase/aAmount vertex attributes. */
+/**
+ * The cap moss's translucent lift (round 40, see `MOSS_TRANSLUCENCY`). Injected after
+ * `lights_fragment_end`, where `directLight` still holds the last directional light — the sun,
+ * shadow applied — and `directionalLights[0].direction` its view-space direction: a wrap term
+ * that peaks where the sun grazes a tuft (N·L ≈ 0, the thin lit tips seen edge-on) and fades on
+ * the crests it already lights, added to the direct diffuse as the moss's own albedo warmed
+ * toward the sunlit tone (more green, a third of the blue). Compiles to nothing without a
+ * directional light. Own cache key so the program is never shared with a plain moss material.
+ */
+export function mossTranslucency<T extends MeshStandardMaterial>(mat: T): T {
+  mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uMossTranslucency = { value: MOSS_TRANSLUCENCY };
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uMossTranslucency;')
+      .replace(
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>
+        #if NUM_DIR_LIGHTS > 0
+        {
+          float mossNdl = dot( geometryNormal, directionalLights[ 0 ].direction );
+          float mossWrap = smoothstep( -0.6, 0.15, mossNdl ) * ( 1.0 - 0.7 * smoothstep( 0.15, 0.9, mossNdl ) );
+          reflectedLight.directDiffuse += directLight.color * uMossTranslucency * mossWrap * BRDF_Lambert( diffuseColor.rgb ) * vec3( 1.0, 1.08, 0.35 );
+        }
+        #endif`,
+      );
+  };
+  mat.customProgramCacheKey = () => 'structures-cap-moss';
+  return mat;
+}
+
 export function windLeafMaterial<T extends MeshStandardMaterial>(mat: T, ctx: WorldContext, key: string): T {
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.vertexShader = shader.vertexShader
@@ -1155,8 +1222,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // streaked the lit front face; the reference dome is a soft, near-uniform mossy olive.
   // Round 15: the moss albedo map (`mossTextures`) under the vertex tint — the reference's
   // fine dark-speckled texture at a scale the vertex grid cannot carry.
+  // Round 40 (structures-25): the field is 1024² with a second cushion scale, the normal scale
+  // 0.55 → 0.7 (the finer clumps carry less slope per texel after mipping, so B's front face
+  // keeps its round-14 softness while the 4 m close-ups resolve the tufts), roughness 0.9 → 1
+  // (moss is matte; the round-13 sheen read as a smooth skin) and a translucent lift on the
+  // sun-grazed tufts (`mossTranslucency`). The cushion tufts house.ts stands on the cap use
+  // this same material, so they fold into the roof's draw.
   const mossMaps = mossTextures(rng);
-  const capMoss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 0.9, map: own(mossMaps.albedo), normalMap: own(mossMaps.normal), normalScale: new Vector2(0.55, 0.55) });
+  const capMoss = mossTranslucency(new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, map: own(mossMaps.albedo), normalMap: own(mossMaps.normal), normalScale: new Vector2(0.7, 0.7) }));
   const flower = windLeafMaterial(
     new MeshStandardMaterial({
       map: own(flowerTexture()),
