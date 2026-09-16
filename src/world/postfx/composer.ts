@@ -140,6 +140,14 @@ export interface Composer {
 export interface ComposerSettings {
   aoStrength: number;
   aoRadius: number;
+  /**
+   * AO strength in the near field (the foreground slabs and props), easing to `aoStrength` over
+   * `aoNearStart`–`aoNearEnd` (m): the frames keep crisp contact shading in the foreground joints
+   * while their mid-distance shade shows none
+   */
+  aoNearStrength: number;
+  aoNearStart: number;
+  aoNearEnd: number;
   /** view distance (m) where the AO term starts fading / is gone (a surface term the haze veils) */
   aoFadeStart: number;
   aoFadeEnd: number;
@@ -348,8 +356,15 @@ export function createComposer(opts: ComposerOptions): Composer {
     // C +0.0015, D +0.0060, E +0.0064, F +0.0070 (F mid band pixels < 0.2: 23.0 → 17.2 %,
     // p10 0.151 → 0.165; the frame's 0.6 % / 0.243) for sharpness E 0.853 → 0.834; 0.2 keeps
     // the contact shading under the props and two thirds of the gain (A +0.0053, B +0.0035,
-    // C +0.0014, D +0.0048, E +0.0042, F +0.0055; F dark share 19.5 %) at E 0.836.
+    // C +0.0014, D +0.0048, E +0.0042, F +0.0055; F dark share 19.5 %) at E 0.836. The per-view
+    // SSIM maps put every gain in the mid and far rows and a small loss (−0.0005 on B and E) in the
+    // near foreground, whose slab joints the frames DO shade — and that foreground is where E's
+    // sharpness (0.853 → 0.832 in the full capture) went. So the near field keeps 0.4 to 6 m and
+    // eases to 0.2 by 10 m (the near unsharp band is 3–8 m).
     aoStrength: 0.2,
+    aoNearStrength: 0.4,
+    aoNearStart: 6,
+    aoNearEnd: 10,
     aoRadius: 0.5,
     // crevice shading printed through the veil striped shot D's 40–48 m arch (its bark ridges);
     // nothing sub-metre survives 30 m of haze in the reference, and the 22–30 m trunks keep theirs
@@ -716,6 +731,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       tBloom: { value: bloomA.texture },
       uAoStrength: { value: settings.aoStrength },
       uAoFade: { value: new Vector2(settings.aoFadeStart, settings.aoFadeEnd) },
+      uAoNear: { value: new Vector3(settings.aoNearStrength, settings.aoNearStart, settings.aoNearEnd) },
       uHasMist: { value: opts.overlay ? 1 : 0 },
       uRayColor: { value: settings.rayColor },
       uRayIntensity: rayIntensity,
@@ -1074,6 +1090,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // 6. composite + tone map + grade → LDR
     compositeMat.uniforms.uAoStrength.value = s.aoStrength;
     (compositeMat.uniforms.uAoFade.value as Vector2).set(s.aoFadeStart, s.aoFadeEnd);
+    (compositeMat.uniforms.uAoNear.value as Vector3).set(s.aoNearStrength, s.aoNearStart, s.aoNearEnd);
     compositeMat.uniforms.uRaySkyShare.value = s.raySkyShare;
     compositeMat.uniforms.uBloomIntensity.value = s.bloomIntensity;
     compositeMat.uniforms.uSaturation.value = s.saturation;
@@ -1231,6 +1248,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       lift: settings.lift,
       aoStrength: settings.aoStrength,
       aoFadeM: [settings.aoFadeStart, settings.aoFadeEnd],
+      aoNearStrength: settings.aoNearStrength,
+      aoNearM: [settings.aoNearStart, settings.aoNearEnd],
       antialiasing: 'fxaa',
       // final video-softness stage on a fixed 640/320-wide grid (see SOFT_FINAL_FRAG)
       softening: settings.softening,
