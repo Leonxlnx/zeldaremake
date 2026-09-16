@@ -739,6 +739,15 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		return max( smoothstep( KF_OPEN_LO, KF_OPEN_HI, e ), smoothstep( KF_OPEN_UP_LO, KF_OPEN_UP_HI, rayDir.y ) );
 	}
 
+	// plateau-glare lobe of a view direction (see hazeHot): 0 outside it, KF_HOT_AMOUNT at its core
+	float kfHot( vec3 rayDir ) {
+		float len = length( rayDir.xz );
+		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_HOT_DIR ) : 0.0;
+		float lobe = smoothstep( KF_HOT_COS.x, KF_HOT_COS.y, e );
+		float up = smoothstep( KF_HOT_UP_IN.x, KF_HOT_UP_IN.y, rayDir.y ) * ( 1.0 - smoothstep( KF_HOT_UP_OUT.x, KF_HOT_UP_OUT.y, rayDir.y ) );
+		return KF_HOT_AMOUNT * lobe * up;
+	}
+
 	// optical depth of the base extinction: the plain KF_HAZE_K foreground to KF_THIN_START, thin air
 	// to KF_THIN_END, a catch-up segment to KF_CATCHUP_END, then the plain profile again (see
 	// hazeNearDensity) — continuous throughout
@@ -783,15 +792,6 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 		float fog = min( 1.0 - ( 1.0 - distFog ) * ( 1.0 - heightFog ), mix( mix( KF_MAX_FOG, KF_MAX_FOG_OPEN, open ), 1.0, hotFar ) );
 		// 3) the ray–sun angle drives the airlight phase (forward lobe + back-scatter dimming)
 		return vec4( fog, distFog, heightFog, dot( rayDir, KF_SUN_DIR ) );
-	}
-
-	// plateau-glare lobe of a view direction (see hazeHot): 0 outside it, KF_HOT_AMOUNT at its core
-	float kfHot( vec3 rayDir ) {
-		float len = length( rayDir.xz );
-		float e = len > 1e-4 ? dot( rayDir.xz / len, KF_HOT_DIR ) : 0.0;
-		float lobe = smoothstep( KF_HOT_COS.x, KF_HOT_COS.y, e );
-		float up = smoothstep( KF_HOT_UP_IN.x, KF_HOT_UP_IN.y, rayDir.y ) * ( 1.0 - smoothstep( KF_HOT_UP_OUT.x, KF_HOT_UP_OUT.y, rayDir.y ) );
-		return KF_HOT_AMOUNT * lobe * up;
 	}
 
 	// share of the near-field airlight a view direction gets (see hazeNearFieldDir): 1 toward the
