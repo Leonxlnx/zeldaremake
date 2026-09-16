@@ -28,7 +28,7 @@ import { GIANT_BARK_FLOOR, LEAF_FLOOR, type ShadeFloor } from '../materials/shad
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
-import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
@@ -1352,10 +1352,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles: number;
     active: boolean;
     dist: number;
+    /** this bole's [in, out] band (NEAR_BASE_IN_M / OUT_M unless NEAR_BASE_RADIUS_OVERRIDE names it) */
+    band: [number, number];
     /** the root-kit test (rootkit.ts): always shown, and its slot folds the plain roots only */
     kit?: boolean;
   }
   const nearBoles: NearBole[] = [];
+  const nearBand = (id: string): [number, number] => NEAR_BASE_RADIUS_OVERRIDE[id] ?? [NEAR_BASE_IN_M, NEAR_BASE_OUT_M];
   const basePalette = {
     fern: new Color(palette.grassMid),
     fernDeep: new Color(palette.grassDeep),
@@ -1647,7 +1650,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.visible = false;
     mesh.userData.kind = 'column-near-base';
     columnGroup.add(mesh);
-    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity });
+    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id) });
   }
   group.add(columnGroup);
   // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
@@ -1919,7 +1922,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.kind = 'giant-near-base';
     mesh.userData.giants = [g.def.id];
     giantGroup.add(mesh);
-    nearBoles.push({ id: g.def.id, origin: g.origin.clone(), cutY: audit.cutY, mesh, triangles: audit.triangles, active: false, dist: Infinity });
+    nearBoles.push({ id: g.def.id, origin: g.origin.clone(), cutY: audit.cutY, mesh, triangles: audit.triangles, active: false, dist: Infinity, band: nearBand(g.def.id) });
   }
   // the root-kit test (rootkit.ts; `VITE_ROOT_KIT=1` builds only): Astra's kit on the two boles
   // in ROOT_KIT_BOLES in place of their near bases, the plain roots folded, the trunk kept
@@ -2185,9 +2188,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const nearBoleUpdate = (cam: Vector3, reset: boolean) => {
     for (const nb of nearBoles) {
       nb.dist = Math.hypot(nb.origin.x - cam.x, nb.origin.z - cam.z);
-      if (reset) nb.active = nb.dist < NEAR_BASE_IN_M;
-      else if (nb.active) nb.active = nb.dist <= NEAR_BASE_OUT_M;
-      else nb.active = nb.dist < NEAR_BASE_IN_M;
+      if (reset) nb.active = nb.dist < nb.band[0];
+      else if (nb.active) nb.active = nb.dist <= nb.band[1];
+      else nb.active = nb.dist < nb.band[0];
     }
     const shown = nearBoles
       .filter((nb) => nb.active || nb.kit)
@@ -2427,6 +2430,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearBase: {
         inM: NEAR_BASE_IN_M,
         outM: NEAR_BASE_OUT_M,
+        bands: NEAR_BASE_RADIUS_OVERRIDE,
         cutY: NEAR_BASE_CUT_Y,
         slots: NEAR_BOLE_SLOTS,
         floor: [NEAR_BASE_FLOOR.lift, NEAR_BASE_FLOOR.texture],

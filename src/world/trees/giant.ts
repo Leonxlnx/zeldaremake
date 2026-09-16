@@ -44,12 +44,19 @@ import { basePlants, type BasePlantResult } from './base-plants';
  * NEAR_BASE_IN_M of the bole (out again past NEAR_BASE_OUT_M — hysteresis, so it never pops while
  * one stands still), and the tree shader collapses the plain sweep's lower rings and roots
  * (written with aRoot.w = −1, writer.ts woodCollapsible) for exactly that tree meanwhile, so the
- * six fixed hero cameras — none of which stands within NEAR_BASE_IN_M of a giant it frames but D
- * of the emergent column — keep the far look the frames were matched against.
+ * six fixed hero cameras keep the far look the frames were matched against: at 10 m no fixed
+ * camera stands within NEAR_BASE_IN_M of a bole it frames (A: stair-bank-giant 10.2 m off-frame;
+ * D: north-west-near 11.6 m at its left edge; C: north-west-near 9.8 m behind it) — except the
+ * emergent column at 5.4 / 5.9 m from C / D, whose shade floor is calibrated to D's and B's
+ * frames (materials.ts NEAR_BOLE_FLOOR) and whose relief alone cost D −0.004 in round 17: it
+ * has its own band (NEAR_BASE_RADIUS_OVERRIDE), in at 5 m, so D and C never see it swapped and
+ * a walker on the path beside it still does.
  */
 export const NEAR_BASE_CUT_Y = 5;
-export const NEAR_BASE_IN_M = 12;
-export const NEAR_BASE_OUT_M = 15;
+export const NEAR_BASE_IN_M = 10;
+export const NEAR_BASE_OUT_M = 13;
+/** per-bole [in, out] bands (m) where the default would put a fixed camera inside; key = NearBole id */
+export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = { 'seat-7': [5, 7] };
 /** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */
 export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));
 /** cord pitch (m around the bole) of the near bases' relief: concept 05's fissures every 25–35 cm */
