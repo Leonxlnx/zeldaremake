@@ -48,3 +48,5 @@ Shoulder follow-up: retained 39a55c95 after four-gait, 22-view studio and 300-fr
 
 
 2026-09-16T00:24:17.130970+00:00 — Retained alert eyelid3f6cb6f3:774positions,aperture19.93to23.23mm,closedendpointpreserved.21nativephases noeyeoverlap/triangleflip.36gamerecordsexactto0c28;5blinkphases/zerodtpass;openhalfclosedimagesviewed. Evidence2026-09-16-alert-eyelid-review. Otherface/hair/clothqualityunfinished. Noactivejobs.
+
+2026-09-16T00:36:00Z — Pushed alert eyelid 3f6cb6f3 as 9c66fa8 / PR10 after typecheck/build. Fable handoff comment 5690201680; remote adeaa71 is a heartbeat, 8b/W35/perf still pending. Blender healthy. Native curved closure candidate created from alert eyelids: 687 vertices, 1.5 mm arc, unchanged neutral face, 21 phases zero eye overlaps or relative triangle reversals. Half/closed renders viewed; subtle improvement only, vertical ridges unresolved. Not exported/promoted. Evidence: progress/2026-09-16-curved-closure-review. No running render/capture jobs. Next compare curvature in-game before considering retention; continue larger hair/face/cloth gaps.
