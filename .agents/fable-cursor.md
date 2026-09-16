@@ -1884,6 +1884,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   · perf-2 + textures-2k + atmosphere-15: capslot.sh starved queued jobs (blocked on slot 1 while
     newcomers took slot 2) → rewritten to alternate 15 s waits on both slots.
 
+### 12:20 UTC — tick 112: heartbeat (monitor `a0cbeb3`); Astra's daylight window; round 39 in flight
+- World tree unchanged since take-0107 (`78a0ca1`) → heartbeat, no re-capture.
+- 11:35 the owner redirected Astra for two hours (to 13:35 UTC) to lighting / visible sky / realistic
+  shadows. Reserved for her: atmosphere/, lighting/, postfx/, config sun/sky/fog/exposure; no
+  atmosphere agent from me in the window. Her draft **PR #11** (`agent/astra-local-daylight` →
+  this branch): blue upper sky, cooler shared fog, lower haze extinction, warm 3.7 key / cool 0.82
+  hemi / 0.3 IBL; texel-snapped light camera (her PR #6 helper, rebuilt on governor map-size
+  changes); shared `openWorld` readiness race fixed (waits for #loading opacity 0); Windows-only
+  ZR_NATIVE_GPU opt-in. CI on `e8347f0`: SSIM A 0.291 B 0.270 C 0.305 D 0.351 E 0.285 F 0.304
+  (−0.011…−0.027 vs take-0107 — her declared owner-directed tradeoff), **W35 passes** (B 0.86,
+  E 0.81), W18 flips to fail (purple 0.00279 < 0.003 — flagged to her), sky 1.7–3 %, hue Δ 5–8°.
+  Integration decision at hand-back: owner's direction over SSIM, reported as such.
+- Round 39: vegetation-20 (r39/veg, 4 commits: carpet v1–v4, clump roots/turf) and trees-23
+  (r39/trees, 5 commits: near-bole LOD, root-kit adapter with UV-seam normal welding) both active.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1922,4 +1937,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T11:50:00Z
+2026-09-16T12:20:00Z
