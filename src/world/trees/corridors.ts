@@ -92,6 +92,12 @@ export interface CanopyOpening {
   densify?: number;
   /** stable semantic id for cross-system consumers (atmosphere selects openings by id, not index) */
   id?: string;
+  /**
+   * also carves the corridor-exempt authored lobes (trees index.ts CanopyLobe `corridors: false`
+   * — the plaza-shade clumps), which every other opening leaves whole. For an opening whose whole
+   * point is to take an authored caster off the paving the frames light.
+   */
+  hard?: boolean;
 }
 export const CANOPY_OPENING_COLLAR = 1.8;
 export const CANOPY_OPENING_DENSIFY = 2.5;
@@ -257,6 +263,22 @@ export const CANOPY_OPENINGS: CanopyOpening[] = [
   // The north-west-near crown lobe's shade east of it (x 3.9–5.5, z −5.5…−3.5; frame lit) is
   // inside that column's disc and stays.
   { point: [3.2, -3.9], radius: 1.0, band: [10, 30], densify: 0, id: 'b-path-east' },
+  // ---- round 40 (trees-24): the lantern tree's south-east crown off shots A's and F's foreground
+  // stones. hardscape-29 measured the two frames' lower thirds at 0.454 / 0.459 luminance against
+  // ours at 0.420 / 0.401, and with the lantern tree not casting ours read 0.452 / 0.442: the
+  // ray bundle from those stones crosses its south-east side at 9–16 m, ≈ 6 m wide. The
+  // sun-shadow attribution of this round (shadow map read per 25 cm ground cell, A's / F's
+  // lower thirds) names the casters: the plaza-roof bough's lobes and the three plaza-shade clumps
+  // at 12.5 m ((−13.6…−5.5, −10.6…−6.0); casters at (−10…−6, −11…−7, 13) over 40 % of the shaded
+  // cells), the crown lobes at 15–18 m behind them, and — left alone — the house bough's 0.6 m
+  // wood at 10 m (the path mouth's band, index.ts HOUSE_BOUGHS) and the emergent column's bole
+  // stripe. Three hard pools (they carve the corridor-exempt clumps too) on the stones both
+  // frames light, band 9–17 m so the lantern limb's own lobes 3–8 m up and the pods are never
+  // touched; a little porosity keeps a leaf dapple where the frames have soft shade edges, and
+  // no collars (a collar would pack the roof's rims back into a dark canopy).
+  { point: [0.5, -0.5], radius: 2.0, band: [9, 17], porosity: 0.12, cardPorosity: 0.1, densify: 0, hard: true, id: 'a-f-stones-west' },
+  { point: [3.6, 0.2], radius: 1.8, band: [9, 17], porosity: 0.2, cardPorosity: 0.15, densify: 0, hard: true, id: 'a-f-stones-mid' },
+  { point: [6.5, 2.2], radius: 1.8, band: [9, 17], porosity: 0.15, cardPorosity: 0.1, densify: 0, hard: true, id: 'a-f-stones-east' },
   // Not listed — Link's pool at B (feet at B (0.5, 0.91) = (1.6, −2.3)). The frame has his shadow
   // on lit slabs at his feet ((0.50–0.62, 0.85–0.95), 0.30 in 0.55–0.64); ours stands him in the
   // limb lobe A's shade (his head's sun line passes 0.2 m from its centre (−2.5, 5.2, −5.5)). A

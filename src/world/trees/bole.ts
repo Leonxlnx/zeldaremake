@@ -98,6 +98,17 @@ export interface BoleReliefOptions {
   sheetBand?: [number, number];
   /** a per-vertex moss addition (0–1, blended with the furrow moss): the caller's own sheet mask */
   mossExtra?: (p: Vector3, upness: number) => number;
+  /**
+   * rings whose centre this accepts are written collapsible (writer.ts woodCollapsible): a relief
+   * bole that is itself the far sweep hands its lower rings to the tree's near base at close range
+   */
+  collapsible?: (p: Vector3) => boolean;
+  /**
+   * lichen crusts (round 40, the owner's bole brief): pale grey-green plates on the cords' crests
+   * between the `band` local heights (fading in over 1 m below, out over 3 m above), `strength`
+   * 0–1. Written into the vertex colour (a multiplier on the bark), never under the moss.
+   */
+  lichen?: { band: [number, number]; strength: number };
 }
 
 export interface BoleReliefResult {
@@ -172,7 +183,61 @@ function cordField(noise: Noise2D, angle: number, distance: number, rho: number,
   // per-cord crest tint: a field slow along the bole, one to two features per cord around it
   const tintVar = on(1.7, 0.1, 23.6, 47.2);
   const mossN = on(2.2, 0.9, 5.5, 33.3);
-  return { cord, tintVar, mossN };
+  // lichen plates: clusters 20–40 cm across, slow along the bole, with a finer edge field
+  const lichenN = 0.6 * on(3.4, 0.35, 77.7, 12.1) + 0.4 * on(9.5, 1.1, 3.9, 91.2);
+  return { cord, tintVar, mossN, lichenN };
+}
+
+/** lichen crust tint (multiplier on the crest's bark): pale, a little green, matte */
+const LICHEN_TINT = new Color(1.55, 1.62, 1.42);
+
+/**
+ * The plain sweep's own frames at the coarse rings (writer.ts tube: the axis through the
+ * neighbours, u parallel-transported ring to ring, the distance along the chords). `reliefBole`
+ * replays and interpolates them so at every coarse ring its centre, frame and distance are
+ * exactly the plain sweep's; `sweepAxisAt` gives the same frame to whatever else must sit on the
+ * sweep (knee stubs, sleeves) at a distance along it.
+ */
+export function sweepFrames(points: Vector3[]): { axis: Vector3; u: Vector3; distance: number }[] {
+  const coarse: { axis: Vector3; u: Vector3; distance: number }[] = [];
+  let u: Vector3 | undefined;
+  let distance = 0;
+  for (let k = 0; k < points.length; k++) {
+    if (k) distance += points[k].distanceTo(points[k - 1]);
+    const axis = points[Math.min(points.length - 1, k + 1)].clone().sub(points[Math.max(0, k - 1)]).normalize();
+    if (!u) u = frame(axis)[0];
+    else {
+      u = u.clone();
+      u.addScaledVector(axis, -u.dot(axis));
+      if (u.lengthSq() < 0.01) u = frame(axis)[0];
+      u.normalize();
+    }
+    coarse.push({ axis, u: u.clone(), distance });
+  }
+  return coarse;
+}
+
+/** centre, ring frame (u, v), axis and nominal radius of a sweep at a distance along it */
+export function sweepAxisAt(points: Vector3[], radii: number[]) {
+  const coarse = sweepFrames(points);
+  const total = coarse[coarse.length - 1].distance;
+  return (distance: number) => {
+    const d = Math.max(0, Math.min(total, distance));
+    let i = 0;
+    while (i < coarse.length - 2 && coarse[i + 1].distance <= d) i++;
+    const a = coarse[i];
+    const b = coarse[Math.min(coarse.length - 1, i + 1)];
+    const f = b.distance > a.distance ? (d - a.distance) / (b.distance - a.distance) : 0;
+    const axis = a.axis.clone().lerp(b.axis, f).normalize();
+    const u = a.u.clone().lerp(b.u, f);
+    u.addScaledVector(axis, -u.dot(axis));
+    if (u.lengthSq() < 0.01) u.copy(frame(axis)[0]);
+    u.normalize();
+    const v = new Vector3().crossVectors(axis, u).normalize();
+    const centre = points[i].clone().lerp(points[Math.min(points.length - 1, i + 1)], f);
+    const radius = radii[i] + (radii[Math.min(radii.length - 1, i + 1)] - radii[i]) * f;
+    return { centre, u, v, axis, radius, distance: d, total };
+  };
 }
 
 export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: number[], o: BoleReliefOptions): BoleReliefResult {
@@ -187,28 +252,10 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
   const aoFloor = 1 - (1 - FURROW_AO) * depth;
   const crest = (1 + (BARK_AO_LIFT - 1) * Math.min(1, depth)) / BARK_AO_LIFT;
   const grime = FURROW_GRIME.clone().lerp(new Color(1, 1, 1), 1 - Math.min(1, depth));
-  // The plain sweep's own frames at the coarse rings (writer.ts tube: the axis through the
-  // neighbours, u parallel-transported ring to ring, the distance along the chords) are replayed
-  // here and interpolated between rings, so at every coarse ring the relief's centre, frame,
-  // distance and ridge are exactly the plain sweep's: with the amplitude faded to zero there the
-  // two surfaces coincide, and a near-bole LOD can end on the ring the far bole continues from.
-  const coarse: { axis: Vector3; u: Vector3; distance: number }[] = [];
-  {
-    let u: Vector3 | undefined;
-    let distance = 0;
-    for (let k = 0; k < points.length; k++) {
-      if (k) distance += points[k].distanceTo(points[k - 1]);
-      const axis = points[Math.min(points.length - 1, k + 1)].clone().sub(points[Math.max(0, k - 1)]).normalize();
-      if (!u) u = frame(axis)[0];
-      else {
-        u = u.clone();
-        u.addScaledVector(axis, -u.dot(axis));
-        if (u.lengthSq() < 0.01) u = frame(axis)[0];
-        u.normalize();
-      }
-      coarse.push({ axis, u: u.clone(), distance });
-    }
-  }
+  // the plain sweep's frames replayed (see sweepFrames): with the amplitude faded to zero at a
+  // coarse ring the two surfaces coincide, and a near-bole LOD can end on the ring the far bole
+  // continues from
+  const coarse = sweepFrames(points);
   // dense resampling of the coarse path: linear in the ring parameter, so the axis and nominal
   // radius between the published rings are exactly the seat's
   const dense: { p: Vector3; r: number; t: number; k: number; axis: Vector3; u: Vector3; distance: number }[] = [];
@@ -260,6 +307,9 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
     const mossBand = (1 - smoothstep(o.mossBand[0], o.mossBand[1], d.p.y)) * mossStrength;
     const sheetBand = o.shadeDir ? (1 - smoothstep(o.sheetBand?.[0] ?? 1.2, o.sheetBand?.[1] ?? 2.6, d.p.y)) * mossStrength : 0;
     const inBand = d.p.y >= 0 && d.p.y < o.mossBand[1];
+    const lichenBand = o.lichen ? smoothstep(o.lichen.band[0] - 1, o.lichen.band[0], d.p.y) * (1 - smoothstep(o.lichen.band[1], o.lichen.band[1] + 3, d.p.y)) * o.lichen.strength : 0;
+    const wasCollapsible = writer.woodCollapsible;
+    if (o.collapsible) writer.woodCollapsible = o.collapsible(d.p);
     const row: number[] = [];
     for (let j = 0; j <= sides; j++) {
       const angle = ((j % sides) / sides) * TAU;
@@ -270,7 +320,7 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
         ridge *= b;
         if (o.creviceShade) crevice = Math.max(0.55, Math.min(1.15, 1 + o.creviceShade * (b - 1)));
       }
-      const { cord, tintVar, mossN } = cordField(o.noise, angle, distance, o.refRadius, cords);
+      const { cord, tintVar, mossN, lichenN } = cordField(o.noise, angle, distance, o.refRadius, cords);
       const r = d.r * ridge + amp * (cord - 0.65);
       nrm.copy(u).multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle));
       p.copy(d.p).addScaledVector(nrm, r);
@@ -296,6 +346,12 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
         moss = Math.max(moss, sheet);
       }
       if (o.mossExtra) moss = Math.max(moss, o.mossExtra(p, Math.max(0, nrm.y)));
+      // lichen plates on the crests and upper flanks, never under the moss: a clustered field
+      // with a soft edge, so the crusts read as patches 20–40 cm across, not as speckle
+      if (lichenBand > 0) {
+        const crust = smoothstep(0.32, 0.6, lichenN) * smoothstep(0.35, 0.75, cord) * lichenBand * (1 - Math.min(1, moss));
+        _tint.lerp(LICHEN_TINT, Math.min(1, crust) * 0.75);
+      }
       _tint.lerp(FURROW_MOSS, Math.min(1, moss) * 0.85 * (0.4 + 0.6 * endShare));
       if (inBand) {
         mossCount++;
@@ -309,6 +365,7 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
       row.push(writer.vertex(p, _c, (j / sides) * uTiles, distance / o.barkTile, stiffness, o.draws.windPhase, packOcclusion(ao), 0));
       writer.woodMoss = 0;
     }
+    writer.woodCollapsible = wasCollapsible;
     writer.seams.push([row[0], row[sides]]);
     if (previous) {
       for (let j = 0; j < sides; j++) {
@@ -327,6 +384,137 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
     for (let j = 0; j < sides; j++) writer.triangle(cap, end[j], end[j + 1]);
   }
   return { rows, rings: dense.length, sides, mossShare: mossCount ? mossHits / mossCount : 0, amplitude: o.amplitude, triangles: writer.triangles - trisBefore };
+}
+
+/**
+ * A knee on a bole (round 40, the owner's bole brief: "1–2 forks/knees on the visible run"): a
+ * local swelling of the bole toward `azimuth` around the height `distance` along the sweep,
+ * `reach` × the radius at its crest, `halfWidth` metres tall, and the broken-off stub limb that
+ * leaves it (built by `kneeStub`). The swelling is the caller's `bump` term (`kneeBump`), so the
+ * relief's cords ride over it and the silhouette bulges where the stub leaves.
+ */
+export interface BoleKnee {
+  /** distance along the sweep (≈ local height on a near-vertical bole), m */
+  distance: number;
+  /** azimuth of the swelling and the stub in the ring frame (writer.ts `frame`), radians */
+  azimuth: number;
+  /** extra radius at the crest of the swelling, fraction of the bole radius */
+  reach: number;
+  /** vertical half-width of the swelling, m */
+  halfWidth: number;
+  /** stub limb length (m) and radius at its collar (fraction of the bole radius); 0 = a burl only */
+  stubLength: number;
+  stubRadius: number;
+  /** stub elevation above horizontal, radians */
+  stubPitch: number;
+}
+
+/** the knees' swelling as a radius multiplier at (angle, distance) — composes with any bump */
+export function kneeBump(knees: BoleKnee[], angle: number, distance: number): number {
+  let m = 1;
+  for (const k of knees) {
+    const d = (distance - k.distance) / k.halfWidth;
+    if (Math.abs(d) > 2.5) continue;
+    // one-sided: the swelling is a collar under the stub, fuller below it than above
+    const along = Math.exp(-d * d * (d < 0 ? 0.6 : 1.4));
+    const around = Math.pow(0.5 + 0.5 * Math.cos(angle - k.azimuth), 1.6);
+    m += k.reach * along * around;
+  }
+  return m;
+}
+
+/**
+ * The broken stub that leaves a knee: a short, tapering, slightly rising limb that ends in a
+ * ragged snapped face (an irregular cap ring pushed inward), swept from its own draws so the
+ * caller's stream is untouched. `axisAt` gives the bole's centre and ring frame at a distance.
+ */
+export function kneeStub(
+  writer: GeometryWriter,
+  knee: BoleKnee,
+  boleRadius: number,
+  axisAt: (distance: number) => { centre: Vector3; u: Vector3; v: Vector3; axis: Vector3 },
+  color: (point: Vector3, t: number) => Color,
+  rng: Rng,
+  noise: Noise2D,
+  mossStrength = 0.6,
+): number {
+  if (knee.stubLength <= 0) return 0;
+  const trisBefore = writer.triangles;
+  const { centre, u, v, axis } = axisAt(knee.distance);
+  const out = u.clone().multiplyScalar(Math.cos(knee.azimuth)).addScaledVector(v, Math.sin(knee.azimuth)).normalize();
+  const dir = out.clone().multiplyScalar(Math.cos(knee.stubPitch)).addScaledVector(axis, Math.sin(knee.stubPitch)).normalize();
+  const r0 = boleRadius * knee.stubRadius;
+  const segs = 7;
+  const sides = 12;
+  const bendPhase = rng() * TAU;
+  const bend = 0.12 + rng() * 0.18;
+  const [su, sv] = frame(dir);
+  const snapPhase = rng() * TAU;
+  const q = new Vector3();
+  let previous: number[] | null = null;
+  for (let k = 0; k <= segs; k++) {
+    const t = k / segs;
+    // starts inside the collar, rises a little, droops at the broken end
+    const p = centre.clone().addScaledVector(out, boleRadius * (1 + knee.reach) * 0.55).addScaledVector(dir, knee.stubLength * t);
+    p.addScaledVector(sv, Math.sin(t * 2.6 + bendPhase) * bend * knee.stubLength * t);
+    p.addScaledVector(axis, -0.25 * knee.stubLength * t * t * t);
+    const taperR = r0 * (1 - 0.55 * Math.pow(t, 1.4));
+    const ringColor = color(p, t);
+    const stiffness = stiffnessFor(taperR);
+    const row: number[] = [];
+    for (let j = 0; j <= sides; j++) {
+      const a = ((j % sides) / sides) * TAU;
+      // the snapped face: the last ring is pushed unevenly toward the axis
+      const snap = k === segs ? 0.35 + 0.35 * (0.5 + 0.5 * Math.sin(a * 3 + snapPhase)) * (0.5 + 0.5 * noise.noise(a * 1.3 + snapPhase, 7.7)) : 1;
+      const cord = 1 + 0.09 * (0.5 + 0.5 * Math.cos(a * 5 + t * 4 + bendPhase)) + 0.05 * noise.noise(a * 1.1 + bendPhase, t * 6);
+      q.copy(p).addScaledVector(su, Math.cos(a) * taperR * cord * snap).addScaledVector(sv, Math.sin(a) * taperR * cord * snap);
+      const upness = Math.max(0, (q.y - p.y) / Math.max(1e-3, taperR));
+      const mossN = 0.5 + 0.5 * noise.noise(q.x * 2.1 + 3.3, q.z * 2.1 + q.y * 0.7);
+      const moss = smoothstep(0.62, 0.95, upness * 0.6 + mossN * 0.55) * (1 - smoothstep(0.7, 1, t)) * mossStrength;
+      _c.copy(ringColor).multiplyScalar(0.86 + 0.14 * upness).lerp(ROOT_MOSS, moss * 0.8);
+      if (k === segs) _c.multiplyScalar(0.7 + 0.2 * snap);
+      const ao = 0.62 + 0.3 * upness;
+      writer.woodMoss = moss;
+      row.push(writer.vertex(q, _c, j / sides, t * 2, stiffness, 0, packOcclusion(ao), 0));
+      writer.woodMoss = 0;
+    }
+    writer.seams.push([row[0], row[sides]]);
+    if (previous) {
+      for (let j = 0; j < sides; j++) {
+        writer.triangle(previous[j], previous[j + 1], row[j]);
+        writer.triangle(previous[j + 1], row[j + 1], row[j]);
+      }
+    }
+    previous = row;
+  }
+  // the snapped face: a sunken heartwood cap
+  if (previous) {
+    const end = centre.clone().addScaledVector(out, boleRadius * (1 + knee.reach) * 0.55).addScaledVector(dir, knee.stubLength * (1 - 0.06)).addScaledVector(axis, -0.25 * knee.stubLength);
+    const cap = writer.vertex(end, color(end, 1).multiplyScalar(0.55), 0.5, 2, 1, 0, packOcclusion(0.45), 0);
+    for (let j = 0; j < sides; j++) writer.triangle(cap, previous[j], previous[j + 1]);
+  }
+  return writer.triangles - trisBefore;
+}
+
+/**
+ * Moss sheets up the shaded side of a bole (round 40): a `mossExtra` mask for `reliefBole` —
+ * strongest where the surface faces away from the sun (`shadeDir`, local horizontal unit vector
+ * pointing away from it), fading out between `band` local heights with a ragged, noise-driven
+ * edge so the sheets end in tongues and islands, not a level line. `strength` 0–1.
+ */
+export function shadedSheetMask(shadeDir: Vector3, noise: Noise2D, band: [number, number], strength: number, centreAt: (y: number) => { x: number; z: number } = () => ({ x: 0, z: 0 })) {
+  return (p: Vector3, _upness: number) => {
+    const c = centreAt(p.y);
+    const nx = p.x - c.x;
+    const nz = p.z - c.z;
+    const len = Math.hypot(nx, nz) || 1;
+    const away = 0.5 + 0.5 * ((nx / len) * shadeDir.x + (nz / len) * shadeDir.z);
+    const edgeN = noise.fbm(nx * 1.4 + 9.3, p.y * 0.55 + nz * 1.4, 3);
+    const top = band[1] + 2.2 * edgeN;
+    const heightBand = (1 - smoothstep(top - 1.5, top, p.y)) * smoothstep(band[0] - 0.5, band[0] + 0.5, p.y);
+    const patch = 0.5 + 0.5 * noise.noise(nx * 2.6 + p.y * 0.9 + 41.1, nz * 2.6 - p.y * 0.4 + 17.3);
+    return smoothstep(0.55, 0.9, away * 0.7 + patch * 0.45) * heightBand * strength;
+  };
 }
 
 export interface ButtressRootOptions {
