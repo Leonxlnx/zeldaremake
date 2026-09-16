@@ -182,6 +182,8 @@ export interface GiantAsset {
   boleRings: Vector3[][];
   /** the dressed canopy boughs (CanopyBough.dress) as built, in bough order */
   boughDress: { giant: string; relief: number; rings: number; sides: number; knees: number; triangles: number }[];
+  /** round 40: leaf-cluster cards dressing the outline of the flat lobes' cores (giant.ts lobeCore) */
+  coreRimCards: number;
 }
 
 /**
@@ -1121,7 +1123,56 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         leaves.triangle(b, b + 1, a + 1);
       }
     }
+    // Round 40 (owner: "Verdant quality especially when looking up"; from the stair landing and
+    // the plaza these read as matte paddles): the core keeps the body even, but its OUTLINE is
+    // dressed with two layers of leaf-cluster cards riding the ellipsoid's surface — clumps at
+    // 0.92–1.02 of the core radius and a finer fringe at 1.02–1.14 — in the lobe's one flat
+    // colour (no sun, no jitter: the body's window sd stays what SSIM's structure term wants),
+    // so at 10–25 m the silhouette breaks into leaf clumps instead of a smooth swell. The cards
+    // tilt 0–60° off the surface normal so the rim shows them obliquely from every camera
+    // (surface-normal cards are edge-on exactly at the silhouette). Own stream (`rl`), the
+    // flat cards writer, no shadow pass (that mesh never casts).
+    const area = 4 * Math.PI * Math.pow(hR * hR * vR * k * k * k, 2 / 3);
+    const cardColor = canopy.clone().multiplyScalar(0.9 * lobeTone);
+    const rimN = new Vector3();
+    const rimU = new Vector3();
+    const rimW = new Vector3();
+    const rimCard = (rr: number, size: number) => {
+      const th = rl() * TAU;
+      const ph = Math.acos(2 * rl() - 1);
+      const sx = Math.sin(ph) * Math.cos(th);
+      const sy = Math.cos(ph);
+      const sz = Math.sin(ph) * Math.sin(th);
+      const s = k * rr * swell(th, ph);
+      const p = new Vector3(center.x + sx * hR * s, center.y + sy * vR * s, center.z + sz * hR * s);
+      rimN.set(sx / hR, sy / vR + 0.5, sz / hR).normalize();
+      rimN.x += (rl() - 0.5) * 1.2;
+      rimN.y += (rl() - 0.5) * 0.8;
+      rimN.z += (rl() - 0.5) * 1.2;
+      rimN.normalize();
+      const ref = Math.abs(rimN.y) < 0.9 ? UP : new Vector3(1, 0, 0);
+      rimU.crossVectors(rimN, ref).normalize();
+      rimW.crossVectors(rimN, rimU).normalize();
+      const spin = rl() * TAU;
+      const su = rimU.clone().multiplyScalar(Math.cos(spin)).addScaledVector(rimW, Math.sin(spin));
+      const sw = rimW.clone().multiplyScalar(Math.cos(spin)).addScaledVector(rimU, -Math.sin(spin));
+      if (!cardAllowed(p, size)) return;
+      const V = (du: number, dw: number, u: number, v: number) =>
+        cards.vertexN(p.clone().addScaledVector(su, du * size).addScaledVector(sw, dw * size), rimN, cardColor, CARD_UV0 + (1 - CARD_UV0) * u, CARD_UV0 + (1 - CARD_UV0) * v, 0.6, 0, 0.01 * (0.5 + v), 1);
+      const a = V(-1, -1, 0, 0);
+      const b = V(1, -1, 1, 0);
+      const c = V(1, 1, 1, 1);
+      const d = V(-1, 1, 0, 1);
+      cards.triangle(a, b, c);
+      cards.triangle(a, c, d);
+      coreRimCards++;
+    };
+    const clumps = Math.round(area * 1.6);
+    for (let i = 0; i < clumps; i++) rimCard(0.92 + rl() * 0.1, hR * (0.2 + rl() * 0.1));
+    const fringe = Math.round(area * 1.2);
+    for (let i = 0; i < fringe; i++) rimCard(1.02 + rl() * 0.12, hR * (0.13 + rl() * 0.07));
   }
+  let coreRimCards = 0;
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
     lobe = { center, hR };
@@ -1676,5 +1727,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       .map((row) => row.map((i) => new Vector3(wood.positions[i * 3], wood.positions[i * 3 + 1], wood.positions[i * 3 + 2])))
       .filter((ring) => ring.length && ring[0].y < 8),
     boughDress: boughDressAudit,
+    coreRimCards,
   };
 }

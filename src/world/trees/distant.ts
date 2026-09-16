@@ -62,13 +62,14 @@ function lumpyBlob(writer: GeometryWriter, center: Vector3, radius: number, squa
  * Reads as a broken, leafy crown from 60 m+ where laminae would be sub-pixel; a dark blob core
  * underneath hides the interior. The vertex colour is a tint — the texture carries the green.
  */
-function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, squash: number, count: number, cardSize: number, tint: Color, topTint: Color, r: RandomFn) {
+function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, squash: number, count: number, cardSize: number, tint: Color, topTint: Color, r: RandomFn, shell?: [number, number]) {
   const n = new Vector3();
   const u = new Vector3();
   const w = new Vector3();
   for (let i = 0; i < count; i++) {
-    // biased to the shell of the lobe so the silhouette is ragged and the core stays dark
-    const rr = radius * Math.pow(r(), 0.4);
+    // biased to the shell of the lobe so the silhouette is ragged and the core stays dark;
+    // `shell` confines the cards to a band of the radius (the round-40 rim layer)
+    const rr = radius * (shell ? shell[0] + r() * (shell[1] - shell[0]) : Math.pow(r(), 0.4));
     const th = r() * TAU;
     const ph = Math.acos(2 * r() - 1);
     const p = new Vector3(center.x + Math.sin(ph) * Math.cos(th) * rr, center.y + Math.cos(ph) * rr * squash, center.z + Math.sin(ph) * Math.sin(th) * rr);
@@ -161,6 +162,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     }
     const lobes = slender ? 3 : 5;
     const cardsPerLobe = slender ? 18 : 24;
+    const rim = rng.fork(`distant-rim-${index}`);
     for (let i = 0; i < lobes; i++) {
       const a = r.range(0, TAU);
       const rad = crownR * r.range(0, 0.6);
@@ -171,29 +173,66 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       // dark core + ragged leaf-card shell
       lumpyBlob(near, c, br * 0.66, squash, canopy.clone().multiplyScalar(shade * 0.6), canopy.clone().multiplyScalar(shade * 0.85), noise, i * 3.7);
       leafCardLobe(near, c, br, squash, cardsPerLobe, br * 0.42, cardTint.clone().multiplyScalar(shade), cardTopTint.clone().multiplyScalar(shade), r);
+      // round 40: a finer rim layer of small cards just outside the shell so the outline breaks
+      // into leaf clumps at 60–120 m instead of a few large cards over a blob (the stair-landing
+      // and plaza looking-up views); own stream, so the lobes above keep their draws
+      leafCardLobe(near, c, br, squash, slender ? 6 : 8, br * 0.24, cardTint.clone().multiplyScalar(shade * 0.9), cardTopTint.clone().multiplyScalar(shade * 0.9), rim, [0.96, 1.12]);
     }
     solidUv(near);
 
-    // ---- far LOD: three fixed vertical silhouette fans + crossed trunk quads ----
+    // ---- far LOD: three fixed vertical silhouette planes, each a solid core fan with a rim of
+    // leaf-cluster cards, + crossed trunk quads ----
+    // (round 40: one solid 12-point fan per plane read as a flat paddle from the stair landing —
+    // the owner's "far crowns must read as trees". Now each plane is layered: an 8-point solid
+    // fan at 0.74 of the radius is the dark mass, and seven alpha cluster cards ride its outline
+    // at 0.86–1.0 of the radius, in the plane, so the silhouette breaks into leaf clumps. 70
+    // triangles a tree against 40; the radial pool's 500 far trees cost 15 k more.)
     const far = new GeometryWriter('high');
     const dark = canopy.clone().multiplyScalar(0.8);
     const light = canopy.clone().lerp(sunny, 0.5);
+    const rimTint = cardTint.clone().multiplyScalar(0.8);
+    const rimTop = cardTopTint.clone().multiplyScalar(0.8);
     for (let plane = 0; plane < 3; plane++) {
       const a = (plane / 3) * Math.PI;
       const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
+      const planeN = new Vector3(-Math.sin(a), 0, Math.cos(a));
       const centre = new Vector3(0, crownY + crownR * 0.15, 0);
       const ci = far.vertex(centre, canopy.clone().multiplyScalar(0.9), 0.5, 0.5, 1, 0, 0);
       const outline: number[] = [];
-      const points = 12;
+      const points = 8;
+      const radiusAt = (th: number) => {
+        const n = noise.noise(Math.cos(th) * 1.7 + plane * 5, Math.sin(th) * 1.7);
+        return crownR * (0.8 + 0.3 * n) * (Math.sin(th) < -0.3 ? 0.75 : 1);
+      };
       for (let k = 0; k < points; k++) {
         const th = (k / points) * TAU;
-        const n = noise.noise(Math.cos(th) * 1.7 + plane * 5, Math.sin(th) * 1.7);
-        const rr = crownR * (0.8 + 0.3 * n) * (Math.sin(th) < -0.3 ? 0.75 : 1);
+        const rr = radiusAt(th) * 0.74;
         const p = centre.clone().addScaledVector(dir, Math.cos(th) * rr).addScaledVector(UP, Math.sin(th) * rr * 0.8);
         const c = dark.clone().lerp(light, smoothstep(-0.5, 1, Math.sin(th)));
         outline.push(far.vertex(p, c, 0.5 + Math.cos(th) * 0.5, 0.5 + Math.sin(th) * 0.5, 1, 0, 0));
       }
       for (let k = 0; k < points; k++) far.triangle(ci, outline[k], outline[(k + 1) % points]);
+      // the rim: cards in the plane along the outline (the underside sparser: two of the seven
+      // sit below the centre, where the mass reads as one dark base against the ground haze)
+      const rimCards = 7;
+      for (let k = 0; k < rimCards; k++) {
+        const th = ((k + 0.5) / rimCards) * TAU + r.range(-0.15, 0.15);
+        const rr = radiusAt(th) * r.range(0.86, 1.0);
+        const p = centre.clone().addScaledVector(dir, Math.cos(th) * rr).addScaledVector(UP, Math.sin(th) * rr * 0.8);
+        const s = crownR * r.range(0.3, 0.42);
+        const spin = r.range(0, TAU);
+        const su = dir.clone().multiplyScalar(Math.cos(spin)).addScaledVector(UP, Math.sin(spin));
+        const sw = UP.clone().multiplyScalar(Math.cos(spin)).addScaledVector(dir, -Math.sin(spin));
+        const c = rimTint.clone().lerp(rimTop, smoothstep(-0.5, 1, Math.sin(th)) * 0.8 + r() * 0.2).multiplyScalar(0.85 + r() * 0.3);
+        const V = (du: number, dw: number, tu: number, tv: number) =>
+          far.vertexN(p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s), planeN, c, CARD_UV0 + (1 - CARD_UV0) * tu, CARD_UV0 + (1 - CARD_UV0) * tv, 1, 0, 0, 1);
+        const q0 = V(-1, -1, 0, 0);
+        const q1 = V(1, -1, 1, 0);
+        const q2 = V(1, 1, 1, 1);
+        const q3 = V(-1, 1, 0, 1);
+        far.triangle(q0, q1, q2);
+        far.triangle(q0, q2, q3);
+      }
     }
     for (let plane = 0; plane < 2; plane++) {
       const a = (plane / 2) * Math.PI;

@@ -2412,6 +2412,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantFlatCardsCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-cards' && m.castShadow),
       /** flat lobes built with an opaque core (CanopyLobe.core), whose ellipsoids are in the authored-leaves meshes */
       giantFlatCores: CANOPY_BOUGHS.reduce((n, b) => n + b.lobes.filter((l) => l.flat && l.core).length, 0),
+      /** round 40: leaf-cluster cards dressing the cores' outlines (giant.ts lobeCore), part of giantFlatCards */
+      giantCoreRimCards: giants.reduce((n, g) => n + g.asset.coreRimCards, 0),
       giantMeshes: sectorGeometries.length,
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       /**
