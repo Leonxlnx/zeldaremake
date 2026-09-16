@@ -454,14 +454,33 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         const uc = (u0 + u1) / 2;
         const [wx, wz] = stairToWorld(f, ac, uc);
         const ground = terrain.height(wx, wz) - def.base[1];
-        const top = Math.max(ground + 0.05, topY - 0.02 - (uc - f.run) * 0.03);
-        const th = rng.range(0.07, 0.1);
+        // Round 38: the main run's landing is the walkable top of the flight — the character's
+        // ground reads the analytic terrace height (base.y + steps · rise) there, and its feet
+        // stand on the rendered slab tops. Seated on the terrain (+5 cm) the slabs followed the
+        // ±14 cm breakup the heightfield leaves under the stair mask: tops from −4 to +2.8 cm of
+        // the terrace height, the boots floating over the proud ones. The rim now sits 4 mm
+        // over the analytic plane and the dish sags 8 mm, so the whole walked surface is within
+        // ±0.4 cm of it; each slab is as thick as it needs to be to sit ≥ 3 cm into the ground
+        // at its lowest corner (buried sides — nothing of this shows from A / F, which look up
+        // at the landing's lip from 3.6 m below it). The house-west flight keeps its seated,
+        // gently falling landing: its head eases to the lawn's 1.56 m and B / E frame its edge.
+        const flushLanding = isMain;
+        const top = flushLanding ? topY + 0.004 : Math.max(ground + 0.05, topY - 0.02 - (uc - f.run) * 0.03);
+        let th = rng.range(0.07, 0.1);
+        if (flushLanding) {
+          let groundMin = ground;
+          for (const [da, du] of [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]] as const) {
+            const [cx, cz] = stairToWorld(f, ac + da * (len - 0.04), uc + du * (u1 - u0 - 0.04));
+            groundMin = Math.min(groundMin, terrain.height(cx, cz) - def.base[1]);
+          }
+          th = Math.max(th, top - groundMin + 0.03);
+        }
         const outline = jitteredRect(rng, len - 0.04, u1 - u0 - 0.04, { jitter: 0.02, segs: 4, chip: 0.1, chipChance: 0.5 });
         const tint = 0.8 + rng.range(0, 0.16);
         placeSlab(outline, ac, top - th, uc, rng.range(-0.05, 0.05), 0, 0, {
           thickness: th,
           bevel: 0.025,
-          dip: 0.012,
+          dip: flushLanding ? 0.008 : 0.012,
           color: [tint, tint, tint * 0.97],
           mossEdge: 0.7,
           mossInner: 0.15,
