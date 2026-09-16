@@ -862,11 +862,22 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
    */
   function lobeCore(center: Vector3, hR: number, vR: number, k: number) {
     const color = canopy.clone().multiplyScalar(0.9 * LEAF_FLAT_MAP_LUM * lobeTone);
-    const segs = 20;
-    const rings = 12;
+    const segs = 28;
+    const rings = 16;
     const base = leaves.positions.length / 3;
     const p = new Vector3();
     const n = new Vector3();
+    // clumped outline: the radius swells and dips by ±12 % in three sinusoidal lobes of 0.6–1.2 m
+    // around the ellipsoid (own stream, so nothing else in the tree re-rolls) — a canopy mass's
+    // silhouette against the haze, not a balloon's; the body stays one even colour either way
+    const rl = r.fork(`lobe-core/${center.x.toFixed(2)},${center.y.toFixed(2)},${center.z.toFixed(2)}`);
+    const waves = [3, 5, 2].map((f, i) => ({ f, g: [1, 2, 3][i], w: [0.55, 0.3, 0.4][i], p: rl() * TAU, q: rl() * TAU }));
+    const swell = (th: number, ph: number) => 1 + 0.12 * waves.reduce((s, w) => s + w.w * Math.sin(w.f * th + w.p) * Math.cos(w.g * ph + w.q), 0);
+    // The body stays one even colour: a clump-shading pass over it (round 38 probes p9/p10 — a
+    // top-to-underside gradient, the swells lighter than the dips, a finer mottle; as vertex colour
+    // and as a per-vertex shade share) either did not reach the pixel (colour: the leaf floor and
+    // the haze at 12–15 m pass ~17 % of an albedo swing) or read as a lit sphere, not foliage, for
+    // C −0.001 / F −0.001. The frames' mass at this distance is matte; the outline is the detail.
     for (let i = 0; i <= rings; i++) {
       const ph = (i / rings) * Math.PI;
       for (let j = 0; j <= segs; j++) {
@@ -874,7 +885,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const sx = Math.sin(ph) * Math.cos(th);
         const sy = Math.cos(ph);
         const sz = Math.sin(ph) * Math.sin(th);
-        p.set(center.x + sx * hR * k, center.y + sy * vR * k, center.z + sz * hR * k);
+        const s = k * (i === 0 || i === rings ? 1 : swell(th, ph));
+        p.set(center.x + sx * hR * s, center.y + sy * vR * s, center.z + sz * hR * s);
         n.set(sx / hR, sy / vR, sz / hR).normalize();
         leaves.vertexN(p, n, color, 0, 0, 1, 0, 0, 1);
       }
