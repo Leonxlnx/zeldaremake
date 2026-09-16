@@ -22,17 +22,54 @@ The reference config is `cull=off`, the harness's own pseudo-flag: it switches t
 
 ## Results — view A (`A_stairs`), 640×360, SwiftShader
 
-RESULTS_TABLE
+Generated 2026-09-16T03:07:15.955Z from `dist-r2` (r38/perf@2d7d9a0); `gauntlet/perf/ablations-A/results.json` has every field.
+
+### A_stairs (640×360, settle 8, 3 finished frames, t=12.5s; deltas vs `cull=off`)
+
+| config | frame ms (median) | Δ frame | issue ms | draws | Δ draws | triangles | Δ tris | casters culled | ready s | PNG vs ref |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| cull=off | 13907 | — | 14.0 | 539 | — | 8,655,399 | — | 0/0 | 41.0 | (reference) |
+| baseline | 16104 | +16% | 12.1 | 535 | -1% | 8,540,199 | -1% | 4/181 | 37.6 | identical |
+| fx=off | 10036 | -28% | 11.4 | 517 | -4% | 8,540,163 | -1% | 4/181 | 37.7 | differs |
+| fx=noao | 15351 | +10% | 21.4 | 533 | -1% | 8,540,195 | -1% | 4/181 | 35.5 | differs |
+| fx=norays | 14471 | +4% | 17.5 | 532 | -1% | 8,540,193 | -1% | 4/181 | 36.1 | differs |
+| fx=nobloom | 13798 | -1% | 16.2 | 532 | -1% | 8,540,193 | -1% | 4/181 | 40.3 | differs |
+| fx=nosoft | 15108 | +9% | 19.0 | 525 | -3% | 8,540,179 | -1% | 4/181 | 38.9 | differs |
+| shadow=1024 | 12937 | -7% | 19.0 | 535 | -1% | 8,540,199 | -1% | 4/181 | 33.9 | differs |
+| shadow=0 | 11766 | -15% | 17.4 | 353 | -35% | 5,796,158 | -33% | 4/181 | 36.1 | differs |
+| veg=0.5,0.5 | 13816 | -1% | 16.6 | 506 | -6% | 7,039,213 | -19% | 4/177 | 38.9 | differs |
+| scale=0.5 | 9384 | -33% | 22.5 | 535 | -1% | 8,540,199 | -1% | 4/181 | 37.7 | differs |
+
+#### A_stairs — each system alone (`cull=off`; colour pass only, lighting kept)
+
+| system | draws | triangles |
+| --- | ---: | ---: |
+| terrain | 37 | 743,474 |
+| hardscape | 12 | 640,996 |
+| rocks | 26 | 407,716 |
+| trees | 61 | 2,624,125 |
+| structures | 100 | 832,260 |
+| vegetation | 120 | 3,205,730 |
+| props | 28 | 28,724 |
+| character | 129 | 165,436 |
+| atmosphere | 4 | 6,816 |
 
 ## What the matrix says
 
-FINDINGS
+The exact columns first — they do not depend on the GPU:
+
+- **The shadow pass is a third of the frame.** `shadow=0` removes 186 of 539 draw calls (−35 %) and 2.86 M of 8.66 M triangles (−33 %): that is what the 4096² depth pass re-rasterises every frame in view A, before a single receiver pays its 8–20 PCSS taps. `shadow=1024` changes no counter (same casters, 16× fewer texels) — its saving is fill and tap bandwidth only.
+- **The composer's stages are 22 draw calls** (`fx=off`: 539 → 517) — the fullscreen passes at half / quarter resolution. Their cost is pixel work, so it scales with the drawing buffer, not with the world.
+- **Halving the vegetation LOD ranges and the grass share** (`veg=0.5,0.5`) drops 1.5 M triangles (−19 %) and 29 draw calls; the vegetation alone submits 120 draws / 3.2 M triangles (the isolate table), the trees 61 / 2.6 M, both including their shadow-pass share.
+- **`scale=0.5`** changes no counter: pure pixel work.
+
+The milliseconds, with the caveat that matters: SwiftShader rasterises on 4 cores shared with the other agents' captures (load ≈ 8 throughout), and the three finished frames of one config spread 9.5–16.7 s, so on this box only deltas beyond ≈ 25 % mean anything. Three do: `scale=0.5` −33 % (all three frames 9.2–9.4 s, the steadiest row — pixel work is ≈ 45 % of a SwiftShader frame here), `fx=off` −28 % (the four stages together; the single-stage rows are inside the noise), `shadow=0` −15 % (borderline: the software rasteriser is cheap on the depth-only pass that a GPU pays fill and bandwidth for). The per-stage and `shadow=1024` / `veg` rows need the native run — Astra's 780M puts the render at 56 ms with the JS at 13 ms, so the GPU-side split of those 56 ms is exactly what the commands at the end of this file measure. What the counters already say about that machine: a third of its vertex work and draw submissions is the shadow pass, and the ladder below takes the map from 4096 to 2048 first for that reason.
 
 ## The optimisation: shadow-caster culling (`src/world/postfx/shadowcull.ts`)
 
 three draws every `castShadow` object inside the sun's orthographic window into the depth map — a 92 m box fitted 18 m ahead of the camera (`lighting/index.ts`) — so in a 46° view most of what the shadow pass rasterises stands beside or behind the camera and shades ground nobody sees. A caster can only change a visible pixel if its bounding sphere, swept from the caster along the light's travel direction, reaches the camera frustum: for a frustum plane with inward normal n, a sphere entirely outside the plane (signed distance < −r) that travels along L with n·L ≤ 0 stays outside for ever, so one such plane proves the caster irrelevant. Before the opaque pass the composer hooks `scene.onBeforeRender` (three runs it after the world matrices are updated and before the shadow pass), switches `castShadow` off on every caster that fails the test, and restores the flags when the render returns. The test is conservative — every sphere is inflated by 1 m (twice the shadow filter's widest tap: 0.45 m penumbra + 0.3 m blocker search), the near plane is not used (the god-ray march samples the air in front of it), and objects without a sphere or with `frustumCulled` off keep casting — so the image is unchanged by construction; the six fixed captures are byte-identical (below). `__ZR__.audit().systems.atmosphere.postfx.shadowCastersCulled / shadowCastersTested` report the frame's numbers.
 
-CULL_RESULT
+Measured on view A (640×360, 3 finished frames): `baseline` (cull on) against `cull=off` — 4 of 181 casters switched off, draw calls 539 → 535 (-1 %), triangles 8,655,399 → 8,540,199 (-1 %), finished frame 13907 → 16104 ms on SwiftShader (16 %); the two PNGs are byte-identical.
 
 ### Six-view verification (`evidence/cap-a.*`)
 
