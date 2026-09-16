@@ -11,7 +11,7 @@
  *   node gauntlet/perf/viewstats.mjs --dist dist --viewpoint A_stairs --params "fx=noao" --out /tmp/a.png
  *        [--width 1280 --height 720] [--settle 8] [--time 12.5] [--timed 5] [--isolate] [--json out.json]
  *
- * --timed K : after the settle frames, step K more frames each followed by gl.finish() and report the
+ * --timed K : after the settle frames, step K more frames each followed by a GPU sync and report the
  *             per-frame wall ms (median / min / max) — the frame's GPU (or SwiftShader) cost for this
  *             exact view, the matched-ablation number when a walk is too slow to trace
  * --isolate : also render each top-level system alone (`__ZR__.isolate`) for its share of the draws
@@ -61,10 +61,13 @@ async function grabHooks(page) {
  * Load the world in a new page with `params`, render `viewpoint` at `simTime` (+ `settle` frames) and
  * measure it. Returns the report (and writes the PNG when `out` is given). The page is closed.
  */
-export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, isolate = false, out = null, log = console.error } = {}) {
+export async function measureView(browser, baseUrl, { params = '', viewpoint = 'A_stairs', width = 1280, height = 720, settle = 8, simTime = 12.5, timed = 0, isolate = false, out = null, init = null, log = console.error } = {}) {
   const page = await browser.newPage();
   try {
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    // `init`: a script evaluated in the page before any of its own runs (the composer's tuning
+    // globals, e.g. `globalThis.__ATMO_SETTINGS__ = { shadowCasterCull: false }`)
+    if (init) await page.evaluateOnNewDocument(init);
     page.on('pageerror', (e) => log(`[pageerror] ${e.message}`));
     page.on('console', (m) => {
       if (m.type() === 'error' || m.type() === 'warning') log(`[page:${m.type()}] ${m.text()}`);
@@ -110,7 +113,18 @@ export async function measureView(browser, baseUrl, { params = '', viewpoint = '
         perfState: perf.perfState ?? null,
         stepMs: { step: perf.step, update: perf.update, render: perf.render },
         lighting: { shadows: lighting.shadows, shadowMapSize: lighting.shadowMapSize, filterTaps: lighting.shadowFilterTaps, searchTaps: lighting.shadowSearchTaps, dynamic: lighting.shadowFilterDynamic },
-        postfx: postfx ? { resolution: postfx.resolution, stagesEnabled: postfx.stagesEnabled, aoResolution: postfx.aoResolution, godRayResolution: postfx.godRayResolution, softeningGrid: postfx.softeningGrid } : null,
+        postfx: postfx
+          ? {
+              resolution: postfx.resolution,
+              stagesEnabled: postfx.stagesEnabled,
+              aoResolution: postfx.aoResolution,
+              godRayResolution: postfx.godRayResolution,
+              softeningGrid: postfx.softeningGrid,
+              shadowCasterCull: postfx.shadowCasterCull,
+              shadowCastersTested: postfx.shadowCastersTested,
+              shadowCastersCulled: postfx.shadowCastersCulled,
+            }
+          : null,
         vegetation: veg ? { drawCalls: veg.drawCalls, triangles: veg.triangles } : null,
         sceneTriangles: audit.scene.triangles,
       };
@@ -124,7 +138,9 @@ export async function measureView(browser, baseUrl, { params = '', viewpoint = '
       png = { file: out, bytes: buf.length };
     }
 
-    // --timed: K finished frames of this exact view (the GPU-side proxy on SwiftShader, GPU time natively)
+    // --timed: K finished frames of this exact view (the GPU-side proxy on SwiftShader, GPU time
+    // natively). Chromium's WebGL `finish()` is only a flush, so the completion sync is a one-pixel
+    // readPixels of the canvas: it cannot return before the GPU process has drawn the frame.
     let timing = null;
     if (timed > 0) {
       if (!(await grabHooks(page))) throw new Error('could not find the capture hooks');
@@ -133,10 +149,13 @@ export async function measureView(browser, baseUrl, { params = '', viewpoint = '
         const t = await page.evaluate(() => {
           const H = window.__H;
           const gl = H.renderer.getContext();
+          const px = new Uint8Array(4);
+          // drain whatever is still in flight from the previous frame first
+          gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
           const t0 = performance.now();
           H.step(1 / 60);
           const t1 = performance.now();
-          gl.finish();
+          gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
           const t2 = performance.now();
           return { step: t1 - t0, finish: t2 - t1, total: t2 - t0 };
         });

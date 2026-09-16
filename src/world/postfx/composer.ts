@@ -55,6 +55,7 @@ import {
 } from 'three';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { perfRuntime } from '../../perfFlags';
+import { cullShadowCasters, type ShadowCullStats } from './shadowcull';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { SCREEN_FAN, SHAFT_COLUMNS } from '../atmosphere/shafts';
 import {
@@ -107,6 +108,14 @@ type SettingsOverride = Partial<Record<keyof ComposerSettings, number | boolean>
 const settingsOverride = (): SettingsOverride | null => (globalThis as { __ATMO_SETTINGS__?: SettingsOverride | null }).__ATMO_SETTINGS__ ?? null;
 const hideList = (): string[] => (globalThis as { __ATMO_HIDE__?: string[] | null }).__ATMO_HIDE__ ?? [];
 const uniformOverride = (): Record<string, number> | null => (globalThis as { __ATMO_UNIFORMS__?: Record<string, number> | null }).__ATMO_UNIFORMS__ ?? null;
+
+/**
+ * Slack added to every caster's bounding sphere before the swept-frustum test (shadowcull.ts):
+ * the shadow filter reads up to 0.45 m (penumbra) + 0.3 m (blocker search) beside a visible
+ * receiver and the god-ray march samples the air on the frame's edge, so an occluder that only
+ * shades those neighbouring texels must still be drawn. 1 m is twice the widest tap.
+ */
+const SHADOW_CULL_MARGIN_M = 1.0;
 
 export interface ComposerOverlay {
   /** transparent scene rendered at half resolution after the opaque pass (ground mist) */
@@ -213,6 +222,11 @@ export interface ComposerSettings {
   fanFadeHi: number;
   /** video softness (final pass, see SOFT_FINAL_FRAG); false = FXAA straight to the screen */
   softening: boolean;
+  /**
+   * shadow pass: skip the casters whose sun-swept bounds cannot reach the view frustum
+   * (shadowcull.ts; image-identical, so a probe switches it off only to measure its saving)
+   */
+  shadowCasterCull: boolean;
   /**
    * activity gate: share of fine detail a busy region keeps; activity knee (luma amplitude of the
    * fine detail, wide-averaged) above which a region is "busy" and drops to that share; steepness
@@ -499,6 +513,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // measured skirt untouched (the tail is the lanterns' own halo) and 0.15 drops D's 40 m pods
     // under the frame's brightness.
     softening: true,
+    shadowCasterCull: true,
     softDetail: 0.85,
     softActivityK: 0.08,
     softActivityPower: 4,
@@ -796,6 +811,8 @@ export function createComposer(opts: ComposerOptions): Composer {
   );
 
   const overlayViewport = new Vector2(hw, hh);
+  /** last frame's shadow-caster cull (shadowcull.ts): casters tested / switched off */
+  const shadowCull: ShadowCullStats = { tested: 0, culled: 0 };
   const camPos = new Vector3();
   const camDir = new Vector3();
   const sunWorld = new Vector3();
@@ -978,10 +995,25 @@ export function createComposer(opts: ComposerOptions): Composer {
     const prevAlpha = renderer.getClearAlpha();
     renderer.getClearColor(prevClear);
 
-    // 1. opaque scene (+ shadow maps) into HDR
+    // 1. opaque scene (+ shadow maps) into HDR. The shadow pass inside it draws only the casters
+    // whose shadows can land in frame (shadowcull.ts): three runs scene.onBeforeRender after the
+    // world matrices are updated and before the shadow pass, so the test sees this frame's poses;
+    // the casters it switched off are restored once the render returns.
+    const casters: { restore: (() => void) | null } = { restore: null };
+    const prevOnBeforeRender = scene.onBeforeRender;
+    if (s.shadowCasterCull && renderer.shadowMap.enabled) {
+      scene.onBeforeRender = () => {
+        casters.restore = cullShadowCasters(scene, camera, opts.sunDirection, SHADOW_CULL_MARGIN_M, shadowCull);
+      };
+    } else shadowCull.tested = shadowCull.culled = 0;
     renderer.setRenderTarget(hdr);
     renderer.autoClear = true;
-    renderer.render(scene, camera);
+    try {
+      renderer.render(scene, camera);
+    } finally {
+      scene.onBeforeRender = prevOnBeforeRender;
+      casters.restore?.();
+    }
 
     updateSun(s);
 
@@ -1190,6 +1222,11 @@ export function createComposer(opts: ComposerOptions): Composer {
       ],
       hdr: true,
       resolution: [W, H],
+      // shadow pass: casters whose sun-swept bounds miss the view frustum are not drawn (shadowcull.ts)
+      shadowCasterCull: settings.shadowCasterCull,
+      shadowCastersTested: shadowCull.tested,
+      shadowCastersCulled: shadowCull.culled,
+      shadowCullMarginM: SHADOW_CULL_MARGIN_M,
       /** stages switched off by the performance flags / auto quality (perfFlags.ts); all on as shipped */
       stagesEnabled: { ...perfRuntime().fx },
       ambientOcclusion: perfRuntime().fx.ao,

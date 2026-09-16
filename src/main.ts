@@ -199,6 +199,7 @@ async function boot() {
   // finished step's wall time through `__ZR__` (see perftrace.mjs --auto). Its render-scale
   // changes resize the renderer here; the other rungs' settings are read by the systems themselves.
   const governor = flags.governor ? new QualityGovernor(perfState, flags.governorOpts) : null;
+  const syncPixel = new Uint8Array(4);
   let perfApplied = perfState.version;
   const applyPerfState = () => {
     if (perfState.version === perfApplied) return;
@@ -227,8 +228,11 @@ async function boot() {
     perf.step = t3 - t0;
     if (governor && headless) {
       // the trace harness steps the frame itself (no frame interval to read): wait for the GPU so
-      // the step's wall time carries the render cost, then feed that to the governor
-      renderer.getContext().finish();
+      // the step's wall time carries the render cost, then feed that to the governor. Chromium's
+      // WebGL finish() is only a flush; a one-pixel readPixels of the canvas is the synchronous
+      // round-trip that returns once the frame is drawn.
+      const gl = renderer.getContext();
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, syncPixel);
       const t4 = performance.now();
       perf.step = t4 - t0;
       governor.observe(perf.step, t4);

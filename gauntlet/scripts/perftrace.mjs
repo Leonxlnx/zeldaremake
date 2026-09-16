@@ -18,13 +18,13 @@
  *
  * --norender     : the render call is stubbed (pure world.update JS; no first-use events happen)
  * --render-every : render only every Nth step (the others advance the simulation without a frame)
- * --phase2 N     : a second pass afterwards that draws every Nth frame (gl.finish outside the timing)
+ * --phase2 N     : a second pass afterwards that draws every Nth frame (GPU sync outside the timing)
  *                  to count first-use events (programs / geometries / textures) along the walk
  * --warmup       : open with ?warmup=1 (main.ts's warm-up before the first frame; headless default off)
  * --params       : extra URL parameters appended as given — the performance flags of src/perfFlags.ts
  *                  (fx=off|noao|norays|nobloom|nosoft, shadow=<size>[,<taps>], veg=<lod>[,<grass>],
  *                  scale=<s>); the page's parsed flags / live state are echoed in the output (`perf`)
- * --finish       : gl.finish() INSIDE the timed step, so `ms` carries the GPU's (or SwiftShader's)
+ * --finish       : GPU completion sync INSIDE the timed step, so `ms` carries the GPU's (or SwiftShader's)
  *                  completion of the frame — the matched-ablation measurement (`finish` ms is also
  *                  recorded per frame); without it `ms` is the JS issue time only
  * --auto         : open with quality=auto&governor=1 (main.ts runs the frame-time governor under the
@@ -75,7 +75,7 @@ const warmup = !!args.warmup;
 const allocOut = args.alloc ? path.resolve(args.alloc) : null;
 /** --params "a=b&c=d": performance flags (src/perfFlags.ts) appended to the page URL */
 const extraParams = typeof args.params === 'string' ? args.params.replace(/^[?&]+/, '') : '';
-/** --finish: gl.finish() inside the timed step (the frame's GPU completion counts in `ms`) */
+/** --finish: GPU completion sync inside the timed step (the frame's completion counts in `ms`) */
 const finishInside = !!args.finish;
 /** --auto: quality=auto with the governor enabled under the harness */
 const auto = !!args.auto;
@@ -243,7 +243,11 @@ function pageSetup({ norender, path, idleFrames, finishAfter, finishInside }) {
   gates.veg.copy(gates.trees);
   const info = H.renderer.info;
   const knownPrograms = new Set(info.programs.map((p) => p.id));
-  window.__T = { H, player, link, camera, terrain, st, place, F, on, off, norender, finishAfter: !!finishAfter, finishInside: !!finishInside, gl: H.renderer.getContext(), path, idleFrames, gates, knownPrograms, lastGeom: info.memory.geometries, lastTex: info.memory.textures, camPrev: new V().copy(gates.trees), V };
+  const gl = H.renderer.getContext();
+  const px = new Uint8Array(4);
+  /** wait for the GPU to have drawn the canvas (finish() is a flush in Chromium; readPixels is not) */
+  const sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  window.__T = { H, player, link, camera, terrain, st, place, F, on, off, norender, finishAfter: !!finishAfter, finishInside: !!finishInside, gl, sync, path, idleFrames, gates, knownPrograms, lastGeom: info.memory.geometries, lastTex: info.memory.textures, camPrev: new V().copy(gates.trees), V };
   const perf0 = window.__ZR__.perf();
   const stats0 = window.__ZR__.stats();
   return {
@@ -323,11 +327,13 @@ function pageRun({ k0, n, dt, renderEvery }) {
     const tA = performance.now();
     H.step(dt);
     const tB0 = performance.now();
-    // --finish: the frame's GPU completion counts in `ms` (the matched-ablation measurement)
-    if (rendered && T.finishInside) T.gl.finish();
+    // --finish: the frame's GPU completion counts in `ms` (the matched-ablation measurement).
+    // Chromium's WebGL finish() is only a flush; a one-pixel readPixels of the canvas is the
+    // synchronous round-trip that waits for the GPU process to have drawn the frame.
+    if (rendered && T.finishInside) T.sync();
     const tB = performance.now();
     if (!T.norender && !rendered) T.on();
-    if (rendered && T.finishAfter) T.gl.finish();
+    if (rendered && T.finishAfter) T.sync();
     const perf = window.__ZR__.perf();
     // ---- first-use events since the previous frame
     const newPrograms = [];
@@ -354,7 +360,7 @@ function pageRun({ k0, n, dt, renderEvery }) {
       ms: +(tB - tA).toFixed(3),
       update: +perf.update.toFixed(3),
       render: +perf.render.toFixed(3),
-      // --finish: ms spent in gl.finish() (the GPU's completion of the frame beyond the issue)
+      // --finish: ms spent waiting for the GPU (the frame's completion beyond the issue)
       finish: T.finishInside ? +(tB - tB0).toFixed(3) : undefined,
       // --auto: the governor's current rung (main.ts finishes its own steps under the harness)
       tier: perf.tier ?? undefined,
@@ -581,7 +587,7 @@ async function main() {
     const pass1 = await runPass({ norender, renderEvery, frames, profileOut, tag: norender ? 'norender' : 'render' });
     let pass2 = null;
     if (phase2Every) {
-      // the rendered pass: gl.finish() after each drawn frame (outside the timed step) so the
+      // the rendered pass: a GPU sync after each drawn frame (outside the timed step) so the
       // software GPU's backlog never blocks the next frame's JS — the render-issue ms then measure
       // three's CPU work + call issue only
       pass2 = await runPass({ norender: false, renderEvery: phase2Every, frames: phase2Frames, profileOut: profileOut ? profileOut.replace(/\.cpuprofile$/, '') + '.render.cpuprofile' : null, tag: 'render', finishAfter: true });
