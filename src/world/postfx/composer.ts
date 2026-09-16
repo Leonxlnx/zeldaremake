@@ -401,7 +401,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     // the beams, read across them (26° lines, y 0.02–0.2, u 0.11–0.19), sat 0.06–0.07 over the
     // frames' (D 0.58 vs 0.52, A 0.53 vs 0.47); 0.5 under the fan's 0.75 floor puts it at D 0.537,
     // A 0.496 and hands the beams to the fan
-    rayIntensity: 0.5,
+    // Daylight pass: retain shafts without bleaching the near foliage or shaded flowers.
+    rayIntensity: 0.32,
     rayContrast: 1.0,
     // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
     // (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange, (1.0, 0.975,
@@ -411,7 +412,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     // lit air above the canopy (every sky-depth column marches to uMaxDist through it) must not
     // become a flat glow over the gaps — at 0.6 shot D's far band mid-tones sat 0.08 over the
     // reference's
-    raySkyShare: 0.45,
+    raySkyShare: 0.25,
     // in-scatter per metre of lit air. Calibrated at the veil's earlier 0.032/m; kept there when
     // the veil thinned to 0.02 so the beams' strength stays as tuned (the shafts are the bright
     // part of the air, the veil between them the dark part)

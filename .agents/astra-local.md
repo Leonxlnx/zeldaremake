@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-daylight
-updated: 2026-09-16T11:56:21.5251969Z
+updated: 2026-09-16T12:35:00Z
 ---
 
 # astra-local — roster entry
@@ -16,8 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Hand candidate d221c8c1 in the local playable preview (relaxed finger curl, smoother surfaces; clips/weights/binds exact); take-0103's world (dc7da4d) merged locally; a cloth-weave atlas candidate under surface/motion review. Next: face/cloth and animation weaknesses. Owner's resumed brief: improve Link animation, a smoother game, stronger environment/graphics.
-
+Owner-directed daylight, sky and shadow refinement until 13:35 UTC (15:35 Berlin). Active workspace E:/zeldaremake-daylight, PR 11; character asset work paused. Scheduled heartbeat is paused at the owner's request; work continues directly in this task.
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
 `art/characters/link/**` on her branches; runtime character code stays with fable-cursor.
@@ -37,3 +36,10 @@ Hand candidate d221c8c1 in the local playable preview (relaxed finger curl, smoo
 2026-09-16T12:08:37.4874651Z — Native cloudtests11-59/12-02 too subtle, notretained; source sky restoredto3b4e4480, experiments preserveduntracked/cloud-study.diff. Found currentworldusesworld1msnap; restoredexistingPR6 shadowframe helper/test and adapted map-size rebuild toFablegovernor. Matrixcheck11520 projections,phase2.956e-12 vsold.499texel; 7nativeviews12-05 matchstyle,SSIMdelta -0.0003..+0.0006, no newtextures/geometry. Native360frameauto-governor trace running session25961, don'tbuilddistuntilterminal. Fable informed5697138676. Changesuncommitted. Prioritywindowstilluntil13:35UTC. Nextvalidateactualgovernortrace/publishcoherent shadowchange, then contacts/skyglare refinement.
 
 2026-09-16T12:10:43.8137301Z — Shadow snap native360frame auto trace terminal25961. Governor traversedall6tiers,4096->2048->1024maps; completedwithoutthrownerror. Trace logs oneunattributed404resource (noURL), notclaimingcleanconsoleforthistrace. Endmedian35.3ms atfloor undercurrentlaptopload, so no performancepromotion/autodefaultchange. Sevenfixednativeviews visuallyreviewed, projectiontestpasses11520realThreeprojections. Cloudattempts reverted. Readyto pushshadowstabilitysource/evidence; broad quality stillunfinished, deadline13:35UTC.
+
+2026-09-16T12:12:32.2429642Z — PR11 now0db9ec27 pushed, shadowstabilityretained, cloudtestsreverted. Alljobs63420/41423/8600/25961terminal; safe tobuilddist. Preview27764/61018 alive,lastbundleindex-CRnmVfpH.js. Fableupdatedwithmatrixproof/7viewdelta/autotradeoffs. Nextcontactshadows/glare until13:35UTC; characterpaused. Source-diff.json stores exactrawdiff toavoidwhitespace-lint falsepositives, rawsource.diff stayslocaluntracked. Do nottouchgeneratedlocalledger108/109 manually. Automationactive.
+
+2026-09-16T12:21:20Z — Owner explicitly cancelled scheduled execution; heartbeat umgebung-licht-und-himmel-2-stunden PAUSED via automation tool (confirmed). Continuing directly in this task until 13:35 UTC. Added existing postfx/shadowfilter hook forwarding to daylight review. Ray probe 0.32 intensity / 0.25 sky share: native A/D/upward, no page errors, D purple .00315 vs .00298 baseline; reduced haze wash, not yet promoted. Near-air .012 probe running session73396; no builds until terminal. Fable reports CI W18 purple .00279 below .003 under daylight; addressing actual flower readability without changing vegetation or rubric.
+
+
+2026-09-16T12:35:00Z — Clear-air defaults validated by native take0110: D purple .00334, 24/50, phase1 20/42, zero console errors and determinism diff,84 anticheat green. Build/typecheck pass. Existing shaft structure retained; fanMix0 experiment rejected. Evidence art/environment/clear-air-review. All captures terminal; preview61018 now index-0Rbob-4s.js. Automation remains PAUSED, direct work continues through13:35 UTC.

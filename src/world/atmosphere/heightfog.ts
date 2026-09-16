@@ -344,7 +344,8 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // to 14 m) hit the same trunk darks but took B's ground-band p10 0.269 → 0.248 and A's plaza
   // 0.276 → 0.259; starting at 8 m leaves them at 0.264 / 0.274.
   hazeNearStart: 8,
-  hazeNearDensity: 0.028,
+  // Keep the 8–15 m air thinner than the daylight base density; catch-up preserves the far veil.
+  hazeNearDensity: 0.012,
   hazeNearEnd: 15,
   hazeCatchUpEnd: 22,
   hazeUniformHeight: 8.0,
