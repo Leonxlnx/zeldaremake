@@ -1986,6 +1986,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   capture does not move it. Astra: forearm-guard candidate + hair studies native-only; default
   character 24591126.
 
+### 22:20 UTC — tick 119: heartbeat; round 40 reports in, follow-ups verifying
+- trees-24 reported (`e155bea`): emergent column relief + ragged moss + knees, plateau-oak bough
+  dressed (the "diagonal trunk"), lantern limb with recursive twig forks and cupped/twisted
+  laminae (Verdant `addLeaf` → `LaminaWriter`), moss and vines; 394 rim cards per cored lobe +
+  distant-crown rim fans (paddles → leafy clumps); `a-f-stones` hard corridor pools (A/F shaded
+  stone share 0.53 → 0.37 / 0.59 → 0.44). Six views −0.007 mean (B/E −0.009…−0.012; accepted);
+  +2 draws, +0.014 M tris. Remaining A/F shade is the lantern-tree's house bough (composition).
+- structures-25 reported (`2a6e249`): 4,254 cushion tufts on Saria's cap, torn moss edge over a new
+  bark eave, trefoils/ferns/grass, 1024 two-scale moss field; +1 draw, SSIM ±0.0004 → follow-up
+  25b (`c959308`, shaded inter-cushion floor) verifying now.
+- vegetation-21 reported (`4c56f88`): clustered thin blades (right-foreground 91 → 217 blades/m²,
+  sedge share 11 → 3 %), 1.3 m verge bands, bipinnate ultra ferns within 5 m, lamina detail block
+  within 3.5 m; every view fewer veg tris/draws; ref-SSIM −0.0003…−0.0023 → follow-up 21b
+  (`3fa2019`: stem-like rachis, six clump characters with per-card mirror/scale/hue, lawn spikes)
+  verifying. Integration + take-0110 + `art/environment/round40-review/` when both report.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2024,4 +2040,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T21:15:00Z
+2026-09-16T22:20:00Z
