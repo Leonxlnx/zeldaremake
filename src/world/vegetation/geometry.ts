@@ -92,10 +92,12 @@ export function sampleCurve(fn: (t: number) => Vector3, segments: number): Vecto
 
 /**
  * Tapered tube along a polyline with parallel-transported frames (no twist flips on arches).
- * `colorAt(t)` (round 40) replaces the default faint root → tip lift with a caller's lengthwise
- * gradient — a stem that crosses the lens needs a darker foot and a lit tip to read as a stem.
+ * `colorAt(t, up, facet)` (round 40) replaces the default faint root → tip lift with a caller's
+ * per-vertex colour: `t` the lengthwise fraction, `up` the vertex's radial direction's local-y
+ * component (−1 underside … +1 top) and `facet` its index around the ring — a stem that crosses
+ * the lens needs a darker foot, a lit tip and a shaded underside to read as a stem.
  */
-export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, tipRadius: number, color: RGB, sides = 4, caps = false, colorAt?: (t: number) => RGB) {
+export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, tipRadius: number, color: RGB, sides = 4, caps = false, colorAt?: (t: number, up: number, facet: number) => RGB) {
   const rings: number[][] = [];
   let previousA: Vector3 | undefined;
   for (let j = 0; j < points.length; j++) {
@@ -108,11 +110,12 @@ export function tube(mesh: MeshBuilder, points: Vector3[], rootRadius: number, t
     const t = j / (points.length - 1);
     const radius = rootRadius + (tipRadius - rootRadius) * t;
     const ring: number[] = [];
-    const ringColor = colorAt ? colorAt(t) : tone(color, 0.92 + t * 0.12);
+    const ringColor = tone(color, 0.92 + t * 0.12);
     for (let k = 0; k < sides; k++) {
       const angle = (k * TAU) / sides;
-      const point = points[j].clone().addScaledVector(a, Math.cos(angle) * radius).addScaledVector(b, Math.sin(angle) * radius);
-      ring.push(mesh.vertex(point, NOT_LAMINA + k / sides, t, ringColor));
+      const c = Math.cos(angle), s = Math.sin(angle);
+      const point = points[j].clone().addScaledVector(a, c * radius).addScaledVector(b, s * radius);
+      ring.push(mesh.vertex(point, NOT_LAMINA + k / sides, t, colorAt ? colorAt(t, a.y * c + b.y * s, k) : ringColor));
     }
     rings.push(ring);
   }
