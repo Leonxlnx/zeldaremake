@@ -434,7 +434,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number }[] }[] = [
   // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
   // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
   // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
@@ -551,12 +551,29 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // — and the moved tip lengthens the tip clump's stem, which grows the merged authored-leaves
   // mesh's bounding sphere into camera F's left frustum plane: F +1 draw / +0.28 M triangles
   // (505 / 8.13 M → 506 / 8.41 M) for nothing visible.
+  // Round 40 (the owner's markup on our frame A: "the smooth diagonal trunk above Saria's house"):
+  // camera A sees this bough's last fifth — s 0.82–1.0, the droop from (8, 10.5, −13) to the tip,
+  // A (0.455, −0.03) → (0.394, 0.24) at 20–22 m, 0.6–0.7 m thick — as one smooth pale pipe. Dressed
+  // (giant.ts CanopyBough.dress): a relief sweep with cords following the taper, furrow occlusion
+  // and lichen plates, a moss sheet along its upper side with a ragged edge, and two knees on the
+  // visible run — s 0.87 (≈ (7.3, 8.9, −12.3)) with a 2.4 m broken fork leaving up and to the
+  // north-west (A's screen-left, against the haze), s 0.95 (≈ (6.2, 6.4, −11.5)) a burl with a
+  // short stub to the south-east. The lobes and their stems below are exactly what they were.
   {
     giant: 'plateau-oak',
     fromY: 17.0,
     to: [5.5, 5.0, -11.0],
     radius: 0.55,
     tipRadius: 0.3,
+    dress: {
+      relief: 1,
+      moss: 0.85,
+      lichen: 0.7,
+      knees: [
+        { s: 0.87, side: 1, up: 0.6, reach: 0.4, halfWidth: 0.8, stubLength: 2.4, stubRadius: 0.32, stubPitch: 0.35 },
+        { s: 0.95, side: -1, up: 0.3, reach: 0.3, halfWidth: 0.6, stubLength: 1.3, stubRadius: 0.28, stubPitch: 0.5 },
+      ],
+    },
     lobes: [
       // D (0.86, 0.10) at 10.5 m: the house's west-wall window (0.83, 0.15) and its cap (0.86–0.96, 0–0.07)
       { t: 0.95, center: [6.0, 4.8, -11.0], hR: 1.7, vR: 1.3, density: 3.5, tone: 0.42, eye: 1, shade: 0.3, castShadow: false },
@@ -1251,6 +1268,20 @@ const COLUMN_SEATS: { x: number; z: number; variant: number; ring?: number }[] =
   // round 31: 0.4 m west of (−2.7, −7.9), see the "left edge" note above
   { x: -3.1, z: -7.9, variant: COLUMN_EMERGENT, ring: 1.0 },
 ];
+/**
+ * Knees on the emergent's bole (round 40 — the owner's markup on our frame A circles "the smooth
+ * pale bole at the left edge"; the brief asks for taper, 1–2 forks/knees on the visible run, bark
+ * cords, moss sheets and lichen). World azimuths (0° = +x east, 90° = +z south), turned into the
+ * seat's local frame at build time. From camera A the bole is seen along (−0.21, −0.98), so 22°
+ * is its screen-right edge and 204° its screen-left: both stubs stand in silhouette against the
+ * haze — the low one (5.3 m, 1.6 m long) over the verge toward the path, the high one (9.2 m,
+ * shorter, a burl with a snapped stub) on the west side. Camera B (8.4 m) and D (4.4 m) look up
+ * the same faces. The stubs' shadows are two short bars on the verge / the path's west edge.
+ */
+const EMERGENT_KNEES = [
+  { height: 5.3, azimuthDeg: 22, reach: 0.34, halfWidth: 0.7, stubLength: 1.6, stubRadius: 0.24, stubPitch: 0.3 },
+  { height: 9.2, azimuthDeg: 204, reach: 0.28, halfWidth: 0.6, stubLength: 1.1, stubRadius: 0.2, stubPitch: 0.45 },
+];
 const COLUMN_VIEWS = ['A_stairs', 'B_house', 'D_log', 'F_canopy'];
 const COLUMN_SWAP = { minDistance: 18, maxDistance: 45, xMin: 0.05, xMax: 0.95, minBaseY: 0.25 };
 /** minimum clearance of a column seat from a white-bark / a giant's bark / a house's trunk (m) */
@@ -1356,6 +1387,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     band: [number, number];
     /** the root-kit test (rootkit.ts): always shown, and its slot folds the plain roots only */
     kit?: boolean;
+    /** a relief column's base (column.ts rootsOnly): shown within the band, its slot folds the plain roots only */
+    rootsOnly?: boolean;
   }
   const nearBoles: NearBole[] = [];
   const nearBand = (id: string): [number, number] => NEAR_BASE_RADIUS_OVERRIDE[id] ?? [NEAR_BASE_IN_M, NEAR_BASE_OUT_M];
@@ -1380,6 +1413,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     yMax?: number;
     /** also cut the fine wood inside (see GiantOptions.corridors) */
     wood?: boolean;
+    /** also carves the corridor-exempt lobes (corridors.ts CanopyOpening.hard) */
+    hard?: boolean;
   }
   const groundLine = (q: [number, number, number], radius: number, porosity: number, cardPorosity = 0, yMin?: number): WorldCorridor => ({
     point: new Vector3(q[0], terrain.height(q[0], q[2]), q[2]),
@@ -1409,6 +1444,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const openingCorridors: WorldCorridor[] = CANOPY_OPENINGS.map((c) => ({
     ...groundLine([c.point[0], 0, c.point[1]], c.radius, c.porosity ?? 0, c.cardPorosity ?? 0, c.band[0]),
     yMax: c.band[1],
+    hard: c.hard,
   }));
   const openingCollars = CANOPY_OPENINGS.map((c) => ({
     point: new Vector3(c.point[0], terrain.height(c.point[0], c.point[1]), c.point[1]),
@@ -1621,7 +1657,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const pathAt = (lx: number, lz: number) => terrain.mask(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)).path;
     // the sun in the seat's local frame (the yaw undone) for the near base's shaded-side moss
     const localSun = new Vector3(cos * sunDir.x - sin * sunDir.z, sunDir.y, sin * sunDir.x + cos * sunDir.z);
-    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette }));
+    // the emergent's knees (EMERGENT_KNEES): world azimuths into the seat's local frame like the sun
+    const knees = c.params === columnParamSets[COLUMN_EMERGENT]
+      ? EMERGENT_KNEES.map((k) => {
+          const wx = Math.cos((k.azimuthDeg * Math.PI) / 180);
+          const wz = Math.sin((k.azimuthDeg * Math.PI) / 180);
+          return { ...k, toward: new Vector3(cos * wx - sin * wz, 0, sin * wx + cos * wz).normalize() };
+        })
+      : undefined;
+    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette, knees }));
     seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
     await yieldFrame();
   }
@@ -1650,7 +1694,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.visible = false;
     mesh.userData.kind = 'column-near-base';
     columnGroup.add(mesh);
-    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id) });
+    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id), rootsOnly: asset.nearBaseAudit.rootsOnly });
   }
   group.add(columnGroup);
   // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
@@ -1726,6 +1770,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       radius: b.radius,
       tipRadius: b.tipRadius,
       ghostWood: b.ghostWood,
+      dress: b.dress,
       lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core })),
     }));
     const asset = createGiantTree(def, rng, {
@@ -1746,6 +1791,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         yMin: c.yMin === undefined ? undefined : c.yMin - gy,
         yMax: c.yMax === undefined ? undefined : c.yMax - gy,
         wood: c.wood,
+        hard: c.hard,
       })),
       densify: openingCollars.map((c) => ({
         point: c.point.clone().sub(origin),
@@ -2200,7 +2246,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const slots = mats.nearBole.value;
     for (let i = 0; i < NEAR_BOLE_SLOTS; i++) {
       const nb = shown[i];
-      if (nb) slots[i].set(nb.origin.x, nb.origin.y, nb.origin.z, nb.kit ? -nb.cutY : nb.cutY);
+      if (nb) slots[i].set(nb.origin.x, nb.origin.y, nb.origin.z, nb.kit || nb.rootsOnly ? -nb.cutY : nb.cutY);
       else slots[i].set(0, 0, 0, 0);
     }
   };
@@ -2366,6 +2412,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantFlatCardsCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-cards' && m.castShadow),
       /** flat lobes built with an opaque core (CanopyLobe.core), whose ellipsoids are in the authored-leaves meshes */
       giantFlatCores: CANOPY_BOUGHS.reduce((n, b) => n + b.lobes.filter((l) => l.flat && l.core).length, 0),
+      /** round 40: leaf-cluster cards dressing the cores' outlines (giant.ts lobeCore), part of giantFlatCards */
+      giantCoreRimCards: giants.reduce((n, g) => n + g.asset.coreRimCards, 0),
       giantMeshes: sectorGeometries.length,
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       /**

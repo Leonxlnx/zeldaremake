@@ -31,7 +31,7 @@ import {
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
-import { buttressRoot, consumeTubeDraws, reliefBole, type TubeDraws } from './bole';
+import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
 import { basePlants, type BasePlantResult } from './base-plants';
 
 /**
@@ -180,6 +180,10 @@ export interface GiantAsset {
    * root-kit adapter, rootkit.ts, measures its collar against these)
    */
   boleRings: Vector3[][];
+  /** the dressed canopy boughs (CanopyBough.dress) as built, in bough order */
+  boughDress: { giant: string; relief: number; rings: number; sides: number; knees: number; triangles: number }[];
+  /** round 40: leaf-cluster cards dressing the outline of the flat lobes' cores (giant.ts lobeCore) */
+  coreRimCards: number;
 }
 
 /**
@@ -341,6 +345,24 @@ export interface CanopyBough {
    * frame's lit paving keeps its authored foliage where it was, with the band gone
    */
   ghostWood?: boolean;
+  /**
+   * Dressed wood (round 40, the owner's markup: "the smooth diagonal trunk above Saria's house"):
+   * the bough is swept as a relief bole (bole.ts — cords following the taper, furrow occlusion,
+   * lichen plates on the crests) instead of the plain tube, wears a moss sheet along its upper
+   * side with a ragged edge, and carries `knees`: one-sided swellings with broken stub limbs at
+   * `s` (0 = the trunk, 1 = the tip) leaving toward `side` (±1 = the run's left / right) and
+   * upward by `up`. Same draws as the plain sweep (consumeTubeDraws), the stubs from their own
+   * stream, so the lobes and everything after them are unchanged.
+   */
+  dress?: {
+    /** relief amplitude scale (1 = the default for the bough's radius) */
+    relief?: number;
+    /** upper-side moss strength 0–1 */
+    moss?: number;
+    /** lichen strength 0–1 */
+    lichen?: number;
+    knees?: { s: number; side: number; up: number; reach: number; halfWidth: number; stubLength: number; stubRadius: number; stubPitch: number }[];
+  };
 }
 
 export interface GiantOptions {
@@ -403,6 +425,8 @@ export interface GiantOptions {
     yMin?: number;
     yMax?: number;
     wood?: boolean;
+    /** also carves the corridor-exempt lobes (CanopyLobe.corridors false) — see corridors.ts CanopyOpening.hard */
+    hard?: boolean;
   }[];
   /**
    * Dense leaf collars (local space) around the canopy openings (see CANOPY_OPENINGS): an annulus
@@ -862,9 +886,11 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
    * the tightest corridor within `extent` of p (smallest porosity wins), or null — `extent` is the
    * half-size of the caster, so a cluster card centred just outside a corridor cannot lean into it
    */
-  const inCorridor = (p: Vector3, extent = 0) => {
+  const inCorridor = (p: Vector3, extent = 0, exemptLobe = false) => {
     let hit: (typeof corridors)[number] | null = null;
     for (const c of corridors) {
+      // a corridor-exempt lobe (CanopyLobe.corridors false) is carved by the hard corridors only
+      if (exemptLobe && !c.hard) continue;
       if (c.yMin !== undefined && p.y < c.yMin) continue;
       if (c.yMax !== undefined && p.y > c.yMax) continue;
       corrTmp.subVectors(p, c.point);
@@ -885,15 +911,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   /** false when a lamina at p must be dropped for a corridor */
   const leafAllowed = (p: Vector3) => {
     if (ghost) return false;
-    if (!corridors.length || corridorExempt) return true;
-    const c = inCorridor(p);
+    if (!corridors.length) return true;
+    const c = inCorridor(p, 0, corridorExempt);
     return !c || survives(p, c.porosity ?? 0);
   };
   /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
   const cardAllowed = (p: Vector3, s: number) => {
     if (ghost) return false;
-    if (!corridors.length || corridorExempt) return true;
-    const c = inCorridor(p, s * 0.7);
+    if (!corridors.length) return true;
+    const c = inCorridor(p, s * 0.7, corridorExempt);
     return !c || survives(p, c.cardPorosity ?? 0);
   };
   let lobe: { center: Vector3; hR: number } | null = null;
@@ -1097,7 +1123,56 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         leaves.triangle(b, b + 1, a + 1);
       }
     }
+    // Round 40 (owner: "Verdant quality especially when looking up"; from the stair landing and
+    // the plaza these read as matte paddles): the core keeps the body even, but its OUTLINE is
+    // dressed with two layers of leaf-cluster cards riding the ellipsoid's surface — clumps at
+    // 0.92–1.02 of the core radius and a finer fringe at 1.02–1.14 — in the lobe's one flat
+    // colour (no sun, no jitter: the body's window sd stays what SSIM's structure term wants),
+    // so at 10–25 m the silhouette breaks into leaf clumps instead of a smooth swell. The cards
+    // tilt 0–60° off the surface normal so the rim shows them obliquely from every camera
+    // (surface-normal cards are edge-on exactly at the silhouette). Own stream (`rl`), the
+    // flat cards writer, no shadow pass (that mesh never casts).
+    const area = 4 * Math.PI * Math.pow(hR * hR * vR * k * k * k, 2 / 3);
+    const cardColor = canopy.clone().multiplyScalar(0.9 * lobeTone);
+    const rimN = new Vector3();
+    const rimU = new Vector3();
+    const rimW = new Vector3();
+    const rimCard = (rr: number, size: number) => {
+      const th = rl() * TAU;
+      const ph = Math.acos(2 * rl() - 1);
+      const sx = Math.sin(ph) * Math.cos(th);
+      const sy = Math.cos(ph);
+      const sz = Math.sin(ph) * Math.sin(th);
+      const s = k * rr * swell(th, ph);
+      const p = new Vector3(center.x + sx * hR * s, center.y + sy * vR * s, center.z + sz * hR * s);
+      rimN.set(sx / hR, sy / vR + 0.5, sz / hR).normalize();
+      rimN.x += (rl() - 0.5) * 1.2;
+      rimN.y += (rl() - 0.5) * 0.8;
+      rimN.z += (rl() - 0.5) * 1.2;
+      rimN.normalize();
+      const ref = Math.abs(rimN.y) < 0.9 ? UP : new Vector3(1, 0, 0);
+      rimU.crossVectors(rimN, ref).normalize();
+      rimW.crossVectors(rimN, rimU).normalize();
+      const spin = rl() * TAU;
+      const su = rimU.clone().multiplyScalar(Math.cos(spin)).addScaledVector(rimW, Math.sin(spin));
+      const sw = rimW.clone().multiplyScalar(Math.cos(spin)).addScaledVector(rimU, -Math.sin(spin));
+      if (!cardAllowed(p, size)) return;
+      const V = (du: number, dw: number, u: number, v: number) =>
+        cards.vertexN(p.clone().addScaledVector(su, du * size).addScaledVector(sw, dw * size), rimN, cardColor, CARD_UV0 + (1 - CARD_UV0) * u, CARD_UV0 + (1 - CARD_UV0) * v, 0.6, 0, 0.01 * (0.5 + v), 1);
+      const a = V(-1, -1, 0, 0);
+      const b = V(1, -1, 1, 0);
+      const c = V(1, 1, 1, 1);
+      const d = V(-1, 1, 0, 1);
+      cards.triangle(a, b, c);
+      cards.triangle(a, c, d);
+      coreRimCards++;
+    };
+    const clumps = Math.round(area * 1.6);
+    for (let i = 0; i < clumps; i++) rimCard(0.92 + rl() * 0.1, hR * (0.2 + rl() * 0.1));
+    const fringe = Math.round(area * 1.2);
+    for (let i = 0; i < fringe; i++) rimCard(1.02 + rl() * 0.12, hR * (0.13 + rl() * 0.07));
   }
+  let coreRimCards = 0;
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
     lobe = { center, hR };
@@ -1497,6 +1572,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // but nothing is generated after it), so the tree above is identical with or without them.
   const rcb = r.fork('canopy-bough');
   const lobeLeafCounts: number[] = [];
+  const boughDressAudit: GiantAsset['boughDress'] = [];
+  let boughIndex = 0;
   for (const spec of o.canopyBoughs ?? []) {
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
@@ -1522,9 +1599,58 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
     }
     ghost = spec.ghostWood === true;
-    tube(wood, path, radii, 12, rcb, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    // the plain sweep's draws are taken up front either way, so a dressed bough leaves the stream
+    // exactly where the plain one did
+    const boughDraws = consumeTubeDraws(rcb, 12);
+    const boughBump = gnarlBump(1.7, 0.11);
+    if (spec.dress && !ghost) {
+      const dress = spec.dress;
+      const axisAt = sweepAxisAt(path, radii);
+      const total = axisAt(0).total;
+      const knees: BoleKnee[] = (dress.knees ?? []).map((k) => {
+        const distance = k.s * total;
+        const { u, v } = axisAt(distance);
+        const toward = UP.clone().multiplyScalar(k.up).addScaledVector(side, k.side).normalize();
+        return { distance, azimuth: Math.atan2(toward.dot(v), toward.dot(u)), reach: k.reach, halfWidth: k.halfWidth, stubLength: k.stubLength, stubRadius: k.stubRadius, stubPitch: k.stubPitch };
+      });
+      const dressNoise = new Noise2D(`bough-relief/${def.id}/${boughIndex}`);
+      const mossStrength = dress.moss ?? 0.8;
+      const built = reliefBole(wood, path, radii, {
+        color: barkColor,
+        bump: knees.length ? (angle, distance) => boughBump(angle, distance) * kneeBump(knees, angle, distance) : boughBump,
+        creviceShade: 1.8,
+        barkTile: 1.2,
+        roughness: 0.06,
+        sides: 22,
+        spacing: 0.4,
+        denseUntilY: Infinity,
+        amplitude: Math.max(0.04, Math.min(0.12, 0.11 * Math.sqrt(r0 / 1.2))) * (dress.relief ?? 1),
+        pitch: 0.34,
+        fadeY: [1e4, 2e4],
+        farShare: 1,
+        refRadius: r0,
+        noise: dressNoise,
+        draws: boughDraws,
+        stiffness: stiff,
+        mossBand: [-100, -99],
+        // the moss sheet along the upper side: strongest where the surface faces up, its edge
+        // ragged by a metre-scale field so it ends in tongues, thinning toward the tip
+        mossExtra: (p, upness) => {
+          const edge = dressNoise.fbm(p.x * 0.9 + 3.1, p.z * 0.9 + p.y * 0.6, 3);
+          const along = 1 - smoothstep(0.7 * total, total, Math.hypot(p.x - origin.x, p.z - origin.z) / Math.max(1e-3, run) * total);
+          return smoothstep(0.42, 0.78, upness * 0.75 + 0.5 * (0.5 + 0.5 * edge)) * mossStrength * along;
+        },
+        lichen: { band: [-100, 1e4], strength: dress.lichen ?? 0.7 },
+      });
+      boughDressAudit.push({ giant: def.id, relief: built.amplitude, rings: built.rings, sides: built.sides, knees: knees.length, triangles: built.triangles });
+      const krng = rcb.fork('bough-knees');
+      for (const knee of knees) kneeStub(wood, knee, axisAt(knee.distance).radius, axisAt, barkColor, krng, dressNoise, mossStrength * 0.8);
+    } else {
+      tube(wood, path, radii, 12, rcb, { color: barkColor, roughness: 0.06, bump: boughBump, creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: boughDraws });
+    }
     if (!ghost) limbs++;
     ghost = false;
+    boughIndex++;
     for (const lobeSpec of spec.lobes) {
       const at = sample(path, lobeSpec.t);
       const ax = tangent(path, lobeSpec.t);
@@ -1600,5 +1726,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     boleRings: wood.trunkRows
       .map((row) => row.map((i) => new Vector3(wood.positions[i * 3], wood.positions[i * 3 + 1], wood.positions[i * 3 + 2])))
       .filter((ring) => ring.length && ring[0].y < 8),
+    boughDress: boughDressAudit,
+    coreRimCards,
   };
 }

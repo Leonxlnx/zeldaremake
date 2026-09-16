@@ -16,9 +16,27 @@ import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail } from './writer';
 import type { Palette, TreeAsset } from './whitebark';
-import { buttressRoot, consumeTubeDraws, reliefBole } from './bole';
+import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, shadedSheetMask, sweepAxisAt, type BoleKnee } from './bole';
 import { basePlants, type BasePlantResult } from './base-plants';
 import { NEAR_BASE_CUT_Y, NEAR_BASE_PITCH, nearBaseAmplitude } from './giant';
+
+/**
+ * A knee on a column's bole (round 40, the owner's bole brief): a one-sided swelling at `height`
+ * (local m) toward the local horizontal unit vector `toward`, and the broken stub limb that leaves
+ * it (bole.ts BoleKnee). Silhouette features, built at every detail level.
+ */
+export interface ColumnKnee {
+  height: number;
+  toward: Vector3;
+  /** extra radius at the crest, fraction of the bole radius there */
+  reach: number;
+  /** vertical half-width of the swelling (m) */
+  halfWidth: number;
+  /** stub length (m; 0 = a burl only), collar radius as a fraction of the bole radius, elevation (rad) */
+  stubLength: number;
+  stubRadius: number;
+  stubPitch: number;
+}
 
 /** A column tree plus the bole its `tube()` sweep was built from, for `ctx.shared.trunkSeats`. */
 export interface ColumnAsset extends TreeAsset {
@@ -32,7 +50,25 @@ export interface ColumnAsset extends TreeAsset {
   bark: { relief: number; rings: number; sides: number; mossShare: number; triangles: number } | null;
   /** the near base (giant.ts NEAR_BASE_CUT_Y), local space — built for the high detail only */
   nearBase: BufferGeometry | null;
-  nearBaseAudit: { relief: number; rings: number; sides: number; cutY: number; mossShare: number; fins: number; toes: number; woodTriangles: number; plants: BasePlantResult; triangles: number } | null;
+  nearBaseAudit: {
+    relief: number;
+    rings: number;
+    sides: number;
+    cutY: number;
+    mossShare: number;
+    fins: number;
+    toes: number;
+    woodTriangles: number;
+    plants: BasePlantResult;
+    triangles: number;
+    /**
+     * the near base holds fins and plants only and the plain roots alone fold for it: the bole
+     * is the relief sweep at every distance (a `relief` column), so nothing of it is replaced
+     */
+    rootsOnly: boolean;
+  } | null;
+  /** the knees as built (bole.ts), local distances along the sweep */
+  knees: BoleKnee[];
 }
 
 export interface ColumnBuildOptions {
@@ -45,6 +81,8 @@ export interface ColumnBuildOptions {
   /** 0–1 path / paving mask under local (x, z) */
   pathAt?: (x: number, z: number) => number;
   basePalette?: Parameters<typeof basePlants>[2]['palette'];
+  /** knees with stub limbs on the bole (local frame; see ColumnKnee) */
+  knees?: ColumnKnee[];
 }
 
 export interface ColumnParams {
@@ -137,9 +175,14 @@ export function emergentParams(rng: Rng): ColumnParams {
     flare: 0.3,
     barkTile: 1.0,
     gnarl: 0.14,
-    // 4.4 m from camera D, 8.4 m from B: the near-bole cords and furrows (bole.ts) are OFF (round 17
-    // integration: the frame shows a near-smooth hazed column; the relief cost B -0.001 / D -0.004 SSIM)
-    relief: 0,
+    // Round 17 integration switched the near-bole cords and furrows (bole.ts) OFF here — the
+    // frame shows a near-smooth hazed column 4.4 m from camera D, 8.4 m from B, and the relief
+    // cost B −0.001 / D −0.004 SSIM. Round 40 (the owner's markup on our own frame A, 14 m: "the
+    // smooth pale bole at the left edge") turns it back on at every distance, with the knees,
+    // moss sheets and lichen the brief asks for (createColumnTree, ColumnBuildOptions.knees);
+    // the owner accepted the SSIM for real detail. 0.85 of the default amplitude for its radius
+    // (≈ 6.7 cm on a 62 cm bole): the cords read at 4–14 m, the silhouette stays a column.
+    relief: 0.85,
   };
 }
 
@@ -208,13 +251,45 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     });
     return best;
   })();
+  // knees (ColumnKnee → bole.ts BoleKnee): the local `toward` vector becomes an angle in the
+  // sweep's own ring frame at the knee's distance along it, so the swelling and the stub leave
+  // the bole where the caller pointed whatever the parallel-transported frame has turned to
+  const axisAt = sweepAxisAt(trunk, trunkRadii);
+  const cumulative: number[] = [0];
+  for (let i = 1; i < trunk.length; i++) cumulative.push(cumulative[i - 1] + trunk[i].distanceTo(trunk[i - 1]));
+  const distanceAtHeight = (y: number) => {
+    for (let i = 0; i < trunk.length - 1; i++) {
+      if (trunk[i + 1].y >= y) {
+        const f = Math.max(0, Math.min(1, (y - trunk[i].y) / Math.max(1e-6, trunk[i + 1].y - trunk[i].y)));
+        return cumulative[i] + (cumulative[i + 1] - cumulative[i]) * f;
+      }
+    }
+    return cumulative[cumulative.length - 1];
+  };
+  const knees: BoleKnee[] = (o.knees ?? []).map((k) => {
+    const distance = distanceAtHeight(k.height);
+    const { u, v } = axisAt(distance);
+    return { distance, azimuth: Math.atan2(k.toward.dot(v), k.toward.dot(u)), reach: k.reach, halfWidth: k.halfWidth, stubLength: k.stubLength, stubRadius: k.stubRadius, stubPitch: k.stubPitch };
+  });
+  const boleBump = knees.length ? (angle: number, distance: number) => gnarlBump(angle, distance) * kneeBump(knees, angle, distance) : gnarlBump;
+  // the sun in the local frame → the horizontal direction away from it: the moss sheets' side
+  const shadeDir = o.sunDir ? new Vector3(-o.sunDir.x, 0, -o.sunDir.z).normalize() : undefined;
+  const centreAt = (y: number) => {
+    const d = distanceAtHeight(y);
+    const c = axisAt(d).centre;
+    return { x: c.x, z: c.z };
+  };
   if (p.relief) {
-    // the near-bole bark (bole.ts): the plain sweep's draws are consumed so the roots and crown
-    // below draw the same stream; medium / low details keep the plain sweep's side reduction
+    // the near-bole bark (bole.ts) at EVERY distance: the plain sweep's draws are consumed so the
+    // roots and crown below draw the same stream; medium / low details keep the plain sweep's
+    // side reduction. Moss sheets climb the shaded side to ≈ 7 m with a ragged edge
+    // (shadedSheetMask), lichen plates sit on the cords' crests from 3 m up; the near base then
+    // holds fins and plants only (rootsOnly) and nothing of this bole is ever swapped out.
     const sideScale = detail === 'high' ? 1 : detail === 'medium' ? 0.72 : 0.5;
+    const reliefNoise = new Noise2D(`column-relief/${p.seed}`);
     const built = reliefBole(wood, trunk, trunkRadii, {
       color: barkColor,
-      bump: gnarlBump,
+      bump: boleBump,
       creviceShade: 1.8 * (p.gnarl / 0.1),
       barkTile: p.barkTile,
       sides: Math.max(24, Math.min(120, Math.round(((TAU * refRadius) / 0.075) * sideScale))),
@@ -224,19 +299,23 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       fadeY: [12, 18],
       farShare: 0.35,
       refRadius,
-      noise: new Noise2D(`column-relief/${p.seed}`),
+      noise: reliefNoise,
       draws,
       stiffness: stiff,
       flatBase: true,
-      mossBand: [2, 6],
-      mossStrength: 0.8,
+      mossBand: [1.5, 5],
+      mossStrength: 0.7,
+      shadeDir,
+      sheetBand: [0.8, 2.4],
+      mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 5.5], 0.9, centreAt) : undefined,
+      lichen: { band: [3, 12], strength: 0.8 },
     });
     bark = { relief: built.amplitude, rings: built.rings, sides: built.sides, mossShare: built.mossShare, triangles: built.triangles };
   } else {
     tube(wood, trunk, trunkRadii, 16, rng, {
       color: barkColor,
       roughness: 0.05,
-      bump: gnarlBump,
+      bump: boleBump,
       // crevice shading scaled with the gnarl so a deeper gnarl also reads darker in its folds
       creviceShade: 1.8 * (p.gnarl / 0.1),
       barkTile: p.barkTile,
@@ -247,6 +326,11 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       draws,
       collapsible: (pt) => buildNearBase && pt.y < cutY - 1e-6,
     });
+  }
+  // the knees' stubs, from their own stream (the roots and crown below draw what they did)
+  if (knees.length) {
+    const krng = rng.fork('knee-stubs');
+    for (const knee of knees) kneeStub(wood, knee, axisAt(knee.distance).radius, axisAt, barkColor, krng, gnarl, 0.7);
   }
 
   // ---------- buttress roots ----------
@@ -273,32 +357,36 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const nb = new GeometryWriter('high');
     const nrng = rng.fork('near-base');
     const nNoise = new Noise2D(`column-near-relief/${p.seed}`);
-    const shadeDir = o.sunDir ? new Vector3(-o.sunDir.x, 0, -o.sunDir.z).normalize() : undefined;
-    const bole = reliefBole(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
-      color: barkColor,
-      bump: gnarlBump,
-      creviceShade: 1.8 * (p.gnarl / 0.1),
-      barkTile: p.barkTile,
-      roughness: 0.05,
-      sides: Math.max(40, Math.min(120, Math.round((TAU * refRadius) / 0.05))),
-      spacing: 0.14,
-      denseUntilY: cutY + 1,
-      amplitude: nearBaseAmplitude(refRadius),
-      pitch: NEAR_BASE_PITCH,
-      fadeY: [cutY + 10, cutY + 20],
-      farShare: 1,
-      endFade: [cutY - 1.8, cutY],
-      cap: false,
-      refRadius,
-      noise: nNoise,
-      draws,
-      stiffness: stiff,
-      flatBase: true,
-      mossBand: [0.6, 3.5],
-      mossStrength: 0.9,
-      shadeDir,
-      sheetBand: [0.8, 2.0],
-    });
+    // a relief column keeps its own bole at every distance (above): the near base then adds the
+    // fins and plants only, and the trees system folds the plain roots alone (rootsOnly)
+    const rootsOnly = !!p.relief;
+    const bole = rootsOnly
+      ? { amplitude: bark?.relief ?? 0, rings: 0, sides: 0, mossShare: bark?.mossShare ?? 0 }
+      : reliefBole(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
+          color: barkColor,
+          bump: boleBump,
+          creviceShade: 1.8 * (p.gnarl / 0.1),
+          barkTile: p.barkTile,
+          roughness: 0.05,
+          sides: Math.max(40, Math.min(120, Math.round((TAU * refRadius) / 0.05))),
+          spacing: 0.14,
+          denseUntilY: cutY + 1,
+          amplitude: nearBaseAmplitude(refRadius),
+          pitch: NEAR_BASE_PITCH,
+          fadeY: [cutY + 10, cutY + 20],
+          farShare: 1,
+          endFade: [cutY - 1.8, cutY],
+          cap: false,
+          refRadius,
+          noise: nNoise,
+          draws,
+          stiffness: stiff,
+          flatBase: true,
+          mossBand: [0.6, 3.5],
+          mossStrength: 0.9,
+          shadeDir,
+          sheetBand: [0.8, 2.0],
+        });
     // fins along the plain buttresses' directions: a centreline from the collar out to the reach,
     // riding the ground, then split toes (bole.ts)
     let toes = 0;
@@ -377,7 +465,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       },
     });
     nearBase = nb.finish(`column-near-base-${p.seed}`);
-    nearBaseAudit = { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, woodTriangles, plants, triangles: nb.triangles };
+    nearBaseAudit = { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, woodTriangles, plants, triangles: nb.triangles, rootsOnly };
   }
 
   // ---------- crown ----------
@@ -477,5 +565,6 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     bark,
     nearBase,
     nearBaseAudit,
+    knees,
   };
 }

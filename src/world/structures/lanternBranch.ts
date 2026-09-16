@@ -36,7 +36,7 @@
  * casting no shadow (its band would cross the lit slabs in front of Link), under its own darker
  * shade floor (SLEEVE_FLOOR), with the fork, twigs, sheets and tufts scaled to the 0.15 m limb.
  */
-import { CatmullRomCurve3, Group, Mesh, PointLight, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Group, Mesh, PointLight, Vector3 } from 'three';
 import type { TubePath, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
@@ -44,14 +44,120 @@ import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
 import { TAU, faceTowards, gridSurface, merge, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternRig } from './lantern';
-import type { StructureMaterials } from './materials';
+import { type StructureMaterials, windLeafMaterial } from './materials';
 import { applySleeveBarkResponse } from './sleeveBark';
+
+/**
+ * Verdant-style leaf laminae (verdant-forest trees.js `addLeaf`; the trees writer carries the
+ * same port for the giants, which the structures system cannot import). One heart leaf is a
+ * cupped, twisted surface — raised midrib, shoulders rolled up, tip curled — of 8 triangles near
+ * or 4 further off, mapped onto the heart-leaf card texture so its alpha still cuts the outline
+ * (petiole notch at the base, tip at the far end). Vertex colours tint; aPhase / aAmount drive
+ * the structures' shared leaf wind, the amount growing from the petiole to the tip.
+ */
+class LaminaWriter {
+  private pos: number[] = [];
+  private uv: number[] = [];
+  private col: number[] = [];
+  private phase: number[] = [];
+  private amount: number[] = [];
+  private idx: number[] = [];
+  private n = 0;
+  count = 0;
+  triangles = 0;
+  private readonly f = new Vector3();
+  private readonly sd = new Vector3();
+  private readonly nm = new Vector3();
+  private readonly pp = new Vector3();
+  private readonly c0 = new Color();
+  private readonly c1 = new Color();
+  private readonly cm = new Color();
+  private static readonly TIP = new Color().setRGB(0.5, 0.52, 0.22);
+
+  private vertex(p: Vector3, u: number, v: number, c: Color, phase: number, amount: number): number {
+    this.pos.push(p.x, p.y, p.z);
+    this.uv.push(u, v);
+    this.col.push(c.r, c.g, c.b);
+    this.phase.push(phase);
+    this.amount.push(amount);
+    return this.n++;
+  }
+  private tri(a: number, b: number, c: number): void {
+    this.idx.push(a, b, c);
+    this.triangles++;
+  }
+  /** one lamina from `base` along `direction` (its length `size`, nearly as wide) */
+  leaf(base: Vector3, direction: Vector3, size: number, color: Color, rng: Rng, phase: number, amount: number, fine: boolean): void {
+    const forward = this.f.copy(direction).normalize();
+    // most laminae face the sky; the roll about the petiole keeps some oblique
+    const side = this.sd.crossVectors(UP, forward);
+    if (side.lengthSq() < 0.015) side.set(1, 0, 0);
+    side.normalize().applyAxisAngle(forward, (rng() - 0.5) * 1.8);
+    const normal = this.nm.crossVectors(forward, side).normalize();
+    const twist = (rng() - 0.5) * 0.42;
+    const cup = size * (0.05 + rng() * 0.08);
+    const curve = size * (rng() * 0.2 - 0.05);
+    const width = size * 0.95;
+    const P = (s: number, t: number) =>
+      this.pp
+        .copy(base)
+        .addScaledVector(forward, size * t)
+        .addScaledVector(side, s * width * 0.5)
+        .addScaledVector(normal, curve * t * t + cup * (1 - Math.abs(s)) * Math.sin(t * Math.PI) + s * twist * size * t);
+    const c0 = this.c0.copy(color).multiplyScalar(0.8 + rng() * 0.4);
+    const c1 = this.c1.copy(c0).lerp(LaminaWriter.TIP, 0.1 + rng() * 0.15);
+    // heart texture: petiole notch at v ≈ 0.84–1, tip at v ≈ 0.02 → t 0 ↦ v 0.92, t 1 ↦ v 0.02
+    const V = (s: number, t: number, c: Color, amt: number) => this.vertex(P(s, t), 0.5 + s * 0.5, 0.92 - 0.9 * t, c, phase, amount * amt);
+    this.count++;
+    const b = V(0, 0, c0, 0.5);
+    if (!fine) {
+      const l = V(-1, 0.3, c0, 0.8);
+      const m = V(0, 0.3, this.cm.copy(c0).multiplyScalar(1.04), 0.8);
+      const r = V(1, 0.3, c0, 0.8);
+      const tip = V(0, 1, c1, 1);
+      this.tri(b, l, m);
+      this.tri(b, m, r);
+      this.tri(l, tip, m);
+      this.tri(m, tip, r);
+      return;
+    }
+    const l1 = V(-1, 0.3, c0, 0.8);
+    const m1 = V(0, 0.3, this.cm.copy(c0).multiplyScalar(1.045), 0.8);
+    const r1 = V(1, 0.3, c0, 0.8);
+    const l2 = V(-0.6, 0.7, c1, 0.95);
+    const m2 = V(0, 0.7, this.cm.copy(c1).multiplyScalar(1.025), 0.95);
+    const r2 = V(0.6, 0.7, c1, 0.95);
+    const tip = V(0, 1, c1, 1);
+    this.tri(b, l1, m1);
+    this.tri(b, m1, r1);
+    this.tri(l1, l2, m1);
+    this.tri(l2, m2, m1);
+    this.tri(m1, m2, r1);
+    this.tri(m2, r2, r1);
+    this.tri(l2, tip, m2);
+    this.tri(m2, tip, r2);
+  }
+  build(): BufferGeometry | null {
+    if (!this.n) return null;
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
+    g.setAttribute('uv', new Float32BufferAttribute(this.uv, 2));
+    g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
+    g.setAttribute('aPhase', new Float32BufferAttribute(this.phase, 1));
+    g.setAttribute('aAmount', new Float32BufferAttribute(this.amount, 1));
+    g.setIndex(this.idx);
+    g.computeVertexNormals();
+    return g;
+  }
+}
 
 export interface LanternBranchBuild {
   group: Group;
   lanterns: LanternRig[];
   lights: PointLight[];
   leaves: number;
+  /** round 40 dressing: twig forks (tubes) and their laminae, hanging vines, moss sheets */
+  dressing: { twigs: number; twigTriangles: number; laminae: number; laminaTriangles: number; vines: number; sheets: number };
   /** which centreline the sleeve was swept along */
   wrapSource: 'shared' | 'layout';
   /** containment of the giant's limb surface inside the sleeve (see `checkContainment`) */
@@ -249,64 +355,162 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     return o.copy(p).addScaledVector(p.clone().sub(spine(s)), 4);
   });
 
-  // ---- fork stub and side twigs (bark), each tipped with a shaded leaf sprig ----
+  // ---- twig forks with layered laminae (round 40) ----
+  // Owner markup 2 ("beam-like", isolated flat leaves) and frame 03's bough: connected twig
+  // forks leave the sleeve along its whole length, each forking once or twice, thinning by 0.62
+  // to its tip, curling up toward the light and drooping again under the leaves; every twiglet
+  // carries a spray of OVERLAPPING cupped laminae along its outer part (one every 3.4 cm, a
+  // 9–12 cm leaf each, golden-angle phyllotaxis — verdant-forest trees.js leafSpray) and a
+  // rosette at its tip, so the leaves are layered clusters hanging off wood, never stems stuck
+  // on the beam. The run's twigs are authored (s, ψ); the reach takes one per ≈ 0.75 m.
   const twigRng = rng.fork('branch-twigs');
   const foliage = new FoliageBuilder(rng.fork('branch-foliage'), `${ctx.config.seed}/lantern-branch`);
-  // (round 37: the bough is 6 m from camera A, in the shade under the roof — its tufts read as
-  // dark olive silhouettes in frame 1 s, not lit lime; the tints are pulled to half)
-  const sprigTint: [number, number, number] = [0.3, 0.34, 0.18];
+  const laminae = new LaminaWriter();
   const barkParts = [sleeve];
-  const jit = (a: number) => new Vector3((twigRng() - 0.5) * a, (twigRng() - 0.5) * a * 0.5, (twigRng() - 0.5) * a);
-  // the fork: a broken-off second limb leaving the thick end upward and away from the cameras,
-  // so in A it stands above the bough's line near the left edge
-  // (round 37: the limb is 0.15 m in radius, not 0.42 — the fork and twigs are scaled to it, and
-  // the fork leans back along the limb rather than up, so nothing of it climbs above the bough's
-  // line in shot A where the frame has only haze)
+  let twigCount = 0;
   const fk = Math.min(1, r0 / 0.42);
-  {
-    const s0 = 0.3;
-    const base = surface(s0, -0.5, -0.05);
-    const heading = dir.clone().multiplyScalar(0.7).addScaledVector(UP, 0.45).addScaledVector(side, -0.55).normalize();
-    const pts = [
-      spine(s0),
-      base,
-      base.clone().addScaledVector(heading, 0.7 * fk).add(jit(0.15 * fk)),
-      base.clone().addScaledVector(heading, 1.3 * fk).addScaledVector(UP, 0.1 * fk).add(jit(0.15 * fk)),
-      base.clone().addScaledVector(heading, 1.75 * fk).addScaledVector(UP, 0.2 * fk).addScaledVector(dir, 0.2 * fk),
-    ];
+  const jit = (a: number) => new Vector3((twigRng() - 0.5) * a, (twigRng() - 0.5) * a * 0.5, (twigRng() - 0.5) * a);
+  const twigBark = (s: number, psi: number): [number, number, number] => {
+    const c = barkColor(s, psi);
+    return [c[0] * 0.9, c[1] * 0.85, c[2] * 0.8];
+  };
+  /** an orthonormal pair perpendicular to a unit axis */
+  const perp = (axis: Vector3): [Vector3, Vector3] => {
+    const u = new Vector3().crossVectors(axis, Math.abs(axis.y) < 0.9 ? UP : new Vector3(1, 0, 0)).normalize();
+    return [u, new Vector3().crossVectors(axis, u).normalize()];
+  };
+  // (round 37: the bough is 6 m from camera A in the shade under the roof — its leaves read as
+  // dark olive in frame 1 s; the laminae's base tint keeps that but the lit/backlit ones lift
+  // through the material's transmission. Round 40: 0.36/0.42/0.21 still rendered the sun-side
+  // clusters as lime rosettes from 3 m against frame-03's heavy dark bough — a darker olive base)
+  const leafBase = new Color().setRGB(0.27, 0.33, 0.16);
+  const tintFor = (): Color => {
+    const k = 0.72 + twigRng() * 0.56;
+    const warm = (twigRng() - 0.5) * 0.08;
+    return new Color().setRGB(Math.max(0, leafBase.r * k + warm), leafBase.g * k, Math.max(0, leafBase.b * k - warm * 0.5));
+  };
+  const _tan = new Vector3();
+  const _leafBase = new Vector3();
+  const _out = new Vector3();
+  const _ld = new Vector3();
+  /** laminae along a twig: golden-angle phyllotaxis, each leaf's base on the twig's surface */
+  const leafSpray = (curve: CatmullRomCurve3, radiusAt: (t: number) => number, count: number, t0: number, phase: number, size: number, fine: boolean, tint: Color) => {
+    for (let j = 0; j < count; j++) {
+      const t = t0 + (1 - t0) * ((j + 0.15 + 0.7 * twigRng()) / count);
+      curve.getPointAt(t, _leafBase);
+      curve.getTangentAt(t, _tan);
+      const [u, v] = perp(_tan);
+      const ang = phase + j * 2.399963229728653 + (twigRng() - 0.5) * 0.6;
+      _out.copy(u).multiplyScalar(Math.cos(ang)).addScaledVector(v, Math.sin(ang));
+      _leafBase.addScaledVector(_out, radiusAt(t) * 0.8);
+      _ld.copy(_tan).multiplyScalar(0.28 + 0.4 * twigRng()).add(_out).addScaledVector(UP, -0.18 + 0.6 * twigRng()).normalize();
+      laminae.leaf(_leafBase, _ld, size * (0.85 + 0.3 * twigRng()), tint, twigRng, phase, 0.05 + 0.04 * t, fine);
+    }
+  };
+  /** a whorl of laminae around a twig's tip, splayed forward */
+  const rosette = (tip: Vector3, heading: Vector3, phase: number, size: number, fine: boolean, tint: Color, n: number) => {
+    const [u, v] = perp(heading);
+    for (let k = 0; k < n; k++) {
+      const ang = (k / n) * TAU + twigRng() * 0.5;
+      _out.copy(u).multiplyScalar(Math.cos(ang)).addScaledVector(v, Math.sin(ang));
+      _ld.copy(heading).multiplyScalar(0.55 + 0.3 * twigRng()).addScaledVector(_out, 0.75).addScaledVector(UP, 0.1).normalize();
+      _leafBase.copy(tip).addScaledVector(heading, -0.015 * (k % 2));
+      laminae.leaf(_leafBase, _ld, size * (0.95 + 0.25 * twigRng()), tint, twigRng, phase, 0.09, fine);
+    }
+  };
+  /**
+   * A twig from `origin` along `heading`: a 3-step path curling up (`curl`) and drooping at the
+   * end, a tapered tube in the sleeve's bark, 1–2 children at 45–80 % of its length (depth > 0),
+   * a leaf spray over its outer part and a tip rosette. `fine`: 8-triangle laminae (the run and
+   * the near reach) or 4-triangle ones.
+   */
+  const growTwig = (origin: Vector3, heading: Vector3, length: number, radius: number, depth: number, phase: number, size: number, fine: boolean, tint: Color, s: number, psi: number, curl: number) => {
+    const h = heading.clone().normalize();
+    const pts = [origin.clone().addScaledVector(h, -Math.max(0.04, radius * 2)), origin.clone()];
+    let p = origin.clone();
+    const N = 3;
+    for (let i = 1; i <= N; i++) {
+      const t = i / N;
+      h.addScaledVector(UP, curl * (1.1 - t) - 0.5 * curl * t * t).add(jit(0.35)).normalize();
+      p = p.clone().addScaledVector(h, length / N);
+      pts.push(p);
+    }
     const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-    const fork = sweepTube(curve, {
-      radius: (t) => (0.17 - 0.12 * t) * fk * (1 + 0.12 * Math.sin(t * 13 + 1)),
-      tubularSegments: 16,
-      radialSegments: 9,
-      uvMetres: 1.4,
-      displace: (t, ang) => (noise.ridged(ang * 1.5 + 3, t * 6, 2) - 0.5) * 0.03 * fk,
-      color: (t, ang) => barkColor(s0 + t * 0.1, ang - 1),
-      capEnd: true,
-    });
-    barkParts.push(fork);
-    foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.2 * fk), 0.14, 14, { size: 0.08, amount: 0.06, droop: 0.55, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
+    const rad = (t: number) => radius * (1 - 0.62 * t) * (1 + 0.1 * Math.sin(t * 17 + phase));
+    barkParts.push(
+      sweepTube(curve, {
+        radius: rad,
+        tubularSegments: depth > 0 ? 10 : 7,
+        radialSegments: depth > 0 ? 6 : 5,
+        uvMetres: 0.6,
+        displace: depth > 0 ? (t, ang) => (noise.ridged(ang * 1.5 + 3, t * 6 + phase, 2) - 0.5) * radius * 0.25 : undefined,
+        color: (_t, ang) => twigBark(s, psi + ang * 0.3),
+        capEnd: true,
+      }),
+    );
+    twigCount++;
+    if (depth > 0) {
+      const forks = depth >= 2 || twigRng() < 0.6 ? 2 : 1;
+      for (let k = 0; k < forks; k++) {
+        const tk = 0.45 + 0.35 * (k / forks) + twigRng() * 0.12;
+        const cb = curve.getPointAt(tk);
+        const ct = curve.getTangentAt(tk);
+        const [u, v] = perp(ct);
+        const ang = phase * 3 + k * 2.4 + twigRng() * 1.2;
+        const out = u.clone().multiplyScalar(Math.cos(ang)).addScaledVector(v, Math.sin(ang));
+        if (out.y < -0.2) out.y = -0.2;
+        const ch = ct.clone().multiplyScalar(0.7).addScaledVector(out, 0.8).normalize();
+        growTwig(cb.addScaledVector(out, rad(tk) * 0.5), ch, length * (0.5 + twigRng() * 0.2), rad(tk) * 0.7, depth - 1, phase + 0.7, size, fine, tint, s, psi, curl * 0.8);
+      }
+    }
+    const share = depth > 0 ? 0.55 : 0.7;
+    leafSpray(curve, rad, Math.max(3, Math.round((length * share) / 0.034)), 1 - share, phase, size, fine, tint);
+    rosette(pts[pts.length - 1], h, phase, size, fine, tint, 6 + Math.floor(twigRng() * 3));
+  };
+  /** a primary twig off the sleeve at (s, ψ): heading = radial × out + up + along the limb */
+  const primaryTwig = (s: number, psi: number, out: number, up: number, along: number, length: number, radius: number, depth: number, fine: boolean, curl = 0.35) => {
+    const base = surface(s, psi, -0.03);
+    const heading = radial(s, psi).multiplyScalar(out).addScaledVector(UP, up).addScaledVector(dir, along).normalize();
+    const size = fine ? 0.1 : 0.13;
+    growTwig(base, heading, length, radius, depth, twigRng() * TAU, size, fine, tintFor(), s, psi, curl);
+  };
+  // the run (s 0–1, frame A's left quarter): eight twigs, most from the upper half heading up
+  // and out so the bough's top breaks into layered leaves, one from the camera-side flank at
+  // s 0.72 drooping toward the cameras (it stays ≥ 0.3 m above camera B's top edge; the pods hang
+  // from the underside at s 0.7 / 0.89, which stays clear), the last near the tip along the limb
+  // (round 37's fork at s 0.3 is now the biggest of these, leaning back along the limb)
+  const RUN_TWIGS: [number, number, number, number, number, number, number, number][] = [
+    // s, psi, out, up, along, length, radius, depth
+    [0.08, -1.0, 0.7, 0.6, 0.2, 0.7, 0.03, 2],
+    [0.22, 0.85, 0.8, 0.5, -0.1, 0.55, 0.025, 1],
+    [0.3, -0.5, 0.5, 0.55, 0.6, 0.8, 0.035, 2],
+    [0.42, 0.9, 0.7, 0.7, 0.2, 0.5, 0.024, 1],
+    [0.55, -0.6, 0.6, 0.6, -0.3, 0.75, 0.03, 2],
+    [0.72, 1.7, 0.9, -0.1, 0.2, 0.5, 0.022, 1],
+    [0.84, 0.5, 0.6, 0.75, 0.3, 0.5, 0.022, 1],
+    [0.96, -0.3, 0.4, 0.5, 0.8, 0.45, 0.02, 1],
+  ];
+  for (const [s, psi, out, up, along, length, radius, depth] of RUN_TWIGS) primaryTwig(s, psi, out, up, along, length * (0.6 + 0.4 * fk), radius * (0.6 + 0.4 * fk), depth, true);
+  // the tail past `to` ends in leaves, not a blunt cap
+  if (sMax > 1.1) primaryTwig(sMax - 0.04, 0.2, 0.3, 0.4, 1, 0.3, 0.016, 0, true, 0.2);
+  // the trunk-side reach (s < 0): one twig per ≈ 0.75 m, none within 0.6 m of the bole, alternating
+  // top and flank so the limb reads leafy from the plaza and from underneath; forks and 8-triangle
+  // laminae on the near half, single twigs with 4-triangle laminae further off
+  const reachTufts: [number, number][] = [];
+  if (sMin < -0.4) {
+    const n = Math.round(((0 - sMin) * len) / 0.75);
+    for (let i = 0; i < n; i++) {
+      const s = lerp(sMin + 0.6 / len, -0.05, (i + 0.5 + (twigRng() - 0.5) * 0.5) / n);
+      const flank = i % 3 === 2;
+      const sign = i % 2 ? 1 : -1;
+      const psi = flank ? sign * (1.6 + twigRng() * 0.4) : sign * (0.3 + twigRng() * 0.9);
+      const near = s > -1.6;
+      primaryTwig(s, psi, flank ? 0.9 : 0.6, flank ? -0.15 : 0.6, (twigRng() - 0.5) * 0.6, (0.6 + twigRng() * 0.3) * (near ? 1 : 0.9), 0.024 + twigRng() * 0.01, near ? 2 : 1, s > -2.2, flank ? 0.15 : 0.35);
+      if (i % 2 === 0) reachTufts.push([s + 0.04, (twigRng() - 0.5) * 2.4]);
+    }
   }
-  for (const [s0, psi0] of [
-    [0.42, 0.9],
-    [0.6, -0.7],
-    [0.84, 0.5],
-  ]) {
-    const base = surface(s0, psi0, -0.03);
-    const heading = radial(s0, psi0).multiplyScalar(0.6).addScaledVector(UP, 0.75).addScaledVector(dir, (twigRng() - 0.5) * 0.6).normalize();
-    const l = (0.55 + twigRng() * 0.3) * (0.5 + 0.5 * fk);
-    const pts = [base.clone().addScaledVector(heading, -0.1), base, base.clone().addScaledVector(heading, l * 0.55).add(jit(0.1)), base.clone().addScaledVector(heading, l).addScaledVector(UP, 0.08)];
-    const twig = sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
-      radius: (t) => (0.048 - 0.032 * t) * (0.5 + 0.5 * fk),
-      tubularSegments: 8,
-      radialSegments: 6,
-      uvMetres: 0.8,
-      color: (t, ang) => barkColor(s0, psi0 + ang * 0.2),
-      capEnd: true,
-    });
-    barkParts.push(twig);
-    foliage.addLeafCluster(pts[pts.length - 1].clone().addScaledVector(heading, 0.12), 0.2, 12, { size: 0.11, amount: 0.06, droop: 0.6, tint: sprigTint, tintSpread: 0.28, flatten: 0.6 });
-  }
+  const twigTriangles = barkParts.slice(1).reduce((a, g) => a + (g.index ? g.index.count : g.attributes.position.count) / 3, 0);
+
   // the sleeve's own copy of the bark material under SLEEVE_FLOOR (a clone carries the maps but
   // no compile hooks, so it gets its floor and the sleeve's hemisphere response afresh)
   const sleeveMat = mats.sleeveBark.clone();
@@ -323,21 +527,12 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
 
   // ---- moss sheets: ragged cushions over the top, fraying down the camera-side flank ----
   const sheetRng = rng.fork('branch-moss');
-  const sheetParts = [];
+  const sheetParts: BufferGeometry[] = [];
   // (round 37: five sheets, not seven, hanging 1.4–1.9 rad down the flank instead of 2.1–2.9, at
   // 0.45 × the tone — at 6 m the seven lime cushions were the brightest thing on the bough (the
   // top-edge box A (0.04–0.20, 0.31–0.34) read sat 0.34 against the frame's 0.16), where frame
   // 1 s has one thin lighter moss line along the top and dark tufts)
-  const SHEETS = 5;
-  for (let i = 0; i < SHEETS; i++) {
-    const place = (i + 0.5 + (sheetRng() - 0.5) * 0.5) / SHEETS;
-    // the sheets (with their ±20 % s-wander) stay on the full sleeve, s 0.1–0.93: where it tapers
-    // into the limb a sheet would sit inside the giant's bark (round 9c measurement, −0.10 m at
-    // s 0.01); widths scaled by the same 0.85 so seven sheets cover that span as loosely as before
-    // (round 37: sheet widths follow the limb's radius — 0.3–0.5 m on the 0.15 m limb, so seven
-    // still spread along the 2.3 m run instead of stacking on its middle)
-    const width = ((0.85 + sheetRng() * 0.6) * (0.4 + 0.6 * fk)) / len;
-    const s0 = lerp(0.1 + width * 0.6, 0.93 - width * 0.6, place);
+  const addSheet = (s0: number, width: number, i: number) => {
     const psiTop = -0.7 - sheetRng() * 0.4;
     const drop = 1.4 + sheetRng() * 0.5;
     const sheet = gridSurface(
@@ -364,6 +559,26 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     );
     faceTowards(sheet, (p, o) => o.copy(p).addScaledVector(radial(s0, psiTop + 0.5 * drop), 4));
     sheetParts.push(sheet);
+  };
+  const SHEETS = 5;
+  for (let i = 0; i < SHEETS; i++) {
+    const place = (i + 0.5 + (sheetRng() - 0.5) * 0.5) / SHEETS;
+    // the sheets (with their ±20 % s-wander) stay on the full sleeve, s 0.1–0.93: where it tapers
+    // into the limb a sheet would sit inside the giant's bark (round 9c measurement, −0.10 m at
+    // s 0.01); widths scaled by the same 0.85 so seven sheets cover that span as loosely as before
+    // (round 37: sheet widths follow the limb's radius — 0.3–0.5 m on the 0.15 m limb, so seven
+    // still spread along the 2.3 m run instead of stacking on its middle)
+    const width = ((0.85 + sheetRng() * 0.6) * (0.4 + 0.6 * fk)) / len;
+    addSheet(lerp(0.1 + width * 0.6, 0.93 - width * 0.6, place), width, i);
+  }
+  // round 40: the near reach (s −3 … −0.2, 2.2–3.4 m up over the plaza's west edge) carries its
+  // own cushions — from the plaza and from under the limb it was bare bark beyond `from`
+  if (sMin < -3) {
+    const REACH_SHEETS = 6;
+    for (let i = 0; i < REACH_SHEETS; i++) {
+      const width = ((0.9 + sheetRng() * 0.7) * (0.4 + 0.6 * fk)) / len;
+      addSheet(lerp(-3.0, -0.2, (i + 0.5 + (sheetRng() - 0.5) * 0.5) / REACH_SHEETS), width, SHEETS + i);
+    }
   }
   const sheetMesh = new Mesh(merge(sheetParts), mats.moss);
   sheetMesh.name = 'lantern-branch-moss';
@@ -386,25 +601,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     const nrm = radial(s, psi).addScaledVector(UP, 0.4).normalize();
     foliage.addTuft(pos, nrm, (0.22 + vegRng() * 0.12) * (0.6 + 0.4 * fk), i % 3 === 2 ? 0 : 1, 0.06, topShade);
   }
-  // ---- canopy-limb foliage (round 11): leaf clumps riding the top and shoulders of the sleeve
-  // and fern sprigs standing off its flanks, so the limb reads as part of the roof (reference A
-  // top-left: dark mossy bark with foliage breaking its upper silhouette) rather than a bare
-  // tube. Clumps sit on the moss (psi within ±1.1 of the top), root 5 cm into the sheets, and are
-  // shaded olive like the sprigs; the undersides where the pods hang stay clear. ----
   const clumpRng = rng.fork('branch-clumps');
-  // (round 37: the run's clumps are the frame's dark tufts — 0.55 × the reach's tint, five of
-  // them at 0.12–0.18 m over s 0.05–0.78 instead of eleven at 0.14–0.23 m along the whole run, so
-  // the bough's dark band stays readable between them and its last third is bare as in the frame;
-  // the reach beyond A's edge keeps the fuller canopy clumps)
-  const clumpTint: [number, number, number] = [0.5, 0.58, 0.3];
-  const runTint: [number, number, number] = [0.28, 0.31, 0.19];
-  for (let i = 0; i < 5; i++) {
-    const s = lerp(0.05, 0.78, (i + 0.2 + clumpRng() * 0.6) / 5);
-    const psi = (clumpRng() - 0.5) * 2.2 + 0.2;
-    const r = (0.2 + clumpRng() * 0.1) * (0.6 + 0.4 * fk);
-    const centre = surface(s, psi, r * 0.45 - 0.05);
-    foliage.addLeafCluster(centre, r, 12 + Math.floor(clumpRng() * 6), { size: 0.09, amount: 0.06, droop: 0.5, tint: runTint, tintSpread: 0.3, flatten: 0.55 });
-  }
   for (let i = 0; i < 3; i++) {
     const s = lerp(0.15, 0.8, (i + clumpRng()) / 3);
     // fern sprigs lean out from the shoulders, alternating sides
@@ -413,35 +610,12 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     const nrm = radial(s, psi).addScaledVector(UP, 0.9).normalize();
     foliage.addTuft(pos, nrm, (0.3 + clumpRng() * 0.14) * (0.6 + 0.4 * fk), 1, 0.07, topShade);
   }
-  // frame 1 s: a line of small lit specks along the bough's top edge (y 0.32–0.33, x 0.02–0.22) —
-  // leaf tips and moss catching the light from above. Small warm-pale cards standing on the moss
-  // at the top (ψ within ±0.35), one every ≈ 0.16 m of the visible run.
-  for (let i = 0; i < 18; i++) {
-    const s = lerp(0.02, 0.98, (i + 0.3 + clumpRng() * 0.4) / 18);
-    const psi = (clumpRng() - 0.5) * 0.7 + 0.1;
-    // standing 5 cm off the bark so the moss sheets do not cover them
-    const pos = surface(s, psi, 0.05);
-    const nrm = radial(s, psi).addScaledVector(UP, 0.6).normalize();
-    foliage.addFlower(pos, nrm, 0.06 + clumpRng() * 0.03, 0.03, 0.05, [0.95, 0.9, 0.5]);
-  }
-  // the trunk-side stretch of the limb (s < 0, the giant's own bark until round 11) gets the same
-  // clumps and sprigs, thinning toward the trunk, so the whole limb reads as one canopy bough
-  // (round 37: the reach is 13.5 m — one clump per ≈ 0.9 m of it, none within 0.4 m of the bole)
-  if (sMin < -0.4) {
-    const n = Math.round(((0 - sMin) * len) / 0.9);
-    for (let i = 0; i < n; i++) {
-      const s = lerp(sMin + 0.4 / len, 0.02, (i + 0.5 + (clumpRng() - 0.5) * 0.6) / n);
-      const psi = (clumpRng() - 0.5) * 2.0 + 0.2;
-      const r = 0.24 + clumpRng() * 0.16;
-      const centre = surface(s, psi, r * 0.45 - 0.05);
-      foliage.addLeafCluster(centre, r, 14 + Math.floor(clumpRng() * 8), { size: 0.11, amount: 0.06, droop: 0.5, tint: clumpTint, tintSpread: 0.3, flatten: 0.55 });
-      if (i % 2 === 0) {
-        const ps = (clumpRng() - 0.5) * 2.4;
-        const pos = surface(s + 0.04, ps, 0.02);
-        const nrm = radial(s + 0.04, ps).addScaledVector(UP, 0.9).normalize();
-        foliage.addTuft(pos, nrm, 0.28 + clumpRng() * 0.14, 1, 0.07, topShade);
-      }
-    }
+  // (round 40: the run's isolated leaf clumps and its line of pale specks are gone — the twigs'
+  // sprays are the leaves now, and their tips along the top catch the light instead)
+  for (const [s, ps] of reachTufts) {
+    const pos = surface(s, ps, 0.02);
+    const nrm = radial(s, ps).addScaledVector(UP, 0.9).normalize();
+    foliage.addTuft(pos, nrm, 0.28 + clumpRng() * 0.14, 1, 0.07, topShade);
   }
 
   // ---- lanterns on short cords from the knees' undersides ----
@@ -464,17 +638,24 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     lanterns.push(rig);
   }
 
-  // ---- vines: strands from the underside of the trunk-side reach only (round 37: frame 1 s hangs
-  // nothing but the two pods under the visible run, and the run is 0.7 m above camera B's eye —
-  // a strand longer than ≈ 0.35 m there would hang into B's top edge) ----
+  // ---- vines: strands from the underside (round 37: frame 1 s hangs nothing but the two pods
+  // under the visible run, and the run is 0.7 m above camera B's eye — a strand longer than
+  // ≈ 0.35 m there would hang into B's top edge; round 40: two short ones under the run, clear of
+  // the pods, and six along the trunk-side reach where the limb is higher) ----
   const vineRng = rng.fork('branch-vines');
-  // (all at s ≤ −0.9: the reach is off camera C's right edge from s ≈ −0.65 back)
+  // (the reach's at s ≤ −0.7: it is off camera C's right edge from s ≈ −0.65 back)
   const vineSpots: [number, number, number][] = [
+    [0.16, 2.6, 0.3],
+    [0.5, -2.5, 0.28],
+    [-0.75, 2.5, 0.7],
     [-0.9, 2.4, 0.8],
     [-1.15, -2.5, 0.6],
     [-1.4, 2.7, 0.7],
+    [-1.9, -2.6, 1.0],
+    [-2.6, 2.4, 1.1],
   ];
   for (const [s, psi, l] of vineSpots) {
+    if (s < sMin + 0.3) continue;
     const hook = surface(s, psi, -0.03);
     hook.x += (vineRng() - 0.5) * 0.2;
     hook.z += (vineRng() - 0.5) * 0.2;
@@ -483,6 +664,38 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   for (const m of foliage.build(mats, 'lantern-branch')) {
     m.castShadow = false;
     group.add(m);
+  }
+  // the laminae: the structures' heart-leaf material (shared wind hook) plus a sun-transmission
+  // term (verdant-forest materials.ts / trees materials.ts: back-lit and light-behind-the-lamina
+  // leaves glow through), so the layered clusters read as thin translucent leaves against the
+  // sky from the plaza and from under the limb
+  const leafGeo = laminae.build();
+  if (leafGeo) {
+    const leafMat = windLeafMaterial(mats.leaf.clone(), ctx, 'lantern-branch-leaf');
+    leafMat.name = 'structures:lantern-leaf-r40';
+    const hook = leafMat.onBeforeCompile;
+    leafMat.onBeforeCompile = (shader, renderer) => {
+      hook.call(leafMat, shader, renderer);
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <lights_fragment_end>',
+        /* glsl */ `#include <lights_fragment_end>
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;
+        #if NUM_DIR_LIGHTS > 0
+        {
+          float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
+          float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
+          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.28;
+        }
+        #endif`,
+      );
+    };
+    const key = leafMat.customProgramCacheKey;
+    leafMat.customProgramCacheKey = () => `${key.call(leafMat)}|lamina`;
+    const leafMesh = new Mesh(leafGeo, leafMat);
+    leafMesh.name = 'lantern-branch-laminae';
+    leafMesh.castShadow = false;
+    leafMesh.receiveShadow = true;
+    group.add(leafMesh);
   }
 
   const lights: PointLight[] = [];
@@ -608,7 +821,8 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     group,
     lanterns,
     lights,
-    leaves: foliage.leafCount,
+    leaves: foliage.leafCount + laminae.count,
+    dressing: { twigs: twigCount, twigTriangles: Math.round(twigTriangles), laminae: laminae.count, laminaTriangles: laminae.triangles, vines: foliage.vineCount, sheets: sheetParts.length },
     wrapSource,
     containment: checkContainment(),
     podPositions: lanterns.map((r) => r.pod.toArray() as [number, number, number]),
