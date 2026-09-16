@@ -64,6 +64,12 @@ const BANK_DARKEN = 0.6;
 const BANK_FLAT = 0.7;
 /** the house flight's south flank cap (grass.ts HOUSE_FLANK_MAX_H_SOUTH) */
 const HOUSE_SOUTH_MAX_H = 0.12;
+/** density cuts (v9, see seatClump / seatMat): the frames' bank masses and trodden foot are not tufted turf */
+const CLUMP_BANK_CUT = 0.7;
+const CLUMP_FOOT_CUT = 0.8;
+const MAT_FOOT_CUT = 0.9;
+/** the share of the blades' shade-zone palette bias (grass.ts: +0.35) a mat does not take */
+const MAT_SHADE_BIAS_CUT = 0.175;
 
 export interface CarpetResult {
   clumps: LodInstancedSet;
@@ -251,9 +257,14 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     if (t.stone < 0.22) return;
     // density: the carpet closes over the lawns; it thins where the blades thin — the trodden
     // strip's bare patches, D's shoulders, the litter floor under the giants, the NPC clearings,
-    // the steep faces (the blade tiles keep those), the far disc
+    // the steep faces (the blade tiles keep those), the far disc. Two of the frames' grounds are
+    // not tufted turf (v9): the dark bank masses beside the main flight (field.ts bankDark —
+    // frames 8 / 46 s: flat blurs, where lit fans put structure the frame has not: F's left-middle
+    // cell −0.0010, B's bottom-right −0.0006 in v8) and camera C's trodden foreground (cFoot —
+    // frame 46 s' bare earth with a dusty fringe: C's bottom-left cell −0.0029 in v8, the whole
+    // of C's loss, with the fans and mats 3 m before the camera)
     const slopeK = 1 - smoothstep(SLOPE_THIN[0], SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - 0.4 * t.foot) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     const clusterVar = 0.85 + 0.3 * t.cluster;
     let w = (CLUMP_WIDTH[0] + (CLUMP_WIDTH[1] - CLUMP_WIDTH[0]) * rng()) * clusterVar;
@@ -291,7 +302,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // trodden strip's dirt patches, D's soil shoulders, camera C's trodden foreground, the
     // litter under the giants; steep faces take smaller mats and none past the thin band
     const slopeK = 1 - smoothstep(MAT_SLOPE_THIN[0], MAT_SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - 0.6 * t.foot) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloff(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     let w = (MAT_WIDTH[0] + (MAT_WIDTH[1] - MAT_WIDTH[0]) * rng()) * (1 - 0.4 * smoothstep(MAT_SLOPE_THIN[0] * 0.6, MAT_SLOPE_THIN[1], s.slope));
     // across the house flight's north-flank feather (a 0.6-entry step in the palette the blades
@@ -308,7 +319,13 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // the house flight's north-flank feather — tiled B's terrace in blotches, where the same steps
     // between thin blades over soil read as a gentle shift); the clumps and the blades over the
     // mats carry the zones and the per-plant variation at full strength
-    const tint = 0.5 * t.tn + rng.gauss() * 0.04 * (1 - BANK_FLAT * t.bank);
+    // the shade zone (frame 8's right embankment, seen across F's right-middle): the blades
+    // there take the light olives, the flatter root tone and the extra sky fill (materials.ts
+    // uShadeFill) because their sideways normals under-collect the sky they face under the
+    // canopy; a mat faces the sky already, and with all three it rendered the embankment
+    // lighter and flatter than the frame's dark mass (F's right-middle cell +0.008 luminance,
+    // −0.0026 SSIM in v8): a mat takes half the palette bias and no lift
+    const tint = 0.5 * (t.tn - MAT_SHADE_BIAS_CUT * t.shade) + rng.gauss() * 0.04 * (1 - BANK_FLAT * t.bank);
     const dry = clamp(t.dryP * 0.65, 0, 0.95) * 0.6;
     const tile = rng.int(0, atlas.matTiles);
     const yaw = rng() * Math.PI * 2;
@@ -316,7 +333,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, yaw, w, 1, w);
     data[0] = matPalettePosition(tint);
     data[1] = 1;
-    data[2] = tintSlot(0, t.shade, t.darken);
+    data[2] = tintSlot(0, 0, t.darken);
     data[3] = tile + dry;
     mats.add(M, 0, white, data);
     if (mats.count % 53 === 0) matSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
