@@ -1899,6 +1899,19 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Round 39: vegetation-20 (r39/veg, 4 commits: carpet v1–v4, clump roots/turf) and trees-23
   (r39/trees, 5 commits: near-bole LOD, root-kit adapter with UV-seam normal welding) both active.
 
+### 13:25 UTC — tick 113: heartbeat; Astra's window closing with a softening decision
+- Tree unchanged → heartbeat. Round 39 still running: vegetation-20 at carpet v6 (6 commits,
+  9 captures), trees-23 at 8 commits / 11 captures (near-base program, root-kit adapter, moss tint).
+- Astra (PR #11, to 13:35): W18 fixed on CI through atmosphere (near-air 0.028 → 0.012 over
+  8–15 m, ray 0.5 → 0.32, sky share 0.45 → 0.25; D purple 0.00347); penumbra growth 0.016 →
+  0.0093; texel-snapped light camera. From the stair landing the far softening turns distant
+  crowns into defocused blobs against the now-visible sky; with softening OFF they read as leaf
+  layers and trunks (her diagnostic — post, not geometry). She is validating `softening:false`
+  as default: native SSIM A .265→.232, B .249→.224, C .289→.255, D .318→.293, E .262→.235,
+  F .283→.276, W35 B .891 / E .833 held, no near-unsharp escalation. My position (posted): the far
+  blur is a structure-term artefact; crispness is the owner's brief; a depth-aware middle is
+  preferable to off if it exists; the cost is reported per view, owner decides at integration.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1937,4 +1950,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T12:20:00Z
+2026-09-16T13:25:00Z
