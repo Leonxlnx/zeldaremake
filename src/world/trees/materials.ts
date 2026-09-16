@@ -606,7 +606,17 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     shader.uniforms[`${barkPrefix}FadeY`] = { value: new Vector2(heightFade.fade[0], heightFade.fade[1]) };
     fadePars = `uniform float ${barkPrefix}TopLift;\nuniform vec2 ${barkPrefix}FadeY;\n`;
   }
-  const barkFloorGlsl = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
+  // near wood (the lobe stems and twigs the owner stands among, within LEAF_NEAR_M): the floor
+  // keeps at least half of the bark's own texture instead of the far tenth, so a shaded stem at
+  // 1–3 m shows its grain along its length rather than one flat tone; the level (the floor's
+  // mean albedo) does not move. `woodNear` is 0 past LEAF_NEAR_M[1] — mix(a, b, 0.0) is exactly a.
+  const textureRead = `${barkPrefix}Texture)`;
+  const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
+  if (!floorBlock.includes(textureRead)) throw new Error(`shadeFloorGlsl: expected '${textureRead}' in the floor block`);
+  const barkFloorGlsl = /* glsl */ `
+      float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
+      ${floorBlock.replace(textureRead, `mix(${barkPrefix}Texture, max(${barkPrefix}Texture, 0.5), woodNear))`)}
+`;
   shader.fragmentShader = (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') + TREE_FRAGMENT_PARS + LEAF_NEAR_PARS + LEAF_FRAME_GLSL + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + fadePars + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
