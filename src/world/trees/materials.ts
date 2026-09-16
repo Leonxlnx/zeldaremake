@@ -349,7 +349,14 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // root sheets: the upward faces of the roots and the foot of the bole, under a soft-edged
   // cover that follows the coarse noise so the sheets still have ragged margins
   float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.18, 0.5, coarse);
+  #ifdef NEAR_BASE_DETAIL
+  // the near base's moss is the vertex cover (bole.ts) with its cushions below; these far
+  // sheets, which green a whole flare's upper skirt from 10 m, are thinned to a tint here so
+  // the cords and the bark between the cushions show (the owner's "soft green")
+  moss = max(moss * 0.45, sheet * 0.35);
+  #else
   moss = max(moss, sheet);
+  #endif
   mossColor = mix(mossColor, vec3(0.33, 0.47, 0.13), sheet * 0.65);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.8);
   // close-range detail only: past 4–10 m the flecks are 1–3 px of speckle on boles the reference
