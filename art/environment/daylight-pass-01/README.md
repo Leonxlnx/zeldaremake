@@ -22,3 +22,11 @@ The built defaults reproduce the tuning study's six-view metrics. Build/typechec
 `gauntlet/scripts/daylight-review.mjs` captures the current default or an existing tuning-hook JSON. `ZR_NATIVE_GPU=1` now opts the standard capture/performance tools into D3D11 on Windows; CI still uses SwiftShader by default. The lighting audit now reads the actual live hemisphere colours and environment intensity, including when tuning overrides are active.
 
 Next: validate shadow quality/cost, refine the sky's cloud definition and canopy glare, and continue matched captures through the remaining session. Fable retains near tree/grass detail and the lantern-crown geometry correction. No global blur or sharpen adjustment was used to raise sharpness.
+
+## Full native take follow-up
+
+`take-0109/` contains the standard capture at 12.5 seconds, six settling frames and the normal HUD. Its image conditions differ from the clean 12.6-second comparisons above. It completes with zero console errors, determinism difference 0, 84 anti-cheat checks green, and a local score of 24/50 (Phase 1: 20/42). Standard-take sharpness is .874 in B and .818 in E, passing W35 under those capture conditions. This is local evidence, not CI attestation or final visual acceptance.
+
+The preceding take0108 was invalid: its first screenshot still contained the loading overlay's CSS fade, while its later repeat did not. The shared `openWorld` helper now waits for actual loading opacity zero. `invalid-take-0108/` preserves that failure; no threshold was relaxed and no frame was retouched. The successful repeat keeps the same world shader/build.
+
+The separate native 2048/8 shadow sample completed at a 34.7 ms median versus 41.3 ms for 4096/12. Defaults remain 4096/12 pending visual quality review. Both raw timing reports are included.
