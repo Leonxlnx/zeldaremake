@@ -1767,6 +1767,28 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Astra's native perf numbers (780M: step 69.5 ms median, render-issue 56, ready 51.8 s) → perf-2
   brief: ablations first, then the high path, then an explicit Auto mode.
 
+### 00:40 UTC (Sep 16) — tick 108: round thirty-seven sealed — take-0105 `af5ede8`, monitor `986a6aa`
+- Merged: r37/tone-b `121f63d` (atmosphere-14b: W35 on B/E after the bough left their frames —
+  near unsharp 1.1 over 3→8 m + haze blur σ 5.4 → 6.0 so the 12-tap kernel reaches 2 σ: sharpness
+  B 0.788 → 0.911, E 0.737 → 0.853; every view within 0.003 SSIM of the unsealed ddfb652 capture),
+  r38/char-b `9507d65` (character-8b: the run-start blink is a one-shot event recorded by the gait
+  chain at the crossfade into run — `GaitChain.runBlinkT` — so its 70/30/120 ms envelope runs to
+  completion whatever the gait does afterwards; cleared by hard switches and sim-time jumps;
+  audit `blinkRunT`; 3/3 tests).
+- The ONE asset swap of the series (`af5ede8`): Astra's **0c28cb62** (PR #10 `1c06b00`, her
+  retained default — bdcb9ec7 → … → 844cb82b → 0646f2e9 → 39a55c95 → 75f42cd2 → 0c28cb62: pupil
+  proportion, brows, hem/sleeve/belt/shoulder weight repairs, blink + blinkHalf morphs, lower run
+  arc, neutral mouth, nose shading). 70,442 tris, rig/clips/strides/sole markers unchanged.
+  SOURCE.md gains an "Adopted builds" table; `LINK_GLB_SHA256` updated. A audit: `linkSource glb`,
+  `blinkMorphs 3` (the body's three primitives), weights 0 in the captured open phase, no fallback.
+  844cb82b (staged 22:05) superseded before commit, as she asked.
+- **take-0105** (clean worktree of `af5ede8`, imported): **A 0.3056, B 0.2841, C 0.3267, D 0.3611,
+  E 0.2967, F 0.2956** — A/B/E/F series bests; C/D within 0.001 of theirs (C 0.3275, D 0.3612 on
+  the unsealed ddfb652). vs take-0104: B +0.0219, E +0.0248, D +0.0035. W35 passes on all six
+  (B 0.911, E 0.853). Score 23/50 (unchanged; W25 holds Astra's fail verdict, C01/C02 pending a
+  non-author reviewer). Draws 533 / 6.34 M tris on A.
+- Round 38 dispatch: perf-2 (unblocked now that atmosphere-14b + character-8 landed), hardscape-29.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -1805,4 +1827,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-15T22:06:00Z
+2026-09-16T00:40:00Z
