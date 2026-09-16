@@ -68,6 +68,8 @@ const HOUSE_SOUTH_MAX_H = 0.12;
 const CLUMP_BANK_CUT = 0.7;
 const CLUMP_FOOT_CUT = 0.8;
 const MAT_FOOT_CUT = 0.9;
+const CLUMP_LOW_CUT = 0.35;
+const CLUMP_SHADE_CUT = 0.5;
 /** the share of the blades' shade-zone palette bias (grass.ts: +0.35) a mat does not take */
 const MAT_SHADE_BIAS_CUT = 0.175;
 
@@ -262,9 +264,13 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // frames 8 / 46 s: flat blurs, where lit fans put structure the frame has not: F's left-middle
     // cell −0.0010, B's bottom-right −0.0006 in v8) and camera C's trodden foreground (cFoot —
     // frame 46 s' bare earth with a dusty fringe: C's bottom-left cell −0.0029 in v8, the whole
-    // of C's loss, with the fans and mats 3 m before the camera)
+    // of C's loss, with the fans and mats 3 m before the camera). The fans also thin where the
+    // blades thin in the low verges (grass.ts: × (1 − 0.35 low)) and by half on the shade
+    // embankment (frame 8's right bank, F's right-middle at 15 m: a hazy blur of window σ 0.027
+    // against our 0.033 before the carpet and 0.036 with it — the lit fans over the shaded mats
+    // are the contrast the frame has not; the mats and the +60 % blades keep the bank closed)
     const slopeK = 1 - smoothstep(SLOPE_THIN[0], SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_LOW_CUT * t.low) * (1 - CLUMP_SHADE_CUT * t.shade) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     const clusterVar = 0.85 + 0.3 * t.cluster;
     let w = (CLUMP_WIDTH[0] + (CLUMP_WIDTH[1] - CLUMP_WIDTH[0]) * rng()) * clusterVar;

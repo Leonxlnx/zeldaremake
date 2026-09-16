@@ -113,6 +113,11 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(footClumps<=0.3*lawnClumps,`foot clumps ${footClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(bankClumps<=0.4*lawnClumps,`bank clumps ${bankClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(footMats<=0.2*lawnMats,`foot mats ${footMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}`);
+  // v10: the shade embankment keeps its mats (closed) but half its fans (frame 8's right bank is a blur)
+  const shadePick=it=>a.field.shadeZone(it.x,it.z)>0.9&&a.field.lowZone(it.x,it.z)<0.1&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
+  const shadeClumps=core(a.carpet.clumps,shadePick)/cells(shadePick,CLUMP_CELL),shadeMats=core(a.carpet.mats,shadePick)/cells(shadePick,MAT_CELL);
+  assert.ok(shadeClumps>=0.35*lawnClumps&&shadeClumps<=0.65*lawnClumps,`shade clumps ${shadeClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
+  assert.ok(shadeMats>=0.85*lawnMats,`shade mats ${shadeMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}: the bank stays closed`);
   assert.ok(inBox({x:(C_FOOT[0]+C_FOOT[2])/2,z:(C_FOOT[1]+C_FOOT[3])/2},C_FOOT));
   let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.02)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
   assert.ok(shaded>=100,`${shaded} mats in the shade zone core`);}
