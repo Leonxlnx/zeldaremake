@@ -142,7 +142,7 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
             color: (t, ang) => {
               const fine = woodGrain(noise, above(t), ang, 18, 1.2, i + 11);
               const coarse = noise.ridged(ang * 1.3 + i * 2.1, t * 3, 2);
-              const furrow = lerp(0.72, 1.06, 0.5 * fine + 0.5 * coarse);
+              const furrow = lerp(0.6, 1.1, 0.5 * fine + 0.5 * coarse);
               const d = (0.5 + 0.35 * t) * (0.9 + 0.2 * Math.max(0, Math.sin(ang))) * furrow;
               const mossy = smoothstep(0.16, 0.0, above(t)) * (0.3 + 0.4 * (1 - fine));
               return [lerp(d, 0.22, mossy), lerp(d * 0.92, 0.27, mossy), lerp(d * 0.84, 0.07, mossy)];
@@ -156,13 +156,15 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
             uvMetres: 0.8,
             displace: (t, ang) => {
               const g = woodGrain(noise, above(t), ang, 14, 0.7, i + 3);
-              return (Math.sin(ang * 4 + i) * 0.006 + Math.sin(ang * 7 + t * 9) * 0.004 + (g - 0.5) * 0.008) * topFade(t);
+              return (Math.sin(ang * 4 + i) * 0.006 + Math.sin(ang * 7 + t * 9) * 0.004 + (g - 0.5) * 0.012) * topFade(t);
             },
-            // greyer, darker toward the ground where the wood stays damp; grain lines dark, ridges silvered
+            // greyer, darker toward the ground where the wood stays damp; grain lines dark, ridges
+            // silvered — the swing is wide (× 0.62–1.15) because the plateau posts stand in shade
+            // against the haze, where a ± 15 % line vanishes at 2 m (the mean tone holds)
             color: (t, ang) => {
               const g = woodGrain(noise, above(t), ang, 14, 0.7, i + 3);
               const fib = woodFibre(noise, above(t), ang, 14, i + 3);
-              const line = lerp(0.78, 1.08, g) * lerp(0.95, 1.05, fib);
+              const line = lerp(0.62, 1.15, g) * lerp(0.93, 1.07, fib);
               const up = 0.8 + 0.2 * t;
               const damp = smoothstep(0.3, 0.0, above(t));
               const mossy = smoothstep(0.12, 0.0, above(t)) * (0.3 + 0.4 * (1 - g));

@@ -39,6 +39,9 @@ export interface LogArchBuild {
     mossTuftTriangles: number;
     rimSplinters: number;
     skirtTriangles: number;
+    /** the cap-moss carpet patches inside the crown's cushion colonies (grid, triangles) */
+    carpetGrid: [number, number];
+    carpetTriangles: number;
     trefoils: number;
     beards: number;
     rootTufts: number;
@@ -189,7 +192,21 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   };
   const bark = (psi: number, s: number) => barkCoarse(psi, s) + barkFine(psi, s);
   const detail = (psi: number, s: number, up: number) => bark(psi, s) + mossCap(psi, s, up);
-  const outerColor = (psi: number, s: number, disp: number): [number, number, number] => {
+  /**
+   * Round 41 (structures-26): the crown moss as CUSHION COLONIES, the recipe of Saria's cap
+   * (round 40, accepted): a 3D field over the surface point picks 0.4–0.8 m colonies; the sheet is
+   * a SHADED FLOOR between them (× `CROWN_FLOOR`, the damp shadow between cushions) with the
+   * colony hearts lifted (× `CROWN_HEART`), and the cushion tufts stand only on the hearts, so at
+   * 3 m the crown reads as clumped cushions on a dark bed and from D as a lumpy mass — a uniform
+   * scatter of lumps on the plain sheet read as pebbles on bark. Shared by the sheet's colour
+   * (`outerColor`) and the tuft placement so they agree.
+   */
+  const n3 = new Noise3D(rng.fork('tuft-noise41'));
+  const colonyField = (p: Vector3) => 0.5 + 0.5 * n3.noise(p.x * 2.2 + 1.7, p.y * 2.2, p.z * 2.2 + 4.1);
+  const colony = (p: Vector3) => smoothstep(0.41, 0.48, colonyField(p));
+  const CROWN_FLOOR = 0.5;
+  const CROWN_HEART = 1.1;
+  const outerColor = (psi: number, s: number, disp: number, p: Vector3): [number, number, number] => {
     const up = upness(psi);
     const arc = psi * R;
     const patches = noise.fbm(arc * 0.5 + 9, s * 0.5, 2);
@@ -216,7 +233,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const barkC = [0.78 * shade * (1 - 0.25 * grime), 0.75 * shade * (1 - 0.15 * grime), 0.7 * shade * (1 - 0.3 * grime)];
     // olive moss: yellow-green on the lit cushions, deep green in the hollows; the bark map
     // underneath is brown, so the green has to be pushed hard through the vertex tint
-    const mossC = [1.3 + 0.8 * shade, 2.4 + 1.4 * shade, 0.5 + 0.3 * shade];
+    // round 41: the shaded floor between the cushion colonies and the lifted hearts, only where
+    // the moss is a real cushion (thick cap, m high) — the flanks' creeping patches keep their tone
+    const bed = m * smoothstep(0.15, 0.4, mossCap(psi, s, up));
+    const heart = lerp(1, lerp(CROWN_FLOOR, CROWN_HEART, colony(p)), bed);
+    const mossC = [(1.3 + 0.8 * shade) * heart, (2.4 + 1.4 * shade) * heart, (0.5 + 0.3 * shade) * heart];
     return [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
   };
 
@@ -236,7 +257,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const r = rBase(psi, s) + disp;
       surfacePoint(psi, s, r, out.position);
       out.uv = [(psi * R) / 2.6, s / 2.6];
-      out.color = outerColor(psi, s, disp);
+      out.color = outerColor(psi, s, disp, out.position);
     },
     { cols, rows, closedU: true },
   );
@@ -627,7 +648,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   //  - trefoil / sorrel plants rooted in the crown and at the root flares, small ferns by the path;
   //  - moss BEARDS with tiny leaflets from the crown's edge, more vines under the belly by the path.
   // Every stream is a new fork; the meshes fold into the cap-moss / leaf / vine / tuft buckets. ----
-  const n3 = new Noise3D(rng.fork('tuft-noise41'));
   const tuftRng = rng.fork('moss-tufts41');
   const tuftSpecs: MossTuftSpec[] = [];
   /** the displaced outer surface's outward normal at (ψ, s) by finite differences */
@@ -648,42 +668,64 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     if (out.dot(radialDir(psi, s, _sb)) < 0) out.negate();
     return out;
   };
-  /** cushion colonies (as on Saria's cap): the tufts gather where the field is high */
-  const colony = (p: Vector3) => smoothstep(0.45, 0.55, 0.5 + 0.5 * n3.noise(p.x * 1.6 + 1.7, p.y * 1.6, p.z * 1.6 + 4.1));
   /**
    * the crown moss on the cap-moss material (albedo map ≈ 0.45 mean under the vertex tint, no
    * shade floor): an olive that sits on the sheet's veiled level in D and reads as damp moss
-   * with lit crests at 3 m; darker down the flanks and on the north side
+   * with lit crests at 3 m; darker down the flanks and on the north side. The cushions carry the
+   * colony heart's lift so they rise from the bed they stand on rather than sit on it.
    */
-  const crownMoss = (psi: number, s: number): [number, number, number] => {
+  const crownMoss = (psi: number, s: number, heart = 1): [number, number, number] => {
     const up = upness(psi);
-    const lit = lerp(0.5, 1, smoothstep(-0.2, 0.9, up)) * (0.85 + 0.3 * noise.noise(s * 1.3 + 2, psi * 2.5));
+    const lit = lerp(0.5, 1, smoothstep(-0.2, 0.9, up)) * (0.85 + 0.3 * noise.noise(s * 1.3 + 2, psi * 2.5)) * heart;
     return [0.19 * lit, 0.27 * lit, 0.05 * lit];
+  };
+  /**
+   * The MOSS CARPET the cushions stand on: a cap-moss sheet lying `CARPET_LIFT` over the bark
+   * inside the colonies and buried `CARPET_BURY` under it between them, rising through the bark
+   * across the colony field's 0.38–0.48 band (≈ 10 cm; buried well under the deepest crack, so no
+   * sliver shows through the fissures between), so every colony is a ragged-lipped green
+   * patch and the bark between is the dark bed. Saria's cap reads as moss because its tufts stand
+   * on the cap-moss sheet; on the bark material (brown map, grain normals) the same cushions read
+   * as pebbles. Shared by the patch grid and the tuft lift so the cushions sit on the carpet.
+   */
+  const CARPET_LIFT = 0.035;
+  const CARPET_BURY = -0.18;
+  const carpetOffset = (p: Vector3, thick: number) => {
+    const f = colonyField(p);
+    const rise = smoothstep(0.38, 0.48, f) * smoothstep(0.15, 0.4, thick);
+    return lerp(CARPET_BURY, CARPET_LIFT, rise) + 0.008 * n3.noise(p.x * 9, p.y * 9, p.z * 9) * rise;
   };
   const _tp = new Vector3();
   const _tn = new Vector3();
-  for (let i = 0; i < 5200; i++) {
-    // 78 % of the attempts on the west half (the path crossing and the broken end — the only
+  for (let i = 0; i < 8000; i++) {
+    // 80 % of the attempts on the west half (the path crossing and the broken end — the only
     // part a player stands under; the east half is 8–15 m from any path point)
-    const west = tuftRng() < 0.78;
+    const west = tuftRng() < 0.8;
     const s = west ? lerp(-L / 2 - 1.5, 1.5, tuftRng()) : lerp(1.5, L / 2 - 0.8, tuftRng());
     const psi = Math.PI / 2 + (tuftRng() - 0.5) * 2.4;
-    // 7–21 cm cushions (mean ≈ 12 cm): the crown is seen from the path 9 m below and from the
-    // elevated views, where a 6 cm lump is a dot and the clumps have to be read as clumps
-    const r = 0.035 + 0.07 * Math.pow(tuftRng(), 1.4);
+    // 10–30 cm cushions (mean ≈ 18 cm, frame-03's bough): the crown is seen from the path 9 m
+    // below and from the elevated views, where a 6 cm lump is a dot; inside a colony they
+    // overlap into one clumped mass (coverage ≈ 1 on the west half)
+    const r = 0.05 + 0.1 * Math.pow(tuftRng(), 1.4);
     const aspect = 0.75 + tuftRng() * 0.5;
     const yaw = tuftRng() * TAU;
-    const hK = 0.55 + tuftRng() * 0.4;
+    const hK = 0.5 + tuftRng() * 0.35;
     const seed = 1 + Math.floor(tuftRng() * 1e6);
     const keep = tuftRng();
     const keep2 = tuftRng();
     if (s < sEndW(psi) + 0.25 || s > sEndE(psi) - 0.4) continue;
     const up = upness(psi);
     const thick = mossCap(psi, s, up);
-    if (keep > smoothstep(0.12, 0.45, thick)) continue;
+    if (keep > smoothstep(0.15, 0.4, thick)) continue;
     surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up), _tp);
-    if (keep2 > lerp(0.08, 1, colony(_tp))) continue;
+    // on the colony hearts only (a 4 % straggle on the floor between), never on the near-vertical
+    // bark faces the relief throws up — a cushion glued to a wall reads as a pebble
+    const heart = colony(_tp);
+    if (keep2 > lerp(0.04, 1, heart)) continue;
     surfaceNormal(psi, s, _tn);
+    if (_tn.y < 0.2) continue;
+    // stand on the carpet where there is one (its base ring sinks into the sheet, not the bark)
+    _tp.addScaledVector(_tn, Math.max(0, carpetOffset(_tp, thick)));
     tuftSpecs.push({
       position: _tp.clone(),
       normal: _tn.clone(),
@@ -691,7 +733,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       rz: r / aspect,
       h: r * hK,
       yaw,
-      color: crownMoss(psi, s),
+      color: crownMoss(psi, s, lerp(CROWN_FLOOR, CROWN_HEART, heart)),
       uv: [(psi * R) / 1.6, s / 1.6],
       sink: r * 0.35,
       seed,
@@ -727,7 +769,9 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       rootTufts++;
     }
   }
-  const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [7, 5], topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+  // three rings on the 10–30 cm cushions so they are round at 3 m; the lit top held to ×1.3 (the
+  // trunk tufts' level) — brighter tops on the dark bed read as lumps, not moss
+  const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [8, 6], rings: [3, 2], topGain: 1.25, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
 
   // the torn skirt: one strip per flank along the crown's edge, hanging 0.3–0.8 m in lobes
   const skirtParts = [];
@@ -771,8 +815,38 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     skirtParts.push(strip);
   }
   const skirtGeo = merge(skirtParts);
+
+  // the carpet patches: one grid over the crown band (ψ within ±1.25 of the top), 10 cm cells on
+  // the west half the path passes (65 % of the rows on the west 45 %), ≈ 18 cm on the east body;
+  // buried under the bark between colonies, so only the patches show
+  const carpetRows = 210;
+  const carpetCols = 84;
+  const carpetWarp = (f: number) => (f < 0.65 ? (f / 0.65) * 0.45 : 0.45 + ((f - 0.65) / 0.35) * 0.55);
+  const _cn = new Vector3();
+  const carpet = gridSurface(
+    (u, f, out) => {
+      const psi = Math.PI / 2 + (u - 0.5) * 2.5;
+      const v = carpetWarp(f);
+      const s = lerp(sEndW(psi) + 0.3, sEndE(psi) - 0.5, v);
+      const up = upness(psi);
+      const thick = mossCap(psi, s, up);
+      surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up), out.position);
+      surfaceNormal(psi, s, _cn);
+      const off = carpetOffset(out.position, thick);
+      const fld = colonyField(out.position);
+      out.position.addScaledVector(_cn, off);
+      out.uv = [(psi * R) / 1.6, s / 1.6];
+      // the heart's lift on the patch, a damp darker lip where it rises out of the bark
+      const lip = lerp(0.6, 1, smoothstep(0.4, 0.53, fld));
+      const mottle = 0.88 + 0.24 * n3.noise(out.position.x * 3.1 + 5, out.position.y * 3.1, out.position.z * 3.1);
+      const c = crownMoss(psi, s, lerp(CROWN_FLOOR, CROWN_HEART, colony(out.position)) * lip * mottle);
+      out.color = c;
+    },
+    { cols: carpetCols, rows: carpetRows },
+  );
+  faceTowards(carpet, (p, o) => o.copy(p).addScaledVector(radialDir(Math.PI / 2, 0), 8));
   /**
-   * The tufts and the skirt are one mesh under a camera-distance LOD: 4–12 cm cushions are a
+   * The tufts, the carpet and the skirt are one mesh under a camera-distance LOD: 4–12 cm cushions are a
    * pixel or two from the hero cameras (A 64 m, B/E 57 m, F 60 m from the arch's centre) yet a
    * merged static bucket would draw all 90 k triangles in every view. The LOD sits at the arch's
    * centre (its geometry is re-based there, so the consolidation pass — which merges only
@@ -781,7 +855,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
    */
   const TUFT_LOD_M = 55;
   const tuftCentre = axisAt(-2);
-  const tuftGeo = merge([crownTufts.geometry, skirtGeo]);
+  const tuftGeo = merge([crownTufts.geometry, carpet, skirtGeo]);
   tuftGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
   const tuftMesh = new Mesh(tuftGeo, mats.capMoss);
   tuftMesh.name = 'log-moss-tufts';
@@ -888,6 +962,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     mossTuftTriangles: crownTufts.triangles,
     rimSplinters,
     skirtTriangles: Math.floor((skirtGeo.index ? skirtGeo.index.count : skirtGeo.attributes.position.count) / 3),
+    carpetGrid: [carpetCols, carpetRows] as [number, number],
+    carpetTriangles: Math.floor((carpet.index ? carpet.index.count : carpet.attributes.position.count) / 3),
     trefoils,
     beards,
     rootTufts,
