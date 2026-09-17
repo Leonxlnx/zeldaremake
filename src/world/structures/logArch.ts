@@ -697,7 +697,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   };
   const _tp = new Vector3();
   const _tn = new Vector3();
-  for (let i = 0; i < 8000; i++) {
+  for (let i = 0; i < 6600; i++) {
     // 80 % of the attempts on the west half (the path crossing and the broken end — the only
     // part a player stands under; the east half is 8–15 m from any path point)
     const west = tuftRng() < 0.8;
@@ -769,9 +769,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       rootTufts++;
     }
   }
-  // three rings on the 10–30 cm cushions so they are round at 3 m; the lit top held to ×1.3 (the
-  // trunk tufts' level) — brighter tops on the dark bed read as lumps, not moss
-  const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [8, 6], rings: [3, 2], topGain: 1.25, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
+  // three rings on the cushions over 9 cm so they are round at 3 m, two on the smaller (D's
+  // triangle budget: +0.5 M per view); the lit top held to ×1.25 (the trunk tufts' level) —
+  // brighter tops on the dark bed read as lumps, not moss
+  const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [8, 6], rings: [3, 2], fineRadius: 0.09, topGain: 1.25, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
 
   // the torn skirt: one strip per flank along the crown's edge, hanging 0.3–0.8 m in lobes
   const skirtParts = [];
@@ -816,11 +817,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   }
   const skirtGeo = merge(skirtParts);
 
-  // the carpet patches: one grid over the crown band (ψ within ±1.25 of the top), 10 cm cells on
-  // the west half the path passes (65 % of the rows on the west 45 %), ≈ 18 cm on the east body;
+  // the carpet patches: one grid over the crown band (ψ within ±1.25 of the top), ≈ 11 cm cells on
+  // the west half the path passes (65 % of the rows on the west 45 %), ≈ 19 cm on the east body;
   // buried under the bark between colonies, so only the patches show
-  const carpetRows = 210;
-  const carpetCols = 84;
+  const carpetRows = 190;
+  const carpetCols = 76;
   const carpetWarp = (f: number) => (f < 0.65 ? (f / 0.65) * 0.45 : 0.45 + ((f - 0.65) / 0.35) * 0.55);
   const _cn = new Vector3();
   const carpet = gridSurface(
