@@ -1173,21 +1173,26 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     {
       float near = (1.0 - smoothstep(uDistantBarkM.x, uDistantBarkM.y, length(vViewPosition))) * vDistSolid;
       if (near > 0.0) {
-        // around the bole (a 1.6 m tile ≈ 4 around a 2 m trunk) and 1.6 m up it
-        vec2 barkUv = vec2(atan(vDistLocal.z, vDistLocal.x) / 6.2832 * 4.0, vDistLocal.y / 1.6);
+        // whole 1.6 m tiles around the bole (the fragment's own radius about the axis: 1 around a
+        // slender's 0.2 m stem, 4–5 around a broad's 1.3 m) and 1.6 m up it — a fixed 4 around
+        // stretched the map 5× on the slender stems into vertical streaks
+        float around = max(1.0, floor(6.2832 * length(vDistLocal.xz) / 1.6 + 0.5));
+        vec2 barkUv = vec2(atan(vDistLocal.z, vDistLocal.x) / 6.2832 * around, vDistLocal.y / 1.6);
         vec3 bark = texture2D(uDistantBark, barkUv).rgb;
+        // the fissures 1.5× their contrast about the mean: the haze at 12–20 m halves it again
+        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * 1.5 + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
         float barkLum = dot(bark, vec3(0.2126, 0.7152, 0.0722));
         // a factor about the map's mean, so the row's silhouette luminance (matched at 47 m) holds
-        float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.5, 1.8);
+        float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.4, 1.9);
         // the map's own hue takes over from the flat tint as the walker gets close
-        vec3 tinted = mix(diffuseColor.rgb * factor, bark * (diffuseColor.rgb / vec3(${BARK_DETAIL_MEAN.toFixed(4)})), 0.5);
+        vec3 tinted = mix(diffuseColor.rgb * factor, bark * (diffuseColor.rgb / vec3(${BARK_DETAIL_MEAN.toFixed(4)})), 0.85);
         diffuseColor.rgb = mix(diffuseColor.rgb, tinted, near);
       }
     }
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v2';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v3';
 
   return {
     whiteTree,

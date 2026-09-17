@@ -463,7 +463,8 @@ const CUSHION_LIT = new Color(0.56, 0.74, 0.34);
  * 2 rings + apex = 21 triangles. Returns 1 (a cushion built).
  */
 export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng: RandomFn, size: [number, number], cover: number, noise: Noise2D, stiffness: number, windPhase: number): number {
-  const sides = 7;
+  // 9 around: a 7-gon read as a faceted dome where a stand-next pose puts the lens 15 cm from one
+  const sides = 9;
   const radius = (size[0] + rng() * (size[1] - size[0])) * (0.7 + 0.5 * Math.min(1, cover));
   const height = radius * (0.45 + rng() * 0.2);
   const phase = rng() * TAU;

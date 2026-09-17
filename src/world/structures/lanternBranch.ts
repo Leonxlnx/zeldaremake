@@ -269,7 +269,7 @@ function applySleeveNearBark(material: MeshStandardMaterial): void {
       if (sleeveNear > 0.0) {
         vec3 fine = texture2D(map, vMapUv * ${SLEEVE_NEAR_TILES.toFixed(2)} + vec2(0.37, 0.61)).rgb;
         float fineLum = dot(fine, vec3(0.2126, 0.7152, 0.0722));
-        diffuseColor.rgb *= mix(1.0, clamp(fineLum / ${SLEEVE_BARK_MEAN.toFixed(3)}, 0.55, 1.7), 0.7 * sleeveNear);
+        diffuseColor.rgb *= mix(1.0, clamp(fineLum / ${SLEEVE_BARK_MEAN.toFixed(3)}, 0.5, 1.8), 0.85 * sleeveNear);
       }
       #endif
       `,
@@ -280,7 +280,7 @@ function applySleeveNearBark(material: MeshStandardMaterial): void {
       #ifdef USE_NORMALMAP_TANGENTSPACE
       if (sleeveNear > 0.0) {
         vec3 fineN = texture2D(normalMap, vNormalMapUv * ${SLEEVE_NEAR_TILES.toFixed(2)} + vec2(0.37, 0.61)).xyz * 2.0 - 1.0;
-        fineN.xy *= normalScale * 0.75;
+        fineN.xy *= normalScale * 1.2;
         normal = normalize(tbn * normalize(vec3(mapN.xy + fineN.xy * sleeveNear, mapN.z)));
       }
       #endif
@@ -289,7 +289,7 @@ function applySleeveNearBark(material: MeshStandardMaterial): void {
   };
   const previousKey = material.customProgramCacheKey;
   material.customProgramCacheKey = function () {
-    return `${previousKey.call(this)}|sleeve-near-bark-v1`;
+    return `${previousKey.call(this)}|sleeve-near-bark-v2`;
   };
 }
 
