@@ -2048,6 +2048,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   capture; trees-25 at `f2320cf` (6 commits; near-bole texture share rising with height so the
   fixed cameras' strips keep their calibration) on its final capture. Both report next.
 
+### 05:50 UTC — tick 126: round 41 sealed — take-0111 `7a90aa6`; evidence at art/environment/round41-review
+- Merged r41/struct `30dbdd3` (structures-26: log arch crown = 2,775 cushion tufts in colonies on a
+  moss carpet + torn skirt + fine bark + splintered rim + vines, 55 m LOD; trunks with a third cord
+  octave, furrow moss, lichen, root caps; huts' bark cords; signpost/fences wood grain, checked
+  ends, laid rope, lashings — `woodGrain.ts` + tests) and r41/trees `785c9c4` (trees-25: near-canopy
+  LOD 22/26 m — 364 parts swapping flat cards for forking twig wood with layered cupped laminae,
+  sun-through transmission, moss, vines; built-mesh hero pass keeps every part out of the six
+  fixed frusta; tree shade floors fade by distance 5→10 m; lantern laminae to olive on the lit
+  face). 21/21 tests.
+- **take-0111**: A 0.2324, B 0.2050, C 0.2361, D 0.2843, E 0.2158, F 0.2621 (mean 0.2393 —
+  unchanged; the round is player-view detail by design). Rendered A: 508 draws, 8.11 M tris.
+  Monitor `7e169d9`. Evidence `73d0d44`.
+- Decisions pending: (1) near-canopy resident geometry 173 MB (dial `NEAR_CANOPY_MAX_Y` 21 → 17
+  ≈ 120 MB) — ask Astra for the 780M memory reading first; (2) shade floors: the flat lowering the
+  owner's "readable cool shade" implies costs −0.004…−0.012 SSIM on the fixed views; shipped the
+  distance-faded version (fixed frames unchanged), dials documented in trees/materials.ts; (3) the
+  lantern-tree's house bough shading A/F's stones (composition, owner).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2086,4 +2104,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T04:22:00Z
+2026-09-17T05:50:00Z
