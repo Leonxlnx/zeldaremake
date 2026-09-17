@@ -28,6 +28,13 @@ export const NOT_LAMINA = 2;
  * block leaves it alone. Pass it as `uOffset` to the leaf builders.
  */
 export const PETAL_U = 4;
+/**
+ * Broad-lamina band (round 43): the near LOD of a heart / ovate / round leaf runs its u over
+ * BROADLEAF_U … BROADLEAF_U + 1 — the leaf block (materials.ts) draws it a hosta's venation at a
+ * hosta's strength: a wide pale midrib, six arcing lateral pairs with faint veinlets between, a
+ * cupped darker margin and the waxy lit edge, all stronger than the fern-pinna block at u < 1.5.
+ */
+export const BROADLEAF_U = 6;
 
 export const rgb = (hex: number): RGB => {
   const c = new Color(hex);

@@ -11,7 +11,7 @@ import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, 
 import type { WorldContext } from '../system';
 import { WIND_GLSL, type Wind } from '../wind/wind';
 import { C_FOOT } from './field';
-import { PETAL_U } from './geometry';
+import { BROADLEAF_U, PETAL_U } from './geometry';
 import { PACK_INSTANCE_ATTRIBUTE, PACK_VERTEX_ATTRIBUTE } from './lodset';
 
 /**
@@ -364,6 +364,8 @@ export const LEAF_DETAIL_NEAR = 3.5;
 export const LEAF_DETAIL_FAR = 6.0;
 /** round 43: gain of the waxy lit edge on the leaf block's outermost margin sliver */
 export const LEAF_EDGE_LIGHT = 0.14;
+/** round 43: the broad-lamina band's gains (BROADLEAF_U — the weeds' near LOD): midrib, lateral veins, cupped margin, lit edge */
+export const BROADLEAF_DETAIL = { rib: 0.3, vein: 0.16, margin: 0.14, edge: 0.22 } as const;
 /** round 43: the petal band's translucency, [throat, + per v to the tip] × the material's uTransmission */
 export const PETAL_TRANSLUCENCY: readonly [number, number] = [0.6, 0.9];
 /** round 43: the litter block's root → tip tint (brown → ochre, × the instance's autumn tint) */
@@ -399,6 +401,25 @@ float vegLeafTrans = 0.0;
     vec3 detail = grad * (1.0 + 0.22 * rib + 0.10 * vein - 0.08 * margin + ${LEAF_EDGE_LIGHT.toFixed(2)} * edge);
     diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
     vegLeafTrans = leafFade * (0.35 + 0.65 * v);
+  } else if (leafFade > 0.0 && vLeafUv.x >= ${BROADLEAF_U.toFixed(1)} && vLeafUv.x < ${(BROADLEAF_U + 1).toFixed(1)}) {
+    // the broad-lamina band (geometry.ts BROADLEAF_U; round 43 — the weeds' near LOD): a hosta's
+    // venation at a hosta's strength. The midrib a wide pale rib tapering to the tip; six pairs of
+    // lateral veins that leave it and arc toward the tip, faint veinlets between them; the blade
+    // darkens where it cups toward the margin and its outermost sliver is the waxy lit edge
+    float au = abs(vLeafUv.x - ${(BROADLEAF_U + 0.5).toFixed(1)});
+    float v = vLeafUv.y;
+    float rib = 1.0 - smoothstep(0.0, 0.055 - 0.04 * v, au);
+    float arc = v - au * au * 1.3 - au * 0.3;
+    float lat = abs(fract(arc * 6.0) - 0.5) * 2.0;
+    float vein = smoothstep(0.85, 1.0, lat) * (1.0 - smoothstep(0.36, 0.5, au)) * (1.0 - rib) * smoothstep(0.02, 0.1, v);
+    float fineLat = abs(fract(arc * 24.0) - 0.5) * 2.0;
+    float veinlet = smoothstep(0.9, 1.0, fineLat) * (1.0 - smoothstep(0.3, 0.48, au)) * (1.0 - rib) * (1.0 - vein);
+    float margin = smoothstep(0.3, 0.5, au);
+    float edge = smoothstep(0.46, 0.5, au);
+    vec3 grad = mix(vec3(0.84, 0.88, 0.80), vec3(1.02, 1.05, 0.94), pow(v, 0.9));
+    vec3 detail = grad * (1.0 + ${BROADLEAF_DETAIL.rib.toFixed(2)} * rib + ${BROADLEAF_DETAIL.vein.toFixed(2)} * vein + 0.05 * veinlet - ${BROADLEAF_DETAIL.margin.toFixed(2)} * margin + ${BROADLEAF_DETAIL.edge.toFixed(2)} * edge);
+    diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
+    vegLeafTrans = leafFade * (0.3 + 0.5 * v);
   }
 }
 `;
@@ -723,7 +744,7 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v17${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v18${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

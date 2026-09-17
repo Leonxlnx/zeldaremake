@@ -9,17 +9,21 @@ import type { WorldContext } from '../system';
 import { smoothstep } from '../util/noise';
 import { createRng, type Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, lanceLeaf, lathe, rgb, sampleCurve, shapedLeaf, skeletonLeaf, tone, tube, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, foldedLeaf, lanceLeaf, lathe, rgb, sampleCurve, shapedLeaf, skeletonLeaf, tone, tube, type RGB } from './geometry';
 import { LodInstancedSet } from './lodset';
 
 type LeafDetail = 'ultra' | 'high' | 'far';
 
 /**
- * Round 43 — the litter's near LOD: inside this camera distance (m, XZ) the leaves and twigs draw
- * their `ultra` geometry (leafGeometry / twigGeometry), built from the high LOD's own stream so the
- * swap keeps every leaf's heading, length, curl and twist and every twig's line.
+ * Round 43 — the litter's near LOD: inside these camera distances (m, XZ) the leaves and twigs
+ * draw their `ultra` geometry (leafGeometry / twigGeometry), built from the high LOD's own stream
+ * so the swap keeps every leaf's heading, length, curl and twist and every twig's line. The
+ * leaves are never trimmed to the frame (see `leaves` below), so every leaf inside the ring is
+ * paid for at every fixed camera — 2.5 m holds 6–25 of them (99 at 4 m from camera A); a twig's
+ * grain, knots and acorns are 2–8 mm features, so its ring is 2 m.
  */
-export const LITTER_ULTRA_M = 4;
+export const LITTER_ULTRA_M = 2.5;
+export const TWIG_ULTRA_M = 2;
 /** share of the ultra leaves that have skeletonised (midrib and veins only) */
 export const SKELETON_SHARE = 0.16;
 /** the ultra lamina's baked root → tip gradient (× the instance's autumn tint): a browner, darker root, an ochre tip */
@@ -29,15 +33,18 @@ export const LEAF_TIP_TINT: RGB = [1.04, 0.98, 0.72];
 /**
  * A fallen leaf: the near LOD is a three-section lance lamina on a petiole (14 triangles); the
  * far LOD (round 39) the same lamina — same length, heading, curl and twist, drawn from the same
- * stream — as the four-triangle `curvedLeaf` without the petiole, which is a 2.5 mm stalk no
- * pixel resolves past a couple of metres. At LEAF_FAR_M a 0.1 m leaf is ≈ 12 px long.
+ * stream — without the petiole, which is a 2.5 mm stalk no pixel resolves past a couple of
+ * metres. At LEAF_FAR_M a 0.1 m leaf is ≈ 12 px long. Round 43: the far lamina is the
+ * two-triangle `foldedLeaf` (the same diamond outline and fold as the four-triangle curved one,
+ * without its centre-ridge vertex) — the 8 500 far leaves a fixed camera submits are 17 K
+ * triangles cheaper, which pays for the near LOD inside LITTER_ULTRA_M.
  *
- * Round 43, `ultra` (inside LITTER_ULTRA_M): the same lance outline on the same petiole, as an
- * 8 × 7 lamina that curls up hard toward its tip (curlPow), cups at the margin, twists more and
+ * Round 43, `ultra` (inside LITTER_ULTRA_M): the same lance outline on the same petiole, as a
+ * 7 × 5 lamina that curls up hard toward its tip (curlPow), cups at the margin, twists more and
  * ripples at the rim, under a baked brown → ochre root → tip gradient (LEAF_*_TINT) with a lighter
  * midrib column; SKELETON_SHARE of them are skeletons (skeletonLeaf). Everything past the layout
  * stream's draws is the forked `ultra` stream's. The material's litter block (materials.ts) adds
- * the dark veins. ≈ 90 triangles a leaf (a skeleton ≈ 30).
+ * the dark veins. ≈ 72 triangles a leaf (a skeleton ≈ 30).
  */
 function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', detail: LeafDetail = 'high'): BufferGeometry {
   const rng = createRng(seed);
@@ -55,7 +62,7 @@ function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', detail: L
   else if (!far) tube(m, petiole, 0.0025, 0.0018, tone(base, 0.75), 3);
   const curl = 0.28 + rng() * 0.3;
   const twist = (rng() - 0.5) * 0.8;
-  if (far) curvedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, { curl, twist, ridge: 0.22, tipColor: tone(base, 0.8) });
+  if (far) foldedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, { curl, twist, ridge: 0.22, tipColor: tone(base, 0.8) });
   else if (fine) {
     const serration = shape === 'broad' ? 0.08 : 0.03;
     if (fine() < SKELETON_SHARE) {
@@ -65,8 +72,8 @@ function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', detail: L
       const tipTint = blend(LEAF_TIP_TINT, [1, 1, 1], fine() * 0.3);
       shapedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, {
         shape: 'lance',
-        sections: 8,
-        across: 7,
+        sections: 7,
+        across: 5,
         // the tip rolls up to where the high LOD's arch peaked (≈ curl × length), no higher
         curl: curl * (0.9 + fine() * 0.3),
         curlPow: 1.7 + fine() * 0.8,
@@ -126,7 +133,7 @@ function seedPod(m: MeshBuilder, at: Vector3, dir: Vector3, r: number) {
 
 /**
  * A twig: a tapered, gently bowed tube (the long variant forks once). Round 43, `ultra` (inside
- * LITTER_ULTRA_M): the same line from the same stream, as a TWIG_GRAIN.sides-sided tube whose
+ * TWIG_ULTRA_M): the same line from the same stream, as a TWIG_GRAIN.sides-sided tube whose
  * facets alternate ridge and groove under a lengthwise banding (bark grain), a bud knot or two,
  * and — from the forked `ultra` stream — an acorn or a seed pod dropped beside it.
  */
@@ -249,14 +256,14 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // claim — 30 of the 60 free-camera probe poses fell short (down to 532 358 of 536 585), shot D
   // by just 426. The 8 784 leaves (14 triangles each, no shadow) outnumber the 4 227 weeds, so
   // with them always submitted the claim holds at any pose. Round 39: the leaves past LEAF_FAR_M
-  // take the four-triangle lamina (the LOD split leaves every instance submitted, so the claim
-  // still holds), ≈ 123 K → ≈ 45 K triangles a frame.
+  // take the far lamina (the LOD split leaves every instance submitted, so the claim still
+  // holds), ≈ 123 K → ≈ 45 K triangles a frame; round 43 makes it the two-triangle fold, ≈ 28 K.
   // Round 43: the ultra LOD inside LITTER_ULTRA_M — every instance still submitted, so B3 holds —
-  // packs all four variants into one draw: 20–100 leaves stand inside the ring at the fixed
-  // cameras (≈ 300 collapsed triangles each), one draw against four per variant.
+  // packs all four variants into one draw: 6–25 leaves stand inside the ring at the fixed
+  // cameras (≈ 290 collapsed triangles each), one draw against four per variant.
   const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0], [1], [2], [3]]], cull: false });
   const twigKinds = [false, true, false];
-  const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]), material, lodDistances: [LITTER_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
+  const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]), material, lodDistances: [TWIG_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
   const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
 
   const s = newSample();

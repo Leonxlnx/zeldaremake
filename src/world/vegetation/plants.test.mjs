@@ -327,14 +327,14 @@ assert.deepEqual(a.plants.flowers.packLayout[2],[[0,1],[2,3]],'flower mid LOD pa
 assert.deepEqual(a.plants.weeds.packLayout[1],[[0],[1],[2]],'near weeds draw per variant');
 assert.deepEqual(a.plants.fiddleheads.packLayout,[[[0],[1],[2]],[[0],[1],[2]],[[0],[1],[2]]],'fiddleheads: per variant at all three LODs (round 39 / 40)');
 assert.deepEqual(a.plants.flowers.packLayout[3],[[0,1],[2,3]],'flower far LOD in pairs too (round 39)');
-assert.deepEqual(a.plants.flowers.packLayout[0],[[0,1,2,3]],'flower ultra LOD in one draw');
+assert.deepEqual(a.plants.flowers.packLayout[0],[[0],[1],[2],[3]],'flower ultra LOD one variant a draw (4.2–5.1 K triangles a variant; packed, shot D paid 18 K a clump)');
 assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one draw');
 // round 43 — the close-scale herb layer: an ultra tier inside FLOWER / BROADLEAF / MOSS_ULTRA_M, built from the high
 // LOD's own layout stream (same stems, blooms, leaves; the swap keeps the silhouette within a few mm), the fixed
 // cameras standing outside every ring; the flowers' materials compile the petal band, not the leaf block
 {const {FLOWER_ULTRA_M,BROADLEAF_ULTRA_M,MOSS_ULTRA_M,FLOWER_DETAILS,WHITE_FLOWER_DETAILS,BROADLEAF_DETAILS,MOSS_DETAILS,WHITE_BUD_SHARE,BROADLEAF_HUE_SPREAD,MOSS_RIM_GAIN,MOSS_TOP_GAIN,flowerGeometry,flowerSpikeGeometry,whiteFlowerGeometry,weedGeometry,cloverGeometry,mossGeometry,makePalette}=read('vegetation/plantgeo');
   const {PETAL_U}=read('vegetation/geometry');
-  assert.ok(FLOWER_ULTRA_M>=3&&FLOWER_ULTRA_M<=5&&BROADLEAF_ULTRA_M>=3&&BROADLEAF_ULTRA_M<=4&&MOSS_ULTRA_M>=3&&MOSS_ULTRA_M<=5,'ultra rings within ~4 m');
+  assert.ok(FLOWER_ULTRA_M>=3&&FLOWER_ULTRA_M<=5&&BROADLEAF_ULTRA_M>=2&&BROADLEAF_ULTRA_M<=4&&MOSS_ULTRA_M>=2.5&&MOSS_ULTRA_M<=5,'ultra rings 2–5 m (sized to the fixed cameras\' budgets)');
   assert.deepEqual([FLOWER_DETAILS[0],WHITE_FLOWER_DETAILS[0],BROADLEAF_DETAILS[0],MOSS_DETAILS[0]],['ultra','ultra','ultra','ultra']);
   assert.deepEqual(a.plants.flowers.opts.lodDistances,[FLOWER_ULTRA_M,9,16]);assert.deepEqual(a.plants.yellowFlowers.opts.lodDistances,[FLOWER_ULTRA_M,9,16]);
   assert.deepEqual(a.plants.whiteFlowers.opts.lodDistances,[FLOWER_ULTRA_M,12]);assert.deepEqual(a.plants.weeds.opts.lodDistances,[BROADLEAF_ULTRA_M,13]);
@@ -344,7 +344,7 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
   const {LAYOUT}=read('layout');
   for(const vp of LAYOUT.viewpoints)for(const set of [a.plants.flowers,a.plants.yellowFlowers,a.plants.whiteFlowers,a.plants.weeds,a.plants.clover,a.plants.moss]){
     const ring=set.opts.lodDistances[0],near=set.items.filter(it=>Math.hypot(it.x-vp.position[0],it.z-vp.position[2])<ring).length;
-    assert.ok(near<=100,`${set.opts.name}: ${near} ultra instances inside ${ring} m of ${vp.id} (round 43: at most 82 clover at C, ≤ 30 of any other set)`);}
+    assert.ok(near<=40,`${set.opts.name}: ${near} ultra instances inside ${ring} m of ${vp.id} (round 43 rings: at most 28 flowers at F, ≤ 10 of any other set)`);}
   // the ultra tier keeps the high LOD's envelope: height within 5 mm (unit scale), footprint within 10 %, more triangles
   const pal=makePalette(a.ctx.config.palette),seed=a.ctx.config.seed;
   const pair=(name,fn,v=0)=>[fn(`${seed}/${name}/${v}`,pal,'ultra',v),fn(`${seed}/${name}/${v}`,pal,'high',v)];
@@ -362,6 +362,18 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
   for(const [name,fn] of [['flower',flowerGeometry],['flower-spike',flowerSpikeGeometry],['flower-white',whiteFlowerGeometry]]){const [u,h]=pair(name,fn);assert.ok(petalU(u)>=100,`${name}: ${petalU(u)} petal-band vertices at ultra`);assert.equal(petalU(h),0,`${name}: none at high`);}
   for(const label of['veg-flowers','veg-flowers-yellow','veg-flowers-white']){const m=a.plants.materials.find(m=>m.name===label);const sh={vertexShader:'#include <project_vertex>\n#include <begin_vertex>\n#include <worldpos_vertex>',fragmentShader:'#include <color_fragment>\n#include <lights_fragment_end>\n#include <roughnessmap_fragment>',uniforms:{}};m.onBeforeCompile(sh);
     assert.ok(sh.fragmentShader.includes(`vLeafUv.x >= ${PETAL_U.toFixed(1)} && vLeafUv.x < ${(PETAL_U+1).toFixed(1)}`),`${label} compiles the petal band`);assert.ok(!sh.fragmentShader.includes('vLeafUv.x < 1.5'),`${label} takes no leaf block`);}
+  // the ultra broad laminae sit in the broad-lamina band (geometry.ts BROADLEAF_U) and the weeds' material compiles it
+  // beside the leaf block (stronger midrib / arcing veins / cupped margin / lit edge); the high rosette stays a plain lamina
+  {const {BROADLEAF_U,NOT_LAMINA}=read('vegetation/geometry'),{BROADLEAF_DETAIL}=read('vegetation/materials');
+    const broadU=g=>{const uv=g.attributes.uv.array;let n=0;for(let i=0;i<uv.length;i+=2)if(uv[i]>=BROADLEAF_U&&uv[i]<BROADLEAF_U+1)n++;return n;};
+    assert.ok(BROADLEAF_U>=NOT_LAMINA+1&&(BROADLEAF_U>=PETAL_U+1||BROADLEAF_U+1<=PETAL_U),'the band is clear of the stems and the petals');
+    for(let v=0;v<3;v++){const [u,h]=pair('weed',weedGeometry,v);assert.ok(broadU(u)>=100&&broadU(u)>=u.attributes.uv.count*0.55,`weed ${v}: ${broadU(u)} of ${u.attributes.uv.count} vertices in the broad band at ultra`);assert.equal(broadU(h),0,`weed ${v}: none at high`);}
+    assert.ok(BROADLEAF_DETAIL.rib>0.22&&BROADLEAF_DETAIL.vein>0.1&&BROADLEAF_DETAIL.margin>0.08&&BROADLEAF_DETAIL.edge>0.14,'the broad band is drawn stronger than the fern-pinna block');
+    const m=a.plants.materials.find(m=>m.name==='veg-weeds');const sh={vertexShader:'#include <project_vertex>\n#include <begin_vertex>\n#include <worldpos_vertex>',fragmentShader:'#include <color_fragment>\n#include <lights_fragment_end>\n#include <roughnessmap_fragment>',uniforms:{}};m.onBeforeCompile(sh);
+    assert.ok(sh.fragmentShader.includes('vLeafUv.x < 1.5')&&sh.fragmentShader.includes(`vLeafUv.x >= ${BROADLEAF_U.toFixed(1)} && vLeafUv.x < ${(BROADLEAF_U+1).toFixed(1)}`),'veg-weeds compiles the leaf block and the broad band');
+    assert.ok(sh.fragmentShader.includes(`+ ${BROADLEAF_DETAIL.rib.toFixed(2)} * rib + ${BROADLEAF_DETAIL.vein.toFixed(2)} * vein`),'the band gains are the declared constants');}
+  // the violet cluster's ultra head is a ball of florets: ≥ 11 bells (4-sided throats) and 2–3 buds a head, no smooth dome
+  {const {CLUSTER_ULTRA_FLORETS}=read('vegetation/plantgeo');assert.ok(CLUSTER_ULTRA_FLORETS>=12,'a dozen florets a head at least');}
   // the bloom variation and tints are declared
   assert.ok(WHITE_BUD_SHARE>=0.1&&WHITE_BUD_SHARE<=0.35&&BROADLEAF_HUE_SPREAD>=0.05&&BROADLEAF_HUE_SPREAD<=0.15&&MOSS_RIM_GAIN<0.75&&MOSS_TOP_GAIN>1.15);
   // the ultra cushion is lumpy (its base ring's radii spread) and lit from the crown down to a dark rim (the vertex colours' luminance rises with y)
@@ -516,17 +528,17 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
   assert.ok(drift(0.3,0.8)>drift(0.8,1.3),`the drift thins into the lawn: ${drift(0.3,0.8)} in 0.3–0.8 m against ${drift(0.8,1.3)} in 0.8–1.3 m`);
   const sample=newSample();for(const it of litter.twigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'twigs never lie on the paving');}
   for(const it of seam){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample)||it.y-a.ctx.terrain.height(it.x,it.z)>0.03,'seam litter is grass-seated; only the lifted sprinkle lies on slabs');}
-  // round 39: the leaves keep every instance submitted (cull: false, the B3 claim) but switch to a four-triangle
-  // lamina past LEAF_FAR_M; the far lamina keeps the near one's footprint (same length / heading from one stream)
+  // round 39: the leaves keep every instance submitted (cull: false, the B3 claim) but switch to a cheap
+  // lamina past LEAF_FAR_M (round 43: the two-triangle fold, 17 K a view under the four-triangle curved one); the far lamina keeps the near one's footprint (same length / heading from one stream)
   // round 43: an ultra tier ahead of both inside LITTER_ULTRA_M (curled, cupped, veined laminae and skeletons; twigs
   // with bark grain, knots and an acorn / seed pod), from the same stream, packed into one draw
-  const {LEAF_FAR_M,LITTER_ULTRA_M,SKELETON_SHARE,TWIG_GRAIN}=read('vegetation/litter');
-  assert.ok(LITTER_ULTRA_M>=3&&LITTER_ULTRA_M<=5&&LITTER_ULTRA_M<LEAF_FAR_M,'litter ultra ring within ~4 m');
+  const {LEAF_FAR_M,LITTER_ULTRA_M,TWIG_ULTRA_M,SKELETON_SHARE,TWIG_GRAIN}=read('vegetation/litter');
+  assert.ok(LITTER_ULTRA_M>=2&&LITTER_ULTRA_M<=5&&LITTER_ULTRA_M<LEAF_FAR_M&&TWIG_ULTRA_M>=1.5&&TWIG_ULTRA_M<=LITTER_ULTRA_M,'litter ultra rings 2–5 m, the twigs\' no wider than the leaves\'');
   assert.equal(litter.leaves.opts.cull,false,'leaves are never trimmed to the frame');
   assert.deepEqual(litter.leaves.opts.lodDistances,[LITTER_ULTRA_M,LEAF_FAR_M],'leaf ultra ring, then the far LOD at LEAF_FAR_M');
-  assert.deepEqual(litter.twigs.opts.lodDistances,[LITTER_ULTRA_M]);assert.equal(litter.leaves.opts.nearLods,1);assert.equal(litter.twigs.opts.nearLods,1);
+  assert.deepEqual(litter.twigs.opts.lodDistances,[TWIG_ULTRA_M]);assert.equal(litter.leaves.opts.nearLods,1);assert.equal(litter.twigs.opts.nearLods,1);
   assert.deepEqual(litter.leaves.packLayout[0],[[0,1,2,3]],'ultra leaves in one draw');assert.deepEqual(litter.leaves.packLayout[1],[[0],[1],[2],[3]],'near leaves per variant');
-  for(const [ultra,near,far] of litter.leaves.opts.variants){assert.equal(near.index.count/3,14);assert.equal(far.index.count/3,4);
+  for(const [ultra,near,far] of litter.leaves.opts.variants){assert.equal(near.index.count/3,14);assert.equal(far.index.count/3,2,'far leaf: the two-triangle fold');
     assert.ok(ultra.index.count/3>=28&&ultra.index.count/3<=130,`ultra leaf ${ultra.index.count/3} triangles`);
     ultra.computeBoundingBox();near.computeBoundingBox();far.computeBoundingBox();const ub=ultra.boundingBox,nb=near.boundingBox,fb=far.boundingBox;
     assert.ok(Math.abs((nb.max.x-nb.min.x)-(fb.max.x-fb.min.x))<0.03&&Math.abs((nb.max.z-nb.min.z)-(fb.max.z-fb.min.z))<0.03,'far leaf keeps the near footprint');
@@ -543,7 +555,7 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
   const camA=new THREE.Vector3(0.4,1.8,8.6);litter.leaves.update(camA,true);
   const sub=litter.leaves.submission();assert.equal(sub.reduce((n,m)=>n+m.mesh.count,0),litter.leaves.count,'every leaf submitted from camera A');
   assert.ok(sub.filter(m=>m.lod===2).reduce((n,m)=>n+m.mesh.count,0)>=0.9*litter.leaves.count,'≥ 90 % of the leaves are past LEAF_FAR_M from camera A');
-  assert.ok(sub.filter(m=>m.lod===0).reduce((n,m)=>n+m.mesh.count,0)<=120,'≤ 120 ultra leaves inside the ring from camera A');
+  assert.ok(sub.filter(m=>m.lod===0).reduce((n,m)=>n+m.mesh.count,0)<=40,'≤ 40 ultra leaves inside the ring from camera A (15 at 2.5 m; 99 at 4 m)');
   // the litter material compiles the dry-leaf block
   {const sh={vertexShader:'#include <project_vertex>\n#include <begin_vertex>\n#include <worldpos_vertex>',fragmentShader:'#include <color_fragment>\n#include <lights_fragment_end>',uniforms:{}};
     read('vegetation/materials').createVegMaterial(a.ctx,'litter',{leafDetail:true}).onBeforeCompile(sh);assert.ok(sh.fragmentShader.includes('vLeafUv.x < 1.5')&&sh.fragmentShader.includes('vegLeafTrans = leafFade * 0.4 * v;'),'litter block');}

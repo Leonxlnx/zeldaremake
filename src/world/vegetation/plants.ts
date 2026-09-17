@@ -148,11 +148,12 @@ const PACKS: Record<string, PackLayout> = {
   ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
   // the two heads and the two spikes pair up at every LOD (round 39: the far draw packed all four,
   // 834 triangles an instance for 117 far violets from camera A — 98 K; in pairs 49 K, one draw more)
-  // round 43: the ultra LOD (bells / graded stems inside FLOWER_ULTRA_M) packs all four — at most a
-  // handful of clumps stand inside the ring, one draw instead of two
-  flowers: [ALL(4), [[0, 1], [2, 3]], [[0, 1], [2, 3]], [[0, 1], [2, 3]]],
+  // round 43: the ultra LOD (bells / graded stems inside FLOWER_ULTRA_M, 4.2–5.1 K triangles a
+  // variant) draws one variant a draw — packed, shot D's three near clumps submitted 45 K
+  // (18 K each, all four variants collapsed); per variant 13 K for one draw more
+  flowers: [SINGLE(4), [[0, 1], [2, 3]], [[0, 1], [2, 3]], [[0, 1], [2, 3]]],
   // 3 000+ laminae: one draw per variant at both LODs (packing the 2 900 far ones would cost 150 K);
-  // round 43: the ultra rosettes (≤ 25 inside BROADLEAF_ULTRA_M at a fixed camera) pack into one draw
+  // round 43: the ultra rosettes (≤ 3 inside BROADLEAF_ULTRA_M at a fixed camera) pack into one draw
   weeds: [ALL(3), SINGLE(3), SINGLE(3)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
