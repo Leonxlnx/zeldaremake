@@ -219,6 +219,8 @@ const LEAF_TINTS = [0xc9a94a, 0xd6b35a, 0xb8783a, 0x8a5a2b, 0x7d5530, 0x7f7d3c, 
 
 export interface LitterResult {
   leaves: LodInstancedSet;
+  /** round 44: the north corridor's leaves (culled) */
+  northLeaves: LodInstancedSet;
   twigs: LodInstancedSet;
   roots: LodInstancedSet;
   count: number;
@@ -234,6 +236,19 @@ const RIM_LITTER_PER_M = 3.0;
 const VERGE_BAND = 1.3;
 const VERGE_LITTER_PER_M = 4.0;
 const VERGE_BANK_PER_M2 = 3.0;
+/**
+ * Round 44 — the north corridor's forest floor (field.ts `reach` / `northFloor`, survey-1 #4: the
+ * plain beyond the log arch and the ground under the white-barks were bare terrain). The leaf and
+ * twig scatters above walk the detail disc only; this pass walks the corridor's box — the ground
+ * the corridor adds beyond the disc at the disc's rules, and everywhere `northFloor` says forest
+ * floor (inside the disc too) an extra NORTH_FLOOR_LITTER × the lawn's leaf density: the frames
+ * north of the arch show litter-strewn ground, not lawn. Its leaves are their own culled set (the
+ * disc's leaves stay unculled for the B3 cross-check — see above — and these need not be: 5 K
+ * leaves 40–80 m north of the plaza would otherwise cost every fixed camera their triangles).
+ */
+const NORTH_LEAF_CANDIDATES_PER_M2 = 9.9;
+const NORTH_FLOOR_LITTER = 2.5;
+const NORTH_TWIG_SHARE = 0.1;
 /** mm-quantise so the audited sample position queries the terrain at exactly the seated point */
 const mm = (v: number) => Math.round(v * 1000) / 1000;
 const rec = (samples: number[][], x: number, y: number, z: number) => samples.push([x, Math.round(y * 10000) / 10000, z]);
@@ -262,6 +277,8 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // packs all four variants into one draw: 6–25 leaves stand inside the ring at the fixed
   // cameras (≈ 290 collapsed triangles each), one draw against four per variant.
   const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0], [1], [2], [3]]], cull: false });
+  // round 44: the north corridor's leaves — the same laminae and LODs, culled to the frame
+  const northLeaves = new LodInstancedSet({ name: 'litter-leaves-north', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0], [1], [2], [3]]] });
   const twigKinds = [false, true, false];
   const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]), material, lodDistances: [TWIG_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
   const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
@@ -413,6 +430,53 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
     bankFoot(field.houseFlankBox(), (x, z) => field.houseFlankZone(x, z));
   }
 
+  // Round 44 — the north corridor's forest floor (see NORTH_FLOOR_LITTER): the box the corridor
+  // adds beyond the disc plus the disc's own forest-floor ground, one stream after every pass above
+  {
+    const rng = ctx.rng.fork('litter/north-r44');
+    const box = field.corridorBox();
+    const w = box[2] - box[0];
+    const d = box[3] - box[1];
+    const candidates = Math.round(w * d * NORTH_LEAF_CANDIDATES_PER_M2 * q.density);
+    for (let i = 0; i < candidates; i++) {
+      const x = mm(box[0] + rng() * w);
+      const z = mm(box[1] + rng() * d);
+      const nf = field.northFloor(x, z);
+      const beyond = field.inCorridor(x, z);
+      if (!beyond && nf <= 0) continue;
+      if (field.reach(x, z) > R) continue;
+      field.sample(x, z, s);
+      if (s.stairs > 0.05 || s.structure > 0.05 || s.cliff > 0.6) continue;
+      const exact = ctx.terrain.mask(x, z);
+      if (exact.stairs >= 0.5 || exact.structure >= 0.5) continue;
+      if (field.insideGiantTrunk(x, z)) continue;
+      const onPath = s.path > 0.5;
+      const gd = field.giantDistance(x, z);
+      // the disc pass' weight where the corridor grows new ground, the forest floor's extra everywhere
+      let p = 0.11 * field.falloffReach(x, z) * ((beyond ? 1 : 0) + NORTH_FLOOR_LITTER * nf);
+      p *= 1 + 2.8 * (1 - smoothstep(0, 11, gd));
+      p *= 0.55 + 0.9 * field.cluster(x, z);
+      if (onPath) p *= 0.12;
+      if (rng() > p) continue;
+      const y = T.height(x, z) + (onPath ? 0.035 : 0.004);
+      // twigs never lie on the paving (the disc pass' rule): a candidate there falls as a leaf
+      if (rng() < NORTH_TWIG_SHARE && !onPath && field.allowed(x, z, s)) {
+        const scale = 0.8 + rng() * 0.6;
+        composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, rng() * TAU, scale, scale, scale);
+        twigs.add(M, rng.int(0, 3), tint.setRGB(0.85 + rng() * 0.3, 0.85 + rng() * 0.3, 0.85 + rng() * 0.3));
+      } else {
+        const scale = 0.7 + rng() * 0.7;
+        composeMatrix(M, 0, x, y, z, s.nx + rng.gauss() * 0.08, s.ny, s.nz + rng.gauss() * 0.08, 1, rng() * TAU, scale, scale, scale);
+        // the forest floor's leaves lie longer: the browner half of the palette, a little darker
+        const c = LEAF_TINTS[nf > 0.5 ? 2 + rng.int(0, LEAF_TINTS.length - 2) : rng.int(0, LEAF_TINTS.length)];
+        tint.copy(c).multiplyScalar((0.8 + rng() * 0.4) * (1 - 0.12 * nf));
+        northLeaves.add(M, rng.int(0, leafGeos.length), tint);
+      }
+      count++;
+      if (count % 41 === 0 && samples.length < 400) rec(samples, x, y, z);
+    }
+  }
+
   // surface roots radiating from giant trunks
   {
     const rng = ctx.rng.fork('litter/roots');
@@ -438,7 +502,7 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
     }
   }
 
-  const all = [leaves, twigs, roots];
+  const all = [leaves, northLeaves, twigs, roots];
   for (const set of all) parent.add(set.build());
-  return { leaves, twigs, roots, count, samples, all };
+  return { leaves, northLeaves, twigs, roots, count, samples, all };
 }

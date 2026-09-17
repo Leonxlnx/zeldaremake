@@ -28,10 +28,17 @@ const DETAILS: Detail[] = ['high', 'mid', 'low'];
 export const FLOWER_ULTRA_M = 4;
 export const BROADLEAF_ULTRA_M = 2.5;
 export const MOSS_ULTRA_M = 3;
+/**
+ * Round 44 (survey-1 crop 28: the cushions 3–8 m out were pale smooth spheres — the 45-triangle
+ * dome was the only LOD past MOSS_ULTRA_M): inside this camera distance a cushion draws a cheaper
+ * lobe cluster (mossGeometry 'high' — the ultra's body and every second lobe of its own spiral, at
+ * fewer sides), the dome only past it, dark-rimmed like the lobes so the swap is a shape change alone.
+ */
+export const MOSS_MID_M = 10;
 export const FLOWER_DETAILS: readonly Detail[] = ['ultra', 'high', 'mid', 'low'];
 export const WHITE_FLOWER_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
 export const BROADLEAF_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
-export const MOSS_DETAILS: readonly Detail[] = ['ultra', 'high'];
+export const MOSS_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
 /** the hero crown's four LODs (plants.ts): bipinnate fronds inside HERO_FERN_ULTRA_M, then the round-31 lances */
 export const HERO_FERN_DETAILS: Detail[] = ['ultra', 'high', 'mid', 'low'];
 /**
@@ -108,9 +115,13 @@ export function makePalette(p: { fernGreen: number; leafCanopy: number; leafSun:
     // The haze adds a grey pedestal to anything beyond a few metres, which kills saturation of dark
     // petals; a brighter, strongly saturated violet (same hue family as palette.flowerPurple) keeps
     // the blooms reading purple through the mist.
-    purple: blend(rgb(p.flowerPurple), rgb(0x7a3fd8), 0.7),
-    purpleLight: blend(rgb(p.flowerPurple), rgb(0x9d6ff0), 0.7),
-    purpleDeep: blend(rgb(p.flowerPurple), rgb(0x5a2aa8), 0.7),
+    // round 44 (survey-1 #10): the round-9 blend targets sat at hue 260° and rendered ≈ 257° — an
+    // electric blue at 2 m, and 78 % of shot D's purple pixels within 5° of the purple metric's
+    // 255° floor. The targets move to the base violet's own hue (0x8255a0 is 276°): ≈ 275° in the
+    // vertex colour, a violet, and the metric's band (255–320°) with a margin either side.
+    purple: blend(rgb(p.flowerPurple), rgb(0x9042c8), 0.7),
+    purpleLight: blend(rgb(p.flowerPurple), rgb(0xb87ce4), 0.7),
+    purpleDeep: blend(rgb(p.flowerPurple), rgb(0x64288e), 0.7),
     yellow: rgb(0xf0d060),
     // broad-leaf weeds: a touch yellower than the grass, no brighter (the old lime blend read ≈ 0.6
     // luminance in the verges, well above the reference's brightest foliage)
@@ -309,14 +320,78 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
 }
 
 // ---------------------------------------------------------------- bushes
+/**
+ * Camera distance (m) inside which a bush draws its ultra LOD (round 44, survey-1 #7: "big-leaf
+ * shrubs = flat polygonal leaf cards on black stick stems", one at the lens on the plateau walk,
+ * one over the terrace boulder). 4 m: the walking eye brushing a bush pays for it; no fixed camera
+ * has a bush inside this range (plants.test), so the six frames and their budgets are untouched.
+ */
+export const BUSH_ULTRA_M = 4;
+export const BUSH_DETAILS: readonly Detail[] = ['ultra', 'high', 'mid', 'low'];
+/** the bush's per-leaf hue spread (round 44, ultra): older leaves yellow-olive, fresh ones blue-green */
+export const BUSH_HUE_SPREAD = 0.1;
+/** the bush stems' girth (m at the foot, round 44: the round-9 sticks were 12–17 mm) and the young wood's green share at the top */
+export const BUSH_STEM_GIRTH: readonly [number, number] = [0.017, 0.024];
+export const BUSH_STEM_GREEN = 0.45;
+
+/**
+ * A bush leaf at the high / mid LODs (round 44): the four triangles of `curvedLeaf` — base, a
+ * left / centre / right row and the tip — laid out as an ovate blade instead of a diamond: the
+ * side vertices sit at a third of the length (the widest point of an ovate leaf), the raised
+ * centre vertex further up, and the tip is drawn out and curled; the sides droop. Zero extra
+ * triangles over the round-9 card, so every bush's LOD budget holds (the high LOD is what the
+ * fixed cameras draw of the crest and bank bushes).
+ */
+function bushLeaf(m: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, curl: number, twist: number, ridge: number) {
+  const axis = direction.clone().normalize();
+  let side = new Vector3().crossVectors(V(0, 1, 0), axis).normalize();
+  if (side.lengthSq() < 1e-8) side = V(1, 0, 0);
+  const normal = new Vector3().crossVectors(axis, side).normalize();
+  if (normal.y < 0) {
+    normal.negate();
+    side.negate();
+  }
+  const sideAt = side.clone().applyAxisAngle(axis, twist * 0.5);
+  const wide = base.clone().addScaledVector(axis, length * 0.36).addScaledVector(normal, length * curl * 0.5);
+  const midC = base.clone().addScaledVector(axis, length * 0.55).addScaledVector(normal, length * curl * 0.9 + width * ridge);
+  const tip = base.clone().addScaledVector(axis, length).addScaledVector(normal, length * curl * 1.15);
+  const a = m.vertex(base, 0.5, 0, tone(color, 0.88));
+  const l = m.vertex(wide.clone().addScaledVector(sideAt, -width * 0.5).addScaledVector(normal, -width * 0.14), 0, 0.36, tone(color, 0.95));
+  const c = m.vertex(midC, 0.5, 0.55, tone(color, 1.07));
+  const r = m.vertex(wide.clone().addScaledVector(sideAt, width * 0.5).addScaledVector(normal, -width * 0.14), 1, 0.36, tone(color, 0.97));
+  const t = m.vertex(tip, 0.5, 1, tone(color, 1.04));
+  m.tri(a, l, c);
+  m.tri(a, c, r);
+  m.tri(l, t, c);
+  m.tri(c, t, r);
+}
+
+/**
+ * Round 44 (survey-1 #7): the same stems, branches and leaf headings from the same stream at every
+ * LOD; the stems are bark at the foot grading to greener young wood at the top, lit on their sun
+ * side and dark under (no more black sticks), thicker at the foot (BUSH_STEM_GIRTH) and tapering.
+ * `ultra` (inside BUSH_ULTRA_M): six-sided stems, four-sided twigs, the laminae as 6 × 5 ovate
+ * blades (shapedLeaf: cupped margin, a wavy serrated rim, curl and twist) in the broad-lamina band
+ * (BROADLEAF_U — materials.ts draws the midrib, the arcing veins, the lit edge and the tip
+ * translucency at a hosta's strength), each with its own hue (BUSH_HUE_SPREAD, forked stream) and
+ * a short petiole. `high` / `mid`: the ovate four-triangle `bushLeaf`. ≈ 8.5 K / 2.2 K / 0.8 K /
+ * 0.23 K triangles.
+ */
 export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
+  const ultra = detail === 'ultra';
+  const fine = ultra ? createRng(`${seed}/ultra`) : null;
+  const high = detail === 'high' || ultra;
   const low = detail === 'low';
   const stems = 5 + rng.int(0, 3);
   const height = 0.95 + rng() * 0.55;
   const phase = rng() * TAU;
+  // stem tones: bark at the foot, young green-brown wood at the top, the sun side lit
+  const stemFoot = tone(pal.bark, 0.92);
+  const stemTop = blend(pal.bark, pal.leaf, BUSH_STEM_GREEN);
+  const stemAt = (t: number, up: number) => tone(blend(stemFoot, stemTop, Math.pow(t, 1.2)), 0.8 + 0.2 * (0.5 + 0.5 * up));
+  const twigAt = (t: number, up: number) => tone(blend(stemTop, tone(stemTop, 1.1), t), 0.82 + 0.18 * (0.5 + 0.5 * up));
   for (let s = 0; s < stems; s++) {
     const angle = phase + (s * TAU) / stems + (rng() - 0.5) * 0.8;
     const radial = V(Math.cos(angle), 0, Math.sin(angle));
@@ -324,7 +399,8 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
     const bend = 0.32 + rng() * 0.4;
     const h = height * (0.65 + rng() * 0.35);
     const curve = (t: number) => radial.clone().multiplyScalar(0.05 + bend * t * t).addScaledVector(lateral, Math.sin(t * Math.PI) * 0.06).add(V(0, t * h, 0));
-    tube(m, sampleCurve(curve, high ? 5 : 3), 0.012 + rng() * 0.005, 0.0025, pal.bark, high ? 4 : 3);
+    const girth = BUSH_STEM_GIRTH[0] + (BUSH_STEM_GIRTH[1] - BUSH_STEM_GIRTH[0]) * rng();
+    tube(m, sampleCurve(curve, ultra ? 7 : high ? 5 : 3), girth, 0.003, pal.bark, ultra ? 6 : high ? 4 : 3, false, low ? undefined : stemAt);
     const branches = high ? 5 : low ? 2 : 3;
     for (let b = 0; b < branches; b++) {
       const t = 0.2 + (b / Math.max(1, branches - 1)) * 0.72;
@@ -334,7 +410,7 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
       const branchDir = lateral.clone().multiplyScalar(sign * (0.7 + rng() * 0.35)).addScaledVector(radial, 0.45 + rng() * 0.4).normalize();
       const rise = 0.1 + rng() * 0.18;
       const twig = (u: number) => start.clone().addScaledVector(branchDir, reach * u).add(V(0, rise * u + Math.sin(u * Math.PI) * 0.04, 0));
-      if (!low) tube(m, sampleCurve(twig, high ? 3 : 2), 0.005 * (1 - t * 0.4), 0.001, tone(pal.bark, 1.15), 3);
+      if (!low) tube(m, sampleCurve(twig, ultra ? 4 : high ? 3 : 2), 0.006 * (1 - t * 0.4), 0.0015, tone(pal.bark, 1.15), ultra ? 4 : 3, false, twigAt);
       const leafCount = high ? 9 : low ? 4 : 6;
       for (let l = 0; l < leafCount; l++) {
         const u = 0.1 + (l / (leafCount - 1)) * 0.9;
@@ -348,17 +424,41 @@ export function bushGeometry(seed: string, pal: PlantPalette, detail: Detail): B
           .normalize();
         const len = (0.16 + rng() * 0.09) * (1.05 - u * 0.15) * (low ? 1.4 : 1);
         const sun = Math.min(1, (attach.y / height) * 0.7 + Math.hypot(attach.x, attach.z) * 0.5);
-        const color = tone(blend(pal.leaf, pal.leafSun, sun * 0.7), 0.85 + rng() * 0.3);
-        const opts = { curl: 0.1 + rng() * 0.12, twist: (rng() - 0.5) * 0.6, ridge: 0.12 };
-        if (low) foldedLeaf(m, attach, dir, len, len * 0.6, color, opts);
-        else curvedLeaf(m, attach, dir, len, len * (0.55 + rng() * 0.25), color, opts);
+        let color = tone(blend(pal.leaf, pal.leafSun, sun * 0.7), 0.85 + rng() * 0.3);
+        const curl = 0.1 + rng() * 0.12;
+        const twist = (rng() - 0.5) * 0.6;
+        // (the low LOD draws no width: its stream is the round-9 one)
+        const width = low ? len * 0.6 : len * (0.55 + rng() * 0.25);
+        if (low) foldedLeaf(m, attach, dir, len, width, color, { curl, twist, ridge: 0.12 });
+        else if (fine) {
+          // the ultra lamina: its own hue, a short petiole, the cupped and wavy ovate blade
+          const age = fine() * 2 - 1;
+          const k = BUSH_HUE_SPREAD * Math.abs(age);
+          color = age > 0 ? [color[0] * (1 + k), color[1] * (1 + k * 0.4), color[2] * (1 - k)] : [color[0] * (1 - k), color[1] * (1 + k * 0.2), color[2] * (1 + k)];
+          const petiole = len * (0.12 + fine() * 0.1);
+          const knee = attach.clone().addScaledVector(dir, petiole);
+          tube(m, [attach, knee], 0.0022, 0.0016, blend(stemTop, color, 0.5), 3);
+          shapedLeaf(m, knee, dir, len - petiole, width, color, {
+            shape: 'ovate',
+            sections: 6,
+            across: 5,
+            curl: curl * (1.1 + fine() * 0.4),
+            twist: twist * (1 + fine() * 0.6),
+            ridge: 0.13,
+            serration: 0.05,
+            cup: 0.16 + fine() * 0.2,
+            wave: 0.04 + fine() * 0.05,
+            uOffset: BROADLEAF_U,
+          });
+        } else bushLeaf(m, attach, dir, len, width, color, curl, twist, 0.12);
       }
     }
     for (let terminal = 0; terminal < 2; terminal++) {
       const dir = radial.clone().addScaledVector(lateral, terminal ? 0.55 : -0.55).add(V(0, 0.45, 0));
       const color = tone(pal.leafSun, 0.95 + rng() * 0.15);
       if (low) foldedLeaf(m, curve(0.98), dir, 0.12, 0.08, color);
-      else curvedLeaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { curl: 0.17, twist: 0.15, ridge: 0.11 });
+      else if (fine) shapedLeaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, { shape: 'ovate', sections: 5, across: 5, curl: 0.17, twist: 0.15, ridge: 0.11, cup: 0.2, uOffset: BROADLEAF_U });
+      else bushLeaf(m, curve(0.98), dir, terminal ? 0.1 : 0.13, terminal ? 0.06 : 0.085, color, 0.17, 0.15, 0.11);
     }
   }
   return m.finish({ groundToZero: true });
@@ -505,10 +605,36 @@ export function hedgeGeometry(seed: string, pal: PlantPalette, detail: Detail): 
 
 // ---------------------------------------------------------------- purple flowers
 /**
+ * Round 44 (survey-1 #10: the violet clumps were saturated flat blobs — every head the one blue,
+ * the heads touching, no stem between them, no shadow under them). The heads' scale against
+ * round 43's 3.4–5 cm radius; the per-head tone spread (× 1 ± this) and hue lean (the red channel
+ * up and the blue down toward magenta, or the reverse toward blue, by this fraction) from a stream
+ * forked per head, so no two heads of a clump are the one violet and the layout stream never
+ * moves; the shade at a head's underside (its lowest ring, the bells under its equator, a spike's
+ * lowest bells) against its lit crown; and the high / mid stems' radius (m) — 3-sided, graded
+ * foot → tip like the ultra's, thick enough to read as a stem between the smaller heads at 3–9 m.
+ */
+export const FLOWER_HEAD_SCALE = 0.85;
+export const FLOWER_TONE_SPREAD = 0.14;
+export const FLOWER_HUE_LEAN = 0.1;
+export const FLOWER_UNDERSIDE = 0.62;
+export const FLOWER_STEM_RADIUS: readonly [number, number] = [0.0034, 0.0017];
+
+/** one head's (one spike's) colour transform: tone × hue lean, from its own forked stream */
+function headVariation(rng: Rng): (c: RGB) => RGB {
+  const gain = 1 + FLOWER_TONE_SPREAD * (rng() * 2 - 1);
+  const lean = FLOWER_HUE_LEAN * (rng() * 2 - 1);
+  return (c) => [c[0] * gain * (1 + lean), c[1] * gain * (1 - 0.25 * Math.abs(lean)), c[2] * gain * (1 - 0.5 * lean)];
+}
+
+/** the shade of a floret `t` of the way from the crown (0) to the underside (1) */
+const undersideShade = (t: number) => 1 - (1 - FLOWER_UNDERSIDE) * clamp01(t);
+
+/**
  * Hydrangea / allium-like cluster bloom: a bumpy violet dome of florets with a few petals
  * flaring from its rim. Dense enough to read as a solid purple blob at distance.
  */
-function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, rng: Rng, pal: PlantPalette, detail: Detail) {
+function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, rng: Rng, pal: PlantPalette, detail: Detail, vary: (c: RGB) => RGB = (c) => c) {
   const n = normal.clone().normalize();
   const side = new Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize();
   const fwd = new Vector3().crossVectors(n, side).normalize();
@@ -516,19 +642,21 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   const low = detail === 'low';
   const rings = high ? 3 : 2;
   const segments = low ? 5 : high ? 8 : 6;
-  const floret = () => blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4);
+  const floret = () => vary(blend(blend(pal.purple, pal.purpleLight, rng() * 0.5), pal.purpleDeep, rng() * 0.4));
   const at = (u: number, v: number, h: number) => center.clone().addScaledVector(side, u).addScaledVector(fwd, v).addScaledVector(n, h);
-  const top = m.vertex(at(0, 0, radius * 0.8), NOT_LAMINA + 0.5, 1, blend(pal.purple, pal.purpleLight, 0.3));
+  const top = m.vertex(at(0, 0, radius * 0.8), NOT_LAMINA + 0.5, 1, vary(blend(pal.purple, pal.purpleLight, 0.3)));
   const levels: number[][] = [];
   for (let r = 1; r <= rings; r++) {
     const t = r / rings;
     const phi = t * Math.PI * 0.55;
     const level: number[] = [];
+    // the lowest ring is the head's underside: shaded against the crown (round 44)
+    const shade = undersideShade(Math.pow(t, 1.5));
     for (let k = 0; k < segments; k++) {
       const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
       const rr = radius * Math.sin(phi) * (0.85 + rng() * 0.3);
       const h = radius * 0.8 * Math.cos(phi) * (0.85 + rng() * 0.3);
-      level.push(m.vertex(at(Math.cos(ang) * rr, Math.sin(ang) * rr, h), NOT_LAMINA + k / segments, 1 - t, floret()));
+      level.push(m.vertex(at(Math.cos(ang) * rr, Math.sin(ang) * rr, h), NOT_LAMINA + k / segments, 1 - t, tone(floret(), shade)));
     }
     levels.push(level);
   }
@@ -540,14 +668,15 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
       m.tri(levels[r][nx], levels[r + 1][nx], levels[r + 1][k]);
     }
   }
-  // rim petals for a fluffy silhouette
+  // rim petals for a fluffy silhouette (hanging off the rim: shaded like the underside)
   const petals = low ? 3 : high ? 6 : 4;
   const p0 = rng() * TAU;
+  const rimShade = undersideShade(0.7);
   for (let p = 0; p < petals; p++) {
     const a = p0 + (p * TAU) / petals;
     const dir = side.clone().multiplyScalar(Math.cos(a)).addScaledVector(fwd, Math.sin(a)).addScaledVector(n, 0.25 + rng() * 0.3).normalize();
     const base = at(Math.cos(a) * radius * 0.75, Math.sin(a) * radius * 0.75, radius * 0.25);
-    foldedLeaf(m, base, dir, radius * (0.55 + rng() * 0.3), radius * 0.5, floret(), { curl: 0.25, tipColor: pal.purpleLight });
+    foldedLeaf(m, base, dir, radius * (0.55 + rng() * 0.3), radius * 0.5, tone(floret(), rimShade), { curl: 0.25, tipColor: tone(vary(pal.purpleLight), rimShade) });
   }
 }
 
@@ -595,11 +724,12 @@ export const CLUSTER_ULTRA_FLORETS = 14;
  * still closed teardrop buds (sheet 05 "forest buds"). ≈ 500 triangles a head against 52 — the
  * hydrangea at arm's length reads as florets with dark throats, not a smooth violet dome.
  */
-function clusterHeadUltra(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, headRng: Rng, fine: Rng, pal: PlantPalette) {
+function clusterHeadUltra(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, headRng: Rng, fine: Rng, pal: PlantPalette, vary: (c: RGB) => RGB = (c) => c) {
   const n = normal.clone().normalize();
   const side = new Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize();
   const fwd = new Vector3().crossVectors(n, side).normalize();
-  const tones = violetBellTones(pal);
+  const base = violetBellTones(pal);
+  const tones = { throat: vary(base.throat), lobe: vary(base.lobe), tip: vary(base.tip) };
   // the core: a squashed ball, 0.5 × radius across, from 0.25 × radius under the centre to 0.55 above
   const coreR = radius * 0.5;
   const coreJitter = Array.from({ length: 4 }, () => 0.9 + headRng() * 0.2);
@@ -623,7 +753,9 @@ function clusterHeadUltra(m: MeshBuilder, center: Vector3, normal: Vector3, radi
       lathe(m, mouth.clone().addScaledVector(out, -r * 0.45), out, (u) => ({ r: budR * Math.pow(Math.sin(u * Math.PI), 0.7) * (1 - 0.3 * u), y: r * 1.6 * u }), 4, 5, tones.throat, (u) => blend(tones.throat, tone(tones.lobe, 0.92), u * 0.65));
       continue;
     }
-    bell(m, mouth, out, r, 5, fine, tones);
+    // the florets under the equator hang in the head's own shadow (round 44)
+    const shade = undersideShade((0.45 - cosPhi) / 0.8);
+    bell(m, mouth, out, r, 5, fine, shade < 1 ? { throat: tones.throat, lobe: tone(tones.lobe, shade), tip: tone(tones.tip, shade) } : tones);
   }
 }
 
@@ -649,8 +781,11 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
     // High/mid share the skeleton, including the root tangent used to ground the mesh.
     // Most mid-LOD savings come from the head, not these six extra stem triangles.
-    if (ultra) tube(m, sampleCurve(curve, 6), 0.0026, 0.0014, pal.stem, 5, false, stemColorAt(stemTones.foot, stemTones.tip));
-    else tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
+    // round 44: the high / mid stems are a little thicker and graded foot → tip like the ultra's
+    // (the far LOD keeps the thin flat stem: 3 px there either way)
+    if (ultra) tube(m, sampleCurve(curve, 6), FLOWER_STEM_RADIUS[0], FLOWER_STEM_RADIUS[1], pal.stem, 5, false, stemColorAt(stemTones.foot, stemTones.tip));
+    else if (low) tube(m, sampleCurve(curve, 2), 0.0026, 0.0014, pal.stem, 3);
+    else tube(m, sampleCurve(curve, 3), FLOWER_STEM_RADIUS[0], FLOWER_STEM_RADIUS[1], pal.stem, 3, false, stemColorAt(stemTones.foot, stemTones.tip));
     if (!low) {
       for (let j = 0; j < 2; j++) {
         for (const sign of [-1, 1]) {
@@ -659,13 +794,15 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
         }
       }
     }
-    // head: dense cluster bloom (~7–10 cm across)
+    // head: dense cluster bloom (~6–8 cm across; round 44: FLOWER_HEAD_SCALE of round 43's)
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
     // Petal tessellation must not advance the layout stream and move the next stem.
     // Retain the existing cheap low LOD; only high/mid need matching silhouettes.
-    const headRadius = 0.034 + rng() * 0.016;
-    if (fine) clusterHeadUltra(m, curve(1), up, headRadius, rng.fork(`head-${i}`), fine, pal);
-    else clusterHead(m, curve(1), up, headRadius, low ? rng : rng.fork(`head-${i}`), pal, detail);
+    const headRadius = (0.034 + rng() * 0.016) * FLOWER_HEAD_SCALE;
+    // the head's own tone / hue lean (round 44), from a forked stream: the layout stream stays
+    const vary = low ? undefined : headVariation(rng.fork(`tone-${i}`));
+    if (fine) clusterHeadUltra(m, curve(1), up, headRadius, rng.fork(`head-${i}`), fine, pal, vary);
+    else clusterHead(m, curve(1), up, headRadius, low ? rng : rng.fork(`head-${i}`), pal, detail, vary);
   }
   if (!low) {
     const rosette = 4 + rng.int(0, 3);
@@ -699,14 +836,19 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
     const height = 0.26 + rng() * 0.2;
     const lean = V(Math.cos(angle) * height * 0.22, height, Math.sin(angle) * height * 0.22);
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 1.1) * Math.sin(t * Math.PI) * 0.012, 0, Math.cos(angle + 1.1) * Math.sin(t * Math.PI) * 0.012));
-    if (ultra) tube(m, sampleCurve(curve, 6), 0.0026, 0.0014, pal.stem, 5, false, stemColorAt(stemTones.foot, stemTones.tip));
-    else tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
+    // round 44: thicker graded stems at high / mid (see flowerGeometry), the far LOD's stay
+    if (ultra) tube(m, sampleCurve(curve, 6), FLOWER_STEM_RADIUS[0], FLOWER_STEM_RADIUS[1], pal.stem, 5, false, stemColorAt(stemTones.foot, stemTones.tip));
+    else if (low) tube(m, sampleCurve(curve, 2), 0.0026, 0.0014, pal.stem, 3);
+    else tube(m, sampleCurve(curve, 3), FLOWER_STEM_RADIUS[0], FLOWER_STEM_RADIUS[1], pal.stem, 3, false, stemColorAt(stemTones.foot, stemTones.tip));
     if (!low) {
       for (const sign of [-1, 1]) {
         const dir = V(Math.cos(angle + 0.9) * sign, 0.35, Math.sin(angle + 0.9) * sign);
         curvedLeaf(m, curve(0.18), dir, 0.07 + rng() * 0.04, 0.022, tone(leafColor, 0.9 + rng() * 0.25), { curl: 0.15, twist: sign * 0.2 });
       }
     }
+    // the spike's own tone / hue lean (round 44), from a forked stream: the layout stream stays
+    const vary = low ? (c: RGB) => c : headVariation(rng.fork(`tone-${i}`));
+    const spikeTones = { throat: vary(bellTones.throat), lobe: vary(bellTones.lobe), tip: vary(bellTones.tip) };
     const bells = low ? 5 : 7 + rng.int(0, 4);
     const bellR = 0.022 + rng() * 0.008;
     for (let b = 0; b < bells; b++) {
@@ -715,28 +857,31 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
       const a0 = rng() * TAU;
       const petals = low ? 3 : 4;
       const scale = 1 - 0.35 * Math.max(0, (t - 0.85) / 0.15);
+      // the lowest bells hang under the column in its own shadow, the top ones are lit (round 44)
+      const shade = undersideShade(1 - Math.pow(b / (bells - 1), 0.7));
       // the high LOD's petal draws (heading, colour) are taken in the same order at every detail so
       // the layout stream never shifts; the ultra bell hangs from the first petal's heading
       const hangs: Vector3[] = [];
       for (let p = 0; p < petals; p++) {
         const a = a0 + (p * TAU) / petals;
         const dir = V(Math.cos(a), -0.35 + rng() * 0.3, Math.sin(a)).normalize();
-        const color = blend(blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5), pal.purpleDeep, rng() * 0.3);
+        const color = tone(vary(blend(blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5), pal.purpleDeep, rng() * 0.3)), shade);
         if (fine) {
           hangs.push(dir);
           continue;
         }
         // Mid-distance bells keep every floret but use a folded lamina instead of four triangles.
         if (low || detail === 'mid') foldedLeaf(m, c, dir, bellR * (low ? 1.6 : 1.7) * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
-        else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.6 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: pal.purpleLight });
+        else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.6 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: tone(vary(pal.purpleLight), shade) });
       }
       if (fine) {
         // two bells a station, hanging off opposite sides of the stem like the high LOD's four
         // petals did, each a throat tube with 5–6 lobes and its mouth turned a little downward
+        const tones = shade < 1 ? { throat: spikeTones.throat, lobe: tone(spikeTones.lobe, shade), tip: tone(spikeTones.tip, shade) } : spikeTones;
         for (const k of [0, 2]) {
           const hang = hangs[k].clone().add(V(0, -0.25, 0)).normalize();
           const r = bellR * 0.95 * scale * (0.9 + fine() * 0.2);
-          bell(m, c.clone().addScaledVector(hang, bellR * 1.05 * scale), hang, r, 5 + fine.int(0, 2), fine, bellTones);
+          bell(m, c.clone().addScaledVector(hang, bellR * 1.05 * scale), hang, r, 5 + fine.int(0, 2), fine, tones);
         }
       }
     }
@@ -748,7 +893,7 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
       const tip = lean.clone().normalize();
       // inside the low head's envelope (0.8 × 1.1 × bellR above the tip)
       const budR = bellR * 0.5;
-      lathe(m, curve(1).addScaledVector(tip, -budR * 0.35), tip, (u) => ({ r: budR * Math.pow(Math.sin(u * Math.PI), 0.7) * (1 - 0.35 * u), y: budR * 2.05 * u }), 4, 5, bellTones.throat, (u) => blend(bellTones.throat, tone(bellTones.lobe, 0.9), u * 0.6));
+      lathe(m, curve(1).addScaledVector(tip, -budR * 0.35), tip, (u) => ({ r: budR * Math.pow(Math.sin(u * Math.PI), 0.7) * (1 - 0.35 * u), y: budR * 2.05 * u }), 4, 5, spikeTones.throat, (u) => blend(spikeTones.throat, tone(spikeTones.lobe, 0.9), u * 0.6));
     }
   }
   return m.finish({ groundToZero: true });
@@ -1193,29 +1338,23 @@ export const MOSS_TOP_TINT: RGB = [1.0, 1.04, 0.86];
 /** sub-cushions a lobed ultra cushion carries beside its crown lobe (min, max inclusive), and the body outline's noise amplitude (fraction of the radius) */
 export const MOSS_ULTRA_LOBES: readonly [number, number] = [13, 18];
 export const MOSS_ULTRA_RUFFLE = 0.2;
+/**
+ * the mid cushion (round 44, inside MOSS_MID_M): every `MOSS_MID_LOBE_STEP`-th lobe of the ultra
+ * spiral (the same stream, so the switch at MOSS_ULTRA_M keeps every lobe where it was), grown
+ * `MOSS_MID_LOBE_GROW` to close the gaps, at 6 sides × 2 rings — ≈ 300 triangles against the
+ * ultra's ≈ 1 100 and the dome's 45
+ */
+export const MOSS_MID_LOBE_STEP = 2;
+export const MOSS_MID_LOBE_GROW = 1.28;
 
 export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = 'high'): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const jitterTable = Array.from({ length: 512 }, () => rng());
   const height = 0.38 + rng() * 0.12;
-  if (detail !== 'ultra') {
-    dome(m, 1, height, 9, 3, tone(pal.mossDeep, 0.85), tone(pal.mossBright, 0.9), (i) => jitterTable[Math.abs(i) % 512]);
-    return m.finish();
-  }
-  // round 43: the ultra cushion is a CLUSTER — a squat lobed body carrying MOSS_ULTRA_LOBES
-  // sub-cushions (the structures' roof tufts' recipe: fuller-than-spherical profile, value-noise
-  // outline, lit top / dark rim in the vertex colour — implemented here, nothing imported): a
-  // single dome with surface noise reads smooth at 0.8 m (vegetation-22's first pass), the lobes
-  // — 3–7 cm across at the placed scales, no two cushions alike — do not. The envelope stays the
-  // high dome's (its height exactly, its footprint or less) so the same instance scale seats it.
-  const fine = createRng(`${seed}/ultra`);
-  const off = fine() * 100;
   const deep = tone(pal.mossDeep, 0.85);
   const bright = tone(pal.mossBright, 0.9);
   const mid = blend(deep, bright, 0.5);
-  /** the fuller-than-spherical meridian (t: 0 base ring … 1 crown) */
-  const profile = (t: number) => ({ r: Math.pow(Math.cos((t * Math.PI) / 2), 0.72), y: Math.pow(Math.sin((t * Math.PI) / 2), 0.85) });
   const colorAt = (t: number, lit: number, lump: number): RGB => {
     // t: the vertex's height fraction over the whole cushion (0 rim … 1 crown), lit: its lobe's own
     // crest fraction; the gain runs from the dark damp rim to the lit crown, the lobes' crests catch
@@ -1225,6 +1364,33 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     const c = blend(blend(deep, bright, Math.min(1, up + 0.2 * lump)), mid, 0.3);
     return [c[0] * gain * (1 + (MOSS_TOP_TINT[0] - 1) * up), c[1] * gain * (1 + (MOSS_TOP_TINT[1] - 1) * up), c[2] * gain * (1 + (MOSS_TOP_TINT[2] - 1) * up)];
   };
+  if (detail === 'low' || detail === 'mid') {
+    // the far dome (past MOSS_MID_M): the round-9 shape — the same jitter table, so its envelope is
+    // the one every scale was chosen against — recoloured down its height like the lobed tiers
+    // (round 44: the dome's own top-heavy blend read as a pale ball beside a dark-rimmed cluster)
+    dome(m, 1, height, 9, 3, deep, bright, (i) => jitterTable[Math.abs(i) % 512]);
+    for (let k = 0; k < m.p.length; k += 3) {
+      const t = clamp01(m.p[k + 1] / height);
+      const c = colorAt(t, t, 0.5 * (jitterTable[(k / 3) % 512] - 0.5));
+      m.c[k] = c[0];
+      m.c[k + 1] = c[1];
+      m.c[k + 2] = c[2];
+    }
+    return m.finish();
+  }
+  // round 43: the ultra cushion is a CLUSTER — a squat lobed body carrying MOSS_ULTRA_LOBES
+  // sub-cushions (the structures' roof tufts' recipe: fuller-than-spherical profile, value-noise
+  // outline, lit top / dark rim in the vertex colour — implemented here, nothing imported): a
+  // single dome with surface noise reads smooth at 0.8 m (vegetation-22's first pass), the lobes
+  // — 3–7 cm across at the placed scales, no two cushions alike — do not. The envelope stays the
+  // high dome's (its height exactly, its footprint or less) so the same instance scale seats it.
+  // round 44: `high` (MOSS_ULTRA_M … MOSS_MID_M) is the same cluster from the same stream at a
+  // third of the triangles — coarser body and crown, every MOSS_MID_LOBE_STEP-th lobe, grown
+  const ultra = detail === 'ultra';
+  const fine = createRng(`${seed}/ultra`);
+  const off = fine() * 100;
+  /** the fuller-than-spherical meridian (t: 0 base ring … 1 crown) */
+  const profile = (t: number) => ({ r: Math.pow(Math.cos((t * Math.PI) / 2), 0.72), y: Math.pow(Math.sin((t * Math.PI) / 2), 0.85) });
   const bodyH = height * 0.74;
   /**
    * one cushion: centre `c`, up axis `n`, footprint radius `radius`, crown height `h` over the base
@@ -1267,7 +1433,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     for (let k = 0; k < segments; k++) m.tri(levels[rings][k], levels[rings][(k + 1) % segments], crown);
   };
   // the body: the high dome's footprint, three quarters of its height, a strongly lobed outline
-  cushion(V(0, 0, 0), V(0, 1, 0), 1, bodyH, 14, 4, MOSS_ULTRA_RUFFLE, 1.7, 0, 0);
+  cushion(V(0, 0, 0), V(0, 1, 0), 1, bodyH, ultra ? 14 : 10, ultra ? 4 : 3, MOSS_ULTRA_RUFFLE, 1.7, 0, 0);
   // the lobes stand on the body's surface: azimuth and meridian fraction by the stream, the
   // surface normal from the profile's slope; a crown lobe takes the cushion to its full height
   const lobes = fine.int(MOSS_ULTRA_LOBES[0], MOSS_ULTRA_LOBES[1] + 1);
@@ -1286,7 +1452,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
   const leanA = fine() * TAU;
   const lean = 0.1 * fine();
   const crownR = 0.42 + 0.1 * fine();
-  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, 9, 3, 0.16, 3.2, 0.05, 11);
+  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, ultra ? 9 : 7, ultra ? 3 : 2, 0.16, 3.2, 0.05, 11);
   for (let i = 0; i < lobes; i++) {
     // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder;
     // 4–8 cm across at the placed scales (the structures' roof tufts' 4–12 cm), rounder than the body
@@ -1296,7 +1462,11 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     const rl = 0.13 + 0.13 * fine();
     const hl = rl * (0.7 + 0.45 * fine());
     // ± 10 % tone a lobe (the structures' tufts' toneSpread): no two lobes the same green
-    cushion(p, n, rl, hl, 8, 3, 0.22, 6, rl * 0.15, 20 + i * 7, 0.9 + 0.2 * fine());
+    const toneMul = 0.9 + 0.2 * fine();
+    // every draw above is taken at both tiers (the stream stays the ultra's); the mid tier builds
+    // every MOSS_MID_LOBE_STEP-th lobe, grown to stand in for the ones between
+    if (ultra) cushion(p, n, rl, hl, 8, 3, 0.22, 6, rl * 0.15, 20 + i * 7, toneMul);
+    else if (i % MOSS_MID_LOBE_STEP === 0) cushion(p, n, rl * MOSS_MID_LOBE_GROW, hl * MOSS_MID_LOBE_GROW, 6, 2, 0.22, 6, rl * 0.15, 20 + i * 7, toneMul);
   }
   // seat the base ring on y = 0 and hold the high dome's envelope: its height exactly (the lobes
   // that rise past it are pulled down with the whole), its footprint or less

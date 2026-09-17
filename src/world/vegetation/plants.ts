@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -38,6 +38,9 @@ export interface PlantSets {
   clover: LodInstancedSet;
   moss: LodInstancedSet;
   saplings: LodInstancedSet;
+  /** round 44: the north corridor's small ferns and broad leaves (the disc sets' geometry, ending at NORTH_PLANT_MAX_M) */
+  fernsNorth: LodInstancedSet;
+  weedsNorth: LodInstancedSet;
   all: LodInstancedSet[];
   materials: Material[];
 }
@@ -70,6 +73,28 @@ const STONE_CLEARANCE = 0.5;
 /** metres of lawn outside the flagstone rim that the path-edge moss / litter soften (sheet 02) */
 const RIM_BAND = 0.25;
 const RIM_MOSS_CANDIDATES_PER_M = 3.8;
+/**
+ * Round 44 — the north corridor's forest floor (field.ts `northFloor`): the extra weight, × the
+ * disc scatter's, of the small ferns, the broad leaves / clover and the moss beds on that ground
+ */
+const NORTH_FLOOR_FERNS = 1.5;
+const NORTH_FLOOR_WEEDS = 1.2;
+const NORTH_FLOOR_MOSS = 0.16;
+/** the north corridor's fern and broad-leaf sets end here (m): the walk sees 15–25 m of plain, the fixed cameras stand 40 m+ off */
+const NORTH_PLANT_MAX_M = 30;
+/**
+ * Round 44 (survey-1 #7): the plateau walk's centre line (the survey's w26 → w27 → w28 walk points,
+ * stair top → fenced lip → north fence) and the clearance (m) every bush crown keeps from it
+ */
+const PLATEAU_WALK: readonly (readonly [number, number])[] = [
+  [16.45, -7.23],
+  [19.4, -3.6],
+  [18.3, -8.5],
+];
+const BUSH_LENS_CLEAR_M = 0.5;
+/** round 44 (survey-1 #10): a violet clump's pigment spread (× 1 ± this) and hue lean (red up / blue down or the reverse, this fraction) */
+export const FLOWER_CLUMP_SPREAD = 0.12;
+export const FLOWER_CLUMP_LEAN = 0.08;
 /** frame 56's sunlit bud stalks are khaki-yellow against the green bank */
 const TALL_BUD_TINT = new Color(1.55, 1.38, 0.82);
 
@@ -155,6 +180,12 @@ const PACKS: Record<string, PackLayout> = {
   // 3 000+ laminae: one draw per variant at both LODs (packing the 2 900 far ones would cost 150 K);
   // round 43: the ultra rosettes (≤ 3 inside BROADLEAF_ULTRA_M at a fixed camera) pack into one draw
   weeds: [ALL(3), SINGLE(3), SINGLE(3)],
+  // round 44: the bush ultra LOD (≈ 8.5 K triangles a variant) draws one variant a draw; the three
+  // round-9 LODs keep the default single pack they always had
+  bushes: [SINGLE(3), ALL(3), ALL(3), ALL(3)],
+  // round 44: the mid cushion (≈ 300 triangles a variant, 3–10 m) draws one variant a draw —
+  // packed, every cushion in the ring would submit both variants; the ultra and far tiers keep the pack
+  moss: [ALL(2), SINGLE(2), ALL(2)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
   // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
@@ -210,7 +241,10 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // round 40: a bipinnate near LOD inside HERO_FERN_ULTRA_M (plantgeo.ts; the tree-base audit stood
   // inside these crowns), casting shadows like the lance LOD it hands over to
   const heroFerns = mk('hero-ferns', variants(3, `${seed}/hero-fern`, pal, heroFernGeometry, HERO_FERN_DETAILS), 'plant', [HERO_FERN_ULTRA_M, 16, 32], 2, { sway: 2.0, flutter: 0.014, stiffness: 0.35, transmission: 0.25, ambientBoost: 0.4 });
-  const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry), 'bush', [14, 34], 1);
+  // round 44: the ultra LOD inside BUSH_ULTRA_M (plantgeo.ts — veined cupped laminae in the
+  // broad-lamina band on bark-graded stems; survey-1 #7's shrub at the lens), casting like the high
+  // LOD it hands over to; the high / mid LODs' leaves are ovate blades now, the same triangles
+  const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS]), 'bush', [BUSH_ULTRA_M, 14, 34], 2, {}, undefined, 1);
   // hero hedge: read from 6 m (the bank crowns) and 15 m (the door row) in shot A so it keeps
   // the high LOD much further out than the scattered bushes. Round 14: the clipped-crown geometry
   // (plantgeo.ts hedgeGeometry — an opaque core under two shells of small leaves) replaces the
@@ -266,7 +300,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // round 39: the cushions stop at 24 m (≤ 0.12 m high — 3 px there; 97 K triangles in one draw from A)
   // round 43: the lumpy, lit-top / dark-rim cushion inside MOSS_ULTRA_M (plantgeo.ts mossGeometry 'ultra')
   // and the shoots' grain on the albedo inside the ring (materials.ts MOSS_GRAIN, gone by MOSS_ULTRA_M)
-  const moss = mk('moss', [0, 1].map((v) => [mossGeometry(`${seed}/moss/${v}`, pal, 'ultra'), mossGeometry(`${seed}/moss/${v}`, pal)]), 'moss', [MOSS_ULTRA_M], 0, { roughness: 0.95, grain: [MOSS_ULTRA_M * 0.7, MOSS_ULTRA_M] }, 24, 1);
+  // round 44: a cheaper lobe cluster from the same stream out to MOSS_MID_M (survey-1 crop 28: the
+  // dome was a pale sphere 3–8 m out), the dome — dark-rimmed like the lobes — only past it
+  const moss = mk('moss', variants(2, `${seed}/moss`, pal, mossGeometry, [...MOSS_DETAILS]), 'moss', [MOSS_ULTRA_M, MOSS_MID_M], 0, { roughness: 0.95, grain: [MOSS_ULTRA_M * 0.7, MOSS_ULTRA_M] }, 24, 1);
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 
   const tint = new Color();
@@ -2954,9 +2990,189 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     bankFoot(field.houseFlankBox(), (x, z) => field.houseFlankZone(x, z));
   }
 
-  const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings];
+  // ---- Round 44 — the north corridor's forest floor (field.ts `reach` / `northFloor`, survey-1
+  // #4: the plain beyond the log arch and the ground under the white-barks east of the north path
+  // were bare terrain). Over the ground the corridor adds beyond the detail disc the disc
+  // scatters' own rules (ferns, broad leaves, clover, moss, seedheads at the disc's weights), and
+  // wherever `northFloor` says forest floor — inside the disc too — NORTH_FLOOR_* × more: small
+  // ferns, broad leaves and moss beds in patches (the frames north of the arch show a litter and
+  // moss floor with sparse turf, no lawn). Own streams after every pass above, so nothing moves.
+  // Nothing on the walk's verge (edge < 0.5 m), off the arch's footing and the columns.
+  // The ferns and broad leaves go to their own sets — the disc sets' geometry, materials and LODs,
+  // ending at NORTH_PLANT_MAX_M: the disc sets draw their far LODs at any range, and 800 fronds
+  // 40–80 m north of camera D (in its frustum, behind the haze) would cost it 0.3 M triangles.
+  const fernsNorth = new LodInstancedSet({ name: 'ferns-north', variants: ferns.opts.variants, material: ferns.opts.material, shadowMaterials: ferns.opts.shadowMaterials, lodDistances: ferns.opts.lodDistances, maxDistance: NORTH_PLANT_MAX_M * q.distance, castShadowLods: 1, packs: PACKS.ferns });
+  const weedsNorth = new LodInstancedSet({ name: 'weeds-north', variants: weeds.opts.variants, material: weeds.opts.material, lodDistances: weeds.opts.lodDistances, maxDistance: NORTH_PLANT_MAX_M * q.distance, castShadowLods: 0, nearLods: 1, packs: PACKS.weeds });
+  {
+    const R = ctx.config.detailRadius;
+    const box = field.corridorBox();
+    const area = (box[2] - box[0]) * (box[3] - box[1]);
+    /** the pass' weight at (x, z): the disc's weight where the corridor grows new ground, plus the forest floor's extra */
+    const floorWeight = (x: number, z: number, s: FieldSample, extra: number) => {
+      if (field.reach(x, z) > R) return 0;
+      const nf = field.northFloor(x, z);
+      const beyond = field.inCorridor(x, z);
+      if (!beyond && nf <= 0) return 0;
+      if (s.cliff > 0.5 || field.edgeDistance(x, z) < 0.5) return 0;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0.2 || field.logDistance(x, z) < 0.6) return 0;
+      return field.falloffReach(x, z) * ((beyond ? 1 : 0) + extra * nf);
+    };
+    // moss beds: the forest floor's moss gathers in patches (the cluster noise squared)
+    const bed = (x: number, z: number) => {
+      const c = field.cluster(x, z);
+      return c * c;
+    };
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-north-r44',
+        candidates: Math.round(area * 3.2 * q.density),
+        box,
+        minSpacing: 0.6,
+        r32: true,
+        accept(x, z, s) {
+          const w = floorWeight(x, z, s, NORTH_FLOOR_FERNS);
+          if (w <= 0) return 0;
+          const gd = field.giantDistance(x, z);
+          return 0.055 * w * (0.45 + 1.1 * field.cluster(x, z)) * (1 + 3.5 * (1 - smoothstep(0.2, 3.2, gd))) * (1 + 2 * smoothstep(0.15, 0.45, s.slope));
+        },
+      },
+      (x, z, s, rng) => placeInstance(fernsNorth, x, z, s, rng, 0.4 + rng() * 0.35, 0.7, 0.02, greenVar(rng, 0.2).multiplyScalar(0.94)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'weeds-north-r44',
+        candidates: Math.round(area * 7.4 * q.density),
+        box,
+        minSpacing: 0.22,
+        r32: true,
+        accept(x, z, s) {
+          const w = floorWeight(x, z, s, NORTH_FLOOR_WEEDS);
+          return w <= 0 ? 0 : 0.42 * w * (0.3 + field.flowerPatch(x, z)) * field.cluster(x, z);
+        },
+      },
+      (x, z, s, rng) => placeInstance(weedsNorth, x, z, s, rng, 0.65 + rng() * 0.65, 0.8, 0.012, greenVar(rng, 0.22).multiplyScalar(0.9)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'clover-north-r44',
+        candidates: Math.round(area * 4.9 * q.density),
+        box,
+        minSpacing: 0.18,
+        low: true,
+        r32: true,
+        accept(x, z, s) {
+          const w = floorWeight(x, z, s, NORTH_FLOOR_WEEDS);
+          return w <= 0 ? 0 : 0.16 * w * (0.4 + field.cluster(x, z)) * (1 + 0.8 * field.giantProximity(x, z, 5));
+        },
+      },
+      (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 0.75 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.2)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'moss-north-r44',
+        candidates: Math.round(area * 3 * q.density),
+        box,
+        minSpacing: 0.35,
+        low: true,
+        r32: true,
+        accept(x, z, s) {
+          if (field.reach(x, z) > R || s.cliff > 0.5 || field.edgeDistance(x, z) < 0.3 || field.clearing(x, z).insideBoulder) return 0;
+          const nf = field.northFloor(x, z);
+          const beyond = field.inCorridor(x, z);
+          if (!beyond && nf <= 0) return 0;
+          // the disc scatter's weight on the new ground; the beds' on the forest floor
+          return field.falloffReach(x, z) * ((beyond ? 0.03 * (0.3 + smoothstep(0.1, 0.4, s.slope)) * (0.5 + field.cluster(x, z)) : 0) + NORTH_FLOOR_MOSS * nf * bed(x, z)) * (1 - 0.7 * field.dry(x, z));
+        },
+      },
+      (x, z, _s, rng) => placeMossWith(rng, x, z, 0.08 + rng() * 0.22, true),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'seedheads-north-r44',
+        candidates: Math.round(area * 1.2 * q.density),
+        box,
+        minSpacing: 0.25,
+        r32: true,
+        accept(x, z, s) {
+          const w = floorWeight(x, z, s, 0);
+          return w <= 0 ? 0 : 0.28 * w * field.meadow(x, z) * (0.5 + field.cluster(x, z)) * (1 - field.giantProximity(x, z));
+        },
+      },
+      (x, z, s, rng) => placeInstance(seedheads, x, z, s, rng, 0.75 + rng() * 0.5, 0.5, 0.01, tint.setRGB(0.95 + rng() * 0.12, 0.95 + rng() * 0.08, 0.9 + rng() * 0.1)),
+    );
+    // frame 56 s' hollow keeps nothing standing (the round-32 rule above): the forest-floor ferns
+    // and stalks that landed in it go too
+    fernsNorth.prune((it) => field.dHollow(it.x, it.y, it.z) > 0.5);
+    seedheads.prune((it) => field.dHollow(it.x, it.y, it.z) > 0.5);
+  }
+
+  // ---- Round 44 (survey-1 #7): nothing sits on the lens. A bush whose crown reaches within
+  // BUSH_LENS_CLEAR_M of the plateau walk's centre line (the survey's w26 → w27 → w28: from the
+  // stair top along the fenced lip — the frame behind crop 15 stood inside a shrub there) shrinks
+  // until it clears it, and goes if that would leave it under half its size. After every bush
+  // pass, so no stream re-rolls; the layout paths keep their own rules (`edgeDistance`).
+  {
+    const radiusOf = (v: number) => {
+      const g = bushes.opts.variants[v][1];
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      return g.boundingSphere!.radius + g.boundingSphere!.center.length();
+    };
+    const walkDistance = (x: number, z: number) => {
+      let d = Infinity;
+      for (let i = 0; i < PLATEAU_WALK.length - 1; i++) {
+        const [ax, az] = PLATEAU_WALK[i];
+        const [bx, bz] = PLATEAU_WALK[i + 1];
+        const dx = bx - ax;
+        const dz = bz - az;
+        const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+        d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+      }
+      return d;
+    };
+    bushes.prune((it) => {
+      const d = walkDistance(it.x, it.z);
+      const scale = Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]);
+      const r0 = radiusOf(it.variant);
+      if (d - r0 * scale >= BUSH_LENS_CLEAR_M) return false;
+      const want = Math.max(0, d - BUSH_LENS_CLEAR_M) / r0;
+      if (want < scale * 0.5) return true;
+      const k = want / scale;
+      for (const i of [0, 1, 2, 4, 5, 6, 8, 9, 10]) it.matrix[i] *= k;
+      return false;
+    });
+  }
+
+  // round 44 (survey-1 #10): no two violet clumps the one blue — every instance's pigment takes a
+  // brightness and a hue lean (toward magenta or toward blue, FLOWER_CLUMP_LEAN of the red / blue
+  // channels) from a stateless hash of its seat, on top of the per-head spread the geometry bakes.
+  // After every flower pass, so no stream re-rolls and no head moves.
+  {
+    const hash01 = (x: number, z: number) => {
+      let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
+      h = Math.imul(h ^ (h >>> 13), 1274126177);
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+    };
+    for (const it of flowers.items) {
+      const gain = 1 + FLOWER_CLUMP_SPREAD * (hash01(it.x, it.z) * 2 - 1);
+      const lean = FLOWER_CLUMP_LEAN * (hash01(it.z + 0.5, it.x) * 2 - 1);
+      it.color = [it.color[0] * gain * (1 + lean), it.color[1] * gain, it.color[2] * gain * (1 - 0.5 * lean)];
+    }
+  }
+
+  const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth];
   for (const set of all) parent.add(set.build());
-  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, all, materials };
+  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, all, materials };
 }
 
 export { clamp };
