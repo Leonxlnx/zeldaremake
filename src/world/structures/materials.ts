@@ -23,6 +23,8 @@ import {
 import type { WorldContext } from '../system';
 import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
 import { WIND_GLSL } from '../wind/wind';
+import { rasteriseEndGrain } from './endGrain';
+import { POD_BODY_V, type PodSkinRaster, rasterisePodSkin } from './podSkin';
 import { applySleeveBarkResponse } from './sleeveBark';
 
 const GRAD3: [number, number, number][] = [
@@ -777,12 +779,17 @@ export const LANTERN_DARK_V = 0.86;
 export const LIME_POD_GLOW = 0xf0d24a;
 
 /**
- * Emissive gradient for pod lanterns: bright at the bottom (v = 0), deeper toward the cap, faint
- * ribs. `topMul` scales the base colour near the cap (default: deeper orange).
+ * Emissive map for pod lanterns: the round-11 gradient — bright at the bottom (v = 0), deeper
+ * toward the cap, black from POD_BODY_V up (caps, sepals, stems, cords) — MODULATED by the pod
+ * skin's glow field (round 43, podSkin.ts): the husk's seams and veins pass less of the core,
+ * the thin skin mid-segment more, a hotter core low in the body. The field has mean 1 over the
+ * body rows and the old 9-rib factor (mean 0.95) is kept as a constant, so the map's body rows
+ * integrate to the round-11 radiance and Astra's bloom / veil calibration on the pods holds
+ * (measured: the pods' mean luminance in A / B). `topMul` scales the base colour near the cap.
  */
-export function lanternGradientTexture(glow: number, topMul: [number, number, number] = [0.86, 0.5, 0.35]): Texture {
-  const W = 64;
-  const H = 128;
+export function podEmissiveTexture(skin: PodSkinRaster, glow: number, topMul: [number, number, number] = [0.86, 0.5, 0.35]): Texture {
+  const W = skin.width;
+  const H = skin.height;
   const { c, g } = canvas(W, H);
   // the palette value is treated as the sRGB hue of the pod: bottom = brighter, yellower;
   // toward the cap = deeper
@@ -791,21 +798,19 @@ export function lanternGradientTexture(glow: number, topMul: [number, number, nu
   const top = [base.r * topMul[0], base.g * topMul[1], base.b * topMul[2]];
   const img = g.createImageData(W, H);
   for (let y = 0; y < H; y++) {
-    const v = 1 - y / (H - 1); // canvas y grows downward; texture v = 0 is the bottom row
+    const v = 1 - (y + 0.5) / H; // canvas y grows downward; texture v = 0 is the bottom row
     const i0 = y * W * 4;
-    if (v >= LANTERN_DARK_V - 0.01) {
-      for (let x = 0; x < W; x++) {
-        img.data[i0 + x * 4 + 3] = 255;
-      }
+    if (v >= POD_BODY_V) {
+      for (let x = 0; x < W; x++) img.data[i0 + x * 4 + 3] = 255;
       continue;
     }
     const body = v / (LANTERN_DARK_V - 0.01);
     const heat = Math.pow(1 - body, 1.4);
     for (let x = 0; x < W; x++) {
-      const rib = 0.9 + 0.1 * Math.sin((x / W) * Math.PI * 2 * 9);
-      const r = (top[0] + (bottom[0] - top[0]) * heat) * rib;
-      const gg = (top[1] + (bottom[1] - top[1]) * heat) * rib;
-      const b = (top[2] + (bottom[2] - top[2]) * heat) * rib;
+      const k = 0.95 * skin.glow[y * W + x];
+      const r = (top[0] + (bottom[0] - top[0]) * heat) * k;
+      const gg = (top[1] + (bottom[1] - top[1]) * heat) * k;
+      const b = (top[2] + (bottom[2] - top[2]) * heat) * k;
       const i = i0 + x * 4;
       img.data[i] = Math.min(255, r * 255);
       img.data[i + 1] = Math.min(255, gg * 255);
@@ -815,8 +820,50 @@ export function lanternGradientTexture(glow: number, topMul: [number, number, nu
   }
   g.putImageData(img, 0, 0);
   const tex = finishTexture(new CanvasTexture(c), true, 'structures:lantern-gradient');
-  tex.wrapS = RepeatWrapping;
+  tex.wrapT = ClampToEdgeWrapping;
   return tex;
+}
+
+/**
+ * The pod skin's albedo and normal maps (round 43, podSkin.ts): one atlas shared by every pod —
+ * the husk's segment seams, midribs and slanted side veins with a leaf's reticulation between
+ * them, the calyx / sepal / collar band's leathery leaf tiles, the cord's laid fibres. The
+ * albedo is a modulation round POD_MAP_MEAN (lantern.ts divides its tints by it).
+ */
+export function podSkinTextures(skin: PodSkinRaster): { albedo: Texture; normal: Texture } {
+  const maps = rasterToTextures(skin.width, skin.height, skin.albedo, skin.normal, 'structures:pod');
+  // the atlas' bands do not wrap in v
+  maps.albedo.wrapT = ClampToEdgeWrapping;
+  maps.normal.wrapT = ClampToEdgeWrapping;
+  return maps;
+}
+
+/** linear-rgb albedo + tangent-space normal arrays (row 0 = v 1) → sRGB colour map + normal map */
+function rasterToTextures(W: number, H: number, albedoLinear: Float32Array, normalXyz: Float32Array, name: string): { albedo: Texture; normal: Texture } {
+  const toSRGB = (v: number) => {
+    const c = Math.min(1, Math.max(0, v));
+    return Math.round((c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255);
+  };
+  const { c: ca, g: ga } = canvas(W, H);
+  const imgA = ga.createImageData(W, H);
+  const { c: cn, g: gn } = canvas(W, H);
+  const imgN = gn.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) {
+    const j = i * 4;
+    imgA.data[j] = toSRGB(albedoLinear[i * 3]);
+    imgA.data[j + 1] = toSRGB(albedoLinear[i * 3 + 1]);
+    imgA.data[j + 2] = toSRGB(albedoLinear[i * 3 + 2]);
+    imgA.data[j + 3] = 255;
+    imgN.data[j] = Math.round((0.5 + 0.5 * normalXyz[i * 3]) * 255);
+    imgN.data[j + 1] = Math.round((0.5 + 0.5 * normalXyz[i * 3 + 1]) * 255);
+    imgN.data[j + 2] = Math.round((0.5 + 0.5 * normalXyz[i * 3 + 2]) * 255);
+    imgN.data[j + 3] = 255;
+  }
+  ga.putImageData(imgA, 0, 0);
+  gn.putImageData(imgN, 0, 0);
+  const albedo = finishTexture(new CanvasTexture(ca), true, `${name}-albedo`);
+  const normal = finishTexture(new CanvasTexture(cn), false, `${name}-normal`);
+  return { albedo, normal };
 }
 
 /**
@@ -884,6 +931,15 @@ export const FAR_HALO_EAST_SCALE = 0.55;
  * four arch lamps; the pod's own emissive core (4 px) is untouched.
  */
 export const FAR_HALO_FADE: [number, number] = [53.5, 55.5];
+/**
+ * Round 43 (structures-27): the halo also fades OUT toward the camera between these distances
+ * (m, smoothstep) — a lamp's glow in the haze is what the veil makes of it at 50 m; walked up to
+ * under the arch (the path passes 2–6 m from its pods) the 0.7 m unfogged disc covered the pod
+ * itself as an orange blob. Nothing in A–F stands under 40 m of an arch pod (D 48–53 m), so the
+ * calibration above is untouched. The far pods' emissive intensity relaxes to the near pods' over
+ * the same range (`FAR_LANTERN_NEAR`), so the pod at 2 m reads its husk and core, not a white dot.
+ */
+export const FAR_HALO_NEAR: [number, number] = [14, 24];
 /** the halo quad sits this far toward the camera from the pod's centre, so the pod's body (r 0.17 m) does not cut a darker core out of it */
 export const FAR_HALO_TOWARD_CAMERA = 0.3;
 
@@ -1065,6 +1121,8 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     color: new Color(0x54402e),
     side: BackSide,
   });
+  // (round 43: vertex colours — logArch.ts shades the hollow's fissures, drip stains, moss near the
+  // mouths and the worn floor, and darkens the tunnel toward its middle)
   const logInterior = new MeshStandardMaterial({
     map: barkC,
     normalMap: barkN,
@@ -1072,6 +1130,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     roughness: 1,
     color: new Color(0x2a221a),
     side: BackSide,
+    vertexColors: true,
   });
   const roof = new MeshStandardMaterial({
     map: own(strawTexture(rng)),
@@ -1117,15 +1176,26 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // 1.58 — below the height fog's 2.0 far-shade exemption, and orange rather than lime.
   const distantGlow = new MeshBasicMaterial({ color: new Color(1, 1, 1).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
 
+  // round 43 (structures-27): the pods' skin — albedo / normal atlas shared by every pod, the
+  // emissive gradient modulated by its glow field (podSkin.ts). Own seed, no draw from `rng`.
+  const podSkin = rasterisePodSkin(`${ctx.config.seed}/structures/pod-skin`);
+  const podMaps = podSkinTextures(podSkin);
+  own(podMaps.albedo);
+  own(podMaps.normal);
   const lanternBase = {
     color: new Color(0xffffff),
     vertexColors: true,
+    map: podMaps.albedo,
+    normalMap: podMaps.normal,
+    normalScale: new Vector2(0.8, 0.8),
     emissive: new Color(0xffffff),
     emissiveIntensity: 2.0,
     roughness: 0.6,
     metalness: 0,
+    // (round 43: the sepals and the collar's bracts are open surfaces seen from under the pod)
+    side: DoubleSide,
   };
-  const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(P.lanternGlow)) });
+  const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(podEmissiveTexture(podSkin, P.lanternGlow)) });
   // lime pod: yellow-green bottom, deeper green toward the cap
   // (round 36 / structures-24: 0xd2ee48 → 0xf0d24a. Frame B's two lime pods at the eave read hue
   // 50° / 51° at peak 0.73 (lit blobs ≥ 0.5 lum, 1280 px); ours read 64° / 66° at 0.85–0.86 — a
@@ -1133,13 +1203,31 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // b ×1.3) turn the source toward green at the pod's brightest end — 0xd2ee48 renders 66° there
   // and 0xe6e04a still 60° / 61° — so the source is amber (0xf0d24a: 56° at the bottom). The cap
   // end keeps its green (topMul).)
-  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(lanternGradientTexture(LIME_POD_GLOW, [0.5, 0.78, 0.3])) });
+  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(podEmissiveTexture(podSkin, LIME_POD_GLOW, [0.5, 0.78, 0.3])) });
   // round 32: the arch's pods under the far veil — the same gradients (shared maps, no new
   // canvas) at FAR_LANTERN_INTENSITY
   const lanternFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lantern.emissiveMap });
   lanternFar.name = 'structures:lantern-far';
   const lanternLimeFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lanternLime.emissiveMap });
   lanternLimeFar.name = 'structures:lantern-lime-far';
+  // round 43: the pods' leaf collars flutter on the shared wind (aPhase / aAmount; 0 on the rest
+  // of the pod, so the husk, cord and knot only swing with the pivot). One program for the near
+  // pair; the far pair chain the near-distance intensity relax onto it (see FAR_HALO_NEAR).
+  for (const m of [lantern, lanternLime, lanternFar, lanternLimeFar]) windLeafMaterial(m, ctx, 'structures-pod');
+  for (const m of [lanternFar, lanternLimeFar]) {
+    const prev = m.onBeforeCompile;
+    const prevKey = m.customProgramCacheKey;
+    m.onBeforeCompile = (shader, renderer) => {
+      prev.call(m, shader, renderer);
+      shader.uniforms.uFarNear = { value: new Vector2(FAR_HALO_NEAR[0], FAR_HALO_NEAR[1]) };
+      shader.uniforms.uFarNearScale = { value: lanternBase.emissiveIntensity / FAR_LANTERN_INTENSITY };
+      shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying float vPodDistance;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vPodDistance = length( ( modelViewMatrix * vec4( position, 1.0 ) ).xyz );');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vPodDistance;\nuniform vec2 uFarNear;\nuniform float uFarNearScale;')
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance *= mix( uFarNearScale, 1.0, smoothstep( uFarNear.x, uFarNear.y, vPodDistance ) );');
+    };
+    m.customProgramCacheKey = () => `${prevKey.call(m)}|far-near`;
+  }
   // the far pods' halo discs: the radial glow canvas (shared with the embers) under the
   // FAR_HALO_TINT × FAR_HALO_INTENSITY colour, a per-pod scale in the vertex colour; each quad is
   // turned to face the camera in the vertex shader (aCorner: the quad's corner in camera right /
@@ -1162,16 +1250,17 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     shader.uniforms.uHaloRadius = { value: FAR_HALO_RADIUS };
     shader.uniforms.uHaloToward = { value: FAR_HALO_TOWARD_CAMERA };
     shader.uniforms.uHaloFade = { value: new Vector2(FAR_HALO_FADE[0], FAR_HALO_FADE[1]) };
+    shader.uniforms.uHaloNear = { value: new Vector2(FAR_HALO_NEAR[0], FAR_HALO_NEAR[1]) };
     lanternHalo.userData.uniforms = shader.uniforms;
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec2 aCorner;\nuniform float uHaloRadius;\nuniform float uHaloToward;\nuniform vec2 uHaloFade;\nvarying float vHaloFade;')
+      .replace('#include <common>', '#include <common>\nattribute vec2 aCorner;\nuniform float uHaloRadius;\nuniform float uHaloToward;\nuniform vec2 uHaloFade;\nuniform vec2 uHaloNear;\nvarying float vHaloFade;')
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
         {
           // the quad's four vertices all sit at the pod's centre: its camera distance sets the fade
           float podDistance = length( ( modelViewMatrix * vec4( position, 1.0 ) ).xyz );
-          vHaloFade = 1.0 - smoothstep( uHaloFade.x, uHaloFade.y, podDistance );
+          vHaloFade = ( 1.0 - smoothstep( uHaloFade.x, uHaloFade.y, podDistance ) ) * smoothstep( uHaloNear.x, uHaloNear.y, podDistance );
           // viewMatrix = inverse(camera world): its rows are the camera's axes in world space
           vec3 camRight = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
           vec3 camUp = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
@@ -1213,7 +1302,14 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   );
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
   const runes = new MeshStandardMaterial({ map: own(runeTexture(rng)), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: willowC, vertexColors: true });
+  // round 43 (structures-27): annual rings for the hollow log's broken rims, splinters and the
+  // fungus shelves (endGrain.ts; the map integrates to the willow map's mean it replaces, so the
+  // rim's level in D holds). Own seed, no draw from `rng`.
+  const grain = rasteriseEndGrain(`${ctx.config.seed}/structures/end-grain`);
+  const grainMaps = rasterToTextures(grain.width, grain.height, grain.albedo, grain.normal, 'structures:end-grain');
+  own(grainMaps.albedo);
+  own(grainMaps.normal);
+  const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: grainMaps.albedo, normalMap: grainMaps.normal, normalScale: new Vector2(0.7, 0.7), vertexColors: true });
   // the cap's moss (round 13): the shared `moss` binds the thatch normal map at 0.5, which put
   // straw-stalk relief on the cap's majority moss; this one takes the procedural mossy normals
   // (clumps + grain) and a slightly lower roughness so the lit tufts keep a soft sheen. Built

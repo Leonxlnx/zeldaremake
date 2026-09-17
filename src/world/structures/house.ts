@@ -93,6 +93,7 @@ import {
   DoubleSide,
   Float32BufferAttribute,
   Group,
+  LineCurve3,
   type Material,
   Matrix4,
   Mesh,
@@ -129,6 +130,7 @@ import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
 import { LIME_POD_GLOW, MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
+import { woodFibre, woodGrain } from './woodGrain';
 
 type P3 = [number, number, number];
 
@@ -251,7 +253,7 @@ export interface HouseBuild {
    * Round 41 (structures-26): the trunk's player-height detail — furrow moss tufts on the shell,
    * moss caps on the root flares and the doorway arch, lichen plates, trefoils at the root feet.
    */
-  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; lichen: number; trefoils: number };
+  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; lichen: number; trefoils: number; doormatTufts: number };
 }
 
 /**
@@ -1295,18 +1297,38 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       }
       return [w, y];
     };
+    // Round 43 (structures-27): the reveal at 2 m — the doorway's cut faces were three flat dark
+    // rows. Now bark CORDS run through the reveal from the mouth to the room (ring-periodic round
+    // the outline, so no seam), four KNOTS bulge out of the jambs, a fine crack octave sits between
+    // the cords, and the mouth's edge is a rounded LIP rolling out over the porch's back wall. The
+    // relief moves the faces into the opening by ≤ 3.5 cm (knots 8 cm), under 0.3 px at B's 14 m;
+    // the crests catch the doorway's light (vertex shade), the cracks stay near-black.
+    const revealRng = rng.fork('reveal43');
+    const revealKnots: { s: number; q: number; w: number; h: number }[] = [];
+    for (let i = 0; i < 4; i++) revealKnots.push({ s: revealRng(), q: 0.25 + revealRng() * 0.5, w: 0.035 + revealRng() * 0.03, h: (0.05 + revealRng() * 0.04) * k });
     const doorTunnel = gridSurface(
       (s, q, out) => {
         const [w0, y0] = doorOutline.at(s);
-        const [w, y] = onDoorIso(w0, y0, lerp(0.1, -0.06, q));
+        const cord = ringRidged(noise, s * TAU, q * 0.35 + 2, 5.5, 4.2);
+        const crack = Math.pow(1 - Math.abs(noise.noise(Math.cos(s * TAU) * 4.3 + 1, Math.sin(s * TAU) * 4.3 + q * 0.8)), 8);
+        let knot = 0;
+        for (const kn of revealKnots) {
+          let ds = s - kn.s;
+          ds -= Math.round(ds);
+          const dq = (q - kn.q) * 0.5;
+          knot += kn.h * Math.exp(-(ds * ds + dq * dq) / (kn.w * kn.w));
+        }
+        const lip = 0.05 * k * Math.pow(1 - smoothstep(0, 0.35, q), 2);
+        const e = lerp(0.1, -0.06, q) + lip - (cord - 0.5) * 0.035 * k + crack * 0.02 * k - knot;
+        const [w, y] = onDoorIso(w0, y0, e);
         const d = lerp(dBack + 0.04, roomFront - 0.06, q);
         frame.door(w, y, d, out.position);
         out.uv = [(s * doorOutline.length) / 2.2, d / 2.2];
         // (round 22: darker still — the doorway's cut faces are the near-black rim of the opening)
-        const dark = lerp(0.14, 0.08, q);
+        const dark = lerp(0.14, 0.08, q) * (1 + 0.5 * (cord - 0.5) + 0.35 * clamp(knot / (0.06 * k), 0, 1)) * (1 - 0.6 * crack);
         out.color = [dark * RECESS_BAL[0], dark * RECESS_BAL[1], dark * RECESS_BAL[2]];
       },
-      { cols: 40, rows: 3 },
+      { cols: hero ? 112 : 56, rows: hero ? 8 : 4 },
     );
     faceTowards(doorTunnel, (p, o) => frame.door((doorW0 + doorW1) / 2, Math.min(p.y - yFloor, doorTop - doorRc - 0.2), (dBack + roomFront) / 2, o));
     porchParts.push(doorTunnel);
@@ -1392,19 +1414,42 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // cool grey (see `roomMaterial`); the embers' pool is the only warm diffuse tint
       return [s * 0.92 + g[0], s * 0.96 + g[1], s * 1.05 + g[2]];
     };
-    // room's front plane (inside face of the back wall) around the doorway
+    // room's front plane (inside face of the back wall) around the doorway.
+    // Round 43 (structures-27): the vestibule's inner wall is the hollow trunk's heartwood — long
+    // VERTICAL GRAIN ridges (±2 cm into the room), three knots and the cracks between the ridges,
+    // shaded in the tint so the lamp pools round the door show a grained wall, not a flat plane.
+    const wallKnots: { w: number; y: number; s: number; h: number }[] = [];
+    {
+      const wk = rng.fork('wall-knots43');
+      for (let i = 0; i < 3; i++) wallKnots.push({ w: lerp(roomW0, roomW1, wk()), y: lerp(roomFloorY + 0.3 * k, roomCeilY - 0.2 * k, wk()), s: (0.12 + wk() * 0.1) * k, h: (0.03 + wk() * 0.02) * k });
+    }
+    const wallRelief = (w: number, y: number): { d: number; shade: number } => {
+      const ridge = noise.ridged(w * 3.6 + 2, y * 0.45 + 1, 2) - 0.5;
+      const crack = Math.pow(1 - Math.abs(noise.noise(w * 5.1 + 7, y * 0.6)), 7);
+      let knot = 0;
+      for (const kn of wallKnots) {
+        const q = ((w - kn.w) * (w - kn.w) + (y - kn.y) * (y - kn.y)) / (kn.s * kn.s);
+        if (q < 6) knot += kn.h * Math.exp(-q);
+      }
+      return { d: ridge * 0.02 * k - crack * 0.015 * k + knot, shade: (1 + 0.45 * ridge) * (1 - 0.5 * crack) * (1 + 0.3 * clamp(knot / (0.04 * k), 0, 1)) };
+    };
     roomParts.push(
       gridSurface(
         (u, v, out) => {
           const w = lerp(roomW0 - 0.05, roomW1 + 0.05, u);
           const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
-          frame.door(w, y, roomFront + 0.01, out.position);
+          const rel = wallRelief(w, y);
+          // (the relief fades to nothing at the door's cut, where the reveal meets the plane)
+          const edge = smoothstep(0, 0.12 * k, doorSD(w, y));
+          frame.door(w, y, roomFront + 0.01 - rel.d * edge, out.position);
           out.uv = [w / 2.2, y / 2.2];
-          out.color = wallShade(w, y, out.position);
+          const c = wallShade(w, y, out.position);
+          const sh = lerp(1, rel.shade, edge);
+          out.color = [c[0] * sh, c[1] * sh, c[2] * sh];
         },
         {
-          cols: 30,
-          rows: 24,
+          cols: hero ? 72 : 30,
+          rows: hero ? 56 : 24,
           hole: (u, v) => doorSD(lerp(roomW0 - 0.05, roomW1 + 0.05, u), lerp(roomFloorY - 0.06, roomCeilY + 0.06, v)) < 0,
         },
       ),
@@ -1603,12 +1648,66 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // none, its edge is bark rounding into the root lips ----
   const woodParts = [];
   {
-    const sillBeam = new BoxGeometry(doorW1 - doorW0 + 0.5 * k, 0.12 * k, 0.6 * k);
-    sillBeam.applyMatrix4(basisMatrix(frame.door((doorW0 + doorW1) / 2, sill - 0.03, dBack + 0.02), F));
+    // Round 43 (structures-27): the sill is a HEWN BEAM, not a box — a squared log (a rounded-
+    // rectangle section that relaxes to the tube's octagon at the ends, buried in the jambs) with
+    // long grain running its length (woodGrain.ts: ±4 mm relief, the lines darkened in the tint),
+    // a fine fibre octave, a foot-worn DIP across the doorway's middle where the top is polished
+    // pale, and a second, smaller beam — the STEP — lying on it against the floor pad's riser, so
+    // the pad is a wooden step up from the sill and not an open dark face.
     // grey-brown, weathered: the frame reads neutral in the reference (≈ (72, 78, 76)), so the
     // plank map's warmth is countered by a cool vertex tint
-    setColorAttribute(sillBeam, [0.6, 0.62, 0.62]);
-    woodParts.push(sillBeam);
+    const beamTint: [number, number, number] = [0.6, 0.62, 0.62];
+    const hewnBeam = (w0: number, w1: number, y: number, d: number, halfD: number, halfH: number, seed: number, worn: number): BufferGeometry => {
+      const from = frame.door(w0, y, d);
+      const to = frame.door(w1, y, d);
+      const length = w1 - w0;
+      // the section is shaped in the beam's own (depth, height) frame from the point's direction
+      // off the axis (the sweep's Frenet angle starts wherever three.js puts it)
+      const up = new Vector3(0, 1, 0);
+      const _pp = new Vector3();
+      const geo = sweepTube(new LineCurve3(from, to), {
+        radius: () => halfH,
+        tubularSegments: hero ? 40 : 16,
+        radialSegments: 8,
+        uvMetres: 0.8,
+        displace: (t, ang, pos) => {
+          // the point's direction from the axis, in the (depth, height) frame
+          _pp.copy(pos).sub(from).addScaledVector(Rt, -(pos.x - from.x) * Rt.x - (pos.z - from.z) * Rt.z);
+          const hy = _pp.dot(up);
+          const hd = _pp.dot(F);
+          const rr = Math.hypot(hy, hd) || 1;
+          const cy = hy / rr;
+          const cd = hd / rr;
+          // rounded rectangle (p-norm 5) with the given half-sizes; the ends relax to the octagon
+          const p = 5;
+          const shape = 1 / Math.pow(Math.pow(Math.abs(cd) / halfD, p) + Math.pow(Math.abs(cy) / halfH, p), 1 / p);
+          // (the ends relax to a round of the beam's height, so the cap discs stay inside the jambs)
+          const endRelax = smoothstep(0, 0.08, t) * smoothstep(1, 0.92, t);
+          const target = lerp(halfH, shape, endRelax);
+          const grain = woodGrain(noise, t * length, ang, 14, 0.5, seed) - 0.5;
+          const fibre = woodFibre(noise, t * length, ang, 14, seed) - 0.5;
+          // the foot-worn dip: the top face sinks toward the doorway's middle
+          const dip = worn * Math.max(0, cy) * Math.exp(-(((t - 0.5) / 0.22) ** 2));
+          return target - halfH + grain * 0.004 * k * endRelax + fibre * 0.0015 * k - dip;
+        },
+        color: (t, ang) => {
+          const grain = woodGrain(noise, t * length, ang, 14, 0.5, seed);
+          const fibre = woodFibre(noise, t * length, ang, 14, seed);
+          // the trodden top polished pale, the grain lines dark, the underside damp and dark
+          const s = Math.sin(ang);
+          const polish = worn > 0 ? 0.35 * Math.exp(-(((t - 0.5) / 0.3) ** 2)) : 0;
+          const g = (0.85 + 0.3 * grain) * (0.92 + 0.16 * fibre) * (1 + polish) * (1 - 0.25 * Math.max(0, -s));
+          return [beamTint[0] * g, beamTint[1] * g, beamTint[2] * g * (1 - 0.06 * polish)];
+        },
+        capStart: true,
+        capEnd: true,
+      });
+      return geo;
+    };
+    // the sill: top at sill + 0.03 as before, 0.6 k deep, its ends 0.25 k inside the jambs
+    woodParts.push(hewnBeam(doorW0 - 0.25 * k, doorW1 + 0.25 * k, sill - 0.04, dBack + 0.02, 0.3 * k, 0.07 * k, 3, 0.012 * k));
+    // the step: on the sill's back, against the riser, its top at the floor pad's level
+    woodParts.push(hewnBeam(doorW0 - 0.08 * k, doorW1 + 0.08 * k, (sill + 0.03 + roomFloorY) / 2, roomFront + 0.06 + 0.13 * k, 0.13 * k, (roomFloorY - sill - 0.03) / 2, 7, 0.008 * k));
   }
   const woodMesh = new Mesh(merge(woodParts), mats.wood);
   woodMesh.name = 'door-frame';
@@ -1617,6 +1716,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   // ---- stone threshold slab at path level in front of the sill (sheet 04: the door opens on
   // the flagstones) — an irregular worn slab, grey-brown like the path stones ----
+  /** the slab's footprint (door space) and top, for the round-43 moss doormat */
+  let thresholdSlab: { w: number; d: number; cw: number; cd: number; top: number } | null = null;
   {
     let stone = shared.stone;
     if (!stone) {
@@ -1627,6 +1728,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const slabD = 0.42 * k;
     const slabC = frame.door((doorW0 + doorW1) / 2 + 0.05 * k, 0, dBack + 0.42 * k);
     const slabTop = Math.max(sill - 0.035, terrain.height(slabC.x, slabC.z) - yFloor + 0.07);
+    thresholdSlab = { w: slabW, d: slabD, cw: (doorW0 + doorW1) / 2 + 0.05 * k, cd: dBack + 0.42 * k, top: slabTop };
     const slab = new CylinderGeometry(1, 1.06, 0.12 * k, 9, 1, false);
     slab.scale(slabW, 1, slabD);
     // irregular outline: nudge the rim vertices in and out
@@ -4246,6 +4348,56 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     onParts(rootParts, 0.35, 0.45, 'rootTufts', 0);
     onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
   }
+  // ---- round 43 (structures-27): the MOSS DOORMAT — trodden moss on the threshold slab and the
+  // packed earth in front of the sill: dense, squat cushions along the slab's edges and against
+  // the sill, thinned and flattened to a browner, worn film along the walked line through the
+  // door's middle. Stands exactly on the slab's top or the porch floor's ramp; same tuft bucket
+  // as the trunk moss (no new draw). Own fork. ----
+  let doormatTufts = 0;
+  if (thresholdSlab) {
+    const matRng = rng.fork('doormat43');
+    const slab = thresholdSlab;
+    const wc = (doorW0 + doorW1) / 2;
+    const upN = new Vector3(0, 1, 0);
+    const MAT_MOSS: [number, number, number] = [0.105, 0.165, 0.032];
+    const MAT_WORN: [number, number, number] = [0.11, 0.115, 0.04];
+    for (let i = 0; i < 520; i++) {
+      const w = lerp(doorW0 - 0.3 * k, doorW1 + 0.3 * k, matRng());
+      const d = lerp(dBack + 0.06 * k, dBack + 1.05 * k, matRng());
+      // the walked line: few tufts, flat and worn; dense toward the slab's edges and the sill
+      const walk = 1 - smoothstep(0.55 * k, 0.2 * k, Math.abs(w - wc - 0.05 * k));
+      const edge = smoothstep(0.35 * k, 0.05 * k, Math.abs(d - (dBack + 0.06 * k)));
+      const keep = lerp(0.12, 1, Math.max(walk, 0.5 * edge));
+      if (matRng() > keep) continue;
+      // on the slab (ellipse footprint) or the porch floor's ramp
+      const rr = Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d);
+      let y: number;
+      if (rr < 0.92) y = slab.top;
+      else if (rr > 1.1) {
+        const ramp = lerp(sill - 0.02, 0.03, smoothstep(dBack + 0.1, dBack + 1.25 * k, d));
+        frame.door(w, ramp, d, _bd);
+        y = Math.max(ramp, terrain.height(_bd.x, _bd.z) - yFloor + 0.05);
+      } else continue; // the slab's ragged rim: skip it
+      const trodden = 1 - walk;
+      const r = (0.02 + matRng() * 0.03) * sk * lerp(1, 0.75, trodden);
+      const sh = 0.8 + 0.4 * matRng();
+      const c: [number, number, number] = [lerp(MAT_MOSS[0], MAT_WORN[0], trodden) * sh, lerp(MAT_MOSS[1], MAT_WORN[1], trodden) * sh, lerp(MAT_MOSS[2], MAT_WORN[2], trodden) * sh];
+      frame.door(w, y, d, _bd);
+      tuft41.push({
+        position: _bd.clone(),
+        normal: upN.clone(),
+        rx: r * (0.8 + matRng() * 0.5),
+        rz: r * (0.8 + matRng() * 0.5),
+        h: r * lerp(0.6, 0.22, trodden) * (0.8 + matRng() * 0.4),
+        yaw: matRng() * TAU,
+        color: c,
+        uv: [w / 1.6, d / 1.6],
+        sink: r * 0.45,
+        seed: 1 + Math.floor(matRng() * 1e6),
+      });
+      doormatTufts++;
+    }
+  }
   // rounder than the roof's (a 3 m camera sees these): 9 / 6 segments, 3 / 2 rings; the crown gain
   // is held down so the tufts do not glow against the floor-shaded bark
   const tufts41 = buildMossTufts(tuft41, n3, { segments: [9, 6], rings: [3, 2], topGain: 1.3, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
@@ -4326,6 +4478,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     room: { floorY: roomFloorY, backD: [roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1)], floorPoke, pokeAt },
     bough: boughSamples,
     mossDetail: { ...mossDetail, plants: plants40 },
-    trunkDetail: detail41,
+    trunkDetail: { ...detail41, doormatTufts },
   };
 }

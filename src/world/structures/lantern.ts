@@ -6,17 +6,38 @@
  *
  * Round 21: the pod is a fruit in a woven LEAF HUSK, as reference B's three pods over the door
  * read at 2× (a lit yellow-orange body under a green calyx whose sepals hang down its sides) and
- * as the distant huts' pods were already built (distantHouse.ts): five dark sepal fins curl from
+ * as the distant huts' pods were already built (distantHouse.ts): dark sepal fins curl from
  * under the cap's brim down to a third of the body, standing 1.5 cm off it and flaring out at
  * their tips, and a calyx collar sits where the stem meets the cap. The fins ride in the same
- * geometry on the gradient's dark rows (no glow), so the pod is still one draw. The lit body,
- * the cap, the cord, the pod centre and the swing draws are unchanged.
+ * geometry on the gradient's dark rows (no glow), so the pod is still one draw.
+ *
+ * Round 43 (structures-27): the pod at 1–3 m. The owner's board 05 "Hanging Lanterns" pod is a
+ * plant pod — a SEGMENTED husk with a veined skin over a warm glowing core, on a knotted stem
+ * with a leaf collar — where ours was a smooth lathe under a vertical gradient. Now:
+ *  - the body is a ribbed surface with `ribs` (5–7) segments: a sharp groove on every seam, the
+ *    segments bulging between (`podBulge`), the grooves fading at the tip; its uv lands on the
+ *    pod-skin atlas (podSkin.ts / materials.ts) so the map's seams, midribs and side veins sit on
+ *    the mesh's segments, and the emissive map's glow field (thin skin mid-segment, dark seams,
+ *    a hotter core low down) reads as a translucent husk over a lit interior;
+ *  - the calyx is scalloped — its brim dips over every seam — and carries one leathery leaf tile
+ *    per segment; the sepals are one per segment, centred on the bulges, on the same leaf tiles;
+ *  - the stem is a knuckled twig (two knots) with a small LEAF COLLAR of 3–5 bracts where the
+ *    cord meets it, fluttering on the shared wind (aPhase / aAmount, materials.ts wind hook);
+ *  - the cord is a laid three-strand rope (a 3 cm lay) with a two-turn hitch round the stem's
+ *    top and a knot at the hook.
+ * Still one geometry / one draw per pod. The pod centre (`pod`), the hook, the cord length and
+ * the four draws from the caller's `rng` (cap tint, swing phase / amplitude / speed) are the
+ * round-21 ones, so `podPositions` and every downstream stream are unchanged; all new detail
+ * draws from the pod's own fork. The far look holds by construction: the albedo atlas
+ * modulates round POD_MAP_MEAN and the tints below are divided by it, the emissive's body rows
+ * keep the round-11 gradient's mean (see podEmissiveTexture).
  */
-import { BufferGeometry, CylinderGeometry, Float32BufferAttribute, LatheGeometry, Mesh, Object3D, Vector2, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LineCurve3, Mesh, Object3D, TorusGeometry, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
-import { clamp, lerp } from '../util/noise';
-import { TAU, faceTowards, gridSurface, merge, setColorAttribute } from './geometry';
-import { LANTERN_DARK_V, type StructureMaterials } from './materials';
+import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
+import { TAU, faceTowards, gridSurface, merge, setColorAttribute, setFloatAttribute, sweepTube } from './geometry';
+import type { StructureMaterials } from './materials';
+import { POD_BODY_V, POD_CAP_BAND, POD_CORD_BAND, POD_CORD_V, POD_MAP_MEAN, POD_TEX_SEGMENTS, podBulge, podU } from './podSkin';
 
 export interface LanternRig {
   /** placed at the hook; rotate this to swing the lantern */
@@ -27,6 +48,8 @@ export interface LanternRig {
   amp: number;
   speed: number;
 }
+
+type RGB = [number, number, number];
 
 const BODY_PROFILE: [number, number][] = [
   [0.012, 0.0],
@@ -47,6 +70,16 @@ const CAP_PROFILE: [number, number][] = [
   [0.04, 0.405],
   [0.0, 0.41],
 ];
+/** the body's height (scale 1) */
+const BODY_H = 0.315;
+/** the stem's foot (the calyx's top) and its length (scale 1) */
+const STEM_Y = 0.405;
+const STEM_H = 0.075;
+/** the husk's groove depth as a share of the body radius, on a seam mid-body */
+const GROOVE = 0.075;
+/** the cord's radius (m, not scaled — a cord is a cord) and its lay (m per turn of the strands) */
+const CORD_R = 0.011;
+const CORD_LAY = 0.03;
 
 /** the lit body's radius at height y (scale 1), for the sepals to ride on */
 function bodyRadius(y: number): number {
@@ -58,60 +91,231 @@ function bodyRadius(y: number): number {
   return BODY_PROFILE[BODY_PROFILE.length - 1][0];
 }
 
-/** number of sepal fins round a pod's husk */
-export const SEPALS = 5;
-
-/**
- * The husk (round 21): `SEPALS` sepal fins from under the cap's brim (y 0.29) down to 0.08–0.12 of
- * the body, 1.5 cm off it, tapering to a point and curling outward toward the tip; a calyx collar
- * round the stem's foot. Own rng (forked from the pod's hook, so no draw of the pods' stream moves).
- */
-function husk(scale: number, rng: Rng, tint: number): BufferGeometry[] {
-  const parts: BufferGeometry[] = [];
-  // (dark: the fins sit in the pods' own point light, so a mid tint rendered pale grey-green)
-  const sepal: [number, number, number] = [0.12 * tint, 0.18 * tint, 0.06 * tint];
-  const phase = rng() * TAU;
-  for (let f = 0; f < SEPALS; f++) {
-    const phi0 = phase + (f / SEPALS) * TAU + (rng() - 0.5) * 0.3;
-    const yTop = 0.29;
-    const yTip = 0.08 + rng() * 0.04;
-    const width = 0.1 * (0.85 + rng() * 0.25);
-    const curl = 0.02 + rng() * 0.02;
-    const fin = gridSurface(
-      (u, v, out) => {
-        const y = lerp(yTop, yTip, u);
-        // off the body, flaring out toward the tip (the sepal's tip curls away from the fruit)
-        const r = bodyRadius(y) + 0.015 + curl * u * u;
-        const w = width * Math.pow(1 - u, 0.7);
-        const phi = phi0 + ((v - 0.5) * w) / Math.max(r, 0.02);
-        out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
-        out.uv = [v, 0.95];
-        // a darker mid-rib, lighter edges
-        const k = 0.8 + 0.4 * Math.abs(v - 0.5) * 2;
-        out.color = [sepal[0] * k, sepal[1] * k, sepal[2] * k];
-      },
-      { cols: 3, rows: 7 },
-    );
-    faceTowards(fin, (p, o) => o.set(p.x * 4, p.y, p.z * 4));
-    parts.push(fin);
-  }
-  // calyx collar at the stem's foot
-  const collar = new CylinderGeometry(0.03 * scale, 0.055 * scale, 0.035 * scale, 10);
-  collar.translate(0, 0.415 * scale, 0);
-  setV(collar, 0.95);
-  setColorAttribute(collar, [0.11 * tint, 0.16 * tint, 0.06 * tint]);
-  parts.push(collar);
-  return parts;
+/** the calyx profile at t ∈ [0, 1] (brim → stem foot): [radius, y] (scale 1) */
+function capProfile(t: number): [number, number] {
+  const f = t * (CAP_PROFILE.length - 1);
+  const i = Math.min(CAP_PROFILE.length - 2, Math.floor(f));
+  const k = f - i;
+  return [lerp(CAP_PROFILE[i][0], CAP_PROFILE[i + 1][0], k), lerp(CAP_PROFILE[i][1], CAP_PROFILE[i + 1][1], k)];
 }
 
-function remapV(geo: BufferGeometry, v0: number, v1: number) {
-  const uv = geo.attributes.uv as Float32BufferAttribute;
-  for (let i = 0; i < uv.count; i++) uv.setY(i, v0 + (v1 - v0) * uv.getY(i));
+/** the depth of the seam grooves along the body: nothing at the very tip, full mid-body, half under the calyx */
+function grooveDepth(vb: number): number {
+  return GROOVE * smoothstep(0, 0.18, vb) * (1 - 0.5 * smoothstep(0.8, 1, vb));
+}
+
+/** number of sepal fins round a pod's husk (round 21; round 43: one per segment, `ribs`) */
+export const SEPALS = 5;
+/** the husk's segment count range (round 43) */
+export const POD_RIBS: [number, number] = [5, 7];
+
+/** the shared wind attributes on a pod part: `amount` 0 (rigid) or per vertex */
+function windAttrs(geo: BufferGeometry, phase: number, amount: number | ((i: number) => number)): BufferGeometry {
+  setFloatAttribute(geo, 'aPhase', phase);
+  setFloatAttribute(geo, 'aAmount', amount);
+  return geo;
 }
 
 function setV(geo: BufferGeometry, v: number) {
   const uv = geo.attributes.uv as Float32BufferAttribute;
   for (let i = 0; i < uv.count; i++) uv.setY(i, v);
+}
+
+/** a tint divided by the albedo atlas' mean (the map modulates round it) */
+const mapped = (c: RGB, k = 1): RGB => [(c[0] * k) / POD_MAP_MEAN, (c[1] * k) / POD_MAP_MEAN, (c[2] * k) / POD_MAP_MEAN];
+
+/**
+ * Round 43: the ribbed husk body. `ribs` segments round the pod; seam grooves at φ = k · 2π /
+ * ribs, the segments bulging between; the noise gives each segment a little of its own girth.
+ */
+function ribbedBody(scale: number, ribs: number, noise: Noise2D, tint: RGB): BufferGeometry {
+  const cols = ribs * 8;
+  const geo = gridSurface(
+    (u, vb, out) => {
+      const phi = u * TAU;
+      const y = vb * BODY_H;
+      const bulge = podBulge(phi, ribs);
+      // each side of the pod a little of its own girth (a smooth field round φ, so no step on a seam)
+      const girth = 1 + 0.03 * noise.noise(Math.cos(phi) * 1.4 + 0.5, Math.sin(phi) * 1.4 + vb * 2.1) * smoothstep(0, 0.2, vb) * smoothstep(1, 0.85, vb);
+      const r = bodyRadius(y) * girth * (1 - grooveDepth(vb) * (1 - bulge));
+      out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
+      out.uv = [podU(phi, ribs), vb * POD_BODY_V];
+      const ao = 1 - 0.14 * (1 - bulge) * smoothstep(0, 0.15, vb);
+      out.color = [tint[0] * ao, tint[1] * ao, tint[2] * ao];
+    },
+    { cols, rows: 18, closedU: true },
+  );
+  return faceTowards(geo, (p, o) => o.set(p.x * 4, p.y, p.z * 4));
+}
+
+/** Round 43: the scalloped calyx — the brim dips over every seam, one leaf tile per segment. */
+function scallopedCap(scale: number, ribs: number, tint: RGB): BufferGeometry {
+  const [b0, b1] = POD_CAP_BAND;
+  const geo = gridSurface(
+    (u, t, out) => {
+      const phi = u * TAU;
+      const bulge = podBulge(phi, ribs);
+      const [r0, y0] = capProfile(t);
+      // the scallop is the brim's: full at t ≈ 0.25 (the widest ring), gone at the stem
+      const brim = smoothstep(0, 0.2, t) * smoothstep(0.75, 0.35, t);
+      const r = r0 * (1 - 0.1 * (1 - bulge) * brim);
+      const y = y0 - 0.014 * (1 - bulge) * brim;
+      out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
+      out.uv = [podU(phi, ribs), lerp(b0, b1, t)];
+      const shade = 1 - 0.18 * (1 - bulge) * brim;
+      out.color = [tint[0] * shade, tint[1] * shade, tint[2] * shade];
+    },
+    { cols: ribs * 8, rows: 8, closedU: true },
+  );
+  // the profile ends on the axis (r = 0): its winding is the lathe's, outward
+  return faceTowards(geo, (p, o) => o.set(p.x * 4, p.y + 0.02, p.z * 4));
+}
+
+/**
+ * The husk (round 21): sepal fins from under the cap's brim (y 0.29) down to 0.08–0.12 of the
+ * body, 1.5 cm off it, tapering to a point and curling outward toward the tip. Round 43: one per
+ * segment, centred on the bulge between two seams, on the atlas' leaf tiles (midrib down the
+ * fin's centre, side veins). Own rng (forked from the pod's hook, so no draw of the pods' stream moves).
+ */
+function sepals(scale: number, ribs: number, rng: Rng, tint: RGB): BufferGeometry[] {
+  const parts: BufferGeometry[] = [];
+  const [b0, b1] = POD_CAP_BAND;
+  for (let f = 0; f < ribs; f++) {
+    const phi0 = ((f + 0.5) / ribs) * TAU + (rng() - 0.5) * 0.12;
+    const yTop = 0.29;
+    const yTip = 0.08 + rng() * 0.04;
+    const width = (0.62 / ribs) * (0.85 + rng() * 0.25);
+    const curl = 0.02 + rng() * 0.02;
+    const tile = f % POD_TEX_SEGMENTS;
+    const fin = gridSurface(
+      (u, v, out) => {
+        const y = lerp(yTop, yTip, u);
+        // off the body, flaring out toward the tip (the sepal's tip curls away from the fruit);
+        // cupped across so the fin wraps the segment
+        const cup = 0.012 * (1 - Math.pow((v - 0.5) * 2, 2)) * (1 - u);
+        const r = bodyRadius(y) + 0.015 + curl * u * u - cup;
+        const w = width * Math.pow(1 - u, 0.7);
+        const phi = phi0 + ((v - 0.5) * w) / Math.max(r, 0.02);
+        out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
+        // the leaf tile: across the fin = across the tile (midrib at v 0.5), tip at the band's bottom
+        out.uv = [(tile + v) / POD_TEX_SEGMENTS, lerp(b1, b0, u)];
+        // a darker mid-rib, lighter edges, the tip a touch browner
+        const k = (0.8 + 0.4 * Math.abs(v - 0.5) * 2) * (1 - 0.15 * u);
+        out.color = [tint[0] * k * (1 + 0.25 * u), tint[1] * k, tint[2] * k];
+      },
+      { cols: 5, rows: 9 },
+    );
+    faceTowards(fin, (p, o) => o.set(p.x * 4, p.y, p.z * 4));
+    parts.push(fin);
+  }
+  return parts;
+}
+
+/**
+ * Round 43: the knuckled stem — a twig with two knots, bending a little, from the calyx's top
+ * to the cord's hitch. Bark on the cord band's fibres.
+ */
+function knottedStem(scale: number, rng: Rng, tint: RGB): { geo: BufferGeometry; top: Vector3 } {
+  const lean = (rng() - 0.5) * 0.02;
+  const lean2 = (rng() - 0.5) * 0.02;
+  const k0 = 0.3 + rng() * 0.15;
+  const k1 = 0.7 + rng() * 0.12;
+  const pts = [new Vector3(0, STEM_Y - 0.01, 0), new Vector3(lean, STEM_Y + STEM_H * 0.45, lean2), new Vector3(lean * 0.4, STEM_Y + STEM_H, -lean2 * 0.4)];
+  for (const p of pts) p.multiplyScalar(scale);
+  const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+  const geo = sweepTube(curve, {
+    radius: (t) => 0.016 * scale * (1.15 - 0.3 * t) * (1 + 0.45 * Math.exp(-(((t - k0) / 0.1) ** 2)) + 0.3 * Math.exp(-(((t - k1) / 0.08) ** 2))),
+    tubularSegments: 10,
+    radialSegments: 8,
+    uvMetres: 0.016 * scale * TAU,
+    displace: (t, ang) => 0.0012 * scale * Math.sin(ang * 4 + t * 9) * (1 - Math.abs(2 * t - 1)),
+    color: (t) => {
+      const k = 0.9 + 0.2 * Math.exp(-(((t - k0) / 0.1) ** 2));
+      return [tint[0] * k, tint[1] * k, tint[2] * k];
+    },
+  });
+  cordBandUv(geo);
+  return { geo, top: pts[2] };
+}
+
+/** the sweep's uv onto the atlas' cord band: fibres round (u), a gentle wander along (v) */
+function cordBandUv(geo: BufferGeometry) {
+  const uv = geo.attributes.uv as Float32BufferAttribute;
+  const [b0, b1] = POD_CORD_BAND;
+  const half = (b1 - b0) * 0.4;
+  for (let i = 0; i < uv.count; i++) uv.setY(i, POD_CORD_V + half * Math.sin(uv.getY(i) * TAU));
+}
+
+/**
+ * Round 43: the laid cord — three strands twisted round the axis (a CORD_LAY lay), straight
+ * from the stem's top to the hook.
+ */
+function laidCord(from: Vector3, to: Vector3, tint: RGB): BufferGeometry {
+  const length = from.distanceTo(to);
+  const ts = Math.max(2, Math.ceil(length / 0.04));
+  const geo = sweepTube(new LineCurve3(from, to), {
+    radius: () => CORD_R,
+    tubularSegments: ts,
+    radialSegments: 9,
+    uvMetres: CORD_R * TAU,
+    displace: (t, ang) => 0.32 * CORD_R * Math.cos(3 * ang - (t * length * TAU) / CORD_LAY),
+    color: (t, ang) => {
+      const k = 0.88 + 0.24 * Math.max(0, Math.cos(3 * ang - (t * length * TAU) / CORD_LAY));
+      return [tint[0] * k, tint[1] * k, tint[2] * k];
+    },
+  });
+  cordBandUv(geo);
+  return geo;
+}
+
+/** a rope turn: a torus round `axis` at `centre` (the hitch's turns, the hook's knot) */
+function ropeTurn(centre: Vector3, radius: number, tube: number, tilt: number, tint: RGB): BufferGeometry {
+  const g = new TorusGeometry(radius, tube, 6, 16);
+  g.rotateX(Math.PI / 2 + tilt);
+  g.translate(centre.x, centre.y, centre.z);
+  setV(g, POD_CORD_V);
+  setColorAttribute(g, tint);
+  return g;
+}
+
+/**
+ * Round 43: the leaf collar — 3–5 small bracts where the cord meets the stem, cupped, pointing
+ * out and down, on the atlas' leaf tiles; they flutter on the shared wind (aAmount grows to the tip).
+ */
+function leafCollar(top: Vector3, scale: number, rng: Rng, tint: RGB): BufferGeometry[] {
+  const parts: BufferGeometry[] = [];
+  const n = 3 + Math.floor(rng() * 3);
+  const phase0 = rng() * TAU;
+  const [b0, b1] = POD_CAP_BAND;
+  for (let i = 0; i < n; i++) {
+    const phi0 = phase0 + (i / n) * TAU + (rng() - 0.5) * 0.5;
+    const len = (0.05 + rng() * 0.025) * scale;
+    const wid = (0.022 + rng() * 0.01) * scale;
+    const droop = 0.5 + rng() * 0.6;
+    const tile = i % POD_TEX_SEGMENTS;
+    const ca = Math.cos(phi0);
+    const sa = Math.sin(phi0);
+    const leaf = gridSurface(
+      (u, v, out) => {
+        // along the bract: out from the stem, drooping; across: a pointed leaf, cupped
+        const half = wid * Math.pow(Math.sin(Math.PI * Math.min(1, 0.08 + u * 0.92)), 0.7);
+        const across = (v - 0.5) * 2 * half;
+        const out_ = 0.012 * scale + u * len;
+        const dy = -droop * u * u * len - 0.4 * Math.abs(across) * (1 - u);
+        out.position.set(top.x + ca * out_ - sa * across, top.y + dy - 0.004 * scale, top.z + sa * out_ + ca * across);
+        out.uv = [(tile + v) / POD_TEX_SEGMENTS, lerp(b1, b0, u)];
+        const k = 0.85 + 0.3 * Math.abs(v - 0.5) * 2;
+        out.color = [tint[0] * k, tint[1] * k, tint[2] * k];
+      },
+      { cols: 5, rows: 6 },
+    );
+    faceTowards(leaf, (p, o) => o.set(p.x, p.y + 1, p.z));
+    // the flutter grows to the tip (the band's v runs b1 → b0 base → tip)
+    const uvA = leaf.attributes.uv as Float32BufferAttribute;
+    windAttrs(leaf, rng() * TAU, (k) => 0.009 * ((b1 - uvA.getY(k)) / (b1 - b0)));
+    parts.push(leaf);
+  }
+  return parts;
 }
 
 export type LanternKind = 'orange' | 'lime';
@@ -122,45 +326,35 @@ export type LanternKind = 'orange' | 'lime';
  * pods 50 m out; same geometry, same draws.
  */
 export function buildLantern(hook: Vector3, cordLength: number, mats: StructureMaterials, rng: Rng, scale = 1, kind: LanternKind = 'orange', far = false): LanternRig {
-  const body = new LatheGeometry(
-    BODY_PROFILE.map(([x, y]) => new Vector2(x * scale, y * scale)),
-    28,
-  );
-  // LatheGeometry v runs 0→1 from the first profile point (bottom) to the last (top)
-  remapV(body, 0.0, LANTERN_DARK_V - 0.06);
-  // dark diffuse so sunlight does not wash the emissive gradient to cream
-  setColorAttribute(body, kind === 'lime' ? [0.4, 0.52, 0.12] : [0.5, 0.34, 0.12]);
-
-  const cap = new LatheGeometry(
-    CAP_PROFILE.map(([x, y]) => new Vector2(x * scale, y * scale)),
-    28,
-  );
-  setV(cap, 0.95);
+  // the caller's stream: exactly the round-21 draws (cap tint, then swing phase / amplitude / speed)
   const capTint = 0.85 + rng() * 0.3;
-  setColorAttribute(cap, [0.28 * capTint, 0.33 * capTint, 0.16 * capTint]);
+  // round 21 / 43: the husk and every new detail draw from the hook's fork, so the pods' stream keeps its draws
+  const own = rng.fork(`husk/${hook.x.toFixed(3)}/${hook.y.toFixed(3)}/${hook.z.toFixed(3)}`);
+  const noise = new Noise2D(`pod/${hook.x.toFixed(3)}/${hook.y.toFixed(3)}/${hook.z.toFixed(3)}`);
+  const ribs = POD_RIBS[0] + Math.floor(own() * (POD_RIBS[1] - POD_RIBS[0] + 1));
 
-  const stemH = 0.07 * scale;
-  const stem = new CylinderGeometry(0.014 * scale, 0.02 * scale, stemH, 8);
-  stem.translate(0, 0.41 * scale + stemH / 2, 0);
-  setV(stem, 0.95);
-  setColorAttribute(stem, [0.22, 0.17, 0.1]);
+  // dark diffuse so sunlight does not wash the emissive gradient to cream
+  const body = ribbedBody(scale, ribs, noise, mapped(kind === 'lime' ? [0.4, 0.52, 0.12] : [0.5, 0.34, 0.12]));
+  const cap = scallopedCap(scale, ribs, mapped([0.28, 0.33, 0.16], capTint));
+  // (dark: the fins sit in the pods' own point light, so a mid tint rendered pale grey-green)
+  const fins = sepals(scale, ribs, own, mapped([0.12, 0.18, 0.06], capTint));
+  const stem = knottedStem(scale, own, mapped([0.22, 0.17, 0.1]));
+  const podTop = stem.top.y;
+  const hookLocal = new Vector3(0, podTop + cordLength, 0);
+  const cordTint = mapped([0.2, 0.14, 0.08]);
+  const cord = laidCord(stem.top.clone(), hookLocal, cordTint);
+  // the hitch: two turns of the cord round the stem's top, the knot at the hook
+  const hitch = [
+    ropeTurn(stem.top.clone().setY(podTop - 0.014 * scale), 0.02 * scale + CORD_R * 0.6, CORD_R * 0.8, 0.25, mapped([0.17, 0.12, 0.07])),
+    ropeTurn(stem.top.clone().setY(podTop - 0.014 * scale - CORD_R * 1.5), 0.021 * scale + CORD_R * 0.6, CORD_R * 0.8, -0.2, cordTint),
+  ];
+  const knot = ropeTurn(hookLocal.clone().setY(podTop + cordLength - 0.02), 0.018, 0.012, 0.3, mapped([0.16, 0.11, 0.07]));
+  const collar = leafCollar(stem.top, scale, own, mapped([0.3, 0.42, 0.12], capTint));
 
-  const podTop = 0.41 * scale + stemH;
-  const cord = new CylinderGeometry(0.011, 0.011, cordLength, 6);
-  cord.translate(0, podTop + cordLength / 2, 0);
-  setV(cord, 0.95);
-  setColorAttribute(cord, [0.2, 0.14, 0.08]);
-
-  // small hook knot at the top of the cord
-  const knot = new CylinderGeometry(0.03, 0.03, 0.05, 8);
-  knot.translate(0, podTop + cordLength - 0.02, 0);
-  setV(knot, 0.95);
-  setColorAttribute(knot, [0.16, 0.11, 0.07]);
-
-  // round 21: the leaf husk — sepals and calyx collar, forked from the hook so the pods' stream
-  // (cap tint, swing phase / amplitude / speed) keeps its draws
-  const huskParts = husk(scale, rng.fork(`husk/${hook.x.toFixed(3)}/${hook.y.toFixed(3)}/${hook.z.toFixed(3)}`), capTint);
-  const geo = merge([body, cap, stem, cord, knot, ...huskParts]);
+  // every rigid part carries zero wind, so the merged geometry keeps the collar's attributes
+  const rigid = [body, cap, ...fins, stem.geo, cord, ...hitch, knot];
+  for (const g of rigid) windAttrs(g, 0, 0);
+  const geo = merge([...rigid, ...collar]);
   // shift so the hook (top of cord) is at the origin of the pivot
   geo.translate(0, -(podTop + cordLength), 0);
   const mesh = new Mesh(geo, kind === 'lime' ? (far ? mats.lanternLimeFar : mats.lanternLime) : far ? mats.lanternFar : mats.lantern);
