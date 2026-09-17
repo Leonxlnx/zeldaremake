@@ -2002,6 +2002,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (`3fa2019`: stem-like rachis, six clump characters with per-card mirror/scale/hue, lawn spikes)
   verifying. Integration + take-0110 + `art/environment/round40-review/` when both report.
 
+### 23:35 UTC — tick 120: round 40 sealed — take-0110 `1248fd0`; evidence at art/environment/round40-review
+- Merged r40/trees `e155bea`, r40/struct `c959308` (25 + 25b inter-cushion floor), r40/veg `3fa2019`
+  (21 + 21b rachis/clump variation/spikes). tsc clean, 18/18 tests.
+- **take-0110**: A 0.2331, B 0.2050, C 0.2361, D 0.2850, E 0.2156, F 0.2608 (mean 0.2393, −0.008 vs
+  take-0109 — the owner-accepted cost of real detail against the old soft frames); draws 575,
+  6.23 M tris on A; W35 all six; 23/50. Monitor `514e21d`.
+- Evidence committed (`9698964`): seven owner-view before/after sheets rendered from the two sealed
+  builds (plaza column, landing up/back, limb from below, pods at 3 m, roof from the landing, the
+  marked grass face) + the agents' sheets. What visibly changed: column bole cords/moss/knees;
+  lantern limb with twig forks and layered cupped laminae; bank lobes and distant crowns break
+  into leaf clumps; roof as cushion colonies on a shaded floor with a torn edge; right-foreground
+  grass fine and clustered; ferns bipinnate up close. Remaining: A/F stones still shaded by the
+  lantern-tree's house bough (composition call); overhead canopy from below is still hazy card
+  clusters; sun-side lantern laminae lighter than frame-03's heavy bough; shade floors (lift 13 /
+  7 / 6) flatten bark and leaf texture under the new cool light (Astra's note).
+- Round 41: trees-25 (looking-up canopy, shade floors, sun-side laminae), structures-26 (log arch
+  and huts close-up moss/bark, sun-side lantern leaf material).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2040,4 +2058,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T22:20:00Z
+2026-09-16T23:35:00Z
