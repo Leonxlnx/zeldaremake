@@ -147,7 +147,9 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
     rise: s.steps * s.rise,
     halfWidth: s.width / 2,
     baseY: s.base[1],
-    footBank: s.id === 'main' ? 0.13 : s.id === 'house-west' ? 0.06 : 0,
+    // (round 42: no foot bank on the house-west flight — its apron carries slabs now
+    // (hardscape/stairs.ts), and the 6 cm bank lifted the shelf to 0.30–0.34 under them)
+    footBank: s.id === 'main' ? 0.13 : 0,
     apron: s.id === 'house-west',
     landing: s.id === 'house-west' ? 0.85 : 1.7,
   };
@@ -158,8 +160,10 @@ const HOUSE_WEST = stairFrames.find((f) => f.id === 'house-west') ?? null;
 
 /**
  * The house-west flight's banks (round 32 — the flight now runs ESE (bearing 110°) from the
- * north path's east verge, 5.0–5.3 m from camera D, off a paved apron a full riser (0.27 m)
- * above the path to a 1.62 m landing beside the signpost; see layout.ts).
+ * north path's east verge, 5.0–5.3 m from camera D, off a paved apron above the path — 0.27 m
+ * until round 42, 0.18 m since (hardscape-29's measurement: the frames show a LOW first tread,
+ * and the shelf a full riser up put its kerb face where frame 56 s has flat pale paving) — to a
+ * 1.53 m landing beside the signpost; see layout.ts).
  * NORTH flank (v < 0): a SHORT verge — the bank, the landing flatten, the detail halo and the
  * damp splat all stop `northVerge` m beyond the tread ends, because the signpost (7, −9.3)
  * stands 1.1 m beyond them beside the top step and frame B fixes its board (round 31's first
