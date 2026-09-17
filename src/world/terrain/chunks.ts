@@ -102,6 +102,7 @@ export interface WeightContext {
     soil: Noise2D;
     rock: Noise2D;
     macro: Noise2D;
+    wet: Noise2D;
   };
 }
 
@@ -115,13 +116,26 @@ export function createWeightContext(terrain: Terrain, layout: Layout, seed: stri
       soil: new Noise2D(`${seed}/terrain-soil`),
       rock: new Noise2D(`${seed}/terrain-rock`),
       macro: new Noise2D(`${seed}/terrain-macro`),
+      wet: new Noise2D(`${seed}/terrain-wet`),
     },
   };
 }
 
 /**
+ * Round 43 — the near-field ground (terrain-4). `CURV_STEP` is the finite-difference step (m) of
+ * the concavity the wet band reads (`curv` = h(x±e) + h(z±e) − 4h, positive in a dish); the
+ * quantiles of that sum over the open ground at 0.6 m are p50 0.00, p90 0.22, p95 0.32, so
+ * `WET_CURV` picks the top eighth or so of the dishes. `DISP_PATH_FADE` is the path-mask level
+ * above which the vertex relief is off (the slabs are seated on `height()`; the relief must not
+ * lift the joint fill against their rims).
+ */
+export const NEAR_GROUND = { CURV_STEP: 0.6, WET_CURV: [0.2, 0.5] as [number, number], DISP_PATH_FADE: [0.02, 0.4] as [number, number] };
+
+/**
  * Layer weights for one vertex. Sequential "painting": each layer covers the previous ones with
  * alpha a, so the weights always sum to one and transitions stay crisp where they should be.
+ * `curv` (see `NEAR_GROUND`) and `w2` are the round-43 near-ground channels: `w2` = (wet band,
+ * vertex-relief allowance, giant-root proximity) — see material.ts for what each drives.
  */
 export function layerWeights(
   wc: WeightContext,
@@ -133,6 +147,8 @@ export function layerWeights(
   w0: Float32Array,
   w1: Float32Array,
   o: number,
+  curv = 0,
+  w2: Float32Array | null = null,
 ) {
   const N = wc.noise;
   let grass = 1;
@@ -209,6 +225,30 @@ export function layerWeights(
   w1[o + 1] = rock;
   w1[o + 2] = damp;
   w1[o + 3] = macro;
+
+  if (w2) {
+    const open = (1 - path) * (1 - stairs) * (1 - structure);
+    // wet band (frame 03's dark damp patches): the floor of the dishes — concave, near-flat
+    // ground — plus the depressions and the embankment feet the detail passes already flag damp,
+    // and a ring at the giants' feet where the roots channel the drip; a 2 m noise breaks the
+    // bands into patches so no hollow is uniformly dark
+    const conc = smoothstep(NEAR_GROUND.WET_CURV[0], NEAR_GROUND.WET_CURV[1], curv) * (1 - smoothstep(0.1, 0.3, slope));
+    let drip = 0;
+    for (const g of wc.layout.giantTrees) {
+      const dd = Math.hypot(x - g.position[0], z - g.position[2]);
+      if (dd < 3.2 * g.trunkRadius) drip = Math.max(drip, smoothstep(1.0 * g.trunkRadius, 1.5 * g.trunkRadius, dd) * (1 - smoothstep(2.2 * g.trunkRadius, 3.0 * g.trunkRadius, dd)));
+    }
+    const wetN = N.wet.fbm(x * 0.5 + 3.3, z * 0.5 - 7.1, 2) * 0.5 + 0.5;
+    const wet = clamp(Math.max(conc * 0.9, hollow * 0.6, damp * 0.5, drip * 0.5) * (0.4 + 1.0 * wetN), 0, 1) * open * (1 - rock) * (1 - gravel);
+    // vertex-relief allowance: off on the paving, stairs and pads (the slabs sit on `height()`),
+    // full on bare soil / litter / moss, a third on turf (the grass carpet is planted on
+    // `height()` and must not float), none on the triplanar rock
+    const relief = open * (1 - smoothstep(NEAR_GROUND.DISP_PATH_FADE[0], NEAR_GROUND.DISP_PATH_FADE[1], path)) * (1 - gravel) * (1 - rock) * (0.35 + 0.65 * clamp(soil + litter + moss, 0, 1));
+    w2[o] = wet;
+    w2[o + 1] = clamp(relief, 0, 1);
+    w2[o + 2] = roots;
+    w2[o + 3] = 0;
+  }
 }
 
 const _n = new Vector3();
@@ -224,7 +264,9 @@ export function buildChunkGeometry(spec: ChunkSpec, wc: WeightContext): { geomet
   const uv = new Float32Array(count * 2);
   const w0 = new Float32Array(count * 4);
   const w1 = new Float32Array(count * 4);
+  const w2 = new Float32Array(count * 4);
   const detailed = spec.ring < 2;
+  const ce = NEAR_GROUND.CURV_STEP;
   // global lattice indices of this chunk's origin: the ring spacing IS the lattice spacing of the
   // matching heightfield zone, so every vertex is a lattice point and takes its height straight
   // from the sampler's lattice (float32, seam-snapped) — the rendered surface equals `height()`.
@@ -253,7 +295,10 @@ export function buildChunkGeometry(spec: ChunkSpec, wc: WeightContext): { geomet
       uv[v * 2 + 1] = z;
       const slope = 1 - _n.y;
       if (detailed) {
-        layerWeights(wc, x, z, slope, T.mask(x, z), terrainDetail(x, z), w0, w1, v * 4);
+        // concavity of the rendered surface (sampler heights, so it is the same on both sides of
+        // a chunk seam): the wet band's dish detector, see NEAR_GROUND
+        const curv = T.height(x + ce, z) + T.height(x - ce, z) + T.height(x, z + ce) + T.height(x, z - ce) - 4 * h;
+        layerWeights(wc, x, z, slope, T.mask(x, z), terrainDetail(x, z), w0, w1, v * 4, curv, w2);
       } else {
         layerWeights(wc, x, z, slope, null, null, w0, w1, v * 4);
       }
@@ -285,6 +330,7 @@ export function buildChunkGeometry(spec: ChunkSpec, wc: WeightContext): { geomet
   g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
   g.setAttribute('aW0', new Float32BufferAttribute(w0, 4));
   g.setAttribute('aW1', new Float32BufferAttribute(w1, 4));
+  g.setAttribute('aW2', new Float32BufferAttribute(w2, 4));
   g.setIndex(new BufferAttribute(idx, 1));
   g.computeBoundingSphere();
   g.computeBoundingBox();
