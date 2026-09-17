@@ -533,6 +533,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           fineCrackDepth: Math.min(0.015, 0.012 / r),
           micro: Math.min(0.03, 0.025 / r),
           chip: Math.min(0.035, 0.03 / r),
+          // round 44 (survey-1 crop 25): the cleave rims filleted over ≈ 5 cm and their chips
+          // scalloped (rockgen.ts `rimRound`) — the stair-foot boulder's east rim was a saw-blade
+          // of 2–3 cm teeth every 5–10 cm — and the bare skin stepped into ≈ 35 cm plates ± 1.5 cm
+          // with dark joints (`plates`), so the flank reads as fractured stone at 1–4 m, not one
+          // flat photo texture. Both are off on the far mesh (the six fixed views).
+          rimRound: Math.min(0.08, 0.05 / r),
+          plates: Math.min(0.025, 0.015 / r),
           // bedding ledges: D's deeper (frame 56 s: layered). None on the A / terrace rocks, as
           // on their far mesh — a faint 0.035 layering made their moss blanket (mossAt halves
           // the coverage on every parting) step ~10 cm at each ~20 cm bed: the stair-foot rock's
@@ -542,7 +549,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // the crevice plants root in the near skin's furrows (the far mesh's cracks are only lines)
         const crevice = pickCrevicePlants(nearGeo);
         const nRng = bRng.fork(`near-${b.id}`);
-        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 32 : r > 0.8 ? 20 : 12, shade: toLocal(shadeDir, yaw), tint: tintC }, mossPalette);
+        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 36 : r > 0.8 ? 24 : 16, shade: toLocal(shadeDir, yaw), tint: tintC }, mossPalette);
         nearGeo.dispose();
         // loose fragments: fist-sized angular spalls (five cleaves, no moss cap) lying at the foot
         // on the un-paved ground, seated on the terrain, folded into the near mesh's local frame

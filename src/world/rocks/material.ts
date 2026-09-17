@@ -142,6 +142,20 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
       : /* glsl */ `
           diffuseColor.rgb *= c * 1.08;`;
     const nearLichenMask = near ? ' * (1.0 - plate)' : '';
+    // round 44 (survey-1 crop 32): the hero variant's flecks are irregular crusts, not dots — the
+    // fleck field is domain-warped (the lattice of the value noise no longer shows), thresholded
+    // lower inside a clump so neighbouring flecks fuse into one plate, and each crust has a dark
+    // rim band outside its edge; the instanced far rocks keep the round-42 flecks
+    const fleckExpr = near
+      ? /* glsl */ `
+            vec2 lw = lp + (vec2(rockVNoise(lp * 9.0 + 5.0), rockVNoise(lp * 9.0 - 7.0)) - 0.5) * 0.09;
+            float fl = rockVNoise(lw * 14.0) * 0.55 + rockVNoise(lw * 31.0 + 3.0) * 0.3 + rockVNoise(lp * 67.0 + 9.0) * 0.15;
+            float thr = 0.66 - 0.16 * cluster;
+            float fleck = smoothstep(thr - 0.03, thr + 0.05, fl);
+            float fleckRim = smoothstep(thr - 0.1, thr - 0.03, fl) * (1.0 - fleck) * cluster * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y) * (1.0 - plate);
+            diffuseColor.rgb *= 1.0 - 0.22 * fleckRim;`
+      : /* glsl */ `
+            float fleck = smoothstep(0.56, 0.68, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);`;
     // cushions (aMoss > 1): the crown lifted toward the lit bright green, the rim the plain moss
     const nearMossLift = near ? '\n          moss *= 1.0 + 0.35 * max(0.0, vMossR - 1.0);' : '';
     const nearNormal = near
@@ -195,8 +209,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           {
             vec3 bwl = bw * bw;
             vec2 lp = vWPosR.zy * bwl.x + vWPosR.xz * bwl.y + vWPosR.xy * bwl.z;
-            float cluster = smoothstep(0.46, 0.7, rockVNoise(lp * 3.1 + 11.0));
-            float fleck = smoothstep(0.56, 0.68, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);
+            float cluster = smoothstep(0.46, 0.7, rockVNoise(lp * 3.1 + 11.0));${fleckExpr}
             float lichen = cluster * fleck * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y)${nearLichenMask};
             vec3 lichenCol = mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)) * diffuse;
             diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), 0.75 * lichen);
@@ -246,6 +259,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => (near ? 'rock-triplanar-v9-near-detail' : 'rock-triplanar-v8-sunside-moss');
+  mat.customProgramCacheKey = () => (near ? 'rock-triplanar-v10-lichen-crusts' : 'rock-triplanar-v8-sunside-moss');
   return mat;
 }

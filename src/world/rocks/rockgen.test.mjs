@@ -164,9 +164,10 @@ test('dressing: cushions flagged aMoss > 1, lichen plates aMoss < 0, counts with
     else if (m < 0) plates++;
     else assert.fail(`dressing vertex ${i} carries an unflagged aMoss ${m}`);
   }
-  // a cushion is 10 crown + 2 × 20 ring triangles, a plate 8 × (1 fan + 2 rim) triangles
+  // a cushion is 10 crown + 2 × 20 ring triangles, a plate 10 × (1 fan + 2 rim) triangles
+  // (round 44: 10 lobed segments, was 8)
   assert.equal(pads, a.stats.cushions * 50 * 3);
-  assert.equal(plates, a.stats.lichen * 24 * 3);
+  assert.equal(plates, a.stats.lichen * 30 * 3);
   for (const k of ['position', 'normal', 'color', 'aMoss', 'aWet']) assert.ok(a.geometry.attributes[k], `merged geometry lacks ${k}`);
   // front-facing: every dressing triangle's winding normal agrees with its stored vertex normals
   const P = a.geometry.attributes.position;
