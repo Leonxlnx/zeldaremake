@@ -2111,13 +2111,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       return [p2, p2b, p3, p4];
     };
     const MAX_CLIMB = 1.4;
+    /** a root may run down an eroded bank (exposed on the face) but not span a cliff: seat ≤ 2.5 m under the floor */
+    const MAX_DROP = 2.5;
     const climbs = (g: Vector3[]) => g[2].y - yFloor > MAX_CLIMB;
+    const drops = (g: Vector3[]) => yFloor - g[2].y > MAX_DROP;
     let ground = groundPts(reach);
-    while (reach > 0.3 * R && (ground.some(insideOther) || climbs(ground))) {
+    while (reach > 0.3 * R && (ground.some(insideOther) || climbs(ground) || drops(ground))) {
       reach -= 0.1 * R;
       ground = groundPts(reach);
     }
     if (insideOther(p1) || ground.some(insideOther)) continue;
+    // Saria's trunk is set into the plateau bank: on its south / east / north sides the ground
+    // stands 3.5 m up the shaft, so a root leaving the bark at y0 there is UNDERGROUND and only
+    // surfaced 4 m higher on the bank or the landing (survey-1 item 6). A root whose seat still
+    // climbs more than MAX_CLIMB at the shortest reach is not built (its rng draws are still
+    // taken so the other roots are unchanged); the north-west root that surfaces from the bank
+    // and runs DOWN to the lawn (D's bank) stays.
+    if (climbs(ground)) {
+      rootRng();
+      continue;
+    }
     rootsBuilt++;
     const [p2, p2b, p3, p4] = ground;
     const curve = new CatmullRomCurve3([p0, p1, p2, p2b, p3, p4], false, 'catmullrom', 0.5);

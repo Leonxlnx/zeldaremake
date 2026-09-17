@@ -30,7 +30,7 @@ export interface LogArchBuild {
   /** world centres of the pods (audit: project into D — the frame's arch lanterns sit at (0.60–0.65, 0.33) and (0.46, 0.44)) */
   podPositions: [number, number, number][];
   /** round 44 (structures-28): each pod's lowest point over the ground under it, and whether that ground is the path */
-  podClearance: { pod: [number, number, number]; bottom: number; ground: number; clearance: number; onPath: boolean }[];
+  podClearance: { pod: [number, number, number]; bottom: number; ground: number; clearance: number; onPath: boolean; spineDist: number }[];
   /** the least clearance (m) of any pod hanging over the path (Infinity when none does) */
   minPathClearance: number;
   lights: PointLight[];
@@ -1547,6 +1547,20 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // round 44: every pod's lowest point (its merged geometry's bounding box under the hook) over
   // the ground beneath it, and whether that ground is the walkable path — a pod over the path
   // must clear POD_PATH_CLEARANCE_M
+  /** horizontal distance (m) from a point to the path spine polyline (the walkable strip is ± layout.pathHalfWidth of it) */
+  const spineDistance = (x: number, z: number) => {
+    const spine = ctx.layout.pathSpine;
+    let best = Infinity;
+    for (let i = 0; i + 1 < spine.length; i++) {
+      const [ax, , az] = spine[i];
+      const [bx, , bz] = spine[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return best;
+  };
   const podClearance = lanterns.map((l) => {
     const mesh = l.pivot.children[0] as Mesh;
     const geo = mesh.geometry;
@@ -1554,7 +1568,14 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const bottom = l.pivot.position.y + geo.boundingBox!.min.y;
     const ground = terrain.height(l.pod.x, l.pod.z);
     const onPath = terrain.mask(l.pod.x, l.pod.z).path > 0.01;
-    return { pod: [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number], bottom: +bottom.toFixed(2), ground: +ground.toFixed(2), clearance: +(bottom - ground).toFixed(2), onPath };
+    return {
+      pod: [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number],
+      bottom: +bottom.toFixed(2),
+      ground: +ground.toFixed(2),
+      clearance: +(bottom - ground).toFixed(2),
+      onPath,
+      spineDist: +spineDistance(l.pod.x, l.pod.z).toFixed(2),
+    };
   });
 
   return {
