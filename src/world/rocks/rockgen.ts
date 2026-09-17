@@ -118,6 +118,23 @@ export interface RockOptions {
   collar?: Color;
   /** the collar's fade band in normalised rock height 0..1 (default [0.05, 0.45]) */
   collarBand?: [number, number];
+  /**
+   * Near-LOD relief (round 42, default 0 — the far meshes are byte-identical with it off): a
+   * high-frequency ridged skin, ± this fraction of the radius, at ~5× the base frequency — the
+   * pitting and small fracture facets a rock shows at 1–4 m. Halved on the crown like `ridge`.
+   */
+  micro?: number;
+  /**
+   * a second, finer crack network 0..1 (default 0): thinner dark lines at ~2× the density of
+   * `cracks`, cut as furrows by `crackDepth` like the main ones
+   */
+  fineCracks?: number;
+  /**
+   * chipping of the cleave-plane rims (fraction of the radius, default 0): vertices within
+   * ~0.1 r of a facet's edge are notched inward where a high-frequency noise peaks, so the
+   * fracture edges read broken and sharp instead of a clean line
+   */
+  chip?: number;
 }
 
 const _t = new Vector3();
@@ -167,6 +184,12 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const crackAmt = o.cracks ?? 0.6;
   const crown = o.crown ?? 0;
   const crackDepth = o.crackDepth ?? 0;
+  const micro = o.micro ?? 0;
+  const fineCracks = o.fineCracks ?? 0;
+  const chip = o.chip ?? 0;
+  // the near relief is an absolute scale (pits ~15 cm, hairlines ~9 cm apart on every rock): its
+  // noise frequencies, expressed in the rock-relative domain above, scale with the radius
+  const nk = Math.max(1, r / 0.75);
   /** crack line strength 0..1 at a (final-shape) point; the bedding partings count as cracks */
   const crackAt = (p: Vector3) => {
     const x = p.x * freq + ox;
@@ -179,6 +202,13 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     const cr = N.ridged(x * 4.2, y * 4.2, z * 4.2, 2) / 0.825;
     let crack = smoothstep(0.8 - 0.15 * crackAmt, 0.95, cr) * crackAmt;
     if (strata > 0) crack = Math.max(crack, 0.85 * bedding(p.x, p.y, p.z, x, y, z).groove * (1 - Math.abs(p.y / (r * squashY)) * 0.5));
+    if (fineCracks > 0) {
+      // the fine network: the same ridged contours at 2.3× the frequency with a narrower band,
+      // so the lines are thinner and twice as dense — hairline partings between the main cracks
+      const f = 9.7 * nk;
+      const fc = N.ridged(x * f + 7.7, y * f - 3.3, z * f + 5.1, 2) / 0.825;
+      crack = Math.max(crack, smoothstep(0.88 - 0.08 * fineCracks, 0.975, fc) * 0.8 * fineCracks);
+    }
     return clamp(crack, 0, 1);
   };
 
@@ -203,6 +233,17 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       if (crown > 0) {
         const cl = N.fbm(x * 0.34 + 11.3, y * 0.34 - 4.1, z * 0.34 + 7.7, 2); // -1..1
         d *= 1 + crown * upness * (0.45 + 0.9 * cl);
+      }
+      if (micro > 0) {
+        // the near skin: ridged noise at ~5× the base frequency (sharp creases where its first
+        // octave crosses zero, pits between) plus a small-facet fbm — the fractured, pitted
+        // texture of frame-01 / frame-05's rock faces, which the far mesh's ridging (1.6×)
+        // cannot carry; halved on the crown so the moss cap stays a soft mass
+        const f1 = 5.3 * nk;
+        const f2 = 3.6 * nk;
+        const mr = N.ridged(x * f1 + 3.1, y * f1 - 2.7, z * f1 + 1.9, 2) / 0.825;
+        const mf = N.fbm(x * f2 - 8.2, y * f2 + 6.4, z * f2 - 1.7, 2);
+        d *= 1 + micro * (1 - 0.6 * upness) * ((mr - 0.55) + 0.45 * mf);
       }
       if (strata > 0) {
         // beds step in/out (mostly on the sides — the flat cap stays whole) and sink at the
@@ -230,6 +271,8 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const cutDepth = o.cutDepth ?? [0.42, 0.62];
   // per-vertex facet flag (0..1): how far the vertex was pushed onto a cleave plane
   const facet = new Float32Array(count);
+  // per-vertex distance to the nearest cleave plane (either side), for the rim chipping below
+  const rimGap = chip > 0 ? new Float32Array(count).fill(Infinity) : null;
   for (let c = 0; c < cuts; c++) {
     if (c === 0 && o.cutToward) {
       // the first cleave faces the given horizontal direction (yawed ±35° by the seed), near
@@ -248,11 +291,33 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     for (let i = 0; i < count; i++) {
       _p.fromBufferAttribute(pos, i);
       const d = _p.dot(_n);
+      if (rimGap) rimGap[i] = Math.min(rimGap[i], Math.abs(d - dist));
       if (d > dist) {
         _p.addScaledVector(_n, dist - d);
         pos.setXYZ(i, _p.x, _p.y, _p.z);
         facet[i] = Math.max(facet[i], smoothstep(0.0, 0.04 * r, d - dist));
       }
+    }
+  }
+  if (rimGap) {
+    // chipped edges: within ~0.1 r of a cleave plane (on the facet and on the body beside it)
+    // the vertex is notched toward the rock's centre where a high-frequency noise peaks, so the
+    // fracture rim is a broken line of small spalls (frame-05's sharp, chipped ledges). Purely
+    // position-dependent, so co-located vertices stay welded.
+    for (let i = 0; i < count; i++) {
+      const w = 1 - smoothstep(0, 0.1 * r, rimGap[i]);
+      if (w <= 0) continue;
+      _p.fromBufferAttribute(pos, i);
+      const x = _p.x * freq + ox;
+      const y = _p.y * freq + oy;
+      const z = _p.z * freq + oz;
+      const f = 7.5 * nk;
+      const hf = N.fbm(x * f + 2.2, y * f + 4.6, z * f - 6.1, 2); // -1..1
+      const notch = chip * r * w * Math.max(0, hf - 0.15) / 0.85;
+      if (notch <= 0) continue;
+      const l = _p.length() || 1;
+      _p.multiplyScalar(Math.max(0, l - notch) / l);
+      pos.setXYZ(i, _p.x, _p.y, _p.z);
     }
   }
   // flat-ish bottom (buried anyway) so the rock never balances on a spike
@@ -351,6 +416,10 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const nrm = new Float32BufferAttribute(smoothN, 3);
   const col = new Float32Array(count * 3);
   const moss = new Float32Array(count);
+  // `aWet` 0..1: the damp band above the ground (the lowest ~0.4 of the rock, the undersides
+  // wetter) — read only by the near-LOD material's wet/dark term (material.ts), so the far look
+  // is untouched by the attribute
+  const wet = new Float32Array(count);
   const tint = o.tint ?? new Color(0.72, 0.72, 0.7);
   const dirt = o.dirt ?? 0.5;
   const cutDark = o.cutDark ?? 0;
@@ -383,9 +452,11 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
     moss[i] = mossAt(_p, _n, crack, facet[i]);
+    wet[i] = clamp(1 - smoothstep(0.08, 0.42, h01 + 0.04 * v) + 0.6 * smoothstep(0.15, -0.4, _n.y) * (1 - smoothstep(0.3, 0.7, h01)), 0, 1);
   }
   base.setAttribute('color', new Float32BufferAttribute(col, 3));
   base.setAttribute('aMoss', new Float32BufferAttribute(moss, 1));
+  base.setAttribute('aWet', new Float32BufferAttribute(wet, 1));
   // final normals: hard on the bare rock, soft on the cushion
   if (softN) {
     const out = hardN;

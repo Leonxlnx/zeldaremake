@@ -4,13 +4,32 @@
  * half-buried angular strata on the steep embankment faces, and thousands of instanced pebbles
  * along path edges, stair feet and boulder bases. Everything is seated on the heightfield.
  */
-import { Color, Group, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type BufferGeometry } from 'three';
+import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { buildRock } from './rockgen';
-import { createRockMaterial } from './material';
-import { BOULDER_PACKS, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
+import { buildRock, type RockOptions } from './rockgen';
+import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
+import { dressRock, mergeRockParts } from './dressing';
+import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
+
+/**
+ * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
+ * NEAR_ROCK_IN_M of the live camera a boulder's far mesh is replaced by its near version —
+ * the same rock (same stream, same low-frequency shape, cuts and bedding) at 2.2× the vertex
+ * density with a fractured skin, deeper crack furrows, a fine crack network, chipped cleave rims,
+ * strata ledges, moss cushions and lichen plates on its faces and loose fragments at its foot
+ * (rockgen.ts / dressing.ts) — and out again past NEAR_ROCK_OUT_M (hysteresis). A boulder a
+ * hero camera frames from d m swaps only at d − NEAR_ROCK_HERO_MARGIN (out at d − margin / 3),
+ * so the six fixed captures always render today's far meshes; a rock whose in-radius would fall
+ * under NEAR_ROCK_MIN_IN_M gets no near version.
+ */
+export const NEAR_ROCK_IN_M = 12;
+export const NEAR_ROCK_OUT_M = 14;
+export const NEAR_ROCK_HERO_MARGIN = 1.5;
+export const NEAR_ROCK_MIN_IN_M = 2.5;
+/** the boulder cap / crevice plants: tufts, ferns and moss pads, all variants in one draw */
+const ROCK_PLANT_PACKS: number[][] = [[TUFT_A, TUFT_B, FERN, CUSHION]];
 
 const _m = new Matrix4();
 const _p = new Vector3();
@@ -18,6 +37,24 @@ const _q = new Quaternion();
 const _s = new Vector3();
 const _up = new Vector3(0, 1, 0);
 const _n = new Vector3();
+const _cam = new Vector3();
+
+interface NearRock {
+  id: string;
+  centre: Vector3;
+  far: Mesh;
+  near: Mesh;
+  inM: number;
+  outM: number;
+  /** distance (m) of the nearest hero camera that frames the rock, Infinity when none does */
+  hero: number;
+  active: boolean;
+  dist: number;
+  triangles: number;
+  cushions: number;
+  lichen: number;
+  fragments: number;
+}
 
 interface Instance {
   x: number;
@@ -63,14 +100,43 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const P = ctx.config.palette;
   const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy();
   const material = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4);
+  // the hero boulders' own material: the same look with the near-detail terms (material.ts
+  // NEAR_TILE_M) that fade in under NEAR_FADE_M — the rubble, strata and pebbles keep the plain
+  // one, so the stones in a hero camera's foreground never change
+  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true });
   // the stair-foot boulder at the right edge of shot A (the mossy rock the Kokiri kid stands
   // beside): the reference reads it at lum ≈ 0.26 (box (0.82,0.60)-(0.98,0.70)) where the shared
   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
   // moving it
-  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9);
+  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true });
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
+  const nearLod = ctx.quality.tier !== 'low';
+  // the hero cameras' frusta (a little wider than the captures), for the near-LOD swap radii
+  const heroFrusta = ctx.layout.viewpoints.map((v) => {
+    const cam = new PerspectiveCamera(v.fov + 4, 1.85, 0.1, 400);
+    cam.position.set(v.position[0], v.position[1], v.position[2]);
+    cam.lookAt(v.target[0], v.target[1], v.target[2]);
+    cam.updateMatrixWorld();
+    cam.updateProjectionMatrix();
+    return { position: cam.position.clone(), frustum: new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse)) };
+  });
+  const heroSphere = new Sphere();
+  /** distance of the nearest hero camera that frames the sphere (centre, radius + 1 m), or Infinity */
+  const heroDistance = (centre: Vector3, radius: number) => {
+    heroSphere.center.copy(centre);
+    heroSphere.radius = radius + 1;
+    let nearest = Infinity;
+    for (const h of heroFrusta) {
+      const d = h.position.distanceTo(centre);
+      if (d < nearest && h.frustum.intersectsSphere(heroSphere)) nearest = d;
+    }
+    return nearest;
+  };
+  const nearRocks: NearRock[] = [];
+  const nearDropped: string[] = [];
+  const mossPalette = { mossDeep: new Color(ctx.config.palette.mossDeep), mossBright: new Color(ctx.config.palette.mossBright) };
 
   const notPaved = (x: number, z: number) => {
     const m = T.mask(x, z);
@@ -83,6 +149,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const rubble: Instance[] = [];
   const pebbles: Instance[] = [];
   const boulderPlants: SproutSpot[] = [];
+  const crevicePlants: SproutSpot[] = [];
   let basePlants = 0;
   let spillStones = 0;
   const bRng = rng.fork('boulders');
@@ -124,7 +191,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // rounded 0.64 dome again on the shared 0.15 seat: ≈ 1.2 m wide, ≈ 0.5 m proud)
     const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
     const sinkFrac = 0.15;
-    const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
+    const rockOpts: RockOptions = {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
       // ones (detail 26: the crack furrows are 5 cm wide and need ~4 cm edges to read as lines)
@@ -186,7 +253,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // rocks are cool grey under their moss, so it gets a tan tint of its own
       tint: b.id === 'shot-d-boulder' ? new Color(0.82, 0.77, 0.68) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
-    });
+    };
+    const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
     // seat: base sinks ~15 % of the rock height into the ground under the footprint
     let gSum = 0;
     let gn = 0;
@@ -199,7 +267,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const height = 2 * r * squash;
     const sink = sinkFrac * height;
     const cy = ground + r * squash * 0.62 - sink; // flat-ish bottom is at -0.62·r·squash
-    const mesh = new Mesh(geo, b.id === 'stair-foot' ? stairFootMaterial : material);
+    const mesh = new Mesh(geo, b.id === 'stair-foot' ? stairFootMaterial : heroMaterial);
     mesh.position.set(b.position[0], cy, b.position[2]);
     mesh.rotation.y = yaw;
     mesh.castShadow = true;
@@ -300,6 +368,50 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
 
+    // crevice plants (round 42; sheet 05 'Roots', frame-05: moss and small ferns rooted IN the
+    // rock's partings): candidates are the dark crack / parting vertices on the shoulders and
+    // sides — not the mossy cap the cap plants use — a fern or two arching out of the deeper
+    // clefts and a few moss pads filling the shallower ones. Own stream; the spots are appended
+    // after every boulder's cap and base plants (below), so those keep their jitter draws.
+    {
+      const nrmA = geo.attributes.normal;
+      const colA = geo.attributes.color;
+      const mossA = geo.attributes.aMoss;
+      const cRng = bRng.fork(`crevice-${b.id}`);
+      const cand: { i: number; ny: number }[] = [];
+      for (let i = 0; i < pos.count; i += 3) {
+        _n.fromBufferAttribute(nrmA, i);
+        if (_n.y < 0.12 || _n.y > 0.8) continue;
+        if (mossA.getX(i) > 0.45) continue;
+        va.fromBufferAttribute(pos, i);
+        if (va.y < -0.05 * r) continue;
+        if (colA.getX(i) + colA.getY(i) + colA.getZ(i) >= 1.05) continue;
+        cand.push({ i, ny: _n.y });
+      }
+      // shuffle deterministically, then take ferns from the steeper clefts and pads from the flatter
+      const order = cand.map((c) => ({ c, k: cRng() })).sort((p, q) => p.k - q.k || p.c.i - q.c.i).map((o) => o.c);
+      const wantFerns = r > 1.5 ? 3 : 2;
+      const wantPads = r > 1.5 ? 5 : 3;
+      const placed: Vector3[] = [];
+      let ferns = 0;
+      let pads = 0;
+      for (const cd of order) {
+        if (ferns >= wantFerns && pads >= wantPads) break;
+        va.fromBufferAttribute(pos, cd.i).applyMatrix4(mesh.matrixWorld);
+        if (placed.some((p) => p.distanceTo(va) < 0.2 * r)) continue;
+        const fern = ferns < wantFerns && (cd.ny < 0.55 || pads >= wantPads);
+        if (!fern && cd.ny < 0.4) continue;
+        placed.push(va.clone());
+        if (fern) {
+          crevicePlants.push({ x: va.x, y: va.y - 0.012, z: va.z, size: 0.5, kind: 'fern', scale: cRng.range(0.8, 1.15) });
+          ferns++;
+        } else {
+          crevicePlants.push({ x: va.x, y: va.y - 0.004, z: va.z, size: cRng.range(0.3, 0.8), kind: 'cushion', scale: cRng.range(0.9, 1.3) });
+          pads++;
+        }
+      }
+    }
+
     // the rock's rim at ground level, per azimuth bin (world frame): where the ground plants and
     // the spill stones start
     const BINS = 24;
@@ -369,6 +481,66 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         rubble.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: sRng.range(0, Math.PI * 2), tiltTo: _n.clone().lerp(_up, 0.5).normalize(), variant: sRng.int(0, 4) });
         spillStones++;
         placed++;
+      }
+    }
+
+    // near LOD (see NEAR_ROCK_IN_M): the same rock from the same stream, rebuilt denser with the
+    // near relief, dressed, with loose fragments at its foot — swapped in for the far mesh while
+    // the live camera stands within the in-radius. Own streams only; nothing below moves.
+    if (nearLod) {
+      const centre = new Vector3(b.position[0], cy, b.position[2]);
+      const hero = heroDistance(centre, r * 1.4 + 0.3);
+      const inM = Math.min(NEAR_ROCK_IN_M, hero - NEAR_ROCK_HERO_MARGIN);
+      const outM = Math.min(NEAR_ROCK_OUT_M, hero - NEAR_ROCK_HERO_MARGIN / 3);
+      if (inM < NEAR_ROCK_MIN_IN_M) nearDropped.push(b.id);
+      else {
+        // absolute-scale relief: ~1.8–3 cm of skin and chips on every rock, whatever its radius
+        const nearGeo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
+          ...rockOpts,
+          detail: r > 1.5 ? 44 : 40,
+          creaseDeg: 18,
+          crackDepth: 0.045,
+          fineCracks: 0.6,
+          micro: Math.min(0.03, 0.025 / r),
+          chip: Math.min(0.035, 0.03 / r),
+          // bedding ledges: D's deeper, the A / terrace rocks a faint layering the far mesh omits
+          strata: b.id === 'shot-d-boulder' ? 0.1 : 0.035,
+        });
+        const nRng = bRng.fork(`near-${b.id}`);
+        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 48 : r > 0.8 ? 30 : 18, shade: toLocal(shadeDir, yaw) }, mossPalette);
+        nearGeo.dispose();
+        // loose fragments: fist-sized angular spalls (five cleaves, no moss cap) lying at the foot
+        // on the un-paved ground, seated on the terrain, folded into the near mesh's local frame
+        const fRng = nRng.fork('fragments');
+        const inv = new Matrix4().copy(mesh.matrixWorld).invert();
+        const parts: { geometry: BufferGeometry; matrix: Matrix4 }[] = [];
+        const nFrag = r > 1.5 ? 8 : 6;
+        for (let k = 0; k < nFrag * 4 && parts.length < nFrag; k++) {
+          const a = fRng.range(0, Math.PI * 2);
+          const d = rimAt(a) * fRng.range(1.0, 1.3) + 0.03;
+          const x = b.position[0] + Math.cos(a) * d;
+          const z = b.position[2] + Math.sin(a) * d;
+          if (!notPaved(x, z)) continue;
+          const fr = fRng.range(0.045, 0.12) * (0.85 + 0.15 * Math.min(2, r));
+          const frag = buildRock(fRng.fork(`frag-${k}`), `${seed}/frag-${b.id}-${k}`, { radius: fr, detail: 2, ridge: 0.22, lump: 0.2, cuts: 5, cutUp: [-0.3, 1], squashY: 0.72, creaseDeg: 35, cracks: 0.3, moss: 0.2, dirt: 0.5, tint: new Color(0.8, 0.79, 0.76), freq: 1 });
+          T.normal(x, z, _n);
+          _q.setFromUnitVectors(_up, _n.clone().lerp(_up, 0.5).normalize()).multiply(new Quaternion().setFromAxisAngle(_up, fRng.range(0, Math.PI * 2)));
+          _p.set(x, T.height(x, z) - fr * 0.15, z);
+          parts.push({ geometry: frag, matrix: inv.clone().multiply(new Matrix4().compose(_p, _q, _s.setScalar(1))) });
+        }
+        const kit = mergeRockParts(dressed.geometry, parts);
+        dressed.geometry.dispose();
+        for (const p of parts) p.geometry.dispose();
+        const nearMesh = new Mesh(kit, mesh.material);
+        nearMesh.position.copy(mesh.position);
+        nearMesh.rotation.y = yaw;
+        nearMesh.castShadow = true;
+        nearMesh.receiveShadow = true;
+        nearMesh.visible = false;
+        nearMesh.name = `boulder-${b.id}-near`;
+        nearMesh.updateMatrixWorld(true);
+        group.add(nearMesh);
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, lichen: dressed.stats.lichen, fragments: parts.length });
       }
     }
 
@@ -482,12 +654,32 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
   // the boulder-cap plants share the hardscape joint-sprout geometry and wind material; the
-  // tufts and ferns are packed into one InstancedMesh (one draw for all the cap plants)
-  const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config, BOULDER_PACKS);
+  // tufts, ferns and moss pads are packed into one InstancedMesh (one draw for all the cap and
+  // crevice plants). The crevice spots go last so the cap / base plants keep their jitter draws.
+  boulderPlants.push(...crevicePlants);
+  const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config, ROCK_PLANT_PACKS);
   for (const m of plants.meshes) {
     m.name = `boulder-plants-${m.name}`;
     group.add(m);
   }
+
+  /**
+   * The near-LOD state for the camera at `camera`: with `reset` (an explicit re-pose — the
+   * capture harness, the viewpoint keys) recomputed from the distances alone, so a capture's
+   * frame never depends on where the camera was before; per frame the hysteresis holds a rock's
+   * near version in until its out-radius.
+   */
+  const nearUpdate = (camera: Camera, reset: boolean) => {
+    camera.getWorldPosition(_cam);
+    for (const nr of nearRocks) {
+      nr.dist = nr.centre.distanceTo(_cam);
+      if (reset) nr.active = nr.dist < nr.inM;
+      else if (nr.active) nr.active = nr.dist <= nr.outM;
+      else nr.active = nr.dist < nr.inM;
+      nr.far.visible = !nr.active;
+      nr.near.visible = nr.active;
+    }
+  };
 
   const samplePebbles = pebbles.filter((_, i) => i % Math.max(1, Math.ceil(pebbles.length / 200)) === 0).slice(0, 200);
   const rnd = (v: number) => Math.round(v * 1000) / 1000;
@@ -496,13 +688,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     boulders: boulderInfo,
     /** the highest any hero boulder's underside stands above the terrain (m); 0 = fully seated */
     maxBaseGap: Math.max(0, ...boulderInfo.map((b) => b.baseGap)),
-    geometry: 'procedural-v3-crown',
-    features: ['ridged-displacement', 'crown-lumps', 'bedding-strata', 'cleave-cuts', 'crack-furrows', 'moss-cushion', 'moss-shade-blanket', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'spill-stones', 'triplanar-texture', 'lichen-flecks', 'sun-side-moss', 'cap-plants', 'base-plants'],
+    geometry: 'procedural-v4-near-lod',
+    features: ['ridged-displacement', 'crown-lumps', 'bedding-strata', 'cleave-cuts', 'crack-furrows', 'moss-cushion', 'moss-shade-blanket', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'spill-stones', 'triplanar-texture', 'lichen-flecks', 'sun-side-moss', 'cap-plants', 'base-plants', 'crevice-plants', 'near-lod', 'near-tile', 'micro-relief', 'fine-cracks', 'chipped-rims', 'wet-band', 'crack-grime', 'moss-pads', 'lichen-plates', 'foot-fragments'],
     mossCoverage: true,
     boulderPlants: plants.count,
     boulderFerns: plants.ferns,
+    boulderMossPads: plants.cushions,
+    crevicePlants: crevicePlants.length,
     basePlants,
     spillStones,
+    /** the hero boulders' near LOD (NEAR_ROCK_IN_M): swap radii, kit sizes and what the current camera shows */
+    nearLod: {
+      enabled: nearLod,
+      inM: NEAR_ROCK_IN_M,
+      outM: NEAR_ROCK_OUT_M,
+      heroMargin: NEAR_ROCK_HERO_MARGIN,
+      tileM: NEAR_TILE_M,
+      fadeM: NEAR_FADE_M,
+      dropped: nearDropped,
+      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, lichen: nr.lichen, fragments: nr.fragments, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
+      active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
+    },
     boulderPlantDrawCalls: plants.meshes.length,
     rubble: rubble.length,
     strata: strata.length,
@@ -516,5 +722,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
 
-  return { name: 'rocks', group };
+  return {
+    name: 'rocks',
+    group,
+    update(_dt, _t, c) {
+      nearUpdate(c.camera, false);
+    },
+    onCameraMove(camera) {
+      nearUpdate(camera, true);
+    },
+    dispose() {
+      for (const nr of nearRocks) nr.near.geometry.dispose();
+    },
+  };
 }
