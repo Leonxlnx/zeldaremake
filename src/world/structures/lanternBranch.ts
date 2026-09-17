@@ -36,7 +36,7 @@
  * casting no shadow (its band would cross the lit slabs in front of Link), under its own darker
  * shade floor (SLEEVE_FLOOR), with the fork, twigs, sheets and tufts scaled to the 0.15 m limb.
  */
-import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Group, Mesh, PointLight, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, PointLight, Vector2, Vector3 } from 'three';
 import type { TubePath, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
@@ -242,6 +242,57 @@ const KNEES = [
 // 0.27 against the frame's 0.17 at hue 53° = 52°)
 const SLEEVE_FLOOR: ShadeFloor = { lift: 10.5, texture: 0.3, canopy: 1, albedo: 0.07, chroma: 0.25 };
 
+/**
+ * Touching-distance bark on the sleeve (round 44, survey #5: "the lantern bough at 2 m is a
+ * smooth pale tube"): between SLEEVE_NEAR_M (full → none) the bark set's normal and colour are
+ * sampled again at SLEEVE_NEAR_TILES × the frequency — a 1.4 m tile is a blur at 2 m — the fine
+ * normal's slopes added to the tile's, the fine colour as a factor about its own mean so the
+ * bough's level holds. Camera A stands ≥ 5.8 m from the sleeve, so at 5 m and past the factor is
+ * exactly zero and the fixed frames are what they were (the trees' BARK_NEAR_DETAIL, on the
+ * structures' bark program). Chained onto the sleeve's floor and hemisphere hooks.
+ */
+const SLEEVE_NEAR_M: [number, number] = [1.2, 5.0];
+const SLEEVE_NEAR_TILES = 3.7;
+/** mean luminance of bark_brown_02/color.jpg (ffmpeg signalstats YAVG / 255) */
+const SLEEVE_BARK_MEAN = 85.98 / 255;
+function applySleeveNearBark(material: MeshStandardMaterial): void {
+  const previousCompile = material.onBeforeCompile;
+  material.onBeforeCompile = function (shader, renderer) {
+    previousCompile.call(this, shader, renderer);
+    shader.uniforms.uSleeveNear = { value: new Vector2(SLEEVE_NEAR_M[0], SLEEVE_NEAR_M[1]) };
+    shader.fragmentShader = 'uniform vec2 uSleeveNear;\nfloat sleeveNear = 0.0;\n' + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <map_fragment>',
+      /* glsl */ `#include <map_fragment>
+      sleeveNear = 1.0 - smoothstep(uSleeveNear.x, uSleeveNear.y, length(vViewPosition));
+      #ifdef USE_MAP
+      if (sleeveNear > 0.0) {
+        vec3 fine = texture2D(map, vMapUv * ${SLEEVE_NEAR_TILES.toFixed(2)} + vec2(0.37, 0.61)).rgb;
+        float fineLum = dot(fine, vec3(0.2126, 0.7152, 0.0722));
+        diffuseColor.rgb *= mix(1.0, clamp(fineLum / ${SLEEVE_BARK_MEAN.toFixed(3)}, 0.55, 1.7), 0.7 * sleeveNear);
+      }
+      #endif
+      `,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <normal_fragment_maps>',
+      /* glsl */ `#include <normal_fragment_maps>
+      #ifdef USE_NORMALMAP_TANGENTSPACE
+      if (sleeveNear > 0.0) {
+        vec3 fineN = texture2D(normalMap, vNormalMapUv * ${SLEEVE_NEAR_TILES.toFixed(2)} + vec2(0.37, 0.61)).xyz * 2.0 - 1.0;
+        fineN.xy *= normalScale * 0.75;
+        normal = normalize(tbn * normalize(vec3(mapN.xy + fineN.xy * sleeveNear, mapN.z)));
+      }
+      #endif
+      `,
+    );
+  };
+  const previousKey = material.customProgramCacheKey;
+  material.customProgramCacheKey = function () {
+    return `${previousKey.call(this)}|sleeve-near-bark-v1`;
+  };
+}
+
 export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LanternBranchBuild {
   const def = ctx.layout.lanternBranch;
   const group = new Group();
@@ -359,8 +410,10 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       out.uv = [(psi * sleeveBase(s)) / 1.4, (s * len) / 1.4];
       out.color = barkColor(s, psi);
     },
-    // ~60 rings per unit of s (a ring every 0.1 m of limb)
-    { cols: 16, rows: Math.round(60 * (sMax - sMin)), closedU: true },
+    // ~60 rings per unit of s (a ring every 0.1 m of limb); round 44 (survey #5, the bough at
+    // 2 m "a smooth pale tube"): 24 around, not 16 — the fluting resolves and the 2 m silhouette
+    // is round (at A's 7 m the change is under a pixel)
+    { cols: 24, rows: Math.round(60 * (sMax - sMin)), closedU: true },
   );
   faceTowards(sleeve, (p, o) => {
     const s = clamp(p.clone().sub(from).dot(dir) / len, sMin, sMax);
@@ -530,9 +583,10 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // the sleeve's own copy of the bark material under SLEEVE_FLOOR (a clone carries the maps but
   // no compile hooks, so it gets its floor and the sleeve's hemisphere response afresh)
   const sleeveMat = mats.sleeveBark.clone();
-  sleeveMat.name = 'structures:sleeve-bark-r37';
+  sleeveMat.name = 'structures:sleeve-bark-r44';
   applyShadeFloor(sleeveMat, SLEEVE_FLOOR, ctx.config.palette.leafSun);
   applySleeveBarkResponse(sleeveMat);
+  applySleeveNearBark(sleeveMat);
   const barkMesh = new Mesh(merge(barkParts), sleeveMat);
   barkMesh.name = 'lantern-branch-bark';
   // round 37: the whole bough casts nothing (see trees/index.ts LANTERN_LIMB — at 2.2 m over the
@@ -594,6 +648,37 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     for (let i = 0; i < REACH_SHEETS; i++) {
       const width = ((0.9 + sheetRng() * 0.7) * (0.4 + 0.6 * fk)) / len;
       addSheet(lerp(-3.0, -0.2, (i + 0.5 + (sheetRng() - 0.5) * 0.5) / REACH_SHEETS), width, SHEETS + i);
+    }
+  }
+  // round 44 (survey #5, the owner's frame-03 "hanging moss"): beards of moss from the underside
+  // of the trunk-side reach — ribbons 4–7 cm wide at the root, a centimetre at the tip, 0.15–0.4 m
+  // long, swaying a little. The reach only (s ≤ −0.7: off camera C's right edge, behind B and F,
+  // off A's left edge, like the vines there); under the run a strand would hang into B's top edge.
+  if (sMin < -1.2) {
+    const beardRng = rng.fork('branch-beards');
+    const beards = Math.min(14, Math.round(((-0.7 - Math.max(sMin + 0.3, -3.2)) * len) / 0.55));
+    for (let i = 0; i < beards; i++) {
+      const s = lerp(Math.max(sMin + 0.3, -3.2), -0.7, (i + 0.5 + (beardRng() - 0.5) * 0.6) / beards);
+      const psi = Math.PI + (beardRng() - 0.5) * 1.6;
+      const root = surface(s, psi, -0.01);
+      const length = 0.15 + beardRng() * 0.25;
+      const az = beardRng() * TAU;
+      const sway = new Vector3(Math.cos(az), 0, Math.sin(az));
+      const across = new Vector3(-sway.z, 0, sway.x);
+      const bend = (0.1 + beardRng() * 0.15) * length;
+      const w0 = 0.04 + beardRng() * 0.03;
+      const wobble = beardRng() * TAU;
+      const beard = gridSurface(
+        (u, v, out) => {
+          const half = 0.5 * (w0 * (1 - v) + 0.01 * v) * (1 + 0.25 * Math.sin(v * 13 + wobble));
+          out.position.copy(root).addScaledVector(UP, -length * v).addScaledVector(sway, bend * v * v + 0.015 * Math.sin(v * 9 + wobble) * v).addScaledVector(across, (u - 0.5) * 2 * half);
+          out.uv = [u * 0.2, (v * length) / 0.3];
+          const lit = 0.4 + 0.45 * v + 0.15 * Math.sin(v * 7 + wobble);
+          out.color = [0.23 * lit * 0.5, 0.31 * lit * 0.5, 0.11 * lit * 0.5];
+        },
+        { cols: 2, rows: 5 },
+      );
+      sheetParts.push(beard);
     }
   }
   const sheetMesh = new Mesh(merge(sheetParts), mats.moss);

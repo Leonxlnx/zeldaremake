@@ -26,7 +26,8 @@
 import { BufferGeometry, Color, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
-import { GeometryWriter, TAU, UP, addLeaf, between, frame, growthPath, sample, stiffnessFor, tangent, taper, tube, type LeafOptions } from './writer';
+import { GeometryWriter, TAU, UP, addLeaf, between, frame, growthPath, sample, stiffnessFor, tangent, taper, tube, type LeafOptions, type TubeDraws } from './writer';
+import { reliefBoleSteps } from './bole';
 
 /**
  * Swap radii (m, 3D to the lobe centre — a lobe 15 m up is 15 m away from under it). 22 in / 26
@@ -115,6 +116,14 @@ export interface NearLimbRecord {
   radii: number[];
   inM: number;
   outM: number;
+  /**
+   * round 44 (survey #5: "the giants' limbs are smooth pale tubes from below"): what the far
+   * limb's `tube()` was built with — its draws (the ridge phase), gnarl bump and roughness — so
+   * the dressing can lay a bark SLEEVE over it (bole.ts reliefBoleSteps replays the sweep's
+   * frames and ridge exactly): cords and furrows 0.5–3 cm proud of the far surface everywhere,
+   * never under it. Unset = the moss strip alone (the round-41 dressing).
+   */
+  sleeve?: { draws: TubeDraws; bump: (angle: number, distance: number, t: number) => number; roughness: number; barkTile: number };
 }
 
 /**
@@ -406,16 +415,124 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
     };
   };
 
-  /** one build of a limb dressing, chunked: yields after the moss strip, after every vine and after every shoot */
+  /**
+   * A beard of hanging moss (round 44, survey #5 / the owner's frame-03 "hanging moss on the
+   * limb"): a ribbon `length` m long hanging from `from`, 4–8 cm wide at the root and a
+   * centimetre at the tip, swaying a little along its own bend, in two faces (the material is
+   * double-sided). Full moss cover on every vertex (the tree shader lays the cushion texture);
+   * stiffness 0.18 so it swings on the branch layer like the vines. 2 triangles a segment.
+   */
+  const beardDeep = new Color(0x22361a);
+  const beardLit = new Color(0x6c8a3e);
+  const mossBeard = (w: GeometryWriter, g: Rng, from: Vector3, length: number) => {
+    const gb = (a: number, b: number) => between(g, a, b);
+    const segs = 5;
+    const az = g() * TAU;
+    const sway = new Vector3(Math.cos(az), 0, Math.sin(az));
+    const across = new Vector3(-sway.z, 0, sway.x);
+    const bend = gb(0.08, 0.22) * length;
+    const w0 = gb(0.04, 0.08);
+    const phase = g();
+    const wobble = g() * TAU;
+    let prev: [number, number] | null = null;
+    const q = new Vector3();
+    const c = new Color();
+    for (let i = 0; i <= segs; i++) {
+      const t = i / segs;
+      q.copy(from).addScaledVector(UP, -length * t).addScaledVector(sway, bend * t * t + 0.02 * Math.sin(t * 9 + wobble) * t);
+      const half = 0.5 * (w0 * (1 - t) + 0.01 * t) * (1 + 0.25 * Math.sin(t * 13 + wobble));
+      c.copy(beardDeep).lerp(beardLit, 0.35 + 0.5 * t + 0.15 * Math.sin(t * 7 + wobble));
+      w.woodMoss = 1;
+      const a = w.vertex(q.clone().addScaledVector(across, -half), c, 0, t * length / 0.3, 0.18, phase, 0, 0);
+      const b = w.vertex(q.clone().addScaledVector(across, half), c, 1, t * length / 0.3, 0.18, phase, 0, 0);
+      w.woodMoss = 0;
+      if (prev) {
+        w.triangle(prev[0], prev[1], a);
+        w.triangle(prev[1], b, a);
+      }
+      prev = [a, b];
+    }
+    return segs * 2;
+  };
+  /**
+   * The bark sleeve of a big limb (NearLimbRecord.sleeve): the far limb's sweep again (same
+   * frames, ridge and gnarl), its nominal radius pushed out by the furrow depth plus 4 mm so the
+   * relief — cords at the near bases' pitch, crevice shading, lichen on the crests — stands
+   * 0.4–3 cm proud of the far tube everywhere and never under it; a moss sheet along the upper
+   * side (mossExtra) that bulges and carries 3-D cushions (bole.ts). Returns the cushions built.
+   */
+  const sleeveLiftFor = (amplitude: number) => 0.75 * amplitude + 0.006;
+  function* limbSleeve(w: GeometryWriter, g: Rng, limb: NearLimbRecord, idx: number): Generator<void, { cushions: number; amplitude: number }> {
+    const sl = limb.sleeve!;
+    const r0 = limb.radii[0];
+    const amplitude = Math.max(0.018, Math.min(0.035, 0.08 * r0));
+    // the far tube's ridge swings its radius ±15 %: at 0.75 A + 6 mm the furrow bottoms clear it by
+    // ≥ 4 mm on the ridge's low side; the crests stand 1.1 A + 6 mm (≈ 4 cm on a 35 cm limb) proud
+    const lift = sleeveLiftFor(amplitude);
+    const color = typeof barkColor === 'function' ? barkColor : () => barkColor;
+    const mossField = (p: Vector3) => 0.5 + 0.5 * ncNoise.fbm(p.x * 0.9 + p.y * 0.4, p.z * 0.9 - p.y * 0.3, 3);
+    const built = yield* reliefBoleSteps(w, limb.path, limb.radii.map((r) => r + lift), {
+      color,
+      bump: sl.bump,
+      creviceShade: 1.8,
+      barkTile: sl.barkTile,
+      roughness: sl.roughness,
+      sides: Math.max(16, Math.min(44, Math.round((TAU * r0) / 0.06))),
+      spacing: 0.12,
+      denseUntilY: 1e9,
+      amplitude,
+      fadeY: [1e8, 1e9],
+      farShare: 1,
+      refRadius: r0,
+      pitch: 0.16,
+      noise: ncNoise,
+      draws: sl.draws,
+      stiffness: () => 1,
+      // no height band on a limb: the moss is the upper-side sheet alone
+      mossBand: [-1e9, -1e9 + 1],
+      mossStrength: 1,
+      mossExtra: (p, upness) => smoothstep(0.2, 0.7, upness) * smoothstep(0.38, 0.8, mossField(p)),
+      lichen: { band: [3, 12], strength: 0.6 },
+      mossBulge: 0.8,
+      cushions: { rng: g.fork(`sleeve-cushions/${idx}`), density: 0.05, size: [0.04, 0.1], maxCount: 120 },
+    });
+    return { cushions: built.cushions, amplitude };
+  }
+  /** one build of a limb dressing, chunked: yields after the sleeve / moss strip, after every vine, beard row and shoot */
   function* limbSteps(rng: Rng, limb: NearLimbRecord, idx: number): Generator<void, Built> {
     const w = new GeometryWriter('high');
     const g = rng.fork(`near-canopy/limb/${idx}`);
     const gb = (a: number, b: number) => between(g, a, b);
     let leaves = 0;
-    mossStrip(w, limb.path, limb.radii, 1, 0.22);
+    let sleeveLift = 0;
+    if (limb.sleeve) {
+      const built = yield* limbSleeve(w, g.fork('sleeve'), limb, idx);
+      sleeveLift = sleeveLiftFor(built.amplitude) + built.amplitude * 0.35;
+    } else {
+      mossStrip(w, limb.path, limb.radii, 1, 0.22);
+    }
     yield;
     const up = new Vector3();
     const side = new Vector3();
+    if (limb.sleeve) {
+      // hanging moss from the underside and flanks of the outer three quarters, denser where the
+      // limb is thick; from its own stream so the vines and shoots below draw what they did
+      const bg = g.fork('beards');
+      const total = pathLength(limb.path);
+      const beards = Math.max(6, Math.min(18, Math.round(total * 1.3)));
+      for (let k = 0; k < beards; k++) {
+        const t = 0.2 + (0.78 * (k + bg())) / beards;
+        const p = sample(limb.path, t);
+        const rr = radiusAt(limb.radii, t) + sleeveLift;
+        const axis = tangent(limb.path, t);
+        up.copy(UP).addScaledVector(axis, -UP.dot(axis)).normalize();
+        side.crossVectors(axis, up).normalize();
+        const a = between(bg, -1.1, 1.1);
+        const from = p.clone().addScaledVector(up, -rr * Math.cos(a) * 0.98).addScaledVector(side, rr * Math.sin(a) * 0.98);
+        mossBeard(w, bg, from, between(bg, 0.25, 0.75) * (0.7 + 0.6 * Math.min(1, rr / 0.5)));
+        if (k % 6 === 5) yield;
+      }
+    }
     const vines = g.int(2, 5);
     for (let k = 0; k < vines; k++) {
       const t = gb(0.3, 0.92);

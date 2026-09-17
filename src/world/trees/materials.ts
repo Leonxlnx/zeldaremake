@@ -285,6 +285,9 @@ varying float vLeafFlat;
 varying float vBarkAO;
 varying float vBarkMoss;
 float barkMossCover = 0.0;
+// 1 at BARK_DETAIL_M[0] from the camera, 0 at BARK_DETAIL_M[1]; set in the near-detail programs'
+// colour block, read by their normal block — zero everywhere else
+float barkNearDetail = 0.0;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -295,7 +298,29 @@ float treeNoise(vec3 p) {
   return mix(mix(mix(treeHash(i), treeHash(i + vec3(1,0,0)), f.x), mix(treeHash(i + vec3(0,1,0)), treeHash(i + vec3(1,1,0)), f.x), f.y),
              mix(mix(treeHash(i + vec3(0,0,1)), treeHash(i + vec3(1,0,1)), f.x), mix(treeHash(i + vec3(0,1,1)), treeHash(i + vec3(1,1,1)), f.x), f.y), f.z);
 }
+// the near bases' moss cushion field (3–8 cm cushions; see GIANT_BARK_COLOR vBarkMoss): one
+// function so the colour block and the near-detail normal block read the same surface
+float mossField(vec3 p) { return treeNoise(p * 13.0) * 0.55 + treeNoise(p * 41.0 + 11.0) * 0.45; }
 `;
+/**
+ * Touching-distance bark (round 44, survey #1: "at touching distance the bark is a magnified
+ * blur"): the near-detail programs (the near bases, the near canopy's limb sleeves) sample the
+ * same 1 K bark set again at BARK_DETAIL_TILES × the frequency — a 1.6 m tile is 1.6 mm a texel,
+ * 2–3× magnified at 1 m — blended in between these view distances (m): none at the far end, so
+ * a bole 6 m off renders the plain arithmetic.
+ */
+export const BARK_DETAIL_M: [number, number] = [1.5, 6];
+export const BARK_DETAIL_TILES = 3.7;
+/** mean luminance of tree_bark_03/color.jpg (ffmpeg signalstats YAVG 133.29 / 255) — the fine
+ *  albedo term modulates around it so the bole's average colour does not shift */
+const BARK_DETAIL_MEAN = 133.29 / 255;
+/**
+ * Distant trees' bark (round 44, survey #2 crops 04/05): the solid vertices of a distant tree
+ * read the bark map within these view distances (m) — full at the near end, none at the far end.
+ * The nearest depth row stands 43 m from camera D, the radial pool 51 m from A: zero in every
+ * fixed frame.
+ */
+export const DISTANT_BARK_M: [number, number] = [22, 38];
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
@@ -483,15 +508,32 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // blocks). Zero on every plain vertex.
   if (vBarkMoss > 0.0) {
     // cushions 3–8 cm across (38 / 110 cycles per m read as static from 1 m)
-    float mossFine = treeNoise(vTreeWorld * 13.0) * 0.55 + treeNoise(vTreeWorld * 41.0 + 11.0) * 0.45;
+    float mossFine = mossField(vTreeWorld);
     // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
     // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
     barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
     vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
+    #ifdef BARK_NEAR_DETAIL
+    // round 44: a 3-D cushion's crown is lit and its flanks fall off — the fine field itself
+    // (its slopes bend the normal in the near-detail normal block), plus a sub-cm sprig speckle
+    float sprig = treeNoise(vTreeWorld * 170.0) * 0.5 + treeNoise(vTreeWorld * 330.0 + 5.0) * 0.5;
+    mossCushion *= 0.8 + 0.45 * mossFine + 0.25 * (sprig - 0.5) * barkNearDetail;
+    #endif
     diffuseColor.rgb = mix(diffuseColor.rgb, mossCushion, barkMossCover * 0.92);
   }
+  #ifdef BARK_NEAR_DETAIL
+  // touching-distance bark (BARK_DETAIL_M): the bark set's colour again at BARK_DETAIL_TILES × the
+  // frequency, as a factor about its own mean so the level does not move — plates and fissures
+  // 3 mm a texel where the 1.6 m tile was a blur; under the moss the cushions carry their own
+  if (barkNearDetail > 0.0 && barkMossCover < 1.0) {
+    vec3 fine = texture2D(map, vMapUv * ${BARK_DETAIL_TILES.toFixed(2)} + vec2(0.37, 0.61)).rgb;
+    float fineLum = dot(fine, vec3(0.2126, 0.7152, 0.0722));
+    float fineFactor = clamp(fineLum / uBarkDetailMean, 0.55, 1.7);
+    diffuseColor.rgb *= mix(1.0, mix(1.0, fineFactor, 0.7), barkNearDetail * (1.0 - barkMossCover));
+  }
+  #endif
 `;
 
 /**
@@ -757,7 +799,12 @@ interface LeafVariant {
   sunThrough?: number;
 }
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail = false, variant: LeafVariant = {}) {
+/**
+ * `nearDetail`: false = a far program; 'base' = a near base (its own moss / lichen / tuft
+ * variants AND the touching-distance bark); 'bark' = the touching-distance bark alone (the near
+ * canopy's limb sleeves — their far-program moss sheets stay as they are).
+ */
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail: false | 'base' | 'bark' = false, variant: LeafVariant = {}) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
@@ -801,8 +848,16 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       ${TREE_FLOOR_FADE_GLSL}
       ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
 `;
+  let detailPars = '';
+  if (nearDetail) {
+    shader.uniforms.uBarkDetail = { value: new Vector2(BARK_DETAIL_M[0], BARK_DETAIL_M[1]) };
+    shader.uniforms.uBarkDetailMean = { value: BARK_DETAIL_MEAN };
+    detailPars = 'uniform vec2 uBarkDetail;\nuniform float uBarkDetailMean;\n';
+  }
   shader.fragmentShader =
-    (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') +
+    (nearDetail === 'base' ? '#define NEAR_BASE_DETAIL\n' : '') +
+    (nearDetail ? '#define BARK_NEAR_DETAIL\n' : '') +
+    detailPars +
     TREE_FRAGMENT_PARS +
     LEAF_NEAR_PARS +
     LEAF_FRAME_GLSL +
@@ -834,7 +889,37 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <normal_fragment_maps>',
     /* glsl */ `#include <normal_fragment_maps>
+    #if defined(BARK_NEAR_DETAIL) && defined(USE_NORMALMAP_TANGENTSPACE)
+    if (vIsLeaf < 0.5) {
+      // touching-distance bark (BARK_DETAIL_M): the bark set's normal again at BARK_DETAIL_TILES ×
+      // the frequency, its slopes added to the 1.6 m tile's, so plates and fissures 3 mm a texel
+      // catch the light where the tile alone was a magnified blur; nothing past the far distance
+      if (barkNearDetail > 0.0) {
+        vec3 fineN = texture2D(normalMap, vNormalMapUv * ${BARK_DETAIL_TILES.toFixed(2)} + vec2(0.37, 0.61)).xyz * 2.0 - 1.0;
+        fineN.xy *= normalScale * 0.75;
+        vec3 sumN = normalize(vec3(mapN.xy + fineN.xy * barkNearDetail, mapN.z));
+        normal = normalize(tbn * sumN);
+      }
+      // the moss as a volume: the cushion field's slopes bend the normal (finite differences
+      // along the tangent frame, in world space) so a cushion's crown faces the light and its
+      // flanks fall away — a felt that shaded as the flat bark under it read as paint
+      if (barkMossCover > 0.0) {
+        vec3 tW = inverseTransformDirection(tbn[0], viewMatrix);
+        vec3 bW = inverseTransformDirection(tbn[1], viewMatrix);
+        const float e = 0.012;
+        float h0 = mossField(vTreeWorld);
+        float hx = mossField(vTreeWorld + tW * e);
+        float hy = mossField(vTreeWorld + bW * e);
+        // the field spans 0..1 over ~2.4 cm; 1.1 puts a cushion's flank at ~25° off the bark
+        vec3 mossN = normalize(tbn * normalize(vec3(-(hx - h0) * 1.1, -(hy - h0) * 1.1, 1.0)));
+        normal = normalize(mix(normal, mossN, barkMossCover * 0.85));
+      }
+    } else {
+      normal = nonPerturbedNormal;
+    }
+    #else
     normal = normalize(mix(normal, nonPerturbedNormal, max(vIsLeaf, barkMossCover * 0.8)));
+    #endif
     ${LEAF_NEAR_NORMAL}
     `,
   );
@@ -844,6 +929,9 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     if (vIsLeaf > 0.5) {
       ${LEAF_COLOR}
     } else {
+      #ifdef BARK_NEAR_DETAIL
+      barkNearDetail = 1.0 - smoothstep(uBarkDetail.x, uBarkDetail.y, length(vViewPosition));
+      #endif
       ${barkColor}
     }
     `,
@@ -934,7 +1022,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
-  injectWind(giantTreeNearBase, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BASE_FLOOR, 'uNearBaseFloor', undefined, true), 'giant-near-base');
+  injectWind(giantTreeNearBase, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BASE_FLOOR, 'uNearBaseFloor', undefined, 'base'), 'giant-near-base');
   // the near canopy's copy (giant.ts NEAR_CANOPY_IN_M): the trees' bark floor, the near leaf
   // floor, the leaf detail out to NEAR_CANOPY_LEAF_NEAR_M and the sun read through the laminae
   const giantTreeNearCanopy = giantTree.clone();
@@ -943,7 +1031,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     wind,
     giantWind,
     colourSlots,
-    (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, false, { leafFloor: NEAR_CANOPY_LEAF_FLOOR, leafNear: NEAR_CANOPY_LEAF_NEAR_M, sunThrough: NEAR_CANOPY_SUN_THROUGH }),
+    (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, 'bark', { leafFloor: NEAR_CANOPY_LEAF_FLOOR, leafNear: NEAR_CANOPY_LEAF_NEAR_M, sunThrough: NEAR_CANOPY_SUN_THROUGH }),
     'giant-near-canopy',
   );
 
@@ -1049,8 +1137,48 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
 
   // --- distant trees: leaf-cluster cards + solid trunks/cores (uv on the opaque patch); fog tints ---
   const distant = new MeshStandardMaterial({ map: cluster, alphaTest: CARD_ALPHA_TEST, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
-  distant.onBeforeCompile = (s) => biasedMap(s);
-  distant.customProgramCacheKey = () => 'trees-distant-biased';
+  distant.onBeforeCompile = (s) => {
+    biasedMap(s);
+    // round 44 (survey #2, crops 04/05: the depth rows' trunks 10–20 m from a walker are "grey
+    // cylinders with no bark"): the solid vertices (aRoot.w = 0 — trunks, limbs, lobe cores) read
+    // the giants' bark colour map on a cylindrical mapping of the local position, blended in
+    // under DISTANT_BARK_M[1] and full at DISTANT_BARK_M[0]. Every depth row stands ≥ 38 m from
+    // the six fixed cameras, so at their range the factor is exactly zero and the frames are
+    // what they were; the cards (aRoot.w ≥ 0.5) never take it.
+    s.uniforms.uDistantBark = { value: gColor };
+    s.uniforms.uDistantBarkM = { value: new Vector2(DISTANT_BARK_M[0], DISTANT_BARK_M[1]) };
+    s.vertexShader =
+      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\n' +
+      s.vertexShader.replace(
+        '#include <begin_vertex>',
+        /* glsl */ `#include <begin_vertex>
+    vDistSolid = aRoot.w < 0.5 ? 1.0 : 0.0;
+    vDistLocal = position;
+    `,
+      );
+    s.fragmentShader =
+      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\n' +
+      s.fragmentShader.replace(
+        '#include <color_fragment>',
+        /* glsl */ `#include <color_fragment>
+    {
+      float near = (1.0 - smoothstep(uDistantBarkM.x, uDistantBarkM.y, length(vViewPosition))) * vDistSolid;
+      if (near > 0.0) {
+        // around the bole (a 1.6 m tile ≈ 4 around a 2 m trunk) and 1.6 m up it
+        vec2 barkUv = vec2(atan(vDistLocal.z, vDistLocal.x) / 6.2832 * 4.0, vDistLocal.y / 1.6);
+        vec3 bark = texture2D(uDistantBark, barkUv).rgb;
+        float barkLum = dot(bark, vec3(0.2126, 0.7152, 0.0722));
+        // a factor about the map's mean, so the row's silhouette luminance (matched at 47 m) holds
+        float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.5, 1.8);
+        // the map's own hue takes over from the flat tint as the walker gets close
+        vec3 tinted = mix(diffuseColor.rgb * factor, bark * (diffuseColor.rgb / vec3(${BARK_DETAIL_MEAN.toFixed(4)})), 0.5);
+        diffuseColor.rgb = mix(diffuseColor.rgb, tinted, near);
+      }
+    }
+    `,
+      );
+  };
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v2';
 
   return {
     whiteTree,

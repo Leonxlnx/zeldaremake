@@ -10,7 +10,8 @@ import { BufferGeometry, Color, IcosahedronGeometry, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import type { Terrain } from '../terrain/heightfield';
-import { GeometryWriter, TAU, UP, growthPath, taper, tube, type RandomFn } from './writer';
+import { GeometryWriter, TAU, UP, growthPath, rootButtress, taper, tube, type RandomFn } from './writer';
+import { consumeTubeDraws } from './bole';
 import type { Palette } from './whitebark';
 import { CARD_UV0, SOLID_UV } from './leaf-cluster-texture';
 
@@ -149,7 +150,15 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const lean = Math.tan((r.range(1.5, 6) * Math.PI) / 180) * crownY;
     const az = r.range(0, TAU);
     const trunk = growthPath(new Vector3(0, -0.6, 0), new Vector3(Math.cos(az) * lean, crownY + crownR * 0.3, Math.sin(az) * lean), UP, r, 6, 0.3);
-    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), slender ? 5 : 7, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1 });
+    // round 44 (survey #2, crops 04/05: a depth row's bole 10–20 m from a walker was a 7-sided
+    // prism): 10 / 7 sides. The sweep's draws are taken as the 7 / 5-sided one took them (phase,
+    // wind phase, one grain per old side) and the grain resampled over the new sides, so the
+    // limbs and lobes after it draw exactly what they did — the rows' silhouettes in D hold.
+    const oldSides = slender ? 5 : 7;
+    const sides = slender ? 7 : 10;
+    const trunkDraws = consumeTubeDraws(r, oldSides);
+    trunkDraws.grain = Array.from({ length: sides }, (_, j) => trunkDraws.grain[Math.floor((j / sides) * oldSides)]);
+    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws });
     const limbs = slender ? 1 : r.int(2, 4);
     for (let i = 0; i < limbs; i++) {
       const t = r.range(0.45, 0.75);
@@ -166,10 +175,16 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     for (let i = 0; i < lobes; i++) {
       const a = r.range(0, TAU);
       const rad = crownR * r.range(0, 0.6);
-      const c = new Vector3(Math.cos(a) * rad, crownY + r.range(-0.1, 0.4) * crownR + (i === 0 ? crownR * 0.3 : 0), Math.sin(a) * rad);
+      const lift = r.range(-0.1, 0.4);
+      // round 44 (survey crop 27, the "T" tree with a disc crown): a slender's three lobes sat at
+      // one height, squashed to 0.6–0.85 — a flat plate on a pole. They now stack up the leader
+      // (0, 0.55, 1.1 crown radii) and stay rounder; same draws, so the radial pool's placements
+      // and every broad variant (the depth rows in D) are untouched.
+      const c = new Vector3(Math.cos(a) * rad, crownY + (slender ? lift * 0.4 + i * 0.55 : lift) * crownR + (i === 0 ? crownR * 0.3 : 0), Math.sin(a) * rad);
       const br = crownR * r.range(0.36, 0.6);
       const shade = r.range(0.75, 1.05);
-      const squash = r.range(0.6, 0.85);
+      const squashDraw = r.range(0.6, 0.85);
+      const squash = slender ? 0.78 + (squashDraw - 0.6) * 0.8 : squashDraw;
       // dark core + ragged leaf-card shell
       lumpyBlob(near, c, br * 0.66, squash, canopy.clone().multiplyScalar(shade * 0.6), canopy.clone().multiplyScalar(shade * 0.85), noise, i * 3.7);
       leafCardLobe(near, c, br, squash, cardsPerLobe, br * 0.42, cardTint.clone().multiplyScalar(shade), cardTopTint.clone().multiplyScalar(shade), r);
@@ -177,6 +192,17 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       // into leaf clumps at 60–120 m instead of a few large cards over a blob (the stair-landing
       // and plaza looking-up views); own stream, so the lobes above keep their draws
       leafCardLobe(near, c, br, squash, slender ? 6 : 8, br * 0.24, cardTint.clone().multiplyScalar(shade * 0.9), cardTopTint.clone().multiplyScalar(shade * 0.9), rim, [0.96, 1.12]);
+    }
+    // round 44 (survey #2: "no base flare, a hard base seam"): a root flare — 4–6 short buttress
+    // roots (writer.ts rootButtress) diving under the ground from the foot of the bole, from
+    // their own stream so nothing above re-rolls; the depth rows' feet are at the ground line of
+    // D at 47 m+ where a 0.5 m root is 5 px in the haze
+    const rootRng = rng.fork(`distant-roots-${index}`);
+    const rootColor = bark.clone().multiplyScalar(0.86);
+    const rootCount = slender ? 4 : rootRng.int(5, 7);
+    for (let i = 0; i < rootCount; i++) {
+      const a = (i / rootCount) * TAU + rootRng.range(-0.3, 0.3);
+      rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6);
     }
     solidUv(near);
 
