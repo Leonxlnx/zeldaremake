@@ -218,6 +218,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     lanternPosts: posts.length,
     postLanterns: posts.reduce((n, p) => n + p.lanterns.length, 0),
     logArch: true,
+    /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
+    logDetail: log.detail41,
     houseRoots,
     houseBranches,
     /** Saria's eave profile on the door axis (world), now and as rounds 10 / 11 built it */

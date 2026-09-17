@@ -85,12 +85,13 @@
  */
 import {
   BoxGeometry,
-  type BufferGeometry,
+  BufferGeometry,
   CatmullRomCurve3,
   CircleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
+  Float32BufferAttribute,
   Group,
   type Material,
   Matrix4,
@@ -511,6 +512,68 @@ function mossBySide(geo: BufferGeometry, frame: Frame, tint: [number, number, nu
   }
   return geo;
 }
+
+/**
+ * Round 41 (structures-26): a LICHEN PLATE — a thin lobed disc lying on the bark along `n`,
+ * ≈ 2 r across, its outline lobed by the 3D noise, the centre 6 mm off the surface and the rim
+ * lifted a little further (crustose lichen curls at its edge) so it catches a line of light; the
+ * rim is a shade darker than the centre. Eight segments, two rings: 24 triangles.
+ */
+function lichenPlate(c: Vector3, n: Vector3, r: number, seed: number, n3: Noise3D, color: [number, number, number]): BufferGeometry {
+  const segs = 8;
+  const N = _lpN.copy(n).normalize();
+  const ref = Math.abs(N.y) > 0.9 ? _lpRef.set(1, 0, 0) : _lpRef.set(0, 1, 0);
+  const T = _lpT.crossVectors(ref, N).normalize();
+  const B = _lpB.crossVectors(N, T);
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const index: number[] = [];
+  const lift = 0.006;
+  const push = (p: Vector3, nn: Vector3, gain: number, u: number, v: number) => {
+    positions.push(p.x, p.y, p.z);
+    normals.push(nn.x, nn.y, nn.z);
+    uvs.push(u, v);
+    colors.push(color[0] * gain, color[1] * gain, color[2] * gain);
+  };
+  push(_lpP.copy(c).addScaledVector(N, lift), N, 1.05, 0.5, 0.5);
+  for (let j = 1; j <= 2; j++) {
+    const rim = j === 2;
+    for (let i = 0; i < segs; i++) {
+      const th = (i / segs) * TAU;
+      const ct = Math.cos(th);
+      const st = Math.sin(th);
+      const ruff = 1 + (rim ? 0.3 : 0.15) * n3.noise(ct * 1.7 + seed, st * 1.7 - seed * 0.31, seed * 0.7 + j);
+      const rr = r * (rim ? 1 : 0.55) * ruff;
+      _lpP.copy(c).addScaledVector(T, ct * rr).addScaledVector(B, st * rr).addScaledVector(N, lift + (rim ? 0.005 : 0.002));
+      // the rim's normal tilts outward so the lifted edge shades as a curl
+      _lpQ.copy(N).addScaledVector(T, rim ? ct * 0.45 : ct * 0.15).addScaledVector(B, rim ? st * 0.45 : st * 0.15).normalize();
+      push(_lpP, _lpQ, rim ? 0.82 : 1.0, 0.5 + ct * 0.5 * (rim ? 1 : 0.55), 0.5 + st * 0.5 * (rim ? 1 : 0.55));
+    }
+  }
+  for (let i = 0; i < segs; i++) {
+    const a = 1 + i;
+    const b = 1 + ((i + 1) % segs);
+    index.push(0, a, b);
+    const c2 = 1 + segs + i;
+    const d2 = 1 + segs + ((i + 1) % segs);
+    index.push(a, c2, d2, a, d2, b);
+  }
+  const geo = new BufferGeometry();
+  geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geo.setAttribute('normal', new Float32BufferAttribute(normals, 3));
+  geo.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  geo.setIndex(index);
+  return geo;
+}
+const _lpN = new Vector3();
+const _lpRef = new Vector3();
+const _lpT = new Vector3();
+const _lpB = new Vector3();
+const _lpP = new Vector3();
+const _lpQ = new Vector3();
 
 /**
  * Ridged bark noise sampled round a ring: the angle enters as (cos, sin) on a circle of radius
@@ -951,18 +1014,33 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     return Math.pow(1 - Math.abs(noise.noise(arc * 0.75 + 31 + tw * 0.5, y * 0.08)), 8);
   };
   const cords2 = (a: number, y: number) => noise.ridged(a * R * 4.2 + y * 0.2 + 3, y * 0.3, 2) - 0.5;
+  /**
+   * Round 41 (structures-26): the player-height grain — a third cord octave (≈ 20 cm bundles,
+   * ±1.5 cm) and narrow CRACKS (≈ 4 cm wide, 3 cm deep, running up the cords) that the 3 m views
+   * resolve on the wall beside the door; relief only (the vertex shade keeps rounds 21–34's
+   * calibrated terms), sub-pixel at camera B's 14 m and averaged out at the SSIM's 256 × 144.
+   * The shell grid is denser for them (`cols` / `rows` below).
+   */
+  const cords3 = (a: number, y: number) => noise.ridged(a * R * 5.0 + y * 0.35 + 8, y * 0.55, 2) - 0.5;
+  const crack = (a: number, y: number) => {
+    const arc = a * R;
+    const tw = noise.noise(y * 0.15, arc * 0.1) * 1.6;
+    return Math.pow(1 - Math.abs(noise.noise(arc * 2.6 + 57 + tw * 0.7, y * 0.45 + 2)), 11);
+  };
   const detail = (a: number, y: number) => {
     const arc = a * R;
     const furrow = Math.pow(Math.max(0, noise.noise(arc * 0.7 + 21, y * 0.12)), 2);
     const lumps = noise.fbm(arc * 0.35, y * 0.4, 3);
     const fine = noise.noise(arc * 3.5, y * 3.5);
-    return cords(a, y) * 0.36 * k - furrow * 0.16 * k + lumps * 0.12 * k + fine * 0.015 + cords2(a, y) * 0.08 * k - fissure(a, y) * 0.14 * k;
+    return cords(a, y) * 0.36 * k - furrow * 0.16 * k + lumps * 0.12 * k + fine * 0.015 + cords2(a, y) * 0.08 * k - fissure(a, y) * 0.14 * k + cords3(a, y) * 0.03 * k - crack(a, y) * 0.03 * k;
   };
   const winW = (a: number, r: number) => angleDiff(a, winA) * r;
 
   // ---- outer shell ----
-  const cols = Math.round(240 * sk);
-  const rows = Math.round(72 * sk);
+  // (round 41: 240 × 72 → 320 × 100 — 6.3 × 4.2 cm at Saria's, so the ≈ 20 cm fine cords and the
+  // cracks resolve; the surface function is unchanged, only its sampling)
+  const cols = Math.round(320 * sk);
+  const rows = Math.round(100 * sk);
   /**
    * The wall band under the cap's overhang (from just under the porch top up to the soffit) is
    * built as a second mesh over the same vertex grid, in the recess bark: reference B's shadow
@@ -2087,12 +2165,23 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * times as wide and half again as deep as round 21's.
    */
   const ARCH_CORD_SCALE = 1.35;
+  /**
+   * Round 41 (structures-26): a FINE cord octave (ring scale 3.6 — ≈ 22 bundles round the body,
+   * ±2 cm) and narrow cracks (±3 cm, along the body) on top of round 36's coarse cords, so the
+   * arch's cords and knots read from 3 m at the door; relief only — `archCrest` / `archFis`
+   * (the shade terms) stay round 36's, and the tubes are sampled denser for it (below).
+   */
+  const archFine = (seed: number, t: number, ang: number, along: number) => {
+    const fineCord = ringRidged(noise, ang, t * along * 1.3 + seed * 0.7, ARCH_CORD_SCALE * 2.7, seed + 7);
+    const fineCrack = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 3.3 + seed * 2.1, Math.sin(ang) * 3.3 + t * along * 0.8 + seed * 0.5)), 9);
+    return fineCord * 0.04 * k - fineCrack * 0.03 * k;
+  };
   const archDisplace = (seed: number, cordAmp: number, lumpAmp: number, along: number, fisAmp = 0.1) => (t: number, ang: number, pos: Vector3) => {
     archCrest = ringRidged(noise, ang, t * along * 0.6 + pos.y * 0.2, ARCH_CORD_SCALE, seed);
     const lump = noise.fbm(pos.x * 1.3 + 5, pos.z * 1.3 + pos.y * 0.7, 2) - 0.5;
     archFis = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.7 + seed * 1.3, Math.sin(ang) * 1.7 + t * along * 0.35 + seed)), 5);
     archRelief = lump * lumpAmp * k + knotsAt(pos);
-    return archCrest * cordAmp * k + archRelief - archFis * fisAmp * k;
+    return archCrest * cordAmp * k + archRelief - archFis * fisAmp * k + archFine(seed, t, ang, along);
   };
   /** the relief terms only; the shade comes from the welded normals in `shadeArch` */
   const reliefColor = (): [number, number, number] => [clamp(archCrest * 2.4, -1, 1), archRelief / k, archFis];
@@ -2115,16 +2204,19 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   };
   // (round 21: 32 radial segments, was 16 — the denser cords (≈ 14 bundles round the body) and
   // the fissures need two-plus vertices a bundle to show; +3.8 k triangles)
+  // (round 41: 120 × 32 → 176 × 48 for the fine cords, ≈ 6 cm round the 0.9 m body)
+  const ARCH_TS = 176;
+  const ARCH_RS = 48;
   const arch = sweepTube(archCurve, {
     radius: archRadius,
-    tubularSegments: 120,
-    radialSegments: 32,
+    tubularSegments: ARCH_TS,
+    radialSegments: ARCH_RS,
     uvMetres: 1.4,
     displace: archBody,
     color: reliefColor,
   });
   weldNormals(arch);
-  weldTubeSeam(arch, 120, 32);
+  weldTubeSeam(arch, ARCH_TS, ARCH_RS);
   /**
    * Bark shade from the real normal and the relief: lit on top, a touch on the front; cord
    * crests and bumps light, furrows and hollows dark (the reference's arch face in B, x 0.72–0.86
@@ -2399,16 +2491,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       }
     }
     // (round 21: 24 radial segments, was 14, deeper cords 0.11, fissures 0.07)
+    // (round 41: 32 × 24 → 48 × 36 for the fine cords)
     const buttress = sweepTube(curve, {
       radius: buttressR,
-      tubularSegments: 32,
-      radialSegments: 24,
+      tubularSegments: 48,
+      radialSegments: 36,
       uvMetres: 1.4,
       displace: archDisplace(4.1 + side, 0.15, 0.12, 8, 0.07),
       color: reliefColor,
     });
     weldNormals(buttress);
-    weldTubeSeam(buttress, 32, 24);
+    weldTubeSeam(buttress, 48, 36);
     archParts.push(shadeArch(buttress, 1.0 * k, 2.9 * k, 0.5, false, side));
     pillarTops.push({ top: curve.getPointAt(0.1), foot: [foot.x, foot.y, foot.z], side, footRadius: buttressR(tFoot) });
     bases.push([foot.x, foot.y, foot.z]);
@@ -3982,6 +4075,207 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
   }
   for (const m of foliage40.build(mats, `house40-${def.id}`)) group.add(m);
+
+  // ---- round 41 (structures-26): PLAYER-HEIGHT TRUNK DETAIL (owner: real close-scale detail on
+  // the trunk seen from the terrace at 2–4 m, not a smooth shell with a green tint). On top of the
+  // shell's fine cords and cracks (relief, above):
+  //  - MOSS CUSHION TUFTS (mossTufts.ts, cap-moss material) standing in the furrows and on the
+  //    sheets wherever the shell's own vertex tint is moss — the shaded right wall's skin, the
+  //    round-21 furrow grime, the round-34 sheets, the D-side flank sheet — sampled from
+  //    `shellVertex` itself so they sit exactly on the displaced surface, gathered in colonies;
+  //  - LICHEN PLATES: thin lobed discs 4–12 cm across lying on the cord crests where the shell's
+  //    lichen field is high, pale grey-green, edges lifted (the plain moss material, +0 draws);
+  //  - moss caps on the buttress roots' crowns and the root flare (tufts on the roots' own upper
+  //    vertices where `mossOnTop` tinted them) and on the entrance arch's mossy upper faces, with
+  //    lichen on the arch's lit crests; trefoils at the roots' feet.
+  // Own forks; the tuft mesh folds into the cap-moss tuft bucket, the lichen into the moss bucket. ----
+  const trunk41 = rng.fork('trunk41');
+  const tuft41: MossTuftSpec[] = [];
+  const lichenParts: BufferGeometry[] = [];
+  const detail41 = { trunkTufts: 0, rootTufts: 0, archTufts: 0, lichen: 0, trefoils: 0 };
+  {
+    const _sv = { position: new Vector3() } as SurfaceSample;
+    const _su = { position: new Vector3() } as SurfaceSample;
+    const _sw = { position: new Vector3() } as SurfaceSample;
+    const _du = new Vector3();
+    const _dv = new Vector3();
+    const _nn = new Vector3();
+    const _pp = new Vector3();
+    const vOf = (y: number) => (y - yBase) / (wallTop - yBase);
+    /** the shell's outward normal at (u, v) by central differences of `shellVertex` */
+    const shellNormal = (u: number, v: number, out: Vector3) => {
+      const eu = 0.2 / cols;
+      const ev = 0.2 / rows;
+      shellVertex(((u + eu) % 1 + 1) % 1, v, _su);
+      shellVertex(((u - eu) % 1 + 1) % 1, v, _sw);
+      _du.subVectors(_su.position, _sw.position);
+      shellVertex(u, Math.min(1, v + ev), _su);
+      shellVertex(u, Math.max(0, v - ev), _sw);
+      _dv.subVectors(_su.position, _sw.position);
+      out.crossVectors(_du, _dv).normalize();
+      // outward: away from the trunk's axis
+      _pp.set(_sv.position.x - frame.C.x, 0, _sv.position.z - frame.C.z);
+      if (out.dot(_pp) < 0) out.negate();
+      return out;
+    };
+    const colony41 = (p: Vector3) => smoothstep(0.42, 0.53, 0.5 + 0.5 * n3.noise(p.x * 2.0 + 3.3, p.y * 2.0, p.z * 2.0 - 1.7));
+    const MOSS41: [number, number, number] = [0.15, 0.22, 0.045];
+    const LICHEN41: [number, number, number] = [0.5, 0.56, 0.5];
+    /** how mossy a bark vertex tint is: the green share over the red (bark ≈ 1.03, the sheets 2.5–4) */
+    const mossiness = (c: [number, number, number]) => smoothstep(1.3, 2.2, c[1] / Math.max(1e-4, c[0]));
+    const shadeOf = (c: [number, number, number]) => clamp((0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]) / 0.22, 0.25, 1);
+    const attempts = def.id === 'saria' ? 16000 : 5000;
+    for (let i = 0; i < attempts; i++) {
+      const a = trunk41() * TAU;
+      const y = lerp(0.03, wallTop - 0.15, Math.pow(trunk41(), 0.8));
+      const r = (0.022 + 0.045 * Math.pow(trunk41(), 1.3)) * sk;
+      const aspect = 0.75 + trunk41() * 0.5;
+      const yaw = trunk41() * TAU;
+      const hK = 0.55 + trunk41() * 0.4;
+      const seed = 1 + Math.floor(trunk41() * 1e6);
+      const keep = trunk41();
+      const u = a / TAU;
+      const v = vOf(y);
+      if (shellHole(u, v)) continue;
+      const rs = rSmooth(a, y);
+      if (porchSD(wOf(a, rs), y) < 0.3 * k) continue;
+      shellVertex(u, v, _sv);
+      const c = _sv.color ?? [1, 1, 1];
+      let w = mossiness(c);
+      // the D-side sheet is laid over the grid afterwards (mossBySide): the same weight here
+      if (dSide) {
+        const wa = dSide(angleDiff(a, 0), y);
+        if (wa > 0) w = Math.max(w, wa * smoothstep(-0.75, -0.25, noise.fbm(_sv.position.x * 0.9 + 4, _sv.position.z * 0.9 + y * 0.5 + 2, 2)));
+      }
+      // the damp base band takes a thin scatter on bare bark too
+      w = Math.max(w, 0.3 * smoothstep(0.5, 0.05, y));
+      if (keep > w * lerp(0.1, 1, colony41(_sv.position))) continue;
+      shellNormal(u, v, _nn);
+      const sh = shadeOf(c);
+      tuft41.push({
+        position: _sv.position.clone(),
+        normal: _nn.clone(),
+        rx: r * aspect,
+        rz: r / aspect,
+        h: r * hK,
+        yaw,
+        color: [MOSS41[0] * sh, MOSS41[1] * sh, MOSS41[2] * sh],
+        uv: [(a * R) / 1.6, y / 1.6],
+        sink: r * 0.4,
+        seed,
+      });
+      detail41.trunkTufts++;
+    }
+    // lichen plates on the cord crests where the shell's lichen field is high (its own terms)
+    const lichenAttempts = def.id === 'saria' ? 3000 : 900;
+    for (let i = 0; i < lichenAttempts; i++) {
+      const a = trunk41() * TAU;
+      const y = lerp(0.5, wallTop - 0.2, trunk41());
+      const pr = (0.02 + 0.04 * trunk41()) * sk;
+      const seed = trunk41() * 100;
+      const keep = trunk41();
+      const u = a / TAU;
+      const v = vOf(y);
+      if (shellHole(u, v)) continue;
+      const rs = rSmooth(a, y);
+      if (porchSD(wOf(a, rs), y) < 0.4 * k) continue;
+      const field = smoothstep(0.45, 0.7, noise.noise(a * R * 1.3 + 41, y * 1.3 - 3)) * smoothstep(0.05, 0.5, cords(a, y) * 2.2);
+      if (keep > field * 0.9) continue;
+      shellVertex(u, v, _sv);
+      if (mossiness(_sv.color ?? [1, 1, 1]) > 0.3) continue;
+      shellNormal(u, v, _nn);
+      const sh = shadeOf(_sv.color ?? [1, 1, 1]);
+      lichenParts.push(lichenPlate(_sv.position, _nn, pr, seed, n3, [LICHEN41[0] * sh, LICHEN41[1] * sh, LICHEN41[2] * sh]));
+      detail41.lichen++;
+    }
+    // moss caps on the roots' crowns and the arch's mossy upper faces, lichen on the arch's lit crests
+    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts', lichenShare: number) => {
+      for (const g of parts) {
+        const pos = g.attributes.position;
+        const nrm = g.attributes.normal;
+        const col = g.attributes.color;
+        const uv = g.attributes.uv;
+        if (!col) continue;
+        for (let vi = 0; vi < pos.count; vi++) {
+          const ny = nrm.getY(vi);
+          if (ny < upMin) continue;
+          const c: [number, number, number] = [col.getX(vi), col.getY(vi), col.getZ(vi)];
+          const m = mossiness(c);
+          const draw = trunk41();
+          _pp.set(pos.getX(vi), pos.getY(vi), pos.getZ(vi));
+          if (draw < m * share * lerp(0.2, 1, colony41(_pp))) {
+            const r = (0.02 + trunk41() * 0.035) * sk;
+            const sh = shadeOf(c);
+            tuft41.push({
+              position: _pp.clone(),
+              normal: new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)),
+              rx: r * (0.8 + trunk41() * 0.4),
+              rz: r * (0.8 + trunk41() * 0.4),
+              h: r * (0.5 + trunk41() * 0.4),
+              yaw: trunk41() * TAU,
+              color: [MOSS41[0] * sh, MOSS41[1] * sh, MOSS41[2] * sh],
+              uv: [uv.getX(vi), uv.getY(vi)],
+              sink: r * 0.5,
+              seed: 1 + Math.floor(trunk41() * 1e6),
+            });
+            detail41[count]++;
+          } else if (lichenShare > 0 && m < 0.2 && draw > 1 - lichenShare * clamp((c[0] + c[1] + c[2]) / 1.5, 0, 1)) {
+            const sh = shadeOf(c);
+            lichenParts.push(lichenPlate(_pp, new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)), (0.02 + 0.035 * trunk41()) * sk, trunk41() * 100, n3, [LICHEN41[0] * sh, LICHEN41[1] * sh, LICHEN41[2] * sh]));
+            detail41.lichen++;
+          }
+        }
+      }
+    };
+    onParts(rootParts, 0.35, 0.45, 'rootTufts', 0);
+    onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
+  }
+  const tufts41 = buildMossTufts(tuft41, n3, { topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+  const tuft41Mesh = new Mesh(tufts41.geometry, mats.capMoss);
+  tuft41Mesh.name = 'trunk-moss-tufts';
+  tuft41Mesh.castShadow = false;
+  tuft41Mesh.receiveShadow = true;
+  group.add(tuft41Mesh);
+  if (lichenParts.length) {
+    const lichenMesh = new Mesh(merge(lichenParts), mats.moss);
+    lichenMesh.name = 'trunk-lichen';
+    lichenMesh.castShadow = lichenMesh.receiveShadow = true;
+    group.add(lichenMesh);
+  }
+  // trefoils at the roots' feet, on the terrain (the root's own contact points)
+  const foliage41 = new FoliageBuilder(rng.fork('foliage41'), `${ctx.config.seed}/house41/${def.id}`);
+  {
+    const _fp = new Vector3();
+    const _fn = new Vector3();
+    for (const [bx, , bz] of bases) {
+      for (let i = 0; i < 3; i++) {
+        const x = bx + (trunk41() - 0.5) * 1.2;
+        const z = bz + (trunk41() - 0.5) * 1.2;
+        if (terrain.mask(x, z).path > 0.01 || terrain.mask(x, z).stairs > 0.01) continue;
+        if (Math.hypot(x - frame.C.x, z - frame.C.z) < rSmooth(Math.atan2((x - frame.C.x) * Rt.x + (z - frame.C.z) * Rt.z, (x - frame.C.x) * F.x + (z - frame.C.z) * F.z), 0) + 0.1) continue;
+        _fp.set(x, terrain.height(x, z), z);
+        terrain.normal(x, z, _fn);
+        const stem = 0.02 + trunk41() * 0.02;
+        const size = (0.045 + trunk41() * 0.035) * sk;
+        const yaw0 = trunk41() * TAU;
+        const leaflets = trunk41() < 0.25 ? 4 : 3;
+        const tk = 0.85 + trunk41() * 0.35;
+        const tint: [number, number, number] = [1.6 * tk, 1.55 * tk, 1.4 * tk];
+        const base = _fp.clone().addScaledVector(_fn, stem);
+        const T = new Vector3(-_fn.z, 0, _fn.x);
+        if (T.lengthSq() < 1e-6) T.set(1, 0, 0);
+        T.normalize();
+        const B = new Vector3().crossVectors(_fn, T);
+        for (let j = 0; j < leaflets; j++) {
+          const yaw = yaw0 + (j / leaflets) * TAU + (trunk41() - 0.5) * 0.4;
+          const dir = new Vector3().addScaledVector(T, Math.cos(yaw)).addScaledVector(B, Math.sin(yaw)).multiplyScalar(0.8).addScaledVector(_fn, 0.45 + trunk41() * 0.3).normalize();
+          foliage41.addLeaf(base, dir, size * (0.85 + trunk41() * 0.3), trunk41() * TAU, 0.05, tint);
+        }
+        detail41.trefoils++;
+      }
+    }
+  }
+  for (const m of foliage41.build(mats, `house41-${def.id}`)) group.add(m);
 
   // draped limbs + arc bough + broken stub + right limb + chimney
   // the pad is level (round 14) and the terrain stays under it (`floorPoke` ≤ 0), so this is the
