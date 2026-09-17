@@ -121,7 +121,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           // flattened to its luminance under them
           diffuseColor.rgb *= mix(c * 1.08, vec3(0.8 + 0.4 * l), plate);
           if (nearW > 0.0005) {
-            float vl = dot(vColor, vec3(0.299, 0.587, 0.114));
+            float vl = dot(vColor.rgb, vec3(0.299, 0.587, 0.114));
             // grime: the cracks and partings (dark vertex colour) hold a damp dark brown
             float grime = smoothstep(0.42, 0.16, vl) * nearW * (1.0 - plate);
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.1, 0.075) * (0.7 + 0.8 * l), 0.7 * grime);
