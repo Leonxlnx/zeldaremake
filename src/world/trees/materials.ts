@@ -91,13 +91,22 @@ export const NEAR_CANOPY_SLOTS = 40;
  * trees' own presets keep the shared ones for the structures and lower the lift / raise the
  * texture share here: the floor still catches the darkest faces (nothing goes to black) but
  * keeps more of the surface's own albedo variation. Measured in the report (shaded-bark region
- * std / p10 at the plaza-column and limb-below poses; per-view SSIM against cap-0). Half-steps:
- * the full step (bark 5.5 / 0.3, leaf 4.5 / 0.6, near bole texture 0.5) cost the six fixed
- * frames −0.004 to −0.009 SSIM against frames whose shaded boles and crowns ARE hazed flat, so
- * the trees take half of it and the rest stays a dial here.
+ * std / p10 at the plaza-column and limb-below poses; per-view SSIM against cap-0).
+ *
+ * By distance. Applied flat, the full step (bark 5.5 / 0.3, leaf 4.5 / 0.6) cost the six fixed
+ * frames −0.004 to −0.009 SSIM and the half-step −0.002 to −0.007: what those cameras frame of
+ * the giants stands 10–35 m off, where the frames' shaded boles and crowns ARE hazed flat, and
+ * the review's flattened cords and laminae are what the owner sees at 3–8 m. So the far programs
+ * fade the floor by view distance: the NEAR preset within TREE_FLOOR_FADE_M[0], the shared one
+ * from TREE_FLOOR_FADE_M[1] (`mix(near, far, 1.0)` is exactly `far`: the fixed frames render the
+ * shared arithmetic). The near-bole and near-base materials keep their own floors.
  */
-export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6, texture: 0.2 };
-export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 5, texture: 0.5 };
+export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
+export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
+export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
+export const TREE_LEAF_FLOOR_NEAR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
+/** view distance (m) over which a far program's floor goes from the NEAR preset to the shared one */
+export const TREE_FLOOR_FADE_M: [number, number] = [5, 10];
 /**
  * The near canopy's leaf floor (giant.ts NEAR_CANOPY_IN_M): the laminae the owner looks up at
  * from 3–20 m. Lower again than the trees' — the sun read through the leaves and the shadow of
@@ -603,13 +612,36 @@ const TREE_FLOOR_GLSL: ShadeFloorGlslOptions = { leafSun: 'uLeafSun' };
  * indirectDiffuse, so its addition is taken back in proportion — mix(before, after, 1.0) is
  * exactly `after`, so ordinary leaves keep their arithmetic.
  */
-const LEAF_FLOOR_SHADED = /* glsl */ `
+/**
+ * A floor block with its lift and texture-share reads faded by view distance (TREE_FLOOR_FADE_M):
+ * `${u}NearLift` / `${u}NearTexture` within, the block's own `${u}Lift` / `${u}Texture` beyond.
+ * The shared block reads the two by name, so the fade is spliced onto those reads; throws if the
+ * shared text no longer carries them. `floorFar` must be in scope (see TREE_FLOOR_FADE_GLSL).
+ */
+function distanceFadedFloorGlsl(u: string, block: string): string {
+  const lift = `${u}Lift * ambientMean`;
+  const texture = `${u}Texture)`;
+  if (!block.includes(lift) || !block.includes(texture)) throw new Error(`shadeFloorGlsl: expected '${lift}' and '${texture}' in the floor block`);
+  return block.replace(lift, `mix(${u}NearLift, ${u}Lift, floorFar) * ambientMean`).replace(texture, `mix(${u}NearTexture, ${u}Texture, floorFar))`);
+}
+const TREE_FLOOR_FADE_PARS = 'uniform vec2 uFloorFade;\n';
+const treeFloorNearPars = (u: string) => `uniform float ${u}NearLift;\nuniform float ${u}NearTexture;\n`;
+const TREE_FLOOR_FADE_GLSL = /* glsl */ `float floorFar = smoothstep(uFloorFade.x, uFloorFade.y, length(vViewPosition));`;
+function bindTreeFloorNear(shader: WebGLProgramParametersWithUniforms, u: string, near: ShadeFloor) {
+  shader.uniforms[`${u}NearLift`] = { value: near.lift };
+  shader.uniforms[`${u}NearTexture`] = { value: near.texture };
+  shader.uniforms.uFloorFade = { value: new Vector2(TREE_FLOOR_FADE_M[0], TREE_FLOOR_FADE_M[1]) };
+}
+/** the leaf floor (LEAF_FLOOR_SHADED semantics) faded by distance: `near` is the preset within TREE_FLOOR_FADE_M[0] */
+const leafFloorShaded = () => /* glsl */ `
       {
+        ${TREE_FLOOR_FADE_GLSL}
         vec3 beforeFloor = reflectedLight.indirectDiffuse;
-        ${shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL)}
+        ${distanceFadedFloorGlsl('uLeafFloor', shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL))}
         reflectedLight.indirectDiffuse = mix(beforeFloor, reflectedLight.indirectDiffuse, vLeafShade);
       }
 `;
+const LEAF_FLOOR_SHADED = leafFloorShaded();
 /** white-barks are pale already; their shaded sides are not among the measured gaps */
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
 /**
@@ -732,6 +764,13 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   shader.uniforms.uLeafNear = { value: new Vector2(leafNear[0], leafNear[1]) };
   bindShadeFloor(shader, barkPrefix, barkFloor);
   bindShadeFloor(shader, 'uLeafFloor', variant.leafFloor ?? TREE_LEAF_FLOOR);
+  // the distance fade (TREE_FLOOR_FADE_M): the giants' far programs go to the NEAR presets close
+  // up; a material with its own calibrated floor (the near bole's height profile, the near
+  // canopy's leaf floor) fades to itself
+  const barkNear = heightFade || barkFloor !== TREE_BARK_FLOOR ? barkFloor : TREE_BARK_FLOOR_NEAR;
+  const leafNearFloor = variant.leafFloor ?? TREE_LEAF_FLOOR_NEAR;
+  bindTreeFloorNear(shader, barkPrefix, barkNear);
+  bindTreeFloorNear(shader, 'uLeafFloor', leafNearFloor);
   let sunThroughPars = '';
   let sunThrough = LEAF_SUN_THROUGH;
   if (variant.sunThrough !== undefined) {
@@ -749,14 +788,30 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   // keeps at least half of the bark's own texture instead of the far tenth, so a shaded stem at
   // 1–3 m shows its grain along its length rather than one flat tone; the level (the floor's
   // mean albedo) does not move. `woodNear` is 0 past LEAF_NEAR_M[1] — mix(a, b, 0.0) is exactly a.
-  const textureRead = `${barkPrefix}Texture)`;
-  const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
+  // the height-profiled near-bole floor keeps its own lift; the plain block fades lift and
+  // texture share by distance (TREE_FLOOR_FADE_M) before the woodNear splice
+  const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : distanceFadedFloorGlsl(barkPrefix, shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL));
+  const textureRead = heightFade ? `${barkPrefix}Texture)` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar))`;
   if (!floorBlock.includes(textureRead)) throw new Error(`shadeFloorGlsl: expected '${textureRead}' in the floor block`);
+  const textureHere = heightFade ? `${barkPrefix}Texture` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar)`;
   const barkFloorGlsl = /* glsl */ `
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
-      ${floorBlock.replace(textureRead, `mix(${barkPrefix}Texture, max(${barkPrefix}Texture, 0.5), woodNear))`)}
+      ${TREE_FLOOR_FADE_GLSL}
+      ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
 `;
-  shader.fragmentShader = (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') + TREE_FRAGMENT_PARS + LEAF_NEAR_PARS + LEAF_FRAME_GLSL + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + fadePars + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + sunThroughPars + shader.fragmentShader;
+  shader.fragmentShader =
+    (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') +
+    TREE_FRAGMENT_PARS +
+    LEAF_NEAR_PARS +
+    LEAF_FRAME_GLSL +
+    shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) +
+    fadePars +
+    shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
+    TREE_FLOOR_FADE_PARS +
+    treeFloorNearPars(barkPrefix) +
+    treeFloorNearPars('uLeafFloor') +
+    sunThroughPars +
+    shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -916,11 +971,14 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
       s.uniforms.uClusterNear = { value: clusterNear.color };
       s.uniforms.uClusterNearN = { value: clusterNear.normal };
       bindShadeFloor(s, 'uLeafFloor', TREE_LEAF_FLOOR);
+      bindTreeFloorNear(s, 'uLeafFloor', TREE_LEAF_FLOOR_NEAR);
       s.fragmentShader =
         `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nvarying float vLeafFlat;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\nuniform float uFlatLift;\nuniform sampler2D uClusterNear;\nuniform sampler2D uClusterNearN;\nvec4 cardNearN = vec4(0.5, 0.5, 1.0, 0.0);\n` +
         LEAF_NEAR_PARS +
         LEAF_FRAME_GLSL +
         shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
+        TREE_FLOOR_FADE_PARS +
+        treeFloorNearPars('uLeafFloor') +
         s.fragmentShader;
       // the 512 map as before; within LEAF_NEAR_M the near pair takes over: its coverage blends
       // into the alpha (a card's leaves grow their margins as the camera comes in) and its

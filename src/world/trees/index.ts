@@ -23,7 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_LEAF_FLOOR, TREE_NEAR_BOLE_FLOOR } from './materials';
+import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
@@ -2674,18 +2674,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       lodLevels: 3,
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
-      /** shade floors as bound (trees/materials.ts presets): [lift, texture] — the giants' bark, every leaf, the near bole (the emergent column), the near canopy's leaves */
+      /**
+       * shade floors as bound (trees/materials.ts presets): [lift, texture] — the giants' bark and
+       * every leaf beyond TREE_FLOOR_FADE_M[1] (the shared presets), the same within
+       * TREE_FLOOR_FADE_M[0] (the NEAR presets), the near bole (the emergent column), the near
+       * bases, the near canopy's leaves
+       */
       shadeFloors: Object.fromEntries(
         (
           [
             ['giantBark', TREE_BARK_FLOOR],
+            ['giantBarkNear', TREE_BARK_FLOOR_NEAR],
             ['leaf', TREE_LEAF_FLOOR],
+            ['leafNear', TREE_LEAF_FLOOR_NEAR],
             ['nearBole', TREE_NEAR_BOLE_FLOOR],
             ['nearBase', NEAR_BASE_FLOOR],
             ['nearCanopyLeaf', NEAR_CANOPY_LEAF_FLOOR],
           ] as [string, ShadeFloor][]
         ).map(([k, f]) => [k, [f.lift, f.texture]]),
       ),
+      /** the far programs' floors fade from the NEAR presets to the shared ones over this view distance (m) */
+      shadeFloorFadeM: TREE_FLOOR_FADE_M,
       /** the near bole's floor fades with height (materials.ts NEAR_BOLE_FLOOR_FADE): [lift at the foot, lift above the fade, fade from (m), fade to (m)] */
       nearBoleFloorProfile: [NEAR_BOLE_FLOOR.lift, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_FLOOR_FADE[0], NEAR_BOLE_FLOOR_FADE[1]],
       /**
@@ -2741,6 +2750,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         /** the hero pass on the built meshes (nearCanopyHeroPass): parts with radii cut further, parts dropped (would swap under minInM) */
         heroPass,
         residentTriangles: nearCanopies.reduce((n, nc) => n + nc.triangles, 0),
+        /** vertices resident for every near part and their buffer bytes (position, colour, uv, wind, root, normal + the index) */
+        residentVertices: nearCanopies.reduce((n, nc) => n + nc.mesh.geometry.getAttribute('position').count, 0),
+        residentBytes: nearCanopies.reduce((n, nc) => {
+          const g = nc.mesh.geometry;
+          const attrs = Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0);
+          return n + attrs + (g.index ? g.index.array.byteLength : 0);
+        }, 0),
         giants: giants.map((g) => {
           const lobes = g.asset.nearCanopy.filter((p) => p.kind === 'lobe');
           const limbs = g.asset.nearCanopy.filter((p) => p.kind === 'limb');

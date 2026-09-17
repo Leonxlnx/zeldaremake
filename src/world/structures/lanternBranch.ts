@@ -723,7 +723,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
           float through = max(-dot(normal, directLight.direction), 0.0);
           float transmission = through * 0.6 + backlight * through * 0.5 + backlight * 0.15;
-          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.3 * vec3(0.9, 1.0, 0.6);
+          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.27 * vec3(0.7, 1.0, 0.55);
         }
         #endif`,
       );
