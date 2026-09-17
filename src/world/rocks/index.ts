@@ -3,6 +3,10 @@
  * Hero mossy boulders (LAYOUT.heroBoulders) with fractured/faceted silhouettes and rubble skirts,
  * half-buried angular strata on the steep embankment faces, and thousands of instanced pebbles
  * along path edges, stair feet and boulder bases. Everything is seated on the heightfield.
+ * Each hero boulder also carries a near LOD (NEAR_ROCK_IN_M below) for the live camera at
+ * player height: the same rock rebuilt denser with a fractured skin, moss pads, lichen plates
+ * and loose fragments, and a material variant whose 2.6 m texture tile, wet band and crack grime
+ * fade in under 6 m (material.ts). The six fixed hero cameras always render the far meshes.
  */
 import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
