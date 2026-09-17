@@ -7,9 +7,8 @@
 import { Group, Mesh, Raycaster, Vector3 } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { DETAIL_PASSES, LATTICE } from './heightfield';
-import { buildChunkGeometry, createWeightContext, layoutChunks } from './chunks';
+import { NEAR_GROUND, buildChunkGeometry, createWeightContext, layoutChunks } from './chunks';
 import { GROUND_NEAR, createTerrainMaterial } from './material';
-import { NEAR_GROUND } from './chunks';
 import { createRng } from '../util/prng';
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {

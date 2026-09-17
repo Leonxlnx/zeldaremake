@@ -22,6 +22,8 @@
  *    ring): darker, cooler, roughness 0.46;
  *  - bank faces (soil on slopes ≥ 0.25): root-like ridges running downslope and 1–2.5 cm pebbles,
  *    normal + albedo only;
+ *  - the path verge (gravel layer): 0.6–3 cm stones in two jittered grids and a contrast lift of
+ *    the gravel map under `DETAIL_FADE`;
  *  - vertex relief ≤ 1.5 cm (clods, root humps at the giants' feet) on the fine lattice within
  *    `RELIEF_FADE` m of the camera, off on the paving / stairs / pads (aW2.y). GPU-side: the
  *    sampler `height()` and the CPU mesh the audit raycasts are untouched.
@@ -54,6 +56,8 @@ const DETAIL_NORMAL_K = 0.5;
 const DETAIL_ALBEDO_K = 0.45;
 /** mean linear luminance of brown_mud_leaves_01/color (measured), the detail albedo pivot */
 const LITTER_MEAN_LUM = 0.098;
+/** mean linear luminance of rocky_trail/color (measured), the verge contrast pivot */
+const GRAVEL_MEAN_LUM = 0.236;
 /** vertex relief: hard cap (m), camera fade (m), and the normal's exaggeration over the true slope */
 const RELIEF_MAX_M = 0.015;
 const RELIEF_FADE: [number, number] = [5.0, 9.0];
@@ -79,6 +83,7 @@ export const GROUND_NEAR = {
   wetRoughness: WET_ROUGHNESS,
   proceduralLitter: true,
   mossCushions: true,
+  vergeStones: true,
 };
 
 const f = (v: number) => v.toFixed(4);
@@ -239,6 +244,28 @@ float cushionLayer(vec2 p, float cell, float seed, float amp, inout vec2 nxy) {
   nxy += bestTilt * amp * (0.3 + 0.7 * best);
   return best;
 }
+// pebbles: one disc per jittered cell (m) where the cell's hash is under dens, radius rMin..rMax
+// (m), a domed normal and a contact-shade ring; w scales coverage. Returns the coverage.
+float pebbleLayer(vec2 p, float cell, float seed, float dens, float rMin, float rMax, vec3 sl, float w, inout vec3 c, inout vec2 nxy) {
+  vec2 g = p / cell;
+  vec2 i = floor(g);
+  vec2 fr = g - i - 0.5;
+  float h1 = tHash(i + seed);
+  float h2 = tHash(i + seed + 10.6);
+  float h3 = tHash(i + seed + 23.8);
+  if (h2 >= dens) return 0.0;
+  vec2 d = slopeFix((fr - (vec2(h1, h3) - 0.5) * 0.4) * cell, sl);
+  float r = mix(rMin, rMax, h1);
+  float e = length(d) / r;
+  float cov = (1.0 - smoothstep(0.85, 1.05, e)) * w;
+  c *= 1.0 - 0.3 * (1.0 - smoothstep(1.0, 1.4, e)) * (1.0 - cov) * w;
+  if (cov <= 0.001) return 0.0;
+  nxy += (d / r) * 0.8 * cov;
+  // grey, warm grey and a rusty one; the far side of the dome falls into shade
+  vec3 tone = h3 < 0.55 ? vec3(0.36, 0.34, 0.31) : h3 < 0.85 ? vec3(0.38, 0.33, 0.27) : vec3(0.33, 0.24, 0.17);
+  c = mix(c, tone * (0.7 + 0.6 * h1) * (1.0 - 0.3 * smoothstep(0.5, 1.0, e)), cov);
+  return cov;
+}
 // bank faces: root-like ridges running downslope (dn = downslope direction in xz) and pebbles,
 // as normal + albedo only. w = bank weight (soil × steepness × fade).
 void bankDetail(vec2 p, vec3 nn, float w, inout vec3 c, inout vec2 nxy) {
@@ -259,23 +286,16 @@ void bankDetail(vec2 p, vec3 nn, float w, inout vec3 c, inout vec2 nxy) {
   float trough = smoothstep(0.3, 0.0, base);
   c *= mix(1.0, mix(0.72, 1.35, ridge) * (1.0 - 0.2 * trough), presence);
   c = mix(c, c * vec3(1.12, 1.0, 0.82), ridge * presence * 0.7);
-  // pebbles: 0.9–2.2 cm radius discs in a 12 cm jittered grid, 40 % of the cells, with a
-  // contact shade ring
-  vec2 g = p / 0.12;
-  vec2 i = floor(g);
-  vec2 fr = g - i - 0.5;
-  float h1 = tHash(i + 3.3);
-  float h2 = tHash(i + 13.9);
-  float h3 = tHash(i + 27.1);
-  if (h2 < 0.4) {
-    vec2 d = slopeFix((fr - (vec2(h1, h3) - 0.5) * 0.4) * 0.12, sl);
-    float r = 0.009 + 0.013 * h1;
-    float e = length(d) / r;
-    float cov = (1.0 - smoothstep(0.85, 1.05, e)) * w;
-    c *= 1.0 - 0.3 * (1.0 - smoothstep(1.0, 1.4, e)) * (1.0 - cov) * w;
-    nxy += (d / r) * 0.8 * cov;
-    c = mix(c, vec3(0.36, 0.34, 0.31) * (0.7 + 0.6 * h3) * (1.0 - 0.3 * smoothstep(0.5, 1.0, e)), cov);
-  }
+  // pebbles: 0.9–2.2 cm in a 12 cm jittered grid, 40 % of the cells
+  pebbleLayer(p, 0.12, 3.3, 0.4, 0.009, 0.022, sl, w, c, nxy);
+}
+// the path verge (the gravel layer beside the flagstones): the stony soil's small stones, 0.6–1.8
+// cm in a 7 cm grid plus a sparser 1.5–3 cm size in a 16 cm grid, on top of the gravel map's
+// contrast lift. w = gravel weight × detail fade.
+float vergeDetail(vec2 p, vec3 sl, float w, inout vec3 c, inout vec2 nxy) {
+  float cov = pebbleLayer(p, 0.07, 6.1, 0.5, 0.006, 0.018, sl, w, c, nxy);
+  cov = max(cov, pebbleLayer(p + vec2(0.021, 0.037), 0.16, 8.9, 0.3, 0.015, 0.03, sl, w, c, nxy));
+  return cov;
 }
 // the near-field detail terms shared by the colour and normal passes: near / detail / bank
 // weights and the litter density (leaves + twigs are densest on the litter layer, thinner on soil
@@ -392,7 +412,7 @@ const MAP_FRAG = /* glsl */ `
   }
   // path gravel / stony soil under and beside the flagstones
   if (w1.x > 0.002) {
-    vec3 gv = col2(tGravelC, uvw, uTiles1.y, mixK);
+    vec3 gv = nearContrast(col2(tGravelC, uvw, uTiles1.y, mixK), ${f(GRAVEL_MEAN_LUM)}, nw);
     gv = mix(gv, uStoneTint * (0.5 + 1.0 * lum(gv)), 0.3);
     c += gv * w1.x;
   }
@@ -423,8 +443,10 @@ const MAP_FRAG = /* glsl */ `
   }
   float litCov = 0.0;
   if (dw > 0.001) {
+    float vergeW = w1.x * dw;
+    if (vergeW > 0.002) litCov = vergeDetail(uvw, slopeFrame(nn), vergeW, c, nxyUnused);
     float dens = litterDensity(w0) * dw;
-    if (dens > 0.002) litCov = litterDetail(uvw, dens, slopeFrame(nn), c, nxyUnused);
+    if (dens > 0.002) litCov = max(litCov, litterDetail(uvw, dens, slopeFrame(nn), c, nxyUnused));
   }
   // macro variation + damp darkening (the dry litter on top takes less of the damp)
   c *= mix(0.86, 1.14, k);
@@ -479,6 +501,8 @@ const NORMAL_FRAG = /* glsl */ `
       if (bankW > 0.002) bankDetail(uvw, nn, bankW, cUnused, nxy);
     }
     if (dw > 0.001) {
+      float vergeW = vW1.x * dw;
+      if (vergeW > 0.002) vergeDetail(uvw, slopeFrame(nn), vergeW, cUnused, nxy);
       float dens = litterDensity(vW0) * dw;
       if (dens > 0.002) litterDetail(uvw, dens, slopeFrame(nn), cUnused, nxy);
     }
