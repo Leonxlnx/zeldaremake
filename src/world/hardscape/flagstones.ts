@@ -25,7 +25,7 @@ import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
-import { B_FOREGROUND_SLABS, aForeground, dForeground, dampBand, discField, earthPatch, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
+import { B_FOREGROUND_SLABS, aForeground, dForeground, dampBand, discField, earthPatch, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza, troddenStrip } from './zones';
 import type { SteppingStone } from '../layout';
 
 export interface PlacedStone {
@@ -660,7 +660,7 @@ export interface PavingResult {
   steppingStones: IsolatedDisc[];
   /** the Voronoi seeds (for the offline paving audit): position, lawn weight, whether the seed kept its cell */
   seeds: { x: number; z: number; lawn: number; active: boolean; phantom: boolean }[];
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; brokenLawnMid: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number; dished: number; cracked: number; wobbled: number; mergedD: number; earth: number; field: number; dLattice: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; brokenLawnMid: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number; dished: number; cracked: number; wobbled: number; mergedD: number; earth: number; field: number; dLattice: number; spalled: number; creep: number };
 }
 
 interface Seed {
@@ -737,7 +737,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pad = 1.0;
   let row = 0;
   const bigCandidates: number[] = [];
-  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, brokenLawnMid: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0, dished: 0, cracked: 0, wobbled: 0, mergedD: 0, earth: 0, field: 0, dLattice: 0 };
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, brokenLawnMid: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0, dished: 0, cracked: 0, wobbled: 0, mergedD: 0, earth: 0, field: 0, dLattice: 0, spalled: 0, creep: 0 };
   // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
   // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
   // the disc as bare grass) and the plaza's rim cells are clipped back from them
@@ -1290,13 +1290,19 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const uShoulder = srng.range(0.85, 1.15);
     const uFillet = srng.range(0.8, 1.2);
     const notchy = srng.chance(0.65);
+    // round 42: edge wear on the trodden strip (zones.ts `troddenStrip`, the metre down the
+    // spine where feet go): the shoulder roll widens to 2–5 cm (× 1.8 at the centreline) and
+    // rises a little with it, so the slabs' edges there are worn round rather than cut — frame 03's
+    // foreground slabs, whose edges fall softly into the dark joints. Noise-free and draw-free:
+    // the stone's stream is untouched, only the ring offsets change on the strip.
+    const trodden = disc ? 0 : troddenStrip(s.x, s.z);
     const style: OutlineStyle = {
       // the damp band's seams are the widest (reference B/E foreground: 8–12 cm of soil and moss
       // between the stones — its plaza box has the same dark and bright tones as ours but more
       // of its area is joint)
       joint: Math.max(0.012, baseJoint + (fieldJoint - baseJoint) * fieldW + (dJoint - baseJoint - (fieldJoint - baseJoint) * fieldW) * dThinW - 1.5 * wobble),
       // a narrow shoulder (1.6–3 cm, was 2.2–4.2): the edge reads as a break, not a roll
-      shoulder: (baseShoulder + (fieldShoulder - baseShoulder) * fieldW) * uShoulder,
+      shoulder: (baseShoulder + (fieldShoulder - baseShoulder) * fieldW) * uShoulder * (1 + 0.8 * trodden),
       fillet: (seamFillet + (lawnFillet - seamFillet) * lawn + (fieldFillet - seamFillet - (lawnFillet - seamFillet) * lawn) * fieldW) * uFillet,
       erosion: disc ? ea * (1 + lawn) : ea * 1.3 * (1 + 0.5 * lawn) * (1 - 0.5 * fieldW),
       roundArcs: !disc,
@@ -1355,7 +1361,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const uBevel = srng();
     // round 33: the disc field's stones roll like the stepping discs (1.2–2 cm) and dome 0.6–2.9
     // cm — frames 14 s / 56 s read their edges as soft shaded rims, ours as flat cut slabs
-    const bevel = disc ? 0.012 + 0.008 * uBevel : 0.007 + 0.005 * uBevel + (0.005 + 0.003 * uBevel) * fieldW;
+    const bevel = (disc ? 0.012 + 0.008 * uBevel : 0.007 + 0.005 * uBevel + (0.005 + 0.003 * uBevel) * fieldW) * (1 + 0.4 * trodden);
     const lowCrown = srng.chance(0.35);
     const uCrown = srng();
     const crownRaw = lowCrown ? 0.005 + 0.007 * uCrown : 0.012 + 0.014 * uCrown;
@@ -1396,6 +1402,27 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const mottleL = Math.hypot(mottleDir[0], mottleDir[1]);
     mottleDir[0] /= mottleL;
     mottleDir[1] /= mottleL;
+    // round 42 — the player-height pass (frame 03 of the owner's recording), on a hash fork of its
+    // own so every stream above and below keeps its place:
+    //  · a per-stone micro-roughness swing (`aRough`, ± 0.05 on the material's 0.92 × map): the
+    //    slabs catch the low sun a little differently one to the next;
+    //  · edge spalls (geometry.ts `rimDrop`): on two stones in three, the wall top and shoulder
+    //    drop 0.6–1.8 cm where a 14 cycles/m noise peaks — a chip a hand wide every 30–60 cm of
+    //    edge, its floor near the fill, so the rim reads broken rather than cut; heavier on the
+    //    trodden strip, none on the discs and the lawn slabs (B/E's pale bottom row);
+    //  · moss creeping 3–8 cm onto the shaded (north-west) shoulder of half the path stones (the
+    //    `mossAdd` film below, full on the shoulder ring and a quarter on the second ring, the
+    //    shader's ragged boundary ends it), where frame 03's joints climb the stone edges green.
+    const prng = rng.fork(`player/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
+    const roughDelta = (prng() - 0.5) * 0.1;
+    const spalled = !disc && lawn < 0.5 && prng.chance(0.66);
+    const spallDepth = spalled ? (0.006 + 0.012 * prng()) * (1 + 0.5 * trodden) : 0;
+    const spallPhase = prng.range(0, 100);
+    const creep = !disc && lawn < 0.5 && prng.chance(0.5) ? prng.range(0.5, 0.8) * (1 - 0.5 * south) : 0;
+    const creepDir = [-0.55 + prng.range(-0.3, 0.3), -0.83 + prng.range(-0.25, 0.25)];
+    const creepL = Math.hypot(creepDir[0], creepDir[1]);
+    creepDir[0] /= creepL;
+    creepDir[1] /= creepL;
     let thickness = srng.range(0.09, 0.12);
     // the outer edge stands 1.1–1.7 cm proud of the mean ground (joint fill is at +0.8 cm; the
     // 1.6 cm centre clamp below usually decides), the shoulder rolls up another 0.7–1.2 cm, so the
@@ -1609,7 +1636,21 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         // the big slabs; reaching a third of the way in cost the B plaza box 0.03 of SSIM
         v += 0.9 * filmAt(x, z, 1) * smoothstep(0.55, 1.0, edge);
       }
+      if (creep > 0) {
+        // round 42: the moss creep on the shaded shoulder — full on the ring, a quarter on the
+        // second ring (edge ≈ 0.67), broken along the edge by a 4.5 cycles/m noise
+        const d = ((x - c.x) * creepDir[0] + (z - c.z) * creepDir[1]) * invR;
+        const nz = wearN.fbm((x + s.x) * 4.5 - 61, (z + s.z) * 4.5 + 37, 2) * 0.5 + 0.5;
+        v += creep * smoothstep(-0.1, 0.65, d) * (0.3 + 0.7 * nz) * (0.25 + 0.75 * smoothstep(0.7, 1.0, edge)) * smoothstep(0.5, 0.7, edge);
+      }
       return v;
+    };
+    // the edge spalls: the drop per outline vertex (geometry.ts takes it off the wall top and the
+    // shoulder roll); a 14 cycles/m noise thresholded so one vertex in five or six is chipped
+    const spallAt = (x: number, z: number) => {
+      if (!spalled) return 0;
+      const nz = wearN.fbm((x + s.x) * 14 + spallPhase, (z + s.z) * 14 - spallPhase, 1) * 0.5 + 0.5;
+      return spallDepth * smoothstep(0.6, 0.8, nz);
     };
     // the crack line in slab-local coordinates (affine: exact under interpolation)
     const cnx = Math.cos(crackAng);
@@ -1622,12 +1663,17 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // flank-coloured shoulder was a 1.6–3 cm dark band on both sides of every seam, and a dark
     // ring round every stepping-stone disc
     const shoulderMix = 0;
+    all.currentRough = roughDelta;
     buildSlab(all, outline.outer, {
       thickness,
       bevel,
       topRing: outline.inner,
       notchedTop: outline.notches > 0 || outline.wobbled,
       softBevel: true,
+      // round 42: the shoulder as a two-band quarter-round on the slabs a player can read
+      // (radius > 0.3 m), so the lit rim rolls into the joint instead of breaking at one crease
+      bevelRings: disc || radius <= 0.3 ? 1 : 2,
+      rimDrop: spalled ? spallAt : undefined,
       dip: -crown,
       color: tint,
       sideColor,
@@ -1661,7 +1707,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // the crack's settlement: one half sits 3–6 mm lower (smooth over ±1.5 cm across the line)
       topNoise: (x, z) => 0.003 * wearN.noise((x + s.x) * 7 + 3, (z + s.z) * 7) + (cracked ? crackStep * (smoothstep(-0.015, 0.015, crackAcross(x, z)) - 0.5) : 0),
       // a second ring gives the edge film somewhere to end (5–15 cm in) on the small rim stones
-      rings: radius > 0.42 || edgeMoss > 0 ? 2 : 1,
+      // (and the round-42 moss creep)
+      rings: radius > 0.42 || edgeMoss > 0 || creep > 0 ? 2 : 1,
       wear: disc ? 0.75 : 1,
       // the wall shaded like the top (geometry.ts): a 1–2 cm wall facing away from the sun was a
       // dark band 2–3× the seam's height from cameras A and D
@@ -1679,6 +1726,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
             }
           : undefined,
     });
+    all.currentRough = 0;
     q.setFromUnitVectors(up, nAcc);
     pos.set(s.x, bottomY, s.z);
     one.compose(pos, q, new Vector3(1, 1, 1));
@@ -1717,6 +1765,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (dished) stats.dished++;
     if (cracked) stats.cracked++;
     if (outline.wobbled) stats.wobbled++;
+    if (spalled) stats.spalled++;
+    if (creep > 0) stats.creep++;
     return true;
   }
 

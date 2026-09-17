@@ -11,7 +11,7 @@ import type { StairDef } from '../layout';
 import type { Terrain } from '../terrain/heightfield';
 import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, inset, jitteredRect, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, ccw, inset, jitteredRect, type P2 } from './geometry';
 
 export interface StairFrame {
   def: StairDef;
@@ -127,6 +127,10 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // its place and the flight stays the same set of stones
   const nosing = new Noise2D(`${seed}/stairs-nosing-${def.id}`);
   const lichen = new Noise2D(`${seed}/stairs-lichen-${def.id}`);
+  // round 42 (the player-height pass; frame 03 / the third tread looking down): nosing spalls,
+  // riser fissures and the per-riser corner moss are noise fields and hash forks keyed on the
+  // step, so every draw of the flight below keeps its place
+  const spall = new Noise2D(`${seed}/stairs-spall-${def.id}`);
   const all = new MeshBuilder();
   const w = def.width;
   const hw = w / 2;
@@ -146,8 +150,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // where feet go: 1 on the centre third of the run, 0 at the flanks (wear dish, bare corners)
   const feet = (ax: number) => 1 - smoothstep(0.3 * hw, 0.85 * hw, Math.abs(ax));
 
-  const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2]) => {
+  const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2], rough = 0) => {
     const mb = new MeshBuilder();
+    mb.currentRough = rough;
     buildSlab(mb, outline, opts);
     tmpM.makeRotationY(yaw);
     if (tiltX || tiltZ) {
@@ -244,6 +249,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         const k = 1 + 0.03 * m;
         return [k * (1 - 0.012 * pale), k * (1 + 0.008 * pale), k * (1 - 0.02 * pale)];
       };
+      // round 42: the nosing's wear — spalls on the front edge (geometry.ts `rimDrop`): where a
+      // 5 cycles/m noise peaks along the lip the wall top and the roll drop 1–2.5 cm, a chip out
+      // of the rolled nose every 0.4–0.8 m, heavier where feet go (the centre third); nothing on
+      // the back or the flanks. The frame's lips are broken lines, not one continuous highlight.
+      const noseSpall = (x: number, z: number) => {
+        if (z > -depth / 2 + 0.06) return 0;
+        const nz = spall.noise((x + cxl) * 5.0 + i * 7.3, i * 2.1 + 0.7) * 0.5 + 0.5;
+        return (0.01 + 0.015 * feet(x + cxl)) * smoothstep(0.62, 0.82, nz);
+      };
+      // per-tread micro-roughness (aRough): the treads catch the low sun a little differently
+      const treadRough = (hash2(i, Math.round(cxl * 100) + 91, 7) - 0.5) * 0.08;
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
         bevel,
@@ -251,6 +267,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         topRing,
         softBevel: true,
         notchedTop: true,
+        rimDrop: noseSpall,
         // the overhang's underside is visible from below the flight (camera F looks up at the
         // treads above eye level), so the slab is closed
         bottom: true,
@@ -302,7 +319,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // run (the nosing line sags with it at the middle, half as much)
         topNoise: (x, z) => 0.004 * wear.noise((x + cxl) * 9, (z + czl) * 9) - 0.012 * feet(x + cxl),
         rings: 3,
-      });
+      }, treadRough);
       treadSlabs++;
       const [wx, wz] = stairToWorld(f, cxl, uFront + 0.01);
       treadNose.push([wx, def.base[1] + topY, wz]);
@@ -340,11 +357,28 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // a touch cooler than neutral: frame 8 s reads the risers at sat 0.17 / B/R 0.71 face-on
       // where ours rendered 0.20 / 0.67 (the post chain passes ~1/4 of an albedo shift)
       const riserColor: [number, number, number] = [rc * 0.99, rc, rc * 1.1];
+      // round 42: a fissure up two riser faces in five (hash fork on the step, so the stream is
+      // untouched) — the stone shader's dirt-filled crack (`aCrack`) on the side walls: it starts
+      // at the foot at a random point along the face, leans up to ± 20° and peters out between
+      // half and nine tenths of the way up (the shader fades the last quarter of its length)
+      const frng = rng.fork(`fissure/${i}/${r}`);
+      const fissured = frng.chance(0.4);
+      const fissA = frng.range(-0.4, 0.4) * (len - 0.015);
+      const fissLean = frng.range(-0.35, 0.35);
+      const fissTop = frng.range(0.5, 0.9) * rh;
+      // the tread/riser corner (sheet 04, frame 03): moss sits thicker at the very foot of the
+      // riser where it meets the tread below — a hash-forked weight per riser, 0.6–1.4
+      const cornerMoss = 0.6 + 0.8 * frng();
       placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
         color: riserColor,
         sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
+        // height over the fissure's half-length (the shader fades it out toward its top). Affine
+        // over every wall, so it is exact on the front face; the back face is under the tread
+        // and the ends are inside the flight, so nowhere else shows it
+        sideCrackFn: fissured ? (x, y) => [x - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
         // soil stain at the foot fading to none under the nosing: the face is not one flat band
         // but darker and browner where it meets the tread below, lighter under the overhang
         sideStain: footStain,
@@ -354,7 +388,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // film is thinner (a thin film renders as dark grime, which made the risers a black
         // band) and the patches are fuller and flank-heavy, so where there is moss it is green
         // and the centre third stays bare stone
-        mossEdge: 0.4,
+        mossEdge: 0.4 * cornerMoss,
         mossInner: 0.15,
         mossFn: (x, z) => 0.3 + 0.8 * mossAt(x + ac, z + uc),
         mossAdd: (x) => {
@@ -491,6 +525,86 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         });
         a += len + 0.04;
       }
+    }
+  }
+
+  // apron: the paved shelf in front of the first riser of a flight whose foot stands on the
+  // paving (the house-west flight; terrain/heightfield.ts flattens it to the flight's base level).
+  // Round 38 (hardscape-29, landed round 42): frame 56 s reads it as the flight's wide first
+  // tread — a pale flat slab at the path's edge with its kerb face standing over the path's
+  // stones (D x 0.72–0.95, y 0.72–0.85) — where ours was flattened but stoneless, and its bare
+  // joint-fill soil was the brightest thing in D's lower right. Two slabs across the flight's
+  // width, each as deep as the flat shelf under it (the west edge follows the line where the
+  // ground falls 0.12 m off the shelf toward the path) and as thick as it needs to sit 4 cm into
+  // the ground at its lowest corner, so the kerb is a stone face down to the path. Confined to
+  // the flight's width (the cheeks stand on the flanks from u −0.15) and to u < −0.03 (the first
+  // riser's face is at u ≈ 0.01, the tread nose overhangs to −0.08). Own stream fork, laid last:
+  // every draw above keeps its place. Round 42 lowered the flight's base to 0.18 m (layout.ts),
+  // so the shelf is a low first tread 0.18 m over the path, as the frame's low first lip reads.
+  if (hasPavedApron(def)) {
+    const arng = rng.fork('apron');
+    const localH = (a: number, u: number) => {
+      const [wx, wz] = stairToWorld(f, a, u);
+      return terrain.height(wx, wz) - def.base[1];
+    };
+    /** metres in front of the riser face where the ground has fallen 0.12 m off the shelf (the kerb's foot) */
+    const shelfDepth = (a: number) => {
+      let au = 0.15;
+      while (au < 1.6 && localH(a, -au) > -0.12) au += 0.05;
+      return au;
+    };
+    const top = baseY + 0.035;
+    const aS = -hw - 0.05;
+    const aN = hw + 0.05;
+    const split = (aS + aN) / 2 + arng.range(-0.2, 0.2);
+    for (const [a0, a1] of [
+      [aS, split - 0.02],
+      [split + 0.02, aN],
+    ]) {
+      const ac = (a0 + a1) / 2;
+      // west edge: five points on the kerb's foot line, plus 3 cm so the face stands on the path
+      const west: [number, number][] = [];
+      for (let k = 0; k <= 4; k++) {
+        const ak = a0 + ((a1 - a0) * k) / 4;
+        west.push([ak, -(shelfDepth(ak) + 0.03) + arng.range(-0.015, 0.015)]);
+      }
+      const uW = Math.min(...west.map((p) => p[1]));
+      const uc = (uW - 0.03) / 2;
+      const outline: P2[] = [
+        { x: a0 - ac, z: -0.03 - uc },
+        { x: (a0 + a1) / 2 - ac + arng.range(-0.02, 0.02), z: -0.03 - uc + arng.range(-0.012, 0.012) },
+        { x: a1 - ac, z: -0.03 - uc },
+        ...west.reverse().map(([ak, uk], k) => ({ x: ak - ac + (k === 0 || k === 4 ? 0 : arng.range(-0.02, 0.02)), z: uk - uc })),
+      ];
+      let groundMin = localH(ac, uc);
+      for (const p of outline) groundMin = Math.min(groundMin, localH(ac + p.x, uc + p.z));
+      const th = top - groundMin + 0.04;
+      const tint = 0.82 + arng.range(0, 0.12);
+      placeSlab(ccw(outline), ac, top - th, uc, 0, 0, 0, {
+        thickness: th,
+        bevel: 0.03,
+        dip: 0.008,
+        color: [tint, tint, tint * 0.97],
+        // the kerb face: the top's own stone, lit like the top (its shading normal 70 % toward +y,
+        // no grime band), a trace of soil at the path line and a thin moss film. The apron stands
+        // in the north-west-near giant's canopy shade, where a true west-facing wall gets half the
+        // sky and rendered — grey-brown (× 0.62, stain 1.2) or pale (× 0.9, stain 0.4) — as a dark
+        // block beside Link's head in camera B (frame 14 s has smooth pale path there; the SSIM
+        // window at B (0.44–0.47, 0.64–0.69) swung from +0.5 to −0.5: B −0.0010 / −0.0013), while
+        // the same slabs gained D +0.0018 (frame 56 s's pale first tread at D x 0.72–0.95).
+        sideColor: [tint, tint, tint * 0.97],
+        sideNormalUp: 0.7,
+        sideGrime: 1,
+        sideStain: 0.25,
+        softBevel: true,
+        bevelRings: 2,
+        mossEdge: 0.15,
+        mossInner: 0.05,
+        mossFn: (x, z) => 0.4 + 0.6 * (noise.fbm((x + ac) * 2.1 + 17, (z + uc) * 2.1 + 3, 2) * 0.5 + 0.5),
+        uvScale,
+        uvOffset: [arng() * 3, arng() * 3],
+        rings: 2,
+      });
     }
   }
 

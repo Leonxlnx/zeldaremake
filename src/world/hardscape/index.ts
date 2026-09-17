@@ -5,7 +5,7 @@
  */
 import { Group, InstancedMesh, Mesh } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { createStoneMaterial } from './material';
+import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
@@ -445,6 +445,42 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint, source: 'seam-grit' });
   }
   const seamGrit = gritSpots.length;
+  // round 42 — the near-field grit (frame 03 of the owner's recording: the joints at the player's
+  // feet are dark soil with pebbles and grit in it, a few of them pale). A second scatter on its
+  // own stream, sown within `NEAR_GRIT_R` m of the player poses the paving is walked from (the
+  // path cameras B / E / D and the plaza's spawn) — the LOD collapses a pebble by 25 m anyway —
+  // at 1.2–3 cm, in the soil seams and the disc field's earth gaps only (the lawn paving and
+  // the pocket keep their faint speckle), one in three a shade paler than its fill (× 1.28: the
+  // pale pebble of frame 03, still under the slab tops' luminance) so they resolve at 1–2 m.
+  const NEAR_GRIT_R = 9;
+  const nrng = rng.fork('near-grit');
+  const nearCams = [...cams, [0, 0, 0] as [number, number, number]];
+  const nearGritTarget = Math.round(700 * Math.max(0.7, ctx.quality.density));
+  let nearGrit = 0;
+  let paleGrit = 0;
+  tries = 0;
+  while (nearGrit < nearGritTarget && tries < nearGritTarget * 60) {
+    tries++;
+    const cam = nearCams[nrng.int(0, nearCams.length)];
+    const ang = nrng.range(0, Math.PI * 2);
+    const rad = NEAR_GRIT_R * Math.sqrt(nrng());
+    const x = cam[0] + Math.cos(ang) * rad;
+    const z = cam[2] + Math.sin(ang) * rad;
+    if (x < bbox.x0 || x > bbox.x1 || z < bbox.z0 || z > bbox.z1) continue;
+    if (!paved(x, z, 0.4) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap > 0.22) continue;
+    const soilW = jointSoil(x, z);
+    if (nrng() > (0.3 + 0.7 * soilW) * (1 - 0.8 * lawnZone(x, z)) * (1 - lawnPocket(x, z)) * (1 - 0.65 * edgeTurf(x, z))) continue;
+    const size = nrng.chance(0.15) ? nrng.range(0.026, 0.032) : nrng.range(0.012, 0.024);
+    if (gap < size * 0.8) continue;
+    const lift = jointFillLift(gap, soilW);
+    const pale = nrng.chance(0.33) ? 1.28 : 1;
+    if (pale > 1) paleGrit++;
+    const tint: [number, number, number] = [pale * lift[0] * (1 + (turfOverSoil[0] - 1) * (1 - soilW)), pale * lift[1] * (1 + (turfOverSoil[1] - 1) * (1 - soilW)), pale * lift[2] * (1 + (turfOverSoil[2] - 1) * (1 - soilW))];
+    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint, source: 'near-grit' });
+    nearGrit++;
+  }
   // the stair grit keeps round 10's soil tone (the grit geometry is built in the round-12 soil)
   const stairGritTint: [number, number, number] = [tones.soilMeanR10.r / tones.soilMean.r, tones.soilMeanR10.g / tones.soilMean.g, tones.soilMeanR10.b / tones.soilMean.b];
   for (const f of frames) {
@@ -553,6 +589,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneCracked: paving.stats.cracked,
     flagstoneWobbled: paving.stats.wobbled,
     flagstoneMergedD: paving.stats.mergedD,
+    // round 42 player-height pass: stones with edge spalls (rim drops 0.6–1.8 cm), stones with a
+    // moss creep on the shaded shoulder; the stone shader's near tile / normal / roughness blend
+    flagstoneSpalled: paving.stats.spalled,
+    flagstoneMossCreep: paving.stats.creep,
+    stoneNearTile: { ...STONE_NEAR, perStoneRoughness: 0.05 },
     // round 33: cells left as trodden earth in camera C's plaza patch, stones styled as the disc field's rounded domed stones (zones.ts)
     flagstoneEarthCells: paving.stats.earth,
     flagstoneDiscField: paving.stats.field,
@@ -627,7 +668,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // small stones packed into the dirt seams + a scatter at the stair feet (sprout instances)
     seamGrit: sprouts.grit,
     seamGritInSeams: seamGrit,
-    seamGritAtStairFeet: sprouts.grit - seamGrit,
+    // round 42: the near-field pebbles within NEAR_GRIT_R m of the walked poses (and how many are the pale ones)
+    seamGritNearField: nearGrit,
+    seamGritPale: paleGrit,
+    seamGritAtStairFeet: sprouts.grit - seamGrit - nearGrit,
     seamGritLodFar: SPROUT_LOD_FAR,
     seamGritTriangles: sprouts.gritTriangles,
     seamGritDrawCalls: 0,
