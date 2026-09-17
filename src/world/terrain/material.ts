@@ -51,7 +51,7 @@ const NEAR_NORMAL_K = 1.9;
 const DETAIL_TILE_M = 0.7;
 const DETAIL_FADE: [number, number] = [2.5, 6.0];
 const DETAIL_NORMAL_K = 0.5;
-const DETAIL_ALBEDO_K = 0.32;
+const DETAIL_ALBEDO_K = 0.45;
 /** mean linear luminance of brown_mud_leaves_01/color (measured), the detail albedo pivot */
 const LITTER_MEAN_LUM = 0.098;
 /** vertex relief: hard cap (m), camera fade (m), and the normal's exaggeration over the true slope */
@@ -61,7 +61,7 @@ const RELIEF_NORMAL_K = 2.5;
 /** bank-face detail (root ridges, pebbles) fade */
 const BANK_FADE: [number, number] = [4.0, 9.0];
 /** wet band: albedo multiplier (dark, a touch cool) and roughness */
-const WET_TINT = new Color(0.5, 0.53, 0.6);
+const WET_TINT = new Color(0.45, 0.48, 0.56);
 const WET_ROUGHNESS = 0.46;
 
 /** the near-camera ground treatment, for the terrain audit */
@@ -155,27 +155,34 @@ float leafLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout 
   float h2 = tHash(i + seed + 17.3);
   float h3 = tHash(i + seed + 41.7);
   if (h2 > dens) return 0.0;
-  vec2 ctr = (vec2(h1, h3) - 0.5) * 0.3;
+  vec2 ctr = (vec2(h1, h3) - 0.5) * 0.2;
   float ang = h2 * 47.0;
   float cs = cos(ang); float sn = sin(ang);
   vec2 d = (fr - ctr) * cell;
   vec2 q = vec2(cs * d.x + sn * d.y, -sn * d.x + cs * d.y);
-  vec2 ax = vec2(0.055, 0.03) * (0.7 + 0.6 * h1);
+  // 5–10 cm blades (the reference floor's litter is beech / oak sized, not maple)
+  vec2 ax = vec2(0.04, 0.024) * (0.6 + 0.7 * h1);
   // pointed tip: the half-width shrinks toward +x
   float pinch = 1.0 - 0.38 * smoothstep(0.0, 1.0, q.x / ax.x);
   vec2 qn = vec2(q.x / ax.x, q.y / (ax.y * pinch));
   float e = length(qn);
-  float cov = 1.0 - smoothstep(0.88, 1.02, e);
+  float cov = 1.0 - smoothstep(0.9, 1.02, e);
+  // contact shadow: the ground just outside the rim is darkened (a leaf lying on soil reads
+  // by the shade it casts even where no sun reaches)
+  float shade = (1.0 - smoothstep(1.0, 1.28, e)) * (1.0 - cov);
+  c *= 1.0 - 0.3 * shade;
   if (cov <= 0.001) return 0.0;
-  // domed blade: the normal tilts outward toward the rim; a curled rim lifts a little more
-  vec2 tilt = qn * (0.4 + 0.5 * smoothstep(0.6, 1.0, e));
+  // a nearly flat blade with a curled rim: the normal tilts outward mostly near the edge
+  vec2 tilt = qn * (0.18 + 0.45 * smoothstep(0.55, 1.0, e));
   vec2 tw = vec2(cs * tilt.x - sn * tilt.y, sn * tilt.x + cs * tilt.y);
   nxy += tw * cov;
-  vec3 tone = h3 < 0.3 ? vec3(0.22, 0.14, 0.06) : h3 < 0.6 ? vec3(0.14, 0.09, 0.05) : h3 < 0.85 ? vec3(0.28, 0.20, 0.10) : vec3(0.20, 0.085, 0.04);
+  // dead-leaf tones (linear albedo): tan, ochre, umber, rust — the pale ones most often, so the
+  // litter reads against the dark soil in the canopy shade
+  vec3 tone = h3 < 0.35 ? vec3(0.34, 0.25, 0.12) : h3 < 0.65 ? vec3(0.27, 0.17, 0.07) : h3 < 0.85 ? vec3(0.16, 0.10, 0.06) : vec3(0.24, 0.10, 0.05);
   tone *= 0.8 + 0.4 * h1;
-  // midrib and a faint darkening toward the rim (the blade curls out of the light)
+  // midrib and a darkening toward the rim (the blade curls out of the light)
   float rib = (1.0 - smoothstep(0.0012, 0.0028, abs(q.y))) * (1.0 - smoothstep(0.7, 0.95, abs(qn.x)));
-  tone *= (1.0 - 0.28 * rib) * (1.0 - 0.15 * smoothstep(0.7, 1.0, e));
+  tone *= (1.0 - 0.3 * rib) * (1.0 - 0.22 * smoothstep(0.6, 1.0, e));
   c = mix(c, tone, cov);
   return cov;
 }
@@ -194,11 +201,15 @@ float twigLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout 
   float along = dot(d, dir);
   float across = dot(d, vec2(-dir.y, dir.x));
   float halfLen = cell * (0.15 + 0.2 * h3);
-  float r = 0.0025 + 0.002 * h1;
+  float r = 0.0035 + 0.003 * h1;
   float cov = (1.0 - smoothstep(r * 0.8, r * 1.2, abs(across))) * (1.0 - smoothstep(halfLen - 0.012, halfLen, abs(along)));
+  // contact shadow along the rod
+  c *= 1.0 - 0.25 * (1.0 - smoothstep(r * 1.2, r * 2.4, abs(across))) * (1.0 - smoothstep(halfLen - 0.005, halfLen + 0.006, abs(along))) * (1.0 - cov);
   if (cov <= 0.001) return 0.0;
   nxy += vec2(-dir.y, dir.x) * clamp(across / r, -1.0, 1.0) * 0.7 * cov;
-  c = mix(c, vec3(0.13, 0.10, 0.07) * (0.8 + 0.4 * h3), cov);
+  // grey-brown bark, the lit crown of the rod a touch paler
+  vec3 tone = mix(vec3(0.12, 0.09, 0.06), vec3(0.2, 0.17, 0.13), h3) * (1.0 + 0.25 * (1.0 - abs(across) / r));
+  c = mix(c, tone, cov);
   return cov;
 }
 // moss cushions: the tallest dome of a 3 × 3 jittered-cell neighbourhood (cell in m). Returns the
@@ -228,16 +239,18 @@ void bankDetail(vec2 p, vec2 dn, float w, inout vec3 c, inout vec2 nxy) {
   vec2 ac = vec2(-dn.y, dn.x);
   float a = dot(p, dn);
   float cc = dot(p, ac);
-  // ridges 15 cm apart, wandering along the fall line, present in patches
+  // ridges 15 cm apart, wandering along the fall line, present in patches; the trough beside
+  // each ridge is darker (the root's own shade), the crown paler and warmer (bark)
   float wob = (tVNoise(vec2(a * 2.5, cc * 1.2) + vec2(31.0, 7.0)) - 0.5) * 0.5;
-  float presence = smoothstep(0.42, 0.68, tVNoise(p * 1.1 + vec2(-19.0, 3.0))) * w;
+  float presence = smoothstep(0.36, 0.62, tVNoise(p * 1.1 + vec2(-19.0, 3.0))) * w;
   float ph = (cc + wob) * 6.5 * 6.2832;
   float base = 0.5 + 0.5 * cos(ph);
   float ridge = base * base * base * base;
   float dr = -4.0 * base * base * base * 0.5 * sin(ph) * 6.5 * 6.2832;
   nxy += -ac * dr * 0.012 * presence;
-  c *= mix(1.0, mix(0.86, 1.18, ridge), presence);
-  c = mix(c, c * vec3(1.08, 1.0, 0.88), ridge * presence * 0.5);
+  float trough = smoothstep(0.35, 0.0, base);
+  c *= mix(1.0, mix(0.8, 1.28, ridge) * (1.0 - 0.15 * trough), presence);
+  c = mix(c, c * vec3(1.1, 1.0, 0.85), ridge * presence * 0.6);
   // pebbles: 0.6–1.3 cm radius discs in a 9 cm jittered grid, a third of the cells
   vec2 g = p / 0.09;
   vec2 i = floor(g);
@@ -257,7 +270,19 @@ void bankDetail(vec2 p, vec2 dn, float w, inout vec3 c, inout vec2 nxy) {
 // the near-field detail terms shared by the colour and normal passes: near / detail / bank
 // weights and the litter density (leaves + twigs are densest on the litter layer, thinner on soil
 // and moss, a few on the turf)
-float litterDensity(vec4 w0) { return clamp(w0.w * 0.6 + w0.y * 0.3 + w0.z * 0.12 + w0.x * 0.06, 0.0, 0.7); }
+float litterDensity(vec4 w0) { return clamp(w0.w * 0.8 + w0.y * 0.4 + w0.z * 0.16 + w0.x * 0.08, 0.0, 0.8); }
+// the procedural litter, colour and normal together (the two passes call it with the same
+// arguments so the coverage agrees)
+void litterDetail(vec2 uvw, float dens, inout vec3 c, inout vec2 nxy) {
+  leafLayer(uvw, 0.17, 1.0, dens, c, nxy);
+  leafLayer(uvw + vec2(0.05, 0.03), 0.22, 2.0, dens * 0.85, c, nxy);
+  leafLayer(uvw + vec2(-0.07, 0.11), 0.3, 4.0, dens * 0.7, c, nxy);
+  twigLayer(uvw, 0.4, 3.0, dens * 0.7, c, nxy);
+  twigLayer(uvw + vec2(0.13, -0.09), 0.26, 5.0, dens * 0.5, c, nxy);
+}
+// near-tile contrast: the soil / litter maps are low-contrast scans; at the feet the darks go
+// darker and the pale clods paler about the map's mean (unit mean, so the far tone is kept)
+vec3 nearContrast(vec3 s, float meanLum, float nw) { return mix(s, s * clamp(lum(s) / meanLum, 0.6, 1.5), 0.35 * nw); }
 `;
 
 const VERT_PARS = /* glsl */ `
@@ -326,7 +351,7 @@ const MAP_FRAG = /* glsl */ `
   }
   // soil: natural texture, pulled toward the palette soil, darker when damp
   if (w0.y > 0.002) {
-    vec3 s = colNear(tSoilC, uvw, uTiles0.y, ${f(LAYER_SETS.soil.tile)}, mixK, nw);
+    vec3 s = nearContrast(colNear(tSoilC, uvw, uTiles0.y, ${f(LAYER_SETS.soil.tile)}, mixK, nw), 0.11, nw);
     s = mix(s, uSoilTint * (0.6 + 0.9 * lum(s)), 0.35);
     c += s * w0.y;
   }
@@ -337,15 +362,17 @@ const MAP_FRAG = /* glsl */ `
     vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.2, 0.7, ml)) * (0.7 + 0.6 * ml);
     moss = mix(moss, m, 0.3);
     if (dw > 0.001) {
+      // cushion tops pale, the creases between them dark
       float c1 = cushionLayer(uvw, 0.09, 3.7, 0.0, nxyUnused);
       float c2 = cushionLayer(uvw, 0.045, 11.9, 0.0, nxyUnused);
-      moss *= mix(1.0, mix(0.78, 1.14, c1) * mix(0.93, 1.05, c2), dw);
+      float crease = 1.0 - smoothstep(0.0, 0.2, c1);
+      moss *= mix(1.0, mix(0.72, 1.2, c1) * mix(0.9, 1.08, c2) * (1.0 - 0.2 * crease), dw);
     }
     c += moss * w0.z;
   }
   // leaf litter / forest floor
   if (w0.w > 0.002) {
-    vec3 l = colNear(tLitterC, uvw, uTiles1.x, ${f(LAYER_SETS['leaf-litter'].tile)}, mixK, nw);
+    vec3 l = nearContrast(colNear(tLitterC, uvw, uTiles1.x, ${f(LAYER_SETS['leaf-litter'].tile)}, mixK, nw), ${f(LITTER_MEAN_LUM)}, nw);
     c += l * vec3(1.0, 0.98, 0.9) * w0.w;
   }
   // path gravel / stony soil under and beside the flagstones
@@ -381,11 +408,7 @@ const MAP_FRAG = /* glsl */ `
   }
   if (dw > 0.001) {
     float dens = litterDensity(w0) * dw;
-    if (dens > 0.002) {
-      leafLayer(uvw, 0.16, 1.0, dens, c, nxyUnused);
-      leafLayer(uvw + vec2(0.05, 0.03), 0.23, 2.0, dens * 0.8, c, nxyUnused);
-      twigLayer(uvw, 0.4, 3.0, dens * 0.55, c, nxyUnused);
-    }
+    if (dens > 0.002) litterDetail(uvw, dens, c, nxyUnused);
   }
   // macro variation + damp darkening
   c *= mix(0.86, 1.14, k);
@@ -393,7 +416,7 @@ const MAP_FRAG = /* glsl */ `
   // round 43: the wet band — dish floors, depression bottoms, the giants' drip ring (aW2.x),
   // broken into patches by a 30 cm noise; dark and a touch cool
   {
-    float wetF = smoothstep(0.3, 0.75, vW2.x * (0.7 + 0.6 * tVNoise(uvw * 3.1 + vec2(5.0, -2.0))));
+    float wetF = smoothstep(0.25, 0.7, vW2.x * (0.7 + 0.6 * tVNoise(uvw * 3.1 + vec2(5.0, -2.0))));
     c = mix(c, c * uWetTint, wetF);
   }
   diffuseColor.rgb *= c;
@@ -429,8 +452,8 @@ const NORMAL_FRAG = /* glsl */ `
     }
     if (vW0.z > 0.002 && dw > 0.001) {
       vec2 cxy = vec2(0.0);
-      cushionLayer(uvw, 0.09, 3.7, 0.28, cxy);
-      cushionLayer(uvw, 0.045, 11.9, 0.12, cxy);
+      cushionLayer(uvw, 0.09, 3.7, 0.4, cxy);
+      cushionLayer(uvw, 0.045, 11.9, 0.15, cxy);
       nxy += cxy * vW0.z * dw;
     }
     {
@@ -441,13 +464,7 @@ const NORMAL_FRAG = /* glsl */ `
     }
     if (dw > 0.001) {
       float dens = litterDensity(vW0) * dw;
-      if (dens > 0.002) {
-        vec2 lxy = vec2(0.0);
-        leafLayer(uvw, 0.16, 1.0, dens, cUnused, lxy);
-        leafLayer(uvw + vec2(0.05, 0.03), 0.23, 2.0, dens * 0.8, cUnused, lxy);
-        twigLayer(uvw, 0.4, 3.0, dens * 0.55, cUnused, lxy);
-        nxy += lxy;
-      }
+      if (dens > 0.002) litterDetail(uvw, dens, cUnused, nxy);
     }
     mapN.xy += nxy;
   }
