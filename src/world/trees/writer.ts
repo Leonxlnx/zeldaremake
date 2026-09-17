@@ -128,15 +128,29 @@ export class GeometryWriter {
   }
 
   finish(name: string): BufferGeometry {
+    const gen = this.finishSteps(name);
+    let r = gen.next();
+    while (!r.done) r = gen.next();
+    return r.value;
+  }
+
+  /**
+   * `finish` as a chunked build (lodPool.ts): yields after the attributes are packed and again
+   * after the normals are computed, so a runtime build's last few milliseconds can straddle frames.
+   */
+  *finishSteps(name: string): Generator<void, BufferGeometry> {
     const g = new BufferGeometry();
     g.name = name;
     g.setAttribute('position', new Float32BufferAttribute(this.positions, 3));
     g.setAttribute('color', new Float32BufferAttribute(this.colors, 3));
     g.setAttribute('uv', new Float32BufferAttribute(this.uvs, 2));
+    yield;
     g.setAttribute('aWind', new Float32BufferAttribute(this.winds, 3));
     g.setAttribute('aRoot', new Float32BufferAttribute(this.roots, 4));
     g.setIndex(this.indices);
+    yield;
     g.computeVertexNormals();
+    yield;
     const normals = g.getAttribute('normal');
     if (this.authoredNormals) {
       for (let i = 0; i < normals.count; i++) {

@@ -30,6 +30,7 @@ import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placem
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
 import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
+import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
@@ -1306,6 +1307,46 @@ const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
 const CULL_PAD_M = 4;
 /** lowest world height a shadow receiver can have (the capsule is swept down to it) */
 const SHADOW_FLOOR_Y = -20;
+/**
+ * The near LOD parts' geometry pools (lodPool.ts, round 42). A near-canopy part (nearCanopy.ts)
+ * or a near base (giant.ts / column.ts) is built once at load for its measurements (counts, cull
+ * sphere, bytes — the hero pass reads the built sphere), then kept only while the camera is near:
+ * a part whose centre comes within its pre-fetch radius is rebuilt ahead of its swap distance in
+ * chunks (NEAR_LOD_BUILD_BUDGET_MS of the frame), and past the pools' byte caps the parts are
+ * dropped — the ones out of the pre-fetch radius least recently used first, then the farthest of
+ * the wanted — so a pool holds the drawn parts plus the nearest of the approaching ones that fit.
+ * A part that must be drawn before its build is ready (an explicit re-pose, or a walk faster than
+ * the pre-fetch) is finished synchronously, so every frame is what it would have been with every
+ * part resident. 34 m ahead of the 22 m canopy swap is 7.5 s at walking speed (1.6 m/s), the
+ * radius the pre-fetch is ordered by; how far it reaches in this hollow is set by the cap (see
+ * NEAR_CANOPY_POOL_BYTES). 22 m ahead of the 10 m base swap is likewise 7.5 s.
+ */
+const NEAR_CANOPY_PREFETCH_M = 34;
+const NEAR_BASE_PREFETCH_M = 22;
+/**
+ * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51
+ * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to
+ * 61–75 MB, so 64 MB pre-fetches to about the 26 m out-radius — the 40 s walk traced with no
+ * synchronous build (a 40 MB cap: 28 synchronous builds, trees update to 27 ms). 12 MB ≈ 9 of
+ * the 22 bases (0.7–1.4 MB each; ≤ 6 are shown).
+ */
+const NEAR_CANOPY_POOL_BYTES = 64 << 20;
+const NEAR_BASE_POOL_BYTES = 12 << 20;
+const NEAR_LOD_BUILD_BUDGET_MS = 3;
+/** the built buffers a pool holds: one BufferGeometry */
+interface GeometryBuilt extends PoolBuilt {
+  geometry: BufferGeometry;
+}
+/** what the audit's residentBytes counted from the start: every attribute array plus the index */
+const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
+/** an empty geometry that keeps a built part's cull sphere while its buffers are out of the pool */
+const placeholderFor = (g: BufferGeometry) => {
+  const p = new BufferGeometry();
+  p.name = `${g.name}#placeholder`;
+  p.boundingBox = g.boundingBox ? g.boundingBox.clone() : null;
+  p.boundingSphere = g.boundingSphere ? g.boundingSphere.clone() : null;
+  return p;
+};
 const _v = new Vector3();
 const _q = new Quaternion();
 const _s = new Vector3();
@@ -1390,9 +1431,40 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     kit?: boolean;
     /** a relief column's base (column.ts rootsOnly): shown within the band, its slot folds the plain roots only */
     rootsOnly?: boolean;
+    /** the base's buffers in the near-base pool (see NEAR_BASE_PREFETCH_M); none for the root kit */
+    item?: PoolItem<GeometryBuilt>;
   }
   const nearBoles: NearBole[] = [];
   const nearBand = (id: string): [number, number] => NEAR_BASE_RADIUS_OVERRIDE[id] ?? [NEAR_BASE_IN_M, NEAR_BASE_OUT_M];
+  const nearBasePool = new LodPool<GeometryBuilt>(NEAR_BASE_POOL_BYTES);
+  const nearCanopyPool = new LodPool<GeometryBuilt>(NEAR_CANOPY_POOL_BYTES);
+  /**
+   * A pooled near part: `mesh` draws the first build's geometry now; every later build runs
+   * `steps` and `finalize` (the same world transform, cull sphere and pad the first build got),
+   * and while the buffers are out of the pool the mesh holds an empty placeholder with the same
+   * cull sphere. Returns the item and the first build to register with a pool.
+   */
+  const poolItem = (id: string, mesh: Mesh, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void): [PoolItem<GeometryBuilt>, GeometryBuilt] => {
+    const first = mesh.geometry;
+    const placeholder = placeholderFor(first);
+    const wrap = (geometry: BufferGeometry): GeometryBuilt => ({ geometry, bytes: geometryBytes(geometry), dispose: () => geometry.dispose() });
+    const item: PoolItem<GeometryBuilt> = {
+      id,
+      bytes: 0,
+      build: function* () {
+        const g = yield* steps();
+        finalize(g);
+        return wrap(g);
+      },
+      install: (b) => {
+        mesh.geometry = b.geometry;
+      },
+      uninstall: () => {
+        mesh.geometry = placeholder;
+      },
+    };
+    return [item, wrap(first)];
+  };
   /**
    * Near-canopy LOD (giant.ts NEAR_CANOPY_IN_M, round 41): every eligible lower lobe of a giant
    * (and every big limb below the cap) has a near part of its own — twiglets forking off the far
@@ -1424,6 +1496,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     farCards: number;
     active: boolean;
     dist: number;
+    /** the part's buffers in the near-canopy pool (see NEAR_CANOPY_PREFETCH_M); a part the hero pass drops leaves the pool */
+    item: PoolItem<GeometryBuilt>;
   }
   const nearCanopies: NearCanopy[] = [];
   /** how many limb dressings may be shown at once (they take no slot: nothing is folded for them) */
@@ -1760,20 +1834,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.visible = false;
     mesh.userData.kind = 'column-near-base';
     columnGroup.add(mesh);
-    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id), rootsOnly: asset.nearBaseAudit.rootsOnly });
+    const [item, first] = poolItem(`column-near-base/${p.id}`, mesh, asset.nearBaseBuild!, () => {});
+    nearBasePool.add(item, first);
+    nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id), rootsOnly: asset.nearBaseAudit.rootsOnly, item });
   }
   // the seated columns' near-canopy parts (see NearCanopy): one hidden non-casting mesh per lobe,
   // posed like its instance; the far program folds the instance's tagged laminae by its world root
-  const columnNearCanopyGeometries: BufferGeometry[] = [];
   for (const c of seatedColumns) {
     const p = c.placements[0];
     const cos = Math.cos(p.yaw), sin = Math.sin(p.yaw);
     c.lods[0].nearCanopy.forEach((part, i) => {
-      part.geometry.computeBoundingBox();
-      part.geometry.computeBoundingSphere();
-      part.geometry.boundingSphere!.radius += CULL_PAD_M / p.scale;
-      columnNearCanopyGeometries.push(part.geometry);
+      // the cull sphere three tests carries the wind pad (in the instance's scale); every rebuild gets the same
+      const finalize = (g: BufferGeometry) => {
+        g.computeBoundingBox();
+        g.computeBoundingSphere();
+        g.boundingSphere!.radius += CULL_PAD_M / p.scale;
+      };
+      finalize(part.geometry);
       const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
+      const [item, first] = poolItem(`column-near-canopy/${p.id}/${part.kind}-${i}`, mesh, part.build, finalize);
+      nearCanopyPool.add(item, first);
       mesh.name = `column-near-canopy-${p.id}-${part.kind}-${i}`;
       mesh.position.set(p.x, p.y, p.z);
       mesh.rotation.y = p.yaw;
@@ -1800,6 +1880,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         farCards: part.farCards,
         active: false,
         dist: Infinity,
+        item,
       });
     });
   }
@@ -1829,6 +1910,101 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const giantDefs = giantDefsAll;
   /** what was published as ctx.shared.lanternLimb (audit) */
   let lanternLimbAudit: { samples: number; range: [number, number]; side: [number, number]; vertical: [number, number]; ends: [number[], number[]]; rings: number[][] } | undefined;
+  /** a giant's near part to world space (translated, aRoot.xyz = the origin), as the sectors are */
+  const giantPartToWorld = (g: BufferGeometry, origin: Vector3) => {
+    g.translate(origin.x, origin.y, origin.z);
+    const root = g.getAttribute('aRoot') as BufferAttribute;
+    for (let i = 0; i < root.count; i++) root.setXYZ(i, origin.x, origin.y, origin.z);
+  };
+  /**
+   * A giant's near parts, right after its build (so the pools can prune the far ones before the
+   * next giant's are built): its near base — one hidden mesh (world-space geometry, like the
+   * sectors) — and its near-canopy parts (see NearCanopy) — one non-casting mesh each, hidden
+   * until the camera comes within NEAR_CANOPY_IN_M of the lobe; the sphere three culls it by
+   * carries the wind pad.
+   */
+  const attachGiantNearParts = (g: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3 }) => {
+    const nb = g.asset.nearBase;
+    const audit = g.asset.nearBaseAudit;
+    if (nb && audit) {
+      const finalize = (geometry: BufferGeometry) => {
+        giantPartToWorld(geometry, g.origin);
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+      };
+      finalize(nb);
+      const mesh = new Mesh(nb, mats.giantTreeNearBase);
+      mesh.name = `giant-near-base-${g.def.id}`;
+      mesh.customDepthMaterial = mats.giantTreeDepth;
+      mesh.castShadow = ctx.quality.shadows;
+      mesh.receiveShadow = true;
+      mesh.visible = false;
+      mesh.userData.kind = 'giant-near-base';
+      mesh.userData.giants = [g.def.id];
+      giantGroup.add(mesh);
+      const [item, first] = poolItem(`giant-near-base/${g.def.id}`, mesh, g.asset.nearBaseBuild!, finalize);
+      nearBasePool.add(item, first);
+      nearBoles.push({ id: g.def.id, origin: g.origin.clone(), cutY: audit.cutY, mesh, triangles: audit.triangles, active: false, dist: Infinity, band: nearBand(g.def.id), item });
+    }
+    g.asset.nearCanopy.forEach((part, i) => {
+      const finalize = (geometry: BufferGeometry) => {
+        giantPartToWorld(geometry, g.origin);
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+        geometry.boundingSphere!.radius += CULL_PAD_M;
+      };
+      finalize(part.geometry);
+      const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
+      mesh.name = `giant-near-canopy-${g.def.id}-${part.kind}-${i}`;
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      mesh.visible = false;
+      mesh.userData.kind = 'giant-near-canopy';
+      mesh.userData.giants = [g.def.id];
+      giantGroup.add(mesh);
+      const [item, first] = poolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, mesh, part.build, finalize);
+      nearCanopyPool.add(item, first);
+      nearCanopies.push({
+        id: `${g.def.id}/${part.kind}-${i}`,
+        tree: g.def.id,
+        kind: part.kind,
+        root: g.origin.clone(),
+        group: part.group,
+        center: part.center.clone().add(g.origin),
+        inM: part.inM,
+        outM: part.outM,
+        hero: Infinity,
+        mesh,
+        triangles: part.triangles,
+        leaves: part.leaves,
+        farLeaves: part.farLeaves,
+        farCards: part.farCards,
+        active: false,
+        dist: Infinity,
+        item,
+      });
+    });
+  };
+  /**
+   * Prune the pools to what is near the camera now (load time: after every giant, so the first
+   * builds of the far parts never pile up — the peak stays at the caps plus one giant's parts).
+   */
+  const pruneNearPools = () => {
+    ctx.camera.getWorldPosition(_v);
+    nearCanopyPool.begin();
+    for (const nc of nearCanopies) {
+      const d = nc.center.distanceTo(_v);
+      if (d < NEAR_CANOPY_PREFETCH_M) nearCanopyPool.want(nc.item, d);
+    }
+    nearCanopyPool.work(0);
+    nearBasePool.begin();
+    for (const nb of nearBoles) {
+      if (!nb.item) continue;
+      const d = Math.hypot(nb.origin.x - _v.x, nb.origin.z - _v.z);
+      if (d < NEAR_BASE_PREFETCH_M) nearBasePool.want(nb.item, d);
+    }
+    nearBasePool.work(0);
+  };
   for (const def of giantDefs) {
     const [px, , pz] = def.position;
     const gy = terrain.height(px, pz);
@@ -1934,7 +2110,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearCanopy: { heroDistance: nearCanopyHeroDistance(origin) },
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
-    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards, ...(asset.nearBase ? [asset.nearBase] : []), ...asset.nearCanopy.map((p) => p.geometry)]) {
+    // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
+    for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
       const root = g.getAttribute('aRoot') as BufferAttribute;
       for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
@@ -1971,6 +2148,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the giant's bole joins the seats under its layout id (giants are only translated: yaw 0, scale 1)
     trunkSeats.push(trunkSeatFromRings(def.id, origin, 0, 1, asset.trunkPath.map((p) => p.clone().add(origin)), asset.trunkRadii, asset.bareHeight));
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
+    attachGiantNearParts(giants[giants.length - 1]);
+    pruneNearPools();
     for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
     await yieldFrame();
@@ -2059,61 +2238,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     giantGroup.add(mesh);
     sectorMeshes.push(mesh);
   }
-  // the giants' near bases: one hidden mesh per giant (world-space geometry, like the sectors)
-  for (const g of giants) {
-    const nb = g.asset.nearBase;
-    const audit = g.asset.nearBaseAudit;
-    if (!nb || !audit) continue;
-    nb.computeBoundingBox();
-    nb.computeBoundingSphere();
-    sectorGeometries.push(nb);
-    const mesh = new Mesh(nb, mats.giantTreeNearBase);
-    mesh.name = `giant-near-base-${g.def.id}`;
-    mesh.customDepthMaterial = mats.giantTreeDepth;
-    mesh.castShadow = ctx.quality.shadows;
-    mesh.receiveShadow = true;
-    mesh.visible = false;
-    mesh.userData.kind = 'giant-near-base';
-    mesh.userData.giants = [g.def.id];
-    giantGroup.add(mesh);
-    nearBoles.push({ id: g.def.id, origin: g.origin.clone(), cutY: audit.cutY, mesh, triangles: audit.triangles, active: false, dist: Infinity, band: nearBand(g.def.id) });
-  }
-  // the near-canopy parts (see NearCanopy): one non-casting mesh each, hidden until the camera
-  // comes within NEAR_CANOPY_IN_M of the lobe; the sphere three culls it by carries the wind pad
-  for (const g of giants) {
-    g.asset.nearCanopy.forEach((part, i) => {
-      part.geometry.computeBoundingBox();
-      part.geometry.computeBoundingSphere();
-      part.geometry.boundingSphere!.radius += CULL_PAD_M;
-      sectorGeometries.push(part.geometry);
-      const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
-      mesh.name = `giant-near-canopy-${g.def.id}-${part.kind}-${i}`;
-      mesh.castShadow = false;
-      mesh.receiveShadow = true;
-      mesh.visible = false;
-      mesh.userData.kind = 'giant-near-canopy';
-      mesh.userData.giants = [g.def.id];
-      giantGroup.add(mesh);
-      nearCanopies.push({
-        id: `${g.def.id}/${part.kind}-${i}`,
-        tree: g.def.id,
-        kind: part.kind,
-        root: g.origin.clone(),
-        group: part.group,
-        center: part.center.clone().add(g.origin),
-        inM: part.inM,
-        outM: part.outM,
-        hero: Infinity,
-        mesh,
-        triangles: part.triangles,
-        leaves: part.leaves,
-        farLeaves: part.farLeaves,
-        farCards: part.farCards,
-        active: false,
-        dist: Infinity,
-      });
-    });
-  }
   // the root-kit test (rootkit.ts; `VITE_ROOT_KIT=1` builds only): Astra's kit on the two boles
   // in ROOT_KIT_BOLES in place of their near bases, the plain roots folded, the trunk kept
   const rootKitAudit: { source: { triangles: number; vertices: number; textures: { slot: string; size: string }[]; bytes: number } | null; fits: RootKitFit['audit'][] } = { source: null, fits: [] };
@@ -2159,6 +2283,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       });
       giantGroup.remove(nb.mesh);
       nb.mesh.visible = false;
+      if (nb.item) {
+        nearBasePool.remove(nb.item);
+        nb.item = undefined;
+      }
       nb.mesh = fit.mesh;
       nb.kit = true;
       nb.triangles = src.triangles;
@@ -2387,6 +2515,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       .sort((a, b) => Number(!!b.kit) - Number(!!a.kit) || a.dist - b.dist)
       .slice(0, NEAR_BOLE_SLOTS);
     for (const nb of nearBoles) nb.mesh.visible = shown.includes(nb);
+    // the pool: a shown base is pinned (built now if it is not resident), a base within the
+    // pre-fetch radius is wanted (built ahead, nearest first); the rest may be evicted
+    nearBasePool.begin();
+    for (const nb of nearBoles) {
+      if (!nb.item) continue;
+      if (nb.mesh.visible) nearBasePool.pin(nb.item);
+      else if (nb.dist < NEAR_BASE_PREFETCH_M) nearBasePool.want(nb.item, nb.dist);
+    }
     const slots = mats.nearBole.value;
     for (let i = 0; i < NEAR_BOLE_SLOTS; i++) {
       const nb = shown[i];
@@ -2433,7 +2569,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         nc.inM = nc.outM = -1;
         nc.mesh.visible = false;
         nc.mesh.removeFromParent();
-        nc.mesh.geometry.dispose();
+        nearCanopyPool.remove(nc.item);
         dropped++;
         continue;
       }
@@ -2457,6 +2593,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const shownLobes = nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
     const shownLimbs = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byDist).slice(0, NEAR_CANOPY_LIMBS_MAX);
     for (const nc of nearCanopies) nc.mesh.visible = nc.kind === 'lobe' ? shownLobes.includes(nc) : shownLimbs.includes(nc);
+    // the pool: a shown part is pinned (built now if it is not resident — the frame never waits
+    // for a build), a part within the pre-fetch radius is wanted (built ahead, nearest first)
+    nearCanopyPool.begin();
+    for (const nc of nearCanopies) {
+      if (nc.mesh.visible) nearCanopyPool.pin(nc.item);
+      else if (nc.dist < NEAR_CANOPY_PREFETCH_M) nearCanopyPool.want(nc.item, nc.dist);
+    }
     const slots = mats.nearCanopy.value;
     for (let i = 0; i < NEAR_CANOPY_SLOTS; i++) {
       const nc = shownLobes[i];
@@ -2607,6 +2750,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       distantFarCount += s.counts[1];
       distantTriangles += s.counts[0] * s.variant.nearTriangles + s.counts[1] * s.variant.farTriangles;
     }
+    const canopyPool = nearCanopyPool.report();
     return {
       geometry: 'procedural-v1',
       giants: giants.length,
@@ -2630,7 +2774,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantFlatCores: CANOPY_BOUGHS.reduce((n, b) => n + b.lobes.filter((l) => l.flat && l.core).length, 0),
       /** round 40: leaf-cluster cards dressing the cores' outlines (giant.ts lobeCore), part of giantFlatCards */
       giantCoreRimCards: giants.reduce((n, g) => n + g.asset.coreRimCards, 0),
-      giantMeshes: sectorGeometries.length,
+      /** the giants' geometries: sectors, authored leaves / cards, plus their pooled near bases and near-canopy parts */
+      giantMeshes: sectorGeometries.length + giants.reduce((n, g) => n + (g.asset.nearBase ? 1 : 0) + g.asset.nearCanopy.length, 0),
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       /**
        * near-bole bark (bole.ts) per giant within NEAR_BOLE_M of a hero camera:
@@ -2712,6 +2857,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         boles: nearBoles.map((nb) => [nb.id, nb.triangles, Math.round(nb.dist * 10) / 10, nb.mesh.visible]),
         shown: nearBoles.filter((nb) => nb.mesh.visible).map((nb) => nb.id),
         rootKit: ROOT_KIT ? rootKitAudit : null,
+        /** the bytes one build of every base takes (what was resident before the pool) and the pool's live bytes (lodPool.ts) */
+        builtBytes: nearBoles.reduce((n, nb) => n + (nb.item ? nb.item.bytes : 0), 0),
+        residentBytes: nearBasePool.poolBytes,
+        prefetchM: NEAR_BASE_PREFETCH_M,
+        pool: nearBasePool.report(),
         /** per giant: [id, relief (m), rings, sides, moss share, fins, big fins, toes, wood triangles, fern clumps, tufts, litter leaves, plant triangles] */
         giants: giants
           .filter((g) => g.asset.nearBaseAudit)
@@ -2749,14 +2899,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         parts: nearCanopies.length,
         /** the hero pass on the built meshes (nearCanopyHeroPass): parts with radii cut further, parts dropped (would swap under minInM) */
         heroPass,
-        residentTriangles: nearCanopies.reduce((n, nc) => n + nc.triangles, 0),
-        /** vertices resident for every near part and their buffer bytes (position, colour, uv, wind, root, normal + the index) */
-        residentVertices: nearCanopies.reduce((n, nc) => n + nc.mesh.geometry.getAttribute('position').count, 0),
-        residentBytes: nearCanopies.reduce((n, nc) => {
-          const g = nc.mesh.geometry;
-          const attrs = Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0);
-          return n + attrs + (g.index ? g.index.array.byteLength : 0);
-        }, 0),
+        /** triangles of every part (built once for its measurements) and of the parts whose buffers are in the pool now */
+        builtTriangles: nearCanopies.reduce((n, nc) => n + nc.triangles, 0),
+        residentTriangles: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? nc.triangles : 0), 0),
+        /** vertices and buffer bytes (position, colour, uv, wind, root, normal + the index) of the parts in the pool now */
+        residentVertices: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? nc.mesh.geometry.getAttribute('position').count : 0), 0),
+        residentBytes: nearCanopyPool.poolBytes,
+        /** the bytes one build of every part takes: what was resident before the pool (round 41: 173 MB) */
+        builtBytes: nearCanopies.reduce((n, nc) => n + nc.item.bytes, 0),
+        /** the pool (lodPool.ts): cap, live bytes, builds, evictions, synchronous builds, build-time percentiles */
+        prefetchM: NEAR_CANOPY_PREFETCH_M,
+        buildBudgetMs: NEAR_LOD_BUILD_BUDGET_MS,
+        pool: canopyPool,
+        built: canopyPool.built,
+        evicted: canopyPool.evicted,
+        poolBytes: canopyPool.poolBytes,
+        buildMsP95: canopyPool.buildMsP95,
         giants: giants.map((g) => {
           const lobes = g.asset.nearCanopy.filter((p) => p.kind === 'lobe');
           const limbs = g.asset.nearCanopy.filter((p) => p.kind === 'limb');
@@ -2813,19 +2971,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group,
     update(_dt, _t, c) {
       rebucket(c.camera);
+      // the near parts' pending builds, within the frame budget (the canopy first: its parts are
+      // the many; the bases take what is left, at least a chunk's worth so they never starve)
+      const t0 = performance.now();
+      nearCanopyPool.work(NEAR_LOD_BUILD_BUDGET_MS);
+      nearBasePool.work(Math.max(0.5, NEAR_LOD_BUILD_BUDGET_MS - (performance.now() - t0)));
     },
     onCameraMove(camera) {
       // an explicit re-pose (capture harness, viewpoint keys) re-buckets whatever the distance moved
       rebucket(camera, true);
     },
+    perf() {
+      // the near parts' bytes by distance from the last update's camera (what a cap must hold at
+      // each radius: the swap-in radius is the floor, the pre-fetch radius the full demand)
+      const within = (radii: number[], parts: { dist: number; item?: PoolItem<GeometryBuilt> }[]) =>
+        Object.fromEntries(radii.map((r) => [r, parts.reduce((n, p) => n + (p.item && p.dist < r ? p.item.bytes : 0), 0)]));
+      return {
+        nearCanopyPool: nearCanopyPool.report(),
+        nearBasePool: nearBasePool.report(),
+        prefetchM: { nearCanopy: NEAR_CANOPY_PREFETCH_M, nearBase: NEAR_BASE_PREFETCH_M },
+        buildBudgetMs: NEAR_LOD_BUILD_BUDGET_MS,
+        bytesWithinM: { nearCanopy: within([NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M, 30, NEAR_CANOPY_PREFETCH_M], nearCanopies), nearBase: within([NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_PREFETCH_M], nearBoles) },
+      };
+    },
     dispose() {
       for (const w of whites) for (const l of w.lods) l.geometry.dispose();
-      for (const c of seatedColumns)
-        for (const l of c.lods) {
-          l.geometry.dispose();
-          l.nearBase?.dispose();
-        }
-      for (const g of columnNearCanopyGeometries) g.dispose();
+      for (const c of seatedColumns) for (const l of c.lods) l.geometry.dispose();
+      nearCanopyPool.dispose();
+      nearBasePool.dispose();
       for (const g of sectorGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
     },

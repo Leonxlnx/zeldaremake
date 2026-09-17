@@ -68,8 +68,18 @@ export interface NearCanopyPart {
   /** this part's swap radii (m): NEAR_CANOPY_IN_M / OUT_M, or less for a part a hero camera frames */
   inM: number;
   outM: number;
-  /** wood + laminae, same attributes and material as the tree's `geometry` (leaf vertices flagged) */
+  /**
+   * wood + laminae, same attributes and material as the tree's `geometry` (leaf vertices flagged):
+   * the first build (the measurement: counts, cull sphere, bytes). The trees system keeps it only
+   * while the part is near and rebuilds it through `build` when it comes near again (lodPool.ts).
+   */
   geometry: BufferGeometry;
+  /**
+   * one more build of exactly this geometry, chunked: a generator yielding between the twigs (and
+   * the vines / shoots of a limb dressing) so the trees system can spread it across frames. From
+   * the part's own forked stream every time, so every build is byte-identical to `geometry`.
+   */
+  build(): Generator<void, BufferGeometry>;
   leaves: number;
   triangles: number;
   woodTriangles: number;
@@ -210,7 +220,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
    * leaving at 30–60° and drooping toward the tip under its leaves — each with a spray and a
    * tip rosette. Returns the laminae built.
    */
-  const twiglets = (w: GeometryWriter, g: Rng, parent: Vector3[], parentRadius: number, count: number, reach: number, center: Vector3, hR: number, vigor: number, size: [number, number], leafScale: number) => {
+  function* twiglets(w: GeometryWriter, g: Rng, parent: Vector3[], parentRadius: number, count: number, reach: number, center: Vector3, hR: number, vigor: number, size: [number, number], leafScale: number): Generator<void, number> {
     const gb = (a: number, b: number) => between(g, a, b);
     const phase = g() * TAU;
     let n = 0;
@@ -230,9 +240,10 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       tube(w, path, taper(path, radius, 0.0015), 3, g, { color: barkColor, roughness: 0.02 });
       n += nearSpray(w, g, path, radius, Math.max(3, Math.round(6 * leafScale)), size, center, hR, vigor, 0.25);
       n += nearRosette(w, g, path[path.length - 1], tangent(path, 1), Math.max(3, Math.round(4 * leafScale)), size, center, hR, vigor, radius);
+      yield;
     }
     return n;
-  };
+  }
   /**
    * A moss sheet along the upper side of a stem (writer.ts woodMoss: the tree shader lays the
    * cushions, flattens the bark normal and roughens the surface under them): a strip of
@@ -331,7 +342,19 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
    * twig, a moss strip along its stem. The laminae budget is NEAR_CANOPY_LEAF_DENSITY × hR²
    * within NEAR_CANOPY_LEAVES, spread over the recorded wood (leafScale).
    */
-  const lobePart = (rng: Rng, rec: NearLobeRecord, idx: number): NearCanopyPart => {
+  /** what one build of a part produced (identical every build) */
+  interface Built {
+    geometry: BufferGeometry;
+    leaves: number;
+    triangles: number;
+  }
+  /**
+   * One build of a lobe's near version, chunked: yields after the secondaries' sprays, after
+   * every twig's spray and every twiglet, after the moss strip and between the steps of `finish`
+   * (a chunk is ≈ 0.3–1.5 ms). Every draw comes from the stream forked off `rng` by the part's
+   * index, so the result is the same whenever it runs.
+   */
+  function* lobeSteps(rng: Rng, rec: NearLobeRecord, idx: number): Generator<void, Built> {
     const w = new GeometryWriter('high');
     const g = rng.fork(`near-canopy/lobe/${idx}`);
     const gb = (a: number, b: number) => between(g, a, b);
@@ -343,24 +366,54 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
     const vigor = 0.96;
     let leaves = 0;
     for (const sec of rec.secondaries) leaves += nearSpray(w, g, sec.path, sec.radius, Math.max(3, Math.round(8 * leafScale)), size, rec.center, rec.hR, vigor, 0.45);
+    yield;
     for (const twig of rec.twigs) {
       leaves += nearSpray(w, g, twig.path, twig.radius, Math.max(3, Math.round(7 * leafScale)), size, rec.center, rec.hR, vigor, 0.3);
-      leaves += twiglets(w, g, twig.path, twig.radius, g.int(2, 4), rec.hR * gb(0.28, 0.42), rec.center, rec.hR, vigor, size, leafScale);
+      yield;
+      leaves += yield* twiglets(w, g, twig.path, twig.radius, g.int(2, 4), rec.hR * gb(0.28, 0.42), rec.center, rec.hR, vigor, size, leafScale);
     }
     // moss along the upper side of the stem the lobe hangs on (the plain sweep is bare)
     const stemR = rec.stemRadii[0];
     if (stemR >= 0.09) mossStrip(w, rec.stem, rec.stemRadii, Math.min(1, 0.55 + stemR));
-    const geometry = w.finish(`near-canopy-${o.id}-lobe-${idx}`);
-    return { kind: 'lobe', group: rec.group, center: rec.center.clone(), radius: rec.hR * 1.35 + 0.6, inM: rec.inM, outM: rec.outM, geometry, leaves, triangles: w.triangles, woodTriangles: w.triangles - leaves * 8, farLeaves: rec.farLeaves, farCards: rec.farCards };
+    yield;
+    return { geometry: yield* w.finishSteps(`near-canopy-${o.id}-lobe-${idx}`), leaves, triangles: w.triangles };
+  }
+
+  /**
+   * The near version of a recorded lobe: sprays on its secondaries and twigs, 2–4 twiglets per
+   * twig, a moss strip along its stem. The laminae budget is NEAR_CANOPY_LEAF_DENSITY × hR²
+   * within NEAR_CANOPY_LEAVES, spread over the recorded wood (leafScale). Built once here (the
+   * measurement); `build` is the same build again, chunked.
+   */
+  const lobePart = (rng: Rng, rec: NearLobeRecord, idx: number): NearCanopyPart => {
+    const first = runSteps(lobeSteps(rng, rec, idx));
+    return {
+      kind: 'lobe',
+      group: rec.group,
+      center: rec.center.clone(),
+      radius: rec.hR * 1.35 + 0.6,
+      inM: rec.inM,
+      outM: rec.outM,
+      geometry: first.geometry,
+      build: function* () {
+        return (yield* lobeSteps(rng, rec, idx)).geometry;
+      },
+      leaves: first.leaves,
+      triangles: first.triangles,
+      woodTriangles: first.triangles - first.leaves * 8,
+      farLeaves: rec.farLeaves,
+      farCards: rec.farCards,
+    };
   };
 
-  /** the dressing of a big limb: a moss strip on top, vines from the underside of its outer two thirds, a few epicormic shoots */
-  const limbPart = (rng: Rng, limb: NearLimbRecord, idx: number): NearCanopyPart => {
+  /** one build of a limb dressing, chunked: yields after the moss strip, after every vine and after every shoot */
+  function* limbSteps(rng: Rng, limb: NearLimbRecord, idx: number): Generator<void, Built> {
     const w = new GeometryWriter('high');
     const g = rng.fork(`near-canopy/limb/${idx}`);
     const gb = (a: number, b: number) => between(g, a, b);
     let leaves = 0;
     mossStrip(w, limb.path, limb.radii, 1, 0.22);
+    yield;
     const up = new Vector3();
     const side = new Vector3();
     const vines = g.int(2, 5);
@@ -372,6 +425,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       up.copy(UP).addScaledVector(axis, -UP.dot(axis)).normalize();
       side.crossVectors(axis, up).normalize();
       leaves += hangingVine(w, g, p.clone().addScaledVector(up, -rr * 0.85).addScaledVector(side, gb(-0.5, 0.5) * rr));
+      yield;
     }
     const shoots = g.int(2, 4);
     for (let k = 0; k < shoots; k++) {
@@ -389,11 +443,39 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       tube(w, path, taper(path, 0.02, 0.003), 3, g, { color: barkColor, roughness: 0.02 });
       const c = path[path.length - 1];
       leaves += nearSpray(w, g, path, 0.02, 7, [0.14, 0.22], c, 0.6, 0.95, 0.35);
-      leaves += twiglets(w, g, path, 0.02, 2, 0.45, c, 0.8, 0.95, [0.14, 0.22], 1);
+      leaves += yield* twiglets(w, g, path, 0.02, 2, 0.45, c, 0.8, 0.95, [0.14, 0.22], 1);
     }
-    const geometry = w.finish(`near-canopy-${o.id}-limb-${idx}`);
-    return { kind: 'limb', group: -1, center: sample(limb.path, 0.6), radius: 0.5 * pathLength(limb.path) + 3.8, inM: limb.inM, outM: limb.outM, geometry, leaves, triangles: w.triangles, woodTriangles: w.triangles - leaves * 8, farLeaves: 0, farCards: 0 };
+    return { geometry: yield* w.finishSteps(`near-canopy-${o.id}-limb-${idx}`), leaves, triangles: w.triangles };
+  }
+
+  /** the dressing of a big limb: a moss strip on top, vines from the underside of its outer two thirds, a few epicormic shoots */
+  const limbPart = (rng: Rng, limb: NearLimbRecord, idx: number): NearCanopyPart => {
+    const first = runSteps(limbSteps(rng, limb, idx));
+    return {
+      kind: 'limb',
+      group: -1,
+      center: sample(limb.path, 0.6),
+      radius: 0.5 * pathLength(limb.path) + 3.8,
+      inM: limb.inM,
+      outM: limb.outM,
+      geometry: first.geometry,
+      build: function* () {
+        return (yield* limbSteps(rng, limb, idx)).geometry;
+      },
+      leaves: first.leaves,
+      triangles: first.triangles,
+      woodTriangles: first.triangles - first.leaves * 8,
+      farLeaves: 0,
+      farCards: 0,
+    };
   };
 
   return { lobePart, limbPart, pathLength };
+}
+
+/** run a chunked build to its end (the first build of a part, tests) */
+export function runSteps<T>(gen: Generator<void, T>): T {
+  let r = gen.next();
+  while (!r.done) r = gen.next();
+  return r.value;
 }

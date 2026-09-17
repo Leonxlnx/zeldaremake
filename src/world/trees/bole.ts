@@ -241,6 +241,20 @@ export function sweepAxisAt(points: Vector3[], radii: number[]) {
 }
 
 export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: number[], o: BoleReliefOptions): BoleReliefResult {
+  const gen = reliefBoleSteps(writer, points, radii, o);
+  let r = gen.next();
+  while (!r.done) r = gen.next();
+  return r.value;
+}
+
+/** rings per chunk of `reliefBoleSteps` (≈ 200 sides × 4 rings = 800 vertices ≈ 1–2 ms) */
+export const RELIEF_BOLE_RINGS_PER_STEP = 4;
+
+/**
+ * `reliefBole` as a chunked build: yields every RELIEF_BOLE_RINGS_PER_STEP rings so a near base
+ * built at runtime (lodPool.ts) can spread the bole over frames. Same draws, same vertices.
+ */
+export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radii: number[], o: BoleReliefOptions): Generator<void, BoleReliefResult> {
   const sides = o.sides;
   const grainN = o.draws.grain.length;
   const pitch = o.pitch ?? 0.42;
@@ -375,6 +389,7 @@ export function reliefBole(writer: GeometryWriter, points: Vector3[], radii: num
     }
     rows.push(row);
     previous = row;
+    if (k % RELIEF_BOLE_RINGS_PER_STEP === RELIEF_BOLE_RINGS_PER_STEP - 1) yield;
   }
   if (o.cap !== false) {
     // the fork cap, inside the leaders as the plain sweep's was

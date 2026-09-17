@@ -167,6 +167,17 @@ function litter(writer: GeometryWriter, at: Vector3, o: BasePlantOptions, rng: R
  * one stream whatever the terrain says.
  */
 export function basePlants(writer: GeometryWriter, rng: Rng, o: BasePlantOptions): BasePlantResult {
+  const gen = basePlantsSteps(writer, rng, o);
+  let r = gen.next();
+  while (!r.done) r = gen.next();
+  return r.value;
+}
+
+/**
+ * `basePlants` as a chunked build (lodPool.ts): yields after every fern clump, after the tufts
+ * and every 30 litter leaves. Same draws, same geometry.
+ */
+export function* basePlantsSteps(writer: GeometryWriter, rng: Rng, o: BasePlantOptions): Generator<void, BasePlantResult> {
   const bt = (a: number, b: number) => between(rng, a, b);
   const density = o.density ?? 1;
   const trisBefore = writer.triangles;
@@ -197,6 +208,7 @@ export function basePlants(writer: GeometryWriter, rng: Rng, o: BasePlantOptions
     }
     result.fronds += fernClump(writer, at, size, o, rng);
     result.ferns++;
+    yield;
   }
   const tuftN = Math.round(bt(5, 8) * density);
   for (let i = 0; i < tuftN; i++) {
@@ -209,6 +221,7 @@ export function basePlants(writer: GeometryWriter, rng: Rng, o: BasePlantOptions
     broadleafTuft(writer, at, size, o, rng);
     result.tufts++;
   }
+  yield;
   const litterN = Math.round(bt(70, 110) * density);
   for (let i = 0; i < litterN; i++) {
     const at = spot(o.footRadius * 0.95, o.reach * 1.1, 0);
@@ -217,6 +230,7 @@ export function basePlants(writer: GeometryWriter, rng: Rng, o: BasePlantOptions
       continue;
     }
     if (litter(writer, at, o, rng)) result.litter++;
+    if (i % 30 === 29) yield;
   }
   result.triangles = writer.triangles - trisBefore;
   return result;

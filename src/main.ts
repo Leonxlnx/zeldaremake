@@ -278,7 +278,10 @@ async function boot() {
     },
     perf: () => {
       const report = perfReport();
-      return { ...perf, systems: { ...world.timings }, buildMs: { ...world.buildMs }, warmup, flags: report.flags, tier: report.tier, perfState: report, governor: governor?.report() ?? null };
+      // the systems' own runtime state (the trees' near-LOD geometry pools: live bytes, builds, evictions, build-time percentiles)
+      const systemPerf: Record<string, unknown> = {};
+      for (const s of world.systems) if (s.perf) systemPerf[s.name] = s.perf();
+      return { ...perf, systems: { ...world.timings }, systemPerf, buildMs: { ...world.buildMs }, warmup, flags: report.flags, tier: report.tier, perfState: report, governor: governor?.report() ?? null };
     },
   });
 

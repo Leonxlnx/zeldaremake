@@ -95,6 +95,8 @@ export interface WorldSystem {
   update?(dt: number, t: number, ctx: WorldContext): void;
   /** called when the camera moves far enough to re-stream chunks (optional) */
   onCameraMove?(camera: Camera, ctx: WorldContext): void;
+  /** runtime performance state (streaming pools, budgets) for the capture API's `perf()` (optional) */
+  perf?(): Record<string, unknown>;
   dispose?(): void;
 }
 

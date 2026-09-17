@@ -32,9 +32,9 @@ import {
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
-import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
-import { basePlants, type BasePlantResult } from './base-plants';
-import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
+import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, reliefBoleSteps, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
+import { basePlants, basePlantsSteps, type BasePlantResult } from './base-plants';
+import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
 
 /**
  * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
@@ -159,9 +159,12 @@ export interface GiantAsset {
   /**
    * the near base (see NEAR_BASE_CUT_Y): relief bole to the cut ring, buttress fins with toes,
    * the plant ring — local space, same attributes and material family as `geometry` (leaf
-   * vertices flagged), drawn by the caller only within NEAR_BASE_IN_M of the camera
+   * vertices flagged), drawn by the caller only within NEAR_BASE_IN_M of the camera. The first
+   * build (the measurement); `nearBaseBuild` builds exactly the same geometry again, chunked
+   * (yields between the bole, every fin and the plants), for the caller's LOD pool (lodPool.ts).
    */
   nearBase: BufferGeometry | null;
+  nearBaseBuild: (() => Generator<void, BufferGeometry>) | null;
   nearBaseAudit: {
     /** relief amplitude (m) */
     relief: number;
@@ -761,14 +764,20 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // Built from its own forked streams and a separate writer, so nothing above or below re-rolls:
   // the plain tree is exactly what it was with the near base off.
   let nearBase: BufferGeometry | null = null;
+  let nearBaseBuild: GiantAsset['nearBaseBuild'] = null;
   let nearBaseAudit: GiantAsset['nearBaseAudit'] = null;
-  if (buildNearBase) {
+  /**
+   * One build of the near base, chunked (yields after the bole, after every fin, after the
+   * plants): everything it reads — the trunk, the plain roots' centrelines and draws, the noise
+   * seeds, the forked streams — is fixed by now, so every run returns the same geometry.
+   */
+  function* nearBaseSteps(): Generator<void, { geometry: BufferGeometry; audit: NonNullable<GiantAsset['nearBaseAudit']> }> {
     const nb = new GeometryWriter('high');
     const nrng = r.fork('near-base');
     const nNoise = new Noise2D(`giant-near-relief/${def.id}`);
     const shadeDir = o.sunDir ? new Vector3(-o.sunDir.x, 0, -o.sunDir.z).normalize() : undefined;
     const amplitude = nearBaseAmplitude(refRadius);
-    const bole = reliefBole(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
+    const bole = yield* reliefBoleSteps(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
       color: barkColor,
       bump: gnarlBump(1.0, 0.16),
       creviceShade: 2.2,
@@ -794,6 +803,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       shadeDir,
       sheetBand: [1.0, 2.6],
     });
+    yield;
     // fins: one per plain root along its own centreline; 3–6 of them are the big flares
     const bigCount = nrng.int(3, Math.min(6, rootCount));
     const bigStart = nrng.int(0, rootCount);
@@ -818,6 +828,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       });
       toes += built.toes;
       finFoot.push({ path: root.path, halfWidth: root.radii[0] * (big ? 2.4 : 1.5) });
+      yield;
     }
     const woodTriangles = nb.triangles;
     // the plant ring: outside the foot, off the paving, clear of the fins' collars
@@ -839,7 +850,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       }
       return true;
     };
-    const plants = basePlants(nb, nrng.fork('plants'), {
+    const plants = yield* basePlantsSteps(nb, nrng.fork('plants'), {
       groundAt: o.groundAt,
       pathAt: o.pathAt,
       clear,
@@ -856,19 +867,31 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         litterDark: new Color(0x423b26),
       },
     });
-    nearBase = nb.finish(`giant-near-base-${def.id}`);
-    nearBaseAudit = {
-      relief: bole.amplitude,
-      rings: bole.rings,
-      sides: bole.sides,
-      cutY,
-      mossShare: bole.mossShare,
-      fins: plainRoots.length,
-      bigFins: bigSet.size,
-      toes,
-      woodTriangles,
-      plants,
-      triangles: nb.triangles,
+    yield;
+    const geometry = yield* nb.finishSteps(`giant-near-base-${def.id}`);
+    return {
+      geometry,
+      audit: {
+        relief: bole.amplitude,
+        rings: bole.rings,
+        sides: bole.sides,
+        cutY,
+        mossShare: bole.mossShare,
+        fins: plainRoots.length,
+        bigFins: bigSet.size,
+        toes,
+        woodTriangles,
+        plants,
+        triangles: nb.triangles,
+      },
+    };
+  }
+  if (buildNearBase) {
+    const first = runSteps(nearBaseSteps());
+    nearBase = first.geometry;
+    nearBaseAudit = first.audit;
+    nearBaseBuild = function* () {
+      return (yield* nearBaseSteps()).geometry;
     };
   }
 
@@ -1822,6 +1845,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     bareHeight,
     bark: barkAudit,
     nearBase,
+    nearBaseBuild,
     nearBaseAudit,
     boleRings: wood.trunkRows
       .map((row) => row.map((i) => new Vector3(wood.positions[i * 3], wood.positions[i * 3 + 1], wood.positions[i * 3 + 2])))

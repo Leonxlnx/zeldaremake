@@ -16,10 +16,10 @@ import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail } from './writer';
 import type { Palette, TreeAsset } from './whitebark';
-import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, shadedSheetMask, sweepAxisAt, type BoleKnee } from './bole';
-import { basePlants, type BasePlantResult } from './base-plants';
+import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, reliefBoleSteps, shadedSheetMask, sweepAxisAt, type BoleKnee } from './bole';
+import { basePlants, basePlantsSteps, type BasePlantResult } from './base-plants';
 import { NEAR_BASE_CUT_Y, NEAR_BASE_PITCH, nearBaseAmplitude } from './giant';
-import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLobeRecord } from './nearCanopy';
+import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLobeRecord } from './nearCanopy';
 
 /**
  * A knee on a column's bole (round 40, the owner's bole brief): a one-sided swelling at `height`
@@ -49,8 +49,9 @@ export interface ColumnAsset extends TreeAsset {
   bareHeight: number;
   /** the near-bole bark as built (bole.ts; `ColumnParams.relief`), or null for the plain sweep */
   bark: { relief: number; rings: number; sides: number; mossShare: number; triangles: number } | null;
-  /** the near base (giant.ts NEAR_BASE_CUT_Y), local space — built for the high detail only */
+  /** the near base (giant.ts NEAR_BASE_CUT_Y), local space — built for the high detail only (the first build; `nearBaseBuild` repeats it, chunked, for the caller's LOD pool) */
   nearBase: BufferGeometry | null;
+  nearBaseBuild: (() => Generator<void, BufferGeometry>) | null;
   nearBaseAudit: {
     relief: number;
     rings: number;
@@ -365,8 +366,13 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
 
   // ---------- near base (giant.ts NEAR_BASE_CUT_Y) ----------
   let nearBase: BufferGeometry | null = null;
+  let nearBaseBuild: ColumnAsset['nearBaseBuild'] = null;
   let nearBaseAudit: ColumnAsset['nearBaseAudit'] = null;
-  if (buildNearBase) {
+  /**
+   * One build of the near base, chunked (yields after the bole, after every fin, after the
+   * plants), from its own forked stream: every run returns the same geometry (lodPool.ts).
+   */
+  function* nearBaseSteps(): Generator<void, { geometry: BufferGeometry; audit: NonNullable<ColumnAsset['nearBaseAudit']> }> {
     const nb = new GeometryWriter('high');
     const nrng = rng.fork('near-base');
     const nNoise = new Noise2D(`column-near-relief/${p.seed}`);
@@ -375,7 +381,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const rootsOnly = !!p.relief;
     const bole = rootsOnly
       ? { amplitude: bark?.relief ?? 0, rings: 0, sides: 0, mossShare: bark?.mossShare ?? 0 }
-      : reliefBole(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
+      : yield* reliefBoleSteps(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
           color: barkColor,
           bump: boleBump,
           creviceShade: 1.8 * (p.gnarl / 0.1),
@@ -400,12 +406,14 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
           shadeDir,
           sheetBand: [0.8, 2.0],
         });
+    yield;
     // fins along the plain buttresses' directions: a centreline from the collar out to the reach,
     // riding the ground, then split toes (bole.ts)
     let toes = 0;
     const finFoot: { path: Vector3[]; halfWidth: number }[] = [];
     const flareR = trunkRadii[Math.max(0, trunk.findIndex((pt) => pt.y >= 0))];
-    plainRoots.forEach((root, i) => {
+    for (let i = 0; i < plainRoots.length; i++) {
+      const root = plainRoots[i];
       const dir = new Vector3(Math.cos(root.angle), 0, Math.sin(root.angle));
       const side = new Vector3(-dir.z, 0, dir.x);
       const segments = 9;
@@ -442,7 +450,8 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       });
       toes += built.toes;
       finFoot.push({ path, halfWidth: r0 * (big ? 2.2 : 1.5) });
-    });
+      yield;
+    }
     const woodTriangles = nb.triangles;
     const clear = (x: number, z: number) => {
       for (const f of finFoot) {
@@ -460,7 +469,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       }
       return true;
     };
-    const plants = basePlants(nb, nrng.fork('plants'), {
+    const plants = yield* basePlantsSteps(nb, nrng.fork('plants'), {
       groundAt,
       pathAt: o.pathAt,
       clear,
@@ -477,8 +486,17 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
         litterDark: new Color(0x423b26),
       },
     });
-    nearBase = nb.finish(`column-near-base-${p.seed}`);
-    nearBaseAudit = { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, woodTriangles, plants, triangles: nb.triangles, rootsOnly };
+    yield;
+    const geometry = yield* nb.finishSteps(`column-near-base-${p.seed}`);
+    return { geometry, audit: { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, woodTriangles, plants, triangles: nb.triangles, rootsOnly } };
+  }
+  if (buildNearBase) {
+    const first = runSteps(nearBaseSteps());
+    nearBase = first.geometry;
+    nearBaseAudit = first.audit;
+    nearBaseBuild = function* () {
+      return (yield* nearBaseSteps()).geometry;
+    };
   }
 
   // ---------- crown ----------
@@ -613,6 +631,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     bareHeight,
     bark,
     nearBase,
+    nearBaseBuild,
     nearBaseAudit,
     knees,
     nearCanopy,
