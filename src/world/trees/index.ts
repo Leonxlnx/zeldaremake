@@ -1412,9 +1412,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group: number;
     /** world centre the swap distance is measured to */
     center: Vector3;
-    /** the part's own swap radii (giant.ts swapRadii) */
+    /** the part's own swap radii (giant.ts swapRadii, then `nearCanopyHeroPass` on the built mesh) */
     inM: number;
     outM: number;
+    /** the nearest hero camera that frames the built part's cull sphere (m to the centre; Infinity: none) */
+    hero: number;
     mesh: Mesh;
     triangles: number;
     leaves: number;
@@ -1790,6 +1792,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         center: new Vector3(p.x + p.scale * (cos * part.center.x + sin * part.center.z), p.y + p.scale * part.center.y, p.z + p.scale * (-sin * part.center.x + cos * part.center.z)),
         inM: part.inM,
         outM: part.outM,
+        hero: Infinity,
         mesh,
         triangles: part.triangles,
         leaves: part.leaves,
@@ -2100,6 +2103,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         center: part.center.clone().add(g.origin),
         inM: part.inM,
         outM: part.outM,
+        hero: Infinity,
         mesh,
         triangles: part.triangles,
         leaves: part.leaves,
@@ -2398,6 +2402,50 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * NEAR_CANOPY_LIMBS_MAX limb dressings are shown (nothing to fold). With `reset` the state is
    * recomputed from the distances alone, so a capture's frame never depends on the path taken.
    */
+  /**
+   * The hero pass on the BUILT parts. The build-time test (giant.ts / column.ts swapRadii) frames
+   * the lobe's own sphere; a part's mesh is bigger than its lobe — the moss strip runs the whole
+   * stem bough, a limb dressing the whole limb, a vine drops metres under it — and three culls by
+   * that mesh sphere, so a lobe just past a fixed frame's edge still drew its stem's dressing
+   * into the frame (round 41 cap-A: 7–10 near parts drawn at D / F from 15–19 m, −0.004 to
+   * −0.012 SSIM). Here every part's padded world cull sphere is tested against the hero frusta
+   * and its radii cut under the nearest framing camera exactly as swapRadii does; a part that
+   * would then swap under NEAR_CANOPY_MIN_IN_M never swaps (radii −1: its tagged far foliage is
+   * simply never folded) and its geometry is dropped.
+   */
+  const nearCanopyHeroPass = () => {
+    const sphere = new Sphere();
+    let limited = 0;
+    let dropped = 0;
+    for (const nc of nearCanopies) {
+      nc.mesh.updateMatrixWorld(true);
+      sphere.copy(nc.mesh.geometry.boundingSphere!).applyMatrix4(nc.mesh.matrixWorld);
+      sphere.radius += 1;
+      for (const h of heroFrusta) {
+        const d = h.position.distanceTo(nc.center);
+        if (d > NEAR_CANOPY_OUT_M + 0.5 || d >= nc.hero) continue;
+        if (!h.frustum.intersectsSphere(sphere)) continue;
+        nc.hero = d;
+      }
+      if (!Number.isFinite(nc.hero)) continue;
+      const inM = Math.min(nc.inM, nc.hero - NEAR_CANOPY_HERO_MARGIN);
+      if (inM < NEAR_CANOPY_MIN_IN_M) {
+        nc.inM = nc.outM = -1;
+        nc.mesh.visible = false;
+        nc.mesh.removeFromParent();
+        nc.mesh.geometry.dispose();
+        dropped++;
+        continue;
+      }
+      if (inM < nc.inM) limited++;
+      nc.inM = inM;
+      nc.outM = Math.min(nc.outM, nc.hero - NEAR_CANOPY_HERO_MARGIN / 3);
+    }
+    const kept = nearCanopies.filter((nc) => nc.inM >= 0);
+    nearCanopies.splice(0, nearCanopies.length, ...kept);
+    return { limited, dropped };
+  };
+  const heroPass = nearCanopyHeroPass();
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
     for (const nc of nearCanopies) {
       nc.dist = nc.center.distanceTo(cam);
@@ -2690,6 +2738,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         leafNearM: NEAR_CANOPY_LEAF_NEAR_M,
         sunThrough: NEAR_CANOPY_SUN_THROUGH,
         parts: nearCanopies.length,
+        /** the hero pass on the built meshes (nearCanopyHeroPass): parts with radii cut further, parts dropped (would swap under minInM) */
+        heroPass,
+        residentTriangles: nearCanopies.reduce((n, nc) => n + nc.triangles, 0),
         giants: giants.map((g) => {
           const lobes = g.asset.nearCanopy.filter((p) => p.kind === 'lobe');
           const limbs = g.asset.nearCanopy.filter((p) => p.kind === 'limb');
@@ -2704,7 +2755,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             const sum = (f: (p: NearCanopyPart) => number) => a.nearCanopy.reduce((n, p) => n + f(p), 0);
             return [c.placements[0].id, a.nearCanopy.length, a.nearCanopyHeroKept, a.nearCanopyHeroLimited, sum((p) => p.triangles), sum((p) => p.leaves), sum((p) => p.farLeaves)];
           }),
-        shown: nearCanopies.filter((nc) => nc.mesh.visible).map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves]),
+        /** [id, distance, in-radius, triangles, laminae, nearest framing hero camera (m; null: none), world centre] */
+        shown: nearCanopies
+          .filter((nc) => nc.mesh.visible)
+          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, Number.isFinite(nc.hero) ? Math.round(nc.hero * 10) / 10 : null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
         foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),

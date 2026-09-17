@@ -28,8 +28,13 @@ import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, frame, growthPath, sample, stiffnessFor, tangent, taper, tube, type LeafOptions } from './writer';
 
-export const NEAR_CANOPY_IN_M = 20;
-export const NEAR_CANOPY_OUT_M = 24;
+/**
+ * Swap radii (m, 3D to the lobe centre — a lobe 15 m up is 15 m away from under it). 22 in / 26
+ * out: from the plaza's eye height the overhead lobes of the near giants stand 17–24 m away, so
+ * 20 m (the first pass) left the centre of the straight-up view as cards.
+ */
+export const NEAR_CANOPY_IN_M = 22;
+export const NEAR_CANOPY_OUT_M = 26;
 /**
  * A part some hero camera frames from `d` m swaps in at `d − margin` and out at `d − margin / 3`
  * (the camera itself never sees the swap); a part whose in-radius would fall under
@@ -38,8 +43,11 @@ export const NEAR_CANOPY_OUT_M = 24;
  */
 export const NEAR_CANOPY_HERO_MARGIN = 1.5;
 export const NEAR_CANOPY_MIN_IN_M = 7;
-/** local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance */
-export const NEAR_CANOPY_MAX_Y = 17;
+/**
+ * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance
+ * (a 21 m lobe is 19.5 m over a standing eye — the top of what NEAR_CANOPY_IN_M can reach)
+ */
+export const NEAR_CANOPY_MAX_Y = 21;
 /**
  * laminae per near lobe: this × hR² (m²), clamped to NEAR_CANOPY_LEAVES. 240 / m² of lobe
  * section: a 2.4 m lobe carries ≈ 1400 laminae of 18–34 cm — the sprays overlap 2–3 deep along

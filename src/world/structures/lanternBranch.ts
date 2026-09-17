@@ -52,8 +52,9 @@ import { applySleeveBarkResponse } from './sleeveBark';
  * sky) a lamina keeps, and how far that colour is pulled toward an olive of the same luminance
  * (red and blue taken down, hue ≈ 90°). Frame-03's bough leaves are a deep olive (hue 88°,
  * sat 0.48, mean 0.10 in the roof's shade) where ours read as lime rosettes from 3 m (pods-3m
- * leaf mean 0.386, hue 75°, sat 0.33). The shade fill and the sun transmission are untouched, so
- * the backlit laminae still glow. Measured in the round-41 report.
+ * leaf mean 0.386, hue 75°, sat 0.33). The shade fill is untouched and the sun transmission is
+ * re-weighted by each lamina's orientation (see the shader block below), so the backlit laminae
+ * still glow — the ones the sun is actually behind. Measured in the round-41 report.
  */
 const LANTERN_LEAF_LIT_FACE = 0.5;
 const LANTERN_LEAF_LIT_OLIVE = 0.45;
@@ -713,10 +714,16 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
         reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;
         #if NUM_DIR_LIGHTS > 0
         {
+          // The sun stands at azimuth −128° / 38°: from the plaza (pods-3m looks north-west, INTO
+          // it) every lamina had the same view-based backlight, so the whole limb glowed lime at
+          // once. Weighted by the lamina's own orientation instead ('through': its shadow side
+          // toward the camera, the sun behind its plane — the cupped / twisted laminae differ), so
+          // some leaves glow and the rest hold the bough's olive, as frame-03's bough does; the
+          // transmitted light leans green (the leaf passes green, not the sun's yellow).
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
-          float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
-          // 0.28 → 0.32 (round 41): the base tint is 0.85 of what it was, the glow keeps its level
-          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.32;
+          float through = max(-dot(normal, directLight.direction), 0.0);
+          float transmission = through * 0.6 + backlight * through * 0.5 + backlight * 0.15;
+          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.3 * vec3(0.9, 1.0, 0.6);
         }
         #endif`,
       );

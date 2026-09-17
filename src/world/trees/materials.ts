@@ -91,10 +91,13 @@ export const NEAR_CANOPY_SLOTS = 40;
  * trees' own presets keep the shared ones for the structures and lower the lift / raise the
  * texture share here: the floor still catches the darkest faces (nothing goes to black) but
  * keeps more of the surface's own albedo variation. Measured in the report (shaded-bark region
- * std / p10 at the plaza-column and limb-below poses; per-view SSIM against cap-0).
+ * std / p10 at the plaza-column and limb-below poses; per-view SSIM against cap-0). Half-steps:
+ * the full step (bark 5.5 / 0.3, leaf 4.5 / 0.6, near bole texture 0.5) cost the six fixed
+ * frames −0.004 to −0.009 SSIM against frames whose shaded boles and crowns ARE hazed flat, so
+ * the trees take half of it and the rest stays a dial here.
  */
-export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
-export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
+export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6, texture: 0.2 };
+export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 5, texture: 0.5 };
 /**
  * The near canopy's leaf floor (giant.ts NEAR_CANOPY_IN_M): the laminae the owner looks up at
  * from 3–20 m. Lower again than the trees' — the sun read through the leaves and the shadow of
@@ -647,11 +650,12 @@ export const NEAR_BOLE_FLOOR_TOP = 5;
 export const NEAR_BOLE_FLOOR_FADE: [number, number] = [1.8, 3.2];
 /**
  * Round 41 (task 2): the same level profile (the lift and its fade are the D / B calibration
- * above) with twice the texture share, so the emergent's cords and moss sheets read through the
+ * above) with a higher texture share, so the emergent's cords and moss sheets read through the
  * floor at 4–14 m instead of one flat tone (the owner's plaza-column pose); the floor's mean sits
- * where it did (the bark's mean albedo is the floor's `albedo`).
+ * where it did (the bark's mean albedo is the floor's `albedo`). 0.5 (the full step) put
+ * −0.007 of camera D's strip x 0–0.09 alone; 0.35 is the half-step.
  */
-export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR, texture: 0.5 };
+export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR, texture: 0.35 };
 
 /**
  * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
