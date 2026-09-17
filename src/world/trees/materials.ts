@@ -645,6 +645,13 @@ export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.25, canopy: 1,
  */
 export const NEAR_BOLE_FLOOR_TOP = 5;
 export const NEAR_BOLE_FLOOR_FADE: [number, number] = [1.8, 3.2];
+/**
+ * Round 41 (task 2): the same level profile (the lift and its fade are the D / B calibration
+ * above) with twice the texture share, so the emergent's cords and moss sheets read through the
+ * floor at 4–14 m instead of one flat tone (the owner's plaza-column pose); the floor's mean sits
+ * where it did (the bark's mean albedo is the floor's `albedo`).
+ */
+export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR, texture: 0.5 };
 
 /**
  * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
@@ -862,7 +869,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTreeDepth, wind, giantWind, depthSlots, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
-  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);

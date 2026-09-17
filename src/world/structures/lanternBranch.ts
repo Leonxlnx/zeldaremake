@@ -48,14 +48,15 @@ import { type StructureMaterials, windLeafMaterial } from './materials';
 import { applySleeveBarkResponse } from './sleeveBark';
 
 /**
- * The lantern laminae's lit face (round 41, task 3): the share of the Lambert sun a lamina's
- * sunlit face keeps, and how far that lit colour is pulled toward an olive of the same luminance
- * (blue taken down). Frame-03's bough leaves are a deep olive (hue 82–88°) where ours read as
- * lime rosettes from 3 m (pods-3m leaf mean 0.385, sat 0.34). The shade fill and the sun
- * transmission are untouched, so the backlit laminae still glow. Measured in the round-41 report.
+ * The lantern laminae's lit face (round 41, task 3): the share of the face response (sun +
+ * sky) a lamina keeps, and how far that colour is pulled toward an olive of the same luminance
+ * (red and blue taken down, hue ≈ 90°). Frame-03's bough leaves are a deep olive (hue 88°,
+ * sat 0.48, mean 0.10 in the roof's shade) where ours read as lime rosettes from 3 m (pods-3m
+ * leaf mean 0.386, hue 75°, sat 0.33). The shade fill and the sun transmission are untouched, so
+ * the backlit laminae still glow. Measured in the round-41 report.
  */
-const LANTERN_LEAF_LIT_FACE = 0.42;
-const LANTERN_LEAF_LIT_OLIVE = 0.35;
+const LANTERN_LEAF_LIT_FACE = 0.5;
+const LANTERN_LEAF_LIT_OLIVE = 0.45;
 
 /**
  * Verdant-style leaf laminae (verdant-forest trees.js `addLeaf`; the trees writer carries the
@@ -693,17 +694,21 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
-        // round 41: the sun-side laminae read as lime rosettes from 3 m (pods-3m: leaf mean 0.385,
-        // sat 0.34) against frame-03's heavy bough, whose leaves are a deep olive (hue 82–88°,
-        // deep in the roof's shade). The Lambert sun on the lit FACE is cut to LIT_FACE and part
-        // desaturated toward an olive (the yellow-green's blue taken down, not its luminance
-        // alone); the shade fill and the transmission below are untouched, so the backlit
-        // laminae still glow through.
+        // round 41: the sun-side laminae read as lime rosettes from 3 m (pods-3m: leaf mean 0.386,
+        // hue 75°, sat 0.33) against frame-03's heavy bough, whose leaves are a deep olive (hue
+        // 88°, sat 0.48, deep in the roof's shade). The limb hangs under the lantern tree's crown,
+        // so what lights a lamina's FACE here is mostly the sky hemisphere, not the Lambert sun —
+        // cutting the direct term alone moved the mean 0.003. The whole face response (direct +
+        // indirect) is cut to LIT_FACE and part pulled toward an olive of the same luminance
+        // (LIT_OLIVE: red down, blue down, hue → ≈ 90°); the shade fill and the transmission
+        // below are untouched, so the backlit laminae still glow through.
         {
-          vec3 lit = reflectedLight.directDiffuse * ${LANTERN_LEAF_LIT_FACE.toFixed(2)};
-          float litLum = dot(lit, vec3(0.2126, 0.7152, 0.0722));
-          lit = mix(lit, vec3(litLum) * vec3(1.05, 1.0, 0.55), ${LANTERN_LEAF_LIT_OLIVE.toFixed(2)});
-          reflectedLight.directDiffuse = lit;
+          vec3 lumW = vec3(0.2126, 0.7152, 0.0722);
+          vec3 face = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse) * ${LANTERN_LEAF_LIT_FACE.toFixed(2)};
+          float faceLum = dot(face, lumW);
+          face = mix(face, faceLum * vec3(0.78, 1.116, 0.50), ${LANTERN_LEAF_LIT_OLIVE.toFixed(2)});
+          reflectedLight.directDiffuse = face;
+          reflectedLight.indirectDiffuse = vec3(0.0);
         }
         reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;
         #if NUM_DIR_LIGHTS > 0

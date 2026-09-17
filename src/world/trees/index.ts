@@ -23,7 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_LEAF_FLOOR } from './materials';
+import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_LEAF_FLOOR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
@@ -2632,7 +2632,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           [
             ['giantBark', TREE_BARK_FLOOR],
             ['leaf', TREE_LEAF_FLOOR],
-            ['nearBole', NEAR_BOLE_FLOOR],
+            ['nearBole', TREE_NEAR_BOLE_FLOOR],
+            ['nearBase', NEAR_BASE_FLOOR],
             ['nearCanopyLeaf', NEAR_CANOPY_LEAF_FLOOR],
           ] as [string, ShadeFloor][]
         ).map(([k, f]) => [k, [f.lift, f.texture]]),
