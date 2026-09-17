@@ -158,8 +158,8 @@ function scallopedCap(scale: number, ribs: number, tint: RGB): BufferGeometry {
       const [r0, y0] = capProfile(t);
       // the scallop is the brim's: full at t ≈ 0.25 (the widest ring), gone at the stem
       const brim = smoothstep(0, 0.2, t) * smoothstep(0.75, 0.35, t);
-      const r = r0 * (1 - 0.1 * (1 - bulge) * brim);
-      const y = y0 - 0.014 * (1 - bulge) * brim;
+      const r = r0 * (1 - 0.14 * (1 - bulge) * brim);
+      const y = y0 - 0.02 * (1 - bulge) * brim;
       out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
       out.uv = [podU(phi, ribs), lerp(b0, b1, t)];
       const shade = 1 - 0.18 * (1 - bulge) * brim;
@@ -184,7 +184,9 @@ function sepals(scale: number, ribs: number, rng: Rng, tint: RGB): BufferGeometr
     const phi0 = ((f + 0.5) / ribs) * TAU + (rng() - 0.5) * 0.12;
     const yTop = 0.29;
     const yTip = 0.08 + rng() * 0.04;
-    const width = (0.62 / ribs) * (0.85 + rng() * 0.25);
+    // round 21's fin width at five ribs (0.1 m), narrower on a seven-rib pod: the fins cover ~⅔ of a
+    // segment at the brim and taper, so the veined skin between them shows at 1–3 m
+    const width = (0.5 / ribs) * (0.85 + rng() * 0.25);
     const curl = 0.02 + rng() * 0.02;
     const tile = f % POD_TEX_SEGMENTS;
     const fin = gridSurface(

@@ -1324,8 +1324,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const d = lerp(dBack + 0.04, roomFront - 0.06, q);
         frame.door(w, y, d, out.position);
         out.uv = [(s * doorOutline.length) / 2.2, d / 2.2];
-        // (round 22: darker still — the doorway's cut faces are the near-black rim of the opening)
-        const dark = lerp(0.14, 0.08, q) * (1 + 0.5 * (cord - 0.5) + 0.35 * clamp(knot / (0.06 * k), 0, 1)) * (1 - 0.6 * crack);
+        // (round 22: darker still — the doorway's cut faces are the near-black rim of the opening;
+        // round 43: the same mean, the crests ×1.5 over it and the furrows ×0.6 under it, so the
+        // cords and knots read at 2 m under the recess floor — the rim's level in B holds)
+        const dark = lerp(0.14, 0.08, q) * (0.6 + 0.9 * cord + 0.5 * clamp(knot / (0.06 * k), 0, 1)) * (1 - 0.7 * crack);
         out.color = [dark * RECESS_BAL[0], dark * RECESS_BAL[1], dark * RECESS_BAL[2]];
       },
       { cols: hero ? 112 : 56, rows: hero ? 8 : 4 },
@@ -1695,8 +1697,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           const fibre = woodFibre(noise, t * length, ang, 14, seed);
           // the trodden top polished pale, the grain lines dark, the underside damp and dark
           const s = Math.sin(ang);
-          const polish = worn > 0 ? 0.35 * Math.exp(-(((t - 0.5) / 0.3) ** 2)) : 0;
-          const g = (0.85 + 0.3 * grain) * (0.92 + 0.16 * fibre) * (1 + polish) * (1 - 0.25 * Math.max(0, -s));
+          const polish = worn > 0 ? 0.45 * Math.exp(-(((t - 0.5) / 0.3) ** 2)) : 0;
+          const g = (0.78 + 0.46 * grain) * (0.9 + 0.2 * fibre) * (1 + polish) * (1 - 0.25 * Math.max(0, -s));
           return [beamTint[0] * g, beamTint[1] * g, beamTint[2] * g * (1 - 0.06 * polish)];
         },
         capStart: true,
@@ -4361,13 +4363,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const upN = new Vector3(0, 1, 0);
     const MAT_MOSS: [number, number, number] = [0.105, 0.165, 0.032];
     const MAT_WORN: [number, number, number] = [0.11, 0.115, 0.04];
-    for (let i = 0; i < 520; i++) {
+    for (let i = 0; i < 1100; i++) {
       const w = lerp(doorW0 - 0.3 * k, doorW1 + 0.3 * k, matRng());
       const d = lerp(dBack + 0.06 * k, dBack + 1.05 * k, matRng());
       // the walked line: few tufts, flat and worn; dense toward the slab's edges and the sill
-      const walk = 1 - smoothstep(0.55 * k, 0.2 * k, Math.abs(w - wc - 0.05 * k));
+      const walk = 1 - smoothstep(0.6 * k, 0.15 * k, Math.abs(w - wc - 0.05 * k));
       const edge = smoothstep(0.35 * k, 0.05 * k, Math.abs(d - (dBack + 0.06 * k)));
-      const keep = lerp(0.12, 1, Math.max(walk, 0.5 * edge));
+      // the moss grows in clumps (a noise field over the mat), the stone bare between them, so
+      // the small tufts merge into a patchy film rather than an even scatter of pebbles
+      const patch = smoothstep(-0.3, 0.35, noise.noise(w * 7.5 + 3, d * 7.5 + 11));
+      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch);
       if (matRng() > keep) continue;
       // on the slab (ellipse footprint) or the porch floor's ramp
       const rr = Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d);
@@ -4379,8 +4384,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         y = Math.max(ramp, terrain.height(_bd.x, _bd.z) - yFloor + 0.05);
       } else continue; // the slab's ragged rim: skip it
       const trodden = 1 - walk;
-      const r = (0.02 + matRng() * 0.03) * sk * lerp(1, 0.75, trodden);
-      const sh = 0.8 + 0.4 * matRng();
+      const r = (0.014 + matRng() * 0.024) * sk * lerp(1, 0.7, trodden);
+      const sh = (0.75 + 0.4 * matRng()) * lerp(1, 0.85, trodden);
       const c: [number, number, number] = [lerp(MAT_MOSS[0], MAT_WORN[0], trodden) * sh, lerp(MAT_MOSS[1], MAT_WORN[1], trodden) * sh, lerp(MAT_MOSS[2], MAT_WORN[2], trodden) * sh];
       frame.door(w, y, d, _bd);
       tuft41.push({

@@ -256,6 +256,18 @@ export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 2, tex
  * front, the left flank under the crown) fall with the lift.
  */
 export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 13, texture: 1.0 };
+/**
+ * The hollow log's interior (round 43, structures-27). The tunnel's material is near-black
+ * (0x2a221a × the bark map × vertex tints ≈ 0.01 linear) so that in D its 4 m mouth 46 m out reads
+ * as the reference's dark opening; at player height inside it, that leaves the fissures, drip
+ * stains, moss and litter the interior now carries invisible. A low floor with a flat share: the
+ * flat 40 % (0.4 × 0.08 × 2) is what lets a face of that albedo show at all (RECESS_BARK_FLOOR's
+ * round-12 reasoning), the textured 60 % carries the vertex shading (the walls darken toward the
+ * middle, the moss and the pale checks stay apart). In D the mouth sits on the haze veil at that
+ * distance, so the floor's level is hidden there; half leaf-filtered — sky light into a log, not
+ * canopy light.
+ */
+export const LOG_INTERIOR_FLOOR: ShadeFloor = { lift: 2, texture: 0.6, canopy: 0.5, albedo: 0.08, chroma: 1 };
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -1366,6 +1378,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applySleeveBarkResponse(sleeveBark);
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(logInterior, LOG_INTERIOR_FLOOR, new Color(HOUSE_BARK_TINT));
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
   return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }
