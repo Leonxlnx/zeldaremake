@@ -498,20 +498,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const outM = Math.min(NEAR_ROCK_OUT_M, hero - NEAR_ROCK_HERO_MARGIN / 3);
       if (inM < NEAR_ROCK_MIN_IN_M) nearDropped.push(b.id);
       else {
-        // absolute-scale relief: ~1.8–3 cm of skin and chips on every rock, whatever its radius
+        // absolute-scale relief on every rock, whatever its radius: main furrows ≤ 3 cm deep, the
+        // fine network ≈ 1.2 cm (hairlines in the colour, barely a groove — at the main depth the
+        // dense network corrugated the stair-foot rock's flank into chevrons), skin ≈ 2.5 cm,
+        // chips ≈ 3 cm
         const nearGeo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
           ...rockOpts,
           detail: r > 1.5 ? 44 : 40,
           creaseDeg: 18,
-          crackDepth: 0.045,
+          crackDepth: Math.min(0.045, 0.03 / r),
           fineCracks: 0.6,
+          fineCrackDepth: Math.min(0.015, 0.012 / r),
           micro: Math.min(0.03, 0.025 / r),
           chip: Math.min(0.035, 0.03 / r),
           // bedding ledges: D's deeper, the A / terrace rocks a faint layering the far mesh omits
           strata: b.id === 'shot-d-boulder' ? 0.1 : 0.035,
         });
         const nRng = bRng.fork(`near-${b.id}`);
-        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 48 : r > 0.8 ? 30 : 18, shade: toLocal(shadeDir, yaw) }, mossPalette);
+        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 32 : r > 0.8 ? 20 : 12, shade: toLocal(shadeDir, yaw) }, mossPalette);
         nearGeo.dispose();
         // loose fragments: fist-sized angular spalls (five cleaves, no moss cap) lying at the foot
         // on the un-paved ground, seated on the terrain, folded into the near mesh's local frame

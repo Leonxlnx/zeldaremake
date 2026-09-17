@@ -126,9 +126,15 @@ export interface RockOptions {
   micro?: number;
   /**
    * a second, finer crack network 0..1 (default 0): thinner dark lines at ~2× the density of
-   * `cracks`, cut as furrows by `crackDepth` like the main ones
+   * `cracks`, painted like the main ones but cut only `fineCrackDepth` deep
    */
   fineCracks?: number;
+  /**
+   * furrow depth of the fine network (fraction of the radius, default 0.3 × `crackDepth`): kept
+   * shallow — at the main depth the dense network corrugated the whole face into chevrons; the
+   * hairlines are meant to read as dark lines in the colour, with only a hint of a groove
+   */
+  fineCrackDepth?: number;
   /**
    * chipping of the cleave-plane rims (fraction of the radius, default 0): vertices within
    * ~0.1 r of a facet's edge are notched inward where a high-frequency noise peaks, so the
@@ -186,12 +192,13 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const crackDepth = o.crackDepth ?? 0;
   const micro = o.micro ?? 0;
   const fineCracks = o.fineCracks ?? 0;
+  const fineCrackDepth = o.fineCrackDepth ?? crackDepth * 0.3;
   const chip = o.chip ?? 0;
   // the near relief is an absolute scale (pits ~15 cm, hairlines ~9 cm apart on every rock): its
   // noise frequencies, expressed in the rock-relative domain above, scale with the radius
   const nk = Math.max(1, r / 0.75);
-  /** crack line strength 0..1 at a (final-shape) point; the bedding partings count as cracks */
-  const crackAt = (p: Vector3) => {
+  /** main crack line strength 0..1 at a (final-shape) point; the bedding partings count as cracks */
+  const mainCrackAt = (p: Vector3) => {
     const x = p.x * freq + ox;
     const y = p.y * freq + oy;
     const z = p.z * freq + oz;
@@ -202,15 +209,21 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     const cr = N.ridged(x * 4.2, y * 4.2, z * 4.2, 2) / 0.825;
     let crack = smoothstep(0.8 - 0.15 * crackAmt, 0.95, cr) * crackAmt;
     if (strata > 0) crack = Math.max(crack, 0.85 * bedding(p.x, p.y, p.z, x, y, z).groove * (1 - Math.abs(p.y / (r * squashY)) * 0.5));
-    if (fineCracks > 0) {
-      // the fine network: the same ridged contours at 2.3× the frequency with a narrower band,
-      // so the lines are thinner and twice as dense — hairline partings between the main cracks
-      const f = 9.7 * nk;
-      const fc = N.ridged(x * f + 7.7, y * f - 3.3, z * f + 5.1, 2) / 0.825;
-      crack = Math.max(crack, smoothstep(0.88 - 0.08 * fineCracks, 0.975, fc) * 0.8 * fineCracks);
-    }
     return clamp(crack, 0, 1);
   };
+  /** the fine network 0..1: the same ridged contours at 2.3× the frequency with a narrower band */
+  const fineCrackAt = (p: Vector3) => {
+    if (fineCracks <= 0) return 0;
+    const x = p.x * freq + ox;
+    const y = p.y * freq + oy;
+    const z = p.z * freq + oz;
+    // thinner lines, twice as dense — hairline partings between the main cracks
+    const f = 9.7 * nk;
+    const fc = N.ridged(x * f + 7.7, y * f - 3.3, z * f + 5.1, 2) / 0.825;
+    return smoothstep(0.88 - 0.08 * fineCracks, 0.975, fc) * 0.8 * fineCracks;
+  };
+  /** crack line strength 0..1 for the colour pass: main lines, partings and the fine network */
+  const crackAt = (p: Vector3) => clamp(Math.max(mainCrackAt(p), fineCrackAt(p)), 0, 1);
 
   // 1. displacement (do it per unique direction so shared vertices stay welded)
   const disp = new Map<string, number>();
@@ -255,9 +268,10 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       }
       if (crackDepth > 0) {
         // the crack lines become furrows: the vertex sinks by the groove depth where the colour
-        // pass will paint the line (same noise, evaluated on the displaced position)
+        // pass will paint the line (same noise, evaluated on the displaced position); the fine
+        // network only scratches the surface (`fineCrackDepth`)
         _t.set(_p.x * d, _p.y * d * squashY, _p.z * d);
-        d *= 1 - crackDepth * crackAt(_t);
+        d *= 1 - crackDepth * mainCrackAt(_t) - fineCrackDepth * fineCrackAt(_t);
       }
       disp.set(key, d);
     }
@@ -416,7 +430,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const nrm = new Float32BufferAttribute(smoothN, 3);
   const col = new Float32Array(count * 3);
   const moss = new Float32Array(count);
-  // `aWet` 0..1: the damp band above the ground (the lowest ~0.4 of the rock, the undersides
+  // `aWet` 0..1: the damp band above the ground (the lowest ~0.3 of the rock, the undersides
   // wetter) — read only by the near-LOD material's wet/dark term (material.ts), so the far look
   // is untouched by the attribute
   const wet = new Float32Array(count);
@@ -452,7 +466,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
     moss[i] = mossAt(_p, _n, crack, facet[i]);
-    wet[i] = clamp(1 - smoothstep(0.08, 0.42, h01 + 0.04 * v) + 0.6 * smoothstep(0.15, -0.4, _n.y) * (1 - smoothstep(0.3, 0.7, h01)), 0, 1);
+    wet[i] = clamp(1 - smoothstep(0.06, 0.32, h01 + 0.04 * v) + 0.6 * smoothstep(0.15, -0.4, _n.y) * (1 - smoothstep(0.3, 0.7, h01)), 0, 1);
   }
   base.setAttribute('color', new Float32BufferAttribute(col, 3));
   base.setAttribute('aMoss', new Float32BufferAttribute(moss, 1));

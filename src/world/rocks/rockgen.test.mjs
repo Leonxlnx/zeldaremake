@@ -68,7 +68,7 @@ const farOpts = () => ({
   freq: 0.9,
 });
 /** the near LOD's overrides (index.ts) */
-const nearOpts = () => ({ ...farOpts(), detail: 40, creaseDeg: 18, crackDepth: 0.045, fineCracks: 0.6, micro: 0.03, chip: 0.035, strata: 0.1 });
+const nearOpts = () => ({ ...farOpts(), detail: 40, creaseDeg: 18, crackDepth: 0.045, fineCracks: 0.6, fineCrackDepth: 0.015, micro: 0.03, chip: 0.035, strata: 0.1 });
 
 const arr = (g, name) => Array.from(g.attributes[name].array);
 const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);

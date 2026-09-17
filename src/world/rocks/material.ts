@@ -118,9 +118,10 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
       : '';
     const nearAlbedo = near
       ? /* glsl */ `
-          // lichen plates (dressing.ts, aMoss < 0): their own pale vertex colour, the rock texture
-          // flattened to its luminance under them
-          diffuseColor.rgb *= mix(c * 1.08, vec3(0.8 + 0.4 * l), plate);
+          // lichen plates (dressing.ts, aMoss < 0): their own muted vertex colour, the rock texture
+          // flattened to its luminance under them (≈ 1.5× the stone's value, not the 2.5× that read
+          // as white discs)
+          diffuseColor.rgb *= mix(c * 1.08, vec3(0.62 + 0.45 * l), plate);
           if (nearW > 0.0005) {
             float vl = dot(vColor.rgb, vec3(0.299, 0.587, 0.114));
             // grime: the cracks and partings (dark vertex colour) hold a damp dark brown
@@ -128,7 +129,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.1, 0.075) * (0.7 + 0.8 * l), 0.7 * grime);
             // the wet band above the ground: darker and a shade cooler (frame-05's dark undersides)
             float wet = clamp(vWetR, 0.0, 1.0) * nearW * (1.0 - plate);
-            diffuseColor.rgb *= mix(vec3(1.0), vec3(0.5, 0.54, 0.58), wet);
+            diffuseColor.rgb *= mix(vec3(1.0), vec3(0.62, 0.65, 0.69), wet);
           }`
       : /* glsl */ `
           diffuseColor.rgb *= c * 1.08;`;

@@ -232,10 +232,12 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
     placedC.push({ p: s.p.clone(), R });
     stats.cushions++;
   }
-  // lichen: clustered plates 2–5 cm across on the bare faces, a satellite or two beside each seed
+  // lichen: clustered plates 2–4.5 cm across on the bare faces, a satellite or two beside each
+  // seed. A muted grey-green, not far above the stone's own value — at (0.66, 0.69, 0.56) the
+  // plates rendered as white polka dots on the shaded faces
   const lRng = rng.fork('lichen');
-  const pale = new Color(0.66, 0.69, 0.56);
-  const rim = new Color(0.4, 0.42, 0.34);
+  const pale = new Color(0.5, 0.54, 0.43);
+  const rim = new Color(0.32, 0.34, 0.28);
   const placedL: { p: Vector3; R: number }[] = [];
   const shuffled = lichenSites.map((s, i) => ({ s, k: lRng(), i })).sort((p, q) => p.k - q.k || p.i - q.i);
   const tryPlate = (site: Site, R: number): boolean => {
@@ -249,7 +251,7 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
   };
   for (const { s } of shuffled) {
     if (placedL.length >= o.lichen) break;
-    const R = lRng.range(0.02, 0.05) * sizeK;
+    const R = lRng.range(0.02, 0.045) * sizeK;
     if (!tryPlate(s, R)) continue;
     // satellites: the nearest other sites within 3 R
     const sats = lRng.int(1, 3);
