@@ -78,6 +78,15 @@ async function grabHooks(page) {
   }
 }
 
+/** true when the PNG's central world box has (almost) no variance — a frame that was not drawn */
+async function isUniform(png) {
+  const sharp = (await import('sharp')).default;
+  const meta = await sharp(png).metadata();
+  const box = { left: Math.floor(meta.width * 0.15), top: Math.floor(meta.height * 0.15), width: Math.floor(meta.width * 0.7), height: Math.floor(meta.height * 0.7) };
+  const st = await sharp(png).extract(box).greyscale().stats();
+  return st.channels[0].stdev < 2;
+}
+
 const lerp = (a, b, t) => a + (b - a) * t;
 const lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const ease = (t) => t * t * (3 - 2 * t);
@@ -105,7 +114,14 @@ async function main() {
         await page.evaluate(([p, tg, fov]) => { window.__ZR__.setPose(p, tg, fov); }, [p, tg, fov]);
         // settle in small batches: one SwiftShader frame can take seconds, and a single evaluate() must stay under the protocol timeout
         for (let left = i === 0 ? settle : 1; left > 0; left -= 4) await page.evaluate(async ([n, dt]) => { await window.__ZR__.render(n, dt); }, [Math.min(4, left), 1 / fps]);
-        const buf = await canvas.screenshot({ type: 'png' });
+        // not-drawn guard (capture.mjs has the same): SwiftShader occasionally hands back a uniform frame
+        // (a transient context loss); re-render up to three times before accepting it
+        let buf = await canvas.screenshot({ type: 'png' });
+        for (let retry = 0; retry < 3 && (await isUniform(buf)); retry++) {
+          console.error(`broll: uniform frame at ${shot.name} — re-rendering (${retry + 1}/3)`);
+          await page.evaluate(async ([dt]) => { await window.__ZR__.render(2, dt); }, [1 / fps]);
+          buf = await canvas.screenshot({ type: 'png' });
+        }
         fs.writeFileSync(path.join(out, `f${String(frame).padStart(4, '0')}.png`), buf);
         frame++;
         console.error(`${shot.name} ${i + 1}/${n} — frame ${frame}/${total} — ${((Date.now() - t0) / frame / 1000).toFixed(1)} s/frame`);
