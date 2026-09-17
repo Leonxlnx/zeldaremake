@@ -2038,6 +2038,11 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   laminae face retone), structures-26 6 commits (log arch, trunks, distant huts, wood grain with
   unit tests). No Astra messages since 20:52.
 
+### 03:15 UTC — tick 124: heartbeat; round 41 late-stage
+- trees-25 4 commits (near-canopy hero pass on the built meshes; a lobe's stem dressing had drawn
+  into fixed frames and was pulled back), capturing; structures-26 8 commits (log crown as cushion
+  colonies on a cap-moss carpet with shaded floor). No Astra messages since 20:52.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2076,4 +2081,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T02:12:00Z
+2026-09-17T03:15:00Z
