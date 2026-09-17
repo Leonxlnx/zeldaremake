@@ -649,7 +649,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     return out;
   };
   /** cushion colonies (as on Saria's cap): the tufts gather where the field is high */
-  const colony = (p: Vector3) => smoothstep(0.42, 0.53, 0.5 + 0.5 * n3.noise(p.x * 1.6 + 1.7, p.y * 1.6, p.z * 1.6 + 4.1));
+  const colony = (p: Vector3) => smoothstep(0.45, 0.55, 0.5 + 0.5 * n3.noise(p.x * 1.6 + 1.7, p.y * 1.6, p.z * 1.6 + 4.1));
   /**
    * the crown moss on the cap-moss material (albedo map ≈ 0.45 mean under the vertex tint, no
    * shade floor): an olive that sits on the sheet's veiled level in D and reads as damp moss
@@ -668,7 +668,9 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const west = tuftRng() < 0.78;
     const s = west ? lerp(-L / 2 - 1.5, 1.5, tuftRng()) : lerp(1.5, L / 2 - 0.8, tuftRng());
     const psi = Math.PI / 2 + (tuftRng() - 0.5) * 2.4;
-    const r = 0.03 + 0.06 * Math.pow(tuftRng(), 1.4);
+    // 7–21 cm cushions (mean ≈ 12 cm): the crown is seen from the path 9 m below and from the
+    // elevated views, where a 6 cm lump is a dot and the clumps have to be read as clumps
+    const r = 0.035 + 0.07 * Math.pow(tuftRng(), 1.4);
     const aspect = 0.75 + tuftRng() * 0.5;
     const yaw = tuftRng() * TAU;
     const hK = 0.55 + tuftRng() * 0.4;
@@ -854,7 +856,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     surfaceNormal(psi, s, _tn);
     _tn.y += 0.6;
     _tn.normalize();
-    foliage41.addTuft(_tp.clone(), _tn.clone(), 0.5 + plantRng() * 0.3, 1, 0.06, [0.7, 0.8, 0.6]);
+    foliage41.addTuft(_tp.clone(), _tn.clone(), 0.32 + plantRng() * 0.14, 1, 0.06, [0.7, 0.8, 0.6]);
   }
   // moss beards: thin strands with tiny leaflets from the crown's edge on both flanks, densest
   // over the path; and six more vines under the belly by the crossing

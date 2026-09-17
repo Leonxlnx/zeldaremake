@@ -33,7 +33,7 @@ export interface SignpostBuild {
  *  - the ends (|x| → W/2) are CHECKED: the end face is pushed in along the grain lines where a
  *    check runs, up to 3 cm, and the notch is shaded.
  */
-function grainPlank(geo: BufferGeometry, W: number, H: number, T: number, rng: Rng, noise: Noise2D, base: [number, number, number], relief = 0.0025): void {
+function grainPlank(geo: BufferGeometry, W: number, H: number, T: number, rng: Rng, noise: Noise2D, base: [number, number, number], relief = 0.0035): void {
   const pos = geo.attributes.position as Float32BufferAttribute;
   const colors = new Float32Array(pos.count * 3);
   const seed = rng() * 50;
@@ -74,7 +74,7 @@ function grainPlank(geo: BufferGeometry, W: number, H: number, T: number, rng: R
     x -= Math.sign(x) * Math.max(0, endRag);
     pos.setXYZ(i, x, y, z);
     // tint: grain lines darker, ridges paler and a touch greyer (silvering); notches dark
-    const line = lerp(0.78, 1.08, g) * lerp(0.95, 1.05, fib);
+    const line = lerp(0.66, 1.12, g) * lerp(0.95, 1.05, fib);
     const silver = 0.06 * g;
     const dark = 1 - 0.5 * clamp(notch / 0.03, 0, 1);
     colors[i * 3] = base[0] * line * dark * (1 - silver * 0.4);

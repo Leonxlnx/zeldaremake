@@ -4122,7 +4122,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       return out;
     };
     const colony41 = (p: Vector3) => smoothstep(0.42, 0.53, 0.5 + 0.5 * n3.noise(p.x * 2.0 + 3.3, p.y * 2.0, p.z * 2.0 - 1.7));
-    const MOSS41: [number, number, number] = [0.15, 0.22, 0.045];
+    // darker than the cap's tufts: the trunk's bark takes a shade floor in its shader that the
+    // cap-moss material does not, so a cap-bright tuft on the shaded flank read as a lit pebble
+    const MOSS41: [number, number, number] = [0.095, 0.15, 0.03];
     const LICHEN41: [number, number, number] = [0.5, 0.56, 0.5];
     /** how mossy a bark vertex tint is: the green share over the red (bark ≈ 1.03, the sheets 2.5–4) */
     const mossiness = (c: [number, number, number]) => smoothstep(1.3, 2.2, c[1] / Math.max(1e-4, c[0]));
@@ -4130,7 +4132,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // player-height band only: the tufts run to 3.4 m and thin out above 2.4 m (the cap's
     // shade and the sheets carry the trunk above eye level; a 4 cm tuft at 5 m is a texel)
     const yTop = Math.min(wallTop - 0.15, 3.4);
-    const attempts = def.id === 'saria' ? 7000 : 1800;
+    const attempts = def.id === 'saria' ? 4600 : 1400;
     for (let i = 0; i < attempts; i++) {
       const a = trunk41() * TAU;
       const y = lerp(0.03, yTop, Math.pow(trunk41(), 0.8));
@@ -4156,6 +4158,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // the damp base band takes a thin scatter on bare bark too
       w = Math.max(w, 0.3 * smoothstep(0.5, 0.05, y));
       w *= smoothstep(3.4, 2.4, y);
+      // into the furrows between the cords (moss holds where water runs), thin on the crests
+      w *= lerp(1, 0.3, smoothstep(-0.1, 0.4, cords(a, y) * 2.2));
       if (keep > w * lerp(0.1, 1, colony41(_sv.position))) continue;
       shellNormal(u, v, _nn);
       const sh = shadeOf(c);
@@ -4237,7 +4241,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     onParts(rootParts, 0.35, 0.45, 'rootTufts', 0);
     onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
   }
-  const tufts41 = buildMossTufts(tuft41, n3, { segments: [7, 5], topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+  // rounder than the roof's (a 3 m camera sees these): 9 / 6 segments, 3 / 2 rings; the crown gain
+  // is held down so the tufts do not glow against the floor-shaded bark
+  const tufts41 = buildMossTufts(tuft41, n3, { segments: [9, 6], rings: [3, 2], topGain: 1.3, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
   const tuft41Mesh = new Mesh(tufts41.geometry, mats.capMoss);
   tuft41Mesh.name = 'trunk-moss-tufts';
   tuft41Mesh.castShadow = false;
