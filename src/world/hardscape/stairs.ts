@@ -127,6 +127,10 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // its place and the flight stays the same set of stones
   const nosing = new Noise2D(`${seed}/stairs-nosing-${def.id}`);
   const lichen = new Noise2D(`${seed}/stairs-lichen-${def.id}`);
+  // round 42 (the player-height pass; frame 03 / the third tread looking down): nosing spalls,
+  // riser fissures and the per-riser corner moss are noise fields and hash forks keyed on the
+  // step, so every draw of the flight below keeps its place
+  const spall = new Noise2D(`${seed}/stairs-spall-${def.id}`);
   const all = new MeshBuilder();
   const w = def.width;
   const hw = w / 2;
@@ -146,8 +150,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // where feet go: 1 on the centre third of the run, 0 at the flanks (wear dish, bare corners)
   const feet = (ax: number) => 1 - smoothstep(0.3 * hw, 0.85 * hw, Math.abs(ax));
 
-  const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2]) => {
+  const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2], rough = 0) => {
     const mb = new MeshBuilder();
+    mb.currentRough = rough;
     buildSlab(mb, outline, opts);
     tmpM.makeRotationY(yaw);
     if (tiltX || tiltZ) {
@@ -244,6 +249,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         const k = 1 + 0.03 * m;
         return [k * (1 - 0.012 * pale), k * (1 + 0.008 * pale), k * (1 - 0.02 * pale)];
       };
+      // round 42: the nosing's wear — spalls on the front edge (geometry.ts `rimDrop`): where a
+      // 5 cycles/m noise peaks along the lip the wall top and the roll drop 1–2.5 cm, a chip out
+      // of the rolled nose every 0.4–0.8 m, heavier where feet go (the centre third); nothing on
+      // the back or the flanks. The frame's lips are broken lines, not one continuous highlight.
+      const noseSpall = (x: number, z: number) => {
+        if (z > -depth / 2 + 0.06) return 0;
+        const nz = spall.noise((x + cxl) * 5.0 + i * 7.3, i * 2.1 + 0.7) * 0.5 + 0.5;
+        return (0.01 + 0.015 * feet(x + cxl)) * smoothstep(0.62, 0.82, nz);
+      };
+      // per-tread micro-roughness (aRough): the treads catch the low sun a little differently
+      const treadRough = (hash2(i, Math.round(cxl * 100) + 91, 7) - 0.5) * 0.08;
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
         bevel,
@@ -251,6 +267,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         topRing,
         softBevel: true,
         notchedTop: true,
+        rimDrop: noseSpall,
         // the overhang's underside is visible from below the flight (camera F looks up at the
         // treads above eye level), so the slab is closed
         bottom: true,
@@ -302,7 +319,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // run (the nosing line sags with it at the middle, half as much)
         topNoise: (x, z) => 0.004 * wear.noise((x + cxl) * 9, (z + czl) * 9) - 0.012 * feet(x + cxl),
         rings: 3,
-      });
+      }, treadRough);
       treadSlabs++;
       const [wx, wz] = stairToWorld(f, cxl, uFront + 0.01);
       treadNose.push([wx, def.base[1] + topY, wz]);
@@ -340,11 +357,28 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // a touch cooler than neutral: frame 8 s reads the risers at sat 0.17 / B/R 0.71 face-on
       // where ours rendered 0.20 / 0.67 (the post chain passes ~1/4 of an albedo shift)
       const riserColor: [number, number, number] = [rc * 0.99, rc, rc * 1.1];
+      // round 42: a fissure up two riser faces in five (hash fork on the step, so the stream is
+      // untouched) — the stone shader's dirt-filled crack (`aCrack`) on the side walls: it starts
+      // at the foot at a random point along the face, leans up to ± 20° and peters out between
+      // half and nine tenths of the way up (the shader fades the last quarter of its length)
+      const frng = rng.fork(`fissure/${i}/${r}`);
+      const fissured = frng.chance(0.4);
+      const fissA = frng.range(-0.4, 0.4) * (len - 0.015);
+      const fissLean = frng.range(-0.35, 0.35);
+      const fissTop = frng.range(0.5, 0.9) * rh;
+      // the tread/riser corner (sheet 04, frame 03): moss sits thicker at the very foot of the
+      // riser where it meets the tread below — a hash-forked weight per riser, 0.6–1.4
+      const cornerMoss = 0.6 + 0.8 * frng();
       placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.012,
         color: riserColor,
         sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
+        // height over the fissure's half-length (the shader fades it out toward its top). Affine
+        // over every wall, so it is exact on the front face; the back face is under the tread
+        // and the ends are inside the flight, so nowhere else shows it
+        sideCrackFn: fissured ? (x, y) => [x - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
         // soil stain at the foot fading to none under the nosing: the face is not one flat band
         // but darker and browner where it meets the tread below, lighter under the overhang
         sideStain: footStain,
@@ -354,7 +388,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // film is thinner (a thin film renders as dark grime, which made the risers a black
         // band) and the patches are fuller and flank-heavy, so where there is moss it is green
         // and the centre third stays bare stone
-        mossEdge: 0.4,
+        mossEdge: 0.4 * cornerMoss,
         mossInner: 0.15,
         mossFn: (x, z) => 0.3 + 0.8 * mossAt(x + ac, z + uc),
         mossAdd: (x) => {

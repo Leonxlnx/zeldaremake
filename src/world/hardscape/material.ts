@@ -60,6 +60,27 @@ const INDIRECT_WARM_PLAZA = indirectTint(0.985);
  */
 const STONE_ALBEDO_SCALE = 0.72;
 
+/**
+ * Round 42 — the stone at player height (1.45 m eye, 1–4 m, frame 03 of the owner's recording:
+ * slabs with pitted, grainy tops and chipped edges). textures-2k measured a 1K texel at 0.7–1.6 mm
+ * with the 1.6–1.7 m UV tiles, so at 2 m a texel is a pixel and the surface reads as fine sand,
+ * not stone; its call was a ≈ 3 m tile near the camera and a stronger normal. The maps are sampled
+ * twice — the near tile (`NEAR_TILE_K` × the mesh UVs: 1.61 → 2.9 m on the flagstones, 1.7 → 3.1 m
+ * on the stairs) and the mesh tile — and blended by the fragment's camera distance, 0 within
+ * `NEAR_FADE[0]` m and the mesh tile alone beyond `NEAR_FADE[1]`, so the fixed cameras' mid and
+ * far ground keep round 41's look exactly. The normal reads `NEAR_NORMAL_K` × its far scale near
+ * the camera (0.55 → 0.94: pitting is a shading feature, not a texture stripe) with a detail
+ * normal from a 1.3 m tile at `DETAIL_NORMAL_K` for 1–3 cm pits, and the albedo takes the same
+ * detail tile's luminance at `DETAIL_ALBEDO_K` so pits read dark where the normal dips.
+ */
+const NEAR_TILE_K = 0.55;
+const NEAR_FADE: [number, number] = [4.0, 7.0];
+const NEAR_NORMAL_K = 1.7;
+const DETAIL_NORMAL_K = 0.32;
+const DETAIL_ALBEDO_K = 0.16;
+/** the near-camera stone treatment, for the hardscape audit */
+export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_NORMAL_K, detailNormalK: DETAIL_NORMAL_K, detailAlbedoK: DETAIL_ALBEDO_K };
+
 export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
   const [color, normal, rough, ao] = await Promise.all([
     textures.load(STONE_SET, 'color', { anisotropy }),
@@ -118,27 +139,42 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec3 aMottle; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec3 aMottle; attribute float aRough; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
       )
       .replace(
         '#include <worldpos_vertex>',
-        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\nvRough = aRough;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarmPath; uniform vec3 uIndirectWarmPlaza; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarmPath; uniform vec3 uIndirectWarmPlaza; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough;
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(stoneHash(i), stoneHash(i + vec2(1.0, 0.0)), f.x), mix(stoneHash(i + vec2(0.0, 1.0)), stoneHash(i + vec2(1.0, 1.0)), f.x), f.y);
-        }`,
+        }
+        // round 42: the near-camera tile blend (see NEAR_TILE_K / NEAR_FADE in material.ts)
+        float stoneFarW() { return smoothstep(${NEAR_FADE[0].toFixed(2)}, ${NEAR_FADE[1].toFixed(2)}, length(vViewPosition)); }
+        vec2 stoneNearUv(vec2 uv) { return uv * ${NEAR_TILE_K.toFixed(3)} + vec2(0.13, 0.71); }
+        vec2 stoneDetailUv(vec2 uv) { return vec2(uv.y, -uv.x) * ${(NEAR_TILE_K * 2.2).toFixed(3)} + vec2(0.71, 0.23); }`,
       )
       .replace(
         '#include <map_fragment>',
         /* glsl */ `
-        #include <map_fragment>
+        #ifdef USE_MAP
+        {
+          // round 42: the mesh tile beyond NEAR_FADE, the ≈ 3 m tile within it (both the same
+          // map), plus the detail tile's luminance for the pits the detail normal shades
+          float farW = stoneFarW();
+          vec4 sampledDiffuseColor = mix(texture2D(map, stoneNearUv(vMapUv)), texture2D(map, vMapUv), farW);
+          diffuseColor *= sampledDiffuseColor;
+          vec3 pit = texture2D(map, stoneDetailUv(vMapUv)).rgb;
+          float lp = dot(pit, vec3(0.299, 0.587, 0.114));
+          diffuseColor.rgb *= mix(1.0, clamp(lp / 0.32, 0.6, 1.35), ${DETAIL_ALBEDO_K.toFixed(3)} * (1.0 - farW));
+        }
+        #endif
         {
           // second, finer sample (rotated 90°, 3.1× tighter) so the 0.55 m close-up shows real grain
           vec3 fine = texture2D(map, vec2(-vMapUv.y, vMapUv.x) * 3.1 + vec2(0.37, 0.61)).rgb;
@@ -220,9 +256,13 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           // half-lengths; (9, 9) = none): a 7-13 mm dirt-filled line wandering +-1.2 cm, fading out
           // over the last quarter of its length, with a hair-paler chipped lip beside it
           if (vCrack.x < 8.0) {
-            float wob = (stoneVNoise(vWPosS.xz * 11.0 + vec2(3.0, 8.0)) - 0.5) * 0.024;
+            // (round 42: the wobble's noise coordinate takes the height in too, so a riser's
+            // vertical fissure — aCrack on the side walls, geometry.ts sideCrackFn — wanders
+            // up the face instead of running dead straight; on a slab top y is a constant)
+            vec2 crackP = vWPosS.xz + vWPosS.y * vec2(0.9, 0.7);
+            float wob = (stoneVNoise(crackP * 11.0 + vec2(3.0, 8.0)) - 0.5) * 0.024;
             float d = abs(vCrack.x + wob);
-            float hw = 0.0035 + 0.003 * stoneVNoise(vWPosS.xz * 31.0);
+            float hw = 0.0035 + 0.003 * stoneVNoise(crackP * 31.0);
             float ends = 1.0 - smoothstep(0.75, 1.0, abs(vCrack.y));
             float line = (1.0 - smoothstep(hw * 0.6, hw * 1.6, d)) * ends;
             float lip = smoothstep(hw * 1.2, hw * 2.2, d) * (1.0 - smoothstep(hw * 2.5, hw * 5.0, d)) * ends;
@@ -267,11 +307,40 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
       .replace(
         '#include <roughnessmap_fragment>',
         /* glsl */ `
-        #include <roughnessmap_fragment>
+        float roughnessFactor = roughness;
+        #ifdef USE_ROUGHNESSMAP
+        {
+          // the roughness map through the same near / far tile blend as the colour
+          float farW = stoneFarW();
+          vec4 texelRoughness = mix(texture2D(roughnessMap, stoneNearUv(vRoughnessMapUv)), texture2D(roughnessMap, vRoughnessMapUv), farW);
+          roughnessFactor *= texelRoughness.g;
+        }
+        #endif
+        // round 42: per-stone micro-roughness (aRough, ± a few hundredths) — neighbouring slabs
+        // catch the sun differently at player height, as frame 03's do
+        roughnessFactor = clamp(roughnessFactor + vRough, 0.5, 1.0);
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        /* glsl */ `
+        #ifdef USE_NORMALMAP_TANGENTSPACE
+        {
+          // round 42: near / far tile blend of the normal, NEAR_NORMAL_K × the far scale within
+          // NEAR_FADE (0.55 → 0.94 at the player's feet), plus the detail tile's normal for the
+          // 1–3 cm pits; beyond NEAR_FADE this is three's own normal_fragment_maps
+          float farW = stoneFarW();
+          vec3 mapN = mix(texture2D(normalMap, stoneNearUv(vNormalMapUv)).xyz, texture2D(normalMap, vNormalMapUv).xyz, farW) * 2.0 - 1.0;
+          vec3 detN = texture2D(normalMap, stoneDetailUv(vNormalMapUv)).xyz * 2.0 - 1.0;
+          mapN.xy = mapN.xy * normalScale * mix(${NEAR_NORMAL_K.toFixed(2)}, 1.0, farW) + detN.xy * (${DETAIL_NORMAL_K.toFixed(2)} * (1.0 - farW));
+          normal = normalize(tbn * mapN);
+        }
+        #else
+        #include <normal_fragment_maps>
+        #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v23-wear-crack-mottle-warm-zoned-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v24-near-tile-rough-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

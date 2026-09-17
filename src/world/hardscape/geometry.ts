@@ -238,6 +238,13 @@ export class MeshBuilder {
    * (0, 0, 0) = none
    */
   mottle: number[] = [];
+  /**
+   * per-vertex roughness delta (`aRough`, round 42): a per-stone micro-roughness swing the stone
+   * shader adds to the roughness map, so neighbouring slabs catch the sun a little differently
+   * at player height; `currentRough` is written on every triangle pushed until it is changed
+   */
+  rough: number[] = [];
+  currentRough = 0;
   private groupStart = 0;
 
   get vertexCount() {
@@ -289,6 +296,7 @@ export class MeshBuilder {
     else this.crack.push(9, 9, 9, 9, 9, 9);
     if (mottle) this.mottle.push(mottle[0], mottle[1], mottle[2], mottle[3], mottle[4], mottle[5], mottle[6], mottle[7], mottle[8]);
     else this.mottle.push(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    this.rough.push(this.currentRough, this.currentRough, this.currentRough);
   }
 
   /** average normals of coincident vertices inside the current group (smooth shading) */
@@ -344,6 +352,7 @@ export class MeshBuilder {
     cat(this.wear, other.wear);
     cat(this.crack, other.crack);
     cat(this.mottle, other.mottle);
+    cat(this.rough, other.rough);
   }
 
   build(): BufferGeometry {
@@ -357,6 +366,7 @@ export class MeshBuilder {
     g.setAttribute('aWear', new Float32BufferAttribute(this.wear, 1));
     g.setAttribute('aCrack', new Float32BufferAttribute(this.crack, 2));
     g.setAttribute('aMottle', new Float32BufferAttribute(this.mottle, 3));
+    g.setAttribute('aRough', new Float32BufferAttribute(this.rough, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
@@ -439,10 +449,29 @@ export interface SlabOptions {
    */
   sideNormalUp?: number;
   /**
+   * luminance of the side walls' lower triangle (the foot half) relative to the upper — the
+   * default 0.75 is the buried stone's grime band; 1 for a kerb face that stands clean over paving
+   */
+  sideGrime?: number;
+  /**
    * crack line on the top face (`aCrack`): local xz → [signed distance across the crack (m),
    * position along it in half-lengths]; must be affine in x, z. Omit for an uncracked slab.
    */
   crackFn?: (x: number, z: number) => [number, number];
+  /**
+   * crack line on the side walls (`aCrack`, round 42 — a riser's fissure): local (x, y, z) of a
+   * wall vertex → [signed distance across the crack (m), position along it in half-lengths];
+   * affine in x, y, z so the interpolated value is exact over the wall quad. Omit for none.
+   */
+  sideCrackFn?: (x: number, y: number, z: number) => [number, number];
+  /**
+   * edge spall (round 42): a vertical drop (m, ≥ 0) at an outline vertex, taken off the wall top
+   * and the whole rolled shoulder at that vertex, so the slab's edge locally crumbles down into
+   * a chip a hand wide (the outline's vertex spacing) and the drop deep — the broken, chipped
+   * slab edges of frame 03 at player height. The top face's outer ring slopes into it. Clamped
+   * to 0.9 × the wall height.
+   */
+  rimDrop?: (x: number, z: number) => number;
   /**
    * within-stone mottle weights on the top face and shoulder ring (`aMottle`, round 34): local xz
    * and the ring position (`edge`, 1 at the rim, 0 at the centre) → [moss-cushion weight, grey-lichen
@@ -564,6 +593,19 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const c = fanCentre ?? centroid(top);
   const topUv = (p: P2) => _ua.set(p.x * uvS + uvO[0], p.z * uvS + uvO[1]).clone();
   const topY = (p: P2, ringScale: number) => t - dip * (1 - ringScale * ringScale) + topNoise(p.x, p.z) * (0.4 + 0.6 * (1 - ringScale));
+  // edge spalls: the drop per outline vertex (wall top and shoulder roll come down together)
+  const wallH = t - bevel;
+  const drop = o.rimDrop ? outer.map((p) => Math.min(0.9 * wallH, Math.max(0, o.rimDrop!(p.x, p.z)))) : null;
+  const dropAt = (i: number) => (drop ? drop[i] : 0);
+  const sideCrackFn = o.sideCrackFn;
+  /** the three vertices' crack coordinates for one wall triangle */
+  const sideCrackOf = (a: Vector3, b: Vector3, c: Vector3): readonly number[] => {
+    if (!sideCrackFn) return NO_CRACK;
+    const ca = sideCrackFn(a.x, a.y, a.z);
+    const cb = sideCrackFn(b.x, b.y, b.z);
+    const cc = sideCrackFn(c.x, c.y, c.z);
+    return [ca[0], ca[1], cb[0], cb[1], cc[0], cc[1]];
+  };
 
   // --- side walls (flat) ---
   const sideUp = o.sideNormalUp ?? 0;
@@ -574,8 +616,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     const u0 = (i * 0.37) % 1;
     _a.set(p.x, 0, p.z);
     _b.set(q.x, 0, q.z);
-    _c.set(q.x, t - bevel, q.z);
-    _d.set(p.x, t - bevel, p.z);
+    _c.set(q.x, wallH - dropAt((i + 1) % n), q.z);
+    _d.set(p.x, wallH - dropAt(i), p.z);
     // the wall's outward normal ((b − a) × (c − a) of the quad's first triangle), tilted up
     let sideN: Vector3 | undefined;
     if (sideUp > 0 && len > 1e-6) {
@@ -592,23 +634,25 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     const mx = (p.x + q.x) / 2;
     const mz = (p.z + q.z) / 2;
     // soil stain: a, b at the foot, c, d at the shoulder ring
-    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], sideN, [sideStain, sideStain, 0]);
-    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0]);
+    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, o.sideGrime ?? 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], sideN, [sideStain, sideStain, 0], 0, sideCrackOf(_a, _b, _c));
+    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0], 0, sideCrackOf(_a, _c, _d));
   }
 
   // --- bevel ring (smooth): one chamfer band, or `bevelRings` bands on a quarter-round ---
   mb.beginGroup();
   const bands = Math.max(1, Math.round(o.bevelRings ?? 1));
-  // ring j of the roll: horizontal blend outer → top ring by 1 − cos, height by sin (convex)
+  // ring j of the roll: horizontal blend outer → top ring by 1 − cos, height by sin (convex);
+  // a spalled vertex brings the wall top and the shoulder down by its drop (the top ring by 0.85
+  // of it, so the roll still rolls into the chip)
   const rollRing = (j: number): { pts: P2[]; ys: number[]; m: number } => {
-    if (j === 0) return { pts: outer, ys: outer.map(() => t - bevel), m: 1 };
-    if (j === bands) return { pts: top, ys: top.map((p) => topY(p, 1)), m: 0.7 };
+    if (j === 0) return { pts: outer, ys: outer.map((_, i) => wallH - dropAt(i)), m: 1 };
+    if (j === bands) return { pts: top, ys: top.map((p, i) => topY(p, 1) - 0.85 * dropAt(i)), m: 0.7 };
     const th = (j / bands) * (Math.PI / 2);
     const s = 1 - Math.cos(th);
     const k = Math.sin(th);
     return {
       pts: outer.map((p, i) => ({ x: p.x + (top[i].x - p.x) * s, z: p.z + (top[i].z - p.z) * s })),
-      ys: outer.map((_, i) => t - bevel + (topY(top[i], 1) - (t - bevel)) * k),
+      ys: outer.map((_, i) => wallH - dropAt(i) + (topY(top[i], 1) - 0.85 * dropAt(i) - (wallH - dropAt(i))) * k),
       m: 1 - 0.3 * (j / bands),
     };
   };
@@ -646,12 +690,11 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     // boundary instead, preserving shoulder contact, UVs, noise and material attributes.
     const triangles = ShapeUtils.triangulateShape(top.map((p) => new Vector2(p.x, p.z)), []);
     for (const tri of triangles) {
-      const points = tri.map((i) => top[i]);
-      if (polygonArea(points) > 0) points.reverse();
-      const [p, q, r] = points;
-      _a.set(p.x, topY(p, 1), p.z);
-      _b.set(q.x, topY(q, 1), q.z);
-      _c.set(r.x, topY(r, 1), r.z);
+      const idx = polygonArea(tri.map((i) => top[i])) > 0 ? [...tri].reverse() : tri;
+      const [p, q, r] = idx.map((i) => top[i]);
+      _a.set(p.x, topY(p, 1) - 0.85 * dropAt(idx[0]), p.z);
+      _b.set(q.x, topY(q, 1) - 0.85 * dropAt(idx[1]), q.z);
+      _c.set(r.x, topY(r, 1) - 0.85 * dropAt(idx[2]), r.z);
       const mossAt = (v: P2) => mossEdge * 0.7 * mossFn(v.x, v.z) + mossAdd(v.x, v.z, 1);
       const tc = colorFn ? shade(col, 'top', (p.x + q.x + r.x) / 3, (p.z + q.z + r.z) / 3, 1, 1) : col;
       mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(r), tc, [mossAt(p), mossAt(q), mossAt(r)], undefined, undefined, wear, crackOf(p, q, r), mottleOf(p, q, r, 1, 1, 1));
@@ -670,13 +713,15 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       const sB = scales[r + 1];
       const mA = mossEdge * (1 - r / rings) * 0.7 + mossInner * (r / rings);
       const mB = mossEdge * (1 - (r + 1) / rings) * 0.7 + mossInner * ((r + 1) / rings);
+      // the outermost ring is the shoulder's top ring: it carries the spall drops
+      const dA = r === 0 ? 0.85 : 0;
       for (let i = 0; i < n; i++) {
         const p = A[i];
         const q = A[(i + 1) % n];
         const pi = B[i];
         const qi = B[(i + 1) % n];
-        _a.set(p.x, topY(p, sA), p.z);
-        _b.set(q.x, topY(q, sA), q.z);
+        _a.set(p.x, topY(p, sA) - dA * dropAt(i), p.z);
+        _b.set(q.x, topY(q, sA) - dA * dropAt((i + 1) % n), q.z);
         _c.set(qi.x, topY(qi, sB), qi.z);
         _d.set(pi.x, topY(pi, sB), pi.z);
         const m1 = mA * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sA);
