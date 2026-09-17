@@ -71,12 +71,16 @@ const _p = new Vector3();
 const _pn = new Vector3();
 const _col = new Color();
 
-/** an orthonormal frame (t, u) around the unit normal n */
+/**
+ * an orthonormal frame (t, u) around the unit normal n, laid out like three's (x, z) about +y
+ * (t × u = −n), so a ring written as t·cos a + u·sin a with a increasing runs clockwise seen from
+ * +n and the triangle patterns below (the joint-sprout cushion's) come out front-facing
+ */
 function frame(n: Vector3, t: Vector3, u: Vector3) {
   if (Math.abs(n.y) < 0.9) t.set(0, 1, 0);
   else t.set(1, 0, 0);
   t.cross(n).normalize();
-  u.crossVectors(n, t).normalize();
+  u.crossVectors(t, n).normalize();
 }
 
 /**
@@ -199,7 +203,7 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
     const m = (mossA.getX(i) + mossA.getX(i + 1) + mossA.getX(i + 2)) / 3;
     const lum = (col.getX(i) + col.getY(i) + col.getZ(i) + col.getX(i + 1) + col.getY(i + 1) + col.getZ(i + 1)) / 6;
     const crack = lum < 0.36;
-    if (m > 0.5 || m < 0) continue; // the rock's own cap moss is already a cushion; skip dressing
+    if (m < 0) continue;
     const facing = _n.x * shade[0] + _n.z * shade[1];
     if ((_n.y > 0.3 && m > 0.12) || (crack && _n.y > 0.05) || (_n.y > 0.55 && facing > 0.2)) cushionSites.push({ p: _p.clone(), n: _n.clone(), moss: m, crack });
     if (_n.y > -0.25 && _n.y < 0.72 && m < 0.12 && !crack && _p.y > o.minY + 0.15 * r) lichenSites.push({ p: _p.clone(), n: _n.clone(), moss: m, crack });
@@ -207,20 +211,24 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
   const w = new Writer();
   const stats: DressingStats = { cushions: 0, lichen: 0, vertices: 0 };
   // cushions: crevices first (a pad in every dark parting reads as the moss that fills cracks),
-  // then the shaded upper faces; a pad's radius 3–9 cm scaled a little with the rock
+  // then the shaded shoulders, the thick cap last (its own swell is already a pad); a pad's
+  // radius 3–9 cm scaled a little with the rock
   const cRng = rng.fork('cushions');
-  const order = cushionSites.map((s, i) => ({ s, k: (s.crack ? 1 : 0) + 0.5 * s.moss + 0.35 * cRng() + (s.n.x * shade[0] + s.n.z * shade[1] > 0.2 ? 0.3 : 0), i })).sort((p, q) => q.k - p.k || p.i - q.i);
+  const order = cushionSites.map((s, i) => ({ s, k: (s.crack ? 1 : 0) + 0.5 * Math.min(s.moss, 0.5) - 0.6 * Math.max(0, s.moss - 0.5) + 0.35 * cRng() + (s.n.x * shade[0] + s.n.z * shade[1] > 0.2 ? 0.3 : 0), i })).sort((p, q) => q.k - p.k || p.i - q.i);
   const placedC: { p: Vector3; R: number }[] = [];
   const sizeK = Math.sqrt(Math.max(0.5, r));
+  const cCentre = new Vector3();
+  const cUp = new Vector3();
+  const worldUp = new Vector3(0, 1, 0);
   for (const { s } of order) {
     if (placedC.length >= o.cushions) break;
     const R = cRng.range(0.03, 0.09) * sizeK;
     if (placedC.some((q) => q.p.distanceTo(s.p) < 0.9 * (q.R + R) + 0.02)) continue;
     // in a crevice the pad sits a little deeper (the moss fills the parting)
-    _p.copy(s.p).addScaledVector(s.n, s.crack ? -0.35 * R : -0.12 * R);
+    cCentre.copy(s.p).addScaledVector(s.n, s.crack ? -0.35 * R : -0.12 * R);
     // the up axis leans from the surface normal toward world up so the pads read as growing up
-    _n.copy(s.n).lerp(new Vector3(0, 1, 0), 0.35).normalize();
-    cushion(w, cRng, _p, _n, R, palette.mossDeep, palette.mossBright);
+    cUp.copy(s.n).lerp(worldUp, 0.35).normalize();
+    cushion(w, cRng, cCentre, cUp, R, palette.mossDeep, palette.mossBright);
     placedC.push({ p: s.p.clone(), R });
     stats.cushions++;
   }

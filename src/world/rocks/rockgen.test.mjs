@@ -168,6 +168,29 @@ test('dressing: cushions flagged aMoss > 1, lichen plates aMoss < 0, counts with
   assert.equal(pads, a.stats.cushions * 50 * 3);
   assert.equal(plates, a.stats.lichen * 24 * 3);
   for (const k of ['position', 'normal', 'color', 'aMoss', 'aWet']) assert.ok(a.geometry.attributes[k], `merged geometry lacks ${k}`);
+  // front-facing: every dressing triangle's winding normal agrees with its stored vertex normals
+  const P = a.geometry.attributes.position;
+  const N = a.geometry.attributes.normal;
+  const va = new THREE.Vector3();
+  const vb = new THREE.Vector3();
+  const vc = new THREE.Vector3();
+  const vn = new THREE.Vector3();
+  let flipped = 0;
+  let checked = 0;
+  for (let i = base; i < P.count; i += 3) {
+    va.fromBufferAttribute(P, i);
+    vb.fromBufferAttribute(P, i + 1);
+    vc.fromBufferAttribute(P, i + 2);
+    vb.sub(va);
+    vc.sub(va);
+    vb.cross(vc);
+    if (vb.lengthSq() < 1e-14) continue;
+    vn.fromBufferAttribute(N, i).add(new THREE.Vector3().fromBufferAttribute(N, i + 1)).add(new THREE.Vector3().fromBufferAttribute(N, i + 2));
+    checked++;
+    if (vb.dot(vn) < 0) flipped++;
+  }
+  assert.ok(checked > 0);
+  assert.equal(flipped, 0, `${flipped} of ${checked} dressing triangles wound back-to-front`);
 });
 
 test('mergeRockParts folds fragments under their matrices with transformed normals', () => {
