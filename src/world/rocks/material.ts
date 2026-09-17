@@ -12,7 +12,8 @@ export const ROCK_SET = 'rock_boulder_cracked';
 /**
  * Near detail of the hero-boulder material (round 42), all of it weighted by
  * `1 − smoothstep(NEAR_FADE_M[0], NEAR_FADE_M[1], distance to the camera)` per fragment, so a
- * hero camera 6.7 m or more from a rock renders exactly the far look:
+ * hero camera 6 m or more from a rock's surface renders exactly the far look (camera D stands
+ * 7.3 m from the D boulder's centre, ≈ 6.5 m from its nearest lump):
  *  - a second triplanar sample at NEAR_TILE_M-metre tiles blended in — the 2K
  *    rock_boulder_cracked maps (textures-2k, round 38) then show the source's fractures at their
  *    real scale (10–30 cm plates and partings) instead of the 1.4 m tiling's hairline grain,
@@ -25,7 +26,7 @@ export const ROCK_SET = 'rock_boulder_cracked';
  *    plates (`aMoss` < 0) painted in their own pale vertex colour (dressing.ts)
  */
 export const NEAR_TILE_M = 2.6;
-export const NEAR_FADE_M: [number, number] = [3.0, 6.5];
+export const NEAR_FADE_M: [number, number] = [2.5, 6.0];
 export const NEAR_NORMAL_BOOST = 0.8;
 
 /**
