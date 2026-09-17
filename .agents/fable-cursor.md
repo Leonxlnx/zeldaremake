@@ -2105,6 +2105,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - rocks-2's note for Astra: shaded rock faces at 1 m read flat because only ambient reaches them —
   a fill/hemisphere question, her lane.
 
+### 11:40 UTC — tick 132: round 42 sealed — take-0112 `cf3130e`; evidence at art/environment/round42-review
+- Merged trees-26 as one squashed commit `cf3130e` (its branch had accidentally committed dist-0/ +
+  the node_modules symlink; squashing keeps them out of history): near-canopy/near-base parts
+  built on demand in 3 ms chunks into LRU pools (64 + 12 MiB) — resident 173 → 63.5 MiB and 22 →
+  12 MiB, six views + seven poses byte-identical, 0 sync builds on the walk, update p95 8.1 → 6.4.
+- **take-0112**: A 0.2288, B 0.2046, C 0.2348, D 0.2860, E 0.2148, F 0.2603 (mean 0.2382; A's
+  −0.0036 is the near-tile plaza slabs — the accepted trade; D +0.0017 from the apron). Draws 508,
+  8.21 M tris on A. Monitor `e215c57`. Evidence `7a965d8`.
+- Round 43 next: terrain at player height (bare ground between plants: soil/litter/roots near
+  tile), structures-27 (lantern pods, cords, hollow-log interior, door/threshold up close),
+  vegetation-22 (flower/fern hero detail, litter leaves with veins).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2143,4 +2155,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T10:12:00Z
+2026-09-17T11:40:00Z
