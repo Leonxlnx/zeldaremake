@@ -1171,7 +1171,15 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
           const out2 = radialDir(psiC, s);
           out2.y = 0;
           out2.normalize();
-          const r = reach * (0.55 + 0.45 * (1 - u)) * (1 + 0.22 * footNoise.noise(u * 5 + seed * 3, 7));
+          let r = reach * (0.55 + 0.45 * (1 - u)) * (1 + 0.22 * footNoise.noise(u * 5 + seed * 3, 7));
+          // never over the paving: the skirt stops 0.1 m short of the path mask along this ray
+          for (let k = 1; k <= 6; k++) {
+            const rk = (k / 6) * r;
+            if (terrain.mask(inner.x + out2.x * rk, inner.z + out2.z * rk).path > 0.01) {
+              r = Math.max(0.15, rk - 0.1);
+              break;
+            }
+          }
           const gx = inner.x + out2.x * r * v;
           const gz = inner.z + out2.z * r * v;
           const ground = terrain.height(gx, gz);
