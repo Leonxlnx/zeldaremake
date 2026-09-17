@@ -519,6 +519,55 @@ export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 2.0 };
  */
 export const LIFT_ZONES_EXTRA = [LIFT_ZONE_C_FOOT] as const;
 
+/** the moss grain's albedo swing (± about half of it at the extremes of the two summed octaves) */
+export const MOSS_GRAIN = 0.3;
+const MOSS_GRAIN_VERTEX_PARS = /* glsl */ `
+uniform vec2 uMossGrainFade;
+varying vec3 vMossWorld;
+varying float vMossNear;
+`;
+// after the (shared) projection: the world position for the noise, the eye distance for the fade
+const MOSS_GRAIN_VERTEX = /* glsl */ `
+{
+  #ifdef USE_INSTANCING
+    vec4 mossWorld = modelMatrix * instanceMatrix * vec4(transformed, 1.0);
+  #else
+    vec4 mossWorld = modelMatrix * vec4(transformed, 1.0);
+  #endif
+  vMossWorld = mossWorld.xyz;
+  vMossNear = 1.0 - smoothstep(uMossGrainFade.x, uMossGrainFade.y, distance(cameraPosition, mossWorld.xyz));
+}
+`;
+const MOSS_GRAIN_FRAGMENT_PARS = /* glsl */ `
+varying vec3 vMossWorld;
+varying float vMossNear;
+float mossHash(vec3 p) {
+  p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+float mossNoise(vec3 x) {
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(mossHash(i), mossHash(i + vec3(1.0, 0.0, 0.0)), f.x), mix(mossHash(i + vec3(0.0, 1.0, 0.0)), mossHash(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+    mix(mix(mossHash(i + vec3(0.0, 0.0, 1.0)), mossHash(i + vec3(1.0, 0.0, 1.0)), f.x), mix(mossHash(i + vec3(0.0, 1.0, 1.0)), mossHash(i + vec3(1.0, 1.0, 1.0)), f.x), f.y),
+    f.z);
+}
+`;
+// the shoots' mass: fine cells over coarser patches, the lit speckles a touch warmer (sun through
+// the tips), the whole faded out with the eye distance so the far cushions keep their flat tone
+const MOSS_GRAIN_FRAGMENT = /* glsl */ `
+if (vMossNear > 0.0) {
+  float mossG1 = mossNoise(vMossWorld * 180.0) - 0.5;
+  float mossG2 = mossNoise(vMossWorld * 60.0 + 7.0) - 0.5;
+  float mossGrain = (0.7 * mossG1 + 0.5 * mossG2) * vMossNear;
+  diffuseColor.rgb *= 1.0 + ${MOSS_GRAIN.toFixed(2)} * mossGrain;
+  diffuseColor.rgb *= vec3(1.0 + 0.08 * mossGrain, 1.0 + 0.04 * mossGrain, 1.0);
+}
+`;
+
 const LIFT_VERTEX_PARS = /* glsl */ `
 uniform vec4 uLiftBox;
 uniform vec4 uLiftBoxes2[${LIFT_ZONES_EXTRA.length}];
@@ -606,6 +655,13 @@ export interface VegMaterialOptions {
    * on the `litter` kind `true` compiles the dry-leaf block (dark veins, brown → ochre; default off).
    */
   leafDetail?: boolean | 'petal';
+  /**
+   * near-camera surface grain on the `moss` kind (round 43): two octaves of world-space value noise
+   * (≈ 5 and 17 mm cells) on the albedo, full inside `grain[0]` m of the eye and gone by `grain[1]`,
+   * so the cushions' lobes read as a mass of shoots at arm's length and the fixed cameras' far
+   * cushions are untouched (default off)
+   */
+  grain?: [number, number];
   singleSided?: boolean;
   name?: string;
   /** required for kind `card` */
@@ -682,6 +738,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     kind === 'plant' || kind === 'bush' ? (opts.leafDetail === 'petal' ? 'petal' : opts.leafDetail !== false ? 'leaf' : null) : kind === 'litter' && opts.leafDetail === true ? 'litter' : null;
   const leafDetail = leafMode !== null;
   if (leafDetail) uniforms.uLeafDetail = { value: 1 };
+  const grain = kind === 'moss' && opts.grain ? opts.grain : null;
+  if (grain) uniforms.uMossGrainFade = { value: new Vector2(grain[0], grain[1]) };
   if (grassLike) {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
@@ -730,21 +788,22 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     }
     // zone lift (and the leaf detail's uv, colour pass only) after the (shared) projection block,
     // so the shadow passes keep an identical block
-    const afterProjection = leafDetail ? `${LIFT_VERTEX}\n${LEAF_DETAIL_VERTEX}` : LIFT_VERTEX;
-    vs = `${LIFT_VERTEX_PARS}\n${leafDetail ? LEAF_DETAIL_VERTEX_PARS : ''}${vs}`;
+    const afterProjection = `${LIFT_VERTEX}${leafDetail ? `\n${LEAF_DETAIL_VERTEX}` : ''}${grain ? `\n${MOSS_GRAIN_VERTEX}` : ''}`;
+    vs = `${LIFT_VERTEX_PARS}\n${leafDetail ? LEAF_DETAIL_VERTEX_PARS : ''}${grain ? MOSS_GRAIN_VERTEX_PARS : ''}${vs}`;
     vs = vs.includes('#include <project_vertex>')
       ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${afterProjection}`)
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${afterProjection}`);
     const lights = (grassLike ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '')).replace('//VEG_TRANSMISSION//', card ? ' * vegAtlasT' : leafDetail ? ' * (1.0 + vegLeafTrans)' : '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${leafDetail ? LEAF_DETAIL_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${leafDetail ? LEAF_DETAIL_FRAGMENT_PARS : ''}${grain ? MOSS_GRAIN_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
     if (kind === 'grass') fs = fs.replace('#include <normal_fragment_begin>', GRASS_NORMAL_FRAGMENT_BEGIN);
     if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT).replace('#include <normal_fragment_begin>', CARD_NORMAL_FRAGMENT_BEGIN);
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
     if (leafMode) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${leafMode === 'petal' ? PETAL_DETAIL_FRAGMENT : leafMode === 'litter' ? LITTER_DETAIL_FRAGMENT : LEAF_DETAIL_FRAGMENT}`);
+    if (grain) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${MOSS_GRAIN_FRAGMENT}`);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v18${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v19${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}${grain ? '-grain' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

@@ -244,6 +244,24 @@ for (const kind of ['grass', 'moss', 'litter']) {
     owned.push(stray);
     assert.equal(prepare(stray, 'standard').uniforms.uLeafDetail, undefined);
   }
+  // round 43 — the moss grain (kind moss, grain [near, far]): two octaves of world-space value noise on the albedo
+  // after three's own projection, faded by the eye distance so the far cushions keep their flat tone; moss only
+  {
+    const { MOSS_GRAIN } = loadTs(path.join(here, 'materials.ts'));
+    assert.ok(MOSS_GRAIN >= 0.12 && MOSS_GRAIN <= 0.35, 'a visible but modest swing');
+    const flat = createVegMaterial(ctx, 'moss');
+    const grainy = createVegMaterial(ctx, 'moss', { grain: [2.1, 3] });
+    const litterGrain = createVegMaterial(ctx, 'litter', { grain: [2.1, 3] });
+    owned.push(flat, grainy, litterGrain);
+    const gs = prepare(grainy, 'standard');
+    assert.deepEqual([gs.uniforms.uMossGrainFade.value.x, gs.uniforms.uMossGrainFade.value.y], [2.1, 3], 'the fade ring is the caller\'s');
+    assert.match(gs.vertexShader, /#include <project_vertex>[\s\S]*vMossNear = 1\.0 - smoothstep\(uMossGrainFade\.x, uMossGrainFade\.y, distance\(cameraPosition, mossWorld\.xyz\)\);/, 'the fade is the eye distance, after the shared projection');
+    assert.match(gs.fragmentShader, /#include <color_fragment>\s*if \(vMossNear > 0\.0\) \{\s*float mossG1 = mossNoise\(vMossWorld \* 180\.0\) - 0\.5;\s*float mossG2 = mossNoise\(vMossWorld \* 60\.0 \+ 7\.0\) - 0\.5;/, 'two octaves on the colour pass');
+    assert.ok(gs.fragmentShader.includes(`diffuseColor.rgb *= 1.0 + ${MOSS_GRAIN.toFixed(2)} * mossGrain;`), 'the swing is the declared constant');
+    assert.notEqual(grainy.customProgramCacheKey(), flat.customProgramCacheKey(), 'the grain is its own program');
+    for (const other of [prepare(flat, 'standard'), prepare(litterGrain, 'standard')]) assert.doesNotMatch(other.fragmentShader, /mossNoise/, 'flat moss and litter take no grain');
+    assert.equal(prepare(litterGrain, 'standard').uniforms.uMossGrainFade, undefined);
+  }
 }
 {
   // round 40 (Astra's "repeated fans"): a clump card decodes its dryness in 1/16 steps and a mirror flag from the

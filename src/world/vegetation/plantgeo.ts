@@ -1188,10 +1188,10 @@ export function cloverGeometry(seed: string, pal: PlantPalette, detail: Detail):
 // ---------------------------------------------------------------- moss tufts
 /** the moss cushion's ultra tint (round 43): the base ring's gain (dark damp rim) and the crown's (lit top) over the mid tone, with the sun-through-the-tips warmth on the crown */
 export const MOSS_RIM_GAIN = 0.55;
-export const MOSS_TOP_GAIN = 1.28;
+export const MOSS_TOP_GAIN = 1.4;
 export const MOSS_TOP_TINT: RGB = [1.0, 1.04, 0.86];
 /** sub-cushions a lobed ultra cushion carries beside its crown lobe (min, max inclusive), and the body outline's noise amplitude (fraction of the radius) */
-export const MOSS_ULTRA_LOBES: readonly [number, number] = [7, 11];
+export const MOSS_ULTRA_LOBES: readonly [number, number] = [13, 18];
 export const MOSS_ULTRA_RUFFLE = 0.2;
 
 export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = 'high'): BufferGeometry {
@@ -1220,7 +1220,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     // t: the vertex's height fraction over the whole cushion (0 rim … 1 crown), lit: its lobe's own
     // crest fraction; the gain runs from the dark damp rim to the lit crown, the lobes' crests catch
     // light on top of that, their hollows sink toward the rim tone (mid is the high dome's mean)
-    const up = Math.pow(t, 0.8) * (0.72 + 0.28 * lit);
+    const up = Math.pow(t, 0.8) * (0.55 + 0.45 * lit);
     const gain = (MOSS_RIM_GAIN + (MOSS_TOP_GAIN - MOSS_RIM_GAIN) * up) * (1 + 0.1 * lump);
     const c = blend(blend(deep, bright, Math.min(1, up + 0.2 * lump)), mid, 0.3);
     return [c[0] * gain * (1 + (MOSS_TOP_TINT[0] - 1) * up), c[1] * gain * (1 + (MOSS_TOP_TINT[1] - 1) * up), c[2] * gain * (1 + (MOSS_TOP_TINT[2] - 1) * up)];
@@ -1231,7 +1231,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
    * ring; the outline ruffles by value noise at `freq`, the base ring sinks `sink` under the seat
    * (hides the seam on the body); `tOf(y)` gives a vertex's whole-cushion height fraction
    */
-  const cushion = (c: Vector3, n: Vector3, radius: number, h: number, segments: number, rings: number, ruffle: number, freq: number, sink: number, seedOff: number) => {
+  const cushion = (c: Vector3, n: Vector3, radius: number, h: number, segments: number, rings: number, ruffle: number, freq: number, sink: number, seedOff: number, toneMul = 1) => {
     const up = n.clone().normalize();
     const ref = Math.abs(up.y) > 0.92 ? V(1, 0, 0) : V(0, 1, 0);
     const a = new Vector3().crossVectors(ref, up).normalize();
@@ -1245,17 +1245,18 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
         const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
         const cx = Math.cos(ang);
         const sz = Math.sin(ang);
-        const nz = valueNoise3(cx * freq + seedOff, t * freq * 0.8 + off, sz * freq - seedOff);
+        // the outline's lobes (freq) and a finer surface grain a third as strong at three times the frequency
+        const nz = valueNoise3(cx * freq + seedOff, t * freq * 0.8 + off, sz * freq - seedOff) + 0.35 * valueNoise3(cx * freq * 3 - seedOff, t * freq * 2.4 + off * 0.3, sz * freq * 3 + seedOff);
         const rr = radius * pr * (1 + ruffle * nz);
         const yy = r === 0 ? -sink : h * py * (1 + 0.12 * ruffle * nz) - sink * (1 - t);
         const p = c.clone().addScaledVector(a, cx * rr).addScaledVector(b, sz * rr).addScaledVector(up, yy);
         const gt = clamp01(p.y / height);
-        level.push(m.vertex(p, NOT_LAMINA + k / segments, gt, colorAt(gt, t, nz)));
+        level.push(m.vertex(p, NOT_LAMINA + k / segments, gt, tone(colorAt(gt, t, nz), toneMul)));
       }
       levels.push(level);
     }
     const crownP = c.clone().addScaledVector(up, h);
-    const crown = m.vertex(crownP, NOT_LAMINA + 0.5, clamp01(crownP.y / height), colorAt(clamp01(crownP.y / height), 1, 0.4));
+    const crown = m.vertex(crownP, NOT_LAMINA + 0.5, clamp01(crownP.y / height), tone(colorAt(clamp01(crownP.y / height), 1, 0.4), toneMul));
     for (let r = 0; r < rings; r++) {
       for (let k = 0; k < segments; k++) {
         const nk = (k + 1) % segments;
@@ -1287,13 +1288,15 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
   const crownR = 0.42 + 0.1 * fine();
   cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, 9, 3, 0.16, 3.2, 0.05, 11);
   for (let i = 0; i < lobes; i++) {
-    // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder
+    // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder;
+    // 4–8 cm across at the placed scales (the structures' roof tufts' 4–12 cm), rounder than the body
     const ang = i * 2.399963 + fine() * 0.5;
-    const u = 0.12 + 0.6 * ((i + 0.5) / lobes) + (fine() - 0.5) * 0.12;
+    const u = 0.1 + 0.68 * ((i + 0.5) / lobes) + (fine() - 0.5) * 0.14;
     const { p, n } = bodyPoint(u, ang);
-    const rl = 0.2 + 0.18 * fine();
-    const hl = rl * (0.6 + 0.5 * fine());
-    cushion(p, n, rl, hl, 9, 3, 0.18, 4.5, rl * 0.12, 20 + i * 7);
+    const rl = 0.13 + 0.13 * fine();
+    const hl = rl * (0.7 + 0.45 * fine());
+    // ± 10 % tone a lobe (the structures' tufts' toneSpread): no two lobes the same green
+    cushion(p, n, rl, hl, 8, 3, 0.22, 6, rl * 0.15, 20 + i * 7, 0.9 + 0.2 * fine());
   }
   // seat the base ring on y = 0 and hold the high dome's envelope: its height exactly (the lobes
   // that rise past it are pulled down with the whole), its footprint or less

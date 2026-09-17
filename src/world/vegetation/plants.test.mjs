@@ -383,7 +383,11 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
     for(let v=0;v<2;v++){const [u,h]=pair('moss',(s,p,d)=>mossGeometry(s,p,d),v);assert.ok(u.index.count/3>=500,`moss ${v}: ${u.index.count/3} triangles`);
       const L=g=>{const c=g.attributes.color.array;let s=0;for(let i=0;i<c.length;i+=3)s+=0.2126*c[i]+0.7152*c[i+1]+0.0722*c[i+2];return s/(c.length/3);};
       assert.ok(Math.abs(L(u)-L(h))<=0.12*L(h),`moss ${v}: mean luminance ${L(u).toFixed(3)} vs high ${L(h).toFixed(3)}`);
-      assert.ok(u.boundingBox.min.y>=-1e-6,`moss ${v}: seats on y = 0`);}}
+      assert.ok(u.boundingBox.min.y>=-1e-6,`moss ${v}: seats on y = 0`);}
+    // the moss material carries the shoots' grain inside the ultra ring (materials.ts MOSS_GRAIN, gone by MOSS_ULTRA_M)
+    const m=a.plants.materials.find(m=>m.name==='veg-moss');const sh={vertexShader:'#include <begin_vertex>\n#include <project_vertex>\n#include <worldpos_vertex>',fragmentShader:'#include <color_fragment>\n#include <lights_fragment_end>\n#include <roughnessmap_fragment>',uniforms:{}};m.onBeforeCompile(sh);
+    assert.ok(sh.uniforms.uMossGrainFade&&Math.abs(sh.uniforms.uMossGrainFade.value.y-MOSS_ULTRA_M)<1e-9&&sh.uniforms.uMossGrainFade.value.x<MOSS_ULTRA_M,'the grain fades out by the ultra ring');
+    assert.ok(sh.fragmentShader.includes('mossNoise(vMossWorld * 180.0)'),'veg-moss compiles the grain');}
   {const g=mossGeometry(`${seed}/moss/0`,pal,'ultra'),p=g.attributes.position.array,c=g.attributes.color.array;const base=[],lum=[];
     for(let i=0;i<p.length/3;i++){const y=p[i*3+1];const l=0.2126*c[i*3]+0.7152*c[i*3+1]+0.0722*c[i*3+2];if(y<1e-6)base.push(Math.hypot(p[i*3],p[i*3+2]));lum.push([y,l]);}
     assert.ok(Math.max(...base)/Math.min(...base)>=1.15,`lumpy base outline: ${Math.min(...base).toFixed(3)}…${Math.max(...base).toFixed(3)}`);

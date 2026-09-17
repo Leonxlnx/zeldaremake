@@ -265,7 +265,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 0, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
   // round 39: the cushions stop at 24 m (≤ 0.12 m high — 3 px there; 97 K triangles in one draw from A)
   // round 43: the lumpy, lit-top / dark-rim cushion inside MOSS_ULTRA_M (plantgeo.ts mossGeometry 'ultra')
-  const moss = mk('moss', [0, 1].map((v) => [mossGeometry(`${seed}/moss/${v}`, pal, 'ultra'), mossGeometry(`${seed}/moss/${v}`, pal)]), 'moss', [MOSS_ULTRA_M], 0, { roughness: 0.95 }, 24, 1);
+  // and the shoots' grain on the albedo inside the ring (materials.ts MOSS_GRAIN, gone by MOSS_ULTRA_M)
+  const moss = mk('moss', [0, 1].map((v) => [mossGeometry(`${seed}/moss/${v}`, pal, 'ultra'), mossGeometry(`${seed}/moss/${v}`, pal)]), 'moss', [MOSS_ULTRA_M], 0, { roughness: 0.95, grain: [MOSS_ULTRA_M * 0.7, MOSS_ULTRA_M] }, 24, 1);
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 
   const tint = new Color();
