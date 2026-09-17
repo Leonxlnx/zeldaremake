@@ -172,16 +172,14 @@ export const LAYOUT = {
     // flight's south bank (x ≥ 3.5 there; a disc needs < 0.28 m of ground span)
     [3.45, 0, -4.2],
     [3.0, 0, -5.2],
-    // the paved apron in front of the first riser (0.18 m up from the path — a low kerb, so the
-    // apron is the flight's wide, low first tread: frame 56 s' pale flat stone at y 0.72–0.80
-    // under the lit nosings), then the flight's foot, head and landing end (layout stairs
-    // 'house-west'; no stones over the apron / flight / landing: `skip`). Round 42: these four
-    // heights follow the flight's base (0.27 → 0.18 m, hardscape-29's measurement) — the strip
-    // ahead of the apron eases 0 → 0.13 → 0.18 instead of humping to 0.22 before a 0.18 shelf.
-    [3.05, 0.13, -8.27],
-    [3.8, 0.18, -8.0],
-    [5.68, 1.53, -7.32],
-    [6.48, 1.47, -7.03],
+    // the paved apron in front of the first riser (0.27 m up from the path — a kerb the height of
+    // one riser, so the apron is the flight's wide first tread: frame 56 s' pale flat stone at
+    // y 0.72–0.80 under the lit nosings), then the flight's foot, head and landing end (layout
+    // stairs 'house-west'; no stones over the apron / flight / landing: `skip`)
+    [3.05, 0.22, -8.27],
+    [3.8, 0.27, -8.0],
+    [5.68, 1.62, -7.32],
+    [6.48, 1.56, -7.03],
     // across the lawn to the door, the ground easing 0.5 m down to the terrace
     [8.3, 1.3, -7.6],
     [9.6, 1.05, -9.3],
@@ -258,13 +256,7 @@ export const LAYOUT = {
     // the short north verge (heightfield HOUSE_WEST_BANK.northVerge). The paved apron laps the
     // first riser (frame 56 s: the pale slab under the flight); the south flank above that is
     // the grassy rise B / E look at.
-    // Round 42 (hardscape-29's measurement, orchestrator-approved): base y 0.27 → 0.18. The
-    // shelf in front of the flight stood a full riser above the path, and its kerb face landed
-    // where frame 56 s has flat pale paving (D x 0.72–0.95, y 0.72–0.85 — a LOW first tread, its
-    // lip barely over the path); at 0.18 the apron slabs (hardscape/stairs.ts) are that low
-    // first tread and the five risers reach a 1.53 m landing (nosings 0.45 / 0.72 / 0.99 / 1.26 /
-    // 1.53 m). `pathToHouse`'s foot / head / landing heights follow it above.
-    { id: 'house-west', base: [3.8, 0.18, -8.0], dir: [0.9397, 0.342], steps: 5, rise: 0.27, tread: 0.4, width: 2.4 },
+    { id: 'house-west', base: [3.8, 0.27, -8.0], dir: [0.9397, 0.342], steps: 5, rise: 0.27, tread: 0.4, width: 2.4 },
   ] as StairDef[],
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
