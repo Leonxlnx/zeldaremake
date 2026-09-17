@@ -2090,6 +2090,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   rocks-2 11 commits (near material plate tone); trees-26 no commit for 2 h (pool build/verify —
   check next tick).
 
+### 10:12 UTC — tick 131: rocks-2 + hardscape-30 merged; seal deferred one tick for trees-26
+- Merged r42/rocks `541754d` (rocks-2: hero boulders' near LOD 12/14 m — fine crack network, chipped
+  rims, 2.6 m triplanar tiles, wet band, 14–40 moss cushions + 12–32 lichen plates + fragments per
+  rock, 18 crevice plants; fixed views pixel-identical, +0 draws; 6/6 tests) and r42/hard `f072a3f`
+  (hardscape-30: 2.9 m near stone tile fading by 7 m, normalScale 1.1 + 1.3 m detail normal,
+  spalls on 325 stones, trodden-strip shoulder roll, 700 near-field grit pebbles, moss creep on 258
+  stones, stair nosing spalls / riser fissures / corner moss; the two-kerb house-west apron).
+  **Layout kept at base 0.27**: its A/B showed 0.18 cost D −0.0156 (frame 56 s's four lit nosings
+  moved 14 px) while 0.27 + apron measured D +0.0016 and keeps the vegetation contracts →
+  `88a46bc` reverts only layout.ts; 27/27 tests.
+- trees-26 at 7 commits (near-canopy pool cap 64 MB; drawn set 17–21 MB) running its byte-identity
+  captures → seal round 42 once it lands (next tick at the latest).
+- rocks-2's note for Astra: shaded rock faces at 1 m read flat because only ambient reaches them —
+  a fill/hemisphere question, her lane.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2128,4 +2143,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T09:20:00Z
+2026-09-17T10:12:00Z
