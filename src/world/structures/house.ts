@@ -4130,7 +4130,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // player-height band only: the tufts run to 3.4 m and thin out above 2.4 m (the cap's
     // shade and the sheets carry the trunk above eye level; a 4 cm tuft at 5 m is a texel)
     const yTop = Math.min(wallTop - 0.15, 3.4);
-    const attempts = def.id === 'saria' ? 9000 : 1800;
+    const attempts = def.id === 'saria' ? 7000 : 1800;
     for (let i = 0; i < attempts; i++) {
       const a = trunk41() * TAU;
       const y = lerp(0.03, yTop, Math.pow(trunk41(), 0.8));

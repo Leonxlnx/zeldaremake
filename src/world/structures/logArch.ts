@@ -13,7 +13,7 @@
  * root flares run from the sunk ends out over the ground among fern beds. New detail on new rng
  * forks only — the stubs', vegetation's, sheets' and lanterns' streams keep their draws.
  */
-import { CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, Mesh, PlaneGeometry, PointLight, Vector3 } from 'three';
+import { CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, LOD, Mesh, PlaneGeometry, PointLight, Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
@@ -42,6 +42,8 @@ export interface LogArchBuild {
     trefoils: number;
     beards: number;
     rootTufts: number;
+    /** the tufts + skirt LOD: its centre and the camera distance beyond which they are dropped (m) */
+    tuftLod: { centre: [number, number, number]; dropBeyondM: number };
   };
 }
 
@@ -219,11 +221,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   };
 
   const _n = new Vector3();
-  // round 41: 224 × 160 → 288 × 220 (7.4 cm round, 7.8 cm along on the west half): the rows are
+  // round 41: 224 × 160 → 272 × 208 (7.9 cm round, 8.3 cm along on the west half): the rows are
   // warped so 60 % of them cover the west 45 % of the length — the broken end and the path
   // crossing the player walks under — and the east body, 10–20 m from the path, keeps ≈ 14 cm
-  const cols = 288;
-  const rows = 220;
+  const cols = 272;
+  const rows = 208;
   const rowWarp = (f: number) => (f < 0.6 ? (f / 0.6) * 0.45 : 0.45 + ((f - 0.6) / 0.4) * 0.55);
   const outer = gridSurface(
     (u, f, out) => {
@@ -724,14 +726,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
   }
   const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [7, 5], topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
-  const tuftMesh = new Mesh(crownTufts.geometry, mats.capMoss);
-  tuftMesh.name = 'log-moss-tufts';
-  tuftMesh.castShadow = false;
-  tuftMesh.receiveShadow = true;
-  // its own static bucket (renderOrder is part of the merge key) with a culling sphere round the
-  // arch alone — the shared roof-tuft bucket spans the whole hero group and is drawn in every view
-  tuftMesh.renderOrder = 1;
-  group.add(tuftMesh);
 
   // the torn skirt: one strip per flank along the crown's edge, hanging 0.3–0.8 m in lobes
   const skirtParts = [];
@@ -775,14 +769,29 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     skirtParts.push(strip);
   }
   const skirtGeo = merge(skirtParts);
-  const skirtMesh = new Mesh(skirtGeo, mats.capMoss);
-  skirtMesh.name = 'log-moss-skirt';
-  // rides in the arch's own cap-moss bucket with the tufts (a caster would fold into the roof
-  // bucket and stretch its culling sphere from the house to the arch)
-  skirtMesh.castShadow = false;
-  skirtMesh.receiveShadow = true;
-  skirtMesh.renderOrder = 1;
-  group.add(skirtMesh);
+  /**
+   * The tufts and the skirt are one mesh under a camera-distance LOD: 4–12 cm cushions are a
+   * pixel or two from the hero cameras (A 64 m, B/E 57 m, F 60 m from the arch's centre) yet a
+   * merged static bucket would draw all 90 k triangles in every view. The LOD sits at the arch's
+   * centre (its geometry is re-based there, so the consolidation pass — which merges only
+   * identity-matrix meshes — leaves it alone) and drops the mesh beyond `TUFT_LOD_M`; camera D at
+   * 50 m keeps it, so D's silhouette and its moss crown are unchanged.
+   */
+  const TUFT_LOD_M = 55;
+  const tuftCentre = axisAt(-2);
+  const tuftGeo = merge([crownTufts.geometry, skirtGeo]);
+  tuftGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+  const tuftMesh = new Mesh(tuftGeo, mats.capMoss);
+  tuftMesh.name = 'log-moss-tufts';
+  tuftMesh.castShadow = false;
+  tuftMesh.receiveShadow = true;
+  const tuftLod = new LOD();
+  tuftLod.name = 'log-moss-tufts-lod';
+  tuftLod.position.copy(tuftCentre);
+  tuftLod.addLevel(tuftMesh, 0);
+  tuftLod.addLevel(new Group(), TUFT_LOD_M);
+  tuftLod.updateMatrixWorld(true);
+  group.add(tuftLod);
 
   // plants: trefoils in the crown moss and at the root flares, small ferns by the path, beards
   const foliage41 = new FoliageBuilder(rng.fork('foliage41'), `${ctx.config.seed}/log41`);
@@ -880,6 +889,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     trefoils,
     beards,
     rootTufts,
+    tuftLod: { centre: [tuftCentre.x, tuftCentre.y, tuftCentre.z] as [number, number, number], dropBeyondM: TUFT_LOD_M },
   };
 
   // ---- lanterns (round 32: placed and lit for frame 56 s). The frame's arch carries three warm
