@@ -2147,6 +2147,8 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - The owner's marked list and the player-height sweep (rounds 39–43) are complete. Next: a
   systematic walk survey to rank what still reads wrong at player height, then round 44 from it.
 
+### 19:07 UTC — tick 137: heartbeat; survey-1 walking the world (48 of ~150 frames rendered)
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2185,4 +2187,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T18:50:00Z
+2026-09-17T19:07:00Z
