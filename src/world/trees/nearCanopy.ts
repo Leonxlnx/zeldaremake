@@ -118,7 +118,10 @@ export type HeroDistanceFn = (center: Vector3, radius: number) => number;
  * The swap radii for a part about `center` reaching `radius`: the defaults, or — when a hero
  * camera frames it from d m — d − NEAR_CANOPY_HERO_MARGIN in / d − margin / 3 out, so the
  * camera never sees the swap. Null when the in-radius would fall under NEAR_CANOPY_MIN_IN_M (the
- * part keeps its far foliage). `tally` counts the two outcomes for the audit.
+ * part keeps its far foliage). `tally` counts the two outcomes for the audit. This is the
+ * build-time pass on the lobe's own sphere (it decides the tagging); the trees system runs a
+ * second pass on the BUILT mesh's cull sphere (index.ts nearCanopyHeroPass), since a part's
+ * stem dressing and vines reach well past its lobe.
  */
 export function swapRadiiFor(heroDistance: HeroDistanceFn | undefined, center: Vector3, radius: number, tally: { kept: number; limited: number }): [number, number] | null {
   const d = heroDistance ? heroDistance(center, radius) : Infinity;
