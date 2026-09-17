@@ -376,7 +376,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // rock's partings): candidates are the dark crack / parting vertices on the shoulders and
     // sides — not the mossy cap the cap plants use — a fern or two arching out of the deeper
     // clefts and a few moss pads filling the shallower ones. Own stream; the spots are appended
-    // after every boulder's cap and base plants (below), so those keep their jitter draws.
+    // after every boulder's cap and base plants (below), so those keep their jitter draws. They
+    // are found on the far mesh and re-seated on the near mesh's skin below (the plants are a
+    // near-distance detail and the near skin sits up to ~3 cm off the far surface).
+    const creviceStart = crevicePlants.length;
     {
       const nrmA = geo.attributes.normal;
       const colA = geo.attributes.color;
@@ -514,6 +517,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // bedding ledges: D's deeper, the A / terrace rocks a faint layering the far mesh omits
           strata: b.id === 'shot-d-boulder' ? 0.1 : 0.035,
         });
+        // re-seat this rock's crevice plants on the near skin: each spot moves to the nearest
+        // near-mesh vertex (world frame), keeping its small sink below the surface
+        {
+          const nPos = nearGeo.attributes.position;
+          const nrmN = nearGeo.attributes.normal;
+          const toLocalM = new Matrix4().copy(mesh.matrixWorld).invert();
+          for (let k = creviceStart; k < crevicePlants.length; k++) {
+            const sp = crevicePlants[k];
+            const sink = sp.kind === 'fern' ? 0.012 : 0.004;
+            _p.set(sp.x, sp.y + sink, sp.z).applyMatrix4(toLocalM);
+            let best = Infinity;
+            let bi = -1;
+            for (let i = 0; i < nPos.count; i++) {
+              const d = _p.distanceToSquared(va.fromBufferAttribute(nPos, i));
+              if (d < best) {
+                best = d;
+                bi = i;
+              }
+            }
+            if (bi < 0) continue;
+            // the surface at the plant's foot (world frame), then the same sink along its normal
+            va.fromBufferAttribute(nPos, bi).applyMatrix4(mesh.matrixWorld);
+            _n.fromBufferAttribute(nrmN, bi).transformDirection(mesh.matrixWorld);
+            va.addScaledVector(_n, -sink);
+            sp.x = va.x;
+            sp.y = va.y;
+            sp.z = va.z;
+          }
+        }
         const nRng = bRng.fork(`near-${b.id}`);
         const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 32 : r > 0.8 ? 20 : 12, shade: toLocal(shadeDir, yaw) }, mossPalette);
         nearGeo.dispose();
