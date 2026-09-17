@@ -4,34 +4,85 @@
  * dirt seam at the flagstone rim, a light sprinkle on the flagstones themselves. Every piece is
  * seated on the exact terrain height.
  */
-import { Color, Group, type BufferGeometry, type Material } from 'three';
+import { Color, Group, type BufferGeometry, type Material, type Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import { smoothstep } from '../util/noise';
 import { createRng, type Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
-import { MeshBuilder, TAU, V, blend, curvedLeaf, lanceLeaf, rgb, sampleCurve, tone, tube, type RGB } from './geometry';
+import { MeshBuilder, TAU, V, blend, curvedLeaf, lanceLeaf, lathe, rgb, sampleCurve, shapedLeaf, skeletonLeaf, tone, tube, type RGB } from './geometry';
 import { LodInstancedSet } from './lodset';
+
+type LeafDetail = 'ultra' | 'high' | 'far';
+
+/**
+ * Round 43 — the litter's near LOD: inside this camera distance (m, XZ) the leaves and twigs draw
+ * their `ultra` geometry (leafGeometry / twigGeometry), built from the high LOD's own stream so the
+ * swap keeps every leaf's heading, length, curl and twist and every twig's line.
+ */
+export const LITTER_ULTRA_M = 4;
+/** share of the ultra leaves that have skeletonised (midrib and veins only) */
+export const SKELETON_SHARE = 0.16;
+/** the ultra lamina's baked root → tip gradient (× the instance's autumn tint): a browner, darker root, an ochre tip */
+export const LEAF_ROOT_TINT: RGB = [0.74, 0.62, 0.5];
+export const LEAF_TIP_TINT: RGB = [1.04, 0.98, 0.72];
 
 /**
  * A fallen leaf: the near LOD is a three-section lance lamina on a petiole (14 triangles); the
  * far LOD (round 39) the same lamina — same length, heading, curl and twist, drawn from the same
  * stream — as the four-triangle `curvedLeaf` without the petiole, which is a 2.5 mm stalk no
  * pixel resolves past a couple of metres. At LEAF_FAR_M a 0.1 m leaf is ≈ 12 px long.
+ *
+ * Round 43, `ultra` (inside LITTER_ULTRA_M): the same lance outline on the same petiole, as an
+ * 8 × 7 lamina that curls up hard toward its tip (curlPow), cups at the margin, twists more and
+ * ripples at the rim, under a baked brown → ochre root → tip gradient (LEAF_*_TINT) with a lighter
+ * midrib column; SKELETON_SHARE of them are skeletons (skeletonLeaf). Everything past the layout
+ * stream's draws is the forked `ultra` stream's. The material's litter block (materials.ts) adds
+ * the dark veins. ≈ 90 triangles a leaf (a skeleton ≈ 30).
  */
-function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', far = false): BufferGeometry {
+function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', detail: LeafDetail = 'high'): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
+  const far = detail === 'far';
   const len = 0.09 + rng() * 0.04;
   const width = shape === 'oval' ? 0.62 : shape === 'lance' ? 0.34 : 0.85;
   const base: RGB = [0.92, 0.92, 0.92];
   // petiole
   const a = rng() * TAU;
   const dir = V(Math.cos(a), 0.02, Math.sin(a)).normalize();
-  if (!far) tube(m, [V(-dir.x * len * 0.18, 0.004, -dir.z * len * 0.18), V(0, 0.004, 0)], 0.0025, 0.0018, tone(base, 0.75), 3);
+  const fine = detail === 'ultra' ? createRng(`${seed}/ultra`) : null;
+  const petiole = [V(-dir.x * len * 0.18, 0.004, -dir.z * len * 0.18), V(0, 0.004, 0)];
+  if (fine) tube(m, petiole, 0.0025, 0.0018, tone(base, 0.75), 4, false, (t, up) => tone(blend(LEAF_ROOT_TINT, base, 0.4 + 0.4 * t), 0.8 + 0.12 * up));
+  else if (!far) tube(m, petiole, 0.0025, 0.0018, tone(base, 0.75), 3);
   const curl = 0.28 + rng() * 0.3;
   const twist = (rng() - 0.5) * 0.8;
   if (far) curvedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, { curl, twist, ridge: 0.22, tipColor: tone(base, 0.8) });
-  else
+  else if (fine) {
+    const serration = shape === 'broad' ? 0.08 : 0.03;
+    if (fine() < SKELETON_SHARE) {
+      skeletonLeaf(m, V(0, 0.004, 0), dir, len, len * width, tone(blend(LEAF_ROOT_TINT, base, 0.3), 0.85), { curl: curl * 1.1, twist, pairs: shape === 'lance' ? 5 : 6, tipColor: tone(base, 0.8) });
+    } else {
+      const ribLift = 1.05 + fine() * 0.05;
+      const tipTint = blend(LEAF_TIP_TINT, [1, 1, 1], fine() * 0.3);
+      shapedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, {
+        shape: 'lance',
+        sections: 8,
+        across: 7,
+        // the tip rolls up to where the high LOD's arch peaked (≈ curl × length), no higher
+        curl: curl * (0.9 + fine() * 0.3),
+        curlPow: 1.7 + fine() * 0.8,
+        twist: twist * (1.4 + fine() * 0.8),
+        cup: 0.22 + fine() * 0.35,
+        ridge: 0.14,
+        serration,
+        wave: 0.04 + fine() * 0.06,
+        tipColor: tone(base, 0.8),
+        colorAt: (t, s) => {
+          const g = blend(LEAF_ROOT_TINT, tipTint, Math.pow(t, 0.9));
+          return tone(g, s === 0 ? ribLift : 1 - 0.08 * s * s);
+        },
+      });
+    }
+  } else
     lanceLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, {
       sections: 3,
       curl,
@@ -46,7 +97,40 @@ function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', far = fal
 /** the leaves switch to the four-triangle lamina beyond this camera distance (m) */
 export const LEAF_FAR_M = 7;
 
-function twigGeometry(seed: string, long: boolean): BufferGeometry {
+/** the twig ultra LOD's bark grain (round 43): facet ridge / groove contrast and the lengthwise banding gain */
+export const TWIG_GRAIN = { ridge: 0.16, band: 0.1, sides: 6 };
+/** the acorn and seed-pod tones (round 43): nut, cap, pod */
+const ACORN_NUT = rgb(0x8a6a3c);
+const ACORN_CAP = rgb(0x5a4a36);
+const SEED_POD = rgb(0x7c6640);
+
+/**
+ * An acorn lying on its side (round 43): a lathe nut, its foot tucked under a scaly cap (a second
+ * lathe whose facets alternate light and dark). ≈ 60 triangles.
+ */
+function acorn(m: MeshBuilder, at: Vector3, dir: Vector3, r: number, fine: Rng) {
+  const nutLen = r * 3.2;
+  lathe(m, at, dir, (u) => ({ r: r * Math.pow(Math.sin(Math.PI * (0.12 + 0.88 * u)), 0.55) * (1 - 0.35 * u * u), y: nutLen * u }), 4, 7, ACORN_NUT, (u) => tone(blend(ACORN_NUT, tone(ACORN_NUT, 1.25), Math.pow(1 - u, 2)), 0.9 + 0.2 * u * (1 - u)));
+  const cap = at.clone().addScaledVector(dir, -r * 0.35);
+  const capR = r * 1.1;
+  lathe(m, cap, dir, (u) => ({ r: capR * (0.6 + 0.4 * Math.sin(Math.PI * Math.min(1, u * 1.1))), y: nutLen * 0.42 * u }), 2, 7, ACORN_CAP, (u, facet) => tone(ACORN_CAP, (facet % 2 ? 0.86 : 1.1) * (0.9 + 0.2 * u) + 0.06 * fine()));
+}
+
+/**
+ * A split seed pod (round 43): a four-lobed spindle, pointed both ends, lying beside the twig — the
+ * sheet's "forest buds" gone dry. ≈ 30 triangles.
+ */
+function seedPod(m: MeshBuilder, at: Vector3, dir: Vector3, r: number) {
+  lathe(m, at, dir, (u) => ({ r: r * Math.pow(Math.sin(Math.PI * u), 0.7), y: r * 4.2 * u }), 3, 4, SEED_POD, (u, facet) => tone(SEED_POD, (facet % 2 ? 0.88 : 1.08) * (0.85 + 0.3 * Math.sin(Math.PI * u))));
+}
+
+/**
+ * A twig: a tapered, gently bowed tube (the long variant forks once). Round 43, `ultra` (inside
+ * LITTER_ULTRA_M): the same line from the same stream, as a TWIG_GRAIN.sides-sided tube whose
+ * facets alternate ridge and groove under a lengthwise banding (bark grain), a bud knot or two,
+ * and — from the forked `ultra` stream — an acorn or a seed pod dropped beside it.
+ */
+function twigGeometry(seed: string, long: boolean, detail: 'ultra' | 'high' = 'high'): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const len = long ? 0.3 + rng() * 0.3 : 0.14 + rng() * 0.14;
@@ -61,11 +145,53 @@ function twigGeometry(seed: string, long: boolean): BufferGeometry {
       .addScaledVector(side, Math.sin(t * Math.PI) * bend * len)
       .add(V(0, 0.005 + Math.sin(t * Math.PI) * 0.01 * (long ? 1.6 : 1), 0));
   const col = blend(rgb(0x4d443a), rgb(0x8f8b80), rng() * 0.5);
-  tube(m, sampleCurve(curve, long ? 4 : 3), 0.007 * (long ? 1.2 : 1), 0.003, col, 3, true);
+  const forkSign = long ? (rng() > 0.5 ? 1 : -1) : 1;
+  if (detail !== 'ultra') {
+    tube(m, sampleCurve(curve, long ? 4 : 3), 0.007 * (long ? 1.2 : 1), 0.003, col, 3, true);
+    if (long) {
+      const f = curve(0.65);
+      const bd = side.clone().multiplyScalar(forkSign).addScaledVector(dir, 0.6).normalize();
+      tube(m, [f, f.clone().addScaledVector(bd, len * 0.28).add(V(0, 0.02, 0))], 0.004, 0.0015, col, 3, true);
+    }
+    return m.finish();
+  }
+  const fine = createRng(`${seed}/ultra`);
+  const phase = fine() * TAU;
+  const bandFreq = 18 + fine() * 14;
+  const grain = (t: number, up: number, facet: number): RGB => {
+    const ridge = 1 + TWIG_GRAIN.ridge * (facet % 2 ? -1 : 1);
+    const band = 1 + TWIG_GRAIN.band * Math.sin(t * bandFreq + phase + facet * 0.7);
+    // the underside sits in its own shadow
+    return tone(col, ridge * band * (0.86 + 0.14 * up) * (0.92 + 0.12 * t));
+  };
+  tube(m, sampleCurve(curve, long ? 8 : 6), 0.007 * (long ? 1.2 : 1), 0.003, col, TWIG_GRAIN.sides, true, grain);
   if (long) {
     const f = curve(0.65);
-    const bd = side.clone().multiplyScalar(rng() > 0.5 ? 1 : -1).addScaledVector(dir, 0.6).normalize();
-    tube(m, [f, f.clone().addScaledVector(bd, len * 0.28).add(V(0, 0.02, 0))], 0.004, 0.0015, col, 3, true);
+    const bd = side.clone().multiplyScalar(forkSign).addScaledVector(dir, 0.6).normalize();
+    tube(m, [f, f.clone().addScaledVector(bd, len * 0.14).add(V(0, 0.01, 0)), f.clone().addScaledVector(bd, len * 0.28).add(V(0, 0.02, 0))], 0.004, 0.0015, col, 5, true, grain);
+  }
+  // bud knots: short collars round the twig
+  const knots = 1 + fine.int(0, 2);
+  for (let k = 0; k < knots; k++) {
+    const t = 0.15 + fine() * 0.7;
+    const c = curve(t);
+    const tangent = curve(Math.min(1, t + 0.02)).sub(curve(Math.max(0, t - 0.02))).normalize();
+    const r = 0.007 * (long ? 1.2 : 1) * (1 - 0.55 * t) * 1.35;
+    lathe(m, c.clone().addScaledVector(tangent, -r * 0.6), tangent, (u) => ({ r: r * Math.pow(Math.sin(Math.PI * u), 0.5), y: r * 1.2 * u }), 2, TWIG_GRAIN.sides, tone(col, 0.9), (u, facet) => tone(col, (facet % 2 ? 0.8 : 0.98) * (0.85 + 0.2 * Math.sin(Math.PI * u))));
+  }
+  // an acorn or a seed pod beside the twig (the long twig always has one of the two)
+  const drop = fine();
+  if (long || drop < 0.6) {
+    const t = 0.25 + fine() * 0.5;
+    const off = side.clone().multiplyScalar((fine() > 0.5 ? 1 : -1) * (0.012 + fine() * 0.012));
+    const heading = V(Math.cos(a + fine() * TAU), 0.06, Math.sin(a + fine() * TAU)).normalize();
+    if (drop < 0.55) {
+      const r = 0.0034 + fine() * 0.0012;
+      acorn(m, curve(t).add(off).setY(r), heading, r, fine);
+    } else {
+      const r = 0.0026 + fine() * 0.001;
+      seedPod(m, curve(t).add(off).setY(r * 0.9), heading, r);
+    }
   }
   return m.finish();
 }
@@ -112,7 +238,8 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   const seed = ctx.config.seed;
   const leafShapes = ['oval', 'lance', 'broad', 'oval'] as const;
   const leafGeos = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape));
-  const leafGeosFar = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, true));
+  const leafGeosFar = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, 'far'));
+  const leafGeosUltra = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, 'ultra'));
   // Variant packs (lodset.ts): twigs share one draw. The 8 700 leaves keep one draw per variant
   // (packing them would submit +0.37 M collapsed triangles for 3 draws), and the roots must: they
   // cast shadows through three's own depth material, which does not know the pack collapse.
@@ -124,8 +251,12 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // with them always submitted the claim holds at any pose. Round 39: the leaves past LEAF_FAR_M
   // take the four-triangle lamina (the LOD split leaves every instance submitted, so the claim
   // still holds), ≈ 123 K → ≈ 45 K triangles a frame.
-  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g, i) => [g, leafGeosFar[i]]), material, lodDistances: [LEAF_FAR_M * q.distance], receiveShadow: true, packs: [[0], [1], [2], [3]], cull: false });
-  const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: [[twigGeometry(`${seed}/twig/0`, false)], [twigGeometry(`${seed}/twig/1`, true)], [twigGeometry(`${seed}/twig/2`, false)]], material, lodDistances: [], receiveShadow: true });
+  // Round 43: the ultra LOD inside LITTER_ULTRA_M — every instance still submitted, so B3 holds —
+  // packs all four variants into one draw: 20–100 leaves stand inside the ring at the fixed
+  // cameras (≈ 300 collapsed triangles each), one draw against four per variant.
+  const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0], [1], [2], [3]]], cull: false });
+  const twigKinds = [false, true, false];
+  const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]), material, lodDistances: [LITTER_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
   const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
 
   const s = newSample();

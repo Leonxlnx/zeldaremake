@@ -156,6 +156,13 @@ export interface LodSetOptions {
   maxDistance?: number;
   /** lods with index < castShadowLods cast shadows */
   castShadowLods?: number;
+  /**
+   * Leading LODs that refine the geometry within arm's reach of the live camera (round 43: the
+   * flowers', broad leaves', clover's, cushions' and litter's ultra tiers). Purely descriptive:
+   * the placement contracts (plants.test) measure a plant from the first LOD after them — the one
+   * every fixed camera sees, since none stands inside a near ring. Default 0.
+   */
+  nearLods?: number;
   receiveShadow?: boolean;
   /** re-bucket when the camera moved further than this */
   hysteresis?: number;

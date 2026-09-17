@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -148,9 +148,12 @@ const PACKS: Record<string, PackLayout> = {
   ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
   // the two heads and the two spikes pair up at every LOD (round 39: the far draw packed all four,
   // 834 triangles an instance for 117 far violets from camera A — 98 K; in pairs 49 K, one draw more)
-  flowers: [[[0, 1], [2, 3]], [[0, 1], [2, 3]], [[0, 1], [2, 3]]],
-  // 3 000+ laminae: one draw per variant at both LODs (packing the 2 900 far ones would cost 150 K)
-  weeds: [SINGLE(3), SINGLE(3)],
+  // round 43: the ultra LOD (bells / graded stems inside FLOWER_ULTRA_M) packs all four — at most a
+  // handful of clumps stand inside the ring, one draw instead of two
+  flowers: [ALL(4), [[0, 1], [2, 3]], [[0, 1], [2, 3]], [[0, 1], [2, 3]]],
+  // 3 000+ laminae: one draw per variant at both LODs (packing the 2 900 far ones would cost 150 K);
+  // round 43: the ultra rosettes (≤ 25 inside BROADLEAF_ULTRA_M at a fixed camera) pack into one draw
+  weeds: [ALL(3), SINGLE(3), SINGLE(3)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
   // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
@@ -180,12 +183,14 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const seed = ctx.config.seed;
   const materials: Material[] = [];
 
-  const mk = (label: string, geos: ReturnType<typeof variants>, kind: 'plant' | 'bush' | 'moss', lodDistances: number[], castShadowLods: number, matOpts: VegMaterialOptions = {}, maxDistance?: number) => {
-    const material = createVegMaterial(ctx, kind, { plantHeight: maxHeight(geos), name: `veg-${label}`, ...matOpts });
+  // `ultraLods` (round 43): leading near LODs left out of the sway normalisation height, so a set
+  // that gains an ultra LOD keeps the plantHeight — and the wind — its other LODs had
+  const mk = (label: string, geos: ReturnType<typeof variants>, kind: 'plant' | 'bush' | 'moss', lodDistances: number[], castShadowLods: number, matOpts: VegMaterialOptions = {}, maxDistance?: number, ultraLods = 0) => {
+    const material = createVegMaterial(ctx, kind, { plantHeight: maxHeight(ultraLods ? geos.map((row) => row.slice(ultraLods)) : geos), name: `veg-${label}`, ...matOpts });
     materials.push(material);
     const shadowMaterials = castShadowLods > 0 ? createVegShadowMaterials(material) : undefined;
     if (shadowMaterials) materials.push(shadowMaterials.depth, shadowMaterials.distance);
-    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), maxDistance: maxDistance === undefined ? undefined : maxDistance * q.distance, castShadowLods, packs: PACKS[label] });
+    return new LodInstancedSet({ name: label, variants: geos, material, shadowMaterials, lodDistances: lodDistances.map((d) => d * q.distance), maxDistance: maxDistance === undefined ? undefined : maxDistance * q.distance, castShadowLods, nearLods: ultraLods, packs: PACKS[label] });
   };
 
   // round 31: the near LOD's serrated pinnae read out to 12 m (was 11; 14 m put frame F at +1.51 M
@@ -212,17 +217,25 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // seeds, same proportions, so every crown keeps its place, scale and top.
   const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
-  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry)], 'plant', [9, 16], 0, { leafDetail: false, sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  // round 43: an ultra LOD inside FLOWER_ULTRA_M (plantgeo.ts: heads as clusters of bells with dark
+  // throats, spikes of hanging bells under a teardrop bud, 5-sided graded stems — the same layout
+  // from the same stream) and the petal band (materials.ts leafDetail 'petal': fan veins and
+  // translucency on the ultra petals only; the leaves and the far petals take no lamina block)
+  const flowerOpts: VegMaterialOptions = { leafDetail: 'petal', sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 };
+  const flowers = mk('flowers', [...variants(2, `${seed}/flower`, pal, flowerGeometry, [...FLOWER_DETAILS]), ...variants(2, `${seed}/flower-spike`, pal, flowerSpikeGeometry, [...FLOWER_DETAILS])], 'plant', [FLOWER_ULTRA_M, 9, 16], 0, flowerOpts, undefined, 1);
   // the pale-yellow blooms tucked into the shot-D fern clump: the same cluster-head plant in a
   // straw-yellow palette (reference frame 56: small pale flowers at the base of the fronds)
   const yellowPal = { ...pal, purple: rgb(0xd6c15c), purpleLight: rgb(0xefe094), purpleDeep: rgb(0xa8933a) };
-  const yellowFlowers = mk('flowers-yellow', variants(2, `${seed}/flower-yellow`, yellowPal, flowerGeometry), 'plant', [9, 16], 0, { leafDetail: false, sway: 2.2, flutter: 0.01, stiffness: 0.4, roughness: 1, ambientBoost: 0.02, transmission: 0.08 });
+  const yellowFlowers = mk('flowers-yellow', variants(2, `${seed}/flower-yellow`, yellowPal, flowerGeometry, [...FLOWER_DETAILS]), 'plant', [FLOWER_ULTRA_M, 9, 16], 0, flowerOpts, undefined, 1);
   // white forest flowers (concept sheet 01): matte petals like the violets; the far LOD keeps every
   // bloom as an enlarged four-petal fold so the white dots survive at 12–25 m, and the petals get
   // a little skylight fill so they still read white under the verge canopy (frame 14 s dots ≈ 0.6)
-  const whiteFlowers = mk('flowers-white', variants(3, `${seed}/flower-white`, pal, whiteFlowerGeometry, ['high', 'low']), 'plant', [12], 0, { leafDetail: false, sway: 2.0, flutter: 0.01, stiffness: 0.45, roughness: 1, ambientBoost: 0.36, transmission: 0.06 });
+  // round 43: the ultra blooms (calyx, 5–6 separate cupped petals, stamen boss, closed buds) inside
+  // FLOWER_ULTRA_M, with the petal band
+  const whiteFlowers = mk('flowers-white', variants(3, `${seed}/flower-white`, pal, whiteFlowerGeometry, [...WHITE_FLOWER_DETAILS]), 'plant', [FLOWER_ULTRA_M, 12], 0, { leafDetail: 'petal', sway: 2.0, flutter: 0.01, stiffness: 0.45, roughness: 1, ambientBoost: 0.36, transmission: 0.06 }, undefined, 1);
   // the three sheet laminae (heart / ovate / round) with a waxy upper face and a matte underside
-  const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, ['high', 'low']), 'plant', [13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55, roughness: 0.9, topRoughness: 0.55 });
+  // round 43: the ultra rosettes (9 × 7 wavy laminae on bent petioles, per-leaf hue) inside BROADLEAF_ULTRA_M
+  const weeds = mk('weeds', variants(3, `${seed}/weed`, pal, weedGeometry, [...BROADLEAF_DETAILS]), 'plant', [BROADLEAF_ULTRA_M, 13], 0, { sway: 1.2, flutter: 0.012, stiffness: 0.55, roughness: 0.9, topRoughness: 0.55 }, undefined, 1);
   // stout buds barely move in the wind
   // round 39: the buds stop at 24 m — a 0.15 m coil is 5 px tall there, one more dark dab in the
   // far herb layer, and its 360-triangle far LOD was 130 K triangles from camera A
@@ -233,7 +246,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   const seedheads = mk('seedheads', variants(3, `${seed}/seedhead`, pal, seedheadGeometry, ['high', 'low']), 'plant', [14], 0, { sway: 4.5, flutter: 0.008, stiffness: 0.15 });
   // round 39: the herb layer stops at 16 m — a clover leaf is 2 px across there, under the turf
   // carpet's mats and clumps (carpet.ts); its far LOD was 4 000 instances / 210 K triangles from camera A
-  const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, ['high', 'low']), 'plant', [9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 }, 16);
+  // round 43: obcordate leaflets with the pale chevron on bent petioles inside BROADLEAF_ULTRA_M
+  const clover = mk('clover', variants(3, `${seed}/clover`, pal, cloverGeometry, [...BROADLEAF_DETAILS]), 'plant', [BROADLEAF_ULTRA_M, 9], 0, { sway: 0.6, flutter: 0.006, stiffness: 0.7 }, 16, 1);
   // grass tufts (round 31): the near LOD's 12–17 bent blades read out to 16 m (the A / F banks
   // sit 10–15 m from their cameras); they take the grass blades' wind (fast sway from the root,
   // little lamina flutter) and the blades' translucency
@@ -249,7 +263,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // acne at blade scale; the budget goes to the verge band and the face turf instead.
   const tufts = mk('tufts', variants(6, `${seed}/tuft`, pal, tuftGeometry, ['high', 'low']), 'plant', [10], 0, { sway: 3.4, flutter: 0.006, stiffness: 0.22, transmission: 0.14 }, 22);
   // round 39: the cushions stop at 24 m (≤ 0.12 m high — 3 px there; 97 K triangles in one draw from A)
-  const moss = mk('moss', [[mossGeometry(`${seed}/moss/0`, pal)], [mossGeometry(`${seed}/moss/1`, pal)]], 'moss', [], 0, { roughness: 0.95 }, 24);
+  // round 43: the lumpy, lit-top / dark-rim cushion inside MOSS_ULTRA_M (plantgeo.ts mossGeometry 'ultra')
+  const moss = mk('moss', [0, 1].map((v) => [mossGeometry(`${seed}/moss/${v}`, pal, 'ultra'), mossGeometry(`${seed}/moss/${v}`, pal)]), 'moss', [MOSS_ULTRA_M], 0, { roughness: 0.95 }, 24, 1);
   const saplings = mk('saplings', variants(3, `${seed}/sapling`, pal, saplingGeometry), 'bush', [16, 40], 1, { sway: 1.6, flutter: 0.02, stiffness: 0.6 });
 
   const tint = new Color();
