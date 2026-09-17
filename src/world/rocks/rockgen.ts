@@ -354,7 +354,21 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       const d = _p.dot(_n);
       if (rimGap) rimGap[i] = Math.min(rimGap[i], Math.abs(d - dist));
       if (d > dist) {
-        _p.addScaledVector(_n, dist - d);
+        let off = dist - d;
+        if (plateStep && plateId) {
+          // round 44: the cleave face in plates too — the projection flattens the skin's steps, so
+          // the same field is re-applied along the plane normal (0.7 ×, evaluated on the projected
+          // point: co-located vertices share it), and the colour pass takes this plate field for
+          // the facet's vertices so the dark joints sit on these steps. The far mesh (plates 0)
+          // keeps its flat facet.
+          _t.copy(_p).addScaledVector(_n, off);
+          const pl = plateAt(_t.x * freq + ox, _t.y * freq + oy, _t.z * freq + oz);
+          const upness = smoothstep(-0.3, 0.55, _t.y / (r * squashY));
+          off -= plates * r * 0.7 * (1 - 0.85 * upness) * (pl.level - 0.5) * 2;
+          plateStep[i] = pl.step;
+          plateId[i] = pl.id;
+        }
+        _p.addScaledVector(_n, off);
         pos.setXYZ(i, _p.x, _p.y, _p.z);
         facet[i] = Math.max(facet[i], smoothstep(0.0, 0.04 * r, d - dist));
       }
