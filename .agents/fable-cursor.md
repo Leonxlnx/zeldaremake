@@ -2020,6 +2020,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Round 41: trees-25 (looking-up canopy, shade floors, sun-side laminae), structures-26 (log arch
   and huts close-up moss/bark, sun-side lantern leaf material).
 
+### 00:50 UTC (Sep 17) — tick 121: heartbeat; vegetation-21b's tail merged; round 41 on its baselines
+- vegetation-21b's two later commits (`f3b2a78` the northwest wedge is a fiddlehead stalk → ultra
+  LOD 8-sided graded stem; `2dbeadc` baked underside/ridge shade on ultra stems) merged as `24acb9a`
+  — six fixed frames byte-identical to take-0110, tests 6/6 → heartbeat, not a re-capture. The
+  agent had pushed `origin/r40/veg` against the brief; deleted. Its near-camera dither-fade idea
+  (shared vegetation shader; camera E sits in the grass) is deliberately not taken.
+- Round 41: trees-25 and structures-26 both past their cap-0 baselines, no commits yet.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2058,4 +2066,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-16T23:35:00Z
+2026-09-17T00:50:00Z
