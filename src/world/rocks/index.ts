@@ -531,8 +531,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           fineCrackDepth: Math.min(0.015, 0.012 / r),
           micro: Math.min(0.03, 0.025 / r),
           chip: Math.min(0.035, 0.03 / r),
-          // bedding ledges: D's deeper, the A / terrace rocks a faint layering the far mesh omits
-          strata: b.id === 'shot-d-boulder' ? 0.1 : 0.035,
+          // bedding ledges: D's deeper (frame 56 s: layered). None on the A / terrace rocks, as
+          // on their far mesh — a faint 0.035 layering made their moss blanket (mossAt halves
+          // the coverage on every parting) step ~10 cm at each ~20 cm bed: the stair-foot rock's
+          // flank read as a stack of pancakes
+          strata: b.id === 'shot-d-boulder' ? 0.1 : 0,
         });
         // the crevice plants root in the near skin's furrows (the far mesh's cracks are only lines)
         const crevice = pickCrevicePlants(nearGeo);
