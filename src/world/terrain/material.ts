@@ -80,7 +80,7 @@ const BANK_FADE: [number, number] = [4.0, 9.0];
  * untouched (the probe is byte-identical).
  */
 const FACE_FADE: [number, number] = [5.0, 11.0];
-const FACE_NORMAL_K = 1.6;
+const FACE_NORMAL_K = 2.5;
 const FACE_ROOT_H = 0.014;
 const FACE_PLATE_H = 0.014;
 /** wet band: albedo multiplier (dark, a touch cool) and roughness */
