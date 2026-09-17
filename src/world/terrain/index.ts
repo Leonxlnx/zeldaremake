@@ -7,8 +7,8 @@
 import { Group, Mesh, Raycaster, Vector3 } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { DETAIL_PASSES, LATTICE } from './heightfield';
-import { buildChunkGeometry, createWeightContext, layoutChunks } from './chunks';
-import { createTerrainMaterial } from './material';
+import { NEAR_GROUND, buildChunkGeometry, createWeightContext, layoutChunks } from './chunks';
+import { GROUND_NEAR, createTerrainMaterial } from './material';
 import { createRng } from '../util/prng';
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
@@ -112,6 +112,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     layers: matInfo.layers,
     detailNormal: matInfo.detailNormal,
     triplanarCliffs: true,
+    // round 43: the near-field ground treatment (material.ts GROUND_NEAR) and the aW2 vertex
+    // channels behind it (chunks.ts NEAR_GROUND). The vertex relief is GPU-side and capped at
+    // GROUND_NEAR.reliefMaxM: the sampler and the CPU mesh the raycast proof above reads are
+    // unchanged, so samplerMeshMaxError* still describe `height()` exactly.
+    nearGround: { ...GROUND_NEAR, vertexChannels: ['wet', 'relief', 'roots'], wetCurv: NEAR_GROUND.WET_CURV, curvStepM: NEAR_GROUND.CURV_STEP },
     detailPasses: DETAIL_PASSES.length,
     detailPassNames: DETAIL_PASSES,
     halfSize: ctx.config.terrainHalfSize,
