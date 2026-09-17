@@ -13,7 +13,7 @@ import { HARDSCAPE_PACKS, JOINT_TUFT_DEEP, JOINT_TUFT_TIP, SPROUT_LOD_FAR, build
 import { seamGritTone } from '../materials/grit';
 import { SPROUT_JITTER_SCHEME, createSproutJitterStreams } from './sprout-jitter';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
-import { discField, jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
+import { archSeam, discField, hollowPath, jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { Noise2D, smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
@@ -481,6 +481,38 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint, source: 'near-grit' });
     nearGrit++;
   }
+  // round 44 (survey-1 #8; zones.ts `hollowPath` / `archSeam`): grit between the hollow path's set
+  // stones — the survey read that stretch as bare dirt with tiles on it — and along the arch
+  // seam, where the gravel floor under the log thins into the paving's joints: pebbles at
+  // 1.4–4 cm in the joints only, the seam's half of them a shade paler (the gravel's pale
+  // stones). Own stream and source (its sprout jitter is a stream of its own, sprout-jitter.ts),
+  // so the scatters above and below keep every place; both stretches are ≥ 12 m from the six
+  // fixed cameras, so the pebbles are 1–2 px there and the LOD collapses them past 25 m.
+  const hgRng = rng.fork('ground-grit');
+  const groundGritTarget = Math.round(460 * Math.max(0.7, ctx.quality.density));
+  let hollowGrit = 0;
+  let seamGrit2 = 0;
+  tries = 0;
+  while (hollowGrit + seamGrit2 < groundGritTarget && tries < groundGritTarget * 80) {
+    tries++;
+    const onSeam = hgRng.chance(0.35);
+    const x = onSeam ? hgRng.range(1.5, 9.5) : hgRng.range(-2.5, 7.0);
+    const z = onSeam ? hgRng.range(-59.5, -48.5) : hgRng.range(-35.5, -13.5);
+    const w = onSeam ? archSeam(x, z) : hollowPath(x, z);
+    if (hgRng() > w) continue;
+    if (!paved(x, z, 0.4) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap > (onSeam ? 0.35 : 0.3)) continue;
+    const size = hgRng.chance(0.25) ? hgRng.range(0.028, 0.04) : hgRng.range(0.014, 0.027);
+    if (gap < size * 0.8) continue;
+    const soilW = onSeam ? 1 : Math.max(0.5, jointSoil(x, z));
+    const lift = jointFillLift(gap, soilW);
+    const pale = hgRng.chance(onSeam ? 0.5 : 0.3) ? 1.3 : 1;
+    const tint: [number, number, number] = [pale * lift[0] * (1 + (turfOverSoil[0] - 1) * (1 - soilW)), pale * lift[1] * (1 + (turfOverSoil[1] - 1) * (1 - soilW)), pale * lift[2] * (1 + (turfOverSoil[2] - 1) * (1 - soilW))];
+    gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint, source: 'ground-grit' });
+    if (onSeam) seamGrit2++;
+    else hollowGrit++;
+  }
   // the stair grit keeps round 10's soil tone (the grit geometry is built in the round-12 soil)
   const stairGritTint: [number, number, number] = [tones.soilMeanR10.r / tones.soilMean.r, tones.soilMeanR10.g / tones.soilMean.g, tones.soilMeanR10.b / tones.soilMean.b];
   for (const f of frames) {
@@ -671,7 +703,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // round 42: the near-field pebbles within NEAR_GRIT_R m of the walked poses (and how many are the pale ones)
     seamGritNearField: nearGrit,
     seamGritPale: paleGrit,
-    seamGritAtStairFeet: sprouts.grit - seamGrit - nearGrit,
+    seamGritAtStairFeet: sprouts.grit - seamGrit - nearGrit - hollowGrit - seamGrit2,
+    // round 44: the hollow path's joint grit and the arch seam's (zones.ts hollowPath / archSeam)
+    seamGritHollowPath: hollowGrit,
+    seamGritArchSeam: seamGrit2,
+    // round 44: the hollow path's set stones (flagstones.ts: seated with the grade, sunk, domed)
+    flagstonesHollowSeated: paving.stats.hollow,
     seamGritLodFar: SPROUT_LOD_FAR,
     seamGritTriangles: sprouts.gritTriangles,
     seamGritDrawCalls: 0,

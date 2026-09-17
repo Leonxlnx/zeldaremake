@@ -25,7 +25,7 @@ import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
-import { B_FOREGROUND_SLABS, aForeground, dForeground, dampBand, discField, earthPatch, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza, troddenStrip } from './zones';
+import { B_FOREGROUND_SLABS, aForeground, archInside, dForeground, dampBand, discField, earthPatch, hollowPath, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza, troddenStrip } from './zones';
 import type { SteppingStone } from '../layout';
 
 export interface PlacedStone {
@@ -614,15 +614,44 @@ export function nearIsolatedDisc(discs: IsolatedDisc[], x: number, z: number, k 
  * marches this field to its 0.5 iso (`PAVED_ISO`), the slab level the vegetation's rim follows.
  */
 export const PAVED_ISO = 0.5;
-export function pavedLevel(pc: PavingContext, x: number, z: number): number {
+/**
+ * Round 44 (survey-1 #8, `zones.ts archSeam`): the arch's structure band is a hard 0/1 cut and the
+ * paving used to stop dead at it — a dead-straight seam between the slabs and the gravel floor
+ * under the log. The paving now runs into the band in tongues: how far (m) past the band's edge
+ * the paving reaches, by a slow noise along the edge — 0.15 m almost everywhere (a ragged
+ * edge), 0.9–1.6 m where the noise peaks (a slab or two poking through the gravel). Deterministic
+ * (a fixed-seed noise field), so no stream draws move.
+ */
+const ARCH_TONGUE_N = new Noise2D('arch-tongue');
+function archTongueDepth(x: number, z: number): number {
+  const n = ARCH_TONGUE_N.fbm(x * 0.55 + 3.1, z * 0.55 - 7.3, 2) * 0.5 + 0.5;
+  return 0.15 + 1.45 * smoothstep(0.5, 0.82, n);
+}
+/**
+ * `strict` (the lattice seeding and the rim distance): the arch band is unpaved as before, so no
+ * seed lands on a tongue and no seed's rim distance moves — the tongues are filled by the
+ * neighbouring cells growing into them (`cellFor` pulls the cell vertices to the non-strict
+ * mask), and every seed and every shared-stream draw stays where it was.
+ */
+export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false): number {
   const m = surfaceMask(x, z);
-  if (m.stairs >= 0.5 || m.structure >= 0.5) return 0;
+  if (m.stairs >= 0.5) return 0;
+  if (m.structure >= 0.5) {
+    if (strict) return 0;
+    // the arch band (a house pad reads d ≪ 0 here): paved on a tongue, else the gravel floor
+    const d = archInside(x, z);
+    if (d < 0 || d > 1.7) return 0;
+    const reach = archTongueDepth(x, z);
+    if (d >= reach) return 0;
+    // the tongue's own soft edge, so the marching fill and the cell pulls see a ramp, not a step
+    return m.path * smoothstep(reach, reach - 0.12, d);
+  }
   for (const f of pc.frames) if (inStairFootprint(f, x, z)) return 0;
   return m.path;
 }
 
-export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAVED_ISO): boolean {
-  return pavedLevel(pc, x, z) >= threshold;
+export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAVED_ISO, strict = false): boolean {
+  return pavedLevel(pc, x, z, strict) >= threshold;
 }
 
 /**
@@ -638,7 +667,7 @@ export function rimDistance(pc: PavingContext, x: number, z: number): number {
     const dz = Math.sin(a);
     for (const s of RIM_STEPS) {
       if (s >= best) break;
-      if (!isPaved(pc, x + dx * s, z + dz * s, 0.5)) {
+      if (!isPaved(pc, x + dx * s, z + dz * s, 0.5, true)) {
         best = s;
         break;
       }
@@ -660,7 +689,7 @@ export interface PavingResult {
   steppingStones: IsolatedDisc[];
   /** the Voronoi seeds (for the offline paving audit): position, lawn weight, whether the seed kept its cell */
   seeds: { x: number; z: number; lawn: number; active: boolean; phantom: boolean }[];
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; brokenLawnMid: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number; dished: number; cracked: number; wobbled: number; mergedD: number; earth: number; field: number; dLattice: number; spalled: number; creep: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; brokenLawnMid: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number; dished: number; cracked: number; wobbled: number; mergedD: number; earth: number; field: number; dLattice: number; spalled: number; creep: number; hollow: number };
 }
 
 interface Seed {
@@ -737,7 +766,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pad = 1.0;
   let row = 0;
   const bigCandidates: number[] = [];
-  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, brokenLawnMid: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0, dished: 0, cracked: 0, wobbled: 0, mergedD: 0, earth: 0, field: 0, dLattice: 0, spalled: 0, creep: 0 };
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, brokenLawnMid: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0, dished: 0, cracked: 0, wobbled: 0, mergedD: 0, earth: 0, field: 0, dLattice: 0, spalled: 0, creep: 0, hollow: 0 };
   // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
   // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
   // the disc as bare grass) and the plaza's rim cells are clipped back from them
@@ -757,7 +786,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       if (Math.hypot(s.x - x, s.z - z) < minDist) ok = false;
     });
     if (!ok) return -1;
-    if (!isPaved(pc, x, z, 0.5)) return -1;
+    if (!isPaved(pc, x, z, 0.5, true)) return -1;
     if (nearIsolatedDisc(discs, x, z, 1.5)) return -1;
     // the lawn pocket west of the reference's path edge holds no slabs at all
     if (lawnPocket(x, z) > 0.5) return -1;
@@ -1296,13 +1325,21 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // foreground slabs, whose edges fall softly into the dark joints. Noise-free and draw-free:
     // the stone's stream is untouched, only the ring offsets change on the strip.
     const trodden = disc ? 0 : troddenStrip(s.x, s.z);
+    // round 44 (survey-1 #8, zones.ts `hollowPath`): the hollow path's slabs are SET stones — seated
+    // with the grade, sunk 2–3.5 cm so the fill laps their shoulders, domed so the top emerges from
+    // the soil lip, edges rolled wider (× 1.6) like the trodden strip's. Own hash fork for the
+    // sink / dome draws; every stream above and below keeps its place, and outside the zone
+    // (weight 0) every value below is the control's.
+    const hollow = disc ? 0 : hollowPath(s.x, s.z);
+    const hrng = hollow > 0.001 ? rng.fork(`hollow/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`) : null;
+    const roll = 1 + 0.8 * trodden + 0.6 * hollow;
     const style: OutlineStyle = {
       // the damp band's seams are the widest (reference B/E foreground: 8–12 cm of soil and moss
       // between the stones — its plaza box has the same dark and bright tones as ours but more
       // of its area is joint)
       joint: Math.max(0.012, baseJoint + (fieldJoint - baseJoint) * fieldW + (dJoint - baseJoint - (fieldJoint - baseJoint) * fieldW) * dThinW - 1.5 * wobble),
       // a narrow shoulder (1.6–3 cm, was 2.2–4.2): the edge reads as a break, not a roll
-      shoulder: (baseShoulder + (fieldShoulder - baseShoulder) * fieldW) * uShoulder * (1 + 0.8 * trodden),
+      shoulder: (baseShoulder + (fieldShoulder - baseShoulder) * fieldW) * uShoulder * roll,
       fillet: (seamFillet + (lawnFillet - seamFillet) * lawn + (fieldFillet - seamFillet - (lawnFillet - seamFillet) * lawn) * fieldW) * uFillet,
       erosion: disc ? ea * (1 + lawn) : ea * 1.3 * (1 + 0.5 * lawn) * (1 - 0.5 * fieldW),
       roundArcs: !disc,
@@ -1339,6 +1376,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     terrain.normal(s.x, s.z, nrm);
     const nAcc = nrm.clone();
     const stride = Math.max(1, Math.floor(outline.outer.length / 10));
+    /** the sample offsets and heights (dx, dz, h) for the hollow's seated-plane residuals */
+    const samples: number[] = [];
     for (let i = 0; i < outline.outer.length; i += stride) {
       for (const f of [0.5, 0.92]) {
         const px = s.x + c.x + (outline.outer[i].x - c.x) * f;
@@ -1349,19 +1388,48 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         hMax = Math.max(hMax, h);
         n++;
         if (f > 0.6) nAcc.add(terrain.normal(px, pz, nrm));
+        if (hrng) samples.push(px - s.x, pz - s.z, h);
       }
     }
     const hMean = hSum / n;
     nAcc.normalize();
     // gentle tilt only: blend the terrain normal toward up so stones never look like ramps
-    nAcc.lerp(up, 0.5).normalize();
+    // (round 44, the hollow path: on the 30 % climb out of the hollow the half-tilt left every
+    // slab's downhill edge a 6–12 cm wall over the ground — the survey's "tiles on dirt". There
+    // a slab on a grade over ~5 % lies WITH the ground (90 % of the way to the terrain normal),
+    // and the seating below reads the ground relative to that plane.)
+    const grade = Math.hypot(nAcc.x, nAcc.z) / Math.max(nAcc.y, 0.2);
+    const withGrade = hollow * smoothstep(0.05, 0.14, grade);
+    nAcc.lerp(up, 0.5 * (1 - 0.9 * withGrade)).normalize();
+    // the ground under the slab relative to its seated plane (the hollow only; elsewhere the
+    // absolute heights, exactly as before): a fully tilted slab on a smooth grade has a small
+    // residual range where the absolute range would skip it as "steep"
+    let hMeanS = hMean;
+    let hMinS = hMin;
+    let hMaxS = hMax;
+    if (hrng) {
+      let rSum = 0;
+      let rMin = 0;
+      let rMax = 0;
+      for (let i = 0; i < samples.length; i += 3) {
+        // the rigid rotation up → nAcc puts a local horizontal offset at y = −(n.x dx + n.z dz)
+        const r = samples[i + 2] - (hCentre - (nAcc.x * samples[i] + nAcc.z * samples[i + 1]));
+        rSum += r;
+        rMin = Math.min(rMin, r);
+        rMax = Math.max(rMax, r);
+      }
+      const rMean = rSum / (samples.length / 3 + 1);
+      hMeanS += (hCentre + rMean - hMean) * hollow;
+      hMinS += (hCentre + rMin - hMin) * hollow;
+      hMaxS += (hCentre + rMax - hMax) * hollow;
+    }
     // flat slabs (boards 02/06/07): the shoulder rolls down 0.7–1.2 cm to the outer edge (was
     // 1.2–2) and the top rises only 0.25–1.3 cm above it (half of round 10's 0.5–2.6) — the
     // stepping-stone discs keep the round-10 cushion
     const uBevel = srng();
     // round 33: the disc field's stones roll like the stepping discs (1.2–2 cm) and dome 0.6–2.9
     // cm — frames 14 s / 56 s read their edges as soft shaded rims, ours as flat cut slabs
-    const bevel = (disc ? 0.012 + 0.008 * uBevel : 0.007 + 0.005 * uBevel + (0.005 + 0.003 * uBevel) * fieldW) * (1 + 0.4 * trodden);
+    const bevel = (disc ? 0.012 + 0.008 * uBevel : 0.007 + 0.005 * uBevel + (0.005 + 0.003 * uBevel) * fieldW) * (1 + 0.4 * trodden + 0.5 * hollow);
     const lowCrown = srng.chance(0.35);
     const uCrown = srng();
     const crownRaw = lowCrown ? 0.005 + 0.007 * uCrown : 0.012 + 0.014 * uCrown;
@@ -1435,27 +1503,39 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // float > 3 cm downhill.
     // (round 33: the disc field's stones stand 1.6–2.7 cm proud — a rounded stone in a 9–22 cm
     // earth gap shows its rolled edge, the frame's soft dark rim round each disc)
-    const exposed = srng.range(0.011, 0.017) * (1 - 0.15 * open) * (1 + 0.6 * fieldW);
-    if (hMax - hMin > 0.28) {
+    // (round 44, the hollow path: the rim is SUNK 2–3.5 cm below where it would stand, so the
+    // shoulder roll sits at the fill line or under it and the fill / terrain lap onto the stone —
+    // the soil lip of a set stone; the dome below lifts the top back out)
+    const sink = hrng ? hollow * (0.02 + 0.015 * hrng()) : 0;
+    const exposed = srng.range(0.011, 0.017) * (1 - 0.15 * open) * (1 + 0.6 * fieldW) - sink;
+    if (hMaxS - hMinS > 0.28) {
       // a slab cannot sit across a step this high (terrace lips, bank feet): leave soil here
       if (!dryRun) stats.skippedSteep++;
       return false;
     }
     if (dryRun) return true;
-    let rimY = Math.min(hMean + exposed, hCentre + 0.06);
+    let rimY = Math.min(hMeanS + exposed, hCentre + 0.06);
     // never float more than 3 cm over the lowest ground under the edge — sink instead, but keep
     // the edge at least 1.6 cm clear of the joint fill at the centre; a deeper stone absorbs the rest
-    rimY = Math.min(rimY, hMin + 0.03 + (thickness - bevel));
-    rimY = Math.max(rimY, hCentre + 0.016);
+    rimY = Math.min(rimY, hMinS + 0.03 + (thickness - bevel));
+    rimY = Math.max(rimY, hCentre + 0.016 - sink);
     let bottomY = rimY - (thickness - bevel);
-    if (bottomY > hMin + 0.03) {
-      thickness += bottomY - (hMin + 0.03);
-      bottomY = hMin + 0.03;
+    if (bottomY > hMinS + 0.03) {
+      thickness += bottomY - (hMinS + 0.03);
+      bottomY = hMinS + 0.03;
     }
     // a dish must not sink the top's centre below the joint fill (terrain + 0.8 cm, joints.ts):
     // keep it ≥ 1.5 cm over the ground at the centre (the first cut let a 1.8 cm dish on a
     // 1.6 cm rim put the centre 0.5 cm over the ground, under the fill)
     if (crown < 0) crown = Math.max(crown, hCentre + 0.015 - (rimY + bevel));
+    if (hrng) {
+      // the hollow's set stones are domed, never dished: the top's centre stands 1.2–2 cm over the
+      // fill line whatever the sink took, so the stone emerges from its soil lip as a low cushion
+      const emerge = 0.012 + 0.008 * hrng();
+      const need = Math.max(0.012, hCentre + 0.008 + emerge - (rimY + bevel));
+      crown += (need - crown) * hollow;
+      if (!dryRun) stats.hollow++;
+    }
     const topY = bottomY + thickness + crown;
 
     // 4. per-stone look. Reference stones differ visibly stone to stone: ± 12 % luminance, ± 8°
@@ -1597,7 +1677,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // stain is graded: FLANK_STAIN_AT_FILL at the fill line, nothing at the shoulder. The wall
     // below the fill is buried, so the foot value may run past 1 (the shader clamps).
     const wallH = thickness - bevel;
-    const fillH = clamp(hMean + 0.008 - bottomY, 0.2 * wallH, 0.95 * wallH);
+    const fillH = clamp(hMeanS + 0.008 - bottomY, 0.2 * wallH, 0.95 * wallH);
     // Round 12: from camera A's low angle 42 % of a 5–10 cm joint's pixels are the far slab's
     // flank, and it rendered as lit stone (sRGB 156,134,95 against the reference seam's 78,66,45),
     // so the seam tone is as much the flank as the fill: the flank of a paved stone is darker and
@@ -1672,7 +1752,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       softBevel: true,
       // round 42: the shoulder as a two-band quarter-round on the slabs a player can read
       // (radius > 0.3 m), so the lit rim rolls into the joint instead of breaking at one crease
-      bevelRings: disc || radius <= 0.3 ? 1 : 2,
+      bevelRings: disc || (radius <= 0.3 && hollow < 0.5) ? 1 : 2,
       rimDrop: spalled ? spallAt : undefined,
       dip: -crown,
       color: tint,

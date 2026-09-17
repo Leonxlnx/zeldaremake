@@ -442,6 +442,13 @@ export interface SlabOptions {
   /** weathering gate (`aWear`) written on the top face and shoulder ring: the stone shader's lichen/grime mottling (0 = none) */
   wear?: number;
   /**
+   * weathering gate on the side walls (round 44; default 0 — a buried flank shows a centimetre or
+   * two and stays clean): a kerb or cheek stone whose face stands 20–40 cm over the ground takes
+   * the shader's grime and lichen mottling like its top, so the face reads as the same weathered
+   * stone rather than a flat plane of the side colour
+   */
+  sideWear?: number;
+  /**
    * blend of the side walls' shading normal toward +y (0 = the true outward normal, 1 = straight
    * up). A short wall that faces away from the sun renders as a dark band 2–3× the seam's height
    * from a grazing camera; lit like the top it reads as the stone's rounded edge and the seam
@@ -609,6 +616,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
 
   // --- side walls (flat) ---
   const sideUp = o.sideNormalUp ?? 0;
+  const sideWear = o.sideWear ?? 0;
   for (let i = 0; i < n; i++) {
     const p = outer[i];
     const q = outer[(i + 1) % n];
@@ -634,8 +642,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     const mx = (p.x + q.x) / 2;
     const mz = (p.z + q.z) / 2;
     // soil stain: a, b at the foot, c, d at the shoulder ring
-    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, o.sideGrime ?? 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], sideN, [sideStain, sideStain, 0], 0, sideCrackOf(_a, _b, _c));
-    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0], 0, sideCrackOf(_a, _c, _d));
+    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, o.sideGrime ?? 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], sideN, [sideStain, sideStain, 0], sideWear, sideCrackOf(_a, _b, _c));
+    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0], sideWear, sideCrackOf(_a, _c, _d));
   }
 
   // --- bevel ring (smooth): one chamfer band, or `bevelRings` bands on a quarter-round ---

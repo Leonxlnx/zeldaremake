@@ -374,6 +374,11 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         bevel: 0.012,
         color: riserColor,
         sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        // round 44 (crop 36): the house-west risers' faces take a third of the top's shading
+        // normal and the shader's grime / lichen mottling, so in the giant's shade they read as
+        // weathered stone under the lip rather than flat black; the main run's are the control's
+        sideNormalUp: isMain ? 0 : 0.3,
+        sideWear: isMain ? 0 : 0.7,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
         // over every wall, so it is exact on the front face; the back face is under the tread
@@ -453,12 +458,31 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         top = terrain.height(wx, wz) - def.base[1] + 0.02 + 0.06 * hash2(Math.round(uc * 100), 23, 11);
       }
       if (keep) {
+        // round 44 (survey-1, crop 36 — the house-west flight's step blocks): these cheeks stand
+        // 15–25 cm proud on both flanks of the short flight (round 32 keeps them proud for camera
+        // B), and at player height from the path (w29-house-d, 1.6 m) their faces rendered as flat
+        // near-black planes with a hard top/side break — the flat side colour (× 0.7, grime × 0.75)
+        // under the true outward normal in the giant's shade. The house-west blocks take the
+        // kerb treatment: the face in the top's own stone (× 0.88), its shading normal half-way
+        // to +y (sideNormalUp 0.5 — lit like the top, the shadow map still shades it), the
+        // shader's grime / lichen mottling on the face (sideWear), a soil band at the foot
+        // (sideStain), and a 5–8 cm two-band roll (bevelRings 2, softBevel) instead of a
+        // one-crease chamfer. Draw-free: only the slab options change. The main run's cheeks are
+        // the control's (cameras A / F).
+        const block = !isMain;
         placeSlab(outline, ac, top - th, uc, yawJ, tiltXJ * (southEast ? 2 : 1), tiltZJ, {
           thickness: th,
-          bevel: bevelJ,
+          bevel: block ? bevelJ * 1.4 : bevelJ,
+          bevelRings: block ? 2 : 1,
+          softBevel: block,
           dip: -0.01,
           color: [tint, tint, tint * 0.97],
-          sideColor: [tint * 0.7, tint * 0.7, tint * 0.72],
+          sideColor: block ? [tint * 0.88, tint * 0.88, tint * 0.9] : [tint * 0.7, tint * 0.7, tint * 0.72],
+          sideNormalUp: block ? 0.5 : 0,
+          sideGrime: block ? 0.9 : 0.75,
+          sideStain: block ? 0.9 : 0,
+          sideWear: block ? 0.9 : 0,
+          wear: block ? 0.6 : 0,
           mossEdge: 1.0,
           mossInner: southEast ? 0.85 : 0.6,
           mossFn: (x, z) => 0.55 + 0.45 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
@@ -603,7 +627,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         mossFn: (x, z) => 0.4 + 0.6 * (noise.fbm((x + ac) * 2.1 + 17, (z + uc) * 2.1 + 3, 2) * 0.5 + 0.5),
         uvScale,
         uvOffset: [arng() * 3, arng() * 3],
-        rings: 2,
+        // round 44 (crop 36's "diagonal crease on the transition slab"): the 8-point outline's
+        // dished top fanned in two rings showed its triangulation under the grazing light; three
+        // rings and the validated fan centre smooth it
+        rings: 3,
+        notchedTop: true,
+        sideWear: 0.6,
       });
     }
   }

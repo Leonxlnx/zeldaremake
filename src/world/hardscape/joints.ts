@@ -15,7 +15,7 @@ import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { discField, earthPatch, jointSoil, lawnPocket, lawnZone } from './zones';
+import { archSeam, discField, earthPatch, hollowPath, jointSoil, lawnPocket, lawnZone } from './zones';
 
 /** what the joint fill needs to know about the slabs around it */
 export interface JointPaving {
@@ -356,6 +356,23 @@ export async function buildJointMesh(
     // the frame's 30° bin, against its 51 %)
     tmp.lerp(fieldEarth, 0.75 * field);
     tmp.lerp(trodden, 0.85 * patch);
+    // round 44 (survey-1 #8): the hollow path's joints are dark damp earth with leaf litter in
+    // it (the set stones emerge from it), a 0.5 m mottle swinging the tone between the wet soil
+    // and a browner litter shade; the arch seam's joints take the gravel floor's pale packed dirt
+    // (the packed soil, lifted a fifth), so the gravel thins into the paving instead of ending on
+    // a line
+    const hollowW = hollowPath(x, z);
+    if (hollowW > 0.001) {
+      const litterN = noise.fbm(x * 2.1 + 23, z * 2.1 - 41, 2) * 0.5 + 0.5;
+      tmp2.copy(soil).lerp(soilMid, 0.35).multiplyScalar(0.8 + 0.45 * litterN);
+      tmp2.g *= 0.94 + 0.08 * litterN;
+      tmp.lerp(tmp2, 0.7 * hollowW);
+    }
+    const seamW = archSeam(x, z);
+    if (seamW > 0.001) {
+      tmp2.copy(soilMid).multiplyScalar(1.2);
+      tmp.lerp(tmp2, 0.8 * seamW);
+    }
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
     // a little heavier on the lawn paving where the slabs sit in it, a third lighter in the disc
     // field's soil gaps; camera C's trodden patch takes the moss-green from its earth tone, its
