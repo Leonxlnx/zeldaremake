@@ -60,6 +60,10 @@ export class GeometryWriter {
    * a slot names the tree's root and this value, as uNearBole names a root). The value is the
    * lobe's index within its tree (< 500, exact in a float). Such a leaf keeps every ordinary
    * term (shade share 1, not flat): every decode reads w ≥ 2.75 as an ordinary leaf. −1 = off.
+   * A FLAT leaf in a swap group (round 44, survey #12: the bank canopy's flat lobes at 5–8 m) is
+   * written 1000 + group + 0.5 × leafShade instead: the shaders read w ≥ 999 as a flat leaf of
+   * that shade share (1.5 + fract(w)) whose swap group is floor(w − 1000), so the far lobe shades
+   * exactly as an untagged flat lobe and still folds while its near version is drawn.
    */
   leafSwapGroup = -1;
   /**
@@ -97,7 +101,9 @@ export class GeometryWriter {
       0,
       leaf > 0
         ? this.leafSwapGroup >= 0
-          ? 3 + this.leafSwapGroup
+          ? this.leafFlat
+            ? 1000 + this.leafSwapGroup + 0.5 * this.leafShade
+            : 3 + this.leafSwapGroup
           : (this.leafFlat ? 1.5 : 0.5) + 0.5 * this.leafShade
         : this.woodCollapsible
           ? this.woodIsRoot

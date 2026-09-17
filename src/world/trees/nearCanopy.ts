@@ -494,7 +494,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       mossExtra: (p, upness) => smoothstep(0.2, 0.7, upness) * smoothstep(0.38, 0.8, mossField(p)),
       lichen: { band: [3, 12], strength: 0.6 },
       mossBulge: 0.8,
-      cushions: { rng: g.fork(`sleeve-cushions/${idx}`), density: 0.05, size: [0.04, 0.1], maxCount: 120 },
+      cushions: { rng: g.fork(`sleeve-cushions/${idx}`), density: 0.05, size: [0.04, 0.1], maxCount: 120, minY: -Infinity },
     });
     return { cushions: built.cushions, amplitude };
   }
@@ -528,7 +528,9 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
         up.copy(UP).addScaledVector(axis, -UP.dot(axis)).normalize();
         side.crossVectors(axis, up).normalize();
         const a = between(bg, -1.1, 1.1);
-        const from = p.clone().addScaledVector(up, -rr * Math.cos(a) * 0.98).addScaledVector(side, rr * Math.sin(a) * 0.98);
+        // 0.88 of the nominal sleeve radius: inside the sleeve where its ridge stands out (the
+        // ribbon's top is hidden in the bark), at most a centimetre proud where the ridge dips
+        const from = p.clone().addScaledVector(up, -rr * Math.cos(a) * 0.88).addScaledVector(side, rr * Math.sin(a) * 0.88);
         mossBeard(w, bg, from, between(bg, 0.25, 0.75) * (0.7 + 0.6 * Math.min(1, rr / 0.5)));
         if (k % 6 === 5) yield;
       }

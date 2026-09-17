@@ -1279,7 +1279,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // under any hero camera that frames it. Its far foliage is tagged with the lobe's group while
     // it is written; nothing about the far lobe itself changes.
     let rec: NearLobeRecord | null = null;
-    if (near && !ghost && !lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1 && center.y <= NEAR_CANOPY_MAX_Y) {
+    // Round 44 (survey #12: "near-canopy lobes at 5–8 m = huge single-tone flat shapes"): a FLAT
+    // lobe (the bank canopy's cored lobes, 3.4 m over the plaza's east edge) is eligible too. Its
+    // far foliage stays the flat, even mass the hero frames measure at 10–15 m (writer.ts writes
+    // a flat tagged leaf as 1000 + group + share, decoded as flat), and under the swap radius —
+    // 9–12 m for these, cut under A by swapRadii — a player sees the same lit, layered near
+    // version every other lobe gets, on the wood the core hid.
+    const flatEligible = lobeFlat && !compact && !ghost;
+    if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
       const radii2 = swapRadii(center, hR + 1.4);
       if (radii2) {
         rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
@@ -1347,6 +1354,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       cards.leafSwapGroup = -1;
       nearLobes.push(rec);
     }
+    return rec;
   }
 
   // ---------- big near-horizontal limbs ----------
@@ -1819,9 +1827,19 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // a compact clump does the same whichever way its stem runs
       const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
       const leavesBefore = leaves.leafCount;
-      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
+      const lobeRec = foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
       lobeLeafCounts.push(leaves.leafCount - leavesBefore);
-      if (lobeFlat && lobeSpec.core) lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
+      if (lobeFlat && lobeSpec.core) {
+        // the core and its rim cards are the lobe's far foliage too: tagged with the same group
+        // so they fold with the laminae while the near version is drawn (round 44)
+        const cardsBefore = cards.triangles;
+        if (lobeRec) leaves.leafSwapGroup = cards.leafSwapGroup = lobeRec.group;
+        lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
+        if (lobeRec) {
+          leaves.leafSwapGroup = cards.leafSwapGroup = -1;
+          lobeRec.farCards += (cards.triangles - cardsBefore) / 2;
+        }
+      }
       eyeOverride = null;
       lobeTone = 1;
       leaves.leafShade = cards.leafShade = 1;

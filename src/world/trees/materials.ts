@@ -206,10 +206,18 @@ const WIND_VERTEX_BODY = /* glsl */ `
     }
     // near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): the far laminae and cards of a lobe (aRoot.w =
     // 3 + the lobe's group) fold to the tree's root while a slot names that root and group (the
-    // depth programs are given an empty set, so the shadows are the far foliage's at every distance)
-    if (aRoot.w > 2.75) {
+    // depth programs are given an empty set, so the shadows are the far foliage's at every distance).
+    // A flat lobe's tagged foliage (writer.ts: w = 1000 + group + 0.5 × share) folds by the same
+    // group and decodes below as the flat leaf it is; every other vertex reads w as before.
+    float leafW = aRoot.w;
+    float swapW = aRoot.w;
+    if (aRoot.w >= 999.0) {
+      leafW = 1.5 + fract(aRoot.w);
+      swapW = 3.0 + floor(aRoot.w - 1000.0 + 0.01);
+    }
+    if (swapW > 2.75) {
       for (int i = 0; i < NEAR_CANOPY_SLOTS; i++) {
-        if (uNearCanopy[i].w > 0.5 && abs(uNearCanopy[i].w - aRoot.w) < 0.25 && distance(uNearCanopy[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz;
+        if (uNearCanopy[i].w > 0.5 && abs(uNearCanopy[i].w - swapW) < 0.25 && distance(uNearCanopy[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz;
       }
     }
     vec4 treeP = vec4(transformed, 1.0);
@@ -243,10 +251,11 @@ const WIND_VERTEX_BODY = /* glsl */ `
     vTreeLocalY = position.y - aRoot.y;
     // aRoot.w: 0 wood, 0.5 + 0.5 × shade-fill share for a leaf, 1.5 + 0.5 × share for a flat
     // (sunless) leaf, 3 + group for the far foliage of a near-canopy lobe — an ordinary leaf
-    // (writer.ts) — 1.0 for every ordinary leaf, so every decode is exact there
-    vIsLeaf = step(0.5, aRoot.w);
-    vLeafFlat = step(1.25, aRoot.w) * (1.0 - step(2.75, aRoot.w));
-    vLeafShade = clamp((aRoot.w - mix(0.5, 1.5, vLeafFlat)) * 2.0, 0.0, 1.0);
+    // (writer.ts) — 1.0 for every ordinary leaf, so every decode is exact there (leafW = aRoot.w
+    // for every vertex but a flat lobe's tagged foliage, where it is the flat leaf's own code)
+    vIsLeaf = step(0.5, leafW);
+    vLeafFlat = step(1.25, leafW) * (1.0 - step(2.75, leafW));
+    vLeafShade = clamp((leafW - mix(0.5, 1.5, vLeafFlat)) * 2.0, 0.0, 1.0);
     // −0.45 × moss cover on the near bases' wood (writer.ts woodMoss); 0 on every plain vertex
     vBarkMoss = (aRoot.w < 0.0 && aRoot.w > -0.5) ? -aRoot.w / 0.45 : 0.0;
   }

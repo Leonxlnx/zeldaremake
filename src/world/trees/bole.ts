@@ -121,7 +121,14 @@ export interface BoleReliefOptions {
    * (see `mossCushions`): `density` is the share of the eligible vertices that seed one (0–1),
    * `size` the dome radius range (m); from the caller's own stream so nothing after it moves.
    */
-  cushions?: { rng: RandomFn; density: number; size: [number, number]; maxCount?: number };
+  cushions?: {
+    rng: RandomFn;
+    density: number;
+    size: [number, number];
+    maxCount?: number;
+    /** lowest local y a cushion is seeded at (default: 15 cm above the first ring — a bole's skirt); a limb sleeve passes −Infinity */
+    minY?: number;
+  };
 }
 
 export interface BoleReliefResult {
@@ -381,7 +388,7 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
       if (k === 0 && o.flatBase) p.y = dense[0].p.y;
       // a cushion seed where the cover is dense, at the bole's own pitch (every `seedEvery`-th
       // eligible vertex, so the domes follow the sheets and the furrows, not a grid)
-      if (o.cushions && j < sides && k > 0 && endShare > 0.35 && moss > 0.6 && p.y > dense[0].p.y + 0.15) {
+      if (o.cushions && j < sides && k > 0 && endShare > 0.35 && moss > 0.6 && p.y > (o.cushions.minY ?? dense[0].p.y + 0.15)) {
         if (seedCounter++ % seedEvery === 0) seeds.push({ p: p.clone(), n: nrm.clone(), moss, r });
       }
       // furrow occlusion (`crest` on the crests, aoFloor × it at the furrow bottoms, following the
