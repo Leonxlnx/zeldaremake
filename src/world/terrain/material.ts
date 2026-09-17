@@ -144,10 +144,16 @@ vec3 nrmNear(sampler2D t, vec2 uv, float inv, float tile, float k, float nw) {
   return normalize(mix(far, nrm2(t, nearUv(uv, tile), inv, k), nw));
 }
 
+// the surface-metric offset for a detail drawn in xz on a slope: xz metres along the fall line
+// are n.y × the true surface distance, so a leaf drawn in xz would stretch 1.8× on a 57° bank;
+// sl = (fall-line direction, 1 / n.y − 1) stretches the leaf-local offset instead (per detail,
+// so the cells stay put and nothing shears where the slope changes)
+vec2 slopeFix(vec2 d, vec3 sl) { return d + sl.xy * (dot(d, sl.xy) * sl.z); }
+vec3 slopeFrame(vec3 nn) { float ny = max(nn.y, 0.35); return ny > 0.995 ? vec3(0.0) : vec3(normalize(nn.xz), 1.0 / ny - 1.0); }
 // procedural litter: one pointed, domed leaf per jittered cell (m) where the cell's hash is
 // under dens. Blends the leaf's tone into c by coverage and adds a dome tilt to nxy (world xz
 // frame, the same frame the layer normal maps use). Returns the coverage.
-float leafLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout vec2 nxy) {
+float leafLayer(vec2 p, float cell, float seed, float dens, vec3 sl, inout vec3 c, inout vec2 nxy) {
   vec2 g = p / cell;
   vec2 i = floor(g);
   vec2 fr = g - i - 0.5;
@@ -158,7 +164,7 @@ float leafLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout 
   vec2 ctr = (vec2(h1, h3) - 0.5) * 0.2;
   float ang = h2 * 47.0;
   float cs = cos(ang); float sn = sin(ang);
-  vec2 d = (fr - ctr) * cell;
+  vec2 d = slopeFix((fr - ctr) * cell, sl);
   vec2 q = vec2(cs * d.x + sn * d.y, -sn * d.x + cs * d.y);
   // 5–10 cm blades (the reference floor's litter is beech / oak sized, not maple)
   vec2 ax = vec2(0.04, 0.024) * (0.6 + 0.7 * h1);
@@ -187,7 +193,7 @@ float leafLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout 
   return cov;
 }
 // a twig per jittered cell: a 2.5–4.5 mm radius rod of 0.15–0.35 × cell length, cylinder normal
-float twigLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout vec2 nxy) {
+float twigLayer(vec2 p, float cell, float seed, float dens, vec3 sl, inout vec3 c, inout vec2 nxy) {
   vec2 g = p / cell;
   vec2 i = floor(g);
   vec2 fr = g - i - 0.5;
@@ -197,7 +203,7 @@ float twigLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout 
   if (h2 > dens) return 0.0;
   float ang = h1 * 6.2832;
   vec2 dir = vec2(cos(ang), sin(ang));
-  vec2 d = (fr - (vec2(h3, h1) - 0.5) * 0.2) * cell;
+  vec2 d = slopeFix((fr - (vec2(h3, h1) - 0.5) * 0.2) * cell, sl);
   float along = dot(d, dir);
   float across = dot(d, vec2(-dir.y, dir.x));
   float halfLen = cell * (0.15 + 0.2 * h3);
@@ -207,8 +213,8 @@ float twigLayer(vec2 p, float cell, float seed, float dens, inout vec3 c, inout 
   c *= 1.0 - 0.25 * (1.0 - smoothstep(r * 1.2, r * 2.4, abs(across))) * (1.0 - smoothstep(halfLen - 0.005, halfLen + 0.006, abs(along))) * (1.0 - cov);
   if (cov <= 0.001) return 0.0;
   nxy += vec2(-dir.y, dir.x) * clamp(across / r, -1.0, 1.0) * 0.7 * cov;
-  // grey-brown bark, the lit crown of the rod a touch paler
-  vec3 tone = mix(vec3(0.12, 0.09, 0.06), vec3(0.2, 0.17, 0.13), h3) * (1.0 + 0.25 * (1.0 - abs(across) / r));
+  // dark warm bark (the round-42 rods read steel-grey in the cool shade fill)
+  vec3 tone = mix(vec3(0.10, 0.065, 0.04), vec3(0.17, 0.12, 0.075), h3);
   c = mix(c, tone, cov);
   return cov;
 }
@@ -235,7 +241,9 @@ float cushionLayer(vec2 p, float cell, float seed, float amp, inout vec2 nxy) {
 }
 // bank faces: root-like ridges running downslope (dn = downslope direction in xz) and pebbles,
 // as normal + albedo only. w = bank weight (soil × steepness × fade).
-void bankDetail(vec2 p, vec2 dn, float w, inout vec3 c, inout vec2 nxy) {
+void bankDetail(vec2 p, vec3 nn, float w, inout vec3 c, inout vec2 nxy) {
+  vec2 dn = normalize(nn.xz);
+  vec3 sl = slopeFrame(nn);
   vec2 ac = vec2(-dn.y, dn.x);
   float a = dot(p, dn);
   float cc = dot(p, ac);
@@ -245,26 +253,28 @@ void bankDetail(vec2 p, vec2 dn, float w, inout vec3 c, inout vec2 nxy) {
   float presence = smoothstep(0.36, 0.62, tVNoise(p * 1.1 + vec2(-19.0, 3.0))) * w;
   float ph = (cc + wob) * 6.5 * 6.2832;
   float base = 0.5 + 0.5 * cos(ph);
-  float ridge = base * base * base * base;
-  float dr = -4.0 * base * base * base * 0.5 * sin(ph) * 6.5 * 6.2832;
+  float ridge = base * base * base;
+  float dr = -3.0 * base * base * 0.5 * sin(ph) * 6.5 * 6.2832;
   nxy += -ac * dr * 0.012 * presence;
-  float trough = smoothstep(0.35, 0.0, base);
-  c *= mix(1.0, mix(0.8, 1.28, ridge) * (1.0 - 0.15 * trough), presence);
-  c = mix(c, c * vec3(1.1, 1.0, 0.85), ridge * presence * 0.6);
-  // pebbles: 0.6–1.3 cm radius discs in a 9 cm jittered grid, a third of the cells
-  vec2 g = p / 0.09;
+  float trough = smoothstep(0.3, 0.0, base);
+  c *= mix(1.0, mix(0.72, 1.35, ridge) * (1.0 - 0.2 * trough), presence);
+  c = mix(c, c * vec3(1.12, 1.0, 0.82), ridge * presence * 0.7);
+  // pebbles: 0.9–2.2 cm radius discs in a 12 cm jittered grid, 40 % of the cells, with a
+  // contact shade ring
+  vec2 g = p / 0.12;
   vec2 i = floor(g);
   vec2 fr = g - i - 0.5;
   float h1 = tHash(i + 3.3);
   float h2 = tHash(i + 13.9);
   float h3 = tHash(i + 27.1);
-  if (h2 < 0.35) {
-    vec2 d = (fr - (vec2(h1, h3) - 0.5) * 0.4) * 0.09;
-    float r = 0.006 + 0.007 * h1;
+  if (h2 < 0.4) {
+    vec2 d = slopeFix((fr - (vec2(h1, h3) - 0.5) * 0.4) * 0.12, sl);
+    float r = 0.009 + 0.013 * h1;
     float e = length(d) / r;
     float cov = (1.0 - smoothstep(0.85, 1.05, e)) * w;
+    c *= 1.0 - 0.3 * (1.0 - smoothstep(1.0, 1.4, e)) * (1.0 - cov) * w;
     nxy += (d / r) * 0.8 * cov;
-    c = mix(c, vec3(0.30, 0.28, 0.25) * (0.7 + 0.6 * h3), cov);
+    c = mix(c, vec3(0.36, 0.34, 0.31) * (0.7 + 0.6 * h3) * (1.0 - 0.3 * smoothstep(0.5, 1.0, e)), cov);
   }
 }
 // the near-field detail terms shared by the colour and normal passes: near / detail / bank
@@ -273,12 +283,13 @@ void bankDetail(vec2 p, vec2 dn, float w, inout vec3 c, inout vec2 nxy) {
 float litterDensity(vec4 w0) { return clamp(w0.w * 0.8 + w0.y * 0.4 + w0.z * 0.16 + w0.x * 0.08, 0.0, 0.8); }
 // the procedural litter, colour and normal together (the two passes call it with the same
 // arguments so the coverage agrees)
-void litterDetail(vec2 uvw, float dens, inout vec3 c, inout vec2 nxy) {
-  leafLayer(uvw, 0.17, 1.0, dens, c, nxy);
-  leafLayer(uvw + vec2(0.05, 0.03), 0.22, 2.0, dens * 0.85, c, nxy);
-  leafLayer(uvw + vec2(-0.07, 0.11), 0.3, 4.0, dens * 0.7, c, nxy);
-  twigLayer(uvw, 0.4, 3.0, dens * 0.7, c, nxy);
-  twigLayer(uvw + vec2(0.13, -0.09), 0.26, 5.0, dens * 0.5, c, nxy);
+float litterDetail(vec2 uvw, float dens, vec3 sl, inout vec3 c, inout vec2 nxy) {
+  float cov = leafLayer(uvw, 0.17, 1.0, dens, sl, c, nxy);
+  cov = max(cov, leafLayer(uvw + vec2(0.05, 0.03), 0.22, 2.0, dens * 0.85, sl, c, nxy));
+  cov = max(cov, leafLayer(uvw + vec2(-0.07, 0.11), 0.3, 4.0, dens * 0.7, sl, c, nxy));
+  cov = max(cov, twigLayer(uvw, 0.4, 3.0, dens * 0.7, sl, c, nxy));
+  cov = max(cov, twigLayer(uvw + vec2(0.13, -0.09), 0.26, 5.0, dens * 0.5, sl, c, nxy));
+  return cov;
 }
 // near-tile contrast: the soil / litter maps are low-contrast scans; at the feet the darks go
 // darker and the pale clods paler about the map's mean (unit mean, so the far tone is kept)
@@ -362,11 +373,15 @@ const MAP_FRAG = /* glsl */ `
     vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.2, 0.7, ml)) * (0.7 + 0.6 * ml);
     moss = mix(moss, m, 0.3);
     if (dw > 0.001) {
-      // cushion tops pale, the creases between them dark
+      // cushion tops a brighter, fuller moss green (sheet 05 'Moss Texture': lit domes over dark
+      // gaps), the creases between them the soil they grow on
       float c1 = cushionLayer(uvw, 0.09, 3.7, 0.0, nxyUnused);
       float c2 = cushionLayer(uvw, 0.045, 11.9, 0.0, nxyUnused);
-      float crease = 1.0 - smoothstep(0.0, 0.2, c1);
-      moss *= mix(1.0, mix(0.72, 1.2, c1) * mix(0.9, 1.08, c2) * (1.0 - 0.2 * crease), dw);
+      float crease = 1.0 - smoothstep(0.0, 0.25, c1);
+      vec3 top = mix(uMossDeep, uMossBright, 0.55 + 0.45 * ml) * 1.2;
+      vec3 cushioned = mix(moss * 0.62, top, smoothstep(0.15, 0.9, c1)) * mix(0.9, 1.08, c2);
+      cushioned = mix(cushioned, uSoilDark * 0.9, crease * 0.6);
+      moss = mix(moss, cushioned, dw * 0.85);
     }
     c += moss * w0.z;
   }
@@ -400,24 +415,25 @@ const MAP_FRAG = /* glsl */ `
     float lp = lum(texture2D(tLitterC, detailUv(uvw)).rgb);
     c *= mix(1.0, clamp(lp / ${f(LITTER_MEAN_LUM)}, 0.55, 1.6), ${f(DETAIL_ALBEDO_K)} * dw * soft);
   }
+  vec3 nn = normalize(vWNrm);
   {
-    vec3 nn = normalize(vWNrm);
     float steep = 1.0 - nn.y;
     float bankW = w0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
-    if (bankW > 0.002) bankDetail(uvw, normalize(nn.xz), bankW, c, nxyUnused);
+    if (bankW > 0.002) bankDetail(uvw, nn, bankW, c, nxyUnused);
   }
+  float litCov = 0.0;
   if (dw > 0.001) {
     float dens = litterDensity(w0) * dw;
-    if (dens > 0.002) litterDetail(uvw, dens, c, nxyUnused);
+    if (dens > 0.002) litCov = litterDetail(uvw, dens, slopeFrame(nn), c, nxyUnused);
   }
-  // macro variation + damp darkening
+  // macro variation + damp darkening (the dry litter on top takes less of the damp)
   c *= mix(0.86, 1.14, k);
-  c = mix(c, c * uSoilDark * 2.2, vW1.z * 0.55);
+  c = mix(c, c * uSoilDark * 2.2, vW1.z * 0.55 * (1.0 - 0.6 * litCov));
   // round 43: the wet band — dish floors, depression bottoms, the giants' drip ring (aW2.x),
   // broken into patches by a 30 cm noise; dark and a touch cool
   {
     float wetF = smoothstep(0.25, 0.7, vW2.x * (0.7 + 0.6 * tVNoise(uvw * 3.1 + vec2(5.0, -2.0))));
-    c = mix(c, c * uWetTint, wetF);
+    c = mix(c, c * uWetTint, wetF * (1.0 - 0.5 * litCov));
   }
   diffuseColor.rgb *= c;
 }
@@ -456,15 +472,15 @@ const NORMAL_FRAG = /* glsl */ `
       cushionLayer(uvw, 0.045, 11.9, 0.15, cxy);
       nxy += cxy * vW0.z * dw;
     }
+    vec3 nn = normalize(vWNrm);
     {
-      vec3 nn = normalize(vWNrm);
       float steep = 1.0 - nn.y;
       float bankW = vW0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
-      if (bankW > 0.002) bankDetail(uvw, normalize(nn.xz), bankW, cUnused, nxy);
+      if (bankW > 0.002) bankDetail(uvw, nn, bankW, cUnused, nxy);
     }
     if (dw > 0.001) {
       float dens = litterDensity(vW0) * dw;
-      if (dens > 0.002) litterDetail(uvw, dens, cUnused, nxy);
+      if (dens > 0.002) litterDetail(uvw, dens, slopeFrame(nn), cUnused, nxy);
     }
     mapN.xy += nxy;
   }
