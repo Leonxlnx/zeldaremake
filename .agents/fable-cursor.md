@@ -2132,6 +2132,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   against D's haze-veiled mouth), vegetation-22 3 (ultra moss cushion as a lobe cluster). Sheets
   accumulating; reports expected this hour.
 
+### 18:50 UTC — tick 136: round 43 sealed — take-0113 `18cd211`; evidence at art/environment/round43-review
+- (Ticks 15–17 UTC were not delivered; round 43's three lanes finished in the gap.) Merged r43/struct
+  `19f3ce5` (structures-27: 22 pods as ribbed veined husks with glowing core, calyx, collar, knuckled
+  stem, laid cord — positions 0.000 m, luminance +0.6…+1.2 %; hollow-log interior with fissures,
+  heartwood, drip stains, fungi, debris floor, end-grain rims; doorway reveal/sill/step/doormat),
+  r43/terrain `a2aed6d` (terrain-4: 3 m near tile, 0.7 m litter layer with procedural leaves/twigs,
+  ≤ 1.5 cm GPU relief, wet hollows, moss cushion fields, bank root ridges + pebbles, verge stones —
+  sampler byte-identical), r43/veg `630f4be` (vegetation-22: near LODs — flowers as cupped petals /
+  bell-floret balls / buds, veined broadleaf, curled veined litter, lobe-cluster moss; no sheets of
+  its own, report not delivered). 43/43 tests.
+- **take-0113**: A 0.2283, B 0.2043, C 0.2343, D 0.2859, E 0.2143, F 0.2601 (all within −0.0005);
+  D purple 0.0042; draws 511, 8.40 M tris on A. Monitor `32514f4`. Evidence `04e0f5b`.
+- The owner's marked list and the player-height sweep (rounds 39–43) are complete. Next: a
+  systematic walk survey to rank what still reads wrong at player height, then round 44 from it.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2170,4 +2185,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T14:12:00Z
+2026-09-17T18:50:00Z
