@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, withMirrors, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -182,7 +182,9 @@ const PACKS: Record<string, PackLayout> = {
   weeds: [ALL(3), SINGLE(3), SINGLE(3)],
   // round 44: the bush ultra LOD (≈ 8.5 K triangles a variant) draws one variant a draw; the three
   // round-9 LODs keep the default single pack they always had
-  bushes: [SINGLE(3), ALL(3), ALL(3), ALL(3)],
+  // the six variants (three + their mirrors, interleaved): the originals in one pack and the mirrors in
+  // another at the round-9 LODs — the same triangles an instance ever submitted, one draw more a LOD
+  bushes: [SINGLE(6), [[0, 2, 4], [1, 3, 5]], [[0, 2, 4], [1, 3, 5]], [[0, 2, 4], [1, 3, 5]]],
   // round 44: the mid cushion (≈ 300 triangles a variant, 3–10 m) draws one variant a draw —
   // packed, every cushion in the ring would submit both variants; the ultra and far tiers keep the pack
   moss: [ALL(2), SINGLE(2), ALL(2)],
@@ -244,7 +246,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // round 44: the ultra LOD inside BUSH_ULTRA_M (plantgeo.ts — veined cupped laminae in the
   // broad-lamina band on bark-graded stems; survey-1 #7's shrub at the lens), casting like the high
   // LOD it hands over to; the high / mid LODs' leaves are ovate blades now, the same triangles
-  const bushes = mk('bushes', variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS]), 'bush', [BUSH_ULTRA_M, 14, 34], 2, {}, undefined, 1);
+  // round 44: the three variants and their mirror images, interleaved (plantgeo.ts withMirrors) —
+  // every bush keeps its round-9 variant, half of them flip (survey-1 #7: identical bushes repeated)
+  const bushes = mk('bushes', withMirrors(variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS])), 'bush', [BUSH_ULTRA_M, 14, 34], 2, {}, undefined, 1);
   // hero hedge: read from 6 m (the bank crowns) and 15 m (the door row) in shot A so it keeps
   // the high LOD much further out than the scattered bushes. Round 14: the clipped-crown geometry
   // (plantgeo.ts hedgeGeometry — an opaque core under two shells of small leaves) replaces the

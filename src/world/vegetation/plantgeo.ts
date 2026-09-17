@@ -1537,6 +1537,47 @@ export function variants(count: number, seed: string, pal: PlantPalette, build: 
   return out;
 }
 
+/**
+ * The mirror image of a geometry across x = 0 (round 44): positions and normals flipped in x,
+ * every triangle's winding reversed so its faces still front the same way — a per-instance
+ * negative scale would invert the double-sided shading instead. The uv / colour attributes are
+ * shared, the bounds recomputed.
+ */
+export function mirrorX(g: BufferGeometry): BufferGeometry {
+  const out = g.clone();
+  const p = out.getAttribute('position');
+  for (let i = 0; i < p.count; i++) p.setX(i, -p.getX(i));
+  p.needsUpdate = true;
+  const n = out.getAttribute('normal');
+  if (n) {
+    for (let i = 0; i < n.count; i++) n.setX(i, -n.getX(i));
+    n.needsUpdate = true;
+  }
+  const idx = out.getIndex();
+  if (idx) {
+    for (let i = 0; i < idx.count; i += 3) {
+      const b = idx.getX(i + 1);
+      idx.setX(i + 1, idx.getX(i + 2));
+      idx.setX(i + 2, b);
+    }
+    idx.needsUpdate = true;
+  }
+  out.computeBoundingBox();
+  out.computeBoundingSphere();
+  return out;
+}
+
+/**
+ * `rows` interleaved with their mirror images — [v0, v0 mirrored, v1, v1 mirrored, …] — so a set
+ * that draws `rng.int(0, variantCount)` keeps every instance's base variant (⌊k / 2⌋ of the doubled
+ * index is ⌊u × n⌋ of the old) and flips half of them (round 44: the bush repetition)
+ */
+export function withMirrors(rows: BufferGeometry[][]): BufferGeometry[][] {
+  const out: BufferGeometry[][] = [];
+  for (const row of rows) out.push(row, row.map(mirrorX));
+  return out;
+}
+
 export function maxHeight(geos: BufferGeometry[][]): number {
   let h = 0;
   for (const row of geos) for (const g of row) h = Math.max(h, g.boundingBox?.max.y ?? 1);

@@ -45,6 +45,16 @@ for(let j=0;j<a.plants.all.length;j++){
   }
 }
 assert.ok(a.plants.bushes.count>=80,'W19: at least 80 bushes');
+// round 44 (survey-1 #7): the three bush variants and their mirror images interleaved — variant 2k + 1 is 2k flipped in x
+// (its bounds swap sides, the same triangles), the originals and the mirrors in separate packs past the ultra ring, and
+// a third to two thirds of the placed bushes flipped
+{const V=a.plants.bushes.opts.variants;assert.equal(V.length,6,'three variants and their mirrors');
+  for(let k=0;k<3;k++)for(let l=0;l<V[0].length;l++){const g=V[2*k][l],m=V[2*k+1][l];assert.equal(g.index.count,m.index.count);
+    assert.ok(Math.abs(g.boundingBox.max.x+m.boundingBox.min.x)<1e-6&&Math.abs(g.boundingBox.min.x+m.boundingBox.max.x)<1e-6&&Math.abs(g.boundingBox.max.y-m.boundingBox.max.y)<1e-6,`bush ${k} lod ${l}: the mirror's bounds swap sides`);
+    const gp=g.attributes.position.array,mp=m.attributes.position.array;assert.ok(Math.abs(gp[0]+mp[0])<1e-9&&Math.abs(gp[1]-mp[1])<1e-9&&Math.abs(gp[2]-mp[2])<1e-9,'x negated, y / z kept');
+    const gi=g.index.array,mi=m.index.array;assert.ok(gi[0]===mi[0]&&gi[1]===mi[2]&&gi[2]===mi[1],'winding reversed');}
+  assert.deepEqual(a.plants.bushes.packLayout,[[[0],[1],[2],[3],[4],[5]],[[0,2,4],[1,3,5]],[[0,2,4],[1,3,5]],[[0,2,4],[1,3,5]]]);
+  const flipped=a.plants.bushes.items.filter(it=>it.variant%2===1).length;assert.ok(flipped>=a.plants.bushes.count/3&&flipped<=a.plants.bushes.count*2/3,`${flipped} of ${a.plants.bushes.count} bushes mirrored`);}
 assert.ok(a.plants.bushes.items.filter(it=>it.x>-7.5&&it.x<-2&&it.z>-23&&it.z<-14).length>=4,'Shrub mass on the boulder bank west of the north path (shot D left-centre)');
 // reference-driven composition constraints (see plants.ts / field.ts zones)
 // round 43: a set's leading `nearLods` refine the geometry inside arm's reach of the live camera; the
