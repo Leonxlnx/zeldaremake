@@ -13,14 +13,15 @@
  * root flares run from the sunk ends out over the ground among fern beds. New detail on new rng
  * forks only — the stubs', vegetation's, sheets' and lanterns' streams keep their draws.
  */
-import { CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, Mesh, PlaneGeometry, PointLight, Vector3 } from 'three';
+import { CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, LOD, Mesh, PlaneGeometry, PointLight, Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, angleDiff, basisMatrix, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
-import { FAR_HALO_EAST_SCALE, type StructureMaterials } from './materials';
+import { FAR_HALO_EAST_SCALE, Noise3D, type StructureMaterials } from './materials';
+import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
 export interface LogArchBuild {
   group: Group;
@@ -31,6 +32,22 @@ export interface LogArchBuild {
   lights: PointLight[];
   leaves: number;
   tufts: number;
+  /** round 41 (structures-26): the close-scale detail as built */
+  detail41: {
+    outerGrid: [number, number];
+    mossTufts: number;
+    mossTuftTriangles: number;
+    rimSplinters: number;
+    skirtTriangles: number;
+    /** the cap-moss carpet patches inside the crown's cushion colonies (grid, triangles) */
+    carpetGrid: [number, number];
+    carpetTriangles: number;
+    trefoils: number;
+    beards: number;
+    rootTufts: number;
+    /** the tufts + skirt LOD: its centre and the camera distance beyond which they are dropped (m) */
+    tuftLod: { centre: [number, number, number]; dropBeyondM: number };
+  };
 }
 
 interface Spike {
@@ -144,7 +161,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
    * finer ridge set at ×0.2, and raised bark PLATES (0.12 m) between the fissures, so the trunk
    * body reads as a corrugated mass in D rather than a hazed cylinder.
    */
-  const bark = (psi: number, s: number) => {
+  const barkCoarse = (psi: number, s: number) => {
     const arc = psi * R;
     const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
     const ridge = noise.ridged(arc * 1.1 + twist, s * 0.16, 3);
@@ -157,12 +174,46 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const plates = smoothstep(0.1, 0.5, noise.noise(arc * 0.9 + 51, s * 0.45));
     return (ridge - 0.5) * 0.75 + (ridge2 - 0.5) * 0.2 - furrow * 0.4 - fissure * 0.6 + lumps * 0.25 + fine * 0.03 + plates * 0.12;
   };
+  /**
+   * Round 41 (structures-26): the CLOSE-SCALE bark — what the player sees from the path 2–6 m
+   * under and beside the arch, where round 21's ±0.37 m ridges at a 10 cm vertex pitch read as
+   * smooth bulges. A third cord octave (≈ 30 cm bundles, ±4 cm) following the same twist, narrow
+   * CRACKS (≈ 8 cm wide, 8–12 cm deep, every 40–60 cm along the cords) and chipped plate edges.
+   * Metre-scale features average out at camera D's 6 cm / px; the grid is denser (`cols` / `rows`
+   * below, weighted to the west half the path passes) so they resolve at 2 m.
+   */
+  const barkFine = (psi: number, s: number) => {
+    const arc = psi * R;
+    const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
+    const cords3 = noise.ridged(arc * 3.2 + twist * 2 + 9, s * 0.9, 2) - 0.5;
+    const crack = Math.pow(1 - Math.abs(noise.noise(arc * 2.0 + 47 + twist, s * 0.5 + 3)), 10);
+    const chip = smoothstep(0.55, 0.75, noise.noise(arc * 3.6 + 71, s * 2.1 - 5));
+    return cords3 * 0.08 - crack * 0.11 - chip * 0.025;
+  };
+  const bark = (psi: number, s: number) => barkCoarse(psi, s) + barkFine(psi, s);
   const detail = (psi: number, s: number, up: number) => bark(psi, s) + mossCap(psi, s, up);
-  const outerColor = (psi: number, s: number, disp: number): [number, number, number] => {
+  /**
+   * Round 41 (structures-26): the crown moss as CUSHION COLONIES, the recipe of Saria's cap
+   * (round 40, accepted): a 3D field over the surface point picks 0.4–0.8 m colonies; the sheet is
+   * a SHADED FLOOR between them (× `CROWN_FLOOR`, the damp shadow between cushions) with the
+   * colony hearts lifted (× `CROWN_HEART`), and the cushion tufts stand only on the hearts, so at
+   * 3 m the crown reads as clumped cushions on a dark bed and from D as a lumpy mass — a uniform
+   * scatter of lumps on the plain sheet read as pebbles on bark. Shared by the sheet's colour
+   * (`outerColor`) and the tuft placement so they agree.
+   */
+  const n3 = new Noise3D(rng.fork('tuft-noise41'));
+  const colonyField = (p: Vector3) => 0.5 + 0.5 * n3.noise(p.x * 2.2 + 1.7, p.y * 2.2, p.z * 2.2 + 4.1);
+  const colony = (p: Vector3) => smoothstep(0.41, 0.48, colonyField(p));
+  const CROWN_FLOOR = 0.5;
+  const CROWN_HEART = 1.1;
+  const outerColor = (psi: number, s: number, disp: number, p: Vector3): [number, number, number] => {
     const up = upness(psi);
     const arc = psi * R;
     const patches = noise.fbm(arc * 0.5 + 9, s * 0.5, 2);
-    const relief = bark(psi, s);
+    // the occlusion swing follows the metre-scale relief; the fine cords and cracks add a
+    // smaller share (×0.6) so D's hazed mass keeps its round-21 level and the close views get
+    // grime in the cracks
+    const relief = barkCoarse(psi, s) + 0.6 * barkFine(psi, s);
     // moss covers the cap and creeps down the flanks in patches (more on the shaded north side)
     const m = clamp(smoothstep(0.05, 0.6, up + mossEdge(psi, s)) * (0.8 + 0.5 * patches) + 0.25 * smoothstep(0.35, 0.75, noise.noise(arc * 1.1, s * 1.1 + 2)) * smoothstep(-0.5, 0.4, up), 0, 1);
     // strong occlusion in furrows and fissures, lit crests: this is what makes the ridges read
@@ -182,22 +233,31 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const barkC = [0.78 * shade * (1 - 0.25 * grime), 0.75 * shade * (1 - 0.15 * grime), 0.7 * shade * (1 - 0.3 * grime)];
     // olive moss: yellow-green on the lit cushions, deep green in the hollows; the bark map
     // underneath is brown, so the green has to be pushed hard through the vertex tint
-    const mossC = [1.3 + 0.8 * shade, 2.4 + 1.4 * shade, 0.5 + 0.3 * shade];
+    // round 41: the shaded floor between the cushion colonies and the lifted hearts, only where
+    // the moss is a real cushion (thick cap, m high) — the flanks' creeping patches keep their tone
+    const bed = m * smoothstep(0.15, 0.4, mossCap(psi, s, up));
+    const heart = lerp(1, lerp(CROWN_FLOOR, CROWN_HEART, colony(p)), bed);
+    const mossC = [(1.3 + 0.8 * shade) * heart, (2.4 + 1.4 * shade) * heart, (0.5 + 0.3 * shade) * heart];
     return [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
   };
 
   const _n = new Vector3();
-  const cols = 224;
-  const rows = 160;
+  // round 41: 224 × 160 → 272 × 208 (7.9 cm round, 8.3 cm along on the west half): the rows are
+  // warped so 60 % of them cover the west 45 % of the length — the broken end and the path
+  // crossing the player walks under — and the east body, 10–20 m from the path, keeps ≈ 14 cm
+  const cols = 272;
+  const rows = 208;
+  const rowWarp = (f: number) => (f < 0.6 ? (f / 0.6) * 0.45 : 0.45 + ((f - 0.6) / 0.4) * 0.55);
   const outer = gridSurface(
-    (u, v, out) => {
+    (u, f, out) => {
       const psi = u * TAU;
+      const v = rowWarp(f);
       const s = lerp(sEndW(psi), sEndE(psi), v);
       const disp = detail(psi, s, upness(psi));
       const r = rBase(psi, s) + disp;
       surfacePoint(psi, s, r, out.position);
       out.uv = [(psi * R) / 2.6, s / 2.6];
-      out.color = outerColor(psi, s, disp);
+      out.color = outerColor(psi, s, disp, out.position);
     },
     { cols, rows, closedU: true },
   );
@@ -239,6 +299,43 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const outward = end === 0 ? A.clone().negate() : A.clone();
     faceTowards(ring, (p, o) => o.copy(p).addScaledVector(outward, 5));
     endParts.push(ring);
+  }
+  // ---- round 41 (structures-26): the hollow's rim is SPLINTERED — thin tapered shards of end
+  // grain standing out of the west break (the one the path passes) between the big spikes, some
+  // leaning into the hollow, some out over the bark, 0.3–1.2 m long; end-grain material, so they
+  // fold into the ends' draw. Own fork. ----
+  const splRng = rng.fork('splinters41');
+  let rimSplinters = 0;
+  for (let i = 0; i < 30; i++) {
+    const psi = splRng() * TAU;
+    const sRim = sEndW(psi);
+    const rOut = rBase(psi, sRim) + barkCoarse(psi, sRim);
+    const rIn = rBase(psi, sRim) - wall;
+    const rr = lerp(rIn + 0.04, rOut - 0.06, splRng());
+    const base = surfacePoint(psi, sRim + 0.3, rr);
+    const radial = radialDir(psi, sRim);
+    const f = frameAt(sRim);
+    // mostly along the trunk's axis outward, with a lean out of / into the hollow and sideways
+    const dir = A.clone().negate().addScaledVector(radial, (splRng() - 0.5) * 0.7).addScaledVector(f.r, (splRng() - 0.5) * 0.3).normalize();
+    const len = 0.3 + splRng() * 0.9;
+    const r0 = 0.025 + splRng() * 0.04;
+    const mid = base.clone().addScaledVector(dir, len * 0.5).addScaledVector(radial, (splRng() - 0.5) * 0.08);
+    const tip = base.clone().addScaledVector(dir, len);
+    const pale = 0.6 + splRng() * 0.3;
+    const shard = sweepTube(new CatmullRomCurve3([base, mid, tip], false, 'catmullrom', 0.5), {
+      radius: (t) => r0 * (1 - 0.92 * t) * (1 + 0.25 * Math.sin(t * 9 + i)),
+      tubularSegments: 4,
+      radialSegments: 4,
+      uvMetres: 0.5,
+      // split faces pale, the weathered outer face dark
+      color: (t, ang) => {
+        const d = lerp(0.55, 0.35, t) * lerp(1, pale + 0.5, Math.max(0, Math.cos(ang * 2 + i)));
+        return [d, d * 0.82, d * 0.64];
+      },
+      capEnd: true,
+    });
+    endParts.push(shard);
+    rimSplinters++;
   }
   const endMesh = new Mesh(merge(endParts), mats.endGrain);
   endMesh.name = 'log-ends';
@@ -540,6 +637,340 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   }
   for (const m of foliage21.build(mats, 'log21')) group.add(m);
 
+  // ---- round 41 (structures-26): CLOSE-SCALE DETAIL for the player on the path under and beside
+  // the arch (owner: "Verdant Forest quality at player height — real detail, not smooth surfaces";
+  // references frame-03's heavy bough and board 05 "Branch Bridge" / "Moss on Branch"):
+  //  - the moss crown as CUSHION TUFTS (mossTufts.ts, the cap moss material) gathered in colonies
+  //    over the cap's own green, densest on the west half the path passes, a few on the rim;
+  //  - a TORN MOSS SKIRT hanging over both flanks from the crown's edge, lobed and frayed, standing
+  //    7 cm off the bark with a folded lip (thickness), in the cap moss;
+  //  - moss caps on the root flares' crowns (tufts on the roots' own upper vertices);
+  //  - trefoil / sorrel plants rooted in the crown and at the root flares, small ferns by the path;
+  //  - moss BEARDS with tiny leaflets from the crown's edge, more vines under the belly by the path.
+  // Every stream is a new fork; the meshes fold into the cap-moss / leaf / vine / tuft buckets. ----
+  const tuftRng = rng.fork('moss-tufts41');
+  const tuftSpecs: MossTuftSpec[] = [];
+  /** the displaced outer surface's outward normal at (ψ, s) by finite differences */
+  const _sa = new Vector3();
+  const _sb = new Vector3();
+  const _sc = new Vector3();
+  const _sd = new Vector3();
+  const surfaceNormal = (psi: number, s: number, out: Vector3) => {
+    const e = 0.02;
+    const at = (p: number, q: number, o: Vector3) => surfacePoint(p, q, rBase(p, q) + detail(p, q, upness(p)), o);
+    at(psi + e, s, _sa);
+    at(psi - e, s, _sb);
+    at(psi, s + e, _sc);
+    at(psi, s - e, _sd);
+    _sa.sub(_sb);
+    _sc.sub(_sd);
+    out.crossVectors(_sc, _sa).normalize();
+    if (out.dot(radialDir(psi, s, _sb)) < 0) out.negate();
+    return out;
+  };
+  /**
+   * the crown moss on the cap-moss material (albedo map ≈ 0.45 mean under the vertex tint, no
+   * shade floor): an olive that sits on the sheet's veiled level in D and reads as damp moss
+   * with lit crests at 3 m; darker down the flanks and on the north side. The cushions carry the
+   * colony heart's lift so they rise from the bed they stand on rather than sit on it.
+   */
+  const crownMoss = (psi: number, s: number, heart = 1): [number, number, number] => {
+    const up = upness(psi);
+    const lit = lerp(0.5, 1, smoothstep(-0.2, 0.9, up)) * (0.85 + 0.3 * noise.noise(s * 1.3 + 2, psi * 2.5)) * heart;
+    return [0.19 * lit, 0.27 * lit, 0.05 * lit];
+  };
+  /**
+   * The MOSS CARPET the cushions stand on: a cap-moss sheet lying `CARPET_LIFT` over the bark
+   * inside the colonies and buried `CARPET_BURY` under it between them, rising through the bark
+   * across the colony field's 0.38–0.48 band (≈ 10 cm; buried well under the deepest crack, so no
+   * sliver shows through the fissures between), so every colony is a ragged-lipped green
+   * patch and the bark between is the dark bed. Saria's cap reads as moss because its tufts stand
+   * on the cap-moss sheet; on the bark material (brown map, grain normals) the same cushions read
+   * as pebbles. Shared by the patch grid and the tuft lift so the cushions sit on the carpet.
+   */
+  const CARPET_LIFT = 0.035;
+  const CARPET_BURY = -0.18;
+  const carpetOffset = (p: Vector3, thick: number) => {
+    const f = colonyField(p);
+    const rise = smoothstep(0.38, 0.48, f) * smoothstep(0.15, 0.4, thick);
+    return lerp(CARPET_BURY, CARPET_LIFT, rise) + 0.008 * n3.noise(p.x * 9, p.y * 9, p.z * 9) * rise;
+  };
+  const _tp = new Vector3();
+  const _tn = new Vector3();
+  for (let i = 0; i < 6600; i++) {
+    // 80 % of the attempts on the west half (the path crossing and the broken end — the only
+    // part a player stands under; the east half is 8–15 m from any path point)
+    const west = tuftRng() < 0.8;
+    const s = west ? lerp(-L / 2 - 1.5, 1.5, tuftRng()) : lerp(1.5, L / 2 - 0.8, tuftRng());
+    const psi = Math.PI / 2 + (tuftRng() - 0.5) * 2.4;
+    // 10–30 cm cushions (mean ≈ 18 cm, frame-03's bough): the crown is seen from the path 9 m
+    // below and from the elevated views, where a 6 cm lump is a dot; inside a colony they
+    // overlap into one clumped mass (coverage ≈ 1 on the west half)
+    const r = 0.05 + 0.1 * Math.pow(tuftRng(), 1.4);
+    const aspect = 0.75 + tuftRng() * 0.5;
+    const yaw = tuftRng() * TAU;
+    const hK = 0.5 + tuftRng() * 0.35;
+    const seed = 1 + Math.floor(tuftRng() * 1e6);
+    const keep = tuftRng();
+    const keep2 = tuftRng();
+    if (s < sEndW(psi) + 0.25 || s > sEndE(psi) - 0.4) continue;
+    const up = upness(psi);
+    const thick = mossCap(psi, s, up);
+    if (keep > smoothstep(0.15, 0.4, thick)) continue;
+    surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up), _tp);
+    // on the colony hearts only (a 4 % straggle on the floor between), never on the near-vertical
+    // bark faces the relief throws up — a cushion glued to a wall reads as a pebble
+    const heart = colony(_tp);
+    if (keep2 > lerp(0.04, 1, heart)) continue;
+    surfaceNormal(psi, s, _tn);
+    if (_tn.y < 0.2) continue;
+    // stand on the carpet where there is one (its base ring sinks into the sheet, not the bark)
+    _tp.addScaledVector(_tn, Math.max(0, carpetOffset(_tp, thick)));
+    tuftSpecs.push({
+      position: _tp.clone(),
+      normal: _tn.clone(),
+      rx: r * aspect,
+      rz: r / aspect,
+      h: r * hK,
+      yaw,
+      color: crownMoss(psi, s, lerp(CROWN_FLOOR, CROWN_HEART, heart)),
+      uv: [(psi * R) / 1.6, s / 1.6],
+      sink: r * 0.35,
+      seed,
+    });
+  }
+  // moss on the roots' crowns: on the roots' own upper vertices (exact contact), thinning to the tip
+  let rootTufts = 0;
+  for (let ri = 0; ri < rootParts.length; ri++) {
+    const g = rootParts[ri];
+    const pos = g.attributes.position;
+    const nrm = g.attributes.normal;
+    const uv = g.attributes.uv;
+    for (let v = 0; v < pos.count; v++) {
+      const ny = nrm.getY(v);
+      if (ny < 0.45) continue;
+      const along = uv.getY(v) * 1.6; // metres from the trunk
+      if (tuftRng() > 0.55 * smoothstep(3.6, 1.0, along)) continue;
+      _tp.set(pos.getX(v), pos.getY(v), pos.getZ(v));
+      _tn.set(nrm.getX(v), nrm.getY(v), nrm.getZ(v));
+      const r = 0.025 + tuftRng() * 0.035;
+      tuftSpecs.push({
+        position: _tp.clone(),
+        normal: _tn.clone(),
+        rx: r * (0.8 + tuftRng() * 0.4),
+        rz: r * (0.8 + tuftRng() * 0.4),
+        h: r * (0.5 + tuftRng() * 0.4),
+        yaw: tuftRng() * TAU,
+        color: [0.17 * (0.8 + 0.3 * ny), 0.25 * (0.8 + 0.3 * ny), 0.045],
+        uv: [uv.getX(v), uv.getY(v)],
+        sink: r * 0.5,
+        seed: 1 + Math.floor(tuftRng() * 1e6),
+      });
+      rootTufts++;
+    }
+  }
+  // three rings on the cushions over 9 cm so they are round at 3 m, two on the smaller (D's
+  // triangle budget: +0.5 M per view); the lit top held to ×1.25 (the trunk tufts' level) —
+  // brighter tops on the dark bed read as lumps, not moss
+  const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [8, 6], rings: [3, 2], fineRadius: 0.09, topGain: 1.25, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
+
+  // the torn skirt: one strip per flank along the crown's edge, hanging 0.3–0.8 m in lobes
+  const skirtParts = [];
+  const skirtNoise = new Noise2D(`${ctx.config.seed}/structures/log-skirt41`);
+  for (const north of [false, true]) {
+    const s0 = -L / 2 + 0.7;
+    const s1 = L / 2 - 1.2;
+    const edgePsi = (s: number) => {
+      let psi = north ? Math.PI - 0.3 : 0.3;
+      for (let it = 0; it < 3; it++) {
+        const up = clamp(0.3 - mossEdge(psi, s), -0.3, 0.8);
+        psi = north ? Math.PI - Math.asin(up) : Math.asin(up);
+      }
+      return psi;
+    };
+    const sign = north ? 1 : -1; // increasing ψ goes DOWN the north flank, up the south one
+    const strip = gridSurface(
+      (u, v, out) => {
+        const s = lerp(s0, s1, u);
+        const top = edgePsi(s) - sign * 0.06;
+        // the frayed lower edge: a wandering drop with tongues hanging further
+        const wander = 0.75 + 0.25 * skirtNoise.noise(s * 0.9 + (north ? 11 : 3), 2.5);
+        const tongue = 0.6 * Math.pow(Math.max(0, skirtNoise.noise(s * 2.2 + (north ? 5 : 17), 4)), 2);
+        const drop = ((0.3 + 0.4 * wander + tongue) / R) * (1 + 0.1 * Math.sin(s * 7));
+        // rows: 0 tucked into the bark above the edge, 1–4 the hanging face, 5 the lip folded back
+        const rowsN = 5;
+        const t = Math.min(1, (v * rowsN) / (rowsN - 1));
+        const folded = v * rowsN > rowsN - 1 + 1e-6;
+        const psi = top + sign * drop * (folded ? 1.04 : t);
+        const off = folded ? -0.02 : t === 0 ? -0.03 : 0.07 + 0.03 * skirtNoise.noise(s * 3 + 1, psi * 4);
+        surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + off, out.position);
+        out.uv = [(psi * R) / 1.6, s / 1.6];
+        const c = crownMoss(psi, s);
+        // the face darkens toward the frayed edge, the folded lip is the damp underside
+        const k = folded ? 0.35 : lerp(1.05, 0.6, t);
+        out.color = [c[0] * k, c[1] * k, c[2] * k];
+      },
+      { cols: 150, rows: 6 },
+    );
+    faceTowards(strip, (p, o) => o.copy(p).addScaledVector(radialDir(edgePsi((s0 + s1) / 2) + sign * 0.15, (s0 + s1) / 2), 6));
+    skirtParts.push(strip);
+  }
+  const skirtGeo = merge(skirtParts);
+
+  // the carpet patches: one grid over the crown band (ψ within ±1.25 of the top), ≈ 11 cm cells on
+  // the west half the path passes (65 % of the rows on the west 45 %), ≈ 19 cm on the east body;
+  // buried under the bark between colonies, so only the patches show
+  const carpetRows = 190;
+  const carpetCols = 76;
+  const carpetWarp = (f: number) => (f < 0.65 ? (f / 0.65) * 0.45 : 0.45 + ((f - 0.65) / 0.35) * 0.55);
+  const _cn = new Vector3();
+  const carpet = gridSurface(
+    (u, f, out) => {
+      const psi = Math.PI / 2 + (u - 0.5) * 2.5;
+      const v = carpetWarp(f);
+      const s = lerp(sEndW(psi) + 0.3, sEndE(psi) - 0.5, v);
+      const up = upness(psi);
+      const thick = mossCap(psi, s, up);
+      surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up), out.position);
+      surfaceNormal(psi, s, _cn);
+      const off = carpetOffset(out.position, thick);
+      const fld = colonyField(out.position);
+      out.position.addScaledVector(_cn, off);
+      out.uv = [(psi * R) / 1.6, s / 1.6];
+      // the heart's lift on the patch, a damp darker lip where it rises out of the bark
+      const lip = lerp(0.6, 1, smoothstep(0.4, 0.53, fld));
+      const mottle = 0.88 + 0.24 * n3.noise(out.position.x * 3.1 + 5, out.position.y * 3.1, out.position.z * 3.1);
+      const c = crownMoss(psi, s, lerp(CROWN_FLOOR, CROWN_HEART, colony(out.position)) * lip * mottle);
+      out.color = c;
+    },
+    { cols: carpetCols, rows: carpetRows },
+  );
+  faceTowards(carpet, (p, o) => o.copy(p).addScaledVector(radialDir(Math.PI / 2, 0), 8));
+  /**
+   * The tufts, the carpet and the skirt are one mesh under a camera-distance LOD: 4–12 cm cushions are a
+   * pixel or two from the hero cameras (A 64 m, B/E 57 m, F 60 m from the arch's centre) yet a
+   * merged static bucket would draw all 90 k triangles in every view. The LOD sits at the arch's
+   * centre (its geometry is re-based there, so the consolidation pass — which merges only
+   * identity-matrix meshes — leaves it alone) and drops the mesh beyond `TUFT_LOD_M`; camera D at
+   * 50 m keeps it, so D's silhouette and its moss crown are unchanged.
+   */
+  const TUFT_LOD_M = 55;
+  const tuftCentre = axisAt(-2);
+  const tuftGeo = merge([crownTufts.geometry, carpet, skirtGeo]);
+  tuftGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+  const tuftMesh = new Mesh(tuftGeo, mats.capMoss);
+  tuftMesh.name = 'log-moss-tufts';
+  tuftMesh.castShadow = false;
+  tuftMesh.receiveShadow = true;
+  const tuftLod = new LOD();
+  tuftLod.name = 'log-moss-tufts-lod';
+  tuftLod.position.copy(tuftCentre);
+  tuftLod.addLevel(tuftMesh, 0);
+  tuftLod.addLevel(new Group(), TUFT_LOD_M);
+  tuftLod.updateMatrixWorld(true);
+  group.add(tuftLod);
+
+  // plants: trefoils in the crown moss and at the root flares, small ferns by the path, beards
+  const foliage41 = new FoliageBuilder(rng.fork('foliage41'), `${ctx.config.seed}/log41`);
+  const plantRng = rng.fork('plants41');
+  const SORREL_TINT: [number, number, number] = [1.6, 1.55, 1.4];
+  let trefoils = 0;
+  const trefoil = (p: Vector3, n: Vector3, scale: number) => {
+    const stem = (0.02 + plantRng() * 0.025) * scale;
+    const size = (0.045 + plantRng() * 0.04) * scale;
+    const yaw0 = plantRng() * TAU;
+    const leaflets = plantRng() < 0.25 ? 4 : 3;
+    const k = 0.85 + plantRng() * 0.35;
+    const tint: [number, number, number] = [SORREL_TINT[0] * k, SORREL_TINT[1] * k, SORREL_TINT[2] * k];
+    const base = p.clone().addScaledVector(n, stem);
+    const T = new Vector3(-n.z, 0, n.x);
+    if (T.lengthSq() < 1e-6) T.set(1, 0, 0);
+    T.normalize();
+    const B = new Vector3().crossVectors(n, T);
+    for (let j = 0; j < leaflets; j++) {
+      const yaw = yaw0 + (j / leaflets) * TAU + (plantRng() - 0.5) * 0.4;
+      const dir = new Vector3().addScaledVector(T, Math.cos(yaw)).addScaledVector(B, Math.sin(yaw)).multiplyScalar(0.8).addScaledVector(n, 0.45 + plantRng() * 0.3).normalize();
+      foliage41.addLeaf(base, dir, size * (0.85 + plantRng() * 0.3), plantRng() * TAU, 0.05, tint);
+    }
+    trefoils++;
+  };
+  // colonies on the crown (west-weighted, where the moss is thick)
+  for (let c = 0; c < 26; c++) {
+    const s0 = c < 18 ? lerp(-L / 2 - 1, 1.5, plantRng()) : lerp(1.5, L / 2 - 1.5, plantRng());
+    const psi0 = Math.PI / 2 + (plantRng() - 0.5) * 1.6;
+    const members = 2 + Math.floor(plantRng() * 3);
+    for (let m = 0; m < members; m++) {
+      const s = s0 + (plantRng() - 0.5) * 0.5;
+      const psi = psi0 + (plantRng() - 0.5) * 0.15;
+      if (s < sEndW(psi) + 0.4 || s > sEndE(psi) - 0.6) continue;
+      const up = upness(psi);
+      if (mossCap(psi, s, up) < 0.2) continue;
+      surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up) - 0.01, _tp);
+      surfaceNormal(psi, s, _tn);
+      trefoil(_tp, _tn, 1);
+    }
+  }
+  // at the root flares' feet and along their crowns
+  for (const [fx, fy, fz] of rootFeet) {
+    for (let i = 0; i < 3; i++) {
+      const x = fx + (plantRng() - 0.5) * 1.4;
+      const z = fz + (plantRng() - 0.5) * 1.4;
+      if (terrain.mask(x, z).path > 0.01) continue;
+      _tp.set(x, terrain.height(x, z), z);
+      terrain.normal(x, z, _tn);
+      trefoil(_tp, _tn, 1.1);
+    }
+    void fy;
+  }
+  // small ferns on the crown over the path crossing (the belly's underside is bare)
+  for (let i = 0; i < 8; i++) {
+    const s = pathS + (plantRng() - 0.5) * 6;
+    const psi = Math.PI / 2 + (plantRng() - 0.5) * 1.2;
+    if (s < sEndW(psi) + 0.5) continue;
+    surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.04, _tp);
+    surfaceNormal(psi, s, _tn);
+    _tn.y += 0.6;
+    _tn.normalize();
+    foliage41.addTuft(_tp.clone(), _tn.clone(), 0.32 + plantRng() * 0.14, 1, 0.06, [0.7, 0.8, 0.6]);
+  }
+  // moss beards: thin strands with tiny leaflets from the crown's edge on both flanks, densest
+  // over the path; and six more vines under the belly by the crossing
+  let beards = 0;
+  const beardRng41 = rng.fork('beards41b');
+  for (let i = 0; i < 34; i++) {
+    const s = pathS + (beardRng41() - 0.5) * 12;
+    const north = i % 2 === 1;
+    let psi = north ? Math.PI - 0.3 : 0.3;
+    for (let it = 0; it < 3; it++) {
+      const up = clamp(0.28 - mossEdge(psi, s), -0.3, 0.8);
+      psi = north ? Math.PI - Math.asin(up) : Math.asin(up);
+    }
+    if (s < sEndW(psi) + 0.5 || s > sEndE(psi) - 0.8) continue;
+    surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + 0.05, _tp);
+    foliage41.addHangingVine(_tp.clone(), 0.25 + beardRng41() * 0.45, { amount: 0.12, thickness: 0.006, leafSize: 0.032, leafEvery: 0.028, drift: new Vector3((beardRng41() - 0.5) * 0.15, 0, (beardRng41() - 0.5) * 0.15) });
+    beards++;
+  }
+  for (let i = 0; i < 6; i++) {
+    const s = pathS + (beardRng41() - 0.5) * 6;
+    const psi = -Math.PI / 2 + (beardRng41() - 0.5) * 1.6;
+    const hook = surfacePoint(psi, s, rBase(psi, s) - 0.12);
+    foliage41.addHangingVine(hook, 1.1 + beardRng41() * 1.4, { amount: 0.1, thickness: 0.016 });
+  }
+  for (const m of foliage41.build(mats, 'log41')) group.add(m);
+  const detail41 = {
+    outerGrid: [cols, rows] as [number, number],
+    mossTufts: crownTufts.count,
+    mossTuftTriangles: crownTufts.triangles,
+    rimSplinters,
+    skirtTriangles: Math.floor((skirtGeo.index ? skirtGeo.index.count : skirtGeo.attributes.position.count) / 3),
+    carpetGrid: [carpetCols, carpetRows] as [number, number],
+    carpetTriangles: Math.floor((carpet.index ? carpet.index.count : carpet.attributes.position.count) / 3),
+    trefoils,
+    beards,
+    rootTufts,
+    tuftLod: { centre: [tuftCentre.x, tuftCentre.y, tuftCentre.z] as [number, number, number], dropBeyondM: TUFT_LOD_M },
+  };
+
   // ---- lanterns (round 32: placed and lit for frame 56 s). The frame's arch carries three warm
   // blobs: two on the thin east body's lower flank at the axis level, (0.602, 0.339) and (0.647,
   // 0.326), and one under the west root mass at (0.463, 0.442) — all peak 0.65–0.76, hue 36–38°,
@@ -693,7 +1124,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     lanterns,
     podPositions: lanterns.map((l) => [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number]),
     lights,
-    leaves: foliage.leafCount + foliage21.leafCount,
-    tufts: foliage.tuftCount + foliage21.tuftCount,
+    leaves: foliage.leafCount + foliage21.leafCount + foliage41.leafCount,
+    tufts: foliage.tuftCount + foliage21.tuftCount + foliage41.tuftCount,
+    detail41,
   };
 }

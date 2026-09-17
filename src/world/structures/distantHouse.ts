@@ -242,9 +242,12 @@ const KNOT_DEPTH = 0.55;
 const KNOT_WIDTH = 0.22;
 /** wall cells whose centre is within this of an opening are cut (≥ the fine cells' half diagonal) */
 const HOLE_MARGIN = 0.06;
-/** fine / coarse wall cell sizes (m): around the openings / elsewhere */
+/**
+ * fine / coarse wall cell sizes (m): around the openings / elsewhere. Round 41: the coarse cells
+ * drop from 0.35 × 0.4 to 0.08 × 0.14 so the bark cords (`cordField`) have vertices to displace.
+ */
 const FINE_CELL = { around: 0.07, up: 0.1 };
-const COARSE_CELL = { around: 0.35, up: 0.4 };
+const COARSE_CELL = { around: 0.08, up: 0.14 };
 
 export type HostSource = 'shared' | 'constants';
 
@@ -761,6 +764,45 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       const shade = lerp(0.72, 1, v) * (1 - WALL_DARK_LOBE * lobe);
       return [WALL[0] * shade, WALL[1] * shade, WALL[2] * shade];
     };
+    /**
+     * Round 41 (structures-26): BARK CORDS on the wall. From the landing [16.24, 7.2, −7.07] the
+     * huts stand 21–33 m out (45–70 px per metre) and their walls read as smooth barrels: the
+     * coarse patch was 0.35 × 0.4 m cells on a wobbled cylinder with only the normal map for
+     * relief. The wall is now cut by a periodic ridged cord field (`cordField`: 12–20 cm cords
+     * running near-vertically with a slow lean, two octaves, sampled round a circle so the seam
+     * matches) — furrows 3.5 cm IN, cords 1 cm OUT (under the collars' 1.5 cm stand-off), the
+     * relief fading to nothing within the collar band round each opening so the collars still
+     * cover the cut cells' edges — and the furrows carry grime (× 0.55) with a little moss tint
+     * on the shaded lower third. The coarse patch's cells drop to `CORD_CELL` so the cords have
+     * vertices to live on (≈ 4–6 k triangles per hut, was ≈ 0.5 k).
+     */
+    const cordRng = r.fork('bark-cords');
+    const cordLean = cordRng.range(-0.35, 0.35);
+    const cordNoise = new Noise3D(cordRng);
+    const cordField = (a: number, y: number): number => {
+      const yl = y - floorY;
+      const sweep = a + cordLean * yl * 0.25;
+      const s1 = R * 0.62;
+      const s2 = R * 1.55;
+      // two ridged octaves; the fine one is weighted down so the coarse cords carry the read
+      const r1 = 1 - Math.abs(cordNoise.noise(Math.cos(sweep) * s1 * 4.2, yl * 0.9, Math.sin(sweep) * s1 * 4.2));
+      const r2 = 1 - Math.abs(cordNoise.noise(Math.cos(sweep) * s2 * 4.2 + 7.3, yl * 2.4 + 2.1, Math.sin(sweep) * s2 * 4.2));
+      return clamp(r1 * r1 * 0.75 + r2 * r2 * 0.35, 0, 1);
+    };
+    /** relief fade: 0 inside the openings' collar band (+5 cm), 1 elsewhere, 0 on the eave row */
+    const cordFade = (a: number, y: number, v: number): number => {
+      const band = COLLAR_WIDTH + HOLE_MARGIN + 0.05;
+      const dw = Math.hypot(dAngle(a, aWin) * R, y - winY) - winR;
+      const xd = dAngle(a, aDoor) * R;
+      const yl = y - floorY;
+      const dd = yl < doorHs ? Math.abs(xd) - doorW / 2 : Math.hypot(xd, yl - doorHs) - doorW / 2;
+      const near = Math.min(dw, dd);
+      return smoothstep(0, band, near) * (1 - smoothstep(0.9, 1, v));
+    };
+    const cordDepth = (a: number, y: number, v: number): number => {
+      const c1 = cordField(a, y);
+      return lerp(-0.035, 0.01, c1) * cordFade(a, y, v);
+    };
     const wallPatch = (a0: number, a1: number, cell: { around: number; up: number }, hole?: (a: number, y: number) => boolean) => {
       const cols = Math.max(2, Math.ceil(((a1 - a0) * R) / cell.around));
       const rows = Math.max(2, Math.round(def.wall / cell.up) + 1);
@@ -768,9 +810,20 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         (u, v, out) => {
           const a = lerp(a0, a1, u);
           const y = lerp(floorY, eaveY, v);
-          wallSurface(a, y, out.position);
+          wallSurface(a, y, out.position, cordDepth(a, y, v));
           out.uv = [(a * R) / 1.6, (v * def.wall) / 1.6];
-          out.color = wallColor(a, v);
+          const base = wallColor(a, v);
+          const cord = cordField(a, y);
+          const fade = cordFade(a, y, v);
+          // grime in the furrows; a moss tint low on the camera-facing (shaded) side
+          const grime = lerp(1, lerp(0.55, 1.08, cord), fade);
+          const shaded = Math.max(0, Math.cos(a - aWin));
+          const mossy = (1 - cord) * fade * shaded * (1 - smoothstep(0.1, 0.45, v)) * 0.55;
+          out.color = [
+            lerp(base[0] * grime, MOSS_DEEP[0] * 1.4, mossy),
+            lerp(base[1] * grime, MOSS_DEEP[1] * 1.7, mossy),
+            lerp(base[2] * grime, MOSS_DEEP[2] * 1.4, mossy),
+          ];
         },
         { cols, rows, hole: hole ? (u, v) => hole(lerp(a0, a1, u), lerp(floorY, eaveY, v)) : undefined },
       );

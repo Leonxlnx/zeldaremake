@@ -218,6 +218,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     lanternPosts: posts.length,
     postLanterns: posts.reduce((n, p) => n + p.lanterns.length, 0),
     logArch: true,
+    /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
+    logDetail: log.detail41,
+    /** round 41: the signposts' and fences' grain / checked ends / foot moss / laid rope */
+    woodDetail: { signposts: signposts.map((s) => s.detail41), fences: fences.map((f, i) => ({ id: fenceDefs[i].id, ...f.detail41 })) },
     houseRoots,
     houseBranches,
     /** Saria's eave profile on the door axis (world), now and as rounds 10 / 11 built it */
@@ -242,6 +246,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseBough: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.bough,
     /** round 40: the caps' moss cushion tufts, torn edge and small plants, per house */
     houseMossDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.mossDetail])),
+    /** round 41: the trunks' furrow moss tufts, root / arch moss caps, lichen plates and root-foot trefoils, per house */
+    houseTrunkDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.trunkDetail])),
     /** flower heads on the caps / pots and bottles on the shelves, all houses */
     houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
     houseProps: houses.reduce((n, h) => n + h.props, 0),
