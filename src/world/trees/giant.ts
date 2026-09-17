@@ -34,6 +34,7 @@ import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
 import { basePlants, type BasePlantResult } from './base-plants';
+import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
 
 /**
  * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
@@ -83,52 +84,7 @@ export const NEAR_BOLE_RELIEF = 1;
 /** buttress fins with toes (bole.ts) instead of the plain root tubes on the near boles */
 export const NEAR_BOLE_ROOTS = true;
 
-/**
- * Near-canopy LOD (round 41, the owner: "Verdant Forest quality, especially when looking up").
- * From the plaza and the landing the giants' lower crowns read as hazy leaf-cluster cards with
- * soft edges and no branch structure. Every eligible lobe of a giant (the wild-limb, spread-limb
- * and authored-bough lobes, and the lowest crown lobes: local centre ≤ NEAR_CANOPY_MAX_Y, an
- * ordinary lobe — not flat, not a toned / shaded clump, not a compact plug or an eye-detail
- * curtain — and none a hero camera frames within the swap distance, GiantOptions.nearCanopy) is
- * built twice: its far foliage as before, tagged with the lobe's index in its tree (writer.ts
- * leafSwapGroup), and a NEAR version from its own stream — a third fork level of twiglets
- * (3-sided tapering wood off the recorded twigs, verdant-forest trees.js foliateLobe) each
- * carrying an overlapping spray of cupped laminae and a tip rosette, denser sprays on the twigs
- * and secondaries, a moss strip along the upper side of the lobe's stem — so the lobe reads as
- * wood forking into layered leaves. The trees system shows a near version only while the live
- * camera is within NEAR_CANOPY_IN_M of the lobe centre (out again past NEAR_CANOPY_OUT_M —
- * hysteresis, like the near-base LOD), and the tree shaders drop that group's far cards and
- * laminae from the COLOUR pass meanwhile (materials.ts uNearCanopy; the depth pass keeps them,
- * so the dapple on the ground — measured by every hero frame — never changes, and the near
- * laminae cast nothing). Big limbs below the cap get a dressing part of their own (moss strip,
- * hanging vines, drooping twiglets) with nothing to replace.
- */
-export const NEAR_CANOPY_IN_M = 20;
-export const NEAR_CANOPY_OUT_M = 24;
-/** local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance */
-export const NEAR_CANOPY_MAX_Y = 17;
-/** laminae per near lobe: this × hR² (m²), clamped to NEAR_CANOPY_LEAVES */
-export const NEAR_CANOPY_LEAF_DENSITY = 170;
-export const NEAR_CANOPY_LEAVES: [number, number] = [450, 1800];
-
-/** one near-canopy part of a giant (see NEAR_CANOPY_IN_M), local space */
-export interface NearCanopyPart {
-  /** 'lobe': replaces the far foliage tagged with `group` while shown; 'limb': moss + vines dressing a big limb, nothing to replace */
-  kind: 'lobe' | 'limb';
-  /** the lobe's index in its tree = its swap group (writer.ts leafSwapGroup; a slot names root + group), −1 for a limb dressing */
-  group: number;
-  /** local centre the swap distance is measured to, and the part's reach (m) */
-  center: Vector3;
-  radius: number;
-  /** wood + laminae, same attributes and material as `geometry` (leaf vertices flagged) */
-  geometry: BufferGeometry;
-  leaves: number;
-  triangles: number;
-  woodTriangles: number;
-  /** what the near version stands in for: the far laminae and cluster cards of the lobe */
-  farLeaves: number;
-  farCards: number;
-}
+// Near-canopy LOD (round 41): see nearCanopy.ts (NEAR_CANOPY_IN_M and the shared builders).
 
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
@@ -236,8 +192,10 @@ export interface GiantAsset {
   nearCanopy: NearCanopyPart[];
   /** swap groups this tree's lobes took (0 … nearCanopyGroups − 1) */
   nearCanopyGroups: number;
-  /** eligible lobes a hero camera framed within the swap distance (kept far at every distance) */
+  /** eligible parts a hero camera framed so close that they keep their far foliage at every distance (NEAR_CANOPY_MIN_IN_M) */
   nearCanopyHeroKept: number;
+  /** parts built with swap radii cut under a framing hero camera's distance (NEAR_CANOPY_HERO_MARGIN) */
+  nearCanopyHeroLimited: number;
 }
 
 /**
@@ -519,11 +477,13 @@ export interface GiantOptions {
   /** near-base plant colours (the palette's ferns / ground leaves / litter) */
   basePalette?: Parameters<typeof basePlants>[2]['palette'];
   /**
-   * Near-canopy LOD (see NEAR_CANOPY_IN_M). `allowed(center, radius)` (local): false for a lobe
-   * a hero camera frames within the swap distance — it then keeps its far foliage at every
-   * distance, so the six fixed frames never see a swap. Undefined = no near canopy.
+   * Near-canopy LOD (see NEAR_CANOPY_IN_M). `heroDistance(center, radius)` (local): the distance
+   * (m) of the nearest hero camera that frames the part's padded sphere from within the swap
+   * distance, or Infinity when none does. A framed part swaps only closer than that camera stands
+   * (NEAR_CANOPY_HERO_MARGIN inside it), so the six fixed frames never see a swap while the same
+   * lobe still turns to laminae for a player walking under it. Undefined = no near canopy.
    */
-  nearCanopy?: { allowed?: (center: Vector3, radius: number) => boolean };
+  nearCanopy?: { heroDistance?: HeroDistanceFn };
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -1234,52 +1194,36 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   }
   let coreRimCards = 0;
 
-  /**
-   * A lobe recorded for the near-canopy LOD (see NEAR_CANOPY_IN_M): its far wood as built — the
-   * stem it hangs on, its secondaries and twigs — so the near version can fork on from them.
-   */
-  interface NearLobeRecord {
-    group: number;
-    center: Vector3;
-    hR: number;
-    vR: number;
-    stem: Vector3[];
-    stemRadii: number[];
-    secondaries: { path: Vector3[]; radius: number }[];
-    twigs: { path: Vector3[]; radius: number }[];
-    /** far laminae / cards written for the lobe (what the near version stands in for) */
-    farLeaves: number;
-    farCards: number;
-  }
+  // near-canopy LOD (nearCanopy.ts): the lobes and big limbs recorded for it while the far tree
+  // is written — their far wood as built, so the near versions can fork on from it
   const near = o.nearCanopy;
   const nearLobes: NearLobeRecord[] = [];
   /** big limbs below the cap, for the limb dressing parts (moss strip, vines) */
-  const nearLimbs: { path: Vector3[]; radii: number[] }[] = [];
+  const nearLimbs: NearLimbRecord[] = [];
   let nearGroups = 0;
-  let nearHeroKept = 0;
+  const nearTally = { kept: 0, limited: 0 };
+  const swapRadii = (center: Vector3, radius: number) => swapRadiiFor(near?.heroDistance, center, radius, nearTally);
   const recordLimb = (path: Vector3[], radii: number[]) => {
     if (!near || ghost) return;
     const midY = sample(path, 0.5).y;
     if (midY > NEAR_CANOPY_MAX_Y || path.length < 3) return;
     // the dressing's reach: half the limb plus the vines' drop (the same bound its part reports)
     const reach = 0.5 * path.reduce((s, p, i) => (i ? s + p.distanceTo(path[i - 1]) : 0), 0) + 3.8;
-    if (near.allowed && !near.allowed(sample(path, 0.6), reach)) {
-      nearHeroKept++;
-      return;
-    }
-    nearLimbs.push({ path, radii });
+    const radii2 = swapRadii(sample(path, 0.6), reach);
+    if (!radii2) return;
+    nearLimbs.push({ path, radii, inM: radii2[0], outM: radii2[1] });
   };
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false, stemRadii?: number[]) {
     lobe = { center, hR };
-    // near-canopy eligibility (see NEAR_CANOPY_IN_M): an ordinary lobe below the cap that no hero
-    // camera frames within the swap distance. Its far foliage is tagged with the lobe's group
-    // while it is written; nothing about the far lobe itself changes.
+    // near-canopy eligibility (nearCanopy.ts): an ordinary lobe below the cap, its swap radii cut
+    // under any hero camera that frames it. Its far foliage is tagged with the lobe's group while
+    // it is written; nothing about the far lobe itself changes.
     let rec: NearLobeRecord | null = null;
     if (near && !ghost && !lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1 && center.y <= NEAR_CANOPY_MAX_Y) {
-      if (near.allowed && !near.allowed(center, hR + 1.4)) nearHeroKept++;
-      else {
-        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0 };
+      const radii2 = swapRadii(center, hR + 1.4);
+      if (radii2) {
+        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
         leaves.leafSwapGroup = rec.group;
         cards.leafSwapGroup = rec.group;
       }
@@ -1822,7 +1766,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
   }
 
-  // ---------- near canopy (see NEAR_CANOPY_IN_M) ----------
+  // ---------- near canopy (nearCanopy.ts) ----------
   // Every part is built after the whole far tree, from its own forked stream into its own writer,
   // so the far tree is exactly what it was with the LOD off (the near base's rule). The near
   // wood forks on from the far wood as recorded (the stems, secondaries and twigs stay drawn at
@@ -1830,16 +1774,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // reads as one branch system: bough → secondary → twig → twiglet → spray.
   const nearCanopy: NearCanopyPart[] = [];
   if (near && (nearLobes.length || nearLimbs.length)) {
-    const ncNoise = new Noise2D(`giant-near-canopy/${def.id}`);
-    const mossDeep = new Color(0x1a2e0e);
-    const mossLit = new Color(0x4d6b22);
-    const vineLeaf = new Color(0x4b7a3a);
-    const pathLength = (path: Vector3[]) => path.reduce((s, p, i) => (i ? s + p.distanceTo(path[i - 1]) : 0), 0);
-    const radiusAt = (radii: number[], t: number) => {
-      const f = Math.max(0, Math.min(1, t)) * (radii.length - 1);
-      const k = Math.min(radii.length - 2, Math.floor(f));
-      return radii[k] + (radii[k + 1] - radii[k]) * (f - k);
-    };
     /** the far leaf colour rule (leafSpray) for a lamina at `base` in a lobe about `center`, from stream g */
     const nearLeafColor = (g: Rng, base: Vector3, center: Vector3, hR: number, vigor: number) => {
       const gb = (a: number, b: number) => between(g, a, b);
@@ -1858,232 +1792,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .lerp(cool, under * 0.25)
         .multiplyScalar(vigor * (1 - interior * 0.32) * (1 - under * 0.12));
     };
-    // beech / oak obovate laminae, 8 triangles each, cupped and twisted (writer.ts addLeaf)
-    const nearLeafOpts = (radius: number): LeafOptions => ({ widthRatio: 0.62, wideFirst: 0.7, wideSecond: 0.82, stiffness: stiffnessFor(radius), flutter: 0.035, detailOverride: 'high', tipColor: new Color('#8a9a4c') });
-    /**
-     * A spray of laminae along the outer part of `path`: alternate pairs leaving the axis at
-     * 50–80° with a little roll each, pitched up a touch, so neighbours overlap 2–3 deep along the
-     * twig instead of radiating evenly (the far leafSpray's golden-angle scatter).
-     */
-    const nearSpray = (w: GeometryWriter, g: Rng, path: Vector3[], pathRadius: number, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, startT = 0.3) => {
-      const gb = (a: number, b: number) => between(g, a, b);
-      const opts = nearLeafOpts(pathRadius);
-      let n = 0;
-      for (let j = 0; j < count; j++) {
-        const t = startT + ((1 - startT) * (j + gb(0.2, 0.8))) / count;
-        const base = sample(path, t);
-        const axis = tangent(path, t);
-        const [u, v] = frame(axis);
-        const side = j % 2 === 0 ? 1 : -1;
-        const roll = gb(-0.4, 0.4);
-        const outward = u.clone().multiplyScalar(side * Math.cos(roll)).addScaledVector(v, Math.sin(roll));
-        const direction = axis.clone().multiplyScalar(gb(0.5, 0.9)).addScaledVector(outward, 1).addScaledVector(UP, gb(-0.1, 0.35)).normalize();
-        if (addLeaf(w, base, direction, gb(size[0], size[1]), nearLeafColor(g, base, center, hR, vigor), g, opts)) n++;
-      }
-      return n;
-    };
-    /** a rosette of laminae fanning from a twig tip: the layered end of every spray */
-    const nearRosette = (w: GeometryWriter, g: Rng, tip: Vector3, axis: Vector3, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, radius: number) => {
-      const gb = (a: number, b: number) => between(g, a, b);
-      const opts = nearLeafOpts(radius);
-      const [u, v] = frame(axis);
-      const phase = g() * TAU;
-      let n = 0;
-      for (let j = 0; j < count; j++) {
-        const a = phase + (j / count) * TAU + gb(-0.2, 0.2);
-        const outward = u.clone().multiplyScalar(Math.cos(a)).addScaledVector(v, Math.sin(a));
-        const direction = axis.clone().multiplyScalar(gb(0.8, 1.3)).addScaledVector(outward, gb(0.5, 0.9)).addScaledVector(UP, gb(-0.05, 0.25)).normalize();
-        const base = tip.clone().addScaledVector(outward, radius * 0.5);
-        if (addLeaf(w, base, direction, gb(size[0], size[1]), nearLeafColor(g, base, center, hR, vigor), g, opts)) n++;
-      }
-      return n;
-    };
-    /**
-     * The third fork level: `count` twiglets off `parent` at 0.3–0.92 of its length — 3-sided
-     * tapering wood (verdant-forest trees.js: every level thinner and shorter than its parent)
-     * leaving at 30–60° and drooping toward the tip under its leaves — each with a spray and a
-     * tip rosette. Returns the laminae built.
-     */
-    const twiglets = (w: GeometryWriter, g: Rng, parent: Vector3[], parentRadius: number, count: number, reach: number, center: Vector3, hR: number, vigor: number, size: [number, number], leafScale: number) => {
-      const gb = (a: number, b: number) => between(g, a, b);
-      const phase = g() * TAU;
-      let n = 0;
-      for (let k = 0; k < count; k++) {
-        const t = 0.3 + (k / count) * 0.62 + gb(-0.04, 0.04);
-        const origin = sample(parent, t);
-        const axis = tangent(parent, t);
-        const [u, v] = frame(axis);
-        const a = phase + k * 2.39996 + gb(-0.3, 0.3);
-        const outward = u.clone().multiplyScalar(Math.cos(a)).addScaledVector(v, Math.sin(a));
-        const length = reach * gb(0.7, 1.15) * (1 - 0.3 * t);
-        const dir = axis.clone().multiplyScalar(gb(0.7, 1.2)).addScaledVector(outward, 1).addScaledVector(UP, gb(0, 0.45)).normalize();
-        const target = origin.clone().addScaledVector(dir, length);
-        target.y -= length * gb(0.1, 0.3);
-        const path = growthPath(origin, target, axis, g, 4, 0.7);
-        const radius = Math.max(0.005, parentRadius * (1 - t * 0.6) * 0.55);
-        sweep(w, path, taper(path, radius, 0.0015), 3, g, { color: barkColor, roughness: 0.02 });
-        n += nearSpray(w, g, path, radius, Math.max(3, Math.round(6 * leafScale)), size, center, hR, vigor, 0.25);
-        n += nearRosette(w, g, path[path.length - 1], tangent(path, 1), Math.max(3, Math.round(4 * leafScale)), size, center, hR, vigor, radius);
-      }
-      return n;
-    };
-    /**
-     * A moss sheet along the upper side of a stem (writer.ts woodMoss: the tree shader lays the
-     * cushions, flattens the bark normal and roughens the surface under them): a strip of
-     * `sides` vertices across the top of each ring, a little proud of the bark, its angular
-     * half-width breathing along the length with a metre-scale field so the sheet ends in
-     * tongues, the cover full on the crest and thinning to the edges (the shader's cushion
-     * threshold then leaves bark showing between the cushions there). A near-vertical stretch
-     * has no upper side and breaks the strip. Returns the triangles built.
-     */
-    const mossStrip = (w: GeometryWriter, path: Vector3[], radii: number[], strength: number, spacing = 0.15) => {
-      const total = pathLength(path);
-      const n = Math.max(3, Math.round(total / spacing));
-      const sides = 6;
-      let prev: number[] | null = null;
-      let tris = 0;
-      const up = new Vector3();
-      const sideV = new Vector3();
-      const q = new Vector3();
-      const c = new Color();
-      for (let i = 0; i <= n; i++) {
-        const t = i / n;
-        const p = sample(path, t);
-        const rr = radiusAt(radii, t);
-        const axis = tangent(path, t);
-        up.copy(UP).addScaledVector(axis, -UP.dot(axis));
-        if (up.lengthSq() < 0.05) {
-          prev = null;
-          continue;
-        }
-        up.normalize();
-        sideV.crossVectors(axis, up).normalize();
-        const field = 0.5 + 0.5 * ncNoise.fbm(p.x * 0.7 + p.y * 0.3, p.z * 0.7 - p.y * 0.2, 3);
-        const halfAngle = (0.35 + 0.75 * field) * strength * (1 - smoothstep(0.85, 1, t));
-        const row: number[] = [];
-        for (let j = 0; j <= sides; j++) {
-          const s = (j / sides) * 2 - 1;
-          const ang = s * halfAngle;
-          const cushion = 0.5 + 0.5 * ncNoise.noise(p.x * 9 + j * 1.7, p.z * 9 + p.y * 7);
-          const lift = rr * (0.03 + 0.05 * cushion) + 0.01;
-          q.copy(p).addScaledVector(up, Math.cos(ang) * (rr + lift)).addScaledVector(sideV, Math.sin(ang) * (rr + lift));
-          const edge = 1 - Math.abs(s);
-          const cover = Math.min(1, (0.45 + 0.7 * edge) * (0.6 + 0.6 * field)) * strength;
-          c.copy(mossDeep).lerp(mossLit, cushion * 0.7 + 0.3 * edge);
-          w.woodMoss = cover;
-          row.push(w.vertex(q, c, j / sides, (t * total) / 0.4, stiffnessFor(rr), 0, 0));
-          w.woodMoss = 0;
-        }
-        if (prev) {
-          for (let j = 0; j < sides; j++) {
-            w.triangle(prev[j], prev[j + 1], row[j]);
-            w.triangle(prev[j + 1], row[j + 1], row[j]);
-            tris += 2;
-          }
-        }
-        prev = row;
-      }
-      return tris;
-    };
-    /**
-     * A vine hanging from the underside of a limb at `from`: a drooping cord (3 sides, its own
-     * low stiffness so it swings on the branch layer) with small paired leaves turned down and
-     * out along it. Returns the laminae built.
-     */
-    const hangingVine = (w: GeometryWriter, g: Rng, from: Vector3) => {
-      const gb = (a: number, b: number) => between(g, a, b);
-      const drop = gb(1.6, 3.6);
-      const swingAz = g() * TAU;
-      const swing = gb(0.25, 0.7);
-      const segs = 9;
-      const path: Vector3[] = [];
-      for (let i = 0; i <= segs; i++) {
-        const s = i / segs;
-        const out = swing * Math.sin(s * Math.PI * 0.5);
-        path.push(from.clone().add(new Vector3(Math.cos(swingAz) * out, -drop * s + 0.15 * Math.sin(s * 5.1 + swingAz) * s, Math.sin(swingAz) * out)));
-      }
-      const radius = 0.012 + 0.004 * drop;
-      sweep(w, path, taper(path, radius, 0.003, 0.8), 3, g, { color: barkColor, roughness: 0.02, stiffness: () => 0.18 });
-      const opts: LeafOptions = { ...nearLeafOpts(0.01), stiffness: 0.18, flutter: 0.05 };
-      const count = Math.round(drop * 5);
-      let n = 0;
-      for (let j = 0; j < count; j++) {
-        const t = 0.12 + (0.86 * (j + gb(0.2, 0.8))) / count;
-        const base = sample(path, t);
-        const axis = tangent(path, t);
-        const [u, v] = frame(axis);
-        const a = j * 2.39996 + gb(-0.3, 0.3);
-        const direction = u.clone().multiplyScalar(Math.cos(a)).addScaledVector(v, Math.sin(a)).addScaledVector(UP, gb(-0.55, -0.15)).normalize();
-        const color = vineLeaf.clone().multiplyScalar(gb(0.75, 1.05)).lerp(canopy, 0.3);
-        if (addLeaf(w, base, direction, gb(0.07, 0.12), color, g, opts)) n++;
-      }
-      return n;
-    };
-
-    nearLobes.forEach((rec, idx) => {
-      const w = new GeometryWriter('high');
-      const g = r.fork(`near-canopy/lobe/${idx}`);
-      const gb = (a: number, b: number) => between(g, a, b);
-      const target = Math.max(NEAR_CANOPY_LEAVES[0], Math.min(NEAR_CANOPY_LEAVES[1], NEAR_CANOPY_LEAF_DENSITY * rec.hR * rec.hR));
-      // what the twigs carry at scale 1: ≈ 7 on the twig + 2.5 twiglets × (6 spray + 4 rosette)
-      const leafScale = Math.max(0.6, Math.min(2.4, target / (Math.max(1, rec.twigs.length) * 32 + rec.secondaries.length * 8)));
-      const high = smoothstep(4, 15, rec.center.y);
-      const size: [number, number] = [0.15 + 0.05 * high, 0.24 + 0.08 * high];
-      const vigor = 0.96;
-      let leaves = 0;
-      for (const sec of rec.secondaries) leaves += nearSpray(w, g, sec.path, sec.radius, Math.max(3, Math.round(8 * leafScale)), size, rec.center, rec.hR, vigor, 0.45);
-      for (const twig of rec.twigs) {
-        leaves += nearSpray(w, g, twig.path, twig.radius, Math.max(3, Math.round(7 * leafScale)), size, rec.center, rec.hR, vigor, 0.3);
-        leaves += twiglets(w, g, twig.path, twig.radius, g.int(2, 4), rec.hR * gb(0.28, 0.42), rec.center, rec.hR, vigor, size, leafScale);
-      }
-      // moss along the upper side of the stem the lobe hangs on (the plain sweep is bare)
-      const stemR = rec.stemRadii[0];
-      if (stemR >= 0.09) mossStrip(w, rec.stem, rec.stemRadii, Math.min(1, 0.55 + stemR));
-      const geometry = w.finish(`giant-near-canopy-${def.id}-lobe-${idx}`);
-      nearCanopy.push({ kind: 'lobe', group: rec.group, center: rec.center.clone(), radius: rec.hR * 1.35 + 0.6, geometry, leaves, triangles: w.triangles, woodTriangles: w.triangles - leaves * 8, farLeaves: rec.farLeaves, farCards: rec.farCards });
-    });
-
-    nearLimbs.forEach((limb, idx) => {
-      const w = new GeometryWriter('high');
-      const g = r.fork(`near-canopy/limb/${idx}`);
-      const gb = (a: number, b: number) => between(g, a, b);
-      let leaves = 0;
-      mossStrip(w, limb.path, limb.radii, 1, 0.22);
-      const up = new Vector3();
-      const side = new Vector3();
-      // vines from the underside of the outer two thirds
-      const vines = g.int(2, 5);
-      for (let k = 0; k < vines; k++) {
-        const t = gb(0.3, 0.92);
-        const p = sample(limb.path, t);
-        const rr = radiusAt(limb.radii, t);
-        const axis = tangent(limb.path, t);
-        up.copy(UP).addScaledVector(axis, -UP.dot(axis)).normalize();
-        side.crossVectors(axis, up).normalize();
-        leaves += hangingVine(w, g, p.clone().addScaledVector(up, -rr * 0.85).addScaledVector(side, gb(-0.5, 0.5) * rr));
-      }
-      // a few epicormic shoots off the upper side, each a small forked spray of its own
-      const shoots = g.int(2, 4);
-      for (let k = 0; k < shoots; k++) {
-        const t = gb(0.25, 0.9);
-        const p = sample(limb.path, t);
-        const rr = radiusAt(limb.radii, t);
-        const axis = tangent(limb.path, t);
-        up.copy(UP).addScaledVector(axis, -UP.dot(axis)).normalize();
-        side.crossVectors(axis, up).normalize();
-        const a = gb(-0.9, 0.9);
-        const origin = p.clone().addScaledVector(up, rr * Math.cos(a) * 0.95).addScaledVector(side, rr * Math.sin(a) * 0.95);
-        const dir = up.clone().multiplyScalar(Math.cos(a)).addScaledVector(side, Math.sin(a)).addScaledVector(axis, gb(-0.3, 0.6)).normalize();
-        const length = gb(0.7, 1.4);
-        const path = growthPath(origin, origin.clone().addScaledVector(dir, length), dir, g, 4, 0.8);
-        sweep(w, path, taper(path, 0.02, 0.003), 3, g, { color: barkColor, roughness: 0.02 });
-        const c = path[path.length - 1];
-        leaves += nearSpray(w, g, path, 0.02, 7, [0.14, 0.22], c, 0.6, 0.95, 0.35);
-        leaves += twiglets(w, g, path, 0.02, 2, 0.45, c, 0.8, 0.95, [0.14, 0.22], 1);
-      }
-      const geometry = w.finish(`giant-near-canopy-${def.id}-limb-${idx}`);
-      nearCanopy.push({ kind: 'limb', group: -1, center: sample(limb.path, 0.6), radius: 0.5 * pathLength(limb.path) + 3.8, geometry, leaves, triangles: w.triangles, woodTriangles: w.triangles - leaves * 8, farLeaves: 0, farCards: 0 });
-    });
+    const kit = createNearCanopyKit({ id: `giant-${def.id}`, barkColor, leafColor: nearLeafColor, canopy });
+    nearLobes.forEach((rec, idx) => nearCanopy.push(kit.lobePart(r, rec, idx)));
+    nearLimbs.forEach((limb, idx) => nearCanopy.push(kit.limbPart(r, limb, idx)));
   }
 
   return {
@@ -2119,6 +1830,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     coreRimCards,
     nearCanopy,
     nearCanopyGroups: nearGroups,
-    nearCanopyHeroKept: nearHeroKept,
+    nearCanopyHeroKept: nearTally.kept,
+    nearCanopyHeroLimited: nearTally.limited,
   };
 }

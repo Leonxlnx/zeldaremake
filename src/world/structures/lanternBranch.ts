@@ -48,6 +48,16 @@ import { type StructureMaterials, windLeafMaterial } from './materials';
 import { applySleeveBarkResponse } from './sleeveBark';
 
 /**
+ * The lantern laminae's lit face (round 41, task 3): the share of the Lambert sun a lamina's
+ * sunlit face keeps, and how far that lit colour is pulled toward an olive of the same luminance
+ * (blue taken down). Frame-03's bough leaves are a deep olive (hue 82–88°) where ours read as
+ * lime rosettes from 3 m (pods-3m leaf mean 0.385, sat 0.34). The shade fill and the sun
+ * transmission are untouched, so the backlit laminae still glow. Measured in the round-41 report.
+ */
+const LANTERN_LEAF_LIT_FACE = 0.42;
+const LANTERN_LEAF_LIT_OLIVE = 0.35;
+
+/**
  * Verdant-style leaf laminae (verdant-forest trees.js `addLeaf`; the trees writer carries the
  * same port for the giants, which the structures system cannot import). One heart leaf is a
  * cupped, twisted surface — raised midrib, shoulders rolled up, tip curled — of 8 triangles near
@@ -383,7 +393,11 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   // dark olive in frame 1 s; the laminae's base tint keeps that but the lit/backlit ones lift
   // through the material's transmission. Round 40: 0.36/0.42/0.21 still rendered the sun-side
   // clusters as lime rosettes from 3 m against frame-03's heavy dark bough — a darker olive base)
-  const leafBase = new Color().setRGB(0.27, 0.33, 0.16);
+  // Round 41: the base tint pulled down again and the lit face of the material cut (see
+  // LANTERN_LEAF_LIT_FACE): frame-03's bough leaves measure hue 82–88° at a luminance far under
+  // ours (pods-3m leaf mean 0.385 → the round-41 target ≈ 0.2, a deep olive that still lets the
+  // backlit laminae glow).
+  const leafBase = new Color().setRGB(0.23, 0.28, 0.13);
   const tintFor = (): Color => {
     const k = 0.72 + twigRng() * 0.56;
     const warm = (twigRng() - 0.5) * 0.08;
@@ -679,18 +693,31 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <lights_fragment_end>',
         /* glsl */ `#include <lights_fragment_end>
+        // round 41: the sun-side laminae read as lime rosettes from 3 m (pods-3m: leaf mean 0.385,
+        // sat 0.34) against frame-03's heavy bough, whose leaves are a deep olive (hue 82–88°,
+        // deep in the roof's shade). The Lambert sun on the lit FACE is cut to LIT_FACE and part
+        // desaturated toward an olive (the yellow-green's blue taken down, not its luminance
+        // alone); the shade fill and the transmission below are untouched, so the backlit
+        // laminae still glow through.
+        {
+          vec3 lit = reflectedLight.directDiffuse * ${LANTERN_LEAF_LIT_FACE.toFixed(2)};
+          float litLum = dot(lit, vec3(0.2126, 0.7152, 0.0722));
+          lit = mix(lit, vec3(litLum) * vec3(1.05, 1.0, 0.55), ${LANTERN_LEAF_LIT_OLIVE.toFixed(2)});
+          reflectedLight.directDiffuse = lit;
+        }
         reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;
         #if NUM_DIR_LIGHTS > 0
         {
           float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
           float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
-          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.28;
+          // 0.28 → 0.32 (round 41): the base tint is 0.85 of what it was, the glow keeps its level
+          reflectedLight.directDiffuse += diffuseColor.rgb * directLight.color * transmission * 0.32;
         }
         #endif`,
       );
     };
     const key = leafMat.customProgramCacheKey;
-    leafMat.customProgramCacheKey = () => `${key.call(leafMat)}|lamina`;
+    leafMat.customProgramCacheKey = () => `${key.call(leafMat)}|lamina-r41`;
     const leafMesh = new Mesh(leafGeo, leafMat);
     leafMesh.name = 'lantern-branch-laminae';
     leafMesh.castShadow = false;

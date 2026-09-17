@@ -28,7 +28,8 @@ import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
-import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type CanopyBough, type GiantAsset, type GiantProfile, type NearCanopyPart } from './giant';
+import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
 import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
@@ -1411,6 +1412,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group: number;
     /** world centre the swap distance is measured to */
     center: Vector3;
+    /** the part's own swap radii (giant.ts swapRadii) */
+    inM: number;
+    outM: number;
     mesh: Mesh;
     triangles: number;
     leaves: number;
@@ -1424,8 +1428,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const NEAR_CANOPY_LIMBS_MAX = 12;
   /**
    * The hero cameras' frusta (the six fixed viewpoints, a little wider than they render): a lobe
-   * whose padded sphere one of them frames from within the swap distance keeps its far foliage
-   * at every distance (GiantOptions.nearCanopy.allowed), so no fixed frame ever sees a swap.
+   * whose padded sphere one of them frames from within the swap distance swaps only closer than
+   * that camera stands (GiantOptions.nearCanopy.heroDistance → giant.ts swapRadii), so no fixed
+   * frame ever sees a swap while the same lobe still turns to laminae for a player under it.
    */
   const heroFrusta = ctx.layout.viewpoints.map((v) => {
     const cam = new PerspectiveCamera(v.fov + 4, 1.85, 0.1, 400);
@@ -1436,14 +1441,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return { position: cam.position.clone(), frustum: new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse)) };
   });
   const heroSphere = new Sphere();
-  const nearCanopyAllowed = (origin: Vector3) => (center: Vector3, radius: number) => {
+  const nearCanopyHeroDistance = (origin: Vector3) => (center: Vector3, radius: number) => {
     heroSphere.center.copy(center).add(origin);
     heroSphere.radius = radius + 1.5;
+    let nearest = Infinity;
     for (const h of heroFrusta) {
-      if (h.position.distanceTo(heroSphere.center) > NEAR_CANOPY_OUT_M + 0.5) continue;
-      if (h.frustum.intersectsSphere(heroSphere)) return false;
+      const d = h.position.distanceTo(heroSphere.center);
+      if (d > NEAR_CANOPY_OUT_M + 0.5 || d >= nearest) continue;
+      if (h.frustum.intersectsSphere(heroSphere)) nearest = d;
     }
-    return true;
+    return nearest;
   };
   const basePalette = {
     fern: new Color(palette.grassMid),
@@ -1718,7 +1725,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           return { ...k, toward: new Vector3(cos * wx - sin * wz, 0, sin * wx + cos * wz).normalize() };
         })
       : undefined;
-    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette, knees }));
+    // the near-canopy hero test in the seat's frame (local centre → world through yaw, scale, seat)
+    const seatOrigin = new Vector3(p.x, p.y, p.z);
+    const heroDistanceWorld = nearCanopyHeroDistance(seatOrigin);
+    const heroDistance = (center: Vector3, radius: number) => heroDistanceWorld(new Vector3(p.scale * (cos * center.x + sin * center.z), p.scale * center.y, p.scale * (-sin * center.x + cos * center.z)), radius * p.scale);
+    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette, knees, nearCanopy: { heroDistance } }));
     seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
     await yieldFrame();
   }
@@ -1748,6 +1759,46 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.kind = 'column-near-base';
     columnGroup.add(mesh);
     nearBoles.push({ id: p.id, origin: new Vector3(p.x, p.y, p.z), cutY: asset.nearBaseAudit.cutY, mesh, triangles: asset.nearBaseAudit.triangles, active: false, dist: Infinity, band: nearBand(p.id), rootsOnly: asset.nearBaseAudit.rootsOnly });
+  }
+  // the seated columns' near-canopy parts (see NearCanopy): one hidden non-casting mesh per lobe,
+  // posed like its instance; the far program folds the instance's tagged laminae by its world root
+  const columnNearCanopyGeometries: BufferGeometry[] = [];
+  for (const c of seatedColumns) {
+    const p = c.placements[0];
+    const cos = Math.cos(p.yaw), sin = Math.sin(p.yaw);
+    c.lods[0].nearCanopy.forEach((part, i) => {
+      part.geometry.computeBoundingBox();
+      part.geometry.computeBoundingSphere();
+      part.geometry.boundingSphere!.radius += CULL_PAD_M / p.scale;
+      columnNearCanopyGeometries.push(part.geometry);
+      const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
+      mesh.name = `column-near-canopy-${p.id}-${part.kind}-${i}`;
+      mesh.position.set(p.x, p.y, p.z);
+      mesh.rotation.y = p.yaw;
+      mesh.scale.setScalar(p.scale);
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      mesh.visible = false;
+      mesh.userData.kind = 'column-near-canopy';
+      columnGroup.add(mesh);
+      nearCanopies.push({
+        id: `${p.id}/${part.kind}-${i}`,
+        tree: p.id,
+        kind: part.kind,
+        root: new Vector3(p.x, p.y, p.z),
+        group: part.group,
+        center: new Vector3(p.x + p.scale * (cos * part.center.x + sin * part.center.z), p.y + p.scale * part.center.y, p.z + p.scale * (-sin * part.center.x + cos * part.center.z)),
+        inM: part.inM,
+        outM: part.outM,
+        mesh,
+        triangles: part.triangles,
+        leaves: part.leaves,
+        farLeaves: part.farLeaves,
+        farCards: part.farCards,
+        active: false,
+        dist: Infinity,
+      });
+    });
   }
   group.add(columnGroup);
   // every seated column publishes its bole as built (ctx.shared.trunkSeats) so structures hang on
@@ -1877,7 +1928,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
         }),
       ),
-      nearCanopy: { allowed: nearCanopyAllowed(origin) },
+      nearCanopy: { heroDistance: nearCanopyHeroDistance(origin) },
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards, ...(asset.nearBase ? [asset.nearBase] : []), ...asset.nearCanopy.map((p) => p.geometry)]) {
@@ -2047,6 +2098,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         root: g.origin.clone(),
         group: part.group,
         center: part.center.clone().add(g.origin),
+        inM: part.inM,
+        outM: part.outM,
         mesh,
         triangles: part.triangles,
         leaves: part.leaves,
@@ -2348,9 +2401,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
     for (const nc of nearCanopies) {
       nc.dist = nc.center.distanceTo(cam);
-      if (reset) nc.active = nc.dist < NEAR_CANOPY_IN_M;
-      else if (nc.active) nc.active = nc.dist <= NEAR_CANOPY_OUT_M;
-      else nc.active = nc.dist < NEAR_CANOPY_IN_M;
+      if (reset) nc.active = nc.dist < nc.inM;
+      else if (nc.active) nc.active = nc.dist <= nc.outM;
+      else nc.active = nc.dist < nc.inM;
     }
     const byDist = (a: NearCanopy, b: NearCanopy) => a.dist - b.dist;
     const shownLobes = nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
@@ -2436,7 +2489,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       add(family('distant-far'), d.far);
     }
     for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
-    for (const nc of nearCanopies) add(family(`giant-near-canopy-${nc.kind}`), nc.mesh);
+    for (const nc of nearCanopies) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
     const total = tally();
     for (const t of Object.values(byFamily)) {
       total.meshes += t.meshes;
@@ -2619,13 +2672,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /**
        * near-canopy LOD (giant.ts NEAR_CANOPY_IN_M, round 41): radii (m), the lobe-height cap,
        * the slot cap, the near leaf floor [lift, texture], the leaf-detail range, the sun-through
-       * scale; per giant [id, lobes swapped, lobes a hero camera kept far, limb dressings, near
-       * triangles, near laminae, far laminae + cards the lobes stand in for]; every part shown
-       * now as [id, distance (m), triangles, laminae]
+       * scale; per giant [id, lobes swapped, parts a hero camera kept far, parts with cut radii
+       * under a hero camera, limb dressings, near triangles, near laminae, far laminae + cards the
+       * lobes stand in for]; every part shown now as [id, distance (m), in-radius (m), triangles,
+       * laminae]
        */
       nearCanopy: {
         inM: NEAR_CANOPY_IN_M,
         outM: NEAR_CANOPY_OUT_M,
+        heroMargin: NEAR_CANOPY_HERO_MARGIN,
+        minInM: NEAR_CANOPY_MIN_IN_M,
         maxY: NEAR_CANOPY_MAX_Y,
         slots: NEAR_CANOPY_SLOTS,
         limbsMax: NEAR_CANOPY_LIMBS_MAX,
@@ -2637,9 +2693,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           const lobes = g.asset.nearCanopy.filter((p) => p.kind === 'lobe');
           const limbs = g.asset.nearCanopy.filter((p) => p.kind === 'limb');
           const sum = (f: (p: NearCanopyPart) => number) => g.asset.nearCanopy.reduce((n, p) => n + f(p), 0);
-          return [g.def.id, lobes.length, g.asset.nearCanopyHeroKept, limbs.length, sum((p) => p.triangles), sum((p) => p.leaves), sum((p) => p.farLeaves + p.farCards)];
+          return [g.def.id, lobes.length, g.asset.nearCanopyHeroKept, g.asset.nearCanopyHeroLimited, limbs.length, sum((p) => p.triangles), sum((p) => p.leaves), sum((p) => p.farLeaves + p.farCards)];
         }),
-        shown: nearCanopies.filter((nc) => nc.mesh.visible).map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, nc.triangles, nc.leaves]),
+        /** per seated column [id, lobes swapped, parts a hero camera kept far, parts with cut radii, near triangles, near laminae, far laminae the lobes stand in for] */
+        columns: seatedColumns
+          .filter((c) => c.lods[0].nearCanopy.length || c.lods[0].nearCanopyHeroKept)
+          .map((c) => {
+            const a = c.lods[0];
+            const sum = (f: (p: NearCanopyPart) => number) => a.nearCanopy.reduce((n, p) => n + f(p), 0);
+            return [c.placements[0].id, a.nearCanopy.length, a.nearCanopyHeroKept, a.nearCanopyHeroLimited, sum((p) => p.triangles), sum((p) => p.leaves), sum((p) => p.farLeaves)];
+          }),
+        shown: nearCanopies.filter((nc) => nc.mesh.visible).map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves]),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
         foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
@@ -2690,6 +2754,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           l.geometry.dispose();
           l.nearBase?.dispose();
         }
+      for (const g of columnNearCanopyGeometries) g.dispose();
       for (const g of sectorGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
     },
