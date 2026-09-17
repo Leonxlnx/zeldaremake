@@ -69,15 +69,21 @@ const STONE_ALBEDO_SCALE = 0.72;
  * on the stairs) and the mesh tile — and blended by the fragment's camera distance, 0 within
  * `NEAR_FADE[0]` m and the mesh tile alone beyond `NEAR_FADE[1]`, so the fixed cameras' mid and
  * far ground keep round 41's look exactly. The normal reads `NEAR_NORMAL_K` × its far scale near
- * the camera (0.55 → 0.94: pitting is a shading feature, not a texture stripe) with a detail
+ * the camera (0.55 → 1.1: pitting is a shading feature, not a texture stripe) with a detail
  * normal from a 1.3 m tile at `DETAIL_NORMAL_K` for 1–3 cm pits, and the albedo takes the same
- * detail tile's luminance at `DETAIL_ALBEDO_K` so pits read dark where the normal dips.
+ * detail tile's luminance at `DETAIL_ALBEDO_K` so pits read dark where the normal dips — in the
+ * canopy shade, where most of the walked paving lies, the albedo term is what the eye gets (a
+ * normal only tilts the hemisphere light there). Measured at the player poses (broll, 1280×720,
+ * high-pass luminance std of the shaded half of the stone region): ×1.7 / 0.32 / 0.16 gave
+ * +11–17 % on the plaza slabs at 2–2.5 m and +13 % on the treads seen from the third step, +3 %
+ * at 4–5 m; the fixed cameras' SSIM moved only where their foreground is inside NEAR_FADE (A's
+ * bottom band −0.0023, D's path +0.0012).
  */
 const NEAR_TILE_K = 0.55;
 const NEAR_FADE: [number, number] = [4.0, 7.0];
-const NEAR_NORMAL_K = 1.7;
-const DETAIL_NORMAL_K = 0.32;
-const DETAIL_ALBEDO_K = 0.16;
+const NEAR_NORMAL_K = 2.0;
+const DETAIL_NORMAL_K = 0.42;
+const DETAIL_ALBEDO_K = 0.24;
 /** the near-camera stone treatment, for the hardscape audit */
 export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_NORMAL_K, detailNormalK: DETAIL_NORMAL_K, detailAlbedoK: DETAIL_ALBEDO_K };
 
