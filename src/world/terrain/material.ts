@@ -27,6 +27,12 @@
  *  - vertex relief ≤ 1.5 cm (clods, root humps at the giants' feet) on the fine lattice within
  *    `RELIEF_FADE` m of the camera, off on the paving / stairs / pads (aW2.y). GPU-side: the
  *    sampler `height()` and the CPU mesh the audit raycasts are untouched.
+ *
+ * Round 44 (ground-1, survey-1 #11) — the steep faces (aW2.w, chunks.ts: soil / rock / moss over
+ * 0.2 of slope): exposed root ridges 0.45 m apart on the soil faces and stepped rock plates on the
+ * cliff faces — normal + albedo, and their height displaced along the normal on the fine lattice
+ * within the same `RELIEF_MAX_M` cap, faded over `FACE_FADE`; the moss share of a face in 14 cm
+ * cushions with soil creases. The damp dark band at a face's foot is aW2.x (chunks.ts `foot`).
  */
 import { Color, MeshStandardMaterial, Texture, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three';
 import type { TextureLibrary } from '../materials/textures';
@@ -64,6 +70,19 @@ const RELIEF_FADE: [number, number] = [5.0, 9.0];
 const RELIEF_NORMAL_K = 2.5;
 /** bank-face detail (root ridges, pebbles) fade */
 const BANK_FADE: [number, number] = [4.0, 9.0];
+/**
+ * Round 44 (survey-1 #11) — steep-face relief (chunks.ts aW2.w: soil / rock / moss on slopes over
+ * 0.2, off the paving and the turf): exposed root ridges 0.45 m apart wandering down the soil
+ * faces and stepped rock plates on the cliff faces, as normal + albedo in the fragment and ≤
+ * `RELIEF_MAX_M` of vertical GPU displacement on the fine lattice. Faded over `FACE_FADE` m from
+ * the camera: the survey frames read the faces at 3–8 m; the fixed cameras' nearest steep soil /
+ * rock face (B / E's house-lawn bank) is 12 m off. The sampler `height()` and the CPU mesh are
+ * untouched (the probe is byte-identical).
+ */
+const FACE_FADE: [number, number] = [5.0, 11.0];
+const FACE_NORMAL_K = 1.6;
+const FACE_ROOT_H = 0.014;
+const FACE_PLATE_H = 0.014;
 /** wet band: albedo multiplier (dark, a touch cool) and roughness */
 const WET_TINT = new Color(0.45, 0.48, 0.56);
 const WET_ROUGHNESS = 0.46;
@@ -80,6 +99,8 @@ export const GROUND_NEAR = {
   reliefMaxM: RELIEF_MAX_M,
   reliefFadeM: RELIEF_FADE,
   bankFadeM: BANK_FADE,
+  faceFadeM: FACE_FADE,
+  faceReliefM: Math.max(FACE_ROOT_H, FACE_PLATE_H),
   wetRoughness: WET_ROUGHNESS,
   proceduralLitter: true,
   mossCushions: true,
@@ -96,6 +117,38 @@ float tVNoise(vec2 p) {
 }
 `;
 
+// Round 44: the steep-face relief shared by the vertex displacement and the fragment passes.
+// Roots: ridges 0.45 m apart across the fall line (dn = downslope in xz), wandering along it,
+// present in patches (crown weight 0..1, `pres` the patch weight). Plates: a two-octave 0.6 m
+// noise quantized to three ledges, the step between softened over 40 % of a level (`stepW` = 1 on
+// the step, `id` = the ledge). `faceH` is the relief height (m, |h| ≤ FACE_*_H) — the vertex
+// shader displaces by it, the fragment differentiates it for the sharp normal.
+const FACE_GLSL = /* glsl */ `
+float faceRoots(vec2 p, vec2 dn, out float pres) {
+  vec2 ac = vec2(-dn.y, dn.x);
+  float a = dot(p, dn);
+  float cc = dot(p, ac);
+  float wob = (tVNoise(vec2(a * 1.4, cc * 0.7) + vec2(13.0, 29.0)) - 0.5) * 0.9;
+  pres = smoothstep(0.38, 0.62, tVNoise(p * 0.7 + vec2(-5.0, 17.0)));
+  float base = 0.5 + 0.5 * cos((cc + wob) * 2.2 * 6.2832);
+  return base * base * pres;
+}
+float facePlates(vec2 p, out float id, out float stepW) {
+  float pn = tVNoise(p * 1.6 + vec2(7.0, -3.0)) * 0.7 + tVNoise(p * 4.3 + vec2(-11.0, 5.0)) * 0.3;
+  float q = pn * 3.0;
+  id = floor(q);
+  float fr = fract(q);
+  stepW = 1.0 - smoothstep(0.0, 0.2, abs(fr - 0.5));
+  return (id + smoothstep(0.3, 0.7, fr)) / 3.0 - 0.5;
+}
+float faceH(vec2 p, vec2 dn, float rock) {
+  float pres; float id; float sw;
+  float r = faceRoots(p, dn, pres);
+  float pl = facePlates(p, id, sw);
+  return mix(${f(FACE_ROOT_H)} * (r - 0.3), ${f(FACE_PLATE_H)} * pl, rock);
+}
+`;
+
 const PARS = /* glsl */ `
 uniform sampler2D tGrassC; uniform sampler2D tGrassN;
 uniform sampler2D tSoilC;  uniform sampler2D tSoilN;
@@ -107,8 +160,9 @@ uniform vec3 uTiles0; // grass, soil, moss   (1/tile)
 uniform vec3 uTiles1; // litter, gravel, rock (1/tile)
 uniform vec3 uGrassDeep; uniform vec3 uGrassLight; uniform vec3 uMossDeep; uniform vec3 uMossBright;
 uniform vec3 uSoilTint; uniform vec3 uSoilDark; uniform vec3 uStoneTint; uniform vec3 uWetTint;
-varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm;
+varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec2 vFaceDn;
 ${HASH_GLSL}
+${FACE_GLSL}
 
 // rotate uv by a fixed angle so the second scale never lines up with the first
 vec2 rot2(vec2 p) { const float c = 0.83867; const float s = 0.54464; return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
@@ -290,6 +344,43 @@ void bankDetail(vec2 p, vec3 nn, float w, inout vec3 c, inout vec2 nxy) {
   // pebbles: 0.9–2.2 cm in a 12 cm jittered grid, 40 % of the cells
   pebbleLayer(p, 0.12, 3.3, 0.4, 0.009, 0.022, sl, w, c, nxy);
 }
+// round 44: the steep-face relief (aW2.w — soil / rock / moss over 0.2 of slope, off the paving
+// and the turf), the fragment half of the vertex displacement above: the finite-difference normal
+// of the same faceH at FACE_NORMAL_K (the 0.2 m lattice can only hint at 0.45 m ridges), and the
+// albedo — root crowns paler and warmer (bark), the trough beside each darker (the root's shade),
+// the rock plates' steps dark (the joint between plates) with each ledge its own shade. Then the
+// moss share of the face, in cushions (14 cm domes, creases showing the soil) all the way out to
+// FACE_FADE — the survey's flat moss pads on the lip of the earth face. w = face × fade.
+float groundFaceW() { return 1.0 - smoothstep(${f(FACE_FADE[0])}, ${f(FACE_FADE[1])}, length(vViewPosition)); }
+void faceDetail(vec2 p, vec2 dn, float rock, float moss, float w, float steep, inout vec3 c, inout vec2 nxy) {
+  // the moss share of the face is gated from 0.1 of slope (chunks.ts) — the roots / plates only
+  // from 0.2, so the lip of a mossy bank takes cushions and no ridges
+  float hard = w * (1.0 - moss) * smoothstep(0.15, 0.3, steep);
+  if (hard > 0.002) {
+    float e = 0.012;
+    float hx = faceH(p + vec2(e, 0.0), dn, rock) - faceH(p - vec2(e, 0.0), dn, rock);
+    float hz = faceH(p + vec2(0.0, e), dn, rock) - faceH(p - vec2(0.0, e), dn, rock);
+    nxy += -vec2(hx, hz) / (2.0 * e) * ${f(FACE_NORMAL_K)} * hard;
+    float pres; float id; float sw;
+    float r = faceRoots(p, dn, pres);
+    facePlates(p, id, sw);
+    float crown = smoothstep(0.35, 0.9, r);
+    float trough = (1.0 - smoothstep(0.0, 0.3, r)) * pres;
+    vec3 cRoot = c * mix(1.0, 1.3, crown) * vec3(1.0 + 0.12 * crown, 1.0, 1.0 - 0.18 * crown) * (1.0 - 0.22 * trough);
+    float ledge = 0.9 + 0.2 * tHash(vec2(id, 3.7));
+    vec3 cPlate = c * ledge * (1.0 - 0.38 * sw);
+    c = mix(c, mix(cRoot, cPlate, rock), hard);
+  }
+  float soft = w * moss;
+  if (soft > 0.002) {
+    vec2 cxy = vec2(0.0);
+    float dome = cushionLayer(p, 0.14, 21.3, 0.55, cxy);
+    nxy += cxy * soft;
+    float crease = 1.0 - smoothstep(0.0, 0.3, dome);
+    c = mix(c, mix(c * 0.55, c * 1.15, smoothstep(0.2, 0.9, dome)), soft * (1.0 - crease));
+    c = mix(c, c * vec3(0.55, 0.5, 0.42), soft * crease * 0.7);
+  }
+}
 // the path verge (the gravel layer beside the flagstones): the stony soil's small stones, 0.6–1.8
 // cm in a 7 cm grid plus 1.8–3.5 cm ones in a 16 cm grid, on top of the gravel map's contrast
 // lift. w = gravel weight × detail fade.
@@ -319,8 +410,9 @@ vec3 nearContrast(vec3 s, float meanLum, float nw) { return mix(s, s * clamp(lum
 
 const VERT_PARS = /* glsl */ `
 attribute vec4 aW0; attribute vec4 aW1; attribute vec4 aW2;
-varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm;
+varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec2 vFaceDn;
 ${HASH_GLSL}
+${FACE_GLSL}
 // micro relief (m) of the near ground: 0.43 m and 0.2 m clods plus ridged root humps that grow
 // with the giant-root proximity; |h| ≤ 0.0085 + 0.006 < RELIEF_MAX_M
 float reliefH(vec2 p, float roots) {
@@ -334,10 +426,18 @@ float reliefH(vec2 p, float roots) {
 
 // After <beginnormal_vertex>: the relief height and its slope (the normal takes the slope at
 // RELIEF_NORMAL_K so clods shade like clods; the surface itself moves ≤ RELIEF_MAX_M).
+// Round 44: then the steep-face relief (aW2.w) — root ridges / rock plates displaced along the
+// smooth normal, sharing RELIEF_MAX_M with the clods (|clods| + |face| ≤ the cap) and faded over
+// FACE_FADE; its downslope direction (from the smooth normal, before either relief tilts it) goes
+// to the fragment as vFaceDn so both passes differentiate the same ridges.
 const VERT_RELIEF = /* glsl */ `
 float tReliefDh = 0.0;
+vec3 tFaceDisp = vec3(0.0);
 {
   vec3 wp0 = (modelMatrix * vec4(position, 1.0)).xyz;
+  vec3 on0 = objectNormal;
+  vec3 wn0 = normalize(mat3(modelMatrix) * on0);
+  vFaceDn = length(wn0.xz) > 1e-4 ? normalize(wn0.xz) : vec2(1.0, 0.0);
   float dcam = distance(cameraPosition, wp0);
   // off at the detail ring's edge: the 1 m ring's seam vertices are not on the fine lattice
   float edge = 1.0 - smoothstep(45.0, 47.5, max(abs(wp0.x), abs(wp0.z)));
@@ -349,6 +449,19 @@ float tReliefDh = 0.0;
     float hz = reliefH(wp0.xz + vec2(0.0, e), aW2.z) - reliefH(wp0.xz - vec2(0.0, e), aW2.z);
     tReliefDh = clamp(h0, -${f(RELIEF_MAX_M)}, ${f(RELIEF_MAX_M)}) * fade;
     vec2 gr = vec2(hx, hz) / (2.0 * e) * fade * ${f(RELIEF_NORMAL_K)};
+    objectNormal = normalize(objectNormal + vec3(-gr.x, 0.0, -gr.y));
+  }
+  // the moss share of the face takes cushions in the fragment instead (14 cm — under the lattice)
+  float faceFade = (1.0 - smoothstep(${f(FACE_FADE[0])}, ${f(FACE_FADE[1])}, dcam)) * clamp(aW2.w, 0.0, 1.0) * (1.0 - clamp(aW0.z, 0.0, 1.0)) * edge;
+  if (faceFade > 0.001) {
+    float e = 0.05;
+    float rock = clamp(aW1.y, 0.0, 1.0);
+    float h0 = faceH(wp0.xz, vFaceDn, rock);
+    float hx = faceH(wp0.xz + vec2(e, 0.0), vFaceDn, rock) - faceH(wp0.xz - vec2(e, 0.0), vFaceDn, rock);
+    float hz = faceH(wp0.xz + vec2(0.0, e), vFaceDn, rock) - faceH(wp0.xz - vec2(0.0, e), vFaceDn, rock);
+    float room = ${f(RELIEF_MAX_M)} - abs(tReliefDh);
+    tFaceDisp = on0 * clamp(h0 * faceFade, -room, room);
+    vec2 gr = vec2(hx, hz) / (2.0 * e) * faceFade * ${f(FACE_NORMAL_K)};
     objectNormal = normalize(objectNormal + vec3(-gr.x, 0.0, -gr.y));
   }
 }
@@ -441,6 +554,8 @@ const MAP_FRAG = /* glsl */ `
     float steep = 1.0 - nn.y;
     float bankW = w0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
     if (bankW > 0.002) bankDetail(uvw, nn, bankW, c, nxyUnused);
+    float faceW = vW2.w * groundFaceW();
+    if (faceW > 0.002) faceDetail(uvw, normalize(vFaceDn), clamp(w1.y, 0.0, 1.0), clamp(w0.z, 0.0, 1.0), faceW, steep, c, nxyUnused);
   }
   float litCov = 0.0;
   if (dw > 0.001) {
@@ -470,6 +585,7 @@ const NORMAL_FRAG = /* glsl */ `
   float nw = groundNearW();
   float dw = groundDetailW();
   vec3 mapN = vec3(0.0, 0.0, 0.0);
+  vec2 faceXY = vec2(0.0);
   float tot = 0.0;
   if (vW0.x > 0.002) { mapN += nrm2(tGrassN, uvw, uTiles0.x, mixK) * vW0.x; tot += vW0.x; }
   if (vW0.y > 0.002) { mapN += nrmNear(tSoilN, uvw, uTiles0.y, ${f(LAYER_SETS.soil.tile)}, mixK, nw) * vW0.y; tot += vW0.y; }
@@ -500,6 +616,9 @@ const NORMAL_FRAG = /* glsl */ `
       float steep = 1.0 - nn.y;
       float bankW = vW0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
       if (bankW > 0.002) bankDetail(uvw, nn, bankW, cUnused, nxy);
+      float faceW = vW2.w * groundFaceW();
+      if (faceW > 0.002) faceDetail(uvw, normalize(vFaceDn), clamp(vW1.y, 0.0, 1.0), clamp(vW0.z, 0.0, 1.0), faceW, steep, cUnused, faceXY);
+      nxy += faceXY;
     }
     if (dw > 0.001) {
       float vergeW = vW1.x * dw;
@@ -522,6 +641,9 @@ const NORMAL_FRAG = /* glsl */ `
     mat3 ty = getTangentFrame(-vViewPosition, normal, vWPos.xz);
     mat3 tz = getTangentFrame(-vViewPosition, normal, vWPos.xy);
     vec3 nRock = normalize(tx * normalize(nx) * bw.x + ty * normalize(ny) * bw.y + tz * normalize(nz) * bw.z);
+    // round 44: the cliff faces' plate relief rides on the triplanar normal too (nFlat carries it
+    // only for the soil share of the blend)
+    if (dot(faceXY, faceXY) > 1e-8) nRock = normalize(nRock + tbn * vec3(faceXY, 0.0));
     normal = normalize(mix(nFlat, nRock, vW1.y));
   } else {
     normal = nFlat;
@@ -588,7 +710,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_PARS}`)
       .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>\n${VERT_RELIEF}`)
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y += tReliefDh;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y += tReliefDh; transformed += tFaceDisp;')
       .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>\n${VERT_MAIN}`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${PARS}`)
@@ -596,7 +718,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
       .replace('#include <normal_fragment_maps>', NORMAL_FRAG)
       .replace('#include <roughnessmap_fragment>', ROUGH_FRAG);
   };
-  material.customProgramCacheKey = () => 'terrain-layered-v2-near-ground';
+  material.customProgramCacheKey = () => 'terrain-layered-v3-face-relief';
 
   return { material, layers: [...TERRAIN_LAYERS], textured, detailNormal: true, sets: names };
 }

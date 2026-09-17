@@ -239,15 +239,38 @@ export function layerWeights(
       if (dd < 3.2 * g.trunkRadius) drip = Math.max(drip, smoothstep(1.0 * g.trunkRadius, 1.5 * g.trunkRadius, dd) * (1 - smoothstep(2.2 * g.trunkRadius, 3.0 * g.trunkRadius, dd)));
     }
     const wetN = N.wet.fbm(x * 0.5 + 3.3, z * 0.5 - 7.1, 2) * 0.5 + 0.5;
-    const wet = clamp(Math.max(conc * 0.9, hollow * 0.6, damp * 0.5, drip * 0.5) * (0.4 + 1.0 * wetN), 0, 1) * open * (1 - rock) * (1 - gravel);
+    // round 44 (survey-1 #11): the damp dark band at the foot of a steep face — concave ground
+    // (the slope flattening out) with a face over 0.32 of slope within 0.7 m of it; the wet
+    // band's slope gate (< 0.3) is relaxed to 0.4 there. Four extra slope samples, taken only
+    // where the concavity and slope make a foot possible (a few per cent of the fine vertices).
+    let foot = 0;
+    if (curv > 0.08 && slope < 0.42 && open > 0.05) {
+      const T = wc.terrain;
+      const e = 0.7;
+      const steepNear = Math.max(T.slope(x + e, z), T.slope(x - e, z), T.slope(x, z + e), T.slope(x, z - e));
+      foot = smoothstep(0.08, 0.28, curv) * smoothstep(0.32, 0.5, steepNear) * (1 - smoothstep(0.28, 0.42, slope));
+    }
+    const wet = clamp(Math.max(conc * 0.9, foot * 0.85, hollow * 0.6, damp * 0.5, drip * 0.5) * (0.4 + 1.0 * wetN), 0, 1) * open * (1 - rock) * (1 - gravel);
     // vertex-relief allowance: off on the paving, stairs and pads (the slabs sit on `height()`),
     // full on bare soil / litter / moss, a third on turf (the grass carpet is planted on
     // `height()` and must not float), none on the triplanar rock
     const relief = open * (1 - smoothstep(NEAR_GROUND.DISP_PATH_FADE[0], NEAR_GROUND.DISP_PATH_FADE[1], path)) * (1 - gravel) * (1 - rock) * (0.35 + 0.65 * clamp(soil + litter + moss, 0, 1));
+    // round 44 (survey-1 #11): the steep-face weight — bare soil, rock and litter on slopes over
+    // 0.2 (37°), moss from 0.1 (its pads sit on the lip where the face rolls over), off the
+    // paving / stairs / pads and the turf (the grass carpet sits on `height()`). material.ts
+    // gives these faces root-ridge (soil) and rock-plate (rock) relief — normal + albedo, and
+    // ≤ 1.5 cm of GPU displacement on the fine lattice near the camera — and breaks the moss
+    // into cushions (the sampler is untouched: the survey's earth face behind the house lawn
+    // read as smooth clay with flat moss pads, the hollow's east cliff as rock texture on a plane).
+    const face =
+      open *
+      (1 - smoothstep(NEAR_GROUND.DISP_PATH_FADE[0], NEAR_GROUND.DISP_PATH_FADE[1], path)) *
+      (1 - gravel) *
+      clamp(smoothstep(0.2, 0.4, slope) * (soil + rock + 0.5 * litter) + smoothstep(0.1, 0.3, slope) * moss, 0, 1);
     w2[o] = wet;
     w2[o + 1] = clamp(relief, 0, 1);
     w2[o + 2] = roots;
-    w2[o + 3] = 0;
+    w2[o + 3] = clamp(face, 0, 1);
   }
 }
 
