@@ -682,12 +682,16 @@ export const NEAR_BOLE_FLOOR_TOP = 5;
 export const NEAR_BOLE_FLOOR_FADE: [number, number] = [1.8, 3.2];
 /**
  * Round 41 (task 2): the same level profile (the lift and its fade are the D / B calibration
- * above) with a higher texture share, so the emergent's cords and moss sheets read through the
- * floor at 4–14 m instead of one flat tone (the owner's plaza-column pose); the floor's mean sits
- * where it did (the bark's mean albedo is the floor's `albedo`). 0.5 (the full step) put
- * −0.007 of camera D's strip x 0–0.09 alone; 0.35 is the half-step.
+ * above) and, by height, a higher texture share: the calibrated 0.25 through the two strips the
+ * cameras frame (D 0.8–3.2 m, B 0.9–4.7 m up — a flat share of 0.35 there cost D −0.0035 and B
+ * −0.0014 SSIM on its own, 0.5 about twice that), NEAR_BOLE_TOP_TEXTURE from
+ * NEAR_BOLE_TEXTURE_FADE[1] up, where only the owner looks (plaza-column: the bole 0–14 m up):
+ * the emergent's cords and moss sheets read through the floor there instead of one flat tone.
+ * The floor's mean sits where it did (the bark's mean albedo is the floor's `albedo`).
  */
-export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR, texture: 0.35 };
+export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR };
+export const NEAR_BOLE_TOP_TEXTURE = 0.5;
+export const NEAR_BOLE_TEXTURE_FADE: [number, number] = [4.7, 6.5];
 
 /**
  * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
@@ -702,12 +706,14 @@ export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR, texture: 0
 function heightFadedFloorGlsl(u: string): string {
   const block = shadeFloorGlsl(u, TREE_FLOOR_GLSL);
   const read = `${u}Lift * ambientMean`;
-  if (!block.includes(read)) throw new Error(`shadeFloorGlsl: expected '${read}' in the floor block`);
+  const texture = `${u}Texture)`;
+  if (!block.includes(read) || !block.includes(texture)) throw new Error(`shadeFloorGlsl: expected '${read}' and '${texture}' in the floor block`);
   return /* glsl */ `
       {
         float floorHeightShare = 1.0 - smoothstep(${u}FadeY.x, ${u}FadeY.y, vTreeLocalY);
         float floorLiftHere = mix(${u}TopLift, ${u}Lift, floorHeightShare);
-        ${block.replace(read, `floorLiftHere * ambientMean`)}
+        float floorTextureHere = mix(${u}Texture, ${u}TopTexture, smoothstep(${u}TexY.x, ${u}TexY.y, vTreeLocalY));
+        ${block.replace(read, `floorLiftHere * ambientMean`).replace(texture, `floorTextureHere)`)}
       }
 `;
 }
@@ -755,7 +761,7 @@ interface LeafVariant {
   sunThrough?: number;
 }
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail = false, variant: LeafVariant = {}) {
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number]; topTexture: number; textureFade: [number, number] }, nearDetail = false, variant: LeafVariant = {}) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
@@ -782,7 +788,9 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   if (heightFade) {
     shader.uniforms[`${barkPrefix}TopLift`] = { value: heightFade.top };
     shader.uniforms[`${barkPrefix}FadeY`] = { value: new Vector2(heightFade.fade[0], heightFade.fade[1]) };
-    fadePars = `uniform float ${barkPrefix}TopLift;\nuniform vec2 ${barkPrefix}FadeY;\n`;
+    shader.uniforms[`${barkPrefix}TopTexture`] = { value: heightFade.topTexture };
+    shader.uniforms[`${barkPrefix}TexY`] = { value: new Vector2(heightFade.textureFade[0], heightFade.textureFade[1]) };
+    fadePars = `uniform float ${barkPrefix}TopLift;\nuniform vec2 ${barkPrefix}FadeY;\nuniform float ${barkPrefix}TopTexture;\nuniform vec2 ${barkPrefix}TexY;\n`;
   }
   // near wood (the lobe stems and twigs the owner stands among, within LEAF_NEAR_M): the floor
   // keeps at least half of the bark's own texture instead of the far tenth, so a shaded stem at
@@ -791,9 +799,9 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   // the height-profiled near-bole floor keeps its own lift; the plain block fades lift and
   // texture share by distance (TREE_FLOOR_FADE_M) before the woodNear splice
   const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : distanceFadedFloorGlsl(barkPrefix, shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL));
-  const textureRead = heightFade ? `${barkPrefix}Texture)` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar))`;
+  const textureRead = heightFade ? 'floorTextureHere)' : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar))`;
   if (!floorBlock.includes(textureRead)) throw new Error(`shadeFloorGlsl: expected '${textureRead}' in the floor block`);
-  const textureHere = heightFade ? `${barkPrefix}Texture` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar)`;
+  const textureHere = heightFade ? 'floorTextureHere' : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar)`;
   const barkFloorGlsl = /* glsl */ `
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
       ${TREE_FLOOR_FADE_GLSL}
@@ -928,7 +936,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTreeDepth, wind, giantWind, depthSlots, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
-  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE, topTexture: NEAR_BOLE_TOP_TEXTURE, textureFade: NEAR_BOLE_TEXTURE_FADE }), 'giant-near');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
