@@ -19,6 +19,7 @@ import type { Palette, TreeAsset } from './whitebark';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, shadedSheetMask, sweepAxisAt, type BoleKnee } from './bole';
 import { basePlants, type BasePlantResult } from './base-plants';
 import { NEAR_BASE_CUT_Y, NEAR_BASE_PITCH, nearBaseAmplitude } from './giant';
+import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLobeRecord } from './nearCanopy';
 
 /**
  * A knee on a column's bole (round 40, the owner's bole brief): a one-sided swelling at `height`
@@ -69,6 +70,12 @@ export interface ColumnAsset extends TreeAsset {
   } | null;
   /** the knees as built (bole.ts), local distances along the sweep */
   knees: BoleKnee[];
+  /** round 41: the near-canopy parts (nearCanopy.ts), local space — high detail only, empty otherwise */
+  nearCanopy: NearCanopyPart[];
+  /** swap groups this tree's lobes took (every detail tags them alike) */
+  nearCanopyGroups: number;
+  nearCanopyHeroKept: number;
+  nearCanopyHeroLimited: number;
 }
 
 export interface ColumnBuildOptions {
@@ -83,6 +90,12 @@ export interface ColumnBuildOptions {
   basePalette?: Parameters<typeof basePlants>[2]['palette'];
   /** knees with stub limbs on the bole (local frame; see ColumnKnee) */
   knees?: ColumnKnee[];
+  /**
+   * Near-canopy LOD (nearCanopy.ts): tag the lower lobes' laminae with their swap group at every
+   * detail and build the near parts for the high detail. `heroDistance` takes LOCAL centres (the
+   * caller maps the seat's frame to the world). Undefined = no near canopy.
+   */
+  nearCanopy?: { heroDistance?: HeroDistanceFn };
 }
 
 export interface ColumnParams {
@@ -487,10 +500,26 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
    * A leaf lobe on a bough end: a few twigs fan from the bough into an ellipsoid and each carries
    * a spray of laminae, denser toward the shell so the lobe is a broken mass with a dark heart.
    */
+  // near-canopy LOD (nearCanopy.ts): the lobes below the cap recorded while written, their far
+  // laminae tagged with the lobe's group; the eligibility and the groups are the same at every
+  // detail (the same stream, the same lobes), so a slot folds whichever LOD is drawn
+  const near = o.nearCanopy;
+  const nearLobes: NearLobeRecord[] = [];
+  let nearGroups = 0;
+  const nearTally = { kept: 0, limited: 0 };
   const lobe = (bough: Vector3[], boughRadius: number, center: Vector3, hR: number, vR: number, vigor: number) => {
     const twigs = 7;
     const count = Math.max(2, Math.round(56 * p.leafDensity));
     const phase = rng() * TAU;
+    let rec: NearLobeRecord | null = null;
+    if (near && center.y <= NEAR_CANOPY_MAX_Y) {
+      const radii2 = swapRadiiFor(near.heroDistance, center, hR + 1.4, nearTally);
+      if (radii2) {
+        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: taper(bough, boughRadius, 0.02, 1.05), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
+        leaves.leafSwapGroup = rec.group;
+      }
+    }
+    const leavesBefore = leaves.leafCount;
     for (let k = 0; k < twigs; k++) {
       const attach = 0.55 + (k / twigs) * 0.45 + bt(-0.03, 0.03);
       const origin = sample(bough, Math.min(1, attach));
@@ -501,6 +530,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       const twig = growthPath(origin, target, tangent(bough, Math.min(1, attach)), rng, 5, 0.8);
       const twigRadius = Math.max(0.012, boughRadius * 0.35);
       tube(wood, twig, taper(twig, twigRadius, 0.004), 4, rng, { color: barkDeep, roughness: 0.02 });
+      rec?.twigs.push({ path: twig, radius: twigRadius });
       const opts = leafOpts(twigRadius);
       for (let j = 0; j < count; j++) {
         const t = 0.25 + (0.75 * (j + bt(0.1, 0.9))) / count;
@@ -516,6 +546,11 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
         const color = canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * (0.7 + 0.3 * shell));
         addLeaf(leaves, base, direction, bt(p.leafSize[0], p.leafSize[1]), color, rng, opts);
       }
+    }
+    if (rec) {
+      rec.farLeaves = leaves.leafCount - leavesBefore;
+      leaves.leafSwapGroup = -1;
+      nearLobes.push(rec);
     }
   };
 
@@ -548,6 +583,20 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     lobe(bough, radius, center, crownRadius * bt(0.36, 0.48), H * bt(0.08, 0.12), bt(0.85, 1.0));
   }
 
+  // ---------- near canopy (nearCanopy.ts; the high detail only, from streams forked off the tree's) ----------
+  const nearCanopy: NearCanopyPart[] = [];
+  if (near && detail === 'high' && nearLobes.length) {
+    const nearLeafColor = (g: Rng, base: Vector3, center: Vector3, hR: number, vigor: number) => {
+      const gb = (a: number, b: number) => between(g, a, b);
+      const heightF = smoothstep(0, 1, ((base.y - center.y) / Math.max(0.5, hR * 0.45)) * 0.5 + 0.5);
+      const shell = smoothstep(0.3, 1, base.distanceTo(center) / Math.max(0.5, hR));
+      const sun = Math.min(1, heightF * 0.6 + shell * 0.5) * gb(0.3, 1);
+      return canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * (0.7 + 0.3 * shell));
+    };
+    const kit = createNearCanopyKit({ id: `column-${p.seed}`, barkColor: barkDeep, leafColor: nearLeafColor, canopy });
+    nearLobes.forEach((rec, idx) => nearCanopy.push(kit.lobePart(rng, rec, idx)));
+  }
+
   const geometry: BufferGeometry = mergeParts(`column-${p.seed}-${detail}`, [wood.finish('wood'), leaves.finish('leaves')]);
   let radius = 0;
   const positions = geometry.getAttribute('position');
@@ -566,5 +615,9 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     nearBase,
     nearBaseAudit,
     knees,
+    nearCanopy,
+    nearCanopyGroups: nearGroups,
+    nearCanopyHeroKept: nearTally.kept,
+    nearCanopyHeroLimited: nearTally.limited,
   };
 }

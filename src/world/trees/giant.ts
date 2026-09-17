@@ -27,12 +27,14 @@ import {
   tangent,
   taper,
   tube as sweep,
+  type LeafOptions,
 } from './writer';
 import type { Palette } from './whitebark';
 import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
 import { basePlants, type BasePlantResult } from './base-plants';
+import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
 
 /**
  * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
@@ -81,6 +83,8 @@ export const NEAR_BOLE_M = 0;
 export const NEAR_BOLE_RELIEF = 1;
 /** buttress fins with toes (bole.ts) instead of the plain root tubes on the near boles */
 export const NEAR_BOLE_ROOTS = true;
+
+// Near-canopy LOD (round 41): see nearCanopy.ts (NEAR_CANOPY_IN_M and the shared builders).
 
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
@@ -184,6 +188,14 @@ export interface GiantAsset {
   boughDress: { giant: string; relief: number; rings: number; sides: number; knees: number; triangles: number }[];
   /** round 40: leaf-cluster cards dressing the outline of the flat lobes' cores (giant.ts lobeCore) */
   coreRimCards: number;
+  /** round 41: the near-canopy parts (see NEAR_CANOPY_IN_M), empty without GiantOptions.nearCanopy */
+  nearCanopy: NearCanopyPart[];
+  /** swap groups this tree's lobes took (0 … nearCanopyGroups − 1) */
+  nearCanopyGroups: number;
+  /** eligible parts a hero camera framed so close that they keep their far foliage at every distance (NEAR_CANOPY_MIN_IN_M) */
+  nearCanopyHeroKept: number;
+  /** parts built with swap radii cut under a framing hero camera's distance (NEAR_CANOPY_HERO_MARGIN) */
+  nearCanopyHeroLimited: number;
 }
 
 /**
@@ -464,6 +476,14 @@ export interface GiantOptions {
   pathAt?: (x: number, z: number) => number;
   /** near-base plant colours (the palette's ferns / ground leaves / litter) */
   basePalette?: Parameters<typeof basePlants>[2]['palette'];
+  /**
+   * Near-canopy LOD (see NEAR_CANOPY_IN_M). `heroDistance(center, radius)` (local): the distance
+   * (m) of the nearest hero camera that frames the part's padded sphere from within the swap
+   * distance, or Infinity when none does. A framed part swaps only closer than that camera stands
+   * (NEAR_CANOPY_HERO_MARGIN inside it), so the six fixed frames never see a swap while the same
+   * lobe still turns to laminae for a player walking under it. Undefined = no near canopy.
+   */
+  nearCanopy?: { heroDistance?: HeroDistanceFn };
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -1174,8 +1194,42 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   }
   let coreRimCards = 0;
 
-  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false) {
+  // near-canopy LOD (nearCanopy.ts): the lobes and big limbs recorded for it while the far tree
+  // is written — their far wood as built, so the near versions can fork on from it
+  const near = o.nearCanopy;
+  const nearLobes: NearLobeRecord[] = [];
+  /** big limbs below the cap, for the limb dressing parts (moss strip, vines) */
+  const nearLimbs: NearLimbRecord[] = [];
+  let nearGroups = 0;
+  const nearTally = { kept: 0, limited: 0 };
+  const swapRadii = (center: Vector3, radius: number) => swapRadiiFor(near?.heroDistance, center, radius, nearTally);
+  const recordLimb = (path: Vector3[], radii: number[]) => {
+    if (!near || ghost) return;
+    const midY = sample(path, 0.5).y;
+    if (midY > NEAR_CANOPY_MAX_Y || path.length < 3) return;
+    // the dressing's reach: half the limb plus the vines' drop (the same bound its part reports)
+    const reach = 0.5 * path.reduce((s, p, i) => (i ? s + p.distanceTo(path[i - 1]) : 0), 0) + 3.8;
+    const radii2 = swapRadii(sample(path, 0.6), reach);
+    if (!radii2) return;
+    nearLimbs.push({ path, radii, inM: radii2[0], outM: radii2[1] });
+  };
+
+  function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false, stemRadii?: number[]) {
     lobe = { center, hR };
+    // near-canopy eligibility (nearCanopy.ts): an ordinary lobe below the cap, its swap radii cut
+    // under any hero camera that frames it. Its far foliage is tagged with the lobe's group while
+    // it is written; nothing about the far lobe itself changes.
+    let rec: NearLobeRecord | null = null;
+    if (near && !ghost && !lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1 && center.y <= NEAR_CANOPY_MAX_Y) {
+      const radii2 = swapRadii(center, hR + 1.4);
+      if (radii2) {
+        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
+        leaves.leafSwapGroup = rec.group;
+        cards.leafSwapGroup = rec.group;
+      }
+    }
+    const leavesBefore = leaves.leafCount;
+    const cardsBefore = cards.triangles;
     // a compact lobe keeps its twigs' drop and its sprigs inside the authored ellipsoid (they are
     // sized for the ordinary 1.5 m+ lobe) and gathers the stem's leaf trail onto its last 15 %
     const reach = compact ? Math.min(1, hR / 1.5) : 1;
@@ -1196,6 +1250,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const secondary = growthPath(origin, target, tangent(bough, attachment), r, 6, 0.85);
       const secondaryRadius = Math.max(0.03, boughRadius * Math.pow(1 - attachment, 0.9) * 0.5);
       tube(wood, secondary, taper(secondary, secondaryRadius, 0.008), 5, r, { color: barkColor, roughness: 0.04 });
+      rec?.secondaries.push({ path: secondary, radius: secondaryRadius });
       leafSpray(secondary, secondaryRadius * 0.5, 6 * mult, bt(0.88, 1.03), 0.7);
       for (let k = 0; k < twigCount; k++) {
         const twigT = 0.18 + (k / twigCount) * 0.72 + bt(-0.025, 0.025);
@@ -1208,6 +1263,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), r, 4, 0.64);
         const twigRadius = Math.max(0.012, secondaryRadius * (1 - twigT) * 0.4);
         tube(wood, twig, taper(twig, twigRadius, 0.004), 3, r, { color: barkColor, roughness: 0.02 });
+        rec?.twigs.push({ path: twig, radius: twigRadius });
         leafSpray(twig, twigRadius * 0.6, 8 * mult, bt(0.9, 1.04), 0.45);
         const sprigPhase = r() * TAU;
         for (let s = 0; s < sprigCount; s++) {
@@ -1225,6 +1281,13 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       }
     }
     lobe = null;
+    if (rec) {
+      rec.farLeaves = leaves.leafCount - leavesBefore;
+      rec.farCards = (cards.triangles - cardsBefore) / 2;
+      leaves.leafSwapGroup = -1;
+      cards.leafSwapGroup = -1;
+      nearLobes.push(rec);
+    }
   }
 
   // ---------- big near-horizontal limbs ----------
@@ -1243,8 +1306,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const center = origin.clone().addScaledVector(UP, upOffset).addScaledVector(u, bt(-1.2, 1.2)).addScaledVector(ax, bt(0.5, 1.8));
       const bough = growthPath(origin, center, ax.clone().lerp(UP, 0.5), r, 7, 0.7);
       const radius = Math.max(0.06, baseRadius * (1 - s) * 0.42);
-      tube(wood, bough, taper(bough, radius, 0.02), 6, r, { color: barkColor, roughness: 0.04 });
-      foliateLobe(bough, center, hR, vR, radius, 2, 3, 4, mult, cardMult);
+      const radii = taper(bough, radius, 0.02);
+      tube(wood, bough, radii, 6, r, { color: barkColor, roughness: 0.04 });
+      foliateLobe(bough, center, hR, vR, radius, 2, 3, 4, mult, cardMult, false, radii);
     }
   };
 
@@ -1413,6 +1477,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     ghost = woodGhost;
     tube(wood, path, radii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    recordLimb(path, radii);
     ghost = false;
     if (!woodGhost) limbs++;
     // `foliage` thins only the outer third + tip (the part that reaches into the hero frames); the
@@ -1481,7 +1546,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
     }
     const r0 = Math.max(0.55, trunkR * bt(0.3, 0.42));
-    tube(wood, path, taper(path, r0, 0.1, 0.9), 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    const limbRadii = taper(path, r0, 0.1, 0.9);
+    tube(wood, path, limbRadii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    recordLimb(path, limbRadii);
     if (!ghost) limbs++;
     limbLobes(path, r0, [0.5, 0.78, 1.0], crownRadius * bt(0.2, 0.26), H * 0.07, bt(1.5, 2.5));
   }
@@ -1556,7 +1623,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .addScaledVector(side, Math.sin(s * 5.5 + wigglePhase) * 0.07 * length * s);
       path.push(p);
     }
-    tube(wood, path, taper(path, r0, 0.08, 0.85), 12, rs, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    const spreadRadii = taper(path, r0, 0.08, 0.85);
+    tube(wood, path, spreadRadii, 12, rs, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
+    recordLimb(path, spreadRadii);
     limbs++;
     const lf = spec.foliage ?? 1;
     const ld = spec.density ?? 1;
@@ -1697,6 +1766,37 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
   }
 
+  // ---------- near canopy (nearCanopy.ts) ----------
+  // Every part is built after the whole far tree, from its own forked stream into its own writer,
+  // so the far tree is exactly what it was with the LOD off (the near base's rule). The near
+  // wood forks on from the far wood as recorded (the stems, secondaries and twigs stay drawn at
+  // every distance — only the far laminae and cards of the lobe are swapped out), so the lobe
+  // reads as one branch system: bough → secondary → twig → twiglet → spray.
+  const nearCanopy: NearCanopyPart[] = [];
+  if (near && (nearLobes.length || nearLimbs.length)) {
+    /** the far leaf colour rule (leafSpray) for a lamina at `base` in a lobe about `center`, from stream g */
+    const nearLeafColor = (g: Rng, base: Vector3, center: Vector3, hR: number, vigor: number) => {
+      const gb = (a: number, b: number) => between(g, a, b);
+      const heightF = base.y / H;
+      const outF = Math.hypot(base.x, base.z) / crownRadius;
+      const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * gb(0.3, 1);
+      const interior = smoothstep(0.85, 0.3, base.distanceTo(center) / Math.max(0.5, hR));
+      // the lobe's underside hangs in its own shade: a little cooler and darker than its crown
+      const under = smoothstep(0.1, -0.6, (base.y - center.y) / Math.max(0.4, hR * 0.5));
+      const coolWarm = gb(0, 1) < 0.5 ? cool : warm;
+      return canopy
+        .clone()
+        .multiplyScalar(0.92)
+        .lerp(sunny, sun * (1 - interior * 0.7))
+        .lerp(coolWarm, gb(0, 0.3))
+        .lerp(cool, under * 0.25)
+        .multiplyScalar(vigor * (1 - interior * 0.32) * (1 - under * 0.12));
+    };
+    const kit = createNearCanopyKit({ id: `giant-${def.id}`, barkColor, leafColor: nearLeafColor, canopy });
+    nearLobes.forEach((rec, idx) => nearCanopy.push(kit.lobePart(r, rec, idx)));
+    nearLimbs.forEach((limb, idx) => nearCanopy.push(kit.limbPart(r, limb, idx)));
+  }
+
   return {
     geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), treeLeaves.finish('leaves')]),
     authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
@@ -1728,5 +1828,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       .filter((ring) => ring.length && ring[0].y < 8),
     boughDress: boughDressAudit,
     coreRimCards,
+    nearCanopy,
+    nearCanopyGroups: nearGroups,
+    nearCanopyHeroKept: nearTally.kept,
+    nearCanopyHeroLimited: nearTally.limited,
   };
 }

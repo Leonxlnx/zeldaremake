@@ -23,7 +23,7 @@ import {
   type WebGLProgramParametersWithUniforms,
 } from 'three';
 import { WIND_GLSL, type Wind } from '../wind/wind';
-import { GIANT_BARK_FLOOR, LEAF_FLOOR, bindShadeFloor, shadeFloorGlsl, shadeFloorPars, type ShadeFloor, type ShadeFloorGlslOptions } from '../materials/shadeFloor';
+import { GIANT_BARK_FLOOR as SHARED_BARK_FLOOR, LEAF_FLOOR as SHARED_LEAF_FLOOR, bindShadeFloor, shadeFloorGlsl, shadeFloorPars, type ShadeFloor, type ShadeFloorGlslOptions } from '../materials/shadeFloor';
 import type { WorldContext } from '../system';
 import { createWhiteBarkTextures } from './bark-texture';
 import { createLeafClusterDetail, createLeafClusterTexture } from './leaf-cluster-texture';
@@ -47,6 +47,13 @@ export interface TreeMaterials {
    * has to lift a shaded bole to the frames' hazed grey (it stands 2–12 m from the camera, not 10–20)
    */
   giantTreeNearBase: MeshStandardMaterial;
+  /**
+   * the near-canopy parts (giant.ts NEAR_CANOPY_IN_M): the giants' bark and leaf shading with
+   * the sun read through the laminae from below (NEAR_CANOPY_SUN_THROUGH), the leaf detail
+   * (margin, veins, cupped normal) out to NEAR_CANOPY_LEAF_NEAR_M, and the near leaf floor
+   * (NEAR_CANOPY_LEAF_FLOOR); the bark floor is the trees' (TREE_BARK_FLOOR)
+   */
+  giantTreeNearCanopy: MeshStandardMaterial;
   /** leaf-cluster alpha cards inside the giant lobes */
   giantCanopy: MeshStandardMaterial;
   giantCanopyDepth: MeshDepthMaterial;
@@ -60,10 +67,62 @@ export interface TreeMaterials {
    * every material here, so the trees system sets it once per frame.
    */
   nearBole: IUniform<Vector4[]>;
+  /**
+   * the near-canopy LOD slots every tree COLOUR program reads (see NEAR_CANOPY_SLOTS): xyz = a
+   * tree's root in world space, w = 3 + the swap group of a lobe of it whose near version is
+   * drawn (writer.ts leafSwapGroup; 0 = slot empty). The far laminae and cards tagged with that
+   * group fold to the tree's root in the colour pass; the depth programs read an empty set, so
+   * the shadows never change. Shared by every material here.
+   */
+  nearCanopy: IUniform<Vector4[]>;
 }
 
 /** how many trees may show their near base at once (the collapse test costs one loop per vertex) */
 export const NEAR_BOLE_SLOTS = 6;
+/** how many near-canopy lobes may be shown at once (the collapse test runs on the tagged leaf vertices only) */
+export const NEAR_CANOPY_SLOTS = 40;
+
+/**
+ * The trees' shade floors under the round-41 daylight (task 2 of round 41). The shared presets
+ * (materials/shadeFloor.ts GIANT_BARK_FLOOR lift 7 / texture 0.1, LEAF_FLOOR lift 6 / texture
+ * 0.4) were calibrated against the frames under the old warm hazy grade, where a shaded bole
+ * was a hazed grey-green column and a shaded leaf mass a veil; under the integrated daylight the
+ * same floors flatten the bark's cords and the leaves' laminae in shade (Astra's review). The
+ * trees' own presets keep the shared ones for the structures and lower the lift / raise the
+ * texture share here: the floor still catches the darkest faces (nothing goes to black) but
+ * keeps more of the surface's own albedo variation. Measured in the report (shaded-bark region
+ * std / p10 at the plaza-column and limb-below poses; per-view SSIM against cap-0).
+ *
+ * By distance. Applied flat, the full step (bark 5.5 / 0.3, leaf 4.5 / 0.6) cost the six fixed
+ * frames −0.004 to −0.009 SSIM and the half-step −0.002 to −0.007: what those cameras frame of
+ * the giants stands 10–35 m off, where the frames' shaded boles and crowns ARE hazed flat, and
+ * the review's flattened cords and laminae are what the owner sees at 3–8 m. So the far programs
+ * fade the floor by view distance: the NEAR preset within TREE_FLOOR_FADE_M[0], the shared one
+ * from TREE_FLOOR_FADE_M[1] (`mix(near, far, 1.0)` is exactly `far`: the fixed frames render the
+ * shared arithmetic). The near-bole and near-base materials keep their own floors.
+ */
+export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
+export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
+export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
+export const TREE_LEAF_FLOOR_NEAR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
+/** view distance (m) over which a far program's floor goes from the NEAR preset to the shared one */
+export const TREE_FLOOR_FADE_M: [number, number] = [5, 10];
+/**
+ * The near canopy's leaf floor (giant.ts NEAR_CANOPY_IN_M): the laminae the owner looks up at
+ * from 3–20 m. Lower again than the trees' — the sun read through the leaves and the shadow of
+ * the crown above are what should set a near leaf's level (dark where the canopy is thick, lit
+ * where the sun is behind it), not a floor.
+ */
+export const NEAR_CANOPY_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 3.2, texture: 0.75 };
+/** the near canopy's leaf detail range (m): see LEAF_NEAR_M; a 20 cm lamina is ≈ 15 px at 15 m */
+export const NEAR_CANOPY_LEAF_NEAR_M: [number, number] = [7, 18];
+/**
+ * The sun through the near laminae (see the near-canopy block in treeFragment): the scale on
+ * the underside + backlight transmission. The far programs' term is 0.22 with the underside
+ * weighted 0.45; here the underside carries 0.9 (the leaf is seen from below, the sun behind it)
+ * and the block is scaled by this uniform (`uSunThrough`, probe-able through __ATMO_UNIFORMS__).
+ */
+export const NEAR_CANOPY_SUN_THROUGH = 0.3;
 
 /**
  * The near bases' bark floor. GIANT_BARK_FLOOR (lift 7, texture 0.1) is what makes a shaded bole
@@ -109,11 +168,13 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false
 const WIND_VERTEX_PARS = /* glsl */ `
 #define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}
 #define NEAR_BOLE_SLOTS ${NEAR_BOLE_SLOTS}
+#define NEAR_CANOPY_SLOTS ${NEAR_CANOPY_SLOTS}
 attribute vec3 aWind;
 attribute vec4 aRoot;
 uniform float uTreeStiff;
 uniform float uFlex;
 uniform vec4 uNearBole[NEAR_BOLE_SLOTS];
+uniform vec4 uNearCanopy[NEAR_CANOPY_SLOTS];
 varying vec3 vTreeWorld;
 varying vec2 vTreeUv;
 varying float vTreeLocalY;
@@ -141,6 +202,14 @@ const WIND_VERTEX_BODY = /* glsl */ `
       for (int i = 0; i < NEAR_BOLE_SLOTS; i++) {
         float slotCut = uNearBole[i].w;
         if (abs(slotCut) > 0.5 && (slotCut > 0.0 || aRoot.w < -1.5) && distance(uNearBole[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz + vec3(0.0, abs(slotCut), 0.0);
+      }
+    }
+    // near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): the far laminae and cards of a lobe (aRoot.w =
+    // 3 + the lobe's group) fold to the tree's root while a slot names that root and group (the
+    // depth programs are given an empty set, so the shadows are the far foliage's at every distance)
+    if (aRoot.w > 2.75) {
+      for (int i = 0; i < NEAR_CANOPY_SLOTS; i++) {
+        if (uNearCanopy[i].w > 0.5 && abs(uNearCanopy[i].w - aRoot.w) < 0.25 && distance(uNearCanopy[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz;
       }
     }
     vec4 treeP = vec4(transformed, 1.0);
@@ -173,27 +242,36 @@ const WIND_VERTEX_BODY = /* glsl */ `
     vTreeUv = uv;
     vTreeLocalY = position.y - aRoot.y;
     // aRoot.w: 0 wood, 0.5 + 0.5 × shade-fill share for a leaf, 1.5 + 0.5 × share for a flat
-    // (sunless) leaf (writer.ts) — 1.0 for every ordinary leaf, so every decode is exact there
+    // (sunless) leaf, 3 + group for the far foliage of a near-canopy lobe — an ordinary leaf
+    // (writer.ts) — 1.0 for every ordinary leaf, so every decode is exact there
     vIsLeaf = step(0.5, aRoot.w);
-    vLeafFlat = step(1.25, aRoot.w);
+    vLeafFlat = step(1.25, aRoot.w) * (1.0 - step(2.75, aRoot.w));
     vLeafShade = clamp((aRoot.w - mix(0.5, 1.5, vLeafFlat)) * 2.0, 0.0, 1.0);
     // −0.45 × moss cover on the near bases' wood (writer.ts woodMoss); 0 on every plain vertex
     vBarkMoss = (aRoot.w < 0.0 && aRoot.w > -0.5) ? -aRoot.w / 0.45 : 0.0;
   }
 `;
 
-function injectWind(material: Material, wind: Wind, o: WindOpts, nearBole: IUniform<Vector4[]>, extra?: (shader: WebGLProgramParametersWithUniforms) => void, key = '') {
+/** the LOD slot sets a tree program reads (see TreeMaterials.nearBole / nearCanopy) */
+interface LodSlots {
+  nearBole: IUniform<Vector4[]>;
+  /** the live near-canopy set for the colour programs, an empty constant set for the depth programs */
+  nearCanopy: IUniform<Vector4[]>;
+}
+
+function injectWind(material: Material, wind: Wind, o: WindOpts, slots: LodSlots, extra?: (shader: WebGLProgramParametersWithUniforms) => void, key = '') {
   const uTreeStiff = { value: o.treeStiffness };
   const uFlex = { value: o.flex };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTreeStiff = uTreeStiff;
     shader.uniforms.uFlex = uFlex;
-    shader.uniforms.uNearBole = nearBole;
+    shader.uniforms.uNearBole = slots.nearBole;
+    shader.uniforms.uNearCanopy = slots.nearCanopy;
     shader.vertexShader = WIND_GLSL + WIND_VERTEX_PARS + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', WIND_VERTEX_BODY);
     extra?.(shader);
   };
-  material.customProgramCacheKey = () => `trees-${key}-v6`;
+  material.customProgramCacheKey = () => `trees-${key}-v7`;
   wind.bind(material);
 }
 
@@ -518,8 +596,9 @@ const LEAF_FLAT_LEVEL = /* glsl */ `
 `;
 
 /**
- * Shade floors (shared model, presets and calibration notes in materials/shadeFloor.ts): the
- * giants' bark runs GIANT_BARK_FLOOR, every leaf and the canopy cards LEAF_FLOOR. The tree shader
+ * Shade floors (shared model and calibration notes in materials/shadeFloor.ts; the trees' own
+ * presets above): the giants' bark runs TREE_BARK_FLOOR, every leaf and the canopy cards
+ * TREE_LEAF_FLOOR (the near canopy NEAR_CANOPY_LEAF_FLOOR). The tree shader
  * places the blocks itself — one per branch of its leaf/bark split — under the uniform prefixes
  * `uBarkFloor` and `uLeafFloor`, and points them at its own `uLeafSun` (shared with the leaf
  * transmission) rather than a per-floor copy: that keeps the compiled GLSL text identical, and
@@ -533,13 +612,36 @@ const TREE_FLOOR_GLSL: ShadeFloorGlslOptions = { leafSun: 'uLeafSun' };
  * indirectDiffuse, so its addition is taken back in proportion — mix(before, after, 1.0) is
  * exactly `after`, so ordinary leaves keep their arithmetic.
  */
-const LEAF_FLOOR_SHADED = /* glsl */ `
+/**
+ * A floor block with its lift and texture-share reads faded by view distance (TREE_FLOOR_FADE_M):
+ * `${u}NearLift` / `${u}NearTexture` within, the block's own `${u}Lift` / `${u}Texture` beyond.
+ * The shared block reads the two by name, so the fade is spliced onto those reads; throws if the
+ * shared text no longer carries them. `floorFar` must be in scope (see TREE_FLOOR_FADE_GLSL).
+ */
+function distanceFadedFloorGlsl(u: string, block: string): string {
+  const lift = `${u}Lift * ambientMean`;
+  const texture = `${u}Texture)`;
+  if (!block.includes(lift) || !block.includes(texture)) throw new Error(`shadeFloorGlsl: expected '${lift}' and '${texture}' in the floor block`);
+  return block.replace(lift, `mix(${u}NearLift, ${u}Lift, floorFar) * ambientMean`).replace(texture, `mix(${u}NearTexture, ${u}Texture, floorFar))`);
+}
+const TREE_FLOOR_FADE_PARS = 'uniform vec2 uFloorFade;\n';
+const treeFloorNearPars = (u: string) => `uniform float ${u}NearLift;\nuniform float ${u}NearTexture;\n`;
+const TREE_FLOOR_FADE_GLSL = /* glsl */ `float floorFar = smoothstep(uFloorFade.x, uFloorFade.y, length(vViewPosition));`;
+function bindTreeFloorNear(shader: WebGLProgramParametersWithUniforms, u: string, near: ShadeFloor) {
+  shader.uniforms[`${u}NearLift`] = { value: near.lift };
+  shader.uniforms[`${u}NearTexture`] = { value: near.texture };
+  shader.uniforms.uFloorFade = { value: new Vector2(TREE_FLOOR_FADE_M[0], TREE_FLOOR_FADE_M[1]) };
+}
+/** the leaf floor (LEAF_FLOOR_SHADED semantics) faded by distance: `near` is the preset within TREE_FLOOR_FADE_M[0] */
+const leafFloorShaded = () => /* glsl */ `
       {
+        ${TREE_FLOOR_FADE_GLSL}
         vec3 beforeFloor = reflectedLight.indirectDiffuse;
-        ${shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL)}
+        ${distanceFadedFloorGlsl('uLeafFloor', shadeFloorGlsl('uLeafFloor', TREE_FLOOR_GLSL))}
         reflectedLight.indirectDiffuse = mix(beforeFloor, reflectedLight.indirectDiffuse, vLeafShade);
       }
 `;
+const LEAF_FLOOR_SHADED = leafFloorShaded();
 /** white-barks are pale already; their shaded sides are not among the measured gaps */
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
 /**
@@ -578,6 +680,16 @@ export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.25, canopy: 1,
  */
 export const NEAR_BOLE_FLOOR_TOP = 5;
 export const NEAR_BOLE_FLOOR_FADE: [number, number] = [1.8, 3.2];
+/**
+ * Round 41 (task 2): the same level profile (the lift and its fade are the D / B calibration
+ * above), texture share unchanged. Measured (round 41, task 2): the floor binds only through the
+ * two strips cameras D and B frame (lift 13 at 0.8–4.7 m; above the fade NEAR_BOLE_FLOOR_TOP
+ * leaves the lit bole unfloored, so a higher share up there changes nothing), and a share of
+ * 0.35 through those strips cost D −0.0035 and B −0.0014 SSIM for +6 % std on the owner's
+ * plaza-column bole (0.064 → 0.068, p10 0.292 → 0.283); 0.5 about twice that. Left at the
+ * calibrated 0.25 — the dial is this constant.
+ */
+export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR };
 
 /**
  * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the
@@ -602,14 +714,72 @@ function heightFadedFloorGlsl(u: string): string {
 `;
 }
 
-function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail = false) {
+/**
+ * The sun through a lamina, far programs: Verdant Forest's directional transmission (a leaf
+ * turned from the sun glows on its dark face, and every leaf between the eye and the sun glows).
+ */
+const LEAF_SUN_THROUGH = /* glsl */ `
+      #if NUM_DIR_LIGHTS > 0
+      {
+        float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
+        float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
+        vec3 sunTint = mix(diffuseColor.rgb, uLeafSun, 0.5);
+        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (0.22 * vLeafShade * leafThin);
+      }
+      #endif
+`;
+/**
+ * The same for the near canopy (giant.ts NEAR_CANOPY_IN_M), read from below: the face turned
+ * from the sun is lit by what comes through the blade — full weight on the underside term (the
+ * far block's 0.45), a wider backlight lobe, more of the sunlit leaf colour in the tint — and
+ * `directLight.color` carries the shadow of the crown above (the far foliage still casts), so it
+ * is dark where the canopy is thick and lit where the sun is behind the leaf. `leafThin` (the
+ * blade thin, the midrib, veins and margin thick — LEAF_NEAR_NORMAL, out to uLeafNear.y here)
+ * gives the glow its structure.
+ */
+const NEAR_CANOPY_SUN_THROUGH_GLSL = /* glsl */ `
+      #if NUM_DIR_LIGHTS > 0
+      {
+        float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 2.0);
+        float underside = max(-dot(normal, directLight.direction), 0.0);
+        float transmission = underside * 0.9 + backlight * 0.8;
+        vec3 sunTint = mix(diffuseColor.rgb, uLeafSun, 0.6);
+        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (uSunThrough * vLeafShade * leafThin);
+      }
+      #endif
+`;
+
+/** a tree program's leaf-side variant (the near canopy's): its leaf floor, leaf-detail range and sun-through */
+interface LeafVariant {
+  leafFloor?: ShadeFloor;
+  leafNear?: [number, number];
+  /** set = the near-canopy sun-through block scaled by this (uSunThrough) in place of the far block */
+  sunThrough?: number;
+}
+
+function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail = false, variant: LeafVariant = {}) {
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
   shader.uniforms.uFlatLift = { value: LEAF_FLAT_LIFT };
-  shader.uniforms.uLeafNear = { value: new Vector2(LEAF_NEAR_M[0], LEAF_NEAR_M[1]) };
+  const leafNear = variant.leafNear ?? LEAF_NEAR_M;
+  shader.uniforms.uLeafNear = { value: new Vector2(leafNear[0], leafNear[1]) };
   bindShadeFloor(shader, barkPrefix, barkFloor);
-  bindShadeFloor(shader, 'uLeafFloor', LEAF_FLOOR);
+  bindShadeFloor(shader, 'uLeafFloor', variant.leafFloor ?? TREE_LEAF_FLOOR);
+  // the distance fade (TREE_FLOOR_FADE_M): the giants' far programs go to the NEAR presets close
+  // up; a material with its own calibrated floor (the near bole's height profile, the near
+  // canopy's leaf floor) fades to itself
+  const barkNear = heightFade || barkFloor !== TREE_BARK_FLOOR ? barkFloor : TREE_BARK_FLOOR_NEAR;
+  const leafNearFloor = variant.leafFloor ?? TREE_LEAF_FLOOR_NEAR;
+  bindTreeFloorNear(shader, barkPrefix, barkNear);
+  bindTreeFloorNear(shader, 'uLeafFloor', leafNearFloor);
+  let sunThroughPars = '';
+  let sunThrough = LEAF_SUN_THROUGH;
+  if (variant.sunThrough !== undefined) {
+    shader.uniforms.uSunThrough = { value: variant.sunThrough };
+    sunThroughPars = 'uniform float uSunThrough;\n';
+    sunThrough = NEAR_CANOPY_SUN_THROUGH_GLSL;
+  }
   let fadePars = '';
   if (heightFade) {
     shader.uniforms[`${barkPrefix}TopLift`] = { value: heightFade.top };
@@ -620,14 +790,30 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   // keeps at least half of the bark's own texture instead of the far tenth, so a shaded stem at
   // 1–3 m shows its grain along its length rather than one flat tone; the level (the floor's
   // mean albedo) does not move. `woodNear` is 0 past LEAF_NEAR_M[1] — mix(a, b, 0.0) is exactly a.
-  const textureRead = `${barkPrefix}Texture)`;
-  const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL);
+  // the height-profiled near-bole floor keeps its own lift; the plain block fades lift and
+  // texture share by distance (TREE_FLOOR_FADE_M) before the woodNear splice
+  const floorBlock = heightFade ? heightFadedFloorGlsl(barkPrefix) : distanceFadedFloorGlsl(barkPrefix, shadeFloorGlsl(barkPrefix, TREE_FLOOR_GLSL));
+  const textureRead = heightFade ? `${barkPrefix}Texture)` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar))`;
   if (!floorBlock.includes(textureRead)) throw new Error(`shadeFloorGlsl: expected '${textureRead}' in the floor block`);
+  const textureHere = heightFade ? `${barkPrefix}Texture` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar)`;
   const barkFloorGlsl = /* glsl */ `
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
-      ${floorBlock.replace(textureRead, `mix(${barkPrefix}Texture, max(${barkPrefix}Texture, 0.5), woodNear))`)}
+      ${TREE_FLOOR_FADE_GLSL}
+      ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
 `;
-  shader.fragmentShader = (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') + TREE_FRAGMENT_PARS + LEAF_NEAR_PARS + LEAF_FRAME_GLSL + shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) + fadePars + shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) + shader.fragmentShader;
+  shader.fragmentShader =
+    (nearDetail ? '#define NEAR_BASE_DETAIL\n' : '') +
+    TREE_FRAGMENT_PARS +
+    LEAF_NEAR_PARS +
+    LEAF_FRAME_GLSL +
+    shadeFloorPars(barkPrefix, TREE_FLOOR_GLSL) +
+    fadePars +
+    shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
+    TREE_FLOOR_FADE_PARS +
+    treeFloorNearPars(barkPrefix) +
+    treeFloorNearPars('uLeafFloor') +
+    sunThroughPars +
+    shader.fragmentShader;
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -669,14 +855,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       // ambient fill so the underside of the canopy is never black
       reflectedLight.indirectDiffuse += diffuseColor.rgb * (0.08 * vLeafShade);
       ${LEAF_SKY_TRANSMISSION}
-      #if NUM_DIR_LIGHTS > 0
-      {
-        float backlight = pow(max(dot(-geometryViewDir, directLight.direction), 0.0), 3.0);
-        float transmission = max(-dot(normal, directLight.direction), 0.0) * 0.45 + backlight * 0.65;
-        vec3 sunTint = mix(diffuseColor.rgb, uLeafSun, 0.5);
-        reflectedLight.directDiffuse += sunTint * directLight.color * transmission * (0.22 * vLeafShade * leafThin);
-      }
-      #endif
+${sunThrough}
       ${LEAF_FLAT_SUNLESS}
       ${LEAF_FLOOR_SHADED}
       ${LEAF_FLAT_LEVEL}
@@ -699,6 +878,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   const palette = ctx.config.palette;
   const leafSun = new Color(palette.leafSun);
   const nearBole: IUniform<Vector4[]> = { value: Array.from({ length: NEAR_BOLE_SLOTS }, () => new Vector4(0, 0, 0, 0)) };
+  const nearCanopy: IUniform<Vector4[]> = { value: Array.from({ length: NEAR_CANOPY_SLOTS }, () => new Vector4(0, 0, 0, 0)) };
+  // the colour programs fold the far foliage of the shown near-canopy lobes; the depth programs
+  // never do (an empty set that is never written), so the shadows are the far foliage's always
+  const noCanopy: IUniform<Vector4[]> = { value: Array.from({ length: NEAR_CANOPY_SLOTS }, () => new Vector4(0, 0, 0, 0)) };
+  const colourSlots: LodSlots = { nearBole, nearCanopy };
+  const depthSlots: LodSlots = { nearBole, nearCanopy: noCanopy };
 
   // --- white-bark trees (procedural canvas bark set + leaves) ---
   const wb = createWhiteBarkTextures(ctx.rng.fork('trees/bark-texture'));
@@ -713,9 +898,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, nearBole, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
+  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
-  injectWind(whiteTreeDepth, wind, whiteWind, nearBole, undefined, 'white-depth');
+  injectWind(whiteTreeDepth, wind, whiteWind, depthSlots, undefined, 'white-depth');
 
   // --- giants (Poly Haven tree_bark_03, CC0 + leaves) ---
   const barkSet = 'tree_bark_03';
@@ -740,16 +925,27 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, nearBole, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, GIANT_BARK_FLOOR), 'giant');
+  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR), 'giant');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
-  injectWind(giantTreeDepth, wind, giantWind, nearBole, undefined, 'giant-depth');
+  injectWind(giantTreeDepth, wind, giantWind, depthSlots, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
-  injectWind(giantTreeNear, wind, giantWind, nearBole, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
-  injectWind(giantTreeNearBase, wind, giantWind, nearBole, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BASE_FLOOR, 'uNearBaseFloor', undefined, true), 'giant-near-base');
+  injectWind(giantTreeNearBase, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, NEAR_BASE_FLOOR, 'uNearBaseFloor', undefined, true), 'giant-near-base');
+  // the near canopy's copy (giant.ts NEAR_CANOPY_IN_M): the trees' bark floor, the near leaf
+  // floor, the leaf detail out to NEAR_CANOPY_LEAF_NEAR_M and the sun read through the laminae
+  const giantTreeNearCanopy = giantTree.clone();
+  injectWind(
+    giantTreeNearCanopy,
+    wind,
+    giantWind,
+    colourSlots,
+    (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, false, { leafFloor: NEAR_CANOPY_LEAF_FLOOR, leafNear: NEAR_CANOPY_LEAF_NEAR_M, sunThrough: NEAR_CANOPY_SUN_THROUGH }),
+    'giant-near-canopy',
+  );
 
   // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
   const cluster = createLeafClusterTexture(ctx.rng.fork('trees/leaf-cluster'), palette);
@@ -768,7 +964,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantCanopy,
     wind,
     giantWind,
-    nearBole,
+    colourSlots,
     (s) => {
       s.uniforms.uLeafSun = { value: leafSun };
       s.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
@@ -776,12 +972,15 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
       s.uniforms.uLeafNear = { value: new Vector2(LEAF_NEAR_M[0], LEAF_NEAR_M[1]) };
       s.uniforms.uClusterNear = { value: clusterNear.color };
       s.uniforms.uClusterNearN = { value: clusterNear.normal };
-      bindShadeFloor(s, 'uLeafFloor', LEAF_FLOOR);
+      bindShadeFloor(s, 'uLeafFloor', TREE_LEAF_FLOOR);
+      bindTreeFloorNear(s, 'uLeafFloor', TREE_LEAF_FLOOR_NEAR);
       s.fragmentShader =
         `varying vec3 vTreeWorld;\nvarying vec2 vTreeUv;\nvarying float vTreeLocalY;\nvarying float vIsLeaf;\nvarying float vLeafShade;\nvarying float vLeafFlat;\nuniform vec3 uLeafSun;\nuniform float uLeafTransmit;\nuniform float uFlatLift;\nuniform sampler2D uClusterNear;\nuniform sampler2D uClusterNearN;\nvec4 cardNearN = vec4(0.5, 0.5, 1.0, 0.0);\n` +
         LEAF_NEAR_PARS +
         LEAF_FRAME_GLSL +
         shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
+        TREE_FLOOR_FADE_PARS +
+        treeFloorNearPars('uLeafFloor') +
         s.fragmentShader;
       // the 512 map as before; within LEAF_NEAR_M the near pair takes over: its coverage blends
       // into the alpha (a card's leaves grow their margins as the camera comes in) and its
@@ -846,7 +1045,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     'giant-canopy',
   );
   const giantCanopyDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide, map: cluster, alphaTest: CARD_ALPHA_TEST });
-  injectWind(giantCanopyDepth, wind, giantWind, nearBole, biasedMap, 'giant-canopy-depth');
+  injectWind(giantCanopyDepth, wind, giantWind, depthSlots, biasedMap, 'giant-canopy-depth');
 
   // --- distant trees: leaf-cluster cards + solid trunks/cores (uv on the opaque patch); fog tints ---
   const distant = new MeshStandardMaterial({ map: cluster, alphaTest: CARD_ALPHA_TEST, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
@@ -860,11 +1059,13 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantTreeDepth,
     giantTreeNear,
     giantTreeNearBase,
+    giantTreeNearCanopy,
     giantCanopy,
     giantCanopyDepth,
     distant,
     windLayers: 3,
     barkTextureSets: [barkSet, 'procedural:whitebark', 'procedural:leaf-cluster', 'procedural:leaf-cluster-near'],
     nearBole,
+    nearCanopy,
   };
 }
