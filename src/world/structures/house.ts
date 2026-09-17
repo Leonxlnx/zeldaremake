@@ -2090,32 +2090,48 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const side = new Vector3(dir.z, 0, -dir.x).multiplyScalar((rootRng() - 0.5) * 0.7);
     const p0 = frame.at(a, rSmooth(a, y0) - 0.4, y0);
     const p1 = frame.at(a, rSmooth(a, y0 * 0.65) + 0.1, y0 * 0.66);
-    /** the waypoints on the ground for a given reach: over the terrain, on it, sunk into it */
+    /**
+     * The waypoints on the ground for a given reach: over the terrain, on it, hugging it near
+     * the tip, sunk into it. Survey-1 item 6: Saria's south-east roots ran 4.3 m UP the plateau
+     * bank to the stair landing (base (17.0, 5.36, −7.4)) — a straight ramp from the trunk foot
+     * to the plateau read as a bent plank lying on the landing. A buttress root runs level or
+     * downhill, so a root whose seat would sit more than `MAX_CLIMB` above the house floor is
+     * shortened until it seats on the bank's lower slope; the extra point at 72 % of the reach
+     * keeps the tip on uneven ground instead of spanning it.
+     */
     const groundPts = (reachNow: number) => {
       const p2 = frame.at(a, rs0 + reachNow * 0.45, 0).addScaledVector(side, 0.5);
       p2.y = terrain.height(p2.x, p2.z) + 0.28 * k;
+      const p2b = frame.at(a, rs0 + reachNow * 0.72, 0).addScaledVector(side, 0.8);
+      p2b.y = terrain.height(p2b.x, p2b.z) + 0.1 * k;
       const p3 = frame.at(a, rs0 + reachNow, 0).add(side);
       p3.y = terrain.height(p3.x, p3.z);
       const p4 = frame.at(a, rs0 + reachNow + 0.6, 0).addScaledVector(side, 1.3);
       p4.y = terrain.height(p4.x, p4.z) - 0.4;
-      return [p2, p3, p4];
+      return [p2, p2b, p3, p4];
     };
+    const MAX_CLIMB = 1.4;
+    const climbs = (g: Vector3[]) => g[2].y - yFloor > MAX_CLIMB;
     let ground = groundPts(reach);
-    while (reach > 0.3 * R && ground.some(insideOther)) {
+    while (reach > 0.3 * R && (ground.some(insideOther) || climbs(ground))) {
       reach -= 0.1 * R;
       ground = groundPts(reach);
     }
     if (insideOther(p1) || ground.some(insideOther)) continue;
     rootsBuilt++;
-    const [p2, p3, p4] = ground;
-    const curve = new CatmullRomCurve3([p0, p1, p2, p3, p4], false, 'catmullrom', 0.5);
+    const [p2, p2b, p3, p4] = ground;
+    const curve = new CatmullRomCurve3([p0, p1, p2, p2b, p3, p4], false, 'catmullrom', 0.5);
     const rootN = 4.5 + rootRng() * 3;
     const root = sweepTube(curve, {
       radius: (t) => r0 * (1 - 0.72 * t) * (0.9 + 0.2 * Math.abs(Math.sin(t * rootN))),
-      tubularSegments: 22,
-      radialSegments: 11,
+      tubularSegments: 26,
+      radialSegments: 12,
       uvMetres: 1.4,
-      displace: (t, ang) => (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t),
+      // ridged plates as before plus long fibre furrows running the root's length (survey-1 item 6:
+      // the roots were smooth uniform tubes)
+      displace: (t, ang) =>
+        (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t) +
+        (noise.noise(ang * 3.4 + i * 7.3, t * 1.6 + 40) - 0.5) * 0.035 * k * (1 - 0.4 * t),
       color: (t) => {
         // round 34: the trunk's lit-albedo share, damp toward the tip on the ground
         const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO;
