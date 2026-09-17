@@ -90,9 +90,12 @@ export function checkedCap(frame: EndFrame, rng: Rng, noise: Noise2D, opts: Chec
   const pith = new Vector3((rng() - 0.5) * 0.3 * r, (rng() - 0.5) * 0.3 * r, 0);
   // checks: angle, half-width at the rim (rad), depth, how far in they run (fraction of r)
   const checks: { a: number; w: number; d: number; reach: number }[] = [];
+  const step = TAU / segs;
   for (let i = 0; i < checkCount; i++) {
     checks.push({
-      a: rng() * TAU,
+      // snapped to a vertex column so the crack's centre line is sampled at full depth (a
+      // 16-column disc would otherwise catch only the flanks of a 0.1–0.26 rad crack)
+      a: Math.round((rng() * TAU) / step) * step,
       w: 0.1 + rng() * 0.16,
       d: lerp(d0, d1, rng()),
       reach: i === 0 ? 1.05 : 0.35 + rng() * 0.5,
