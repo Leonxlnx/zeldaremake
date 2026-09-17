@@ -21,8 +21,43 @@ export const HERO_FERN_DETAILS: Detail[] = ['ultra', 'high', 'mid', 'low'];
  * budgets are untouched and only the walking eye pays for it.
  */
 export const HERO_FERN_ULTRA_M = 5;
-/** the ultra rachis' sides (the high LOD's 5 read as a flat wedge from 10 cm) */
-export const HERO_RACHIS_SIDES = 8;
+/** the ultra stems' sides — the hero rachis and the fiddlehead stalk (a 5-sided tube read as a flat wedge from 10 cm) */
+export const ULTRA_STEM_SIDES = 8;
+/** the ultra stems' baked shading: underside tone, and the per-facet ridge amplitude (stemShade) */
+export const STEM_UNDERSIDE = 0.72;
+export const STEM_RIDGE = 0.06;
+/** the ultra stems' lengthwise gradient exponent: the foot tone holds to mid-stem, the lit tip is the top third */
+export const STEM_GRADIENT_POW = 1.4;
+
+/**
+ * The ultra stems' baked round-off (round 40 follow-up). Under the giant trees the stems see only
+ * ambient light, so the 8-sided tube shaded as flat as the 5-sided wedge it replaced (the re-rendered
+ * northwest-base tile: one tone, 113/117/52, across the whole crossing). Two yaw-invariant terms go
+ * into the vertex colour instead: the facet's pitch tones a leaning stem's underside to
+ * STEM_UNDERSIDE and its top to 1 (an upright stem's ring has `up` ≈ 0 all round, so it keeps a
+ * level 0.86), and a fixed per-facet ridge (± STEM_RIDGE, golden-ratio spaced so no two of the eight
+ * match) draws the lengthwise fibres of a stipe. Zero triangles; the shared vertices blend the ridges.
+ */
+export function stemShade(up: number, facet: number): number {
+  const pitch = STEM_UNDERSIDE + (1 - STEM_UNDERSIDE) * (0.5 + 0.5 * up);
+  const ridge = ((facet * 0.618034) % 1) * 2 - 1;
+  return pitch * (1 + STEM_RIDGE * ridge);
+}
+
+/** an ultra stem's per-vertex colour: the foot → tip gradient under stemShade */
+export function stemColorAt(foot: RGB, tip: RGB): (t: number, up: number, facet: number) => RGB {
+  return (t, up, facet) => tone(blend(foot, tip, Math.pow(t, STEM_GRADIENT_POW)), stemShade(up, facet));
+}
+/**
+ * Camera distance (m) inside which a fiddlehead draws its ultra LOD (round 40 follow-up). The
+ * tree-base audit's "flat wedge" in the northwest-base tile was one of shot D's tall bud stalks
+ * (plants.ts: ≈ 2 × scale, 1.7 × wider — a thumb-thick 5-sided tube) crossing the lens; inside
+ * this range the stalk is an 8-sided tube with a lengthwise tone gradient (fiddleheadStalkTones).
+ * 3.5 m: the walking eye inside a clump pays for it, no fixed camera has a bud that close (the
+ * nearest are 3.6–5 m from A, C and F; plants.test), so the six views' budgets are untouched.
+ */
+export const FIDDLEHEAD_ULTRA_M = 3.5;
+export const FIDDLEHEAD_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
 
 export interface PlantPalette {
   fern: RGB;
@@ -208,9 +243,10 @@ export function heroFernGeometry(seed: string, pal: PlantPalette, detail: Detail
     const segs = high ? 12 : low ? 5 : 7;
     // round 40: at the ultra LOD the rachis is what crosses the lens when the camera stands inside
     // the fern (the tree-base audit's "flat wedge" in northwest-base: a 5-sided 12 mm tube at 10 cm):
-    // 8 sides and a lengthwise gradient — a darker, warmer foot rising to the frond's lit green —
-    // so it reads as a stem; the other LODs keep their 5 / 3 sides and flat tone (+72 triangles a frond)
-    if (ultra) tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, HERO_RACHIS_SIDES, false, (t) => blend(rachisFoot, rachisTip, Math.pow(t, 0.8)));
+    // 8 sides, a lengthwise gradient — a darker, warmer foot rising to the frond's lit green — and
+    // the baked underside / ridge shading (stemShade), so it reads as a stem; the other LODs keep
+    // their 5 / 3 sides and flat tone (+72 triangles a frond)
+    if (ultra) tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, ULTRA_STEM_SIDES, false, stemColorAt(rachisFoot, rachisTip));
     else tube(m, sampleCurve(curve, segs), 0.012, 0.0025, stemColor, high ? 5 : 3);
     const pairs = high ? 12 : low ? 6 : 8;
     const frondTone = 0.86 + rng() * 0.34;
@@ -700,16 +736,34 @@ export function whiteFlowerGeometry(seed: string, pal: PlantPalette, detail: Det
  * 0.25–0.45 m tall at unit scale, the coil curling back over itself toward the crown. Sits at
  * the centre of a fern crown.
  */
+/**
+ * The ultra fiddlehead stalk's gradient (round 40 follow-up): a darker, warmer foot (toward the
+ * bark, a touch of red) rising to a lit tone toward the coil's yellow-green.
+ */
+export function fiddleheadStalkTones(pal: PlantPalette): { foot: RGB; tip: RGB } {
+  const stalkColor = blend(pal.fern, pal.bark, 0.35);
+  const coilColor = tone(blend(pal.fern, pal.leafSun, 0.55), 1.1);
+  return {
+    foot: tone(blend(blend(stalkColor, pal.bark, 0.4), [0.42, 0.3, 0.16], 0.18), 0.78),
+    tip: tone(blend(stalkColor, coilColor, 0.5), 1.08),
+  };
+}
+
 export function fiddleheadGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
+  // `ultra` (round 40 follow-up) is the high LOD's layout from the same stream — no pop at
+  // FIDDLEHEAD_ULTRA_M — with the stalk an 8-sided tube under a lengthwise gradient and the
+  // baked underside / ridge shading (stemShade)
+  const ultra = detail === 'ultra';
+  const high = detail === 'high' || ultra;
   const buds = high ? 2 + rng.int(0, 3) : 2;
   const phase = rng() * TAU;
   // dark fibrous stalks, the coil a lighter yellow-green (sheet 01: pale fuzzy spirals on dark stems)
   const stalkColor = blend(pal.fern, pal.bark, 0.35);
   const coilColor = tone(blend(pal.fern, pal.leafSun, 0.55), 1.1);
   const scaleColor = blend(pal.bark, pal.straw, 0.35);
+  const { foot: stalkFoot, tip: stalkTip } = fiddleheadStalkTones(pal);
   for (let b = 0; b < buds; b++) {
     const a = phase + (b * TAU) / buds + (rng() - 0.5) * 0.7;
     const radial = V(Math.cos(a), 0, Math.sin(a));
@@ -719,7 +773,8 @@ export function fiddleheadGeometry(seed: string, pal: PlantPalette, detail: Deta
     const lean = 0.05 + rng() * 0.09;
     const stalk = (t: number) => root.clone().addScaledVector(radial, lean * t * t).add(V(0, h * t, 0));
     const points = sampleCurve(stalk, high ? 5 : 3);
-    tube(m, points, 0.0072, 0.0055, stalkColor, high ? 5 : 3);
+    if (ultra) tube(m, points, 0.0072, 0.0055, stalkColor, ULTRA_STEM_SIDES, false, stemColorAt(stalkFoot, stalkTip));
+    else tube(m, points, 0.0072, 0.0055, stalkColor, high ? 5 : 3);
     // coil: tangent to the stalk at its top, curling inward (toward the crown) and over itself
     const top = stalk(1);
     const R = 0.026 + rng() * 0.014;
