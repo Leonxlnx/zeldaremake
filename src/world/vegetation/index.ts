@@ -34,7 +34,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.progress('vegetation', 0.1);
 
   const grassMaterial = createVegMaterial(ctx, 'grass', { name: 'veg-grass' });
-  const litterMaterial = createVegMaterial(ctx, 'litter', { name: 'veg-litter' });
+  // round 43: the litter block (dark veins, brown → ochre) on the near leaves
+  const litterMaterial = createVegMaterial(ctx, 'litter', { name: 'veg-litter', leafDetail: true });
 
   const grassGroup = new Group();
   grassGroup.name = 'grass';

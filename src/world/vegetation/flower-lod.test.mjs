@@ -89,7 +89,7 @@ function build(species, seed, detail) {
 
 const totals = {};
 for (const species of ['flowerGeometry', 'flowerSpikeGeometry']) {
-  totals[species] = {high: 0, mid: 0, low: 0};
+  totals[species] = {ultra: 0, high: 0, mid: 0, low: 0};
   for (let variant = 0; variant < 24; variant++) {
     const seed = `flower-lod/${variant}`;
     const high = build(species, seed, 'high');
@@ -110,7 +110,20 @@ for (const species of ['flowerGeometry', 'flowerSpikeGeometry']) {
     const triangles = value => value.geometry.getIndex().count / 3;
     assert.ok(triangles(mid) < triangles(high) * .85, 'Mid saves at least 15% triangles');
     assert.ok(triangles(low) < triangles(mid), 'Low remains the cheapest geometry');
-    for (const [detail, result] of Object.entries({high, mid, low})) {
+    // round 43 — the ultra tier: the same stems from the same stream (5-sided now, the raw roots and
+    // heads recorded before grounding are bit-identical), bells as throat tubes (4-sided) at every
+    // spike station, at least twice the high LOD's triangles
+    const ultra = build(species, seed, 'ultra');
+    const ultraStems = ultra.stems.filter(s => s.sides === 5);
+    assert.equal(ultraStems.length, high.stems.length, 'Ultra keeps every stem');
+    for (let i = 0; i < high.stems.length; i++) {
+      close(ultraStems[i].root, high.stems[i].root, 'Ultra/high stem root');
+      close(ultraStems[i].head, high.stems[i].head, 'Ultra/high stem head');
+    }
+    if (species === 'flowerSpikeGeometry') assert.ok(ultra.stems.filter(s => s.sides === 4).length >= high.stems.length * 7 * 2, 'Two bells a station');
+    else assert.ok(ultra.stems.filter(s => s.sides === 4).length >= high.stems.length * 8, 'At least eight bells a head');
+    assert.ok(triangles(ultra) >= triangles(high) * 2, 'Ultra carries at least twice the high triangles');
+    for (const [detail, result] of Object.entries({ultra, high, mid, low})) {
       totals[species][detail] += triangles(result);
       const repeat = build(species, seed, detail);
       for (const name of Object.keys(result.geometry.attributes)) {

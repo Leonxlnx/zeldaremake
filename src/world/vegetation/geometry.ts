@@ -21,6 +21,20 @@ const UP = new Vector3(0, 1, 0);
  * only v otherwise (windLeaf's flutter grows toward v = 1).
  */
 export const NOT_LAMINA = 2;
+/**
+ * Petal band (round 43): a petal's u runs PETAL_U … PETAL_U + 1 across the lamina (midrib at
+ * PETAL_U + 0.5), v root → tip — materials.ts' petal detail (leafDetail: 'petal') gives it the fan
+ * veins and the translucency of a petal instead of a leaf's midrib and lateral veins, and the leaf
+ * block leaves it alone. Pass it as `uOffset` to the leaf builders.
+ */
+export const PETAL_U = 4;
+/**
+ * Broad-lamina band (round 43): the near LOD of a heart / ovate / round leaf runs its u over
+ * BROADLEAF_U … BROADLEAF_U + 1 — the leaf block (materials.ts) draws it a hosta's venation at a
+ * hosta's strength: a wide pale midrib, six arcing lateral pairs with faint veinlets between, a
+ * cupped darker margin and the waxy lit edge, all stronger than the fern-pinna block at u < 1.5.
+ */
+export const BROADLEAF_U = 6;
 
 export const rgb = (hex: number): RGB => {
   const c = new Color(hex);
@@ -149,6 +163,8 @@ export interface LeafOptions {
   planeNormal?: Vector3;
   /** 0..1 blend to a dry/brown tip colour */
   dry?: number;
+  /** added to every lamina vertex's u (round 43: PETAL_U marks a petal for the material; default 0, a leaf) */
+  uOffset?: number;
 }
 
 function leafFrame(direction: Vector3, planeNormal?: Vector3) {
@@ -165,15 +181,15 @@ function leafFrame(direction: Vector3, planeNormal?: Vector3) {
 
 /** Two-triangle lamina with a real central fold (its corners are non-coplanar) — far LOD leaf. */
 export function foldedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
-  const { curl = 0.15, twist = 0, ridge = 0.08 } = options;
+  const { curl = 0.15, twist = 0, ridge = 0.08, uOffset: u0 = 0 } = options;
   const { axis, side, normal } = leafFrame(direction, options.planeNormal);
   side.applyAxisAngle(axis, twist * 0.5);
   const middle = base.clone().addScaledVector(axis, length * 0.5).addScaledVector(normal, length * curl * 0.156 - width * (0.12 + ridge));
   const tip = base.clone().addScaledVector(axis, length).addScaledVector(normal, length * curl * Math.sin(Math.PI * 0.9));
-  const a = mesh.vertex(base, 0.5, 0, color);
-  const l = mesh.vertex(middle.clone().addScaledVector(side, -width * 0.5), 0, 0.5, tone(color, 0.96));
-  const t = mesh.vertex(tip, 0.5, 1, options.tipColor ? blend(color, options.tipColor, 0.5) : tone(color, 1.06));
-  const r = mesh.vertex(middle.clone().addScaledVector(side, width * 0.5), 1, 0.5, tone(color, 0.98));
+  const a = mesh.vertex(base, u0 + 0.5, 0, color);
+  const l = mesh.vertex(middle.clone().addScaledVector(side, -width * 0.5), u0, 0.5, tone(color, 0.96));
+  const t = mesh.vertex(tip, u0 + 0.5, 1, options.tipColor ? blend(color, options.tipColor, 0.5) : tone(color, 1.06));
+  const r = mesh.vertex(middle.clone().addScaledVector(side, width * 0.5), u0 + 1, 0.5, tone(color, 0.98));
   mesh.tri(a, l, t);
   mesh.tri(a, t, r);
 }
@@ -183,17 +199,17 @@ export function foldedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
  * edges droop, the tip curls. Cheap enough for litter and bush foliage at thousands of leaves.
  */
 export function curvedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
-  const { curl = 0.15, twist = 0, ridge = 0.1 } = options;
+  const { curl = 0.15, twist = 0, ridge = 0.1, uOffset: u0 = 0 } = options;
   const { axis, side, normal } = leafFrame(direction, options.planeNormal);
   const sideAt = side.clone().applyAxisAngle(axis, twist * 0.5);
   const midC = base.clone().addScaledVector(axis, length * 0.5).addScaledVector(normal, length * curl * 0.9);
   const tip = base.clone().addScaledVector(axis, length).addScaledVector(normal, length * curl * Math.sin(Math.PI * 0.9));
   const tipColor = options.tipColor ? blend(color, options.tipColor, 0.55) : tone(color, 1.05);
-  const a = mesh.vertex(base, 0.5, 0, tone(color, 0.9));
-  const l = mesh.vertex(midC.clone().addScaledVector(sideAt, -width * 0.5).addScaledVector(normal, -width * 0.1), 0, 0.5, tone(color, 0.95));
-  const c = mesh.vertex(midC.clone().addScaledVector(normal, width * ridge), 0.5, 0.5, tone(color, 1.07));
-  const r = mesh.vertex(midC.clone().addScaledVector(sideAt, width * 0.5).addScaledVector(normal, -width * 0.1), 1, 0.5, tone(color, 0.97));
-  const t = mesh.vertex(tip, 0.5, 1, tipColor);
+  const a = mesh.vertex(base, u0 + 0.5, 0, tone(color, 0.9));
+  const l = mesh.vertex(midC.clone().addScaledVector(sideAt, -width * 0.5).addScaledVector(normal, -width * 0.1), u0, 0.5, tone(color, 0.95));
+  const c = mesh.vertex(midC.clone().addScaledVector(normal, width * ridge), u0 + 0.5, 0.5, tone(color, 1.07));
+  const r = mesh.vertex(midC.clone().addScaledVector(sideAt, width * 0.5).addScaledVector(normal, -width * 0.1), u0 + 1, 0.5, tone(color, 0.97));
+  const t = mesh.vertex(tip, u0 + 0.5, 1, tipColor);
   mesh.tri(a, l, c);
   mesh.tri(a, c, r);
   mesh.tri(l, t, c);
@@ -202,7 +218,7 @@ export function curvedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
 
 /** Tapered lamina with raised midrib, drooping edges and twisted tip (Verdant `lanceLeaf`). */
 export function lanceLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
-  const { sections = 4, curl = 0.15, twist = 0.0, serration = 0.0, ridge = 0.08 } = options;
+  const { sections = 4, curl = 0.15, twist = 0.0, serration = 0.0, ridge = 0.08, uOffset: u0 = 0 } = options;
   const { axis, side, normal } = leafFrame(direction, options.planeNormal);
   const rows: number[][] = [];
   const fresh: RGB = options.tipColor ?? tone(color, 1.12);
@@ -212,7 +228,7 @@ export function lanceLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, 
     const w = width * 0.5 * Math.pow(Math.sin(t * Math.PI), 0.77) * (1 + serration * (j % 2 ? 1 : -1));
     const leafColor = blend(color, fresh, t * (options.tipColor ? 0.6 : 0.18));
     if (j === 0 || j === sections) {
-      rows.push([mesh.vertex(center, 0.5, t, leafColor)]);
+      rows.push([mesh.vertex(center, u0 + 0.5, t, leafColor)]);
       continue;
     }
     const sideAt = side.clone().applyAxisAngle(axis, twist * t);
@@ -220,7 +236,7 @@ export function lanceLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, 
       [-1, 0, 1].map((s) =>
         mesh.vertex(
           center.clone().addScaledVector(sideAt, s * w).addScaledVector(normal, s === 0 ? w * ridge : -w * 0.075),
-          (s + 1) / 2,
+          u0 + (s + 1) / 2,
           t,
           tone(leafColor, s === 0 ? 1.065 : 0.96),
         ),
@@ -292,12 +308,67 @@ export function pinnateLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3
   }
 }
 
-export type LeafShape = 'heart' | 'ovate' | 'round';
+/**
+ * Skeletonised leaf (round 43, the litter's near LOD): the lamina has rotted away and left the
+ * midrib and `pairs` lateral veins — thin strips along the lance outline the whole leaf had (same
+ * base, direction, length, width, curl and twist), so a leaf that skeletonises at the LOD swap
+ * keeps its footprint. The veins leave the rib at ≈ 50° toward the tip and reach the outline's
+ * half-width at their station, drooping a little. Strips carry u ≥ NOT_LAMINA (no lamina detail).
+ * 2 triangles a rib segment + 1 at the tip, 2 a vein.
+ */
+export function skeletonLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions & { pairs?: number; shape?: LeafShape } = {}) {
+  const { curl = 0.15, twist = 0, pairs = 6, shape = 'lance' } = options;
+  const { axis, side, normal } = leafFrame(direction, options.planeNormal);
+  const centre = (t: number) => base.clone().addScaledVector(axis, length * t).addScaledVector(normal, length * curl * Math.sin(t * Math.PI * 0.9));
+  const sideAt = (t: number) => side.clone().applyAxisAngle(axis, twist * t);
+  const tipColor = options.tipColor ?? tone(color, 1.1);
+  const ribHalf = width * 0.035;
+  const segments = 4;
+  const rows: number[][] = [];
+  for (let j = 0; j < segments; j++) {
+    const t = j / segments;
+    const c = centre(t);
+    const s = sideAt(t);
+    const hw = ribHalf * (1 - 0.5 * t);
+    const rc = blend(color, tipColor, t);
+    rows.push([mesh.vertex(c.clone().addScaledVector(s, -hw), NOT_LAMINA, t, rc), mesh.vertex(c.clone().addScaledVector(s, hw), NOT_LAMINA + 1, t, rc)]);
+  }
+  const ribTip = mesh.vertex(centre(1), NOT_LAMINA + 0.5, 1, tipColor);
+  for (let j = 0; j < segments - 1; j++) {
+    mesh.tri(rows[j][0], rows[j][1], rows[j + 1][0]);
+    mesh.tri(rows[j][1], rows[j + 1][1], rows[j + 1][0]);
+  }
+  mesh.tri(rows[segments - 1][0], rows[segments - 1][1], ribTip);
+  for (let p = 0; p < pairs; p++) {
+    const t = 0.1 + (p / (pairs - 1)) * 0.75;
+    const reach = width * 0.5 * leafOutline(shape, t + 0.08);
+    const c = centre(t);
+    const s = sideAt(t);
+    for (const sign of [-1, 1]) {
+      const dir = s.clone().multiplyScalar(sign).addScaledVector(axis, 0.75).addScaledVector(normal, -0.12).normalize();
+      const foot = c.clone().addScaledVector(s, sign * ribHalf * 0.5);
+      const tip = foot.clone().addScaledVector(dir, reach * 1.15);
+      const across = new Vector3().crossVectors(dir, normal).normalize();
+      const vc = blend(color, tipColor, t * 0.6);
+      const a = mesh.vertex(foot.clone().addScaledVector(across, -ribHalf * 0.6), NOT_LAMINA, t, vc);
+      const b = mesh.vertex(foot.clone().addScaledVector(across, ribHalf * 0.6), NOT_LAMINA + 1, t, vc);
+      const e = mesh.vertex(tip, NOT_LAMINA + 0.5, Math.min(1, t + 0.15), tone(vc, 1.06));
+      mesh.tri(a, b, e);
+    }
+  }
+}
+
+/**
+ * Leaf outlines: the three concept-sheet laminae, plus (round 43, the near LODs) `lance` — the
+ * lanceLeaf outline, so a litter leaf's ultra lamina keeps the high LOD's footprint —, `petal`
+ * (obovate: widest two thirds up, a rounded tip) and `clover` (obcordate: widest three quarters up).
+ */
+export type LeafShape = 'heart' | 'ovate' | 'round' | 'lance' | 'petal' | 'clover';
 
 export interface ShapedLeafOptions extends LeafOptions {
   shape: LeafShape;
-  /** vertices across a row: 3 (far LOD) or 5 */
-  across?: 3 | 5;
+  /** vertices across a row: 3 (far LOD), 5, or 7 (the round-43 ultra laminae) */
+  across?: 3 | 5 | 7;
   /** midrib colour (default: a lighter, slightly yellower tone of the lamina) */
   ribColor?: RGB;
   /**
@@ -306,16 +377,39 @@ export interface ShapedLeafOptions extends LeafOptions {
    * midrib with lateral veins (round 31: the frames' broad leaves show a crease, not a flat card)
    */
   crease?: number;
+  /**
+   * cupped margin (round 43): when set, the off-rib columns rise toward the margin by this fraction
+   * of the half-width (× the column's squared offset) instead of drooping — a dry litter leaf curls
+   * up at its edges, a petal cups toward the bloom's axis. Leaves the default droop / crease alone
+   * when undefined.
+   */
+  cup?: number;
+  /**
+   * per-vertex colour hook (round 43): `(t, s, rowColor)` with t root → tip and s the column's
+   * signed offset (−1 … 1, 0 the midrib); replaces the default rib / margin toning when given, so a
+   * builder can bake veins, a chevron or a root → tip gradient into the lamina
+   */
+  colorAt?: (t: number, s: number, rowColor: RGB) => RGB;
+  /** margin undulation (round 43): the odd columns' rows scale their half-width by 1 ± this, a wavy rim */
+  wave?: number;
+  /** curl profile exponent (round 43): 1 the default sine arc; > 1 keeps the root flat and rolls the tip up (dry litter) */
+  curlPow?: number;
 }
 
 /** half-width fraction of a leaf outline at 0 ≤ t ≤ 1 along the axis (base → tip) */
-function leafOutline(shape: LeafShape, t: number): number {
+export function leafOutline(shape: LeafShape, t: number): number {
   switch (shape) {
     case 'heart':
       // the lobes are already 0.6 wide at the petiole and the blade tapers to a drawn-out tip
       return Math.pow(Math.sin(Math.PI * (0.19 + 0.81 * t)), 0.85);
     case 'round':
       return Math.pow(Math.max(0, 1 - (2 * t - 1) ** 2), 0.55);
+    case 'lance':
+      return Math.pow(Math.sin(t * Math.PI), 0.77);
+    case 'petal':
+      return Math.pow(Math.sin(Math.PI * Math.pow(t, 1.6)), 0.6);
+    case 'clover':
+      return Math.pow(Math.sin(Math.PI * Math.pow(t, 1.9)), 0.5);
     default:
       // ovate: widest a third of the way up, pointed tip
       return Math.pow(Math.sin(Math.PI * Math.pow(t, 0.82)), 0.72);
@@ -330,11 +424,11 @@ function leafOutline(shape: LeafShape, t: number): number {
  * front faces are the upper side (`gl_FrontFacing` selects the glossy top in materials.ts).
  */
 export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: ShapedLeafOptions) {
-  const { shape, sections = 5, across = 5, curl = 0.12, twist = 0, ridge = 0.12, serration = 0, crease = 0 } = options;
+  const { shape, sections = 5, across = 5, curl = 0.12, twist = 0, ridge = 0.12, serration = 0, crease = 0, cup, colorAt, wave = 0, curlPow = 1, uOffset: u0 = 0 } = options;
   const { axis, side, normal } = leafFrame(direction, options.planeNormal);
   const rib: RGB = options.ribColor ?? [color[0] * 1.2 + 0.03, color[1] * 1.18 + 0.03, color[2] * 1.05];
   const tipColor: RGB = options.tipColor ?? tone(color, 1.06);
-  const cols = across === 3 ? [-1, 0, 1] : [-1, -0.5, 0, 0.5, 1];
+  const cols = across === 3 ? [-1, 0, 1] : across === 7 ? [-1, -2 / 3, -1 / 3, 0, 1 / 3, 2 / 3, 1] : [-1, -0.5, 0, 0.5, 1];
   const notch = shape === 'heart' ? 0.16 : 0;
   const rows: number[][] = [];
   for (let j = 0; j <= sections; j++) {
@@ -342,10 +436,11 @@ export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
     // a serrated rim: alternate rows step in and out (the base and tip rows keep the outline)
     const tooth = j > 0 && j < sections ? 1 + serration * (j % 2 ? 1 : -1) : 1;
     const w = width * 0.5 * leafOutline(shape, t) * tooth;
-    const centre = base.clone().addScaledVector(axis, length * t).addScaledVector(normal, length * curl * Math.sin(t * Math.PI * 0.9));
+    // curlPow > 1 holds the blade flat over its root and rolls the tip up (a dry leaf's curl)
+    const centre = base.clone().addScaledVector(axis, length * t).addScaledVector(normal, length * curl * (curlPow === 1 ? Math.sin(t * Math.PI * 0.9) : Math.pow(t, curlPow)));
     const rowColor = blend(color, tipColor, t * 0.5);
     if (j === sections || (j === 0 && notch === 0)) {
-      rows.push([mesh.vertex(centre, 0.5, t, rowColor)]);
+      rows.push([mesh.vertex(centre, u0 + 0.5, t, colorAt ? colorAt(t, 0, rowColor) : rowColor)]);
       continue;
     }
     const sideAt = side.clone().applyAxisAngle(axis, twist * t);
@@ -353,12 +448,14 @@ export function shapedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
       cols.map((s) => {
         const a = Math.abs(s);
         // lobes sweep back behind the petiole; edges droop, the midrib stands proud, the
-        // half-way columns sink into the vein crease
+        // half-way columns sink into the vein crease (or the whole margin cups upward)
         const back = notch * length * Math.pow(1 - t, 3) * Math.sqrt(a);
-        const lift = s === 0 ? w * ridge : a < 0.75 ? -w * (0.05 + crease) : -w * 0.14;
-        const p = centre.clone().addScaledVector(sideAt, s * w).addScaledVector(axis, -back).addScaledVector(normal, lift);
-        const c = s === 0 ? blend(rowColor, rib, 0.75) : tone(rowColor, a < 0.75 ? 1.0 - crease * 0.6 : 0.94);
-        return mesh.vertex(p, (s + 1) / 2, t, c);
+        const lift = s === 0 ? w * ridge : cup !== undefined ? w * cup * a * a : a < 0.75 ? -w * (0.05 + crease) : -w * 0.14;
+        // the wavy rim: the odd rows' margins step in, the even ones out (only where asked)
+        const ripple = wave && a > 0.6 ? 1 + wave * (j % 2 ? -1 : 1) * (a - 0.6) / 0.4 : 1;
+        const p = centre.clone().addScaledVector(sideAt, s * w * ripple).addScaledVector(axis, -back).addScaledVector(normal, lift);
+        const c = colorAt ? colorAt(t, s, rowColor) : s === 0 ? blend(rowColor, rib, 0.75) : tone(rowColor, a < 0.75 ? 1.0 - crease * 0.6 : 0.94);
+        return mesh.vertex(p, u0 + (s + 1) / 2, t, c);
       }),
     );
   }
@@ -411,6 +508,66 @@ export function bladeStrip(mesh: MeshBuilder, points: Vector3[], width: number, 
   }
   const last = rows[rows.length - 1];
   mesh.tri(last[0], last[1], tip);
+}
+
+/**
+ * Revolved profile (round 43, the near LODs): `profile(t)` gives the radius and the height along
+ * `dir` for t = 0 (foot) … 1 (top), `rings` + 1 rows of `sides` vertices around the axis, the two
+ * ends closed with a centre vertex. Buds, teardrops, stamen bosses, acorns and seed pods are all
+ * this with a different profile. `colorAt(t, facet)` bakes the per-vertex colour (default `color`).
+ */
+export function lathe(mesh: MeshBuilder, base: Vector3, dir: Vector3, profile: (t: number) => { r: number; y: number }, rings: number, sides: number, color: RGB, colorAt?: (t: number, facet: number) => RGB) {
+  const axis = dir.clone().normalize();
+  const [a, b] = frame(axis);
+  const rows: number[][] = [];
+  for (let j = 0; j <= rings; j++) {
+    const t = j / rings;
+    const { r, y } = profile(t);
+    const centre = base.clone().addScaledVector(axis, y);
+    const row: number[] = [];
+    for (let k = 0; k < sides; k++) {
+      const ang = (k * TAU) / sides;
+      row.push(mesh.vertex(centre.clone().addScaledVector(a, Math.cos(ang) * r).addScaledVector(b, Math.sin(ang) * r), NOT_LAMINA + k / sides, t, colorAt ? colorAt(t, k) : color));
+    }
+    rows.push(row);
+  }
+  for (let j = 0; j < rings; j++) {
+    for (let k = 0; k < sides; k++) {
+      const n = (k + 1) % sides;
+      mesh.tri(rows[j][k], rows[j][n], rows[j + 1][k]);
+      mesh.tri(rows[j][n], rows[j + 1][n], rows[j + 1][k]);
+    }
+  }
+  const foot = mesh.vertex(base.clone().addScaledVector(axis, profile(0).y), NOT_LAMINA + 0.5, 0, colorAt ? colorAt(0, 0) : color);
+  const top = mesh.vertex(base.clone().addScaledVector(axis, profile(1).y), NOT_LAMINA + 0.5, 1, colorAt ? colorAt(1, 0) : color);
+  for (let k = 0; k < sides; k++) {
+    const n = (k + 1) % sides;
+    mesh.tri(foot, rows[0][n], rows[0][k]);
+    mesh.tri(top, rows[rings][k], rows[rings][n]);
+  }
+}
+
+/**
+ * Deterministic smooth value noise on a unit lattice, −1 … 1 (round 43: the moss cushions' lumpy
+ * outline — implemented here rather than borrowed from the structures' tufts, per the system
+ * boundary). A sine hash on the lattice corners, trilinear between them; the same numbers on
+ * every run of the same engine, which is all a build-time geometry needs.
+ */
+export function valueNoise3(x: number, y: number, z: number): number {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+  const fx = x - xi, fy = y - yi, fz = z - zi;
+  const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy), sz = fz * fz * (3 - 2 * fz);
+  const h = (i: number, j: number, k: number) => {
+    const s = Math.sin(i * 127.1 + j * 311.7 + k * 74.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const v = lerp(
+    lerp(lerp(h(xi, yi, zi), h(xi + 1, yi, zi), sx), lerp(h(xi, yi + 1, zi), h(xi + 1, yi + 1, zi), sx), sy),
+    lerp(lerp(h(xi, yi, zi + 1), h(xi + 1, yi, zi + 1), sx), lerp(h(xi, yi + 1, zi + 1), h(xi + 1, yi + 1, zi + 1), sx), sy),
+    sz,
+  );
+  return v * 2 - 1;
 }
 
 /** Simple radial fan (flower petal ring, seed head cap). */

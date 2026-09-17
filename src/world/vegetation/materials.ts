@@ -11,6 +11,7 @@ import { Color, DoubleSide, FrontSide, MeshDepthMaterial, MeshDistanceMaterial, 
 import type { WorldContext } from '../system';
 import { WIND_GLSL, type Wind } from '../wind/wind';
 import { C_FOOT } from './field';
+import { BROADLEAF_U, PETAL_U } from './geometry';
 import { PACK_INSTANCE_ATTRIBUTE, PACK_VERTEX_ATTRIBUTE } from './lodset';
 
 /**
@@ -361,6 +362,15 @@ vec4 worldPosition = vegWorld;
  */
 export const LEAF_DETAIL_NEAR = 3.5;
 export const LEAF_DETAIL_FAR = 6.0;
+/** round 43: gain of the waxy lit edge on the leaf block's outermost margin sliver */
+export const LEAF_EDGE_LIGHT = 0.14;
+/** round 43: the broad-lamina band's gains (BROADLEAF_U — the weeds' near LOD): midrib, lateral veins, cupped margin, lit edge */
+export const BROADLEAF_DETAIL = { rib: 0.3, vein: 0.16, margin: 0.14, edge: 0.22 } as const;
+/** round 43: the petal band's translucency, [throat, + per v to the tip] × the material's uTransmission */
+export const PETAL_TRANSLUCENCY: readonly [number, number] = [0.6, 0.9];
+/** round 43: the litter block's root → tip tint (brown → ochre, × the instance's autumn tint) */
+export const LITTER_ROOT_TINT: readonly [number, number, number] = [0.86, 0.8, 0.72];
+export const LITTER_TIP_TINT: readonly [number, number, number] = [1.06, 1.02, 0.86];
 const LEAF_DETAIL_VERTEX_PARS = /* glsl */ `
 varying vec2 vLeafUv;
 `;
@@ -383,12 +393,82 @@ float vegLeafTrans = 0.0;
     // lateral veins leave the midrib at ≈ 50°, nine pairs along the blade, gone before the margin
     float lat = abs(fract((v - au * 0.6) * 9.0) - 0.5) * 2.0;
     float vein = smoothstep(0.8, 1.0, lat) * (1.0 - smoothstep(0.3, 0.48, au)) * (1.0 - rib);
-    // the lamina darkens toward its cupped margin and lightens from the root to the tip
+    // the lamina darkens toward its cupped margin and lightens from the root to the tip; the
+    // outermost sliver of the margin is the waxy lit edge (round 43, sheet 05's leaves)
     float margin = smoothstep(0.28, 0.5, au);
+    float edge = smoothstep(0.455, 0.5, au);
     vec3 grad = mix(vec3(0.80, 0.84, 0.78), vec3(1.05, 1.06, 0.96), pow(v, 0.85));
-    vec3 detail = grad * (1.0 + 0.22 * rib + 0.10 * vein - 0.08 * margin);
+    vec3 detail = grad * (1.0 + 0.22 * rib + 0.10 * vein - 0.08 * margin + ${LEAF_EDGE_LIGHT.toFixed(2)} * edge);
     diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
     vegLeafTrans = leafFade * (0.35 + 0.65 * v);
+  } else if (leafFade > 0.0 && vLeafUv.x >= ${BROADLEAF_U.toFixed(1)} && vLeafUv.x < ${(BROADLEAF_U + 1).toFixed(1)}) {
+    // the broad-lamina band (geometry.ts BROADLEAF_U; round 43 — the weeds' near LOD): a hosta's
+    // venation at a hosta's strength. The midrib a wide pale rib tapering to the tip; six pairs of
+    // lateral veins that leave it and arc toward the tip, faint veinlets between them; the blade
+    // darkens where it cups toward the margin and its outermost sliver is the waxy lit edge
+    float au = abs(vLeafUv.x - ${(BROADLEAF_U + 0.5).toFixed(1)});
+    float v = vLeafUv.y;
+    float rib = 1.0 - smoothstep(0.0, 0.055 - 0.04 * v, au);
+    float arc = v - au * au * 1.3 - au * 0.3;
+    float lat = abs(fract(arc * 6.0) - 0.5) * 2.0;
+    float vein = smoothstep(0.85, 1.0, lat) * (1.0 - smoothstep(0.36, 0.5, au)) * (1.0 - rib) * smoothstep(0.02, 0.1, v);
+    float fineLat = abs(fract(arc * 24.0) - 0.5) * 2.0;
+    float veinlet = smoothstep(0.9, 1.0, fineLat) * (1.0 - smoothstep(0.3, 0.48, au)) * (1.0 - rib) * (1.0 - vein);
+    float margin = smoothstep(0.3, 0.5, au);
+    float edge = smoothstep(0.46, 0.5, au);
+    vec3 grad = mix(vec3(0.84, 0.88, 0.80), vec3(1.02, 1.05, 0.94), pow(v, 0.9));
+    vec3 detail = grad * (1.0 + ${BROADLEAF_DETAIL.rib.toFixed(2)} * rib + ${BROADLEAF_DETAIL.vein.toFixed(2)} * vein + 0.05 * veinlet - ${BROADLEAF_DETAIL.margin.toFixed(2)} * margin + ${BROADLEAF_DETAIL.edge.toFixed(2)} * edge);
+    diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
+    vegLeafTrans = leafFade * (0.3 + 0.5 * v);
+  }
+}
+`;
+/**
+ * Round 43 — the petal band (geometry.ts PETAL_U; leafDetail: 'petal'): a petal is not a leaf.
+ * Its veins fan out from the throat as a few faint rays, its margin lightens a hair, and it is
+ * far more translucent than a lamina — sun through a white or violet petal is most of what makes
+ * it read as a petal at arm's length. Everything at u < PETAL_U (the flowers' leaves, the high
+ * LODs' petals) is left alone, so a clump past the ultra ring renders as before.
+ */
+const PETAL_DETAIL_FRAGMENT = /* glsl */ `
+float vegLeafTrans = 0.0;
+{
+  float leafFade = (1.0 - smoothstep(${LEAF_DETAIL_NEAR.toFixed(1)}, ${LEAF_DETAIL_FAR.toFixed(1)}, length(vViewPosition))) * uLeafDetail;
+  if (leafFade > 0.0 && vLeafUv.x >= ${PETAL_U.toFixed(1)} && vLeafUv.x < ${(PETAL_U + 1).toFixed(1)}) {
+    float su = vLeafUv.x - ${(PETAL_U + 0.5).toFixed(1)};
+    float v = vLeafUv.y;
+    // rays from the throat: lines of constant su / v, five across the petal, gone before the tip
+    float ray = su / max(v, 0.08);
+    float fan = abs(fract(ray * 2.5 + 0.5) - 0.5) * 2.0;
+    float vein = smoothstep(0.88, 1.0, fan) * (1.0 - smoothstep(0.34, 0.5, abs(su))) * (1.0 - smoothstep(0.55, 0.95, v));
+    float edge = smoothstep(0.42, 0.5, abs(su));
+    vec3 detail = mix(vec3(0.975, 0.985, 0.955), vec3(1.0), v) * (1.0 - 0.06 * vein + 0.04 * edge);
+    diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
+    vegLeafTrans = leafFade * (${PETAL_TRANSLUCENCY[0].toFixed(2)} + ${PETAL_TRANSLUCENCY[1].toFixed(2)} * v);
+  }
+}
+`;
+/**
+ * Round 43 — the litter block (kind 'litter', leafDetail: true): a dry leaf's veins stand darker
+ * than its bleached lamina (the reverse of a living leaf's lighter midrib), seven lateral pairs,
+ * and the lamina runs brown at the root to ochre at the tip and pales toward the margin. Same
+ * range as the leaf block; only laminae (u < 1.5), the twigs and roots take none of it.
+ */
+const LITTER_DETAIL_FRAGMENT = /* glsl */ `
+float vegLeafTrans = 0.0;
+{
+  float leafFade = (1.0 - smoothstep(${LEAF_DETAIL_NEAR.toFixed(1)}, ${LEAF_DETAIL_FAR.toFixed(1)}, length(vViewPosition))) * uLeafDetail;
+  if (leafFade > 0.0 && vLeafUv.x < 1.5) {
+    float au = abs(vLeafUv.x - 0.5);
+    float v = vLeafUv.y;
+    float rib = 1.0 - smoothstep(0.0, 0.06 - 0.04 * v, au);
+    float lat = abs(fract((v - au * 0.55) * 7.0) - 0.5) * 2.0;
+    float vein = smoothstep(0.82, 1.0, lat) * (1.0 - smoothstep(0.3, 0.48, au)) * (1.0 - rib);
+    float margin = smoothstep(0.25, 0.5, au);
+    vec3 grad = mix(vec3(${LITTER_ROOT_TINT.map((c) => c.toFixed(2)).join(', ')}), vec3(${LITTER_TIP_TINT.map((c) => c.toFixed(2)).join(', ')}), pow(v, 0.8));
+    vec3 detail = grad * (1.0 - 0.16 * rib - 0.10 * vein + 0.05 * margin);
+    diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);
+    vegLeafTrans = leafFade * 0.4 * v;
   }
 }
 `;
@@ -438,6 +518,55 @@ export const LIFT_ZONE_C_FOOT = { box: C_FOOT, scale: 2.0 };
  * had only 0.01–0.08 to gain. The dark core scores better than a lit textured one; withdrawn.
  */
 export const LIFT_ZONES_EXTRA = [LIFT_ZONE_C_FOOT] as const;
+
+/** the moss grain's albedo swing (± about half of it at the extremes of the two summed octaves) */
+export const MOSS_GRAIN = 0.3;
+const MOSS_GRAIN_VERTEX_PARS = /* glsl */ `
+uniform vec2 uMossGrainFade;
+varying vec3 vMossWorld;
+varying float vMossNear;
+`;
+// after the (shared) projection: the world position for the noise, the eye distance for the fade
+const MOSS_GRAIN_VERTEX = /* glsl */ `
+{
+  #ifdef USE_INSTANCING
+    vec4 mossWorld = modelMatrix * instanceMatrix * vec4(transformed, 1.0);
+  #else
+    vec4 mossWorld = modelMatrix * vec4(transformed, 1.0);
+  #endif
+  vMossWorld = mossWorld.xyz;
+  vMossNear = 1.0 - smoothstep(uMossGrainFade.x, uMossGrainFade.y, distance(cameraPosition, mossWorld.xyz));
+}
+`;
+const MOSS_GRAIN_FRAGMENT_PARS = /* glsl */ `
+varying vec3 vMossWorld;
+varying float vMossNear;
+float mossHash(vec3 p) {
+  p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+float mossNoise(vec3 x) {
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(mossHash(i), mossHash(i + vec3(1.0, 0.0, 0.0)), f.x), mix(mossHash(i + vec3(0.0, 1.0, 0.0)), mossHash(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+    mix(mix(mossHash(i + vec3(0.0, 0.0, 1.0)), mossHash(i + vec3(1.0, 0.0, 1.0)), f.x), mix(mossHash(i + vec3(0.0, 1.0, 1.0)), mossHash(i + vec3(1.0, 1.0, 1.0)), f.x), f.y),
+    f.z);
+}
+`;
+// the shoots' mass: fine cells over coarser patches, the lit speckles a touch warmer (sun through
+// the tips), the whole faded out with the eye distance so the far cushions keep their flat tone
+const MOSS_GRAIN_FRAGMENT = /* glsl */ `
+if (vMossNear > 0.0) {
+  float mossG1 = mossNoise(vMossWorld * 180.0) - 0.5;
+  float mossG2 = mossNoise(vMossWorld * 60.0 + 7.0) - 0.5;
+  float mossGrain = (0.7 * mossG1 + 0.5 * mossG2) * vMossNear;
+  diffuseColor.rgb *= 1.0 + ${MOSS_GRAIN.toFixed(2)} * mossGrain;
+  diffuseColor.rgb *= vec3(1.0 + 0.08 * mossGrain, 1.0 + 0.04 * mossGrain, 1.0);
+}
+`;
 
 const LIFT_VERTEX_PARS = /* glsl */ `
 uniform vec4 uLiftBox;
@@ -519,8 +648,20 @@ export interface VegMaterialOptions {
   ambientBoost?: number;
   /** full-shade fill inside SHADE_LIFT_ZONE, × albedo (default SHADE_LIFT_ZONE.fill; 0 opts out) */
   shadeLift?: number;
-  /** near-camera lamina detail (midrib, veins, root → tip gradient; plant / bush kinds, default on) */
-  leafDetail?: boolean;
+  /**
+   * near-camera lamina detail (midrib, veins, root → tip gradient, lit edge; plant / bush kinds,
+   * default on). Round 43: `'petal'` compiles the petal band instead (geometry.ts PETAL_U — fan
+   * veins and translucency for the flowers' ultra petals, their leaves and far petals untouched);
+   * on the `litter` kind `true` compiles the dry-leaf block (dark veins, brown → ochre; default off).
+   */
+  leafDetail?: boolean | 'petal';
+  /**
+   * near-camera surface grain on the `moss` kind (round 43): two octaves of world-space value noise
+   * (≈ 5 and 17 mm cells) on the albedo, full inside `grain[0]` m of the eye and gone by `grain[1]`,
+   * so the cushions' lobes read as a mass of shoots at arm's length and the fixed cameras' far
+   * cushions are untouched (default off)
+   */
+  grain?: [number, number];
   singleSided?: boolean;
   name?: string;
   /** required for kind `card` */
@@ -591,8 +732,14 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
   };
   const glossyTop = opts.topRoughness !== undefined;
   if (glossyTop) uniforms.uTopRoughness = { value: opts.topRoughness };
-  const leafDetail = (kind === 'plant' || kind === 'bush') && opts.leafDetail !== false;
+  // which near-detail block the colour pass compiles: the leaf block (plants / bushes unless opted
+  // out), the petal band (opted in), the litter block (litter, opted in); none otherwise
+  const leafMode: 'leaf' | 'petal' | 'litter' | null =
+    kind === 'plant' || kind === 'bush' ? (opts.leafDetail === 'petal' ? 'petal' : opts.leafDetail !== false ? 'leaf' : null) : kind === 'litter' && opts.leafDetail === true ? 'litter' : null;
+  const leafDetail = leafMode !== null;
   if (leafDetail) uniforms.uLeafDetail = { value: 1 };
+  const grain = kind === 'moss' && opts.grain ? opts.grain : null;
+  if (grain) uniforms.uMossGrainFade = { value: new Vector2(grain[0], grain[1]) };
   if (grassLike) {
     uniforms.uTints = { value: [new Color(P.grassDeep), new Color(P.grassMid), new Color(P.grassLight), new Color(P.mossBright).lerp(new Color(P.grassLight), 0.45)] };
     // straw tips: warm yellow like the reference's lit blades, never brighter than its plaza stone
@@ -641,21 +788,22 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     }
     // zone lift (and the leaf detail's uv, colour pass only) after the (shared) projection block,
     // so the shadow passes keep an identical block
-    const afterProjection = leafDetail ? `${LIFT_VERTEX}\n${LEAF_DETAIL_VERTEX}` : LIFT_VERTEX;
-    vs = `${LIFT_VERTEX_PARS}\n${leafDetail ? LEAF_DETAIL_VERTEX_PARS : ''}${vs}`;
+    const afterProjection = `${LIFT_VERTEX}${leafDetail ? `\n${LEAF_DETAIL_VERTEX}` : ''}${grain ? `\n${MOSS_GRAIN_VERTEX}` : ''}`;
+    vs = `${LIFT_VERTEX_PARS}\n${leafDetail ? LEAF_DETAIL_VERTEX_PARS : ''}${grain ? MOSS_GRAIN_VERTEX_PARS : ''}${vs}`;
     vs = vs.includes('#include <project_vertex>')
       ? vs.replace('#include <project_vertex>', `#include <project_vertex>\n${afterProjection}`)
       : vs.replace('gl_Position = projectionMatrix * mvPosition;', `gl_Position = projectionMatrix * mvPosition;\n${afterProjection}`);
     const lights = (grassLike ? FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', GRASS_FRAGMENT_FILL) : FOLIAGE_FRAGMENT_LIGHTS.replace('//VEG_EXTRA_FILL//', '')).replace('//VEG_TRANSMISSION//', card ? ' * vegAtlasT' : leafDetail ? ' * (1.0 + vegLeafTrans)' : '');
-    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${leafDetail ? LEAF_DETAIL_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
+    fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${leafDetail ? LEAF_DETAIL_FRAGMENT_PARS : ''}${grain ? MOSS_GRAIN_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
     if (kind === 'grass') fs = fs.replace('#include <normal_fragment_begin>', GRASS_NORMAL_FRAGMENT_BEGIN);
     if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT).replace('#include <normal_fragment_begin>', CARD_NORMAL_FRAGMENT_BEGIN);
     if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
-    if (leafDetail) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${LEAF_DETAIL_FRAGMENT}`);
+    if (leafMode) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${leafMode === 'petal' ? PETAL_DETAIL_FRAGMENT : leafMode === 'litter' ? LITTER_DETAIL_FRAGMENT : LEAF_DETAIL_FRAGMENT}`);
+    if (grain) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${MOSS_GRAIN_FRAGMENT}`);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v16${glossyTop ? '-glossy' : ''}${leafDetail ? '-leaf' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v19${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}${grain ? '-grain' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

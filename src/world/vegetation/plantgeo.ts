@@ -7,11 +7,31 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { MeshBuilder, NOT_LAMINA, TAU, V, bladeStrip, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, type LeafShape, type RGB } from './geometry';
+import { BROADLEAF_U, MeshBuilder, NOT_LAMINA, PETAL_U, TAU, V, bladeStrip, blend, clamp01, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, lathe, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, valueNoise3, type LeafShape, type RGB } from './geometry';
 
 /** `ultra` (round 40) is an extra near LOD a builder may offer above `high`; the default LOD list has none */
 export type Detail = 'ultra' | 'high' | 'mid' | 'low';
 const DETAILS: Detail[] = ['high', 'mid', 'low'];
+
+/**
+ * Round 43 — the close-scale herb layer. Inside these camera distances (m, XZ like every LOD
+ * range) the flowers, broad leaves, clover, moss cushions and litter draw an `ultra` LOD built
+ * from the high LOD's own layout stream (same stems, same blooms, same leaves — the switch does
+ * not pop) with the detail the owner's sheets show at arm's length: five separate cupped petals
+ * round a stamen boss, bells with a dark throat, closed buds, veined laminae on bent petioles,
+ * lumpy cushions. The rings are sized against the six fixed cameras' budgets (vegetation-22's
+ * per-view isolation: every ultra instance a fixed camera frames costs its ultra geometry × its
+ * pack width): the flowers keep 4 m (shot D frames three clumps inside it, drawn one variant a
+ * draw), the broad leaves and clover 2.5 m (A's verge held 21 rosettes at 3.5 m, ≈ 40 K), the
+ * cushions 3 m — the player's eye is 1.6 m up, so 2.5 m on the ground is 3 m from the eye.
+ */
+export const FLOWER_ULTRA_M = 4;
+export const BROADLEAF_ULTRA_M = 2.5;
+export const MOSS_ULTRA_M = 3;
+export const FLOWER_DETAILS: readonly Detail[] = ['ultra', 'high', 'mid', 'low'];
+export const WHITE_FLOWER_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
+export const BROADLEAF_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
+export const MOSS_DETAILS: readonly Detail[] = ['ultra', 'high'];
 /** the hero crown's four LODs (plants.ts): bipinnate fronds inside HERO_FERN_ULTRA_M, then the round-31 lances */
 export const HERO_FERN_DETAILS: Detail[] = ['ultra', 'high', 'mid', 'low'];
 /**
@@ -531,13 +551,95 @@ function clusterHead(m: MeshBuilder, center: Vector3, normal: Vector3, radius: n
   }
 }
 
+/** the violet ultra LOD's tones: a deep throat, the lobe, the lit tip (round 43) */
+export function violetBellTones(pal: PlantPalette): { throat: RGB; lobe: RGB; tip: RGB } {
+  return { throat: tone(blend(pal.purpleDeep, [0.12, 0.05, 0.22], 0.35), 0.8), lobe: blend(pal.purple, pal.purpleLight, 0.3), tip: tone(pal.purpleLight, 1.06) };
+}
+
+/** the violet ultra stems' gradient (round 43): a darker, browner foot rising to a fresher green under the heads */
+export function flowerStemTones(pal: PlantPalette): { foot: RGB; tip: RGB } {
+  return { foot: tone(blend(pal.stem, pal.bark, 0.3), 0.85), tip: tone(blend(pal.stem, pal.grassLight, 0.3), 1.05) };
+}
+
+/**
+ * A small bell (round 43): a short throat tube along `dir` ending at `mouth`, and `petals` cupped
+ * lobes flaring from its rim, the throat the deepest violet and each lobe running from it to the
+ * lit tip — the baked gradient the petal material's near translucency lights from behind. The
+ * sheet's purple forest flowers are spikes of these. 8 + 4 × petals triangles.
+ */
+function bell(m: MeshBuilder, mouth: Vector3, dir: Vector3, r: number, petals: number, rng: Rng, tones: { throat: RGB; lobe: RGB; tip: RGB }) {
+  const d = dir.clone().normalize();
+  const foot = mouth.clone().addScaledVector(d, -r * 0.9);
+  tube(m, [foot, mouth], r * 0.28, r * 0.5, tones.throat, 4);
+  const side = new Vector3().crossVectors(Math.abs(d.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), d).normalize();
+  const fwd = new Vector3().crossVectors(d, side).normalize();
+  const a0 = rng() * TAU;
+  for (let p = 0; p < petals; p++) {
+    const a = a0 + (p * TAU) / petals;
+    const pdir = side.clone().multiplyScalar(Math.cos(a)).addScaledVector(fwd, Math.sin(a)).multiplyScalar(0.6 + rng() * 0.15).addScaledVector(d, 0.8).normalize();
+    const lobe = blend(tones.throat, tones.lobe, 0.55 + rng() * 0.3);
+    // the lobe flares away from the axis at its tip (negative curl about the bell's own axis)
+    curvedLeaf(m, mouth.clone().addScaledVector(pdir, r * 0.05), pdir, r * (0.85 + rng() * 0.3), r * 0.55, lobe, { curl: -0.3, ridge: 0.15, twist: (rng() - 0.5) * 0.3, planeNormal: d, tipColor: tones.tip, uOffset: PETAL_U });
+  }
+}
+
+/** the cluster head's ultra LOD: florets a head (before the buds are taken out of them) */
+export const CLUSTER_ULTRA_FLORETS = 14;
+
+/**
+ * The cluster head's ultra LOD (round 43): a ball of open florets. A small dark core (the throat
+ * tone — the shadowed depth between the florets) from the head's own stream, and 14–18 bells on a
+ * golden-angle spiral over it from the `fine` stream, mouths outward, from the crown to a little
+ * under the equator, each 0.3 × radius across so their lobes make the silhouette the high LOD's
+ * dome and rim petals made a metre further out; two or three of the youngest near the crown are
+ * still closed teardrop buds (sheet 05 "forest buds"). ≈ 500 triangles a head against 52 — the
+ * hydrangea at arm's length reads as florets with dark throats, not a smooth violet dome.
+ */
+function clusterHeadUltra(m: MeshBuilder, center: Vector3, normal: Vector3, radius: number, headRng: Rng, fine: Rng, pal: PlantPalette) {
+  const n = normal.clone().normalize();
+  const side = new Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize();
+  const fwd = new Vector3().crossVectors(n, side).normalize();
+  const tones = violetBellTones(pal);
+  // the core: a squashed ball, 0.5 × radius across, from 0.25 × radius under the centre to 0.55 above
+  const coreR = radius * 0.5;
+  const coreJitter = Array.from({ length: 4 }, () => 0.9 + headRng() * 0.2);
+  lathe(m, center.clone(), n, (t) => ({ r: coreR * Math.pow(Math.sin(t * Math.PI), 0.75) * coreJitter[Math.min(3, Math.floor(t * 4))], y: radius * (-0.25 + 0.8 * t) }), 3, 7, tones.throat, (t) => blend(tones.throat, pal.purpleDeep, t * 0.4));
+  const florets = CLUSTER_ULTRA_FLORETS + fine.int(0, 5);
+  const buds = 2 + (florets > 16 ? 1 : 0);
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  for (let b = 0; b < florets; b++) {
+    // a spiral down the ball: cos φ from 1 (crown) to −0.3 (a little under the equator)
+    const cosPhi = Math.min(1, Math.max(-0.35, 1 - ((b + 0.5) / florets) * 1.3 + (fine() - 0.5) * 0.12));
+    const phi = Math.acos(cosPhi);
+    const ang = b * golden + (fine() - 0.5) * 0.35;
+    const lat = Math.sin(phi);
+    // mouths on an ellipsoid 0.62 × radius across, its axis 0.12 … 0.62 × radius up the normal
+    const mouth = center.clone().addScaledVector(side, Math.cos(ang) * lat * radius * 0.62).addScaledVector(fwd, Math.sin(ang) * lat * radius * 0.62).addScaledVector(n, radius * (0.12 + 0.5 * cosPhi));
+    const out = side.clone().multiplyScalar(Math.cos(ang) * lat).addScaledVector(fwd, Math.sin(ang) * lat).addScaledVector(n, cosPhi * 1.1).normalize();
+    const r = radius * 0.3 * (0.85 + fine() * 0.3);
+    if (b < buds) {
+      // the youngest florets at the crown: closed teardrops, throat-dark at the foot, lit toward the tip
+      const budR = r * 0.55;
+      lathe(m, mouth.clone().addScaledVector(out, -r * 0.45), out, (u) => ({ r: budR * Math.pow(Math.sin(u * Math.PI), 0.7) * (1 - 0.3 * u), y: r * 1.6 * u }), 4, 5, tones.throat, (u) => blend(tones.throat, tone(tones.lobe, 0.92), u * 0.65));
+      continue;
+    }
+    bell(m, mouth, out, r, 5, fine, tones);
+  }
+}
+
 export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
+  // round 43: `ultra` is the high LOD's layout — the same stems, leaves and head centres from the
+  // same stream, so the switch at FLOWER_ULTRA_M does not pop — with 5-sided graded stems and the
+  // heads rebuilt as clusters of bells (clusterHeadUltra) from a forked stream
+  const ultra = detail === 'ultra';
+  const fine = ultra ? createRng(`${seed}/ultra`) : null;
   const low = detail === 'low';
   const stems = low ? 5 : 6 + rng.int(0, 4);
   const phase = rng() * TAU;
   const leafColor = blend(pal.leaf, pal.grassLight, 0.3);
+  const stemTones = flowerStemTones(pal);
   for (let i = 0; i < stems; i++) {
     const angle = phase + (i * TAU) / stems + (rng() - 0.5) * 0.5;
     const radius = 0.03 + rng() * 0.11;
@@ -547,7 +649,8 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 0.8) * Math.sin(t * Math.PI) * 0.015, 0, Math.cos(angle + 0.8) * Math.sin(t * Math.PI) * 0.015));
     // High/mid share the skeleton, including the root tangent used to ground the mesh.
     // Most mid-LOD savings come from the head, not these six extra stem triangles.
-    tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
+    if (ultra) tube(m, sampleCurve(curve, 6), 0.0026, 0.0014, pal.stem, 5, false, stemColorAt(stemTones.foot, stemTones.tip));
+    else tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
     if (!low) {
       for (let j = 0; j < 2; j++) {
         for (const sign of [-1, 1]) {
@@ -560,7 +663,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.3, 0, (rng() - 0.5) * 0.3)).normalize();
     // Petal tessellation must not advance the layout stream and move the next stem.
     // Retain the existing cheap low LOD; only high/mid need matching silhouettes.
-    clusterHead(m, curve(1), up, 0.034 + rng() * 0.016, low ? rng : rng.fork(`head-${i}`), pal, detail);
+    const headRadius = 0.034 + rng() * 0.016;
+    if (fine) clusterHeadUltra(m, curve(1), up, headRadius, rng.fork(`head-${i}`), fine, pal);
+    else clusterHead(m, curve(1), up, headRadius, low ? rng : rng.fork(`head-${i}`), pal, detail);
   }
   if (!low) {
     const rosette = 4 + rng.int(0, 3);
@@ -577,10 +682,16 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
 export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
+  // round 43: `ultra` keeps the high LOD's stems, leaves and bell stations (same stream) and
+  // rebuilds every bell as a hanging throat tube with five cupped lobes (bell) from a forked stream
+  const ultra = detail === 'ultra';
+  const fine = ultra ? createRng(`${seed}/ultra`) : null;
   const low = detail === 'low';
   const stems = low ? 4 : 5 + rng.int(0, 4);
   const phase = rng() * TAU;
   const leafColor = blend(pal.leaf, pal.grassLight, 0.35);
+  const stemTones = flowerStemTones(pal);
+  const bellTones = violetBellTones(pal);
   for (let i = 0; i < stems; i++) {
     const angle = phase + (i * TAU) / stems + (rng() - 0.5) * 0.5;
     const radius = 0.02 + rng() * 0.13;
@@ -588,7 +699,8 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
     const height = 0.26 + rng() * 0.2;
     const lean = V(Math.cos(angle) * height * 0.22, height, Math.sin(angle) * height * 0.22);
     const curve = (t: number) => root.clone().add(lean.clone().multiplyScalar(t)).add(V(Math.sin(angle + 1.1) * Math.sin(t * Math.PI) * 0.012, 0, Math.cos(angle + 1.1) * Math.sin(t * Math.PI) * 0.012));
-    tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
+    if (ultra) tube(m, sampleCurve(curve, 6), 0.0026, 0.0014, pal.stem, 5, false, stemColorAt(stemTones.foot, stemTones.tip));
+    else tube(m, sampleCurve(curve, low ? 2 : 3), 0.0026, 0.0014, pal.stem, 3);
     if (!low) {
       for (const sign of [-1, 1]) {
         const dir = V(Math.cos(angle + 0.9) * sign, 0.35, Math.sin(angle + 0.9) * sign);
@@ -603,17 +715,41 @@ export function flowerSpikeGeometry(seed: string, pal: PlantPalette, detail: Det
       const a0 = rng() * TAU;
       const petals = low ? 3 : 4;
       const scale = 1 - 0.35 * Math.max(0, (t - 0.85) / 0.15);
+      // the high LOD's petal draws (heading, colour) are taken in the same order at every detail so
+      // the layout stream never shifts; the ultra bell hangs from the first petal's heading
+      const hangs: Vector3[] = [];
       for (let p = 0; p < petals; p++) {
         const a = a0 + (p * TAU) / petals;
         const dir = V(Math.cos(a), -0.35 + rng() * 0.3, Math.sin(a)).normalize();
         const color = blend(blend(pal.purple, pal.purpleLight, 0.2 + rng() * 0.5), pal.purpleDeep, rng() * 0.3);
+        if (fine) {
+          hangs.push(dir);
+          continue;
+        }
         // Mid-distance bells keep every floret but use a folded lamina instead of four triangles.
         if (low || detail === 'mid') foldedLeaf(m, c, dir, bellR * (low ? 1.6 : 1.7) * scale, bellR * 1.6 * scale, color, { curl: 0.2 });
         else curvedLeaf(m, c, dir, bellR * 1.7 * scale, bellR * 1.6 * scale, color, { curl: 0.3, ridge: -0.1, tipColor: pal.purpleLight });
       }
+      if (fine) {
+        // two bells a station, hanging off opposite sides of the stem like the high LOD's four
+        // petals did, each a throat tube with 5–6 lobes and its mouth turned a little downward
+        for (const k of [0, 2]) {
+          const hang = hangs[k].clone().add(V(0, -0.25, 0)).normalize();
+          const r = bellR * 0.95 * scale * (0.9 + fine() * 0.2);
+          bell(m, c.clone().addScaledVector(hang, bellR * 1.05 * scale), hang, r, 5 + fine.int(0, 2), fine, bellTones);
+        }
+      }
     }
-    // terminal bud
-    clusterHead(m, curve(1), lean.clone().normalize(), bellR * 1.1, rng, pal, 'low');
+    // terminal bud: the low-detail head draws from the main stream, so the ultra LOD runs it into
+    // a scratch builder (the stream stays the high LOD's) and puts a closed teardrop bud there
+    // instead (sheet 05 "forest buds", the throat tone)
+    clusterHead(fine ? new MeshBuilder() : m, curve(1), lean.clone().normalize(), bellR * 1.1, rng, pal, 'low');
+    if (fine) {
+      const tip = lean.clone().normalize();
+      // inside the low head's envelope (0.8 × 1.1 × bellR above the tip)
+      const budR = bellR * 0.5;
+      lathe(m, curve(1).addScaledVector(tip, -budR * 0.35), tip, (u) => ({ r: budR * Math.pow(Math.sin(u * Math.PI), 0.7) * (1 - 0.35 * u), y: budR * 2.05 * u }), 4, 5, bellTones.throat, (u) => blend(bellTones.throat, tone(bellTones.lobe, 0.9), u * 0.6));
+    }
   }
   return m.finish({ groundToZero: true });
 }
@@ -628,10 +764,24 @@ export const BROADLEAF_SHAPES: readonly LeafShape[] = ['heart', 'ovate', 'round'
  * leaf, 2 the round ground leaf; each lamina carries a raised, lighter midrib. The glossy upper
  * face comes from the material (`topRoughness`), the underside stays matte.
  */
+/**
+ * The broadleaf ultra LOD's per-leaf hue spread (round 43): each lamina leans toward an older
+ * yellow-olive or a fresh blue-green by up to this much (multiplicative, per channel), from the
+ * ultra stream — a rosette a metre out is no longer one green.
+ */
+export const BROADLEAF_HUE_SPREAD = 0.09;
+
 export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, variant = 0): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
+  // round 43: `ultra` is the high LOD's rosette from the same stream — every leaf's heading,
+  // length, rise and curl — with the petiole a bent 4-sided tube under a foot → knee gradient, the
+  // lamina at 9 × 5 with a gently wavy rim, and a per-leaf hue shift from a forked stream; its u
+  // sits in the broad-lamina band (BROADLEAF_U) so the material draws the midrib, the arcing
+  // lateral veins, the cupped margin and the lit edge at a hosta's strength (materials.ts)
+  const ultra = detail === 'ultra';
+  const fine = ultra ? createRng(`${seed}/ultra`) : null;
+  const high = detail === 'high' || ultra;
   const shape = BROADLEAF_SHAPES[variant % BROADLEAF_SHAPES.length];
   // round 31: 5–7 leaves per rosette (was 4–6), the near laminae with a serrated rim and a vein
   // crease either side of the midrib (the frames' broad leaves are not flat cards)
@@ -640,6 +790,7 @@ export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, va
   // heart leaves are the fresh mid green, forest leaves the deep glossy green, ground leaves yellower
   const lamina = shape === 'ovate' ? blend(pal.weed, pal.leaf, 0.55) : shape === 'round' ? blend(pal.weed, pal.leafSun, 0.25) : blend(pal.weed, pal.leaf, 0.3);
   const petioleColor = blend(pal.stem, lamina, 0.5);
+  const petioleFoot = tone(blend(petioleColor, pal.bark, 0.3), 0.85);
   const aspect = shape === 'round' ? 0.95 : shape === 'heart' ? 0.82 : 0.58;
   for (let l = 0; l < leaves; l++) {
     const a = phase + (l * TAU) / leaves + (rng() - 0.5) * 0.6;
@@ -650,18 +801,31 @@ export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, va
     const petiole = 0.03 + rng() * 0.05;
     const root = V(Math.cos(a) * 0.01, 0.003, Math.sin(a) * 0.01);
     const knee = root.clone().addScaledVector(radial, petiole * 0.8).add(V(0, petiole * rise, 0));
-    if (high) tube(m, [root, knee], 0.0035, 0.0025, petioleColor, 3);
+    if (fine) {
+      // the bent petiole: sags a little under the blade's weight and bows sideways
+      const lateral = V(-radial.z, 0, radial.x);
+      const mid = root.clone().lerp(knee, 0.5).add(V(0, -petiole * 0.12 * (0.5 + fine()), 0)).addScaledVector(lateral, petiole * (fine() - 0.5) * 0.3);
+      tube(m, [root, mid, knee], 0.0035, 0.0025, petioleColor, 4, false, stemColorAt(petioleFoot, tone(petioleColor, 1.04)));
+    } else if (high) tube(m, [root, knee], 0.0035, 0.0025, petioleColor, 3);
     const dir = radial.clone().multiplyScalar(1).add(V(0, rise * 0.35 - 0.1 + (rng() - 0.5) * 0.2, 0)).normalize();
-    const color = tone(lamina, 0.88 + rng() * 0.26);
+    let color = tone(lamina, 0.88 + rng() * 0.26);
+    if (fine) {
+      // older leaves lean yellow-olive, fresh ones blue-green
+      const age = fine() * 2 - 1;
+      const k = BROADLEAF_HUE_SPREAD * Math.abs(age);
+      color = age > 0 ? [color[0] * (1 + k), color[1] * (1 + k * 0.4), color[2] * (1 - k)] : [color[0] * (1 - k), color[1] * (1 + k * 0.2), color[2] * (1 + k)];
+    }
     shapedLeaf(m, knee, dir, len, len * aspect * (0.9 + rng() * 0.2), color, {
       shape,
-      sections: high ? 6 : 3,
-      across: high ? 5 : 3,
+      sections: fine ? 9 : high ? 6 : 3,
+      across: fine ? 5 : high ? 5 : 3,
       curl: 0.1 + rng() * 0.14,
       twist: (rng() - 0.5) * 0.35,
       ridge: 0.13,
       serration: high ? (shape === 'round' ? 0.05 : 0.09) : 0,
       crease: high ? 0.14 : 0,
+      wave: fine ? 0.05 + fine() * 0.05 : 0,
+      uOffset: fine ? BROADLEAF_U : 0,
     });
   }
   return m.finish({ groundToZero: true });
@@ -673,17 +837,33 @@ export function weedGeometry(seed: string, pal: PlantPalette, detail: Detail, va
  * blooms with yellow centres on thin stems, 0.3–0.5 m across and ≤ 0.25 m tall at unit scale,
  * with a few heart-shaped leaves at its base.
  */
+/** the white bloom's ultra tones (round 43): petal white / cream, the throat's faint yellow-green, the stamen yellow and its orange anther tips, the calyx green */
+export function whiteBloomTones(pal: PlantPalette): { white: RGB; cream: RGB; throat: RGB; yellow: RGB; anther: RGB; calyx: RGB } {
+  const white: RGB = [0.9, 0.9, 0.84];
+  const cream: RGB = [0.96, 0.95, 0.88];
+  const yellow: RGB = blend(pal.yellow, [1, 0.8, 0.2], 0.4);
+  return { white, cream, throat: blend(cream, [0.92, 0.9, 0.55], 0.35), yellow, anther: blend(yellow, [1, 0.55, 0.1], 0.45), calyx: blend(pal.leaf, pal.grassLight, 0.45) };
+}
+/** share of the white blooms the ultra LOD shows as closed teardrop buds (sheet 05 "forest buds") */
+export const WHITE_BUD_SHARE = 0.2;
+
 export function whiteFlowerGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
+  // round 43: `ultra` keeps the high LOD's clump — every stem, bloom axis, petal heading and leaf
+  // from the same stream — and rebuilds each bloom at arm's length from a forked stream: a green
+  // calyx cup, 5–6 separate cupped petals (open or half-open, tilted a little) with a faint
+  // yellow-green throat and a baked midline, a stamen boss with anther-tipped filaments; a fifth of
+  // the blooms are closed teardrop buds. The heart leaves go to 6 × 5 with a bent petiole.
+  const ultra = detail === 'ultra';
+  const fine = ultra ? createRng(`${seed}/ultra`) : null;
+  const high = detail === 'high' || ultra;
   const blooms = high ? 8 + rng.int(0, 8) : 8;
   // root radius; with the leaning stems and petals the clump reads 0.3–0.5 m across
   const clumpR = 0.1 + rng() * 0.07;
   const phase = rng() * TAU;
-  const white: RGB = [0.9, 0.9, 0.84];
-  const cream: RGB = [0.96, 0.95, 0.88];
-  const yellow: RGB = blend(pal.yellow, [1, 0.8, 0.2], 0.4);
+  const tones = whiteBloomTones(pal);
+  const { white, cream, yellow } = tones;
   const stemColor = blend(pal.stem, pal.grassLight, 0.4);
   const leafColor = blend(pal.leaf, pal.grassLight, 0.3);
   for (let i = 0; i < blooms; i++) {
@@ -693,7 +873,9 @@ export function whiteFlowerGeometry(seed: string, pal: PlantPalette, detail: Det
     const h = 0.09 + rng() * 0.12;
     const lean = V(Math.cos(a) * h * 0.22, h, Math.sin(a) * h * 0.22);
     const top = root.clone().add(lean);
-    tube(m, high ? [root, root.clone().addScaledVector(lean, 0.5).add(V(Math.sin(a) * 0.006, 0, Math.cos(a) * 0.006)), top] : [root, top], 0.002, 0.0012, stemColor, 3);
+    const stemPoints = high ? [root, root.clone().addScaledVector(lean, 0.5).add(V(Math.sin(a) * 0.006, 0, Math.cos(a) * 0.006)), top] : [root, top];
+    if (fine) tube(m, stemPoints, 0.002, 0.0012, stemColor, 4, false, stemColorAt(tone(blend(stemColor, pal.bark, 0.25), 0.85), tone(stemColor, 1.05)));
+    else tube(m, stemPoints, 0.002, 0.0012, stemColor, 3);
     // the bloom faces up and a little outward
     const up = lean.clone().normalize().add(V((rng() - 0.5) * 0.4, 0.5, (rng() - 0.5) * 0.4)).normalize();
     const side = new Vector3().crossVectors(Math.abs(up.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), up).normalize();
@@ -704,16 +886,23 @@ export function whiteFlowerGeometry(seed: string, pal: PlantPalette, detail: Det
     // the far LOD (> 12 m, where a bloom is a pixel or two) grows its petals so the white dots
     // of frame 14 s survive the distance
     const far = high ? 1 : 2.4;
+    // the high LOD's petal colours are drawn in the same order at every detail (the stream)
+    const petalColors: RGB[] = [];
     for (let p = 0; p < petals; p++) {
       const pa = p0 + (p * TAU) / petals;
       const dir = side.clone().multiplyScalar(Math.cos(pa)).addScaledVector(fwd, Math.sin(pa)).addScaledVector(up, 0.12).normalize();
       const base = top.clone().addScaledVector(dir, 0.003);
       const color = blend(white, cream, rng() * 0.6);
+      if (fine) {
+        petalColors.push(color);
+        continue;
+      }
       // petals cup upward (positive curl toward `up`), the lamina plane pinned to the bloom's axis
       if (high) curvedLeaf(m, base, dir, petalLen, petalLen * 0.72, color, { curl: 0.28, ridge: -0.05, planeNormal: up, tipColor: cream });
       else foldedLeaf(m, base, dir, petalLen * far, petalLen * 0.9 * far, color, { curl: 0.25, ridge: -0.05, planeNormal: up });
     }
-    disc(m, top.clone().addScaledVector(up, 0.002), up, 0.0042 * far, high ? 6 : 3, yellow, tone(yellow, 0.85), 0.002);
+    if (fine) whiteBloomUltra(m, top, up, side, fwd, petalLen, p0, petalColors, fine, tones);
+    else disc(m, top.clone().addScaledVector(up, 0.002), up, 0.0042 * far, high ? 6 : 3, yellow, tone(yellow, 0.85), 0.002);
   }
   if (high) {
     const leaves = 3 + rng.int(0, 3);
@@ -722,12 +911,75 @@ export function whiteFlowerGeometry(seed: string, pal: PlantPalette, detail: Det
       const radial = V(Math.cos(a), 0, Math.sin(a));
       const root = V(Math.cos(a) * 0.02, 0.003, Math.sin(a) * 0.02);
       const knee = root.clone().addScaledVector(radial, 0.03).add(V(0, 0.035, 0));
-      tube(m, [root, knee], 0.0025, 0.0018, stemColor, 3);
+      if (fine) tube(m, [root, root.clone().lerp(knee, 0.5).add(V(0, -0.004 * fine(), 0)), knee], 0.0025, 0.0018, stemColor, 4, false, stemColorAt(tone(blend(stemColor, pal.bark, 0.25), 0.85), tone(stemColor, 1.04)));
+      else tube(m, [root, knee], 0.0025, 0.0018, stemColor, 3);
       const len = 0.04 + rng() * 0.025;
-      shapedLeaf(m, knee, radial.clone().add(V(0, 0.15, 0)), len, len * 0.85, tone(leafColor, 0.9 + rng() * 0.2), { shape: 'heart', sections: 4, across: 5, curl: 0.15, ridge: 0.12 });
+      shapedLeaf(m, knee, radial.clone().add(V(0, 0.15, 0)), len, len * 0.85, tone(leafColor, 0.9 + rng() * 0.2), fine ? { shape: 'heart', sections: 6, across: 5, curl: 0.15, ridge: 0.12, crease: 0.1, serration: 0.05 } : { shape: 'heart', sections: 4, across: 5, curl: 0.15, ridge: 0.12 });
     }
   }
   return m.finish({ groundToZero: true });
+}
+
+/**
+ * One white bloom at the ultra LOD (round 43). `top` is the stem's tip, `up` the bloom's axis
+ * with `side` / `fwd` its frame, `p0` the high LOD's first petal heading and `petalColors` its
+ * petal draws; everything else — open or half-open, 5 or 6 petals, the tilt, the bud share — is
+ * the `fine` stream's. A closed bud replaces WHITE_BUD_SHARE of the blooms.
+ */
+function whiteBloomUltra(m: MeshBuilder, top: Vector3, up: Vector3, side: Vector3, fwd: Vector3, petalLen: number, p0: number, petalColors: RGB[], fine: Rng, tones: ReturnType<typeof whiteBloomTones>) {
+  const { cream, throat, yellow, anther, calyx } = tones;
+  // the calyx: a small green cup under the bloom
+  lathe(m, top.clone().addScaledVector(up, -0.004), up, (u) => ({ r: 0.0012 + 0.0026 * Math.pow(u, 0.6), y: 0.0055 * u }), 2, 5, calyx, (u) => tone(calyx, 0.8 + 0.3 * u));
+  if (fine() < WHITE_BUD_SHARE) {
+    // a closed teardrop bud: cream petals furled round the stamens, greener toward the calyx
+    const budR = petalLen * 0.3;
+    lathe(m, top.clone().addScaledVector(up, 0.001), up, (u) => ({ r: budR * Math.pow(Math.sin(u * Math.PI), 0.65) * (1 - 0.3 * u), y: petalLen * 0.55 * u }), 4, 6, cream, (u) => blend(blend(calyx, cream, 0.5), cream, Math.min(1, u * 1.8)));
+    return;
+  }
+  const open = fine() < 0.7;
+  const count = fine() < 0.7 ? 5 : 6;
+  // the whole bloom tilts a little off its stem's axis
+  const tilt = fine() * 0.25;
+  const tiltA = fine() * TAU;
+  const axis = up.clone().addScaledVector(side, Math.cos(tiltA) * tilt).addScaledVector(fwd, Math.sin(tiltA) * tilt).normalize();
+  const s2 = new Vector3().crossVectors(Math.abs(axis.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), axis).normalize();
+  const f2 = new Vector3().crossVectors(axis, s2).normalize();
+  const spread = open ? 0.12 + fine() * 0.08 : 0.36 + fine() * 0.14;
+  const centre = top.clone().addScaledVector(axis, 0.001);
+  for (let p = 0; p < count; p++) {
+    const pa = p0 + (p * TAU) / count + (fine() - 0.5) * 0.12;
+    const dir = s2.clone().multiplyScalar(Math.cos(pa)).addScaledVector(f2, Math.sin(pa)).addScaledVector(axis, spread).normalize();
+    const color = petalColors[p % petalColors.length];
+    // a half-open bloom's petals are still extending
+    const len = petalLen * (open ? 0.92 + fine() * 0.16 : 0.78 + fine() * 0.12);
+    // a separate obovate petal, cupped toward the axis, its throat a faint yellow-green and a
+    // lighter midline running out to the cream tip (the vein gradient)
+    shapedLeaf(m, centre.clone().addScaledVector(dir, 0.0015), dir, len, len * 0.62, color, {
+      shape: 'petal',
+      sections: 4,
+      across: 5,
+      curl: open ? 0.3 : 0.5,
+      cup: 0.18,
+      ridge: -0.04,
+      twist: (fine() - 0.5) * 0.2,
+      planeNormal: axis,
+      uOffset: PETAL_U,
+      colorAt: (t, s, row) => {
+        const base = blend(blend(throat, color, Math.min(1, t * 2.2)), cream, t * 0.5);
+        return tone(base, s === 0 ? 1.03 : 1 - 0.03 * Math.abs(s)) as RGB;
+      },
+    });
+  }
+  // the stamen boss: a yellow dome with anther-tipped filaments standing out of it
+  lathe(m, centre, axis, (u) => ({ r: 0.0028 * Math.pow(1 - u * u, 0.5), y: 0.0022 * u }), 2, 6, yellow, (u) => tone(yellow, 0.82 + 0.28 * u));
+  const filaments = 5 + fine.int(0, 3);
+  for (let k = 0; k < filaments; k++) {
+    const fa = fine() * TAU;
+    const fd = s2.clone().multiplyScalar(Math.cos(fa)).addScaledVector(f2, Math.sin(fa)).multiplyScalar(0.5 + fine() * 0.35).addScaledVector(axis, 1).normalize();
+    const foot = centre.clone().addScaledVector(axis, 0.0015).addScaledVector(fd, 0.0006);
+    const tip = foot.clone().addScaledVector(fd, 0.0028 + fine() * 0.0014);
+    tube(m, [foot, tip], 0.00035, 0.0007, blend(yellow, anther, 0.3), 3, true, (t) => blend(tone(yellow, 0.95), anther, t * t));
+  }
 }
 
 // ---------------------------------------------------------------- fiddleheads (forest buds)
@@ -885,33 +1137,186 @@ export function tuftGeometry(seed: string, pal: PlantPalette, detail: Detail, va
 export function cloverGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
-  const high = detail === 'high';
+  // round 43: `ultra` keeps the high LOD's stems and leaflet headings (same stream) and draws each
+  // leaflet as an obcordate lamina (shapedLeaf 'clover', 3 × 5) with the pale chevron baked in,
+  // on a bent 4-sided petiole; the material's lamina detail adds the midrib and the lit edge
+  const ultra = detail === 'ultra';
+  const fine = ultra ? createRng(`${seed}/ultra`) : null;
+  const high = detail === 'high' || ultra;
   const stems = high ? 4 + rng.int(0, 3) : 3;
   const phase = rng() * TAU;
   const color = blend(pal.leaf, pal.grassLight, 0.45);
+  const chevron: RGB = blend(color, [0.9, 0.95, 0.8], 0.45);
+  const petioleFoot = tone(blend(pal.stem, pal.bark, 0.3), 0.85);
   for (let s = 0; s < stems; s++) {
     const a = phase + (s * TAU) / stems + (rng() - 0.5) * 0.6;
     const r = 0.015 + rng() * 0.05;
     const root = V(Math.cos(a) * r, 0, Math.sin(a) * r);
     const h = 0.04 + rng() * 0.05;
     const top = root.clone().add(V(Math.cos(a) * h * 0.3, h, Math.sin(a) * h * 0.3));
-    if (high) tube(m, [root, top], 0.0012, 0.0008, pal.stem, 3);
+    if (fine) {
+      const mid = root.clone().lerp(top, 0.5).add(V(Math.sin(a) * 0.004 * (fine() - 0.5), 0.002 * fine(), Math.cos(a) * 0.004 * (fine() - 0.5)));
+      tube(m, [root, mid, top], 0.0012, 0.0008, pal.stem, 4, false, stemColorAt(petioleFoot, tone(pal.stem, 1.05)));
+    } else if (high) tube(m, [root, top], 0.0012, 0.0008, pal.stem, 3);
     const size = 0.022 + rng() * 0.014;
     for (let l = 0; l < 3; l++) {
       const la = a + (l * TAU) / 3 + rng() * 0.3;
       const dir = V(Math.cos(la), 0.2 + (rng() - 0.5) * 0.3, Math.sin(la)).normalize();
-      foldedLeaf(m, top, dir, size, size * 0.85, tone(color, 0.9 + rng() * 0.3), { curl: 0.12, ridge: 0.15 });
+      const leafColor = tone(color, 0.9 + rng() * 0.3);
+      if (fine) {
+        const hue = 1 + (fine() - 0.5) * 0.1;
+        const c: RGB = [leafColor[0] * hue, leafColor[1], leafColor[2] * (2 - hue)];
+        shapedLeaf(m, top, dir, size, size * 0.95, c, {
+          shape: 'clover',
+          sections: 3,
+          across: 5,
+          curl: 0.1 + fine() * 0.05,
+          ridge: 0.15,
+          twist: (fine() - 0.5) * 0.3,
+          // the pale chevron: a band across the leaflet a third of the way up, fading toward the rim
+          colorAt: (t, s, row) => {
+            const band = Math.max(0, 1 - Math.abs(t - 0.4) / 0.18) * (1 - 0.6 * Math.abs(s));
+            return blend(tone(row, s === 0 ? 1.06 : 1 - 0.04 * Math.abs(s)), chevron, band * 0.8);
+          },
+        });
+      } else foldedLeaf(m, top, dir, size, size * 0.85, leafColor, { curl: 0.12, ridge: 0.15 });
     }
   }
   return m.finish({ groundToZero: true });
 }
 
 // ---------------------------------------------------------------- moss tufts
-export function mossGeometry(seed: string, pal: PlantPalette): BufferGeometry {
+/** the moss cushion's ultra tint (round 43): the base ring's gain (dark damp rim) and the crown's (lit top) over the mid tone, with the sun-through-the-tips warmth on the crown */
+export const MOSS_RIM_GAIN = 0.55;
+export const MOSS_TOP_GAIN = 1.4;
+export const MOSS_TOP_TINT: RGB = [1.0, 1.04, 0.86];
+/** sub-cushions a lobed ultra cushion carries beside its crown lobe (min, max inclusive), and the body outline's noise amplitude (fraction of the radius) */
+export const MOSS_ULTRA_LOBES: readonly [number, number] = [13, 18];
+export const MOSS_ULTRA_RUFFLE = 0.2;
+
+export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = 'high'): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const jitterTable = Array.from({ length: 512 }, () => rng());
-  dome(m, 1, 0.38 + rng() * 0.12, 9, 3, tone(pal.mossDeep, 0.85), tone(pal.mossBright, 0.9), (i) => jitterTable[Math.abs(i) % 512]);
+  const height = 0.38 + rng() * 0.12;
+  if (detail !== 'ultra') {
+    dome(m, 1, height, 9, 3, tone(pal.mossDeep, 0.85), tone(pal.mossBright, 0.9), (i) => jitterTable[Math.abs(i) % 512]);
+    return m.finish();
+  }
+  // round 43: the ultra cushion is a CLUSTER — a squat lobed body carrying MOSS_ULTRA_LOBES
+  // sub-cushions (the structures' roof tufts' recipe: fuller-than-spherical profile, value-noise
+  // outline, lit top / dark rim in the vertex colour — implemented here, nothing imported): a
+  // single dome with surface noise reads smooth at 0.8 m (vegetation-22's first pass), the lobes
+  // — 3–7 cm across at the placed scales, no two cushions alike — do not. The envelope stays the
+  // high dome's (its height exactly, its footprint or less) so the same instance scale seats it.
+  const fine = createRng(`${seed}/ultra`);
+  const off = fine() * 100;
+  const deep = tone(pal.mossDeep, 0.85);
+  const bright = tone(pal.mossBright, 0.9);
+  const mid = blend(deep, bright, 0.5);
+  /** the fuller-than-spherical meridian (t: 0 base ring … 1 crown) */
+  const profile = (t: number) => ({ r: Math.pow(Math.cos((t * Math.PI) / 2), 0.72), y: Math.pow(Math.sin((t * Math.PI) / 2), 0.85) });
+  const colorAt = (t: number, lit: number, lump: number): RGB => {
+    // t: the vertex's height fraction over the whole cushion (0 rim … 1 crown), lit: its lobe's own
+    // crest fraction; the gain runs from the dark damp rim to the lit crown, the lobes' crests catch
+    // light on top of that, their hollows sink toward the rim tone (mid is the high dome's mean)
+    const up = Math.pow(t, 0.8) * (0.55 + 0.45 * lit);
+    const gain = (MOSS_RIM_GAIN + (MOSS_TOP_GAIN - MOSS_RIM_GAIN) * up) * (1 + 0.1 * lump);
+    const c = blend(blend(deep, bright, Math.min(1, up + 0.2 * lump)), mid, 0.3);
+    return [c[0] * gain * (1 + (MOSS_TOP_TINT[0] - 1) * up), c[1] * gain * (1 + (MOSS_TOP_TINT[1] - 1) * up), c[2] * gain * (1 + (MOSS_TOP_TINT[2] - 1) * up)];
+  };
+  const bodyH = height * 0.74;
+  /**
+   * one cushion: centre `c`, up axis `n`, footprint radius `radius`, crown height `h` over the base
+   * ring; the outline ruffles by value noise at `freq`, the base ring sinks `sink` under the seat
+   * (hides the seam on the body); `tOf(y)` gives a vertex's whole-cushion height fraction
+   */
+  const cushion = (c: Vector3, n: Vector3, radius: number, h: number, segments: number, rings: number, ruffle: number, freq: number, sink: number, seedOff: number, toneMul = 1) => {
+    const up = n.clone().normalize();
+    const ref = Math.abs(up.y) > 0.92 ? V(1, 0, 0) : V(0, 1, 0);
+    const a = new Vector3().crossVectors(ref, up).normalize();
+    const b = new Vector3().crossVectors(up, a).normalize();
+    const levels: number[][] = [];
+    for (let r = 0; r <= rings; r++) {
+      const t = r / (rings + 1);
+      const { r: pr, y: py } = profile(t);
+      const level: number[] = [];
+      for (let k = 0; k < segments; k++) {
+        const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
+        const cx = Math.cos(ang);
+        const sz = Math.sin(ang);
+        // the outline's lobes (freq) and a finer surface grain a third as strong at three times the frequency
+        const nz = valueNoise3(cx * freq + seedOff, t * freq * 0.8 + off, sz * freq - seedOff) + 0.35 * valueNoise3(cx * freq * 3 - seedOff, t * freq * 2.4 + off * 0.3, sz * freq * 3 + seedOff);
+        const rr = radius * pr * (1 + ruffle * nz);
+        const yy = r === 0 ? -sink : h * py * (1 + 0.12 * ruffle * nz) - sink * (1 - t);
+        const p = c.clone().addScaledVector(a, cx * rr).addScaledVector(b, sz * rr).addScaledVector(up, yy);
+        const gt = clamp01(p.y / height);
+        level.push(m.vertex(p, NOT_LAMINA + k / segments, gt, tone(colorAt(gt, t, nz), toneMul)));
+      }
+      levels.push(level);
+    }
+    const crownP = c.clone().addScaledVector(up, h);
+    const crown = m.vertex(crownP, NOT_LAMINA + 0.5, clamp01(crownP.y / height), tone(colorAt(clamp01(crownP.y / height), 1, 0.4), toneMul));
+    for (let r = 0; r < rings; r++) {
+      for (let k = 0; k < segments; k++) {
+        const nk = (k + 1) % segments;
+        m.tri(levels[r][k], levels[r][nk], levels[r + 1][k]);
+        m.tri(levels[r][nk], levels[r + 1][nk], levels[r + 1][k]);
+      }
+    }
+    for (let k = 0; k < segments; k++) m.tri(levels[rings][k], levels[rings][(k + 1) % segments], crown);
+  };
+  // the body: the high dome's footprint, three quarters of its height, a strongly lobed outline
+  cushion(V(0, 0, 0), V(0, 1, 0), 1, bodyH, 14, 4, MOSS_ULTRA_RUFFLE, 1.7, 0, 0);
+  // the lobes stand on the body's surface: azimuth and meridian fraction by the stream, the
+  // surface normal from the profile's slope; a crown lobe takes the cushion to its full height
+  const lobes = fine.int(MOSS_ULTRA_LOBES[0], MOSS_ULTRA_LOBES[1] + 1);
+  const bodyPoint = (u: number, ang: number) => {
+    const { r, y } = profile(u);
+    const e = 1e-3;
+    const p1 = profile(u + e);
+    // the meridian tangent (dr, dy) → outward normal (dy, -dr), rotated into the azimuth
+    const dr = (p1.r - r) / e;
+    const dy = (p1.y * bodyH - y * bodyH) / e;
+    const nr = dy;
+    const ny = -dr;
+    const nl = Math.hypot(nr, ny) || 1;
+    return { p: V(Math.cos(ang) * r, y * bodyH, Math.sin(ang) * r), n: V((Math.cos(ang) * nr) / nl, ny / nl, (Math.sin(ang) * nr) / nl) };
+  };
+  const leanA = fine() * TAU;
+  const lean = 0.1 * fine();
+  const crownR = 0.42 + 0.1 * fine();
+  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, 9, 3, 0.16, 3.2, 0.05, 11);
+  for (let i = 0; i < lobes; i++) {
+    // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder;
+    // 4–8 cm across at the placed scales (the structures' roof tufts' 4–12 cm), rounder than the body
+    const ang = i * 2.399963 + fine() * 0.5;
+    const u = 0.1 + 0.68 * ((i + 0.5) / lobes) + (fine() - 0.5) * 0.14;
+    const { p, n } = bodyPoint(u, ang);
+    const rl = 0.13 + 0.13 * fine();
+    const hl = rl * (0.7 + 0.45 * fine());
+    // ± 10 % tone a lobe (the structures' tufts' toneSpread): no two lobes the same green
+    cushion(p, n, rl, hl, 8, 3, 0.22, 6, rl * 0.15, 20 + i * 7, 0.9 + 0.2 * fine());
+  }
+  // seat the base ring on y = 0 and hold the high dome's envelope: its height exactly (the lobes
+  // that rise past it are pulled down with the whole), its footprint or less
+  let maxY = 0;
+  let maxR = 0;
+  for (let k = 0; k < m.p.length; k += 3) {
+    maxY = Math.max(maxY, m.p[k + 1]);
+    maxR = Math.max(maxR, Math.abs(m.p[k]), Math.abs(m.p[k + 2]));
+  }
+  const scratch = new MeshBuilder();
+  dome(scratch, 1, height, 9, 3, deep, bright, (i) => jitterTable[Math.abs(i) % 512]);
+  let highSpan = 0;
+  for (let k = 0; k < scratch.p.length; k += 3) highSpan = Math.max(highSpan, Math.abs(scratch.p[k]), Math.abs(scratch.p[k + 2]));
+  const sy = height / maxY;
+  const sxz = Math.min(1, highSpan / maxR);
+  for (let k = 0; k < m.p.length; k += 3) {
+    m.p[k] *= sxz;
+    m.p[k + 1] = Math.max(0, m.p[k + 1]) * sy;
+    m.p[k + 2] *= sxz;
+  }
   return m.finish();
 }
 

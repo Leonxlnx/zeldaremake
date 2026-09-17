@@ -197,6 +197,71 @@ for (const kind of ['grass', 'moss', 'litter']) {
     assert.equal(s.uniforms.uLeafDetail, undefined, `${kind} takes no lamina detail`);
     assert.doesNotMatch(s.fragmentShader, /vegLeafTrans/);
   }
+  // round 43 — the lit edge on the leaf block, the petal band (leafDetail 'petal': fan veins and a stronger
+  // translucency on u ≥ PETAL_U only, no leaf block) and the litter block (kind litter, leafDetail true: dark
+  // veins, brown → ochre); each mode its own program
+  const { LEAF_EDGE_LIGHT, PETAL_TRANSLUCENCY, LITTER_ROOT_TINT, LITTER_TIP_TINT } = loadTs(path.join(here, 'materials.ts'));
+  const { PETAL_U } = loadTs(path.join(here, 'geometry.ts'));
+  assert.ok(LEAF_EDGE_LIGHT > 0 && LEAF_EDGE_LIGHT <= 0.25 && PETAL_TRANSLUCENCY[0] >= 0.35 && PETAL_TRANSLUCENCY[0] + PETAL_TRANSLUCENCY[1] <= 2 && PETAL_U >= 3);
+  assert.ok(LITTER_ROOT_TINT.every((c, i) => c < LITTER_TIP_TINT[i]), 'the litter gradient lightens toward the tip');
+  {
+    const leaf = createVegMaterial(ctx, 'plant');
+    const petal = createVegMaterial(ctx, 'plant', { leafDetail: 'petal' });
+    owned.push(leaf, petal);
+    const ls = prepare(leaf, 'standard');
+    const ps = prepare(petal, 'standard');
+    assert.match(ls.fragmentShader, /float edge = smoothstep\(0\.455, 0\.5, au\);/, 'the leaf block has the lit edge');
+    assert.ok(ls.fragmentShader.includes(`+ ${LEAF_EDGE_LIGHT.toFixed(2)} * edge)`), 'the edge gain is the declared constant');
+    assert.equal(ps.uniforms.uLeafDetail.value, 1, 'the petal band carries the detail uniform');
+    assert.match(ps.vertexShader, /gl_Position = projectionMatrix \* mvPosition;[\s\S]*vLeafUv = uv;/, 'the petal uv is passed after the shared projection');
+    assert.ok(ps.fragmentShader.includes(`if (leafFade > 0.0 && vLeafUv.x >= ${PETAL_U.toFixed(1)} && vLeafUv.x < ${(PETAL_U + 1).toFixed(1)}) {`), 'only the petal band (geometry.ts PETAL_U) takes it');
+    assert.doesNotMatch(ps.fragmentShader, /vLeafUv\.x < 1\.5|float rib = /, 'no leaf block on a petal material');
+    for (const term of ['float ray = su / max(v, 0.08);', 'float fan = ', 'float vein = ', 'diffuseColor.rgb *= mix(vec3(1.0), detail, leafFade);', `vegLeafTrans = leafFade * (${PETAL_TRANSLUCENCY[0].toFixed(2)} + ${PETAL_TRANSLUCENCY[1].toFixed(2)} * v);`]) assert.ok(ps.fragmentShader.includes(term), `petal term: ${term}`);
+    assert.match(ps.fragmentShader, /uTransmission \* \(1\.0 \+ vegLeafTrans\)/, 'the translucency term takes the petal extra');
+    assert.notEqual(petal.customProgramCacheKey(), leaf.customProgramCacheKey(), 'petal and leaf compile separate programs');
+    const { depth, distance } = createVegShadowMaterials(petal);
+    owned.push(depth, distance);
+    for (const shadow of [prepare(depth, 'depth'), prepare(distance, 'distance')]) {
+      assert.equal(projection(shadow), projection(ps), 'the petal band leaves the shared projection block alone');
+      assert.doesNotMatch(shadow.vertexShader, /vLeafUv/);
+    }
+  }
+  {
+    const plain = createVegMaterial(ctx, 'litter');
+    const dry = createVegMaterial(ctx, 'litter', { leafDetail: true });
+    owned.push(plain, dry);
+    const ds = prepare(dry, 'standard');
+    assert.equal(ds.uniforms.uLeafDetail.value, 1, 'the litter block carries the detail uniform');
+    assert.match(ds.vertexShader, /#include <project_vertex>[\s\S]*vLeafUv = uv;/, 'the litter uv is passed after three\'s own projection');
+    assert.match(ds.fragmentShader, /if \(leafFade > 0\.0 && vLeafUv\.x < 1\.5\) \{/, 'laminae only (the twigs, roots and acorns sit at u ≥ 2)');
+    assert.ok(ds.fragmentShader.includes(`vec3 grad = mix(vec3(${LITTER_ROOT_TINT.map((c) => c.toFixed(2)).join(', ')}), vec3(${LITTER_TIP_TINT.map((c) => c.toFixed(2)).join(', ')}), pow(v, 0.8));`), 'brown root → ochre tip');
+    assert.match(ds.fragmentShader, /vec3 detail = grad \* \(1\.0 - 0\.16 \* rib - 0\.10 \* vein \+ 0\.05 \* margin\);/, 'the dry veins stand darker than the lamina');
+    assert.match(ds.fragmentShader, /uTransmission \* \(1\.0 \+ vegLeafTrans\)/);
+    assert.notEqual(dry.customProgramCacheKey(), plain.customProgramCacheKey(), 'the litter block is its own program');
+    assert.doesNotMatch(prepare(plain, 'standard').fragmentShader, /vegLeafTrans/);
+    // the petal option means nothing to litter
+    const stray = createVegMaterial(ctx, 'litter', { leafDetail: 'petal' });
+    owned.push(stray);
+    assert.equal(prepare(stray, 'standard').uniforms.uLeafDetail, undefined);
+  }
+  // round 43 — the moss grain (kind moss, grain [near, far]): two octaves of world-space value noise on the albedo
+  // after three's own projection, faded by the eye distance so the far cushions keep their flat tone; moss only
+  {
+    const { MOSS_GRAIN } = loadTs(path.join(here, 'materials.ts'));
+    assert.ok(MOSS_GRAIN >= 0.12 && MOSS_GRAIN <= 0.35, 'a visible but modest swing');
+    const flat = createVegMaterial(ctx, 'moss');
+    const grainy = createVegMaterial(ctx, 'moss', { grain: [2.1, 3] });
+    const litterGrain = createVegMaterial(ctx, 'litter', { grain: [2.1, 3] });
+    owned.push(flat, grainy, litterGrain);
+    const gs = prepare(grainy, 'standard');
+    assert.deepEqual([gs.uniforms.uMossGrainFade.value.x, gs.uniforms.uMossGrainFade.value.y], [2.1, 3], 'the fade ring is the caller\'s');
+    assert.match(gs.vertexShader, /#include <project_vertex>[\s\S]*vMossNear = 1\.0 - smoothstep\(uMossGrainFade\.x, uMossGrainFade\.y, distance\(cameraPosition, mossWorld\.xyz\)\);/, 'the fade is the eye distance, after the shared projection');
+    assert.match(gs.fragmentShader, /#include <color_fragment>\s*if \(vMossNear > 0\.0\) \{\s*float mossG1 = mossNoise\(vMossWorld \* 180\.0\) - 0\.5;\s*float mossG2 = mossNoise\(vMossWorld \* 60\.0 \+ 7\.0\) - 0\.5;/, 'two octaves on the colour pass');
+    assert.ok(gs.fragmentShader.includes(`diffuseColor.rgb *= 1.0 + ${MOSS_GRAIN.toFixed(2)} * mossGrain;`), 'the swing is the declared constant');
+    assert.notEqual(grainy.customProgramCacheKey(), flat.customProgramCacheKey(), 'the grain is its own program');
+    for (const other of [prepare(flat, 'standard'), prepare(litterGrain, 'standard')]) assert.doesNotMatch(other.fragmentShader, /mossNoise/, 'flat moss and litter take no grain');
+    assert.equal(prepare(litterGrain, 'standard').uniforms.uMossGrainFade, undefined);
+  }
 }
 {
   // round 40 (Astra's "repeated fans"): a clump card decodes its dryness in 1/16 steps and a mirror flag from the
