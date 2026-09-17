@@ -58,6 +58,9 @@ interface NearRock {
   cushions: number;
   lichen: number;
   fragments: number;
+  /** crevice plants rooted in this rock's near skin (ferns, moss pads) */
+  creviceFerns: number;
+  crevicePads: number;
 }
 
 interface Instance {
@@ -373,30 +376,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
 
     // crevice plants (round 42; sheet 05 'Roots', frame-05: moss and small ferns rooted IN the
-    // rock's partings): candidates are the dark crack / parting vertices on the shoulders and
-    // sides — not the mossy cap the cap plants use — a fern or two arching out of the deeper
-    // clefts and a few moss pads filling the shallower ones. Own stream; the spots are appended
-    // after every boulder's cap and base plants (below), so those keep their jitter draws. They
-    // are found on the far mesh and re-seated on the near mesh's skin below (the plants are a
-    // near-distance detail and the near skin sits up to ~3 cm off the far surface).
-    const creviceStart = crevicePlants.length;
-    {
-      const nrmA = geo.attributes.normal;
-      const colA = geo.attributes.color;
-      const mossA = geo.attributes.aMoss;
+    // rock's partings): candidates are the crack / parting vertices on the shoulders and sides —
+    // not the mossy cap the cap plants use — a fern or two arching out of the deeper clefts and a
+    // few moss pads filling the shallower ones. A crack vertex is one whose colour the crack pass
+    // (rockgen.ts) pulled ≥ 30 % of the way from the rock's tint toward the crack dark (main lines
+    // at ≥ ~0.7 strength, the fine hairlines near full, every bedding parting). Own stream; the
+    // spots are appended after every boulder's cap and base plants (below), so those keep their
+    // jitter draws. Run on the near mesh when there is one (its furrows are the crevices the
+    // player sees; the far skin sits up to ~3 cm off it), else on the far mesh.
+    const tintC = rockOpts.tint ?? new Color(0.72, 0.72, 0.7);
+    const tintSum = tintC.r + tintC.g + tintC.b;
+    const pickCrevicePlants = (src: BufferGeometry) => {
+      const posA = src.attributes.position;
+      const nrmA = src.attributes.normal;
+      const colA = src.attributes.color;
+      const mossA = src.attributes.aMoss;
       const cRng = bRng.fork(`crevice-${b.id}`);
-      const cand: { i: number; ny: number }[] = [];
-      for (let i = 0; i < pos.count; i += 3) {
+      const cand: { i: number; ny: number; dark: number }[] = [];
+      for (let i = 0; i < posA.count; i += 3) {
         _n.fromBufferAttribute(nrmA, i);
         if (_n.y < 0.12 || _n.y > 0.8) continue;
         if (mossA.getX(i) > 0.45) continue;
-        va.fromBufferAttribute(pos, i);
+        va.fromBufferAttribute(posA, i);
         if (va.y < -0.05 * r) continue;
-        if (colA.getX(i) + colA.getY(i) + colA.getZ(i) >= 1.05) continue;
-        cand.push({ i, ny: _n.y });
+        const dark = 1 - (colA.getX(i) + colA.getY(i) + colA.getZ(i)) / tintSum;
+        if (dark < 0.3) continue;
+        cand.push({ i, ny: _n.y, dark });
       }
-      // shuffle deterministically, then take ferns from the steeper clefts and pads from the flatter
-      const order = cand.map((c) => ({ c, k: cRng() })).sort((p, q) => p.k - q.k || p.c.i - q.c.i).map((o) => o.c);
+      // shuffle deterministically (the darkest clefts a little favoured), then take ferns from the
+      // steeper clefts and pads from the flatter
+      const order = cand.map((c) => ({ c, k: cRng() - 0.4 * c.dark })).sort((p, q) => p.k - q.k || p.c.i - q.c.i).map((o) => o.c);
       const wantFerns = r > 1.5 ? 3 : 2;
       const wantPads = r > 1.5 ? 5 : 3;
       const placed: Vector3[] = [];
@@ -404,20 +413,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       let pads = 0;
       for (const cd of order) {
         if (ferns >= wantFerns && pads >= wantPads) break;
-        va.fromBufferAttribute(pos, cd.i).applyMatrix4(mesh.matrixWorld);
+        va.fromBufferAttribute(posA, cd.i).applyMatrix4(mesh.matrixWorld);
         if (placed.some((p) => p.distanceTo(va) < 0.2 * r)) continue;
         const fern = ferns < wantFerns && (cd.ny < 0.55 || pads >= wantPads);
         if (!fern && cd.ny < 0.4) continue;
         placed.push(va.clone());
+        // seated a little below the surface along the local normal, so the root sits in the furrow
+        _n.fromBufferAttribute(nrmA, cd.i).transformDirection(mesh.matrixWorld);
         if (fern) {
-          crevicePlants.push({ x: va.x, y: va.y - 0.012, z: va.z, size: 0.5, kind: 'fern', scale: cRng.range(0.8, 1.15) });
+          va.addScaledVector(_n, -0.012);
+          crevicePlants.push({ x: va.x, y: va.y, z: va.z, size: 0.5, kind: 'fern', scale: cRng.range(0.8, 1.15) });
           ferns++;
         } else {
-          crevicePlants.push({ x: va.x, y: va.y - 0.004, z: va.z, size: cRng.range(0.3, 0.8), kind: 'cushion', scale: cRng.range(0.9, 1.3) });
+          va.addScaledVector(_n, -0.004);
+          crevicePlants.push({ x: va.x, y: va.y, z: va.z, size: cRng.range(0.3, 0.8), kind: 'cushion', scale: cRng.range(0.9, 1.3) });
           pads++;
         }
       }
-    }
+      return { ferns, pads, candidates: cand.length };
+    };
+    if (!nearLod) pickCrevicePlants(geo);
 
     // the rock's rim at ground level, per azimuth bin (world frame): where the ground plants and
     // the spill stones start
@@ -499,8 +514,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const hero = heroDistance(centre, r * 1.4 + 0.3);
       const inM = Math.min(NEAR_ROCK_IN_M, hero - NEAR_ROCK_HERO_MARGIN);
       const outM = Math.min(NEAR_ROCK_OUT_M, hero - NEAR_ROCK_HERO_MARGIN / 3);
-      if (inM < NEAR_ROCK_MIN_IN_M) nearDropped.push(b.id);
-      else {
+      if (inM < NEAR_ROCK_MIN_IN_M) {
+        nearDropped.push(b.id);
+        pickCrevicePlants(geo);
+      } else {
         // absolute-scale relief on every rock, whatever its radius: main furrows ≤ 3 cm deep, the
         // fine network ≈ 1.2 cm (hairlines in the colour, barely a groove — at the main depth the
         // dense network corrugated the stair-foot rock's flank into chevrons), skin ≈ 2.5 cm,
@@ -517,35 +534,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // bedding ledges: D's deeper, the A / terrace rocks a faint layering the far mesh omits
           strata: b.id === 'shot-d-boulder' ? 0.1 : 0.035,
         });
-        // re-seat this rock's crevice plants on the near skin: each spot moves to the nearest
-        // near-mesh vertex (world frame), keeping its small sink below the surface
-        {
-          const nPos = nearGeo.attributes.position;
-          const nrmN = nearGeo.attributes.normal;
-          const toLocalM = new Matrix4().copy(mesh.matrixWorld).invert();
-          for (let k = creviceStart; k < crevicePlants.length; k++) {
-            const sp = crevicePlants[k];
-            const sink = sp.kind === 'fern' ? 0.012 : 0.004;
-            _p.set(sp.x, sp.y + sink, sp.z).applyMatrix4(toLocalM);
-            let best = Infinity;
-            let bi = -1;
-            for (let i = 0; i < nPos.count; i++) {
-              const d = _p.distanceToSquared(va.fromBufferAttribute(nPos, i));
-              if (d < best) {
-                best = d;
-                bi = i;
-              }
-            }
-            if (bi < 0) continue;
-            // the surface at the plant's foot (world frame), then the same sink along its normal
-            va.fromBufferAttribute(nPos, bi).applyMatrix4(mesh.matrixWorld);
-            _n.fromBufferAttribute(nrmN, bi).transformDirection(mesh.matrixWorld);
-            va.addScaledVector(_n, -sink);
-            sp.x = va.x;
-            sp.y = va.y;
-            sp.z = va.z;
-          }
-        }
+        // the crevice plants root in the near skin's furrows (the far mesh's cracks are only lines)
+        const crevice = pickCrevicePlants(nearGeo);
         const nRng = bRng.fork(`near-${b.id}`);
         const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 32 : r > 0.8 ? 20 : 12, shade: toLocal(shadeDir, yaw) }, mossPalette);
         nearGeo.dispose();
@@ -580,7 +570,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         nearMesh.name = `boulder-${b.id}-near`;
         nearMesh.updateMatrixWorld(true);
         group.add(nearMesh);
-        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, lichen: dressed.stats.lichen, fragments: parts.length });
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, lichen: dressed.stats.lichen, fragments: parts.length, creviceFerns: crevice.ferns, crevicePads: crevice.pads });
       }
     }
 
@@ -746,7 +736,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tileM: NEAR_TILE_M,
       fadeM: NEAR_FADE_M,
       dropped: nearDropped,
-      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, lichen: nr.lichen, fragments: nr.fragments, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
+      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, lichen: nr.lichen, fragments: nr.fragments, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,
