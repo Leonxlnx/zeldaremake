@@ -1039,8 +1039,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // ---- outer shell ----
   // (round 41: 240 × 72 → 320 × 100 — 6.3 × 4.2 cm at Saria's, so the ≈ 20 cm fine cords and the
   // cracks resolve; the surface function is unchanged, only its sampling)
-  const cols = Math.round(320 * sk);
-  const rows = Math.round(100 * sk);
+  // The upper house stands 24 m from every hero camera (F's top-left, A's far plateau): it keeps
+  // the round-40 sampling, the fine cords still tint its vertices.
+  const hero = def.id === 'saria';
+  const cols = Math.round((hero ? 320 : 240) * sk);
+  const rows = Math.round((hero ? 100 : 72) * sk);
   /**
    * The wall band under the cap's overhang (from just under the porch top up to the soffit) is
    * built as a second mesh over the same vertex grid, in the recess bark: reference B's shadow
@@ -2205,8 +2208,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // (round 21: 32 radial segments, was 16 — the denser cords (≈ 14 bundles round the body) and
   // the fissures need two-plus vertices a bundle to show; +3.8 k triangles)
   // (round 41: 120 × 32 → 176 × 48 for the fine cords, ≈ 6 cm round the 0.9 m body)
-  const ARCH_TS = 176;
-  const ARCH_RS = 48;
+  const ARCH_TS = hero ? 176 : 120;
+  const ARCH_RS = hero ? 48 : 32;
   const arch = sweepTube(archCurve, {
     radius: archRadius,
     tubularSegments: ARCH_TS,
@@ -4124,10 +4127,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     /** how mossy a bark vertex tint is: the green share over the red (bark ≈ 1.03, the sheets 2.5–4) */
     const mossiness = (c: [number, number, number]) => smoothstep(1.3, 2.2, c[1] / Math.max(1e-4, c[0]));
     const shadeOf = (c: [number, number, number]) => clamp((0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]) / 0.22, 0.25, 1);
-    const attempts = def.id === 'saria' ? 16000 : 5000;
+    // player-height band only: the tufts run to 3.4 m and thin out above 2.4 m (the cap's
+    // shade and the sheets carry the trunk above eye level; a 4 cm tuft at 5 m is a texel)
+    const yTop = Math.min(wallTop - 0.15, 3.4);
+    const attempts = def.id === 'saria' ? 9000 : 1800;
     for (let i = 0; i < attempts; i++) {
       const a = trunk41() * TAU;
-      const y = lerp(0.03, wallTop - 0.15, Math.pow(trunk41(), 0.8));
+      const y = lerp(0.03, yTop, Math.pow(trunk41(), 0.8));
       const r = (0.022 + 0.045 * Math.pow(trunk41(), 1.3)) * sk;
       const aspect = 0.75 + trunk41() * 0.5;
       const yaw = trunk41() * TAU;
@@ -4149,6 +4155,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       }
       // the damp base band takes a thin scatter on bare bark too
       w = Math.max(w, 0.3 * smoothstep(0.5, 0.05, y));
+      w *= smoothstep(3.4, 2.4, y);
       if (keep > w * lerp(0.1, 1, colony41(_sv.position))) continue;
       shellNormal(u, v, _nn);
       const sh = shadeOf(c);
@@ -4230,11 +4237,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     onParts(rootParts, 0.35, 0.45, 'rootTufts', 0);
     onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
   }
-  const tufts41 = buildMossTufts(tuft41, n3, { topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+  const tufts41 = buildMossTufts(tuft41, n3, { segments: [7, 5], topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
   const tuft41Mesh = new Mesh(tufts41.geometry, mats.capMoss);
   tuft41Mesh.name = 'trunk-moss-tufts';
   tuft41Mesh.castShadow = false;
   tuft41Mesh.receiveShadow = true;
+  // its own static bucket (renderOrder is part of the merge key): a tight culling sphere round
+  // the trunks instead of riding in the roof-tuft bucket that spans the whole hero group, so a
+  // view that looks away from the houses (C) does not draw them
+  tuft41Mesh.renderOrder = 2;
   group.add(tuft41Mesh);
   if (lichenParts.length) {
     const lichenMesh = new Mesh(merge(lichenParts), mats.moss);

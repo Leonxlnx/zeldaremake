@@ -58,8 +58,8 @@ function ropeTube(curve: CatmullRomCurve3, ropeR: number, twist: number, tint: [
   const pitch = TAU / (ropeR * 8);
   return sweepTube(curve, {
     radius: () => ropeR,
-    tubularSegments: Math.max(8, Math.round(len / 0.025)),
-    radialSegments: 10,
+    tubularSegments: Math.max(8, Math.round(len / 0.03)),
+    radialSegments: 8,
     uvMetres: 0.3,
     displace: (t, ang) => strandProfile(ang, t * len * pitch + twist, ropeR * 0.2) + 0.0008 * Math.sin(ang * 9 - t * len * pitch * 3 + seed),
     color: (t, ang) => ropeColor(tint, ang, t * len * pitch + twist, 0.5 + 0.5 * noise.noise(ang * 1.5 + seed, t * len * 40)),

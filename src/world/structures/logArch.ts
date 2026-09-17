@@ -660,9 +660,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   };
   const _tp = new Vector3();
   const _tn = new Vector3();
-  for (let i = 0; i < 7600; i++) {
-    // 70 % of the attempts on the west half (the path crossing and the broken end)
-    const west = tuftRng() < 0.7;
+  for (let i = 0; i < 5200; i++) {
+    // 78 % of the attempts on the west half (the path crossing and the broken end — the only
+    // part a player stands under; the east half is 8–15 m from any path point)
+    const west = tuftRng() < 0.78;
     const s = west ? lerp(-L / 2 - 1.5, 1.5, tuftRng()) : lerp(1.5, L / 2 - 0.8, tuftRng());
     const psi = Math.PI / 2 + (tuftRng() - 0.5) * 2.4;
     const r = 0.03 + 0.06 * Math.pow(tuftRng(), 1.4);
@@ -722,11 +723,14 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       rootTufts++;
     }
   }
-  const crownTufts = buildMossTufts(tuftSpecs, n3, { topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+  const crownTufts = buildMossTufts(tuftSpecs, n3, { segments: [7, 5], topGain: 1.45, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
   const tuftMesh = new Mesh(crownTufts.geometry, mats.capMoss);
   tuftMesh.name = 'log-moss-tufts';
   tuftMesh.castShadow = false;
   tuftMesh.receiveShadow = true;
+  // its own static bucket (renderOrder is part of the merge key) with a culling sphere round the
+  // arch alone — the shared roof-tuft bucket spans the whole hero group and is drawn in every view
+  tuftMesh.renderOrder = 1;
   group.add(tuftMesh);
 
   // the torn skirt: one strip per flank along the crown's edge, hanging 0.3–0.8 m in lobes
@@ -773,7 +777,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   const skirtGeo = merge(skirtParts);
   const skirtMesh = new Mesh(skirtGeo, mats.capMoss);
   skirtMesh.name = 'log-moss-skirt';
-  skirtMesh.castShadow = skirtMesh.receiveShadow = true;
+  // rides in the arch's own cap-moss bucket with the tufts (a caster would fold into the roof
+  // bucket and stretch its culling sphere from the house to the arch)
+  skirtMesh.castShadow = false;
+  skirtMesh.receiveShadow = true;
+  skirtMesh.renderOrder = 1;
   group.add(skirtMesh);
 
   // plants: trefoils in the crown moss and at the root flares, small ferns by the path, beards
