@@ -4368,34 +4368,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const walkOf = (w: number) => 1 - smoothstep(0.6 * k, 0.15 * k, Math.abs(w - wc - 0.05 * k));
     /** the moss grows in clumps (a noise field over the mat), the stone bare between them */
     const patchOf = (w: number, d: number) => smoothstep(-0.3, 0.35, noise.noise(w * 7.5 + 3, d * 7.5 + 11));
-    // the FILM: a thin moss carpet lying on the slab's top under the tufts — a ragged sheet, its
-    // cells open along the walked line and between the clumps, thicker at a clump's heart — so the
-    // mat reads as moss grown over the stone and not as pebbles scattered on it. Same bucket.
+    // the FILM: a thin moss carpet lying on the slab's top under the tufts, thicker at a clump's
+    // heart, so the mat reads as moss grown over the stone and not as pebbles scattered on it.
+    // Its outline is the iso-line where the sheet rises through the slab's top: where the cover
+    // is thin (the walked line, the gaps between clumps, the slab's ragged rim) the sheet dips a
+    // centimetre INTO the stone and is hidden, so the moss edge is a smooth curve through the
+    // cells, not a staircase of open cells. Same bucket as the tufts.
     {
-      const cover = (w: number, d: number) => patchOf(w, d) * lerp(0.15, 1, walkOf(w));
-      const fw = (u: number) => slab.cw + (u * 2 - 1) * slab.w;
-      const fd = (v: number) => slab.cd + (v * 2 - 1) * slab.d;
+      const cover = (w: number, d: number) => patchOf(w, d) * lerp(0.15, 1, walkOf(w)) * smoothstep(0.96, 0.78, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d));
       doormatFilm = gridSurface(
         (u, v, out) => {
-          const w = fw(u);
-          const d = fd(v);
+          const w = slab.cw + (u * 2 - 1) * slab.w;
+          const d = slab.cd + (v * 2 - 1) * slab.d;
           const c = cover(w, d);
-          frame.door(w, slab.top + 0.004 + 0.014 * c, d, out.position);
+          frame.door(w, slab.top + lerp(-0.012, 0.016, smoothstep(0.3, 0.7, c)), d, out.position);
           out.uv = [w / 1.6, d / 1.6];
           const trodden = 1 - walkOf(w);
           const sh = (0.55 + 0.5 * c) * (0.9 + 0.2 * noise.noise(w * 19, d * 19 + 4)) * lerp(1, 0.8, trodden);
           out.color = [lerp(MAT_MOSS[0], MAT_WORN[0], trodden) * sh, lerp(MAT_MOSS[1], MAT_WORN[1], trodden) * sh, lerp(MAT_MOSS[2], MAT_WORN[2], trodden) * sh];
         },
-        {
-          cols: 56,
-          rows: 32,
-          hole: (u, v) => {
-            const w = fw(u);
-            const d = fd(v);
-            // inside the slab's ragged rim, and only where the moss covers the stone
-            return Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d) > 0.86 || cover(w, d) < 0.42;
-          },
-        },
+        { cols: 64, rows: 36 },
       );
     }
     for (let i = 0; i < 1100; i++) {
