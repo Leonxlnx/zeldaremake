@@ -2028,6 +2028,11 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (shared vegetation shader; camera E sits in the grass) is deliberately not taken.
 - Round 41: trees-25 and structures-26 both past their cap-0 baselines, no commits yet.
 
+### 01:15 UTC — tick 122: heartbeat; round 41 in flight
+- Tree unchanged → heartbeat. structures-26 first commit (log arch bark cords/fissures, moss crown
+  tufts, torn skirt, splintered rim, plants); trees-25 still building its canopy-from-below LOD
+  (no commit yet). No new Astra messages since 20:52.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2066,4 +2071,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T00:50:00Z
+2026-09-17T01:15:00Z
