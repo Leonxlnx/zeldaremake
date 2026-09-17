@@ -2151,6 +2151,32 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 
 ### 20:07 UTC — tick 138: heartbeat; survey-1 inspecting frames
 
+### 20:40 UTC — tick 139: survey-1 done — the ranked defect list for round 44
+- 183 player-height frames (32 walk points × 5 views + 15 stand-next shots; manifest + REPORT.md +
+  36 crops committed at `art/environment/survey1/`). Top 12 by severity × frequency: (1) giant
+  boles still smooth at touching distance with decal moss and smooth lime root skirts (26 frames);
+  (2) column trees untextured grey cylinders with hard base seams, spiky flat crowns (21); (3) the
+  log arch's body smooth clay at every distance, jagged lips, bare footing (15); (4) bare flat
+  ground: the hollow floor west of the path, under the white-barks, the whole north plain (17);
+  (5) lantern bough + giant limbs smooth pale tubes (12); (6) roots as smooth tubes, one arc
+  floating over the house-lawn face (12); (7) big-leaf shrubs as flat cards on black sticks,
+  repeated (8); (8) hollow path slabs as 10 cm tiles on flat dirt, gravel disc seam north of the
+  arch (9); (9) fences black smooth boxes, rails through posts, the rope fence through the
+  stair-foot boulder (8); (10) flower clusters as saturated blobs (10); (11) the earth face behind
+  the house lawn a smooth clay wall (6); (12) near-canopy lobes at 5–8 m single-tone cards (7).
+  Also: a log-arch peg pod hangs at head height on the path spine at the arch's north exit.
+  Astra's lane: far pods as 4–5× bloom orbs at 30–40 m, over-exposed sun patches, black interior,
+  no fill on shade sides. Best frames (do not regress): north-path flagstones, the shaded bank
+  w12, Saria's west flight, canopy from below w10, the main stair.
+- Suspicion under test: several "smooth" boles/limbs may be the round-42 on-demand pool not having
+  built the near parts within broll's 3 settle frames (the survey renders 3 frames per pose);
+  broll.mjs gained `--settle N` (batched) to test 3 vs 60 frames on four survey poses.
+- Round 44 from the list: trees-27 (columns, roots, limbs, NE/plateau boles, pool-at-teleport),
+  vegetation-23 (cover the bare ground, big-leaf shrubs, flower heads, moss spheres),
+  structures-28 (log body/lips/footing, head-height pod, fences, rope line, house roots, hut from
+  below), ground-1 (hollow path slabs, gravel seam, step faces; earth face/cliff relief; boulder
+  fringe/lichen).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2189,4 +2215,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T20:07:00Z
+2026-09-17T20:40:00Z

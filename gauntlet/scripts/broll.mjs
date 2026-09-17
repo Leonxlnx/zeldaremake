@@ -3,7 +3,7 @@
  * broll.mjs — render B-roll frames of the world through the capture API at any size.
  *
  *   node gauntlet/scripts/broll.mjs --dist dist --out /tmp/broll --size 3840x2160 --fps 12
- *        [--shots gauntlet/broll/teaser.json] [--character] [--hud] [--time 12.5] [--quality high] [--test]
+ *        [--shots gauntlet/broll/teaser.json] [--character] [--hud] [--time 12.5] [--quality high] [--test] [--settle 3]
  *
  * Frames are f0000.png … plus shots.json (fps + per-shot frame counts). Assemble with ffmpeg, e.g.
  *   ffmpeg -framerate 12 -i f%04d.png -vf "minterpolate=fps=24:mi_mode=mci" -c:v libx264 -crf 17 -pix_fmt yuv420p out.mp4
@@ -34,6 +34,8 @@ const simTime = Number(args.time ?? 12.5);
 const test = !!args.test;
 const keepCharacter = !!args.character;
 const keepHud = !!args.hud;
+/** frames rendered at a shot's first pose before its screenshot (on-demand LOD pools build in ~3 ms chunks per frame; 3 is the old default) */
+const settle = Math.max(1, Number(args.settle ?? 3));
 if (!Number.isFinite(width) || !Number.isFinite(height) || width < 16 || height < 16) throw new Error(`bad --size ${args.size}`);
 fs.mkdirSync(out, { recursive: true });
 
@@ -100,7 +102,9 @@ async function main() {
       for (let i = 0; i < n; i++) {
         const u = ease(n > 1 ? i / (n - 1) : 0);
         const p = lerp3(shot.from.p, shot.to.p, u), tg = lerp3(shot.from.t, shot.to.t, u), fov = lerp(shot.from.fov, shot.to.fov, u);
-        await page.evaluate(async ([p, tg, fov, first, dt]) => { window.__ZR__.setPose(p, tg, fov); await window.__ZR__.render(first ? 3 : 1, dt); }, [p, tg, fov, i === 0, 1 / fps]);
+        await page.evaluate(([p, tg, fov]) => { window.__ZR__.setPose(p, tg, fov); }, [p, tg, fov]);
+        // settle in small batches: one SwiftShader frame can take seconds, and a single evaluate() must stay under the protocol timeout
+        for (let left = i === 0 ? settle : 1; left > 0; left -= 4) await page.evaluate(async ([n, dt]) => { await window.__ZR__.render(n, dt); }, [Math.min(4, left), 1 / fps]);
         const buf = await canvas.screenshot({ type: 'png' });
         fs.writeFileSync(path.join(out, `f${String(frame).padStart(4, '0')}.png`), buf);
         frame++;
