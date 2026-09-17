@@ -753,6 +753,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
+      crevicePlants: crevicePlants.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z), p.kind ?? 'tuft']),
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));

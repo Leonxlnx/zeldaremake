@@ -112,6 +112,14 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             float lnr = dot(cn, vec3(0.299, 0.587, 0.114));
             cn = mix(cn, vec3(lnr) * vec3(0.985, 0.99, 0.99), 0.78);
             cn = mix(vec3(0.3), cn, 0.86);
+            // plate tone: neighbouring 25–40 cm plates differ ±10 % in value (frame-05's faces are
+            // a patchwork of lighter and darker slabs), so a face in flat shade still reads as
+            // fractured stone rather than one even grey
+            {
+              vec3 bwp = bw * bw;
+              vec2 pp = vWPosR.zy * bwp.x + vWPosR.xz * bwp.y + vWPosR.xy * bwp.z;
+              cn *= 0.9 + 0.2 * rockVNoise(pp * 3.3 + 21.0);
+            }
             c = mix(c, cn, nearW);
             l = dot(c, vec3(0.299, 0.587, 0.114));
           }`
