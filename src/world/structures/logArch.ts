@@ -47,6 +47,9 @@ export interface LogArchBuild {
     rootTufts: number;
     /** the tufts + skirt LOD: its centre and the camera distance beyond which they are dropped (m) */
     tuftLod: { centre: [number, number, number]; dropBeyondM: number };
+    /** round 43 (structures-27): the hollow's interior grid and its fungus shelves */
+    innerGrid: [number, number];
+    fungusShelves: number;
   };
 }
 
@@ -262,16 +265,67 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     { cols, rows, closedU: true },
   );
 
-  // hollow interior (BackSide material) — smooth, ends slightly inside the outer ends
+  // hollow interior (BackSide material) — ends slightly inside the outer ends.
+  // Round 43 (structures-27): the tunnel at player height. Round 21's hollow was a smooth 96 × 48
+  // tube under the near-black interior tint; from the west mouth the player now sees a hollow
+  // trunk's inside — LONGITUDINAL FISSURES (deep cracks running along the wood) and CRACKED
+  // HEARTWOOD standing in plates between them, a fine long grain, DRIP STAINS running down the
+  // upper walls from the rim, MOSS on the lower walls and floor within a few metres of the mouths,
+  // a WORN FLOOR of packed debris with litter lumps along the bottom, and the walls darkening
+  // toward the middle of the tunnel (vertex colours on `logInterior`, which now takes them).
+  // The grid is denser and, like the outer shell, weighted to the west half the path passes.
+  const innerCols = 144;
+  const innerRows = 120;
+  /** metres to the nearest mouth along the axis */
+  const mouthDist = (psi: number, s: number) => Math.min(s - sEndW(psi), sEndE(psi) - s);
+  const innerRelief = (psi: number, s: number) => {
+    const arc = psi * R;
+    const fissure = Math.pow(1 - Math.abs(noise.noise(arc * 0.9 + 7, s * 0.12)), 6);
+    const crack2 = Math.pow(1 - Math.abs(noise.noise(arc * 2.1 + 23, s * 0.3 + 1)), 8);
+    const plate = smoothstep(0.15, 0.6, noise.noise(arc * 1.4 + 3, s * 0.7));
+    const grain = noise.ridged(arc * 6 + 1, s * 0.5, 2) - 0.5;
+    return { fissure, crack2, plate, grain, r: 0.06 * noise.noise(psi * 2, s * 0.6) + 0.14 * fissure + 0.06 * crack2 - 0.05 * plate + 0.02 * grain };
+  };
+  /** the debris floor's height over the hollow's bottom at s (deeper fill toward the mouths, where it blows in) */
+  const floorFill = (s: number) => 0.28 + 0.12 * smoothstep(6, 0, Math.min(s - sEndW(-Math.PI / 2), sEndE(-Math.PI / 2) - s)) + 0.04 * noise.noise(s * 0.7 + 5, 2.5);
+  const _axis = new Vector3();
   const inner = gridSurface(
-    (u, v, out) => {
+    (u, f, out) => {
       const psi = u * TAU;
+      const v = rowWarp(f);
       const s = lerp(sEndW(psi) + 0.12, sEndE(psi) - 0.12, v);
-      const r = rBase(psi, s) - wall + 0.06 * noise.noise(psi * 2, s * 0.6);
+      const rel = innerRelief(psi, s);
+      const r = rBase(psi, s) - wall + rel.r;
       surfacePoint(psi, s, r, out.position);
+      const up = upness(psi);
+      const dMouth = mouthDist(psi, s);
+      // the worn floor: the bottom of the hollow is filled level with packed debris, litter lumps on it
+      axisAt(s, _axis);
+      const bottomY = _axis.y - (rBase(-Math.PI / 2, s) - wall);
+      const floorY = bottomY + floorFill(s);
+      let onFloor = 0;
+      if (out.position.y < floorY) {
+        const litter = 0.035 * Math.max(0, noise.noise(out.position.x * 4.1, out.position.z * 4.1 + 3)) + 0.012 * noise.noise(out.position.x * 13, out.position.z * 13);
+        onFloor = smoothstep(0, 0.15, floorY - out.position.y);
+        out.position.y = floorY + litter * onFloor;
+      }
       out.uv = [(psi * R) / 2.6, s / 2.6];
+      // shade: darker into the tunnel, fissures dark, plate edges catching what light there is
+      const deep = lerp(1, 0.35, smoothstep(2, 9, dMouth));
+      let k = deep * (1 - 0.6 * rel.fissure - 0.3 * rel.crack2) * (1 + 0.25 * rel.plate + 0.15 * rel.grain);
+      // drip stains: dark grey streaks down the upper walls from the rim
+      const drip = Math.pow(Math.max(0, noise.noise(psi * R * 3 + 11, 0.5)), 3) * smoothstep(4.5, 0.5, dMouth) * smoothstep(-0.3, 0.6, up);
+      k *= 1 - 0.55 * drip;
+      let c: [number, number, number] = [k, k * (1 + 0.06 * drip), k * (1 + 0.16 * drip)];
+      // moss on the lower walls and the floor near the mouths (the interior tint is near-black,
+      // so the moss rides on a large multiplier)
+      const moss = smoothstep(3.5, 0.6, dMouth) * smoothstep(0.35, -0.6, up) * (0.45 + 0.55 * Math.max(0, noise.noise(psi * R * 1.3 + 2, s * 1.1)));
+      c = [lerp(c[0], 3.2 * deep, moss), lerp(c[1], 6.5 * deep, moss), lerp(c[2], 1.6 * deep, moss)];
+      // the worn floor: paler, trodden packed earth with darker litter
+      const worn = lerp(1, 2.2 - 0.9 * smoothstep(0.02, 0.05, out.position.y - floorY), onFloor);
+      out.color = [c[0] * worn, c[1] * worn * (1 - 0.05 * onFloor), c[2] * worn * (1 - 0.15 * onFloor)];
     },
-    { cols: 96, rows: 48, closedU: true },
+    { cols: innerCols, rows: innerRows, closedU: true },
   );
   const innerMesh = new Mesh(inner, mats.logInterior);
   innerMesh.name = 'log-interior';
@@ -289,12 +343,16 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         const rOut = rBase(psi, sEnd) + detail(psi, sEnd, upness(psi));
         const rIn = rBase(psi, sIn) - wall;
         const s = lerp(sEnd, sIn, v);
-        surfacePoint(psi, s, lerp(rOut, rIn, v), out.position);
+        // round 43: the rim is torn, not a clean cut — the annulus steps in and out along the
+        // wall (the outer rows more than the inner) so the end-grain rings break at the splinters
+        const tear = 0.18 * noise.noise(psi * 7 + end * 3, 1.5) * (1 - 0.6 * v) + 0.05 * noise.noise(psi * 23, 4 + end);
+        surfacePoint(psi, s + tear, lerp(rOut, rIn, v), out.position);
+        // the end-grain map's rings run across v (materials.ts `endGrain`: v 0 the bark side)
         out.uv = [(psi * R) / 1.5, v];
-        const d = lerp(0.55, 0.28, v) * (0.85 + 0.3 * noise.noise(psi * 6, v * 3 + end * 5));
+        const d = lerp(0.62, 0.34, v) * (0.85 + 0.3 * noise.noise(psi * 6, v * 3 + end * 5));
         out.color = [d, d * 0.8, d * 0.62];
       },
-      { cols: 168, rows: 3, closedU: true },
+      { cols: 168, rows: 5, closedU: true },
     );
     const outward = end === 0 ? A.clone().negate() : A.clone();
     faceTowards(ring, (p, o) => o.copy(p).addScaledVector(outward, 5));
@@ -334,8 +392,62 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       },
       capEnd: true,
     });
+    // round 43: the end-grain map's rings run across v, so the shard's length goes on u and its
+    // girth across the middle rings — long grain along a splinter, not cross stripes
+    {
+      const uv = shard.attributes.uv as Float32BufferAttribute;
+      for (let k = 0; k < uv.count; k++) {
+        const around = uv.getX(k);
+        const along = uv.getY(k);
+        uv.setXY(k, along * 1.6 + i * 0.37, 0.25 + 0.5 * (around - Math.floor(around)));
+      }
+    }
     endParts.push(shard);
     rimSplinters++;
+  }
+  // ---- round 43 (structures-27): FUNGUS SHELVES inside the hollow — bracket fungi on the tunnel
+  // walls within reach of the west mouth's light, 0.12–0.32 m across, a domed top zoned in
+  // concentric bands (the end-grain map's rings, radial on the shelf) and a pale flat underside;
+  // end-grain material, so they fold into the ends' draw. Own fork. ----
+  const shelfRng = rng.fork('shelves43');
+  let fungusShelves = 0;
+  for (let i = 0; i < 14; i++) {
+    // on the walls (not the floor, not the crown), the west 8 m of the tunnel
+    const psi = (shelfRng() < 0.5 ? 0 : Math.PI) + (shelfRng() - 0.5) * 1.1;
+    const s = sEndW(psi) + 0.6 + shelfRng() * 7.5;
+    const rel = innerRelief(psi, s);
+    const rWall = rBase(psi, s) - wall + rel.r;
+    const c = surfacePoint(psi, s, rWall - 0.01);
+    const inward = radialDir(psi, s).negate();
+    const f = frameAt(s);
+    const along = f.t.clone();
+    const size = 0.12 + shelfRng() * 0.2;
+    const thick = size * (0.18 + shelfRng() * 0.12);
+    const droop = 0.15 + shelfRng() * 0.25;
+    const pale = 0.75 + shelfRng() * 0.3;
+    const tone: [number, number, number] = [0.95 * pale, 0.82 * pale, 0.62 * pale];
+    for (const side of [1, -1] as const) {
+      const shelf = gridSurface(
+        (u, v, out) => {
+          // a half-disc fan out of the wall: u round the rim (−90° … 90° about the inward normal), v from the wall to the rim
+          const a = (u - 0.5) * Math.PI;
+          const rr = size * lerp(0.05, 1, v) * (1 + 0.08 * noise.noise(a * 2 + i, v * 3));
+          const px = Math.cos(a) * rr;
+          const py = Math.sin(a) * rr * 0.8;
+          // the top domes then droops at the rim; the underside is flat, the rim rounds them together
+          const dome = side > 0 ? thick * (1 - v * v) - droop * size * Math.pow(v, 3) : -thick * 0.25 * (1 - Math.pow(v, 6)) - droop * size * Math.pow(v, 3);
+          out.position.copy(c).addScaledVector(inward, px).addScaledVector(along, py).addScaledVector(UP, dome);
+          // rings radial on the cap (v → the map's ring axis), plain under
+          out.uv = side > 0 ? [u * 0.8 + i * 0.3, 0.15 + 0.75 * v] : [u * 0.4 + 0.5, 0.05 + 0.1 * v];
+          const k = side > 0 ? (0.7 + 0.3 * (1 - v)) * (1 - 0.25 * smoothstep(0.85, 1, v)) : 1.15;
+          out.color = [tone[0] * k, tone[1] * k * (side > 0 ? 1 : 1.05), tone[2] * k * (side > 0 ? 1 : 1.1)];
+        },
+        { cols: 12, rows: 5 },
+      );
+      faceTowards(shelf, (p, o) => o.copy(p).addScaledVector(UP, side));
+      endParts.push(shelf);
+    }
+    fungusShelves++;
   }
   const endMesh = new Mesh(merge(endParts), mats.endGrain);
   endMesh.name = 'log-ends';
@@ -969,6 +1081,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     beards,
     rootTufts,
     tuftLod: { centre: [tuftCentre.x, tuftCentre.y, tuftCentre.z] as [number, number, number], dropBeyondM: TUFT_LOD_M },
+    innerGrid: [innerCols, innerRows] as [number, number],
+    fungusShelves,
   };
 
   // ---- lanterns (round 32: placed and lit for frame 56 s). The frame's arch carries three warm
