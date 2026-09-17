@@ -246,6 +246,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseBough: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.bough,
     /** round 40: the caps' moss cushion tufts, torn edge and small plants, per house */
     houseMossDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.mossDetail])),
+    /** round 41: the trunks' furrow moss tufts, root / arch moss caps, lichen plates and root-foot trefoils, per house */
+    houseTrunkDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.trunkDetail])),
     /** flower heads on the caps / pots and bottles on the shelves, all houses */
     houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
     houseProps: houses.reduce((n, h) => n + h.props, 0),

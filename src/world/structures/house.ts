@@ -247,6 +247,11 @@ export interface HouseBuild {
     mossThicknessM: number;
     plants: { sorrel: number; ferns: number; grass: number };
   };
+  /**
+   * Round 41 (structures-26): the trunk's player-height detail — furrow moss tufts on the shell,
+   * moss caps on the root flares and the doorway arch, lichen plates, trefoils at the root feet.
+   */
+  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; lichen: number; trefoils: number };
 }
 
 /**
@@ -4321,5 +4326,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     room: { floorY: roomFloorY, backD: [roomBackD(roomW0), roomBackD((roomW0 + roomW1) / 2), roomBackD(roomW1)], floorPoke, pokeAt },
     bough: boughSamples,
     mossDetail: { ...mossDetail, plants: plants40 },
+    trunkDetail: detail41,
   };
 }
