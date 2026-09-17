@@ -13,7 +13,7 @@
  * root flares run from the sunk ends out over the ground among fern beds. New detail on new rng
  * forks only — the stubs', vegetation's, sheets' and lanterns' streams keep their draws.
  */
-import { CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, LOD, Mesh, PlaneGeometry, PointLight, Vector3 } from 'three';
+import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, LOD, Matrix4, Mesh, PlaneGeometry, PointLight, Quaternion, Vector3 } from 'three';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
@@ -29,6 +29,10 @@ export interface LogArchBuild {
   lanterns: LanternRig[];
   /** world centres of the pods (audit: project into D — the frame's arch lanterns sit at (0.60–0.65, 0.33) and (0.46, 0.44)) */
   podPositions: [number, number, number][];
+  /** round 44 (structures-28): each pod's lowest point over the ground under it, and whether that ground is the path */
+  podClearance: { pod: [number, number, number]; bottom: number; ground: number; clearance: number; onPath: boolean }[];
+  /** the least clearance (m) of any pod hanging over the path (Infinity when none does) */
+  minPathClearance: number;
   lights: PointLight[];
   leaves: number;
   tufts: number;
@@ -50,6 +54,21 @@ export interface LogArchBuild {
     /** round 43 (structures-27): the hollow's interior grid and its fungus shelves */
     innerGrid: [number, number];
     fungusShelves: number;
+  };
+  /** round 44 (structures-28): the player-height bark shell and the root footing, under their own LOD */
+  detail44: {
+    /** bark plates standing off the body (west half + the crossing), their triangles */
+    barkPlates: number;
+    barkPlateTriangles: number;
+    /** the along / around extent the plates cover (m along the axis from the west rim; arc fraction of the circumference) */
+    plateCoverage: { sTo: number; arcShare: number };
+    /** humus skirts where the sunk ends meet the ground (both ends), their triangles */
+    footSkirts: number;
+    footSkirtTriangles: number;
+    /** broken bark chunks lying at the feet */
+    barkChunks: number;
+    /** the near-detail LOD: its centre and the camera distance beyond which it is dropped (m) */
+    nearLod: { centre: [number, number, number]; dropBeyondM: number };
   };
 }
 
@@ -124,18 +143,29 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // the west (shot D) end is the hero break: many long, narrow splinters make a jagged rim
   const spikesW = makeSpikes(11, 1.9);
   const spikesE = makeSpikes(6, 1.3);
-  const spikeAmount = (psi: number, spikes: Spike[]) => {
+  /**
+   * Round 44 (structures-28): a BROKEN-WOOD rim, not a saw of triangles. Survey-1 crop 06: the
+   * pow(1 − d, 1.4) spikes read as flat tan triangles from the path. A torn trunk breaks in
+   * CHUNKS — fibre bundles that hold their full length across most of their width and fail
+   * steeply at the sides (a plateau profile, `smoothstep(1, 0.5, d)`), their tips ragged with
+   * finger-width FIBRES (a ridged term at ≈ 12 cm round the rim, ± 0.16 m) and a slow wobble.
+   * The plateau carries ≈ 1.8× the pointed profile's area at the same width, so the widths are
+   * held at 0.55× (the same rng draws) — the mass D sees at the west break is the round-21 one
+   * within a few px, and the lengths are unchanged so its reach is too.
+   */
+  const spikeAmount = (psi: number, spikes: Spike[], end: number) => {
     let a = 0;
     for (const sp of spikes) {
-      const d = Math.abs(angleDiff(psi, sp.psi)) / sp.width;
-      if (d < 1) a += sp.length * Math.pow(1 - d, 1.4);
+      const d = Math.abs(angleDiff(psi, sp.psi)) / (sp.width * 0.55);
+      if (d < 1) a += sp.length * smoothstep(1, 0.5, d) * (0.92 + 0.08 * Math.cos(d * 7));
     }
-    return a;
+    const arc = psi * R;
+    return a + 0.16 * (noise.ridged(arc * 3.2 + 13 + end * 7, 0.7 + end, 2) - 0.5) + 0.05 * noise.noise(arc * 7.5 + end * 3, 2.2);
   };
   // west end: strongly oblique (the south lip is ~3.4 m shorter than the north) so the hollow
   // opens toward the path and shot D
-  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW) + 0.3 * noise.noise(psi * 3, 1.5);
-  const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + spikeAmount(psi, spikesE) + 0.25 * noise.noise(psi * 3, 8.5);
+  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW, 0) + 0.3 * noise.noise(psi * 3, 1.5);
+  const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + spikeAmount(psi, spikesE, 1) + 0.25 * noise.noise(psi * 3, 8.5);
 
   // ---- radius model: bulges along the length, bark ridges along the axis, moss cushions on top ----
   const rBase = (psi: number, s: number) => {
@@ -982,6 +1012,273 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   tuftLod.updateMatrixWorld(true);
   group.add(tuftLod);
 
+  // ---- round 44 (structures-28): the PLAYER-HEIGHT BARK SHELL. Survey-1 (#3, 15 frames): from
+  // the path the body reads as smooth clay at every distance — round 21's ±0.37 m ridges and
+  // round 41's ±4 cm cords are metre- and 30 cm-scale undulations on an 8 cm grid, and the
+  // 2.6 m bark tile mips to a flat mean beyond 4 m. Old bark is PLATES: 15–35 cm fibre bundles
+  // standing 2–5 cm proud of a dark bed, brick-laid along the grain, broken by the fissure
+  // channels. This shell lays such plates over the body the path passes (the west break to
+  // 7 m east of the crossing; every flank and the belly the player looks up at; not the moss
+  // cap): each plate is a 5 × 4 slab whose rim is sunk 1.5 cm INTO the displaced surface and
+  // whose top stands off it along the surface normal, tilted a little (one end lifts), the rim
+  // dark (the fissure's shade), the top the body's own tint on a finer 1.3 m bark tile so the
+  // map's ridges resolve at 2 m. Plates skip the fissures and cracks (the same fields the relief
+  // cuts), so those read as open channels between the plates.
+  // With it, at the FEET: the sunk ends met the ground as a bare cylinder through the grass
+  // (crop 06). A HUMUS SKIRT — a low mound of dark litter-flecked earth banked against each
+  // flank where it enters the ground, mossy on the north side — and broken BARK CHUNKS lying
+  // round the feet (never on the paving) seat the log in the ground.
+  // All of it is one LOD at the arch's centre dropped beyond NEAR_LOD_M: the six hero cameras
+  // stand 48–64 m from the centre, so their frames (and D's silhouette) do not change; the
+  // path under and beside the arch is within 20 m of it. Own forks; +2 draws within range only.
+  const NEAR_LOD_M = 40;
+  const plateRng = rng.fork('plates44');
+  const plateParts: BufferGeometry[] = [];
+  let barkPlates = 0;
+  const sPlateTo = pathS + 7;
+  /** the fissure / crack channels of the relief (the fields barkCoarse and barkFine cut), 0..1 */
+  const fissureAt = (psi: number, s: number) => {
+    const arc = psi * R;
+    const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
+    const fissure = Math.pow(1 - Math.abs(noise.noise(arc * 0.8 + 31 + twist * 0.5, s * 0.07)), 9);
+    const crack = Math.pow(1 - Math.abs(noise.noise(arc * 2.0 + 47 + twist, s * 0.5 + 3)), 10);
+    return Math.max(fissure, crack * 0.9);
+  };
+  const PLATE_ALONG = 0.26;
+  const PLATE_AROUND = 0.105;
+  const plateNoise = new Noise2D(`${ctx.config.seed}/structures/log-plates44`);
+  const _pc = new Vector3();
+  const _pn = new Vector3();
+  const _pb = new Vector3();
+  let plateArcCells = 0;
+  let plateArcOpen = 0;
+  {
+    const circ = TAU * R;
+    const nAround = Math.round(circ / PLATE_AROUND);
+    const sFrom = sEndW(Math.PI) - 2.2;
+    const nAlong = Math.ceil((sPlateTo - sFrom) / PLATE_ALONG);
+    for (let j = 0; j < nAlong; j++) {
+      const sRow = sFrom + (j + 0.5) * PLATE_ALONG;
+      for (let i = 0; i < nAround; i++) {
+        // brick-laid: odd rows shift half a column; every plate takes its draws before any test,
+        // so the stream is the same whichever plates are kept
+        const arc0 = ((i + (j % 2) * 0.5) / nAround) * circ + (plateRng() - 0.5) * 0.03;
+        const s0 = sRow + (plateRng() - 0.5) * 0.06;
+        const len = PLATE_ALONG * (0.72 + plateRng() * 0.4);
+        const wid = PLATE_AROUND * (0.68 + plateRng() * 0.38);
+        const h = 0.024 + plateRng() * 0.028;
+        const tilt = (plateRng() - 0.5) * 0.9;
+        const tone = 0.96 + (plateRng() - 0.5) * 0.24;
+        const keep = plateRng();
+        const drop = plateRng();
+        const psi0 = arc0 / R - Math.PI;
+        if (s0 < sEndW(psi0) + 0.25 || s0 > sPlateTo) continue;
+        const up0 = upness(psi0);
+        const thick0 = mossCap(psi0, s0, up0);
+        if (thick0 > 0.13) continue;
+        plateArcCells++;
+        // the fissure channels stay open; a few plates straggle over their shallow edges
+        if (keep < smoothstep(0.12, 0.42, fissureAt(psi0, s0))) continue;
+        if (drop < 0.07) continue;
+        plateArcOpen++;
+        const disp0 = detail(psi0, s0, up0);
+        surfacePoint(psi0, s0, rBase(psi0, s0) + disp0, _pc);
+        surfaceNormal(psi0, s0, _pn);
+        const base = outerColor(psi0, s0, disp0, _pc);
+        const rPlate = rBase(psi0, s0);
+        const uvOff = plateRng() * 0.7;
+        const plate = gridSurface(
+          (u, v, out) => {
+            const rim = u < 1e-6 || u > 1 - 1e-6 || v < 1e-6 || v > 1 - 1e-6;
+            // the outline wanders a little so no two plates are the same rectangle
+            const wob = 1 + 0.14 * plateNoise.noise(u * 3 + s0 * 5, v * 3 + arc0 * 5);
+            const du = (u - 0.5) * wid * wob;
+            const dv = (v - 0.5) * len * wob;
+            const psi = psi0 + du / rPlate;
+            const s = s0 + dv;
+            surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)), out.position);
+            // the rim sinks into the body, the top stands off along the centre's normal and lifts at one end
+            const off = rim ? -0.015 : h * (1 + tilt * (v - 0.5)) * (0.9 + 0.2 * plateNoise.noise(u * 7 + arc0, v * 7 + s0));
+            out.position.addScaledVector(_pn, off);
+            out.uv = [(psi * R) / 1.3 + uvOff, s / 1.3];
+            // the rim is the fissure's shade; the top carries the body's tint with a fine flaky mottle
+            const mottle = 0.9 + 0.2 * plateNoise.noise(psi * R * 22 + 3, s * 22 + arc0);
+            const k = rim ? 0.42 : 1.1 * tone * mottle;
+            out.color = [base[0] * k, base[1] * k, base[2] * k];
+          },
+          { cols: 5, rows: 4 },
+        );
+        faceTowards(plate, (p, o) => o.copy(p).addScaledVector(_pn, 2));
+        plateParts.push(plate);
+        barkPlates++;
+      }
+    }
+  }
+  // ---- the feet: humus skirts where the flanks enter the ground, bark chunks lying about ----
+  const footRng = rng.fork('feet44');
+  const skirtParts44: BufferGeometry[] = [];
+  const chunkParts: BufferGeometry[] = [];
+  let barkChunks = 0;
+  const footNoise = new Noise2D(`${ctx.config.seed}/structures/log-feet44`);
+  /** the flank's contact ψ with the terrain at s on one side (south: ψ < 0; north: ψ > π), or null when the flank is clear of the ground */
+  const contactPsi = (s: number, north: boolean): number | null => {
+    const at = (psi: number) => {
+      surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)), _pb);
+      return _pb.y - terrain.height(_pb.x, _pb.z);
+    };
+    // ψ from the flank's equator (above ground) down toward the bottom (below ground)
+    let hi = north ? Math.PI + 0.05 : -0.05;
+    let lo = north ? Math.PI + 1.35 : -1.35;
+    if (at(hi) <= 0 || at(lo) >= 0) return null;
+    for (let it = 0; it < 28; it++) {
+      const mid = (lo + hi) / 2;
+      if (at(mid) > 0) hi = mid;
+      else lo = mid;
+    }
+    return (lo + hi) / 2;
+  };
+  const HUMUS: [number, number, number] = [0.17, 0.125, 0.08];
+  const HUMUS_MOSS: [number, number, number] = [0.13, 0.22, 0.05];
+  const LITTER: [number, number, number] = [0.36, 0.3, 0.18];
+  for (const end of [0, 1] as const) {
+    for (const north of [false, true]) {
+      // the contact runs from the rim inward until the flank lifts off the ground
+      const psiRim = north ? Math.PI + 0.75 : -0.75;
+      const sRim = end === 0 ? sEndW(psiRim) + 0.15 : sEndE(psiRim) - 0.15;
+      const dirIn = end === 0 ? 1 : -1;
+      let sLift = sRim;
+      for (let k = 0; k < 60; k++) {
+        const s = sRim + dirIn * k * 0.1;
+        if (contactPsi(s, north) === null) break;
+        sLift = s;
+      }
+      const run = Math.abs(sLift - sRim);
+      if (run < 0.4) continue;
+      const seed = end * 10 + (north ? 5 : 0);
+      const reach = 0.85 + footRng() * 0.5;
+      const mound = 0.15 + footRng() * 0.07;
+      const skirt = gridSurface(
+        (u, v, out) => {
+          // u along the contact (rim → lift-off), v from the flank (0) out over the ground (1)
+          const s = sRim + dirIn * (u * run + 0.35 * v);
+          const psiC = contactPsi(s, north) ?? psiRim;
+          const sideSign = north ? 1 : -1;
+          // the inner edge sits up the flank a hand's width, tucked 3 cm into the bark
+          const psiIn = psiC - sideSign * (0.05 + 0.02 * footNoise.noise(u * 6 + seed, 1));
+          surfacePoint(psiIn, s, rBase(psiIn, s) + detail(psiIn, s, upness(psiIn)) - 0.03, _pb);
+          const inner = _pb.clone();
+          // outward: horizontal, away from the axis, the reach shrinking toward the lift-off end
+          const out2 = radialDir(psiC, s);
+          out2.y = 0;
+          out2.normalize();
+          const r = reach * (0.55 + 0.45 * (1 - u)) * (1 + 0.22 * footNoise.noise(u * 5 + seed * 3, 7));
+          const gx = inner.x + out2.x * r * v;
+          const gz = inner.z + out2.z * r * v;
+          const ground = terrain.height(gx, gz);
+          // the mound: banked against the flank, feathering to the ground, lumpy
+          const bank = Math.pow(1 - v, 1.7) * mound * (0.8 + 0.4 * footNoise.noise(gx * 3.1, gz * 3.1 + seed));
+          out.position.set(gx, v < 1e-6 ? Math.max(inner.y, ground + 0.02) : ground + bank * (1 - u * 0.6) + 0.006, gz);
+          out.uv = [gx / 0.9, gz / 0.9];
+          // dark humus, litter flecks, a moss film on the north side and toward the flank
+          const fleck = smoothstep(0.55, 0.75, footNoise.noise(gx * 17 + seed, gz * 17));
+          const mossy = (north ? 0.55 : 0.2) * smoothstep(1, 0.25, v) * (0.5 + 0.5 * footNoise.noise(gx * 2.3, gz * 2.3 + 4));
+          const shade = (0.8 + 0.4 * footNoise.noise(gx * 6 + 2, gz * 6)) * lerp(0.75, 1, v);
+          const c: [number, number, number] = [lerp(HUMUS[0], HUMUS_MOSS[0], mossy), lerp(HUMUS[1], HUMUS_MOSS[1], mossy), lerp(HUMUS[2], HUMUS_MOSS[2], mossy)];
+          out.color = [lerp(c[0], LITTER[0], fleck) * shade, lerp(c[1], LITTER[1], fleck) * shade, lerp(c[2], LITTER[2], fleck) * shade];
+        },
+        { cols: Math.max(8, Math.round(run / 0.12)), rows: 7 },
+      );
+      faceTowards(skirt, (p, o) => o.copy(p).setY(p.y + 5));
+      skirtParts44.push(skirt);
+      // bark chunks: flat slabs 12–36 cm long lying on the skirt and the ground round the foot,
+      // tilted to the ground, never on the paving or inside the trunk's footprint
+      const n = 7 + Math.floor(footRng() * 5);
+      for (let i = 0; i < n; i++) {
+        const s = sRim + dirIn * footRng() * (run + 1.2);
+        const psiC = contactPsi(Math.min(Math.max(s, Math.min(sRim, sLift)), Math.max(sRim, sLift)), north) ?? psiRim;
+        const out2 = radialDir(psiC, s);
+        out2.y = 0;
+        out2.normalize();
+        const c = axisAt(s);
+        const lateral = Math.hypot(surfacePoint(psiC, s, rBase(psiC, s), _pb).x - c.x, _pb.z - c.z);
+        const d = lateral + 0.15 + footRng() * 1.6;
+        const x = c.x + out2.x * d;
+        const z = c.z + out2.z * d;
+        const cl = 0.1 + footRng() * 0.26;
+        const cw = cl * (0.35 + footRng() * 0.35);
+        const yaw = footRng() * TAU;
+        const tone = 0.75 + footRng() * 0.5;
+        if (terrain.mask(x, z).path > 0.01) continue;
+        const y = terrain.height(x, z) + 0.012;
+        terrain.normal(x, z, _pn);
+        const chunk = new BoxGeometry(cl, 0.028, cw, 2, 1, 1);
+        {
+          // a bark chunk is not a box: the top is domed and the ends chipped
+          const pos = chunk.attributes.position;
+          for (let k = 0; k < pos.count; k++) {
+            const px = pos.getX(k);
+            const py = pos.getY(k);
+            if (py > 0) pos.setY(k, py + 0.012 * (1 - Math.pow((2 * px) / cl, 2)) + 0.004 * footNoise.noise(px * 30 + i, pos.getZ(k) * 30));
+            pos.setX(k, px * (1 + 0.08 * footNoise.noise(px * 9 + i * 3, pos.getZ(k) * 9)));
+          }
+          chunk.computeVertexNormals();
+        }
+        setColorAttribute(chunk, (k) => {
+          const ny = chunk.attributes.normal.getY(k);
+          const t = (ny > 0.5 ? 0.6 : 0.34) * tone;
+          return [t, t * 0.86, t * 0.7];
+        });
+        chunk.applyMatrix4(basisMatrix(new Vector3(x, y, z), new Vector3(Math.cos(yaw), 0, Math.sin(yaw))));
+        // lay it flat on the slope: rotate the box's up onto the terrain normal about the placed centre
+        {
+          const q = new Quaternion().setFromUnitVectors(UP, _pn.clone().normalize());
+          const rot = new Matrix4().makeRotationFromQuaternion(q);
+          chunk.translate(-x, -y, -z);
+          chunk.applyMatrix4(rot);
+          chunk.translate(x, y, z);
+        }
+        chunkParts.push(chunk);
+        barkChunks++;
+      }
+    }
+  }
+  const nearGroup = new Group();
+  nearGroup.name = 'log-near-detail';
+  const plateGeo = merge([...plateParts, ...chunkParts]);
+  plateGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+  const plateMesh = new Mesh(plateGeo, mats.logBark);
+  plateMesh.name = 'log-bark-plates';
+  plateMesh.castShadow = false;
+  plateMesh.receiveShadow = true;
+  nearGroup.add(plateMesh);
+  let footSkirtTriangles = 0;
+  if (skirtParts44.length) {
+    const skirtGeo44 = merge(skirtParts44);
+    footSkirtTriangles = Math.floor((skirtGeo44.index ? skirtGeo44.index.count : skirtGeo44.attributes.position.count) / 3);
+    skirtGeo44.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+    const skirtMesh44 = new Mesh(skirtGeo44, mats.moss);
+    skirtMesh44.name = 'log-foot-skirts';
+    skirtMesh44.castShadow = false;
+    skirtMesh44.receiveShadow = true;
+    nearGroup.add(skirtMesh44);
+  }
+  const nearLod = new LOD();
+  nearLod.name = 'log-near-detail-lod';
+  nearLod.position.copy(tuftCentre);
+  nearLod.addLevel(nearGroup, 0);
+  nearLod.addLevel(new Group(), NEAR_LOD_M);
+  nearLod.updateMatrixWorld(true);
+  group.add(nearLod);
+  const detail44 = {
+    barkPlates,
+    barkPlateTriangles: Math.floor(plateParts.reduce((n, g) => n + (g.index ? g.index.count : g.attributes.position.count) / 3, 0)),
+    plateCoverage: { sTo: +(sPlateTo - sEndW(Math.PI)).toFixed(2), arcShare: +(plateArcCells ? plateArcOpen / Math.max(1, plateArcCells) : 0).toFixed(2) },
+    footSkirts: skirtParts44.length,
+    footSkirtTriangles,
+    barkChunks,
+    nearLod: { centre: [+tuftCentre.x.toFixed(2), +tuftCentre.y.toFixed(2), +tuftCentre.z.toFixed(2)] as [number, number, number], dropBeyondM: NEAR_LOD_M },
+  };
+
   // plants: trefoils in the crown moss and at the root flares, small ferns by the path, beards
   const foliage41 = new FoliageBuilder(rng.fork('foliage41'), `${ctx.config.seed}/log41`);
   const plantRng = rng.fork('plants41');
@@ -1117,9 +1414,16 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   };
   for (let i = 0; i < def.lanterns; i++) {
     const s = pathS + (i - (def.lanterns - 1) / 2) * 2.6 + 0.4;
-    const psi = -Math.PI / 2 + (i % 2 ? 0.28 : -0.22);
+    // Round 44 (structures-28): the first crossing pod hung from the belly's north side at
+    // ψ −π/2 − 0.22 — 3.3 m below the axis, its bottom 1.3 m over the path at the arch's north
+    // exit, dead on the spine (survey-1 crop 29: the eye camera sat inside it). The hook now sits
+    // higher up the north flank (ψ −π/2 − 0.85: 2.2 m below the axis, 2.6 m north of it) on a
+    // shorter cord, so the pod's bottom clears ≥ 2.3 m over the walkable strip; the audit's
+    // `podClearance` measures it. The other pods and the cord draws are unchanged.
+    const psi = i === 0 ? -Math.PI / 2 - 0.85 : -Math.PI / 2 + (i % 2 ? 0.28 : -0.22);
     const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);
-    const rig = hang(hook, 0.55 + lanternRng() * 0.25, 1.1, 'orange');
+    const cordDraw = lanternRng();
+    const rig = hang(hook, i === 0 ? 0.42 + cordDraw * 0.1 : 0.55 + cordDraw * 0.25, 1.1, 'orange');
     podCentre.add(rig.pod);
   }
   // the west mass's flank pod: ψ −0.5 puts the hook 1.6 m below the axis on the camera side, 3 m
@@ -1232,14 +1536,30 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // round 21: the root flares' feet are terrain contacts too
   bases.push(...rootFeet);
 
+  // round 44: every pod's lowest point (its merged geometry's bounding box under the hook) over
+  // the ground beneath it, and whether that ground is the walkable path — a pod over the path
+  // must clear POD_PATH_CLEARANCE_M
+  const podClearance = lanterns.map((l) => {
+    const mesh = l.pivot.children[0] as Mesh;
+    const geo = mesh.geometry;
+    if (!geo.boundingBox) geo.computeBoundingBox();
+    const bottom = l.pivot.position.y + geo.boundingBox!.min.y;
+    const ground = terrain.height(l.pod.x, l.pod.z);
+    const onPath = terrain.mask(l.pod.x, l.pod.z).path > 0.01;
+    return { pod: [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number], bottom: +bottom.toFixed(2), ground: +ground.toFixed(2), clearance: +(bottom - ground).toFixed(2), onPath };
+  });
+
   return {
     group,
     bases,
     lanterns,
     podPositions: lanterns.map((l) => [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number]),
+    podClearance,
+    minPathClearance: +Math.min(Infinity, ...podClearance.filter((p) => p.onPath).map((p) => p.clearance)).toFixed(2),
     lights,
     leaves: foliage.leafCount + foliage21.leafCount + foliage41.leafCount,
     tufts: foliage.tuftCount + foliage21.tuftCount + foliage41.tuftCount,
     detail41,
+    detail44,
   };
 }

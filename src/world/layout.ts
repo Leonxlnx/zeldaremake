@@ -98,8 +98,15 @@ export interface LanternPostDef {
 export const ROPE_FENCES: FenceDef[] = [
   // foot of the west bank, ~0.5 m off the plaza rim (paving ends at x ≈ −6 at z = 0)
   { id: 'plaza-west', style: 'rope', points: [[-6.6, 0, -0.9], [-6.75, 0, 1.3], [-6.3, 0, 2.7], [-5.9, 0, 3.9]] },
-  // stair-side bank south of the stair foot, east of the stair-foot rock
-  { id: 'stair-bank', style: 'rope', points: [[8.2, 0, 3.4], [9.0, 0, 2.7], [9.7, 0, 2.1]] },
+  // stair-side bank south of the stair foot, east of the stair-foot rock.
+  // Round 44 (structures-28, survey-1 #9 / crop 25): the round-6 line (8.2, 3.4) → (9.0, 2.7) →
+  // (9.7, 2.1) ran THROUGH the stair-foot boulder (heroBoulders 'stair-foot' (9.1, 2.5) r 1.0 —
+  // its middle post stood 0.22 m from the rock's centre). Slid 1.7 m along the line's south-east
+  // normal (0.655, 0.756): every post now stands ≥ 1.8 m from the rock's centre (0.8 m off its
+  // r 1.0 surface) and the line keeps ≥ 1.03 m from the kokiri-a spot (9.0, 3.6). Bearing and
+  // length unchanged; still outside A (posts at 40–43° off A's axis against its 37° half-width)
+  // and right of F's centre.
+  { id: 'stair-bank', style: 'rope', points: [[9.31, 0, 4.69], [10.11, 0, 3.99], [10.81, 0, 3.39]] },
 ];
 
 /**

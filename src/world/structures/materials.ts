@@ -176,6 +176,14 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
  * sits UNDER that floor.
  */
 export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
+/**
+ * Round 44 (structures-28): the rail fences' weathered wood (`fenceWood`), which had no floor.
+ * Fully textured (the grain swing is the point), albedo 0.1 (the silvered planks' shaded mean),
+ * lift 3.6 — below the trunk's 4.75: reference F's plateau posts are DARK against the haze
+ * (y ≈ 0.19), so the floor only has to bring the shaded shafts from ≈ 0.02 to where their grain
+ * separates from black at 2 m, not to the bark's level.
+ */
+export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3.6, texture: 1.0, albedo: 0.1 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -295,6 +303,8 @@ export interface StructureMaterials {
   wood: MeshStandardMaterial;
   /** fence posts + rails: dark, silvered weathered wood that silhouettes against the haze */
   fenceWood: MeshStandardMaterial;
+  /** round 44 (structures-28): worn stone for the houses' threshold slabs (worn_rock_natural_01; vertex tints carry wear and damp) */
+  stone: MeshStandardMaterial;
   /** darker wood for door frames / lantern hooks */
   woodDark: MeshStandardMaterial;
   /** the small warm lamp glint just inside the doorway */
@@ -1076,7 +1086,7 @@ export function windLeafMaterial<T extends MeshStandardMaterial>(mat: T, ctx: Wo
 
 export async function loadMaterials(ctx: WorldContext, rng: () => number): Promise<StructureMaterials> {
   const T = ctx.textures;
-  const [barkC, barkN, barkR, willowC, willowN, willowR, thatchN, thatchR, plankC, plankN, plankR] = await Promise.all([
+  const [barkC, barkN, barkR, willowC, willowN, willowR, thatchN, thatchR, plankC, plankN, plankR, stoneC, stoneN, stoneR] = await Promise.all([
     T.load('bark_brown_02', 'color'),
     T.load('bark_brown_02', 'normal'),
     T.load('bark_brown_02', 'roughness'),
@@ -1088,6 +1098,11 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     T.load('weathered_planks', 'color'),
     T.load('weathered_planks', 'normal'),
     T.load('weathered_planks', 'roughness'),
+    // round 44 (structures-28): the threshold slabs' stone (the hardscape's set, so the slab
+    // matches the flagstones it sits among)
+    T.load('worn_rock_natural_01', 'color'),
+    T.load('worn_rock_natural_01', 'normal'),
+    T.load('worn_rock_natural_01', 'roughness'),
   ]);
   const P = ctx.config.palette;
   /** every canvas texture built below goes through here (round 17: the owned-textures list) */
@@ -1178,6 +1193,21 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     roughnessMap: plankR,
     roughness: 1,
     color: new Color(0x8e8272),
+    vertexColors: true,
+  });
+  // round 44 (structures-28): the threshold slab — grey worn stone, the flagstones' set; the
+  // vertex tints carry the worn pale top / damp dark sides (house.ts). Replaces the houses' shared
+  // flat-grey `stone` (moss normals at 0.25), which read as a white plank (survey-1 crop 26).
+  // The set leans orange (linear R/G 1.44 — hardscape/material.ts desaturates it in-shader); the
+  // tint pulls it to the flagstones' simulated albedo hue (R/G ≈ 1.2) at their level (≈ 0.3 lum
+  // sunlit tops under the vertex tints house.ts sets).
+  const stone = new MeshStandardMaterial({
+    map: stoneC,
+    normalMap: stoneN,
+    normalScale: new Vector2(0.9, 0.9),
+    roughnessMap: stoneR,
+    roughness: 1,
+    color: new Color(0.95, 1.1, 0.75),
     vertexColors: true,
   });
   // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream
@@ -1382,6 +1412,12 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(logInterior, LOG_INTERIOR_FLOOR, new Color(HOUSE_BARK_TINT));
-  const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
+  // round 44 (structures-28): the rail fences stood on the plateau lip with no floor at all —
+  // in the canopy's shade their Lambert response is ≈ 0.02 and the posts read as black boxes at
+  // 2 m (survey-1 crops 19/20). FENCE_WOOD_FLOOR keeps the wood's own textured albedo (texture
+  // 1: the grain's ×0.48–1.28 swing is what shows) at a lift below the bark's, so the plateau
+  // posts F sees at 25 m stay the frame's dark posts while the grain reads at 2 m.
+  applyShadeFloor(fenceWood, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
+  const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks', 'worn_rock_natural_01'].includes(s));
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }

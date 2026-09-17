@@ -1721,44 +1721,56 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   /** the slab's footprint (door space) and top, for the round-43 moss doormat */
   let thresholdSlab: { w: number; d: number; cw: number; cd: number; top: number } | null = null;
   {
-    let stone = shared.stone;
-    if (!stone) {
-      stone = shared.stone = new MeshStandardMaterial({ color: new Color(0x9e9a8e), roughness: 1, vertexColors: true, normalMap: mats.moss.normalMap, normalScale: new Vector2(0.25, 0.25) });
-      materials.push(stone);
-    }
+    // Round 44 (structures-28): a WORN STONE SLAB, not a nine-sided grey cylinder. Survey-1
+    // crop 26: the round-8 slab read as an over-bright white plank with a hard polygonal outline
+    // floating over the bark step, its moss doormat as 2-D confetti on it. Now: the flagstones'
+    // stone (materials.ts `stone`, worn_rock_natural_01) on a polar grid — the top dished a
+    // centimetre along the walked line and undulating ± 8 mm, the rim rounded and CHIPPED (the
+    // edge drops up to 2.5 cm in bites), the sides battered out a little and sunk 12 cm into the
+    // step, the outline the round-8 ellipse with the same wander. Tints: a pale worn top brightest
+    // on the walked line, the rim and sides damp and dark, a moss film creeping up the sides'
+    // foot. Same `thresholdSlab` footprint and top, so the round-43 doormat stands where it did.
     const slabW = (doorW1 - doorW0) * 0.5 + 0.35 * k;
     const slabD = 0.42 * k;
-    const slabC = frame.door((doorW0 + doorW1) / 2 + 0.05 * k, 0, dBack + 0.42 * k);
+    const slabCW = (doorW0 + doorW1) / 2 + 0.05 * k;
+    const slabCD = dBack + 0.42 * k;
+    const slabC = frame.door(slabCW, 0, slabCD);
     const slabTop = Math.max(sill - 0.035, terrain.height(slabC.x, slabC.z) - yFloor + 0.07);
-    thresholdSlab = { w: slabW, d: slabD, cw: (doorW0 + doorW1) / 2 + 0.05 * k, cd: dBack + 0.42 * k, top: slabTop };
-    const slab = new CylinderGeometry(1, 1.06, 0.12 * k, 9, 1, false);
-    slab.scale(slabW, 1, slabD);
-    // irregular outline: nudge the rim vertices in and out
-    {
-      const pos = slab.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-        const rr = Math.hypot(x / slabW, z / slabD);
-        if (rr > 0.5) {
-          const f = 1 + 0.12 * noise.noise(x * 3.1 + 7, z * 3.1 + pos.getY(i) * 4);
-          pos.setXYZ(i, x * f, pos.getY(i), z * f);
-        }
-      }
-      slab.computeVertexNormals();
-    }
-    slab.applyMatrix4(basisMatrix(frame.door((doorW0 + doorW1) / 2 + 0.05 * k, slabTop - 0.06 * k, dBack + 0.42 * k), F));
-    // worn pale top, damp dark sides
-    const col: [number, number, number][] = [];
-    const pos = slab.attributes.position;
-    const nrm = slab.attributes.normal;
-    for (let i = 0; i < pos.count; i++) {
-      const up = Math.max(0, nrm.getY(i));
-      const d = lerp(0.42, 0.7, up) * (0.92 + 0.16 * noise.noise(pos.getX(i) * 4, pos.getZ(i) * 4 + 2));
-      col.push([d, d, d * 0.97]);
-    }
-    setColorAttribute(slab, (i) => col[i]);
-    const slabMesh = new Mesh(slab, stone);
+    thresholdSlab = { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop };
+    const slabDepth = 0.12 * k;
+    const outline = (th: number) => 1 + 0.12 * noise.noise(Math.cos(th) * slabW * 3.1 + 7, Math.sin(th) * slabD * 3.1);
+    const slab = gridSurface(
+      (u, v, out) => {
+        const th = u * TAU;
+        const row = Math.round(v * 6);
+        const f = row <= 3 ? row / 3 : 1;
+        const g = row <= 3 ? 0 : (row - 3) / 3;
+        const wob = outline(th);
+        // the sides batter out 6 mm at the base
+        const rr = Math.max(0.04, f) * wob * (1 + 0.012 * g);
+        const w = slabCW + Math.cos(th) * slabW * rr;
+        const d = slabCD + Math.sin(th) * slabD * rr;
+        // the top: a worn undulation, dished along the walked line through the door's middle,
+        // rounded then chipped at the rim
+        const walk = smoothstep(0.55 * k, 0.12 * k, Math.abs(w - slabCW));
+        const wear = 0.008 * noise.noise(w * 6.5 + 3, d * 6.5) - 0.012 * walk * (1 - f * f);
+        const chip = 0.025 * smoothstep(0.45, 0.85, noise.noise(th * 2.1 + 11, 2.5)) * smoothstep(0.75, 1, f);
+        const round = 0.006 * smoothstep(0.8, 1, f);
+        const topY = slabTop + wear - chip - round;
+        const y = row <= 3 ? topY : topY - slabDepth * g;
+        frame.door(w, y, d, out.position);
+        out.uv = row <= 3 ? [w / 1.2, d / 1.2] : [(th * (slabW + slabD)) / 1.2, y / 1.2];
+        // tints: pale worn top (palest on the walked line), damp rim, dark sides with a moss foot
+        const mottle = 0.9 + 0.2 * noise.noise(w * 9 + 1, d * 9 + 5);
+        let t = row <= 3 ? lerp(0.78, 1.0, walk) * lerp(1, 0.72, smoothstep(0.82, 1, f)) * mottle : lerp(0.55, 0.36, g) * mottle;
+        t *= 1 - 0.5 * clamp(chip / 0.025, 0, 1);
+        const mossFoot = row <= 3 ? 0 : smoothstep(0.5, 1, g) * smoothstep(0.35, 0.65, noise.noise(th * 3 + 2, 7));
+        out.color = [lerp(t, 0.12, mossFoot), lerp(t * 0.98, 0.2, mossFoot), lerp(t * 0.92, 0.05, mossFoot)];
+      },
+      { cols: 30, rows: 7, closedU: true },
+    );
+    faceTowards(slab, (p, o) => o.copy(p).sub(slabC).multiplyScalar(4).add(p).setY(p.y + 1.5));
+    const slabMesh = new Mesh(slab, mats.stone);
     slabMesh.name = 'threshold';
     slabMesh.castShadow = slabMesh.receiveShadow = true;
     group.add(slabMesh);

@@ -31,7 +31,7 @@ export interface FenceBuild {
   posts: number;
   bases: [number, number, number][];
   /** round 41 audit */
-  detail41: { postTriangles: number; ropeTriangles: number; footTufts: number; lashings: number };
+  detail41: { postTriangles: number; ropeTriangles: number; footTufts: number; lashings: number; mortises: number };
 }
 
 /**
@@ -124,7 +124,10 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
     const topFade = (t: number) => 1 - smoothstep(0.96, 1, t);
     const segs = { tubular: style === 'rope' ? 16 : 14, radial: 16 };
     const curve = style === 'rope' ? new CatmullRomCurve3([bottom, ground, top.clone().lerp(ground, 0.45), top]) : new CatmullRomCurve3([bottom, ground, top]);
-    const radius = style === 'rope' ? (t: number) => (0.092 - 0.027 * t) * (1 + 0.05 * Math.sin(t * 7 + i)) : (t: number) => 0.095 - 0.028 * t;
+    // round 44 (structures-28): the rail posts' tops are CHAMFERED — the shaft steps in 28 % over
+    // its last ring (≈ 10 cm) so the checked cap sits inside a bevel, a hewn end rather than a
+    // cut-off tube (survey-1 crop 19/20: "smooth boxes")
+    const radius = style === 'rope' ? (t: number) => (0.092 - 0.027 * t) * (1 + 0.05 * Math.sin(t * 7 + i)) : (t: number) => (0.095 - 0.028 * t) * (1 - 0.28 * smoothstep(0.93, 1, t));
     const post =
       style === 'rope'
         ? sweepTube(curve, {
@@ -159,12 +162,14 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
               return (Math.sin(ang * 4 + i) * 0.006 + Math.sin(ang * 7 + t * 9) * 0.004 + (g - 0.5) * 0.012) * topFade(t);
             },
             // greyer, darker toward the ground where the wood stays damp; grain lines dark, ridges
-            // silvered — the swing is wide (× 0.62–1.15) because the plateau posts stand in shade
-            // against the haze, where a ± 15 % line vanishes at 2 m (the mean tone holds)
+            // silvered — the swing is wide because the plateau posts stand in shade against the
+            // haze, where a ± 15 % line vanishes at 2 m (the mean tone holds). Round 44: × 0.48–1.28
+            // (was 0.62–1.15) with the fibre at ± 10 % — under the new shade floor (materials.ts
+            // FENCE_WOOD_FLOOR) the shaded faces now show their albedo, and it is this swing they show
             color: (t, ang) => {
               const g = woodGrain(noise, above(t), ang, 14, 0.7, i + 3);
               const fib = woodFibre(noise, above(t), ang, 14, i + 3);
-              const line = lerp(0.62, 1.15, g) * lerp(0.93, 1.07, fib);
+              const line = lerp(0.48, 1.28, g) * lerp(0.9, 1.1, fib);
               const up = 0.8 + 0.2 * t;
               const damp = smoothstep(0.3, 0.0, above(t));
               const mossy = smoothstep(0.12, 0.0, above(t)) * (0.3 + 0.4 * (1 - g));
@@ -211,6 +216,7 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
   };
 
   let lashings = 0;
+  let mortises = 0;
   if (style === 'rope') {
     // vine ropes: sag between posts, three-strand laid, lashed round each post with 2½ turns
     const ropeR = 0.022;
@@ -259,43 +265,83 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
       }
     }
   } else {
-    // rails: bowed tubes between neighbouring posts, at jittered heights
+    // rails: bowed tubes between neighbouring posts, at jittered heights.
+    // Round 44 (structures-28): MORTISED. Round 41 ran each rail from the posts' GROUND points,
+    // 6 cm past them — but the posts lean (up to 9 cm per metre) and taper to r 0.07 at the top
+    // rail, so a rail's end could stand 2–4 cm off the leaning shaft and poke out of its far side
+    // (survey-1 crops 19/20: "rails pass straight through posts"). Now a rail runs from a point
+    // 2 cm PAST the post's axis AT THE RAIL'S HEIGHT to the same on the next post — buried in
+    // both shafts — its radius steps down to a TENON over the last 6 cm before each shaft, and a
+    // dark MORTISE COLLAR (a 3 cm ring of the rail's radius + 1.2 cm in the post's damp shade)
+    // sits round the rail where it enters the shaft: the cut in the post the rail passes through.
+    // The rails' rng draws are unchanged (the same four per rail, in order).
     for (let i = 0; i < tops.length - 1; i++) {
       const a = pts[i];
       const b = pts[i + 1];
-      const ga = terrain.height(a.x, a.z);
-      const gb = terrain.height(b.x, b.z);
       const dir = new Vector3(b.x - a.x, 0, b.z - a.z);
       const len = dir.length();
       dir.normalize();
       const side = new Vector3(dir.z, 0, -dir.x);
+      /** the post's shaft radius at height fraction f (its relief peaks ≈ 1.2 cm over this) */
+      const shaftR = (f: number) => (0.095 - 0.028 * ((f * postH + 0.32) / (postH + 0.32))) + 0.012;
       for (const rh of railHeights) {
-        const ya = ga + rh * (0.95 + rng() * 0.1);
-        const yb = gb + rh * (0.95 + rng() * 0.1);
+        const fa = (rh / postH) * (0.95 + rng() * 0.1);
+        const fb = (rh / postH) * (0.95 + rng() * 0.1);
         const sag = 0.02 + rng() * 0.04;
         const bow = (rng() - 0.5) * 0.06;
-        const p0 = new Vector3(a.x - dir.x * 0.06, ya, a.z - dir.z * 0.06);
-        const p2 = new Vector3(b.x + dir.x * 0.06, yb, b.z + dir.z * 0.06);
+        const axisA = onPost(i, fa);
+        const axisB = onPost(i + 1, fb);
+        const p0 = axisA.clone().addScaledVector(dir, -0.02);
+        const p2 = axisB.clone().addScaledVector(dir, 0.02);
         const p1 = p0.clone().lerp(p2, 0.5).addScaledVector(side, bow);
         p1.y -= sag;
         const shade = postShade() + 0.08;
+        const railLen = p0.distanceTo(p2);
+        const rA = shaftR(fa);
+        const rB = shaftR(fb);
+        // the tenons: the rail thins to 0.8 over the last 6 cm before each shaft's surface
+        const tenon = (t: number) => {
+          const along = t * railLen;
+          const inA = smoothstep(rA + 0.06, rA + 0.005, along);
+          const inB = smoothstep(rB + 0.06, rB + 0.005, railLen - along);
+          return 1 - 0.2 * Math.max(inA, inB);
+        };
         // round 41: the rail's grain runs along it (± 3 mm, lines darker); its ends sit inside the posts
         const rail = sweepTube(new CatmullRomCurve3([p0, p1, p2]), {
-          radius: (t) => 0.056 * (1 + 0.15 * Math.sin(t * Math.PI * 1.7 + i)),
-          tubularSegments: Math.max(8, Math.round(len * 7)),
+          radius: (t) => 0.056 * (1 + 0.15 * Math.sin(t * Math.PI * 1.7 + i)) * tenon(t),
+          tubularSegments: Math.max(10, Math.round(len * 7)),
           radialSegments: 12,
           uvMetres: 0.8,
           displace: (t, ang) => (woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh) - 0.5) * 0.006,
           color: (t, ang) => {
             const g = woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh);
             const fib = woodFibre(noise, t * len, ang, 10, i * 1.7 + rh);
-            const line = lerp(0.8, 1.08, g) * lerp(0.96, 1.04, fib);
+            const line = lerp(0.6, 1.22, g) * lerp(0.92, 1.08, fib);
             return [shade * line, shade * 0.94 * line, shade * 0.84 * line * (1 + 0.08 * g)];
           },
           capEnd: true,
           capStart: true,
         });
         postParts.push(rail);
+        // the mortise collars at both shafts
+        for (const [axis, rr, sgn] of [
+          [axisA, rA, 1],
+          [axisB, rB, -1],
+        ] as const) {
+          const c0 = axis.clone().addScaledVector(dir, sgn * (rr - 0.012));
+          const c1 = axis.clone().addScaledVector(dir, sgn * (rr + 0.02));
+          const collar = sweepTube(new CatmullRomCurve3([c0, c0.clone().lerp(c1, 0.5), c1]), {
+            radius: (t) => 0.056 * 1.15 + 0.012 * (1 - Math.abs(t * 2 - 1)),
+            tubularSegments: 4,
+            radialSegments: 12,
+            uvMetres: 0.8,
+            color: () => [shade * 0.38, shade * 0.36, shade * 0.32],
+            capEnd: true,
+            capStart: true,
+          });
+          postParts.push(collar);
+          mortises++;
+        }
       }
     }
   }
@@ -323,5 +369,5 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
     tuftMesh.receiveShadow = true;
     meshes.push(tuftMesh);
   }
-  return { meshes, posts: tops.length, bases, detail41: { postTriangles, ropeTriangles, footTufts: tufts.count, lashings } };
+  return { meshes, posts: tops.length, bases, detail41: { postTriangles, ropeTriangles, footTufts: tufts.count, lashings, mortises } };
 }

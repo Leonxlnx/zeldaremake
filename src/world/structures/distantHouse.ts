@@ -322,6 +322,8 @@ const PLANK: RGB = [0.42, 0.35, 0.27];
 const PLANK_DARK: RGB = [0.26, 0.21, 0.16];
 const WALL: RGB = [0.66, 0.62, 0.55];
 const SOFFIT: RGB = [0.3, 0.27, 0.22];
+/** round 44: the platform's and deck's undersides on the glow material (× 2.2 → ≈ 0.1 linear, a bounce-lit soffit, never a lamp) */
+const SOFFIT_UNDER: RGB = [0.046, 0.037, 0.026];
 /** an sRGB hex as a linear tint scaled so its peak channel is `peak` (the glow material is white × 2.2) */
 const tint = (hex: number, peak = 1): RGB => {
   const c = new Color(hex);
@@ -1167,6 +1169,73 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       const midPostTop = postTops[0][0];
       const midHook = midPostTop.clone().addScaledVector(wSide, -0.12).setY(midPostTop.y + 0.02);
       hang(midHook, 0.2, GLOW_AMBER, midPostTop.clone().setY(midPostTop.y + 0.02));
+    }
+
+    // ---- round 44 (structures-28): the UNDERSIDE. Survey-1 crop 30: from the hollow path straight
+    // up the hollow-column hut read as a black flat-shaded slab — the deck's and the platform's
+    // bottoms are lit planks facing the ground, ≈ 0.02 in the canopy's shade. A soffit 8 m up in
+    // a forest is bounce-lit, not black: the platform's underside and the deck's bottom go on the
+    // glow material at a dim board-striped brown (SOFFIT_UNDER × 2.2 ≈ 0.1 linear — a shaded
+    // soffit, far under the fog's 2.0 exemption), and a JOIST FRAME shows under them in the
+    // planks' dark wood — radial joists from the bole to the rim, three brace struts from the
+    // bole up to the rim, two bearers and three cross joists under the deck — so the underside
+    // has structure and shadow instead of one face. Plank draw + glow draw: +0 draws. ----
+    {
+      const soffitTint = (k: number): RGB => [SOFFIT_UNDER[0] * k, SOFFIT_UNDER[1] * k, SOFFIT_UNDER[2] * k];
+      const under = gridSurface(
+        (u, v, out) => {
+          const a = u * TAU;
+          const rr = lerp(R * 0.86, platR + 0.004, v);
+          out.position.set(c.x + Math.cos(a) * rr, floorY - 0.223, c.z + Math.sin(a) * rr);
+          out.uv = [Math.cos(a) * rr * 0.5, Math.sin(a) * rr * 0.5];
+          // alternating boards round the ring, a little darker toward the bole
+          const board = 0.86 + 0.28 * (Math.floor(u * 24 + 0.5) % 2);
+          out.color = soffitTint(board * lerp(0.8, 1, v) * (0.92 + 0.16 * Math.sin(a * 5 + capPhase)));
+        },
+        { cols: 24, rows: 2, closedU: true },
+      );
+      glowParts.push(faceToward(under, c.clone().setY(floorY - 10)));
+      // the deck's bottom: a board-striped sheet 1.5 mm under the box's lower face
+      const deckM = basisMatrix(deckStart.clone().lerp(deckEnd, 0.5), deckEnd.clone().sub(deckStart));
+      const deckLen = L + 0.15;
+      const deckUnder = gridSurface(
+        (u, v, out) => {
+          out.position.set((u - 0.5) * 0.93, -0.0615, (v - 0.5) * (deckLen - 0.02)).applyMatrix4(deckM);
+          out.uv = [u * 0.93, v * deckLen];
+          const board = 0.86 + 0.28 * (Math.floor(u * 4) % 2);
+          out.color = soffitTint(board * (0.95 + 0.1 * Math.sin(v * 11 + capPhase)));
+        },
+        { cols: 5, rows: 4 },
+      );
+      glowParts.push(faceToward(deckUnder, deckStart.clone().lerp(deckEnd, 0.5).setY(floorY - 10)));
+      // the joist frame under the platform: six radial joists and three brace struts from the bole
+      const boleR = host.seat ? host.seat.radiusAt(def.floor - 1.3) : R * 0.55;
+      host.axisAt(def.floor - 1.3, _axis);
+      const boleFoot = _axis.clone();
+      const jPhase = r.range(0, TAU);
+      for (let j = 0; j < 6; j++) {
+        const a = jPhase + (j / 6) * TAU;
+        const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
+        const from = c.clone().addScaledVector(dir, R * 0.5).setY(floorY - 0.275);
+        const to = c.clone().addScaledVector(dir, platR - 0.03).setY(floorY - 0.275);
+        plankParts.push(bar(from, to, 0.07, PLANK_DARK, 0.1));
+        if (j % 2 === 0) {
+          const foot = boleFoot.clone().addScaledVector(dir, boleR - 0.04);
+          const head = c.clone().addScaledVector(dir, platR - 0.09).setY(floorY - 0.31);
+          plankParts.push(bar(foot, head, 0.08, PLANK_DARK));
+        }
+      }
+      // under the deck: two bearers along it, three cross joists
+      for (const side of [-1, 1]) {
+        const a = deckStart.clone().addScaledVector(wSide, side * 0.36).setY(deckStart.y - 0.1);
+        const b = deckEnd.clone().addScaledVector(wSide, side * 0.36).setY(deckEnd.y - 0.1);
+        plankParts.push(bar(a, b, 0.07, PLANK_DARK, 0.08));
+      }
+      for (const s of [0.12, 0.5, 0.88]) {
+        const mid = deckStart.clone().lerp(deckEnd, s);
+        mid.y -= 0.1;
+        plankParts.push(bar(mid.clone().addScaledVector(wSide, -0.47), mid.clone().addScaledVector(wSide, 0.47), 0.08, PLANK_DARK, 0.08));
+      }
     }
 
     const plankGeo = merge(plankParts);
