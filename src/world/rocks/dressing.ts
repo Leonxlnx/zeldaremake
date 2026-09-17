@@ -53,10 +53,18 @@ export interface DressingOptions {
   lichen: number;
   /** local xz direction away from the sun: cushions favour faces turned that way */
   shade?: [number, number];
+  /**
+   * the rock's base tint (RockOptions.tint): a triangle whose vertex colour the crack pass pulled
+   * ≥ 30 % of the way from it toward the crack dark counts as a crevice. Default: the mean vertex
+   * colour above `minY`.
+   */
+  tint?: Color;
 }
 
 export interface DressingStats {
   cushions: number;
+  /** cushions seated in a crack / parting rather than on the cap or a shaded shoulder */
+  creviceCushions: number;
   lichen: number;
   vertices: number;
 }
@@ -191,6 +199,19 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
   const mossA = rock.attributes.aMoss as BufferAttribute;
   const r = o.radius;
   const shade = o.shade ?? [0, 0];
+  const colSum = (i: number) => (col.getX(i) + col.getY(i) + col.getZ(i) + col.getX(i + 1) + col.getY(i + 1) + col.getZ(i + 1) + col.getX(i + 2) + col.getY(i + 2) + col.getZ(i + 2)) / 3;
+  let refSum: number;
+  if (o.tint) refSum = o.tint.r + o.tint.g + o.tint.b;
+  else {
+    let s = 0;
+    let n = 0;
+    for (let i = 0; i < pos.count; i += 3) {
+      if ((pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3 < o.minY) continue;
+      s += colSum(i);
+      n++;
+    }
+    refSum = n ? s / n : 2;
+  }
   const cushionSites: Site[] = [];
   const lichenSites: Site[] = [];
   for (let i = 0; i < pos.count; i += 3) {
@@ -201,15 +222,15 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
     if (_p.y < o.minY) continue;
     _n.fromBufferAttribute(nrm, i).add(_t.fromBufferAttribute(nrm, i + 1)).add(_u.fromBufferAttribute(nrm, i + 2)).normalize();
     const m = (mossA.getX(i) + mossA.getX(i + 1) + mossA.getX(i + 2)) / 3;
-    const lum = (col.getX(i) + col.getY(i) + col.getZ(i) + col.getX(i + 1) + col.getY(i + 1) + col.getZ(i + 1)) / 6;
-    const crack = lum < 0.36;
+    // a crevice: the crack pass darkened this triangle ≥ 30 % of the way toward the crack dark
+    const crack = 1 - colSum(i) / refSum > 0.3;
     if (m < 0) continue;
     const facing = _n.x * shade[0] + _n.z * shade[1];
     if ((_n.y > 0.3 && m > 0.12) || (crack && _n.y > 0.05) || (_n.y > 0.55 && facing > 0.2)) cushionSites.push({ p: _p.clone(), n: _n.clone(), moss: m, crack });
     if (_n.y > -0.25 && _n.y < 0.72 && m < 0.12 && !crack && _p.y > o.minY + 0.15 * r) lichenSites.push({ p: _p.clone(), n: _n.clone(), moss: m, crack });
   }
   const w = new Writer();
-  const stats: DressingStats = { cushions: 0, lichen: 0, vertices: 0 };
+  const stats: DressingStats = { cushions: 0, creviceCushions: 0, lichen: 0, vertices: 0 };
   // cushions: crevices first (a pad in every dark parting reads as the moss that fills cracks),
   // then the shaded shoulders, the thick cap last (its own swell is already a pad); a pad's
   // radius 3–9 cm scaled a little with the rock
@@ -220,8 +241,11 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
   const cCentre = new Vector3();
   const cUp = new Vector3();
   const worldUp = new Vector3(0, 1, 0);
+  // crevices first, but at most ~65 % of the pads — the rest sit on the cap and shaded shoulders
+  const maxCrevice = Math.ceil(o.cushions * 0.65);
   for (const { s } of order) {
     if (placedC.length >= o.cushions) break;
+    if (s.crack && stats.creviceCushions >= maxCrevice) continue;
     const R = cRng.range(0.03, 0.09) * sizeK;
     if (placedC.some((q) => q.p.distanceTo(s.p) < 0.9 * (q.R + R) + 0.02)) continue;
     // in a crevice the pad sits a little deeper (the moss fills the parting)
@@ -231,6 +255,7 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
     cushion(w, cRng, cCentre, cUp, R, palette.mossDeep, palette.mossBright);
     placedC.push({ p: s.p.clone(), R });
     stats.cushions++;
+    if (s.crack) stats.creviceCushions++;
   }
   // lichen: clustered plates 2–4.5 cm across on the bare faces, a satellite or two beside each
   // seed. A muted grey-green, not far above the stone's own value — at (0.66, 0.69, 0.56) the

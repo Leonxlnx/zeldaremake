@@ -22,8 +22,9 @@ import type { Rng } from '../util/prng';
  * NEAR_ROCK_IN_M of the live camera a boulder's far mesh is replaced by its near version —
  * the same rock (same stream, same low-frequency shape, cuts and bedding) at 2.2× the vertex
  * density with a fractured skin, deeper crack furrows, a fine crack network, chipped cleave rims,
- * strata ledges, moss cushions and lichen plates on its faces and loose fragments at its foot
- * (rockgen.ts / dressing.ts) — and out again past NEAR_ROCK_OUT_M (hysteresis). A boulder a
+ * deeper strata ledges (the D boulder), moss cushions and lichen plates on its faces, loose
+ * fragments at its foot and ferns / moss pads rooted in its crevices (rockgen.ts / dressing.ts) —
+ * and out again past NEAR_ROCK_OUT_M (hysteresis). A boulder a
  * hero camera frames from d m swaps only at d − NEAR_ROCK_HERO_MARGIN (out at d − margin / 3),
  * so the six fixed captures always render today's far meshes; a rock whose in-radius would fall
  * under NEAR_ROCK_MIN_IN_M gets no near version.
@@ -56,6 +57,7 @@ interface NearRock {
   dist: number;
   triangles: number;
   cushions: number;
+  creviceCushions: number;
   lichen: number;
   fragments: number;
   /** crevice plants rooted in this rock's near skin (ferns, moss pads) */
@@ -540,7 +542,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // the crevice plants root in the near skin's furrows (the far mesh's cracks are only lines)
         const crevice = pickCrevicePlants(nearGeo);
         const nRng = bRng.fork(`near-${b.id}`);
-        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 32 : r > 0.8 ? 20 : 12, shade: toLocal(shadeDir, yaw) }, mossPalette);
+        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 32 : r > 0.8 ? 20 : 12, shade: toLocal(shadeDir, yaw), tint: tintC }, mossPalette);
         nearGeo.dispose();
         // loose fragments: fist-sized angular spalls (five cleaves, no moss cap) lying at the foot
         // on the un-paved ground, seated on the terrain, folded into the near mesh's local frame
@@ -573,7 +575,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         nearMesh.name = `boulder-${b.id}-near`;
         nearMesh.updateMatrixWorld(true);
         group.add(nearMesh);
-        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, lichen: dressed.stats.lichen, fragments: parts.length, creviceFerns: crevice.ferns, crevicePads: crevice.pads });
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, fragments: parts.length, creviceFerns: crevice.ferns, crevicePads: crevice.pads });
       }
     }
 
@@ -739,7 +741,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tileM: NEAR_TILE_M,
       fadeM: NEAR_FADE_M,
       dropped: nearDropped,
-      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, lichen: nr.lichen, fragments: nr.fragments, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
+      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, fragments: nr.fragments, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,
