@@ -7,7 +7,7 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { BROADLEAF_U, MeshBuilder, NOT_LAMINA, PETAL_U, TAU, V, bladeStrip, blend, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, lathe, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, valueNoise3, type LeafShape, type RGB } from './geometry';
+import { BROADLEAF_U, MeshBuilder, NOT_LAMINA, PETAL_U, TAU, V, bladeStrip, blend, clamp01, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, lathe, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, valueNoise3, type LeafShape, type RGB } from './geometry';
 
 /** `ultra` (round 40) is an extra near LOD a builder may offer above `high`; the default LOD list has none */
 export type Detail = 'ultra' | 'high' | 'mid' | 'low';
@@ -1190,6 +1190,9 @@ export function cloverGeometry(seed: string, pal: PlantPalette, detail: Detail):
 export const MOSS_RIM_GAIN = 0.55;
 export const MOSS_TOP_GAIN = 1.28;
 export const MOSS_TOP_TINT: RGB = [1.0, 1.04, 0.86];
+/** sub-cushions a lobed ultra cushion carries beside its crown lobe (min, max inclusive), and the body outline's noise amplitude (fraction of the radius) */
+export const MOSS_ULTRA_LOBES: readonly [number, number] = [7, 11];
+export const MOSS_ULTRA_RUFFLE = 0.2;
 
 export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = 'high'): BufferGeometry {
   const rng = createRng(seed);
@@ -1200,56 +1203,117 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     dome(m, 1, height, 9, 3, tone(pal.mossDeep, 0.85), tone(pal.mossBright, 0.9), (i) => jitterTable[Math.abs(i) % 512]);
     return m.finish();
   }
-  // round 43: the ultra cushion keeps the high dome's height and unit radius (the same instance
-  // scale seats it) and rebuilds it at 16 × 6 with a lumpy value-noise outline and surface — no
-  // two cushions alike, the lobes 3–6 cm across at the placed scales — under a baked lit-top /
-  // dark-rim tint (MOSS_*_GAIN, the structures' cushion tufts' recipe, implemented here)
+  // round 43: the ultra cushion is a CLUSTER — a squat lobed body carrying MOSS_ULTRA_LOBES
+  // sub-cushions (the structures' roof tufts' recipe: fuller-than-spherical profile, value-noise
+  // outline, lit top / dark rim in the vertex colour — implemented here, nothing imported): a
+  // single dome with surface noise reads smooth at 0.8 m (vegetation-22's first pass), the lobes
+  // — 3–7 cm across at the placed scales, no two cushions alike — do not. The envelope stays the
+  // high dome's (its height exactly, its footprint or less) so the same instance scale seats it.
   const fine = createRng(`${seed}/ultra`);
   const off = fine() * 100;
-  const segments = 16;
-  const rings = 6;
   const deep = tone(pal.mossDeep, 0.85);
   const bright = tone(pal.mossBright, 0.9);
   const mid = blend(deep, bright, 0.5);
-  const colorAt = (t: number, lump: number): RGB => {
-    // t: 0 rim … 1 crown; the lumps' crests catch light, their hollows sink toward the rim tone;
-    // the gain runs from the dark damp rim to the lit crown (the mid tone is the high dome's mean)
-    const lit = Math.pow(t, 0.8);
-    const gain = (MOSS_RIM_GAIN + (MOSS_TOP_GAIN - MOSS_RIM_GAIN) * lit) * (1 + 0.14 * lump);
-    const c = blend(blend(deep, bright, Math.min(1, lit + 0.25 * lump)), mid, 0.3);
-    return [c[0] * gain * (1 + (MOSS_TOP_TINT[0] - 1) * lit), c[1] * gain * (1 + (MOSS_TOP_TINT[1] - 1) * lit), c[2] * gain * (1 + (MOSS_TOP_TINT[2] - 1) * lit)];
+  /** the fuller-than-spherical meridian (t: 0 base ring … 1 crown) */
+  const profile = (t: number) => ({ r: Math.pow(Math.cos((t * Math.PI) / 2), 0.72), y: Math.pow(Math.sin((t * Math.PI) / 2), 0.85) });
+  const colorAt = (t: number, lit: number, lump: number): RGB => {
+    // t: the vertex's height fraction over the whole cushion (0 rim … 1 crown), lit: its lobe's own
+    // crest fraction; the gain runs from the dark damp rim to the lit crown, the lobes' crests catch
+    // light on top of that, their hollows sink toward the rim tone (mid is the high dome's mean)
+    const up = Math.pow(t, 0.8) * (0.72 + 0.28 * lit);
+    const gain = (MOSS_RIM_GAIN + (MOSS_TOP_GAIN - MOSS_RIM_GAIN) * up) * (1 + 0.1 * lump);
+    const c = blend(blend(deep, bright, Math.min(1, up + 0.2 * lump)), mid, 0.3);
+    return [c[0] * gain * (1 + (MOSS_TOP_TINT[0] - 1) * up), c[1] * gain * (1 + (MOSS_TOP_TINT[1] - 1) * up), c[2] * gain * (1 + (MOSS_TOP_TINT[2] - 1) * up)];
   };
-  const levels: number[][] = [];
-  for (let r = 0; r <= rings; r++) {
-    // r = 0 is the base ring on the seat (like the high dome's), the rest climb the profile
-    const t = r === 0 ? 0 : r / (rings + 1);
-    const phi = (Math.PI / 2) * (1 - t);
-    const level: number[] = [];
-    for (let k = 0; k < segments; k++) {
-      const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
-      const cx = Math.cos(ang);
-      const sz = Math.sin(ang);
-      // the lobed outline (low frequency) and the surface lumps (higher), both from one field
-      const ruffle = 1 + 0.16 * valueNoise3(cx * 1.6 + off, t * 1.3, sz * 1.6 - off);
-      const lump = valueNoise3(cx * 3.4 * Math.sin(phi) + off * 0.7, t * 3.1 + off, sz * 3.4 * Math.sin(phi));
-      const rr = Math.sin(phi) * (0.92 + 0.08 * (1 - t)) * ruffle * (1 + 0.07 * lump);
-      const y = r === 0 ? 0 : Math.min(height, height * Math.cos(phi) * (1 + 0.1 * lump) + height * 0.04);
-      level.push(m.vertex(V(cx * rr, y, sz * rr), NOT_LAMINA + k / segments, t, colorAt(t, lump)));
+  const bodyH = height * 0.74;
+  /**
+   * one cushion: centre `c`, up axis `n`, footprint radius `radius`, crown height `h` over the base
+   * ring; the outline ruffles by value noise at `freq`, the base ring sinks `sink` under the seat
+   * (hides the seam on the body); `tOf(y)` gives a vertex's whole-cushion height fraction
+   */
+  const cushion = (c: Vector3, n: Vector3, radius: number, h: number, segments: number, rings: number, ruffle: number, freq: number, sink: number, seedOff: number) => {
+    const up = n.clone().normalize();
+    const ref = Math.abs(up.y) > 0.92 ? V(1, 0, 0) : V(0, 1, 0);
+    const a = new Vector3().crossVectors(ref, up).normalize();
+    const b = new Vector3().crossVectors(up, a).normalize();
+    const levels: number[][] = [];
+    for (let r = 0; r <= rings; r++) {
+      const t = r / (rings + 1);
+      const { r: pr, y: py } = profile(t);
+      const level: number[] = [];
+      for (let k = 0; k < segments; k++) {
+        const ang = (k * TAU) / segments + (r % 2) * (Math.PI / segments);
+        const cx = Math.cos(ang);
+        const sz = Math.sin(ang);
+        const nz = valueNoise3(cx * freq + seedOff, t * freq * 0.8 + off, sz * freq - seedOff);
+        const rr = radius * pr * (1 + ruffle * nz);
+        const yy = r === 0 ? -sink : h * py * (1 + 0.12 * ruffle * nz) - sink * (1 - t);
+        const p = c.clone().addScaledVector(a, cx * rr).addScaledVector(b, sz * rr).addScaledVector(up, yy);
+        const gt = clamp01(p.y / height);
+        level.push(m.vertex(p, NOT_LAMINA + k / segments, gt, colorAt(gt, t, nz)));
+      }
+      levels.push(level);
     }
-    levels.push(level);
-  }
-  // the crown, nudged off-centre so the cushion leans a little
+    const crownP = c.clone().addScaledVector(up, h);
+    const crown = m.vertex(crownP, NOT_LAMINA + 0.5, clamp01(crownP.y / height), colorAt(clamp01(crownP.y / height), 1, 0.4));
+    for (let r = 0; r < rings; r++) {
+      for (let k = 0; k < segments; k++) {
+        const nk = (k + 1) % segments;
+        m.tri(levels[r][k], levels[r][nk], levels[r + 1][k]);
+        m.tri(levels[r][nk], levels[r + 1][nk], levels[r + 1][k]);
+      }
+    }
+    for (let k = 0; k < segments; k++) m.tri(levels[rings][k], levels[rings][(k + 1) % segments], crown);
+  };
+  // the body: the high dome's footprint, three quarters of its height, a strongly lobed outline
+  cushion(V(0, 0, 0), V(0, 1, 0), 1, bodyH, 14, 4, MOSS_ULTRA_RUFFLE, 1.7, 0, 0);
+  // the lobes stand on the body's surface: azimuth and meridian fraction by the stream, the
+  // surface normal from the profile's slope; a crown lobe takes the cushion to its full height
+  const lobes = fine.int(MOSS_ULTRA_LOBES[0], MOSS_ULTRA_LOBES[1] + 1);
+  const bodyPoint = (u: number, ang: number) => {
+    const { r, y } = profile(u);
+    const e = 1e-3;
+    const p1 = profile(u + e);
+    // the meridian tangent (dr, dy) → outward normal (dy, -dr), rotated into the azimuth
+    const dr = (p1.r - r) / e;
+    const dy = (p1.y * bodyH - y * bodyH) / e;
+    const nr = dy;
+    const ny = -dr;
+    const nl = Math.hypot(nr, ny) || 1;
+    return { p: V(Math.cos(ang) * r, y * bodyH, Math.sin(ang) * r), n: V((Math.cos(ang) * nr) / nl, ny / nl, (Math.sin(ang) * nr) / nl) };
+  };
   const leanA = fine() * TAU;
-  const lean = 0.12 * fine();
-  const crown = m.vertex(V(Math.cos(leanA) * lean, height, Math.sin(leanA) * lean), NOT_LAMINA + 0.5, 1, colorAt(1, 0.5));
-  for (let r = 0; r < rings; r++) {
-    for (let k = 0; k < segments; k++) {
-      const n = (k + 1) % segments;
-      m.tri(levels[r][k], levels[r][n], levels[r + 1][k]);
-      m.tri(levels[r][n], levels[r + 1][n], levels[r + 1][k]);
-    }
+  const lean = 0.1 * fine();
+  const crownR = 0.42 + 0.1 * fine();
+  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, 9, 3, 0.16, 3.2, 0.05, 11);
+  for (let i = 0; i < lobes; i++) {
+    // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder
+    const ang = i * 2.399963 + fine() * 0.5;
+    const u = 0.12 + 0.6 * ((i + 0.5) / lobes) + (fine() - 0.5) * 0.12;
+    const { p, n } = bodyPoint(u, ang);
+    const rl = 0.2 + 0.18 * fine();
+    const hl = rl * (0.6 + 0.5 * fine());
+    cushion(p, n, rl, hl, 9, 3, 0.18, 4.5, rl * 0.12, 20 + i * 7);
   }
-  for (let k = 0; k < segments; k++) m.tri(levels[rings][k], levels[rings][(k + 1) % segments], crown);
+  // seat the base ring on y = 0 and hold the high dome's envelope: its height exactly (the lobes
+  // that rise past it are pulled down with the whole), its footprint or less
+  let maxY = 0;
+  let maxR = 0;
+  for (let k = 0; k < m.p.length; k += 3) {
+    maxY = Math.max(maxY, m.p[k + 1]);
+    maxR = Math.max(maxR, Math.abs(m.p[k]), Math.abs(m.p[k + 2]));
+  }
+  const scratch = new MeshBuilder();
+  dome(scratch, 1, height, 9, 3, deep, bright, (i) => jitterTable[Math.abs(i) % 512]);
+  let highSpan = 0;
+  for (let k = 0; k < scratch.p.length; k += 3) highSpan = Math.max(highSpan, Math.abs(scratch.p[k]), Math.abs(scratch.p[k + 2]));
+  const sy = height / maxY;
+  const sxz = Math.min(1, highSpan / maxR);
+  for (let k = 0; k < m.p.length; k += 3) {
+    m.p[k] *= sxz;
+    m.p[k + 1] = Math.max(0, m.p[k + 1]) * sy;
+    m.p[k + 2] *= sxz;
+  }
   return m.finish();
 }
 

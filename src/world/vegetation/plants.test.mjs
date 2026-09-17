@@ -376,7 +376,14 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
   {const {CLUSTER_ULTRA_FLORETS}=read('vegetation/plantgeo');assert.ok(CLUSTER_ULTRA_FLORETS>=12,'a dozen florets a head at least');}
   // the bloom variation and tints are declared
   assert.ok(WHITE_BUD_SHARE>=0.1&&WHITE_BUD_SHARE<=0.35&&BROADLEAF_HUE_SPREAD>=0.05&&BROADLEAF_HUE_SPREAD<=0.15&&MOSS_RIM_GAIN<0.75&&MOSS_TOP_GAIN>1.15);
-  // the ultra cushion is lumpy (its base ring's radii spread) and lit from the crown down to a dark rim (the vertex colours' luminance rises with y)
+  // the ultra cushion is a cluster of lobes (MOSS_ULTRA_LOBES sub-cushions on a lobed body, ≥ 500 triangles — a smooth dome
+  // with surface noise read smooth at 0.8 m), lumpy at the base ring (its radii spread) and lit from the crown down to a dark
+  // rim (the vertex colours' luminance rises with y) at the high dome's mean luminance (within 12 %: no brightness pop at MOSS_ULTRA_M)
+  {const {MOSS_ULTRA_LOBES,MOSS_ULTRA_RUFFLE}=read('vegetation/plantgeo');assert.ok(MOSS_ULTRA_LOBES[0]>=6&&MOSS_ULTRA_LOBES[1]>=MOSS_ULTRA_LOBES[0]&&MOSS_ULTRA_RUFFLE>=0.15,'a lobed cluster');
+    for(let v=0;v<2;v++){const [u,h]=pair('moss',(s,p,d)=>mossGeometry(s,p,d),v);assert.ok(u.index.count/3>=500,`moss ${v}: ${u.index.count/3} triangles`);
+      const L=g=>{const c=g.attributes.color.array;let s=0;for(let i=0;i<c.length;i+=3)s+=0.2126*c[i]+0.7152*c[i+1]+0.0722*c[i+2];return s/(c.length/3);};
+      assert.ok(Math.abs(L(u)-L(h))<=0.12*L(h),`moss ${v}: mean luminance ${L(u).toFixed(3)} vs high ${L(h).toFixed(3)}`);
+      assert.ok(u.boundingBox.min.y>=-1e-6,`moss ${v}: seats on y = 0`);}}
   {const g=mossGeometry(`${seed}/moss/0`,pal,'ultra'),p=g.attributes.position.array,c=g.attributes.color.array;const base=[],lum=[];
     for(let i=0;i<p.length/3;i++){const y=p[i*3+1];const l=0.2126*c[i*3]+0.7152*c[i*3+1]+0.0722*c[i*3+2];if(y<1e-6)base.push(Math.hypot(p[i*3],p[i*3+2]));lum.push([y,l]);}
     assert.ok(Math.max(...base)/Math.min(...base)>=1.15,`lumpy base outline: ${Math.min(...base).toFixed(3)}…${Math.max(...base).toFixed(3)}`);
