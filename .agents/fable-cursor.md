@@ -2080,6 +2080,11 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   untracked them again — check at the merge that neither is in the tree), rocks-2 4 commits (near
   fade 2.5–6 m; camera D's nearest lump is 6.5 m away). No Astra messages since 20:52 (Sep 16).
 
+### 08:12 UTC — tick 129: heartbeat; round 42 in flight
+- hardscape-30 on its third capture (stone pass on top of the layout change), trees-26 building
+  the pool (no new commit for an hour — long build/verification cycle), rocks-2 at 9 commits
+  (near-LOD bedding restricted to the D boulder; the A/terrace rocks keep their moss blankets).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2118,4 +2123,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T07:15:00Z
+2026-09-17T08:12:00Z
