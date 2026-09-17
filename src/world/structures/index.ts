@@ -220,6 +220,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
+    /** round 41: the signposts' and fences' grain / checked ends / foot moss / laid rope */
+    woodDetail: { signposts: signposts.map((s) => s.detail41), fences: fences.map((f, i) => ({ id: fenceDefs[i].id, ...f.detail41 })) },
     houseRoots,
     houseBranches,
     /** Saria's eave profile on the door axis (world), now and as rounds 10 / 11 built it */

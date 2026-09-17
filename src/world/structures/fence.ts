@@ -6,19 +6,64 @@
  *    (r 0.07–0.1 m, 1.0–1.2 m tall, leaning a little) with two sagging vine-rope rails lashed to
  *    them, along the plaza's west bank foot and the stair-side bank.
  * Each run is one mesh per material.
+ *
+ * Round 41 (structures-26): readable at 2 m. Rail posts carry long grain (± 4 mm, grain lines
+ * darker, ridges silvered), a CHECKED top (end-grain disc with drying cracks, woodGrain.ts) and
+ * a damp, mossy foot; the rails take the same grain. Rope posts get a second, finer cord octave
+ * with grime in the furrows and a split top. The vine ropes are THREE-STRAND: the twist is a
+ * sharp three-lobe profile (± 4 mm on a 2.2 cm rope) at 2.5 cm sampling with fine fibre lines
+ * in the tint, and the lashings are continuous 2½-turn helices of the same rope instead of
+ * three stacked tori. Cushion moss tufts sit round every post foot (mossTufts.ts) in the
+ * cap-moss material with castShadow off, so they fold into the roof-tuft bucket (no new draw).
  */
-import { CatmullRomCurve3, Color, type Material, Mesh, MeshStandardMaterial, TorusGeometry, Vector3 } from 'three';
+import { CatmullRomCurve3, Color, type Material, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext } from '../system';
 import type { FenceDef } from '../layout';
 import type { Rng } from '../util/prng';
-import { Noise2D } from '../util/noise';
-import { merge, setColorAttribute, sweepTube } from './geometry';
-import type { StructureMaterials } from './materials';
+import { Noise2D, lerp, smoothstep } from '../util/noise';
+import { merge, sweepTube, TAU } from './geometry';
+import { Noise3D, type StructureMaterials } from './materials';
+import { buildMossTufts, type MossTuftSpec } from './mossTufts';
+import { checkedCap, endFrame, footMoss, woodFibre, woodGrain } from './woodGrain';
 
 export interface FenceBuild {
   meshes: Mesh[];
   posts: number;
   bases: [number, number, number][];
+  /** round 41 audit */
+  detail41: { postTriangles: number; ropeTriangles: number; footTufts: number; lashings: number };
+}
+
+/**
+ * Three-strand rope profile: the radial offset of a laid rope's surface at angle `ang` round it
+ * and phase `phase` along it — three lobes, sharp in the grooves, ± `depth`.
+ */
+function strandProfile(ang: number, phase: number, depth: number): number {
+  const s = Math.sin(3 * ang + phase);
+  // sharpen the grooves: a laid rope's lobes are round, its grooves narrow
+  return depth * (Math.sign(s) * Math.pow(Math.abs(s), 0.7));
+}
+
+/** rope tint: pale straw with the strands' shading and fine fibre lines */
+function ropeColor(tint: [number, number, number], ang: number, phase: number, fibre: number): [number, number, number] {
+  const s = 0.82 + 0.18 * Math.sin(3 * ang + phase);
+  const f = 0.94 + 0.12 * fibre;
+  return [tint[0] * s * f, tint[1] * s * f, tint[2] * s * f];
+}
+
+/** a laid rope swept along `curve` (rails and lashings share this) */
+function ropeTube(curve: CatmullRomCurve3, ropeR: number, twist: number, tint: [number, number, number], noise: Noise2D, seed: number): BufferGeometry {
+  const len = curve.getLength();
+  // twist pitch: one full turn of the lay every ≈ 4 rope diameters
+  const pitch = TAU / (ropeR * 8);
+  return sweepTube(curve, {
+    radius: () => ropeR,
+    tubularSegments: Math.max(8, Math.round(len / 0.025)),
+    radialSegments: 10,
+    uvMetres: 0.3,
+    displace: (t, ang) => strandProfile(ang, t * len * pitch + twist, ropeR * 0.2) + 0.0008 * Math.sin(ang * 9 - t * len * pitch * 3 + seed),
+    color: (t, ang) => ropeColor(tint, ang, t * len * pitch + twist, 0.5 + 0.5 * noise.noise(ang * 1.5 + seed, t * len * 40)),
+  });
 }
 
 /** Twisted vine rope (rails, lashings, lantern-post bindings). Owned by the structures system. */
@@ -53,6 +98,12 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
 
   const tops: Vector3[] = [];
   const heights: number[] = [];
+  // round 41: the close-scale detail's own streams (forked: the posts' jitter / lean / shade draws are unchanged)
+  const detailRng = rng.fork('detail41');
+  const tuftNoise = new Noise3D(detailRng.fork('tuft-noise'));
+  const tuftSpecs: MossTuftSpec[] = [];
+  let postTriangles = 0;
+  const tri = (g: BufferGeometry) => (g.index ? g.index.count : g.attributes.position.count) / 3;
   for (let i = 0; i < pts.length; i++) {
     const p = pts[i];
     p.x += (rng() - 0.5) * 0.08;
@@ -66,34 +117,86 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
     const top = new Vector3(p.x + lean.x * h, gy + h, p.z + lean.z * h);
     const shade = postShade();
     const grey = rng() * 0.12;
+    const postRng = detailRng.fork(`post/${i}`);
+    const postLen = h + 0.32;
+    /** metres above the ground along the sweep */
+    const above = (t: number) => t * postLen - 0.32;
+    const topFade = (t: number) => 1 - smoothstep(0.96, 1, t);
+    const segs = { tubular: style === 'rope' ? 16 : 14, radial: 16 };
+    const curve = style === 'rope' ? new CatmullRomCurve3([bottom, ground, top.clone().lerp(ground, 0.45), top]) : new CatmullRomCurve3([bottom, ground, top]);
+    const radius = style === 'rope' ? (t: number) => (0.092 - 0.027 * t) * (1 + 0.05 * Math.sin(t * 7 + i)) : (t: number) => 0.095 - 0.028 * t;
     const post =
       style === 'rope'
-        ? sweepTube(new CatmullRomCurve3([bottom, ground, top.clone().lerp(ground, 0.45), top]), {
-            // a rough log: r 0.09 at the ground tapering to 0.065, bark cords and a knobbly top
-            radius: (t) => (0.092 - 0.027 * t) * (1 + 0.05 * Math.sin(t * 7 + i)),
-            tubularSegments: 8,
-            radialSegments: 10,
+        ? sweepTube(curve, {
+            // a rough log: r 0.09 at the ground tapering to 0.065, bark cords (two octaves) and a split top
+            radius,
+            tubularSegments: segs.tubular,
+            radialSegments: segs.radial,
             uvMetres: 0.7,
-            displace: (t, ang) => (noise.ridged(ang * 1.3 + i * 2.1, t * 3, 2) - 0.5) * 0.02 + Math.sin(ang * 5 + i) * 0.004,
-            // damp dark bark near the ground, greyer and lighter up the post; the trunk's bark map
-            color: (t, ang) => {
-              const d = (0.5 + 0.35 * t) * (0.9 + 0.2 * Math.max(0, Math.sin(ang)));
-              return [d, d * 0.92, d * 0.84];
+            displace: (t, ang) => {
+              const coarse = (noise.ridged(ang * 1.3 + i * 2.1, t * 3, 2) - 0.5) * 0.02;
+              const fine = (woodGrain(noise, above(t), ang, 18, 1.2, i + 11) - 0.5) * 0.007;
+              return (coarse + fine + Math.sin(ang * 5 + i) * 0.004) * topFade(t);
             },
-            capEnd: true,
+            // damp dark bark near the ground, greyer and lighter up the post; grime in the furrows
+            color: (t, ang) => {
+              const fine = woodGrain(noise, above(t), ang, 18, 1.2, i + 11);
+              const coarse = noise.ridged(ang * 1.3 + i * 2.1, t * 3, 2);
+              const furrow = lerp(0.72, 1.06, 0.5 * fine + 0.5 * coarse);
+              const d = (0.5 + 0.35 * t) * (0.9 + 0.2 * Math.max(0, Math.sin(ang))) * furrow;
+              const mossy = smoothstep(0.16, 0.0, above(t)) * (0.3 + 0.4 * (1 - fine));
+              return [lerp(d, 0.22, mossy), lerp(d * 0.92, 0.27, mossy), lerp(d * 0.84, 0.07, mossy)];
+            },
           })
-        : sweepTube(new CatmullRomCurve3([bottom, ground, top]), {
+        : sweepTube(curve, {
             // ≥ 0.16 m thick at the ground so a post still covers a few pixels at 20–25 m
-            radius: (t) => 0.095 - 0.028 * t,
-            tubularSegments: 6,
-            radialSegments: 10,
+            radius,
+            tubularSegments: segs.tubular,
+            radialSegments: segs.radial,
             uvMetres: 0.8,
-            displace: (t, ang) => Math.sin(ang * 4 + i) * 0.006 + Math.sin(ang * 7 + t * 9) * 0.004,
-            // greyer, darker toward the ground where the wood stays damp
-            color: (t) => [(shade + grey * 0.3) * (0.8 + 0.2 * t), (shade * 0.95 + grey * 0.35) * (0.8 + 0.2 * t), (shade * 0.86 + grey * 0.5) * (0.8 + 0.2 * t)],
-            capEnd: true,
+            displace: (t, ang) => {
+              const g = woodGrain(noise, above(t), ang, 14, 0.7, i + 3);
+              return (Math.sin(ang * 4 + i) * 0.006 + Math.sin(ang * 7 + t * 9) * 0.004 + (g - 0.5) * 0.008) * topFade(t);
+            },
+            // greyer, darker toward the ground where the wood stays damp; grain lines dark, ridges silvered
+            color: (t, ang) => {
+              const g = woodGrain(noise, above(t), ang, 14, 0.7, i + 3);
+              const fib = woodFibre(noise, above(t), ang, 14, i + 3);
+              const line = lerp(0.78, 1.08, g) * lerp(0.95, 1.05, fib);
+              const up = 0.8 + 0.2 * t;
+              const damp = smoothstep(0.3, 0.0, above(t));
+              const mossy = smoothstep(0.12, 0.0, above(t)) * (0.3 + 0.4 * (1 - g));
+              const r0 = (shade + grey * 0.3) * up * line * (1 - 0.3 * damp);
+              const g0 = (shade * 0.95 + grey * 0.35) * up * line * (1 - 0.26 * damp);
+              const b0 = (shade * 0.86 + grey * 0.5) * up * line * (1 - 0.28 * damp + 0.08 * g);
+              return [lerp(r0, 0.2, mossy), lerp(g0, 0.25, mossy), lerp(b0, 0.06, mossy)];
+            },
           });
     postParts.push(post);
+    // the checked / split top on the sweep's end frame (the tube's relief fades to 0 there)
+    const capColor: [number, number, number] = style === 'rope' ? [0.55, 0.5, 0.44] : [shade * 0.95, shade * 0.9, shade * 0.82];
+    const cap = checkedCap(endFrame(curve, segs.tubular), postRng.fork('cap'), noise, {
+      radius: radius(1),
+      segments: segs.radial,
+      color: capColor,
+      checks: 2 + Math.floor(postRng() * 2),
+      depth: style === 'rope' ? [0.01, 0.022] : [0.006, 0.014],
+      dome: style === 'rope' ? 0.008 : 0.003,
+      uvMetres: 0.8,
+      uvOffset: [0.2 + i * 0.13, 0.6],
+    });
+    postParts.push(cap);
+    postTriangles += tri(post) + tri(cap);
+    // moss round the foot, favouring the shaded quarter (sun azimuth −128° → moss toward +x/+z)
+    tuftSpecs.push(
+      ...footMoss(ctx, ground, postRng.fork('foot-moss'), {
+        postRadius: radius(0.32 / postLen),
+        count: style === 'rope' ? 16 : 12,
+        size: [0.016, 0.038],
+        color: style === 'rope' ? [0.32, 0.44, 0.09] : [0.3, 0.4, 0.09],
+        favour: [0.62, 0.78],
+      }),
+    );
     tops.push(top);
     heights.push(h);
     bases.push([ground.x, ground.y, ground.z]);
@@ -105,8 +208,9 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
     return g.lerp(tops[i], f);
   };
 
+  let lashings = 0;
   if (style === 'rope') {
-    // vine ropes: sag between posts, twisted, lashed round each post with a few turns
+    // vine ropes: sag between posts, three-strand laid, lashed round each post with 2½ turns
     const ropeR = 0.022;
     const ropeTint = (): [number, number, number] => {
       const s = 0.8 + rng() * 0.3;
@@ -118,41 +222,38 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
         const fb = (rh / postH) * (0.97 + rng() * 0.06);
         const p0 = onPost(i, fa);
         const p2 = onPost(i + 1, fb);
-        const len = p0.distanceTo(p2);
         const sag = 0.06 + rng() * 0.07;
         const p1 = p0.clone().lerp(p2, 0.5);
         p1.y -= sag;
         const twist = rng() * 10;
         const tint = ropeTint();
-        ropeParts.push(
-          sweepTube(new CatmullRomCurve3([p0, p1, p2]), {
-            radius: () => ropeR,
-            tubularSegments: Math.max(6, Math.round(len * 6)),
-            radialSegments: 7,
-            uvMetres: 0.3,
-            // twisted strands: two ridges spiralling along the rope
-            displace: (t, ang) => 0.005 * Math.sin(ang * 2 + t * len * 34 + twist),
-            color: (t, ang) => {
-              const s = 0.85 + 0.15 * Math.sin(ang * 2 + t * len * 34 + twist);
-              return [tint[0] * s, tint[1] * s, tint[2] * s];
-            },
-          }),
-        );
+        ropeParts.push(ropeTube(new CatmullRomCurve3([p0, p1, p2]), ropeR, twist, tint, noise, i * 7.3 + rh));
       }
     }
-    // lashings: three turns of rope round each post at each rail height
+    // lashings: a continuous helix of the same rope, 2½ turns round the post at each rail height,
+    // sitting on the post's surface (post radius at that height + the rope's radius)
     for (let i = 0; i < tops.length; i++) {
       for (const rh of railHeights) {
         const f = rh / postH;
-        const c = onPost(i, f);
         const tint = ropeTint();
-        for (let turn = -1; turn <= 1; turn++) {
-          const ring = new TorusGeometry(0.092 - 0.027 * f + 0.02, 0.016, 5, 14);
-          ring.rotateX(Math.PI / 2);
-          ring.translate(c.x, c.y + turn * 0.034, c.z);
-          setColorAttribute(ring, [tint[0] * 0.9, tint[1] * 0.9, tint[2] * 0.9]);
-          ropeParts.push(ring);
+        const lashRng = detailRng.fork(`lash/${i}/${rh}`);
+        // the post's radius at this height plus its bark relief's peak (≈ 1.6 cm), plus the rope
+        const rPost = (0.092 - 0.027 * f) * 1.05 + 0.016;
+        const helixR = rPost + 0.014;
+        const turns = 2.5;
+        const rise = 0.034;
+        const a0 = lashRng() * TAU;
+        const pts: Vector3[] = [];
+        const n = Math.ceil(turns * 12);
+        for (let k = 0; k <= n; k++) {
+          const s = k / n;
+          const a = a0 + s * turns * TAU;
+          // the helix follows the leaning post's axis
+          const ck = onPost(i, f + ((s - 0.5) * turns * rise) / heights[i]);
+          pts.push(new Vector3(ck.x + Math.cos(a) * helixR, ck.y, ck.z + Math.sin(a) * helixR));
         }
+        ropeParts.push(ropeTube(new CatmullRomCurve3(pts), 0.014, lashRng() * TAU, [tint[0] * 0.92, tint[1] * 0.92, tint[2] * 0.92], noise, i * 3.1 + rh * 5));
+        lashings++;
       }
     }
   } else {
@@ -176,12 +277,19 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
         const p1 = p0.clone().lerp(p2, 0.5).addScaledVector(side, bow);
         p1.y -= sag;
         const shade = postShade() + 0.08;
+        // round 41: the rail's grain runs along it (± 3 mm, lines darker); its ends sit inside the posts
         const rail = sweepTube(new CatmullRomCurve3([p0, p1, p2]), {
           radius: (t) => 0.056 * (1 + 0.15 * Math.sin(t * Math.PI * 1.7 + i)),
-          tubularSegments: Math.max(4, Math.round(len * 3)),
-          radialSegments: 8,
+          tubularSegments: Math.max(8, Math.round(len * 7)),
+          radialSegments: 12,
           uvMetres: 0.8,
-          color: () => [shade, shade * 0.94, shade * 0.84],
+          displace: (t, ang) => (woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh) - 0.5) * 0.006,
+          color: (t, ang) => {
+            const g = woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh);
+            const fib = woodFibre(noise, t * len, ang, 10, i * 1.7 + rh);
+            const line = lerp(0.8, 1.08, g) * lerp(0.96, 1.04, fib);
+            return [shade * line, shade * 0.94 * line, shade * 0.84 * line * (1 + 0.08 * g)];
+          },
           capEnd: true,
           capStart: true,
         });
@@ -195,11 +303,23 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
   postMesh.name = `fence-${def.id}`;
   postMesh.castShadow = postMesh.receiveShadow = true;
   meshes.push(postMesh);
+  let ropeTriangles = 0;
   if (ropeParts.length) {
-    const ropeMesh = new Mesh(merge(ropeParts), rope ?? createRopeMaterial());
+    const ropeGeo = merge(ropeParts);
+    ropeTriangles = tri(ropeGeo);
+    const ropeMesh = new Mesh(ropeGeo, rope ?? createRopeMaterial());
     ropeMesh.name = `fence-${def.id}-rope`;
     ropeMesh.castShadow = ropeMesh.receiveShadow = true;
     meshes.push(ropeMesh);
   }
-  return { meshes, posts: tops.length, bases };
+  // round 41: the post-foot moss, one cap-moss mesh per run (folds into the roof-tuft bucket)
+  const tufts = buildMossTufts(tuftSpecs, tuftNoise, { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+  if (tufts.count > 0) {
+    const tuftMesh = new Mesh(tufts.geometry, mats.capMoss);
+    tuftMesh.name = `fence-${def.id}-foot-moss`;
+    tuftMesh.castShadow = false;
+    tuftMesh.receiveShadow = true;
+    meshes.push(tuftMesh);
+  }
+  return { meshes, posts: tops.length, bases, detail41: { postTriangles, ropeTriangles, footTufts: tufts.count, lashings } };
 }
