@@ -2066,6 +2066,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   distance-faded version (fixed frames unchanged), dials documented in trees/materials.ts; (3) the
   lantern-tree's house bough shading A/F's stones (composition, owner).
 
+### 06:20 UTC — tick 127: heartbeat; round 42 dispatched
+- Round 42 (base a4a2701): hardscape-30 (stone at player height — near tile ≈ 3 m, normalScale,
+  chipped edges, joint pebbles/moss, stair wear; plus the measured layout call: house-west stair
+  base 0.27 → 0.18 m + the kerb apron from hardscape-29), trees-26 (near-canopy + near-base parts
+  on demand with an LRU byte pool instead of 173 MB resident; pixels identical), rocks-2 (hero
+  boulders at player height: fracture LOD, near tile scale, wet band, moss cushions, lichen,
+  crevice plants). No Astra messages since 20:52 (Sep 16).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2104,4 +2112,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-17T05:50:00Z
+2026-09-17T06:20:00Z
