@@ -1327,7 +1327,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         // (round 22: darker still — the doorway's cut faces are the near-black rim of the opening;
         // round 43: the same mean, the crests ×1.5 over it and the furrows ×0.6 under it, so the
         // cords and knots read at 2 m under the recess floor — the rim's level in B holds)
-        const dark = lerp(0.14, 0.08, q) * (0.6 + 0.9 * cord + 0.5 * clamp(knot / (0.06 * k), 0, 1)) * (1 - 0.7 * crack);
+        const dark = lerp(0.19, 0.09, q) * (0.6 + 0.9 * cord + 0.5 * clamp(knot / (0.06 * k), 0, 1)) * (1 - 0.7 * crack);
         out.color = [dark * RECESS_BAL[0], dark * RECESS_BAL[1], dark * RECESS_BAL[2]];
       },
       { cols: hero ? 112 : 56, rows: hero ? 8 : 4 },
@@ -4356,6 +4356,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // door's middle. Stands exactly on the slab's top or the porch floor's ramp; same tuft bucket
   // as the trunk moss (no new draw). Own fork. ----
   let doormatTufts = 0;
+  let doormatFilm: BufferGeometry | null = null;
   if (thresholdSlab) {
     const matRng = rng.fork('doormat43');
     const slab = thresholdSlab;
@@ -4363,15 +4364,48 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const upN = new Vector3(0, 1, 0);
     const MAT_MOSS: [number, number, number] = [0.105, 0.165, 0.032];
     const MAT_WORN: [number, number, number] = [0.11, 0.115, 0.04];
+    /** 0 on the walked line through the door's middle, 1 at the mat's sides */
+    const walkOf = (w: number) => 1 - smoothstep(0.6 * k, 0.15 * k, Math.abs(w - wc - 0.05 * k));
+    /** the moss grows in clumps (a noise field over the mat), the stone bare between them */
+    const patchOf = (w: number, d: number) => smoothstep(-0.3, 0.35, noise.noise(w * 7.5 + 3, d * 7.5 + 11));
+    // the FILM: a thin moss carpet lying on the slab's top under the tufts — a ragged sheet, its
+    // cells open along the walked line and between the clumps, thicker at a clump's heart — so the
+    // mat reads as moss grown over the stone and not as pebbles scattered on it. Same bucket.
+    {
+      const cover = (w: number, d: number) => patchOf(w, d) * lerp(0.15, 1, walkOf(w));
+      const fw = (u: number) => slab.cw + (u * 2 - 1) * slab.w;
+      const fd = (v: number) => slab.cd + (v * 2 - 1) * slab.d;
+      doormatFilm = gridSurface(
+        (u, v, out) => {
+          const w = fw(u);
+          const d = fd(v);
+          const c = cover(w, d);
+          frame.door(w, slab.top + 0.004 + 0.014 * c, d, out.position);
+          out.uv = [w / 1.6, d / 1.6];
+          const trodden = 1 - walkOf(w);
+          const sh = (0.55 + 0.5 * c) * (0.9 + 0.2 * noise.noise(w * 19, d * 19 + 4)) * lerp(1, 0.8, trodden);
+          out.color = [lerp(MAT_MOSS[0], MAT_WORN[0], trodden) * sh, lerp(MAT_MOSS[1], MAT_WORN[1], trodden) * sh, lerp(MAT_MOSS[2], MAT_WORN[2], trodden) * sh];
+        },
+        {
+          cols: 56,
+          rows: 32,
+          hole: (u, v) => {
+            const w = fw(u);
+            const d = fd(v);
+            // inside the slab's ragged rim, and only where the moss covers the stone
+            return Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d) > 0.86 || cover(w, d) < 0.42;
+          },
+        },
+      );
+    }
     for (let i = 0; i < 1100; i++) {
       const w = lerp(doorW0 - 0.3 * k, doorW1 + 0.3 * k, matRng());
       const d = lerp(dBack + 0.06 * k, dBack + 1.05 * k, matRng());
       // the walked line: few tufts, flat and worn; dense toward the slab's edges and the sill
-      const walk = 1 - smoothstep(0.6 * k, 0.15 * k, Math.abs(w - wc - 0.05 * k));
+      const walk = walkOf(w);
       const edge = smoothstep(0.35 * k, 0.05 * k, Math.abs(d - (dBack + 0.06 * k)));
-      // the moss grows in clumps (a noise field over the mat), the stone bare between them, so
-      // the small tufts merge into a patchy film rather than an even scatter of pebbles
-      const patch = smoothstep(-0.3, 0.35, noise.noise(w * 7.5 + 3, d * 7.5 + 11));
+      // clumped with the film, so the tufts stand on and round the carpet's patches
+      const patch = patchOf(w, d);
       const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch);
       if (matRng() > keep) continue;
       // on the slab (ellipse footprint) or the porch floor's ramp
@@ -4406,7 +4440,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // rounder than the roof's (a 3 m camera sees these): 9 / 6 segments, 3 / 2 rings; the crown gain
   // is held down so the tufts do not glow against the floor-shaded bark
   const tufts41 = buildMossTufts(tuft41, n3, { segments: [9, 6], rings: [3, 2], topGain: 1.3, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
-  const tuft41Mesh = new Mesh(tufts41.geometry, mats.capMoss);
+  const tuft41Mesh = new Mesh(doormatFilm ? merge([tufts41.geometry, doormatFilm]) : tufts41.geometry, mats.capMoss);
   tuft41Mesh.name = 'trunk-moss-tufts';
   tuft41Mesh.castShadow = false;
   tuft41Mesh.receiveShadow = true;

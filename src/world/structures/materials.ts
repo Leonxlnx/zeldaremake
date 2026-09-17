@@ -264,10 +264,10 @@ export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 13, text
  * flat 40 % (0.4 × 0.08 × 2) is what lets a face of that albedo show at all (RECESS_BARK_FLOOR's
  * round-12 reasoning), the textured 60 % carries the vertex shading (the walls darken toward the
  * middle, the moss and the pale checks stay apart). In D the mouth sits on the haze veil at that
- * distance, so the floor's level is hidden there; half leaf-filtered — sky light into a log, not
- * canopy light.
+ * distance, so the floor's level is hidden there; the light leans to the bark's warm tint (canopy 1
+ * on HOUSE_BARK_TINT), because the hemisphere mean alone turned the lower walls blue-grey.
  */
-export const LOG_INTERIOR_FLOOR: ShadeFloor = { lift: 2, texture: 0.6, canopy: 0.5, albedo: 0.08, chroma: 1 };
+export const LOG_INTERIOR_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.6, canopy: 1, albedo: 0.08, chroma: 1 };
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
