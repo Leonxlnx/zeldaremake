@@ -261,8 +261,9 @@ float pebbleLayer(vec2 p, float cell, float seed, float dens, float rMin, float 
   c *= 1.0 - 0.3 * (1.0 - smoothstep(1.0, 1.4, e)) * (1.0 - cov) * w;
   if (cov <= 0.001) return 0.0;
   nxy += (d / r) * 0.8 * cov;
-  // grey, warm grey and a rusty one; the far side of the dome falls into shade
-  vec3 tone = h3 < 0.55 ? vec3(0.36, 0.34, 0.31) : h3 < 0.85 ? vec3(0.38, 0.33, 0.27) : vec3(0.33, 0.24, 0.17);
+  // grey, warm grey, a pale one (the flagstones' chips) and a rusty one; the far side of the dome
+  // falls into shade
+  vec3 tone = h3 < 0.4 ? vec3(0.36, 0.34, 0.31) : h3 < 0.65 ? vec3(0.38, 0.33, 0.27) : h3 < 0.87 ? vec3(0.5, 0.48, 0.44) : vec3(0.33, 0.24, 0.17);
   c = mix(c, tone * (0.7 + 0.6 * h1) * (1.0 - 0.3 * smoothstep(0.5, 1.0, e)), cov);
   return cov;
 }
@@ -290,11 +291,11 @@ void bankDetail(vec2 p, vec3 nn, float w, inout vec3 c, inout vec2 nxy) {
   pebbleLayer(p, 0.12, 3.3, 0.4, 0.009, 0.022, sl, w, c, nxy);
 }
 // the path verge (the gravel layer beside the flagstones): the stony soil's small stones, 0.6–1.8
-// cm in a 7 cm grid plus a sparser 1.5–3 cm size in a 16 cm grid, on top of the gravel map's
-// contrast lift. w = gravel weight × detail fade.
+// cm in a 7 cm grid plus 1.8–3.5 cm ones in a 16 cm grid, on top of the gravel map's contrast
+// lift. w = gravel weight × detail fade.
 float vergeDetail(vec2 p, vec3 sl, float w, inout vec3 c, inout vec2 nxy) {
-  float cov = pebbleLayer(p, 0.07, 6.1, 0.5, 0.006, 0.018, sl, w, c, nxy);
-  cov = max(cov, pebbleLayer(p + vec2(0.021, 0.037), 0.16, 8.9, 0.3, 0.015, 0.03, sl, w, c, nxy));
+  float cov = pebbleLayer(p, 0.07, 6.1, 0.55, 0.006, 0.018, sl, w, c, nxy);
+  cov = max(cov, pebbleLayer(p + vec2(0.021, 0.037), 0.16, 8.9, 0.45, 0.018, 0.035, sl, w, c, nxy));
   return cov;
 }
 // the near-field detail terms shared by the colour and normal passes: near / detail / bank
