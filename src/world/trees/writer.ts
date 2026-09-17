@@ -19,7 +19,11 @@
  * `leafShade` instead (w ≥ 1.25 = a "flat" leaf): the shaders drop the sun from it altogether —
  * the Lambert on its face, the transmission, the specular — and scale what is left by `uFlatLift`,
  * so a lobe of them reads as the reference's deep-shade canopy underside: opaque, dark, and even
- * at the 40 px scale the gauntlet's SSIM windows measure (round 38, materials.ts).
+ * at the 40 px scale the gauntlet's SSIM windows measure (round 38, materials.ts). While
+ * `leafSwapGroup` ≥ 0 the leaf's w is 3 + group instead (w ≥ 2.75 = the far foliage of a
+ * near-canopy lobe, giant.ts; the group is the lobe's index within its tree): an ordinary leaf
+ * in every shading term that the colour pass drops while the lobe's near version is drawn
+ * (round 41, materials.ts uNearCanopy).
  */
 import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -50,6 +54,15 @@ export class GeometryWriter {
   /** while set, leaf vertices are written as "flat" leaves (aRoot.w = 1.5 + 0.5 × leafShade; see the header) */
   leafFlat = false;
   /**
+   * while ≥ 0, leaf vertices (laminae and cluster cards alike) are written with aRoot.w = 3 + this
+   * value: the far foliage of a near-canopy lobe (giant.ts NearCanopyPart), which the tree shaders
+   * collapse in the colour pass while the lobe's near version is drawn (materials.ts uNearCanopy:
+   * a slot names the tree's root and this value, as uNearBole names a root). The value is the
+   * lobe's index within its tree (< 500, exact in a float). Such a leaf keeps every ordinary
+   * term (shade share 1, not flat): every decode reads w ≥ 2.75 as an ordinary leaf. −1 = off.
+   */
+  leafSwapGroup = -1;
+  /**
    * while set, wood vertices are written with aRoot.w = −1: the far lower bole and roots that the
    * near-bole LOD replaces (materials.ts `uNearBole`): the tree shader collapses them to a point
    * while the tree's near base is drawn, so the plain sweep and the relief bole never overlap.
@@ -78,7 +91,20 @@ export class GeometryWriter {
     this.colors.push(color.r, color.g, color.b);
     this.uvs.push(u, v);
     this.winds.push(stiffness, phase, flutter);
-    this.roots.push(0, 0, 0, leaf > 0 ? (this.leafFlat ? 1.5 : 0.5) + 0.5 * this.leafShade : this.woodCollapsible ? (this.woodIsRoot ? -2 : -1) : -0.45 * Math.min(1, Math.max(0, this.woodMoss)));
+    this.roots.push(
+      0,
+      0,
+      0,
+      leaf > 0
+        ? this.leafSwapGroup >= 0
+          ? 3 + this.leafSwapGroup
+          : (this.leafFlat ? 1.5 : 0.5) + 0.5 * this.leafShade
+        : this.woodCollapsible
+          ? this.woodIsRoot
+            ? -2
+            : -1
+          : -0.45 * Math.min(1, Math.max(0, this.woodMoss)),
+    );
     this.normals.push(NaN, NaN, NaN);
     return i;
   }
