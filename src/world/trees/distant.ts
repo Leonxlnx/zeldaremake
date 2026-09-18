@@ -39,6 +39,21 @@ export interface DistantPlacement {
 }
 
 const ICO0 = new IcosahedronGeometry(1, 0);
+/** round 45: the near LOD bole's basal flare — extra radius share at the path's foot … */
+export const DISTANT_FLARE = 0.4;
+/** … falling off with this e-folding distance (m) along the bole */
+export const DISTANT_FLARE_FALL = 1.6;
+/** round 45 (item 4): a near-LOD limb's length as a share of the crown radius (0.6–1.0 through round 44: past the lobe shells) */
+export const LIMB_REACH: [number, number] = [0.45, 0.75];
+/**
+ * how far a limb is tinted from the bark toward the crown's dark (0 = bark throughout), over
+ * LIMB_TINT_FROM..LIMB_TINT_TO of its length (bark at the bole, the crown's own dark from
+ * halfway: from under the crown the limbs show against the sky over their whole length,
+ * w19-spine-u — the first take at 0.35–1.0 left the inner half a pale plank)
+ */
+export const LIMB_TIP_TINT = 0.8;
+export const LIMB_TINT_FROM = 0.08;
+export const LIMB_TINT_TO = 0.5;
 
 /** dark shadow core of a crown lobe (a small noise-displaced polyhedron) */
 function lumpyBlob(writer: GeometryWriter, center: Vector3, radius: number, squash: number, color: Color, top: Color, noise: Noise2D, seed: number) {
@@ -158,16 +173,35 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const sides = slender ? 7 : 10;
     const trunkDraws = consumeTubeDraws(r, oldSides);
     trunkDraws.grain = Array.from({ length: sides }, (_, j) => trunkDraws.grain[Math.floor((j / sides) * oldSides)]);
-    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws });
+    // round 45 (trees-27's leftover, w19-spine-r / sn-arch-outside: the depth rows' boles 15–30 m
+    // from a walker were straight pale cylinders): a basal flare on the near LOD — the radius
+    // × (1 + DISTANT_FLARE e^(−d / DISTANT_FLARE_FALL)) along the bole, 1.27 R at the ground line
+    // (the path starts 0.6 m under it), 1.1 R at 2 m — through the tube's bump hook (no draws),
+    // so every draw after it is what it was. Near LOD only: the far LOD's crossed quads stand in
+    // beyond 44 m, and no near-LOD distant tree is inside a fixed frame (depth rows 52 m+ from D,
+    // the radial pool 51 m+ from A).
+    const flare = (_angle: number, distance: number) => 1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL);
+    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
+    // round 45 (trees-28 item 4, survey pose w19-spine-u: the "pale twig tips spiking the crown
+    // rim" straight overhead on the north spine are a depth-row tree's limbs — 4-sided bark-
+    // coloured tubes 0.3–0.5 m thick running to 0.6–1.0 crown radii, past the lobe shells, pale
+    // planks against the sky from under them): the limbs end inside the lobes (LIMB_REACH), are
+    // 6-sided with their draws taken as the 4-sided ones took them (the grain resampled, like the
+    // trunk above, so the lobes and the far LOD after them draw exactly what they did), and run
+    // from the bark at the bole to the crown's own dark from halfway out (LIMB_TIP_TINT).
+    const limbTip = canopy.clone().multiplyScalar(0.6);
     for (let i = 0; i < limbs; i++) {
       const t = r.range(0.45, 0.75);
       const o = trunk[Math.round(t * (trunk.length - 1))].clone();
       const a = az + (i / limbs) * TAU + r.range(-0.4, 0.4);
-      const len = crownR * r.range(0.6, 1.0);
+      const len = crownR * r.range(LIMB_REACH[0], LIMB_REACH[1]);
       const target = o.clone().add(new Vector3(Math.cos(a) * len, len * r.range(0.25, 0.6), Math.sin(a) * len));
       const path = growthPath(o, target, UP, r, 4, 0.5);
-      tube(near, path, taper(path, R * 0.45, 0.05, 0.9), 4, r, { color: bark, roughness: 0.05, structural: true, stiffness: () => 1 });
+      const limbDraws = consumeTubeDraws(r, 4);
+      limbDraws.grain = Array.from({ length: 6 }, (_, j) => limbDraws.grain[Math.floor((j / 6) * 4)]);
+      const limbLength = Math.max(0.5, o.distanceTo(target));
+      tube(near, path, taper(path, R * 0.45, 0.05, 0.9), 6, r, { color: (pt) => bark.clone().lerp(limbTip, smoothstep(LIMB_TINT_FROM, LIMB_TINT_TO, pt.distanceTo(o) / limbLength) * LIMB_TIP_TINT), roughness: 0.05, structural: true, stiffness: () => 1, draws: limbDraws });
     }
     const lobes = slender ? 3 : 5;
     const cardsPerLobe = slender ? 18 : 24;

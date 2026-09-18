@@ -16,6 +16,7 @@ import {
   MeshStandardMaterial,
   RGBADepthPacking,
   Vector2,
+  Vector3,
   Vector4,
   type IUniform,
   type Material,
@@ -365,6 +366,18 @@ const BARK_DETAIL_MEAN = 133.29 / 255;
  * fixed frame.
  */
 export const DISTANT_BARK_M: [number, number] = [22, 38];
+/**
+ * Round 45 (trees-27's leftover, measured at w19-spine-r / sn-arch-outside: the depth rows'
+ * boles 15–30 m from a walker read as pale cylinders): within the same DISTANT_BARK_M blend the
+ * bark is [overall multiplier, tone-band amplitude (±), grime multiplier at the ground line] —
+ * 0.72 of its tint, ±40 % patch bands (1–2 patches around the bole, 3–4 m along it, the tree's
+ * own phase) with cords at half that every 40 cm around, 0.55 at the foot fading up to 4 m.
+ * Zero at 38 m+, so the fixed frames are untouched. The first round-45 take at
+ * [0.82, 0.22, 0.7] moved the w19-spine-r bole's interior by 1–2 sRGB levels (the veil at
+ * 15 m keeps ~0.18 of a 0.24 pixel): the haze takes most of any albedo change, so the change
+ * has to be large to survive it.
+ */
+export const DISTANT_NEAR_TONE: [number, number, number] = [0.72, 0.4, 0.55];
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
@@ -1219,17 +1232,23 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     // what they were; the cards (aRoot.w ≥ 0.5) never take it.
     s.uniforms.uDistantBark = { value: gColor };
     s.uniforms.uDistantBarkM = { value: new Vector2(DISTANT_BARK_M[0], DISTANT_BARK_M[1]) };
+    s.uniforms.uDistantTone = { value: new Vector3(DISTANT_NEAR_TONE[0], DISTANT_NEAR_TONE[1], DISTANT_NEAR_TONE[2]) };
     s.vertexShader =
-      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\n' +
+      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
     vDistSolid = aRoot.w < 0.5 ? 1.0 : 0.0;
     vDistLocal = position;
+    // the tree's own phase for its tone bands (round 45): from where it stands
+    vDistPhase = 0.0;
+    #ifdef USE_INSTANCING
+      vDistPhase = instanceMatrix[3].x * 0.37 + instanceMatrix[3].z * 0.61;
+    #endif
     `,
       );
     s.fragmentShader =
-      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\n' +
+      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nuniform vec3 uDistantTone;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.fragmentShader.replace(
         '#include <color_fragment>',
         /* glsl */ `#include <color_fragment>
@@ -1242,20 +1261,34 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         float around = max(1.0, floor(6.2832 * length(vDistLocal.xz) / 1.6 + 0.5));
         vec2 barkUv = vec2(atan(vDistLocal.z, vDistLocal.x) / 6.2832 * around, vDistLocal.y / 1.6);
         vec3 bark = texture2D(uDistantBark, barkUv).rgb;
-        // the fissures 1.5× their contrast about the mean: the haze at 12–20 m halves it again
-        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * 1.5 + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
+        // the fissures 2× their contrast about the mean (1.5 through round 44): the haze at
+        // 12–20 m halves it again
+        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * 2.0 + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
         float barkLum = dot(bark, vec3(0.2126, 0.7152, 0.0722));
         // a factor about the map's mean, so the row's silhouette luminance (matched at 47 m) holds
         float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.4, 1.9);
         // the map's own hue takes over from the flat tint as the walker gets close
         vec3 tinted = mix(diffuseColor.rgb * factor, bark * (diffuseColor.rgb / vec3(${BARK_DETAIL_MEAN.toFixed(4)})), 0.85);
+        // round 45 (trees-27's leftover: the boles 15–30 m from a walker still read as pale
+        // cylinders, the map's fissures flattened by the veil): within the same near blend the
+        // bark is darker overall (uDistantTone.x), carries tone bands — 1–2 patches around the
+        // bole, 3–4 m along it, each tree's own phase — of ± uDistantTone.y, and soil-dark grime
+        // at the foot fading up to 4 m (× uDistantTone.z at the ground line). Zero at 38 m+.
+        float theta = atan(vDistLocal.z, vDistLocal.x);
+        float band = sin(theta * 2.0 + vDistLocal.y * 0.7 + vDistPhase) * sin(vDistLocal.y * 0.45 + 1.3 + vDistPhase * 1.7);
+        // cords: one every 40 cm around the bole (4 per 1.6 m tile), leaning a little with
+        // height, at half the patch amplitude — the fissures of the map alone are 1–2 px at 15 m
+        // and the veil there takes most of their contrast (w19-spine-r: interior sd 0.025)
+        float cord = sin(theta * around * 4.0 + vDistLocal.y * 0.35 + vDistPhase * 3.0);
+        float grime = mix(uDistantTone.z, 1.0, smoothstep(0.0, 4.0, vDistLocal.y));
+        tinted *= uDistantTone.x * (1.0 + uDistantTone.y * band) * (1.0 + 0.5 * uDistantTone.y * cord) * grime;
         diffuseColor.rgb = mix(diffuseColor.rgb, tinted, near);
       }
     }
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v3';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v5';
 
   return {
     whiteTree,
