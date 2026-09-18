@@ -1447,7 +1447,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // the crossing pods stay (frame 60 s has pods under the arch) and the three near-end pods are
   // replaced by three placed for the frame's blobs, each hung so its centre projects onto one:
   // one from the west mass's SOUTH FLANK (ψ −0.5, the camera side, a 1.6 m cord → the pod at
-  // (3.0, 5.9, −53.0), D (0.466, 0.437) against the frame's (0.463, 0.442)), two on pegs driven
+  // (3.0, 5.9, −53.0), D (0.466, 0.437) against the frame's (0.463, 0.442); round 45 raised it
+  // ≈ 1 m for the verge's clearance — see `westFlank`), two on pegs driven
   // into the east body's south flank (ψ +0.25 / +0.27, a 0.85 m peg, 1.2 / 0.55 m cords →
   // (13.1, 9.5, −49.4) → D (0.602, 0.347) on the frame's (0.602, 0.339), and ≈ (0.62, 0.34)).
   // The frame's third blob (0.647, 0.326) is NOT reachable: D's depth image puts a 25 m trunk over
@@ -1473,17 +1474,32 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // higher up the north flank (ψ −π/2 − 0.85: 2.2 m below the axis, 2.6 m north of it) on a
     // shorter cord, so the pod's bottom clears ≥ 2.3 m over the walkable strip; the audit's
     // `podClearance` measures it. The other pods and the cord draws are unchanged.
-    const psi = i === 0 ? -Math.PI / 2 - 0.85 : -Math.PI / 2 + (i % 2 ? 0.28 : -0.22);
+    // Round 45 (details-1): the second crossing pod hung from the belly's south side at ψ −π/2
+    // + 0.28 on a 0.55–0.8 m cord — its bottom 1.96 m over the strip 1.9 m off the spine (the
+    // ground under the arch's south exit is 0.1 m higher than under the north one). Its hook
+    // moves up the south flank (ψ −π/2 + 0.62: 0.46 m higher, 1 m further south, the mirror of
+    // the first pod's move) on a 0.38–0.48 m cord, so its bottom clears ≥ 2.5 m; the two pods
+    // now flank the passage. Any pod ψ ≥ 0.62 rad from the bottom hangs clear of the bark: a
+    // plumb cord from the lower half of a cylinder never re-enters it, and the ±0.37 m relief
+    // under the hook falls away at tan(0.62) ≈ 0.7 m per metre of the pod's 0.25 m reach.
+    const psi = i === 0 ? -Math.PI / 2 - 0.85 : -Math.PI / 2 + (i % 2 ? 0.62 : -0.22);
     const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);
     const cordDraw = lanternRng();
-    const rig = hang(hook, i === 0 ? 0.42 + cordDraw * 0.1 : 0.55 + cordDraw * 0.25, 1.1, 'orange');
+    const rig = hang(hook, i === 0 ? 0.42 + cordDraw * 0.1 : i % 2 ? 0.38 + cordDraw * 0.1 : 0.55 + cordDraw * 0.25, 1.1, 'orange');
     podCentre.add(rig.pod);
   }
   // the west mass's flank pod: ψ −0.5 puts the hook 1.6 m below the axis on the camera side, 3 m
   // out; the pod (cord + 0.23 m) then hangs 3.4 m below the axis — at the belly's level but 3 m
   // south of it, where the bark has long curved in under the hook — clear of the ±0.37 m relief
-  // without a peg, 1.7 m over the ground there
-  const westFlank: [number, number, number][] = [[-7.3, -0.5, 1.6]];
+  // without a peg, 1.7 m over the ground there.
+  // Round 45 (details-1): 1.7 m over the ground was 1.43 m of clearance under the pod's bottom,
+  // and that ground is the path's verge (the mask reaches it). The hook moves up the flank a
+  // little (ψ −0.4: 1.33 m below the axis, 3.1 m out) and the cord shortens to 0.85 m, so the
+  // pod hangs 2.4 m below the axis — 1.06 m higher than before, its bottom ≥ 2.4 m over the
+  // verge — while staying 0.7 m clear of the flank's curve (the surface at that depth is 2.5 m
+  // out). In D the blob moves ≈ 0.02 of the frame up from (0.466, 0.437); still the frame's
+  // west root-mass lantern.
+  const westFlank: [number, number, number][] = [[-7.3, -0.4, 0.85]];
   for (const [s, psi, cord] of westFlank) {
     if (s < sEndW(psi) + 0.5) continue;
     const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.08);

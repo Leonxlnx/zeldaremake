@@ -124,6 +124,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // material: bark, planks, cap moss + the glow singleton), and re-attached. Hero buckets carry
   // hero data only; material / geometry data stay shared; only the static draw grouping changes.
   distant.group.removeFromParent();
+  // round 45 (details-1): the huts' soffit boards are the one hut part merged WITH the hero group —
+  // they share the fences' material and flags and fold into the fences' bucket (as does the sign's
+  // wood), so a lit soffit costs no draw of its own; kept in the village group it was a bucket of
+  // one in every view that sees a hut (distantHouse.ts).
+  if (distant.soffit) group.add(distant.soffit);
   const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
   const distantDraws = consolidateStaticMeshes(distant.group);
   group.add(distant.group);

@@ -187,8 +187,13 @@ export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, t
  * lift 11 on that albedo moved the shaft only 0.060 → 0.074. The albedo is raised ×3 (tint
  * 0xc8bba8, fence.ts `postShade` 0.6–0.9 → ≈ 0.015) and the lift to 11: the shaded shaft lands
  * near 0.15 with the grain at ≈ 0.09–0.22; at F's 25 m the veil is ≈ 0.9 of the pixel.
+ * Round 45 (details-1): at chroma 1 the floor carried the planks map's orange and the
+ * HOUSE_BARK_TINT filter in full — the shaded shaft read hue 28° at sat 0.46 (sn-fence-post), a
+ * fresh-cut post where the owner's props sheet (06-props-signs-and-lanterns) and the fence frames
+ * have silvered, weathered wood (sat ≈ 0.2–0.3). `chroma` 0.6 keeps the grain (texture 1) and
+ * takes 40 % of the floor's colour to its luminance; the sunlit faces are the material's own.
  */
-export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1 };
+export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1, chroma: 0.6 };
 /**
  * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
  * (survey-1 crop 26 / w31-house-d). Textured, at the stone's own mean albedo (0.28), the leaf
@@ -202,6 +207,34 @@ export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, tex
  * read the hidden doormat film; they said nothing about the stone.)
  */
 export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
+/**
+ * Round 45 (details-1): `fenceWood` is also the material of the SIGNPOST's wood and the distant
+ * huts' SOFFIT boards — small wooden faces that stand in the canopy's shade and read as black
+ * boxes on `wood`, which has no floor: a plank facing the ground gets nothing from the sun and
+ * ≈ 0.001 from the hemisphere's ground half, and in the canopy's shade the hemisphere alone
+ * lights a vertical face at ≈ 0.08 × albedo (the signpost at 2 m, sn-signpost, rendered its post
+ * p10 / p50 / p90 at 0.056 / 0.070 / 0.088 and its board at 0.044 / 0.078 / 0.090 — the fence's
+ * round-44 reading, the ×0.66–1.12 grain inside four grey levels). A plank material of their own
+ * under a lift-8 floor (`propWood`, the first cut) lit them, but cost the fixed views a colour
+ * draw and a shadow draw each (the huts are consolidated apart from the hero structures, so the
+ * two never folded together, and the signpost left the `wood` bucket); on the fences' material
+ * all three fold into the fences' static bucket (consolidateStaticMeshes: same flags, same
+ * vertex layout), whose sphere now covers cameras C and D as well (+1 colour, +1 shadow draw
+ * there, none elsewhere). Their vertex tints were set against `wood`'s tint (0xf0d6a8) and
+ * calibrated under lift 8 — the signpost's board (albedo ≈ 0.08: signpost.ts tints the planks map
+ * ×2.3 to a sunlit tan) at ≈ 0.055 linear, sRGB ≈ 0.26, its post at ≈ 0.15, the soffit boards at
+ * the round-44 level, ≈ 0.045 linear — so both rescale them by WOOD_ON_FENCE_WOOD and land at
+ * the same level and colour; only the light's hue is 10 % greyer (chroma 0.6 against 0.7) and
+ * their rare sunlit faces come out 27 % darker than on `wood`. `wood` itself keeps no floor:
+ * Saria's planks and the huts' decks and joists would all lift with it, and their shaded faces are
+ * dark on purpose (the joist frame under the soffit included).
+ */
+/**
+ * Per-channel factor that takes a vertex tint set for `wood` (linear tint (0.871, 0.672, 0.391)
+ * from 0xf0d6a8) under a lift-8 floor onto `fenceWood` (linear (0.578, 0.496, 0.391) from
+ * 0xc8bba8) under FENCE_WOOD_FLOOR's lift 11 at the same shaded level: (wood / fence) × 8 / 11.
+ */
+export const WOOD_ON_FENCE_WOOD: [number, number, number] = [1.096, 0.985, 0.727];
 /**
  * Round 44 (structures-28): the log arch's own floor. Under HOUSE_BARK_FLOOR the flat 40 % of the
  * floor (0.4 × 0.08 at lift 7.2 ≈ 0.032) outweighed the belly's own textured term (0.6 × ≈ 0.02),
