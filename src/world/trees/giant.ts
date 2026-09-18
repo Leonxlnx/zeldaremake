@@ -1208,6 +1208,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const sz = Math.sin(ph) * Math.sin(th);
         const s = k * (i === 0 || i === rings ? 1 : swell(th, ph));
         p.set(center.x + sx * hR * s, center.y + sy * vR * s, center.z + sz * hR * s);
+        // a floored lobe's core (round 45, CanopyLobe.floor) is flat-bottomed at the floor: the
+        // ring vertices under it are lifted onto it, so the body stays closed and nothing of it
+        // hangs into the walk's clearance
+        if (lobeFloorY !== null && p.y < lobeFloorY) p.y = lobeFloorY;
         n.set(sx / hR, sy / vR, sz / hR).normalize();
         leaves.vertexN(p, n, color, 0, 0, 1, 0, 0, 1);
       }

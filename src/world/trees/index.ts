@@ -498,30 +498,40 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     ],
   },
   // the plateau-lip canopy of shot F (round 9): a bough of the east giant, its two lobes the
-  // dark leaf mass the reference shows over the stair top (F x 0.5–0.7, y 0.05–0.2).
+  // hazed canopy the reference shows over the stair top (F x 0.35–0.6, y 0–0.2; frame 8 s reads
+  // 0.42–0.49 there at window sd 0.005–0.03, a smooth veil).
   // Round 45 (vegetation-23's finding, survey crop 15 / pose w27-plateau-r): the lobes hung at
   // (19.2, 7.8, −1.2) hR 2.4 vR 1.3 and (17.9, 7.3, −2.5) hR 2.2 vR 1.2 — ellipsoid undersides
-  // 6.5 / 6.1 m and their twigs' leaves down to 5.5 m over the fenced plateau top (ground 5.1–5.5
-  // under them; the walk's eye is 6.6 m) at the end of a west bough whose wood ran 0.6–2.3 m over
-  // the same ground. Each lobe moved out along ITS OWN camera-F ray (F stands at (−1.96, 1.8,
-  // 4.0)): centre → F + k (centre − F) with the radii × k, so F frames the same disc at the same
-  // place (L1 (0.49, 0.09), L2 (0.44, 0.10)) 38–39 m out instead of 22 — k 1.70 / 1.86 put the
-  // ellipsoid undersides at 9.8 m, and the lobes are FLOORED there (`floor` 9.8, giant.ts
-  // lobeFloorY: no lamina, card or twig below it — the twigs droop 2 m under an unfloored lobe):
-  // 3.85+ m over the highest walkable ground under them (the plateau east of the bole, 5.2–5.95),
-  // 2.4 m over the walker's eye. The floor is F's y 0.165 at that distance, the ellipsoid's own
-  // rim, so F keeps the disc and loses only the hanging fringe (F y 0.17–0.27, which was the
-  // twigs 5.5–7.8 m over the lip). The bough now leaves the bole at 13.8 m and runs 16 m
-  // north-east over the plateau (wood 11.9–13.8 m over 5.3–5.7 m ground). A's top-right corner:
-  // L2's rim at A (1.08, 0.01) 39 m out, hR 4.1 = ±0.09 of the frame (was (0.96, 0.05) ± 0.08).
+  // 6.5 / 6.1 m, 1.0 / 0.7 m over the highest ground under their footprints (5.46 / 5.40), their
+  // twigs' leaves down to 5.5 m over the fenced plateau top (the walk's eye is 6.6 m) at the end
+  // of a west bough whose wood ran 0.6–2.3 m over the same ground. Each lobe moved out along ITS
+  // OWN camera-F ray (F stands at (−1.96, 1.8, 4.0)): centre → F + k (centre − F), radii × k, so
+  // F frames the same disc at the same place (L1 (0.49, 0.09), L2 (0.44, 0.10)) — k 1.40 / 1.50
+  // (31.6 / 32.4 m out instead of 22.6 / 21.6) put the ellipsoid undersides at 8.38 / 8.25 m,
+  // 2.76 / 2.75 m over the highest ground under their footprints (5.62 at (28.1, −0.4) / 5.50 at
+  // (30.0, −3.3): the plateau north of the east giant's foot), and the lobes are FLOORED at 8.1
+  // (`floor`, giant.ts lobeFloorY: no lamina, card, core vertex or twig below it — the twigs droop
+  // ~2 m under an unfloored lobe), 2.4+ m over every ground point under them. Built FLAT with an
+  // opaque CORE like the bank canopy below (flat + core 0.97, corridor-exempt): the first
+  // round-45 take moved them to 38–40 m as ordinary lobes (k 1.70 / 1.86, density 3) and F lost
+  // 0.0049 — at that depth the cluster cards no longer close and the mass broke into leaf
+  // clumps against the bright haze (window sd 0.07–0.13 where cap-0's even mass had 0.006–0.02
+  // and the frame 0.005–0.03; SSIM's structure term, cells (0.375–0.625, 0–0.17): −0.0049 of
+  // it). The core is one even body whatever the distance. Tone 0.85 × shade 0.5 (the bank
+  // canopy's 0.6 × 0.4 is fitted to frame darks of 0.19–0.23 at 13 m): unveiled ≈ 0.25, under the
+  // 38 % veil at 32 m ≈ 0.38 against the frame's 0.42–0.49. The bough leaves the bole at 12.2 m
+  // and runs 12.5 m north over the plateau (wood 9.8–12.2 m over 5.3–5.6 m ground). A's
+  // top-right corner, which L2's dark rim filled at 22 m (A (0.96, 0.05) ± 0.08 at 0.31 against
+  // the frame's 0.30), is the bank canopy's corner lobe's now (stair-bank-giant, below): L2 here
+  // is at A (1.04, 0.02), only its north-west rim in the frame.
   {
     giant: 'east-giant',
-    fromY: 13.8,
-    to: [35.5, 11.9, -9.0],
+    fromY: 12.2,
+    to: [28.0, 9.8, -7.5],
     radius: 0.5,
     lobes: [
-      { t: 0.72, center: [34.0, 12.0, -4.85], hR: 4.1, vR: 2.2, density: 3, eye: 0, floor: 9.8 },
-      { t: 0.96, center: [35.0, 12.05, -8.1], hR: 4.1, vR: 2.25, density: 3, eye: 0, floor: 9.8 },
+      { t: 0.6, center: [27.66, 10.2, -3.28], hR: 3.36, vR: 1.82, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 8.1 },
+      { t: 0.95, center: [27.83, 10.05, -5.75], hR: 3.3, vR: 1.8, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 8.1 },
     ],
   },
   // the plaza roof (round 14): the casters that frame shot A's lit plaza box — one bough across
@@ -848,6 +858,30 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.3, center: [11.2, 3.4, 3.7], hR: 1.9, vR: 1.5, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97 },
       { t: 0.8, center: [10.4, 3.4, 5.9], hR: 1.5, vR: 1.4, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97 },
     ],
+  },
+  // Round 45: the bank canopy's CORNER lobe — the dark mass in A's top-right corner and the near
+  // half of F's top-centre canopy. Until round 45 both were the east giant's plateau-lip lobe L2
+  // at (17.9, 7.3, −2.5), 21–22 m from A and F (A (0.96, 0.05) ± 0.08 at 0.31 against frame 1 s'
+  // dark trunk at 0.30; F (0.44, 0.10)) — which hung 0.7 m over the fenced plateau walk and had
+  // to go (above); moved out along F's ray it leaves A's corner (A (1.04, 0.02)), and A lost
+  // 0.0028 in that one cell (0.875–1, 0–0.17: 0.43 haze against 0.30). This lobe stands on the
+  // same A and F rays 13–15 m out — A (0.96, 0.02) ± 0.08 × 0.10, F (0.53, 0.09) ± 0.08 × 0.11 —
+  // over the grassy bank NORTH-EAST of the main stairs (ground 0.9–2.3 under its footprint, slope
+  // 15–27°; 4 m off the stair axis, 2.5 m outside the treads; not the plateau walk), FLOORED at
+  // 4.75: 2.4+ m over the highest ground under it (2.31 at (13.3, 0.5)), the flat-bottomed core
+  // (giant.ts lobeCore honours the floor) at A y 0.11. Flat + core like its neighbours, one
+  // colour: tone 0.85 × shade 0.5 (≈ 0.30 at 14 m under the thin near veil — A's corner wants the
+  // frame's 0.30, F's top-centre its 0.42–0.49; the neighbours' 0.6 × 0.4 is fitted to 0.19–0.23
+  // frame darks). Out of C (its centre at C (−0.02, −0.04); the south-east rim grazes C's top-left
+  // corner, which frame 44 s has dark to x 0.38); behind B / D / E.
+  {
+    giant: 'stair-bank-giant',
+    fromY: 6.6,
+    to: [11.6, 5.2, 1.9],
+    radius: 0.45,
+    tipRadius: 0.15,
+    ghostWood: true,
+    lobes: [{ t: 0.95, center: [11.6, 5.5, 1.6], hR: 1.8, vR: 1.1, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 4.75 }],
   },
   // Not here (round 38, measured and dropped): a mid-distance leaf tree for shot D. Frame 56 s has
   // a dark spreading tree left of the path's axis at D (0.36–0.5, 0.25–0.5), branches and leaf
