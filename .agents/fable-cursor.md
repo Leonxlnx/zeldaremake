@@ -2275,6 +2275,8 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   the lobe-top card sliver in w26-stairs-f (needs a projected-thickness fade once A has margin).
 - Next: survey-2 re-ranks the world at player height on the take-0115 build.
 
+### 15:15 UTC — tick 158: heartbeat; survey-2 rendering the 183 poses on take-0115
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2313,4 +2315,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T15:20:00Z
+2026-09-18T15:15:00Z
