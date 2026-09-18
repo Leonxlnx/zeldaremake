@@ -1204,6 +1204,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   };
   const porchParts = [];
   /**
+   * The threshold slab's footprint (door space: lateral centre / half-widths, depth centre /
+   * half-depth, top height) — shared by the porch floor (which dips under it), the slab itself
+   * and the round-43 moss doormat that stands on it. Top: 3.5 cm under the sill, or 7 cm over the
+   * terrain at the slab's centre when the ground there stands higher.
+   */
+  const slabFootprint = (() => {
+    const w = (doorW1 - doorW0) * 0.5 + 0.35 * k;
+    const d = 0.42 * k;
+    const cw = (doorW0 + doorW1) / 2 + 0.05 * k;
+    const cd = dBack + 0.42 * k;
+    const c = frame.door(cw, 0, cd);
+    return { w, d, cw, cd, top: Math.max(sill - 0.035, terrain.height(c.x, c.z) - yFloor + 0.07) };
+  })();
+  /**
    * Round 36 (structures-24): the recess's channel balance. Rounds 11–22 pulled the recess bark
    * toward neutral (×0.8 / 0.92 / 1.12 — the reference porch flanks read ≈ (72, 78, 76) in the
    * earlier analysis), and frame B's over-door box (0.70–0.80 × 0.33–0.40) reads hue 35.6° at
@@ -1260,14 +1274,28 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     );
     faceTowards(back, (p, o) => o.copy(p).addScaledVector(F, 1));
     porchParts.push(back);
-    // floor: packed earth rising gently to the sill; never below the terrain inside the trunk
+    // floor: packed earth rising gently to the sill; never below the terrain inside the trunk.
+    // Round 44 (structures-28): under the threshold slab's footprint the earth sits 5 cm below
+    // the slab's top. The ramp ran from sill − 0.02 at the sill to ≈ sill − 0.07 at the slab's
+    // far edge, i.e. THROUGH the slab's top (sill − 0.035 with the round-44 wear): in w31-house-d
+    // the earth covered the stone but for a sliver along its far rim and the doormat read as a
+    // green carpet on a black slab (the round-8 cylinder's flat top was a centimetre higher and
+    // z-fought instead). The floor's own terrain clamp still applies (slabTop ≥ terrain + 0.07).
+    const { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop } = slabFootprint;
     const floor = gridSurface(
       (u, v, out) => {
         const w = lerp(porchW0 - 0.35, porchW1 + 0.35, u);
         const d = lerp(dBack - 0.15, dOut(w, 0) + 0.45, v);
-        const ramp = lerp(sill - 0.02, 0.03, smoothstep(dBack + 0.1, dBack + 1.25 * k, d));
+        let ramp = lerp(sill - 0.02, 0.03, smoothstep(dBack + 0.1, dBack + 1.25 * k, d));
+        const rrSlab = Math.hypot((w - slabCW) / slabW, (d - slabCD) / slabD);
+        // 1.14: the slab's outline wanders ± 12 % (`outline` below) — the whole stone sits in the dip
+        if (rrSlab < 1.14) ramp = Math.min(ramp, slabTop - 0.05);
+        // under the stone proper (its edge lies at ≥ 0.88) the earth is hidden and may sit below
+        // the terrain too — the slab stands only 7 cm over the ground at its centre, and a floor
+        // held at terrain + 0.05 there met the top's 1.2 cm dish along the walked line
+        if (rrSlab < 0.85) ramp = slabTop - 0.08;
         frame.door(w, ramp, d, out.position);
-        const th = terrain.height(out.position.x, out.position.z) + 0.05;
+        const th = terrain.height(out.position.x, out.position.z) + (rrSlab < 0.85 ? -0.05 : 0.05);
         if (th > out.position.y) out.position.y = th;
         out.uv = [w / 1.6, d / 1.6];
         // packed earth in the eave's shade: a grey-brown (reference threshold band lum ≈ 0.30,
@@ -1730,12 +1758,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // step, the outline the round-8 ellipse with the same wander. Tints: a pale worn top brightest
     // on the walked line, the rim and sides damp and dark, a moss film creeping up the sides'
     // foot. Same `thresholdSlab` footprint and top, so the round-43 doormat stands where it did.
-    const slabW = (doorW1 - doorW0) * 0.5 + 0.35 * k;
-    const slabD = 0.42 * k;
-    const slabCW = (doorW0 + doorW1) / 2 + 0.05 * k;
-    const slabCD = dBack + 0.42 * k;
+    const { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop } = slabFootprint;
     const slabC = frame.door(slabCW, 0, slabCD);
-    const slabTop = Math.max(sill - 0.035, terrain.height(slabC.x, slabC.z) - yFloor + 0.07);
     thresholdSlab = { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop };
     const slabDepth = 0.12 * k;
     const outline = (th: number) => 1 + 0.12 * noise.noise(Math.cos(th) * slabW * 3.1 + 7, Math.sin(th) * slabD * 3.1);
@@ -4429,7 +4453,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           const w = slab.cw + (u * 2 - 1) * slab.w;
           const d = slab.cd + (v * 2 - 1) * slab.d;
           const c = cover(w, d);
-          frame.door(w, slab.top + lerp(-0.012, 0.016, smoothstep(0.3, 0.7, c)), d, out.position);
+          // the hidden sheet sits 6 cm INTO the stone — under the slab's dished walked line
+          // (−1.2 cm ± 0.8 of wear) and under the porch earth round the stone (slabTop − 0.05)
+          frame.door(w, slab.top + lerp(-0.06, 0.016, smoothstep(0.3, 0.7, c)), d, out.position);
           out.uv = [w / 1.6, d / 1.6];
           const trodden = 1 - walkOf(w);
           const sh = (0.55 + 0.5 * c) * (0.9 + 0.2 * noise.noise(w * 19, d * 19 + 4)) * lerp(1, 0.8, trodden);
@@ -4446,7 +4472,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const edge = smoothstep(0.35 * k, 0.05 * k, Math.abs(d - (dBack + 0.06 * k)));
       // clumped with the film, so the tufts stand on and round the carpet's patches
       const patch = patchOf(w, d);
-      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch) * lerp(0.12, 1, rimOrSill(w, d));
+      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch) * lerp(0.05, 1, rimOrSill(w, d));
       if (matRng() > keep) continue;
       // on the slab (ellipse footprint) or the porch floor's ramp
       const rr = Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d);

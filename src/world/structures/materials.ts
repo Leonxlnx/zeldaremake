@@ -178,20 +178,41 @@ export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1
 export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
 /**
  * Round 44 (structures-28): the rail fences' weathered wood (`fenceWood`), which had no floor.
- * Fully textured (the grain swing is the point), albedo 0.1 (the silvered planks' shaded mean),
- * lift 3.6 — below the trunk's 4.75: reference F's plateau posts are DARK against the haze
- * (y ≈ 0.19), so the floor only has to bring the shaded shafts from ≈ 0.02 to where their grain
- * separates from black at 2 m, not to the bark's level.
+ * Fully textured (the grain swing is the point), albedo 0.1 (the silvered planks' shaded mean).
+ * Lift 3.6 (the first pass, below the trunk's 4.75 to keep reference F's dark plateau posts,
+ * y ≈ 0.19) did not reach the pixel: the sn-fence-post survey pose (2 m, canopy shade, no veil)
+ * rendered the shaft p10 / p50 / p90 at 0.055 / 0.060 / 0.068 — a black box, the ×0.48–1.28
+ * grain swing inside three grey levels — because the wood's shaded albedo was ≈ 0.005 linear
+ * (planks map 0.06 × tint 0.23 × shade 0.5) and at 2 m the pixel is the floor alone: a probe at
+ * lift 11 on that albedo moved the shaft only 0.060 → 0.074. The albedo is raised ×3 (tint
+ * 0xc8bba8, fence.ts `postShade` 0.6–0.9 → ≈ 0.015) and the lift to 11: the shaded shaft lands
+ * near 0.15 with the grain at ≈ 0.09–0.22; at F's 25 m the veil is ≈ 0.9 of the pixel.
  */
-export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3.6, texture: 1.0, albedo: 0.1 };
+export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1 };
 /**
  * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
  * (survey-1 crop 26 / w31-house-d): with no floor the worn top rendered ≈ 0.05 and the moss
- * doormat read as a green mat on a black slab. Textured, at the stone's own mean albedo (0.28),
- * lift 3.4 — the frame's threshold band sits at lum ≈ 0.30, a pale worn stone, not the round-8
- * slab's over-bright white.
+ * doormat read as a green mat on a black slab. Textured, at the stone's own mean albedo (0.28).
+ * Lift 3.4 with the default leaf-filtered light (canopy 0.6) rendered the slab's walked middle
+ * at lum 0.07 in w31-house-d and GREEN — at 1 m the pixel is the floor alone, and the leaf filter
+ * on a (0.95, 1.1, 0.75) tint over the ≈ 0.1 shaded albedo made a dark olive stone under the
+ * doormat. Lift 8 (≈ 0.07 linear on the walked top → lum ≈ 0.3, the frame's threshold band) with
+ * the filter nearly off (canopy 0.15): a pale grey stone under the sill, not a second moss.
  */
-export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3.4, texture: 1.0, albedo: 0.28, canopy: 0.6, chroma: 0.5 };
+export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 8, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
+/**
+ * Round 44 (structures-28): the log arch's own floor. Under HOUSE_BARK_FLOOR the flat 40 % of the
+ * floor (0.4 × 0.08 at lift 7.2 ≈ 0.032) outweighed the belly's own textured term (0.6 × ≈ 0.02),
+ * so the baked occlusion `outerColor` puts in the fissures and on the crests (×0.12–1.4) reached
+ * the shaded body at a third of its swing and the belly and the north flank read as smooth clay
+ * from the path (survey-1 item 3, crops 06/07/08). Fully textured — the floor is the bark map ×
+ * the vertex shading, as the house trunk's has been since round 22 — at lift 10: a typical
+ * shaded log face (albedo ≈ 0.02) lands at ≈ 0.2 against the old 0.32 (darker under the crown,
+ * as the frame's log mass is) while the crests keep their full 1.4 and the fissures fall to the
+ * veil. D sees the log at 51 m through the haze (veil ≈ 0.9 of the pixel), so the level there
+ * hardly moves; the fixed-view SSIMs are the check.
+ */
+export const LOG_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 10, texture: 1.0 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -1194,13 +1215,15 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     roughness: 1,
     color: new Color(0x9a7650),
   });
+  // round 44 (structures-28): tint 0x8e8272 → 0xc8bba8 — see fence.ts `postShade`: the planks map
+  // is dark (mean 0.06 linear) and the old tint left the rail wood's albedo at ≈ 0.005, black at 2 m
   const fenceWood = new MeshStandardMaterial({
     map: plankC,
     normalMap: plankN,
     normalScale: new Vector2(1.2, 1.2),
     roughnessMap: plankR,
     roughness: 1,
-    color: new Color(0x8e8272),
+    color: new Color(0xc8bba8),
     vertexColors: true,
   });
   // round 44 (structures-28): the threshold slab — grey worn stone, the flagstones' set; the
@@ -1412,7 +1435,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   archBark.name = 'structures:arch-bark';
   // (round 22: the trunk bark's floor is fully textured — TRUNK_BARK_FLOOR; the limbs and the log stay)
   applyShadeFloor(bark, TRUNK_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
-  for (const m of [barkPale, logBark]) applyShadeFloor(m, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(barkPale, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  // round 44 (structures-28): the log's floor is fully textured so its baked relief shows in the shade
+  applyShadeFloor(logBark, LOG_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
   // Astra's c5d8c83 (adopted as-is): a 0.20 share of the hemisphere's angular response on the
   // sleeve's shade floor, so the mapped bark relief reads on the shaded bough

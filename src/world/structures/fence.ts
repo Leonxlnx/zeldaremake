@@ -82,8 +82,14 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
   const postH = style === 'rope' ? 1.1 : 1.1;
   const railHeights = style === 'rope' ? [0.42, 0.82] : [0.5, 0.92];
   // silvered, weathered wood: dark enough to silhouette against the haze at the plateau lip
-  // (reference F: dark posts along y ≈ 0.19; reference A: the same posts hazed pale at 25 m)
-  const postShade = () => 0.42 + rng() * 0.22;
+  // (reference F: dark posts along y ≈ 0.19; reference A: the same posts hazed pale at 25 m).
+  // Round 44 (structures-28): 0.42–0.64 → 0.6–0.9. The rail wood's diffuse albedo was ≈ 0.005
+  // linear (weathered_planks colour map mean 0.06 × the 0x8e8272 tint 0.23 × this shade): at 2 m
+  // the shaft rendered lum 0.06 with the ×0.48–1.28 grain inside three grey levels, and no shade
+  // floor could lift a surface that dark (survey-1 crops 19/20, sn-fence-post). With the tint at
+  // 0xc8bba8 the shaded albedo is ≈ 0.015; F's 25 m posts sit under a 0.9 veil and keep their
+  // dark silhouette. (Rail style only: the rope posts colour themselves.)
+  const postShade = () => 0.6 + rng() * 0.3;
 
   // resample the polyline at ~spacing
   const pts: Vector3[] = [];
