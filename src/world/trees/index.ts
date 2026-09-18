@@ -23,7 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { COLUMN_BARK_FLOOR, createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+import { COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
@@ -2939,6 +2939,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             ['leafNear', TREE_LEAF_FLOOR_NEAR],
             ['nearBole', TREE_NEAR_BOLE_FLOOR],
             ['column', COLUMN_BARK_FLOOR],
+            ['columnFar', COLUMN_BARK_FLOOR_FAR],
             ['nearBase', NEAR_BASE_FLOOR],
             ['nearCanopyLeaf', NEAR_CANOPY_LEAF_FLOOR],
           ] as [string, ShadeFloor][]
@@ -2946,6 +2947,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
       /** the far programs' floors fade from the NEAR presets to the shared ones over this view distance (m) */
       shadeFloorFadeM: TREE_FLOOR_FADE_M,
+      /** the column bark floor alone fades from `column` to `columnFar` over this view distance (m) (materials.ts COLUMN_FLOOR_FADE_M) */
+      columnFloorFadeM: COLUMN_FLOOR_FADE_M,
       /** the near bole's floor fades with height (materials.ts NEAR_BOLE_FLOOR_FADE): [lift at the foot, lift above the fade, fade from (m), fade to (m)] */
       nearBoleFloorProfile: [NEAR_BOLE_FLOOR.lift, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_FLOOR_FADE[0], NEAR_BOLE_FLOOR_FADE[1]],
       /**

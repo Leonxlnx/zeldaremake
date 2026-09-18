@@ -114,12 +114,24 @@ export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
 export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
 export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
 /**
- * The column trees' bark floor (TreeMaterials.columnTree): a little under the shared lift so a
- * shaded column sits under the haze rather than in it, and 0.45 of its own albedo kept — the
- * columns are coloured for distance (column.ts: tone bands around and along the bole, grime at
- * the foot), and the shared tenth flattened all of it beyond 10 m.
+ * The column trees' bark floor (TreeMaterials.columnTree) within COLUMN_FLOOR_FADE_M[0]: a little
+ * under the shared lift so a shaded column sits under the haze rather than in it, and 0.45 of its
+ * own albedo kept — the columns are coloured for distance (column.ts: tone bands around and along
+ * the bole, grime at the foot), and the shared tenth flattened all of it beyond 10 m. The survey
+ * poses that found them pale (w19-spine-r, sn-arch-outside) stand 10–21 m from the north cluster.
  */
 export const COLUMN_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.45 };
+/**
+ * … and from COLUMN_FLOOR_FADE_M[1] out: a fifth kept (twice the shared floor's). The hero
+ * frames see the columns at 22–40 m (D's top band, B's upper left), where the reference's
+ * veiled trunks are near-smooth (window sd 0.005–0.02): with 0.45 at every distance the round-45
+ * take measured D −0.0013 / B −0.0022, the shaded columns' window sd up 0.005–0.008 across the
+ * cells (SSIM's structure term; shadeFloor.ts round 32 found the same for texture 0.25 → 0.1).
+ * The bark block alone fades (LeafVariant.barkFade); the columns' leaf floor is the shared one.
+ */
+export const COLUMN_BARK_FLOOR_FAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.6, texture: 0.2 };
+/** view distance (m) over which the column bark floor goes from COLUMN_BARK_FLOOR to COLUMN_BARK_FLOOR_FAR */
+export const COLUMN_FLOOR_FADE_M: [number, number] = [20, 32];
 export const TREE_LEAF_FLOOR_NEAR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
 /** view distance (m) over which a far program's floor goes from the NEAR preset to the shared one */
 export const TREE_FLOOR_FADE_M: [number, number] = [5, 10];
@@ -829,6 +841,13 @@ interface LeafVariant {
   leafNear?: [number, number];
   /** set = the near-canopy sun-through block scaled by this (uSunThrough) in place of the far block */
   sunThrough?: number;
+  /**
+   * Round 45 (the column trees): the BARK floor's own near preset and fade range (m) in place of
+   * the shared TREE_FLOOR_FADE_M — the bark block reads `${barkPrefix}Fade` instead of uFloorFade,
+   * so the leaf floor's fade is untouched. Unset: the bark fades like everything else.
+   */
+  barkNear?: ShadeFloor;
+  barkFade?: [number, number];
 }
 
 /**
@@ -848,10 +867,20 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   // the distance fade (TREE_FLOOR_FADE_M): the giants' far programs go to the NEAR presets close
   // up; a material with its own calibrated floor (the near bole's height profile, the near
   // canopy's leaf floor) fades to itself
-  const barkNear = heightFade || barkFloor !== TREE_BARK_FLOOR ? barkFloor : TREE_BARK_FLOOR_NEAR;
+  const barkNear = variant.barkNear ?? (heightFade || barkFloor !== TREE_BARK_FLOOR ? barkFloor : TREE_BARK_FLOOR_NEAR);
   const leafNearFloor = variant.leafFloor ?? TREE_LEAF_FLOOR_NEAR;
   bindTreeFloorNear(shader, barkPrefix, barkNear);
   bindTreeFloorNear(shader, 'uLeafFloor', leafNearFloor);
+  // a bark floor with its own fade range (LeafVariant.barkFade): the bark block's `floorFar`
+  // reads `${barkPrefix}Fade`; the leaf block keeps uFloorFade
+  let barkFadePars = '';
+  let barkFadeGlsl = TREE_FLOOR_FADE_GLSL;
+  if (variant.barkFade) {
+    shader.uniforms[`${barkPrefix}Fade`] = { value: new Vector2(variant.barkFade[0], variant.barkFade[1]) };
+    barkFadePars = `uniform vec2 ${barkPrefix}Fade;\n`;
+    barkFadeGlsl = TREE_FLOOR_FADE_GLSL.replace('uFloorFade.x, uFloorFade.y', `${barkPrefix}Fade.x, ${barkPrefix}Fade.y`);
+    if (barkFadeGlsl === TREE_FLOOR_FADE_GLSL) throw new Error('treeFragment: expected uFloorFade in TREE_FLOOR_FADE_GLSL');
+  }
   let sunThroughPars = '';
   let sunThrough = LEAF_SUN_THROUGH;
   if (variant.sunThrough !== undefined) {
@@ -877,7 +906,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   const textureHere = heightFade ? `${barkPrefix}Texture` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar)`;
   const barkFloorGlsl = /* glsl */ `
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
-      ${TREE_FLOOR_FADE_GLSL}
+      ${barkFadeGlsl}
       ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
 `;
   let detailPars = '';
@@ -897,6 +926,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     fadePars +
     shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
     TREE_FLOOR_FADE_PARS +
+    barkFadePars +
     treeFloorNearPars(barkPrefix) +
     treeFloorNearPars('uLeafFloor') +
     sunThroughPars +
@@ -1053,7 +1083,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
   // the columns' copy (round 45): same maps and wind, the bark floor at COLUMN_BARK_FLOOR
   const columnTree = giantTree.clone();
-  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR, 'uColumnFloor'), 'column');
+  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M }), 'column');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
