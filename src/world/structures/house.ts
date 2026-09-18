@@ -1204,6 +1204,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   };
   const porchParts = [];
   /**
+   * The threshold slab's footprint (door space: lateral centre / half-widths, depth centre /
+   * half-depth, top height) — shared by the porch floor (which dips under it), the slab itself
+   * and the round-43 moss doormat that stands on it. Top: 3.5 cm under the sill, or 7 cm over the
+   * terrain at the slab's centre when the ground there stands higher.
+   */
+  const slabFootprint = (() => {
+    const w = (doorW1 - doorW0) * 0.5 + 0.35 * k;
+    const d = 0.42 * k;
+    const cw = (doorW0 + doorW1) / 2 + 0.05 * k;
+    const cd = dBack + 0.42 * k;
+    const c = frame.door(cw, 0, cd);
+    return { w, d, cw, cd, top: Math.max(sill - 0.035, terrain.height(c.x, c.z) - yFloor + 0.07) };
+  })();
+  /**
    * Round 36 (structures-24): the recess's channel balance. Rounds 11–22 pulled the recess bark
    * toward neutral (×0.8 / 0.92 / 1.12 — the reference porch flanks read ≈ (72, 78, 76) in the
    * earlier analysis), and frame B's over-door box (0.70–0.80 × 0.33–0.40) reads hue 35.6° at
@@ -1260,14 +1274,28 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     );
     faceTowards(back, (p, o) => o.copy(p).addScaledVector(F, 1));
     porchParts.push(back);
-    // floor: packed earth rising gently to the sill; never below the terrain inside the trunk
+    // floor: packed earth rising gently to the sill; never below the terrain inside the trunk.
+    // Round 44 (structures-28): under the threshold slab's footprint the earth sits 5 cm below
+    // the slab's top. The ramp ran from sill − 0.02 at the sill to ≈ sill − 0.07 at the slab's
+    // far edge, i.e. THROUGH the slab's top (sill − 0.035 with the round-44 wear): in w31-house-d
+    // the earth covered the stone but for a sliver along its far rim and the doormat read as a
+    // green carpet on a black slab (the round-8 cylinder's flat top was a centimetre higher and
+    // z-fought instead). The floor's own terrain clamp still applies (slabTop ≥ terrain + 0.07).
+    const { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop } = slabFootprint;
     const floor = gridSurface(
       (u, v, out) => {
         const w = lerp(porchW0 - 0.35, porchW1 + 0.35, u);
         const d = lerp(dBack - 0.15, dOut(w, 0) + 0.45, v);
-        const ramp = lerp(sill - 0.02, 0.03, smoothstep(dBack + 0.1, dBack + 1.25 * k, d));
+        let ramp = lerp(sill - 0.02, 0.03, smoothstep(dBack + 0.1, dBack + 1.25 * k, d));
+        const rrSlab = Math.hypot((w - slabCW) / slabW, (d - slabCD) / slabD);
+        // 1.14: the slab's outline wanders ± 12 % (`outline` below) — the whole stone sits in the dip
+        if (rrSlab < 1.14) ramp = Math.min(ramp, slabTop - 0.05);
+        // under the stone proper (its edge lies at ≥ 0.88) the earth is hidden and may sit below
+        // the terrain too — the slab stands only 7 cm over the ground at its centre, and a floor
+        // held at terrain + 0.05 there met the top's 1.2 cm dish along the walked line
+        if (rrSlab < 0.85) ramp = slabTop - 0.08;
         frame.door(w, ramp, d, out.position);
-        const th = terrain.height(out.position.x, out.position.z) + 0.05;
+        const th = terrain.height(out.position.x, out.position.z) + (rrSlab < 0.85 ? -0.05 : 0.05);
         if (th > out.position.y) out.position.y = th;
         out.uv = [w / 1.6, d / 1.6];
         // packed earth in the eave's shade: a grey-brown (reference threshold band lum ≈ 0.30,
@@ -1721,44 +1749,72 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   /** the slab's footprint (door space) and top, for the round-43 moss doormat */
   let thresholdSlab: { w: number; d: number; cw: number; cd: number; top: number } | null = null;
   {
-    let stone = shared.stone;
-    if (!stone) {
-      stone = shared.stone = new MeshStandardMaterial({ color: new Color(0x9e9a8e), roughness: 1, vertexColors: true, normalMap: mats.moss.normalMap, normalScale: new Vector2(0.25, 0.25) });
-      materials.push(stone);
-    }
-    const slabW = (doorW1 - doorW0) * 0.5 + 0.35 * k;
-    const slabD = 0.42 * k;
-    const slabC = frame.door((doorW0 + doorW1) / 2 + 0.05 * k, 0, dBack + 0.42 * k);
-    const slabTop = Math.max(sill - 0.035, terrain.height(slabC.x, slabC.z) - yFloor + 0.07);
-    thresholdSlab = { w: slabW, d: slabD, cw: (doorW0 + doorW1) / 2 + 0.05 * k, cd: dBack + 0.42 * k, top: slabTop };
-    const slab = new CylinderGeometry(1, 1.06, 0.12 * k, 9, 1, false);
-    slab.scale(slabW, 1, slabD);
-    // irregular outline: nudge the rim vertices in and out
+    // Round 44 (structures-28): a WORN STONE SLAB, not a nine-sided grey cylinder. Survey-1
+    // crop 26: the round-8 slab read as an over-bright white plank with a hard polygonal outline
+    // floating over the bark step, its moss doormat as 2-D confetti on it. Now: the flagstones'
+    // stone (materials.ts `stone`, worn_rock_natural_01) on a polar grid — the top dished a
+    // centimetre along the walked line and undulating ± 8 mm, the rim rounded and CHIPPED (the
+    // edge drops up to 2.5 cm in bites), the sides battered out a little and sunk 12 cm into the
+    // step, the outline the round-8 ellipse with the same wander. Tints: a pale worn top brightest
+    // on the walked line, the rim and sides damp and dark, a moss film creeping up the sides'
+    // foot. Same `thresholdSlab` footprint and top, so the round-43 doormat stands where it did.
+    const { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop } = slabFootprint;
+    const slabC = frame.door(slabCW, 0, slabCD);
+    thresholdSlab = { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop };
+    const slabDepth = 0.12 * k;
+    const outline = (th: number) => 1 + 0.12 * noise.noise(Math.cos(th) * slabW * 3.1 + 7, Math.sin(th) * slabD * 3.1);
+    // v runs 0 → 0.5 over the top (centre → rim, f) and 0.5 → 1 down the sides (g). The mapping
+    // is CONTINUOUS in v: gridSurface takes its normals from central differences in u and v,
+    // and a per-row `Math.round(v * 6)` (the first cut of this slab) made the surface piecewise
+    // constant in v — every normal fell back to +Y, `faceTowards` saw nothing to flip, and the
+    // top's winding faced DOWN: the stone's top was back-face culled and the door showed the
+    // hidden moss film and the porch earth through it (w31-house-d read as a dark green mat).
+    const slab = gridSurface(
+      (u, v, out) => {
+        const th = u * TAU;
+        const f = Math.min(1, v * 2);
+        const g = Math.max(0, v * 2 - 1);
+        const top = v <= 0.5;
+        const wob = outline(th);
+        // the sides batter out 6 mm at the base. The centre ring is r = 0 (the 31 vertices
+        // coincide, the first ring's triangles are slivers): a floor of 0.04 left a hole 3 × 2 cm
+        // open in the middle of the top
+        const rr = f * wob * (1 + 0.012 * g);
+        const w = slabCW + Math.cos(th) * slabW * rr;
+        const d = slabCD + Math.sin(th) * slabD * rr;
+        // the top: a worn undulation, dished along the walked line through the door's middle,
+        // rounded then chipped at the rim
+        const walk = smoothstep(0.55 * k, 0.12 * k, Math.abs(w - slabCW));
+        const wear = 0.008 * noise.noise(w * 6.5 + 3, d * 6.5) - 0.012 * walk * (1 - f * f);
+        const chip = 0.025 * smoothstep(0.45, 0.85, noise.noise(th * 2.1 + 11, 2.5)) * smoothstep(0.75, 1, f);
+        const round = 0.006 * smoothstep(0.8, 1, f);
+        const topY = slabTop + wear - chip - round;
+        const y = topY - slabDepth * g;
+        frame.door(w, y, d, out.position);
+        out.uv = top ? [w / 1.2, d / 1.2] : [(th * (slabW + slabD)) / 1.2, y / 1.2];
+        // tints: pale worn top (palest on the walked line), damp rim, dark sides with a moss foot
+        const mottle = 0.9 + 0.2 * noise.noise(w * 9 + 1, d * 9 + 5);
+        let t = top ? lerp(0.78, 1.0, walk) * lerp(1, 0.72, smoothstep(0.82, 1, f)) * mottle : lerp(0.55, 0.36, g) * mottle;
+        t *= 1 - 0.5 * clamp(chip / 0.025, 0, 1);
+        const mossFoot = top ? 0 : smoothstep(0.5, 1, g) * smoothstep(0.35, 0.65, noise.noise(th * 3 + 2, 7));
+        out.color = [lerp(t, 0.12, mossFoot), lerp(t * 0.98, 0.2, mossFoot), lerp(t * 0.92, 0.05, mossFoot)];
+      },
+      { cols: 30, rows: 7, closedU: true },
+    );
+    faceTowards(slab, (p, o) => o.copy(p).sub(slabC).multiplyScalar(4).add(p).setY(p.y + 1.5));
+    // the centre ring's 31 coincident vertices have no u-derivative: gridSurface gave them its
+    // +Y fallback, and the flip faceTowards applies to the whole grid (the door frame's w × d
+    // is left-handed about y, so the analytic normals came out inside-out) turned them −Y — a
+    // dark dimple over the inner third of the top. They take ring 1's mean normal.
     {
-      const pos = slab.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-        const rr = Math.hypot(x / slabW, z / slabD);
-        if (rr > 0.5) {
-          const f = 1 + 0.12 * noise.noise(x * 3.1 + 7, z * 3.1 + pos.getY(i) * 4);
-          pos.setXYZ(i, x * f, pos.getY(i), z * f);
-        }
-      }
-      slab.computeVertexNormals();
+      const nrm = slab.attributes.normal;
+      const nu = 31;
+      const mean = new Vector3();
+      for (let i = 0; i < nu; i++) mean.add(_bd.fromBufferAttribute(nrm, nu + i));
+      mean.normalize();
+      for (let i = 0; i < nu; i++) nrm.setXYZ(i, mean.x, mean.y, mean.z);
     }
-    slab.applyMatrix4(basisMatrix(frame.door((doorW0 + doorW1) / 2 + 0.05 * k, slabTop - 0.06 * k, dBack + 0.42 * k), F));
-    // worn pale top, damp dark sides
-    const col: [number, number, number][] = [];
-    const pos = slab.attributes.position;
-    const nrm = slab.attributes.normal;
-    for (let i = 0; i < pos.count; i++) {
-      const up = Math.max(0, nrm.getY(i));
-      const d = lerp(0.42, 0.7, up) * (0.92 + 0.16 * noise.noise(pos.getX(i) * 4, pos.getZ(i) * 4 + 2));
-      col.push([d, d, d * 0.97]);
-    }
-    setColorAttribute(slab, (i) => col[i]);
-    const slabMesh = new Mesh(slab, stone);
+    const slabMesh = new Mesh(slab, mats.stone);
     slabMesh.name = 'threshold';
     slabMesh.castShadow = slabMesh.receiveShadow = true;
     group.add(slabMesh);
@@ -2078,32 +2134,61 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const side = new Vector3(dir.z, 0, -dir.x).multiplyScalar((rootRng() - 0.5) * 0.7);
     const p0 = frame.at(a, rSmooth(a, y0) - 0.4, y0);
     const p1 = frame.at(a, rSmooth(a, y0 * 0.65) + 0.1, y0 * 0.66);
-    /** the waypoints on the ground for a given reach: over the terrain, on it, sunk into it */
+    /**
+     * The waypoints on the ground for a given reach: over the terrain, on it, hugging it near
+     * the tip, sunk into it. Survey-1 item 6: Saria's south-east roots ran 4.3 m UP the plateau
+     * bank to the stair landing (base (17.0, 5.36, −7.4)) — a straight ramp from the trunk foot
+     * to the plateau read as a bent plank lying on the landing. A buttress root runs level or
+     * downhill, so a root whose seat would sit more than `MAX_CLIMB` above the house floor is
+     * shortened until it seats on the bank's lower slope; the extra point at 72 % of the reach
+     * keeps the tip on uneven ground instead of spanning it.
+     */
     const groundPts = (reachNow: number) => {
       const p2 = frame.at(a, rs0 + reachNow * 0.45, 0).addScaledVector(side, 0.5);
       p2.y = terrain.height(p2.x, p2.z) + 0.28 * k;
+      const p2b = frame.at(a, rs0 + reachNow * 0.72, 0).addScaledVector(side, 0.8);
+      p2b.y = terrain.height(p2b.x, p2b.z) + 0.1 * k;
       const p3 = frame.at(a, rs0 + reachNow, 0).add(side);
       p3.y = terrain.height(p3.x, p3.z);
       const p4 = frame.at(a, rs0 + reachNow + 0.6, 0).addScaledVector(side, 1.3);
       p4.y = terrain.height(p4.x, p4.z) - 0.4;
-      return [p2, p3, p4];
+      return [p2, p2b, p3, p4];
     };
+    const MAX_CLIMB = 1.4;
+    /** a root may run down an eroded bank (exposed on the face) but not span a cliff: seat ≤ 2.5 m under the floor */
+    const MAX_DROP = 2.5;
+    const climbs = (g: Vector3[]) => g[2].y - yFloor > MAX_CLIMB;
+    const drops = (g: Vector3[]) => yFloor - g[2].y > MAX_DROP;
     let ground = groundPts(reach);
-    while (reach > 0.3 * R && ground.some(insideOther)) {
+    while (reach > 0.3 * R && (ground.some(insideOther) || climbs(ground) || drops(ground))) {
       reach -= 0.1 * R;
       ground = groundPts(reach);
     }
     if (insideOther(p1) || ground.some(insideOther)) continue;
+    // Saria's trunk is set into the plateau bank: on its south / east / north sides the ground
+    // stands 3.5 m up the shaft, so a root leaving the bark at y0 there is UNDERGROUND and only
+    // surfaced 4 m higher on the bank or the landing (survey-1 item 6). A root whose seat still
+    // climbs more than MAX_CLIMB at the shortest reach is not built (its rng draws are still
+    // taken so the other roots are unchanged); the north-west root that surfaces from the bank
+    // and runs DOWN to the lawn (D's bank) stays.
+    if (climbs(ground)) {
+      rootRng();
+      continue;
+    }
     rootsBuilt++;
-    const [p2, p3, p4] = ground;
-    const curve = new CatmullRomCurve3([p0, p1, p2, p3, p4], false, 'catmullrom', 0.5);
+    const [p2, p2b, p3, p4] = ground;
+    const curve = new CatmullRomCurve3([p0, p1, p2, p2b, p3, p4], false, 'catmullrom', 0.5);
     const rootN = 4.5 + rootRng() * 3;
     const root = sweepTube(curve, {
       radius: (t) => r0 * (1 - 0.72 * t) * (0.9 + 0.2 * Math.abs(Math.sin(t * rootN))),
-      tubularSegments: 22,
-      radialSegments: 11,
+      tubularSegments: 26,
+      radialSegments: 12,
       uvMetres: 1.4,
-      displace: (t, ang) => (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t),
+      // ridged plates as before plus long fibre furrows running the root's length (survey-1 item 6:
+      // the roots were smooth uniform tubes)
+      displace: (t, ang) =>
+        (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t) +
+        (noise.noise(ang * 3.4 + i * 7.3, t * 1.6 + 40) - 0.5) * 0.035 * k * (1 - 0.4 * t),
       color: (t) => {
         // round 34: the trunk's lit-albedo share, damp toward the tip on the ground
         const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO;
@@ -4374,14 +4459,23 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // is thin (the walked line, the gaps between clumps, the slab's ragged rim) the sheet dips a
     // centimetre INTO the stone and is hidden, so the moss edge is a smooth curve through the
     // cells, not a staircase of open cells. Same bucket as the tufts.
+    // Round 44 (structures-28): the moss keeps to the slab's RIM and the SILL. Round 43's film
+    // ran over most of the top (patch × walk), and on the worn stone that now sits under it the
+    // door read as a green mat on a dark slab (w31-house-d) — the reference threshold is bare
+    // pale stone with moss at its edges. `rimOrSill` is 1 on the outer 30 % of the ellipse and
+    // against the sill, 0.1 on the walked middle; film and tufts both follow it.
+    const rimOrSill = (w: number, d: number) => Math.max(smoothstep(0.55, 0.88, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d)), smoothstep(0.3 * k, 0.08 * k, d - dBack));
     {
-      const cover = (w: number, d: number) => patchOf(w, d) * lerp(0.15, 1, walkOf(w)) * smoothstep(0.96, 0.78, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d));
+      const cover = (w: number, d: number) =>
+        patchOf(w, d) * lerp(0.15, 1, walkOf(w)) * lerp(0.1, 1, rimOrSill(w, d)) * smoothstep(0.96, 0.78, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d));
       doormatFilm = gridSurface(
         (u, v, out) => {
           const w = slab.cw + (u * 2 - 1) * slab.w;
           const d = slab.cd + (v * 2 - 1) * slab.d;
           const c = cover(w, d);
-          frame.door(w, slab.top + lerp(-0.012, 0.016, smoothstep(0.3, 0.7, c)), d, out.position);
+          // the hidden sheet sits 6 cm INTO the stone — under the slab's dished walked line
+          // (−1.2 cm ± 0.8 of wear) and under the porch earth round the stone (slabTop − 0.05)
+          frame.door(w, slab.top + lerp(-0.06, 0.016, smoothstep(0.3, 0.7, c)), d, out.position);
           out.uv = [w / 1.6, d / 1.6];
           const trodden = 1 - walkOf(w);
           const sh = (0.55 + 0.5 * c) * (0.9 + 0.2 * noise.noise(w * 19, d * 19 + 4)) * lerp(1, 0.8, trodden);
@@ -4398,7 +4492,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const edge = smoothstep(0.35 * k, 0.05 * k, Math.abs(d - (dBack + 0.06 * k)));
       // clumped with the film, so the tufts stand on and round the carpet's patches
       const patch = patchOf(w, d);
-      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch);
+      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch) * lerp(0.05, 1, rimOrSill(w, d));
       if (matRng() > keep) continue;
       // on the slab (ellipse footprint) or the porch floor's ramp
       const rr = Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d);

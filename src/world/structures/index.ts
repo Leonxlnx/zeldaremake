@@ -211,6 +211,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logLanterns: log.lanterns.length,
     /** round 32: the arch pods' world centres (D projects the east pair to (0.60, 0.35) / (0.62, 0.36), the west three to (0.44–0.48, 0.42–0.43)) */
     logLanternPositions: log.podPositions,
+    /** round 44 (structures-28): each arch pod's lowest point over the ground under it; the least clearance over the path (m, ≥ 2.3 wanted) */
+    logPodClearance: log.podClearance,
+    logMinPathClearance: log.minPathClearance,
+    /** round 44: the player-height bark plates, humus foot skirts and bark chunks under the arch's near LOD */
+    logNearDetail: log.detail44,
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,
