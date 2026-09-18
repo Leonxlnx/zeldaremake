@@ -2259,6 +2259,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 
 ### 13:17 UTC — tick 156: heartbeat; round 45 final captures (trees-28 10 commits, details-1 7)
 
+### 15:20 UTC — tick 157: round 45 sealed — take-0115 `2e00415`; evidence at art/environment/round45-review
+- Merged r45/details `75be70e` (details-1: every log-arch pod ≥ 2.41 m over path/verge, on-path min
+  1.96 → 2.56; rubble skirts as fractured moss-capped lumps at the near LOD; fence chroma 0.6;
+  signpost + hut soffit lit in the fences' floored wood, one merged bucket) and r45/trees `d517b62`
+  (trees-28: plateau-lip lobes moved out along F's rays and floored 2.48 m over the walk + a
+  corner lobe for A; distant instances 6 m off the spine and out of the log footprint; near boles
+  darker/banded/flared — remaining paleness measured as 85 % haze; crown limbs tinted and ended in
+  the leaf mass; near-edge-on card fade; flat-lobe swap at 14 m measured and rejected, F −0.013).
+- **take-0115**: A 0.2258, B 0.2038, C 0.2353, D 0.2806, E 0.2145, F 0.2629 (mean 0.2371; A −0.0027 the
+  lobe move, D −0.0033 the raised pods — walkability over the old frames' fit). Draws 522, 8.58 M
+  tris on A. Monitor `e1ad581`. Evidence `2122084`.
+- Handoffs: the pale domes at the stair foot are the vegetation moss cushions' mid LOD at 2–4 m
+  (vegetation); fence residual warmth sat 0.40; the distant bole tops inside crowns still pale;
+  the lobe-top card sliver in w26-stairs-f (needs a projected-thickness fade once A has margin).
+- Next: survey-2 re-ranks the world at player height on the take-0115 build.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2297,4 +2313,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T13:17:00Z
+2026-09-18T15:20:00Z
