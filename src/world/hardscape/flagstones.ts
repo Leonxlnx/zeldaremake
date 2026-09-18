@@ -619,13 +619,17 @@ export const PAVED_ISO = 0.5;
  * paving used to stop dead at it — a dead-straight seam between the slabs and the gravel floor
  * under the log. The paving now runs into the band in tongues: how far (m) past the band's edge
  * the paving reaches, by a slow noise along the edge — 0.15 m almost everywhere (a ragged
- * edge), 0.9–1.6 m where the noise peaks (a slab or two poking through the gravel). Deterministic
- * (a fixed-seed noise field), so no stream draws move.
+ * edge), 0.45–0.7 m where the noise peaks (a slab poking through the gravel). Deterministic (a
+ * fixed-seed noise field), so no stream draws move. The tongues are only as deep as the edge
+ * cells grow into them: the seeds stay outside the band (`strict`), the cells reach 1.4 m from
+ * their seed and the stones' outlines end 0.3–0.8 m into it (the paving probe at w20 / w21), so
+ * a 1.6 m tongue (the first cut) was joint fill with no stone in it — a dark soil blob on the
+ * gravel floor.
  */
 const ARCH_TONGUE_N = new Noise2D('arch-tongue');
 function archTongueDepth(x: number, z: number): number {
   const n = ARCH_TONGUE_N.fbm(x * 0.55 + 3.1, z * 0.55 - 7.3, 2) * 0.5 + 0.5;
-  return 0.15 + 1.45 * smoothstep(0.5, 0.82, n);
+  return 0.15 + 0.55 * smoothstep(0.5, 0.82, n);
 }
 /**
  * `strict` (the lattice seeding and the rim distance): the arch band is unpaved as before, so no

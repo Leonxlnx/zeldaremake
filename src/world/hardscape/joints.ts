@@ -370,17 +370,21 @@ export async function buildJointMesh(
     }
     const seamW = archSeam(x, z);
     if (seamW > 0.001) {
-      tmp2.copy(soilMid).multiplyScalar(1.2);
-      tmp.lerp(tmp2, 0.8 * seamW);
+      // (× 1.2 flat still rendered a shade under the sunlit gravel floor, so the tongues read as
+      // dark patches on it: × 1.45 with a 12 cm grit mottle ± 12 % — gravel dust, not one tone)
+      const gritN = noise.fbm(x * 8.5 + 31, z * 8.5 - 17, 2) * 0.5 + 0.5;
+      tmp2.copy(soilMid).multiplyScalar(1.45 * (0.88 + 0.24 * gritN));
+      tmp.lerp(tmp2, 0.85 * seamW);
     }
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
     // a little heavier on the lawn paving where the slabs sit in it, a third lighter in the disc
     // field's soil gaps; camera C's trodden patch takes the moss-green from its earth tone, its
     // moss patches — the deep moss renders 10° browner than the frame's ground — are the plaza's)
     const lawn = lawnZone(x, z);
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field);
+    // (the arch seam's joints are the gravel floor's dry dust — no moss patches on them)
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field) * (1 - 0.85 * seamW);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
-    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn));
+    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn) * (1 - 0.85 * seamW));
     col.push(tmp.r, tmp.g, tmp.b);
     soilW.push(sw);
     rimW.push(0);
