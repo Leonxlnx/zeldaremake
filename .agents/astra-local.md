@@ -144,3 +144,5 @@ Rootunionfinal connectivity cleanup: removed isolated3vertex/2facecomponent. Sav
 
 ### 2026-09-16 20:55 UTC — guard PBR review and Fable check-in
 Original six-map leather bake e2e20a28 completes18 studio views,8 arm-relative guard closeups and300 actual-world frames without page errors/reach clamps. Clearer grain, but flexed rim faceting/lacing separation remain; default24591126 unchanged. Published reproducible bake/merge scripts, standalone addon and matched material comparison. Fable fresh b2fdd6df reports round40 mid-flight; requested actual progress and matching images in PR2 comment5704340140. Five-comparison README includes this status and links the new character evidence. No environment geometry edits.
+
+2026-09-18 — Owner requested onboarding for a possible additional cloud Fable. Created docs/HANDOFF_THIRD_CLOUD_AGENT.md with freshly fetched bed040f3 / round45 take115 state, verified default character24591126, separate guard candidate, Verdant confirmation, ownership and cloud startup/evidence workflow. Documentation only; no new agent launched or runtime changes.
