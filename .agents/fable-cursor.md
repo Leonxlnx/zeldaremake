@@ -2194,6 +2194,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 
 ### 00:10 UTC (Sep 18) — tick 143: heartbeat; round 44 still running (trees/veg/struct in long verify cycles, ground 6 commits)
 
+### 01:15 UTC — tick 144: trees-27 merged (`58ff825`); seal deferred for the other three lanes
+- trees-27: pool-at-teleport disproved (drawn parts build synchronously; the survey's smooth boles
+  were geometry) → column relief + moss root seat at every LOD, bark-textured seated buttress roots
+  (NE lime skirt gone), near-base bands for all far giants and seated columns, 3-D moss cushions +
+  detail normal at touching distance, limb bark sleeves + hanging moss (giants + lantern bough),
+  layered near versions of the flat bank lobes, distant trunks with bark tiling + root flares,
+  white-bark butt flare. Six views +0.0001…+0.0017; draws unchanged; +0.13–0.18 M tris; 9/9 tests.
+  Left: house root arc / landing plank roots (structures-28 has them); columns beyond 15 m still
+  pale in haze; column crown rims spike from below.
+- veg/struct/ground still running (veg 2, struct 4, ground 6 commits).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2232,4 +2243,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T00:10:00Z
+2026-09-18T01:15:00Z
