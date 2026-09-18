@@ -109,6 +109,26 @@ export interface BoleReliefOptions {
    * 0–1. Written into the vertex colour (a multiplier on the bark), never under the moss.
    */
   lichen?: { band: [number, number]; strength: number };
+  /**
+   * round 44 (survey #1: "moss as a painted decal"): the moss is a volume — where the cover is
+   * strong the surface bulges outward by up to this × `amplitude` (a cushion filling its furrow
+   * and standing proud of the cords), fading out with the end ring like the relief. 0 / unset =
+   * the flat cover the far programs were matched with.
+   */
+  mossBulge?: number;
+  /**
+   * round 44: 3-D moss cushions — small domes seated on the bole where the moss cover is dense
+   * (see `mossCushions`): `density` is the share of the eligible vertices that seed one (0–1),
+   * `size` the dome radius range (m); from the caller's own stream so nothing after it moves.
+   */
+  cushions?: {
+    rng: RandomFn;
+    density: number;
+    size: [number, number];
+    maxCount?: number;
+    /** lowest local y a cushion is seeded at (default: 15 cm above the first ring — a bole's skirt); a limb sleeve passes −Infinity */
+    minY?: number;
+  };
 }
 
 export interface BoleReliefResult {
@@ -119,6 +139,8 @@ export interface BoleReliefResult {
   mossShare: number;
   amplitude: number;
   triangles: number;
+  /** 3-D moss cushions built (BoleReliefOptions.cushions) */
+  cushions: number;
 }
 
 /**
@@ -307,6 +329,11 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
   let mossCount = 0;
   const roughness = o.roughness ?? 0;
   const trisBefore = writer.triangles;
+  const mossBulge = o.mossBulge ?? 0;
+  /** cushion seeds: surface point, outward normal, the cover there (see `mossCushions`) */
+  const seeds: { p: Vector3; n: Vector3; moss: number; r: number }[] = [];
+  const seedEvery = o.cushions ? Math.max(1, Math.round(1 / Math.max(0.02, o.cushions.density))) : 0;
+  let seedCounter = 0;
   for (let k = 0; k < dense.length; k++) {
     const d = dense[k];
     const { axis, u, distance } = d;
@@ -335,18 +362,11 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
         if (o.creviceShade) crevice = Math.max(0.55, Math.min(1.15, 1 + o.creviceShade * (b - 1)));
       }
       const { cord, tintVar, mossN, lichenN } = cordField(o.noise, angle, distance, o.refRadius, cords);
-      const r = d.r * ridge + amp * (cord - 0.65);
       nrm.copy(u).multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle));
-      p.copy(d.p).addScaledVector(nrm, r);
-      if (k === 0 && o.flatBase) p.y = dense[0].p.y;
-      // furrow occlusion (`crest` on the crests, aoFloor × it at the furrow bottoms, following the
-      // cord's rounded flank) rides in aWind.z, negative; it follows the amplitude out at the end
-      const ao = 1 + (crest * (aoFloor + (1 - aoFloor) * smoothstep(0, 1, cord)) - 1) * endShare;
-      // colour: ring colour × the sweep's grain × the gnarl's crevice shade × cord tint × moss
-      const grain = o.draws.grain[Math.floor(((j % sides) / sides) * grainN)];
-      const shade = crevice * grain * (0.96 + 0.045 * Math.sin(distance * 2.1 + o.draws.phase));
-      _tint.copy(grime).lerp(CREST_TINT, Math.pow(cord, 0.7));
-      _tint.multiplyScalar(1 + 0.16 * tintVar * Math.pow(cord, 0.7));
+      // the relief surface point: what the moss masks are sampled at; the moss bulge (below) is
+      // added after them, so a build without one is exactly what it was
+      const r0 = d.r * ridge + amp * (cord - 0.65);
+      p.copy(d.p).addScaledVector(nrm, r0);
       // furrow moss: packed at the bottom of the furrows where the moss noise favours it — the
       // crests and the flanks stay bare bark (a first cut at 0.42–0.78 with the cord weighted
       // 0.72 read as a green-felted bole from 1–3 m: concept 05 keeps 40–50 % bark showing)
@@ -360,6 +380,25 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
         moss = Math.max(moss, sheet);
       }
       if (o.mossExtra) moss = Math.max(moss, o.mossExtra(p, Math.max(0, nrm.y)));
+      // the moss as a volume (round 44): a dense cover fills its furrow and stands a little proud
+      // of the cords — a cushion, not a stain; out with the relief at the end ring
+      const bulge = mossBulge > 0 ? amp * mossBulge * smoothstep(0.35, 0.95, moss) * (0.55 + 0.45 * (0.5 + 0.5 * mossN)) : 0;
+      const r = r0 + bulge;
+      if (bulge > 0) p.addScaledVector(nrm, bulge);
+      if (k === 0 && o.flatBase) p.y = dense[0].p.y;
+      // a cushion seed where the cover is dense, at the bole's own pitch (every `seedEvery`-th
+      // eligible vertex, so the domes follow the sheets and the furrows, not a grid)
+      if (o.cushions && j < sides && k > 0 && endShare > 0.35 && moss > 0.6 && p.y > (o.cushions.minY ?? dense[0].p.y + 0.15)) {
+        if (seedCounter++ % seedEvery === 0) seeds.push({ p: p.clone(), n: nrm.clone(), moss, r });
+      }
+      // furrow occlusion (`crest` on the crests, aoFloor × it at the furrow bottoms, following the
+      // cord's rounded flank) rides in aWind.z, negative; it follows the amplitude out at the end
+      const ao = 1 + (crest * (aoFloor + (1 - aoFloor) * smoothstep(0, 1, cord)) - 1) * endShare;
+      // colour: ring colour × the sweep's grain × the gnarl's crevice shade × cord tint × moss
+      const grain = o.draws.grain[Math.floor(((j % sides) / sides) * grainN)];
+      const shade = crevice * grain * (0.96 + 0.045 * Math.sin(distance * 2.1 + o.draws.phase));
+      _tint.copy(grime).lerp(CREST_TINT, Math.pow(cord, 0.7));
+      _tint.multiplyScalar(1 + 0.16 * tintVar * Math.pow(cord, 0.7));
       // lichen plates on the crests and upper flanks, never under the moss: a clustered field
       // with a soft edge, so the crusts read as patches 20–40 cm across, not as speckle
       if (lichenBand > 0) {
@@ -398,7 +437,73 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
     const cap = writer.vertex(last.p, o.color(last.p, 1), 0.5, last.distance / o.barkTile, o.stiffness ? o.stiffness(last.r, 1) : stiffnessFor(last.r), o.draws.windPhase, 0, 0);
     for (let j = 0; j < sides; j++) writer.triangle(cap, end[j], end[j + 1]);
   }
-  return { rows, rings: dense.length, sides, mossShare: mossCount ? mossHits / mossCount : 0, amplitude: o.amplitude, triangles: writer.triangles - trisBefore };
+  let cushions = 0;
+  if (o.cushions && seeds.length) {
+    const max = o.cushions.maxCount ?? 400;
+    const step = seeds.length > max ? seeds.length / max : 1;
+    for (let i = 0; i < seeds.length && cushions < max; i += step) {
+      const s = seeds[Math.floor(i)];
+      cushions += mossCushion(writer, s.p, s.n, o.cushions.rng, o.cushions.size, s.moss, o.noise, o.stiffness ? o.stiffness(s.r, 0) : stiffnessFor(s.r), o.draws.windPhase);
+      if (cushions % 24 === 0) yield;
+    }
+  }
+  return { rows, rings: dense.length, sides, mossShare: mossCount ? mossHits / mossCount : 0, amplitude: o.amplitude, triangles: writer.triangles - trisBefore, cushions };
+}
+
+/** the moss cushions' tints (vertex colour under the bark map; the shader lays its own cushion texture over it) */
+const CUSHION_DEEP = new Color(0.34, 0.5, 0.2);
+const CUSHION_LIT = new Color(0.56, 0.74, 0.34);
+
+/**
+ * One 3-D moss cushion (round 44): a squat dome seated on the bark at `p`, its axis along the
+ * surface normal `n`, radius from `size` scaled by the cover, height 0.45–0.65 of the radius,
+ * the rim tucked 1 cm into the bark so it sits IN the bark; the outline breathes with the noise
+ * so no two read as the same hemisphere. Full moss cover on every vertex (the tree shader lays
+ * the cushion texture and its rim shading over it), the rim occluded, the crown lit. 7 sides ×
+ * 2 rings + apex = 21 triangles. Returns 1 (a cushion built).
+ */
+export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng: RandomFn, size: [number, number], cover: number, noise: Noise2D, stiffness: number, windPhase: number): number {
+  // 9 around: a 7-gon read as a faceted dome where a stand-next pose puts the lens 15 cm from one
+  const sides = 9;
+  const radius = (size[0] + rng() * (size[1] - size[0])) * (0.7 + 0.5 * Math.min(1, cover));
+  const height = radius * (0.45 + rng() * 0.2);
+  const phase = rng() * TAU;
+  const squash = 0.8 + rng() * 0.4;
+  const [u, v] = frame(n);
+  const base = p.clone().addScaledVector(n, -0.01);
+  const q = new Vector3();
+  const rings = [
+    { t: 1.0, lift: 0.0, ao: 0.62 },
+    { t: 0.62, lift: 0.72, ao: 0.86 },
+  ];
+  const rows: number[][] = [];
+  for (const ring of rings) {
+    const row: number[] = [];
+    for (let j = 0; j <= sides; j++) {
+      const a = ((j % sides) / sides) * TAU + phase;
+      const wobble = 1 + 0.22 * noise.noise(Math.cos(a) * 2.3 + p.x * 7, Math.sin(a) * 2.3 + p.z * 7 + p.y * 3);
+      const rr = radius * ring.t * wobble;
+      q.copy(base).addScaledVector(u, Math.cos(a) * rr * squash).addScaledVector(v, Math.sin(a) * rr).addScaledVector(n, height * ring.lift);
+      const mossN = 0.5 + 0.5 * noise.noise(q.x * 9 + 1.1, q.z * 9 + q.y * 5);
+      _c.copy(CUSHION_DEEP).lerp(CUSHION_LIT, ring.lift * 0.6 + mossN * 0.4);
+      writer.woodMoss = 1;
+      row.push(writer.vertex(q, _c, j / sides, ring.t, stiffness, windPhase, packOcclusion(ring.ao), 0));
+      writer.woodMoss = 0;
+    }
+    writer.seams.push([row[0], row[sides]]);
+    rows.push(row);
+  }
+  for (let j = 0; j < sides; j++) {
+    writer.triangle(rows[0][j], rows[0][j + 1], rows[1][j]);
+    writer.triangle(rows[0][j + 1], rows[1][j + 1], rows[1][j]);
+  }
+  const apexP = base.clone().addScaledVector(n, height).addScaledVector(u, (rng() - 0.5) * radius * 0.3).addScaledVector(v, (rng() - 0.5) * radius * 0.3);
+  _c.copy(CUSHION_LIT).multiplyScalar(0.92 + 0.16 * rng());
+  writer.woodMoss = 1;
+  const apex = writer.vertex(apexP, _c, 0.5, 0, stiffness, windPhase, packOcclusion(1), 0);
+  writer.woodMoss = 0;
+  for (let j = 0; j < sides; j++) writer.triangle(rows[1][j], rows[1][j + 1], apex);
+  return 1;
 }
 
 /**
@@ -560,6 +665,8 @@ export interface ButtressRootOptions {
   pathAt?: (x: number, z: number) => number;
   /** 0–1 moss strength on the top faces (default 1) */
   mossStrength?: number;
+  /** round 44: 3-D moss cushions on the fin's back where its moss is dense (see BoleReliefOptions.cushions) */
+  cushions?: { rng: RandomFn; density: number; size: [number, number]; maxCount?: number };
 }
 
 export interface ButtressRootResult {
@@ -567,6 +674,7 @@ export interface ButtressRootResult {
   /** local-space toe tips (on the ground) */
   toeTips: Vector3[];
   triangles: number;
+  cushions: number;
 }
 
 const ROOT_MOSS = new Color(0.5, 0.7, 0.32);
@@ -601,6 +709,10 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
   const mossStrength = o.mossStrength ?? 1;
   let previous: number[] | null = null;
   const q = new Vector3();
+  const seeds: { p: Vector3; n: Vector3; moss: number; r: number }[] = [];
+  const seedEvery = o.cushions ? Math.max(1, Math.round(1 / Math.max(0.02, o.cushions.density))) : 0;
+  let seedCounter = 0;
+  const outward = new Vector3();
   for (let k = 0; k <= finRings; k++) {
     const t = (k / finRings) * finEnd;
     const { p, r } = sampleAt(t);
@@ -639,6 +751,12 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
       // moss on the top faces: cushions where the fin's back faces up AND the moss noise favours
       // it, ragged toward the toes — the flanks and the grooves between cushions stay bark
       const moss = smoothstep(0.68, 1.0, upness * 0.55 + mossN * 0.6 - 0.15 * t) * (1 - smoothstep(0.65, 1, t)) * mossStrength;
+      if (o.cushions && j < sides && sa > 0.45 && moss > 0.55 && q.y > g + 0.03) {
+        if (seedCounter++ % seedEvery === 0) {
+          outward.copy(side).multiplyScalar(ca / Math.max(1e-3, halfWidth)).addScaledVector(up, sa / Math.max(1e-3, height)).normalize();
+          seeds.push({ p: q.clone(), n: outward.clone(), moss, r });
+        }
+      }
       const soil = smoothstep(-0.2, -0.75, sa);
       _c.copy(ringColor).multiplyScalar(0.9 + 0.1 * sa).lerp(ROOT_MOSS, moss * 0.85).lerp(ROOT_SOIL, soil * 0.5);
       // the fin's flanks are occluded toward the ground, its cord grooves a little more; its top
@@ -721,5 +839,14 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
     }
     toeTips.push(new Vector3(tip.x, o.groundAt(tip.x, tip.z), tip.z));
   }
-  return { toes: toeCount, toeTips, triangles: writer.triangles - trisBefore };
+  let cushions = 0;
+  if (o.cushions && seeds.length) {
+    const max = o.cushions.maxCount ?? 60;
+    const step = seeds.length > max ? seeds.length / max : 1;
+    for (let i = 0; i < seeds.length && cushions < max; i += step) {
+      const s = seeds[Math.floor(i)];
+      cushions += mossCushion(writer, s.p, s.n, o.cushions.rng, o.cushions.size, s.moss, o.noise, o.stiffness ? o.stiffness(s.r, 0.3) : stiffnessFor(s.r), o.draws.windPhase);
+    }
+  }
+  return { toes: toeCount, toeTips, triangles: writer.triangles - trisBefore, cushions };
 }

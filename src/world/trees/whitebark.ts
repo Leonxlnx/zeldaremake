@@ -11,6 +11,7 @@
 import { BufferGeometry, Color, Vector3 } from 'three';
 import { createRng, type Rng } from '../util/prng';
 import { smoothstep } from '../util/noise';
+import { consumeTubeDraws } from './bole';
 import {
   GeometryWriter,
   TAU,
@@ -139,9 +140,21 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const t = i / (trunk.length - 1);
     const above = Math.max(0, pt.y) / stemHeight;
     const radius = tipRadius + (R - tipRadius) * Math.pow(1 - t, p.taperPower);
-    return radius * (1 + 0.5 * Math.exp(-above * 22));
+    // the root flare: the sharp foot swell as before plus a longer butt swell (round 44, survey
+    // crop 31 "white-bark base without flare": +20 % at the ground fading over ≈ 2 m of a mature
+    // stem), the same at every LOD so the three meshes keep one silhouette
+    return radius * (1 + 0.5 * Math.exp(-above * 22) + 0.2 * Math.exp(-above * 6));
   });
-  tube(wood, trunk, trunkRadii, 12, rng, {
+  // the trunk's draws are taken for 12 sides at every LOD (the stream after them never moves);
+  // the high mesh — the one drawn at 1–3 m — rounds the stem with 18 sides on the same grain and
+  // peels the bark in shallow papery ledges (1.8 % of the radius, tilted a little around the
+  // stem), the survey's "smooth 12-gon at 1.5 m"
+  const trunkSides = 12;
+  const highSides = detail === 'high' ? 18 : trunkSides;
+  const trunkDraws = consumeTubeDraws(rng, trunkSides);
+  if (highSides !== trunkSides) trunkDraws.grain = Array.from({ length: highSides }, (_, j) => trunkDraws.grain[Math.floor((j / highSides) * trunkSides)]);
+  const plateBump = detail === 'high' ? (angle: number, distance: number, t: number) => 1 + 0.018 * (1 - t) * Math.sin(distance * 6.5 + 1.4 * Math.sin(angle * 2 + trunkDraws.phase)) : undefined;
+  tube(wood, trunk, trunkRadii, highSides, rng, {
     color: trunkColor,
     roughness: p.ridge,
     barkTile: 1.0,
@@ -149,6 +162,9 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     isTrunk: true,
     structural: true,
     stiffness: () => 1,
+    draws: trunkDraws,
+    bump: plateBump,
+    creviceShade: plateBump ? 1.6 : undefined,
   });
 
   // root flare

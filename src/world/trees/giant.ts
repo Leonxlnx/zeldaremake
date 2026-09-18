@@ -57,8 +57,35 @@ import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type He
 export const NEAR_BASE_CUT_Y = 5;
 export const NEAR_BASE_IN_M = 10;
 export const NEAR_BASE_OUT_M = 13;
-/** per-bole [in, out] bands (m) where the default would put a fixed camera inside; key = NearBole id */
-export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = { 'seat-7': [5, 7] };
+/**
+ * per-bole [in, out] bands (m) where the default would put a fixed camera inside, or — round 44,
+ * survey #1 / #4: the north-east giant read as a smooth orange cylinder with a lime root skirt
+ * from 11.8 m (w17-spine-r), the plateau-oak the same from the plateau walk — where every fixed
+ * camera stands far enough that the band can be WIDER than the default (the nearest hero camera,
+ * in the frame or not, stays ≥ 2 m outside the out-radius, so no fixed frame and no shadow it
+ * measures ever sees the swap); key = NearBole id
+ */
+export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {
+  'seat-7': [5, 7],
+  // giants (nearest fixed camera, m): north-east 31.9, far-plateau 36.3, north-west 29.6, east 26.8
+  'north-east': [18, 22],
+  'far-plateau': [18, 22],
+  'north-west': [18, 22],
+  'east-giant': [18, 22],
+  // plateau-oak 21.3 (C, off-frame), southwest 21.6, south-centre 19.0, south 17.7 (A, off-frame)
+  'plateau-oak': [16, 19],
+  'southwest-giant': [16, 19],
+  'south-centre': [15, 17],
+  'south-giant': [14, 15.5],
+  // the hollow's and the plateau's column seats (index.ts COLUMN_SEATS): nearest camera 18–28 m
+  'seat-0': [14, 16],
+  'seat-1': [18, 22],
+  'seat-2': [18, 22],
+  'seat-3': [16, 18],
+  'seat-4': [16, 18.5],
+  'seat-5': [18, 21],
+  'seat-6': [12, 13.5],
+};
 /** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */
 export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));
 /** cord pitch (m around the bole) of the near bases' relief: concept 05's fissures every 25–35 cm */
@@ -177,6 +204,8 @@ export interface GiantAsset {
     fins: number;
     bigFins: number;
     toes: number;
+    /** round 44: 3-D moss cushions on the bole and the fins (bole.ts mossCushion) */
+    cushions: number;
     woodTriangles: number;
     plants: BasePlantResult;
     triangles: number;
@@ -802,8 +831,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       mossStrength: 1,
       shadeDir,
       sheetBand: [1.0, 2.6],
+      // round 44 (survey #1 "moss as a painted decal"): the cover bulges and carries 3-D cushions
+      mossBulge: 0.7,
+      cushions: { rng: nrng.fork('cushions'), density: 0.045, size: [0.05, 0.12], maxCount: 320 },
     });
     yield;
+    let cushions = bole.cushions;
     // fins: one per plain root along its own centreline; 3–6 of them are the big flares
     const bigCount = nrng.int(3, Math.min(6, rootCount));
     const bigStart = nrng.int(0, rootCount);
@@ -825,8 +858,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         maxReach: root.length + 0.15,
         stiffness: stiff,
         noise: nNoise,
+        cushions: { rng: nrng.fork(`fin-cushions/${root.index}`), density: 0.08, size: [0.05, 0.11], maxCount: 40 },
       });
       toes += built.toes;
+      cushions += built.cushions;
       finFoot.push({ path: root.path, halfWidth: root.radii[0] * (big ? 2.4 : 1.5) });
       yield;
     }
@@ -880,6 +915,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         fins: plainRoots.length,
         bigFins: bigSet.size,
         toes,
+        cushions,
         woodTriangles,
         plants,
         triangles: nb.triangles,
@@ -1226,7 +1262,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   let nearGroups = 0;
   const nearTally = { kept: 0, limited: 0 };
   const swapRadii = (center: Vector3, radius: number) => swapRadiiFor(near?.heroDistance, center, radius, nearTally);
-  const recordLimb = (path: Vector3[], radii: number[]) => {
+  const recordLimb = (path: Vector3[], radii: number[], sleeve?: NearLimbRecord['sleeve']) => {
     if (!near || ghost) return;
     const midY = sample(path, 0.5).y;
     if (midY > NEAR_CANOPY_MAX_Y || path.length < 3) return;
@@ -1234,7 +1270,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const reach = 0.5 * path.reduce((s, p, i) => (i ? s + p.distanceTo(path[i - 1]) : 0), 0) + 3.8;
     const radii2 = swapRadii(sample(path, 0.6), reach);
     if (!radii2) return;
-    nearLimbs.push({ path, radii, inM: radii2[0], outM: radii2[1] });
+    nearLimbs.push({ path, radii, inM: radii2[0], outM: radii2[1], sleeve });
   };
 
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false, stemRadii?: number[]) {
@@ -1243,7 +1279,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // under any hero camera that frames it. Its far foliage is tagged with the lobe's group while
     // it is written; nothing about the far lobe itself changes.
     let rec: NearLobeRecord | null = null;
-    if (near && !ghost && !lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1 && center.y <= NEAR_CANOPY_MAX_Y) {
+    // Round 44 (survey #12: "near-canopy lobes at 5–8 m = huge single-tone flat shapes"): a FLAT
+    // lobe (the bank canopy's cored lobes, 3.4 m over the plaza's east edge) is eligible too. Its
+    // far foliage stays the flat, even mass the hero frames measure at 10–15 m (writer.ts writes
+    // a flat tagged leaf as 1000 + group + share, decoded as flat), and under the swap radius —
+    // 9–12 m for these, cut under A by swapRadii — a player sees the same lit, layered near
+    // version every other lobe gets, on the wood the core hid.
+    const flatEligible = lobeFlat && !compact && !ghost;
+    if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
       const radii2 = swapRadii(center, hR + 1.4);
       if (radii2) {
         rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
@@ -1311,6 +1354,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       cards.leafSwapGroup = -1;
       nearLobes.push(rec);
     }
+    return rec;
   }
 
   // ---------- big near-horizontal limbs ----------
@@ -1499,8 +1543,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       radii.push(r1 * (1 - 0.7 * s));
     }
     ghost = woodGhost;
-    tube(wood, path, radii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.7, 0.11), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    recordLimb(path, radii);
+    // the sweep's draws taken here (exactly what tube() draws) so the near dressing can replay
+    // its ridge for the bark sleeve (nearCanopy.ts NearLimbRecord.sleeve)
+    const limbDraws = consumeTubeDraws(r, 12);
+    const limbBump = gnarlBump(1.7, 0.11);
+    tube(wood, path, radii, 12, r, { color: barkColor, roughness: 0.06, bump: limbBump, creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: limbDraws });
+    recordLimb(path, radii, { draws: limbDraws, bump: limbBump, roughness: 0.06, barkTile: 1.2 });
     ghost = false;
     if (!woodGhost) limbs++;
     // `foliage` thins only the outer third + tip (the part that reaches into the hero frames); the
@@ -1570,8 +1618,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     }
     const r0 = Math.max(0.55, trunkR * bt(0.3, 0.42));
     const limbRadii = taper(path, r0, 0.1, 0.9);
-    tube(wood, path, limbRadii, 12, r, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    recordLimb(path, limbRadii);
+    const limbDraws = consumeTubeDraws(r, 12);
+    const limbBump = gnarlBump(1.6, 0.12);
+    tube(wood, path, limbRadii, 12, r, { color: barkColor, roughness: 0.06, bump: limbBump, creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: limbDraws });
+    recordLimb(path, limbRadii, { draws: limbDraws, bump: limbBump, roughness: 0.06, barkTile: 1.2 });
     if (!ghost) limbs++;
     limbLobes(path, r0, [0.5, 0.78, 1.0], crownRadius * bt(0.2, 0.26), H * 0.07, bt(1.5, 2.5));
   }
@@ -1647,8 +1697,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
     }
     const spreadRadii = taper(path, r0, 0.08, 0.85);
-    tube(wood, path, spreadRadii, 12, rs, { color: barkColor, roughness: 0.06, bump: gnarlBump(1.6, 0.12), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff });
-    recordLimb(path, spreadRadii);
+    const spreadDraws = consumeTubeDraws(rs, 12);
+    const spreadBump = gnarlBump(1.6, 0.12);
+    tube(wood, path, spreadRadii, 12, rs, { color: barkColor, roughness: 0.06, bump: spreadBump, creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: spreadDraws });
+    recordLimb(path, spreadRadii, { draws: spreadDraws, bump: spreadBump, roughness: 0.06, barkTile: 1.2 });
     limbs++;
     const lf = spec.foliage ?? 1;
     const ld = spec.density ?? 1;
@@ -1775,9 +1827,19 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // a compact clump does the same whichever way its stem runs
       const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
       const leavesBefore = leaves.leafCount;
-      foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
+      const lobeRec = foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
       lobeLeafCounts.push(leaves.leafCount - leavesBefore);
-      if (lobeFlat && lobeSpec.core) lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
+      if (lobeFlat && lobeSpec.core) {
+        // the core and its rim cards are the lobe's far foliage too: tagged with the same group
+        // so they fold with the laminae while the near version is drawn (round 44)
+        const cardsBefore = cards.triangles;
+        if (lobeRec) leaves.leafSwapGroup = cards.leafSwapGroup = lobeRec.group;
+        lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
+        if (lobeRec) {
+          leaves.leafSwapGroup = cards.leafSwapGroup = -1;
+          lobeRec.farCards += (cards.triangles - cardsBefore) / 2;
+        }
+      }
       eyeOverride = null;
       lobeTone = 1;
       leaves.leafShade = cards.leafShade = 1;

@@ -130,6 +130,8 @@ export interface ColumnParams {
    * metres (1 = the default for its radius). Unset = the plain sweep (the far columns, the hut hosts).
    */
   relief?: number;
+  /** round 44: the relief bole's moss stands proud of the cords by this × the amplitude (bole.ts mossBulge); unset = flat */
+  mossBulge?: number;
 }
 
 /** Deterministic architecture for variant `index` of `total`. */
@@ -155,6 +157,12 @@ export function columnParams(rng: Rng, index: number, total: number): ColumnPara
     flare: 0.55,
     barkTile: 1.6,
     gnarl: 0.1,
+    // round 44 (survey #2: "column trees are untextured grey cylinders"): the near-bole cords and
+    // furrows (bole.ts) at every distance and every detail, as the emergent has had since round
+    // 40 — 0.7 of the default amplitude for the radius (≈ 5 cm on a 60 cm bole): the cords and
+    // their crevice shading read from 5–20 m, the silhouette stays a straight dark column
+    relief: 0.7,
+    mossBulge: 0.5,
   };
 }
 
@@ -323,6 +331,10 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       sheetBand: [0.8, 2.4],
       mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 5.5], 0.9, centreAt) : undefined,
       lichen: { band: [3, 12], strength: 0.8 },
+      // round 44: the moss sheets stand a little proud of the cords (no extra triangles; the
+      // near base's cushions are the fins' — this bole is never swapped out). Not the emergent:
+      // camera D has its bole at 4.4 m and the frame is matched to the flat cover.
+      mossBulge: p.mossBulge,
     });
     bark = { relief: built.amplitude, rings: built.rings, sides: built.sides, mossShare: built.mossShare, triangles: built.triangles };
   } else {
@@ -506,8 +518,12 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     wideSecond: 0.8,
     stiffness: stiffnessFor(radius),
     flutter: 0.03,
-    // seen from 20–45 m: stylised laminae, medium triangles; distance LODs keep every 3rd / 6th
-    detailOverride: 'medium' as Detail,
+    // seen from 20–45 m: stylised laminae; distance LODs keep every 3rd / 6th. Round 44 (survey
+    // #2, crop 33: the crowns against the sky were "flat spiky cut-outs" — 4-triangle kites at
+    // 0.3 m): the high detail, the one a walker under a column sees, builds the obovate
+    // 8-triangle lamina (writer.ts addLeaf) — a rounded blade with a tip, the layered masses
+    // the near canopy dresses; medium / low keep their kites (they are 3–6 px there)
+    detailOverride: (detail === 'high' ? 'high' : 'medium') as Detail,
     mediumEvery: 3,
     lowEvery: 6,
     mediumScale: 1.7,
