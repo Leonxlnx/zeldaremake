@@ -132,6 +132,19 @@ export interface ColumnParams {
   relief?: number;
   /** round 44: the relief bole's moss stands proud of the cords by this × the amplitude (bole.ts mossBulge); unset = flat */
   mossBulge?: number;
+  /**
+   * Round 45 (trees-27's leftover: "columns beyond ~15 m read as pale cylinders"): the far
+   * columns' colouring for distance. `barkDark` scales the bark tones (1 = the round-44 bark);
+   * `grime` is the strength of the soil-dark band at the foot (0.45 = the round-44 band, to 3 m;
+   * larger also reaches higher); `toneBands` is the relief's albedo band amplitude (bole.ts
+   * BoleReliefOptions.toneBands); `flareFall` is the exponent rate of the basal flare's decay
+   * with height / H (9 = the default, gone by ≈ 3 m; smaller = a foot that reads from 20 m).
+   * Unset = the round-44 column (the emergent, whose bole camera D has at 4.4 m).
+   */
+  barkDark?: number;
+  grime?: number;
+  toneBands?: number;
+  flareFall?: number;
 }
 
 /** Deterministic architecture for variant `index` of `total`. */
@@ -154,7 +167,10 @@ export function columnParams(rng: Rng, index: number, total: number): ColumnPara
     leafDensity: r.range(0.9, 1.1),
     roots: r.int(5, 8),
     rootReach: [2.4, 3.8],
-    flare: 0.55,
+    // round 45: a foot that survives distance — the flare 0.55 → 0.85 of the radius at the
+    // ground and falling at 6 instead of 9 (0.47 R extra at 2 m, 0.26 R at 4 m; was 0.23 / 0.09)
+    flare: 0.85,
+    flareFall: 6,
     barkTile: 1.6,
     gnarl: 0.1,
     // round 44 (survey #2: "column trees are untextured grey cylinders"): the near-bole cords and
@@ -163,6 +179,12 @@ export function columnParams(rng: Rng, index: number, total: number): ColumnPara
     // their crevice shading read from 5–20 m, the silhouette stays a straight dark column
     relief: 0.7,
     mossBulge: 0.5,
+    // round 45: coloured for 15–45 m in haze (with the columns' own bark floor, materials.ts
+    // COLUMN_BARK_FLOOR): the bark 0.84 of the round-44 tones, the soil-dark grime 0.7 to 4 m,
+    // ±24 % tone bands around and along the bole
+    barkDark: 0.84,
+    grime: 0.7,
+    toneBands: 0.24,
   };
 }
 
@@ -223,13 +245,17 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
   // of its own brightness into whatever stands there, so only a bole this dark still reads as a
   // dark column against it (the reference's far trunks sit 0.03–0.07 under the haze between them,
   // its near ones at 0.30–0.33); never the pale white-bark species beside them
-  const barkBase = new Color(0.44, 0.39, 0.33);
-  const barkDeep = new Color(0.19, 0.155, 0.125);
+  const barkDark = p.barkDark ?? 1;
+  const barkBase = new Color(0.44, 0.39, 0.33).multiplyScalar(barkDark);
+  const barkDeep = new Color(0.19, 0.155, 0.125).multiplyScalar(barkDark);
   const canopy = new Color(palette.leafCanopy);
   const sunny = new Color(palette.leafSun);
+  const grimeStrength = p.grime ?? 0.45;
+  // the grime reaches higher as it strengthens (0.45 → 3 m, 0.7 → 4 m), its lower metre darkest
+  const grimeTop = 3 + (grimeStrength - 0.45) * 4;
   const barkColor = (pt: Vector3) => {
-    const soil = 1 - smoothstep(-0.5, 3, pt.y);
-    return barkBase.clone().lerp(barkDeep, 0.45 * soil).multiplyScalar(0.92 + 0.1 * smoothstep(3, 14, pt.y));
+    const soil = 1 - smoothstep(-0.5, grimeTop, pt.y);
+    return barkBase.clone().lerp(barkDeep, Math.min(0.85, grimeStrength) * soil).multiplyScalar(0.92 + 0.1 * smoothstep(3, 14, pt.y));
   };
   const gnarlBump = (angle: number, distance: number) => {
     const cx = Math.cos(angle) * 1.6;
@@ -252,7 +278,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const t = i / (trunk.length - 1);
     const above = Math.max(0, pt.y) / H;
     const radius = forkRadius + (R - forkRadius) * Math.pow(1 - t, 0.85);
-    return radius * (1 + p.flare * Math.exp(-above * 9));
+    return radius * (1 + p.flare * Math.exp(-above * (p.flareFall ?? 9)));
   });
   let bark: ColumnAsset['bark'] = null;
   // the plain sweep's up-front draws are taken here whichever bole is built, so the near base
@@ -331,6 +357,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       sheetBand: [0.8, 2.4],
       mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 5.5], 0.9, centreAt) : undefined,
       lichen: { band: [3, 12], strength: 0.8 },
+      toneBands: p.toneBands,
       // round 44: the moss sheets stand a little proud of the cords (no extra triangles; the
       // near base's cushions are the fins' — this bole is never swapped out). Not the emergent:
       // camera D has its bole at 4.4 m and the frame is matched to the flat cover.
@@ -541,6 +568,14 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
   const nearLobes: NearLobeRecord[] = [];
   let nearGroups = 0;
   const nearTally = { kept: 0, limited: 0 };
+  // Round 45 (survey w19-spine-u: "pale twig tips spiking the rim" of the crowns seen from
+  // below): the twigs ran to 0.55–0.95 of the lobe's radius — their bare last 20 cm stood past
+  // the laminae, and a 5 cm shaded twig against the sky is a pale line under the bark floor. The
+  // twigs now end at 0.45–0.8 hR (the laminae along them, 0.25–0.35 m and turned outward, close
+  // over the ends) and their wood is tinted from the bark toward the deep leaf tone over the
+  // outer half, as are the leaders' and boughs' ends inside the lobes, so whatever still shows
+  // between laminae reads as the mass's own dark, not a spike.
+  const twigTip = canopy.clone().multiplyScalar(0.55);
   const lobe = (bough: Vector3[], boughRadius: number, center: Vector3, hR: number, vR: number, vigor: number) => {
     const twigs = 7;
     const count = Math.max(2, Math.round(56 * p.leafDensity));
@@ -559,11 +594,12 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
       const origin = sample(bough, Math.min(1, attach));
       const a = phase + k * 2.39996 + bt(-0.4, 0.4);
       const elevation = bt(-0.5, 0.75);
-      const reach = hR * Math.sqrt(1 - elevation * elevation) * bt(0.55, 0.95);
+      const reach = hR * Math.sqrt(1 - elevation * elevation) * bt(0.45, 0.8);
       const target = center.clone().add(new Vector3(Math.cos(a) * reach, elevation * vR, Math.sin(a) * reach));
       const twig = growthPath(origin, target, tangent(bough, Math.min(1, attach)), rng, 5, 0.8);
       const twigRadius = Math.max(0.012, boughRadius * 0.35);
-      tube(wood, twig, taper(twig, twigRadius, 0.004), 4, rng, { color: barkDeep, roughness: 0.02 });
+      const twigLength = Math.max(0.3, origin.distanceTo(target));
+      tube(wood, twig, taper(twig, twigRadius, 0.004), 4, rng, { color: (pt) => barkDeep.clone().lerp(twigTip, smoothstep(0.35, 1, pt.distanceTo(origin) / twigLength) * 0.7), roughness: 0.02 });
       rec?.twigs.push({ path: twig, radius: twigRadius });
       const opts = leafOpts(twigRadius);
       for (let j = 0; j < count; j++) {
@@ -596,7 +632,8 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const target = new Vector3(top.x + Math.cos(angle) * reach, H * bt(0.9, 1.0), top.z + Math.sin(angle) * reach);
     const path = divergingLeaderPath(top, target, rng, 12);
     const radius = forkRadius * bt(0.55, 0.75);
-    tube(wood, path, taper(path, radius, 0.03, 1.05), 8, rng, { color: barkColor, roughness: 0.04, barkTile: 1.4, structural: true, stiffness: stiff });
+    // the leader's top runs up into its lobe: bark to the deep leaf tone over the last 15 % of H
+    tube(wood, path, taper(path, radius, 0.03, 1.05), 8, rng, { color: (pt) => barkColor(pt).lerp(twigTip, smoothstep(H * 0.82, H * 0.97, pt.y) * 0.6), roughness: 0.04, barkTile: 1.4, structural: true, stiffness: stiff });
     const center = target.clone().add(new Vector3(bt(-0.3, 0.3), -H * bt(0.03, 0.06), bt(-0.3, 0.3)));
     lobe(path, radius, center, crownRadius * bt(0.32, 0.42), H * bt(0.07, 0.1), bt(0.9, 1.05));
   }
@@ -613,7 +650,8 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const end = center.clone().add(new Vector3(bt(-0.3, 0.3), bt(-0.4, 0.0), bt(-0.3, 0.3)));
     const bough = growthPath(origin, end, forkTangent.clone().lerp(new Vector3(Math.cos(angle), 0.35, Math.sin(angle)), 0.7), rng, 10, 0.6);
     const radius = Math.max(0.05, forkRadius * bt(0.4, 0.6));
-    tube(wood, bough, taper(bough, radius, 0.02, 1.05), 6, rng, { color: barkColor, roughness: 0.04, structural: true, stiffness: stiff });
+    const boughLength = Math.max(0.5, origin.distanceTo(end));
+    tube(wood, bough, taper(bough, radius, 0.02, 1.05), 6, rng, { color: (pt) => barkColor(pt).lerp(twigTip, smoothstep(0.6, 1, pt.distanceTo(origin) / boughLength) * 0.6), roughness: 0.04, structural: true, stiffness: stiff });
     lobe(bough, radius, center, crownRadius * bt(0.36, 0.48), H * bt(0.08, 0.12), bt(0.85, 1.0));
   }
 

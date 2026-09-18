@@ -23,7 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+import { COLUMN_BARK_FLOOR, createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
@@ -1855,7 +1855,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const columnGroup = new Group();
   columnGroup.name = 'columns';
-  familyMeshes(seatedColumns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
+  // round 45: the columns' own bark floor (materials COLUMN_BARK_FLOOR) keeps their tone bands in shade
+  familyMeshes(seatedColumns, 'column', mats.columnTree, mats.giantTreeDepth, columnGroup);
   for (const c of seatedColumns) for (const m of c.meshes) {
     const p = c.placements[0];
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
@@ -2903,6 +2904,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             ['leaf', TREE_LEAF_FLOOR],
             ['leafNear', TREE_LEAF_FLOOR_NEAR],
             ['nearBole', TREE_NEAR_BOLE_FLOOR],
+            ['column', COLUMN_BARK_FLOOR],
             ['nearBase', NEAR_BASE_FLOOR],
             ['nearCanopyLeaf', NEAR_CANOPY_LEAF_FLOOR],
           ] as [string, ShadeFloor][]

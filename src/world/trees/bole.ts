@@ -99,6 +99,12 @@ export interface BoleReliefOptions {
   /** a per-vertex moss addition (0–1, blended with the furrow moss): the caller's own sheet mask */
   mossExtra?: (p: Vector3, upness: number) => number;
   /**
+   * round 45 (the column trees): amplitude of the low-frequency albedo tone bands around and
+   * along the bole (0.24 = ±24 % on the vertex colour, cordField `band`). Unset / 0 = none (the
+   * giants: their tint is exactly what it was).
+   */
+  toneBands?: number;
+  /**
    * rings whose centre this accepts are written collapsible (writer.ts woodCollapsible): a relief
    * bole that is itself the far sweep hands its lower rings to the tree's near base at close range
    */
@@ -207,7 +213,10 @@ function cordField(noise: Noise2D, angle: number, distance: number, rho: number,
   const mossN = on(2.2, 0.9, 5.5, 33.3);
   // lichen plates: clusters 20–40 cm across, slow along the bole, with a finer edge field
   const lichenN = 0.6 * on(3.4, 0.35, 77.7, 12.1) + 0.4 * on(9.5, 1.1, 3.9, 91.2);
-  return { cord, tintVar, mossN, lichenN };
+  // tone bands (round 45, BoleReliefOptions.toneBands): 1–1.5 m patches around the bole drawn
+  // out to 2–4 m streaks along it — the albedo variation a column keeps at 15–30 m in haze
+  const band = on(0.65, 0.3, 88.1, 19.7);
+  return { cord, tintVar, mossN, lichenN, band };
 }
 
 /** lichen crust tint (multiplier on the crest's bark): pale, a little green, matte */
@@ -288,6 +297,7 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
   const aoFloor = 1 - (1 - FURROW_AO) * depth;
   const crest = (1 + (BARK_AO_LIFT - 1) * Math.min(1, depth)) / BARK_AO_LIFT;
   const grime = FURROW_GRIME.clone().lerp(new Color(1, 1, 1), 1 - Math.min(1, depth));
+  const toneBands = o.toneBands ?? 0;
   // the plain sweep's frames replayed (see sweepFrames): with the amplitude faded to zero at a
   // coarse ring the two surfaces coincide, and a near-bole LOD can end on the ring the far bole
   // continues from
@@ -361,7 +371,7 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
         ridge *= b;
         if (o.creviceShade) crevice = Math.max(0.55, Math.min(1.15, 1 + o.creviceShade * (b - 1)));
       }
-      const { cord, tintVar, mossN, lichenN } = cordField(o.noise, angle, distance, o.refRadius, cords);
+      const { cord, tintVar, mossN, lichenN, band } = cordField(o.noise, angle, distance, o.refRadius, cords);
       nrm.copy(u).multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle));
       // the relief surface point: what the moss masks are sampled at; the moss bulge (below) is
       // added after them, so a build without one is exactly what it was
@@ -399,6 +409,14 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
       const shade = crevice * grain * (0.96 + 0.045 * Math.sin(distance * 2.1 + o.draws.phase));
       _tint.copy(grime).lerp(CREST_TINT, Math.pow(cord, 0.7));
       _tint.multiplyScalar(1 + 0.16 * tintVar * Math.pow(cord, 0.7));
+      // tone bands (toneBands = 0 for the giants: ×1 exactly): darker patches a little cooler,
+      // lighter ones a little warmer, like weathered and fresh bark
+      if (toneBands > 0) {
+        const tb = toneBands * band;
+        _tint.r *= 1 + tb * 1.08;
+        _tint.g *= 1 + tb;
+        _tint.b *= 1 + tb * 0.9;
+      }
       // lichen plates on the crests and upper flanks, never under the moss: a clustered field
       // with a soft edge, so the crusts read as patches 20–40 cm across, not as speckle
       if (lichenBand > 0) {

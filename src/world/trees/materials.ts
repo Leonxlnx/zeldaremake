@@ -42,6 +42,15 @@ export interface TreeMaterials {
    */
   giantTreeNear: MeshStandardMaterial;
   /**
+   * round 45: the column trees' copy (column.ts, 12–45 m from the hero cameras) with the bark
+   * floor at COLUMN_BARK_FLOOR — the shared floor keeps a tenth of the bark's own albedo in
+   * shade, which at 15–30 m in haze made every column a pale even cylinder (trees-27's
+   * leftover); this one keeps 0.45 of it, so the cord / furrow tone bands and the base grime the
+   * column bole is coloured with survive the floor and give the haze contrast to work on. The
+   * emergent keeps giantTreeNear.
+   */
+  columnTree: MeshStandardMaterial;
+  /**
    * the near bases (giant.ts NEAR_BASE_CUT_Y): the giants' bark and leaf shading with the bark
    * floor at NEAR_BASE_FLOOR — the relief's furrows carry real occlusion, so the floor no longer
    * has to lift a shaded bole to the frames' hazed grey (it stands 2–12 m from the camera, not 10–20)
@@ -104,6 +113,13 @@ export const NEAR_CANOPY_SLOTS = 40;
 export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
 export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
 export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
+/**
+ * The column trees' bark floor (TreeMaterials.columnTree): a little under the shared lift so a
+ * shaded column sits under the haze rather than in it, and 0.45 of its own albedo kept — the
+ * columns are coloured for distance (column.ts: tone bands around and along the bole, grime at
+ * the foot), and the shared tenth flattened all of it beyond 10 m.
+ */
+export const COLUMN_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.45 };
 export const TREE_LEAF_FLOOR_NEAR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
 /** view distance (m) over which a far program's floor goes from the NEAR preset to the shared one */
 export const TREE_FLOOR_FADE_M: [number, number] = [5, 10];
@@ -147,6 +163,13 @@ interface WindOpts {
  * mipping down to a sprinkle of dots (the cards then read as tufts, not as one lamina).
  */
 const CARD_ALPHA_TEST = 0.42;
+/**
+ * Round 45: a flat lobe card's (writer.ts leafFlat) coverage by |cos| of the angle between its
+ * normal and the view ray — 0 at and under the first value, full from the second — so a card
+ * turned to the ray is never a line over the haze (survey crop 27's plateau "T"). Ordinary
+ * cards are untouched. Exported for the audit.
+ */
+export const CARD_FLAT_EDGE_FADE: [number, number] = [0.15, 0.4];
 const CARD_MIP_BIAS = -0.75;
 function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false) {
   // flat cards (vLeafFlat, declared by the giant canopy material only) take the map as alpha
@@ -1028,6 +1051,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
   injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  // the columns' copy (round 45): same maps and wind, the bark floor at COLUMN_BARK_FLOOR
+  const columnTree = giantTree.clone();
+  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR, 'uColumnFloor'), 'column');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
@@ -1103,6 +1129,13 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
             sampledDiffuseColor.a = mix(sampledDiffuseColor.a, nearColor.a, leafNear);
           }
           diffuseColor *= vec4(mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), vLeafFlat), sampledDiffuseColor.a);
+          // round 45 (survey crop 27, pose w26-stairs-f: a plateau-oak flat lobe card seen
+          // edge-on over a distant trunk read as a "T"): a flat card's coverage goes out as
+          // its plane turns to the view ray — nothing under ~9° to it (cos 0.15, below the
+          // alpha test), full from ~24° (0.4). Only the flat-tagged cards (vLeafFlat): the
+          // ordinary lobes' cards stand at every angle and hide one another's edges.
+          float cardFacing = abs(dot(normalize(vNormal), normalize(vViewPosition)));
+          diffuseColor.a *= mix(1.0, smoothstep(${CARD_FLAT_EDGE_FADE[0].toFixed(2)}, ${CARD_FLAT_EDGE_FADE[1].toFixed(2)}, cardFacing), vLeafFlat);
         #endif
         `,
       );
@@ -1200,6 +1233,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantTree,
     giantTreeDepth,
     giantTreeNear,
+    columnTree,
     giantTreeNearBase,
     giantTreeNearCanopy,
     giantCanopy,
