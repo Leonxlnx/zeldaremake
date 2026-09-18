@@ -7,7 +7,7 @@
  */
 import { Vector3, type BufferGeometry } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { BROADLEAF_U, MeshBuilder, NOT_LAMINA, PETAL_U, TAU, V, bladeStrip, blend, clamp01, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, lathe, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, valueNoise3, type LeafShape, type RGB } from './geometry';
+import { BROADLEAF_U, MeshBuilder, NOT_LAMINA, PETAL_U, TAU, V, bladeStrip, blend, clamp01, curvedLeaf, disc, dome, foldedLeaf, lanceLeaf, lathe, petalCard, pinnateLeaf, rgb, sampleCurve, shapedLeaf, tone, tube, valueNoise3, type LeafShape, type RGB } from './geometry';
 
 /** `ultra` (round 40) is an extra near LOD a builder may offer above `high`; the default LOD list has none */
 export type Detail = 'ultra' | 'high' | 'mid' | 'low';
@@ -770,12 +770,26 @@ function bell(m: MeshBuilder, mouth: Vector3, dir: Vector3, r: number, petals: n
  * The heads' radius jitter widens (PETAL_HEAD_SIZE_JITTER) so no two blooms of a clump match.
  */
 export const PETAL_HEAD_PETALS: readonly [number, number] = [5, 6];
-export const PETAL_HEAD_REACH = 1.35;
+export const PETAL_HEAD_REACH = 1.6;
 export const PETAL_HEAD_CUP = 0.38;
 export const PETAL_HEAD_TILT = 0.18;
 export const PETAL_HEAD_SIZE_JITTER = 0.2;
 /** each petal's own hue lean about its head's violet (the head's FLOWER_HUE_LEAN scale) */
 export const PETAL_HUE_LEAN = 0.06;
+/**
+ * W18 (cap-1 of round 46: shot D's purple share fell 0.374 % → 0.160 %, the floor is 0.3 %): the
+ * first petal ring was diamond laminae 0.58–0.74 × their length wide — half their box each, gaps
+ * between them, and from D's oblique view (the bloom's disc foreshortened ≈ ½) the ring covered
+ * about half of what the sphere's silhouette had. The metric counts violet at 256 × 144, where a
+ * petal gap averaged with the turf drops the pixel out of the saturation band, so the bloom has to
+ * be SOLID: obovate `petalCard`s (⅔ of their box) PETAL_WIDTH × their length wide overlap into a
+ * rosette, and an inner whorl of PETAL_HEAD_INNER shorter petals rising PETAL_INNER_CUP toward the
+ * axis fills the eye and gives the bloom a body from the side — a double violet, not a saucer.
+ */
+export const PETAL_WIDTH: readonly [number, number] = [0.9, 1.04];
+export const PETAL_HEAD_INNER = 5;
+export const PETAL_INNER_REACH = 0.7;
+export const PETAL_INNER_CUP = 0.7;
 
 /** the petal head's centre tones: a pale yellow eye over a darker ring where the petals meet */
 function petalCentreTones(pal: PlantPalette): { eye: RGB; ring: RGB } {
@@ -788,8 +802,9 @@ function petalCentreTones(pal: PlantPalette): { eye: RGB; ring: RGB } {
  * the head radius the sphere had; every draw is the head's own forked stream (`rng`) at every
  * detail, so the LOD switch keeps every petal where it was. `ultra` (inside FLOWER_ULTRA_M): 4 × 5
  * shapedLeaf petals in the petal band (fan veins, translucency — materials.ts) with a baked throat →
- * tip gradient and a stamen boss; `high`: 4-triangle cupped petals in the petal band and a
- * 6-segment eye disc; `mid`: 2-triangle folds and a 4-segment disc. ≈ 170 / 30 / 16 triangles a head.
+ * tip gradient, a petalCard inner whorl and a stamen boss; `high`: petalCard ring and whorl and a
+ * 6-segment eye disc; `mid`: the same cards untwisted and a 4-segment disc. ≈ 190 / 46 / 44
+ * triangles a head (PETAL_HEAD_PETALS + PETAL_HEAD_INNER cards).
  */
 function petalHead(m: MeshBuilder, centre: Vector3, normal: Vector3, radius: number, rng: Rng, pal: PlantPalette, detail: Detail, vary: (c: RGB) => RGB) {
   const ultra = detail === 'ultra';
@@ -813,22 +828,29 @@ function petalHead(m: MeshBuilder, centre: Vector3, normal: Vector3, radius: num
   const reach = radius * PETAL_HEAD_REACH;
   // the receptacle sits a hair under the stem tip (the petals ring the stamens, the boss stands on it):
   // this also keeps the bloom inside the dome's envelope — the layout contracts measure the high LOD's height
-  const base = centre.clone().addScaledVector(axis, -radius * 0.1);
-  for (let p = 0; p < petals; p++) {
-    const pa = p0 + (p * TAU) / petals + (rng() - 0.5) * 0.3;
-    const dir = side.clone().multiplyScalar(Math.cos(pa)).addScaledVector(fwd, Math.sin(pa)).addScaledVector(axis, cup * (0.85 + rng() * 0.3)).normalize();
-    const len = reach * (0.85 + rng() * 0.3);
-    const width = len * (0.58 + rng() * 0.16);
+  const base = centre.clone().addScaledVector(axis, -radius * 0.18);
+  // the outer ring, then the inner whorl (PETAL_HEAD_INNER shorter petals between the outer ones,
+  // rising PETAL_INNER_CUP toward the axis) — one loop so both draw from the head's stream in order
+  for (let p = 0; p < petals + PETAL_HEAD_INNER; p++) {
+    const inner = p >= petals;
+    const k = inner ? p - petals : p;
+    const ring = inner ? PETAL_HEAD_INNER : petals;
+    const pa = p0 + (k * TAU) / ring + (inner ? TAU / (2 * petals) : 0) + (rng() - 0.5) * 0.3;
+    const rise = inner ? PETAL_INNER_CUP * (0.9 + rng() * 0.2) : cup * (0.85 + rng() * 0.3);
+    const dir = side.clone().multiplyScalar(Math.cos(pa)).addScaledVector(fwd, Math.sin(pa)).addScaledVector(axis, rise).normalize();
+    const len = reach * (inner ? PETAL_INNER_REACH : 1) * (0.85 + rng() * 0.3);
+    const width = len * (PETAL_WIDTH[0] + rng() * (PETAL_WIDTH[1] - PETAL_WIDTH[0]));
     // a petal turned from the crown sits in the bloom's own shadow; each petal leans a little
-    // magenta or blue of the head's violet (PETAL_HUE_LEAN — the hue jitter survey-2 asked for)
+    // magenta or blue of the head's violet (PETAL_HUE_LEAN — the hue jitter survey-2 asked for);
+    // the inner whorl sits in the throat's shade
     const lean = PETAL_HUE_LEAN * (rng() * 2 - 1);
-    const shade = (0.9 + rng() * 0.2) * undersideShade(0.5 * Math.max(0, -dir.y));
+    const shade = (0.9 + rng() * 0.2) * undersideShade(0.5 * Math.max(0, -dir.y)) * (inner ? 0.9 : 1);
     const color: RGB = [headTone[0] * shade * (1 + lean), headTone[1] * shade * (1 - 0.25 * Math.abs(lean)), headTone[2] * shade * (1 - 0.5 * lean)];
-    const root = base.clone().addScaledVector(dir, radius * 0.1);
+    const root = base.clone().addScaledVector(dir, radius * (inner ? 0.06 : 0.1));
     // the ultra petal's curl / twist: drawn at every detail so the stream (and the next petal) stays put
     const petalCurl = 0.22 + rng() * 0.16;
     const petalTwist = (rng() - 0.5) * 0.3;
-    if (ultra) {
+    if (ultra && !inner) {
       shapedLeaf(m, root, dir, len, width, color, {
         shape: 'petal',
         sections: 4,
@@ -842,9 +864,13 @@ function petalHead(m: MeshBuilder, centre: Vector3, normal: Vector3, radius: num
         // the throat's deep violet runs out to the lit tip along the petal, the midline a hair lighter
         colorAt: (t, s, row) => tone(blend(blend(throat, row, Math.min(1, t * 2.4)), tip, t * 0.45), s === 0 ? 1.03 : 1 - 0.04 * Math.abs(s)),
       });
-    } else if (mid) foldedLeaf(m, root, dir, len, width, color, { curl: 0.3, ridge: -0.06, planeNormal: axis, tipColor: tip });
-    // the high petal stays a plain lamina (no petal band: it fades out by LEAF_DETAIL_FAR anyway)
-    else curvedLeaf(m, root, dir, len, width, color, { curl: 0.3, ridge: -0.06, planeNormal: axis, tipColor: tip });
+    } else {
+      // the high / mid petal (and the ultra's inner whorl) is a solid obovate card; no petal band
+      // at high (it fades out by LEAF_DETAIL_FAR anyway), the ultra whorl in it like the ring round it
+      // the card's curl is the ultra petal's damped: its tip lift is what the verge height contract
+      // (plants.test, D's right verge ≤ 0.55 m) measures at the high LOD
+      petalCard(m, root, dir, len, width, color, { sections: mid ? 3 : 4, curl: inner ? 0.16 : petalCurl * 0.4, ridge: 0.05, twist: mid ? 0 : petalTwist, planeNormal: axis, tipColor: inner ? blend(color, tip, 0.4) : tip, uOffset: ultra ? PETAL_U : 0 });
+    }
   }
   // the eye: a stamen boss at arm's length, a small disc further out
   const { eye, ring } = petalCentreTones(pal);
@@ -884,7 +910,9 @@ export function flowerGeometry(seed: string, pal: PlantPalette, detail: Detail):
       for (let j = 0; j < 2; j++) {
         for (const sign of [-1, 1]) {
           const dir = V(Math.cos(angle + j * 1.3) * sign, 0.3, Math.sin(angle + j * 1.3) * sign);
-          curvedLeaf(m, curve(0.22 + j * 0.3), dir, 0.05 + rng() * 0.035, 0.02, tone(leafColor, 0.9 + rng() * 0.25), { curl: 0.12, twist: sign * 0.15 });
+          // round 46: the mid LOD's stem leaves are 2-triangle folds (its head cards cost what the
+          // high's do; the 5 cm leaves are a pixel at 9 m) — the same draws, so the stream holds
+          (detail === 'mid' ? foldedLeaf : curvedLeaf)(m, curve(0.22 + j * 0.3), dir, 0.05 + rng() * 0.035, 0.02, tone(leafColor, 0.9 + rng() * 0.25), { curl: 0.12, twist: sign * 0.15 });
         }
       }
     }

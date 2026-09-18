@@ -35,7 +35,8 @@ kit.tube = (mesh, points, rootRadius, tipRadius, color, sides = 4, caps = false)
   trace.stems.push({start, end: start + (points.length - 1) * sides, sides,
     root: points[0].clone(), head: points.at(-1).clone()});
 };
-for (const name of ['curvedLeaf', 'foldedLeaf']) {
+// round 46 (W18): the cluster head's petals are petalCards at high / mid and the ultra's inner whorl
+for (const name of ['curvedLeaf', 'foldedLeaf', 'petalCard']) {
   const original = kit[name];
   kit[name] = (mesh, base, direction, length, width, color, options = {}) => {
     const start = mesh.p.length / 3;

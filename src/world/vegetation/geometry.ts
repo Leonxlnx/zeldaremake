@@ -216,6 +216,44 @@ export function curvedLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3,
   mesh.tri(c, t, r);
 }
 
+/**
+ * Four-triangle obovate PETAL (round 46, W18): base, shoulders at 0.36 × length (the full width),
+ * a second pair at 0.82 × length (0.84 × the width) and a blunt tip — six vertices, the card fills
+ * ≈ ⅔ of its length × width box where the diamond laminae (`curvedLeaf`, `foldedLeaf`) fill half,
+ * so a ring of these overlaps into a solid rosette. The card cups toward `normal` by `curl`
+ * (quadratic, like a real petal's rise from the receptacle), its edges droop `ridge` × width below
+ * the midline, and it twists about its own axis. The base vertex is emitted first (the LOD test
+ * pins it). The base takes the darker throat tone, the tip the lit `tipColor`. `sections: 3` is
+ * the far-LOD card: the same fill from five vertices — shoulders at 0.3, a blunt tip pair at 0.92.
+ */
+export function petalCard(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
+  const { curl = 0.3, twist = 0, ridge = 0.06, uOffset: u0 = 0, sections = 4 } = options;
+  const { axis, side, normal } = leafFrame(direction, options.planeNormal);
+  const sideAt = side.clone().applyAxisAngle(axis, twist * 0.5);
+  const tipColor = options.tipColor ? blend(color, options.tipColor, 0.55) : tone(color, 1.05);
+  const at = (t: number, s: number, w: number) => base.clone().addScaledVector(axis, length * t).addScaledVector(sideAt, width * w * s).addScaledVector(normal, length * curl * t * t - width * ridge * Math.abs(s));
+  const a = mesh.vertex(base, u0 + 0.5, 0, tone(color, 0.9));
+  if (sections <= 3) {
+    const l1 = mesh.vertex(at(0.3, -1, 0.5), u0, 0.3, tone(color, 0.95));
+    const r1 = mesh.vertex(at(0.3, 1, 0.5), u0 + 1, 0.3, tone(color, 0.97));
+    const l2 = mesh.vertex(at(0.92, -1, 0.35), u0 + 0.15, 0.92, blend(tone(color, 0.98), tipColor, 0.8));
+    const r2 = mesh.vertex(at(0.92, 1, 0.35), u0 + 0.85, 0.92, blend(color, tipColor, 0.8));
+    mesh.tri(a, l1, r1);
+    mesh.tri(l1, l2, r1);
+    mesh.tri(r1, l2, r2);
+    return;
+  }
+  const l1 = mesh.vertex(at(0.36, -1, 0.5), u0, 0.36, tone(color, 0.95));
+  const r1 = mesh.vertex(at(0.36, 1, 0.5), u0 + 1, 0.36, tone(color, 0.97));
+  const l2 = mesh.vertex(at(0.82, -1, 0.42), u0 + 0.08, 0.82, blend(tone(color, 0.98), tipColor, 0.6));
+  const r2 = mesh.vertex(at(0.82, 1, 0.42), u0 + 0.92, 0.82, blend(color, tipColor, 0.6));
+  const t = mesh.vertex(at(1, 0, 0), u0 + 0.5, 1, tipColor);
+  mesh.tri(a, l1, r1);
+  mesh.tri(l1, l2, r1);
+  mesh.tri(r1, l2, r2);
+  mesh.tri(l2, t, r2);
+}
+
 /** Tapered lamina with raised midrib, drooping edges and twisted tip (Verdant `lanceLeaf`). */
 export function lanceLeaf(mesh: MeshBuilder, base: Vector3, direction: Vector3, length: number, width: number, color: RGB, options: LeafOptions = {}) {
   const { sections = 4, curl = 0.15, twist = 0.0, serration = 0.0, ridge = 0.08, uOffset: u0 = 0 } = options;
