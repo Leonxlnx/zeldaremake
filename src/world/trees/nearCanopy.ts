@@ -45,6 +45,18 @@ export const NEAR_CANOPY_OUT_M = 26;
 export const NEAR_CANOPY_HERO_MARGIN = 1.5;
 export const NEAR_CANOPY_MIN_IN_M = 7;
 /**
+ * Round 45 (trees-28, item 6): the FLAT lobes' swap radii [in, out] when set — in place of the
+ * hero cut, which holds the four bank-canopy flat lobes (10.5–14 m from A, 11–14 from B / E,
+ * 12.6–15.7 from F) at 9–12.4 m in. Set to [14, 17] the hero cameras stand inside the swap and
+ * render the lit, layered near versions in place of the even masses their frames are matched
+ * to — measured (cap-6t on 44fe9b1): F −0.0131 and A −0.0025 against the same build with the
+ * hero cut, for +3 pinned parts / +1.55 MB pinned in a pool that stays at its 64 MiB cap. The
+ * walker pose that sees the far version at 11 m (w02-spine-r, (0.19, 1.45, 9.55)) stands where
+ * camera A stands ((0.4, 1.8, 8.6)): no distance radius shows one the near version without the
+ * other. null = the hero cut.
+ */
+export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;
+/**
  * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance
  * (a 21 m lobe is 19.5 m over a standing eye — the top of what NEAR_CANOPY_IN_M can reach)
  */
@@ -69,6 +81,12 @@ export interface NearCanopyPart {
   /** this part's swap radii (m): NEAR_CANOPY_IN_M / OUT_M, or less for a part a hero camera frames */
   inM: number;
   outM: number;
+  /**
+   * round 45 (item 6): the radii are NEAR_CANOPY_FLAT_SWAP_M and stand — the hero pass on the
+   * built mesh (index.ts nearCanopyHeroPass) leaves them, so a hero camera inside them renders
+   * the near version
+   */
+  fixedSwap?: boolean;
   /**
    * wood + laminae, same attributes and material as the tree's `geometry` (leaf vertices flagged):
    * the first build (the measurement: counts, cull sphere, bytes). The trees system keeps it only
@@ -109,6 +127,10 @@ export interface NearLobeRecord {
   /** swap radii (see swapRadiiFor) */
   inM: number;
   outM: number;
+  /** the radii are NEAR_CANOPY_FLAT_SWAP_M, not the hero cut (NearCanopyPart.fixedSwap) */
+  fixedSwap?: boolean;
+  /** the lobe's walk-clearance floor (giant.ts CanopyLobe.floor, local y): no near lamina or twiglet below it */
+  floorY?: number;
 }
 
 export interface NearLimbRecord {
@@ -190,7 +212,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
    * 50–80° with a little roll each, pitched up a touch, so neighbours overlap 2–3 deep along the
    * twig instead of radiating evenly (the far leafSpray's golden-angle scatter).
    */
-  const nearSpray = (w: GeometryWriter, g: Rng, path: Vector3[], pathRadius: number, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, startT = 0.3) => {
+  const nearSpray = (w: GeometryWriter, g: Rng, path: Vector3[], pathRadius: number, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, startT = 0.3, floorY?: number) => {
     const gb = (a: number, b: number) => between(g, a, b);
     const opts = nearLeafOpts(pathRadius);
     let n = 0;
@@ -203,12 +225,13 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       const roll = gb(-0.4, 0.4);
       const outward = u.clone().multiplyScalar(side * Math.cos(roll)).addScaledVector(v, Math.sin(roll));
       const direction = axis.clone().multiplyScalar(gb(0.5, 0.9)).addScaledVector(outward, 1).addScaledVector(UP, gb(-0.1, 0.35)).normalize();
-      if (addLeaf(w, base, direction, gb(size[0], size[1]), o.leafColor(g, base, center, hR, vigor), g, opts)) n++;
+      // a floored lobe's laminae stop at its floor (the draws are made either way)
+      if (addLeaf(w, base, direction, gb(size[0], size[1]), o.leafColor(g, base, center, hR, vigor), g, opts, floorY === undefined || base.y >= floorY + 0.2)) n++;
     }
     return n;
   };
   /** a rosette of laminae fanning from a twig tip: the layered end of every spray */
-  const nearRosette = (w: GeometryWriter, g: Rng, tip: Vector3, axis: Vector3, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, radius: number) => {
+  const nearRosette = (w: GeometryWriter, g: Rng, tip: Vector3, axis: Vector3, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, radius: number, floorY?: number) => {
     const gb = (a: number, b: number) => between(g, a, b);
     const opts = nearLeafOpts(radius);
     const [u, v] = frame(axis);
@@ -219,7 +242,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       const outward = u.clone().multiplyScalar(Math.cos(a)).addScaledVector(v, Math.sin(a));
       const direction = axis.clone().multiplyScalar(gb(0.8, 1.3)).addScaledVector(outward, gb(0.5, 0.9)).addScaledVector(UP, gb(-0.05, 0.25)).normalize();
       const base = tip.clone().addScaledVector(outward, radius * 0.5);
-      if (addLeaf(w, base, direction, gb(size[0], size[1]), o.leafColor(g, base, center, hR, vigor), g, opts)) n++;
+      if (addLeaf(w, base, direction, gb(size[0], size[1]), o.leafColor(g, base, center, hR, vigor), g, opts, floorY === undefined || base.y >= floorY + 0.2)) n++;
     }
     return n;
   };
@@ -229,7 +252,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
    * leaving at 30–60° and drooping toward the tip under its leaves — each with a spray and a
    * tip rosette. Returns the laminae built.
    */
-  function* twiglets(w: GeometryWriter, g: Rng, parent: Vector3[], parentRadius: number, count: number, reach: number, center: Vector3, hR: number, vigor: number, size: [number, number], leafScale: number): Generator<void, number> {
+  function* twiglets(w: GeometryWriter, g: Rng, parent: Vector3[], parentRadius: number, count: number, reach: number, center: Vector3, hR: number, vigor: number, size: [number, number], leafScale: number, floorY?: number): Generator<void, number> {
     const gb = (a: number, b: number) => between(g, a, b);
     const phase = g() * TAU;
     let n = 0;
@@ -244,11 +267,12 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       const dir = axis.clone().multiplyScalar(gb(0.7, 1.2)).addScaledVector(outward, 1).addScaledVector(UP, gb(0, 0.45)).normalize();
       const target = origin.clone().addScaledVector(dir, length);
       target.y -= length * gb(0.1, 0.3);
+      if (floorY !== undefined) target.y = Math.max(target.y, floorY + 0.3);
       const path = growthPath(origin, target, axis, g, 4, 0.7);
       const radius = Math.max(0.005, parentRadius * (1 - t * 0.6) * 0.55);
       tube(w, path, taper(path, radius, 0.0015), 3, g, { color: barkColor, roughness: 0.02 });
-      n += nearSpray(w, g, path, radius, Math.max(3, Math.round(6 * leafScale)), size, center, hR, vigor, 0.25);
-      n += nearRosette(w, g, path[path.length - 1], tangent(path, 1), Math.max(3, Math.round(4 * leafScale)), size, center, hR, vigor, radius);
+      n += nearSpray(w, g, path, radius, Math.max(3, Math.round(6 * leafScale)), size, center, hR, vigor, 0.25, floorY);
+      n += nearRosette(w, g, path[path.length - 1], tangent(path, 1), Math.max(3, Math.round(4 * leafScale)), size, center, hR, vigor, radius, floorY);
       yield;
     }
     return n;
@@ -374,12 +398,12 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
     const size: [number, number] = [0.17 + 0.05 * high, 0.27 + 0.09 * high];
     const vigor = 0.96;
     let leaves = 0;
-    for (const sec of rec.secondaries) leaves += nearSpray(w, g, sec.path, sec.radius, Math.max(3, Math.round(8 * leafScale)), size, rec.center, rec.hR, vigor, 0.45);
+    for (const sec of rec.secondaries) leaves += nearSpray(w, g, sec.path, sec.radius, Math.max(3, Math.round(8 * leafScale)), size, rec.center, rec.hR, vigor, 0.45, rec.floorY);
     yield;
     for (const twig of rec.twigs) {
-      leaves += nearSpray(w, g, twig.path, twig.radius, Math.max(3, Math.round(7 * leafScale)), size, rec.center, rec.hR, vigor, 0.3);
+      leaves += nearSpray(w, g, twig.path, twig.radius, Math.max(3, Math.round(7 * leafScale)), size, rec.center, rec.hR, vigor, 0.3, rec.floorY);
       yield;
-      leaves += yield* twiglets(w, g, twig.path, twig.radius, g.int(2, 4), rec.hR * gb(0.28, 0.42), rec.center, rec.hR, vigor, size, leafScale);
+      leaves += yield* twiglets(w, g, twig.path, twig.radius, g.int(2, 4), rec.hR * gb(0.28, 0.42), rec.center, rec.hR, vigor, size, leafScale, rec.floorY);
     }
     // moss along the upper side of the stem the lobe hangs on (the plain sweep is bare)
     const stemR = rec.stemRadii[0];
@@ -403,6 +427,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       radius: rec.hR * 1.35 + 0.6,
       inM: rec.inM,
       outM: rec.outM,
+      fixedSwap: rec.fixedSwap,
       geometry: first.geometry,
       build: function* () {
         return (yield* lobeSteps(rng, rec, idx)).geometry;

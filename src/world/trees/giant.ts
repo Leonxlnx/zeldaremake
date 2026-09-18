@@ -34,7 +34,7 @@ import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, reliefBoleSteps, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
 import { basePlants, basePlantsSteps, type BasePlantResult } from './base-plants';
-import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
+import { NEAR_CANOPY_FLAT_SWAP_M, NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
 
 /**
  * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
@@ -112,6 +112,19 @@ export const NEAR_BOLE_RELIEF = 1;
 export const NEAR_BOLE_ROOTS = true;
 
 // Near-canopy LOD (round 41): see nearCanopy.ts (NEAR_CANOPY_IN_M and the shared builders).
+
+/**
+ * Round 45 (item 4): how far out a canopy lobe's fine wood runs, as a share of the lobe's hR —
+ * the secondaries off the stem bough and the twigs off them (the third of every four twigs is
+ * a short inner one, 0.16–0.36). These are the round-44 values: the leaf sprays hang on the
+ * twigs, so shortening the wood to 0.55–0.85 / 0.5–0.85 (the twigs inside the ellipsoid) moved
+ * every lobe's laminae with it — A −0.0069 SSIM for the pale-tip fix (trees-28 dist-7). The rim
+ * fix that stands is the tint below; the reach is left where the frames were matched.
+ */
+export const LOBE_SECONDARY_REACH: [number, number] = [0.58, 0.95];
+export const LOBE_TWIG_REACH: [number, number] = [0.57, 1.04];
+/** how far the fine wood's outer part is tinted from the bark toward the deep leaf tone (0 = bark throughout) */
+export const LOBE_TWIG_TINT = 0.7;
 
 export interface GiantAsset {
   /** wood + leaves merged, local space (leaf vertices flagged in aRoot.w) */
@@ -248,6 +261,8 @@ export interface SpreadLimb {
   density?: number;
   /** how far the lobes ride above the limb (1 = the wild-limb 1.2–1.8 m; 0 = wrapped around it) */
   lift?: number;
+  /** local y below which none of the limb's foliage is written (walk clearance; see CanopyLobe.floor) */
+  floor?: number;
 }
 
 /**
@@ -339,6 +354,13 @@ export interface CanopyLobe {
   shade?: number;
   corridors?: boolean;
   compact?: boolean;
+  /**
+   * Local y below which none of the lobe's foliage is written — laminae and cards are culled
+   * (draws kept), its twigs level off 0.35 m above it (round 45: a lobe over walkable ground
+   * keeps its leaves 2.4 m over the walker's eye however far its twigs would droop). The near
+   * version (nearCanopy.ts) honours it too.
+   */
+  floor?: number;
   /**
    * false: the lobe's laminae go to GiantAsset.authoredLeaves, which the caller draws without a
    * shadow pass (its cards and stem still cast). For lobes that exist to stand on a camera ray,
@@ -987,16 +1009,25 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
    * it to their porosity
    */
   let corridorExempt = false;
-  /** false when a lamina at p must be dropped for a corridor */
+  /**
+   * Round 45 (survey crop 15: the east giant's plateau-lip lobes hung their twigs at the walk's
+   * eye height): set while a lobe with a `floor` (CanopyLobe.floor / SpreadLimb.floor, local y) is
+   * foliated — no lamina, card or twig of it is written below that height. Culls keep every draw
+   * (like the corridors), so the lobe's own stream and everything after it are unchanged.
+   */
+  let lobeFloorY: number | null = null;
+  /** false when a lamina at p must be dropped for a corridor (or the lobe's walk-clearance floor) */
   const leafAllowed = (p: Vector3) => {
     if (ghost) return false;
+    if (lobeFloorY !== null && p.y < lobeFloorY + 0.2) return false;
     if (!corridors.length) return true;
     const c = inCorridor(p, 0, corridorExempt);
     return !c || survives(p, c.porosity ?? 0);
   };
-  /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
+  /** false when a cluster card of half-size `s` at p must be dropped for a corridor (or the floor) */
   const cardAllowed = (p: Vector3, s: number) => {
     if (ghost) return false;
+    if (lobeFloorY !== null && p.y - s < lobeFloorY) return false;
     if (!corridors.length) return true;
     const c = inCorridor(p, s * 0.7, corridorExempt);
     return !c || survives(p, c.cardPorosity ?? 0);
@@ -1190,6 +1221,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const sz = Math.sin(ph) * Math.sin(th);
         const s = k * (i === 0 || i === rings ? 1 : swell(th, ph));
         p.set(center.x + sx * hR * s, center.y + sy * vR * s, center.z + sz * hR * s);
+        // a floored lobe's core (round 45, CanopyLobe.floor) is flat-bottomed at the floor: the
+        // ring vertices under it are lifted onto it, so the body stays closed and nothing of it
+        // hangs into the walk's clearance
+        if (lobeFloorY !== null && p.y < lobeFloorY) p.y = lobeFloorY;
         n.set(sx / hR, sy / vR, sz / hR).normalize();
         leaves.vertexN(p, n, color, 0, 0, 1, 0, 0, 1);
       }
@@ -1273,6 +1308,17 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     nearLimbs.push({ path, radii, inM: radii2[0], outM: radii2[1], sleeve });
   };
 
+  // Round 45 (trees-28, item 4 — survey pose w19-spine-u, straight up from the north spine: the
+  // pale spikes on the crown rim at the frame's left are the NORTH-WEST giant's lobes seen from
+  // below, not a column's): a lobe's secondaries ran to 0.58–0.95 hR and its twigs to 0.57–1.04,
+  // so 5–10 cm of bark wood stood past the laminae against the sky — and shaded bark is what
+  // the bark floor makes it (materials/shadeFloor.ts: a flat grey at texture 0.1, pale whatever
+  // its albedo), while the leaves take the darker leaf floor. The wood's outer part is tinted
+  // from the bark toward the deep leaf tone (LOBE_TWIG_TINT: what shows between laminae is the
+  // mass's own dark where the sun reaches it). Its reach is the round-44 reach — see
+  // LOBE_SECONDARY_REACH for why it is not pulled inside the ellipsoid. Same draws as before:
+  // the stream is unchanged.
+  const twigTip = canopy.clone().multiplyScalar(0.55);
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false, stemRadii?: number[]) {
     lobe = { center, hR };
     // near-canopy eligibility (nearCanopy.ts): an ordinary lobe below the cap, its swap radii cut
@@ -1287,9 +1333,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // version every other lobe gets, on the wood the core hid.
     const flatEligible = lobeFlat && !compact && !ghost;
     if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
-      const radii2 = swapRadii(center, hR + 1.4);
+      const fixedSwap = flatEligible && NEAR_CANOPY_FLAT_SWAP_M !== null;
+      const radii2 = fixedSwap ? NEAR_CANOPY_FLAT_SWAP_M : swapRadii(center, hR + 1.4);
       if (radii2) {
-        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
+        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1], fixedSwap, floorY: lobeFloorY ?? undefined };
         leaves.leafSwapGroup = rec.group;
         cards.leafSwapGroup = rec.group;
       }
@@ -1311,11 +1358,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const origin = sample(bough, attachment);
       const a = phase + j * 2.39996 + bt(-0.45, 0.45);
       const elevation = bt(-0.55, 0.8);
-      const reach = hR * Math.sqrt(1 - elevation * elevation) * bt(0.58, 0.95);
+      const reach = hR * Math.sqrt(1 - elevation * elevation) * bt(LOBE_SECONDARY_REACH[0], LOBE_SECONDARY_REACH[1]);
       const target = center.clone().add(new Vector3(Math.cos(a) * reach, elevation * vR, Math.sin(a) * reach));
       const secondary = growthPath(origin, target, tangent(bough, attachment), r, 6, 0.85);
       const secondaryRadius = Math.max(0.03, boughRadius * Math.pow(1 - attachment, 0.9) * 0.5);
-      tube(wood, secondary, taper(secondary, secondaryRadius, 0.008), 5, r, { color: barkColor, roughness: 0.04 });
+      const secondaryLength = Math.max(0.5, origin.distanceTo(target));
+      tube(wood, secondary, taper(secondary, secondaryRadius, 0.008), 5, r, { color: (pt) => barkColor(pt).lerp(twigTip, smoothstep(0.55, 1, pt.distanceTo(origin) / secondaryLength) * LOBE_TWIG_TINT), roughness: 0.04 });
       rec?.secondaries.push({ path: secondary, radius: secondaryRadius });
       leafSpray(secondary, secondaryRadius * 0.5, 6 * mult, bt(0.88, 1.03), 0.7);
       for (let k = 0; k < twigCount; k++) {
@@ -1323,12 +1371,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const twigOrigin = sample(secondary, twigT);
         const twigAngle = a - 1.08 + (k / Math.max(1, twigCount - 1)) * 2.16 + bt(-0.23, 0.23);
         const twigElevation = bt(-0.75, 0.82);
-        const twigReach = hR * (k === 2 ? bt(0.16, 0.36) : bt(0.57, 1.04));
+        const twigReach = hR * (k === 2 ? bt(0.16, 0.36) : bt(LOBE_TWIG_REACH[0], LOBE_TWIG_REACH[1]));
         const twigTarget = center.clone().add(new Vector3(Math.cos(twigAngle) * twigReach, twigElevation * vR, Math.sin(twigAngle) * twigReach));
         twigTarget.y -= bt(0.1, 0.6) * reach;
+        // a floored lobe's twigs level off above the floor instead of drooping through it
+        if (lobeFloorY !== null) twigTarget.y = Math.max(twigTarget.y, lobeFloorY + 0.35);
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), r, 4, 0.64);
         const twigRadius = Math.max(0.012, secondaryRadius * (1 - twigT) * 0.4);
-        tube(wood, twig, taper(twig, twigRadius, 0.004), 3, r, { color: barkColor, roughness: 0.02 });
+        const twigLength = Math.max(0.3, twigOrigin.distanceTo(twigTarget));
+        tube(wood, twig, taper(twig, twigRadius, 0.004), 3, r, { color: (pt) => barkColor(pt).lerp(twigTip, smoothstep(0.3, 1, pt.distanceTo(twigOrigin) / twigLength) * LOBE_TWIG_TINT), roughness: 0.02 });
         rec?.twigs.push({ path: twig, radius: twigRadius });
         leafSpray(twig, twigRadius * 0.6, 8 * mult, bt(0.9, 1.04), 0.45);
         const sprigPhase = r() * TAU;
@@ -1707,7 +1758,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const lift = spec.lift ?? 1;
     if (lf > 0) {
       const hR = (1.9 + 0.6 * lf) * Math.min(1.15, length / 8);
+      lobeFloorY = spec.floor ?? null;
       limbLobes(path, r0, [0.48, 0.74, 0.98], hR, hR * 0.52, (1.2 + 0.6 * lf) * lift, 0.4 * lf * ld, lf * ld);
+      lobeFloorY = null;
     }
   }
 
@@ -1821,6 +1874,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       lobeTone = lobeSpec.tone ?? 1;
       leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
       corridorExempt = lobeSpec.corridors === false;
+      lobeFloorY = lobeSpec.floor ?? null;
       // a curtain's arms leave the last ~30 % of its long drop (foliateLobe attaches them at
       // 0.4–0.88 of the path it is given: here 0.83–0.97 of the stem, within 0.7 m of the centre),
       // so the leaves gather around the authored centre instead of trailing up towards the bough;
@@ -1846,6 +1900,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       leaves.leafFlat = cards.leafFlat = false;
       lobeFlat = false;
       corridorExempt = false;
+      lobeFloorY = null;
       leaves = treeLeaves;
       cards = treeCards;
     }

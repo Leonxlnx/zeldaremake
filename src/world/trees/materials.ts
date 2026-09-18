@@ -16,6 +16,7 @@ import {
   MeshStandardMaterial,
   RGBADepthPacking,
   Vector2,
+  Vector3,
   Vector4,
   type IUniform,
   type Material,
@@ -41,6 +42,15 @@ export interface TreeMaterials {
    * `uNearBoleFloorLift` moves that bole alone
    */
   giantTreeNear: MeshStandardMaterial;
+  /**
+   * round 45: the column trees' copy (column.ts, 12–45 m from the hero cameras) with the bark
+   * floor at COLUMN_BARK_FLOOR — the shared floor keeps a tenth of the bark's own albedo in
+   * shade, which at 15–30 m in haze made every column a pale even cylinder (trees-27's
+   * leftover); this one keeps 0.45 of it, so the cord / furrow tone bands and the base grime the
+   * column bole is coloured with survive the floor and give the haze contrast to work on. The
+   * emergent keeps giantTreeNear.
+   */
+  columnTree: MeshStandardMaterial;
   /**
    * the near bases (giant.ts NEAR_BASE_CUT_Y): the giants' bark and leaf shading with the bark
    * floor at NEAR_BASE_FLOOR — the relief's furrows carry real occlusion, so the floor no longer
@@ -104,6 +114,25 @@ export const NEAR_CANOPY_SLOTS = 40;
 export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
 export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
 export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
+/**
+ * The column trees' bark floor (TreeMaterials.columnTree) within COLUMN_FLOOR_FADE_M[0]: a little
+ * under the shared lift so a shaded column sits under the haze rather than in it, and 0.45 of its
+ * own albedo kept — the columns are coloured for distance (column.ts: tone bands around and along
+ * the bole, grime at the foot), and the shared tenth flattened all of it beyond 10 m. The survey
+ * poses that found them pale (w19-spine-r, sn-arch-outside) stand 10–21 m from the north cluster.
+ */
+export const COLUMN_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.45 };
+/**
+ * … and from COLUMN_FLOOR_FADE_M[1] out: a fifth kept (twice the shared floor's). The hero
+ * frames see the columns at 22–40 m (D's top band, B's upper left), where the reference's
+ * veiled trunks are near-smooth (window sd 0.005–0.02): with 0.45 at every distance the round-45
+ * take measured D −0.0013 / B −0.0022, the shaded columns' window sd up 0.005–0.008 across the
+ * cells (SSIM's structure term; shadeFloor.ts round 32 found the same for texture 0.25 → 0.1).
+ * The bark block alone fades (LeafVariant.barkFade); the columns' leaf floor is the shared one.
+ */
+export const COLUMN_BARK_FLOOR_FAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.6, texture: 0.2 };
+/** view distance (m) over which the column bark floor goes from COLUMN_BARK_FLOOR to COLUMN_BARK_FLOOR_FAR */
+export const COLUMN_FLOOR_FADE_M: [number, number] = [20, 32];
 export const TREE_LEAF_FLOOR_NEAR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
 /** view distance (m) over which a far program's floor goes from the NEAR preset to the shared one */
 export const TREE_FLOOR_FADE_M: [number, number] = [5, 10];
@@ -147,6 +176,20 @@ interface WindOpts {
  * mipping down to a sprinkle of dots (the cards then read as tufts, not as one lamina).
  */
 const CARD_ALPHA_TEST = 0.42;
+/**
+ * Round 45 (item 5, survey crop 27 / pose w26-stairs-f: a giant's cluster card seen edge-on
+ * over a distant trunk read as a "T" — the kind probe put the sliver in the ordinary canopy
+ * cards, not the flat-shaded authored lobes): a card's coverage by |cos| of the angle between
+ * its plane normal and the view ray — 0 at and under the first value, full from the second.
+ * A card's normal leans out of and up from its lobe (giant.ts clusterCards), so a lobe's top
+ * cards are systematically edge-on to a walker looking up at it; under cos 0.1 (5.7° from
+ * edge-on) a card is a line a tenth of its own width and goes, full from 0.22 (12.7°) — about a
+ * tenth of the cards, carrying under 1 % of the card area. The flat-shaded cards (writer.ts
+ * leafFlat: one even dark, no cards behind them to hide an edge) fade over a wider band.
+ * Exported for the audit.
+ */
+export const CARD_EDGE_FADE: [number, number] = [0.1, 0.22];
+export const CARD_FLAT_EDGE_FADE: [number, number] = [0.15, 0.4];
 const CARD_MIP_BIAS = -0.75;
 function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false) {
   // flat cards (vLeafFlat, declared by the giant canopy material only) take the map as alpha
@@ -330,6 +373,18 @@ const BARK_DETAIL_MEAN = 133.29 / 255;
  * fixed frame.
  */
 export const DISTANT_BARK_M: [number, number] = [22, 38];
+/**
+ * Round 45 (trees-27's leftover, measured at w19-spine-r / sn-arch-outside: the depth rows'
+ * boles 15–30 m from a walker read as pale cylinders): within the same DISTANT_BARK_M blend the
+ * bark is [overall multiplier, tone-band amplitude (±), grime multiplier at the ground line] —
+ * 0.72 of its tint, ±40 % patch bands (1–2 patches around the bole, 3–4 m along it, the tree's
+ * own phase) with cords at half that every 40 cm around, 0.55 at the foot fading up to 4 m.
+ * Zero at 38 m+, so the fixed frames are untouched. The first round-45 take at
+ * [0.82, 0.22, 0.7] moved the w19-spine-r bole's interior by 1–2 sRGB levels (the veil at
+ * 15 m keeps ~0.18 of a 0.24 pixel): the haze takes most of any albedo change, so the change
+ * has to be large to survive it.
+ */
+export const DISTANT_NEAR_TONE: [number, number, number] = [0.72, 0.4, 0.55];
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
@@ -806,6 +861,13 @@ interface LeafVariant {
   leafNear?: [number, number];
   /** set = the near-canopy sun-through block scaled by this (uSunThrough) in place of the far block */
   sunThrough?: number;
+  /**
+   * Round 45 (the column trees): the BARK floor's own near preset and fade range (m) in place of
+   * the shared TREE_FLOOR_FADE_M — the bark block reads `${barkPrefix}Fade` instead of uFloorFade,
+   * so the leaf floor's fade is untouched. Unset: the bark fades like everything else.
+   */
+  barkNear?: ShadeFloor;
+  barkFade?: [number, number];
 }
 
 /**
@@ -825,10 +887,20 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   // the distance fade (TREE_FLOOR_FADE_M): the giants' far programs go to the NEAR presets close
   // up; a material with its own calibrated floor (the near bole's height profile, the near
   // canopy's leaf floor) fades to itself
-  const barkNear = heightFade || barkFloor !== TREE_BARK_FLOOR ? barkFloor : TREE_BARK_FLOOR_NEAR;
+  const barkNear = variant.barkNear ?? (heightFade || barkFloor !== TREE_BARK_FLOOR ? barkFloor : TREE_BARK_FLOOR_NEAR);
   const leafNearFloor = variant.leafFloor ?? TREE_LEAF_FLOOR_NEAR;
   bindTreeFloorNear(shader, barkPrefix, barkNear);
   bindTreeFloorNear(shader, 'uLeafFloor', leafNearFloor);
+  // a bark floor with its own fade range (LeafVariant.barkFade): the bark block's `floorFar`
+  // reads `${barkPrefix}Fade`; the leaf block keeps uFloorFade
+  let barkFadePars = '';
+  let barkFadeGlsl = TREE_FLOOR_FADE_GLSL;
+  if (variant.barkFade) {
+    shader.uniforms[`${barkPrefix}Fade`] = { value: new Vector2(variant.barkFade[0], variant.barkFade[1]) };
+    barkFadePars = `uniform vec2 ${barkPrefix}Fade;\n`;
+    barkFadeGlsl = TREE_FLOOR_FADE_GLSL.replace('uFloorFade.x, uFloorFade.y', `${barkPrefix}Fade.x, ${barkPrefix}Fade.y`);
+    if (barkFadeGlsl === TREE_FLOOR_FADE_GLSL) throw new Error('treeFragment: expected uFloorFade in TREE_FLOOR_FADE_GLSL');
+  }
   let sunThroughPars = '';
   let sunThrough = LEAF_SUN_THROUGH;
   if (variant.sunThrough !== undefined) {
@@ -854,7 +926,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
   const textureHere = heightFade ? `${barkPrefix}Texture` : `mix(${barkPrefix}NearTexture, ${barkPrefix}Texture, floorFar)`;
   const barkFloorGlsl = /* glsl */ `
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
-      ${TREE_FLOOR_FADE_GLSL}
+      ${barkFadeGlsl}
       ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
 `;
   let detailPars = '';
@@ -874,6 +946,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     fadePars +
     shadeFloorPars('uLeafFloor', TREE_FLOOR_GLSL) +
     TREE_FLOOR_FADE_PARS +
+    barkFadePars +
     treeFloorNearPars(barkPrefix) +
     treeFloorNearPars('uLeafFloor') +
     sunThroughPars +
@@ -1028,6 +1101,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
   injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  // the columns' copy (round 45): same maps and wind, the bark floor at COLUMN_BARK_FLOOR
+  const columnTree = giantTree.clone();
+  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M }), 'column');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
@@ -1103,6 +1179,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
             sampledDiffuseColor.a = mix(sampledDiffuseColor.a, nearColor.a, leafNear);
           }
           diffuseColor *= vec4(mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), vLeafFlat), sampledDiffuseColor.a);
+          // round 45 (survey crop 27, pose w26-stairs-f: a cluster card seen edge-on over a
+          // distant trunk read as a "T"): a card's coverage goes out as its plane turns to the
+          // view ray (CARD_EDGE_FADE; the flat-shaded cards over CARD_FLAT_EDGE_FADE's wider
+          // band) — a card under the first cos is a line, not a leaf clump, and goes.
+          float cardFacing = abs(dot(normalize(vNormal), normalize(vViewPosition)));
+          diffuseColor.a *= mix(smoothstep(${CARD_EDGE_FADE[0].toFixed(2)}, ${CARD_EDGE_FADE[1].toFixed(2)}, cardFacing), smoothstep(${CARD_FLAT_EDGE_FADE[0].toFixed(2)}, ${CARD_FLAT_EDGE_FADE[1].toFixed(2)}, cardFacing), vLeafFlat);
         #endif
         `,
       );
@@ -1156,17 +1238,23 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     // what they were; the cards (aRoot.w ≥ 0.5) never take it.
     s.uniforms.uDistantBark = { value: gColor };
     s.uniforms.uDistantBarkM = { value: new Vector2(DISTANT_BARK_M[0], DISTANT_BARK_M[1]) };
+    s.uniforms.uDistantTone = { value: new Vector3(DISTANT_NEAR_TONE[0], DISTANT_NEAR_TONE[1], DISTANT_NEAR_TONE[2]) };
     s.vertexShader =
-      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\n' +
+      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
     vDistSolid = aRoot.w < 0.5 ? 1.0 : 0.0;
     vDistLocal = position;
+    // the tree's own phase for its tone bands (round 45): from where it stands
+    vDistPhase = 0.0;
+    #ifdef USE_INSTANCING
+      vDistPhase = instanceMatrix[3].x * 0.37 + instanceMatrix[3].z * 0.61;
+    #endif
     `,
       );
     s.fragmentShader =
-      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\n' +
+      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nuniform vec3 uDistantTone;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.fragmentShader.replace(
         '#include <color_fragment>',
         /* glsl */ `#include <color_fragment>
@@ -1179,20 +1267,34 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         float around = max(1.0, floor(6.2832 * length(vDistLocal.xz) / 1.6 + 0.5));
         vec2 barkUv = vec2(atan(vDistLocal.z, vDistLocal.x) / 6.2832 * around, vDistLocal.y / 1.6);
         vec3 bark = texture2D(uDistantBark, barkUv).rgb;
-        // the fissures 1.5× their contrast about the mean: the haze at 12–20 m halves it again
-        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * 1.5 + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
+        // the fissures 2× their contrast about the mean (1.5 through round 44): the haze at
+        // 12–20 m halves it again
+        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * 2.0 + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
         float barkLum = dot(bark, vec3(0.2126, 0.7152, 0.0722));
         // a factor about the map's mean, so the row's silhouette luminance (matched at 47 m) holds
         float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.4, 1.9);
         // the map's own hue takes over from the flat tint as the walker gets close
         vec3 tinted = mix(diffuseColor.rgb * factor, bark * (diffuseColor.rgb / vec3(${BARK_DETAIL_MEAN.toFixed(4)})), 0.85);
+        // round 45 (trees-27's leftover: the boles 15–30 m from a walker still read as pale
+        // cylinders, the map's fissures flattened by the veil): within the same near blend the
+        // bark is darker overall (uDistantTone.x), carries tone bands — 1–2 patches around the
+        // bole, 3–4 m along it, each tree's own phase — of ± uDistantTone.y, and soil-dark grime
+        // at the foot fading up to 4 m (× uDistantTone.z at the ground line). Zero at 38 m+.
+        float theta = atan(vDistLocal.z, vDistLocal.x);
+        float band = sin(theta * 2.0 + vDistLocal.y * 0.7 + vDistPhase) * sin(vDistLocal.y * 0.45 + 1.3 + vDistPhase * 1.7);
+        // cords: one every 40 cm around the bole (4 per 1.6 m tile), leaning a little with
+        // height, at half the patch amplitude — the fissures of the map alone are 1–2 px at 15 m
+        // and the veil there takes most of their contrast (w19-spine-r: interior sd 0.025)
+        float cord = sin(theta * around * 4.0 + vDistLocal.y * 0.35 + vDistPhase * 3.0);
+        float grime = mix(uDistantTone.z, 1.0, smoothstep(0.0, 4.0, vDistLocal.y));
+        tinted *= uDistantTone.x * (1.0 + uDistantTone.y * band) * (1.0 + 0.5 * uDistantTone.y * cord) * grime;
         diffuseColor.rgb = mix(diffuseColor.rgb, tinted, near);
       }
     }
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v3';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v5';
 
   return {
     whiteTree,
@@ -1200,6 +1302,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantTree,
     giantTreeDepth,
     giantTreeNear,
+    columnTree,
     giantTreeNearBase,
     giantTreeNearCanopy,
     giantCanopy,

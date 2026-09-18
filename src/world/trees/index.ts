@@ -23,17 +23,17 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+import { CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, DISTANT_BARK_M, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
-import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantVariants, DISTANT_FLARE, DISTANT_FLARE_FALL, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -210,10 +210,23 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
       { azimuthDeg: 176, height: 5.6, length: 8.0, rise: 0.48, radius: 0.95, foliage: 1.0, density: 0.85 },
     ],
   },
+  // Round 45 (vegetation-23's plateau-walk finding, survey crop 15): the two limbs left the bole at
+  // 3.3 / 2.6 m (8.7 / 8.0 m world) and drooped to 7.3 / 6.4 m over the fenced plateau top (ground
+  // 5.4–5.6), their lobes 0.4 m above the wood — a built-geometry probe over x 15–26, z −6…5 found
+  // leaves 0.1–1.6 m and wood 0.6–2.3 m above the ground everywhere between the stair top and the
+  // east giant's foot: the survey's eye at 6.6 m stood in the leaves. Both limbs now leave at
+  // 5.0 / 4.0 m (10.7 / 9.7 m world), droop half as fast and carry their lobes 1.7 / 1.5 m above
+  // the wood, and their foliage is FLOORED at 9.3 m world (`floor`, giant.ts lobeFloorY: a lobe's
+  // twigs droop ~2 m under its ellipsoid — the probe found the limb lobes' twig tips 3.0–3.7 m
+  // over the walk with the wood at 9.3–10.7): nothing of the limbs' leaves is under 9.3 m —
+  // ≥ 3.7 m over the highest plateau ground (5.6), 2.3+ m over a walker's eye (1.45). In F the
+  // limbs' lobes leave the frame top (they were the dark roof at F (0.5–0.7, 0.09–0.12),
+  // 0.12–0.18 UNDER frame 8 s's hazed canopy there: the top row read 0.30 against 0.45); the
+  // frame's top band is now the haze and the moved canopy-bough lobes (below).
   'east-giant': {
     spread: [
-      { azimuthDeg: -140, height: 3.3, length: 9.5, rise: -0.08, radius: 0.55, foliage: 1.1, density: 1.0, lift: 0.2 },
-      { azimuthDeg: -172.6, height: 2.6, length: 11.6, rise: -0.06, radius: 0.5, foliage: 1.1, density: 1.0, lift: 0.2 },
+      { azimuthDeg: -140, height: 5.0, length: 9.5, rise: -0.04, radius: 0.55, foliage: 1.1, density: 1.0, lift: 0.9, floor: 9.3 - 5.74 },
+      { azimuthDeg: -172.6, height: 4.0, length: 11.6, rise: -0.03, radius: 0.5, foliage: 1.1, density: 1.0, lift: 0.8, floor: 9.3 - 5.74 },
     ],
   },
   // reference F's right edge: a straight column, no ballooning foot (its base is 9 m from the
@@ -436,7 +449,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number; floor?: number }[] }[] = [
   // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
   // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
   // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
@@ -484,16 +497,41 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.96, center: [5.0, 19.0, -24.1], hR: 2.6, vR: 1.8, density: 4, eye: 0 },
     ],
   },
-  // the plateau-lip canopy of shot F (round 9): a west bough of the east giant, its two lobes the
-  // dark leaf mass the reference shows over the stair top (F x 0.5–0.7, y 0.05–0.2)
+  // the plateau-lip canopy of shot F (round 9): a bough of the east giant, its two lobes the
+  // hazed canopy the reference shows over the stair top (F x 0.35–0.6, y 0–0.2; frame 8 s reads
+  // 0.42–0.49 there at window sd 0.005–0.03, a smooth veil).
+  // Round 45 (vegetation-23's finding, survey crop 15 / pose w27-plateau-r): the lobes hung at
+  // (19.2, 7.8, −1.2) hR 2.4 vR 1.3 and (17.9, 7.3, −2.5) hR 2.2 vR 1.2 — ellipsoid undersides
+  // 6.5 / 6.1 m, 1.0 / 0.7 m over the highest ground under their footprints (5.46 / 5.40), their
+  // twigs' leaves down to 5.5 m over the fenced plateau top (the walk's eye is 6.6 m) at the end
+  // of a west bough whose wood ran 0.6–2.3 m over the same ground. Each lobe moved out along ITS
+  // OWN camera-F ray (F stands at (−1.96, 1.8, 4.0)): centre → F + k (centre − F), radii × k, so
+  // F frames the same disc at the same place (L1 (0.49, 0.09), L2 (0.44, 0.10)) — k 1.40 / 1.50
+  // (31.6 / 32.4 m out instead of 22.6 / 21.6) put the ellipsoid undersides at 8.38 / 8.25 m,
+  // 2.76 / 2.75 m over the highest ground under their footprints (5.62 at (28.1, −0.4) / 5.50 at
+  // (30.0, −3.3): the plateau north of the east giant's foot), and the lobes are FLOORED at 8.1
+  // (`floor`, giant.ts lobeFloorY: no lamina, card, core vertex or twig below it — the twigs droop
+  // ~2 m under an unfloored lobe), 2.4+ m over every ground point under them. Built FLAT with an
+  // opaque CORE like the bank canopy below (flat + core 0.97, corridor-exempt): the first
+  // round-45 take moved them to 38–40 m as ordinary lobes (k 1.70 / 1.86, density 3) and F lost
+  // 0.0049 — at that depth the cluster cards no longer close and the mass broke into leaf
+  // clumps against the bright haze (window sd 0.07–0.13 where cap-0's even mass had 0.006–0.02
+  // and the frame 0.005–0.03; SSIM's structure term, cells (0.375–0.625, 0–0.17): −0.0049 of
+  // it). The core is one even body whatever the distance. Tone 0.85 × shade 0.5 (the bank
+  // canopy's 0.6 × 0.4 is fitted to frame darks of 0.19–0.23 at 13 m): unveiled ≈ 0.25, under the
+  // 38 % veil at 32 m ≈ 0.38 against the frame's 0.42–0.49. The bough leaves the bole at 12.2 m
+  // and runs 12.5 m north over the plateau (wood 9.8–12.2 m over 5.3–5.6 m ground). A's
+  // top-right corner, which L2's dark rim filled at 22 m (A (0.96, 0.05) ± 0.08 at 0.31 against
+  // the frame's 0.30), is the bank canopy's corner lobe's now (stair-bank-giant, below): L2 here
+  // is at A (1.04, 0.02), only its north-west rim in the frame.
   {
     giant: 'east-giant',
-    fromY: 9.6,
-    to: [17.6, 8.2, -2.4],
+    fromY: 12.2,
+    to: [28.0, 9.8, -7.5],
     radius: 0.5,
     lobes: [
-      { t: 0.8, center: [19.2, 7.8, -1.2], hR: 2.4, vR: 1.3, density: 2, eye: 0 },
-      { t: 0.97, center: [17.9, 7.3, -2.5], hR: 2.2, vR: 1.2, density: 2, eye: 0 },
+      { t: 0.6, center: [27.66, 10.2, -3.28], hR: 3.36, vR: 1.82, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 8.1 },
+      { t: 0.95, center: [27.83, 10.05, -5.75], hR: 3.3, vR: 1.8, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 8.1 },
     ],
   },
   // the plaza roof (round 14): the casters that frame shot A's lit plaza box — one bough across
@@ -820,6 +858,30 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.3, center: [11.2, 3.4, 3.7], hR: 1.9, vR: 1.5, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97 },
       { t: 0.8, center: [10.4, 3.4, 5.9], hR: 1.5, vR: 1.4, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97 },
     ],
+  },
+  // Round 45: the bank canopy's CORNER lobe — the dark mass in A's top-right corner and the near
+  // half of F's top-centre canopy. Until round 45 both were the east giant's plateau-lip lobe L2
+  // at (17.9, 7.3, −2.5), 21–22 m from A and F (A (0.96, 0.05) ± 0.08 at 0.31 against frame 1 s'
+  // dark trunk at 0.30; F (0.44, 0.10)) — which hung 0.7 m over the fenced plateau walk and had
+  // to go (above); moved out along F's ray it leaves A's corner (A (1.04, 0.02)), and A lost
+  // 0.0028 in that one cell (0.875–1, 0–0.17: 0.43 haze against 0.30). This lobe stands on the
+  // same A and F rays 13–15 m out — A (0.96, 0.02) ± 0.08 × 0.10, F (0.53, 0.09) ± 0.08 × 0.11 —
+  // over the grassy bank NORTH-EAST of the main stairs (ground 0.9–2.3 under its footprint, slope
+  // 15–27°; 4 m off the stair axis, 2.5 m outside the treads; not the plateau walk), FLOORED at
+  // 4.75: 2.4+ m over the highest ground under it (2.31 at (13.3, 0.5)), the flat-bottomed core
+  // (giant.ts lobeCore honours the floor) at A y 0.11. Flat + core like its neighbours, one
+  // colour: tone 0.85 × shade 0.5 (≈ 0.30 at 14 m under the thin near veil — A's corner wants the
+  // frame's 0.30, F's top-centre its 0.42–0.49; the neighbours' 0.6 × 0.4 is fitted to 0.19–0.23
+  // frame darks). Out of C (its centre at C (−0.02, −0.04); the south-east rim grazes C's top-left
+  // corner, which frame 44 s has dark to x 0.38); behind B / D / E.
+  {
+    giant: 'stair-bank-giant',
+    fromY: 6.6,
+    to: [11.6, 5.2, 1.9],
+    radius: 0.45,
+    tipRadius: 0.15,
+    ghostWood: true,
+    lobes: [{ t: 0.95, center: [11.6, 5.5, 1.6], hR: 1.8, vR: 1.1, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 4.75 }],
   },
   // Not here (round 38, measured and dropped): a mid-distance leaf tree for shot D. Frame 56 s has
   // a dark spreading tree left of the path's axis at D (0.36–0.5, 0.25–0.5), branches and leaf
@@ -1184,6 +1246,22 @@ const DEPTH_BANDS: DepthBand[] = [
   // instance tint lifts the shaded bark's ambient term to ≈ 0.46 at that depth.
   { xMin: -17.5, xMax: -6.5, zMin: -46.5, zMax: -45, spacing: 2.2, scale: [1.2, 1.35], shade: 1.3, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-far-trunks-d' },
 ];
+/** round 45: no distant tree within this of the path spine (m) … */
+const DISTANT_SPINE_CLEARANCE = 6;
+/** … the spine extended this far north past its last point (the sight line out of the log arch) */
+const DISTANT_SPINE_EXTEND_M = 12;
+function spineDistance(spine: [number, number][], x: number, z: number): number {
+  let best = Infinity;
+  for (let i = 0; i + 1 < spine.length; i++) {
+    const [ax, az] = spine[i];
+    const [bx, bz] = spine[i + 1];
+    const abx = bx - ax;
+    const abz = bz - az;
+    const t = Math.max(0, Math.min(1, ((x - ax) * abx + (z - az) * abz) / (abx * abx + abz * abz || 1)));
+    best = Math.min(best, Math.hypot(x - ax - abx * t, z - az - abz * t));
+  }
+  return best;
+}
 /**
  * Column trees (column.ts) — the dark boles of the mid-distance forest wall (round 13).
  *
@@ -1487,6 +1565,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** the part's own swap radii (giant.ts swapRadii, then `nearCanopyHeroPass` on the built mesh) */
     inM: number;
     outM: number;
+    /** the radii are NEAR_CANOPY_FLAT_SWAP_M and the hero pass leaves them (nearCanopy.ts NearCanopyPart.fixedSwap) */
+    fixedSwap: boolean;
     /** the nearest hero camera that frames the built part's cull sphere (m to the centre; Infinity: none) */
     hero: number;
     mesh: Mesh;
@@ -1811,7 +1891,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const columnGroup = new Group();
   columnGroup.name = 'columns';
-  familyMeshes(seatedColumns, 'column', mats.giantTree, mats.giantTreeDepth, columnGroup);
+  // round 45: the columns' own bark floor (materials COLUMN_BARK_FLOOR) keeps their tone bands in shade
+  familyMeshes(seatedColumns, 'column', mats.columnTree, mats.giantTreeDepth, columnGroup);
   for (const c of seatedColumns) for (const m of c.meshes) {
     const p = c.placements[0];
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
@@ -1872,6 +1953,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         center: new Vector3(p.x + p.scale * (cos * part.center.x + sin * part.center.z), p.y + p.scale * part.center.y, p.z + p.scale * (-sin * part.center.x + cos * part.center.z)),
         inM: part.inM,
         outM: part.outM,
+        fixedSwap: part.fixedSwap === true,
         hero: Infinity,
         mesh,
         triangles: part.triangles,
@@ -1973,6 +2055,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         center: part.center.clone().add(g.origin),
         inM: part.inM,
         outM: part.outM,
+        fixedSwap: part.fixedSwap === true,
         hero: Infinity,
         mesh,
         triangles: part.triangles,
@@ -2054,7 +2137,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tipRadius: b.tipRadius,
       ghostWood: b.ghostWood,
       dress: b.dress,
-      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core })),
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core, floor: l.floor === undefined ? undefined : l.floor - gy })),
     }));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
@@ -2301,7 +2384,31 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   distantGroup.name = 'distant';
   const distantVariants = createDistantVariants(rng, palette);
   const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
-  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS);
+  // Round 45 (structures-28's ray pick at w21-spine-f): the first depth row ran through the log
+  // arch's north mouth — its instance at (0.73, −59.8) was a hex-prism trunk 5 m off the spine,
+  // INSIDE the log's west root mass, dead on the path's north sight line — and the radial pool
+  // put a 10 m slender pole 4.7 m off the sight line 14 m past the arch. No distant tree may
+  // stand within DISTANT_SPINE_CLEARANCE of the path spine, extended DISTANT_SPINE_EXTEND_M north
+  // past its last point (the sight line out of the arch), nor inside the log's body + root mass;
+  // one that is drawn there slides out along the perpendicular (distant.ts DistantClearance:
+  // after every draw, so every other tree is where it was).
+  const spineXZ: [number, number][] = ctx.layout.pathSpine.map((p) => [p[0], p[2]]);
+  {
+    const a = spineXZ[spineXZ.length - 2];
+    const b = spineXZ[spineXZ.length - 1];
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    spineXZ.push([b[0] + ((b[0] - a[0]) / l) * DISTANT_SPINE_EXTEND_M, b[1] + ((b[1] - a[1]) / l) * DISTANT_SPINE_EXTEND_M]);
+  }
+  const arch = ctx.layout.logArch;
+  const archYaw = (arch.yawDeg * Math.PI) / 180;
+  const distantClearance: DistantClearance = {
+    spine: spineXZ,
+    spineClearance: DISTANT_SPINE_CLEARANCE,
+    // the log's long axis as logArch.ts builds it (east, slightly north); body plus the root masses
+    footprints: [{ x: arch.position[0], z: arch.position[2], ax: Math.cos(archYaw), az: -Math.sin(archYaw), halfLength: arch.length / 2 + 2, halfWidth: arch.radius + 1 }],
+  };
+  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
+  const distantCleared = distantClearanceTally();
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
@@ -2547,13 +2654,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * −0.012 SSIM). Here every part's padded world cull sphere is tested against the hero frusta
    * and its radii cut under the nearest framing camera exactly as swapRadii does; a part that
    * would then swap under NEAR_CANOPY_MIN_IN_M never swaps (radii −1: its tagged far foliage is
-   * simply never folded) and its geometry is dropped.
+   * simply never folded) and its geometry is dropped. A flat lobe on NEAR_CANOPY_FLAT_SWAP_M
+   * (round 45, item 6; nearCanopy.ts fixedSwap) keeps those radii whatever camera frames it —
+   * that setting means the hero cameras inside them render the near version.
    */
   const nearCanopyHeroPass = () => {
     const sphere = new Sphere();
     let limited = 0;
     let dropped = 0;
     for (const nc of nearCanopies) {
+      if (nc.fixedSwap) continue;
       nc.mesh.updateMatrixWorld(true);
       sphere.copy(nc.mesh.geometry.boundingSphere!).applyMatrix4(nc.mesh.matrixWorld);
       sphere.radius += 1;
@@ -2774,6 +2884,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantFlatCores: CANOPY_BOUGHS.reduce((n, b) => n + b.lobes.filter((l) => l.flat && l.core).length, 0),
       /** round 40: leaf-cluster cards dressing the cores' outlines (giant.ts lobeCore), part of giantFlatCards */
       giantCoreRimCards: giants.reduce((n, g) => n + g.asset.coreRimCards, 0),
+      /** round 45 (item 5): a cluster card's coverage by |cos(normal, view ray)| — [gone at, full from] for the ordinary and the flat-shaded cards (materials.ts CARD_EDGE_FADE) */
+      cardEdgeFade: { cards: CARD_EDGE_FADE, flat: CARD_FLAT_EDGE_FADE },
       /** the giants' geometries: sectors, authored leaves / cards, plus their pooled near bases and near-canopy parts */
       giantMeshes: sectorGeometries.length + giants.reduce((n, g) => n + (g.asset.nearBase ? 1 : 0) + g.asset.nearCanopy.length, 0),
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
@@ -2815,7 +2927,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       leafCount: leafCount + columnLeaves + giantLeaves,
       whiteBarkLeafCount: leafCount,
       distantTrees: distantPlacements.length,
+      /** round 45: instances slid off the path's sight line / dropped from the arch's footprint, and the spine clearance (m) */
+      distantClearance: { ...distantCleared, spine: DISTANT_SPINE_CLEARANCE, minSpineDistance: Math.round(Math.min(...distantPlacements.map((p) => spineDistance(spineXZ, p.x, p.z))) * 100) / 100 },
       distantLod: [distantNearCount, distantFarCount],
+      /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
+      distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
+      /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
+      lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
@@ -2833,6 +2951,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             ['leaf', TREE_LEAF_FLOOR],
             ['leafNear', TREE_LEAF_FLOOR_NEAR],
             ['nearBole', TREE_NEAR_BOLE_FLOOR],
+            ['column', COLUMN_BARK_FLOOR],
+            ['columnFar', COLUMN_BARK_FLOOR_FAR],
             ['nearBase', NEAR_BASE_FLOOR],
             ['nearCanopyLeaf', NEAR_CANOPY_LEAF_FLOOR],
           ] as [string, ShadeFloor][]
@@ -2840,6 +2960,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ),
       /** the far programs' floors fade from the NEAR presets to the shared ones over this view distance (m) */
       shadeFloorFadeM: TREE_FLOOR_FADE_M,
+      /** the column bark floor alone fades from `column` to `columnFar` over this view distance (m) (materials.ts COLUMN_FLOOR_FADE_M) */
+      columnFloorFadeM: COLUMN_FLOOR_FADE_M,
       /** the near bole's floor fades with height (materials.ts NEAR_BOLE_FLOOR_FADE): [lift at the foot, lift above the fade, fade from (m), fade to (m)] */
       nearBoleFloorProfile: [NEAR_BOLE_FLOOR.lift, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_FLOOR_FADE[0], NEAR_BOLE_FLOOR_FADE[1]],
       /**
