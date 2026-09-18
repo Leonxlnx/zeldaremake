@@ -49,7 +49,11 @@ export const NEAR_CANOPY_MIN_IN_M = 7;
  * hero cut, which holds the four bank-canopy flat lobes (10.5–14 m from A, 11–14 from B / E,
  * 12.6–15.7 from F) at 9–12.4 m in. Set to [14, 17] the hero cameras stand inside the swap and
  * render the lit, layered near versions in place of the even masses their frames are matched
- * to; null = the hero cut (the measured setting — see the round-45 trees report).
+ * to — measured (cap-6t on 44fe9b1): F −0.0131 and A −0.0025 against the same build with the
+ * hero cut, for +3 pinned parts / +1.55 MB pinned in a pool that stays at its 64 MiB cap. The
+ * walker pose that sees the far version at 11 m (w02-spine-r, (0.19, 1.45, 9.55)) stands where
+ * camera A stands ((0.4, 1.8, 8.6)): no distance radius shows one the near version without the
+ * other. null = the hero cut.
  */
 export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;
 /**
