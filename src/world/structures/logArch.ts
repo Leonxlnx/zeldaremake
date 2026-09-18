@@ -1047,6 +1047,44 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   const PLATE_ALONG = 0.26;
   const PLATE_AROUND = 0.105;
   const plateNoise = new Noise2D(`${ctx.config.seed}/structures/log-plates44`);
+  /**
+   * The body's relief AS THE MESH HAS IT. The outer shell samples `detail()` on a 272 × 208 grid
+   * (8 × 11 cm cells) and the triangles between are flat, while the analytic field has ±8 cm
+   * cords at 30 cm and 8 cm cracks; a plate set on the analytic surface therefore sits up to
+   * several cm inside the mesh in every concave cell (the first pass: half the plate tops under
+   * the bark, sn-arch-outside unchanged at 9 m). So the plates stand on the mesh's own surface:
+   * the same displacement sampled at the shell's vertices and bilinearly interpolated in the
+   * shell's (u, f) parameterisation, `rowWarp` inverted for the row.
+   */
+  const meshDisp = (() => {
+    const grid = new Float32Array((cols + 1) * rows);
+    for (let j = 0; j < rows; j++) {
+      const f = j / (rows - 1);
+      const v = rowWarp(f);
+      for (let i = 0; i <= cols; i++) {
+        const psi = (i / cols) * TAU;
+        const s = lerp(sEndW(psi), sEndE(psi), v);
+        grid[j * (cols + 1) + i] = detail(psi, s, upness(psi));
+      }
+    }
+    const unwarp = (v: number) => (v < 0.45 ? (v / 0.45) * 0.6 : 0.6 + ((v - 0.45) / 0.55) * 0.4);
+    const column = (i: number, s: number) => {
+      const psi = (i / cols) * TAU;
+      const W = sEndW(psi);
+      const E = sEndE(psi);
+      const y = clamp(unwarp((s - W) / (E - W)), 0, 1) * (rows - 1);
+      const j0 = Math.min(rows - 2, Math.floor(y));
+      const fv = y - j0;
+      return lerp(grid[j0 * (cols + 1) + i], grid[(j0 + 1) * (cols + 1) + i], fv);
+    };
+    return (psi: number, s: number) => {
+      const u = (((psi / TAU) % 1) + 1) % 1;
+      const x = u * cols;
+      const i0 = Math.min(cols - 1, Math.floor(x));
+      const fu = x - i0;
+      return lerp(column(i0, s), column(i0 + 1, s), fu);
+    };
+  })();
   const _pc = new Vector3();
   const _pn = new Vector3();
   const _pb = new Vector3();
@@ -1066,9 +1104,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         const s0 = sRow + (plateRng() - 0.5) * 0.06;
         const len = PLATE_ALONG * (0.72 + plateRng() * 0.4);
         const wid = PLATE_AROUND * (0.68 + plateRng() * 0.38);
-        const h = 0.024 + plateRng() * 0.028;
+        const h = 0.03 + plateRng() * 0.03;
         const tilt = (plateRng() - 0.5) * 0.9;
-        const tone = 0.96 + (plateRng() - 0.5) * 0.24;
+        // per-plate tone (± 15 %) under a metre-scale patch field (± 22 %): single plates are
+        // texture at 3 m, the patches are what reads as mottled old bark at 10–16 m in the haze
+        // (survey-1 crop 08 — the first pass's ± 12 % on a uniform bed vanished beyond 6 m)
+        const tone = (0.96 + (plateRng() - 0.5) * 0.3) * (1 + 0.22 * plateNoise.noise(arc0 * 0.9 + 50, s0 * 0.9 + 20));
         const keep = plateRng();
         const drop = plateRng();
         const psi0 = arc0 / R - Math.PI;
@@ -1081,7 +1122,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         if (keep < smoothstep(0.12, 0.42, fissureAt(psi0, s0))) continue;
         if (drop < 0.07) continue;
         plateArcOpen++;
-        const disp0 = detail(psi0, s0, up0);
+        const disp0 = meshDisp(psi0, s0);
         surfacePoint(psi0, s0, rBase(psi0, s0) + disp0, _pc);
         surfaceNormal(psi0, s0, _pn);
         const base = outerColor(psi0, s0, disp0, _pc);
@@ -1096,14 +1137,18 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
             const dv = (v - 0.5) * len * wob;
             const psi = psi0 + du / rPlate;
             const s = s0 + dv;
-            surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)), out.position);
+            surfacePoint(psi, s, rBase(psi, s) + meshDisp(psi, s), out.position);
             // the rim sinks into the body, the top stands off along the centre's normal and lifts at one end
             const off = rim ? -0.015 : h * (1 + tilt * (v - 0.5)) * (0.9 + 0.2 * plateNoise.noise(u * 7 + arc0, v * 7 + s0));
             out.position.addScaledVector(_pn, off);
             out.uv = [(psi * R) / 1.3 + uvOff, s / 1.3];
-            // the rim is the fissure's shade; the top carries the body's tint with a fine flaky mottle
+            // the rim is the fissure's shade and the ring inside it shades toward it (a soft dark
+            // border 3 cm wide, so the plate network reads as lines at 10 m and not as a 1-px
+            // seam); the top carries the body's tint with a fine flaky mottle
             const mottle = 0.9 + 0.2 * plateNoise.noise(psi * R * 22 + 3, s * 22 + arc0);
-            const k = rim ? 0.42 : 1.1 * tone * mottle;
+            const inset = Math.min(u, 1 - u, v, 1 - v);
+            const border = 1 - 0.4 * clamp(1 - inset / 0.3, 0, 1);
+            const k = rim ? 0.3 : 1.12 * tone * mottle * border;
             out.color = [base[0] * k, base[1] * k, base[2] * k];
           },
           { cols: 5, rows: 4 },

@@ -4415,8 +4415,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // is thin (the walked line, the gaps between clumps, the slab's ragged rim) the sheet dips a
     // centimetre INTO the stone and is hidden, so the moss edge is a smooth curve through the
     // cells, not a staircase of open cells. Same bucket as the tufts.
+    // Round 44 (structures-28): the moss keeps to the slab's RIM and the SILL. Round 43's film
+    // ran over most of the top (patch × walk), and on the worn stone that now sits under it the
+    // door read as a green mat on a dark slab (w31-house-d) — the reference threshold is bare
+    // pale stone with moss at its edges. `rimOrSill` is 1 on the outer 30 % of the ellipse and
+    // against the sill, 0.1 on the walked middle; film and tufts both follow it.
+    const rimOrSill = (w: number, d: number) => Math.max(smoothstep(0.55, 0.88, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d)), smoothstep(0.3 * k, 0.08 * k, d - dBack));
     {
-      const cover = (w: number, d: number) => patchOf(w, d) * lerp(0.15, 1, walkOf(w)) * smoothstep(0.96, 0.78, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d));
+      const cover = (w: number, d: number) =>
+        patchOf(w, d) * lerp(0.15, 1, walkOf(w)) * lerp(0.1, 1, rimOrSill(w, d)) * smoothstep(0.96, 0.78, Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d));
       doormatFilm = gridSurface(
         (u, v, out) => {
           const w = slab.cw + (u * 2 - 1) * slab.w;
@@ -4439,7 +4446,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const edge = smoothstep(0.35 * k, 0.05 * k, Math.abs(d - (dBack + 0.06 * k)));
       // clumped with the film, so the tufts stand on and round the carpet's patches
       const patch = patchOf(w, d);
-      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch);
+      const keep = lerp(0.04, 1, Math.max(walk, 0.5 * edge)) * lerp(0.25, 1, patch) * lerp(0.12, 1, rimOrSill(w, d));
       if (matRng() > keep) continue;
       // on the slab (ellipse footprint) or the porch floor's ramp
       const rr = Math.hypot((w - slab.cw) / slab.w, (d - slab.cd) / slab.d);

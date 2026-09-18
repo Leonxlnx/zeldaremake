@@ -184,6 +184,14 @@ export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, t
  * separates from black at 2 m, not to the bark's level.
  */
 export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3.6, texture: 1.0, albedo: 0.1 };
+/**
+ * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
+ * (survey-1 crop 26 / w31-house-d): with no floor the worn top rendered ≈ 0.05 and the moss
+ * doormat read as a green mat on a black slab. Textured, at the stone's own mean albedo (0.28),
+ * lift 3.4 — the frame's threshold band sits at lum ≈ 0.30, a pale worn stone, not the round-8
+ * slab's over-bright white.
+ */
+export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3.4, texture: 1.0, albedo: 0.28, canopy: 0.6, chroma: 0.5 };
 /** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
  *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
  *  the target (hue 27°) to land between the two lips */
@@ -1418,6 +1426,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // 1: the grain's ×0.48–1.28 swing is what shows) at a lift below the bark's, so the plateau
   // posts F sees at 25 m stay the frame's dark posts while the grain reads at 2 m.
   applyShadeFloor(fenceWood, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(stone, STONE_FLOOR);
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks', 'worn_rock_natural_01'].includes(s));
   return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }
