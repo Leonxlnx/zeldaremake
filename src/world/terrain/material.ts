@@ -80,7 +80,7 @@ const BANK_FADE: [number, number] = [4.0, 9.0];
  * untouched (the probe is byte-identical).
  */
 const FACE_FADE: [number, number] = [5.0, 11.0];
-const FACE_NORMAL_K = 2.5;
+const FACE_NORMAL_K = 4.0;
 const FACE_ROOT_H = 0.014;
 const FACE_PLATE_H = 0.014;
 /** wet band: albedo multiplier (dark, a touch cool) and roughness */
@@ -138,7 +138,7 @@ float facePlates(vec2 p, out float id, out float stepW) {
   float q = pn * 3.0;
   id = floor(q);
   float fr = fract(q);
-  stepW = 1.0 - smoothstep(0.0, 0.2, abs(fr - 0.5));
+  stepW = 1.0 - smoothstep(0.0, 0.25, abs(fr - 0.5));
   return (id + smoothstep(0.3, 0.7, fr)) / 3.0 - 0.5;
 }
 float faceH(vec2 p, vec2 dn, float rock) {
@@ -364,11 +364,14 @@ void faceDetail(vec2 p, vec2 dn, float rock, float moss, float w, float steep, i
     float pres; float id; float sw;
     float r = faceRoots(p, dn, pres);
     facePlates(p, id, sw);
+    // (both faces sit in the giants' shade at luminance ≈ 0.17, where the first cut's ± 10 %
+    // ledges and −22 % troughs moved the survey frames by 1.7/255 — invisible; the albedo is the
+    // lever there, so the joints go to −60 %, the ledges swing ± 20 %, the crowns + 45 %)
     float crown = smoothstep(0.35, 0.9, r);
     float trough = (1.0 - smoothstep(0.0, 0.3, r)) * pres;
-    vec3 cRoot = c * mix(1.0, 1.3, crown) * vec3(1.0 + 0.12 * crown, 1.0, 1.0 - 0.18 * crown) * (1.0 - 0.22 * trough);
-    float ledge = 0.9 + 0.2 * tHash(vec2(id, 3.7));
-    vec3 cPlate = c * ledge * (1.0 - 0.38 * sw);
+    vec3 cRoot = c * mix(1.0, 1.45, crown) * vec3(1.0 + 0.14 * crown, 1.0, 1.0 - 0.2 * crown) * (1.0 - 0.35 * trough);
+    float ledge = 0.8 + 0.4 * tHash(vec2(id, 3.7));
+    vec3 cPlate = c * ledge * (1.0 - 0.6 * sw);
     c = mix(c, mix(cRoot, cPlate, rock), hard);
   }
   float soft = w * moss;
@@ -718,7 +721,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
       .replace('#include <normal_fragment_maps>', NORMAL_FRAG)
       .replace('#include <roughnessmap_fragment>', ROUGH_FRAG);
   };
-  material.customProgramCacheKey = () => 'terrain-layered-v3-face-relief';
+  material.customProgramCacheKey = () => 'terrain-layered-v4-face-relief';
 
   return { material, layers: [...TERRAIN_LAYERS], textured, detailNormal: true, sets: names };
 }
