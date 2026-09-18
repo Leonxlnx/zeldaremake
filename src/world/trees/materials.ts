@@ -208,8 +208,21 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false
   );
 }
 
+/**
+ * Round 46 (survey-2 check 03, pose sn-bole-lantern-tree: a flat 9-gon moss cushion 190 px
+ * across cut the frame at touching distance — the lens 45 cm from a 12 cm dome): the tree
+ * shader shrinks a 3-D cushion (writer.ts woodCushion: aRoot.w = −0.49, its anchor on the bark
+ * in aRoot.xyz) onto its anchor as the lens comes within these distances of the ANCHOR (m) —
+ * full size at the second, gone at the first — so a cushion is never a polygon across the frame
+ * and never pops (a fragment cull left a ring). The fixed cameras stand ≥ 5 m from every near
+ * base; the shader's own moss field carries the cushion look inside a metre.
+ */
+export const CUSHION_FADE_M: [number, number] = [0.4, 0.7];
+
 const WIND_VERTEX_PARS = /* glsl */ `
 #define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}
+#define CUSHION_FADE_NEAR ${CUSHION_FADE_M[0].toFixed(3)}
+#define CUSHION_FADE_FAR ${CUSHION_FADE_M[1].toFixed(3)}
 #define NEAR_BOLE_SLOTS ${NEAR_BOLE_SLOTS}
 #define NEAR_CANOPY_SLOTS ${NEAR_CANOPY_SLOTS}
 attribute vec3 aWind;
@@ -246,6 +259,13 @@ const WIND_VERTEX_BODY = /* glsl */ `
         float slotCut = uNearBole[i].w;
         if (abs(slotCut) > 0.5 && (slotCut > 0.0 || aRoot.w < -1.5) && distance(uNearBole[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz + vec3(0.0, abs(slotCut), 0.0);
       }
+    }
+    // a 3-D moss cushion (writer.ts woodCushion: w = −0.49, aRoot.xyz = its anchor on the bark,
+    // so treeRoot here is the anchor in world space) shrinks onto its anchor as the lens comes
+    // within CUSHION_FADE_M of it — a 12 cm dome 45 cm from the lens was a polygon across the
+    // frame (round 46, survey-2 check 03). Only the near bases carry cushions.
+    if (aRoot.w < -0.47 && aRoot.w > -0.5) {
+      transformed = mix(aRoot.xyz, transformed, smoothstep(CUSHION_FADE_NEAR, CUSHION_FADE_FAR, distance(cameraPosition, treeRoot.xyz)));
     }
     // near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): the far laminae and cards of a lobe (aRoot.w =
     // 3 + the lobe's group) fold to the tree's root while a slot names that root and group (the
@@ -299,8 +319,9 @@ const WIND_VERTEX_BODY = /* glsl */ `
     vIsLeaf = step(0.5, leafW);
     vLeafFlat = step(1.25, leafW) * (1.0 - step(2.75, leafW));
     vLeafShade = clamp((leafW - mix(0.5, 1.5, vLeafFlat)) * 2.0, 0.0, 1.0);
-    // −0.45 × moss cover on the near bases' wood (writer.ts woodMoss); 0 on every plain vertex
-    vBarkMoss = (aRoot.w < 0.0 && aRoot.w > -0.5) ? -aRoot.w / 0.45 : 0.0;
+    // −0.45 × moss cover on the near bases' wood (writer.ts woodMoss); 0 on every plain vertex;
+    // a collapsible trunk ring's cover rides in −1 − 0.45 × cover (a relief column's lower bole)
+    vBarkMoss = (aRoot.w < 0.0 && aRoot.w > -0.5) ? min(1.0, -aRoot.w / 0.45) : ((aRoot.w <= -1.0 && aRoot.w > -1.5) ? (-aRoot.w - 1.0) / 0.45 : 0.0);
   }
 `;
 
@@ -340,6 +361,8 @@ float barkMossCover = 0.0;
 // 1 at BARK_DETAIL_M[0] from the camera, 0 at BARK_DETAIL_M[1]; set in the near-detail programs'
 // colour block, read by their normal block — zero everywhere else
 float barkNearDetail = 0.0;
+// the third octave's weight within BARK_TOUCH_M (round 46), bare bark only; zero everywhere else
+float barkTouch = 0.0;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -363,6 +386,13 @@ float mossField(vec3 p) { return treeNoise(p * 13.0) * 0.55 + treeNoise(p * 41.0
  */
 export const BARK_DETAIL_M: [number, number] = [1.5, 6];
 export const BARK_DETAIL_TILES = 3.7;
+/**
+ * Round 46 (survey-2 check 03): the near-detail programs' third bark octave, within these view
+ * distances (m) — full at the first, none at the second — at BARK_TOUCH_TILES × the tile (≈ 1 mm
+ * a texel on the 1.6 m tile). The fixed cameras stand ≥ 5 m from every near base: zero there.
+ */
+export const BARK_TOUCH_M: [number, number] = [0.6, 2.0];
+export const BARK_TOUCH_TILES = 11.0;
 /** mean luminance of tree_bark_03/color.jpg (ffmpeg signalstats YAVG 133.29 / 255) — the fine
  *  albedo term modulates around it so the bole's average colour does not shift */
 const BARK_DETAIL_MEAN = 133.29 / 255;
@@ -383,8 +413,16 @@ export const DISTANT_BARK_M: [number, number] = [22, 38];
  * [0.82, 0.22, 0.7] moved the w19-spine-r bole's interior by 1–2 sRGB levels (the veil at
  * 15 m keeps ~0.18 of a 0.24 pixel): the haze takes most of any albedo change, so the change
  * has to be large to survive it.
+ *
+ * Round 46 (survey-2 check 04: the round-45 take at [0.72, 0.4, 0.55] measured an interior sd of
+ * 7–10 sRGB levels on a mean of 65 at w19-spine-r — bands on a 0.04-linear base tone under the
+ * veil): the plates come up to the tint (1.0) so the furrows the geometry now cuts
+ * (distant.ts DISTANT_CORDS, floor × DISTANT_FURROW_SHADE in the vertex colour) have a lit
+ * plate to contrast with; the patch bands ±45 %; the analytic 20-around cord stripe drops to a
+ * quarter of the band (DISTANT_NEAR_CORD_STRIPE) — the geometry carries the cords now.
  */
-export const DISTANT_NEAR_TONE: [number, number, number] = [0.72, 0.4, 0.55];
+export const DISTANT_NEAR_TONE: [number, number, number] = [1.0, 0.45, 0.5];
+export const DISTANT_NEAR_CORD_STRIPE = 0.25;
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
@@ -596,6 +634,15 @@ const GIANT_BARK_COLOR = /* glsl */ `
     float fineLum = dot(fine, vec3(0.2126, 0.7152, 0.0722));
     float fineFactor = clamp(fineLum / uBarkDetailMean, 0.55, 1.7);
     diffuseColor.rgb *= mix(1.0, mix(1.0, fineFactor, 0.7), barkNearDetail * (1.0 - barkMossCover));
+    // round 46 (survey-2 check 03, the bole at 0.5 m "a blurred smear"): a third octave within
+    // BARK_TOUCH_M — the same map at BARK_TOUCH_TILES × the tile, a factor about its mean at half
+    // weight — so the plates break into grain at arm's length; zero past 2 m
+    barkTouch = (1.0 - smoothstep(${BARK_TOUCH_M[0].toFixed(2)}, ${BARK_TOUCH_M[1].toFixed(2)}, length(vViewPosition))) * (1.0 - barkMossCover);
+    if (barkTouch > 0.0) {
+      vec3 touch = texture2D(map, vMapUv * ${BARK_TOUCH_TILES.toFixed(2)} + vec2(0.13, 0.29)).rgb;
+      float touchLum = dot(touch, vec3(0.2126, 0.7152, 0.0722));
+      diffuseColor.rgb *= mix(1.0, clamp(touchLum / uBarkDetailMean, 0.6, 1.5), 0.5 * barkTouch);
+    }
   }
   #endif
 `;
@@ -979,8 +1026,13 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       if (barkNearDetail > 0.0) {
         vec3 fineN = texture2D(normalMap, vNormalMapUv * ${BARK_DETAIL_TILES.toFixed(2)} + vec2(0.37, 0.61)).xyz * 2.0 - 1.0;
         fineN.xy *= normalScale * 0.75;
-        vec3 sumN = normalize(vec3(mapN.xy + fineN.xy * barkNearDetail, mapN.z));
-        normal = normalize(tbn * sumN);
+        vec3 sumN = vec3(mapN.xy + fineN.xy * barkNearDetail, mapN.z);
+        // the third octave's slopes at arm's length (round 46, BARK_TOUCH_M)
+        if (barkTouch > 0.0) {
+          vec3 touchN = texture2D(normalMap, vNormalMapUv * ${BARK_TOUCH_TILES.toFixed(2)} + vec2(0.13, 0.29)).xyz * 2.0 - 1.0;
+          sumN.xy += touchN.xy * normalScale * 0.5 * barkTouch;
+        }
+        normal = normalize(tbn * normalize(sumN));
       }
       // the moss as a volume: the cushion field's slopes bend the normal (finite differences
       // along the tangent frame, in world space) so a cushion's crown faces the light and its
@@ -1287,14 +1339,14 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         // and the veil there takes most of their contrast (w19-spine-r: interior sd 0.025)
         float cord = sin(theta * around * 4.0 + vDistLocal.y * 0.35 + vDistPhase * 3.0);
         float grime = mix(uDistantTone.z, 1.0, smoothstep(0.0, 4.0, vDistLocal.y));
-        tinted *= uDistantTone.x * (1.0 + uDistantTone.y * band) * (1.0 + 0.5 * uDistantTone.y * cord) * grime;
+        tinted *= uDistantTone.x * (1.0 + uDistantTone.y * band) * (1.0 + ${DISTANT_NEAR_CORD_STRIPE.toFixed(2)} * uDistantTone.y * cord) * grime;
         diffuseColor.rgb = mix(diffuseColor.rgb, tinted, near);
       }
     }
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v5';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v6';
 
   return {
     whiteTree,

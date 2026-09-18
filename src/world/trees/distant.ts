@@ -43,6 +43,46 @@ const ICO0 = new IcosahedronGeometry(1, 0);
 export const DISTANT_FLARE = 0.4;
 /** … falling off with this e-folding distance (m) along the bole */
 export const DISTANT_FLARE_FALL = 1.6;
+/**
+ * Round 46 (survey-2 check 04, poses w19-spine-r / sn-arch-outside: the depth rows' boles
+ * 8–14 m from a walker were still smooth grey cones — round 45's tone bands and cords are albedo
+ * alone on a bole whose base tone is 0.04 linear, so under the veil a ±40 % band is 7 sRGB levels,
+ * and a 10-sided prism has no flank to catch the sun). The near LOD bole now carries GEOMETRIC
+ * longitudinal cords: [furrows around a broad bole, around a slender, furrow depth as a share
+ * of the radius] — straight furrows (no lean, so the per-side grain the sweep already writes
+ * carries the same field as a crevice shade, aligned with the geometry exactly), narrow troughs
+ * between flat plates, a second set at N + 3 for irregularity. Near LOD only: the far LOD's
+ * crossed quads are untouched and every fixed camera is ≥ 38 m from a depth row.
+ */
+export const DISTANT_CORDS: [number, number, number] = [9, 5, 0.09];
+/**
+ * round 46: the near LOD bole's sides [broad, slender] (10 / 7 through round 45) — 4 / 3 per
+ * furrow. Survey-2 crop 03 (pose w09-spine-l, "buttress flares as faceted low-poly cones with a
+ * hard straight base"): the probe put a depth row's near-LOD bole foot under that wedge (depth
+ * 55–71 m, distant-tree candidates only) — a 10-gon's flared foot, 36° a facet, pale in the haze.
+ */
+export const DISTANT_SIDES: [number, number] = [36, 15];
+/**
+ * round 46: the near LOD bole's foot grime in the vertex colour — × this at the ground line,
+ * the bark's own tone by the second ring (≈ 4 m) — a soil-dark root fillet at every range the
+ * near LOD is drawn (round 45's shader grime is zero past 38 m, and w09-spine-l's wedge stands
+ * at 55–71 m). The far LOD's quads are untouched.
+ */
+export const DISTANT_FOOT_GRIME = 0.6;
+/** round 46: vertex-colour multiplier at a furrow's floor (1 at the plates' crests) */
+export const DISTANT_FURROW_SHADE = 0.42;
+/** round 46: the near LOD root buttresses' arc sides (6 through round 45: 30° facets read as a low-poly cone from a walker) */
+export const DISTANT_ROOT_ARC = 10;
+
+/**
+ * the cord field of a near LOD bole: the radius multiplier at `angle` — 1 on the plates, 1 − depth
+ * at a furrow's floor. Angle-only (see DISTANT_CORDS).
+ */
+export function distantCord(angle: number, count: number, depth: number, phase: number): number {
+  const primary = Math.pow(0.5 - 0.5 * Math.cos(angle * count + phase), 1.7);
+  const secondary = Math.pow(0.5 - 0.5 * Math.cos(angle * (count + 3) + phase * 2.3 + 1.1), 2.4);
+  return 1 - depth * Math.min(1, primary + 0.45 * secondary);
+}
 /** round 45 (item 4): a near-LOD limb's length as a share of the crown radius (0.6–1.0 through round 44: past the lobe shells) */
 export const LIMB_REACH: [number, number] = [0.45, 0.75];
 /**
@@ -170,9 +210,17 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // wind phase, one grain per old side) and the grain resampled over the new sides, so the
     // limbs and lobes after it draw exactly what they did — the rows' silhouettes in D hold.
     const oldSides = slender ? 5 : 7;
-    const sides = slender ? 7 : 10;
+    const sides = slender ? DISTANT_SIDES[1] : DISTANT_SIDES[0];
     const trunkDraws = consumeTubeDraws(r, oldSides);
-    trunkDraws.grain = Array.from({ length: sides }, (_, j) => trunkDraws.grain[Math.floor((j / sides) * oldSides)]);
+    // round 46 (DISTANT_CORDS): the resampled per-side grain also carries the furrow shade —
+    // the cord field is angle-only, so this is exactly the crevice under each vertex
+    const cordCount = slender ? DISTANT_CORDS[1] : DISTANT_CORDS[0];
+    const cordPhase = rng.fork(`distant-cords-${index}`)() * TAU;
+    trunkDraws.grain = Array.from({ length: sides }, (_, j) => {
+      const angle = (j / sides) * TAU;
+      const furrow = (1 - distantCord(angle, cordCount, DISTANT_CORDS[2], cordPhase)) / DISTANT_CORDS[2];
+      return trunkDraws.grain[Math.floor((j / sides) * oldSides)] * (1 - (1 - DISTANT_FURROW_SHADE) * furrow);
+    });
     // round 45 (trees-27's leftover, w19-spine-r / sn-arch-outside: the depth rows' boles 15–30 m
     // from a walker were straight pale cylinders): a basal flare on the near LOD — the radius
     // × (1 + DISTANT_FLARE e^(−d / DISTANT_FLARE_FALL)) along the bole, 1.27 R at the ground line
@@ -181,8 +229,11 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // distantNear): the nearest near-LOD distant tree to a fixed camera is 51 m off (the radial
     // pool from A; the depth rows 52 m+ from D), where 0.4 R on a 1 m bole is under a pixel at
     // the gauntlet's 256 × 144 — measured cap-5 → cap-11: D −0.0001, A −0.0001.
-    const flare = (_angle: number, distance: number) => 1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL);
-    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
+    // round 46: × the cord field (DISTANT_CORDS) — the furrows are real relief now, 36 / 15 sides
+    // (DISTANT_SIDES) so each has a floor and two flanks the sun can tell apart
+    const flare = (angle: number, distance: number) => (1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL)) * distantCord(angle, cordCount, DISTANT_CORDS[2], cordPhase);
+    const footGrime = bark.clone().multiplyScalar(DISTANT_FOOT_GRIME);
+    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: (_pt, t) => (t === 0 ? footGrime : bark), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
     // round 45 (trees-28 item 4, survey pose w19-spine-u: the "pale twig tips spiking the crown
     // rim" straight overhead on the north spine are a depth-row tree's limbs — 4-sided bark-
@@ -237,7 +288,8 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const rootCount = slender ? 4 : rootRng.int(5, 7);
     for (let i = 0; i < rootCount; i++) {
       const a = (i / rootCount) * TAU + rootRng.range(-0.3, 0.3);
-      rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6);
+      // round 46: DISTANT_ROOT_ARC arc sides and a fillet into the ground (writer.ts RootButtressShape)
+      rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6, { arcSides: DISTANT_ROOT_ARC, fillet: 0.6 });
     }
     solidUv(near);
 

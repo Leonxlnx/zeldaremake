@@ -14,12 +14,21 @@
 import { BufferGeometry, Color, Vector3 } from 'three';
 import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
-import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail } from './writer';
+import { GeometryWriter, TAU, UP, addLeaf, between, divergingLeaderPath, frame, growthPath, mergeParts, rootButtress, sample, stiffnessFor, tangent, taper, tube, type Detail, type RootButtressShape } from './writer';
 import type { Palette, TreeAsset } from './whitebark';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, reliefBoleSteps, shadedSheetMask, sweepAxisAt, type BoleKnee } from './bole';
 import { basePlants, basePlantsSteps, type BasePlantResult } from './base-plants';
 import { NEAR_BASE_CUT_Y, NEAR_BASE_PITCH, nearBaseAmplitude } from './giant';
 import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLobeRecord } from './nearCanopy';
+
+/**
+ * Round 46 (survey-2 crop 03, "buttress flares as faceted low-poly cones with a hard straight
+ * base"): the plain roots — what a walker outside a column's near band sees (col-3 at 14 m from
+ * w09-spine-l, band 10 / 13 m) — had a 6-step semicircular section meeting the ground at a
+ * corner. Now 10 arc sides and a 0.6 fillet running out flat into the ground (writer.ts
+ * RootButtressShape). The draws are unchanged, so nothing else re-rolls.
+ */
+export const PLAIN_ROOT_SHAPE: RootButtressShape = { arcSides: 10, fillet: 0.6 };
 
 /**
  * A knee on a column's bole (round 40, the owner's bole brief): a one-sided swelling at `height`
@@ -60,12 +69,15 @@ export interface ColumnAsset extends TreeAsset {
     mossShare: number;
     fins: number;
     toes: number;
+    /** 3-D moss cushions (bole.ts mossCushion) on the bole and the fins */
+    cushions: number;
     woodTriangles: number;
     plants: BasePlantResult;
     triangles: number;
     /**
-     * the near base holds fins and plants only and the plain roots alone fold for it: the bole
-     * is the relief sweep at every distance (a `relief` column), so nothing of it is replaced
+     * the near base holds fins and plants only and the plain roots alone fold for it (the bole
+     * is never replaced). Round 46: false for every column — a relief column's near base carries
+     * its own bole of the far sweep's field and the far rings under the cut fold for it.
      */
     rootsOnly: boolean;
   } | null;
@@ -327,41 +339,49 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const c = axisAt(d).centre;
     return { x: c.x, z: c.z };
   };
+  /** the relief bole's field (bole.ts): shared by the far sweep and the near base so they meet at the cut ring */
+  const reliefNoise = new Noise2D(`column-relief/${p.seed}`);
+  const reliefAmplitude = Math.max(0.06, Math.min(0.15, 0.11 * Math.sqrt(refRadius / 1.2))) * (p.relief ?? 0);
+  const reliefShared = {
+    color: barkColor,
+    bump: boleBump,
+    creviceShade: 1.8 * (p.gnarl / 0.1),
+    barkTile: p.barkTile,
+    refRadius,
+    noise: reliefNoise,
+    draws,
+    stiffness: stiff,
+    flatBase: true,
+    mossBand: [1.5, 5] as [number, number],
+    mossStrength: 0.7,
+    shadeDir,
+    sheetBand: [0.8, 2.4] as [number, number],
+    mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 5.5], 0.9, centreAt) : undefined,
+    lichen: { band: [3, 12] as [number, number], strength: 0.8 },
+    toneBands: p.toneBands,
+  };
   if (p.relief) {
     // the near-bole bark (bole.ts) at EVERY distance: the plain sweep's draws are consumed so the
     // roots and crown below draw the same stream; medium / low details keep the plain sweep's
     // side reduction. Moss sheets climb the shaded side to ≈ 7 m with a ragged edge
-    // (shadedSheetMask), lichen plates sit on the cords' crests from 3 m up; the near base then
-    // holds fins and plants only (rootsOnly) and nothing of this bole is ever swapped out.
+    // (shadedSheetMask), lichen plates sit on the cords' crests from 3 m up. Round 46 (survey-2
+    // check 02, the emergent at 4.4 m "a flat camo decal"): the rings under the cut are
+    // collapsible again — the near base carries its own finer bole of the SAME field (below),
+    // drawn by the near-base program (fine bark, textured moss, its own floor), and the far
+    // rings fold for it; the moss cover rides in the collapsible code (writer.ts woodMoss).
     const sideScale = detail === 'high' ? 1 : detail === 'medium' ? 0.72 : 0.5;
-    const reliefNoise = new Noise2D(`column-relief/${p.seed}`);
     const built = reliefBole(wood, trunk, trunkRadii, {
-      color: barkColor,
-      bump: boleBump,
-      creviceShade: 1.8 * (p.gnarl / 0.1),
-      barkTile: p.barkTile,
+      ...reliefShared,
       sides: Math.max(24, Math.min(120, Math.round(((TAU * refRadius) / 0.075) * sideScale))),
       spacing: detail === 'high' ? 0.2 : 0.4,
       denseUntilY: 14,
-      amplitude: Math.max(0.06, Math.min(0.15, 0.11 * Math.sqrt(refRadius / 1.2))) * p.relief,
+      amplitude: reliefAmplitude,
       fadeY: [12, 18],
       farShare: 0.35,
-      refRadius,
-      noise: reliefNoise,
-      draws,
-      stiffness: stiff,
-      flatBase: true,
-      mossBand: [1.5, 5],
-      mossStrength: 0.7,
-      shadeDir,
-      sheetBand: [0.8, 2.4],
-      mossExtra: shadeDir ? shadedSheetMask(shadeDir, reliefNoise, [0, 5.5], 0.9, centreAt) : undefined,
-      lichen: { band: [3, 12], strength: 0.8 },
-      toneBands: p.toneBands,
-      // round 44: the moss sheets stand a little proud of the cords (no extra triangles; the
-      // near base's cushions are the fins' — this bole is never swapped out). Not the emergent:
-      // camera D has its bole at 4.4 m and the frame is matched to the flat cover.
+      // round 44: the moss sheets stand a little proud of the cords (no extra triangles). Not the
+      // emergent: camera D has its bole at 4.4 m and the frame is matched to the flat cover.
       mossBulge: p.mossBulge,
+      collapsible: (pt) => buildNearBase && pt.y < cutY - 1e-6,
     });
     bark = { relief: built.amplitude, rings: built.rings, sides: built.sides, mossShare: built.mossShare, triangles: built.triangles };
   } else {
@@ -398,7 +418,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const width = R * bt(0.42, 0.6);
     const height = R * bt(0.9, 1.3);
     plainRoots.push({ angle, length, width });
-    rootButtress(wood, angle, length, width, height, rootColor, rng, groundAt);
+    rootButtress(wood, angle, length, width, height, rootColor, rng, groundAt, undefined, 7, PLAIN_ROOT_SHAPE);
   }
   wood.woodCollapsible = false;
   wood.woodIsRoot = false;
@@ -415,11 +435,34 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     const nb = new GeometryWriter('high');
     const nrng = rng.fork('near-base');
     const nNoise = new Noise2D(`column-near-relief/${p.seed}`);
-    // a relief column keeps its own bole at every distance (above): the near base then adds the
-    // fins and plants only, and the trees system folds the plain roots alone (rootsOnly)
-    const rootsOnly = !!p.relief;
-    const bole = rootsOnly
-      ? { amplitude: bark?.relief ?? 0, rings: 0, sides: 0, mossShare: bark?.mossShare ?? 0 }
+    /**
+     * Round 46 (survey-2 check 02 / w07-spine-l: the emergent's bole at 4.4 m was still "a flat
+     * camo decal" — its relief sweep is drawn by the far program, whose hero-calibrated floor
+     * (materials.ts NEAR_BOLE_FLOOR, lift 13 / texture 0.25) and flat vertex-cover moss swallow
+     * the cords; the near base held fins only). A relief column's near base now carries its own
+     * bole to the cut: the SAME cord field, draws, tints and knees as the far sweep (so the two
+     * coincide at the cut ring, where the far bole goes on), at twice the tessellation, 1.6 × the
+     * amplitude at the foot fading to the far amplitude at the cut, the moss as a bulge with 3-D
+     * cushions — and drawn by the near-base program (fine bark at BARK_DETAIL_M, textured moss
+     * with its slopes in the normal, NEAR_BASE_FLOOR). The far rings under the cut fold for it.
+     */
+    const rootsOnly = false;
+    const nearScale = 1.6;
+    const bole = p.relief
+      ? yield* reliefBoleSteps(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
+          ...reliefShared,
+          sides: Math.max(48, Math.min(200, Math.round((TAU * refRadius) / 0.04))),
+          spacing: 0.1,
+          denseUntilY: cutY + 1,
+          amplitude: reliefAmplitude * nearScale,
+          fadeY: [cutY - 2.5, cutY],
+          farShare: 1 / nearScale,
+          cap: false,
+          // the bulge meets the far bole flush at the cut: the emergent's far sweep has none
+          mossBulge: p.mossBulge ?? 0.6,
+          bulgeFade: p.mossBulge ? undefined : [cutY - 2, cutY],
+          cushions: { rng: nrng.fork('cushions'), density: 0.05, size: [0.04, 0.1], maxCount: 220 },
+        })
       : yield* reliefBoleSteps(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
           color: barkColor,
           bump: boleBump,
@@ -446,6 +489,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
           sheetBand: [0.8, 2.0],
         });
     yield;
+    let cushions = bole.cushions;
     // fins along the plain buttresses' directions: a centreline from the collar out to the reach,
     // riding the ground, then split toes (bole.ts)
     let toes = 0;
@@ -486,8 +530,11 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
         stiffness: stiff,
         noise: nNoise,
         mossStrength: 0.9,
+        // round 46: 3-D cushions on the fins' backs (the giants' fins have had them since round 44)
+        cushions: { rng: nrng.fork(`fin-cushions/${i}`), density: 0.08, size: [0.04, 0.09], maxCount: 30 },
       });
       toes += built.toes;
+      cushions += built.cushions;
       finFoot.push({ path, halfWidth: r0 * (big ? 2.2 : 1.5) });
       yield;
     }
@@ -527,7 +574,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     });
     yield;
     const geometry = yield* nb.finishSteps(`column-near-base-${p.seed}`);
-    return { geometry, audit: { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, woodTriangles, plants, triangles: nb.triangles, rootsOnly } };
+    return { geometry, audit: { relief: bole.amplitude, rings: bole.rings, sides: bole.sides, cutY, mossShare: bole.mossShare, fins: plainRoots.length, toes, cushions, woodTriangles, plants, triangles: nb.triangles, rootsOnly } };
   }
   if (buildNearBase) {
     const first = runSteps(nearBaseSteps());

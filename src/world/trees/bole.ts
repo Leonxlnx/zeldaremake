@@ -123,6 +123,12 @@ export interface BoleReliefOptions {
    */
   mossBulge?: number;
   /**
+   * round 46: local heights over which the moss bulge alone fades to zero — a near-base bole
+   * that ends on a far relief bole built WITHOUT a bulge (the emergent) must meet it flush at
+   * the cut ring. Unset = the bulge follows the amplitude only.
+   */
+  bulgeFade?: [number, number];
+  /**
    * round 44: 3-D moss cushions — small domes seated on the bole where the moss cover is dense
    * (see `mossCushions`): `density` is the share of the eligible vertices that seed one (0–1),
    * `size` the dome radius range (m); from the caller's own stream so nothing after it moves.
@@ -392,7 +398,8 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
       if (o.mossExtra) moss = Math.max(moss, o.mossExtra(p, Math.max(0, nrm.y)));
       // the moss as a volume (round 44): a dense cover fills its furrow and stands a little proud
       // of the cords — a cushion, not a stain; out with the relief at the end ring
-      const bulge = mossBulge > 0 ? amp * mossBulge * smoothstep(0.35, 0.95, moss) * (0.55 + 0.45 * (0.5 + 0.5 * mossN)) : 0;
+      const bulgeShare = o.bulgeFade ? 1 - smoothstep(o.bulgeFade[0], o.bulgeFade[1], d.p.y) : 1;
+      const bulge = mossBulge > 0 ? amp * mossBulge * bulgeShare * smoothstep(0.35, 0.95, moss) * (0.55 + 0.45 * (0.5 + 0.5 * mossN)) : 0;
       const r = r0 + bulge;
       if (bulge > 0) p.addScaledVector(nrm, bulge);
       if (k === 0 && o.flatBase) p.y = dense[0].p.y;
@@ -477,12 +484,16 @@ const CUSHION_LIT = new Color(0.56, 0.74, 0.34);
  * surface normal `n`, radius from `size` scaled by the cover, height 0.45–0.65 of the radius,
  * the rim tucked 1 cm into the bark so it sits IN the bark; the outline breathes with the noise
  * so no two read as the same hemisphere. Full moss cover on every vertex (the tree shader lays
- * the cushion texture and its rim shading over it), the rim occluded, the crown lit. 7 sides ×
- * 2 rings + apex = 21 triangles. Returns 1 (a cushion built).
+ * the cushion texture and its rim shading over it), the rim occluded, the crown lit. 14 sides ×
+ * 2 rings + apex = 42 triangles; every vertex carries the writer's cushion code (aRoot.w = −0.49)
+ * and the anchor `base` in aRoot.xyz, so the tree shader shrinks the cushion onto its anchor as
+ * the lens comes within CUSHION_FADE_M of it (materials.ts). Returns 1.
  */
 export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng: RandomFn, size: [number, number], cover: number, noise: Noise2D, stiffness: number, windPhase: number): number {
-  // 9 around: a 7-gon read as a faceted dome where a stand-next pose puts the lens 15 cm from one
-  const sides = 9;
+  // 14 around (round 46, survey-2 check 03): a 9-gon read as a cut polygon 190 px across where a
+  // stand-next pose put the lens 45 cm from one — and the shader shrinks a cushion away inside
+  // CUSHION_FADE_M (materials.ts), which is what the writer's cushion anchor is for
+  const sides = 14;
   const radius = (size[0] + rng() * (size[1] - size[0])) * (0.7 + 0.5 * Math.min(1, cover));
   const height = radius * (0.45 + rng() * 0.2);
   const phase = rng() * TAU;
@@ -504,9 +515,9 @@ export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng:
       q.copy(base).addScaledVector(u, Math.cos(a) * rr * squash).addScaledVector(v, Math.sin(a) * rr).addScaledVector(n, height * ring.lift);
       const mossN = 0.5 + 0.5 * noise.noise(q.x * 9 + 1.1, q.z * 9 + q.y * 5);
       _c.copy(CUSHION_DEEP).lerp(CUSHION_LIT, ring.lift * 0.6 + mossN * 0.4);
-      writer.woodMoss = 1;
+      writer.woodCushion = base;
       row.push(writer.vertex(q, _c, j / sides, ring.t, stiffness, windPhase, packOcclusion(ring.ao), 0));
-      writer.woodMoss = 0;
+      writer.woodCushion = null;
     }
     writer.seams.push([row[0], row[sides]]);
     rows.push(row);
@@ -517,9 +528,9 @@ export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng:
   }
   const apexP = base.clone().addScaledVector(n, height).addScaledVector(u, (rng() - 0.5) * radius * 0.3).addScaledVector(v, (rng() - 0.5) * radius * 0.3);
   _c.copy(CUSHION_LIT).multiplyScalar(0.92 + 0.16 * rng());
-  writer.woodMoss = 1;
+  writer.woodCushion = base;
   const apex = writer.vertex(apexP, _c, 0.5, 0, stiffness, windPhase, packOcclusion(1), 0);
-  writer.woodMoss = 0;
+  writer.woodCushion = null;
   for (let j = 0; j < sides; j++) writer.triangle(rows[1][j], rows[1][j + 1], apex);
   return 1;
 }

@@ -80,12 +80,25 @@ export class GeometryWriter {
    */
   woodIsRoot = false;
   /**
-   * 0–1 moss cover written into a wood vertex's aRoot.w as −0.45 × cover (only when the vertex is
-   * not collapsible): the tree shader (materials.ts vBarkMoss) lays real moss over the bark there
-   * — the vertex colour alone cannot, the dark bark map and the material tint swallow a tint.
-   * Every decode still reads it as wood (leaf ≥ 0.5, collapsible < −0.5).
+   * 0–1 moss cover written into a wood vertex's aRoot.w as −0.45 × cover: the tree shader
+   * (materials.ts vBarkMoss) lays real moss over the bark there — the vertex colour alone cannot,
+   * the dark bark map and the material tint swallow a tint. A COLLAPSIBLE trunk vertex (round 46:
+   * a relief column's own lower rings, which its near base replaces at close range) carries the
+   * cover as −1 − 0.45 × cover ∈ [−1.45, −1] instead, so the far bole keeps its moss while it is
+   * drawn and still folds (< −0.5, and never read as a root: roots are −2 < −1.5). Every decode
+   * still reads it as wood (leaf ≥ 0.5).
    */
   woodMoss = 0;
+  /**
+   * while set, wood vertices are a 3-D moss cushion's (bole.ts mossCushion): aRoot.w = −0.49 (a
+   * full moss cover every decode still reads as wood) and aRoot.xyz = this, the cushion's anchor
+   * on the bark in local space instead of the tree's root — the tree shader shrinks the cushion
+   * onto its anchor as the lens comes within CUSHION_FADE_M of it (materials.ts), so no cushion
+   * is ever a polygon across the frame. A cushion's wood never sways (its bole's stiffness is 1)
+   * and is never collapsible, so nothing else reads the root. Never combined with
+   * `woodCollapsible`.
+   */
+  woodCushion: Vector3 | null = null;
 
   constructor(public detail: Detail = 'high') {}
 
@@ -95,10 +108,11 @@ export class GeometryWriter {
     this.colors.push(color.r, color.g, color.b);
     this.uvs.push(u, v);
     this.winds.push(stiffness, phase, flutter);
+    const anchor = leaf > 0 || this.woodCollapsible ? null : this.woodCushion;
     this.roots.push(
-      0,
-      0,
-      0,
+      anchor ? anchor.x : 0,
+      anchor ? anchor.y : 0,
+      anchor ? anchor.z : 0,
       leaf > 0
         ? this.leafSwapGroup >= 0
           ? this.leafFlat
@@ -108,8 +122,10 @@ export class GeometryWriter {
         : this.woodCollapsible
           ? this.woodIsRoot
             ? -2
-            : -1
-          : -0.45 * Math.min(1, Math.max(0, this.woodMoss)),
+            : -1 - 0.45 * Math.min(1, Math.max(0, this.woodMoss))
+          : this.woodCushion
+            ? -0.49
+            : -0.45 * Math.min(1, Math.max(0, this.woodMoss)),
     );
     this.normals.push(NaN, NaN, NaN);
     return i;
@@ -404,6 +420,19 @@ export function divergingLeaderPath(origin: Vector3, target: Vector3, rng: Rando
 }
 
 /**
+ * Round 46 (survey-2 crop 03, pose w09-spine-l: a column's far-LOD buttress 14 m off read as a
+ * faceted low-poly cone with a hard straight base — 6 arc steps of 30°, a semicircular section
+ * meeting the ground at a corner): the section's arc sides and a fillet — the section's height
+ * goes as sin(θ)^(1 + fillet), so the flanks steepen at the ridge and run out flat into the
+ * ground, and the section spreads by (1 + 0.3 × fillet) at the foot. Unset = the round-45 shape
+ * exactly (the whitebarks' roots).
+ */
+export interface RootButtressShape {
+  arcSides: number;
+  fillet: number;
+}
+
+/**
  * Broad buttress that sits on the ground and merges into the trunk flare. `groundAt` returns the
  * local ground height under a local (x, z) so the buttress follows sloping terrain exactly.
  */
@@ -418,28 +447,32 @@ export function rootButtress(
   groundAt: (x: number, z: number) => number = () => 0,
   origin = new Vector3(),
   segments = 7,
+  shape?: RootButtressShape,
 ): Vector3 {
   const forward = new Vector3(Math.cos(angle), 0, Math.sin(angle));
   const side = new Vector3(-Math.sin(angle), 0, Math.cos(angle));
   const rows: number[][] = [];
   const bend = (rng() - 0.5) * 0.38;
+  const arc = shape?.arcSides ?? 6;
+  const fillet = shape?.fillet ?? 0;
+  const spread = 1 + 0.3 * fillet;
   let tip = origin.clone();
   for (let k = 0; k < segments; k++) {
     const t = k / (segments - 1);
     const center = origin.clone().add(forward.clone().multiplyScalar(length * t)).addScaledVector(side, Math.sin(t * 2.5) * bend * length * 0.4);
-    const w = width * Math.pow(1 - t, 1.35) + 0.008;
+    const w = (width * Math.pow(1 - t, 1.35) + 0.008) * spread;
     const h = height * Math.pow(1 - t, 2.05) + 0.005;
     const row: number[] = [];
-    for (let j = 0; j <= 6; j++) {
-      const theta = (j / 6) * Math.PI;
+    for (let j = 0; j <= arc; j++) {
+      const theta = (j / arc) * Math.PI;
       const p = center.clone().addScaledVector(side, Math.cos(theta) * w);
       const g = groundAt(p.x, p.z);
       // edges are sunk slightly below the ground so the join never shows a gap on rough terrain
-      p.y = j === 0 || j === 6 ? g - 0.03 : g + Math.sin(theta) * h;
-      row.push(writer.vertex(p, color.clone().multiplyScalar(0.81 + 0.16 * Math.sin(theta)), j / 6, (length * t) / 1.8, 1, 0, 0));
+      p.y = j === 0 || j === arc ? g - 0.03 : g + Math.pow(Math.sin(theta), 1 + fillet) * h;
+      row.push(writer.vertex(p, color.clone().multiplyScalar(0.81 + 0.16 * Math.sin(theta)), j / arc, (length * t) / 1.8, 1, 0, 0));
     }
     if (k) {
-      for (let j = 0; j < 6; j++) {
+      for (let j = 0; j < arc; j++) {
         writer.triangle(rows[k - 1][j], row[j], rows[k - 1][j + 1]);
         writer.triangle(rows[k - 1][j + 1], row[j], row[j + 1]);
       }
