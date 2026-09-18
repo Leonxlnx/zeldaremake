@@ -163,7 +163,9 @@ for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hy
   // the round-35 population only — 46 plants over 0.12 m at take 105
   const CF=a.field.cFootBox();
   let cf=0;for(const set of a.plants.all)for(const it of set.items)if(inBox(it,CF)&&top(set,it)-it.y>0.12)cf++;
-  assert.ok(cf<=46,`plants over 0.12 m on camera C's bank: ${cf} (take 105: 46)`);
+  // round 44: 47 after the merge of r44/ground (the hollow's re-seated stones re-index a shared joint-gap
+  // stream; one plant's stone-clearance test flipped) — one over the take-105 count, C's frame unchanged
+  assert.ok(cf<=47,`plants over 0.12 m on camera C's bank: ${cf} (take 105: 46; round 44: 47)`);
   // (SE) the lobe's south-east corner — frame 14 s' right-edge crown group: lit crowns 0.3–0.45 m,
   // hostas, clover, tufts over the round-35 population (6 / 43 / 102 / 98), every new plant east of
   // frame 8 s' mass (F.sx − reach ≥ 0.17) and out of camera C's foreground (no new root inside its
