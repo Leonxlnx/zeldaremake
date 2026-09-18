@@ -336,6 +336,44 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // band under each lip is one dark recess, not stacked pieces)
     const nR = rng.chance(0.75) ? 1 : 2;
     let a = -hw + 0.02;
+    /**
+     * Round 46 (structures-29, survey-2 #15 — the house-west flight from the path, w29-house-d):
+     * the riser stones are 0.9 × tread deep and stop 6 cm short of the next riser, and the ground
+     * under the treads is the heightfield's trench (ramp − 0.18), so behind every riser a cavity
+     * 0.3 m tall ran the flight's width and showed BLACK at both flank ends between the tread
+     * ends and the cheeks ("stacked slab boxes with black voids behind the risers"). On the
+     * house-west flight each riser now has a BACKING — one slab of dark mortar-soil the full
+     * width and the full depth to the next riser, from the riser's foot to the tread's underside
+     * (mossy on its edges) — so the back is closed, and the FACE is laid as 2–4 stones (the
+     * stream's stones split by a hash fork) 14 cm deep standing 1.5 cm proud of the backing with
+     * 2 cm joints between, staggered ± 6 mm, each its own tone: the joints show the mortar behind
+     * them, so the face reads as mortared stone in the giant's shade. The main flight is the
+     * control's. Every draw of the flight's stream below happens as before (the stream stones'
+     * outline, tone and uv draws are taken and then re-cut per sub-stone from the fork), so the
+     * treads, landing and cheeks are byte-identical.
+     */
+    if (isHouseWest) {
+      const brng = rng.fork(`hw-backing46/${i}`);
+      const backDepth = def.tread + 0.005;
+      const backFront = i * def.tread + 0.025;
+      const backOutline = jitteredRect(brng, w - 0.05, backDepth, { jitter: 0.008, segs: 3, chip: 0.03, chipChance: 0.3 });
+      const mortar: [number, number, number] = [0.3, 0.27, 0.22];
+      placeSlab(backOutline, 0, rBottom, backFront + backDepth / 2, yaw * 0.5, 0, 0, {
+        thickness: rh,
+        bevel: 0.008,
+        color: mortar,
+        sideColor: [mortar[0] * 0.9, mortar[1] * 0.9, mortar[2] * 0.9],
+        sideNormalUp: 0.1,
+        sideStain: 1.2,
+        sideWear: 0.5,
+        mossEdge: 0.7,
+        mossInner: 0.5,
+        mossFn: (x, z) => 0.5 + 0.7 * mossAt(x, z + backFront + backDepth / 2),
+        uvScale,
+        uvOffset: [brng() * 3, brng() * 3],
+        rings: 1,
+      });
+    }
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
@@ -370,11 +408,38 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // the tread/riser corner (sheet 04, frame 03): moss sits thicker at the very foot of the
       // riser where it meets the tread below — a hash-forked weight per riser, 0.6–1.4
       const cornerMoss = 0.6 + 0.8 * frng();
-      placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
+      // round 46: on the house-west flight the stream stone is re-cut into 1–3 FACE stones
+      // (hash fork) 14 cm deep in front of the backing, each its own outline, tone and ± 6 mm
+      // stagger, with 2 cm mortar joints between; the main flight lays the stream stone as is
+      type Piece = { outline: P2[]; ax: number; au: number; tone: number };
+      const pieces: Piece[] = [];
+      if (isHouseWest) {
+        const prng = rng.fork(`hw-face46/${i}/${r}`);
+        const faceDepth = 0.14;
+        const nP = len > 1.3 ? (prng.chance(0.5) ? 3 : 2) : len > 0.7 ? (prng.chance(0.65) ? 2 : 1) : 1;
+        let pa = a + 0.01;
+        for (let p = 0; p < nP; p++) {
+          const left = a + len - 0.01 - pa;
+          const pl = p === nP - 1 ? left : clamp(left / (nP - p) + prng.range(-0.12, 0.12), 0.25, left - 0.25 * (nP - p - 1));
+          pieces.push({
+            outline: jitteredRect(prng, pl - 0.02, faceDepth, { jitter: 0.01, segs: 4, chip: 0.04, chipChance: 0.35 }),
+            ax: pa + pl / 2,
+            au: i * def.tread + 0.01 + faceDepth / 2 + prng.range(-0.006, 0.006),
+            tone: prng.range(0.93, 1.07),
+          });
+          pa += pl;
+        }
+      } else {
+        pieces.push({ outline: riserOutline, ax: ac, au: uc, tone: 1 });
+      }
+      const riserUv: [number, number] = [rng() * 3, rng() * 3];
+      for (const piece of pieces) {
+      const pc: [number, number, number] = [riserColor[0] * piece.tone, riserColor[1] * piece.tone, riserColor[2] * piece.tone];
+      placeSlab(piece.outline, piece.ax, rBottom, piece.au, yaw * 0.5, 0, 0, {
         thickness: rh,
-        bevel: 0.012,
-        color: riserColor,
-        sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        bevel: isHouseWest ? 0.014 : 0.012,
+        color: pc,
+        sideColor: [pc[0] * 0.92, pc[1] * 0.9, pc[2] * 0.9],
         // round 44 (crop 36): the house-west risers' faces take a tenth of the top's shading
         // normal and the shader's grime / lichen mottling, so in the giant's shade they read as
         // weathered stone under the lip rather than flat black; the main run's are the control's.
@@ -387,7 +452,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
         // over every wall, so it is exact on the front face; the back face is under the tread
         // and the ends are inside the flight, so nowhere else shows it
-        sideCrackFn: fissured ? (x, y) => [x - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
+        sideCrackFn: fissured ? (x, y) => [x + piece.ax - ac - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
         // soil stain at the foot fading to none under the nosing: the face is not one flat band
         // but darker and browner where it meets the tread below, lighter under the overhang
         sideStain: footStain,
@@ -399,22 +464,23 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // and the centre third stays bare stone
         mossEdge: 0.4 * cornerMoss,
         mossInner: 0.15,
-        mossFn: (x, z) => 0.3 + 0.8 * mossAt(x + ac, z + uc),
+        mossFn: (x, z) => 0.3 + 0.8 * mossAt(x + piece.ax, z + piece.au),
         mossAdd: (x) => {
-          const patch = smoothstep(0.36, 0.64, noise.fbm((x + ac) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
-          const flankBias = 0.3 + 1.0 * (1 - feet(x + ac));
-          return 1.6 * flankBias * patch * (0.55 + 0.45 * mossAt(x + ac, uc));
+          const patch = smoothstep(0.36, 0.64, noise.fbm((x + piece.ax) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
+          const flankBias = 0.3 + 1.0 * (1 - feet(x + piece.ax));
+          return 1.6 * flankBias * patch * (0.55 + 0.45 * mossAt(x + piece.ax, piece.au));
         },
         // riser shadow: darker toward the flanks; damp patches along the face a shade darker
         colorFn: (x) => {
-          const k = 1 - 0.2 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac));
-          const damp = smoothstep(0.1, 0.6, noise.fbm((x + ac) * 2.2 + 9.1, i * 7.3 + r, 2));
+          const k = 1 - 0.2 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + piece.ax));
+          const damp = smoothstep(0.1, 0.6, noise.fbm((x + piece.ax) * 2.2 + 9.1, i * 7.3 + r, 2));
           return [k * (1 - 0.06 * damp), k * (1 - 0.05 * damp), k * (1 - 0.02 * damp)];
         },
         uvScale,
-        uvOffset: [rng() * 3, rng() * 3],
+        uvOffset: riserUv,
         rings: 1,
       });
+      }
       a += len;
     }
   }

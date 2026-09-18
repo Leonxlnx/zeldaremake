@@ -108,7 +108,7 @@ import {
 } from 'three';
 import type { HouseDef } from '../layout';
 import type { WorldContext } from '../system';
-import type { Rng } from '../util/prng';
+import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import {
   TAU,
@@ -724,10 +724,18 @@ function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, 
  * the doorway plane (`indoorFog`) so the haze does not also fill the room. Double-sided so the
  * flat room planes need no winding.
  */
-function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e): MeshStandardMaterial {
+function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e, planked = false): MeshStandardMaterial {
+  // Round 46 (structures-29, survey-2 #16): the room's surfaces are PLANKED — the weathered
+  // planks' colour and normal maps (the fences' / Saria's boards) under the same mean albedo as
+  // the old flat tint (the map's linear mean is (0.081, 0.058, 0.044); the tint is divided by
+  // it), so the lamp pools now show grain and board lines on the walls and the floor instead of
+  // a smooth dark plane. The shelf props keep the flat material.
+  const tint = new Color(color);
+  if (planked) tint.multiply(new Color(1 / 0.081, 1 / 0.058, 1 / 0.044));
   const m = new MeshStandardMaterial({
-    normalMap: mats.interior.normalMap,
-    normalScale: new Vector2(0.3, 0.3),
+    map: planked ? mats.wood.map : null,
+    normalMap: planked ? mats.wood.normalMap : mats.interior.normalMap,
+    normalScale: planked ? new Vector2(0.7, 0.7) : new Vector2(0.3, 0.3),
     roughness: 1,
     // Round 12: a dark COOL recess with warm pools. The reference doorway is near-neutral grey
     // (box rgb(80,77,72), sat 0.12, hue 40°) with the amber local to the lamps; at B's 18 m the
@@ -736,7 +744,7 @@ function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e): MeshStandardM
     // 0xffd08a @ 0.17 filled the whole opening with amber, sat 0.34) and only the emissive is
     // amber. The vertex colours carry the shading, the `aGlow` attribute the pools. (Round 13's
     // shelf props take the same material with a paler base so the lamps' light shows their colours.)
-    color: new Color(color),
+    color: tint,
     // a deeper amber than round 11's 0xffe0b8: at pool strength the pale tint read as beige
     emissive: new Color(0xffc478),
     emissiveIntensity: 0.2,
@@ -1372,7 +1380,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   // ---- doorway through the back wall + room behind it ----
   const doorPlanePoint = frame.door((doorW0 + doorW1) / 2, doorTop * 0.5, dBack);
-  const roomMat = indoorFog(roomMaterial(mats), doorPlanePoint, F);
+  const roomMat = indoorFog(roomMaterial(mats, 0x3c3b3e, true), doorPlanePoint, F);
   const materials: Material[] = [roomMat];
   // the room's light sources: two pod lamps under the ceiling (reference B: a lamp glint at
   // frame (0.78, 0.44) ≈ 1.3 m up left of centre; sheet 04: pod lanterns inside), a bed of
@@ -1423,7 +1431,42 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // with two warm points — p90 0.354 against ours 0.374 with the shelves' pots showing in the
     // lamps' pools: the pools' peaks come down a third and the ceiling ramp by a third, so the
     // lamps read as points over dark wood (the pods themselves are emissive and unchanged).
-    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12);
+    // Round 46 (structures-29, survey-2 #16): the lamps' light POOLS ON THE FLOOR — a wide soft
+    // disc of the amber emissive on the floor pad under each lamp (and the table top under the
+    // candle), so from the threshold the room has a lit floor with the furniture's silhouettes
+    // standing in it. The floor is below the sill line from every hero camera (B / D / A look UP
+    // at the door from the plaza), so the doorway they see — back wall, ceiling, the two lamp
+    // points — keeps its round-22 pools.
+    const floorLevel = yFloor + roomFloorY;
+    const onFloor = smoothstep(0.14 * k, 0.02 * k, Math.abs(p.y - floorLevel));
+    const floorPool = (c: Vector3, radius: number, peak: number) => {
+      const dh = Math.hypot(p.x - c.x, p.z - c.z) / radius;
+      return peak * Math.exp(-dh * dh * 1.6);
+    };
+    const floorGlow = onFloor * (floorPool(lampPos, 0.7 * k, 0.26) + floorPool(lamp2Pos, 0.6 * k, 0.2) + floorPool(hearthPos, 0.45 * k, 0.1));
+    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12) + floorGlow;
+  };
+  /**
+   * Round 46: the BOARDS the room is lined with — vertical on the walls, running into the room
+   * on the floor. `across` is the coordinate across the boards (m), `along` the one along their
+   * grain. Returns the relief into the surface (m, ≥ 0 at the gaps between boards, a slight crown
+   * on each board, the grain's ± 3 mm) and the shade (board-to-board tone, dark gap lines, grain
+   * lines darker). Continuous in both coordinates (gridSurface's normals difference it).
+   */
+  const BOARD_W = 0.21 * k;
+  const boards = (across: number, along: number, seed: number): { relief: number; shade: number } => {
+    const bx = (across + seed * 0.37) / BOARD_W;
+    const idx = Math.floor(bx);
+    const f = bx - idx;
+    // gap: 12 mm dark joint between boards; the board's face crowns 4 mm at its middle
+    const edge = Math.min(f, 1 - f) * BOARD_W;
+    const gap = 1 - smoothstep(0.004, 0.012, edge);
+    const crown = 0.004 * k * Math.sin(f * Math.PI);
+    const tone = 0.84 + 0.32 * hash2(idx, Math.round(seed * 100), 5);
+    const g = noise.ridged(across * 26 + idx * 3.7 + seed, along * 0.8 + idx * 0.9 + seed * 0.5, 2);
+    const fib = 0.5 + 0.5 * noise.noise(across * 60 + seed, along * 5 + idx);
+    const grain = (g - 0.5) * 0.003 * k;
+    return { relief: gap * 0.012 * k - crown + grain, shade: lerp(tone * lerp(0.72, 1.14, g) * lerp(0.94, 1.06, fib), 0.28, gap) };
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
@@ -1439,7 +1482,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     };
     const wallShade = (w: number, y: number, p: Vector3): [number, number, number] => {
       const lat = 1 - 0.25 * smoothstep(0.45, 1, Math.abs(w - roomWc) / roomHw);
-      const s = lerp(0.1, 0.32, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.4, depthOf(p)) * lat;
+      // round 46: a fifth lighter than round 22's 0.1–0.32 and the recess's fall-off eased
+      // (× 0.4 → × 0.5) — the boards' grain and joints need a level to show on; the doorway's
+      // level from B is set by the pools and the veil, and its p50 is measured below
+      const s = lerp(0.12, 0.38, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.5, depthOf(p)) * lat;
       const g = glowAt(p);
       // cool grey (see `roomMaterial`); the embers' pool is the only warm diffuse tint
       return [s * 0.92 + g[0], s * 0.96 + g[1], s * 1.05 + g[2]];
@@ -1484,48 +1530,72 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         },
       ),
     );
-    // back wall (the deep recess), side walls, floor, ceiling
+    // back wall (the deep recess), side walls, floor, ceiling.
+    // Round 46 (structures-29): the back and side walls are lined with VERTICAL BOARDS (`boards`:
+    // 21 cm wide, 12 mm dark joints, a 4 mm crown, ± 3 mm grain, board-to-board tone) standing
+    // proud of the recess, the floor with boards running into the room; finer grids so the
+    // joints resolve (the back wall 96 × 24, the sides 40 × 16, the floor 72 × 48).
+    const BOARD_TILE = 1.1;
     roomParts.push(
       gridSurface(
         (u, v, out) => {
           const w = lerp(roomW0, roomW1, u);
           const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
-          frame.door(w, y, roomBackD(w), out.position);
-          out.uv = [w / 2.2, y / 2.2];
-          out.color = wallShade(w, y, out.position);
+          const b = boards(w, y, 1);
+          frame.door(w, y, roomBackD(w) + 0.02 * k - b.relief, out.position);
+          out.uv = [w / BOARD_TILE, y / BOARD_TILE];
+          const c = wallShade(w, y, out.position);
+          out.color = [c[0] * b.shade, c[1] * b.shade, c[2] * b.shade];
         },
-        { cols: 24, rows: 12 },
+        { cols: hero ? 96 : 48, rows: hero ? 24 : 12 },
       ),
     );
     for (const w of [roomW0, roomW1]) {
+      const into = w === roomW0 ? 1 : -1;
       roomParts.push(
         gridSurface(
           (u, v, out) => {
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, u);
             const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
-            frame.door(w, y, d, out.position);
-            out.uv = [d / 2.2, y / 2.2];
-            out.color = wallShade(w, y, out.position);
+            const b = boards(d, y, w === roomW0 ? 2 : 3);
+            frame.door(w + into * (0.015 * k - b.relief), y, d, out.position);
+            out.uv = [d / BOARD_TILE, y / BOARD_TILE];
+            const c = wallShade(w, y, out.position);
+            out.color = [c[0] * b.shade, c[1] * b.shade, c[2] * b.shade];
           },
-          { cols: 12, rows: 8 },
+          { cols: hero ? 40 : 20, rows: hero ? 16 : 8 },
         ),
       );
     }
     // floor: the level pad (round 14 — no terrain lift; the back wall stops where the slope
-    // reaches it, see `roomBackD`), ceiling
+    // reaches it, see `roomBackD`), ceiling. Round 46: the floor is boarded (the boards run into
+    // the room), a warm brown under the lamps' pools — the floor's bounce — grading to the cool
+    // recess grey at the back; the ceiling keeps its plain shade.
     for (const y of [roomFloorY, roomCeilY]) {
+      const isFloor = y === roomFloorY;
       roomParts.push(
         gridSurface(
           (u, v, out) => {
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
-            frame.door(w, y, d, out.position);
-            const s = (y === roomFloorY ? 0.2 : 0.3) * lerp(1, 0.4, depthOf(out.position));
-            out.uv = [w / 2.2, d / 2.2];
+            const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: 1 };
+            frame.door(w, y - (isFloor ? b.relief : 0), d, out.position);
+            const deep = depthOf(out.position);
+            const s = 0.3 * lerp(1, isFloor ? 0.55 : 0.4, deep);
+            out.uv = [w / BOARD_TILE, d / BOARD_TILE];
             const g = glowAt(_p.copy(out.position));
-            out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
+            if (isFloor) {
+              // the bounce: warm where the lamps' pools fall, cool grey deep in the recess
+              const warm = clamp(Math.exp(-Math.pow(Math.hypot(out.position.x - lampPos.x, out.position.z - lampPos.z) / (0.9 * k), 2)) + 0.7 * Math.exp(-Math.pow(Math.hypot(out.position.x - lamp2Pos.x, out.position.z - lamp2Pos.z) / (0.8 * k), 2)), 0, 1);
+              const tintR = lerp(0.92, 1.25, warm);
+              const tintG = lerp(0.96, 1.0, warm);
+              const tintB = lerp(1.05, 0.7, warm);
+              out.color = [(s * tintR + g[0] * 0.5) * b.shade, (s * tintG + g[1] * 0.5) * b.shade, (s * tintB + g[2] * 0.5) * b.shade];
+            } else {
+              out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
+            }
           },
-          { cols: 16, rows: 16 },
+          { cols: isFloor ? (hero ? 72 : 36) : 16, rows: isFloor ? (hero ? 48 : 24) : 16 },
         ),
       );
     }
@@ -1846,22 +1916,71 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const lampMesh = new Mesh(candle, mats.hearth);
     lampMesh.name = 'door-lamp';
     group.add(lampMesh);
-    // low table under the candle: a slab on a block, dark silhouettes that give the room depth
-    const slab = new BoxGeometry(0.7 * k, 0.05 * k, 0.45 * k);
-    slab.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.5 * k, tableD), F));
-    setColorAttribute(slab, [0.22, 0.21, 0.2]);
-    const block = new BoxGeometry(0.22 * k, 0.5 * k, 0.22 * k);
-    block.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.25 * k, tableD), F));
-    setColorAttribute(block, [0.16, 0.15, 0.14]);
+    // low table under the candle. Round 46 (structures-29, survey-2 #16 "untextured primitive
+    // props"): a STUMP TABLE — a thick round top with a rolled edge on a waisted trunk leg, and a
+    // low round STOOL beside it — rounded turned forms in the room material (the lamps' pools and
+    // the candle light them; the doorway fog clamp keeps them in the room), in place of the
+    // round-12 slab-on-a-block boxes in the plain dark plank material.
+    // (the table stands on the floor pad; its top at sill + 0.52 k, under the candle at sill + 0.55 k)
+    const tableC = frame.door(doorW0 + 0.7 * k, roomFloorY, tableD);
+    const turned = (profile: (t: number) => number, h: number, segs: number, rings: number, tint: (t: number, up: number) => [number, number, number]) =>
+      gridSurface(
+        (u, v, out) => {
+          // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
+          const th = u * TAU;
+          const side = v <= 0.5;
+          const t = side ? v * 2 : 1;
+          const rr = side ? profile(t) : profile(1) * (1 - (v - 0.5) * 2);
+          const y = side ? t * h : h + 0.006 * k * Math.sin((v - 0.5) * Math.PI);
+          out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+          out.uv = [th * rr / 0.6, side ? y / 0.6 : 0.5 + rr / 0.6];
+          out.color = tint(t, side ? 0 : 1);
+        },
+        { cols: segs, rows: rings, closedU: true },
+      );
+    const tableTopR = 0.34 * k;
+    const tableH = sill + 0.52 * k - roomFloorY;
+    const legR = 0.13 * k;
+    const table = turned(
+      (t) => {
+        // the leg waists then flares into the top's rolled edge
+        const leg = legR * (1 + 0.35 * Math.pow(1 - t, 2) * smoothstep(0.3, 0, t)) * (1 - 0.12 * Math.sin(t * Math.PI));
+        const top = tableTopR * Math.sqrt(Math.max(0, 1 - Math.pow((1 - t) / 0.16, 2)));
+        return Math.max(leg, top) * (1 + 0.02 * noise.noise(t * 9, 3));
+      },
+      tableH,
+      20,
+      18,
+      (t, up) => {
+        const s = up ? 0.62 : lerp(0.3, 0.5, t);
+        return [s * 1.05, s * 0.86, s * 0.66];
+      },
+    );
+    table.translate(tableC.x, tableC.y, tableC.z);
+    faceTowards(table, (p, o) => o.copy(p).sub(tableC).multiplyScalar(3).add(p).setY(p.y + 0.4));
+    const stoolC = frame.door(doorW0 + 0.08 * k, roomFloorY, tableD + 0.25 * k);
+    const stool = turned((t) => 0.16 * k * (1 - 0.18 * Math.sin(t * Math.PI)) * (1 + 0.08 * smoothstep(0.85, 1, t)), 0.3 * k, 14, 10, (t, up) => {
+      const s = up ? 0.55 : lerp(0.28, 0.45, t);
+      return [s * 1.0, s * 0.84, s * 0.64];
+    });
+    stool.translate(stoolC.x, stoolC.y, stoolC.z);
+    faceTowards(stool, (p, o) => o.copy(p).sub(stoolC).multiplyScalar(3).add(p).setY(p.y + 0.3));
     // (round 12's single dark shelf up by the lamp is replaced by round 13's stocked shelves in
     // the room material, see `interior-props`)
     // ember ring: a low stone kerb round the glow
     const kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
     kerb.rotateX(Math.PI / 2);
     kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
-    setColorAttribute(kerb, [0.18, 0.18, 0.18]);
-    const furnitureMesh = new Mesh(merge([slab, block, kerb]), mats.woodDark);
+    setColorAttribute(kerb, [0.32, 0.31, 0.3]);
+    const furnitureGeo = merge([table, stool, kerb]);
+    {
+      const pos = furnitureGeo.attributes.position;
+      const _g = new Vector3();
+      setFloatAttribute(furnitureGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+    }
+    const furnitureMesh = new Mesh(furnitureGeo, propsMat);
     furnitureMesh.name = 'door-lamp-cord';
+    furnitureMesh.receiveShadow = true;
     group.add(furnitureMesh);
     // the embers themselves (dim orange) and a small soft pink-amber halo facing the door — kept
     // small so the doorway as a whole stays neutral (reference box saturation ≈ 0.1)
@@ -2177,22 +2296,73 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     rootsBuilt++;
     const [p2, p2b, p3, p4] = ground;
-    const curve = new CatmullRomCurve3([p0, p1, p2, p2b, p3, p4], false, 'catmullrom', 0.5);
+    void p2;
+    void p2b;
     const rootN = 4.5 + rootRng() * 3;
+    /**
+     * Round 46 (structures-29, survey-2 #08 / check-13): the root SEATED on the ground. Rounds
+     * 19–45 swept the root through five waypoints — the bark exit at y0 · 0.66, then the ground
+     * at 45 % / 72 % / 100 % of the reach — and the spline between the exit and the first ground
+     * point ARCHED over the lawn with a shadow gap under it (w26-stairs-l, w09-spine-r: "a
+     * smooth tube with a floating gap"), and between the ground points the 0.9–1.1 knuckle
+     * modulation lifted the underside clear of any dip in the terrain. Now the root leaves the
+     * bark, drops to the ground within a fifth of its reach and from there follows the
+     * heightfield: the centre line is sampled every ≈ 12 cm along the reach at
+     * terrain + 0.5 × the local radius (the lower third of the root buried, the knuckles' 0.9
+     * minimum included), so the underside is in the ground everywhere and the crown rides the
+     * terrain's bumps. The same ground points decide the keep-out / climb / drop tests above, so
+     * which roots are built is unchanged, and the rng draws are the same in the same order.
+     */
+    const rootLenEst = 0.5 * k + reach + 0.6;
+    const rAlong = (f: number) => {
+      const t = clamp((0.5 * k + f * reach) / rootLenEst, 0, 1);
+      return r0 * (1 - 0.72 * t) * 0.9;
+    };
+    const seatPts: Vector3[] = [p0, p1];
+    {
+      const nS = Math.max(6, Math.round((reach + 0.6) / 0.12));
+      const yExit = p1.y;
+      for (let sI = 1; sI <= nS; sI++) {
+        const f = (sI / nS) * (1 + 0.6 / reach);
+        const q = frame.at(a, rs0 + f * reach, 0).addScaledVector(side, clamp(f, 0, 1.3));
+        const g = terrain.height(q.x, q.z);
+        const seated = g + 0.5 * rAlong(Math.min(1, f));
+        // the drop from the bark exit: over the first fifth of the reach the centre line falls
+        // from the exit height to the seated height (never below it)
+        const drop = smoothstep(0, 0.2, f);
+        q.y = f <= 1 ? Math.max(seated, lerp(yExit, seated, drop)) : g - 0.4 * (f - 1) / 0.6 * k;
+        seatPts.push(q);
+      }
+    }
+    const curve = new CatmullRomCurve3(seatPts, false, 'catmullrom', 0.5);
+    const rootLen = curve.getLength();
     const root = sweepTube(curve, {
       radius: (t) => r0 * (1 - 0.72 * t) * (0.9 + 0.2 * Math.abs(Math.sin(t * rootN))),
-      tubularSegments: 26,
-      radialSegments: 12,
+      tubularSegments: Math.max(26, Math.round(rootLen / 0.09)),
+      radialSegments: 16,
       uvMetres: 1.4,
-      // ridged plates as before plus long fibre furrows running the root's length (survey-1 item 6:
-      // the roots were smooth uniform tubes)
-      displace: (t, ang) =>
-        (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t) +
-        (noise.noise(ang * 3.4 + i * 7.3, t * 1.6 + 40) - 0.5) * 0.035 * k * (1 - 0.4 * t),
-      color: (t) => {
-        // round 34: the trunk's lit-albedo share, damp toward the tip on the ground
-        const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO;
-        return [d, d * 0.97, d * 0.88];
+      // Round 46: BARK CORDS running the root's LENGTH (a ridged field periodic round the root,
+      // drifting slowly along it — ± 4.5 % of k, ≈ 7 cords round a 0.35 m root), narrow dark
+      // fissures between them, and the round-19 knuckle rings kept at a third of their old
+      // depth under the cords. Round 34's `ridged(ang, t · 6)` ran its ridges ACROSS the root
+      // (six rings along it), which read as a painted grain stripe at 3–6 m (survey-2 #08).
+      displace: (t, ang) => {
+        const along = t * rootLen;
+        const cord = noise.ridged(Math.cos(ang) * 1.15 + i * 3.1, Math.sin(ang) * 1.15 + along * 0.32 + i * 0.7, 2) - 0.5;
+        const fissure = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.6 + i * 5.3 + 20, Math.sin(ang) * 1.6 + along * 0.22)), 7);
+        const knuckle = (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.016 * k;
+        const lumps = (noise.noise(ang * 3.4 + i * 7.3, t * 1.6 + 40) - 0.5) * 0.02 * k;
+        return (cord * 0.045 * k - fissure * 0.03 * k) * (1 - 0.45 * t) + knuckle * (1 - 0.5 * t) + lumps * (1 - 0.4 * t);
+      },
+      color: (t, ang) => {
+        // round 34: the trunk's lit-albedo share, damp toward the tip on the ground;
+        // round 46: grime in the fissures, the cord crests a shade paler
+        const along = t * rootLen;
+        const cord = noise.ridged(Math.cos(ang) * 1.15 + i * 3.1, Math.sin(ang) * 1.15 + along * 0.32 + i * 0.7, 2);
+        const fissure = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.6 + i * 5.3 + 20, Math.sin(ang) * 1.6 + along * 0.22)), 7);
+        const shade = lerp(0.72, 1.12, cord) * (1 - 0.5 * fissure);
+        const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO * shade;
+        return [d, d * (0.97 - 0.04 * fissure), d * (0.88 - 0.08 * fissure)];
       },
       capEnd: true,
     });
@@ -4394,7 +4564,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       detail41.lichen++;
     }
     // moss caps on the roots' crowns and the arch's mossy upper faces, lichen on the arch's lit crests
-    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts', lichenShare: number) => {
+    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts', lichenShare: number, draws: Rng = trunk41, sizeK = 1) => {
       for (const g of parts) {
         const pos = g.attributes.position;
         const nrm = g.attributes.normal;
@@ -4406,33 +4576,37 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           if (ny < upMin) continue;
           const c: [number, number, number] = [col.getX(vi), col.getY(vi), col.getZ(vi)];
           const m = mossiness(c);
-          const draw = trunk41();
+          const draw = draws();
           _pp.set(pos.getX(vi), pos.getY(vi), pos.getZ(vi));
           if (draw < m * share * lerp(0.2, 1, colony41(_pp))) {
-            const r = (0.02 + trunk41() * 0.035) * sk;
+            const r = (0.02 + draws() * 0.035) * sk * sizeK;
             const sh = shadeOf(c);
             tuft41.push({
               position: _pp.clone(),
               normal: new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)),
-              rx: r * (0.8 + trunk41() * 0.4),
-              rz: r * (0.8 + trunk41() * 0.4),
-              h: r * (0.5 + trunk41() * 0.4),
-              yaw: trunk41() * TAU,
+              rx: r * (0.8 + draws() * 0.4),
+              rz: r * (0.8 + draws() * 0.4),
+              h: r * (0.5 + draws() * 0.4),
+              yaw: draws() * TAU,
               color: [MOSS41[0] * sh, MOSS41[1] * sh, MOSS41[2] * sh],
               uv: [uv.getX(vi), uv.getY(vi)],
               sink: r * 0.5,
-              seed: 1 + Math.floor(trunk41() * 1e6),
+              seed: 1 + Math.floor(draws() * 1e6),
             });
             detail41[count]++;
           } else if (lichenShare > 0 && m < 0.2 && draw > 1 - lichenShare * clamp((c[0] + c[1] + c[2]) / 1.5, 0, 1)) {
             const sh = shadeOf(c);
-            lichenParts.push(lichenPlate(_pp, new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)), (0.02 + 0.035 * trunk41()) * sk, trunk41() * 100, n3, [LICHEN41[0] * sh, LICHEN41[1] * sh, LICHEN41[2] * sh]));
+            lichenParts.push(lichenPlate(_pp, new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)), (0.02 + 0.035 * draws()) * sk, draws() * 100, n3, [LICHEN41[0] * sh, LICHEN41[1] * sh, LICHEN41[2] * sh]));
             detail41.lichen++;
           }
         }
       }
     };
-    onParts(rootParts, 0.35, 0.45, 'rootTufts', 0);
+    // Round 46 (structures-29): the roots' crowns carry a denser, larger moss cover (share 0.35
+    // → 0.6, cushions × 1.3) — with the roots' new cord relief and seated run this is what the
+    // survey's "painted grain stripe" becomes at 3–6 m. Own fork: the roots' vertex count
+    // changed with the seated sweep, and on `trunk41` that would have re-drawn the arch's tufts.
+    onParts(rootParts, 0.6, 0.45, 'rootTufts', 0, rng.fork('root-tufts46'), 1.3);
     onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
   }
   // ---- round 43 (structures-27): the MOSS DOORMAT — trodden moss on the threshold slab and the
