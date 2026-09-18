@@ -107,6 +107,18 @@ const CLUMP_LIGHT_JITTER = 0.09;
 const CLUMP_DRY_STEPS = 16;
 /** 0..1 position hash (mm-quantised seats), one stream per `salt` */
 const hashAt = (x: number, z: number, salt: number) => hash2(Math.round(x * 1000), Math.round(z * 1000), salt);
+/**
+ * Round 44 — the north corridor's forest floor (field.ts `northFloor`, survey-1 #4): the carpet
+ * reaches the plain beyond the log arch and the ground under the white-barks (field.ts `reach`),
+ * but as forest floor, not lawn — the fans thin to NORTH_FLOOR_CLUMP_KEEP and the mats to
+ * NORTH_FLOOR_MAT_KEEP of the lawn's (the litter and the moss beds close the rest), both in the
+ * deep palette (−NORTH_FLOOR_TINT) with more straw, the fans cut to NORTH_FLOOR_HEIGHT.
+ */
+const NORTH_FLOOR_CLUMP_KEEP = 0.5;
+const NORTH_FLOOR_MAT_KEEP = 0.7;
+const NORTH_FLOOR_TINT = 0.5;
+const NORTH_FLOOR_DRY = 0.3;
+const NORTH_FLOOR_HEIGHT = 0.75;
 
 export interface CarpetResult {
   clumps: LodInstancedSet;
@@ -250,7 +262,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
    * and its palette. Returns null where no card belongs.
    */
   const turfAt = (x: number, z: number, rim: number) => {
-    if (Math.hypot(x, z) > R + 1) return null;
+    if (field.reach(x, z) > R + 1) return null;
     field.sample(x, z, s);
     if (!field.allowed(x, z, s, true)) return null;
     if (field.insideGiantTrunk(x, z)) return null;
@@ -276,18 +288,19 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     const cluster = field.cluster(x, z);
     const bank = field.bankDark(x, z);
     const stone = field.stoneDistance(x, z);
+    const nfloor = field.northFloor(x, z);
     // height factor: every cut the blades take
-    let hk = (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - 0.3 * band) * (1 - 0.45 * hollow) * (1 - 0.55 * foot) * (1 - 0.35 * clr.npc) * (1 - 0.3 * giant) * (1 - 0.5 * shoulder);
+    let hk = (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - 0.3 * band) * (1 - 0.45 * hollow) * (1 - 0.55 * foot) * (1 - 0.35 * clr.npc) * (1 - 0.3 * giant) * (1 - 0.5 * shoulder) * (1 - (1 - NORTH_FLOOR_HEIGHT) * nfloor);
     // round 40: the blades on frame 1's circled bank face stand taller (grass.ts A_FACE_*)
     hk *= 1 + A_FACE_HEIGHT * field.aFace(x, z);
     if (edge < 0.3) hk *= 0.72;
     // palette: the blades' tint drift and zone biases
-    let tn = field.tint(x, z) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + 0.7 * foot;
+    let tn = field.tint(x, z) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + 0.7 * foot - NORTH_FLOOR_TINT * nfloor;
     if (s.slope > 0.35) tn -= 0.15 * (1 - shade) * (1 - foot);
     if (houseNorth > 0) tn -= 0.6 * houseNorth;
-    const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + 0.55 * foot) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
+    const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + 0.55 * foot + NORTH_FLOOR_DRY * nfloor) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
     const darken = clamp(BANK_DARKEN * bank, 0, 0.96);
-    return { edge, low, trim, shade, band, trod, bare, houseNorth, houseSouth, sight, hollow, foot, shoulder, giant, cluster, bank, stone, npc: clr.npc, hk, tn, dryP, darken };
+    return { edge, low, trim, shade, band, trod, bare, houseNorth, houseSouth, sight, hollow, foot, shoulder, giant, cluster, bank, stone, nfloor, npc: clr.npc, hk, tn, dryP, darken };
   };
 
   const half = Math.ceil((R + 2) / 8);
@@ -310,7 +323,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // stair foot 5 m before camera A are the frame's tufts (A's bottom-right −0.0010 without
     // them) — where they hurt is far, and that is the LOD's business (CLUMP_MAX_DISTANCE)
     const slopeK = 1 - smoothstep(SLOPE_THIN[0], SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_SHADE_CUT * t.shade) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloffReach(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_SHADE_CUT * t.shade) * (1 - (1 - NORTH_FLOOR_CLUMP_KEEP) * t.nfloor) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     const clusterVar = 0.85 + 0.3 * t.cluster;
     let w = (CLUMP_WIDTH[0] + (CLUMP_WIDTH[1] - CLUMP_WIDTH[0]) * rng()) * clusterVar;
@@ -371,7 +384,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // litter under the giants, the dark bank masses (none in the last two — the fans thin there,
     // the blades hold them); steep faces take smaller mats and none past the thin band
     const slopeK = 1 - smoothstep(MAT_SLOPE_THIN[0], MAT_SLOPE_THIN[1], s.slope);
-    const density = field.falloff(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * (1 - MAT_BANK_CUT * t.bank) * slopeK * (1 - s.cliff) * q.density;
+    const density = field.falloffReach(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * (1 - MAT_BANK_CUT * t.bank) * (1 - (1 - NORTH_FLOOR_MAT_KEEP) * t.nfloor) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     let w = (MAT_WIDTH[0] + (MAT_WIDTH[1] - MAT_WIDTH[0]) * rng()) * (1 - 0.4 * smoothstep(MAT_SLOPE_THIN[0] * 0.6, MAT_SLOPE_THIN[1], s.slope));
     // across the house flight's north-flank feather (a 0.6-entry step in the palette the blades
@@ -409,12 +422,14 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
   };
 
   // jittered grids per 8 m tile, each tile its own stream (the blade tiles' pattern), so a rule
-  // change in one zone re-seats nothing elsewhere
-  for (let cz = -half; cz < half; cz++) {
+  // change in one zone re-seats nothing elsewhere; the disc's tiles and (round 44) the north
+  // corridor's (field.ts `reach`)
+  const northHalf = Math.ceil((field.northExtent + 2) / 8);
+  for (let cz = -northHalf; cz < half; cz++) {
     for (let cx = -half; cx < half; cx++) {
       const x0 = cx * 8;
       const z0 = cz * 8;
-      if (Math.hypot(x0 + 4, z0 + 4) > R + 8 * 0.71) continue;
+      if (field.reach(x0 + 4, z0 + 4) > R + 8 * 0.71) continue;
       const cRng = ctx.rng.fork(`carpet/clumps/${cx}/${cz}`);
       const nc = Math.round(8 / CLUMP_CELL);
       for (let j = 0; j < nc; j++) {

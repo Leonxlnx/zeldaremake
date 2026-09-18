@@ -280,6 +280,17 @@ const BANK_DARKEN = 0.6;
  * per-blade contrasts) are cut by BANK_FLAT × zone, so neighbouring blades share a palette entry.
  */
 const BANK_FLAT = 0.7;
+/**
+ * Round 44: the north corridor's forest floor (field.ts `northFloor` — the plain beyond the log
+ * arch and the ground under the white-barks, survey-1 #4). The blade tiles now reach it (field.ts
+ * `reach`), but it is not lawn: the turf there keeps NORTH_FLOOR_KEEP of its blades (the litter
+ * and moss beds close the rest, litter.ts / plants.ts), no meadow stalks, cut to
+ * NORTH_FLOOR_HEIGHT, in the deep palette (−NORTH_FLOOR_TINT) with more straw.
+ */
+const NORTH_FLOOR_KEEP = 0.45;
+const NORTH_FLOOR_HEIGHT = 0.75;
+const NORTH_FLOOR_TINT = 0.5;
+const NORTH_FLOOR_DRY = 0.3;
 /** the drawn share of a tile can fall below 1: an explicit density flag, or the governor's ladder */
 const THIN_ENABLED = perfFlags().grassDensity < 1 || perfFlags().governor;
 
@@ -321,13 +332,16 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const sampleEvery = 997;
   const samples: number[][] = [];
 
+  // the disc's tiles, then (round 44) the north corridor's — field.ts `reach` — in the same
+  // row-major order, so every disc tile keeps its index (and its `grass/<cx>/<cz>` stream)
   const half = Math.ceil((R + TILE) / TILE);
+  const northHalf = Math.ceil((field.northExtent + TILE) / TILE);
   const tileCoords: [number, number][] = [];
-  for (let cz = -half; cz < half; cz++) {
+  for (let cz = -northHalf; cz < half; cz++) {
     for (let cx = -half; cx < half; cx++) {
       const mx = cx * TILE + TILE / 2;
       const mz = cz * TILE + TILE / 2;
-      if (Math.hypot(mx, mz) > R + TILE * 0.71) continue;
+      if (field.reach(mx, mz) > R + TILE * 0.71) continue;
       tileCoords.push([cx, cz]);
     }
   }
@@ -344,7 +358,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     const mx = x0 + TILE / 2;
     const mz = z0 + TILE / 2;
     const rng = ctx.rng.fork(`grass/${cx}/${cz}`);
-    const candidates = Math.round(TILE * TILE * BASE_PER_M2 * field.falloff(mx, mz) * q.density);
+    const candidates = Math.round(TILE * TILE * BASE_PER_M2 * field.falloffReach(mx, mz) * q.density);
     let count = 0;
     let ySum = 0;
     let yMin = Infinity;
@@ -360,7 +374,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     // cluster the blade belongs to (round 40): its height multiplier, palette shift and tip tone;
     // `facePass` blades (frame 1's circled bank face, round 40) are accepted at the face weight.
     const blade = (x: number, z: number, rng: Rng, tuft: Cluster, bandPass: boolean, flankPass = false, housePass = false, facePass = false) => {
-      if (Math.hypot(x, z) > R + 1.5) return;
+      if (field.reach(x, z) > R + 1.5) return;
       field.sample(x, z, s);
       if (!field.allowed(x, z, s, true)) return;
       if (field.insideGiantTrunk(x, z)) return;
@@ -396,6 +410,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const hollow = field.dHollow(x, s.h, z);
       // frame 46 s' trodden foreground before camera C (round 35): short dusty turf
       const foot = field.cFoot(x, z);
+      // the north corridor's forest floor (round 44): sparse, short, deep-tinted turf
+      const nfloor = field.northFloor(x, z);
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
       // the low verges so the embankments still read dense
       const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
@@ -411,7 +427,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (1 - foot) * (housePass ? 0.3 : 1);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (1 - foot) * (1 - nfloor) * (housePass ? 0.3 : 1);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc) * (1 - A_FACE_SEDGE_CUT * face);
       const tr = rng();
       const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
@@ -454,7 +470,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (houseSouth > 0) h = Math.min(h, h + (HOUSE_FLANK_MAX_H_SOUTH - h) * houseSouth);
       h *= 1 - 0.35 * clr.npc;
       h *= 1 - 0.3 * giant;
-      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow) * (1 - C_FOOT_HEIGHT * foot);
+      h *= (1 - 0.4 * low) * (1 - 0.2 * sight) * (1 - 0.35 * trim) * (1 - 0.62 * trod) * (1 - LAWN_BAND_CUT * band) * (1 - D_HOLLOW_HEIGHT * hollow) * (1 - C_FOOT_HEIGHT * foot) * (1 - (1 - NORTH_FLOOR_HEIGHT) * nfloor);
       h *= 1 + A_FACE_HEIGHT * face;
       maxH = Math.max(maxH, h);
 
@@ -469,12 +485,12 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // round 40: the palette noise is the tuft's (CLUSTER_TINT_SD) with a little blade-to-blade
       // spread on top, so a rooted cluster reads as one plant
       const bank = field.bankDark(x, z);
-      let tn = field.tint(x, z) + (tuft.tint + rng.gauss() * BLADE_TINT_SD) * (1 - BANK_FLAT * bank) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot;
+      let tn = field.tint(x, z) + (tuft.tint + rng.gauss() * BLADE_TINT_SD) * (1 - BANK_FLAT * bank) - 0.45 * giant + (edge < 1.5 ? 0.12 : 0) + 0.35 * shade - 0.25 * trim + 0.2 * trod + C_FOOT_TINT * foot - NORTH_FLOOR_TINT * nfloor;
       if (s.slope > 0.35) tn -= 0.15 * (1 - shade) * (1 - foot);
       // the house flight's north flank is the shaded bank of frame 56 s (0.22 luminance): deep tints
       if (houseNorth) tn += HOUSE_FLANK_NORTH_TINT;
       const tintIndex = tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3;
-      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0) + C_FOOT_DRY * foot) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
+      const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + (houseFoot ? HOUSE_FOOT_DRY : 0) + C_FOOT_DRY * foot + NORTH_FLOOR_DRY * nfloor) * (type === 2 ? 0.4 : 1) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
       // the dark bank mass (round 35): a blade darkening in the tint slot's spare fraction
       const darken = clamp(BANK_DARKEN * bank, 0, 0.96);
       const dry = clamp(dryP * (0.3 + 0.7 * rng()), 0, 0.95);
@@ -514,6 +530,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       if (hollow > 0 && hash01(x + 0.5, z) < D_HOLLOW_CUT * hollow) return;
       // camera C's trodden foreground (round 35): the same kind of drop, after every draw
       if (foot > 0 && hash01(x, z + 0.5) < C_FOOT_THIN * foot) return;
+      // the north corridor's forest floor (round 44): the same kind of drop, after every draw
+      if (nfloor > 0 && hash01(x + 0.25, z - 0.25) < (1 - NORTH_FLOOR_KEEP) * nfloor) return;
       composeMatrix(matrices, count * 16, x, y, z, nx, s.ny, nz, 0.5, yaw, w, h, h);
       const o = count * 4;
       data[o] = phase;

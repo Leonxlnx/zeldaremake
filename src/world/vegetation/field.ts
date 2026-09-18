@@ -233,6 +233,38 @@ export const C_FOOT_FEATHER = 0.5;
 const NW_DARK_OUT: readonly [number, number] = [0.0, 0.7];
 const NW_DARK_FAR: readonly [number, number] = [3.6, 4.8];
 const NW_DARK_ALONG: readonly [number, number] = [-1.0, 7.5];
+/**
+ * Round 44 — the north corridor (survey-1 #4, 17 frames: the plain beyond the log arch, the floor
+ * under the white-barks east of the north path and the hollow's far end were flat pale terrain
+ * with a few tufts). Every placement pass measured its reach as the distance to the plaza origin,
+ * so nothing grew past the detail disc (45 m) and the disc's last ten metres had thinned to a
+ * third (`falloff`). `reach` is the radius the turf, carpet and litter passes measure against
+ * instead: the plain distance, or the distance to NORTH_CORRIDOR — the north path's spine from
+ * the hollow's mouth to the plain beyond the arch — plus NORTH_REACH_BASE, whichever is smaller.
+ * On the walk itself that is 22 m "from the plaza" (density 0.98), 10 m off it 0.72, and the
+ * corridor's reach runs out 23 m off the path — the same density rules as the plaza's lawn, the
+ * falloff included; nothing grows thinner than it did, and past NORTH_FADE_Z the reach grows
+ * twice as fast as the distance so the cover fades out in the haze instead of ending on a line.
+ * `northFloor` marks where that ground is forest floor rather than lawn (litter and moss beds
+ * over sparse, darker turf; the frames north of the arch show no mown lawn there): everything
+ * north of the arch's south face, and the ground more than ≈ 10 m off the path north of the
+ * hollow's mouth.
+ */
+const NORTH_CORRIDOR: readonly (readonly [number, number])[] = [
+  [3.0, -18],
+  [3.5, -36],
+  [4.5, -42],
+  [5.2, -50],
+  [5.8, -58],
+  [6.2, -68],
+];
+const NORTH_REACH_BASE = 22;
+const NORTH_FADE_Z = -80;
+/** the forest-floor blend runs from the log arch's south face (z) north over this band … */
+const NORTH_FLOOR_Z: readonly [number, number] = [-44, -54];
+/** … and, north of the hollow's mouth (z band), across this distance band off the path (m) */
+const NORTH_FLOOR_OFF_Z: readonly [number, number] = [-26, -34];
+const NORTH_FLOOR_OFF_PATH: readonly [number, number] = [7, 13];
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
@@ -319,7 +351,11 @@ const frameAngle = (f: Frame, sx: number) => Math.atan((sx - 0.5) * 2 * f.halfSl
 export class VegField {
   readonly cell: number;
   readonly extent: number;
+  /** the grid's north (−z) extent: `extent` grown to hold the north corridor (round 44, `reach`) */
+  readonly northExtent: number;
+  /** grid nodes along x / along z (the grid is a rectangle since round 44: x ± extent, z −northExtent … extent) */
   private readonly n: number;
+  private readonly nz: number;
   private readonly data: Float32Array; // 11 floats per cell
   private readonly stairs: StairRect[];
   private readonly stones: SteppingStone[] = houseSteppingStones();
@@ -347,8 +383,17 @@ export class VegField {
   ) {
     this.cell = cell;
     this.extent = extent;
+    // the corridor's coverage: reach ≤ extent means corridor distance ≤ extent − base (past
+    // NORTH_FADE_Z the reach grows 3 × as fast as the distance, so a third of the rest)
+    const spare = Math.max(0, extent - NORTH_REACH_BASE);
+    const endZ = NORTH_CORRIDOR[NORTH_CORRIDOR.length - 1][1];
+    const fadeFree = Math.max(0, endZ - NORTH_FADE_Z);
+    // snapped to the cell so the disc's original nodes keep their exact z (a fractional offset
+    // would move every bilinear sample inside the disc by a fraction of a cell)
+    this.northExtent = Math.ceil(Math.max(extent, -endZ + (spare <= fadeFree ? spare : fadeFree + (spare - fadeFree) / 3)) / cell) * cell;
     this.n = Math.round((extent * 2) / cell) + 1;
-    this.data = new Float32Array(this.n * this.n * 11);
+    this.nz = Math.round((extent + this.northExtent) / cell) + 1;
+    this.data = new Float32Array(this.n * this.nz * 11);
     const seed = ctx.config.seed;
     this.clusterNoise = new Noise2D(`${seed}/veg-cluster`);
     this.tuftNoise = new Noise2D(`${seed}/veg-tuft`);
@@ -371,8 +416,8 @@ export class VegField {
     const T = this.ctx.terrain;
     const n = this.n;
     const nrm = this.tmpN;
-    for (let j = 0; j < n; j++) {
-      const z = -this.extent + j * this.cell;
+    for (let j = 0; j < this.nz; j++) {
+      const z = -this.northExtent + j * this.cell;
       for (let i = 0; i < n; i++) {
         const x = -this.extent + i * this.cell;
         const m = T.mask(x, z);
@@ -417,7 +462,7 @@ export class VegField {
     const L = this.ctx.layout;
     const hw = L.pathHalfWidth;
     const n = this.n;
-    const at = (i: number, j: number): [number, number] => [-this.extent + i * this.cell, -this.extent + j * this.cell];
+    const at = (i: number, j: number): [number, number] => [-this.extent + i * this.cell, -this.northExtent + j * this.cell];
     const pathAt = (x: number, z: number) => T.mask(x, z).path;
     // crossing of the iso level on the grid edge (i, j) → (i + di, j + dj): linear in the node
     // values for the pass that decides which pieces to keep, bisected on the exact mask (8 steps,
@@ -462,7 +507,7 @@ export class VegField {
     const EDGES: number[][][] = [[], [[3, 0]], [[0, 1]], [[3, 1]], [[1, 2]], [], [[0, 2]], [[3, 2]], [[2, 3]], [[0, 2]], [], [[1, 2]], [[1, 3]], [[0, 1]], [[3, 0]], []];
     const edgeOf = (i: number, j: number, e: number): Edge => (e === 0 ? { i, j, horizontal: true } : e === 1 ? { i: i + 1, j, horizontal: false } : e === 2 ? { i, j: j + 1, horizontal: true } : { i, j, horizontal: false });
     const s = newSample();
-    for (let j = 0; j < n - 1; j++) {
+    for (let j = 0; j < this.nz - 1; j++) {
       for (let i = 0; i < n - 1; i++) {
         const c0 = this.nodePath(i, j);
         const c1 = this.nodePath(i + 1, j);
@@ -471,7 +516,7 @@ export class VegField {
         const idx = (c0 >= RIM_ISO ? 1 : 0) | (c1 >= RIM_ISO ? 2 : 0) | (c2 >= RIM_ISO ? 4 : 0) | (c3 >= RIM_ISO ? 8 : 0);
         if (idx === 0 || idx === 15) continue;
         const [cx, cz] = at(i, j);
-        if (Math.hypot(cx + this.cell / 2, cz + this.cell / 2) > R) continue;
+        if (this.reach(cx + this.cell / 2, cz + this.cell / 2) > R) continue;
         let pairs = EDGES[idx];
         if (idx === 5 || idx === 10) {
           // saddle: the centre decides which diagonal pair of corners is joined
@@ -592,10 +637,10 @@ export class VegField {
   /** Bilinear sample of the cached field. Outside the grid → not allowed. */
   sample(x: number, z: number, out: FieldSample): FieldSample {
     const fx = (x + this.extent) / this.cell;
-    const fz = (z + this.extent) / this.cell;
+    const fz = (z + this.northExtent) / this.cell;
     const i0 = Math.floor(fx);
     const j0 = Math.floor(fz);
-    if (i0 < 0 || j0 < 0 || i0 >= this.n - 1 || j0 >= this.n - 1) {
+    if (i0 < 0 || j0 < 0 || i0 >= this.n - 1 || j0 >= this.nz - 1) {
       out.allow = 0;
       out.path = out.stairs = out.structure = 0;
       out.cliff = 1;
@@ -692,13 +737,17 @@ export class VegField {
    * terrain mask puts in 0..`band` m of grass beyond the paving (the mask, not the polyline, says
    * where the plaza, pads and corners really end).
    */
-  rimCandidates(rng: () => number, perMetre: number, band: number, visit: (x: number, z: number, edge: number) => void) {
+  rimCandidates(rng: () => number, perMetre: number, band: number, visit: (x: number, z: number, edge: number) => void, corridor = false) {
     const L = this.ctx.layout;
     const R = this.ctx.config.detailRadius;
     const rims: [readonly P3[], number][] = [
       [L.pathSpine, L.pathHalfWidth],
       [L.pathToStairs, L.pathHalfWidth * 0.8],
     ];
+    // round 44 (`corridor`): the north corridor's rim pieces are the ones the disc walk skips —
+    // beyond the detail disc but inside `reach` — walked by their own streams, so the disc walk's
+    // candidate sequence (and every rim plant / leaf it seated) stays as it was
+    const inWalk = (x: number, z: number) => (corridor ? Math.hypot(x, z) > R && this.reach(x, z) <= R : Math.hypot(x, z) <= R);
     const offer = (x: number, z: number) => {
       const edge = this.lawnEdgeDistance(x, z);
       if (edge < -0.05 || edge > band || this.stairDistance(x, z) < 0.1) return;
@@ -708,7 +757,7 @@ export class VegField {
       for (let i = 0; i < line.length - 1; i++) {
         const [ax, , az] = line[i];
         const [bx, , bz] = line[i + 1];
-        if (Math.hypot((ax + bx) / 2, (az + bz) / 2) > R) continue;
+        if (!inWalk((ax + bx) / 2, (az + bz) / 2)) continue;
         const len = Math.hypot(bx - ax, bz - az);
         const dx = (bx - ax) / len;
         const dz = (bz - az) / len;
@@ -724,7 +773,7 @@ export class VegField {
     // the pieces are 0.1–0.7 m long: carry the fractional count so short ones are not starved
     let carry = 0;
     for (const seg of this.rim) {
-      if (Math.hypot((seg.ax + seg.bx) / 2, (seg.az + seg.bz) / 2) > R) continue;
+      if (!inWalk((seg.ax + seg.bx) / 2, (seg.az + seg.bz) / 2)) continue;
       carry += seg.len * perMetre;
       const n = Math.floor(carry);
       carry -= n;
@@ -1206,11 +1255,82 @@ export class VegField {
     return v;
   }
 
-  /** Hero-area falloff: full detail near the plaza, thinning toward the detail radius. */
+  /**
+   * Hero-area falloff: full detail near the plaza, thinning toward the detail radius. The plain
+   * distance to the origin: the round-43 streams (every plant scatter, the litter's disc passes)
+   * read it, and their candidate sequences must stay as they were — the corridor passes read
+   * `falloffReach`.
+   */
   falloff(x: number, z: number): number {
     const r = Math.hypot(x, z);
     const R = this.ctx.config.detailRadius;
     return lerp(1, 0.32, smoothstep(18, R, r));
+  }
+
+  /**
+   * Placement radius of (x, z) (round 44): the distance to the origin, or — around the north
+   * corridor's anchor under the log arch — the anchor distance + NORTH_REACH_BASE, whichever is
+   * smaller. Every per-tile pass (blade tiles, carpet) and the corridor passes measure their
+   * "inside the detail disc" against it instead of the plain distance.
+   */
+  reach(x: number, z: number): number {
+    const plain = Math.hypot(x, z);
+    // south of the corridor's mouth the plain distance is the smaller one already
+    if (z > NORTH_CORRIDOR[0][1] + 2) return plain;
+    return Math.min(plain, this.corridorDistance(x, z) + NORTH_REACH_BASE + 2 * Math.max(0, NORTH_FADE_Z - z));
+  }
+
+  /** distance (m) of (x, z) to the north corridor's polyline (the north path's spine), for the forest-floor rules */
+  private corridorDistance(x: number, z: number): number {
+    let d = Infinity;
+    for (let i = 0; i < NORTH_CORRIDOR.length - 1; i++) {
+      const [ax, az] = NORTH_CORRIDOR[i];
+      const [bx, bz] = NORTH_CORRIDOR[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return d;
+  }
+
+  /** `falloff` over `reach`: the per-tile passes' density, full again along the north path and over the plain */
+  falloffReach(x: number, z: number): number {
+    const R = this.ctx.config.detailRadius;
+    return lerp(1, 0.32, smoothstep(18, R, this.reach(x, z)));
+  }
+
+  /**
+   * 0..1 where the north corridor's ground is forest floor rather than lawn (round 44): from the
+   * log arch's south face northward. The turf thins and darkens there, the litter, moss beds and
+   * small ferns thicken (grass.ts, carpet.ts, litter.ts, plants.ts).
+   */
+  northFloor(x: number, z: number): number {
+    if (z > NORTH_FLOOR_OFF_Z[0]) return 0;
+    const north = 1 - smoothstep(NORTH_FLOOR_Z[1], NORTH_FLOOR_Z[0], z);
+    const off = (1 - smoothstep(NORTH_FLOOR_OFF_Z[1], NORTH_FLOOR_OFF_Z[0], z)) * smoothstep(NORTH_FLOOR_OFF_PATH[0], NORTH_FLOOR_OFF_PATH[1], this.corridorDistance(x, z));
+    return Math.max(north, off);
+  }
+
+  /** world box [x0, z0, x1, z1] holding every point the corridor adds beyond the disc (reach ≤ `R`, distance > `R`) */
+  corridorBox(R = this.ctx.config.detailRadius): [number, number, number, number] {
+    const r = Math.max(0, R - NORTH_REACH_BASE);
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let z0 = Infinity;
+    let z1 = -Infinity;
+    for (const [cx, cz] of NORTH_CORRIDOR) {
+      x0 = Math.min(x0, cx - r);
+      x1 = Math.max(x1, cx + r);
+      z0 = Math.min(z0, cz - r);
+      z1 = Math.max(z1, cz + r);
+    }
+    return [x0, Math.max(z0, -this.northExtent), x1, Math.min(z1, -R * 0.4)];
+  }
+
+  /** true where the corridor grows ground the detail disc did not (round 44): reach ≤ `R`, plain distance > `R` */
+  inCorridor(x: number, z: number, R = this.ctx.config.detailRadius): boolean {
+    return Math.hypot(x, z) > R && this.reach(x, z) <= R;
   }
 }
 
