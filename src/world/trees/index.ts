@@ -23,17 +23,17 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+import { COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, DISTANT_BARK_M, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
-import { createGiantTree, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantVariants, distantClearanceTally, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantVariants, DISTANT_FLARE, DISTANT_FLARE_FALL, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -1565,6 +1565,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** the part's own swap radii (giant.ts swapRadii, then `nearCanopyHeroPass` on the built mesh) */
     inM: number;
     outM: number;
+    /** the radii are NEAR_CANOPY_FLAT_SWAP_M and the hero pass leaves them (nearCanopy.ts NearCanopyPart.fixedSwap) */
+    fixedSwap: boolean;
     /** the nearest hero camera that frames the built part's cull sphere (m to the centre; Infinity: none) */
     hero: number;
     mesh: Mesh;
@@ -1951,6 +1953,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         center: new Vector3(p.x + p.scale * (cos * part.center.x + sin * part.center.z), p.y + p.scale * part.center.y, p.z + p.scale * (-sin * part.center.x + cos * part.center.z)),
         inM: part.inM,
         outM: part.outM,
+        fixedSwap: part.fixedSwap === true,
         hero: Infinity,
         mesh,
         triangles: part.triangles,
@@ -2052,6 +2055,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         center: part.center.clone().add(g.origin),
         inM: part.inM,
         outM: part.outM,
+        fixedSwap: part.fixedSwap === true,
         hero: Infinity,
         mesh,
         triangles: part.triangles,
@@ -2650,13 +2654,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * −0.012 SSIM). Here every part's padded world cull sphere is tested against the hero frusta
    * and its radii cut under the nearest framing camera exactly as swapRadii does; a part that
    * would then swap under NEAR_CANOPY_MIN_IN_M never swaps (radii −1: its tagged far foliage is
-   * simply never folded) and its geometry is dropped.
+   * simply never folded) and its geometry is dropped. A flat lobe on NEAR_CANOPY_FLAT_SWAP_M
+   * (round 45, item 6; nearCanopy.ts fixedSwap) keeps those radii whatever camera frames it —
+   * that setting means the hero cameras inside them render the near version.
    */
   const nearCanopyHeroPass = () => {
     const sphere = new Sphere();
     let limited = 0;
     let dropped = 0;
     for (const nc of nearCanopies) {
+      if (nc.fixedSwap) continue;
       nc.mesh.updateMatrixWorld(true);
       sphere.copy(nc.mesh.geometry.boundingSphere!).applyMatrix4(nc.mesh.matrixWorld);
       sphere.radius += 1;
@@ -2921,6 +2928,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45: instances slid off the path's sight line / dropped from the arch's footprint, and the spine clearance (m) */
       distantClearance: { ...distantCleared, spine: DISTANT_SPINE_CLEARANCE, minSpineDistance: Math.round(Math.min(...distantPlacements.map((p) => spineDistance(spineXZ, p.x, p.z))) * 100) / 100 },
       distantLod: [distantNearCount, distantFarCount],
+      /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
+      distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
+      /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
+      lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,

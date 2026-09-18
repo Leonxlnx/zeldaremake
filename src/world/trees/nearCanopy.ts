@@ -78,6 +78,12 @@ export interface NearCanopyPart {
   inM: number;
   outM: number;
   /**
+   * round 45 (item 6): the radii are NEAR_CANOPY_FLAT_SWAP_M and stand — the hero pass on the
+   * built mesh (index.ts nearCanopyHeroPass) leaves them, so a hero camera inside them renders
+   * the near version
+   */
+  fixedSwap?: boolean;
+  /**
    * wood + laminae, same attributes and material as the tree's `geometry` (leaf vertices flagged):
    * the first build (the measurement: counts, cull sphere, bytes). The trees system keeps it only
    * while the part is near and rebuilds it through `build` when it comes near again (lodPool.ts).
@@ -117,6 +123,8 @@ export interface NearLobeRecord {
   /** swap radii (see swapRadiiFor) */
   inM: number;
   outM: number;
+  /** the radii are NEAR_CANOPY_FLAT_SWAP_M, not the hero cut (NearCanopyPart.fixedSwap) */
+  fixedSwap?: boolean;
   /** the lobe's walk-clearance floor (giant.ts CanopyLobe.floor, local y): no near lamina or twiglet below it */
   floorY?: number;
 }
@@ -415,6 +423,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       radius: rec.hR * 1.35 + 0.6,
       inM: rec.inM,
       outM: rec.outM,
+      fixedSwap: rec.fixedSwap,
       geometry: first.geometry,
       build: function* () {
         return (yield* lobeSteps(rng, rec, idx)).geometry;
