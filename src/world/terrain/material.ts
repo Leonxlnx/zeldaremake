@@ -118,34 +118,57 @@ float tVNoise(vec2 p) {
 `;
 
 // Round 44: the steep-face relief shared by the vertex displacement and the fragment passes.
-// Roots: ridges 0.45 m apart across the fall line (dn = downslope in xz), wandering along it,
-// present in patches (crown weight 0..1, `pres` the patch weight). Plates: a two-octave 0.6 m
-// noise quantized to three ledges, the step between softened over 40 % of a level (`stepW` = 1 on
-// the step, `id` = the ledge). `faceH` is the relief height (m, |h| ≤ FACE_*_H) — the vertex
-// shader displaces by it, the fragment differentiates it for the sharp normal.
+// Everything is parametrised in the FACE'S OWN SURFACE FRAME, not world xz: on the survey's
+// cliff (slope 0.8–0.87, ≈ 80°) a metre of face spans 15 cm of xz, so any xz-space pattern
+// degenerates into vertical stripes (the first cut — 1.7/255 of change on the w11 frame). The
+// frame `fr` = (dn.x, dn.z, n.y) comes from the smooth normal: `faceUV` gives (across, along) —
+// across = the horizontal in-plane axis, along = arc length down the fall line (dot(xz, dn)·cosθ
+// − y·sinθ) — and `faceAxes` the matching world tangents, so a height field over (across, along)
+// tilts the normal in world space the same way on a 20° bank and an 80° cliff.
+// Roots: ridges 0.45 m apart across the fall line, wandering along it, present in patches
+// (crown weight 0..1, `pres` the patch weight). Plates: a two-octave 0.6 m noise quantized to
+// three ledges, the step between softened over half a level (`stepW` = 1 on the step, `id` = the
+// ledge). `faceH` is the relief height (m, |h| ≤ FACE_*_H) — the vertex shader displaces by it,
+// the fragment differentiates it for the sharp normal.
 const FACE_GLSL = /* glsl */ `
-float faceRoots(vec2 p, vec2 dn, out float pres) {
+vec2 faceUV(vec3 wp, vec3 fr) {
+  vec2 dn = fr.xy;
   vec2 ac = vec2(-dn.y, dn.x);
-  float a = dot(p, dn);
-  float cc = dot(p, ac);
-  float wob = (tVNoise(vec2(a * 1.4, cc * 0.7) + vec2(13.0, 29.0)) - 0.5) * 0.9;
-  pres = smoothstep(0.38, 0.62, tVNoise(p * 0.7 + vec2(-5.0, 17.0)));
-  float base = 0.5 + 0.5 * cos((cc + wob) * 2.2 * 6.2832);
+  float s = sqrt(max(0.0, 1.0 - fr.z * fr.z));
+  return vec2(dot(wp.xz, ac), dot(wp.xz, dn) * fr.z - wp.y * s);
+}
+void faceAxes(vec3 fr, out vec3 across, out vec3 along) {
+  float s = sqrt(max(0.0, 1.0 - fr.z * fr.z));
+  across = vec3(-fr.y, 0.0, fr.x);
+  along = vec3(fr.x * fr.z, -s, fr.y * fr.z);
+}
+float faceRoots(vec2 q, out float pres) {
+  float wob = (tVNoise(vec2(q.y * 1.4, q.x * 0.7) + vec2(13.0, 29.0)) - 0.5) * 0.9;
+  pres = smoothstep(0.38, 0.62, tVNoise(q * 0.7 + vec2(-5.0, 17.0)));
+  float base = 0.5 + 0.5 * cos((q.x + wob) * 2.2 * 6.2832);
   return base * base * pres;
 }
-float facePlates(vec2 p, out float id, out float stepW) {
-  float pn = tVNoise(p * 1.6 + vec2(7.0, -3.0)) * 0.7 + tVNoise(p * 4.3 + vec2(-11.0, 5.0)) * 0.3;
-  float q = pn * 3.0;
-  id = floor(q);
-  float fr = fract(q);
+float facePlates(vec2 q, out float id, out float stepW) {
+  float pn = tVNoise(q * 1.6 + vec2(7.0, -3.0)) * 0.7 + tVNoise(q * 4.3 + vec2(-11.0, 5.0)) * 0.3;
+  float lv = pn * 3.0;
+  id = floor(lv);
+  float fr = fract(lv);
   stepW = 1.0 - smoothstep(0.0, 0.25, abs(fr - 0.5));
   return (id + smoothstep(0.3, 0.7, fr)) / 3.0 - 0.5;
 }
-float faceH(vec2 p, vec2 dn, float rock) {
+float faceH(vec2 q, float rock) {
   float pres; float id; float sw;
-  float r = faceRoots(p, dn, pres);
-  float pl = facePlates(p, id, sw);
+  float r = faceRoots(q, pres);
+  float pl = facePlates(q, id, sw);
   return mix(${f(FACE_ROOT_H)} * (r - 0.3), ${f(FACE_PLATE_H)} * pl, rock);
+}
+// world-space normal tilt of the relief at q (−∇h in the surface frame, K-scaled)
+vec3 faceTilt(vec2 q, vec3 fr, float rock, float e, float k) {
+  float hx = faceH(q + vec2(e, 0.0), rock) - faceH(q - vec2(e, 0.0), rock);
+  float hy = faceH(q + vec2(0.0, e), rock) - faceH(q - vec2(0.0, e), rock);
+  vec3 across; vec3 along;
+  faceAxes(fr, across, along);
+  return -(hx * across + hy * along) / (2.0 * e) * k;
 }
 `;
 
@@ -160,7 +183,7 @@ uniform vec3 uTiles0; // grass, soil, moss   (1/tile)
 uniform vec3 uTiles1; // litter, gravel, rock (1/tile)
 uniform vec3 uGrassDeep; uniform vec3 uGrassLight; uniform vec3 uMossDeep; uniform vec3 uMossBright;
 uniform vec3 uSoilTint; uniform vec3 uSoilDark; uniform vec3 uStoneTint; uniform vec3 uWetTint;
-varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec2 vFaceDn;
+varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec3 vFaceFr;
 ${HASH_GLSL}
 ${FACE_GLSL}
 
@@ -351,19 +374,19 @@ void bankDetail(vec2 p, vec3 nn, float w, inout vec3 c, inout vec2 nxy) {
 // the rock plates' steps dark (the joint between plates) with each ledge its own shade. Then the
 // moss share of the face, in cushions (14 cm domes, creases showing the soil) all the way out to
 // FACE_FADE — the survey's flat moss pads on the lip of the earth face. w = face × fade.
+// The hard relief's normal tilt comes back as a WORLD-space vector (tilt, applied after the
+// layer / triplanar blend): the xz tangent frame the layer normals use is degenerate on a cliff.
 float groundFaceW() { return 1.0 - smoothstep(${f(FACE_FADE[0])}, ${f(FACE_FADE[1])}, length(vViewPosition)); }
-void faceDetail(vec2 p, vec2 dn, float rock, float moss, float w, float steep, inout vec3 c, inout vec2 nxy) {
+void faceDetail(vec3 wp, vec3 fr, float rock, float moss, float w, float steep, inout vec3 c, inout vec2 nxy, inout vec3 tilt) {
   // the moss share of the face is gated from 0.1 of slope (chunks.ts) — the roots / plates only
   // from 0.2, so the lip of a mossy bank takes cushions and no ridges
   float hard = w * (1.0 - moss) * smoothstep(0.15, 0.3, steep);
+  vec2 q = faceUV(wp, fr);
   if (hard > 0.002) {
-    float e = 0.012;
-    float hx = faceH(p + vec2(e, 0.0), dn, rock) - faceH(p - vec2(e, 0.0), dn, rock);
-    float hz = faceH(p + vec2(0.0, e), dn, rock) - faceH(p - vec2(0.0, e), dn, rock);
-    nxy += -vec2(hx, hz) / (2.0 * e) * ${f(FACE_NORMAL_K)} * hard;
+    tilt += faceTilt(q, fr, rock, 0.012, ${f(FACE_NORMAL_K)} * hard);
     float pres; float id; float sw;
-    float r = faceRoots(p, dn, pres);
-    facePlates(p, id, sw);
+    float r = faceRoots(q, pres);
+    facePlates(q, id, sw);
     // (both faces sit in the giants' shade at luminance ≈ 0.17, where the first cut's ± 10 %
     // ledges and −22 % troughs moved the survey frames by 1.7/255 — invisible; the albedo is the
     // lever there, so the joints go to −60 %, the ledges swing ± 20 %, the crowns + 45 %)
@@ -376,8 +399,9 @@ void faceDetail(vec2 p, vec2 dn, float rock, float moss, float w, float steep, i
   }
   float soft = w * moss;
   if (soft > 0.002) {
+    // (the cushions sit on the lip — gentle ground — so the xz frame serves them)
     vec2 cxy = vec2(0.0);
-    float dome = cushionLayer(p, 0.14, 21.3, 0.55, cxy);
+    float dome = cushionLayer(wp.xz, 0.14, 21.3, 0.55, cxy);
     nxy += cxy * soft;
     float crease = 1.0 - smoothstep(0.0, 0.3, dome);
     c = mix(c, mix(c * 0.55, c * 1.15, smoothstep(0.2, 0.9, dome)), soft * (1.0 - crease));
@@ -413,7 +437,7 @@ vec3 nearContrast(vec3 s, float meanLum, float nw) { return mix(s, s * clamp(lum
 
 const VERT_PARS = /* glsl */ `
 attribute vec4 aW0; attribute vec4 aW1; attribute vec4 aW2;
-varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec2 vFaceDn;
+varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec3 vFaceFr;
 ${HASH_GLSL}
 ${FACE_GLSL}
 // micro relief (m) of the near ground: 0.43 m and 0.2 m clods plus ridged root humps that grow
@@ -431,8 +455,8 @@ float reliefH(vec2 p, float roots) {
 // RELIEF_NORMAL_K so clods shade like clods; the surface itself moves ≤ RELIEF_MAX_M).
 // Round 44: then the steep-face relief (aW2.w) — root ridges / rock plates displaced along the
 // smooth normal, sharing RELIEF_MAX_M with the clods (|clods| + |face| ≤ the cap) and faded over
-// FACE_FADE; its downslope direction (from the smooth normal, before either relief tilts it) goes
-// to the fragment as vFaceDn so both passes differentiate the same ridges.
+// FACE_FADE; its surface frame (downslope direction and n.y of the smooth normal, before either
+// relief tilts it) goes to the fragment as vFaceFr so both passes differentiate the same ridges.
 const VERT_RELIEF = /* glsl */ `
 float tReliefDh = 0.0;
 vec3 tFaceDisp = vec3(0.0);
@@ -440,7 +464,8 @@ vec3 tFaceDisp = vec3(0.0);
   vec3 wp0 = (modelMatrix * vec4(position, 1.0)).xyz;
   vec3 on0 = objectNormal;
   vec3 wn0 = normalize(mat3(modelMatrix) * on0);
-  vFaceDn = length(wn0.xz) > 1e-4 ? normalize(wn0.xz) : vec2(1.0, 0.0);
+  vec2 dn0 = length(wn0.xz) > 1e-4 ? normalize(wn0.xz) : vec2(1.0, 0.0);
+  vFaceFr = vec3(dn0, clamp(wn0.y, 0.0, 1.0));
   float dcam = distance(cameraPosition, wp0);
   // off at the detail ring's edge: the 1 m ring's seam vertices are not on the fine lattice
   float edge = 1.0 - smoothstep(45.0, 47.5, max(abs(wp0.x), abs(wp0.z)));
@@ -459,13 +484,12 @@ vec3 tFaceDisp = vec3(0.0);
   if (faceFade > 0.001) {
     float e = 0.05;
     float rock = clamp(aW1.y, 0.0, 1.0);
-    float h0 = faceH(wp0.xz, vFaceDn, rock);
-    float hx = faceH(wp0.xz + vec2(e, 0.0), vFaceDn, rock) - faceH(wp0.xz - vec2(e, 0.0), vFaceDn, rock);
-    float hz = faceH(wp0.xz + vec2(0.0, e), vFaceDn, rock) - faceH(wp0.xz - vec2(0.0, e), vFaceDn, rock);
+    vec2 q = faceUV(wp0, vFaceFr);
+    float h0 = faceH(q, rock);
     float room = ${f(RELIEF_MAX_M)} - abs(tReliefDh);
     tFaceDisp = on0 * clamp(h0 * faceFade, -room, room);
-    vec2 gr = vec2(hx, hz) / (2.0 * e) * faceFade * ${f(FACE_NORMAL_K)};
-    objectNormal = normalize(objectNormal + vec3(-gr.x, 0.0, -gr.y));
+    // (object space is world space for the terrain chunks: identity model rotation)
+    objectNormal = normalize(objectNormal + faceTilt(q, vFaceFr, rock, e, faceFade * ${f(FACE_NORMAL_K)}));
   }
 }
 `;
@@ -558,7 +582,7 @@ const MAP_FRAG = /* glsl */ `
     float bankW = w0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
     if (bankW > 0.002) bankDetail(uvw, nn, bankW, c, nxyUnused);
     float faceW = vW2.w * groundFaceW();
-    if (faceW > 0.002) faceDetail(uvw, normalize(vFaceDn), clamp(w1.y, 0.0, 1.0), clamp(w0.z, 0.0, 1.0), faceW, steep, c, nxyUnused);
+    if (faceW > 0.002) { vec3 tiltUnused = vec3(0.0); faceDetail(vWPos, vFaceFr, clamp(w1.y, 0.0, 1.0), clamp(w0.z, 0.0, 1.0), faceW, steep, c, nxyUnused, tiltUnused); }
   }
   float litCov = 0.0;
   if (dw > 0.001) {
@@ -588,7 +612,7 @@ const NORMAL_FRAG = /* glsl */ `
   float nw = groundNearW();
   float dw = groundDetailW();
   vec3 mapN = vec3(0.0, 0.0, 0.0);
-  vec2 faceXY = vec2(0.0);
+  vec3 faceTiltW = vec3(0.0);
   float tot = 0.0;
   if (vW0.x > 0.002) { mapN += nrm2(tGrassN, uvw, uTiles0.x, mixK) * vW0.x; tot += vW0.x; }
   if (vW0.y > 0.002) { mapN += nrmNear(tSoilN, uvw, uTiles0.y, ${f(LAYER_SETS.soil.tile)}, mixK, nw) * vW0.y; tot += vW0.y; }
@@ -620,8 +644,7 @@ const NORMAL_FRAG = /* glsl */ `
       float bankW = vW0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
       if (bankW > 0.002) bankDetail(uvw, nn, bankW, cUnused, nxy);
       float faceW = vW2.w * groundFaceW();
-      if (faceW > 0.002) faceDetail(uvw, normalize(vFaceDn), clamp(vW1.y, 0.0, 1.0), clamp(vW0.z, 0.0, 1.0), faceW, steep, cUnused, faceXY);
-      nxy += faceXY;
+      if (faceW > 0.002) faceDetail(vWPos, vFaceFr, clamp(vW1.y, 0.0, 1.0), clamp(vW0.z, 0.0, 1.0), faceW, steep, cUnused, nxy, faceTiltW);
     }
     if (dw > 0.001) {
       float vergeW = vW1.x * dw;
@@ -644,13 +667,13 @@ const NORMAL_FRAG = /* glsl */ `
     mat3 ty = getTangentFrame(-vViewPosition, normal, vWPos.xz);
     mat3 tz = getTangentFrame(-vViewPosition, normal, vWPos.xy);
     vec3 nRock = normalize(tx * normalize(nx) * bw.x + ty * normalize(ny) * bw.y + tz * normalize(nz) * bw.z);
-    // round 44: the cliff faces' plate relief rides on the triplanar normal too (nFlat carries it
-    // only for the soil share of the blend)
-    if (dot(faceXY, faceXY) > 1e-8) nRock = normalize(nRock + tbn * vec3(faceXY, 0.0));
     normal = normalize(mix(nFlat, nRock, vW1.y));
   } else {
     normal = nFlat;
   }
+  // round 44: the steep faces' root / plate relief tilts the blended normal in world space (the
+  // layer frame and the triplanar frames both take it the same way; view space here)
+  if (dot(faceTiltW, faceTiltW) > 1e-10) normal = normalize(normal + mat3(viewMatrix) * faceTiltW);
 }
 `;
 
@@ -721,7 +744,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
       .replace('#include <normal_fragment_maps>', NORMAL_FRAG)
       .replace('#include <roughnessmap_fragment>', ROUGH_FRAG);
   };
-  material.customProgramCacheKey = () => 'terrain-layered-v4-face-relief';
+  material.customProgramCacheKey = () => 'terrain-layered-v5-face-frame';
 
   return { material, layers: [...TERRAIN_LAYERS], textured, detailNormal: true, sets: names };
 }
