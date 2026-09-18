@@ -249,7 +249,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     pavedRimMetres: Math.round(field.pavedRimStats().metres * 10) / 10,
     saplings: plants.saplings.count,
     litter: litter.count,
-    litterKinds: { leaves: litter.leaves.count, northLeaves: litter.northLeaves.count, twigs: litter.twigs.count, roots: litter.roots.count },
+    litterKinds: { leaves: litter.leaves.count, northLeaves: litter.northLeaves.count, twigs: litter.twigs.count, northTwigs: litter.northTwigs.count, roots: litter.roots.count },
     windLayers: 3,
     windLayerNames: ['windGrass', 'windLeaf', 'windBranch'],
     buildMs: Math.round(buildMs),

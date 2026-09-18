@@ -34,7 +34,7 @@ export const MOSS_ULTRA_M = 3;
  * lobe cluster (mossGeometry 'high' — the ultra's body and every second lobe of its own spiral, at
  * fewer sides), the dome only past it, dark-rimmed like the lobes so the swap is a shape change alone.
  */
-export const MOSS_MID_M = 10;
+export const MOSS_MID_M = 8;
 export const FLOWER_DETAILS: readonly Detail[] = ['ultra', 'high', 'mid', 'low'];
 export const WHITE_FLOWER_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
 export const BROADLEAF_DETAILS: readonly Detail[] = ['ultra', 'high', 'low'];
@@ -1341,8 +1341,8 @@ export const MOSS_ULTRA_RUFFLE = 0.2;
 /**
  * the mid cushion (round 44, inside MOSS_MID_M): every `MOSS_MID_LOBE_STEP`-th lobe of the ultra
  * spiral (the same stream, so the switch at MOSS_ULTRA_M keeps every lobe where it was), grown
- * `MOSS_MID_LOBE_GROW` to close the gaps, at 6 sides × 2 rings — ≈ 300 triangles against the
- * ultra's ≈ 1 100 and the dome's 45
+ * `MOSS_MID_LOBE_GROW` to close the gaps, at 5 sides × 2 rings on an 8 × 3 body — ≈ 290 triangles
+ * against the ultra's ≈ 1 100 and the dome's 45 (camera D frames ≈ 125 cushions inside the ring)
  */
 export const MOSS_MID_LOBE_STEP = 2;
 export const MOSS_MID_LOBE_GROW = 1.28;
@@ -1433,7 +1433,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     for (let k = 0; k < segments; k++) m.tri(levels[rings][k], levels[rings][(k + 1) % segments], crown);
   };
   // the body: the high dome's footprint, three quarters of its height, a strongly lobed outline
-  cushion(V(0, 0, 0), V(0, 1, 0), 1, bodyH, ultra ? 14 : 10, ultra ? 4 : 3, MOSS_ULTRA_RUFFLE, 1.7, 0, 0);
+  cushion(V(0, 0, 0), V(0, 1, 0), 1, bodyH, ultra ? 14 : 8, ultra ? 4 : 3, MOSS_ULTRA_RUFFLE, 1.7, 0, 0);
   // the lobes stand on the body's surface: azimuth and meridian fraction by the stream, the
   // surface normal from the profile's slope; a crown lobe takes the cushion to its full height
   const lobes = fine.int(MOSS_ULTRA_LOBES[0], MOSS_ULTRA_LOBES[1] + 1);
@@ -1452,7 +1452,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
   const leanA = fine() * TAU;
   const lean = 0.1 * fine();
   const crownR = 0.42 + 0.1 * fine();
-  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, ultra ? 9 : 7, ultra ? 3 : 2, 0.16, 3.2, 0.05, 11);
+  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, ultra ? 9 : 6, ultra ? 3 : 2, 0.16, 3.2, 0.05, 11);
   for (let i = 0; i < lobes; i++) {
     // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder;
     // 4–8 cm across at the placed scales (the structures' roof tufts' 4–12 cm), rounder than the body
@@ -1466,7 +1466,7 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     // every draw above is taken at both tiers (the stream stays the ultra's); the mid tier builds
     // every MOSS_MID_LOBE_STEP-th lobe, grown to stand in for the ones between
     if (ultra) cushion(p, n, rl, hl, 8, 3, 0.22, 6, rl * 0.15, 20 + i * 7, toneMul);
-    else if (i % MOSS_MID_LOBE_STEP === 0) cushion(p, n, rl * MOSS_MID_LOBE_GROW, hl * MOSS_MID_LOBE_GROW, 6, 2, 0.22, 6, rl * 0.15, 20 + i * 7, toneMul);
+    else if (i % MOSS_MID_LOBE_STEP === 0) cushion(p, n, rl * MOSS_MID_LOBE_GROW, hl * MOSS_MID_LOBE_GROW, 5, 2, 0.22, 6, rl * 0.15, 20 + i * 7, toneMul);
   }
   // seat the base ring on y = 0 and hold the high dome's envelope: its height exactly (the lobes
   // that rise past it are pulled down with the whole), its footprint or less

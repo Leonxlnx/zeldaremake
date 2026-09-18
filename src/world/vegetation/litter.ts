@@ -219,9 +219,11 @@ const LEAF_TINTS = [0xc9a94a, 0xd6b35a, 0xb8783a, 0x8a5a2b, 0x7d5530, 0x7f7d3c, 
 
 export interface LitterResult {
   leaves: LodInstancedSet;
-  /** round 44: the north corridor's leaves (culled) */
+  /** round 44: the north corridor's leaves (culled, ending at NORTH_LEAF_MAX_M) */
   northLeaves: LodInstancedSet;
   twigs: LodInstancedSet;
+  /** round 44: the north corridor's twigs (the disc twigs' geometry and LODs, ending at NORTH_TWIG_MAX_M) */
+  northTwigs: LodInstancedSet;
   roots: LodInstancedSet;
   count: number;
   samples: number[][];
@@ -249,6 +251,15 @@ const VERGE_BANK_PER_M2 = 3.0;
 const NORTH_LEAF_CANDIDATES_PER_M2 = 9.9;
 const NORTH_FLOOR_LITTER = 2.5;
 const NORTH_TWIG_SHARE = 0.1;
+/**
+ * The north sets end at these camera distances (m, XZ; the disc's leaves and twigs are never cut).
+ * A twig is 14–60 cm long and 1.4 cm across: 0.4 px wide at 30 m from the fixed cameras, and the
+ * twigs' one far draw packs all three variants (90 triangles a twig) — the 436 corridor twigs cost
+ * cameras A / B / D 37–39 K triangles each while they rode the disc set. The corridor leaves fold
+ * to two triangles past LEAF_FAR_M, so they run further.
+ */
+export const NORTH_TWIG_MAX_M = 30;
+export const NORTH_LEAF_MAX_M = 40;
 /** mm-quantise so the audited sample position queries the terrain at exactly the seated point */
 const mm = (v: number) => Math.round(v * 1000) / 1000;
 const rec = (samples: number[][], x: number, y: number, z: number) => samples.push([x, Math.round(y * 10000) / 10000, z]);
@@ -277,10 +288,15 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // packs all four variants into one draw: 6–25 leaves stand inside the ring at the fixed
   // cameras (≈ 290 collapsed triangles each), one draw against four per variant.
   const leaves = new LodInstancedSet({ name: 'litter-leaves', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0], [1], [2], [3]]], cull: false });
-  // round 44: the north corridor's leaves — the same laminae and LODs, culled to the frame
-  const northLeaves = new LodInstancedSet({ name: 'litter-leaves-north', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0], [1], [2], [3]]] });
+  // round 44: the north corridor's leaves — the same laminae and LODs, culled to the frame and cut
+  // at NORTH_LEAF_MAX_M; the far fold (two triangles) packs in pairs, two draws for ≈ 4 K leaves
+  // in the fixed frames instead of four
+  const northLeaves = new LodInstancedSet({ name: 'litter-leaves-north', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], maxDistance: NORTH_LEAF_MAX_M * q.distance, nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0, 1], [2, 3]]] });
   const twigKinds = [false, true, false];
-  const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]), material, lodDistances: [TWIG_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
+  const twigVariants = twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]);
+  const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigVariants, material, lodDistances: [TWIG_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
+  // round 44: the corridor's twigs share the disc twigs' geometry (one draw a LOD) and end at NORTH_TWIG_MAX_M
+  const northTwigs = new LodInstancedSet({ name: 'litter-twigs-north', variants: twigVariants, material, lodDistances: [TWIG_ULTRA_M * q.distance], maxDistance: NORTH_TWIG_MAX_M * q.distance, nearLods: 1, receiveShadow: true });
   const roots = new LodInstancedSet({ name: 'litter-roots', variants: [[rootGeometry(`${seed}/root/0`)], [rootGeometry(`${seed}/root/1`)]], material, lodDistances: [], castShadowLods: 1, receiveShadow: true, packs: [[0], [1]] });
 
   const s = newSample();
@@ -463,7 +479,7 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
       if (rng() < NORTH_TWIG_SHARE && !onPath && field.allowed(x, z, s)) {
         const scale = 0.8 + rng() * 0.6;
         composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, rng() * TAU, scale, scale, scale);
-        twigs.add(M, rng.int(0, 3), tint.setRGB(0.85 + rng() * 0.3, 0.85 + rng() * 0.3, 0.85 + rng() * 0.3));
+        northTwigs.add(M, rng.int(0, 3), tint.setRGB(0.85 + rng() * 0.3, 0.85 + rng() * 0.3, 0.85 + rng() * 0.3));
       } else {
         const scale = 0.7 + rng() * 0.7;
         composeMatrix(M, 0, x, y, z, s.nx + rng.gauss() * 0.08, s.ny, s.nz + rng.gauss() * 0.08, 1, rng() * TAU, scale, scale, scale);
@@ -502,7 +518,7 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
     }
   }
 
-  const all = [leaves, northLeaves, twigs, roots];
+  const all = [leaves, northLeaves, twigs, northTwigs, roots];
   for (const set of all) parent.add(set.build());
-  return { leaves, northLeaves, twigs, roots, count, samples, all };
+  return { leaves, northLeaves, twigs, northTwigs, roots, count, samples, all };
 }

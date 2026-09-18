@@ -355,7 +355,7 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
   assert.ok(MOSS_MID_M>=8&&MOSS_MID_M<=14&&MOSS_MID_LOBE_STEP>=2&&MOSS_MID_LOBE_GROW>1&&MOSS_MID_LOBE_GROW<=1.5,'the mid ring 8–14 m, every second lobe grown to close the gaps');
   assert.deepEqual(MOSS_DETAILS,['ultra','high','low']);
   assert.deepEqual(a.plants.clover.opts.lodDistances,[BROADLEAF_ULTRA_M,9]);assert.deepEqual(a.plants.moss.opts.lodDistances,[MOSS_ULTRA_M,MOSS_MID_M]);
-  assert.deepEqual(a.plants.moss.packLayout,[[[0,1]],[[0],[1]],[[0,1]]],'moss: the mid cluster one variant a draw, the ultra and far tiers packed');
+  assert.deepEqual(a.plants.moss.packLayout,[[[0,1]],[[0],[1]],[[0],[1]]],'moss: the mid cluster and the far dome one variant a draw (packed, every far cushion submitted both domes), the ultra tier packed');
   for(const set of [a.plants.flowers,a.plants.yellowFlowers,a.plants.whiteFlowers,a.plants.weeds,a.plants.clover,a.plants.moss])assert.equal(set.opts.nearLods,1,`${set.opts.name} declares its ultra tier`);
   for(const set of [a.plants.heroFerns,a.plants.fiddleheads,a.plants.ferns,a.plants.tufts])assert.equal(set.opts.nearLods??0,0,`${set.opts.name} unchanged`);
   const {LAYOUT}=read('layout');
@@ -599,6 +599,18 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
   assert.equal(litter.leaves.opts.cull,false,'leaves are never trimmed to the frame');
   assert.deepEqual(litter.leaves.opts.lodDistances,[LITTER_ULTRA_M,LEAF_FAR_M],'leaf ultra ring, then the far LOD at LEAF_FAR_M');
   assert.deepEqual(litter.twigs.opts.lodDistances,[TWIG_ULTRA_M]);assert.equal(litter.leaves.opts.nearLods,1);assert.equal(litter.twigs.opts.nearLods,1);
+  // round 44: the north corridor's litter — the disc sets' geometry and LODs in culled, range-cut sets
+  {const {NORTH_TWIG_MAX_M,NORTH_LEAF_MAX_M}=read('vegetation/litter');
+    assert.ok(NORTH_TWIG_MAX_M>=25&&NORTH_TWIG_MAX_M<=40&&NORTH_LEAF_MAX_M>=NORTH_TWIG_MAX_M&&NORTH_LEAF_MAX_M<=60,'north litter cuts: twigs 25–40 m, leaves no nearer');
+    assert.equal(litter.northTwigs.opts.maxDistance,NORTH_TWIG_MAX_M);assert.equal(litter.northLeaves.opts.maxDistance,NORTH_LEAF_MAX_M);
+    assert.equal(litter.twigs.opts.maxDistance,undefined);assert.equal(litter.leaves.opts.maxDistance,undefined,'the disc litter is never cut');
+    assert.strictEqual(litter.northTwigs.opts.variants,litter.twigs.opts.variants,'north twigs: the disc twigs\' geometry');assert.deepEqual(litter.northTwigs.opts.lodDistances,[TWIG_ULTRA_M]);
+    assert.deepEqual(litter.northLeaves.opts.lodDistances,[LITTER_ULTRA_M,LEAF_FAR_M]);assert.deepEqual(litter.northLeaves.packLayout,[[[0,1,2,3]],[[0],[1],[2],[3]],[[0,1],[2,3]]],'north leaves: far folds in pairs');
+    assert.deepEqual(litter.northTwigs.packLayout,[[[0,1,2]],[[0,1,2]]],'north twigs: one draw a LOD');
+    assert.ok(litter.northTwigs.count>=300&&litter.northTwigs.count<=700&&litter.northLeaves.count>=3000&&litter.northLeaves.count<=6000,`north litter ${litter.northTwigs.count} twigs, ${litter.northLeaves.count} leaves`);
+    assert.ok(litter.northTwigs.items.every(it=>it.z<-15)&&litter.northTwigs.items.some(it=>it.z<-56),'north twigs lie north of the plaza, some past the arch');
+    const sample=newSample();for(const it of litter.northTwigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'north twigs never lie on the paving');}
+    assert.equal(litter.count,litter.leaves.count+litter.northLeaves.count+litter.twigs.count+litter.northTwigs.count+litter.roots.count,'every litter piece audited once');}
   assert.deepEqual(litter.leaves.packLayout[0],[[0,1,2,3]],'ultra leaves in one draw');assert.deepEqual(litter.leaves.packLayout[1],[[0],[1],[2],[3]],'near leaves per variant');
   for(const [ultra,near,far] of litter.leaves.opts.variants){assert.equal(near.index.count/3,14);assert.equal(far.index.count/3,2,'far leaf: the two-triangle fold');
     assert.ok(ultra.index.count/3>=28&&ultra.index.count/3<=130,`ultra leaf ${ultra.index.count/3} triangles`);

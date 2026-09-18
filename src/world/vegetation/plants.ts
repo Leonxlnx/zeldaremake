@@ -184,10 +184,18 @@ const PACKS: Record<string, PackLayout> = {
   // round-9 LODs keep the default single pack they always had
   // the six variants (three + their mirrors, interleaved): the originals in one pack and the mirrors in
   // another at the round-9 LODs — the same triangles an instance ever submitted, one draw more a LOD
+  // (packing all six at the far LOD would save that draw for twice its triangles: +6.5 K on camera
+  // C, which the moss savings only just bring back under its 2.07 M)
   bushes: [SINGLE(6), [[0, 2, 4], [1, 3, 5]], [[0, 2, 4], [1, 3, 5]], [[0, 2, 4], [1, 3, 5]]],
-  // round 44: the mid cushion (≈ 300 triangles a variant, 3–10 m) draws one variant a draw —
-  // packed, every cushion in the ring would submit both variants; the ultra and far tiers keep the pack
-  moss: [ALL(2), SINGLE(2), ALL(2)],
+  // round 44: the mid cushion (≈ 290 triangles a variant, 3–8 m) and the far dome draw one variant a
+  // draw — packed, every cushion submitted both variants (the far dome: 90 triangles a 3 px cushion,
+  // 69 K from camera A); the ultra tier keeps its pack
+  moss: [ALL(2), SINGLE(2), SINGLE(2)],
+  // the north corridor's fern / broad-leaf sets: the fixed cameras frame a handful of their far LODs
+  // 20–30 m off (camera D: 3 fronds, 11 rosettes) — packed there, one draw a LOD instead of 2–3; the
+  // near fronds, which only the walk sees, stay one variant a draw like the disc ferns'
+  'ferns-north': [SINGLE(4), ALL(4), ALL(4)],
+  'weeds-north': [ALL(3), ALL(3), ALL(3)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
   // 360 triangles a bud, 123 K for the 340 buds 14–24 m from camera A; per variant 41 K, two draws
@@ -3005,8 +3013,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // The ferns and broad leaves go to their own sets — the disc sets' geometry, materials and LODs,
   // ending at NORTH_PLANT_MAX_M: the disc sets draw their far LODs at any range, and 800 fronds
   // 40–80 m north of camera D (in its frustum, behind the haze) would cost it 0.3 M triangles.
-  const fernsNorth = new LodInstancedSet({ name: 'ferns-north', variants: ferns.opts.variants, material: ferns.opts.material, shadowMaterials: ferns.opts.shadowMaterials, lodDistances: ferns.opts.lodDistances, maxDistance: NORTH_PLANT_MAX_M * q.distance, castShadowLods: 1, packs: PACKS.ferns });
-  const weedsNorth = new LodInstancedSet({ name: 'weeds-north', variants: weeds.opts.variants, material: weeds.opts.material, lodDistances: weeds.opts.lodDistances, maxDistance: NORTH_PLANT_MAX_M * q.distance, castShadowLods: 0, nearLods: 1, packs: PACKS.weeds });
+  const fernsNorth = new LodInstancedSet({ name: 'ferns-north', variants: ferns.opts.variants, material: ferns.opts.material, shadowMaterials: ferns.opts.shadowMaterials, lodDistances: ferns.opts.lodDistances, maxDistance: NORTH_PLANT_MAX_M * q.distance, castShadowLods: 1, packs: PACKS['ferns-north'] });
+  const weedsNorth = new LodInstancedSet({ name: 'weeds-north', variants: weeds.opts.variants, material: weeds.opts.material, lodDistances: weeds.opts.lodDistances, maxDistance: NORTH_PLANT_MAX_M * q.distance, castShadowLods: 0, nearLods: 1, packs: PACKS['weeds-north'] });
   {
     const R = ctx.config.detailRadius;
     const box = field.corridorBox();
