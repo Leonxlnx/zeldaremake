@@ -180,8 +180,9 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
               const damp = smoothstep(0.3, 0.0, above(t));
               const mossy = smoothstep(0.12, 0.0, above(t)) * (0.3 + 0.4 * (1 - g));
               const r0 = (shade + grey * 0.3) * up * line * (1 - 0.3 * damp);
-              const g0 = (shade * 0.95 + grey * 0.35) * up * line * (1 - 0.26 * damp);
-              const b0 = (shade * 0.86 + grey * 0.5) * up * line * (1 - 0.28 * damp + 0.08 * g);
+              // round 46: a step greyer with the rails (G 0.95 → 0.97, B 0.86 → 0.92)
+              const g0 = (shade * 0.97 + grey * 0.35) * up * line * (1 - 0.26 * damp);
+              const b0 = (shade * 0.92 + grey * 0.5) * up * line * (1 - 0.28 * damp + 0.08 * g);
               return [lerp(r0, 0.2, mossy), lerp(g0, 0.25, mossy), lerp(b0, 0.06, mossy)];
             },
           });
@@ -354,7 +355,9 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
             const g = woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh);
             const fib = woodFibre(noise, t * len, ang, 10, i * 1.7 + rh);
             const line = lerp(0.5, 1.3, g) * lerp(0.9, 1.1, fib);
-            return [shade * line, shade * 0.94 * line, shade * 0.84 * line * (1 + 0.08 * g)];
+            // round 46: silvered a step further (B 0.84 → 0.9, G 0.94 → 0.96) — the plateau
+            // rails measured sat 0.40 in round 45 against the frames' weathered wood at ≈ 0.2–0.3
+            return [shade * line, shade * 0.96 * line, shade * 0.9 * line * (1 + 0.08 * g)];
           },
           capEnd: true,
           capStart: true,

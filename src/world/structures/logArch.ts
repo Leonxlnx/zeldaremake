@@ -17,7 +17,7 @@ import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, F
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
-import { TAU, angleDiff, basisMatrix, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
+import { TAU, basisMatrix, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
 import { FAR_HALO_EAST_SCALE, Noise3D, type StructureMaterials } from './materials';
@@ -70,12 +70,6 @@ export interface LogArchBuild {
     /** the near-detail LOD: its centre and the camera distance beyond which it is dropped (m) */
     nearLod: { centre: [number, number, number]; dropBeyondM: number };
   };
-}
-
-interface Spike {
-  psi: number;
-  width: number;
-  length: number;
 }
 
 export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LogArchBuild {
@@ -133,39 +127,73 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     return out.copy(f.r).multiplyScalar(Math.cos(psi)).addScaledVector(f.u, Math.sin(psi)).normalize();
   };
 
-  // ---- broken ends: oblique cut (west end faces south-west toward shot D) + splinter spikes ----
-  const spikeRng = rng.fork('spikes');
-  const makeSpikes = (n: number, maxLen: number): Spike[] => {
-    const out: Spike[] = [];
-    for (let i = 0; i < n; i++) out.push({ psi: (i / n) * TAU + spikeRng() * (TAU / n) * 0.8, width: 0.12 + spikeRng() * 0.26, length: 0.5 + spikeRng() * maxLen });
+  // ---- broken ends: oblique cut (west end faces south-west toward shot D) + torn bark plates ----
+  /**
+   * Round 46 (structures-29, survey-2 #12 — crops survey2-12-arch-*, poses w20/w19-spine-r,
+   * w18-spine-f): round 44's plateau spikes were still a SAWTOOTH — 11 (6) bundles of near-equal
+   * width at near-equal spacing, so from under the rim the end grain read as a zig-zag of equal
+   * tan triangles. A torn trunk's rim is BARK PLATES: the circumference is cut into plates of
+   * IRREGULAR width (0.2–1.0 × the mean, skewed narrow), each standing out its own length from
+   * one of three populations (a quarter long fibre bundles at 0.6–1 × the reach, most of the
+   * rest mid plates at 0.2–0.55, a third short stubs) with its tip TILTED across its width (the
+   * break ran obliquely through the plate, ± 45 % of its length edge to edge), torn down
+   * near-vertically at both edges into a fissure (the 12 cm edge zones fall to 15 %), and the
+   * tips frayed with finger-width FIBRES (a ridged term at ≈ 6 / m round the rim, ± 6–16 cm, the
+   * longer plates fraying more) and a fine 13 / m tremble. The mean reach is held near the
+   * round-44 profile's (≈ 0.7 m against 0.55 on the west break) so the mass D sees at 51 m is
+   * the same within a few px; the same `sEndW` / `sEndE` drive the outer shell, the hollow, the
+   * end-grain annulus and the splinters, so the tear is one shape everywhere. Own fork.
+   */
+  interface Plate {
+    psi0: number;
+    width: number;
+    len: number;
+    tilt: number;
+    fray: number;
+  }
+  const rimRng = rng.fork('plates46');
+  const makePlates = (n: number, reach: number): Plate[] => {
+    const ws: number[] = [];
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const x = 0.2 + Math.pow(rimRng(), 1.5) * 0.8;
+      ws.push(x);
+      sum += x;
+    }
+    const out: Plate[] = [];
+    let a = rimRng() * TAU;
+    for (let i = 0; i < n; i++) {
+      const width = (ws[i] / sum) * TAU;
+      const kind = rimRng();
+      const len = kind < 0.25 ? reach * (0.6 + 0.4 * rimRng()) : kind < 0.68 ? reach * (0.2 + 0.35 * rimRng()) : reach * (0.03 + 0.12 * rimRng());
+      out.push({ psi0: a, width, len, tilt: (rimRng() - 0.5) * 0.9, fray: 0.5 + rimRng() });
+      a += width;
+    }
     return out;
   };
-  // the west (shot D) end is the hero break: many long, narrow splinters make a jagged rim
-  const spikesW = makeSpikes(11, 1.9);
-  const spikesE = makeSpikes(6, 1.3);
-  /**
-   * Round 44 (structures-28): a BROKEN-WOOD rim, not a saw of triangles. Survey-1 crop 06: the
-   * pow(1 − d, 1.4) spikes read as flat tan triangles from the path. A torn trunk breaks in
-   * CHUNKS — fibre bundles that hold their full length across most of their width and fail
-   * steeply at the sides (a plateau profile, `smoothstep(1, 0.5, d)`), their tips ragged with
-   * finger-width FIBRES (a ridged term at ≈ 12 cm round the rim, ± 0.16 m) and a slow wobble.
-   * The plateau carries ≈ 1.8× the pointed profile's area at the same width, so the widths are
-   * held at 0.55× (the same rng draws) — the mass D sees at the west break is the round-21 one
-   * within a few px, and the lengths are unchanged so its reach is too.
-   */
-  const spikeAmount = (psi: number, spikes: Spike[], end: number) => {
-    let a = 0;
-    for (const sp of spikes) {
-      const d = Math.abs(angleDiff(psi, sp.psi)) / (sp.width * 0.55);
-      if (d < 1) a += sp.length * smoothstep(1, 0.5, d) * (0.92 + 0.08 * Math.cos(d * 7));
-    }
+  const platesW = makePlates(14, 2.1);
+  const platesE = makePlates(9, 1.4);
+  const plateAmount = (psi: number, plates: Plate[], end: number) => {
     const arc = psi * R;
-    return a + 0.16 * (noise.ridged(arc * 3.2 + 13 + end * 7, 0.7 + end, 2) - 0.5) + 0.05 * noise.noise(arc * 7.5 + end * 3, 2.2);
+    for (const p of plates) {
+      let d = psi - p.psi0;
+      d -= Math.floor(d / TAU) * TAU;
+      if (d >= p.width) continue;
+      const x = d / p.width;
+      const e = 0.035 / p.width;
+      const edge = smoothstep(0, e, x) * smoothstep(1, 1 - e, x);
+      const top = p.len * (1 + p.tilt * (x - 0.5) * 2);
+      let a = top * (0.15 + 0.85 * edge);
+      a += p.fray * (0.06 + 0.1 * smoothstep(0.3, 1.2, p.len)) * (noise.ridged(arc * 6 + end * 11, 0.5 + end, 2) - 0.5) * 2;
+      a += 0.04 * noise.noise(arc * 13 + end * 5, 3.3);
+      return Math.max(0, a);
+    }
+    return 0;
   };
   // west end: strongly oblique (the south lip is ~3.4 m shorter than the north) so the hollow
   // opens toward the path and shot D
-  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - spikeAmount(psi, spikesW, 0) + 0.3 * noise.noise(psi * 3, 1.5);
-  const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + spikeAmount(psi, spikesE, 1) + 0.25 * noise.noise(psi * 3, 8.5);
+  const sEndW = (psi: number) => -L / 2 - 1.7 * (1 - Math.cos(psi)) - plateAmount(psi, platesW, 0) + 0.3 * noise.noise(psi * 3, 1.5);
+  const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + plateAmount(psi, platesE, 1) + 0.25 * noise.noise(psi * 3, 8.5);
 
   // ---- radius model: bulges along the length, bark ridges along the axis, moss cushions on top ----
   const rBase = (psi: number, s: number) => {
@@ -204,8 +232,31 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const fissure = Math.pow(1 - Math.abs(noise.noise(arc * 0.8 + 31 + twist * 0.5, s * 0.07)), 9);
     const lumps = noise.fbm(arc * 0.32, s * 0.28, 3);
     const fine = noise.noise(arc * 2.6, s * 2.6);
-    const plates = smoothstep(0.1, 0.5, noise.noise(arc * 0.9 + 51, s * 0.45));
-    return (ridge - 0.5) * 0.75 + (ridge2 - 0.5) * 0.2 - furrow * 0.4 - fissure * 0.6 + lumps * 0.25 + fine * 0.03 + plates * 0.12;
+    // round 46: the plates' edges are steps (0.08–0.28 of the field, was 0.1–0.5) and a second,
+    // half-metre plate set sits on them, so the body is plated rather than bulged (see `plateAt`)
+    const plates = smoothstep(0.08, 0.28, noise.noise(arc * 0.9 + 51, s * 0.45));
+    const plates2 = smoothstep(0.2, 0.4, noise.noise(arc * 1.7 + 83, s * 0.8));
+    return (ridge - 0.5) * 0.75 + (ridge2 - 0.5) * 0.2 - furrow * 0.4 - fissure * 0.6 + lumps * 0.25 + fine * 0.03 + plates * 0.14 + plates2 * 0.05;
+  };
+  /**
+   * Round 46 (structures-29, survey-2 #14 — crop survey2-check-08, pose w18-spine-f): at 10–20 m
+   * the belly still read as a smooth clay plank. The shaded body's baked occlusion follows the
+   * ridged crests (sharp lines a vertex wide) and the metre-scale furrows and lumps (smooth
+   * gradients), so under the belly's × 0.42 and the haze's veil nothing at the half-metre to
+   * metre scale was left to see. The MID-SCALE PLATES carry it now: the same two plate fields as
+   * the relief, as an area contrast — the plates' faces lifted (× 1.45), the older bark between
+   * them dropped (× 0.55), the seam round each plate's edge a grime line (× 0.6) — weighted to the
+   * belly and the lower flanks (the crown is moss). The area terms hold their contrast through
+   * the veil where the line terms could not; the mean of the belly is held by the belly floor
+   * (0.42 → 0.48).
+   */
+  const plateAt = (psi: number, s: number) => {
+    const arc = psi * R;
+    const n1 = noise.noise(arc * 0.9 + 51, s * 0.45);
+    const n2 = noise.noise(arc * 1.7 + 83, s * 0.8);
+    const face = 0.65 * smoothstep(0.08, 0.28, n1) + 0.35 * smoothstep(0.2, 0.4, n2);
+    const seam = smoothstep(0.3, 0.1, n1) * smoothstep(-0.14, -0.02, n1);
+    return lerp(0.55, 1.45, face) * (1 - 0.4 * seam);
   };
   /**
    * Round 41 (structures-26): the CLOSE-SCALE bark — what the player sees from the path 2–6 m
@@ -257,8 +308,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // the underside and the shaded lower flanks get no sky: bake the occlusion so the belly of
     // the arch stays dark in the flat ambient light of the hollow (reference: the mass under
     // the crown reads ≈ 0.63 of the haze luminance)
-    const belly = lerp(0.42, 1, smoothstep(-0.95, 0.35, up));
-    const shade = ao * vari * belly;
+    const belly = lerp(0.48, 1, smoothstep(-0.95, 0.35, up));
+    // round 46: the plates' area contrast on the shaded body (`plateAt`), fading out over the crown
+    const plated = lerp(plateAt(psi, s), 1, smoothstep(-0.1, 0.45, up));
+    const shade = ao * vari * belly * plated;
     // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest).
     // Round 21: ×0.78 — D's arch mass rendered p50 0.481 against the reference's 0.404 with the
     // surrounding haze at ≈ 0.5: the body has to be darker under the veil to read as a mass
@@ -379,7 +432,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         surfacePoint(psi, s + tear, lerp(rOut, rIn, v), out.position);
         // the end-grain map's rings run across v (materials.ts `endGrain`: v 0 the bark side)
         out.uv = [(psi * R) / 1.5, v];
-        const d = lerp(0.62, 0.34, v) * (0.85 + 0.3 * noise.noise(psi * 6, v * 3 + end * 5));
+        // round 46: the long-standing plates are fresh splits (paler), the stubs weathered
+        // (darker), and finger-width fibre streaks run across the grain face
+        const reach = plateAmount(psi, end === 0 ? platesW : platesE, end);
+        const fresh = lerp(0.82, 1.18, smoothstep(0.15, 1.3, reach));
+        const streak = 1 + 0.12 * noise.noise(psi * 40 + end * 3, v * 2 + 1);
+        const d = lerp(0.62, 0.34, v) * (0.85 + 0.3 * noise.noise(psi * 6, v * 3 + end * 5)) * fresh * streak;
         out.color = [d, d * 0.8, d * 0.62];
       },
       { cols: 168, rows: 5, closedU: true },

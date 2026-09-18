@@ -192,8 +192,10 @@ export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, t
  * fresh-cut post where the owner's props sheet (06-props-signs-and-lanterns) and the fence frames
  * have silvered, weathered wood (sat ≈ 0.2–0.3). `chroma` 0.6 keeps the grain (texture 1) and
  * takes 40 % of the floor's colour to its luminance; the sunlit faces are the material's own.
+ * Round 46 (structures-29): the residual warmth (the plateau rails at sat 0.40 in round 45's
+ * handoff) — chroma 0.5 with the rails' and posts' own tints a step greyer (fence.ts).
  */
-export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1, chroma: 0.6 };
+export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1, chroma: 0.5 };
 /**
  * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
  * (survey-1 crop 26 / w31-house-d). Textured, at the stone's own mean albedo (0.28), the leaf
